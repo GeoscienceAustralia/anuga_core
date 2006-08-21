@@ -37,7 +37,7 @@ domain.set_quantity('friction', 0.1)
 
 #Write file
 import os, time
-from config import time_format
+from anuga.config import time_format
 from math import sin, pi
 
 finaltime = 100
@@ -56,7 +56,7 @@ fid.close()
 
 
 #Convert ASCII file to NetCDF (Which is what we really like!)
-from data_manager import timefile2swww        
+from anuga.pyvolution.data_manager import timefile2swww        
 timefile2swww(filename, quantity_names = domain.conserved_quantities)
 
 

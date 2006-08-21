@@ -7,14 +7,14 @@ import os
 import time
 import csv
 
-#from damage.inundation_damage import _calc_collapse_structures
-from damage.inundation_damage import *
-from geospatial_data.geospatial_data import Geospatial_data
-from pmesh.mesh import Mesh
-from coordinate_transforms.geo_reference import Geo_reference
-from pyvolution.shallow_water import Domain, Transmissive_boundary
-from utilities.numerical_tools import mean
-from data_manager import get_dataobject
+#from anuga.damage.inundation_damage import _calc_collapse_structures
+from anuga.damage.inundation_damage import *
+from anuga.geospatial_data.geospatial_data import Geospatial_data
+from anuga.pmesh.mesh import Mesh
+from anuga.coordinate_transforms.geo_reference import Geo_reference
+from anuga.pyvolution.shallow_water import Domain, Transmissive_boundary
+from anuga.utilities.numerical_tools import mean
+from anuga.pyvolution.data_manager import get_dataobject
 
 from Numeric import zeros, Float, allclose
 

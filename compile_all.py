@@ -2,7 +2,9 @@ import os
 
 buildroot = os.getcwd()
 
-os.chdir('inundation')
+os.chdir('source')
+
+os.chdir('anuga')
 
 #Complete horrible hack to decide which branch to take (Ole)
 #try:

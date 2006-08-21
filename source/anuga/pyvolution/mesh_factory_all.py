@@ -17,7 +17,7 @@ def rectangular_old(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
     FVMesh object, e.g. Mesh(points, elements)
     """
 
-    from config import epsilon
+    from anuga.config import epsilon
 
     #E = m*n*2        #Number of triangular elements
     #P = (m+1)*(n+1)  #Number of initial vertices
@@ -75,7 +75,7 @@ def rectangular(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
     FVMesh object, e.g. Mesh(points, elements)
     """
 
-    from config import epsilon
+    from anuga.config import epsilon
     from Numeric import zeros, Float, Int
 
     delta1 = float(len1)/m
@@ -144,7 +144,7 @@ def oblique(m, n, lenx = 1.0, leny = 1.0, theta = 8.95, origin = (0.0, 0.0)):
     from Numeric import array
     import math
 
-    from config import epsilon
+    from anuga.config import epsilon
 
 
     deltax = lenx/float(m)
@@ -214,7 +214,7 @@ def contracting_channel(m, n, W_upstream = 1., W_downstream = 0.75,
     from Numeric import array
     import math
 
-    from config import epsilon
+    from anuga.config import epsilon
 
 
     lenx = L_1 + L_2 + L_3
@@ -350,7 +350,7 @@ def from_polyfile(name):
     listing first vertex coordinates and then connectivity
     """
 
-    from util import anglediff
+    from anuga.pyvolution.util import anglediff
     from math import pi
     import os.path
     root, ext = os.path.splitext(name)
@@ -465,7 +465,7 @@ def strang_mesh(filename):
     """
 
     from math import pi
-    from util import anglediff
+    from anuga.pyvolution.util import anglediff
 
 
     fid = open(filename)

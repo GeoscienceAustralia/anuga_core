@@ -12,7 +12,7 @@ import visualmesh
 import os
 import profile
 import load_mesh.loadASCII
-from alpha_shape.alpha_shape import AlphaError
+from anuga.alpha_shape.alpha_shape import AlphaError
 
 # CONSTANTS 
 VERT_SELECT_ADDING_SEG_COLOR = 'orange'
@@ -499,7 +499,7 @@ class Draw(AppShell.AppShell):
         """
         
         
-        from coordinate_transforms.geo_reference import Geo_reference,DEFAULT_ZONE
+        from anuga.coordinate_transforms.geo_reference import Geo_reference,DEFAULT_ZONE
         offset_x = 30
         offset_y = 40
 

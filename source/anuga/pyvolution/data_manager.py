@@ -64,8 +64,8 @@ from Numeric import concatenate, array, Float, Int, Int32, resize, sometrue, \
      searchsorted, zeros, allclose, around
 
 
-from coordinate_transforms.geo_reference import Geo_reference
-from geospatial_data.geospatial_data import Geospatial_data
+from anuga.coordinate_transforms.geo_reference import Geo_reference
+from anuga.geospatial_data.geospatial_data import Geospatial_data
 
 
 def make_filename(s):
@@ -162,7 +162,7 @@ def del_dir(path):
 def create_filename(datadir, filename, format, size=None, time=None):
 
     import os
-    #from config import data_dir
+    #from anuga.config import data_dir
 
     FN = check_dir(datadir) + filename
 
@@ -183,7 +183,7 @@ def get_files(datadir, filename, format, size):
     import glob
 
     import os
-    #from config import data_dir
+    #from anuga.config import data_dir
 
     dir = check_dir(datadir)
 
@@ -259,7 +259,7 @@ class Data_format_sww(Data_format):
 
             #Create new file
             fid.institution = 'Geoscience Australia'
-            fid.description = 'Output from pyvolution suitable for plotting'
+            fid.description = 'Output from anuga.pyvolution suitable for plotting'
 
             if domain.smooth:
                 fid.smoothing = 'Yes'
@@ -1056,7 +1056,7 @@ def dat2obj(basefilename):
     """
 
     import glob, os
-    from config import data_dir
+    from anuga.config import data_dir
 
 
     #Get bathymetry and x,y's
@@ -1293,7 +1293,7 @@ def write_ptsfile(ptsname, points, attribute, attribute_name = None,
 
 
     #Georeferencing
-    from coordinate_transforms.geo_reference import Geo_reference
+    from anuga.coordinate_transforms.geo_reference import Geo_reference
     if zone is None:
         assert xllcorner is None, 'xllcorner must be None'
         assert yllcorner is None, 'yllcorner must be None'
@@ -1817,8 +1817,8 @@ def sww2dem(basename_in, basename_out = None,
     from Numeric import array, Float, concatenate, NewAxis, zeros, reshape, sometrue
     from Numeric import array2string
 
-    from utilities.polygon import inside_polygon, outside_polygon, separate_points_by_polygon
-    from util import apply_expression_to_dictionary
+    from anuga.utilities.polygon import inside_polygon, outside_polygon, separate_points_by_polygon
+    from anuga.pyvolution.util import apply_expression_to_dictionary
 
     msg = 'Format must be either asc or ers'
     assert format.lower() in ['asc', 'ers'], msg
@@ -1997,7 +1997,7 @@ def sww2dem(basename_in, basename_out = None,
 
     #Interpolate
     #from least_squares import Interpolation
-    from fit_interpolate.interpolate import Interpolate
+    from anuga.fit_interpolate.interpolate import Interpolate
 
 
     interp = Interpolate(vertex_points, volumes, verbose = verbose)
@@ -2182,10 +2182,10 @@ def sww2pts(basename_in, basename_out=None,
     from Numeric import array, Float, concatenate, NewAxis, zeros, reshape, sometrue
     from Numeric import array2string
 
-    from utilities.polygon import inside_polygon, outside_polygon, separate_points_by_polygon
-    from util import apply_expression_to_dictionary
+    from anuga.utilities.polygon import inside_polygon, outside_polygon, separate_points_by_polygon
+    from anuga.pyvolution.util import apply_expression_to_dictionary
 
-    from geospatial_data import Geospatial_data
+    from anuga.geospatial_data.geospatial_data import Geospatial_data
 
     if quantity is None:
         quantity = 'elevation'
@@ -2297,7 +2297,7 @@ def sww2pts(basename_in, basename_out=None,
     assert len(vertex_points.shape) == 2
 
     # Interpolate
-    from fit_interpolate.interpolate import Interpolate
+    from anuga.fit_interpolate.interpolate import Interpolate
     interp = Interpolate(vertex_points, volumes, verbose = verbose)
 
     # Interpolate using quantity values
@@ -2869,7 +2869,7 @@ def ferret2sww(basename_in, basename_out = None,
 
 
     #Store
-    from coordinate_transforms.redfearn import redfearn
+    from anuga.coordinate_transforms.redfearn import redfearn
     x = zeros(number_of_points, Float)  #Easting
     y = zeros(number_of_points, Float)  #Northing
 
@@ -3019,8 +3019,8 @@ def timefile2netcdf(filename, quantity_names = None):
 
     import time, calendar
     from Numeric import array
-    from config import time_format
-    from utilities.numerical_tools import ensure_numeric
+    from anuga.config import time_format
+    from anuga.utilities.numerical_tools import ensure_numeric
 
 
 
@@ -3055,7 +3055,7 @@ def timefile2netcdf(filename, quantity_names = None):
 
     #Read times proper
     from Numeric import zeros, Float, alltrue
-    from config import time_format
+    from anuga.config import time_format
     import time, calendar
 
     fid = open(filename + '.txt')
@@ -3541,9 +3541,9 @@ def tsh2sww(filename, verbose=False): #test_tsh2sww
     from shallow_water import Domain
     from pmesh2domain import pmesh_to_domain_instance
     import time, os
-    from data_manager import get_dataobject
+    from anuga.pyvolution.data_manager import get_dataobject
     from os import sep, path
-    from utilities.numerical_tools import mean
+    from anuga.utilities.numerical_tools import mean
 
     if verbose == True:print 'Creating domain from', filename
     domain = pmesh_to_domain_instance(filename, Domain)
@@ -3604,7 +3604,7 @@ def asc_csiro2sww(bath_dir,
     """
     from Scientific.IO.NetCDF import NetCDFFile
 
-    from coordinate_transforms.redfearn import redfearn
+    from anuga.coordinate_transforms.redfearn import redfearn
 
     precision = Float # So if we want to change the precision its done here
 
@@ -3756,7 +3756,7 @@ def asc_csiro2sww(bath_dir,
                             'number_of_points'))
 
     #Store
-    from coordinate_transforms.redfearn import redfearn
+    from anuga.coordinate_transforms.redfearn import redfearn
     x = zeros(number_of_points, Float)  #Easting
     y = zeros(number_of_points, Float)  #Northing
 

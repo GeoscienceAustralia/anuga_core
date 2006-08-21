@@ -5,7 +5,7 @@ sys.path.append('..'+sep+'pyvolution')
 import unittest
 from math import sqrt, pi
 
-from config import g, epsilon
+from anuga.config import g, epsilon
 from Numeric import allclose, array, zeros, ones, Float
 from advection import *
 

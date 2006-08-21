@@ -6,11 +6,11 @@ from Numeric import zeros, array, allclose, Float
 from math import sqrt, pi
 import tempfile
 
-from util import *
-from config import epsilon
-from data_manager import timefile2netcdf
+from anuga.pyvolution.util import *
+from anuga.config import epsilon
+from anuga.pyvolution.data_manager import timefile2netcdf
 
-from utilities.numerical_tools import NAN
+from anuga.utilities.numerical_tools import NAN
 
 def test_function(x, y):
     return x+y
@@ -27,7 +27,7 @@ class Test_Util(unittest.TestCase):
 
     #Geometric
     #def test_distance(self):
-    #    from util import distance#
+    #    from anuga.pyvolution.util import distance#
     #
     #    self.failUnless( distance([4,2],[7,6]) == 5.0,
     #                     'Distance is wrong!')
@@ -47,7 +47,7 @@ class Test_Util(unittest.TestCase):
 
         #Write file
         import os, time
-        from config import time_format
+        from anuga.config import time_format
         from math import sin, pi
 
         #Typical ASCII file
@@ -120,7 +120,7 @@ class Test_Util(unittest.TestCase):
         points, vertices, boundary = rectangular(3, 3)
         domain1 = Domain(points, vertices, boundary)
 
-        from utilities.numerical_tools import mean
+        from anuga.utilities.numerical_tools import mean
         domain1.reduction = mean
         domain1.smooth = True #NOTE: Mimic sww output where each vertex has
                               # only one value.
@@ -318,7 +318,7 @@ class Test_Util(unittest.TestCase):
         from Numeric import take, concatenate, reshape
 
 
-        from coordinate_transforms.geo_reference import Geo_reference
+        from anuga.coordinate_transforms.geo_reference import Geo_reference
         xllcorner = 2048
         yllcorner = 11000
         zone = 2
@@ -330,7 +330,7 @@ class Test_Util(unittest.TestCase):
                                                        yllcorner = yllcorner))
         
 
-        from utilities.numerical_tools import mean	
+        from anuga.utilities.numerical_tools import mean	
         domain1.reduction = mean
         domain1.smooth = True #NOTE: Mimic sww output where each vertex has
                               # only one value.
@@ -530,11 +530,11 @@ class Test_Util(unittest.TestCase):
         #NOTE: Nice test that may render some of the others redundant.
 
         import os, time
-        from config import time_format
+        from anuga.config import time_format
         from Numeric import sin, pi, exp
         from mesh_factory import rectangular
         from shallow_water import Domain
-        import data_manager
+        import anuga.pyvolution.data_manager
 
         finaltime = 1200
         filename = 'test_file_function'
@@ -690,12 +690,12 @@ class Test_Util(unittest.TestCase):
         # When some points are outside the mesh
 
         import os, time
-        from config import time_format
+        from anuga.config import time_format
         from Numeric import sin, pi, exp
         from mesh_factory import rectangular
         from shallow_water import Domain
-        import data_manager 
-        from pmesh.mesh_interface import create_mesh_from_regions
+        import anuga.pyvolution.data_manager 
+        from anuga.pmesh.mesh_interface import create_mesh_from_regions
         finaltime = 1200
         
         filename = tempfile.mktemp()
@@ -908,7 +908,7 @@ class Test_Util(unittest.TestCase):
 
         #Write file
         import os, time, calendar
-        from config import time_format
+        from anuga.config import time_format
         from math import sin, pi
         from domain import Domain
 
@@ -1000,7 +1000,7 @@ class Test_Util(unittest.TestCase):
 
         #Write file
         import os, time, calendar
-        from config import time_format
+        from anuga.config import time_format
         from math import sin, pi
         from domain import Domain
 

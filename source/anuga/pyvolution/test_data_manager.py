@@ -4,17 +4,19 @@
 import unittest
 import copy
 from Numeric import zeros, array, allclose, Float
-from utilities.numerical_tools import mean
+from anuga.utilities.numerical_tools import mean
 import tempfile
 import os
 from Scientific.IO.NetCDF import NetCDFFile
 
-from pyvolution.data_manager import *
-from pyvolution.shallow_water import *
-from config import epsilon
-import pyvolution.data_manager
+from anuga.pyvolution.data_manager import *
+from anuga.pyvolution.shallow_water import *
+from anuga.config import epsilon
 
-from coordinate_transforms.geo_reference import Geo_reference
+# This is needed to run the tests of local functions
+import anuga.pyvolution.data_manager
+
+from anuga.coordinate_transforms.geo_reference import Geo_reference
 
 class Test_Data_Manager(unittest.TestCase):
     def setUp(self):
@@ -2054,7 +2056,7 @@ END CROSS-SECTIONS:
         import time, os
         from Numeric import array, zeros, allclose, Float, concatenate, NewAxis
         from Scientific.IO.NetCDF import NetCDFFile
-        from geospatial_data import Geospatial_data
+        from anuga.geospatial_data.geospatial_data import Geospatial_data
 
         # Used for points that lie outside mesh
         NODATA_value = 1758323
@@ -2152,7 +2154,7 @@ END CROSS-SECTIONS:
 
 
         #Read
-        from coordinate_transforms.redfearn import redfearn
+        from anuga.coordinate_transforms.redfearn import redfearn
         #fid = NetCDFFile(self.test_MOST_file)
         fid = NetCDFFile(self.test_MOST_file + '_ha.nc')
         first_value = fid.variables['HA'][:][0,0,0]
@@ -2215,7 +2217,7 @@ END CROSS-SECTIONS:
         # Fourth value (index==3) is -6.50198 cm
 
 
-        from coordinate_transforms.redfearn import redfearn
+        from anuga.coordinate_transforms.redfearn import redfearn
 
         #fid = NetCDFFile('small_ha.nc')
         fid = NetCDFFile(self.test_MOST_file + '_ha.nc')
@@ -2283,7 +2285,7 @@ END CROSS-SECTIONS:
         # First value (index=0) in small_ha.nc is 0.3400644 cm,
         # Fourth value (index==3) is -6.50198 cm
 
-        from coordinate_transforms.redfearn import redfearn
+        from anuga.coordinate_transforms.redfearn import redfearn
         import os
         fid1 = NetCDFFile('test_ha.nc','w')
         fid2 = NetCDFFile('test_ua.nc','w')
@@ -2443,7 +2445,7 @@ END CROSS-SECTIONS:
         # First value (index=0) in small_ha.nc is 0.3400644 cm,
         # Fourth value (index==3) is -6.50198 cm
 
-        from coordinate_transforms.redfearn import redfearn
+        from anuga.coordinate_transforms.redfearn import redfearn
         import os
         fid1 = NetCDFFile('test_ha.nc','w')
         fid2 = NetCDFFile('test_ua.nc','w')
@@ -2590,7 +2592,7 @@ END CROSS-SECTIONS:
 
     def test_ferret2sww_nz_origin(self):
         from Scientific.IO.NetCDF import NetCDFFile
-        from coordinate_transforms.redfearn import redfearn
+        from anuga.coordinate_transforms.redfearn import redfearn
 
         #Call conversion (with nonzero origin)
         ferret2sww(self.test_MOST_file, verbose=False,
@@ -2713,7 +2715,7 @@ END CROSS-SECTIONS:
         ##########################################
         #Import the example's file as a new domain
         ##########################################
-        from data_manager import sww2domain
+        from anuga.pyvolution.data_manager import sww2domain
         from Numeric import allclose
         import os
 
@@ -2857,7 +2859,7 @@ END CROSS-SECTIONS:
         ##################################
 	#Import the file as a new domain
         ##################################
-	from data_manager import sww2domain
+	from anuga.pyvolution.data_manager import sww2domain
 	from Numeric import allclose
         import os
 
@@ -2895,7 +2897,7 @@ END CROSS-SECTIONS:
 
 
     #def test_weed(self):
-	from data_manager import weed
+	from anuga.pyvolution.data_manager import weed
 
         coordinates1 = [[0.,0.],[1.,0.],[1.,1.],[1.,0.],[2.,0.],[1.,1.]]
         volumes1 = [[0,1,2],[3,4,5]]
@@ -2968,7 +2970,7 @@ END CROSS-SECTIONS:
 	##########################################
 	#Import the example's file as a new domain
 	##########################################
-	from data_manager import sww2domain
+	from anuga.pyvolution.data_manager import sww2domain
 	from Numeric import allclose
         import os
 
@@ -3269,7 +3271,7 @@ END CROSS-SECTIONS:
         from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
-        import data_manager
+        from anuga.pyvolution.data_manager import _read_asc
         #Write test asc file
         filename = tempfile.mktemp(".000")
         fid = open(filename, 'w')
@@ -3285,8 +3287,7 @@ NODATA_value  -9999
    502.645   516.230   504.739   450.604   388.500   338.097   514.980
 """)
         fid.close()
-        bath_metadata, grid = \
-                   data_manager._read_asc(filename, verbose=False)
+        bath_metadata, grid = _read_asc(filename, verbose=False)
         self.failUnless(bath_metadata['xllcorner']  == 2000.5,  'Failed')
         self.failUnless(bath_metadata['yllcorner']  == 3000.5,  'Failed')
         self.failUnless(bath_metadata['cellsize']  == 25,  'Failed')
@@ -3985,7 +3986,7 @@ NODATA_value  -9999
 
         # k - lat
         # l - lon
-        kmin, kmax, lmin, lmax = pyvolution.data_manager._get_min_max_indexes(
+        kmin, kmax, lmin, lmax = anuga.pyvolution.data_manager._get_min_max_indexes(
             latitudes,longitudes,
             -10,4,-10,31)
 
@@ -4000,7 +4001,7 @@ NODATA_value  -9999
                          'failed')
 
         ## 2nd test
-        kmin, kmax, lmin, lmax = pyvolution.data_manager._get_min_max_indexes(
+        kmin, kmax, lmin, lmax = anuga.pyvolution.data_manager._get_min_max_indexes(
             latitudes,longitudes,
             0.5,2.5,5,25)
         #print "kmin",kmin;print "kmax",kmax
@@ -4015,7 +4016,7 @@ NODATA_value  -9999
                          'failed')
 
         ## 3rd test
-        kmin, kmax, lmin, lmax = pyvolution.data_manager._get_min_max_indexes(\
+        kmin, kmax, lmin, lmax = anuga.pyvolution.data_manager._get_min_max_indexes(\
             latitudes,
             longitudes,
             1.1,1.9,12,17)
@@ -4032,7 +4033,7 @@ NODATA_value  -9999
 
 
         ## 4th test
-        kmin, kmax, lmin, lmax = pyvolution.data_manager._get_min_max_indexes(
+        kmin, kmax, lmin, lmax = anuga.pyvolution.data_manager._get_min_max_indexes(
             latitudes,longitudes,
                                                       -0.1,1.9,-2,17)
         #print "kmin",kmin;print "kmax",kmax
@@ -4046,7 +4047,7 @@ NODATA_value  -9999
                         longitudes_news == [0, 10, 20],
                          'failed')
         ## 5th test
-        kmin, kmax, lmin, lmax = pyvolution.data_manager._get_min_max_indexes(
+        kmin, kmax, lmin, lmax = anuga.pyvolution.data_manager._get_min_max_indexes(
             latitudes,longitudes,
             0.1,1.9,2,17)
         #print "kmin",kmin;print "kmax",kmax
@@ -4062,7 +4063,7 @@ NODATA_value  -9999
 
         ## 6th test
 
-        kmin, kmax, lmin, lmax = pyvolution.data_manager._get_min_max_indexes(
+        kmin, kmax, lmin, lmax = anuga.pyvolution.data_manager._get_min_max_indexes(
             latitudes,longitudes,
             1.5,4,18,32)
         #print "kmin",kmin;print "kmax",kmax
@@ -4079,7 +4080,7 @@ NODATA_value  -9999
 
         ## 7th test
         m2d = array([[0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15]])
-        kmin, kmax, lmin, lmax = pyvolution.data_manager._get_min_max_indexes(
+        kmin, kmax, lmin, lmax = anuga.pyvolution.data_manager._get_min_max_indexes(
             latitudes,longitudes,
             1.5,1.5,15,15)
         #print "kmin",kmin;print "kmax",kmax
@@ -4106,7 +4107,7 @@ NODATA_value  -9999
 
         # k - lat
         # l - lon
-        kmin, kmax, lmin, lmax = pyvolution.data_manager._get_min_max_indexes(
+        kmin, kmax, lmin, lmax = anuga.pyvolution.data_manager._get_min_max_indexes(
             latitudes,longitudes,
             -37,-27,147,149.5)
 
@@ -4135,7 +4136,7 @@ NODATA_value  -9999
 
         # k - lat
         # l - lon
-        kmin, kmax, lmin, lmax = pyvolution.data_manager._get_min_max_indexes(
+        kmin, kmax, lmin, lmax = anuga.pyvolution.data_manager._get_min_max_indexes(
             latitudes,longitudes,
             -43,-37,148.5,149.5)
 
@@ -4159,7 +4160,7 @@ NODATA_value  -9999
 
         # k - lat
         # l - lon
-        kmin, kmax, lmin, lmax = pyvolution.data_manager._get_min_max_indexes(
+        kmin, kmax, lmin, lmax = anuga.pyvolution.data_manager._get_min_max_indexes(
             latitudes,longitudes)
 
         #print "kmin",kmin;print "kmax",kmax

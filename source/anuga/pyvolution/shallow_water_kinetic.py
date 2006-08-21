@@ -72,7 +72,7 @@ class Domain(Generic_Domain):
                                 conserved_quantities, other_quantities,
                                 tagged_elements, geo_reference, use_inscribed_circle)
 
-        from config import minimum_allowed_height, g
+        from anuga.config import minimum_allowed_height, g
         self.minimum_allowed_height = minimum_allowed_height
         self.g = g
 
@@ -93,7 +93,7 @@ class Domain(Generic_Domain):
         self.smooth = True
 
         #Reduction operation for get_vertex_values
-        from util import mean
+        from anuga.pyvolution.util import mean
         self.reduction = mean
         #self.reduction = min  #Looks better near steep slopes
 
@@ -244,7 +244,7 @@ class Domain(Generic_Domain):
         Also, save x,y and bed elevation
         """
 
-        import data_manager
+        import anuga.pyvolution.data_manager
 
         #Initialise writer
         self.writer = data_manager.get_dataobject(self, mode = 'w')
@@ -327,7 +327,7 @@ def flux_function_central(normal, ql, qr, zl, zr):
     Bed elevations zl and zr.
     """
 
-    from config import g, epsilon
+    from anuga.config import g, epsilon
     from math import sqrt
     from Numeric import array
 
@@ -424,7 +424,7 @@ def flux_function_kinetic(normal, ql, qr, zl, zr):
     Bed elevations zl and zr.
     """
 
-    from config import g, epsilon
+    from anuga.config import g, epsilon
     from math import sqrt
     from Numeric import array
 
@@ -683,7 +683,7 @@ def distribute_to_vertices_and_edges(domain):
 
     """
 
-    from config import optimised_gradient_limiter
+    from anuga.config import optimised_gradient_limiter
 
     #Remove very thin layers of water
     protect_against_infinitesimal_and_negative_heights(domain)
@@ -1168,7 +1168,7 @@ def gravity(domain):
     """Apply gravitational pull in the presence of bed slope
     """
 
-    from util import gradient
+    from anuga.pyvolution.util import gradient
     from Numeric import zeros, Float, array, sum
 
     xmom = domain.quantities['xmomentum'].explicit_update
@@ -1398,7 +1398,7 @@ class Wind_stress:
         domain.forcing_terms.append(W)
         """
 
-        from config import rho_a, rho_w, eta_w
+        from anuga.config import rho_a, rho_w, eta_w
         from Numeric import array, Float
 
         if len(args) == 2:
@@ -1771,7 +1771,7 @@ class Constant_height:
 #Initialise module
 
 
-from utilities import compile
+from anuga.utilities import compile
 if compile.can_use_C_extension('shallow_water_kinetic_ext.c'):
     #Replace python version with c implementations
 
@@ -1790,7 +1790,7 @@ if compile.can_use_C_extension('shallow_water_kinetic_ext.c'):
 
 
 #Optimisation with psyco
-from config import use_psyco
+from anuga.config import use_psyco
 if use_psyco:
     try:
         import psyco

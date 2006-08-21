@@ -1,4 +1,4 @@
-from pyvolution.data_manager import asc_csiro2sww
+from anuga.pyvolution.data_manager import asc_csiro2sww
 import time
 
 t0 = time.time()

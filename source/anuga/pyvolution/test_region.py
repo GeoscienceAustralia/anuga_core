@@ -5,7 +5,7 @@ from math import sqrt
 
 from domain import *
 from region import *
-#from config import epsilon
+#from anuga.config import epsilon
 from Numeric import allclose #, array, ones, Float
 
 

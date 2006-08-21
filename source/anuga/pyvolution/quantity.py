@@ -19,7 +19,7 @@ class Quantity:
 
     def __init__(self, domain, vertex_values=None):
 
-        from pyvolution.neighbour_mesh import Mesh
+        from anuga.pyvolution.neighbour_mesh import Mesh
         from Numeric import array, zeros, Float
 
         msg = 'First argument in Quantity.__init__ '
@@ -264,7 +264,7 @@ class Quantity:
         must be present.
         """
 
-        from geospatial_data.geospatial_data import Geospatial_data
+        from anuga.geospatial_data.geospatial_data import Geospatial_data
         from types import FloatType, IntType, LongType, ListType, NoneType
         from Numeric import ArrayType
 
@@ -619,10 +619,10 @@ class Quantity:
 
 
         from Numeric import Float
-        from utilities.numerical_tools import ensure_numeric
-        #from pyvolution.least_squares import fit_to_mesh
-        from fit_interpolate.fit import fit_to_mesh
-        from coordinate_transforms.geo_reference import Geo_reference
+        from anuga.utilities.numerical_tools import ensure_numeric
+        #from anuga.pyvolution.least_squares import fit_to_mesh
+        from anuga.fit_interpolate.fit import fit_to_mesh
+        from anuga.coordinate_transforms.geo_reference import Geo_reference
 
 
         points = ensure_numeric(points, Float)
@@ -692,7 +692,7 @@ class Quantity:
         """
 
         from load_mesh.loadASCII import import_points_file
-        from geospatial_data.geospatial_data import points_dictionary2geospatial_data
+        from anuga.geospatial_data.geospatial_data import points_dictionary2geospatial_data
 
         from types import StringType
         msg = 'Filename must be a text string'
@@ -1321,7 +1321,7 @@ def limit(quantity):
 
 
 
-from utilities import compile
+from anuga.utilities import compile
 if compile.can_use_C_extension('quantity_ext.c'):
     #Replace python version with c implementations
 

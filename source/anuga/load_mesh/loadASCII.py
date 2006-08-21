@@ -81,7 +81,7 @@ from string import  find, rfind
 from Numeric import array, Float, Int16, Int32, Character,reshape, concatenate, take
 from os.path import splitext
 
-from coordinate_transforms.geo_reference import Geo_reference,TITLE, TitleError
+from anuga.coordinate_transforms.geo_reference import Geo_reference,TITLE, TitleError
 
 from Scientific.IO.NetCDF import NetCDFFile
     

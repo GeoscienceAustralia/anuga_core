@@ -12,7 +12,7 @@ from mesh_factory import rectangular
 from shallow_water import Domain, Reflective_boundary, Dirichlet_boundary,\
      Constant_height
 from Numeric import array
-from util import Polygon_function, read_polygon
+from anuga.pyvolution.util import Polygon_function, read_polygon
 
 
 #Create basic mesh

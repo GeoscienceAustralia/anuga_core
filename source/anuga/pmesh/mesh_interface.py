@@ -3,16 +3,16 @@
 # Assume that the root AnuGA dir (inundation) is included in your pythonpath
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-from coordinate_transforms.geo_reference import Geo_reference,DEFAULT_ZONE
-from utilities.polygon import  point_in_polygon ,populate_polygon
-from utilities.numerical_tools import ensure_numeric
+from anuga.coordinate_transforms.geo_reference import Geo_reference,DEFAULT_ZONE
+from anuga.utilities.polygon import  point_in_polygon ,populate_polygon
+from anuga.utilities.numerical_tools import ensure_numeric
 from Numeric import Float
-from utilities.polygon import inside_polygon
+from anuga.utilities.polygon import inside_polygon
 
 # This is due to pmesh being a package and a module and
 # the current dir being unknown 
 try:
-    from pmesh.mesh import Mesh
+    from anuga.pmesh.mesh import Mesh
 except ImportError:  
     from mesh import Mesh
 

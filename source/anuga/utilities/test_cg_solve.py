@@ -6,9 +6,9 @@ import unittest
 
 
 from Numeric import dot, allclose, array, transpose, arange, ones, Float
-from utilities.cg_solve import *
-from utilities.cg_solve import _conjugate_gradient
-from utilities.sparse import Sparse, Sparse_CSR
+from anuga.utilities.cg_solve import *
+from anuga.utilities.cg_solve import _conjugate_gradient
+from anuga.utilities.sparse import Sparse, Sparse_CSR
 
 
 class Test_CG_Solve(unittest.TestCase):

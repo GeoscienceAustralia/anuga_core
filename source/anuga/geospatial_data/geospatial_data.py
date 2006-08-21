@@ -7,9 +7,9 @@ from os import access, F_OK, R_OK
 from Numeric import concatenate, array, Float, shape, reshape, ravel
 
 
-from utilities.numerical_tools import ensure_numeric
-from coordinate_transforms.geo_reference import Geo_reference, TitleError
-from coordinate_transforms.redfearn import convert_lats_longs
+from anuga.utilities.numerical_tools import ensure_numeric
+from anuga.coordinate_transforms.geo_reference import Geo_reference, TitleError
+from anuga.coordinate_transforms.redfearn import convert_lats_longs
 
         
 class Geospatial_data:
@@ -179,7 +179,7 @@ class Geospatial_data:
 
     def set_geo_reference(self, geo_reference):
 
-        from coordinate_transforms.geo_reference import Geo_reference
+        from anuga.coordinate_transforms.geo_reference import Geo_reference
 
         if geo_reference is None:
             geo_reference = Geo_reference() # Use default

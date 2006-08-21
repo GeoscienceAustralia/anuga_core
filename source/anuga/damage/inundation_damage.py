@@ -26,11 +26,11 @@ except ImportError:
     kinds = _kinds()
     
 
-from utilities.numerical_tools import ensure_numeric
-from pyvolution.data_manager import Exposure_csv
-from pyvolution.util import file_function
-from geospatial_data.geospatial_data import ensure_absolute
-from utilities.numerical_tools import NAN
+from anuga.utilities.numerical_tools import ensure_numeric
+from anuga.pyvolution.data_manager import Exposure_csv
+from anuga.pyvolution.util import file_function
+from anuga.geospatial_data.geospatial_data import ensure_absolute
+from anuga.utilities.numerical_tools import NAN
 from anuga_config import epsilon
 depth_epsilon = epsilon
 

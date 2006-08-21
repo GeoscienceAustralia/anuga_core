@@ -23,15 +23,15 @@ from warnings import warn
 from Numeric import zeros, array, Float, Int, dot, transpose, concatenate, \
      ArrayType, allclose, take, NewAxis, arange
 
-from caching.caching import cache
-from pyvolution.neighbour_mesh import Mesh
-from utilities.sparse import Sparse, Sparse_CSR
-from utilities.cg_solve import conjugate_gradient, VectorShapeError
-from coordinate_transforms.geo_reference import Geo_reference
-from pyvolution.quad import build_quadtree
-from utilities.numerical_tools import ensure_numeric
-from utilities.polygon import in_and_outside_polygon
-from geospatial_data.geospatial_data import Geospatial_data, \
+from anuga.caching.caching import cache
+from anuga.pyvolution.neighbour_mesh import Mesh
+from anuga.utilities.sparse import Sparse, Sparse_CSR
+from anuga.utilities.cg_solve import conjugate_gradient, VectorShapeError
+from anuga.coordinate_transforms.geo_reference import Geo_reference
+from anuga.pyvolution.quad import build_quadtree
+from anuga.utilities.numerical_tools import ensure_numeric
+from anuga.utilities.polygon import in_and_outside_polygon
+from anuga.geospatial_data.geospatial_data import Geospatial_data, \
      ensure_absolute
 from search_functions import search_tree_of_vertices
 

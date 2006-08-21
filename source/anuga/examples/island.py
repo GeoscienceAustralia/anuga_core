@@ -14,12 +14,12 @@ This example investigates onshore 'creep'
 from math import exp
 
 # Application specific imports
-from pyvolution.mesh_factory import rectangular
-from pyvolution.shallow_water import Domain, Reflective_boundary, Dirichlet_boundary
-from pmesh.mesh_interface import create_mesh_from_regions
-from utilities.polygon import Polygon_function, read_polygon
+from anuga.pyvolution.mesh_factory import rectangular
+from anuga.pyvolution.shallow_water import Domain, Reflective_boundary, Dirichlet_boundary
+from anuga.pmesh.mesh_interface import create_mesh_from_regions
+from anuga.utilities.polygon import Polygon_function, read_polygon
 
-from pyvolution.quantity import Quantity
+from anuga.pyvolution.quantity import Quantity
 from Numeric import allclose
 
 #------------------------------------------------------------------------------

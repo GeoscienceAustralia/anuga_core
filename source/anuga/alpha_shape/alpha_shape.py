@@ -178,7 +178,7 @@ class Alpha_Shape:
         self.alpha = alpha
 
         ## Build Delaunay triangulation
-        import mesh_engine.triang as triang
+        import anuga.mesh_engine.triang as triang
         points = []
         seglist = []
         holelist = []

@@ -1,7 +1,7 @@
 """Implementation of Redfearn's formula to compute UTM projections from latitude and longitude
 
 """
-from coordinate_transforms.geo_reference import Geo_reference, DEFAULT_ZONE
+from anuga.coordinate_transforms.geo_reference import Geo_reference, DEFAULT_ZONE
 from Numeric import array
 
 def degminsec2decimal_degrees(dd,mm,ss):

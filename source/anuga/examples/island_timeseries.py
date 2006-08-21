@@ -2,8 +2,8 @@
 
 """
 
-from pyvolution.util import file_function
-from coordinate_transforms.redfearn import degminsec2decimal_degrees, redfearn
+from anuga.pyvolution.util import file_function
+from anuga.coordinate_transforms.redfearn import degminsec2decimal_degrees, redfearn
 from pylab import *
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 

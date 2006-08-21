@@ -26,7 +26,7 @@ from Numeric import array
 
 import time
 
-#from config import default_datadir 
+#from anuga.config import default_datadir 
 
 ######################
 # Domain

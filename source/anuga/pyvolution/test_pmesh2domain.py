@@ -12,11 +12,11 @@ from pmesh2domain import *
 from shallow_water import Domain, Reflective_boundary, Dirichlet_boundary,\
      Transmissive_boundary
 
-from coordinate_transforms.geo_reference import Geo_reference
+from anuga.coordinate_transforms.geo_reference import Geo_reference
 
 #This is making pyvolution dependent on pmesh.
 # not good.  this should be in a seperate package.(directory)
-from pmesh.mesh import importMeshFromFile
+from anuga.pmesh.mesh import importMeshFromFile
 
 class Test_pmesh2domain(unittest.TestCase):
 

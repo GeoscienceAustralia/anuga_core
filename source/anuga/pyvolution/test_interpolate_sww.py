@@ -7,11 +7,11 @@ that isn't needed, eg in the setup file
 
 import unittest
 from Numeric import zeros, array, allclose, Float
-from utilities.numerical_tools import mean
+from anuga.utilities.numerical_tools import mean
 
 from interpolate_sww import *
-from pyvolution.shallow_water import Domain, Transmissive_boundary
-from pyvolution.data_manager import get_dataobject
+from anuga.pyvolution.shallow_water import Domain, Transmissive_boundary
+from anuga.pyvolution.data_manager import get_dataobject
 
 
 class Test_Interpolate_sww(unittest.TestCase):

@@ -9,11 +9,11 @@ from Numeric import zeros, take, compress, Float, Int, dot, concatenate, \
      ArrayType, allclose, array
 
 from fit import *
-from pyvolution.neighbour_mesh import Mesh
-from utilities.sparse import Sparse, Sparse_CSR
-from coordinate_transforms.geo_reference import Geo_reference
-from utilities.numerical_tools import ensure_numeric
-from geospatial_data.geospatial_data import Geospatial_data
+from anuga.pyvolution.neighbour_mesh import Mesh
+from anuga.utilities.sparse import Sparse, Sparse_CSR
+from anuga.coordinate_transforms.geo_reference import Geo_reference
+from anuga.utilities.numerical_tools import ensure_numeric
+from anuga.geospatial_data.geospatial_data import Geospatial_data
 
 def distance(x, y):
     return sqrt( sum( (array(x)-array(y))**2 ))
@@ -454,7 +454,7 @@ class Test_Fit(unittest.TestCase):
         """Simple check that georef works at the fit_to_mesh level
         """
         
-        from coordinate_transforms.geo_reference import Geo_reference
+        from anuga.coordinate_transforms.geo_reference import Geo_reference
 
         #Mesh
         vertex_coordinates = [[0.76, 0.76],

@@ -220,7 +220,7 @@ def sww2asc_obsolete(basename_in, basename_out = None,
     """
     from Numeric import array, Float, concatenate, NewAxis, zeros,\
          sometrue
-    from utilities.polygon import inside_polygon
+    from anuga.utilities.polygon import inside_polygon
 
     #FIXME: Should be variable
     datum = 'WGS84'

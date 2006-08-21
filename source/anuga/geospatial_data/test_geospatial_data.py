@@ -7,9 +7,9 @@ from Numeric import zeros, array, allclose, concatenate
 from math import sqrt, pi
 import tempfile
 
-from geospatial_data import *
-from coordinate_transforms.geo_reference import Geo_reference, TitleError
-from coordinate_transforms.redfearn import degminsec2decimal_degrees
+from anuga.geospatial_data.geospatial_data import *
+from anuga.coordinate_transforms.geo_reference import Geo_reference, TitleError
+from anuga.coordinate_transforms.redfearn import degminsec2decimal_degrees
 
 
 class Test_Geospatial_data(unittest.TestCase):
@@ -23,7 +23,7 @@ class Test_Geospatial_data(unittest.TestCase):
     def test_0(self):
         """Basic points
         """
-        from coordinate_transforms.geo_reference import Geo_reference
+        from anuga.coordinate_transforms.geo_reference import Geo_reference
         
         points = [[1.0, 2.1], [3.0, 5.3]]
         G = Geospatial_data(points)
@@ -48,7 +48,7 @@ class Test_Geospatial_data(unittest.TestCase):
         
 
     def test_2(self):
-        from coordinate_transforms.geo_reference import Geo_reference
+        from anuga.coordinate_transforms.geo_reference import Geo_reference
         points = [[1.0, 2.1], [3.0, 5.3]]
         attributes = [2, 4]
         G = Geospatial_data(points, attributes,
@@ -60,7 +60,7 @@ class Test_Geospatial_data(unittest.TestCase):
 
 
     def test_get_attributes_1(self):
-        from coordinate_transforms.geo_reference import Geo_reference
+        from anuga.coordinate_transforms.geo_reference import Geo_reference
         points = [[1.0, 2.1], [3.0, 5.3]]
         attributes = [2, 4]
         G = Geospatial_data(points, attributes,
@@ -83,7 +83,7 @@ class Test_Geospatial_data(unittest.TestCase):
         """Multiple attributes
         """
         
-        from coordinate_transforms.geo_reference import Geo_reference
+        from anuga.coordinate_transforms.geo_reference import Geo_reference
         points = [[1.0, 2.1], [3.0, 5.3]]
         attributes = {'a0': [0, 0], 'a1': [2, 4], 'a2': [79.4, -7]}
         G = Geospatial_data(points, attributes,
@@ -161,7 +161,7 @@ class Test_Geospatial_data(unittest.TestCase):
         """test conversions to points_dict
         """
         
-        from coordinate_transforms.geo_reference import Geo_reference
+        from anuga.coordinate_transforms.geo_reference import Geo_reference
         points = [[1.0, 2.1], [3.0, 5.3]]
         attributes = {'a0': [0, 0], 'a1': [2, 4], 'a2': [79.4, -7]}
         G = Geospatial_data(points, attributes,
@@ -195,7 +195,7 @@ class Test_Geospatial_data(unittest.TestCase):
         """test conversions from points_dict
         """
 
-        from coordinate_transforms.geo_reference import Geo_reference
+        from anuga.coordinate_transforms.geo_reference import Geo_reference
         
         points = [[1.0, 2.1], [3.0, 5.3]]
         attributes = {'a0': [0, 0], 'a1': [2, 4], 'a2': [79.4, -7]}

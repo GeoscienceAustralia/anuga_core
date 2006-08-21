@@ -12,7 +12,7 @@ from os.path import splitext
 from Numeric import array, allclose 
     
 from loadASCII import *
-from coordinate_transforms.geo_reference import Geo_reference
+from anuga.coordinate_transforms.geo_reference import Geo_reference
 import loadASCII
 
 class loadASCIITestCase(unittest.TestCase):

@@ -15,7 +15,7 @@ from mesh_factory import from_polyfile, rectangular
 from Numeric import array
 from math import sqrt
 #from least_squares import Interpolation
-from fit_interpolate.interpolate import Interpolate
+from anuga.fit_interpolate.interpolate import Interpolate
     
 
 print 'Creating domain'

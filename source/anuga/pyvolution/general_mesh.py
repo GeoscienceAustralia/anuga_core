@@ -2,7 +2,7 @@
 from Numeric import concatenate, reshape, take, allclose
 from Numeric import array, zeros, Int, Float, sqrt, sum
 
-from coordinate_transforms.geo_reference import Geo_reference
+from anuga.coordinate_transforms.geo_reference import Geo_reference
 
 class General_mesh:
     """Collection of triangular elements (purely geometric)
@@ -49,7 +49,7 @@ class General_mesh:
       triangle the three x,y coordinates at the vertices.
 
 
-        This is a cut down version of mesh from pyvolution mesh.py
+        This is a cut down version of mesh from anuga.pyvolution mesh.py
     """
 
     #FIXME: It would be a good idea to use geospatial data as an alternative

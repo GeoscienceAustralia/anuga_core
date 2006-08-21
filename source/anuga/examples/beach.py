@@ -14,12 +14,12 @@ import sys
 from os import sep, path
 #sys.path.append('..'+sep+'pyvolution')
 
-from pyvolution.shallow_water import Domain, Reflective_boundary,\
+from anuga.pyvolution.shallow_water import Domain, Reflective_boundary,\
      Dirichlet_boundary,\
      Transmissive_boundary, Time_boundary, Wind_stress
 
-from pyvolution.pmesh2domain import pmesh_to_domain_instance
-from utilities.polygon import read_polygon, Polygon_function
+from anuga.pyvolution.pmesh2domain import pmesh_to_domain_instance
+from anuga.utilities.polygon import read_polygon, Polygon_function
 from math import pi
 from Numeric import choose, greater, ones, sin, exp
 import time

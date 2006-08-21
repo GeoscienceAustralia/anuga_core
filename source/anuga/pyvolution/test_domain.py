@@ -4,7 +4,7 @@ import unittest
 from math import sqrt
 
 from domain import *
-from config import epsilon
+from anuga.config import epsilon
 from Numeric import allclose, array, ones, Float
 
 
@@ -253,7 +253,7 @@ class Test_Domain(unittest.TestCase):
 
     def test_boundary_indices(self):
 
-        from config import default_boundary_tag
+        from anuga.config import default_boundary_tag
 
 
         a = [0.0, 0.5]

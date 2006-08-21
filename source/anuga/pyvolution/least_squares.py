@@ -24,15 +24,15 @@ class FittingError(exceptions.Exception): pass
 
 #from general_mesh import General_mesh
 from Numeric import zeros, array, Float, Int, transpose, concatenate, ArrayType, NewAxis
-from pyvolution.neighbour_mesh import Mesh
+from anuga.pyvolution.neighbour_mesh import Mesh
 
 from Numeric import dot, zeros, take, compress, array, Float, Int, transpose, concatenate, ArrayType
-from utilities.sparse import Sparse, Sparse_CSR
-from utilities.cg_solve import conjugate_gradient, VectorShapeError
-from utilities.numerical_tools import ensure_numeric, mean, gradient
+from anuga.utilities.sparse import Sparse, Sparse_CSR
+from anuga.utilities.cg_solve import conjugate_gradient, VectorShapeError
+from anuga.utilities.numerical_tools import ensure_numeric, mean, gradient
 
 
-from coordinate_transforms.geo_reference import Geo_reference
+from anuga.coordinate_transforms.geo_reference import Geo_reference
 
 import time
 
@@ -193,7 +193,7 @@ def fit_to_mesh(vertex_coordinates,
 
     """
     if use_cache is True:
-        from caching.caching import cache
+        from anuga.caching.caching import cache
         interp = cache(_interpolation,
                        (vertex_coordinates,
                         triangles,
@@ -540,8 +540,8 @@ class Interpolation:
         #
         #Maybe we need some sort of blocking
 
-        from pyvolution.quad import build_quadtree
-        from utilities.polygon import inside_polygon
+        from anuga.pyvolution.quad import build_quadtree
+        from anuga.utilities.polygon import inside_polygon
 	
 
         if data_origin is None:
@@ -1088,7 +1088,7 @@ class Interpolation_function:
              reshape, ArrayType
 
 
-        from config import time_format
+        from anuga.config import time_format
         import types
 
 
@@ -1236,7 +1236,7 @@ class Interpolation_function:
 
         from math import pi, cos, sin, sqrt
         from Numeric import zeros, Float
-        from utilities.numerical_tools import mean        
+        from anuga.utilities.numerical_tools import mean        
 
         if self.spatial is True:
             if point_id is None:

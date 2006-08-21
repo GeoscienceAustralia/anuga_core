@@ -369,7 +369,7 @@ def csr_mv(self, B):
 
 
 #Setup for C extensions
-from utilities import compile
+from anuga.utilities import compile
 if compile.can_use_C_extension('sparse_ext.c'):
     #Replace python version with c implementation
     from sparse_ext import csr_mv

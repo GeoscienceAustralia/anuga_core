@@ -20,10 +20,10 @@ import sys
 import time
 from random import seed, random
 
-from pyvolution.least_squares import Interpolation
-from fit_interpolate.interpolate import Interpolate
-from fit_interpolate.fit import Fit
-from pmesh.mesh import Mesh
+from anuga.pyvolution.least_squares import Interpolation
+from anuga.fit_interpolate.interpolate import Interpolate
+from anuga.fit_interpolate.fit import Fit
+from anuga.pmesh.mesh import Mesh
 
 def mem_usage():
     '''

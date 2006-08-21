@@ -4,7 +4,7 @@
 import sys
 
 import unittest
-import mesh_engine.triang as triang
+import anuga.mesh_engine.triang as triang
 
 """
 Note, this test is seperated from the other tests because if it is added

@@ -65,7 +65,7 @@ class Triangle:
     def set_vertexheights(self, heights, floor_heights = None):
         from Numeric import zeros, Float
 
-        from config import minimum_allowed_height as hmin
+        from anuga.config import minimum_allowed_height as hmin
         if floor_heights is None:
             floor_heights = zeros(heights.shape, Float)
 
@@ -199,7 +199,7 @@ def update(domain):
     N = Q.vertex_values.shape[0]
 
     #print scene.forward
-    #FIXME: Use smoother from pyvolution instead
+    #FIXME: Use smoother from anuga.pyvolution instead
     if domain.smooth:
         #Get all average point values
         vertex_heights = {}

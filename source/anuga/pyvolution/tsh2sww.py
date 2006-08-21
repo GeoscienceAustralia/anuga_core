@@ -12,8 +12,8 @@ sys.path.append('..'+sep+'pyvolution')
 from shallow_water import Domain
 from pmesh2domain import pmesh_to_domain_instance
 import time, os 
-from data_manager import get_dataobject   
-from utilities.numerical_tools import mean
+from anuga.pyvolution.data_manager import get_dataobject   
+from anuga.utilities.numerical_tools import mean
 
 def tsh2sww(infilename, sww_file_name = None, verbose = False):
     """

@@ -11,11 +11,11 @@ from math import sqrt
 
 from neighbour_mesh import *
 from mesh_factory import rectangular
-from config import epsilon
+from anuga.config import epsilon
 from Numeric import allclose, array
 
-from coordinate_transforms.geo_reference import Geo_reference
-from utilities.polygon import is_inside_polygon
+from anuga.coordinate_transforms.geo_reference import Geo_reference
+from anuga.utilities.polygon import is_inside_polygon
 
 def distance(x, y):
     return sqrt( sum( (array(x)-array(y))**2 ))
@@ -566,7 +566,7 @@ class Test_Mesh(unittest.TestCase):
         mesh = Mesh(points, vertices, boundary)
         mesh.check_integrity()
 
-        from config import default_boundary_tag
+        from anuga.config import default_boundary_tag
         assert mesh.boundary[ (3, 1) ] == default_boundary_tag
 
 
@@ -599,7 +599,7 @@ class Test_Mesh(unittest.TestCase):
         mesh = Mesh(points, vertices) #, boundary)
         mesh.check_integrity()
 
-        from config import default_boundary_tag
+        from anuga.config import default_boundary_tag
         assert mesh.boundary[ (0, 0) ] == default_boundary_tag
         assert mesh.boundary[ (0, 2) ] == default_boundary_tag
         assert mesh.boundary[ (2, 0) ] == default_boundary_tag

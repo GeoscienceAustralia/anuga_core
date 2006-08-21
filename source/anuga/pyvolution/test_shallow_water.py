@@ -3,9 +3,9 @@
 import unittest, os
 from math import sqrt, pi
 
-from config import g, epsilon
+from anuga.config import g, epsilon
 from Numeric import allclose, array, zeros, ones, Float, take
-from utilities.numerical_tools import mean
+from anuga.utilities.numerical_tools import mean
 
 from shallow_water import *
 
@@ -702,7 +702,7 @@ class Test_Shallow_Water(unittest.TestCase):
         """Test that initial condition is output at time == 0
         """
 
-        from config import g
+        from anuga.config import g
         import copy
 
         a = [0.0, 0.0]
@@ -750,7 +750,7 @@ class Test_Shallow_Water(unittest.TestCase):
     def test_gravity(self):
         #Assuming no friction
 
-        from config import g
+        from anuga.config import g
 
         a = [0.0, 0.0]
         b = [0.0, 2.0]
@@ -788,7 +788,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
 
     def test_manning_friction(self):
-        from config import g
+        from anuga.config import g
 
         a = [0.0, 0.0]
         b = [0.0, 2.0]
@@ -857,7 +857,7 @@ class Test_Shallow_Water(unittest.TestCase):
         assert allclose(domain.quantities['ymomentum'].semi_implicit_update, 4*S)
 
     def test_constant_wind_stress(self):
-        from config import rho_a, rho_w, eta_w
+        from anuga.config import rho_a, rho_w, eta_w
         from math import pi, cos, sin, sqrt
 
         a = [0.0, 0.0]
@@ -909,7 +909,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
 
     def test_variable_wind_stress(self):
-        from config import rho_a, rho_w, eta_w
+        from anuga.config import rho_a, rho_w, eta_w
         from math import pi, cos, sin, sqrt
 
         a = [0.0, 0.0]
@@ -978,10 +978,10 @@ class Test_Shallow_Water(unittest.TestCase):
 
 
     def test_windfield_from_file(self):
-        from config import rho_a, rho_w, eta_w
+        from anuga.config import rho_a, rho_w, eta_w
         from math import pi, cos, sin, sqrt
-        from config import time_format
-        from util import file_function
+        from anuga.config import time_format
+        from anuga.pyvolution.util import file_function
         import time
 
 
@@ -1028,7 +1028,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
 
         #Convert ASCII file to NetCDF (Which is what we really like!)
-        from data_manager import timefile2netcdf        
+        from anuga.pyvolution.data_manager import timefile2netcdf        
         timefile2netcdf(filename)
         os.remove(filename + '.txt')
 
@@ -1094,7 +1094,7 @@ class Test_Shallow_Water(unittest.TestCase):
         are wrong - e.g. returns a scalar
         """
 
-        from config import rho_a, rho_w, eta_w
+        from anuga.config import rho_a, rho_w, eta_w
         from math import pi, cos, sin, sqrt
 
         a = [0.0, 0.0]
@@ -1194,7 +1194,7 @@ class Test_Shallow_Water(unittest.TestCase):
     def test_first_order_limiter_variable_z(self):
         #Check that first order limiter follows bed_slope
         from Numeric import alltrue, greater_equal
-        from config import epsilon
+        from anuga.config import epsilon
 
         a = [0.0, 0.0]
         b = [0.0, 2.0]
@@ -2237,7 +2237,7 @@ class Test_Shallow_Water(unittest.TestCase):
 	
 
     def test_flatbed_second_order_distribute(self):
-        #Use real data from pyvolution 2
+        #Use real data from anuga.pyvolution 2
         #painfully setup and extracted.
         from mesh_factory import rectangular
         from shallow_water import Domain,\

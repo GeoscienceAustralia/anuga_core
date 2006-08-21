@@ -18,12 +18,12 @@ from Numeric import allclose, array, transpose, zeros, Float
 
 # ANUGA code imports
 from interpolate import *
-from coordinate_transforms.geo_reference import Geo_reference
+from anuga.coordinate_transforms.geo_reference import Geo_reference
 from shallow_water import Domain, Transmissive_boundary
-from utilities.numerical_tools import mean, NAN
-from data_manager import get_dataobject
-from geospatial_data.geospatial_data import Geospatial_data
-from pmesh.mesh import Mesh
+from anuga.utilities.numerical_tools import mean, NAN
+from anuga.pyvolution.data_manager import get_dataobject
+from anuga.geospatial_data.geospatial_data import Geospatial_data
+from anuga.pmesh.mesh import Mesh
 
 def distance(x, y):
     return sqrt( sum( (array(x)-array(y))**2 ))

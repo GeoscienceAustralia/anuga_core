@@ -4,11 +4,11 @@
 import unittest
 from Numeric import zeros, array, allclose
 from math import sqrt, pi
-from utilities.numerical_tools import ensure_numeric
+from anuga.utilities.numerical_tools import ensure_numeric
 
 from polygon import *
-from coordinate_transforms.geo_reference import Geo_reference
-from geospatial_data.geospatial_data import Geospatial_data
+from anuga.coordinate_transforms.geo_reference import Geo_reference
+from anuga.geospatial_data.geospatial_data import Geospatial_data
 
 def test_function(x, y):
     return x+y
@@ -61,7 +61,7 @@ class Test_Polygon(unittest.TestCase):
         """Check that georeferencing works
         """
 
-        from coordinate_transforms.geo_reference import Geo_reference
+        from anuga.coordinate_transforms.geo_reference import Geo_reference
 
         geo = Geo_reference(56, 200, 1000)
 

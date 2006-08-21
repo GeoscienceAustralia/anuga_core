@@ -4,7 +4,7 @@
 import sys
 from os import sep, path
 
-import data_manager
+import anuga.pyvolution.data_manager
 from load_mesh.loadASCII import import_mesh_file
 from shallow_water import Domain
 from pmesh2domain import pmesh_to_domain_instance

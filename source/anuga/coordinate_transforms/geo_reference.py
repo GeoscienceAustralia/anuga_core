@@ -7,8 +7,8 @@
 
 import types, sys
 from Numeric import array, Float, ArrayType, reshape, allclose
-from utilities.numerical_tools import ensure_numeric
-from utilities.anuga_exceptions import ANUGAError, TitleError, ParsingError, \
+from anuga.utilities.numerical_tools import ensure_numeric
+from anuga.utilities.anuga_exceptions import ANUGAError, TitleError, ParsingError, \
      ShapeError
 
 

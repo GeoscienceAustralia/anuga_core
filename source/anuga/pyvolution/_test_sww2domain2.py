@@ -58,7 +58,7 @@ for t in domain.evolve(yieldstep = 1, finaltime = 2.0):
 
 ##NOW TEST IT!!!
 
-from data_manager import sww2domain
+from anuga.pyvolution.data_manager import sww2domain
 from Numeric import allclose
 
 filename = domain.datadir+'\\'+domain.filename+'.sww'

@@ -6,7 +6,7 @@ import unittest
 from Numeric import allclose
 
 try:
-    from alpha_shape.alpha_shape import *
+    from anuga.alpha_shape.alpha_shape import *
 except ImportError:  
     from alpha_shape import *
 

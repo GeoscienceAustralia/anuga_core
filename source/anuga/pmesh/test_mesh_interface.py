@@ -3,11 +3,11 @@
 import tempfile
 import unittest
 import os
-from pmesh.mesh import importMeshFromFile
+from anuga.pmesh.mesh import importMeshFromFile
 from mesh_interface import *
 from load_mesh.loadASCII import *
-from utilities.polygon import is_inside_polygon
-from coordinate_transforms.geo_reference import Geo_reference,DEFAULT_ZONE
+from anuga.utilities.polygon import is_inside_polygon
+from anuga.coordinate_transforms.geo_reference import Geo_reference,DEFAULT_ZONE
 
 class TestCase(unittest.TestCase):
     def setUp(self):

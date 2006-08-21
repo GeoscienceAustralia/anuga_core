@@ -4,7 +4,7 @@ sys.path.append('..')
 
 #problem, it's loading pyvolution mesh 1st!
 from mesh import *
-from coordinate_transforms.geo_reference import Geo_reference
+from anuga.coordinate_transforms.geo_reference import Geo_reference
 
 #-------------------------------------------------------------
 if __name__ == "__main__":

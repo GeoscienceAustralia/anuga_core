@@ -9,10 +9,10 @@ from math import sqrt
 #from least_squares import *
 from Numeric import allclose, array, transpose
 
-from coordinate_transforms.geo_reference import Geo_reference
+from anuga.coordinate_transforms.geo_reference import Geo_reference
 from combine_pts import *
 from load_mesh.loadASCII import import_points_file
-#from geospatial_data.geospatial_data import import_points_file
+#from anuga.geospatial_data.geospatial_data import import_points_file
 
 class Test_combine_pts(unittest.TestCase):
 

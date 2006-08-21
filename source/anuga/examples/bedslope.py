@@ -7,8 +7,8 @@ similar to beach environment
 
 ######################
 # Module imports 
-from pyvolution.mesh_factory import rectangular
-from pyvolution.shallow_water import Domain, Reflective_boundary,\
+from anuga.pyvolution.mesh_factory import rectangular
+from anuga.pyvolution.shallow_water import Domain, Reflective_boundary,\
      Dirichlet_boundary, Time_boundary, Transmissive_boundary
 
 #Create basic triangular mesh

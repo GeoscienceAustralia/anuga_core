@@ -12,8 +12,8 @@ except:
 
 
 from math import sqrt
-from utilities.numerical_tools import ensure_numeric
-from geospatial_data.geospatial_data import ensure_absolute
+from anuga.utilities.numerical_tools import ensure_numeric
+from anuga.geospatial_data.geospatial_data import ensure_absolute
 
 def point_on_line(x, y, x0, y0, x1, y1):
     """Determine whether a point is on a line segment
@@ -562,7 +562,7 @@ class Polygon_function:
 
 
         if geo_reference is None:
-            from coordinate_transforms.geo_reference import Geo_reference
+            from anuga.coordinate_transforms.geo_reference import Geo_reference
             geo_reference = Geo_reference()
 
 

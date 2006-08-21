@@ -309,7 +309,7 @@ class Mesh(General_mesh):
             self.boundary is defined.
         """
 
-        from config import default_boundary_tag
+        from anuga.config import default_boundary_tag
 
         if boundary is None:
             boundary = {}
@@ -439,7 +439,7 @@ class Mesh(General_mesh):
         """
         
         from Numeric import allclose, sqrt, array, minimum, maximum
-        from utilities.numerical_tools import angle, ensure_numeric        
+        from anuga.utilities.numerical_tools import angle, ensure_numeric        
 
 
         # Get mesh extent
@@ -573,8 +573,8 @@ class Mesh(General_mesh):
         Neighbour structure will be checked by class Mesh
         """
 
-        from config import epsilon
-        from utilities.numerical_tools import anglediff
+        from anuga.config import epsilon
+        from anuga.utilities.numerical_tools import anglediff
 
         N = self.number_of_elements
         #Get x,y coordinates for all vertices for all triangles
@@ -709,7 +709,7 @@ class Mesh(General_mesh):
         """
 
         from Numeric import arange
-        from utilities.numerical_tools import histogram, create_bins
+        from anuga.utilities.numerical_tools import histogram, create_bins
 
         vertex_coordinates = self.vertex_coordinates # Relative coordinates
         areas = self.areas

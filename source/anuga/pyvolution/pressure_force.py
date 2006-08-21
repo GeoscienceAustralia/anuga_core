@@ -47,8 +47,8 @@ def pressure(x,y,t):
         return 800
 
 def cyclone(domain):
-    from config import rho_w 
-    from util import gradient
+    from anuga.config import rho_w 
+    from anuga.pyvolution.util import gradient
 
     xmom = domain.quantities['xmomentum'].explicit_update
     ymom = domain.quantities['ymomentum'].explicit_update

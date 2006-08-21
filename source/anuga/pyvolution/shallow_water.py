@@ -61,7 +61,7 @@ from generic_boundary_conditions import Dirichlet_boundary
 from generic_boundary_conditions import Time_boundary
 from generic_boundary_conditions import Transmissive_boundary
 
-from utilities.numerical_tools import gradient, mean
+from anuga.utilities.numerical_tools import gradient, mean
 
 
 
@@ -104,7 +104,7 @@ class Domain(Generic_Domain):
                                 numproc)
 
 
-        from config import minimum_allowed_height, maximum_allowed_speed, g
+        from anuga.config import minimum_allowed_height, maximum_allowed_speed, g
         self.minimum_allowed_height = minimum_allowed_height
         self.maximum_allowed_speed = maximum_allowed_speed
         self.g = g
@@ -323,10 +323,10 @@ class Domain(Generic_Domain):
         Also, save x,y and bed elevation
         """
 
-        import data_manager
+        from anuga.pyvolution.data_manager import get_dataobject
 
         #Initialise writer
-        self.writer = data_manager.get_dataobject(self, mode = 'w')
+        self.writer = get_dataobject(self, mode = 'w')
 
         #Store vertices and connectivity
         self.writer.store_connectivity()
@@ -406,7 +406,7 @@ def flux_function(normal, ql, qr, zl, zr):
     Bed elevations zl and zr.
     """
 
-    from config import g, epsilon
+    from anuga.config import g, epsilon
     from math import sqrt
     from Numeric import array
 
@@ -655,7 +655,7 @@ def distribute_to_vertices_and_edges(domain):
 
     """
 
-    from config import optimised_gradient_limiter
+    from anuga.config import optimised_gradient_limiter
 
     #Remove very thin layers of water
     protect_against_infinitesimal_and_negative_heights(domain)
@@ -1058,24 +1058,7 @@ class Transmissive_Momentum_Set_Stage_boundary(Boundary):
 
         q = self.domain.get_conserved_quantities(vol_id, edge = edge_id)
         value = self.function(self.domain.time)
-
-   
-        try:
-            # In case function returns a list of values
-            val = value[0]
-        except TypeError:
-            val = value
-
-        # Assign value to first component of q (stage)
-        try:
-            q[0] = float(val)
-        except:
-            msg = 'Supplied value could not be converted to float: val=', val     
-            raise Exception, msg    
-            
-            
-            
-        
+        q[0] = value[0]
         return q
 
 
@@ -1417,7 +1400,7 @@ class Wind_stress:
         domain.forcing_terms.append(W)
         """
 
-        from config import rho_a, rho_w, eta_w
+        from anuga.config import rho_a, rho_w, eta_w
         from Numeric import array, Float
 
         if len(args) == 2:
@@ -1867,7 +1850,7 @@ def compute_fluxes_python(domain):
 #Initialise module
 
 
-from utilities import compile
+from anuga.utilities import compile
 if compile.can_use_C_extension('shallow_water_ext.c'):
     #Replace python version with c implementations
 
@@ -1886,7 +1869,7 @@ if compile.can_use_C_extension('shallow_water_ext.c'):
 
 
 #Optimisation with psyco
-from config import use_psyco
+from anuga.config import use_psyco
 if use_psyco:
     try:
         import psyco

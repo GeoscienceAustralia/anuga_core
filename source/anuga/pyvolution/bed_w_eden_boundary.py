@@ -36,7 +36,7 @@ domain.set_quantity('friction', 0.1)
 
 #Write file
 import os, time
-from config import time_format
+from anuga.config import time_format
 from math import sin, pi
 
 filename = 'Eden_Australia_31082004.txt'

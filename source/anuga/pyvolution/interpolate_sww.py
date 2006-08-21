@@ -23,7 +23,7 @@ NOTE: stage = bed elevation + height
 ##FIXME (DSG-DSG)  no sww file? give a better error message.
 
 from Numeric import transpose
-from fit_interpolate.interpolate import Interpolate 
+from anuga.fit_interpolate.interpolate import Interpolate 
 
 DEFAULT_QUANTITY = "depth"
 

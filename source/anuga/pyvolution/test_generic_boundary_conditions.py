@@ -4,7 +4,7 @@ import unittest
 from math import sqrt, pi
 
 from generic_boundary_conditions import *
-from config import epsilon
+from anuga.config import epsilon
 from Numeric import allclose, array
 
 
@@ -87,7 +87,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
 
         T = Transmissive_boundary(domain)
 
-        from config import default_boundary_tag
+        from anuga.config import default_boundary_tag
         domain.set_boundary( {default_boundary_tag: T} )
 
 
@@ -109,7 +109,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         from quantity import Quantity
         import time, os
         from math import sin, pi
-        from config import time_format
+        from anuga.config import time_format
 
         a = [0.0, 0.0]
         b = [0.0, 2.0]
@@ -151,7 +151,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
 
         #Convert ASCII file to NetCDF (Which is what we really like!)
         
-        from data_manager import timefile2netcdf                
+        from anuga.pyvolution.data_manager import timefile2netcdf                
         timefile2netcdf(filename, quantity_names = ['stage', 'ymomentum'])
         
 
@@ -179,7 +179,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
 
 
         #Check time interpolation
-        from config import default_boundary_tag
+        from anuga.config import default_boundary_tag
         domain.set_boundary( {default_boundary_tag: F} )
 
         domain.time = 5*30/2  #A quarter way through first step
@@ -202,7 +202,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         from quantity import Quantity
         import time, os
         from math import sin, pi
-        from config import time_format
+        from anuga.config import time_format
 
         a = [0.0, 0.0]
         b = [0.0, 2.0]
@@ -245,7 +245,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
 
 
         #Convert ASCII file to NetCDF (Which is what we really like!)
-        from data_manager import timefile2netcdf               
+        from anuga.pyvolution.data_manager import timefile2netcdf               
         timefile2netcdf(filename, quantity_names = ['stage', 'xmomentum'])
 
         

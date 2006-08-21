@@ -166,7 +166,7 @@ class Domain(Generic_domain):
 
         import sys
         from Numeric import zeros, Float
-        from config import max_timestep
+        from anuga.config import max_timestep
 
         N = self.number_of_elements
 
@@ -254,7 +254,7 @@ class Domain(Generic_domain):
 
         import sys
         from Numeric import zeros, Float
-        from config import max_timestep
+        from anuga.config import max_timestep
 
         import weave
         from weave import converters

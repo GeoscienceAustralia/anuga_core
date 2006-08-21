@@ -4,10 +4,10 @@ It is also a clearing house for functions that may later earn a module
 of their own.
 """
 
-import utilities.polygon
+import anuga.utilities.polygon
 from warnings import warn
 
-from geospatial_data.geospatial_data import ensure_absolute
+from anuga.geospatial_data.geospatial_data import ensure_absolute
 
 
 
@@ -168,7 +168,7 @@ def get_netcdf_file_function(filename,
     #Interpolation_function level (below)
 
     import time, calendar, types
-    from config import time_format
+    from anuga.config import time_format
     from Scientific.IO.NetCDF import NetCDFFile
     from Numeric import array, zeros, Float, alltrue, concatenate, reshape
 
@@ -305,7 +305,7 @@ def get_netcdf_file_function(filename,
     
 
     #from least_squares import Interpolation_function
-    from fit_interpolate.interpolate import Interpolation_function
+    from anuga.fit_interpolate.interpolate import Interpolation_function
 
     if not spatial:
         vertex_coordinates = triangles = interpolation_points = None         
@@ -400,10 +400,10 @@ def apply_expression_to_dictionary(expression, dictionary):#dictionary):
 def angle(v1, v2):
     """Temporary Interface to new location"""
 
-    import utilities.numerical_tools as NT	
+    import anuga.utilities.numerical_tools as NT	
     
     msg = 'angle has moved from util.py.  '
-    msg += 'Please use "from utilities.numerical_tools import angle"'
+    msg += 'Please use "from anuga.utilities.numerical_tools import angle"'
     warn(msg, DeprecationWarning) 
 
     return NT.angle(v1, v2)
@@ -411,10 +411,10 @@ def angle(v1, v2):
 def anglediff(v0, v1):
     """Temporary Interface to new location"""
 
-    import utilities.numerical_tools as NT
+    import anuga.utilities.numerical_tools as NT
     
     msg = 'anglediff has moved from util.py.  '
-    msg += 'Please use "from utilities.numerical_tools import anglediff"'
+    msg += 'Please use "from anuga.utilities.numerical_tools import anglediff"'
     warn(msg, DeprecationWarning) 
 
     return NT.anglediff(v0, v1)    
@@ -423,10 +423,10 @@ def anglediff(v0, v1):
 def mean(x):
     """Temporary Interface to new location"""
 
-    import utilities.numerical_tools as NT    
+    import anuga.utilities.numerical_tools as NT    
     
     msg = 'mean has moved from util.py.  '
-    msg += 'Please use "from utilities.numerical_tools import mean"'
+    msg += 'Please use "from anuga.utilities.numerical_tools import mean"'
     warn(msg, DeprecationWarning) 
 
     return NT.mean(x)    
@@ -435,7 +435,7 @@ def point_on_line(*args, **kwargs):
     """Temporary Interface to new location"""
 
     msg = 'point_on_line has moved from util.py.  '
-    msg += 'Please use "from utilities.polygon import point_on_line"'
+    msg += 'Please use "from anuga.utilities.polygon import point_on_line"'
     warn(msg, DeprecationWarning) 
 
     return utilities.polygon.point_on_line(*args, **kwargs)	
@@ -444,7 +444,7 @@ def inside_polygon(*args, **kwargs):
     """Temporary Interface to new location"""
 
     print 'inside_polygon has moved from util.py.  ',
-    print 'Please use "from utilities.polygon import inside_polygon"'
+    print 'Please use "from anuga.utilities.polygon import inside_polygon"'
 
     return utilities.polygon.inside_polygon(*args, **kwargs)    
     
@@ -452,7 +452,7 @@ def outside_polygon(*args, **kwargs):
     """Temporary Interface to new location"""
 
     print 'outside_polygon has moved from util.py.  ',
-    print 'Please use "from utilities.polygon import outside_polygon"'
+    print 'Please use "from anuga.utilities.polygon import outside_polygon"'
 
     return utilities.polygon.outside_polygon(*args, **kwargs)    
 
@@ -461,7 +461,7 @@ def separate_points_by_polygon(*args, **kwargs):
     """Temporary Interface to new location"""
 
     print 'separate_points_by_polygon has moved from util.py.  ',
-    print 'Please use "from utilities.polygon import separate_points_by_polygon"'
+    print 'Please use "from anuga.utilities.polygon import separate_points_by_polygon"'
 
     return utilities.polygon.separate_points_by_polygon(*args, **kwargs)    
 
@@ -471,7 +471,7 @@ def read_polygon(*args, **kwargs):
     """Temporary Interface to new location"""
 
     print 'read_polygon has moved from util.py.  ',
-    print 'Please use "from utilities.polygon import read_polygon"'
+    print 'Please use "from anuga.utilities.polygon import read_polygon"'
 
     return utilities.polygon.read_polygon(*args, **kwargs)    
 
@@ -480,7 +480,7 @@ def populate_polygon(*args, **kwargs):
     """Temporary Interface to new location"""
 
     print 'populate_polygon has moved from util.py.  ',
-    print 'Please use "from utilities.polygon import populate_polygon"'
+    print 'Please use "from anuga.utilities.polygon import populate_polygon"'
 
     return utilities.polygon.populate_polygon(*args, **kwargs)    
 

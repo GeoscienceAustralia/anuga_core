@@ -4,14 +4,14 @@ import tempfile
 import unittest
 
 #try:
-from pmesh.mesh import *
+from anuga.pmesh.mesh import *
 #except ImportError:  
 #    from mesh import *
     
 from load_mesh.loadASCII import *
-from coordinate_transforms.geo_reference import Geo_reference
-from geospatial_data.geospatial_data import Geospatial_data
-from utilities.polygon import  is_inside_polygon ### inside_polygon
+from anuga.coordinate_transforms.geo_reference import Geo_reference
+from anuga.geospatial_data.geospatial_data import Geospatial_data
+from anuga.utilities.polygon import  is_inside_polygon ### inside_polygon
 
 class meshTestCase(unittest.TestCase):
     def setUp(self):

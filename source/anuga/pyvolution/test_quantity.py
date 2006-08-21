@@ -5,14 +5,14 @@ from math import sqrt, pi
 
 
 from quantity import *
-from config import epsilon
+from anuga.config import epsilon
 from Numeric import allclose, array, ones, Float
 
-from fit_interpolate.fit import fit_to_mesh
-#from pyvolution.least_squares import fit_to_mesh		
+from anuga.fit_interpolate.fit import fit_to_mesh
+#from anuga.pyvolution.least_squares import fit_to_mesh		
 from domain import Domain
-from geospatial_data.geospatial_data import Geospatial_data
-from coordinate_transforms.geo_reference import Geo_reference
+from anuga.geospatial_data.geospatial_data import Geospatial_data
+from anuga.coordinate_transforms.geo_reference import Geo_reference
 
 #Aux for fit_interpolate.fit example
 def linear_function(point):
@@ -1060,7 +1060,7 @@ class Test_Quantity(unittest.TestCase):
         from mesh_factory import rectangular
         from shallow_water import Domain, Transmissive_boundary
         from Numeric import zeros, Float
-        from utilities.numerical_tools import mean
+        from anuga.utilities.numerical_tools import mean
 
         #Create basic mesh
         points, vertices, boundary = rectangular(2, 2)
@@ -1150,7 +1150,7 @@ class Test_Quantity(unittest.TestCase):
         from mesh_factory import rectangular
         from shallow_water import Domain, Transmissive_boundary
         from Numeric import zeros, Float
-        from utilities.numerical_tools import mean
+        from anuga.utilities.numerical_tools import mean
 
 
         #Create basic mesh

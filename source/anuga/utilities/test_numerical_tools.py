@@ -4,7 +4,7 @@
 import unittest
 from Numeric import zeros, array, allclose
 from math import sqrt, pi
-from config import epsilon
+from anuga.config import epsilon
 
 from numerical_tools import *
 

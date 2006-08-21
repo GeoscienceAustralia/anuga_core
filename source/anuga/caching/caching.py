@@ -1264,10 +1264,8 @@ def mysave(T,file,compression):
       Ts  = pickler.dumps(T, bin)
     except MemoryError:
       msg = '****WARNING (caching.py): Could not pickle data for compression.'
-      msg += ' Try using compression = False.'
-      msg += ' Note that nothing has been cached but I will continue anyway.'
-      #raise MemoryError, msg
-      print msg             # As per ticket:40
+      msg += ' Try using compression = False'
+      raise MemoryError, msg
     else:  
       #Compressed pickling      
       TsC = zlib.compress(Ts, comp_level)

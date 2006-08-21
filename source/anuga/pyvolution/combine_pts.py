@@ -4,7 +4,7 @@
    Geoscience Australia, 2005.   
 """
 
-from utilities.polygon import outside_polygon, inside_polygon
+from anuga.utilities.polygon import outside_polygon, inside_polygon
 from Numeric import take, concatenate
 import time
 

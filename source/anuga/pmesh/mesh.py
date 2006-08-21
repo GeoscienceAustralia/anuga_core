@@ -15,7 +15,7 @@
 
 import sys
 import math
-import mesh_engine.triang as triang
+import anuga.mesh_engine.triang as triang
 import re
 import os
 import pickle
@@ -24,11 +24,11 @@ import types
 import exceptions
 
 import load_mesh
-from coordinate_transforms.geo_reference import Geo_reference,DEFAULT_ZONE
-from utilities.polygon import point_in_polygon 
+from anuga.coordinate_transforms.geo_reference import Geo_reference,DEFAULT_ZONE
+from anuga.utilities.polygon import point_in_polygon 
 import load_mesh.loadASCII
-import alpha_shape.alpha_shape
-from geospatial_data.geospatial_data import Geospatial_data, ensure_geospatial
+import anuga.alpha_shape.alpha_shape
+from anuga.geospatial_data.geospatial_data import Geospatial_data, ensure_geospatial
 
 try:  
     import kinds  
@@ -49,7 +49,7 @@ except ImportError:
 SET_COLOUR='red'
 
 #FIXME: this is not tested.
-from utilities.numerical_tools import gradient
+from anuga.utilities.numerical_tools import gradient
 
 
 
@@ -1563,7 +1563,7 @@ class Mesh:
         points=[]
         for vertex in self.getUserVertices():
             points.append((vertex.x,vertex.y))
-        self.shape = alpha_shape.alpha_shape.Alpha_Shape(points, alpha = alpha)
+        self.shape = anuga.alpha_shape.alpha_shape.Alpha_Shape(points, alpha = alpha)
 
 
     def _boundary2mesh(self, raw_boundary=True,

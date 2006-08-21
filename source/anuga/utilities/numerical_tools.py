@@ -289,7 +289,7 @@ def gradient2_python(x0, y0, x1, y1, q0, q1):
 ##############################################
 #Initialise module
 
-from utilities import compile
+from anuga.utilities import compile
 if compile.can_use_C_extension('util_ext.c'):
     from util_ext import gradient, gradient2
 else:

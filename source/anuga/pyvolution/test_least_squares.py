@@ -6,12 +6,12 @@ import unittest
 from math import sqrt
 
 
-from pyvolution.least_squares import *
-from pyvolution.neighbour_mesh import Mesh
+from anuga.pyvolution.least_squares import *
+from anuga.pyvolution.neighbour_mesh import Mesh
 
 from Numeric import allclose, array, transpose
 
-from coordinate_transforms.geo_reference import Geo_reference
+from anuga.coordinate_transforms.geo_reference import Geo_reference
 
 def distance(x, y):
     return sqrt( sum( (array(x)-array(y))**2 ))
@@ -1082,7 +1082,7 @@ class Test_Least_Squares(unittest.TestCase):
             
         #Check basic interpolation of one quantity using averaging
         #(no interpolation points or spatial info)
-        from utilities.numerical_tools import mean        
+        from anuga.utilities.numerical_tools import mean        
         I = Interpolation_function(time, [mean(Q[0,:]),
                                           mean(Q[1,:]),
                                           mean(Q[2,:])])
@@ -1409,7 +1409,7 @@ class Test_Least_Squares(unittest.TestCase):
         """Simple check that georef works at the fit_to_mesh level
         """
         
-        from coordinate_transforms.geo_reference import Geo_reference
+        from anuga.coordinate_transforms.geo_reference import Geo_reference
 
         #Mesh
         vertex_coordinates = [[0.76, 0.76],

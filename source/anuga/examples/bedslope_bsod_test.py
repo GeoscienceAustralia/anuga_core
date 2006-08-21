@@ -15,12 +15,12 @@ Jane Sexton 2006
 ######################
 # Module imports 
 #
-from pmesh.mesh_interface import create_mesh_from_regions
-from pyvolution.pmesh2domain import pmesh_to_domain_instance
+from anuga.pmesh.mesh_interface import create_mesh_from_regions
+from anuga.pyvolution.pmesh2domain import pmesh_to_domain_instance
 from caching import cache
-from pyvolution.shallow_water import Domain, Reflective_boundary,\
+from anuga.pyvolution.shallow_water import Domain, Reflective_boundary,\
      Dirichlet_boundary, Time_boundary, Transmissive_boundary
-from geospatial_data import *
+from anuga.geospatial_data.geospatial_data import *
 
 
 # bounding polygon

@@ -9,7 +9,7 @@ import unittest
 from Numeric import allclose
 
 from redfearn import *
-from utilities.anuga_exceptions import ANUGAError
+from anuga.utilities.anuga_exceptions import ANUGAError
 
 #-------------------------------------------------------------
 

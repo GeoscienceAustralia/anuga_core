@@ -1,7 +1,7 @@
 """Make directory available as a Python package
 """
 
-from geospatial_data import *
+from anuga.geospatial_data.geospatial_data import *
 
 
 

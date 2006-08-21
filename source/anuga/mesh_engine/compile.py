@@ -236,7 +236,7 @@ def can_use_C_extension(filename):
     can and should be used.
     """
 
-    from config import use_extensions
+    from anuga.config import use_extensions
 
     from os.path import splitext
 

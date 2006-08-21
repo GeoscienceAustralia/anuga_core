@@ -27,13 +27,13 @@
 
 from Numeric import zeros, Float, ArrayType,take 
 
-from geospatial_data.geospatial_data import Geospatial_data, ensure_absolute
-from fit_interpolate.general_fit_interpolate import FitInterpolate
-from utilities.sparse import Sparse, Sparse_CSR
-from utilities.polygon import in_and_outside_polygon
-from fit_interpolate.search_functions import search_tree_of_vertices
-from utilities.cg_solve import conjugate_gradient
-from utilities.numerical_tools import ensure_numeric, gradient
+from anuga.geospatial_data.geospatial_data import Geospatial_data, ensure_absolute
+from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
+from anuga.utilities.sparse import Sparse, Sparse_CSR
+from anuga.utilities.polygon import in_and_outside_polygon
+from anuga.fit_interpolate.search_functions import search_tree_of_vertices
+from anuga.utilities.cg_solve import conjugate_gradient
+from anuga.utilities.numerical_tools import ensure_numeric, gradient
 
 import exceptions
 class ToFewPointsError(exceptions.Exception): pass
@@ -357,7 +357,7 @@ class Fit(FitInterpolate):
           z: Single 1d vector or array of data at the point_coordinates.
 
         """
-        #Note: Don't get the z info from Geospatial_data.attributes yet.
+        #Note: Don't get the z info from anuga.geospatial_data.attributes yet.
         # If we did fit would have to handle attribute title info.
 
         #FIXME(DSG-DSG): Check that the vert and point coords

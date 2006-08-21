@@ -7,14 +7,14 @@
    Geoscience Australia
 """
 
-from pyvolution.neighbour_mesh import Mesh
-from pyvolution.generic_boundary_conditions import Boundary
-from pyvolution.generic_boundary_conditions import File_boundary
-from pyvolution.generic_boundary_conditions import Dirichlet_boundary
-from pyvolution.generic_boundary_conditions import Time_boundary
-from pyvolution.generic_boundary_conditions import Transmissive_boundary
-from pyvolution.pmesh2domain import pmesh_to_domain
-from pyvolution.region import Set_region as region_set_region
+from anuga.pyvolution.neighbour_mesh import Mesh
+from anuga.pyvolution.generic_boundary_conditions import Boundary
+from anuga.pyvolution.generic_boundary_conditions import File_boundary
+from anuga.pyvolution.generic_boundary_conditions import Dirichlet_boundary
+from anuga.pyvolution.generic_boundary_conditions import Time_boundary
+from anuga.pyvolution.generic_boundary_conditions import Transmissive_boundary
+from anuga.pyvolution.pmesh2domain import pmesh_to_domain
+from anuga.pyvolution.region import Set_region as region_set_region
 
 import types
 
@@ -149,7 +149,7 @@ class Domain(Mesh):
 
 
         #Defaults
-        from config import max_smallsteps, beta_w, beta_h, epsilon, CFL
+        from anuga.config import max_smallsteps, beta_w, beta_h, epsilon, CFL
         self.beta_w = beta_w
         self.beta_h = beta_h
         self.epsilon = epsilon
@@ -181,7 +181,7 @@ class Domain(Mesh):
 
 
         #Checkpointing and storage
-        from config import default_datadir
+        from anuga.config import default_datadir
         self.datadir = default_datadir
         self.filename = 'domain'
         self.checkpoint = False
@@ -339,7 +339,7 @@ class Domain(Mesh):
 
         """
 
-        from util import apply_expression_to_dictionary
+        from anuga.pyvolution.util import apply_expression_to_dictionary
         return apply_expression_to_dictionary(expression, self.quantities)
 
 
@@ -652,7 +652,7 @@ class Domain(Mesh):
 
         """
 
-        from config import min_timestep, max_timestep, epsilon
+        from anuga.config import min_timestep, max_timestep, epsilon
 
         #FIXME: Maybe lump into a larger check prior to evolving
         msg = 'Boundary tags must be bound to boundary objects before evolving system, '
@@ -800,7 +800,7 @@ class Domain(Mesh):
 
     def update_timestep(self, yieldstep, finaltime):
 
-        from config import min_timestep, max_timestep
+        from anuga.config import min_timestep, max_timestep
 
         # self.timestep is calculated from speed of characteristics
         # Apply CFL condition here
@@ -932,7 +932,7 @@ class Domain(Mesh):
 #Initialise module
 
 #Optimisation with psyco
-from config import use_psyco
+from anuga.config import use_psyco
 if use_psyco:
     try:
         import psyco

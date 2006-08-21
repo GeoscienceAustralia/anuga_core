@@ -129,8 +129,8 @@ class File_boundary_time(Boundary):
     def __init__(self, filename, domain):
         import time
         from Numeric import array
-        from config import time_format
-        from util import File_function
+        from anuga.config import time_format
+        from anuga.pyvolution.util import File_function
 
         Boundary.__init__(self)
 
@@ -179,8 +179,8 @@ class File_boundary(Boundary):
     def __init__(self, filename, domain, verbose = False):
         import time
         from Numeric import array, zeros, Float
-        from config import time_format
-        from util import file_function
+        from anuga.config import time_format
+        from anuga.pyvolution.util import file_function
 
         Boundary.__init__(self)
 

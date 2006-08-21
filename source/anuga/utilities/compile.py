@@ -175,7 +175,7 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
 
   #Add Python path + utilities to includelist (see ticket:31)
   #Assume there is only one 'utilities' dir under path dirs
-
+  
   utilities_include_dir = None
   for pathdir in sys.path:
 
@@ -189,9 +189,10 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
     else:
       #print 'Found %s to be used as include dir' %utilities_include_dir
       break
-     
 
-      
+  utilities_include_dir = buildroot + os.sep + "source" + os.sep + "anuga" \
+                          + os.sep + 'utilities'
+ 
 
   
   
