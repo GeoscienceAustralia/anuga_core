@@ -1,0 +1,8 @@
+TLC = 'top_left_corner'
+TRC = 'top_right_corner'
+BLC = 'bottom_left_corner'
+BRC = 'bottom_right_corner'
+TS  = 'top_side'
+RS  = 'right_side'
+LS  = 'left_side'
+BS  = 'bottom_side'

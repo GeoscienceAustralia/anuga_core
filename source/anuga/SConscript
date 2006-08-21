@@ -1,0 +1,4 @@
+SConscript(['mesh_engine/SConscript'])
+SConscript(['utilities/SConscript'])
+SConscript(['pyvolution/SConscript'])
+#SConscript(['pymetis/SConscript'])

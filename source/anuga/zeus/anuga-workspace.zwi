@@ -1,0 +1,12 @@
+<!-- Workspace file for the Zeus for Windows editor.-->
+<workspace name="anuga-workspace">
+    <mode>Debug</mode>
+    <active>pyvolution</active>
+    <project name="analytic_solutions">analytic_solutions.zpi</project>
+    <project name="euler">euler.zpi</project>
+    <project name="Merimbula">Merimbula.zpi</project>
+    <project name="parallel">parallel.zpi</project>
+    <project name="pyvolution">pyvolution.zpi</project>
+    <project name="steve">steve.zpi</project>
+    <project name="Validation">Validation.zpi</project>
+</workspace>
