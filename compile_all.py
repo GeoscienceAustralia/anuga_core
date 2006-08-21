@@ -1,0 +1,35 @@
+import os
+
+buildroot = os.getcwd()
+
+os.chdir('inundation')
+
+#Complete horrible hack to decide which branch to take (Ole)
+#try:
+#    os.stat('inundation-numpy-branch')
+#except:
+#    os.chdir('inundation')
+#else:
+#    os.chdir('inundation-numpy-branch')    
+
+print 'Changing to', os.getcwd()        
+
+#entries = listdir('.')
+
+
+#Attempt to compile all extensions
+
+os.chdir('utilities')
+execfile('compile.py')
+
+os.chdir('..')
+os.chdir('pyvolution')
+execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
+
+os.chdir('..')
+os.chdir('mesh_engine')
+execfile('compile.py')
+
+os.chdir(buildroot)    
+#execfile('test_all.py')
+    
