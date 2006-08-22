@@ -1,4 +1,4 @@
-from Numeric import zeros, Float
+from Numeric import array, Float, zeros
 from Scientific.IO.NetCDF import NetCDFFile
 from Tkinter import Button, E, W
 from visualiser import Visualiser
@@ -35,25 +35,18 @@ class OfflineVisualiser(Visualiser):
                 N_vert = fin.variables[quantityName].shape[1]
             else:
                 N_vert = len(fin.variables[quantityName])
-            x = fin.variables['x']
-            y = fin.variables['y']
-            q = fin.variables[quantityName]
-            scale = self.height_zScales[quantityName]
-            off = self.height_zScales[quantityName]
+            x = array(fin.variables['x'], Float)
+            y = array(fin.variables['y'], Float)
             if dynamic is True:
-                for v in range(N_vert):
-                    points.InsertNextPoint(x[v],
-                                           y[v],
-                                           q[self.frame_number][v] \
-                                           * scale \
-                                           + off)
+                q = array(fin.variables[quantityName][self.frame_number], Float)
             else:
-                for v in range(N_vert):
-                    points.InsertNextPoint(x[v],
-                                           y[v],
-                                           q[v] \
-                                           * scale \
-                                           + off)
+                q = array(fin.variables[quantityName], Float)
+
+            q *= self.height_zScales[quantityName]
+            q += self.height_offset[quantityName]
+
+            for v in range(N_vert):
+                points.InsertNextPoint(x[v], y[v], q[v])
             polydata = self.vtk_polyData[quantityName] = vtkPolyData()
             polydata.SetPoints(points)
             polydata.SetPolys(self.vtk_cells)
