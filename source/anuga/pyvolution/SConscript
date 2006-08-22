@@ -1,6 +1,6 @@
 Import('env')
 env2 = env.Copy()
-env2.Append(CPPPATH=['#inundation/utilities'])
+env2.Append(CPPPATH=['#anuga_core/source/anuga/utilities'])
 
 env2.SharedLibrary('quantity_ext', ['quantity_ext.c'])
 env2.SharedLibrary('shallow_water_ext', ['shallow_water_ext.c'])
