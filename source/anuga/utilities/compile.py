@@ -190,10 +190,15 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
       #print 'Found %s to be used as include dir' %utilities_include_dir
       break
 
+  # This is hacky since it
+  # assumes the location of the compile_all that determines buildroot
   utilities_include_dir = buildroot + os.sep + "source" + os.sep + "anuga" \
-                          + os.sep + 'utilities'
- 
-
+                          + os.sep + 'utilities'  
+  try:
+    os.stat(utilities_include_dir)
+  except OSError: 
+    utilities_include_dir = buildroot + os.sep + 'utilities'
+  
   
   
   # Check filename(s)
