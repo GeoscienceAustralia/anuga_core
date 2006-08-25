@@ -107,4 +107,4 @@ optimised_gradient_limiter = True #Use hardwired gradient limiter
 minimum_allowed_height = 1.0e-3 #Water depth below which it is considered to be 0
 maximum_allowed_speed = 100.0 #Maximal particle speed of water
 
-minimum_allowed_depth = 0.0
+minimum_sww_depth = 0.0

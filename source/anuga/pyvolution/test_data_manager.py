@@ -458,7 +458,7 @@ class Test_Data_Manager(unittest.TestCase):
         os.remove(self.domain.writer.filename)
 
 
-    def test_sww_minimum_allowed_depth(self):
+    def test_sww_minimum_sww_depth(self):
         """Test that sww information can be written correctly
         multiple timesteps using a different reduction operator (min)
         """
@@ -471,7 +471,7 @@ class Test_Data_Manager(unittest.TestCase):
         self.domain.format = 'sww'
         self.domain.smooth = True
         self.domain.reduction = min
-        self.domain.minimum_allowed_depth = 100
+        self.domain.minimum_sww_depth = 100
 
         sww = get_dataobject(self.domain)
         sww.store_connectivity()
@@ -4991,7 +4991,7 @@ Parameters
         
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_sww_minimum_allowed_depth')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_sww_minimum_sww_depth')
     suite = unittest.makeSuite(Test_Data_Manager,'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
