@@ -142,6 +142,16 @@ class Domain(Generic_Domain):
             #self.reduction = min  #Looks better near steep slopes
 
 
+    def set_minimum_sww_depth(self, minimum_sww_depth):
+        """
+        Set the minimum depth that will be recognised when writing
+        to an sww file. This is useful for removing thin water layers
+        that seems to be caused by friction creep.
+
+        The minimum allowed sww depth is in meters.
+        """
+        self.minimum_sww_depth = minimum_sww_depth
+
 
 
     def set_quantities_to_be_stored(self, q):
