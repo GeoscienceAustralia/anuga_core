@@ -28,10 +28,13 @@ from pylab import plot, xlabel, ylabel, title, ion, close, savefig, figure, axis
 #------------------------------------------------------------------------------
 # Model constants
 
-slope = -0.02     # 1:50 Slope
-highest_point = 3 # Highest elevation (m)
-sea_level = -1    # Mean sea level
-amplitude = 2     # Solitary wave height H
+slope = -0.05       # 1:20 Slope
+highest_point = 6   # Highest elevation (m)
+sea_level = 0       # Mean sea level
+min_elevation = -20 # Lowest elevation (elevation of offshore flat part)
+offshore_depth=sea_level-min_elevation # offshore water depth
+amplitude = 2       # Solitary wave height H
+normalized_amplitude = amplitude/offshore_depth 
 simulation_name = 'runup_convergence'   
 
 
@@ -60,14 +63,15 @@ domain = Domain(points, vertices, boundary) # Create domain
 
 
 # Unstructured mesh
-#polygon = [[east,north],[west,north],[west,south],[east,south]]
-#meshname = simulation_name + '.msh'
-#create_mesh_from_regions(polygon,
-#                         boundary_tags={'top': [0], 'left': [1], 'bottom': [2], 'right': [3]},
-#                         maximum_triangle_area=dx*dy/2,
-#                         filename=meshname)
-#                         #interior_regions=interior_regions)
-#domain = Domain(meshname, use_cache=True, verbose = True)
+polygon = [[east,north],[west,north],[west,south],[east,south]]
+interior_polygon = [[200,north-10],[west+10,north-10],[west+10,south+10],[200,south+10]]
+meshname = simulation_name + '.msh'
+create_mesh_from_regions(polygon,
+                         boundary_tags={'top': [0], 'left': [1], 'bottom': [2], 'right': [3]},
+                         maximum_triangle_area=dx*dy/4, # Triangle area commensurate with structured mesh
+                         filename=meshname,
+                         interior_regions=[[interior_polygon,dx*dy/32]])
+domain = Domain(meshname, use_cache=True, verbose = True)
 
 
 
@@ -78,8 +82,27 @@ domain.set_name(simulation_name)
 # Setup initial conditions
 #------------------------------------------------------------------------------
 
+#def topography(x,y):
+#    return slope*x+highest_point  # Return linear bed slope bathymetry as vector
+
 def topography(x,y):
-    return slope*x+highest_point  # Return linear bed slope bathymetry as vector
+    """Two part topography - slope and flat part
+    """
+
+    from Numeric import zeros, Float
+
+    z = zeros(len(x), Float) # Allocate space for return vector
+    for i in range(len(x)):
+
+        z[i] = slope*x[i]+highest_point # Linear bed slope bathymetry
+
+        if z[i] < min_elevation:        # Limit depth
+            z[i] = min_elevation
+
+    return z       
+        
+
+        
 
 domain.set_quantity('elevation', topography) # Use function for elevation
 domain.set_quantity('friction', 0.0 )        # Constant friction 
@@ -95,7 +118,7 @@ Br = Reflective_boundary(domain)      # Solid reflective wall
 Bd = Dirichlet_boundary([0.,0.,0.])   # Constant boundary values
 
 def waveform(t): 
-    return sea_level + amplitude/cosh(t-10)**2
+    return sea_level + normalized_amplitude/cosh(t-25)**2
 
 Bw = Time_boundary(domain=domain,     # Time dependent boundary  
                    f=lambda t: [waveform(t), 0.0, 0.0])
@@ -113,7 +136,7 @@ domain.set_boundary({'left': Br, 'right': Bts, 'top': Br, 'bottom': Br})
 #------------------------------------------------------------------------------
 
 stagestep = []
-for t in domain.evolve(yieldstep = 1, finaltime = 150):
+for t in domain.evolve(yieldstep = 1, finaltime = 100):
     domain.write_time()
 
 
@@ -125,7 +148,7 @@ for t in domain.evolve(yieldstep = 1, finaltime = 150):
 # Define line of gauges through center of domain
 def gauge_line(west,east,north,south):
     from Numeric import arange
-    x_vector = arange(west, east, dx/4) # Gauges every dx/2 meter from west to east
+    x_vector = arange(west, (east-west)/2, 10) # Gauges every 10 meter from west to midpt
     y = (north+south)/2.
 
     gauges = []
@@ -141,7 +164,7 @@ f = file_function(domain.get_name()+'.sww',
                   quantities = ['stage', 'elevation', 'xmomentum', 'ymomentum'],
                   interpolation_points = gauges,
                   verbose = True,
-                  use_cache = False)
+                  use_cache = True)
 
 
 # Find runup distance from western boundary through a linear search
@@ -171,13 +194,14 @@ for k, g in enumerate(gauges):
 
 # Print
 print 'wave height [m]:                    ', amplitude
-runup_height = topography(runup_point, (north+south)/2.)
+runup_height = topography([runup_point], [(north+south)/2.])[0]
 print 'run up height [m]:                  ', runup_height 
 
 runup_distance = runup_point-coastline
 print 'run up distance from coastline [m]: ', runup_distance
 
 print 'Coastline (meters form west):       ', coastline
+
 
 
 # Take snapshots and plot
@@ -202,7 +226,6 @@ for i, t in enumerate(f.get_time()):
         plot(x_vector, stages, 'b-')
          
 savefig('snapshots')
-        
 
 
 
@@ -217,14 +240,9 @@ fid.write(s)
 
 fid.close()
 
-
-
-
-
 # Plot max runup etc
 ion()
-hold(False)
-figure(2)
+figure(1)
 plot(x_vector, max_stage, 'g+',
      x_vector, min_stage, 'b+',     
      x_vector, topography(x_vector,(north+south)/2.), 'r-')
