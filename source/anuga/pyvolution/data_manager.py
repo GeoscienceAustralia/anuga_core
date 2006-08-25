@@ -66,7 +66,7 @@ from Numeric import concatenate, array, Float, Int, Int32, resize, sometrue, \
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.geospatial_data.geospatial_data import Geospatial_data
-
+from anuga.config import minimum_allowed_depth
 
 def make_filename(s):
     """Transform argument string into a suitable filename
@@ -251,6 +251,10 @@ class Data_format_sww(Data_format):
 
         Data_format.__init__(self, domain, 'sww', mode)
 
+        if hasattr(domain, 'minimum_allowed_depth'):
+            self.minimum_allowed_depth =  domain.minimum_allowed_depth
+        else:
+            self.minimum_allowed_depth = minimum_allowed_depth
 
         # NetCDF file definition
         fid = NetCDFFile(self.filename, mode)
@@ -477,7 +481,8 @@ class Data_format_sww(Data_format):
                     z = fid.variables['elevation']
                     #print z[:]
                     #print A-z[:]
-                    A = choose( A-z[:] >= minimum_allowed_depth, (z[:], A))
+                    A = choose( A-z[:] >= self.minimum_allowed_depth,
+                                (z[:], A))
                     stage[i,:] = A.astype(self.precision)
                 elif name == 'xmomentum':
                     xmomentum[i,:] = A.astype(self.precision)

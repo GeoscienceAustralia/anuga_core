@@ -62,7 +62,7 @@ from generic_boundary_conditions import Time_boundary
 from generic_boundary_conditions import Transmissive_boundary
 
 from anuga.utilities.numerical_tools import gradient, mean
-
+from anuga.config import minimum_allowed_depth
 
 
 #Shallow water domain
@@ -125,7 +125,7 @@ class Domain(Generic_Domain):
         self.store = True
         self.format = 'sww'
         self.set_store_vertices_uniquely(False)
-
+        self.minimum_allowed_depth = minimum_allowed_depth
         self.quantities_to_be_stored = ['stage','xmomentum','ymomentum']
 
 

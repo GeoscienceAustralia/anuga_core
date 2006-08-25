@@ -458,8 +458,56 @@ class Test_Data_Manager(unittest.TestCase):
         os.remove(self.domain.writer.filename)
 
 
+    def test_sww_minimum_allowed_depth(self):
+        """Test that sww information can be written correctly
+        multiple timesteps using a different reduction operator (min)
+        """
 
-    def test_sww_DSG(self):
+        import time, os
+        from Numeric import array, zeros, allclose, Float, concatenate
+        from Scientific.IO.NetCDF import NetCDFFile
+
+        self.domain.filename = 'datatest' + str(id(self))
+        self.domain.format = 'sww'
+        self.domain.smooth = True
+        self.domain.reduction = min
+        self.domain.minimum_allowed_depth = 100
+
+        sww = get_dataobject(self.domain)
+        sww.store_connectivity()
+        sww.store_timestep('stage')
+
+        self.domain.evolve_to_end(finaltime = 0.01)
+        sww.store_timestep('stage')
+
+
+        #Check contents
+        #Get NetCDF
+        fid = NetCDFFile(sww.filename, 'r')
+
+
+        # Get the variables
+        x = fid.variables['x']
+        y = fid.variables['y']
+        z = fid.variables['elevation']
+        time = fid.variables['time']
+        stage = fid.variables['stage']
+
+        #Check values
+        Q = self.domain.quantities['stage']
+        Q0 = Q.vertex_values[:,0]
+        Q1 = Q.vertex_values[:,1]
+        Q2 = Q.vertex_values[:,2]
+
+        A = stage[1,:]
+        assert allclose(stage[1,:], z[:])
+        fid.close()
+
+        #Cleanup
+        os.remove(sww.filename)
+
+
+    def Not_a_test_sww_DSG(self):
         """Not a test, rather a look at the sww format
         """
 
@@ -4943,7 +4991,7 @@ Parameters
         
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_exposure_csv_loading_x_y2')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_sww_minimum_allowed_depth')
     suite = unittest.makeSuite(Test_Data_Manager,'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
