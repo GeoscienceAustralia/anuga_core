@@ -1,4 +1,4 @@
-from threading import Event, Thread
+from threading import Thread
 from Tkinter import Tk, Button, N, E, S, W
 from types import FunctionType, TupleType
 from vtk import vtkActor, vtkFloatArray, vtkPolyDataMapper, vtkRenderer

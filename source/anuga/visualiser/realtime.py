@@ -1,4 +1,5 @@
-from Tkinter import Button
+from Tkinter import Button, E, W
+from threading import Event
 from visualiser import Visualiser
 
 class RealtimeVisualiser(Visualiser):
@@ -26,7 +27,7 @@ class RealtimeVisualiser(Visualiser):
     def setup_gui(self):
         Visualiser.setup_gui(self)
         self.tk_pauseResume = Button(self.tk_root, text="Pause", command=self.pauseResume)
-        self.tk_pauseResume.grid(row=1, column=0)
+        self.tk_pauseResume.grid(row=1, column=0, sticky=E+W)
 
     def pauseResume(self):
         if self.sync_unpaused.isSet():
