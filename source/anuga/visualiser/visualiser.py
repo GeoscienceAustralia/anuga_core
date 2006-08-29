@@ -113,7 +113,7 @@ class Visualiser(Thread):
     # --- Colour Coding --- #
 
     def build_quantity_dict(self):
-        """Build a dictionary mapping quantity name->list of vertex
+        """Build a dictionary mapping quantity name->Numeric array of vertex
         values for that quantity. Subclasses are expected to override
         this function."""
         pass
