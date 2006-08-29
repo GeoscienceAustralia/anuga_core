@@ -12,10 +12,14 @@ class OfflineVisualiser(Visualiser):
         """
         Visualiser.__init__(self, source)
 
-        self.frame_number = 0
+        self.frameNumber = 0
         fin = NetCDFFile(self.source, 'r')
-        self.max_frame_number = fin.variables['time'].shape[0] - 1
+        self.maxFrameNumber = fin.variables['time'].shape[0] - 1
         fin.close()
+
+        self.vtk_heightQuantityCache = []
+        for i in range(self.maxFrameNumber):
+            self.vtk_heightQuantityCache.append({})
 
     def setup_grid(self):
         fin = NetCDFFile(self.source, 'r')
@@ -28,31 +32,43 @@ class OfflineVisualiser(Visualiser):
         fin.close()
 
     def update_height_quantity(self, quantityName, dynamic=True):
-        fin = NetCDFFile(self.source, 'r')
-        if(fin.variables.has_key(quantityName)):
-            points = vtkPoints()
-            if dynamic:
-                N_vert = fin.variables[quantityName].shape[1]
+        polydata = self.vtk_polyData[quantityName] = vtkPolyData()
+        if dynamic is True:
+            if not self.vtk_heightQuantityCache[self.frameNumber].has_key(quantityName):
+                self.vtk_heightQuantityCache[self.frameNumber][quantityName]\
+                    = self.read_height_quantity(quantityName, True, self.frameNumber);
+                print "Caching %s (frame %d)" % (quantityName, self.frameNumber)
             else:
-                N_vert = len(fin.variables[quantityName])
-            x = array(fin.variables['x'], Float)
-            y = array(fin.variables['y'], Float)
-            if dynamic is True:
-                q = array(fin.variables[quantityName][self.frame_number], Float)
-            else:
-                q = array(fin.variables[quantityName], Float)
-
-            q *= self.height_zScales[quantityName]
-            q += self.height_offset[quantityName]
-
-            for v in range(N_vert):
-                points.InsertNextPoint(x[v], y[v], q[v])
-            polydata = self.vtk_polyData[quantityName] = vtkPolyData()
-            polydata.SetPoints(points)
-            polydata.SetPolys(self.vtk_cells)
+                print "Using cache of %s (frame %d)" % (quantityName, self.frameNumber)
+            polydata.SetPoints(self.vtk_heightQuantityCache[self.frameNumber][quantityName])
         else:
-            self.height_quantities.remove(quantityName)
+            polydata.SetPoints(self.read_height_quantity(quantityName, False))
+        polydata.SetPolys(self.vtk_cells)
+            
+    def read_height_quantity(self, quantityName, dynamic=True, frameNumber=0):
+        """Read in a height based quantity from the NetCDF source file
+        and return a vtkPoints object. frameNumber is ignored if
+        dynamic is false."""
+        fin = NetCDFFile(self.source, 'r')
+        points = vtkPoints()
+        if dynamic is True:
+            N_vert = fin.variables[quantityName].shape[1]
+        else:
+            N_vert = len(fin.variables[quantityName])
+        x = array(fin.variables['x'], Float)
+        y = array(fin.variables['y'], Float)
+        if dynamic is True:
+            q = array(fin.variables[quantityName][self.frameNumber], Float)
+        else:
+            q = array(fin.variables[quantityName], Float)
+
+        q *= self.height_zScales[quantityName]
+        q += self.height_offset[quantityName]
+
+        for v in range(N_vert):
+            points.InsertNextPoint(x[v], y[v], q[v])
         fin.close()
+        return points
 
     def setup_gui(self):
         Visualiser.setup_gui(self)
@@ -72,32 +88,32 @@ class OfflineVisualiser(Visualiser):
         self.tk_forward10.grid(row=1, column=5, sticky=W+E)
 
     def restart(self):
-        self.frame_number = 0
+        self.frameNumber = 0
         self.redraw_quantities(True)
 
     def back10(self):
-        if self.frame_number - 10 >= 0:
-            self.frame_number -= 10
+        if self.frameNumber - 10 >= 0:
+            self.frameNumber -= 10
         else:
-            self.frame_number = 0
+            self.frameNumber = 0
         self.redraw_quantities(True)
 
     def back(self):
-        if self.frame_number > 0:
-            self.frame_number -= 1
+        if self.frameNumber > 0:
+            self.frameNumber -= 1
             self.redraw_quantities(True)
 
     def pauseResume(self):
         print "Pause/Resume"
 
     def forward(self):
-        if self.frame_number < self.max_frame_number:
-            self.frame_number += 1
+        if self.frameNumber < self.maxFrameNumber:
+            self.frameNumber += 1
             self.redraw_quantities(True)
 
     def forward10(self):
-        if self.frame_number + 10 <= self.max_frame_number:
-            self.frame_number += 10
+        if self.frameNumber + 10 <= self.maxFrameNumber:
+            self.frameNumber += 10
         else:
-            self.frame_number = self.max_frame_number
+            self.frameNumber = self.maxFrameNumber
         self.redraw_quantities(True)
