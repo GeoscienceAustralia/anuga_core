@@ -20,7 +20,7 @@ from shallow_water import Domain, Reflective_boundary, Dirichlet_boundary,\
      Transmissive_boundary, Time_boundary
 from region import Add_value_to_region, Set_region
 from mesh_factory import rectangular
-from pmesh2domain import pmesh_to_domain_instance
+from anuga.pyvolution.pmesh2domain import pmesh_to_domain_instance
 
 from Numeric import array
 

@@ -7,7 +7,7 @@ sys.path.append('..'+sep+'pyvolution')
 
 
 from shallow_water import Domain
-from pmesh2domain import pmesh_to_domain_instance
+from anuga.pyvolution.pmesh2domain import pmesh_to_domain_instance
 from anuga.pyvolution.util import file_function
 from anuga.utilities.polygon import Polygon_function, read_polygon
 from Numeric import zeros, Float, maximum, minimum

@@ -7,15 +7,14 @@ from Numeric import allclose, array
 
 from shallow_water import Domain
 
+#from anuga.pyvolution.pmesh2domain import *
+
 from pmesh2domain import *
 
 from shallow_water import Domain, Reflective_boundary, Dirichlet_boundary,\
      Transmissive_boundary
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference
-
-#This is making pyvolution dependent on pmesh.
-# not good.  this should be in a seperate package.(directory)
 from anuga.pmesh.mesh import importMeshFromFile
 
 class Test_pmesh2domain(unittest.TestCase):

@@ -3340,7 +3340,7 @@ friction  \n \
          tags["2"] = b2
          tags["3"] = b3
 
-         #from pmesh2domain import pmesh_to_domain_instance
+         #from anuga.pyvolution.pmesh2domain import pmesh_to_domain_instance
          #domain = pmesh_to_domain_instance(fileName, Domain)
 
          domain = Domain(mesh_filename=fileName)

@@ -15,7 +15,7 @@ from shallow_water import Domain, Reflective_boundary, Dirichlet_boundary,\
      Transmissive_boundary, Time_boundary, Constant_height, Weir
 
 from mesh_factory import rectangular
-from pmesh2domain import pmesh_to_domain
+from anuga.pyvolution.pmesh2domain import pmesh_to_domain
 
 from Numeric import array
 

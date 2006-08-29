@@ -7,7 +7,7 @@ from os import sep, path
 import anuga.pyvolution.data_manager
 from load_mesh.loadASCII import import_mesh_file
 from shallow_water import Domain
-from pmesh2domain import pmesh_to_domain_instance
+from anuga.pyvolution.pmesh2domain import pmesh_to_domain_instance
 
 def check_sww_tsh(sww_file, tsh_file, verbose = False):
     [xmin, xmax, ymin, ymax, stagemin, stagemax] =  \

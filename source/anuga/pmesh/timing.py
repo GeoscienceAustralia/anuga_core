@@ -2,7 +2,7 @@
 Script to measure how long pmesh spends doing various methods
 """
 from mesh import *
-from pmesh import *
+from anuga.pmesh import *
 import time
 
 

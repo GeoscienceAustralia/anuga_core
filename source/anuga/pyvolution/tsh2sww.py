@@ -10,7 +10,7 @@ from os import sep, path
 sys.path.append('..'+sep+'pyvolution')
 
 from shallow_water import Domain
-from pmesh2domain import pmesh_to_domain_instance
+from anuga.pyvolution.pmesh2domain import pmesh_to_domain_instance
 import time, os 
 from anuga.pyvolution.data_manager import get_dataobject   
 from anuga.utilities.numerical_tools import mean

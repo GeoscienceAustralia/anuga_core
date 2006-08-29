@@ -30,7 +30,7 @@ A typical dataflow can be described as follows
 
 Manually created files:
 ASC, PRJ:     Digital elevation models (gridded)
-TSH:          Triangular meshes (e.g. created from pmesh)
+TSH:          Triangular meshes (e.g. created from anuga.pmesh)
 NC            Model outputs for use as boundary conditions (e.g from MOST)
 
 
@@ -3544,7 +3544,7 @@ def tsh2sww(filename, verbose=False): #test_tsh2sww
     """
 
     from shallow_water import Domain
-    from pmesh2domain import pmesh_to_domain_instance
+    from anuga.pyvolution.pmesh2domain import pmesh_to_domain_instance
     import time, os
     from anuga.pyvolution.data_manager import get_dataobject
     from os import sep, path

@@ -13,7 +13,7 @@ The study area is discretised as a regular triangular grid 100m x 100m
 
 import sys
 
-from pmesh.mesh_interface import create_mesh_from_regions
+from anuga.pmesh.mesh_interface import create_mesh_from_regions
 from pyvolution.mesh_factory import rectangular_cross
 from pyvolution.shallow_water import Domain
 from pyvolution.shallow_water import Reflective_boundary
