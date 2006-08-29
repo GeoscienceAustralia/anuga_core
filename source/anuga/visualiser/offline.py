@@ -6,6 +6,11 @@ from vtk import vtkCellArray, vtkPoints, vtkPolyData
 
 class OfflineVisualiser(Visualiser):
     """A VTK-powered offline visualiser which runs in its own thread.
+    In addition to the functions provided by the standard visualiser,
+    the following additional functions are provided:
+
+    precache_height_quantities() - Precache all the vtkpoints
+    structures for any dynamic height based quantities to render.
     """
     def __init__(self, source):
         """The source parameter is assumed to be a NetCDF sww file.
@@ -55,7 +60,7 @@ class OfflineVisualiser(Visualiser):
         x = ravel(array(fin.variables['x'], Float))
         y = ravel(array(fin.variables['y'], Float))
         if dynamic is True:
-            q = array(fin.variables[quantityName][self.frameNumber], Float)
+            q = array(fin.variables[quantityName][frameNumber], Float)
         else:
             q = ravel(array(fin.variables[quantityName], Float))
 
@@ -66,6 +71,28 @@ class OfflineVisualiser(Visualiser):
             points.InsertNextPoint(x[v], y[v], q[v])
         fin.close()
         return points
+
+    def precache_height_quantities(self):
+        """Precache any height-based quantities. Call before rendering
+        beigns."""
+        for q in self.height_quantities:
+            if self.height_dynamic[q] is True:
+                print 'Precaching %s' % q
+                for i in range(self.maxFrameNumber + 1): # maxFrameNumber is zero-indexed
+                    print ' - Frame %d of %d' % (i, self.maxFrameNumber)
+                    self.vtk_heightQuantityCache[i][q]\
+                        = self.read_height_quantity(q, True, i)
+
+    def build_quantity_dict(self):
+        quantities = {}
+        fin = NetCDFFile(self.source, 'r')
+        for q in filter(lambda n:n != 'x' and n != 'y' and n != 'z' and n != 'time' and n != 'volumes', fin.variables.keys()):
+            if len(fin.variables[q].shape) == 1: # Not a time-varying quantity
+                quantities[q] = ravel(array(fin.variables[q], Float))
+            else: # Time-varying, get the current timestep data
+                quantities[q] = array(fin.variables[q][self.frameNumber], Float)
+        fin.close()
+        return quantities
 
     def setup_gui(self):
         Visualiser.setup_gui(self)

@@ -1,6 +1,7 @@
 from threading import Event, Thread
 from Tkinter import Tk, Button, N, E, S, W
-from vtk import vtkActor, vtkPolyDataMapper, vtkRenderer
+from types import FunctionType, TupleType
+from vtk import vtkActor, vtkFloatArray, vtkPolyDataMapper, vtkRenderer
 from vtk.tk.vtkTkRenderWidget import vtkTkRenderWidget
 
 class Visualiser(Thread):
@@ -16,6 +17,9 @@ class Visualiser(Thread):
         self.height_zScales = {}
         self.height_dynamic = {}
         self.height_offset = {}
+
+        # Structures for colouring quantities
+        self.colours_height = {}
 
         # Structures used for VTK
         self.vtk_actors = {}
@@ -83,11 +87,50 @@ class Visualiser(Thread):
         if not self.vtk_actors.has_key(quantityName):
             actor = self.vtk_actors[quantityName] = vtkActor()
             actor.SetMapper(mapper)
-            actor.GetProperty().SetColor(0.5, 0.5, 0.5)
             self.vtk_renderer.AddActor(actor)
+
+        if self.colours_height.has_key(quantityName):
+            colour = self.colours_height[quantityName]
+            if type(colour) == TupleType:
+                if type(colour[0]) == FunctionType:
+                    # It's a function, so take colour[1] as the
+                    # lower bound on the scalar range and
+                    # colour[2] as the upper bound on the scalar
+                    # range.
+                    scalars = vtkFloatArray()
+                    map(scalars.InsertNextValue, colour[0](self.build_quantity_dict()))
+                    self.vtk_polyData[quantityName].GetPointData().SetScalars(scalars)
+                    mapper.SetScalarRange(colour[1:])
+                    mapper.Update()
+                else:
+                    # It's a 3-tuple representing an RGB value.
+                    actor.GetProperty().SetColor(colour)
+            else:
+                actor.GetProperty().SetColor(0.5, 0.5, 0.5)
+        else:
+            actor.GetProperty().SetColor(0.5, 0.5, 0.5)
 
     # --- Colour Coding --- #
 
+    def build_quantity_dict(self):
+        """Build a dictionary mapping quantity name->list of vertex
+        values for that quantity. Subclasses are expected to override
+        this function."""
+        pass
+
+    def colour_height_quantity(self, quantityName, colour=(0.5, 0.5, 0.5)):
+        """Add colouring to a height based quantity.
+
+        The colour parameter can be one of the following:
+        - a 3-tuple of values in [0,1] to specify R, G, B values
+        - a 3-tuple of values:
+          - a function that takes a dictionary mapping quantity name->Numeric array of vertex values.
+            This function returns a list of vertex values to be used in the colour coding.
+          - a float for the lower bound on the colouring
+          - a float for the upper bound on the colouring
+        """
+        self.colours_height[quantityName] = colour
+            
     # --- Vector Fields --- #
 
     # --- GUI Setup --- #
