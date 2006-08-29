@@ -68,7 +68,8 @@ def create_mesh_from_regions(bounding_polygon,
     #In addition I reckon the polygons could be of class Geospatial_data 
     #(DSG) Yes!
 
-    # First check that interior polygons are fully contained in bounding polygon
+    # First check that interior polygons are fully contained in bounding
+    # polygon
     #Note, Both poly's have the same geo_ref, therefore don't take into account
     # geo_ref
     if interior_regions is not None:        

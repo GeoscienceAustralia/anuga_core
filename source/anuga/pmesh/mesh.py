@@ -28,7 +28,7 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference,DEFAULT_ZONE
 from anuga.utilities.polygon import point_in_polygon 
 import load_mesh.loadASCII
 import anuga.alpha_shape.alpha_shape
-from anuga.geospatial_data.geospatial_data import Geospatial_data, ensure_geospatial
+from anuga.geospatial_data.geospatial_data import Geospatial_data, ensure_geospatial, ensure_absolute
 
 try:  
     import kinds  
@@ -742,19 +742,8 @@ class Mesh:
             hi = (lo + 1) % N
             segments.append( [lo, hi] ) 
         region_dict['segments'] = segments
-
-
-        #Create tags
-        #E.g. ['wall', 'wall', 'ocean', 'wall']
-        # from a dic
-        #{'wall':[0,1,3],'ocean':[2]}
-        segment_tags = ['']*N
-        if tags is not None:
-            for key in tags:
-                indices = tags[key]
-                for i in indices:
-                    segment_tags[i] = key
-        region_dict['segment_tags'] = segment_tags
+        region_dict['segment_tags'] = self._tag_dict2list(tags, N)
+       
     
         self.addVertsSegs(region_dict) #this is passing absolute values
 
@@ -773,6 +762,29 @@ class Mesh:
             
         return inner
 
+    def _tag_dict2list(self, tags, number_of_segs):
+        """
+        Convert a tag dictionary from this sort of format;
+        #{'wall':[0,3],'ocean':[2]}
+
+        To a list format
+        # ['wall', '', 'ocean', 'wall']
+
+        Note: '' is a default value of nothing
+        """
+        # FIXME (DSG-DSG): Using '' as a default isn't good.
+        #Try None.
+        # Due to this default this method is too connected to
+        # _add_area_from_polygon
+        
+        segment_tags = ['']*number_of_segs
+        if tags is not None:
+            for key in tags:
+                indices = tags[key]
+                for i in indices:
+                    segment_tags[i] = key
+        return segment_tags
+        
     def add_circle(self, center, radius, segment_count=100,
                    center_geo_reference=None, tag = None,
                    region=False, hole=False):
@@ -787,10 +799,7 @@ class Mesh:
 
            
         """
-        pass
         # convert center and radius to a polygon
-        ### pi = math.pi
-        ### num_of_cuts = 100
         cuts = []
         factor = 2* math.pi/segment_count
         for cut in range(segment_count):
@@ -844,6 +853,43 @@ class Mesh:
         # since userVertices (etc) is a list of point objects,
         #not a list of lists.
         # add a method to the points class to fix this up.
+     
+    def add_segment(self, v1, v2, tag):
+        """
+        Don't do this function.
+        what will the v's be objects?  How is the user suppost to get them?
+
+        Indexes?  If add vertstosegs or add_region_from_polygon is called
+        more than once then the actual index is not obvious.  Making this
+        function confusing.
+        """
+        pass
+
+
+    def add_points_and_segments(self, points,
+                                  segments, segment_tags = None):
+        """
+        Add an outline of the mesh.
+        Vertices is a list of points/ a standard representation of points.
+        Segments is a list of tuples of integers.  Each tuple defines the
+           start and end of the segment by it's vertex index, in relation to
+           the list of vertices.
+        segment_tags is an optional dictionary which is used to add tags to
+           the segments.  The key is the tag name, value is the list of segment
+           indexes the tag will apply to.
+           eg. {'wall':[0,3],'ocean':[2]}
+           
+        """
+        #make sure the points are absolute
+        points = ensure_absolute(points)
+        
+        #create points, segs and tags
+        region_dict = {}
+        region_dict['points'] = points
+        region_dict['segments'] = segments
+        region_dict['segment_tags'] = self._tag_dict2list(segment_tags,
+                                                          len(segments))
+        self.addVertsSegs(region_dict)
         
     def addVertsSegs(self, outlineDict):
         """
@@ -863,27 +909,22 @@ class Mesh:
         #print "outlineDict['points']",outlineDict['points']
         #print "outlineDict['segments']",outlineDict['segments']
         
-        localUserVertices = []
-        #index = 0
+        i_offset = len(self.userVertices)
+        #print "self.userVertices",self.userVertices 
+        #print "index_offset",index_offset 
         for point in outlineDict['points']:
             v=Vertex(point[0]-self.geo_reference.xllcorner,
                      point[1]-self.geo_reference.yllcorner)
-            #v.index = index
-            #index +=1
             self.userVertices.append(v)
-            localUserVertices.append(v)
             
-        #index = 0
         for seg,seg_tag in map(None,outlineDict['segments'],
                        outlineDict['segment_tags']):
-            segObject = Segment( localUserVertices[int(seg[0])],
-                           localUserVertices[int(seg[1])] )
+            segObject = Segment(self.userVertices[int(seg[0])+i_offset],
+                           self.userVertices[int(seg[1])+i_offset] )
             if not seg_tag == '':
                 segObject.set_tag(seg_tag)
-            #segObject.index = index
-            #index +=1
             self.userSegments.append(segObject)
-            #DSG!!!
+            
         
     def get_triangle_count(self):
         return len(self.getTriangulation())

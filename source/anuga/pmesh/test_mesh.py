@@ -1353,6 +1353,48 @@ END\n")
         dict['segment_tags'] = ['','do-op','']
         m.addVertsSegs(dict)
 
+    def test_addVertsSegs_done_twice(self):
+        m = Mesh()
+        dict = {}
+        dict['points'] = [[0.0, 0.0], [5.0, 0.0], [5.0, 5.0]]
+        dict['segments'] = [[0, 1], [1, 2], [2,0]]
+        dict['segment_tags'] = ['0','1','2']
+        m.addVertsSegs(dict)
+        
+        dict = {}
+        dict['points'] = [[2.0, 1.0], [4.0, 1.0], [4.0, 3.0]]
+        dict['segments'] = [[0, 1], [1, 2], [2,0]]
+        dict['segment_tags'] = ['3','4','5']
+        m.addVertsSegs(dict)
+
+        
+        self.failUnless(m.userSegments[5].vertices[0].y == 3,
+                        'Wrong vertex connected.')
+        self.failUnless(m.userSegments[5].vertices[1].y == 1,
+                        'Wrong vertex connected.')
+            
+    def test_add_points_and_segments(self):
+        m = Mesh()
+        Segment.set_default_tag("food")
+        dict = {}
+        points =  [[0.0, 0.0], [1.0, 0.0], [1.0, 1.0]]
+        segments = [[0, 1], [1, 2]]
+        segment_tags = {'do-op':[1]}
+        m.add_points_and_segments(points,
+                                    segments, segment_tags)
+        # have to reset this , since it's a class attribute
+        Segment.set_default_tag("")
+
+        
+        self.failUnless(len(m.userSegments) ==2,
+                        'Wrong segment list length.')
+        self.failUnless(len(m.userVertices) == 3,
+                        'Wrong vertex list length.')
+        self.failUnless(m.userSegments[0].tag =='food',
+                        'Wrong segment tag length.')
+        self.failUnless(m.userSegments[1].tag =='do-op',
+                        'Wrong segment tag.')
+        
     def test_exportASCIImeshfile(self):
     
         #a_att = [5,2]
@@ -2233,7 +2275,7 @@ def list_comp(A,B):
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(meshTestCase,'test')
-    #suite = unittest.makeSuite(meshTestCase,'test_generate_mesh')
+    #suite = unittest.makeSuite(meshTestCase,'test_add_points_and_segments')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
     
