@@ -1,4 +1,4 @@
-from Numeric import array, Float, zeros
+from Numeric import array, Float, ravel, zeros
 from Scientific.IO.NetCDF import NetCDFFile
 from Tkinter import Button, E, W
 from visualiser import Visualiser
@@ -18,7 +18,7 @@ class OfflineVisualiser(Visualiser):
         fin.close()
 
         self.vtk_heightQuantityCache = []
-        for i in range(self.maxFrameNumber):
+        for i in range(self.maxFrameNumber + 1): # maxFrameNumber is zero indexed.
             self.vtk_heightQuantityCache.append({})
 
     def setup_grid(self):
@@ -37,9 +37,6 @@ class OfflineVisualiser(Visualiser):
             if not self.vtk_heightQuantityCache[self.frameNumber].has_key(quantityName):
                 self.vtk_heightQuantityCache[self.frameNumber][quantityName]\
                     = self.read_height_quantity(quantityName, True, self.frameNumber);
-                print "Caching %s (frame %d)" % (quantityName, self.frameNumber)
-            else:
-                print "Using cache of %s (frame %d)" % (quantityName, self.frameNumber)
             polydata.SetPoints(self.vtk_heightQuantityCache[self.frameNumber][quantityName])
         else:
             polydata.SetPoints(self.read_height_quantity(quantityName, False))
@@ -55,12 +52,12 @@ class OfflineVisualiser(Visualiser):
             N_vert = fin.variables[quantityName].shape[1]
         else:
             N_vert = len(fin.variables[quantityName])
-        x = array(fin.variables['x'], Float)
-        y = array(fin.variables['y'], Float)
+        x = ravel(array(fin.variables['x'], Float))
+        y = ravel(array(fin.variables['y'], Float))
         if dynamic is True:
             q = array(fin.variables[quantityName][self.frameNumber], Float)
         else:
-            q = array(fin.variables[quantityName], Float)
+            q = ravel(array(fin.variables[quantityName], Float))
 
         q *= self.height_zScales[quantityName]
         q += self.height_offset[quantityName]
