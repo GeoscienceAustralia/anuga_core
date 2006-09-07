@@ -26,8 +26,9 @@ class Visualiser(Thread):
         self.vtk_mappers = {}
         self.vtk_polyData = {}
 
-    def run(self):
         self.setup_gui()
+
+    def run(self):
         self.setup_grid()
         # Draw Height Quantities
         for q in self.height_quantities:

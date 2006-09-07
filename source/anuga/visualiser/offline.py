@@ -26,6 +26,9 @@ class OfflineVisualiser(Visualiser):
         for i in range(self.maxFrameNumber + 1): # maxFrameNumber is zero indexed.
             self.vtk_heightQuantityCache.append({})
 
+        self.paused = False
+        self.tk_root.after(100, self.animateForward)
+
     def setup_grid(self):
         fin = NetCDFFile(self.source, 'r')
         self.vtk_cells = vtkCellArray()
@@ -128,7 +131,13 @@ class OfflineVisualiser(Visualiser):
             self.redraw_quantities(True)
 
     def pauseResume(self):
-        print "Pause/Resume"
+        if self.paused is True:
+            self.tk_pauseResume.config(text="Pause")
+            self.paused = False
+            self.tk_root.after(100, self.animateForward)
+        else:
+            self.tk_pauseResume.config(text="Resume")
+            self.paused = True
 
     def forward(self):
         if self.frameNumber < self.maxFrameNumber:
@@ -141,3 +150,8 @@ class OfflineVisualiser(Visualiser):
         else:
             self.frameNumber = self.maxFrameNumber
         self.redraw_quantities(True)
+
+    def animateForward(self):
+        if self.paused is not True:
+            self.forward()
+            self.tk_root.after(100, self.animateForward)
