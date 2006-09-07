@@ -99,20 +99,23 @@ class OfflineVisualiser(Visualiser):
 
     def setup_gui(self):
         Visualiser.setup_gui(self)
-        self.tk_renderWidget.grid(row=0, column=0, columnspan=6)
-        self.tk_quit.grid(row=2, column=0, columnspan=6, sticky=W+E)
-        self.tk_restart = Button(self.tk_root, text="<<<", command=self.restart)
+        self.tk_quit.grid(row=0, column=0, columnspan=6, sticky=W+E)
+        self.tk_restart = Button(self.tk_controlFrame, text="<<<", command=self.restart)
         self.tk_restart.grid(row=1, column=0, sticky=W+E)
-        self.tk_back10 = Button(self.tk_root, text="<<", command=self.back10)
+        self.tk_back10 = Button(self.tk_controlFrame, text="<<", command=self.back10)
         self.tk_back10.grid(row=1, column=1, sticky=W+E)
-        self.tk_back = Button(self.tk_root, text="<", command=self.back)
+        self.tk_back = Button(self.tk_controlFrame, text="<", command=self.back)
         self.tk_back.grid(row=1, column=2, sticky=W+E)
-        self.tk_pauseResume = Button(self.tk_root, text="Pause", command=self.pauseResume)
+        self.tk_pauseResume = Button(self.tk_controlFrame, text="Pause", command=self.pauseResume)
         self.tk_pauseResume.grid(row=1, column=3, sticky=W+E)
-        self.tk_forward = Button(self.tk_root, text=">", command=self.forward)
+        self.tk_forward = Button(self.tk_controlFrame, text=">", command=self.forward)
         self.tk_forward.grid(row=1, column=4, sticky=W+E)
-        self.tk_forward10 = Button(self.tk_root, text=">>", command=self.forward10)
+        self.tk_forward10 = Button(self.tk_controlFrame, text=">>", command=self.forward10)
         self.tk_forward10.grid(row=1, column=5, sticky=W+E)
+
+        # Make the buttons stretch to fill all available space
+        for i in range(6):
+            self.tk_controlFrame.grid_columnconfigure(i, weight=1)
 
     def restart(self):
         self.frameNumber = 0

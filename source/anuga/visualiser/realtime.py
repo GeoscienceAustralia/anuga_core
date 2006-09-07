@@ -26,7 +26,7 @@ class RealtimeVisualiser(Visualiser):
 
     def setup_gui(self):
         Visualiser.setup_gui(self)
-        self.tk_pauseResume = Button(self.tk_root, text="Pause", command=self.pauseResume)
+        self.tk_pauseResume = Button(self.tk_controlFrame, text="Pause", command=self.pauseResume)
         self.tk_pauseResume.grid(row=1, column=0, sticky=E+W)
 
     def pauseResume(self):

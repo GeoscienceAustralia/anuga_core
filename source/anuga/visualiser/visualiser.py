@@ -1,5 +1,5 @@
 from threading import Thread
-from Tkinter import Tk, Button, N, E, S, W
+from Tkinter import Tk, Button, Frame, N, E, S, W
 from types import FunctionType, TupleType
 from vtk import vtkActor, vtkFloatArray, vtkPolyDataMapper, vtkRenderer
 from vtk.tk.vtkTkRenderWidget import vtkTkRenderWidget
@@ -141,11 +141,18 @@ class Visualiser(Thread):
         self.tk_root.title("Visualisation")
         self.tk_root.after(100, self.redraw)
         self.tk_root.bind("<Destroy>", self.destroyed)
+        self.tk_root.grid_rowconfigure(0, weight=1)
+        self.tk_root.grid_columnconfigure(0, weight=1)
 
         self.tk_renderWidget = vtkTkRenderWidget(self.tk_root, width=400, height=400)
         self.tk_renderWidget.grid(row=0, column=0, sticky=N+S+E+W)
-        self.tk_quit = Button(self.tk_root, text="Quit", command=self.shutdown)
-        self.tk_quit.grid(row=2, column=0, sticky=E+W)
+        self.tk_controlFrame = Frame(self.tk_root)
+        self.tk_controlFrame.grid(row=1, column=0, sticky=E+W)
+        self.tk_controlFrame.grid_rowconfigure(0, weight=1)
+        self.tk_controlFrame.grid_columnconfigure(0, weight=1)
+        
+        self.tk_quit = Button(self.tk_controlFrame, text="Quit", command=self.shutdown)
+        self.tk_quit.grid(row=0, column=0, sticky=E+W)
         self.vtk_renderer = vtkRenderer()
         self.tk_renderWidget.GetRenderWindow().AddRenderer(self.vtk_renderer)
 
