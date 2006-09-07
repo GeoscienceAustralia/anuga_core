@@ -1,7 +1,9 @@
+import os
 Import('env')
 env2 = env.Copy()
 env2.Append(CPPPATH=['#anuga_core/source/anuga/utilities'])
 
-env2.SharedLibrary('quantity_ext', ['quantity_ext.c'])
-env2.SharedLibrary('shallow_water_ext', ['shallow_water_ext.c'])
-env2.SharedLibrary('shallow_water_kinetic', ['shallow_water_kinetic_ext.c'])
+instdir = os.path.join(env['PREFIX'], 'anuga', 'pyvolution')
+env.Install(instdir, env2.SharedLibrary('quantity_ext', ['quantity_ext.c']))
+env.Install(instdir, env2.SharedLibrary('shallow_water_ext', ['shallow_water_ext.c']))
+env.Install(instdir, env2.SharedLibrary('shallow_water_kinetic', ['shallow_water_kinetic_ext.c']))

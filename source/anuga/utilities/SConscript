@@ -1,4 +1,6 @@
+import os
 Import('env')
-env.SharedLibrary('polygon_ext', ['polygon_ext.c'])
-env.SharedLibrary('util_ext', ['util_ext.c'])
-env.SharedLibrary('sparse_ext', ['sparse_ext.c'])
+instdir = os.path.join(env['PREFIX'], 'anuga', 'utilities')
+env.Install(instdir, env.SharedLibrary('polygon_ext', ['polygon_ext.c']))
+env.Install(instdir, env.SharedLibrary('util_ext', ['util_ext.c']))
+env.Install(instdir, env.SharedLibrary('sparse_ext', ['sparse_ext.c']))

@@ -1,6 +1,8 @@
+import os
 Import('env')
 env2 = env.Copy()
 env2.Append(CPPDEFINES=[('TRILIBRARY', 1), ('NO_TIMER', 1)])
 
-env2.SharedLibrary('triang', ['triangle.c', 'triang.c'])
-env2.SharedLibrary('triangle', ['triangle.c'])
+instdir = os.path.join(env['PREFIX'], 'anuga', 'mesh_engine')
+env.Install(instdir, env2.SharedLibrary('triang', ['triangle.c', 'triang.c']))
+env.Install(instdir, env2.SharedLibrary('triangle', ['triangle.c']))
