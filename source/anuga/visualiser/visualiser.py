@@ -161,4 +161,4 @@ class Visualiser(Thread):
 
     def shutdown(self):
         self.tk_root.withdraw()
-        self.tk_root.quit()
+        self.tk_root.destroy()
