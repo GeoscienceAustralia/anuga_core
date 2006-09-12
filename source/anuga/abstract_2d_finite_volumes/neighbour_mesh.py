@@ -703,7 +703,6 @@ class Mesh(General_mesh):
 
 
 
-
     def statistics(self):
         """Output statistics about mesh
         """

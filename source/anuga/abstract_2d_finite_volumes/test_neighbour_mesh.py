@@ -690,7 +690,6 @@ class Test_Mesh(unittest.TestCase):
         get values based on triangle lists.
         """
         from mesh_factory import rectangular
-        from shallow_water import Domain
         from Numeric import zeros, Float
 
         #Create basic mesh
@@ -701,7 +700,7 @@ class Test_Mesh(unittest.TestCase):
         boundary[(1,0)] = 'internal'
 
         #Create shallow water domain
-        domain = Domain(points, vertices, boundary)
+        domain = Mesh(points, vertices, boundary)
         domain.build_tagged_elements_dictionary({'bottom':[0,1],
                                                  'top':[4,5],
                                                  'all':[0,1,2,3,4,5]})

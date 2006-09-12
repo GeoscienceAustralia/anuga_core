@@ -6,8 +6,8 @@ import unittest
 from math import sqrt
 
 
-from anuga.pyvolution.least_squares import *
-from anuga.pyvolution.neighbour_mesh import Mesh
+from anuga.abstract_2d_finite_volumes.least_squares import *
+from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 
 from Numeric import allclose, array, transpose
 
@@ -997,7 +997,7 @@ class Test_Least_Squares(unittest.TestCase):
 
     def test_interpolation_from_discontinuous_vertex_values(self):
         """test_interpolation_from_discontinuous_vertex_values.
-        This will test the format used internally in pyvolution and also
+        This will test the format used internally in abstract_2d_finite_volumes and also
         interpolation from sww files
         """
         

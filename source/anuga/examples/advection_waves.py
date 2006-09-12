@@ -6,7 +6,7 @@ for three segments where three different time dependent conditions are applied.
 """
 import sys
 from os import sep
-sys.path.append('..'+sep+'pyvolution')
+sys.path.append('..'+sep+'abstract_2d_finite_volumes')
 
 from mesh_factory import rectangular
 from advection import Domain, Transmissive_boundary, Dirichlet_boundary, Time_boundary

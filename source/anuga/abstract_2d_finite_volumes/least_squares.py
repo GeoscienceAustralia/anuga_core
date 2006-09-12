@@ -24,7 +24,7 @@ class FittingError(exceptions.Exception): pass
 
 #from general_mesh import General_mesh
 from Numeric import zeros, array, Float, Int, transpose, concatenate, ArrayType, NewAxis
-from anuga.pyvolution.neighbour_mesh import Mesh
+from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 
 from Numeric import dot, zeros, take, compress, array, Float, Int, transpose, concatenate, ArrayType
 from anuga.utilities.sparse import Sparse, Sparse_CSR
@@ -540,7 +540,7 @@ class Interpolation:
         #
         #Maybe we need some sort of blocking
 
-        from anuga.pyvolution.quad import build_quadtree
+        from anuga.abstract_2d_finite_volumes.quad import build_quadtree
         from anuga.utilities.polygon import inside_polygon
 	
 

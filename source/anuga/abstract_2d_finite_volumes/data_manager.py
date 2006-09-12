@@ -44,7 +44,7 @@ PTS + TSH -> TSH with elevation: Least squares fit
 
 TSH -> SWW:  Conversion of TSH to sww viewable using Swollen
 
-TSH + Boundary SWW -> SWW: Simluation using pyvolution
+TSH + Boundary SWW -> SWW: Simluation using abstract_2d_finite_volumes
 
 """
 
@@ -263,7 +263,7 @@ class Data_format_sww(Data_format):
 
             #Create new file
             fid.institution = 'Geoscience Australia'
-            fid.description = 'Output from anuga.pyvolution suitable for plotting'
+            fid.description = 'Output from anuga.abstract_2d_finite_volumes suitable for plotting'
 
             if domain.smooth:
                 fid.smoothing = 'Yes'
@@ -1823,7 +1823,7 @@ def sww2dem(basename_in, basename_out = None,
     from Numeric import array2string
 
     from anuga.utilities.polygon import inside_polygon, outside_polygon, separate_points_by_polygon
-    from anuga.pyvolution.util import apply_expression_to_dictionary
+    from anuga.abstract_2d_finite_volumes.util import apply_expression_to_dictionary
 
     msg = 'Format must be either asc or ers'
     assert format.lower() in ['asc', 'ers'], msg
@@ -2188,7 +2188,7 @@ def sww2pts(basename_in, basename_out=None,
     from Numeric import array2string
 
     from anuga.utilities.polygon import inside_polygon, outside_polygon, separate_points_by_polygon
-    from anuga.pyvolution.util import apply_expression_to_dictionary
+    from anuga.abstract_2d_finite_volumes.util import apply_expression_to_dictionary
 
     from anuga.geospatial_data.geospatial_data import Geospatial_data
 
@@ -2540,7 +2540,7 @@ def ferret2sww(basename_in, basename_out = None,
                                   #for the Wollongong tsunami
                                   #scenario but is very hacky
     """Convert MOST and 'Ferret' NetCDF format for wave propagation to
-    sww format native to pyvolution.
+    sww format native to abstract_2d_finite_volumes.
 
     Specify only basename_in and read files of the form
     basefilename_ha.nc, basefilename_ua.nc, basefilename_va.nc containing
@@ -3325,7 +3325,7 @@ def interpolated_quantity(saved_quantity,time_interp):
 
 def get_time_interp(time,t=None):
     #Finds the ratio and index for time interpolation.
-    #It is borrowed from previous pyvolution code.
+    #It is borrowed from previous abstract_2d_finite_volumes code.
     if t is None:
         t=time[-1]
         index = -1
@@ -3544,9 +3544,9 @@ def tsh2sww(filename, verbose=False): #test_tsh2sww
     """
 
     from shallow_water import Domain
-    from anuga.pyvolution.pmesh2domain import pmesh_to_domain_instance
+    from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_to_domain_instance
     import time, os
-    from anuga.pyvolution.data_manager import get_dataobject
+    from anuga.abstract_2d_finite_volumes.data_manager import get_dataobject
     from os import sep, path
     from anuga.utilities.numerical_tools import mean
 

@@ -9,12 +9,12 @@ import tempfile
 import os
 from Scientific.IO.NetCDF import NetCDFFile
 
-from anuga.pyvolution.data_manager import *
-from anuga.pyvolution.shallow_water import *
+from anuga.abstract_2d_finite_volumes.data_manager import *
+from anuga.abstract_2d_finite_volumes.shallow_water import *
 from anuga.config import epsilon
 
 # This is needed to run the tests of local functions
-import anuga.pyvolution.data_manager
+import anuga.abstract_2d_finite_volumes.data_manager
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 
@@ -2763,7 +2763,7 @@ END CROSS-SECTIONS:
         ##########################################
         #Import the example's file as a new domain
         ##########################################
-        from anuga.pyvolution.data_manager import sww2domain
+        from anuga.abstract_2d_finite_volumes.data_manager import sww2domain
         from Numeric import allclose
         import os
 
@@ -2907,7 +2907,7 @@ END CROSS-SECTIONS:
         ##################################
 	#Import the file as a new domain
         ##################################
-	from anuga.pyvolution.data_manager import sww2domain
+	from anuga.abstract_2d_finite_volumes.data_manager import sww2domain
 	from Numeric import allclose
         import os
 
@@ -2945,7 +2945,7 @@ END CROSS-SECTIONS:
 
 
     #def test_weed(self):
-	from anuga.pyvolution.data_manager import weed
+	from anuga.abstract_2d_finite_volumes.data_manager import weed
 
         coordinates1 = [[0.,0.],[1.,0.],[1.,1.],[1.,0.],[2.,0.],[1.,1.]]
         volumes1 = [[0,1,2],[3,4,5]]
@@ -3018,7 +3018,7 @@ END CROSS-SECTIONS:
 	##########################################
 	#Import the example's file as a new domain
 	##########################################
-	from anuga.pyvolution.data_manager import sww2domain
+	from anuga.abstract_2d_finite_volumes.data_manager import sww2domain
 	from Numeric import allclose
         import os
 
@@ -3319,7 +3319,7 @@ END CROSS-SECTIONS:
         from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
-        from anuga.pyvolution.data_manager import _read_asc
+        from anuga.abstract_2d_finite_volumes.data_manager import _read_asc
         #Write test asc file
         filename = tempfile.mktemp(".000")
         fid = open(filename, 'w')
@@ -4034,7 +4034,7 @@ NODATA_value  -9999
 
         # k - lat
         # l - lon
-        kmin, kmax, lmin, lmax = anuga.pyvolution.data_manager._get_min_max_indexes(
+        kmin, kmax, lmin, lmax = anuga.abstract_2d_finite_volumes.data_manager._get_min_max_indexes(
             latitudes,longitudes,
             -10,4,-10,31)
 
@@ -4049,7 +4049,7 @@ NODATA_value  -9999
                          'failed')
 
         ## 2nd test
-        kmin, kmax, lmin, lmax = anuga.pyvolution.data_manager._get_min_max_indexes(
+        kmin, kmax, lmin, lmax = anuga.abstract_2d_finite_volumes.data_manager._get_min_max_indexes(
             latitudes,longitudes,
             0.5,2.5,5,25)
         #print "kmin",kmin;print "kmax",kmax
@@ -4064,7 +4064,7 @@ NODATA_value  -9999
                          'failed')
 
         ## 3rd test
-        kmin, kmax, lmin, lmax = anuga.pyvolution.data_manager._get_min_max_indexes(\
+        kmin, kmax, lmin, lmax = anuga.abstract_2d_finite_volumes.data_manager._get_min_max_indexes(\
             latitudes,
             longitudes,
             1.1,1.9,12,17)
@@ -4081,7 +4081,7 @@ NODATA_value  -9999
 
 
         ## 4th test
-        kmin, kmax, lmin, lmax = anuga.pyvolution.data_manager._get_min_max_indexes(
+        kmin, kmax, lmin, lmax = anuga.abstract_2d_finite_volumes.data_manager._get_min_max_indexes(
             latitudes,longitudes,
                                                       -0.1,1.9,-2,17)
         #print "kmin",kmin;print "kmax",kmax
@@ -4095,7 +4095,7 @@ NODATA_value  -9999
                         longitudes_news == [0, 10, 20],
                          'failed')
         ## 5th test
-        kmin, kmax, lmin, lmax = anuga.pyvolution.data_manager._get_min_max_indexes(
+        kmin, kmax, lmin, lmax = anuga.abstract_2d_finite_volumes.data_manager._get_min_max_indexes(
             latitudes,longitudes,
             0.1,1.9,2,17)
         #print "kmin",kmin;print "kmax",kmax
@@ -4111,7 +4111,7 @@ NODATA_value  -9999
 
         ## 6th test
 
-        kmin, kmax, lmin, lmax = anuga.pyvolution.data_manager._get_min_max_indexes(
+        kmin, kmax, lmin, lmax = anuga.abstract_2d_finite_volumes.data_manager._get_min_max_indexes(
             latitudes,longitudes,
             1.5,4,18,32)
         #print "kmin",kmin;print "kmax",kmax
@@ -4128,7 +4128,7 @@ NODATA_value  -9999
 
         ## 7th test
         m2d = array([[0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15]])
-        kmin, kmax, lmin, lmax = anuga.pyvolution.data_manager._get_min_max_indexes(
+        kmin, kmax, lmin, lmax = anuga.abstract_2d_finite_volumes.data_manager._get_min_max_indexes(
             latitudes,longitudes,
             1.5,1.5,15,15)
         #print "kmin",kmin;print "kmax",kmax
@@ -4155,7 +4155,7 @@ NODATA_value  -9999
 
         # k - lat
         # l - lon
-        kmin, kmax, lmin, lmax = anuga.pyvolution.data_manager._get_min_max_indexes(
+        kmin, kmax, lmin, lmax = anuga.abstract_2d_finite_volumes.data_manager._get_min_max_indexes(
             latitudes,longitudes,
             -37,-27,147,149.5)
 
@@ -4184,7 +4184,7 @@ NODATA_value  -9999
 
         # k - lat
         # l - lon
-        kmin, kmax, lmin, lmax = anuga.pyvolution.data_manager._get_min_max_indexes(
+        kmin, kmax, lmin, lmax = anuga.abstract_2d_finite_volumes.data_manager._get_min_max_indexes(
             latitudes,longitudes,
             -43,-37,148.5,149.5)
 
@@ -4208,7 +4208,7 @@ NODATA_value  -9999
 
         # k - lat
         # l - lon
-        kmin, kmax, lmin, lmax = anuga.pyvolution.data_manager._get_min_max_indexes(
+        kmin, kmax, lmin, lmax = anuga.abstract_2d_finite_volumes.data_manager._get_min_max_indexes(
             latitudes,longitudes)
 
         #print "kmin",kmin;print "kmax",kmax

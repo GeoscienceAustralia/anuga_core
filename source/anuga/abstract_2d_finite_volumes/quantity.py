@@ -19,7 +19,7 @@ class Quantity:
 
     def __init__(self, domain, vertex_values=None):
 
-        from anuga.pyvolution.neighbour_mesh import Mesh
+        from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
         from Numeric import array, zeros, Float
 
         msg = 'First argument in Quantity.__init__ '
@@ -620,7 +620,7 @@ class Quantity:
 
         from Numeric import Float
         from anuga.utilities.numerical_tools import ensure_numeric
-        #from anuga.pyvolution.least_squares import fit_to_mesh
+        #from anuga.abstract_2d_finite_volumes.least_squares import fit_to_mesh
         from anuga.fit_interpolate.fit import fit_to_mesh
         from anuga.coordinate_transforms.geo_reference import Geo_reference
 

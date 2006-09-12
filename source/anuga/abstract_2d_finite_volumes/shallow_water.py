@@ -333,7 +333,7 @@ class Domain(Generic_Domain):
         Also, save x,y and bed elevation
         """
 
-        from anuga.pyvolution.data_manager import get_dataobject
+        from anuga.abstract_2d_finite_volumes.data_manager import get_dataobject
 
         #Initialise writer
         self.writer = get_dataobject(self, mode = 'w')

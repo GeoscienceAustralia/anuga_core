@@ -27,17 +27,17 @@ from Numeric import zeros, array, Float, Int, dot, transpose, concatenate, \
      ArrayType, allclose, take, NewAxis, arange
 
 from anuga.caching.caching import cache
-from anuga.pyvolution.neighbour_mesh import Mesh
+from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.utilities.sparse import Sparse, Sparse_CSR
 from anuga.utilities.cg_solve import conjugate_gradient, VectorShapeError
 from anuga.coordinate_transforms.geo_reference import Geo_reference
-from anuga.pyvolution.quad import build_quadtree
+from anuga.abstract_2d_finite_volumes.quad import build_quadtree
 from anuga.utilities.numerical_tools import ensure_numeric, mean, NAN
 from anuga.utilities.polygon import in_and_outside_polygon
 from anuga.geospatial_data.geospatial_data import Geospatial_data, ensure_absolute
 from anuga.fit_interpolate.search_functions import search_tree_of_vertices
 from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
-from anuga.pyvolution.util import file_function
+from anuga.abstract_2d_finite_volumes.util import file_function
 
 
 class Interpolate (FitInterpolate):
@@ -405,7 +405,7 @@ class Interpolation_function:
              reshape, ArrayType
 
 
-        #from anuga.pyvolution.util import mean, ensure_numeric
+        #from anuga.abstract_2d_finite_volumes.util import mean, ensure_numeric
         from anuga.config import time_format
         import types
 
@@ -548,7 +548,7 @@ class Interpolation_function:
 
         from math import pi, cos, sin, sqrt
         from Numeric import zeros, Float
-        from anuga.pyvolution.util import mean        
+        from anuga.abstract_2d_finite_volumes.util import mean        
 
         if self.spatial is True:
             if point_id is None:

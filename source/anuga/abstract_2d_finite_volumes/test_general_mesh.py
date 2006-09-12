@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 
-#FIXME (Ole): Maxe this test independent of anything that inherits from General_mesh (namely shallow_water)
-
 
 import unittest
 from math import sqrt, pi
 
 
-from quantity import *
 from anuga.config import epsilon
 from Numeric import allclose, array, ones, Float
+from general_mesh import General_mesh
+
 
 
 class Test_General_Mesh(unittest.TestCase):
@@ -20,16 +19,14 @@ class Test_General_Mesh(unittest.TestCase):
         pass
 
     def test_get_vertex_values(self):
-        """
-        get connectivity based on triangle lists.
+        """Get connectivity based on triangle lists.
         """
         from mesh_factory import rectangular
-        from shallow_water import Domain
         from Numeric import zeros, Float
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
-        domain = Domain(points, vertices, boundary)
+        domain = General_mesh(points, vertices, boundary)
 
         value = [7]
         #indexes = [1]  #FIXME (Ole): Should this be used
@@ -43,7 +40,7 @@ class Test_General_Mesh(unittest.TestCase):
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
-        domain = Domain(points, vertices, boundary)
+        domain = General_mesh(points, vertices, boundary)        
 
 	assert domain.get_area() == 1.0
 
@@ -58,7 +55,7 @@ class Test_General_Mesh(unittest.TestCase):
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
-        domain = Domain(points, vertices, boundary)
+        domain = General_mesh(points, vertices, boundary)                
 
         assert  domain.get_unique_vertices() == [0,1,2,3,4,5,6,7]
         unique_vertices = domain.get_unique_vertices([0,1,4])

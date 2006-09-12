@@ -130,7 +130,7 @@ class File_boundary_time(Boundary):
         import time
         from Numeric import array
         from anuga.config import time_format
-        from anuga.pyvolution.util import File_function
+        from anuga.abstract_2d_finite_volumes.util import File_function
 
         Boundary.__init__(self)
 
@@ -180,7 +180,7 @@ class File_boundary(Boundary):
         import time
         from Numeric import array, zeros, Float
         from anuga.config import time_format
-        from anuga.pyvolution.util import file_function
+        from anuga.abstract_2d_finite_volumes.util import file_function
 
         Boundary.__init__(self)
 

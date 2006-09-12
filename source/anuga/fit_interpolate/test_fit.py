@@ -9,7 +9,7 @@ from Numeric import zeros, take, compress, Float, Int, dot, concatenate, \
      ArrayType, allclose, array
 
 from fit import *
-from anuga.pyvolution.neighbour_mesh import Mesh
+from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.utilities.sparse import Sparse, Sparse_CSR
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.utilities.numerical_tools import ensure_numeric

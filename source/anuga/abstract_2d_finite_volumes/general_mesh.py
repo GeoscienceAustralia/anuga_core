@@ -49,7 +49,7 @@ class General_mesh:
       triangle the three x,y coordinates at the vertices.
 
 
-        This is a cut down version of mesh from anuga.pyvolution mesh.py
+        This is a cut down version of mesh from mesh.py
     """
 
     #FIXME: It would be a good idea to use geospatial data as an alternative

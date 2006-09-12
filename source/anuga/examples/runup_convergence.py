@@ -14,13 +14,13 @@ The study area is discretised as a regular triangular grid 100m x 100m
 import sys
 
 from anuga.pmesh.mesh_interface import create_mesh_from_regions
-from pyvolution.mesh_factory import rectangular_cross
-from pyvolution.shallow_water import Domain
-from pyvolution.shallow_water import Reflective_boundary
-from pyvolution.shallow_water import Dirichlet_boundary
-from pyvolution.shallow_water import Time_boundary
-from pyvolution.shallow_water import Transmissive_Momentum_Set_Stage_boundary
-from pyvolution.util import file_function
+from abstract_2d_finite_volumes.mesh_factory import rectangular_cross
+from abstract_2d_finite_volumes.shallow_water import Domain
+from abstract_2d_finite_volumes.shallow_water import Reflective_boundary
+from abstract_2d_finite_volumes.shallow_water import Dirichlet_boundary
+from abstract_2d_finite_volumes.shallow_water import Time_boundary
+from abstract_2d_finite_volumes.shallow_water import Transmissive_Momentum_Set_Stage_boundary
+from abstract_2d_finite_volumes.util import file_function
 from pylab import plot, xlabel, ylabel, title, ion, close, savefig, figure, axis, legend, grid, hold
 
 

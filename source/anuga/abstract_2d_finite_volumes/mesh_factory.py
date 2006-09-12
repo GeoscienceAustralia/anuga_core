@@ -333,7 +333,7 @@ def from_polyfile(name):
     listing first vertex coordinates and then connectivity
     """
 
-    from anuga.pyvolution.util import anglediff
+    from anuga.abstract_2d_finite_volumes.util import anglediff
     from math import pi
     import os.path
     root, ext = os.path.splitext(name)
@@ -448,7 +448,7 @@ def strang_mesh(filename):
     """
 
     from math import pi
-    from anuga.pyvolution.util import anglediff
+    from anuga.abstract_2d_finite_volumes.util import anglediff
 
 
     fid = open(filename)

@@ -192,8 +192,15 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
 
   # This is hacky since it
   # assumes the location of the compile_all that determines buildroot
-  utilities_include_dir = buildroot + os.sep + "source" + os.sep + "anuga" \
-                          + os.sep + 'utilities'  
+  try:
+    utilities_include_dir = buildroot + os.sep + "source" + os.sep + "anuga" \
+                            + os.sep + 'utilities'
+  except:
+    # This will make compile work locally
+    utilities_include_dir = '.'
+
+
+    
   try:
     os.stat(utilities_include_dir)
   except OSError: 
@@ -294,7 +301,7 @@ def can_use_C_extension(filename):
         else:    
             print '------- Trying to compile c-extension %s' %filename
 
-            #compile(filename)        
+            compile(filename)        
             try:
                 compile(filename)
             except:
@@ -356,6 +363,7 @@ if __name__ == '__main__':
           print 'Trying to compile c-extension %s in %s'\
                 %(filename, os.getcwd())
 
+          compile(filename)          
           try:
               compile(filename)
           except Exception, e:

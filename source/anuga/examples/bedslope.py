@@ -1,4 +1,4 @@
-"""Simple example of shallow water wave equation using Pyvolution
+"""Simple example of shallow water wave equation using Abstract_2d_finite_volumes
 
 Water driven up a linear slope with a time varying boundary,
 similar to beach environment
@@ -7,8 +7,8 @@ similar to beach environment
 
 ######################
 # Module imports 
-from anuga.pyvolution.mesh_factory import rectangular
-from anuga.pyvolution.shallow_water import Domain, Reflective_boundary,\
+from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
+from anuga.abstract_2d_finite_volumes.shallow_water import Domain, Reflective_boundary,\
      Dirichlet_boundary, Time_boundary, Transmissive_boundary
 
 #Create basic triangular mesh

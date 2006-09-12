@@ -10,8 +10,8 @@ from Numeric import zeros, array, allclose, Float
 from anuga.utilities.numerical_tools import mean
 
 from interpolate_sww import *
-from anuga.pyvolution.shallow_water import Domain, Transmissive_boundary
-from anuga.pyvolution.data_manager import get_dataobject
+from anuga.abstract_2d_finite_volumes.shallow_water import Domain, Transmissive_boundary
+from anuga.abstract_2d_finite_volumes.data_manager import get_dataobject
 
 
 class Test_Interpolate_sww(unittest.TestCase):

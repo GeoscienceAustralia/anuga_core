@@ -21,7 +21,7 @@ from interpolate import *
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from shallow_water import Domain, Transmissive_boundary
 from anuga.utilities.numerical_tools import mean, NAN
-from anuga.pyvolution.data_manager import get_dataobject
+from anuga.abstract_2d_finite_volumes.data_manager import get_dataobject
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.pmesh.mesh import Mesh
 

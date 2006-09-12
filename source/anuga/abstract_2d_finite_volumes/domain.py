@@ -7,14 +7,14 @@
    Geoscience Australia
 """
 
-from anuga.pyvolution.neighbour_mesh import Mesh
-from anuga.pyvolution.generic_boundary_conditions import Boundary
-from anuga.pyvolution.generic_boundary_conditions import File_boundary
-from anuga.pyvolution.generic_boundary_conditions import Dirichlet_boundary
-from anuga.pyvolution.generic_boundary_conditions import Time_boundary
-from anuga.pyvolution.generic_boundary_conditions import Transmissive_boundary
-from anuga.pyvolution.pmesh2domain import pmesh_to_domain
-from anuga.pyvolution.region import Set_region as region_set_region
+from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import Boundary
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import File_boundary
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import Dirichlet_boundary
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import Time_boundary
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import Transmissive_boundary
+from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_to_domain
+from anuga.abstract_2d_finite_volumes.region import Set_region as region_set_region
 
 import types
 
@@ -339,7 +339,7 @@ class Domain(Mesh):
 
         """
 
-        from anuga.pyvolution.util import apply_expression_to_dictionary
+        from anuga.abstract_2d_finite_volumes.util import apply_expression_to_dictionary
         return apply_expression_to_dictionary(expression, self.quantities)
 
 
