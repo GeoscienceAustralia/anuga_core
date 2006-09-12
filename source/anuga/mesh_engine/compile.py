@@ -311,12 +311,18 @@ if __name__ == '__main__':
                   os.remove(root + x)
               except:
                   pass
-
+          if  filename == 'mesh_engine.c': # not part of ANUGA
+              continue
           print '--------------- Trying to compile c-extension %s' %filename
           try:
-            if filename == 'triang.c':
+            if filename == 'triang.c': 
               print "********** Manually doing dependencies **************"
               compile(['triang.c','triangle.c'])
+            elif  filename == 'mesh_engine.c': # not part of ANUGA
+              continue
+              #print "********** Manually doing dependencies **************"
+              #compile(['mesh_engine.c','triangle.c'])
+              
             else:
               compile(filename)
           except:
