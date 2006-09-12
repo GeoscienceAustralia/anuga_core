@@ -1,0 +1,17 @@
+#!/bin/bash
+
+cd build
+for X in $(ls -d lib.*)
+  do
+  cd ${X}
+  if [ -f metis.so ]
+      then
+      cp metis.so ../../../ -pf
+      echo 'Found metis.so in' ${X}
+  elif [ -f metis.pyd ]
+      then
+      cp metis.pyd ../../../ -pf
+      echo 'Found metis.pyd in' ${X}
+  fi
+  cd ..
+done
