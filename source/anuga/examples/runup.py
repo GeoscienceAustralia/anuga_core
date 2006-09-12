@@ -9,12 +9,12 @@ similar to a beach environment
 # Import necessary modules
 #------------------------------------------------------------------------------
 
-from pyvolution.mesh_factory import rectangular_cross
-from pyvolution.shallow_water import Domain
-from pyvolution.shallow_water import Reflective_boundary
-from pyvolution.shallow_water import Dirichlet_boundary
-from pyvolution.shallow_water import Time_boundary
-from pyvolution.shallow_water import Transmissive_boundary
+from anuga.pyvolution.mesh_factory import rectangular_cross
+from anuga.pyvolution.shallow_water import Domain
+from anuga.pyvolution.shallow_water import Reflective_boundary
+from anuga.pyvolution.shallow_water import Dirichlet_boundary
+from anuga.pyvolution.shallow_water import Time_boundary
+from anuga.pyvolution.shallow_water import Transmissive_boundary
 
 
 #------------------------------------------------------------------------------
