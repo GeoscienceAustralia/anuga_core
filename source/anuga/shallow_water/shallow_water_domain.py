@@ -1044,7 +1044,17 @@ class Reflective_boundary(Boundary):
 
 class Transmissive_Momentum_Set_Stage_boundary(Boundary):
     """Returns same momentum conserved quantities as
-    those present in its neighbour volume. Sets stage
+    those present in its neighbour volume.
+    Sets stage by specifying a function f of time which may either be a
+    vector function or a scalar function
+
+    Example:
+
+    def waveform(t): 
+        return sea_level + normalized_amplitude/cosh(t-25)**2
+
+    Bts = Transmissive_Momentum_Set_Stage_boundary(domain, waveform)
+    
 
     Underlying domain must be specified when boundary is instantiated
     """
@@ -1073,7 +1083,13 @@ class Transmissive_Momentum_Set_Stage_boundary(Boundary):
 
         q = self.domain.get_conserved_quantities(vol_id, edge = edge_id)
         value = self.function(self.domain.time)
-        q[0] = value[0]
+
+        try:
+            x = float(value)
+        except:    
+            x = float(value[0])
+            
+        q[0] = x
         return q
 
 
