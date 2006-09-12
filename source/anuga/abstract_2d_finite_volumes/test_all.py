@@ -14,7 +14,7 @@ import os
 
 #List files that should be excluded from the testing process.
 #E.g. if they are known to fail and under development
-exclude = ['test_interpolate_sww.py'] 
+exclude = [] 
 
 
 def get_test_files(path):

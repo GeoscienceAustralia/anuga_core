@@ -5,7 +5,7 @@ This version is for profiling of timestepping
 
 ######################
 # Module imports
-from shallow_water import Domain, Reflective_boundary
+from anuga.shallow_water import Domain, Reflective_boundary
 from mesh_factory import rectangular
 from Numeric import array
 

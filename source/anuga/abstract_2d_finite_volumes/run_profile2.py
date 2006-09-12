@@ -10,9 +10,12 @@ FIXME: This should really measure something else, such as profiling the set up o
 ######################
 # Module imports 
 #
-from shallow_water import Domain, Reflective_boundary, Dirichlet_boundary,\
-     Transmissive_boundary, Time_boundary,\
-     Weir_simple as Weir, Constant_height
+from anuga.shallow_water import Domain, Reflective_boundary,\
+     Dirichlet_boundary,\
+     Transmissive_boundary, Time_boundary
+
+from anuga.shallow_water.shallow_water_domain\
+     import Weir_simple as Weir, Constant_height
 
 from mesh_factory import rectangular
 from Numeric import array
