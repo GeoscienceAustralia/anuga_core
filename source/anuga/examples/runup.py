@@ -10,11 +10,11 @@ similar to a beach environment
 #------------------------------------------------------------------------------
 
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
-from anuga.abstract_2d_finite_volumes.shallow_water import Domain
-from anuga.abstract_2d_finite_volumes.shallow_water import Reflective_boundary
-from anuga.abstract_2d_finite_volumes.shallow_water import Dirichlet_boundary
-from anuga.abstract_2d_finite_volumes.shallow_water import Time_boundary
-from anuga.abstract_2d_finite_volumes.shallow_water import Transmissive_boundary
+from anuga.shallow_water import Domain
+from anuga.shallow_water import Reflective_boundary
+from anuga.shallow_water import Dirichlet_boundary
+from anuga.shallow_water import Time_boundary
+from anuga.shallow_water import Transmissive_boundary
 
 
 #------------------------------------------------------------------------------

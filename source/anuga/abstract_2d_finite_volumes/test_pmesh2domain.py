@@ -5,13 +5,12 @@ import unittest
 
 from Numeric import allclose, array
 
-from shallow_water import Domain
 
 #from anuga.pyvolution.pmesh2domain import *
-
 from pmesh2domain import *
 
-from shallow_water import Domain, Reflective_boundary, Dirichlet_boundary,\
+from anuga.shallow_water import Domain,\
+     Reflective_boundary, Dirichlet_boundary,\
      Transmissive_boundary
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference

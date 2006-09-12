@@ -1,3 +1,11 @@
+"""This has to do with creating elevation data files for use with ferret2sww.
+It reads a bathymetry ascii file and creates a NetCDF (nc) file similar to MOSTs output.
+
+ $Author: Peter Row
+ 
+"""
+
+
 def most2nc(input_file=None,output_file=None,inverted_bathymetry = False,\
             verbose = True):
     #input_file = 'small.txt'

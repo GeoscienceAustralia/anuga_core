@@ -15,7 +15,7 @@ from math import exp
 
 # Application specific imports
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-from anuga.abstract_2d_finite_volumes.shallow_water import Domain, Reflective_boundary, Dirichlet_boundary
+from anuga.shallow_water import Domain, Reflective_boundary, Dirichlet_boundary
 from anuga.pmesh.mesh_interface import create_mesh_from_regions
 from anuga.utilities.polygon import Polygon_function, read_polygon
 

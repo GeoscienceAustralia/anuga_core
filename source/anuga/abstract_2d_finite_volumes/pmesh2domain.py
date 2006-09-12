@@ -6,6 +6,10 @@
    Geoscience Australia
 """
 
+import sys
+
+
+
 def pmesh_instance_to_domain_instance(mesh,
                                       DomainClass):
     """
@@ -13,15 +17,21 @@ def pmesh_instance_to_domain_instance(mesh,
 
     Use pmesh_to_domain_instance to convert a mesh file to a domain instance.
     """
-    import sys
-    from domain import Domain
 
     vertex_coordinates, vertices, tag_dict, vertex_quantity_dict \
                         ,tagged_elements_dict, geo_reference = \
                         pmesh_to_domain(mesh_instance=mesh)
 
+    # NOTE(Ole): This import cannot be at the module level due to mutual
+    # dependency with domain.py
+    from anuga.abstract_2d_finite_volumes.domain import Domain
 
-    assert issubclass(DomainClass, Domain),"DomainClass is not a subclass of Domain."
+  
+
+
+    msg = 'The class %s is not a subclass of the generic domain class %s'\
+          %(DomainClass, Domain)
+    assert issubclass(DomainClass, Domain), msg
 
 
     domain = DomainClass(coordinates = vertex_coordinates,
@@ -73,15 +83,20 @@ def _pmesh_to_domain_instance(file_name, DomainClass):
     Internal function. See public interface pmesh_to_domain_instance for details
     """
     
-    import sys
-    from domain import Domain
-
-    vertex_coordinates, vertices, tag_dict, vertex_quantity_dict \
-                        ,tagged_elements_dict, geo_reference = \
+    vertex_coordinates, vertices, tag_dict, vertex_quantity_dict, \
+                        tagged_elements_dict, geo_reference = \
                         pmesh_to_domain(file_name=file_name)
 
 
-    assert issubclass(DomainClass, Domain),"DomainClass is not a subclass of Domain."
+    # NOTE(Ole): This import cannot be at the module level due to mutual
+    # dependency with domain.py
+    from anuga.abstract_2d_finite_volumes.domain import Domain
+
+
+    msg = 'The class %s is not a subclass of the generic domain class %s'\
+          %(DomainClass, Domain)
+    assert issubclass(DomainClass, Domain), msg
+
 
 
     domain = DomainClass(coordinates = vertex_coordinates,

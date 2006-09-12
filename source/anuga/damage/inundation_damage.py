@@ -27,7 +27,7 @@ except ImportError:
     
 
 from anuga.utilities.numerical_tools import ensure_numeric
-from anuga.abstract_2d_finite_volumes.data_manager import Exposure_csv
+from anuga.shallow_water.data_manager import Exposure_csv
 from anuga.abstract_2d_finite_volumes.util import file_function
 from anuga.geospatial_data.geospatial_data import ensure_absolute
 from anuga.utilities.numerical_tools import NAN

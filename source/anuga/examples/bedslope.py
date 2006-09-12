@@ -8,7 +8,7 @@ similar to beach environment
 ######################
 # Module imports 
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-from anuga.abstract_2d_finite_volumes.shallow_water import Domain, Reflective_boundary,\
+from anuga.shallow_water import Domain, Reflective_boundary,\
      Dirichlet_boundary, Time_boundary, Transmissive_boundary
 
 #Create basic triangular mesh

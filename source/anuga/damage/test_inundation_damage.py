@@ -12,9 +12,9 @@ from anuga.damage.inundation_damage import *
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.pmesh.mesh import Mesh
 from anuga.coordinate_transforms.geo_reference import Geo_reference
-from anuga.abstract_2d_finite_volumes.shallow_water import Domain, Transmissive_boundary
+from anuga.shallow_water import Domain, Transmissive_boundary
 from anuga.utilities.numerical_tools import mean
-from anuga.abstract_2d_finite_volumes.data_manager import get_dataobject
+from anuga.shallow_water.data_manager import get_dataobject
 
 from Numeric import zeros, Float, allclose
 

@@ -8,7 +8,7 @@ import tempfile
 
 from anuga.abstract_2d_finite_volumes.util import *
 from anuga.config import epsilon
-from anuga.abstract_2d_finite_volumes.data_manager import timefile2netcdf
+from anuga.shallow_water.data_manager import timefile2netcdf
 
 from anuga.utilities.numerical_tools import NAN
 
@@ -534,7 +534,7 @@ class Test_Util(unittest.TestCase):
         from Numeric import sin, pi, exp
         from mesh_factory import rectangular
         from shallow_water import Domain
-        import anuga.abstract_2d_finite_volumes.data_manager
+        import anuga.shallow_water.data_manager
 
         finaltime = 1200
         filename = 'test_file_function'
@@ -694,7 +694,7 @@ class Test_Util(unittest.TestCase):
         from Numeric import sin, pi, exp
         from mesh_factory import rectangular
         from shallow_water import Domain
-        import anuga.abstract_2d_finite_volumes.data_manager 
+        import anuga.shallow_water.data_manager 
         from anuga.pmesh.mesh_interface import create_mesh_from_regions
         finaltime = 1200
         

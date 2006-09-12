@@ -9,12 +9,12 @@ import tempfile
 import os
 from Scientific.IO.NetCDF import NetCDFFile
 
-from anuga.abstract_2d_finite_volumes.data_manager import *
-from anuga.abstract_2d_finite_volumes.shallow_water import *
+from anuga.shallow_water.data_manager import *
+from anuga.shallow_water import *
 from anuga.config import epsilon
 
 # This is needed to run the tests of local functions
-import anuga.abstract_2d_finite_volumes.data_manager
+import data_manager 
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 
@@ -2717,8 +2717,6 @@ END CROSS-SECTIONS:
         #Create a test domain, and evolve and save it.
         ################################################
         from mesh_factory import rectangular
-        from shallow_water import Domain, Reflective_boundary, Dirichlet_boundary,\
-            Constant_height, Time_boundary, Transmissive_boundary
         from Numeric import array
 
         #Create basic mesh
@@ -2763,7 +2761,7 @@ END CROSS-SECTIONS:
         ##########################################
         #Import the example's file as a new domain
         ##########################################
-        from anuga.abstract_2d_finite_volumes.data_manager import sww2domain
+        from data_manager import sww2domain
         from Numeric import allclose
         import os
 
@@ -2863,8 +2861,6 @@ END CROSS-SECTIONS:
 
 
 	from mesh_factory import rectangular
-	from shallow_water import Domain, Reflective_boundary, Dirichlet_boundary,\
-	     Constant_height, Time_boundary, Transmissive_boundary
 	from Numeric import array
 
 	#Create basic mesh
@@ -2907,7 +2903,7 @@ END CROSS-SECTIONS:
         ##################################
 	#Import the file as a new domain
         ##################################
-	from anuga.abstract_2d_finite_volumes.data_manager import sww2domain
+	from data_manager import sww2domain
 	from Numeric import allclose
         import os
 
@@ -2945,7 +2941,7 @@ END CROSS-SECTIONS:
 
 
     #def test_weed(self):
-	from anuga.abstract_2d_finite_volumes.data_manager import weed
+	from data_manager import weed
 
         coordinates1 = [[0.,0.],[1.,0.],[1.,1.],[1.,0.],[2.,0.],[1.,1.]]
         volumes1 = [[0,1,2],[3,4,5]]
@@ -2972,8 +2968,6 @@ END CROSS-SECTIONS:
 	#DOMAIN.SMOOTH = TRUE !!!!!!!!!!!!!!!!!!!!!!!!!!
 	################################################
 	from mesh_factory import rectangular
-	from shallow_water import Domain, Reflective_boundary, Dirichlet_boundary,\
-	     Constant_height, Time_boundary, Transmissive_boundary
 	from Numeric import array
 	#Create basic mesh
 
@@ -3018,7 +3012,7 @@ END CROSS-SECTIONS:
 	##########################################
 	#Import the example's file as a new domain
 	##########################################
-	from anuga.abstract_2d_finite_volumes.data_manager import sww2domain
+	from data_manager import sww2domain
 	from Numeric import allclose
         import os
 
@@ -3319,7 +3313,7 @@ END CROSS-SECTIONS:
         from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
-        from anuga.abstract_2d_finite_volumes.data_manager import _read_asc
+        from data_manager import _read_asc
         #Write test asc file
         filename = tempfile.mktemp(".000")
         fid = open(filename, 'w')
@@ -4034,7 +4028,7 @@ NODATA_value  -9999
 
         # k - lat
         # l - lon
-        kmin, kmax, lmin, lmax = anuga.abstract_2d_finite_volumes.data_manager._get_min_max_indexes(
+        kmin, kmax, lmin, lmax = data_manager._get_min_max_indexes(
             latitudes,longitudes,
             -10,4,-10,31)
 
@@ -4049,7 +4043,7 @@ NODATA_value  -9999
                          'failed')
 
         ## 2nd test
-        kmin, kmax, lmin, lmax = anuga.abstract_2d_finite_volumes.data_manager._get_min_max_indexes(
+        kmin, kmax, lmin, lmax = data_manager._get_min_max_indexes(
             latitudes,longitudes,
             0.5,2.5,5,25)
         #print "kmin",kmin;print "kmax",kmax
@@ -4064,7 +4058,7 @@ NODATA_value  -9999
                          'failed')
 
         ## 3rd test
-        kmin, kmax, lmin, lmax = anuga.abstract_2d_finite_volumes.data_manager._get_min_max_indexes(\
+        kmin, kmax, lmin, lmax = data_manager._get_min_max_indexes(\
             latitudes,
             longitudes,
             1.1,1.9,12,17)
@@ -4081,7 +4075,7 @@ NODATA_value  -9999
 
 
         ## 4th test
-        kmin, kmax, lmin, lmax = anuga.abstract_2d_finite_volumes.data_manager._get_min_max_indexes(
+        kmin, kmax, lmin, lmax = data_manager._get_min_max_indexes(
             latitudes,longitudes,
                                                       -0.1,1.9,-2,17)
         #print "kmin",kmin;print "kmax",kmax
@@ -4095,7 +4089,7 @@ NODATA_value  -9999
                         longitudes_news == [0, 10, 20],
                          'failed')
         ## 5th test
-        kmin, kmax, lmin, lmax = anuga.abstract_2d_finite_volumes.data_manager._get_min_max_indexes(
+        kmin, kmax, lmin, lmax = data_manager._get_min_max_indexes(
             latitudes,longitudes,
             0.1,1.9,2,17)
         #print "kmin",kmin;print "kmax",kmax
@@ -4111,7 +4105,7 @@ NODATA_value  -9999
 
         ## 6th test
 
-        kmin, kmax, lmin, lmax = anuga.abstract_2d_finite_volumes.data_manager._get_min_max_indexes(
+        kmin, kmax, lmin, lmax = data_manager._get_min_max_indexes(
             latitudes,longitudes,
             1.5,4,18,32)
         #print "kmin",kmin;print "kmax",kmax
@@ -4128,7 +4122,7 @@ NODATA_value  -9999
 
         ## 7th test
         m2d = array([[0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15]])
-        kmin, kmax, lmin, lmax = anuga.abstract_2d_finite_volumes.data_manager._get_min_max_indexes(
+        kmin, kmax, lmin, lmax = data_manager._get_min_max_indexes(
             latitudes,longitudes,
             1.5,1.5,15,15)
         #print "kmin",kmin;print "kmax",kmax
@@ -4155,7 +4149,7 @@ NODATA_value  -9999
 
         # k - lat
         # l - lon
-        kmin, kmax, lmin, lmax = anuga.abstract_2d_finite_volumes.data_manager._get_min_max_indexes(
+        kmin, kmax, lmin, lmax = data_manager._get_min_max_indexes(
             latitudes,longitudes,
             -37,-27,147,149.5)
 
@@ -4184,7 +4178,7 @@ NODATA_value  -9999
 
         # k - lat
         # l - lon
-        kmin, kmax, lmin, lmax = anuga.abstract_2d_finite_volumes.data_manager._get_min_max_indexes(
+        kmin, kmax, lmin, lmax = data_manager._get_min_max_indexes(
             latitudes,longitudes,
             -43,-37,148.5,149.5)
 
@@ -4208,7 +4202,7 @@ NODATA_value  -9999
 
         # k - lat
         # l - lon
-        kmin, kmax, lmin, lmax = anuga.abstract_2d_finite_volumes.data_manager._get_min_max_indexes(
+        kmin, kmax, lmin, lmax = data_manager._get_min_max_indexes(
             latitudes,longitudes)
 
         #print "kmin",kmin;print "kmax",kmax

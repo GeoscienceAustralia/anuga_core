@@ -19,9 +19,9 @@ from Numeric import allclose, array, transpose, zeros, Float
 # ANUGA code imports
 from interpolate import *
 from anuga.coordinate_transforms.geo_reference import Geo_reference
-from shallow_water import Domain, Transmissive_boundary
+from anuga.shallow_water import Domain, Transmissive_boundary
 from anuga.utilities.numerical_tools import mean, NAN
-from anuga.abstract_2d_finite_volumes.data_manager import get_dataobject
+from anuga.shallow_water.data_manager import get_dataobject
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.pmesh.mesh import Mesh
 

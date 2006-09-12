@@ -3546,7 +3546,7 @@ def tsh2sww(filename, verbose=False): #test_tsh2sww
     from shallow_water import Domain
     from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_to_domain_instance
     import time, os
-    from anuga.abstract_2d_finite_volumes.data_manager import get_dataobject
+    #from data_manager import get_dataobject
     from os import sep, path
     from anuga.utilities.numerical_tools import mean
 

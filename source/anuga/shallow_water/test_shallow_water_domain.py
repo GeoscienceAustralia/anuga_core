@@ -7,7 +7,7 @@ from anuga.config import g, epsilon
 from Numeric import allclose, array, zeros, ones, Float, take
 from anuga.utilities.numerical_tools import mean
 
-from shallow_water import *
+from shallow_water_domain import *
 
 
 
@@ -199,6 +199,12 @@ class Test_Shallow_Water(unittest.TestCase):
         points = [a, b, c, d, e, f]
         #bac, bce, ecf, dbe, daf, dae
         vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+
+        #from anuga.abstract_2d_finite_volumes.domain import Domain as Generic_domain
+        #msg = 'The class %s is not a subclass of the generic domain class %s'\
+        #      %(DomainClass, Domain)
+        #assert issubclass(DomainClass, Domain), msg
 
         domain = Domain(points, vertices)
         domain.check_integrity()
@@ -1028,7 +1034,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
 
         #Convert ASCII file to NetCDF (Which is what we really like!)
-        from anuga.abstract_2d_finite_volumes.data_manager import timefile2netcdf        
+        from data_manager import timefile2netcdf        
         timefile2netcdf(filename)
         os.remove(filename + '.txt')
 
@@ -1583,8 +1589,6 @@ class Test_Shallow_Water(unittest.TestCase):
 	initial condition
 	"""
         from mesh_factory import rectangular
-        from shallow_water import Domain, Reflective_boundary,\
-             Dirichlet_boundary, Constant_height
         from Numeric import array
 
         #Create basic mesh
@@ -1637,8 +1641,6 @@ class Test_Shallow_Water(unittest.TestCase):
 	initial condition
 	"""
         from mesh_factory import rectangular
-        from shallow_water import Domain, Reflective_boundary,\
-             Dirichlet_boundary, Constant_height
         from Numeric import array
 
         #Create basic mesh
@@ -1689,8 +1691,6 @@ class Test_Shallow_Water(unittest.TestCase):
 	initial condition
 	"""
         from mesh_factory import rectangular
-        from shallow_water import Domain, Reflective_boundary,\
-             Dirichlet_boundary, Constant_height
         from Numeric import array
 
         #Create basic mesh
@@ -1766,8 +1766,6 @@ class Test_Shallow_Water(unittest.TestCase):
 	initial condition
 	"""
         from mesh_factory import rectangular
-        from shallow_water import Domain, Reflective_boundary,\
-             Dirichlet_boundary, Constant_height
         from Numeric import array
 
         #Create basic mesh
@@ -1854,8 +1852,6 @@ class Test_Shallow_Water(unittest.TestCase):
 	This one uses a slopy bed, dirichlet and reflective bdries
 	"""
         from mesh_factory import rectangular
-        from shallow_water import Domain, Reflective_boundary,\
-             Dirichlet_boundary, Constant_height
         from Numeric import array
 
         #Create basic mesh
@@ -1928,7 +1924,6 @@ class Test_Shallow_Water(unittest.TestCase):
         import sys
         from os import sep; sys.path.append('..'+sep+'abstract_2d_finite_volumes')
         from mesh_factory import rectangular
-        from shallow_water import Domain, Reflective_boundary
 
 
         #Create shallow water domain
@@ -1980,8 +1975,6 @@ class Test_Shallow_Water(unittest.TestCase):
     def test_second_order_flat_bed_onestep(self):
 
         from mesh_factory import rectangular
-        from shallow_water import Domain, Reflective_boundary,\
-             Dirichlet_boundary, Constant_height
         from Numeric import array
 
         #Create basic mesh
@@ -2050,8 +2043,6 @@ class Test_Shallow_Water(unittest.TestCase):
     def test_second_order_flat_bed_moresteps(self):
 
         from mesh_factory import rectangular
-        from shallow_water import Domain, Reflective_boundary,\
-             Dirichlet_boundary, Constant_height
         from Numeric import array
 
         #Create basic mesh
@@ -2083,9 +2074,6 @@ class Test_Shallow_Water(unittest.TestCase):
 
     def test_flatbed_first_order(self):
         from mesh_factory import rectangular
-        from shallow_water import Domain,\
-             Reflective_boundary, Dirichlet_boundary
-
         from Numeric import array
 
         #Create basic mesh
@@ -2130,9 +2118,6 @@ class Test_Shallow_Water(unittest.TestCase):
 
     def test_flatbed_second_order(self):
         from mesh_factory import rectangular
-        from shallow_water import Domain,\
-             Reflective_boundary, Dirichlet_boundary
-
         from Numeric import array
 
         #Create basic mesh
@@ -2191,9 +2176,6 @@ class Test_Shallow_Water(unittest.TestCase):
 	
     def test_flatbed_second_order_vmax_0(self):
         from mesh_factory import rectangular
-        from shallow_water import Domain,\
-             Reflective_boundary, Dirichlet_boundary
-
         from Numeric import array
 
         #Create basic mesh
@@ -2240,9 +2222,6 @@ class Test_Shallow_Water(unittest.TestCase):
         #Use real data from anuga.abstract_2d_finite_volumes 2
         #painfully setup and extracted.
         from mesh_factory import rectangular
-        from shallow_water import Domain,\
-             Reflective_boundary, Dirichlet_boundary
-
         from Numeric import array
 
         #Create basic mesh
@@ -2390,7 +2369,6 @@ class Test_Shallow_Water(unittest.TestCase):
     def test_bedslope_problem_first_order(self):
 
         from mesh_factory import rectangular
-        from shallow_water import Domain, Reflective_boundary, Constant_height
         from Numeric import array
 
         #Create basic mesh
@@ -2428,7 +2406,6 @@ class Test_Shallow_Water(unittest.TestCase):
     def test_bedslope_problem_first_order_moresteps(self):
 
         from mesh_factory import rectangular
-        from shallow_water import Domain, Reflective_boundary, Constant_height
         from Numeric import array
 
         #Create basic mesh
@@ -2492,7 +2469,6 @@ class Test_Shallow_Water(unittest.TestCase):
     def test_bedslope_problem_second_order_one_step(self):
 
         from mesh_factory import rectangular
-        from shallow_water import Domain, Reflective_boundary, Constant_height
         from Numeric import array
 
         #Create basic mesh
@@ -2579,7 +2555,6 @@ class Test_Shallow_Water(unittest.TestCase):
     def test_bedslope_problem_second_order_two_steps(self):
 
         from mesh_factory import rectangular
-        from shallow_water import Domain, Reflective_boundary, Constant_height
         from Numeric import array
 
         #Create basic mesh
@@ -2672,7 +2647,6 @@ class Test_Shallow_Water(unittest.TestCase):
     def test_bedslope_problem_second_order_two_yieldsteps(self):
 
         from mesh_factory import rectangular
-        from shallow_water import Domain, Reflective_boundary, Constant_height
         from Numeric import array
 
         #Create basic mesh
@@ -2761,7 +2735,6 @@ class Test_Shallow_Water(unittest.TestCase):
     def test_bedslope_problem_second_order_more_steps(self):
 
         from mesh_factory import rectangular
-        from shallow_water import Domain, Reflective_boundary, Constant_height
         from Numeric import array
 
         #Create basic mesh
@@ -2878,7 +2851,6 @@ class Test_Shallow_Water(unittest.TestCase):
     def test_temp_play(self):
 
         from mesh_factory import rectangular
-        from shallow_water import Domain, Reflective_boundary, Constant_height
         from Numeric import array
 
         #Create basic mesh
@@ -2920,10 +2892,6 @@ class Test_Shallow_Water(unittest.TestCase):
 
     def test_complex_bed(self):
         #No friction is tested here
-
-        from shallow_water import Domain, Reflective_boundary, Dirichlet_boundary,\
-             Transmissive_boundary, Time_boundary,\
-             Weir_simple as Weir, Constant_height
 
         from mesh_factory import rectangular
         from Numeric import array

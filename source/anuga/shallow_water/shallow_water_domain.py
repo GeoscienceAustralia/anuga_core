@@ -54,12 +54,17 @@ Geoscience Australia, 2004
 #$LastChangedBy$
 
 
-from domain import Domain as Generic_Domain
-from generic_boundary_conditions import Boundary
-from generic_boundary_conditions import File_boundary
-from generic_boundary_conditions import Dirichlet_boundary
-from generic_boundary_conditions import Time_boundary
-from generic_boundary_conditions import Transmissive_boundary
+from anuga.abstract_2d_finite_volumes.domain import Domain as Generic_Domain
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
+     import Boundary
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
+     import File_boundary
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
+     import Dirichlet_boundary
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
+     import Time_boundary
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
+     import Transmissive_boundary
 
 from anuga.utilities.numerical_tools import gradient, mean
 from anuga.config import minimum_sww_depth
@@ -333,7 +338,7 @@ class Domain(Generic_Domain):
         Also, save x,y and bed elevation
         """
 
-        from anuga.abstract_2d_finite_volumes.data_manager import get_dataobject
+        from anuga.shallow_water.data_manager import get_dataobject
 
         #Initialise writer
         self.writer = get_dataobject(self, mode = 'w')

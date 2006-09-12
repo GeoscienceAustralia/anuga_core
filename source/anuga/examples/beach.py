@@ -12,13 +12,14 @@ python beach.py
 
 import sys
 from os import sep, path
-#sys.path.append('..'+sep+'pyvolution')
 
-from anuga.pyvolution.shallow_water import Domain, Reflective_boundary,\
+from anuga.shallow_water import Domain, Reflective_boundary,\
      Dirichlet_boundary,\
-     Transmissive_boundary, Time_boundary, Wind_stress
+     Transmissive_boundary, Time_boundary
 
-from anuga.pyvolution.pmesh2domain import pmesh_to_domain_instance
+from anuga.shallow_water.shallow_water_domain import Wind_stress
+
+from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_to_domain_instance
 from anuga.utilities.polygon import read_polygon, Polygon_function
 from math import pi
 from Numeric import choose, greater, ones, sin, exp
