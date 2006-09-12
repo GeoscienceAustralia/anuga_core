@@ -15,7 +15,7 @@ import sys
 
 #List files that should be excluded from the testing process.
 #E.g. if they are known to fail and under development
-exclude_files = ['test_version.py', #'test_least_squares.py',
+exclude_files = [#'test_version.py', #'test_least_squares.py',
                  'test_advection.py', # removing this test for a bit
                  ]
                  #'test_calculate_region.py', 'test_calculate_point.py']
