@@ -2,7 +2,7 @@ import unittest
 from quad import Cell, build_quadtree
 
 #from domain import *
-from general_mesh import General_mesh as Mesh
+from anuga.abstract_2d_finite_volumes.general_mesh import General_mesh as Mesh
 
 import types, sys
 
