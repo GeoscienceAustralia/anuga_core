@@ -254,16 +254,19 @@ class Parallel_Domain(Domain):
 
     def write_time(self):
         if self.min_timestep == self.max_timestep:
-            print 'Processor %d, Time = %.4f, delta t = %.8f, steps=%d (%d)'\
-                  %(self.processor, self.time, self.min_timestep, self.number_of_steps,
+            print 'Processor %d/%d, Time = %.4f, delta t = %.8f, steps=%d (%d)'\
+                  %(self.processor, self.numproc,
+                    self.time, self.min_timestep, self.number_of_steps,
                     self.number_of_first_order_steps)
         elif self.min_timestep > self.max_timestep:
-            print 'Processor %d, Time = %.4f, steps=%d (%d)'\
-                  %(self.processor, self.time, self.number_of_steps,
+            print 'Processor %d/%d, Time = %.4f, steps=%d (%d)'\
+                  %(self.processor, self.numproc,
+                    self.time, self.number_of_steps,
                     self.number_of_first_order_steps)
         else:
-            print 'Processor %d, Time = %.4f, delta t in [%.8f, %.8f], steps=%d (%d)'\
-                  %(self.processor, self.time, self.min_timestep,
+            print 'Processor %d/%d, Time = %.4f, delta t in [%.8f, %.8f], steps=%d (%d)'\
+                  %(self.processor, self.numproc,
+                    self.time, self.min_timestep,
                     self.max_timestep, self.number_of_steps,
                     self.number_of_first_order_steps)
 

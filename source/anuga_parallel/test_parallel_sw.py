@@ -2,7 +2,7 @@
 # Test a run of the sequential shallow water domain against
 # a run of the parallel shallow water domain.
 # WARNING: This assumes that the command to run jobs is mpirun.
-# Tested with MPICH.
+# Tested with MPICH and LAM (Ole)
 
 #mesh_filename = "test-100.tsh"
 mesh_filename= "merimbula_10785_1.tsh"
@@ -117,6 +117,7 @@ def parallel_test():
         linfnorm[2] = linf_norm(edges[:,2])
         if myid == 0:
             domain.write_time()
+            #print edges[:,1]            
             for p in range(1, numprocs):
                 pypar.receive(p, recv_norm)
                 l1norm += recv_norm
@@ -160,6 +161,7 @@ def sequential_test():
     for t in domain_full.evolve(yieldstep = yieldstep, finaltime = finaltime):
         domain_full.write_time()
         edge = domain_full.quantities[quantity].edge_values
+        #print edge[:,1]
         l1norm[0] = l1_norm(edge[:,0])
         l1norm[1] = l1_norm(edge[:,1])
         l1norm[2] = l1_norm(edge[:,2])
@@ -198,8 +200,12 @@ if __name__=="__main__":
     else:
         if pypar.rank() == 0:
             l1norm_seq, l2norm_seq, linfnorm_seq = sequential_test()
+            
         l1norm_par, l2norm_par, linfnorm_par = parallel_test()
+        
         if pypar.rank() == 0:
+            #print l2norm_seq, l2norm_par
+            
             assert_(len(l1norm_seq) == len(l1norm_par))
             assert_(len(l2norm_seq) == len(l2norm_par))
             assert_(len(linfnorm_seq) == len(linfnorm_par))
@@ -223,5 +229,8 @@ if __name__=="__main__":
                         assert_(abs(l1norm_par[x][y] - l1norm_par[x-1][y]) < tol)
                         assert_(abs(l2norm_par[x][y] - l2norm_par[x-1][y]) < tol)
                         assert_(abs(linfnorm_par[x][y] - linfnorm_par[x-1][y]) < tol)
-        pypar.finalize()
 
+        if pypar.rank() == 0:
+            print 'Parallel test OK'
+
+        pypar.finalize()
