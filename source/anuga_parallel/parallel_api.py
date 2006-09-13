@@ -49,7 +49,7 @@ def distribute_mesh(domain):
     points, vertices, boundary, quantities, ghost_recv_dict, full_send_dict = \
               extract_hostmesh(submesh, triangles_per_proc)
 
-    # Return stuff
+    # Return structures necessary for building the parallel domain
     return points, vertices, boundary, quantities, \
            ghost_recv_dict, full_send_dict
     

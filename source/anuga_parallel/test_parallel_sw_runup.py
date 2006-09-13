@@ -18,43 +18,100 @@ from anuga.shallow_water import Dirichlet_boundary
 from anuga.shallow_water import Time_boundary
 from anuga.shallow_water import Transmissive_boundary
 
+from parallel_api import *
+
 
 #------------------------------------------------------------------------------
-# Setup computational domain
+# Initialise 
 #------------------------------------------------------------------------------
 
-points, vertices, boundary = rectangular_cross(10, 10) # Basic mesh
+if myid == 0:
+    #--------------------------------------------------------------------------
+    # Setup computational domain
+    #--------------------------------------------------------------------------
 
-domain = Domain(points, vertices, boundary) # Create domain
-domain.set_name('runup')                    # Output to bedslope.sww
+    points, vertices, boundary = rectangular_cross(20, 20) # Basic mesh
+
+    domain = Domain(points, vertices, boundary) # Create domain
+    domain.set_name('runup')                    # Set sww filename
+    
+
+    #------------ -------------------------------------------------------------
+    # Setup initial conditions
+    #--------------------------------------------------------------------------
+
+    def topography(x,y): 
+        return -x/2                              # linear bed slope
+
+    domain.set_quantity('elevation', topography) # Use function for elevation
+    domain.set_quantity('friction', 0.1)         # Constant friction 
+    domain.set_quantity('stage', -.4)            # Constant initial stage
+
+
+    #--------------------------------------------------------------------------
+    # Setup boundary conditions
+    #--------------------------------------------------------------------------
+
+    Br = Reflective_boundary(domain)      # Solid reflective wall
+    Bd = Dirichlet_boundary([-0.2,0.,0.]) # Constant boundary values
+
+    # Associate boundary tags with boundary objects
+    domain.set_boundary({'left': Br, 'right': Bd, 'top': Br, 'bottom': Br})
+
+
+#------------------------------------------------------------------------------
+# Parallel stuff
+#------------------------------------------------------------------------------
+
+if myid == 0:
+    # Distribute the domain
+    points, vertices, boundary, quantities, ghost_recv_dict, full_send_dict,\
+            = distribute_mesh(domain)
+    print 'Communication done'        
+    
+else:
+    # Read in the mesh partition that belongs to this
+    # processor (note that the information is in the
+    # correct form for the GA data structure)
+
+    points, vertices, boundary, quantities, ghost_recv_dict, full_send_dict, \
+            = rec_submesh(0)
+
+
+
+#------------------------------------------------------------------------------
+# Start the computations on each subpartion
+#------------------------------------------------------------------------------
+
+# Build the domain for this processor
+domain = Parallel_Domain(points, vertices, boundary,
+                         full_send_dict  = full_send_dict,
+                         ghost_recv_dict = ghost_recv_dict)
+
+
+# Name and dir, etc currently has to be set here as they are not
+# transferred from the original domain
+domain.set_name('runup')                    # Set sww filename
 
 
 #------------------------------------------------------------------------------
 # Setup initial conditions
 #------------------------------------------------------------------------------
-
-def topography(x,y):
-    return -x/2                             # linear bed slope
-    #return x*(-(2.0-x)*.5)                  # curved bed slope
-
-domain.set_quantity('elevation', topography) # Use function for elevation
-domain.set_quantity('friction', 0.1)         # Constant friction 
-domain.set_quantity('stage', -.4)            # Constant negative initial stage
+for q in quantities:
+    domain.set_quantity(q, quantities[q]) # Distribute all quantities    
 
 
 #------------------------------------------------------------------------------
-# Setup boundary conditions
+# Setup parallel boundary conditions
 #------------------------------------------------------------------------------
 
-from math import sin, pi, exp
 Br = Reflective_boundary(domain)      # Solid reflective wall
-Bt = Transmissive_boundary(domain)    # Continue all values on boundary 
 Bd = Dirichlet_boundary([-0.2,0.,0.]) # Constant boundary values
-Bw = Time_boundary(domain=domain,     # Time dependent boundary  
-                   f=lambda t: [(.1*sin(t*2*pi)-0.3) * exp(-2*t), 0.0, 0.0])
 
 # Associate boundary tags with boundary objects
-domain.set_boundary({'left': Br, 'right': Bd, 'top': Br, 'bottom': Br})
+domain.set_boundary({'left': Br, 'right': Bd, 'top': Br, 'bottom': Br,
+                     'ghost': None, 'exterior': Bd})
+
 
 
 #------------------------------------------------------------------------------
