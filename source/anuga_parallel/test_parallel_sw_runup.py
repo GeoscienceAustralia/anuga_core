@@ -11,6 +11,7 @@ This is a very simple test of the parallel algorithm
 # Import necessary modules
 #------------------------------------------------------------------------------
 
+from anuga.pmesh.mesh_interface import create_mesh_from_regions
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
 from anuga.shallow_water import Domain
 from anuga.shallow_water import Reflective_boundary
@@ -39,9 +40,25 @@ if myid == 0:
     # Setup computational domain
     #--------------------------------------------------------------------------
 
-    points, vertices, boundary = rectangular_cross(10, 10) # Basic mesh
 
+    points, vertices, boundary = rectangular_cross(10, 10) # Basic mesh
     domain = Domain(points, vertices, boundary) # Create domain
+
+
+    # Unstructured mesh
+    #polygon = [[1,1],[0,1],[0,0],[1,0]]
+    #meshname = 'runup.msh'
+    #create_mesh_from_regions(polygon,
+    #                         boundary_tags={'top': [0],
+    #                                        'left': [1],
+    #                                        'bottom': [2],
+    #                                        'right': [3]},
+    #                         maximum_triangle_area=0.01, 
+    #                         filename=meshname)
+    #domain = Domain(meshname, use_cache=True, verbose = True)
+
+
+    
     domain.set_name('runup')                    # Set sww filename
     
 
