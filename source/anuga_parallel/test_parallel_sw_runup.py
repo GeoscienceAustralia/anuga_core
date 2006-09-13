@@ -20,6 +20,15 @@ from anuga.shallow_water import Transmissive_boundary
 
 from parallel_api import *
 
+#------------------------------------------------------------------------------
+# Read in processor information
+#------------------------------------------------------------------------------
+
+numprocs = pypar.size()
+myid = pypar.rank()
+processor_name = pypar.Get_processor_name()
+print 'I am processor %d of %d on node %s' %(myid, numprocs, processor_name)
+
 
 #------------------------------------------------------------------------------
 # Initialise 
@@ -30,7 +39,7 @@ if myid == 0:
     # Setup computational domain
     #--------------------------------------------------------------------------
 
-    points, vertices, boundary = rectangular_cross(20, 20) # Basic mesh
+    points, vertices, boundary = rectangular_cross(10, 10) # Basic mesh
 
     domain = Domain(points, vertices, boundary) # Create domain
     domain.set_name('runup')                    # Set sww filename
@@ -48,25 +57,30 @@ if myid == 0:
     domain.set_quantity('stage', -.4)            # Constant initial stage
 
 
-    #--------------------------------------------------------------------------
-    # Setup boundary conditions
-    #--------------------------------------------------------------------------
-
-    Br = Reflective_boundary(domain)      # Solid reflective wall
-    Bd = Dirichlet_boundary([-0.2,0.,0.]) # Constant boundary values
-
-    # Associate boundary tags with boundary objects
-    domain.set_boundary({'left': Br, 'right': Bd, 'top': Br, 'bottom': Br})
-
-
-#------------------------------------------------------------------------------
-# Parallel stuff
-#------------------------------------------------------------------------------
-
-if myid == 0:
+    #------------ -------------------------------------------------------------
     # Distribute the domain
-    points, vertices, boundary, quantities, ghost_recv_dict, full_send_dict,\
-            = distribute_mesh(domain)
+    #--------------------------------------------------------------------------
+    
+    # Subdivide the mesh
+    print 'Subdivide mesh'
+    nodes, triangles, boundary, triangles_per_proc, quantities = \
+           pmesh_divide_metis(domain, numprocs)
+
+    # Build the mesh that should be assigned to each processor,
+    # this includes ghost nodes and the communicaiton pattern
+    print 'Build submeshes'    
+    submesh = build_submesh(nodes, triangles, boundary,\
+                            quantities, triangles_per_proc)
+
+    # Send the mesh partition to the appropriate processor
+    print 'Distribute submeshes'        
+    for p in range(1, numprocs):
+      send_submesh(submesh, triangles_per_proc, p)
+
+    # Build the local mesh for processor 0
+    points, vertices, boundary, quantities, ghost_recv_dict, full_send_dict = \
+              extract_hostmesh(submesh, triangles_per_proc)
+
     print 'Communication done'        
     
 else:
@@ -99,6 +113,7 @@ domain.set_name('runup')                    # Set sww filename
 #------------------------------------------------------------------------------
 for q in quantities:
     domain.set_quantity(q, quantities[q]) # Distribute all quantities    
+
 
 
 #------------------------------------------------------------------------------
