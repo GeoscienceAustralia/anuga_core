@@ -2,6 +2,8 @@
 2D triangular domains for finite-volume computations of
 the shallow water wave equation.
 
+
+$Description:
 This module contains a specialisation of class Domain from module domain.py
 consisting of methods specific to the Shallow Water Wave Equation
 
@@ -36,15 +38,25 @@ nu                         wind stress coefficient [to appear]
 
 The conserved quantities are w, uh, vh
 
-
-For details see e.g.
+$Reference
 Christopher Zoppou and Stephen Roberts,
 Catastrophic Collapse of Water Supply Reservoirs in Urban Areas,
 Journal of Hydraulic Engineering, vol. 127, No. 7 July 1999
 
 
+
+
 Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou
 Geoscience Australia, 2004
+
+
+$Author$
+$Revision$
+$Date$
+$LastChangedDate$
+$LastChangedRevision$
+$LastChangedBy$
+$HeadURL$
 """
 
 #Subversion keywords:
