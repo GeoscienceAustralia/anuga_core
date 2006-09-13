@@ -18,13 +18,15 @@ import print_stats
 import pypar
 
 from Numeric import array, zeros, Float, take, nonzero
-from anuga.pyvolution.shallow_water import Domain
-from anuga.pyvolution.shallow_water import Reflective_boundary as sw_reflective_boundary
-from anuga.pyvolution.shallow_water import Transmissive_boundary as sw_transmissive_boundary
+from anuga.shallow_water import Domain
+from anuga.shallow_water import Reflective_boundary as sw_reflective_boundary
+from anuga.shallow_water import Transmissive_boundary as sw_transmissive_boundary
 from parallel_shallow_water import Parallel_Domain
 from parallel_shallow_water import Reflective_boundary as par_reflective_boundary
 from parallel_shallow_water import Transmissive_boundary as par_transmissive_boundary
-from anuga.pyvolution.pmesh2domain import pmesh_to_domain_instance
+from anuga.abstract_2d_finite_volumes.pmesh2domain\
+     import pmesh_to_domain_instance
+
 from anuga.utilities.norms import *
 from anuga.utilities.util_ext import double_precision
 from print_stats import print_test_stats, build_full_flag
@@ -45,7 +47,6 @@ class Set_Stage:
     def __call__(self, x, y):
         return self.h*((x>self.x0)&(x<self.x1))
 
-sys.path.append(".." + os.sep + "pyvolution")
 
 def parallel_test():
     myid = pypar.rank()

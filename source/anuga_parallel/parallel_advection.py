@@ -1,6 +1,5 @@
 import sys
-from os import sep
-sys.path.append('..'+sep+'pyvolution')
+
 
 """Class Parallel_Domain -
 2D triangular domains for finite-volume computations of
@@ -22,7 +21,7 @@ try:
 except:
     pass
 
-from anuga.pyvolution.advection_vtk import *
+from anuga.abstract_2d_finite_volumes.advection_vtk import *
 from Numeric import zeros, Float, Int, ones, allclose, array
 import pypar
 

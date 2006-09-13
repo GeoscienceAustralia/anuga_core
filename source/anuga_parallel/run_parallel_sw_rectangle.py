@@ -13,20 +13,16 @@
 #
 #
 #########################################################
-import sys
+
 import pypar    # The Python-MPI interface
 import time
-
-
-from os import sep
-sys.path.append('..'+sep+'pyvolution')
 
 from Numeric import array
 # pmesh
 
 from print_stats import print_test_stats, build_full_flag
 
-from shallow_water import Domain
+from anuga.shallow_water import Domain
 from parallel_shallow_water import Parallel_Domain
 
 
@@ -44,8 +40,8 @@ N = M*numprocs
 if myid == 0:
     print 'N == %d' %N
 
-points, vertices, boundary, full_send_dict, ghost_recv_dict =  \
-    parallel_rectangle(N, M, len1_g=1.0*numprocs, len2_g = 1.0)
+points, vertices, boundary, full_send_dict, ghost_recv_dict =\
+        parallel_rectangle(N, M, len1_g=1.0*numprocs, len2_g = 1.0)
 
 
 

@@ -16,7 +16,7 @@ import sys
 from Numeric import zeros, Float, Int, concatenate, \
      reshape, arrayrange, take, nonzero
 
-from anuga.pyvolution.neighbour_mesh import Mesh
+from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 
 
 

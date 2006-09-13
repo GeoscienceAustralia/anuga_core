@@ -1,14 +1,10 @@
 #import pdb
 #pdb.set_trace()
 
-import sys
-from os import sep
-sys.path.append('..'+sep+'pyvolution')
-
 #========================================================================
-from config import g, epsilon
+from anuga.config import g, epsilon
 from Numeric import allclose, array, zeros, ones, Float
-from advection import Domain, Transmissive_boundary, Dirichlet_boundary
+from anuga.advection import Domain, Transmissive_boundary, Dirichlet_boundary
 from Numeric import array
 
 

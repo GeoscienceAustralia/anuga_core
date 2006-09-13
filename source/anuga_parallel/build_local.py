@@ -22,8 +22,7 @@ from Numeric import  zeros, Float, Int, concatenate, \
 
 
 #########################################################
-# Convert the format of the data to that used by
-# pyvolution
+# Convert the format of the data to that used by ANUGA
 #
 #
 # *) Change the nodes global ID's to an integer value,
@@ -145,8 +144,7 @@ def build_local_commun(index, ghostc, fullc, nproc):
 
 
 #########################################################
-# Convert the format of the data to that used by
-# pyvolution
+# Convert the format of the data to that used by ANUGA
 #
 #
 # *) Change the nodes global ID's to an integer value,

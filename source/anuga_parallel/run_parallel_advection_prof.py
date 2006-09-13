@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-###
 #########################################################
 #
 #  Main file for parallel mesh testing. Runs an advection
@@ -13,10 +12,6 @@
 #########################################################
 
 
-import sys
-from os import sep
-sys.path.append('..'+sep+'pyvolution')
-sys.path.append('..'+sep+'parallel')
 
 # Parallel communication routines
 

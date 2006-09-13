@@ -1,10 +1,3 @@
-import sys
-from os import sep
-
-# FIXME: This should be removed. Set evironment variable PYTHONPATH to
-# directory ...../anuga/inundation instead
-#sys.path.append('..'+sep+'pyvolution')
-
 """Class Parallel_Shallow_Water_Domain -
 2D triangular domains for finite-volume computations of
 the shallow water equation, with extra structures to allow
@@ -17,6 +10,8 @@ Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou
 Geoscience Australia, 2004-2005
 """
 
+import sys
+
 import logging, logging.config
 logger = logging.getLogger('parallel')
 logger.setLevel(logging.WARNING)
@@ -26,7 +21,7 @@ try:
 except:
     pass
 
-from anuga.pyvolution.shallow_water import *
+from anuga.shallow_water.shallow_water_domain import *
 from Numeric import zeros, Float, Int, ones, allclose, array
 
 import pypar

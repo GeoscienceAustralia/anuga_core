@@ -22,10 +22,8 @@ finaltime = 10.0
 min_depth = 1.0e-2
 
 
-import sys
-from os import sep; sys.path.append('..'+sep+'pyvolution')
-from mesh_factory import rectangular
-from shallow_water import Domain, Reflective_boundary
+from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
+from anuga.shallow_water import Domain, Reflective_boundary
 
 
 

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-###
 #########################################################
 #
 #  Main file for parallel mesh testing.
@@ -38,34 +37,27 @@ import sys
 import pypar    # The Python-MPI interface
 import time
 
-
-from os import sep
-sys.path.append('..'+sep+'pyvolution')
-
 # Numeric arrays
-
 from Numeric import array, zeros, Float
 
 # Print debugging information
-
 from print_stats import print_test_stats, build_full_flag
 
 # pmesh
-
-from shallow_water import Domain
+from anuga.shallow_water import Domain
 from parallel_shallow_water import Parallel_Domain
-from pmesh2domain import pmesh_to_domain_instance
+from anuga.abstract_2d_finite_volumes.pmesh2domain\
+     import pmesh_to_domain_instance
 
 # Reuse previous mesh import
-
-from caching import cache
+from anuga.caching import cache
 
 # Mesh partition routines
-
-from pmesh_divide import pmesh_divide_metis
+from pmesh_divide  import pmesh_divide_metis
 from build_submesh import build_submesh
 from build_local   import build_local_mesh
 from build_commun  import send_submesh, rec_submesh, extract_hostmesh
+
 
 ###############################
 # Read in processor information

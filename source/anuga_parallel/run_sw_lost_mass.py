@@ -30,19 +30,16 @@ import sys
 import time
 
 
-from os import sep
-sys.path.append('..'+sep+'pyvolution')
-
 from Numeric import array, zeros, Float
-# pmesh
 
 #from shallow_water import Domain
 
-from shallow_water import Domain
+from anuga.shallow_water import Domain
 
 # mesh partition routines
 
-from pmesh2domain import pmesh_to_domain_instance
+from anuga.abstract_2d_finite_volumes.pmesh2domain\
+     import pmesh_to_domain_instance
 
 # read in the processor information
 

@@ -1,7 +1,3 @@
-import sys
-from os import sep
-sys.path.append('..'+sep+'pyvolution')
-
 """parallel-meshes -
 2D triangular domains for parallel finite-volume computations of
 the advection equation, with extra structures to define the
@@ -16,10 +12,14 @@ Modified by Linda Stals, March 2006, to include ghost boundaries
 
 """
 
-#from parallel_advection import *
+
+import sys
+from Numeric import array, zeros, Float, Int
 
 import pypar
-from Numeric import array
+
+from anuga.config import epsilon
+
 
 def parallel_rectangle(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)):
 
@@ -34,9 +34,6 @@ def parallel_rectangle(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)):
     len2: y direction (bottom to top)
 
     """
-
-    from config import epsilon
-    from Numeric import zeros, Float, Int
 
     processor = pypar.rank()
     numproc   = pypar.size()
@@ -202,9 +199,6 @@ def rectangular_periodic(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
     FVMesh object, e.g. Mesh(points, elements)
     """
 
-    from config import epsilon
-    from Numeric import zeros, Float, Int
-
     delta1 = float(len1)/m
     delta2 = float(len2)/n
 
@@ -341,9 +335,6 @@ def rectangular_periodic_lr(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
     Return to lists: points and elements suitable for creating a Mesh or
     Domain object, e.g. Mesh(points, elements)
     """
-
-    from config import epsilon
-    from Numeric import zeros, Float, Int
 
     delta1 = float(len1)/m
     delta2 = float(len2)/n

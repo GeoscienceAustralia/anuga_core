@@ -24,28 +24,22 @@
 #
 #
 #########################################################
-import sys
+
 import pypar    # The Python-MPI interface
 import time
 
-
-from os import sep
-sys.path.append('..'+sep+'pyvolution')
-
 # Numeric arrays
-
 from Numeric import array, zeros, Float
-# pmesh
-
-#from shallow_water import Domain
 
 from print_stats import print_test_stats, build_full_flag
 
-from pmesh2domain import pmesh_to_domain_instance
-from advection import Domain as Advection_Domain
+from anuga.abstract_2d_finite_volumes.pmesh2domain\
+     import pmesh_to_domain_instance
+from anuga.advection.advection import Domain as Advection_Domain
 from parallel_advection import Parallel_Domain
 
-from generic_boundary_conditions import Transmissive_boundary
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
+     import Transmissive_boundary
 
 # mesh partition routines
 
