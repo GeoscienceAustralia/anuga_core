@@ -8,9 +8,8 @@ from module shallow_water.py
 
 Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou
 Geoscience Australia, 2004-2005
-"""
 
-import sys
+"""
 
 import logging, logging.config
 logger = logging.getLogger('parallel')
@@ -20,6 +19,7 @@ try:
     logging.config.fileConfig('log.ini')
 except:
     pass
+
 
 from anuga.shallow_water.shallow_water_domain import *
 from Numeric import zeros, Float, Int, ones, allclose, array
