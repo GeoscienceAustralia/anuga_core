@@ -38,12 +38,17 @@ nu                         wind stress coefficient [to appear]
 
 The conserved quantities are w, uh, vh
 
-$Reference
-Christopher Zoppou and Stephen Roberts,
+$References
 Catastrophic Collapse of Water Supply Reservoirs in Urban Areas,
+Christopher Zoppou and Stephen Roberts,
 Journal of Hydraulic Engineering, vol. 127, No. 7 July 1999
 
-
+Hydrodynamic modelling of coastal inundation. 
+Nielsen, O., S. Roberts, D. Gray, A. McPherson and A. Hitchman
+In Zerger, A. and Argent, R.M. (eds) MODSIM 2005 International Congress on
+Modelling and Simulation. Modelling and Simulation Society of Australia and
+New Zealand, December 2005, pp. 518-523. ISBN: 0-9758400-2-9.
+http://www.mssanz.org.au/modsim05/papers/nielsen.pdf
 
 
 Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou
