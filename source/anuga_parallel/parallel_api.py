@@ -24,6 +24,54 @@ print 'I am processor %d of %d on node %s' %(myid, numprocs, processor_name)
 
 
 
+def distribute(domain):
+
+    if myid == 0:
+        #-------------------------------------------------------------------
+        # Distribute the domain
+        #-------------------------------------------------------------------
+
+        points, vertices, boundary, quantities,\
+                ghost_recv_dict, full_send_dict,\
+                = distribute_mesh(domain)
+        print 'Communication done'        
+        
+    else:
+        # Read in the mesh partition that belongs to this
+        # processor (note that the information is in the
+        # correct form for the GA data structure)
+
+        points, vertices, boundary, quantities,\
+                ghost_recv_dict, full_send_dict,\
+                = rec_submesh(0)
+
+    #------------------------------------------------------------------------
+    # Start the computations on each subpartion
+    #------------------------------------------------------------------------
+
+    # Build the domain for this processor
+    domain = Parallel_Domain(points, vertices, boundary,
+                             full_send_dict  = full_send_dict,
+                             ghost_recv_dict = ghost_recv_dict)
+
+    #------------------------------------------------------------------------
+    # Setup initial conditions
+    #------------------------------------------------------------------------
+    for q in quantities:
+        domain.set_quantity(q, quantities[q]) # Distribute all quantities    
+
+
+    #------------------------------------------------------------------------
+    # Return parallel domain to all nodes
+    #------------------------------------------------------------------------
+    return domain    
+
+
+
+
+
+
+
 def distribute_mesh(domain):
 
     numprocs = pypar.size()
