@@ -135,16 +135,17 @@ def ghost_layer(submesh, mesh, p, tupper, tlower):
 
     trianglemap = zeros(ntriangles, 'i')
     for t in range(tlower, tupper):
+        
         n = mesh.neighbours[t, 0]
-        if n > 0:
+        if n >= 0:
             if n < tlower or n >= tupper:
                 trianglemap[n] = 1
         n = mesh.neighbours[t, 1]
-        if n > 0:
+        if n >= 0:
             if n < tlower or n >= tupper:
                 trianglemap[n] = 1
         n = mesh.neighbours[t, 2]
-        if n > 0:
+        if n >= 0:
             if n < tlower or n >= tupper:
                 trianglemap[n] = 1
 
@@ -153,17 +154,17 @@ def ghost_layer(submesh, mesh, p, tupper, tlower):
     for t in range(len(trianglemap)):
         if trianglemap[t]==1:
             n = mesh.neighbours[t, 0]
-            if n > 0:
+            if n >= 0:
                 if (n < tlower or n >= tupper) and trianglemap[n] == 0:
-                    trianglemap[n] = 1
+                    trianglemap[n] = 2
             n = mesh.neighbours[t, 1]
-            if n > 0:
+            if n >= 0:
                 if (n < tlower or n >= tupper) and trianglemap[n] == 0:
-                    trianglemap[n] = 1
+                    trianglemap[n] = 2
             n = mesh.neighbours[t, 2]
-            if n > 0:
+            if n >= 0:
                 if (n < tlower or n >= tupper) and trianglemap[n] == 0:
-                    trianglemap[n] = 1
+                    trianglemap[n] = 2
 
     # Build the triangle list and make note of the vertices
 
@@ -172,7 +173,7 @@ def ghost_layer(submesh, mesh, p, tupper, tlower):
 
     subtriangles = []
     for i in range(len(trianglemap)):
-        if trianglemap[i] == 1:
+        if trianglemap[i] != 0:
             t = list(mesh.triangles[i])
             nodemap[t[0]] = 1
             nodemap[t[1]] = 1
@@ -232,7 +233,7 @@ def ghost_layer(submesh, mesh, p, tupper, tlower):
 #
 #########################################################
 def is_in_processor(ghost_list, tlower, tupper, n):
-    return (n in ghost_list) or (tlower <= n and tupper >= n)
+    return (n in ghost_list) or (tlower <= n and tupper > n)
 
 def ghost_bnd_layer(ghosttri, tlower, tupper, mesh, p):
 
@@ -241,7 +242,7 @@ def ghost_bnd_layer(ghosttri, tlower, tupper, mesh, p):
         
     for t in ghosttri:
         ghost_list.append(t[0])
-
+    
     for t in ghosttri:
         n = mesh.neighbours[t[0], 0]
         if not is_in_processor(ghost_list, tlower, tupper, n):
@@ -254,7 +255,7 @@ def ghost_bnd_layer(ghosttri, tlower, tupper, mesh, p):
         n = mesh.neighbours[t[0], 2]
         if not is_in_processor(ghost_list, tlower, tupper, n):
             subboundary[t[0], 2] = 'ghost'
-    
+            
     return subboundary
 
 #########################################################
@@ -410,7 +411,7 @@ def submesh_ghost(submesh, mesh, triangles_per_proc):
 
         # Find the boundary layer formed by the ghost triangles
         
-        subbnd = ghost_bnd_layer(subtri, tupper, tlower, mesh, p)
+        subbnd = ghost_bnd_layer(subtri, tlower, tupper, mesh, p)
         ghost_bnd.append(subbnd)
         
         # Build the communication pattern for the ghost nodes
@@ -422,6 +423,7 @@ def submesh_ghost(submesh, mesh, triangles_per_proc):
         # Move to the next processor
 
         tlower = tupper
+
 
     # Record the ghost layer and communication pattern
 
@@ -525,7 +527,7 @@ def build_submesh(nodes, triangles, edges, quantities,
 
     submeshf = submesh_full(nodes, triangles, edges, \
                             triangles_per_proc)
-
+    
     # Add any extra ghost boundary layer information
 
     submeshg = submesh_ghost(submeshf, mesh, triangles_per_proc)

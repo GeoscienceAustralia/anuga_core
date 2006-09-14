@@ -189,5 +189,5 @@ def pmesh_divide_metis(domain, n_procs):
     ttriangles = zeros((len(triangles), 3), Int)
     for i in range(len(triangles)):
         ttriangles[i] = triangles[i]
-        
+    
     return nodes, ttriangles, boundary, triangles_per_proc, quantities

@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+
+
 """Simple water flow example using ANUGA
 
 Water driven up a linear slope and time varying boundary,
@@ -40,8 +43,8 @@ if myid == 0:
     # Setup computational domain
     #--------------------------------------------------------------------------
 
-
     points, vertices, boundary = rectangular_cross(10, 10) # Basic mesh
+    
     domain = Domain(points, vertices, boundary) # Create domain
 
 
@@ -94,11 +97,13 @@ if myid == 0:
     for p in range(1, numprocs):
       send_submesh(submesh, triangles_per_proc, p)
 
+
     # Build the local mesh for processor 0
     points, vertices, boundary, quantities, ghost_recv_dict, full_send_dict = \
               extract_hostmesh(submesh, triangles_per_proc)
 
     print 'Communication done'        
+
     
 else:
     # Read in the mesh partition that belongs to this
@@ -108,8 +113,6 @@ else:
     points, vertices, boundary, quantities, ghost_recv_dict, full_send_dict, \
             = rec_submesh(0)
 
-
-
 #------------------------------------------------------------------------------
 # Start the computations on each subpartion
 #------------------------------------------------------------------------------
@@ -118,7 +121,6 @@ else:
 domain = Parallel_Domain(points, vertices, boundary,
                          full_send_dict  = full_send_dict,
                          ghost_recv_dict = ghost_recv_dict)
-
 
 # Name and dir, etc currently has to be set here as they are not
 # transferred from the original domain
@@ -141,9 +143,10 @@ Br = Reflective_boundary(domain)      # Solid reflective wall
 Bd = Dirichlet_boundary([-0.2,0.,0.]) # Constant boundary values
 
 # Associate boundary tags with boundary objects
+#domain.set_boundary({'left': Br, 'right': Bd, 'top': Br, 'bottom': Br,
+#                     'ghost': None, 'exterior': Bd})
 domain.set_boundary({'left': Br, 'right': Bd, 'top': Br, 'bottom': Br,
-                     'ghost': None, 'exterior': Bd})
-
+                     'ghost': None})
 
 
 #------------------------------------------------------------------------------
@@ -153,5 +156,4 @@ domain.set_boundary({'left': Br, 'right': Bd, 'top': Br, 'bottom': Br,
 for t in domain.evolve(yieldstep = 0.1, finaltime = 10.0):
     domain.write_time()
     
-
 

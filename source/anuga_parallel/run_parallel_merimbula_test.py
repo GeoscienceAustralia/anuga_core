@@ -28,6 +28,10 @@
 import pypar    # The Python-MPI interface
 import time
 
+from sys import path
+
+print path
+
 # Numeric arrays
 from Numeric import array, zeros, Float
 
@@ -47,6 +51,7 @@ from pmesh_divide  import pmesh_divide_metis
 from build_submesh import build_submesh
 from build_local   import build_local_mesh
 from build_commun  import send_submesh, rec_submesh, extract_hostmesh
+
 
 
 class Set_Stage:
