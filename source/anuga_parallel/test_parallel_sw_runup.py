@@ -48,15 +48,16 @@ domain.set_quantity('stage', -.4)            # Constant initial stage
 #--------------------------------------------------------------------------
 # Create the parallel domain
 #--------------------------------------------------------------------------
-domain = distribute(domain)
+domain = distribute(domain, verbose=True)
 
+print 'P%d: name = %s' %(myid, domain.get_name())
 
 
 # TODO: Communicate all attributes of domain including boundary conditions
 
 # Name and dir, etc currently has to be set here as they are not
 # transferred from the original domain
-domain.set_name('runup')                    # Set sww filename
+#domain.set_name('runup')                    # Set sww filename
 
 
 
@@ -78,6 +79,7 @@ domain.set_boundary({'left': Br, 'right': Bd, 'top': Br, 'bottom': Br,
 #------------------------------------------------------------------------------
 
 for t in domain.evolve(yieldstep = 0.1, finaltime = 10.0):
-    domain.write_time()
+    pass
+    #domain.write_time()
     
 

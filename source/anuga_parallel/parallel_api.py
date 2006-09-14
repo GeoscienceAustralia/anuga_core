@@ -24,42 +24,64 @@ print 'I am processor %d of %d on node %s' %(myid, numprocs, processor_name)
 
 
 
-def distribute(domain):
+def distribute(domain, verbose=False):
+    """ Distribute the domain to all processes
+    """
+
+    # For some obscure reason this communication must happen prior to
+    # the more complex mesh distribution - Oh Well!
+    if myid == 0:
+        domain_name = domain.get_name()
+        for p in range(1, numprocs):
+            print 'p', p            
+            pypar.send(domain_name, p)
+    else:
+        if verbose: print 'Receiving'
+
+        domain_name = pypar.receive(0)
+
 
     if myid == 0:
-        #-------------------------------------------------------------------
-        # Distribute the domain
-        #-------------------------------------------------------------------
+        # Partition and distribute mesh.
+        # Structures returned is in the
+        # correct form for the ANUGA data structure
+
 
         points, vertices, boundary, quantities,\
                 ghost_recv_dict, full_send_dict,\
                 = distribute_mesh(domain)
-        print 'Communication done'        
+
+        if verbose: print 'Communication done'
         
     else:
         # Read in the mesh partition that belongs to this
-        # processor (note that the information is in the
-        # correct form for the GA data structure)
-
+        # processor
         points, vertices, boundary, quantities,\
                 ghost_recv_dict, full_send_dict,\
                 = rec_submesh(0)
 
-    #------------------------------------------------------------------------
-    # Start the computations on each subpartion
-    #------------------------------------------------------------------------
 
-    # Build the domain for this processor
+
+    #------------------------------------------------------------------------
+    # Build the domain for this processor using partion structures
+    #------------------------------------------------------------------------
     domain = Parallel_Domain(points, vertices, boundary,
                              full_send_dict  = full_send_dict,
                              ghost_recv_dict = ghost_recv_dict)
 
     #------------------------------------------------------------------------
-    # Setup initial conditions
+    # Transfer initial conditions to each subdomain
     #------------------------------------------------------------------------
     for q in quantities:
-        domain.set_quantity(q, quantities[q]) # Distribute all quantities    
+        domain.set_quantity(q, quantities[q]) 
 
+
+    #------------------------------------------------------------------------
+    # Transfer other attributes to each subdomain
+    #------------------------------------------------------------------------
+
+    # FIXME Do them all
+    domain.set_name(domain_name)    
 
     #------------------------------------------------------------------------
     # Return parallel domain to all nodes
