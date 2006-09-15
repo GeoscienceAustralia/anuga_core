@@ -135,14 +135,21 @@ mesh_env.Append(CPPDEFINES=[('TRILIBRARY', 1), ('NO_TIMER', 1)])
 
 mesh_dir = os.path.join(anuga_root, 'mesh_engine')
 mesh_install_dir = os.path.join(install_root, 'mesh_engine')
-env.Install(mesh_install_dir, mesh_env.SharedLibrary(os.path.join(mesh_dir, 'triang'),
-                                            map(lambda s: os.path.join(mesh_dir, s), ['triangle.c', 'triang.c'])))
-env.Install(mesh_install_dir, mesh_env.SharedLibrary(os.path.join(mesh_dir, 'triangle'),
-                                            map(lambda s: os.path.join(mesh_dir, s), ['triangle.c'])))
+
+triang = mesh_env.SharedLibrary(os.path.join(mesh_dir, 'triang'), map(lambda s: os.path.join(mesh_dir, s), ['triangle.c', 'triang.c']))
+triangle = mesh_env.SharedLibrary(os.path.join(mesh_dir, 'triangle'), map(lambda s: os.path.join(mesh_dir, s), ['triangle.c']))
+env.Install(mesh_install_dir, triang)
+env.Install(mesh_install_dir, triangle)
+
+# Make phony .exp files if building with gcc, so the Install builder doesn't choke.
+if sys.platform == 'win32' and env['CC'] == 'gcc':
+    env.Command(os.path.join(mesh_dir, 'triang.exp'), triang, Touch(os.path.join(mesh_dir, 'triang.exp')))
+    env.Command(os.path.join(mesh_dir, 'triangle.exp'), triangle, Touch(os.path.join(mesh_dir, 'triangle.exp')))
 
 # Utilities
 util_dir = os.path.join(anuga_root, 'utilities')
 util_install_dir = os.path.join(install_root, 'utilities')
+
 env.Install(util_install_dir, env.SharedLibrary(os.path.join(util_dir, 'polygon_ext'),
                                                 map(lambda s: os.path.join(util_dir, s), ['polygon_ext.c'])))
 env.Install(util_install_dir, env.SharedLibrary(os.path.join(util_dir, 'util_ext'),
@@ -156,6 +163,7 @@ a2fv_env.Append(CPPPATH=[os.path.join('#', anuga_root, 'utilities')])
 
 a2fv_dir = os.path.join(anuga_root, 'abstract_2d_finite_volumes')
 a2fv_install_dir = os.path.join(install_root, 'abstract_2d_finite_volumes')
+
 env.Install(a2fv_install_dir, a2fv_env.SharedLibrary(os.path.join(a2fv_dir, 'quantity_ext'),
                                                      map(lambda s: os.path.join(a2fv_dir, s), ['quantity_ext.c'])))
 env.Install(a2fv_install_dir, a2fv_env.SharedLibrary(os.path.join(a2fv_dir, 'shallow_water_kinetic'),
@@ -167,5 +175,6 @@ sw_env.Append(CPPPATH=[os.path.join('#', anuga_root, 'utilities')])
 
 sw_dir = os.path.join(anuga_root, 'shallow_water')
 sw_install_dir = os.path.join(install_root, 'shallow_water')
+
 env.Install(sw_install_dir, sw_env.SharedLibrary(os.path.join(sw_dir, 'shallow_water_ext'),
                                                  map(lambda s: os.path.join(sw_dir, s), ['shallow_water_ext.c'])))
