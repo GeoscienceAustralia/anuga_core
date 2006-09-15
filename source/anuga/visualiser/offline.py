@@ -27,8 +27,7 @@ class OfflineVisualiser(Visualiser):
             self.vtk_heightQuantityCache.append({})
 
         self.paused = False
-        self.tk_root.after(100, self.animateForward)
-
+        
     def setup_grid(self):
         fin = NetCDFFile(self.source, 'r')
         self.vtk_cells = vtkCellArray()
@@ -38,7 +37,7 @@ class OfflineVisualiser(Visualiser):
             for i in range(3):
                 self.vtk_cells.InsertCellPoint(fin.variables['volumes'][v][i])
         fin.close()
-
+        
     def update_height_quantity(self, quantityName, dynamic=True):
         polydata = self.vtk_polyData[quantityName] = vtkPolyData()
         if dynamic is True:
@@ -116,6 +115,10 @@ class OfflineVisualiser(Visualiser):
         # Make the buttons stretch to fill all available space
         for i in range(6):
             self.tk_controlFrame.grid_columnconfigure(i, weight=1)
+
+    def run(self):
+        self.tk_root.after(100, self.animateForward)
+        Visualiser.run(self)
 
     def restart(self):
         self.frameNumber = 0
