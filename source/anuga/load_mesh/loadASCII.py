@@ -963,6 +963,7 @@ def export_boundary_file( file_name, points, title, delimiter = ','):
 #  IMPORT/EXPORT POINTS FILES
 ###
 
+#FIXME (DSG):  These should be obsolete.  Use geospatial objects.
 def export_points_file(ofile, point_dict):
     """
     write a points file, ofile, as a text (.xya) or binary (.pts) file
@@ -989,10 +990,6 @@ def import_points_file(ofile, delimiter = None, verbose = False):
     Note: will throw an IOError if it can't load the file.
     Catch these!
     """
-    
-
-    #FIXME (Ole): This function should really return a Geospatial_data object.      #FIXME (DSG): Do you know it does, in the points dic?
-    #No.  Where this function is used, geospatial objects should be used.
     
     if ofile[-4:]== ".xya":
         try:
