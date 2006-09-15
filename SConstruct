@@ -100,6 +100,9 @@ if env['CC'] == 'gcc':
 elif env['CC'] == 'cl':
     env.Append(CCFLAGS=['${MSVCFLAGS}'])
 
+# Suppress the "lib" prefix on built files
+env['SHLIBPREFIX'] = ""
+
 anuga_root = os.path.join('source', 'anuga')
 install_root = os.path.join(env['PREFIX'], 'anuga')
 
