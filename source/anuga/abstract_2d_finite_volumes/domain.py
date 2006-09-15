@@ -173,6 +173,9 @@ class Domain(Mesh):
         self.number_of_first_order_steps = 0
         self.CFL = CFL
 
+        self.boundary_map = None  # Will be populated by set_boundary        
+        
+
         #Model time
         self.time = 0.0
         self.finaltime = None

@@ -32,13 +32,29 @@ def distribute(domain, verbose=False):
     # the more complex mesh distribution - Oh Well!
     if myid == 0:
         domain_name = domain.get_name()
-        for p in range(1, numprocs):
-            print 'p', p            
-            pypar.send(domain_name, p)
-    else:
-        if verbose: print 'Receiving'
+        domain_dir = domain.get_datadir()
+        # FIXME - what other attributes need to be transferred?
 
-        domain_name = pypar.receive(0)
+        for p in range(1, numprocs):
+            pypar.send((domain_name, domain_dir), p)
+    else:
+        if verbose: print 'P%d: Receiving domain attributes' %(myid)
+
+        domain_name, domain_dir = pypar.receive(0)
+
+
+
+    # Distribute boundary conditions    
+    if myid == 0:
+        boundary_map = domain.boundary_map
+        for p in range(1, numprocs):
+            pypar.send(boundary_map, p)
+    else:
+        if verbose: print 'P%d: Receiving boundary map' %(myid)        
+
+        boundary_map = pypar.receive(0)
+        
+
 
 
     if myid == 0:
@@ -56,10 +72,10 @@ def distribute(domain, verbose=False):
     else:
         # Read in the mesh partition that belongs to this
         # processor
+        if verbose: print 'P%d: Receiving submeshes' %(myid)                
         points, vertices, boundary, quantities,\
                 ghost_recv_dict, full_send_dict,\
                 = rec_submesh(0)
-
 
 
     #------------------------------------------------------------------------
@@ -77,11 +93,17 @@ def distribute(domain, verbose=False):
 
 
     #------------------------------------------------------------------------
+    # Transfer boundary conditions to each subdomain
+    #------------------------------------------------------------------------
+    boundary_map['ghost'] = None  # Add binding to ghost boundary
+    domain.set_boundary(boundary_map)
+
+
+    #------------------------------------------------------------------------
     # Transfer other attributes to each subdomain
     #------------------------------------------------------------------------
-
-    # FIXME Do them all
-    domain.set_name(domain_name)    
+    domain.set_name(domain_name)
+    domain.set_datadir(domain_dir)        
 
     #------------------------------------------------------------------------
     # Return parallel domain to all nodes

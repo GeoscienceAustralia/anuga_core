@@ -6,7 +6,7 @@
 Water driven up a linear slope and time varying boundary,
 similar to a beach environment
 
-This is a very simple test of the parallel algorithm
+This is a very simple test of the parallel algorithm using the simplified parallel API
 """
 
 
@@ -22,7 +22,7 @@ from anuga.shallow_water import Dirichlet_boundary
 from anuga.shallow_water import Time_boundary
 from anuga.shallow_water import Transmissive_boundary
 
-from parallel_api import *
+from parallel_api import distribute, myid
 
 
 #--------------------------------------------------------------------------
@@ -31,6 +31,7 @@ from parallel_api import *
 points, vertices, boundary = rectangular_cross(10, 10) # Basic mesh
 domain = Domain(points, vertices, boundary) # Create domain
 domain.set_name('runup')                    # Set sww filename
+domain.set_datadir('.')                     # Set output dir
 
 
 #--------------------------------------------------------------------------
@@ -45,33 +46,21 @@ domain.set_quantity('friction', 0.1)         # Constant friction
 domain.set_quantity('stage', -.4)            # Constant initial stage
 
 
-#--------------------------------------------------------------------------
-# Create the parallel domain
-#--------------------------------------------------------------------------
-domain = distribute(domain, verbose=True)
-
-print 'P%d: name = %s' %(myid, domain.get_name())
-
-
-# TODO: Communicate all attributes of domain including boundary conditions
-
-# Name and dir, etc currently has to be set here as they are not
-# transferred from the original domain
-#domain.set_name('runup')                    # Set sww filename
-
-
-
-
 #------------------------------------------------------------------------------
-# Setup parallel boundary conditions
+# Setup boundary conditions
 #------------------------------------------------------------------------------
 
 Br = Reflective_boundary(domain)      # Solid reflective wall
 Bd = Dirichlet_boundary([-0.2,0.,0.]) # Constant boundary values
 
 # Associate boundary tags with boundary objects
-domain.set_boundary({'left': Br, 'right': Bd, 'top': Br, 'bottom': Br,
-                     'ghost': None})
+domain.set_boundary({'left': Br, 'right': Bd, 'top': Br, 'bottom': Br})
+
+
+#--------------------------------------------------------------------------
+# Create the parallel domain
+#--------------------------------------------------------------------------
+domain = distribute(domain, verbose=True)
 
 
 #------------------------------------------------------------------------------
@@ -79,7 +68,6 @@ domain.set_boundary({'left': Br, 'right': Bd, 'top': Br, 'bottom': Br,
 #------------------------------------------------------------------------------
 
 for t in domain.evolve(yieldstep = 0.1, finaltime = 10.0):
-    pass
-    #domain.write_time()
+    domain.write_time()
     
 
