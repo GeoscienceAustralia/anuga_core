@@ -1,4 +1,0 @@
-SConscript(['mesh_engine/SConscript'])
-SConscript(['utilities/SConscript'])
-SConscript(['abstract_2d_finite_volumes/SConscript'])
-#SConscript(['pymetis/SConscript'])

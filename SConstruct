@@ -100,13 +100,14 @@ if env['CC'] == 'gcc':
 elif env['CC'] == 'cl':
     env.Append(CCFLAGS=['${MSVCFLAGS}'])
 
-Export('env')
+anuga_root = os.path.join('source', 'anuga')
+install_root = os.path.join(env['PREFIX'], 'anuga')
 
 # Build .pyc and .pyo files of every .py in here and below.
 files = []
 #dirs = filter(os.path.isdir, os.listdir('.'))
 #Only build the source/anuga directory for now
-dirs = [os.path.join('source', 'anuga')]
+dirs = [anuga_root]
 while(dirs != []):
     dirs += filter(os.path.isdir, map(lambda x : os.path.join(dirs[0], x), os.listdir(dirs[0])))
     files += filter(lambda x : x[-3:] == '.py', map(lambda x : os.path.join(dirs[0], x), os.listdir(dirs[0])))
@@ -122,6 +123,46 @@ for x in files:
     if env['INSTALL_PYTHON_SOURCE']:
         env.Install(instdir, x)
 
+# Define the install target
 env.Alias('install', '${PREFIX}')
-    
-SConscript(['source/anuga/SConscript'])
+
+# Mesh_engine
+mesh_env = env.Copy()
+mesh_env.Append(CPPDEFINES=[('TRILIBRARY', 1), ('NO_TIMER', 1)])
+
+mesh_dir = os.path.join(anuga_root, 'mesh_engine')
+mesh_install_dir = os.path.join(install_root, 'mesh_engine')
+env.Install(mesh_install_dir, mesh_env.SharedLibrary(os.path.join(mesh_dir, 'triang'),
+                                            map(lambda s: os.path.join(mesh_dir, s), ['triangle.c', 'triang.c'])))
+env.Install(mesh_install_dir, mesh_env.SharedLibrary(os.path.join(mesh_dir, 'triangle'),
+                                            map(lambda s: os.path.join(mesh_dir, s), ['triangle.c'])))
+
+# Utilities
+util_dir = os.path.join(anuga_root, 'utilities')
+util_install_dir = os.path.join(install_root, 'utilities')
+env.Install(util_install_dir, env.SharedLibrary(os.path.join(util_dir, 'polygon_ext'),
+                                                map(lambda s: os.path.join(util_dir, s), ['polygon_ext.c'])))
+env.Install(util_install_dir, env.SharedLibrary(os.path.join(util_dir, 'util_ext'),
+                                                map(lambda s: os.path.join(util_dir, s), ['util_ext.c'])))
+env.Install(util_install_dir, env.SharedLibrary(os.path.join(util_dir, 'sparse_ext'),
+                                                map(lambda s: os.path.join(util_dir, s), ['sparse_ext.c'])))
+
+# Abstract_2d_finite_volumes
+a2fv_env = env.Copy()
+a2fv_env.Append(CPPPATH=[os.path.join('#', anuga_root, 'utilities')])
+
+a2fv_dir = os.path.join(anuga_root, 'abstract_2d_finite_volumes')
+a2fv_install_dir = os.path.join(install_root, 'abstract_2d_finite_volumes')
+env.Install(a2fv_install_dir, a2fv_env.SharedLibrary(os.path.join(a2fv_dir, 'quantity_ext'),
+                                                     map(lambda s: os.path.join(a2fv_dir, s), ['quantity_ext.c'])))
+env.Install(a2fv_install_dir, a2fv_env.SharedLibrary(os.path.join(a2fv_dir, 'shallow_water_kinetic'),
+                                                     map(lambda s: os.path.join(a2fv_dir, s), ['shallow_water_kinetic_ext.c'])))
+
+# Shallow_water
+sw_env = env.Copy()
+sw_env.Append(CPPPATH=[os.path.join('#', anuga_root, 'utilities')])
+
+sw_dir = os.path.join(anuga_root, 'shallow_water')
+sw_install_dir = os.path.join(install_root, 'shallow_water')
+env.Install(sw_install_dir, sw_env.SharedLibrary(os.path.join(sw_dir, 'shallow_water_ext'),
+                                                 map(lambda s: os.path.join(sw_dir, s), ['shallow_water_ext.c'])))
