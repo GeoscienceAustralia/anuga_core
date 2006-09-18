@@ -236,9 +236,9 @@ class Geo_reference:
         elif other.zone == DEFAULT_ZONE:
             other.zone = self.zone            
         else:    
-            msg = 'Both geospatial_data objects must be in the same \
-            ZONE to allow reconciliation. I got zone %d and %d'\
-            %(self.zone, other.zone)
+            msg = 'Both geospatial_data objects must be in the same '+\
+                  'ZONE to allow reconciliation. I got zone %d and %d'\
+                  %(self.zone, other.zone)
             raise ANUGAError, msg
     
     #def easting_northing2geo_reffed_point(self, x, y):

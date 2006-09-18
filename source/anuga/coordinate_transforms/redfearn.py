@@ -162,20 +162,55 @@ def redfearn(lat, lon, false_easting=None, false_northing=None):
     return zone, easting, northing
 
 
-# FIXME (Ole) 
-def convert_points_from_latlon_to_utm(latitudes, longitudes,
+
+def convert_points_from_latlon_to_utm(points,
                                       false_easting=None,
                                       false_northing=None):
-    """Wrapper
+    """Convert a list of points given in latitude and longitude to UTM
+
+
+    Input
+
+    points: list of points given in decimal degrees (latitude, longitude)
+    false_easting (optional)
+    false_northing (optional)
+
+    Output
+
+    zone:   UTM zone for converted points
+    points: List of converted points
+
+
+    Notes
+
+    Assume the false_easting and false_northing are the same for each list.
+    If points end up belonging to different UTM zones, an ANUGAerror is thrown.
+
+    
+    
     """
-    
-    return convert_lats_longs(latitudes,
-                              longitudes,
-                              false_easting,
-                              false_northing)
+
+    old_geo = Geo_reference()    
+    utm_points = []
+    for point in points:
+        zone, easting, northing = redfearn(float(point[0]),
+                                           float(point[1]),
+                                           false_easting=false_easting,
+                                           false_northing=false_northing)
+
+        new_geo = Geo_reference(zone)
+        old_geo.reconcile_zones(new_geo)
+        
+        utm_points.append([easting, northing])
+
+
+    return old_geo.get_zone(), utm_points
+
 
     
 
+
+# FIXME (Ole): Is this not supersedede by the above?
 def convert_lats_longs(latitudes,
                        longitudes,
                        false_easting=None,

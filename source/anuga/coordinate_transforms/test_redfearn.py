@@ -163,6 +163,7 @@ class TestCase(unittest.TestCase):
         assert allclose(points[1][1], 6233785.284)
         self.failUnless(zone == 56,
                         'Bad zone error!')
+        
     def test_convert_lats_longs2(self):
 
         #Site Name:    GDA-MGA: (UTM with GRS80 ellipsoid) 
@@ -179,13 +180,14 @@ class TestCase(unittest.TestCase):
         
         lats = [lat_gong, lat_2]
         longs = [lon_gong, lon_2]
+        
         try:
             zone, points = convert_lats_longs(lats, longs)
         except ANUGAError:
             pass
         else:
-            self.failUnless(0 ==1,
-                        'Error not thrown error!')
+            self.failUnless(False,
+                            'Error not thrown error!')
             
     def test_convert_lats_longs3(self):
 
@@ -207,8 +209,80 @@ class TestCase(unittest.TestCase):
         except ANUGAError:
             pass
         else:
-            self.failUnless(0 ==1,
-                        'Error not thrown error!')
+            self.failUnless(False,
+                            'Error not thrown error!')
+
+    # Similar test for alternative interface        
+    def test_convert_latlon_to_UTM1(self):
+
+        #Site Name:    GDA-MGA: (UTM with GRS80 ellipsoid) 
+        #Zone:   56    
+        #Easting:  222908.705  Northing: 6233785.284 
+        #Latitude:   -34  0 ' 0.00000 ''  Longitude: 150  0 ' 0.00000 '' 
+        #Grid Convergence:  -1  40 ' 43.13 ''  Point Scale: 1.00054660 
+
+        lat_gong = degminsec2decimal_degrees(-34,30,0.)
+        lon_gong = degminsec2decimal_degrees(150,55,0.)
+        
+        lat_2 = degminsec2decimal_degrees(-34,00,0.)
+        lon_2 = degminsec2decimal_degrees(150,00,0.)
+        
+        points = [[lat_gong, lon_gong], [lat_2, lon_2]]
+        zone, points = convert_points_from_latlon_to_utm(points)
+
+        assert allclose(points[0][0], 308728.009)
+        assert allclose(points[0][1], 6180432.601)
+        assert allclose(points[1][0],  222908.705)
+        assert allclose(points[1][1], 6233785.284)
+        self.failUnless(zone == 56,
+                        'Bad zone error!')
+
+    def test_convert_latlon_to_UTM2(self):       
+
+        #Site Name:    GDA-MGA: (UTM with GRS80 ellipsoid) 
+        #Zone:   56    
+        #Easting:  222908.705  Northing: 6233785.284 
+        #Latitude:   -34  0 ' 0.00000 ''  Longitude: 150  0 ' 0.00000 '' 
+        #Grid Convergence:  -1  40 ' 43.13 ''  Point Scale: 1.00054660
+
+        lat_gong = degminsec2decimal_degrees(-34,30,0.)
+        lon_gong = degminsec2decimal_degrees(150,55,0.)
+        
+        lat_2 = degminsec2decimal_degrees(34,00,0.)
+        lon_2 = degminsec2decimal_degrees(100,00,0.)
+
+        points = [[lat_gong, lon_gong], [lat_2, lon_2]]
+
+        try:
+            zone, points = convert_points_from_latlon_to_utm(points)            
+        except ANUGAError:
+            pass
+        else:
+            self.fail('Error not thrown error!')
+
+    def test_convert_latlon_to_UTM3(self):            
+
+        #Site Name:    GDA-MGA: (UTM with GRS80 ellipsoid) 
+        #Zone:   56    
+        #Easting:  222908.705  Northing: 6233785.284 
+        #Latitude:   -34  0 ' 0.00000 ''  Longitude: 150  0 ' 0.00000 '' 
+        #Grid Convergence:  -1  40 ' 43.13 ''  Point Scale: 1.00054660 
+
+        lat_gong = "-34.5"
+        lon_gong = "150.916666667"
+        lat_2 = degminsec2decimal_degrees(34,00,0.)
+        lon_2 = degminsec2decimal_degrees(100,00,0.)
+
+        points = [[lat_gong, lon_gong], [lat_2, lon_2]]
+
+        try:
+            zone, points = convert_points_from_latlon_to_utm(points)                        
+        except ANUGAError:
+            pass
+        else:
+            self.fail('Error not thrown error!')
+
+            
 #-------------------------------------------------------------
 if __name__ == "__main__":
 
