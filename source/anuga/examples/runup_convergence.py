@@ -28,19 +28,19 @@ from pylab import plot, xlabel, ylabel, title, ion, close, savefig, figure, axis
 #------------------------------------------------------------------------------
 # Model constants
 
-slope = -0.05       # 1:20 Slope
+slope = -0.02       # 1:50 Slope, reaches h=20m 1000m from western bndry, and h=0 (coast) at 300m
 highest_point = 6   # Highest elevation (m)
 sea_level = 0       # Mean sea level
 min_elevation = -20 # Lowest elevation (elevation of offshore flat part)
 offshore_depth=sea_level-min_elevation # offshore water depth
-amplitude = 2       # Solitary wave height H
+amplitude = 0.5       # Solitary wave height H
 normalized_amplitude = amplitude/offshore_depth 
 simulation_name = 'runup_convergence'   
 
 
 # Basin dimensions (m)
 west = 0          # left boundary
-east = 500        # right boundary 
+east = 1500        # right boundary 
 south = 0         # lower boundary
 north = 100       # upper bourdary
 
@@ -50,8 +50,8 @@ north = 100       # upper bourdary
 #------------------------------------------------------------------------------
 
 # Structured mesh
-dx = 10           # Resolution: Lenght of subdivisions on x axis (length)
-dy = 10           # Resolution: Lenght of subdivisions on y axis (width)
+dx = 20           # Resolution: Lenght of subdivisions on x axis (length)
+dy = 20           # Resolution: Lenght of subdivisions on y axis (width)
 
 length = east-west
 width = north-south
@@ -64,7 +64,7 @@ domain = Domain(points, vertices, boundary) # Create domain
 
 # Unstructured mesh
 polygon = [[east,north],[west,north],[west,south],[east,south]]
-interior_polygon = [[200,north-10],[west+10,north-10],[west+10,south+10],[200,south+10]]
+interior_polygon = [[400,north-10],[west+10,north-10],[west+10,south+10],[400,south+10]]
 meshname = simulation_name + '.msh'
 create_mesh_from_regions(polygon,
                          boundary_tags={'top': [0], 'left': [1], 'bottom': [2], 'right': [3]},
@@ -118,7 +118,7 @@ Br = Reflective_boundary(domain)      # Solid reflective wall
 Bd = Dirichlet_boundary([0.,0.,0.])   # Constant boundary values
 
 def waveform(t): 
-    return sea_level + normalized_amplitude/cosh(t-25)**2
+    return sea_level + amplitude/cosh(((t-50)/offshore_depth)*(0.75*9.81*amplitude)**0.5)**2
 
 Bw = Time_boundary(domain=domain,     # Time dependent boundary  
                    f=lambda t: [waveform(t), 0.0, 0.0])
@@ -136,7 +136,7 @@ domain.set_boundary({'left': Br, 'right': Bts, 'top': Br, 'bottom': Br})
 #------------------------------------------------------------------------------
 
 stagestep = []
-for t in domain.evolve(yieldstep = 1, finaltime = 100):
+for t in domain.evolve(yieldstep = 1, finaltime = 300):
     domain.write_time()
 
 
@@ -148,7 +148,7 @@ for t in domain.evolve(yieldstep = 1, finaltime = 100):
 # Define line of gauges through center of domain
 def gauge_line(west,east,north,south):
     from Numeric import arange
-    x_vector = arange(west, (east-west)/2, 10) # Gauges every 10 meter from west to midpt
+    x_vector = arange(west,600, 1) # Gauges every 1 meter from west to 600m from western bdry
     y = (north+south)/2.
 
     gauges = []
