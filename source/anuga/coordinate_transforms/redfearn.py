@@ -161,6 +161,21 @@ def redfearn(lat, lon, false_easting=None, false_northing=None):
     
     return zone, easting, northing
 
+
+# FIXME (Ole) 
+def convert_points_from_latlon_to_utm(latitudes, longitudes,
+                                      false_easting=None,
+                                      false_northing=None):
+    """Wrapper
+    """
+    
+    return convert_lats_longs(latitudes,
+                              longitudes,
+                              false_easting,
+                              false_northing)
+
+    
+
 def convert_lats_longs(latitudes,
                        longitudes,
                        false_easting=None,
