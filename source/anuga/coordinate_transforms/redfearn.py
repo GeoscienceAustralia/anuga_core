@@ -177,8 +177,8 @@ def convert_points_from_latlon_to_utm(points,
 
     Output
 
-    zone:   UTM zone for converted points
     points: List of converted points
+    zone:   Common UTM zone for converted points
 
 
     Notes
@@ -204,7 +204,7 @@ def convert_points_from_latlon_to_utm(points,
         utm_points.append([easting, northing])
 
 
-    return old_geo.get_zone(), utm_points
+    return utm_points, old_geo.get_zone()
 
 
     

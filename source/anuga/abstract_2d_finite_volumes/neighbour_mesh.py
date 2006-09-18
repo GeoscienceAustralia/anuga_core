@@ -725,10 +725,10 @@ class Mesh(General_mesh):
         str =  '------------------------------------------------\n'
         str += 'Mesh statistics:\n'
         str += '  Number of triangles = %d\n' %self.number_of_elements
-        str += '  Extent:\n'
+        str += '  Extent [m]:\n'
         str += '    x in [%f, %f]\n' %(min(x), max(x))
         str += '    y in [%f, %f]\n' %(min(y), max(y))
-        str += '  Areas:\n'
+        str += '  Areas [m^2]:\n'
         str += '    A in [%f, %f]\n' %(min(areas), max(areas))
         str += '    number of distinct areas: %d\n' %(len(areas))        
         str += '    Histogram:\n'
@@ -763,9 +763,9 @@ class Mesh(General_mesh):
                    %(N-k, lower, max(areas))                    
                 
                       
-        str += 'Boundary:\n'
-        str += '  Number of boundary segments == %d\n' %(len(self.boundary))
-        str += '  Boundary tags == %s\n' %self.get_boundary_tags()  
+        str += '  Boundary:\n'
+        str += '    Number of boundary segments == %d\n' %(len(self.boundary))
+        str += '    Boundary tags == %s\n' %self.get_boundary_tags()  
         str += '------------------------------------------------\n'
         
 

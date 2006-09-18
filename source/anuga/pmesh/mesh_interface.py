@@ -64,6 +64,7 @@ def create_mesh_from_regions(bounding_polygon,
     #FIXME (OLE-DSG)
     # check the segment indexes - throw an error if they are out of bounds
     #(DSG) Yes!
+
     
     #In addition I reckon the polygons could be of class Geospatial_data 
     #(DSG) Yes!
@@ -72,6 +73,15 @@ def create_mesh_from_regions(bounding_polygon,
     # polygon
     #Note, Both poly's have the same geo_ref, therefore don't take into account
     # geo_ref
+
+    # Simple check
+    bounding_polygon = ensure_numeric(bounding_polygon, Float)
+    msg = 'Bounding polygon must be a list of points or an Nx2 array'
+    assert len(bounding_polygon.shape) == 2, msg
+    assert bounding_polygon.shape[1] == 2, msg    
+
+
+    # 
     if interior_regions is not None:        
         # Test that all the interior polygons are inside the bounding_poly
         for interior_polygon, res in interior_regions:
@@ -87,7 +97,6 @@ def create_mesh_from_regions(bounding_polygon,
 
     # Resolve geo referencing        
     if mesh_geo_reference is None:
-        bounding_polygon = ensure_numeric(bounding_polygon, Float)
         xllcorner = min(bounding_polygon[:,0])
         yllcorner = min(bounding_polygon[:,1])    
         #
