@@ -105,7 +105,7 @@ class OfflineVisualiser(Visualiser):
         self.tk_back10.grid(row=1, column=1, sticky=W+E)
         self.tk_back = Button(self.tk_controlFrame, text="<", command=self.back)
         self.tk_back.grid(row=1, column=2, sticky=W+E)
-        self.tk_pauseResume = Button(self.tk_controlFrame, text="Pause", command=self.pauseResume)
+        self.tk_pauseResume = Button(self.tk_controlFrame, text="Pause", command=self.pauseResume, width=15)
         self.tk_pauseResume.grid(row=1, column=3, sticky=W+E)
         self.tk_forward = Button(self.tk_controlFrame, text=">", command=self.forward)
         self.tk_forward.grid(row=1, column=4, sticky=W+E)
@@ -123,6 +123,7 @@ class OfflineVisualiser(Visualiser):
     def restart(self):
         self.frameNumber = 0
         self.redraw_quantities(True)
+        self.pause()
 
     def back10(self):
         if self.frameNumber - 10 >= 0:
@@ -130,25 +131,39 @@ class OfflineVisualiser(Visualiser):
         else:
             self.frameNumber = 0
         self.redraw_quantities(True)
+        self.pause()
 
     def back(self):
         if self.frameNumber > 0:
             self.frameNumber -= 1
             self.redraw_quantities(True)
+            self.pause()
 
     def pauseResume(self):
         if self.paused is True:
-            self.tk_pauseResume.config(text="Pause")
-            self.paused = False
-            self.tk_root.after(100, self.animateForward)
+            self.resume()
         else:
-            self.tk_pauseResume.config(text="Resume")
-            self.paused = True
+            self.pause()
+
+    def pause(self):
+        self.paused = True
+        self.tk_pauseResume.config(text="Resume")
+
+    def resume(self):
+        self.paused = False
+        self.tk_pauseResume.config(text="Pause")
+        self.tk_root.after(100, self.animateForward)
 
     def forward(self):
+        self.forward_step()
+        self.pause()
+
+    def forward_step(self):
         if self.frameNumber < self.maxFrameNumber:
             self.frameNumber += 1
             self.redraw_quantities(True)
+        else:
+            self.pause()
 
     def forward10(self):
         if self.frameNumber + 10 <= self.maxFrameNumber:
@@ -156,8 +171,9 @@ class OfflineVisualiser(Visualiser):
         else:
             self.frameNumber = self.maxFrameNumber
         self.redraw_quantities(True)
+        self.pause()
 
     def animateForward(self):
         if self.paused is not True:
-            self.forward()
+            self.forward_step()
             self.tk_root.after(100, self.animateForward)
