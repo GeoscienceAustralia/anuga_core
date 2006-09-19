@@ -1,2 +1,3 @@
-from vtk_realtime_visualiser import *
-
+from realtime import RealtimeVisualiser
+from offline import OfflineVisualiser
+from visualiser import Visualiser

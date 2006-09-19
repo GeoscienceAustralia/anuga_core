@@ -1,0 +1,34 @@
+##########
+# Demonstration of the VTK sww Visualiser
+# Jack Kelly
+# September 2006
+##########
+
+# Import the offline visualiser
+from anuga.visualiser import OfflineVisualiser
+
+# The argument to OfflineVisualiser is the path to a sww file
+o = OfflineVisualiser("../../swollen_viewer/tests/cylinders.sww")
+
+# Specify the height-based-quantities to render.
+# Remember to set dynamic=True for time-varying quantities
+o.render_quantity_height("elevation", dynamic=False)
+o.render_quantity_height("stage", dynamic=True)
+
+# Colour the stage:
+# Either with an RGB value as a 3-tuple of Floats,
+#o.colour_height_quantity('stage', (0.0, 0.0, 0.8))
+# Or with a function of the quantities at that point, such as the stage height:
+# 0 and 10 are the minimum and maximum values of the stage.
+o.colour_height_quantity('stage', (lambda q:q['stage'], 0, 10))
+# Or with the magnitude of the momentum at that point:
+# Needs the sqrt function from Numeric. Again, 0 and 10 define the colour range.
+#o.colour_height_quantity('stage', (lambda q:sqrt((q['xmomentum'] ** 2) +
+#                                                 (q['ymomentum'] ** 2)), 0, 10))
+
+# Precaching the height-based quantities reduces the time taken to draw each
+# frame, but increases the time taken when the visualiser starts.
+o.precache_height_quantities()
+
+# Start the visualiser (in its own thread).
+o.run()
