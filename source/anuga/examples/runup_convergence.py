@@ -15,6 +15,7 @@ import sys
 
 from anuga.pmesh.mesh_interface import create_mesh_from_regions
 from abstract_2d_finite_volumes.mesh_factory import rectangular_cross
+from anuga.config import g
 from anuga.shallow_water import Domain
 from anuga.shallow_water import Reflective_boundary
 from anuga.shallow_water import Dirichlet_boundary
@@ -40,9 +41,9 @@ simulation_name = 'runup_convergence'
 
 # Basin dimensions (m)
 west = 0          # left boundary
-east = 1500        # right boundary 
+east = 1500       # right boundary 
 south = 0         # lower boundary
-north = 100       # upper bourdary
+north = 100       # upper boundary
 
 
 #------------------------------------------------------------------------------
@@ -50,8 +51,8 @@ north = 100       # upper bourdary
 #------------------------------------------------------------------------------
 
 # Structured mesh
-dx = 20           # Resolution: Lenght of subdivisions on x axis (length)
-dy = 20           # Resolution: Lenght of subdivisions on y axis (width)
+dx = 20           # Resolution: Length of subdivisions on x axis (length)
+dy = 20           # Resolution: Length of subdivisions on y axis (width)
 
 length = east-west
 width = north-south
@@ -117,8 +118,9 @@ from math import sin, pi, cosh, sqrt
 Br = Reflective_boundary(domain)      # Solid reflective wall
 Bd = Dirichlet_boundary([0.,0.,0.])   # Constant boundary values
 
+
 def waveform(t): 
-    return sea_level + amplitude/cosh(((t-50)/offshore_depth)*(0.75*9.81*amplitude)**0.5)**2
+    return sea_level + amplitude/cosh(((t-50)/offshore_depth)*(0.75*g*amplitude)**0.5)**2
 
 Bw = Time_boundary(domain=domain,     # Time dependent boundary  
                    f=lambda t: [waveform(t), 0.0, 0.0])
@@ -139,6 +141,14 @@ stagestep = []
 for t in domain.evolve(yieldstep = 1, finaltime = 300):
     domain.write_time()
 
+    # Let's find the maximum runup here working directly with the quantities,
+    # and stop when it has been detected.
+
+    # 1 Find coastline as x where z==0
+    # 2 Workout travel time to coastline
+    # 3 Find min x where h>0 over all t.
+    # 4 Perhaps do this across a number of ys
+    
 
 #-----------------------------------------------------------------------------
 # Interrogate solution
@@ -148,7 +158,7 @@ for t in domain.evolve(yieldstep = 1, finaltime = 300):
 # Define line of gauges through center of domain
 def gauge_line(west,east,north,south):
     from Numeric import arange
-    x_vector = arange(west,600, 1) # Gauges every 1 meter from west to 600m from western bdry
+    x_vector = arange(west,600, 10) # Gauges every 1 meter from west to 600m from western bdry
     y = (north+south)/2.
 
     gauges = []
@@ -203,6 +213,10 @@ print 'run up distance from coastline [m]: ', runup_distance
 print 'Coastline (meters form west):       ', coastline
 
 
+
+
+# Stop here
+import sys; sys.exit() 
 
 # Take snapshots and plot
 ion()
