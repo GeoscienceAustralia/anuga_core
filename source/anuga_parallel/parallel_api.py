@@ -44,7 +44,9 @@ def distribute(domain, verbose=False):
 
 
 
-    # Distribute boundary conditions    
+    # Distribute boundary conditions
+    # FIXME: This cannot handle e.g. Time_boundaries due to
+    # difficulties pickling functions
     if myid == 0:
         boundary_map = domain.boundary_map
         for p in range(1, numprocs):

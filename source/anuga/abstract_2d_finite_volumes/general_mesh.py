@@ -80,10 +80,14 @@ class General_mesh:
             self.geo_reference = geo_reference
 
         #Input checks
-        msg = 'Triangles must an Nx3 Numeric array or a sequence of 3-tuples'
+        msg = 'Triangles must an Nx3 Numeric array or a sequence of 3-tuples. '
+        msg += 'The supplied array has the shape: %s'\
+               %str(self.triangles.shape)
         assert len(self.triangles.shape) == 2, msg
 
         msg = 'Coordinates must an Mx2 Numeric array or a sequence of 2-tuples'
+        msg += 'The supplied array has the shape: %s'\
+               %str(self.coordinates.shape)
         assert len(self.coordinates.shape) == 2, msg
 
         msg = 'Vertex indices reference non-existing coordinate sets'

@@ -157,6 +157,7 @@ def create_mesh_from_regions(bounding_polygon,
     if filename is None:
         return m
     else:
+        if verbose: print 'Generating mesh to file "%s"' %filename
         m.generate_mesh(minimum_triangle_angle=minimum_triangle_angle,
                              verbose=verbose)
         m.export_mesh_file(filename)
