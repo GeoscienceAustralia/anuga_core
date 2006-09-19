@@ -50,7 +50,8 @@ class Visualiser(Thread):
     def setup_grid(self):
         """Create the vtkCellArray instance that represents the
         triangles. Subclasses are expected to override this function
-        to read from their source as appropriate.
+        to read from their source as appropriate. The vtkCellArray should
+        be stored to self.vtk_cells.
         """
         pass
 
@@ -68,7 +69,7 @@ class Visualiser(Thread):
 
     def update_height_quantity(self, quantityName, dynamic=True):
         """Create a vtkPolyData object and store it in
-        self.vtk_polyData[q]. Subclasses are expected to override this
+        self.vtk_polyData[quantityName]. Subclasses are expected to override this
         function.
         """
         pass
@@ -114,7 +115,7 @@ class Visualiser(Thread):
     # --- Colour Coding --- #
 
     def build_quantity_dict(self):
-        """Build a dictionary mapping quantity name->Numeric array of vertex
+        """Build and return a dictionary mapping quantity name->Numeric array of vertex
         values for that quantity. Subclasses are expected to override
         this function."""
         pass
