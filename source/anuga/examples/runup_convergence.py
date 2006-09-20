@@ -37,7 +37,7 @@ offshore_depth=sea_level-min_elevation # offshore water depth
 amplitude = 0.5       # Solitary wave height H
 normalized_amplitude = amplitude/offshore_depth 
 simulation_name = 'runup_convergence'   
-
+coastline_x = -highest_point/slope
 
 # Basin dimensions (m)
 west = 0          # left boundary
@@ -154,7 +154,7 @@ for t in domain.evolve(yieldstep = 1, finaltime = 300):
 # Interrogate solution
 #-----------------------------------------------------------------------------
 
-
+'''
 # Define line of gauges through center of domain
 def gauge_line(west,east,north,south):
     from Numeric import arange
@@ -212,8 +212,27 @@ print 'run up distance from coastline [m]: ', runup_distance
 
 print 'Coastline (meters form west):       ', coastline
 
-
-
+'''
+# Generate time series of "gauge" situated at right hand boundary
+from anuga.abstract_2d_finite_volumes.util import sww2timeseries
+production_dirs = {'.': 'test'}
+swwfiles = {}
+for label_id in production_dirs.keys():
+    
+    swwfile = simulation_name + '.sww'
+    swwfiles[swwfile] = label_id
+    
+texname, elev_output = sww2timeseries(swwfiles,
+                                      'boundary_gauge.xya',
+                                      production_dirs,
+                                      report = False,
+                                      reportname = 'test',
+                                      plot_quantity = ['stage', 'speed'],
+                                      surface = False,
+                                      time_min = None,
+                                      time_max = None,
+                                      title_on = True,
+                                      verbose = True)
 
 # Stop here
 import sys; sys.exit() 
