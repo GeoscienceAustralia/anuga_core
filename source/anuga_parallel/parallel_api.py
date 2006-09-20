@@ -4,7 +4,9 @@
 """
 
 # Parallelism
-import pypar   # The Python-MPI interface
+# The Python-MPI interface
+from pypar import size, rank, get_processor_name, finalize, send, receive
+from anuga_parallel.parallel_abstraction import size, rank, get_processor_name, finalize #,send, receive
 from anuga_parallel.pmesh_divide  import pmesh_divide_metis
 from anuga_parallel.build_submesh import build_submesh
 from anuga_parallel.build_local   import build_local_mesh
@@ -16,9 +18,9 @@ from anuga_parallel.parallel_shallow_water import Parallel_Domain
 # Read in processor information
 #------------------------------------------------------------------------------
 
-numprocs = pypar.size()
-myid = pypar.rank()
-processor_name = pypar.Get_processor_name()
+numprocs = size()
+myid = rank()
+processor_name = get_processor_name()
 print 'I am processor %d of %d on node %s' %(myid, numprocs, processor_name)
 
 
@@ -36,11 +38,11 @@ def distribute(domain, verbose=False):
         # FIXME - what other attributes need to be transferred?
 
         for p in range(1, numprocs):
-            pypar.send((domain_name, domain_dir), p)
+            send((domain_name, domain_dir), p)
     else:
         if verbose: print 'P%d: Receiving domain attributes' %(myid)
 
-        domain_name, domain_dir = pypar.receive(0)
+        domain_name, domain_dir = receive(0)
 
 
 
@@ -50,11 +52,11 @@ def distribute(domain, verbose=False):
     if myid == 0:
         boundary_map = domain.boundary_map
         for p in range(1, numprocs):
-            pypar.send(boundary_map, p)
+            send(boundary_map, p)
     else:
         if verbose: print 'P%d: Receiving boundary map' %(myid)        
 
-        boundary_map = pypar.receive(0)
+        boundary_map = receive(0)
         
 
 
