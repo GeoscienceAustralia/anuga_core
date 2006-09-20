@@ -39,7 +39,8 @@ sound_speed = 500
 max_smallsteps = 50  #Max number of degenerate steps allowed b4 trying first order
 
 manning = 0.3  #Manning's friction coefficient
-g = 9.81       #Gravity
+#g = 9.80665       #Gravity
+g = 9.8
 #g(phi) = 9780313 * (1 + 0.0053024 sin(phi)**2 - 0.000 0059 sin(2*phi)**2) micro m/s**2, where phi is the latitude
 #The 'official' average is 9.80665
 

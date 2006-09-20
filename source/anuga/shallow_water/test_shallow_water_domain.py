@@ -10,7 +10,6 @@ from anuga.utilities.numerical_tools import mean
 from shallow_water_domain import *
 
 
-
 #Variable windfield implemented using functions
 def speed(t,x,y):
     """Large speeds halfway between center and edges
@@ -2882,6 +2881,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
 	assert allclose(domain.quantities['stage'].centroid_values[:4],
 			[0.00206836, 0.01296714, 0.00363415, 0.01438924])
+        #print domain.quantities['xmomentum'].centroid_values[:4]
 	assert allclose(domain.quantities['xmomentum'].centroid_values[:4],
 			[0.01360154, 0.00671133, 0.01264578, 0.00648503])
 	assert allclose(domain.quantities['ymomentum'].centroid_values[:4],
