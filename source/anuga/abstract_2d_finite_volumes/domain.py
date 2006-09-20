@@ -354,6 +354,22 @@ class Domain(Mesh):
 
 
 
+    def modify_boundary(self, boundary_map):
+        """Modify existing boundary by elements in boundary map
+
+        Input:
+
+        boundary_map: Dictionary mapping tags to boundary objects
+
+        See set_boundary for more details on how this works
+        """
+
+        for key in boundary_map.keys():
+            self.boundary_map[key] = boundary_map[key]
+
+        self.set_boundary(self.boundary_map)
+        
+        
 
     def set_boundary(self, boundary_map):
         """Associate boundary objects with tagged boundary segments.
