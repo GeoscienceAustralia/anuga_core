@@ -6,7 +6,7 @@
 # Parallelism
 # The Python-MPI interface
 from pypar import size, rank, get_processor_name, finalize, send, receive
-from anuga_parallel.parallel_abstraction import size, rank, get_processor_name, finalize #,send, receive
+#from anuga_parallel.parallel_abstraction import size, rank, get_processor_name, finalize #,send, receive
 from anuga_parallel.pmesh_divide  import pmesh_divide_metis
 from anuga_parallel.build_submesh import build_submesh
 from anuga_parallel.build_local   import build_local_mesh
@@ -122,7 +122,7 @@ def distribute(domain, verbose=False):
 
 def distribute_mesh(domain):
 
-    numprocs = pypar.size()
+    numprocs = size()
 
     
     # Subdivide the mesh
