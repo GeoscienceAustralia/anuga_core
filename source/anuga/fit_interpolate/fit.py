@@ -258,10 +258,11 @@ class Fit(FitInterpolate):
 
         
         n = len(self.inside_poly_indices)
+        if verbose: print 'Building fitting matrix from %d points' %n        
         #Compute matrix elements for points inside the mesh
-        for i in self.inside_poly_indices:
+        for k, i in enumerate(self.inside_poly_indices):
             #For each data_coordinate point
-            if verbose and i%((n+10)/10)==0: print 'Doing %d of %d' %(i, n)
+            if verbose and k%((n+10)/10)==0: print 'Doing %d of %d' %(k, n)
             x = point_coordinates[i]
             element_found, sigma0, sigma1, sigma2, k = \
                            search_tree_of_vertices(self.root, self.mesh, x)

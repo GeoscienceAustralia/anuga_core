@@ -299,6 +299,7 @@ def separate_points_by_polygon(points, polygon,
     inside_index = 0    #Keep track of points inside
     outside_index = M-1 #Keep track of points outside (starting from end)
 
+    if verbose: print 'Separating %d points' %M        
     for k in range(M):
 
         if verbose:
@@ -373,7 +374,7 @@ def separate_points_by_polygon_c(points, polygon,
         msg = 'Polygon could not be converted to Numeric array'
 	raise msg
 
-    if verbose: print 'check'
+    #if verbose: print 'check'
 
     assert len(polygon.shape) == 2,\
        'Polygon array must be a 2d array of vertices'
@@ -396,11 +397,13 @@ def separate_points_by_polygon_c(points, polygon,
 
     indices = zeros( M, Int )
 
-    if verbose: print 'Calling C-version of inside poly'
+    #if verbose: print 'Calling C-version of inside poly'
 
     count = separate_points_by_polygon(points, polygon, indices,
                                        int(closed), int(verbose))
 
+    if verbose: print 'Found %d points (out of %d) inside polygon'\
+       %(count, M)
     return indices, count
 
 

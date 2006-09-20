@@ -88,6 +88,9 @@ int _separate_points_by_polygon(int M,     // Number of points
   //Begin main loop (for each point)
   inside_index = 0;    //Keep track of points inside
   outside_index = M-1; //Keep track of points outside (starting from end)   
+  if (verbose){
+     printf("Separating %d points\n", M);
+  }  
   for (k=0; k<M; k++) {
     if (verbose){
       if (k %((M+10)/10)==0) printf("Doing %d of %d\n", k, M);
