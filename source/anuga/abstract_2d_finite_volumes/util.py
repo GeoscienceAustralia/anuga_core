@@ -831,6 +831,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
             fid = open(texfilename, 'w')
     else:
         texfile = ''
+        texfile2 = ''
 
     p = len(f_list)
     n = []
@@ -1057,7 +1058,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                         savefig(graphname_latex)
                 
                 if title_on == True:
-                    title('%s scenario: %s at %s gauge' %(label_id, which_quantity, gaugeloc))
+                    title('%s scenario: %s at %s gauge' %(label_id, which_quantity, gaugeloc2))
 
                 savefig(graphname) # save figures with sww file
 
