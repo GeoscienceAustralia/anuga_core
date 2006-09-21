@@ -84,7 +84,7 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
      import Transmissive_boundary
 
 from anuga.utilities.numerical_tools import gradient, mean
-from anuga.config import minimum_sww_depth
+from anuga.config import minimum_storable_height
 
 
 #Shallow water domain
@@ -147,7 +147,7 @@ class Domain(Generic_Domain):
         self.store = True
         self.format = 'sww'
         self.set_store_vertices_uniquely(False)
-        self.minimum_sww_depth = minimum_sww_depth
+        self.minimum_storable_height = minimum_storable_height
         self.quantities_to_be_stored = ['stage','xmomentum','ymomentum']
 
 
@@ -164,7 +164,7 @@ class Domain(Generic_Domain):
             #self.reduction = min  #Looks better near steep slopes
 
 
-    def set_minimum_sww_depth(self, minimum_sww_depth):
+    def set_minimum_storable_height(self, minimum_storable_height):
         """
         Set the minimum depth that will be recognised when writing
         to an sww file. This is useful for removing thin water layers
@@ -172,7 +172,7 @@ class Domain(Generic_Domain):
 
         The minimum allowed sww depth is in meters.
         """
-        self.minimum_sww_depth = minimum_sww_depth
+        self.minimum_storable_height = minimum_storable_height
 
 
 

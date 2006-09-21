@@ -66,7 +66,7 @@ from Numeric import concatenate, array, Float, Int, Int32, resize, sometrue, \
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.geospatial_data.geospatial_data import Geospatial_data
-from anuga.config import minimum_sww_depth
+from anuga.config import minimum_storable_height as default_minimum_storable_height
 
 def make_filename(s):
     """Transform argument string into a suitable filename
@@ -251,10 +251,10 @@ class Data_format_sww(Data_format):
 
         Data_format.__init__(self, domain, 'sww', mode)
 
-        if hasattr(domain, 'minimum_sww_depth'):
-            self.minimum_sww_depth =  domain.minimum_sww_depth
+        if hasattr(domain, 'minimum_storable_height'):
+            self.minimum_storable_height =  domain.minimum_storable_height
         else:
-            self.minimum_sww_depth = minimum_sww_depth
+            self.minimum_storable_height = default_minimum_storable_height
 
         # NetCDF file definition
         fid = NetCDFFile(self.filename, mode)
@@ -379,8 +379,6 @@ class Data_format_sww(Data_format):
         from time import sleep
         from os import stat
 
-        minimum_sww_depth = 0.001
-        #minimum_sww_depth = 0.0  #FIXME pass in or read from domain
         from Numeric import choose
 
         #Get NetCDF
@@ -481,8 +479,8 @@ class Data_format_sww(Data_format):
                     z = fid.variables['elevation']
                     #print z[:]
                     #print A-z[:]
-                    A = choose( A-z[:] >= self.minimum_sww_depth,
-                                (z[:], A))
+                    A = choose(A-z[:] >= self.minimum_storable_height,
+                               (z[:], A))
                     stage[i,:] = A.astype(self.precision)
                 elif name == 'xmomentum':
                     xmomentum[i,:] = A.astype(self.precision)
