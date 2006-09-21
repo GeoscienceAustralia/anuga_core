@@ -210,7 +210,7 @@ def get_netcdf_file_function(filename,
         msg = 'Quantities %s could not be found in file %s'\
               %(str(missing), filename)
         fid.close()
-        raise msg
+        raise Exception, msg
 
     #Decide whether this data has a spatial dimension
     spatial = True

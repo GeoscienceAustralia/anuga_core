@@ -16,7 +16,7 @@ class Boundary:
 
     def evaluate(self, vol_id=None, edge_id=None):
         msg = 'Generic class Boundary must be subclassed'
-        raise msg
+        raise Exception, msg
 
 
 class Transmissive_boundary(Boundary):
@@ -31,7 +31,7 @@ class Transmissive_boundary(Boundary):
 
         if domain is None:
             msg = 'Domain must be specified for transmissive boundary'
-            raise msg
+            raise Exception, msg
 
         self.domain = domain
 
@@ -58,7 +58,7 @@ class Dirichlet_boundary(Boundary):
 
         if conserved_quantities is None:
             msg = 'Must specify one value for each conserved quantity'
-            raise msg
+            raise Exception, msg
 
         from Numeric import array, Float
         self.conserved_quantities=array(conserved_quantities).astype(Float)
