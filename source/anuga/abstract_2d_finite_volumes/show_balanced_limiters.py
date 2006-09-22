@@ -36,9 +36,9 @@ print 'Number of elements', len(vertices)
 domain = Domain(points, vertices, boundary)
 domain.smooth = False
 domain.visualise = False
-domain.visualise = True
+#domain.visualise = True
 domain.default_order = 2
-domain.filename = 'test_of_pyvolution'
+domain.filename = 'show_balanced_limiters'
 domain.store = True
 domain.format = 'sww'   #Native netcdf visualisation format
 
@@ -84,7 +84,7 @@ from Numeric import allclose
 #Evolve
 for t in domain.evolve(yieldstep = 0.1, finaltime = 30):
     domain.write_time()
-    domain.boundary_stats(['stage'],'left')
+    domain.write_boundary_statistics(['stage'],'left')
 
 print 'Done'    
     
