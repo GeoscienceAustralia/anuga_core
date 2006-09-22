@@ -106,7 +106,7 @@ print domain.statistics()
 # Boundary conditions
 #----------------------
 Br = Reflective_boundary(domain)
-Bd = Dirichlet_boundary([-10, 0.0, 0.0])
+Bd = Dirichlet_boundary([-12, 0.0, 0.0])
 #Bt = Time_boundary(domain, lambda t: [ 3.0*(1+sin(2*pi*t/100)), 0.0, 0.0])
 
 tags = {}
@@ -129,7 +129,7 @@ domain.set_boundary(tags)
 #--------------------
 domain = distribute(domain)
 
-Bt = Time_boundary(domain, lambda t: [ 3.0*(1+sin(2*pi*t/100)), 0.0, 0.0])
+Bt = Time_boundary(domain, lambda t: [ 4.0*(1+sin(2*pi*t/50)), -1.0, 0.0])
 domain.modify_boundary({'ocean': Bt})
 
 #----------------------
