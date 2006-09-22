@@ -11,9 +11,10 @@ numerical vector named conserved_quantities.
 ######################
 # Module imports 
 #
-from shallow_water import Domain, Reflective_boundary, Dirichlet_boundary,\
-     Transmissive_boundary, Time_boundary,\
-     Weir_simple as Weir, Constant_height
+from anuga.shallow_water import Domain,\
+     Reflective_boundary, Dirichlet_boundary,\
+     Transmissive_boundary, Time_boundary
+from anuga.shallow_water.shallow_water_domain import Weir_simple as Weir
 
 from mesh_factory import rectangular
 from Numeric import array
@@ -76,7 +77,7 @@ domain.set_boundary({'left': Bd, 'right': Br, 'bottom': Br, 'top': Br})
 #Initial condition
 #
 print 'Initial condition'
-domain.set_quantity('stage', Constant_height(Z, 0.))
+domain.set_quantity('stage', Z)
 
 from Numeric import allclose
 
