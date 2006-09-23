@@ -11,12 +11,12 @@ stylised housed behind it and below the water surface.
 #import rpdb
 #rpdb.set_active()
 
-from shallow_water import Domain, Reflective_boundary, Dirichlet_boundary,\
+from anuga.shallow_water import Domain, Reflective_boundary, Dirichlet_boundary,\
      Transmissive_boundary, Constant_height, Constant_stage
 
-from mesh_factory import rectangular_cross
+from anuga.mesh_factory import rectangular_cross
 from Numeric import array
-from vtk_realtime_visualiser import Visualiser
+#from vtk_realtime_visualiser import Visualiser
 
 class Weir:
     """Set a bathymetry for simple weir with a hole.
