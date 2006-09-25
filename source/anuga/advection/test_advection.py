@@ -7,8 +7,7 @@ from math import sqrt, pi
 
 from anuga.config import g, epsilon
 from Numeric import allclose, array, zeros, ones, Float
-from advection import *
-
+from anuga.advection.advection import *
 
 class Test_Advection(unittest.TestCase):
     def setUp(self):
