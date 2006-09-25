@@ -245,6 +245,28 @@ class Test_Geospatial_data(unittest.TestCase):
         assert allclose(G.get_data_points(), [[1.0, 2.1], [3.0, 5.3],
                                               [1.0, 2.1], [3.0, 5.3]])
         
+    def test_addII(self):
+        """ test the addition of two geospatical objects
+            no geo_reference see next test
+        """
+        points = [[1.0, 2.1], [3.0, 5.3]]
+        attributes = {'depth':[2, 4]}
+        G1 = Geospatial_data(points, attributes) 
+        
+        points = [[5.0, 2.1], [3.0, 50.3]]
+        attributes = {'depth':[200, 400]}
+        G2 = Geospatial_data(points, attributes)
+        
+#        g3 = geospatial_data2points_dictionary(G1)
+#        print 'g3=', g3
+        
+        G = G1 + G2
+
+        assert G.attributes.has_key('depth') 
+        assert G.attributes.keys(), ['depth']
+        assert allclose(G.attributes['depth'], [2, 4, 200, 400])
+        assert allclose(G.get_data_points(), [[1.0, 2.1], [3.0, 5.3],
+                                              [5.0, 2.1], [3.0, 50.3]])
     def test_add_with_geo (self):
         """
         Difference in Geo_reference resolved
