@@ -796,6 +796,7 @@ class Exposure_csv:
                 points = [[float(i),float(j)] for i,j in map(None,xs,ys)]
             except KeyError:
                 # maybe a warning..
+                msg = "Could not find location information."
                 raise TitleValueError, msg
             else:
                 self._geospatial = Geospatial_data(data_points=points)
@@ -1485,7 +1486,7 @@ def _dem2pts(basename_in, basename_out=None, verbose=False,
 
     clipped_dem_elev = dem_elevation_r[i1_0:thisi+1,j1_0:thisj+1]
 
-    if verbose and nn > 0:
+    if verbose:
         print 'There are %d values in the elevation' %totalnopoints
         print 'There are %d values in the clipped elevation' %clippednopoints
         print 'There are %d NODATA_values in the clipped elevation' %nn
