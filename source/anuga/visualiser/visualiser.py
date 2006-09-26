@@ -1,7 +1,7 @@
 from threading import Thread
 from Tkinter import Tk, Button, Frame, N, E, S, W
 from types import FunctionType, TupleType
-from vtk import vtkActor, vtkFloatArray, vtkPolyDataMapper, vtkRenderer
+from vtk import vtkActor, vtkCubeAxesActor2D, vtkFloatArray, vtkPolyDataMapper, vtkRenderer
 from vtk.tk.vtkTkRenderWidget import vtkTkRenderWidget
 
 class Visualiser(Thread):
@@ -23,8 +23,11 @@ class Visualiser(Thread):
 
         # Structures used for VTK
         self.vtk_actors = {}
+        self.vtk_axesSet = False
+        self.vtk_drawAxes = False
         self.vtk_mappers = {}
         self.vtk_polyData = {}
+        self.vtk_renderer = vtkRenderer()
 
         self.setup_gui()
 
@@ -44,8 +47,27 @@ class Visualiser(Thread):
             if (dynamic_only is False) or (self.height_dynamic[q]):
                 self.update_height_quantity(q, self.height_dynamic[q])
                 self.draw_height_quantity(q)
-
+        if self.vtk_drawAxes is True:
+            self.vtk_axes.SetBounds(self.get_3d_bounds())
+            if not self.vtk_axesSet:
+                self.vtk_axesSet = True
+                self.vtk_axes.SetCamera(self.vtk_renderer.GetActiveCamera())
+                self.vtk_renderer.AddActor(self.vtk_axes)
+        
     # --- Height Based Rendering --- #
+
+    def render_axes(self):
+        """Intstruct the visualiser to render cube axes around the render.
+        """
+        self.vtk_drawAxes = True
+        self.vtk_axes = vtkCubeAxesActor2D()
+        
+    def get_axes(self):
+        """Return the vtkCubeAxesActor2D object used to render the axes.
+        This is to allow simple manipulation of the axes such as
+        get_axes().SetNumberOfLabels(5) or similar.
+        """
+        return self.vtk_axes
 
     def setup_grid(self):
         """Create the vtkCellArray instance that represents the
@@ -74,6 +96,13 @@ class Visualiser(Thread):
         """
         pass
 
+    def get_3d_bounds(self):
+        """Get the minimum and maximum bounds for the x, y and z directions.
+        Return as a list of double in the order (xmin, xmax, ymin, ymax, zmin, zmax),
+        suitable for passing to vtkCubeAxesActor2D::SetRanges(). Subclasses are expected
+        to override this function.
+        """
+        pass
 
     def draw_height_quantity(self, quantityName):
         """Use the vtkPolyData and prepare/update the rest of the VTK
@@ -154,7 +183,6 @@ class Visualiser(Thread):
         
         self.tk_quit = Button(self.tk_controlFrame, text="Quit", command=self.shutdown)
         self.tk_quit.grid(row=0, column=0, sticky=E+W)
-        self.vtk_renderer = vtkRenderer()
         self.tk_renderWidget.GetRenderWindow().AddRenderer(self.vtk_renderer)
 
     # --- GUI Events --- #

@@ -26,6 +26,9 @@ o.colour_height_quantity('stage', (lambda q:q['stage'], 0, 10))
 #o.colour_height_quantity('stage', (lambda q:sqrt((q['xmomentum'] ** 2) +
 #                                                 (q['ymomentum'] ** 2)), 0, 10))
 
+# Draw some axes on the visualiser so we can see how big the wave is
+o.render_axes()
+
 # Precaching the height-based quantities reduces the time taken to draw each
 # frame, but increases the time taken when the visualiser starts.
 o.precache_height_quantities()
