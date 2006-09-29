@@ -45,8 +45,31 @@ def angle(v1, v2=None):
     p = innerproduct(v1, v2)
     c = innerproduct(v1, normal_vector(v2)) # Projection onto normal
                                             # (negative cross product)
+    #print "p",p
+    #print "v1", v1 
+    #print "v2", v2
+
     
-    theta = acos(p)
+    # Warning, this is a hack.  It could cause code to go in loop forever
+    if False:
+        try:
+            theta = acos(p)
+            #print "theta",theta 
+        except ValueError:
+            print "Doing a hack in numerical tools."
+            print "p",p
+            print "v1", v1 
+            print "v2", v2 
+            if p > (1.0 - 1e-12): #sus, checking a float
+                # Throw a warning 
+                theta = 0.0
+            else:
+                raise
+    else:
+        theta = acos(p)
+            
+     #   print "problem with p",p
+     # as p goes to 1 theta goes to 0
     
     # Correct if v1 is in quadrant 3 or 4 with respect to v2 (as the x-axis) 
     # If v2 was the unit vector [1,0] this would correspond to the test
