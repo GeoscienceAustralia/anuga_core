@@ -34,7 +34,7 @@ numprocs = pypar.size()
 myid = pypar.rank()
 processor_name = pypar.Get_processor_name()
 
-M = 22
+M = 50
 N = M*numprocs
 
 if myid == 0:
@@ -68,7 +68,8 @@ rect = [ 0.0, 0.0, 1.0*numprocs, 1.0]
 
 
 
-domain.default_order = 1
+
+
 
 #Boundaries
 from parallel_shallow_water import Transmissive_boundary, Reflective_boundary
@@ -84,17 +85,18 @@ class Set_Stage:
     """Set an initial condition with constant water height, for x<x0
     """
 
-    def __init__(self, x0=0.25, x1=0.75, y0=0.0, y1=1.0, h=5.0):
+    def __init__(self, x0=0.25, x1=0.75, y0=0.0, y1=1.0, h=5.0, h0=0.0):
         self.x0 = x0
         self.x1 = x1
         self.y0 = y0
         self.y1 = y1
         self.h  = h
+        self.h0 = h0
 
     def __call__(self, x, y):
-        return self.h*((x>self.x0)&(x<self.x1)&(y>self.y0)&(y<self.y1))
+        return self.h0 + self.h*((x>self.x0)&(x<self.x1)&(y>self.y0)&(y<self.y1))
 
-domain.set_quantity('stage', Set_Stage(0.2,0.4,0.25, 0.75, 1.0))
+domain.set_quantity('stage', Set_Stage(0.2, 0.4, 0.25, 0.75, 1.0, 0.00))
 
 if myid == 0:
     import time
@@ -105,6 +107,14 @@ if myid == 0:
 
 rect = [0.0, 0.0, 1.0, 1.0]
 domain.initialise_visualiser()
+
+domain.default_order = 2
+domain.beta_w      = 1.0
+domain.beta_w_dry  = 0.2
+domain.beta_uh     = 1.0
+domain.beta_uh_dry = 0.2
+domain.beta_vh     = 1.0
+domain.beta_vh_dry = 0.2
 
 yieldstep = 0.005
 finaltime = 1.0

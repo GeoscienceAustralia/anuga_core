@@ -7,10 +7,10 @@ sys.path += __path__
 
 # Make selected classes available directly
 from shallow_water_domain import Domain,\
-     Transmissive_boundary, Reflective_boundary,\
-     Dirichlet_boundary, Time_boundary, File_boundary,\
-     Transmissive_Momentum_Set_Stage_boundary,\
+    Transmissive_boundary, Reflective_boundary,\
+    Dirichlet_boundary, Time_boundary, File_boundary,\
+    Transmissive_Momentum_Set_Stage_boundary,\
+    Dirichlet_Discharge_boundary,\
     Constant_stage, Constant_height
-
 
 

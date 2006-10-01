@@ -9,6 +9,7 @@ from anuga.visualiser import OfflineVisualiser
 
 # The argument to OfflineVisualiser is the path to a sww file
 o = OfflineVisualiser("../../swollen_viewer/tests/cylinders.sww")
+#o = OfflineVisualiser("../../../../anuga_validation/analytical solutions/circular_second_order.sww")
 
 # Specify the height-based-quantities to render.
 # Remember to set dynamic=True for time-varying quantities

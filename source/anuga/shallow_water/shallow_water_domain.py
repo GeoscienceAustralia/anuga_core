@@ -126,10 +126,17 @@ class Domain(Generic_Domain):
                                 numproc)
 
 
-        from anuga.config import minimum_allowed_height, maximum_allowed_speed, g
+        from anuga.config import *
         self.minimum_allowed_height = minimum_allowed_height
         self.maximum_allowed_speed = maximum_allowed_speed
         self.g = g
+        self.beta_w      = beta_w
+        self.beta_w_dry  = beta_w_dry
+        self.beta_uh     = beta_uh
+        self.beta_uh_dry = beta_uh_dry
+        self.beta_vh     = beta_vh
+        self.beta_vh_dry = beta_vh_dry
+        self.beta_h      = beta_h
 
 
         self.forcing_terms.append(manning_friction)
@@ -149,6 +156,7 @@ class Domain(Generic_Domain):
         self.set_store_vertices_uniquely(False)
         self.minimum_storable_height = minimum_storable_height
         self.quantities_to_be_stored = ['stage','xmomentum','ymomentum']
+		
 
 
     def set_store_vertices_uniquely(self, flag, reduction=None):
@@ -300,9 +308,9 @@ class Domain(Generic_Domain):
         #self.check_integrity()
 
         msg = 'Parameter beta_h must be in the interval [0, 1['
-        assert 0 <= self.beta_h < 1.0, msg
+        assert 0 <= self.beta_h <= 1.0, msg
         msg = 'Parameter beta_w must be in the interval [0, 1['
-        assert 0 <= self.beta_w < 1.0, msg
+        assert 0 <= self.beta_w <= 1.0, msg
 
 
         #Initial update of vertex and edge values before any storage
@@ -611,17 +619,21 @@ def extrapolate_second_order_sw_c(domain):
     Stage = domain.quantities['stage']
     Xmom = domain.quantities['xmomentum']
     Ymom = domain.quantities['ymomentum']
+    Elevation = domain.quantities['elevation']
     from shallow_water_ext import extrapolate_second_order_sw
-    extrapolate_second_order_sw(domain,domain.surrogate_neighbours,
+    extrapolate_second_order_sw(domain,
+                                domain.surrogate_neighbours,
                                 domain.number_of_boundaries,
                                 domain.centroid_coordinates,
                                 Stage.centroid_values,
                                 Xmom.centroid_values,
                                 Ymom.centroid_values,
+                                Elevation.centroid_values,
                                 domain.vertex_coordinates,
                                 Stage.vertex_values,
                                 Xmom.vertex_values,
-                                Ymom.vertex_values)
+                                Ymom.vertex_values,
+                                Elevation.vertex_values)
 
 def compute_fluxes_c(domain):
     """Wrapper calling C version of compute fluxes
@@ -698,11 +710,11 @@ def distribute_to_vertices_and_edges(domain):
         #perform the extrapolation and limiting on
         #all of the conserved quantitie
 
-        if (domain.order == 1):
+        if (domain._order_ == 1):
             for name in domain.conserved_quantities:
                 Q = domain.quantities[name]
                 Q.extrapolate_first_order()
-        elif domain.order == 2:
+        elif domain._order_ == 2:
             domain.extrapolate_second_order_sw()
         else:
             raise 'Unknown order'
@@ -710,9 +722,9 @@ def distribute_to_vertices_and_edges(domain):
         #old code:
         for name in domain.conserved_quantities:
             Q = domain.quantities[name]
-            if domain.order == 1:
+            if domain._order_ == 1:
                 Q.extrapolate_first_order()
-            elif domain.order == 2:
+            elif domain._order_ == 2:
                 Q.extrapolate_second_order()
                 Q.limit()
             else:

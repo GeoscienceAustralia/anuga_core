@@ -1233,7 +1233,7 @@ def compute_gradients(quantity):
 
             #Get index of the one neighbour
             for k0 in surrogate_neighbours[k,:]:
-	    	if k0 != k: break
+                if k0 != k: break
             assert k0 != k
 
             k1 = k  #self
@@ -1284,7 +1284,8 @@ def limit(quantity):
     qmin = zeros(qc.shape, Float)
 
     for k in range(N):
-        qmax[k] = qmin[k] = qc[k]
+        qmax[k] = qc[k]
+        qmin[k] = qc[k]
         for i in range(3):
             n = quantity.domain.neighbours[k,i]
             if n >= 0:
@@ -1292,6 +1293,8 @@ def limit(quantity):
 
                 qmin[k] = min(qmin[k], qn)
                 qmax[k] = max(qmax[k], qn)
+        qmax[k] = min(qmax[k], 2.0*qc[k])
+        qmin[k] = max(qmin[k], 0.5*qc[k])
 
 
     #Diffences between centroids and maxima/minima
@@ -1325,5 +1328,5 @@ from anuga.utilities import compile
 if compile.can_use_C_extension('quantity_ext.c'):
     #Replace python version with c implementations
 
-    from quantity_ext import limit, compute_gradients,\
+    from quantity_ext import compute_gradients, limit,\
     extrapolate_second_order, interpolate_from_vertices_to_edges, update

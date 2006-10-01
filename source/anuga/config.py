@@ -38,7 +38,7 @@ sound_speed = 500
 
 max_smallsteps = 50  #Max number of degenerate steps allowed b4 trying first order
 
-manning = 0.3  #Manning's friction coefficient
+manning = 0.03  #Manning's friction coefficient
 #g = 9.80665       #Gravity
 g = 9.8
 #g(phi) = 9780313 * (1 + 0.0053024 sin(phi)**2 - 0.000 0059 sin(2*phi)**2) micro m/s**2, where phi is the latitude
@@ -66,19 +66,27 @@ rho_w = 1023   #Fluid density [kg/m^3] (rho_w = 1023 for salt water)
 #
 #
 #
-#There are separate betas for the w-limiter and the h-limiter
-#
-#
-#
+#There are separate betas for the w, uh, vh and h limiters
 #
 #Good values are:
-#beta_w = 0.9
-#beta_h = 0.2
+beta_w      = 0.9
+beta_w_dry  = 0.9
+beta_uh     = 0.9
+beta_uh_dry = 0.9
+beta_vh     = 0.9
+beta_vh_dry = 0.9
+beta_h      = 0.2
+
+# I think these are better SR but they conflict with the unit tests!
+# beta_w      = 1.0
+# beta_w_dry  = 0.2
+# beta_uh     = 1.0
+# beta_uh_dry = 0.2
+# beta_vh     = 1.0
+# beta_vh_dry = 0.2
+# beta_h      = 0.2
 
 
-
-beta_w = 0.9
-beta_h = 0.2
 CFL = 1.0  #FIXME (ole): Is this in use yet??
            #(Steve) yes, change domain.CFL to
            #make changes

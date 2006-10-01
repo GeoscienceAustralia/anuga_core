@@ -940,8 +940,10 @@ class Test_Quantity(unittest.TestCase):
         #Limit
         quantity.limit()
 
-
+        # limited value for beta_w = 0.9
         assert allclose(quantity.vertex_values[1,:], [2.2, 4.9, 4.9])
+        # limited values for beta_w = 0.5
+        #assert allclose(quantity.vertex_values[1,:], [3.0, 4.5, 4.5])
 
 
         #Assert that quantities are conserved

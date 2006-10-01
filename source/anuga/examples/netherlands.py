@@ -14,9 +14,9 @@ stylised housed behind it and below the water surface.
 from anuga.shallow_water import Domain, Reflective_boundary, Dirichlet_boundary,\
      Transmissive_boundary, Constant_height, Constant_stage
 
-from anuga.mesh_factory import rectangular_cross
+from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
 from Numeric import array
-#from vtk_realtime_visualiser import Visualiser
+from anuga.visualiser.vtk_realtime_visualiser import Visualiser
 
 class Weir:
     """Set a bathymetry for simple weir with a hole.
@@ -82,7 +82,7 @@ class Weir:
 N = 150 #size = 45000
 N = 130 #size = 33800
 N = 600 #Size = 720000
-N = 50
+N = 100
 
 
 #N = 15
@@ -95,8 +95,15 @@ points, elements, boundary = rectangular_cross(N, N)
 domain = Domain(points, elements, boundary, use_inscribed_circle=True)
 
 domain.check_integrity()
+
+#Setup order and all the beta's for the limiters (these should become defaults
 domain.default_order = 2
-#domain.beta_h=0
+domain.beta_w      = 1.0
+domain.beta_w_dry  = 0.2
+domain.beta_uh     = 1.0
+domain.beta_uh_dry = 0.2
+domain.beta_vh     = 1.0
+domain.beta_vh_dry = 0.2
 
 #Output params
 domain.smooth = False

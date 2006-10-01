@@ -723,7 +723,7 @@ class Data_format_xya(Data_format):
         pass
 
 
-#### NBED national exposure database
+#### NEED national exposure database
     
 LAT_TITLE = 'LATITUDE'
 LONG_TITLE = 'LONGITUDE'

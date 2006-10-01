@@ -621,20 +621,25 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
     *stage_centroid_values,
     *xmom_centroid_values,
     *ymom_centroid_values,
+	*elevation_centroid_values,
     *vertex_coordinates,
     *stage_vertex_values,
     *xmom_vertex_values,
-    *ymom_vertex_values;
-  PyObject *domain, *Tmp;
+    *ymom_vertex_values,
+	*elevation_vertex_values;
+  PyObject *domain, *Tmp_w, *Tmp_w_dry, *Tmp_uh, *Tmp_uh_dry, *Tmp_vh, *Tmp_vh_dry;
   //Local variables
   double a, b;//gradient vector, not stored but used to calculate vertex values from centroids
   int number_of_elements,k,k0,k1,k2,k3,k6,coord_index,i;
   double x,y,x0,y0,x1,y1,x2,y2,xv0,yv0,xv1,yv1,xv2,yv2;//vertices of the auxiliary triangle
   double dx1,dx2,dy1,dy2,dxv0,dxv1,dxv2,dyv0,dyv1,dyv2,dq0,dq1,dq2,area2;
-  double dqv[3], qmin, qmax, beta_w;//provisional jumps from centroids to v'tices and safety factor re limiting
+  double dqv[3], qmin, qmax, hmin;
+  double hc, h0, h1, h2;
+  double beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry, beta_tmp;
+  //provisional jumps from centroids to v'tices and safety factor re limiting
   //by which these jumps are limited
   // Convert Python arguments to C
-  if (!PyArg_ParseTuple(args, "OOOOOOOOOOO",
+  if (!PyArg_ParseTuple(args, "OOOOOOOOOOOOO",
 			&domain,
 			&surrogate_neighbours,
 			&number_of_boundaries,
@@ -642,20 +647,53 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
 			&stage_centroid_values,
 			&xmom_centroid_values,
 			&ymom_centroid_values,
+			&elevation_centroid_values,
 			&vertex_coordinates,
 			&stage_vertex_values,
 			&xmom_vertex_values,
-			&ymom_vertex_values)) {
+			&ymom_vertex_values,
+			&elevation_vertex_values)) {
     PyErr_SetString(PyExc_RuntimeError, "Input arguments failed");
     return NULL;
   }
 
   //get the safety factor beta_w, set in the config.py file. This is used in the limiting process
-  Tmp = PyObject_GetAttrString(domain, "beta_w");
-  if (!Tmp)
+  Tmp_w = PyObject_GetAttrString(domain, "beta_w");
+  if (!Tmp_w)
     return NULL;
-  beta_w = PyFloat_AsDouble(Tmp);
-  Py_DECREF(Tmp);
+  beta_w = PyFloat_AsDouble(Tmp_w);
+  Py_DECREF(Tmp_w);
+  
+  Tmp_w_dry = PyObject_GetAttrString(domain, "beta_w_dry");
+  if (!Tmp_w_dry)
+    return NULL;
+  beta_w_dry = PyFloat_AsDouble(Tmp_w_dry);
+  Py_DECREF(Tmp_w_dry);
+  
+  Tmp_uh = PyObject_GetAttrString(domain, "beta_uh");
+  if (!Tmp_uh)
+    return NULL;
+  beta_uh = PyFloat_AsDouble(Tmp_uh);
+  Py_DECREF(Tmp_uh);
+  
+  Tmp_uh_dry = PyObject_GetAttrString(domain, "beta_uh_dry");
+  if (!Tmp_uh_dry)
+    return NULL;
+  beta_uh_dry = PyFloat_AsDouble(Tmp_uh_dry);
+  Py_DECREF(Tmp_uh_dry); 
+
+  Tmp_vh = PyObject_GetAttrString(domain, "beta_vh");
+  if (!Tmp_vh)
+    return NULL;
+  beta_vh = PyFloat_AsDouble(Tmp_vh);
+  Py_DECREF(Tmp_vh);
+  
+  Tmp_vh_dry = PyObject_GetAttrString(domain, "beta_vh_dry");
+  if (!Tmp_vh_dry)
+    return NULL;
+  beta_vh_dry = PyFloat_AsDouble(Tmp_vh_dry);
+  Py_DECREF(Tmp_vh_dry);
+  
   number_of_elements = stage_centroid_values -> dimensions[0];
   for (k=0; k<number_of_elements; k++) {
     k3=k*3;
@@ -709,8 +747,14 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
       area2 = dy2*dx1 - dy1*dx2;//the triangle is guaranteed to be counter-clockwise
       //If the mesh is 'weird' near the boundary, the trianlge might be flat or clockwise:
       if (area2<=0)
-	return NULL;
+		return NULL;
 
+	  //### Calculate heights of neighbouring cells
+	  hc = ((double *)stage_centroid_values->data)[k]  - ((double *)elevation_centroid_values->data)[k];
+	  h0 = ((double *)stage_centroid_values->data)[k0] - ((double *)elevation_centroid_values->data)[k0];
+	  h1 = ((double *)stage_centroid_values->data)[k1] - ((double *)elevation_centroid_values->data)[k1];
+	  h2 = ((double *)stage_centroid_values->data)[k2] - ((double *)elevation_centroid_values->data)[k2];
+	  hmin = min(hc,min(h0,min(h1,h2)));
       //### stage ###
       //calculate the difference between vertex 0 of the auxiliary triangle and the FV triangle centroid
       dq0=((double *)stage_centroid_values->data)[k0]-((double *)stage_centroid_values->data)[k];
@@ -729,7 +773,12 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
       //now we want to find min and max of the centroid and the vertices of the auxiliary triangle
       //and compute jumps from the centroid to the min and max
       find_qmin_and_qmax(dq0,dq1,dq2,&qmin,&qmax);
-      limit_gradient(dqv,qmin,qmax,beta_w);//the gradient will be limited
+	  // Playing with dry wet interface
+	  hmin = qmin;
+	  beta_tmp = beta_w;
+	  if (hmin<0.001)
+		beta_tmp = beta_w_dry;
+      limit_gradient(dqv,qmin,qmax,beta_tmp);//the gradient will be limited
       for (i=0;i<3;i++)
 	((double *)stage_vertex_values->data)[k3+i]=((double *)stage_centroid_values->data)[k]+dqv[i];
 
@@ -751,7 +800,10 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
       //now we want to find min and max of the centroid and the vertices of the auxiliary triangle
       //and compute jumps from the centroid to the min and max
       find_qmin_and_qmax(dq0,dq1,dq2,&qmin,&qmax);
-      limit_gradient(dqv,qmin,qmax,beta_w);//the gradient will be limited
+	  beta_tmp = beta_uh;
+	  if (hmin<0.001)
+		beta_tmp = beta_uh_dry;
+      limit_gradient(dqv,qmin,qmax,beta_tmp);//the gradient will be limited
       for (i=0;i<3;i++)
 	((double *)xmom_vertex_values->data)[k3+i]=((double *)xmom_centroid_values->data)[k]+dqv[i];
 
@@ -773,7 +825,10 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
       //now we want to find min and max of the centroid and the vertices of the auxiliary triangle
       //and compute jumps from the centroid to the min and max
       find_qmin_and_qmax(dq0,dq1,dq2,&qmin,&qmax);
-      limit_gradient(dqv,qmin,qmax,beta_w);//the gradient will be limited
+	  beta_tmp = beta_vh;
+	  if (hmin<0.001)
+		beta_tmp = beta_vh_dry;
+      limit_gradient(dqv,qmin,qmax,beta_tmp);//the gradient will be limited
       for (i=0;i<3;i++)
 	((double *)ymom_vertex_values->data)[k3+i]=((double *)ymom_centroid_values->data)[k]+dqv[i];
     }//if (number_of_boundaries[k]<=1)

@@ -165,7 +165,7 @@ class Domain(Mesh):
         #Or maybe get rid of order altogether and use beta_w and beta_h
         self.set_default_order(1)
         #self.default_order = 1
-        #self.order = self.default_order
+        #self._order_ = self.default_order
 
         self.smallsteps = 0
         self.max_smallsteps = max_smallsteps
@@ -221,7 +221,7 @@ class Domain(Mesh):
         assert n in [1,2], msg
 
         self.default_order = n
-        self.order = self.default_order
+        self._order_ = self.default_order
 
 
     #Public interface to Domain
@@ -694,7 +694,7 @@ class Domain(Mesh):
         else:
             yieldstep = float(yieldstep)
 
-        self.order = self.default_order
+        self._order_ = self.default_order
 
 
         if finaltime is not None and duration is not None:
@@ -758,7 +758,7 @@ class Domain(Mesh):
             self.time += self.timestep
             self.yieldtime += self.timestep
             self.number_of_steps += 1
-            if self.order == 1:
+            if self._order_ == 1:
                 self.number_of_first_order_steps += 1
 
             #Yield results
@@ -845,7 +845,7 @@ class Domain(Mesh):
             if self.smallsteps > self.max_smallsteps:
                 self.smallsteps = 0 #Reset
 
-                if self.order == 1:
+                if self._order_ == 1:
                     msg = 'WARNING: Too small timestep %.16f reached '\
                           %timestep
                     msg += 'even after %d steps of 1 order scheme'\
@@ -856,12 +856,12 @@ class Domain(Mesh):
                     #raise msg
                 else:
                     #Try to overcome situation by switching to 1 order
-                    self.order = 1
+                    self._order_ = 1
 
         else:
             self.smallsteps = 0
-            if self.order == 1 and self.default_order == 2:
-                self.order = 2
+            if self._order_ == 1 and self.default_order == 2:
+                self._order_ = 2
 
 
         #Ensure that final time is not exceeded
@@ -932,9 +932,9 @@ class Domain(Mesh):
 
         for name in self.conserved_quantities:
             Q = self.quantities[name]
-            if self.order == 1:
+            if self._order_ == 1:
                 Q.extrapolate_first_order()
-            elif self.order == 2:
+            elif self._order_ == 2:
                 Q.extrapolate_second_order()
                 Q.limit()
             else:

@@ -1187,7 +1187,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
 
 
-        domain.order = 1
+        domain._order_ = 1
         domain.distribute_to_vertices_and_edges()
 
         #Check that centroid values were distributed to vertices
@@ -1233,7 +1233,7 @@ class Test_Shallow_Water(unittest.TestCase):
         #- so that the limiter has something to work with
         assert not alltrue(alltrue(greater_equal(L,E-epsilon)))
 
-        domain.order = 1
+        domain._order_ = 1
         domain.distribute_to_vertices_and_edges()
 
         #Check that all stages are above elevation (within eps)
@@ -1268,12 +1268,12 @@ class Test_Shallow_Water(unittest.TestCase):
         L = domain.quantities['stage'].vertex_values
 
 	#First order
-        domain.order = 1
+        domain._order_ = 1
         domain.distribute_to_vertices_and_edges()
 	assert allclose(L[1], val1)
 
 	#Second order
-        domain.order = 2
+        domain._order_ = 2
         domain.distribute_to_vertices_and_edges()
 	assert allclose(L[1], [2.2, 4.9, 4.9])
 
@@ -1306,11 +1306,11 @@ class Test_Shallow_Water(unittest.TestCase):
 	assert allclose(a[1], 3.33333334)
 	assert allclose(b[1], 0.0)
 
-        domain.order = 1
+        domain._order_ = 1
         domain.distribute_to_vertices_and_edges()
         assert allclose(L[1], 1.77777778)
 
-        domain.order = 2
+        domain._order_ = 2
         domain.distribute_to_vertices_and_edges()
         assert allclose(L[1], [0.57777777, 2.37777778, 2.37777778])
 
@@ -1344,11 +1344,11 @@ class Test_Shallow_Water(unittest.TestCase):
 	assert allclose(a[1], 25.18518519)
 	assert allclose(b[1], 3.33333333)
 
-        domain.order = 1
+        domain._order_ = 1
         domain.distribute_to_vertices_and_edges()
         assert allclose(L[1], 4.9382716)
 
-        domain.order = 2
+        domain._order_ = 2
         domain.distribute_to_vertices_and_edges()
         assert allclose(L[1], [1.07160494, 6.46058131, 7.28262855])
 
@@ -1390,12 +1390,12 @@ class Test_Shallow_Water(unittest.TestCase):
         L = domain.quantities['stage'].vertex_values
 
         #print E
-        domain.order = 1
+        domain._order_ = 1
         domain.distribute_to_vertices_and_edges()
 	##assert allclose(L[1], [0.19999999, 20.05, 20.05])
 	assert allclose(L[1], [0.1, 20.1, 20.1])
 
-        domain.order = 2
+        domain._order_ = 2
         domain.distribute_to_vertices_and_edges()
 	assert allclose(L[1], [0.1, 20.1, 20.1])
 
@@ -1435,12 +1435,12 @@ class Test_Shallow_Water(unittest.TestCase):
         L = domain.quantities['stage'].vertex_values
 
         #print E
-        domain.order = 1
+        domain._order_ = 1
         domain.distribute_to_vertices_and_edges()
 	##assert allclose(L[1], [4.19999999, 16.07142857, 20.02857143])
 	assert allclose(L[1], [4.1, 16.1, 20.1])
 
-        domain.order = 2
+        domain._order_ = 2
         domain.distribute_to_vertices_and_edges()
 	assert allclose(L[1], [4.1, 16.1, 20.1])
 
@@ -1487,7 +1487,7 @@ class Test_Shallow_Water(unittest.TestCase):
         Y = domain.quantities['ymomentum'].vertex_values
 
         #print E
-        domain.order = 2
+        domain._order_ = 2
         domain.beta_h = 0.0 #Use first order in h-limiter
         domain.distribute_to_vertices_and_edges()
 
@@ -2231,7 +2231,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain = Domain(points, vertices, boundary)
         domain.smooth = False
         domain.visualise = False
-        domain.default_order=domain.order=2
+        domain.default_order=domain._order_=2
 
         # Boundary conditions
         Br = Reflective_boundary(domain)
