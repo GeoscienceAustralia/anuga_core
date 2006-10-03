@@ -2617,8 +2617,6 @@ def ferret2sww(basename_in, basename_out = None,
             dim_e_longitude = dimension
         if dimension[:3] == 'LAT':
             dim_e_latitude = dimension
-        if dimension[:4] == 'TIME':
-            dim_e_time = dimension
 
 # get dimensions for file_u
     for dimension in file_u.dimensions.keys():
