@@ -71,7 +71,7 @@ if not (env['OPTIMISATION_LEVEL'] == 1 or env['OPTIMISATION_LEVEL'] == 2):
 if sys.platform == 'win32':
     # Prefer MinGW over MSVC
     Tool('mingw')(env)
-
+    
     python_include = os.path.join(sys.exec_prefix, 'include')
     # Windows installs need to be told the lib path and the python library name
     # else it won't work right.
@@ -140,11 +140,6 @@ triang = mesh_env.SharedLibrary(os.path.join(mesh_dir, 'triang'), map(lambda s: 
 triangle = mesh_env.SharedLibrary(os.path.join(mesh_dir, 'triangle'), map(lambda s: os.path.join(mesh_dir, s), ['triangle.c']))
 env.Install(mesh_install_dir, triang)
 env.Install(mesh_install_dir, triangle)
-
-# Make phony .exp files if building with gcc, so the Install builder doesn't choke.
-if sys.platform == 'win32' and env['CC'] == 'gcc':
-    env.Command(os.path.join(mesh_dir, 'triang.exp'), triang, Touch(os.path.join(mesh_dir, 'triang.exp')))
-    env.Command(os.path.join(mesh_dir, 'triangle.exp'), triangle, Touch(os.path.join(mesh_dir, 'triangle.exp')))
 
 # Utilities
 util_dir = os.path.join(anuga_root, 'utilities')
