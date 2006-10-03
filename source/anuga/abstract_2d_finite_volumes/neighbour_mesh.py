@@ -174,7 +174,7 @@ class Mesh(General_mesh):
         if verbose: print 'Mesh: Done'                
 
     def __repr__(self):
-        return 'Mesh: %d triangles, %d elements, %d boundary segments'\
+        return 'Mesh: %d vertex_coordinates, %d triangles, %d boundary segments'\
                %(self.coordinates.shape[0], len(self), len(self.boundary))
 
 
@@ -490,8 +490,6 @@ class Mesh(General_mesh):
             segments[tuple(A)].append(B)                
 
 
-
-            
         #Start with smallest point and follow boundary (counter clock wise)
         polygon = [p0]      # Storage for final boundary polygon
         point_registry = {} # Keep track of storage to avoid multiple runs around
@@ -507,7 +505,8 @@ class Mesh(General_mesh):
 
             candidate_list = segments[tuple(p0)]
             if len(candidate_list) > 1:
-                # Multiple points detected
+                # Multiple points detected (this will be the case for meshes with
+                # duplicate points as those used for discontinuous triangles).
                 # Take the candidate that is furthest to the clockwise direction,
                 # as that will follow the boundary.
 
@@ -520,24 +519,28 @@ class Mesh(General_mesh):
                 # Choose vector against which all angles will be measured
                 if len(polygon) > 1:    
                     v_prev = p0 - polygon[-2] # Vector that leads to p0
+
+                    # Normalise
+                    #v_prev /= sqrt(sum(v_prev**2))  
                 else:
                     # FIXME (Ole): What do we do if the first point has multiple
                     # candidates?
                     # Being the lower left corner, perhaps we can use the
                     # vector [1, 0], but I really don't know if this is completely
                     # watertight.
-                    # Another option might be v_prev = [1.0, 0.0]
                     v_prev = [1.0, 0.0]
                     
-
                     
                 # Choose candidate with minimum angle    
                 minimum_angle = 2*pi
                 for pc in candidate_list:
                     vc = pc-p0  # Candidate vector
+                    # Normalise
+                    #vc /= sqrt(sum(vc**2))                      
                     
                     # Angle between each candidate and the previous vector
                     # in [-pi, pi]
+
                     ac = angle(vc, v_prev)
                     if ac > pi: ac = pi-ac
 

@@ -3,6 +3,8 @@
 
 """
 
+from math import acos, pi, sqrt
+from warnings import warn
 
 #Establish which Numeric package to use
 #(this should move to somewhere central)
@@ -20,6 +22,44 @@ NAN = (array([1])/0.)[0]
 # if we use a package that has NAN, this should be updated to use NAN.
 
 
+def safe_acos(x):
+    """Safely compute acos
+
+    Protect against cases where input argument x is outside the allowed
+    interval [-1.0, 1.0] by no more than machine precision
+    """
+
+    error_msg = 'Input to acos is outside allowed domain [-1.0, 1.0]. I got %.12f' %x
+    warning_msg = 'Changing argument to acos from %.18f to %.1f' %(x, sign(x))
+
+    # FIXME(Ole): Need function to compute machine precision as this is also
+    # used in fit_interpolate/search_functions.py
+    
+    
+    eps = 1.0e-15  # Machine precision 
+    if x < -1.0:
+        if x < -1.0 - eps:
+            raise ValueError, errmsg
+        else:
+            warn(warning_msg)
+            x = -1.0
+
+    if x > 1.0:
+        if x > 1.0 + eps:
+            raise ValueError, errmsg
+        else:
+            print 'NOTE: changing argument to acos from %.18f to 1.0' %x            
+            x = 1.0
+
+    return acos(x)
+
+
+def sign(x):
+    if x > 0: return 1
+    if x < 0: return -1
+    if x == 0: return 0    
+    
+
 def angle(v1, v2=None):
     """Compute angle between 2D vectors v1 and v2.
     
@@ -28,7 +68,6 @@ def angle(v1, v2=None):
 
     The angle is measured as a number in [0, 2pi] from v2 to v1.
     """
-    from math import acos, pi, sqrt
   
     # Prepare two Numeric vectors
     if v2 is None:
@@ -40,36 +79,14 @@ def angle(v1, v2=None):
     # Normalise
     v1 = v1/sqrt(sum(v1**2))
     v2 = v2/sqrt(sum(v2**2))
-   
+
     # Compute angle
     p = innerproduct(v1, v2)
     c = innerproduct(v1, normal_vector(v2)) # Projection onto normal
                                             # (negative cross product)
-    #print "p",p
-    #print "v1", v1 
-    #print "v2", v2
-
-    
-    # Warning, this is a hack.  It could cause code to go in loop forever
-    if False:
-        try:
-            theta = acos(p)
-            #print "theta",theta 
-        except ValueError:
-            print "Doing a hack in numerical tools."
-            print "p",p
-            print "v1", v1 
-            print "v2", v2 
-            if p > (1.0 - 1e-12): #sus, checking a float
-                # Throw a warning 
-                theta = 0.0
-            else:
-                raise
-    else:
-        theta = acos(p)
+        
+    theta = safe_acos(p)
             
-     #   print "problem with p",p
-     # as p goes to 1 theta goes to 0
     
     # Correct if v1 is in quadrant 3 or 4 with respect to v2 (as the x-axis) 
     # If v2 was the unit vector [1,0] this would correspond to the test

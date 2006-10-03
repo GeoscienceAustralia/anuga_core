@@ -79,7 +79,7 @@ class General_mesh:
         else:
             self.geo_reference = geo_reference
 
-        #Input checks
+        # Input checks
         msg = 'Triangles must an Nx3 Numeric array or a sequence of 3-tuples. '
         msg += 'The supplied array has the shape: %s'\
                %str(self.triangles.shape)
@@ -94,7 +94,7 @@ class General_mesh:
         assert max(max(self.triangles)) <= self.coordinates.shape[0], msg
 
 
-        #Register number of elements (N)
+        # Register number of elements (N)
         self.number_of_elements = N = self.triangles.shape[0]
 
         # FIXME: Maybe move to statistics?
@@ -105,16 +105,16 @@ class General_mesh:
         self.xy_extent = array(xy_extent, Float)
 
 
-        #Allocate space for geometric quantities
+        # Allocate space for geometric quantities
         self.normals = zeros((N, 6), Float)
         self.areas = zeros(N, Float)
         self.edgelengths = zeros((N, 3), Float)
 
-        #Get x,y coordinates for all triangles and store
+        # Get x,y coordinates for all triangles and store
         self.vertex_coordinates = V = self.compute_vertex_coordinates()
 
 
-        #Initialise each triangle
+        # Initialise each triangle
         if verbose:
             print 'General_mesh: Computing areas, normals and edgelenghts'
             
@@ -126,7 +126,7 @@ class General_mesh:
             x1 = V[i, 2]; y1 = V[i, 3]
             x2 = V[i, 4]; y2 = V[i, 5]
 
-            #Area
+            # Area
             self.areas[i] = abs((x1*y0-x0*y1)+(x2*y1-x1*y2)+(x0*y2-x2*y0))/2
 
             msg = 'Triangle (%f,%f), (%f,%f), (%f, %f)' %(x0,y0,x1,y1,x2,y2)
@@ -134,15 +134,15 @@ class General_mesh:
             assert self.areas[i] > 0.0, msg
 
 
-            #Normals
-            #The normal vectors
-            # - point outward from each edge
-            # - are orthogonal to the edge
-            # - have unit length
-            # - Are enumerated according to the opposite corner:
-            #   (First normal is associated with the edge opposite
-            #    the first vertex, etc)
-            # - Stored as six floats n0x,n0y,n1x,n1y,n2x,n2y per triangle
+            # Normals
+            # The normal vectors
+            #   - point outward from each edge
+            #   - are orthogonal to the edge
+            #   - have unit length
+            #   - Are enumerated according to the opposite corner:
+            #     (First normal is associated with the edge opposite
+            #     the first vertex, etc)
+            #   - Stored as six floats n0x,n0y,n1x,n1y,n2x,n2y per triangle
 
             n0 = array([x2 - x1, y2 - y1])
             l0 = sqrt(sum(n0**2))
@@ -153,21 +153,21 @@ class General_mesh:
             n2 = array([x1 - x0, y1 - y0])
             l2 = sqrt(sum(n2**2))
 
-            #Normalise
+            # Normalise
             n0 /= l0
             n1 /= l1
             n2 /= l2
 
-            #Compute and store
+            # Compute and store
             self.normals[i, :] = [n0[1], -n0[0],
                                   n1[1], -n1[0],
                                   n2[1], -n2[0]]
 
-            #Edgelengths
+            # Edgelengths
             self.edgelengths[i, :] = [l0, l1, l2]
 
         
-        #Build vertex list
+        # Build vertex list
         if verbose: print 'Building vertex list'         
         self.build_vertexlist()
 
@@ -177,7 +177,7 @@ class General_mesh:
         return self.number_of_elements
 
     def __repr__(self):
-        return 'Mesh: %d triangles, %d elements'\
+        return 'Mesh: %d vertex coordinates, %d triangles'\
                %(self.coordinates.shape[0], len(self))
 
     def get_normals(self):
