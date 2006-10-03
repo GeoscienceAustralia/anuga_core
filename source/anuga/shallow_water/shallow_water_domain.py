@@ -85,6 +85,9 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
 
 from anuga.utilities.numerical_tools import gradient, mean
 from anuga.config import minimum_storable_height
+from anuga.config import minimum_allowed_height, maximum_allowed_speed
+from anuga.config import g, beta_h, beta_w, beta_w_dry,\
+     beta_uh, beta_uh_dry, beta_vh, beta_vh_dry
 
 
 #Shallow water domain
@@ -126,7 +129,6 @@ class Domain(Generic_Domain):
                                 numproc)
 
 
-        from anuga.config import *
         self.minimum_allowed_height = minimum_allowed_height
         self.maximum_allowed_speed = maximum_allowed_speed
         self.g = g
