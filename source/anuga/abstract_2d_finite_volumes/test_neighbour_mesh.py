@@ -909,7 +909,7 @@ class Test_Mesh(unittest.TestCase):
 
 
 
-    def xtest_boundary_polygon_VI(self):
+    def test_boundary_polygon_VI(self):
         """test_boundary_polygon_VI(self)
 
         Create a discontinuous mesh (duplicate vertices) from a real situation that failed
@@ -942,6 +942,8 @@ class Test_Mesh(unittest.TestCase):
                   [  75735.4765625 ,  23762.00585938],
                   [  52341.70703125,  38563.39453125]]
 
+        ##points = ensure_numeric(points, Int)/1000  # Simplify for ease of interpretation        
+
         triangles = [[19, 0,15],
                      [ 2, 4, 3],
                      [ 4, 2, 1],
@@ -968,7 +970,7 @@ class Test_Mesh(unittest.TestCase):
         mesh.check_integrity()
         Pref = mesh.get_boundary_polygon()
 
-        plot_polygons([ensure_numeric(Pref)], 'goodP')
+        #plot_polygons([ensure_numeric(Pref)], 'goodP')
 
         for p in points:
             assert is_inside_polygon(p, Pref)
@@ -1043,7 +1045,7 @@ class Test_Mesh(unittest.TestCase):
                   [  31998.23828125,  88799.84375   ],
                   [  35406.3359375 ,  79332.9140625 ]]
 
-        #points = ensure_numeric(points, Int)/1000  # Simplify for ease of interpretation
+        scaled_points = ensure_numeric(points, Int)/1000  # Simplify for ease of interpretation
 
         triangles = [[ 0, 1, 2],
                      [ 3, 4, 5],
@@ -1067,26 +1069,24 @@ class Test_Mesh(unittest.TestCase):
                      [57,58,59],
                      [60,61,62]]
 
+
+        # First use scaled points for ease of debugging
+        mesh = Mesh(scaled_points, triangles)
+        mesh.check_integrity()
+        P = mesh.get_boundary_polygon()
+
+        for p in scaled_points:
+            assert is_inside_polygon(p, P)            
+
+        # Then use original points and test        
         mesh = Mesh(points, triangles)
         mesh.check_integrity()
         P = mesh.get_boundary_polygon()
 
-        plot_polygons([ensure_numeric(P)], 'badP')
-        print P
-
         for p in points:
-            #assert is_inside_polygon(p, P)            
-            if not is_inside_polygon(p, P):
-                print 'Point %s is not in P' %(p)
-            else:
-                print 'Point %s OK' %(p)
+            assert is_inside_polygon(p, P)            
 
-        #for i in range(len(Pref)):
-        #    print P[i], Pref[i]
-        #
-        #print ensure_numeric(P) - ensure_numeric(Pref)
-
-
+        assert allclose(P, Pref)    
 
     def test_lone_vertices(self):
         a = [2.0, 1.0]

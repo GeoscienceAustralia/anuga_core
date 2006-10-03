@@ -516,12 +516,14 @@ class Mesh(General_mesh):
                           %(str(p0), candidate_list)
 
 
+                # Check that previous are not in candidate list
+                #for p in candidate_list:
+                #    assert not allclose(p0, p)
+
+
                 # Choose vector against which all angles will be measured
                 if len(polygon) > 1:    
-                    v_prev = p0 - polygon[-2] # Vector that leads to p0
-
-                    # Normalise
-                    #v_prev /= sqrt(sum(v_prev**2))  
+                    v_prev = p0 - polygon[-2] # Vector that leads to p0 from previous point
                 else:
                     # FIXME (Ole): What do we do if the first point has multiple
                     # candidates?
@@ -530,19 +532,21 @@ class Mesh(General_mesh):
                     # watertight.
                     v_prev = [1.0, 0.0]
                     
-                    
+
                 # Choose candidate with minimum angle    
                 minimum_angle = 2*pi
                 for pc in candidate_list:
-                    vc = pc-p0  # Candidate vector
-                    # Normalise
-                    #vc /= sqrt(sum(vc**2))                      
+
                     
+                    vc = pc-p0  # Candidate vector (from p0 to candidate pt)
+                   
                     # Angle between each candidate and the previous vector
                     # in [-pi, pi]
-
                     ac = angle(vc, v_prev)
-                    if ac > pi: ac = pi-ac
+                    if ac > pi:
+                        # Give preference to angles on the right hand side of v_prev
+                        #print 'pc = %s, changing angle from %f to %f' %(pc, ac*180/pi, (ac-2*pi)*180/pi)
+                        ac = ac-2*pi
 
                     # take the minimal angle corresponding to the rightmost vector
                     if ac < minimum_angle:
@@ -552,7 +556,7 @@ class Mesh(General_mesh):
 
                 if verbose is True:
                     print '  Best candidate %s, angle %f' %(p1, minimum_angle*180/pi)
-                
+                    
             else:
                 p1 = candidate_list[0]
 
