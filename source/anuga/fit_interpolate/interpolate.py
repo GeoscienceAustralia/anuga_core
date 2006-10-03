@@ -230,9 +230,9 @@ class Interpolate (FitInterpolate):
 	
         if verbose: print 'Getting indices inside mesh boundary'
         self.inside_poly_indices, self.outside_poly_indices  = \
-                                  in_and_outside_polygon(point_coordinates,
-                                                         self.mesh.get_boundary_polygon(),
-                                                         closed = True, verbose = verbose)
+                     in_and_outside_polygon(point_coordinates,
+                                            self.mesh.get_boundary_polygon(),
+                                            closed = True, verbose = verbose)
         #print "self.inside_poly_indices",self.inside_poly_indices
         #print "self.outside_poly_indices",self.outside_poly_indices 
         #Build n x m interpolation matrix
