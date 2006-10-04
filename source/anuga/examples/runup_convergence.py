@@ -3,7 +3,6 @@
 Water driven up a linear slope and time varying boundary,
 similar to a beach environment.
 
-The study area is discretised as a regular triangular grid 100m x 100m
 """
 
 
@@ -22,19 +21,22 @@ from anuga.shallow_water import Dirichlet_boundary
 from anuga.shallow_water import Time_boundary
 from anuga.shallow_water import Transmissive_Momentum_Set_Stage_boundary
 from abstract_2d_finite_volumes.util import file_function
-from pylab import plot, xlabel, ylabel, title, ion, close, savefig, figure, axis, legend, grid, hold
+from pylab import plot, xlabel, ylabel, title, ion, close, savefig,\
+     figure, axis, legend, grid, hold
 
 
 
 #------------------------------------------------------------------------------
 # Model constants
 
-slope = -0.02       # 1:50 Slope, reaches h=20m 1000m from western bndry, and h=0 (coast) at 300m
+slope = -0.02       # 1:50 Slope, reaches h=20m 1000m from western bndry,
+                    # and h=0 (coast) at 300m
 highest_point = 6   # Highest elevation (m)
 sea_level = 0       # Mean sea level
 min_elevation = -20 # Lowest elevation (elevation of offshore flat part)
 offshore_depth = sea_level-min_elevation # offshore water depth
-amplitude = 0.5       # Solitary wave height H
+
+amplitude = 0.5     # Solitary wave height H
 normalized_amplitude = amplitude/offshore_depth 
 simulation_name = 'runup_convergence'   
 coastline_x = -highest_point/slope
@@ -56,25 +58,27 @@ dy = 30           # Resolution: Length of subdivisions on y axis (width)
 
 length = east-west
 width = north-south
-points, vertices, boundary = rectangular_cross(length/dx, width/dy, len1=length, len2=width,
+points, vertices, boundary = rectangular_cross(length/dx, width/dy,
+                                               len1=length, len2=width,
                                                origin = (west, south)) 
 
 domain = Domain(points, vertices, boundary) # Create domain
 
 
-
 # Unstructured mesh
 polygon = [[east,north],[west,north],[west,south],[east,south]]
-interior_polygon = [[400,north-10],[west+10,north-10],[west+10,south+10],[400,south+10]]
+interior_polygon = [[400,north-10],[west+10,north-10],
+                    [west+10,south+10],[400,south+10]]
 meshname = simulation_name + '.msh'
 create_mesh_from_regions(polygon,
-                         boundary_tags={'top': [0], 'left': [1], 'bottom': [2], 'right': [3]},
-                         maximum_triangle_area=dx*dy/4, # Triangle area commensurate with structured mesh
+                         boundary_tags={'top': [0], 'left': [1],
+                                        'bottom': [2], 'right': [3]},
+                         maximum_triangle_area=dx*dy/4,
                          filename=meshname,
                          interior_regions=[[interior_polygon,dx*dy/32]])
+
 domain = Domain(meshname, use_cache=True, verbose = True)
 domain.set_minimum_storable_height(0.01)
-
 
 domain.set_name(simulation_name)
 
@@ -84,7 +88,7 @@ domain.set_name(simulation_name)
 #------------------------------------------------------------------------------
 
 #def topography(x,y):
-#    return slope*x+highest_point  # Return linear bed slope bathymetry as vector
+#    return slope*x+highest_point  # Return linear bed slope (vector)
 
 def topography(x,y):
     """Two part topography - slope and flat part
@@ -120,123 +124,53 @@ Bd = Dirichlet_boundary([0.,0.,0.])   # Constant boundary values
 
 
 def waveform(t): 
-    return sea_level + amplitude/cosh(((t-50)/offshore_depth)*(0.75*g*amplitude)**0.5)**2
-
-Bw = Time_boundary(domain=domain,     # Time dependent boundary  
-                   f=lambda t: [waveform(t), 0.0, 0.0])
+    return sea_level +\
+           amplitude/cosh(((t-50)/offshore_depth)*(0.75*g*amplitude)**0.5)**2
 
 # Time dependent boundary for stage, where momentum is set automatically
 Bts = Transmissive_Momentum_Set_Stage_boundary(domain, waveform)
-
 
 # Associate boundary tags with boundary objects
 domain.set_boundary({'left': Br, 'right': Bts, 'top': Br, 'bottom': Br})
 
 
+# Find initial runup location and height (coastline)
 w0 = domain.get_maximum_inundation_elevation()
 x0, y0 = domain.get_maximum_inundation_location()
 print 'Coastline elevation = %.2f at (%.2f, %.2f)' %(w0, x0, y0)
+
+# Sanity check
 w_i = domain.get_quantity('stage').get_values(interpolation_points=[[x0,y0]])
 print 'Interpolated elevation at (%.2f, %.2f) is %.2f' %(x0, y0, w_i) 
+
 
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
 
 w_max = w0
-stagestep = []
 for t in domain.evolve(yieldstep = 1, finaltime = 300):
     domain.write_time()
 
     w = domain.get_maximum_inundation_elevation()
     x, y = domain.get_maximum_inundation_location()
-    print '  Coastline elevation = %.2f at (%.2f, %.2f)' %(w, x, y)    
-    #w_i = domain.get_quantity('stage').get_values(interpolation_points=[[x,y]])
-    #print '  Interpolated elevation at (%.2f, %.2f) is %.2f' %(x, y, w_i)
-                                                             
+    print '  Coastline elevation = %.2f at (x,y)=(%.2f, %.2f)' %(w, x, y)    
 
     if w > w_max:
         w_max = w
         x_max = x
         y_max = y
 
-    # Let's find the maximum runup here working directly with the quantities,
-    # and stop when it has been detected.
-
-    # 1 Find coastline as x where z==0
-    # 2 Workout travel time to coastline
-    # 3 Find min x where h>0 over all t.
-    # 4 Perhaps do this across a number of ys
 
 print 'Max coastline elevation = %.2f at (%.2f, %.2f)' %(w_max, x_max, y_max)
-
-print 'Run up distance - %.2f' %sqrt( (x-x0)**2 + (y-y0)**2 )
+print 'Run up distance = %.2f' %sqrt( (x_max-x0)**2 + (y_max-y0)**2 )
 
 
 
 #-----------------------------------------------------------------------------
-# Interrogate solution
-#-----------------------------------------------------------------------------
+# Interrogate further
+#---------------------------------------------------------------
 
-'''
-# Define line of gauges through center of domain
-def gauge_line(west,east,north,south):
-    from Numeric import arange
-    x_vector = arange(west,600, 10) # Gauges every 1 meter from west to 600m from western bdry
-    y = (north+south)/2.
-
-    gauges = []
-    for x in x_vector:
-        gauges.append([x,y])
-        
-    return gauges, x_vector
-
-gauges, x_vector = gauge_line(west,east,north,south)
-
-# Obtain interpolated timeseries at gauges
-f = file_function(domain.get_name()+'.sww',
-                  quantities = ['stage', 'elevation', 'xmomentum', 'ymomentum'],
-                  interpolation_points = gauges,
-                  verbose = True,
-                  use_cache = True)
-
-
-# Find runup distance from western boundary through a linear search
-max_stage = []
-min_stage = []
-runup_point = west
-coastline = east        
-for k, g in enumerate(gauges):
-    z = f(0, point_id=k)[1] # Elevation
-
-    min_w = sys.maxint
-    max_w = -min_w
-    for i, t in enumerate(f.get_time()):
-        w = f(t, point_id = k)[0]
-        if w > max_w: max_w = w
-        if w < min_w: min_w = w        
-
-    if max_w-z <= 0.01:  # Find first gauge where max depth > eps (runup)
-        runup_point = g[0]
-
-    if min_w-z <= 0.01:  # Find first gauge where min depth > eps (coastline)
-        coastline = g[0]        
-        
-    max_stage.append(max_w)
-    min_stage.append(min_w)    
-
-
-# Print
-print 'wave height [m]:                    ', amplitude
-runup_height = topography([runup_point], [(north+south)/2.])[0]
-print 'run up height [m]:                  ', runup_height 
-
-runup_distance = runup_point-coastline
-print 'run up distance from coastline [m]: ', runup_distance
-
-print 'Coastline (meters form west):       ', coastline
-
-'''
 # Generate time series of "gauge" situated at right hand boundary
 from anuga.abstract_2d_finite_volumes.util import sww2timeseries
 production_dirs = {'.': 'test'}
@@ -258,60 +192,6 @@ texname, elev_output = sww2timeseries(swwfiles,
                                       title_on = True,
                                       verbose = True)
 
-# Stop here
-import sys; sys.exit() 
 
-# Take snapshots and plot
-ion()
-figure(1)
-plot(x_vector, topography(x_vector,(north+south)/2.), 'r-')
-xlabel('x')
-ylabel('Elevation')
-#legend(('Max stage', 'Min stage', 'Elevation'), shadow=True, loc='upper right')
-title('Stage snapshots (t=0, 10, ...) for gauge line')
-grid()
-hold(True)
-
-for i, t in enumerate(f.get_time()):
-    if i % 10 == 0:
-        # Take only some timesteps to avoid clutter
-        stages = []    
-        for k, g in enumerate(gauges):
-            w = f(t, point_id = k)[0]        
-            stages.append(w)
-
-        plot(x_vector, stages, 'b-')
-         
-savefig('snapshots')
-
-
-
-# Store
-filename = 'maxrunup'+str(amplitude)+'.csv'
-fid = open(filename,'w')    
-s = 'Waveheight,Runup distance,Runup height\n'
-fid.write(s)
-
-s = '%.2f,%.2f,%.2f\n' %(amplitude, runup_distance, runup_height)
-fid.write(s)
-
-fid.close()
-
-# Plot max runup etc
-ion()
-figure(1)
-plot(x_vector, max_stage, 'g+',
-     x_vector, min_stage, 'b+',     
-     x_vector, topography(x_vector,(north+south)/2.), 'r-')
-xlabel('x')
-ylabel('stage')
-legend(('Max stage', 'Min stage', 'Elevation'), shadow=True, loc='upper right')
-title('Maximum stage for gauge line')
-grid()
-#axis([33000, 47000, -1000, 3000])
-savefig('max_stage')
-
-close('all')
-    
 
 
