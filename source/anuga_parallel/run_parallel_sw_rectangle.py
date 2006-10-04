@@ -116,6 +116,13 @@ domain.beta_uh_dry = 0.2
 domain.beta_vh     = 1.0
 domain.beta_vh_dry = 0.2
 
+domain.beta_w      = 0.9
+domain.beta_w_dry  = 0.9
+domain.beta_uh     = 0.9
+domain.beta_uh_dry = 0.9
+domain.beta_vh     = 0.9
+domain.beta_vh_dry = 0.9
+
 yieldstep = 0.005
 finaltime = 1.0
 

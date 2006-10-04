@@ -629,7 +629,7 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
     *xmom_vertex_values,
     *ymom_vertex_values,
 	*elevation_vertex_values;
-  PyObject *domain, *Tmp_w, *Tmp_w_dry, *Tmp_uh, *Tmp_uh_dry, *Tmp_vh, *Tmp_vh_dry;
+  PyObject *domain, *Tmp;
   //Local variables
   double a, b;//gradient vector, not stored but used to calculate vertex values from centroids
   int number_of_elements,k,k0,k1,k2,k3,k6,coord_index,i;
@@ -638,6 +638,7 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
   double dqv[3], qmin, qmax, hmin;
   double hc, h0, h1, h2;
   double beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry, beta_tmp;
+  double minimum_allowed_height;
   //provisional jumps from centroids to v'tices and safety factor re limiting
   //by which these jumps are limited
   // Convert Python arguments to C
@@ -660,41 +661,47 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
   }
 
   //get the safety factor beta_w, set in the config.py file. This is used in the limiting process
-  Tmp_w = PyObject_GetAttrString(domain, "beta_w");
-  if (!Tmp_w)
+  Tmp = PyObject_GetAttrString(domain, "beta_w");
+  if (!Tmp)
     return NULL;
-  beta_w = PyFloat_AsDouble(Tmp_w);
-  Py_DECREF(Tmp_w);
+  beta_w = PyFloat_AsDouble(Tmp);
+  Py_DECREF(Tmp);
   
-  Tmp_w_dry = PyObject_GetAttrString(domain, "beta_w_dry");
-  if (!Tmp_w_dry)
+  Tmp = PyObject_GetAttrString(domain, "beta_w_dry");
+  if (!Tmp)
     return NULL;
-  beta_w_dry = PyFloat_AsDouble(Tmp_w_dry);
-  Py_DECREF(Tmp_w_dry);
+  beta_w_dry = PyFloat_AsDouble(Tmp);
+  Py_DECREF(Tmp);
   
-  Tmp_uh = PyObject_GetAttrString(domain, "beta_uh");
-  if (!Tmp_uh)
+  Tmp = PyObject_GetAttrString(domain, "beta_uh");
+  if (!Tmp)
     return NULL;
-  beta_uh = PyFloat_AsDouble(Tmp_uh);
-  Py_DECREF(Tmp_uh);
+  beta_uh = PyFloat_AsDouble(Tmp);
+  Py_DECREF(Tmp);
   
-  Tmp_uh_dry = PyObject_GetAttrString(domain, "beta_uh_dry");
-  if (!Tmp_uh_dry)
+  Tmp = PyObject_GetAttrString(domain, "beta_uh_dry");
+  if (!Tmp)
     return NULL;
-  beta_uh_dry = PyFloat_AsDouble(Tmp_uh_dry);
-  Py_DECREF(Tmp_uh_dry); 
+  beta_uh_dry = PyFloat_AsDouble(Tmp);
+  Py_DECREF(Tmp); 
 
-  Tmp_vh = PyObject_GetAttrString(domain, "beta_vh");
-  if (!Tmp_vh)
+  Tmp = PyObject_GetAttrString(domain, "beta_vh");
+  if (!Tmp)
     return NULL;
-  beta_vh = PyFloat_AsDouble(Tmp_vh);
-  Py_DECREF(Tmp_vh);
+  beta_vh = PyFloat_AsDouble(Tmp);
+  Py_DECREF(Tmp);
   
-  Tmp_vh_dry = PyObject_GetAttrString(domain, "beta_vh_dry");
-  if (!Tmp_vh_dry)
+  Tmp = PyObject_GetAttrString(domain, "beta_vh_dry");
+  if (!Tmp)
     return NULL;
-  beta_vh_dry = PyFloat_AsDouble(Tmp_vh_dry);
-  Py_DECREF(Tmp_vh_dry);
+  beta_vh_dry = PyFloat_AsDouble(Tmp);
+  Py_DECREF(Tmp);
+  
+  Tmp = PyObject_GetAttrString(domain, "minimum_allowed_height");
+  if (!Tmp)
+    return NULL;
+  minimum_allowed_height = PyFloat_AsDouble(Tmp);
+  Py_DECREF(Tmp);  
   
   number_of_elements = stage_centroid_values -> dimensions[0];
   for (k=0; k<number_of_elements; k++) {
@@ -778,7 +785,7 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
 	  // Playing with dry wet interface
 	  hmin = qmin;
 	  beta_tmp = beta_w;
-	  if (hmin<0.001)
+	  if (hmin<minimum_allowed_height)
 		beta_tmp = beta_w_dry;
       limit_gradient(dqv,qmin,qmax,beta_tmp);//the gradient will be limited
       for (i=0;i<3;i++)
@@ -803,7 +810,7 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
       //and compute jumps from the centroid to the min and max
       find_qmin_and_qmax(dq0,dq1,dq2,&qmin,&qmax);
 	  beta_tmp = beta_uh;
-	  if (hmin<0.001)
+	  if (hmin<minimum_allowed_height)
 		beta_tmp = beta_uh_dry;
       limit_gradient(dqv,qmin,qmax,beta_tmp);//the gradient will be limited
       for (i=0;i<3;i++)
@@ -828,7 +835,7 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
       //and compute jumps from the centroid to the min and max
       find_qmin_and_qmax(dq0,dq1,dq2,&qmin,&qmax);
 	  beta_tmp = beta_vh;
-	  if (hmin<0.001)
+	  if (hmin<minimum_allowed_height)
 		beta_tmp = beta_vh_dry;
       limit_gradient(dqv,qmin,qmax,beta_tmp);//the gradient will be limited
       for (i=0;i<3;i++)
