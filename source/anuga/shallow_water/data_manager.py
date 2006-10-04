@@ -2529,7 +2529,7 @@ def ferret2sww(basename_in, basename_out = None,
                fail_on_NaN = True,
                NaN_filler = 0,
                elevation = None,
-               inverted_bathymetry = False
+               inverted_bathymetry = True
                ): #FIXME: Bathymetry should be obtained
                                   #from MOST somehow.
                                   #Alternatively from elsewhere
@@ -2584,6 +2584,7 @@ def ferret2sww(basename_in, basename_out = None,
 
     #Get NetCDF data
     if verbose: print 'Reading files %s_*.nc' %basename_in
+    #print "basename_in + '_ha.nc'",basename_in + '_ha.nc' 
     file_h = NetCDFFile(basename_in + '_ha.nc', 'r') #Wave amplitude (cm)
     file_u = NetCDFFile(basename_in + '_ua.nc', 'r') #Velocity (x) (cm/s)
     file_v = NetCDFFile(basename_in + '_va.nc', 'r') #Velocity (y) (cm/s)

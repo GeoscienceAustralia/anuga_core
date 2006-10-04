@@ -2441,7 +2441,7 @@ END CROSS-SECTIONS:
 
         #Call conversion (with zero origin)
         ferret2sww('test', verbose=False,
-                   origin = (56, 0, 0))
+                   origin = (56, 0, 0), inverted_bathymetry=False)
 
         os.remove('test_va.nc')
         os.remove('test_ua.nc')
@@ -2604,7 +2604,8 @@ END CROSS-SECTIONS:
         fid3.close()
 
         #Call conversion (with zero origin)
-        ferret2sww('test', verbose=False, origin = (56, 0, 0))
+        ferret2sww('test', verbose=False, origin = (56, 0, 0)
+                   , inverted_bathymetry=False)
 
         os.remove('test_va.nc')
         os.remove('test_ua.nc')
