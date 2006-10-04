@@ -33,7 +33,7 @@ slope = -0.02       # 1:50 Slope, reaches h=20m 1000m from western bndry, and h=
 highest_point = 6   # Highest elevation (m)
 sea_level = 0       # Mean sea level
 min_elevation = -20 # Lowest elevation (elevation of offshore flat part)
-offshore_depth=sea_level-min_elevation # offshore water depth
+offshore_depth = sea_level-min_elevation # offshore water depth
 amplitude = 0.5       # Solitary wave height H
 normalized_amplitude = amplitude/offshore_depth 
 simulation_name = 'runup_convergence'   
@@ -51,8 +51,8 @@ north = 100       # upper boundary
 #------------------------------------------------------------------------------
 
 # Structured mesh
-dx = 20           # Resolution: Length of subdivisions on x axis (length)
-dy = 20           # Resolution: Length of subdivisions on y axis (width)
+dx = 30           # Resolution: Length of subdivisions on x axis (length)
+dy = 30           # Resolution: Length of subdivisions on y axis (width)
 
 length = east-west
 width = north-south
@@ -73,7 +73,7 @@ create_mesh_from_regions(polygon,
                          filename=meshname,
                          interior_regions=[[interior_polygon,dx*dy/32]])
 domain = Domain(meshname, use_cache=True, verbose = True)
-
+domain.set_minimum_storable_height(0.01)
 
 
 domain.set_name(simulation_name)
@@ -133,13 +133,32 @@ Bts = Transmissive_Momentum_Set_Stage_boundary(domain, waveform)
 domain.set_boundary({'left': Br, 'right': Bts, 'top': Br, 'bottom': Br})
 
 
+w0 = domain.get_maximum_inundation_elevation()
+x0, y0 = domain.get_maximum_inundation_location()
+print 'Coastline elevation = %.2f at (%.2f, %.2f)' %(w0, x0, y0)
+w_i = domain.get_quantity('stage').get_values(interpolation_points=[[x0,y0]])
+print 'Interpolated elevation at (%.2f, %.2f) is %.2f' %(x0, y0, w_i) 
+
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
 
+w_max = w0
 stagestep = []
 for t in domain.evolve(yieldstep = 1, finaltime = 300):
     domain.write_time()
+
+    w = domain.get_maximum_inundation_elevation()
+    x, y = domain.get_maximum_inundation_location()
+    print '  Coastline elevation = %.2f at (%.2f, %.2f)' %(w, x, y)    
+    #w_i = domain.get_quantity('stage').get_values(interpolation_points=[[x,y]])
+    #print '  Interpolated elevation at (%.2f, %.2f) is %.2f' %(x, y, w_i)
+                                                             
+
+    if w > w_max:
+        w_max = w
+        x_max = x
+        y_max = y
 
     # Let's find the maximum runup here working directly with the quantities,
     # and stop when it has been detected.
@@ -148,7 +167,12 @@ for t in domain.evolve(yieldstep = 1, finaltime = 300):
     # 2 Workout travel time to coastline
     # 3 Find min x where h>0 over all t.
     # 4 Perhaps do this across a number of ys
-    
+
+print 'Max coastline elevation = %.2f at (%.2f, %.2f)' %(w_max, x_max, y_max)
+
+print 'Run up distance - %.2f' %sqrt( (x-x0)**2 + (y-y0)**2 )
+
+
 
 #-----------------------------------------------------------------------------
 # Interrogate solution

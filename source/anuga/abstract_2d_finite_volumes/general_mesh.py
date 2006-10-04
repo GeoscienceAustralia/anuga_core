@@ -177,7 +177,7 @@ class General_mesh:
         return self.number_of_elements
 
     def __repr__(self):
-        return 'Mesh: %d vertex coordinates, %d triangles'\
+        return 'Mesh: %d vertices, %d triangles'\
                %(self.coordinates.shape[0], len(self))
 
     def get_normals(self):
@@ -196,7 +196,7 @@ class General_mesh:
 
 
 
-    def get_vertex_coordinates(self, obj=False, absolute=False):
+    def get_vertex_coordinates(self, unique=False, obj=False, absolute=False):
         """Return all vertex coordinates.
         Return all vertex coordinates for all triangles as an Nx6 array
         (ordered as x0, y0, x1, y1, x2, y2 for each triangle)
@@ -212,6 +212,16 @@ class General_mesh:
         (To see which, switch to default absolute=True and run tests).
         """
 
+        if unique is True:
+            V = self.coordinates
+            if absolute is True:
+                if not self.geo_reference.is_absolute():
+                    V = self.geo_reference.get_absolute(V)
+
+            return V
+
+                
+
         V = self.vertex_coordinates
         if absolute is True:
             if not self.geo_reference.is_absolute():
@@ -225,7 +235,6 @@ class General_mesh:
 
                 
         if obj is True:
-
             N = V.shape[0]
             return reshape(V, (3*N, 2))
         else:    

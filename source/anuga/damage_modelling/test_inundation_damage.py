@@ -141,6 +141,8 @@ class Test_inundation_damage(unittest.TestCase):
         
     def tearDown(self):
         #print "***** tearDown  ********"
+
+        # FIXME (Ole): Sometimes this fails - is the file open or is it sometimes not created?
         os.remove(self.sww.filename)
         os.remove(self.csv_file)
 

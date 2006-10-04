@@ -4,7 +4,7 @@ import unittest, os
 from math import sqrt, pi
 
 from anuga.config import g, epsilon
-from Numeric import allclose, array, zeros, ones, Float, take
+from Numeric import allclose, alltrue, array, zeros, ones, Float, take
 from anuga.utilities.numerical_tools import mean
 
 from shallow_water_domain import *
@@ -667,8 +667,10 @@ class Test_Shallow_Water(unittest.TestCase):
 
 
 
-    def test_catching_negative_heights(self):
+    def xtest_catching_negative_heights(self):
 
+        #OBSOLETE
+        
         a = [0.0, 0.0]
         b = [0.0, 2.0]
         c = [2.0,0.0]
@@ -700,6 +702,246 @@ class Test_Shallow_Water(unittest.TestCase):
             pass
 
 
+
+    def test_get_wet_elements(self):
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0,0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0,0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe
+        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices)
+        val0 = 2.+2.0/3
+        val1 = 4.+4.0/3
+        val2 = 8.+2.0/3
+        val3 = 2.+8.0/3
+
+        zl=zr=5
+        domain.set_quantity('elevation', zl*ones( (4,3) ))
+        domain.set_quantity('stage', [[val0, val0-1, val0-2],
+                                      [val1, val1+1, val1],
+                                      [val2, val2-2, val2],
+                                      [val3-0.5, val3, val3]])
+
+
+
+        #print domain.get_quantity('elevation').get_values(location='centroids')
+        #print domain.get_quantity('stage').get_values(location='centroids')        
+        domain.check_integrity()
+
+        indices = domain.get_wet_elements()
+        assert allclose(indices, [1,2])
+
+        indices = domain.get_wet_elements(indices=[0,1,3])
+        assert allclose(indices, [1])
+        
+
+
+    def test_get_maximum_inundation_1(self):
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0,0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0,0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe
+        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices)
+
+        domain.set_quantity('elevation', lambda x, y: x+2*y) #2 4 4 6
+        domain.set_quantity('stage', 3)
+
+        domain.check_integrity()
+
+        indices = domain.get_wet_elements()
+        assert allclose(indices, [0])
+
+        q = domain.get_maximum_inundation_elevation()
+        assert allclose(q, domain.get_quantity('elevation').get_values(location='centroids')[0])
+
+        x, y = domain.get_maximum_inundation_location()
+        assert allclose([x, y], domain.get_centroid_coordinates()[0])
+
+
+    def test_get_maximum_inundation_2(self):
+        """test_get_maximum_inundation_2(self)
+
+        Test multiple wet cells with same elevation
+        """
+        
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0,0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0,0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe
+        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices)
+
+        domain.set_quantity('elevation', lambda x, y: x+2*y) #2 4 4 6
+        domain.set_quantity('stage', 4.1)
+
+        domain.check_integrity()
+
+        indices = domain.get_wet_elements()
+        assert allclose(indices, [0,1,2])
+
+        q = domain.get_maximum_inundation_elevation()
+        assert allclose(q, 4)        
+
+        x, y = domain.get_maximum_inundation_location()
+        assert allclose([x, y], domain.get_centroid_coordinates()[1])        
+        
+
+    def test_get_maximum_inundation_3(self):
+        """test_get_maximum_inundation_3(self)
+
+        Test real runup example
+        """
+
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
+
+        initial_runup_height = -0.4
+        final_runup_height = -0.3
+
+
+        #--------------------------------------------------------------
+        # Setup computational domain
+        #--------------------------------------------------------------
+        N = 5
+        points, vertices, boundary = rectangular_cross(N, N) 
+        domain = Domain(points, vertices, boundary)            
+
+        #--------------------------------------------------------------
+        # Setup initial conditions
+        #--------------------------------------------------------------
+        def topography(x,y):
+            return -x/2                             # linear bed slope
+            
+
+        domain.set_quantity('elevation', topography)       # Use function for elevation
+        domain.set_quantity('friction', 0.)                # Zero friction 
+        domain.set_quantity('stage', initial_runup_height) # Constant negative initial stage
+
+
+        #--------------------------------------------------------------
+        # Setup boundary conditions
+        #--------------------------------------------------------------
+        Br = Reflective_boundary(domain)              # Reflective wall
+        Bd = Dirichlet_boundary([final_runup_height,  # Constant inflow
+                                 0,
+                                 0])
+
+        # All reflective to begin with (still water) 
+        domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
+
+
+        #--------------------------------------------------------------
+        # Test initial inundation height
+        #--------------------------------------------------------------
+
+        indices = domain.get_wet_elements()
+        z = domain.get_quantity('elevation').\
+            get_values(location='centroids', indices=indices)
+        assert alltrue(z<initial_runup_height)
+
+        q = domain.get_maximum_inundation_elevation()
+        assert allclose(q, initial_runup_height, rtol = 1.0/N) # First order accuracy 
+
+        x, y = domain.get_maximum_inundation_location()
+
+        qref = domain.get_quantity('elevation').get_values(interpolation_points = [[x, y]])
+        assert allclose(q, qref)
+
+
+        wet_elements = domain.get_wet_elements()
+        wet_elevations = domain.get_quantity('elevation').get_values(location='centroids',
+                                                                     indices=wet_elements)
+        assert alltrue(wet_elevations<initial_runup_height)
+        assert allclose(wet_elevations, z)        
+
+
+        #print domain.get_quantity('elevation').get_maximum_value(indices=wet_elements)
+        #print domain.get_quantity('elevation').get_maximum_location(indices=wet_elements)
+        #print domain.get_quantity('elevation').get_maximum_index(indices=wet_elements)
+
+        
+        #--------------------------------------------------------------
+        # Let triangles adjust
+        #--------------------------------------------------------------
+        for t in domain.evolve(yieldstep = 0.1, finaltime = 1.0):
+            pass
+
+
+        #--------------------------------------------------------------
+        # Test inundation height again
+        #--------------------------------------------------------------
+
+        indices = domain.get_wet_elements()
+        z = domain.get_quantity('elevation').\
+            get_values(location='centroids', indices=indices)
+
+        assert alltrue(z<initial_runup_height)
+
+        q = domain.get_maximum_inundation_elevation()
+        assert allclose(q, initial_runup_height, rtol = 1.0/N) # First order accuracy
+        
+        x, y = domain.get_maximum_inundation_location()
+        qref = domain.get_quantity('elevation').get_values(interpolation_points = [[x, y]])
+        assert allclose(q, qref)        
+
+
+        #--------------------------------------------------------------
+        # Update boundary to allow inflow
+        #--------------------------------------------------------------
+        domain.modify_boundary({'right': Bd})
+
+        
+        #--------------------------------------------------------------
+        # Evolve system through time
+        #--------------------------------------------------------------
+        for t in domain.evolve(yieldstep = 0.1, finaltime = 3.0):
+            #domain.write_time()
+            pass
+    
+        #--------------------------------------------------------------
+        # Test inundation height again
+        #--------------------------------------------------------------
+
+        indices = domain.get_wet_elements()
+        z = domain.get_quantity('elevation').\
+            get_values(location='centroids', indices=indices)
+
+        assert alltrue(z<final_runup_height)
+
+        q = domain.get_maximum_inundation_elevation()
+        assert allclose(q, final_runup_height, rtol = 1.0/N) # First order accuracy 
+
+        x, y = domain.get_maximum_inundation_location()
+        qref = domain.get_quantity('elevation').get_values(interpolation_points = [[x, y]])
+        assert allclose(q, qref)        
+
+
+        wet_elements = domain.get_wet_elements()
+        wet_elevations = domain.get_quantity('elevation').get_values(location='centroids',
+                                                                     indices=wet_elements)
+        assert alltrue(wet_elevations<final_runup_height)
+        assert allclose(wet_elevations, z)        
+        
 
 
     #####################################################
@@ -2756,7 +2998,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
         #Initial condition
-        domain.set_quantity('stage', Constant_height(x_slope, 0.05))
+        domain.set_quantity('stage', expression = 'elevation + 0.05')
         domain.check_integrity()
 
         assert allclose(domain.quantities['stage'].centroid_values,
@@ -3353,7 +3595,9 @@ friction  \n \
          #print "d.geo_reference.xllcorner",domain.geo_reference.xllcorner 
          self.failUnless(domain.geo_reference.xllcorner  == 140.0,
                           "bad geo_referece")
-    #************
+
+
+         #************
 
     
          domain = Domain(fileName)
@@ -3397,11 +3641,13 @@ friction  \n \
          #print "d.geo_reference.xllcorner",domain.geo_reference.xllcorner 
          self.failUnless(domain.geo_reference.xllcorner  == 140.0,
                           "bad geo_referece")
-    #************
+         #************
          os.remove(fileName)
 
         #-------------------------------------------------------------
+        
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Shallow_Water,'test')
+    #suite = unittest.makeSuite(Test_Shallow_Water,'test_get_maximum_inundation_3')
     runner = unittest.TextTestRunner(verbosity=1)    
     runner.run(suite)

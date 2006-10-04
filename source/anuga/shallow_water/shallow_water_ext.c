@@ -341,7 +341,9 @@ int _balance_deep_and_shallow(int N,
       alpha = max( min( 2.0*hmin/dz, 1.0), 0.0 );
     else
       alpha = 1.0;  //Flat bed
-
+      
+      
+    //alpha = 1.0;  //Always deep FIXME: This actually looks good now
 
     //printf("dz = %.3f, alpha = %.8f\n", dz, alpha);
 

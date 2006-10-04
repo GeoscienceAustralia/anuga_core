@@ -70,6 +70,9 @@ $HeadURL$
 #$LastChangedRevision$
 #$LastChangedBy$
 
+from Numeric import zeros, ones, Float, array, sum, size
+from Numeric import compress, arange
+
 
 from anuga.abstract_2d_finite_volumes.domain import Domain as Generic_Domain
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
@@ -214,6 +217,67 @@ class Domain(Generic_Domain):
             assert quantity_name in self.conserved_quantities, msg
 
         self.quantities_to_be_stored = q
+
+
+
+    def get_wet_elements(self, indices=None):
+        """Return indices for elements where h > minimum_allowed_height
+
+        Optional argument:
+            indices is the set of element ids that the operation applies to.
+
+        Usage:
+            indices = get_wet_elements()
+
+        Note, centroid values are used for this operation            
+        """
+
+        # Water depth below which it is considered to be 0 in the model
+        # FIXME (Ole): Allow this to be specified as a keyword argument as well
+        from anuga.config import minimum_allowed_height
+        
+
+        elevation = self.get_quantity('elevation').get_values(location='centroids', indices=indices)
+        stage = self.get_quantity('stage').get_values(location='centroids', indices=indices)                
+        depth = stage - elevation
+
+        # Select indices for which depth > 0
+        wet_indices = compress(depth > minimum_allowed_height, arange(len(depth)))
+        return wet_indices 
+
+
+    def get_maximum_inundation_elevation(self, indices=None):
+        """Return highest elevation where h > 0
+
+        Optional argument:
+            indices is the set of element ids that the operation applies to.
+
+        Usage:
+            q = get_maximum_inundation_elevation()
+
+        Note, centroid values are used for this operation            
+        """
+
+        wet_elements = self.get_wet_elements(indices)
+        return self.get_quantity('elevation').get_maximum_value(indices=wet_elements)
+
+
+    def get_maximum_inundation_location(self, indices=None):
+        """Return highest elevation where h > 0
+
+        Optional argument:
+            indices is the set of element ids that the operation applies to.
+
+        Usage:
+            q = get_maximum_inundation_elevation()
+
+        Note, centroid values are used for this operation            
+        """
+
+        wet_elements = self.get_wet_elements(indices)
+        return self.get_quantity('elevation').get_maximum_location(indices=wet_elements)    
+
+
 
 
     def initialise_visualiser(self,scale_z=1.0,rect=None):
@@ -399,8 +463,6 @@ def rotate(q, normal, direction = 1):
     This function is specific to the shallow water wave equation
     """
 
-    from Numeric import zeros, Float
-
     assert len(q) == 3,\
            'Vector of conserved quantities must have length 3'\
            'for 2D shallow water equation'
@@ -450,7 +512,6 @@ def flux_function(normal, ql, qr, zl, zr):
 
     from anuga.config import g, epsilon
     from math import sqrt
-    from Numeric import array
 
     #Align momentums with x-axis
     q_left  = rotate(ql, normal, direction = 1)
@@ -538,7 +599,6 @@ def compute_fluxes(domain):
     """
 
     import sys
-    from Numeric import zeros, Float
 
     N = domain.number_of_elements
 
@@ -613,7 +673,6 @@ def extrapolate_second_order_sw_c(domain):
     """Wrapper calling C version of extrapolate_second_order_sw
     """
     import sys
-    from Numeric import zeros, Float
 
     N = domain.number_of_elements
 
@@ -642,7 +701,6 @@ def compute_fluxes_c(domain):
     """
 
     import sys
-    from Numeric import zeros, Float
 
     N = domain.number_of_elements
 
@@ -793,8 +851,6 @@ def h_limiter(domain):
     this module rather than within quantity.py
     """
 
-    from Numeric import zeros, Float
-
     N = domain.number_of_elements
     beta_h = domain.beta_h
 
@@ -864,8 +920,6 @@ def h_limiter_c(domain):
 
     Wrapper for c-extension
     """
-
-    from Numeric import zeros, Float
 
     N = domain.number_of_elements
     beta_h = domain.beta_h
@@ -1045,7 +1099,6 @@ class Reflective_boundary(Boundary):
         self.ymom    = domain.quantities['ymomentum'].edge_values
         self.normals = domain.normals
 
-        from Numeric import zeros, Float
         self.conserved_quantities = zeros(3, Float)
 
     def __repr__(self):
@@ -1202,8 +1255,6 @@ Spatio_temporal_boundary = File_boundary
 def gravity(domain):
     """Apply gravitational pull in the presence of bed slope
     """
-
-    from Numeric import zeros, Float, array, sum
 
     xmom = domain.quantities['xmomentum'].explicit_update
     ymom = domain.quantities['ymomentum'].explicit_update
@@ -1379,9 +1430,6 @@ def check_forcefield(f):
        as x and y
     2: a scalar
     """
-
-    from Numeric import ones, Float, array
-
 
     if callable(f):
         N = 3

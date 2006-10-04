@@ -18,6 +18,22 @@ class Test_General_Mesh(unittest.TestCase):
     def tearDown(self):
         pass
 
+
+    def test_get_vertex_coordinates(self):
+        from mesh_factory import rectangular
+        from Numeric import zeros, Float
+
+        #Create basic mesh
+        points, vertices, boundary = rectangular(1, 3)
+        domain = General_mesh(points, vertices, boundary)
+
+        assert allclose(domain.get_vertex_coordinates(unique=True), domain.coordinates)
+
+        #assert allclose(domain.get_vertex_coordinates(), ...TODO
+        #assert allclose(domain.get_vertex_coordinates(absolute=True), ...TODO
+        
+        
+
     def test_get_vertex_values(self):
         """Get connectivity based on triangle lists.
         """
@@ -65,6 +81,9 @@ class Test_General_Mesh(unittest.TestCase):
         unique_vertices = domain.get_unique_vertices([0,4])
         unique_vertices.sort()
         assert unique_vertices == [0,2,4,5,6,7]
+
+
+        
 
 #-------------------------------------------------------------
 if __name__ == "__main__":

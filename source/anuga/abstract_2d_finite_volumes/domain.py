@@ -317,6 +317,8 @@ class Domain(Mesh):
         name: Name of quantity
 
         See methods inside the quantity object for more options
+
+        FIXME: clean input args
         """
 
         return self.quantities[name] #.get_values( location, indices = indices)
@@ -497,20 +499,6 @@ class Domain(Mesh):
     def write_time(self):
         print self.timestepping_statistics()
 
-        #Old version
-        #if self.min_timestep == self.max_timestep:
-        #    print 'Time = %.4f, delta t = %.8f, steps=%d (%d)'\
-        #          %(self.time, self.min_timestep, self.number_of_steps,
-        #            self.number_of_first_order_steps)
-        #elif self.min_timestep > self.max_timestep:
-        #    print 'Time = %.4f, steps=%d (%d)'\
-        #          %(self.time, self.number_of_steps,
-        #            self.number_of_first_order_steps)
-        #else:
-        #    print 'Time = %.4f, delta t in [%.8f, %.8f], steps=%d (%d)'\
-        #          %(self.time, self.min_timestep,
-        #            self.max_timestep, self.number_of_steps,
-        #            self.number_of_first_order_steps)
 
     def timestepping_statistics(self):
         """Return string with time stepping statistics for printing or logging

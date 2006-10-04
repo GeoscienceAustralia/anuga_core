@@ -76,13 +76,15 @@ class FitInterpolate:
         #Convert input to Numeric arrays
         triangles = ensure_numeric(triangles, Int)
         vertex_coordinates = ensure_absolute(vertex_coordinates,
-                                         geo_reference = mesh_origin)
+                                             geo_reference = mesh_origin)
 
         #Don't pass geo_reference to mesh.  It doesn't work.
         self.mesh = Mesh(vertex_coordinates, triangles)
         self.mesh.check_integrity()
         self.root = build_quadtree(self.mesh,
-                              max_points_per_cell = max_vertices_per_cell)
+                                   max_points_per_cell = max_vertices_per_cell)
         #print "self.root",self.root.show() 
         
         
+    def __repr__(self):
+        return 'Interpolation object based on: ' + repr(self.mesh)

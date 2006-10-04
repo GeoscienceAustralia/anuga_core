@@ -110,6 +110,91 @@ class Test_Quantity(unittest.TestCase):
                                                [4.5, 4.5, 0.],
                                                [3.0, -1.5, -1.5]])
 
+    def test_get_maximum_1(self):
+        quantity = Conserved_quantity(self.mesh4,
+                                      [[1,2,3], [5,5,5], [0,0,9], [-6, 3, 3]])
+        assert allclose(quantity.centroid_values, [2., 5., 3., 0.]) #Centroids
+
+        v = quantity.get_maximum_value()
+        assert v == 5
+
+        i = quantity.get_maximum_index()
+        assert i == 1
+        
+        x,y = quantity.get_maximum_location()
+        xref, yref = 4.0/3, 4.0/3
+        assert x == xref
+        assert y == yref
+
+        v = quantity.get_values(interpolation_points = [[x,y]])
+        assert allclose(v, 5)
+
+    def test_get_maximum_2(self):
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0,0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0,0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe
+        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices)
+
+        quantity = Quantity(domain)
+        quantity.set_values(lambda x, y: x+2*y) #2 4 4 6
+        
+        v = quantity.get_maximum_value()
+        assert v == 6
+
+        i = quantity.get_maximum_index()
+        assert i == 3
+        
+        x,y = quantity.get_maximum_location()
+        xref, yref = 2.0/3, 8.0/3
+        assert x == xref
+        assert y == yref
+
+        v = quantity.get_values(interpolation_points = [[x,y]])
+        assert allclose(v, 6)
+
+
+        #Multiple locations for maximum -
+        #Test that the algorithm picks the first occurrence        
+        v = quantity.get_maximum_value(indices=[0,1,2])
+        assert allclose(v, 4)
+
+        i = quantity.get_maximum_index(indices=[0,1,2])
+        assert i == 1
+        
+        x,y = quantity.get_maximum_location(indices=[0,1,2])
+        xref, yref = 4.0/3, 4.0/3
+        assert x == xref
+        assert y == yref
+
+        v = quantity.get_values(interpolation_points = [[x,y]])
+        assert allclose(v, 4)        
+
+        # More test of indices......
+        v = quantity.get_maximum_value(indices=[2,3])
+        assert allclose(v, 6)
+
+        i = quantity.get_maximum_index(indices=[2,3])
+        assert i == 3
+        
+        x,y = quantity.get_maximum_location(indices=[2,3])
+        xref, yref = 2.0/3, 8.0/3
+        assert x == xref
+        assert y == yref
+
+        v = quantity.get_values(interpolation_points = [[x,y]])
+        assert allclose(v, 6)        
+
+        
+
     def test_boundary_allocation(self):
         quantity = Conserved_quantity(self.mesh4,
                             [[1,2,3], [5,5,5], [0,0,9], [-6, 3, 3]])
@@ -1387,6 +1472,144 @@ class Test_Quantity(unittest.TestCase):
         #print "quantity.centroid_values",quantity.centroid_values
         #print "quantity.get_values(location = 'centroids') ",\
         #      quantity.get_values(location = 'centroids')
+
+
+
+
+    def test_get_values_2(self):
+        """Different mesh (working with domain object) - also check centroids.
+        """
+
+        
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0,0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0,0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe
+        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices)
+
+        quantity = Quantity(domain)
+        quantity.set_values(lambda x, y: x+2*y) #2 4 4 6
+        
+        assert allclose(quantity.get_values(location='centroids'), [2,4,4,6])
+        assert allclose(quantity.get_values(location='centroids', indices=[1,3]), [4,6])
+
+
+        assert allclose(quantity.get_values(location='vertices'), [[4,0,2],
+                                                                   [4,2,6],
+                                                                   [6,2,4],
+                                                                   [8,4,6]])
+        
+        assert allclose(quantity.get_values(location='vertices', indices=[1,3]), [[4,2,6],
+                                                                                  [8,4,6]])
+
+
+        assert allclose(quantity.get_values(location='edges'), [[1,3,2],
+                                                                [4,5,3],
+                                                                [3,5,4],
+                                                                [5,7,6]])
+        assert allclose(quantity.get_values(location='edges', indices=[1,3]),
+                        [[4,5,3],
+                         [5,7,6]])        
+
+        # Check averaging over vertices
+        #a: 0
+        #b: (4+4+4)/3
+        #c: (2+2+2)/3
+        #d: 8
+        #e: (6+6+6)/3        
+        #f: 4
+        assert(quantity.get_values(location='unique vertices'), [0, 4, 2, 8, 6, 4])        
+                                                                                  
+        
+
+
+
+
+    def test_get_interpolated_values(self):
+
+        from mesh_factory import rectangular
+        from shallow_water import Domain
+        from Numeric import zeros, Float
+
+        #Create basic mesh
+        points, vertices, boundary = rectangular(1, 3)
+        domain = Domain(points, vertices, boundary)
+
+        #Constant values
+        quantity = Quantity(domain,[[0,0,0],[1,1,1],[2,2,2],[3,3,3],
+                                    [4,4,4],[5,5,5]])
+
+        
+
+        # Get interpolated values at centroids
+        interpolation_points = domain.get_centroid_coordinates()
+        answer = quantity.get_values(location='centroids')
+
+        
+        #print quantity.get_values(points=interpolation_points)
+        assert allclose(answer, quantity.get_values(interpolation_points=interpolation_points))
+
+
+        #Arbitrary values
+        quantity = Quantity(domain,[[0,1,2],[3,1,7],[2,1,2],[3,3,7],
+                                    [1,4,-9],[2,5,0]])
+
+
+        # Get interpolated values at centroids
+        interpolation_points = domain.get_centroid_coordinates()
+        answer = quantity.get_values(location='centroids')
+        #print answer
+        #print quantity.get_values(points=interpolation_points)
+        assert allclose(answer, quantity.get_values(interpolation_points=interpolation_points))        
+                        
+
+        #FIXME TODO
+        #indices = [0,5,3]
+        #answer = [0.5,1,5]
+        #assert allclose(answer,
+        #                quantity.get_values(indices=indices, \
+        #                                    location = 'unique vertices'))
+
+
+
+
+    def test_get_interpolated_values_2(self):
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0,0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0,0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe
+        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices)
+
+        quantity = Quantity(domain)
+        quantity.set_values(lambda x, y: x+2*y) #2 4 4 6
+
+        #First pick one point
+        x, y = 2.0/3, 8.0/3
+        v = quantity.get_values(interpolation_points = [[x,y]])
+        assert allclose(v, 6)        
+
+        # Then another to test that algorithm won't blindly
+        # reuse interpolation matrix
+        x, y = 4.0/3, 4.0/3
+        v = quantity.get_values(interpolation_points = [[x,y]])
+        assert allclose(v, 4)        
+
+
+
 
     def test_getting_some_vertex_values(self):
         """

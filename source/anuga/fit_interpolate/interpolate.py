@@ -75,19 +75,21 @@ class Interpolate (FitInterpolate):
           Note: Don't supply a vertex coords as a geospatial object and
               a mesh origin, since geospatial has its own mesh origin.
         """
+
+        # FIXME (Ole): Need an input check
         
         # Initialise variabels
         self._A_can_be_reused = False
         self._point_coordinates = None
         
         FitInterpolate.__init__(self,
-                 vertex_coordinates,
-                 triangles,
-                 mesh_origin,
-                 verbose,
-                 max_vertices_per_cell)
+                                vertex_coordinates,
+                                triangles,
+                                mesh_origin,
+                                verbose,
+                                max_vertices_per_cell)
 
-     # FIXME: What is a good start_blocking_len value?
+    # FIXME: What is a good start_blocking_len value?
     def interpolate(self, f, point_coordinates = None,
                     start_blocking_len = 500000, verbose=False):
         """Interpolate mesh data f to determine values, z, at points.
@@ -113,15 +115,22 @@ class Interpolate (FitInterpolate):
 	Output:
 	  Interpolated values at inputted points (z).
         """
-        #print "point_coordinates interpolate.interpolate",point_coordinates 
-        if isinstance(point_coordinates,Geospatial_data):
+
+        
+        # FIXME (Ole): Need an input check that dimensions are compatible
+
+        # FIXME (Ole): Why is the interpolation matrix rebuilt everytime the method is called
+        # even if interpolation points are unchanged.
+        
+        #print "point_coordinates interpolate.interpolate", point_coordinates 
+        if isinstance(point_coordinates, Geospatial_data):
             point_coordinates = point_coordinates.get_data_points( \
                 absolute = True)
-        
+
         # Can I interpolate, based on previous point_coordinates?
         if point_coordinates is None:
             if self._A_can_be_reused is True and \
-            len(self._point_coordinates) < start_blocking_len: 
+                   len(self._point_coordinates) < start_blocking_len:
                 z = self._get_point_data_z(f,
                                            verbose=verbose)
             elif self._point_coordinates is not None:
@@ -133,9 +142,8 @@ class Interpolate (FitInterpolate):
                 #There are no good point_coordinates. import sys; sys.exit()
                 msg = 'ERROR (interpolate.py): No point_coordinates inputted'
                 raise Exception(msg)
-            
-            
-        if point_coordinates is not None:
+        
+        if point_coordinates is not None:   
             self._point_coordinates = point_coordinates
             if len(point_coordinates) < start_blocking_len or \
                    start_blocking_len == 0:
@@ -143,9 +151,10 @@ class Interpolate (FitInterpolate):
                 z = self.interpolate_block(f, point_coordinates,
                                            verbose=verbose)
             else:
+                #print 'BLOCKING'
                 #Handle blocking
                 self._A_can_be_reused = False
-                start=0
+                start = 0
                 # creating a dummy array to concatenate to.
                 
                 f = ensure_numeric(f, Float)
@@ -155,9 +164,9 @@ class Interpolate (FitInterpolate):
                 else:
                     z = zeros((0,))
                     
-                for end in range(start_blocking_len
-                                 ,len(point_coordinates)
-                                 ,start_blocking_len):
+                for end in range(start_blocking_len,
+                                 len(point_coordinates),
+                                 start_blocking_len):
                     t = self.interpolate_block(f, point_coordinates[start:end],
                                                verbose=verbose)
                     #print "t", t
@@ -169,6 +178,7 @@ class Interpolate (FitInterpolate):
                                            verbose=verbose)
                 z = concatenate((z,t))
         return z
+
 
     def interpolate_block(self, f, point_coordinates = None, verbose=False):
         """
@@ -183,8 +193,8 @@ class Interpolate (FitInterpolate):
             point_coordinates = point_coordinates.get_data_points( \
                 absolute = True)
         if point_coordinates is not None:
-            self._A =self._build_interpolation_matrix_A(point_coordinates,
-                                                       verbose=verbose)
+            self._A = self._build_interpolation_matrix_A(point_coordinates,
+                                                         verbose=verbose)
         return self._get_point_data_z(f)
 
     def _get_point_data_z(self, f, verbose=False):
@@ -205,8 +215,8 @@ class Interpolate (FitInterpolate):
 
 
     def _build_interpolation_matrix_A(self,
-                                     point_coordinates,
-                                     verbose = False):
+                                      point_coordinates,
+                                      verbose = False):
         """Build n x m interpolation matrix, where
         n is the number of data points and
         m is the number of basis functions phi_k (one per vertex)
@@ -223,7 +233,7 @@ class Interpolate (FitInterpolate):
         Point_coordindates and mesh vertices have the same origin.
         """
 
-
+        #print 'Building interpolation matrix'
         
         #Convert point_coordinates to Numeric arrays, in case it was a list.
         point_coordinates = ensure_numeric(point_coordinates, Float)
@@ -485,11 +495,11 @@ class Interpolation_function:
 
             #Build interpolator
             interpol = Interpolate(vertex_coordinates,
-                                     triangles,
-                                     #point_coordinates = \
-                                     #self.interpolation_points,
-                                     #alpha = 0,
-                                     verbose = verbose)
+                                   triangles,
+                                   #point_coordinates = \
+                                   #self.interpolation_points,
+                                   #alpha = 0,
+                                   verbose = verbose)
 
             if verbose: print 'Interpolate'
 	    for i, t in enumerate(self.time):
@@ -500,8 +510,8 @@ class Interpolation_function:
                 for name in quantity_names:
                     if len(quantities[name].shape) == 2:
                         result = interpol.interpolate(quantities[name][i,:],
-                                     point_coordinates = \
-                                     self.interpolation_points)
+                                                      point_coordinates = \
+                                                      self.interpolation_points)
                     else:
                        #Assume no time dependency 
                        result = interpol.interpolate(quantities[name][:],

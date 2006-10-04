@@ -174,8 +174,8 @@ class Mesh(General_mesh):
         if verbose: print 'Mesh: Done'                
 
     def __repr__(self):
-        return 'Mesh: %d vertex_coordinates, %d triangles, %d boundary segments'\
-               %(self.coordinates.shape[0], len(self), len(self.boundary))
+        return General_mesh.__repr__(self) + ', %d boundary segments'\
+               %(len(self.boundary))
 
 
     def set_to_inscribed_circle(self,safety_factor = 1):

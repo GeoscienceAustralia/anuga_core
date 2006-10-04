@@ -105,6 +105,62 @@ class Test_Interpolate(unittest.TestCase):
         assert allclose(interp._build_interpolation_matrix_A(data).todense(),
                         [[1./3, 1./3, 1./3]])
 
+
+
+    def test_simple_interpolation_example(self):
+        
+        from mesh_factory import rectangular
+        from shallow_water import Domain
+        from Numeric import zeros, Float
+        from abstract_2d_finite_volumes.quantity import Quantity
+
+        #Create basic mesh
+        points, vertices, boundary = rectangular(1, 3)
+
+        #Create shallow water domain
+        domain = Domain(points, vertices, boundary)
+
+        #---------------
+        #Constant values
+        #---------------        
+        quantity = Quantity(domain,[[0,0,0],[1,1,1],[2,2,2],[3,3,3],
+                                    [4,4,4],[5,5,5]])
+
+
+        x, y, vertex_values, triangles = quantity.get_vertex_values(xy=True, smooth=False)
+        vertex_coordinates = concatenate( (x[:, NewAxis], y[:, NewAxis]), axis=1 )
+        # FIXME: This concat should roll into get_vertex_values
+
+
+        # Get interpolated values at centroids
+        interpolation_points = domain.get_centroid_coordinates()
+        answer = quantity.get_values(location='centroids')
+
+        I = Interpolate(vertex_coordinates, triangles)
+        result = I.interpolate(vertex_values, interpolation_points)
+        assert allclose(result, answer)
+
+
+        #---------------
+        #Variable values
+        #---------------
+        quantity = Quantity(domain,[[0,1,2],[3,1,7],[2,1,2],[3,3,7],
+                                    [1,4,-9],[2,5,0]])
+        
+        x, y, vertex_values, triangles = quantity.get_vertex_values(xy=True, smooth=False)
+        vertex_coordinates = concatenate( (x[:, NewAxis], y[:, NewAxis]), axis=1 )
+        # FIXME: This concat should roll into get_vertex_values
+
+
+        # Get interpolated values at centroids
+        interpolation_points = domain.get_centroid_coordinates()
+        answer = quantity.get_values(location='centroids')
+
+        I = Interpolate(vertex_coordinates, triangles)
+        result = I.interpolate(vertex_values, interpolation_points)
+        assert allclose(result, answer)        
+        
+
     def test_quad_tree(self):
         p0 = [-10.0, -10.0]
         p1 = [20.0, -10.0]
@@ -769,7 +825,7 @@ class Test_Interpolate(unittest.TestCase):
         assert allclose(z, answer)
 
         
-    def test_interpolate_reuse(self):
+    def test_interpolate_reuse_if_None(self):
         a = [-1.0, 0.0]
         b = [3.0, 4.0]
         c = [4.0, 1.0]
@@ -826,6 +882,53 @@ class Test_Interpolate(unittest.TestCase):
             z = interp.interpolate(f)
         except:
             pass
+        
+    def xxtest_interpolate_reuse_if_same(self):
+
+        # This on tests that repeated identical interpolation
+        # points makes use of precomputed matrix (Ole)
+        # This is not really a test and is disabled for now
+        
+        a = [-1.0, 0.0]
+        b = [3.0, 4.0]
+        c = [4.0, 1.0]
+        d = [-3.0, 2.0] #3
+        e = [-1.0, -2.0]
+        f = [1.0, -2.0] #5
+
+        vertices = [a, b, c, d,e,f]
+        triangles = [[0,1,3], [1,0,2], [0,4,5], [0,5,2]] #abd bac aef afc
+
+
+        point_coords = [[-2.0, 2.0],
+                        [-1.0, 1.0],
+                        [0.0, 2.0],
+                        [1.0, 1.0],
+                        [2.0, 1.0],
+                        [0.0, 0.0],
+                        [1.0, 0.0],
+                        [0.0, -1.0],
+                        [-0.2, -0.5],
+                        [-0.9, -1.5],
+                        [0.5, -1.9],
+                        [3.0, 1.0]]
+
+        interp = Interpolate(vertices, triangles)
+        f = array([linear_function(vertices),2*linear_function(vertices) ])
+        f = transpose(f)
+        z = interp.interpolate(f, point_coords)
+        answer = [linear_function(point_coords),
+                  2*linear_function(point_coords) ]
+        answer = transpose(answer)
+
+        assert allclose(z, answer)
+        assert allclose(interp._A_can_be_reused, True)
+
+
+        z = interp.interpolate(f)    # None
+        assert allclose(z, answer)        
+        z = interp.interpolate(f, point_coords) # Repeated (not really a test)        
+        assert allclose(z, answer)
         
 
 
@@ -1468,7 +1571,7 @@ class Test_Interpolate(unittest.TestCase):
 if __name__ == "__main__":
 
     suite = unittest.makeSuite(Test_Interpolate,'test')
-    #suite = unittest.makeSuite(Test_Interpolate,'test_interpolate_sww2csv')
+    #suite = unittest.makeSuite(Test_Interpolate,'test_interpolation_function_outside_point')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
 

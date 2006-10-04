@@ -27,6 +27,7 @@ def create_mesh_from_regions(bounding_polygon,
                              poly_geo_reference=None,
                              mesh_geo_reference=None,
                              minimum_triangle_angle=28.0,
+                             use_cache=False,
                              verbose=True):
     """Create mesh from bounding polygons, and resolutions.
 

@@ -165,8 +165,7 @@ domain.set_boundary({'left': Bd, 'right': Br, 'bottom': Br, 'top': Br})
 #Initial condition
 #
 print 'Initial condition'
-domain.set_quantity('stage', Constant_height(Z, 0.0))
-#domain.set_quantity('stage', Constant_stage(inflow_stage/2.0))
+domain.set_quantity('stage', expression='Z + 0.0')
 
 #Evolve
 import time

@@ -14,13 +14,14 @@ To create:
    Otherwise raise an exception
 """
 
+from Numeric import array, zeros, Float, concatenate, NewAxis, argmax, allclose
+from anuga.utilities.numerical_tools import ensure_numeric
 
 class Quantity:
 
     def __init__(self, domain, vertex_values=None):
 
         from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
-        from Numeric import array, zeros, Float
 
         msg = 'First argument in Quantity.__init__ '
         msg += 'must be of class Mesh (or a subclass thereof)'
@@ -618,9 +619,6 @@ class Quantity:
         """
 
 
-        from Numeric import Float
-        from anuga.utilities.numerical_tools import ensure_numeric
-        #from anuga.abstract_2d_finite_volumes.least_squares import fit_to_mesh
         from anuga.fit_interpolate.fit import fit_to_mesh
         from anuga.coordinate_transforms.geo_reference import Geo_reference
 
@@ -753,21 +751,138 @@ class Quantity:
 
 
 
-    def get_values(self, location='vertices', indices = None):
+   
+    
+    def get_maximum_index(self, indices=None):
+        """Return index for maximum value of quantity (on centroids)
+
+        Optional argument:
+            indices is the set of element ids that the operation applies to.
+
+        Usage:
+            i = get_maximum_index()
+
+        Notes:
+            We do not seek the maximum at vertices as each vertex can
+            have multiple values - one for each triangle sharing it.
+
+            If there are multiple cells with same maximum value, the first cell
+            encountered in the triangle array is returned.
+        """
+
+        V = self.get_values(location='centroids', indices=indices)
+
+        # Always return absolute indices
+        i = argmax(V)
+
+        if indices is None:
+            return i
+        else:
+            return indices[i]
+
+        
+    def get_maximum_value(self, indices=None):
+        """Return maximum value of quantity (on centroids)
+
+        Optional argument:
+            indices is the set of element ids that the operation applies to.
+
+        Usage:
+            v = get_maximum_value()
+
+        Note, we do not seek the maximum at vertices as each vertex can
+        have multiple values - one for each triangle sharing it            
+        """
+
+
+        i = self.get_maximum_index(indices)
+        V = self.get_values(location='centroids') #, indices=indices)
+        
+        return V[i]
+        
+
+    def get_maximum_location(self, indices=None):
+        """Return location of maximum value of quantity (on centroids)
+
+        Optional argument:
+            indices is the set of element ids that the operation applies to.
+
+        Usage:
+            x, y = get_maximum_location()
+
+
+        Notes:
+            We do not seek the maximum at vertices as each vertex can
+            have multiple values - one for each triangle sharing it.
+
+            If there are multiple cells with same maximum value, the first cell
+            encountered in the triangle array is returned.            
+        """
+
+        i = self.get_maximum_index(indices)
+        x, y = self.domain.get_centroid_coordinates()[i]
+
+        return x, y
+
+
+
+
+    def get_interpolated_values(self, interpolation_points):
+
+        # Interpolation object based on internal (discontinuous triangles)
+        x, y, vertex_values, triangles = self.get_vertex_values(xy=True, smooth=False)
+        # FIXME: This concat should roll into get_vertex_values
+        vertex_coordinates = concatenate( (x[:, NewAxis], y[:, NewAxis]), axis=1 )
+
+        can_reuse = False
+        if hasattr(self, 'interpolation_object'):
+            # Reuse to save time
+            I = self.interpolation_object
+
+            if allclose(interpolation_points, I._point_coordinates):
+                can_reuse = True
+                
+
+        if can_reuse is True:        
+            result = I.interpolate(vertex_values) # Use absence to indicate reuse
+        else:    
+            from anuga.fit_interpolate.interpolate import Interpolate
+
+            # Create interpolation object with matrix
+            I = Interpolate(vertex_coordinates, triangles)
+            self.interpolation_object = I
+
+            # Call interpolate with points the first time
+            interpolation_points = ensure_numeric(interpolation_points, Float)                        
+            result = I.interpolate(vertex_values, interpolation_points)            
+
+        return result
+
+
+    def get_values(self, interpolation_points=None, location='vertices', indices = None):
         """get values for quantity
 
         return X, Compatible list, Numeric array (see below)
+        interpolation_points: List of x, y coordinates where value is sought (using interpolation)
+                If points are given, values of location and indices are ignored
         location: Where values are to be stored.
                   Permissible options are: vertices, edges, centroid
                   and unique vertices. Default is 'vertices'
 
-        In case of location == 'centroids' the dimension values must
-        be a list of a Numerical array of length N, N being the number
-        of elements. Otherwise it must be of dimension Nx3
 
         The returned values with be a list the length of indices
-        (N if indices = None).  Each value will be a list of the three
-        vertex values for this quantity.
+        (N if indices = None).
+
+        In case of location == 'centroids' the dimension of returned values will
+        be a list or a Numerical array of length N, N being the number
+        of elements.
+        
+        In case of location == 'vertices' or 'edges' the dimension of returned values will
+        be of dimension Nx3
+
+        In case of location == 'unique vertices' the average value at each vertex will be
+        returned and the dimension of returned values will be a 1d array of length "number of vertices" 
+        
 
         Indices is the set of element ids that the operation applies to.
 
@@ -776,6 +891,11 @@ class Quantity:
 
         """
         from Numeric import take
+
+        if interpolation_points is not None:
+            return self.get_interpolated_values(interpolation_points)
+        
+        
 
         if location not in ['vertices', 'centroids', 'edges', 'unique vertices']:
             msg = 'Invalid location: %s' %location
@@ -809,6 +929,9 @@ class Quantity:
 
                 # Go through all triangle, vertex pairs
                 # Average the values
+                
+                # FIXME (Ole): Should we merge this with get_vertex_values
+                # and use the concept of a reduction operator?
                 sum = 0
                 for triangle_id, vertex_id in triangles:
                     sum += self.vertex_values[triangle_id, vertex_id]
@@ -939,12 +1062,12 @@ class Quantity:
         if precision is None:
             precision = Float
 
-        if reduction is None:
-            reduction = self.domain.reduction
-
         #Create connectivity
 
         if smooth == True:
+            
+            if reduction is None:
+                reduction = self.domain.reduction
 
             V = self.domain.get_vertices()
             N = len(self.domain.vertexlist)
