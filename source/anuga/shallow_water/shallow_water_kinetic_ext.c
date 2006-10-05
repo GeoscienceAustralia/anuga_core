@@ -1102,7 +1102,7 @@ PyObject *compute_fluxes(PyObject *self, PyObject *args) {
       normal[0] = ((double *) normals -> data)[ki2];
       normal[1] = ((double *) normals -> data)[ki2+1];
       //Edge flux computation
-      flux_function_kinetic(ql, qr, zl, zr,
+      flux_function_central(ql, qr, zl, zr,
 		    normal[0], normal[1],
 		    epsilon, g,
 		    edgeflux, &max_speed);

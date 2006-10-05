@@ -125,7 +125,7 @@ int limit_gradient(double *dqv, double qmin, double qmax, double beta_w){
 }
 
 // Computational function for flux computation (using stage w=z+h)
-int flux_function(double *q_left, double *q_right,
+int flux_function_central(double *q_left, double *q_right,
 		  double z_left, double z_right,
 		  double n1, double n2,
 		  double epsilon, double g,
@@ -231,6 +231,130 @@ int flux_function(double *q_left, double *q_right,
   }
   return 0;
 }
+
+double erfcc(double x){
+    double z,t,result;
+
+    z=fabs(x);
+    t=1.0/(1.0+0.5*z);
+    result=t*exp(-z*z-1.26551223+t*(1.00002368+t*(.37409196+
+         t*(.09678418+t*(-.18628806+t*(.27886807+t*(-1.13520398+
+         t*(1.48851587+t*(-.82215223+t*.17087277)))))))));
+    if (x < 0.0) result = 2.0-result;
+
+    return result;
+    }
+
+
+
+// Computational function for flux computation (using stage w=z+h)
+int flux_function_kinetic(double *q_left, double *q_right,
+		  double z_left, double z_right,
+		  double n1, double n2,
+		  double epsilon, double g,
+		  double *edgeflux, double *max_speed) {
+
+  /*Compute fluxes between volumes for the shallow water wave equation
+    cast in terms of the 'stage', w = h+z using
+    the 'central scheme' as described in
+
+    Zhang et. al., Advances in Water Resources, 26(6), 2003, 635-647.
+  */
+
+  int i;
+
+  double w_left, h_left, uh_left, vh_left, u_left, F_left;
+  double w_right, h_right, uh_right, vh_right, u_right, F_right;
+  double s_min, s_max, soundspeed_left, soundspeed_right;
+  double z;
+  double q_left_copy[3], q_right_copy[3];
+
+
+  //Copy conserved quantities to protect from modification
+  for (i=0; i<3; i++) {
+    q_left_copy[i] = q_left[i];
+    q_right_copy[i] = q_right[i];
+  }
+
+  //Align x- and y-momentum with x-axis
+  _rotate(q_left_copy, n1, n2);
+  _rotate(q_right_copy, n1, n2);
+
+  z = (z_left+z_right)/2; //Take average of field values
+
+  //Compute speeds in x-direction
+  w_left = q_left_copy[0];              // h+z
+  h_left = w_left-z;
+  uh_left = q_left_copy[1];
+
+  if (h_left < epsilon) {
+    h_left = 0.0;  //Could have been negative
+    u_left = 0.0;
+  } else {
+    u_left = uh_left/h_left;
+  }
+
+  w_right = q_right_copy[0];
+  h_right = w_right-z;
+  uh_right = q_right_copy[1];
+
+  if (h_right < epsilon) {
+    h_right = 0.0; //Could have been negative
+    u_right = 0.0;
+  } else {
+    u_right = uh_right/h_right;
+  }
+
+  //Momentum in y-direction
+  vh_left  = q_left_copy[2];
+  vh_right = q_right_copy[2];
+
+
+  //Maximal and minimal wave speeds
+  soundspeed_left  = sqrt(g*h_left);
+  soundspeed_right = sqrt(g*h_right);
+
+  s_max = max(u_left+soundspeed_left, u_right+soundspeed_right);
+  if (s_max < 0.0) s_max = 0.0;
+
+  s_min = min(u_left-soundspeed_left, u_right-soundspeed_right);
+  if (s_min > 0.0) s_min = 0.0;
+
+
+  F_left  = 0.0;
+  F_right = 0.0;
+  if (h_left > 0.0) F_left = u_left/sqrt(g*h_left);
+  if (h_right > 0.0) F_right = u_right/sqrt(g*h_right);
+
+  for (i=0; i<3; i++) edgeflux[i] = 0.0;
+  *max_speed = 0.0;
+
+  edgeflux[0] = h_left*u_left/2.0*erfcc(-F_left) +  \
+          h_left*sqrt(g*h_left)/2.0/sqrt(pi)*exp(-(F_left*F_left)) + \
+          h_right*u_right/2.0*erfcc(F_right) -  \
+          h_right*sqrt(g*h_right)/2.0/sqrt(pi)*exp(-(F_right*F_right));
+
+  edgeflux[1] = (h_left*u_left*u_left + g/2.0*h_left*h_left)/2.0*erfcc(-F_left) + \
+          u_left*h_left*sqrt(g*h_left)/2.0/sqrt(pi)*exp(-(F_left*F_left)) + \
+          (h_right*u_right*u_right + g/2.0*h_right*h_right)/2.0*erfcc(F_right) -  \
+          u_right*h_right*sqrt(g*h_right)/2.0/sqrt(pi)*exp(-(F_right*F_right));
+
+  edgeflux[2] = vh_left*u_left/2.0*erfcc(-F_left) + \
+          vh_left*sqrt(g*h_left)/2.0/sqrt(pi)*exp(-(F_left*F_left)) + \
+          vh_right*u_right/2.0*erfcc(F_right) - \
+          vh_right*sqrt(g*h_right)/2.0/sqrt(pi)*exp(-(F_right*F_right));
+
+  //Maximal wavespeed
+  *max_speed = max(fabs(s_max), fabs(s_min));
+
+  //Rotate back
+  _rotate(edgeflux, n1, -n2);
+
+  return 0;
+}
+
+
+
 
 void _manning_friction(double g, double eps, int N,
 		       double* w, double* z,
@@ -995,11 +1119,11 @@ PyObject *rotate(PyObject *self, PyObject *args, PyObject *kwargs) {
   return PyArray_Return(r);
 }
 
-PyObject *compute_fluxes(PyObject *self, PyObject *args) {
+PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
   /*Compute all fluxes and the timestep suitable for all volumes
     in domain.
 
-    Compute total flux for each conserved quantity using "flux_function"
+    Compute total flux for each conserved quantity using "flux_function_central"
 
     Fluxes across each edge are scaled by edgelengths and summed up
     Resulting flux is then scaled by area and stored in
@@ -1133,7 +1257,186 @@ PyObject *compute_fluxes(PyObject *self, PyObject *args) {
       normal[0] = ((double *) normals -> data)[ki2];
       normal[1] = ((double *) normals -> data)[ki2+1];
       //Edge flux computation
-      flux_function(ql, qr, zl, zr,
+      flux_function_central(ql, qr, zl, zr,
+		    normal[0], normal[1],
+		    epsilon, g,
+		    edgeflux, &max_speed);
+      //update triangle k
+      ((long *) already_computed_flux->data)[ki]=call;
+      ((double *) stage_explicit_update -> data)[k] -= edgeflux[0]*((double *) edgelengths -> data)[ki];
+      ((double *) xmom_explicit_update -> data)[k] -= edgeflux[1]*((double *) edgelengths -> data)[ki];
+      ((double *) ymom_explicit_update -> data)[k] -= edgeflux[2]*((double *) edgelengths -> data)[ki];
+      //update the neighbour n
+      if (n>=0){
+	((long *) already_computed_flux->data)[nm]=call;
+	((double *) stage_explicit_update -> data)[n] += edgeflux[0]*((double *) edgelengths -> data)[nm];
+	((double *) xmom_explicit_update -> data)[n] += edgeflux[1]*((double *) edgelengths -> data)[nm];
+	((double *) ymom_explicit_update -> data)[n] += edgeflux[2]*((double *) edgelengths -> data)[nm];
+      }
+      ///for (j=0; j<3; j++) {
+	///flux[j] -= edgeflux[j]*((double *) edgelengths -> data)[ki];
+	///}
+	//Update timestep
+	//timestep = min(timestep, domain.radii[k]/max_speed)
+	//FIXME: SR Add parameter for CFL condition
+    if ( ((long *) tri_full_flag -> data)[k] == 1) {
+	    if (max_speed > epsilon) {
+	        timestep = min(timestep, ((double *) radii -> data)[k]/max_speed);
+	        //maxspeed in flux_function is calculated as max(|u+a|,|u-a|)
+	        if (n>=0)
+	            timestep = min(timestep, ((double *) radii -> data)[n]/max_speed);
+	    }
+    }
+    } // end for i
+    //Normalise by area and store for when all conserved
+    //quantities get updated
+    ((double *) stage_explicit_update -> data)[k] /= ((double *) areas -> data)[k];
+    ((double *) xmom_explicit_update -> data)[k] /= ((double *) areas -> data)[k];
+    ((double *) ymom_explicit_update -> data)[k] /= ((double *) areas -> data)[k];
+  } //end for k
+  return Py_BuildValue("d", timestep);
+}
+
+
+PyObject *compute_fluxes_ext_kinetic(PyObject *self, PyObject *args) {
+  /*Compute all fluxes and the timestep suitable for all volumes
+    in domain.
+
+    Compute total flux for each conserved quantity using "flux_function_central"
+
+    Fluxes across each edge are scaled by edgelengths and summed up
+    Resulting flux is then scaled by area and stored in
+    explicit_update for each of the three conserved quantities
+    stage, xmomentum and ymomentum
+
+    The maximal allowable speed computed by the flux_function for each volume
+    is converted to a timestep that must not be exceeded. The minimum of
+    those is computed as the next overall timestep.
+
+    Python call:
+    domain.timestep = compute_fluxes(timestep,
+                                     domain.epsilon,
+                                     domain.g,
+                                     domain.neighbours,
+                                     domain.neighbour_edges,
+                                     domain.normals,
+                                     domain.edgelengths,
+                                     domain.radii,
+                                     domain.areas,
+                                     Stage.edge_values,
+                                     Xmom.edge_values,
+                                     Ymom.edge_values,
+                                     Bed.edge_values,
+                                     Stage.boundary_values,
+                                     Xmom.boundary_values,
+                                     Ymom.boundary_values,
+                                     Stage.explicit_update,
+                                     Xmom.explicit_update,
+                                     Ymom.explicit_update,
+                                     already_computed_flux)
+
+
+    Post conditions:
+      domain.explicit_update is reset to computed flux values
+      domain.timestep is set to the largest step satisfying all volumes.
+
+
+  */
+
+
+  PyArrayObject *neighbours, *neighbour_edges,
+    *normals, *edgelengths, *radii, *areas,
+    *tri_full_flag,
+    *stage_edge_values,
+    *xmom_edge_values,
+    *ymom_edge_values,
+    *bed_edge_values,
+    *stage_boundary_values,
+    *xmom_boundary_values,
+    *ymom_boundary_values,
+    *stage_explicit_update,
+    *xmom_explicit_update,
+    *ymom_explicit_update,
+    *already_computed_flux;//tracks whether the flux across an edge has already been computed
+
+
+  //Local variables
+  double timestep, max_speed, epsilon, g;
+  double normal[2], ql[3], qr[3], zl, zr;
+  double edgeflux[3]; //Work arrays for summing up fluxes
+
+  int number_of_elements, k, i, m, n;
+  int ki, nm=0, ki2; //Index shorthands
+  static long call=1;
+
+
+  // Convert Python arguments to C
+  if (!PyArg_ParseTuple(args, "dddOOOOOOOOOOOOOOOOOO",
+			&timestep,
+			&epsilon,
+			&g,
+			&neighbours,
+			&neighbour_edges,
+			&normals,
+			&edgelengths, &radii, &areas,
+			&tri_full_flag,
+			&stage_edge_values,
+			&xmom_edge_values,
+			&ymom_edge_values,
+			&bed_edge_values,
+			&stage_boundary_values,
+			&xmom_boundary_values,
+			&ymom_boundary_values,
+			&stage_explicit_update,
+			&xmom_explicit_update,
+			&ymom_explicit_update,
+			&already_computed_flux)) {
+    PyErr_SetString(PyExc_RuntimeError, "Input arguments failed");
+    return NULL;
+  }
+  number_of_elements = stage_edge_values -> dimensions[0];
+  call++;//a static local variable to which already_computed_flux is compared
+  //set explicit_update to zero for all conserved_quantities.
+  //This assumes compute_fluxes called before forcing terms
+  for (k=0; k<number_of_elements; k++) {
+    ((double *) stage_explicit_update -> data)[k]=0.0;
+    ((double *) xmom_explicit_update -> data)[k]=0.0;
+    ((double *) ymom_explicit_update -> data)[k]=0.0;
+  }
+  //Loop through neighbours and compute edge flux for each
+  for (k=0; k<number_of_elements; k++) {
+    for (i=0; i<3; i++) {
+      ki = k*3+i;
+      if (((long *) already_computed_flux->data)[ki]==call)//we've already computed the flux across this edge
+	continue;
+      ql[0] = ((double *) stage_edge_values -> data)[ki];
+      ql[1] = ((double *) xmom_edge_values -> data)[ki];
+      ql[2] = ((double *) ymom_edge_values -> data)[ki];
+      zl =    ((double *) bed_edge_values -> data)[ki];
+
+      //Quantities at neighbour on nearest face
+      n = ((long *) neighbours -> data)[ki];
+      if (n < 0) {
+	m = -n-1; //Convert negative flag to index
+	qr[0] = ((double *) stage_boundary_values -> data)[m];
+	qr[1] = ((double *) xmom_boundary_values -> data)[m];
+	qr[2] = ((double *) ymom_boundary_values -> data)[m];
+	zr = zl; //Extend bed elevation to boundary
+      } else {
+	m = ((long *) neighbour_edges -> data)[ki];
+	nm = n*3+m;
+	qr[0] = ((double *) stage_edge_values -> data)[nm];
+	qr[1] = ((double *) xmom_edge_values -> data)[nm];
+	qr[2] = ((double *) ymom_edge_values -> data)[nm];
+	zr =    ((double *) bed_edge_values -> data)[nm];
+      }
+      // Outward pointing normal vector
+      // normal = domain.normals[k, 2*i:2*i+2]
+      ki2 = 2*ki; //k*6 + i*2
+      normal[0] = ((double *) normals -> data)[ki2];
+      normal[1] = ((double *) normals -> data)[ki2+1];
+      //Edge flux computation
+      flux_function_kinetic(ql, qr, zl, zr,
 		    normal[0], normal[1],
 		    epsilon, g,
 		    edgeflux, &max_speed);
@@ -1448,7 +1751,8 @@ static struct PyMethodDef MethodTable[] = {
 
   {"rotate", (PyCFunction)rotate, METH_VARARGS | METH_KEYWORDS, "Print out"},
   {"extrapolate_second_order_sw", extrapolate_second_order_sw, METH_VARARGS, "Print out"},
-  {"compute_fluxes", compute_fluxes, METH_VARARGS, "Print out"},
+  {"compute_fluxes_ext_central", compute_fluxes_ext_central, METH_VARARGS, "Print out"},
+  {"compute_fluxes_ext_kinetic", compute_fluxes_ext_kinetic, METH_VARARGS, "Print out"},
   {"gravity", gravity, METH_VARARGS, "Print out"},
   {"manning_friction", manning_friction, METH_VARARGS, "Print out"},
   {"balance_deep_and_shallow", balance_deep_and_shallow,

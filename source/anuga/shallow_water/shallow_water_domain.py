@@ -143,7 +143,9 @@ class Domain(Generic_Domain):
         self.beta_vh_dry = beta_vh_dry
         self.beta_h      = beta_h
 
-
+        self.flux_function = flux_function_central
+        #self.flux_function = flux_function_kinetic
+        
         self.forcing_terms.append(manning_friction)
         self.forcing_terms.append(gravity)
 
@@ -494,7 +496,7 @@ def rotate(q, normal, direction = 1):
 
 ####################################
 # Flux computation
-def flux_function(normal, ql, qr, zl, zr):
+def flux_function_central(normal, ql, qr, zl, zr):
     """Compute fluxes between volumes for the shallow water wave equation
     cast in terms of w = h+z using the 'central scheme' as described in
 
@@ -577,6 +579,111 @@ def flux_function(normal, ql, qr, zl, zr):
 
     return edgeflux, max_speed
 
+def erfcc(x):
+
+    from math import fabs, exp
+
+    z=fabs(x)
+    t=1.0/(1.0+0.5*z)
+    result=t*exp(-z*z-1.26551223+t*(1.00002368+t*(.37409196+
+         t*(.09678418+t*(-.18628806+t*(.27886807+t*(-1.13520398+
+         t*(1.48851587+t*(-.82215223+t*.17087277)))))))))
+    if x < 0.0:
+        result = 2.0-result
+
+    return result
+
+def flux_function_kinetic(normal, ql, qr, zl, zr):
+    """Compute fluxes between volumes for the shallow water wave equation
+    cast in terms of w = h+z using the 'central scheme' as described in
+
+    Zhang et. al., Advances in Water Resources, 26(6), 2003, 635-647.
+
+
+    Conserved quantities w, uh, vh are stored as elements 0, 1 and 2
+    in the numerical vectors ql an qr.
+
+    Bed elevations zl and zr.
+    """
+
+    from anuga.config import g, epsilon
+    from math import sqrt
+    from Numeric import array
+
+    #Align momentums with x-axis
+    q_left  = rotate(ql, normal, direction = 1)
+    q_right = rotate(qr, normal, direction = 1)
+
+    z = (zl+zr)/2 #Take average of field values
+
+    w_left  = q_left[0]   #w=h+z
+    h_left  = w_left-z
+    uh_left = q_left[1]
+
+    if h_left < epsilon:
+        u_left = 0.0  #Could have been negative
+        h_left = 0.0
+    else:
+        u_left  = uh_left/h_left
+
+
+    w_right  = q_right[0]  #w=h+z
+    h_right  = w_right-z
+    uh_right = q_right[1]
+
+
+    if h_right < epsilon:
+        u_right = 0.0  #Could have been negative
+        h_right = 0.0
+    else:
+        u_right  = uh_right/h_right
+
+    vh_left  = q_left[2]
+    vh_right = q_right[2]
+
+    soundspeed_left  = sqrt(g*h_left)
+    soundspeed_right = sqrt(g*h_right)
+
+    #Maximal wave speed
+    s_max = max(u_left+soundspeed_left, u_right+soundspeed_right, 0)
+
+    #Minimal wave speed
+    s_min = min(u_left-soundspeed_left, u_right-soundspeed_right, 0)
+
+    #Flux computation
+
+    F_left  = 0.0
+    F_right = 0.0
+    from math import sqrt, pi, exp
+    if h_left > 0.0:
+        F_left = u_left/sqrt(g*h_left)
+    if h_right > 0.0:
+        F_right = u_right/sqrt(g*h_right)
+
+    edgeflux = array([0.0, 0.0, 0.0])
+
+    edgeflux[0] = h_left*u_left/2.0*erfcc(-F_left) +  \
+          h_left*sqrt(g*h_left)/2.0/sqrt(pi)*exp(-(F_left**2)) + \
+          h_right*u_right/2.0*erfcc(F_right) -  \
+          h_right*sqrt(g*h_right)/2.0/sqrt(pi)*exp(-(F_right**2))
+
+    edgeflux[1] = (h_left*u_left**2 + g/2.0*h_left**2)/2.0*erfcc(-F_left) + \
+          u_left*h_left*sqrt(g*h_left)/2.0/sqrt(pi)*exp(-(F_left**2)) + \
+          (h_right*u_right**2 + g/2.0*h_right**2)/2.0*erfcc(F_right) -  \
+          u_right*h_right*sqrt(g*h_right)/2.0/sqrt(pi)*exp(-(F_right**2))
+
+    edgeflux[2] = vh_left*u_left/2.0*erfcc(-F_left) + \
+          vh_left*sqrt(g*h_left)/2.0/sqrt(pi)*exp(-(F_left**2)) + \
+          vh_right*u_right/2.0*erfcc(F_right) - \
+          vh_right*sqrt(g*h_right)/2.0/sqrt(pi)*exp(-(F_right**2))
+
+
+    edgeflux = rotate(edgeflux, normal, direction=-1)
+    max_speed = max(abs(s_max), abs(s_min))
+
+    return edgeflux, max_speed
+
+
 
 def compute_fluxes(domain):
     """Compute all fluxes and the timestep suitable for all volumes
@@ -647,7 +754,7 @@ def compute_fluxes(domain):
             normal = domain.normals[k, 2*i:2*i+2]
 
             #Flux computation using provided function
-            edgeflux, max_speed = flux_function(normal, ql, qr, zl, zr)
+            edgeflux, max_speed = domain.flux_function(normal, ql, qr, zl, zr)
             flux -= edgeflux * domain.edgelengths[k,i]
 
             #Update optimal_timestep on full cells
@@ -711,8 +818,8 @@ def compute_fluxes_c(domain):
     Bed = domain.quantities['elevation']
 
     timestep = float(sys.maxint)
-    from shallow_water_ext import compute_fluxes
-    domain.timestep = compute_fluxes(timestep, domain.epsilon, domain.g,
+    from shallow_water_ext import compute_fluxes_ext_central as compute_fluxes_ext
+    domain.timestep = compute_fluxes_ext(timestep, domain.epsilon, domain.g,
                                      domain.neighbours,
                                      domain.neighbour_edges,
                                      domain.normals,

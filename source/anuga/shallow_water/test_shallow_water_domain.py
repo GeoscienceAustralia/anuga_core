@@ -8,7 +8,7 @@ from Numeric import allclose, alltrue, array, zeros, ones, Float, take
 from anuga.utilities.numerical_tools import mean
 
 from shallow_water_domain import *
-
+from shallow_water_domain import flux_function_central as flux_function
 
 #Variable windfield implemented using functions
 def speed(t,x,y):

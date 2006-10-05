@@ -750,19 +750,19 @@ class Domain(Mesh):
                 self.number_of_first_order_steps += 1
 
             #Yield results
-	    if finaltime is not None and self.time >= finaltime:
+            if finaltime is not None and self.time >= finaltime:
 
-		if self.time > finaltime:
-  		    #FIXME (Ole, 30 April 2006): Do we need this check?
-		    print 'WARNING (domain.py): time overshot finaltime. Contact Ole.Nielsen@ga.gov.au'
-                    self.time = finaltime
+                if self.time > finaltime:
+  		              #FIXME (Ole, 30 April 2006): Do we need this check?
+                      print 'WARNING (domain.py): time overshot finaltime. Contact Ole.Nielsen@ga.gov.au'
+                      self.time = finaltime
 
                 # Yield final time and stop
                 yield(self.time)
                 break
 
 
-	    if self.yieldtime >= yieldstep:
+            if self.yieldtime >= yieldstep:
                 # Yield (intermediate) time and allow inspection of domain
 
                 if self.checkpoint is True:
