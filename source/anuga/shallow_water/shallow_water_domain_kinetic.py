@@ -54,10 +54,23 @@ Geoscience Australia, 2004
 #$LastChangedBy: steve $
 
 
-from domain import *
-from region import *
+from anuga.abstract_2d_finite_volumes.domain import Domain as Generic_Domain
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
+     import Boundary
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
+     import File_boundary
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
+     import Dirichlet_boundary
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
+     import Time_boundary
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
+     import Transmissive_boundary
 
-Generic_Domain = Domain #Rename
+from anuga.utilities.numerical_tools import gradient, mean
+from anuga.config import minimum_storable_height
+from anuga.config import minimum_allowed_height, maximum_allowed_speed
+from anuga.config import g, beta_h, beta_w, beta_w_dry,\
+     beta_uh, beta_uh_dry, beta_vh, beta_vh_dry
 
 #Shallow water domain
 class Domain(Generic_Domain):
