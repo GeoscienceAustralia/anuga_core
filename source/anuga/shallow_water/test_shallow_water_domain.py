@@ -1516,6 +1516,12 @@ class Test_Shallow_Water(unittest.TestCase):
 
 	#Second order
         domain._order_ = 2
+        domain.beta_w      = 0.9
+        domain.beta_w_dry  = 0.9
+        domain.beta_uh     = 0.9
+        domain.beta_uh_dry = 0.9
+        domain.beta_vh     = 0.9
+        domain.beta_vh_dry = 0.9
         domain.distribute_to_vertices_and_edges()
 	assert allclose(L[1], [2.2, 4.9, 4.9])
 
@@ -1553,6 +1559,12 @@ class Test_Shallow_Water(unittest.TestCase):
         assert allclose(L[1], 1.77777778)
 
         domain._order_ = 2
+        domain.beta_w      = 0.9
+        domain.beta_w_dry  = 0.9
+        domain.beta_uh     = 0.9
+        domain.beta_uh_dry = 0.9
+        domain.beta_vh     = 0.9
+        domain.beta_vh_dry = 0.9
         domain.distribute_to_vertices_and_edges()
         assert allclose(L[1], [0.57777777, 2.37777778, 2.37777778])
 
@@ -1591,6 +1603,12 @@ class Test_Shallow_Water(unittest.TestCase):
         assert allclose(L[1], 4.9382716)
 
         domain._order_ = 2
+        domain.beta_w      = 0.9
+        domain.beta_w_dry  = 0.9
+        domain.beta_uh     = 0.9
+        domain.beta_uh_dry = 0.9
+        domain.beta_vh     = 0.9
+        domain.beta_vh_dry = 0.9
         domain.distribute_to_vertices_and_edges()
         assert allclose(L[1], [1.07160494, 6.46058131, 7.28262855])
 
@@ -1730,6 +1748,12 @@ class Test_Shallow_Water(unittest.TestCase):
 
         #print E
         domain._order_ = 2
+        domain.beta_w      = 0.9
+        domain.beta_w_dry  = 0.9
+        domain.beta_uh     = 0.9
+        domain.beta_uh_dry = 0.9
+        domain.beta_vh     = 0.9
+        domain.beta_vh_dry = 0.9
         domain.beta_h = 0.0 #Use first order in h-limiter
         domain.distribute_to_vertices_and_edges()
 
@@ -2225,7 +2249,13 @@ class Test_Shallow_Water(unittest.TestCase):
         domain = Domain(points, vertices, boundary)
         domain.smooth = False
         domain.default_order=2
-
+        domain.beta_w      = 0.9
+        domain.beta_w_dry  = 0.9
+        domain.beta_uh     = 0.9
+        domain.beta_uh_dry = 0.9
+        domain.beta_vh     = 0.9
+        domain.beta_vh_dry = 0.9
+        
         # Boundary conditions
         Br = Reflective_boundary(domain)
         Bd = Dirichlet_boundary([0.1, 0., 0.])
@@ -2370,6 +2400,12 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.smooth = False
         domain.visualise = False
         domain.default_order=2
+        domain.beta_w      = 0.9
+        domain.beta_w_dry  = 0.9
+        domain.beta_uh     = 0.9
+        domain.beta_uh_dry = 0.9
+        domain.beta_vh     = 0.9
+        domain.beta_vh_dry = 0.9        
         #domain.minimum_allowed_height = 0.0 #Makes it like the 'oldstyle' balance
 
         # Boundary conditions
@@ -2428,6 +2464,12 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.smooth = False
         domain.visualise = False
         domain.default_order=2
+        domain.beta_w      = 0.9
+        domain.beta_w_dry  = 0.9
+        domain.beta_uh     = 0.9
+        domain.beta_uh_dry = 0.9
+        domain.beta_vh     = 0.9
+        domain.beta_vh_dry = 0.9        
         domain.maximum_allowed_speed = 0.0 #Makes it like the 'oldstyle'
 
         # Boundary conditions
@@ -2474,6 +2516,12 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.smooth = False
         domain.visualise = False
         domain.default_order=domain._order_=2
+        domain.beta_w      = 0.9
+        domain.beta_w_dry  = 0.9
+        domain.beta_uh     = 0.9
+        domain.beta_uh_dry = 0.9
+        domain.beta_vh     = 0.9
+        domain.beta_vh_dry = 0.9        
 
         # Boundary conditions
         Br = Reflective_boundary(domain)
@@ -2719,6 +2767,12 @@ class Test_Shallow_Water(unittest.TestCase):
         domain = Domain(points, vertices, boundary)
         domain.smooth = False
         domain.default_order=2
+        domain.beta_w      = 0.9
+        domain.beta_w_dry  = 0.9
+        domain.beta_uh     = 0.9
+        domain.beta_uh_dry = 0.9
+        domain.beta_vh     = 0.9
+        domain.beta_vh_dry = 0.9
 
         #Bed-slope and friction at vertices (and interpolated elsewhere)
         def x_slope(x, y):
@@ -2805,6 +2859,12 @@ class Test_Shallow_Water(unittest.TestCase):
         domain = Domain(points, vertices, boundary)
         domain.smooth = False
         domain.default_order=2
+        domain.beta_w      = 0.9
+        domain.beta_w_dry  = 0.9
+        domain.beta_uh     = 0.9
+        domain.beta_uh_dry = 0.9
+        domain.beta_vh     = 0.9
+        domain.beta_vh_dry = 0.9
         domain.beta_h = 0.0 #Use first order in h-limiter
 
         #Bed-slope and friction at vertices (and interpolated elsewhere)
@@ -2897,6 +2957,12 @@ class Test_Shallow_Water(unittest.TestCase):
         domain = Domain(points, vertices, boundary)
         domain.smooth = False
         domain.default_order=2
+        domain.beta_w      = 0.9
+        domain.beta_w_dry  = 0.9
+        domain.beta_uh     = 0.9
+        domain.beta_uh_dry = 0.9
+        domain.beta_vh     = 0.9
+        domain.beta_vh_dry = 0.9
         domain.beta_h = 0.0 #Use first order in h-limiter
 
         #Bed-slope and friction at vertices (and interpolated elsewhere)
@@ -2985,6 +3051,12 @@ class Test_Shallow_Water(unittest.TestCase):
         domain = Domain(points, vertices, boundary)
         domain.smooth = False
         domain.default_order=2
+        domain.beta_w      = 0.9
+        domain.beta_w_dry  = 0.9
+        domain.beta_uh     = 0.9
+        domain.beta_uh_dry = 0.9
+        domain.beta_vh     = 0.9
+        domain.beta_vh_dry = 0.9
         domain.beta_h = 0.0 #Use first order in h-limiter
 
         #Bed-slope and friction at vertices (and interpolated elsewhere)
@@ -3101,6 +3173,12 @@ class Test_Shallow_Water(unittest.TestCase):
         domain = Domain(points, vertices, boundary)
         domain.smooth = False
         domain.default_order=2
+        domain.beta_w      = 0.9
+        domain.beta_w_dry  = 0.9
+        domain.beta_uh     = 0.9
+        domain.beta_uh_dry = 0.9
+        domain.beta_vh     = 0.9
+        domain.beta_vh_dry = 0.9
         domain.beta_h = 0.0 #Use first order in h-limiter
 
         #Bed-slope and friction at vertices (and interpolated elsewhere)

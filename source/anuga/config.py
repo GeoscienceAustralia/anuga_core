@@ -69,22 +69,16 @@ rho_w = 1023   #Fluid density [kg/m^3] (rho_w = 1023 for salt water)
 #There are separate betas for the w, uh, vh and h limiters
 #
 #Good values are:
-beta_w      = 0.9
-beta_w_dry  = 0.9
-beta_uh     = 0.9
-beta_uh_dry = 0.9
-beta_vh     = 0.9
-beta_vh_dry = 0.9
-beta_h      = 0.2
+
 
 # I think these are better SR but they conflict with the unit tests!
-# beta_w      = 1.0
-# beta_w_dry  = 0.2
-# beta_uh     = 1.0
-# beta_uh_dry = 0.2
-# beta_vh     = 1.0
-# beta_vh_dry = 0.2
-# beta_h      = 0.2
+beta_w      = 1.0
+beta_w_dry  = 0.2
+beta_uh     = 1.0
+beta_uh_dry = 0.2
+beta_vh     = 1.0
+beta_vh_dry = 0.2
+beta_h      = 0.2
 
 
 CFL = 1.0  #FIXME (ole): Is this in use yet??

@@ -1011,7 +1011,8 @@ class Test_Quantity(unittest.TestCase):
         """Taken from test_shallow_water
         """
         quantity = Conserved_quantity(self.mesh4)
-
+        quantity.domain.beta_w = 0.9
+        
         #Test centroids
         quantity.set_values([2.,4.,8.,2.], location = 'centroids')
         assert allclose(quantity.centroid_values, [2, 4, 8, 2]) #Centroid
@@ -1026,6 +1027,7 @@ class Test_Quantity(unittest.TestCase):
         quantity.limit()
 
         # limited value for beta_w = 0.9
+        
         assert allclose(quantity.vertex_values[1,:], [2.2, 4.9, 4.9])
         # limited values for beta_w = 0.5
         #assert allclose(quantity.vertex_values[1,:], [3.0, 4.5, 4.5])
