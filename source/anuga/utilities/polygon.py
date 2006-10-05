@@ -79,7 +79,9 @@ def inside_polygon(points, polygon, closed=True, verbose=False):
     except NameError, e:
         raise NameError, e
     except:
-        msg = 'Points could not be converted to Numeric array'
+        # FIXME(Ole): This message is wrong. Shouldn't it be "Absolute"
+        # rather than "Numeric"?
+        msg = 'Points could not be converted to Numeric array' 
 	raise msg
 
     try:
@@ -87,6 +89,8 @@ def inside_polygon(points, polygon, closed=True, verbose=False):
     except NameError, e:
         raise NameError, e
     except:
+        # FIXME(Ole): This message is wrong. Shouldn't it be "Absolute"
+        # rather than "Numeric"?
         msg = 'Polygon %s could not be converted to Numeric array' %(str(polygon))
 	raise msg
 

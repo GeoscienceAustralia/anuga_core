@@ -21,7 +21,9 @@ class Test_Geospatial_data(unittest.TestCase):
 
 
     def test_0(self):
-        """Basic points
+        """test_0(self):
+        
+        Basic points
         """
         from anuga.coordinate_transforms.geo_reference import Geo_reference
         
@@ -30,6 +32,16 @@ class Test_Geospatial_data(unittest.TestCase):
 
         assert allclose(G.data_points, [[1.0, 2.1], [3.0, 5.3]])
 
+        #Check __repr__
+
+        rep = `G`
+        ref = '[[ 1.   2.1]\n [ 3.   5.3]]'
+        assert rep == ref
+
+
+        #Check getter
+        assert allclose(G.get_data_points(), [[1.0, 2.1], [3.0, 5.3]])
+        
         #Check defaults
         assert G.attributes is None
         
@@ -357,6 +369,59 @@ class Test_Geospatial_data(unittest.TestCase):
 
         assert allclose(P, concatenate( (points1,points2) ))
                            
+        
+    def test_clip0(self):
+        """test_clip0(self):
+        
+        Test that point sets can be clipped by a polygon
+        """
+        
+        from anuga.coordinate_transforms.geo_reference import Geo_reference
+        
+        points = [[-1, 4], [0.2, 0.5], [1.0, 2.1], [0.4, 0.3], [3.0, 5.3],
+                  [0, 0], [2.4, 3.3]]
+        G = Geospatial_data(points)
+
+        # First try the unit square    
+        U = [[0,0], [1,0], [1,1], [0,1]] 
+        assert allclose(G.clip(U).get_data_points(), [[0.2, 0.5], [0.4, 0.3], [0, 0]])
+
+        # Then a more complex polygon
+        polygon = [[0,0], [1,0], [0.5,-1], [2, -1], [2,1], [0,1]]
+	points = [ [0.5, 1.4], [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
+        G = Geospatial_data(points)
+
+        assert allclose(G.clip(polygon).get_data_points(),
+                        [[0.5, 0.5], [1, -0.5], [1.5, 0]])
+
+    def test_clip1(self):
+        """test_clip1(self):
+        
+        Test that point sets can be clipped by a polygon given as
+        another Geospatial dataset
+        """
+        
+        from anuga.coordinate_transforms.geo_reference import Geo_reference
+        
+        points = [[-1, 4], [0.2, 0.5], [1.0, 2.1], [0.4, 0.3], [3.0, 5.3],
+                  [0, 0], [2.4, 3.3]]
+        G = Geospatial_data(points)
+
+        # First try the unit square    
+        U = Geospatial_data([[0,0], [1,0], [1,1], [0,1]]) 
+        assert allclose(G.clip(U).get_data_points(),
+                        [[0.2, 0.5], [0.4, 0.3], [0, 0]])
+
+        # Then a more complex polygon
+	points = [ [0.5, 1.4], [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
+        G = Geospatial_data(points)
+        polygon = Geospatial_data([[0,0], [1,0], [0.5,-1], [2, -1], [2,1], [0,1]])
+        
+
+        assert allclose(G.clip(polygon).get_data_points(),
+                        [[0.5, 0.5], [1, -0.5], [1.5, 0]])
+
+
         
 
 

@@ -4,8 +4,7 @@ associated attributes.
 """
 
 from os import access, F_OK, R_OK
-from Numeric import concatenate, array, Float, shape, reshape, ravel
-
+from Numeric import concatenate, array, Float, shape, reshape, ravel, take
 
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.coordinate_transforms.geo_reference import Geo_reference, TitleError
@@ -136,6 +135,10 @@ class Geospatial_data:
 
     def __len__(self):
         return len(self.data_points)
+
+    def __repr__(self):
+        return str(self.get_data_points(absolute=True))
+    
     
     def check_data_points(self, data_points):
         """Checks data points
@@ -206,6 +209,33 @@ class Geospatial_data:
             verbose = True
         else:
             verbose = False
+
+    def clip(self, polygon, closed=True):
+        """Clip geospatial date by a polygon
+
+        Input
+          polygon - Either a list of points, an Nx2 array or
+                    a Geospatial data object.
+          closed - (optional) determine whether points on boundary should be
+          regarded as belonging to the polygon (closed = True)
+          or not (closed = False). Default is True.
+          
+        Output
+          Geospatial data object representing point inside specified polygon
+        
+        """
+
+        from anuga.utilities.polygon import inside_polygon
+
+        if isinstance(polygon, Geospatial_data):
+            # Polygon is an object - extract points
+            polygon = polygon.get_data_points()
+
+        points = self.get_data_points()    
+        inside_indices = inside_polygon(points, polygon, closed)
+        return Geospatial_data(take(points, inside_indices))
+        
+        
    
     def _set_using_lat_long(self,
                             latitudes,
