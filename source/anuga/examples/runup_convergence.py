@@ -137,11 +137,12 @@ domain.set_boundary({'left': Br, 'right': Bts, 'top': Br, 'bottom': Br})
 # Find initial runup location and height (coastline)
 w0 = domain.get_maximum_inundation_elevation()
 x0, y0 = domain.get_maximum_inundation_location()
-print 'Coastline elevation = %.2f at (%.2f, %.2f)' %(w0, x0, y0)
+print
+print 'Coastline elevation = %.2f at (x,y)=(%.2f, %.2f)' %(w0, x0, y0)
 
 # Sanity check
 w_i = domain.get_quantity('stage').get_values(interpolation_points=[[x0,y0]])
-print 'Interpolated elevation at (%.2f, %.2f) is %.2f' %(x0, y0, w_i) 
+print 'Interpolated elevation at (x,y)=(%.2f, %.2f) is %.2f' %(x0, y0, w_i) 
 
 
 #------------------------------------------------------------------------------
@@ -154,7 +155,8 @@ for t in domain.evolve(yieldstep = 1, finaltime = 300):
 
     w = domain.get_maximum_inundation_elevation()
     x, y = domain.get_maximum_inundation_location()
-    print '  Coastline elevation = %.2f at (x,y)=(%.2f, %.2f)' %(w, x, y)    
+    print '  Coastline elevation = %.2f at (x,y)=(%.2f, %.2f)' %(w, x, y)
+    print    
 
     if w > w_max:
         w_max = w
@@ -162,16 +164,17 @@ for t in domain.evolve(yieldstep = 1, finaltime = 300):
         y_max = y
 
 
+print '**********************************************'
 print 'Max coastline elevation = %.2f at (%.2f, %.2f)' %(w_max, x_max, y_max)
 print 'Run up distance = %.2f' %sqrt( (x_max-x0)**2 + (y_max-y0)**2 )
-
+print '**********************************************'
 
 
 #-----------------------------------------------------------------------------
 # Interrogate further
 #---------------------------------------------------------------
 
-# Generate time series of "gauge" situated at right hand boundary
+# Generate time series of one "gauge" situated at right hand boundary
 from anuga.abstract_2d_finite_volumes.util import sww2timeseries
 production_dirs = {'.': 'test'}
 swwfiles = {}

@@ -809,7 +809,8 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
          xlabel, ylabel, title, close, subplot
 
     import pylab as p1
-    import mpl3d.mplot3d as p3
+    if surface is True:
+        import mpl3d.mplot3d as p3
 
     if report == True:    
         texdir = getcwd()+sep+'report'+sep
