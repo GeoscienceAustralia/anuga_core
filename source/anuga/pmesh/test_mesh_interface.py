@@ -4,7 +4,8 @@ import tempfile
 import unittest
 import os
 from anuga.pmesh.mesh import importMeshFromFile
-from mesh_interface import *
+from anuga.pmesh.mesh_interface import create_mesh_from_regions
+from anuga.pmesh.mesh_interface import _create_mesh_from_regions
 from load_mesh.loadASCII import *
 from anuga.utilities.polygon import is_inside_polygon
 from anuga.coordinate_transforms.geo_reference import Geo_reference,DEFAULT_ZONE
@@ -20,7 +21,7 @@ class TestCase(unittest.TestCase):
         x=-500
         y=-1000
         mesh_geo = geo_reference=Geo_reference(56,x,y)
-
+        
         # These are the absolute values
         polygon_absolute = [[0,0],[100,0],[100,100],[0,100]]
         
@@ -108,6 +109,133 @@ class TestCase(unittest.TestCase):
                                           inner2_polygon_absolute,
                                           closed = False),
                         'FAILED!')
+
+
+    def test_create_mesh_from_regions_with_caching(self):
+        x=-500
+        y=-1000
+        mesh_geo = geo_reference=Geo_reference(56,x,y)
+        
+        # These are the absolute values
+        polygon_absolute = [[0,0],[100,0],[100,100],[0,100]]
+        
+        x_p = -10
+        y_p = -40
+        geo_ref_poly = Geo_reference(56, x_p, y_p)
+        polygon = geo_ref_poly.change_points_geo_ref(polygon_absolute)
+
+        boundary_tags = {'walls':[0,1],'bom':[2]}
+        
+        inner1_polygon_absolute = [[10,10],[20,10],[20,20],[10,20]]
+        inner1_polygon = geo_ref_poly. \
+                         change_points_geo_ref(inner1_polygon_absolute)
+
+        inner2_polygon_absolute = [[30,30],[40,30],[40,40],[30,40]]
+        inner2_polygon = geo_ref_poly. \
+                         change_points_geo_ref(inner2_polygon_absolute)
+        
+        interior_regions = [(inner1_polygon, 5),(inner2_polygon, 0.2)]
+
+
+
+        # Clear cache first
+        from anuga.caching import cache
+        cache(_create_mesh_from_regions,
+              (polygon, boundary_tags),
+              {'minimum_triangle_angle': 28.0,
+               'maximum_triangle_area': 10000000,
+               'filename': None,
+               'interior_regions': interior_regions,
+               'poly_geo_reference': geo_ref_poly,
+               'mesh_geo_reference': mesh_geo,
+               'verbose': False},
+              verbose=False,
+              clear=1)
+
+        
+        m = create_mesh_from_regions(polygon,
+                                     boundary_tags,
+                                     maximum_triangle_area=10000000,
+                                     interior_regions=interior_regions,
+                                     poly_geo_reference=geo_ref_poly,
+                                     mesh_geo_reference=mesh_geo,
+                                     verbose=False,
+                                     use_cache=True)
+
+
+        # Test the mesh instance
+        self.failUnless(len(m.regions)==3,
+                        'FAILED!')
+        segs = m.getUserSegments()
+        self.failUnless(len(segs)==12,
+                        'FAILED!')
+        self.failUnless(len(m.userVertices)==12,
+                        'FAILED!') 
+        self.failUnless(segs[0].tag=='walls',
+                        'FAILED!')  
+        self.failUnless(segs[1].tag=='walls',
+                        'FAILED!') 
+         
+        self.failUnless(segs[2].tag=='bom',
+                        'FAILED!') 
+        self.failUnless(segs[3].tag=='',
+                        'FAILED!')
+
+        # Assuming the order of the region points is known.
+        # (This isn't true, if you consider create_mesh_from_regions
+        # a black box)
+        poly_point = m.getRegions()[0]
+        
+        #print "poly_point", poly_point
+        #print "polygon_absolute",polygon_absolute
+         
+        # poly_point values are relative to the mesh geo-ref
+        # make them absolute
+        self.failUnless(is_inside_polygon([poly_point.x+x,poly_point.y+y],
+                                          polygon_absolute, closed = False),
+                        'FAILED!')
+        
+        # Assuming the order of the region points is known.
+        # (This isn't true, if you consider create_mesh_from_regions
+        # a black box)
+        poly_point = m.getRegions()[1]
+        
+        #print "poly_point", poly_point
+        #print "polygon_absolute",polygon_absolute
+         
+        # poly_point values are relative to the mesh geo-ref
+        # make them absolute
+        self.failUnless(is_inside_polygon([poly_point.x+x,poly_point.y+y],
+                                          inner1_polygon_absolute,
+                                          closed = False),
+                        'FAILED!')
+        
+        # Assuming the order of the region points is known.
+        # (This isn't true, if you consider create_mesh_from_regions
+        # a black box)
+        poly_point = m.getRegions()[2]
+        
+        #print "poly_point", poly_point
+        #print "polygon_absolute",polygon_absolute
+         
+        # poly_point values are relative to the mesh geo-ref
+        # make them absolute
+        self.failUnless(is_inside_polygon([poly_point.x+x,poly_point.y+y],
+                                          inner2_polygon_absolute,
+                                          closed = False),
+                        'FAILED!')
+
+
+        # Now create m using cached values
+        m_cache = create_mesh_from_regions(polygon,
+                                           boundary_tags,
+                                           10000000,
+                                           interior_regions=interior_regions,
+                                           poly_geo_reference=geo_ref_poly,
+                                           mesh_geo_reference=mesh_geo,
+                                           verbose=False,
+                                           use_cache=True)
+
 
 
         
@@ -328,33 +456,32 @@ class TestCase(unittest.TestCase):
         min_outer = 0 
         max_outer = 1000
         polygon_outer = [[min_outer,min_outer],[max_outer,min_outer],
-                   [max_outer,max_outer],[min_outer,max_outer]]
+                         [max_outer,max_outer],[min_outer,max_outer]]
 
         delta = 10
         density_inner1 = 1000
         min_inner1 = min_outer + delta
         max_inner1 = max_outer - delta
         inner1_polygon = [[min_inner1,min_inner1],[max_inner1,min_inner1],
-                   [max_inner1,max_inner1],[min_inner1,max_inner1]]
+                          [max_inner1,max_inner1],[min_inner1,max_inner1]]
       
         
         density_inner2 = 10000000 
         min_inner2 = min_outer +  2*delta
         max_inner2 = max_outer -  2*delta
         inner2_polygon = [[min_inner2,min_inner2],[max_inner2,min_inner2],
-                   [max_inner2,max_inner2],[min_inner2,max_inner2]]
+                          [max_inner2,max_inner2],[min_inner2,max_inner2]]
         
         boundary_tags = {'walls':[0,1],'bom':[2]}
         
-        interior_regions = [(inner1_polygon, density_inner1),(inner2_polygon, density_inner2)]
-        create_mesh_from_regions(polygon_outer
-                                     , boundary_tags
-                                     , density_outer
-                                     , interior_regions=interior_regions
-                                     ,filename=file_name
-                                     #,verbose=True
-                                     ,verbose=False
-                                     )
+        interior_regions = [(inner1_polygon, density_inner1),
+                            (inner2_polygon, density_inner2)]
+        create_mesh_from_regions(polygon_outer,
+                                 boundary_tags,
+                                 density_outer,
+                                 interior_regions=interior_regions,
+                                 filename=file_name,
+                                 verbose=False)
         
         m = importMeshFromFile(file_name)
         #print "file_name",file_name
@@ -398,14 +525,12 @@ class TestCase(unittest.TestCase):
         # The last region added will be the region triangle uses,
         # if two regions points are in the same bounded area.
         interior_regions = [(inner2_polygon, density_inner2),(inner1_polygon, density_inner1)]
-        create_mesh_from_regions(polygon_outer
-                                     , boundary_tags
-                                     , density_outer
-                                     , interior_regions=interior_regions
-                                     ,filename=file_name
-                                     #,verbose=True
-                                     ,verbose=False
-                                     )
+        create_mesh_from_regions(polygon_outer,
+                                 boundary_tags,
+                                 density_outer,
+                                 interior_regions=interior_regions,
+                                 filename=file_name,
+                                 verbose=False)
         
         m = importMeshFromFile(file_name)
         #print "file_name",file_name
@@ -452,7 +577,8 @@ class TestCase(unittest.TestCase):
             m = create_mesh_from_regions(polygon,
                                          boundary_tags,
                                          10000000,
-                                         interior_regions=interior_regions,verbose=False)
+                                         interior_regions=interior_regions,
+                                         verbose=False)
         except:
             pass
         else:

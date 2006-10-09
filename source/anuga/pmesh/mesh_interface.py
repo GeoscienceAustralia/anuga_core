@@ -62,6 +62,57 @@ def create_mesh_from_regions(bounding_polygon,
     unintended resolutions.
     
     """
+
+    # Build arguments and keyword arguments for use with caching or apply.
+    args = (bounding_polygon,
+            boundary_tags)
+    
+    kwargs = {'maximum_triangle_area': maximum_triangle_area,
+              'filename': filename,
+              'interior_regions': interior_regions,
+              'poly_geo_reference': poly_geo_reference,
+              'mesh_geo_reference': mesh_geo_reference,
+              'minimum_triangle_angle': minimum_triangle_angle,
+              'verbose': verbose}   # FIXME (Ole): Should be bypassed one day
+
+
+    #print 'kwargs', kwargs
+
+    # Call underlying engine with or without caching
+    if use_cache is True:
+        try:
+            from caching import cache
+        except:
+            msg = 'Caching was requested, but caching module'+\
+                  'could not be imported'
+            raise msg
+
+
+        res = cache(_create_mesh_from_regions,
+                    args, kwargs,
+                    verbose=verbose,
+                    compression=False)
+    else:
+        res = apply(_create_mesh_from_regions,
+                    args, kwargs)
+
+    return res
+
+
+
+def _create_mesh_from_regions(bounding_polygon,
+                              boundary_tags,
+                              maximum_triangle_area=None,
+                              filename=None,
+                              interior_regions=None,
+                              poly_geo_reference=None,
+                              mesh_geo_reference=None,
+                              minimum_triangle_angle=28.0,
+                              verbose=True):
+    """_create_mesh_from_regions - internal function.
+
+    See create_mesh_from_regions for documentation.
+    """
     #FIXME (OLE-DSG)
     # check the segment indexes - throw an error if they are out of bounds
     #(DSG) Yes!
@@ -162,5 +213,4 @@ def create_mesh_from_regions(bounding_polygon,
         m.generate_mesh(minimum_triangle_angle=minimum_triangle_angle,
                              verbose=verbose)
         m.export_mesh_file(filename)
-
 

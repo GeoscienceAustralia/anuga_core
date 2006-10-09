@@ -307,7 +307,7 @@ def cache(func, args=(), kwargs = {}, dependencies=None , cachedir=None,
           else:
             # FIXME: os.remove doesn't work under windows        
             os.system('del '+fn)
-          if verbose:
+          if verbose is True:
             print 'MESSAGE (caching): File %s deleted' %fn
         ##else:
         ##  print '%s was not accessed' %fn

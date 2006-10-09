@@ -132,6 +132,7 @@ class Test_Caching(unittest.TestCase):
     def test_clear(self):        
         """Test that 'clear' works
         """
+
         N = 5000  #Make N fairly small here
 
         a = [1,2]
@@ -144,13 +145,14 @@ class Test_Caching(unittest.TestCase):
         T1 = cache(f,(a,b,c,N), {'x':x, 'y':y}, evaluate = 1)
         
         
-        cache(f,(a,b,c,N), {'x':x, 'y':y}, clear = 1)    
+        cache(f, (a,b,c,N), {'x':x, 'y':y}, clear = 1)    
 
   
         # Test 'test' function when cache is absent
         
         
-        T4 = cache(f,(a,b,c,N), {'x':x, 'y':y}, test=1)
+        T4 = cache(f, (a,b,c,N), {'x':x, 'y':y}, test=1)
+        #print 'T4', T4
         assert T4 is None, "Option 'test' when cache absent failed"
 
 
