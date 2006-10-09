@@ -237,7 +237,31 @@ class Geospatial_data:
         return Geospatial_data(take(points, inside_indices))
         
         
-   
+    def clip_outside(self, polygon, closed=True):
+        """Clip geospatial date by a polygon, keeping data OUTSIDE of polygon
+
+        Input
+          polygon - Either a list of points, an Nx2 array or
+                    a Geospatial data object.
+          closed - (optional) determine whether points on boundary should be
+          regarded as belonging to the polygon (closed = True)
+          or not (closed = False). Default is True.
+          
+        Output
+          Geospatial data object representing point OUTSIDE specified polygon
+        
+        """
+
+        from anuga.utilities.polygon import outside_polygon
+
+        if isinstance(polygon, Geospatial_data):
+            # Polygon is an object - extract points
+            polygon = polygon.get_data_points()
+
+        points = self.get_data_points()    
+        outside_indices = outside_polygon(points, polygon, closed)
+        return Geospatial_data(take(points, outside_indices))
+    
     def _set_using_lat_long(self,
                             latitudes,
                             longitudes,
