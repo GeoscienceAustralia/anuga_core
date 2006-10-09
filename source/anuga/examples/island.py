@@ -32,9 +32,10 @@ create_mesh_from_regions( [[0,0], [100,0], [100,100], [0,100]],
                                            'right': [1],
                                            'top': [2],
                                            'left': [3]},
-                          maximum_triangle_area = 5,
+                          maximum_triangle_area = 1.0,
                           filename = 'island.msh' ,
-                          interior_regions=[ ([[50,25], [70,25], [70,75], [50,75]], 3)]
+                          interior_regions=[ ([[50,25], [70,25], [70,75], [50,75]], 1.0)]
+                          #interior_holes=[[50,25], [70,25], [70,75], [50,75]],
                           )
 
 
@@ -53,7 +54,8 @@ domain.set_default_order(2)
 # beta_h == 1.0 means that the largest gradients (on h) are allowed
 # beta_h == 0.0 means that constant (1st order) gradients are introduced
 # on h. This is equivalent to the constant depth used previously.
-domain.beta_h = 0.9
+domain.beta_h     = 0.2
+domain.beta_w_dry = 0.2
 
 
 #------------------------------------------------------------------------------
@@ -77,7 +79,7 @@ def slump(x, y):
     return z
 
 #domain.set_quantity('friction', 0.1)  #Honky dory
-domain.set_quantity('friction', 100)     #Creep
+domain.set_quantity('friction', 100.0)     #Creep
 domain.set_quantity('elevation', island)
 domain.set_quantity('stage', 1)
 domain.max_timestep = 0.01
@@ -93,7 +95,7 @@ Bd = Dirichlet_boundary([1, 0, 0])
 domain.set_boundary({'left': Bd, 'right': Bd, 'top': Bd, 'bottom': Bd})
 domain.check_integrity()
 
-
+domain.initialise_visualiser()
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------

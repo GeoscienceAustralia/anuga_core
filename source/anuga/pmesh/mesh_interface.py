@@ -24,6 +24,7 @@ def create_mesh_from_regions(bounding_polygon,
                              maximum_triangle_area=None,
                              filename=None,
                              interior_regions=None,
+                             interior_holes=None,
                              poly_geo_reference=None,
                              mesh_geo_reference=None,
                              minimum_triangle_angle=28.0,
@@ -42,6 +43,8 @@ def create_mesh_from_regions(bounding_polygon,
 
     Interior_regions is a list of tuples consisting of (polygon, resolution)
     for each region to be separately refined.
+    
+    Interior_holes is a list of ploygons for each hole.
 
     This function does not allow segments to share points - use underlying
     pmesh functionality for that
@@ -70,6 +73,7 @@ def create_mesh_from_regions(bounding_polygon,
     kwargs = {'maximum_triangle_area': maximum_triangle_area,
               'filename': filename,
               'interior_regions': interior_regions,
+              'interior_holes': interior_holes,
               'poly_geo_reference': poly_geo_reference,
               'mesh_geo_reference': mesh_geo_reference,
               'minimum_triangle_angle': minimum_triangle_angle,
@@ -105,6 +109,7 @@ def _create_mesh_from_regions(bounding_polygon,
                               maximum_triangle_area=None,
                               filename=None,
                               interior_regions=None,
+                              interior_holes=None,
                               poly_geo_reference=None,
                               mesh_geo_reference=None,
                               minimum_triangle_angle=28.0,
@@ -145,7 +150,16 @@ def _create_mesh_from_regions(bounding_polygon,
                       %(str(interior_polygon), str(bounding_polygon))
                 raise PolygonError, msg
 
-
+    if interior_holes is not None:        
+        # Test that all the interior polygons are inside the bounding_poly
+        for interior_polygon, res in interior_holes:
+            indices = inside_polygon(interior_polygon, bounding_polygon,
+                                     closed = True, verbose = False)
+    
+            if len(indices) <> len(interior_polygon): 
+                msg = 'Interior polygon %s is outside bounding polygon: %s'\
+                      %(str(interior_polygon), str(bounding_polygon))
+                raise PolygonError, msg
 
     # Resolve geo referencing        
     if mesh_geo_reference is None:
@@ -191,19 +205,34 @@ def _create_mesh_from_regions(bounding_polygon,
     inner.setMaxArea(maximum_triangle_area)
 
     # Do interior regions
+#    if interior_regions is not None:    
+#        for polygon, res in interior_regions:
+#            m.add_region_from_polygon(polygon,
+#                                      geo_reference=poly_geo_reference)
+#            # convert bounding poly to absolute values
+#            if poly_geo_reference is not None:
+#                polygon_absolute = \
+#                    poly_geo_reference.get_absolute(polygon)
+#            else:
+#                polygon_absolute = polygon
+#            inner_point = point_in_polygon(polygon_absolute)
+#            region = m.add_region(inner_point[0], inner_point[1])
+#            region.setMaxArea(res)
+            
+            
     if interior_regions is not None:    
         for polygon, res in interior_regions:
             m.add_region_from_polygon(polygon,
+                                      max_triangle_area = res,
                                       geo_reference=poly_geo_reference)
-            # convert bounding poly to absolute values
-            if poly_geo_reference is not None:
-                polygon_absolute = \
-                    poly_geo_reference.get_absolute(polygon)
-            else:
-                polygon_absolute = polygon
-            inner_point = point_in_polygon(polygon_absolute)
-            region = m.add_region(inner_point[0], inner_point[1])
-            region.setMaxArea(res)
+    
+            
+   # Do interior holes
+    if interior_holes is not None:    
+        for polygon, res in interior_holes:
+            m.add_hole_from_polygon(polygon,
+                                      geo_reference=poly_geo_reference)
+       
             
 
     if filename is None:

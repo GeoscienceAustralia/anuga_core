@@ -136,7 +136,7 @@ class TestCase(unittest.TestCase):
         
         interior_regions = [(inner1_polygon, 5),(inner2_polygon, 0.2)]
 
-
+        interior_holes = None
 
         # Clear cache first
         from anuga.caching import cache
@@ -146,6 +146,7 @@ class TestCase(unittest.TestCase):
                'maximum_triangle_area': 10000000,
                'filename': None,
                'interior_regions': interior_regions,
+               'interior_holes': interior_holes,
                'poly_geo_reference': geo_ref_poly,
                'mesh_geo_reference': mesh_geo,
                'verbose': False},

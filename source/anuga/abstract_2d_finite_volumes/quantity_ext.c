@@ -208,7 +208,7 @@ int _update(int N,
 	}
 
 
-	//MH080605 set semi_impliit_update[k] to 0.0 here, rather than in update_conserved_quantities.py
+	//MH080605 set semi_implicit_update[k] to 0.0 here, rather than in update_conserved_quantities.py
 	for (k=0;k<N;k++){
 		semi_implicit_update[k]=0.0;
 	}

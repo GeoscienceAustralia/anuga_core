@@ -210,13 +210,13 @@ class triangTestCase(unittest.TestCase):
                         'bad point list did not raise error!')
 
     def testbad_hole(self):
-
+        
         holelist = [(9.0)]
         regionlist = []
-
-	points = [(0.0,0.0),(0.0,10.0),(3.0,0.0),(3.0,10.0)]
-	pointattlist = [[],[],[],[]]
-	seglist = [(0,1),(1,3),(3,2),(2,0)]
+        
+        points = [(0.0,0.0),(0.0,10.0),(3.0,0.0),(3.0,10.0)]
+        pointattlist = [[],[],[],[]]
+        seglist = [(0,1),(1,3),(3,2),(2,0)]
         segattlist = [0,0,0,0]
         trilist = []
         mode = "Qzpn"
