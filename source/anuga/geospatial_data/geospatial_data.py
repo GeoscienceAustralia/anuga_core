@@ -211,7 +211,7 @@ class Geospatial_data:
             verbose = False
 
     def clip(self, polygon, closed=True):
-        """Clip geospatial date by a polygon
+        """Clip geospatial data by a polygon
 
         Input
           polygon - Either a list of points, an Nx2 array or
@@ -221,7 +221,8 @@ class Geospatial_data:
           or not (closed = False). Default is True.
           
         Output
-          Geospatial data object representing point inside specified polygon
+          New geospatial data object representing points inside
+          specified polygon.
         
         """
 
