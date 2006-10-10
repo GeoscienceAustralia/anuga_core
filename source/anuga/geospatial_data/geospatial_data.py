@@ -4,6 +4,8 @@ associated attributes.
 """
 
 from os import access, F_OK, R_OK
+from types import DictType
+
 from Numeric import concatenate, array, Float, shape, reshape, ravel, take
 
 from anuga.utilities.numerical_tools import ensure_numeric
@@ -123,15 +125,18 @@ class Geospatial_data:
             self.set_default_attribute_name(default_attribute_name)
 
         else:
-###                data = {}    
-                # watch for case where file name and points, attributes etc are provided!!
-                # if file name then all provided info will be removed!
-                self.import_points_file(file_name, delimiter, verbose)
+            # watch for case where file name and points, attributes etc are provided!!
+            # if file name then all provided info will be removed!
+            self.import_points_file(file_name, delimiter, verbose)
                 
-                self.check_data_points(self.data_points)
-                self.set_attributes(self.attributes)
-                self.set_geo_reference(self.geo_reference)
-                self.set_default_attribute_name(default_attribute_name)
+            self.check_data_points(self.data_points)
+            self.set_attributes(self.attributes) 
+            self.set_geo_reference(self.geo_reference)
+            self.set_default_attribute_name(default_attribute_name)
+
+
+        assert self.attributes is None or isinstance(self.attributes, DictType)
+        
 
     def __len__(self):
         return len(self.data_points)
@@ -158,8 +163,6 @@ class Geospatial_data:
         """Check and assign attributes dictionary
         """
         
-        from types import DictType
-       
         if attributes is None:
             self.attributes = None
             return
@@ -234,7 +237,18 @@ class Geospatial_data:
 
         points = self.get_data_points()    
         inside_indices = inside_polygon(points, polygon, closed)
-        return Geospatial_data(take(points, inside_indices))
+
+        clipped_points = take(points, inside_indices)
+
+        # Clip all attributes
+        attributes = self.get_all_attributes()
+
+        clipped_attributes = {}
+        if attributes is not None:
+            for key, att in attributes.items():
+                clipped_attributes[key] = take(att, inside_indices)
+
+        return Geospatial_data(clipped_points, clipped_attributes)
         
         
     def clip_outside(self, polygon, closed=True):
@@ -260,7 +274,19 @@ class Geospatial_data:
 
         points = self.get_data_points()    
         outside_indices = outside_polygon(points, polygon, closed)
-        return Geospatial_data(take(points, outside_indices))
+
+        clipped_points = take(points, outside_indices)
+
+        # Clip all attributes
+        attributes = self.get_all_attributes()
+
+        clipped_attributes = {}
+        if attributes is not None:
+            for key, att in attributes.items():
+                clipped_attributes[key] = take(att, outside_indices)
+
+        return Geospatial_data(clipped_points, clipped_attributes)
+
     
     def _set_using_lat_long(self,
                             latitudes,
@@ -349,6 +375,7 @@ class Geospatial_data:
     def get_all_attributes(self):
         """
         Return values for all attributes.
+        The return value is either None or a dictionary (possibly empty).
         """
 
         return self.attributes
@@ -444,6 +471,8 @@ class Geospatial_data:
         """ load an .xya or .pts file
         Note: will throw an IOError if it can't load the file.
         Catch these!
+
+        Post condition: self.attributes dictionary has been set
         """
         
         if access(file_name, F_OK) == 0 :

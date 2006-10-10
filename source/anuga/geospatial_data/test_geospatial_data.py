@@ -394,7 +394,43 @@ class Test_Geospatial_data(unittest.TestCase):
         assert allclose(G.clip(polygon).get_data_points(),
                         [[0.5, 0.5], [1, -0.5], [1.5, 0]])
 
-    def no_test_clip1(self):
+    def test_clip0_with_attributes(self):
+        """test_clip0_with_attributes(self):
+        
+        Test that point sets with attributes can be clipped by a polygon
+        """
+        
+        from anuga.coordinate_transforms.geo_reference import Geo_reference
+        
+        points = [[-1, 4], [0.2, 0.5], [1.0, 2.1], [0.4, 0.3], [3.0, 5.3],
+                  [0, 0], [2.4, 3.3]]
+
+        attributes = [2, -4, 5, 76, -2, 0.1, 3]
+        att_dict = {'att1': attributes,
+                    'att2': array(attributes)+1}
+        
+        G = Geospatial_data(points, att_dict)
+
+        # First try the unit square    
+        U = [[0,0], [1,0], [1,1], [0,1]] 
+        assert allclose(G.clip(U).get_data_points(), [[0.2, 0.5], [0.4, 0.3], [0, 0]])
+        assert allclose(G.clip(U).get_attributes('att1'), [-4, 76, 0.1])
+        assert allclose(G.clip(U).get_attributes('att2'), [-3, 77, 1.1])                
+
+        # Then a more complex polygon
+        polygon = [[0,0], [1,0], [0.5,-1], [2, -1], [2,1], [0,1]]
+	points = [ [0.5, 1.4], [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
+
+        # This time just one attribute
+        attributes = [2, -4, 5, 76, -2, 0.1]
+        G = Geospatial_data(points, attributes)
+
+        assert allclose(G.clip(polygon).get_data_points(),
+                        [[0.5, 0.5], [1, -0.5], [1.5, 0]])
+        assert allclose(G.clip(polygon).get_attributes(), [-4, 5, 76])
+        
+
+    def test_clip1(self):
         """test_clip1(self):
         
         Test that point sets can be clipped by a polygon given as
@@ -407,7 +443,7 @@ class Test_Geospatial_data(unittest.TestCase):
                   [0, 0], [2.4, 3.3]]
         attributes = [2, -4, 5, 76, -2, 0.1, 3]
         att_dict = {'att1': attributes,
-                    'att2': array(attributes) +1}
+                    'att2': array(attributes)+1}
         G = Geospatial_data(points, att_dict)
         
         # First try the unit square    
@@ -416,16 +452,19 @@ class Test_Geospatial_data(unittest.TestCase):
                         [[0.2, 0.5], [0.4, 0.3], [0, 0]])
 
         assert allclose(G.clip(U).get_attributes('att1'), [-4, 76, 0.1])
-        #assert allclose(G.clip(U).get_attributes('att2'), ???)
+        assert allclose(G.clip(U).get_attributes('att2'), [-3, 77, 1.1])                        
         
         # Then a more complex polygon
 	points = [ [0.5, 1.4], [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
-        G = Geospatial_data(points)
+        attributes = [2, -4, 5, 76, -2, 0.1]        
+        G = Geospatial_data(points, attributes)
         polygon = Geospatial_data([[0,0], [1,0], [0.5,-1], [2, -1], [2,1], [0,1]])
         
 
         assert allclose(G.clip(polygon).get_data_points(),
                         [[0.5, 0.5], [1, -0.5], [1.5, 0]])
+        assert allclose(G.clip(polygon).get_attributes(), [-4, 5, 76])
+        
 
     def test_clip0_outside(self):
         """test_clip0_outside(self):
@@ -437,20 +476,26 @@ class Test_Geospatial_data(unittest.TestCase):
         
         points = [[-1, 4], [0.2, 0.5], [1.0, 2.1], [0.4, 0.3], [3.0, 5.3],
                   [0, 0], [2.4, 3.3]]
-        G = Geospatial_data(points)
+        attributes = [2, -4, 5, 76, -2, 0.1, 3]        
+        G = Geospatial_data(points, attributes)
 
         # First try the unit square    
         U = [[0,0], [1,0], [1,1], [0,1]]
         assert allclose(G.clip_outside(U).get_data_points(),
                         [[-1, 4], [1.0, 2.1], [3.0, 5.3], [2.4, 3.3]])
+        #print G.clip_outside(U).get_attributes()
+        assert allclose(G.clip_outside(U).get_attributes(), [2, 5, -2, 3])        
+        
 
         # Then a more complex polygon
         polygon = [[0,0], [1,0], [0.5,-1], [2, -1], [2,1], [0,1]]
 	points = [ [0.5, 1.4], [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
-        G = Geospatial_data(points)
+        attributes = [2, -4, 5, 76, -2, 0.1]        
+        G = Geospatial_data(points, attributes)
 
         assert allclose(G.clip_outside(polygon).get_data_points(),
-                        [[0.5, 1.4], [0.5, 1.5], [0.5, -0.5]])    
+                        [[0.5, 1.4], [0.5, 1.5], [0.5, -0.5]])
+        assert allclose(G.clip_outside(polygon).get_attributes(), [2, -2, 0.1])                
 
 
     def test_clip1_outside(self):
@@ -464,21 +509,27 @@ class Test_Geospatial_data(unittest.TestCase):
         
         points = [[-1, 4], [0.2, 0.5], [1.0, 2.1], [0.4, 0.3], [3.0, 5.3],
                   [0, 0], [2.4, 3.3]]
-        G = Geospatial_data(points)
+        attributes = [2, -4, 5, 76, -2, 0.1, 3]        
+        G = Geospatial_data(points, attributes)        
 
         # First try the unit square    
         U = Geospatial_data([[0,0], [1,0], [1,1], [0,1]]) 
         assert allclose(G.clip_outside(U).get_data_points(),
                         [[-1, 4], [1.0, 2.1], [3.0, 5.3], [2.4, 3.3]])
+        assert allclose(G.clip(U).get_attributes(), [-4, 76, 0.1])        
 
         # Then a more complex polygon
         points = [ [0.5, 1.4], [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
-        G = Geospatial_data(points)
+        attributes = [2, -4, 5, 76, -2, 0.1]        
+        G = Geospatial_data(points, attributes)
+
         polygon = Geospatial_data([[0,0], [1,0], [0.5,-1], [2, -1], [2,1], [0,1]])
         
 
         assert allclose(G.clip_outside(polygon).get_data_points(),
                         [[0.5, 1.4], [0.5, 1.5], [0.5, -0.5]])
+        assert allclose(G.clip_outside(polygon).get_attributes(), [2, -2, 0.1])
+        
 
 
     def test_clip1_inside_outside(self):
@@ -492,24 +543,29 @@ class Test_Geospatial_data(unittest.TestCase):
         
         points = [[-1, 4], [0.2, 0.5], [1.0, 2.1], [0.4, 0.3], [3.0, 5.3],
                   [0, 0], [2.4, 3.3]]
-
-        G = Geospatial_data(points)
+        attributes = [2, -4, 5, 76, -2, 0.1, 3]        
+        G = Geospatial_data(points, attributes)
 
         # First try the unit square    
         U = Geospatial_data([[0,0], [1,0], [1,1], [0,1]]) 
         G1 = G.clip(U)
         assert allclose(G1.get_data_points(),[[0.2, 0.5], [0.4, 0.3], [0, 0]])
+        assert allclose(G.clip(U).get_attributes(), [-4, 76, 0.1])
         
         G2 = G.clip_outside(U)
         assert allclose(G2.get_data_points(),[[-1, 4], [1.0, 2.1],
                                               [3.0, 5.3], [2.4, 3.3]])
+        assert allclose(G.clip_outside(U).get_attributes(), [2, 5, -2, 3])                
 
         
         # New ordering
         new_points = [[0.2, 0.5], [0.4, 0.3], [0, 0]] +\
                      [[-1, 4], [1.0, 2.1], [3.0, 5.3], [2.4, 3.3]]
 
+        new_attributes = [-4, 76, 0.1, 2, 5, -2, 3]                 
+        
         assert allclose((G1+G2).get_data_points(), new_points)
+        assert allclose((G1+G2).get_attributes(), new_attributes)
 
         G = G1+G2
         FN = 'test_combine.pts'
@@ -522,7 +578,7 @@ class Test_Geospatial_data(unittest.TestCase):
 
         # Check result
         assert allclose(G3.get_data_points(), new_points)        
-        
+        assert allclose(G3.get_attributes(), new_attributes)        
         
         os.remove(FN)
 
