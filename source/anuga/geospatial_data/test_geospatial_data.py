@@ -475,7 +475,7 @@ class Test_Geospatial_data(unittest.TestCase):
                         [[0.5, 1.4], [0.5, 1.5], [0.5, -0.5]])
 
 
-    def test_clip1_inside_outside(self):
+    def no_test_clip1_inside_outside(self):
         """test_clip1_inside_outside(self):
         
         Test that point sets can be clipped outside of a polygon given as
@@ -502,10 +502,15 @@ class Test_Geospatial_data(unittest.TestCase):
         # New ordering
         new_points = [[0.2, 0.5], [0.4, 0.3], [0, 0]] +\
                      [[-1, 4], [1.0, 2.1], [3.0, 5.3], [2.4, 3.3]]
-        
-        assert allclose((G1+G2).get_data_points(), new_points)
-        
 
+        assert allclose((G1+G2).get_data_points(), new_points)
+
+        G = G1+G2
+        FN = 'test_combine.pts'
+        G.export_points_file(FN)
+        os.remove(FN)
+
+        
     def test_create_from_xya_file(self):
         """Check that object can be created from a points file (.pts and .xya)
         """
