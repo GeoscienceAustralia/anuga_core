@@ -375,7 +375,8 @@ class Geospatial_data:
 
 
         # sets xll and yll as the smallest from self and other
-        # FIXME (Duncan and Ole): use lower left corner derived from absolute coordinates
+        # FIXME (Duncan and Ole): use lower left corner derived from
+        # absolute coordinates
         if self.geo_reference.xllcorner <= other.geo_reference.xllcorner:
             xll = self.geo_reference.xllcorner
         else:
@@ -393,29 +394,42 @@ class Geospatial_data:
         relative_points2 = other.get_data_points(absolute = False)
 
         
-        new_relative_points1 = new_geo_ref.change_points_geo_ref(relative_points1, geo_ref1)
-        new_relative_points2 = new_geo_ref.change_points_geo_ref(relative_points2, geo_ref2)
+        new_relative_points1 = new_geo_ref.\
+                               change_points_geo_ref(relative_points1,
+                                                     geo_ref1)
+        new_relative_points2 = new_geo_ref.\
+                               change_points_geo_ref(relative_points2,
+                                                     geo_ref2)
         
-        #Now both point sets are relative to new_geo_ref and zones have been reconciled
+        # Now both point sets are relative to new_geo_ref and
+        # zones have been reconciled
 
         # Concatenate points
         new_points = concatenate((new_relative_points1,
                                   new_relative_points2),
                                   axis = 0)
       
-        # Concatenate attributes
-        new_attributes = {}
-        for x in self.attributes.keys():
-            if other.attributes.has_key(x):
-
-                attrib1 = self.attributes[x]
-                attrib2 = other.attributes[x]
-                new_attributes[x] = concatenate((attrib1, attrib2))
-
-            else:
+        # Concatenate attributes if any
+        if self.attributes is None:
+            if other.attributes is not None:
                 msg = 'Both geospatial_data objects must have the same \n'
                 msg += 'attributes to allow addition.'
-                raise msg
+                raise Exception, msg
+            
+            new_attributes = None
+        else:    
+            new_attributes = {}
+            for x in self.attributes.keys():
+                if other.attributes.has_key(x):
+
+                    attrib1 = self.attributes[x]
+                    attrib2 = other.attributes[x]
+                    new_attributes[x] = concatenate((attrib1, attrib2))
+
+                else:
+                    msg = 'Both geospatial_data objects must have the same \n'
+                    msg += 'attributes to allow addition.'
+                    raise Exception, msg
 
         # Instantiate new data object and return    
         return Geospatial_data(new_points,
