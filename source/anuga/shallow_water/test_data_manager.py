@@ -8,6 +8,7 @@ from anuga.utilities.numerical_tools import mean
 import tempfile
 import os
 from Scientific.IO.NetCDF import NetCDFFile
+from struct import pack
 
 from anuga.shallow_water.data_manager import *
 from anuga.shallow_water import *
@@ -15,7 +16,7 @@ from anuga.config import epsilon
 
 # This is needed to run the tests of local functions
 import data_manager 
-
+from anuga.coordinate_transforms.redfearn import redfearn
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 
 class Test_Data_Manager(unittest.TestCase):
@@ -70,11 +71,7 @@ class Test_Data_Manager(unittest.TestCase):
 
         self.F = bed
 
-
-
-
         #Write A testfile (not realistic. Values aren't realistic)
-
         self.test_MOST_file = 'most_small'
 
         longitudes = [150.66667, 150.83334, 151., 151.16667]
@@ -4983,6 +4980,215 @@ Parameters
                         'Bad zone error!')
 
         os.remove(csv_file)
+
+    #### TESTS FOR URS 2 SWW  ###     
+    
+    def create_mux(self, points_num=None):
+        # write all the mux stuff.
+        time_step_count = 3
+        time_step = 0.5
+        
+        longitudes = [150.66667, 150.83334, 151., 151.16667]
+        latitudes = [-34.5, -34.33333, -34.16667, -34]
+
+        if points_num == None:
+            points_num = len(longitudes) * len(latitudes)
+
+        lonlatdeps = []
+        quantities = ['HA','UA','VA']
+        mux_names = ['-z-mux','-e-mux','-n-mux']
+        quantities_init = [[],[],[]]
+        for i,lon in enumerate(longitudes):
+            for j,lat in enumerate(latitudes):
+                _ , e, n = redfearn(lat, lon)
+                lonlatdeps.append([lon, lat, n])
+                quantities_init[0].append(e) # HA
+                quantities_init[1].append(n ) # UA
+                quantities_init[2].append(e) # VA
+        #print "lonlatdeps",lonlatdeps 
+        base_name = str(id(self))
+        files = []        
+        for i,q in enumerate(quantities): 
+            quantities_init[i] = ensure_numeric(quantities_init[i])
+            #print "HA_init", HA_init
+            q_time = zeros((time_step_count, points_num), Float)
+            for time in range(time_step_count):
+                q_time[time,:] = quantities_init[i] #* time * 4
+            
+            #Write C files
+            columns = 3 # long, lat , depth
+            file = base_name + mux_names[i]
+            f = open(file, 'wb')
+            files.append(file)
+            f.write(pack('i',points_num))
+            f.write(pack('i',time_step_count))
+            f.write(pack('f',time_step))
+
+            #write lat/long info
+            for lonlatdep in lonlatdeps:
+                for float in lonlatdep:
+                    f.write(pack('f',float))
+                    
+            # Write quantity info
+            for time in  range(time_step_count):
+                for i in range(points_num):
+                    f.write(pack('f',q_time[time,i]))
+            f.close()
+        return base_name, files
+        
+    
+    def delete_mux(self, files):
+        for file in files:
+            os.remove(file)
+            
+    def test_urs2sww_test_fail(self):
+        points_num = -100
+        time_step_count = 45
+        time_step = -7
+        base_name = str(id(self))
+        files = []
+        quantities = ['HA','UA','VA']
+        mux_names = ['-z-mux','-e-mux','-n-mux']
+        for i,q in enumerate(quantities): 
+            #Write C files
+            columns = 3 # long, lat , depth
+            file = base_name + mux_names[i]
+            f = open(file, 'wb')
+            files.append(file)
+            f.write(pack('i',points_num))
+            f.write(pack('i',time_step_count))
+            f.write(pack('f',time_step))
+
+            f.close()   
+        tide = 1
+        try:
+            urs2sww(base_name, remove_nc_files=True, mean_stage=tide)        
+        except ANUGAError:
+            pass
+        else:
+            self.delete_mux(files)
+            msg = 'Should have raised exception'
+            raise msg
+        sww_file = base_name + '.sww'
+        
+        self.delete_mux(files)
+        
+    def test_urs2sww(self):
+        tide = 1
+        base_name, files = self.create_mux()
+        urs2sww(base_name, remove_nc_files=True, mean_stage=tide)
+        sww_file = base_name + '.sww'
+        
+        #Let's interigate the sww file 
+        fid = NetCDFFile(sww_file)
+
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+        geo_reference = Geo_reference(NetCDFObject=fid)
+        
+        #Check that first coordinate is correctly represented       
+        #Work out the UTM coordinates for first point
+        zone, e, n = redfearn(-34.5, 150.66667)       
+       
+        assert allclose(geo_reference.get_absolute([[x[0],y[0]]]), [e,n])
+
+        #Check first value
+        stage = fid.variables['stage'][:]
+	xmomentum = fid.variables['xmomentum'][:]
+	ymomentum = fid.variables['ymomentum'][:]
+
+	#print ymomentum
+        assert allclose(stage[0,0], e +tide)  #Meters
+
+        #Check the momentums - ua
+        #momentum = velocity*(stage-elevation)
+        #momentum = velocity*(stage+elevation)
+        # -(-elevation) since elevation is inverted in mux files
+        # = n*(e+tide+n) based on how I'm writing these files
+        answer = n*(e+tide+n)
+        actual = xmomentum[0,0]
+        #print "answer",answer
+        #print "actual",actual 
+        assert allclose(answer, actual)  #Meters
+        
+        fid.close()
+
+
+        self.delete_mux(files)
+        os.remove(sww_file)
+        
+    def bad_test_assuming_theres_a_mux_file(self):
+        # these mux files aren't in the repository, plus they are bad!
+        base_name = 'o-z-mux' 
+        base_name = 'o-e-mux'
+        file_name = base_name + '.nc'
+        lonlatdep_numeric, lon, lat = _binary_c2nc(base_name, file_name, 'HA')
+        
+        #os.remove(file_name)
+        
+    def test_lon_lat2grid(self):
+        lonlatdep = [
+            [ 113.06700134  ,  -26.06669998 ,   0.        ] ,
+            [ 113.06700134  ,  -26.33329964 ,   0.        ] ,
+            [ 113.19999695  ,  -26.06669998 ,   0.        ] ,
+            [ 113.19999695  ,  -26.33329964 ,   0.        ] ]
+            
+        long, lat = lon_lat2grid(lonlatdep)
+
+        for i, result in enumerate(lat):
+            assert lonlatdep [i][1] == result
+        assert len(lat) == 2 
+
+        for i, result in enumerate(long):
+            assert lonlatdep [i*2][0] == result
+        assert len(long) == 2
+
+    def test_lon_lat2grid_bad(self):
+        lonlatdep  = [
+            [ -26.06669998,  113.06700134,    1.        ],
+            [ -26.06669998 , 113.19999695 ,   2.        ],
+            [ -26.06669998 , 113.33300018,    3.        ],
+            [ -26.06669998 , 113.43299866   , 4.        ],
+            [ -26.20000076 , 113.06700134,    5.        ],
+            [ -26.20000076 , 113.19999695 ,   6.        ],
+            [ -26.20000076 , 113.33300018  ,  7.        ],
+            [ -26.20000076 , 113.43299866   , 8.        ],
+            [ -26.33329964 , 113.06700134,    9.        ],
+            [ -26.33329964 , 113.19999695 ,   10.        ],
+            [ -26.33329964 , 113.33300018  ,  11.        ],
+            [ -26.33329964 , 113.43299866 ,   12.        ],
+            [ -26.43330002 , 113.06700134 ,   13        ],
+            [ -26.43330002 , 113.19999695 ,   14.        ],
+            [ -26.43330002 , 113.33300018,    15.        ],
+            [ -26.43330002 , 113.43299866,    16.        ]]
+        try:
+            long, lat = lon_lat2grid(lonlatdep)
+        except AssertionError:
+            pass
+        else:
+            msg = 'Should have raised exception'
+            raise msg
+       
+    def test_lon_lat2gridII(self):
+        lonlatdep = [
+            [ 113.06700134  ,  -26.06669998 ,   0.        ] ,
+            [ 113.06700134  ,  -26.33329964 ,   0.        ] ,
+            [ 113.19999695  ,  -26.06669998 ,   0.        ] ,
+            [ 113.19999695  ,  -26.344329964 ,   0.        ] ]
+        try:
+            long, lat = lon_lat2grid(lonlatdep)
+        except AssertionError:
+            pass
+        else:
+            msg = 'Should have raised exception'
+            raise msg
+        
+    def trial_loading(self):
+        basename_in = 'karratha'
+        basename_out = basename_in
+        urs2sww(basename_in, basename_out)
+    #### END TESTS FOR URS 2 SWW  ###
+
         
 #-------------------------------------------------------------
 if __name__ == "__main__":

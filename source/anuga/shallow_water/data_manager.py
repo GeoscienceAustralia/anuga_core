@@ -59,14 +59,20 @@ class DataDomainError(exceptions.Exception): pass
 
 import csv
 import os
+from struct import unpack
+import array as p_array
 
 from Numeric import concatenate, array, Float, Int, Int32, resize, sometrue, \
-     searchsorted, zeros, allclose, around
+     searchsorted, zeros, allclose, around, reshape
+from Scientific.IO.NetCDF import NetCDFFile
 
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.config import minimum_storable_height as default_minimum_storable_height
+from anuga.utilities.numerical_tools import ensure_numeric
+from anuga.caching.caching import myhash
+from anuga.utilities.anuga_exceptions import ANUGAError
 
 def make_filename(s):
     """Transform argument string into a suitable filename
@@ -4042,6 +4048,304 @@ def sww2timeseries(swwfile,
 
     return
 
+    ####  URS 2 SWW  ###
+
+lon_name = 'LON'
+lat_name = 'LAT'
+time_name = 'TIME'
+precision = Float # So if we want to change the precision its done here        
+class Write_nc:
+    """
+    Write an nc file.
+    
+    Note, this should be checked to meet cdc netcdf conventions for gridded
+    data. http://www.cdc.noaa.gov/cdc/conventions/cdc_netcdf_standard.shtml
+    
+    """
+    def __init__(self,
+                 quantity_name,
+                 file_name,
+                 time_step_count,
+                 time_step,
+                 lon,
+                 lat):
+        """
+        time_step_count is the number of time steps.
+        time_step is the time step size
+        
+        pre-condition: quantity_name must be 'HA' 'UA'or 'VA'.
+        """
+        self.quantity_name = quantity_name
+        quantity_units= {'HA':'METERS',
+                              'UA':'METERS/SECOND',
+                              'VA':'METERS/SECOND'}
+        
+        #self.file_name = file_name
+        self.time_step_count = time_step_count
+        self.time_step = time_step
+
+        # NetCDF file definition
+        self.outfile = NetCDFFile(file_name, 'w')
+        outfile = self.outfile       
+
+        #Create new file
+        nc_lon_lat_header(outfile, lon, lat)
+    
+        # TIME
+        outfile.createDimension(time_name, None)
+        outfile.createVariable(time_name, precision, (time_name,))
+
+        #QUANTITY
+        outfile.createVariable(self.quantity_name, precision,
+                               (time_name, lat_name, lon_name))
+        outfile.variables[self.quantity_name].missing_value=-1.e+034
+        outfile.variables[self.quantity_name].units= \
+                                 quantity_units[self.quantity_name]
+        outfile.variables[lon_name][:]= ensure_numeric(lon)
+        outfile.variables[lat_name][:]= ensure_numeric(lat)
+
+        #Assume no one will be wanting to read this, while we are writing
+        #outfile.close()
+        
+    def store_timestep(self, quantity_slice):
+        """
+        quantity_slice is the data to be stored at this time step
+        """
+        
+        outfile = self.outfile
+        
+        # Get the variables
+        time = outfile.variables[time_name]
+        quantity = outfile.variables[self.quantity_name]
+            
+        i = len(time)
+
+        #Store time
+        time[i] = i*self.time_step #self.domain.time
+        quantity[i,:] = quantity_slice*100 # To convert from m to cm
+                                           # And m/s to cm/sec
+        
+    def close(self):
+        self.outfile.close()
+
+def urs2sww(basename_in='o', basename_out=None, verbose=False,
+            remove_nc_files=True,
+            minlat=None, maxlat=None,
+            minlon= None, maxlon=None,
+            mint=None, maxt=None,
+            mean_stage=0,
+            zscale=1,
+            fail_on_NaN=True,
+            NaN_filler=0,
+            elevation=None):
+    """
+    Convert URS C binary format for wave propagation to
+    sww format native to abstract_2d_finite_volumes.
+
+    Specify only basename_in and read files of the form
+    basefilename-z-mux, basefilename-e-mux and basefilename-n-mux containing
+    relative height, x-velocity and y-velocity, respectively.
+
+    Also convert latitude and longitude to UTM. All coordinates are
+    assumed to be given in the GDA94 datum. The latitude and longitude
+    information is for  a grid.
+
+    min's and max's: If omitted - full extend is used.
+    To include a value min may equal it, while max must exceed it.
+    Lat and lon are assuemd to be in decimal degrees
+
+    URS C binary format has data orgainised as TIME, LONGITUDE, LATITUDE
+    which means that latitude is the fastest
+    varying dimension (row major order, so to speak)
+
+    In URS C binary the latitudes and longitudes are in assending order.
+    """
+    
+    if basename_out == None:
+        basename_out = basename_in
+    files_out = urs2nc(basename_in, basename_out)
+    ferret2sww(basename_out,
+               minlat=minlat,
+               maxlat=maxlat,
+               minlon=minlon,
+               mint=mint,
+               maxt=maxt,
+               mean_stage=mean_stage,
+               zscale=zscale,
+               fail_on_NaN=fail_on_NaN,
+               NaN_filler=NaN_filler,
+               inverted_bathymetry=True,
+               verbose=verbose)
+    #print "files_out",files_out
+    if remove_nc_files:
+        for file_out in files_out:
+            os.remove(file_out)
+    
+def urs2nc(basename_in = 'o', basename_out = 'urs'):
+    files_in = [basename_in+'-z-mux',
+                basename_in+'-e-mux',
+                basename_in+'-n-mux']
+    files_out = [basename_out+'_ha.nc',
+                 basename_out+'_ua.nc',
+                 basename_out+'_va.nc']
+    quantities = ['HA','UA','VA']
+
+    hashed_elevation = None
+    for file_in, file_out, quantity in map(None, files_in,
+                                           files_out,
+                                           quantities):
+        lonlatdep, lon, lat = _binary_c2nc(file_in,
+                                         file_out,
+                                         quantity)
+        #print "lon",lon
+        #print "lat",lat 
+        if hashed_elevation == None:
+            elevation_file = basename_out+'_e.nc'
+            write_elevation_sww(elevation_file,
+                                lon,
+                                lat,
+                                lonlatdep[:,2])
+            hashed_elevation = myhash(lonlatdep)
+        else:
+            msg = "The elevation information in the mux files is inconsistent"
+            assert hashed_elevation == myhash(lonlatdep), msg
+    files_out.append(elevation_file)
+    return files_out
+    
+def _binary_c2nc(file_in, file_out, quantity):
+    """
+
+    return the depth info, so it can be written to a file
+    """
+    columns = 3 # long, lat , depth
+    f = open(file_in, 'rb')
+    
+    # Number of points/stations
+    (points_num,)= unpack('i',f.read(4))
+
+    # nt, int - Number of time steps
+    (time_step_count,)= unpack('i',f.read(4))
+
+    #dt, float - time step, seconds
+    (time_step,) = unpack('f', f.read(4))
+    
+    msg = "Bad data in the mux file."
+    if points_num < 0:
+        raise ANUGAError, msg
+    if time_step_count < 0:
+        raise ANUGAError, msg
+    if time_step < 0:
+        raise ANUGAError, msg
+    
+    lonlatdep = p_array.array('f')
+    lonlatdep.read(f, columns * points_num)
+    lonlatdep = array(lonlatdep, typecode=Float)    
+    lonlatdep = reshape(lonlatdep, ( points_num, columns))
+    
+    lon, lat = lon_lat2grid(lonlatdep)
+    nc_file = Write_nc(quantity,
+                       file_out,
+                        time_step_count,
+                        time_step,
+                        lon,
+                        lat)
+
+    for i in range(time_step_count):
+        #Read in a time slice    
+        hz_p_array = p_array.array('f')
+        hz_p_array.read(f, points_num)
+        hz_p = array(hz_p_array, typecode=Float)
+        hz_p = reshape(hz_p, ( len(lat), len(lon)))
+        
+        nc_file.store_timestep(hz_p)
+        
+    nc_file.close()
+
+    return lonlatdep, lon, lat
+    
+
+def write_elevation_sww(file_out, lon, lat, depth_vector):
+      
+    # NetCDF file definition
+    outfile = NetCDFFile(file_out, 'w')
+
+    #Create new file
+    nc_lon_lat_header(outfile, lon, lat)
+    
+    # ELEVATION
+    zname = 'ELEVATION'
+    outfile.createVariable(zname, precision, (lat_name, lon_name))
+    outfile.variables[zname].units='CENTIMETERS'
+    outfile.variables[zname].missing_value=-1.e+034
+
+    outfile.variables[lon_name][:]= ensure_numeric(lon)
+    outfile.variables[lat_name][:]= ensure_numeric(lat)
+
+    depth = reshape(depth_vector, ( len(lat), len(lon)))
+    #print "depth",depth 
+    outfile.variables[zname][:]= depth
+    
+    outfile.close()
+    
+def nc_lon_lat_header(outfile, lon, lat):
+    
+    outfile.institution = 'Geoscience Australia'
+    outfile.description = 'Converted from URS binary C'
+    
+    # Longitude
+    outfile.createDimension(lon_name, len(lon))
+    outfile.createVariable(lon_name, precision, (lon_name,))
+    outfile.variables[lon_name].point_spacing='uneven'
+    outfile.variables[lon_name].units='degrees_east'
+    outfile.variables[lon_name].assignValue(lon)
+
+
+    # Latitude
+    outfile.createDimension(lat_name, len(lat))
+    outfile.createVariable(lat_name, precision, (lat_name,))
+    outfile.variables[lat_name].point_spacing='uneven'
+    outfile.variables[lat_name].units='degrees_north'
+    outfile.variables[lat_name].assignValue(lat)
+
+
+    
+def lon_lat2grid(long_lat_dep):
+    """
+    given a list of points that are assumed to be an a grid,
+    return the long's and lat's of the grid.
+    long_lat_dep is an array where each row is a position.
+    The first column is longitudes.
+    The second column is latitudes.
+    """
+    LONG = 0
+    LAT = 1
+    points_num = len(long_lat_dep)
+    lat = [long_lat_dep[0][LAT]]
+    this_rows_long = long_lat_dep[0][LONG]
+    i = 1 # Index of long_lat_dep 
+
+    #Working out the lat's
+    while long_lat_dep[i][LONG] == this_rows_long and i < points_num:
+            lat.append(long_lat_dep[i][LAT])
+            i += 1
+            
+    lats_per_long = i        
+    long = [long_lat_dep[0][LONG]]
+    #Working out the longs
+    while i < points_num:
+        msg = 'Data is not gridded.  It must be for this operation'
+        assert long_lat_dep[i][LAT] == lat[i%lats_per_long], msg
+        if i%lats_per_long == 0:
+            long.append(long_lat_dep[i][LONG])
+        i += 1
+    
+    msg = 'Our of range latitudes/longitudes'
+    for l in lat:assert -90 < l < 90 , msg
+    for l in long:assert -180 < l < 180 , msg
+        
+    return long, lat
+
+    ####  END URS 2 SWW  ###     
 #-------------------------------------------------------------
 if __name__ == "__main__":
     pass
