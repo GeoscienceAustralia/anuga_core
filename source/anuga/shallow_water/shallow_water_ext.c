@@ -615,8 +615,10 @@ PyObject *gravity(PyObject *self, PyObject *args) {
 
   if (!PyArg_ParseTuple(args, "dOOOOO",
 			&g, &h, &v, &x,
-			&xmom, &ymom))
+			&xmom, &ymom)) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: gravity could not parse input arguments");
     return NULL;
+  }
 
   N = h -> dimensions[0];
   for (k=0; k<N; k++) {
@@ -666,8 +668,11 @@ PyObject *manning_friction(PyObject *self, PyObject *args) {
 
   if (!PyArg_ParseTuple(args, "ddOOOOOOO",
 			&g, &eps, &w, &z, &uh, &vh, &eta,
-			&xmom, &ymom))
+			&xmom, &ymom)) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: manning_friction could not parse input arguments");
     return NULL;
+  }
+
 
   N = w -> dimensions[0];
   _manning_friction(g, eps, N,
@@ -787,44 +792,58 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
 
   //get the safety factor beta_w, set in the config.py file. This is used in the limiting process
   Tmp = PyObject_GetAttrString(domain, "beta_w");
-  if (!Tmp)
+  if (!Tmp) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: extrapolate_second_order_sw could not obtain object beta_w from domain");
     return NULL;
+  }  
   beta_w = PyFloat_AsDouble(Tmp);
   Py_DECREF(Tmp);
   
   Tmp = PyObject_GetAttrString(domain, "beta_w_dry");
-  if (!Tmp)
+  if (!Tmp) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: extrapolate_second_order_sw could not obtain object beta_w_dry from domain");
     return NULL;
+  }  
   beta_w_dry = PyFloat_AsDouble(Tmp);
   Py_DECREF(Tmp);
   
   Tmp = PyObject_GetAttrString(domain, "beta_uh");
-  if (!Tmp)
+  if (!Tmp) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: extrapolate_second_order_sw could not obtain object beta_uh from domain");
     return NULL;
+  }  
   beta_uh = PyFloat_AsDouble(Tmp);
   Py_DECREF(Tmp);
   
   Tmp = PyObject_GetAttrString(domain, "beta_uh_dry");
-  if (!Tmp)
+  if (!Tmp) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: extrapolate_second_order_sw could not obtain object beta_uh_dry from domain");
     return NULL;
+  }  
   beta_uh_dry = PyFloat_AsDouble(Tmp);
   Py_DECREF(Tmp); 
 
   Tmp = PyObject_GetAttrString(domain, "beta_vh");
-  if (!Tmp)
+  if (!Tmp) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: extrapolate_second_order_sw could not obtain object beta_vh from domain");
     return NULL;
+  }  
   beta_vh = PyFloat_AsDouble(Tmp);
   Py_DECREF(Tmp);
   
   Tmp = PyObject_GetAttrString(domain, "beta_vh_dry");
-  if (!Tmp)
+  if (!Tmp) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: extrapolate_second_order_sw could not obtain object beta_vh_dry from domain");
     return NULL;
+  }  
   beta_vh_dry = PyFloat_AsDouble(Tmp);
   Py_DECREF(Tmp);
   
   Tmp = PyObject_GetAttrString(domain, "minimum_allowed_height");
-  if (!Tmp)
+  if (!Tmp) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: extrapolate_second_order_sw could not obtain object minimum_allowed_heigt");
     return NULL;
+  }  
   minimum_allowed_height = PyFloat_AsDouble(Tmp);
   Py_DECREF(Tmp);  
   
@@ -880,15 +899,19 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
       //calculate 2*area of the auxiliary triangle
       area2 = dy2*dx1 - dy1*dx2;//the triangle is guaranteed to be counter-clockwise
       //If the mesh is 'weird' near the boundary, the trianlge might be flat or clockwise:
-      if (area2<=0)
-		return NULL;
+      if (area2<=0) {
+	PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: negative triangle area encountered");
+	return NULL;
+      }  
+      
 
-	  //### Calculate heights of neighbouring cells
-	  hc = ((double *)stage_centroid_values->data)[k]  - ((double *)elevation_centroid_values->data)[k];
-	  h0 = ((double *)stage_centroid_values->data)[k0] - ((double *)elevation_centroid_values->data)[k0];
-	  h1 = ((double *)stage_centroid_values->data)[k1] - ((double *)elevation_centroid_values->data)[k1];
-	  h2 = ((double *)stage_centroid_values->data)[k2] - ((double *)elevation_centroid_values->data)[k2];
-	  hmin = min(hc,min(h0,min(h1,h2)));
+      //### Calculate heights of neighbouring cells
+      hc = ((double *)stage_centroid_values->data)[k]  - ((double *)elevation_centroid_values->data)[k];
+      h0 = ((double *)stage_centroid_values->data)[k0] - ((double *)elevation_centroid_values->data)[k0];
+      h1 = ((double *)stage_centroid_values->data)[k1] - ((double *)elevation_centroid_values->data)[k1];
+      h2 = ((double *)stage_centroid_values->data)[k2] - ((double *)elevation_centroid_values->data)[k2];
+      hmin = min(hc,min(h0,min(h1,h2)));
+      
       //### stage ###
       //calculate the difference between vertex 0 of the auxiliary triangle and the FV triangle centroid
       dq0=((double *)stage_centroid_values->data)[k0]-((double *)stage_centroid_values->data)[k];
@@ -907,15 +930,15 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
       //now we want to find min and max of the centroid and the vertices of the auxiliary triangle
       //and compute jumps from the centroid to the min and max
       find_qmin_and_qmax(dq0,dq1,dq2,&qmin,&qmax);
-	  // Playing with dry wet interface
-	  hmin = qmin;
-	  beta_tmp = beta_w;
-	  if (hmin<minimum_allowed_height)
-		beta_tmp = beta_w_dry;
+      // Playing with dry wet interface
+      hmin = qmin;
+      beta_tmp = beta_w;
+      if (hmin<minimum_allowed_height)
+	beta_tmp = beta_w_dry;
       limit_gradient(dqv,qmin,qmax,beta_tmp);//the gradient will be limited
       for (i=0;i<3;i++)
 	((double *)stage_vertex_values->data)[k3+i]=((double *)stage_centroid_values->data)[k]+dqv[i];
-
+      
       //### xmom ###
       //calculate the difference between vertex 0 of the auxiliary triangle and the FV triangle centroid
       dq0=((double *)xmom_centroid_values->data)[k0]-((double *)xmom_centroid_values->data)[k];
@@ -934,13 +957,13 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
       //now we want to find min and max of the centroid and the vertices of the auxiliary triangle
       //and compute jumps from the centroid to the min and max
       find_qmin_and_qmax(dq0,dq1,dq2,&qmin,&qmax);
-	  beta_tmp = beta_uh;
-	  if (hmin<minimum_allowed_height)
-		beta_tmp = beta_uh_dry;
+      beta_tmp = beta_uh;
+      if (hmin<minimum_allowed_height)
+	beta_tmp = beta_uh_dry;
       limit_gradient(dqv,qmin,qmax,beta_tmp);//the gradient will be limited
       for (i=0;i<3;i++)
 	((double *)xmom_vertex_values->data)[k3+i]=((double *)xmom_centroid_values->data)[k]+dqv[i];
-
+      
       //### ymom ###
       //calculate the difference between vertex 0 of the auxiliary triangle and the FV triangle centroid
       dq0=((double *)ymom_centroid_values->data)[k0]-((double *)ymom_centroid_values->data)[k];
@@ -959,9 +982,9 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
       //now we want to find min and max of the centroid and the vertices of the auxiliary triangle
       //and compute jumps from the centroid to the min and max
       find_qmin_and_qmax(dq0,dq1,dq2,&qmin,&qmax);
-	  beta_tmp = beta_vh;
-	  if (hmin<minimum_allowed_height)
-		beta_tmp = beta_vh_dry;
+      beta_tmp = beta_vh;
+      if (hmin<minimum_allowed_height)
+	beta_tmp = beta_vh_dry;
       limit_gradient(dqv,qmin,qmax,beta_tmp);//the gradient will be limited
       for (i=0;i<3;i++)
 	((double *)ymom_vertex_values->data)[k3+i]=((double *)ymom_centroid_values->data)[k]+dqv[i];
@@ -973,8 +996,11 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
 	if (((long *)surrogate_neighbours->data)[k2]!=k)//find internal neighbour of triabngle k
 	  break;
       }
-      if ((k2==k3+3))//if we didn't find an internal neighbour
+      if ((k2==k3+3)) {//if we didn't find an internal neighbour
+	PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: Internal neighbour not found");      
 	return NULL;//error
+      }
+      
       k1=((long *)surrogate_neighbours->data)[k2];
       //the coordinates of the triangle are already (x,y). Get centroid of the neighbour (x1,y1)
       coord_index=2*k1;
@@ -989,7 +1015,7 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
       dx2=1.0/area2;
       dy2=dx2*dy1;
       dx2*=dx1;
-
+      
       //## stage ###
       //compute differentials
       dq1=((double *)stage_centroid_values->data)[k1]-((double *)stage_centroid_values->data)[k];
@@ -1009,10 +1035,12 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
 	qmin=dq1;
 	qmax=0.0;
       }
+      
+      
       limit_gradient(dqv,qmin,qmax,beta_w);//the gradient will be limited
       for (i=0;i<3;i++)
 	((double *)stage_vertex_values->data)[k3+i]=((double *)stage_centroid_values->data)[k]+dqv[i];
-
+      
       //## xmom ###
       //compute differentials
       dq1=((double *)xmom_centroid_values->data)[k1]-((double *)xmom_centroid_values->data)[k];
@@ -1035,7 +1063,7 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
       limit_gradient(dqv,qmin,qmax,beta_w);//the gradient will be limited
       for (i=0;i<3;i++)
 	((double *)xmom_vertex_values->data)[k3+i]=((double *)xmom_centroid_values->data)[k]+dqv[i];
-
+      
       //## ymom ###
       //compute differentials
       dq1=((double *)ymom_centroid_values->data)[k1]-((double *)ymom_centroid_values->data)[k];
@@ -1063,6 +1091,7 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
   return Py_BuildValue("");
 }//extrapolate_second-order_sw
 
+
 PyObject *rotate(PyObject *self, PyObject *args, PyObject *kwargs) {
   //
   // r = rotate(q, normal, direction=1)
@@ -1080,8 +1109,10 @@ PyObject *rotate(PyObject *self, PyObject *args, PyObject *kwargs) {
 
   // Convert Python arguments to C
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|i", argnames,
-				   &Q, &Normal, &direction))
+				   &Q, &Normal, &direction)) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: rotate could not parse input arguments");
     return NULL;
+  }  
 
   //Input checks (convert sequences into numeric arrays)
   q = (PyArrayObject *)
@@ -1497,8 +1528,10 @@ PyObject *protect(PyObject *self, PyObject *args) {
 			&minimum_allowed_height,
 			&maximum_allowed_speed,
 			&epsilon,
-			&wc, &zc, &xmomc, &ymomc))
+			&wc, &zc, &xmomc, &ymomc)) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: protect could not parse input arguments");
     return NULL;
+  }  
 
   N = wc -> dimensions[0];
 
@@ -1541,8 +1574,11 @@ PyObject *balance_deep_and_shallow(PyObject *self, PyObject *args) {
   if (!PyArg_ParseTuple(args, "OOOOOOOOOOO",
 			&wc, &zc, &hc,
 			&wv, &zv, &hv, &hvbar,
-			&xmomc, &ymomc, &xmomv, &ymomv))
+			&xmomc, &ymomc, &xmomv, &ymomv)) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: balance_deep_and_shallow could not parse input arguments");
     return NULL;
+  }  
+	  
 
   N = wc -> dimensions[0];
 
@@ -1579,16 +1615,19 @@ PyObject *h_limiter(PyObject *self, PyObject *args) {
   double *hmin, *hmax, hn;
 
   // Convert Python arguments to C
-  if (!PyArg_ParseTuple(args, "OOO", &domain, &hc, &hv))
+  if (!PyArg_ParseTuple(args, "OOO", &domain, &hc, &hv)) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: h_limiter could not parse input arguments");
     return NULL;
-
+  }  
+  
   neighbours = get_consecutive_array(domain, "neighbours");
 
   //Get safety factor beta_h
   Tmp = PyObject_GetAttrString(domain, "beta_h");
-  if (!Tmp)
+  if (!Tmp) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: h_limiter could not obtain object beta_h from domain");
     return NULL;
-
+  }  
   beta_h = PyFloat_AsDouble(Tmp);
 
   Py_DECREF(Tmp);
@@ -1649,15 +1688,19 @@ PyObject *h_limiter_sw(PyObject *self, PyObject *args) {
   int dimensions[2];
   double beta_h; //Safety factor (see config.py)
   double hmin, hmax, dh[3];
-  // Convert Python arguments to C
-  if (!PyArg_ParseTuple(args, "OOO", &domain, &hc, &hv))
+// Convert Python arguments to C
+  if (!PyArg_ParseTuple(args, "OOO", &domain, &hc, &hv)) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: h_limiter_sw could not parse input arguments");
     return NULL;
+  }  
   neighbours = get_consecutive_array(domain, "neighbours");
 
   //Get safety factor beta_h
   Tmp = PyObject_GetAttrString(domain, "beta_h");
-  if (!Tmp)
+  if (!Tmp) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: h_limiter_sw could not obtain object beta_h from domain");
     return NULL;
+  }  
   beta_h = PyFloat_AsDouble(Tmp);
 
   Py_DECREF(Tmp);
@@ -1724,8 +1767,11 @@ PyObject *assign_windfield_values(PyObject *self, PyObject *args) {
 			&xmom_update,
 			&ymom_update,
 			&s_vec, &phi_vec,
-			&cw))
+			&cw)) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: assign_windfield_values could not parse input arguments");
     return NULL;
+  }  
+			
 
   N = xmom_update -> dimensions[0];
 

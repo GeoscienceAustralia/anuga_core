@@ -229,8 +229,11 @@ PyObject *update(PyObject *self, PyObject *args) {
 
 
 	// Convert Python arguments to C
-	if (!PyArg_ParseTuple(args, "Od", &quantity, &timestep))
-		return NULL;
+	if (!PyArg_ParseTuple(args, "Od", &quantity, &timestep)) {
+	  PyErr_SetString(PyExc_RuntimeError, 
+			  "quantity_ext.c: update could not parse input");
+	  return NULL;
+	}
 
 	centroid_values = get_consecutive_array(quantity, "centroid_values");
 	explicit_update = get_consecutive_array(quantity, "explicit_update");
@@ -239,15 +242,15 @@ PyObject *update(PyObject *self, PyObject *args) {
 	N = centroid_values -> dimensions[0];
 
 	err = _update(N, timestep,
-			(double*) centroid_values -> data,
-			(double*) explicit_update -> data,
-			(double*) semi_implicit_update -> data);
+		      (double*) centroid_values -> data,
+		      (double*) explicit_update -> data,
+		      (double*) semi_implicit_update -> data);
 
 
 	if (err != 0) {
-		PyErr_SetString(PyExc_RuntimeError,
-			"Zero division in semi implicit update - call Stephen :)");
-		return NULL;
+	  PyErr_SetString(PyExc_RuntimeError,
+			  "Zero division in semi implicit update - call Stephen :)");
+	  return NULL;
 	}
 
 	//Release and return
@@ -267,9 +270,12 @@ PyObject *interpolate_from_vertices_to_edges(PyObject *self, PyObject *args) {
 	int N, err;
 
 	// Convert Python arguments to C
-	if (!PyArg_ParseTuple(args, "O", &quantity))
-		return NULL;
-
+	if (!PyArg_ParseTuple(args, "O", &quantity)) {
+	  PyErr_SetString(PyExc_RuntimeError, 
+			  "quantity_ext.c: interpolate_from_vertices_to_edges could not parse input");
+	  return NULL;
+	}
+	
 	vertex_values = get_consecutive_array(quantity, "vertex_values");
 	edge_values = get_consecutive_array(quantity, "edge_values");
 
@@ -280,8 +286,9 @@ PyObject *interpolate_from_vertices_to_edges(PyObject *self, PyObject *args) {
 		     (double*) edge_values -> data);
 
 	if (err != 0) {
-		PyErr_SetString(PyExc_RuntimeError, "Interpolate could not be computed");
-		return NULL;
+	  PyErr_SetString(PyExc_RuntimeError, 
+			  "Interpolate could not be computed");
+	  return NULL;
 	}
 
 	//Release and return
@@ -305,12 +312,18 @@ PyObject *compute_gradients(PyObject *self, PyObject *args) {
 	int dimensions[1], N, err;
 
 	// Convert Python arguments to C
-	if (!PyArg_ParseTuple(args, "O", &quantity))
-		return NULL;
+	if (!PyArg_ParseTuple(args, "O", &quantity)) {
+	  PyErr_SetString(PyExc_RuntimeError, 
+			  "quantity_ext.c: compute_gradients could not parse input");	
+	  return NULL;
+	}
 
 	domain = PyObject_GetAttrString(quantity, "domain");
-	if (!domain)
-		return NULL;
+	if (!domain) {
+	  PyErr_SetString(PyExc_RuntimeError, 
+			  "compute_gradients could not obtain domain object from quantity");
+	  return NULL;
+	}
 
 	//Get pertinent variables
 
@@ -340,8 +353,8 @@ PyObject *compute_gradients(PyObject *self, PyObject *args) {
 			(double*) b -> data);
 
 	if (err != 0) {
-		PyErr_SetString(PyExc_RuntimeError, "Gradient could not be computed");
-		return NULL;
+	  PyErr_SetString(PyExc_RuntimeError, "Gradient could not be computed");
+	  return NULL;
 	}
 
 	//Release
@@ -376,12 +389,18 @@ PyObject *extrapolate_second_order(PyObject *self, PyObject *args) {
 	//double *a, *b;  //Gradients
 
 	// Convert Python arguments to C
-	if (!PyArg_ParseTuple(args, "O", &quantity))
-		return NULL;
+	if (!PyArg_ParseTuple(args, "O", &quantity)) {
+	  PyErr_SetString(PyExc_RuntimeError, 
+			  "extrapolate_second_order could not parse input");	
+	  return NULL;
+	}
 
 	domain = PyObject_GetAttrString(quantity, "domain");
-	if (!domain)
-		return NULL;
+	if (!domain) {
+	  PyErr_SetString(PyExc_RuntimeError, 
+			  "extrapolate_second_order could not obtain domain object from quantity");	
+	  return NULL;
+	}
 
 	//Get pertinent variables
 	centroids = get_consecutive_array(domain, "centroid_coordinates");
@@ -418,8 +437,8 @@ PyObject *extrapolate_second_order(PyObject *self, PyObject *args) {
 			(double*) b -> data);
 
 	if (err != 0) {
-		PyErr_SetString(PyExc_RuntimeError, "Gradient could not be computed");
-		return NULL;
+	  PyErr_SetString(PyExc_RuntimeError, "Gradient could not be computed");
+	  return NULL;
 	}
 
 	err = _extrapolate(N,
@@ -432,9 +451,9 @@ PyObject *extrapolate_second_order(PyObject *self, PyObject *args) {
 
 
 	if (err != 0) {
-		PyErr_SetString(PyExc_RuntimeError,
-			"Internal function _extrapolate failed");
-		return NULL;
+	  PyErr_SetString(PyExc_RuntimeError,
+			  "Internal function _extrapolate failed");
+	  return NULL;
 	}
 
 
@@ -467,20 +486,31 @@ PyObject *limit(PyObject *self, PyObject *args) {
 	double *qmin, *qmax, qn;
 
 	// Convert Python arguments to C
-	if (!PyArg_ParseTuple(args, "O", &quantity))
-		return NULL;
+	if (!PyArg_ParseTuple(args, "O", &quantity)) {
+	  PyErr_SetString(PyExc_RuntimeError, 
+			  "quantity_ext.c: limit could not parse input");
+	  return NULL;
+	}
 
 	domain = PyObject_GetAttrString(quantity, "domain");
-	if (!domain)
-		return NULL;
+	if (!domain) {
+	  PyErr_SetString(PyExc_RuntimeError, 
+			  "quantity_ext.c: limit could not obtain domain object from quantity");		  	
+	  
+	  return NULL;
+	}
 
 	//neighbours = (PyArrayObject*) PyObject_GetAttrString(domain, "neighbours");
 	neighbours = get_consecutive_array(domain, "neighbours");
 
 	//Get safety factor beta_w
 	Tmp = PyObject_GetAttrString(domain, "beta_w");
-	if (!Tmp)
-		return NULL;
+	if (!Tmp) {
+	  PyErr_SetString(PyExc_RuntimeError, 
+			  "quantity_ext.c: limit could not obtain beta_w object from domain");		  	
+	  
+	  return NULL;
+	}	
 
 	beta_w = PyFloat_AsDouble(Tmp);
 

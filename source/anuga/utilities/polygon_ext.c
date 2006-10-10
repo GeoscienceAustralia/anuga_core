@@ -158,8 +158,11 @@ PyObject *point_on_line(PyObject *self, PyObject *args) {
   PyObject *result;
 
   // Convert Python arguments to C
-  if (!PyArg_ParseTuple(args, "dddddd", &x, &y, &x0, &y0, &x1, &y1))
+  if (!PyArg_ParseTuple(args, "dddddd", &x, &y, &x0, &y0, &x1, &y1)) {
+    PyErr_SetString(PyExc_RuntimeError, 
+		    "point_on_line could not parse input");    
     return NULL;
+  }
 
 
   // Call underlying routine
@@ -226,8 +229,13 @@ PyObject *separate_points_by_polygon(PyObject *self, PyObject *args) {
 			&polygon,
 			&indices,
 			&closed,
-			&verbose))
+			&verbose)) {
+    
+
+    PyErr_SetString(PyExc_RuntimeError, 
+		    "separate_points_by_polygon could not parse input");
     return NULL;
+  }
 
   M = points -> dimensions[0];   //Number of points
   N = polygon -> dimensions[0];  //Number of vertices in polygon

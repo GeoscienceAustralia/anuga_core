@@ -80,12 +80,17 @@ PyObject *csr_mv(PyObject *self, PyObject *args) {
   int dimensions[1], M, err, columns, rows;
   
   // Convert Python arguments to C  
-  if (!PyArg_ParseTuple(args, "OO", &csr_sparse, &xin)) 
+  if (!PyArg_ParseTuple(args, "OO", &csr_sparse, &xin)) {
+    PyErr_SetString(PyExc_RuntimeError, "Csr_mv could not parse input");  
     return NULL;
+  }
 
   x = (PyArrayObject*) PyArray_ContiguousFromObject(xin,PyArray_DOUBLE,1,2);
-  if (!x)
+  if (!x) {
+    PyErr_SetString(PyExc_RuntimeError, 
+		    "Input array could not be read in csr_mv");    
     return NULL;
+  }
 
 /*   printf("x.nd = %i\n",x->nd); */
 /*   printf("x.descr->type_num = %i %i\n",x->descr->type_num,PyArray_LONG); */
@@ -100,18 +105,28 @@ PyObject *csr_mv(PyObject *self, PyObject *args) {
  
 
 
-  data =  (PyArrayObject*)
+  data = (PyArrayObject*) 
     PyObject_GetAttrString(csr_sparse, "data");     
-  if (!data) 
-    return NULL;  
+  if (!data) {
+    PyErr_SetString(PyExc_RuntimeError, 
+		    "Data array could not be allocated in csr_mv");      
+    return NULL;
+  }  
 
   colind = (PyArrayObject*)
     PyObject_GetAttrString(csr_sparse, "colind"); 
-  if (!colind) return NULL;    
+  if (!colind) {
+    PyErr_SetString(PyExc_RuntimeError, 
+		    "Column index array could not be allocated in csr_mv");      
+    return NULL;
+  }  
 
   row_ptr = (PyArrayObject*) 
     PyObject_GetAttrString(csr_sparse, "row_ptr");   
-  if (!row_ptr) return NULL;        
+  if (!row_ptr) {
+    PyErr_SetString(PyExc_RuntimeError, 
+		    "Row pointer array could not be allocated in csr_mv"); 
+  }
   
   M = (row_ptr -> dimensions[0])-1;
     
@@ -131,7 +146,7 @@ PyObject *csr_mv(PyObject *self, PyObject *args) {
 
 			   
     if (err != 0) {
-      PyErr_SetString(PyExc_RuntimeError, "matrix vector mult could not be calculated");
+      PyErr_SetString(PyExc_RuntimeError, "Matrix vector mult could not be calculated");
       return NULL;
     }
   } else if(x -> nd == 2) {

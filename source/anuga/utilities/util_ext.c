@@ -34,8 +34,12 @@ PyObject *gradient(PyObject *self, PyObject *args) {
 
   // Convert Python arguments to C
   if (!PyArg_ParseTuple(args, "ddddddddd", &x0, &y0, &x1, &y1, &x2, &y2,
-			&q0, &q1, &q2))
+			&q0, &q1, &q2)) {
+    
+    PyErr_SetString(PyExc_RuntimeError, 
+		    "gradient could not parse input");    
     return NULL;
+  }
 
 
   // Call underlying routine
@@ -56,8 +60,11 @@ PyObject *gradient2(PyObject *self, PyObject *args) {
   PyObject *result;
 
   // Convert Python arguments to C
-  if (!PyArg_ParseTuple(args, "dddddd", &x0, &y0, &x1, &y1, &q0, &q1))
+  if (!PyArg_ParseTuple(args, "dddddd", &x0, &y0, &x1, &y1, &q0, &q1)) {
+    PyErr_SetString(PyExc_RuntimeError, 
+		    "gradient2 could not parse input");      
     return NULL;
+  }
 
 
   // Call underlying routine
