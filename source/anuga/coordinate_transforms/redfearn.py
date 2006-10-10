@@ -163,15 +163,19 @@ def redfearn(lat, lon, false_easting=None, false_northing=None):
 
 
 
-def convert_points_from_latlon_to_utm(points,
-                                      false_easting=None,
-                                      false_northing=None):
-    """Convert a list of points given in latitude and longitude to UTM
+def convert_from_latlon_to_utm(latitudes=None,
+                               longitudes=None,
+                               points=None,
+                               false_easting=None,
+                               false_northing=None):
+    """Convert latitude and longitude data to UTM as a list of coordinates.
 
 
     Input
 
-    points: list of points given in decimal degrees (latitude, longitude)
+    points: list of points given in decimal degrees (latitude, longitude) or
+    latitudes: list of latitudes   and
+    longitudes: list of longitudes 
     false_easting (optional)
     false_northing (optional)
 
@@ -184,56 +188,22 @@ def convert_points_from_latlon_to_utm(points,
     Notes
 
     Assume the false_easting and false_northing are the same for each list.
-    If points end up belonging to different UTM zones, an ANUGAerror is thrown.
-
-    
-    
+    If points end up belonging to different UTM zones, an ANUGAerror is thrown.    
     """
 
     old_geo = Geo_reference()    
     utm_points = []
+    if points == None:
+        
+        assert len(latitudes) == len(longitudes)
+        points =  map(None, latitudes, longitudes)
     for point in points:
         zone, easting, northing = redfearn(float(point[0]),
                                            float(point[1]),
                                            false_easting=false_easting,
                                            false_northing=false_northing)
-
         new_geo = Geo_reference(zone)
-        old_geo.reconcile_zones(new_geo)
-        
+        old_geo.reconcile_zones(new_geo)        
         utm_points.append([easting, northing])
 
-
     return utm_points, old_geo.get_zone()
-
-
-    
-
-
-# FIXME (Ole): Is this not supersedede by the above?
-def convert_lats_longs(latitudes,
-                       longitudes,
-                       false_easting=None,
-                       false_northing=None):
-    """
-    Redfearn a list of latitudes and longitudes.
-
-    Assume the false_easting and false_northing are the same for each list.
-
-    Note, if a zone turns out to be different, an ANUGAerror is thrown.
-    """
-    # Using geo_ref so there is only one point in the code where zones
-    # are checked.
-    old_geo = Geo_reference()
-    points = []
-    for lat, long in map(None, latitudes, longitudes,):
-        zone, easting, northing = redfearn(float(lat),
-                                           float(long),
-                                           false_easting=false_easting,
-                                           false_northing=false_northing)
-        new_geo = Geo_reference(zone)
-        old_geo.reconcile_zones(new_geo)
-        #print "old_geo.get_zone()", old_geo.get_zone()
-        points.append([easting, northing])
-        
-    return old_geo.get_zone(), points

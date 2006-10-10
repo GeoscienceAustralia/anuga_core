@@ -155,7 +155,7 @@ class TestCase(unittest.TestCase):
         
         lats = [lat_gong, lat_2]
         longs = [lon_gong, lon_2]
-        zone, points = convert_lats_longs(lats, longs)
+        points, zone = convert_from_latlon_to_utm(lats, longs)
 
         assert allclose(points[0][0], 308728.009)
         assert allclose(points[0][1], 6180432.601)
@@ -182,7 +182,7 @@ class TestCase(unittest.TestCase):
         longs = [lon_gong, lon_2]
         
         try:
-            zone, points = convert_lats_longs(lats, longs)
+            points, zone = convert_from_latlon_to_utm(lats, longs)
         except ANUGAError:
             pass
         else:
@@ -205,14 +205,13 @@ class TestCase(unittest.TestCase):
         lats = [lat_gong, lat_2]
         longs = [lon_gong, lon_2]
         try:
-            zone, points = convert_lats_longs(lats, longs)
+            points, zone  = convert_from_latlon_to_utm(lats, longs)
         except ANUGAError:
             pass
         else:
             self.failUnless(False,
                             'Error not thrown error!')
 
-    # Similar test for alternative interface        
     def test_convert_latlon_to_UTM1(self):
 
         #Site Name:    GDA-MGA: (UTM with GRS80 ellipsoid) 
@@ -228,8 +227,8 @@ class TestCase(unittest.TestCase):
         lon_2 = degminsec2decimal_degrees(150,00,0.)
         
         points = [[lat_gong, lon_gong], [lat_2, lon_2]]
-        points, zone = convert_points_from_latlon_to_utm(points)
-
+        points, zone = convert_from_latlon_to_utm(points=points)
+        #print "points",points 
         assert allclose(points[0][0], 308728.009)
         assert allclose(points[0][1], 6180432.601)
         assert allclose(points[1][0],  222908.705)
@@ -254,7 +253,7 @@ class TestCase(unittest.TestCase):
         points = [[lat_gong, lon_gong], [lat_2, lon_2]]
 
         try:
-            points, zone = convert_points_from_latlon_to_utm(points)           
+            points, zone = convert_from_latlon_to_utm(points=points)           
         except ANUGAError:
             pass
         else:
@@ -276,7 +275,7 @@ class TestCase(unittest.TestCase):
         points = [[lat_gong, lon_gong], [lat_2, lon_2]]
 
         try:
-            points, zone = convert_points_from_latlon_to_utm(points)           
+            points, zone = convert_from_latlon_to_utm(points=points)           
         except ANUGAError:
             pass
         else:
@@ -286,6 +285,7 @@ class TestCase(unittest.TestCase):
 #-------------------------------------------------------------
 if __name__ == "__main__":
 
+    #mysuite = unittest.makeSuite(TestCase,'test_convert_latlon_to_UTM1')
     mysuite = unittest.makeSuite(TestCase,'test')
     runner = unittest.TextTestRunner()
     runner.run(mysuite)

@@ -10,7 +10,7 @@ from Numeric import concatenate, array, Float, shape, reshape, ravel, take
 
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.coordinate_transforms.geo_reference import Geo_reference, TitleError
-from anuga.coordinate_transforms.redfearn import convert_lats_longs
+from anuga.coordinate_transforms.redfearn import convert_from_latlon_to_utm
 
         
 class Geospatial_data:
@@ -323,7 +323,7 @@ class Geospatial_data:
             msg = """Latitudes are specified yet longitudes aren't!"""
             raise ValueError, msg
         
-        zone, data_points = convert_lats_longs(latitudes, longitudes)
+        data_points, zone  = convert_from_latlon_to_utm(latitudes, longitudes)
         
         return data_points, Geo_reference(zone=zone)
     
