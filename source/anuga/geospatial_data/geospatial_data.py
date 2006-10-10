@@ -510,21 +510,25 @@ class Geospatial_data:
     
         if (file_name[-4:] == ".xya"):
             if absolute is True:         
-                _write_xya_file(file_name, self.get_data_points(absolute=True), 
-                                   self.get_all_attributes())
+                _write_xya_file(file_name,
+                                self.get_data_points(absolute=True), 
+                                self.get_all_attributes())
             else:
-                _write_xya_file(file_name, self.get_data_points(absolute=False), 
-                                   self.get_all_attributes(),
-                                   self.get_geo_reference())
+                _write_xya_file(file_name,
+                                self.get_data_points(absolute=False), 
+                                self.get_all_attributes(),
+                                self.get_geo_reference())
                                     
         elif (file_name[-4:] == ".pts"):
             if absolute is True:
-                _write_pts_file(file_name, self.get_data_points(absolute), 
-                                   self.get_all_attributes())
+                _write_pts_file(file_name,
+                                self.get_data_points(absolute), 
+                                self.get_all_attributes())
             else:
-                _write_pts_file(file_name, self.get_data_points(absolute), 
-                                   self.get_all_attributes(),
-                                   self.get_geo_reference())
+                _write_pts_file(file_name,
+                                self.get_data_points(absolute), 
+                                self.get_all_attributes(),
+                                self.get_geo_reference())
         else:
             msg = 'Unknown file type %s ' %file_name
             raise IOError, msg 
@@ -631,9 +635,10 @@ def _read_xya_file( fd, delimiter):
     
     return pointlist, att_dict, geo_reference
 
-def _write_pts_file(file_name, write_data_points,
-                                   write_attributes, 
-                                   write_geo_reference = None):
+def _write_pts_file(file_name,
+                    write_data_points,
+                    write_attributes=None, 
+                    write_geo_reference=None):
     """
     Write .pts NetCDF file   
 
@@ -658,7 +663,7 @@ def _write_pts_file(file_name, write_data_points,
     #Create new file
     outfile.institution = 'Geoscience Australia'
     outfile.description = 'NetCDF format for compact and portable storage ' +\
-                      'of spatial point data'
+                          'of spatial point data'
     
     # dimension definitions
     shape = write_data_points.shape[0]
@@ -672,9 +677,10 @@ def _write_pts_file(file_name, write_data_points,
     #create variables  
     outfile.variables['points'][:] = write_data_points #.astype(Float32)
 
-    for key in write_attributes.keys():
-        outfile.createVariable(key, Float, ('number_of_points',))
-        outfile.variables[key][:] = write_attributes[key] #.astype(Float32)
+    if write_attributes is not None:
+        for key in write_attributes.keys():
+            outfile.createVariable(key, Float, ('number_of_points',))
+            outfile.variables[key][:] = write_attributes[key] #.astype(Float32)
         
     if write_geo_reference is not None:
         write_geo_reference.write_NetCDF(outfile)
@@ -683,10 +689,11 @@ def _write_pts_file(file_name, write_data_points,
   
 
 
-def _write_xya_file( file_name, write_data_points,
-                                    write_attributes, 
-                                    write_geo_reference = None, 
-                                    delimiter = ','):
+def _write_xya_file(file_name,
+                    write_data_points,
+                    write_attributes=None, 
+                    write_geo_reference=None, 
+                    delimiter = ','):
     """
     export a file, file_name, with the xya format
     
@@ -696,21 +703,27 @@ def _write_xya_file( file_name, write_data_points,
     
     fd = open(file_name,'w')
     titlelist = ""
-    for title in pointattributes.keys():
-        titlelist = titlelist + title + delimiter
-    titlelist = titlelist[0:-len(delimiter)] # remove the last delimiter
+    if pointattributes is not None:    
+        for title in pointattributes.keys():
+            titlelist = titlelist + title + delimiter
+        titlelist = titlelist[0:-len(delimiter)] # remove the last delimiter
     fd.write(titlelist+"\n")
+    
     #<vertex #> <x> <y> [attributes]
-    for i,vert in enumerate( points):
-        
-        attlist = ","
-        for att in pointattributes.keys():
-            attlist = attlist + str(pointattributes[att][i])+ delimiter
-        attlist = attlist[0:-len(delimiter)] # remove the last delimiter
-        attlist.strip()
-        fd.write( str(vert[0]) + delimiter
-                  + str(vert[1])
-                  + attlist + "\n")
+    for i, vert in enumerate( points):
+
+
+        if pointattributes is not None:            
+            attlist = ","
+            for att in pointattributes.keys():
+                attlist = attlist + str(pointattributes[att][i])+ delimiter
+            attlist = attlist[0:-len(delimiter)] # remove the last delimiter
+            attlist.strip()
+        else:
+            attlist = ''
+
+        fd.write(str(vert[0]) + delimiter +
+                 str(vert[1]) + attlist + "\n")
 
     if  write_geo_reference is not None:
         write_geo_reference.write_ASCII(fd)

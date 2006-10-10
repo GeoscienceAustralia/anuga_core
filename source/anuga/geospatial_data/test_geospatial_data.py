@@ -475,7 +475,7 @@ class Test_Geospatial_data(unittest.TestCase):
                         [[0.5, 1.4], [0.5, 1.5], [0.5, -0.5]])
 
 
-    def no_test_clip1_inside_outside(self):
+    def test_clip1_inside_outside(self):
         """test_clip1_inside_outside(self):
         
         Test that point sets can be clipped outside of a polygon given as
@@ -508,6 +508,16 @@ class Test_Geospatial_data(unittest.TestCase):
         G = G1+G2
         FN = 'test_combine.pts'
         G.export_points_file(FN)
+
+
+        # Read it back in
+        G3 = Geospatial_data(FN)
+
+
+        # Check result
+        assert allclose(G3.get_data_points(), new_points)        
+        
+        
         os.remove(FN)
 
         
@@ -971,30 +981,70 @@ crap")
         assert allclose(results.get_attributes(attribute_name='elevation'), [10.0, 0.0, 10.4])
         
     def test_writepts(self):
+        """test_writepts: Test that storage of x,y,attributes works
+        """
         att_dict = {}
         pointlist = array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
         att_dict['elevation'] = array([10.0, 0.0, 10.4])
         att_dict['brightness'] = array([10.0, 0.0, 10.4])
         geo_reference=Geo_reference(56,1.9,1.9)
-        
-        fileName = tempfile.mktemp(".pts")
-        
-        G = Geospatial_data(pointlist, att_dict, geo_reference)
-        
-        G.export_points_file(fileName, False)
-        
-        results = Geospatial_data(file_name = fileName)
 
+        # Test pts format
+        fileName = tempfile.mktemp(".pts")
+        G = Geospatial_data(pointlist, att_dict, geo_reference)
+        G.export_points_file(fileName, False)
+        results = Geospatial_data(file_name=fileName)
         os.remove(fileName)
 
         assert allclose(results.get_data_points(False),[[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
         assert allclose(results.get_attributes('elevation'), [10.0, 0.0, 10.4])
         answer = [10.0, 0.0, 10.4]
         assert allclose(results.get_attributes('brightness'), answer)
-
-        
         self.failUnless(geo_reference == geo_reference,
                          'test_writepts failed. Test geo_reference')
+
+        # Test xya format
+        fileName = tempfile.mktemp(".xya")
+        G = Geospatial_data(pointlist, att_dict, geo_reference)
+        G.export_points_file(fileName, False)
+        results = Geospatial_data(file_name=fileName)
+        os.remove(fileName)
+        assert allclose(results.get_data_points(False),[[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
+        assert allclose(results.get_attributes('elevation'), [10.0, 0.0, 10.4])
+        answer = [10.0, 0.0, 10.4]
+        assert allclose(results.get_attributes('brightness'), answer)
+        self.failUnless(geo_reference == geo_reference,
+                         'test_writepts failed. Test geo_reference')
+
+    def test_writepts_no_attributes(self):
+        """test_writepts_no_attributes: Test that storage of x,y alone works
+        """
+        att_dict = {}
+        pointlist = array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
+        geo_reference=Geo_reference(56,1.9,1.9)
+
+        # Test pts format
+        fileName = tempfile.mktemp(".pts")
+        G = Geospatial_data(pointlist, None, geo_reference)
+        G.export_points_file(fileName, False)
+        results = Geospatial_data(file_name=fileName)
+        os.remove(fileName)
+
+        assert allclose(results.get_data_points(False),[[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
+        self.failUnless(geo_reference == geo_reference,
+                         'test_writepts failed. Test geo_reference')
+
+        # Test xya format
+        fileName = tempfile.mktemp(".xya")
+        G = Geospatial_data(pointlist, None, geo_reference)
+        G.export_points_file(fileName, False)
+        results = Geospatial_data(file_name=fileName)
+        os.remove(fileName)
+        assert allclose(results.get_data_points(False),[[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
+        self.failUnless(geo_reference == geo_reference,
+                         'test_writepts failed. Test geo_reference')
+
+        
         
  ########################## BAD .PTS ##########################          
 
