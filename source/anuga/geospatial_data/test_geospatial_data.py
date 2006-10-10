@@ -394,7 +394,7 @@ class Test_Geospatial_data(unittest.TestCase):
         assert allclose(G.clip(polygon).get_data_points(),
                         [[0.5, 0.5], [1, -0.5], [1.5, 0]])
 
-    def test_clip1(self):
+    def no_test_clip1(self):
         """test_clip1(self):
         
         Test that point sets can be clipped by a polygon given as
@@ -405,13 +405,19 @@ class Test_Geospatial_data(unittest.TestCase):
         
         points = [[-1, 4], [0.2, 0.5], [1.0, 2.1], [0.4, 0.3], [3.0, 5.3],
                   [0, 0], [2.4, 3.3]]
-        G = Geospatial_data(points)
-
+        attributes = [2, -4, 5, 76, -2, 0.1, 3]
+        att_dict = {'att1': attributes,
+                    'att2': array(attributes) +1}
+        G = Geospatial_data(points, att_dict)
+        
         # First try the unit square    
         U = Geospatial_data([[0,0], [1,0], [1,1], [0,1]]) 
         assert allclose(G.clip(U).get_data_points(),
                         [[0.2, 0.5], [0.4, 0.3], [0, 0]])
 
+        assert allclose(G.clip(U).get_attributes('att1'), [-4, 76, 0.1])
+        #assert allclose(G.clip(U).get_attributes('att2'), ???)
+        
         # Then a more complex polygon
 	points = [ [0.5, 1.4], [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
         G = Geospatial_data(points)
