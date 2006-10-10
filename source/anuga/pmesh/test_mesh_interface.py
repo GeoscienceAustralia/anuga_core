@@ -144,7 +144,6 @@ class TestCase(unittest.TestCase):
               (polygon, boundary_tags),
               {'minimum_triangle_angle': 28.0,
                'maximum_triangle_area': 10000000,
-               'filename': None,
                'interior_regions': interior_regions,
                'interior_holes': interior_holes,
                'poly_geo_reference': geo_ref_poly,

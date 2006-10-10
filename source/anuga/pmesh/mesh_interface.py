@@ -71,7 +71,6 @@ def create_mesh_from_regions(bounding_polygon,
             boundary_tags)
     
     kwargs = {'maximum_triangle_area': maximum_triangle_area,
-              'filename': filename,
               'interior_regions': interior_regions,
               'interior_holes': interior_holes,
               'poly_geo_reference': poly_geo_reference,
@@ -92,22 +91,29 @@ def create_mesh_from_regions(bounding_polygon,
             raise msg
 
 
-        res = cache(_create_mesh_from_regions,
-                    args, kwargs,
-                    verbose=verbose,
-                    compression=False)
+        m = cache(_create_mesh_from_regions,
+                  args, kwargs,
+                  verbose=verbose,
+                  compression=False)
     else:
-        res = apply(_create_mesh_from_regions,
-                    args, kwargs)
+        m = apply(_create_mesh_from_regions,
+                  args, kwargs)
 
-    return res
 
+    # Decide whether to store this mesh or return it    
+    if filename is None:
+        return m
+    else:
+        if verbose: print 'Generating mesh to file "%s"' %filename
+        m.generate_mesh(minimum_triangle_angle=minimum_triangle_angle,
+                        verbose=verbose)
+        m.export_mesh_file(filename)
+        
 
 
 def _create_mesh_from_regions(bounding_polygon,
                               boundary_tags,
                               maximum_triangle_area=None,
-                              filename=None,
                               interior_regions=None,
                               interior_holes=None,
                               poly_geo_reference=None,
@@ -227,19 +233,12 @@ def _create_mesh_from_regions(bounding_polygon,
                                       geo_reference=poly_geo_reference)
     
             
-   # Do interior holes
+    # Do interior holes
     if interior_holes is not None:    
         for polygon, res in interior_holes:
             m.add_hole_from_polygon(polygon,
                                       geo_reference=poly_geo_reference)
        
             
-
-    if filename is None:
-        return m
-    else:
-        if verbose: print 'Generating mesh to file "%s"' %filename
-        m.generate_mesh(minimum_triangle_angle=minimum_triangle_angle,
-                             verbose=verbose)
-        m.export_mesh_file(filename)
+    return m        
 
