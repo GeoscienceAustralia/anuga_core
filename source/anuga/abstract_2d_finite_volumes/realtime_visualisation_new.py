@@ -210,7 +210,7 @@ class Visualiser:
 
         #print 'update bed image'
         if qname=='elevation':
-            self.pos[:,2] = self.pos[:,2]+1.0e-3
+            self.pos[:,2] = self.pos[:,2]+1.0e-2
 
         self.vpython_z_models[qname].pos    = self.pos
         self.vpython_z_models[qname].color  = self.colour

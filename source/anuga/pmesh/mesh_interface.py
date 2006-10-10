@@ -158,7 +158,7 @@ def _create_mesh_from_regions(bounding_polygon,
 
     if interior_holes is not None:        
         # Test that all the interior polygons are inside the bounding_poly
-        for interior_polygon, res in interior_holes:
+        for interior_polygon in interior_holes:
             indices = inside_polygon(interior_polygon, bounding_polygon,
                                      closed = True, verbose = False)
     
@@ -235,7 +235,7 @@ def _create_mesh_from_regions(bounding_polygon,
             
     # Do interior holes
     if interior_holes is not None:    
-        for polygon, res in interior_holes:
+        for polygon in interior_holes:
             m.add_hole_from_polygon(polygon,
                                       geo_reference=poly_geo_reference)
        
