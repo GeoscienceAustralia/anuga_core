@@ -157,12 +157,11 @@ a2fv_env = env.Copy()
 a2fv_env.Append(CPPPATH=[os.path.join('#', anuga_root, 'utilities')])
 
 a2fv_dir = os.path.join(anuga_root, 'abstract_2d_finite_volumes')
+
 a2fv_install_dir = os.path.join(install_root, 'abstract_2d_finite_volumes')
 
 env.Install(a2fv_install_dir, a2fv_env.SharedLibrary(os.path.join(a2fv_dir, 'quantity_ext'),
                                                      map(lambda s: os.path.join(a2fv_dir, s), ['quantity_ext.c'])))
-env.Install(a2fv_install_dir, a2fv_env.SharedLibrary(os.path.join(a2fv_dir, 'shallow_water_kinetic'),
-                                                     map(lambda s: os.path.join(a2fv_dir, s), ['shallow_water_kinetic_ext.c'])))
 
 # Shallow_water
 sw_env = env.Copy()
@@ -173,3 +172,5 @@ sw_install_dir = os.path.join(install_root, 'shallow_water')
 
 env.Install(sw_install_dir, sw_env.SharedLibrary(os.path.join(sw_dir, 'shallow_water_ext'),
                                                  map(lambda s: os.path.join(sw_dir, s), ['shallow_water_ext.c'])))
+env.Install(a2fv_install_dir, sw_env.SharedLibrary(os.path.join(sw_dir, 'shallow_water_kinetic'),
+                                                     map(lambda s: os.path.join(sw_dir, s), ['shallow_water_kinetic_ext.c'])))
