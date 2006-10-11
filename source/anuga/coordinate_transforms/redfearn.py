@@ -163,9 +163,9 @@ def redfearn(lat, lon, false_easting=None, false_northing=None):
 
 
 
-def convert_from_latlon_to_utm(latitudes=None,
+def convert_from_latlon_to_utm(points=None,
+                               latitudes=None,
                                longitudes=None,
-                               points=None,
                                false_easting=None,
                                false_northing=None):
     """Convert latitude and longitude data to UTM as a list of coordinates.
@@ -194,9 +194,9 @@ def convert_from_latlon_to_utm(latitudes=None,
     old_geo = Geo_reference()    
     utm_points = []
     if points == None:
-        
         assert len(latitudes) == len(longitudes)
         points =  map(None, latitudes, longitudes)
+        
     for point in points:
         zone, easting, northing = redfearn(float(point[0]),
                                            float(point[1]),

@@ -294,10 +294,12 @@ class Geospatial_data:
                             geo_reference,
                             data_points,
                             points_are_lats_longs):
+        
         if geo_reference is not None:
             msg = """A georeference is specified yet latitude and longitude
             are also specified!"""
             raise ValueError, msg
+        
         if data_points is not None and not points_are_lats_longs:
             msg = """Data points are specified yet latitude and
             longitude are also specified!"""
@@ -323,7 +325,8 @@ class Geospatial_data:
             msg = """Latitudes are specified yet longitudes aren't!"""
             raise ValueError, msg
         
-        data_points, zone  = convert_from_latlon_to_utm(latitudes, longitudes)
+        data_points, zone  = convert_from_latlon_to_utm(latitudes=latitudes,
+                                                        longitudes=longitudes)
         
         return data_points, Geo_reference(zone=zone)
     

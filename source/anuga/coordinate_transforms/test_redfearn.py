@@ -155,7 +155,7 @@ class TestCase(unittest.TestCase):
         
         lats = [lat_gong, lat_2]
         longs = [lon_gong, lon_2]
-        points, zone = convert_from_latlon_to_utm(lats, longs)
+        points, zone = convert_from_latlon_to_utm(latitudes=lats, longitudes=longs)
 
         assert allclose(points[0][0], 308728.009)
         assert allclose(points[0][1], 6180432.601)
@@ -182,7 +182,7 @@ class TestCase(unittest.TestCase):
         longs = [lon_gong, lon_2]
         
         try:
-            points, zone = convert_from_latlon_to_utm(lats, longs)
+            points, zone = convert_from_latlon_to_utm(latitudes=lats, longitudes=longs)
         except ANUGAError:
             pass
         else:
@@ -205,7 +205,7 @@ class TestCase(unittest.TestCase):
         lats = [lat_gong, lat_2]
         longs = [lon_gong, lon_2]
         try:
-            points, zone  = convert_from_latlon_to_utm(lats, longs)
+            points, zone  = convert_from_latlon_to_utm(latitudes=lats, longitudes=longs)
         except ANUGAError:
             pass
         else:
