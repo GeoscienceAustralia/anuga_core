@@ -8,11 +8,12 @@ from warnings import warn
 
 #Establish which Numeric package to use
 #(this should move to somewhere central)
-try:
-    from scipy import ArrayType, array, sum, innerproduct, ravel, sqrt, searchsorted, sort, concatenate, Float, arange    
-except:
-    #print 'Could not find scipy - using Numeric'
-    from Numeric import ArrayType, array, sum, innerproduct, ravel, sqrt, searchsorted, sort, concatenate, Float, arange    
+#try:
+#    from scipy import ArrayType, array, sum, innerproduct, ravel, sqrt, searchsorted, sort, concatenate, Float, arange    
+#except:
+#    #print 'Could not find scipy - using Numeric'
+#    from Numeric import ArrayType, array, sum, innerproduct, ravel, sqrt, searchsorted, sort, concatenate, Float, arange
+from Numeric import ArrayType, array, sum, innerproduct, ravel, sqrt, searchsorted, sort, concatenate, Float, arange    
 
 # Getting an infinite number to use when using Numeric
 #INF = (array([1])/0.)[0]
