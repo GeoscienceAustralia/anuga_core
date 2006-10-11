@@ -4231,10 +4231,13 @@ def _binary_c2nc(file_in, file_out, quantity):
     
     msg = "Bad data in the mux file."
     if points_num < 0:
+        f.close()
         raise ANUGAError, msg
     if time_step_count < 0:
+        f.close()
         raise ANUGAError, msg
     if time_step < 0:
+        f.close()
         raise ANUGAError, msg
     
     lonlatdep = p_array.array('f')

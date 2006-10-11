@@ -10,9 +10,11 @@ import os
 from Scientific.IO.NetCDF import NetCDFFile
 from struct import pack
 
-from anuga.shallow_water.data_manager import *
 from anuga.shallow_water import *
+from data_manager import *
 from anuga.config import epsilon
+from anuga.utilities.anuga_exceptions import ANUGAError
+from anuga.utilities.numerical_tools import ensure_numeric
 
 # This is needed to run the tests of local functions
 import data_manager 
@@ -5005,8 +5007,8 @@ Parameters
                 quantities_init[0].append(e) # HA
                 quantities_init[1].append(n ) # UA
                 quantities_init[2].append(e) # VA
-        #print "lonlatdeps",lonlatdeps 
-        base_name = str(id(self))
+        #print "lonlatdeps",lonlatdeps
+        _,base_name = tempfile.mkstemp("")
         files = []        
         for i,q in enumerate(quantities): 
             quantities_init[i] = ensure_numeric(quantities_init[i])
@@ -5045,7 +5047,7 @@ Parameters
         points_num = -100
         time_step_count = 45
         time_step = -7
-        base_name = str(id(self))
+        _,base_name = tempfile.mkstemp("")
         files = []
         quantities = ['HA','UA','VA']
         mux_names = ['-z-mux','-e-mux','-n-mux']
@@ -5070,7 +5072,6 @@ Parameters
             msg = 'Should have raised exception'
             raise msg
         sww_file = base_name + '.sww'
-        
         self.delete_mux(files)
         
     def test_urs2sww(self):
@@ -5192,7 +5193,8 @@ Parameters
         
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_sww_minimum_storable_height')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sww_test_fail')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sww')
     suite = unittest.makeSuite(Test_Data_Manager,'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
