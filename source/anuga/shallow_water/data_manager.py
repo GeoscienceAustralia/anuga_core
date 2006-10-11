@@ -4190,6 +4190,11 @@ def urs2nc(basename_in = 'o', basename_out = 'urs'):
                  basename_out+'_va.nc']
     quantities = ['HA','UA','VA']
 
+    for file_name in files_in:
+        if os.access(file_name, os.F_OK) == 0 :
+            msg = 'File %s does not exist or is not accessible' %file_name
+            raise IOError, msg
+        
     hashed_elevation = None
     for file_in, file_out, quantity in map(None, files_in,
                                            files_out,
@@ -4246,6 +4251,17 @@ def _binary_c2nc(file_in, file_out, quantity):
     lonlatdep = reshape(lonlatdep, ( points_num, columns))
     
     lon, lat = lon_lat2grid(lonlatdep)
+    lon_sorted = lon[:]
+    lon_sorted.sort()
+    
+    if not lon == lon_sorted:
+        msg = "Longitudes in mux file are not in ascending order"
+        raise IOError, msg
+    lat_sorted = lat[:]
+    lat_sorted.sort()   
+    if not lat == lat_sorted:
+        msg = "Latitudes in mux file are not in ascending order"
+    
     nc_file = Write_nc(quantity,
                        file_out,
                         time_step_count,

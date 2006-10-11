@@ -5074,10 +5074,21 @@ Parameters
         sww_file = base_name + '.sww'
         self.delete_mux(files)
         
+    def test_urs2sww_test_fail2(self):
+        base_name = 'Harry-high-pants'
+        try:
+            urs2sww(base_name)        
+        except IOError:
+            pass
+        else:
+            self.delete_mux(files)
+            msg = 'Should have raised exception'
+            raise msg
+           
     def test_urs2sww(self):
         tide = 1
         base_name, files = self.create_mux()
-        urs2sww(base_name, remove_nc_files=True, mean_stage=tide)
+        urs2sww(base_name, mean_stage=tide)
         sww_file = base_name + '.sww'
         
         #Let's interigate the sww file 
