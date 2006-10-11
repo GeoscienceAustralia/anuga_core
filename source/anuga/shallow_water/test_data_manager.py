@@ -11,7 +11,7 @@ from Scientific.IO.NetCDF import NetCDFFile
 from struct import pack
 
 from anuga.shallow_water import *
-from data_manager import *
+from anuga.shallow_water.data_manager import *
 from anuga.config import epsilon
 from anuga.utilities.anuga_exceptions import ANUGAError
 from anuga.utilities.numerical_tools import ensure_numeric
