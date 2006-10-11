@@ -390,6 +390,441 @@ def sww2asc_obsolete(basename_in, basename_out = None,
     ascid.close()
     fid.close()
 
+
+
+
+    def NOT_test_dem2pts(self):
+        """Test conversion from dem in ascii format to native NetCDF xya format
+        """
+
+        import time, os
+        from Numeric import array, zeros, allclose, Float, concatenate
+        from Scientific.IO.NetCDF import NetCDFFile
+
+        #Write test asc file
+        root = 'demtest'
+
+        filename = root+'.asc'
+        fid = open(filename, 'w')
+        fid.write("""ncols         5
+nrows         6
+xllcorner     2000.5
+yllcorner     3000.5
+cellsize      25
+NODATA_value  -9999
+""")
+        #Create linear function
+
+        ref_points = []
+        ref_elevation = []
+        for i in range(6):
+            y = (6-i)*25.0
+            for j in range(5):
+                x = j*25.0
+                z = x+2*y
+
+                ref_points.append( [x,y] )
+                ref_elevation.append(z)
+                fid.write('%f ' %z)
+            fid.write('\n')
+
+        fid.close()
+
+        #Write prj file with metadata
+        metafilename = root+'.prj'
+        fid = open(metafilename, 'w')
+
+
+        fid.write("""Projection UTM
+Zone 56
+Datum WGS84
+Zunits NO
+Units METERS
+Spheroid WGS84
+Xshift 0.0000000000
+Yshift 10000000.0000000000
+Parameters
+""")
+        fid.close()
+
+        #Convert to NetCDF pts
+        convert_dem_from_ascii2netcdf(root)
+        dem2pts(root)
+
+        #Check contents
+        #Get NetCDF
+        fid = NetCDFFile(root+'.pts', 'r')
+
+        # Get the variables
+        #print fid.variables.keys()
+        points = fid.variables['points']
+        elevation = fid.variables['elevation']
+
+        #Check values
+
+        #print points[:]
+        #print ref_points
+        assert allclose(points, ref_points)
+
+        #print attributes[:]
+        #print ref_elevation
+        assert allclose(elevation, ref_elevation)
+
+        #Cleanup
+        fid.close()
+
+
+        os.remove(root + '.pts')
+        os.remove(root + '.dem')
+        os.remove(root + '.asc')
+        os.remove(root + '.prj')
+
+
+
+    def NOT_test_dem2pts_bounding_box(self):
+        """Test conversion from dem in ascii format to native NetCDF xya format
+        """
+
+        import time, os
+        from Numeric import array, zeros, allclose, Float, concatenate
+        from Scientific.IO.NetCDF import NetCDFFile
+
+        #Write test asc file
+        root = 'demtest'
+
+        filename = root+'.asc'
+        fid = open(filename, 'w')
+        fid.write("""ncols         5
+nrows         6
+xllcorner     2000.5
+yllcorner     3000.5
+cellsize      25
+NODATA_value  -9999
+""")
+        #Create linear function
+
+        ref_points = []
+        ref_elevation = []
+        for i in range(6):
+            y = (6-i)*25.0
+            for j in range(5):
+                x = j*25.0
+                z = x+2*y
+
+                ref_points.append( [x,y] )
+                ref_elevation.append(z)
+                fid.write('%f ' %z)
+            fid.write('\n')
+
+        fid.close()
+
+        #Write prj file with metadata
+        metafilename = root+'.prj'
+        fid = open(metafilename, 'w')
+
+
+        fid.write("""Projection UTM
+Zone 56
+Datum WGS84
+Zunits NO
+Units METERS
+Spheroid WGS84
+Xshift 0.0000000000
+Yshift 10000000.0000000000
+Parameters
+""")
+        fid.close()
+
+        #Convert to NetCDF pts
+        convert_dem_from_ascii2netcdf(root)
+        dem2pts(root, easting_min=2010.0, easting_max=2110.0,
+                northing_min=3035.0, northing_max=3125.5)
+
+        #Check contents
+        #Get NetCDF
+        fid = NetCDFFile(root+'.pts', 'r')
+
+        # Get the variables
+        #print fid.variables.keys()
+        points = fid.variables['points']
+        elevation = fid.variables['elevation']
+
+        #Check values
+        assert fid.xllcorner[0] == 2010.0
+        assert fid.yllcorner[0] == 3035.0
+
+        #create new reference points
+        ref_points = []
+        ref_elevation = []
+        for i in range(4):
+            y = (4-i)*25.0 + 25.0
+            y_new = y + 3000.5 - 3035.0
+            for j in range(4):
+                x = j*25.0 + 25.0
+                x_new = x + 2000.5 - 2010.0
+                z = x+2*y
+
+                ref_points.append( [x_new,y_new] )
+                ref_elevation.append(z)
+
+        #print points[:]
+        #print ref_points
+        assert allclose(points, ref_points)
+
+        #print attributes[:]
+        #print ref_elevation
+        assert allclose(elevation, ref_elevation)
+
+        #Cleanup
+        fid.close()
+
+
+        os.remove(root + '.pts')
+        os.remove(root + '.dem')
+        os.remove(root + '.asc')
+        os.remove(root + '.prj')
+
+
+
+    def NOT_test_dem2pts_remove_Nullvalues(self):
+        """Test conversion from dem in ascii format to native NetCDF xya format
+        """
+
+        import time, os
+        from Numeric import array, zeros, allclose, Float, concatenate
+        from Scientific.IO.NetCDF import NetCDFFile
+
+        #Write test asc file
+        root = 'demtest'
+
+        filename = root+'.asc'
+        fid = open(filename, 'w')
+        fid.write("""ncols         5
+nrows         6
+xllcorner     2000.5
+yllcorner     3000.5
+cellsize      25
+NODATA_value  -9999
+""")
+        #Create linear function
+        # ref_ will write all the values
+        # new_ref_ will write the values except for NODATA_values
+        ref_points = []
+        ref_elevation = []
+        new_ref_pts = []
+        new_ref_elev = []
+        NODATA_value = -9999
+        for i in range(6):
+            y = (6-i)*25.0
+            for j in range(5):
+                x = j*25.0
+                z = x+2*y
+                if j == 4: z = NODATA_value # column
+                if i == 2 and j == 2: z = NODATA_value # random
+                if i == 5 and j == 1: z = NODATA_value
+                if i == 1: z = NODATA_value # row
+                if i == 3 and j == 1: z = NODATA_value # two pts/row
+                if i == 3 and j == 3: z = NODATA_value
+
+
+                if z <> NODATA_value:
+                    new_ref_elev.append(z)
+                    new_ref_pts.append( [x,y] )
+
+                ref_points.append( [x,y] )
+                ref_elevation.append(z)
+
+                fid.write('%f ' %z)
+            fid.write('\n')
+
+        fid.close()
+
+
+        #Write prj file with metadata
+        metafilename = root+'.prj'
+        fid = open(metafilename, 'w')
+
+
+        fid.write("""Projection UTM
+Zone 56
+Datum WGS84
+Zunits NO
+Units METERS
+Spheroid WGS84
+Xshift 0.0000000000
+Yshift 10000000.0000000000
+Parameters
+""")
+        fid.close()
+
+        #Convert to NetCDF pts
+        convert_dem_from_ascii2netcdf(root)
+        dem2pts(root)
+
+        #Check contents
+        #Get NetCDF
+        fid = NetCDFFile(root+'.pts', 'r')
+
+        # Get the variables
+        #print fid.variables.keys()
+        points = fid.variables['points']
+        elevation = fid.variables['elevation']
+
+        #Check values
+        #print 'points', points[:]
+        assert len(points) == len(new_ref_pts), 'length of returned points not correct'
+        assert allclose(points, new_ref_pts), 'points do not align'
+
+        #print 'elevation', elevation[:]
+        assert len(elevation) == len(new_ref_elev), 'length of returned elevation not correct'
+        assert allclose(elevation, new_ref_elev), 'elevations do not align'
+
+        #Cleanup
+        fid.close()
+
+
+        os.remove(root + '.pts')
+        os.remove(root + '.dem')
+        os.remove(root + '.asc')
+        os.remove(root + '.prj')
+
+    def NOT_test_dem2pts_bounding_box_Nullvalues(self):
+        """Test conversion from dem in ascii format to native NetCDF xya format
+        """
+
+        import time, os
+        from Numeric import array, zeros, allclose, Float, concatenate
+        from Scientific.IO.NetCDF import NetCDFFile
+
+        #Write test asc file
+        root = 'demtest'
+
+        filename = root+'.asc'
+        fid = open(filename, 'w')
+        fid.write("""ncols         5
+nrows         6
+xllcorner     2000.5
+yllcorner     3000.5
+cellsize      25
+NODATA_value  -9999
+""")
+        #Create linear function
+
+        ref_points = []
+        ref_elevation = []
+        new_ref_pts1 = []
+        new_ref_elev1 = []
+        NODATA_value = -9999
+        for i in range(6):
+            y = (6-i)*25.0
+            for j in range(5):
+                x = j*25.0
+                z = x+2*y
+                if j == 4: z = NODATA_value # column
+                if i == 2 and j == 2: z = NODATA_value # random
+                if i == 5 and j == 1: z = NODATA_value
+                if i == 1: z = NODATA_value # row
+                if i == 3 and j == 1: z = NODATA_value # two pts/row
+                if i == 3 and j == 3: z = NODATA_value
+
+                if z <> NODATA_value:
+                    new_ref_elev1.append(z)
+                    new_ref_pts1.append( [x,y] )
+
+                ref_points.append( [x,y] )
+                ref_elevation.append(z)
+                fid.write('%f ' %z)
+            fid.write('\n')
+
+        fid.close()
+
+        #Write prj file with metadata
+        metafilename = root+'.prj'
+        fid = open(metafilename, 'w')
+
+
+        fid.write("""Projection UTM
+Zone 56
+Datum WGS84
+Zunits NO
+Units METERS
+Spheroid WGS84
+Xshift 0.0000000000
+Yshift 10000000.0000000000
+Parameters
+""")
+        fid.close()
+
+        #Convert to NetCDF pts
+        convert_dem_from_ascii2netcdf(root)
+        dem2pts(root, easting_min=2010.0, easting_max=2110.0,
+                northing_min=3035.0, northing_max=3125.5)
+
+        #Check contents
+        #Get NetCDF
+        fid = NetCDFFile(root+'.pts', 'r')
+
+        # Get the variables
+        #print fid.variables.keys()
+        points = fid.variables['points']
+        elevation = fid.variables['elevation']
+
+        #Check values
+        assert fid.xllcorner[0] == 2010.0
+        assert fid.yllcorner[0] == 3035.0
+
+        #create new reference points
+        ref_points = []
+        ref_elevation = []
+        new_ref_pts2 = []
+        new_ref_elev2 = []
+        for i in range(4):
+            y = (4-i)*25.0 + 25.0
+            y_new = y + 3000.5 - 3035.0
+            for j in range(4):
+                x = j*25.0 + 25.0
+                x_new = x + 2000.5 - 2010.0
+                z = x+2*y
+
+                if j == 3: z = NODATA_value # column
+                if i == 1 and j == 1: z = NODATA_value # random
+                if i == 4 and j == 0: z = NODATA_value
+                if i == 0: z = NODATA_value # row
+                if i == 2 and j == 0: z = NODATA_value # two pts/row
+                if i == 2 and j == 2: z = NODATA_value
+
+                if z <> NODATA_value:
+                    new_ref_elev2.append(z)
+                    new_ref_pts2.append( [x_new,y_new] )
+
+
+                ref_points.append( [x_new,y_new] )
+                ref_elevation.append(z)
+
+        #print points[:]
+        #print ref_points
+        #assert allclose(points, ref_points)
+
+        #print attributes[:]
+        #print ref_elevation
+        #assert allclose(elevation, ref_elevation)
+
+
+        assert len(points) == len(new_ref_pts2), 'length of returned points not correct'
+        assert allclose(points, new_ref_pts2), 'points do not align'
+
+        #print 'elevation', elevation[:]
+        assert len(elevation) == len(new_ref_elev2), 'length of returned elevation not correct'
+        assert allclose(elevation, new_ref_elev2), 'elevations do not align'
+        #Cleanup
+        fid.close()
+
+
+        os.remove(root + '.pts')
+        os.remove(root + '.dem')
+        os.remove(root + '.asc')
+        os.remove(root + '.prj')
+
 #********************
 #*** END OF OBSOLETE FUNCTIONS
 #***************
