@@ -35,11 +35,13 @@ except:
         import time
         return time.time()
 
-    #def send(*args, **kwargs):
-    #    pass
+    def send(*args, **kwargs):
+        pass
 
-    #def receive(*args, **kwargs):
-    #    pass    
+    def receive(*args, **kwargs):
+        pass    
 
+    pypar_available = False
 else:
     from pypar import *
+    pypar_available = True    

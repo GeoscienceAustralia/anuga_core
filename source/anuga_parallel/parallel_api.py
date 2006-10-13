@@ -4,14 +4,23 @@
 """
 
 # Parallelism
-# The Python-MPI interface
-from pypar import size, rank, get_processor_name, finalize, send, receive
-#from anuga_parallel.parallel_abstraction import size, rank, get_processor_name, finalize #,send, receive
+
+# The abstract Python-MPI interface
+from anuga_parallel.parallel_abstraction import size, rank, get_processor_name
+from anuga_parallel.parallel_abstraction import finalize, send, receive
+from anuga_parallel.parallel_abstraction import pypar_available
+
+# Mesh partitioning
 from anuga_parallel.pmesh_divide  import pmesh_divide_metis
 from anuga_parallel.build_submesh import build_submesh
 from anuga_parallel.build_local   import build_local_mesh
-from anuga_parallel.build_commun  import send_submesh, rec_submesh, extract_hostmesh
-from anuga_parallel.parallel_shallow_water import Parallel_Domain
+
+# ANUGA parallel engine (only load if pypar can)
+if pypar_available:
+    from anuga_parallel.build_commun  import send_submesh
+    from anuga_parallel.build_commun  import rec_submesh
+    from anuga_parallel.build_commun  import extract_hostmesh
+    from anuga_parallel.parallel_shallow_water import Parallel_Domain
 
 
 #------------------------------------------------------------------------------
@@ -29,6 +38,8 @@ print 'I am processor %d of %d on node %s' %(myid, numprocs, processor_name)
 def distribute(domain, verbose=False):
     """ Distribute the domain to all processes
     """
+
+    if not pypar_available: return domain # Bypass
 
     # For some obscure reason this communication must happen prior to
     # the more complex mesh distribution - Oh Well!

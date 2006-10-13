@@ -91,8 +91,28 @@ for t in domain.evolve(yieldstep = 0.1, finaltime = 5.0):
 print
 print time
 print
-for i, _ in enumerate(interpolation_points):
+for i, (x,y) in enumerate(interpolation_points):
     print i, gauge_values[i]
     print 
 
         
+    try:
+        from pylab import *
+    except:
+        pass
+    else:
+        ion()
+        hold(False)
+        plot(time, gauge_values[i], 'r.-')
+        #time, predicted_gauge_values[i], 'k-')
+        
+        title('Gauge %d (%f,%f)' %(i,x,y))
+        xlabel('time(s)')
+        ylabel('stage (m)')    
+        #legend(('Observed', 'Modelled'), shadow=True, loc='upper left')
+        #savefig('Gauge_%d.png' %i, dpi = 300)
+    
+        raw_input('Next')
+        
+
+
