@@ -34,7 +34,8 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.utilities.quad import build_quadtree
 from anuga.utilities.numerical_tools import ensure_numeric, mean, NAN
 from anuga.utilities.polygon import in_and_outside_polygon
-from anuga.geospatial_data.geospatial_data import Geospatial_data, ensure_absolute
+from anuga.geospatial_data.geospatial_data import Geospatial_data
+from anuga.geospatial_data.geospatial_data import ensure_absolute
 from anuga.fit_interpolate.search_functions import search_tree_of_vertices
 from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
 from anuga.abstract_2d_finite_volumes.util import file_function
@@ -119,8 +120,8 @@ class Interpolate (FitInterpolate):
         
         # FIXME (Ole): Need an input check that dimensions are compatible
 
-        # FIXME (Ole): Why is the interpolation matrix rebuilt everytime the method is called
-        # even if interpolation points are unchanged.
+        # FIXME (Ole): Why is the interpolation matrix rebuilt everytime the
+        # method is called even if interpolation points are unchanged.
         
         #print "point_coordinates interpolate.interpolate", point_coordinates 
         if isinstance(point_coordinates, Geospatial_data):
@@ -167,18 +168,19 @@ class Interpolate (FitInterpolate):
                 for end in range(start_blocking_len,
                                  len(point_coordinates),
                                  start_blocking_len):
+                    
                     t = self.interpolate_block(f, point_coordinates[start:end],
                                                verbose=verbose)
                     #print "t", t
                     #print "z", z 
                     z = concatenate((z,t))
                     start = end
+                    
                 end = len(point_coordinates)
                 t = self.interpolate_block(f, point_coordinates[start:end],
                                            verbose=verbose)
                 z = concatenate((z,t))
         return z
-
 
     def interpolate_block(self, f, point_coordinates = None, verbose=False):
         """
@@ -212,7 +214,6 @@ class Interpolate (FitInterpolate):
         for i in self.outside_poly_indices: 
             z[i] = NAN
         return z
-
 
     def _build_interpolation_matrix_A(self,
                                       point_coordinates,
@@ -363,6 +364,7 @@ def interpolate_sww2csv(sww_file,
         velocity_x_writer.writerow(velocity_xs)
         velocity_y_writer.writerow(velocity_ys)
 
+
 class Interpolation_function:
     """Interpolation_interface - creates callable object f(t, id) or f(t,x,y)
     which is interpolated from time series defined at vertices of
@@ -397,8 +399,7 @@ class Interpolation_function:
     quantities are to be computed whenever object is called.
     If None, return average value
     """
-
-    
+  
     
     def __init__(self,
                  time,
@@ -467,10 +468,6 @@ class Interpolation_function:
         self.index = 0    # Initial time index
         self.precomputed_values = {}
         
-
-
-
-        
             
         #Precomputed spatial interpolation if requested
         if interpolation_points is not None:
@@ -503,40 +500,38 @@ class Interpolation_function:
 
             if verbose: print 'Interpolate'
 	    for i, t in enumerate(self.time):
-                #Interpolate quantities at this timestep
+                # Interpolate quantities at this timestep
                 if verbose and i%((p+10)/10)==0:
                     print ' time step %d of %d' %(i, p)
                     
                 for name in quantity_names:
                     if len(quantities[name].shape) == 2:
-                        result = interpol.interpolate(quantities[name][i,:],
-                                                      point_coordinates = \
-                                                      self.interpolation_points)
+                        Q = quantities[name][i,:] # Quantities at timestep i
                     else:
-                       #Assume no time dependency 
-                       result = interpol.interpolate(quantities[name][:],
-                                     point_coordinates = \
-                                     self.interpolation_points)
+                        Q = quantities[name][:]   # No time dependency
                        
+                    # Interpolate    
+                    result = interpol.interpolate(Q,
+                                                  point_coordinates=\
+                                                  self.interpolation_points)
                     self.precomputed_values[name][i, :] = result
+
                    
-            #Report
+            # Report
             if verbose:
                 print self.statistics()
                 #self.print_statistics()
             
         else:
-            #Store quantitites as is
-	    for name in quantity_names:
+            # Store quantitites as is
+            for name in quantity_names:
                 self.precomputed_values[name] = quantities[name]
 
-
     def __repr__(self):
-        #return 'Interpolation function (spatio-temporal)'
+        # return 'Interpolation function (spatio-temporal)'
         return self.statistics()
-    
-
-    def __call__(self, t, point_id = None, x = None, y = None):
+ 
+    def __call__(self, t, point_id=None, x=None, y=None):
         """Evaluate f(t), f(t, point_id) or f(t, x, y)
 
 	Inputs:
@@ -664,6 +659,7 @@ class Interpolation_function:
         """
         return self.time
 
+
     def statistics(self):
         """Output statistics about interpolation_function
         """
@@ -710,6 +706,7 @@ class Interpolation_function:
 
         return str
 
+
 def interpolate_sww(sww_file, time, interpolation_points,
                     quantity_names = None, verbose = False):
     """
@@ -728,14 +725,13 @@ def interpolate_sww(sww_file, time, interpolation_points,
     vertex_coordinates = concatenate((x[:,NewAxis], y[:,NewAxis]),axis=1)
 
     #Will return the quantity values at the specified times and locations
-    interp =  Interpolation_interface(
-                 time,
-                 quantities,
-                 quantity_names = quantity_names,  
-                 vertex_coordinates = vertex_coordinates,
-                 triangles = volumes,
-                 interpolation_points = interpolation_points,
-                 verbose = verbose)
+    interp = Interpolation_interface(time,
+                                     quantities,
+                                     quantity_names=quantity_names,  
+                                     vertex_coordinates=vertex_coordinates,
+                                     triangles=volumes,
+                                     interpolation_points=interpolation_points,
+                                     verbose=verbose)
 
 
 def read_sww(file_name):
@@ -799,6 +795,7 @@ def read_sww(file_name):
             
     fid.close()
     return x, y, volumes, time, quantities
+
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
