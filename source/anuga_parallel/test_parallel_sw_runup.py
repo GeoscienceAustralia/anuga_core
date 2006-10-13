@@ -42,8 +42,8 @@ def topography(x,y):
     return -x/2                              # linear bed slope
 
 domain.set_quantity('elevation', topography) # Use function for elevation
-domain.set_quantity('friction', 0.1)         # Constant friction 
-domain.set_quantity('stage', -.4)            # Constant initial stage
+domain.set_quantity('friction', 0.0)         # Constant friction 
+domain.set_quantity('stage', -.5)            # Constant initial stage
 
 
 #------------------------------------------------------------------------------
