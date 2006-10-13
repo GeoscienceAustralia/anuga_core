@@ -262,6 +262,11 @@ class Domain(Mesh):
 
         self.time = time
 
+    def get_time(self):
+        """Get the model time (seconds)"""
+
+        return self.time
+
     def set_quantity_vertices_dict(self, quantity_dict):
         """Set values for named quantities.
         The index is the quantity

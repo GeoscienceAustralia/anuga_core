@@ -137,7 +137,13 @@ domain.modify_boundary({'ocean': Bt})
 #----------------------
 t0 = time.time()
 for t in domain.evolve(yieldstep = 0.2, finaltime = 300):
-    domain.write_time()
+    #domain.write_time()
+    
+    w = domain.get_maximum_inundation_elevation()
+    x, y = domain.get_maximum_inundation_location()
+    t = domain.get_time()
+    print '  Coastline elevation at t = %.2f is %.2f at loc (x,y)=(%.2f, %.2f)' %(t, w, x, y)
+
     
 print 'Simulation took %.2f seconds' %(time.time()-t0)
     
