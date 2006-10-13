@@ -67,7 +67,32 @@ domain = distribute(domain, verbose=True)
 # Evolve system through time
 #------------------------------------------------------------------------------
 
-for t in domain.evolve(yieldstep = 0.1, finaltime = 10.0):
-    domain.write_time()
-    
+interpolation_points = [[0.4,0.5], [0.6,0.5], [0.8,0.5], [0.9,0.5]]
+gauge_values = []
+for _ in interpolation_points:
+    gauge_values.append([])
 
+time = []
+
+for t in domain.evolve(yieldstep = 0.1, finaltime = 5.0):
+    domain.write_time()
+
+    
+    # Record time series at known points
+    time.append(domain.get_time())
+    
+    stage = domain.get_quantity('stage')
+    w = stage.get_values(interpolation_points=interpolation_points)
+    
+    for i, _ in enumerate(interpolation_points):
+        gauge_values[i].append(w[i])
+
+
+print
+print time
+print
+for i, _ in enumerate(interpolation_points):
+    print i, gauge_values[i]
+    print 
+
+        
