@@ -736,8 +736,8 @@ def point_in_polygon(polygon, delta=1e-8):
 ##############################################
 #Initialise module
 
-import compile
-if compile.can_use_C_extension('polygon_ext.c'):
+from anuga.utilities.compile import can_use_C_extension
+if can_use_C_extension('polygon_ext.c'):
     from polygon_ext import point_on_line
     separate_points_by_polygon = separate_points_by_polygon_c
 
