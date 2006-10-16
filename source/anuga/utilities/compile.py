@@ -270,8 +270,8 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
   
   try:  
     err=os.system(s)
-    if err != 0:	
-	raise 'Atempting to link %s failed - please try manually' %root1     
+    if err != 0:        
+        raise 'Atempting to link %s failed - please try manually' %root1     
   except:
     raise 'Could not link %s - please try manually' %root1
     
@@ -340,7 +340,7 @@ if __name__ == '__main__':
           root, ext = splitext(filename)
 
           if ext <> '.c':
-	      print 'WARNING (compile.py): Skipping %s. I only compile C-files.' %filename
+              print 'WARNING (compile.py): Skipping %s. I only compile C-files.' %filename
       
   else:  
       #path = os.path.split(sys.argv[0])[0] or os.getcwd()
