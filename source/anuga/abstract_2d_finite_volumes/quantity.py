@@ -168,7 +168,8 @@ class Quantity:
                    quantity = None,   # Another quantity
                    function = None,   # Callable object: f(x,y)
                    geospatial_data = None, #Arbitrary dataset
-                   points = None, values = None, data_georef = None, #Input for fit (obsoleted by use of geo_spatial object)
+                   points = None, values = None, data_georef = None, #Input
+                   # for fit (obsoleted by use of geo_spatial object)
                    filename = None, attribute_name = None, #Input from file
                    alpha = None,
                    location = 'vertices',
@@ -272,8 +273,8 @@ class Quantity:
         #General input checks
         L = [numeric, quantity, function, geospatial_data, points, filename]
         msg = 'Exactly one of the arguments '+\
-              'numeric, quantity, function, geospatial_data, points, or filename '+\
-              'must be present.'
+              'numeric, quantity, function, geospatial_data, points, '+\
+              'or filename must be present.'
         assert L.count(None) == len(L)-1, msg
 
 
@@ -491,18 +492,10 @@ class Quantity:
             assert len(values.shape) == 1 or allclose(values.shape[1:], 1),\
                    'Values array must be 1d'
 
-            self.set_vertex_values(values.flat, indices = indices)
+            self.set_vertex_values(values.flat, indices=indices)
         else:
             if len(values.shape) == 1:
-                self.set_vertex_values(values, indices = indices)
-                #if indices == None:
-                    #Values are being specified once for each unique vertex
-                #    msg = 'Number of values must match number of vertices'
-                #    assert values.shape[0] == self.domain.coordinates.shape[0], msg
-                 #   self.set_vertex_values(values)
-                #else:
-                #    for element_index, value in map(None, indices, values):
-                #        self.vertex_values[element_index, :] = value
+                self.set_vertex_values(values, indices=indices)
 
             elif len(values.shape) == 2:
                 #Vertex values are given as a triplet for each triangle
@@ -690,15 +683,17 @@ class Quantity:
         """
 
         from load_mesh.loadASCII import import_points_file
-        from anuga.geospatial_data.geospatial_data import points_dictionary2geospatial_data
+        from anuga.geospatial_data.geospatial_data import\
+             points_dictionary2geospatial_data
 
         from types import StringType
         msg = 'Filename must be a text string'
         assert type(filename) == StringType, msg
 
 
-        #Read from (NetCDF) file
-        #FIXME (Ole): This function should really return a Geospatial_data object.
+        # Read from (NetCDF) file
+        # FIXME (Ole): This function should really return a
+        # Geospatial_data object.
         points_dict = import_points_file(filename)
         points = points_dict['pointlist']
         attributes = points_dict['attributelist']
@@ -742,17 +737,7 @@ class Quantity:
                                              verbose = verbose,
                                              use_cache = use_cache)
 
-        #Call underlying method for points
-        #self.set_values_from_points(points, z, alpha,
-        #                            location, indices,
-        #                            data_georef = data_georef,
-        #                            verbose = verbose,
-        #                            use_cache = use_cache)
-
-
-
    
-    
     def get_maximum_index(self, indices=None):
         """Return index for maximum value of quantity (on centroids)
 
@@ -766,8 +751,8 @@ class Quantity:
             We do not seek the maximum at vertices as each vertex can
             have multiple values - one for each triangle sharing it.
 
-            If there are multiple cells with same maximum value, the first cell
-            encountered in the triangle array is returned.
+            If there are multiple cells with same maximum value, the
+            first cell encountered in the triangle array is returned.
         """
 
         V = self.get_values(location='centroids', indices=indices)
@@ -815,8 +800,8 @@ class Quantity:
             We do not seek the maximum at vertices as each vertex can
             have multiple values - one for each triangle sharing it.
 
-            If there are multiple cells with same maximum value, the first cell
-            encountered in the triangle array is returned.            
+            If there are multiple cells with same maximum value, the
+            first cell encountered in the triangle array is returned.       
         """
 
         i = self.get_maximum_index(indices)
@@ -830,9 +815,11 @@ class Quantity:
     def get_interpolated_values(self, interpolation_points):
 
         # Interpolation object based on internal (discontinuous triangles)
-        x, y, vertex_values, triangles = self.get_vertex_values(xy=True, smooth=False)
+        x, y, vertex_values, triangles = self.get_vertex_values(xy=True,
+                                                                smooth=False)
         # FIXME: This concat should roll into get_vertex_values
-        vertex_coordinates = concatenate( (x[:, NewAxis], y[:, NewAxis]), axis=1 )
+        vertex_coordinates = concatenate((x[:, NewAxis], y[:, NewAxis]),
+                                         axis=1)
 
         can_reuse = False
         if hasattr(self, 'interpolation_object'):
@@ -843,8 +830,9 @@ class Quantity:
                 can_reuse = True
                 
 
-        if can_reuse is True:        
-            result = I.interpolate(vertex_values) # Use absence to indicate reuse
+        if can_reuse is True:
+            # Use absence of points to indicate reuse in I.interpolate
+            result = I.interpolate(vertex_values) 
         else:    
             from anuga.fit_interpolate.interpolate import Interpolate
 
@@ -853,18 +841,22 @@ class Quantity:
             self.interpolation_object = I
 
             # Call interpolate with points the first time
-            interpolation_points = ensure_numeric(interpolation_points, Float)                        
-            result = I.interpolate(vertex_values, interpolation_points)            
+            interpolation_points = ensure_numeric(interpolation_points, Float)
+            result = I.interpolate(vertex_values, interpolation_points)     
 
         return result
 
 
-    def get_values(self, interpolation_points=None, location='vertices', indices = None):
+    def get_values(self, interpolation_points=None,
+                   location='vertices',
+                   indices = None):
         """get values for quantity
 
         return X, Compatible list, Numeric array (see below)
-        interpolation_points: List of x, y coordinates where value is sought (using interpolation)
-                If points are given, values of location and indices are ignored
+        interpolation_points: List of x, y coordinates where value is
+        sought (using interpolation). If points are given, values of
+        location and indices are ignored
+        
         location: Where values are to be stored.
                   Permissible options are: vertices, edges, centroid
                   and unique vertices. Default is 'vertices'
@@ -873,17 +865,17 @@ class Quantity:
         The returned values with be a list the length of indices
         (N if indices = None).
 
-        In case of location == 'centroids' the dimension of returned values will
-        be a list or a Numerical array of length N, N being the number
-        of elements.
+        In case of location == 'centroids' the dimension of returned
+        values will be a list or a Numerical array of length N, N being
+        the number of elements.
         
-        In case of location == 'vertices' or 'edges' the dimension of returned values will
-        be of dimension Nx3
+        In case of location == 'vertices' or 'edges' the dimension of
+        returned values will be of dimension Nx3
 
-        In case of location == 'unique vertices' the average value at each vertex will be
-        returned and the dimension of returned values will be a 1d array of length "number of vertices" 
+        In case of location == 'unique vertices' the average value at
+        each vertex will be returned and the dimension of returned values
+        will be a 1d array of length "number of vertices" 
         
-
         Indices is the set of element ids that the operation applies to.
 
         The values will be stored in elements following their
@@ -897,7 +889,8 @@ class Quantity:
         
         
 
-        if location not in ['vertices', 'centroids', 'edges', 'unique vertices']:
+        if location not in ['vertices', 'centroids', 'edges',
+                            'unique vertices']:
             msg = 'Invalid location: %s' %location
             raise msg
 
@@ -1333,7 +1326,7 @@ def compute_gradients(quantity):
     b = zeros(N, Float)
 
     for k in range(N):
-    	if number_of_boundaries[k] < 2:
+        if number_of_boundaries[k] < 2:
             #Two or three true neighbours
 
             #Get indices of neighbours (or self when used as surrogate)

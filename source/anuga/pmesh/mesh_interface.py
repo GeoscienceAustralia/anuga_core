@@ -59,7 +59,7 @@ def create_mesh_from_regions(bounding_polygon,
     the lower left hand corner of  bounding_polygon (absolute)
     as the x and y values for the geo_ref.
     
-    Returns the mesh instance if no finename is given
+    Returns the mesh instance if no filename is given
 
     Note, interior regions should be fully nested, as overlaps may cause
     unintended resolutions.
@@ -229,7 +229,7 @@ def _create_mesh_from_regions(bounding_polygon,
     if interior_regions is not None:    
         for polygon, res in interior_regions:
             m.add_region_from_polygon(polygon,
-                                      max_triangle_area = res,
+                                      max_triangle_area=res,
                                       geo_reference=poly_geo_reference)
     
             
@@ -237,7 +237,7 @@ def _create_mesh_from_regions(bounding_polygon,
     if interior_holes is not None:    
         for polygon in interior_holes:
             m.add_hole_from_polygon(polygon,
-                                      geo_reference=poly_geo_reference)
+                                    geo_reference=poly_geo_reference)
        
             
     return m        

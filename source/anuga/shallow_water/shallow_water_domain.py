@@ -209,8 +209,10 @@ class Domain(Generic_Domain):
           - a list of quantity names
           - None
 
-        In the two first cases, the named quantities will be stored at each yieldstep
-        (This is in addition to the quantities elevation and friction)
+        In the two first cases, the named quantities will be stored at
+        each yieldstep (This is in addition to the quantities elevation
+        and friction)
+        
         If q is None, storage will be switched off altogether.
         """
 
@@ -225,7 +227,9 @@ class Domain(Generic_Domain):
 
         #Check correcness
         for quantity_name in q:
-            msg = 'Quantity %s is not a valid conserved quantity' %quantity_name
+            msg = 'Quantity %s is not a valid conserved quantity'\
+                  %quantity_name
+            
             assert quantity_name in self.conserved_quantities, msg
 
         self.quantities_to_be_stored = q
@@ -247,14 +251,17 @@ class Domain(Generic_Domain):
         # Water depth below which it is considered to be 0 in the model
         # FIXME (Ole): Allow this to be specified as a keyword argument as well
         from anuga.config import minimum_allowed_height
-        
 
-        elevation = self.get_quantity('elevation').get_values(location='centroids', indices=indices)
-        stage = self.get_quantity('stage').get_values(location='centroids', indices=indices)                
+        
+        elevation = self.get_quantity('elevation').\
+                    get_values(location='centroids', indices=indices)
+        stage = self.get_quantity('stage').\
+                get_values(location='centroids', indices=indices)       
         depth = stage - elevation
 
         # Select indices for which depth > 0
-        wet_indices = compress(depth > minimum_allowed_height, arange(len(depth)))
+        wet_indices = compress(depth > minimum_allowed_height,
+                               arange(len(depth)))
         return wet_indices 
 
 
@@ -271,7 +278,8 @@ class Domain(Generic_Domain):
         """
 
         wet_elements = self.get_wet_elements(indices)
-        return self.get_quantity('elevation').get_maximum_value(indices=wet_elements)
+        return self.get_quantity('elevation').\
+               get_maximum_value(indices=wet_elements)
 
 
     def get_maximum_inundation_location(self, indices=None):
@@ -287,7 +295,8 @@ class Domain(Generic_Domain):
         """
 
         wet_elements = self.get_wet_elements(indices)
-        return self.get_quantity('elevation').get_maximum_location(indices=wet_elements)    
+        return self.get_quantity('elevation').\
+               get_maximum_location(indices=wet_elements)    
 
 
 
@@ -828,7 +837,9 @@ def compute_fluxes_c(domain):
     Bed = domain.quantities['elevation']
 
     timestep = float(sys.maxint)
-    from shallow_water_ext import compute_fluxes_ext_central as compute_fluxes_ext
+    from shallow_water_ext import\
+         compute_fluxes_ext_central as compute_fluxes_ext
+    
     domain.timestep = compute_fluxes_ext(timestep, domain.epsilon, domain.g,
                                      domain.neighbours,
                                      domain.neighbour_edges,
@@ -2088,10 +2099,12 @@ if compile.can_use_C_extension('shallow_water_ext.c'):
     manning_friction = manning_friction_implicit_c
     h_limiter = h_limiter_c
     balance_deep_and_shallow = balance_deep_and_shallow_c
-    protect_against_infinitesimal_and_negative_heights = protect_against_infinitesimal_and_negative_heights_c
+    protect_against_infinitesimal_and_negative_heights =\
+                    protect_against_infinitesimal_and_negative_heights_c
 
 
-    #distribute_to_vertices_and_edges = distribute_to_vertices_and_edges_c #(like MH's)
+    #distribute_to_vertices_and_edges =\
+    #              distribute_to_vertices_and_edges_c #(like MH's)
 
 
 

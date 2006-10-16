@@ -388,7 +388,7 @@ class Test_Geospatial_data(unittest.TestCase):
 
         # Then a more complex polygon
         polygon = [[0,0], [1,0], [0.5,-1], [2, -1], [2,1], [0,1]]
-	points = [ [0.5, 1.4], [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
+        points = [ [0.5, 1.4], [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
         G = Geospatial_data(points)
 
         assert allclose(G.clip(polygon).get_data_points(),
@@ -419,7 +419,7 @@ class Test_Geospatial_data(unittest.TestCase):
 
         # Then a more complex polygon
         polygon = [[0,0], [1,0], [0.5,-1], [2, -1], [2,1], [0,1]]
-	points = [ [0.5, 1.4], [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
+        points = [ [0.5, 1.4], [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
 
         # This time just one attribute
         attributes = [2, -4, 5, 76, -2, 0.1]
@@ -455,7 +455,7 @@ class Test_Geospatial_data(unittest.TestCase):
         assert allclose(G.clip(U).get_attributes('att2'), [-3, 77, 1.1])                        
         
         # Then a more complex polygon
-	points = [ [0.5, 1.4], [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
+        points = [ [0.5, 1.4], [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
         attributes = [2, -4, 5, 76, -2, 0.1]        
         G = Geospatial_data(points, attributes)
         polygon = Geospatial_data([[0,0], [1,0], [0.5,-1], [2, -1], [2,1], [0,1]])
@@ -489,7 +489,7 @@ class Test_Geospatial_data(unittest.TestCase):
 
         # Then a more complex polygon
         polygon = [[0,0], [1,0], [0.5,-1], [2, -1], [2,1], [0,1]]
-	points = [ [0.5, 1.4], [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
+        points = [ [0.5, 1.4], [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
         attributes = [2, -4, 5, 76, -2, 0.1]        
         G = Geospatial_data(points, attributes)
 
