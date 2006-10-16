@@ -755,7 +755,8 @@ class Domain(Mesh):
                 self.number_of_first_order_steps += 1
 
             #Yield results
-            if finaltime is not None and self.time >= finaltime:
+            from anuga.config import epsilon
+            if finaltime is not None and self.time >= finaltime-epsilon:
 
                 if self.time > finaltime:
   		              #FIXME (Ole, 30 April 2006): Do we need this check?
@@ -763,6 +764,7 @@ class Domain(Mesh):
                       self.time = finaltime
 
                 # Yield final time and stop
+                self.time = finaltime
                 yield(self.time)
                 break
 
@@ -858,7 +860,7 @@ class Domain(Mesh):
 
 
         #Ensure that final time is not exceeded
-        if finaltime is not None and self.time + timestep > finaltime:
+        if finaltime is not None and self.time + timestep > finaltime :
             timestep = finaltime-self.time
 
         #Ensure that model time is aligned with yieldsteps
