@@ -188,7 +188,17 @@ class Domain(Generic_Domain):
         The minimum allowed sww depth is in meters.
         """
         self.minimum_storable_height = minimum_storable_height
+        
 
+    def set_maximum_allowed_speed(self, maximum_allowed_speed):
+        """
+        Set the maximum particle speed that is allowed in water
+        shallower than minimum_allowed_height. This is useful for
+        controlling speeds in very thin layers of water and at the same time
+        allow some movement avoiding pooling of water.
+
+        """
+        self.maximum_allowed_speed = maximum_allowed_speed
 
 
     def set_quantities_to_be_stored(self, q):

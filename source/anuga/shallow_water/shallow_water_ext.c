@@ -534,28 +534,29 @@ int _protect(int N,
       //          ensure h is non negative
       //FIXME (Ole): This is only implemented in this C extension and
       //             has no Python equivalent
+            
       if (hc <= 0.0) {
       	wc[k] = zc[k];
-		xmomc[k] = 0.0;
-		ymomc[k] = 0.0;
+	xmomc[k] = 0.0;
+	ymomc[k] = 0.0;
       } else {
         //Reduce excessive speeds derived from division by small hc
         
         u = xmomc[k]/hc;
-		if (fabs(u) > maximum_allowed_speed) {
-	  		reduced_speed = maximum_allowed_speed * u/fabs(u);
-	  		//printf("Speed (u) has been reduced from %.3f to %.3f\n",
-	  		//	 u, reduced_speed);
-	  		xmomc[k] = reduced_speed * hc;
-		}
+	if (fabs(u) > maximum_allowed_speed) {
+	  reduced_speed = maximum_allowed_speed * u/fabs(u);
+	  //printf("Speed (u) has been reduced from %.3f to %.3f\n",
+	  //	 u, reduced_speed);
+	  xmomc[k] = reduced_speed * hc;
+	}
 
         v = ymomc[k]/hc;
-		if (fabs(v) > maximum_allowed_speed) {
-	  		reduced_speed = maximum_allowed_speed * v/fabs(v);
-	  		//printf("Speed (v) has been reduced from %.3f to %.3f\n",
-	  		//	 v, reduced_speed);
-	  		ymomc[k] = reduced_speed * hc;
-		}
+	if (fabs(v) > maximum_allowed_speed) {
+	  reduced_speed = maximum_allowed_speed * v/fabs(v);
+	  //printf("Speed (v) has been reduced from %.3f to %.3f\n",
+	  //	 v, reduced_speed);
+	  ymomc[k] = reduced_speed * hc;
+	}
       }
     }
   }
