@@ -163,7 +163,7 @@ class Domain(Generic_Domain):
         self.set_store_vertices_uniquely(False)
         self.minimum_storable_height = minimum_storable_height
         self.quantities_to_be_stored = ['stage','xmomentum','ymomentum']
-		
+                
 
 
     def set_store_vertices_uniquely(self, flag, reduction=None):
@@ -1111,30 +1111,30 @@ def balance_deep_and_shallow(domain):
             #Flat bed
             alpha = 1.0
 
-	#Let
-	#
-	#  wvi be the w-limited stage (wvi = zvi + hvi)
-	#  wvi- be the h-limited state (wvi- = zvi + hvi-)
-	#
-	#
-	#where i=0,1,2 denotes the vertex ids
-	#
+        #Let
+        #
+        #  wvi be the w-limited stage (wvi = zvi + hvi)
+        #  wvi- be the h-limited state (wvi- = zvi + hvi-)
+        #
+        #
+        #where i=0,1,2 denotes the vertex ids
+        #
         #Weighted balance between w-limited and h-limited stage is
         #
-	#  wvi := (1-alpha)*(zvi+hvi-) + alpha*(zvi+hvi)
-	#
+        #  wvi := (1-alpha)*(zvi+hvi-) + alpha*(zvi+hvi)
+        #
         #It follows that the updated wvi is
         #  wvi := zvi + (1-alpha)*hvi- + alpha*hvi
         #
-	# Momentum is balanced between constant and limited
+        # Momentum is balanced between constant and limited
 
 
         #for i in range(3):
         #    wv[k,i] = zv[k,i] + hvbar[k,i]
 
-	#return
+        #return
 
-	if alpha < 1:
+        if alpha < 1:
 
             for i in range(3):
                 wv[k,i] = zv[k,i] + (1-alpha)*hvbar[k,i] + alpha*hv[k,i]
@@ -1443,12 +1443,12 @@ def manning_friction(domain):
     for k in range(N):
         if eta[k] >= eps:
             if h[k] >= eps:
-            	S = -g * eta[k]**2 * sqrt((uh[k]**2 + vh[k]**2))
-            	S /= h[k]**(7.0/3)
+                S = -g * eta[k]**2 * sqrt((uh[k]**2 + vh[k]**2))
+                S /= h[k]**(7.0/3)
 
-            	#Update momentum
-            	xmom_update[k] += S*uh[k]
-            	ymom_update[k] += S*vh[k]
+                #Update momentum
+                xmom_update[k] += S*uh[k]
+                ymom_update[k] += S*vh[k]
 
 
 def manning_friction_implicit_c(domain):
@@ -1532,11 +1532,11 @@ def linear_friction(domain):
     for k in range(N):
         if tau[k] >= eps:
             if h[k] >= eps:
-            	S = -tau[k]/h[k]
+                S = -tau[k]/h[k]
 
-            	#Update momentum
-            	xmom_update[k] += S*uh[k]
-            	ymom_update[k] += S*vh[k]
+                #Update momentum
+                xmom_update[k] += S*uh[k]
+                ymom_update[k] += S*vh[k]
 
 
 
@@ -1556,7 +1556,7 @@ def check_forcefield(f):
             q = f(1.0, x=x, y=y)
         except Exception, e:
             msg = 'Function %s could not be executed:\n%s' %(f, e)
-	    #FIXME: Reconsider this semantics
+            #FIXME: Reconsider this semantics
             raise msg
 
         try:
@@ -1779,7 +1779,7 @@ def balance_deep_and_shallow_old(domain):
 
         #Weighted balance between stage parallel to bed elevation
         #(wvi = zvi + hc) and stage as computed by 1st or 2nd
-	#order gradient limiter
+        #order gradient limiter
         #(wvi = zvi + hvi) where i=0,1,2 denotes the vertex ids
         #
         #It follows that the updated wvi is
@@ -1788,7 +1788,7 @@ def balance_deep_and_shallow_old(domain):
         #
         #Note that hvi = zc+hc-zvi in the first order case (constant).
 
-	if alpha < 1:
+        if alpha < 1:
             for i in range(3):
                 wv[k,i] = zv[k,i] + hc[k] + alpha*(hv[k,i]-hc[k])
 
