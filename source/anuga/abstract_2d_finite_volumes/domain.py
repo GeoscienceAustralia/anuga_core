@@ -7,6 +7,8 @@
    Geoscience Australia
 """
 
+from anuga.config import epsilon
+
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
      import Boundary
@@ -674,13 +676,13 @@ class Domain(Mesh):
         from anuga.config import min_timestep, max_timestep, epsilon
 
         #FIXME: Maybe lump into a larger check prior to evolving
-        msg = 'Boundary tags must be bound to boundary objects before evolving system, '
+        msg = 'Boundary tags must be bound to boundary objects before '
+        msg += 'evolving system, '
         msg += 'e.g. using the method set_boundary.\n'
         msg += 'This system has the boundary tags %s '\
                %self.get_boundary_tags()
         assert hasattr(self, 'boundary_objects'), msg
 
-        ##self.set_defaults()
 
         if yieldstep is None:
             yieldstep = max_timestep
@@ -755,13 +757,12 @@ class Domain(Mesh):
                 self.number_of_first_order_steps += 1
 
             #Yield results
-            from anuga.config import epsilon
             if finaltime is not None and self.time >= finaltime-epsilon:
 
                 if self.time > finaltime:
-  		              #FIXME (Ole, 30 April 2006): Do we need this check?
-                      print 'WARNING (domain.py): time overshot finaltime. Contact Ole.Nielsen@ga.gov.au'
-                      self.time = finaltime
+                    #FIXME (Ole, 30 April 2006): Do we need this check?
+                    print 'WARNING (domain.py): time overshot finaltime. Contact Ole.Nielsen@ga.gov.au'
+                    self.time = finaltime
 
                 # Yield final time and stop
                 self.time = finaltime
@@ -776,7 +777,7 @@ class Domain(Mesh):
                     self.store_checkpoint()
                     self.delete_old_checkpoints()
 
-                #Pass control on to outer loop for more specific actions
+                # Pass control on to outer loop for more specific actions
                 yield(self.time)
 
                 # Reinitialise
