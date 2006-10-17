@@ -968,6 +968,7 @@ class Test_Shallow_Water(unittest.TestCase):
         points, vertices, boundary = rectangular_cross(10, 10) # Basic mesh
         domain = Domain(points, vertices, boundary) # Create domain
         domain.set_quantities_to_be_stored(None)
+        domain.set_maximum_allowed_speed(100) # 
         
 
         #-----------------------------------------------------------------

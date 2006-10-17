@@ -108,6 +108,10 @@ optimised_gradient_limiter = True #Use hardwired gradient limiter
 
 #Specific to shallow water W.E.
 minimum_allowed_height = 1.0e-3 #Water depth below which it is considered to be 0 in the model
-maximum_allowed_speed = 100.0 #Maximal particle speed of water
+
+maximum_allowed_speed = 1.0 # Maximal particle speed of water
+                            # Too large (100) creates 'flopping' water
+                            # Too small (0) creates 'creep'
+
 
 minimum_storable_height = 1.0e-5 #Water depth below which it is *stored* as 0
