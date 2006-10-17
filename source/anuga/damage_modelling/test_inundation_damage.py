@@ -143,7 +143,13 @@ class Test_inundation_damage(unittest.TestCase):
         #print "***** tearDown  ********"
 
         # FIXME (Ole): Sometimes this fails - is the file open or is it sometimes not created?
-        os.remove(self.sww.filename)
+        try:
+            # Sometimes this fails - don't know why.
+            # Seems to be that the file is not created, since after it
+            # fails there are no sww files in the anuga directory
+            os.remove(self.sww.filename)
+        except OSError:
+            pass
         os.remove(self.csv_file)
 
     
