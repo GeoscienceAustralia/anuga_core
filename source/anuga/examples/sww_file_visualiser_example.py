@@ -30,6 +30,9 @@ o.colour_height_quantity('stage', (lambda q:q['stage'], 0, 10))
 # Draw some axes on the visualiser so we can see how big the wave is
 o.render_axes()
 
+# Draw a polygon (here, a triangle) at height 10
+o.overlay_polygon([(20, 50), (40, 40), (50, 10), (30, 20), (10, 30)], 10, colour=(1.0, 1.0, 0.0))
+
 # Precaching the height-based quantities reduces the time taken to draw each
 # frame, but increases the time taken when the visualiser starts.
 o.precache_height_quantities()

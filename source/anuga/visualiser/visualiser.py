@@ -1,7 +1,7 @@
 from threading import Thread
 from Tkinter import Tk, Button, Frame, N, E, S, W
 from types import FunctionType, TupleType
-from vtk import vtkActor, vtkCubeAxesActor2D, vtkFloatArray, vtkPolyDataMapper, vtkRenderer
+from vtk import vtkActor, vtkCubeAxesActor2D, vtkDelaunay2D, vtkFloatArray, vtkPoints, vtkPolyData, vtkPolyDataMapper, vtkRenderer
 from vtk.tk.vtkTkRenderWidget import vtkTkRenderWidget
 
 class Visualiser(Thread):
@@ -161,7 +161,33 @@ class Visualiser(Thread):
           - a float for the upper bound on the colouring
         """
         self.colours_height[quantityName] = colour
-            
+
+    # --- Overlaid Polygons --- #
+
+    def overlay_polygon(self, coords, height=0.0, colour=(1.0, 0.0, 0.0)):
+        """Add a polygon to the output of the visualiser.
+
+        coords is a list of 2-tuples representing x and y coordinates.
+        These are triangulated by vtkDelaunay2D.
+
+        height is the z-value given to all points.
+
+        colour is the colour of the polygon, as a 3-tuple representing
+        r, g, b values between 0 and 1."""
+        points = vtkPoints()
+        for coord in coords:
+            points.InsertNextPoint(coord[0], coord[1], height)
+        profile = vtkPolyData()
+        profile.SetPoints(points)
+        delny = vtkDelaunay2D()
+        delny.SetInput(profile)
+        mesh = vtkPolyDataMapper()
+        mesh.SetInput(delny.GetOutput())
+        actor = vtkActor()
+        actor.SetMapper(mesh)
+        actor.GetProperty().SetColor(colour)
+        self.vtk_renderer.AddActor(actor)
+        
     # --- Vector Fields --- #
 
     # --- GUI Setup --- #
