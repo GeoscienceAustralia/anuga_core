@@ -69,6 +69,9 @@ if not (env['OPTIMISATION_LEVEL'] == 1 or env['OPTIMISATION_LEVEL'] == 2):
 
 # Where to find the Python.h
 if sys.platform == 'win32':
+    # If we're on Windows, we need to know to work around the .exp file problem with MinGW+MSVC
+    if env['CC'] == 'cl':
+        env['no_import_lib'] = 1
     # Prefer MinGW over MSVC
     Tool('mingw')(env)
     
