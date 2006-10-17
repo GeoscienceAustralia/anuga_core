@@ -39,6 +39,19 @@ def distribute(domain, verbose=False):
     """ Distribute the domain to all processes
     """
 
+
+    # FIXME: Dummy assignment (until boundaries are refactored to
+    # be independent of domains until they are applied)
+    bdmap = {}
+    for tag in domain.get_boundary_tags():
+        bdmap[tag] = None
+    
+    
+    domain.set_boundary(bdmap)
+
+
+
+
     if not pypar_available: return domain # Bypass
 
     # For some obscure reason this communication must happen prior to
@@ -141,8 +154,9 @@ def distribute_mesh(domain):
     nodes, triangles, boundary, triangles_per_proc, quantities = \
            pmesh_divide_metis(domain, numprocs)
 
+
     # Build the mesh that should be assigned to each processor,
-    # this includes ghost nodes and the communicaiton pattern
+    # this includes ghost nodes and the communication pattern
     print 'Build submeshes'    
     submesh = build_submesh(nodes, triangles, boundary,\
                             quantities, triangles_per_proc)

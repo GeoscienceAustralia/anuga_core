@@ -511,7 +511,7 @@ def submesh_quantities(submesh, quantities, triangles_per_proc):
 #
 #  *) A dictionary containing the full_triangles,
 # full_nodes, full_boundary, ghost_triangles, ghost_nodes,
-# ghost_boundary, ghost_commun and full_commun is returned.
+# ghost_boundary, ghost_commun and full_commun and true boundary polygon is returned.
 #
 #########################################################
 
@@ -519,9 +519,11 @@ def build_submesh(nodes, triangles, edges, quantities,
                   triangles_per_proc):
 
     # Temporarily build the mesh to find the neighbouring
-    # triangles
+    # triangles and true boundary polygon
 
     mesh = Mesh(nodes, triangles)
+    boundary_polygon = mesh.get_boundary_polygon()
+    
 
     # Subdivide into non-overlapping partitions
 
@@ -538,5 +540,6 @@ def build_submesh(nodes, triangles, edges, quantities,
     submesh = submesh_quantities(submeshg, quantities, \
                                  triangles_per_proc)
 
+    submesh["boundary_polygon"] = boundary_polygon
     return submesh
 
