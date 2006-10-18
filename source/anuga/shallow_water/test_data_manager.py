@@ -4702,18 +4702,19 @@ friction  \n \
         base_name = 'o-z-mux' 
         base_name = 'o-e-mux'
         file_name = base_name + '.nc'
-        lonlatdep_numeric, lon, lat = _binary_c2nc(base_name, file_name, 'HA')
+        lonlatdep_numeric, lon, lat, depth = \
+                           _binary_c2nc(base_name, file_name, 'HA')
         
         #os.remove(file_name)
         
     def test_lon_lat2grid(self):
         lonlatdep = [
-            [ 113.06700134  ,  -26.06669998 ,   0.        ] ,
-            [ 113.06700134  ,  -26.33329964 ,   0.        ] ,
-            [ 113.19999695  ,  -26.06669998 ,   0.        ] ,
-            [ 113.19999695  ,  -26.33329964 ,   0.        ] ]
+            [ 113.06700134  ,  -26.06669998 ,   1.        ] ,
+            [ 113.06700134  ,  -26.33329964 ,   3.        ] ,
+            [ 113.19999695  ,  -26.06669998 ,   2.        ] ,
+            [ 113.19999695  ,  -26.33329964 ,   4.        ] ]
             
-        long, lat = lon_lat2grid(lonlatdep)
+        long, lat, quantity = lon_lat2grid(lonlatdep)
 
         for i, result in enumerate(lat):
             assert lonlatdep [i][1] == result
@@ -4723,6 +4724,9 @@ friction  \n \
             assert lonlatdep [i*2][0] == result
         assert len(long) == 2
 
+        for i,q in enumerate(quantity):
+            assert q == i+1
+            
     def test_lon_lat2grid_bad(self):
         lonlatdep  = [
             [ -26.06669998,  113.06700134,    1.        ],
@@ -4742,7 +4746,7 @@ friction  \n \
             [ -26.43330002 , 113.33300018,    15.        ],
             [ -26.43330002 , 113.43299866,    16.        ]]
         try:
-            long, lat = lon_lat2grid(lonlatdep)
+            long, lat, quantity = lon_lat2grid(lonlatdep)
         except AssertionError:
             pass
         else:
@@ -4751,12 +4755,12 @@ friction  \n \
        
     def test_lon_lat2gridII(self):
         lonlatdep = [
-            [ 113.06700134  ,  -26.06669998 ,   0.        ] ,
-            [ 113.06700134  ,  -26.33329964 ,   0.        ] ,
-            [ 113.19999695  ,  -26.06669998 ,   0.        ] ,
-            [ 113.19999695  ,  -26.344329964 ,   0.        ] ]
+            [ 113.06700134  ,  -26.06669998 ,   1.        ] ,
+            [ 113.06700134  ,  -26.33329964 ,   2.        ] ,
+            [ 113.19999695  ,  -26.06669998 ,   3.        ] ,
+            [ 113.19999695  ,  -26.344329964 ,   4.        ] ]
         try:
-            long, lat = lon_lat2grid(lonlatdep)
+            long, lat, quantity = lon_lat2grid(lonlatdep)
         except AssertionError:
             pass
         else:
@@ -4766,14 +4770,15 @@ friction  \n \
     def trial_loading(self):
         basename_in = 'karratha'
         basename_out = basename_in
-        urs2sww(basename_in, basename_out)
+        urs2sww(basename_in, basename_out, remove_nc_files=True,
+                zscale=10000000)
     #### END TESTS FOR URS 2 SWW  ###
 
         
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sww_test_fail')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sww')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_lon')
+    #suite = unittest.makeSuite(Test_Data_Manager,'trial')
     suite = unittest.makeSuite(Test_Data_Manager,'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)

@@ -63,7 +63,7 @@ from struct import unpack
 import array as p_array
 
 from Numeric import concatenate, array, Float, Int, Int32, resize, sometrue, \
-     searchsorted, zeros, allclose, around, reshape
+     searchsorted, zeros, allclose, around, reshape, transpose
 from Scientific.IO.NetCDF import NetCDFFile
 
 
@@ -4199,7 +4199,7 @@ def urs2nc(basename_in = 'o', basename_out = 'urs'):
     for file_in, file_out, quantity in map(None, files_in,
                                            files_out,
                                            quantities):
-        lonlatdep, lon, lat = _binary_c2nc(file_in,
+        lonlatdep, lon, lat, depth = _binary_c2nc(file_in,
                                          file_out,
                                          quantity)
         #print "lon",lon
@@ -4209,7 +4209,7 @@ def urs2nc(basename_in = 'o', basename_out = 'urs'):
             write_elevation_sww(elevation_file,
                                 lon,
                                 lat,
-                                lonlatdep[:,2])
+                                depth)
             hashed_elevation = myhash(lonlatdep)
         else:
             msg = "The elevation information in the mux files is inconsistent"
@@ -4250,7 +4250,9 @@ def _binary_c2nc(file_in, file_out, quantity):
     lonlatdep = array(lonlatdep, typecode=Float)    
     lonlatdep = reshape(lonlatdep, ( points_num, columns))
     
-    lon, lat = lon_lat2grid(lonlatdep)
+    #print "lonlatdep", lonlatdep
+    
+    lon, lat, depth = lon_lat2grid(lonlatdep)
     lon_sorted = lon[:]
     lon_sorted.sort()
     
@@ -4274,13 +4276,14 @@ def _binary_c2nc(file_in, file_out, quantity):
         hz_p_array = p_array.array('f')
         hz_p_array.read(f, points_num)
         hz_p = array(hz_p_array, typecode=Float)
-        hz_p = reshape(hz_p, ( len(lat), len(lon)))
+        hz_p = reshape(hz_p, (len(lon), len(lat)))
+        hz_p = transpose(hz_p) #mux has lat varying fastest, nc has long v.f. 
         
         nc_file.store_timestep(hz_p)
         
     nc_file.close()
 
-    return lonlatdep, lon, lat
+    return lonlatdep, lon, lat, depth
     
 
 def write_elevation_sww(file_out, lon, lat, depth_vector):
@@ -4335,14 +4338,17 @@ def lon_lat2grid(long_lat_dep):
     long_lat_dep is an array where each row is a position.
     The first column is longitudes.
     The second column is latitudes.
+
+    The latitude is the fastest varying dimension - in mux files
     """
     LONG = 0
     LAT = 1
+    QUANTITY = 2
     points_num = len(long_lat_dep)
     lat = [long_lat_dep[0][LAT]]
     this_rows_long = long_lat_dep[0][LONG]
-    i = 1 # Index of long_lat_dep 
-
+    i = 1 # Index of long_lat_dep
+    
     #Working out the lat's
     while long_lat_dep[i][LONG] == this_rows_long and i < points_num:
             lat.append(long_lat_dep[i][LAT])
@@ -4361,8 +4367,21 @@ def lon_lat2grid(long_lat_dep):
     msg = 'Our of range latitudes/longitudes'
     for l in lat:assert -90 < l < 90 , msg
     for l in long:assert -180 < l < 180 , msg
-        
-    return long, lat
+
+    #changing quantity from lat being the fastest varying dimension to
+    # long being the fastest varying dimension
+    # FIXME - make this faster/do this a better way
+    # use numeric transpose, after reshaping the quantity vector
+    quantity = zeros(len(long_lat_dep), Float)
+    lenlong = len(long)
+    lenlat = len(lat)
+    for lat_i, _ in enumerate(lat):
+        for long_i, _ in enumerate(long):
+            q_index = lat_i*lenlong+long_i
+            lld_index = long_i*lenlat+lat_i
+            quantity[q_index] = long_lat_dep[lld_index][QUANTITY]
+            
+    return long, lat, quantity
 
     ####  END URS 2 SWW  ###     
 #-------------------------------------------------------------
