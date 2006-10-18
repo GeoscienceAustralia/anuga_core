@@ -4223,6 +4223,7 @@ def _binary_c2nc(file_in, file_out, quantity):
     return the depth info, so it can be written to a file
     """
     columns = 3 # long, lat , depth
+    #FIXME use mux_file, not f
     f = open(file_in, 'rb')
     
     # Number of points/stations
@@ -4272,15 +4273,17 @@ def _binary_c2nc(file_in, file_out, quantity):
                         lat)
 
     for i in range(time_step_count):
-        #Read in a time slice    
+        #Read in a time slice  from mux file  
         hz_p_array = p_array.array('f')
         hz_p_array.read(f, points_num)
         hz_p = array(hz_p_array, typecode=Float)
         hz_p = reshape(hz_p, (len(lon), len(lat)))
         hz_p = transpose(hz_p) #mux has lat varying fastest, nc has long v.f. 
-        
+
+        #write time slice to nc file
         nc_file.store_timestep(hz_p)
-        
+    #FIXME should I close the mux file here?
+    f.close()
     nc_file.close()
 
     return lonlatdep, lon, lat, depth
