@@ -4229,6 +4229,8 @@ def _binary_c2nc(file_in, file_out, quantity):
     # Number of points/stations
     (points_num,)= unpack('i',f.read(4))
 
+    #print 'points_num', points_num
+    #import sys; sys.exit()
     # nt, int - Number of time steps
     (time_step_count,)= unpack('i',f.read(4))
 
@@ -4247,9 +4249,10 @@ def _binary_c2nc(file_in, file_out, quantity):
         raise ANUGAError, msg
     
     lonlatdep = p_array.array('f')
+    points_num = 2914
     lonlatdep.read(f, columns * points_num)
     lonlatdep = array(lonlatdep, typecode=Float)    
-    lonlatdep = reshape(lonlatdep, ( points_num, columns))
+    lonlatdep = reshape(lonlatdep, (points_num, columns))
     
     #print "lonlatdep", lonlatdep
     
@@ -4257,20 +4260,22 @@ def _binary_c2nc(file_in, file_out, quantity):
     lon_sorted = lon[:]
     lon_sorted.sort()
     
-    if not lon == lon_sorted:
+#    if not lon == lon_sorted:
+    if not allclose(lon, lon_sorted):
         msg = "Longitudes in mux file are not in ascending order"
         raise IOError, msg
     lat_sorted = lat[:]
     lat_sorted.sort()   
-    if not lat == lat_sorted:
+#    if not lat == lat_sorted:
+    if not allclose(lat, lat_sorted):
         msg = "Latitudes in mux file are not in ascending order"
     
     nc_file = Write_nc(quantity,
                        file_out,
-                        time_step_count,
-                        time_step,
-                        lon,
-                        lat)
+                       time_step_count,
+                       time_step,
+                       lon,
+                       lat)
 
     for i in range(time_step_count):
         #Read in a time slice  from mux file  
@@ -4347,42 +4352,65 @@ def lon_lat2grid(long_lat_dep):
     LONG = 0
     LAT = 1
     QUANTITY = 2
-    points_num = len(long_lat_dep)
-    lat = [long_lat_dep[0][LAT]]
-    this_rows_long = long_lat_dep[0][LONG]
-    i = 1 # Index of long_lat_dep
     
-    #Working out the lat's
-    while long_lat_dep[i][LONG] == this_rows_long and i < points_num:
-            lat.append(long_lat_dep[i][LAT])
-            i += 1
-            
-    lats_per_long = i        
-    long = [long_lat_dep[0][LONG]]
-    #Working out the longs
-    while i < points_num:
-        msg = 'Data is not gridded.  It must be for this operation'
-        assert long_lat_dep[i][LAT] == lat[i%lats_per_long], msg
-        if i%lats_per_long == 0:
-            long.append(long_lat_dep[i][LONG])
+#    print 'long_lat_dep', type(long_lat_dep), long_lat_dep.shape
+#    print 'long_lat_dep', long_lat_dep
+    
+    num_points = long_lat_dep.shape[0]
+    this_rows_long = long_lat_dep[0,LONG]
+    
+    # Count the length of unique latitudes
+    i = 0
+    while long_lat_dep[i,LONG] == this_rows_long and i < num_points:
         i += 1
+          
+    lat = long_lat_dep[:i, LAT]        
+    long = long_lat_dep[::i, LONG]      
+    lenlong = len(long)
+    lenlat = len(lat)
+#    print 'len lat', lat, len(lat)
+#    print 'len long', long, len(long) 
+          
+    msg = 'Input data is not gridded'      
+    assert num_points % lenlat == 0, msg
+    assert num_points % lenlong == 0, msg
+          
+    # Test that data is gridded        
+    for i in range(lenlong):
+        msg = 'Data is not gridded.  It must be for this operation'
+        first = i*lenlat
+        last = first + lenlat
+                
+        assert allclose(long_lat_dep[first:last,LAT], lat), msg
+        assert allclose(long_lat_dep[first:last,LONG], long[i]), msg
     
-    msg = 'Our of range latitudes/longitudes'
+    
+#    print 'range long', min(long), max(long)
+#    print 'range lat', min(lat), max(lat)
+#    print 'ref long', min(long_lat_dep[:,0]), max(long_lat_dep[:,0])
+#    print 'ref lat', min(long_lat_dep[:,1]), max(long_lat_dep[:,1])
+    
+   
+    
+    msg = 'Out of range latitudes/longitudes'
     for l in lat:assert -90 < l < 90 , msg
     for l in long:assert -180 < l < 180 , msg
 
-    #changing quantity from lat being the fastest varying dimension to
+    # Changing quantity from lat being the fastest varying dimension to
     # long being the fastest varying dimension
     # FIXME - make this faster/do this a better way
     # use numeric transpose, after reshaping the quantity vector
-    quantity = zeros(len(long_lat_dep), Float)
-    lenlong = len(long)
-    lenlat = len(lat)
+#    quantity = zeros(len(long_lat_dep), Float)
+    quantity = zeros(num_points, Float)
+    
+#    print 'num',num_points
     for lat_i, _ in enumerate(lat):
         for long_i, _ in enumerate(long):
             q_index = lat_i*lenlong+long_i
             lld_index = long_i*lenlat+lat_i
-            quantity[q_index] = long_lat_dep[lld_index][QUANTITY]
+#            print 'lat_i', lat_i, 'long_i',long_i, 'q_index', q_index, 'lld_index', lld_index
+            temp = long_lat_dep[lld_index, QUANTITY]
+            quantity[q_index] = temp
             
     return long, lat, quantity
 
