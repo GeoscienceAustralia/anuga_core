@@ -908,7 +908,7 @@ class Test_Shallow_Water(unittest.TestCase):
         #--------------------------------------------------------------
         # Update boundary to allow inflow
         #--------------------------------------------------------------
-        domain.modify_boundary({'right': Bd})
+        domain.set_boundary({'right': Bd})
 
         
         #--------------------------------------------------------------

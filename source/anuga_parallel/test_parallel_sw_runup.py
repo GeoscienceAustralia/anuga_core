@@ -27,7 +27,7 @@ from anuga.shallow_water import Dirichlet_boundary
 from anuga.shallow_water import Time_boundary
 from anuga.shallow_water import Transmissive_boundary
 
-from parallel_api import distribute, myid
+from parallel_api import distribute, myid, numprocs
 
 
 #--------------------------------------------------------------------------
@@ -35,9 +35,6 @@ from parallel_api import distribute, myid
 #--------------------------------------------------------------------------
 points, vertices, boundary = rectangular_cross(10, 10) # Basic mesh
 domain = Domain(points, vertices, boundary) # Create domain
-domain.set_name('runup')                    # Set sww filename
-domain.set_datadir('.')                     # Set output dir
-
 
 #--------------------------------------------------------------------------
 # Setup initial conditions
@@ -57,16 +54,22 @@ domain.set_quantity('stage', expression='elevation') # Dry initial stage
 
 domain = distribute(domain, verbose=True)
 
+domain.set_name('runup')                    # Set sww filename
+domain.set_datadir('.')                     # Set output dir
+domain.set_maximum_allowed_speed(100)       # 
+
 
 #------------------------------------------------------------------------------
-# Setup boundary conditions (MUST currently happen after domain has been distributed)
+# Setup boundary conditions
+# This must currently happen *after* domain has been distributed
 #------------------------------------------------------------------------------
 
 Br = Reflective_boundary(domain)      # Solid reflective wall
 Bd = Dirichlet_boundary([-0.2,0.,0.]) # Constant boundary values
 
 # Associate boundary tags with boundary objects
-domain.modify_boundary({'left': Br, 'right': Bd, 'top': Br, 'bottom': Br})
+domain.set_boundary({'left': Br, 'right': Bd, 'top': Br, 'bottom': Br})
+
 
 
 #------------------------------------------------------------------------------
@@ -84,8 +87,30 @@ for i, point in enumerate(interpolation_points):
         # FIXME: One point appears on multiple processes
         # Need to get true boundary somehow
         
-        print 'P%d: point=[%f,%f]' %(myid, point[0], point[1])
+        #print 'P%d: point=[%f,%f]' %(myid, point[0], point[1])
         local_interpolation_points.append(i)
+
+# Hack
+if numprocs == 2:
+    if myid == 0:
+        del local_interpolation_points[0]                
+        #local_interpolation_points = [1,2,3]
+
+if numprocs == 3:
+    if myid == 1:
+        del local_interpolation_points[0]
+
+
+if numprocs == 4:
+    if myid == 0:
+        del local_interpolation_points[1] #2
+        del local_interpolation_points[1] #3                
+    if myid == 3:
+        del local_interpolation_points[1]
+
+
+
+print 'P%d has points = %s' %(myid, local_interpolation_points)
 
 
 time = []

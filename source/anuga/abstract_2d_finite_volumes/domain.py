@@ -358,25 +358,29 @@ class Domain(Mesh):
 
         """
 
-        from anuga.abstract_2d_finite_volumes.util import apply_expression_to_dictionary
+        from anuga.abstract_2d_finite_volumes.util import\
+             apply_expression_to_dictionary
+        
         return apply_expression_to_dictionary(expression, self.quantities)
 
 
 
-    def modify_boundary(self, boundary_map):
-        """Modify existing boundary by elements in boundary map
-
-        Input:
-
-        boundary_map: Dictionary mapping tags to boundary objects
-
-        See set_boundary for more details on how this works
-        """
-
-        for key in boundary_map.keys():
-            self.boundary_map[key] = boundary_map[key]
-
-        self.set_boundary(self.boundary_map)
+    #def modify_boundary(self, boundary_map):
+    #    """Modify existing boundary by elements in boundary map#
+    #
+    #    Input:#
+    #
+    #    boundary_map: Dictionary mapping tags to boundary objects
+    #
+    #    See set_boundary for more details on how this works
+    #
+    #      OBSOLETE
+    #    """
+    #
+    #    for key in boundary_map.keys():
+    #        self.boundary_map[key] = boundary_map[key]
+    #
+    #    self.set_boundary(self.boundary_map)
         
         
 
@@ -420,6 +424,11 @@ class Domain(Mesh):
 
         Boundary objects that are None will be skipped.
 
+        If a boundary_map has already been set
+        (i.e. set_boundary has been called before), the old boundary map
+        will be updated with new values. The new map need not define all
+        boundary tags, and can thus change only those that are needed.
+
         FIXME: If set_boundary is called multiple times and if Boundary
         object is changed into None, the neighbour structure will not be
         restored!!!
@@ -427,24 +436,35 @@ class Domain(Mesh):
 
         """
 
-        self.boundary_objects = []
-        self.boundary_map = boundary_map  #Store for use with eg. boundary_stats.
+        if self.boundary_map is None:
+            # This the first call to set_boundary. Store
+            # map for later updates and for use with boundary_stats.
+            self.boundary_map = boundary_map 
+        else:    
+            # This is a modification of an already existing map
+            # Update map an proceed normally
 
+            for key in boundary_map.keys():
+                self.boundary_map[key] = boundary_map[key]
+                
+        
         #FIXME: Try to remove the sorting and fix test_mesh.py
         x = self.boundary.keys()
         x.sort()
 
         #Loop through edges that lie on the boundary and associate them with
         #callable boundary objects depending on their tags
+        self.boundary_objects = []        
         for k, (vol_id, edge_id) in enumerate(x):
             tag = self.boundary[ (vol_id, edge_id) ]
 
-            if boundary_map.has_key(tag):
-                B = boundary_map[tag]  #Get callable boundary object
+            if self.boundary_map.has_key(tag):
+                B = self.boundary_map[tag]  #Get callable boundary object
 
                 if B is not None:
                     self.boundary_objects.append( ((vol_id, edge_id), B) )
-                    self.neighbours[vol_id, edge_id] = -len(self.boundary_objects)
+                    self.neighbours[vol_id, edge_id] = \
+                                            -len(self.boundary_objects)
                 else:
                     pass
                     #FIXME: Check and perhaps fix neighbour structure

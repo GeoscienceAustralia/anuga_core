@@ -130,7 +130,7 @@ domain.set_boundary(tags)
 domain = distribute(domain)
 
 Bt = Time_boundary(domain, lambda t: [ 4.0*(1+sin(2*pi*t/50)), -1.0, 0.0])
-domain.modify_boundary({'ocean': Bt})
+domain.set_boundary({'ocean': Bt})
 
 #----------------------
 # Evolve through time
