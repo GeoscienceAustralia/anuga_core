@@ -4249,7 +4249,7 @@ def _binary_c2nc(file_in, file_out, quantity):
         raise ANUGAError, msg
     
     lonlatdep = p_array.array('f')
-    points_num = 2914
+    ####points_num = 2914
     lonlatdep.read(f, columns * points_num)
     lonlatdep = array(lonlatdep, typecode=Float)    
     lonlatdep = reshape(lonlatdep, (points_num, columns))
@@ -4257,16 +4257,15 @@ def _binary_c2nc(file_in, file_out, quantity):
     #print "lonlatdep", lonlatdep
     
     lon, lat, depth = lon_lat2grid(lonlatdep)
-    lon_sorted = lon[:]
+    lon_sorted = list(lon)
     lon_sorted.sort()
-    
-#    if not lon == lon_sorted:
+
     if not allclose(lon, lon_sorted):
         msg = "Longitudes in mux file are not in ascending order"
         raise IOError, msg
-    lat_sorted = lat[:]
-    lat_sorted.sort()   
-#    if not lat == lat_sorted:
+    lat_sorted = list(lat)
+    lat_sorted.sort()
+
     if not allclose(lat, lat_sorted):
         msg = "Latitudes in mux file are not in ascending order"
     
@@ -4352,9 +4351,8 @@ def lon_lat2grid(long_lat_dep):
     LONG = 0
     LAT = 1
     QUANTITY = 2
-    
-#    print 'long_lat_dep', type(long_lat_dep), long_lat_dep.shape
-#    print 'long_lat_dep', long_lat_dep
+
+    long_lat_dep = ensure_numeric(long_lat_dep, Float)
     
     num_points = long_lat_dep.shape[0]
     this_rows_long = long_lat_dep[0,LONG]
