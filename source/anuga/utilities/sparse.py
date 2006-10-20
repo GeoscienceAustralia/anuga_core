@@ -11,9 +11,6 @@ class Sparse:
 
         Sparse(A)     #Creates sparse matrix from dense matrix A 
         Sparse(M, N)  #Creates empty MxN sparse matrix
-
-
-        
         """
 
         self.Data = {}
