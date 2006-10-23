@@ -212,7 +212,7 @@ class Parallel_Domain(Domain):
                         for i, q in enumerate(self.conserved_quantities):
                             #print 'Send',i,q
                             Q_cv =  self.quantities[q].centroid_values
-                            Xout[:,i] = take(Q_cv,     Idf)
+                            Xout[:,i] = take(Q_cv, Idf)
 
                         pypar.send(Xout, send_proc,
                                    use_buffer=True, bypass = True)
@@ -230,7 +230,7 @@ class Parallel_Domain(Domain):
                     for i, q in enumerate(self.conserved_quantities):
                         #print 'Receive',i,q
                         Q_cv =  self.quantities[q].centroid_values
-                        put(Q_cv,     Idg, X[:,i])
+                        put(Q_cv, Idg, X[:,i])
 
         #local update of ghost cells
         iproc = self.processor
