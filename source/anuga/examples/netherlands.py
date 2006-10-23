@@ -82,7 +82,7 @@ class Weir:
 N = 150 #size = 45000
 N = 130 #size = 33800
 N = 600 #Size = 720000
-N = 100
+N = 50
 
 
 #N = 15
@@ -165,7 +165,7 @@ domain.set_boundary({'left': Bd, 'right': Br, 'bottom': Br, 'top': Br})
 #Initial condition
 #
 print 'Initial condition'
-domain.set_quantity('stage', expression='Z + 0.0')
+domain.set_quantity('stage', expression='elevation + 0.0')
 
 #Evolve
 import time
