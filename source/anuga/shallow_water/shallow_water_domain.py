@@ -165,7 +165,7 @@ class Domain(Generic_Domain):
         self.quantities_to_be_stored = ['stage','xmomentum','ymomentum']
                 
 
-    def set_all_limiters(beta):
+    def set_all_limiters(self, beta):
         """Shorthand to assign one constant value [0,1[ to all limiters.
         0 Corresponds to first order, where as larger values make use of
         the second order scheme. 
