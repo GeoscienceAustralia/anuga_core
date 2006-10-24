@@ -211,10 +211,6 @@ class Data_format:
                                         '''   'a' (append)'''
 
         #Create filename
-        #self.filename = create_filename(domain.get_datadir(),
-        #domain.get_name(), extension, len(domain))
-
-
         self.filename = create_filename(domain.get_datadir(),
             domain.get_name(), extension)
 
@@ -428,9 +424,10 @@ class Data_format_sww(Data_format):
             filename_ext = filename_ext.replace('.', '_')
             #remember the old filename, then give domain a
             #name with the extension
-            old_domain_filename = self.domain.filename
+            old_domain_filename = self.domain.get_name()
             if not self.recursion:
-                self.domain.filename = self.domain.filename+filename_ext
+                self.domain.set_name(old_domain_filename+filename_ext)
+
 
             #change the domain starttime to the current time
             old_domain_starttime = self.domain.starttime
@@ -455,7 +452,7 @@ class Data_format_sww(Data_format):
 
             #restore the old starttime and filename
             self.domain.starttime = old_domain_starttime
-            self.domain.filename = old_domain_filename
+            self.domain.set_name(old_domain_filename)            
         else:
             self.recursion = False
             domain = self.domain
@@ -3562,7 +3559,7 @@ def tsh2sww(filename, verbose=False): #test_tsh2sww
     domain.format = 'sww'   #Native netcdf visualisation format
     file_path, filename = path.split(filename)
     filename, ext = path.splitext(filename)
-    domain.filename = filename
+    domain.set_name(filename)    
     domain.reduction = mean
     if verbose == True:print "file_path",file_path
     if file_path == "":file_path = "."
@@ -3570,7 +3567,7 @@ def tsh2sww(filename, verbose=False): #test_tsh2sww
 
     if verbose == True:
         print "Output written to " + domain.get_datadir() + sep + \
-              domain.filename + "." + domain.format
+              domain.get_name() + "." + domain.format
     sww = get_dataobject(domain)
     sww.store_connectivity()
     sww.store_timestep('stage')

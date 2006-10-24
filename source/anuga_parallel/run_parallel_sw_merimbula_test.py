@@ -195,7 +195,6 @@ domain.set_quantity('stage', quantities['stage'])
 domain.set_quantity('elevation', quantities['elevation'])
 
 domain.store = False
-#domain.filename = 'merimbula-%d' %domain.processor
 
 #---------
 # Evolution

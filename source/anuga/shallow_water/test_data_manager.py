@@ -161,8 +161,8 @@ class Test_Data_Manager(unittest.TestCase):
         from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
-        self.domain.filename = 'datatest' + str(id(self))
-        self.domain.format = 'sww'
+        self.domain.set_name('datatest' + str(id(self)))
+        self.domain.format = 'sww' #Remove??
         self.domain.smooth = False
 
         sww = get_dataobject(self.domain)
@@ -208,7 +208,7 @@ class Test_Data_Manager(unittest.TestCase):
         from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
-        self.domain.filename = 'datatest' + str(id(self))
+        self.domain.set_name('datatest' + str(id(self)))
         self.domain.format = 'sww'
         self.domain.smooth = True
 
@@ -265,7 +265,7 @@ class Test_Data_Manager(unittest.TestCase):
         from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
-        self.domain.filename = 'datatest' + str(id(self))
+        self.domain.set_name('datatest' + str(id(self)))
         self.domain.format = 'sww'
         self.domain.smooth = True
         self.domain.reduction = mean
@@ -320,7 +320,7 @@ class Test_Data_Manager(unittest.TestCase):
         from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
-        self.domain.filename = 'datatest' + str(id(self))
+        self.domain.set_name('datatest' + str(id(self)))
         self.domain.format = 'sww'
         self.domain.smooth = True
 
@@ -375,7 +375,7 @@ class Test_Data_Manager(unittest.TestCase):
         from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
-        self.domain.filename = 'datatest' + str(id(self))
+        self.domain.set_name('datatest' + str(id(self)))
         self.domain.format = 'sww'
         self.domain.smooth = True
         self.domain.reduction = min
@@ -431,7 +431,7 @@ class Test_Data_Manager(unittest.TestCase):
         from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
-        self.domain.filename = 'synctest'
+        self.domain.set_name('synctest')
         self.domain.format = 'sww'
         self.domain.smooth = False
         self.domain.store = True
@@ -466,7 +466,7 @@ class Test_Data_Manager(unittest.TestCase):
         from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
-        self.domain.filename = 'datatest' + str(id(self))
+        self.domain.set_name('datatest' + str(id(self)))
         self.domain.format = 'sww'
         self.domain.smooth = True
         self.domain.reduction = min
@@ -514,7 +514,7 @@ class Test_Data_Manager(unittest.TestCase):
         from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
-        self.domain.filename = 'datatest' + str(id(self))
+        self.domain.set_name('datatest' + str(id(self)))
         self.domain.format = 'sww'
         self.domain.smooth = True
         self.domain.reduction = mean
@@ -1135,11 +1135,11 @@ END CROSS-SECTIONS:
         from Scientific.IO.NetCDF import NetCDFFile
 
         #Setup
-        self.domain.filename = 'datatest'
+        self.domain.set_name('datatest')
 
-        prjfile = self.domain.filename + '_elevation.prj'
-        ascfile = self.domain.filename + '_elevation.asc'
-        swwfile = self.domain.filename + '.sww'
+        prjfile = self.domain.get_name() + '_elevation.prj'
+        ascfile = self.domain.get_name() + '_elevation.asc'
+        swwfile = self.domain.get_name() + '.sww'
 
         self.domain.set_datadir('.')
         self.domain.format = 'sww'
@@ -1170,7 +1170,7 @@ END CROSS-SECTIONS:
 
 
         #Export to ascii/prj files
-        sww2dem(self.domain.filename,
+        sww2dem(self.domain.get_name(),
                 quantity = 'elevation',
                 cellsize = cellsize,
                 verbose = False,
@@ -1302,11 +1302,11 @@ END CROSS-SECTIONS:
         domain = Domain(points, vertices, boundary)
         domain.default_order = 2
 
-        domain.filename = 'datatest'
+        domain.set_name('datatest')
 
-        prjfile = domain.filename + '_elevation.prj'
-        ascfile = domain.filename + '_elevation.asc'
-        swwfile = domain.filename + '.sww'
+        prjfile = domain.get_name() + '_elevation.prj'
+        ascfile = domain.get_name() + '_elevation.asc'
+        swwfile = domain.get_name() + '.sww'
 
         domain.set_datadir('.')
         domain.format = 'sww'
@@ -1346,7 +1346,7 @@ END CROSS-SECTIONS:
 
 
         #Export to ascii/prj files
-        sww2dem(domain.filename,
+        sww2dem(domain.get_name(),
                 quantity = 'elevation',
                 cellsize = cellsize,
                 verbose = False,
@@ -1486,11 +1486,11 @@ END CROSS-SECTIONS:
         domain = Domain(points, vertices, boundary)
         domain.default_order = 2
 
-        domain.filename = 'datatest'
+        domain.set_name('datatest')
 
-        prjfile = domain.filename + '_elevation.prj'
-        ascfile = domain.filename + '_elevation.asc'
-        swwfile = domain.filename + '.sww'
+        prjfile = domain.get_name() + '_elevation.prj'
+        ascfile = domain.get_name() + '_elevation.asc'
+        swwfile = domain.get_name() + '.sww'
 
         domain.set_datadir('.')
         domain.format = 'sww'
@@ -1530,7 +1530,7 @@ END CROSS-SECTIONS:
 
 
         #Export to ascii/prj files
-        sww2dem(domain.filename,
+        sww2dem(domain.get_name(),
                 quantity = 'elevation',
                 cellsize = cellsize,
                 easting_min = 308530,
@@ -1640,11 +1640,11 @@ END CROSS-SECTIONS:
         from Scientific.IO.NetCDF import NetCDFFile
 
         #Setup
-        self.domain.filename = 'datatest'
+        self.domain.set_name('datatest')
 
-        prjfile = self.domain.filename + '_stage.prj'
-        ascfile = self.domain.filename + '_stage.asc'
-        swwfile = self.domain.filename + '.sww'
+        prjfile = self.domain.get_name() + '_stage.prj'
+        ascfile = self.domain.get_name() + '_stage.asc'
+        swwfile = self.domain.get_name() + '.sww'
 
         self.domain.set_datadir('.')
         self.domain.format = 'sww'
@@ -1676,11 +1676,11 @@ END CROSS-SECTIONS:
 
 
         #Export to ascii/prj files
-        sww2dem(self.domain.filename,
+        sww2dem(self.domain.get_name(),
                 quantity = 'stage',
                 cellsize = cellsize,
                 reduction = min,
-		format = 'asc')
+                format = 'asc')
 
 
         #Check asc file
@@ -1749,11 +1749,11 @@ END CROSS-SECTIONS:
         from Scientific.IO.NetCDF import NetCDFFile
 
         #Setup
-        self.domain.filename = 'datatest'
+        self.domain.set_name('datatest')
 
-        prjfile = self.domain.filename + '_depth.prj'
-        ascfile = self.domain.filename + '_depth.asc'
-        swwfile = self.domain.filename + '.sww'
+        prjfile = self.domain.get_name() + '_depth.prj'
+        ascfile = self.domain.get_name() + '_depth.asc'
+        swwfile = self.domain.get_name() + '.sww'
 
         self.domain.set_datadir('.')
         self.domain.format = 'sww'
@@ -1786,12 +1786,12 @@ END CROSS-SECTIONS:
 
 
         #Export to ascii/prj files
-        sww2dem(self.domain.filename,
+        sww2dem(self.domain.get_name(),
                 basename_out = 'datatest_depth',
                 quantity = 'stage - elevation',
                 cellsize = cellsize,
                 reduction = min,
-		format = 'asc',
+                format = 'asc',
                 verbose = False)
 
 
@@ -1904,11 +1904,11 @@ END CROSS-SECTIONS:
         domain.set_quantity('stage', stage)
         domain.distribute_to_vertices_and_edges()
 
-        domain.filename = 'datatest'
+        domain.set_name('datatest')
 
-        prjfile = domain.filename + '_elevation.prj'
-        ascfile = domain.filename + '_elevation.asc'
-        swwfile = domain.filename + '.sww'
+        prjfile = domain.get_name() + '_elevation.prj'
+        ascfile = domain.get_name() + '_elevation.asc'
+        swwfile = domain.get_name() + '.sww'
 
         domain.set_datadir('.')
         domain.format = 'sww'
@@ -1938,11 +1938,11 @@ END CROSS-SECTIONS:
             geo_reference = Geo_reference(DEFAULT_ZONE,0,0)
 
         #Export to ascii/prj files
-        sww2dem(domain.filename,
+        sww2dem(domain.get_name(),
                 quantity = 'elevation',
                 cellsize = cellsize,
                 verbose = False,
-		format = 'asc')
+                format = 'asc')
 
 
         #Check asc file
@@ -2010,10 +2010,10 @@ END CROSS-SECTIONS:
         NODATA_value = 1758323
 
         #Setup
-        self.domain.filename = 'datatest'
+        self.domain.set_name('datatest')
 
-        headerfile = self.domain.filename + '.ers'
-        swwfile = self.domain.filename + '.sww'
+        headerfile = self.domain.get_name() + '.ers'
+        swwfile = self.domain.get_name() + '.sww'
 
         self.domain.set_datadir('.')
         self.domain.format = 'sww'
@@ -2044,17 +2044,17 @@ END CROSS-SECTIONS:
 
 
         #Export to ers files
-        sww2dem(self.domain.filename,
+        sww2dem(self.domain.get_name(),
                 quantity = 'elevation',
                 cellsize = cellsize,
                 NODATA_value = NODATA_value,
                 verbose = False,
-		format = 'ers')
+                format = 'ers')
 
         #Check header data
-	from ermapper_grids import read_ermapper_header, read_ermapper_data
+        from ermapper_grids import read_ermapper_header, read_ermapper_data
 
-	header = read_ermapper_header(self.domain.filename + '_elevation.ers')
+        header = read_ermapper_header(self.domain.get_name() + '_elevation.ers')
         #print header
         assert header['projection'].lower() == '"utm-56"'
         assert header['datum'].lower() == '"wgs84"'
@@ -2067,22 +2067,22 @@ END CROSS-SECTIONS:
         assert int(header['nroflines']) == 5
         assert int(header['nrofcellsperline']) == 5
         assert int(header['nullcellvalue']) == NODATA_value
-	#FIXME - there is more in the header
+        #FIXME - there is more in the header
 
 
         #Check grid data
-        grid = read_ermapper_data(self.domain.filename + '_elevation')
+        grid = read_ermapper_data(self.domain.get_name() + '_elevation')
 
-	#FIXME (Ole): Why is this the desired reference grid for -x-y?
-	ref_grid = [NODATA_value, NODATA_value, NODATA_value, NODATA_value, NODATA_value,
-	            -1,    -1.25, -1.5,  -1.75, -2.0,
-	            -0.75, -1.0,  -1.25, -1.5,  -1.75,
-		    -0.5,  -0.75, -1.0,  -1.25, -1.5,
-		    -0.25, -0.5,  -0.75, -1.0,  -1.25]
+        #FIXME (Ole): Why is this the desired reference grid for -x-y?
+        ref_grid = [NODATA_value, NODATA_value, NODATA_value, NODATA_value, NODATA_value,
+                    -1,    -1.25, -1.5,  -1.75, -2.0,
+                    -0.75, -1.0,  -1.25, -1.5,  -1.75,
+                    -0.5,  -0.75, -1.0,  -1.25, -1.5,
+                    -0.25, -0.5,  -0.75, -1.0,  -1.25]
 
 
         #print grid
-	assert allclose(grid, ref_grid)
+        assert allclose(grid, ref_grid)
 
         fid.close()
 
@@ -2090,8 +2090,8 @@ END CROSS-SECTIONS:
         #FIXME the file clean-up doesn't work (eg Permission Denied Error)
         #Done (Ole) - it was because sww2ers didn't close it's sww file
         os.remove(sww.filename)
-        os.remove(self.domain.filename + '_elevation')
-        os.remove(self.domain.filename + '_elevation.ers')
+        os.remove(self.domain.get_name() + '_elevation')
+        os.remove(self.domain.get_name() + '_elevation.ers')
 
 
 
@@ -2109,10 +2109,10 @@ END CROSS-SECTIONS:
         NODATA_value = 1758323
 
         # Setup
-        self.domain.filename = 'datatest'
+        self.domain.set_name('datatest')
 
-        ptsfile = self.domain.filename + '_elevation.pts'
-        swwfile = self.domain.filename + '.sww'
+        ptsfile = self.domain.get_name() + '_elevation.pts'
+        swwfile = self.domain.get_name() + '.sww'
 
         self.domain.set_datadir('.')
         self.domain.format = 'sww'
@@ -2143,7 +2143,7 @@ END CROSS-SECTIONS:
 
         # Invoke interpolation for vertex points       
         points = concatenate( (x[:,NewAxis],y[:,NewAxis]), axis=1 )
-        sww2pts(self.domain.filename,
+        sww2pts(self.domain.get_name(),
                 quantity = 'elevation',
                 data_points = points,
                 NODATA_value = NODATA_value,
@@ -2152,14 +2152,14 @@ END CROSS-SECTIONS:
         point_values = Geospatial_data(ptsfile).get_attributes()
         #print 'P', point_values
         #print 'Ref', ref_point_values        
-	assert allclose(point_values, ref_point_values)        
+        assert allclose(point_values, ref_point_values)        
 
 
 
         # Invoke interpolation for centroids
         points = self.domain.get_centroid_coordinates()
         #print points
-        sww2pts(self.domain.filename,
+        sww2pts(self.domain.get_name(),
                 quantity = 'elevation',
                 data_points = points,
                 NODATA_value = NODATA_value,
@@ -2170,7 +2170,7 @@ END CROSS-SECTIONS:
         point_values = Geospatial_data(ptsfile).get_attributes()
         #print 'P', point_values
         #print 'Ref', ref_point_values        
-	assert allclose(point_values, ref_point_values)        
+        assert allclose(point_values, ref_point_values)        
 
 
 
@@ -2232,10 +2232,10 @@ END CROSS-SECTIONS:
 
         #Check first value
         stage = fid.variables['stage'][:]
-	xmomentum = fid.variables['xmomentum'][:]
-	ymomentum = fid.variables['ymomentum'][:]
+        xmomentum = fid.variables['xmomentum'][:]
+        ymomentum = fid.variables['ymomentum'][:]
 
-	#print ymomentum
+        #print ymomentum
 
         assert allclose(stage[0,0], first_value/100)  #Meters
 
@@ -2350,38 +2350,38 @@ END CROSS-SECTIONS:
         ny = 2
 
         for fid in [fid1,fid2,fid3]:
-	    fid.createDimension(long_name,nx)
-	    fid.createVariable(long_name,'d',(long_name,))
-	    fid.variables[long_name].point_spacing='uneven'
-	    fid.variables[long_name].units='degrees_east'
-	    fid.variables[long_name].assignValue(h1_list)
+            fid.createDimension(long_name,nx)
+            fid.createVariable(long_name,'d',(long_name,))
+            fid.variables[long_name].point_spacing='uneven'
+            fid.variables[long_name].units='degrees_east'
+            fid.variables[long_name].assignValue(h1_list)
 
-	    fid.createDimension(lat_name,ny)
-	    fid.createVariable(lat_name,'d',(lat_name,))
-	    fid.variables[lat_name].point_spacing='uneven'
-	    fid.variables[lat_name].units='degrees_north'
-	    fid.variables[lat_name].assignValue(h2_list)
+            fid.createDimension(lat_name,ny)
+            fid.createVariable(lat_name,'d',(lat_name,))
+            fid.variables[lat_name].point_spacing='uneven'
+            fid.variables[lat_name].units='degrees_north'
+            fid.variables[lat_name].assignValue(h2_list)
 
-	    fid.createDimension(time_name,2)
-	    fid.createVariable(time_name,'d',(time_name,))
-	    fid.variables[time_name].point_spacing='uneven'
-	    fid.variables[time_name].units='seconds'
-	    fid.variables[time_name].assignValue([0.,1.])
-	    if fid == fid3: break
+            fid.createDimension(time_name,2)
+            fid.createVariable(time_name,'d',(time_name,))
+            fid.variables[time_name].point_spacing='uneven'
+            fid.variables[time_name].units='seconds'
+            fid.variables[time_name].assignValue([0.,1.])
+            if fid == fid3: break
 
 
         for fid in [fid4]:
-	    fid.createDimension(long_name,nx)
-	    fid.createVariable(long_name,'d',(long_name,))
-	    fid.variables[long_name].point_spacing='uneven'
-	    fid.variables[long_name].units='degrees_east'
-	    fid.variables[long_name].assignValue(h1_list)
+            fid.createDimension(long_name,nx)
+            fid.createVariable(long_name,'d',(long_name,))
+            fid.variables[long_name].point_spacing='uneven'
+            fid.variables[long_name].units='degrees_east'
+            fid.variables[long_name].assignValue(h1_list)
 
-	    fid.createDimension(lat_name,ny)
-	    fid.createVariable(lat_name,'d',(lat_name,))
-	    fid.variables[lat_name].point_spacing='uneven'
-	    fid.variables[lat_name].units='degrees_north'
-	    fid.variables[lat_name].assignValue(h2_list)
+            fid.createDimension(lat_name,ny)
+            fid.createVariable(lat_name,'d',(lat_name,))
+            fid.variables[lat_name].point_spacing='uneven'
+            fid.variables[lat_name].units='degrees_north'
+            fid.variables[lat_name].assignValue(h2_list)
 
         name = {}
         name[fid1]='HA'
@@ -2514,38 +2514,38 @@ END CROSS-SECTIONS:
         ny = 2
 
         for fid in [fid1,fid2,fid3]:
-	    fid.createDimension(long_name,nx)
-	    fid.createVariable(long_name,'d',(long_name,))
-	    fid.variables[long_name].point_spacing='uneven'
-	    fid.variables[long_name].units='degrees_east'
-	    fid.variables[long_name].assignValue(h1_list)
+            fid.createDimension(long_name,nx)
+            fid.createVariable(long_name,'d',(long_name,))
+            fid.variables[long_name].point_spacing='uneven'
+            fid.variables[long_name].units='degrees_east'
+            fid.variables[long_name].assignValue(h1_list)
 
-	    fid.createDimension(lat_name,ny)
-	    fid.createVariable(lat_name,'d',(lat_name,))
-	    fid.variables[lat_name].point_spacing='uneven'
-	    fid.variables[lat_name].units='degrees_north'
-	    fid.variables[lat_name].assignValue(h2_list)
+            fid.createDimension(lat_name,ny)
+            fid.createVariable(lat_name,'d',(lat_name,))
+            fid.variables[lat_name].point_spacing='uneven'
+            fid.variables[lat_name].units='degrees_north'
+            fid.variables[lat_name].assignValue(h2_list)
 
-	    fid.createDimension(time_name,2)
-	    fid.createVariable(time_name,'d',(time_name,))
-	    fid.variables[time_name].point_spacing='uneven'
-	    fid.variables[time_name].units='seconds'
-	    fid.variables[time_name].assignValue([0.,1.])
-	    if fid == fid3: break
+            fid.createDimension(time_name,2)
+            fid.createVariable(time_name,'d',(time_name,))
+            fid.variables[time_name].point_spacing='uneven'
+            fid.variables[time_name].units='seconds'
+            fid.variables[time_name].assignValue([0.,1.])
+            if fid == fid3: break
 
 
         for fid in [fid4]:
-	    fid.createDimension(long_name,nx)
-	    fid.createVariable(long_name,'d',(long_name,))
-	    fid.variables[long_name].point_spacing='uneven'
-	    fid.variables[long_name].units='degrees_east'
-	    fid.variables[long_name].assignValue(h1_list)
+            fid.createDimension(long_name,nx)
+            fid.createVariable(long_name,'d',(long_name,))
+            fid.variables[long_name].point_spacing='uneven'
+            fid.variables[long_name].units='degrees_east'
+            fid.variables[long_name].assignValue(h1_list)
 
-	    fid.createDimension(lat_name,ny)
-	    fid.createVariable(lat_name,'d',(lat_name,))
-	    fid.variables[lat_name].point_spacing='uneven'
-	    fid.variables[lat_name].units='degrees_north'
-	    fid.variables[lat_name].assignValue(h2_list)
+            fid.createDimension(lat_name,ny)
+            fid.createVariable(lat_name,'d',(lat_name,))
+            fid.variables[lat_name].point_spacing='uneven'
+            fid.variables[lat_name].units='degrees_north'
+            fid.variables[lat_name].assignValue(h2_list)
 
         name = {}
         name[fid1]='HA'
@@ -2574,7 +2574,7 @@ END CROSS-SECTIONS:
           if fid == fid3: break
 
         for fid in [fid4]:
-	    fid.createVariable(name[fid],'d',(lat_name,long_name))
+            fid.createVariable(name[fid],'d',(lat_name,long_name))
             fid.variables[name[fid]].point_spacing='uneven'
             fid.variables[name[fid]].units=units[fid]
             fid.variables[name[fid]].assignValue(values[fid])
@@ -2676,7 +2676,7 @@ END CROSS-SECTIONS:
         from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
-        self.domain.filename = 'datatest' + str(id(self))
+        self.domain.set_name('datatest' + str(id(self)))
         self.domain.format = 'sww'
         self.domain.smooth = True
         self.domain.reduction = mean
@@ -2694,7 +2694,7 @@ END CROSS-SECTIONS:
 
         sww.store_timestep('stage')
 
-        file_and_extension_name = self.domain.filename + ".sww"
+        file_and_extension_name = self.domain.get_name() + ".sww"
         #print "file_and_extension_name",file_and_extension_name
         [xmin, xmax, ymin, ymax, stagemin, stagemax] = \
                extent_sww(file_and_extension_name )
@@ -2730,7 +2730,7 @@ END CROSS-SECTIONS:
         domain.smooth = False
         domain.visualise = False
         domain.store = True
-        domain.filename = 'bedslope'
+        domain.set_name('bedslope')
         domain.default_order=2
         #Bed-slope and friction
         domain.set_quantity('elevation', lambda x,y: -x/3)
@@ -2765,7 +2765,7 @@ END CROSS-SECTIONS:
         from Numeric import allclose
         import os
 
-        filename = domain.datadir+os.sep+domain.filename+'.sww'
+        filename = domain.datadir + os.sep + domain.get_name() + '.sww'
         domain2 = sww2domain(filename,None,fail_if_NaN=False,verbose = False)
         #points, vertices, boundary = rectangular(15,15)
         #domain2.boundary = boundary
@@ -2773,7 +2773,7 @@ END CROSS-SECTIONS:
         ##NOW TEST IT!!!
         ###################
 
-        #os.remove(domain.filename + '.sww')
+        #os.remove(domain.get_name() + '.sww')
         os.remove(filename)
 
         bits = ['vertex_coordinates']
@@ -2855,67 +2855,67 @@ END CROSS-SECTIONS:
 
 
     def test_sww2domain2(self):
-	##################################################################
-	#Same as previous test, but this checks how NaNs are handled.
-	##################################################################
+        ##################################################################
+        #Same as previous test, but this checks how NaNs are handled.
+        ##################################################################
 
 
-	from mesh_factory import rectangular
-	from Numeric import array
+        from mesh_factory import rectangular
+        from Numeric import array
 
-	#Create basic mesh
-	points, vertices, boundary = rectangular(2,2)
+        #Create basic mesh
+        points, vertices, boundary = rectangular(2,2)
 
-	#Create shallow water domain
-	domain = Domain(points, vertices, boundary)
-	domain.smooth = False
-	domain.visualise = False
-	domain.store = True
-	domain.set_name('test_file')
+        #Create shallow water domain
+        domain = Domain(points, vertices, boundary)
+        domain.smooth = False
+        domain.visualise = False
+        domain.store = True
+        domain.set_name('test_file')
         domain.set_datadir('.')
-	domain.default_order=2
-	domain.quantities_to_be_stored=['stage']
+        domain.default_order=2
+        domain.quantities_to_be_stored=['stage']
 
-	domain.set_quantity('elevation', lambda x,y: -x/3)
-	domain.set_quantity('friction', 0.1)
+        domain.set_quantity('elevation', lambda x,y: -x/3)
+        domain.set_quantity('friction', 0.1)
 
-	from math import sin, pi
-	Br = Reflective_boundary(domain)
-	Bt = Transmissive_boundary(domain)
-	Bd = Dirichlet_boundary([0.2,0.,0.])
-	Bw = Time_boundary(domain=domain,
-			   f=lambda t: [(0.1*sin(t*2*pi)), 0.0, 0.0])
+        from math import sin, pi
+        Br = Reflective_boundary(domain)
+        Bt = Transmissive_boundary(domain)
+        Bd = Dirichlet_boundary([0.2,0.,0.])
+        Bw = Time_boundary(domain=domain,
+                           f=lambda t: [(0.1*sin(t*2*pi)), 0.0, 0.0])
 
-	domain.set_boundary({'left': Bd, 'right': Br, 'top': Br, 'bottom': Br})
+        domain.set_boundary({'left': Bd, 'right': Br, 'top': Br, 'bottom': Br})
 
-	h = 0.05
-	elevation = domain.quantities['elevation'].vertex_values
-	domain.set_quantity('stage', elevation + h)
+        h = 0.05
+        elevation = domain.quantities['elevation'].vertex_values
+        domain.set_quantity('stage', elevation + h)
 
-	domain.check_integrity()
+        domain.check_integrity()
 
-	for t in domain.evolve(yieldstep = 1, finaltime = 2.0):
-	    pass
-	    #domain.write_time()
+        for t in domain.evolve(yieldstep = 1, finaltime = 2.0):
+            pass
+            #domain.write_time()
 
 
 
         ##################################
-	#Import the file as a new domain
+        #Import the file as a new domain
         ##################################
-	from data_manager import sww2domain
-	from Numeric import allclose
+        from data_manager import sww2domain
+        from Numeric import allclose
         import os
 
-	filename = domain.datadir+os.sep+domain.filename+'.sww'
+        filename = domain.datadir + os.sep + domain.get_name() + '.sww'
 
-	#Fail because NaNs are present
-	try:
-	    domain2 = sww2domain(filename,boundary,fail_if_NaN=True,verbose=False)
-	except:
-	    #Now import it, filling NaNs to be 0
-	    filler = 0
-	    domain2 = sww2domain(filename,None,fail_if_NaN=False,NaN_filler = filler,verbose=False)
+        #Fail because NaNs are present
+        try:
+            domain2 = sww2domain(filename,boundary,fail_if_NaN=True,verbose=False)
+        except:
+            #Now import it, filling NaNs to be 0
+            filler = 0
+            domain2 = sww2domain(filename,None,fail_if_NaN=False,NaN_filler = filler,verbose=False)
 
         #Clean up
         os.remove(filename)
@@ -2925,23 +2925,23 @@ END CROSS-SECTIONS:
                 'geo_reference.get_yllcorner()',
                 'vertex_coordinates']
 
-	for quantity in ['elevation']+domain.quantities_to_be_stored:
-	    bits.append('get_quantity("%s").get_integral()' %quantity)
-	    bits.append('get_quantity("%s").get_values()' %quantity)
+        for quantity in ['elevation']+domain.quantities_to_be_stored:
+            bits.append('get_quantity("%s").get_integral()' %quantity)
+            bits.append('get_quantity("%s").get_values()' %quantity)
 
-	for bit in bits:
-	#    print 'testing that domain.'+bit+' has been restored'
-	    assert allclose(eval('domain.'+bit),eval('domain2.'+bit))
+        for bit in bits:
+        #    print 'testing that domain.'+bit+' has been restored'
+            assert allclose(eval('domain.'+bit),eval('domain2.'+bit))
 
-	assert max(max(domain2.get_quantity('xmomentum').get_values()))==filler
-	assert min(min(domain2.get_quantity('xmomentum').get_values()))==filler
-	assert max(max(domain2.get_quantity('ymomentum').get_values()))==filler
-	assert min(min(domain2.get_quantity('ymomentum').get_values()))==filler
+        assert max(max(domain2.get_quantity('xmomentum').get_values()))==filler
+        assert min(min(domain2.get_quantity('xmomentum').get_values()))==filler
+        assert max(max(domain2.get_quantity('ymomentum').get_values()))==filler
+        assert min(min(domain2.get_quantity('ymomentum').get_values()))==filler
 
 
 
     #def test_weed(self):
-	from data_manager import weed
+        from data_manager import weed
 
         coordinates1 = [[0.,0.],[1.,0.],[1.,1.],[1.,0.],[2.,0.],[1.,1.]]
         volumes1 = [[0,1,2],[3,4,5]]
@@ -2964,83 +2964,83 @@ END CROSS-SECTIONS:
 
     #FIXME This fails - smooth makes the comparism too hard for allclose
     def ztest_sww2domain3(self):
-	################################################
-	#DOMAIN.SMOOTH = TRUE !!!!!!!!!!!!!!!!!!!!!!!!!!
-	################################################
-	from mesh_factory import rectangular
-	from Numeric import array
-	#Create basic mesh
+        ################################################
+        #DOMAIN.SMOOTH = TRUE !!!!!!!!!!!!!!!!!!!!!!!!!!
+        ################################################
+        from mesh_factory import rectangular
+        from Numeric import array
+        #Create basic mesh
 
         yiel=0.01
-	points, vertices, boundary = rectangular(10,10)
+        points, vertices, boundary = rectangular(10,10)
 
-	#Create shallow water domain
-	domain = Domain(points, vertices, boundary)
+        #Create shallow water domain
+        domain = Domain(points, vertices, boundary)
         domain.geo_reference = Geo_reference(56,11,11)
-	domain.smooth = True
-	domain.visualise = False
-	domain.store = True
-	domain.filename = 'bedslope'
-	domain.default_order=2
-	#Bed-slope and friction
-	domain.set_quantity('elevation', lambda x,y: -x/3)
-	domain.set_quantity('friction', 0.1)
-	# Boundary conditions
-	from math import sin, pi
-	Br = Reflective_boundary(domain)
-	Bt = Transmissive_boundary(domain)
-	Bd = Dirichlet_boundary([0.2,0.,0.])
- 	Bw = Time_boundary(domain=domain,
-			   f=lambda t: [(0.1*sin(t*2*pi)), 0.0, 0.0])
+        domain.smooth = True
+        domain.visualise = False
+        domain.store = True
+        domain.set_name('bedslope')
+        domain.default_order=2
+        #Bed-slope and friction
+        domain.set_quantity('elevation', lambda x,y: -x/3)
+        domain.set_quantity('friction', 0.1)
+        # Boundary conditions
+        from math import sin, pi
+        Br = Reflective_boundary(domain)
+        Bt = Transmissive_boundary(domain)
+        Bd = Dirichlet_boundary([0.2,0.,0.])
+        Bw = Time_boundary(domain=domain,
+                           f=lambda t: [(0.1*sin(t*2*pi)), 0.0, 0.0])
 
-	domain.set_boundary({'left': Bd, 'right': Bd, 'top': Bd, 'bottom': Bd})
+        domain.set_boundary({'left': Bd, 'right': Bd, 'top': Bd, 'bottom': Bd})
 
-	domain.quantities_to_be_stored.extend(['xmomentum','ymomentum'])
-	#Initial condition
-	h = 0.05
-	elevation = domain.quantities['elevation'].vertex_values
-	domain.set_quantity('stage', elevation + h)
-
-
-	domain.check_integrity()
-	#Evolution
-	for t in domain.evolve(yieldstep = yiel, finaltime = 0.05):
-	#    domain.write_time()
-	    pass
+        domain.quantities_to_be_stored.extend(['xmomentum','ymomentum'])
+        #Initial condition
+        h = 0.05
+        elevation = domain.quantities['elevation'].vertex_values
+        domain.set_quantity('stage', elevation + h)
 
 
-	##########################################
-	#Import the example's file as a new domain
-	##########################################
-	from data_manager import sww2domain
-	from Numeric import allclose
+        domain.check_integrity()
+        #Evolution
+        for t in domain.evolve(yieldstep = yiel, finaltime = 0.05):
+        #    domain.write_time()
+            pass
+
+
+        ##########################################
+        #Import the example's file as a new domain
+        ##########################################
+        from data_manager import sww2domain
+        from Numeric import allclose
         import os
 
-	filename = domain.datadir+os.sep+domain.filename+'.sww'
-	domain2 = sww2domain(filename,None,fail_if_NaN=False,verbose = False)
-	#points, vertices, boundary = rectangular(15,15)
+        filename = domain.datadir + os.sep + domain.get_name() + '.sww'
+        domain2 = sww2domain(filename,None,fail_if_NaN=False,verbose = False)
+        #points, vertices, boundary = rectangular(15,15)
         #domain2.boundary = boundary
         ###################
-	##NOW TEST IT!!!
+        ##NOW TEST IT!!!
         ###################
 
-        os.remove(domain.filename + '.sww')
+        os.remove(domain.get_name() + '.sww')
 
         #FIXME smooth domain so that they can be compared
 
 
-	bits = []#'vertex_coordinates']
-	for quantity in ['elevation']+domain.quantities_to_be_stored:
-	    bits.append('quantities["%s"].get_integral()'%quantity)
+        bits = []#'vertex_coordinates']
+        for quantity in ['elevation']+domain.quantities_to_be_stored:
+            bits.append('quantities["%s"].get_integral()'%quantity)
 
 
-	for bit in bits:
-	    #print 'testing that domain.'+bit+' has been restored'
+        for bit in bits:
+            #print 'testing that domain.'+bit+' has been restored'
             #print bit
             #print 'done'
             #print ('domain.'+bit), eval('domain.'+bit)
             #print ('domain2.'+bit), eval('domain2.'+bit)
-	    assert allclose(eval('domain.'+bit),eval('domain2.'+bit),rtol=1.0e-1,atol=1.e-3)
+            assert allclose(eval('domain.'+bit),eval('domain2.'+bit),rtol=1.0e-1,atol=1.e-3)
             pass
 
         ######################################
@@ -3048,57 +3048,57 @@ END CROSS-SECTIONS:
         ######################################x
         visualise = False
         visualise = True
-	domain.visualise = visualise
+        domain.visualise = visualise
         domain.time = 0.
         from time import sleep
 
         final = .5
         domain.set_quantity('friction', 0.1)
-	domain.store = False
-	domain.set_boundary({'left': Bd, 'right': Bd, 'top': Bd, 'bottom': Br})
+        domain.store = False
+        domain.set_boundary({'left': Bd, 'right': Bd, 'top': Bd, 'bottom': Br})
 
-	for t in domain.evolve(yieldstep = yiel, finaltime = final):
+        for t in domain.evolve(yieldstep = yiel, finaltime = final):
             if visualise: sleep(.03)
-	    #domain.write_time()
-	    pass
+            #domain.write_time()
+            pass
 
-	domain2.smooth = True
-	domain2.visualise = visualise
-	domain2.store = False
-	domain2.default_order=2
-	domain2.set_quantity('friction', 0.1)
-	#Bed-slope and friction
-	# Boundary conditions
+        domain2.smooth = True
+        domain2.visualise = visualise
+        domain2.store = False
+        domain2.default_order=2
+        domain2.set_quantity('friction', 0.1)
+        #Bed-slope and friction
+        # Boundary conditions
         Bd2=Dirichlet_boundary([0.2,0.,0.])
-	Br2 = Reflective_boundary(domain2)
+        Br2 = Reflective_boundary(domain2)
         domain2.boundary = domain.boundary
         #print 'domain2.boundary'
         #print domain2.boundary
-	domain2.set_boundary({'left': Bd2, 'right': Bd2, 'top': Bd2, 'bottom': Br2})
+        domain2.set_boundary({'left': Bd2, 'right': Bd2, 'top': Bd2, 'bottom': Br2})
         #domain2.boundary = domain.boundary
-	#domain2.set_boundary({'exterior': Bd})
+        #domain2.set_boundary({'exterior': Bd})
 
-	domain2.check_integrity()
+        domain2.check_integrity()
 
-	for t in domain2.evolve(yieldstep = yiel, finaltime = final):
+        for t in domain2.evolve(yieldstep = yiel, finaltime = final):
             if visualise: sleep(.03)
-	    #domain2.write_time()
-	    pass
+            #domain2.write_time()
+            pass
 
         ###################
-	##NOW TEST IT!!!
+        ##NOW TEST IT!!!
         ##################
 
         print '><><><><>>'
-	bits = [ 'vertex_coordinates']
+        bits = [ 'vertex_coordinates']
 
-	for quantity in ['elevation','xmomentum','ymomentum']:#+domain.quantities_to_be_stored:
-	    #bits.append('quantities["%s"].get_integral()'%quantity)
-	    bits.append('get_quantity("%s").get_values()' %quantity)
+        for quantity in ['elevation','xmomentum','ymomentum']:#+domain.quantities_to_be_stored:
+            #bits.append('quantities["%s"].get_integral()'%quantity)
+            bits.append('get_quantity("%s").get_values()' %quantity)
 
-	for bit in bits:
+        for bit in bits:
             print bit
-	    assert allclose(eval('domain.'+bit),eval('domain2.'+bit))
+            assert allclose(eval('domain.'+bit),eval('domain2.'+bit))
 
 
     def test_decimate_dem(self):
@@ -3288,17 +3288,17 @@ END CROSS-SECTIONS:
         from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
-	# the memory optimised least squares
-	#  cellsize = 20,   # this one seems to hang
-	#  cellsize = 200000, # Ran 1 test in 269.703s
-				#Ran 1 test in 267.344s
-	#  cellsize = 20000,  # Ran 1 test in 460.922s
-	#  cellsize = 2000   #Ran 1 test in 5340.250s
-	#  cellsize = 200   #this one seems to hang, building matirx A
+        # the memory optimised least squares
+        #  cellsize = 20,   # this one seems to hang
+        #  cellsize = 200000, # Ran 1 test in 269.703s
+                                #Ran 1 test in 267.344s
+        #  cellsize = 20000,  # Ran 1 test in 460.922s
+        #  cellsize = 2000   #Ran 1 test in 5340.250s
+        #  cellsize = 200   #this one seems to hang, building matirx A
 
-	# not optimised
-	# seems to hang
-	#  cellsize = 2000   # Ran 1 test in 5334.563s
+        # not optimised
+        # seems to hang
+        #  cellsize = 2000   # Ran 1 test in 5334.563s
         #Export to ascii/prj files
         sww2dem('karratha_100m',
                 quantity = 'depth',
@@ -4674,10 +4674,10 @@ friction  \n \
 
         #Check first value
         stage = fid.variables['stage'][:]
-	xmomentum = fid.variables['xmomentum'][:]
-	ymomentum = fid.variables['ymomentum'][:]
+        xmomentum = fid.variables['xmomentum'][:]
+        ymomentum = fid.variables['ymomentum'][:]
 
-	#print ymomentum
+        #print ymomentum
         assert allclose(stage[0,0], e +tide)  #Meters
 
         #Check the momentums - ua

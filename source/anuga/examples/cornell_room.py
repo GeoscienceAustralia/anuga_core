@@ -72,7 +72,7 @@ if domain.smooth is True:
     s = 'smooth'
 else:
     s = 'nonsmooth'        
-domain.filename = root + '_' + s
+domain.set_name(root + '_' + s)
 
 #Set bed-slope and friction
 manning = 0.0

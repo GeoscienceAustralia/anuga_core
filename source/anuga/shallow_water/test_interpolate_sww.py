@@ -79,7 +79,10 @@ class Test_Interpolate_sww(unittest.TestCase):
         from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
-        self.domain.filename = 'datatest' + str(time.time())
+        #FIXME (Ole): This test still passes if commented out
+        #self.domain.set_name('datatest' + str(time.time()))
+        
+        
         self.domain.format = 'sww'
         self.domain.smooth = True
         self.domain.reduction = mean
@@ -147,7 +150,7 @@ class Test_Interpolate_sww(unittest.TestCase):
         from load_mesh.loadASCII import  import_points_file, \
              concatinate_attributelist
 
-        self.domain.filename = 'datatest' + str(time.time())
+        self.domain.set_name('datatest' + str(time.time()))
         self.domain.format = 'sww'
         self.domain.smooth = True
         self.domain.reduction = mean
@@ -158,7 +161,6 @@ class Test_Interpolate_sww(unittest.TestCase):
         self.domain.time = 2.
         sww.store_timestep('stage')
 
-        #print "self.domain.filename",self.domain.filename
         interp = Interpolate_sww(sww.filename, 'depth')
 
         assert allclose(interp.time,[0.0,2.0])
@@ -266,7 +268,7 @@ class Test_Interpolate_sww(unittest.TestCase):
         from load_mesh.loadASCII import  import_points_file, \
              concatinate_attributelist
 
-        self.domain.filename = 'datatest' + str(time.time())
+        self.domain.set_name('datatest' + str(time.time()))
         self.domain.format = 'sww'
         self.domain.smooth = True
         self.domain.reduction = mean
@@ -278,7 +280,7 @@ class Test_Interpolate_sww(unittest.TestCase):
         sww.store_timestep('stage')
         
         try:
-            interpolate_sww2xya(self.domain.filename,
+            interpolate_sww2xya(self.domain.get_name(),
                                 'stage','yeah','yeah.x',
                                 verbose = False)
         except SystemExit:  pass

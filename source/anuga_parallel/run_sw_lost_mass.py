@@ -93,11 +93,6 @@ R = Reflective_boundary(domain)
 domain.set_boundary( {'outflow': R, 'inflow': R, 'inner':R, 'exterior': R, 'open':R} )
 
 
-#domain.set_quantity('stage', quantities['stage'])
-#domain.set_quantity('elevation', quantities['elevation'])
-
-#domain.store = True
-#domain.filename = 'merimbula-%d' %domain.processor
 
 #---------
 # Evolution

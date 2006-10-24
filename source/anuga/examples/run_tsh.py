@@ -75,10 +75,10 @@ else:
             s = 'smooth'
         else:
             s = 'nonsmooth'        
-        domain.filename = filename + '_' + s + '_ys'+ str(yieldstep) + \
-                          '_ft' + str(finaltime)
+        domain.set_name(filename + '_' + s + '_ys'+ str(yieldstep) + \
+                        '_ft' + str(finaltime))
         print "Output being written to " + domain.get_datadir() + sep + \
-              domain.filename + "." + domain.format
+              domain.get_name() + "." + domain.format
 
 
     #Set friction

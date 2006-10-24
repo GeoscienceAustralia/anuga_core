@@ -23,7 +23,7 @@ elements, triangles, boundary = rectangular(N, N)
 domain = Domain(elements, triangles, boundary)
 
 domain.store = True
-domain.filename = 'pressure'
+domain.set_name('pressure')
 
 #######################
 #Bed-slope and friction

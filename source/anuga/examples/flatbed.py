@@ -24,7 +24,7 @@ domain = Domain(points, vertices, boundary)
 domain.store = True
 domain.set_name('polygons')
 print "Output being written to " + domain.get_datadir() + sep + \
-	      domain.filename + "_size%d." %len(domain) + domain.format
+	      domain.get_name() + "_size%d." %len(domain) + domain.format
 	
 
 domain.default_order=2

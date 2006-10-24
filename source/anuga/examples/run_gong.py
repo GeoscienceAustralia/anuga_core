@@ -62,10 +62,10 @@ else:
     
         file_path, filename = path.split(filename)
         filename, ext = path.splitext(filename)
-        domain.filename = filename + '_' + '_ys'+ str(yieldstep) + \
-                          '_ft' + str(finaltime)
+        domain.set_name(filename + '_' + '_ys'+ str(yieldstep) + \
+                        '_ft' + str(finaltime))
         print "Output being written to " + domain.get_datadir() + sep + \
-              domain.filename + "." + domain.format
+              domain.get_name() + "." + domain.format
 
 
     #Set friction

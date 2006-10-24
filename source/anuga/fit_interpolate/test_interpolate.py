@@ -1492,10 +1492,8 @@ class Test_Interpolate(unittest.TestCase):
         domain.distribute_to_vertices_and_edges()
         domain.set_quantity('stage', 1.0)
 
-        #sww_file = tempfile.mktemp("")
-        domain.filename = 'datatest' + str(time.time())
-        #domain.filename = sww_file
-        #print "domain.filename",domain.filename 
+
+        domain.set_name('datatest' + str(time.time()))
         domain.format = 'sww'
         domain.smooth = True
         domain.reduction = mean

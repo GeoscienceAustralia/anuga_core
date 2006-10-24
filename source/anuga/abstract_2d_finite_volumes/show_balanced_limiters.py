@@ -38,7 +38,7 @@ domain.smooth = False
 domain.visualise = False
 #domain.visualise = True
 domain.default_order = 2
-domain.filename = 'show_balanced_limiters'
+domain.set_name('show_balanced_limiters')
 domain.store = True
 domain.format = 'sww'   #Native netcdf visualisation format
 

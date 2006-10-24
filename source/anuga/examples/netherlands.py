@@ -125,7 +125,8 @@ if N > 150:
     import sys, os
     #FIXME: This was os.path.splitext but caused weird filenames based on root
     base = os.path.basename(sys.argv[0])
-    domain.filename, _ = os.path.splitext(base)
+    basename, _ = os.path.splitext(base)
+    domain.set_name(basename)
 else:
     #domain.initialise_visualiser(rect=[0.0,0.0,1.0,1.0])
     #domain.initialise_visualiser()

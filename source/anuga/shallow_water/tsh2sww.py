@@ -35,7 +35,7 @@ def tsh2sww(infilename, sww_file_name = None, verbose = False):
     if not (sww_file_name == None):
         file_path, filename = path.split(sww_file_name)
         filename, ext = path.splitext(filename)
-    domain.filename = filename
+    domain.set_name(filename)
         
     domain.reduction = mean
     if verbose == True:print "file_path",file_path
@@ -44,7 +44,7 @@ def tsh2sww(infilename, sww_file_name = None, verbose = False):
 
     if verbose == True:
         print "Output written to " + domain.get_datadir() + sep + \
-              domain.filename + "." + domain.format  
+              domain.get_name() + "." + domain.format  
     sww = get_dataobject(domain)
     sww.store_connectivity()
     sww.store_timestep('stage')

@@ -195,7 +195,7 @@ class Domain(Mesh):
         #Checkpointing and storage
         from anuga.config import default_datadir
         self.datadir = default_datadir
-        self.filename = 'domain'
+        self.simulation_name = 'domain'
         self.checkpoint = False
 
         #MH310505 To avoid calculating the flux across each edge twice, keep an integer (boolean) array,
@@ -632,10 +632,17 @@ class Domain(Mesh):
 
 
     def get_name(self):
-        return self.filename
+        return self.simulation_name
 
     def set_name(self, name):
-        self.filename = name
+        """Assign a name to this simulation.
+        This will be used to identify the output sww file.
+
+        """
+        if name.endswith('.sww'):
+            name = name[-4:]
+            
+        self.simulation_name = name
 
     def get_datadir(self):
         return self.datadir

@@ -36,7 +36,7 @@ domain.store = True
 domain.set_name(name + '6')
 domain.default_order = 2
 print "Output being written to " + domain.get_datadir() + sep + \
-      domain.filename + domain.format
+      domain.get_name() + domain.format
 
 
 def bathymetry(x,y):

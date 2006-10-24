@@ -114,9 +114,7 @@ class Test_inundation_damage(unittest.TestCase):
 
         
         #sww_file = tempfile.mktemp("")
-        self.domain.filename = 'datatest' + str(time.time())
-        #self.domain.filename = sww_file
-        #print "self.domain.filename",self.domain.filename 
+        self.domain.set_name('datatest' + str(time.time()))
         self.domain.format = 'sww'
         self.domain.smooth = True
         self.domain.reduction = mean
@@ -157,7 +155,7 @@ class Test_inundation_damage(unittest.TestCase):
 
         # Note, this isn't testing the results,
         # just that is all runs
-        sww_file = self.domain.filename + "." + self.domain.format
+        sww_file = self.domain.get_name() + "." + self.domain.format
         #print "sww_file",sww_file 
         inundation_damage(sww_file, self.csv_file, verbose=False)
 
@@ -196,9 +194,7 @@ class Test_inundation_damage(unittest.TestCase):
         domain.set_quantity('stage', 0.3)
 
         #sww_file = tempfile.mktemp("")
-        domain.filename = 'datatest' + str(time.time())
-        #domain.filename = sww_file
-        #print "domain.filename",domain.filename 
+        domain.set_name('datatest' + str(time.time()))
         domain.format = 'sww'
         domain.smooth = True
         domain.reduction = mean
@@ -221,7 +217,7 @@ class Test_inundation_damage(unittest.TestCase):
         writer.writerow([6.1,1.5,'100','76000','Metal','Brick Veneer',300])
         fd.close()
 
-        sww_file = domain.filename + "." + domain.format
+        sww_file = domain.get_name() + "." + domain.format
         #print "sww_file",sww_file 
         inundation_damage(sww_file, csv_file, verbose=False)
 
@@ -238,7 +234,7 @@ class Test_inundation_damage(unittest.TestCase):
         os.remove(csv_file)
         
     def ztest_add_depth_and_momentum2csv(self):
-        sww_file = self.domain.filename + "." + self.domain.format
+        sww_file = self.domain.get_name() + "." + self.domain.format
         #print "sww_file",sww_file
         
         out_csv = tempfile.mktemp(".csv")
