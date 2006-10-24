@@ -287,7 +287,15 @@ def create_bins(data, number_of_bins = None):
 
     return bins
 
+def get_machine_precision():
+    """Calculate the machine precision for Floats
+    """
 
+    epsilon = 1.
+    while epsilon/2 + 1. > 1.:
+        epsilon /= 2
+
+    return epsilon    
 
 ####################################################################
 #Python versions of function that are also implemented in numerical_tools_ext.c

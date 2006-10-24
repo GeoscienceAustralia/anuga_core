@@ -185,6 +185,19 @@ class Test_Numerical_Tools(unittest.TestCase):
         assert b == b_ref
 
 
+    def test_machine_precision(self):
+        """test_machine_precision(self):
+        Test the function that calculates epsilon. As this varies on
+        different machines, this is only an indication.
+        """
+
+        eps = get_machine_precision()
+
+        assert eps < 1.0e-12, 'Machine precision should be better than 1.0e-12'
+        assert eps > 0.0
+        assert 1.0+eps/2 == 1.0
+        
+        
     def test_histogram(self):
         """Test histogram with different bin boundaries
         """
