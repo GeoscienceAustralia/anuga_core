@@ -161,20 +161,28 @@ class File_boundary_time(Boundary):
 
 
 class File_boundary(Boundary):
-    """Boundary values obtained from file and interpolated.
-    conserved quantities as a function of time.
+    """The File_boundary reads values for the conserved
+    quantities from an sww NetCDF file, and returns interpolated values
+    at the midpoints of each associated boundary segment.
+    Time dependency is interpolated linearly.
 
     Assumes that file contains a time series and possibly
-    also spatial info.
-    See docstring for File_function in util.py for details about
-    admissible file formats
+    also spatial info. See docstring for File_function in util.py
+    for details about admissible file formats
 
-    The full solution history is not exactly the same as if
-    the models were coupled:
     File boundary must read and interpolate from *smoothed* version
     as stored in sww and cannot work with the discontinuos triangles.
 
+    Example:
+    Bf = File_boundary('source_file.sww', domain)
+
+
+    Note that the resulting solution history is not exactly the same as if
+    the models were coupled as there is no feedback into the source model.
     """
+
+    # FIXME (Ole): I kind of like the name Spatio_Temporal_boundary for this
+    # rather than File_boundary
 
     def __init__(self, filename, domain, verbose = False):
         import time
@@ -189,7 +197,8 @@ class File_boundary(Boundary):
 
         #Compute midpoint coordinates for all boundary elements
         #Only a subset may be invoked when boundary is evaluated but
-        #we don't know which ones at this stage since this object can be attached to
+        #we don't know which ones at this stage since this object can
+        #be attached to
         #any tagged boundary later on.
 
         if verbose: print 'Find midpoint coordinates of entire boundary'

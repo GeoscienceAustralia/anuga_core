@@ -165,6 +165,20 @@ class Domain(Generic_Domain):
         self.quantities_to_be_stored = ['stage','xmomentum','ymomentum']
                 
 
+    def set_all_limiters(beta):
+        """Shorthand to assign one constant value [0,1[ to all limiters.
+        0 Corresponds to first order, where as larger values make use of
+        the second order scheme. 
+        """
+
+        self.beta_w      = beta
+        self.beta_w_dry  = beta
+        self.beta_uh     = beta
+        self.beta_uh_dry = beta
+        self.beta_vh     = beta
+        self.beta_vh_dry = beta
+        self.beta_h      = beta
+        
 
     def set_store_vertices_uniquely(self, flag, reduction=None):
         """Decide whether vertex values should be stored uniquely as
@@ -1360,19 +1374,6 @@ class Dirichlet_Discharge_boundary(Boundary):
         #else:
         #    return self.F(t)
 
-
-
-#class Spatio_temporal_boundary(Boundary):
-#    """The spatio-temporal boundary, reads values for the conserved
-#    quantities from an sww NetCDF file, and returns interpolated values
-#    at the midpoints of each associated boundaty segment.
-#    Time dependency is interpolated linearly as in util.File_function.#
-#
-#    Example:
-#    Bf = Spatio_temporal_boundary('source_file.sww', domain)
-#
-#    """
-Spatio_temporal_boundary = File_boundary
 
 
 

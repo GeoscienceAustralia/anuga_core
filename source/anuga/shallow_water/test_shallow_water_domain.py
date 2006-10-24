@@ -3487,8 +3487,10 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Boundary conditions
         Br = Reflective_boundary(domain2)
-        Bf = Spatio_temporal_boundary(domain1.get_name() + '.' +\
-                                      domain1.format, domain2)
+        #Bf = Spatio_temporal_boundary(domain1.get_name() + '.' +\
+        #                              domain1.format, domain2)
+        Bf = File_boundary(domain1.get_name() + '.' +\
+                           domain1.format, domain2)        
         domain2.set_boundary({'right':Br, 'bottom':Br, 'diagonal':Bf})
         domain2.check_integrity()
 
@@ -3626,8 +3628,10 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Boundary conditions
         Br = Reflective_boundary(domain2)
-        Bf = Spatio_temporal_boundary(domain1.get_name() + '.' + domain1.format,
-                                      domain2)
+        #Bf = Spatio_temporal_boundary(domain1.get_name() + '.' + domain1.format,
+        #                              domain2)
+        Bf = File_boundary(domain1.get_name() + '.' + domain1.format,
+                           domain2)        
         domain2.set_boundary({'right':Br, 'bottom':Br, 'diagonal':Bf})
         domain2.check_integrity()
 
