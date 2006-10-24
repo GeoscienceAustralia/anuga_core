@@ -7,6 +7,7 @@ General functions used in fit and interpolate.
 """
 from Numeric import dot
 
+from numerical_tools import get_machine_precision
 
 def search_tree_of_vertices(root, mesh, x):
     """
@@ -82,17 +83,18 @@ def _search_triangles_of_vertices(mesh, candidate_vertices, x):
             sigma0 = dot((x-xi1), n0)/dot((xi0-xi1), n0)
             sigma1 = dot((x-xi2), n1)/dot((xi1-xi2), n1)
 
-            #FIXME: Maybe move out to test or something
-            epsilon = 1.0e-6
-            assert abs(sigma0 + sigma1 + sigma2 - 1.0) < epsilon
+            # Integrity check - machine precision is too hard, but at
+            # least check that we are within a couple of orders of magnitude
+            epsilon = get_machine_precision()
+            msg = 'abs(sigma0+sigma1+sigma2-1) = %.15e, 100*eps = %.15e'\
+                  %(abs(sigma0+sigma1+sigma2-1), 100*epsilon)
+            assert abs(sigma0 + sigma1 + sigma2 - 1.0) < 100*epsilon, msg
 
             #Check that this triangle contains the data point
             
-            #Sigmas can get negative within
-            #machine precision on some machines (e.g nautilus)
-            #Hence the small eps
-            eps = 1.0e-15
-            if sigma0 >= -eps and sigma1 >= -eps and sigma2 >= -eps:
+            # Sigmas are allowed to get negative within
+            # machine precision on some machines (e.g nautilus)
+            if sigma0 >= -epsilon and sigma1 >= -epsilon and sigma2 >= -epsilon:
                 element_found = True
                 break
 

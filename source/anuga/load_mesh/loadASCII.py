@@ -76,6 +76,9 @@ The format for a Points dictionary is:
 #  Needs to be defined
 ##FIXME (DSG-DSG) if the ascii file isn't .xya give a better error message.
 
+# FIXME (Ole): Has this stuff been superseded by geospatial data?
+# Much of this code is also there
+
 
 from string import  find, rfind
 from Numeric import array, Float, Int16, Int32, Character,reshape, concatenate, take

@@ -72,15 +72,19 @@ class FitInterpolate:
           Note: Don't supply a vertex coords as a geospatial object and
               a mesh origin, since geospatial has its own mesh origin.
         """
-        
+
         #Convert input to Numeric arrays
         triangles = ensure_numeric(triangles, Int)
         vertex_coordinates = ensure_absolute(vertex_coordinates,
                                              geo_reference = mesh_origin)
 
-        #Don't pass geo_reference to mesh.  It doesn't work.
+        #Don't pass geo_reference to mesh.  It doesn't work. (Still??)
+        
+        if verbose: print 'FitInterpolate: Building mesh'        
         self.mesh = Mesh(vertex_coordinates, triangles)
         self.mesh.check_integrity()
+        
+        if verbose: print 'FitInterpolate: Building quad tree'
         self.root = build_quadtree(self.mesh,
                                    max_points_per_cell = max_vertices_per_cell)
         #print "self.root",self.root.show() 

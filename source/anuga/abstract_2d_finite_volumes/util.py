@@ -234,7 +234,7 @@ def get_netcdf_file_function(filename,
         raise msg
 
     #Get variables
-    if verbose: print 'Get variables'    
+    #if verbose: print 'Get variables'    
     time = fid.variables['time'][:]    
 
     if spatial:
@@ -317,7 +317,7 @@ def get_netcdf_file_function(filename,
                                   vertex_coordinates,
                                   triangles,
                                   interpolation_points,
-                                  verbose = verbose)
+                                  verbose=verbose)
 
 
 

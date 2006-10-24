@@ -9,11 +9,15 @@ from warnings import warn
 #Establish which Numeric package to use
 #(this should move to somewhere central)
 #try:
-#    from scipy import ArrayType, array, sum, innerproduct, ravel, sqrt, searchsorted, sort, concatenate, Float, arange    
+#    from scipy import ArrayType, array, sum, innerproduct, ravel, sqrt,
+# searchsorted, sort, concatenate, Float, arange    
 #except:
 #    #print 'Could not find scipy - using Numeric'
-#    from Numeric import ArrayType, array, sum, innerproduct, ravel, sqrt, searchsorted, sort, concatenate, Float, arange
-from Numeric import ArrayType, array, sum, innerproduct, ravel, sqrt, searchsorted, sort, concatenate, Float, arange    
+#    from Numeric import ArrayType, array, sum, innerproduct, ravel, sqrt,
+#searchsorted, sort, concatenate, Float, arange
+
+from Numeric import ArrayType, array, sum, innerproduct, ravel, sqrt,\
+     searchsorted, sort, concatenate, Float, arange    
 
 # Getting an infinite number to use when using Numeric
 #INF = (array([1])/0.)[0]
@@ -30,14 +34,11 @@ def safe_acos(x):
     interval [-1.0, 1.0] by no more than machine precision
     """
 
-    error_msg = 'Input to acos is outside allowed domain [-1.0, 1.0]. I got %.12f' %x
+    error_msg = 'Input to acos is outside allowed domain [-1.0, 1.0].'+\
+                'I got %.12f' %x
     warning_msg = 'Changing argument to acos from %.18f to %.1f' %(x, sign(x))
 
-    # FIXME(Ole): Need function to compute machine precision as this is also
-    # used in fit_interpolate/search_functions.py
-    
-    
-    eps = 1.0e-15  # Machine precision 
+    eps = get_machine_precision() # Machine precision 
     if x < -1.0:
         if x < -1.0 - eps:
             raise ValueError, errmsg
@@ -49,7 +50,7 @@ def safe_acos(x):
         if x > 1.0 + eps:
             raise ValueError, errmsg
         else:
-            print 'NOTE: changing argument to acos from %.18f to 1.0' %x            
+            print 'NOTE: changing argument to acos from %.18f to 1.0' %x
             x = 1.0
 
     return acos(x)
@@ -147,9 +148,11 @@ def cov(x, y=None):
     if y is None:
         y = x 
 
+    x = ensure_numeric(x)
+    y = ensure_numeric(y)       
     assert(len(x)==len(y))
-    N = len(x)
- 
+
+    N = len(x) 
     cx = x - mean(x)  
     cy = y - mean(y)  
 

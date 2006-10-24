@@ -640,7 +640,7 @@ class Domain(Mesh):
 
         """
         if name.endswith('.sww'):
-            name = name[-4:]
+            name = name[:-4]
             
         self.simulation_name = name
 

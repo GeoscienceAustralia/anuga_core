@@ -404,11 +404,11 @@ class Interpolation_function:
     def __init__(self,
                  time,
                  quantities,
-                 quantity_names = None,  
-                 vertex_coordinates = None,
-                 triangles = None,
-                 interpolation_points = None,
-                 verbose = False):
+                 quantity_names=None,  
+                 vertex_coordinates=None,
+                 triangles=None,
+                 interpolation_points=None,
+                 verbose=False):
         """Initialise object and build spatial interpolation if required
         """
 
@@ -416,19 +416,18 @@ class Interpolation_function:
              reshape, ArrayType
 
 
-        #from anuga.abstract_2d_finite_volumes.util import mean, ensure_numeric
         from anuga.config import time_format
         import types
 
 
-	#Check temporal info
+	# Check temporal info
         time = ensure_numeric(time)        
         msg = 'Time must be a monotonuosly '
         msg += 'increasing sequence %s' %time
         assert alltrue(time[1:] - time[:-1] >= 0 ), msg
 
 
-        #Check if quantities is a single array only
+        # Check if quantities is a single array only
         if type(quantities) != types.DictType:
             quantities = ensure_numeric(quantities)
             quantity_names = ['Attribute']
@@ -437,12 +436,12 @@ class Interpolation_function:
             quantities = {quantity_names[0]: quantities}
 
 
-        #Use keys if no names are specified
+        # Use keys if no names are specified
         if quantity_names is None:
             quantity_names = quantities.keys()
 
 
-        #Check spatial info
+        # Check spatial info
         if vertex_coordinates is None:
             self.spatial = False
         else:    
@@ -453,15 +452,13 @@ class Interpolation_function:
             self.spatial = True            
 
              
-        #Save for use with statistics
-
+        # Save for use with statistics
         self.quantities_range = {}
         for name in quantity_names:
             q = quantities[name][:].flat
             self.quantities_range[name] = [min(q), max(q)]
         
         self.quantity_names = quantity_names        
-        #self.quantities = quantities  #Takes too much memory      
         self.vertex_coordinates = vertex_coordinates 
         self.interpolation_points = interpolation_points
         self.time = time[:]  # Time assumed to be relative to starttime
@@ -469,7 +466,7 @@ class Interpolation_function:
         self.precomputed_values = {}
         
             
-        #Precomputed spatial interpolation if requested
+        # Precomputed spatial interpolation if requested
         if interpolation_points is not None:
             if self.spatial is False:
                 raise 'Triangles and vertex_coordinates must be specified'
@@ -490,13 +487,14 @@ class Interpolation_function:
 	    for name in quantity_names:
                 self.precomputed_values[name] = zeros((p, m), Float)
 
-            #Build interpolator
+            # Build interpolator
+            if verbose: print 'Building interpolation matrix'            
             interpol = Interpolate(vertex_coordinates,
                                    triangles,
                                    #point_coordinates = \
                                    #self.interpolation_points,
                                    #alpha = 0,
-                                   verbose = verbose)
+                                   verbose=verbose)
 
             if verbose: print 'Interpolate'
 	    for i, t in enumerate(self.time):
