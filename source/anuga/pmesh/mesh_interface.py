@@ -42,7 +42,10 @@ def create_mesh_from_regions(bounding_polygon,
     for the bounding polygon, excluding the  interior regions.
 
     Interior_regions is a list of tuples consisting of (polygon, resolution)
-    for each region to be separately refined.
+    for each region to be separately refined. 
+    
+    NOTE: If a interior_region is outside the bounding_polygon it should 
+    throw an error
     
     Interior_holes is a list of ploygons for each hole.
 
@@ -62,10 +65,10 @@ def create_mesh_from_regions(bounding_polygon,
     Returns the mesh instance if no filename is given
 
     Note, interior regions should be fully nested, as overlaps may cause
-    unintended resolutions.
+    unintended resolutions. 
     
     """
-
+    
     # Build arguments and keyword arguments for use with caching or apply.
     args = (bounding_polygon,
             boundary_tags)
@@ -77,7 +80,6 @@ def create_mesh_from_regions(bounding_polygon,
               'mesh_geo_reference': mesh_geo_reference,
               'minimum_triangle_angle': minimum_triangle_angle,
               'verbose': verbose}   # FIXME (Ole): Should be bypassed one day
-
 
     #print 'kwargs', kwargs
 
@@ -142,7 +144,6 @@ def _create_mesh_from_regions(bounding_polygon,
     msg = 'Bounding polygon must be a list of points or an Nx2 array'
     assert len(bounding_polygon.shape) == 2, msg
     assert bounding_polygon.shape[1] == 2, msg    
-
 
     # 
     if interior_regions is not None:        

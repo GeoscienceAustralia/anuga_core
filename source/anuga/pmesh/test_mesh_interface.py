@@ -555,13 +555,12 @@ class TestCase(unittest.TestCase):
         min_x = 10 
         min_y = 88
         polygon = [[min_x,min_y],[1000,100],[1000,1000],[100,1000]]
-
         
         boundary_tags = {'walls':[0,1],'bom':[2]}
-
+#        boundary_tags = {'walls':[0,1]}
         # This one is inside bounding polygon - should pass
         inner_polygon = [[800,400],[900,500],[800,600]]
-        
+
         interior_regions = [(inner_polygon, 5)]
         m = create_mesh_from_regions(polygon,
                                      boundary_tags,
@@ -570,13 +569,87 @@ class TestCase(unittest.TestCase):
 
 
         # This one sticks outside bounding polygon - should fail
-        inner_polygon = [[800,400],[1100,500],[800,600]]
-        interior_regions = [(inner_polygon, 5)]
+        inner_polygon = [[800,400],[900,500],[800,600], [200, 995]]
+        inner_polygon1 = [[800,400],[1100,500],[800,600]]
+        interior_regions = [[inner_polygon, 50], [inner_polygon1, 50]]
 
 
         
         try:
             m = create_mesh_from_regions(polygon,
+                                         boundary_tags,
+                                         10000000,
+                                         interior_regions=interior_regions,
+                                         verbose=False)
+        except:
+            pass
+        else:
+            msg = 'Interior polygon sticking outside bounding polygon should '
+            msg += 'cause an Exception to be raised'
+            raise msg
+
+    def test_create_mesh_from_regions_interior_regions1(self):
+        """Test that create_mesh_from_regions fails when an interior region is
+         outside bounding polygon.       """
+        
+
+        # These are the values
+
+        d0 = [310000, 7690000]
+        d1 = [280000, 7690000]
+        d2 = [270000, 7645000]
+        d3 = [240000, 7625000]
+        d4 = [270000, 7580000]
+        d5 = [300000, 7590000]
+        d6 = [340000, 7610000]
+
+        poly_all = [d0, d1, d2, d3, d4, d5, d6]
+        
+        i0 = [304000, 7607000]
+        i1 = [302000, 7605000]
+        i2 = [304000, 7603000]
+        i3 = [307000, 7602000]
+        i4 = [309000, 7603000]
+#        i4 = [310000, 7580000]
+        i5 = [307000, 7606000]
+
+        poly_onslow = [i0, i1, i2, i3, i4, i5]
+
+        #Thevenard Island
+        j0 = [294000, 7629000]
+        j1 = [285000, 7625000]
+        j2 = [294000, 7621000]
+        j3 = [299000, 7625000]
+
+        poly_thevenard = [j0, j1, j2, j3]
+
+        #med res around onslow
+        l0 = [300000, 7610000]
+        l1 = [285000, 7600000]
+        l2 = [300000, 7597500]
+        l3 = [310000, 7770000] #this one is outside
+#        l3 = [310000, 7630000] #this one is NOT outside
+        l4 = [315000, 7610000]
+        poly_coast = [l0, l1, l2, l3, l4]
+
+        #general coast and local area to onslow region
+        m0 = [270000, 7581000]
+        m1 = [300000, 7591000]
+        m2 = [339000, 7610000]
+        m3 = [330000, 7630000]
+        m4 = [290000, 7640000]
+        m5 = [260000, 7600000]
+
+        poly_region = [m0, m1, m2, m3, m4, m5]
+
+        # This one sticks outside bounding polygon - should fail
+
+        interior_regions = [[poly_onslow, 50000], [poly_region, 50000], [poly_coast,100000], [poly_thevenard, 100000]]
+
+#        boundary_tags = {'walls':[0,1],'bom':[2]}
+
+        try:
+            m = create_mesh_from_regions(poly_all,
                                          boundary_tags,
                                          10000000,
                                          interior_regions=interior_regions,
@@ -672,7 +745,7 @@ class TestCase(unittest.TestCase):
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(TestCase,'test')
-    #suite = unittest.makeSuite(meshTestCase,'test_asciiFile')
+#    suite = unittest.makeSuite(TestCase,'test_create_mesh_from_regions_interior_regions')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
     
