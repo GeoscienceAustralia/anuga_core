@@ -83,12 +83,13 @@ def _search_triangles_of_vertices(mesh, candidate_vertices, x):
             sigma0 = dot((x-xi1), n0)/dot((xi0-xi1), n0)
             sigma1 = dot((x-xi2), n1)/dot((xi1-xi2), n1)
 
-            # Integrity check - machine precision is too hard, but at
-            # least check that we are within a couple of orders of magnitude
-            epsilon = get_machine_precision()
-            msg = 'abs(sigma0+sigma1+sigma2-1) = %.15e, 100*eps = %.15e'\
-                  %(abs(sigma0+sigma1+sigma2-1), 100*epsilon)
-            assert abs(sigma0 + sigma1 + sigma2 - 1.0) < 100*epsilon, msg
+            # Integrity check - machine precision is too hard.
+            #epsilon = get_machine_precision()            
+            # Use single precision as we used to here
+            epsilon = 1.0e-6
+            msg = 'abs(sigma0+sigma1+sigma2-1) = %.15e, eps = %.15e'\
+                  %(abs(sigma0+sigma1+sigma2-1), epsilon)
+            assert abs(sigma0 + sigma1 + sigma2 - 1.0) < epsilon, msg
 
             #Check that this triangle contains the data point
             
