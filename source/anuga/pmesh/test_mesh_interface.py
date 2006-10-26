@@ -646,8 +646,8 @@ class TestCase(unittest.TestCase):
 
         interior_regions = [[poly_onslow, 50000], [poly_region, 50000], [poly_coast,100000], [poly_thevenard, 100000]]
 
-#        boundary_tags = {'walls':[0,1],'bom':[2]}
-
+        boundary_tags = {'walls':[0,1],'bom':[2]}
+        
         try:
             m = create_mesh_from_regions(poly_all,
                                          boundary_tags,

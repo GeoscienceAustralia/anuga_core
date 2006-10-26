@@ -36,7 +36,8 @@ def create_mesh_from_regions(bounding_polygon,
     relative to the poly_geo_reference.
 
     Boundary tags is a dictionary of symbolic tags. For every tag there
-    is a list of indices referring to segments associated with that tag
+    is a list of indices referring to segments associated with that tag.
+    If a segment is omitted it will be assigned the default tag ''.
 
     maximum_triangle_area is the maximal area per triangle
     for the bounding polygon, excluding the  interior regions.
@@ -156,6 +157,27 @@ def _create_mesh_from_regions(bounding_polygon,
                 msg = 'Interior polygon %s is outside bounding polygon: %s'\
                       %(str(interior_polygon), str(bounding_polygon))
                 raise PolygonError, msg
+    
+# the following segment of code could be used to Test that all the 
+# interior polygons are inside the bounding_poly... however it might need 
+# to be change a bit   
+#
+#count = 0
+#for i in range(len(interior_regions)):
+#    region = interior_regions[i]
+#    interior_polygon = region[0]
+#    if len(inside_polygon(interior_polygon, bounding_polygon,
+#                   closed = True, verbose = False)) <> len(interior_polygon):
+#        print 'WARNING: interior polygon %d is outside bounding polygon' %(i)
+#        count += 1
+
+#if count == 0:
+#    print 'interior regions OK'
+#else:
+#    print 'check out your interior polygons'
+#    print 'check %s in production directory' %figname
+#    import sys; sys.exit()
+    
 
     if interior_holes is not None:        
         # Test that all the interior polygons are inside the bounding_poly
