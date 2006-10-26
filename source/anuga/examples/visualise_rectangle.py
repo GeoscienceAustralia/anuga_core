@@ -36,7 +36,7 @@ M = 30
 points, vertices, boundary = rectangular(M, M, len1 = 1.0, len2 = 1.0)
 
 yieldstep = 0.002
-finaltime = 1.0
+finaltime = 0.8
 rect = [0.0, 0.0, 1.0, 1.0]
 
 domain = Domain(points, vertices, boundary)
@@ -67,8 +67,8 @@ v.render_axes()
 # Increase the number of labels on the axes
 v.alter_axes(vtkCubeAxesActor2D.SetNumberOfLabels, (5,))
 
-# Draw a yellow polygon at height 10
-v.overlay_polygon([(20, 50), (40, 40), (50, 10), (30, 20), (10, 30)], 10, colour=(1.0, 1.0, 0.0))
+# Draw a yellow polygon at height 2
+v.overlay_polygon([(0, 0), (0, 0.1), (0.1, 0)], 2, colour=(1.0, 1.0, 0.0))
 
 # Start the visualiser (in its own thread).
 v.start()
