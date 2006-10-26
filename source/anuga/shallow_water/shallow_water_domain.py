@@ -91,6 +91,7 @@ from anuga.config import minimum_storable_height
 from anuga.config import minimum_allowed_height, maximum_allowed_speed
 from anuga.config import g, beta_h, beta_w, beta_w_dry,\
      beta_uh, beta_uh_dry, beta_vh, beta_vh_dry
+from anuga.config import alpha_balance
 
 
 #Shallow water domain
@@ -142,6 +143,7 @@ class Domain(Generic_Domain):
         self.beta_vh     = beta_vh
         self.beta_vh_dry = beta_vh_dry
         self.beta_h      = beta_h
+        self.alpha_balance = alpha_balance
 
         self.flux_function = flux_function_central
         #self.flux_function = flux_function_kinetic
@@ -1211,7 +1213,7 @@ def balance_deep_and_shallow_c(domain):
     #    hvbar[:,i] = hc[:]
 
     from shallow_water_ext import balance_deep_and_shallow
-    balance_deep_and_shallow(wc, zc, hc, wv, zv, hv, hvbar,
+    balance_deep_and_shallow(domain, wc, zc, hc, wv, zv, hv, hvbar,
                              xmomc, ymomc, xmomv, ymomv)
 
 

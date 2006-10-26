@@ -82,7 +82,8 @@ class Weir:
 N = 150 #size = 45000
 N = 130 #size = 33800
 N = 600 #Size = 720000
-N = 50
+N = 40
+
 
 
 #N = 15
@@ -104,6 +105,8 @@ domain.beta_uh     = 1.0
 domain.beta_uh_dry = 0.2
 domain.beta_vh     = 1.0
 domain.beta_vh_dry = 0.2
+
+domain.alpha_balance = 10.0
 
 #Output params
 domain.smooth = False
@@ -138,7 +141,7 @@ else:
     vis.setup['elevation'] = True
     vis.updating['stage'] = True
     vis.qcolor['stage'] = (0.0,0.0,0.8)
-    vis.coloring['stage']= True
+    vis.coloring['stage']= False
 
 
 

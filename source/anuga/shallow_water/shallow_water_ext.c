@@ -422,7 +422,8 @@ int _balance_deep_and_shallow(int N,
 			      double* xmomc,
 			      double* ymomc,
 			      double* xmomv,
-			      double* ymomv) {
+			      double* ymomv,
+			      double alpha_balance) {
 
   int k, k3, i;
   double dz, hmin, alpha;
@@ -462,7 +463,7 @@ int _balance_deep_and_shallow(int N,
       //	alpha = 0.0;
       //else
       //  alpha = max( min( hc[k]/dz, 1.0), 0.0 );
-      alpha = max( min( 2.0*hmin/dz, 1.0), 0.0 );
+      alpha = max( min( alpha_balance*hmin/dz, 1.0), 0.0 );
     else
       alpha = 1.0;  //Flat bed
       
@@ -1568,11 +1569,16 @@ PyObject *balance_deep_and_shallow(PyObject *self, PyObject *args) {
     *ymomc,
     *xmomv,
     *ymomv;
+  
+  PyObject *domain, *Tmp;
+    
+  double alpha_balance = 2.0;
 
   int N; //, err;
 
   // Convert Python arguments to C
-  if (!PyArg_ParseTuple(args, "OOOOOOOOOOO",
+  if (!PyArg_ParseTuple(args, "OOOOOOOOOOOO",
+			&domain,
 			&wc, &zc, &hc,
 			&wv, &zv, &hv, &hvbar,
 			&xmomc, &ymomc, &xmomv, &ymomv)) {
@@ -1580,6 +1586,15 @@ PyObject *balance_deep_and_shallow(PyObject *self, PyObject *args) {
     return NULL;
   }  
 	  
+  // Pull out parameters
+  Tmp = PyObject_GetAttrString(domain, "alpha_balance");
+  if (!Tmp) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: balance_deep_and_shallow could not obtain object alpha_balance from domain");
+    return NULL;
+  }  
+  alpha_balance = PyFloat_AsDouble(Tmp);
+  Py_DECREF(Tmp);
+
 
   N = wc -> dimensions[0];
 
@@ -1591,10 +1606,11 @@ PyObject *balance_deep_and_shallow(PyObject *self, PyObject *args) {
 			    (double*) zv -> data,
 			    (double*) hv -> data,
 			    (double*) hvbar -> data,
-                            (double*) xmomc -> data,
+				(double*) xmomc -> data,
 			    (double*) ymomc -> data,
 			    (double*) xmomv -> data,
-			    (double*) ymomv -> data);
+			    (double*) ymomv -> data,
+			    alpha_balance);
 
 
   return Py_BuildValue("");

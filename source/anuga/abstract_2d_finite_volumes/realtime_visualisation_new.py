@@ -209,8 +209,8 @@ class Visualiser:
             self.update_arrays(self.domain.quantities[qname].vertex_values, qcolor, scale_z)
 
         #print 'update bed image'
-        if qname=='elevation':
-            self.pos[:,2] = self.pos[:,2]+1.0e-2
+        if qname=='stage':
+            self.pos[:,2] = self.pos[:,2] - self.domain.visualise_wet_dry_cutoff
 
         self.vpython_z_models[qname].pos    = self.pos
         self.vpython_z_models[qname].color  = self.colour

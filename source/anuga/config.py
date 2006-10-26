@@ -80,6 +80,7 @@ beta_vh     = 1.0
 beta_vh_dry = 0.2
 beta_h      = 0.2
 
+alpha_balance = 2.0
 
 CFL = 1.0  #FIXME (ole): Is this in use yet??
            #(Steve) yes, change domain.CFL to

@@ -35,7 +35,7 @@ create_mesh_from_regions( [[0,0], [100,0], [100,100], [0,100]],
                           maximum_triangle_area = 1.0,
                           filename = 'island.msh' ,
                           interior_regions=[ ([[50,25], [70,25], [70,75], [50,75]], 1.0)]
-                          #interior_holes=[[50,25], [70,25], [70,75], [50,75]],
+                          #interior_holes=[[[50,25], [70,25], [70,75], [50,75]]],
                           )
 
 
@@ -44,7 +44,7 @@ create_mesh_from_regions( [[0,0], [100,0], [100,100], [0,100]],
 domain = Domain(mesh_filename = 'island.msh')
 domain.smooth = False
 domain.set_name('island')
-domain.set_default_order(2)
+domain.default_order = 2
 
 
 #I tried to introduce this parameter top control the h-limiter,
@@ -54,9 +54,13 @@ domain.set_default_order(2)
 # beta_h == 1.0 means that the largest gradients (on h) are allowed
 # beta_h == 0.0 means that constant (1st order) gradients are introduced
 # on h. This is equivalent to the constant depth used previously.
-domain.beta_h     = 0.2
-domain.beta_w_dry = 0.2
-
+domain.beta_h     = 0.5
+domain.beta_w_dry = 0.0
+domain.alpha_balance = 10.0
+domain.minimum_allowed_height = 1.0e-4 
+domain.maximum_allowed_speed = 100.0 
+domain.minimum_storable_height = 1.0e-4 
+domain.visualise_wet_dry_cutoff = 5.0e-2
 
 #------------------------------------------------------------------------------
 # Setup initial conditions
@@ -65,7 +69,7 @@ domain.beta_w_dry = 0.2
 def island(x, y):
     z = 0*x
     for i in range(len(x)):
-        z[i] = 8*exp( -((x[i]-50)**2 + (y[i]-50)**2)/100 )
+        z[i] = 20*exp( -((x[i]-50)**2 + (y[i]-50)**2)/100 )
 
         #z[i] += 0.5*exp( -((x[i]-10)**2 + (y[i]-10)**2)/50 )
 
@@ -78,10 +82,11 @@ def slump(x, y):
 
     return z
 
+stage_value = 15.0
 #domain.set_quantity('friction', 0.1)  #Honky dory
-domain.set_quantity('friction', 100.0)     #Creep
+domain.set_quantity('friction', 0.01)     #Creep
 domain.set_quantity('elevation', island)
-domain.set_quantity('stage', 1)
+domain.set_quantity('stage', stage_value)
 domain.max_timestep = 0.01
 
 
@@ -90,9 +95,9 @@ domain.max_timestep = 0.01
 #------------------------------------------------------------------------------
 
 Br = Reflective_boundary(domain)
-Bd = Dirichlet_boundary([1, 0, 0])
+Bd = Dirichlet_boundary([stage_value, 0, 0])
 
-domain.set_boundary({'left': Bd, 'right': Bd, 'top': Bd, 'bottom': Bd})
+domain.set_boundary({'left': Bd, 'right': Bd, 'top': Bd, 'bottom': Bd, 'exterior': Br})
 domain.check_integrity()
 
 domain.initialise_visualiser()
