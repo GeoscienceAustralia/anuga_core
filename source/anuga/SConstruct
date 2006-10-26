@@ -106,14 +106,12 @@ elif env['CC'] == 'cl':
 # Suppress the "lib" prefix on built files
 env['SHLIBPREFIX'] = ""
 
-anuga_root = os.path.join('source', 'anuga')
+anuga_root = '.'
 install_root = os.path.join(env['PREFIX'], 'anuga')
 
 # Build .pyc and .pyo files of every .py in here and below.
 files = []
-#dirs = filter(os.path.isdir, os.listdir('.'))
-#Only build the source/anuga directory for now
-dirs = [anuga_root]
+dirs = filter(os.path.isdir, os.listdir('.'))
 while(dirs != []):
     dirs += filter(os.path.isdir, map(lambda x : os.path.join(dirs[0], x), os.listdir(dirs[0])))
     files += filter(lambda x : x[-3:] == '.py', map(lambda x : os.path.join(dirs[0], x), os.listdir(dirs[0])))
@@ -121,13 +119,10 @@ while(dirs != []):
 for x in files:
     env.Pyc(x + 'c', x)
     env.Pyo(x + 'o', x)
-    # We have to cut the first character off the result of os.path.dirname(x).replace('anuga_core, '')
-    # or else we will start taking paths relative to the root directory.
-    instdir = os.path.join(env['PREFIX'], os.path.dirname(x).replace('source', '')[1:])
-    env.Install(instdir, x + 'c')
-    env.Install(instdir, x + 'o')
+    env.Install(os.path.join(install_root, os.path.dirname(x)), x + 'c')
+    env.Install(os.path.join(install_root, os.path.dirname(x)), x + 'o')
     if env['INSTALL_PYTHON_SOURCE']:
-        env.Install(instdir, x)
+        env.Install(os.path.join(install_root, os.path.dirname(x)), x)
 
 # Define the install target
 env.Alias('install', '${PREFIX}')

@@ -6,9 +6,6 @@ GCCFLAGS = '-O3 -Wall'
 # Flags to pass to MSVC Compiler
 MSVCFLAGS = '/Wall'
 
-# Location of the metis directory relative to the pymetis directory
-METIS_DIR = 'metis-4.0'
-
 # Optimisation level used when building the .pyo files
 OPTIMISATION_LEVEL = 1
 
