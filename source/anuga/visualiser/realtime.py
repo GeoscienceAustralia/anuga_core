@@ -1,11 +1,20 @@
 from Numeric import Float, zeros
-from Tkinter import Button, E, W
+from Tkinter import Button, E, Tk, W
 from threading import Event
 from visualiser import Visualiser
 from vtk import vtkCellArray, vtkPoints, vtkPolyData
 
 class RealtimeVisualiser(Visualiser):
     """A VTK-powered realtime visualiser which runs in its own thread.
+    In addition to the functions provided by the standard visualiser,
+    the following additional functions are provided:
+
+    update() - Sync the visualiser to the current state of the model.
+    Should be called inside the evolve loop.
+
+    evolveFinished() - Clean up synchronisation constructs that tie the
+    visualiser to the evolve loop. Call this after the evolve loop finishes
+    to ensure a clean shutdown.
     """
     def __init__(self, source):
         """The source parameter is assumed to be a Domain.
@@ -13,6 +22,13 @@ class RealtimeVisualiser(Visualiser):
         Visualiser.__init__(self, source)
 
         self.running = True
+
+        self.xmin = None
+        self.xmax = None
+        self.ymin = None
+        self.ymax = None
+        self.zmin = None
+        self.zmax = None
 
         # Synchronisation Constructs
         self.sync_idle = Event()
@@ -23,7 +39,7 @@ class RealtimeVisualiser(Visualiser):
         self.sync_redrawReady.clear()
 
     def run(self):
-        self.tk_root.after(100, self.sync_idle.set)
+        self.alter_tkroot(Tk.after, (100, self.sync_idle.set))
         Visualiser.run(self)
 
     def setup_grid(self):
@@ -34,7 +50,7 @@ class RealtimeVisualiser(Visualiser):
         for n in range(N_vert):
             self.vtk_cells.InsertNextCell(3)
             for v in range(3):
-                self.vert_index[self.source.triangles[n][v]] = self.source.vertex_coordinates[n][i*2:i*2+2]
+                self.vert_index[self.source.triangles[n][v]] = self.source.vertex_coordinates[n][v*2:v*2+2]
                 self.vtk_cells.InsertCellPoint(self.source.triangles[n][v])
 
     def update_height_quantity(self, quantityName, dynamic=True):
@@ -51,10 +67,25 @@ class RealtimeVisualiser(Visualiser):
                                    self.vert_index[v][1],
                                    qty_index[v] * self.height_zScales[quantityName]
                                    + self.height_offset[quantityName])
+            if self.xmin == None or self.xmin > self.vert_index[v][0]:
+                self.xmin = self.vert_index[v][0]
+            if self.xmax == None or self.xmax < self.vert_index[v][0]:
+                self.xmax = self.vert_index[v][0]
+            if self.ymin == None or self.ymin > self.vert_index[v][1]:
+                self.ymin = self.vert_index[v][1]
+            if self.ymax == None or self.ymax < self.vert_index[v][1]:
+                self.ymax = self.vert_index[v][1]
+            if self.zmin == None or self.zmin > qty_index[v] * self.height_zScales[quantityName] + self.height_offset[quantityName]:
+                self.zmin = qty_index[v] * self.height_zScales[quantityName] + self.height_offset[quantityName]
+            if self.zmax == None or self.zmax < qty_index[v] * self.height_zScales[quantityName] + self.height_offset[quantityName]:
+                self.zmax = qty_index[v] * self.height_zScales[quantityName] + self.height_offset[quantityName]
 
         polydata = self.vtk_polyData[quantityName] = vtkPolyData()
         polydata.SetPoints(points)
         polydata.SetPolys(self.vtk_cells)
+
+    def get_3d_bounds(self):
+        return [self.xmin, self.xmax, self.ymin, self.ymax, self.zmin, self.zmax]
         
     def build_quantity_dict(self):
         N_vert = len(self.source.vertex_coordinates)
@@ -85,3 +116,24 @@ class RealtimeVisualiser(Visualiser):
         self.sync_idle.set()
         self.sync_unpaused.set()
 
+    def redraw(self):
+        if self.running:
+            self.sync_redrawReady.wait()
+            self.sync_redrawReady.clear()
+            self.redraw_quantities()
+            self.sync_idle.set()
+        Visualiser.redraw(self)
+
+    def update(self):
+        """Sync the visualiser to the domain. Call this in the evolve loop."""
+        if self.running:
+            self.sync_redrawReady.set()
+            self.sync_idle.wait()
+            self.sync_idle.clear()
+            self.sync_unpaused.wait()
+
+    def evolveFinished(self):
+        """Stop the visualiser from waiting on signals from the evolve loop.
+        Call this just after the evolve loop to ensure a clean shutdown."""
+        self.running = False
+        self.sync_redrawReady.set()

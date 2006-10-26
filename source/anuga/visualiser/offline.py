@@ -1,6 +1,6 @@
 from Numeric import array, Float, ravel, zeros
 from Scientific.IO.NetCDF import NetCDFFile
-from Tkinter import Button, E, W
+from Tkinter import Button, E, Tk, W
 from visualiser import Visualiser
 from vtk import vtkCellArray, vtkPoints, vtkPolyData
 
@@ -12,8 +12,9 @@ class OfflineVisualiser(Visualiser):
     precache_height_quantities() - Precache all the vtkpoints
     structures for any dynamic height based quantities to render.
     """
-    def __init__(self, source):
+    def __init__(self, source, frameDelay=100):
         """The source parameter is assumed to be a NetCDF sww file.
+        The frameDelay parameter is the number of milliseconds waited between frames.
         """
         Visualiser.__init__(self, source)
 
@@ -21,6 +22,8 @@ class OfflineVisualiser(Visualiser):
         fin = NetCDFFile(self.source, 'r')
         self.maxFrameNumber = fin.variables['time'].shape[0] - 1
         fin.close()
+
+        self.frameDelay = frameDelay
 
         self.xmin = None
         self.xmax = None
@@ -139,12 +142,12 @@ class OfflineVisualiser(Visualiser):
             self.tk_controlFrame.grid_columnconfigure(i, weight=1)
 
     def run(self):
-        self.tk_root.after(100, self.animateForward)
+        self.alter_tkroot(Tk.after, (self.frameDelay, self.animateForward))
         Visualiser.run(self)
 
     def restart(self):
         self.frameNumber = 0
-        self.redraw_quantities(True)
+        self.redraw_quantities()
         self.pause()
 
     def back10(self):
@@ -152,13 +155,13 @@ class OfflineVisualiser(Visualiser):
             self.frameNumber -= 10
         else:
             self.frameNumber = 0
-        self.redraw_quantities(True)
+        self.redraw_quantities()
         self.pause()
 
     def back(self):
         if self.frameNumber > 0:
             self.frameNumber -= 1
-            self.redraw_quantities(True)
+            self.redraw_quantities()
             self.pause()
 
     def pauseResume(self):
@@ -174,7 +177,7 @@ class OfflineVisualiser(Visualiser):
     def resume(self):
         self.paused = False
         self.tk_pauseResume.config(text="Pause")
-        self.tk_root.after(100, self.animateForward)
+        self.tk_root.after(self.frameDelay, self.animateForward)
 
     def forward(self):
         self.forward_step()
@@ -183,7 +186,7 @@ class OfflineVisualiser(Visualiser):
     def forward_step(self):
         if self.frameNumber < self.maxFrameNumber:
             self.frameNumber += 1
-            self.redraw_quantities(True)
+            self.redraw_quantities()
         else:
             self.pause()
 
@@ -192,10 +195,10 @@ class OfflineVisualiser(Visualiser):
             self.frameNumber += 10
         else:
             self.frameNumber = self.maxFrameNumber
-        self.redraw_quantities(True)
+        self.redraw_quantities()
         self.pause()
 
     def animateForward(self):
         if self.paused is not True:
             self.forward_step()
-            self.tk_root.after(100, self.animateForward)
+            self.tk_root.after(self.frameDelay, self.animateForward)

@@ -1,4 +1,5 @@
 from threading import Thread
+from Queue import Queue
 from Tkinter import Tk, Button, Frame, N, E, S, W
 from types import FunctionType, TupleType
 from vtk import vtkActor, vtkCubeAxesActor2D, vtkDelaunay2D, vtkFloatArray, vtkPoints, vtkPolyData, vtkPolyDataMapper, vtkRenderer
@@ -27,47 +28,87 @@ class Visualiser(Thread):
         self.vtk_drawAxes = False
         self.vtk_mappers = {}
         self.vtk_polyData = {}
-        self.vtk_renderer = vtkRenderer()
 
-        self.setup_gui()
+        # A function queue to ensure all the visualiser configuration is done in the visualiser thread.
+        # The queue will contain zero or more functions, with the arguments to that function immediately following
+        # as a tuple.
+        self.sync_configFuncs = Queue(-1)
 
     def run(self):
+        self.vtk_renderer = vtkRenderer()
+        self.setup_gui()
         self.setup_grid()
+
+        # Normally, empty() is not reliable, however all configuration is done
+        # before the visualiser is started and nothing is added to the queue after that.
+        while not self.sync_configFuncs.empty():
+            func = self.sync_configFuncs.get(True)
+            args = self.sync_configFuncs.get(True)
+            func(*args)
+
         # Draw Height Quantities
         for q in self.height_quantities:
             self.update_height_quantity(q, self.height_dynamic[q])
             self.draw_height_quantity(q)
+
+        if self.vtk_drawAxes is True:
+            self.tk_root.after(1, self.draw_axes)
+            
         self.tk_root.mainloop()
 
     def redraw_quantities(self, dynamic_only=False):
-        """Redraw all dynamic quantities, unless dynamic_only is True.
+        """Redraw all dynamic quantities.
         """
         # Height quantities
         for q in self.height_quantities:
-            if (dynamic_only is False) or (self.height_dynamic[q]):
+            if (self.height_dynamic[q]):
                 self.update_height_quantity(q, self.height_dynamic[q])
                 self.draw_height_quantity(q)
         if self.vtk_drawAxes is True:
-            self.vtk_axes.SetBounds(self.get_3d_bounds())
-            if not self.vtk_axesSet:
-                self.vtk_axesSet = True
-                self.vtk_axes.SetCamera(self.vtk_renderer.GetActiveCamera())
-                self.vtk_renderer.AddActor(self.vtk_axes)
-        
-    # --- Height Based Rendering --- #
+            self.draw_axes()
 
+    # --- Axes --- #
+        
     def render_axes(self):
         """Intstruct the visualiser to render cube axes around the render.
         """
+        self.sync_configFuncs.put(self._render_axes, True)
+        self.sync_configFuncs.put(())
+
+    def _render_axes(self):
+        """Add the axes to the visualiser.
+        """
         self.vtk_drawAxes = True
         self.vtk_axes = vtkCubeAxesActor2D()
-        
-    def get_axes(self):
-        """Return the vtkCubeAxesActor2D object used to render the axes.
-        This is to allow simple manipulation of the axes such as
-        get_axes().SetNumberOfLabels(5) or similar.
+
+    def draw_axes(self):
+        """Update the 3D bounds on the axes and add them to the pipeline if not yet connected.
         """
-        return self.vtk_axes
+        self.vtk_axes.SetBounds(self.get_3d_bounds())
+        if not self.vtk_axesSet:
+            self.vtk_axesSet = True
+            self.vtk_axes.SetCamera(self.vtk_renderer.GetActiveCamera())
+            self.vtk_renderer.AddActor(self.vtk_axes)
+        
+    def alter_axes(self, func, args):
+        """Attempt to apply the function 'func' with args tuple 'args' to the
+        vtkCubeAxesActor2D instance set up by render_axes. This is done this way to ensure
+        the axes setup is handled in the visualiser thread.
+
+        Example call:
+        from vtk import vtkCubeAxesActor2D
+        alter_axes(vtkCubeAxesActor2D.SetNumberOfPoints, (5,))
+        """
+        self.sync_configFuncs.put(self._alter_axes, True)
+        self.sync_configFuncs.put((func,)+args, True)
+
+    def _alter_axes(self, func, *args):
+        """Apply func, with args *args to the axes actor. This function should be called from
+        within the visualiser thread after the axes have been initialised.
+        """
+        func(*((self.vtk_axes,) + args))
+            
+    # --- Height Based Rendering --- #
 
     def setup_grid(self):
         """Create the vtkCellArray instance that represents the
@@ -119,6 +160,8 @@ class Visualiser(Thread):
             actor = self.vtk_actors[quantityName] = vtkActor()
             actor.SetMapper(mapper)
             self.vtk_renderer.AddActor(actor)
+        else:
+            actor = self.vtk_actors[quantityName]
 
         if self.colours_height.has_key(quantityName):
             colour = self.colours_height[quantityName]
@@ -174,6 +217,24 @@ class Visualiser(Thread):
 
         colour is the colour of the polygon, as a 3-tuple representing
         r, g, b values between 0 and 1."""
+        self.sync_configFuncs.put(self._overlay_polygon, True)
+        self.sync_configFuncs.put((coords, height, colour), True)
+
+    def _overlay_polygon(self, coords, height, colour):
+        """Add a polygon to the output of the visualiser.
+
+        coords is a list of 2-tuples representing x and y coordinates.
+        These are triangulated by vtkDelaunay2D.
+
+        height is the z-value given to all points.
+
+        colour is the colour of the polygon, as a 3-tuple representing
+        r, g, b values between 0 and 1.
+
+        This function should not be called from outside the visualiser thread.
+        Use overlay_polygon instead.
+    
+        """
         points = vtkPoints()
         for coord in coords:
             points.InsertNextPoint(coord[0], coord[1], height)
@@ -210,6 +271,19 @@ class Visualiser(Thread):
         self.tk_quit = Button(self.tk_controlFrame, text="Quit", command=self.shutdown)
         self.tk_quit.grid(row=0, column=0, sticky=E+W)
         self.tk_renderWidget.GetRenderWindow().AddRenderer(self.vtk_renderer)
+
+    def alter_tkroot(self, func, args):
+        """Apply func, with arguments tuple args to the root tk window for this visualiser.
+        """
+        self.sync_configFuncs.put(self._alter_tkroot, True)
+        self.sync_configFuncs.put((func,)+args, True)
+
+    def _alter_tkroot(self, func, *args):
+        """Apply func, with arguments tuple args to the root tk window for this visualiser.
+        This function should only be called from within the visualiser after the tk root window
+        has been created.
+        """
+        func(*((self.tk_root,) + args))
 
     # --- GUI Events --- #
 
