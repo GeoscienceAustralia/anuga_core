@@ -10,10 +10,6 @@ from anuga_parallel.parallel_abstraction import size, rank, get_processor_name
 from anuga_parallel.parallel_abstraction import finalize, send, receive
 from anuga_parallel.parallel_abstraction import pypar_available
 
-# Mesh partitioning
-from anuga_parallel.pmesh_divide  import pmesh_divide_metis
-from anuga_parallel.build_submesh import build_submesh
-from anuga_parallel.build_local   import build_local_mesh
 
 # ANUGA parallel engine (only load if pypar can)
 if pypar_available:
@@ -21,6 +17,11 @@ if pypar_available:
     from anuga_parallel.build_commun  import rec_submesh
     from anuga_parallel.build_commun  import extract_hostmesh
     from anuga_parallel.parallel_shallow_water import Parallel_Domain
+
+    # Mesh partitioning using Metis
+    from anuga_parallel.build_submesh import build_submesh
+    from anuga_parallel.build_local   import build_local_mesh
+    from anuga_parallel.pmesh_divide  import pmesh_divide_metis
 
 
 #------------------------------------------------------------------------------
