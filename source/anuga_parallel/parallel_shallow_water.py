@@ -78,6 +78,9 @@ class Parallel_Domain(Domain):
         """Assign name based on processor number 
         """
 
+        if name.endswith('.sww'):
+            name = name[:-4]
+
         # Call parents method with processor number attached.
         Domain.set_name(self, name + '_P%d_%d' %(self.processor, self.numproc))
 
