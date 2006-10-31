@@ -1125,6 +1125,84 @@ class Test_Interpolate(unittest.TestCase):
             raise 'Should raise exception'
 
 
+
+    def test_interpolation_interface_with_time_thinning(self):
+        # Test spatio-temporal interpolation
+        # Test that spatio temporal function performs the correct
+        # interpolations in both time and space
+    
+        #Three timesteps
+        time = [1.0, 2.0, 4.0, 5.0, 7.0, 8.0, 9.0, 10.0]    
+
+        #Setup mesh used to represent fitted function
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe
+        triangles = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+
+        #New datapoints where interpolated values are sought
+        interpolation_points = [[ 0.0, 0.0],
+                                [ 0.5, 0.5],
+                                [ 0.7, 0.7],
+                                [ 1.0, 0.5],
+                                [ 2.0, 0.4],
+                                [ 2.8, 1.2]]
+
+        #One quantity
+        Q = zeros( (8,6), Float )
+
+        #Linear in time and space
+        for i, t in enumerate(time):
+            Q[i, :] = t*linear_function(points)
+
+        # Check interpolation of one quantity using interpolaton points) using default
+        # time_thinning of 1
+        I = Interpolation_function(time, Q,
+                                   vertex_coordinates=points,
+                                   triangles=triangles, 
+                                   interpolation_points=interpolation_points,
+                                   verbose=False)
+
+        answer = linear_function(interpolation_points)
+
+        
+        t = time[0]
+        for j in range(50): #t in [1, 6]
+            for id in range(len(interpolation_points)):
+                assert allclose(I(t, id), t*answer[id])
+            t += 0.1    
+
+
+        # Now check time_thinning
+        I = Interpolation_function(time, Q,
+                                   vertex_coordinates=points,
+                                   triangles=triangles, 
+                                   interpolation_points=interpolation_points,
+                                   time_thinning=2,
+                                   verbose=False)
+
+
+        assert len(I.time) == 4
+        assert( allclose(I.time, [1.0, 4.0, 7.0, 9.0] ))    
+
+        answer = linear_function(interpolation_points)
+
+        t = time[0]
+        for j in range(50): #t in [1, 6]
+            for id in range(len(interpolation_points)):
+                assert allclose(I(t, id), t*answer[id])
+            t += 0.1    
+
+
+
+
     def test_interpolation_precompute_points(self):
         # looking at a discrete mesh
         #

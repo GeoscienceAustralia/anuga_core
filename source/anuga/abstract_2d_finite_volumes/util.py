@@ -12,11 +12,12 @@ from anuga.geospatial_data.geospatial_data import ensure_absolute
 
 
 def file_function(filename,
-                  domain = None,
-                  quantities = None,
-                  interpolation_points = None,
-                  verbose = False,
-                  use_cache = False):
+                  domain=None,
+                  quantities=None,
+                  interpolation_points=None,
+                  time_thinning=1,
+                  verbose=False,
+                  use_cache=False):
     """Read time history of spatial data from NetCDF file and return
     a callable object.
 
@@ -57,6 +58,17 @@ def file_function(filename,
     """
 
 
+    # Build arguments and keyword arguments for use with caching or apply.
+    args = (filename,)
+    
+    kwargs = {'domain': domain,
+              'quantities': quantities,
+              'interpolation_points': interpolation_points,
+              'time_thinning': time_thinning,                   
+              'verbose': verbose}
+
+
+    # Call underlying engine with or without caching
     if use_cache is True:
         try:
             from caching import cache
@@ -65,35 +77,31 @@ def file_function(filename,
                   'could not be imported'
             raise msg
 
-
         f = cache(_file_function,
-                  filename,
-                  {'domain': domain,
-                   'quantities': quantities,
-                   'interpolation_points': interpolation_points,
-                   'verbose': verbose},
-                  dependencies = [filename],
-                  compression = False,
-                  verbose = verbose)
-        #FIXME (Ole): Pass cache arguments, such as compression, in some sort of
-        #structure
-        
+                  args, kwargs,
+                  dependencies=[filename],
+                  compression=False,                  
+                  verbose=verbose)
+
     else:
-        f = _file_function(filename,
-                           domain,
-                           quantities,
-                           interpolation_points,
-                           verbose)            
+        f = apply(_file_function,
+                  args, kwargs)
+
+
+    #FIXME (Ole): Pass cache arguments, such as compression, in some sort of
+    #structure
+        
 
     return f
 
 
 
 def _file_function(filename,
-                   domain = None,
-                   quantities = None,
-                   interpolation_points = None,
-                   verbose = False):
+                   domain=None,
+                   quantities=None,
+                   interpolation_points=None,
+                   time_thinning=1,                                                
+                   verbose=False):
     """Internal function
     
     See file_function for documentatiton
@@ -132,6 +140,7 @@ def _file_function(filename,
     if line[:3] == 'CDF':
         return get_netcdf_file_function(filename, domain, quantities,
                                         interpolation_points,
+                                        time_thinning=time_thinning,
                                         verbose = verbose)
     else:
         raise 'Must be a NetCDF File'
@@ -142,6 +151,7 @@ def get_netcdf_file_function(filename,
                              domain=None,
                              quantity_names=None,
                              interpolation_points=None,
+                             time_thinning=1,                             
                              verbose = False):
     """Read time history of spatial data from NetCDF sww file and
     return a callable object f(t,x,y)
@@ -237,6 +247,7 @@ def get_netcdf_file_function(filename,
     #if verbose: print 'Get variables'    
     time = fid.variables['time'][:]    
 
+    # Get time independent stuff
     if spatial:
         #Get origin
         xllcorner = fid.xllcorner[0]
@@ -295,9 +306,8 @@ def get_netcdf_file_function(filename,
         print '    Start time:   %f' %starttime                
         
     
-    #Produce values for desired data points at
-    #each timestep
-
+    # Produce values for desired data points at
+    # each timestep for each quantity
     quantities = {}
     for i, name in enumerate(quantity_names):
         quantities[name] = fid.variables[name][:]
@@ -317,6 +327,7 @@ def get_netcdf_file_function(filename,
                                   vertex_coordinates,
                                   triangles,
                                   interpolation_points,
+                                  time_thinning=time_thinning,
                                   verbose=verbose)
 
 

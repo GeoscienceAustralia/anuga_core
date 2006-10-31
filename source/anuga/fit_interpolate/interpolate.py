@@ -404,6 +404,8 @@ class Interpolation_function:
 
     FIXME (Ole): Need to allow vertex coordinates and interpolation points to be
     geospatial data objects
+
+    Time assumed to be relative to starttime    
     """
   
     
@@ -414,8 +416,13 @@ class Interpolation_function:
                  vertex_coordinates=None,
                  triangles=None,
                  interpolation_points=None,
+                 time_thinning=1,
                  verbose=False):
         """Initialise object and build spatial interpolation if required
+
+        Time_thinning_number controls how many timesteps to use. Only timesteps with
+        index%time_thinning_number == 0 will used, or in other words a value of 3, say,
+        will cause the algorithm to use every third time step.
         """
 
         from Numeric import array, zeros, Float, alltrue, concatenate,\
@@ -457,6 +464,12 @@ class Interpolation_function:
             triangles = ensure_numeric(triangles)
             self.spatial = True            
 
+        # Thin timesteps if needed
+        # Note array() is used to make the thinned arrays contiguous in memory
+        self.time = array(time[::time_thinning])          
+        for name in quantity_names:
+            if len(quantities[name].shape) == 2:
+                quantities[name] = array(quantities[name][::time_thinning,:])
              
         # Save for use with statistics
         self.quantities_range = {}
@@ -467,7 +480,8 @@ class Interpolation_function:
         self.quantity_names = quantity_names        
         self.vertex_coordinates = vertex_coordinates 
         self.interpolation_points = interpolation_points
-        self.time = time[:]  # Time assumed to be relative to starttime
+        
+
         self.index = 0    # Initial time index
         self.precomputed_values = {}
         
@@ -494,15 +508,26 @@ class Interpolation_function:
                 self.precomputed_values[name] = zeros((p, m), Float)
 
             # Build interpolator
-            if verbose: print 'Building interpolation matrix'            
+            if verbose:
+                msg = 'Building interpolation matrix from source mesh '
+                msg += '(%d vertices, %d triangles)' %(vertex_coordinates.shape[0],
+                                                       triangles.shape[0])
+                print msg
+
+                
             interpol = Interpolate(vertex_coordinates,
                                    triangles,
-                                   #point_coordinates = \
-                                   #self.interpolation_points,
-                                   #alpha = 0,
                                    verbose=verbose)
 
-            if verbose: print 'Interpolate'
+            if verbose:
+                print 'Interpolating (%d interpolation points, %d timesteps).'\
+                      %(self.interpolation_points.shape[0], self.time.shape[0]),
+            
+                if time_thinning > 1:
+                    print 'Timesteps were thinned by a factor of %d' %time_thinning
+                else:
+                    print
+
 	    for i, t in enumerate(self.time):
                 # Interpolate quantities at this timestep
                 if verbose and i%((p+10)/10)==0:
