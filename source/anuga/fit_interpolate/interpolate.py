@@ -91,8 +91,11 @@ class Interpolate (FitInterpolate):
                                 max_vertices_per_cell)
 
     # FIXME: What is a good start_blocking_len value?
-    def interpolate(self, f, point_coordinates = None,
-                    start_blocking_len = 500000, verbose=False):
+    def interpolate(self,
+                    f,
+                    point_coordinates=None,
+                    start_blocking_len=500000,
+                    verbose=False):
         """Interpolate mesh data f to determine values, z, at points.
 
         f is the data on the mesh vertices.
@@ -182,7 +185,7 @@ class Interpolate (FitInterpolate):
                 z = concatenate((z,t))
         return z
 
-    def interpolate_block(self, f, point_coordinates = None, verbose=False):
+    def interpolate_block(self, f, point_coordinates=None, verbose=False):
         """
         Call this if you want to control the blocking or make sure blocking
         doesn't occur.
@@ -217,7 +220,7 @@ class Interpolate (FitInterpolate):
 
     def _build_interpolation_matrix_A(self,
                                       point_coordinates,
-                                      verbose = False):
+                                      verbose=False):
         """Build n x m interpolation matrix, where
         n is the number of data points and
         m is the number of basis functions phi_k (one per vertex)
@@ -398,6 +401,9 @@ class Interpolation_function:
     The parameter interpolation_points decides at which points interpolated
     quantities are to be computed whenever object is called.
     If None, return average value
+
+    FIXME (Ole): Need to allow vertex coordinates and interpolation points to be
+    geospatial data objects
     """
   
     
@@ -706,7 +712,7 @@ class Interpolation_function:
 
 
 def interpolate_sww(sww_file, time, interpolation_points,
-                    quantity_names = None, verbose = False):
+                    quantity_names=None, verbose=False):
     """
     obsolete.
     use file_function in utils
