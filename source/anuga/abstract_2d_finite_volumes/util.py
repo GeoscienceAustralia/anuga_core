@@ -751,6 +751,7 @@ def _sww2timeseries(swwfiles,
                             time_min, time_max, title_on, label_id, verbose)
                          
 #Fixme - Use geospatial to read this file - it's an xya file
+#Need to include other information into this filename, so xya + Name - required for report
 def get_gauges_from_file(filename):
     from os import sep, getcwd, access, F_OK, mkdir
     fid = open(filename)
@@ -762,18 +763,27 @@ def get_gauges_from_file(filename):
     elev = []
     line1 = lines[0]
     line11 = line1.split(',')
+    east_index = len(line11)+1
+    north_index = len(line11)+1
+    name_index = len(line11)+1
+    elev_index = len(line11)+1
     for i in range(len(line11)):
-        if line11[i].strip('\n').strip(' ') == 'Easting': east_index = i
-        if line11[i].strip('\n').strip(' ') == 'Northing': north_index = i
-        if line11[i].strip('\n').strip(' ') == 'Name': name_index = i
-        if line11[i].strip('\n').strip(' ') == 'Elevation': elev_index = i
+        if line11[i].strip('\n').strip(' ').title() == 'Easting': east_index = i
+        if line11[i].strip('\n').strip(' ').title() == 'Northing': north_index = i
+        if line11[i].strip('\n').strip(' ').title() == 'Name': name_index = i
+        if line11[i].strip('\n').strip(' ').title() == 'Elevation': elev_index = i
 
     for line in lines[1:]:
         fields = line.split(',')
-        gauges.append([float(fields[east_index]), float(fields[north_index])])
-        elev.append(float(fields[elev_index]))
-        loc = fields[name_index]
-        gaugelocation.append(loc.strip('\n'))
+        if east_index < len(line11) and north_index < len(line11):
+            gauges.append([float(fields[east_index]), float(fields[north_index])])
+        else:
+            msg = 'WARNING: %s does not contain location information' %(filename)
+            raise Exception, msg
+        if elev_index < len(line11): elev.append(float(fields[elev_index]))
+        if name_index < len(line11):
+            loc = fields[name_index]
+            gaugelocation.append(loc.strip('\n'))
 
     return gauges, gaugelocation, elev
 
@@ -943,8 +953,8 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                 if len(gauges) > 80:
                     ax.plot_surface(model_time[:,:,j],eastings[:,:,j],stages[:,:,j])
                 else:
-                    ax.plot_wireframe(model_time[:,:,j],eastings[:,:,j],stages[:,:,j])
-                    #ax.plot3D(ravel(eastings[:,:,j]),ravel(model_time[:,:,j]),ravel(stages[:,:,j]))
+                    #ax.plot_wireframe(model_time[:,:,j],eastings[:,:,j],stages[:,:,j])
+                    ax.plot3D(ravel(eastings[:,:,j]),ravel(model_time[:,:,j]),ravel(stages[:,:,j]))
                 ax.set_xlabel('time')
                 ax.set_ylabel('x')
                 ax.set_zlabel('stage')
@@ -965,7 +975,8 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
         profilefig = 'solution_xprofile' 
         savefig('profilefig')
                 
-    stage_axis = axis([time_min/60.0, time_max/60.0, min(min_stages), max(max_stages)*1.1])
+    #stage_axis = axis([time_min/60.0, time_max/60.0, min(min_stages), max(max_stages)*1.1])
+    stage_axis = axis([time_min/60.0, time_max/60.0, -3.0, 3.0])    
     vel_axis = axis([time_min/60.0, time_max/60.0, min(max_speeds), max(max_speeds)*1.1])
     mom_axis = axis([time_min/60.0, time_max/60.0, min(max_momentums), max(max_momentums)*1.1])  
     
@@ -1092,7 +1103,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                 s = '\end{tabular} \n \\caption{%s} \n \label{fig:%s} \n \end{figure} \n \n' %(caption, label)
                 fid.write(s)
                 c += 1
-                if c % 25 == 0: fid.write('\\clearpage \n')
+                if c % 6 == 0: fid.write('\\clearpage \n')
                 savefig(graphname_latex)               
                 
         if report == True and len(label_id) > 1:
@@ -1128,7 +1139,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
             s = '\end{tabular} \n \\caption{%s} \n \label{fig:%s} \n \end{figure} \n \n' %(caption, label)
             fid.write(s)
             c += 1
-            if c % 25 == 0: fid.write('\\clearpage \n')          
+            if c % 6 == 0: fid.write('\\clearpage \n')          
             
             #### finished generating figures ###
 
