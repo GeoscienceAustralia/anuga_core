@@ -768,10 +768,10 @@ def get_gauges_from_file(filename):
     name_index = len(line11)+1
     elev_index = len(line11)+1
     for i in range(len(line11)):
-        if line11[i].strip('\n').strip(' ').title() == 'Easting': east_index = i
-        if line11[i].strip('\n').strip(' ').title() == 'Northing': north_index = i
-        if line11[i].strip('\n').strip(' ').title() == 'Name': name_index = i
-        if line11[i].strip('\n').strip(' ').title() == 'Elevation': elev_index = i
+        if line11[i].strip('\n').strip(' ').lower() == 'easting': east_index = i
+        if line11[i].strip('\n').strip(' ').lower() == 'northing': north_index = i
+        if line11[i].strip('\n').strip(' ').lower() == 'name': name_index = i
+        if line11[i].strip('\n').strip(' ').lower() == 'elevation': elev_index = i
 
     for line in lines[1:]:
         fields = line.split(',')
@@ -792,6 +792,8 @@ def check_list(quantity):
     all_quantity = ['stage', 'depth', 'momentum', 'xmomentum',
                     'ymomentum', 'speed', 'bearing', 'elevation']
 
+    for i,j in enumerate(quantity):
+        quantity[i] = quantity[i].lower()
     p = list(set(quantity).difference(set(all_quantity)))
     if len(p) <> 0:
         msg = 'Quantities %s do not exist - please try again' %p
