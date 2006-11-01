@@ -8,7 +8,7 @@
 # The abstract Python-MPI interface
 from anuga_parallel.parallel_abstraction import size, rank, get_processor_name
 from anuga_parallel.parallel_abstraction import finalize, send, receive
-from anuga_parallel.parallel_abstraction import pypar_available
+from anuga_parallel.parallel_abstraction import pypar_available, barrier
 
 
 # ANUGA parallel engine (only load if pypar can)
@@ -60,14 +60,16 @@ def distribute(domain, verbose=False):
     if myid == 0:
         domain_name = domain.get_name()
         domain_dir = domain.get_datadir()
+        georef = domain.geo_reference
+        
         # FIXME - what other attributes need to be transferred?
 
         for p in range(1, numprocs):
-            send((domain_name, domain_dir), p)
+            send((domain_name, domain_dir, georef), p)
     else:
         if verbose: print 'P%d: Receiving domain attributes' %(myid)
 
-        domain_name, domain_dir = receive(0)
+        domain_name, domain_dir, georef = receive(0)
 
 
 
@@ -132,7 +134,8 @@ def distribute(domain, verbose=False):
     # Transfer other attributes to each subdomain
     #------------------------------------------------------------------------
     domain.set_name(domain_name)
-    domain.set_datadir(domain_dir)        
+    domain.set_datadir(domain_dir)     
+    domain.geo_reference = georef   
 
     #------------------------------------------------------------------------
     # Return parallel domain to all nodes
