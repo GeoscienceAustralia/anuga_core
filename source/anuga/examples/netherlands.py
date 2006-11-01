@@ -82,7 +82,7 @@ class Weir:
 N = 150 #size = 45000
 N = 130 #size = 33800
 N = 600 #Size = 720000
-N = 40
+N = 20
 
 
 
@@ -106,7 +106,7 @@ domain.beta_uh_dry = 0.2
 domain.beta_vh     = 1.0
 domain.beta_vh_dry = 0.2
 
-domain.alpha_balance = 10.0
+domain.alpha_balance = 100.0
 
 #Output params
 domain.smooth = False
