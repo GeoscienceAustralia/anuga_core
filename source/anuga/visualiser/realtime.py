@@ -117,7 +117,8 @@ class RealtimeVisualiser(Visualiser):
         self.sync_unpaused.set()
 
     def redraw(self):
-        if self.running:
+        print "Calling redraw"
+        if self.running and self.sync_unpaused.isSet():
             self.sync_redrawReady.wait()
             self.sync_redrawReady.clear()
             self.redraw_quantities()

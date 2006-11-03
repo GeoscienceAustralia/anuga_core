@@ -14,7 +14,7 @@ To create:
    Otherwise raise an exception
 """
 
-from Numeric import array, zeros, Float, concatenate, NewAxis, argmax, allclose
+from Numeric import array, zeros, Float, less, concatenate, NewAxis, argmax, allclose
 from anuga.utilities.numerical_tools import ensure_numeric
 
 class Quantity:

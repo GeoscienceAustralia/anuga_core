@@ -32,7 +32,7 @@ class Set_Stage:
     def __call__(self, x, y):
         return self.h0 + self.h*((x>self.x0)&(x<self.x1)&(y>self.y0)&(y<self.y1))
 
-M = 30
+M = 10
 points, vertices, boundary = rectangular(M, M, len1 = 1.0, len2 = 1.0)
 
 yieldstep = 0.002
