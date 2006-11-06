@@ -29,8 +29,12 @@ import pypar
 
 class Parallel_Domain(Domain):
 
-    def __init__(self, coordinates, vertices, boundary = None,
-                 full_send_dict = None, ghost_recv_dict = None):
+    def __init__(self, coordinates, vertices,
+                 boundary=None,
+                 full_send_dict=None,
+                 ghost_recv_dict=None,
+                 number_of_full_nodes=0,
+                 number_of_full_triangles=0):
 
         Domain.__init__(self,
                         coordinates,
@@ -39,7 +43,9 @@ class Parallel_Domain(Domain):
                         full_send_dict=full_send_dict,
                         ghost_recv_dict=ghost_recv_dict,
                         processor=pypar.rank(),
-                        numproc=pypar.size())
+                        numproc=pypar.size(),
+                        number_of_full_nodes=number_of_full_nodes,
+                        number_of_full_triangles=number_of_full_triangles)
 
         N = self.number_of_elements
 

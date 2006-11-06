@@ -34,6 +34,11 @@ from parallel_api import distribute, myid, numprocs
 # Setup computational domain
 #--------------------------------------------------------------------------
 points, vertices, boundary = rectangular_cross(10, 10) # Basic mesh
+
+#if myid == 0:
+#    print 'points', points
+#    print 'vertices', vertices
+    
 domain = Domain(points, vertices, boundary) # Create domain
 
 #--------------------------------------------------------------------------

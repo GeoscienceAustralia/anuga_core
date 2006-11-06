@@ -110,7 +110,9 @@ class Domain(Generic_Domain):
                  full_send_dict=None,
                  ghost_recv_dict=None,
                  processor=0,
-                 numproc=1):
+                 numproc=1,
+                 number_of_full_nodes=0,
+                 number_of_full_triangles=0):
 
 
         conserved_quantities = ['stage', 'xmomentum', 'ymomentum']
@@ -130,8 +132,9 @@ class Domain(Generic_Domain):
                                 full_send_dict,
                                 ghost_recv_dict,
                                 processor,
-                                numproc)
-
+                                numproc,
+                                number_of_full_nodes=number_of_full_nodes,
+                                number_of_full_triangles=number_of_full_triangles) 
 
         self.minimum_allowed_height = minimum_allowed_height
         self.maximum_allowed_speed = maximum_allowed_speed

@@ -355,7 +355,7 @@ class Data_format_sww(Data_format):
         # Get X, Y and bed elevation Z
         Q = domain.quantities['elevation']
         X,Y,Z,V = Q.get_vertex_values(xy=True,
-                      precision = self.precision)
+                                      precision=self.precision)
 
 
 

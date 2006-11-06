@@ -45,7 +45,9 @@ class Domain(Mesh):
                  full_send_dict=None,
                  ghost_recv_dict=None,
                  processor=0,
-                 numproc=1):
+                 numproc=1,
+                 number_of_full_nodes=0,
+                 number_of_full_triangles=0):
 
 
         """Instantiate generic computational Domain.
@@ -125,16 +127,19 @@ class Domain(Mesh):
             self.full_send_dict  = full_send_dict
 
         # List of other quantity names
-        if ghost_recv_dict  is None:
-            self.ghost_recv_dict  = {}
+        if ghost_recv_dict is None:
+            self.ghost_recv_dict = {}
         else:
-            self.ghost_recv_dict  = ghost_recv_dict
+            self.ghost_recv_dict = ghost_recv_dict
 
         self.processor = processor
-        self.numproc   = numproc
+        self.numproc = numproc
+
+        self.number_of_full_nodes=number_of_full_nodes
+        self.number_of_full_triangles=number_of_full_triangles
+        
 
         # Setup Communication Buffers
-
         if verbose: print 'Domain: Set up communication buffers (parallel)'
         self.nsys = len(self.conserved_quantities)
         for key in self.full_send_dict:

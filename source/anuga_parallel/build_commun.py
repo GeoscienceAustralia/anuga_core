@@ -269,7 +269,8 @@ def rec_submesh_flat(p):
         submesh_cell["ghost_quan"][qkeys[i]]= zeros((no_ghost_triangles,3), Float)
         submesh_cell["ghost_quan"][qkeys[i]][:] = tmp[:]
     
-    return submesh_cell, triangles_per_proc
+    return submesh_cell, triangles_per_proc,\
+           no_full_nodes, no_full_triangles
 
 
 
@@ -295,7 +296,8 @@ def rec_submesh(p):
     numproc = pypar.size()
     myid = pypar.rank()
 
-    [submesh_cell, triangles_per_proc] = rec_submesh_flat(p)
+    [submesh_cell, triangles_per_proc,\
+     number_of_full_nodes, number_of_full_triangles] = rec_submesh_flat(p)
     
     # find the full triangles assigned to this processor
 
@@ -311,7 +313,10 @@ def rec_submesh(p):
               build_local_mesh(submesh_cell, lower_t, upper_t, \
                                numproc)
     
-    return GAnodes, GAtriangles, boundary, quantities, ghost_rec, full_send
+    return GAnodes, GAtriangles, boundary, quantities,\
+           ghost_rec, full_send,\
+           number_of_full_nodes, number_of_full_triangles
+
 
 #########################################################
 #

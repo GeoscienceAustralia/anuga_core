@@ -3,7 +3,7 @@
 
 """
 
-# Parallelism
+from Numeric import zeros
 
 # The abstract Python-MPI interface
 from anuga_parallel.parallel_abstraction import size, rank, get_processor_name
@@ -20,7 +20,6 @@ if pypar_available:
 
     # Mesh partitioning using Metis
     from anuga_parallel.build_submesh import build_submesh
-    from anuga_parallel.build_local   import build_local_mesh
     from anuga_parallel.pmesh_divide  import pmesh_divide_metis
 
 
@@ -96,7 +95,9 @@ def distribute(domain, verbose=False):
 
         points, vertices, boundary, quantities,\
                 ghost_recv_dict, full_send_dict,\
-                = distribute_mesh(domain)
+                number_of_full_nodes, number_of_full_triangles =\
+                distribute_mesh(domain)
+
 
         if verbose: print 'Communication done'
         
@@ -106,15 +107,19 @@ def distribute(domain, verbose=False):
         if verbose: print 'P%d: Receiving submeshes' %(myid)                
         points, vertices, boundary, quantities,\
                 ghost_recv_dict, full_send_dict,\
-                = rec_submesh(0)
+                number_of_full_nodes, number_of_full_triangles =\
+                rec_submesh(0)
 
 
     #------------------------------------------------------------------------
     # Build the domain for this processor using partion structures
     #------------------------------------------------------------------------
+
     domain = Parallel_Domain(points, vertices, boundary,
-                             full_send_dict  = full_send_dict,
-                             ghost_recv_dict = ghost_recv_dict)
+                             full_send_dict=full_send_dict,
+                             ghost_recv_dict=ghost_recv_dict,
+                             number_of_full_nodes=number_of_full_nodes,
+                             number_of_full_triangles=number_of_full_triangles)
 
     #------------------------------------------------------------------------
     # Transfer initial conditions to each subdomain
@@ -147,7 +152,6 @@ def distribute(domain, verbose=False):
 
 
 
-
 def distribute_mesh(domain):
 
     numprocs = size()
@@ -165,18 +169,56 @@ def distribute_mesh(domain):
     submesh = build_submesh(nodes, triangles, boundary,\
                             quantities, triangles_per_proc)
 
+    for p in range(numprocs):
+        M = len(submesh['ghost_triangles'][p])
+        print 'There are %d ghost triangles on proc %d' %(M, p)
+        N = len(submesh['ghost_nodes'][p])
+        print 'There are %d ghost nodes on proc %d' %(N, p)
+
+
     # Send the mesh partition to the appropriate processor
     print 'Distribute submeshes'        
     for p in range(1, numprocs):
       send_submesh(submesh, triangles_per_proc, p)
 
     # Build the local mesh for processor 0
-    points, vertices, boundary, quantities, ghost_recv_dict, full_send_dict = \
+    points, vertices, boundary, quantities, ghost_recv_dict, full_send_dict =\
               extract_hostmesh(submesh, triangles_per_proc)
 
+    # Keep track of the number full nodes and triangles.
+    # This is useful later if one needs access to a ghost-free domain
+    # Here, we do it for process 0. The others are done in rec_submesh.
+    number_of_full_nodes = len(submesh['full_nodes'][0])
+    number_of_full_triangles = len(submesh['full_triangles'][0])
+        
+    #print
+    #for p in range(numprocs):
+    #    print 'Process %d:' %(p)
+    #
+    #    print 'full_triangles:'
+    #    print submesh['full_triangles'][p]
+    #
+    #    print 'full_nodes:'
+    #    print submesh['full_nodes'][p]
+    #
+    #    print 'ghost_triangles:'
+    #    print submesh['ghost_triangles'][p]#
+    #
+    #    print 'ghost_nodes:'
+    #   print submesh['ghost_nodes'][p]                                
+    #    print
+    #
+    #print 'Receive dict'
+    #print ghost_recv_dict
+    #
+    #print 'Send dict'
+    #print full_send_dict        
+
+
     # Return structures necessary for building the parallel domain
-    return points, vertices, boundary, quantities, \
-           ghost_recv_dict, full_send_dict
+    return points, vertices, boundary, quantities,\
+           ghost_recv_dict, full_send_dict,\
+           number_of_full_nodes, number_of_full_triangles
     
 
 
