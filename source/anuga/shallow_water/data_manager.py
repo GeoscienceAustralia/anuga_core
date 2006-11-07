@@ -4145,6 +4145,7 @@ def urs2sww(basename_in='o', basename_out=None, verbose=False,
             minlon= None, maxlon=None,
             mint=None, maxt=None,
             mean_stage=0,
+            origin = None,
             zscale=1,
             fail_on_NaN=True,
             NaN_filler=0,
@@ -4163,7 +4164,8 @@ def urs2sww(basename_in='o', basename_out=None, verbose=False,
 
     min's and max's: If omitted - full extend is used.
     To include a value min may equal it, while max must exceed it.
-    Lat and lon are assuemd to be in decimal degrees
+    Lat and lon are assumed to be in decimal degrees. 
+    NOTE: min Lon is the most east boundary.
 
     URS C binary format has data orgainised as TIME, LONGITUDE, LATITUDE
     which means that latitude is the fastest
@@ -4182,6 +4184,7 @@ def urs2sww(basename_in='o', basename_out=None, verbose=False,
                mint=mint,
                maxt=maxt,
                mean_stage=mean_stage,
+               origin=origin,
                zscale=zscale,
                fail_on_NaN=fail_on_NaN,
                NaN_filler=NaN_filler,
