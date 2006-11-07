@@ -5,11 +5,14 @@ of their own.
 """
 
 import anuga.utilities.polygon
+import sys
+
+from os import remove, mkdir, access, F_OK, sep
+from os.path import exists
 from warnings import warn
+from shutil import copy
 
 from anuga.geospatial_data.geospatial_data import ensure_absolute
-
-
 
 def file_function(filename,
                   domain=None,
@@ -496,24 +499,35 @@ def populate_polygon(*args, **kwargs):
     return utilities.polygon.populate_polygon(*args, **kwargs)    
 
 ##################### end of obsolete stuff ? ############
-'''
-this simply catches the screen output and files it to a file
-'''
-from os import sep
 
-class Screen_Catcher:
+def start_screen_catcher(dirname, myid, numprocs):
+    """Used to store screen output and errors to file, if run on multiple 
+    processes eachprocessor will have its own output and error file.
+    """
 
+    dirname = dirname
+    screen_output_name = dirname + "screen_output_%d_%d.txt" %(myid,numprocs)
+    screen_error_name = dirname + "screen_error_%d_%d.txt" %(myid,numprocs)
+
+    #used to catch screen output to file
+    sys.stdout = screen_catcher(screen_output_name)
+    sys.stderr = screen_catcher(screen_error_name)
+
+class screen_catcher:
+    """this simply catches the screen output and stores it to file defined by
+    start_screen_catcher (above)
+    """
+    
     def __init__(self, filename):
-#        self.data = ''
         self.filename = filename
+        if exists(self.filename)is True:
+            remove(self.filename)
+            print'Old existing file "%s" has been deleted' %(self.filename)
 
     def write(self, stuff):
         fid = open(self.filename, 'a')
-#        fid = open(self.filename, 'w')
-#        self.data = self.data + stuff
         fid.write(stuff)
-        fid.close()
-        
+
 def get_version_info():
     """gets the version number of the SVN
     """
@@ -1148,3 +1162,22 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
         close('all')
     
     return texfile2, elev_output
+
+from os.path import basename
+
+def copy_code_files(dir_name, filename1, filename2):
+    """Copies "filename1" and "filename2" to "dir_name". Very useful for 
+    information management """
+
+    if access(dir_name,F_OK) == 0:
+        print 'Make directory %s' %dir_name
+        mkdir (dir_name,0777)
+    copy(filename1, dir_name + sep + basename(filename1))
+    copy(filename2, dir_name + sep + basename(filename2))
+#    copy (__file__, project.output_run_time_dir + basename(__file__))
+    print 'Files %s and %s copied' %(filename1, filename2)
+
+
+
+
+

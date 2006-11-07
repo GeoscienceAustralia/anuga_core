@@ -1158,7 +1158,7 @@ class Test_Util(unittest.TestCase):
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Util,'test')
-    #suite = unittest.makeSuite(Test_Util,'test_apply')
+    #suite = unittest.makeSuite(Test_Util,'test_get_version_info')
     runner = unittest.TextTestRunner()
     runner.run(suite)
 

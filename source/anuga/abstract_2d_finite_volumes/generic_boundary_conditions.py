@@ -184,7 +184,8 @@ class File_boundary(Boundary):
     # FIXME (Ole): I kind of like the name Spatio_Temporal_boundary for this
     # rather than File_boundary
 
-    def __init__(self, filename, domain, verbose = False):
+    def __init__(self, filename, domain, time_thinning=1, 
+                 use_cache=False, verbose=False):
         import time
         from Numeric import array, zeros, Float
         from anuga.config import time_format
@@ -239,7 +240,9 @@ class File_boundary(Boundary):
         if verbose: print 'Initialise file_function'
         self.F = file_function(filename, domain,
 	                       interpolation_points=self.midpoint_coordinates,
-                               verbose=verbose)
+                           time_thinning=time_thinning,
+                           use_cache=use_cache, 
+                           verbose=verbose)
         self.domain = domain
 
         #Test
