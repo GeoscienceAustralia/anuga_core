@@ -66,6 +66,8 @@ class Mesh(General_mesh):
                  boundary=None,
                  tagged_elements=None,
                  geo_reference=None,
+                 number_of_full_nodes=None,
+                 number_of_full_triangles=None,
                  use_inscribed_circle=False,
                  verbose=False):
         """
@@ -79,11 +81,16 @@ class Mesh(General_mesh):
         from Numeric import array, zeros, Int, Float, maximum, sqrt, sum
 
         General_mesh.__init__(self, coordinates, triangles,
-                              geo_reference, verbose=verbose)
+                              number_of_full_nodes=\
+                              number_of_full_nodes,
+                              number_of_full_triangles=\
+                              number_of_full_triangles,
+                              geo_reference=geo_reference,
+                              verbose=verbose)
 
         if verbose: print 'Initialising mesh'         
 
-        N = self.number_of_elements
+        N = len(self) #Number_of_triangles
 
         self.use_inscribed_circle = use_inscribed_circle
 
@@ -180,7 +187,7 @@ class Mesh(General_mesh):
 
     def set_to_inscribed_circle(self,safety_factor = 1):
         #FIXME phase out eventually
-        N = self.number_of_elements
+        N = self.number_of_triangles
         V = self.vertex_coordinates
 
         #initialising min and max ratio
@@ -224,7 +231,7 @@ class Mesh(General_mesh):
         #Build dictionary mapping from segments (2-tuple of points)
         #to left hand side edge (facing neighbouring triangle)
 
-        N = self.number_of_elements
+        N = len(self) #Number_of_triangles
         neighbourdict = {}
         for i in range(N):
 
@@ -288,7 +295,7 @@ class Mesh(General_mesh):
 
         """
 
-        N = self.number_of_elements
+        N = len(self) #Number of triangles
         for i in range(N):
             #Find all neighbouring volumes that are not boundaries
             for k in range(3):
@@ -313,7 +320,7 @@ class Mesh(General_mesh):
 
         if boundary is None:
             boundary = {}
-            for vol_id in range(self.number_of_elements):
+            for vol_id in range(len(self)):
                 for edge_id in range(0, 3):
                     if self.neighbours[vol_id, edge_id] < 0:
                         boundary[(vol_id, edge_id)] = default_boundary_tag
@@ -329,7 +336,7 @@ class Mesh(General_mesh):
                 #assert self.neighbours[vol_id, edge_id] < 0, msg
 
             #Check that all boundary segments are assigned a tag
-            for vol_id in range(self.number_of_elements):
+            for vol_id in range(len(self)):
                 for edge_id in range(0, 3):
                     if self.neighbours[vol_id, edge_id] < 0:
                         if not boundary.has_key( (vol_id, edge_id) ):
@@ -373,7 +380,7 @@ class Mesh(General_mesh):
                 tagged_elements[tag] = array(tagged_elements[tag]).astype(Int)
 
                 msg = 'Not all elements exist. '
-                assert max(tagged_elements[tag]) < self.number_of_elements, msg
+                assert max(tagged_elements[tag]) < len(self), msg
         #print "tagged_elements", tagged_elements
         self.tagged_elements = tagged_elements
 
@@ -583,7 +590,7 @@ class Mesh(General_mesh):
         from anuga.config import epsilon
         from anuga.utilities.numerical_tools import anglediff
 
-        N = self.number_of_elements
+        N = len(self)
         #Get x,y coordinates for all vertices for all triangles
         V = self.get_vertex_coordinates()
         #Check each triangle
@@ -731,7 +738,7 @@ class Mesh(General_mesh):
 
         str =  '------------------------------------------------\n'
         str += 'Mesh statistics:\n'
-        str += '  Number of triangles = %d\n' %self.number_of_elements
+        str += '  Number of triangles = %d\n' %len(self)
         str += '  Extent [m]:\n'
         str += '    x in [%f, %f]\n' %(min(x), max(x))
         str += '    y in [%f, %f]\n' %(min(y), max(y))

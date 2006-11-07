@@ -28,7 +28,7 @@ class Quantity:
         assert isinstance(domain, Mesh), msg
 
         if vertex_values is None:
-            N = domain.number_of_elements
+            N = len(domain) # number_of_elements
             self.vertex_values = zeros((N, 3), Float)
         else:
             self.vertex_values = array(vertex_values).astype(Float)
@@ -41,9 +41,9 @@ class Quantity:
             msg = 'Number of vertex values (%d) must be consistent with'\
                   %N
             msg += 'number of elements in specified domain (%d).'\
-                   %domain.number_of_elements
+                   %len(domain)
 
-            assert N == domain.number_of_elements, msg
+            assert N == len(domain), msg
 
         self.domain = domain
 
@@ -1134,7 +1134,7 @@ class Quantity:
         """Compute the integral of quantity across entire domain
         """
         integral = 0
-        for k in range(self.domain.number_of_elements):
+        for k in range(len(self.domain)):
             area = self.domain.areas[k]
             qc = self.centroid_values[k]
             integral += qc*area
@@ -1164,7 +1164,7 @@ class Conserved_quantity(Quantity):
         #Allocate space for updates of conserved quantities by
         #flux calculations and forcing functions
 
-        N = domain.number_of_elements
+        N = len(domain) # number_of_triangles
         self.explicit_update = zeros(N, Float )
         self.semi_implicit_update = zeros(N, Float )
 
@@ -1292,7 +1292,7 @@ def extrapolate_second_order(quantity):
     qv = quantity.vertex_values
 
     #Check each triangle
-    for k in range(quantity.domain.number_of_elements):
+    for k in range(len(quantity.domain)):
         #Centroid coordinates
         x, y = quantity.domain.centroid_coordinates[k]
 
@@ -1388,7 +1388,7 @@ def limit(quantity):
 
     from Numeric import zeros, Float
 
-    N = quantity.domain.number_of_elements
+    N = len(quantity.domain)
 
     beta_w = quantity.domain.beta_w
 

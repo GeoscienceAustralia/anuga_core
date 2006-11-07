@@ -168,7 +168,7 @@ class Domain(Generic_domain):
         from Numeric import zeros, Float
         from anuga.config import max_timestep
 
-        N = self.number_of_elements
+        N = len(self)
 
         neighbours = self.neighbours
         neighbour_edges = self.neighbour_edges
@@ -259,7 +259,7 @@ class Domain(Generic_domain):
         import weave
         from weave import converters
 
-        N = self.number_of_elements
+        N = len(self)
 
 
         timestep    = zeros( 1, Float);

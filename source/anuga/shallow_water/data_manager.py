@@ -212,12 +212,20 @@ class Data_format:
 
         #Create filename
         self.filename = create_filename(domain.get_datadir(),
-            domain.get_name(), extension)
+                                        domain.get_name(), extension)
 
         #print 'F', self.filename
         self.timestep = 0
-        self.number_of_volumes = len(domain)
         self.domain = domain
+        
+
+
+        # Exclude ghosts in case this is a parallel domain
+        self.number_of_nodes = domain.number_of_full_nodes        
+        self.number_of_volumes = domain.number_of_full_triangles
+        #self.number_of_volumes = len(domain)        
+
+
 
 
         #FIXME: Should we have a general set_precision function?
@@ -276,7 +284,7 @@ class Data_format_sww(Data_format):
 
             if hasattr(domain, 'texture'):
                 fid.texture = domain.texture
-        #else:
+            #else:
             #    fid.texture = 'None'
 
             #Reference point
@@ -290,6 +298,12 @@ class Data_format_sww(Data_format):
 
             if domain.smooth is True:
                 fid.createDimension('number_of_points', len(domain.vertexlist))
+                #fid.createDimension('number_of_points', self.number_of_nodes)
+
+                # FIXME(Ole): This will cause sww files for paralle domains to
+                # have ghost nodes stored (but not used by triangles).
+                # To clean this up, we have to change get_vertex_values and friends in
+                # quantity.py (but I can't be bothered right now)
             else:
                 fid.createDimension('number_of_points', 3*self.number_of_volumes)
 

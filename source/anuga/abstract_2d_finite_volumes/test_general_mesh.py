@@ -27,7 +27,6 @@ class Test_General_Mesh(unittest.TestCase):
         points, vertices, boundary = rectangular(1, 3)
         domain = General_mesh(points, vertices)
 
-        print domain.__class__
 
         assert allclose(domain.get_vertex_coordinates(unique=True), domain.coordinates)
 

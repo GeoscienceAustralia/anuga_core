@@ -111,8 +111,8 @@ class Domain(Generic_Domain):
                  ghost_recv_dict=None,
                  processor=0,
                  numproc=1,
-                 number_of_full_nodes=0,
-                 number_of_full_triangles=0):
+                 number_of_full_nodes=None,
+                 number_of_full_triangles=None):
 
 
         conserved_quantities = ['stage', 'xmomentum', 'ymomentum']
@@ -745,7 +745,7 @@ def compute_fluxes(domain):
 
     import sys
 
-    N = domain.number_of_elements
+    N = len(domain) # number_of_triangles
 
     #Shortcuts
     Stage = domain.quantities['stage']
@@ -819,7 +819,7 @@ def extrapolate_second_order_sw_c(domain):
     """
     import sys
 
-    N = domain.number_of_elements
+    N = len(domain) # number_of_triangles
 
     #Shortcuts
     Stage = domain.quantities['stage']
@@ -847,7 +847,7 @@ def compute_fluxes_c(domain):
 
     import sys
 
-    N = domain.number_of_elements
+    N = len(domain) # number_of_triangles
 
     #Shortcuts
     Stage = domain.quantities['stage']
@@ -959,8 +959,8 @@ def protect_against_infinitesimal_and_negative_heights(domain):
     hc = wc - zc  #Water depths at centroids
 
     #Update
-    #FIXME: Modify accroditg to c-version - or discard altogether.
-    for k in range(domain.number_of_elements):
+    #FIXME: Modify according to c-version - or discard altogether.
+    for k in range(len(domain)):
 
         if hc[k] < domain.minimum_allowed_height:
             #Control stage
@@ -998,7 +998,7 @@ def h_limiter(domain):
     this module rather than within quantity.py
     """
 
-    N = domain.number_of_elements
+    N = len(domain)
     beta_h = domain.beta_h
 
     #Shortcuts
@@ -1068,7 +1068,7 @@ def h_limiter_c(domain):
     Wrapper for c-extension
     """
 
-    N = domain.number_of_elements
+    N = len(domain) # number_of_triangles
     beta_h = domain.beta_h
 
     #Shortcuts
@@ -1113,7 +1113,7 @@ def balance_deep_and_shallow(domain):
     #Limit h
     hvbar = h_limiter(domain)
 
-    for k in range(domain.number_of_elements):
+    for k in range(len(domain)):
         #Compute maximal variation in bed elevation
         #  This quantitiy is
         #    dz = max_i abs(z_i - z_c)
@@ -1401,7 +1401,7 @@ def gravity(domain):
     x = domain.get_vertex_coordinates()
     g = domain.g
 
-    for k in range(domain.number_of_elements):
+    for k in range(len(domain)):
         avg_h = sum( h[k,:] )/3
 
         #Compute bed slope
@@ -1453,7 +1453,7 @@ def manning_friction(domain):
     xmom_update = domain.quantities['xmomentum'].semi_implicit_update
     ymom_update = domain.quantities['ymomentum'].semi_implicit_update
 
-    N = domain.number_of_elements
+    N = len(domain)
     eps = domain.minimum_allowed_height
     g = domain.g
 
@@ -1488,7 +1488,7 @@ def manning_friction_implicit_c(domain):
     xmom_update = xmom.semi_implicit_update
     ymom_update = ymom.semi_implicit_update
 
-    N = domain.number_of_elements
+    N = len(domain)
     eps = domain.minimum_allowed_height
     g = domain.g
 
@@ -1515,7 +1515,7 @@ def manning_friction_explicit_c(domain):
     xmom_update = xmom.explicit_update
     ymom_update = ymom.explicit_update
 
-    N = domain.number_of_elements
+    N = len(domain)
     eps = domain.minimum_allowed_height
     g = domain.g
 
@@ -1542,7 +1542,7 @@ def linear_friction(domain):
     xmom_update = domain.quantities['xmomentum'].semi_implicit_update
     ymom_update = domain.quantities['ymomentum'].semi_implicit_update
 
-    N = domain.number_of_elements
+    N = len(domain) # number_of_triangles
     eps = domain.minimum_allowed_height
     g = domain.g #Not necessary? Why was this added?
 
@@ -1680,7 +1680,7 @@ class Wind_stress:
         xmom_update = domain.quantities['xmomentum'].explicit_update
         ymom_update = domain.quantities['ymomentum'].explicit_update
 
-        N = domain.number_of_elements
+        N = len(domain) # number_of_triangles
         t = domain.time
 
         if callable(self.speed):
@@ -1766,7 +1766,7 @@ def balance_deep_and_shallow_old(domain):
 
     #Computed linear combination between constant stages and and
     #stages parallel to the bed elevation.
-    for k in range(domain.number_of_elements):
+    for k in range(len(domain)):
         #Compute maximal variation in bed elevation
         #  This quantitiy is
         #    dz = max_i abs(z_i - z_c)
@@ -2033,7 +2033,7 @@ def compute_fluxes_python(domain):
     import sys
     from Numeric import zeros, Float
 
-    N = domain.number_of_elements
+    N = len(domain) # number_of_triangles
 
     #Shortcuts
     Stage = domain.quantities['stage']

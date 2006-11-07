@@ -170,10 +170,10 @@ def distribute_mesh(domain):
                             quantities, triangles_per_proc)
 
     for p in range(numprocs):
+        N = len(submesh['ghost_nodes'][p])                
         M = len(submesh['ghost_triangles'][p])
-        print 'There are %d ghost triangles on proc %d' %(M, p)
-        N = len(submesh['ghost_nodes'][p])
-        print 'There are %d ghost nodes on proc %d' %(N, p)
+        print 'There are %d ghost nodes and %d ghost triangles on proc %d'\
+              %(N, M, p)
 
 
     # Send the mesh partition to the appropriate processor

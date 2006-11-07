@@ -95,17 +95,14 @@ for i, point in enumerate(interpolation_points):
         #print 'P%d: point=[%f,%f]' %(myid, point[0], point[1])
         local_interpolation_points.append(i)
 
-# Hack
+# Hack before we excluded ghosts.
 if numprocs == 2:
     if myid == 0:
         del local_interpolation_points[0]                
         #local_interpolation_points = [1,2,3]
-
 if numprocs == 3:
     if myid == 1:
         del local_interpolation_points[0]
-
-
 if numprocs == 4:
     if myid == 0:
         del local_interpolation_points[1] #2
@@ -121,8 +118,7 @@ print 'P%d has points = %s' %(myid, local_interpolation_points)
 time = []
 
 for t in domain.evolve(yieldstep = 0.1, finaltime = 5.0):
-    #domain.write_time()
-
+    domain.write_time()
     
     # Record time series at known points
     time.append(domain.get_time())

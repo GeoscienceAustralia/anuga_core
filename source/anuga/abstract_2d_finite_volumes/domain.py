@@ -46,8 +46,8 @@ class Domain(Mesh):
                  ghost_recv_dict=None,
                  processor=0,
                  numproc=1,
-                 number_of_full_nodes=0,
-                 number_of_full_triangles=0):
+                 number_of_full_nodes=None,
+                 number_of_full_triangles=None):
 
 
         """Instantiate generic computational Domain.
@@ -86,8 +86,13 @@ class Domain(Mesh):
 
 
         # Initialise underlying mesh structure
-        Mesh.__init__(self, coordinates, triangles, boundary,
-                      tagged_elements, geo_reference, use_inscribed_circle,
+        Mesh.__init__(self, coordinates, triangles,
+                      boundary=boundary,
+                      tagged_elements=tagged_elements,
+                      geo_reference=geo_reference,
+                      use_inscribed_circle=use_inscribed_circle,
+                      number_of_full_nodes=number_of_full_nodes,
+                      number_of_full_triangles=number_of_full_triangles,
                       verbose=verbose)
 
         if verbose: print 'Initialising Domain'
@@ -135,9 +140,6 @@ class Domain(Mesh):
         self.processor = processor
         self.numproc = numproc
 
-        self.number_of_full_nodes=number_of_full_nodes
-        self.number_of_full_triangles=number_of_full_triangles
-        
 
         # Setup Communication Buffers
         if verbose: print 'Domain: Set up communication buffers (parallel)'
@@ -155,7 +157,7 @@ class Domain(Mesh):
         # Setup cell full flag
         # =1 for full
         # =0 for ghost
-        N=self.number_of_elements
+        N = len(self) #number_of_elements
         self.tri_full_flag = ones(N, Int)
         for i in self.ghost_recv_dict.keys():
             for id in self.ghost_recv_dict[i][0]:
@@ -205,7 +207,7 @@ class Domain(Mesh):
 
         #MH310505 To avoid calculating the flux across each edge twice, keep an integer (boolean) array,
         #to be used during the flux calculation
-        N=self.number_of_elements
+        N = len(self) #number_of_triangles
         self.already_computed_flux = zeros((N, 3), Int)
 
         if mesh_filename is not None:
@@ -922,7 +924,7 @@ class Domain(Mesh):
 
         from Numeric import ones, sum, equal, Float
 
-        N = self.number_of_elements
+        N = len(self) #number_of_triangles
         d = len(self.conserved_quantities)
 
         timestep = self.timestep

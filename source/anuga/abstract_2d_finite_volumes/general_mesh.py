@@ -55,6 +55,8 @@ class General_mesh:
     #FIXME: It would be a good idea to use geospatial data as an alternative
     #input
     def __init__(self, coordinates, triangles,
+                 number_of_full_nodes=None,
+                 number_of_full_triangles=None,                 
                  geo_reference=None,
                  verbose=False):
         """
@@ -64,13 +66,44 @@ class General_mesh:
 
         origin is a 3-tuple consisting of UTM zone, easting and northing.
         If specified coordinates are assumed to be relative to this origin.
+
+
+        number_of_full_nodes and number_of_full_triangles relate to
+        parallelism when each mesh has an extra layer of ghost points and
+        ghost triangles attached to the end of the two arrays.
+        In this case it is usefull to specify the number of real (called full)
+        nodes and triangles. If omitted they will default to all.
         """
 
         if verbose: print 'General_mesh: Building basic mesh structure' 
 
         self.triangles = array(triangles,Int)
         self.coordinates = array(coordinates,Float)
+
+        # Register number of elements and nodes 
+        self.number_of_triangles = N = self.triangles.shape[0]
+        self.number_of_nodes = self.coordinates.shape[0]        
+
         
+
+        if number_of_full_nodes is None:
+            self.number_of_full_nodes=self.number_of_nodes
+        else:
+            assert int(number_of_full_nodes)
+            self.number_of_full_nodes=number_of_full_nodes            
+
+
+        if number_of_full_triangles is None:
+            self.number_of_full_triangles=self.number_of_triangles           
+        else:
+            assert int(number_of_full_triangles)            
+            self.number_of_full_triangles=number_of_full_triangles
+        
+        
+        #print self.number_of_full_nodes, self.number_of_nodes
+        #print self.number_of_full_triangles, self.number_of_triangles
+        
+            
 
         # FIXME: this stores a geo_reference, but when coords are returned
         # This geo_ref is not taken into account!
@@ -93,9 +126,6 @@ class General_mesh:
         msg = 'Vertex indices reference non-existing coordinate sets'
         assert max(max(self.triangles)) <= self.coordinates.shape[0], msg
 
-
-        # Register number of elements (N)
-        self.number_of_elements = N = self.triangles.shape[0]
 
         # FIXME: Maybe move to statistics?
         # Or use with get_extent
@@ -174,7 +204,8 @@ class General_mesh:
             
 
     def __len__(self):
-        return self.number_of_elements
+        return self.number_of_triangles
+    
 
     def __repr__(self):
         return 'Mesh: %d vertices, %d triangles'\
@@ -212,8 +243,10 @@ class General_mesh:
         (To see which, switch to default absolute=True and run tests).
         """
 
+        N = self.number_of_full_nodes
+
         if unique is True:
-            V = self.coordinates
+            V = self.coordinates[:N,:]
             if absolute is True:
                 if not self.geo_reference.is_absolute():
                     V = self.geo_reference.get_absolute(V)
@@ -226,9 +259,9 @@ class General_mesh:
         if absolute is True:
             if not self.geo_reference.is_absolute():
             
-                V0 = self.geo_reference.get_absolute(V[:,0:2])
-                V1 = self.geo_reference.get_absolute(V[:,2:4])
-                V2 = self.geo_reference.get_absolute(V[:,4:6])
+                V0 = self.geo_reference.get_absolute(V[:N,0:2])
+                V1 = self.geo_reference.get_absolute(V[:N,2:4])
+                V2 = self.geo_reference.get_absolute(V[:N,4:6])
 
                 # This does double the memory need 
                 V = concatenate( (V0, V1, V2), axis=1 )
@@ -261,7 +294,7 @@ class General_mesh:
         #See quantity.get_vertex_values
         #FIXME (Ole) - oh yes they should
 
-        N = self.number_of_elements
+        N = self.number_of_triangles
         vertex_coordinates = zeros((N, 6), Float)
 
         for i in range(N):
@@ -278,10 +311,14 @@ class General_mesh:
         indices is the set of element ids of interest
         """
 
-        if (indices ==  None):
-            indices = range(len(self))  #len(self)=number of elements
+        N = self.number_of_full_triangles
+
+        if indices is None:
+            #indices = range(len(self))  #len(self)=number of elements
+            indices = range(N)
 
         return  take(self.triangles, indices)
+    
 
     #FIXME - merge these two (get_vertices and get_triangles)
     def get_triangles(self, obj=False):
@@ -313,6 +350,7 @@ class General_mesh:
            unique_verts[triangle[2]] = 0
         return unique_verts.keys()
 
+
     def build_vertexlist(self):
         """Build vertexlist index by vertex ids and for each entry (point id)
         build a list of (triangles, vertex_id) pairs that use the point
@@ -326,7 +364,7 @@ class General_mesh:
         """
 
         vertexlist = [None]*len(self.coordinates)
-        for i in range(self.number_of_elements):
+        for i in range(self.number_of_triangles):
 
             a = self.triangles[i, 0]
             b = self.triangles[i, 1]

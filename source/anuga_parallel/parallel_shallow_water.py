@@ -33,8 +33,8 @@ class Parallel_Domain(Domain):
                  boundary=None,
                  full_send_dict=None,
                  ghost_recv_dict=None,
-                 number_of_full_nodes=0,
-                 number_of_full_triangles=0):
+                 number_of_full_nodes=None,
+                 number_of_full_triangles=None):
 
         Domain.__init__(self,
                         coordinates,
@@ -47,7 +47,7 @@ class Parallel_Domain(Domain):
                         number_of_full_nodes=number_of_full_nodes,
                         number_of_full_triangles=number_of_full_triangles)
 
-        N = self.number_of_elements
+        N = len(self) # number_of_triangles
 
 #        self.processor = pypar.rank()
 #        self.numproc   = pypar.size()

@@ -1310,7 +1310,7 @@ class Test_Shallow_Water(unittest.TestCase):
         #Compute reference solution
         const = eta_w*rho_a/rho_w
 
-        N = domain.number_of_elements
+        N = len(domain) # number_of_triangles
 
         xc = domain.get_centroid_coordinates()
         t = domain.time
@@ -1426,7 +1426,7 @@ class Test_Shallow_Water(unittest.TestCase):
         #Compute reference solution
         const = eta_w*rho_a/rho_w
 
-        N = domain.number_of_elements
+        N = len(domain) # number_of_triangles
 
         t = domain.time
 
@@ -1921,7 +1921,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         #Assert that quantities are conserved
         from Numeric import sum
-        for k in range(mesh.number_of_elements):
+        for k in range(len(mesh)):
             assert allclose (ref_centroid_values[k],
                              sum(stage.vertex_values[k,:])/3)
 
@@ -1943,12 +1943,12 @@ class Test_Shallow_Water(unittest.TestCase):
 
 
         #Assert that all vertex quantities have changed
-        for k in range(mesh.number_of_elements):
+        for k in range(len(mesh)):
             #print ref_vertex_values[k,:], stage.vertex_values[k,:]
             assert not allclose (ref_vertex_values[k,:], stage.vertex_values[k,:])
         #and assert that quantities are still conserved
         from Numeric import sum
-        for k in range(mesh.number_of_elements):
+        for k in range(len(mesh)):
             assert allclose (ref_centroid_values[k],
                              sum(stage.vertex_values[k,:])/3)
 
@@ -2211,14 +2211,6 @@ class Test_Shallow_Water(unittest.TestCase):
             volume =  domain.quantities['stage'].get_integral()
 
             #print t, volume, initial_volume
-
-
-            #if not allclose (volume, initial_volume):
-            #    print 't==4.05'
-            #    for k in range(domain.number_of_elements):
-            #       pass
-            #       print domain.quantities['stage'].centroid_values[k] -\
-            #             ref_centroid_values[k]
 
             assert allclose (volume, initial_volume)
 
