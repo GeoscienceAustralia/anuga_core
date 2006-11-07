@@ -25,7 +25,9 @@ class Test_General_Mesh(unittest.TestCase):
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
-        domain = General_mesh(points, vertices, boundary)
+        domain = General_mesh(points, vertices)
+
+        print domain.__class__
 
         assert allclose(domain.get_vertex_coordinates(unique=True), domain.coordinates)
 
@@ -42,7 +44,7 @@ class Test_General_Mesh(unittest.TestCase):
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
-        domain = General_mesh(points, vertices, boundary)
+        domain = General_mesh(points, vertices)
 
         value = [7]
         #indexes = [1]  #FIXME (Ole): Should this be used
@@ -56,7 +58,7 @@ class Test_General_Mesh(unittest.TestCase):
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
-        domain = General_mesh(points, vertices, boundary)        
+        domain = General_mesh(points, vertices)        
 
 	assert domain.get_area() == 1.0
 
@@ -71,7 +73,7 @@ class Test_General_Mesh(unittest.TestCase):
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
-        domain = General_mesh(points, vertices, boundary)                
+        domain = General_mesh(points, vertices)                
 
         assert  domain.get_unique_vertices() == [0,1,2,3,4,5,6,7]
         unique_vertices = domain.get_unique_vertices([0,1,4])
