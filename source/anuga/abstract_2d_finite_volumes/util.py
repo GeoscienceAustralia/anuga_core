@@ -144,7 +144,7 @@ def _file_function(filename,
         return get_netcdf_file_function(filename, domain, quantities,
                                         interpolation_points,
                                         time_thinning=time_thinning,
-                                        verbose = verbose)
+                                        verbose=verbose)
     else:
         raise 'Must be a NetCDF File'
 
@@ -155,7 +155,7 @@ def get_netcdf_file_function(filename,
                              quantity_names=None,
                              interpolation_points=None,
                              time_thinning=1,                             
-                             verbose = False):
+                             verbose=False):
     """Read time history of spatial data from NetCDF sww file and
     return a callable object f(t,x,y)
     which will return interpolated values based on the input file.
