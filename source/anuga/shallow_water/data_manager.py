@@ -379,14 +379,16 @@ class Data_format_sww(Data_format):
         y[:] = Y.astype(self.precision)
 
         # FIXME (HACK)
-        truncation = self.domain.number_of_full_nodes        
-        #print len(z), len(Z), truncation
+        if len(z) <> len(Z):
+            truncation = self.domain.number_of_full_nodes        
+            Z = Z[:truncation]
+            print len(z), len(Z), truncation, len(self.domain.get_nodes())
         
-        z[:] = Z[:truncation].astype(self.precision)
+        z[:] = Z.astype(self.precision)
 
         #FIXME: Backwards compatibility
         z = fid.variables['z']
-        z[:] = Z[:truncation].astype(self.precision)
+        z[:] = Z.astype(self.precision)
         ################################
 
         volumes[:] = V.astype(volumes.typecode())
@@ -500,13 +502,19 @@ class Data_format_sww(Data_format):
 
                 # HACK
                 truncation = self.domain.number_of_full_nodes
-                A = A[:truncation]
+                
 
                 #FIXME: Make this general (see below)
                 if name == 'stage':
                     z = fid.variables['elevation']
                     #print z[:]
                     #print A-z[:]
+
+                    # HACK
+                    if len(z) <> len(A):                
+                        A = A[:truncation]
+
+                    
                     A = choose(A-z[:] >= self.minimum_storable_height,
                                (z[:], A))
                     stage[i,:] = A.astype(self.precision)
