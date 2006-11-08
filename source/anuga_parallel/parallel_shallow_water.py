@@ -279,17 +279,18 @@ class Parallel_Domain(Domain):
                     self.max_timestep, self.number_of_steps,
                     self.number_of_first_order_steps)
 
-
-    def evolve(self, yieldstep = None, finaltime = None):
-        """Specialisation of basic evolve method from parent class
-        """
+# commented out on the 7/11/06
+#    def evolve(self, yieldstep=None, finaltime=None,
+#               skip_initial_step=False):
+#        """Specialisation of basic evolve method from parent class
+#        """
 
         #Initialise real time viz if requested
-        if self.time == 0.0:
-            pass
+#        if self.time == 0.0:
+#            pass
 
         #Call basic machinery from parent class
-        for t in Domain.evolve(self, yieldstep, finaltime):
+#        for t in Domain.evolve(self, yieldstep, finaltime, skip_initial_step):
 
             #Pass control on to outer loop for more specific actions
-            yield(t)
+#            yield(t)
