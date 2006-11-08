@@ -7,6 +7,7 @@
    Geoscience Australia
 """
 
+from Numeric import allclose
 from anuga.config import epsilon
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
@@ -163,6 +164,10 @@ class Domain(Mesh):
             for id in self.ghost_recv_dict[i][0]:
                 self.tri_full_flag[id] = 0
 
+        # Test the assumption that all full triangles are store before
+        # the ghost triangles.
+        assert allclose(self.tri_full_flag[:self.number_of_full_nodes],1)
+                        
 
         #Defaults
         from anuga.config import max_smallsteps, beta_w, beta_h, epsilon, CFL

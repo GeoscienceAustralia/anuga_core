@@ -297,8 +297,8 @@ class Data_format_sww(Data_format):
             fid.createDimension('number_of_vertices', 3)
 
             if domain.smooth is True:
-                fid.createDimension('number_of_points', len(domain.vertexlist))
-                #fid.createDimension('number_of_points', self.number_of_nodes)
+                #fid.createDimension('number_of_points', len(domain.vertexlist))
+                fid.createDimension('number_of_points', self.domain.number_of_full_nodes)
 
                 # FIXME(Ole): This will cause sww files for paralle domains to
                 # have ghost nodes stored (but not used by triangles).
@@ -373,13 +373,20 @@ class Data_format_sww(Data_format):
 
 
 
+
         x[:] = X.astype(self.precision)
+        
         y[:] = Y.astype(self.precision)
-        z[:] = Z.astype(self.precision)
+
+        # FIXME (HACK)
+        truncation = self.domain.number_of_full_nodes        
+        print len(z), len(Z), truncation
+        
+        z[:] = Z[:truncation].astype(self.precision)
 
         #FIXME: Backwards compatibility
         z = fid.variables['z']
-        z[:] = Z.astype(self.precision)
+        z[:] = Z[:truncation].astype(self.precision)
         ################################
 
         volumes[:] = V.astype(volumes.typecode())
@@ -490,6 +497,10 @@ class Data_format_sww(Data_format):
                 Q = domain.quantities[name]
                 A,V = Q.get_vertex_values(xy = False,
                                           precision = self.precision)
+
+                # HACK
+                truncation = self.domain.number_of_full_nodes
+                A = A[:truncation]
 
                 #FIXME: Make this general (see below)
                 if name == 'stage':

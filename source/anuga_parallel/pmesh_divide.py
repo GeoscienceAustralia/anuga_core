@@ -110,7 +110,7 @@ def pmesh_divide_metis(domain, n_procs):
     
     n_tri = len(domain.triangles)
     if n_procs != 1: #Because metis chokes on it...
-        n_vert = len(domain.coordinates)
+        n_vert = domain.number_of_nodes
         t_list = domain.triangles.copy()
         t_list = reshape(t_list, (-1,))
     
@@ -181,7 +181,7 @@ def pmesh_divide_metis(domain, n_procs):
         
     # Extract the node list
     
-    nodes = domain.coordinates.copy()
+    nodes = domain.get_nodes().copy()
     
     # Convert the triangle datastructure to be an array type,
     # this helps with the communication

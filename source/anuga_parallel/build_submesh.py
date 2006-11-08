@@ -128,8 +128,8 @@ def submesh_full(nodes, triangles, boundary, triangles_per_proc):
 
 def ghost_layer(submesh, mesh, p, tupper, tlower):
 
-    ncoord = len(mesh.coordinates)
-    ntriangles = len(mesh.triangles)
+    ncoord = mesh.number_of_nodes
+    ntriangles = mesh.number_of_triangles
 
     # Find the first layer of boundary triangles
 
@@ -190,7 +190,7 @@ def ghost_layer(submesh, mesh, p, tupper, tlower):
         nodemap[int(n[0])] = 0
 
     nodelist = reshape(arrayrange(ncoord),(ncoord,1))
-    tsubnodes = concatenate((nodelist, mesh.coordinates), 1)
+    tsubnodes = concatenate((nodelist, mesh.get_nodes()), 1)
     subnodes = take(tsubnodes, nonzero(nodemap))
 
     # Clean up before exiting
