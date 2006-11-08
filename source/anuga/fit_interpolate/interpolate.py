@@ -458,7 +458,7 @@ class Interpolation_function:
         if vertex_coordinates is None:
             self.spatial = False
         else:    
-            vertex_coordinates = ensure_numeric(vertex_coordinates)
+            vertex_coordinates = ensure_absolute(vertex_coordinates)
 
             assert triangles is not None, 'Triangles array must be specified'
             triangles = ensure_numeric(triangles)

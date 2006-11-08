@@ -1011,8 +1011,7 @@ class Test_Interpolate(unittest.TestCase):
         
         #Three timesteps
         time = [1.0, 5.0, 6.0]
-        
-        
+               
         #Setup mesh used to represent fitted function
         a = [0.0, 0.0]
         b = [0.0, 2.0]
@@ -1053,9 +1052,7 @@ class Test_Interpolate(unittest.TestCase):
         for j in range(50): #t in [1, 6]
             for id in range(len(interpolation_points)):
                 assert allclose(I(t, id), answer[id])
-
             t += 0.1    
-
 
         try:    
             I(1)
@@ -1063,9 +1060,8 @@ class Test_Interpolate(unittest.TestCase):
             pass
         else:
             raise 'Should raise exception'
+
             
-
-
     def test_interpolation_interface(self):
         # Test spatio-temporal interpolation
         # Test that spatio temporal function performs the correct
