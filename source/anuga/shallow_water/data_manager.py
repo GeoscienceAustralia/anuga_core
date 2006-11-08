@@ -502,6 +502,9 @@ class Data_format_sww(Data_format):
 
                 # HACK
                 truncation = self.domain.number_of_full_nodes
+                # HACK
+                if stage.shape[1] <> len(A):                
+                    A = A[:truncation]
                 
 
                 #FIXME: Make this general (see below)
@@ -510,11 +513,7 @@ class Data_format_sww(Data_format):
                     #print z[:]
                     #print A-z[:]
 
-                    # HACK
-                    if len(z) <> len(A):                
-                        A = A[:truncation]
 
-                    
                     A = choose(A-z[:] >= self.minimum_storable_height,
                                (z[:], A))
                     stage[i,:] = A.astype(self.precision)
