@@ -371,27 +371,17 @@ class Data_format_sww(Data_format):
         X,Y,Z,V = Q.get_vertex_values(xy=True,
                                       precision=self.precision)
 
-
-
-
-        x[:] = X.astype(self.precision)
-        
-        y[:] = Y.astype(self.precision)
-
-        # FIXME (HACK)
-        if len(z) <> len(Z):
-            truncation = self.domain.number_of_full_nodes        
-            Z = Z[:truncation]
-            print len(z), len(Z), truncation, len(self.domain.get_nodes())
-        
-        z[:] = Z.astype(self.precision)
+        volumes[:] = V.astype(volumes.typecode())
+        x[:] = X
+        y[:] = Y
+        z[:] = Z
 
         #FIXME: Backwards compatibility
         z = fid.variables['z']
-        z[:] = Z.astype(self.precision)
+        z[:] = Z
         ################################
 
-        volumes[:] = V.astype(volumes.typecode())
+
 
         #Close
         fid.close()
@@ -500,12 +490,6 @@ class Data_format_sww(Data_format):
                 A,V = Q.get_vertex_values(xy = False,
                                           precision = self.precision)
 
-                # HACK
-                truncation = self.domain.number_of_full_nodes
-                # HACK
-                if stage.shape[1] <> len(A):                
-                    A = A[:truncation]
-                
 
                 #FIXME: Make this general (see below)
                 if name == 'stage':
@@ -2975,10 +2959,10 @@ def ferret2sww(basename_in, basename_out = None,
     z = resize(z,outfile.variables['z'][:].shape)
     outfile.variables['x'][:] = x - xllcorner
     outfile.variables['y'][:] = y - yllcorner
-    outfile.variables['z'][:] = z             #FIXME HACK
+    outfile.variables['z'][:] = z             #FIXME HACK for bacwards compat.
     outfile.variables['elevation'][:] = z
     outfile.variables['time'][:] = times   #Store time relative
-    outfile.variables['volumes'][:] = volumes.astype(Int32) #On Opteron 64
+    outfile.variables['volumes'][:] = volumes.astype(Int32) #For Opteron 64
 
 
 

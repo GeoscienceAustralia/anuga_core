@@ -190,6 +190,8 @@ class Domain(Generic_Domain):
         computed in the model or whether they should be reduced to one
         value per vertex using self.reduction.
         """
+
+        # FIXME (Ole): how about using the word continuous vertex values?
         self.smooth = not flag
 
         #Reduction operation for get_vertex_values

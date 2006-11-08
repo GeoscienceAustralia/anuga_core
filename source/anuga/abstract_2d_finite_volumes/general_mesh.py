@@ -239,7 +239,9 @@ class General_mesh:
 
 
     def get_nodes(self, absolute=False):
-        """Return all node coordinates ordered in an Nx2 array.
+        """Return all nodes in mesh.
+
+        The nodes are ordered in an Nx2 array where N is the number of nodes.
         This is the same format they were provided in the constructor
         i.e. without any duplication.
 
@@ -259,22 +261,21 @@ class General_mesh:
         
         
 
-    def get_vertex_coordinates(self, unique=False, absolute=False):
-        """Return all vertex coordinates.
-        Return all vertex coordinates for all triangles as a 3*N x 2 array
-        where the jth vertex of the ith triangle is located in row 3*i+j.
+    def get_vertex_coordinates(self, absolute=False):
+        """Return vertex coordinates for all triangles. 
+        
+        Return all vertex coordinates for all triangles as a 3*M x 2 array
+        where the jth vertex of the ith triangle is located in row 3*i+j and
+        M the number of triangles in the mesh.
 
-        Boolean keyword unique will cause the points to be returned as
-        they were provided in the constructor i.e. without any duplication
-        in an N x 2 array.
-
+        Boolean keyword argument absolute determines whether coordinates
+        are to be made absolute by taking georeference into account
+        Default is False as many parts of ANUGA expects relative coordinates.
         """
 
-        if unique is True:        
-            return self.get_nodes(absolute)
 
-            
-        V = self.vertex_coordinates
+        
+        V = self.vertex_coordinates #[:3*M,:]
         if absolute is True:
             if not self.geo_reference.is_absolute():
                 V = self.geo_reference.get_absolute(V)
@@ -293,64 +294,82 @@ class General_mesh:
 
 
     def compute_vertex_coordinates(self):
-        """Return all vertex coordinates for all triangles as a 3*N x 2 array
+        """Return all vertex coordinates for all triangles as a 3*M x 2 array
         where the jth vertex of the ith triangle is located in row 3*i+j.
 
         This function is used to precompute this important structure. Use
         get_vertex coordinates to retrieve the points.
         """
 
-        N = self.number_of_triangles
-        vertex_coordinates = zeros((3*N, 2), Float)
+        M = self.number_of_triangles
+        vertex_coordinates = zeros((3*M, 2), Float)
 
-        for i in range(N):
+        for i in range(M):
             for j in range(3):
-                k = self.triangles[i,j]  #Index of vertex 0
-                v_k = self.nodes[k]
-
-                vertex_coordinates[3*i+j,:] = v_k
-
+                k = self.triangles[i,j] # Index of vertex j in triangle i
+                vertex_coordinates[3*i+j,:] = self.nodes[k]
 
         return vertex_coordinates
 
 
-    def get_vertices(self, indices=None):
-        """Get connectivity
-        indices is the set of element ids of interest
+
+    def get_triangles(self, indices=None):
+        """Get mesh triangles.
+
+        Return Mx3 integer array where M is the number of triangles.
+        Each row corresponds to one triangle and the three entries are
+        indices into the mesh nodes which can be obtained using the method
+        get_nodes()
+
+        Optional argument, indices is the set of triangle ids of interest.
         """
 
-        N = self.number_of_full_triangles
+        M = self.number_of_full_triangles
 
         if indices is None:
-            #indices = range(len(self))  #len(self)=number of elements
-            indices = range(N)
+            indices = range(M)
 
-        return  take(self.triangles, indices)
+        return take(self.triangles, indices)
     
 
-    #FIXME - merge these two (get_vertices and get_triangles)
-    def get_triangles(self, obj=False):
-        """Get connetivity
-        Return triangles (triplets of indices into point coordinates)
-        
-        If obj is True return structure commensurate with replicated
-        points, allowing for discontinuities
-        (FIXME: Need good name for this concept)
+
+    def get_disconnected_triangles(self):
+        """Get mesh based on nodes obtained from get_vertex_coordinates.
+
+        Return array Mx3 array of integers where each row corresponds to
+        a triangle. A triangle is a triplet of indices into
+        point coordinates obtained from get_vertex_coordinates and each
+        index appears only once
+
+        This provides a mesh where no triangles share nodes
+        (hence the name disconnected triangles) and different
+        nodes may have the same coordinates.
+
+        This version of the mesh is useful for storing meshes with
+        discontinuities at each node and is e.g. used for storing
+        data in sww files.
+
+        The triangles created will have the format
+
+        [[0,1,2],
+         [3,4,5],
+         [6,7,8],
+         ...
+         [3*M-3 3*M-2 3*M-1]]          
         """
 
-        if obj is True:
-            m = len(self)  #Number of triangles
-            M = 3*m        #Total number of unique vertices
-            T = reshape(array(range(M)).astype(Int), (m,3))
-        else:
-            T = self.triangles
+        M = len(self) # Number of triangles
+        K = 3*M       # Total number of unique vertices
+        T = reshape(array(range(K)).astype(Int), (M,3))
 
         return T     
 
     
 
     def get_unique_vertices(self,  indices=None):
-        triangles = self.get_vertices(indices=indices)
+        """FIXME(Ole): This function needs a docstring
+        """
+        triangles = self.get_triangles(indices=indices)
         unique_verts = {}
         for triangle in triangles:
            unique_verts[triangle[0]] = 0
@@ -360,9 +379,12 @@ class General_mesh:
 
 
     def build_vertexlist(self):
-        """Build vertexlist index by vertex ids and for each entry (point id)
+        """Build vertexlist indexed by vertex ids and for each entry (point id)
         build a list of (triangles, vertex_id) pairs that use the point
         as vertex.
+
+        The vertex list will have length N, where N is the number of nodes
+        in the mesh.
 
         Preconditions:
           self.nodes and self.triangles are defined
@@ -371,7 +393,7 @@ class General_mesh:
           self.vertexlist is built
         """
 
-        vertexlist = [None]*len(self.nodes)
+        vertexlist = [None]*self.number_of_nodes
         for i in range(self.number_of_triangles):
 
             a = self.triangles[i, 0]

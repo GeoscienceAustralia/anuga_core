@@ -45,7 +45,7 @@ from anuga.utilities.norms import l1_norm, l2_norm, linf_norm
 
 def build_full_flag(domain, ghost_recv_dict):
 
-    tri_full_flag = ones(len(domain.get_vertices()), Int8)
+    tri_full_flag = ones(len(domain.get_triangles()), Int8)
     for i in ghost_recv_dict.keys():
         for id in ghost_recv_dict[i][0]:
             tri_full_flag[id] = 0

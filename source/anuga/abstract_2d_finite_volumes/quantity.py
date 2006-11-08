@@ -14,7 +14,8 @@ To create:
    Otherwise raise an exception
 """
 
-from Numeric import array, zeros, Float, less, concatenate, NewAxis, argmax, allclose
+from Numeric import array, zeros, Float, less, concatenate, NewAxis,\
+     argmax, allclose
 from anuga.utilities.numerical_tools import ensure_numeric, is_scalar
 
 class Quantity:
@@ -1025,32 +1026,33 @@ class Quantity:
             Volume.interpolate_conserved_quantities()
 
 
-    #Method for outputting model results
-    #FIXME: Split up into geometric and numeric stuff.
-    #FIXME: Geometric (X,Y,V) should live in mesh.py
-    #FIXME: STill remember to move XY to mesh
+    # Methods for outputting model results
     def get_vertex_values(self,
                           xy=True,
-                          smooth = None,
-                          precision = None,
-                          reduction = None):
-        """Return vertex values like an OBJ format
+                          smooth=None,
+                          precision=None,
+                          reduction=None):
+        """Return vertex values like an OBJ format i.e. one value per node.
 
         The vertex values are returned as one sequence in the 1D float array A.
         If requested the coordinates will be returned in 1D arrays X and Y.
 
         The connectivity is represented as an integer array, V, of dimension
-        M x 3, where M is the number of volumes. Each row has three indices
-        into the X, Y, A arrays defining the triangle.
+        Mx3, where M is the number of triangles. Each row has three indices
+        defining the triangle and they correspond to elements in the arrays
+        X, Y and A. 
 
         if smooth is True, vertex values corresponding to one common
         coordinate set will be smoothed according to the given
         reduction operator. In this case vertex coordinates will be
-        de-duplicated.
+        de-duplicated corresponding to the original nodes as obtained from
+        the method general_mesh.get_nodes()
 
         If no smoothings is required, vertex coordinates and values will
         be aggregated as a concatenation of values at
-        vertices 0, vertices 1 and vertices 2
+        vertices 0, vertices 1 and vertices 2. This corresponds to
+        the node coordinates obtained from the method
+        general_mesh.get_vertex_coordinates()
 
 
         Calling convention
@@ -1065,31 +1067,33 @@ class Quantity:
 
 
         if smooth is None:
+            # Take default from domain
             smooth = self.domain.smooth
 
         if precision is None:
             precision = Float
+            
 
-        #Create connectivity
-
-        if smooth == True:
+        if smooth is True:
+            # Ensure continuous vertex values by combining
+            # values at each node using the reduction operator
             
             if reduction is None:
+                # Take default from domain                
                 reduction = self.domain.reduction
 
-            V = self.domain.get_vertices()
-            N = len(self.domain.vertexlist)
+            V = self.domain.get_triangles()
+            N = self.domain.number_of_full_nodes # Ignore ghost nodes if any
             A = zeros(N, precision)
+            points = self.domain.get_nodes()            
 
-            #Smoothing loop
+            # Reduction loop
             for k in range(N):
                 L = self.domain.vertexlist[k]
 
-                #Go through all triangle, vertex pairs
-                #contributing to vertex k and register vertex value
-
-                if L is None: continue #In case there are unused points
-
+                # Go through all triangle, vertex pairs
+                # contributing to vertex k and register vertex value
+                if L is None: continue # In case there are unused points
                 contributions = []
                 for volume_id, vertex_id in L:
                     v = self.vertex_values[volume_id, vertex_id]
@@ -1097,39 +1101,22 @@ class Quantity:
 
                 A[k] = reduction(contributions)
 
-
-            if xy is True:
-                X = self.domain.get_nodes()[:,0].astype(precision)
-                Y = self.domain.get_nodes()[:,1].astype(precision)
-
-                return X, Y, A, V
-            else:
-                return A, V
         else:
-            #Don't smooth
-            #obj machinery moved to general_mesh
+            # Allow discontinuous vertex values 
+            V = self.domain.get_disconnected_triangles()
+            points = self.domain.get_vertex_coordinates()
+            A = self.vertex_values.flat.astype(precision)
 
-            # Create a V like [[0 1 2], [3 4 5]....[3*m-2 3*m-1 3*m]]
-            # These vert_id's will relate to the verts created below
-            #m = len(self.domain)  #Number of volumes
-            #M = 3*m        #Total number of unique vertices
-            #V = reshape(array(range(M)).astype(Int), (m,3))
 
-            V = self.domain.get_triangles(obj=True)
-            #FIXME use get_vertices, when ready
+        # Return    
+        if xy is True:
+            X = points[:,0].astype(precision)
+            Y = points[:,1].astype(precision)
+            
+            return X, Y, A, V
+        else:
+            return A, V            
 
-            A = self.vertex_values.flat
-
-            #Do vertex coordinates
-            if xy is True:
-                C = self.domain.get_vertex_coordinates()
-
-                X = C[:,0:6:2].copy()
-                Y = C[:,1:6:2].copy()
-
-                return X.flat, Y.flat, A, V
-            else:
-                return A, V
 
 
     def extrapolate_first_order(self):
