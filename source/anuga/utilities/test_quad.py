@@ -119,9 +119,11 @@ class Test_Quad(unittest.TestCase):
     def test_build_quadtree(self):
 
         Q = build_quadtree(self.mesh)
+        #Q.show()
+        #print Q.count()
 	assert Q.count() == 8
 
-        #Q.show()
+
 
         result = Q.search(3, 105)
         assert type(result) in [types.ListType,types.TupleType],\

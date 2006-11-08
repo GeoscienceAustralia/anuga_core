@@ -5,67 +5,78 @@ from Numeric import array, zeros, Int, Float, sqrt, sum
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 
 class General_mesh:
-    """Collection of triangular elements (purely geometric)
+    """Collection of 2D triangular elements
 
     A triangular element is defined in terms of three vertex ids,
-    ordered counter clock-wise,
-    each corresponding to a given coordinate set.
-    Vertices from different elements can point to the same
-    coordinate set.
-
-    Coordinate sets are implemented as an N x 2 Numeric array containing
+    ordered counter clock-wise, each corresponding to a given node
+    which is represented as a coordinate set (x,y).
+    Vertices from different triangles can point to the same node.
+    The nodes are implemented as an Nx2 Numeric array containing the
     x and y coordinates.
 
 
     To instantiate:
-       Mesh(coordinates, triangles)
+       Mesh(nodes, triangles)
 
     where
 
-      coordinates is either a list of 2-tuples or an Mx2 Numeric array of
+      nodes is either a list of 2-tuples or an Nx2 Numeric array of
       floats representing all x, y coordinates in the mesh.
 
-      triangles is either a list of 3-tuples or an Nx3 Numeric array of
+      triangles is either a list of 3-tuples or an Mx3 Numeric array of
       integers representing indices of all vertices in the mesh.
-      Each vertex is identified by its index i in [0, M-1].
+      Each vertex is identified by its index i in [0, N-1].
 
 
     Example:
+
         a = [0.0, 0.0]
         b = [0.0, 2.0]
         c = [2.0,0.0]
         e = [2.0, 2.0]
 
-        points = [a, b, c, e]
-        triangles = [ [1,0,2], [1,2,3] ]   #bac, bce
-        mesh = Mesh(points, triangles)
+        nodes = [a, b, c, e]
+        triangles = [ [1,0,2], [1,2,3] ]   # bac, bce
 
-        #creates two triangles: bac and bce
+        # Create mesh with two triangles: bac and bce    
+        mesh = Mesh(nodes, triangles)
+
+
 
     Other:
 
-      In addition mesh computes an Nx6 array called vertex_coordinates.
+      In addition mesh computes an Mx6 array called vertex_coordinates.
       This structure is derived from coordinates and contains for each
       triangle the three x,y coordinates at the vertices.
 
+      See neighbourmesh.py for a specialisation of the general mesh class
+      which includes information about neighbours and the mesh boundary.
 
-        This is a cut down version of mesh from mesh.py
+      The mesh object is purely geometrical and contains no information
+      about quantities defined on the mesh.
+
     """
 
     #FIXME: It would be a good idea to use geospatial data as an alternative
     #input
-    def __init__(self, coordinates, triangles,
+    def __init__(self, nodes, triangles,
+                 geo_reference=None,                 
                  number_of_full_nodes=None,
                  number_of_full_triangles=None,                 
-                 geo_reference=None,
                  verbose=False):
-        """
-        Build triangles from x,y coordinates (sequence of 2-tuples or
-        Mx2 Numeric array of floats) and triangles (sequence of 3-tuples
-        or Nx3 Numeric array of non-negative integers).
+        """Build triangular 2d mesh from nodes and triangle information
 
-        origin is a 3-tuple consisting of UTM zone, easting and northing.
-        If specified coordinates are assumed to be relative to this origin.
+        Input:
+        
+          nodes: x,y coordinates represented as a sequence of 2-tuples or
+                 a Nx2 Numeric array of floats.
+                 
+          triangles: sequence of 3-tuples or Mx3 Numeric array of
+                     non-negative integers representing indices into
+                     the nodes array.
+       
+          georeference (optional): If specified coordinates are
+          assumed to be relative to this origin.
 
 
         number_of_full_nodes and number_of_full_triangles relate to
@@ -73,31 +84,33 @@ class General_mesh:
         ghost triangles attached to the end of the two arrays.
         In this case it is usefull to specify the number of real (called full)
         nodes and triangles. If omitted they will default to all.
+          
         """
 
         if verbose: print 'General_mesh: Building basic mesh structure' 
 
-        self.triangles = array(triangles,Int)
-        self.coordinates = array(coordinates,Float)
+        self.triangles = array(triangles, Int)
+        self.nodes = array(nodes, Float)
+
 
         # Register number of elements and nodes 
         self.number_of_triangles = N = self.triangles.shape[0]
-        self.number_of_nodes = self.coordinates.shape[0]        
+        self.number_of_nodes = self.nodes.shape[0]        
 
         
 
         if number_of_full_nodes is None:
-            self.number_of_full_nodes=self.number_of_nodes
+            self.number_of_full_nodes = self.number_of_nodes
         else:
             assert int(number_of_full_nodes)
-            self.number_of_full_nodes=number_of_full_nodes            
+            self.number_of_full_nodes = number_of_full_nodes            
 
 
         if number_of_full_triangles is None:
-            self.number_of_full_triangles=self.number_of_triangles           
+            self.number_of_full_triangles = self.number_of_triangles           
         else:
             assert int(number_of_full_triangles)            
-            self.number_of_full_triangles=number_of_full_triangles
+            self.number_of_full_triangles = number_of_full_triangles
         
         
         #print self.number_of_full_nodes, self.number_of_nodes
@@ -113,24 +126,24 @@ class General_mesh:
             self.geo_reference = geo_reference
 
         # Input checks
-        msg = 'Triangles must an Nx3 Numeric array or a sequence of 3-tuples. '
+        msg = 'Triangles must an Mx3 Numeric array or a sequence of 3-tuples. '
         msg += 'The supplied array has the shape: %s'\
                %str(self.triangles.shape)
         assert len(self.triangles.shape) == 2, msg
 
-        msg = 'Coordinates must an Mx2 Numeric array or a sequence of 2-tuples'
+        msg = 'Nodes must an Nx2 Numeric array or a sequence of 2-tuples'
         msg += 'The supplied array has the shape: %s'\
-               %str(self.coordinates.shape)
-        assert len(self.coordinates.shape) == 2, msg
+               %str(self.nodes.shape)
+        assert len(self.nodes.shape) == 2, msg
 
         msg = 'Vertex indices reference non-existing coordinate sets'
-        assert max(max(self.triangles)) <= self.coordinates.shape[0], msg
+        assert max(max(self.triangles)) <= self.nodes.shape[0], msg
 
 
         # FIXME: Maybe move to statistics?
         # Or use with get_extent
-        xy_extent = [ min(self.coordinates[:,0]), min(self.coordinates[:,1]) ,
-                      max(self.coordinates[:,0]), max(self.coordinates[:,1]) ]
+        xy_extent = [ min(self.nodes[:,0]), min(self.nodes[:,1]) ,
+                      max(self.nodes[:,0]), max(self.nodes[:,1]) ]
 
         self.xy_extent = array(xy_extent, Float)
 
@@ -151,10 +164,9 @@ class General_mesh:
         for i in range(N):
             if verbose and i % ((N+10)/10) == 0: print '(%d/%d)' %(i, N)
            
-
-            x0 = V[i, 0]; y0 = V[i, 1]
-            x1 = V[i, 2]; y1 = V[i, 3]
-            x2 = V[i, 4]; y2 = V[i, 5]
+            x0, y0 = V[3*i, :]
+            x1, y1 = V[3*i+1, :]
+            x2, y2 = V[3*i+2, :]            
 
             # Area
             self.areas[i] = abs((x1*y0-x0*y1)+(x2*y1-x1*y2)+(x0*y2-x2*y0))/2
@@ -209,7 +221,7 @@ class General_mesh:
 
     def __repr__(self):
         return 'Mesh: %d vertices, %d triangles'\
-               %(self.coordinates.shape[0], len(self))
+               %(self.nodes.shape[0], len(self))
 
     def get_normals(self):
         """Return all normal vectors.
@@ -226,52 +238,49 @@ class General_mesh:
         return self.normals[i, 2*j:2*j+2]
 
 
-
-    def get_vertex_coordinates(self, unique=False, obj=False, absolute=False):
-        """Return all vertex coordinates.
-        Return all vertex coordinates for all triangles as an Nx6 array
-        (ordered as x0, y0, x1, y1, x2, y2 for each triangle)
-
-        if obj is True, the x/y pairs are returned in a 3*N x 2 array.
-        FIXME, we might make that the default.
-        FIXME Maybe use keyword: continuous = False for this condition?
-	FIXME - Maybe use something referring to unique vertices?
+    def get_nodes(self, absolute=False):
+        """Return all node coordinates ordered in an Nx2 array.
+        This is the same format they were provided in the constructor
+        i.e. without any duplication.
 
         Boolean keyword argument absolute determines whether coordinates
         are to be made absolute by taking georeference into account
         Default is False as many parts of ANUGA expects relative coordinates.
-        (To see which, switch to default absolute=True and run tests).
+        (To see which, switch to default absolute=True and run tests).        
         """
 
         N = self.number_of_full_nodes
-
-        if unique is True:
-            V = self.coordinates[:N,:]
-            if absolute is True:
-                if not self.geo_reference.is_absolute():
-                    V = self.geo_reference.get_absolute(V)
-
-            return V
-
+        V = self.nodes[:N,:]
+        if absolute is True:
+            if not self.geo_reference.is_absolute():
+                V = self.geo_reference.get_absolute(V)
                 
+        return V
+        
+        
 
+    def get_vertex_coordinates(self, unique=False, absolute=False):
+        """Return all vertex coordinates.
+        Return all vertex coordinates for all triangles as a 3*N x 2 array
+        where the jth vertex of the ith triangle is located in row 3*i+j.
+
+        Boolean keyword unique will cause the points to be returned as
+        they were provided in the constructor i.e. without any duplication
+        in an N x 2 array.
+
+        """
+
+        if unique is True:        
+            return self.get_nodes(absolute)
+
+            
         V = self.vertex_coordinates
         if absolute is True:
             if not self.geo_reference.is_absolute():
+                V = self.geo_reference.get_absolute(V)
             
-                V0 = self.geo_reference.get_absolute(V[:N,0:2])
-                V1 = self.geo_reference.get_absolute(V[:N,2:4])
-                V2 = self.geo_reference.get_absolute(V[:N,4:6])
+        return V
 
-                # This does double the memory need 
-                V = concatenate( (V0, V1, V2), axis=1 )
-
-                
-        if obj is True:
-            N = V.shape[0]
-            return reshape(V, (3*N, 2))
-        else:    
-            return V
 
 
     def get_vertex_coordinate(self, i, j, absolute=False):
@@ -280,31 +289,30 @@ class General_mesh:
         """
 
         V = self.get_vertex_coordinates(absolute=absolute)
-        return V[i, 2*j:2*j+2]
-    
-        ##return self.vertex_coordinates[i, 2*j:2*j+2]
+        return V[3*i+j, :]
 
 
     def compute_vertex_coordinates(self):
-        """Return vertex coordinates for all triangles as an Nx6 array
-        (ordered as x0, y0, x1, y1, x2, y2 for each triangle)
+        """Return all vertex coordinates for all triangles as a 3*N x 2 array
+        where the jth vertex of the ith triangle is located in row 3*i+j.
+
+        This function is used to precompute this important structure. Use
+        get_vertex coordinates to retrieve the points.
         """
 
-        #FIXME (Ole): Perhaps they should be ordered as in obj files??
-        #See quantity.get_vertex_values
-        #FIXME (Ole) - oh yes they should
-
         N = self.number_of_triangles
-        vertex_coordinates = zeros((N, 6), Float)
+        vertex_coordinates = zeros((3*N, 2), Float)
 
         for i in range(N):
             for j in range(3):
                 k = self.triangles[i,j]  #Index of vertex 0
-                v_k = self.coordinates[k]
-                vertex_coordinates[i, 2*j+0] = v_k[0]
-                vertex_coordinates[i, 2*j+1] = v_k[1]
+                v_k = self.nodes[k]
+
+                vertex_coordinates[3*i+j,:] = v_k
+
 
         return vertex_coordinates
+
 
     def get_vertices(self, indices=None):
         """Get connectivity
@@ -357,13 +365,13 @@ class General_mesh:
         as vertex.
 
         Preconditions:
-          self.coordinates and self.triangles are defined
+          self.nodes and self.triangles are defined
 
         Postcondition:
           self.vertexlist is built
         """
 
-        vertexlist = [None]*len(self.coordinates)
+        vertexlist = [None]*len(self.nodes)
         for i in range(self.number_of_triangles):
 
             a = self.triangles[i, 0]

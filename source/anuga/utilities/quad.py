@@ -138,8 +138,7 @@ class Cell(TreeNode):
 	self = args[0]
 	if len(args) == 2:
 	    point_id = int(args[1])
-            x = self.__class__.mesh.coordinates[point_id][0]
-            y = self.__class__.mesh.coordinates[point_id][1]
+            x, y = self.__class__.mesh.get_nodes()[point_id]
 
             #print point_id, x, y
 	elif len(args) == 3:
@@ -393,11 +392,12 @@ def build_quadtree(mesh, max_points_per_cell = 4):
 
     #Make root cell
     #print mesh.coordinates
-    
-    xmin = min(mesh.coordinates[:,0])
-    xmax = max(mesh.coordinates[:,0])
-    ymin = min(mesh.coordinates[:,1])
-    ymax = max(mesh.coordinates[:,1])
+
+    nodes = mesh.get_nodes()
+    xmin = min(nodes[:,0])
+    xmax = max(nodes[:,0])
+    ymin = min(nodes[:,1])
+    ymax = max(nodes[:,1])
 
     
     #Ensure boundary points are fully contained in region
@@ -424,7 +424,7 @@ def build_quadtree(mesh, max_points_per_cell = 4):
     #root.show()
     
     #Insert indices of all vertices
-    root.insert( range(len(mesh.coordinates)) )
+    root.insert( range(mesh.number_of_nodes) )
 
     #Build quad tree and return
     root.split()

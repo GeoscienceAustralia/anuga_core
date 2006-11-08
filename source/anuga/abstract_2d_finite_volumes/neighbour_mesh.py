@@ -112,9 +112,13 @@ class Mesh(General_mesh):
         for i in range(N):
             if verbose and i % ((N+10)/10) == 0: print '(%d/%d)' %(i, N)
 
-            x0 = V[i, 0]; y0 = V[i, 1]
-            x1 = V[i, 2]; y1 = V[i, 3]
-            x2 = V[i, 4]; y2 = V[i, 5]
+            x0, y0 = V[3*i, :]
+            x1, y1 = V[3*i+1, :]
+            x2, y2 = V[3*i+2, :]                        
+
+            #x0 = V[i, 0]; y0 = V[i, 1]
+            #x1 = V[i, 2]; y1 = V[i, 3]
+            #x2 = V[i, 4]; y2 = V[i, 5]
 
             #Compute centroid
             centroid = array([(x0 + x1 + x2)/3, (y0 + y1 + y2)/3])
@@ -595,11 +599,11 @@ class Mesh(General_mesh):
         V = self.get_vertex_coordinates()
         #Check each triangle
         for i in range(N):
-            
-            x0 = V[i, 0]; y0 = V[i, 1]
-            x1 = V[i, 2]; y1 = V[i, 3]
-            x2 = V[i, 4]; y2 = V[i, 5]
 
+            x0, y0 = V[3*i, :]
+            x1, y1 = V[3*i+1, :]
+            x2, y2 = V[3*i+2, :]
+            
             #Check that area hasn't been compromised
             area = self.areas[i]
             ref = abs((x1*y0-x0*y1)+(x2*y1-x1*y2)+(x0*y2-x2*y0))/2

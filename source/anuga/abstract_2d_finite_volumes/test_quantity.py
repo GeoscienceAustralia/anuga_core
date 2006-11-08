@@ -394,14 +394,14 @@ class Test_Quantity(unittest.TestCase):
         #quantity.set_values(points = data_points, values = z, alpha = 0)
 
 
-        answer = linear_function(quantity.domain.get_vertex_coordinates(obj = True))
+        answer = linear_function(quantity.domain.get_vertex_coordinates())
         #print quantity.vertex_values, answer
         assert allclose(quantity.vertex_values.flat, answer)
 
 
         #Now try by setting the same values directly
-        vertex_attributes = fit_to_mesh(quantity.domain.coordinates,
-                                        quantity.domain.triangles,
+        vertex_attributes = fit_to_mesh(quantity.domain.get_nodes(),
+                                        quantity.domain.triangles, #FIXME
                                         data_points,
                                         z,
                                         alpha = 0,
@@ -513,7 +513,7 @@ class Test_Quantity(unittest.TestCase):
         #Check that values can be set from file
         quantity.set_values(filename = ptsfile,
                             attribute_name = att, alpha = 0)
-        answer = linear_function(quantity.domain.get_vertex_coordinates(obj = True))
+        answer = linear_function(quantity.domain.get_vertex_coordinates())
 
         #print quantity.vertex_values.flat
         #print answer
@@ -591,7 +591,7 @@ class Test_Quantity(unittest.TestCase):
         #Check that values can be set from file
         quantity.set_values(filename = ptsfile,
                             attribute_name = att, alpha = 0)
-        answer = linear_function(quantity.domain.get_vertex_coordinates(obj = True) - [x0, y0])
+        answer = linear_function(quantity.domain.get_vertex_coordinates() - [x0, y0])
 
         assert allclose(quantity.vertex_values.flat, answer)
 
@@ -665,7 +665,7 @@ class Test_Quantity(unittest.TestCase):
         #Check that values can be set from file
         quantity.set_values(filename = ptsfile,
                             attribute_name = att, alpha = 0)
-        answer = linear_function(quantity.domain.get_vertex_coordinates(obj = True) + [x0, y0])
+        answer = linear_function(quantity.domain.get_vertex_coordinates() + [x0, y0])
 
 
         assert allclose(quantity.vertex_values.flat, answer)

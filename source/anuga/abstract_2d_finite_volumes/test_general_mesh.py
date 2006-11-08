@@ -28,7 +28,8 @@ class Test_General_Mesh(unittest.TestCase):
         domain = General_mesh(points, vertices)
 
 
-        assert allclose(domain.get_vertex_coordinates(unique=True), domain.coordinates)
+        assert allclose(domain.get_vertex_coordinates(unique=True),
+                        domain.nodes)
 
         #assert allclose(domain.get_vertex_coordinates(), ...TODO
         #assert allclose(domain.get_vertex_coordinates(absolute=True), ...TODO
@@ -50,6 +51,7 @@ class Test_General_Mesh(unittest.TestCase):
         assert  domain.get_vertices() == domain.triangles
         assert domain.get_vertices([0,4]) == [domain.triangles[0],
                                               domain.triangles[4]]
+        
     def test_areas(self):
         from mesh_factory import rectangular
         from shallow_water import Domain

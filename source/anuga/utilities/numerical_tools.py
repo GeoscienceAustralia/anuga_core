@@ -60,7 +60,17 @@ def sign(x):
     if x > 0: return 1
     if x < 0: return -1
     if x == 0: return 0    
-    
+
+
+def is_scalar(x):
+    """True if x is a scalar (constant numeric value)
+    """
+
+    from types import IntType, FloatType
+    if type(x) in [IntType, FloatType]:
+        return True
+    else:
+        return False
 
 def angle(v1, v2=None):
     """Compute angle between 2D vectors v1 and v2.

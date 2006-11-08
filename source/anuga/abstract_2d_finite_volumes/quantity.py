@@ -15,7 +15,7 @@ To create:
 """
 
 from Numeric import array, zeros, Float, less, concatenate, NewAxis, argmax, allclose
-from anuga.utilities.numerical_tools import ensure_numeric
+from anuga.utilities.numerical_tools import ensure_numeric, is_scalar
 
 class Quantity:
 
@@ -557,24 +557,39 @@ class Quantity:
         else:
             is_subset = True
 
+
+        # FIXME (Ole): Now we can compute the arrays once and for all
+        # for both centroids and vertices and the use set_values_from_array
+
         if location == 'centroids':
-            P = take(self.domain.centroid_coordinates, indices)
+            V = take(self.domain.centroid_coordinates, indices)
             if is_subset:
-                self.set_values(f(P[:,0], P[:,1]),
+                self.set_values(f(V[:,0], V[:,1]),
                                 location = location,
                                 indices = indices)
             else:
-                self.set_values(f(P[:,0], P[:,1]), location = location)
+                self.set_values(f(V[:,0], V[:,1]), location = location)
         elif location == 'vertices':
-            P = self.domain.vertex_coordinates
+            V = self.domain.get_vertex_coordinates()
+
+            x = V[:,0]; y = V[:,1];                     
+            values = f(x, y)
+
+            if is_scalar(values):
+                # Function returned a constant value
+                self.set_values_from_constant(values,
+                                              location, indices, verbose)
+                return
+                
+            
             if is_subset:
                 #Brute force
-                for e in indices:
-                    for i in range(3):
-                        self.vertex_values[e,i] = f(P[e,2*i], P[e,2*i+1])
+                for i in indices:
+                    for j in range(3):
+                        self.vertex_values[i,j] = values[3*i+j]
             else:
-                for i in range(3):
-                    self.vertex_values[:,i] = f(P[:,2*i], P[:,2*i+1])
+                for j in range(3):
+                    self.vertex_values[:,j] = values[j::3] 
         else:
             raise 'Not implemented: %s' %location
 
@@ -624,8 +639,8 @@ class Quantity:
                   'location=\'vertices\''
             raise ms
 
-        coordinates = self.domain.coordinates
-        triangles = self.domain.triangles
+        coordinates = self.domain.get_nodes()
+        triangles = self.domain.triangles      #FIXME
 
 
         #Take care of georeferencing
@@ -909,7 +924,7 @@ class Quantity:
             return take(self.edge_values,indices)
         elif location == 'unique vertices':
             if (indices ==  None):
-                indices=range(self.domain.coordinates.shape[0])
+                indices=range(self.domain.number_of_nodes)
             vert_values = []
             #Go through list of unique vertices
             for unique_vert_id in indices:
@@ -957,7 +972,7 @@ class Quantity:
         assert len(A.shape) == 1
 
         if indices == None:
-            assert A.shape[0] == self.domain.coordinates.shape[0]
+            assert A.shape[0] == self.domain.get_nodes().shape[0]
             vertex_list = range(A.shape[0])
         else:
             assert A.shape[0] == len(indices)
@@ -1084,8 +1099,8 @@ class Quantity:
 
 
             if xy is True:
-                X = self.domain.coordinates[:,0].astype(precision)
-                Y = self.domain.coordinates[:,1].astype(precision)
+                X = self.domain.get_nodes()[:,0].astype(precision)
+                Y = self.domain.get_nodes()[:,1].astype(precision)
 
                 return X, Y, A, V
             else:
@@ -1388,7 +1403,7 @@ def limit(quantity):
 
     from Numeric import zeros, Float
 
-    N = len(quantity.domain)
+    N = quantity.domain.number_of_nodes
 
     beta_w = quantity.domain.beta_w
 

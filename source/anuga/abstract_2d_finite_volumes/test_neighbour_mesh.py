@@ -75,10 +75,11 @@ class Test_Mesh(unittest.TestCase):
 
 
         #Vertex coordinates
-        V = mesh.get_vertex_coordinates()
-        assert allclose(V[0], [0.0, 0.0, 4.0, 0.0, 0.0, 3.0])
+        #V = mesh.get_vertex_coordinates()
+        #assert allclose(V[0], [0.0, 0.0, 4.0, 0.0, 0.0, 3.0])
+        
 
-        V = mesh.get_vertex_coordinates(obj=True)
+        V = mesh.get_vertex_coordinates()
         assert allclose(V, [ [0.0, 0.0],
                              [4.0, 0.0],
                              [0.0, 3.0] ])
@@ -103,13 +104,15 @@ class Test_Mesh(unittest.TestCase):
         #from each vertex to the midpoint of the opposite side
 
         V = mesh.get_vertex_coordinates()
-
-        x0 = V[0,0]
-        y0 = V[0,1]
-        x1 = V[0,2]
-        y1 = V[0,3]
-        x2 = V[0,4]
-        y2 = V[0,5]
+        x0 = V[0, 0]; y0 = V[0, 1]
+        x1 = V[1, 0]; y1 = V[1, 1]
+        x2 = V[2, 0]; y2 = V[2, 1]
+        #x0 = V[0,0]
+        #y0 = V[0,1]
+        #x1 = V[0,2]
+        #y1 = V[0,3]
+        #x2 = V[0,4]
+        #y2 = V[0,5]
 
         m0 = [(x1 + x2)/2, (y1 + y2)/2]
         m1 = [(x0 + x2)/2, (y0 + y2)/2]
@@ -171,13 +174,16 @@ class Test_Mesh(unittest.TestCase):
         #from each vertex to the midpoint of the opposite side
 
         V = mesh.get_vertex_coordinates()
+        x0 = V[0, 0]; y0 = V[0, 1]
+        x1 = V[1, 0]; y1 = V[1, 1]
+        x2 = V[2, 0]; y2 = V[2, 1]        
 
-        x0 = V[0,0]
-        y0 = V[0,1]
-        x1 = V[0,2]
-        y1 = V[0,3]
-        x2 = V[0,4]
-        y2 = V[0,5]
+        #x0 = V[0,0]
+        #y0 = V[0,1]
+        #x1 = V[0,2]
+        #y1 = V[0,3]
+        #x2 = V[0,4]
+        #y2 = V[0,5]
 
         m0 = [(x1 + x2)/2, (y1 + y2)/2]
         m1 = [(x0 + x2)/2, (y0 + y2)/2]

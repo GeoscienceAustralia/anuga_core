@@ -256,8 +256,8 @@ class Interpolate (FitInterpolate):
         if verbose and 0 == len(self.inside_poly_indices):
             print '\n WARNING: No points within the mesh! \n'
             
-        m = self.mesh.coordinates.shape[0] #Nbr of basis functions (1/vertex)
-        n = point_coordinates.shape[0]     #Nbr of data points
+        m = self.mesh.number_of_nodes  # Nbr of basis functions (1/vertex)
+        n = point_coordinates.shape[0] # Nbr of data points
 
         if verbose: print 'Number of datapoints: %d' %n
         if verbose: print 'Number of basis functions: %d' %m

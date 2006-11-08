@@ -92,7 +92,7 @@ class Fit(FitInterpolate):
                  verbose,
                  max_vertices_per_cell)
         
-        m = self.mesh.coordinates.shape[0] #Nbr of basis functions (vertices)
+        m = self.mesh.number_of_nodes # Nbr of basis functions (vertices)
         
         self.AtA = None
         self.Atz = None
@@ -151,7 +151,7 @@ class Fit(FitInterpolate):
         #FIXME: algorithm might be optimised by computing local 9x9
         #"element stiffness matrices:
 
-        m = self.mesh.coordinates.shape[0] #Nbr of basis functions (1/vertex)
+        m = self.mesh.number_of_nodes # Nbr of basis functions (1/vertex)
 
         self.D = Sparse(m,m)
 
@@ -232,7 +232,7 @@ class Fit(FitInterpolate):
 
         if self.AtA == None:
             # AtA and Atz need ot be initialised.
-            m = self.mesh.coordinates.shape[0] #Nbr of vertices
+            m = self.mesh.number_of_nodes
             if len(z.shape) > 1:
                 att_num = z.shape[1]
                 self.Atz = zeros((m,att_num), Float)
@@ -315,7 +315,7 @@ class Fit(FitInterpolate):
             self.build_fit_subset(point_coordinates, z, verbose)
 
         #Check sanity
-        m = self.mesh.coordinates.shape[0] #Nbr of basis functions (1/vertex)
+        m = self.mesh.number_of_nodes # Nbr of basis functions (1/vertex)
         n = self.point_count
         if n<m and self.alpha == 0.0:
             msg = 'ERROR (least_squares): Too few data points\n'

@@ -219,10 +219,11 @@ class File_boundary(Boundary):
         self.boundary_indices = {}
         for i, (vol_id, edge_id) in enumerate(boundary_keys):
 
-            x0 = V[vol_id, 0]; y0 = V[vol_id, 1]
-            x1 = V[vol_id, 2]; y1 = V[vol_id, 3]
-            x2 = V[vol_id, 4]; y2 = V[vol_id, 5]
-
+            base_index = 3*vol_id
+            x0, y0 = V[base_index, :]
+            x1, y1 = V[base_index+1, :]
+            x2, y2 = V[base_index+2, :]
+            
             #Compute midpoints
             if edge_id == 0: m = array([(x1 + x2)/2, (y1 + y2)/2])
             if edge_id == 1: m = array([(x0 + x2)/2, (y0 + y2)/2])
