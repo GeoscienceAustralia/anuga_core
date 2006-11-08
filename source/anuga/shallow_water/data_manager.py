@@ -380,7 +380,7 @@ class Data_format_sww(Data_format):
 
         # FIXME (HACK)
         truncation = self.domain.number_of_full_nodes        
-        print len(z), len(Z), truncation
+        #print len(z), len(Z), truncation
         
         z[:] = Z[:truncation].astype(self.precision)
 
