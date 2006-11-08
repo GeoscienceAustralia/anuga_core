@@ -500,7 +500,7 @@ def populate_polygon(*args, **kwargs):
 
 ##################### end of obsolete stuff ? ############
 
-def start_screen_catcher(dirname, myid, numprocs):
+def start_screen_catcher(dirname, myid=0, numprocs=1):
     """Used to store screen output and errors to file, if run on multiple 
     processes eachprocessor will have its own output and error file.
     """
