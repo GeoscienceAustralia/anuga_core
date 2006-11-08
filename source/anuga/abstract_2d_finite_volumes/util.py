@@ -680,7 +680,7 @@ def _sww2timeseries(swwfiles,
                     verbose = False):   
         
     assert type(gauge_filename) == type(''),\
-               'Gauge filename must be a string'
+           'Gauge filename must be a string'
     
     try:
         fid = open(gauge_filename)
@@ -692,7 +692,6 @@ def _sww2timeseries(swwfiles,
     if report is None:
         report = False
         
-    
     if plot_quantity is None:
         plot_quantity = ['depth', 'speed', 'bearing']
     else:
@@ -732,7 +731,26 @@ def _sww2timeseries(swwfiles,
                           interpolation_points = gauges,
                           verbose = True,
                           use_cache = True)
- 
+
+        # determine which gauges are contained in sww file
+        count = 0
+        gauge_index = []
+        print 'swwfile', swwfile
+        for k, g in enumerate(gauges):
+            if f(0.0, point_id = k)[2] > 1.0e6:
+                count += 1
+                if count == 1: print 'Gauges not contained here:'
+                print locations[k]
+            else:
+                gauge_index.append(k)
+
+        if len(gauge_index) > 0:
+            print 'Gauges contained here: \n',
+        else:
+            print 'No gauges contained here. \n'
+        for i in range(len(gauge_index)):
+             print locations[gauge_index[i]]
+             
         index = swwfile.rfind(sep)
         file_loc.append(swwfile[:index+1])
         label_id.append(swwfiles[swwfile])
@@ -758,15 +776,23 @@ def _sww2timeseries(swwfiles,
             msg = 'Maximum time entered not correct - please try again'
             raise Exception, msg
 
-    if verbose: print 'Inputs OK - going to generate figures'
+    if verbose and len(gauge_index) > 0: print 'Inputs OK - going to generate figures'
 
-    return generate_figures(plot_quantity, file_loc, report, reportname, surface,
-                            leg_label, f_list, gauges, locations, elev, production_dirs,
-                            time_min, time_max, title_on, label_id, verbose)
+    if len(gauge_index) <> 0:
+        texfile, elev_output = generate_figures(plot_quantity, file_loc, report, reportname, surface,
+                                                leg_label, f_list, gauges, locations, elev, gauge_index,
+                                                production_dirs, time_min, time_max, title_on, label_id, verbose)
+    else:
+        texfile = ''
+        elev_output = []
+
+    return texfile, elev_output
                          
 #Fixme - Use geospatial to read this file - it's an xya file
 #Need to include other information into this filename, so xya + Name - required for report
 def get_gauges_from_file(filename):
+    """ Read in gauge information from file
+    """
     from os import sep, getcwd, access, F_OK, mkdir
     fid = open(filename)
     lines = fid.readlines()
@@ -802,7 +828,8 @@ def get_gauges_from_file(filename):
     return gauges, gaugelocation, elev
 
 def check_list(quantity):
-
+    """ Check that input quantities in quantity list are possible
+    """
     all_quantity = ['stage', 'depth', 'momentum', 'xmomentum',
                     'ymomentum', 'speed', 'bearing', 'elevation']
 
@@ -816,7 +843,8 @@ def check_list(quantity):
     return 
 
 def calc_bearing(uh, vh):
-
+    """ Calculate velocity bearing from North
+    """
     from math import atan, degrees
     
     angle = degrees(atan(vh/(uh+1.e-15)))
@@ -835,10 +863,11 @@ def calc_bearing(uh, vh):
     return bearing
 
 def generate_figures(plot_quantity, file_loc, report, reportname, surface,
-                     leg_label, f_list,
-                     gauges, locations, elev, production_dirs, time_min, time_max,
-                     title_on, label_id, verbose):
-
+                     leg_label, f_list, gauges, locations, elev, gauge_index,
+                     production_dirs, time_min, time_max, title_on, label_id,
+                     verbose):
+    """ Generate figures based on required quantities and gauges for each sww file
+    """
     from math import sqrt, atan, degrees
     from Numeric import ones, allclose, zeros, Float, ravel
     from os import sep, altsep, getcwd, mkdir, access, F_OK, environ
@@ -848,7 +877,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
     import pylab as p1
     if surface is True:
         import mpl3d.mplot3d as p3
-
+        
     if report == True:    
         texdir = getcwd()+sep+'report'+sep
         if access(texdir,F_OK) == 0:
@@ -903,7 +932,8 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
         comparefile = file_loc[j]+sep+'gauges_maxmins'+'.csv'
         fid_compare = open(comparefile, 'w')
         ##### loop over each gauge #####
-        for k, g in enumerate(gauges):
+        for k in gauge_index:
+            g = gauges[k]
             if verbose: print 'Gauge %d of %d' %(k, len(gauges))
             min_stage = 10
             max_stage = 0
@@ -991,8 +1021,8 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
         profilefig = 'solution_xprofile' 
         savefig('profilefig')
                 
-    #stage_axis = axis([time_min/60.0, time_max/60.0, min(min_stages), max(max_stages)*1.1])
-    stage_axis = axis([time_min/60.0, time_max/60.0, -3.0, 3.0])    
+    stage_axis = axis([time_min/60.0, time_max/60.0, min(min_stages), max(max_stages)*1.1])
+    #stage_axis = axis([time_min/60.0, time_max/60.0, -3.0, 3.0])    
     vel_axis = axis([time_min/60.0, time_max/60.0, min(max_speeds), max(max_speeds)*1.1])
     mom_axis = axis([time_min/60.0, time_max/60.0, min(max_momentums), max(max_momentums)*1.1])  
     
@@ -1001,13 +1031,14 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
     no_cols = 2
     elev_output = []
     if len(label_id) > 1: graphname_report = []
-    for k, g in enumerate(gauges):
+    for k in gauge_index:
+        g = gauges[k]
         count1 = 0
         if report == True and len(label_id) > 1:
             s = '\\begin{figure}[hbt] \n \\centering \n \\begin{tabular}{cc} \n'
             fid.write(s)
         if len(label_id) > 1: graphname_report = []
-        #### generate figures for each gauge ###
+        #### generate figures for each gauge ####
         for j, f in enumerate(f_list):
             ion()
             hold(True)
@@ -1108,7 +1139,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     else:
                         word_quantity += plot_quantity[i]
                     
-                word_quantity += ' and ' + plot_quantity[nn-1]                
+                word_quantity += ' and ' + plot_quantity[nn-1]
                 caption = 'Time series for %s at %s location (elevation %.2fm)' %(word_quantity, locations[k], elev[k]) #gaugeloc.replace('_',' '))
                 if elev[k] == 0.0:
                     caption = 'Time series for %s at %s location (elevation %.2fm)' %(word_quantity, locations[k], elevations[0,k,j])
@@ -1162,6 +1193,95 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
         close('all')
     
     return texfile2, elev_output
+
+
+def gauge_in_sww(swwfile,
+                 gauge_filename,
+                 verbose = False):
+    
+    """ Determine which gauges fall in sww file.
+
+    Input variables:
+
+    swwfiles        - sww files 
+    
+    gauge_filename  - name of file containing gauge data
+                        - easting, northing, name , elevation
+                    - OR (this is not yet done)
+                        - structure which can be converted to a Numeric array,
+                          such as a geospatial data object
+                      
+    Output:
+    
+    - Modified gauge_filename containing gauges which fall is given sww file.
+      Name = gauges_filename_mod 
+    Other important information:
+                          
+    """
+
+    
+    k = _gauge_in_sww(swwfile,
+                      gauge_filename,
+                      verbose)
+
+    return k
+
+def _gauge_in_sww(swwfile, 
+                  gauge_filename,
+                  verbose = False):   
+
+    try:
+        fid = open(swwfile)
+    except Exception, e:
+        msg = 'File "%s" could not be opened: Error="%s"'\
+              %(swwfile, e)
+        raise msg
+        
+    assert type(gauge_filename) == type(''),\
+           'Gauge filename must be a string'
+    
+    try:
+        fid = open(gauge_filename)
+    except Exception, e:
+        msg = 'File "%s" could not be opened: Error="%s"'\
+                  %(gauge_filename, e)
+        raise msg
+
+    sww_quantity = ['stage', 'elevation', 'xmomentum', 'ymomentum']
+    f = file_function(swwfile,
+                      quantities = sww_quantity,
+                      #interpolation_points = gauges,
+                      verbose = True,
+                      use_cache = True)
+    print dir(f)
+    
+    #from bstract_2d_finite_volumes.neighbour_mesh import get_boundary_polygon
+    from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
+    #from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
+    #from anuga.fit_interpolate.interpolate import Interpolation_function
+    from anuga.fit_interpolate.interpolate import Interpolate
+
+    test = Mesh(f.vertex_coordinates)
+    print test.mesh.get_boundary_polygon()
+    
+    return check_gauge(gauge_filename,bounding_polygon)
+
+def check_gauge(gauge_filename,bounding_polygon):
+
+    from anuga.utilities.polygon import is_inside_polygon 
+    
+    filename_out = gauge_filename + '_mod'
+    fid_out = open(filename_out, 'w')
+    fid_out.write(s)
+
+    gauges, locations, elev = get_gauges_from_file(gauge_filename)
+    
+    for i, gauge in enumerate(gauges):
+        v = is_inside_polygon(gauge,bounding_polygon,verbose=False)
+        if v == True:
+            s = '%.2f, %.2f, %.2f, %s\n' %(gauges[0], gauges[1], elev[i], locations[i])
+    
+    return fid_out
 
 from os.path import basename
 
