@@ -1,6 +1,6 @@
 
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# Assume that the root AnuGA dir (inundation) is included in your pythonpath
+# Assume that the directory anuga_core/source is included in your pythonpath
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference,DEFAULT_ZONE
