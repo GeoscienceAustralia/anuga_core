@@ -4019,63 +4019,6 @@ def _read_asc(filename, verbose=False):
             'NODATA_value':NODATA_value}, grid
 
 
-# FIXME (Ole): Is this doing anything at all? 
-def sww2timeseries(swwfile,
-                   gauge_filename,
-                   gauge_data_outname,
-                   quantity = None,
-                   time_min = None,
-                   time_max = None,
-                   verbose = False):
-
-    """Read SWW file and extract time series for prescribed quantities at
-    gauge locations.
-
-    The gauge locations are defined in gauge_filename. This file should be
-    in the form: gaugename, easting, northing, and should be stored in a
-    .csv or .xya file.
-
-    Time series data at the gauges can be written to file (for example,
-    Benfield requested raw data) with the default being no data written.
-
-    The parameter quantity must be the name of an existing quantity or
-    an expression involving existing quantities. The default is
-    'depth'.
-
-    The user can define a list of quantities. The possibilities are
-    the conserved quantitues of the shallow water wave equation and other
-    quantities which can be derived from those, i.e.
-    ['depth', 'xmomentum', 'ymomentum', 'momentum', 'velocity', 'bearing'].
-
-    Momentum is the absolute momentum, sqrt(xmomentum^2 + ymomentum^2).
-    Note, units of momentum are m^2/s and depth is m.
-
-    Velocity is absolute momentum divided by depth. (Confirming correct units:
-    vel = abs mom / depth = (m^2/s)/m = m/s.)
-
-    Bearing returns the angle of the velocity vector from North.
-
-    If time_min and time_max is given, output plotted in that time range.
-    The default is to plot the entire range of the time evident in sww file.
-
-    The export graphic format in 'png' and will be stored in the same
-    directory as the input file.
-    """
-
-    if quantity is None: quantity = 'depth'
-
-    # extract gauge locations from gauge file
-
-    # extract all quantities from swwfile (f = file_function)
-    if time_min is None: time_min = min(f.get_time())
-    if time_max is None: time_max = max(f.get_time())
-
-    # loop through appropriate range of time
-    # plot prescribed quantities and export data if requested
-
-    #if gauge_data_outname is None:
-
-    return
 
     ####  URS 2 SWW  ###
 
