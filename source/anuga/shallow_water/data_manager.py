@@ -1873,6 +1873,9 @@ def sww2dem(basename_in, basename_out = None,
     x = fid.variables['x'][:]
     y = fid.variables['y'][:]
     volumes = fid.variables['volumes'][:]
+    times = fid.variables['time'][:]
+    if timestep is not None:
+        times = fid.variables['time'][timestep]
 
     number_of_timesteps = fid.dimensions['number_of_timesteps']
     number_of_points = fid.dimensions['number_of_points']
@@ -1898,30 +1901,30 @@ def sww2dem(basename_in, basename_out = None,
     #FIXME: Refactor using code from file_function.statistics
     #Something like print swwstats(swwname)
     if verbose:
-        x = fid.variables['x'][:]
-        y = fid.variables['y'][:]
-        times = fid.variables['time'][:]
         print '------------------------------------------------'
         print 'Statistics of SWW file:'
         print '  Name: %s' %swwfile
         print '  Reference:'
         print '    Lower left corner: [%f, %f]'\
               %(xllcorner, yllcorner)
-        print '    Start time: %f' %fid.starttime[0]
+        if timestep is not None:
+            print '    Time: %f' %(times)
+        else:
+            print '    Start time: %f' %fid.starttime[0]
         print '  Extent:'
         print '    x [m] in [%f, %f], len(x) == %d'\
               %(min(x.flat), max(x.flat), len(x.flat))
         print '    y [m] in [%f, %f], len(y) == %d'\
               %(min(y.flat), max(y.flat), len(y.flat))
-        print '    t [s] in [%f, %f], len(t) == %d'\
-              %(min(times), max(times), len(times))
+        if timestep is not None:
+            print '    t [s] = %f, len(t) == %d' %(times, 1)
+        else:
+            print '    t [s] in [%f, %f], len(t) == %d'\
+                  %(min(times), max(times), len(times))
         print '  Quantities [SI units]:'
         for name in ['stage', 'xmomentum', 'ymomentum', 'elevation']:
             q = fid.variables[name][:].flat
             print '    %s in [%f, %f]' %(name, min(q), max(q))
-
-
-
 
 
     # Get quantity and reduce if applicable
@@ -1933,11 +1936,8 @@ def sww2dem(basename_in, basename_out = None,
         quantity_dict[name] = fid.variables[name][:]
 
 
-
     # Convert quantity expression to quantities found in sww file    
     q = apply_expression_to_dictionary(quantity, quantity_dict)
-
-
 
     if len(q.shape) == 2:
         #q has a time component and needs to be reduced along
@@ -1995,11 +1995,9 @@ def sww2dem(basename_in, basename_out = None,
 
     x = x+xllcorner-newxllcorner
     y = y+yllcorner-newyllcorner
-
+    
     vertex_points = concatenate ((x[:, NewAxis] ,y[:, NewAxis]), axis = 1)
     assert len(vertex_points.shape) == 2
-
-
 
     grid_points = zeros ( (ncols*nrows, 2), Float )
 
@@ -2022,10 +2020,8 @@ def sww2dem(basename_in, basename_out = None,
     #from least_squares import Interpolation
     from anuga.fit_interpolate.interpolate import Interpolate
 
-
+    print 'hello', vertex_points.shape, volumes.shape
     interp = Interpolate(vertex_points, volumes, verbose = verbose)
-
-
 
     #Interpolate using quantity values
     if verbose: print 'Interpolating'
