@@ -1347,6 +1347,17 @@ class Test_Quantity(unittest.TestCase):
         #print "domain.number_of_elements ",domain.number_of_elements
         quantity = Quantity(domain,[[1,1,1],[2,2,2],[3,3,3],
                                     [4,4,4],[5,5,5],[6,6,6]])
+
+
+        # Check that constants work
+        value = 7
+        indices = [1]
+        quantity.set_values(value,
+                            location = 'centroids',
+                            indices = indices)
+        #print "quantity.centroid_values",quantity.centroid_values
+        assert allclose(quantity.centroid_values, [1,7,3,4,5,6])
+        
         value = [7]
         indices = [1]
         quantity.set_values(value,

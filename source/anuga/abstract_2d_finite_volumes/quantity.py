@@ -15,7 +15,7 @@ To create:
 """
 
 from Numeric import array, zeros, Float, less, concatenate, NewAxis,\
-     argmax, allclose
+     argmax, allclose, take, reshape
 from anuga.utilities.numerical_tools import ensure_numeric, is_scalar
 
 class Quantity:
@@ -168,7 +168,7 @@ class Quantity:
                    numeric = None,    # List, numeric array or constant
                    quantity = None,   # Another quantity
                    function = None,   # Callable object: f(x,y)
-                   geospatial_data = None, #Arbitrary dataset
+                   geospatial_data = None, # Arbitrary dataset
                    points = None, values = None, data_georef = None, #Input
                    # for fit (obsoleted by use of geo_spatial object)
                    filename = None, attribute_name = None, #Input from file
@@ -206,13 +206,16 @@ class Quantity:
           If points are present, an N array of attribute
           values corresponding to
           each data point must be present.
+          (Obsoleted by geospatial_data)          
 
         values:
           If points is specified, values is an array of length N containing
           attribute values for each point.
+          (Obsoleted by geospatial_data)          
 
         data_georef:
           If points is specified, geo_reference applies to each point.
+          (Obsoleted by geospatial_data)          
 
         filename:
           Name of a .pts file containing data points and attributes for
@@ -354,16 +357,17 @@ class Quantity:
                                       verbose = verbose,
                                       use_cache = use_cache)
         else:
-            raise 'This can\'t happen :-)'
+            raise Exception, 'This can\'t happen :-)'
 
 
-        #Update all locations in triangles
+
+        # Update all locations in triangles
         if location == 'vertices' or location == 'unique vertices':
-            #Intialise centroid and edge_values
+            # Intialise centroid and edge_values
             self.interpolate()
 
         if location == 'centroids':
-            #Extrapolate 1st order - to capture notion of area being specified
+            # Extrapolate 1st order - to capture notion of area being specified
             self.extrapolate_first_order()
 
 
@@ -376,23 +380,23 @@ class Quantity:
 
 
         if location == 'centroids':
-            if (indices ==  None):
+            if indices is None:
                 self.centroid_values[:] = X
             else:
                 #Brute force
                 for i in indices:
-                    self.centroid_values[i,:] = X
+                    self.centroid_values[i] = X
 
         elif location == 'edges':
-            if (indices ==  None):
+            if indices is None:
                 self.edge_values[:] = X
             else:
                 #Brute force
                 for i in indices:
-                    self.edge_values[i,:] = X
+                    self.edge_values[i] = X
 
         elif location == 'unique vertices':
-            if (indices ==  None):
+            if indices is None:
                 self.edge_values[:] = X
             else:
 
@@ -411,20 +415,20 @@ class Quantity:
                     #Intialise centroid and edge_values
                     self.interpolate()
         else:
-            if (indices ==  None):
+            if indices is None:
                 self.vertex_values[:] = X
             else:
                 #Brute force
                 for i_vertex in indices:
-                    self.vertex_values[i_vertex,:] = X
-
-
+                    self.vertex_values[i_vertex] = X
 
 
 
 
     def set_values_from_array(self, values,
-                              location, indices, verbose):
+                              location='vertices',
+                              indices=None,
+                              verbose=False):
         """Set values for quantity
 
         values: Numeric array
@@ -479,6 +483,8 @@ class Quantity:
                     self.centroid_values[indices[i]] = values[i]
 
         elif location == 'edges':
+            # FIXME (Ole): No mention of indices here. However, I don't
+            # think we ever need to set values at edges anyway
             assert len(values.shape) == 2, 'Values array must be 2d'
 
             msg = 'Number of values must match number of elements'
@@ -494,7 +500,9 @@ class Quantity:
                    'Values array must be 1d'
 
             self.set_vertex_values(values.flat, indices=indices)
+            
         else:
+            # Location vertices
             if len(values.shape) == 1:
                 self.set_vertex_values(values, indices=indices)
 
@@ -504,7 +512,7 @@ class Quantity:
                 msg = 'Array must be N x 3'
                 assert values.shape[1] == 3, msg
 
-                if indices == None:
+                if indices is None:
                     self.vertex_values = values
                 else:
                     for element_index, value in map(None, indices, values):
@@ -512,12 +520,13 @@ class Quantity:
             else:
                 msg = 'Values array must be 1d or 2d'
                 raise msg
+            
 
     def set_values_from_quantity(self, q,
                                  location, indices, verbose):
         """Set quantity values from specified quantity instance q
 
-        Location is ignored
+        Location is ignored - vertices will always be used here.
         """
 
 
@@ -535,14 +544,21 @@ class Quantity:
 
 
     def set_values_from_function(self, f,
-                                 location, indices, verbose):
+                                 location='vertices',
+                                 indices=None,
+                                 verbose=False):
         """Set values for quantity using specified function
 
+        Input
+        
         f: x, y -> z Function where x, y and z are arrays
         location: Where values are to be stored.
                   Permissible options are: vertices, centroid, edges,
                   unique vertices
                   Default is "vertices"
+        indices:  
+
+                  
         """
 
         #FIXME: Should check that function returns something sensible and
@@ -550,47 +566,56 @@ class Quantity:
 
         #FIXME: Should supply absolute coordinates
 
-        from Numeric import take
 
-        if (indices is None):
-            indices = range(len(self))
-            is_subset = False
-        else:
-            is_subset = True
-
-
-        # FIXME (Ole): Now we can compute the arrays once and for all
-        # for both centroids and vertices and the use set_values_from_array
-
+        # Compute the function values and call set_values again
         if location == 'centroids':
-            V = take(self.domain.centroid_coordinates, indices)
-            if is_subset:
-                self.set_values(f(V[:,0], V[:,1]),
-                                location = location,
-                                indices = indices)
-            else:
-                self.set_values(f(V[:,0], V[:,1]), location = location)
+            if indices is None:
+                indices = range(len(self))
+                
+            V = take(self.domain.get_centroid_coordinates(), indices)
+            self.set_values(f(V[:,0], V[:,1]),
+                            location=location,
+                            indices=indices)
+            
         elif location == 'vertices':
+
+            M = self.domain.number_of_triangles
             V = self.domain.get_vertex_coordinates()
 
             x = V[:,0]; y = V[:,1];                     
             values = f(x, y)
 
+
+            # FIXME (Ole): This code should replace all the
+            # rest of this function and it would work, except
+            # one unit test in test_region fails.
+            # If that could be resolved this one will be
+            # more robust and simple.
+            
+            #values = reshape(values, (M,3))
+            #self.set_values(values,
+            #                location='vertices',
+            #                indices=indices)
+
+
+            # This should be removed
             if is_scalar(values):
                 # Function returned a constant value
                 self.set_values_from_constant(values,
                                               location, indices, verbose)
                 return
-                
-            
-            if is_subset:
+
+            # This should be removed            
+            if indices is None:
+                for j in range(3):
+                    self.vertex_values[:,j] = values[j::3]                 
+            else:    
                 #Brute force
                 for i in indices:
                     for j in range(3):
                         self.vertex_values[i,j] = values[3*i+j]
-            else:
-                for j in range(3):
-                    self.vertex_values[:,j] = values[j::3] 
+
+
         else:
             raise 'Not implemented: %s' %location
 
@@ -972,7 +997,7 @@ class Quantity:
         #print 'SHAPE A', A.shape
         assert len(A.shape) == 1
 
-        if indices == None:
+        if indices is None:
             assert A.shape[0] == self.domain.get_nodes().shape[0]
             vertex_list = range(A.shape[0])
         else:

@@ -272,10 +272,8 @@ class General_mesh:
         are to be made absolute by taking georeference into account
         Default is False as many parts of ANUGA expects relative coordinates.
         """
-
-
         
-        V = self.vertex_coordinates #[:3*M,:]
+        V = self.vertex_coordinates
         if absolute is True:
             if not self.geo_reference.is_absolute():
                 V = self.geo_reference.get_absolute(V)
