@@ -16,7 +16,7 @@ from anuga.shallow_water import Domain, Reflective_boundary, Dirichlet_boundary,
 
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
 from Numeric import array
-from anuga.visualiser.vtk_realtime_visualiser import Visualiser
+from anuga.visualiser import RealtimeVisualiser
 
 class Weir:
     """Set a bathymetry for simple weir with a hole.
@@ -137,11 +137,12 @@ else:
     domain.visualise_timer = True
     domain.checkpoint = False
     domain.store = False
-    vis = Visualiser(domain,title="netherlands")
-    vis.setup['elevation'] = True
-    vis.updating['stage'] = True
-    vis.qcolor['stage'] = (0.0,0.0,0.8)
-    vis.coloring['stage']= False
+    domain.visualise = False
+    vis = RealtimeVisualiser(domain)
+    vis.render_quantity_height("elevation", dynamic=False)
+    vis.render_quantity_height("stage", dynamic=True)
+    vis.colour_height_quantity('stage', (0.0, 0.0, 0.8))
+    vis.start()
 
 
 
@@ -198,7 +199,9 @@ for t in domain.evolve(yieldstep = 0.005, finaltime = None):
     #domain.visualiser.scale_z = 1.0
     #domain.visualiser.update_quantity_color('xmomentum',scale_z = 4.0)
     #integral_label.text='Integral=%10.5e'%domain.quantities['stage'].get_integral()
-
+vis.evolveFinished()
 
 print 'That took %.2f seconds' %(time.time()-t0)
-vis.shutdown()
+
+
+v.join()
