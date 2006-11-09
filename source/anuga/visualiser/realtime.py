@@ -44,8 +44,8 @@ class RealtimeVisualiser(Visualiser):
 
     def setup_grid(self):
         self.vtk_cells = vtkCellArray()
-        triangles = self.source.triangles
-        N_tri = self.source.number_of_triangles
+        triangles = self.source.get_triangles()
+        N_tri = len(self.source)
         verticies = self.source.get_vertex_coordinates()
         N_vert = len(verticies)
         # Also build vert_index - a list of the x & y values of each vertex
@@ -57,12 +57,13 @@ class RealtimeVisualiser(Visualiser):
                 self.vtk_cells.InsertCellPoint(triangles[n][v])
 
     def update_height_quantity(self, quantityName, dynamic=True):
-        N_vert = len(self.source.vertex_coordinates)
+        N_vert = len(self.source.get_vertex_coordinates())
         qty_index = zeros(N_vert, Float)
+        triangles = self.source.get_triangles()
 
-        for n in range(len(self.source.triangles)):
+        for n in range(len(triangles)):
             for v in range(3):
-                qty_index[self.source.triangles[n][v]] = self.source.quantities[quantityName].vertex_values[n][v]
+                qty_index[triangles[n][v]] = self.source.get_quantity(quantityName).vertex_values[n][v]
 
         points = vtkPoints()
         for v in range(N_vert):
@@ -91,13 +92,10 @@ class RealtimeVisualiser(Visualiser):
         return [self.xmin, self.xmax, self.ymin, self.ymax, self.zmin, self.zmax]
         
     def build_quantity_dict(self):
-        N_vert = len(self.source.vertex_coordinates)
+        triangles = self.source.get_triangles()
         quantities = {}
         for q in self.source.quantities.keys():
-            quantities[q] = zeros(N_vert, Float)
-            for n in range(len(self.source.triangles)):
-                for v in range(3):
-                    quantities[q][self.source.triangles[n][v]] = self.source.quantities[q].vertex_values[n][v]
+            quantities[q], _ = self.source.get_quantity(q).get_vertex_values(xy=False)
         return quantities
 
     def setup_gui(self):
