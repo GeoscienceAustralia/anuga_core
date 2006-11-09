@@ -32,7 +32,7 @@ class Set_Stage:
     def __call__(self, x, y):
         return self.h0 + self.h*((x>self.x0)&(x<self.x1)&(y>self.y0)&(y<self.y1))
 
-M = 10
+M = 20
 points, vertices, boundary = rectangular(M, M, len1 = 1.0, len2 = 1.0)
 
 yieldstep = 0.002
@@ -78,7 +78,7 @@ v.start()
 #-----------------------------------------------------------------
 R = Reflective_boundary(domain)
 domain.set_boundary( {'left': R, 'right': R, 'bottom': R, 'top': R} )
-domain.set_quantity('stage', Set_Stage(0.2, 0.4, 0.25, 0.75, 1.0, 0.00))
+domain.set_quantity('stage', Set_Stage(0.2, 0.4, 0.25, 0.75, 2.0, 0.00))
 
 #-----------------------------------------------------------------
 # Evolve

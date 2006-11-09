@@ -44,14 +44,17 @@ class RealtimeVisualiser(Visualiser):
 
     def setup_grid(self):
         self.vtk_cells = vtkCellArray()
+        triangles = self.source.triangles
+        N_tri = self.source.number_of_triangles
+        verticies = self.source.get_vertex_coordinates()
+        N_vert = len(verticies)
         # Also build vert_index - a list of the x & y values of each vertex
-        N_vert = len(self.source.vertex_coordinates)
         self.vert_index = zeros((N_vert,2), Float)
-        for n in range(N_vert):
+        for n in range(N_tri):
             self.vtk_cells.InsertNextCell(3)
             for v in range(3):
-                self.vert_index[self.source.triangles[n][v]] = self.source.vertex_coordinates[n][v*2:v*2+2]
-                self.vtk_cells.InsertCellPoint(self.source.triangles[n][v])
+                self.vert_index[triangles[n][v]] = verticies[n * 3 + v]
+                self.vtk_cells.InsertCellPoint(triangles[n][v])
 
     def update_height_quantity(self, quantityName, dynamic=True):
         N_vert = len(self.source.vertex_coordinates)
@@ -117,7 +120,6 @@ class RealtimeVisualiser(Visualiser):
         self.sync_unpaused.set()
 
     def redraw(self):
-        print "Calling redraw"
         if self.running and self.sync_unpaused.isSet():
             self.sync_redrawReady.wait()
             self.sync_redrawReady.clear()
