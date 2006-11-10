@@ -6,7 +6,7 @@
 # October 2006
 ##########
 
-# Import the offline visualiser
+# Import the realtime visualiser
 from anuga.visualiser import RealtimeVisualiser
 from vtk import vtkCubeAxesActor2D
 

@@ -37,11 +37,7 @@ class RealtimeVisualiser(Visualiser):
         self.sync_unpaused.set()
         self.sync_redrawReady = Event()
         self.sync_redrawReady.clear()
-
-    def run(self):
-        self.alter_tkroot(Tk.after, (100, self.sync_idle.set))
-        Visualiser.run(self)
-
+        
     def setup_grid(self):
         self.vtk_cells = vtkCellArray()
         triangles = self.source.get_triangles()
