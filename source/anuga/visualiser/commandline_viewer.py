@@ -56,4 +56,7 @@ if __name__ == '__main__':
         o.precache_height_quantities()
 
         # Start the visualiser (in its own thread).
-        o.run()
+        o.start()
+        # Wait for the visualiser to terminate before shutdown
+        o.join()
+        

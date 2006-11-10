@@ -60,10 +60,12 @@ class RealtimeVisualiser(Visualiser):
         N_vert = len(self.source.get_vertex_coordinates())
         qty_index = zeros(N_vert, Float)
         triangles = self.source.get_triangles()
+        vertex_values, _ = self.source.get_quantity(quantityName).get_vertex_values(xy=False, smooth=False)
 
         for n in range(len(triangles)):
             for v in range(3):
-                qty_index[triangles[n][v]] = self.source.get_quantity(quantityName).vertex_values[n][v]
+                #qty_index[triangles[n][v]] = self.source.get_quantity(quantityName).vertex_values[n][v]
+                qty_index[triangles[n][v]] = vertex_values[n * 3 + v]
 
         points = vtkPoints()
         for v in range(N_vert):
@@ -94,7 +96,7 @@ class RealtimeVisualiser(Visualiser):
     def build_quantity_dict(self):
         triangles = self.source.get_triangles()
         quantities = {}
-        for q in self.source.quantities.keys():
+        for q in self.source.get_quantity_names():
             quantities[q], _ = self.source.get_quantity(q).get_vertex_values(xy=False)
         return quantities
 

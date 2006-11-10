@@ -330,6 +330,12 @@ class Domain(Mesh):
         self.quantities[name].set_values(*args, **kwargs)
 
 
+    def get_quantity_names(self):
+        """Get a list of all the quantity names that this domain is aware of.
+        Any value in the result should be a valid input to get_quantity.
+        """
+        return self.quantities.keys()
+
     def get_quantity(self, name, location='vertices', indices = None):
         """Get quantity object.
 
