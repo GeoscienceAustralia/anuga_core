@@ -4107,6 +4107,12 @@ def urs2sww(basename_in='o', basename_out=None, verbose=False,
     To include a value min may equal it, while max must exceed it.
     Lat and lon are assumed to be in decimal degrees. 
     NOTE: min Lon is the most east boundary.
+    
+    origin is a 3-tuple with geo referenced
+    UTM coordinates (zone, easting, northing)
+    It will be the origin of the sww file. This shouldn't be used,
+    since all of anuga should be able to handle an arbitary origin.
+
 
     URS C binary format has data orgainised as TIME, LONGITUDE, LATITUDE
     which means that latitude is the fastest
@@ -4137,6 +4143,15 @@ def urs2sww(basename_in='o', basename_out=None, verbose=False,
             os.remove(file_out)
     
 def urs2nc(basename_in = 'o', basename_out = 'urs'):
+    """
+    Convert the 3 urs files to 4 nc files.
+
+    The name of the urs file names must be;
+    [basename_in]-z-mux
+    [basename_in]-e-mux
+    [basename_in]-n-mux
+    
+    """
     files_in = [basename_in+'-z-mux',
                 basename_in+'-e-mux',
                 basename_in+'-n-mux']
@@ -4157,11 +4172,9 @@ def urs2nc(basename_in = 'o', basename_out = 'urs'):
         lonlatdep, lon, lat, depth = _binary_c2nc(file_in,
                                          file_out,
                                          quantity)
-        #print "lon",lon
-        #print "lat",lat 
         if hashed_elevation == None:
             elevation_file = basename_out+'_e.nc'
-            write_elevation_sww(elevation_file,
+            write_elevation_nc(elevation_file,
                                 lon,
                                 lat,
                                 depth)
@@ -4174,54 +4187,49 @@ def urs2nc(basename_in = 'o', basename_out = 'urs'):
     
 def _binary_c2nc(file_in, file_out, quantity):
     """
-
-    return the depth info, so it can be written to a file
+    Reads in a quantity urs file and writes a quantity nc file.
+    additionally, returns the depth and lat, long info,
+    so it can be written to a file.
     """
     columns = 3 # long, lat , depth
-    #FIXME use mux_file, not f
-    f = open(file_in, 'rb')
+    mux_file = open(file_in, 'rb')
     
     # Number of points/stations
-    (points_num,)= unpack('i',f.read(4))
+    (points_num,)= unpack('i',mux_file.read(4))
 
-    #print 'points_num', points_num
-    #import sys; sys.exit()
     # nt, int - Number of time steps
-    (time_step_count,)= unpack('i',f.read(4))
+    (time_step_count,)= unpack('i',mux_file.read(4))
 
     #dt, float - time step, seconds
-    (time_step,) = unpack('f', f.read(4))
+    (time_step,) = unpack('f', mux_file.read(4))
     
     msg = "Bad data in the mux file."
     if points_num < 0:
-        f.close()
+        mux_file.close()
         raise ANUGAError, msg
     if time_step_count < 0:
-        f.close()
+        mux_file.close()
         raise ANUGAError, msg
     if time_step < 0:
-        f.close()
+        mux_file.close()
         raise ANUGAError, msg
     
     lonlatdep = p_array.array('f')
-    ####points_num = 2914
-    lonlatdep.read(f, columns * points_num)
+    lonlatdep.read(mux_file, columns * points_num)
     lonlatdep = array(lonlatdep, typecode=Float)    
     lonlatdep = reshape(lonlatdep, (points_num, columns))
-    
-    #print "lonlatdep", lonlatdep
     
     lon, lat, depth = lon_lat2grid(lonlatdep)
     lon_sorted = list(lon)
     lon_sorted.sort()
 
-    if not allclose(lon, lon_sorted):
+    if not lon == lon_sorted:
         msg = "Longitudes in mux file are not in ascending order"
         raise IOError, msg
     lat_sorted = list(lat)
     lat_sorted.sort()
 
-    if not allclose(lat, lat_sorted):
+    if not lat == lat_sorted:
         msg = "Latitudes in mux file are not in ascending order"
     
     nc_file = Write_nc(quantity,
@@ -4234,22 +4242,24 @@ def _binary_c2nc(file_in, file_out, quantity):
     for i in range(time_step_count):
         #Read in a time slice  from mux file  
         hz_p_array = p_array.array('f')
-        hz_p_array.read(f, points_num)
+        hz_p_array.read(mux_file, points_num)
         hz_p = array(hz_p_array, typecode=Float)
         hz_p = reshape(hz_p, (len(lon), len(lat)))
         hz_p = transpose(hz_p) #mux has lat varying fastest, nc has long v.f. 
 
         #write time slice to nc file
         nc_file.store_timestep(hz_p)
-    #FIXME should I close the mux file here?
-    f.close()
+    mux_file.close()
     nc_file.close()
 
     return lonlatdep, lon, lat, depth
     
 
-def write_elevation_sww(file_out, lon, lat, depth_vector):
-      
+def write_elevation_nc(file_out, lon, lat, depth_vector):
+    """
+    Write an nc elevation file.
+    """
+    
     # NetCDF file definition
     outfile = NetCDFFile(file_out, 'w')
 
@@ -4266,12 +4276,16 @@ def write_elevation_sww(file_out, lon, lat, depth_vector):
     outfile.variables[lat_name][:]= ensure_numeric(lat)
 
     depth = reshape(depth_vector, ( len(lat), len(lon)))
-    #print "depth",depth 
     outfile.variables[zname][:]= depth
     
     outfile.close()
     
 def nc_lon_lat_header(outfile, lon, lat):
+    """
+    outfile is the netcdf file handle.
+    lon - a list/array of the longitudes
+    lat - a list/array of the latitudes
+    """
     
     outfile.institution = 'Geoscience Australia'
     outfile.description = 'Converted from URS binary C'
@@ -4311,18 +4325,19 @@ def lon_lat2grid(long_lat_dep):
     
     num_points = long_lat_dep.shape[0]
     this_rows_long = long_lat_dep[0,LONG]
-    
+
     # Count the length of unique latitudes
     i = 0
     while long_lat_dep[i,LONG] == this_rows_long and i < num_points:
         i += 1
-          
+    # determine the lats and longsfrom the grid
     lat = long_lat_dep[:i, LAT]        
-    long = long_lat_dep[::i, LONG]      
+    long = long_lat_dep[::i, LONG]
+    
     lenlong = len(long)
     lenlat = len(lat)
-#    print 'len lat', lat, len(lat)
-#    print 'len long', long, len(long) 
+    #print 'len lat', lat, len(lat)
+    #print 'len long', long, len(long) 
           
     msg = 'Input data is not gridded'      
     assert num_points % lenlat == 0, msg
