@@ -1873,12 +1873,14 @@ def sww2dem(basename_in, basename_out = None,
     x = fid.variables['x'][:]
     y = fid.variables['y'][:]
     volumes = fid.variables['volumes'][:]
-    times = fid.variables['time'][:]
     if timestep is not None:
         times = fid.variables['time'][timestep]
+    else:
+        times = fid.variables['time'][:]
 
     number_of_timesteps = fid.dimensions['number_of_timesteps']
     number_of_points = fid.dimensions['number_of_points']
+    
     if origin is None:
 
         #Get geo_reference
@@ -1920,20 +1922,24 @@ def sww2dem(basename_in, basename_out = None,
             print '    t [s] = %f, len(t) == %d' %(times, 1)
         else:
             print '    t [s] in [%f, %f], len(t) == %d'\
-                  %(min(times), max(times), len(times))
+              %(min(times), max(times), len(times))
         print '  Quantities [SI units]:'
-        for name in ['stage', 'xmomentum', 'ymomentum', 'elevation']:
+        for name in ['stage', 'xmomentum', 'ymomentum']:
             q = fid.variables[name][:].flat
-            print '    %s in [%f, %f]' %(name, min(q), max(q))
-
-
+            if timestep is not None:
+                q = q[timestep*len(x):(timestep+1)*len(x)]
+            if verbose: print '    %s in [%f, %f]' %(name, min(q), max(q))
+        for name in ['elevation']:
+            q = fid.variables[name][:].flat
+            if verbose: print '    %s in [%f, %f]' %(name, min(q), max(q))
+            
     # Get quantity and reduce if applicable
     if verbose: print 'Processing quantity %s' %quantity
 
     # Turn NetCDF objects into Numeric arrays
     quantity_dict = {}
     for name in fid.variables.keys():
-        quantity_dict[name] = fid.variables[name][:]
+        quantity_dict[name] = fid.variables[name][:] 
 
 
     # Convert quantity expression to quantities found in sww file    
@@ -1944,9 +1950,13 @@ def sww2dem(basename_in, basename_out = None,
         #the temporal dimension
         if verbose: print 'Reducing quantity %s' %quantity
         q_reduced = zeros( number_of_points, Float )
-
-        for k in range(number_of_points):
-            q_reduced[k] = reduction( q[:,k] )
+        
+        if timestep is not None:
+            for k in range(number_of_points):
+                q_reduced[k] = q[timestep,k] 
+        else:
+            for k in range(number_of_points):
+                q_reduced[k] = reduction( q[:,k] )
 
         q = q_reduced
 
