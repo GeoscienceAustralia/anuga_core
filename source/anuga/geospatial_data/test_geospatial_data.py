@@ -1626,10 +1626,39 @@ crap")
         points = [[1.0, 2.1], [3.0, 5.3], [3.0, 5.3], [3.0, 5.3]]
         G = Geospatial_data(points)
         self.failUnless(4 ==len(G),  'Len error!')
+        
+    def test_split(self):
+        """test if the results from spilt are disjoin sets"""
+        
+        points = [[1.0, 1.0], [1.0, 2.0],[1.0, 3.0], [1.0, 4.0], [1.0, 5.0],
+                  [2.0, 1.0], [2.0, 2.0],[2.0, 3.0], [2.0, 4.0], [2.0, 5.0],
+                  [3.0, 1.0], [3.0, 2.0],[3.0, 3.0], [3.0, 4.0], [3.0, 5.0],
+                  [4.0, 1.0], [4.0, 2.0],[4.0, 3.0], [4.0, 4.0], [4.0, 5.0],
+                  [5.0, 1.0], [5.0, 2.0],[5.0, 3.0], [5.0, 4.0], [5.0, 5.0]]
+        attributes = {'depth':[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 
+                      14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25],'speed':[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 
+                      14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]}
+        G = Geospatial_data(points, attributes)
+#        print G.get_data_points()
+#        print G.get_attributes()
+
+        factor = 0.22
+
+        G1, G2  = G.split(factor) #will return G1 with 10% for points and G2 with 90%
+        
+#        print 'len(G): %s  len(G1): %s len(G2): %s' %(len(G), len(G1), len(G2))
+#        print 'G: ', len(G),'G1: ', len(G1), 'G2: ', len(G2)
+
+        assert allclose(len(G), len(G1)+len(G2))
+        assert allclose(round(len(G)*factor), len(G1))
+        
+#        assert allclose(G == G1 + G2) must implentent __equal__
+        
          
 if __name__ == "__main__":
 
-    #suite = unittest.makeSuite(Test_Geospatial_data, 'test_ensure_geospatial')
+#    suite = unittest.makeSuite(Test_Geospatial_data, 'test_split')
+#    suite = unittest.makeSuite(Test_Geospatial_data, 'test_clip0')
     suite = unittest.makeSuite(Test_Geospatial_data, 'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)

@@ -6,7 +6,10 @@ associated attributes.
 from os import access, F_OK, R_OK
 from types import DictType
 
-from Numeric import concatenate, array, Float, shape, reshape, ravel, take
+from Numeric import concatenate, array, Float, shape, reshape, ravel, take, \
+                        size, shape
+from RandomArray import randint
+#from MA import tolist
 
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.coordinate_transforms.geo_reference import Geo_reference, TitleError
@@ -222,7 +225,7 @@ class Geospatial_data:
           closed - (optional) determine whether points on boundary should be
           regarded as belonging to the polygon (closed = True)
           or not (closed = False). Default is True.
-          
+           
         Output
           New geospatial data object representing points inside
           specified polygon.
@@ -238,17 +241,19 @@ class Geospatial_data:
         points = self.get_data_points()    
         inside_indices = inside_polygon(points, polygon, closed)
 
-        clipped_points = take(points, inside_indices)
+        clipped_G = self.get_sample(inside_indices)
+#        clipped_points = take(points, inside_indices)
 
         # Clip all attributes
-        attributes = self.get_all_attributes()
+#        attributes = self.get_all_attributes()
 
-        clipped_attributes = {}
-        if attributes is not None:
-            for key, att in attributes.items():
-                clipped_attributes[key] = take(att, inside_indices)
+#        clipped_attributes = {}
+#        if attributes is not None:
+#            for key, att in attributes.items():
+#                clipped_attributes[key] = take(att, inside_indices)
 
-        return Geospatial_data(clipped_points, clipped_attributes)
+#        return Geospatial_data(clipped_points, clipped_attributes)
+        return clipped_G
         
         
     def clip_outside(self, polygon, closed=True):
@@ -275,17 +280,20 @@ class Geospatial_data:
         points = self.get_data_points()    
         outside_indices = outside_polygon(points, polygon, closed)
 
-        clipped_points = take(points, outside_indices)
+        clipped_G = self.get_sample(outside_indices)
+
+#        clipped_points = take(points, outside_indices)
 
         # Clip all attributes
-        attributes = self.get_all_attributes()
+#        attributes = self.get_all_attributes()
 
-        clipped_attributes = {}
-        if attributes is not None:
-            for key, att in attributes.items():
-                clipped_attributes[key] = take(att, outside_indices)
+#        clipped_attributes = {}
+#        if attributes is not None:
+#            for key, att in attributes.items():
+#                clipped_attributes[key] = take(att, outside_indices)
 
-        return Geospatial_data(clipped_points, clipped_attributes)
+#        return Geospatial_data(clipped_points, clipped_attributes)
+        return clipped_G
 
     
     def _set_using_lat_long(self,
@@ -564,8 +572,81 @@ class Geospatial_data:
         else:
             msg = 'Unknown file type %s ' %file_name
             raise IOError, msg 
-    
+        
+    def get_sample(self, indices):
+        """ Returns a object which is a subset of the original
+        and the data points and attributes in this new object refer to
+        the indices provided
+        
+        Input
+            indices- a list of integers that represent the new object
+        Output
+            New geospatial data object representing points specified by 
+            the indices 
+            """
+        #FIXME: add the geo_reference to this
+        
+        points = self.get_data_points()
+        sampled_points = take(points, indices)
 
+        attributes = self.get_all_attributes()
+
+        sampled_attributes = {}
+        if attributes is not None:
+            for key, att in attributes.items():
+                sampled_attributes[key] = take(att, indices)
+
+        return Geospatial_data(sampled_points, sampled_attributes)
+    
+    
+    def split(self, factor=0.5):
+        """Returns two geospatial_data object, first is size of the 'factor'
+        smaller the original one and the second is the remainer. The two new 
+        object are disjoin set of each other. 
+        
+        Points of the two new object have selected RANDOMLY. 
+        AND if factor is a decimal it will round (2.25 to 2 and 2.5 to 3)
+        
+        
+        Input - the factor which to split the object, if 0.1 then 10% of the
+            object will be returned
+        
+        Output - two geospatial_data objects that are disjoint sets of the 
+            original
+            """
+        
+        i=0
+        self_size = len(self)
+#        print 'size', self_size
+        random_list = []
+        remainder_list = []
+        new_size = round(factor*self_size)
+   #     print'Split original %s by %s' %(self_size, factor)
+   #     print'New samples are %s and %s in size' %(int(round(factor*self_size)),int(self_size-new_size))
+        
+        #find unique random numbers
+        while i < new_size:
+            random_num = randint(0,self_size)
+            if random_num not in random_list:
+                random_list.append(random_num)
+                i=i+1
+
+        #Make list of opposite to random_list
+        for i in range(0,self_size,1):
+            remainder_list.append(i)
+#        print 'start remainer',remainder_list
+
+        #need to sort and reverse so the pop() works correctly
+        random_list.sort()
+        random_list.reverse()
+        for i in random_list:
+            remainder_list.pop(i)
+
+        #get new samples
+        G1 = self.get_sample(random_list)
+        G2 = self.get_sample(remainder_list)
+
+        return G1, G2
 
 
 def _read_pts_file(file_name, verbose = False):
@@ -829,29 +910,6 @@ def clean_line(line,delimiter):
     #    print "num>%s<" %num
     return numbers
             
-def xxx_add_points_files(add_file1, add_file2, results_file):
-    """ adds the points and attruibutes of 2 pts or xya files and
-    writes it to a pts file
-    
-    NOTE will add the function to check and remove points from one set
-    that are shared. This will require some work and maybe __subtract__ function 
-    """
-    
-    G1 = Geospatial_data(file_name = add_file1)
-    G2 = Geospatial_data(file_name = add_file2)
-    new_add_file2 = add_file2[:-4] + '.pts' 
-
-    G = G1 + G2
-    
-    #FIXME remove dependance on points to dict in export only!
-#    G_points_dict = geospatial_data2points_dictionary(G)
-#    export_points_file(results_file, G_points_dict)
-
-#    G_points_dict = geospatial_data2points_dictionary(G)
-
-    G.export_points_file(results_file)
-
-# '
 def ensure_absolute(points, geo_reference = None):
     """
     This function inputs several formats and
@@ -923,4 +981,10 @@ def ensure_geospatial(points, geo_reference = None):
                                 geo_reference[2])
     points = Geospatial_data(data_points=points, geo_reference=geo)        
     return points
+
+#def file2xya(filename):
+    
+#    G = Geospatial_data(filename)
+#    G.export_points_file()
+
              
