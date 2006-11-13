@@ -2030,7 +2030,6 @@ def sww2dem(basename_in, basename_out = None,
     #from least_squares import Interpolation
     from anuga.fit_interpolate.interpolate import Interpolate
 
-    print 'hello', vertex_points.shape, volumes.shape
     interp = Interpolate(vertex_points, volumes, verbose = verbose)
 
     #Interpolate using quantity values
