@@ -4568,6 +4568,7 @@ friction  \n \
         quantities = ['HA','UA','VA']
         mux_names = ['-z-mux','-e-mux','-n-mux']
         quantities_init = [[],[],[]]
+        # urs binary is latitude fastest
         for i,lon in enumerate(longitudes):
             for j,lat in enumerate(latitudes):
                 _ , e, n = redfearn(lat, lon)
@@ -4656,15 +4657,21 @@ friction  \n \
     def test_urs2sww(self):
         tide = 1
         base_name, files = self.create_mux()
-        urs2sww(base_name, mean_stage=tide)
+        urs2sww(base_name
+                #, origin=(0,0,0)
+                , mean_stage=tide
+                , remove_nc_files=False
+                )
         sww_file = base_name + '.sww'
         
-        #Let's interigate the sww file 
+        #Let's interigate the sww file
+        # Note, the sww info is not gridded.  It is point data.
         fid = NetCDFFile(sww_file)
 
         x = fid.variables['x'][:]
         y = fid.variables['y'][:]
         geo_reference = Geo_reference(NetCDFObject=fid)
+
         
         #Check that first coordinate is correctly represented       
         #Work out the UTM coordinates for first point
@@ -4672,12 +4679,17 @@ friction  \n \
        
         assert allclose(geo_reference.get_absolute([[x[0],y[0]]]), [e,n])
 
+        # Make x and y absolute
+        points = geo_reference.get_absolute(map(None, x, y))
+        points = ensure_numeric(points)
+        x = points[:,0]
+        y = points[:,1]
+        
         #Check first value
         stage = fid.variables['stage'][:]
         xmomentum = fid.variables['xmomentum'][:]
         ymomentum = fid.variables['ymomentum'][:]
-
-        #print ymomentum
+        elevation = fid.variables['elevation'][:]
         assert allclose(stage[0,0], e +tide)  #Meters
 
         #Check the momentums - ua
@@ -4687,9 +4699,19 @@ friction  \n \
         # = n*(e+tide+n) based on how I'm writing these files
         answer = n*(e+tide+n)
         actual = xmomentum[0,0]
-        #print "answer",answer
-        #print "actual",actual 
         assert allclose(answer, actual)  #Meters
+
+        # check the stage values, first time step.
+        # These arrays are equal since the Easting values were used as
+        # the stage
+        assert allclose(stage[0], x +tide)  #Meters
+
+        # check the elevation values.
+        # -ve since urs measures depth, sww meshers height,
+        # these arrays are equal since the northing values were used as
+        # the elevation
+        assert allclose(-elevation, y)  #Meters
+
         
         fid.close()
 
@@ -4697,15 +4719,6 @@ friction  \n \
         self.delete_mux(files)
         os.remove(sww_file)
         
-    def bad_test_assuming_theres_a_mux_file(self):
-        # these mux files aren't in the repository, plus they are bad!
-        base_name = 'o-z-mux' 
-        base_name = 'o-e-mux'
-        file_name = base_name + '.nc'
-        lonlatdep_numeric, lon, lat, depth = \
-                           _binary_c2nc(base_name, file_name, 'HA')
-        
-        #os.remove(file_name)
         
     def test_lon_lat2grid(self):
         lonlatdep = [
@@ -4778,7 +4791,7 @@ friction  \n \
 #-------------------------------------------------------------
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager,'test_lon')
-    #suite = unittest.makeSuite(Test_Data_Manager,'trial')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sww')
     suite = unittest.makeSuite(Test_Data_Manager,'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
