@@ -8,7 +8,7 @@ import anuga.utilities.polygon
 import sys
 
 from os import remove, mkdir, access, F_OK, sep
-from os.path import exists
+from os.path import exists, basename
 from warnings import warn
 from shutil import copy
 
@@ -1194,8 +1194,8 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
     
     return texfile2, elev_output
 
-from os.path import basename
-
+# FIXME (DSG): Add unit test, make general, not just 2 files,
+# but any number of files.
 def copy_code_files(dir_name, filename1, filename2):
     """Copies "filename1" and "filename2" to "dir_name". Very useful for 
     information management """
@@ -1208,7 +1208,21 @@ def copy_code_files(dir_name, filename1, filename2):
 #    copy (__file__, project.output_run_time_dir + basename(__file__))
     print 'Files %s and %s copied' %(filename1, filename2)
 
+def add_directories(root_directory, directories):
+    """
+    Add the first directory in directories to root_directory.  Then add the second
+    direcotory to the first directory and so on.
 
+    Return the path of the final directory.
+
+    This is handy for specifying and creating a directory where data will go.
+    """
+    dir = root_directory
+    for new_dir in directories:
+        dir = dir + sep + new_dir
+        if not access(dir,F_OK):
+            mkdir (dir)
+    return dir
 
 
 

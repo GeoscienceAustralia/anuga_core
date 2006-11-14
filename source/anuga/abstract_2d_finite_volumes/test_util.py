@@ -4,7 +4,8 @@
 import unittest
 from Numeric import zeros, array, allclose, Float
 from math import sqrt, pi
-import tempfile
+import tempfile, os
+from os import access, F_OK,sep, removedirs
 
 from anuga.abstract_2d_finite_volumes.util import *
 from anuga.config import epsilon
@@ -1153,12 +1154,27 @@ class Test_Util(unittest.TestCase):
         info = get_version_info()
         assert info.startswith('Revision')
     			  
-			  
+	
+    def test_add_directories(self):
+        
+        import tempfile
+        root_dir = tempfile.mkdtemp('_test_util', 'test_util_')
+        directories = ['ja','ne','ke']
+        kens_dir = add_directories(root_dir, directories)
+        assert kens_dir == root_dir + sep + 'ja' + sep + 'ne' + \
+               sep + 'ke'
+        assert access(root_dir,F_OK)
+
+        #clean up!
+        os.rmdir(kens_dir)
+        os.rmdir(root_dir + sep + 'ja' + sep + 'ne')
+        os.rmdir(root_dir + sep + 'ja')
+        os.rmdir(root_dir)
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Util,'test')
-    #suite = unittest.makeSuite(Test_Util,'test_get_version_info')
+    #suite = unittest.makeSuite(Test_Util,'test_add_directories')
     runner = unittest.TextTestRunner()
     runner.run(suite)
 
