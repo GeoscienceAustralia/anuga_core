@@ -1165,12 +1165,32 @@ class Test_Util(unittest.TestCase):
                sep + 'ke'
         assert access(root_dir,F_OK)
 
+        add_directories(root_dir, directories)
+        assert access(root_dir,F_OK)
+        
         #clean up!
         os.rmdir(kens_dir)
         os.rmdir(root_dir + sep + 'ja' + sep + 'ne')
         os.rmdir(root_dir + sep + 'ja')
         os.rmdir(root_dir)
 
+    def test_add_directories_bad(self):
+        
+        import tempfile
+        root_dir = tempfile.mkdtemp('_test_util', 'test_util_')
+        directories = ['**','ne','ke']
+        
+        try:
+            kens_dir = add_directories(root_dir, directories)
+	except OSError:
+	    pass
+	else:
+	    msg = 'bad dir name should give OSError'
+	    raise Exception(msg)    
+            
+        #clean up!
+        os.rmdir(root_dir)
+        
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Util,'test')

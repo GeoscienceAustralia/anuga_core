@@ -6,6 +6,7 @@ of their own.
 
 import anuga.utilities.polygon
 import sys
+import os
 
 from os import remove, mkdir, access, F_OK, sep
 from os.path import exists, basename
@@ -1208,6 +1209,7 @@ def copy_code_files(dir_name, filename1, filename2):
 #    copy (__file__, project.output_run_time_dir + basename(__file__))
     print 'Files %s and %s copied' %(filename1, filename2)
 
+
 def add_directories(root_directory, directories):
     """
     Add the first directory in directories to root_directory.
@@ -1220,7 +1222,7 @@ def add_directories(root_directory, directories):
     """
     dir = root_directory
     for new_dir in directories:
-        dir = dir + sep + new_dir
+        dir = os.path.join(dir, new_dir)
         if not access(dir,F_OK):
             mkdir (dir)
     return dir
