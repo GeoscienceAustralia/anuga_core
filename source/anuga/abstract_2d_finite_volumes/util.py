@@ -1210,7 +1210,8 @@ def copy_code_files(dir_name, filename1, filename2):
 
 def add_directories(root_directory, directories):
     """
-    Add the first directory in directories to root_directory.  Then add the second
+    Add the first directory in directories to root_directory.
+    Then add the second
     direcotory to the first directory and so on.
 
     Return the path of the final directory.
