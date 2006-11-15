@@ -943,7 +943,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
             gaugeloc = locations[k]
             thisfile = file_loc[j]+sep+'gauges_time_series'+'_'+gaugeloc+'.csv'
             fid_out = open(thisfile, 'w')
-            s = 'Time, Stage, Momentum, Speed \n'
+            s = 'Time, Stage, Momentum, Speed, Elevation \n'
             fid_out.write(s)
             
             #### generate quantities #######
@@ -971,7 +971,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     depths[i,k,j] = depth
                     thisgauge = gauges[k]
                     eastings[i,k,j] = thisgauge[0]
-                    s = '%.2f, %.2f, %.2f, %.2f\n' %(t, w, m, vel)
+                    s = '%.2f, %.2f, %.2f, %.2f, %.2f\n' %(t, w, m, vel, z)
                     fid_out.write(s)
                     if t/60.0 <= 13920: tindex = i
                     if w > max_stage: max_stage = w
@@ -980,7 +980,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     if vel > max_speed: max_speed = vel
                     
                     
-            s = '%.2f, %.2f, %.2f, %s\n' %(max_stage, min_stage, z, leg_label[j])
+            s = '%.2f, %.2f, %.2f, %.2f, %s\n' %(max_stage, min_stage, z, thisgauge[0], leg_label[j])
             fid_compare.write(s)
             max_stages.append(max_stage)
             min_stages.append(min_stage)
@@ -1183,7 +1183,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     east = thisgauge[0]
                     north = thisgauge[1]
                     elev_output.append([locations[k],east,north,elevations[0,k,j]])
-            
+                    
             s = '\end{tabular} \n \\caption{%s} \n \label{fig:%s} \n \end{figure} \n \n' %(caption, label)
             fid.write(s)
             c += 1
