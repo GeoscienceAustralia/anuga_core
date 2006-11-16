@@ -1178,6 +1178,7 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
                                      domain.edgelengths,
                                      domain.radii,
                                      domain.areas,
+                                     tri_full_flag,
                                      Stage.edge_values,
                                      Xmom.edge_values,
                                      Ymom.edge_values,

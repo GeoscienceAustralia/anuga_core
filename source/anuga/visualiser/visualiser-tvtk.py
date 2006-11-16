@@ -2,8 +2,8 @@ from threading import Thread
 from Queue import Queue
 from Tkinter import Tk, Button, Frame, N, E, S, W
 from types import FunctionType, TupleType
-from vtk import vtkActor, vtkCubeAxesActor2D, vtkDelaunay2D, vtkFloatArray, vtkPoints, vtkPolyData, vtkPolyDataMapper, vtkRenderer
-from vtk.tk.vtkTkRenderWidget import vtkTkRenderWidget
+from enthought.tvtk.api import tvtk
+from enthought.tvtk.tools import ivtk
 
 class Visualiser(Thread):
     """Superclass of both the realtime and offline VTK visualisers
@@ -37,7 +37,7 @@ class Visualiser(Thread):
         self.conf_tkAlterations = []
 
     def run(self):
-        self.vtk_renderer = vtkRenderer()
+        self.vtk_renderer = tvtk.Renderer()
         self.setup_gui()
         self.setup_grid()
 
@@ -165,7 +165,7 @@ class Visualiser(Thread):
                     # lower bound on the scalar range and
                     # colour[2] as the upper bound on the scalar
                     # range.
-                    scalars = vtkFloatArray()
+                    scalars = tvtk.FloatArray()
                     map(scalars.InsertNextValue, colour[0](self.build_quantity_dict()))
                     self.vtk_polyData[quantityName].GetPointData().SetScalars(scalars)
                     mapper.SetScalarRange(colour[1:])
