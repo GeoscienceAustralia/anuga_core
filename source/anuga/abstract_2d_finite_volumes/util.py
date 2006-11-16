@@ -514,7 +514,7 @@ def start_screen_catcher(dirname, myid=0, numprocs=1):
     sys.stdout = screen_catcher(screen_output_name)
     sys.stderr = screen_catcher(screen_error_name)
 
-class screen_catcher:
+class Screen_Catcher:
     """this simply catches the screen output and stores it to file defined by
     start_screen_catcher (above)
     """
