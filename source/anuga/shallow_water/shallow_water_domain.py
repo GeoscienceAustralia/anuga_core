@@ -1,9 +1,18 @@
-"""Class Domain -
-2D triangular domains for finite-volume computations of
+"""Finite-volume computations of the shallow water wave equation.
+
+Title: ANGUA shallow_water_domain - 2D triangular domains for finite-volume computations of
 the shallow water wave equation.
 
 
-$Description:
+Author: Ole Nielsen (Ole.Nielsen@ga.gov.au),
+        Stephen Roberts (Stephen.Roberts@anu.edu.au),
+        Duncan Gray (Duncan.Gray@ga.gov.au), etc
+
+
+CreationDate: 2004
+
+Description:
+
 This module contains a specialisation of class Domain from module domain.py
 consisting of methods specific to the Shallow Water Wave Equation
 
@@ -38,7 +47,7 @@ nu                         wind stress coefficient [to appear]
 
 The conserved quantities are w, uh, vh
 
-$References
+Reference:
 Catastrophic Collapse of Water Supply Reservoirs in Urban Areas,
 Christopher Zoppou and Stephen Roberts,
 Journal of Hydraulic Engineering, vol. 127, No. 7 July 1999
@@ -51,17 +60,22 @@ New Zealand, December 2005, pp. 518-523. ISBN: 0-9758400-2-9.
 http://www.mssanz.org.au/modsim05/papers/nielsen.pdf
 
 
-Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou
-Geoscience Australia, 2004
+SeeAlso: TRAC administration of ANUGA (User Manuals etc) at https://datamining.anu.edu.au/anuga and 
+Revision control
+$HeadURL$
 
+Constraints: See GPL license in the user guide
 
+Version: 1.0 ($Revision$)
+ModifiedBy:
 $Author$
-$Revision$
 $Date$
+
+$LastChangedBy$
 $LastChangedDate$
 $LastChangedRevision$
-$LastChangedBy$
-$HeadURL$
+
+
 """
 
 #Subversion keywords:
