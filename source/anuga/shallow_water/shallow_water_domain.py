@@ -1,80 +1,75 @@
 """Finite-volume computations of the shallow water wave equation.
 
-Title: ANGUA shallow_water_domain - 2D triangular domains for finite-volume computations of
-the shallow water wave equation.
+Title: ANGUA shallow_water_domain - 2D triangular domains for finite-volume
+       computations of the shallow water wave equation.
 
 
 Author: Ole Nielsen (Ole.Nielsen@ga.gov.au),
         Stephen Roberts (Stephen.Roberts@anu.edu.au),
         Duncan Gray (Duncan.Gray@ga.gov.au), etc
 
-
 CreationDate: 2004
 
 Description:
+    This module contains a specialisation of class Domain from
+    module domain.py consisting of methods specific to the
+    Shallow Water Wave Equation
 
-This module contains a specialisation of class Domain from module domain.py
-consisting of methods specific to the Shallow Water Wave Equation
+    U_t + E_x + G_y = S
+
+    where
+
+    U = [w, uh, vh]
+    E = [uh, u^2h + gh^2/2, uvh]
+    G = [vh, uvh, v^2h + gh^2/2]
+    S represents source terms forcing the system
+    (e.g. gravity, friction, wind stress, ...)
+
+    and _t, _x, _y denote the derivative with respect to t, x and y
+    respectively.
 
 
-U_t + E_x + G_y = S
+    The quantities are
 
-where
+    symbol    variable name    explanation
+    x         x                horizontal distance from origin [m]
+    y         y                vertical distance from origin [m]
+    z         elevation        elevation of bed on which flow is modelled [m]
+    h         height           water height above z [m]
+    w         stage            absolute water level, w = z+h [m]
+    u                          speed in the x direction [m/s]
+    v                          speed in the y direction [m/s]
+    uh        xmomentum        momentum in the x direction [m^2/s]
+    vh        ymomentum        momentum in the y direction [m^2/s]
 
-U = [w, uh, vh]
-E = [uh, u^2h + gh^2/2, uvh]
-G = [vh, uvh, v^2h + gh^2/2]
-S represents source terms forcing the system
-(e.g. gravity, friction, wind stress, ...)
+    eta                        mannings friction coefficient [to appear]
+    nu                         wind stress coefficient [to appear]
 
-and _t, _x, _y denote the derivative with respect to t, x and y respectively.
-
-The quantities are
-
-symbol    variable name    explanation
-x         x                horizontal distance from origin [m]
-y         y                vertical distance from origin [m]
-z         elevation        elevation of bed on which flow is modelled [m]
-h         height           water height above z [m]
-w         stage            absolute water level, w = z+h [m]
-u                          speed in the x direction [m/s]
-v                          speed in the y direction [m/s]
-uh        xmomentum        momentum in the x direction [m^2/s]
-vh        ymomentum        momentum in the y direction [m^2/s]
-
-eta                        mannings friction coefficient [to appear]
-nu                         wind stress coefficient [to appear]
-
-The conserved quantities are w, uh, vh
+    The conserved quantities are w, uh, vh
 
 Reference:
-Catastrophic Collapse of Water Supply Reservoirs in Urban Areas,
-Christopher Zoppou and Stephen Roberts,
-Journal of Hydraulic Engineering, vol. 127, No. 7 July 1999
+    Catastrophic Collapse of Water Supply Reservoirs in Urban Areas,
+    Christopher Zoppou and Stephen Roberts,
+    Journal of Hydraulic Engineering, vol. 127, No. 7 July 1999
 
-Hydrodynamic modelling of coastal inundation. 
-Nielsen, O., S. Roberts, D. Gray, A. McPherson and A. Hitchman
-In Zerger, A. and Argent, R.M. (eds) MODSIM 2005 International Congress on
-Modelling and Simulation. Modelling and Simulation Society of Australia and
-New Zealand, December 2005, pp. 518-523. ISBN: 0-9758400-2-9.
-http://www.mssanz.org.au/modsim05/papers/nielsen.pdf
+    Hydrodynamic modelling of coastal inundation. 
+    Nielsen, O., S. Roberts, D. Gray, A. McPherson and A. Hitchman
+    In Zerger, A. and Argent, R.M. (eds) MODSIM 2005 International Congress on
+    Modelling and Simulation. Modelling and Simulation Society of Australia and
+    New Zealand, December 2005, pp. 518-523. ISBN: 0-9758400-2-9.
+    http://www.mssanz.org.au/modsim05/papers/nielsen.pdf
 
 
-SeeAlso: TRAC administration of ANUGA (User Manuals etc) at https://datamining.anu.edu.au/anuga and 
-Revision control
-$HeadURL$
+SeeAlso:
+    TRAC administration of ANUGA (User Manuals etc) at
+    https://datamining.anu.edu.au/anuga and Subversion repository at
+    $HeadURL$
 
 Constraints: See GPL license in the user guide
-
 Version: 1.0 ($Revision$)
 ModifiedBy:
-$Author$
-$Date$
-
-$LastChangedBy$
-$LastChangedDate$
-$LastChangedRevision$
-
+    $Author$
+    $Date$
 
 """
 
