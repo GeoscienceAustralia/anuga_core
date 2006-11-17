@@ -1022,10 +1022,10 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
         profilefig = 'solution_xprofile' 
         savefig('profilefig')
                 
-    stage_axis = axis([time_min/60.0, time_max/60.0, min(min_stages), max(max_stages)*1.1])
+    #stage_axis = axis([time_min/60.0, time_max/60.0, min(min_stages), max(max_stages)*1.1])
     #stage_axis = axis([time_min/60.0, time_max/60.0, -3.0, 3.0])    
-    vel_axis = axis([time_min/60.0, time_max/60.0, min(max_speeds), max(max_speeds)*1.1])
-    mom_axis = axis([time_min/60.0, time_max/60.0, min(max_momentums), max(max_momentums)*1.1])  
+    #vel_axis = axis([time_min/60.0, time_max/60.0, min(max_speeds), max(max_speeds)*1.1])
+    #mom_axis = axis([time_min/60.0, time_max/60.0, min(max_momentums), max(max_momentums)*1.1])  
     
     cstr = ['g', 'r', 'b', 'c', 'm', 'y', 'k']
     nn = len(plot_quantity)
@@ -1060,23 +1060,23 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     units = 'm'
                 if which_quantity == 'stage':
                     plot(model_time[0:n[j]-1,k,j], stages[0:n[j]-1,k,j], '-', c = cstr[j])
-                    axis(stage_axis)
+                    #axis(stage_axis)
                     units = 'm'
                 if which_quantity == 'momentum':
                     plot(model_time[0:n[j]-1,k,j], momenta[0:n[j]-1,k,j], '-', c = cstr[j])
-                    axis(mom_axis)
+                    #axis(mom_axis)
                     units = 'm^2 / sec'
                 if which_quantity == 'xmomentum':
                     plot(model_time[0:n[j]-1,k,j], xmom[0:n[j]-1,k,j], '-', c = cstr[j])
-                    axis(mom_axis)
+                    #axis(mom_axis)
                     units = 'm^2 / sec'
                 if which_quantity == 'ymomentum':
                     plot(model_time[0:n[j]-1,k,j], ymom[0:n[j]-1,k,j], '-', c = cstr[j])
-                    axis(mom_axis)
+                    #axis(mom_axis)
                     units = 'm^2 / sec'
                 if which_quantity == 'speed':
                     plot(model_time[0:n[j]-1,k,j], speed[0:n[j]-1,k,j], '-', c = cstr[j])
-                    axis(vel_axis)
+                    #axis(vel_axis)
                     units = 'm / sec'
                 if which_quantity == 'bearing':
                     due_east = 90.0*ones(shape(model_time[0:n[j]-1,k,j],Float))

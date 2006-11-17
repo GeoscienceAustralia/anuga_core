@@ -337,6 +337,7 @@ class Double_gaussian:
         assert N == len(y)
 
         am = self.a3D
+        am2 = self.a2D
         wa = self.wavelength
         wi = self.width
         x0 = self.x0
@@ -345,9 +346,8 @@ class Double_gaussian:
         dx = self.dx
         kappa = self.kappa
         kappad = self.kappad
-        amin = self.find_min(x0,wa,kappad,kappa,dx,am)
-        print 'hello amin', amin
-        #amin = 1.0
+        #amin = self.find_min(x0,wa,kappad,kappa,dx,am)
+        amin = 1.0
 
         #double Gaussian calculation assumes water displacement is oriented
         #E-W, so, for displacement at some angle alpha clockwise from the E-W
@@ -364,7 +364,7 @@ class Double_gaussian:
         minz = 0.0
         for i in range(N):
             try:
-                z[i] =  -am / (amin*(cosh(kappa*(yr[i]-y0)/(wi+wa)))**2) \
+                z[i] =  -(am/am2) / (amin*(cosh(kappa*(yr[i]-y0)/(wi+wa)))**2) \
                             * (exp(-((xr[i]-x0)/wa)**2) - \
                                 kappad*exp(-((xr[i]-dx-x0)/wa)**2))
                 if z[i] > maxz: maxz = z[i]
