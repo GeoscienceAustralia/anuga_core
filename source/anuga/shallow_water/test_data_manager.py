@@ -4711,14 +4711,69 @@ friction  \n \
         # these arrays are equal since the northing values were used as
         # the elevation
         assert allclose(-elevation, y)  #Meters
-
         
         fid.close()
-
-
         self.delete_mux(files)
         os.remove(sww_file)
         
+  
+    def test_urs2sww_origin(self):
+        tide = 1
+        base_name, files = self.create_mux()
+        urs2sww(base_name
+                , origin=(0,0,0)
+                , mean_stage=tide
+                , remove_nc_files=False
+                )
+        sww_file = base_name + '.sww'
+        
+        #Let's interigate the sww file
+        # Note, the sww info is not gridded.  It is point data.
+        fid = NetCDFFile(sww_file)
+
+        #  x and y are absolute
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+        geo_reference = Geo_reference(NetCDFObject=fid)
+
+        
+        #Check that first coordinate is correctly represented       
+        #Work out the UTM coordinates for first point
+        zone, e, n = redfearn(-34.5, 150.66667)       
+       
+        assert allclose([x[0],y[0]], [e,n])
+
+        
+        #Check first value
+        stage = fid.variables['stage'][:]
+        xmomentum = fid.variables['xmomentum'][:]
+        ymomentum = fid.variables['ymomentum'][:]
+        elevation = fid.variables['elevation'][:]
+        assert allclose(stage[0,0], e +tide)  #Meters
+
+        #Check the momentums - ua
+        #momentum = velocity*(stage-elevation)
+        #momentum = velocity*(stage+elevation)
+        # -(-elevation) since elevation is inverted in mux files
+        # = n*(e+tide+n) based on how I'm writing these files
+        answer = n*(e+tide+n)
+        actual = xmomentum[0,0]
+        assert allclose(answer, actual)  #Meters
+
+        # check the stage values, first time step.
+        # These arrays are equal since the Easting values were used as
+        # the stage
+        assert allclose(stage[0], x +tide)  #Meters
+
+        # check the elevation values.
+        # -ve since urs measures depth, sww meshers height,
+        # these arrays are equal since the northing values were used as
+        # the elevation
+        assert allclose(-elevation, y)  #Meters
+        
+        fid.close()
+        self.delete_mux(files)
+        os.remove(sww_file)
         
     def test_lon_lat2grid(self):
         lonlatdep = [
