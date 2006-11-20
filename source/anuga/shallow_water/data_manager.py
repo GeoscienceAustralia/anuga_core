@@ -4115,7 +4115,7 @@ def urs2sww(basename_in='o', basename_out=None, verbose=False,
     min's and max's: If omitted - full extend is used.
     To include a value min may equal it, while max must exceed it.
     Lat and lon are assumed to be in decimal degrees. 
-    NOTE: min Lon is the most east boundary.
+    NOTE: minlon is the most east boundary.
     
     origin is a 3-tuple with geo referenced
     UTM coordinates (zone, easting, northing)
@@ -4137,6 +4137,7 @@ def urs2sww(basename_in='o', basename_out=None, verbose=False,
                minlat=minlat,
                maxlat=maxlat,
                minlon=minlon,
+               maxlon=maxlon,
                mint=mint,
                maxt=maxt,
                mean_stage=mean_stage,
