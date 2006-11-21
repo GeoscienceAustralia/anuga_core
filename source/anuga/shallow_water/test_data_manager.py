@@ -2313,6 +2313,52 @@ END CROSS-SECTIONS:
         os.remove(self.test_MOST_file + '.sww')
 
 
+    def test_ferret2sww_lat_long(self):
+        # Test that min lat long works
+
+        #The test file has
+        # LON = 150.66667, 150.83334, 151, 151.16667
+        # LAT = -34.5, -34.33333, -34.16667, -34 ;
+        # TIME = 0, 0.1, 0.6, 1.1, 1.6, 2.1 ;
+        #
+        # First value (index=0) in small_ha.nc is 0.3400644 cm,
+        # Fourth value (index==3) is -6.50198 cm
+
+
+
+        #Read
+        from anuga.coordinate_transforms.redfearn import redfearn
+        fid = NetCDFFile(self.test_MOST_file + '_ha.nc')
+        first_value = fid.variables['HA'][:][0,0,0]
+        fourth_value = fid.variables['HA'][:][0,0,3]
+        fid.close()
+
+
+        #Call conversion (with zero origin)
+        #ferret2sww('small', verbose=False,
+        #           origin = (56, 0, 0))
+        ferret2sww(self.test_MOST_file, verbose=False,
+                   origin = (56, 0, 0), minlat=-34.5, maxlat=-34)
+
+        #Work out the UTM coordinates for first point
+        zone, e, n = redfearn(-34.5, 150.66667)
+        #print zone, e, n
+
+        #Read output file 'small.sww'
+        #fid = NetCDFFile('small.sww')
+        fid = NetCDFFile(self.test_MOST_file + '.sww')
+
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+        #Check that first coordinate is correctly represented
+        assert 16 == len(x)
+
+        fid.close()
+
+        #Cleanup
+        import os
+        os.remove(self.test_MOST_file + '.sww')
+
 
     def test_ferret2sww3(self):
         """Elevation included
@@ -4846,7 +4892,7 @@ friction  \n \
 #-------------------------------------------------------------
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager,'test_lon')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sww')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_ferret2sww_lat_long')
     suite = unittest.makeSuite(Test_Data_Manager,'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)

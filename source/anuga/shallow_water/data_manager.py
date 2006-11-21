@@ -742,7 +742,7 @@ class Data_format_xya(Data_format):
         pass
 
 
-#### NEED national exposure database
+#### NED is national exposure database
     
 LAT_TITLE = 'LATITUDE'
 LONG_TITLE = 'LONGITUDE'
@@ -2679,31 +2679,17 @@ def ferret2sww(basename_in, basename_out = None,
         jmin = 0
     else:
         jmin = searchsorted(times, mint)
-
+        
     if maxt == None:
         jmax=len(times)
     else:
         jmax = searchsorted(times, maxt)
 
-    if minlat == None:
-        kmin=0
-    else:
-        kmin = searchsorted(latitudes, minlat)
+    kmin, kmax, lmin, lmax = _get_min_max_indexes(latitudes[:],
+                                                  longitudes[:],
+                                                 minlat, maxlat,
+                                                 minlon, maxlon)
 
-    if maxlat == None:
-        kmax = len(latitudes)
-    else:
-        kmax = searchsorted(latitudes, maxlat)
-
-    if minlon == None:
-        lmin=0
-    else:
-        lmin = searchsorted(longitudes, minlon)
-
-    if maxlon == None:
-        lmax = len(longitudes)
-    else:
-        lmax = searchsorted(longitudes, maxlon)
 
 #    print' j', jmin, jmax
     times = times[jmin:jmax]
@@ -3920,7 +3906,13 @@ def _get_min_max_indexes(latitudes,longitudes,
     """
 
     # reverse order of lat, so it's in ascending order
+    try:
+        latitudes = latitudes.tolist()
+    except:
+        pass
+    
     latitudes.reverse()
+    
     largest_lat_index = len(latitudes)-1
     #Cut out a smaller extent.
     if minlat == None:
