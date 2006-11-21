@@ -90,8 +90,6 @@ def slide_tsunami(length, depth, slope, width=None, thickness=None, \
              * ((length*sint/depth)**1.25) \
              * (1 - exp(-2.2*(gamma-1)))
     a3D = a2D / (1 + (15.5*sqrt(depth/(length*sint))))
-
-    if verbose is True:
         
     #a few temporary print statements
     if verbose is True:
@@ -112,14 +110,12 @@ def slide_tsunami(length, depth, slope, width=None, thickness=None, \
         print '\tWavelength: ', w
         print '\t2D amplitude: ', a2D
         print '\t3D amplitude: ', a3D
-        print '\t HELLO', a0, ut, s0, t0, w, a2D, a3D
 
     #keep an eye on some of the assumptions built into the maths
 
     if ((slope < 5) or (slope > 30)):
         if verbose is True:
             print 'WARNING: slope out of range (5 - 30 degrees) ', slope
-            print 'hello'
     if ((depth/length < 0.06) or (depth/length > 1.5)):
         if verbose is True:
             print  'WARNING: d/b out of range (0.06 - 1.5) ', depth/length
@@ -341,7 +337,8 @@ class Double_gaussian:
         assert N == len(y)
 
         am = self.a3D
-        am2 = self.a2D
+        am2 = 1.0
+        #am2 = self.a2D
         wa = self.wavelength
         wi = self.width
         x0 = self.x0
