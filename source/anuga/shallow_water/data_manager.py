@@ -3672,7 +3672,7 @@ def asc_csiro2sww(bath_dir,
     latitudes.reverse()
 
     #print "latitudes - before _get_min_max_indexes",latitudes
-    kmin, kmax, lmin, lmax = _get_min_max_indexes(latitudes,longitudes,
+    kmin, kmax, lmin, lmax = _get_min_max_indexes(latitudes[:],longitudes[:],
                                                  minlat=minlat, maxlat=maxlat,
                                                  minlon=minlon, maxlon=maxlon)
 
