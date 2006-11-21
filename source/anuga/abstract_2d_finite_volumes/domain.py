@@ -371,8 +371,12 @@ class Domain(Mesh):
 
         Valid expressions are limited to operators defined in class Quantity
 
-        Example:
+        Examples creating derived quantities:
 
+            Depth = domain.create_quantity_from_expression('stage-elevation')
+
+            exp = '(xmomentum*xmomentum + ymomentum*ymomentum)**0.5')        
+            Absolute_momentum = domain.create_quantity_from_expression(exp)
 
         """
 
