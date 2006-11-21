@@ -60,7 +60,6 @@ domain.alpha_balance = 10.0
 domain.minimum_allowed_height = 1.0e-4 
 domain.maximum_allowed_speed = 100.0 
 domain.minimum_storable_height = 1.0e-4 
-domain.visualise_wet_dry_cutoff = 5.0e-2
 
 #------------------------------------------------------------------------------
 # Setup initial conditions
@@ -100,7 +99,6 @@ Bd = Dirichlet_boundary([stage_value, 0, 0])
 domain.set_boundary({'left': Bd, 'right': Bd, 'top': Bd, 'bottom': Bd, 'exterior': Br})
 domain.check_integrity()
 
-domain.initialise_visualiser()
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------

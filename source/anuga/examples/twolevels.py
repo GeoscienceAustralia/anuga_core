@@ -29,7 +29,6 @@ print "Output being written to " + domain.get_datadir() + sep + \
 
 domain.default_order=2
 domain.smooth = False
-domain.visualise = True
 
 #PLAY WITH THIS [0;1]: 
 #

@@ -2774,7 +2774,6 @@ END CROSS-SECTIONS:
         domain = Domain(points, vertices, boundary)
         domain.geo_reference = Geo_reference(56,11,11)
         domain.smooth = False
-        domain.visualise = False
         domain.store = True
         domain.set_name('bedslope')
         domain.default_order=2
@@ -2836,9 +2835,6 @@ END CROSS-SECTIONS:
         ######################################
         #Now evolve them both, just to be sure
         ######################################x
-        visualise = False
-        #visualise = True
-        domain.visualise = visualise
         domain.time = 0.
         from time import sleep
 
@@ -2849,7 +2845,6 @@ END CROSS-SECTIONS:
 
 
         for t in domain.evolve(yieldstep = yiel, finaltime = final):
-            if visualise: sleep(1.)
             #domain.write_time()
             pass
 
@@ -2858,7 +2853,6 @@ END CROSS-SECTIONS:
         final = final + (domain2.starttime-domain.starttime)
 
         domain2.smooth = False
-        domain2.visualise = visualise
         domain2.store = False
         domain2.default_order=2
         domain2.set_quantity('friction', 0.1)
@@ -2874,7 +2868,6 @@ END CROSS-SECTIONS:
         domain2.check_integrity()
 
         for t in domain2.evolve(yieldstep = yiel, finaltime = final):
-            if visualise: sleep(1.)
             #domain2.write_time()
             pass
 
@@ -2915,7 +2908,6 @@ END CROSS-SECTIONS:
         #Create shallow water domain
         domain = Domain(points, vertices, boundary)
         domain.smooth = False
-        domain.visualise = False
         domain.store = True
         domain.set_name('test_file')
         domain.set_datadir('.')
@@ -3024,7 +3016,6 @@ END CROSS-SECTIONS:
         domain = Domain(points, vertices, boundary)
         domain.geo_reference = Geo_reference(56,11,11)
         domain.smooth = True
-        domain.visualise = False
         domain.store = True
         domain.set_name('bedslope')
         domain.default_order=2
@@ -3092,9 +3083,6 @@ END CROSS-SECTIONS:
         ######################################
         #Now evolve them both, just to be sure
         ######################################x
-        visualise = False
-        visualise = True
-        domain.visualise = visualise
         domain.time = 0.
         from time import sleep
 
@@ -3104,12 +3092,10 @@ END CROSS-SECTIONS:
         domain.set_boundary({'left': Bd, 'right': Bd, 'top': Bd, 'bottom': Br})
 
         for t in domain.evolve(yieldstep = yiel, finaltime = final):
-            if visualise: sleep(.03)
             #domain.write_time()
             pass
 
         domain2.smooth = True
-        domain2.visualise = visualise
         domain2.store = False
         domain2.default_order=2
         domain2.set_quantity('friction', 0.1)
@@ -3127,7 +3113,6 @@ END CROSS-SECTIONS:
         domain2.check_integrity()
 
         for t in domain2.evolve(yieldstep = yiel, finaltime = final):
-            if visualise: sleep(.03)
             #domain2.write_time()
             pass
 

@@ -18,7 +18,6 @@ points, vertices, boundary = rectangular(N, N, length, length)
 #Create shallow water domain
 domain = Domain(points, vertices, boundary)
 domain.smooth = True
-domain.visualise = False
 domain.store = True
 domain.default_order=2
 domain.set_name('wind_rotation')

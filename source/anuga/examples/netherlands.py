@@ -121,7 +121,6 @@ manning = 0.03
 Z = Weir(inflow_stage)
 
 if N > 150:
-    domain.visualise = False
     domain.checkpoint = False
     domain.store = True    #Store for visualisation purposes
     domain.format = 'sww'   #Native netcdf visualisation format
@@ -131,13 +130,8 @@ if N > 150:
     basename, _ = os.path.splitext(base)
     domain.set_name(basename)
 else:
-    #domain.initialise_visualiser(rect=[0.0,0.0,1.0,1.0])
-    #domain.initialise_visualiser()
-    #domain.visualiser.coloring['stage'] = False
-    domain.visualise_timer = True
     domain.checkpoint = False
     domain.store = False
-    domain.visualise = False
     vis = RealtimeVisualiser(domain)
     vis.render_quantity_height("elevation", dynamic=False)
     vis.render_quantity_height("stage", dynamic=True)
@@ -176,28 +170,16 @@ domain.set_quantity('stage', expression='elevation + 0.0')
 import time
 t0 = time.time()
 
-
-#from realtime_visualisation_new import Visualiser
-#V = Visualiser(domain,title='netherlands')
-#V.update_quantity('stage')
-#V.update_quantity('elevation')
-
-
-
-
 for t in domain.evolve(yieldstep = 0.005, finaltime = None):
     domain.write_time()
     #domain.write_boundary()
     vis.update()
     print domain.quantities['stage'].get_values(location='centroids',
                                                 indices=[0])
-    #domain.visualiser.update_quantity('elevation')
     #time.sleep(0.1)
     #raw_input('pause>')
     #V.update_quantity('stage')
     #rpdb.set_active()
-    #domain.visualiser.scale_z = 1.0
-    #domain.visualiser.update_quantity_color('xmomentum',scale_z = 4.0)
     #integral_label.text='Integral=%10.5e'%domain.quantities['stage'].get_integral()
 vis.evolveFinished()
 

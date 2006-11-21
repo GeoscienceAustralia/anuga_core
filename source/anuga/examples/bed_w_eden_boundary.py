@@ -16,7 +16,6 @@ points, vertices, boundary = rectangular(50, 50, 100, 100)
 #Create shallow water domain
 domain = Domain(points, vertices, boundary)
 domain.smooth = False
-domain.visualise = False
 domain.default_order = 2
 domain.store = True     #Store for visualisation purposes
 domain.format = 'sww'   #Native netcdf visualisation format

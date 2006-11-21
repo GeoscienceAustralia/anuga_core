@@ -20,6 +20,7 @@ from shallow_water import Domain, Reflective_boundary, Dirichlet_boundary,\
      Transmissive_boundary, Time_boundary, Add_value_to_region, File_boundary
 from mesh_factory import rectangular
 from anuga.pyvolution.pmesh2domain import pmesh_to_domain, pmesh_to_domain_instance
+from anuga.visualiser import RealtimeVisualiser
 
 from Numeric import array
 
@@ -49,12 +50,11 @@ else:
 
     domain.checkpoint = False #True
     domain.default_order = 1
-    domain.visualise = visualise
     domain.smooth = True
     domain.set_datadir('.')
     domain.starttime = 20000 
 
-    if (domain.visualise):
+    if (visualise):
         domain.store = False  #True    #Store for visualisation purposes
     else:
         domain.store = True  #True    #Store for visualisation purposes
@@ -121,11 +121,22 @@ else:
     
     domain.check_integrity()
 
+    # prepare the visualiser
+    if visualise is True:
+        v = RealtimeVisualiser(domain)
+        v.render_quantity_height('elevation', dynamic=False)
+        v.render_quantity_height('stage', dynamic=True)
+        v.colour_height_quantity('stage', (0.0, 0.0, 0.8))
+        v.start()
     ######################
     #Evolution
     t0 = time.time()
     for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
         domain.write_time()
+        if visualise is True:
+            v.update()
+    if visualise is True:
+        v.evolveFinished()
     
     print 'That took %.2f seconds' %(time.time()-t0)
 

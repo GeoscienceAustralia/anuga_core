@@ -18,7 +18,6 @@ points, vertices, boundary = rectangular(10, 10, 100, 100)
 #Create shallow water domain
 domain = Domain(points, vertices, boundary)
 domain.smooth = False
-domain.visualise = True
 domain.default_order=2
 
 #######################

@@ -78,25 +78,7 @@ class Domain(Generic_domain):
         #Only first is implemented for advection
         self.default_order = self.order = 1
 
-        #Realtime visualisation
-        self.visualiser = None
-        self.visualise  = False
-        self.visualise_color_stage = False
-        self.visualise_stage_range = 1.0
-        self.visualise_timer = True
-        self.visualise_range_z = None
-
-
         self.smooth = True
-
-    def initialise_visualiser(self,scale_z=1.0,rect=None):
-        #Realtime visualisation
-        if self.visualiser is None:
-            from realtime_visualisation_new import Visualiser
- #           from vtk_realtime_visualiser import Visualiser
-            self.visualiser = Visualiser(self,scale_z,rect)
-        self.visualise = True
-
 
     def check_integrity(self):
         Generic_domain.check_integrity(self)
@@ -372,32 +354,12 @@ class Domain(Generic_domain):
         """Specialisation of basic evolve method from parent class
         """
 
-        #Initialise real time viz if requested
-        if self.visualise is True and self.time == 0.0:
-            #pass
-            #import realtime_visualisation_new as visualise
-            #visualise.create_surface(self)
-            self.initialise_visualiser()
-            self.visualiser.setup_all()
-            self.visualiser.update_timer()
-
-
         #Call basic machinery from parent class
         for t in Generic_domain.evolve(self,
                                        yieldstep=yieldstep,
                                        finaltime=finaltime,
                                        duration=duration,
                                        skip_initial_step=skip_initial_step):
-
-
-
-
-            #Real time viz
-            if self.visualise is True:
-                #pass
-                self.visualiser.update_all()
-                self.visualiser.update_timer()
-
 
             #Pass control on to outer loop for more specific actions
             yield(t)

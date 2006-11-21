@@ -19,7 +19,6 @@ points, vertices, boundary = rectangular(8, 8)
 # - Initial condition is zero by default
 domain = Domain(points, vertices, boundary, velocity=[1.0, -1.0])
 domain.smooth = False
-domain.visualise = True
 
 #Boundaries
 T = Transmissive_boundary(domain)

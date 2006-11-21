@@ -1994,8 +1994,6 @@ class Test_Shallow_Water(unittest.TestCase):
 
         domain.check_integrity()
 
-        #domain.visualise = True #If you want to take a sticky beak
-
         initial_volume = domain.quantities['stage'].get_integral()
         initial_xmom = domain.quantities['xmomentum'].get_integral()
 
@@ -2045,8 +2043,6 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
         domain.check_integrity()
-
-        #domain.visualise = True #If you want to take a sticky beak
 
         initial_volume = domain.quantities['stage'].get_integral()
         initial_xmom = domain.quantities['xmomentum'].get_integral()
@@ -2109,8 +2105,6 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
         domain.check_integrity()
-
-        #domain.visualise = True #If you want to take a sticky beak
 
         initial_volume = domain.quantities['stage'].get_integral()
         initial_xmom = domain.quantities['xmomentum'].get_integral()
@@ -2187,8 +2181,6 @@ class Test_Shallow_Water(unittest.TestCase):
 
         domain.check_integrity()
 
-        #domain.visualise = True #If you want to take a sticky beak
-
         initial_volume = domain.quantities['stage'].get_integral()
         initial_xmom = domain.quantities['xmomentum'].get_integral()
 
@@ -2252,8 +2244,6 @@ class Test_Shallow_Water(unittest.TestCase):
 
         domain.check_integrity()
 
-        #domain.visualise = True #If you want to take a sticky beak
-
         initial_volume = domain.quantities['stage'].get_integral()
         initial_xmom = domain.quantities['xmomentum'].get_integral()
 
@@ -2303,7 +2293,6 @@ class Test_Shallow_Water(unittest.TestCase):
         points, vertices, boundary = rectangular(10, 10, len1=500, len2=500)
         domain = Domain(points, vertices, boundary)
         domain.smooth = False
-        domain.visualise = False
         domain.default_order = 1
         domain.minimum_allowed_height = min_depth
 
@@ -2462,7 +2451,6 @@ class Test_Shallow_Water(unittest.TestCase):
         #Create shallow water domain
         domain = Domain(points, vertices, boundary)
         domain.smooth = False
-        domain.visualise = False
         domain.default_order=1
 
         # Boundary conditions
@@ -2506,7 +2494,6 @@ class Test_Shallow_Water(unittest.TestCase):
         #Create shallow water domain
         domain = Domain(points, vertices, boundary)
         domain.smooth = False
-        domain.visualise = False
         domain.default_order=2
         domain.beta_w      = 0.9
         domain.beta_w_dry  = 0.9
@@ -2570,7 +2557,6 @@ class Test_Shallow_Water(unittest.TestCase):
         #Create shallow water domain
         domain = Domain(points, vertices, boundary)
         domain.smooth = False
-        domain.visualise = False
         domain.default_order=2
         domain.beta_w      = 0.9
         domain.beta_w_dry  = 0.9
@@ -2622,7 +2608,6 @@ class Test_Shallow_Water(unittest.TestCase):
         #Create shallow water domain
         domain = Domain(points, vertices, boundary)
         domain.smooth = False
-        domain.visualise = False
         domain.default_order=domain._order_=2
         domain.beta_w      = 0.9
         domain.beta_w_dry  = 0.9
@@ -3331,7 +3316,6 @@ class Test_Shallow_Water(unittest.TestCase):
 
         domain = Domain(points, vertices, boundary)
         domain.smooth = False
-        domain.visualise = False
         domain.default_order=2
 
 

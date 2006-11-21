@@ -35,8 +35,6 @@ print 'Number of elements', len(vertices)
 #Create shallow water domain
 domain = Domain(points, vertices, boundary)
 domain.smooth = False
-domain.visualise = False
-#domain.visualise = True
 domain.default_order = 2
 domain.set_name('show_balanced_limiters')
 domain.store = True

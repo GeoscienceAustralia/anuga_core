@@ -47,13 +47,6 @@ domain = Domain(points, vertices, boundary)
 domain.set_name('old_limiter_second_order')
 print 'Number of triangles =', len(domain)
 
-# Turn on the visualisation
-try:
-    domain.initialise_visualiser()
-except:
-    pass
-
-
 #-----------------------------------------------------------------
 # Boundaries and Initial conditions
 #-----------------------------------------------------------------
@@ -90,12 +83,6 @@ print 'Note the small timesteps and the irregular flow'
 domain = Domain(points, vertices, boundary)
 domain.set_name('new_limiter_second_order')
 print 'Number of triangles =', len(domain)
-
-# Turn on the visualisation
-try:
-    domain.initialise_visualiser()
-except:
-    pass
 
 #-----------------------------------------------------------------
 # Boundaries and Initial conditions
@@ -134,12 +121,6 @@ print 'Note more uniform and large timesteps'
 domain = Domain(points, vertices, boundary)
 domain.set_name('new_limiter_first_order')
 print 'Number of triangles =', len(domain)
-
-# Turn on the visualisation
-try:
-    domain.initialise_visualiser()
-except:
-    pass
 
 #-----------------------------------------------------------------
 # Boundaries and Initial conditions

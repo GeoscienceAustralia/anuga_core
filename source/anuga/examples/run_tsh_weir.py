@@ -42,7 +42,6 @@ domain.store = False #True
 domain.format = 'sww'
 domain.set_name('weir')
 domain.checkpoint = False #True
-domain.visualise = True #False
 domain.default_order = 2
 
 #Set bed-slope and friction

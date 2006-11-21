@@ -163,14 +163,6 @@ class Domain(Generic_Domain):
         self.forcing_terms.append(manning_friction)
         self.forcing_terms.append(gravity)
 
-        #Realtime visualisation
-        self.visualiser = None
-        self.visualise  = False
-        self.visualise_color_stage = False
-        self.visualise_stage_range = 1.0
-        self.visualise_timer = True
-        self.visualise_range_z = None
-
         #Stored output
         self.store = True
         self.format = 'sww'
@@ -328,24 +320,6 @@ class Domain(Generic_Domain):
         return self.get_quantity('elevation').\
                get_maximum_location(indices=wet_elements)    
 
-
-
-
-    def initialise_visualiser(self,scale_z=1.0,rect=None):
-        #Realtime visualisation
-        if self.visualiser is None:
-            from realtime_visualisation_new import Visualiser
-            self.visualiser = Visualiser(self,scale_z,rect)
-            self.visualiser.setup['elevation']=True
-            self.visualiser.updating['stage']=True
-        self.visualise = True
-        if self.visualise_color_stage == True:
-            self.visualiser.coloring['stage'] = True
-            self.visualiser.qcolor['stage'] = (0.0, 0.0, 0.8)
-        print 'initialise visualiser'
-        print self.visualiser.setup
-        print self.visualiser.updating
-
     def check_integrity(self):
         Generic_Domain.check_integrity(self)
 
@@ -434,15 +408,6 @@ class Domain(Generic_Domain):
         #and or visualisation
         self.distribute_to_vertices_and_edges()
 
-        #Initialise real time viz if requested
-        if self.visualise is True and self.time == 0.0:
-            if self.visualiser is None:
-                self.initialise_visualiser()
-
-            self.visualiser.update_timer()
-            self.visualiser.setup_all()
-
-        #Store model data, e.g. for visualisation
         if self.store is True and self.time == 0.0:
             self.initialise_storage()
             #print 'Storing results in ' + self.writer.filename
@@ -459,11 +424,6 @@ class Domain(Generic_Domain):
                                        finaltime=finaltime,
                                        duration=duration,
                                        skip_initial_step=skip_initial_step):
-            #Real time viz
-            if self.visualise is True:
-                self.visualiser.update_all()
-                self.visualiser.update_timer()
-
 
             #Store model data, e.g. for subsequent visualisation
             if self.store is True:

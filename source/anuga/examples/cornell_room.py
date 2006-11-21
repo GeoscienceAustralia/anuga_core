@@ -62,8 +62,6 @@ domain.reduction = min  #Looks a lot better on top of steep slopes
 
 print "Number of triangles = ", len(domain)
 
-domain.visualise = False
-domain.checkpoint = False
 domain.store = True    #Store for visualisation purposes
 domain.format = 'sww'   #Native netcdf visualisation format
 import sys, os
