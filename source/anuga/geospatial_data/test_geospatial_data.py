@@ -1644,7 +1644,7 @@ crap")
 
         factor = 0.22
 
-        G1, G2  = G.split(factor) #will return G1 with 10% for points and G2 with 90%
+        G1, G2  = G.split(factor) #will return G1 with 10% of points and G2 with 90%
         
 #        print 'len(G): %s  len(G1): %s len(G2): %s' %(len(G), len(G1), len(G2))
 #        print 'G: ', len(G),'G1: ', len(G1), 'G2: ', len(G2)

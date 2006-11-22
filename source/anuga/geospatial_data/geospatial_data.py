@@ -8,7 +8,7 @@ from types import DictType
 
 from Numeric import concatenate, array, Float, shape, reshape, ravel, take, \
                         size, shape
-from RandomArray import randint
+from random import randint
 #from MA import tolist
 
 from anuga.utilities.numerical_tools import ensure_numeric
@@ -617,7 +617,6 @@ class Geospatial_data:
         
         i=0
         self_size = len(self)
-#        print 'size', self_size
         random_list = []
         remainder_list = []
         new_size = round(factor*self_size)
@@ -634,8 +633,8 @@ class Geospatial_data:
         #Make list of opposite to random_list
         for i in range(0,self_size,1):
             remainder_list.append(i)
-#        print 'start remainer',remainder_list
 
+        #remove random list from remainder_list to get correct remainder_list
         #need to sort and reverse so the pop() works correctly
         random_list.sort()
         random_list.reverse()
