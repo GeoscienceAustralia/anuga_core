@@ -3646,10 +3646,10 @@ def asc_csiro2sww(bath_dir,
     elevation_files = os.listdir(elevation_dir)
     ucur_files = os.listdir(ucur_dir)
     vcur_files = os.listdir(vcur_dir)
-
+    elevation_files.sort()
     # the first elevation file should be the
     # file with the same base name as the bath data
-    #print "elevation_files[0]",elevation_files[0]
+    #print "elevation_files",elevation_files
     #print "'el' + base_start",'el' + base_start
     assert elevation_files[0] == 'el' + base_start
 
