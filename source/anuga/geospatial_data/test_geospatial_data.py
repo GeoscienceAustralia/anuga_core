@@ -1642,7 +1642,7 @@ crap")
 #        print G.get_data_points()
 #        print G.get_attributes()
 
-        factor = 0.22
+        factor = 0.21
 
         G1, G2  = G.split(factor) #will return G1 with 10% of points and G2 with 90%
         

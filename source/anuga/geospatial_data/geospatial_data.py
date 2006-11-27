@@ -625,7 +625,7 @@ class Geospatial_data:
         
         #find unique random numbers
         while i < new_size:
-            random_num = randint(0,self_size)
+            random_num = randint(0,self_size-1)
             if random_num not in random_list:
                 random_list.append(random_num)
                 i=i+1
@@ -640,7 +640,7 @@ class Geospatial_data:
         random_list.reverse()
         for i in random_list:
             remainder_list.pop(i)
-
+            
         #get new samples
         G1 = self.get_sample(random_list)
         G2 = self.get_sample(remainder_list)
