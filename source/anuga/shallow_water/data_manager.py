@@ -63,7 +63,7 @@ from struct import unpack
 import array as p_array
 
 from Numeric import concatenate, array, Float, Int, Int32, resize, sometrue, \
-     searchsorted, zeros, allclose, around, reshape, transpose
+     searchsorted, zeros, allclose, around, reshape, transpose, sort
 from Scientific.IO.NetCDF import NetCDFFile
 
 
@@ -2685,6 +2685,8 @@ def ferret2sww(basename_in, basename_out = None,
     else:
         jmax = searchsorted(times, maxt)
 
+    #print "latitudes[:]",latitudes[:]
+    #print "longitudes[:]",longitudes [:]
     kmin, kmax, lmin, lmax = _get_min_max_indexes(latitudes[:],
                                                   longitudes[:],
                                                  minlat, maxlat,
@@ -2696,6 +2698,8 @@ def ferret2sww(basename_in, basename_out = None,
     latitudes = latitudes[kmin:kmax]
     longitudes = longitudes[lmin:lmax]
 
+    #print "latitudes[:]",latitudes[:]
+    #print "longitudes[:]",longitudes [:]
 
     if verbose: print 'cropping'
     zname = 'ELEVATION'
@@ -3888,7 +3892,7 @@ def asc_csiro2sww(bath_dir,
                 i += 1
     outfile.close()
 
-def _get_min_max_indexes(latitudes,longitudes,
+def _get_min_max_indexes(latitudes_ref,longitudes_ref,
                         minlat=None, maxlat=None,
                         minlon=None, maxlon=None):
     """
@@ -3900,18 +3904,25 @@ def _get_min_max_indexes(latitudes,longitudes,
     inputed max/min area. (This will not be possible if the max/min area
     has a section outside of the latitudes/longitudes area.)
 
-    assume latitudess & longitudes are sorted,
+    asset  longitudes are sorted,
     long - from low to high (west to east, eg 148 - 151)
-    lat - from high to low (north to south, eg -35 - -38)
+    assert latitudes are sorted, ascending or decending
     """
+    latitudes = latitudes_ref[:]
+    longitudes = longitudes_ref[:]
 
-    # reverse order of lat, so it's in ascending order
-    try:
-        latitudes = latitudes.tolist()
-    except:
-        pass
+    latitudes = ensure_numeric(latitudes)
+    longitudes = ensure_numeric(longitudes)
     
-    latitudes.reverse()
+    assert allclose(sort(longitudes), longitudes)
+    
+    lat_ascending = True
+    if not allclose(sort(latitudes), latitudes):
+        lat_ascending = False
+        # reverse order of lat, so it's in ascending order          
+        latitudes = latitudes[::-1]
+        assert allclose(sort(latitudes), latitudes)
+    #print "latitudes  in funct", latitudes
     
     largest_lat_index = len(latitudes)-1
     #Cut out a smaller extent.
@@ -3942,10 +3953,10 @@ def _get_min_max_indexes(latitudes,longitudes,
     else:
         lon_max_index = searchsorted(longitudes, maxlon)
 
-    #Take into account that the latitude list was reversed
-    latitudes.reverse() # Python passes by reference, need to swap back
-    lat_min_index, lat_max_index = largest_lat_index - lat_max_index , \
-                                   largest_lat_index - lat_min_index
+    # Reversing the indexes, if the lat array is decending
+    if lat_ascending is False:
+        lat_min_index, lat_max_index = largest_lat_index - lat_max_index , \
+                                       largest_lat_index - lat_min_index
     lat_max_index = lat_max_index + 1 # taking into account how slicing works
     lon_max_index = lon_max_index + 1 # taking into account how slicing works
 

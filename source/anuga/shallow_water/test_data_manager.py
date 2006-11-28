@@ -2319,13 +2319,7 @@ END CROSS-SECTIONS:
         #The test file has
         # LON = 150.66667, 150.83334, 151, 151.16667
         # LAT = -34.5, -34.33333, -34.16667, -34 ;
-        # TIME = 0, 0.1, 0.6, 1.1, 1.6, 2.1 ;
-        #
-        # First value (index=0) in small_ha.nc is 0.3400644 cm,
-        # Fourth value (index==3) is -6.50198 cm
-
-
-
+        
         #Read
         from anuga.coordinate_transforms.redfearn import redfearn
         fid = NetCDFFile(self.test_MOST_file + '_ha.nc')
@@ -2360,6 +2354,46 @@ END CROSS-SECTIONS:
         os.remove(self.test_MOST_file + '.sww')
 
 
+    def test_ferret2sww_lat_longII(self):
+        # Test that min lat long works
+
+        #The test file has
+        # LON = 150.66667, 150.83334, 151, 151.16667
+        # LAT = -34.5, -34.33333, -34.16667, -34 ;
+        
+        #Read
+        from anuga.coordinate_transforms.redfearn import redfearn
+        fid = NetCDFFile(self.test_MOST_file + '_ha.nc')
+        first_value = fid.variables['HA'][:][0,0,0]
+        fourth_value = fid.variables['HA'][:][0,0,3]
+        fid.close()
+
+
+        #Call conversion (with zero origin)
+        #ferret2sww('small', verbose=False,
+        #           origin = (56, 0, 0))
+        ferret2sww(self.test_MOST_file, verbose=False,
+                   origin = (56, 0, 0), minlat=-34.4, maxlat=-34.2)
+
+        #Work out the UTM coordinates for first point
+        zone, e, n = redfearn(-34.5, 150.66667)
+        #print zone, e, n
+
+        #Read output file 'small.sww'
+        #fid = NetCDFFile('small.sww')
+        fid = NetCDFFile(self.test_MOST_file + '.sww')
+
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+        #Check that first coordinate is correctly represented
+        assert 12 == len(x)
+
+        fid.close()
+
+        #Cleanup
+        import os
+        os.remove(self.test_MOST_file + '.sww')
+        
     def test_ferret2sww3(self):
         """Elevation included
         """
@@ -4172,6 +4206,42 @@ NODATA_value  -9999
         self.failUnless(m2d == [[5,6],[9,10]],
                          'failed')
 
+    def test_get_min_max_indexes_lat_ascending(self):
+        latitudes = [0,1,2,3]
+        longitudes = [0,10,20,30]
+
+        # k - lat
+        # l - lon
+        kmin, kmax, lmin, lmax = data_manager._get_min_max_indexes(
+            latitudes,longitudes,
+            -10,4,-10,31)
+
+        #print "kmin",kmin;print "kmax",kmax
+        #print "lmin",lmin;print "lmax",lmax
+        latitudes_new = latitudes[kmin:kmax]
+        longitudes_news = longitudes[lmin:lmax]
+        #print "latitudes_new", latitudes_new
+        #print "longitudes_news",longitudes_news
+        self.failUnless(latitudes == latitudes_new and \
+                        longitudes == longitudes_news,
+                         'failed')
+
+        ## 3rd test
+        kmin, kmax, lmin, lmax = data_manager._get_min_max_indexes(\
+            latitudes,
+            longitudes,
+            1.1,1.9,12,17)
+        #print "kmin",kmin;print "kmax",kmax
+        #print "lmin",lmin;print "lmax",lmax
+        latitudes_new = latitudes[kmin:kmax]
+        longitudes_news = longitudes[lmin:lmax]
+        #print "latitudes_new", latitudes_new
+        #print "longitudes_news",longitudes_news
+
+        self.failUnless(latitudes_new == [1, 2] and \
+                        longitudes_news == [10, 20],
+                         'failed')
+
     def test_get_min_max_indexes2(self):
         latitudes = [-30,-35,-40,-45]
         longitudes = [148,149,150,151]
@@ -4805,6 +4875,74 @@ friction  \n \
         fid.close()
         self.delete_mux(files)
         os.remove(sww_file)
+ 
+    def test_urs2sww_minmaxlatlong(self):
+        
+        #longitudes = [150.66667, 150.83334, 151., 151.16667]
+        #latitudes = [-34.5, -34.33333, -34.16667, -34]
+
+        tide = 1
+        base_name, files = self.create_mux()
+        urs2sww(base_name,
+                minlat=-34.5,
+                maxlat=-34,
+                minlon= 150.66667,
+                maxlon= 151.16667,
+                mean_stage=tide,
+                remove_nc_files=False
+                )
+        sww_file = base_name + '.sww'
+        
+        #Let's interigate the sww file
+        # Note, the sww info is not gridded.  It is point data.
+        fid = NetCDFFile(sww_file)
+        
+
+        # Make x and y absolute
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+        geo_reference = Geo_reference(NetCDFObject=fid)
+        points = geo_reference.get_absolute(map(None, x, y))
+        points = ensure_numeric(points)
+        x = points[:,0]
+        y = points[:,1]
+        
+        #Check that first coordinate is correctly represented       
+        #Work out the UTM coordinates for first point
+        zone, e, n = redfearn(-34.5, 150.66667) 
+        assert allclose([x[0],y[0]], [e,n])
+
+        
+        #Check first value
+        stage = fid.variables['stage'][:]
+        xmomentum = fid.variables['xmomentum'][:]
+        ymomentum = fid.variables['ymomentum'][:]
+        elevation = fid.variables['elevation'][:]
+        assert allclose(stage[0,0], e +tide)  #Meters
+
+        #Check the momentums - ua
+        #momentum = velocity*(stage-elevation)
+        #momentum = velocity*(stage+elevation)
+        # -(-elevation) since elevation is inverted in mux files
+        # = n*(e+tide+n) based on how I'm writing these files
+        answer = n*(e+tide+n)
+        actual = xmomentum[0,0]
+        assert allclose(answer, actual)  #Meters
+
+        # check the stage values, first time step.
+        # These arrays are equal since the Easting values were used as
+        # the stage
+        assert allclose(stage[0], x +tide)  #Meters
+
+        # check the elevation values.
+        # -ve since urs measures depth, sww meshers height,
+        # these arrays are equal since the northing values were used as
+        # the elevation
+        assert allclose(-elevation, y)  #Meters
+        
+        fid.close()
+        self.delete_mux(files)
+        os.remove(sww_file)
         
     def test_lon_lat2grid(self):
         lonlatdep = [
@@ -4876,7 +5014,8 @@ friction  \n \
         
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_lon')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sww_m')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_get_min_max_indexes_lat_ascending')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_ferret2sww_lat_long')
     suite = unittest.makeSuite(Test_Data_Manager,'test')
     runner = unittest.TextTestRunner()
