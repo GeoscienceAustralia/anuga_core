@@ -851,7 +851,8 @@ class Exposure_csv:
     def _load_exposure_csv(self, file_name):
         """
         Load in the csv as a dic, title as key and column info as value, .
-        Also, create a dic, title as key and column index as value. 
+        Also, create a dic, title as key and column index as value,
+        to keep track of the column order. 
         """
         #
         attribute_dic = {}
