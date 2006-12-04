@@ -2601,10 +2601,15 @@ def ferret2sww(basename_in, basename_out = None,
         assert -90 < minlat < 90 , msg
     if maxlat != None:
         assert -90 < maxlat < 90 , msg
+        if minlat != None:
+            assert maxlat > minlat
     if minlon != None:
         assert -180 < minlon < 180 , msg
     if maxlon != None:
         assert -180 < maxlon < 180 , msg
+        if minlon != None:
+            assert maxlon > minlon
+        
 
 
     #Get NetCDF data

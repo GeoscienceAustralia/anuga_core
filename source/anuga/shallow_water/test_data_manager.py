@@ -2747,6 +2747,31 @@ END CROSS-SECTIONS:
         os.remove(self.test_MOST_file + '.sww')
 
 
+    def test_ferret2sww_lat_long(self):
+        # Test that min lat long works
+
+        #The test file has
+        # LON = 150.66667, 150.83334, 151, 151.16667
+        # LAT = -34.5, -34.33333, -34.16667, -34 ;
+        
+        #Read
+        from anuga.coordinate_transforms.redfearn import redfearn
+        fid = NetCDFFile(self.test_MOST_file + '_ha.nc')
+        first_value = fid.variables['HA'][:][0,0,0]
+        fourth_value = fid.variables['HA'][:][0,0,3]
+        fid.close()
+
+
+        #Call conversion (with zero origin)
+        #ferret2sww('small', verbose=False,
+        #           origin = (56, 0, 0))
+        try:
+            ferret2sww(self.test_MOST_file, verbose=False,
+                   origin = (56, 0, 0), minlat=-34.5, maxlat=-35)
+        except AssertionError:
+            pass
+        else:
+            self.failUnless(0 ==1,  'Bad input did not throw exception error!')
 
     def test_sww_extent(self):
         """Not a test, rather a look at the sww format
