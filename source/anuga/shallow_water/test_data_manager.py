@@ -2747,7 +2747,7 @@ END CROSS-SECTIONS:
         os.remove(self.test_MOST_file + '.sww')
 
 
-    def test_ferret2sww_lat_long(self):
+    def test_ferret2sww_lat_longII(self):
         # Test that min lat long works
 
         #The test file has
