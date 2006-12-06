@@ -531,6 +531,7 @@ class Screen_Catcher:
 
 def get_version_info():
     """gets the version number of the SVN
+    NOTE: doesn't work on all systems eg GA's cyclone (64 bit linux cluster)
     """
     
     import os, sys
@@ -555,16 +556,6 @@ def get_version_info():
                 break
        
     return info
-    
-    #if sys.platform == 'win32':
-    #    msg = 'does not work in Windows .... yet'
-    #    raise OSError, msg
-    #else:    
-    #    fid = os.popen('svn -info')
-    #    info = fid.readlines()
-    #    fid.close()
-    #    return info
-    
     
 def sww2timeseries(swwfiles,
                    gauge_filename,
