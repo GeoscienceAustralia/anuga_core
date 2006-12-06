@@ -4397,8 +4397,6 @@ friction  \n \
 
 ########## testing nbed class ##################
     def test_exposure_csv_loading(self):
-        
-
         file_name = tempfile.mktemp(".xya")
         file = open(file_name,"w")
         file.write("LATITUDE, LONGITUDE ,sound  , speed \n\
@@ -4416,7 +4414,7 @@ friction  \n \
         
         os.remove(file_name)
         
-    def test_exposure_csv_loading(self):
+    def test_exposure_csv_loadingII(self):
         
 
         file_name = tempfile.mktemp(".xya")

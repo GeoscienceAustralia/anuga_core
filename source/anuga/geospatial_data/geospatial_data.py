@@ -14,6 +14,7 @@ from random import randint
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.coordinate_transforms.geo_reference import Geo_reference, TitleError
 from anuga.coordinate_transforms.redfearn import convert_from_latlon_to_utm
+from anuga.shallow_water.data_manager import Exposure_csv
 
         
 class Geospatial_data:
@@ -520,11 +521,19 @@ class Geospatial_data:
                 data_points, attributes, geo_reference = _read_pts_file(file_name, verbose)
             except IOError, e:    
                 msg = 'Could not open file %s ' %file_name
+                raise IOError, msg  
+        
+        elif file_name[-4:]== ".xxx":
+            #let's do ticket#116 stuff
+            #
+            try:
+                data_points, attributes, geo_reference = _read_csv_file(file_name, verbose)
+            except IOError, e:    
+                msg = 'Could not open file %s ' %file_name
                 raise IOError, msg        
         else:      
             msg = 'Extension %s is unknown' %file_name[-4:]
             raise IOError, msg
-        
 #        print'in import data_points', data_points
 #        print'in import attributes', attributes
 #        print'in import data_points', geo_reference
@@ -702,6 +711,17 @@ def _read_pts_file(file_name, verbose = False):
     
     return pointlist, attributes, geo_reference
 
+
+def _read_csv_file(file_name, verbose = False):
+    """Read .csv file
+    
+    Return a dic of array of points, and dic of array of attribute
+    eg
+    dic['points'] = [[1.0,2.0],[3.0,5.0]]
+    dic['attributelist']['elevation'] = [[7.0,5.0]
+    """    
+
+    return pointlist, attributes, geo_reference
 
 def _read_xya_file( fd, delimiter):
     points = []

@@ -642,16 +642,34 @@ class Test_Geospatial_data(unittest.TestCase):
         
         os.remove(FN)
         
+    def test_loadcsv(self):
+        """
+        comma delimited
+        """
+        fileName = tempfile.mktemp(".csv")
+        file = open(fileName,"w")
+        file.write("elevation  , speed \n\
+1.0, 0.0, 10.0, 0.0\n\
+0.0, 1.0, 0.0, 10.0\n\
+1.0, 0.0, 10.4, 40.0\n")
+        file.close()
+        results = Geospatial_data(fileName, delimiter=',')
+        os.remove(fileName)
+#        print 'data', results.get_data_points()
+        assert allclose(results.get_data_points(), [[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
+        assert allclose(results.get_attributes(attribute_name='elevation'), [10.0, 0.0, 10.4])
+        assert allclose(results.get_attributes(attribute_name='speed'), [0.0, 10.0, 40.0])
+
     def test_loadxya(self):
         """
         comma delimited
         """
         fileName = tempfile.mktemp(".xya")
         file = open(fileName,"w")
-        file.write("elevation  , speed \n\
-1.0, 0.0, 10.0, 0.0\n\
-0.0, 1.0, 0.0, 10.0\n\
-1.0, 0.0, 10.4, 40.0\n")
+        file.write("longitude,latitude,z \n\
+-35.3149601,150.9198238,452.688000\n\
+-35.3149791,150.9209232,459.126000\n\
+-35.3149980,150.9220226,465.613000\n")
         file.close()
         results = Geospatial_data(fileName, delimiter=',')
         os.remove(fileName)

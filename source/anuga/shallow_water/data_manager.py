@@ -793,6 +793,7 @@ class Exposure_csv:
         self._attribute_dic, self._title_index_dic = \
         self._load_exposure_csv(self._file_name)
         try:
+            #Have code here that handles caps or lower 
             lats = self._attribute_dic[latitude_title]
             longs = self._attribute_dic[longitude_title]
             
