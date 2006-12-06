@@ -14,7 +14,6 @@ from random import randint
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.coordinate_transforms.geo_reference import Geo_reference, TitleError
 from anuga.coordinate_transforms.redfearn import convert_from_latlon_to_utm
-from anuga.shallow_water.data_manager import Exposure_csv
 
         
 class Geospatial_data:
@@ -719,7 +718,9 @@ def _read_csv_file(file_name, verbose = False):
     eg
     dic['points'] = [[1.0,2.0],[3.0,5.0]]
     dic['attributelist']['elevation'] = [[7.0,5.0]
-    """    
+    """
+    
+    from anuga.shallow_water.data_manager import Exposure_csv
     csv =Exposure_csv(file_name)
     
     return pointlist, attributes, geo_reference
