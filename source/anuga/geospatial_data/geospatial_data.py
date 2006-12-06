@@ -720,7 +720,8 @@ def _read_csv_file(file_name, verbose = False):
     dic['points'] = [[1.0,2.0],[3.0,5.0]]
     dic['attributelist']['elevation'] = [[7.0,5.0]
     """    
-
+    csv =Exposure_csv(file_name)
+    
     return pointlist, attributes, geo_reference
 
 def _read_xya_file( fd, delimiter):
