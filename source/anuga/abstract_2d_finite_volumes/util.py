@@ -825,12 +825,14 @@ def check_list(quantity):
     all_quantity = ['stage', 'depth', 'momentum', 'xmomentum',
                     'ymomentum', 'speed', 'bearing', 'elevation']
 
-    for i,j in enumerate(quantity):
-        quantity[i] = quantity[i].lower()
-    p = list(set(quantity).difference(set(all_quantity)))
-    if len(p) <> 0:
-        msg = 'Quantities %s do not exist - please try again' %p
-        raise Exception, msg
+    import sys
+    if sys.platform == 'win32':
+        for i,j in enumerate(quantity):
+            quantity[i] = quantity[i].lower()
+        p = list(set(quantity).difference(set(all_quantity)))
+        if len(p) <> 0:
+            msg = 'Quantities %s do not exist - please try again' %p
+            raise Exception, msg
         
     return 
 

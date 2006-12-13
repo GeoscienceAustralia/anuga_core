@@ -1190,6 +1190,12 @@ class Test_Util(unittest.TestCase):
             
         #clean up!
         os.rmdir(root_dir)
+
+    def test_check_list(self):
+
+        check_list(['stage','xmomentum'])
+
+        
         
 #-------------------------------------------------------------
 if __name__ == "__main__":
