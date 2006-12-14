@@ -1052,7 +1052,10 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     plot(model_time[0:n[j]-1,k,j], depths[0:n[j]-1,k,j], '-', c = cstr[j])
                     units = 'm'
                 if which_quantity == 'stage':
-                    plot(model_time[0:n[j]-1,k,j], stages[0:n[j]-1,k,j], '-', c = cstr[j])
+                    if elevations[0:n[j]-1,k,j] < 0:
+                        plot(model_time[0:n[j]-1,k,j], stages[0:n[j]-1,k,j], '-', c = cstr[j])
+                    else:
+                        plot(model_time[0:n[j]-1,k,j], depths[0:n[j]-1,k,j], '-', c = cstr[j])
                     #axis(stage_axis)
                     units = 'm'
                 if which_quantity == 'momentum':
@@ -1082,7 +1085,10 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     legend(('Bearing','West','East'))
 
                 xlabel('time (mins)')
-                ylabel('%s (%s)' %(which_quantity, units))
+                if which_quantity == 'stage' and elevations[0:n[j]-1,k,j] > 0:
+                    ylabel('%s (%s)' %('depth', units))
+                else:
+                    ylabel('%s (%s)' %(which_quantity, units))
                 if len(label_id) > 1: legend((leg_label),loc='upper right')
 
                 gaugeloc1 = gaugeloc.replace(' ','')
@@ -1129,11 +1135,20 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
             if report == True and len(label_id) == 1:
                 for i in range(nn-1):
                     if nn > 2:
-                        word_quantity += plot_quantity[i] + ', '
+                        if plot_quantity[i] == 'stage' and elevations[0,k,j] > 0:
+                            word_quantity += 'depth' + ', '
+                        else:
+                            word_quantity += plot_quantity[i] + ', '
                     else:
-                        word_quantity += plot_quantity[i]
+                        if plot_quantity[i] == 'stage' and elevations[0,k,j] > 0:
+                            word_quantity += 'depth' + ', '
+                        else:
+                            word_quantity += plot_quantity[i]
                     
-                word_quantity += ' and ' + plot_quantity[nn-1]
+                if plot_quantity[nn-1] == 'stage' and elevations[0,k,j] > 0:
+                    word_quantity += ' and ' + 'depth'
+                else:
+                    word_quantity += ' and ' + plot_quantity[nn-1]
                 caption = 'Time series for %s at %s location (elevation %.2fm)' %(word_quantity, locations[k], elev[k]) #gaugeloc.replace('_',' '))
                 if elev[k] == 0.0:
                     caption = 'Time series for %s at %s location (elevation %.2fm)' %(word_quantity, locations[k], elevations[0,k,j])
@@ -1150,9 +1165,16 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
         if report == True and len(label_id) > 1:
             for i in range(nn-1):
                 if nn > 2:
-                    word_quantity += plot_quantity[i] + ', '
+                    if plot_quantity[i] == 'stage' and elevations[0,k,j] > 0:
+                        word_quantity += 'depth' + ','
+                    else:
+                        word_quantity += plot_quantity[i] + ', '
                 else:
-                    word_quantity += plot_quantity[i]
+                    if plot_quantity[i] == 'stage' and elevations[0,k,j] > 0:
+                        word_quantity += 'depth'
+                    else:
+                        word_quantity += plot_quantity[i]
+                print 'hello', elevations[0,k,j]
                 where1 = 0
                 count1 += 1
                 index = j*len(plot_quantity)
