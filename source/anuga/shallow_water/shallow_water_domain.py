@@ -2107,5 +2107,5 @@ if __name__ == "__main__":
     pass
 
 # Profiling stuff
-import profile
-profiler = profile.Profile()
+#import profile
+#profiler = profile.Profile()
