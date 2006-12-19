@@ -205,8 +205,8 @@ def pmesh_dict_to_tag_dict(mesh_dict):
     tag_dict = {}
     for seg, tag in map(None, mesh_dict['segments'],
                         mesh_dict['segment_tags']):
-        v1 = seg[0]
-        v2 = seg[1]
+        v1 = int(seg[0])
+        v2 = int(seg[1])
         for key in [(v1,v2),(v2,v1)]:
             if sides.has_key(key) and tag <> "":
                 #"" represents null.  Don't put these into the dictionary
@@ -222,9 +222,9 @@ def calc_sides(triangles):
     #to left hand side neighbouring triangle
     sides = {}
     for id, triangle in enumerate(triangles):
-        a = triangle[0]
-        b = triangle[1]
-        c = triangle[2]
+        a = int(triangle[0])
+        b = int(triangle[1])
+        c = int(triangle[2])
         sides[a,b] = (id, 2) #(id, face)
         sides[b,c] = (id, 0) #(id, face)
         sides[c,a] = (id, 1) #(id, face)
