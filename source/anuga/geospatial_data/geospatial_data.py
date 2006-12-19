@@ -19,16 +19,16 @@ from anuga.coordinate_transforms.redfearn import convert_from_latlon_to_utm
 class Geospatial_data:
 
     def __init__(self,
-                 data_points = None,
-                 attributes = None,
-                 geo_reference = None,
-                 default_attribute_name = None,
-                 file_name = None,
-                 delimiter = None,
-                 latitudes = None,
-                 longitudes = None,
-                 points_are_lats_longs = False,
-                 verbose = False):
+                 data_points=None,
+                 attributes=None,
+                 geo_reference=None,
+                 default_attribute_name=None,
+                 file_name=None,
+                 delimiter=None,
+                 latitudes=None,
+                 longitudes=None,
+                 points_are_lats_longs=False,
+                 verbose=False):
 
         
         """
@@ -210,7 +210,7 @@ class Geospatial_data:
     def set_default_attribute_name(self, default_attribute_name):
         self.default_attribute_name = default_attribute_name
 
-    def set_verbose(self, verbose = False):
+    def set_verbose(self, verbose=False):
         if verbose is not False:
             verbose = True
         else:
@@ -341,7 +341,7 @@ class Geospatial_data:
     def get_geo_reference(self):
         return self.geo_reference
        
-    def get_data_points(self, absolute = True, geo_reference=None):
+    def get_data_points(self, absolute=True, geo_reference=None):
         """Get coordinates for all data points as an Nx2 array
 
         If absolute is True absolute UTM coordinates are returned otherwise
@@ -364,7 +364,7 @@ class Geospatial_data:
             return self.data_points
         
     
-    def get_attributes(self, attribute_name = None):
+    def get_attributes(self, attribute_name=None):
         """Return values for one named attribute.
 
         If attribute_name is None, default_attribute_name is used
@@ -478,7 +478,7 @@ class Geospatial_data:
     #  IMPORT/EXPORT POINTS FILES
     ###
 
-    def import_points_file(self, file_name, delimiter = None, verbose = False):
+    def import_points_file(self, file_name, delimiter=None, verbose=False):
         """ load an .xya or .pts file
         Note: will throw an IOError if it can't load the file.
         Catch these!
@@ -656,7 +656,7 @@ class Geospatial_data:
         return G1, G2
 
 
-def _read_pts_file(file_name, verbose = False):
+def _read_pts_file(file_name, verbose=False):
     """Read .pts NetCDF file
     
     Return a dic of array of points, and dic of array of attribute
@@ -725,7 +725,7 @@ def _read_csv_file(file_name, verbose = False):
     
     return pointlist, attributes, geo_reference
 
-def _read_xya_file( fd, delimiter):
+def _read_xya_file(fd, delimiter):
     points = []
     pointattributes = []
     title = fd.readline()
@@ -827,7 +827,7 @@ def _write_xya_file(file_name,
                     write_data_points,
                     write_attributes=None, 
                     write_geo_reference=None, 
-                    delimiter = ','):
+                    delimiter=','):
     """
     export a file, file_name, with the xya format
     
@@ -931,7 +931,7 @@ def clean_line(line,delimiter):
     #    print "num>%s<" %num
     return numbers
             
-def ensure_absolute(points, geo_reference = None):
+def ensure_absolute(points, geo_reference=None):
     """
     This function inputs several formats and
     outputs one format. - a numeric array of absolute points.
@@ -971,7 +971,7 @@ def ensure_absolute(points, geo_reference = None):
     return points
      
 
-def ensure_geospatial(points, geo_reference = None):
+def ensure_geospatial(points, geo_reference=None):
     """
     This function inputs several formats and
     outputs one format. - a geospatial_data instance.
