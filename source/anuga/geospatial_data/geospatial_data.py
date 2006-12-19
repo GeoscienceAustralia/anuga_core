@@ -609,7 +609,7 @@ class Geospatial_data:
     
     def split(self, factor=0.5):
         """Returns two geospatial_data object, first is size of the 'factor'
-        smaller the original one and the second is the remainer. The two new 
+        smaller the original and the second is the remainer. The two new 
         object are disjoin set of each other. 
         
         Points of the two new object have selected RANDOMLY. 

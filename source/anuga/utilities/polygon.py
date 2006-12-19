@@ -731,6 +731,25 @@ def point_in_polygon(polygon, delta=1e-8):
             delta = delta*0.1
     return point
 
+def number_mesh_triangles(interior_regions, bounding_poly, remainder_res):
+    """Calcalutes the approximate number of triangles inside the bounding polygon
+    and the other interior regions
+    FIXME: Add tests for this function
+    """
+    import polygon_area
+    
+    # TO DO check if any of the regions fall inside one another
+    no_triangles = 0.0
+    area = polygon_area(bounding_poly)
+    for i,j in interior_regions:
+        this_area = polygon_area(i)
+        no_triangles += this_area/j
+        area -= this_area
+        #convert to square Kms
+        print 'area of ',j, this_area/1000000., area/1000000.
+    no_triangles += area/remainder_res
+    return int(no_triangles/0.7)
+
 
 
 ##############################################
