@@ -75,6 +75,7 @@ def create_mesh_from_regions(bounding_polygon,
             boundary_tags)
     
     kwargs = {'maximum_triangle_area': maximum_triangle_area,
+              'filename': filename,
               'interior_regions': interior_regions,
               'interior_holes': interior_holes,
               'poly_geo_reference': poly_geo_reference,
@@ -102,21 +103,14 @@ def create_mesh_from_regions(bounding_polygon,
         m = apply(_create_mesh_from_regions,
                   args, kwargs)
 
-
-    # Decide whether to store this mesh or return it    
-    if filename is None:
-        return m
-    else:
-        if verbose: print 'Generating mesh to file "%s"' %filename
-        m.generate_mesh(minimum_triangle_angle=minimum_triangle_angle,
-                        verbose=verbose)
-        m.export_mesh_file(filename)
+    return m    
         
 
 
 def _create_mesh_from_regions(bounding_polygon,
                               boundary_tags,
                               maximum_triangle_area=None,
+                              filename=None,                              
                               interior_regions=None,
                               interior_holes=None,
                               poly_geo_reference=None,
@@ -262,6 +256,21 @@ def _create_mesh_from_regions(bounding_polygon,
             m.add_hole_from_polygon(polygon,
                                     geo_reference=poly_geo_reference)
        
-            
-    return m        
+
+
+
+    # NOTE (Ole): This was moved here as it is annoying if mesh is always
+    # stored irrespective of whether the computation
+    # was cached or not. This caused Domain to
+    # recompute as it has meshfile as a dependency
+
+    # Decide whether to store this mesh or return it    
+    if filename is None:
+        return m
+    else:
+        if verbose: print 'Generating mesh to file "%s"' %filename
+        m.generate_mesh(minimum_triangle_angle=minimum_triangle_angle,
+                        verbose=verbose)
+        m.export_mesh_file(filename)
+
 
