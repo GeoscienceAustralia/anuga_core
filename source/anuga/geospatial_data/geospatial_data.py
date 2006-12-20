@@ -69,7 +69,8 @@ class Geospatial_data:
             1.9, 2.8, 5, 0.3
             2.7, 2.4, 5.2, 0.3
 
-        The first two columns are always implicitly assumed to be x, y coordinates.
+        The first two columns are always implicitly assumed to be x, y
+        coordinates.
         Use the same delimiter for the attribute names and the data
 
         An xya file can optionally end with
@@ -88,11 +89,13 @@ class Geospatial_data:
         
         The format for a Points dictionary is:
 
-          ['pointlist'] a 2 column array describing points. 1st column x, 2nd column y.
-          ['attributelist'], a dictionary of 1D arrays, representing attribute values
-          at the point.  The dictionary key is the attribute header.
-          ['geo_reference'] a Geo_refernece object. Use if the point information
-            is relative. This is optional.
+          ['pointlist'] a 2 column array describing points. 1st column x,
+          2nd column y.
+          ['attributelist'], a dictionary of 1D arrays, representing
+          attribute values at the point.  The dictionary key is the attribute
+          header.
+          ['geo_reference'] a Geo_refernece object. Use if the point
+          information is relative. This is optional.
             eg
             dic['pointlist'] = [[1.0,2.0],[3.0,5.0]]
             dic['attributelist']['elevation'] = [[7.0,5.0]
@@ -131,7 +134,8 @@ class Geospatial_data:
             self.set_default_attribute_name(default_attribute_name)
 
         else:
-            # watch for case where file name and points, attributes etc are provided!!
+            # watch for case where file name and points,
+            # attributes etc are provided!!
             # if file name then all provided info will be removed!
             self.import_points_file(file_name, delimiter, verbose)
                 
@@ -499,14 +503,17 @@ class Geospatial_data:
                 if delimiter == None:
                     try:
                         fd = open(file_name)
-                        data_points, attributes, geo_reference = _read_xya_file(fd, ',')
+                        data_points, attributes, geo_reference =\
+                                     _read_xya_file(fd, ',')
                     except TitleError:
                         fd.close()
                         fd = open(file_name)
-                        data_points, attributes, geo_reference = _read_xya_file(fd, ' ')
+                        data_points, attributes, geo_reference =\
+                                     _read_xya_file(fd, ' ')
                 else:
                     fd = open(file_name)
-                    data_points, attributes, geo_reference = _read_xya_file(fd, delimiter)
+                    data_points, attributes, geo_reference =\
+                                 _read_xya_file(fd, delimiter)
                 fd.close()
             except (IndexError,ValueError,SyntaxError):
                 fd.close()    
@@ -515,12 +522,14 @@ class Geospatial_data:
             except IOError, e:
                 fd.close()  
                 # Catch this to add an error message
-                msg = 'Could not open file or incorrect file format %s:%s' %(file_name, e)
+                msg = 'Could not open file or incorrect file format %s:%s'\
+                      %(file_name, e)
                 raise IOError, msg
                 
         elif file_name[-4:]== ".pts":
             try:
-                data_points, attributes, geo_reference = _read_pts_file(file_name, verbose)
+                data_points, attributes, geo_reference =\
+                             _read_pts_file(file_name, verbose)
             except IOError, e:    
                 msg = 'Could not open file %s ' %file_name
                 raise IOError, msg  
@@ -529,7 +538,8 @@ class Geospatial_data:
             #let's do ticket#116 stuff
             #
             try:
-                data_points, attributes, geo_reference = _read_csv_file(file_name, verbose)
+                data_points, attributes, geo_reference =\
+                             _read_csv_file(file_name, verbose)
             except IOError, e:    
                 msg = 'Could not open file %s ' %file_name
                 raise IOError, msg        
@@ -681,7 +691,7 @@ class Geospatial_data:
             raise StopIteration
         return Geospatial_data(pointlist, att_dict)
 
-def _read_pts_file(file_name, verbose = False):
+def _read_pts_file(file_name, verbose=False):
     """Read .pts NetCDF file
     
     Return a dic of array of points, and dic of array of attribute
@@ -736,7 +746,7 @@ def _read_pts_file(file_name, verbose = False):
     return pointlist, attributes, geo_reference
 
 
-def _read_csv_file(file_name, verbose = False):
+def _read_csv_file(file_name, verbose=False):
     """Read .csv file
     
     Return a dic of array of points, and dic of array of attribute
@@ -764,7 +774,8 @@ def _read_csv_file(file_name, verbose = False):
     return pointlist, att_dict, None    
 
 CSV_DELIMITER = ','
-def _read_csv_file_header(file_pointer, delimiter=CSV_DELIMITER,
+def _read_csv_file_header(file_pointer,
+                          delimiter=CSV_DELIMITER,
                           verbose=False):
 
     """Read the header of a .csv file
@@ -776,8 +787,8 @@ def _read_csv_file_header(file_pointer, delimiter=CSV_DELIMITER,
 
 def _read_csv_file_blocking(file_pointer, header,
                             delimiter=CSV_DELIMITER,
-                            max_read_lines = 500,
-                            verbose = False):
+                            max_read_lines=500,
+                            verbose=False):
     
 
     """
@@ -976,7 +987,8 @@ def _point_atts2array(point_atts):
     point_atts['pointlist'] = array(point_atts['pointlist']).astype(Float)
     
     for key in point_atts['attributelist'].keys():
-        point_atts['attributelist'][key]= array(point_atts['attributelist'][key]).astype(Float)
+        point_atts['attributelist'][key]=\
+                array(point_atts['attributelist'][key]).astype(Float)
     return point_atts
 
    
