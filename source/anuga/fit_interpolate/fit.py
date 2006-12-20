@@ -77,6 +77,12 @@ class Fit(FitInterpolate):
 
           Note: Don't supply a vertex coords as a geospatial object and
               a mesh origin, since geospatial has its own mesh origin.
+
+
+        Usage,
+        To use this in a blocking way, call  build_fit_subset, with z info,
+        and then fit, with no point coord, z info.
+        
         """
         # Initialise variabels
 
@@ -231,7 +237,7 @@ class Fit(FitInterpolate):
         #Build n x m interpolation matrix
 
         if self.AtA == None:
-            # AtA and Atz need ot be initialised.
+            # AtA and Atz need to be initialised.
             m = self.mesh.number_of_nodes
             if len(z.shape) > 1:
                 att_num = z.shape[1]
@@ -242,6 +248,8 @@ class Fit(FitInterpolate):
             assert z.shape[0] == point_coordinates.shape[0] 
 
             self.AtA = Sparse(m,m)
+            # The memory damage has been done by now.
+            
         self.point_count += point_coordinates.shape[0]
         #print "_build_matrix_AtA_Atz - self.point_count", self.point_count
         if verbose: print 'Getting indices inside mesh boundary'
@@ -249,6 +257,7 @@ class Fit(FitInterpolate):
         #print 'self.mesh.get_boundary_polygon()',\
         #      self.mesh.get_boundary_polygon()
 
+        # Why are these global?
         self.inside_poly_indices, self.outside_poly_indices  = \
                      in_and_outside_polygon(point_coordinates,
                                             self.mesh.get_boundary_polygon(),
@@ -310,8 +319,12 @@ class Fit(FitInterpolate):
             assert self.Atz <> None
             #FIXME (DSG) - do  a message
         else:
+            # This is where build fit subset can be looped over,
+            # if a file name is passed in.
             point_coordinates = ensure_absolute(point_coordinates,
                                                 geo_reference=point_origin)
+            #if isinstance(point_coordinates,Geospatial_data) and z is None:
+            # z will come from the geo-ref
             self.build_fit_subset(point_coordinates, z, verbose)
 
         #Check sanity
@@ -344,8 +357,8 @@ class Fit(FitInterpolate):
                                   imax=2*len(self.Atz) )
 
         
-    def build_fit_subset(self, point_coordinates, z,
-                              verbose = False):
+    def build_fit_subset(self, point_coordinates, z=None, attribute_name=None,
+                              verbose=False):
         """Fit a smooth surface to given 1d array of data points z.
 
         The smooth surface is computed at each vertex in the underlying
@@ -355,11 +368,13 @@ class Fit(FitInterpolate):
         point_coordinates: The co-ordinates of the data points.
               List of coordinate pairs [x, y] of
 	      data points or an nx2 Numeric array or a Geospatial_data object
-          z: Single 1d vector or array of data at the point_coordinates.
+        z: Single 1d vector or array of data at the point_coordinates.
+        attribute_name: Used to get the z values from the
+              geospatial object if no attribute_name is specified,
+              it's a bit of a lucky dip as to what attributes you get.
+              If there is only one attribute it will be that one.
 
         """
-        #Note: Don't get the z info from anuga.geospatial_data.attributes yet.
-        # If we did fit would have to handle attribute title info.
 
         #FIXME(DSG-DSG): Check that the vert and point coords
         #have the same zone.
@@ -368,7 +383,13 @@ class Fit(FitInterpolate):
                 absolute = True)
         
         #Convert input to Numeric arrays
-        z = ensure_numeric(z, Float)
+        if z is not None:
+            z = ensure_numeric(z, Float)
+        else:
+            msg = 'z not specified'
+            assert isinstance(point_coordinates,Geospatial_data), msg
+            z = point_coordinates.get_attributes(attribute_name)
+            
         point_coordinates = ensure_numeric(point_coordinates, Float)
 
         self._build_matrix_AtA_Atz(point_coordinates, z, verbose)

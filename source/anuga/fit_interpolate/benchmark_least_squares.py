@@ -92,16 +92,14 @@ class BenchmarkLeastSquares:
                 # run an interploate problem.
                 print "Interpolate!"
                 calc = interp.interpolate(mesh_dict['vertex_attributes'])
-        else:
-            # need to change to fit_interpolate code
-            interp = Fit(mesh_dict['vertices'],
-                                 mesh_dict['triangles'], 
-                                 max_vertices_per_cell = max_points_per_cell) 
+        else: 
             if is_fit is True:
+                interp = Fit(mesh_dict['vertices'],
+                                 mesh_dict['triangles'], 
+                                 max_vertices_per_cell = max_points_per_cell)
                 print "Fit in Fit"
                 calc = interp.fit(points_dict['points'],
                                   points_dict['point_attributes'])
-                pass
             else:
                 # run an interploate problem.
                 print "Interpolate!"
