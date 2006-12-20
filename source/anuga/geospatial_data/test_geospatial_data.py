@@ -902,8 +902,46 @@ crap")
 #            self.failUnless(0 == 1,
 #                        'imaginary file did not raise error!')
 
-                        
-  ###################### .XYA ##############################
+
+  ###################### .CSV ##############################
+
+    def test_load_csv(self):
+        """
+        space delimited
+        """
+        import os
+       
+        fileName = tempfile.mktemp(".xxx")
+        file = open(fileName,"w")
+        file.write(" x,y, elevation ,  speed \n\
+1.0, 0.0, 10.0, 0.0\n\
+0.0, 1.0, 0.0, 10.0\n\
+1.0, 0.0 ,10.4, 40.0\n")
+        file.close()
+
+        results = Geospatial_data(fileName, max_read_lines=2)
+
+
+        assert allclose(results.get_data_points(), [[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
+        assert allclose(results.get_attributes(attribute_name='elevation'), [10.0, 0.0, 10.4])
+        assert allclose(results.get_attributes(attribute_name='speed'), [0.0, 10.0, 40.0])
+
+        # Blocking
+        geo_list = []
+        for i in results:
+            geo_list.append(i)
+            
+        assert allclose(geo_list[0].get_data_points(),
+                        [[1.0, 0.0],[0.0, 1.0]])
+
+        assert allclose(geo_list[0].get_attributes(attribute_name='elevation'),
+                        [10.0, 0.0])
+        assert allclose(geo_list[1].get_data_points(),
+                        [[1.0, 0.0]])        
+        assert allclose(geo_list[1].get_attributes(attribute_name='elevation'),
+                        [10.4])
+           
+        os.remove(fileName)             
         
     def test_export_xya_file(self):
 #        dict = {}

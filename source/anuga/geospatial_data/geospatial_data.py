@@ -15,11 +15,11 @@ from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.coordinate_transforms.geo_reference import Geo_reference, TitleError
 from anuga.coordinate_transforms.redfearn import convert_from_latlon_to_utm
 
-        
+MAX_READ_LINES = 500        
 class Geospatial_data:
 
     def __init__(self,
-                 data_points=None,
+                 data_points=None, # this can also be a points file name
                  attributes=None,
                  geo_reference=None,
                  default_attribute_name=None,
@@ -28,6 +28,7 @@ class Geospatial_data:
                  latitudes=None,
                  longitudes=None,
                  points_are_lats_longs=False,
+                 max_read_lines=None,                 
                  verbose=False):
 
         
@@ -109,6 +110,8 @@ class Geospatial_data:
 
         self.set_verbose(verbose)
         self.geo_reference=None #create the attribute 
+        self.file_name = file_name
+        self.max_read_lines = max_read_lines
         if file_name is None:
             if delimiter is not None:
                 msg = 'No file specified yet a delimiter is provided!'
@@ -655,8 +658,30 @@ class Geospatial_data:
 
         return G1, G2
 
+    def __iter__(self):
+        # read in the header and save the file pointer position
 
-def _read_pts_file(file_name, verbose=False):
+        #FIXME - what to do if the file isn't there
+        file_pointer = open(self.file_name)
+        self.header, self.file_pointer = _read_csv_file_header(file_pointer)
+
+        if self.max_read_lines is None:
+            self.max_read_lines = MAX_READ_LINES
+        return self
+    
+    def next(self):
+        # read a block, instanciate a new geospatial and return it
+        try:
+            pointlist, att_dict, self.file_pointer = _read_csv_file_blocking( \
+                self.file_pointer,
+                self.header[:],
+                max_read_lines=self.max_read_lines) 
+        except StopIteration:
+            self.file_pointer.close()
+            raise StopIteration
+        return Geospatial_data(pointlist, att_dict)
+
+def _read_pts_file(file_name, verbose = False):
     """Read .pts NetCDF file
     
     Return a dic of array of points, and dic of array of attribute
@@ -720,10 +745,92 @@ def _read_csv_file(file_name, verbose = False):
     dic['attributelist']['elevation'] = [[7.0,5.0]
     """
     
-    from anuga.shallow_water.data_manager import Exposure_csv
-    csv =Exposure_csv(file_name)
+    #from anuga.shallow_water.data_manager import Exposure_csv
+    #csv =Exposure_csv(file_name)
     
-    return pointlist, attributes, geo_reference
+    file_pointer = open(file_name)
+    header, file_pointer = _read_csv_file_header(file_pointer)
+
+    while True:
+        try:
+            pointlist, att_dict,file_pointer  = _read_csv_file_blocking( \
+                file_pointer,
+                header,
+                max_read_lines=5000) #FIXME: how hacky is that!
+        except StopIteration:
+            break
+        
+    file_pointer.close()
+    return pointlist, att_dict, None    
+
+CSV_DELIMITER = ','
+def _read_csv_file_header(file_pointer, delimiter=CSV_DELIMITER,
+                          verbose=False):
+
+    """Read the header of a .csv file
+    Return a list of the header names
+    """
+    line = file_pointer.readline()
+    header = clean_line(line, delimiter)
+    return header, file_pointer
+
+def _read_csv_file_blocking(file_pointer, header,
+                            delimiter=CSV_DELIMITER,
+                            max_read_lines = 500,
+                            verbose = False):
+    
+
+    """
+    Read the body of a .csv file.
+    header: The list header of the csv file, with the x and y labels.
+    """
+    points = []
+    pointattributes = []
+    att_dict = {}
+
+    #This is to remove the x and y headers.
+    header.pop(0)
+    header.pop(0)
+    
+    read_lines = 0
+    while read_lines<max_read_lines:
+        line = file_pointer.readline()
+        #print "line",line
+        numbers = clean_line(line,delimiter)
+        if len(numbers) <= 1:
+            break
+        if line[0] == '#':
+            continue
+        read_lines += 1
+        if True: # remove.. #if numbers != []:
+            try:
+                x = float(numbers[0])
+                y = float(numbers[1])
+                points.append([x,y])
+                numbers.pop(0)
+                numbers.pop(0)
+                if len(header) != len(numbers):
+                    
+                    file_pointer.close() 
+                    # It might not be a problem with the header
+                    #raise TitleAmountError
+                    raise IOError
+                for i,num in enumerate(numbers):
+                    num.strip()
+                    if num != '\n' and num != '':
+                        #attributes.append(float(num))
+                        att_dict.setdefault(header[i],[]).append(float(num))
+            except ValueError:
+                raise SyntaxError
+    if points == []:
+        raise StopIteration
+        
+    
+    pointlist = array(points).astype(Float)
+    for key in att_dict.keys():
+        att_dict[key] = array(att_dict[key]).astype(Float)
+        
+    return pointlist, att_dict,file_pointer 
 
 def _read_xya_file(fd, delimiter):
     points = []
@@ -1009,3 +1116,12 @@ def ensure_geospatial(points, geo_reference=None):
 #    G.export_points_file()
 
              
+
+         
+if __name__ == "__main__":
+    g = Geospatial_data("t.xxx")
+    print "g.get_data_points()", g.get_data_points()
+    for i,a in enumerate(g):
+        if i >3: break 
+        print a
+    
