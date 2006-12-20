@@ -17,6 +17,7 @@ To create:
 from Numeric import array, zeros, Float, less, concatenate, NewAxis,\
      argmax, allclose, take, reshape
 from anuga.utilities.numerical_tools import ensure_numeric, is_scalar
+from anuga.geospatial_data.geospatial_data import Geospatial_data
 
 class Quantity:
 
@@ -218,7 +219,7 @@ class Quantity:
           (Obsoleted by geospatial_data)          
 
         filename:
-          Name of a .pts file containing data points and attributes for
+          Name of a points file containing data points and attributes for
           use with fit_interpolate.fit.
 
         attribute_name:
@@ -717,7 +718,7 @@ class Quantity:
                              location, indices,
                              verbose = False,
                              use_cache = False):
-        """Set quantity based on arbitrary points in .pts file
+        """Set quantity based on arbitrary points in a points file
         using attribute_name selects name of attribute
         present in file.
         If not specified try to use whatever is available in file.
@@ -735,16 +736,34 @@ class Quantity:
         # Read from (NetCDF) file
         # FIXME (Ole): This function should really return a
         # Geospatial_data object.
-        points_dict = import_points_file(filename)
-        points = points_dict['pointlist']
-        attributes = points_dict['attributelist']
+        geospatial_data = Geospatial_data(filename)
+        
+        #points_dict = import_points_file(filename)
+        #points_dict['pointlist'] = None
+        #points_dict['attributelist'] = None
+        #points = points_dict['pointlist']
+        #attributes = points_dict['attributelist']
 
-        if attribute_name is None:
-            names = attributes.keys()
-            attribute_name = names[0]
 
-        msg = 'Attribute_name must be a text string'
-        assert type(attribute_name) == StringType, msg
+        #Take care of georeferencing
+        # this doesn't do anything....
+        #if points_dict.has_key('geo_reference') and \
+        #       points_dict['geo_reference'] is not None:
+        #    data_georef = points_dict['geo_reference']
+        #else:
+        #    data_georef = None
+            
+        # if there is no attribute name, use the 1st key?
+        # This isn't so good..., if there is more than 1 key
+        # since it will not always be the 1 column
+        # or anything predictable...        
+
+        #if attribute_name is None:
+        #    names = attributes.keys()
+        #    attribute_name = names[0]
+
+        #msg = 'Attribute_name must be a text string'
+        #assert type(attribute_name) == StringType, msg
 
 
         if verbose:
@@ -757,20 +776,10 @@ class Quantity:
         #    msg = 'Could not extract attribute %s from file %s'\
         #          %(attribute_name, filename)
         #    raise msg
-
-
-        #Take care of georeferencing
-        if points_dict.has_key('geo_reference') and \
-               points_dict['geo_reference'] is not None:
-            data_georef = points_dict['geo_reference']
-        else:
-            data_georef = None
-
-
-
+        
         #Call underlying method for geospatial data
-        geospatial_data = points_dictionary2geospatial_data(points_dict)
-        geospatial_data.set_default_attribute_name(attribute_name)
+        #geospatial_data = points_dictionary2geospatial_data(points_dict)
+        # geospatial_data.set_default_attribute_name(attribute_name)
 
         self.set_values_from_geospatial_data(geospatial_data,
                                              alpha,
