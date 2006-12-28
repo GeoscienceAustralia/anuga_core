@@ -825,7 +825,14 @@ def check_list(quantity):
     all_quantity = ['stage', 'depth', 'momentum', 'xmomentum',
                     'ymomentum', 'speed', 'bearing', 'elevation']
 
+	
+		    
     import sys
+    if not sys.version.startswith('2.4'):
+        # Backwards compatibility
+	from sets import Set as set
+	
+    
     if sys.platform == 'win32':
         for i,j in enumerate(quantity):
             quantity[i] = quantity[i].lower()
