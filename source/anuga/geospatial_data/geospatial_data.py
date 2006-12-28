@@ -218,10 +218,11 @@ class Geospatial_data:
         self.default_attribute_name = default_attribute_name
 
     def set_verbose(self, verbose=False):
-        if verbose is not False:
-            verbose = True
+        if verbose in [False, True]:
+            self.verbose = verbose
         else:
-            verbose = False
+            msg = 'Illegal value: %s' %str(verbose)
+	    raise Exception, msg
 
     def clip(self, polygon, closed=True):
         """Clip geospatial data by a polygon
@@ -383,7 +384,10 @@ class Geospatial_data:
             else:
                 attribute_name = self.attributes.keys()[0] 
                 # above line takes the first one from keys
-                
+        
+	if self.verbose is True:
+	    print 'Using attribute %s' %attribute_name
+	    print 'Available attributes: %s' %(self.attributes.keys())        
 
         msg = 'Attribute name %s does not exist in data set' %attribute_name
         assert self.attributes.has_key(attribute_name), msg
