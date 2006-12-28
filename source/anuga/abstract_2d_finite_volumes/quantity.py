@@ -721,7 +721,8 @@ class Quantity:
         """Set quantity based on arbitrary points in a points file
         using attribute_name selects name of attribute
         present in file.
-        If not specified try to use whatever is available in file.
+        If attribute_name is not specified, use first available attribute
+	as defined in geospatial_data.
         """
 
         from load_mesh.loadASCII import import_points_file
@@ -766,9 +767,9 @@ class Quantity:
         #assert type(attribute_name) == StringType, msg
 
 
-        if verbose:
-            print 'Using attribute %s from file %s' %(attribute_name, filename)
-            print 'Available attributes: %s' %(names)
+        #if verbose:
+        #    print 'Using attribute %s from file %s' %(attribute_name, filename)
+        #    print 'Available attributes: %s' %(names)
 
         #try:
         #    z = attributes[attribute_name]
