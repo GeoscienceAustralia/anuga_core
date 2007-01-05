@@ -691,6 +691,7 @@ class Quantity:
 
         #print kwargs
 
+        #FIXME(dsg):Why is this catched? fit_to_mesh handles caching.
         if use_cache is True:
             try:
                 from caching import cache
@@ -733,55 +734,8 @@ class Quantity:
         msg = 'Filename must be a text string'
         assert type(filename) == StringType, msg
 
-
-        # Read from (NetCDF) file
-        # FIXME (Ole): This function should really return a
-        # Geospatial_data object.
         geospatial_data = Geospatial_data(filename)
         
-        #points_dict = import_points_file(filename)
-        #points_dict['pointlist'] = None
-        #points_dict['attributelist'] = None
-        #points = points_dict['pointlist']
-        #attributes = points_dict['attributelist']
-
-
-        #Take care of georeferencing
-        # this doesn't do anything....
-        #if points_dict.has_key('geo_reference') and \
-        #       points_dict['geo_reference'] is not None:
-        #    data_georef = points_dict['geo_reference']
-        #else:
-        #    data_georef = None
-            
-        # if there is no attribute name, use the 1st key?
-        # This isn't so good..., if there is more than 1 key
-        # since it will not always be the 1 column
-        # or anything predictable...        
-
-        #if attribute_name is None:
-        #    names = attributes.keys()
-        #    attribute_name = names[0]
-
-        #msg = 'Attribute_name must be a text string'
-        #assert type(attribute_name) == StringType, msg
-
-
-        #if verbose:
-        #    print 'Using attribute %s from file %s' %(attribute_name, filename)
-        #    print 'Available attributes: %s' %(names)
-
-        #try:
-        #    z = attributes[attribute_name]
-        #except:
-        #    msg = 'Could not extract attribute %s from file %s'\
-        #          %(attribute_name, filename)
-        #    raise msg
-        
-        #Call underlying method for geospatial data
-        #geospatial_data = points_dictionary2geospatial_data(points_dict)
-        # geospatial_data.set_default_attribute_name(attribute_name)
-
         self.set_values_from_geospatial_data(geospatial_data,
                                              alpha,
                                              location, indices,

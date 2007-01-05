@@ -48,7 +48,15 @@ def mem_usage():
 
 
 class BenchmarkLeastSquares:
+"""
+"""
 
+"""
+
+Note(DSG-DSG): If you are interested in benchmarking fitting, before
+and after blocking O:\1\dgray\before_blocking_subsandpit is before blocking
+
+"""
 
     def __init__(self):
         pass

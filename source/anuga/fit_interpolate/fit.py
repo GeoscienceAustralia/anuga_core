@@ -22,8 +22,9 @@
    IDEAS
    * (DSG-) Change the interface of fit, so a domain object can
       be passed in. (I don't know if this is feasible). If could
-      save time.
+      save time/memory.
 """
+import types
 
 from Numeric import zeros, Float, ArrayType,take 
 
@@ -299,9 +300,10 @@ class Fit(FitInterpolate):
                 raise Exception(msg)
     
         
-    def fit(self, point_coordinates=None, z=None,
-                              verbose = False,
-                              point_origin = None):
+    def fit(self, point_coordinates_or_filename=None, z=None,
+            verbose=False,
+            point_origin=None,
+            max_read_lines=500):
         """Fit a smooth surface to given 1d array of data points z.
 
         The smooth surface is computed at each vertex in the underlying
@@ -314,13 +316,26 @@ class Fit(FitInterpolate):
           z: Single 1d vector or array of data at the point_coordinates.
           
         """
+
+        # use blocking to load in the point info
+        if type(point_coordinates_or_filename) == types.StringType:
+            filename = point_coordinates_or_filename
+            for geo_block in  Geospatial_data(filename,
+                                              max_read_lines=max_read_lines,
+                                              load_file_now=False):
+                # build the array
+                points = geo_block.get_data_points(absolute=True)
+                z = geo_block.get_attributes()
+                self.build_fit_subset(points, z)
+            point_coordinates = None
+        else:
+            point_coordinates =  point_coordinates_or_filename
+            
         if point_coordinates is None:
             assert self.AtA <> None
             assert self.Atz <> None
             #FIXME (DSG) - do  a message
         else:
-            # This is where build fit subset can be looped over,
-            # if a file name is passed in.
             point_coordinates = ensure_absolute(point_coordinates,
                                                 geo_reference=point_origin)
             #if isinstance(point_coordinates,Geospatial_data) and z is None:
@@ -399,8 +414,8 @@ class Fit(FitInterpolate):
 
 def fit_to_mesh(vertex_coordinates,
                 triangles,
-                point_coordinates,
-                point_attributes,
+                point_coordinates=None,
+                point_attributes=None,
                 alpha = DEFAULT_ALPHA,
                 verbose = False,
                 acceptable_overshoot = 1.01,

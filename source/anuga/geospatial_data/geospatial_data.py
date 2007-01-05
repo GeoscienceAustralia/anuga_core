@@ -28,7 +28,8 @@ class Geospatial_data:
                  latitudes=None,
                  longitudes=None,
                  points_are_lats_longs=False,
-                 max_read_lines=None,                 
+                 max_read_lines=None,
+                 load_file_now=True,
                  verbose=False):
 
         
@@ -104,6 +105,9 @@ class Geospatial_data:
             importing the file
             
         verbose:
+
+        load_file_now: if load file now is true, the file is
+        loaded during instanciation.
           
         """
 
@@ -133,7 +137,7 @@ class Geospatial_data:
             self.set_geo_reference(geo_reference)
             self.set_default_attribute_name(default_attribute_name)
 
-        else:
+        elif load_file_now is True:
             # watch for case where file name and points,
             # attributes etc are provided!!
             # if file name then all provided info will be removed!
@@ -144,8 +148,9 @@ class Geospatial_data:
             self.set_geo_reference(self.geo_reference)
             self.set_default_attribute_name(default_attribute_name)
 
-
-        assert self.attributes is None or isinstance(self.attributes, DictType)
+        #Why?    
+        #assert self.attributes is None or isinstance(self.attributes, DictType)
+        #This is a hassle when blocking, so I've removed it.
         
 
     def __len__(self):
@@ -538,7 +543,7 @@ class Geospatial_data:
                 msg = 'Could not open file %s ' %file_name
                 raise IOError, msg  
         
-        elif file_name[-4:]== ".xxx":
+        elif file_name[-4:]== ".txt" or file_name[-4:]== ".csv":
             #let's do ticket#116 stuff
             #
             try:
@@ -676,6 +681,8 @@ class Geospatial_data:
         # read in the header and save the file pointer position
 
         #FIXME - what to do if the file isn't there
+
+        #FIXME - give warning if the file format is .xya
         file_pointer = open(self.file_name)
         self.header, self.file_pointer = _read_csv_file_header(file_pointer)
 
@@ -770,7 +777,7 @@ def _read_csv_file(file_name, verbose=False):
             pointlist, att_dict,file_pointer  = _read_csv_file_blocking( \
                 file_pointer,
                 header,
-                max_read_lines=5000) #FIXME: how hacky is that!
+                max_read_lines=MAX_READ_LINES) #FIXME: how hacky is that!
         except StopIteration:
             break
         
@@ -791,7 +798,7 @@ def _read_csv_file_header(file_pointer,
 
 def _read_csv_file_blocking(file_pointer, header,
                             delimiter=CSV_DELIMITER,
-                            max_read_lines=500,
+                            max_read_lines=MAX_READ_LINES,
                             verbose=False):
     
 
@@ -804,6 +811,7 @@ def _read_csv_file_blocking(file_pointer, header,
     att_dict = {}
 
     #This is to remove the x and y headers.
+    header = header[:]
     header.pop(0)
     header.pop(0)
     
@@ -1135,7 +1143,7 @@ def ensure_geospatial(points, geo_reference=None):
 
          
 if __name__ == "__main__":
-    g = Geospatial_data("t.xxx")
+    g = Geospatial_data("t.txt")
     print "g.get_data_points()", g.get_data_points()
     for i,a in enumerate(g):
         if i >3: break 

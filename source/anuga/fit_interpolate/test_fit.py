@@ -4,6 +4,7 @@
 import sys
 import unittest
 from math import sqrt
+import tempfile
 
 from Numeric import zeros, take, compress, Float, Int, dot, concatenate, \
      ArrayType, allclose, array
@@ -198,6 +199,46 @@ class Test_Fit(unittest.TestCase):
         #print "answer\n",answer
         assert allclose(f, answer)
 
+        # test fit 2 mesh as well.
+    def test_fit_file_blocking(self):
+
+        a = [-1.0, 0.0]
+        b = [3.0, 4.0]
+        c = [4.0,1.0]
+        d = [-3.0, 2.0] #3
+        e = [-1.0,-2.0]
+        f = [1.0, -2.0] #5
+
+        vertices = [a, b, c, d,e,f]
+        triangles = [[0,1,3], [1,0,2], [0,4,5], [0,5,2]] #abd bac aef afc
+
+        interp = Fit(vertices, triangles,
+                                alpha=0.0)
+
+
+        fileName = tempfile.mktemp(".ddd")
+        file = open(fileName,"w")
+        file.write(" x,y, elevation \n\
+-2.0, 2.0, 0.\n\
+-1.0, 1.0, 0.\n\
+0.0, 2.0 , 2.\n\
+1.0, 1.0 , 2.\n\
+ 2.0,  1.0 ,3. \n\
+ 0.0,  0.0 , 0.\n\
+ 1.0,  0.0 , 1.\n\
+ 0.0,  -1.0, -1.\n\
+ -0.2, -0.5, -0.7\n\
+ -0.9, -1.5, -2.4\n\
+ 0.5,  -1.9, -1.4\n\
+ 3.0,  1.0 , 4.\n")
+        file.close()
+        
+        f = interp.fit(fileName, max_read_lines=2)
+        answer = linear_function(vertices)
+        #print "f\n",f
+        #print "answer\n",answer
+        assert allclose(f, answer)
+        
     def test_fit_and_interpolation(self):
 
         a = [0.0, 0.0]

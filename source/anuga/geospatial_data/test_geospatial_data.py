@@ -911,7 +911,7 @@ crap")
         """
         import os
        
-        fileName = tempfile.mktemp(".xxx")
+        fileName = tempfile.mktemp(".txt")
         file = open(fileName,"w")
         file.write(" x,y, elevation ,  speed \n\
 1.0, 0.0, 10.0, 0.0\n\
