@@ -501,15 +501,18 @@ def populate_polygon(*args, **kwargs):
 
 ##################### end of obsolete stuff ? ############
 
-def start_screen_catcher(dirname, myid=0, numprocs=1):
+def start_screen_catcher(dir_name, myid=0, numprocs=1):
     """Used to store screen output and errors to file, if run on multiple 
     processes eachprocessor will have its own output and error file.
     """
 
-    dirname = dirname
-    screen_output_name = dirname + "screen_output_%d_%d.txt" %(myid,numprocs)
-    screen_error_name = dirname + "screen_error_%d_%d.txt" %(myid,numprocs)
-
+    dir_name = dir_name
+    if access(dir_name,F_OK) == 0:
+        print 'Make directory %s' %dir_name
+        mkdir (dir_name,0777)
+    screen_output_name = dir_name + "screen_output_%d_%d.txt" %(myid,numprocs)
+    screen_error_name = dir_name + "screen_error_%d_%d.txt" %(myid,numprocs)
+    
     #used to catch screen output to file
     sys.stdout = Screen_Catcher(screen_output_name)
     sys.stderr = Screen_Catcher(screen_error_name)
@@ -521,6 +524,7 @@ class Screen_Catcher:
     
     def __init__(self, filename):
         self.filename = filename
+ 
         if exists(self.filename)is True:
             remove(self.filename)
             print'Old existing file "%s" has been deleted' %(self.filename)
