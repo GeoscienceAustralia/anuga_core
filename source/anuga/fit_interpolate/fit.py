@@ -28,6 +28,7 @@ import types
 
 from Numeric import zeros, Float, ArrayType,take 
 
+from anuga.caching import cache            
 from anuga.geospatial_data.geospatial_data import Geospatial_data, ensure_absolute
 from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
 from anuga.utilities.sparse import Sparse, Sparse_CSR
@@ -326,7 +327,7 @@ class Fit(FitInterpolate):
             for i,geo_block in  enumerate(Geospatial_data(filename,
                                               max_read_lines=max_read_lines,
                                               load_file_now=False)):
-                if verbose is True and 0 == i%12:
+                if verbose is True and 0 == i%200: # round every 5 minutes
                     print 'Block %i' %i
                 # build the array
                 points = geo_block.get_data_points(absolute=True)
