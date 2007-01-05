@@ -314,9 +314,9 @@ if __name__ == '__main__':
 
           print '--------------- Trying to compile c-extension %s' %filename
           try:
-            if filename == 'mesh_engine.c':
+            if filename == 'mesh_engine_c_layer.c':
               print "********** Manually doing dependencies **************"
-              compile(['mesh_engine.c','triangle.c'])
+              compile(['mesh_engine_c_layer.c','triangle.c'])
             else:
               compile(filename)
           except:

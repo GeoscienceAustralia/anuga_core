@@ -178,21 +178,20 @@ class Alpha_Shape:
         self.alpha = alpha
 
         ## Build Delaunay triangulation
-        import anuga.mesh_engine.triang as triang
+        from anuga.mesh_engine.mesh_engine import generate_mesh
         points = []
         seglist = []
         holelist = []
         regionlist = []
         pointattlist = []
         segattlist = []
-        trilist = []
 
         points = [(pt[0], pt[1]) for pt in self.points]
         pointattlist = [ [] for i in range(len(points)) ] 
         mode = "Qzcn"
         #print "computing delaunay triangulation ... \n" 
-        tridata = triang.genMesh(points,seglist,holelist,regionlist,
-                                 pointattlist,segattlist,trilist,mode)
+        tridata = generate_mesh(points,seglist,holelist,regionlist,
+                                 pointattlist,segattlist,mode)
         #print tridata
         #print "point attlist: ", tridata['generatedpointattributelist'],"\n"
         #print "hull segments: ", tridata['generatedsegmentlist'], "\n"

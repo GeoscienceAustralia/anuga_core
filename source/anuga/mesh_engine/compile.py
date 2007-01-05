@@ -318,10 +318,9 @@ if __name__ == '__main__':
             if filename == 'triang.c': 
               print "********** Manually doing dependencies **************"
               compile(['triang.c','triangle.c'])
-            elif  filename == 'mesh_engine.c': # not part of ANUGA
-              continue
+            elif  filename == 'mesh_engine_c_layer.c': 
               #print "********** Manually doing dependencies **************"
-              #compile(['mesh_engine.c','triangle.c'])
+              compile(['mesh_engine_c_layer.c','triangle.c'])
               
             else:
               compile(filename)
