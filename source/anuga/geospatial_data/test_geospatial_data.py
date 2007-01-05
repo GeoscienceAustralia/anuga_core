@@ -943,6 +943,35 @@ crap")
            
         os.remove(fileName)             
         
+    def test_load_csv_bad(self):
+        """
+        space delimited
+        """
+        import os
+       
+        fileName = tempfile.mktemp(".txt")
+        file = open(fileName,"w")
+        file.write(" elevation ,  speed \n\
+1.0, 0.0, 10.0, 0.0\n\
+0.0, 1.0, 0.0, 10.0\n\
+1.0, 0.0 ,10.4, 40.0\n")
+        file.close()
+
+        results = Geospatial_data(fileName, max_read_lines=2,
+                                  load_file_now=False)
+
+        # Blocking
+        geo_list = []
+        try:
+            for i in results:
+                geo_list.append(i)
+        except IOError:
+            pass
+        else:
+            msg = 'bad file did not raise error!'
+            raise msg
+        os.remove(fileName)
+        
     def test_export_xya_file(self):
 #        dict = {}
         att_dict = {}

@@ -837,12 +837,14 @@ def _read_csv_file_blocking(file_pointer, header,
                     file_pointer.close() 
                     # It might not be a problem with the header
                     #raise TitleAmountError
-                    raise IOError
+                    msg = "File load error.  There might be a problem with the file header"
+                    raise IOError, msg
                 for i,num in enumerate(numbers):
                     num.strip()
                     if num != '\n' and num != '':
                         #attributes.append(float(num))
                         att_dict.setdefault(header[i],[]).append(float(num))
+            #except IOError:           
             except ValueError:
                 raise SyntaxError
     if points == []:

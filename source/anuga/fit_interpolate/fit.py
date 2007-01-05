@@ -303,6 +303,7 @@ class Fit(FitInterpolate):
     def fit(self, point_coordinates_or_filename=None, z=None,
             verbose=False,
             point_origin=None,
+            attribute_name=None,
             max_read_lines=500):
         """Fit a smooth surface to given 1d array of data points z.
 
@@ -319,13 +320,15 @@ class Fit(FitInterpolate):
 
         # use blocking to load in the point info
         if type(point_coordinates_or_filename) == types.StringType:
+            msg = "Don't set a point origin when reading from a file"
+            assert point_origin is None, msg
             filename = point_coordinates_or_filename
             for geo_block in  Geospatial_data(filename,
                                               max_read_lines=max_read_lines,
                                               load_file_now=False):
                 # build the array
                 points = geo_block.get_data_points(absolute=True)
-                z = geo_block.get_attributes()
+                z = geo_block.get_attributes(attribute_name=attribute_name)
                 self.build_fit_subset(points, z)
             point_coordinates = None
         else:
@@ -422,6 +425,7 @@ def fit_to_mesh(vertex_coordinates,
                 mesh_origin=None,
                 data_origin=None,
                 max_read_lines=None,
+                attribute_name=None,
                 use_cache = False):
     """
     Fit a smooth surface to a triangulation,
@@ -471,14 +475,15 @@ def fit_to_mesh(vertex_coordinates,
     else:
         interp = Fit(vertex_coordinates,
                      triangles,
-                     verbose = verbose,
-                     mesh_origin = mesh_origin,
+                     verbose=verbose,
+                     mesh_origin=mesh_origin,
                      alpha=alpha)
         
     vertex_attributes = interp.fit(point_coordinates,
                                    point_attributes,
                                    point_origin=data_origin,
                                    max_read_lines=max_read_lines,
+                                   attribute_name=attribute_name,
                                    verbose=verbose)
 
         

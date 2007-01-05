@@ -740,10 +740,11 @@ class Quantity:
         coordinates = self.domain.get_nodes(absolute=True)
         triangles = self.domain.triangles      #FIXME
 
-        
-        # FIXME handle attribute name 
         vertex_attributes = fit_to_mesh(coordinates, triangles,filename,
-                                alpha=alpha) #, max_read_lines=max_read_lines)
+                                        alpha=alpha,
+                                        attribute_name = attribute_name,
+                                        use_cache = use_cache)
+                                #, max_read_lines=max_read_lines)
         
         #Call underlying method using array values
         self.set_values_from_array(vertex_attributes,

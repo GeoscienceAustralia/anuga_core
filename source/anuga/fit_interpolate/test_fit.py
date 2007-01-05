@@ -239,7 +239,7 @@ class Test_Fit(unittest.TestCase):
         #print "answer\n",answer
         assert allclose(f, answer)
 
-    def test_fit_2_mesh(self):
+    def test_fit_to_mesh(self):
 
         a = [-1.0, 0.0]
         b = [3.0, 4.0]
@@ -271,6 +271,45 @@ class Test_Fit(unittest.TestCase):
         
         f = fit_to_mesh(vertices, triangles,fileName,
                                 alpha=0.0, max_read_lines=2)
+        answer = linear_function(vertices)
+        #print "f\n",f
+        #print "answer\n",answer
+        assert allclose(f, answer)
+        
+    def test_fit_to_mesh_2_atts(self):
+
+        a = [-1.0, 0.0]
+        b = [3.0, 4.0]
+        c = [4.0,1.0]
+        d = [-3.0, 2.0] #3
+        e = [-1.0,-2.0]
+        f = [1.0, -2.0] #5
+
+        vertices = [a, b, c, d,e,f]
+        triangles = [[0,1,3], [1,0,2], [0,4,5], [0,5,2]] #abd bac aef afc
+
+
+        fileName = tempfile.mktemp(".ddd")
+        file = open(fileName,"w")
+        # the 2nd att name is wacky so it's the first key off a hash table
+        file.write(" x,y, elevation, afriqction \n\
+-2.0, 2.0, 0., 0.\n\
+-1.0, 1.0, 0., 0.\n\
+0.0, 2.0 , 2., 20.\n\
+1.0, 1.0 , 2., 20.\n\
+ 2.0,  1.0 ,3., 30. \n\
+ 0.0,  0.0 , 0., 0.\n\
+ 1.0,  0.0 , 1., 10.\n\
+ 0.0,  -1.0, -1., -10.\n\
+ -0.2, -0.5, -0.7, -7.\n\
+ -0.9, -1.5, -2.4, -24. \n\
+ 0.5,  -1.9, -1.4, -14. \n\
+ 3.0,  1.0 , 4., 40. \n")
+        file.close()
+        
+        f = fit_to_mesh(vertices, triangles,fileName,
+                        alpha=0.0, 
+                        attribute_name='elevation', max_read_lines=2)
         answer = linear_function(vertices)
         #print "f\n",f
         #print "answer\n",answer
