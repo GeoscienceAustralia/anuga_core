@@ -2,7 +2,7 @@
 
 import unittest
 from math import sqrt, pi
-
+import tempfile
 
 from quantity import *
 from anuga.config import epsilon
@@ -498,17 +498,23 @@ class Test_Quantity(unittest.TestCase):
                        [ 3.0, 0.0],
                        [ 3.0, 1.0]]
 
-        z = linear_function(data_points)
-
-
-        #Create pts file
-        from load_mesh.loadASCII import export_points_file
-        ptsfile = 'testptsfile.pts'
+        data_geo_spatial = Geospatial_data(data_points,
+                         geo_reference = Geo_reference(56, 0, 0))
+        data_points_absolute = data_geo_spatial.get_data_points(absolute=True)
+        attributes = linear_function(data_points_absolute)
         att = 'spam_and_eggs'
-        points_dict = {'pointlist': data_points,
-                       'attributelist': {att: z}}
+        
+        #Create .txt file
+        ptsfile = tempfile.mktemp(".txt")
+        file = open(ptsfile,"w")
+        file.write(" x,y," + att + " \n")
+        for data_point, attribute in map(None, data_points_absolute
+                                         ,attributes):
+            row = str(data_point[0]) + ',' + str(data_point[1]) \
+                  + ',' + str(attribute)
+            file.write(row + "\n")
+        file.close()
 
-        export_points_file(ptsfile, points_dict)
 
         #Check that values can be set from file
         quantity.set_values(filename = ptsfile,
@@ -550,13 +556,14 @@ class Test_Quantity(unittest.TestCase):
         #bac, bce, ecf, dbe
         elements = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4] ]
 
+        #absolute going in ..
         mesh4 = Domain(points, elements,
                        geo_reference = Geo_reference(56, 0, 0))
         mesh4.check_integrity()
         quantity = Quantity(mesh4)
 
         #Get (enough) datapoints (relative to georef)
-        data_points = [[ 0.66666667, 0.66666667],
+        data_points_rel = [[ 0.66666667, 0.66666667],
                        [ 1.33333333, 1.33333333],
                        [ 2.66666667, 0.66666667],
                        [ 0.66666667, 2.66666667],
@@ -570,28 +577,32 @@ class Test_Quantity(unittest.TestCase):
                        [ 3.0, 0.0],
                        [ 3.0, 1.0]]
 
-        z = linear_function(data_points)
-
-
-        #Create pts file
-        from load_mesh.loadASCII import export_points_file
-
-        ptsfile = 'testptsfile.pts'
+        data_geo_spatial = Geospatial_data(data_points_rel,
+                         geo_reference = Geo_reference(56, x0, y0))
+        data_points_absolute = data_geo_spatial.get_data_points(absolute=True)
+        attributes = linear_function(data_points_absolute)
         att = 'spam_and_eggs'
+        
+        #Create .txt file
+        ptsfile = tempfile.mktemp(".txt")
+        file = open(ptsfile,"w")
+        file.write(" x,y," + att + " \n")
+        for data_point, attribute in map(None, data_points_absolute
+                                         ,attributes):
+            row = str(data_point[0]) + ',' + str(data_point[1]) \
+                  + ',' + str(attribute)
+            file.write(row + "\n")
+        file.close()
 
-        points_dict = {'pointlist': data_points,
-                       'attributelist': {att: z},
-                       'geo_reference': Geo_reference(zone = 56,
-                                                      xllcorner = x0,
-                                                      yllcorner = y0)}
-
-        export_points_file(ptsfile, points_dict)
-
+        #file = open(ptsfile, 'r')
+        #lines = file.readlines()
+        #file.close()
+     
 
         #Check that values can be set from file
         quantity.set_values(filename = ptsfile,
                             attribute_name = att, alpha = 0)
-        answer = linear_function(quantity.domain.get_vertex_coordinates() - [x0, y0])
+        answer = linear_function(quantity.domain.get_vertex_coordinates())
 
         assert allclose(quantity.vertex_values.flat, answer)
 
@@ -629,7 +640,7 @@ class Test_Quantity(unittest.TestCase):
         mesh4.check_integrity()
         quantity = Quantity(mesh4)
 
-        #Get (enough) datapoints (relative to georef)
+        #Get (enough) datapoints
         data_points = [[ x0+0.66666667, y0+0.66666667],
                        [ x0+1.33333333, y0+1.33333333],
                        [ x0+2.66666667, y0+0.66666667],
@@ -644,28 +655,30 @@ class Test_Quantity(unittest.TestCase):
                        [ x0+3.0, y0+0.0],
                        [ x0+3.0, y0+1.0]]
 
-        z = linear_function(data_points)
 
-
-        #Create pts file
-        from load_mesh.loadASCII import export_points_file
-
-        ptsfile = 'testptsfile.pts'
+        data_geo_spatial = Geospatial_data(data_points,
+                         geo_reference = Geo_reference(56, 0, 0))
+        data_points_absolute = data_geo_spatial.get_data_points(absolute=True)
+        attributes = linear_function(data_points_absolute)
         att = 'spam_and_eggs'
-
-        points_dict = {'pointlist': data_points,
-                       'attributelist': {att: z},
-                       'geo_reference': Geo_reference(zone = 56,
-                                                      xllcorner = 0,
-                                                      yllcorner = 0)}
-
-        export_points_file(ptsfile, points_dict)
+        
+        #Create .txt file
+        ptsfile = tempfile.mktemp(".txt")
+        file = open(ptsfile,"w")
+        file.write(" x,y," + att + " \n")
+        for data_point, attribute in map(None, data_points_absolute
+                                         ,attributes):
+            row = str(data_point[0]) + ',' + str(data_point[1]) \
+                  + ',' + str(attribute)
+            file.write(row + "\n")
+        file.close()
 
 
         #Check that values can be set from file
         quantity.set_values(filename = ptsfile,
                             attribute_name = att, alpha = 0)
-        answer = linear_function(quantity.domain.get_vertex_coordinates() + [x0, y0])
+        answer = linear_function(quantity.domain. \
+                                 get_vertex_coordinates(absolute=True))
 
 
         assert allclose(quantity.vertex_values.flat, answer)
@@ -1689,6 +1702,6 @@ class Test_Quantity(unittest.TestCase):
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Quantity, 'test')
     #print "restricted test"
-    #suite = unittest.makeSuite(Test_Quantity,'test_set_values_func')
+    #suite = unittest.makeSuite(Test_Quantity,'test_set_values_from_file_with_georef2')
     runner = unittest.TextTestRunner()
     runner.run(suite)

@@ -16,8 +16,10 @@ To create:
 
 from Numeric import array, zeros, Float, less, concatenate, NewAxis,\
      argmax, allclose, take, reshape
+
 from anuga.utilities.numerical_tools import ensure_numeric, is_scalar
 from anuga.geospatial_data.geospatial_data import Geospatial_data
+from anuga.fit_interpolate.fit import fit_to_mesh
 
 class Quantity:
 
@@ -654,7 +656,6 @@ class Quantity:
         """
 
 
-        from anuga.fit_interpolate.fit import fit_to_mesh
         from anuga.coordinate_transforms.geo_reference import Geo_reference
 
 
@@ -726,21 +727,35 @@ class Quantity:
 	as defined in geospatial_data.
         """
 
-        from load_mesh.loadASCII import import_points_file
-        from anuga.geospatial_data.geospatial_data import\
-             points_dictionary2geospatial_data
-
         from types import StringType
         msg = 'Filename must be a text string'
         assert type(filename) == StringType, msg
 
-        geospatial_data = Geospatial_data(filename)
+
+        if location != 'vertices':
+            msg = 'set_values_from_points is only defined for '+\
+                  'location=\'vertices\''
+            raise ms
+
+        coordinates = self.domain.get_nodes(absolute=True)
+        triangles = self.domain.triangles      #FIXME
+
         
-        self.set_values_from_geospatial_data(geospatial_data,
-                                             alpha,
-                                             location, indices,
-                                             verbose = verbose,
-                                             use_cache = use_cache)
+        # FIXME handle attribute name 
+        vertex_attributes = fit_to_mesh(coordinates, triangles,filename,
+                                alpha=alpha) #, max_read_lines=max_read_lines)
+        
+        #Call underlying method using array values
+        self.set_values_from_array(vertex_attributes,
+                                   location, indices, verbose)
+
+        #geospatial_data = Geospatial_data(filename)
+        
+        #self.set_values_from_geospatial_data(geospatial_data,
+        #                                     alpha,
+         #                                    location, indices,
+          #                                   verbose = verbose,
+           #                                  use_cache = use_cache)
 
    
     def get_maximum_index(self, indices=None):

@@ -414,13 +414,14 @@ class Fit(FitInterpolate):
 
 def fit_to_mesh(vertex_coordinates,
                 triangles,
-                point_coordinates=None,
+                point_coordinates, # this can also be a .csv/.txt file name
                 point_attributes=None,
-                alpha = DEFAULT_ALPHA,
-                verbose = False,
-                acceptable_overshoot = 1.01,
-                mesh_origin = None,
-                data_origin = None,
+                alpha=DEFAULT_ALPHA,
+                verbose=False,
+                acceptable_overshoot=1.01,
+                mesh_origin=None,
+                data_origin=None,
+                max_read_lines=None,
                 use_cache = False):
     """
     Fit a smooth surface to a triangulation,
@@ -476,8 +477,9 @@ def fit_to_mesh(vertex_coordinates,
         
     vertex_attributes = interp.fit(point_coordinates,
                                    point_attributes,
-                                   point_origin = data_origin,
-                                   verbose = verbose)
+                                   point_origin=data_origin,
+                                   max_read_lines=max_read_lines,
+                                   verbose=verbose)
 
         
     # Add the value checking stuff that's in least squares.
