@@ -742,8 +742,9 @@ class Quantity:
 
         vertex_attributes = fit_to_mesh(coordinates, triangles,filename,
                                         alpha=alpha,
-                                        attribute_name = attribute_name,
-                                        use_cache = use_cache)
+                                        attribute_name=attribute_name,
+                                        use_cache=use_cache,
+                                        verbose=verbose)
                                 #, max_read_lines=max_read_lines)
         
         #Call underlying method using array values
