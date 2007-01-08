@@ -832,18 +832,18 @@ def check_list(quantity):
 	
 		    
     import sys
-    if not sys.version.startswith('2.4'):
+    #if not sys.version.startswith('2.4'):
         # Backwards compatibility
-	from sets import Set as set
-	
-    
-    if sys.platform == 'win32':
-        for i,j in enumerate(quantity):
-            quantity[i] = quantity[i].lower()
-        p = list(set(quantity).difference(set(all_quantity)))
-        if len(p) <> 0:
-            msg = 'Quantities %s do not exist - please try again' %p
-            raise Exception, msg
+    #   from sets import Set as set
+
+    from sets import Set as set
+            
+    for i,j in enumerate(quantity):
+        quantity[i] = quantity[i].lower()
+    p = list(set(quantity).difference(set(all_quantity)))
+    if len(p) <> 0:
+        msg = 'Quantities %s do not exist - please try again' %p
+        raise Exception, msg
         
     return 
 
@@ -927,7 +927,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
     max_stages = []
     max_momentums = []
     max_speeds = []
-    c = 0
+    max_depths = []
     model_time_plot3d = zeros((n0,m), Float)
     stages_plot3d = zeros((n0,m), Float)
     eastings_plot3d = zeros((n0,m),Float)
@@ -943,7 +943,8 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
             min_stage = 10
             max_stage = 0
             max_momentum = 0
-            max_speed = 0   
+            max_speed = 0
+            max_depth = 0
             gaugeloc = locations[k]
             thisfile = file_loc[j]+sep+'gauges_time_series'+'_'+gaugeloc+'.csv'
             fid_out = open(thisfile, 'w')
@@ -982,6 +983,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     if w < min_stage: min_stage = w
                     if m > max_momentum: max_momentum = m
                     if vel > max_speed: max_speed = vel
+                    if z > 0 and depth > max_depth: max_depth = depth
                     
                     
             s = '%.2f, %.2f, %.2f, %.2f, %s\n' %(max_stage, min_stage, z, thisgauge[0], leg_label[j])
@@ -989,7 +991,8 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
             max_stages.append(max_stage)
             min_stages.append(min_stage)
             max_momentums.append(max_momentum)
-            max_speeds.append(max_speed)     
+            max_speeds.append(max_speed)
+            max_depths.append(max_depth)
             #### finished generating quantities for each swwfile #####
         
         model_time_plot3d[:,:] = model_time[:,:,j]
@@ -1025,22 +1028,25 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
         ylabel('stage')
         profilefig = 'solution_xprofile' 
         savefig('profilefig')
-                
-    #stage_axis = axis([time_min/60.0, time_max/60.0, min(min_stages), max(max_stages)*1.1])
-    #stage_axis = axis([time_min/60.0, time_max/60.0, -3.0, 3.0])    
-    #vel_axis = axis([time_min/60.0, time_max/60.0, min(max_speeds), max(max_speeds)*1.1])
-    #mom_axis = axis([time_min/60.0, time_max/60.0, min(max_momentums), max(max_momentums)*1.1])  
+
+    depth_axis = axis([time_min/60.0, time_max/60.0, 0, max(max_depths)*1.1])
+    stage_axis = axis([time_min/60.0, time_max/60.0, min(min_stages), max(max_stages)*1.1])
+    stage_axis = axis([time_min/60.0, time_max/60.0, -3.0, 3.0])    
+    vel_axis = axis([time_min/60.0, time_max/60.0, min(max_speeds), max(max_speeds)*1.1])
+    mom_axis = axis([time_min/60.0, time_max/60.0, min(max_momentums), max(max_momentums)*1.1])  
     
     cstr = ['g', 'r', 'b', 'c', 'm', 'y', 'k']
     nn = len(plot_quantity)
     no_cols = 2
     elev_output = []
     if len(label_id) > 1: graphname_report = []
+    pp = 1
+    div = 11.
     for k in gauge_index:
         g = gauges[k]
         count1 = 0
         if report == True and len(label_id) > 1:
-            s = '\\begin{figure}[hbt] \n \\centering \n \\begin{tabular}{cc} \n'
+            s = '\\begin{figure}[ht] \n \\centering \n \\begin{tabular}{cc} \n'
             fid.write(s)
         if len(label_id) > 1: graphname_report = []
         #### generate figures for each gauge ####
@@ -1062,28 +1068,30 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                 if which_quantity == 'depth':
                     plot(model_time[0:n[j]-1,k,j], depths[0:n[j]-1,k,j], '-', c = cstr[j])
                     units = 'm'
+                    axis(depth_axis)
                 if which_quantity == 'stage':
-                    if elevations[0:n[j]-1,k,j] < 0:
+                    if elevations[0,k,j] < 0:
                         plot(model_time[0:n[j]-1,k,j], stages[0:n[j]-1,k,j], '-', c = cstr[j])
+                        axis(stage_axis)
                     else:
                         plot(model_time[0:n[j]-1,k,j], depths[0:n[j]-1,k,j], '-', c = cstr[j])
-                    #axis(stage_axis)
+                        axis(depth_axis)                 
                     units = 'm'
                 if which_quantity == 'momentum':
                     plot(model_time[0:n[j]-1,k,j], momenta[0:n[j]-1,k,j], '-', c = cstr[j])
-                    #axis(mom_axis)
+                    axis(mom_axis)
                     units = 'm^2 / sec'
                 if which_quantity == 'xmomentum':
                     plot(model_time[0:n[j]-1,k,j], xmom[0:n[j]-1,k,j], '-', c = cstr[j])
-                    #axis(mom_axis)
+                    axis(mom_axis)
                     units = 'm^2 / sec'
                 if which_quantity == 'ymomentum':
                     plot(model_time[0:n[j]-1,k,j], ymom[0:n[j]-1,k,j], '-', c = cstr[j])
-                    #axis(mom_axis)
+                    axis(mom_axis)
                     units = 'm^2 / sec'
                 if which_quantity == 'speed':
                     plot(model_time[0:n[j]-1,k,j], speed[0:n[j]-1,k,j], '-', c = cstr[j])
-                    #axis(vel_axis)
+                    axis(vel_axis)
                     units = 'm / sec'
                 if which_quantity == 'bearing':
                     due_east = 90.0*ones(shape(model_time[0:n[j]-1,k,j],Float))
@@ -1169,8 +1177,8 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                 label = '%sgauge%s' %(label_id2, gaugeloc2)
                 s = '\end{tabular} \n \\caption{%s} \n \label{fig:%s} \n \end{figure} \n \n' %(caption, label)
                 fid.write(s)
-                c += 1
-                if c % 6 == 0: fid.write('\\clearpage \n')
+                cc += 1
+                if cc % 6 == 0: fid.write('\\clearpage \n')
                 savefig(graphname_latex)               
                 
         if report == True and len(label_id) > 1:
@@ -1185,7 +1193,6 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                         word_quantity += 'depth'
                     else:
                         word_quantity += plot_quantity[i]
-                print 'hello', elevations[0,k,j]
                 where1 = 0
                 count1 += 1
                 index = j*len(plot_quantity)
@@ -1212,8 +1219,9 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     
             s = '\end{tabular} \n \\caption{%s} \n \label{fig:%s} \n \end{figure} \n \n' %(caption, label)
             fid.write(s)
-            c += 1
-            if c % 6 == 0: fid.write('\\clearpage \n')          
+            if float((k+1)/div - pp) == 0.:
+                fid.write('\\clearpage \n')
+                pp += 1
             
             #### finished generating figures ###
 
