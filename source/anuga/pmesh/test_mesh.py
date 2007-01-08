@@ -1067,7 +1067,68 @@ class meshTestCase(unittest.TestCase):
                         lFile[4] == "1.0,2.0"
                         ,
                         'exported Ascii xya file is wrong')
-           
+     
+    def test_lone_vert_in_mesh_gen_c_layer(self):
+        # currently just a copy of the above test
+        a = Vertex (0,0)
+        b = Vertex (0,3)
+        c = Vertex (3,3)
+        d = Vertex (1,2)
+        e = Vertex (3,1)
+        #f = Vertex (3,1)
+      
+        s1 = Segment(a,b, tag = 50)
+        s2 = Segment(b,c, tag = 40)
+        s3 = Segment(c,a, tag = 30)
+     
+        r1 = Region(2, 1,tag = 1.3)
+        h1 = Hole(1,4)
+        # Warning mesh can't produce this type of data structure its self
+        m = Mesh(userVertices=[a,b,c,d,e],
+                 userSegments=[s1,s2,s3],
+                 regions=[r1],
+                 holes = [h1])
+        
+        fileName = tempfile.mktemp(".xya")
+        #fileName = 't.xya'
+        #os.remove(fileName)
+        m.exportPointsFile(fileName)
+        file = open(fileName)
+        lFile = file.read().split('\n')
+        file.close()
+
+        os.remove(fileName)
+        self.failUnless(lFile[0] == "" and
+                        lFile[1] == "0,0" and
+                        lFile[2] == "0,3" and
+                        lFile[3] == "3,3" 
+                        ,
+                        'exported Ascii xya file is wrong')
+        self.failUnless(lFile[4] == "1,2" and
+                        lFile[5] == "3,1" 
+                        ,
+                        'exported Ascii xya file is wrong')
+        
+        # vertex e is outside of the outline, so
+        # it is a loner and it is removed.
+        m.generateMesh("Q", maxArea = 2.1)
+        fileName = tempfile.mktemp(".xya")
+        #fileName = 't.xya'
+        #m.export_mesh_file('m.tsh')
+        m.exportPointsFile(fileName)
+        file = open(fileName)
+        lFile = file.read().split('\n')
+        file.close()
+        os.remove(fileName)
+        
+        self.failUnless(lFile[0] == "" and
+                        lFile[1] == "0.0,0.0" and
+                        lFile[2] == "0.0,3.0" and
+                        lFile[3] == "3.0,3.0" and
+                        lFile[4] == "1.0,2.0"
+                        ,
+                        'exported Ascii xya file is wrong')
+        
     def test_exportPointsFilefile2(self):
         m = Mesh()
         
@@ -2275,7 +2336,8 @@ def list_comp(A,B):
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(meshTestCase,'test')
-    #suite = unittest.makeSuite(meshTestCase,'test_add_points_and_segments')
+    #suite = unittest.makeSuite(meshTestCase,'test_exportASCIIsegmentoutlinefile')
+    #suite = unittest.makeSuite(meshTestCase,'test_e')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
     

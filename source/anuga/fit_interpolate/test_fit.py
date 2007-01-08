@@ -270,7 +270,7 @@ class Test_Fit(unittest.TestCase):
         file.close()
         
         f = fit_to_mesh(vertices, triangles,fileName,
-                                alpha=0.0, max_read_lines=2)
+                                alpha=0.0, max_read_lines=2)#, verbose=True)
         answer = linear_function(vertices)
         #print "f\n",f
         #print "answer\n",answer

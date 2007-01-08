@@ -4,7 +4,7 @@
 
    Note: A .index attribute is added to objects such as vertices and
    segments, often when reading and writing to files.  This information
-   should not be used as percistant information.  It is not the 'index' of
+   should not be used as persistant information.  It is not the 'index' of
    an element in a list.
 
    
@@ -15,20 +15,24 @@
 
 import sys
 import math
-import anuga.mesh_engine.triang as triang
 import re
 import os
 import pickle
 
 import types
 import exceptions
+from Numeric import array, Float, Int
 
-import load_mesh
+
+#import load_mesh
 from anuga.coordinate_transforms.geo_reference import Geo_reference,DEFAULT_ZONE
 from anuga.utilities.polygon import point_in_polygon 
 import load_mesh.loadASCII
 import anuga.alpha_shape.alpha_shape
-from anuga.geospatial_data.geospatial_data import Geospatial_data, ensure_geospatial, ensure_absolute
+from anuga.geospatial_data.geospatial_data import Geospatial_data, ensure_geospatial, ensure_absolute, ensure_numeric
+from anuga.mesh_engine.mesh_engine import generate_mesh
+
+#import anuga.mesh_engine_b.mesh_engine as triang
 
 try:  
     import kinds  
@@ -466,6 +470,57 @@ class Segment(MeshObject):
 
 Segment.set_default_tag("")       
 
+class Rigid_triangulation:
+    """ 
+    This is a triangulation that can't have triangles added or taken away.
+
+    It just represents the triangulation, not the mesh outline needed to
+    build the triangulation.
+
+      This is the guts of the data structure;
+        generated vertex list: [(x1,y1),(x2,y2),...] (Tuples of doubles)
+        generated segment list: [(point1,point2),(p3,p4),...]
+            (Tuples of integers) 
+        generated segment tag list: [tag,tag,...] list of strings
+
+        generated triangle list: [(p1,p2,p3), (p4,p5,p6),....] tuple of points
+
+        generated triangle attribute list: [s1,s2,...] list of strings
+
+        generated triangle neighbor list: [(t1,t2,t3), (t4,t5,t6),....]
+            tuple of triangles
+
+            Should I do the basic structure like triangle, general
+            mesh or something else? How about like triangle, since
+            that's where the info is from, and it'll fit easier into
+            this file..
+
+             Removing the loners is difficult, since all the vert's
+             after it must be removed.
+
+             This happens in set_triangulation.
+            
+    """
+
+    def __init__(self,
+                 triangles,
+                 segments,
+                 vertices,
+                 triangle_tags,
+                 triangle_neighbor,
+                 segment_tags,
+                 ):
+       
+        self.triangles=ensure_numeric(triangles) 
+        self.triangle_neighbor=ensure_numeric(triangle_neighbor)
+        self.triangle_tags=triangle_tags
+        self.segments=ensure_numeric(segments) 
+        
+        self.segment_tags=segment_tags # string
+        self.vertices=ensure_numeric(vertices)
+
+        
+        
 class Mesh:
     """
     Representation of a 2D triangular mesh.
@@ -1053,6 +1108,9 @@ class Mesh:
             self.mode += 'a'
         #print "mesh#generateMesh# self.mode",self.mode  
         meshDict = self.Mesh2triangList()
+
+        #FIXME (DSG-DSG)  move below section into generate_mesh.py
+        #                  & 4 functions eg segment_strings2ints
         #print "*************************!@!@ This is going to triangle   !@!@"
         #print meshDict
         #print "************************!@!@ This is going to triangle   !@!@"
@@ -1066,24 +1124,26 @@ class Mesh:
          regionconverter] =  region_strings2ints(meshDict['regionlist'])
         #print "%%%%%%%%%%%%%%%%%%%%%%%%%%%regionlist",meshDict['regionlist']
         #print "meshDict['segmenttaglist']", meshDict['segmenttaglist'
-        generatedMesh = triang.genMesh(
+        generatedMesh = generate_mesh(
                               meshDict['pointlist'],
                               meshDict['segmentlist'],
                               meshDict['holelist'],
                               meshDict['regionlist'],
                               meshDict['pointattributelist'],
                               meshDict['segmenttaglist'],
-                              [],  # since the trianglelist isn't used
-                              self.mode)
+                              self.mode,
+                              meshDict['pointlist'])
         #print "%%%%%%%%%%%%%%%%%%%%%%%%%%%generated",generatedMesh
         generatedMesh['generatedsegmentmarkerlist'] = \
              segment_ints2strings(generatedMesh['generatedsegmentmarkerlist'],
                                   segconverter)
         #print "processed gen",generatedMesh['generatedsegmentmarkerlist']
+        #print "generatedtriangleattributelist",generatedMesh['generatedtriangleattributelist']
         generatedMesh['generatedtriangleattributelist'] = \
          region_ints2strings(generatedMesh['generatedtriangleattributelist'],
                                   regionconverter)
 
+        #FIXME (DSG-DSG)  move above section into generate_mesh.py
 
         if len(generatedMesh['generatedpointattributelist'][0])==0:
             self.attributeTitles = []
@@ -1399,6 +1459,8 @@ class Mesh:
             (t5,t4, t1),...] (Tuples of integers)
             -1 means there's no triangle neighbor
         triangle attribute list: [(T1att), (T2att), ...]
+
+
             (list of a list of strings)
         lone point list:[point1, ...] (list of integers)
         """
