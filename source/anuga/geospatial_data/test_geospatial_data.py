@@ -21,10 +21,7 @@ class Test_Geospatial_data(unittest.TestCase):
 
 
     def test_0(self):
-        """test_0(self):
-        
-        Basic points
-        """
+        #Basic points
         from anuga.coordinate_transforms.geo_reference import Geo_reference
         
         points = [[1.0, 2.1], [3.0, 5.3]]
@@ -92,8 +89,8 @@ class Test_Geospatial_data(unittest.TestCase):
         assert allclose(V, [2, 4])
 
     def test_get_attributes_2(self):
-        """Multiple attributes
-        """
+        #Multiple attributes
+        
         
         from anuga.coordinate_transforms.geo_reference import Geo_reference
         points = [[1.0, 2.1], [3.0, 5.3]]
@@ -170,8 +167,8 @@ class Test_Geospatial_data(unittest.TestCase):
         
         
     def test_conversions_to_points_dict(self):
-        """test conversions to points_dict
-        """
+        #test conversions to points_dict
+        
         
         from anuga.coordinate_transforms.geo_reference import Geo_reference
         points = [[1.0, 2.1], [3.0, 5.3]]
