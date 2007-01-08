@@ -735,7 +735,7 @@ class Quantity:
         if location != 'vertices':
             msg = 'set_values_from_points is only defined for '+\
                   'location=\'vertices\''
-            raise ms
+            raise msg
 
         coordinates = self.domain.get_nodes(absolute=True)
         triangles = self.domain.triangles      #FIXME
