@@ -13,6 +13,8 @@ from anuga.shallow_water.data_manager import timefile2netcdf
 
 from anuga.utilities.numerical_tools import NAN
 
+from sys import platform 
+
 def test_function(x, y):
     return x+y
 
@@ -1151,8 +1153,9 @@ class Test_Util(unittest.TestCase):
 	warnings.resetwarnings()
     
     def test_get_version_info(self):
-        info = get_version_info()
-        assert info.startswith('Revision')
+        if sys.platform == 'win32':
+            info = get_version_info()
+            assert info.startswith('Revision')
     			  
 	
     def test_add_directories(self):
