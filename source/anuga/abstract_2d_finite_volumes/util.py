@@ -1029,9 +1029,8 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
         profilefig = 'solution_xprofile' 
         savefig('profilefig')
 
-    depth_axis = axis([time_min/60.0, time_max/60.0, 0, max(max_depths)*1.1])
+    depth_axis = axis([time_min/60.0, time_max/60.0, -0.1, max(max_depths)*1.1])
     stage_axis = axis([time_min/60.0, time_max/60.0, min(min_stages), max(max_stages)*1.1])
-    stage_axis = axis([time_min/60.0, time_max/60.0, -3.0, 3.0])    
     vel_axis = axis([time_min/60.0, time_max/60.0, min(max_speeds), max(max_speeds)*1.1])
     mom_axis = axis([time_min/60.0, time_max/60.0, min(max_momentums), max(max_momentums)*1.1])  
     
