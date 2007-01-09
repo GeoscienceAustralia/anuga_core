@@ -607,7 +607,9 @@ class Geospatial_data:
                                 self.get_geo_reference())
                 
         elif (file_name[-4:] == ".txt"):
-            _write_xya_file(file_name,
+            msg = "ERROR: trying to write a .txt file with relative data."
+            assert absolute, msg
+            _write_csv_file(file_name,
                             self.get_data_points(absolute=True), 
                             self.get_all_attributes())
                                     
@@ -1008,6 +1010,42 @@ def _write_xya_file(file_name,
     fd.close()
 
 
+def _write_csv_file(file_name,
+                    write_data_points,
+                    write_attributes=None, 
+                    delimiter=','):
+    """
+    export a file, file_name, with the xya format
+    
+    """
+    points = write_data_points 
+    pointattributes = write_attributes
+    
+    fd = open(file_name,'w')
+    titlelist = "x" + delimiter + "y"  + delimiter
+    if pointattributes is not None:    
+        for title in pointattributes.keys():
+            titlelist = titlelist + title + delimiter
+        titlelist = titlelist[0:-len(delimiter)] # remove the last delimiter
+    fd.write(titlelist+"\n")
+    
+    #<vertex #> <x> <y> [attributes]
+    for i, vert in enumerate( points):
+
+
+        if pointattributes is not None:            
+            attlist = ","
+            for att in pointattributes.keys():
+                attlist = attlist + str(pointattributes[att][i])+ delimiter
+            attlist = attlist[0:-len(delimiter)] # remove the last delimiter
+            attlist.strip()
+        else:
+            attlist = ''
+
+        fd.write(str(vert[0]) + delimiter +
+                 str(vert[1]) + attlist + "\n")
+
+    fd.close()
     
 def _point_atts2array(point_atts):
     point_atts['pointlist'] = array(point_atts['pointlist']).astype(Float)
