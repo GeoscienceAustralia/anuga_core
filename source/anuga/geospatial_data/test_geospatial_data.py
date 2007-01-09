@@ -969,7 +969,7 @@ crap")
             raise msg
         os.remove(fileName)
         
-    def test_export_xya_file(self):
+    def depreciated_test_export_xya_file(self):
 #        dict = {}
         att_dict = {}
         pointlist = array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
@@ -1125,8 +1125,8 @@ crap")
         assert allclose(results.get_attributes(attribute_name='elevation'), [10.0, 0.0, 10.4])
         
     def test_writepts(self):
-        """test_writepts: Test that storage of x,y,attributes works
-        """
+        #test_writepts: Test that storage of x,y,attributes works
+        
         att_dict = {}
         pointlist = array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
         att_dict['elevation'] = array([10.0, 0.0, 10.4])
@@ -1147,10 +1147,18 @@ crap")
         self.failUnless(geo_reference == geo_reference,
                          'test_writepts failed. Test geo_reference')
 
+    def test_write_xya_attributes(self):
+        #test_write xya: Test that storage of x,y,attributes works
+        
+        att_dict = {}
+        pointlist = array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
+        att_dict['elevation'] = array([10.0, 0.0, 10.4])
+        att_dict['brightness'] = array([10.0, 0.0, 10.4])
+        geo_reference=Geo_reference(56,0,0)
         # Test xya format
         fileName = tempfile.mktemp(".xya")
         G = Geospatial_data(pointlist, att_dict, geo_reference)
-        G.export_points_file(fileName, False)
+        G.export_points_file(fileName)
         results = Geospatial_data(file_name=fileName)
         os.remove(fileName)
         assert allclose(results.get_data_points(False),[[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
@@ -1161,8 +1169,9 @@ crap")
                          'test_writepts failed. Test geo_reference')
 
     def test_writepts_no_attributes(self):
-        """test_writepts_no_attributes: Test that storage of x,y alone works
-        """
+
+        #test_writepts_no_attributes: Test that storage of x,y alone works
+        
         att_dict = {}
         pointlist = array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
         geo_reference=Geo_reference(56,1.9,1.9)
@@ -1177,11 +1186,17 @@ crap")
         assert allclose(results.get_data_points(False),[[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
         self.failUnless(geo_reference == geo_reference,
                          'test_writepts failed. Test geo_reference')
-
+        
+    def test_write_xya_no_attributes(self):
+        #test_write xya _no_attributes: Test that storage of x,y alone works
+        
+        att_dict = {}
+        pointlist = array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
+        geo_reference=Geo_reference(56,0,0)
         # Test xya format
         fileName = tempfile.mktemp(".xya")
         G = Geospatial_data(pointlist, None, geo_reference)
-        G.export_points_file(fileName, False)
+        G.export_points_file(fileName)
         results = Geospatial_data(file_name=fileName)
         os.remove(fileName)
         assert allclose(results.get_data_points(False),[[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])

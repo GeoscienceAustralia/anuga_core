@@ -5,6 +5,7 @@ associated attributes.
 
 from os import access, F_OK, R_OK
 from types import DictType
+from warnings import warn
 
 from Numeric import concatenate, array, Float, shape, reshape, ravel, take, \
                         size, shape
@@ -577,7 +578,12 @@ class Geospatial_data:
         If absolute is False data points at returned as relative to the xll 
         and yll and geo_reference remains uneffected
         """
-    
+
+        if absolute is False and file_name[-4:] == ".xya":
+            msg = 'The text file values must be absolute.   '
+            msg += 'Text file format is moving to comma seperated .txt files.'
+            warn(msg, DeprecationWarning) 
+
         if (file_name[-4:] == ".xya"):
             if absolute is True:         
                 _write_xya_file(file_name,
@@ -599,6 +605,12 @@ class Geospatial_data:
                                 self.get_data_points(absolute), 
                                 self.get_all_attributes(),
                                 self.get_geo_reference())
+                
+        elif (file_name[-4:] == ".txt"):
+            _write_xya_file(file_name,
+                            self.get_data_points(absolute=True), 
+                            self.get_all_attributes())
+                                    
         else:
             msg = 'Unknown file type %s ' %file_name
             raise IOError, msg 
