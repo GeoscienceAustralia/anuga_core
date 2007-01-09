@@ -1041,6 +1041,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
     if len(label_id) > 1: graphname_report = []
     pp = 1
     div = 11.
+    cc = 0
     for k in gauge_index:
         g = gauges[k]
         count1 = 0
