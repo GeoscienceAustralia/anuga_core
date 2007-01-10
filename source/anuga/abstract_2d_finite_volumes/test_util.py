@@ -1154,8 +1154,16 @@ class Test_Util(unittest.TestCase):
     
     def test_get_version_info(self):
         info = get_version_info()
-        assert info.startswith('Revision')
-    			  
+        
+        fields = info.split(':')
+        assert fields[0].startswith('Revision')
+
+        try:
+            int(fields[1])
+        except:
+	    msg = 'Revision number must be an integer. I got %s' %fields[1]
+            msg += 'Chech that the command svn is on the system path' 
+	    raise Exception(msg)                
 	
     def test_add_directories(self):
         

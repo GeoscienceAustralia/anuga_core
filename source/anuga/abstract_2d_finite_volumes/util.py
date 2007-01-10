@@ -535,7 +535,8 @@ class Screen_Catcher:
 
 def get_version_info():
     """gets the version number of the SVN
-    NOTE: doesn't work on all systems eg GA's cyclone (64 bit linux cluster)
+    NOTE: This requires that the command svn is on the system PATH
+    (simply aliasing svn to the binary will not work)
     """
     
     import os, sys
