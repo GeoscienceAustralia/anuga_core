@@ -1153,9 +1153,8 @@ class Test_Util(unittest.TestCase):
 	warnings.resetwarnings()
     
     def test_get_version_info(self):
-        if sys.platform == 'win32':
-            info = get_version_info()
-            assert info.startswith('Revision')
+        info = get_version_info()
+        assert info.startswith('Revision')
     			  
 	
     def test_add_directories(self):
