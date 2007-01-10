@@ -538,6 +538,10 @@ def get_version_info():
     NOTE: This requires that the command svn is on the system PATH
     (simply aliasing svn to the binary will not work)
     """
+
+    #FIXME (Ole): Change this so that svn info is attempted first.
+    # If that fails, try to read a stored file with that same info (this would be created by e.g. the release script). Failing that, throw an exception.
+
     
     import os, sys
 
