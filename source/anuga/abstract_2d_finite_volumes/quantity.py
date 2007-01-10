@@ -288,7 +288,7 @@ class Quantity:
         if location not in ['vertices', 'centroids', 'edges',
                             'unique vertices']:
             msg = 'Invalid location: %s' %location
-            raise msg
+            raise Exception, msg
 
 
         msg = 'Indices must be a list or None'
