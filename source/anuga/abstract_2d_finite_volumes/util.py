@@ -543,14 +543,15 @@ def get_version_info():
 
     # Create dummy info 
     info = 'Revision: Version info could not be obtained.'
-    info += 'A command line version of svn and access to the '
+    info += 'A command line version of svn must be availbable '
+    info += 'on the system PATH, access to the subversion '
     info += 'repository is necessary and the output must '
     info += 'contain a line starting with "Revision:"'
 
     try:
         fid = os.popen('svn info')
     except:
-        msg = 'svn is not recognised'
+        msg = 'svn is not recognised on the system PATH'
         warn(msg, UserWarning)
     else:    
         lines = fid.readlines()

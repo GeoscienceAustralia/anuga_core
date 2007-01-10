@@ -113,9 +113,9 @@ class Test_Util(unittest.TestCase):
         """
         import time
 
-	#Create sww file of simple propagation from left to right
-	#through rectangular domain
-	from shallow_water import Domain, Dirichlet_boundary
+        #Create sww file of simple propagation from left to right
+        #through rectangular domain
+        from shallow_water import Domain, Dirichlet_boundary
         from mesh_factory import rectangular
         from Numeric import take, concatenate, reshape
 
@@ -129,7 +129,7 @@ class Test_Util(unittest.TestCase):
                               # only one value.
 
         domain1.default_order = 2
-	domain1.store = True
+        domain1.store = True
         domain1.set_datadir('.')
         domain1.set_name('spatio_temporal_boundary_source_%d' %(id(self)))
         domain1.quantities_to_be_stored = ['stage', 'xmomentum', 'ymomentum']
@@ -147,14 +147,14 @@ class Test_Util(unittest.TestCase):
 
         finaltime = 8
         #Evolution
-	t0 = -1
+        t0 = -1
         for t in domain1.evolve(yieldstep = 0.1, finaltime = finaltime):
             #print 'Timesteps: %.16f, %.16f' %(t0, t)
             #if t == t0:
             #    msg = 'Duplicate timestep found: %f, %f' %(t0, t)
-	    #	raise msg
-	    t0 = t
-	     
+            #   raise msg
+            t0 = t
+             
             #domain1.write_time()
 
 
@@ -200,7 +200,7 @@ class Test_Util(unittest.TestCase):
         T = f.get_time()
         msg = 'duplicate timesteps: %.16f and %.16f' %(T[-1], T[-2])
         assert not T[-1] == T[-2], msg
-	t = time[last_time_index]
+        t = time[last_time_index]
         q = f(t, point_id=0); assert allclose(r0, q)
         q = f(t, point_id=1); assert allclose(r1, q)
         q = f(t, point_id=2); assert allclose(r2, q)
@@ -314,9 +314,9 @@ class Test_Util(unittest.TestCase):
         """
         import time
 
-	#Create sww file of simple propagation from left to right
-	#through rectangular domain
-	from shallow_water import Domain, Dirichlet_boundary
+        #Create sww file of simple propagation from left to right
+        #through rectangular domain
+        from shallow_water import Domain, Dirichlet_boundary
         from mesh_factory import rectangular
         from Numeric import take, concatenate, reshape
 
@@ -333,13 +333,13 @@ class Test_Util(unittest.TestCase):
                                                        yllcorner = yllcorner))
         
 
-        from anuga.utilities.numerical_tools import mean	
+        from anuga.utilities.numerical_tools import mean        
         domain1.reduction = mean
         domain1.smooth = True #NOTE: Mimic sww output where each vertex has
                               # only one value.
 
         domain1.default_order = 2
-	domain1.store = True
+        domain1.store = True
         domain1.set_datadir('.')
         domain1.set_name('spatio_temporal_boundary_source_%d' %(id(self)))
         domain1.quantities_to_be_stored = ['stage', 'xmomentum', 'ymomentum']
@@ -377,7 +377,7 @@ class Test_Util(unittest.TestCase):
         #Take stage vertex values at last timestep on diagonal
         #Diagonal is identified by vertices: 0, 5, 10, 15
 
-        last_time_index = len(time)-1 #Last last_time_index	
+        last_time_index = len(time)-1 #Last last_time_index     
         d_stage = reshape(take(stage[last_time_index, :], [0,5,10,15]), (4,1))
         d_uh = reshape(take(xmomentum[last_time_index, :], [0,5,10,15]), (4,1))
         d_vh = reshape(take(ymomentum[last_time_index, :], [0,5,10,15]), (4,1))
@@ -406,7 +406,7 @@ class Test_Util(unittest.TestCase):
         f = file_function(filename, domain1,
                           interpolation_points = d_midpoints)
 
-	t = time[last_time_index]			  
+        t = time[last_time_index]                         
         q = f(t, point_id=0); assert allclose(r0, q)
         q = f(t, point_id=1); assert allclose(r1, q)
         q = f(t, point_id=2); assert allclose(r2, q)
@@ -657,7 +657,7 @@ class Test_Util(unittest.TestCase):
 
         #Check that domain.starttime isn't updated if later than file starttime but earlier
         #than file end time
-	delta = 23
+        delta = 23
         domain.starttime = start + delta
         F = file_function(filename + '.sww', domain,
                           quantities = domain.conserved_quantities,
@@ -874,7 +874,7 @@ class Test_Util(unittest.TestCase):
 
         #Check that domain.starttime isn't updated if later than file starttime but earlier
         #than file end time
-	delta = 23
+        delta = 23
         domain.starttime = start + delta
         F = file_function(filename + '.sww', domain,
                           quantities = domain.conserved_quantities,
@@ -1033,7 +1033,7 @@ class Test_Util(unittest.TestCase):
 
         #Check that domain.starttime isn't updated if later than file starttime but earlier
         #than file end time
-	delta = 23
+        delta = 23
         domain.starttime = start + delta
         F = file_function(filename + '.tms', domain,
                           quantities = ['Attribute0', 'Attribute1', 'Attribute2'])        
@@ -1138,19 +1138,19 @@ class Test_Util(unittest.TestCase):
     def test_point_on_line_obsolete(self):
         """Test that obsolete call issues appropriate warning"""
 
-	#Turn warning into an exception
+        #Turn warning into an exception
         import warnings
-	warnings.filterwarnings('error')
+        warnings.filterwarnings('error')
 
         try:
-	    assert point_on_line( 0, 0.5, 0,1, 0,0 )
-	except DeprecationWarning:
-	    pass
-	else:
-	    msg = 'point_on_line should have issued a DeprecationWarning'
-	    raise Exception(msg)    
+            assert point_on_line( 0, 0.5, 0,1, 0,0 )
+        except DeprecationWarning:
+            pass
+        else:
+            msg = 'point_on_line should have issued a DeprecationWarning'
+            raise Exception(msg)    
 
-	warnings.resetwarnings()
+        warnings.resetwarnings()
     
     def test_get_version_info(self):
         info = get_version_info()
@@ -1161,10 +1161,10 @@ class Test_Util(unittest.TestCase):
         try:
             int(fields[1])
         except:
-	    msg = 'Revision number must be an integer. I got %s' %fields[1]
+            msg = 'Revision number must be an integer. I got %s' %fields[1]
             msg += 'Chech that the command svn is on the system path' 
-	    raise Exception(msg)                
-	
+            raise Exception(msg)                
+        
     def test_add_directories(self):
         
         import tempfile
@@ -1192,11 +1192,11 @@ class Test_Util(unittest.TestCase):
         
         try:
             kens_dir = add_directories(root_dir, directories)
-	except OSError:
-	    pass
-	else:
-	    msg = 'bad dir name should give OSError'
-	    raise Exception(msg)    
+        except OSError:
+            pass
+        else:
+            msg = 'bad dir name should give OSError'
+            raise Exception(msg)    
             
         #clean up!
         os.rmdir(root_dir)
