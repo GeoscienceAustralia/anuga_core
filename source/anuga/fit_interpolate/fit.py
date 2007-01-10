@@ -499,7 +499,7 @@ def fit_to_mesh(vertex_coordinates,
     return vertex_attributes
 
 
-def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
+def obsolete_fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
                      alpha=DEFAULT_ALPHA, verbose= False,
                      display_errors = True):
     """
@@ -515,6 +515,9 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
     NOTE: Throws IOErrors, for a variety of file problems.
     
     """
+    #OBSOLETE
+    #Problems with using blocking and knowing the attribute title..
+
 
     # Question
     # should data_origin and mesh_origin be passed in?
@@ -552,19 +555,21 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
 
     # load in the .pts file
     try:
-        point_dict = import_points_file(point_file, verbose=verbose)
+        #point_dict = import_points_file(point_file, verbose=verbose)
+        
+        geospatial = Geospatial_data(point_file)
+        point_coordinates = geospatial.get_data_points(absolute=False)
     except IOError,e:
         if display_errors:
             print "Could not load bad file. ", e
         raise IOError  #Re-raise exception  
 
-    point_coordinates = point_dict['pointlist']
-    title_list,point_attributes = concatinate_attributelist(point_dict['attributelist'])
+    #point_coordinates = point_dict['pointlist']
+    #get_all_attributes
+    #title_list,point_attributes = concatinate_attributelist(point_dict['attributelist'])
+    title_list,point_attributes = concatinate_attributelist( \
+        geospatial.get_all_attributes())
 
-    if point_dict.has_key('geo_reference') and not point_dict['geo_reference'] is None:
-        data_origin = point_dict['geo_reference'].get_origin()
-    else:
-        data_origin = (56, 0, 0) #FIXME(DSG-DSG)
 
     if mesh_dict.has_key('geo_reference') and not mesh_dict['geo_reference'] is None:
         mesh_origin = mesh_dict['geo_reference'].get_origin()
@@ -575,8 +580,7 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
     if verbose: print "fitting to mesh"
     f = fit_to_mesh(vertex_coordinates,
                     triangles,
-                    point_coordinates,
-                    point_attributes,
+                    point_file,
                     alpha = alpha,
                     verbose = verbose,
                     data_origin = data_origin,

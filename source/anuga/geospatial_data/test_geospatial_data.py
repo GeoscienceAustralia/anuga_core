@@ -11,6 +11,12 @@ from anuga.geospatial_data.geospatial_data import *
 from anuga.coordinate_transforms.geo_reference import Geo_reference, TitleError
 from anuga.coordinate_transforms.redfearn import degminsec2decimal_degrees
 
+# Ignore these warnings, since we still want to test .xya code.
+import warnings
+warnings.filterwarnings(action = 'ignore',
+                        message='.xya format is deprecated.  Please use .txt.',
+                        category=DeprecationWarning)
+
 
 class Test_Geospatial_data(unittest.TestCase):
     def setUp(self):
@@ -638,9 +644,34 @@ class Test_Geospatial_data(unittest.TestCase):
         assert allclose(G.get_attributes('att2'), array(attributes) + 1)
         
         os.remove(FN)
+    
+    def test_load_csv(self):
+        # To test the mesh side of loading xya files.
+        # Not the loading of xya files
+        
+        import os
+        import tempfile
+       
+        fileName = tempfile.mktemp(".csv")
+        file = open(fileName,"w")
+        file.write("x,y,elevation speed \n\
+1.0 0.0 10.0 0.0\n\
+0.0 1.0 0.0 10.0\n\
+1.0 0.0 10.4 40.0\n")
+        file.close()
+        #print fileName
+        results = Geospatial_data(fileName, delimiter=',')
+        os.remove(fileName)
+#        print 'data', results.get_data_points()
+        assert allclose(results.get_data_points(), [[1.0, 0.0],[0.0, 1.0],
+                                                    [1.0, 0.0]])
+        assert allclose(results.get_attributes(attribute_name='elevation'),
+                        [10.0, 0.0, 10.4])
+        assert allclose(results.get_attributes(attribute_name='speed'),
+                        [0.0, 10.0, 40.0])
         
     def not_test_loadcsv(self):
-        """
+        """ not_test_loadcsv(self):
         comma delimited
         """
         fileName = tempfile.mktemp(".csv")
@@ -653,12 +684,15 @@ class Test_Geospatial_data(unittest.TestCase):
         results = Geospatial_data(fileName, delimiter=',')
         os.remove(fileName)
 #        print 'data', results.get_data_points()
-        assert allclose(results.get_data_points(), [[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
-        assert allclose(results.get_attributes(attribute_name='elevation'), [10.0, 0.0, 10.4])
-        assert allclose(results.get_attributes(attribute_name='speed'), [0.0, 10.0, 40.0])
+        assert allclose(results.get_data_points(), [[1.0, 0.0],[0.0, 1.0],
+                                                    [1.0, 0.0]])
+        assert allclose(results.get_attributes(attribute_name='elevation'),
+                        [10.0, 0.0, 10.4])
+        assert allclose(results.get_attributes(attribute_name='speed'),
+                        [0.0, 10.0, 40.0])
 
-    def test_loadxya(self):
-        """
+    def test_load_xya(self):
+        """ test_load_xya(self):
         comma delimited
         """
         fileName = tempfile.mktemp(".xya")
@@ -676,7 +710,7 @@ class Test_Geospatial_data(unittest.TestCase):
         assert allclose(results.get_attributes(attribute_name='speed'), [0.0, 10.0, 40.0])
 
     def test_loadxya2(self):
-        """
+        """ test_loadxya2(self):
         space delimited
         """
         import os
@@ -699,6 +733,7 @@ class Test_Geospatial_data(unittest.TestCase):
      
     def test_loadxya3(self):
         """
+        test_loadxya3(self):
         space delimited
         """
         import os
@@ -803,7 +838,7 @@ class Test_Geospatial_data(unittest.TestCase):
         os.remove(fileName)
    
     def test_loadxy_bad3(self):
-        """
+        """ test_loadxy_bad3(self):
         specifying wrong delimiter
         """
         import os
@@ -825,7 +860,7 @@ class Test_Geospatial_data(unittest.TestCase):
         os.remove(fileName)
      
     def test_loadxy_bad4(self):
-        """
+        """ test_loadxy_bad4(self):
          specifying wrong delimiter
         """
         import os
@@ -852,7 +887,7 @@ class Test_Geospatial_data(unittest.TestCase):
         os.remove(fileName)
 
     def test_loadxy_bad5(self):
-        """
+        """ test_loadxy_bad5(self):
         specifying wrong delimiter
         """
         import os
@@ -903,7 +938,7 @@ crap")
   ###################### .CSV ##############################
 
     def test_load_csv(self):
-        """
+        """ test_load_csv(self):
         space delimited
         """
         import os
@@ -941,7 +976,7 @@ crap")
         os.remove(fileName)             
         
     def test_load_csv_bad(self):
-        """
+        """ test_load_csv_bad(self):
         space delimited
         """
         import os
@@ -997,7 +1032,8 @@ crap")
                          'test_writepts failed. Test geo_reference')
 
     def test_export_xya_file2(self):
-        """test absolute xya file
+        """ test_export_xya_file2(self):
+        test absolute xya file
         """
         att_dict = {}
         pointlist = array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
@@ -1017,7 +1053,8 @@ crap")
         assert allclose(results.get_attributes('brightness'), answer)
 
     def test_export_xya_file3(self):
-        """test absolute xya file with geo_ref
+        """ test_export_xya_file3(self):
+        test absolute xya file with geo_ref
         """
         att_dict = {}
         pointlist = array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
@@ -1353,7 +1390,8 @@ crap")
 
         
     def test_add_(self):
-        '''adds an xya and pts files, reads the files and adds them
+        '''test_add_(self):
+        adds an xya and pts files, reads the files and adds them
            checking results are correct
         '''
 

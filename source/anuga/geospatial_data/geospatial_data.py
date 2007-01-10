@@ -172,8 +172,10 @@ class Geospatial_data:
             
         else:
             self.data_points = ensure_numeric(data_points)
-            assert len(self.data_points.shape) == 2
-            assert self.data_points.shape[1] == 2
+            #print "self.data_points.shape",self.data_points.shape
+            if not (0,) == self.data_points.shape:
+                assert len(self.data_points.shape) == 2
+                assert self.data_points.shape[1] == 2
 
     def set_attributes(self, attributes):
         """Check and assign attributes dictionary
@@ -583,8 +585,12 @@ class Geospatial_data:
             msg = 'The text file values must be absolute.   '
             msg += 'Text file format is moving to comma seperated .txt files.'
             warn(msg, DeprecationWarning) 
+            error(msg, DeprecationWarning) 
 
         if (file_name[-4:] == ".xya"):
+            msg = '.xya format is deprecated.  Please use .txt.'
+            warn(msg, DeprecationWarning)
+            #import sys; sys.exit() 
             if absolute is True:         
                 _write_xya_file(file_name,
                                 self.get_data_points(absolute=True), 
@@ -606,7 +612,7 @@ class Geospatial_data:
                                 self.get_all_attributes(),
                                 self.get_geo_reference())
                 
-        elif (file_name[-4:] == ".txt"):
+        elif file_name[-4:] == ".txt" or file_name[-4:] == ".csv":
             msg = "ERROR: trying to write a .txt file with relative data."
             assert absolute, msg
             _write_csv_file(file_name,
@@ -791,7 +797,7 @@ def _read_csv_file(file_name, verbose=False):
             pointlist, att_dict,file_pointer  = _read_csv_file_blocking( \
                 file_pointer,
                 header,
-                max_read_lines=MAX_READ_LINES) #FIXME: how hacky is that!
+                max_read_lines=MAX_READ_LINES) #FIXME: must be highest int
         except StopIteration:
             break
         

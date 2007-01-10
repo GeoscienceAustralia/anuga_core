@@ -24,13 +24,16 @@ import exceptions
 from Numeric import array, Float, Int
 
 
-#import load_mesh
+ 
+import load_mesh
 from anuga.coordinate_transforms.geo_reference import Geo_reference,DEFAULT_ZONE
 from anuga.utilities.polygon import point_in_polygon 
-import load_mesh.loadASCII
+import anuga.load_mesh.loadASCII
 import anuga.alpha_shape.alpha_shape
-from anuga.geospatial_data.geospatial_data import Geospatial_data, ensure_geospatial, ensure_absolute, ensure_numeric
+from anuga.geospatial_data.geospatial_data import Geospatial_data, \
+     ensure_geospatial, ensure_absolute, ensure_numeric
 from anuga.mesh_engine.mesh_engine import generate_mesh
+
 
 #import anuga.mesh_engine_b.mesh_engine as triang
 
@@ -2017,16 +2020,21 @@ class Mesh:
         """
         
         mesh_dict = self.Mesh2IODict()
-        point_dict = {}
-        point_dict['attributelist'] = {} #this will need to be expanded..
+        #point_dict = {}
+        #point_dict['attributelist'] = {} #this will need to be expanded..
                                          # if attributes are brought back in. 
-        point_dict['geo_reference'] = self.geo_reference
+        #point_dict['geo_reference'] = self.geo_reference
         if mesh_dict['vertices'] == []:
-            point_dict['pointlist'] = mesh_dict['points']
+            #point_dict['pointlist'] = mesh_dict['points']
+            geo = Geospatial_data(mesh_dict['points'],
+                                  geo_reference=self.geo_reference)
         else:
-            point_dict['pointlist'] = mesh_dict['vertices']
+            #point_dict['pointlist'] = mesh_dict['vertices']
+            geo = Geospatial_data(mesh_dict['vertices'],
+                                  geo_reference=self.geo_reference)
 
-        load_mesh.loadASCII.export_points_file(ofile,point_dict)
+        geo.export_points_file(ofile, absolute=True)
+        
 
 
     def import_ungenerate_file(self,ofile, tag=None):
@@ -2994,16 +3002,19 @@ def importMeshFromFile(ofile):
     Often raises IOError,RuntimeError
     """
     newmesh = None
-    if (ofile[-4:]== ".xya" or ofile[-4:]== ".pts"):
-        dict = load_mesh.loadASCII.import_points_file(ofile)
-        dict['points'] = dict['pointlist']
+    if (ofile[-4:]== ".xya" or ofile[-4:]== ".pts" or ofile[-4:]== ".txt" or \
+        ofile[-4:]== ".csv"):
+        #dict = load_mesh.loadASCII.import_points_file(ofile)
+        geospatial = Geospatial_data(ofile)
+        dict = {}
+        dict['points'] = geospatial.get_data_points(absolute=False)
         dict['outline_segments'] = []
         dict['outline_segment_tags'] = []
         dict['regions'] = []
         dict['region_tags'] = []
         dict['region_max_areas'] = []
         dict['holes'] = [] 
-        newmesh= Mesh(geo_reference = dict['geo_reference'])
+        newmesh= Mesh(geo_reference = geospatial.geo_reference)
         newmesh.IOOutline2Mesh(dict)
         counter = newmesh.removeDuplicatedUserVertices()
         if (counter >0):

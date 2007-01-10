@@ -270,7 +270,8 @@ class Test_Fit(unittest.TestCase):
         file.close()
         
         f = fit_to_mesh(vertices, triangles,fileName,
-                                alpha=0.0, max_read_lines=2)#, verbose=True)
+                                alpha=0.0, max_read_lines=2)
+                        #use_cache=True, verbose=True)
         answer = linear_function(vertices)
         #print "f\n",f
         #print "answer\n",answer
@@ -603,7 +604,7 @@ class Test_Fit(unittest.TestCase):
         assert allclose( zz, [0,5,5] )
 
 
-    def test_fit_to_mesh_file(self):
+    def obsolete_test_fit_to_mesh_file(self):
         from load_mesh.loadASCII import import_mesh_file, \
              export_mesh_file
         import tempfile
@@ -655,7 +656,7 @@ class Test_Fit(unittest.TestCase):
         os.remove(mesh_output_file)
 
 
-    def test_fit_to_mesh_file3(self):
+    def obsolete_test_fit_to_mesh_file3(self):
         from load_mesh.loadASCII import import_mesh_file, \
              export_mesh_file
         import tempfile
@@ -707,7 +708,7 @@ class Test_Fit(unittest.TestCase):
         os.remove(point_file)
         os.remove(mesh_output_file)
 
-    def test_fit_to_mesh_file4(self):
+    def obsolete_test_fit_to_mesh_file4(self):
         from load_mesh.loadASCII import import_mesh_file, \
              export_mesh_file
         import tempfile
@@ -761,7 +762,7 @@ class Test_Fit(unittest.TestCase):
         os.remove(point_file)
         os.remove(mesh_output_file)
 
-    def test_fit_to_mesh_fileII(self):
+    def obsolete_test_fit_to_mesh_fileII(self):
         from load_mesh.loadASCII import import_mesh_file, \
              export_mesh_file
         import tempfile
@@ -812,7 +813,7 @@ class Test_Fit(unittest.TestCase):
         os.remove(mesh_output_file)
         os.remove(point_file)
 
-    def test_fit_to_mesh_file_errors(self):
+    def obsolete_test_fit_to_mesh_file_errors(self):
         from load_mesh.loadASCII import import_mesh_file, export_mesh_file
         import tempfile
         import os
@@ -850,7 +851,7 @@ class Test_Fit(unittest.TestCase):
         os.remove(mesh_file)
         os.remove(point_file)
 
-    def test_fit_to_mesh_file_errorsII(self):
+    def obsolete_test_fit_to_mesh_file_errorsII(self):
         from load_mesh.loadASCII import import_mesh_file, export_mesh_file
         import tempfile
         import os
@@ -880,7 +881,7 @@ class Test_Fit(unittest.TestCase):
         os.remove(mesh_file)
         os.remove(point_file)
 
-    def test_fit_to_mesh_file_errorsIII(self):
+    def obsolete_test_fit_to_mesh_file_errorsIII(self):
         from load_mesh.loadASCII import import_mesh_file, export_mesh_file
         import tempfile
         import os

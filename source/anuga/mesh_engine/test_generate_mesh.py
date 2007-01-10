@@ -522,5 +522,5 @@ if __name__ == "__main__":
     suite = unittest.makeSuite(triangTestCase,'test')
     #suite = unittest.makeSuite(triangTestCase,'test_lone_verts4')
     #suite = unittest.makeSuite(triangTestCase,'testrectangleIIb')
-    runner = unittest.TextTestRunner(verbosity=2) #verbosity=2)
+    runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)

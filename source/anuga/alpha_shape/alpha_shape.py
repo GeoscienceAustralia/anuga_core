@@ -20,8 +20,10 @@ Author: Vanessa Robins, ANU
 
 import exceptions
 from Numeric import array, Float, divide_safe, sqrt, product
-from load_mesh.loadASCII import import_points_file, export_boundary_file
 import random
+
+from load_mesh.loadASCII import export_boundary_file
+from anuga.geospatial_data.geospatial_data import Geospatial_data
 
 class AlphaError(exceptions.Exception):pass
 class PointError(AlphaError): pass
@@ -41,8 +43,8 @@ def alpha_shape_via_files(point_file, boundary_file, alpha= None):
     alpha: The alpha value can be optionally specified.  If it is not specified
     the optimum alpha value will be used.
     """
-    point_dict = import_points_file(point_file)
-    points = point_dict['pointlist']
+    geospatial = Geospatial_data(point_file)
+    points = geospatial.get_data_points(absolute=False)
     
     AS = Alpha_Shape(points, alpha)
     AS.write_boundary(boundary_file)
