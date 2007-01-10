@@ -6,6 +6,7 @@ associated attributes.
 from os import access, F_OK, R_OK
 from types import DictType
 from warnings import warn
+import sys
 
 from Numeric import concatenate, array, Float, shape, reshape, ravel, take, \
                         size, shape
@@ -786,9 +787,6 @@ def _read_csv_file(file_name, verbose=False):
     dic['attributelist']['elevation'] = [[7.0,5.0]
     """
     
-    #from anuga.shallow_water.data_manager import Exposure_csv
-    #csv =Exposure_csv(file_name)
-    
     file_pointer = open(file_name)
     header, file_pointer = _read_csv_file_header(file_pointer)
 
@@ -797,7 +795,7 @@ def _read_csv_file(file_name, verbose=False):
             pointlist, att_dict,file_pointer  = _read_csv_file_blocking( \
                 file_pointer,
                 header,
-                max_read_lines=MAX_READ_LINES) #FIXME: must be highest int
+                max_read_lines=sys.maxint) #This might not be high enough...
         except StopIteration:
             break
         
