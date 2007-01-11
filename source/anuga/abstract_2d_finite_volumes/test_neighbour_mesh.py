@@ -399,7 +399,7 @@ class Test_Mesh(unittest.TestCase):
         N=1
 
         points, vertices, boundary = rectangular(M, N)
-	mesh = Mesh(points, vertices, boundary)
+        mesh = Mesh(points, vertices, boundary)
 
         #Test that points are arranged in a counter clock wise order
         mesh.check_integrity()
@@ -407,7 +407,7 @@ class Test_Mesh(unittest.TestCase):
         M=2
         N=2
         points, vertices, boundary = rectangular(M, N)
-	mesh = Mesh(points, vertices, boundary)
+        mesh = Mesh(points, vertices, boundary)
 
         #Test that points are arranged in a counter clock wise order
         mesh.check_integrity()
@@ -421,7 +421,7 @@ class Test_Mesh(unittest.TestCase):
 
 
         points, vertices, boundary = rectangular(4, 4)
-	mesh = Mesh(points, vertices, boundary)
+        mesh = Mesh(points, vertices, boundary)
 
 
         #Test that points are arranged in a counter clock wise order
@@ -450,7 +450,7 @@ class Test_Mesh(unittest.TestCase):
         len2 = 17.0
 
         points, vertices, boundary = rectangular(M, N, len1, len2)
-	mesh = Mesh(points, vertices, boundary)
+        mesh = Mesh(points, vertices, boundary)
 
         assert len(mesh) == 2*M*N
 
@@ -471,7 +471,7 @@ class Test_Mesh(unittest.TestCase):
         N = 16
 
         points, vertices, boundary = rectangular(2*N, N, len1=10, len2=10)
-	mesh = Mesh(points, vertices, boundary)
+        mesh = Mesh(points, vertices, boundary)
 
 
 
@@ -984,7 +984,7 @@ class Test_Mesh(unittest.TestCase):
         
         # Then do the discontinuous version
         import warnings
-	warnings.filterwarnings('ignore')
+        warnings.filterwarnings('ignore')
 
         
         points = [[  52341.70703125,  38563.39453125],

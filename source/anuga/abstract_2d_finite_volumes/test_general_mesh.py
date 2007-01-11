@@ -69,7 +69,7 @@ class Test_General_Mesh(unittest.TestCase):
         points, vertices, boundary = rectangular(1, 3)
         domain = General_mesh(points, vertices)        
 
-	assert domain.get_area() == 1.0
+        assert domain.get_area() == 1.0
 
 
     def test_get_unique_vertex_values(self):

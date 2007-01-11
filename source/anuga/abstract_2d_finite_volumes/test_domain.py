@@ -269,7 +269,7 @@ class Test_Domain(unittest.TestCase):
 
         domain.check_integrity()
 
- 	assert allclose(domain.neighbours, [[-1,-2,-3]])
+        assert allclose(domain.neighbours, [[-1,-2,-3]])
 
 
 

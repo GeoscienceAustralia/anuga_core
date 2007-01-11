@@ -167,7 +167,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         
 
         #Check that midpoint coordinates at boundary are correctly computed
-	assert allclose( F.midpoint_coordinates,
+        assert allclose( F.midpoint_coordinates,
                          [[1.0, 0.0], [0.0, 1.0], [3.0, 0.0],
                           [3.0, 1.0], [1.0, 3.0], [0.0, 3.0]])
 

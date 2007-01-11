@@ -9,7 +9,7 @@ from anuga.config import epsilon
 from Numeric import allclose, array, ones, Float
 
 from anuga.fit_interpolate.fit import fit_to_mesh
-#from anuga.pyvolution.least_squares import fit_to_mesh		
+#from anuga.pyvolution.least_squares import fit_to_mesh         
 from domain import Domain
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.coordinate_transforms.geo_reference import Geo_reference
@@ -1206,9 +1206,9 @@ class Test_Quantity(unittest.TestCase):
         Q = stage.vertex_values
 
 
-	assert A.shape[0] == 9
-	assert V.shape[0] == 8
-	assert V.shape[1] == 3
+        assert A.shape[0] == 9
+        assert V.shape[0] == 8
+        assert V.shape[1] == 3
 
         #First four points
         assert allclose(A[0], (Q[0,2] + Q[1,1])/2)
