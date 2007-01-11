@@ -1152,18 +1152,16 @@ class Test_Util(unittest.TestCase):
 
         warnings.resetwarnings()
     
-    def test_get_version_info(self):
-        info = get_version_info()
-        
-        fields = info.split(':')
-        assert fields[0].startswith('Revision')
+    def test_get_revision_number(self):
+        """test_get_revision_number(self):
 
-        try:
-            int(fields[1])
-        except:
-            msg = 'Revision number must be an integer. I got %s' %fields[1]
-            msg += 'Chech that the command svn is on the system path' 
-            raise Exception(msg)                
+        Test that revision number can be retrieved.
+        """
+        
+        n = get_revision_number()
+        assert n>=0
+
+
         
     def test_add_directories(self):
         
@@ -1206,6 +1204,46 @@ class Test_Util(unittest.TestCase):
         check_list(['stage','xmomentum'])
 
         
+    def test_add_directories(self):
+        
+        import tempfile
+        root_dir = tempfile.mkdtemp('_test_util', 'test_util_')
+        directories = ['ja','ne','ke']
+        kens_dir = add_directories(root_dir, directories)
+        assert kens_dir == root_dir + sep + 'ja' + sep + 'ne' + \
+               sep + 'ke'
+        assert access(root_dir,F_OK)
+
+        add_directories(root_dir, directories)
+        assert access(root_dir,F_OK)
+        
+        #clean up!
+        os.rmdir(kens_dir)
+        os.rmdir(root_dir + sep + 'ja' + sep + 'ne')
+        os.rmdir(root_dir + sep + 'ja')
+        os.rmdir(root_dir)
+
+    def test_add_directories_bad(self):
+        
+        import tempfile
+        root_dir = tempfile.mkdtemp('_test_util', 'test_util_')
+        directories = ['/\/!@#@#$%^%&*((*:*:','ne','ke']
+        
+        try:
+            kens_dir = add_directories(root_dir, directories)
+        except OSError:
+            pass
+        else:
+            msg = 'bad dir name should give OSError'
+            raise Exception(msg)    
+            
+        #clean up!
+        os.rmdir(root_dir)
+
+    def test_check_list(self):
+
+        check_list(['stage','xmomentum'])
+
         
 #-------------------------------------------------------------
 if __name__ == "__main__":

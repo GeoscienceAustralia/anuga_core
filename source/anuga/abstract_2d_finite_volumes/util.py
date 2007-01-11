@@ -533,39 +533,122 @@ class Screen_Catcher:
         fid = open(self.filename, 'a')
         fid.write(stuff)
 
-def get_version_info():
-    """gets the version number of the SVN
+def get_revision_number():
+    """Get the version number of the SVN
     NOTE: This requires that the command svn is on the system PATH
     (simply aliasing svn to the binary will not work)
     """
 
+    # Create dummy info 
+    #info = 'Revision: Version info could not be obtained.'
+    #info += 'A command line version of svn must be availbable '
+    #info += 'on the system PATH, access to the subversion '
+    #info += 'repository is necessary and the output must '
+    #info += 'contain a line starting with "Revision:"'
+    
+
     #FIXME (Ole): Change this so that svn info is attempted first.
     # If that fails, try to read a stored file with that same info (this would be created by e.g. the release script). Failing that, throw an exception.
 
-    
-    import os, sys
+    #FIXME (Ole): Move this and store_version_info to utilities
 
-    # Create dummy info 
-    info = 'Revision: Version info could not be obtained.'
-    info += 'A command line version of svn must be availbable '
-    info += 'on the system PATH, access to the subversion '
-    info += 'repository is necessary and the output must '
-    info += 'contain a line starting with "Revision:"'
+
+    try:
+        from anuga.stored_version_info import version_info
+    except:
+        
+        # No file available - try using Subversion
+        try:
+            fid = os.popen('svn info')
+        except:
+            msg = 'No version info stored and command "svn" is not '
+            msg += 'recognised on the system PATH. What do you want me to do?'
+            raise Exception(msg)
+        else:
+            #print 'Got version from svn'            
+            version_info = fid.read()
+    else:
+        pass
+        #print 'Got version from file'
+
+            
+    for line in version_info.split('\n'):
+        if line.startswith('Revision:'):
+            break
+
+    fields = line.split(':')
+    msg = 'Keyword "Revision" was not found anywhere in text: %s' %version_info
+    assert fields[0].startswith('Revision'), msg            
+
+    try:
+        revision_number = int(fields[1])
+    except:
+        msg = 'Revision number must be an integer. I got %s' %fields[1]
+        msg += 'Check that the command svn is on the system path' 
+        raise Exception(msg)                
+        
+    return revision_number
+
+
+def store_version_info(destination_path='.', verbose=False):
+    """Obtain current version from Subversion and store it.
+    
+    Title: store_version_info()
+
+    Author: Ole Nielsen (Ole.Nielsen@ga.gov.au)
+
+    CreationDate: January 2006
+
+    Description:
+        This function obtains current version from Subversion and stores it
+        is a Python file named 'stored_version_info.py' for use with
+        get_version_info()
+
+        If svn is not available on the system PATH, an Exception is thrown
+    """
+
+    # Note (Ole): This function should not be unit tested as it will only
+    # work when running out of the sandpit. End users downloading the
+    # ANUGA distribution would see a failure.
+    #
+    # FIXME: This function should really only be used by developers (
+    # (e.g. for creating new ANUGA releases), so maybe it should move
+    # to somewhere else.
+    
+    import config
 
     try:
         fid = os.popen('svn info')
     except:
-        msg = 'svn is not recognised on the system PATH'
-        warn(msg, UserWarning)
+        msg = 'Command "svn" is not recognised on the system PATH'
+        raise Exception(msg)
     else:    
-        lines = fid.readlines()
+        txt = fid.read()
         fid.close()
-        for line in lines:
-            if line.startswith('Revision:'):
-                info = line
-                break
-       
-    return info
+
+
+        # Determine absolute filename
+        if destination_path[-1] != os.sep:
+            destination_path += os.sep
+            
+        filename = destination_path + config.version_filename
+
+        fid = open(filename, 'w')
+
+        docstring = 'Stored version info.\n\n'
+        docstring += 'This file provides the version for distributions '
+        docstring += 'that are not accessing Subversion directly.\n'
+        docstring += 'The file is automatically generated and should not '
+        docstring += 'be modified manually.\n'
+        fid.write('"""%s"""\n\n' %docstring)
+        
+        fid.write('version_info = """\n%s"""' %txt)
+        fid.close()
+
+
+        if verbose is True:
+            print 'Version info stored to %s' %filename
+            
     
 def sww2timeseries(swwfiles,
                    gauge_filename,

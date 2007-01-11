@@ -88,6 +88,7 @@ CFL = 1.0  #FIXME (ole): Is this in use yet??
 
 
 pmesh_filename = '.\\pmesh'
+version_filename = 'stored_version_info.py'
 
 
 import os, sys
