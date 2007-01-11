@@ -5,26 +5,25 @@ are imported from shallow_water
 for use with the generic finite volume framework
 
 A example of running this program is;
-python run_tsh.py visualise hill.tsh 0.05 1
+python run_tsh.py n hill.tsh 0.05 1
 """
 
 ######################
 # Module imports 
 #
 
+from Numeric import array
+import time
 import sys
 from os import sep, path
-sys.path.append('..'+sep+'pyvolution')
 
-from shallow_water import Domain, Reflective_boundary, Dirichlet_boundary,\
-     Transmissive_boundary, Time_boundary
-from region import Add_value_to_region, Set_region
-from mesh_factory import rectangular
-from anuga.pyvolution.pmesh2domain import pmesh_to_domain_instance
+from anuga.shallow_water import Domain, Reflective_boundary, \
+     Dirichlet_boundary, Transmissive_boundary, Time_boundary
+from anuga.abstract_2d_finite_volumes.region import Add_value_to_region, \
+     Set_region
+from anuga.visualiser import RealtimeVisualiser
 
-from Numeric import array
 
-import time
 
 #from anuga.config import default_datadir 
 
@@ -49,12 +48,21 @@ else:
         visualise = False
     else:    
         visualise = True
+       
     filename = sys.argv[2]
     yieldstep = float(sys.argv[3])
     finaltime = float(sys.argv[4])
     
     print 'Creating domain from', filename
-    domain = pmesh_to_domain_instance(filename, Domain)
+    domain = Domain(filename)
+
+    # check if the visualiser will work
+    try:
+        xx = RealtimeVisualiser(domain)
+    except:
+        print "Warning: Error in RealtimeVisualiser. Could not visualise."
+        visualise = False
+    
     print "Number of triangles = ", len(domain)
     print "domain.geo_reference",domain.geo_reference 
     domain.checkpoint = False #True
@@ -84,7 +92,7 @@ else:
     manning = 0.07
     inflow_stage = 10.0
 
-    ######NEW
+    
     domain.set_quantity('friction', manning)
 
     #domain.set_quantity('stage', add_x_y)
@@ -92,7 +100,7 @@ else:
     #                        domain.quantities['stage'].vertex_values+ \
     #                        domain.quantities['elevation'].vertex_values)
     #domain.set_quantity('stage', 0.0)
-    ######NEW
+    
 
     ######################
     # Boundary conditions
