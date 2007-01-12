@@ -29,7 +29,8 @@ import types
 from Numeric import zeros, Float, ArrayType,take 
 
 from anuga.caching import cache            
-from anuga.geospatial_data.geospatial_data import Geospatial_data, ensure_absolute
+from anuga.geospatial_data.geospatial_data import Geospatial_data, \
+     ensure_absolute
 from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
 from anuga.utilities.sparse import Sparse, Sparse_CSR
 from anuga.utilities.polygon import in_and_outside_polygon
@@ -497,120 +498,6 @@ def fit_to_mesh(vertex_coordinates,
     # as att's.
     
     return vertex_attributes
-
-
-def obsolete_fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
-                     alpha=DEFAULT_ALPHA, verbose= False,
-                     display_errors = True):
-    """
-    Given a mesh file (tsh) and a point attribute file (xya), fit
-    point attributes to the mesh and write a mesh file with the
-    results.
-
-
-    If data_origin is not None it is assumed to be
-    a 3-tuple with geo referenced
-    UTM coordinates (zone, easting, northing)
-
-    NOTE: Throws IOErrors, for a variety of file problems.
-    
-    """
-    #OBSOLETE
-    #Problems with using blocking and knowing the attribute title..
-
-
-    # Question
-    # should data_origin and mesh_origin be passed in?
-    # No they should be in the data structure
-    #
-    #Should the origin of the mesh be changed using this function?
-    # That is overloading this function.  Have it as a seperate
-    # method, at least initially.
-    
-    from load_mesh.loadASCII import import_mesh_file, \
-                 import_points_file, export_mesh_file, \
-                 concatinate_attributelist
-
-    # FIXME: Use geospatial instead of import_points_file
-    try:
-        mesh_dict = import_mesh_file(mesh_file)
-    except IOError,e:
-        if display_errors:
-            print "Could not load bad file. ", e
-        raise IOError  #Re-raise exception
-        
-    vertex_coordinates = mesh_dict['vertices']
-    triangles = mesh_dict['triangles']
-    if type(mesh_dict['vertex_attributes']) == ArrayType:
-        old_point_attributes = mesh_dict['vertex_attributes'].tolist()
-    else:
-        old_point_attributes = mesh_dict['vertex_attributes']
-
-    if type(mesh_dict['vertex_attribute_titles']) == ArrayType:
-        old_title_list = mesh_dict['vertex_attribute_titles'].tolist()
-    else:
-        old_title_list = mesh_dict['vertex_attribute_titles']
-
-    if verbose: print 'tsh file %s loaded' %mesh_file
-
-    # load in the .pts file
-    try:
-        #point_dict = import_points_file(point_file, verbose=verbose)
-        
-        geospatial = Geospatial_data(point_file)
-        point_coordinates = geospatial.get_data_points(absolute=False)
-    except IOError,e:
-        if display_errors:
-            print "Could not load bad file. ", e
-        raise IOError  #Re-raise exception  
-
-    #point_coordinates = point_dict['pointlist']
-    #get_all_attributes
-    #title_list,point_attributes = concatinate_attributelist(point_dict['attributelist'])
-    title_list,point_attributes = concatinate_attributelist( \
-        geospatial.get_all_attributes())
-
-
-    if mesh_dict.has_key('geo_reference') and not mesh_dict['geo_reference'] is None:
-        mesh_origin = mesh_dict['geo_reference'].get_origin()
-    else:
-        mesh_origin = (56, 0, 0) #FIXME(DSG-DSG)
-
-    if verbose: print "points file loaded"
-    if verbose: print "fitting to mesh"
-    f = fit_to_mesh(vertex_coordinates,
-                    triangles,
-                    point_file,
-                    alpha = alpha,
-                    verbose = verbose,
-                    data_origin = data_origin,
-                    mesh_origin = mesh_origin)
-    if verbose: print "finished fitting to mesh"
-
-    # convert array to list of lists
-    new_point_attributes = f.tolist()
-    #FIXME have this overwrite attributes with the same title - DSG
-    #Put the newer attributes last
-    if old_title_list <> []:
-        old_title_list.extend(title_list)
-        #FIXME can this be done a faster way? - DSG
-        for i in range(len(old_point_attributes)):
-            old_point_attributes[i].extend(new_point_attributes[i])
-        mesh_dict['vertex_attributes'] = old_point_attributes
-        mesh_dict['vertex_attribute_titles'] = old_title_list
-    else:
-        mesh_dict['vertex_attributes'] = new_point_attributes
-        mesh_dict['vertex_attribute_titles'] = title_list
-
-    if verbose: print "exporting to file ", mesh_output_file
-
-    try:
-        export_mesh_file(mesh_output_file, mesh_dict)
-    except IOError,e:
-        if display_errors:
-            print "Could not write file. ", e
-        raise IOError
-
 
 def _fit(*args, **kwargs):
     """Private function for use with caching. Reason is that classes

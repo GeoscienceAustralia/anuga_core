@@ -6,7 +6,6 @@ associated attributes.
 from os import access, F_OK, R_OK
 from types import DictType
 from warnings import warn
-import sys
 
 from Numeric import concatenate, array, Float, shape, reshape, ravel, take, \
                         size, shape
@@ -704,24 +703,41 @@ class Geospatial_data:
         #FIXME - what to do if the file isn't there
 
         #FIXME - give warning if the file format is .xya
-        file_pointer = open(self.file_name)
-        self.header, self.file_pointer = _read_csv_file_header(file_pointer)
+        if self.file_name[-4:]== ".xya" or self.file_name[-4:]== ".pts":
+            #let's just read it all
+            pass
+        else:
+            file_pointer = open(self.file_name)
+            self.header, self.file_pointer = \
+                         _read_csv_file_header(file_pointer)
 
-        if self.max_read_lines is None:
-            self.max_read_lines = MAX_READ_LINES
+            if self.max_read_lines is None:
+                self.max_read_lines = MAX_READ_LINES
         return self
     
     def next(self):
         # read a block, instanciate a new geospatial and return it
-        try:
-            pointlist, att_dict, self.file_pointer = _read_csv_file_blocking( \
-                self.file_pointer,
-                self.header[:],
-                max_read_lines=self.max_read_lines) 
-        except StopIteration:
-            self.file_pointer.close()
-            raise StopIteration
-        return Geospatial_data(pointlist, att_dict)
+        if self.file_name[-4:]== ".xya" or self.file_name[-4:]== ".pts":
+            if not hasattr(self,'finished_reading') or \
+                   self.finished_reading is False:
+                #let's just read it all
+                geo = Geospatial_data(self.file_name)
+                self.finished_reading = True
+            else:
+                raise StopIteration
+                self.finished_reading = False
+                
+        else:
+            try:
+                pointlist, att_dict, self.file_pointer = \
+                   _read_csv_file_blocking( self.file_pointer,
+                                         self.header[:],
+                                         max_read_lines=self.max_read_lines) 
+                geo = Geospatial_data(pointlist, att_dict)
+            except StopIteration:
+                self.file_pointer.close()
+                raise StopIteration
+        return geo
 
 def _read_pts_file(file_name, verbose=False):
     """Read .pts NetCDF file
@@ -787,6 +803,9 @@ def _read_csv_file(file_name, verbose=False):
     dic['attributelist']['elevation'] = [[7.0,5.0]
     """
     
+    #from anuga.shallow_water.data_manager import Exposure_csv
+    #csv =Exposure_csv(file_name)
+    
     file_pointer = open(file_name)
     header, file_pointer = _read_csv_file_header(file_pointer)
 
@@ -795,7 +814,7 @@ def _read_csv_file(file_name, verbose=False):
             pointlist, att_dict,file_pointer  = _read_csv_file_blocking( \
                 file_pointer,
                 header,
-                max_read_lines=sys.maxint) #This might not be high enough...
+                max_read_lines=MAX_READ_LINES) #FIXME: must be highest int
         except StopIteration:
             break
         
