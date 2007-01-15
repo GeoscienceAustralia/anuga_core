@@ -319,7 +319,6 @@ class Fit(FitInterpolate):
           z: Single 1d vector or array of data at the point_coordinates.
           
         """
-
         # use blocking to load in the point info
         if type(point_coordinates_or_filename) == types.StringType:
             msg = "Don't set a point origin when reading from a file"
@@ -327,7 +326,8 @@ class Fit(FitInterpolate):
             filename = point_coordinates_or_filename
             for i,geo_block in  enumerate(Geospatial_data(filename,
                                               max_read_lines=max_read_lines,
-                                              load_file_now=False)):
+                                              load_file_now=False,
+                                              verbose=verbose)):
                 if verbose is True and 0 == i%200: # round every 5 minutes
                     print 'Block %i' %i
                 # build the array

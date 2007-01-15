@@ -12,6 +12,8 @@ from Numeric import concatenate, array, Float, shape, reshape, ravel, take, \
 from random import randint
 #from MA import tolist
 
+from Scientific.IO.NetCDF import NetCDFFile    
+    
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.coordinate_transforms.geo_reference import Geo_reference, TitleError
 from anuga.coordinate_transforms.redfearn import convert_from_latlon_to_utm
@@ -585,7 +587,6 @@ class Geospatial_data:
             msg = 'The text file values must be absolute.   '
             msg += 'Text file format is moving to comma seperated .txt files.'
             warn(msg, DeprecationWarning) 
-            error(msg, DeprecationWarning) 
 
         if (file_name[-4:] == ".xya"):
             msg = '.xya format is deprecated.  Please use .txt.'
@@ -698,26 +699,41 @@ class Geospatial_data:
         return G1, G2
 
     def __iter__(self):
-        # read in the header and save the file pointer position
+        """
+        read in the header and save the file pointer position
+        """
 
+        from Scientific.IO.NetCDF import NetCDFFile
+        
         #FIXME - what to do if the file isn't there
 
-        #FIXME - give warning if the file format is .xya
-        if self.file_name[-4:]== ".xya" or self.file_name[-4:]== ".pts":
+        if self.file_name[-4:]== ".xya":
             #let's just read it all
             pass
+        elif self.file_name[-4:]== ".pts":
+            
+            # see if the file is there.  Throw a QUIET IO error if it isn't
+            fd = open(self.file_name,'r')
+            fd.close()
+    
+            #throws prints to screen if file not present
+            self.fid = NetCDFFile(self.file_name, 'r')
+            
+            self.blocking_georef, self.blocking_keys, self.last_row = \
+                     _read_pts_file_header(self.fid, self.verbose)
+            self.start_row=0
         else:
             file_pointer = open(self.file_name)
             self.header, self.file_pointer = \
                          _read_csv_file_header(file_pointer)
 
-            if self.max_read_lines is None:
-                self.max_read_lines = MAX_READ_LINES
+        if self.max_read_lines is None:
+            self.max_read_lines = MAX_READ_LINES
         return self
     
     def next(self):
         # read a block, instanciate a new geospatial and return it
-        if self.file_name[-4:]== ".xya" or self.file_name[-4:]== ".pts":
+        if self.file_name[-4:]== ".xya" :
             if not hasattr(self,'finished_reading') or \
                    self.finished_reading is False:
                 #let's just read it all
@@ -727,12 +743,37 @@ class Geospatial_data:
                 raise StopIteration
                 self.finished_reading = False
                 
+        elif self.file_name[-4:]== ".pts":
+            if self.start_row == self.last_row:
+                # read the end of the file last iteration
+                # FIXME clean up, remove blocking atts eg
+                #self.max_read_lines
+                #self.blocking_georef,self.last_row
+                #self.start_row
+                ### self.blocking_keys
+                self.fid.close()
+                raise StopIteration
+            fin_row = self.start_row + self.max_read_lines
+            if fin_row > self.last_row:
+                fin_row = self.last_row
+
+            #call stuff
+            pointlist, att_dict, = \
+                   _read_pts_file_blocking( self.fid,
+                                            self.start_row,
+                                            fin_row,
+                                            self.blocking_keys
+                                            ) 
+            geo = Geospatial_data(pointlist, att_dict, self.blocking_georef)
+            self.start_row = fin_row
+            
         else:
             try:
                 pointlist, att_dict, self.file_pointer = \
                    _read_csv_file_blocking( self.file_pointer,
-                                         self.header[:],
-                                         max_read_lines=self.max_read_lines) 
+                                            self.header[:],
+                                            max_read_lines=self.max_read_lines,
+                                            verbose=self.verbose)
                 geo = Geospatial_data(pointlist, att_dict)
             except StopIteration:
                 self.file_pointer.close()
@@ -760,9 +801,6 @@ def _read_pts_file(file_name, verbose=False):
     #throws prints to screen if file not present
     fid = NetCDFFile(file_name, 'r') 
     
-#    point_atts = {}  
-        # Get the variables
-#    point_atts['pointlist'] = array(fid.variables['points'])
     pointlist = array(fid.variables['points'])
     keys = fid.variables.keys()
     if verbose: print 'Got %d variables: %s' %(len(keys), keys)
@@ -779,14 +817,10 @@ def _read_pts_file(file_name, verbose=False):
             
         attributes[key] = array(fid.variables[key])
     
-#    point_atts['attributelist'] = attributes
     
     try:
         geo_reference = Geo_reference(NetCDFObject=fid)
-#        point_atts['geo_reference'] = geo_reference
     except AttributeError, e:
-        #geo_ref not compulsory 
-#        point_atts['geo_reference'] = None
         geo_reference = None
     
     fid.close()
@@ -894,6 +928,46 @@ def _read_csv_file_blocking(file_pointer, header,
         
     return pointlist, att_dict,file_pointer 
 
+def _read_pts_file_header(fid, verbose=False):
+
+    """
+    Read the geo_reference of a .pts file
+    """
+    
+    keys = fid.variables.keys()
+    try:
+        keys.remove('points')
+    except IOError, e:       
+        fid.close()    
+        msg = 'Expected keyword "points" but could not find it'
+        raise IOError, msg
+    if verbose: print 'Got %d variables: %s' %(len(keys), keys)
+    
+    try:
+        geo_reference = Geo_reference(NetCDFObject=fid)
+    except AttributeError, e:
+        geo_reference = None
+
+    return geo_reference, keys, fid.dimensions['number_of_points']
+
+def _read_pts_file_blocking(fid, start_row, fin_row, keys):
+                            #verbose=False):
+    
+
+    """
+    Read the body of a .csv file.
+    header: The list header of the csv file, with the x and y labels.
+    """
+    
+    pointlist = array(fid.variables['points'][start_row:fin_row])
+    
+    attributes = {}
+    for key in keys:
+        attributes[key] = array(fid.variables[key][start_row:fin_row])
+
+    return pointlist, attributes
+    
+    
 def _read_xya_file(fd, delimiter):
     points = []
     pointattributes = []
