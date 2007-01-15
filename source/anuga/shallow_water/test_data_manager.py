@@ -4701,7 +4701,10 @@ friction  \n \
                 quantities_init[1].append(n ) # UA
                 quantities_init[2].append(e) # VA
         #print "lonlatdeps",lonlatdeps
-        _,base_name = tempfile.mkstemp("")
+        file_handle, base_name = tempfile.mkstemp("")
+        os.close(file_handle)
+        os.remove(base_name)
+        
         files = []        
         for i,q in enumerate(quantities): 
             quantities_init[i] = ensure_numeric(quantities_init[i])
@@ -4713,6 +4716,7 @@ friction  \n \
             #Write C files
             columns = 3 # long, lat , depth
             file = base_name + mux_names[i]
+            #print "base_name file",file 
             f = open(file, 'wb')
             files.append(file)
             f.write(pack('i',points_num))
@@ -4740,7 +4744,10 @@ friction  \n \
         points_num = -100
         time_step_count = 45
         time_step = -7
-        _,base_name = tempfile.mkstemp("")
+        file_handle, base_name = tempfile.mkstemp("")        
+        os.close(file_handle)
+        os.remove(base_name)
+        
         files = []
         quantities = ['HA','UA','VA']
         mux_names = ['-z-mux','-e-mux','-n-mux']
@@ -4784,7 +4791,7 @@ friction  \n \
         urs2sww(base_name
                 #, origin=(0,0,0)
                 , mean_stage=tide
-                , remove_nc_files=False
+                , remove_nc_files=True
                 )
         sww_file = base_name + '.sww'
         
@@ -4847,7 +4854,7 @@ friction  \n \
         urs2sww(base_name
                 , origin=(0,0,0)
                 , mean_stage=tide
-                , remove_nc_files=False
+                , remove_nc_files=True
                 )
         sww_file = base_name + '.sww'
         
@@ -4912,7 +4919,7 @@ friction  \n \
                 minlon= 150.66667,
                 maxlon= 151.16667,
                 mean_stage=tide,
-                remove_nc_files=False
+                remove_nc_files=True
                 )
         sww_file = base_name + '.sww'
         
