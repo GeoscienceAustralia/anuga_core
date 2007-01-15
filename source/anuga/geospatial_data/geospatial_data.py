@@ -2,7 +2,7 @@
 associated attributes.
 
 """
-
+from sys import maxint
 from os import access, F_OK, R_OK
 from types import DictType
 from warnings import warn
@@ -591,7 +591,6 @@ class Geospatial_data:
         if (file_name[-4:] == ".xya"):
             msg = '.xya format is deprecated.  Please use .txt.'
             warn(msg, DeprecationWarning)
-            #import sys; sys.exit() 
             if absolute is True:         
                 _write_xya_file(file_name,
                                 self.get_data_points(absolute=True), 
@@ -842,15 +841,10 @@ def _read_csv_file(file_name, verbose=False):
     
     file_pointer = open(file_name)
     header, file_pointer = _read_csv_file_header(file_pointer)
-
-    while True:
-        try:
-            pointlist, att_dict,file_pointer  = _read_csv_file_blocking( \
+    pointlist, att_dict,file_pointer  = _read_csv_file_blocking( \
                 file_pointer,
                 header,
-                max_read_lines=MAX_READ_LINES) #FIXME: must be highest int
-        except StopIteration:
-            break
+                max_read_lines=1e30) #If the file is bigger that this, block..
         
     file_pointer.close()
     return pointlist, att_dict, None    
@@ -1292,9 +1286,5 @@ def ensure_geospatial(points, geo_reference=None):
 
          
 if __name__ == "__main__":
-    g = Geospatial_data("t.txt")
-    print "g.get_data_points()", g.get_data_points()
-    for i,a in enumerate(g):
-        if i >3: break 
-        print a
+    pass
     

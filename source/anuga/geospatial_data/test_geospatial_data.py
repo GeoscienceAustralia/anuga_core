@@ -650,8 +650,6 @@ class Test_Geospatial_data(unittest.TestCase):
         os.remove(FN)
     
     def test_load_csv(self):
-        # To test the mesh side of loading xya files.
-        # Not the loading of xya files
         
         import os
         import tempfile
