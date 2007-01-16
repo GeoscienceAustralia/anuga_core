@@ -40,7 +40,8 @@ class Geospatial_data:
         Create instance from data points and associated attributes
 
         data_points: x,y coordinates in meters. Type must be either a
-        sequence of 2-tuples or an Mx2 Numeric array of floats.
+        sequence of 2-tuples or an Mx2 Numeric array of floats.  A file name
+        can also be passed in here.
 
         attributes: Associated values for each data point. The type
         must be either a list or an array of length M or a dictionary
@@ -51,45 +52,51 @@ class Geospatial_data:
         geo_reference: Object representing the origin of the data
         points. It contains UTM zone, easting and northing and data
         points are assumed to be relative to this origin.
-        If geo_reference is None, the default geo ref object is used
+        If geo_reference is None, the default geo ref object is used.
 
         default_attribute_name: Name of default attribute to be used with
         get_attribute_values. The idea is that the dataset can be
         equipped with information about which attribute to return.
         If None, the default is the "first"
+
+        latitudes, longitudes: Vectors of latitudes and longitudes,
+        used to specify location instead of points.
         
-        file_name: Name of input netCDF file or xya file. netCDF file must 
+        points_are_lats_longs: Set this as true if the points are actually
+        lats and longs, not UTM
+
+        max_read_lines: The number of rows read into memory when using
+        blocking to read a file.
+
+        load_file_now:  If true the file is automatically loaded
+        into the geospatial instance. Used when blocking.
+        
+        file_name: Name of input netCDF file or .txt file. netCDF file must 
         have dimensions "points" etc.
-        xya file is a comma seperated file with x, y and attribute data. 
-        the first line must be the attribute names eg elevation 
+        .txt file is a comma seperated file with x, y and attribute
+        data. 
+        the first line has the titles of the columns.  The first two columns
+        are assumed to be the x and y, and the title names acually used are
+        ignored.
+
+        The 
         
-        The format for a .xya file is:
-            1st line:     [attribute names]
+        The format for a .txt file is:
+            1st line:     [column names]
             other lines:  x y [attributes]
 
             for example:
-            elevation, friction
+            x, y, elevation, friction
             0.6, 0.7, 4.9, 0.3
             1.9, 2.8, 5, 0.3
             2.7, 2.4, 5.2, 0.3
 
-        The first two columns are always implicitly assumed to be x, y
+        The first two columns are always  assumed to be x, y
         coordinates.
-        Use the same delimiter for the attribute names and the data
-
-        An xya file can optionally end with
-            #geo reference
-            56
-            466600.0
-            8644444.0
-
-        When the 1st # is the zone,
-        2nd # the xllcorner and 
-        3rd # the yllcorner
-
+     
         An issue with the xya format is that the attribute column order
         is not be controlled.  The info is stored in a dictionary and it's
-        written however
+        written in an order dependent on the hash order
         
         The format for a Points dictionary is:
 
@@ -105,12 +112,10 @@ class Geospatial_data:
             dic['attributelist']['elevation'] = [[7.0,5.0]
                 
         delimiter: is the file delimiter that will be used when 
-            importing the file
+            importing a .xya file, which is being phased out.
             
         verbose:
 
-        load_file_now: if load file now is true, the file is
-        loaded during instanciation.
           
         """
 
@@ -122,6 +127,11 @@ class Geospatial_data:
         self.geo_reference=None #create the attribute 
         self.file_name = file_name
         self.max_read_lines = max_read_lines
+
+        if delimiter is not None:
+            msg = 'Specifying delimiters will be removed.'
+            msg = 'Text file format is moving to comma seperated .txt files.'
+            warn(msg, DeprecationWarning) 
         if file_name is None:
             if delimiter is not None:
                 msg = 'No file specified yet a delimiter is provided!'
@@ -513,6 +523,8 @@ class Geospatial_data:
         
         attributes = {}
         if file_name[-4:]== ".xya":
+            msg = 'Text file format is moving to comma seperated .txt files.'
+            warn(msg, DeprecationWarning) 
             try:
                 if delimiter == None:
                     try:
@@ -745,12 +757,14 @@ class Geospatial_data:
         elif self.file_name[-4:]== ".pts":
             if self.start_row == self.last_row:
                 # read the end of the file last iteration
-                # FIXME clean up, remove blocking atts eg
-                #self.max_read_lines
-                #self.blocking_georef,self.last_row
-                #self.start_row
-                ### self.blocking_keys
+                # remove blocking attributes
                 self.fid.close()
+                del self.max_read_lines
+                del self.blocking_georef
+                del self.last_row
+                del self.start_row
+                del self.blocking_keys
+                del self.fid
                 raise StopIteration
             fin_row = self.start_row + self.max_read_lines
             if fin_row > self.last_row:
@@ -776,6 +790,8 @@ class Geospatial_data:
                 geo = Geospatial_data(pointlist, att_dict)
             except StopIteration:
                 self.file_pointer.close()
+                del self.header
+                del self.file_pointer
                 raise StopIteration
         return geo
 

@@ -21,6 +21,13 @@ warnings.filterwarnings(action = 'ignore',
                         message='The text file values must be ab',
                         category=DeprecationWarning)
 
+warnings.filterwarnings(action = 'ignore',
+                        message='Text file format is moving to comma se',
+                        category=DeprecationWarning)
+
+warnings.filterwarnings(action = 'ignore',
+                        message='Specifying delimiters will be removed.',
+                        category=DeprecationWarning)
 
 class Test_Geospatial_data(unittest.TestCase):
     def setUp(self):
