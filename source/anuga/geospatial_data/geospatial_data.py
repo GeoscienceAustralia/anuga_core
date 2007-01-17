@@ -6,7 +6,7 @@ from sys import maxint
 from os import access, F_OK, R_OK
 from types import DictType
 from warnings import warn
-
+from string import lower
 from Numeric import concatenate, array, Float, shape, reshape, ravel, take, \
                         size, shape
 from random import randint
@@ -17,6 +17,7 @@ from Scientific.IO.NetCDF import NetCDFFile
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.coordinate_transforms.geo_reference import Geo_reference, TitleError
 from anuga.coordinate_transforms.redfearn import convert_from_latlon_to_utm
+from anuga.utilities.anuga_exceptions import ANUGAError
 
 MAX_READ_LINES = 500        
 class Geospatial_data:
@@ -74,12 +75,15 @@ class Geospatial_data:
         file_name: Name of input netCDF file or .txt file. netCDF file must 
         have dimensions "points" etc.
         .txt file is a comma seperated file with x, y and attribute
-        data. 
-        the first line has the titles of the columns.  The first two columns
-        are assumed to be the x and y, and the title names acually used are
-        ignored.
-
-        The 
+        data.
+        
+        The first line has the titles of the columns.  The first two
+        column titles are checked to see if they start with lat or
+        long (not case sensitive).  If so the data is assumed to be
+        latitude and longitude, in decimal format and converted to
+        UTM.  Otherwise the first two columns are assumed to be the x
+        and y, and the title names acually used are ignored.
+ 
         
         The format for a .txt file is:
             1st line:     [column names]
@@ -140,7 +144,7 @@ class Geospatial_data:
             if latitudes is not None or longitudes is not None or \
                    points_are_lats_longs:
                 data_points, geo_reference =  \
-                             self._set_using_lat_long(latitudes=latitudes,
+                             _set_using_lat_long(latitudes=latitudes,
                                   longitudes=longitudes,
                                   geo_reference=geo_reference,
                                   data_points=data_points,
@@ -323,48 +327,6 @@ class Geospatial_data:
 #        return Geospatial_data(clipped_points, clipped_attributes)
         return clipped_G
 
-    
-    def _set_using_lat_long(self,
-                            latitudes,
-                            longitudes,
-                            geo_reference,
-                            data_points,
-                            points_are_lats_longs):
-        
-        if geo_reference is not None:
-            msg = """A georeference is specified yet latitude and longitude
-            are also specified!"""
-            raise ValueError, msg
-        
-        if data_points is not None and not points_are_lats_longs:
-            msg = """Data points are specified yet latitude and
-            longitude are also specified!"""
-            raise ValueError, msg
-        
-        if points_are_lats_longs:
-            if data_points is None:
-                msg = """Data points are not specified !"""
-                raise ValueError, msg
-            lats_longs = ensure_numeric(data_points)
-            latitudes = ravel(lats_longs[:,0:1])
-            longitudes = ravel(lats_longs[:,1:])
-            
-        if latitudes is None and longitudes is None:
-            msg = """Latitudes and Longitudes are not."""
-            raise ValueError, msg
-        
-        if latitudes is None:
-            msg = """Longitudes are specified yet latitudes aren't!"""
-            raise ValueError, msg
-        
-        if longitudes is None:
-            msg = """Latitudes are specified yet longitudes aren't!"""
-            raise ValueError, msg
-        
-        data_points, zone  = convert_from_latlon_to_utm(latitudes=latitudes,
-                                                        longitudes=longitudes)
-        
-        return data_points, Geo_reference(zone=zone)
     
     def get_geo_reference(self):
         return self.geo_reference
@@ -737,7 +699,7 @@ class Geospatial_data:
             file_pointer = open(self.file_name)
             self.header, self.file_pointer = \
                          _read_csv_file_header(file_pointer)
-
+            self.blocking_georef = None # Used for reconciling zones
         if self.max_read_lines is None:
             self.max_read_lines = MAX_READ_LINES
         return self
@@ -782,19 +744,78 @@ class Geospatial_data:
             
         else:
             try:
-                pointlist, att_dict, self.file_pointer = \
+                pointlist, att_dict, geo_ref, self.file_pointer = \
                    _read_csv_file_blocking( self.file_pointer,
                                             self.header[:],
                                             max_read_lines=self.max_read_lines,
                                             verbose=self.verbose)
-                geo = Geospatial_data(pointlist, att_dict)
+
+                # Check that the zones haven't changed.
+                if geo_ref is not None:
+                    geo_ref.reconcile_zones(self.blocking_georef)
+                    self.blocking_georef = geo_ref
+                elif self.blocking_georef is not None:
+                    
+                    msg = 'Geo reference given, then not given.'
+                    msg += ' This should not happen.' 
+                    raise ValueError, msg
+                geo = Geospatial_data(pointlist, att_dict, geo_ref)
             except StopIteration:
                 self.file_pointer.close()
                 del self.header
                 del self.file_pointer
                 raise StopIteration
+            except ANUGAError:
+                self.file_pointer.close()
+                del self.header
+                del self.file_pointer
+                raise
         return geo
 
+def _set_using_lat_long(latitudes,
+                        longitudes,
+                        geo_reference,
+                        data_points,
+                        points_are_lats_longs):
+    """
+    if the points has lat long info, assume it is in (lat, long) order.
+    """
+    
+    if geo_reference is not None:
+        msg = """A georeference is specified yet latitude and longitude
+        are also specified!"""
+        raise ValueError, msg
+    
+    if data_points is not None and not points_are_lats_longs:
+        msg = """Data points are specified yet latitude and
+        longitude are also specified!"""
+        raise ValueError, msg
+    
+    if points_are_lats_longs:
+        if data_points is None:
+            msg = """Data points are not specified !"""
+            raise ValueError, msg
+        lats_longs = ensure_numeric(data_points)
+        latitudes = ravel(lats_longs[:,0:1])
+        longitudes = ravel(lats_longs[:,1:])
+        
+    if latitudes is None and longitudes is None:
+        msg = """Latitudes and Longitudes are not."""
+        raise ValueError, msg
+    
+    if latitudes is None:
+        msg = """Longitudes are specified yet latitudes aren't!"""
+        raise ValueError, msg
+    
+    if longitudes is None:
+        msg = """Latitudes are specified yet longitudes aren't!"""
+        raise ValueError, msg
+    
+    data_points, zone  = convert_from_latlon_to_utm(latitudes=latitudes,
+                                                    longitudes=longitudes)
+    
+    return data_points, Geo_reference(zone=zone)
+    
 def _read_pts_file(file_name, verbose=False):
     """Read .pts NetCDF file
     
@@ -857,13 +878,17 @@ def _read_csv_file(file_name, verbose=False):
     
     file_pointer = open(file_name)
     header, file_pointer = _read_csv_file_header(file_pointer)
-    pointlist, att_dict,file_pointer  = _read_csv_file_blocking( \
+    try:
+        pointlist, att_dict, geo_ref, file_pointer = \
+                   _read_csv_file_blocking( \
                 file_pointer,
                 header,
                 max_read_lines=1e30) #If the file is bigger that this, block..
-        
+    except ANUGAError:
+        file_pointer.close()
+        raise 
     file_pointer.close()
-    return pointlist, att_dict, None    
+    return pointlist, att_dict, geo_ref    
 
 CSV_DELIMITER = ','
 def _read_csv_file_header(file_pointer,
@@ -893,8 +918,8 @@ def _read_csv_file_blocking(file_pointer, header,
 
     #This is to remove the x and y headers.
     header = header[:]
-    header.pop(0)
-    header.pop(0)
+    x_header = header.pop(0)
+    y_header = header.pop(0)
     
     read_lines = 0
     while read_lines<max_read_lines:
@@ -935,8 +960,26 @@ def _read_csv_file_blocking(file_pointer, header,
     pointlist = array(points).astype(Float)
     for key in att_dict.keys():
         att_dict[key] = array(att_dict[key]).astype(Float)
+
+    #Do stuff here so the info is in lat's and longs
+    geo_ref = None
+    x_header = lower(x_header[:3])
+    y_header = lower(y_header[:3])
+    if (x_header == 'lon' or  x_header == 'lat') and \
+       (y_header == 'lon' or  y_header == 'lat'):
+        if x_header == 'lon':
+            longitudes = ravel(pointlist[:,0:1])
+            latitudes = ravel(pointlist[:,1:])
+        else:
+            latitudes = ravel(pointlist[:,0:1])
+            longitudes = ravel(pointlist[:,1:])
         
-    return pointlist, att_dict,file_pointer 
+        pointlist, geo_ref = _set_using_lat_long(latitudes,
+                                                 longitudes,
+                                                 geo_reference=None,
+                                                 data_points=None,
+                                                 points_are_lats_longs=False)
+    return pointlist, att_dict, geo_ref, file_pointer 
 
 def _read_pts_file_header(fid, verbose=False):
 

@@ -227,7 +227,8 @@ class Geo_reference:
 
 
     def reconcile_zones(self, other):
-
+        if other is None:
+            other = Geo_reference()
         if self.zone == other.zone or\
                self.zone == DEFAULT_ZONE and other.zone == DEFAULT_ZONE:
             pass

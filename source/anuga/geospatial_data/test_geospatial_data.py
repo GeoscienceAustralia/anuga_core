@@ -10,7 +10,7 @@ import tempfile
 from anuga.geospatial_data.geospatial_data import *
 from anuga.coordinate_transforms.geo_reference import Geo_reference, TitleError
 from anuga.coordinate_transforms.redfearn import degminsec2decimal_degrees
-
+from anuga.utilities.anuga_exceptions import ANUGAError
 # Ignore these warnings, since we still want to test .xya code.
 import warnings
 warnings.filterwarnings(action = 'ignore',
@@ -678,18 +678,20 @@ class Test_Geospatial_data(unittest.TestCase):
                         [10.0, 0.0, 10.4])
         assert allclose(results.get_attributes(attribute_name='speed'),
                         [0.0, 10.0, 40.0])
+
+    def test_load_csv(self):
         
-    def not_test_loadcsv(self):
-        """ not_test_loadcsv(self):
-        comma delimited
-        """
+        import os
+        import tempfile
+       
         fileName = tempfile.mktemp(".csv")
         file = open(fileName,"w")
-        file.write("longitude,latitude,z \n\
--35.3149601,150.9198238,452.688000\n\
--35.3149791,150.9209232,459.126000\n\
--35.3149980,150.9220226,465.613000\n")
+        file.write("lat,long,elevation speed \n\
+1.0 0.0 10.0 0.0\n\
+0.0 1.0 0.0 10.0\n\
+1.0 0.0 10.4 40.0\n")
         file.close()
+        #print fileName
         results = Geospatial_data(fileName, delimiter=',')
         os.remove(fileName)
 #        print 'data', results.get_data_points()
@@ -699,7 +701,8 @@ class Test_Geospatial_data(unittest.TestCase):
                         [10.0, 0.0, 10.4])
         assert allclose(results.get_attributes(attribute_name='speed'),
                         [0.0, 10.0, 40.0])
-
+        
+        
     def test_load_xya(self):
         """ test_load_xya(self):
         comma delimited
@@ -946,12 +949,31 @@ crap")
 
   ###################### .CSV ##############################
 
+    def test_load_csv_lat_long_bad_blocking(self):
+        
+        fileName = tempfile.mktemp(".csv")
+        file = open(fileName,"w")
+        file.write("Lati,LONG,z \n\
+-25.0,180.0,452.688000\n\
+-34,150.0,459.126000\n")
+        file.close()
+        
+        results = Geospatial_data(fileName, max_read_lines=1,
+                                  load_file_now=False)
+        
+        try:
+            for i in results:
+                pass
+        except ANUGAError:
+            pass
+        else:
+            msg = 'Different zones in Geo references not caught.'
+            raise msg        
+        
+        os.remove(fileName)
+        
     def test_load_csv(self):
-        """ test_load_csv(self):
-        space delimited
-        """
-        import os
-       
+        
         fileName = tempfile.mktemp(".txt")
         file = open(fileName,"w")
         file.write(" x,y, elevation ,  speed \n\
@@ -1758,6 +1780,68 @@ crap")
         os.remove(fileName)
 
 
+    def test_load_csv_lat_long(self):
+        """ 
+        comma delimited
+
+        """
+        fileName = tempfile.mktemp(".csv")
+        file = open(fileName,"w")
+        file.write("long,lat,z \n\
+150.916666667,-34.50,452.688000\n\
+150.0,-34,459.126000\n")
+        file.close()
+        results = Geospatial_data(fileName, delimiter=',')
+        os.remove(fileName)
+        points = results.get_data_points()
+        
+        assert allclose(points[0][0], 308728.009)
+        assert allclose(points[0][1], 6180432.601)
+        assert allclose(points[1][0],  222908.705)
+        assert allclose(points[1][1], 6233785.284)
+        
+      
+    def test_load_csv_lat_longII(self):
+        """ 
+        comma delimited
+
+        """
+        fileName = tempfile.mktemp(".csv")
+        file = open(fileName,"w")
+        file.write("Lati,LONG,z \n\
+-34.50,150.916666667,452.688000\n\
+-34,150.0,459.126000\n")
+        file.close()
+        results = Geospatial_data(fileName, delimiter=',')
+        os.remove(fileName)
+        points = results.get_data_points()
+        
+        assert allclose(points[0][0], 308728.009)
+        assert allclose(points[0][1], 6180432.601)
+        assert allclose(points[1][0],  222908.705)
+        assert allclose(points[1][1], 6233785.284)
+
+          
+    def test_load_csv_lat_long_bad(self):
+        """ 
+        comma delimited
+
+        """
+        fileName = tempfile.mktemp(".csv")
+        file = open(fileName,"w")
+        file.write("Lati,LONG,z \n\
+-25.0,180.0,452.688000\n\
+-34,150.0,459.126000\n")
+        file.close()
+        try:
+            results = Geospatial_data(fileName, delimiter=',')
+        except ANUGAError:
+            pass
+        else:
+            msg = 'Different zones in Geo references not caught.'
+            raise msg        
+        
+        os.remove(fileName)
         
     def test_lat_long(self):
         lat_gong = degminsec2decimal_degrees(-34,30,0.)
