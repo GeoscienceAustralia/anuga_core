@@ -1079,6 +1079,86 @@ crap")
         os.remove(fileName)  
         os.remove(pts_file)               
 
+    def verbose_test_load_pts_blocking(self):
+        """ test_load_csv(self):
+        space delimited
+        """
+        import os
+       
+        fileName = tempfile.mktemp(".txt")
+        file = open(fileName,"w")
+        file.write(" x,y, elevation ,  speed \n\
+1.0, 0.0, 10.0, 0.0\n\
+0.0, 1.0, 0.0, 10.0\n\
+1.0, 0.0, 10.0, 0.0\n\
+0.0, 1.0, 0.0, 10.0\n\
+1.0, 0.0, 10.0, 0.0\n\
+0.0, 1.0, 0.0, 10.0\n\
+1.0, 0.0, 10.0, 0.0\n\
+0.0, 1.0, 0.0, 10.0\n\
+1.0, 0.0, 10.0, 0.0\n\
+0.0, 1.0, 0.0, 10.0\n\
+1.0, 0.0, 10.0, 0.0\n\
+0.0, 1.0, 0.0, 10.0\n\
+1.0, 0.0, 10.0, 0.0\n\
+0.0, 1.0, 0.0, 10.0\n\
+1.0, 0.0, 10.0, 0.0\n\
+0.0, 1.0, 0.0, 10.0\n\
+1.0, 0.0, 10.0, 0.0\n\
+0.0, 1.0, 0.0, 10.0\n\
+1.0, 0.0, 10.0, 0.0\n\
+0.0, 1.0, 0.0, 10.0\n\
+1.0, 0.0, 10.0, 0.0\n\
+0.0, 1.0, 0.0, 10.0\n\
+1.0, 0.0, 10.0, 0.0\n\
+0.0, 1.0, 0.0, 10.0\n\
+1.0, 0.0, 10.0, 0.0\n\
+0.0, 1.0, 0.0, 10.0\n\
+1.0, 0.0, 10.0, 0.0\n\
+0.0, 1.0, 0.0, 10.0\n\
+1.0, 0.0, 10.0, 0.0\n\
+0.0, 1.0, 0.0, 10.0\n\
+1.0, 0.0, 10.0, 0.0\n\
+0.0, 1.0, 0.0, 10.0\n\
+1.0, 0.0, 10.0, 0.0\n\
+0.0, 1.0, 0.0, 10.0\n\
+1.0, 0.0, 10.0, 0.0\n\
+0.0, 1.0, 0.0, 10.0\n\
+1.0, 0.0, 10.0, 0.0\n\
+0.0, 1.0, 0.0, 10.0\n\
+1.0, 0.0, 10.0, 0.0\n\
+0.0, 1.0, 0.0, 10.0\n\
+1.0, 0.0, 10.0, 0.0\n\
+0.0, 1.0, 0.0, 10.0\n\
+1.0, 0.0, 10.0, 0.0\n\
+0.0, 1.0, 0.0, 10.0\n\
+1.0, 0.0, 10.0, 0.0\n\
+0.0, 1.0, 0.0, 10.0\n\
+1.0, 0.0 ,10.4, 40.0\n")
+        file.close()
+
+        pts_file = tempfile.mktemp(".pts")
+        
+        convert = Geospatial_data(fileName)
+        convert.export_points_file(pts_file)
+        results = Geospatial_data(pts_file, max_read_lines=2, verbose=True)
+
+        # Blocking
+        geo_list = []
+        for i in results:
+            geo_list.append(i) 
+        assert allclose(geo_list[0].get_data_points(),
+                        [[1.0, 0.0],[0.0, 1.0]])
+        assert allclose(geo_list[0].get_attributes(attribute_name='elevation'),
+                        [10.0, 0.0])
+        assert allclose(geo_list[1].get_data_points(),
+                        [[1.0, 0.0]])        
+        assert allclose(geo_list[1].get_attributes(attribute_name='elevation'),
+                        [10.4])
+           
+        os.remove(fileName)  
+        os.remove(pts_file)
+        
         
     def test_export_xya_file(self):
         # depreciated since it's testing using geo refs in a text file

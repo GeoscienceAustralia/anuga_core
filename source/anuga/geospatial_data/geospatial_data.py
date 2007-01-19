@@ -732,6 +732,9 @@ class Geospatial_data:
             if fin_row > self.last_row:
                 fin_row = self.last_row
 
+            if self.verbose is True and \
+                   0==self.start_row%(( self.last_row+10)/10)==0:
+                 print 'Doing %d of %d' %(self.start_row, self.last_row+10)
             #call stuff
             pointlist, att_dict, = \
                    _read_pts_file_blocking( self.fid,
