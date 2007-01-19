@@ -8,6 +8,17 @@ import os
 from geo_reference import *
 from Numeric import allclose,array
 
+# Ignore these warnings, since we still want to test .xya code.
+import warnings
+warnings.filterwarnings(action = 'ignore',
+                        message='.xya format is deprecated.  Please use .txt.',
+                        category=DeprecationWarning)
+
+warnings.filterwarnings(action = 'ignore',
+                        message='Text file format is moving to comma se',
+                        category=DeprecationWarning)
+
+
 class geo_referenceTestCase(unittest.TestCase):
     def setUp(self):
         pass

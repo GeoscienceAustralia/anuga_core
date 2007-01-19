@@ -260,8 +260,7 @@ class Fit(FitInterpolate):
         #print 'self.mesh.get_boundary_polygon()',\
         #      self.mesh.get_boundary_polygon()
 
-        # Why are these global?
-        self.inside_poly_indices, self.outside_poly_indices  = \
+        inside_poly_indices, outside_poly_indices  = \
                      in_and_outside_polygon(point_coordinates,
                                             self.mesh.get_boundary_polygon(),
                                             closed = True, verbose = verbose)
@@ -269,10 +268,10 @@ class Fit(FitInterpolate):
         #print "self.outside_poly_indices",self.outside_poly_indices
 
         
-        n = len(self.inside_poly_indices)
+        n = len(inside_poly_indices)
         if verbose: print 'Building fitting matrix from %d points' %n        
         #Compute matrix elements for points inside the mesh
-        for k, i in enumerate(self.inside_poly_indices):
+        for k, i in enumerate(inside_poly_indices):
             #For each data_coordinate point
             if verbose and k%((n+10)/10)==0: print 'Doing %d of %d' %(k, n)
             x = point_coordinates[i]
