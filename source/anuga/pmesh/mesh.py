@@ -25,17 +25,15 @@ from Numeric import array, Float, Int
 
 
  
-import load_mesh
+#import load_mesh
 from anuga.coordinate_transforms.geo_reference import Geo_reference,DEFAULT_ZONE
 from anuga.utilities.polygon import point_in_polygon 
-import anuga.load_mesh.loadASCII
+from  anuga.load_mesh.loadASCII import NOMAXAREA, export_mesh_file, \
+     import_mesh_file 
 import anuga.alpha_shape.alpha_shape
 from anuga.geospatial_data.geospatial_data import Geospatial_data, \
      ensure_geospatial, ensure_absolute, ensure_numeric
 from anuga.mesh_engine.mesh_engine import generate_mesh
-
-
-#import anuga.mesh_engine_b.mesh_engine as triang
 
 try:  
     import kinds  
@@ -1998,7 +1996,7 @@ class Mesh:
             verts[seg.vertices[0]] = seg.vertices[0]
             verts[seg.vertices[1]] = seg.vertices[1]
         meshDict = self.Mesh2IOOutlineDict(userVertices=verts.values())
-        load_mesh.loadASCII.export_mesh_file(ofile,meshDict)
+        export_mesh_file(ofile,meshDict)
         
         # exportASCIImeshfile   - this function is used
     def export_mesh_file(self,ofile):
@@ -2007,7 +2005,7 @@ class Mesh:
         """
         
         dict = self.Mesh2IODict()
-        load_mesh.loadASCII.export_mesh_file(ofile,dict)
+        export_mesh_file(ofile,dict)
 
     # FIXME(DSG-DSG):Break this into two functions.
     #One for the outline points.
@@ -2175,6 +2173,7 @@ class Mesh:
 
         Used to produce .tsh file and output to triangle
         """
+        
         if userVertices is None:
             userVertices = self.getUserVertices()
         if userSegments is None:
@@ -2222,7 +2221,7 @@ class Mesh:
             if (region.getMaxArea() != None): 
                 regionmaxarealist.append(region.getMaxArea())
             else:
-                regionmaxarealist.append( load_mesh.loadASCII.NOMAXAREA)
+                regionmaxarealist.append(NOMAXAREA)
         meshDict['regions'] = regionlist
         meshDict['region_tags'] = regiontaglist
         meshDict['region_max_areas'] = regionmaxarealist
@@ -3004,7 +3003,6 @@ def importMeshFromFile(ofile):
     newmesh = None
     if (ofile[-4:]== ".xya" or ofile[-4:]== ".pts" or ofile[-4:]== ".txt" or \
         ofile[-4:]== ".csv"):
-        #dict = load_mesh.loadASCII.import_points_file(ofile)
         geospatial = Geospatial_data(ofile)
         dict = {}
         dict['points'] = geospatial.get_data_points(absolute=False)
@@ -3020,7 +3018,7 @@ def importMeshFromFile(ofile):
         if (counter >0):
             print "%i duplicate vertices removed from dataset" % (counter)
     elif (ofile[-4:]== ".tsh" or ofile[-4:]== ".msh"):
-        dict = load_mesh.loadASCII.import_mesh_file(ofile)
+        dict = import_mesh_file(ofile)
         #print "********"
         #print "zq mesh.dict",dict
         #print "********" 
