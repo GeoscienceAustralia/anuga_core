@@ -269,7 +269,6 @@ class Test_Fit(unittest.TestCase):
  0.5,  -1.9, -1.4\n\
  3.0,  1.0 , 4.\n")
         file.close()
-        print "fileName",fileName 
         geo = Geospatial_data(fileName)
         fileName_pts = tempfile.mktemp(".pts")
         geo.export_points_file(fileName_pts)
