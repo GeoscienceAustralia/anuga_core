@@ -454,21 +454,24 @@ int _balance_deep_and_shallow(int N,
     //stage and alpha==1 means using the w-limited stage as
     //computed by the gradient limiter (both 1st or 2nd order)
     //
-    //If hmin > dz/2 then alpha = 1 and the bed will have no effect
+    //If hmin > dz/alpha_balance then alpha = 1 and the bed will have no effect
     //If hmin < 0 then alpha = 0 reverting to constant height above bed.
+    //The parameter alpha_balance==2 by default 
 
 
-    if (dz > 0.0)
-      //if (hmin<0.0)
-      //	alpha = 0.0;
-      //else
-      //  alpha = max( min( hc[k]/dz, 1.0), 0.0 );
-      alpha = max( min( alpha_balance*hmin/dz, 1.0), 0.0 );
-    else
+    if (dz > 0.0) {
+      alpha = max( min( alpha_balance*hmin/dz, 1.0), 0.0 );      
+    } else {
       alpha = 1.0;  //Flat bed
+    }
+
+    
+    //printf("k=%d, hmin=%.2f, dz=%.2f, alpha=%.2f, alpha_balance=%.2f\n", 
+    //	   k, hmin, dz, alpha, alpha_balance);
       
-      
+          
     //alpha = 1.0;  //Always deep FIXME: This actually looks good now
+    //alpha = 0.2;
 
     //printf("dz = %.3f, alpha = %.8f\n", dz, alpha);
 
