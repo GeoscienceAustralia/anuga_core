@@ -334,9 +334,9 @@ class Geospatial_data:
     def get_data_points(self, absolute=True, geo_reference=None):
         """Get coordinates for all data points as an Nx2 array
 
-        If absolute is True absolute UTM coordinates are returned otherwise
-        returned coordinates are relative to the internal georeference's
-        xll and yll corners.
+        If absolute is False returned coordinates are relative to the
+        internal georeference's xll and yll corners, otherwise
+        absolute UTM coordinates are returned.
 
         If a geo_reference is passed the points are returned relative
         to that geo_reference.
