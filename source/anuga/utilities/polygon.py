@@ -81,6 +81,8 @@ def inside_polygon(points, polygon, closed=True, verbose=False):
     except:
         # FIXME(Ole): This message is wrong. Shouldn't it be "Absolute"
         # rather than "Numeric"?
+        # (DSG)  If this fails it is going to be because the points can't be
+        # converted to a numeric array.  So this error message is good.
         msg = 'Points could not be converted to Numeric array' 
 	raise msg
 
@@ -91,6 +93,8 @@ def inside_polygon(points, polygon, closed=True, verbose=False):
     except:
         # FIXME(Ole): This message is wrong. Shouldn't it be "Absolute"
         # rather than "Numeric"?
+         # (DSG)  If this fails it is going to be because the points can't be
+        # converted to a numeric array.  So this error message is good.
         msg = 'Polygon %s could not be converted to Numeric array' %(str(polygon))
 	raise msg
 
