@@ -8,7 +8,7 @@ import anuga.utilities.polygon
 import sys
 import os
 
-from os import remove, mkdir, access, F_OK, sep
+from os import remove, mkdir, access, F_OK, W_OK, sep
 from os.path import exists, basename
 from warnings import warn
 from shutil import copy
@@ -507,7 +507,7 @@ def start_screen_catcher(dir_name, myid=0, numprocs=1):
     """
 
     dir_name = dir_name
-    if access(dir_name,F_OK) == 0:
+    if access(dir_name,W_OK) == 0:
         print 'Make directory %s' %dir_name
         mkdir (dir_name,0777)
     screen_output_name = dir_name + "screen_output_%d_%d.txt" %(myid,numprocs)

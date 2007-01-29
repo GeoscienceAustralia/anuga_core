@@ -623,7 +623,7 @@ class Geospatial_data:
         return Geospatial_data(sampled_points, sampled_attributes)
     
     
-    def split(self, factor=0.5):
+    def split(self, factor=0.5, verbose=False):
         """Returns two geospatial_data object, first is size of the 'factor'
         smaller the original and the second is the remainer. The two new 
         object are disjoin set of each other. 
@@ -648,6 +648,7 @@ class Geospatial_data:
    #     print'New samples are %s and %s in size' %(int(round(factor*self_size)),int(self_size-new_size))
         
         #find unique random numbers
+        if verbose: print "make unique random number list and get indices"
         while i < new_size:
             random_num = randint(0,self_size-1)
             if random_num not in random_list:
@@ -655,6 +656,7 @@ class Geospatial_data:
                 i=i+1
 
         #Make list of opposite to random_list
+        if verbose: print "make list of opposite to random list"
         for i in range(0,self_size,1):
             remainder_list.append(i)
 
@@ -662,11 +664,14 @@ class Geospatial_data:
         #need to sort and reverse so the pop() works correctly
         random_list.sort()
         random_list.reverse()
+        if verbose: print "get indices of oppisite to random list"
         for i in random_list:
             remainder_list.pop(i)
             
         #get new samples
+        if verbose: print "get values of indices for random list"
         G1 = self.get_sample(random_list)
+        if verbose: print "get values of indices for opposite of random list"
         G2 = self.get_sample(remainder_list)
 
         return G1, G2
