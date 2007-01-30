@@ -15,7 +15,10 @@ from random import randint
 from Scientific.IO.NetCDF import NetCDFFile    
     
 from anuga.utilities.numerical_tools import ensure_numeric
-from anuga.coordinate_transforms.geo_reference import Geo_reference, TitleError
+
+from anuga.coordinate_transforms.lat_long_UTM_conversion import UTMtoLL
+from anuga.coordinate_transforms.geo_reference import Geo_reference, \
+     TitleError, DEFAULT_ZONE 
 from anuga.coordinate_transforms.redfearn import convert_from_latlon_to_utm
 from anuga.utilities.anuga_exceptions import ANUGAError
 
@@ -331,8 +334,11 @@ class Geospatial_data:
     def get_geo_reference(self):
         return self.geo_reference
        
-    def get_data_points(self, absolute=True, geo_reference=None):
-        """Get coordinates for all data points as an Nx2 array
+    def get_data_points(self, absolute=True, geo_reference=None,
+                        as_lat_long=False):
+        """Get coordinates for all data points as an Nx2 array.
+        Column 0 is x values
+        Column 1 is y values
 
         If absolute is False returned coordinates are relative to the
         internal georeference's xll and yll corners, otherwise
@@ -343,7 +349,25 @@ class Geospatial_data:
 
         Default: absolute is True.
         """
-
+        if as_lat_long is True:
+            msg = "Points need a zone to be converted into lats and longs"
+            assert self.geo_reference is not None, msg
+            zone = self.geo_reference.get_zone()
+            assert self.geo_reference.get_zone() is not DEFAULT_ZONE, msg
+            lats_longs = []
+            for point in self.get_data_points(True):
+                ### UTMtoLL(northing, easting, zone,
+                print "point[0]",point[0]
+                print "point[1]",point[1]
+                print "zone",zone
+                results = UTMtoLL(point[0],point[1], zone)
+                print "results", results
+                lat_calced, long_calced = UTMtoLL(point[0],point[1], zone)
+                print "lat_calced", lat_calced
+                print "long_calced", long_calced
+                lats_longs.append(UTMtoLL(point[0],point[1], zone))
+            
+            
         if absolute is True and geo_reference is None:
             return self.geo_reference.get_absolute(self.data_points)
         elif geo_reference is not None:
@@ -352,7 +376,6 @@ class Geospatial_data:
                                 self.geo_reference)
         else:
             return self.data_points
-        
     
     def get_attributes(self, attribute_name=None):
         """Return values for one named attribute.

@@ -157,10 +157,10 @@ class TestCase(unittest.TestCase):
         longs = [lon_gong, lon_2]
         points, zone = convert_from_latlon_to_utm(latitudes=lats, longitudes=longs)
 
-        assert allclose(points[0][0], 308728.009)
-        assert allclose(points[0][1], 6180432.601)
-        assert allclose(points[1][0],  222908.705)
-        assert allclose(points[1][1], 6233785.284)
+        assert allclose(points[0][0], 6180432.601)
+        assert allclose(points[0][1], 308728.009)
+        assert allclose(points[1][0], 6233785.284)
+        assert allclose(points[1][1], 222908.705)
         self.failUnless(zone == 56,
                         'Bad zone error!')
         
@@ -229,10 +229,11 @@ class TestCase(unittest.TestCase):
         points = [[lat_gong, lon_gong], [lat_2, lon_2]]
         points, zone = convert_from_latlon_to_utm(points=points)
         #print "points",points 
-        assert allclose(points[0][0], 308728.009)
-        assert allclose(points[0][1], 6180432.601)
-        assert allclose(points[1][0],  222908.705)
-        assert allclose(points[1][1], 6233785.284)
+       
+        assert allclose(points[0][0], 6180432.601)
+        assert allclose(points[0][1], 308728.009)
+        assert allclose(points[1][0], 6233785.284)
+        assert allclose(points[1][1], 222908.705)
         self.failUnless(zone == 56,
                         'Bad zone error!')
 

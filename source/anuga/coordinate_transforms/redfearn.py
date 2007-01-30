@@ -204,6 +204,6 @@ def convert_from_latlon_to_utm(points=None,
                                            false_northing=false_northing)
         new_geo = Geo_reference(zone)
         old_geo.reconcile_zones(new_geo)        
-        utm_points.append([easting, northing])
+        utm_points.append([northing, easting])
 
     return utm_points, old_geo.get_zone()
