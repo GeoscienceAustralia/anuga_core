@@ -536,6 +536,66 @@ class Test_Quantity(unittest.TestCase):
         import os
         os.remove(ptsfile)
 
+    def Cache_cache_test_set_values_from_file(self):
+        quantity = Quantity(self.mesh4)
+
+        #Get (enough) datapoints
+        data_points = [[ 0.66666667, 0.66666667],
+                       [ 1.33333333, 1.33333333],
+                       [ 2.66666667, 0.66666667],
+                       [ 0.66666667, 2.66666667],
+                       [ 0.0, 1.0],
+                       [ 0.0, 3.0],
+                       [ 1.0, 0.0],
+                       [ 1.0, 1.0],
+                       [ 1.0, 2.0],
+                       [ 1.0, 3.0],
+                       [ 2.0, 1.0],
+                       [ 3.0, 0.0],
+                       [ 3.0, 1.0]]
+
+        data_geo_spatial = Geospatial_data(data_points,
+                         geo_reference = Geo_reference(56, 0, 0))
+        data_points_absolute = data_geo_spatial.get_data_points(absolute=True)
+        attributes = linear_function(data_points_absolute)
+        att = 'spam_and_eggs'
+        
+        #Create .txt file
+        ptsfile = tempfile.mktemp(".txt")
+        file = open(ptsfile,"w")
+        file.write(" x,y," + att + " \n")
+        for data_point, attribute in map(None, data_points_absolute
+                                         ,attributes):
+            row = str(data_point[0]) + ',' + str(data_point[1]) \
+                  + ',' + str(attribute)
+            file.write(row + "\n")
+        file.close()
+
+
+        #Check that values can be set from file
+        quantity.set_values(filename = ptsfile,
+                            attribute_name = att, alpha = 0, use_cache=True,
+                            verbose=True)
+        answer = linear_function(quantity.domain.get_vertex_coordinates())
+
+        #print quantity.vertex_values.flat
+        #print answer
+
+
+        assert allclose(quantity.vertex_values.flat, answer)
+
+
+        #Check that values can be set from file using default attribute
+        quantity.set_values(filename = ptsfile, alpha = 0)
+        assert allclose(quantity.vertex_values.flat, answer)
+
+        #checking cache
+        #quantity.set_values(filename = ptsfile,
+         #                   attribute_name = att, alpha = 0, use_cache=True,
+          #                  verbose=True)
+        #Cleanup
+        import os
+        os.remove(ptsfile)
 
     def test_set_values_from_file_with_georef1(self):
 
@@ -1701,6 +1761,8 @@ class Test_Quantity(unittest.TestCase):
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Quantity, 'test')
+
+    #suite = unittest.makeSuite(Test_Quantity, 'Cache_cache_test_set_values_from_file')
     #print "restricted test"
     #suite = unittest.makeSuite(Test_Quantity,'test_set_values_from_file_with_georef2')
     runner = unittest.TextTestRunner()

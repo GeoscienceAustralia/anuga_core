@@ -1322,6 +1322,10 @@ def myhash(T):
 
   import types
 
+  # On some architectures None gets different hash values
+  if T is None:
+    return(1)
+
   # Get hash vals for hashable entries
   #
   if type(T) == types.TupleType or type(T) == types.ListType:
@@ -1368,7 +1372,7 @@ def dicthash(D):
   hvals = []
   for k in range(len(keys)):
     try:
-      h = hash(D[keys[k]])
+      h = myhash(D[keys[k]])
       hvals.append(h)
     except:
       pass
