@@ -1216,8 +1216,8 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
     *stage_explicit_update,
     *xmom_explicit_update,
     *ymom_explicit_update,
-    *already_computed_flux;//tracks whether the flux across an edge has already been computed
-
+    *already_computed_flux,//tracks whether the flux across an edge has already been computed
+    *max_speed_array; //Keeps track of max speeds for each triangle
 
   //Local variables
   double timestep, max_speed, epsilon, g;
@@ -1230,7 +1230,7 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
 
 
   // Convert Python arguments to C
-  if (!PyArg_ParseTuple(args, "dddOOOOOOOOOOOOOOOOOO",
+  if (!PyArg_ParseTuple(args, "dddOOOOOOOOOOOOOOOOOOO",
 			&timestep,
 			&epsilon,
 			&g,
@@ -1249,7 +1249,8 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
 			&stage_explicit_update,
 			&xmom_explicit_update,
 			&ymom_explicit_update,
-			&already_computed_flux)) {
+			&already_computed_flux,
+			&max_speed_array)) {
     PyErr_SetString(PyExc_RuntimeError, "Input arguments failed");
     return NULL;
   }
@@ -1260,8 +1261,9 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
   for (k=0; k<number_of_elements; k++) {
     ((double *) stage_explicit_update -> data)[k]=0.0;
     ((double *) xmom_explicit_update -> data)[k]=0.0;
-    ((double *) ymom_explicit_update -> data)[k]=0.0;
+    ((double *) ymom_explicit_update -> data)[k]=0.0;  
   }
+  
   //Loop through neighbours and compute edge flux for each
   for (k=0; k<number_of_elements; k++) {
     for (i=0; i<3; i++) {
@@ -1326,11 +1328,17 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
 	    }
     }
     } // end for i
+    
     //Normalise by area and store for when all conserved
     //quantities get updated
     ((double *) stage_explicit_update -> data)[k] /= ((double *) areas -> data)[k];
     ((double *) xmom_explicit_update -> data)[k] /= ((double *) areas -> data)[k];
     ((double *) ymom_explicit_update -> data)[k] /= ((double *) areas -> data)[k];
+    
+   
+    //Keep track of maximal speeds
+    ((double *) max_speed_array -> data)[k] = max_speed;    
+    
   } //end for k
   return Py_BuildValue("d", timestep);
 }

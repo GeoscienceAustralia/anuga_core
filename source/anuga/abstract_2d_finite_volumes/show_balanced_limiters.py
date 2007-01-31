@@ -81,7 +81,7 @@ from Numeric import allclose
 
 #Evolve
 for t in domain.evolve(yieldstep = 0.1, finaltime = 30):
-    domain.write_time()
+    domain.write_time(track_location=True)
     domain.write_boundary_statistics(['stage'],'left')
 
 print 'Done'    

@@ -615,7 +615,6 @@ class Mesh(General_mesh):
             v0 = [x1-x0, y1-y0]
             v1 = [x2-x1, y2-y1]
             v2 = [x0-x2, y0-y2]
-
             a0 = anglediff(v1, v0)
             a1 = anglediff(v2, v1)
             a2 = anglediff(v0, v2)

@@ -3,11 +3,11 @@
 
 
    Copyright 2004
-   Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou
+   Ole Nielsen, Stephen Roberts, Duncan Gray
    Geoscience Australia
 """
 
-from Numeric import allclose
+from Numeric import allclose, argmax
 from anuga.config import epsilon
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
@@ -214,6 +214,10 @@ class Domain(Mesh):
         #to be used during the flux calculation
         N = len(self) #number_of_triangles
         self.already_computed_flux = zeros((N, 3), Int)
+
+        # Storage for maximal speeds computed for each triangle by compute_fluxes
+        # This is used for diagnostics only
+        self.max_speed = zeros(N, Float)
 
         if mesh_filename is not None:
             # If the mesh file passed any quantity values
@@ -545,12 +549,14 @@ class Domain(Mesh):
 
         ##assert hasattr(self, 'boundary_objects')
 
-    def write_time(self):
-        print self.timestepping_statistics()
+    def write_time(self, track_location=False):
+        print self.timestepping_statistics(track_location)
 
 
-    def timestepping_statistics(self):
+    def timestepping_statistics(self, track_location=False):
         """Return string with time stepping statistics for printing or logging
+
+        Optional boolean keyword track_location decides whether to report location of smallest timestep. 
         """
 
         msg = ''
@@ -567,6 +573,20 @@ class Domain(Mesh):
                    %(self.time, self.min_timestep,
                      self.max_timestep, self.number_of_steps,
                      self.number_of_first_order_steps)
+
+        if track_location is True:
+            msg += '\n'
+            # Find index of largest computed flux speed
+            i = argmax(self.max_speed)
+
+            x, y = self.get_centroid_coordinates()[i]
+
+            s = 'Triangle #%d with centroid (%.4f, %.4f) ' %(i, x, y)
+            s += 'had the largest computed speed: %.4f m/s' %(self.max_speed[i])
+
+            # FIXME (Ole): Maybe add all quantity values at vertices
+
+            msg += s
 
         return msg
 

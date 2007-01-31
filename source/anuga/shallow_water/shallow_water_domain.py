@@ -779,6 +779,7 @@ def compute_fluxes(domain):
         Stage.explicit_update[k] = flux[0]
         Xmom.explicit_update[k] = flux[1]
         Ymom.explicit_update[k] = flux[2]
+        domain.max_speed[k] = max_speed
 
 
     domain.timestep = timestep
@@ -831,24 +832,25 @@ def compute_fluxes_c(domain):
          compute_fluxes_ext_central as compute_fluxes_ext
     
     domain.timestep = compute_fluxes_ext(timestep, domain.epsilon, domain.g,
-                                     domain.neighbours,
-                                     domain.neighbour_edges,
-                                     domain.normals,
-                                     domain.edgelengths,
-                                     domain.radii,
-                                     domain.areas,
-                                     domain.tri_full_flag,
-                                     Stage.edge_values,
-                                     Xmom.edge_values,
-                                     Ymom.edge_values,
-                                     Bed.edge_values,
-                                     Stage.boundary_values,
-                                     Xmom.boundary_values,
-                                     Ymom.boundary_values,
-                                     Stage.explicit_update,
-                                     Xmom.explicit_update,
-                                     Ymom.explicit_update,
-                                     domain.already_computed_flux)
+                                         domain.neighbours,
+                                         domain.neighbour_edges,
+                                         domain.normals,
+                                         domain.edgelengths,
+                                         domain.radii,
+                                         domain.areas,
+                                         domain.tri_full_flag,
+                                         Stage.edge_values,
+                                         Xmom.edge_values,
+                                         Ymom.edge_values,
+                                         Bed.edge_values,
+                                         Stage.boundary_values,
+                                         Xmom.boundary_values,
+                                         Ymom.boundary_values,
+                                         Stage.explicit_update,
+                                         Xmom.explicit_update,
+                                         Ymom.explicit_update,
+                                         domain.already_computed_flux,
+                                         domain.max_speed)
 
 
 ####################################
