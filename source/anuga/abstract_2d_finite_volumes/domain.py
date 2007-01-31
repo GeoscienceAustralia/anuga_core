@@ -577,16 +577,28 @@ class Domain(Mesh):
         if track_location is True:
             msg += '\n'
             # Find index of largest computed flux speed
-            i = argmax(self.max_speed)
+            k = argmax(self.max_speed)
 
-            x, y = self.get_centroid_coordinates()[i]
+            x, y = self.get_centroid_coordinates()[k]
 
-            s = 'Triangle #%d with centroid (%.4f, %.4f) ' %(i, x, y)
-            s += 'had the largest computed speed: %.4f m/s' %(self.max_speed[i])
-
-            # FIXME (Ole): Maybe add all quantity values at vertices
-
+            s = 'Triangle #%d with centroid (%.4f, %.4f) ' %(k, x, y)
+            s += 'had the largest computed speed: %.4f m/s\n' %(self.max_speed[k])
             msg += s
+            
+            # Report all quantity values at vertices
+            for name in self.quantities:
+                q = self.quantities[name]
+                X,Y,A,V = q.get_vertex_values()                
+                
+                s = '  %s (vertex values):\t %.4f, %.4f, %.4f\n'\
+                    %(name, A[3*k], A[3*k+1], A[3*k+2]) 
+
+                msg += s
+
+
+
+
+
 
         return msg
 
