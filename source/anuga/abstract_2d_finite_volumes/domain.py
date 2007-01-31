@@ -549,15 +549,19 @@ class Domain(Mesh):
 
         ##assert hasattr(self, 'boundary_objects')
 
-    def write_time(self, track_location=False):
-        print self.timestepping_statistics(track_location)
+    def write_time(self, track_speeds=False):
+        print self.timestepping_statistics(track_speeds)
 
 
-    def timestepping_statistics(self, track_location=False):
+    def timestepping_statistics(self, track_speeds=False):
         """Return string with time stepping statistics for printing or logging
 
-        Optional boolean keyword track_location decides whether to report location of smallest timestep. 
+        Optional boolean keyword track_speeds decides whether to report location of
+        smallest timestep as well as a histogram and percentile report. 
         """
+
+        from anuga.utilities.numerical_tools import histogram, create_bins
+        
 
         msg = ''
         if self.min_timestep == self.max_timestep:
@@ -574,23 +578,68 @@ class Domain(Mesh):
                      self.max_timestep, self.number_of_steps,
                      self.number_of_first_order_steps)
 
-        if track_location is True:
+        if track_speeds is True:
             msg += '\n'
+
+
+            #Setup 10 bins for speed histogram
+            bins = create_bins(self.max_speed, 10)
+            hist = histogram(self.max_speed, bins)
+
+            msg += '------------------------------------------------\n'
+            msg += '  Speeds in [%f, %f]\n' %(min(self.max_speed), max(self.max_speed))
+            msg += '  Histogram:\n'
+
+            hi = bins[0]
+            for i, count in enumerate(hist):
+                lo = hi
+                if i+1 < len(bins):
+                    #Open upper interval                
+                    hi = bins[i+1]
+                    msg += '    [%f, %f[: %d\n' %(lo, hi, count)                
+                else:
+                    #Closed upper interval
+                    hi = max(self.max_speed)
+                    msg += '    [%f, %f]: %d\n' %(lo, hi, count)
+
+
+            N = len(self.max_speed)
+            if N > 10:
+                msg += '  Percentiles (10%):\n'
+                speed = self.max_speed.tolist()
+                speed.sort()
+
+                k = 0
+                lower = min(speed)
+                for i, a in enumerate(speed):        
+                    if i % (N/10) == 0 and i != 0: #For every 10% of the sorted speeds
+                        msg += '    %d speeds in [%f, %f]\n' %(i-k, lower, a)
+                        lower = a
+                        k = i
+                        
+                msg += '    %d speeds in [%f, %f]\n'\
+                       %(N-k, lower, max(speed))                    
+                
+                      
+            
+
+                
+            
             # Find index of largest computed flux speed
             k = argmax(self.max_speed)
 
             x, y = self.get_centroid_coordinates()[k]
 
-            s = 'Triangle #%d with centroid (%.4f, %.4f) ' %(k, x, y)
-            s += 'had the largest computed speed: %.4f m/s\n' %(self.max_speed[k])
-            msg += s
+            msg += '  Triangle #%d with centroid (%.4f, %.4f) ' %(k, x, y)
+            msg += 'had the largest computed speed: %.4f m/s\n' %(self.max_speed[k])
             
             # Report all quantity values at vertices
+            msg += '    Quantity \t vertex values\n'
             for name in self.quantities:
                 q = self.quantities[name]
                 X,Y,A,V = q.get_vertex_values()                
                 
-                s = '  %s (vertex values):\t %.4f, %.4f, %.4f\n'\
+                s = '    %s:\t %.4f, %.4f, %.4f\n'\
                     %(name, A[3*k], A[3*k+1], A[3*k+2]) 
 
                 msg += s
