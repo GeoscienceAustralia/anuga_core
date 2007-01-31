@@ -706,15 +706,12 @@ class Quantity:
                                       verbose=verbose,
                                       compression=False)
         else:
-
             vertex_attributes = apply(fit_to_mesh,
                                       args, kwargs)
 
         #Call underlying method using array values
         self.set_values_from_array(vertex_attributes,
                                    location, indices, verbose)
-
-
 
     def set_values_from_file(self, filename, attribute_name, alpha,
                              location, indices,
@@ -746,7 +743,6 @@ class Quantity:
                                         use_cache=use_cache,
                                         verbose=verbose)
                                 #, max_read_lines=max_read_lines)
-        
         #Call underlying method using array values
         self.set_values_from_array(vertex_attributes,
                                    location, indices, verbose)

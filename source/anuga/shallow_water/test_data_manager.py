@@ -4531,12 +4531,10 @@ friction  \n \
         
         points = gsd.get_data_points(absolute=True)
         
-
-        assert allclose(points[0][0], 6180432.601)
-        assert allclose(points[0][1], 308728.009)
-        assert allclose(points[1][0], 6233785.284)
-        assert allclose(points[1][1], 222908.705)
-        
+        assert allclose(points[0][0], 308728.009)
+        assert allclose(points[0][1], 6180432.601)
+        assert allclose(points[1][0],  222908.705)
+        assert allclose(points[1][1], 6233785.284)
         self.failUnless(gsd.get_geo_reference().get_zone() == 56,
                         'Bad zone error!')
 

@@ -198,12 +198,13 @@ def convert_from_latlon_to_utm(points=None,
         points =  map(None, latitudes, longitudes)
         
     for point in points:
+        
         zone, easting, northing = redfearn(float(point[0]),
                                            float(point[1]),
                                            false_easting=false_easting,
                                            false_northing=false_northing)
         new_geo = Geo_reference(zone)
         old_geo.reconcile_zones(new_geo)        
-        utm_points.append([northing, easting])
+        utm_points.append([easting, northing])
 
     return utm_points, old_geo.get_zone()

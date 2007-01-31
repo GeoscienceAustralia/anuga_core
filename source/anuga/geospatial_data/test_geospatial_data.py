@@ -161,37 +161,7 @@ class Test_Geospatial_data(unittest.TestCase):
         
         assert allclose(results, points_rel)
 
-  
-    def DSG_test_get_data_points_lat_long(self):
-        # lat long [-30.],[130]
-        #Zone:   52    
-        #Easting:  596450.153  Northing: 6680793.777 
-        # lat long [-32.],[131]
-        #Zone:   52    
-        #Easting:  688927.638  Northing: 6457816.509 
         
-        points_Lat_long = [[-30.,130], [-32,131]]
-        
-        spatial = Geospatial_data(latitudes=[-30, -32.],
-                                  longitudes=[130, 131])
-
-        results = spatial.get_data_points()
-        print "results UTM",results
-        
-        results = spatial.get_data_points(as_lat_long=True)
-        print "results",results 
-        assert allclose(results, points_rel)
-        
-        x_p = -1770
-        y_p = 4.01
-        geo_ref = Geo_reference(56, x_p, y_p)
-        points_rel = geo_ref.change_points_geo_ref(points_ab)
-        results = spatial.get_data_points \
-                  ( geo_reference=geo_ref)
-        
-        assert allclose(results, points_rel)
-
-              
     def test_set_geo_reference(self):
         points_ab = [[12.5,34.7],[-4.5,-60.0]]
         x_p = -10
@@ -709,29 +679,6 @@ class Test_Geospatial_data(unittest.TestCase):
         assert allclose(results.get_attributes(attribute_name='speed'),
                         [0.0, 10.0, 40.0])
 
-    def test_load_csv(self):
-        
-        import os
-        import tempfile
-       
-        fileName = tempfile.mktemp(".csv")
-        file = open(fileName,"w")
-        file.write("lat,long,elevation speed \n\
-1.0 0.0 10.0 0.0\n\
-0.0 1.0 0.0 10.0\n\
-1.0 0.0 10.4 40.0\n")
-        file.close()
-        #print fileName
-        results = Geospatial_data(fileName, delimiter=',')
-        os.remove(fileName)
-#        print 'data', results.get_data_points()
-        assert allclose(results.get_data_points(), [[1.0, 0.0],[0.0, 1.0],
-                                                    [1.0, 0.0]])
-        assert allclose(results.get_attributes(attribute_name='elevation'),
-                        [10.0, 0.0, 10.4])
-        assert allclose(results.get_attributes(attribute_name='speed'),
-                        [0.0, 10.0, 40.0])
-        
         
     def test_load_xya(self):
         """ test_load_xya(self):
@@ -1897,19 +1844,18 @@ crap")
         """
         fileName = tempfile.mktemp(".csv")
         file = open(fileName,"w")
-        file.write("long,lat,z \n\
-150.916666667,-34.50,452.688000\n\
-150.0,-34,459.126000\n")
+        file.write("long,lat, elevation, yeah \n\
+150.916666667,-34.50,452.688000, 10\n\
+150.0,-34,459.126000, 10\n")
         file.close()
         results = Geospatial_data(fileName, delimiter=',')
         os.remove(fileName)
         points = results.get_data_points()
         
-
-        assert allclose(points[0][0], 6180432.601)
-        assert allclose(points[0][1], 308728.009)
-        assert allclose(points[1][0], 6233785.284)
-        assert allclose(points[1][1], 222908.705)
+        assert allclose(points[0][0], 308728.009)
+        assert allclose(points[0][1], 6180432.601)
+        assert allclose(points[1][0],  222908.705)
+        assert allclose(points[1][1], 6233785.284)
         
       
     def test_load_csv_lat_longII(self):
@@ -1927,11 +1873,11 @@ crap")
         os.remove(fileName)
         points = results.get_data_points()
         
-        assert allclose(points[0][0], 6180432.601)
-        assert allclose(points[0][1], 308728.009)
-        assert allclose(points[1][0], 6233785.284)
-        assert allclose(points[1][1], 222908.705)
-        
+        assert allclose(points[0][0], 308728.009)
+        assert allclose(points[0][1], 6180432.601)
+        assert allclose(points[1][0],  222908.705)
+        assert allclose(points[1][1], 6233785.284)
+
           
     def test_load_csv_lat_long_bad(self):
         """ 
@@ -1955,10 +1901,6 @@ crap")
         os.remove(fileName)
         
     def test_lat_long(self):
-        #Zone:   56    
-        #Easting:  308728.009  Northing: 6180432.601 
-        #Latitude:   -34  30 ' 0.00000 ''  Longitude: 150  55 ' 0.00000 '' 
-
         lat_gong = degminsec2decimal_degrees(-34,30,0.)
         lon_gong = degminsec2decimal_degrees(150,55,0.)
         
@@ -1971,10 +1913,10 @@ crap")
 
         points = gsd.get_data_points(absolute=True)
         
-        assert allclose(points[0][0], 6180432.601)
-        assert allclose(points[0][1], 308728.009)
-        assert allclose(points[1][0], 6233785.284)
-        assert allclose(points[1][1], 222908.705)
+        assert allclose(points[0][0], 308728.009)
+        assert allclose(points[0][1], 6180432.601)
+        assert allclose(points[1][0],  222908.705)
+        assert allclose(points[1][1], 6233785.284)
         self.failUnless(gsd.get_geo_reference().get_zone() == 56,
                         'Bad zone error!')
         
@@ -2024,11 +1966,10 @@ crap")
 
         points = gsd.get_data_points(absolute=True)
         
-        assert allclose(points[0][0], 6180432.601)
-        assert allclose(points[0][1], 308728.009)
-        assert allclose(points[1][0], 6233785.284)
-        assert allclose(points[1][1], 222908.705)
-        
+        assert allclose(points[0][0], 308728.009)
+        assert allclose(points[0][1], 6180432.601)
+        assert allclose(points[1][0],  222908.705)
+        assert allclose(points[1][1], 6233785.284)
         self.failUnless(gsd.get_geo_reference().get_zone() == 56,
                         'Bad zone error!')
 

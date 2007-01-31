@@ -240,7 +240,44 @@ class Test_Fit(unittest.TestCase):
         assert allclose(f, answer)
         os.remove(fileName)
 
-   
+    def test_fit_to_mesh_UTM_file(self):
+        #Get (enough) datapoints
+        data_points = [[-21.5, 114.5],[-21.4, 114.6],[-21.45,114.65],
+                       [-21.35, 114.65],[-21.45, 114.55],[-21.45,114.6]]
+
+        data_geo_spatial = Geospatial_data(data_points,
+                                           points_are_lats_longs=True)
+        points_UTM = data_geo_spatial.get_data_points(absolute=True)
+        attributes = linear_function(points_UTM)
+        att = 'elevation'
+        
+        #Create .txt file
+        txt_file = tempfile.mktemp(".txt")
+        file = open(txt_file,"w")
+        file.write(" x,y," + att + " \n")
+        for data_point, attribute in map(None, points_UTM, attributes):
+            row = str(data_point[0]) + ',' + str(data_point[1]) \
+                  + ',' + str(attribute)
+            #print "row", row 
+            file.write(row + "\n")
+        file.close()
+
+        # setting up the mesh
+        a = [240000, 7620000]
+        b = [240000, 7680000]
+        c = [300000, 7620000]
+        points = [a, b, c]
+        elements = [[0,2,1]]
+        f = fit_to_mesh(points, elements, txt_file,
+                        alpha=0.0, max_read_lines=2)
+        answer = linear_function(points)
+        #print "f",f
+        #print "answer",answer 
+        assert allclose(f, answer)
+
+        # Delete file!
+        os.remove(txt_file)
+        
     def test_fit_to_mesh_pts(self):
         a = [-1.0, 0.0]
         b = [3.0, 4.0]
@@ -691,7 +728,7 @@ class Test_Fit(unittest.TestCase):
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Fit,'test')
-    #suite = unittest.makeSuite(Test_Fit,'test_smooth_att_to_mesh_with_excess_verts')
+    suite = unittest.makeSuite(Test_Fit,'test_fit_to_mesh_UTM_file')
     #suite = unittest.makeSuite(Test_Fit,'test_smooth_attributes_to_mesh_one_point')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
