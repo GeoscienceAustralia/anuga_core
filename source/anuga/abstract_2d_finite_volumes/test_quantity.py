@@ -1867,7 +1867,7 @@ class Test_Quantity(unittest.TestCase):
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Quantity, 'test')
 
-    suite = unittest.makeSuite(Test_Quantity, 'test_set_values_from_UTM')
+    #suite = unittest.makeSuite(Test_Quantity, 'test_set_values_from_UTM')
     #print "restricted test"
     #suite = unittest.makeSuite(Test_Quantity,'test_set_values_from_file_with_georef2')
     runner = unittest.TextTestRunner()

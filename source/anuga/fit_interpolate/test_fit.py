@@ -728,7 +728,7 @@ class Test_Fit(unittest.TestCase):
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Fit,'test')
-    suite = unittest.makeSuite(Test_Fit,'test_fit_to_mesh_UTM_file')
+    #suite = unittest.makeSuite(Test_Fit,'test_fit_to_mesh_UTM_file')
     #suite = unittest.makeSuite(Test_Fit,'test_smooth_attributes_to_mesh_one_point')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
