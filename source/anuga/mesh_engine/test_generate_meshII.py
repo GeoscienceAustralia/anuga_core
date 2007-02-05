@@ -20,7 +20,10 @@ class triangTestCase(unittest.TestCase):
         pass
 
 
-    def test_lone_verts(self):
+    def BAD_test_lone_verts(self):
+        """
+        This is causing a seg fault in the tux linux system. see  ticket #78
+        """
         points = []
         seglist = []
         holelist = []
