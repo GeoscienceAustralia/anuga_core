@@ -14,18 +14,19 @@ ben = BenchmarkLeastSquares()
 ofile = 'lbm_results.txt'
 delimiter = ','
 
-use_least_squares_list = [True,False]
+use_least_squares_list = [False]
 is_fit_list = [True]
 #num_of_points_list = [10]
 #maxArea_list = [0.1, 0.001]
-num_of_points_list = [10, 100, 10000, 100000] #, 10000000]
-maxArea_list = [0.1, 0.001, 0.00001, 0.0000001]
+num_of_points_list = [10, 100] #, 10000, 100000] #, 10000000]
+maxArea_list = [0.1, 0.001] #, 0.00001, 0.0000001]
 max_points_per_cell_list = [8]
+use_file_type_list = [None,'txt']
 
 fd = open(ofile,'a')
 # write the title line
 
-fd.write("use_least_squares" + delimiter +
+fd.write("use_file_type" + delimiter +
     "num_of_points" + delimiter +
          "maxArea" + delimiter +
          "num_of_triangles" + delimiter +
@@ -35,7 +36,7 @@ fd.write("use_least_squares" + delimiter +
          "time" + delimiter + "\n")
 
 
-for use_least_squares in use_least_squares_list:
+for use_file_type in use_file_type_list:
     for is_fit in is_fit_list:
         for num_of_points in num_of_points_list:
             for maxArea in maxArea_list:
@@ -45,11 +46,11 @@ for use_least_squares in use_least_squares_list:
                                                    ,maxArea=maxArea
                                                    ,max_points_per_cell=max_points_per_cell
                                                    ,is_fit=is_fit
-                                                   ,use_least_squares=use_least_squares
+                                                   ,use_file_type=use_file_type
                                                )
                     print "time",time
                     print "mem", mem
-                    fd.write(str(use_least_squares) + delimiter +
+                    fd.write(str(use_file_type) + delimiter +
                              str(is_fit) + delimiter +
                              str(num_of_points) + delimiter +
                              str(maxArea) + delimiter +

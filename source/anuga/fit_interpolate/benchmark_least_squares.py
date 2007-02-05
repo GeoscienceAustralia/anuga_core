@@ -19,11 +19,12 @@ import os
 import sys
 import time
 from random import seed, random
+import tempfile
 
-from anuga.pyvolution.least_squares import Interpolation
 from anuga.fit_interpolate.interpolate import Interpolate
 from anuga.fit_interpolate.fit import Fit
 from anuga.pmesh.mesh import Mesh
+from anuga.geospatial_data.geospatial_data import Geospatial_data
 
 def mem_usage():
     '''
@@ -48,15 +49,13 @@ def mem_usage():
 
 
 class BenchmarkLeastSquares:
-"""
-"""
 
-"""
+    """
 
-Note(DSG-DSG): If you are interested in benchmarking fitting, before
-and after blocking O:\1\dgray\before_blocking_subsandpit is before blocking
+    Note(DSG-DSG): If you are interested in benchmarking fitting, before
+    and after blocking O:\1\dgray\before_blocking_subsandpit is before blocking
 
-"""
+    """
 
     def __init__(self):
         pass
@@ -66,7 +65,8 @@ and after blocking O:\1\dgray\before_blocking_subsandpit is before blocking
               maxArea=1000,
               max_points_per_cell=4,
               is_fit=True,
-              use_least_squares=True,
+              use_least_squares=False,
+              use_file_type=None,
               save=False):
         '''
         num_of_points 
@@ -86,6 +86,7 @@ and after blocking O:\1\dgray\before_blocking_subsandpit is before blocking
         m0 = mem_usage()
 
         if use_least_squares is True:
+            from anuga.where.least_squares import Interpolation
             interp = Interpolation(mesh_dict['vertices'],
                                    mesh_dict['triangles'],
                                    points_dict['points'],
@@ -106,8 +107,18 @@ and after blocking O:\1\dgray\before_blocking_subsandpit is before blocking
                                  mesh_dict['triangles'], 
                                  max_vertices_per_cell = max_points_per_cell)
                 print "Fit in Fit"
-                calc = interp.fit(points_dict['points'],
-                                  points_dict['point_attributes'])
+                if use_file_type == None:
+                    calc = interp.fit(points_dict['points'],
+                                      points_dict['point_attributes'])
+                else:
+                    #check that the type
+                    fileName = tempfile.mktemp("." + use_file_type)
+                    G1 = Geospatial_data(points_dict['points'],
+                                         points_dict['point_attributes'])
+                    G1.export_points_file(fileName, absolute=True)
+                    calc = interp.fit(fileName)
+                    os.remove(fileName)
+                    
             else:
                 # run an interploate problem.
                 print "Interpolate!"
