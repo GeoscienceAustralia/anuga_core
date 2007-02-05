@@ -323,7 +323,7 @@ class Fit(FitInterpolate):
             msg = "Don't set a point origin when reading from a file"
             assert point_origin is None, msg
             filename = point_coordinates_or_filename
-            for i,geo_block in  enumerate(Geospatial_data(filename,
+            for i,geo_block in enumerate(Geospatial_data(filename,
                                               max_read_lines=max_read_lines,
                                               load_file_now=False,
                                               verbose=verbose)):
