@@ -873,6 +873,8 @@ def _sww2timeseries(swwfiles,
 
     return texfile, elev_output
                          
+
+
 #Fixme - Use geospatial to read this file - it's an xya file
 #Need to include other information into this filename, so xya + Name - required for report
 def get_gauges_from_file(filename):
@@ -1088,7 +1090,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
         stages_plot3d[:,:] = stages[:,:,j]
         eastings_plot3d[:,] = eastings[:,:,j]
             
-        if surface ==  True:
+        if surface is  True:
             print 'Printing surface figure'
             for i in range(2):
                 fig = p1.figure(10)
@@ -1110,7 +1112,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
     #### finished generating quantities for all swwfiles #####
 
     # x profile for given time
-    if surface == True:
+    if surface is True:
         figure(11)
         plot(eastings[tindex,:,j],stages[tindex,:,j])
         xlabel('x')
