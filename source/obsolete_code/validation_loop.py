@@ -1,8 +1,8 @@
 
 import os
-revisions = [3929, 3975,4000,4035 ]
+revisions = [4204, 4106, 4182, 4175, 4174, 4160, 4130 ]
 for revision in revisions:
-    s = 'svn up -r %s' %(revision)
+    s = 'svn up -r %s source' %(revision)
     print s
     os.system(s)
     
@@ -10,12 +10,15 @@ for revision in revisions:
     print s
     os.system(s)
 
-    root = os.sep    
-    av_dir = os.path.join(root,'d','cit','1','dgray','validate_inundation','ga','anuga_validation','automated_validation_tests')
-
+    #root = os.sep    
+    #av_dir = os.path.join(root,'d','cit','1','dgray','validate_inundation','ga','anuga_validation','automated_validation_tests')
+    av_dir = os.path.join('..','anuga_validation','automated_validation_tests','okushiri_tank_validation')
     os.chdir(av_dir)
-    s = 'python set_pythonpath_validate.py'
+
+    ## NOT SETTING PYTHONPATH
+    s = 'python loading_pts.py'
     print s
     os.system(s)
 
-    
+    av_dir = os.path.join('..','..','..','anuga_core')
+    os.chdir(av_dir)
