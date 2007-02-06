@@ -25,6 +25,7 @@ points, vertices, boundary = rectangular(4, 1, len1=4, len2=1)
 domain = Domain(points, vertices, boundary)
 domain.set_name('limiter_test')
 domain.set_store_vertices_uniquely(True)
+domain.set_default_order(2)
 
 #------------------------------------------------------------------------------
 # Setup initial conditions
@@ -43,7 +44,7 @@ def topography(x,y):
 
 
 domain.set_quantity('elevation', topography) # Use function for elevation
-domain.set_quantity('stage', 0.5)             # Constant negative initial stage
+domain.set_quantity('stage', 0.5)           # Constant initial stage
 
 
 #------------------------------------------------------------------------------
@@ -57,8 +58,10 @@ domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 # Evolve system through time
 #------------------------------------------------------------------------------
 
-for t in domain.evolve(yieldstep = 0.1, finaltime = 1.0):
+for t in domain.evolve(yieldstep = 0.1, finaltime = 50.0):
     domain.write_time()
+
+print 'done'    
 
     
 

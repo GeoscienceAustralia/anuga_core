@@ -80,7 +80,13 @@ beta_vh     = 1.0
 beta_vh_dry = 0.2
 beta_h      = 0.2
 
-alpha_balance = 2.0
+# Alpha_balance controls how limiters are balanced between deep and shallow.
+# A large value will favour the deep water limiters, allowing the a closer hug to the coastline.
+# This will minimise 'creep' but at the same time cause smaller time steps
+# Range:
+
+alpha_balance = 2.0 
+
 
 CFL = 1.0  #FIXME (ole): Is this in use yet??
            #(Steve) yes, change domain.CFL to
