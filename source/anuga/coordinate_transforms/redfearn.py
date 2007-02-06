@@ -188,7 +188,7 @@ def convert_from_latlon_to_utm(points=None,
     Notes
 
     Assume the false_easting and false_northing are the same for each list.
-    If points end up belonging to different UTM zones, an ANUGAerror is thrown.    
+    If points end up in different UTM zones, an ANUGAerror is thrown.    
     """
 
     old_geo = Geo_reference()    

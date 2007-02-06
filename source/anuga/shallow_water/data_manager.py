@@ -67,6 +67,7 @@ from Numeric import concatenate, array, Float, Int, Int32, resize, sometrue, \
 from Scientific.IO.NetCDF import NetCDFFile
 
 
+from anuga.coordinate_transforms.redfearn import redfearn
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.config import minimum_storable_height as default_minimum_storable_height
@@ -4403,7 +4404,112 @@ def lon_lat2grid(long_lat_dep):
             
     return long, lat, quantity
 
-    ####  END URS 2 SWW  ###     
+    ####  END URS 2 SWW  ###
+
+    #### URS UNGRIDDED 2 SWW ###
+
+def URS_points_needed_to_file(boundary_polygon, ll_lat, ll_long,
+                              grid_spacing, 
+                      lat_amount, long_amount, zone=None):
+    
+    geo = URS_points_needed(boundary_polygon, ll_lat, ll_long, grid_spacing, 
+                      lat_amount, long_amount, zone=zone)
+    
+def URS_points_needed(boundary_polygon, ll_lat, ll_long, grid_spacing, 
+                      lat_amount, long_amount, zone=None):
+    """
+
+    boundary_polygon - a list of points that describes a polygon.
+                      The last point is assumed ot join the first point.
+                      This is in UTM (lat long would be better though)
+
+    ll_lat - lower left latitude, in decimal degrees
+    ll-long - lower left longitude, in decimal degrees
+    grid_spacing - in deciamal degrees
+
+    """
+    from sets import ImmutableSet
+    
+    msg = "grid_spacing can not be zero"
+    assert not grid_spacing ==0, msg 
+    a = boundary_polygon
+    # List of segments.  Each segment is two points.
+    segs = [i and [a[i-1], a[i]] or [a[len(a)-1], a[0]] for i in range(len(a))]
+
+    # convert the segs to Lat's and longs.
+    if zone is None:
+        # Assume the zone of the segments is the same as the lower left
+        # corner of the lat long data
+        zone, _, _ = redfearn(ll_lat, ll_long)
+    lat_long_set = ImmutableSet()
+    for seg in segs:
+        points_lat_long = points_needed(seg, ll_lat, ll_long, grid_spacing, 
+                      lat_amount, long_amount, zone)
+        lat_long_set |= ImmutableSet(points_lat_long)
+    #print "lat_long_set",lat_long_set 
+    geo = Geospatial_data(data_points=list(lat_long_set),
+                              points_are_lats_longs=True)
+    return geo
+    
+def points_needed(seg, ll_lat, ll_long, grid_spacing, 
+                  lat_amount, long_amount, zone):
+    """
+    return a list of the points, in lats and longs that are needed to
+    interpolate any point on the segment.
+    """
+    #print "zone",zone 
+    geo_reference = Geo_reference(zone=zone)
+    #print "seg",seg 
+    geo = Geospatial_data(seg,geo_reference=geo_reference)
+    seg_lat_long = geo.get_data_points(as_lat_long=True)
+    #print "seg_lat_long", seg_lat_long
+    # 1.415 = 2^0.5, rounded up....
+    buffer = 1.415 * grid_spacing
+    
+    #
+    
+    max_lat = max(seg_lat_long[0][0], seg_lat_long[1][0]) + buffer
+    max_long = max(seg_lat_long[0][1], seg_lat_long[1][1]) + buffer
+    min_lat = max(seg_lat_long[0][0], seg_lat_long[1][0]) - buffer
+    min_long = max(seg_lat_long[0][1], seg_lat_long[1][1]) - buffer
+
+    #print "ll_lat", ll_lat
+    #print "ll_long", ll_long
+    #print "max_lat", max_lat
+    #print "max_long", max_long 
+    #print "min_lat", min_lat
+    #print "min_long", min_long
+    first_row = (min_long - ll_long)/grid_spacing
+    # To round up
+    first_row_long = int(round(first_row + 0.5))
+    #print "first_row", first_row_long
+
+    last_row = (max_long - ll_long)/grid_spacing # round down
+    last_row_long = int(round(last_row))
+    #print "last_row",last_row _long
+
+    
+    first_row = (min_lat - ll_lat)/grid_spacing
+    # To round up
+    first_row_lat = int(round(first_row + 0.5))
+    #print "first_row", first_row_lat
+
+    last_row = (max_lat - ll_lat)/grid_spacing # round down
+    last_row_lat = int(round(last_row))
+    #print "last_row",last_row_lat
+
+    points_lat_long = []
+    # Create a list of the lat long points to include.
+    for index_lat in range(first_row_lat, last_row_lat + 1):
+        for index_long in range(first_row_long, last_row_long + 1):
+            lat = ll_lat + index_lat*grid_spacing
+            long = ll_long + index_long*grid_spacing
+            points_lat_long.append((lat, long)) #must be hashable
+    #print "points_lat_long", points_lat_long
+    return points_lat_long    
+    
+    #### END URS UNGRIDDED 2 SWW ###
+
 #-------------------------------------------------------------
 if __name__ == "__main__":
     pass

@@ -6,6 +6,7 @@ import os
 from Numeric import zeros, array, allclose, concatenate
 from math import sqrt, pi
 import tempfile
+from sets import ImmutableSet
 
 from anuga.geospatial_data.geospatial_data import *
 from anuga.coordinate_transforms.geo_reference import Geo_reference, TitleError
@@ -161,7 +162,41 @@ class Test_Geospatial_data(unittest.TestCase):
         
         assert allclose(results, points_rel)
 
+  
+    def test_get_data_points_lat_long(self):
+        # lat long [-30.],[130]
+        #Zone:   52    
+        #Easting:  596450.153  Northing: 6680793.777 
+        # lat long [-32.],[131]
+        #Zone:   52    
+        #Easting:  688927.638  Northing: 6457816.509 
         
+        points_Lat_long = [[-30.,130], [-32,131]]
+        
+        spatial = Geospatial_data(latitudes=[-30, -32.],
+                                  longitudes=[130, 131])
+
+        results = spatial.get_data_points(as_lat_long=True)
+        #print "test_get_data_points_lat_long - results", results
+        #print "points_Lat_long",points_Lat_long 
+        assert allclose(results, points_Lat_long)
+      
+    def test_get_data_points_lat_longII(self):
+        # x,y  North,east long,lat
+        boundary_polygon = [[ 250000, 7630000]]
+        zone = 50
+        
+        geo_reference = Geo_reference(zone=zone)
+        geo = Geospatial_data(boundary_polygon,geo_reference=geo_reference)
+        seg_lat_long = geo.get_data_points(as_lat_long=True)
+        lat_result = degminsec2decimal_degrees(-21,24,54)
+        long_result = degminsec2decimal_degrees(114,35,17.89)
+        #print "seg_lat_long", seg_lat_long [0][0]
+        #print "lat_result",lat_result 
+        assert allclose(seg_lat_long[0][0], lat_result)#lat
+        assert allclose(seg_lat_long[0][1], long_result)#long
+
+              
     def test_set_geo_reference(self):
         points_ab = [[12.5,34.7],[-4.5,-60.0]]
         x_p = -10
@@ -1057,9 +1092,7 @@ crap")
         os.remove(pts_file)               
 
     def verbose_test_load_pts_blocking(self):
-        """ test_load_csv(self):
-        space delimited
-        """
+        
         import os
        
         fileName = tempfile.mktemp(".txt")
@@ -1129,9 +1162,9 @@ crap")
         assert allclose(geo_list[0].get_attributes(attribute_name='elevation'),
                         [10.0, 0.0])
         assert allclose(geo_list[1].get_data_points(),
-                        [[1.0, 0.0]])        
+                        [[1.0, 0.0],[0.0, 1.0] ])        
         assert allclose(geo_list[1].get_attributes(attribute_name='elevation'),
-                        [10.4])
+                        [10.0, 0.0])
            
         os.remove(fileName)  
         os.remove(pts_file)
@@ -1980,6 +2013,32 @@ crap")
         else:
             self.failUnless(0 ==1,  'Error not thrown error!')
 
+
+    def test_lat_long_set(self):
+        lat_gong = degminsec2decimal_degrees(-34,30,0.)
+        lon_gong = degminsec2decimal_degrees(150,55,0.)
+        
+        lat_2 = degminsec2decimal_degrees(-34,00,0.)
+        lon_2 = degminsec2decimal_degrees(150,00,0.)
+        p1 = (lat_gong, lon_gong)
+        p2 = (lat_2, lon_2)
+        points = ImmutableSet([p1, p2, p1])
+        gsd = Geospatial_data(data_points=list(points),
+                              points_are_lats_longs=True)
+
+        points = gsd.get_data_points(absolute=True)
+        
+        assert allclose(points[0][0], 308728.009)
+        assert allclose(points[0][1], 6180432.601)
+        assert allclose(points[1][0],  222908.705)
+        assert allclose(points[1][1], 6233785.284)
+        self.failUnless(gsd.get_geo_reference().get_zone() == 56,
+                        'Bad zone error!')
+        points = gsd.get_data_points(as_lat_long=True)
+        #print "test_lat_long_set points", points
+        assert allclose(points[1][0], -34)
+        assert allclose(points[1][1], 150)
+
     def test_len(self):
         
         points = [[1.0, 2.1], [3.0, 5.3]]
@@ -2024,9 +2083,9 @@ crap")
          
 if __name__ == "__main__":
 
-#    suite = unittest.makeSuite(Test_Geospatial_data, 'test_split')
-#    suite = unittest.makeSuite(Test_Geospatial_data, 'test_clip0')
-    suite = unittest.makeSuite(Test_Geospatial_data, 'test')
+    suite = unittest.makeSuite(Test_Geospatial_data, 'test_lat_long_set')
+    #suite = unittest.makeSuite(Test_Geospatial_data, 'verbose_test_load_pts_blocking')
+    #suite = unittest.makeSuite(Test_Geospatial_data, 'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
 

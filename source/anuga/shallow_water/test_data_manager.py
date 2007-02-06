@@ -5034,17 +5034,47 @@ friction  \n \
             msg = 'Should have raised exception'
             raise msg
         
-    def trial_loading(self):
-        basename_in = 'karratha'
-        basename_out = basename_in
-        urs2sww(basename_in, basename_out, remove_nc_files=True,
-                zscale=10000000)
     #### END TESTS FOR URS 2 SWW  ###
 
+    #### TESTS URS UNGRIDDED 2 SWW ###
+    def test_URS_points_needed(self):
+        ll_lat = -21.5
+        ll_long = 114.5
+        grid_spacing = 1./60.
+        lat_amount = 30
+        long_amount = 30
+
+        boundary_polygon = [[250000,7660000],[280000,7660000],
+                             [280000,7630000],[250000,7630000]]
+        geo=URS_points_needed(boundary_polygon,
+                              ll_lat, ll_long, grid_spacing, 
+                              lat_amount, long_amount)
+        # to test this geo, can info from it be transfered onto the boundary
+        # poly?
+        #Maybe see if I can fit the data to the polygon - have to represent
+        # the poly as points though.
+        
+        results = geo.get_data_points(as_lat_long=True)
+        #print 'results',results
+        
+    def X_test_URS_points_neededII(self):
+        ll_lat = -21.5
+        ll_long = 114.5
+        grid_spacing = 1./60.
+        lat_amount = 30
+        long_amount = 30
+
+        # change this so lats and longs are inputed, then converted
+        #boundary_polygon = [[7660000,250000],[7660000,280000],
+        #                     [7630000,280000],[7630000,250000]]
+        URS_points_needed(boundary_polygon, ll_lat, ll_long, grid_spacing, \
+                      lat_amount, long_amount)
+        
+    #### END TESTS URS UNGRIDDED 2 SWW ###
         
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sww_m')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_URS_points_needed')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_get_min_max_indexes_lat_ascending')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_ferret2sww_lat_long')
     suite = unittest.makeSuite(Test_Data_Manager,'test')

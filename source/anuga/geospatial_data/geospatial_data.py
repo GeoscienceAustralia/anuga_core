@@ -13,9 +13,10 @@ from random import randint
 #from MA import tolist
 
 from Scientific.IO.NetCDF import NetCDFFile    
-    
+from anuga.coordinate_transforms.lat_long_UTM_conversion import UTMtoLL    
 from anuga.utilities.numerical_tools import ensure_numeric
-from anuga.coordinate_transforms.geo_reference import Geo_reference, TitleError
+from anuga.coordinate_transforms.geo_reference import Geo_reference, \
+     TitleError, DEFAULT_ZONE
 from anuga.coordinate_transforms.redfearn import convert_from_latlon_to_utm
 from anuga.utilities.anuga_exceptions import ANUGAError
 
@@ -331,7 +332,8 @@ class Geospatial_data:
     def get_geo_reference(self):
         return self.geo_reference
        
-    def get_data_points(self, absolute=True, geo_reference=None):
+    def get_data_points(self, absolute=True, geo_reference=None,
+                        as_lat_long=False):
         """Get coordinates for all data points as an Nx2 array
 
         If absolute is False returned coordinates are relative to the
@@ -343,7 +345,18 @@ class Geospatial_data:
 
         Default: absolute is True.
         """
-
+        if as_lat_long is True:
+            msg = "Points need a zone to be converted into lats and longs"
+            assert self.geo_reference is not None, msg
+            zone = self.geo_reference.get_zone()
+            assert self.geo_reference.get_zone() is not DEFAULT_ZONE, msg
+            lats_longs = []
+            for point in self.get_data_points(True):
+                ### UTMtoLL(northing, easting, zone,
+                lat_calced, long_calced = UTMtoLL(point[1],point[0], zone)
+                lats_longs.append([lat_calced, long_calced])
+            return lats_longs
+            
         if absolute is True and geo_reference is None:
             return self.geo_reference.get_absolute(self.data_points)
         elif geo_reference is not None:
