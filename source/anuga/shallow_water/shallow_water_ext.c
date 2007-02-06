@@ -128,7 +128,7 @@ int limit_gradient(double *dqv, double qmin, double qmax, double beta_w){
 int flux_function_central(double *q_left, double *q_right,
 		  double z_left, double z_right,
 		  double n1, double n2,
-		  double epsilon, double g,
+		  double epsilon, double H0, double g,
 		  double *edgeflux, double *max_speed) {
 
   /*Compute fluxes between volumes for the shallow water wave equation
@@ -151,6 +151,8 @@ int flux_function_central(double *q_left, double *q_right,
   double q_left_copy[3], q_right_copy[3];
   double flux_right[3], flux_left[3];
 
+  double h0 = H0*H0; //This ensures a good balance when h approaches H0.
+  
   //Copy conserved quantities to protect from modification
   for (i=0; i<3; i++) {
     q_left_copy[i] = q_left[i];
@@ -172,7 +174,7 @@ int flux_function_central(double *q_left, double *q_right,
     h_left = 0.0;  //Could have been negative
     u_left = 0.0;
   } else {
-    u_left = uh_left/h_left;
+    u_left = uh_left/(h_left + h0/h_left);
   }
 
   w_right = q_right_copy[0];
@@ -183,7 +185,7 @@ int flux_function_central(double *q_left, double *q_right,
     h_right = 0.0; //Could have been negative
     u_right = 0.0;
   } else {
-    u_right = uh_right/h_right;
+    u_right = uh_right/(h_right + h0/h_right);
   }
 
   //Momentum in y-direction
@@ -248,10 +250,11 @@ double erfcc(double x){
 
 
 // Computational function for flux computation (using stage w=z+h)
+// FIXME (Ole): Is this used anywhere??
 int flux_function_kinetic(double *q_left, double *q_right,
 		  double z_left, double z_right,
 		  double n1, double n2,
-		  double epsilon, double g,
+		  double epsilon, double H0, double g,
 		  double *edgeflux, double *max_speed) {
 
   /*Compute fluxes between volumes for the shallow water wave equation
@@ -269,6 +272,7 @@ int flux_function_kinetic(double *q_left, double *q_right,
   double z;
   double q_left_copy[3], q_right_copy[3];
 
+  double h0 = H0*H0; //This ensures a good balance when h approaches H0.
 
   //Copy conserved quantities to protect from modification
   for (i=0; i<3; i++) {
@@ -291,7 +295,7 @@ int flux_function_kinetic(double *q_left, double *q_right,
     h_left = 0.0;  //Could have been negative
     u_left = 0.0;
   } else {
-    u_left = uh_left/h_left;
+    u_left = uh_left/(h_left + h0/h_left);
   }
 
   w_right = q_right_copy[0];
@@ -302,7 +306,7 @@ int flux_function_kinetic(double *q_left, double *q_right,
     h_right = 0.0; //Could have been negative
     u_right = 0.0;
   } else {
-    u_right = uh_right/h_right;
+    u_right = uh_right/(h_right + h0/h_right);
   }
 
   //Momentum in y-direction
@@ -1174,6 +1178,7 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
     Python call:
     domain.timestep = compute_fluxes(timestep,
                                      domain.epsilon,
+				     domain.H0,
                                      domain.g,
                                      domain.neighbours,
                                      domain.neighbour_edges,
@@ -1220,7 +1225,7 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
     *max_speed_array; //Keeps track of max speeds for each triangle
 
   //Local variables
-  double timestep, max_speed, epsilon, g;
+  double timestep, max_speed, epsilon, g, H0;
   double normal[2], ql[3], qr[3], zl, zr;
   double edgeflux[3]; //Work arrays for summing up fluxes
 
@@ -1230,9 +1235,10 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
 
 
   // Convert Python arguments to C
-  if (!PyArg_ParseTuple(args, "dddOOOOOOOOOOOOOOOOOOO",
+  if (!PyArg_ParseTuple(args, "ddddOOOOOOOOOOOOOOOOOOO",
 			&timestep,
 			&epsilon,
+			&H0,
 			&g,
 			&neighbours,
 			&neighbour_edges,
@@ -1299,7 +1305,7 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
       //Edge flux computation
       flux_function_central(ql, qr, zl, zr,
 		    normal[0], normal[1],
-		    epsilon, g,
+		    epsilon, H0, g,
 		    edgeflux, &max_speed);
       //update triangle k
       ((long *) already_computed_flux->data)[ki]=call;
@@ -1362,6 +1368,7 @@ PyObject *compute_fluxes_ext_kinetic(PyObject *self, PyObject *args) {
     Python call:
     domain.timestep = compute_fluxes(timestep,
                                      domain.epsilon,
+                                     domain.H0,
                                      domain.g,
                                      domain.neighbours,
                                      domain.neighbour_edges,
@@ -1407,7 +1414,7 @@ PyObject *compute_fluxes_ext_kinetic(PyObject *self, PyObject *args) {
 
 
   //Local variables
-  double timestep, max_speed, epsilon, g;
+  double timestep, max_speed, epsilon, g, H0;
   double normal[2], ql[3], qr[3], zl, zr;
   double edgeflux[3]; //Work arrays for summing up fluxes
 
@@ -1417,9 +1424,10 @@ PyObject *compute_fluxes_ext_kinetic(PyObject *self, PyObject *args) {
 
 
   // Convert Python arguments to C
-  if (!PyArg_ParseTuple(args, "dddOOOOOOOOOOOOOOOOOO",
+  if (!PyArg_ParseTuple(args, "ddddOOOOOOOOOOOOOOOOOO",
 			&timestep,
 			&epsilon,
+			&H0,
 			&g,
 			&neighbours,
 			&neighbour_edges,
@@ -1484,7 +1492,7 @@ PyObject *compute_fluxes_ext_kinetic(PyObject *self, PyObject *args) {
       //Edge flux computation
       flux_function_kinetic(ql, qr, zl, zr,
 		    normal[0], normal[1],
-		    epsilon, g,
+		    epsilon, H0, g,
 		    edgeflux, &max_speed);
       //update triangle k
       ((long *) already_computed_flux->data)[ki]=call;

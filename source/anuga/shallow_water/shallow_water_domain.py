@@ -146,6 +146,7 @@ class Domain(Generic_Domain):
                                 number_of_full_triangles=number_of_full_triangles) 
 
         self.minimum_allowed_height = minimum_allowed_height
+        self.H0 = minimum_allowed_height  # Minimal height for flux computation        
         self.maximum_allowed_speed = maximum_allowed_speed
         self.g = g
         self.beta_w      = beta_w
@@ -831,7 +832,10 @@ def compute_fluxes_c(domain):
     from shallow_water_ext import\
          compute_fluxes_ext_central as compute_fluxes_ext
     
-    domain.timestep = compute_fluxes_ext(timestep, domain.epsilon, domain.g,
+
+    domain.timestep = compute_fluxes_ext(timestep, domain.epsilon,
+                                         domain.H0,                                         
+                                         domain.g,
                                          domain.neighbours,
                                          domain.neighbour_edges,
                                          domain.normals,
@@ -2080,7 +2084,6 @@ if compile.can_use_C_extension('shallow_water_ext.c'):
     balance_deep_and_shallow = balance_deep_and_shallow_c
     protect_against_infinitesimal_and_negative_heights =\
                     protect_against_infinitesimal_and_negative_heights_c
-
 
     #distribute_to_vertices_and_edges =\
     #              distribute_to_vertices_and_edges_c #(like MH's)

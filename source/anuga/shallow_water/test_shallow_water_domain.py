@@ -102,6 +102,8 @@ class Test_Shallow_Water(unittest.TestCase):
         else:
             raise 'Should have raised an exception'
 
+
+    #FIXME (Ole): Individual flux tests do NOT test C implementation directly.    
     def test_flux_zero_case(self):
         ql = zeros( 3, Float )
         qr = zeros( 3, Float )
@@ -593,6 +595,7 @@ class Test_Shallow_Water(unittest.TestCase):
         #assert allclose(total_flux, domain.explicit_update[1,:])
 
 
+    # FIXME (Ole): Need test like this for fluxes in very shallow water.    
     def test_compute_fluxes3(self):
         #Random values, incl momentum
 
@@ -968,7 +971,8 @@ class Test_Shallow_Water(unittest.TestCase):
         points, vertices, boundary = rectangular_cross(10, 10) # Basic mesh
         domain = Domain(points, vertices, boundary) # Create domain
         domain.set_quantities_to_be_stored(None)
-        domain.set_maximum_allowed_speed(100) # 
+        domain.set_maximum_allowed_speed(100) #
+        domain.H0 = 0 # Backwards compatibility (6/2/7)
         
 
         #-----------------------------------------------------------------
@@ -1049,6 +1053,7 @@ class Test_Shallow_Water(unittest.TestCase):
         
 
 
+        
         assert allclose(gauge_values[0], G0)
         assert allclose(gauge_values[1], G1)
         assert allclose(gauge_values[2], G2)
@@ -2352,6 +2357,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_uh_dry = 0.9
         domain.beta_vh     = 0.9
         domain.beta_vh_dry = 0.9
+        domain.H0 = 0 # Backwards compatibility (6/2/7)        
         
         # Boundary conditions
         Br = Reflective_boundary(domain)
@@ -2452,6 +2458,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain = Domain(points, vertices, boundary)
         domain.smooth = False
         domain.default_order=1
+        domain.H0 = 0 # Backwards compatibility (6/2/7)        
 
         # Boundary conditions
         Br = Reflective_boundary(domain)
@@ -2502,6 +2509,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_vh     = 0.9
         domain.beta_vh_dry = 0.9        
         #domain.minimum_allowed_height = 0.0 #Makes it like the 'oldstyle' balance
+        domain.H0 = 0 # Backwards compatibility (6/2/7)        
 
         # Boundary conditions
         Br = Reflective_boundary(domain)
@@ -2565,6 +2573,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_vh     = 0.9
         domain.beta_vh_dry = 0.9        
         domain.maximum_allowed_speed = 0.0 #Makes it like the 'oldstyle'
+        domain.H0 = 0 # Backwards compatibility (6/2/7)        
 
         # Boundary conditions
         Br = Reflective_boundary(domain)
@@ -2614,7 +2623,8 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_uh     = 0.9
         domain.beta_uh_dry = 0.9
         domain.beta_vh     = 0.9
-        domain.beta_vh_dry = 0.9        
+        domain.beta_vh_dry = 0.9
+        domain.H0 = 0 # Backwards compatibility (6/2/7)        
 
         # Boundary conditions
         Br = Reflective_boundary(domain)
@@ -2798,6 +2808,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.smooth = False
         domain.default_order=1
         domain.beta_h = 0.0 #Use first order in h-limiter
+        domain.H0 = 0 # Backwards compatibility (6/2/7)        
 
         #Bed-slope and friction
         def x_slope(x, y):
@@ -2959,6 +2970,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_vh     = 0.9
         domain.beta_vh_dry = 0.9
         domain.beta_h = 0.0 #Use first order in h-limiter
+        domain.H0 = 0 # Backwards compatibility (6/2/7)        
 
         #Bed-slope and friction at vertices (and interpolated elsewhere)
         def x_slope(x, y):
@@ -3057,6 +3069,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_vh     = 0.9
         domain.beta_vh_dry = 0.9
         domain.beta_h = 0.0 #Use first order in h-limiter
+        domain.H0 = 0 # Backwards compatibility (6/2/7)        
 
         #Bed-slope and friction at vertices (and interpolated elsewhere)
         def x_slope(x, y):
@@ -3151,6 +3164,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_vh     = 0.9
         domain.beta_vh_dry = 0.9
         domain.beta_h = 0.0 #Use first order in h-limiter
+        domain.H0 = 0 # Backwards compatibility (6/2/7)        
 
         #Bed-slope and friction at vertices (and interpolated elsewhere)
         def x_slope(x, y):
@@ -3254,6 +3268,136 @@ class Test_Shallow_Water(unittest.TestCase):
         os.remove(domain.get_name() + '.sww')
 
 
+
+    def test_bedslope_problem_second_order_more_steps_feb_2007(self):
+        """test_bedslope_problem_second_order_more_steps_feb_2007
+
+        Test shallow water finite volumes, using parameters from feb 2007 rather
+        than backward compatibility ad infinitum
+        
+        """
+        from mesh_factory import rectangular
+        from Numeric import array
+
+        #Create basic mesh
+        points, vertices, boundary = rectangular(6, 6)
+
+        #Create shallow water domain
+        domain = Domain(points, vertices, boundary)
+        domain.smooth = False
+        domain.default_order = 2
+        domain.beta_w      = 0.9
+        domain.beta_w_dry  = 0.9
+        domain.beta_uh     = 0.9
+        domain.beta_uh_dry = 0.9
+        domain.beta_vh     = 0.9
+        domain.beta_vh_dry = 0.9
+        domain.beta_h = 0.0 #Use first order in h-limiter
+        domain.H0 = 0.001 
+
+        #Bed-slope and friction at vertices (and interpolated elsewhere)
+        def x_slope(x, y):
+            return -x/3
+
+        domain.set_quantity('elevation', x_slope)
+
+        # Boundary conditions
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
+
+        #Initial condition
+        domain.set_quantity('stage', expression = 'elevation + 0.05')
+        domain.check_integrity()
+
+        assert allclose(domain.quantities['stage'].centroid_values,
+                        [0.01296296, 0.03148148, 0.01296296,
+                        0.03148148, 0.01296296, 0.03148148,
+                        0.01296296, 0.03148148, 0.01296296,
+                        0.03148148, 0.01296296, 0.03148148,
+                        -0.04259259, -0.02407407, -0.04259259,
+                        -0.02407407, -0.04259259, -0.02407407,
+                        -0.04259259, -0.02407407, -0.04259259,
+                        -0.02407407, -0.04259259, -0.02407407,
+                        -0.09814815, -0.07962963, -0.09814815,
+                        -0.07962963, -0.09814815, -0.07962963,
+                        -0.09814815, -0.07962963, -0.09814815,
+                        -0.07962963, -0.09814815, -0.07962963,
+                        -0.1537037 , -0.13518519, -0.1537037,
+                        -0.13518519, -0.1537037, -0.13518519,
+                        -0.1537037 , -0.13518519, -0.1537037,
+                        -0.13518519, -0.1537037, -0.13518519,
+                        -0.20925926, -0.19074074, -0.20925926,
+                        -0.19074074, -0.20925926, -0.19074074,
+                        -0.20925926, -0.19074074, -0.20925926,
+                        -0.19074074, -0.20925926, -0.19074074,
+                        -0.26481481, -0.2462963, -0.26481481,
+                        -0.2462963, -0.26481481, -0.2462963,
+                        -0.26481481, -0.2462963, -0.26481481,
+                        -0.2462963, -0.26481481, -0.2462963])
+
+
+        #print domain.quantities['stage'].extrapolate_second_order()
+        #domain.distribute_to_vertices_and_edges()
+        #print domain.quantities['stage'].vertex_values[:,0]
+
+        #Evolution
+        for t in domain.evolve(yieldstep = 0.05, finaltime = 0.5):
+            pass
+
+
+        assert allclose(domain.quantities['stage'].centroid_values,
+     [-0.02907614, -0.01462948, -0.02971293, -0.01435568, -0.02930822, -0.0141715,
+      -0.02900256, -0.01402774, -0.02897007, -0.01407298, -0.02958336, -0.01393198,
+      -0.07599907, -0.06253965, -0.07666738, -0.06312924, -0.07639753, -0.06265574,
+      -0.07572658, -0.06235626, -0.07569544, -0.0624551,  -0.07653298, -0.06289883,
+      -0.1236842,  -0.11090096, -0.12238737, -0.11116539, -0.12190705, -0.11072785,
+      -0.1208281,  -0.11001521, -0.12039674, -0.11011275, -0.1210331,  -0.11013222,
+      -0.16910086, -0.1583269,  -0.16731364, -0.15787261, -0.16655826, -0.15698876,
+      -0.16497539, -0.15560667, -0.16339389, -0.15509626, -0.16364638, -0.15425332,
+      -0.18773952, -0.19904678, -0.18906095, -0.1985912,  -0.18703781, -0.19698407,
+      -0.18337965, -0.19506463, -0.18190047, -0.19418413, -0.18587491, -0.19576587,
+      -0.1398922,  -0.14172812, -0.14134412, -0.14563187, -0.14097668, -0.14375562,
+      -0.13787839, -0.14035428, -0.13594691, -0.13938278, -0.13597595, -0.14218274])
+                      
+
+        assert allclose(domain.quantities['xmomentum'].centroid_values,
+     [ 0.00831991,  0.00327584,  0.0073476,   0.0034367,   0.00767331,  0.00356348,
+       0.00791201,  0.00364529,  0.00783242,  0.00349728,  0.0069742,   0.0031689,
+       0.02165378,  0.01421696,  0.02016895,  0.01318091,  0.02036575,  0.01369801,
+       0.02105492,  0.01400313,  0.02074176,  0.01356261,  0.01887467,  0.01232703,
+       0.03774493,  0.02854758,  0.03688063,  0.02759182,  0.03731697,  0.02811662,
+       0.03871488,  0.02912926,  0.03880077,  0.02803529,  0.0354565,   0.02599893,
+       0.06319926,  0.04729427,  0.05761625,  0.04591713,  0.05789906,  0.0468986,
+       0.05985286,  0.04870638,  0.06169141,  0.04811799,  0.05656696,  0.04415568,
+       0.08488718,  0.07187458,  0.07834844,  0.06842993,  0.07985979,  0.06981954,
+       0.08200942,  0.07216429,  0.08378261,  0.07273359,  0.08040488,  0.06646477,
+       0.01631518,  0.04691654,  0.02066439,  0.04441294,  0.02115705,  0.04560776,
+       0.02160783,  0.04664204,  0.02174952,  0.0479616,   0.02281756,  0.05667927])
+
+
+        assert allclose(domain.quantities['ymomentum'].centroid_values,
+     [  1.49908296e-04,  -3.32118806e-04,  -1.55139120e-04,  -2.97772609e-04,
+       -9.57477241e-05,  -3.11011790e-04,  -1.58896911e-04,  -3.76997605e-04,
+       -1.97659519e-04,  -3.34831296e-04,   6.54935308e-05,  -8.43493883e-06,
+        5.05063334e-04,  -1.43305846e-04,  -6.76061638e-05,  -5.01728590e-04,
+       -8.39003270e-05,  -4.64804117e-04,  -1.95135035e-04,  -5.88384357e-04,
+       -2.69800068e-04,  -5.35718006e-04,   2.59588334e-04,   3.00642498e-05,
+        5.15520349e-04,   1.05711270e-04,   9.26087960e-05,  -3.71855339e-04,
+        1.16386690e-04,  -3.82345749e-04,  -1.61741416e-04,  -6.31090292e-04,
+       -4.74530925e-04,  -6.95229436e-04,   6.08967544e-05,   2.20974020e-04,
+       -6.30000309e-04,   2.42320158e-04,  -5.89290588e-04,  -7.03283441e-05,
+       -4.18421888e-04,   6.62703090e-05,  -7.68647846e-04,  -3.40294284e-04,
+       -1.67585557e-03,  -7.40500723e-04,  -1.60020305e-03,   5.62070746e-05,
+       -1.48807206e-03,  -1.84455791e-03,  -2.27365819e-03,  -1.67381169e-03,
+       -1.95607481e-03,  -1.47497442e-03,  -1.73851968e-03,  -1.85314716e-03,
+       -2.01489344e-03,  -2.17608206e-03,  -1.66072261e-03,  -1.15856505e-03,
+       -1.18717624e-03,  -2.94595857e-03,  -3.59685615e-03,  -5.13811671e-03,
+       -6.17481232e-03,  -5.98871894e-03,  -6.00593324e-03,  -5.01282532e-03,
+       -4.51124363e-03,  -3.06579417e-03,   6.07680580e-04,  -4.80786234e-04])
+
+        os.remove(domain.get_name() + '.sww')
+
+
     def test_temp_play(self):
 
         from mesh_factory import rectangular
@@ -3273,6 +3417,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_vh     = 0.9
         domain.beta_vh_dry = 0.9
         domain.beta_h = 0.0 #Use first order in h-limiter
+        domain.H0 = 0 # Backwards compatibility (6/2/7)        
 
         #Bed-slope and friction at vertices (and interpolated elsewhere)
         def x_slope(x, y):
