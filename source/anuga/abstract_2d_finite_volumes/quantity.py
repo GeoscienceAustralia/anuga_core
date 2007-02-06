@@ -737,12 +737,25 @@ class Quantity:
         coordinates = self.domain.get_nodes(absolute=True)
         triangles = self.domain.triangles      #FIXME
 
-        vertex_attributes = fit_to_mesh(coordinates, triangles,filename,
-                                        alpha=alpha,
-                                        attribute_name=attribute_name,
-                                        use_cache=use_cache,
-                                        verbose=verbose)
-                                #, max_read_lines=max_read_lines)
+
+        # Use caching at this level until loading has been fixed.
+        if use_cache is True:
+            from anuga.caching import cache 
+            vertex_attributes = cache(fit_to_mesh,
+                                      (coordinates, triangles, filename),
+                                      {'alpha': alpha,
+                                       'attribute_name': attribute_name,
+                                       'use_cache': False,
+                                       'verbose': verbose},
+                                      verbose=verbose)
+        else:
+            vertex_attributes = fit_to_mesh(coordinates, triangles,filename,
+                                            alpha=alpha,
+                                            attribute_name=attribute_name,
+                                            use_cache=use_cache,
+                                            verbose=verbose)
+            
+                                
         #Call underlying method using array values
         self.set_values_from_array(vertex_attributes,
                                    location, indices, verbose)
