@@ -9,12 +9,14 @@ import tempfile
 import os
 from Scientific.IO.NetCDF import NetCDFFile
 from struct import pack
+from sets import ImmutableSet
 
 from anuga.shallow_water import *
 from anuga.shallow_water.data_manager import *
 from anuga.config import epsilon
 from anuga.utilities.anuga_exceptions import ANUGAError
 from anuga.utilities.numerical_tools import ensure_numeric
+from anuga.coordinate_transforms.redfearn import degminsec2decimal_degrees
 
 # This is needed to run the tests of local functions
 import data_manager 
@@ -5037,7 +5039,8 @@ friction  \n \
     #### END TESTS FOR URS 2 SWW  ###
 
     #### TESTS URS UNGRIDDED 2 SWW ###
-    def test_URS_points_needed(self):
+    def X_test_URS_points_needed(self):
+        
         ll_lat = -21.5
         ll_long = 114.5
         grid_spacing = 1./60.
@@ -5053,9 +5056,24 @@ friction  \n \
         # poly?
         #Maybe see if I can fit the data to the polygon - have to represent
         # the poly as points though.
-        
-        results = geo.get_data_points(as_lat_long=True)
-        #print 'results',results
+        geo.export_points_file("results")
+        results = ImmutableSet(geo.get_data_points(as_lat_long=True))
+        print 'results',results
+
+        # These are a set of points that have to be in results
+        points = []
+        for i in range(18):
+            lat = -21.0 - 8/60 - grid_spacing * i
+            points.append((lat,degminsec2decimal_degrees(114,35,0))) 
+            #points.append((lat,degminsec2decimal_degrees(114,36,0))) 
+            #points.append((lat,degminsec2decimal_degrees(114,52,0))) 
+            #points.append((lat,degminsec2decimal_degrees(114,53,0)))
+            
+        answer = ImmutableSet(points)
+        print "answer", answer
+        outs = answer.difference(results)
+        print "outs", outs 
+        assert answer.issubset(results)
         
     def X_test_URS_points_neededII(self):
         ll_lat = -21.5
@@ -5074,10 +5092,10 @@ friction  \n \
         
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_URS_points_needed')
+    suite = unittest.makeSuite(Test_Data_Manager,'test_URS_points_needed')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_get_min_max_indexes_lat_ascending')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_ferret2sww_lat_long')
-    suite = unittest.makeSuite(Test_Data_Manager,'test')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
 

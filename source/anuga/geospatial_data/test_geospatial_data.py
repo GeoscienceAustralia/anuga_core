@@ -1392,6 +1392,26 @@ crap")
         answer = [10.0, 0.0, 10.4]
         assert allclose(results.get_attributes('brightness'), answer)
         
+ 
+    def test_write_csv_attributes_lat_long(self):
+        #test_write : Test that storage of x,y,attributes works
+        
+        att_dict = {}
+        pointlist = array([[-21.5,114.5],[-21.6,114.5],[-21.7,114.5]])
+        att_dict['elevation'] = array([10.0, 0.0, 10.4])
+        att_dict['brightness'] = array([10.0, 0.0, 10.4])
+        # Test txt format
+        fileName = tempfile.mktemp(".txt")
+        G = Geospatial_data(pointlist, att_dict, points_are_lats_longs=True)
+        G.export_points_file(fileName, as_lat_long=True)
+        #print "fileName", fileName 
+        results = Geospatial_data(file_name=fileName)
+        os.remove(fileName)
+        assert allclose(results.get_data_points(False, as_lat_long=True),
+                        pointlist)
+        assert allclose(results.get_attributes('elevation'), [10.0, 0.0, 10.4])
+        answer = [10.0, 0.0, 10.4]
+        assert allclose(results.get_attributes('brightness'), answer)
         
     def test_writepts_no_attributes(self):
 
@@ -2029,16 +2049,28 @@ crap")
         points = gsd.get_data_points(absolute=True)
         #print "points[0][0]", points[0][0]
         #Note the order is unknown, due to using sets
-        assert allclose(points[1][0], 308728.009)
-        assert allclose(points[1][1], 6180432.601)
-        assert allclose(points[0][0],  222908.705)
-        assert allclose(points[0][1], 6233785.284)
+        # and it changes from windows to linux
+        try:
+            assert allclose(points[1][0], 308728.009)
+            assert allclose(points[1][1], 6180432.601)
+            assert allclose(points[0][0],  222908.705)
+            assert allclose(points[0][1], 6233785.284)
+        except AssertionError:
+            assert allclose(points[0][0], 308728.009)
+            assert allclose(points[0][1], 6180432.601)
+            assert allclose(points[1][0],  222908.705)
+            assert allclose(points[1][1], 6233785.284)
+            
         self.failUnless(gsd.get_geo_reference().get_zone() == 56,
                         'Bad zone error!')
         points = gsd.get_data_points(as_lat_long=True)
         #print "test_lat_long_set points", points
-        assert allclose(points[0][0], -34)
-        assert allclose(points[0][1], 150)
+        try:
+            assert allclose(points[0][0], -34)
+            assert allclose(points[0][1], 150)
+        except AssertionError:
+            assert allclose(points[1][0], -34)
+            assert allclose(points[1][1], 150)
 
     def test_len(self):
         
@@ -2084,7 +2116,7 @@ crap")
          
 if __name__ == "__main__":
 
-    #suite = unittest.makeSuite(Test_Geospatial_data, 'test_lat_long_set')
+    #suite = unittest.makeSuite(Test_Geospatial_data, 'test_write_csv_attributes_lat_long')
     #suite = unittest.makeSuite(Test_Geospatial_data, 'verbose_test_load_pts_blocking')
     suite = unittest.makeSuite(Test_Geospatial_data, 'test')
     runner = unittest.TextTestRunner()

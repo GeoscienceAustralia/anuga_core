@@ -354,7 +354,7 @@ class Geospatial_data:
             for point in self.get_data_points(True):
                 ### UTMtoLL(northing, easting, zone,
                 lat_calced, long_calced = UTMtoLL(point[1],point[0], zone)
-                lats_longs.append([lat_calced, long_calced])
+                lats_longs.append((lat_calced, long_calced)) # to hash
             return lats_longs
             
         if absolute is True and geo_reference is None:
@@ -556,7 +556,7 @@ class Geospatial_data:
     
 #        return all_data
     
-    def export_points_file(self, file_name, absolute=True):
+    def export_points_file(self, file_name, absolute=True, as_lat_long=False):
         
         """
         write a points file, file_name, as a text (.xya) or binary (.pts) file
@@ -603,8 +603,10 @@ class Geospatial_data:
             msg = "ERROR: trying to write a .txt file with relative data."
             assert absolute, msg
             _write_csv_file(file_name,
-                            self.get_data_points(absolute=True), 
-                            self.get_all_attributes())
+                            self.get_data_points(absolute=True,
+                                                 as_lat_long=as_lat_long), 
+                            self.get_all_attributes(),
+                            as_lat_long=as_lat_long)
                                     
         else:
             msg = 'Unknown file type %s ' %file_name
@@ -1182,7 +1184,8 @@ def _write_xya_file(file_name,
 
 def _write_csv_file(file_name,
                     write_data_points,
-                    write_attributes=None, 
+                    write_attributes=None,
+                    as_lat_long=False,
                     delimiter=','):
     """
     export a file, file_name, with the xya format
@@ -1192,14 +1195,17 @@ def _write_csv_file(file_name,
     pointattributes = write_attributes
     
     fd = open(file_name,'w')
-    titlelist = "x" + delimiter + "y"  + delimiter
+    if as_lat_long:
+        titlelist = "latitude" + delimiter + "longitude"  + delimiter
+    else:
+        titlelist = "x" + delimiter + "y"  + delimiter
     if pointattributes is not None:    
         for title in pointattributes.keys():
             titlelist = titlelist + title + delimiter
         titlelist = titlelist[0:-len(delimiter)] # remove the last delimiter
     fd.write(titlelist+"\n")
     
-    #<vertex #> <x> <y> [attributes]
+    # <x/lat> <y/long> [attributes]
     for i, vert in enumerate( points):
 
 
