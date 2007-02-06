@@ -656,6 +656,7 @@ def sww2timeseries(swwfiles,
                    report = None,
                    reportname = None,
                    plot_quantity = None,
+                   generate_fig = False,
                    surface = None,
                    time_min = None,
                    time_max = None,
@@ -705,6 +706,9 @@ def sww2timeseries(swwfiles,
                         - y momentum; 'ymomentum'
                     - default will be ['stage', 'speed', 'bearing']
 
+    generate_fig     - if True, generate figures as well as csv files of quantities
+                     - if False, csv files created only
+                     
     surface          - if True, then generate solution surface with 3d plot
                        and save to current working directory
                      - default = False
@@ -744,6 +748,7 @@ def sww2timeseries(swwfiles,
                         report,
                         reportname,
                         plot_quantity,
+                        generate_fig,
                         surface,
                         time_min,
                         time_max,
@@ -758,6 +763,7 @@ def _sww2timeseries(swwfiles,
                     report = None,
                     reportname = None,
                     plot_quantity = None,
+                    generate_fig = False,
                     surface = None,
                     time_min = None,
                     time_max = None,
@@ -866,7 +872,8 @@ def _sww2timeseries(swwfiles,
     if len(gauge_index) <> 0:
         texfile, elev_output = generate_figures(plot_quantity, file_loc, report, reportname, surface,
                                                 leg_label, f_list, gauges, locations, elev, gauge_index,
-                                                production_dirs, time_min, time_max, title_on, label_id, verbose)
+                                                production_dirs, time_min, time_max, title_on, label_id,
+                                                generate_fig, verbose)
     else:
         texfile = ''
         elev_output = []
@@ -961,18 +968,20 @@ def calc_bearing(uh, vh):
 def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                      leg_label, f_list, gauges, locations, elev, gauge_index,
                      production_dirs, time_min, time_max, title_on, label_id,
-                     verbose):
+                     generate_fig, verbose):
     """ Generate figures based on required quantities and gauges for each sww file
     """
     from math import sqrt, atan, degrees
     from Numeric import ones, allclose, zeros, Float, ravel
     from os import sep, altsep, getcwd, mkdir, access, F_OK, environ
-    from pylab import ion, hold, plot, axis, figure, legend, savefig, \
-         xlabel, ylabel, title, close, subplot
 
-    import pylab as p1
-    if surface is True:
-        import mpl3d.mplot3d as p3
+    if generate_fig is True:
+        from pylab import ion, hold, plot, axis, figure, legend, savefig, \
+             xlabel, ylabel, title, close, subplot
+    
+        if surface is True:
+            import pylab as p1
+            import mpl3d.mplot3d as p3
         
     if report == True:    
         texdir = getcwd()+sep+'report'+sep
@@ -1124,110 +1133,174 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
     stage_axis = axis([time_min/60.0, time_max/60.0, min(min_stages), max(max_stages)*1.1])
     vel_axis = axis([time_min/60.0, time_max/60.0, min(max_speeds), max(max_speeds)*1.1])
     mom_axis = axis([time_min/60.0, time_max/60.0, min(max_momentums), max(max_momentums)*1.1])  
-    
-    cstr = ['g', 'r', 'b', 'c', 'm', 'y', 'k']
-    nn = len(plot_quantity)
-    no_cols = 2
-    elev_output = []
-    if len(label_id) > 1: graphname_report = []
-    pp = 1
-    div = 11.
-    cc = 0
-    for k in gauge_index:
-        g = gauges[k]
-        count1 = 0
-        if report == True and len(label_id) > 1:
-            s = '\\begin{figure}[ht] \n \\centering \n \\begin{tabular}{cc} \n'
-            fid.write(s)
+
+    if generate_fig is True:
+        cstr = ['g', 'r', 'b', 'c', 'm', 'y', 'k']
+        nn = len(plot_quantity)
+        no_cols = 2
+        elev_output = []
         if len(label_id) > 1: graphname_report = []
-        #### generate figures for each gauge ####
-        for j, f in enumerate(f_list):
-            ion()
-            hold(True)
-            count = 0
-            where1 = 0
-            where2 = 0
-            word_quantity = ''
-            if report == True and len(label_id) == 1:
-                s = '\\begin{figure}[hbt] \n \\centering \n \\begin{tabular}{cc} \n'
+        pp = 1
+        div = 11.
+        cc = 0
+        for k in gauge_index:
+            g = gauges[k]
+            count1 = 0
+            if report == True and len(label_id) > 1:
+                s = '\\begin{figure}[ht] \n \\centering \n \\begin{tabular}{cc} \n'
                 fid.write(s)
-                
-            for which_quantity in plot_quantity:
-                count += 1
-                where1 += 1
-                figure(count, frameon = False)
-                if which_quantity == 'depth':
-                    plot(model_time[0:n[j]-1,k,j], depths[0:n[j]-1,k,j], '-', c = cstr[j])
-                    units = 'm'
-                    axis(depth_axis)
-                if which_quantity == 'stage':
-                    if elevations[0,k,j] < 0:
-                        plot(model_time[0:n[j]-1,k,j], stages[0:n[j]-1,k,j], '-', c = cstr[j])
-                        axis(stage_axis)
-                    else:
-                        plot(model_time[0:n[j]-1,k,j], depths[0:n[j]-1,k,j], '-', c = cstr[j])
-                        axis(depth_axis)                 
-                    units = 'm'
-                if which_quantity == 'momentum':
-                    plot(model_time[0:n[j]-1,k,j], momenta[0:n[j]-1,k,j], '-', c = cstr[j])
-                    axis(mom_axis)
-                    units = 'm^2 / sec'
-                if which_quantity == 'xmomentum':
-                    plot(model_time[0:n[j]-1,k,j], xmom[0:n[j]-1,k,j], '-', c = cstr[j])
-                    axis(mom_axis)
-                    units = 'm^2 / sec'
-                if which_quantity == 'ymomentum':
-                    plot(model_time[0:n[j]-1,k,j], ymom[0:n[j]-1,k,j], '-', c = cstr[j])
-                    axis(mom_axis)
-                    units = 'm^2 / sec'
-                if which_quantity == 'speed':
-                    plot(model_time[0:n[j]-1,k,j], speed[0:n[j]-1,k,j], '-', c = cstr[j])
-                    axis(vel_axis)
-                    units = 'm / sec'
-                if which_quantity == 'bearing':
-                    due_east = 90.0*ones(shape(model_time[0:n[j]-1,k,j],Float))
-                    due_west = 270.0*ones(shape(model_time[0:n[j]-1,k,j],Float))
-                    plot(model_time[0:n[j]-1,k,j], bearings, '-', 
-                         model_time[0:n[j]-1,k,j], due_west, '-.', 
-                         model_time[0:n[j]-1,k,j], due_east, '-.')
-                    units = 'degrees from North'
-                    ax = axis([time_min, time_max, 0.0, 360.0])
-                    legend(('Bearing','West','East'))
-
-                xlabel('time (mins)')
-                if which_quantity == 'stage' and elevations[0:n[j]-1,k,j] > 0:
-                    ylabel('%s (%s)' %('depth', units))
-                else:
-                    ylabel('%s (%s)' %(which_quantity, units))
-                if len(label_id) > 1: legend((leg_label),loc='upper right')
-
-                gaugeloc1 = gaugeloc.replace(' ','')
-                #gaugeloc2 = gaugeloc1.replace('_','')
-                gaugeloc2 = locations[k].replace(' ','')
-                graphname = '%sgauge%s_%s' %(file_loc[j], gaugeloc2, which_quantity)
-
-                if report == True and len(label_id) > 1:
-                    figdir = getcwd()+sep+'report_figures'+sep
-                    if access(figdir,F_OK) == 0 :
-                        mkdir (figdir)
-                    latex_file_loc = figdir.replace(sep,altsep) 
-                    graphname_latex = '%sgauge%s%s' %(latex_file_loc, gaugeloc2, which_quantity) # storing files in production directory    
-                    graphname_report_input = '%sgauge%s%s' %('..'+altsep+'report_figures'+altsep, gaugeloc2, which_quantity) # giving location in latex output file
-                    graphname_report.append(graphname_report_input)
+            if len(label_id) > 1: graphname_report = []
+            #### generate figures for each gauge ####
+            for j, f in enumerate(f_list):
+                ion()
+                hold(True)
+                count = 0
+                where1 = 0
+                where2 = 0
+                word_quantity = ''
+                if report == True and len(label_id) == 1:
+                    s = '\\begin{figure}[hbt] \n \\centering \n \\begin{tabular}{cc} \n'
+                    fid.write(s)
                     
-                    savefig(graphname_latex) # save figures in production directory for report generation
+                for which_quantity in plot_quantity:
+                    count += 1
+                    where1 += 1
+                    figure(count, frameon = False)
+                    if which_quantity == 'depth':
+                        plot(model_time[0:n[j]-1,k,j], depths[0:n[j]-1,k,j], '-', c = cstr[j])
+                        units = 'm'
+                        axis(depth_axis)
+                    if which_quantity == 'stage':
+                        if elevations[0,k,j] < 0:
+                            plot(model_time[0:n[j]-1,k,j], stages[0:n[j]-1,k,j], '-', c = cstr[j])
+                            axis(stage_axis)
+                        else:
+                            plot(model_time[0:n[j]-1,k,j], depths[0:n[j]-1,k,j], '-', c = cstr[j])
+                            axis(depth_axis)                 
+                        units = 'm'
+                    if which_quantity == 'momentum':
+                        plot(model_time[0:n[j]-1,k,j], momenta[0:n[j]-1,k,j], '-', c = cstr[j])
+                        axis(mom_axis)
+                        units = 'm^2 / sec'
+                    if which_quantity == 'xmomentum':
+                        plot(model_time[0:n[j]-1,k,j], xmom[0:n[j]-1,k,j], '-', c = cstr[j])
+                        axis(mom_axis)
+                        units = 'm^2 / sec'
+                    if which_quantity == 'ymomentum':
+                        plot(model_time[0:n[j]-1,k,j], ymom[0:n[j]-1,k,j], '-', c = cstr[j])
+                        axis(mom_axis)
+                        units = 'm^2 / sec'
+                    if which_quantity == 'speed':
+                        plot(model_time[0:n[j]-1,k,j], speed[0:n[j]-1,k,j], '-', c = cstr[j])
+                        axis(vel_axis)
+                        units = 'm / sec'
+                    if which_quantity == 'bearing':
+                        due_east = 90.0*ones(shape(model_time[0:n[j]-1,k,j],Float))
+                        due_west = 270.0*ones(shape(model_time[0:n[j]-1,k,j],Float))
+                        plot(model_time[0:n[j]-1,k,j], bearings, '-', 
+                             model_time[0:n[j]-1,k,j], due_west, '-.', 
+                             model_time[0:n[j]-1,k,j], due_east, '-.')
+                        units = 'degrees from North'
+                        ax = axis([time_min, time_max, 0.0, 360.0])
+                        legend(('Bearing','West','East'))
 
-                if report == True:
+                    xlabel('time (mins)')
+                    if which_quantity == 'stage' and elevations[0:n[j]-1,k,j] > 0:
+                        ylabel('%s (%s)' %('depth', units))
+                    else:
+                        ylabel('%s (%s)' %(which_quantity, units))
+                    if len(label_id) > 1: legend((leg_label),loc='upper right')
 
-                    figdir = getcwd()+sep+'report_figures'+sep
-                    if access(figdir,F_OK) == 0 :
-                        mkdir (figdir)
-                    latex_file_loc = figdir.replace(sep,altsep)    
+                    gaugeloc1 = gaugeloc.replace(' ','')
+                    #gaugeloc2 = gaugeloc1.replace('_','')
+                    gaugeloc2 = locations[k].replace(' ','')
+                    graphname = '%sgauge%s_%s' %(file_loc[j], gaugeloc2, which_quantity)
 
-                    if len(label_id) == 1: 
-                        graphname_latex = '%sgauge%s%s%s' %(latex_file_loc, gaugeloc2, which_quantity, label_id2) # storing files in production directory  
-                        graphname_report = '%sgauge%s%s%s' %('..'+altsep+'report_figures'+altsep, gaugeloc2, which_quantity, label_id2) # giving location in latex output file
-                        s = '\includegraphics[width=0.49\linewidth, height=50mm]{%s%s}' %(graphname_report, '.png')
+                    if report == True and len(label_id) > 1:
+                        figdir = getcwd()+sep+'report_figures'+sep
+                        if access(figdir,F_OK) == 0 :
+                            mkdir (figdir)
+                        latex_file_loc = figdir.replace(sep,altsep) 
+                        graphname_latex = '%sgauge%s%s' %(latex_file_loc, gaugeloc2, which_quantity) # storing files in production directory    
+                        graphname_report_input = '%sgauge%s%s' %('..'+altsep+'report_figures'+altsep, gaugeloc2, which_quantity) # giving location in latex output file
+                        graphname_report.append(graphname_report_input)
+                        
+                        savefig(graphname_latex) # save figures in production directory for report generation
+
+                    if report == True:
+
+                        figdir = getcwd()+sep+'report_figures'+sep
+                        if access(figdir,F_OK) == 0 :
+                            mkdir (figdir)
+                        latex_file_loc = figdir.replace(sep,altsep)    
+
+                        if len(label_id) == 1: 
+                            graphname_latex = '%sgauge%s%s%s' %(latex_file_loc, gaugeloc2, which_quantity, label_id2) # storing files in production directory  
+                            graphname_report = '%sgauge%s%s%s' %('..'+altsep+'report_figures'+altsep, gaugeloc2, which_quantity, label_id2) # giving location in latex output file
+                            s = '\includegraphics[width=0.49\linewidth, height=50mm]{%s%s}' %(graphname_report, '.png')
+                            fid.write(s)
+                            if where1 % 2 == 0:
+                                s = '\\\\ \n'
+                                where1 = 0
+                            else:
+                                s = '& \n'
+                            fid.write(s)
+                            savefig(graphname_latex)
+                    
+                    if title_on == True:
+                        title('%s scenario: %s at %s gauge' %(label_id, which_quantity, gaugeloc2))
+
+                    savefig(graphname) # save figures with sww file
+
+                if report == True and len(label_id) == 1:
+                    for i in range(nn-1):
+                        if nn > 2:
+                            if plot_quantity[i] == 'stage' and elevations[0,k,j] > 0:
+                                word_quantity += 'depth' + ', '
+                            else:
+                                word_quantity += plot_quantity[i] + ', '
+                        else:
+                            if plot_quantity[i] == 'stage' and elevations[0,k,j] > 0:
+                                word_quantity += 'depth' + ', '
+                            else:
+                                word_quantity += plot_quantity[i]
+                        
+                    if plot_quantity[nn-1] == 'stage' and elevations[0,k,j] > 0:
+                        word_quantity += ' and ' + 'depth'
+                    else:
+                        word_quantity += ' and ' + plot_quantity[nn-1]
+                    caption = 'Time series for %s at %s location (elevation %.2fm)' %(word_quantity, locations[k], elev[k]) #gaugeloc.replace('_',' '))
+                    if elev[k] == 0.0:
+                        caption = 'Time series for %s at %s location (elevation %.2fm)' %(word_quantity, locations[k], elevations[0,k,j])
+                        east = gauges[0]
+                        north = gauges[1]
+                        elev_output.append([locations[k],east,north,elevations[0,k,j]])
+                    label = '%sgauge%s' %(label_id2, gaugeloc2)
+                    s = '\end{tabular} \n \\caption{%s} \n \label{fig:%s} \n \end{figure} \n \n' %(caption, label)
+                    fid.write(s)
+                    cc += 1
+                    if cc % 6 == 0: fid.write('\\clearpage \n')
+                    savefig(graphname_latex)               
+                    
+            if report == True and len(label_id) > 1:
+                for i in range(nn-1):
+                    if nn > 2:
+                        if plot_quantity[i] == 'stage' and elevations[0,k,j] > 0:
+                            word_quantity += 'depth' + ','
+                        else:
+                            word_quantity += plot_quantity[i] + ', '
+                    else:
+                        if plot_quantity[i] == 'stage' and elevations[0,k,j] > 0:
+                            word_quantity += 'depth'
+                        else:
+                            word_quantity += plot_quantity[i]
+                    where1 = 0
+                    count1 += 1
+                    index = j*len(plot_quantity)
+                    for which_quantity in plot_quantity:
+                        where1 += 1
+                        s = '\includegraphics[width=0.49\linewidth, height=50mm]{%s%s}' %(graphname_report[index], '.png')
+                        index += 1
                         fid.write(s)
                         if where1 % 2 == 0:
                             s = '\\\\ \n'
@@ -1235,89 +1308,26 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                         else:
                             s = '& \n'
                         fid.write(s)
-                        savefig(graphname_latex)
-                
-                if title_on == True:
-                    title('%s scenario: %s at %s gauge' %(label_id, which_quantity, gaugeloc2))
-
-                savefig(graphname) # save figures with sww file
-
-            if report == True and len(label_id) == 1:
-                for i in range(nn-1):
-                    if nn > 2:
-                        if plot_quantity[i] == 'stage' and elevations[0,k,j] > 0:
-                            word_quantity += 'depth' + ', '
-                        else:
-                            word_quantity += plot_quantity[i] + ', '
-                    else:
-                        if plot_quantity[i] == 'stage' and elevations[0,k,j] > 0:
-                            word_quantity += 'depth' + ', '
-                        else:
-                            word_quantity += plot_quantity[i]
-                    
-                if plot_quantity[nn-1] == 'stage' and elevations[0,k,j] > 0:
-                    word_quantity += ' and ' + 'depth'
-                else:
-                    word_quantity += ' and ' + plot_quantity[nn-1]
-                caption = 'Time series for %s at %s location (elevation %.2fm)' %(word_quantity, locations[k], elev[k]) #gaugeloc.replace('_',' '))
+                word_quantity += ' and ' + plot_quantity[nn-1]            
+                label = 'gauge%s' %(gaugeloc2) 
+                caption = 'Time series for %s at %s location (elevation %.2fm)' %(word_quantity, locations[k], elev[k])
                 if elev[k] == 0.0:
-                    caption = 'Time series for %s at %s location (elevation %.2fm)' %(word_quantity, locations[k], elevations[0,k,j])
-                    east = gauges[0]
-                    north = gauges[1]
-                    elev_output.append([locations[k],east,north,elevations[0,k,j]])
-                label = '%sgauge%s' %(label_id2, gaugeloc2)
+                        caption = 'Time series for %s at %s location (elevation %.2fm)' %(word_quantity, locations[k], elevations[0,k,j])
+                        thisgauge = gauges[k]
+                        east = thisgauge[0]
+                        north = thisgauge[1]
+                        elev_output.append([locations[k],east,north,elevations[0,k,j]])
+                        
                 s = '\end{tabular} \n \\caption{%s} \n \label{fig:%s} \n \end{figure} \n \n' %(caption, label)
                 fid.write(s)
-                cc += 1
-                if cc % 6 == 0: fid.write('\\clearpage \n')
-                savefig(graphname_latex)               
+                if float((k+1)/div - pp) == 0.:
+                    fid.write('\\clearpage \n')
+                    pp += 1
                 
-        if report == True and len(label_id) > 1:
-            for i in range(nn-1):
-                if nn > 2:
-                    if plot_quantity[i] == 'stage' and elevations[0,k,j] > 0:
-                        word_quantity += 'depth' + ','
-                    else:
-                        word_quantity += plot_quantity[i] + ', '
-                else:
-                    if plot_quantity[i] == 'stage' and elevations[0,k,j] > 0:
-                        word_quantity += 'depth'
-                    else:
-                        word_quantity += plot_quantity[i]
-                where1 = 0
-                count1 += 1
-                index = j*len(plot_quantity)
-                for which_quantity in plot_quantity:
-                    where1 += 1
-                    s = '\includegraphics[width=0.49\linewidth, height=50mm]{%s%s}' %(graphname_report[index], '.png')
-                    index += 1
-                    fid.write(s)
-                    if where1 % 2 == 0:
-                        s = '\\\\ \n'
-                        where1 = 0
-                    else:
-                        s = '& \n'
-                    fid.write(s)
-            word_quantity += ' and ' + plot_quantity[nn-1]            
-            label = 'gauge%s' %(gaugeloc2) 
-            caption = 'Time series for %s at %s location (elevation %.2fm)' %(word_quantity, locations[k], elev[k])
-            if elev[k] == 0.0:
-                    caption = 'Time series for %s at %s location (elevation %.2fm)' %(word_quantity, locations[k], elevations[0,k,j])
-                    thisgauge = gauges[k]
-                    east = thisgauge[0]
-                    north = thisgauge[1]
-                    elev_output.append([locations[k],east,north,elevations[0,k,j]])
-                    
-            s = '\end{tabular} \n \\caption{%s} \n \label{fig:%s} \n \end{figure} \n \n' %(caption, label)
-            fid.write(s)
-            if float((k+1)/div - pp) == 0.:
-                fid.write('\\clearpage \n')
-                pp += 1
-            
-            #### finished generating figures ###
+                #### finished generating figures ###
 
-        close('all')
-    
+            close('all')
+        
     return texfile2, elev_output
 
 # FIXME (DSG): Add unit test, make general, not just 2 files,
