@@ -634,20 +634,15 @@ class Domain(Mesh):
             msg += 'had the largest computed speed: %.4f m/s\n' %(self.max_speed[k])
             
             # Report all quantity values at vertices
-            msg += '    Quantity \t vertex values\n'
+            msg += '    Quantity \t vertex values\t\t\t\t\t centroid values\n'
             for name in self.quantities:
                 q = self.quantities[name]
                 X,Y,A,V = q.get_vertex_values()                
                 
-                s = '    %s:\t %.4f, %.4f, %.4f\n'\
-                    %(name, A[3*k], A[3*k+1], A[3*k+2]) 
+                s = '    %s:\t %.4f,\t %.4f,\t %.4f,\t %.4f\n'\
+                    %(name, A[3*k], A[3*k+1], A[3*k+2], q.get_values(location='centroids')[k]) 
 
                 msg += s
-
-
-
-
-
 
         return msg
 
