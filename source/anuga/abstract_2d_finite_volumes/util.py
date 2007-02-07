@@ -14,6 +14,7 @@ from warnings import warn
 from shutil import copy
 
 from anuga.geospatial_data.geospatial_data import ensure_absolute
+from anuga_parallel.parallel_api import barrier
 
 def file_function(filename,
                   domain=None,
@@ -507,9 +508,12 @@ def start_screen_catcher(dir_name, myid=0, numprocs=1):
     """
 
     dir_name = dir_name
-    if access(dir_name,W_OK) == 0:
+    if myid == 0 and access(dir_name,F_OK) == 0:
+#        if access(dir_name,F_OK) == 0:
         print 'Make directory %s' %dir_name
+        print "myid", myid
         mkdir (dir_name,0777)
+    barrier()
     screen_output_name = dir_name + "screen_output_%d_%d.txt" %(myid,numprocs)
     screen_error_name = dir_name + "screen_error_%d_%d.txt" %(myid,numprocs)
     
