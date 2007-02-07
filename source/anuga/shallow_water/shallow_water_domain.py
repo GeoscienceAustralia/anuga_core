@@ -99,7 +99,7 @@ from anuga.utilities.numerical_tools import gradient, mean
 from anuga.config import minimum_storable_height
 from anuga.config import minimum_allowed_height, maximum_allowed_speed
 from anuga.config import g, beta_h, beta_w, beta_w_dry,\
-     beta_uh, beta_uh_dry, beta_vh, beta_vh_dry
+     beta_uh, beta_uh_dry, beta_vh, beta_vh_dry, limit2007
 from anuga.config import alpha_balance
 
 
@@ -157,6 +157,8 @@ class Domain(Generic_Domain):
         self.beta_vh_dry = beta_vh_dry
         self.beta_h      = beta_h
         self.alpha_balance = alpha_balance
+
+        self.limit2007 = limit2007
 
         self.flux_function = flux_function_central
         #self.flux_function = flux_function_kinetic
@@ -1183,14 +1185,19 @@ def balance_deep_and_shallow_c(domain):
     ymomv = domain.quantities['ymomentum'].vertex_values
 
     #Limit h
-    hvbar = h_limiter(domain)
-
-    #This is how one would make a first order h_limited value
-    #as in the old balancer (pre 17 Feb 2005):
-    #from Numeric import zeros, Float
-    #hvbar = zeros( (len(hc), 3), Float)
-    #for i in range(3):
-    #    hvbar[:,i] = hc[:]
+    if domain.beta_h > 0:
+        hvbar = h_limiter(domain)
+    else:
+        # print 'Using first order h-limiter'
+      
+        
+        #This is how one would make a first order h_limited value
+        #as in the old balancer (pre 17 Feb 2005):
+        # If we wish to hard wire this, one should modify the C-code
+        from Numeric import zeros, Float
+        hvbar = zeros( (len(hc), 3), Float)
+        for i in range(3):
+            hvbar[:,i] = hc[:]
 
     from shallow_water_ext import balance_deep_and_shallow
     balance_deep_and_shallow(domain, wc, zc, hc, wv, zv, hv, hvbar,

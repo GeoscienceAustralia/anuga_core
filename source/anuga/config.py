@@ -87,6 +87,11 @@ beta_h      = 0.2
 
 alpha_balance = 2.0 
 
+# Flag use of new limiters.
+# limit2007 = 0 means use old limiters (e.g. for some tests)
+# limit2007 = 1 means use new limiters that hug the bathymetry closer
+limit2007 = 0
+
 
 CFL = 1.0  #FIXME (ole): Is this in use yet??
            #(Steve) yes, change domain.CFL to

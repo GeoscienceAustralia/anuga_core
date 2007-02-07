@@ -1051,8 +1051,6 @@ class Test_Shallow_Water(unittest.TestCase):
 ##         print G0
 
         
-
-
         
         assert allclose(gauge_values[0], G0)
         assert allclose(gauge_values[1], G1)
@@ -3417,7 +3415,8 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_vh     = 0.9
         domain.beta_vh_dry = 0.9
         domain.beta_h = 0.0 #Use first order in h-limiter
-        domain.H0 = 0 # Backwards compatibility (6/2/7)        
+        domain.H0 = 0 # Backwards compatibility (6/2/7)
+        
 
         #Bed-slope and friction at vertices (and interpolated elsewhere)
         def x_slope(x, y):

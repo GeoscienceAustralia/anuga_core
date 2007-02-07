@@ -427,10 +427,12 @@ int _balance_deep_and_shallow(int N,
 			      double* ymomc,
 			      double* xmomv,
 			      double* ymomv,
+			      double H0,
+			      int limit2007,
 			      double alpha_balance) {
 
   int k, k3, i;
-  double dz, hmin, alpha;
+  double dz, hmin, alpha, h_diff;
 
   //Compute linear combination between w-limited stages and
   //h-limited stages close to the bed elevation.
@@ -449,7 +451,10 @@ int _balance_deep_and_shallow(int N,
     dz = 0.0;
     hmin = hv[k3];
     for (i=0; i<3; i++) {
-      dz = max(dz, fabs(zv[k3+i]-zc[k]));
+      if (limit2007 == 0) { 
+        dz = max(dz, fabs(zv[k3+i]-zc[k]));
+      }
+      
       hmin = min(hmin, hv[k3+i]);
     }
 
@@ -457,25 +462,61 @@ int _balance_deep_and_shallow(int N,
     //Create alpha in [0,1], where alpha==0 means using the h-limited
     //stage and alpha==1 means using the w-limited stage as
     //computed by the gradient limiter (both 1st or 2nd order)
-    //
-    //If hmin > dz/alpha_balance then alpha = 1 and the bed will have no effect
-    //If hmin < 0 then alpha = 0 reverting to constant height above bed.
-    //The parameter alpha_balance==2 by default 
-
-
-    if (dz > 0.0) {
-      alpha = max( min( alpha_balance*hmin/dz, 1.0), 0.0 );      
-    } else {
-      alpha = 1.0;  //Flat bed
-    }
-
     
+    
+    if (limit2007 == 0) {     
+      //If hmin > dz/alpha_balance then alpha = 1 and the bed will have no 
+      //effect
+      //If hmin < 0 then alpha = 0 reverting to constant height above bed.
+      //The parameter alpha_balance==2 by default 
+
+      
+      if (dz > 0.0) {
+	alpha = max( min( alpha_balance*hmin/dz, 1.0), 0.0 );      
+      } else {
+	alpha = 1.0;  //Flat bed
+      }
+      //printf("Using old style limiter\n");
+      
+    } else {
+
+      // 2007 Balanced Limiter
+    
+      // Make alpha as large as possible but still ensure that 
+      // final depth is positive
+    
+      if (hmin < H0) {
+	alpha = 1.0;
+	for (i=0; i<3; i++) {
+
+	  h_diff = hvbar[k3+i] - hv[k3+i];
+	
+	  if (h_diff <= 0) {
+	    // Deep water triangle is further away from bed than 
+	    // shallow water (hbar < h). Any alpha will do
+	  
+	  } else {  
+	    // Denominator is positive which means that we need some of the 
+	    // h-limited stage.
+	    
+	    alpha = min(alpha, (hvbar[k3+i] - H0)/h_diff);
+	  }
+	}
+
+	// Ensure alpha in [0,1]
+	if (alpha>1.0) alpha=1.0;
+	if (alpha<0.0) alpha=0.0;
+	
+      } else {
+	// Use w-limited stage exclusively
+	alpha = 1.0;       
+      }
+    }
+    	
+    
+        
     //printf("k=%d, hmin=%.2f, dz=%.2f, alpha=%.2f, alpha_balance=%.2f\n", 
     //	   k, hmin, dz, alpha, alpha_balance);
-      
-          
-    //alpha = 1.0;  //Always deep FIXME: This actually looks good now
-    //alpha = 0.2;
 
     //printf("dz = %.3f, alpha = %.8f\n", dz, alpha);
 
@@ -498,11 +539,12 @@ int _balance_deep_and_shallow(int N,
 
     if (alpha < 1) {
       for (i=0; i<3; i++) {
-         wv[k3+i] = zv[k3+i] + (1-alpha)*hvbar[k3+i] + alpha*hv[k3+i];
+	wv[k3+i] = zv[k3+i] + (1-alpha)*hvbar[k3+i] + alpha*hv[k3+i];
 
 	//Update momentum as a linear combination of
 	//xmomc and ymomc (shallow) and momentum
 	//from extrapolator xmomv and ymomv (deep).
+	//FIXME (Ole): Is this really needed?
 	xmomv[k3+i] = (1-alpha)*xmomc[k] + alpha*xmomv[k3+i];
 	ymomv[k3+i] = (1-alpha)*ymomc[k] + alpha*ymomv[k3+i];
       }
@@ -549,6 +591,8 @@ int _protect(int N,
 	ymomc[k] = 0.0;
       } else {
         //Reduce excessive speeds derived from division by small hc
+	//FIXME (Ole): This may be unnecessary with new slope limiters 
+	//in effect.
         
         u = xmomc[k]/hc;
 	if (fabs(u) > maximum_allowed_speed) {
@@ -1593,8 +1637,9 @@ PyObject *balance_deep_and_shallow(PyObject *self, PyObject *args) {
   PyObject *domain, *Tmp;
     
   double alpha_balance = 2.0;
+  double H0;
 
-  int N; //, err;
+  int N, limit2007; //, err;
 
   // Convert Python arguments to C
   if (!PyArg_ParseTuple(args, "OOOOOOOOOOOO",
@@ -1615,7 +1660,27 @@ PyObject *balance_deep_and_shallow(PyObject *self, PyObject *args) {
   alpha_balance = PyFloat_AsDouble(Tmp);
   Py_DECREF(Tmp);
 
+  
+  Tmp = PyObject_GetAttrString(domain, "H0");
+  if (!Tmp) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: balance_deep_and_shallow could not obtain object H0 from domain");
+    return NULL;
+  }  
+  H0 = PyFloat_AsDouble(Tmp);
+  Py_DECREF(Tmp);
 
+  
+  Tmp = PyObject_GetAttrString(domain, "limit2007");
+  if (!Tmp) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: balance_deep_and_shallow could not obtain object limit2007 from domain");
+    return NULL;
+  }  
+  limit2007 = PyInt_AsLong(Tmp);
+  Py_DECREF(Tmp);
+    
+
+  
+  
   N = wc -> dimensions[0];
 
   _balance_deep_and_shallow(N,
@@ -1626,10 +1691,12 @@ PyObject *balance_deep_and_shallow(PyObject *self, PyObject *args) {
 			    (double*) zv -> data,
 			    (double*) hv -> data,
 			    (double*) hvbar -> data,
-				(double*) xmomc -> data,
+			    (double*) xmomc -> data,
 			    (double*) ymomc -> data,
 			    (double*) xmomv -> data,
 			    (double*) ymomv -> data,
+			    H0,
+			    (int) limit2007,
 			    alpha_balance);
 
 
