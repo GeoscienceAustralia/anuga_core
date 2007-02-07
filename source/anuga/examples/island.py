@@ -32,9 +32,9 @@ create_mesh_from_regions( [[0,0], [100,0], [100,100], [0,100]],
                                            'right': [1],
                                            'top': [2],
                                            'left': [3]},
-                          maximum_triangle_area = 1.0,
+                          maximum_triangle_area = 10.0,
                           filename = 'island.msh' ,
-                          interior_regions=[ ([[50,25], [70,25], [70,75], [50,75]], 1.0)]
+                          interior_regions=[ ([[50,25], [70,25], [70,75], [50,75]], 10.0)]
                           #interior_holes=[[[50,25], [70,25], [70,75], [50,75]]],
                           )
 
@@ -54,12 +54,15 @@ domain.default_order = 2
 # beta_h == 1.0 means that the largest gradients (on h) are allowed
 # beta_h == 0.0 means that constant (1st order) gradients are introduced
 # on h. This is equivalent to the constant depth used previously.
-domain.beta_h     = 0.5
-domain.beta_w_dry = 0.0
-domain.alpha_balance = 10.0
-domain.minimum_allowed_height = 1.0e-4 
-domain.maximum_allowed_speed = 100.0 
-domain.minimum_storable_height = 1.0e-4 
+#domain.beta_h     = 0.5
+#domain.beta_w_dry = 0.0
+#domain.alpha_balance = 10.0
+#domain.minimum_allowed_height = 1.0e-4 
+#domain.maximum_allowed_speed = 100.0 
+#domain.minimum_storable_height = 1.0e-4 
+
+domain.beta_h     = 0.0
+domain.limit2007 = 1
 
 #------------------------------------------------------------------------------
 # Setup initial conditions
@@ -89,6 +92,7 @@ domain.set_quantity('stage', stage_value)
 domain.max_timestep = 0.01
 
 
+
 #------------------------------------------------------------------------------
 # Setup boundary conditions (all reflective)
 #------------------------------------------------------------------------------
@@ -104,7 +108,7 @@ domain.check_integrity()
 #------------------------------------------------------------------------------
 
 import time
-for t in domain.evolve(yieldstep = 1, finaltime = 100):
+for t in domain.evolve(yieldstep = 1, finaltime = 10):
     domain.write_time()
     #if allclose(t, 100):
     #    Q = domain.get_quantity('stage')

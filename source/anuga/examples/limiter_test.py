@@ -26,6 +26,7 @@ domain = Domain(points, vertices, boundary)
 domain.set_name('limiter_test')
 domain.set_store_vertices_uniquely(True)
 domain.set_default_order(2)
+domain.limit2007 = 1
 
 #------------------------------------------------------------------------------
 # Setup initial conditions
