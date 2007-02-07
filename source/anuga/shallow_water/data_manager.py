@@ -4408,12 +4408,27 @@ def lon_lat2grid(long_lat_dep):
 
     #### URS UNGRIDDED 2 SWW ###
 
-def URS_points_needed_to_file(boundary_polygon, ll_lat, ll_long,
+def URS_points_needed_to_file(file_name, boundary_polygon, ll_lat, ll_long,
                               grid_spacing, 
                       lat_amount, long_amount, zone=None):
-    
+    """
+    file_name - name of the urs file produced for David.
+    boundary_polygon - a list of points that describes a polygon.
+                      The last point is assumed ot join the first point.
+                      This is in UTM (lat long would be better though)
+
+    ll_lat - lower left latitude, in decimal degrees
+    ll-long - lower left longitude, in decimal degrees
+    grid_spacing - in deciamal degrees
+
+
+    Don't add the file extension.  It will be added.
+    """
     geo = URS_points_needed(boundary_polygon, ll_lat, ll_long, grid_spacing, 
                       lat_amount, long_amount, zone=zone)
+    if not file[-4:] == ".urs":
+        file += ".urs"
+    geo.export_points_file(file_name)
     
 def URS_points_needed(boundary_polygon, ll_lat, ll_long, grid_spacing, 
                       lat_amount, long_amount, zone=None):
@@ -4470,8 +4485,8 @@ def points_needed(seg, ll_lat, ll_long, grid_spacing,
     
     max_lat = max(seg_lat_long[0][0], seg_lat_long[1][0]) + buffer
     max_long = max(seg_lat_long[0][1], seg_lat_long[1][1]) + buffer
-    min_lat = max(seg_lat_long[0][0], seg_lat_long[1][0]) - buffer
-    min_long = max(seg_lat_long[0][1], seg_lat_long[1][1]) - buffer
+    min_lat = min(seg_lat_long[0][0], seg_lat_long[1][0]) - buffer
+    min_long = min(seg_lat_long[0][1], seg_lat_long[1][1]) - buffer
 
     #print "ll_lat", ll_lat
     #print "ll_long", ll_long

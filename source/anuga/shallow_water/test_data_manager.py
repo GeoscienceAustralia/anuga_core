@@ -5039,7 +5039,7 @@ friction  \n \
     #### END TESTS FOR URS 2 SWW  ###
 
     #### TESTS URS UNGRIDDED 2 SWW ###
-    def X_test_URS_points_needed(self):
+    def test_URS_points_needed(self):
         
         ll_lat = -21.5
         ll_long = 114.5
@@ -5056,24 +5056,41 @@ friction  \n \
         # poly?
         #Maybe see if I can fit the data to the polygon - have to represent
         # the poly as points though.
-        geo.export_points_file("results")
+        #geo.export_points_file("results.txt", as_lat_long=True)
         results = ImmutableSet(geo.get_data_points(as_lat_long=True))
-        print 'results',results
+        #print 'results',results
 
         # These are a set of points that have to be in results
         points = []
         for i in range(18):
-            lat = -21.0 - 8/60 - grid_spacing * i
+            lat = -21.0 - 8./60 - grid_spacing * i
             points.append((lat,degminsec2decimal_degrees(114,35,0))) 
-            #points.append((lat,degminsec2decimal_degrees(114,36,0))) 
-            #points.append((lat,degminsec2decimal_degrees(114,52,0))) 
-            #points.append((lat,degminsec2decimal_degrees(114,53,0)))
-            
+            points.append((lat,degminsec2decimal_degrees(114,36,0))) 
+            points.append((lat,degminsec2decimal_degrees(114,52,0))) 
+            points.append((lat,degminsec2decimal_degrees(114,53,0)))
+        geo_answer = Geospatial_data(data_points=points,
+                                     points_are_lats_longs=True) 
+        #geo_answer.export_points_file("answer.txt", as_lat_long=True)  
         answer = ImmutableSet(points)
-        print "answer", answer
+        
         outs = answer.difference(results)
-        print "outs", outs 
-        assert answer.issubset(results)
+        #print "outs", outs
+        # This doesn't work.  Though visualising the results shows that
+        # it is correct.
+        #assert answer.issubset(results)
+        # this is why;
+        #point (-21.133333333333333, 114.58333333333333)
+        #result (-21.133333332232368, 114.58333333300342)
+        
+        for point in points:
+            found = False
+            for result in results:
+                if allclose(point, result):
+                    found = True
+                    break
+            if not found:
+                assert False
+        
         
     def X_test_URS_points_neededII(self):
         ll_lat = -21.5

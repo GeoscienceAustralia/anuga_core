@@ -2034,6 +2034,29 @@ crap")
             self.failUnless(0 ==1,  'Error not thrown error!')
 
 
+    def test_write_urs_file(self):
+        lat_gong = degminsec2decimal_degrees(-34,00,0)
+        lon_gong = degminsec2decimal_degrees(150,30,0.)
+        
+        lat_2 = degminsec2decimal_degrees(-34,00,1)
+        lon_2 = degminsec2decimal_degrees(150,00,0.)
+        p1 = (lat_gong, lon_gong)
+        p2 = (lat_2, lon_2)
+        points = ImmutableSet([p1, p2, p1])
+        gsd = Geospatial_data(data_points=list(points),
+                              points_are_lats_longs=True)
+        
+        fn = tempfile.mktemp(".urs")
+        gsd.export_points_file(fn)
+        #print "fn", fn 
+        handle = open(fn)
+        lines = handle.readlines()
+        assert lines[0],'2'
+        assert lines[1],'-34.0002778 150.0 1'
+        assert lines[2],'-34.0 150.5 2'
+        handle.close()
+        os.remove(fn)
+        
     def test_lat_long_set(self):
         lat_gong = degminsec2decimal_degrees(-34,30,0.)
         lon_gong = degminsec2decimal_degrees(150,55,0.)
@@ -2095,7 +2118,8 @@ crap")
                   [4.0, 1.0], [4.0, 2.0],[4.0, 3.0], [4.0, 4.0], [4.0, 5.0],
                   [5.0, 1.0], [5.0, 2.0],[5.0, 3.0], [5.0, 4.0], [5.0, 5.0]]
         attributes = {'depth':[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 
-                      14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25],'speed':[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 
+                      14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25],
+                      'speed':[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 
                       14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]}
         G = Geospatial_data(points, attributes)
 #        print G.get_data_points()
@@ -2103,9 +2127,10 @@ crap")
 
         factor = 0.21
 
-        G1, G2  = G.split(factor) #will return G1 with 10% of points and G2 with 90%
+        #will return G1 with 10% of points and G2 with 90%
+        G1, G2  = G.split(factor) 
         
-#        print 'len(G): %s  len(G1): %s len(G2): %s' %(len(G), len(G1), len(G2))
+#        print 'len(G): %s len(G1): %s len(G2): %s' %(len(G), len(G1), len(G2))
 #        print 'G: ', len(G),'G1: ', len(G1), 'G2: ', len(G2)
 
         assert allclose(len(G), len(G1)+len(G2))

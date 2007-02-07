@@ -607,7 +607,13 @@ class Geospatial_data:
                                                  as_lat_long=as_lat_long), 
                             self.get_all_attributes(),
                             as_lat_long=as_lat_long)
-                                    
+              
+        elif file_name[-4:] == ".urs" :
+            msg = "ERROR: Can not write a .urs file as a relative file."
+            assert absolute, msg
+            _write_urs_file(file_name,
+                            self.get_data_points(as_lat_long=True))
+                                                          
         else:
             msg = 'Unknown file type %s ' %file_name
             raise IOError, msg 
@@ -1221,6 +1227,22 @@ def _write_csv_file(file_name,
         fd.write(str(vert[0]) + delimiter +
                  str(vert[1]) + attlist + "\n")
 
+    fd.close()
+  
+def _write_urs_file(file_name,
+                    points,
+                    delimiter=' '):
+    """
+    export a file, file_name, with the urs format
+    the data points are in lats and longs
+    
+    """    
+    fd = open(file_name,'w')   
+    fd.write(str(len(points))+"\n")   
+    # <lat> <long> <id#>
+    for i, vert in enumerate( points):
+        fd.write(str(round(vert[0],7)) + delimiter + \
+                 str(round(vert[1],7)) + delimiter +str(i+1)+ "\n")
     fd.close()
     
 def _point_atts2array(point_atts):
