@@ -685,9 +685,11 @@ class Geospatial_data:
         #need to sort and reverse so the pop() works correctly
         random_list.sort()
         random_list.reverse()
-        if verbose: print "get indices of oppisite to random list"
+        if verbose: print "get indices of opposite to random list"
         for i in random_list:
             remainder_list.pop(i)
+            if verbose:
+                if ((round(i/100000))==(i/100000)): print "reached: ",i
             
         #get new samples
         if verbose: print "get values of indices for random list"
