@@ -438,7 +438,7 @@ def polygon_area(polygon):
         
     return abs(poly_area/2)
 
-def plot_polygons(polygons, figname, verbose=False):
+def plot_polygons(polygons, figname=None, verbose=False):
     
     """ Take list of polygons and plot.
 
@@ -477,7 +477,10 @@ def plot_polygons(polygons, figname, verbose=False):
         xlabel('x')
         ylabel('y')
 
-    savefig(figname)
+    if figname is not None:    
+        savefig(figname)
+    else:
+        raw_input('Press a key to continue')
 
     close('all')
 
