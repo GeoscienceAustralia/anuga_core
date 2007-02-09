@@ -26,6 +26,9 @@ NAN = (array([1])/0.)[0]
 # Note, INF is used instead of NAN (Not a number), since Numeric has no NAN
 # if we use a package that has NAN, this should be updated to use NAN.
 
+# Static variable used by get_machine_precision
+machine_precision = None
+
 
 def safe_acos(x):
     """Safely compute acos
@@ -302,13 +305,21 @@ def create_bins(data, number_of_bins = None):
 
 def get_machine_precision():
     """Calculate the machine precision for Floats
+
+    Depends on static variable machine_precision in this module
+    as this would otherwise require too much computation.
     """
 
-    epsilon = 1.
-    while epsilon/2 + 1. > 1.:
-        epsilon /= 2
+    global machine_precision
+    
+    if machine_precision is None:
+        epsilon = 1.
+        while epsilon/2 + 1. > 1.:
+            epsilon /= 2
 
-    return epsilon    
+        machine_precision = epsilon
+
+    return machine_precision    
 
 ####################################################################
 #Python versions of function that are also implemented in numerical_tools_ext.c
