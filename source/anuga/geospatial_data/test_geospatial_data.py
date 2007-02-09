@@ -1049,9 +1049,8 @@ crap")
 
         
     def test_load_pts_blocking(self):
-        """ test_load_csv(self):
-        space delimited
-        """
+        #This is pts!
+       
         import os
        
         fileName = tempfile.mktemp(".txt")

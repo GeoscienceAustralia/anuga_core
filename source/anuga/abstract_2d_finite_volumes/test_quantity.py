@@ -651,8 +651,52 @@ class Test_Quantity(unittest.TestCase):
         #Cleanup
         import os
         os.remove(txt_file)
-          
-    def test_set_values_from_UTM(self):
+         
+    def test_set_values_from_lat_long(self):
+        quantity = Quantity(self.mesh_onslow)
+
+        #Get (enough) datapoints
+        data_points = [[-21.5, 114.5],[-21.4, 114.6],[-21.45,114.65],
+                       [-21.35, 114.65],[-21.45, 114.55],[-21.45,114.6]]
+
+        data_geo_spatial = Geospatial_data(data_points,
+                                           points_are_lats_longs=True)
+        points_UTM = data_geo_spatial.get_data_points(absolute=True)
+        attributes = linear_function(points_UTM)
+        att = 'elevation'
+        
+        #Create .txt file
+        txt_file = tempfile.mktemp(".txt")
+        file = open(txt_file,"w")
+        file.write(" lat,long," + att + " \n")
+        for data_point, attribute in map(None, data_points, attributes):
+            row = str(data_point[0]) + ',' + str(data_point[1]) \
+                  + ',' + str(attribute)
+            #print "row", row 
+            file.write(row + "\n")
+        file.close()
+
+
+        #Check that values can be set from file
+        quantity.set_values(filename = txt_file,
+                            attribute_name = att, alpha = 0)
+        answer = linear_function(quantity.domain.get_vertex_coordinates())
+
+        #print "quantity.vertex_values.flat", quantity.vertex_values.flat
+        #print "answer",answer
+
+        assert allclose(quantity.vertex_values.flat, answer)
+
+
+        #Check that values can be set from file using default attribute
+        quantity.set_values(filename = txt_file, alpha = 0)
+        assert allclose(quantity.vertex_values.flat, answer)
+
+        #Cleanup
+        import os
+        os.remove(txt_file)
+        
+    def test_set_values_from_UTM_pts(self):
         quantity = Quantity(self.mesh_onslow)
 
         #Get (enough) datapoints
@@ -677,8 +721,12 @@ class Test_Quantity(unittest.TestCase):
         file.close()
 
 
+        pts_file = tempfile.mktemp(".pts")        
+        convert = Geospatial_data(txt_file)
+        convert.export_points_file(pts_file)
+
         #Check that values can be set from file
-        quantity.set_values_from_file(txt_file, att, 0,
+        quantity.set_values_from_file(pts_file, att, 0,
                                       'vertices', None)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
         #print "quantity.vertex_values.flat", quantity.vertex_values.flat
@@ -686,7 +734,7 @@ class Test_Quantity(unittest.TestCase):
         assert allclose(quantity.vertex_values.flat, answer)
 
         #Check that values can be set from file
-        quantity.set_values(filename = txt_file,
+        quantity.set_values(filename = pts_file,
                             attribute_name = att, alpha = 0)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
         #print "quantity.vertex_values.flat", quantity.vertex_values.flat
@@ -701,6 +749,89 @@ class Test_Quantity(unittest.TestCase):
         #Cleanup
         import os
         os.remove(txt_file)
+        os.remove(pts_file)
+        
+    def verbose_test_set_values_from_UTM_pts(self):
+        quantity = Quantity(self.mesh_onslow)
+
+        #Get (enough) datapoints
+        data_points = [[-21.5, 114.5],[-21.4, 114.6],[-21.45,114.65],
+                       [-21.35, 114.65],[-21.45, 114.55],[-21.45,114.6],
+                       [-21.5, 114.5],[-21.4, 114.6],[-21.45,114.65],
+                       [-21.35, 114.65],[-21.45, 114.55],[-21.45,114.6],
+                       [-21.5, 114.5],[-21.4, 114.6],[-21.45,114.65],
+                       [-21.35, 114.65],[-21.45, 114.55],[-21.45,114.6],
+                       [-21.5, 114.5],[-21.4, 114.6],[-21.45,114.65],
+                       [-21.35, 114.65],[-21.45, 114.55],[-21.45,114.6],
+                       [-21.5, 114.5],[-21.4, 114.6],[-21.45,114.65],
+                       [-21.35, 114.65],[-21.45, 114.55],[-21.45,114.6],
+                       [-21.5, 114.5],[-21.4, 114.6],[-21.45,114.65],
+                       [-21.35, 114.65],[-21.45, 114.55],[-21.45,114.6],
+                       [-21.5, 114.5],[-21.4, 114.6],[-21.45,114.65],
+                       [-21.35, 114.65],[-21.45, 114.55],[-21.45,114.6],
+                       [-21.35, 114.65],[-21.45, 114.55],[-21.45,114.6],
+                       [-21.5, 114.5],[-21.4, 114.6],[-21.45,114.65],
+                       [-21.35, 114.65],[-21.45, 114.55],[-21.45,114.6],
+                       [-21.5, 114.5],[-21.4, 114.6],[-21.45,114.65],
+                       [-21.35, 114.65],[-21.45, 114.55],[-21.45,114.6],
+                       [-21.5, 114.5],[-21.4, 114.6],[-21.45,114.65],
+                       [-21.35, 114.65],[-21.45, 114.55],[-21.45,114.6],
+                       [-21.5, 114.5],[-21.4, 114.6],[-21.45,114.65],
+                       [-21.35, 114.65],[-21.45, 114.55],[-21.45,114.6],
+                       [-21.5, 114.5],[-21.4, 114.6],[-21.45,114.65],
+                       [-21.35, 114.65],[-21.45, 114.55],[-21.45,114.6],
+                       [-21.5, 114.5],[-21.4, 114.6],[-21.45,114.65],
+                       [-21.35, 114.65],[-21.45, 114.55],[-21.45,114.6],
+                       ]
+
+        data_geo_spatial = Geospatial_data(data_points,
+                                           points_are_lats_longs=True)
+        points_UTM = data_geo_spatial.get_data_points(absolute=True)
+        attributes = linear_function(points_UTM)
+        att = 'elevation'
+        
+        #Create .txt file
+        txt_file = tempfile.mktemp(".txt")
+        file = open(txt_file,"w")
+        file.write(" x,y," + att + " \n")
+        for data_point, attribute in map(None, points_UTM, attributes):
+            row = str(data_point[0]) + ',' + str(data_point[1]) \
+                  + ',' + str(attribute)
+            #print "row", row 
+            file.write(row + "\n")
+        file.close()
+
+
+        pts_file = tempfile.mktemp(".pts")        
+        convert = Geospatial_data(txt_file)
+        convert.export_points_file(pts_file)
+
+        #Check that values can be set from file
+        quantity.set_values_from_file(pts_file, att, 0,
+                                      'vertices', None, verbose = True,
+                                      max_read_lines=2)
+        answer = linear_function(quantity.domain.get_vertex_coordinates())
+        #print "quantity.vertex_values.flat", quantity.vertex_values.flat
+        #print "answer",answer
+        assert allclose(quantity.vertex_values.flat, answer)
+
+        #Check that values can be set from file
+        quantity.set_values(filename = pts_file,
+                            attribute_name = att, alpha = 0)
+        answer = linear_function(quantity.domain.get_vertex_coordinates())
+        #print "quantity.vertex_values.flat", quantity.vertex_values.flat
+        #print "answer",answer
+        assert allclose(quantity.vertex_values.flat, answer)
+
+
+        #Check that values can be set from file using default attribute
+        quantity.set_values(filename = txt_file, alpha = 0)
+        assert allclose(quantity.vertex_values.flat, answer)
+
+        #Cleanup
+        import os
+        os.remove(txt_file)
+        os.remove(pts_file)
         
     def test_set_values_from_file_with_georef1(self):
 
@@ -1869,6 +2000,6 @@ if __name__ == "__main__":
 
     #suite = unittest.makeSuite(Test_Quantity, 'test_set_values_from_UTM')
     #print "restricted test"
-    #suite = unittest.makeSuite(Test_Quantity,'test_set_values_from_file_with_georef2')
+    #suite = unittest.makeSuite(Test_Quantity,'verbose_test_set_values_from_UTM_pts')
     runner = unittest.TextTestRunner()
     runner.run(suite)

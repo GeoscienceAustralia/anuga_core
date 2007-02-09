@@ -723,6 +723,8 @@ class Geospatial_data:
             self.blocking_georef, self.blocking_keys, self.last_row = \
                      _read_pts_file_header(self.fid, self.verbose)
             self.start_row=0
+            self.show_verbose = 0
+            self.verbose_block_size =  (self.last_row +10) /10
         else:
             file_pointer = open(self.file_name)
             self.header, self.file_pointer = \
@@ -760,9 +762,14 @@ class Geospatial_data:
             if fin_row > self.last_row:
                 fin_row = self.last_row
 
-            if self.verbose is True and \
-                   0==self.start_row%(( self.last_row+10)/10)==0:
+                
+            
+            if self.verbose is True:
+                if self.show_verbose >= self.start_row and \
+                                       self.show_verbose < fin_row:
                  print 'Doing %d of %d' %(self.start_row, self.last_row+10)
+                 self.show_verbose += max(self.max_read_lines,
+                                          self.verbose_block_size)
             #call stuff
             pointlist, att_dict, = \
                    _read_pts_file_blocking( self.fid,

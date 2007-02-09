@@ -716,7 +716,8 @@ class Quantity:
     def set_values_from_file(self, filename, attribute_name, alpha,
                              location, indices,
                              verbose = False,
-                             use_cache = False):
+                             use_cache = False,
+                             max_read_lines=None):
         """Set quantity based on arbitrary points in a points file
         using attribute_name selects name of attribute
         present in file.
@@ -746,14 +747,16 @@ class Quantity:
                                       {'alpha': alpha,
                                        'attribute_name': attribute_name,
                                        'use_cache': False,
-                                       'verbose': verbose},
+                                       'verbose': verbose,
+                                       'max_read_lines':max_read_lines},
                                       verbose=verbose)
         else:
             vertex_attributes = fit_to_mesh(coordinates, triangles,filename,
                                             alpha=alpha,
                                             attribute_name=attribute_name,
                                             use_cache=use_cache,
-                                            verbose=verbose)
+                                            verbose=verbose,
+                                             max_read_lines=max_read_lines)
             
                                 
         #Call underlying method using array values

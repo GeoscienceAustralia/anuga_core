@@ -328,6 +328,8 @@ class Fit(FitInterpolate):
                                               load_file_now=False,
                                               verbose=verbose)):
                 if verbose is True and 0 == i%200: # round every 5 minutes
+                    # But this is dependant on the # of Triangles, so it
+                    #isn't every 5 minutes.
                     print 'Block %i' %i
                 # build the array
                 points = geo_block.get_data_points(absolute=True)
