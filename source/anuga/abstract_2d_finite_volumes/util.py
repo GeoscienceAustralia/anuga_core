@@ -14,7 +14,6 @@ from warnings import warn
 from shutil import copy
 
 from anuga.geospatial_data.geospatial_data import ensure_absolute
-from anuga_parallel.parallel_api import barrier
 
 def file_function(filename,
                   domain=None,
@@ -508,12 +507,9 @@ def start_screen_catcher(dir_name, myid=0, numprocs=1):
     """
 
     dir_name = dir_name
-    if myid == 0 and access(dir_name,F_OK) == 0:
-#        if access(dir_name,F_OK) == 0:
+    if access(dir_name,W_OK) == 0:
         print 'Make directory %s' %dir_name
-        print "myid", myid
         mkdir (dir_name,0777)
-    barrier()
     screen_output_name = dir_name + "screen_output_%d_%d.txt" %(myid,numprocs)
     screen_error_name = dir_name + "screen_error_%d_%d.txt" %(myid,numprocs)
     
@@ -788,7 +784,7 @@ def _sww2timeseries(swwfiles,
         report = False
         
     if plot_quantity is None:
-        plot_quantity = ['depth', 'speed', 'bearing']
+        plot_quantity = ['depth', 'speed']
     else:
         assert type(plot_quantity) == list,\
                'plot_quantity must be a list'
@@ -1063,12 +1059,12 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     uh = f(t, point_id = k)[2]
                     vh = f(t, point_id = k)[3]
                     depth = w-z      
-                    m = sqrt(uh*uh + vh*vh)   
+                    m = sqrt(uh*uh + vh*vh)
                     if depth < 0.001:
                         vel = 0.0
                     else:
-                        vel = m / (depth + 1.e-30) 
-                    bearing = calc_bearing(uh, vh)
+                        vel = m / (depth + 1.e-6/depth) 
+                    #bearing = calc_bearing(uh, vh)
                     model_time[i,k,j] = t/60.0
                     stages[i,k,j] = w
                     elevations[i,k,j] = z 
@@ -1076,7 +1072,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     ymom[i,k,j] = vh 
                     momenta[i,k,j] = m 
                     speed[i,k,j] = vel 
-                    bearings[i,k,j] = bearing 
+                    #bearings[i,k,j] = bearing 
                     depths[i,k,j] = depth
                     thisgauge = gauges[k]
                     eastings[i,k,j] = thisgauge[0]
@@ -1133,16 +1129,16 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
         profilefig = 'solution_xprofile' 
         savefig('profilefig')
 
-    depth_axis = axis([time_min/60.0, time_max/60.0, -0.1, max(max_depths)*1.1])
-    stage_axis = axis([time_min/60.0, time_max/60.0, min(min_stages), max(max_stages)*1.1])
-    vel_axis = axis([time_min/60.0, time_max/60.0, min(max_speeds), max(max_speeds)*1.1])
-    mom_axis = axis([time_min/60.0, time_max/60.0, min(max_momentums), max(max_momentums)*1.1])  
-
+    elev_output = []
     if generate_fig is True:
+        depth_axis = axis([time_min/60.0, time_max/60.0, -0.1, max(max_depths)*1.1])
+        stage_axis = axis([time_min/60.0, time_max/60.0, min(min_stages), max(max_stages)*1.1])
+        vel_axis = axis([time_min/60.0, time_max/60.0, min(max_speeds), max(max_speeds)*1.1])
+        mom_axis = axis([time_min/60.0, time_max/60.0, min(max_momentums), max(max_momentums)*1.1])
         cstr = ['g', 'r', 'b', 'c', 'm', 'y', 'k']
         nn = len(plot_quantity)
         no_cols = 2
-        elev_output = []
+        
         if len(label_id) > 1: graphname_report = []
         pp = 1
         div = 11.
