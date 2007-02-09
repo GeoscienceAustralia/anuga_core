@@ -124,6 +124,27 @@ int limit_gradient(double *dqv, double qmin, double qmax, double beta_w){
   return 0;
 }
 
+
+// Function to obtain speed from momentum and depth.
+// This is used by flux functions
+// Input parameters uh and h may be modified by this function.
+double _compute_speed(double *uh, 
+		      double *h, 
+		      double epsilon, 
+		      double h0) {
+  
+  double u;
+  
+  if (*h < epsilon) {
+    *h = 0.0;  //Could have been negative
+    u = 0.0;
+  } else {
+    u = *uh/(*h + h0/ *h);
+  }
+  
+  return u;
+}
+
 // Computational function for flux computation (using stage w=z+h)
 int flux_function_central(double *q_left, double *q_right,
 		  double z_left, double z_right,
@@ -166,27 +187,15 @@ int flux_function_central(double *q_left, double *q_right,
   z = (z_left+z_right)/2; //Take average of field values
 
   //Compute speeds in x-direction
-  w_left = q_left_copy[0];              // h+z
+  w_left = q_left_copy[0];          
   h_left = w_left-z;
   uh_left = q_left_copy[1];
-
-  if (h_left < epsilon) {
-    h_left = 0.0;  //Could have been negative
-    u_left = 0.0;
-  } else {
-    u_left = uh_left/(h_left + h0/h_left);
-  }
+  u_left =_compute_speed(&uh_left, &h_left, epsilon, h0);
 
   w_right = q_right_copy[0];
   h_right = w_right-z;
   uh_right = q_right_copy[1];
-
-  if (h_right < epsilon) {
-    h_right = 0.0; //Could have been negative
-    u_right = 0.0;
-  } else {
-    u_right = uh_right/(h_right + h0/h_right);
-  }
+  u_right =_compute_speed(&uh_right, &h_right, epsilon, h0);  
 
   //Momentum in y-direction
   vh_left  = q_left_copy[2];
@@ -287,27 +296,16 @@ int flux_function_kinetic(double *q_left, double *q_right,
   z = (z_left+z_right)/2; //Take average of field values
 
   //Compute speeds in x-direction
-  w_left = q_left_copy[0];              // h+z
+  w_left = q_left_copy[0];          
   h_left = w_left-z;
   uh_left = q_left_copy[1];
-
-  if (h_left < epsilon) {
-    h_left = 0.0;  //Could have been negative
-    u_left = 0.0;
-  } else {
-    u_left = uh_left/(h_left + h0/h_left);
-  }
+  u_left =_compute_speed(&uh_left, &h_left, epsilon, h0);
 
   w_right = q_right_copy[0];
   h_right = w_right-z;
   uh_right = q_right_copy[1];
+  u_right =_compute_speed(&uh_right, &h_right, epsilon, h0);  
 
-  if (h_right < epsilon) {
-    h_right = 0.0; //Could have been negative
-    u_right = 0.0;
-  } else {
-    u_right = uh_right/(h_right + h0/h_right);
-  }
 
   //Momentum in y-direction
   vh_left  = q_left_copy[2];
