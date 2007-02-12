@@ -4426,8 +4426,8 @@ def URS_points_needed_to_file(file_name, boundary_polygon, ll_lat, ll_long,
     """
     geo = URS_points_needed(boundary_polygon, ll_lat, ll_long, grid_spacing, 
                       lat_amount, long_amount, zone=zone)
-    if not file[-4:] == ".urs":
-        file += ".urs"
+    if not file_name[-4:] == ".urs":
+        file_name += ".urs"
     geo.export_points_file(file_name)
     
 def URS_points_needed(boundary_polygon, ll_lat, ll_long, grid_spacing, 
@@ -4443,6 +4443,7 @@ def URS_points_needed(boundary_polygon, ll_lat, ll_long, grid_spacing,
     grid_spacing - in deciamal degrees
 
     """
+    
     from sets import ImmutableSet
     
     msg = "grid_spacing can not be zero"

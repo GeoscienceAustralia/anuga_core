@@ -5091,6 +5091,19 @@ friction  \n \
             if not found:
                 assert False
         
+    
+    def dave_test_URS_points_needed(self):
+        ll_lat = -21.51667
+        ll_long = 114.51667
+        grid_spacing = 2./60.
+        lat_amount = 15
+        long_amount = 15
+
+       
+        boundary_polygon = [[250000,7660000],[280000,7660000],
+                             [280000,7630000],[250000,7630000]]
+        URS_points_needed_to_file('a_test_example',boundary_polygon, ll_lat, ll_long, grid_spacing, \
+                      lat_amount, long_amount)
         
     def X_test_URS_points_neededII(self):
         ll_lat = -21.5
@@ -5100,6 +5113,7 @@ friction  \n \
         long_amount = 30
 
         # change this so lats and longs are inputed, then converted
+        
         #boundary_polygon = [[7660000,250000],[7660000,280000],
         #                     [7630000,280000],[7630000,250000]]
         URS_points_needed(boundary_polygon, ll_lat, ll_long, grid_spacing, \
@@ -5109,10 +5123,10 @@ friction  \n \
         
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Data_Manager,'test_URS_points_needed')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_get_min_max_indexes_lat_ascending')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_URS_points_needed')
+    #suite = unittest.makeSuite(Test_Data_Manager,'dave_test_URS_points_needed')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_ferret2sww_lat_long')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test')
+    suite = unittest.makeSuite(Test_Data_Manager,'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
 

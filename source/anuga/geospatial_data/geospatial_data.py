@@ -19,8 +19,8 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference, \
      TitleError, DEFAULT_ZONE
 from anuga.coordinate_transforms.redfearn import convert_from_latlon_to_utm
 from anuga.utilities.anuga_exceptions import ANUGAError
+from anuga.config import points_file_block_line_size as MAX_READ_LINES    
 
-MAX_READ_LINES = 500        
 class Geospatial_data:
 
     def __init__(self,

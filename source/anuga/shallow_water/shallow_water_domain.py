@@ -226,6 +226,16 @@ class Domain(Generic_Domain):
         self.maximum_allowed_speed = maximum_allowed_speed
 
 
+    def set_points_file_block_line_size(self,points_file_block_line_size):
+        """
+        Set the minimum depth that will be recognised when writing
+        to an sww file. This is useful for removing thin water layers
+        that seems to be caused by friction creep.
+
+        The minimum allowed sww depth is in meters.
+        """
+        self.points_file_block_line_size = points_file_block_line_size
+        
     def set_quantities_to_be_stored(self, q):
         """Specify which quantities will be stored in the sww file.
 

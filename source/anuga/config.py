@@ -128,3 +128,6 @@ maximum_allowed_speed = 1.0 # Maximal particle speed of water
 
 
 minimum_storable_height = 1.0e-5 #Water depth below which it is *stored* as 0
+
+points_file_block_line_size = 500 # Number of lines read in from a points file
+                                  # when blocking

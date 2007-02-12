@@ -20,6 +20,7 @@ from Numeric import array, zeros, Float, less, concatenate, NewAxis,\
 from anuga.utilities.numerical_tools import ensure_numeric, is_scalar
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.fit_interpolate.fit import fit_to_mesh
+from anuga.config import points_file_block_line_size as default_block_line_size
 
 class Quantity:
 
@@ -355,9 +356,14 @@ class Quantity:
                                         verbose = verbose,
                                         use_cache = use_cache)
         elif filename is not None:
+            if hasattr(self.domain, 'points_file_block_line_size'):
+                max_read_lines = self.domain.points_file_block_line_size
+            else:
+                max_read_lines = default_block_line_size
             self.set_values_from_file(filename, attribute_name, alpha,
                                       location, indices,
                                       verbose = verbose,
+                                      max_read_lines=max_read_lines,
                                       use_cache = use_cache)
         else:
             raise Exception, 'This can\'t happen :-)'
@@ -737,7 +743,7 @@ class Quantity:
 
         coordinates = self.domain.get_nodes(absolute=True)
         triangles = self.domain.triangles      #FIXME
-       
+            
         vertex_attributes = fit_to_mesh(coordinates, triangles,filename,
                                         alpha=alpha,
                                         attribute_name=attribute_name,
