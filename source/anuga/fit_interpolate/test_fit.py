@@ -278,6 +278,47 @@ class Test_Fit(unittest.TestCase):
         # Delete file!
         os.remove(txt_file)
         
+    def cache_test_fit_to_mesh_pts(self):
+        a = [-1.0, 0.0]
+        b = [3.0, 4.0]
+        c = [4.0,1.0]
+        d = [-3.0, 2.0] #3
+        e = [-1.0,-2.0]
+        f = [1.0, -2.0] #5
+
+        vertices = [a, b, c, d,e,f]
+        triangles = [[0,1,3], [1,0,2], [0,4,5], [0,5,2]] #abd bac aef afc
+
+
+        fileName = tempfile.mktemp(".txt")
+        file = open(fileName,"w")
+        file.write(" x, y, elevation \n\
+-2.0, 2.0, 0.\n\
+-1.0, 1.0, 0.\n\
+0.0, 2.0 , 2.\n\
+1.0, 1.0 , 2.\n\
+ 2.0,  1.0 ,3. \n\
+ 0.0,  0.0 , 0.\n\
+ 1.0,  0.0 , 1.\n\
+ 0.0,  -1.0, -1.\n\
+ -0.2, -0.5, -0.7\n\
+ -0.9, -1.5, -2.4\n\
+ 0.5,  -1.9, -1.4\n\
+ 3.0,  1.0 , 4.\n")
+        file.close()
+        geo = Geospatial_data(fileName)
+        fileName_pts = tempfile.mktemp(".pts")
+        points = geo.get_data_points(absolute=True)
+        atts = geo.get_attributes()
+        f = fit_to_mesh(vertices, triangles,points,atts,
+                                alpha=0.0, max_read_lines=2,
+                        use_cache=True, verbose=True)
+        answer = linear_function(vertices)
+        #print "f\n",f
+        #print "answer\n",answer
+        assert allclose(f, answer)
+        os.remove(fileName)
+       
     def test_fit_to_mesh_pts(self):
         a = [-1.0, 0.0]
         b = [3.0, 4.0]
@@ -310,15 +351,14 @@ class Test_Fit(unittest.TestCase):
         fileName_pts = tempfile.mktemp(".pts")
         geo.export_points_file(fileName_pts)
         f = fit_to_mesh(vertices, triangles,fileName_pts,
-                                alpha=0.0, max_read_lines=2) #,
-                        #use_cache=True, verbose=True)
+                                alpha=0.0, max_read_lines=2)
         answer = linear_function(vertices)
         #print "f\n",f
         #print "answer\n",answer
         assert allclose(f, answer)
         os.remove(fileName)
         os.remove(fileName_pts)
-       
+        
     def test_fit_to_mesh(self):
 
         a = [-1.0, 0.0]
@@ -728,8 +768,8 @@ class Test_Fit(unittest.TestCase):
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Fit,'test')
-    #suite = unittest.makeSuite(Test_Fit,'test_fit_to_mesh_UTM_file')
-    #suite = unittest.makeSuite(Test_Fit,'test_smooth_attributes_to_mesh_one_point')
+    #suite = unittest.makeSuite(Test_Fit,'cache_test_fit_to_mesh_pts')
+    #suite = unittest.makeSuite(Test_Fit,'')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
 

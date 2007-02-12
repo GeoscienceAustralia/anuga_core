@@ -737,39 +737,17 @@ class Quantity:
 
         coordinates = self.domain.get_nodes(absolute=True)
         triangles = self.domain.triangles      #FIXME
-
-
-        # Use caching at this level until loading has been fixed.
-        if use_cache is True:
-            from anuga.caching import cache 
-            vertex_attributes = cache(fit_to_mesh,
-                                      (coordinates, triangles, filename),
-                                      {'alpha': alpha,
-                                       'attribute_name': attribute_name,
-                                       'use_cache': False,
-                                       'verbose': verbose,
-                                       'max_read_lines':max_read_lines},
-                                      verbose=verbose)
-        else:
-            vertex_attributes = fit_to_mesh(coordinates, triangles,filename,
-                                            alpha=alpha,
-                                            attribute_name=attribute_name,
-                                            use_cache=use_cache,
-                                            verbose=verbose,
-                                             max_read_lines=max_read_lines)
-            
-                                
+       
+        vertex_attributes = fit_to_mesh(coordinates, triangles,filename,
+                                        alpha=alpha,
+                                        attribute_name=attribute_name,
+                                        use_cache=use_cache,
+                                        verbose=verbose,
+                                        max_read_lines=max_read_lines)
+                                            
         #Call underlying method using array values
         self.set_values_from_array(vertex_attributes,
                                    location, indices, verbose)
-
-        #geospatial_data = Geospatial_data(filename)
-        
-        #self.set_values_from_geospatial_data(geospatial_data,
-        #                                     alpha,
-         #                                    location, indices,
-          #                                   verbose = verbose,
-           #                                  use_cache = use_cache)
 
    
     def get_maximum_index(self, indices=None):

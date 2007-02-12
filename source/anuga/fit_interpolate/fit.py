@@ -432,6 +432,37 @@ def fit_to_mesh(vertex_coordinates,
                 max_read_lines=None,
                 attribute_name=None,
                 use_cache = False):
+    args = (vertex_coordinates, triangles, point_coordinates, )
+    kwargs = {'point_attributes': point_attributes,
+              'alpha': alpha,
+              'verbose': verbose,
+              'acceptable_overshoot': acceptable_overshoot,
+              'mesh_origin': mesh_origin,
+              'data_origin': data_origin,
+              'max_read_lines': max_read_lines,
+              'attribute_name': attribute_name
+              }
+    if use_cache is True:
+        return cache(_fit_to_mesh,
+                     args, kwargs,
+                     verbose=verbose,
+                     compression=False)
+    else:
+        return apply(_fit_to_mesh,
+                     args, kwargs)
+
+def _fit_to_mesh(vertex_coordinates,
+                triangles,
+                point_coordinates, # this can also be a .csv/.txt file name
+                point_attributes=None,
+                alpha=DEFAULT_ALPHA,
+                verbose=False,
+                acceptable_overshoot=1.01,
+                mesh_origin=None,
+                data_origin=None,
+                max_read_lines=None,
+                attribute_name=None,
+                use_cache = False):
     """
     Fit a smooth surface to a triangulation,
     given data points with attributes.
