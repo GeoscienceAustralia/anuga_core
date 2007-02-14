@@ -145,8 +145,10 @@ class Domain(Generic_Domain):
                                 number_of_full_nodes=number_of_full_nodes,
                                 number_of_full_triangles=number_of_full_triangles) 
 
-        self.minimum_allowed_height = minimum_allowed_height
-        self.H0 = minimum_allowed_height  # Minimal height for flux computation        
+        #self.minimum_allowed_height = minimum_allowed_height
+        #self.H0 = minimum_allowed_height
+        self.set_minimum_allowed_height(minimum_allowed_height)
+        
         self.maximum_allowed_speed = maximum_allowed_speed
         self.g = g
         self.beta_w      = beta_w
@@ -213,6 +215,21 @@ class Domain(Generic_Domain):
         The minimum allowed sww depth is in meters.
         """
         self.minimum_storable_height = minimum_storable_height
+
+
+    def set_minimum_allowed_height(self, minimum_allowed_height):
+        """
+        Set the minimum depth that will be recognised in the numerical
+        scheme
+
+        The minimum allowed depth is in meters.
+
+        The parameter H0 (Minimal height for flux computation)
+        is also set by this function
+        """
+        
+        self.minimum_allowed_height = minimum_allowed_height
+        self.H0 = minimum_allowed_height   
         
 
     def set_maximum_allowed_speed(self, maximum_allowed_speed):
