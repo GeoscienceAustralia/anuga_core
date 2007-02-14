@@ -247,7 +247,7 @@ class Geospatial_data:
             self.verbose = verbose
         else:
             msg = 'Illegal value: %s' %str(verbose)
-	    raise Exception, msg
+            raise Exception, msg
 
     def clip(self, polygon, closed=True):
         """Clip geospatial data by a polygon
@@ -380,9 +380,9 @@ class Geospatial_data:
                 attribute_name = self.attributes.keys()[0] 
                 # above line takes the first one from keys
         
-	if self.verbose is True:
-	    print 'Using attribute %s' %attribute_name
-	    print 'Available attributes: %s' %(self.attributes.keys())        
+        if self.verbose is True:
+            print 'Using attribute %s' %attribute_name
+            print 'Available attributes: %s' %(self.attributes.keys())        
 
         msg = 'Attribute name %s does not exist in data set' %attribute_name
         assert self.attributes.has_key(attribute_name), msg
@@ -1328,7 +1328,7 @@ def ensure_absolute(points, geo_reference=None):
 
     Inputed formats are;
     points: List or numeric array of coordinate pairs [xi, eta] of
-	      points or geospatial object or points file name
+              points or geospatial object or points file name
 
     mesh_origin: A geo_reference object or 3-tuples consisting of
                  UTM zone, easting and northing.
@@ -1368,7 +1368,7 @@ def ensure_geospatial(points, geo_reference=None):
 
     Inputed formats are;
     points: List or numeric array of coordinate pairs [xi, eta] of
-	      points or geospatial object
+              points or geospatial object
 
     mesh_origin: A geo_reference object or 3-tuples consisting of
                  UTM zone, easting and northing.
