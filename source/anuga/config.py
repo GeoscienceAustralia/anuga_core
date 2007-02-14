@@ -80,6 +80,11 @@ beta_vh     = 1.0
 beta_vh_dry = 0.2
 beta_h      = 0.2
 
+# beta_h can be safely put to zero esp if we are using limit2007 = 1. This will
+# also speed things up.
+beta_h = 0.0
+
+
 # Alpha_balance controls how limiters are balanced between deep and shallow.
 # A large value will favour the deep water limiters, allowing the a closer hug to the coastline.
 # This will minimise 'creep' but at the same time cause smaller time steps
@@ -91,6 +96,7 @@ alpha_balance = 2.0
 # limit2007 = 0 means use old limiters (e.g. for some tests)
 # limit2007 = 1 means use new limiters that hug the bathymetry closer
 limit2007 = 0
+
 
 
 CFL = 1.0  #FIXME (ole): Is this in use yet??

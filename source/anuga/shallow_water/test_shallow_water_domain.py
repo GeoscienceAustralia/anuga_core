@@ -973,7 +973,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.set_quantities_to_be_stored(None)
         domain.set_maximum_allowed_speed(100) #
         domain.H0 = 0 # Backwards compatibility (6/2/7)
-        
+        domain.beta_h = 0.2 # Backwards compatibility (14/2/7)
 
         #-----------------------------------------------------------------
         # Setup initial conditions
