@@ -48,7 +48,8 @@ v = RealtimeVisualiser(domain)
 # Specify the height-based-quantities to render.
 # Remember to set dynamic=True for time-varying quantities
 v.render_quantity_height("elevation", dynamic=False)
-v.render_quantity_height("stage", dynamic=True)
+# Make the stage semitransparent
+v.render_quantity_height("stage", opacity=0.5, dynamic=True)
 
 # Colour the stage:
 # Either with an RGB value as a 3-tuple of Floats,

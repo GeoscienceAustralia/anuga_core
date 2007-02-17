@@ -18,6 +18,7 @@ class Visualiser(Thread):
         self.height_zScales = {}
         self.height_dynamic = {}
         self.height_offset = {}
+        self.height_opacity = {}
 
         # Structures for colouring quantities
         self.colours_height = {}
@@ -112,7 +113,7 @@ class Visualiser(Thread):
         """
         pass
 
-    def render_quantity_height(self, quantityName, zScale=1.0, offset=0.0, dynamic=True):
+    def render_quantity_height(self, quantityName, zScale=1.0, offset=0.0, opacity=1.0, dynamic=True):
         """Instruct the visualiser to render a quantity using the
         value at a point as its height.  The value at each point is
         multiplied by z_scale and is added to offset, and if
@@ -123,6 +124,7 @@ class Visualiser(Thread):
         self.height_zScales[quantityName] = zScale
         self.height_offset[quantityName] = offset
         self.height_dynamic[quantityName] = dynamic
+        self.height_opacity[quantityName] = opacity
 
     def update_height_quantity(self, quantityName, dynamic=True):
         """Create a vtkPolyData object and store it in
@@ -152,6 +154,7 @@ class Visualiser(Thread):
 
         if not self.vtk_actors.has_key(quantityName):
             actor = self.vtk_actors[quantityName] = vtkActor()
+            actor.GetProperty().SetOpacity(self.height_opacity[quantityName])
             actor.SetMapper(mapper)
             self.vtk_renderer.AddActor(actor)
         else:
