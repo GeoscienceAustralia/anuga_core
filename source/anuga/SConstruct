@@ -134,10 +134,12 @@ mesh_env.Append(CPPDEFINES=[('TRILIBRARY', 1), ('NO_TIMER', 1)])
 mesh_dir = os.path.join(anuga_root, 'mesh_engine')
 mesh_install_dir = os.path.join(install_root, 'mesh_engine')
 
-triang = mesh_env.SharedLibrary(os.path.join(mesh_dir, 'triang'), map(lambda s: os.path.join(mesh_dir, s), ['triangle.c', 'triang.c']))
-triangle = mesh_env.SharedLibrary(os.path.join(mesh_dir, 'triangle'), map(lambda s: os.path.join(mesh_dir, s), ['triangle.c']))
-env.Install(mesh_install_dir, triang)
-env.Install(mesh_install_dir, triangle)
+mesh_c_layer = mesh_env.SharedLibrary(os.path.join(mesh_dir, 'mesh_engine_c_layer'), map(lambda s: os.path.join(mesh_dir, s), ['mesh_engine_c_layer.c', 'triangle.c']))
+#triang = mesh_env.SharedLibrary(os.path.join(mesh_dir, 'triang'), map(lambda s: os.path.join(mesh_dir, s), ['triangle.c']))
+#triangle = mesh_env.SharedLibrary(os.path.join(mesh_dir, 'triangle'), map(lambda s: os.path.join(mesh_dir, s), ['triangle.c']))
+#env.Install(mesh_install_dir, triang)
+#env.Install(mesh_install_dir, triangle)
+env.Install(mesh_install_dir, mesh_c_layer)
 
 # Utilities
 util_dir = os.path.join(anuga_root, 'utilities')

@@ -117,7 +117,7 @@ class BenchmarkLeastSquares:
                     G1 = Geospatial_data(points_dict['points'],
                                          points_dict['point_attributes'])
                     G1.export_points_file(fileName, absolute=True)
-                    calc = interp.fit(fileName), verbose=verbose)
+                    calc = interp.fit(fileName, verbose=verbose)
                     os.remove(fileName)
                     
             else:
