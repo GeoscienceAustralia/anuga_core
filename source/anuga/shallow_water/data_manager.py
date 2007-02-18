@@ -4110,7 +4110,8 @@ def urs2sww(basename_in='o', basename_out=None, verbose=False,
             zscale=1,
             fail_on_NaN=True,
             NaN_filler=0,
-            elevation=None):
+            elevation=None,
+            gridded=True):
     """
     Convert URS C binary format for wave propagation to
     sww format native to abstract_2d_finite_volumes.
@@ -4140,7 +4141,10 @@ def urs2sww(basename_in='o', basename_out=None, verbose=False,
 
     In URS C binary the latitudes and longitudes are in assending order.
     """
-    
+    if gridded is False:
+        pass
+        #urs_ungridded2sww()
+        
     if basename_out == None:
         basename_out = basename_in
     files_out = urs2nc(basename_in, basename_out)
@@ -4408,6 +4412,7 @@ def lon_lat2grid(long_lat_dep):
 
     #### URS UNGRIDDED 2 SWW ###
 
+    ### PRODUCING THE POINTS NEEDED FILE ###
 def URS_points_needed_to_file(file_name, boundary_polygon, ll_lat, ll_long,
                               grid_spacing, 
                       lat_amount, long_amount, zone=None):
@@ -4523,10 +4528,261 @@ def points_needed(seg, ll_lat, ll_long, grid_spacing,
             points_lat_long.append((lat, long)) #must be hashable
     #print "points_lat_long", points_lat_long
     return points_lat_long    
+
+    #### CONVERTING UNGRIDDED URS DATA TO AN SWW FILE ####
+def urs_ungridded2sww_link(basename_in='o', basename_out=None, verbose=False,
+            remove_nc_files=True,
+            minlat=None, maxlat=None,
+            minlon= None, maxlon=None,
+            mint=None, maxt=None,
+            mean_stage=0,
+            origin = None,
+            zscale=1,
+            fail_on_NaN=True,
+            NaN_filler=0,
+            elevation=None):
+    """
+    validation stuff on parrameters not used
+    """
+    pass
     
+def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
+            #mint=None, maxt=None,
+            mean_stage=0,
+            origin = None,
+            zscale=1,
+            fail_on_NaN=True,
+            NaN_filler=0,
+            elevation=None):
+
+    # Read in urs files
+    # create a mesh from the selected points
+    # Do some conversions
+
+    if basename_out is None:
+        swwname = basename_in + '.sww'
+    else:
+        swwname = basename_out + '.sww'
+
+    outfile = NetCDFFile(swwname, 'w')
+
+def write_sww_header(outfile, times, number_of_volumes, number_of_points ):
+
+    number_of_times = len(times)
+    
+    #Create new file
+    outfile.institution = 'Geoscience Australia'
+    outfile.description = 'Converted from XXX'
+
+
+    #For sww compatibility
+    outfile.smoothing = 'Yes'
+    outfile.order = 1
+
+    #Start time in seconds since the epoch (midnight 1/1/1970)
+    outfile.starttime = starttime = times[0]
+
+
+    # dimension definitions
+    outfile.createDimension('number_of_volumes', number_of_volumes)
+
+    outfile.createDimension('number_of_vertices', 3)
+    outfile.createDimension('number_of_points', number_of_points)
+    outfile.createDimension('number_of_timesteps', number_of_times)
+
+    # variable definitions
+    outfile.createVariable('x', precision, ('number_of_points',))
+    outfile.createVariable('y', precision, ('number_of_points',))
+    outfile.createVariable('elevation', precision, ('number_of_points',))
+
+    #FIXME: Backwards compatibility
+    outfile.createVariable('z', precision, ('number_of_points',))
+    #################################
+
+    outfile.createVariable('volumes', Int, ('number_of_volumes',
+                                            'number_of_vertices'))
+
+    outfile.createVariable('time', precision,
+                           ('number_of_timesteps',))
+
+    outfile.createVariable('stage', precision,
+                           ('number_of_timesteps',
+                            'number_of_points'))
+
+    outfile.createVariable('xmomentum', precision,
+                           ('number_of_timesteps',
+                            'number_of_points'))
+
+    outfile.createVariable('ymomentum', precision,
+                           ('number_of_timesteps',
+                            'number_of_points'))
+
+# Do this as a class
+def read_urs_points(urs_file):
+    
+    columns = 3 # long, lat , depth
+    mux_file = open(file_in, 'rb')
+    
+    # Number of points/stations
+    (points_num,)= unpack('i',mux_file.read(4))
+
+    # nt, int - Number of time steps
+    (time_step_count,)= unpack('i',mux_file.read(4))
+
+    #dt, float - time step, seconds
+    (time_step,) = unpack('f', mux_file.read(4))
+    
+    msg = "Bad data in the mux file."
+    if points_num < 0:
+        mux_file.close()
+        raise ANUGAError, msg
+    if time_step_count < 0:
+        mux_file.close()
+        raise ANUGAError, msg
+    if time_step < 0:
+        mux_file.close()
+        raise ANUGAError, msg
+    
+    lonlatdep = p_array.array('f')
+    lonlatdep.read(mux_file, columns * points_num)
+
+class Urs_points:
+
+    def __init__(self,urs_file):
+        
+        columns = 3 # long, lat , depth
+        mux_file = open(urs_file, 'rb')
+        
+        # Number of points/stations
+        (self.points_num,)= unpack('i',mux_file.read(4))
+        
+        # nt, int - Number of time steps
+        (self.time_step_count,)= unpack('i',mux_file.read(4))
+
+        #dt, float - time step, seconds
+        (self.time_step,) = unpack('f', mux_file.read(4))
+    
+        msg = "Bad data in the urs file."
+        if self.points_num < 0:
+            mux_file.close()
+            raise ANUGAError, msg
+        if self.time_step_count < 0:
+            mux_file.close()
+            raise ANUGAError, msg
+        if self.time_step < 0:
+            mux_file.close()
+            raise ANUGAError, msg
+    
+        lonlatdep = p_array.array('f')
+        lonlatdep.read(mux_file, columns * self.points_num)
+        lonlatdep = array(lonlatdep, typecode=Float)    
+        lonlatdep = reshape(lonlatdep, (self.points_num, columns))
+        #print 'lonlatdep',lonlatdep
+        self.lonlatdep = lonlatdep
+        # check this array
+
+    def __iter__(self):
+        """
+        iterate over all data which is with respect to time.
+        """
+        print "self.time_step_count",self.time_step_count
+        self.time_step = 0
+        self.mux_file = self.mux_file
+        return self
+    
+    def next(self):
+        print "self.time_step",self.time_step 
+        if self.time_step_count == self.time_step:
+            raise StopIteration
+        #Read in a time slice  from mux file  
+        hz_p_array = p_array.array('f')
+        hz_p_array.read(self.mux_file, points_num)
+        hz_p = array(hz_p_array, typecode=Float)
+
+        self.time_step += 1
+
+    def close(self):
+        self.mux_file.close()
+
+
+        
+        
+    
+"""
+def write_sww_triangulation(number_of_points, ):
+    #Store
+    x = zeros(number_of_points, Float)  #Easting
+    y = zeros(number_of_points, Float)  #Northing
+
+    if verbose: print 'Making triangular grid'
+    #Get zone of 1st point.
+    refzone, _, _ = redfearn(1st point..)
+
+    vertices = {}
+    i = 0
+    for k, lat in enumerate(latitudes):
+        for l, lon in enumerate(longitudes):
+
+            vertices[l,k] = i
+
+            zone, easting, northing = redfearn(lat,lon)
+
+            msg = 'Zone boundary crossed at longitude =', lon
+            #assert zone == refzone, msg
+            #print '%7.2f %7.2f %8.2f %8.2f' %(lon, lat, easting, northing)
+            x[i] = easting
+            y[i] = northing
+            i += 1
+
+
+    #Construct 2 triangles per 'rectangular' element
+    volumes = []
+    for l in range(number_of_longitudes-1):    #X direction
+        for k in range(number_of_latitudes-1): #Y direction
+            v1 = vertices[l,k+1]
+            v2 = vertices[l,k]
+            v3 = vertices[l+1,k+1]
+            v4 = vertices[l+1,k]
+
+            #Note, this is different to the ferrit2sww code
+            #since the order of the lats is reversed.
+            volumes.append([v1,v3,v2]) #Upper element
+            volumes.append([v4,v2,v3]) #Lower element
+
+    volumes = array(volumes)
+
+    geo_ref = Geo_reference(refzone,min(x),min(y))
+    geo_ref.write_NetCDF(outfile)
+
+    # This will put the geo ref in the middle
+    #geo_ref = Geo_reference(refzone,(max(x)+min(x))/2.0,(max(x)+min(y))/2.)
+
+
+    if verbose:
+        print '------------------------------------------------'
+        print 'More Statistics:'
+        print '  Extent (/lon):'
+        print '    x in [%f, %f], len(lat) == %d'\
+              %(min(x), max(x),
+                len(x))
+        print '    y in [%f, %f], len(lon) == %d'\
+              %(min(y), max(y),
+                len(y))
+        print 'geo_ref: ',geo_ref
+
+    z = resize(bath_grid,outfile.variables['z'][:].shape)
+    outfile.variables['x'][:] = x - geo_ref.get_xllcorner()
+    outfile.variables['y'][:] = y - geo_ref.get_yllcorner()
+    outfile.variables['z'][:] = z
+    outfile.variables['elevation'][:] = z  #FIXME HACK
+    outfile.variables['volumes'][:] = volumes.astype(Int32) #On Opteron 64
+"""
+     
     #### END URS UNGRIDDED 2 SWW ###
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    pass
+    points=Urs_points('o_velocity-e-mux')
+    for i in points:
+        pass
 
