@@ -440,7 +440,8 @@ def fit_to_mesh(vertex_coordinates,
               'mesh_origin': mesh_origin,
               'data_origin': data_origin,
               'max_read_lines': max_read_lines,
-              'attribute_name': attribute_name
+              'attribute_name': attribute_name,
+              'use_cache':use_cache 
               }
     if use_cache is True:
         return cache(_fit_to_mesh,
