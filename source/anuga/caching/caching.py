@@ -1322,8 +1322,12 @@ def myhash(T):
 
   import types
 
-  # On some architectures None gets different hash values
+  # On some architectures None, False and True gets different hash values
   if T is None:
+    return(-1)
+  if T is False:
+    return(0)
+  if T is True:
     return(1)
 
   # Get hash vals for hashable entries

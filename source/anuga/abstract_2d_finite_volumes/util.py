@@ -501,18 +501,20 @@ def populate_polygon(*args, **kwargs):
 
 ##################### end of obsolete stuff ? ############
 
-def start_screen_catcher(dir_name, myid=0, numprocs=1):
+def start_screen_catcher(dir_name, myid=0, numprocs=1, print_to_screen=False, 
+                          verbose=False):
     """Used to store screen output and errors to file, if run on multiple 
     processes eachprocessor will have its own output and error file.
     """
 
     dir_name = dir_name
     if access(dir_name,W_OK) == 0:
-        print 'Make directory %s' %dir_name
+        if verbose: print 'Make directory %s' %dir_name
+        if verbose: print "myid", myid
         mkdir (dir_name,0777)
     screen_output_name = dir_name + "screen_output_%d_%d.txt" %(myid,numprocs)
     screen_error_name = dir_name + "screen_error_%d_%d.txt" %(myid,numprocs)
-    
+    print screen_output_name
     #used to catch screen output to file
     sys.stdout = Screen_Catcher(screen_output_name)
     sys.stderr = Screen_Catcher(screen_error_name)
@@ -532,6 +534,7 @@ class Screen_Catcher:
     def write(self, stuff):
         fid = open(self.filename, 'a')
         fid.write(stuff)
+#        if print_to_screen: print stuff
 
 def get_revision_number():
     """Get the version number of the SVN
