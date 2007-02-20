@@ -4703,6 +4703,66 @@ friction  \n \
                 quantities_init[1].append(n ) # UA
                 quantities_init[2].append(e) # VA
         #print "lonlatdeps",lonlatdeps
+
+        file_handle, base_name = tempfile.mkstemp("")
+        os.close(file_handle)
+        os.remove(base_name)
+        
+        files = []        
+        for i,q in enumerate(quantities): 
+            quantities_init[i] = ensure_numeric(quantities_init[i])
+            #print "HA_init", HA_init
+            q_time = zeros((time_step_count, points_num), Float)
+            for time in range(time_step_count):
+                q_time[time,:] = quantities_init[i] #* time * 4
+            
+            #Write C files
+            columns = 3 # long, lat , depth
+            file = base_name + mux_names[i]
+            #print "base_name file",file 
+            f = open(file, 'wb')
+            files.append(file)
+            f.write(pack('i',points_num))
+            f.write(pack('i',time_step_count))
+            f.write(pack('f',time_step))
+
+            #write lat/long info
+            for lonlatdep in lonlatdeps:
+                for float in lonlatdep:
+                    f.write(pack('f',float))
+                    
+            # Write quantity info
+            for time in  range(time_step_count):
+                for i in range(points_num):
+                    f.write(pack('f',q_time[time,i]))
+            f.close()
+        return base_name, files
+    
+    def write_mux(self,lat_long_points, time_step_count, time_step):
+        """
+        This will write 3 non-gridded mux files, for testing.
+        The na and va quantities will be the Easting values.
+        Depth and ua will be the Northing value. 
+        """
+        #print "lat_long_points", lat_long_points
+        #print "time_step_count",time_step_count
+        #print "time_step",
+        
+        points_num = len(lat_long_points)
+        lonlatdeps = []
+        quantities = ['HA','UA','VA']
+        mux_names = ['-z-mux','-e-mux','-n-mux']
+        quantities_init = [[],[],[]]
+        # urs binary is latitude fastest
+        for point in lat_long_points:
+            lat = point[0]
+            lon = point[1]
+            _ , e, n = redfearn(lat, lon)
+            lonlatdeps.append([lon, lat, n])
+            quantities_init[0].append(e) # HA
+            quantities_init[1].append(n ) # UA
+            quantities_init[2].append(e) # VA
+                
         file_handle, base_name = tempfile.mkstemp("")
         os.close(file_handle)
         os.remove(base_name)
@@ -5120,12 +5180,56 @@ friction  \n \
                       lat_amount, long_amount)
         
     #### END TESTS URS UNGRIDDED 2 SWW ###
+    def test_Urs_points(self):
+        time_step_count = 3
+        time_step = 2
+        lat_long_points =[(-21.5,114.5),(-21.5,115),(-21.,115)]
+        base_name, files = self.write_mux(lat_long_points,
+                                          time_step_count, time_step)
+        for file in files:
+            urs = Urs_points(file)
+            assert time_step_count == urs.time_step_count
+            assert time_step == urs.time_step
+
+            for lat_lon, dep in map(None, lat_long_points, urs.lonlatdep):
+                    _ , e, n = redfearn(lat_lon[0], lat_lon[1])
+                    assert allclose(n, dep[2])
+                        
+            count = 0
+            for slice in urs:
+                count += 1
+                #print slice
+                for lat_lon, quantity in map(None, lat_long_points, slice):
+                    _ , e, n = redfearn(lat_lon[0], lat_lon[1])
+                    #print "quantity", quantity
+                    #print "e", e
+                    #print "n", n 
+                    if file[-5:] == 'z-mux' or file[-5:] == 'n-mux' :
+                        assert allclose(e, quantity)
+                    if file[-5:] == 'e-mux':
+                        assert allclose(n, quantity)
+            assert count == time_step_count
+                     
+        self.delete_mux(files)
+
+    def test_urs_ungridded2sww (self):
+        
+        #Zone:   50    
+        #Easting:  240992.578  Northing: 7620442.472 
+        #Latitude:   -21  30 ' 0.00000 ''  Longitude: 114  30 ' 0.00000 '' 
+        lat_long = [[-21.5,114.5],[-21,114.5],[-21,115]]
+        time_step_count = 2
+        time_step = 400
+        base_name, files = self.write_mux(lat_long,
+                                          time_step_count, time_step)
+        urs_ungridded2sww(base_name)
+   
         
 #-------------------------------------------------------------
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager,'test_URS_points_needed')
-    #suite = unittest.makeSuite(Test_Data_Manager,'dave_test_URS_points_needed')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_ferret2sww_lat_long')
+    #suite = unittest.makeSuite(Test_Data_Manager,'dave_test_URS_poinneeded')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs_')
     suite = unittest.makeSuite(Test_Data_Manager,'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
