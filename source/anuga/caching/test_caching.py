@@ -19,11 +19,9 @@ def f(a,b,c,N,x=0,y='abcdefg'):
     B.append((a,b,c,s,n,x,y))
   return(B)
 
-
-
-
-
-
+class Dummy:
+  def __init__(self,value, another):
+    self.value = value
 
 class Test_Caching(unittest.TestCase):
     def setUp(self):
@@ -299,6 +297,28 @@ class Test_Caching(unittest.TestCase):
               
 
 
+    def Will_fail_test_objects(self):
+      """
+      This test shows how instances can't be effectively cached.
+      myhash uses hash which uses id which uses the memory address. 
+      """
+      verbose = True
+      verbose = False
+
+      for i in range(2):
+        if verbose: print "clear cache"
+        a = cache(Dummy,'clear')     
+        if verbose: print "cache for first time"
+        a = cache(Dummy,args=(9,10) ,verbose=verbose)
+        hash_value = myhash(a)
+        #print "hash_value",hash_value 
+        if verbose: print "cache for second time"
+        a = cache(Dummy,args=(9,10) ,verbose=verbose)
+        #print "myhash(a)",myhash(a) 
+        assert hash_value == myhash(a)
+
+      
+        
 
 
 #-------------------------------------------------------------
