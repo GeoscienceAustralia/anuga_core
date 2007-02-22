@@ -1179,7 +1179,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                             axis(stage_axis)
                         else:
                             plot(model_time[0:n[j]-1,k,j], depths[0:n[j]-1,k,j], '-', c = cstr[j])
-                            axis(depth_axis)                 
+                            #axis(depth_axis)                 
                         units = 'm'
                     if which_quantity == 'momentum':
                         plot(model_time[0:n[j]-1,k,j], momenta[0:n[j]-1,k,j], '-', c = cstr[j])
