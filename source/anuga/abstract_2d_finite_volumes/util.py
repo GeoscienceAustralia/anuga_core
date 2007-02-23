@@ -69,26 +69,13 @@ def file_function(filename,
               'quantities': quantities,
               'interpolation_points': interpolation_points,
               'time_thinning': time_thinning,                   
-              'verbose': verbose}
+              'verbose': verbose,
+              'use_cache': use_cache
+              }
 
-
-    # Call underlying engine with or without caching
-    if use_cache is True:
-        try:
-            from caching import cache
-        except:
-            msg = 'Caching was requested, but caching module'+\
-                  'could not be imported'
-            raise msg
-
-        f = cache(_file_function,
-                  args, kwargs,
-                  dependencies=[filename],
-                  compression=False,                  
-                  verbose=verbose)
-
-    else:
-        f = apply(_file_function,
+    #caching moved to deeper within the function to avoid caching an
+    #instance of an object, which isn't generally good.
+    f = apply(_file_function,
                   args, kwargs)
 
 
@@ -104,8 +91,9 @@ def _file_function(filename,
                    domain=None,
                    quantities=None,
                    interpolation_points=None,
-                   time_thinning=1,                                                
-                   verbose=False):
+                   time_thinning=1, 
+                   verbose=False,
+                   use_cache=False):
     """Internal function
     
     See file_function for documentatiton
@@ -145,7 +133,8 @@ def _file_function(filename,
         return get_netcdf_file_function(filename, domain, quantities,
                                         interpolation_points,
                                         time_thinning=time_thinning,
-                                        verbose=verbose)
+                                        verbose=verbose,
+                                        use_cache=use_cache)
     else:
         raise 'Must be a NetCDF File'
 
@@ -156,7 +145,8 @@ def get_netcdf_file_function(filename,
                              quantity_names=None,
                              interpolation_points=None,
                              time_thinning=1,                             
-                             verbose=False):
+                             verbose=False,
+                             use_cache=False):
     """Read time history of spatial data from NetCDF sww file and
     return a callable object f(t,x,y)
     which will return interpolated values based on the input file.
@@ -324,16 +314,28 @@ def get_netcdf_file_function(filename,
     if not spatial:
         vertex_coordinates = triangles = interpolation_points = None         
 
-
-    return Interpolation_function(time,
-                                  quantities,
-                                  quantity_names,
-                                  vertex_coordinates,
-                                  triangles,
-                                  interpolation_points,
-                                  time_thinning=time_thinning,
-                                  verbose=verbose)
-
+    
+ 
+    args = (time, quantities, quantity_names, vertex_coordinates, 
+            triangles, interpolation_points, )
+            
+    kwargs = {'time_thinning': time_thinning,
+              'verbose': verbose
+              }
+#    print'CACHING FROM UTIL.py for interpolation_function', use_cache
+    from anuga.caching import myhash
+    if use_cache is True:
+        from caching import cache
+        
+        interpolation_function = cache(Interpolation_function,
+                                       args, kwargs,
+                                       verbose=verbose,
+                                       compression=False)
+    else:
+        interpolation_function = apply(Interpolation_function,
+                                       args, kwargs)
+#    print 'myhash', myhash(interpolation_function) 
+    return interpolation_function 
 
 
 

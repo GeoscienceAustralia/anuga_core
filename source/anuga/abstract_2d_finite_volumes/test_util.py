@@ -959,10 +959,10 @@ class Test_Util(unittest.TestCase):
 
         domain.starttime = start
         F = file_function(filename + '.tms', domain,
-                          quantities = ['Attribute0', 'Attribute1', 'Attribute2'])
+                          quantities = ['Attribute0', 'Attribute1', 'Attribute2'],
+                          use_cache=True)
         
 
-        #print F.T
         #print F.precomputed_values
         #print 'F(60)', F(60)
         
