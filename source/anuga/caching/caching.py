@@ -2307,7 +2307,7 @@ def mkargstr(args, textwidth, argstr = ''):
 #        if len(args.flat) > textwidth:  
 #        Changed by Duncan and Nick 21/2/07 .flat has problems with 
 #        non-contigous arrays and ravel is equal to .flat except it 
-#        can work with non-contigous arrays
+#        can work with non-contiguous  arrays
         if len(Numeric.ravel(args)) > textwidth:
           args = 'Array: ' + str(args.shape)
 
