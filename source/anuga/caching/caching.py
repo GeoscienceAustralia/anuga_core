@@ -331,6 +331,7 @@ def cache(func, args=(), kwargs = {}, dependencies=None , cachedir=None,
       T = None
     else:  # Evaluate function and save to cache
       if verbose:
+        
         msg1(funcname, args, kwargs,reason)
 
       # Remove expired files automatically
@@ -740,7 +741,8 @@ pickler = cPickle
 comp_level = 1              # Compression level for zlib.
                             # comp_level = 1 works well.
 textwidth1 = 16             # Text width of key fields in report forms.
-textwidth2 = 132            # Maximal width of textual representation of
+#textwidth2 = 132            # Maximal width of textual representation of
+textwidth2 = 300            # Maximal width of textual representation of
                             # arguments.
 textwidth3 = 16             # Initial width of separation lines. Is modified.
 textwidth4 = 50             # Text width in test_OK()
@@ -2302,7 +2304,11 @@ def mkargstr(args, textwidth, argstr = ''):
       #Truncate large Numeric arrays before using str()
       import Numeric
       if type(args) == Numeric.ArrayType:
-        if len(args.flat) > textwidth:
+#        if len(args.flat) > textwidth:  
+#        Changed by Duncan and Nick 21/2/07 .flat has problems with 
+#        non-contigous arrays and ravel is equal to .flat except it 
+#        can work with non-contigous arrays
+        if len(Numeric.ravel(args)) > textwidth:
           args = 'Array: ' + str(args.shape)
 
       argstr = argstr + str(args)
