@@ -77,7 +77,6 @@ from anuga.config import minimum_storable_height as default_minimum_storable_hei
 from anuga.utilities.numerical_tools import ensure_numeric,  mean
 from anuga.caching.caching import myhash
 from anuga.utilities.anuga_exceptions import ANUGAError
-from anuga.pmesh.mesh import Mesh
 from anuga.shallow_water import Domain
 from anuga.abstract_2d_finite_volumes.pmesh2domain import \
      pmesh_to_domain_instance
@@ -4418,6 +4417,7 @@ def URS_points_needed(boundary_polygon, ll_lat, ll_long, grid_spacing,
     grid_spacing - in deciamal degrees
 
     """
+    #FIXME cache this function!
     
     from sets import ImmutableSet
     
@@ -4448,6 +4448,7 @@ def points_needed(seg, ll_lat, ll_long, grid_spacing,
     return a list of the points, in lats and longs that are needed to
     interpolate any point on the segment.
     """
+    from math import sqrt
     #print "zone",zone 
     geo_reference = Geo_reference(zone=zone)
     #print "seg",seg 
@@ -4455,7 +4456,8 @@ def points_needed(seg, ll_lat, ll_long, grid_spacing,
     seg_lat_long = geo.get_data_points(as_lat_long=True)
     #print "seg_lat_long", seg_lat_long
     # 1.415 = 2^0.5, rounded up....
-    buffer = 1.415 * grid_spacing
+    sqrt_2_rounded_up = 1.415
+    buffer = sqrt_2_rounded_up * grid_spacing
     
     #
     
@@ -4464,12 +4466,6 @@ def points_needed(seg, ll_lat, ll_long, grid_spacing,
     min_lat = min(seg_lat_long[0][0], seg_lat_long[1][0]) - buffer
     min_long = min(seg_lat_long[0][1], seg_lat_long[1][1]) - buffer
 
-    #print "ll_lat", ll_lat
-    #print "ll_long", ll_long
-    #print "max_lat", max_lat
-    #print "max_long", max_long 
-    #print "min_lat", min_lat
-    #print "min_long", min_long
     first_row = (min_long - ll_long)/grid_spacing
     # To round up
     first_row_long = int(round(first_row + 0.5))
@@ -4478,7 +4474,6 @@ def points_needed(seg, ll_lat, ll_long, grid_spacing,
     last_row = (max_long - ll_long)/grid_spacing # round down
     last_row_long = int(round(last_row))
     #print "last_row",last_row _long
-
     
     first_row = (min_lat - ll_lat)/grid_spacing
     # To round up
@@ -4489,16 +4484,49 @@ def points_needed(seg, ll_lat, ll_long, grid_spacing,
     last_row_lat = int(round(last_row))
     #print "last_row",last_row_lat
 
+    ul_lat = ll_lat + grid_spacing*lat_amount
+    ul_lat_close = ul_lat - grid_spacing
+    ll_long_close = ll_long + grid_spacing    
+    _ , x, y = redfearn(ul_lat, ll_long)    
+    _ , _, y_close = redfearn(ul_lat_close, ll_long)    
+    _ , x_close, _ = redfearn(ul_lat, ll_long_close)
+
+    
+    max_distance = sqrt_2_rounded_up * max(x-x_close,y - y_close)
     points_lat_long = []
     # Create a list of the lat long points to include.
     for index_lat in range(first_row_lat, last_row_lat + 1):
         for index_long in range(first_row_long, last_row_long + 1):
             lat = ll_lat + index_lat*grid_spacing
             long = ll_long + index_long*grid_spacing
-            points_lat_long.append((lat, long)) #must be hashable
-    #print "points_lat_long", points_lat_long
-    return points_lat_long    
 
+            #filter here to keep good points
+            if keep_point(lat, long, seg, max_distance):
+                points_lat_long.append((lat, long)) #must be hashable
+    #print "points_lat_long", points_lat_long
+
+    # Now that we have these points, lets throw ones out that are too far away
+    return points_lat_long
+
+def keep_point(lat, long, seg, max_distance):
+    """
+    seg is two points, UTM
+    """
+    from math import sqrt
+    _ , x0, y0 = redfearn(lat, long)
+    x1 = seg[0][0]
+    y1 = seg[0][1]
+    x2 = seg[1][0]
+    y2 = seg[1][1]
+
+    x2_1 = x2-x1
+    y2_1 = y2-y1
+    d = abs((x2_1)*(y1-y0)-(x1-x0)*(y2_1))/sqrt((x2_1)*(x2_1)+(y2_1)*(y2_1))
+    if d <= max_distance:
+        return True
+    else:
+        return False
+    
     #### CONVERTING UNGRIDDED URS DATA TO AN SWW FILE ####
 def urs_ungridded2sww_link(basename_in='o', basename_out=None, verbose=False,
             remove_nc_files=True,
@@ -4521,16 +4549,14 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
             mean_stage=0,
             origin = None,
             zscale=1,
-            fail_on_NaN=True,
-            NaN_filler=0):
+            fail_on_NaN=True):
     """
     parameters not used!
-    NaN_filler
     origin
     #mint=None, maxt=None,
-    """
-    # Convert to utm
-    
+    """    
+    from anuga.pmesh.mesh import Mesh
+
     files_in = [basename_in+'-z-mux',
                 basename_in+'-e-mux',
                 basename_in+'-n-mux']
@@ -4538,13 +4564,12 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
 
     # instanciate urs_points of the three mux files.
     mux = {}
-    quality_slices = {}
+    #quality_slices = {}
     for quantity, file in map(None, quantities, files_in):
         mux[quantity] = Urs_points(file)
-        quality_slices[quantity] = []
-        for slice in mux[quantity]:
-            quality_slices[quantity].append(slice)
-        
+        #quality_slices[quantity] = []
+        #for slice in mux[quantity]:
+        #    quality_slices[quantity].append(slice)
         
     # FIXME: check that the depth is the same. (hashing)
 
@@ -4559,9 +4584,12 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
     #print "points_utm", points_utm
     #print "zone", zone
 
-    elevation = a_mux.lonlatdep[:,0] * -1 #
+    elevation = a_mux.lonlatdep[:,2] * -1 #
     
     # grid ( create a mesh from the selected points)
+    # This mesh has a problem.  Triangles are streched over ungridded areas.
+    #  If these areas could be described as holes in pmesh, that would be great
+    
     mesh = Mesh()
     mesh.add_vertices(points_utm)
     mesh.auto_segment()
@@ -4569,7 +4597,7 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
     mesh_dic = mesh.Mesh2MeshList()
 
     #mesh.export_mesh_file(basename_in + '.tsh')
-
+    
     times = []
     for i in range(a_mux.time_step_count):
         times.append(a_mux.time_step * i)
@@ -4592,17 +4620,17 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
     # For a different way of doing this, check out tsh2sww 
     write_sww_header(outfile, times, len(volumes), len(points_utm))
     write_sww_triangulation(outfile, points_utm, volumes,
-                            elevation, zone,  verbose=verbose)
-
-    write_sww_time_slice(outfile, quality_slices['HA'],
-                         quality_slices['UA'], quality_slices['VA'],
-                         elevation,
-                         mean_stage=mean_stage, zscale=zscale,
-                         verbose=verbose)
+                            elevation, zone,  origin=origin, verbose=verbose)
+    j = 0
+    # Read in a time slice from each mux file and write it to the sww file
+    for HA, UA, VA in map(None, mux['HA'], mux['UA'], mux['VA']):            
+        write_sww_time_slice(outfile, HA, UA, VA,  elevation, j,
+                              mean_stage=mean_stage, zscale=zscale,
+                              verbose=verbose)
+        j += 1
+    outfile.close()
     #
     # Do some conversions while writing the sww file
-
-
 
 def write_sww_header(outfile, times, number_of_volumes, number_of_points ):
     """
@@ -4658,7 +4686,93 @@ def write_sww_header(outfile, times, number_of_volumes, number_of_points ):
     outfile.createVariable('ymomentum', precision,
                            ('number_of_timesteps',
                             'number_of_points'))
+    
+    outfile.variables['time'][:] = times   
 
+
+def write_sww_triangulation(outfile, points_utm, volumes,
+                            elevation, zone, origin=None, verbose=False):
+
+    number_of_points = len(points_utm)   
+    volumes = array(volumes)
+
+    if origin is not None:
+        if isinstance(origin, Geo_reference): 
+            geo_ref = origin
+        else:
+            geo_ref = apply(Geo_reference,origin)
+    else:
+        geo_ref = Geo_reference(zone,min(points_utm[:,0]),min(points_utm[:,1]))
+    #geo_ref = Geo_reference(zone,0,0)
+    geo_ref.write_NetCDF(outfile)
+
+    # This will put the geo ref in the middle
+    #geo_ref = Geo_reference(refzone,(max(x)+min(x))/2.0,(max(x)+min(y))/2.)
+
+
+    if verbose:
+        print '------------------------------------------------'
+        print 'More Statistics:'
+        print '  Extent (/lon):'
+        print '    x in [%f, %f], len(lat) == %d'\
+              %(min(x), max(x),
+                len(x))
+        print '    y in [%f, %f], len(lon) == %d'\
+              %(min(y), max(y),
+                len(y))
+        print '    z in [%f, %f], len(z) == %d'\
+              %(min(z), max(z),
+                len(z))
+        print 'geo_ref: ',geo_ref
+        print '------------------------------------------------'
+
+    #z = resize(bath_grid,outfile.variables['z'][:].shape)
+    outfile.variables['x'][:] = points_utm[:,0] - geo_ref.get_xllcorner()
+    outfile.variables['y'][:] = points_utm[:,1] - geo_ref.get_yllcorner()
+    outfile.variables['z'][:] = elevation
+    outfile.variables['elevation'][:] = elevation  #FIXME HACK
+    outfile.variables['volumes'][:] = volumes.astype(Int32) #On Opteron 64
+
+
+    # FIXME: Don't store the whole speeds and stage in  memory.
+    # block it?
+def write_sww_time_slices(outfile, has, uas, vas, elevation,
+                         mean_stage=0, zscale=1,
+                         verbose=False):    
+    #Time stepping
+    stage = outfile.variables['stage']
+    xmomentum = outfile.variables['xmomentum']
+    ymomentum = outfile.variables['ymomentum']
+
+    if verbose: print 'Converting quantities'
+    n = len(has)
+    j=0
+    for ha, ua, va in map(None, has, uas, vas):
+        if verbose and j%((n+10)/10)==0: print '  Doing %d of %d' %(j, n)
+        w = zscale*ha + mean_stage
+        stage[j] = w
+        h = w - elevation
+        xmomentum[j] = ua*h
+        ymomentum[j] = va*h
+        j += 1
+
+ 
+def write_sww_time_slice(outfile, ha, ua, va, elevation, slice_index,
+                         mean_stage=0, zscale=1,
+                         verbose=False):    
+    #Time stepping
+    stage = outfile.variables['stage']
+    xmomentum = outfile.variables['xmomentum']
+    ymomentum = outfile.variables['ymomentum']
+
+    if verbose: print 'Converting quantities'
+    
+    w = zscale*ha + mean_stage
+    stage[slice_index] = w
+    h = w - elevation
+    xmomentum[slice_index] = ua*h
+    ymomentum[slice_index] = va*h
+        
 class Urs_points:
     """
     Read the info in URS mux files.
@@ -4667,9 +4781,7 @@ class Urs_points:
     what they mean;
     z-mux is height above sea level, m
     e-mux is velocity is Eastern direction, m/s
-    n-mux is velocity is Northern direction, m/s
-
-    
+    n-mux is velocity is Northern direction, m/s   
     """
     def __init__(self,urs_file):
         self.iterated = False
@@ -4681,10 +4793,10 @@ class Urs_points:
         
         # nt, int - Number of time steps
         (self.time_step_count,)= unpack('i',mux_file.read(4))
-
+        #print "self.time_step_count", self.time_step_count 
         #dt, float - time step, seconds
         (self.time_step,) = unpack('f', mux_file.read(4))
-    
+        #print "self.time_step", self.time_step
         msg = "Bad data in the urs file."
         if self.points_num < 0:
             mux_file.close()
@@ -4718,91 +4830,25 @@ class Urs_points:
         """
         msg =  "You can only interate once over a urs file."
         assert not self.iterated, msg
-        self.time_step = 0
+        self.iter_time_step = 0
         self.iterated = True
         return self
     
     def next(self):
-        if self.time_step_count == self.time_step:
+        if self.time_step_count == self.iter_time_step:
             self.close()
             raise StopIteration
         #Read in a time slice  from mux file  
         hz_p_array = p_array.array('f')
         hz_p_array.read(self.mux_file, self.points_num)
         hz_p = array(hz_p_array, typecode=Float)
-        self.time_step += 1
+        self.iter_time_step += 1
         
         return hz_p
 
     def close(self):
         self.mux_file.close()
 
-
-def write_sww_triangulation(outfile, points_utm, volumes,
-                            elevation, zone, verbose=False):
-
-    number_of_points = len(points_utm)
-    #Store
-    x = zeros(number_of_points, Float)  #Easting
-    y = zeros(number_of_points, Float)  #Northing
-
-    volumes = array(volumes)
-
-    geo_ref = Geo_reference(zone,min(x),min(y))
-    geo_ref.write_NetCDF(outfile)
-
-    # This will put the geo ref in the middle
-    #geo_ref = Geo_reference(refzone,(max(x)+min(x))/2.0,(max(x)+min(y))/2.)
-
-
-    if verbose:
-        print '------------------------------------------------'
-        print 'More Statistics:'
-        print '  Extent (/lon):'
-        print '    x in [%f, %f], len(lat) == %d'\
-              %(min(x), max(x),
-                len(x))
-        print '    y in [%f, %f], len(lon) == %d'\
-              %(min(y), max(y),
-                len(y))
-        print '    z in [%f, %f], len(z) == %d'\
-              %(min(z), max(z),
-                len(z))
-        print 'geo_ref: ',geo_ref
-        print '------------------------------------------------'
-
-    #z = resize(bath_grid,outfile.variables['z'][:].shape)
-    outfile.variables['x'][:] = x - geo_ref.get_xllcorner()
-    outfile.variables['y'][:] = y - geo_ref.get_yllcorner()
-    outfile.variables['z'][:] = elevation
-    outfile.variables['elevation'][:] = elevation  #FIXME HACK
-    outfile.variables['volumes'][:] = volumes.astype(Int32) #On Opteron 64
-
-
-    # FIXME: Don't store the whole speeds and stage in  memory.
-    # block it?
-def write_sww_time_slice(outfile, has, uas, vas, elevation,
-                         mean_stage=0, zscale=1,
-                         verbose=False):    
-    #Time stepping
-    stage = outfile.variables['stage']
-    xmomentum = outfile.variables['xmomentum']
-    ymomentum = outfile.variables['ymomentum']
-
-    if verbose: print 'Converting quantities'
-    n = len(has)
-    j = 0
-    
-    for ha, ua, va in map(None, has, uas, vas):
-        if verbose and j%((n+10)/10)==0: print '  Doing %d of %d' %(j, n)
-        w = zscale*ha + mean_stage
-        stage[j] = w
-        h = w - elevation
-        xmomentum[j] = ua*h
-        ymomentum[j] = va*h
-        j += 1
-    outfile.close()
-    
     #### END URS UNGRIDDED 2 SWW ###
 
 #-------------------------------------------------------------
