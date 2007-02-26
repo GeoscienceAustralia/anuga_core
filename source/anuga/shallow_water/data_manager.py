@@ -4404,8 +4404,9 @@ def URS_points_needed_to_file(file_name, boundary_polygon, ll_lat, ll_long,
         file_name += ".urs"
     geo.export_points_file(file_name)
     
-def URS_points_needed(boundary_polygon, ll_lat, ll_long, grid_spacing, 
-                      lat_amount, long_amount, zone=None):
+def URS_points_needed(boundary_polygon, ll_lat=-50.0,
+                      ll_long=80.0, grid_spacing=1.0/60.0, 
+                      lat_amount=4800, long_amount=3600, zone=None):
     """
 
     boundary_polygon - a list of points that describes a polygon.
@@ -4484,15 +4485,11 @@ def points_needed(seg, ll_lat, ll_long, grid_spacing,
     last_row_lat = int(round(last_row))
     #print "last_row",last_row_lat
 
-    ul_lat = ll_lat + grid_spacing*lat_amount
-    ul_lat_close = ul_lat - grid_spacing
-    ll_long_close = ll_long + grid_spacing    
-    _ , x, y = redfearn(ul_lat, ll_long)    
-    _ , _, y_close = redfearn(ul_lat_close, ll_long)    
-    _ , x_close, _ = redfearn(ul_lat, ll_long_close)
-
-    
-    max_distance = sqrt_2_rounded_up * max(x-x_close,y - y_close)
+    # to work out the max distance -
+    # 111120 - horizontal distance between 1 deg latitude. 
+    #max_distance = sqrt_2_rounded_up * 111120 * grid_spacing
+    max_distance = 157147.4112 * grid_spacing
+    #print "max_distance", max_distance #2619.12 m for 1 minute
     points_lat_long = []
     # Create a list of the lat long points to include.
     for index_lat in range(first_row_lat, last_row_lat + 1):
