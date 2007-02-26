@@ -5480,10 +5480,20 @@ friction  \n \
                                           time_step_count, time_step)
         urs_ungridded2sww(base_name, mean_stage=tide)
         self.delete_mux(files)
-        #os.remove( base_name + '.sww')
+        os.remove( base_name + '.sww')
+        # extend this so it interpolates onto the boundary.
+        # have it fail if there is NaN
+        
+    def davids_test_points_urs_ungridded2sww(self):
+        tide = 5.0
+        base_name = 'o'
+        urs_ungridded2sww(base_name, mean_stage=tide)
+        os.remove( base_name + '.sww')
+        # extend this so it interpolates onto the boundary.
+        # have it fail if there is NaN
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_URS_points_needed')
+    #suite = unittest.makeSuite(Test_Data_Manager,'davids_test_points_urs_ungridded2sww')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs_ungridded2swwII')
     #suite = unittest.makeSuite(Test_Data_Manager,'visual_test_URS_points_needed_and_urs_ungridded2sww')
     suite = unittest.makeSuite(Test_Data_Manager,'test')

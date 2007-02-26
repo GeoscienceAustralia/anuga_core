@@ -4564,12 +4564,8 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
 
     # instanciate urs_points of the three mux files.
     mux = {}
-    #quality_slices = {}
     for quantity, file in map(None, quantities, files_in):
         mux[quantity] = Urs_points(file)
-        #quality_slices[quantity] = []
-        #for slice in mux[quantity]:
-        #    quality_slices[quantity].append(slice)
         
     # FIXME: check that the depth is the same. (hashing)
 
