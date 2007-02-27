@@ -82,13 +82,14 @@ def create_mesh_from_regions(bounding_polygon,
               'mesh_geo_reference': mesh_geo_reference,
               'minimum_triangle_angle': minimum_triangle_angle,
               'verbose': verbose}   # FIXME (Ole): Should be bypassed one day
-
+                                    # What should be bypassed? Verbose?
+    
     #print 'kwargs', kwargs
 
     # Call underlying engine with or without caching
     if use_cache is True:
         try:
-            from caching import cache
+            from anuga.caching import cache
         except:
             msg = 'Caching was requested, but caching module'+\
                   'could not be imported'
@@ -127,7 +128,7 @@ def _create_mesh_from_regions(bounding_polygon,
 
     
     #In addition I reckon the polygons could be of class Geospatial_data 
-    #(DSG) Yes!
+    #(DSG) If polygons were classes caching would break in places.
 
     # First check that interior polygons are fully contained in bounding
     # polygon
