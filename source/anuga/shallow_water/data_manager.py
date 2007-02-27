@@ -4382,9 +4382,17 @@ def lon_lat2grid(long_lat_dep):
     #### URS UNGRIDDED 2 SWW ###
 
     ### PRODUCING THE POINTS NEEDED FILE ###
-def URS_points_needed_to_file(file_name, boundary_polygon, ll_lat, ll_long,
-                              grid_spacing, 
-                      lat_amount, long_amount, zone=None):
+LL_LAT = -50.0
+LL_LONG = 80.0
+GRID_SPACING = 1.0/60.0
+LAT_AMOUNT = 4800
+LONG_AMOUNT = 3600
+def URS_points_needed_to_file(file_name, boundary_polygon,
+                              ll_lat=LL_LAT, ll_long=LL_LONG,
+                              grid_spacing=GRID_SPACING, 
+                              lat_amount=LAT_AMOUNT, long_amount=LONG_AMOUNT,
+                              zone=None, export_csv=False, use_cache=False,
+                              verbose=False):
     """
     file_name - name of the urs file produced for David.
     boundary_polygon - a list of points that describes a polygon.
@@ -4399,14 +4407,52 @@ def URS_points_needed_to_file(file_name, boundary_polygon, ll_lat, ll_long,
     Don't add the file extension.  It will be added.
     """
     geo = URS_points_needed(boundary_polygon, ll_lat, ll_long, grid_spacing, 
-                      lat_amount, long_amount, zone=zone)
+                      lat_amount, long_amount, zone, use_cache, verbose)
     if not file_name[-4:] == ".urs":
         file_name += ".urs"
     geo.export_points_file(file_name)
-    
-def URS_points_needed(boundary_polygon, ll_lat=-50.0,
-                      ll_long=80.0, grid_spacing=1.0/60.0, 
-                      lat_amount=4800, long_amount=3600, zone=None):
+    if export_csv:
+        if file_name[-4:] == ".urs":
+            file_name = file_name[:-4] + ".csv"
+        geo.export_points_file(file_name)
+
+def URS_points_needed(boundary_polygon, ll_lat=LL_LAT,
+                      ll_long=LL_LONG, grid_spacing=GRID_SPACING, 
+                      lat_amount=LAT_AMOUNT, long_amount=LONG_AMOUNT,
+                      zone=None, use_cache=False, verbose=False):
+    args = (boundary_polygon)
+    kwargs = {'ll_lat': ll_lat,
+              'll_long': ll_long,
+              'grid_spacing': grid_spacing,
+              'lat_amount': lat_amount,
+              'long_amount': long_amount,
+              'zone': zone}  
+    if use_cache is True:
+        try:
+            from anuga.caching import cache
+        except:
+            msg = 'Caching was requested, but caching module'+\
+                  'could not be imported'
+            raise msg
+
+
+        geo = cache(_URS_points_needed,
+                  args, kwargs,
+                  verbose=verbose,
+                  compression=False)
+    else:
+        #I was getting 'got multiple values for keyword argument' errors
+        #geo = apply(_URS_points_needed, args, kwargs)
+        geo = _URS_points_needed(boundary_polygon, ll_lat,
+                      ll_long, grid_spacing, 
+                      lat_amount, long_amount,
+                      zone)
+
+    return geo    
+def _URS_points_needed(boundary_polygon, ll_lat=LL_LAT,
+                      ll_long=LL_LONG, grid_spacing=GRID_SPACING, 
+                      lat_amount=LAT_AMOUNT, long_amount=LONG_AMOUNT,
+                      zone=None):
     """
 
     boundary_polygon - a list of points that describes a polygon.

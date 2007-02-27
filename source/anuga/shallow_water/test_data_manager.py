@@ -5458,6 +5458,24 @@ friction  \n \
         urs_ungridded2sww(base_name, mean_stage=tide)
         self.delete_mux(files)
         os.remove( base_name + '.sww')
+    
+    def cache_test_URS_points_needed_and_urs_ungridded2sww(self):
+        
+        ll_lat = -21.5
+        ll_long = 114.5
+        grid_spacing = 1./60.
+        lat_amount = 30
+        long_amount = 30
+        time_step_count = 2
+        time_step = 400
+        tide = -200000
+
+        boundary_polygon = [[250000,7660000],[270000,7650000],
+                             [280000,7630000],[250000,7630000]]
+        geo=URS_points_needed(boundary_polygon,
+                              ll_lat, ll_long, grid_spacing, 
+                              lat_amount, long_amount, use_cache=True,
+                              verbose=True)
         
     def visual_test_URS_points_needed_and_urs_ungridded2sww(self):
         
@@ -5494,7 +5512,7 @@ friction  \n \
 #-------------------------------------------------------------
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager,'davids_test_points_urs_ungridded2sww')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs_ungridded2swwII')
+    #suite = unittest.makeSuite(Test_Data_Manager,'cache_test_URS_points_needed_and_urs_ungridded2sww')
     #suite = unittest.makeSuite(Test_Data_Manager,'visual_test_URS_points_needed_and_urs_ungridded2sww')
     suite = unittest.makeSuite(Test_Data_Manager,'test')
     runner = unittest.TextTestRunner()
