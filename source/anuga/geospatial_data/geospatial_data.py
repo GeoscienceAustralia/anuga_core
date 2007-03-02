@@ -689,7 +689,7 @@ class Geospatial_data:
         for i in random_list:
             remainder_list.pop(i)
             if verbose:
-                if ((round(i/100000))==(i/100000)): print "reached: ",i
+                if ((i/100)==(float(i)/100)): print "reached: ",i
             
         #get new samples
         if verbose: print "get values of indices for random list"
