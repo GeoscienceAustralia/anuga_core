@@ -4586,14 +4586,13 @@ def urs_ungridded2sww_link(basename_in='o', basename_out=None, verbose=False,
     pass
     
 def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
-            #mint=None, maxt=None,
+            mint=None, maxt=None,
             mean_stage=0,
             origin = None,
             zscale=1,
             fail_on_NaN=True):
     """
     parameters not used!
-    origin
     #mint=None, maxt=None,
     """ 
     from anuga.pmesh.mesh import Mesh
@@ -4634,10 +4633,22 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
     mesh_dic = mesh.Mesh2MeshList()
 
     #mesh.export_mesh_file(basename_in + '.tsh')
-    times = []
+    # These are the times of the mux file
+    mux_times = []
     for i in range(a_mux.time_step_count):
-        times.append(a_mux.time_step * i)
+        mux_times.append(a_mux.time_step * i)  
+    mux_times_start_i, mux_times_fin_i = mux2sww_time(mux_times, mint, maxt)
+    times = mux_times[mux_times_start_i:mux_times_fin_i]
+    
+    if mux_times_start_i == mux_times_fin_i:
+        # Close the mux files
+        for quantity, file in map(None, quantities, files_in):
+            mux[quantity].close()
+        msg="Due to mint and maxt there's no time info in the boundary SWW."
+        assert 1==0 , msg #Happy to know a better way of doing this..
         
+    # If this raise is removed there is currently no downstream errors
+           
     points_utm=ensure_numeric(points_utm)
     #print "mesh_dic['generatedpointlist']", mesh_dic['generatedpointlist']
     #print "points_utm", points_utm 
@@ -4653,22 +4664,44 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
         swwname = basename_out + '.sww'
 
     outfile = NetCDFFile(swwname, 'w')
-    # For a different way of doing this, check out tsh2sww 
+    # For a different way of doing this, check out tsh2sww
+    # work out sww_times and the index range this covers
     write_sww_header(outfile, times, len(volumes), len(points_utm))
+    outfile.mean_stage = mean_stage
+    outfile.zscale = zscale
     write_sww_triangulation(outfile, points_utm, volumes,
                             elevation, zone,  origin=origin, verbose=verbose)
     
     if verbose: print 'Converting quantities'
     j = 0
     # Read in a time slice from each mux file and write it to the sww file
-    for HA, UA, VA in map(None, mux['HA'], mux['UA'], mux['VA']):            
-        write_sww_time_slice(outfile, HA, UA, VA,  elevation, j,
-                              mean_stage=mean_stage, zscale=zscale,
-                              verbose=verbose)
+    for HA, UA, VA in map(None, mux['HA'], mux['UA'], mux['VA']):
+        if j >= mux_times_start_i and j < mux_times_fin_i:
+            write_sww_time_slice(outfile, HA, UA, VA,  elevation,
+                                 j - mux_times_start_i,
+                                 mean_stage=mean_stage, zscale=zscale,
+                                 verbose=verbose)
         j += 1
     outfile.close()
     #
     # Do some conversions while writing the sww file
+def mux2sww_time(mux_times, mint, maxt):
+    """
+    """
+
+    if mint == None:
+        mux_times_start_i = 0
+    else:
+        mux_times_start_i = searchsorted(mux_times, mint)
+       
+    if maxt == None:
+        mux_times_fin_i = len(mux_times)
+    else:
+        maxt += 0.5 # so if you specify a time where there is
+                    # data that time will be included
+        mux_times_fin_i = searchsorted(mux_times, maxt)
+
+    return mux_times_start_i, mux_times_fin_i
 
 def write_sww_header(outfile, times, number_of_volumes, number_of_points ):
     """
@@ -4678,7 +4711,6 @@ def write_sww_header(outfile, times, number_of_volumes, number_of_points ):
     """
     number_of_times = len(times)
     
-    #Create new file
     outfile.institution = 'Geoscience Australia'
     outfile.description = 'Converted from XXX'
 
@@ -4688,7 +4720,10 @@ def write_sww_header(outfile, times, number_of_volumes, number_of_points ):
     outfile.order = 1
 
     #Start time in seconds since the epoch (midnight 1/1/1970)
-    outfile.starttime = starttime = times[0]
+    if len(times) == 0:
+        outfile.starttime = starttime = 0
+    else:
+        outfile.starttime = starttime = times[0]
 
 
     # dimension definitions
@@ -4774,8 +4809,6 @@ def write_sww_triangulation(outfile, points_utm, volumes,
     outfile.variables['volumes'][:] = volumes.astype(Int32) #On Opteron 64
 
 
-    # FIXME: Don't store the whole speeds and stage in  memory.
-    # block it?
 def write_sww_time_slices(outfile, has, uas, vas, elevation,
                          mean_stage=0, zscale=1,
                          verbose=False):    
@@ -4795,7 +4828,6 @@ def write_sww_time_slices(outfile, has, uas, vas, elevation,
         ymomentum[j] = va*h
         j += 1
 
- 
 def write_sww_time_slice(outfile, ha, ua, va, elevation, slice_index,
                          mean_stage=0, zscale=1,
                          verbose=False):    
@@ -4803,13 +4835,13 @@ def write_sww_time_slice(outfile, ha, ua, va, elevation, slice_index,
     stage = outfile.variables['stage']
     xmomentum = outfile.variables['xmomentum']
     ymomentum = outfile.variables['ymomentum']
-
-    
+   
     w = zscale*ha + mean_stage
     stage[slice_index] = w
     h = w - elevation
     xmomentum[slice_index] = ua*h
     ymomentum[slice_index] = va*h
+
         
 class Urs_points:
     """
