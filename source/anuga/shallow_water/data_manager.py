@@ -3102,7 +3102,6 @@ def timefile2netcdf(filename, quantity_names = None):
     for i, line in enumerate(lines):
         fields = line.split(',')
         realtime = calendar.timegm(time.strptime(fields[0], time_format))
-
         T[i] = realtime - starttime
 
         for j, value in enumerate(fields[1].split()):
@@ -3111,7 +3110,6 @@ def timefile2netcdf(filename, quantity_names = None):
     msg = 'File %s must list time as a monotonuosly ' %filename
     msg += 'increasing sequence'
     assert alltrue( T[1:] - T[:-1] > 0 ), msg
-
 
     #Create NetCDF file
     from Scientific.IO.NetCDF import NetCDFFile
@@ -4597,7 +4595,7 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
     parameters not used!
     origin
     #mint=None, maxt=None,
-    """    
+    """ 
     from anuga.pmesh.mesh import Mesh
 
     files_in = [basename_in+'-z-mux',
@@ -4636,7 +4634,6 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
     mesh_dic = mesh.Mesh2MeshList()
 
     #mesh.export_mesh_file(basename_in + '.tsh')
-    
     times = []
     for i in range(a_mux.time_step_count):
         times.append(a_mux.time_step * i)
@@ -4660,6 +4657,8 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
     write_sww_header(outfile, times, len(volumes), len(points_utm))
     write_sww_triangulation(outfile, points_utm, volumes,
                             elevation, zone,  origin=origin, verbose=verbose)
+    
+    if verbose: print 'Converting quantities'
     j = 0
     # Read in a time slice from each mux file and write it to the sww file
     for HA, UA, VA in map(None, mux['HA'], mux['UA'], mux['VA']):            
@@ -4747,8 +4746,10 @@ def write_sww_triangulation(outfile, points_utm, volumes,
 
     # This will put the geo ref in the middle
     #geo_ref = Geo_reference(refzone,(max(x)+min(x))/2.0,(max(x)+min(y))/2.)
-
-
+    x =  points_utm[:,0]
+    y =  points_utm[:,1]
+    z = outfile.variables['z'][:]
+    #FIXME the w.r.t time is lost now..
     if verbose:
         print '------------------------------------------------'
         print 'More Statistics:'
@@ -4760,8 +4761,8 @@ def write_sww_triangulation(outfile, points_utm, volumes,
               %(min(y), max(y),
                 len(y))
         print '    z in [%f, %f], len(z) == %d'\
-              %(min(z), max(z),
-                len(z))
+              %(min(elevation), max(elevation),
+                len(elevation))
         print 'geo_ref: ',geo_ref
         print '------------------------------------------------'
 
@@ -4783,7 +4784,6 @@ def write_sww_time_slices(outfile, has, uas, vas, elevation,
     xmomentum = outfile.variables['xmomentum']
     ymomentum = outfile.variables['ymomentum']
 
-    if verbose: print 'Converting quantities'
     n = len(has)
     j=0
     for ha, ua, va in map(None, has, uas, vas):
@@ -4804,7 +4804,6 @@ def write_sww_time_slice(outfile, ha, ua, va, elevation, slice_index,
     xmomentum = outfile.variables['xmomentum']
     ymomentum = outfile.variables['ymomentum']
 
-    if verbose: print 'Converting quantities'
     
     w = zscale*ha + mean_stage
     stage[slice_index] = w
