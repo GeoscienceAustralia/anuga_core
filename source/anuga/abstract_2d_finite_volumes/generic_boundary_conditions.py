@@ -235,6 +235,8 @@ class File_boundary(Boundary):
             
             #Register point and index
             self.midpoint_coordinates[i,:] = m
+
+            #FIXME I don't think this is being used..
             self.boundary_indices[(vol_id, edge_id)] = i
 
 
