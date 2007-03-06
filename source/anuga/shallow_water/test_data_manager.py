@@ -5569,7 +5569,7 @@ friction  \n \
         except: 
             pass
         else:
-            self.failUnless(0 ==1,  'Bad input did not throw exception error!')
+            self.failUnless(0 ==1, 'Bad input did not throw exception error!')
 
         self.delete_mux(files)
         
