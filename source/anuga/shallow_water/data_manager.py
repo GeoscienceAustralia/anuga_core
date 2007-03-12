@@ -4015,9 +4015,9 @@ class Write_nc:
         pre-condition: quantity_name must be 'HA' 'UA'or 'VA'.
         """
         self.quantity_name = quantity_name
-        quantity_units= {'HA':'METERS',
-                              'UA':'METERS/SECOND',
-                              'VA':'METERS/SECOND'}
+        quantity_units= {'HA':'CENTIMETERS',
+                              'UA':'CENTIMETERS/SECOND',
+                              'VA':'CENTIMETERS/SECOND'}
         
         #self.file_name = file_name
         self.time_step_count = time_step_count

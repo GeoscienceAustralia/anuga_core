@@ -4738,11 +4738,14 @@ friction  \n \
             f.close()
         return base_name, files
     
-    def write_mux(self,lat_long_points, time_step_count, time_step):
+    def write_mux(self,lat_long_points, time_step_count, time_step,
+                  depth=None, ha=None, ua=None, va=None
+                  ):
         """
         This will write 3 non-gridded mux files, for testing.
-        The na and va quantities will be the Easting values.
-        Depth and ua will be the Northing value. 
+        If no quantities are passed in,
+        na and va quantities will be the Easting values.
+        Depth and ua will be the Northing value.
         """
         #print "lat_long_points", lat_long_points
         #print "time_step_count",time_step_count
@@ -4758,10 +4761,26 @@ friction  \n \
             lat = point[0]
             lon = point[1]
             _ , e, n = redfearn(lat, lon)
-            lonlatdeps.append([lon, lat, n])
-            quantities_init[0].append(e) # HA
-            quantities_init[1].append(n ) # UA
-            quantities_init[2].append(e) # VA
+            if depth is None:
+                this_depth = n
+            else:
+                this_depth = depth
+            if ha is None:
+                this_ha = e
+            else:
+                this_ha = ha
+            if ua is None:
+                this_ua = n
+            else:
+                this_ua = ua
+            if va is None:
+                this_va = e   
+            else:
+                this_va = va         
+            lonlatdeps.append([lon, lat, this_depth])
+            quantities_init[0].append(this_ha) # HA
+            quantities_init[1].append(this_ua) # UA
+            quantities_init[2].append(this_va) # VA
                 
         file_handle, base_name = tempfile.mkstemp("")
         os.close(file_handle)
@@ -4904,6 +4923,72 @@ friction  \n \
         # these arrays are equal since the northing values were used as
         # the elevation
         assert allclose(-elevation, y)  #Meters
+        
+        fid.close()
+        self.delete_mux(files)
+        os.remove(sww_file)
+        
+    def test_urs2sww_momentum(self):
+        tide = 1
+        time_step_count = 3
+        time_step = 2
+        #lat_long_points =[(-21.5,114.5),(-21.5,115),(-21.,114.5), (-21.,115.)]
+        # This is gridded
+        lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
+        depth=20
+        ha=2
+        ua=5
+        va=5
+        base_name, files = self.write_mux(lat_long_points,
+                                          time_step_count, time_step,
+                                          depth=depth,
+                                          ha=ha,
+                                          ua=ua,
+                                          va=va)
+        # write_mux(self,lat_long_points, time_step_count, time_step,
+        #          depth=None, ha=None, ua=None, va=None
+        urs2sww(base_name
+                #, origin=(0,0,0)
+                , mean_stage=tide
+                , remove_nc_files=True
+                )
+        sww_file = base_name + '.sww'
+        
+        #Let's interigate the sww file
+        # Note, the sww info is not gridded.  It is point data.
+        fid = NetCDFFile(sww_file)
+
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+        geo_reference = Geo_reference(NetCDFObject=fid)
+        
+        #Check first value
+        stage = fid.variables['stage'][:]
+        xmomentum = fid.variables['xmomentum'][:]
+        ymomentum = fid.variables['ymomentum'][:]
+        elevation = fid.variables['elevation'][:]
+        #assert allclose(stage[0,0], e + tide)  #Meters
+
+        #Check the momentums - ua
+        #momentum = velocity*(stage-elevation)
+        #momentum = velocity*(stage+elevation)
+        # -(-elevation) since elevation is inverted in mux files
+        # = n*(e+tide+n) based on how I'm writing these files
+        #answer = n*(e+tide+n)
+        actual = xmomentum[0,0]
+        #assert allclose(answer, actual)  #Meters
+
+        # check the stage values, first time step.
+        # These arrays are equal since the Easting values were used as
+        # the stage
+
+        #assert allclose(stage[0], x +tide)  #Meters
+
+        # check the elevation values.
+        # -ve since urs measures depth, sww meshers height,
+        # these arrays are equal since the northing values were used as
+        # the elevation
+        #assert allclose(-elevation, y)  #Meters
         
         fid.close()
         self.delete_mux(files)
