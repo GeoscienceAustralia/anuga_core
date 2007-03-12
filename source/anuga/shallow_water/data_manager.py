@@ -4865,7 +4865,41 @@ def write_sww_time_slice(outfile, ha, ua, va, elevation, slice_index,
     xmomentum[slice_index] = ua*h
     ymomentum[slice_index] = va*h
 
+def URS2txt(basename_in):
+    """
+    Not finished or tested
+    """
+    files_in = [basename_in+'-z-mux',
+                basename_in+'-e-mux',
+                basename_in+'-n-mux']
+    quantities = ['HA','UA','VA']
+
+    # instanciate urs_points of the three mux files.
+    mux = {}
+    for quantity, file in map(None, quantities, files_in):
+        mux[quantity] = Urs_points(file)
         
+    # Could check that the depth is the same. (hashing)
+
+    # handle to a mux file to do depth stuff
+    a_mux = mux[quantities[0]]
+    
+    # Convert to utm
+    lat = a_mux.lonlatdep[:,1]
+    long = a_mux.lonlatdep[:,0]
+    points_utm, zone = convert_from_latlon_to_utm( \
+        latitudes=lat, longitudes=long)
+    #print "points_utm", points_utm
+    #print "zone", zone
+    elevations = a_mux.lonlatdep[:,2] * -1 #
+    
+    fid = open(basename_in + '.txt', 'w')
+
+    fid.write("zone" + str(zone) + "\n")
+
+    for elevation, point_utm in map(None, elevations, points_utm):
+        pass
+    
 class Urs_points:
     """
     Read the info in URS mux files.
