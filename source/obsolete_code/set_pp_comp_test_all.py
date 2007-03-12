@@ -1,3 +1,6 @@
+"""
+Used to compile a copy of anuga which isn't the main copy
+"""
 import os
 
 env_var = 'PYTHONPATH'
