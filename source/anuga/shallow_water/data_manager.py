@@ -4589,11 +4589,34 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
             mint=None, maxt=None,
             mean_stage=0,
             origin = None,
-            zscale=1,
-            fail_on_NaN=True):
-    """
-    parameters not used!
-    #mint=None, maxt=None,
+            zscale=1):
+    """   
+    Convert URS C binary format for wave propagation to
+    sww format native to abstract_2d_finite_volumes.
+
+    Specify only basename_in and read files of the form
+    basefilename-z-mux, basefilename-e-mux and basefilename-n-mux containing
+    relative height, x-velocity and y-velocity, respectively.
+
+    Also convert latitude and longitude to UTM. All coordinates are
+    assumed to be given in the GDA94 datum. The latitude and longitude
+    information is assumed ungridded grid.
+
+    min's and max's: If omitted - full extend is used.
+    To include a value min ans max may equal it.
+    Lat and lon are assumed to be in decimal degrees. 
+    
+    origin is a 3-tuple with geo referenced
+    UTM coordinates (zone, easting, northing)
+    It will be the origin of the sww file. This shouldn't be used,
+    since all of anuga should be able to handle an arbitary origin.
+
+
+    URS C binary format has data orgainised as TIME, LONGITUDE, LATITUDE
+    which means that latitude is the fastest
+    varying dimension (row major order, so to speak)
+
+    In URS C binary the latitudes and longitudes are in assending order.
     """ 
     from anuga.pmesh.mesh import Mesh
 
@@ -4607,7 +4630,7 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
     for quantity, file in map(None, quantities, files_in):
         mux[quantity] = Urs_points(file)
         
-    # FIXME: check that the depth is the same. (hashing)
+    # Could check that the depth is the same. (hashing)
 
     # handle to a mux file to do depth stuff
     a_mux = mux[quantities[0]]
