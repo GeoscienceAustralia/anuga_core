@@ -1453,6 +1453,114 @@ class Test_Shallow_Water(unittest.TestCase):
             assert allclose(domain.quantities['ymomentum'].explicit_update[k], S*v)
 
 
+    def test_windfield_from_file_seconds(self):
+        from anuga.config import rho_a, rho_w, eta_w
+        from math import pi, cos, sin, sqrt
+        from anuga.config import time_format
+        from anuga.abstract_2d_finite_volumes.util import file_function
+        import time
+
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe
+        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices)
+
+        #Flat surface with 1m of water
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('stage', 1.0)
+        domain.set_quantity('friction', 0)
+
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'exterior': Br})
+
+
+        domain.time = 7 #Take a time that is represented in file (not zero)
+
+        #Write wind stress file (ensure that domain.time is covered)
+        #Take x=1 and y=0
+        filename = 'test_windstress_from_file'
+        start = time.mktime(time.strptime('2000', '%Y'))
+        fid = open(filename + '.txt', 'w')
+        dt = 0.5 #1  #One second interval
+        t = 0.0
+        while t <= 10.0:
+            fid.write('%s, %f %f\n' %(str(t),
+                                      speed(t,[1],[0])[0],
+                                      angle(t,[1],[0])[0]))
+            t += dt
+
+        fid.close()
+
+
+        #Convert ASCII file to NetCDF (Which is what we really like!)
+        from data_manager import timefile2netcdf        
+        timefile2netcdf(filename, time_as_seconds=True)
+        os.remove(filename + '.txt')
+
+        
+        #Setup wind stress
+        F = file_function(filename + '.tms', quantities = ['Attribute0',
+                                                           'Attribute1'])
+        os.remove(filename + '.tms')
+        
+
+        #print 'F(5)', F(5)
+
+        #print 'F(5,x,y)', F(5,x=zeros(3),y=zeros(3))
+        
+        #print dir(F)
+        #print F.T
+        #print F.precomputed_values
+        #
+        #F = file_function(filename + '.txt')        
+        #
+        #print dir(F)
+        #print F.T        
+        #print F.Q
+        
+        W = Wind_stress(F)
+
+        domain.forcing_terms = []
+        domain.forcing_terms.append(W)
+
+        domain.compute_forcing_terms()
+
+        #Compute reference solution
+        const = eta_w*rho_a/rho_w
+
+        N = len(domain) # number_of_triangles
+
+        t = domain.time
+
+        s = speed(t,[1],[0])[0]
+        phi = angle(t,[1],[0])[0]
+
+        #Convert to radians
+        phi = phi*pi/180
+
+
+        #Compute velocity vector (u, v)
+        u = s*cos(phi)
+        v = s*sin(phi)
+
+        #Compute wind stress
+        S = const * sqrt(u**2 + v**2)
+
+        for k in range(N):
+            assert allclose(domain.quantities['stage'].explicit_update[k], 0)
+            assert allclose(domain.quantities['xmomentum'].explicit_update[k], S*u)
+            assert allclose(domain.quantities['ymomentum'].explicit_update[k], S*v)
+
+
         
 
     def test_wind_stress_error_condition(self):

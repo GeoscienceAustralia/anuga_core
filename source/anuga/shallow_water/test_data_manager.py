@@ -4938,7 +4938,7 @@ friction  \n \
         depth=20
         ha=2
         ua=5
-        va=5
+        va=10
         base_name, files = self.write_mux(lat_long_points,
                                           time_step_count, time_step,
                                           depth=depth,
@@ -4968,15 +4968,21 @@ friction  \n \
         ymomentum = fid.variables['ymomentum'][:]
         elevation = fid.variables['elevation'][:]
         #assert allclose(stage[0,0], e + tide)  #Meters
-
+        #print "xmomentum", xmomentum
+        #print "ymomentum", ymomentum
         #Check the momentums - ua
-        #momentum = velocity*(stage-elevation)
-        #momentum = velocity*(stage+elevation)
-        # -(-elevation) since elevation is inverted in mux files
-        # = n*(e+tide+n) based on how I'm writing these files
-        #answer = n*(e+tide+n)
+        #momentum = velocity*water height
+        #water height = mux_depth + mux_height +tide
+        #water height = mux_depth + mux_height +tide
+        #momentum = velocity*(mux_depth + mux_height +tide)
+        #
+        
+        answer = 115
         actual = xmomentum[0,0]
-        #assert allclose(answer, actual)  #Meters
+        assert allclose(answer, actual)  #Meters^2/ sec
+        answer = 230
+        actual = ymomentum[0,0]
+        assert allclose(answer, actual)  #Meters^2/ sec
 
         # check the stage values, first time step.
         # These arrays are equal since the Easting values were used as
@@ -5732,11 +5738,67 @@ friction  \n \
         os.remove( base_name + '.sww')
         # extend this so it interpolates onto the boundary.
         # have it fail if there is NaN
+
+    def not_really_test_urs2txt(self):
+        # not really a test, since it doesn't check the output data
+        
+        #This will write 3 non-gridded mux files, for testing.
+        #If no quantities are passed in,
+        #na and va quantities will be the Easting values.
+        #Depth and ua will be the Northing value.
+        # this was manually checked to be correct
+        
+        tide = 1
+        time_step_count = 3
+        time_step = 2
+
+        #Zone:   50    
+        #Easting:  240992.578  Northing: 7620442.472 
+        #Latitude:   -21  30 ' 0.00000 ''  Longitude: 114  30 ' 0.00000 '' 
+
+        # This is gridded
+        lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
+        base_name, files = self.write_mux(lat_long_points,
+                                          time_step_count, time_step)
+        urs2txt(base_name, 0)
+        print "base_name", base_name
+        
+        self.delete_mux(files)
+        #os.remove(sww_file)
+        # delete the txt file if this becomes automatic
+        
+    def daves_urs2txt(self):
+        # not really a test, since it doesn't check the output data
+        
+        #This will write 3 non-gridded mux files, for testing.
+        #If no quantities are passed in,
+        #na and va quantities will be the Easting values.
+        #Depth and ua will be the Northing value.
+        # this was manually checked to be correct
+        
+        tide = 1
+        time_step_count = 3
+        time_step = 2
+
+        #Zone:   50    
+        #Easting:  240992.578  Northing: 7620442.472 
+        #Latitude:   -21  30 ' 0.00000 ''  Longitude: 114  30 ' 0.00000 '' 
+
+        # This is gridded
+        lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
+        base_name, files = self.write_mux(lat_long_points,
+                                          time_step_count, time_step)
+        urs2txt(base_name, 0)
+        print "base_name", base_name
+        
+        self.delete_mux(files)
+        #os.remove(sww_file)
+        # delete the txt file if this becomes automatic
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Data_Manager,'davids_test_points_urs_ungridded2sww')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2txt')
     #suite = unittest.makeSuite(Test_Data_Manager,'cache_test_URS_points_needed_and_urs_ungridded2sww')
-    #suite = unittest.makeSuite(Test_Data_Manager,'visual_test_URS_points_needed_and_urs_ungridded2sww')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sww_momentum')
     suite = unittest.makeSuite(Test_Data_Manager,'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)

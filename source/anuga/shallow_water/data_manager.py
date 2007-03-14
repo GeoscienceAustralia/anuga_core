@@ -3029,7 +3029,7 @@ def ferret2sww(basename_in, basename_out = None,
 
 
 
-def timefile2netcdf(filename, quantity_names = None):
+def timefile2netcdf(filename, quantity_names=None, time_as_seconds=False):
     """Template for converting typical text files with time series to
     NetCDF tms file.
 
@@ -3042,6 +3042,11 @@ def timefile2netcdf(filename, quantity_names = None):
 
       31/08/04 00:00:00, 1.328223 0 0
       31/08/04 00:15:00, 1.292912 0 0
+
+    or time (seconds), value0 value1 value2 ...
+    
+      0.0, 1.328223 0 0
+      0.1, 1.292912 0 0
 
     will provide a time dependent function f(t) with three attributes
 
@@ -3063,13 +3068,20 @@ def timefile2netcdf(filename, quantity_names = None):
     msg = 'File %s must have the format date, value0 value1 value2 ...'
     assert len(fields) == 2, msg
 
-    try:
-        starttime = calendar.timegm(time.strptime(fields[0], time_format))
-    except ValueError:
-        msg = 'First field in file %s must be' %filename
-        msg += ' date-time with format %s.\n' %time_format
-        msg += 'I got %s instead.' %fields[0]
-        raise DataTimeError, msg
+    if not time_as_seconds:
+        try:
+            starttime = calendar.timegm(time.strptime(fields[0], time_format))
+        except ValueError:
+            msg = 'First field in file %s must be' %filename
+            msg += ' date-time with format %s.\n' %time_format
+            msg += 'I got %s instead.' %fields[0]
+            raise DataTimeError, msg
+    else:
+        try:
+            starttime = float(fields[0])
+        except Error:
+            msg = "Bad time format"
+            raise DataTimeError, msg
 
 
     #Split values
@@ -3101,7 +3113,10 @@ def timefile2netcdf(filename, quantity_names = None):
 
     for i, line in enumerate(lines):
         fields = line.split(',')
-        realtime = calendar.timegm(time.strptime(fields[0], time_format))
+        if not time_as_seconds:
+            realtime = calendar.timegm(time.strptime(fields[0], time_format))
+        else:
+             realtime = float(fields[0])
         T[i] = realtime - starttime
 
         for j, value in enumerate(fields[1].split()):
@@ -3125,7 +3140,6 @@ def timefile2netcdf(filename, quantity_names = None):
     #Start time in seconds since the epoch (midnight 1/1/1970)
     #FIXME: Use Georef
     fid.starttime = starttime
-
 
     # dimension definitions
     #fid.createDimension('number_of_volumes', self.number_of_volumes)
@@ -4865,7 +4879,7 @@ def write_sww_time_slice(outfile, ha, ua, va, elevation, slice_index,
     xmomentum[slice_index] = ua*h
     ymomentum[slice_index] = va*h
 
-def URS2txt(basename_in):
+def urs2txt(basename_in, location_index=None):
     """
     Not finished or tested
     """
@@ -4874,6 +4888,8 @@ def URS2txt(basename_in):
                 basename_in+'-n-mux']
     quantities = ['HA','UA','VA']
 
+    d = ","
+    
     # instanciate urs_points of the three mux files.
     mux = {}
     for quantity, file in map(None, quantities, files_in):
@@ -4885,20 +4901,53 @@ def URS2txt(basename_in):
     a_mux = mux[quantities[0]]
     
     # Convert to utm
-    lat = a_mux.lonlatdep[:,1]
-    long = a_mux.lonlatdep[:,0]
+    latitudes = a_mux.lonlatdep[:,1]
+    longitudes = a_mux.lonlatdep[:,0]
     points_utm, zone = convert_from_latlon_to_utm( \
-        latitudes=lat, longitudes=long)
+        latitudes=latitudes, longitudes=longitudes)
     #print "points_utm", points_utm
     #print "zone", zone
-    elevations = a_mux.lonlatdep[:,2] * -1 #
+    depths = a_mux.lonlatdep[:,2]  #
     
     fid = open(basename_in + '.txt', 'w')
 
-    fid.write("zone" + str(zone) + "\n")
+    fid.write("zone: " + str(zone) + "\n")
 
-    for elevation, point_utm in map(None, elevations, points_utm):
-        pass
+    if location_index is not None:
+        #Title
+        li = location_index
+        fid.write('location_index'+d+'lat'+d+ 'long' +d+ 'Easting' +d+ \
+                  'Northing' + "\n")
+        fid.write(str(li) +d+ str(latitudes[li])+d+ \
+              str(longitudes[li]) +d+ str(points_utm[li][0]) +d+ \
+              str(points_utm[li][01]) + "\n")
+
+    # the non-time dependent stuff
+    #Title
+    fid.write('location_index'+d+'lat'+d+ 'long' +d+ 'Easting' +d+ \
+                  'Northing' +d+ 'depth m' + "\n")
+    i = 0
+    for depth, point_utm, lat, long in map(None, depths,
+                                               points_utm, latitudes,
+                                               longitudes):
+        
+        fid.write(str(i) +d+ str(lat)+d+ str(long) +d+ str(point_utm[0]) +d+ \
+                  str(point_utm[01]) +d+ str(depth) + "\n")
+        i +=1
+    #Time dependent
+    if location_index is not None:
+        time_step = a_mux.time_step
+        i = 0
+        #Title
+        fid.write('time' +d+ 'HA depth m'+d+ \
+                      'UA momentum East x m/sec' +d+ 'VA momentum North y m/sec' \
+                      + "\n")
+        for HA, UA, VA in map(None, mux['HA'], mux['UA'], mux['VA']):
+            fid.write(str(i*time_step) +d+ str(HA[location_index])+d+ \
+                      str(UA[location_index]) +d+ str(VA[location_index]) \
+                      + "\n")
+            
+            i +=1
     
 class Urs_points:
     """
