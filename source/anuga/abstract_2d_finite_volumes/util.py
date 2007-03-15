@@ -503,10 +503,14 @@ def populate_polygon(*args, **kwargs):
 
 ##################### end of obsolete stuff ? ############
 
-def start_screen_catcher(dir_name, myid=0, numprocs=1, print_to_screen=False, 
-                          verbose=False):
-    """Used to store screen output and errors to file, if run on multiple 
+def start_screen_catcher(dir_name, myid='', numprocs='', extra_info='',
+                         print_to_screen=False, verbose=False):
+    """
+    Used to store screen output and errors to file, if run on multiple 
     processes eachprocessor will have its own output and error file.
+    
+    extra_info - is used as a string that can identify outputs with another 
+    string eg. '_other'
     """
 
     dir_name = dir_name
@@ -514,8 +518,14 @@ def start_screen_catcher(dir_name, myid=0, numprocs=1, print_to_screen=False,
         if verbose: print 'Make directory %s' %dir_name
         if verbose: print "myid", myid
         mkdir (dir_name,0777)
-    screen_output_name = dir_name + "screen_output_%d_%d.txt" %(myid,numprocs)
-    screen_error_name = dir_name + "screen_error_%d_%d.txt" %(myid,numprocs)
+    if myid <>'':
+        myid = '_'+str(myid)
+    if numprocs <>'':
+        numprocs = '_'+str(numprocs)
+    if extra_info <>'':
+        extra_info = '_'+str(extra_info)
+    screen_output_name = dir_name + "screen_output%s%s%s.txt" %(myid,numprocs,extra_info)
+    screen_error_name = dir_name + "screen_error%s%s%s.txt" %(myid,numprocs,extra_info)
     print screen_output_name
     #used to catch screen output to file
     sys.stdout = Screen_Catcher(screen_output_name)
@@ -666,6 +676,7 @@ def sww2timeseries(swwfiles,
                    time_min = None,
                    time_max = None,
                    title_on = None,
+                   use_cache = False,
                    verbose = False):
     
     """ Read sww file and plot the time series for the
@@ -688,6 +699,11 @@ def sww2timeseries(swwfiles,
                         - structure which can be converted to a Numeric array,
                           such as a geospatial data object
                       
+    production_dirs -  A list of list, example {20061101_121212: '1 in 10000', 
+                                                'boundaries': 'urs boundary'}
+                      this will use the second part as the label and the first part 
+                      as the ? 
+                     
     report          - if True, then write figures to report_figures directory in
                       relevant production directory
                     - if False, figures are already stored with sww file
@@ -743,7 +759,6 @@ def sww2timeseries(swwfiles,
     and elevation during the scenario run, i.e.
     ['stage', 'elevation', 'xmomentum', 'ymomentum']
     If this has not occurred then sww2timeseries will not work.
-                      
     """
 
     
@@ -758,6 +773,7 @@ def sww2timeseries(swwfiles,
                         time_min,
                         time_max,
                         title_on,
+                        use_cache,
                         verbose)
 
     return k
@@ -773,6 +789,7 @@ def _sww2timeseries(swwfiles,
                     time_min = None,
                     time_max = None,
                     title_on = None,
+                    use_cache = False,
                     verbose = False):   
         
     assert type(gauge_filename) == type(''),\
@@ -826,7 +843,7 @@ def _sww2timeseries(swwfiles,
                           quantities = sww_quantity,
                           interpolation_points = gauges,
                           verbose = True,
-                          use_cache = True)
+                          use_cache = use_cache)
 
         # determine which gauges are contained in sww file
         count = 0
@@ -1053,7 +1070,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
             gaugeloc = locations[k]
             thisfile = file_loc[j]+sep+'gauges_time_series'+'_'+gaugeloc+'.csv'
             fid_out = open(thisfile, 'w')
-            s = 'Time, Stage, Momentum, Speed, Elevation \n'
+            s = 'Time, Stage, Momentum, Speed, Elevation, xmom, ymom \n'
             fid_out.write(s)
             
             #### generate quantities #######
@@ -1081,7 +1098,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     depths[i,k,j] = depth
                     thisgauge = gauges[k]
                     eastings[i,k,j] = thisgauge[0]
-                    s = '%.2f, %.2f, %.2f, %.2f, %.2f\n' %(t, w, m, vel, z)
+                    s = '%.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f\n' %(t, w, m, vel, z, uh, vh)
                     fid_out.write(s)
                     if t/60.0 <= 13920: tindex = i
                     if w > max_stage: max_stage = w
@@ -1366,6 +1383,66 @@ def add_directories(root_directory, directories):
         if not access(dir,F_OK):
             mkdir (dir)
     return dir
+
+def get_data_from_file(filename):
+    """ Read in data information from file
+    WARNING THERE IS NO UNIT TEST FOR THIS!
+    or the get_gauges_from_file()
+    """
+    from os import sep, getcwd, access, F_OK, mkdir
+    fid = open(filename)
+    lines = fid.readlines()
+    fid.close()
+    
+#    seperated_value = ','
+    
+    time = []
+    speed = []
+    stage = []
+    momentum = []
+    elevation = []
+    line1 = lines[0]
+    line11 = line1.split(',')
+#    east_index = len(line11)+1
+#    north_index = len(line11)+1
+#    name_index = len(line11)+1
+#    elev_index = len(line11)+1
+#    Time     Stage     Momentum     Speed     Elevation 
+    
+    #read header to find the position (index) of each column of data
+    for i in range(len(line11)):
+        if line11[i].strip('\n').strip(' ').lower() == 'time': 
+            time_index = i
+            print'time index', time_index
+        if line11[i].strip('\n').strip(' ').lower() == 'stage': stage_index = i
+        if line11[i].strip('\n').strip(' ').lower() == 'momentum': momentum_index = i
+        if line11[i].strip('\n').strip(' ').lower() == 'speed': speed_index = i
+        if line11[i].strip('\n').strip(' ').lower() == 'elevation': elevation_index = i
+        print'i',i
+    print'time',time_index,'stage',stage_index,'elevation',elevation_index
+    
+
+    for line in lines[1:]:
+        fields = line.split(',')
+        if elevation_index < len(line11): elevation.append(float(fields[elevation_index]))
+        if time_index < len(line11): time.append(float(fields[time_index]))
+        if momentum_index < len(line11): momentum.append(float(fields[momentum_index]))
+        if speed_index < len(line11): speed.append(float(fields[speed_index]))
+        if stage_index < len(line11): stage.append(float(fields[stage_index]))
+        
+        
+    '''        
+        if east_index < len(line11) and north_index < len(line11):
+            gauges.append([float(fields[east_index]), float(fields[north_index])])
+        else:
+            msg = 'WARNING: %s does not contain location information' %(filename)
+            raise Exception, msg
+        if elev_index < len(line11): elev.append(float(fields[elev_index]))
+        if name_index < len(line11):
+            loc = fields[name_index]
+            gaugelocation.append(loc.strip('\n'))
+    '''
+    return time, stage, momentum, speed, elevation
 
 
 
