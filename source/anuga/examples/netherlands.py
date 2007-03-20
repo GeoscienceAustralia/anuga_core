@@ -82,7 +82,7 @@ class Weir:
 N = 150 #size = 45000
 N = 130 #size = 33800
 N = 600 #Size = 720000
-N = 20
+N = 50
 
 
 

@@ -51,6 +51,7 @@ class OfflineVisualiser(Visualiser):
     def update_height_quantity(self, quantityName, dynamic=True):
         polydata = self.vtk_polyData[quantityName] = vtkPolyData()
         if dynamic is True:
+            print ' - Frame',self.frameNumber,'of',self.maxFrameNumber
             if not self.vtk_heightQuantityCache[self.frameNumber].has_key(quantityName):
                 self.vtk_heightQuantityCache[self.frameNumber][quantityName]\
                     = self.read_height_quantity(quantityName, True, self.frameNumber);
