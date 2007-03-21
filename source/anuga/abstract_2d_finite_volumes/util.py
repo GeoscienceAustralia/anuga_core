@@ -1384,65 +1384,45 @@ def add_directories(root_directory, directories):
             mkdir (dir)
     return dir
 
-def get_data_from_file(filename):
-    """ Read in data information from file
-    WARNING THERE IS NO UNIT TEST FOR THIS!
-    or the get_gauges_from_file()
+def get_data_from_file(filename,separator_value = ','):
+    """ 
+    Read in data information from file
+    NOTE: wont deal with columns with different lenghts and there must be
+    no blank lines at the end.
     """
     from os import sep, getcwd, access, F_OK, mkdir
+    from Numeric import array, resize,shape,Float
+    import string
     fid = open(filename)
     lines = fid.readlines()
+    
     fid.close()
     
-#    seperated_value = ','
-    
-    time = []
-    speed = []
-    stage = []
-    momentum = []
-    elevation = []
-    line1 = lines[0]
-    line11 = line1.split(',')
-#    east_index = len(line11)+1
-#    north_index = len(line11)+1
-#    name_index = len(line11)+1
-#    elev_index = len(line11)+1
-#    Time     Stage     Momentum     Speed     Elevation 
-    
-    #read header to find the position (index) of each column of data
-    for i in range(len(line11)):
-        if line11[i].strip('\n').strip(' ').lower() == 'time': 
-            time_index = i
-            print'time index', time_index
-        if line11[i].strip('\n').strip(' ').lower() == 'stage': stage_index = i
-        if line11[i].strip('\n').strip(' ').lower() == 'momentum': momentum_index = i
-        if line11[i].strip('\n').strip(' ').lower() == 'speed': speed_index = i
-        if line11[i].strip('\n').strip(' ').lower() == 'elevation': elevation_index = i
-        print'i',i
-    print'time',time_index,'stage',stage_index,'elevation',elevation_index
-    
+    header_line = lines[0]
+    header_fields = header_line.split(separator_value)
 
-    for line in lines[1:]:
-        fields = line.split(',')
-        if elevation_index < len(line11): elevation.append(float(fields[elevation_index]))
-        if time_index < len(line11): time.append(float(fields[time_index]))
-        if momentum_index < len(line11): momentum.append(float(fields[momentum_index]))
-        if speed_index < len(line11): speed.append(float(fields[speed_index]))
-        if stage_index < len(line11): stage.append(float(fields[stage_index]))
+    #array to store data, number in there is to allow float...
+    #i'm sure there is a better way!
+    data=array([],typecode=Float)
+    data=resize(data,((len(lines)-1),len(header_fields)))
+#    print 'number of fields',range(len(header_fields))
+#    print 'number of lines',len(lines), shape(data)
+#    print'data',data[1,1],header_line
+
+    array_number = 0
+    line_number = 1
+    while line_number < (len(lines)):
+        for i in range(len(header_fields)): 
+            #this get line below the header, explaining the +1
+            #and also the line_number can be used as the array index
+            fields = lines[line_number].split(separator_value)
+            #assign to array
+            data[array_number,i] = float(fields[i])
+            
+        line_number = line_number +1
+        array_number = array_number +1
         
-        
-    '''        
-        if east_index < len(line11) and north_index < len(line11):
-            gauges.append([float(fields[east_index]), float(fields[north_index])])
-        else:
-            msg = 'WARNING: %s does not contain location information' %(filename)
-            raise Exception, msg
-        if elev_index < len(line11): elev.append(float(fields[elev_index]))
-        if name_index < len(line11):
-            loc = fields[name_index]
-            gaugelocation.append(loc.strip('\n'))
-    '''
-    return time, stage, momentum, speed, elevation
+    return header_fields, data
 
 
 

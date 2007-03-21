@@ -1243,12 +1243,57 @@ class Test_Util(unittest.TestCase):
     def test_check_list(self):
 
         check_list(['stage','xmomentum'])
+    
+    def test_get_data_from_file(self):
+#    from anuga.abstract_2d_finite_volumes.util import get_data_from_file
+        
+        import os
+       
+        fileName = tempfile.mktemp(".txt")
+#        print"filename",fileName
+        file = open(fileName,"w")
+        file.write("elevation, stage\n\
+1.0, 3  \n\
+0.0, 4 \n\
+4.0, 3 \n\
+1.0, 6 \n")
+        file.close()
+        
+        header,x = get_data_from_file(fileName)
+#        print 'x',x
+        os.remove(fileName)
+        
+        assert allclose(x[:,0], [1.0, 0.0,4.0, 1.0])
+        
+    def test_get_data_from_file1(self):
+#    from anuga.abstract_2d_finite_volumes.util import get_data_from_file
+        
+        import os
+       
+        fileName = tempfile.mktemp(".txt")
+#        print"filename",fileName
+        file = open(fileName,"w")
+        file.write("elevation stage\n\
+1.3 3  \n\
+0.0 4 \n\
+4.5 3.5 \n\
+1.0 6 \n")
+        file.close()
+        
+        header, x = get_data_from_file(fileName,separator_value=' ')
+        os.remove(fileName)
+#        x = get_data_from_file(fileName)
+#        print '1x',x[:,0]
+        
+        assert allclose(x[:,0], [1.3, 0.0,4.5, 1.0])
+
+     
 
         
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Util,'test')
-    #suite = unittest.makeSuite(Test_Util,'test_add_directories')
+    #suite = unittest.makeSuite(Test_Util,'test')
+    suite = unittest.makeSuite(Test_Util,'test_get_data_from_file')
     runner = unittest.TextTestRunner()
     runner.run(suite)
 
