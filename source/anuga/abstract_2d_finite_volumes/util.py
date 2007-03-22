@@ -322,8 +322,9 @@ def get_netcdf_file_function(filename,
     kwargs = {'time_thinning': time_thinning,
               'verbose': verbose
               }
+    
 #    print'CACHING FROM UTIL.py for interpolation_function', use_cache
-    from anuga.caching import myhash
+#    from anuga.caching import myhash
     if use_cache is True:
         from caching import cache
         

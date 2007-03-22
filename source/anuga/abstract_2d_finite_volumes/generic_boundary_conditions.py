@@ -179,6 +179,7 @@ class File_boundary(Boundary):
 
     Note that the resulting solution history is not exactly the same as if
     the models were coupled as there is no feedback into the source model.
+       
     """
 
     # FIXME (Ole): I kind of like the name Spatio_Temporal_boundary for this
@@ -243,9 +244,9 @@ class File_boundary(Boundary):
         if verbose: print 'Initialise file_function'
         self.F = file_function(filename, domain,
 	                       interpolation_points=self.midpoint_coordinates,
-                           time_thinning=time_thinning,
-                           use_cache=use_cache, 
-                           verbose=verbose)
+                               time_thinning=time_thinning,
+                               use_cache=use_cache, 
+                               verbose=verbose)
         self.domain = domain
 
         #Test
@@ -263,8 +264,6 @@ class File_boundary(Boundary):
 
     def evaluate(self, vol_id=None, edge_id=None):
         """Return linearly interpolated values based on domain.time
-
-        vol_id and edge_id are ignored
         """
 
         t = self.domain.time

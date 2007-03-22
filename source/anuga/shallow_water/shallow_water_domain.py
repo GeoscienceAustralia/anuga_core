@@ -1391,8 +1391,66 @@ class Dirichlet_Discharge_boundary(Boundary):
         #    return self.F(t)
 
 
+class Field_boundary(Boundary):
+    """Set boundary from given field represented in an sww file containing values
+    for stage, xmomentum and ymomentum.
+    Optionally, the user can specify mean_stage to offset the stage provided in the
+    sww file.
+
+    This function is a thin wrapper around the generic File_boundary.
+    """
 
 
+    def __init__(self, filename, domain,
+                 mean_stage=0.0,
+                 time_thinning=1, 
+                 use_cache=False,
+                 verbose=False):
+        """Constructor
+
+        filename: Name of sww file
+        domain: pointer to shallow water domain for which the boundary applies
+        mean_stage: The mean water level which will be added to stage derived from the sww file
+        time_thinning:
+        use_cache:
+        verbose:
+        
+        """
+
+        # Create generic file_boundary object
+        self.file_boundary = File_boundary(filename, domain,
+                                           time_thinning=time_thinning,
+                                           use_cache=use_cache,
+                                           verbose=verbose)
+        
+        # Record information from File_boundary
+        self.F = self.file_boundary.F
+        self.domain = self.file_boundary.domain
+        
+        # Record mean stage
+        self.mean_stage = mean_stage
+
+
+    def __repr__(self):
+        return 'Field boundary'
+
+
+    def evaluate(self, vol_id=None, edge_id=None):
+        """Return linearly interpolated values based on domain.time
+
+        vol_id and edge_id are ignored
+        """
+
+        # Evaluate file boundary
+        q = self.file_boundary.evaluate(vol_id, edge_id)
+
+        # Adjust stage
+        for j, name in enumerate(self.domain.conserved_quantities):
+            if name == 'stage':
+                q[j] += self.mean_stage
+        return q
+
+    
 
 #########################
 #Standard forcing terms:
