@@ -21,7 +21,7 @@ import time, sys, os, tempfile
 #import tempfile
 
 # Related major packages
-from anuga.shallow_water import Domain,Dirichlet_boundary,File_boundary
+from anuga.shallow_water import Domain,Dirichlet_boundary,File_boundary,Transmissive_boundary
 #from anuga.shallow_water import Reflective_boundary
 from Numeric import allclose, array
 from anuga.pmesh.mesh_interface import create_mesh_from_regions
@@ -50,10 +50,13 @@ tide = 2.4
 #--------------------------------------------------------------------------
 
 #all = [[469000,7760000],[470000,7758000],[468000,7758000]]
-all = [[470000,7760000],[469000,7758000],[468000,7760000]]
+#all = [[470000,7760000],[469000,7758000],[468000,7760000]]
+all_large = [[474000,7764000],[474000,7756000],[466000,7756000],[466000,7764000]]
+all = [[470000,7764000],[470000,7756000],[466000,7756000],[466000,7764000]]
 create_mesh_from_regions(all,
 #                             boundary_tags={'ocean': [0,1,2]},
-                             boundary_tags={'ocean': [ 2],'side': [0, 1]},
+#                             boundary_tags={'ocean': [ 2],'side': [0, 1]},
+                             boundary_tags={'ocean': [ 2],'side': [1, 3], 'back': [0]},
                              maximum_triangle_area=50000,
                              filename=meshes_dir_name,
                              use_cache=False,
@@ -94,11 +97,12 @@ Bf = File_boundary(out_dir + 'o_test_8500_12000.sww',
 print 'finished reading boundary file'
 
 #Br = Reflective_boundary(domain)
+Bt = Transmissive_boundary(domain)
 Bd = Dirichlet_boundary([tide,0,0])
 
 print'set_boundary'
 
-domain.set_boundary({#'back': Br,
+domain.set_boundary({'back': Bt,
                      'side': Bd,
                     'ocean': Bf
                     })
@@ -113,6 +117,9 @@ t0 = time.time()
 for t in domain.evolve(yieldstep = 60, finaltime = 3400):
     domain.write_time()
     domain.write_boundary_statistics(tags = 'ocean')
+
+
+
 
 home = getenv('INUNDATIONHOME') #Sandpit's parent dir   
 #user = get_user_name()
