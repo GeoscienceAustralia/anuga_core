@@ -12,7 +12,7 @@ class OfflineVisualiser(Visualiser):
     precache_height_quantities() - Precache all the vtkpoints
     structures for any dynamic height based quantities to render.
     """
-    def __init__(self, source, frameDelay=100):
+    def __init__(self, source, frameDelay=100, forwardStep=1):
         """The source parameter is assumed to be a NetCDF sww file.
         The frameDelay parameter is the number of milliseconds waited between frames.
         """
@@ -31,6 +31,8 @@ class OfflineVisualiser(Visualiser):
         self.ymax = None
         self.zmin = None
         self.zmax = None
+
+        self.forwardStep= forwardStep 
 
         self.vtk_heightQuantityCache = []
         for i in range(self.maxFrameNumber + 1): # maxFrameNumber is zero indexed.
@@ -181,14 +183,18 @@ class OfflineVisualiser(Visualiser):
         self.tk_root.after(self.frameDelay, self.animateForward)
 
     def forward(self):
-        self.forward_step()
-        self.pause()
-
-    def forward_step(self):
         if self.frameNumber < self.maxFrameNumber:
             self.frameNumber += 1
             self.redraw_quantities()
+            self.pause()
+            
+    def forward_step(self):
+        if self.frameNumber + self.forwardStep <= self.maxFrameNumber:
+            self.frameNumber += self.forwardStep
+            self.redraw_quantities()
         else:
+            self.frameNumber = self.maxFrameNumber            
+            self.redraw_quantities()
             self.pause()
 
     def forward10(self):
