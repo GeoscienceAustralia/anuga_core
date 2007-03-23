@@ -1059,6 +1059,8 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
         if verbose: print 'swwfile %d of %d' %(j, len(f_list))
         comparefile = file_loc[j]+sep+'gauges_maxmins'+'.csv'
         fid_compare = open(comparefile, 'w')
+        file0 = file_loc[j]+'gauges_t0.csv'
+        fid_0 = open(file0, 'w')
         ##### loop over each gauge #####
         for k in gauge_index:
             g = gauges[k]
@@ -1101,6 +1103,9 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     eastings[i,k,j] = thisgauge[0]
                     s = '%.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f\n' %(t, w, m, vel, z, uh, vh)
                     fid_out.write(s)
+                    if t == 0:
+                        s = '%.2f, %.2f, %.2f\n' %(g[0], g[1], w)
+                        fid_0.write(s)
                     if t/60.0 <= 13920: tindex = i
                     if w > max_stage: max_stage = w
                     if w < min_stage: min_stage = w
@@ -1156,6 +1161,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
     if generate_fig is True:
         depth_axis = axis([time_min/60.0, time_max/60.0, -0.1, max(max_depths)*1.1])
         stage_axis = axis([time_min/60.0, time_max/60.0, min(min_stages), max(max_stages)*1.1])
+        #stage_axis = axis([50.0, time_max/60.0, -3.0, 2.0])
         vel_axis = axis([time_min/60.0, time_max/60.0, min(max_speeds), max(max_speeds)*1.1])
         mom_axis = axis([time_min/60.0, time_max/60.0, min(max_momentums), max(max_momentums)*1.1])
         cstr = ['g', 'r', 'b', 'c', 'm', 'y', 'k']
@@ -1194,7 +1200,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                         units = 'm'
                         axis(depth_axis)
                     if which_quantity == 'stage':
-                        if elevations[0,k,j] < 0:
+                        if elevations[0,k,j] <= 0:
                             plot(model_time[0:n[j]-1,k,j], stages[0:n[j]-1,k,j], '-', c = cstr[j])
                             axis(stage_axis)
                         else:
@@ -1272,6 +1278,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     
                     if title_on == True:
                         title('%s scenario: %s at %s gauge' %(label_id, which_quantity, gaugeloc2))
+                        #title('Gauge %s (MOST elevation %.2f, ANUGA elevation %.2f)' %(gaugeloc2, elevations[10,k,0], elevations[10,k,1] ))
 
                     savefig(graphname) # save figures with sww file
 

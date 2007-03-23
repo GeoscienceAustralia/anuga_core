@@ -1,4 +1,4 @@
-      subroutine okada(x,y,z,n,depth,xlength,xwidth,dip,rake,slip)
+      subroutine okadatest(x,y,z,n,depth,xlength,xwidth,dip,rake,slip)
 Cf2py   intent(out) z
 Cf2py   intent(in) x,y,n,depth,dip,rake,slip,xlength,xwidth
       implicit real*8 (a-h,o-z)
