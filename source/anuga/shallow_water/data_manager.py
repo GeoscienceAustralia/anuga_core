@@ -4399,11 +4399,11 @@ LL_LONG = 80.0
 GRID_SPACING = 1.0/60.0
 LAT_AMOUNT = 4800
 LONG_AMOUNT = 3600
-def URS_points_needed_to_file(file_name, boundary_polygon,
+def URS_points_needed_to_file(file_name, boundary_polygon, zone,
                               ll_lat=LL_LAT, ll_long=LL_LONG,
                               grid_spacing=GRID_SPACING, 
                               lat_amount=LAT_AMOUNT, long_amount=LONG_AMOUNT,
-                              zone=None, export_csv=False, use_cache=False,
+                              export_csv=False, use_cache=False,
                               verbose=False):
     """
     file_name - name of the urs file produced for David.
@@ -4418,8 +4418,9 @@ def URS_points_needed_to_file(file_name, boundary_polygon,
 
     Don't add the file extension.  It will be added.
     """
-    geo = URS_points_needed(boundary_polygon, ll_lat, ll_long, grid_spacing, 
-                      lat_amount, long_amount, zone, use_cache, verbose)
+    geo = URS_points_needed(boundary_polygon, zone, ll_lat, ll_long,
+                            grid_spacing, 
+                      lat_amount, long_amount,use_cache, verbose)
     if not file_name[-4:] == ".urs":
         file_name += ".urs"
     geo.export_points_file(file_name)
@@ -4428,17 +4429,17 @@ def URS_points_needed_to_file(file_name, boundary_polygon,
             file_name = file_name[:-4] + ".csv"
         geo.export_points_file(file_name)
 
-def URS_points_needed(boundary_polygon, ll_lat=LL_LAT,
+def URS_points_needed(boundary_polygon, zone, ll_lat=LL_LAT,
                       ll_long=LL_LONG, grid_spacing=GRID_SPACING, 
                       lat_amount=LAT_AMOUNT, long_amount=LONG_AMOUNT,
-                      zone=None, use_cache=False, verbose=False):
-    args = (boundary_polygon)
+                      use_cache=False, verbose=False):
+    args = (boundary_polygon,
+                      zone)
     kwargs = {'ll_lat': ll_lat,
               'll_long': ll_long,
               'grid_spacing': grid_spacing,
               'lat_amount': lat_amount,
-              'long_amount': long_amount,
-              'zone': zone}  
+              'long_amount': long_amount}  
     if use_cache is True:
         try:
             from anuga.caching import cache
@@ -4455,16 +4456,16 @@ def URS_points_needed(boundary_polygon, ll_lat=LL_LAT,
     else:
         #I was getting 'got multiple values for keyword argument' errors
         #geo = apply(_URS_points_needed, args, kwargs)
-        geo = _URS_points_needed(boundary_polygon, ll_lat,
+        geo = _URS_points_needed(boundary_polygon,
+                      zone, ll_lat,
                       ll_long, grid_spacing, 
-                      lat_amount, long_amount,
-                      zone)
+                      lat_amount, long_amount)
 
     return geo    
-def _URS_points_needed(boundary_polygon, ll_lat=LL_LAT,
+def _URS_points_needed(boundary_polygon,
+                      zone, ll_lat=LL_LAT,
                       ll_long=LL_LONG, grid_spacing=GRID_SPACING, 
-                      lat_amount=LAT_AMOUNT, long_amount=LONG_AMOUNT,
-                      zone=None):
+                      lat_amount=LAT_AMOUNT, long_amount=LONG_AMOUNT):
     """
 
     boundary_polygon - a list of points that describes a polygon.
@@ -4487,10 +4488,10 @@ def _URS_points_needed(boundary_polygon, ll_lat=LL_LAT,
     segs = [i and [a[i-1], a[i]] or [a[len(a)-1], a[0]] for i in range(len(a))]
 
     # convert the segs to Lat's and longs.
-    if zone is None:
-        # Assume the zone of the segments is the same as the lower left
-        # corner of the lat long data
-        zone, _, _ = redfearn(ll_lat, ll_long)
+    
+    # Don't assume the zone of the segments is the same as the lower left
+    # corner of the lat long data!!  They can easily be in different zones
+    
     lat_long_set = ImmutableSet()
     for seg in segs:
         points_lat_long = points_needed(seg, ll_lat, ll_long, grid_spacing, 
@@ -5028,9 +5029,6 @@ class Urs_points:
     #### END URS UNGRIDDED 2 SWW ###
 
 #-------------------------------------------------------------
-if __name__ == "__main__":
-    points=Urs_points('urs2sww_test/o_velocity-e-mux')
-    for i in points:
-        print 'i',i
+if __name__ == "__main__":    
         pass
 

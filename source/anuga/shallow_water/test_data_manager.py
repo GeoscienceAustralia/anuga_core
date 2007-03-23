@@ -5197,10 +5197,11 @@ friction  \n \
         grid_spacing = 1./60.
         lat_amount = 30
         long_amount = 30
+        zone = 50
 
         boundary_polygon = [[250000,7660000],[280000,7660000],
                              [280000,7630000],[250000,7630000]]
-        geo=URS_points_needed(boundary_polygon,
+        geo=URS_points_needed(boundary_polygon, zone, 
                               ll_lat, ll_long, grid_spacing, 
                               lat_amount, long_amount)
         # to test this geo, can info from it be transfered onto the boundary
@@ -5675,10 +5676,11 @@ friction  \n \
         time_step_count = 2
         time_step = 400
         tide = -200000
+        zone = 50
 
         boundary_polygon = [[250000,7660000],[280000,7660000],
                              [280000,7630000],[250000,7630000]]
-        geo=URS_points_needed(boundary_polygon,
+        geo=URS_points_needed(boundary_polygon, zone,
                               ll_lat, ll_long, grid_spacing, 
                               lat_amount, long_amount)
         lat_long = geo.get_data_points(as_lat_long=True)
@@ -5698,10 +5700,11 @@ friction  \n \
         time_step_count = 2
         time_step = 400
         tide = -200000
+        zone = 50
 
         boundary_polygon = [[250000,7660000],[270000,7650000],
                              [280000,7630000],[250000,7630000]]
-        geo=URS_points_needed(boundary_polygon,
+        geo=URS_points_needed(boundary_polygon, zone,
                               ll_lat, ll_long, grid_spacing, 
                               lat_amount, long_amount, use_cache=True,
                               verbose=True)
@@ -5716,10 +5719,11 @@ friction  \n \
         time_step_count = 2
         time_step = 400
         tide = -200000
+        zone = 50
 
         boundary_polygon = [[250000,7660000],[270000,7650000],
                              [280000,7630000],[250000,7630000]]
-        geo=URS_points_needed(boundary_polygon,
+        geo=URS_points_needed(boundary_polygon, zone,
                               ll_lat, ll_long, grid_spacing, 
                               lat_amount, long_amount)
         lat_long = geo.get_data_points(as_lat_long=True)
