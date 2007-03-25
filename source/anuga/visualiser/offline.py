@@ -39,6 +39,7 @@ class OfflineVisualiser(Visualiser):
             self.vtk_heightQuantityCache.append({})
 
         self.paused = False
+        self.movie = False
         
     def setup_grid(self):
         fin = NetCDFFile(self.source, 'r')
@@ -126,7 +127,7 @@ class OfflineVisualiser(Visualiser):
 
     def setup_gui(self):
         Visualiser.setup_gui(self)
-        self.tk_quit.grid(row=0, column=0, columnspan=6, sticky=W+E)
+        self.tk_quit.grid(row=0, column=0, columnspan=7, sticky=W+E)
         self.tk_restart = Button(self.tk_controlFrame, text="<<<", command=self.restart)
         self.tk_restart.grid(row=1, column=0, sticky=W+E)
         self.tk_back10 = Button(self.tk_controlFrame, text="<<", command=self.back10)
@@ -139,9 +140,11 @@ class OfflineVisualiser(Visualiser):
         self.tk_forward.grid(row=1, column=4, sticky=W+E)
         self.tk_forward10 = Button(self.tk_controlFrame, text=">>", command=self.forward10)
         self.tk_forward10.grid(row=1, column=5, sticky=W+E)
+        self.tk_movie_toggle = Button(self.tk_controlFrame, text="Movie off", command=self.movie_toggle)
+        self.tk_movie_toggle.grid(row=1, column=6, sticky=W+E)
 
         # Make the buttons stretch to fill all available space
-        for i in range(6):
+        for i in range(7):
             self.tk_controlFrame.grid_columnconfigure(i, weight=1)
 
     def run(self):
@@ -152,7 +155,52 @@ class OfflineVisualiser(Visualiser):
         self.frameNumber = 0
         self.redraw_quantities()
         self.pause()
-
+        
+        if self.movie:
+            self.save_image()
+        
+    def movie_toggle(self):
+        if self.movie == True:
+            self.movie = False
+            self.tk_movie_toggle.config(text='Movie off')
+        else:
+            self.movie = True
+            self.tk_movie_toggle.config(text='Movie on ')
+            
+            
+        
+        
+    def save_image(self):
+        
+        from vtk import vtkJPEGWriter, vtkJPEGWriter, vtkPNGWriter
+        from vtk import vtkPNMWriter, vtkWindowToImageFilter
+        from os import path
+         
+        sourcebase, _ = path.splitext(self.source)
+        fname = sourcebase+'%05g.png' % self.frameNumber
+        #print fname
+        
+        extmap = {'.jpg' : vtkJPEGWriter,
+                  '.jpeg' : vtkJPEGWriter,
+                  '.png' : vtkPNGWriter,
+                  '.pnm' : vtkPNMWriter,
+                  }
+        basename, ext = path.splitext(fname)
+        try: Writer = extmap[ext.lower()]
+        except KeyError:
+            error_msg("Don't know how to handle %s files" % ext, parent=self)
+            return
+    
+        renWin = self.vtk_renderer.GetRenderWindow()
+        w2i = vtkWindowToImageFilter()
+        writer = Writer()
+        w2i.SetInput(renWin)
+        w2i.Update()
+        writer.SetInput(w2i.GetOutput())
+        writer.SetFileName(fname)
+        renWin.Render()
+        writer.Write()        
+    
     def back10(self):
         if self.frameNumber - 10 >= 0:
             self.frameNumber -= 10
@@ -196,6 +244,10 @@ class OfflineVisualiser(Visualiser):
             self.frameNumber = self.maxFrameNumber            
             self.redraw_quantities()
             self.pause()
+         
+        if self.movie:
+             self.save_image()
+                
 
     def forward10(self):
         if self.frameNumber + 10 <= self.maxFrameNumber:
