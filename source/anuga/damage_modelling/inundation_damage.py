@@ -33,6 +33,10 @@ from anuga.geospatial_data.geospatial_data import ensure_absolute
 from anuga.utilities.numerical_tools import NAN
 from anuga_config import epsilon
 depth_epsilon = epsilon
+SHORE_DIST_LABEL = 'SHORE_DIST'
+WALL_TYPE_LABEL = 'WALL_TYPE'
+STR_VALUE_LABEL = 'STR_VALUE'
+CONT_VALUE_LABEL = 'CONT_VALUE'
 
 def inundation_damage(sww_file, exposure_file_in,
                       exposure_file_out=None,
@@ -60,10 +64,10 @@ def inundation_damage(sww_file, exposure_file_in,
                                     verbose=verbose,
                                     use_cache=use_cache)
     edm = EventDamageModel(max_depths,
-                           csv.get_column('SHORE_DIST'),
-                           csv.get_column('WALLS'),
-                           csv.get_column('STR_VALUE'),
-                           csv.get_column('C_VALUE')
+                           csv.get_column(SHORE_DIST_LABEL),
+                           csv.get_column(WALL_TYPE_LABEL),
+                           csv.get_column(STR_VALUE_LABEL),
+                           csv.get_column(CONT_VALUE_LABEL)
                            )
     results_dic = edm.calc_damage_and_costs(verbose_csv=True, verbose=verbose)
     for title, value in results_dic.iteritems():
