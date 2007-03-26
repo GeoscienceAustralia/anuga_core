@@ -1,6 +1,6 @@
 from Numeric import array, Float, ravel, zeros
 from Scientific.IO.NetCDF import NetCDFFile
-from Tkinter import Button, E, Tk, W
+from Tkinter import Button, E, Tk, W, Label, StringVar, Scale, HORIZONTAL
 from visualiser import Visualiser
 from vtk import vtkCellArray, vtkPoints, vtkPolyData
 
@@ -12,7 +12,7 @@ class OfflineVisualiser(Visualiser):
     precache_height_quantities() - Precache all the vtkpoints
     structures for any dynamic height based quantities to render.
     """
-    def __init__(self, source, frameDelay=100, forwardStep=1):
+    def __init__(self, source, frameDelay=100, frameStep=1):
         """The source parameter is assumed to be a NetCDF sww file.
         The frameDelay parameter is the number of milliseconds waited between frames.
         """
@@ -22,6 +22,9 @@ class OfflineVisualiser(Visualiser):
         fin = NetCDFFile(self.source, 'r')
         self.maxFrameNumber = fin.variables['time'].shape[0] - 1
         fin.close()
+        
+        #self.frameNumberTkVariable = StringVar()
+        #self.frameNumberTkVariable.set('Frame - %05g'%self.framNumber)
 
         self.frameDelay = frameDelay
 
@@ -32,7 +35,7 @@ class OfflineVisualiser(Visualiser):
         self.zmin = None
         self.zmax = None
 
-        self.forwardStep= forwardStep 
+        self.frameStep= frameStep 
 
         self.vtk_heightQuantityCache = []
         for i in range(self.maxFrameNumber + 1): # maxFrameNumber is zero indexed.
@@ -54,7 +57,7 @@ class OfflineVisualiser(Visualiser):
     def update_height_quantity(self, quantityName, dynamic=True):
         polydata = self.vtk_polyData[quantityName] = vtkPolyData()
         if dynamic is True:
-            print ' - Frame',self.frameNumber,'of',self.maxFrameNumber
+            #print ' - Frame',self.frameNumber,'of',self.maxFrameNumber
             if not self.vtk_heightQuantityCache[self.frameNumber].has_key(quantityName):
                 self.vtk_heightQuantityCache[self.frameNumber][quantityName]\
                     = self.read_height_quantity(quantityName, True, self.frameNumber);
@@ -127,22 +130,36 @@ class OfflineVisualiser(Visualiser):
 
     def setup_gui(self):
         Visualiser.setup_gui(self)
-        self.tk_quit.grid(row=0, column=0, columnspan=7, sticky=W+E)
-        self.tk_restart = Button(self.tk_controlFrame, text="<<<", command=self.restart)
+        self.tk_quit.grid(row=0, column=0, sticky=W+E)
+        self.tk_movie_toggle = Button(self.tk_controlFrame, text="Movie off", command=self.movie_toggle)
+        self.tk_movie_toggle.grid(row=0, column=6,  sticky=W+E)
+        
+                
+        self.tk_restart = Button(self.tk_controlFrame, text="<<<", command=self.restart, width=5)
         self.tk_restart.grid(row=1, column=0, sticky=W+E)
-        self.tk_back10 = Button(self.tk_controlFrame, text="<<", command=self.back10)
+        self.tk_back10 = Button(self.tk_controlFrame, text="<<", command=self.back10, width=5)
         self.tk_back10.grid(row=1, column=1, sticky=W+E)
-        self.tk_back = Button(self.tk_controlFrame, text="<", command=self.back)
+        self.tk_back = Button(self.tk_controlFrame, text="<", command=self.back, width=5)
         self.tk_back.grid(row=1, column=2, sticky=W+E)
         self.tk_pauseResume = Button(self.tk_controlFrame, text="Pause", command=self.pauseResume, width=15)
         self.tk_pauseResume.grid(row=1, column=3, sticky=W+E)
-        self.tk_forward = Button(self.tk_controlFrame, text=">", command=self.forward)
+        self.tk_forward = Button(self.tk_controlFrame, text=">", command=self.forward, width=5)
         self.tk_forward.grid(row=1, column=4, sticky=W+E)
-        self.tk_forward10 = Button(self.tk_controlFrame, text=">>", command=self.forward10)
+        self.tk_forward10 = Button(self.tk_controlFrame, text=">>", command=self.forward10, width=5)
         self.tk_forward10.grid(row=1, column=5, sticky=W+E)
-        self.tk_movie_toggle = Button(self.tk_controlFrame, text="Movie off", command=self.movie_toggle)
-        self.tk_movie_toggle.grid(row=1, column=6, sticky=W+E)
+        self.tk_forwardEnd = Button(self.tk_controlFrame, text=">>>", command=self.forwardEnd, width=5)
+        self.tk_forwardEnd.grid(row=1, column=6, sticky=W+E)
+        
 
+        self.tk_frameNumber = Label(self.tk_controlFrame, text='Frame')
+        self.tk_frameNumber.grid(row=2, column=0, sticky=W+E)
+        self.tk_gotoFrame = Scale(self.tk_controlFrame, from_=0, to=self.maxFrameNumber, orient=HORIZONTAL)
+        self.tk_gotoFrame.grid(row=2, column=1, columnspan=2, sticky=W+E)
+        self.tk_stepLabel = Label(self.tk_controlFrame, text='Step')
+        self.tk_stepLabel.grid(row=2, column=4, sticky=W+E)        
+        self.tk_frameStep = Scale(self.tk_controlFrame, from_=0, to=self.maxFrameNumber, orient=HORIZONTAL)
+        self.tk_frameStep.grid(row=2, column=5, columnspan=2, sticky=W+E)
+        
         # Make the buttons stretch to fill all available space
         for i in range(7):
             self.tk_controlFrame.grid_columnconfigure(i, weight=1)
@@ -154,11 +171,18 @@ class OfflineVisualiser(Visualiser):
     def restart(self):
         self.frameNumber = 0
         self.redraw_quantities()
+        self.update_labels()
         self.pause()
         
         if self.movie:
             self.save_image()
-        
+ 
+    def forwardEnd(self):
+        self.frameNumber = self.maxFrameNumber
+        self.redraw_quantities()
+        self.update_labels()
+        self.pause()
+                
     def movie_toggle(self):
         if self.movie == True:
             self.movie = False
@@ -207,12 +231,14 @@ class OfflineVisualiser(Visualiser):
         else:
             self.frameNumber = 0
         self.redraw_quantities()
+        self.update_labels()
         self.pause()
 
     def back(self):
         if self.frameNumber > 0:
             self.frameNumber -= 1
             self.redraw_quantities()
+            self.update_labels()
             self.pause()
 
     def pauseResume(self):
@@ -228,21 +254,26 @@ class OfflineVisualiser(Visualiser):
     def resume(self):
         self.paused = False
         self.tk_pauseResume.config(text="Pause")
+        self.frameNumber = self.tk_gotoFrame.get()
+        self.frameStep = self.tk_frameStep.get()
         self.tk_root.after(self.frameDelay, self.animateForward)
 
     def forward(self):
         if self.frameNumber < self.maxFrameNumber:
             self.frameNumber += 1
             self.redraw_quantities()
+            self.update_labels()
             self.pause()
             
     def forward_step(self):
-        if self.frameNumber + self.forwardStep <= self.maxFrameNumber:
-            self.frameNumber += self.forwardStep
+        if self.frameNumber + self.frameStep <= self.maxFrameNumber:
+            self.frameNumber += self.frameStep
             self.redraw_quantities()
+            self.update_labels()
         else:
             self.frameNumber = self.maxFrameNumber            
             self.redraw_quantities()
+            self.update_labels()    
             self.pause()
          
         if self.movie:
@@ -255,9 +286,21 @@ class OfflineVisualiser(Visualiser):
         else:
             self.frameNumber = self.maxFrameNumber
         self.redraw_quantities()
+        self.update_labels()
         self.pause()
 
     def animateForward(self):
         if self.paused is not True:
             self.forward_step()
             self.tk_root.after(self.frameDelay, self.animateForward)
+            
+    def update_labels(self): 
+        #self.tk_frameNumber.config(text='%05g of %05g'%(self.frameNumber,self.maxFrameNumber))
+        self.tk_gotoFrame.set(self.frameNumber)
+        self.tk_frameStep.set(self.frameStep)
+               
+    def shutdown(self):
+        #self.pause()
+        self.tk_root.withdraw()
+        self.tk_root.destroy()
+        #Visualiser.shutdown(self)
