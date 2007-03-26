@@ -4406,7 +4406,7 @@ friction  \n \
 114.0, -21.7, pow, 10.0\n\
 114.5, -21.4, bang, 40.0\n")
         file.close()
-        exposure = Exposure_csv(file_name)
+        exposure = Exposure_csv(file_name, title_check_list = ['speed','sound'])
         exposure.get_column("sound")
        
         self.failUnless(exposure._attribute_dic['sound'][2]==' bang',
@@ -4435,7 +4435,32 @@ friction  \n \
                         'FAILED!')
         
         os.remove(file_name)
+        
+    def test_exposure_csv_loading_title_check_list(self):
 
+        # I can't get cvs.reader to close the exposure file
+        # The hacks below are to get around this.        
+        if sys.platform == 'win32':
+            file_name = tempfile.gettempdir() + \
+                    "test_exposure_csv_loading_title_check_list.xya"
+        else:
+            file_name = tempfile.mktemp(".xya")
+        file = open(file_name,"w")
+        file.write("LATITUDE, LONGITUDE ,sound  , speed \n\
+115.0, -21.0, splat, 0.0\n\
+114.0, -21.7, pow, 10.0\n\
+114.5, -21.4, bang, 40.0\n")
+        file.close()
+        try:
+            exposure = Exposure_csv(file_name, title_check_list = ['SOUND'])
+        except IOError:
+            pass
+        else:
+            self.failUnless(0 ==1,  'Assertion not thrown error!')
+            
+        if not sys.platform == 'win32':
+            os.remove(file_name)
+        
     def test_exposure_csv_cmp(self):
         file_name = tempfile.mktemp(".xya")
         file = open(file_name,"w")

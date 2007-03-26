@@ -33,6 +33,8 @@ from anuga.geospatial_data.geospatial_data import ensure_absolute
 from anuga.utilities.numerical_tools import NAN
 from anuga_config import epsilon
 depth_epsilon = epsilon
+
+# Change these if the ouput from nexix changes
 SHORE_DIST_LABEL = 'SHORE_DIST'
 WALL_TYPE_LABEL = 'WALL_TYPE'
 STR_VALUE_LABEL = 'STR_VALUE'
@@ -55,7 +57,9 @@ def inundation_damage(sww_file, exposure_file_in,
     (-ground_floor_height).
     """
 
-    csv = Exposure_csv(exposure_file_in)
+    csv = Exposure_csv(exposure_file_in,
+                       title_check_list=[SHORE_DIST_LABEL,WALL_TYPE_LABEL,
+                                         STR_VALUE_LABEL,CONT_VALUE_LABEL])
     geospatial = csv.get_location()
     geospatial = ensure_absolute(geospatial)
     max_depths, max_momentums = calc_max_depth_and_momentum(sww_file,

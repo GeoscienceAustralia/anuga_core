@@ -749,7 +749,7 @@ class Data_format_xya(Data_format):
         pass
 
 
-#### NED is national exposure database
+#### NED is national exposure database (name changed to NEXIS)
     
 LAT_TITLE = 'LATITUDE'
 LONG_TITLE = 'LONGITUDE'
@@ -759,7 +759,7 @@ class Exposure_csv:
     def __init__(self,file_name, latitude_title=LAT_TITLE,
                  longitude_title=LONG_TITLE, is_x_y_locations=None,
                  x_title=X_TITLE, y_title=Y_TITLE,
-                 refine_polygon=None):
+                 refine_polygon=None, title_check_list=None):
         """
         This class is for handling the exposure csv file.
         It reads the file in and converts the lats and longs to a geospatial
@@ -798,7 +798,8 @@ class Exposure_csv:
         #The keys are the column titles.
         #The values are the index positions of file columns.
         self._attribute_dic, self._title_index_dic = \
-        self._load_exposure_csv(self._file_name)
+        self._load_exposure_csv(self._file_name,
+                                title_check_list=title_check_list)
         try:
             #Have code here that handles caps or lower 
             lats = self._attribute_dic[latitude_title]
@@ -856,7 +857,7 @@ class Exposure_csv:
         else:
             return 1
     
-    def _load_exposure_csv(self, file_name):
+    def _load_exposure_csv(self, file_name, title_check_list=None):
         """
         Load in the csv as a dic, title as key and column info as value, .
         Also, create a dic, title as key and column index as value,
@@ -866,7 +867,6 @@ class Exposure_csv:
         attribute_dic = {}
         title_index_dic = {}
         titles_stripped = [] # list of titles
-        
         reader = csv.reader(file(file_name))
 
         # Read in and manipulate the title info
@@ -876,7 +876,17 @@ class Exposure_csv:
             title_index_dic[title.strip()] = i
         title_count = len(titles_stripped)       
         #print "title_index_dic",title_index_dic
-
+        if title_check_list is not None:
+            for title_check in title_check_list:
+                #msg = "Reading error.  This row is not present ", title_check 
+                #assert title_index_dic.has_key(title_check), msg
+                if not title_index_dic.has_key(title_check):
+                    #reader.close()
+                    msg = "Reading error.  This row is not present ", \
+                          title_check                     
+                    raise IOError, msg
+                    
+        
         
         #create a dic of colum values, indexed by column title
         for line in reader:
