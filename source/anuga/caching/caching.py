@@ -1453,6 +1453,12 @@ def get_funcname(func):
     tmp = string.split(tmp)
     funcname = string.join(tmp)
 
+    # Truncate memory address as in
+    # class __main__.Dummy at 0x00A915D0
+    index = funcname.find('at 0x')
+    if index >= 0:
+      funcname = funcname[:index+5] # Keep info that there is an address 
+
   funcname = nospace(funcname)
   return(funcname)
 
