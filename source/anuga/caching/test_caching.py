@@ -393,8 +393,32 @@ class Test_Caching(unittest.TestCase):
         def __init__(self, value, another):
           self.value = value      
 
+      # Make sure that class has been redefined to another address
+      #print
+      #print 'Initial_addr  ', initial_addr
+      #print 'Redefined addr', `Dummy_memorytest`
+      msg = 'Redefined class ended up at same memory location as '
+      msg += 'original class making this test irrelevant. Try to run '
+      msg += 'it again and see if this error goes away.'
+      msg += 'If it persists contact Ole.Nielsen@ga.gov.au'
+      assert initial_addr != `Dummy_memorytest`, msg   
+
+      
       retrieve_cache(Dummy_memorytest, verbose=verbose)      
           
+
+# Define class Dummy_memorytest before any tests are run
+# to make sure it has a different memory address
+# to the one defined in test 'test_objects_are_created_memory'
+class Dummy_memorytest:
+  def __init__(self, value, another):
+    self.value = value      
+
+# Cache created for use with 'test_objects_are_created_memory'
+initial_addr = `Dummy_memorytest`
+clear_and_create_cache(Dummy_memorytest, verbose=False)
+  
+      
 
 
 
@@ -404,10 +428,6 @@ class Test_Caching(unittest.TestCase):
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
-
-    # Cache created for test_objects_are_created_memory to make sure it has a different memory address
-    clear_and_create_cache(Dummy_memorytest, verbose=False)
-  
     suite = unittest.makeSuite(Test_Caching,'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
