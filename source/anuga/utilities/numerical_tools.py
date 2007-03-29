@@ -162,8 +162,9 @@ def cov(x, y=None):
         y = x 
 
     x = ensure_numeric(x)
-    y = ensure_numeric(y)       
-    assert(len(x)==len(y))
+    y = ensure_numeric(y)
+    msg = 'Lengths must be equal: len(x) == %d, len(y) == %d' %(len(x), len(y))
+    assert(len(x)==len(y)), msg
 
     N = len(x) 
     cx = x - mean(x)  

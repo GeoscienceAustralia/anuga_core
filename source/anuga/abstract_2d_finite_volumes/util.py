@@ -49,7 +49,9 @@ def file_function(filename,
 
     quantities - the name of the quantity to be interpolated or a
                  list of quantity names. The resulting function will return
-                 a tuple of values - one for each quantity  
+                 a tuple of values - one for each quantity
+                 If quantities are None, domain's conserved quantities
+                 are used.
 
     interpolation_points - list of absolute UTM coordinates for points (N x 2)
     or geospatial object or points file name at which values are sought
@@ -62,12 +64,39 @@ def file_function(filename,
     """
 
 
+    #FIXME (OLE): Should check origin of domain against that of file
+    #In fact, this is where origin should be converted to that of domain
+    #Also, check that file covers domain fully.
+
+    #Take into account:
+    #- domain's georef
+    #- sww file's georef
+    #- interpolation points as absolute UTM coordinates
+
+
+
+
+    # Use domain's conserved_quantity names as defaults
+    if domain is not None:    
+        if quantities is None: 
+            quantities = domain.conserved_quantities
+            
+        domain_starttime = domain.starttime
+    else:
+        domain_starttime = None
+
+
     # Build arguments and keyword arguments for use with caching or apply.
     args = (filename,)
-    
-    kwargs = {'domain': domain,
-              'quantities': quantities,
+
+
+    # FIXME (Ole): Caching this function will not work well
+    # if domain is passed in as instances change hash code.
+    # Instead we pass in those attributes that are needed (and return them
+    # if modified)
+    kwargs = {'quantities': quantities,
               'interpolation_points': interpolation_points,
+              'domain_starttime': domain_starttime,
               'time_thinning': time_thinning,                   
               'verbose': verbose}
 
@@ -81,46 +110,50 @@ def file_function(filename,
                   'could not be imported'
             raise msg
 
-        f = cache(_file_function,
-                  args, kwargs,
-                  dependencies=[filename],
-                  compression=False,                  
-                  verbose=verbose)
+        f, starttime = cache(_file_function,
+                             args, kwargs,
+                             dependencies=[filename],
+                             compression=False,                  
+                             verbose=verbose)
 
     else:
-        f = apply(_file_function,
-                  args, kwargs)
+        f, starttime = apply(_file_function,
+                             args, kwargs)
 
 
     #FIXME (Ole): Pass cache arguments, such as compression, in some sort of
     #structure
-        
+
+
+    if domain is not None:
+        #Update domain.startime if it is *earlier* than starttime from file
+        if starttime > domain.starttime:
+            msg = 'WARNING: Start time as specified in domain (%f)'\
+                  %domain.starttime
+            msg += ' is earlier than the starttime of file %s (%f).'\
+                     %(filename, starttime)
+            msg += ' Modifying domain starttime accordingly.'
+            
+            if verbose: print msg
+            domain.starttime = starttime #Modifying model time
+            if verbose: print 'Domain starttime is now set to %f'\
+               %domain.starttime
 
     return f
 
 
 
 def _file_function(filename,
-                   domain=None,
                    quantities=None,
                    interpolation_points=None,
-                   time_thinning=1,                                                
+                   domain_starttime=None,
+                   time_thinning=1,
                    verbose=False):
     """Internal function
     
     See file_function for documentatiton
     """
     
-
-    #FIXME (OLE): Should check origin of domain against that of file
-    #In fact, this is where origin should be converted to that of domain
-    #Also, check that file covers domain fully.
-
-    #Take into account:
-    #- domain's georef
-    #- sww file's georef
-    #- interpolation points as absolute UTM coordinates
-
 
     assert type(filename) == type(''),\
                'First argument to File_function must be a string'
@@ -135,15 +168,12 @@ def _file_function(filename,
     line = fid.readline()
     fid.close()
 
-    if quantities is None: 
-        if domain is not None:
-            quantities = domain.conserved_quantities
-
-
 
     if line[:3] == 'CDF':
-        return get_netcdf_file_function(filename, domain, quantities,
+        return get_netcdf_file_function(filename,
+                                        quantities,
                                         interpolation_points,
+                                        domain_starttime,
                                         time_thinning=time_thinning,
                                         verbose=verbose)
     else:
@@ -152,17 +182,17 @@ def _file_function(filename,
 
 
 def get_netcdf_file_function(filename,
-                             domain=None,
                              quantity_names=None,
                              interpolation_points=None,
+                             domain_starttime=None,                            
                              time_thinning=1,                             
                              verbose=False):
     """Read time history of spatial data from NetCDF sww file and
     return a callable object f(t,x,y)
     which will return interpolated values based on the input file.
 
-    If domain is specified, model time (domain.starttime)
-    will be checked and possibly modified
+    Model time (domain_starttime)
+    will be checked, possibly modified and returned
     
     All times are assumed to be in UTC
 
@@ -174,12 +204,10 @@ def get_netcdf_file_function(filename,
     #FIXME: Check that model origin is the same as file's origin
     #(both in UTM coordinates)
     #If not - modify those from file to match domain
+    #(origin should be passed in)
     #Take this code from e.g. dem2pts in data_manager.py
     #FIXME: Use geo_reference to read and write xllcorner...
         
-
-    #FIXME: Maybe move caching out to this level rather than at the
-    #Interpolation_function level (below)
 
     import time, calendar, types
     from anuga.config import time_format
@@ -274,25 +302,12 @@ def get_netcdf_file_function(filename,
 
 
 
-    if domain is not None:
-        #Update domain.startime if it is *earlier* than starttime
-        if starttime > domain.starttime:
-            msg = 'WARNING: Start time as specified in domain (%f)'\
-                  %domain.starttime
-            msg += ' is earlier than the starttime of file %s (%f).'\
-                     %(filename, starttime)
-            msg += ' Modifying domain starttime accordingly.'
-            
-            if verbose: print msg
-            domain.starttime = starttime #Modifying model time
-            if verbose: print 'Domain starttime is now set to %f'\
-               %domain.starttime
+    if domain_starttime is not None:
 
-
-        #If domain.startime is *later* than starttime,
+        #If domain_startime is *later* than starttime,
         #move time back - relative to domain's time
-        if domain.starttime > starttime:
-            time = time - domain.starttime + starttime
+        if domain_starttime > starttime:
+            time = time - domain_starttime + starttime
 
         #FIXME Use method in geo to reconcile
         #if spatial:
@@ -324,6 +339,9 @@ def get_netcdf_file_function(filename,
     if not spatial:
         vertex_coordinates = triangles = interpolation_points = None         
 
+
+    # Return Interpolation_function instance as well as
+    # starttime for use to possible modify that of domain
     return Interpolation_function(time,
                                   quantities,
                                   quantity_names,
@@ -331,7 +349,13 @@ def get_netcdf_file_function(filename,
                                   triangles,
                                   interpolation_points,
                                   time_thinning=time_thinning,
-                                  verbose=verbose)
+                                  verbose=verbose), starttime
+
+    # NOTE (Ole): Caching Interpolation function is too slow as
+    # the very long parameters need to be hashed.
+
+
+
 
 
 
