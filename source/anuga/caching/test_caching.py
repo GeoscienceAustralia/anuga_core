@@ -344,7 +344,7 @@ class Test_Caching(unittest.TestCase):
 
     def test_objects_are_created(self):
       """
-      However, this test shows how instances can be created from cache
+      This test shows how instances can be created from cache
       as long as input arguments are unchanged.
 
       Such instances will have different id's and cannot be used as input
