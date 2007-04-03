@@ -4039,9 +4039,16 @@ class Write_nc:
         pre-condition: quantity_name must be 'HA' 'UA'or 'VA'.
         """
         self.quantity_name = quantity_name
-        quantity_units= {'HA':'CENTIMETERS',
+        quantity_units = {'HA':'CENTIMETERS',
                               'UA':'CENTIMETERS/SECOND',
-                              'VA':'CENTIMETERS/SECOND'}
+                              'VA':'CENTIMETERS/SECOND'}       
+        
+        multiplier_dic = {'HA':100.0, # To convert from m to cm
+                              'UA':100.0,  #  m/s to cm/sec
+                              'VA':-100.0}  # MUX files have positve x in the
+        # Southern direction.  This corrects for it, when writing nc files.
+        
+        self.quantity_multiplier =  multiplier_dic[self.quantity_name]
         
         #self.file_name = file_name
         self.time_step_count = time_step_count
@@ -4072,6 +4079,7 @@ class Write_nc:
         
     def store_timestep(self, quantity_slice):
         """
+        Write a time slice of quantity info 
         quantity_slice is the data to be stored at this time step
         """
         
@@ -4085,8 +4093,7 @@ class Write_nc:
 
         #Store time
         time[i] = i*self.time_step #self.domain.time
-        quantity[i,:] = quantity_slice*100 # To convert from m to cm
-                                           # And m/s to cm/sec
+        quantity[i,:] = quantity_slice* self.quantity_multiplier
         
     def close(self):
         self.outfile.close()
@@ -4711,6 +4718,7 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
     else:
         swwname = basename_out + '.sww'
 
+    if verbose: print 'Output to ', swwname
     outfile = NetCDFFile(swwname, 'w')
     # For a different way of doing this, check out tsh2sww
     # work out sww_times and the index range this covers
@@ -4873,7 +4881,7 @@ def write_sww_time_slices(outfile, has, uas, vas, elevation,
         stage[j] = w
         h = w - elevation
         xmomentum[j] = ua*h
-        ymomentum[j] = va*h
+        ymomentum[j] = -1*va*h  #  -1 since in mux files south is positive.
         j += 1
 
 def write_sww_time_slice(outfile, ha, ua, va, elevation, slice_index,
@@ -4888,7 +4896,7 @@ def write_sww_time_slice(outfile, ha, ua, va, elevation, slice_index,
     stage[slice_index] = w
     h = w - elevation
     xmomentum[slice_index] = ua*h
-    ymomentum[slice_index] = va*h
+    ymomentum[slice_index] = -1*va*h # -1 since in mux files south is positive.
 
 def urs2txt(basename_in, location_index=None):
     """

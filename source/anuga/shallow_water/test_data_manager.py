@@ -4758,8 +4758,10 @@ friction  \n \
                     
             # Write quantity info
             for time in  range(time_step_count):
-                for i in range(points_num):
-                    f.write(pack('f',q_time[time,i]))
+                for point_i in range(points_num):
+                    f.write(pack('f',q_time[time,point_i]))
+                    #print " mux_names[i]", mux_names[i] 
+                    #print "f.write(pack('f',q_time[time,i]))", q_time[time,point_i]
             f.close()
         return base_name, files
     
@@ -4836,8 +4838,10 @@ friction  \n \
                     
             # Write quantity info
             for time in  range(time_step_count):
-                for i in range(points_num):
-                    f.write(pack('f',q_time[time,i]))
+                for point_i in range(points_num):
+                    f.write(pack('f',q_time[time,point_i]))
+                    #print " mux_names[i]", mux_names[i] 
+                    #print "f.write(pack('f',q_time[time,i]))", q_time[time,point_i]
             f.close()
         return base_name, files
         
@@ -4912,7 +4916,7 @@ friction  \n \
         
         #Check that first coordinate is correctly represented       
         #Work out the UTM coordinates for first point
-        zone, e, n = redfearn(-34.5, 150.66667)       
+        zone, e, n = redfearn(-34.5, 150.66667)
        
         assert allclose(geo_reference.get_absolute([[x[0],y[0]]]), [e,n])
 
@@ -4931,13 +4935,29 @@ friction  \n \
 
         #Check the momentums - ua
         #momentum = velocity*(stage-elevation)
-        #momentum = velocity*(stage+elevation)
-        # -(-elevation) since elevation is inverted in mux files
+        # elevation = - depth
+        #momentum = velocity_ua *(stage+depth)
         # = n*(e+tide+n) based on how I'm writing these files
-        answer = n*(e+tide+n)
-        actual = xmomentum[0,0]
-        assert allclose(answer, actual)  #Meters
+        # 
+        answer_x = n*(e+tide+n)
+        actual_x = xmomentum[0,0]
+        #print "answer_x",answer_x
+        #print "actual_x",actual_x 
+        assert allclose(answer_x, actual_x)  #Meters
 
+        #Check the momentums - va
+        #momentum = velocity*(stage-elevation)
+        # -(-elevation) since elevation is inverted in mux files
+        #momentum = velocity_va *(stage+elevation)
+        # = e*(e+tide+n) based on how I'm writing these files
+        answer_y = e*(e+tide+n) * -1 # talking into account mux file format
+        actual_y = ymomentum[0,0]
+        #print "answer_y",answer_y
+        #print "actual_y",actual_y 
+        assert allclose(answer_y, actual_y)  #Meters
+        
+        assert allclose(answer_x, actual_x)  #Meters
+        
         # check the stage values, first time step.
         # These arrays are equal since the Easting values were used as
         # the stage
@@ -4963,7 +4983,8 @@ friction  \n \
         depth=20
         ha=2
         ua=5
-        va=10
+        va=-10 #-ve added to take into account mux file format where south
+               # is positive.
         base_name, files = self.write_mux(lat_long_points,
                                           time_step_count, time_step,
                                           depth=depth,
@@ -5007,6 +5028,8 @@ friction  \n \
         assert allclose(answer, actual)  #Meters^2/ sec
         answer = 230
         actual = ymomentum[0,0]
+        #print "answer",answer
+        #print "actual",actual 
         assert allclose(answer, actual)  #Meters^2/ sec
 
         # check the stage values, first time step.
@@ -5380,14 +5403,30 @@ friction  \n \
         elevation = fid.variables['elevation'][:]
         assert allclose(stage[0,0], e +tide)  #Meters
 
+
         #Check the momentums - ua
         #momentum = velocity*(stage-elevation)
-        #momentum = velocity*(stage+elevation)
-        # -(-elevation) since elevation is inverted in mux files
+        # elevation = - depth
+        #momentum = velocity_ua *(stage+depth)
         # = n*(e+tide+n) based on how I'm writing these files
-        answer = n*(e+tide+n)
-        actual = xmomentum[0,0]
-        assert allclose(answer, actual)  #Meters
+        # 
+        answer_x = n*(e+tide+n)
+        actual_x = xmomentum[0,0]
+        #print "answer_x",answer_x
+        #print "actual_x",actual_x 
+        assert allclose(answer_x, actual_x)  #Meters
+        
+        #Check the momentums - va
+        #momentum = velocity*(stage-elevation)
+        # elevation = - depth
+        #momentum = velocity_va *(stage+depth)
+        # = e*(e+tide+n) based on how I'm writing these files
+        # 
+        answer_y = -1*e*(e+tide+n)
+        actual_y = ymomentum[0,0]
+        #print "answer_y",answer_y
+        #print "actual_y",actual_y 
+        assert allclose(answer_y, actual_y)  #Meters
 
         # check the stage values, first time step.
         # These arrays are equal since the Easting values were used as
@@ -5457,12 +5496,27 @@ friction  \n \
 
         #Check the momentums - ua
         #momentum = velocity*(stage-elevation)
-        #momentum = velocity*(stage+elevation)
-        # -(-elevation) since elevation is inverted in mux files
+        # elevation = - depth
+        #momentum = velocity_ua *(stage+depth)
         # = n*(e+tide+n) based on how I'm writing these files
-        answer = n*(e+tide+n)
-        actual = xmomentum[0,0]
-        assert allclose(answer, actual)  #Meters
+        # 
+        answer_x = n*(e+tide+n)
+        actual_x = xmomentum[0,0]
+        #print "answer_x",answer_x
+        #print "actual_x",actual_x 
+        assert allclose(answer_x, actual_x)  #Meters
+        
+        #Check the momentums - va
+        #momentum = velocity*(stage-elevation)
+        # elevation = - depth
+        #momentum = velocity_va *(stage+depth)
+        # = e*(e+tide+n) based on how I'm writing these files
+        # 
+        answer_y = -1*e*(e+tide+n)
+        actual_y = ymomentum[0,0]
+        #print "answer_y",answer_y
+        #print "actual_y",actual_y 
+        assert allclose(answer_y, actual_y)  #Meters
 
         # check the stage values, first time step.
         # These arrays are equal since the Easting values were used as
@@ -5531,12 +5585,27 @@ friction  \n \
 
         #Check the momentums - ua
         #momentum = velocity*(stage-elevation)
-        #momentum = velocity*(stage+elevation)
-        # -(-elevation) since elevation is inverted in mux files
+        # elevation = - depth
+        #momentum = velocity_ua *(stage+depth)
         # = n*(e+tide+n) based on how I'm writing these files
-        answer = n*(e+tide+n)
-        actual = xmomentum[0,0]
-        assert allclose(answer, actual)  #Meters
+        # 
+        answer_x = n*(e+tide+n)
+        actual_x = xmomentum[0,0]
+        #print "answer_x",answer_x
+        #print "actual_x",actual_x 
+        assert allclose(answer_x, actual_x)  #Meters
+        
+        #Check the momentums - va
+        #momentum = velocity*(stage-elevation)
+        # elevation = - depth
+        #momentum = velocity_va *(stage+depth)
+        # = e*(e+tide+n) based on how I'm writing these files
+        # 
+        answer_y = -1*e*(e+tide+n)
+        actual_y = ymomentum[0,0]
+        #print "answer_y",answer_y
+        #print "actual_y",actual_y 
+        assert allclose(answer_y, actual_y)  #Meters
 
         # check the stage values, first time step.
         # These arrays are equal since the Easting values were used as
@@ -5604,12 +5673,27 @@ friction  \n \
 
         #Check the momentums - ua
         #momentum = velocity*(stage-elevation)
-        #momentum = velocity*(stage+elevation)
-        # -(-elevation) since elevation is inverted in mux files
+        # elevation = - depth
+        #momentum = velocity_ua *(stage+depth)
         # = n*(e+tide+n) based on how I'm writing these files
-        answer = n*(e+tide+n)
-        actual = xmomentum[0,0]
-        assert allclose(answer, actual)  #Meters
+        # 
+        answer_x = n*(e+tide+n)
+        actual_x = xmomentum[0,0]
+        #print "answer_x",answer_x
+        #print "actual_x",actual_x 
+        assert allclose(answer_x, actual_x)  #Meters
+        
+        #Check the momentums - va
+        #momentum = velocity*(stage-elevation)
+        # elevation = - depth
+        #momentum = velocity_va *(stage+depth)
+        # = e*(e+tide+n) based on how I'm writing these files
+        # 
+        answer_y = -1*e*(e+tide+n)
+        actual_y = ymomentum[0,0]
+        #print "answer_y",answer_y
+        #print "actual_y",actual_y 
+        assert allclose(answer_y, actual_y)  #Meters
 
         # check the stage values, first time step.
         # These arrays are equal since the Easting values were used as
@@ -5825,7 +5909,7 @@ friction  \n \
         # delete the txt file if this becomes automatic
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2txt')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sww')
     #suite = unittest.makeSuite(Test_Data_Manager,'cache_test_URS_points_needed_and_urs_ungridded2sww')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sww_momentum')
     suite = unittest.makeSuite(Test_Data_Manager,'test')
