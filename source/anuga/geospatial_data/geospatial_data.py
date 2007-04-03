@@ -1251,7 +1251,7 @@ def _write_urs_file(file_name,
     # <lat> <long> <id#>
     for i, vert in enumerate( points):
         fd.write(str(round(vert[0],7)) + delimiter + \
-                 str(round(vert[1],7)) + delimiter +str(i+1)+ "\n")
+                 str(round(vert[1],7)) + delimiter +str(i)+ "\n")
     fd.close()
     
 def _point_atts2array(point_atts):

@@ -2051,8 +2051,8 @@ crap")
         handle = open(fn)
         lines = handle.readlines()
         assert lines[0],'2'
-        assert lines[1],'-34.0002778 150.0 1'
-        assert lines[2],'-34.0 150.5 2'
+        assert lines[1],'-34.0002778 150.0 0'
+        assert lines[2],'-34.0 150.5 1'
         handle.close()
         os.remove(fn)
         
