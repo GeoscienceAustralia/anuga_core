@@ -11,6 +11,7 @@ from shallow_water_domain import Domain,\
     Dirichlet_boundary, Time_boundary, File_boundary,\
     Transmissive_Momentum_Set_Stage_boundary,\
     Dirichlet_Discharge_boundary,\
-    Constant_stage, Constant_height
+    Constant_stage, Constant_height,\
+    Field_boundary
 
 
