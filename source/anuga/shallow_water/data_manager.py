@@ -4649,6 +4649,31 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
     varying dimension (row major order, so to speak)
 
     In URS C binary the latitudes and longitudes are in assending order.
+
+    Note, interpolations of the resulting sww file will be different
+    from results of urs2sww.  This is due to the interpolation
+    function used, and the different grid structure between urs2sww
+    and this function.
+    
+    Interpolating data that has an underlying gridded source can
+    easily end up with different values, depending on the underlying
+    mesh.
+
+    consider these 4 points
+    50  -50
+
+    0     0
+
+    The grid can be
+     -
+    |\|    A
+     -
+     or;
+      - 
+     |/|   B 
+      -
+      If a point is just below the center of the midpoint, it will have a
+      +ve value in grid A and a -ve value in grid B.
     """ 
     from anuga.pmesh.mesh import Mesh
 
