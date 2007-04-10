@@ -1,8 +1,9 @@
 from axes import Axes
-from enthought.traits.api import false, HasTraits, Instance, List
+from enthought.traits.api import Any, false, HasTraits, Instance, List
 from features import Feature
 from threading import Thread
 from Tkinter import Tk, Button, Frame, N, E, S, W
+from vtk import vtkCellArray
 from vtk.tk.vtkTkRenderWidget import vtkTkRenderWidget
 
 class Visualiser(HasTraits, Thread):
@@ -15,10 +16,19 @@ class Visualiser(HasTraits, Thread):
     def __init__(self, *args, **kwargs):
         HasTraits.__init__(self, *args, **kwargs)
         Thread.__init__(self)
+        self.vtk_cells = vtkCellArray()
 
     def run(self):
+        self.setup_grid()
         self.setup_gui()
         self.tk_root.mainloop()
+
+    def setup_grid(self):
+        '''Populate the vtkCellArray instance at
+        self.vtk_cells. Subclasses are required to override this
+        function to read from their source as appropriate.
+        '''
+        raise NotImplementedError
 
     def setup_gui(self):
         self.tk_root = Tk()

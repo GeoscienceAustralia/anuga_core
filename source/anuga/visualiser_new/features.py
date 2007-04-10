@@ -1,4 +1,4 @@
-from enthought.traits.api import Callable, Float, HasTraits, Instance, Range, Trait, true, Tuple
+from enthought.traits.api import Callable, Float, HasTraits, Instance, List, Range, Trait, true, Tuple
 from vtk import vtkActor
 
 class Feature(HasTraits):
@@ -10,7 +10,8 @@ class Feature(HasTraits):
                          Range(0.0, 1.0),
                          Range(0.0, 1.0)))
     opacity = Range(0.0, 1.0, 1.0)
-    actor = Instance(vtkActor, ())
+    def __init__(self, *args, **kwargs):
+        self.actor = vtkActor()
 
 class HeightFeature(Feature):
     z_scale = Range(0.0, None)
