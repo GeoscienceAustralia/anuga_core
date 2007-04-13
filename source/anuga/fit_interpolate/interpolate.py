@@ -561,20 +561,21 @@ class Interpolation_function:
         return self.statistics()
  
     def __call__(self, t, point_id=None, x=None, y=None):
-        """Evaluate f(t), f(t, point_id) or f(t, x, y)
-
+        """Evaluate f(t) or f(t, point_id)
+        
 	Inputs:
 	  t: time - Model time. Must lie within existing timesteps
 	  point_id: index of one of the preprocessed points.
-          x, y:     Overrides location, point_id ignored
-          
-	  If spatial info is present and all of x,y,point_id
+      
+                    
+	  If spatial info is present and all of point_id
           are None an exception is raised 
                     
-          If no spatial info is present, point_id and x,y arguments are ignored
+          If no spatial info is present, point_id arguments are ignored
           making f a function of time only.
 
-          
+
+      FIXME: f(t, x, y) x, y could overrided location, point_id ignored  
 	  FIXME: point_id could also be a slice
 	  FIXME: What if x and y are vectors?
           FIXME: What about f(x,y) without t?
