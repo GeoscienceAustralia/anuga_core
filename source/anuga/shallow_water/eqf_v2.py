@@ -445,8 +445,8 @@ class Okada_func:
         R2=X2 + Y2 + D2                                                   
         R =sqrt(R2)                                                       
         R3=R *R2
-        R5=R3*R
-        QR=F3*Q/R
+        R5=R3*R2
+        QR=F3*Q/R5
         XR =F5*X2/R2
         YR =F5*Y2/R2
         XYR=F5*XY/R2
