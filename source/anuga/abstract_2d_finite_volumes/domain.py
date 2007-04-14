@@ -629,9 +629,17 @@ class Domain(Mesh):
             k = argmax(self.max_speed)
 
             x, y = self.get_centroid_coordinates()[k]
+	    radius = self.get_radii()[k]
+	    area = self.get_areas()[k]	    
+            max_speed = self.max_speed[k]	    
 
-            msg += '  Triangle #%d with centroid (%.4f, %.4f) ' %(k, x, y)
-            msg += 'had the largest computed speed: %.4f m/s\n' %(self.max_speed[k])
+            msg += '  Triangle #%d with centroid (%.4f, %.4f), ' %(k, x, y)
+	    msg += 'area = %.4f and radius = %.4f ' %(area, radius)
+            msg += 'had the largest computed speed: %.6f m/s ' %(max_speed)
+	    if max_speed > 0.0:
+                msg += '(timestep=%.6f)\n' %(radius/max_speed)
+            else:
+                msg += '(timestep=%.6f)\n' %(0)	    
             
             # Report all quantity values at vertices
             msg += '    Quantity \t vertex values\t\t\t\t\t centroid values\n'

@@ -141,7 +141,8 @@ double _compute_speed(double *uh,
   } else {
     u = *uh/(*h + h0/ *h);
   }
-  
+
+  // printf("u=%f, h=%f\n", u, h);  
   return u;
 }
 

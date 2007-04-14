@@ -717,6 +717,13 @@ class Mesh(General_mesh):
         (ordered as x0, y0 for each triangle)
         """
         return self.centroid_coordinates
+	
+	
+    def get_radii(self):
+        """Return all radii.
+        Return radius of inscribed cirle for all triangles
+        """
+        return self.radii	
 
 
 

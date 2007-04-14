@@ -33,7 +33,7 @@ class Test_Data_Manager(unittest.TestCase):
 
         #Create shallow water domain
         domain = Domain(points, vertices, boundary)
-        domain.default_order=2
+        domain.default_order = 2
 
 
         #Set some field values
@@ -62,9 +62,11 @@ class Test_Data_Manager(unittest.TestCase):
                 stage[i,:] = bed[i,:]
 
         domain.set_quantity('stage', stage)
+
+
+        domain.distribute_to_vertices_and_edges()		
         self.initial_stage = copy.copy(domain.quantities['stage'].vertex_values)
 
-        domain.distribute_to_vertices_and_edges()
 
 
         self.domain = domain
@@ -426,7 +428,7 @@ class Test_Data_Manager(unittest.TestCase):
 
 
     def test_sync(self):
-        """Test info stored at each timestep is as expected (incl initial condition)
+        """test_sync - Test info stored at each timestep is as expected (incl initial condition)
         """
 
         import time, os, config
@@ -439,8 +441,10 @@ class Test_Data_Manager(unittest.TestCase):
         self.domain.store = True
         self.domain.beta_h = 0
 
+
         #Evolution
         for t in self.domain.evolve(yieldstep = 1.0, finaltime = 4.0):
+	    #########self.domain.write_time(track_speeds=True)
             stage = self.domain.quantities['stage'].vertex_values
 
             #Get NetCDF
@@ -5912,8 +5916,8 @@ if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sww')
     #suite = unittest.makeSuite(Test_Data_Manager,'cache_test_URS_points_needed_and_urs_ungridded2sww')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sww_momentum')
-    suite = unittest.makeSuite(Test_Data_Manager,'test')
-    runner = unittest.TextTestRunner()
+    suite = unittest.makeSuite(Test_Data_Manager,'test_sync')
+    runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
 
 

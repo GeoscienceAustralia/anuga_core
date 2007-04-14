@@ -430,6 +430,10 @@ class General_mesh:
 
         return xmin, xmax, ymin, ymax
 
+    def get_areas(self):
+    	"""Get areas of all individual triangles.
+	"""
+	return self.areas	
 
     def get_area(self):
     	"""Return total area of mesh
