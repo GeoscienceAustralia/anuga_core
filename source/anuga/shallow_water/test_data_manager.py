@@ -5581,6 +5581,109 @@ friction  \n \
         fid.close()
         self.delete_mux(files)
         os.remove(sww_file)
+
+        
+    def test_urs_ungridded_hole (self):
+        
+        #Zone:   50    
+        #Easting:  240992.578  Northing: 7620442.472 
+        #Latitude:   -21  30 ' 0.00000 ''  Longitude: 114  30 ' 0.00000 '' 
+        lat_long = [[-20.5, 114.5],
+                    [-20.6, 114.6],
+                    [-20.5, 115.],
+                    [-20.6, 115.],
+                    [-20.5, 115.5],
+                    [-20.6, 115.4],
+                    
+                    [-21., 114.5],
+                    [-21., 114.6],
+                    [-21., 115.5],
+                    [-21., 115.4],
+                    
+                    [-21.5, 114.5],
+                    [-21.4, 114.6],
+                    [-21.5, 115.],
+                    [-21.4, 115.],
+                    [-21.5, 115.5],
+                    [-21.4, 115.4]
+                    ]
+        time_step_count = 6
+        time_step = 100
+        tide = 9000000
+        base_name, files = self.write_mux(lat_long,
+                                          time_step_count, time_step)
+        #Easting:  292110.784  Northing: 7676551.710 
+        #Latitude:   -21  0 ' 0.00000 ''  Longitude: 115  0 ' 0.00000 '' 
+
+        urs_ungridded2sww(base_name, mean_stage=-240992.0,
+                          hole_points_UTM=[ 292110.784, 7676551.710 ])
+        
+        # now I want to check the sww file ...
+        sww_file = base_name + '.sww'
+        
+        #Let's interigate the sww file
+        # Note, the sww info is not gridded.  It is point data.
+        fid = NetCDFFile(sww_file)
+        
+        number_of_volumes = fid.variables['volumes']
+        #print "number_of_volumes",len(number_of_volumes) 
+        assert allclose(12, len(number_of_volumes))
+        
+        fid.close()
+        self.delete_mux(files)
+        #print "sww_file", sww_file 
+        os.remove(sww_file)
+        
+    def test_urs_ungridded_holeII(self):
+
+        # Check that if using a hole that returns no triangles,
+        # urs_ungridded2sww removes the hole label.
+        
+        lat_long = [[-20.5, 114.5],
+                    [-20.6, 114.6],
+                    [-20.5, 115.5],
+                    [-20.6, 115.4],
+                    
+                    
+                    [-21.5, 114.5],
+                    [-21.4, 114.6],
+                    [-21.5, 115.5],
+                    [-21.4, 115.4]
+                    ]
+        time_step_count = 6
+        time_step = 100
+        tide = 9000000
+        base_name, files = self.write_mux(lat_long,
+                                          time_step_count, time_step)
+        #Easting:  292110.784  Northing: 7676551.710 
+        #Latitude:   -21  0 ' 0.00000 ''  Longitude: 115  0 ' 0.00000 '' 
+
+        urs_ungridded2sww(base_name, mean_stage=-240992.0,
+                          hole_points_UTM=[ 292110.784, 7676551.710 ])
+        
+        # now I want to check the sww file ...
+        sww_file = base_name + '.sww'
+        fid = NetCDFFile(sww_file)
+        
+        volumes = fid.variables['volumes']
+        #print "number_of_volumes",len(volumes)
+
+        fid.close()
+        os.remove(sww_file)
+        
+        urs_ungridded2sww(base_name, mean_stage=-240992.0)
+        
+        # now I want to check the sww file ...
+        sww_file = base_name + '.sww'
+        fid = NetCDFFile(sww_file)
+        
+        volumes_again = fid.variables['volumes']
+        #print "number_of_volumes",len(volumes_again) 
+        assert allclose(len(volumes_again),
+                        len(volumes))
+        fid.close()
+        os.remove(sww_file)
+        self.delete_mux(files) 
         
     def test_urs_ungridded2sww_mint_maxt (self):
         
@@ -5872,7 +5975,7 @@ friction  \n \
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sww')
     #suite = unittest.makeSuite(Test_Data_Manager,'cache_test_URS_points_needed_and_urs_ungridded2sww')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sww_momentum')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs_ungridded_hole')
     suite = unittest.makeSuite(Test_Data_Manager,'test')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)

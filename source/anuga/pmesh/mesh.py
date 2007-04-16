@@ -24,6 +24,7 @@ import exceptions
 from Numeric import array, Float, Int
 
 
+class NoTrianglesError(exceptions.Exception): pass
  
 #import load_mesh
 from anuga.coordinate_transforms.geo_reference import Geo_reference,DEFAULT_ZONE
@@ -3102,6 +3103,8 @@ def region_strings2ints(region_list):
 def region_ints2strings(region_list,convertint2string):
     """Reverses the transformation of region_strings2ints
     """
+    if region_list == []:
+        raise NoTrianglesError
     if region_list[0] != []:
         for i in xrange(len(region_list)):
             region_list[i] = [convertint2string[int(region_list[i][0])]]

@@ -72,7 +72,8 @@ from Scientific.IO.NetCDF import NetCDFFile
 from anuga.coordinate_transforms.redfearn import redfearn, \
      convert_from_latlon_to_utm
 from anuga.coordinate_transforms.geo_reference import Geo_reference
-from anuga.geospatial_data.geospatial_data import Geospatial_data
+from anuga.geospatial_data.geospatial_data import Geospatial_data,\
+     ensure_absolute
 from anuga.config import minimum_storable_height as default_minimum_storable_height
 from anuga.utilities.numerical_tools import ensure_numeric,  mean
 from anuga.caching.caching import myhash
@@ -4389,10 +4390,11 @@ WAVEHEIGHT_MUX_LABEL = '_velocity-z-mux'
 EAST_VELOCITY_LABEL =  '_velocity-e-mux'
 NORTH_VELOCITY_LABEL =  '_waveheight-n-mux' 
 def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
-            mint=None, maxt=None,
-            mean_stage=0,
-            origin = None,
-            zscale=1):
+                      mint=None, maxt=None,
+                      mean_stage=0,
+                      origin=None,
+                      hole_points_UTM=None,
+                      zscale=1):
     """   
     Convert URS C binary format for wave propagation to
     sww format native to abstract_2d_finite_volumes.
@@ -4448,7 +4450,7 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
       If a point is just below the center of the midpoint, it will have a
       +ve value in grid A and a -ve value in grid B.
     """ 
-    from anuga.pmesh.mesh import Mesh
+    from anuga.pmesh.mesh import Mesh, NoTrianglesError
 
     files_in = [basename_in + WAVEHEIGHT_MUX_LABEL,
                 basename_in + EAST_VELOCITY_LABEL,
@@ -4486,7 +4488,16 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
     mesh = Mesh()
     mesh.add_vertices(points_utm)
     mesh.auto_segment()
-    mesh.generate_mesh(minimum_triangle_angle=0.0, verbose=False)
+    if hole_points_UTM is not None:
+        point = ensure_absolute(hole_points_UTM)
+        mesh.add_hole(point[0], point[1])
+    try:
+        mesh.generate_mesh(minimum_triangle_angle=0.0, verbose=False)
+    except NoTrianglesError:
+        # This is a bit of a hack, going in and changing the
+        # data structure.
+        mesh.holes = []
+        mesh.generate_mesh(minimum_triangle_angle=0.0, verbose=False)
     mesh_dic = mesh.Mesh2MeshList()
 
     #mesh.export_mesh_file(basename_in + '.tsh')
