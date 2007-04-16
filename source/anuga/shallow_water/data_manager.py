@@ -672,83 +672,6 @@ class Data_format_cpt(Data_format):
         fid.close()
 
 
-
-
-
-#Function for storing xya output
-#FIXME Not done yet for this version
-#This is obsolete.  Use geo_spatial_data instead
-class Data_format_xya(Data_format):
-    """Generic interface to data formats
-    """
-
-
-    def __init__(self, domain, mode = 'w'):
-        from Scientific.IO.NetCDF import NetCDFFile
-        from Numeric import Int, Float, Float32
-
-        self.precision = Float32 #Use single precision
-
-        Data_format.__init__(self, domain, 'xya', mode)
-
-
-
-    #FIXME -This is the old xya format
-    def store_all(self):
-        """Specialisation of store all for xya format
-
-        Writes x,y,z coordinates of triangles constituting
-        the bed elevation.
-        """
-
-        from Numeric import concatenate
-
-        domain = self.domain
-
-        fd = open(self.filename, 'w')
-
-
-        if domain.smooth is True:
-            number_of_points =  len(domain.vertexlist)
-        else:
-            number_of_points = 3*self.number_of_volumes
-
-        numVertAttrib = 3 #Three attributes is what is assumed by the xya format
-
-        fd.write(str(number_of_points) + " " + str(numVertAttrib) +\
-                 " # <vertex #> <x> <y> [attributes]" + "\n")
-
-
-        # Get X, Y, bed elevation and friction (index=0,1)
-        X,Y,A,V = domain.get_vertex_values(xy=True, value_array='field_values',
-                                           indices = (0,1), precision = self.precision)
-
-        bed_eles = A[:,0]
-        fricts = A[:,1]
-
-        # Get stage (index=0)
-        B,V = domain.get_vertex_values(xy=False, value_array='conserved_quantities',
-                                       indices = (0,), precision = self.precision)
-
-        stages = B[:,0]
-
-        #<vertex #> <x> <y> [attributes]
-        for x, y, bed_ele, stage, frict in map(None, X, Y, bed_eles,
-                                               stages, fricts):
-
-            s = '%.6f %.6f %.6f %.6f %.6f\n' %(x, y, bed_ele, stage, frict)
-            fd.write(s)
-
-        #close
-        fd.close()
-
-
-    def store_timestep(self, t, V0, V1, V2):
-        """Store time, water heights (and momentums) to file
-        """
-        pass
-
-
 #### NED is national exposure database (name changed to NEXIS)
     
 LAT_TITLE = 'LATITUDE'
@@ -1228,140 +1151,7 @@ def get_dataobject(domain, mode='w'):
     cls = eval('Data_format_%s' %domain.format)
     return cls(domain, mode)
 
-#FIXME move into geospatial.  There should only be one method that
-# reads xya, and writes pts.
-def xya2pts(basename_in, basename_out=None, verbose=False,
-            #easting_min=None, easting_max=None,
-            #northing_min=None, northing_max=None,
-            stride = 1,
-            attribute_name = 'elevation',
-            z_func = None):
-    """Read points data from ascii (.xya)
 
-    Example:
-
-              x(m)        y(m)        z(m)
-         0.00000e+00  0.00000e+00  1.3535000e-01
-         0.00000e+00  1.40000e-02  1.3535000e-01
-
-
-
-    Convert to NetCDF pts format which is
-
-    points:  (Nx2) Float array
-    elevation: N Float array
-
-    Only lines that contain three numeric values are processed
-
-    If z_func is specified, it will be applied to the third field
-    """
-
-    import os
-    #from Scientific.IO.NetCDF import NetCDFFile
-    from Numeric import Float, arrayrange, concatenate
-
-    root, ext = os.path.splitext(basename_in)
-
-    if ext == '': ext = '.xya'
-
-    #Get NetCDF
-    infile = open(root + ext, 'r')  #Open existing xya file for read
-
-    if verbose: print 'Reading xya points from %s' %(root + ext)
-
-    points = []
-    attribute = []
-    for i, line in enumerate(infile.readlines()):
-
-        if i % stride != 0: continue
-
-        fields = line.split()
-
-        try:
-            assert len(fields) == 3
-        except:
-            print 'WARNING: Line %d doesn\'t have 3 elements: %s' %(i, line)
-
-        try:
-            x = float( fields[0] )
-            y = float( fields[1] )
-            z = float( fields[2] )
-        except:
-            continue
-
-        points.append( [x, y] )
-
-        if callable(z_func):
-            attribute.append(z_func(z))
-        else:
-            attribute.append(z)
-
-
-    #Get output file
-    if basename_out == None:
-        ptsname = root + '.pts'
-    else:
-        ptsname = basename_out + '.pts'
-
-    if verbose: print 'Store to NetCDF file %s' %ptsname
-    write_ptsfile(ptsname, points, attribute, attribute_name)
-
-
-
-######Obsoleted by export_points in load_mesh
-def write_ptsfile(ptsname, points, attribute, attribute_name = None,
-                  zone=None, xllcorner=None, yllcorner=None):
-    """Write points and associated attribute to pts (NetCDF) format
-    """
-
-    print 'WARNING: write_ptsfile is obsolete. Use export_points from load_mesh.loadASCII instead.'
-
-    from Numeric import Float
-
-    if attribute_name is None:
-        attribute_name = 'attribute'
-
-
-    from Scientific.IO.NetCDF import NetCDFFile
-
-    # NetCDF file definition
-    outfile = NetCDFFile(ptsname, 'w')
-
-
-    #Create new file
-    outfile.institution = 'Geoscience Australia'
-    outfile.description = 'NetCDF pts format for compact and '\
-                          'portable storage of spatial point data'
-
-
-    #Georeferencing
-    from anuga.coordinate_transforms.geo_reference import Geo_reference
-    if zone is None:
-        assert xllcorner is None, 'xllcorner must be None'
-        assert yllcorner is None, 'yllcorner must be None'
-        Geo_reference().write_NetCDF(outfile)
-    else:
-        Geo_reference(zone, xllcorner, yllcorner).write_NetCDF(outfile)
-
-
-
-    outfile.createDimension('number_of_points', len(points))
-    outfile.createDimension('number_of_dimensions', 2) #This is 2d data
-
-    # variable definitions
-    outfile.createVariable('points', Float, ('number_of_points',
-                                             'number_of_dimensions'))
-    outfile.createVariable(attribute_name, Float, ('number_of_points',))
-
-    # Get handles to the variables
-    nc_points = outfile.variables['points']
-    nc_attribute = outfile.variables[attribute_name]
-
-    #Store data
-    nc_points[:, :] = points
-    nc_attribute[:] = attribute
-
-    outfile.close()
 
 
 def dem2pts(basename_in, basename_out=None,
@@ -2046,7 +1836,6 @@ def sww2dem(basename_in, basename_out = None,
             grid_points[k,1] = yg
 
     #Interpolate
-    #from least_squares import Interpolation
     from anuga.fit_interpolate.interpolate import Interpolate
 
     interp = Interpolate(vertex_points, volumes, verbose = verbose)
@@ -4491,7 +4280,6 @@ def _URS_points_needed(boundary_polygon,
     grid_spacing - in deciamal degrees
 
     """
-    #FIXME cache this function!
     
     from sets import ImmutableSet
     
@@ -4532,8 +4320,6 @@ def points_needed(seg, ll_lat, ll_long, grid_spacing,
     # 1.415 = 2^0.5, rounded up....
     sqrt_2_rounded_up = 1.415
     buffer = sqrt_2_rounded_up * grid_spacing
-    
-    #
     
     max_lat = max(seg_lat_long[0][0], seg_lat_long[1][0]) + buffer
     max_long = max(seg_lat_long[0][1], seg_lat_long[1][1]) + buffer
@@ -4692,7 +4478,11 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
     # grid ( create a mesh from the selected points)
     # This mesh has a problem.  Triangles are streched over ungridded areas.
     #  If these areas could be described as holes in pmesh, that would be great
-    
+
+    # I can't just get the user to selection a point in the middle.
+    # A boundary is needed around these points.
+    # But if the zone of points is obvious enough auto-segment should do
+    # a good boundary.
     mesh = Mesh()
     mesh.add_vertices(points_utm)
     mesh.auto_segment()

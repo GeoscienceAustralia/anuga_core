@@ -572,58 +572,6 @@ class Test_Data_Manager(unittest.TestCase):
         os.remove(sww.filename)
 
 
-    #def test_write_pts(self):
-    #    #Obsolete
-    #
-    #    #Get (enough) datapoints
-    #
-    #    from Numeric import array
-    #    points = array([[ 0.66666667, 0.66666667],
-    #                    [ 1.33333333, 1.33333333],
-    #                    [ 2.66666667, 0.66666667],
-    #                    [ 0.66666667, 2.66666667],
-    #                    [ 0.0, 1.0],
-    #                    [ 0.0, 3.0],
-    #                    [ 1.0, 0.0],
-    #                    [ 1.0, 1.0],
-    #                    [ 1.0, 2.0],
-    #                    [ 1.0, 3.0],
-    #                    [ 2.0, 1.0],
-    #                    [ 3.0, 0.0],
-    #                    [ 3.0, 1.0]])
-    #
-    #    z = points[:,0] + 2*points[:,1]
-    #
-    #    ptsfile = 'testptsfile.pts'
-    #    write_ptsfile(ptsfile, points, z,
-    #                  attribute_name = 'linear_combination')
-    #
-    #    #Check contents
-    #    #Get NetCDF
-    #    from Scientific.IO.NetCDF import NetCDFFile
-    #    fid = NetCDFFile(ptsfile, 'r')
-    #
-    #    # Get the variables
-    #    #print fid.variables.keys()
-    #    points1 = fid.variables['points']
-    #    z1 = fid.variables['linear_combination']
-    #
-    #    #Check values#
-    #
-    #    #print points[:]
-    #    #print ref_points
-    #    assert allclose(points, points1)
-    #
-    #    #print attributes[:]
-    #    #print ref_elevation
-    #    assert allclose(z, z1)
-    #
-    #    #Cleanup
-    #    fid.close()
-    #
-    #    import os
-    #    os.remove(ptsfile)
-
 
     def test_dem2pts_bounding_box_v2(self):
         """Test conversion from dem in ascii format to native NetCDF xya format
@@ -5543,7 +5491,7 @@ friction  \n \
         
         fid.close()
         self.delete_mux(files)
-        #os.remove(sww_file)
+        os.remove(sww_file)
   
     def test_urs_ungridded2swwIII (self):
         
