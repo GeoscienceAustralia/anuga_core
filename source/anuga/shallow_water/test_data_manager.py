@@ -4721,7 +4721,9 @@ friction  \n \
 
         lonlatdeps = []
         quantities = ['HA','UA','VA']
-        mux_names = ['-z-mux','-e-mux','-n-mux']
+        mux_names = [WAVEHEIGHT_MUX_LABEL,
+                     EAST_VELOCITY_LABEL,
+                     NORTH_VELOCITY_LABEL]
         quantities_init = [[],[],[]]
         # urs binary is latitude fastest
         for i,lon in enumerate(longitudes):
@@ -4785,7 +4787,10 @@ friction  \n \
         points_num = len(lat_long_points)
         lonlatdeps = []
         quantities = ['HA','UA','VA']
-        mux_names = ['-z-mux','-e-mux','-n-mux']
+        
+        mux_names = [WAVEHEIGHT_MUX_LABEL,
+                     EAST_VELOCITY_LABEL,
+                     NORTH_VELOCITY_LABEL]
         quantities_init = [[],[],[]]
         # urs binary is latitude fastest
         for point in lat_long_points:
@@ -4864,7 +4869,10 @@ friction  \n \
         
         files = []
         quantities = ['HA','UA','VA']
-        mux_names = ['-z-mux','-e-mux','-n-mux']
+        
+        mux_names = [WAVEHEIGHT_MUX_LABEL,
+                     EAST_VELOCITY_LABEL,
+                     NORTH_VELOCITY_LABEL]
         for i,q in enumerate(quantities): 
             #Write C files
             columns = 3 # long, lat , depth
@@ -5347,10 +5355,11 @@ friction  \n \
                     _ , e, n = redfearn(lat_lon[0], lat_lon[1])
                     #print "quantity", quantity
                     #print "e", e
-                    #print "n", n 
-                    if file[-5:] == 'z-mux' or file[-5:] == 'n-mux' :
+                    #print "n", n
+                    if file[-5:] == WAVEHEIGHT_MUX_LABEL[-5:] or \
+                           file[-5:] == NORTH_VELOCITY_LABEL[-5:] :
                         assert allclose(e, quantity)
-                    if file[-5:] == 'e-mux':
+                    if file[-5:] == EAST_VELOCITY_LABEL[-5:]:
                         assert allclose(n, quantity)
             assert count == time_step_count
                      
@@ -5916,8 +5925,8 @@ if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sww')
     #suite = unittest.makeSuite(Test_Data_Manager,'cache_test_URS_points_needed_and_urs_ungridded2sww')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sww_momentum')
-    suite = unittest.makeSuite(Test_Data_Manager,'test_sync')
-    runner = unittest.TextTestRunner(verbosity=2)
+    suite = unittest.makeSuite(Test_Data_Manager,'test')
+    runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
 
 

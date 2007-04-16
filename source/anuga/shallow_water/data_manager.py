@@ -4115,8 +4115,9 @@ def urs2sww(basename_in='o', basename_out=None, verbose=False,
     sww format native to abstract_2d_finite_volumes.
 
     Specify only basename_in and read files of the form
-    basefilename-z-mux, basefilename-e-mux and basefilename-n-mux containing
-    relative height, x-velocity and y-velocity, respectively.
+    basefilename_velocity-z-mux, basefilename_velocity-e-mux and
+    basefilename_waveheight-n-mux containing relative height,
+    x-velocity and y-velocity, respectively.
 
     Also convert latitude and longitude to UTM. All coordinates are
     assumed to be given in the GDA94 datum. The latitude and longitude
@@ -4170,14 +4171,15 @@ def urs2nc(basename_in = 'o', basename_out = 'urs'):
     Convert the 3 urs files to 4 nc files.
 
     The name of the urs file names must be;
-    [basename_in]-z-mux
-    [basename_in]-e-mux
-    [basename_in]-n-mux
+    [basename_in]_velocity-z-mux
+    [basename_in]_velocity-e-mux
+    [basename_in]_waveheight-n-mux
     
     """
-    files_in = [basename_in+'-z-mux',
-                basename_in+'-e-mux',
-                basename_in+'-n-mux']
+    
+    files_in = [basename_in + WAVEHEIGHT_MUX_LABEL,
+                basename_in + EAST_VELOCITY_LABEL,
+                basename_in + NORTH_VELOCITY_LABEL]
     files_out = [basename_out+'_ha.nc',
                  basename_out+'_ua.nc',
                  basename_out+'_va.nc']
@@ -4616,7 +4618,10 @@ def urs_ungridded2sww_link(basename_in='o', basename_out=None, verbose=False,
     validation stuff on parrameters not used
     """
     pass
-    
+   
+WAVEHEIGHT_MUX_LABEL = '_velocity-z-mux'
+EAST_VELOCITY_LABEL =  '_velocity-e-mux'
+NORTH_VELOCITY_LABEL =  '_waveheight-n-mux' 
 def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
             mint=None, maxt=None,
             mean_stage=0,
@@ -4626,9 +4631,11 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
     Convert URS C binary format for wave propagation to
     sww format native to abstract_2d_finite_volumes.
 
+
     Specify only basename_in and read files of the form
-    basefilename-z-mux, basefilename-e-mux and basefilename-n-mux containing
-    relative height, x-velocity and y-velocity, respectively.
+    basefilename_velocity-z-mux, basefilename_velocity-e-mux and
+    basefilename_waveheight-n-mux containing relative height,
+    x-velocity and y-velocity, respectively.
 
     Also convert latitude and longitude to UTM. All coordinates are
     assumed to be given in the GDA94 datum. The latitude and longitude
@@ -4677,9 +4684,9 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
     """ 
     from anuga.pmesh.mesh import Mesh
 
-    files_in = [basename_in+'-z-mux',
-                basename_in+'-e-mux',
-                basename_in+'-n-mux']
+    files_in = [basename_in + WAVEHEIGHT_MUX_LABEL,
+                basename_in + EAST_VELOCITY_LABEL,
+                basename_in + NORTH_VELOCITY_LABEL]
     quantities = ['HA','UA','VA']
 
     # instanciate urs_points of the three mux files.
@@ -4927,9 +4934,10 @@ def urs2txt(basename_in, location_index=None):
     """
     Not finished or tested
     """
-    files_in = [basename_in+'-z-mux',
-                basename_in+'-e-mux',
-                basename_in+'-n-mux']
+    
+    files_in = [basename_in + WAVEHEIGHT_MUX_LABEL,
+                basename_in + EAST_VELOCITY_LABEL,
+                basename_in + NORTH_VELOCITY_LABEL]
     quantities = ['HA','UA','VA']
 
     d = ","
