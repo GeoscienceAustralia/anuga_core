@@ -4108,8 +4108,7 @@ def urs2sww(basename_in='o', basename_out=None, verbose=False,
             zscale=1,
             fail_on_NaN=True,
             NaN_filler=0,
-            elevation=None,
-            gridded=True):
+            elevation=None):
     """
     Convert URS C binary format for wave propagation to
     sww format native to abstract_2d_finite_volumes.
@@ -4140,10 +4139,6 @@ def urs2sww(basename_in='o', basename_out=None, verbose=False,
 
     In URS C binary the latitudes and longitudes are in assending order.
     """
-    if gridded is False:
-        pass
-        #urs_ungridded2sww()
-        
     if basename_out == None:
         basename_out = basename_in
     files_out = urs2nc(basename_in, basename_out)
@@ -4603,21 +4598,6 @@ def keep_point(lat, long, seg, max_distance):
         return False
     
     #### CONVERTING UNGRIDDED URS DATA TO AN SWW FILE ####
-def urs_ungridded2sww_link(basename_in='o', basename_out=None, verbose=False,
-            remove_nc_files=True,
-            minlat=None, maxlat=None,
-            minlon= None, maxlon=None,
-            mint=None, maxt=None,
-            mean_stage=0,
-            origin = None,
-            zscale=1,
-            fail_on_NaN=True,
-            NaN_filler=0,
-            elevation=None):
-    """
-    validation stuff on parrameters not used
-    """
-    pass
    
 WAVEHEIGHT_MUX_LABEL = '_velocity-z-mux'
 EAST_VELOCITY_LABEL =  '_velocity-e-mux'
