@@ -260,7 +260,10 @@ class Parallel_Domain(Domain):
 
         self.communication_time += time.time()-t0
 
-
+'''
+This was removed due to not beening required to be redefined in parallel_shallow_water
+the original "write_time" is good... however might need some small edits to work properly 
+with parallel- Nick and Ole April 2007
     def write_time(self):
         if self.min_timestep == self.max_timestep:
             print 'Processor %d/%d, Time = %.4f, delta t = %.8f, steps=%d (%d)'\
@@ -278,6 +281,7 @@ class Parallel_Domain(Domain):
                     self.time, self.min_timestep,
                     self.max_timestep, self.number_of_steps,
                     self.number_of_first_order_steps)
+'''
 
 # commented out on the 7/11/06
 #    def evolve(self, yieldstep=None, finaltime=None,
