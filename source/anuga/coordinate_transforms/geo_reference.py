@@ -93,12 +93,6 @@ class Geo_reference:
         self.yllcorner = infile.yllcorner[0] 
         self.zone = infile.zone[0]
 
-        self.false_easting = infile.false_easting[0]
-        self.false_northing = infile.false_northing[0]
-        
-        self.datum = infile.datum        
-        self.projection = infile.projection
-        self.units = infile.units
         
         # Fix some assertion failures
         if type(self.zone) == ArrayType and self.zone.shape == ():
@@ -114,6 +108,15 @@ class Geo_reference:
                 type(self.yllcorner) == types.IntType)
         assert (type(self.zone) == types.IntType)
         
+        try:
+            self.false_easting = infile.false_easting[0]
+            self.false_northing = infile.false_northing[0]
+        
+            self.datum = infile.datum        
+            self.projection = infile.projection
+            self.units = infile.units
+        except:
+            pass
         assert (self.false_easting == DEFAULT_FALSE_EASTING)
         assert (self.false_northing == DEFAULT_FALSE_NORTHING)
 
