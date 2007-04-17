@@ -52,7 +52,8 @@ class geo_referenceTestCase(unittest.TestCase):
 
         self.failUnless(g == new_g, 'test_read_write_NetCDF failed')  
         
-    def test_read_write_NetCDFII(self):
+    def test_read_NetCDFI(self):
+        # test if read_NetCDF
         from Scientific.IO.NetCDF import NetCDFFile
         g = Geo_reference(56,1.9,1.9)
         file_name = tempfile.mktemp(".geo_referenceTest")
