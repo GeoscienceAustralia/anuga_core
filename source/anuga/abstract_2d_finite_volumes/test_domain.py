@@ -491,6 +491,21 @@ class Test_Domain(unittest.TestCase):
                         'set region failed')
 
 
+    def test_track_speeds(self):
+        """
+        get values based on triangle lists.
+        """
+        from mesh_factory import rectangular
+        from shallow_water import Domain
+        from Numeric import zeros, Float
+
+        #Create basic mesh
+        points, vertices, boundary = rectangular(1, 3)
+
+        #Create shallow water domain
+        domain = Domain(points, vertices, boundary)
+        domain.write_time(track_speeds=True)
+
 
     def test_region_tags(self):
         """
@@ -591,6 +606,7 @@ class Test_Domain(unittest.TestCase):
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Domain,'test')
+#    suite = unittest.makeSuite(Test_Domain,'test')
+    suite = unittest.makeSuite(Test_Domain,'test_track_speeds')
     runner = unittest.TextTestRunner()
     runner.run(suite)
