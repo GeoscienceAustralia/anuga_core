@@ -52,6 +52,24 @@ class geo_referenceTestCase(unittest.TestCase):
 
         self.failUnless(g == new_g, 'test_read_write_NetCDF failed')  
         
+    def test_read_write_NetCDFII(self):
+        from Scientific.IO.NetCDF import NetCDFFile
+        g = Geo_reference(56,1.9,1.9)
+        file_name = tempfile.mktemp(".geo_referenceTest")
+        
+        outfile = NetCDFFile(file_name, 'w')
+        outfile.xllcorner = g.get_xllcorner() 
+        outfile.yllcorner =  g.get_yllcorner() 
+        outfile.zone = g.get_zone()
+        outfile.close()
+        
+        in_file = NetCDFFile(file_name, 'r')
+        new_g = Geo_reference(NetCDFObject=in_file)
+        in_file.close()
+        os.remove(file_name)
+
+        self.failUnless(g == new_g, ' failed')
+        
     def test_read_write_ASCII(self):
         from Scientific.IO.NetCDF import NetCDFFile
         g = Geo_reference(56,1.9,1.9)
