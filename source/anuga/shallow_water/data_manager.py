@@ -71,7 +71,8 @@ from Scientific.IO.NetCDF import NetCDFFile
 
 from anuga.coordinate_transforms.redfearn import redfearn, \
      convert_from_latlon_to_utm
-from anuga.coordinate_transforms.geo_reference import Geo_reference
+from anuga.coordinate_transforms.geo_reference import Geo_reference, \
+     write_NetCDF_georeference
 from anuga.geospatial_data.geospatial_data import Geospatial_data,\
      ensure_absolute
 from anuga.config import minimum_storable_height as default_minimum_storable_height
@@ -2644,60 +2645,68 @@ def ferret2sww(basename_in, basename_out = None,
     # NetCDF file definition
     outfile = NetCDFFile(swwname, 'w')
 
-    #Create new file
-    outfile.institution = 'Geoscience Australia'
-    outfile.description = 'Converted from Ferret files: %s, %s, %s, %s'\
-                          %(basename_in + '_ha.nc',
-                            basename_in + '_ua.nc',
-                            basename_in + '_va.nc',
-                            basename_in + '_e.nc')
+    description = 'Converted from Ferret files: %s, %s, %s, %s'\
+                  %(basename_in + '_ha.nc',
+                    basename_in + '_ua.nc',
+                    basename_in + '_va.nc',
+                    basename_in + '_e.nc')
+    write_sww_header(outfile, times, number_of_volumes,
+                     number_of_points, description=description) 
+#     #Create new file
+#     outfile.institution = 'Geoscience Australia'
+#     outfile.description = 'Converted from Ferret files: %s, %s, %s, %s'\
+#                           %(basename_in + '_ha.nc',
+#                             basename_in + '_ua.nc',
+#                             basename_in + '_va.nc',
+#                             basename_in + '_e.nc')
 
 
-    #For sww compatibility
-    outfile.smoothing = 'Yes'
-    outfile.order = 1
+#     #For sww compatibility
+#     outfile.smoothing = 'Yes'
+#     outfile.order = 1
 
-    #Start time in seconds since the epoch (midnight 1/1/1970)
-    outfile.starttime = starttime = times[0]
-    times = times - starttime  #Store relative times
+#     #Start time in seconds since the epoch (midnight 1/1/1970)
+#     outfile.starttime = starttime = times[0]
+#     times = times - starttime  #Store relative times
 
-    # dimension definitions
-    outfile.createDimension('number_of_volumes', number_of_volumes)
+#     # dimension definitions
+#     outfile.createDimension('number_of_volumes', number_of_volumes)
 
-    outfile.createDimension('number_of_vertices', 3)
-    outfile.createDimension('number_of_points', number_of_points)
+#     outfile.createDimension('number_of_vertices', 3)
+#     outfile.createDimension('number_of_points', number_of_points)
 
 
-    #outfile.createDimension('number_of_timesteps', len(times))
-    outfile.createDimension('number_of_timesteps', len(times))
+#     #outfile.createDimension('number_of_timesteps', len(times))
+#     outfile.createDimension('number_of_timesteps', len(times))
 
-    # variable definitions
-    outfile.createVariable('x', precision, ('number_of_points',))
-    outfile.createVariable('y', precision, ('number_of_points',))
-    outfile.createVariable('elevation', precision, ('number_of_points',))
+#     # variable definitions
+#     outfile.createVariable('x', precision, ('number_of_points',))
+#     outfile.createVariable('y', precision, ('number_of_points',))
+#     outfile.createVariable('elevation', precision, ('number_of_points',))
 
-    #FIXME: Backwards compatibility
-    outfile.createVariable('z', precision, ('number_of_points',))
-    #################################
+#     #FIXME: Backwards compatibility
+#     outfile.createVariable('z', precision, ('number_of_points',))
+#     #################################
 
-    outfile.createVariable('volumes', Int, ('number_of_volumes',
-                                            'number_of_vertices'))
+#     outfile.createVariable('volumes', Int, ('number_of_volumes',
+#                                             'number_of_vertices'))
 
-    outfile.createVariable('time', precision,
-                           ('number_of_timesteps',))
+#     outfile.createVariable('time', precision,
+#                            ('number_of_timesteps',))
 
-    outfile.createVariable('stage', precision,
-                           ('number_of_timesteps',
-                            'number_of_points'))
+#     outfile.createVariable('stage', precision,
+#                            ('number_of_timesteps',
+#                             'number_of_points'))
 
-    outfile.createVariable('xmomentum', precision,
-                           ('number_of_timesteps',
-                            'number_of_points'))
+#     outfile.createVariable('xmomentum', precision,
+#                            ('number_of_timesteps',
+#                             'number_of_points'))
 
-    outfile.createVariable('ymomentum', precision,
-                           ('number_of_timesteps',
-                            'number_of_points'))
+#     outfile.createVariable('ymomentum', precision,
+#                            ('number_of_timesteps',
+#                             'number_of_points'))
 
+#     outfile.variables['time'][:] = times   #Store time relative
 
     #Store
     from anuga.coordinate_transforms.redfearn import redfearn
@@ -2740,19 +2749,23 @@ def ferret2sww(basename_in, basename_out = None,
 
     volumes = array(volumes)
 
-    if origin == None:
-        zone = refzone
-        xllcorner = min(x)
-        yllcorner = min(y)
-    else:
-        zone = origin[0]
-        xllcorner = origin[1]
-        yllcorner = origin[2]
+    if origin is None:
+        origin = Geo_reference(refzone,min(x),min(y))
+    geo_ref = write_NetCDF_georeference(origin, outfile)
+    
+#     if origin == None:
+#         zone = refzone
+#         xllcorner = min(x)
+#         yllcorner = min(y)
+#     else:
+#         zone = origin[0]
+#         xllcorner = origin[1]
+#         yllcorner = origin[2]
 
 
-    outfile.xllcorner = xllcorner
-    outfile.yllcorner = yllcorner
-    outfile.zone = zone
+#     outfile.xllcorner = xllcorner
+#     outfile.yllcorner = yllcorner
+#     outfile.zone = zone
 
 
     if elevation is not None:
@@ -2766,11 +2779,10 @@ def ferret2sww(basename_in, basename_out = None,
 
     from Numeric import resize
     z = resize(z,outfile.variables['z'][:].shape)
-    outfile.variables['x'][:] = x - xllcorner
-    outfile.variables['y'][:] = y - yllcorner
+    outfile.variables['x'][:] = x - geo_ref.get_xllcorner()
+    outfile.variables['y'][:] = y - geo_ref.get_yllcorner()
     outfile.variables['z'][:] = z             #FIXME HACK for bacwards compat.
     outfile.variables['elevation'][:] = z
-    outfile.variables['time'][:] = times   #Store time relative
     outfile.variables['volumes'][:] = volumes.astype(Int32) #For Opteron 64
 
 
@@ -2807,7 +2819,7 @@ def ferret2sww(basename_in, basename_out = None,
         print '  Name: %s' %swwname
         print '  Reference:'
         print '    Lower left corner: [%f, %f]'\
-              %(xllcorner, yllcorner)
+              %(geo_ref.get_xllcorner(), geo_ref.get_yllcorner())
         print '    Start time: %f' %starttime
         print '  Extent:'
         print '    x [m] in [%f, %f], len(x) == %d'\
@@ -4572,17 +4584,18 @@ def mux2sww_time(mux_times, mint, maxt):
 
     return mux_times_start_i, mux_times_fin_i
 
-def write_sww_header(outfile, times, number_of_volumes, number_of_points ):
+def write_sww_header(outfile, times, number_of_volumes, number_of_points, description='Converted from XXX'):
     """
     outfile - the name of the file that will be written
     times - A list of the time slice times
     number_of_volumes - the number of triangles
     """
+    times = ensure_numeric(times)
+    
     number_of_times = len(times)
     
     outfile.institution = 'Geoscience Australia'
     outfile.description = 'Converted from XXX'
-
 
     #For sww compatibility
     outfile.smoothing = 'Yes'
@@ -4593,11 +4606,10 @@ def write_sww_header(outfile, times, number_of_volumes, number_of_points ):
         outfile.starttime = starttime = 0
     else:
         outfile.starttime = starttime = times[0]
-
+    times = times - starttime  #Store relative times
 
     # dimension definitions
     outfile.createDimension('number_of_volumes', number_of_volumes)
-
     outfile.createDimension('number_of_vertices', 3)
     outfile.createDimension('number_of_points', number_of_points)
     outfile.createDimension('number_of_timesteps', number_of_times)
@@ -4629,7 +4641,7 @@ def write_sww_header(outfile, times, number_of_volumes, number_of_points ):
                            ('number_of_timesteps',
                             'number_of_points'))
     
-    outfile.variables['time'][:] = times   
+    outfile.variables['time'][:] = times    #Store time relative
 
 
 def write_sww_triangulation(outfile, points_utm, volumes,
@@ -4638,15 +4650,20 @@ def write_sww_triangulation(outfile, points_utm, volumes,
     number_of_points = len(points_utm)   
     volumes = array(volumes)
 
-    if origin is not None:
-        if isinstance(origin, Geo_reference): 
-            geo_ref = origin
-        else:
-            geo_ref = apply(Geo_reference,origin)
-    else:
-        geo_ref = Geo_reference(zone,min(points_utm[:,0]),min(points_utm[:,1]))
-    #geo_ref = Geo_reference(zone,0,0)
-    geo_ref.write_NetCDF(outfile)
+    if origin is None:
+        origin = Geo_reference(zone,min(points_utm[:,0]),min(points_utm[:,1]))
+    geo_ref = write_NetCDF_georeference(origin, outfile)
+    
+#     if origin is not None:
+#         if isinstance(origin, Geo_reference): 
+#             geo_ref = origin
+#         else:
+#             geo_ref = apply(Geo_reference,origin)
+#     else:
+#         geo_ref = Geo_reference(zone,min(points_utm[:,0]),min(points_utm[:,1]))
+#     #geo_ref = Geo_reference(zone,0,0)
+#     geo_ref.write_NetCDF(outfile)
+    
 
     # This will put the geo ref in the middle
     #geo_ref = Geo_reference(refzone,(max(x)+min(x))/2.0,(max(x)+min(y))/2.)

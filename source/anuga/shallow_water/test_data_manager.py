@@ -5723,7 +5723,7 @@ friction  \n \
         #Check the time vector
         times = fid.variables['time'][:]
         
-        times_actual = [200,300,400,500]
+        times_actual = [0,100,200,300]
        
         assert allclose(ensure_numeric(times),
                         ensure_numeric(times_actual))
@@ -5973,7 +5973,7 @@ friction  \n \
         # delete the txt file if this becomes automatic
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sww')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sww_origin')
     #suite = unittest.makeSuite(Test_Data_Manager,'cache_test_URS_points_needed_and_urs_ungridded2sww')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs_ungridded_hole')
     suite = unittest.makeSuite(Test_Data_Manager,'test')

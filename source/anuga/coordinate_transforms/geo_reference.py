@@ -15,6 +15,12 @@ from anuga.utilities.anuga_exceptions import ANUGAError, TitleError, ParsingErro
 DEFAULT_ZONE = -1
 TITLE = '#geo reference' + "\n" #this title is referred to in the .xya format
 
+DEFAULT_PROJECTION = 'UTM'
+DEFAULT_DATUM = 'wgs84'
+DEFAULT_UNITS = 'm'
+DEFAULT_FALSE_EASTING = 500000
+DEFAULT_FALSE_NORTHING = 10000000 #Default for southern hemisphere 
+
 class Geo_reference:
     """
     """
@@ -23,10 +29,11 @@ class Geo_reference:
                  zone = DEFAULT_ZONE,
                  xllcorner = 0.0,
                  yllcorner = 0.0,
-                 datum = 'wgs84',
-                 projection = 'UTM',                 units = 'm',
-                 false_easting = 500000,
-                 false_northing = 10000000, #Default for southern hemisphere 
+                 datum = DEFAULT_DATUM,
+                 projection = DEFAULT_PROJECTION,
+                 units = DEFAULT_UNITS,
+                 false_easting = DEFAULT_FALSE_EASTING,
+                 false_northing = DEFAULT_FALSE_NORTHING, 
                  NetCDFObject=None,
                  ASCIIFile=None,
                  read_title=None):
@@ -38,7 +45,12 @@ class Geo_reference:
          If the function that calls this has already read the title line,
          it can't unread it, so this info has to be passed.
          If you know of a way to unread this info, then tell us.
-        """
+
+         Note, the text file only saves a sub set of the info the
+         points file does.  Currently the info not written in text
+         must be the default info, since ANUGA assumes it isn't
+         changing.
+         """
 
         self.false_easting = false_easting
         self.false_northing = false_northing        
@@ -81,6 +93,13 @@ class Geo_reference:
         self.yllcorner = infile.yllcorner[0] 
         self.zone = infile.zone[0]
 
+        self.false_easting = infile.false_easting[0]
+        self.false_northing = infile.false_northing[0]
+        
+        self.datum = infile.datum        
+        self.projection = infile.projection
+        self.units = infile.units
+        
         # Fix some assertion failures
         if type(self.zone) == ArrayType and self.zone.shape == ():
             self.zone = self.zone[0]
@@ -94,8 +113,13 @@ class Geo_reference:
         assert (type(self.yllcorner) == types.FloatType or\
                 type(self.yllcorner) == types.IntType)
         assert (type(self.zone) == types.IntType)
+        
+        assert (self.false_easting == DEFAULT_FALSE_EASTING)
+        assert (self.false_northing == DEFAULT_FALSE_NORTHING)
 
-        #FIXME (Ole) Read in the rest...
+        assert(self.datum == DEFAULT_DATUM)
+        assert(self.projection == DEFAULT_PROJECTION)
+        assert (self.units == DEFAULT_UNITS)
         
         
     def write_ASCII(self, fd):
@@ -131,8 +155,6 @@ class Geo_reference:
         assert (type(self.yllcorner) == types.FloatType)
         assert (type(self.zone) == types.IntType)
         
-        #false_easting = infile.false_easting[0]
-        #false_northing = infile.false_northing[0]
         
     def change_points_geo_ref(self, points,
                               points_geo_ref=None):
@@ -266,7 +288,22 @@ class Geo_reference:
         if not (self.zone == self.zone):
             cmp = 1
         return cmp
-        
+
+def write_NetCDF_georeference(origin, outfile):
+    """
+    Write georeferrence info to a netcdf file, usually sww.
+
+    The origin can be a georef instance or parrameters for a geo_ref instance
+
+    outfile is the name of the file to be written to.
+    """
+    if isinstance(origin, Geo_reference): 
+        geo_ref = origin
+    else:
+        geo_ref = apply(Geo_reference,origin)
+    geo_ref.write_NetCDF(outfile)
+    return geo_ref
+    
 #-----------------------------------------------------------------------
 
 if __name__ == "__main__":
