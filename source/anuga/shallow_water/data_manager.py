@@ -4329,9 +4329,9 @@ def keep_point(lat, long, seg, max_distance):
     
     #### CONVERTING UNGRIDDED URS DATA TO AN SWW FILE ####
    
-WAVEHEIGHT_MUX_LABEL = '_velocity-z-mux'
+WAVEHEIGHT_MUX_LABEL = '_waveheight-z-mux'
 EAST_VELOCITY_LABEL =  '_velocity-e-mux'
-NORTH_VELOCITY_LABEL =  '_waveheight-n-mux' 
+NORTH_VELOCITY_LABEL =  '_velocity-n-mux' 
 def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
                       mint=None, maxt=None,
                       mean_stage=0,
