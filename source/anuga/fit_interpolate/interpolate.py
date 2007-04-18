@@ -432,9 +432,7 @@ class Interpolation_function:
         from anuga.config import time_format
         import types
 
-        if verbose:
-            print 'started Interpolation function'
-          
+
 	# Check temporal info
         time = ensure_numeric(time)        
         msg = 'Time must be a monotonuosly '
@@ -455,8 +453,6 @@ class Interpolation_function:
         if quantity_names is None:
             quantity_names = quantities.keys()
 
-        if verbose:
-            print 'started Interpolation function1'
 
         # Check spatial info
         if vertex_coordinates is None:
@@ -474,9 +470,6 @@ class Interpolation_function:
         for name in quantity_names:
             if len(quantities[name].shape) == 2:
                 quantities[name] = array(quantities[name][::time_thinning,:])
-
-        if verbose:
-            print 'started Interpolation function2'
              
         # Save for use with statistics
         self.quantities_range = {}
@@ -492,10 +485,7 @@ class Interpolation_function:
         self.index = 0    # Initial time index
         self.precomputed_values = {}
         
-        if verbose:
-            print 'started Interpolation function3'
-        
-        
+            
         # Precomputed spatial interpolation if requested
         if interpolation_points is not None:
             if self.spatial is False:
@@ -513,10 +503,7 @@ class Interpolation_function:
 
             m = len(self.interpolation_points)
             p = len(self.time)
-
-        if verbose:
-            print 'started Interpolation function4'
-
+            
 	    for name in quantity_names:
                 self.precomputed_values[name] = zeros((p, m), Float)
 

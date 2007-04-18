@@ -328,23 +328,17 @@ def get_netcdf_file_function(filename,
     # Produce values for desired data points at
     # each timestep for each quantity
     quantities = {}
-    if verbose:
-        print 'before interpolation function1'
     for i, name in enumerate(quantity_names):
         quantities[name] = fid.variables[name][:]
     fid.close()
     
-    if verbose:
-        print 'before interpolation function2'
-        
+
     #from least_squares import Interpolation_function
     from anuga.fit_interpolate.interpolate import Interpolation_function
 
     if not spatial:
         vertex_coordinates = triangles = interpolation_points = None         
 
-    if verbose:
-        print 'before interpolation function3'
 
     # Return Interpolation_function instance as well as
     # starttime for use to possible modify that of domain
