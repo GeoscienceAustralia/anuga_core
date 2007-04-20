@@ -85,8 +85,16 @@ def reorder(quantities, tri_index, proc_sum):
 #########################################################
 
 #path.append('..' + sep + 'pymetis')
-from pymetis.metis import partMeshNodal
 
+try:
+    
+    from pymetis.metis import partMeshNodal
+except ImportError:
+    print "***************************************************"
+    print "         Metis is probably not compiled."
+    print "         Read \anuga_core\source\pymetis\README"
+    print "***************************************************"
+    raise ImportError
 def pmesh_divide_metis(domain, n_procs):
     
     # Initialise the lists
