@@ -2751,7 +2751,8 @@ def ferret2sww(basename_in, basename_out = None,
         print '  Reference:'
         print '    Lower left corner: [%f, %f]'\
               %(geo_ref.get_xllcorner(), geo_ref.get_yllcorner())
-        print '    Start time: %f' %starttime
+        print '    Start time: %f' %mint
+#        print '    Start time: %f' %starttime
         print '  Extent:'
         print '    x [m] in [%f, %f], len(x) == %d'\
               %(min(x.flat), max(x.flat), len(x.flat))
