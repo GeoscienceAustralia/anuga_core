@@ -92,18 +92,21 @@ def regressionTest(test_verbose=False):
         sys.path.remove(file)
     load = unittest.defaultTestLoader.loadTestsFromModule
     testCaseClasses = map(load, modules)
+
+    
     if test_verbose is True:
         # Test the code by setting verbose to True.
         # The test cases have to be set up for this to work.
         # See test data manager for an example.
         for test_suite in testCaseClasses:
             for tests in test_suite._tests:
-                #tests is of class TestSuite
-                print "tests weak", tests.__weakref__
-                if len(tests._tests) >1:
+                # tests is of class TestSuite
+                if len(tests._tests) > 1:
                     # these are the test functions
                     try:
-                        # Calls set_verbose in the test case classes
+                        # Calls class method set_verbose in the test case classes
+                        # print 'Tests', tests._tests[0]
+                        # print 'Type', type(tests._tests[0])                        
                         tests._tests[0].set_verbose()
                     except:
                         pass # No all classes have set_verbose

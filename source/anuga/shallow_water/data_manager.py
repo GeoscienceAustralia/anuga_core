@@ -2436,7 +2436,7 @@ def ferret2sww(basename_in, basename_out = None,
     else:
         swwname = basename_out + '.sww'
 
-#    Get dimensions of file_h
+    # Get dimensions of file_h
     for dimension in file_h.dimensions.keys():
         if dimension[:3] == 'LON':
             dim_h_longitude = dimension
@@ -2453,14 +2453,14 @@ def ferret2sww(basename_in, basename_out = None,
     latitudes = file_h.variables[dim_h_latitude]
     longitudes = file_h.variables[dim_h_longitude]
     
-# get dimensions for file_e
+    # get dimensions for file_e
     for dimension in file_e.dimensions.keys():
         if dimension[:3] == 'LON':
             dim_e_longitude = dimension
         if dimension[:3] == 'LAT':
             dim_e_latitude = dimension
 
-# get dimensions for file_u
+    # get dimensions for file_u
     for dimension in file_u.dimensions.keys():
         if dimension[:3] == 'LON':
             dim_u_longitude = dimension
@@ -2469,7 +2469,7 @@ def ferret2sww(basename_in, basename_out = None,
         if dimension[:4] == 'TIME':
             dim_u_time = dimension
             
-# get dimensions for file_v
+    # get dimensions for file_v
     for dimension in file_v.dimensions.keys():
         if dimension[:3] == 'LON':
             dim_v_longitude = dimension
@@ -2479,11 +2479,11 @@ def ferret2sww(basename_in, basename_out = None,
             dim_v_time = dimension
 
 
-    #Precision used by most for lat/lon is 4 or 5 decimals
+    # Precision used by most for lat/lon is 4 or 5 decimals
     e_lat = around(file_e.variables[dim_e_latitude][:], 5)
     e_lon = around(file_e.variables[dim_e_longitude][:], 5)
 
-    #Check that files are compatible
+    # Check that files are compatible
     assert allclose(latitudes, file_u.variables[dim_u_latitude])
     assert allclose(latitudes, file_v.variables[dim_v_latitude])
     assert allclose(latitudes, e_lat)
@@ -2492,13 +2492,15 @@ def ferret2sww(basename_in, basename_out = None,
     assert allclose(longitudes, file_v.variables[dim_v_longitude])
     assert allclose(longitudes, e_lon)
 
-    if mint == None:
+    if mint is None:
         jmin = 0
+        mint = times[0]        
     else:
         jmin = searchsorted(times, mint)
         
-    if maxt == None:
-        jmax=len(times)
+    if maxt is None:
+        jmax = len(times)
+        maxt = times[-1]
     else:
         jmax = searchsorted(times, maxt)
 
@@ -2506,11 +2508,10 @@ def ferret2sww(basename_in, basename_out = None,
     #print "longitudes[:]",longitudes [:]
     kmin, kmax, lmin, lmax = _get_min_max_indexes(latitudes[:],
                                                   longitudes[:],
-                                                 minlat, maxlat,
-                                                 minlon, maxlon)
+                                                  minlat, maxlat,
+                                                  minlon, maxlon)
 
 
-#    print' j', jmin, jmax
     times = times[jmin:jmax]
     latitudes = latitudes[kmin:kmax]
     longitudes = longitudes[lmin:lmax]
@@ -2755,8 +2756,8 @@ def ferret2sww(basename_in, basename_out = None,
         print '    Lower left corner: [%f, %f]'\
               %(geo_ref.get_xllcorner(), geo_ref.get_yllcorner())
         print ' Start time: %f' %starttime
-        #print '    Min time: %f' %mint
-        #print '    Max time: %f' %maxt
+        print '    Min time: %f' %mint
+        print '    Max time: %f' %maxt
         print '  Extent:'
         print '    x [m] in [%f, %f], len(x) == %d'\
               %(min(x.flat), max(x.flat), len(x.flat))
