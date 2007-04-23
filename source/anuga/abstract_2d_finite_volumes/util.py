@@ -559,8 +559,8 @@ class Screen_Catcher:
         self.filename = filename
  
         if exists(self.filename)is True:
-            remove(self.filename)
             print'Old existing file "%s" has been deleted' %(self.filename)
+            remove(self.filename)
 
     def write(self, stuff):
         fid = open(self.filename, 'a')
