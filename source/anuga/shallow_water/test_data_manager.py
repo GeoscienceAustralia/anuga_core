@@ -24,10 +24,18 @@ from anuga.coordinate_transforms.redfearn import redfearn
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 
 class Test_Data_Manager(unittest.TestCase):
+    # Class variable
+    verbose = False
+
+    def set_verbose(self):
+        Test_Data_Manager.verbose = True
+        
     def setUp(self):
         import time
         from mesh_factory import rectangular
 
+        
+        self.verbose = Test_Data_Manager.verbose
         #Create basic mesh
         points, vertices, boundary = rectangular(2, 2)
 
@@ -1127,7 +1135,7 @@ END CROSS-SECTIONS:
         sww2dem(self.domain.get_name(),
                 quantity = 'elevation',
                 cellsize = cellsize,
-                verbose = False,
+                verbose = self.verbose,
                 format = 'asc')
 
         #Check prj (meta data)
@@ -5976,8 +5984,22 @@ if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sww_origin')
     #suite = unittest.makeSuite(Test_Data_Manager,'cache_test_URS_points_needed_and_urs_ungridded2sww')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs_ungridded_hole')
+    if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':
+        Test_Data_Manager.verbose=True
+        saveout = sys.stdout   
+        filename = ".temp_verbose"
+        fid = open(filename, 'w')
+        sys.stdout = fid
+    else:
+        pass
     suite = unittest.makeSuite(Test_Data_Manager,'test')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
+
+    # Cleaning up
+    if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':
+        sys.stdout = saveout 
+        #fid.close() # This was causing an error in windows
+        #os.remove(filename)
 
 
