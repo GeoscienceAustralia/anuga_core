@@ -93,55 +93,20 @@ def regressionTest(test_verbose=False):
     load = unittest.defaultTestLoader.loadTestsFromModule
     testCaseClasses = map(load, modules)
     if test_verbose is True:
-        print "moduleNames", moduleNames 
-        print "modules", modules
-        print "load", load
-        #print "weak", testCaseClasses.countTestCases()
-        #sys.exit()
-        i=0
-        from anuga.shallow_water.test_data_manager import Test_Data_Manager
-        from anuga.geospatial_data.test_geospatial_data import Test_Geospatial_data
-        #print "test_data_manager.Test_Data_Manager", type(Test_Data_Manager)
+        # Test the code by setting verbose to True.
+        # The test cases have to be set up for this to work.
+        # See test data manager for an example.
         for test_suite in testCaseClasses:
-            i += 1
-            print "counting ", i
-            #testCaseClass.classVerbose = True
-            #testCaseClass.Verbose = True
-            #print "testCaseClass",testCaseClass
-            #print "testCaseClass",type(tests)
-            #print "weak", tests.countTestCases()
-            #print "weak", tests.__weakref__
-            #print "dic",  tests.__dict__
-            #print "testCaseClass.tests",  testCaseClass._tests[0]._tests[0].yah()
             for tests in test_suite._tests:
                 #tests is of class TestSuite
                 print "tests weak", tests.__weakref__
                 if len(tests._tests) >1:
                     # these are the test functions
-                    print "tests._tests[0]", tests._tests[0]
-                    print "tests._tests[0]", tests._tests[0].__dict__
-                    #print "tests._tests[0]", tests._tests[0].__name__
                     try:
                         # Calls set_verbose in the test case classes
                         tests._tests[0].set_verbose()
                     except:
-                        pass # No all classes have
-                    tests._tests[0].verbose=True # A call methods
-                    if type(tests._tests[0]) == type(Test_Data_Manager):
-                        print "testCaseClass is the class Test_Data_Manager"
-                        sys.exit()
-                
-                    if type(tests._tests[0]) == type(Test_Geospatial_data):
-                        print "testCaseClass is the class Test_Data_Manager"
-                        sys.exit()
-            if isinstance(tests, Test_Data_Manager):
-                print "testCaseClass is an instance of Test_Data_Manager"
-                sys.exit()
-            if type(tests) == type(Test_Data_Manager):
-                print "testCaseClass is the class Test_Data_Manager"
-                sys.exit()
-            
-        #sys.exit()   
+                        pass # No all classes have set_verbose
     return unittest.TestSuite(testCaseClasses)
 
 if __name__ == '__main__':

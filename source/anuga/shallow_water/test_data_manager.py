@@ -644,7 +644,8 @@ Parameters
         #Convert to NetCDF pts
         convert_dem_from_ascii2netcdf(root)
         dem2pts(root, easting_min=2002.0, easting_max=2007.0,
-                northing_min=3003.0, northing_max=3006.0)
+                northing_min=3003.0, northing_max=3006.0,
+                verbose=self.verbose)
 
         #Check contents
         #Get NetCDF
@@ -764,7 +765,8 @@ Parameters
         #Convert to NetCDF pts
         convert_dem_from_ascii2netcdf(root)
         dem2pts(root, easting_min=2002.0, easting_max=2007.0,
-                northing_min=3003.0, northing_max=3006.0)
+                northing_min=3003.0, northing_max=3006.0,
+                verbose=self.verbose)
 
         #Check contents
         #Get NetCDF
@@ -894,7 +896,8 @@ Parameters
         #Convert to NetCDF pts
         convert_dem_from_ascii2netcdf(root)
         dem2pts(root, easting_min=2002.0, easting_max=2007.0,
-                northing_min=3003.0, northing_max=3006.0)
+                northing_min=3003.0, northing_max=3006.0,
+                verbose=self.verbose)
 
         #Check contents
         #Get NetCDF
@@ -1311,7 +1314,7 @@ END CROSS-SECTIONS:
         sww2dem(domain.get_name(),
                 quantity = 'elevation',
                 cellsize = cellsize,
-                verbose = False,
+                verbose = self.verbose,
                 format = 'asc')
 
 
@@ -1499,7 +1502,7 @@ END CROSS-SECTIONS:
                 easting_max = 308570,
                 northing_min = 6189050,
                 northing_max = 6189100,
-                verbose = False,
+                verbose = self.verbose,
                 format = 'asc')
 
         fid.close()
@@ -1642,7 +1645,8 @@ END CROSS-SECTIONS:
                 quantity = 'stage',
                 cellsize = cellsize,
                 reduction = min,
-                format = 'asc')
+                format = 'asc',
+                verbose=self.verbose)
 
 
         #Check asc file
@@ -1754,7 +1758,7 @@ END CROSS-SECTIONS:
                 cellsize = cellsize,
                 reduction = min,
                 format = 'asc',
-                verbose = False)
+                verbose = self.verbose)
 
 
         #Check asc file
@@ -1903,7 +1907,7 @@ END CROSS-SECTIONS:
         sww2dem(domain.get_name(),
                 quantity = 'elevation',
                 cellsize = cellsize,
-                verbose = False,
+                verbose = self.verbose,
                 format = 'asc')
 
 
@@ -2010,7 +2014,7 @@ END CROSS-SECTIONS:
                 quantity = 'elevation',
                 cellsize = cellsize,
                 NODATA_value = NODATA_value,
-                verbose = False,
+                verbose = self.verbose,
                 format = 'ers')
 
         #Check header data
@@ -2109,7 +2113,7 @@ END CROSS-SECTIONS:
                 quantity = 'elevation',
                 data_points = points,
                 NODATA_value = NODATA_value,
-                verbose = False)
+                verbose = self.verbose)
         ref_point_values = elevation
         point_values = Geospatial_data(ptsfile).get_attributes()
         #print 'P', point_values
@@ -2125,7 +2129,7 @@ END CROSS-SECTIONS:
                 quantity = 'elevation',
                 data_points = points,
                 NODATA_value = NODATA_value,
-                verbose = False)
+                verbose = self.verbose)
         ref_point_values = [-0.5, -0.5, -1, -1, -1, -1, -1.5, -1.5]   #At centroids
 
         
@@ -2174,7 +2178,7 @@ END CROSS-SECTIONS:
         #Call conversion (with zero origin)
         #ferret2sww('small', verbose=False,
         #           origin = (56, 0, 0))
-        ferret2sww(self.test_MOST_file, verbose=False,
+        ferret2sww(self.test_MOST_file, verbose=self.verbose,
                    origin = (56, 0, 0))
 
         #Work out the UTM coordinates for first point
@@ -2246,7 +2250,7 @@ END CROSS-SECTIONS:
         fid.close()
 
         #Call conversion (with zero origin)
-        ferret2sww(self.test_MOST_file, verbose=False,
+        ferret2sww(self.test_MOST_file, verbose=self.verbose,
                    origin = (56, 0, 0))
 
 
@@ -2291,9 +2295,9 @@ END CROSS-SECTIONS:
 
 
         #Call conversion (with zero origin)
-        #ferret2sww('small', verbose=False,
+        #ferret2sww('small', verbose=self.verbose,
         #           origin = (56, 0, 0))
-        ferret2sww(self.test_MOST_file, verbose=False,
+        ferret2sww(self.test_MOST_file, verbose=self.verbose,
                    origin = (56, 0, 0), minlat=-34.5, maxlat=-34)
 
         #Work out the UTM coordinates for first point
@@ -2481,7 +2485,7 @@ END CROSS-SECTIONS:
         fid3.close()
 
         #Call conversion (with zero origin)
-        ferret2sww('test', verbose=False,
+        ferret2sww('test', verbose=self.verbose,
                    origin = (56, 0, 0), inverted_bathymetry=False)
 
         os.remove('test_va.nc')
@@ -2645,7 +2649,7 @@ END CROSS-SECTIONS:
         fid3.close()
 
         #Call conversion (with zero origin)
-        ferret2sww('test', verbose=False, origin = (56, 0, 0)
+        ferret2sww('test', verbose=self.verbose, origin = (56, 0, 0)
                    , inverted_bathymetry=False)
 
         os.remove('test_va.nc')
@@ -2685,7 +2689,7 @@ END CROSS-SECTIONS:
         from anuga.coordinate_transforms.redfearn import redfearn
 
         #Call conversion (with nonzero origin)
-        ferret2sww(self.test_MOST_file, verbose=False,
+        ferret2sww(self.test_MOST_file, verbose=self.verbose,
                    origin = (56, 100000, 200000))
 
 
@@ -2725,10 +2729,10 @@ END CROSS-SECTIONS:
 
 
         #Call conversion (with zero origin)
-        #ferret2sww('small', verbose=False,
+        #ferret2sww('small', verbose=self.verbose,
         #           origin = (56, 0, 0))
         try:
-            ferret2sww(self.test_MOST_file, verbose=False,
+            ferret2sww(self.test_MOST_file, verbose=self.verbose,
                    origin = (56, 0, 0), minlat=-34.5, maxlat=-35)
         except AssertionError:
             pass
@@ -2832,7 +2836,7 @@ END CROSS-SECTIONS:
         import os
 
         filename = domain.datadir + os.sep + domain.get_name() + '.sww'
-        domain2 = sww2domain(filename,None,fail_if_NaN=False,verbose = False)
+        domain2 = sww2domain(filename,None,fail_if_NaN=False,verbose=self.verbose)
         #points, vertices, boundary = rectangular(15,15)
         #domain2.boundary = boundary
         ###################
@@ -2970,11 +2974,11 @@ END CROSS-SECTIONS:
 
         #Fail because NaNs are present
         try:
-            domain2 = sww2domain(filename,boundary,fail_if_NaN=True,verbose=False)
+            domain2 = sww2domain(filename,boundary,fail_if_NaN=True,verbose=self.verbose)
         except:
             #Now import it, filling NaNs to be 0
             filler = 0
-            domain2 = sww2domain(filename,None,fail_if_NaN=False,NaN_filler = filler,verbose=False)
+            domain2 = sww2domain(filename,None,fail_if_NaN=False,NaN_filler = filler,verbose=self.verbose)
 
         #Clean up
         os.remove(filename)
@@ -3075,7 +3079,7 @@ END CROSS-SECTIONS:
         import os
 
         filename = domain.datadir + os.sep + domain.get_name() + '.sww'
-        domain2 = sww2domain(filename,None,fail_if_NaN=False,verbose = False)
+        domain2 = sww2domain(filename,None,fail_if_NaN=False,verbose=self.verbose)
         #points, vertices, boundary = rectangular(15,15)
         #domain2.boundary = boundary
         ###################
@@ -3381,7 +3385,7 @@ NODATA_value  -9999
    502.645   516.230   504.739   450.604   388.500   338.097   514.980
 """)
         fid.close()
-        bath_metadata, grid = _read_asc(filename, verbose=False)
+        bath_metadata, grid = _read_asc(filename, verbose=self.verbose)
         self.failUnless(bath_metadata['xllcorner']  == 2000.5,  'Failed')
         self.failUnless(bath_metadata['yllcorner']  == 3000.5,  'Failed')
         self.failUnless(bath_metadata['cellsize']  == 25,  'Failed')
@@ -3494,7 +3498,8 @@ NODATA_value  -9999
         fid.close()
 
         sww_file = 'a_test.sww'
-        asc_csiro2sww(bath_dir,elevation_dir, ucur_dir, vcur_dir, sww_file)
+        asc_csiro2sww(bath_dir,elevation_dir, ucur_dir, vcur_dir, sww_file,
+                      verbose=self.verbose)
 
         # check the sww file
 
@@ -3660,7 +3665,8 @@ NODATA_value  -9999
 
         try:
             asc_csiro2sww(bath_dir,elevation_dir, ucur_dir,
-                          vcur_dir, sww_file)
+                          vcur_dir, sww_file,
+                      verbose=self.verbose)
         except:
             #tidy up
             os.remove(bath_dir_filename)
@@ -3802,7 +3808,8 @@ NODATA_value  -9999
         sww_file = 'a_test.sww'
         asc_csiro2sww(bath_dir,elevation_dir, ucur_dir, vcur_dir,
                       sww_file, fail_on_NaN = False, elevation_NaN_filler = 0,
-                      mean_stage = 100)
+                      mean_stage = 100,
+                      verbose=self.verbose)
 
         # check the sww file
 
@@ -3993,7 +4000,8 @@ NODATA_value  -9999
                       sww_file, fail_on_NaN = False, elevation_NaN_filler = 0,
                       mean_stage = 100,
                        minlat = -37.6, maxlat = -37.6,
-                  minlon = 148.3, maxlon = 148.3
+                  minlon = 148.3, maxlon = 148.3,
+                      verbose=self.verbose
                       #,verbose = True
                       )
 
@@ -4349,7 +4357,8 @@ friction  \n \
         #sww_file = tempfile.mktemp(".sww")
         #print "sww_file",sww_file
         #print "sww_file",tsh_file
-        tsh2sww(tsh_file)
+        tsh2sww(tsh_file,
+                      verbose=self.verbose)
 
         os.remove(tsh_file)
         os.remove(tsh_file[:-4] + '.sww')
@@ -4842,7 +4851,8 @@ friction  \n \
             f.close()   
         tide = 1
         try:
-            urs2sww(base_name, remove_nc_files=True, mean_stage=tide)        
+            urs2sww(base_name, remove_nc_files=True, mean_stage=tide,
+                      verbose=self.verbose)        
         except ANUGAError:
             pass
         else:
@@ -4869,7 +4879,8 @@ friction  \n \
         urs2sww(base_name
                 #, origin=(0,0,0)
                 , mean_stage=tide
-                , remove_nc_files=True
+                , remove_nc_files=True,
+                      verbose=self.verbose
                 )
         sww_file = base_name + '.sww'
         
@@ -4964,7 +4975,8 @@ friction  \n \
         urs2sww(base_name
                 #, origin=(0,0,0)
                 , mean_stage=tide
-                , remove_nc_files=True
+                , remove_nc_files=True,
+                      verbose=self.verbose
                 )
         sww_file = base_name + '.sww'
         
@@ -5023,7 +5035,8 @@ friction  \n \
         urs2sww(base_name
                 , origin=(0,0,0)
                 , mean_stage=tide
-                , remove_nc_files=True
+                , remove_nc_files=True,
+                      verbose=self.verbose
                 )
         sww_file = base_name + '.sww'
         
@@ -5088,7 +5101,8 @@ friction  \n \
                 minlon= 150.66667,
                 maxlon= 151.16667,
                 mean_stage=tide,
-                remove_nc_files=True
+                remove_nc_files=True,
+                      verbose=self.verbose
                 )
         sww_file = base_name + '.sww'
         
@@ -5219,7 +5233,8 @@ friction  \n \
                              [280000,7630000],[250000,7630000]]
         geo=URS_points_needed(boundary_polygon, zone, 
                               ll_lat, ll_long, grid_spacing, 
-                              lat_amount, long_amount)
+                              lat_amount, long_amount,
+                              verbose=self.verbose)
         # to test this geo, can info from it be transfered onto the boundary
         # poly?
         #Maybe see if I can fit the data to the polygon - have to represent
@@ -5270,8 +5285,10 @@ friction  \n \
        
         boundary_polygon = [[250000,7660000],[280000,7660000],
                              [280000,7630000],[250000,7630000]]
-        URS_points_needed_to_file('a_test_example',boundary_polygon, ll_lat, ll_long, grid_spacing, \
-                      lat_amount, long_amount)
+        URS_points_needed_to_file('a_test_example',boundary_polygon,
+                                  ll_lat, ll_long, grid_spacing, 
+                                  lat_amount, long_amount,
+                                  verbose=self.verbose)
         
     def X_test_URS_points_neededII(self):
         ll_lat = -21.5
@@ -5284,8 +5301,9 @@ friction  \n \
         
         #boundary_polygon = [[7660000,250000],[7660000,280000],
         #                     [7630000,280000],[7630000,250000]]
-        URS_points_needed(boundary_polygon, ll_lat, ll_long, grid_spacing, \
-                      lat_amount, long_amount)
+        URS_points_needed(boundary_polygon, ll_lat, ll_long, grid_spacing, 
+                          lat_amount, long_amount,
+                          verbose=self.verbose)
         
     #### END TESTS URS UNGRIDDED 2 SWW ###
     def test_Urs_points(self):
@@ -5332,7 +5350,8 @@ friction  \n \
         tide = 9000000
         base_name, files = self.write_mux(lat_long,
                                           time_step_count, time_step)
-        urs_ungridded2sww(base_name, mean_stage=tide)
+        urs_ungridded2sww(base_name, mean_stage=tide,
+                          verbose=self.verbose)
         
         # now I want to check the sww file ...
         sww_file = base_name + '.sww'
@@ -5423,7 +5442,8 @@ friction  \n \
         geo_reference = Geo_reference(50, 3434543,34534543)
         base_name, files = self.write_mux(lat_long,
                                           time_step_count, time_step)
-        urs_ungridded2sww(base_name, mean_stage=tide, origin = geo_reference)
+        urs_ungridded2sww(base_name, mean_stage=tide, origin = geo_reference,
+                          verbose=self.verbose)
         
         # now I want to check the sww file ...
         sww_file = base_name + '.sww'
@@ -5512,7 +5532,8 @@ friction  \n \
         tide = 9000000
         base_name, files = self.write_mux(lat_long,
                                           time_step_count, time_step)
-        urs_ungridded2sww(base_name, mean_stage=tide, origin =(50,23432,4343))
+        urs_ungridded2sww(base_name, mean_stage=tide, origin =(50,23432,4343),
+                          verbose=self.verbose)
         
         # now I want to check the sww file ...
         sww_file = base_name + '.sww'
@@ -5624,7 +5645,8 @@ friction  \n \
         #Latitude:   -21  0 ' 0.00000 ''  Longitude: 115  0 ' 0.00000 '' 
 
         urs_ungridded2sww(base_name, mean_stage=-240992.0,
-                          hole_points_UTM=[ 292110.784, 7676551.710 ])
+                          hole_points_UTM=[ 292110.784, 7676551.710 ],
+                          verbose=self.verbose)
         
         # now I want to check the sww file ...
         sww_file = base_name + '.sww'
@@ -5667,7 +5689,8 @@ friction  \n \
         #Latitude:   -21  0 ' 0.00000 ''  Longitude: 115  0 ' 0.00000 '' 
 
         urs_ungridded2sww(base_name, mean_stage=-240992.0,
-                          hole_points_UTM=[ 292110.784, 7676551.710 ])
+                          hole_points_UTM=[ 292110.784, 7676551.710 ],
+                          verbose=self.verbose)
         
         # now I want to check the sww file ...
         sww_file = base_name + '.sww'
@@ -5705,7 +5728,8 @@ friction  \n \
         base_name, files = self.write_mux(lat_long,
                                           time_step_count, time_step)
         urs_ungridded2sww(base_name, mean_stage=tide, origin =(50,23432,4343),
-                          mint=101, maxt=500)
+                          mint=101, maxt=500,
+                          verbose=self.verbose)
         
         # now I want to check the sww file ...
         sww_file = base_name + '.sww'
@@ -5793,7 +5817,8 @@ friction  \n \
         base_name, files = self.write_mux(lat_long,
                                           time_step_count, time_step)
         urs_ungridded2sww(base_name, mean_stage=tide, origin =(50,23432,4343),
-                          mint=0, maxt=100000)
+                          mint=0, maxt=100000,
+                          verbose=self.verbose)
         
         # now I want to check the sww file ...
         sww_file = base_name + '.sww'
@@ -5838,7 +5863,8 @@ friction  \n \
         try:
             urs_ungridded2sww(base_name, mean_stage=tide,
                           origin =(50,23432,4343),
-                          mint=301, maxt=399)
+                          mint=301, maxt=399,
+                              verbose=self.verbose)
         except: 
             pass
         else:
@@ -5863,11 +5889,13 @@ friction  \n \
                              [280000,7630000],[250000,7630000]]
         geo=URS_points_needed(boundary_polygon, zone,
                               ll_lat, ll_long, grid_spacing, 
-                              lat_amount, long_amount)
+                              lat_amount, long_amount,
+                              verbose=self.verbose)
         lat_long = geo.get_data_points(as_lat_long=True)
         base_name, files = self.write_mux(lat_long,
                                           time_step_count, time_step)
-        urs_ungridded2sww(base_name, mean_stage=tide)
+        urs_ungridded2sww(base_name, mean_stage=tide,
+                          verbose=self.verbose)
         self.delete_mux(files)
         os.remove( base_name + '.sww')
     
