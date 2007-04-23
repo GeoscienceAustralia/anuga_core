@@ -2653,7 +2653,8 @@ def ferret2sww(basename_in, basename_out = None,
                     basename_in + '_va.nc',
                     basename_in + '_e.nc')
     
-    #Create new file    
+    #Create new file
+    starttime = times[0]
     write_sww_header(outfile, times, number_of_volumes,
                      number_of_points, description=description) 
 
@@ -2753,6 +2754,7 @@ def ferret2sww(basename_in, basename_out = None,
         print '  Reference:'
         print '    Lower left corner: [%f, %f]'\
               %(geo_ref.get_xllcorner(), geo_ref.get_yllcorner())
+        print ' Start time: %f' %starttime
         #print '    Min time: %f' %mint
         #print '    Max time: %f' %maxt
         print '  Extent:'
