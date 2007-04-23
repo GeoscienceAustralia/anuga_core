@@ -1674,7 +1674,9 @@ def sww2dem(basename_in, basename_out = None,
     demfile = basename_out + '.' + format
     # Note the use of a .ers extension is optional (write_ermapper_grid will
     # deal with either option
-
+    
+    #if verbose: bye= nsuadsfd[0] #uncomment to check catching verbose errors
+    
     #Read sww file
     if verbose: print 'Reading from %s' %swwfile
     from Scientific.IO.NetCDF import NetCDFFile
@@ -2751,8 +2753,8 @@ def ferret2sww(basename_in, basename_out = None,
         print '  Reference:'
         print '    Lower left corner: [%f, %f]'\
               %(geo_ref.get_xllcorner(), geo_ref.get_yllcorner())
-        print '    Start time: %f' %mint
-#        print '    Start time: %f' %starttime
+        #print '    Min time: %f' %mint
+        #print '    Max time: %f' %maxt
         print '  Extent:'
         print '    x [m] in [%f, %f], len(x) == %d'\
               %(min(x.flat), max(x.flat), len(x.flat))
