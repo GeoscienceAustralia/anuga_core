@@ -6027,7 +6027,7 @@ if __name__ == "__main__":
     # Cleaning up
     if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':
         sys.stdout = saveout 
-        #fid.close() # This was causing an error in windows
-        #os.remove(filename)
+        fid.close() 
+        os.remove(filename)
 
 
