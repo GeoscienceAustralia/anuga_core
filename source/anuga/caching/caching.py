@@ -281,6 +281,7 @@ def cache(func, args=(), kwargs = {}, dependencies=None , cachedir=None,
   # Get sizes and timestamps for files listed in dependencies.
   # Force singletons into a tuple.
   #
+
   if dependencies and type(dependencies) != types.TupleType \
                   and type(dependencies) != types.ListType:
     dependencies = tuple([dependencies])
@@ -816,6 +817,9 @@ def CacheLookup(CD, FN, func, args, kwargs, deps, verbose, compression,
   (datafile,compressed0) = myopen(CD+FN+'_'+file_types[0],"rb",compression)
   (argsfile,compressed1) = myopen(CD+FN+'_'+file_types[1],"rb",compression)
   (admfile,compressed2) =  myopen(CD+FN+'_'+file_types[2],"rb",compression)
+
+  if verbose is True and deps is not None:
+    print 'Caching: Dependencies are', deps.keys()
 
   if not (argsfile and datafile and admfile) or \
      not (compressed0 == compressed1 and compressed0 == compressed2):
@@ -1503,6 +1507,7 @@ def get_depstats(dependencies):
 
   import types
 
+  #print 'Caching DEBUG: Dependencies are', dependencies
   d = {}
   if dependencies:
 
@@ -1511,14 +1516,18 @@ def get_depstats(dependencies):
     expanded_dependencies = []
     for FN in dependencies:
       expanded_FN = glob.glob(FN)
-      
+
+      if expanded_FN == []:
+        errmsg = 'ERROR (caching.py): Dependency '+FN+' does not exist.'
+        raise Exception, errmsg      
+
       expanded_dependencies += expanded_FN
 
     
     for FN in expanded_dependencies:
       if not type(FN) == types.StringType:
         errmsg = 'ERROR (caching.py): Dependency must be a string.\n'
-        errmsg += '                    Dependency given: %s' %FN
+        errmsg += '                   Dependency given: %s' %FN
         raise Exception, errmsg      
       if not os.access(FN,os.F_OK):
         errmsg = 'ERROR (caching.py): Dependency '+FN+' does not exist.'

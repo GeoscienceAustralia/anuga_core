@@ -432,6 +432,10 @@ def fit_to_mesh(vertex_coordinates,
                 max_read_lines=None,
                 attribute_name=None,
                 use_cache = False):
+    """Wrapper around internal function _fit_to_mesh for use with caching.
+    
+    """
+    
     args = (vertex_coordinates, triangles, point_coordinates, )
     kwargs = {'point_attributes': point_attributes,
               'alpha': alpha,
@@ -443,11 +447,21 @@ def fit_to_mesh(vertex_coordinates,
               'attribute_name': attribute_name,
               'use_cache':use_cache 
               }
+
     if use_cache is True:
+        if isinstance(point_coordinates, basestring):
+            # We assume that point_coordinates is the name of a .csv/.txt
+            # file which must be passed onto caching as a dependency (in case it
+            # has changed on disk)
+            dep = [point_coordinates]
+        else:
+            dep = None
+
         return cache(_fit_to_mesh,
                      args, kwargs,
                      verbose=verbose,
-                     compression=False)
+                     compression=False,
+                     dependencies=dep)
     else:
         return apply(_fit_to_mesh,
                      args, kwargs)
