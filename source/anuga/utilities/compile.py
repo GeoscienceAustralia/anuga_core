@@ -118,7 +118,7 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
     if CC:
       compiler = CC
     else:  
-      compiler = 'gcc'
+      compiler = 'gcc.exe'  #Some systems require this (perhaps a security measure?)
     if LD:
       loader = LD
     else:  
