@@ -227,7 +227,11 @@ class Domain(Generic_Domain):
         The parameter H0 (Minimal height for flux computation)
         is also set by this function
         """
-        
+
+        #FIXME (Ole): rename H0 to minimum_allowed_height_in_flux_computation
+        #rename limit2007 to tight_slope_limiters.
+        #Maybe use histogram to identify isolated extreme speeds and deal with them adaptively
+        #similarly to how we used to use 1 order steps to recover.
         self.minimum_allowed_height = minimum_allowed_height
         self.H0 = minimum_allowed_height   
         
@@ -860,10 +864,9 @@ def compute_fluxes_c(domain):
     timestep = float(sys.maxint)
     from shallow_water_ext import\
          compute_fluxes_ext_central as compute_fluxes_ext
-    
 
     domain.timestep = compute_fluxes_ext(timestep, domain.epsilon,
-                                         domain.H0,                                         
+                                         domain.H0,
                                          domain.g,
                                          domain.neighbours,
                                          domain.neighbour_edges,
@@ -1504,6 +1507,7 @@ def gravity_c(domain):
     gravity(g, h, v, x, xmom, ymom)
 
 
+
 def manning_friction(domain):
     """Apply (Manning) friction to water momentum
     (Python version)
@@ -1805,6 +1809,92 @@ def assign_windfield_values(xmom_update, ymom_update,
         xmom_update[k] += S*u
         ymom_update[k] += S*v
 
+
+
+
+class Inflow:
+    """Class Inflow - general 'rain and drain' forcing term.
+    
+    Useful for implementing flows in and out of the domain.
+    
+    Inflow(center, radius, flow)
+    
+    center [m]: Coordinates at center of flow point
+    radius [m]: Size of circular area
+    flow [m^3/s]: Total flow rate over the specified area.  
+                  This parameter can be either a constant or a
+                  function of time. Positive values indicate inflow, 
+                  negative values indicate outflow.
+                  The specified flow will be divided by the area of
+                  the inflow region and then applied to update the
+                  quantity in question. 
+    
+    Examples
+
+    # Constant drain at 0.003 m^3/s.
+    # The outflow area is 0.07**2*pi=0.0154 m^2
+    # This corresponds to a rate of change of 0.003/0.0154 = 0.2 m/s 
+    #				          
+    Inflow((0.7, 0.4), 0.07, -0.003)
+
+
+    # Tap turning up to a maximum inflow of 0.0142 m^3/s.
+    # The inflow area is 0.03**2*pi = 0.00283 m^2
+    # This corresponds to a rate of change of 0.0142/0.00283 = 5 m/s     
+    # over the specified area
+    Inflow((0.5, 0.5), 0.03, lambda t: min(0.01*t, 0.0142))
+    """
+
+    # FIXME (OLE): Add a polygon as an alternative.
+    # FIXME (OLE): Generalise to all quantities
+
+    def __init__(self,
+		 center=None, radius=None,
+		 flow=0.0,
+		 quantity_name = 'stage'):
+
+        from math import pi
+
+        
+		 
+        if center is not None and radius is not None:
+            assert len(center) == 2
+	else:
+	    msg = 'Both center and radius must be specified'
+	    raise Exception, msg
+    
+        self.center = center
+	self.radius = radius
+        self.area = radius**2*pi
+        self.flow = flow
+	self.quantity_name = quantity_name
+    
+    def __call__(self, domain):
+
+        # Determine indices in flow area
+    	if not hasattr(self, 'indices'):
+	    center = self.center
+	    radius = self.radius
+	    
+    	    N = len(domain)    
+    	    self.indices = []
+    	    coordinates = domain.get_centroid_coordinates()	
+    	    for k in range(N):
+    	        x, y = coordinates[k,:] # Centroid
+    	 	if ((x-center[0])**2+(y-center[1])**2) < radius**2:
+		    self.indices.append(k)    
+
+        # Update inflow
+	if callable(self.flow):
+	    flow = self.flow(domain.get_time())
+	else:
+	    flow = self.flow
+
+        # Now flow is a number
+        
+        quantity = domain.quantities[self.quantity_name].explicit_update
+        for k in self.indices:
+            quantity[k] += flow/self.area		        
 
 
 ##############################
