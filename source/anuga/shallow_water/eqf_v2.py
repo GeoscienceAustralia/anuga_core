@@ -50,7 +50,8 @@ def earthquake_tsunami(length, width, strike, depth, \
         print '\ty0: ', y0
 
     # warning state
-    test = width*1000.0*sin(radians(dip)) - depth
+#    test = width*1000.0*sin(radians(dip)) - depth
+    test = width*1000.0*sin(radians(dip)) - depth*1000
     
     if test > 0.0:
         msg = 'Earthquake source not located below seafloor - check depth'
