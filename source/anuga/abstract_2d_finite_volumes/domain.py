@@ -826,7 +826,7 @@ class Domain(Mesh):
 
 
         if finaltime is not None and duration is not None:
-            print 'F', finaltime, duration
+            #print 'F', finaltime, duration
             msg = 'Only one of finaltime and duration may be specified'
             raise msg
         else:
@@ -863,7 +863,6 @@ class Domain(Mesh):
             yield(self.time)  #Yield initial values
 
         while True:
-
             #Compute fluxes across each element edge
             self.compute_fluxes()
 
@@ -982,7 +981,11 @@ class Domain(Mesh):
                     print msg
                     timestep = min_timestep  #Try enforcing min_step
 
-                    #raise msg
+
+                    print self.timestepping_statistics(track_speeds=True)
+
+
+                    raise Exception
                 else:
                     #Try to overcome situation by switching to 1 order
                     self._order_ = 1

@@ -4197,6 +4197,88 @@ class Test_Shallow_Water(unittest.TestCase):
         os.remove(domain1.get_name() + '.' + domain1.format)
 
 
+
+    def test_tight_slope_limiters(self):
+        """Test that new slope limiters (Feb 2007) don't induce extremely
+        small timesteps. This test actually reveals the problem as it
+        was in March-April 2007 
+        """
+
+        import time, os
+        from Numeric import array, zeros, allclose, Float, concatenate
+        from Scientific.IO.NetCDF import NetCDFFile
+        from data_manager import get_dataobject, extent_sww
+        from mesh_factory import rectangular
+
+        
+        #Create basic mesh
+        points, vertices, boundary = rectangular(2, 2)
+
+        #Create shallow water domain
+        domain = Domain(points, vertices, boundary)
+        domain.default_order = 2
+        domain.limit2007 = 1
+        domain.H0 = 0.01
+        
+
+
+        #Set some field values
+        domain.set_quantity('elevation', lambda x,y: -x)
+        domain.set_quantity('friction', 0.03)
+
+
+        ######################
+        # Boundary conditions
+        B = Transmissive_boundary(domain)
+        domain.set_boundary( {'left': B, 'right': B, 'top': B, 'bottom': B})
+
+
+        ######################
+        #Initial condition - with jumps
+
+
+        bed = domain.quantities['elevation'].vertex_values
+        stage = zeros(bed.shape, Float)
+
+        h = 0.3
+        for i in range(stage.shape[0]):
+            if i % 2 == 0:
+                stage[i,:] = bed[i,:] + h
+            else:
+                stage[i,:] = bed[i,:]
+
+        domain.set_quantity('stage', stage)
+
+
+        domain.distribute_to_vertices_and_edges()		
+
+        
+
+        domain.set_name('tight_limiters')
+        domain.format = 'sww'
+        domain.smooth = True
+        domain.reduction = mean
+        domain.set_datadir('.')
+        domain.smooth = False
+        domain.store = True
+        domain.beta_h = 0
+        
+
+        #Evolution
+        for t in domain.evolve(yieldstep = 0.1, finaltime = 0.3):
+            
+	    #domain.write_time(track_speeds=True)
+            stage = domain.quantities['stage'].vertex_values
+
+            #Get NetCDF
+            fid = NetCDFFile(domain.writer.filename, 'r')
+            stage_file = fid.variables['stage']
+            
+            fid.close()
+
+        os.remove(domain.writer.filename)
+
+
     def test_pmesh2Domain(self):
          import os
          import tempfile

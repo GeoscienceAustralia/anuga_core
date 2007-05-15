@@ -43,7 +43,6 @@ class Test_Data_Manager(unittest.TestCase):
         domain = Domain(points, vertices, boundary)
         domain.default_order = 2
 
-
         #Set some field values
         domain.set_quantity('elevation', lambda x,y: -x)
         domain.set_quantity('friction', 0.03)
@@ -341,6 +340,7 @@ class Test_Data_Manager(unittest.TestCase):
         sww = get_dataobject(self.domain)
         sww.store_connectivity()
         sww.store_timestep('stage')
+        #self.domain.limit2007 = 1
         self.domain.evolve_to_end(finaltime = 0.01)
         sww.store_timestep('stage')
 
@@ -395,7 +395,7 @@ class Test_Data_Manager(unittest.TestCase):
         sww = get_dataobject(self.domain)
         sww.store_connectivity()
         sww.store_timestep('stage')
-
+        #self.domain.limit2007 = 1
         self.domain.evolve_to_end(finaltime = 0.01)
         sww.store_timestep('stage')
 
@@ -448,17 +448,18 @@ class Test_Data_Manager(unittest.TestCase):
         self.domain.smooth = False
         self.domain.store = True
         self.domain.beta_h = 0
-
+        #self.domain.limit2007 = 1
 
         #Evolution
         for t in self.domain.evolve(yieldstep = 1.0, finaltime = 4.0):
+            
 	    #########self.domain.write_time(track_speeds=True)
             stage = self.domain.quantities['stage'].vertex_values
 
             #Get NetCDF
             fid = NetCDFFile(self.domain.writer.filename, 'r')
             stage_file = fid.variables['stage']
-
+            
             if t == 0.0:
                 assert allclose(stage, self.initial_stage)
                 assert allclose(stage_file[:], stage.flat)
@@ -490,6 +491,7 @@ class Test_Data_Manager(unittest.TestCase):
         sww.store_connectivity()
         sww.store_timestep('stage')
 
+        #self.domain.limit2007 = 1
         self.domain.evolve_to_end(finaltime = 0.01)
         sww.store_timestep('stage')
 
@@ -1117,6 +1119,8 @@ END CROSS-SECTIONS:
         sww.store_connectivity()
         sww.store_timestep('stage')
 
+        #self.domain.limit2007 = 1
+
         self.domain.evolve_to_end(finaltime = 0.01)
         sww.store_timestep('stage')
 
@@ -1290,7 +1294,8 @@ END CROSS-SECTIONS:
         sww = get_dataobject(domain)
         sww.store_connectivity()
         sww.store_timestep('stage')
-
+        
+        domain.limit2007 = 1
         domain.evolve_to_end(finaltime = 0.01)
         sww.store_timestep('stage')
 
@@ -1475,6 +1480,7 @@ END CROSS-SECTIONS:
         sww.store_connectivity()
         sww.store_timestep('stage')
 
+        #domain.limit2007 = 1
         domain.evolve_to_end(finaltime = 0.01)
         sww.store_timestep('stage')
 
@@ -1623,6 +1629,7 @@ END CROSS-SECTIONS:
         sww.store_connectivity()
         sww.store_timestep('stage')
 
+        #self.domain.limit2007 = 1
         self.domain.evolve_to_end(finaltime = 0.01)
         sww.store_timestep('stage')
 
@@ -1734,6 +1741,7 @@ END CROSS-SECTIONS:
         sww.store_connectivity()
         sww.store_timestep('stage')
 
+        #self.domain.limit2007 = 1
         self.domain.evolve_to_end(finaltime = 0.01)
         sww.store_timestep('stage')
 
@@ -1992,6 +2000,7 @@ END CROSS-SECTIONS:
         sww.store_connectivity()
         sww.store_timestep('stage')
 
+        #self.domain.limit2007 = 1
         self.domain.evolve_to_end(finaltime = 0.01)
         sww.store_timestep('stage')
 
@@ -2091,6 +2100,7 @@ END CROSS-SECTIONS:
         sww.store_connectivity()
         sww.store_timestep('stage')
 
+        #self.domain.limit2007 = 1
         self.domain.evolve_to_end(finaltime = 0.01)
         sww.store_timestep('stage')
 
@@ -2752,6 +2762,7 @@ END CROSS-SECTIONS:
         self.domain.smooth = True
         self.domain.reduction = mean
         self.domain.set_datadir('.')
+        #self.domain.limit2007 = 1        
 
 
         sww = get_dataobject(self.domain)
@@ -2774,7 +2785,7 @@ END CROSS-SECTIONS:
         assert allclose(xmax, 1.0)
         assert allclose(ymin, 0.0)
         assert allclose(ymax, 1.0)
-        assert allclose(stagemin, -0.85)
+        assert allclose(stagemin, -0.85), 'stagemin=%.4f' %stagemin
         assert allclose(stagemax, 0.15)
 
 
@@ -2823,6 +2834,7 @@ END CROSS-SECTIONS:
 
         domain.check_integrity()
         #Evolution
+        #domain.limit2007 = 1
         for t in domain.evolve(yieldstep = yiel, finaltime = 0.05):
             #domain.write_time()
             pass
@@ -6021,7 +6033,7 @@ if __name__ == "__main__":
     else:
         pass
     suite = unittest.makeSuite(Test_Data_Manager,'test')
-    runner = unittest.TextTestRunner() #verbosity=2)
+    runner = unittest.TextTestRunner()#(verbosity=2)
     runner.run(suite)
 
     # Cleaning up
