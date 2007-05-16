@@ -54,6 +54,7 @@ class DataMissingValuesError(exceptions.Exception): pass
 class DataFileNotOpenError(exceptions.Exception): pass
 class DataTimeError(exceptions.Exception): pass
 class DataDomainError(exceptions.Exception): pass
+class NewQuantity(exceptions.Exception): pass
 
 
 
@@ -65,14 +66,15 @@ import array as p_array
 from os import sep, path
 
 from Numeric import concatenate, array, Float, Int, Int32, resize, sometrue, \
-     searchsorted, zeros, allclose, around, reshape, transpose, sort
+     searchsorted, zeros, allclose, around, reshape, transpose, sort, \
+     NewAxis, ArrayType
 from Scientific.IO.NetCDF import NetCDFFile
 
 
 from anuga.coordinate_transforms.redfearn import redfearn, \
      convert_from_latlon_to_utm
 from anuga.coordinate_transforms.geo_reference import Geo_reference, \
-     write_NetCDF_georeference
+     write_NetCDF_georeference, ensure_geo_reference
 from anuga.geospatial_data.geospatial_data import Geospatial_data,\
      ensure_absolute
 from anuga.config import minimum_storable_height as default_minimum_storable_height
@@ -82,6 +84,7 @@ from anuga.utilities.anuga_exceptions import ANUGAError
 from anuga.shallow_water import Domain
 from anuga.abstract_2d_finite_volumes.pmesh2domain import \
      pmesh_to_domain_instance
+from anuga.abstract_2d_finite_volumes.util import get_revision_number
     
 def make_filename(s):
     """Transform argument string into a suitable filename
@@ -279,74 +282,80 @@ class Data_format_sww(Data_format):
         fid = NetCDFFile(self.filename, mode)
 
         if mode == 'w':
-
-            #Create new file
-            fid.institution = 'Geoscience Australia'
-            fid.description = 'Output from anuga.abstract_2d_finite_volumes suitable for plotting'
-
-            if domain.smooth:
-                fid.smoothing = 'Yes'
-            else:
-                fid.smoothing = 'No'
-
-            fid.order = domain.default_order
-
+            description = 'Output from anuga.abstract_2d_finite_volumes suitable for plotting'
+            self.writer = Write_sww()
+            self.writer.header(fid, domain.starttime,
+                                         self.number_of_volumes,
+                                         self.domain.number_of_full_nodes,
+                                         description=description,
+                                         smoothing=domain.smooth,
+                                         order=domain.default_order)
             if hasattr(domain, 'texture'):
-                fid.texture = domain.texture
-            #else:
-            #    fid.texture = 'None'
+                fid.texture = domain.texture               
+    #        if domain.geo_reference is not None:
+    #            domain.geo_reference.write_NetCDF(fid)
+            
+#             fid.institution = 'Geoscience Australia'
+#             fid.description = 'Output from anuga.abstract_2d_finite_volumes suitable for plotting'
 
-            #Reference point
-            #Start time in seconds since the epoch (midnight 1/1/1970)
-            #FIXME: Use Georef
-            fid.starttime = domain.starttime
+#             if domain.smooth:
+#                 fid.smoothing = 'Yes'
+#             else:
+#                 fid.smoothing = 'No'
 
-            # dimension definitions
-            fid.createDimension('number_of_volumes', self.number_of_volumes)
-            fid.createDimension('number_of_vertices', 3)
+#             fid.order = domain.default_order
 
-            if domain.smooth is True:
-                #fid.createDimension('number_of_points', len(domain.vertexlist))
-                fid.createDimension('number_of_points', self.domain.number_of_full_nodes)
+#             #Reference point
+#             #Start time in seconds since the epoch (midnight 1/1/1970)
+#             #FIXME: Use Georef
+#             fid.starttime = domain.starttime
 
-                # FIXME(Ole): This will cause sww files for paralle domains to
-                # have ghost nodes stored (but not used by triangles).
-                # To clean this up, we have to change get_vertex_values and friends in
-                # quantity.py (but I can't be bothered right now)
-            else:
-                fid.createDimension('number_of_points', 3*self.number_of_volumes)
+#             # dimension definitions
+#             fid.createDimension('number_of_volumes', self.number_of_volumes)
+#             fid.createDimension('number_of_vertices', 3)
 
-            fid.createDimension('number_of_timesteps', None) #extensible
+#             if domain.smooth is True:
+#                 #fid.createDimension('number_of_points', len(domain.vertexlist))
+#                 fid.createDimension('number_of_points', self.domain.number_of_full_nodes)
 
-            # variable definitions
-            fid.createVariable('x', self.precision, ('number_of_points',))
-            fid.createVariable('y', self.precision, ('number_of_points',))
-            fid.createVariable('elevation', self.precision, ('number_of_points',))
-            if domain.geo_reference is not None:
-                domain.geo_reference.write_NetCDF(fid)
+#                 # FIXME(Ole): This will cause sww files for paralle domains to
+#                 # have ghost nodes stored (but not used by triangles).
+#                 # To clean this up, we have to change get_vertex_values and friends in
+#                 # quantity.py (but I can't be bothered right now)
+#             else:
+#                 fid.createDimension('number_of_points', 3*self.number_of_volumes)
 
-            #FIXME: Backwards compatibility
-            fid.createVariable('z', self.precision, ('number_of_points',))
-            #################################
+#             fid.createDimension('number_of_timesteps', None) #extensible
 
-            fid.createVariable('volumes', Int, ('number_of_volumes',
-                                                'number_of_vertices'))
+#             # variable definitions
+#             fid.createVariable('x', self.precision, ('number_of_points',))
+#             fid.createVariable('y', self.precision, ('number_of_points',))
+#             fid.createVariable('elevation', self.precision, ('number_of_points',))
+#             if domain.geo_reference is not None:
+#                 domain.geo_reference.write_NetCDF(fid)
 
-            fid.createVariable('time', Float,  # Always use full precision lest two timesteps 
-	                                       # close to each other may appear as the same step 
-                               ('number_of_timesteps',))
+#             #FIXME: Backwards compatibility
+#             fid.createVariable('z', self.precision, ('number_of_points',))
+#             #################################
 
-            fid.createVariable('stage', self.precision,
-                               ('number_of_timesteps',
-                                'number_of_points'))
+#             fid.createVariable('volumes', Int, ('number_of_volumes',
+#                                                 'number_of_vertices'))
 
-            fid.createVariable('xmomentum', self.precision,
-                               ('number_of_timesteps',
-                                'number_of_points'))
+#             fid.createVariable('time', Float,  # Always use full precision lest two timesteps 
+# 	                                       # close to each other may appear as the same step 
+#                                ('number_of_timesteps',))
 
-            fid.createVariable('ymomentum', self.precision,
-                               ('number_of_timesteps',
-                                'number_of_points'))
+#             fid.createVariable('stage', self.precision,
+#                                ('number_of_timesteps',
+#                                 'number_of_points'))
+
+#             fid.createVariable('xmomentum', self.precision,
+#                                ('number_of_timesteps',
+#                                 'number_of_points'))
+
+#             fid.createVariable('ymomentum', self.precision,
+#                                ('number_of_timesteps',
+#                                 'number_of_points'))
 
         #Close
         fid.close()
@@ -380,14 +389,23 @@ class Data_format_sww(Data_format):
         X,Y,Z,V = Q.get_vertex_values(xy=True,
                                       precision=self.precision)
 
-        volumes[:] = V.astype(volumes.typecode())
-        x[:] = X
-        y[:] = Y
-        z[:] = Z
+        #
+        points = concatenate( (X[:,NewAxis],Y[:,NewAxis]), axis=1 )
+        self.writer.triangulation(fid, points,
+                                            V.astype(volumes.typecode()),
+                                            Z,
+                                            points_georeference= \
+                                            domain.geo_reference)
+        #
+                                
+#         volumes[:] = V.astype(volumes.typecode())
+#         x[:] = X
+#         y[:] = Y
+#         z[:] = Z
 
-        #FIXME: Backwards compatibility
-        z = fid.variables['z']
-        z[:] = Z
+#         #FIXME: Backwards compatibility
+#         z = fid.variables['z']
+#         z[:] = Z
         ################################
 
 
@@ -404,8 +422,8 @@ class Data_format_sww(Data_format):
         from os import stat
 
         from Numeric import choose
-
-        #Get NetCDF
+        
+        #Get NetCDF       
         retries = 0
         file_open = False
         while not file_open and retries < 10:
@@ -485,39 +503,61 @@ class Data_format_sww(Data_format):
             xmomentum = fid.variables['xmomentum']
             ymomentum = fid.variables['ymomentum']
             i = len(time)
-
-            #Store time
-            time[i] = self.domain.time
-
-
             if type(names) not in [types.ListType, types.TupleType]:
                 names = [names]
 
-            for name in names:
-                # Get quantity
-                Q = domain.quantities[name]
-                A,V = Q.get_vertex_values(xy = False,
+            if 'stage' in names and 'xmomentum' in names and \
+                   'ymomentum' in names:
+
+                # Get stage
+                Q = domain.quantities['stage']
+                A,_ = Q.get_vertex_values(xy = False,
+                                          precision = self.precision)                
+                z = fid.variables['elevation']
+                stage = choose(A-z[:] >= self.minimum_storable_height,
+                           (z[:], A))
+                
+                # Get xmomentum
+                Q = domain.quantities['xmomentum']
+                xmomentum, _ = Q.get_vertex_values(xy = False,
+                                          precision = self.precision)
+                
+                # Get ymomentum
+                Q = domain.quantities['ymomentum']
+                ymomentum, _ = Q.get_vertex_values(xy = False,
+                                          precision = self.precision)
+                self.writer.quantities(fid, 
+                                                 time=self.domain.time,
+                                                 precision=self.precision,
+                                                 stage=stage,
+                                                 xmomentum=xmomentum,
+                                                 ymomentum=ymomentum)
+            else:
+                # This is producing a sww that is not standard.
+                #Store time
+                time[i] = self.domain.time
+                
+                for name in names:
+                    # Get quantity
+                    Q = domain.quantities[name]
+                    A,V = Q.get_vertex_values(xy = False,
                                           precision = self.precision)
 
+                    #FIXME: Make this general (see below)
+                    if name == 'stage':
+                        z = fid.variables['elevation']
+                        A = choose(A-z[:] >= self.minimum_storable_height,
+                                   (z[:], A))
+                        stage[i,:] = A.astype(self.precision)
+                    elif name == 'xmomentum':
+                        xmomentum[i,:] = A.astype(self.precision)
+                    elif name == 'ymomentum':
+                        ymomentum[i,:] = A.astype(self.precision)
 
-                #FIXME: Make this general (see below)
-                if name == 'stage':
-                    z = fid.variables['elevation']
-                    #print z[:]
-                    #print A-z[:]
-
-
-                    A = choose(A-z[:] >= self.minimum_storable_height,
-                               (z[:], A))
-                    stage[i,:] = A.astype(self.precision)
-                elif name == 'xmomentum':
-                    xmomentum[i,:] = A.astype(self.precision)
-                elif name == 'ymomentum':
-                    ymomentum[i,:] = A.astype(self.precision)
-
-                #As in....
-            #eval( name + '[i,:] = A.astype(self.precision)' )
-            #FIXME: But we need a UNIT test for that before refactoring
+                   #As in....
+                   #eval( name + '[i,:] = A.astype(self.precision)' )
+                   #FIXME: But we need a UNIT test for that before
+                   # refactoring
 
 
 
@@ -1470,8 +1510,6 @@ Only the SURFACE LINE data of the following form will be utilised
     elevation: N Float array
     """
 
-    #FIXME: Can this be written feasibly using write_pts?
-
     import os
     from Scientific.IO.NetCDF import NetCDFFile
     from Numeric import Float, zeros, reshape
@@ -1553,42 +1591,10 @@ Only the SURFACE LINE data of the following form will be utilised
     else:
         ptsname = basename_out + '.pts'
 
-    #FIXME (DSG-ON): use loadASCII export_points_file
-    if verbose: print 'Store to NetCDF file %s' %ptsname
-    # NetCDF file definition
-    outfile = NetCDFFile(ptsname, 'w')
-
-    #Create new file
-    outfile.institution = 'Geoscience Australia'
-    outfile.description = 'NetCDF pts format for compact and portable ' +\
-                          'storage of spatial point data derived from HEC-RAS'
-
-    #Georeferencing
-    outfile.zone = zone
-    outfile.xllcorner = 0.0
-    outfile.yllcorner = 0.0
-    outfile.false_easting = 500000    #FIXME: Use defaults from e.g. config.py
-    outfile.false_northing = 1000000
-
-    outfile.projection = projection
-    outfile.datum = datum
-    outfile.units = units
-
-
-    outfile.createDimension('number_of_points', len(points))
-    outfile.createDimension('number_of_dimensions', 2) #This is 2d data
-
-    # variable definitions
-    outfile.createVariable('points', Float, ('number_of_points',
-                                             'number_of_dimensions'))
-    outfile.createVariable('elevation', Float, ('number_of_points',))
-
-    # Get handles to the variables
-    outfile.variables['points'][:] = points
-    outfile.variables['elevation'][:] = elevation
-
-    outfile.close()
-
+    geo_ref = Geo_reference(zone, 0, 0, datum, projection, units)
+    geo = Geospatial_data(points, {"elevation":elevation},
+                          verbose=verbose, geo_reference=geo_ref)
+    geo.export_points_file(ptsname)
 
 
 def sww2dem(basename_in, basename_out = None,
@@ -2656,8 +2662,10 @@ def ferret2sww(basename_in, basename_out = None,
     
     #Create new file
     starttime = times[0]
-    write_sww_header(outfile, times, number_of_volumes,
-                     number_of_points, description=description) 
+    sww = Write_sww()
+    sww.header(outfile, times, number_of_volumes,
+                         number_of_points, description=description,
+                         verbose=verbose)
 
     #Store
     from anuga.coordinate_transforms.redfearn import redfearn
@@ -2748,7 +2756,6 @@ def ferret2sww(basename_in, basename_out = None,
     if verbose:
         x = outfile.variables['x'][:]
         y = outfile.variables['y'][:]
-        times = outfile.variables['time'][:]
         print '------------------------------------------------'
         print 'Statistics of output file:'
         print '  Name: %s' %swwname
@@ -3010,6 +3017,14 @@ def sww2domain(filename,boundary=None,t=None,\
     other_quantities.remove('y')
     other_quantities.remove('z')
     other_quantities.remove('volumes')
+    try:
+        other_quantities.remove('stage_range')
+        other_quantities.remove('xmomentum_range')
+        other_quantities.remove('ymomentum_range')
+        other_quantities.remove('elevation_range')
+    except:
+        pass
+        
 
     conserved_quantities.remove('time')
 
@@ -3139,9 +3154,9 @@ def get_time_interp(time,t=None):
 
 
 def weed(coordinates,volumes,boundary = None):
-    if type(coordinates)=='array':
+    if type(coordinates)==ArrayType:
         coordinates = coordinates.tolist()
-    if type(volumes)=='array':
+    if type(volumes)==ArrayType:
         volumes = volumes.tolist()
 
     unique = False
@@ -4366,6 +4381,7 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
     UTM coordinates (zone, easting, northing)
     It will be the origin of the sww file. This shouldn't be used,
     since all of anuga should be able to handle an arbitary origin.
+    The mux point info is NOT relative to this origin.
 
 
     URS C binary format has data orgainised as TIME, LONGITUDE, LATITUDE
@@ -4436,7 +4452,9 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
     # a good boundary.
     mesh = Mesh()
     mesh.add_vertices(points_utm)
-    mesh.auto_segment()
+    mesh.auto_segment(smooth_indents=True, expand_pinch=True)
+    # To try and avoid alpha shape 'hugging' too much
+    mesh.auto_segment( mesh.shape.get_alpha()*1.1 )
     if hole_points_UTM is not None:
         point = ensure_absolute(hole_points_UTM)
         mesh.add_hole(point[0], point[1])
@@ -4484,25 +4502,38 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
     outfile = NetCDFFile(swwname, 'w')
     # For a different way of doing this, check out tsh2sww
     # work out sww_times and the index range this covers
-    write_sww_header(outfile, times, len(volumes), len(points_utm))
+    sww = Write_sww()
+    sww.header(outfile, times, len(volumes), len(points_utm),
+                         verbose=verbose)
     outfile.mean_stage = mean_stage
     outfile.zscale = zscale
-    write_sww_triangulation(outfile, points_utm, volumes,
-                            elevation, zone,  origin=origin, verbose=verbose)
+
+    sww.triangulation(outfile, points_utm, volumes,
+                            elevation, zone,  new_origin=origin,
+                            verbose=verbose)
     
     if verbose: print 'Converting quantities'
     j = 0
     # Read in a time slice from each mux file and write it to the sww file
-    for HA, UA, VA in map(None, mux['HA'], mux['UA'], mux['VA']):
+    for ha, ua, va in map(None, mux['HA'], mux['UA'], mux['VA']):
         if j >= mux_times_start_i and j < mux_times_fin_i:
-            write_sww_time_slice(outfile, HA, UA, VA,  elevation,
-                                 j - mux_times_start_i,
-                                 mean_stage=mean_stage, zscale=zscale,
-                                 verbose=verbose)
+            stage = zscale*ha + mean_stage
+            h = stage - elevation
+            xmomentum = ua*h
+            ymomentum = -1*va*h # -1 since in mux files south is positive.
+            sww.quantities(outfile, 
+                                     slice_index=j - mux_times_start_i,
+                                     verbose=verbose,
+                                     stage=stage,
+                                     xmomentum=xmomentum,
+                                     ymomentum=ymomentum)
         j += 1
+    if verbose: sww.verbose_quantities(outfile)
     outfile.close()
     #
     # Do some conversions while writing the sww file
+
+    
 def mux2sww_time(mux_times, mint, maxt):
     """
     """
@@ -4521,118 +4552,272 @@ def mux2sww_time(mux_times, mint, maxt):
 
     return mux_times_start_i, mux_times_fin_i
 
-def write_sww_header(outfile, times, number_of_volumes, number_of_points, description='Converted from XXX'):
-    """
-    outfile - the name of the file that will be written
-    times - A list of the time slice times
-    number_of_volumes - the number of triangles
-    """
-    times = ensure_numeric(times)
+
+class Write_sww:
+    from anuga.shallow_water.shallow_water_domain import Domain 
+    sww_quantities = Domain.conserved_quantities
+    RANGE = '_range'
+    def __init__(self):
+        pass
     
-    number_of_times = len(times)
+    def header(self,outfile, times, number_of_volumes,
+                         number_of_points,
+                         description='Converted from XXX',
+                         smoothing=True,
+                         order=1, verbose=False):
+        """
+        outfile - the name of the file that will be written
+        times - A list of the time slice times OR a start time
+        Note, if a list is given the info will be made relative.
+        number_of_volumes - the number of triangles
+        """
     
-    outfile.institution = 'Geoscience Australia'
-    outfile.description = 'Converted from XXX'
+        outfile.institution = 'Geoscience Australia'
+        outfile.description = description
 
-    #For sww compatibility
-    outfile.smoothing = 'Yes'
-    outfile.order = 1
+        #For sww compatibility
+        if smoothing is True:
+            # Smoothing to be depreciated
+            outfile.smoothing = 'Yes'
+            outfile.vertices_are_stored_uniquely = 'False'
+        else:
+            # Smoothing to be depreciated
+            outfile.smoothing = 'No'
+            outfile.vertices_are_stored_uniquely = 'True'
+        outfile.order = order
 
-    #Start time in seconds since the epoch (midnight 1/1/1970)
-    if len(times) == 0:
-        outfile.starttime = starttime = 0
-    else:
-        outfile.starttime = starttime = times[0]
-    times = times - starttime  #Store relative times
+        try:
+            revision_number = get_revision_number()
+        except:
+            revision_number = None
+        # writing a string so None can be written    
+        outfile.revision_number = str(revision_number)
+        #times - A list or array of the time slice times OR a start time
+        #times = ensure_numeric(times) 
+        #Start time in seconds since the epoch (midnight 1/1/1970)
 
-    # dimension definitions
-    outfile.createDimension('number_of_volumes', number_of_volumes)
-    outfile.createDimension('number_of_vertices', 3)
-    outfile.createDimension('number_of_points', number_of_points)
-    outfile.createDimension('number_of_timesteps', number_of_times)
-
-    # variable definitions
-    outfile.createVariable('x', precision, ('number_of_points',))
-    outfile.createVariable('y', precision, ('number_of_points',))
-    outfile.createVariable('elevation', precision, ('number_of_points',))
-
-    #FIXME: Backwards compatibility
-    outfile.createVariable('z', precision, ('number_of_points',))
-    #################################
-
-    outfile.createVariable('volumes', Int, ('number_of_volumes',
-                                            'number_of_vertices'))
-
-    outfile.createVariable('time', precision,
-                           ('number_of_timesteps',))
-
-    outfile.createVariable('stage', precision,
-                           ('number_of_timesteps',
-                            'number_of_points'))
-
-    outfile.createVariable('xmomentum', precision,
-                           ('number_of_timesteps',
-                            'number_of_points'))
-
-    outfile.createVariable('ymomentum', precision,
-                           ('number_of_timesteps',
-                            'number_of_points'))
+        # this is being used to seperate one number from a list.
+        # what it is actually doing is sorting lists from numeric arrays.
+        if type(times) is list or type(times) is ArrayType:  
+            number_of_times = len(times)
+            times = ensure_numeric(times)  
+            if number_of_times == 0:
+                starttime = 0
+            else:
+                starttime = times[0]
+                times = times - starttime  #Store relative times
+        else:
+            number_of_times = 0
+            starttime = times
+        #print "times",times
+        #print "starttime", starttime
+        outfile.starttime = starttime
+        # dimension definitions
+        outfile.createDimension('number_of_volumes', number_of_volumes)
+        outfile.createDimension('number_of_vertices', 3)
+        outfile.createDimension('numbers_in_range', 2)
     
-    outfile.variables['time'][:] = times    #Store time relative
+        if smoothing is True:
+            outfile.createDimension('number_of_points', number_of_points)
+        
+            # FIXME(Ole): This will cause sww files for paralle domains to
+            # have ghost nodes stored (but not used by triangles).
+            # To clean this up, we have to change get_vertex_values and 
+            # friends in quantity.py (but I can't be bothered right now)
+        else:
+            outfile.createDimension('number_of_points', 3*number_of_volumes)
+        outfile.createDimension('number_of_timesteps', number_of_times)
 
+        # variable definitions
+        outfile.createVariable('x', precision, ('number_of_points',))
+        outfile.createVariable('y', precision, ('number_of_points',))
+        outfile.createVariable('elevation', precision, ('number_of_points',))
+        q = 'elevation'
+        outfile.createVariable(q+Write_sww.RANGE, precision,
+                               ('numbers_in_range',))
+        # The values are initally filled with large (10e+36) numbers.
+        # I'm relying on this feature.  Maybe I shouldn't?
+        outfile.variables[q+Write_sww.RANGE][1] = \
+                          -1*outfile.variables[q+Write_sww.RANGE][1]
 
-def write_sww_triangulation(outfile, points_utm, volumes,
-                            elevation, zone, origin=None, verbose=False):
+        #FIXME: Backwards compatibility
+        outfile.createVariable('z', precision, ('number_of_points',))
+        #################################
 
-    number_of_points = len(points_utm)   
-    volumes = array(volumes)
+        outfile.createVariable('volumes', Int, ('number_of_volumes',
+                                                'number_of_vertices'))
+        
+        outfile.createVariable('time', precision,
+                               ('number_of_timesteps',))
+        
+        for q in Write_sww.sww_quantities:
+            outfile.createVariable(q, precision,
+                                   ('number_of_timesteps',
+                                    'number_of_points'))  
+            outfile.createVariable(q+Write_sww.RANGE, precision,
+                                   ('numbers_in_range',))
+            # Initialising the max value to a very small number.
+            # It assumes that netcdf initialises it to a very large number
+            outfile.variables[q+Write_sww.RANGE][1] = \
+                -outfile.variables[q+Write_sww.RANGE][1]
+        outfile.variables['time'][:] = times    #Store time relative
+            
+        if verbose:
+            print '------------------------------------------------'
+            print 'Statistics:'
+            print '    t in [%f, %f], len(t) == %d'\
+                  %(min(times.flat), max(times.flat), len(times.flat))
 
-    if origin is None:
-        origin = Geo_reference(zone,min(points_utm[:,0]),min(points_utm[:,1]))
-    geo_ref = write_NetCDF_georeference(origin, outfile)
+        
+    def triangulation(self,outfile, points_utm, volumes,
+                                elevation, zone=None, new_origin=None, 
+                                points_georeference=None, verbose=False):
+        """
+        
+        new_origin - qa georeference that the points can be set to. (Maybe
+        do this before calling this function.)
+        
+        points_utm - currently a list or array of the points in UTM.
+        points_georeference - the georeference of the points_utm
+        
+        How about passing new_origin and current_origin.
+        If you get both, do a convertion from the old to the new.
+        
+        If you only get new_origin, the points are absolute, convert to relative
+        
+        if you only get the current_origin the points are relative, store
+        as relative.
+        
+        if you get no georefs create a new georef based on the minimums of
+        points_utm.  (Another option would be to default to absolute)
+        
+        Yes, and this is done in another part of the code.
+        Probably geospatial.
+        
+        If you don't supply either geo_refs, then supply a zone. If not
+        the default zone will be used.
+        
+        
+        precon
+        
+        header has been called.
+        """
+        
+        number_of_points = len(points_utm)   
+        volumes = array(volumes)
+
+        # given the two geo_refs and the points, do the stuff
+        # described in the method header
+        # if this is needed else where, pull out as a function
+        points_georeference = ensure_geo_reference(points_georeference)
+        new_origin = ensure_geo_reference(new_origin)
+        if new_origin is None and points_georeference is not None:
+            points = points_utm
+            geo_ref = points_georeference
+        else:
+            if new_origin is None:
+                new_origin = Geo_reference(zone,min(points_utm[:,0]),
+                                           min(points_utm[:,1]))
+            points = new_origin.change_points_geo_ref(points_utm,
+                                                      points_georeference)
+            geo_ref = new_origin
+
+        # At this stage I need a georef and points
+        # the points are relative to the georef
+        geo_ref.write_NetCDF(outfile)
     
-#     if origin is not None:
-#         if isinstance(origin, Geo_reference): 
-#             geo_ref = origin
-#         else:
-#             geo_ref = apply(Geo_reference,origin)
-#     else:
-#         geo_ref = Geo_reference(zone,min(points_utm[:,0]),min(points_utm[:,1]))
-#     #geo_ref = Geo_reference(zone,0,0)
-#     geo_ref.write_NetCDF(outfile)
+        # This will put the geo ref in the middle
+        #geo_ref = Geo_reference(refzone,(max(x)+min(x))/2.0,(max(x)+min(y))/2.)
+        x =  points[:,0]
+        y =  points[:,1]
+        z = outfile.variables['z'][:]
     
+        if verbose:
+            print '------------------------------------------------'
+            print 'More Statistics:'
+            print '  Extent (/lon):'
+            print '    x in [%f, %f], len(lat) == %d'\
+                  %(min(x), max(x),
+                    len(x))
+            print '    y in [%f, %f], len(lon) == %d'\
+                  %(min(y), max(y),
+                    len(y))
+            print '    z in [%f, %f], len(z) == %d'\
+                  %(min(elevation), max(elevation),
+                    len(elevation))
+            print 'geo_ref: ',geo_ref
+            print '------------------------------------------------'
+            
+        #z = resize(bath_grid,outfile.variables['z'][:].shape)
+        outfile.variables['x'][:] = points[:,0] #- geo_ref.get_xllcorner()
+        outfile.variables['y'][:] = points[:,1] #- geo_ref.get_yllcorner()
+        outfile.variables['z'][:] = elevation
+        outfile.variables['elevation'][:] = elevation  #FIXME HACK
+        outfile.variables['volumes'][:] = volumes.astype(Int32) #On Opteron 64
 
-    # This will put the geo ref in the middle
-    #geo_ref = Geo_reference(refzone,(max(x)+min(x))/2.0,(max(x)+min(y))/2.)
-    x =  points_utm[:,0]
-    y =  points_utm[:,1]
-    z = outfile.variables['z'][:]
-    #FIXME the w.r.t time is lost now..
-    if verbose:
+        q = 'elevation'
+        # This updates the _range values
+        outfile.variables[q+Write_sww.RANGE][0] = min(elevation)
+        outfile.variables[q+Write_sww.RANGE][1] = max(elevation)
+
+    def quantities(self, outfile, precision=Float,
+                             slice_index=None, time=None,
+                             verbose=False, **quant):
+        """
+        Write the quantity info.
+
+        **quant is extra keyword arguments passed in. These must be
+          the sww quantities, currently; stage, xmomentum, ymomentum.
+        
+        if the time array is already been built, use the slice_index
+        to specify the index.
+        
+        Otherwise, use time to increase the time dimension
+
+        Maybe make this general, but the viewer assumes these quantities,
+        so maybe we don't want it general - unless the viewer is general
+        
+        precon
+        triangulation and
+        header have been called.
+        """
+
+        if time is not None:
+            file_time = outfile.variables['time']
+            slice_index = len(file_time)
+            file_time[slice_index] = time    
+
+        # write the conserved quantities from Doamin.
+        # Typically stage,  xmomentum, ymomentum
+        # other quantities will be ignored, silently.
+        for q in Write_sww.sww_quantities:
+            if not quant.has_key(q):
+                msg = 'SWW file can not write quantity %s' %q
+                raise NewQuantity, msg
+            else:
+                q_values = quant[q]
+                outfile.variables[q][slice_index] = q_values.astype(precision)
+
+                # This updates the _range values
+                q_range = outfile.variables[q+Write_sww.RANGE][:]
+                q_values_min = min(q_values)
+                if q_values_min < q_range[0]:
+                    outfile.variables[q+Write_sww.RANGE][0] = q_values_min
+                q_values_max = max(q_values)
+                if q_values_max > q_range[1]:
+                    outfile.variables[q+Write_sww.RANGE][1] = q_values_max
+
+    def verbose_quantities(self, outfile):
         print '------------------------------------------------'
         print 'More Statistics:'
-        print '  Extent (/lon):'
-        print '    x in [%f, %f], len(lat) == %d'\
-              %(min(x), max(x),
-                len(x))
-        print '    y in [%f, %f], len(lon) == %d'\
-              %(min(y), max(y),
-                len(y))
-        print '    z in [%f, %f], len(z) == %d'\
-              %(min(elevation), max(elevation),
-                len(elevation))
-        print 'geo_ref: ',geo_ref
+        for q in Write_sww.sww_quantities:
+            print '  %s in [%f, %f]' %(q
+                                       ,outfile.variables[q+Write_sww.RANGE][0]
+                                       ,outfile.variables[q+Write_sww.RANGE][1]
+                                       )
         print '------------------------------------------------'
-
-    #z = resize(bath_grid,outfile.variables['z'][:].shape)
-    outfile.variables['x'][:] = points_utm[:,0] - geo_ref.get_xllcorner()
-    outfile.variables['y'][:] = points_utm[:,1] - geo_ref.get_yllcorner()
-    outfile.variables['z'][:] = elevation
-    outfile.variables['elevation'][:] = elevation  #FIXME HACK
-    outfile.variables['volumes'][:] = volumes.astype(Int32) #On Opteron 64
-
-
-def write_sww_time_slices(outfile, has, uas, vas, elevation,
+        
+def obsolete_write_sww_time_slices(outfile, has, uas, vas, elevation,
                          mean_stage=0, zscale=1,
                          verbose=False):    
     #Time stepping
@@ -4650,21 +4835,7 @@ def write_sww_time_slices(outfile, has, uas, vas, elevation,
         xmomentum[j] = ua*h
         ymomentum[j] = -1*va*h  #  -1 since in mux files south is positive.
         j += 1
-
-def write_sww_time_slice(outfile, ha, ua, va, elevation, slice_index,
-                         mean_stage=0, zscale=1,
-                         verbose=False):    
-    #Time stepping
-    stage = outfile.variables['stage']
-    xmomentum = outfile.variables['xmomentum']
-    ymomentum = outfile.variables['ymomentum']
-   
-    w = zscale*ha + mean_stage
-    stage[slice_index] = w
-    h = w - elevation
-    xmomentum[slice_index] = ua*h
-    ymomentum[slice_index] = -1*va*h # -1 since in mux files south is positive.
-
+    
 def urs2txt(basename_in, location_index=None):
     """
     Not finished or tested
