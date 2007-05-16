@@ -17,7 +17,7 @@ execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 
 os.chdir('..')
 os.chdir('mesh_engine')
-execfile('compile.py')
+execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 
 os.chdir(buildroot)    
 #execfile('test_all.py')
