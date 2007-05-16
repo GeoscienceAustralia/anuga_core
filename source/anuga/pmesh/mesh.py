@@ -1532,12 +1532,12 @@ class Mesh:
                                                    ObjectNeighbor[1],
                                                    ObjectNeighbor[2])
             index += 1
-        genDict['lonepointlist'].sort() 
-        genDict['lonepointlist'].reverse()       
-        for loner in genDict['lonepointlist']:
+        #genDict['lonepointlist'].sort() 
+        #genDict['lonepointlist'].reverse()       
+        #for loner in genDict['lonepointlist']:
             # Remove the loner vertex
             #print "Removing the loner", loner
-            self.meshVertices.pop(loner)
+            #self.meshVertices.pop(loner)
 
     def setMesh(self, genDict):
         """

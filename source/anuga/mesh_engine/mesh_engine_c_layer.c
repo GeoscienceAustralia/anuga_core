@@ -207,15 +207,16 @@ extern "C" void free();
   holder = PyDict_New();
      
   /* list of int's, used to keep track of which verts are connected to
-     triangles. */
+     triangles. 
   points_connected = (int *)malloc(out.numberofpoints*sizeof(int));
-  /* lone_verts = (int *)malloc(out.numberofpoints*sizeof(int)); */ 
+   lone_verts = (int *)malloc(out.numberofpoints*sizeof(int)); */ 
   
-  /* Initialise lone vert list */
+  /* Initialise lone vert list 
   for(i=0; i<out.numberofpoints;i++){
     points_connected[i] = 0;
-    /* lone_verts[i] = 0; */
-  }  
+     lone_verts[i] = 0;
+  } */
+    
   
   /* Add triangle list */
   listsize = out.numberoftriangles;
@@ -228,9 +229,9 @@ extern "C" void free();
     /* printf(" A vert index %i\n",out.trianglelist[i*3] );
     printf(" A vert index %i\n",out.trianglelist[i*3+1] );
     printf(" A vert index %i\n",out.trianglelist[i*3+2] ); */
-    points_connected[out.trianglelist[i*3]] = 1;
+    /* points_connected[out.trianglelist[i*3]] = 1;
     points_connected[out.trianglelist[i*3+1]] = 1;
-    points_connected[out.trianglelist[i*3+2]] = 1;
+    points_connected[out.trianglelist[i*3+2]] = 1;*/
     /* lone_verts[out.trianglelist[i*3]] = 1;
     lone_verts[out.trianglelist[i*3+1]] = 1;
     lone_verts[out.trianglelist[i*3+2]] = 1; */
@@ -241,20 +242,20 @@ extern "C" void free();
   
   /* convert the points_connected vector from a true(1) false(0) vector, where
      index is the vert, to a vector of the lone verts, at the beggining
-     of the vector. */
+     of the vector. 
   write_here = 0;   
   for(i=0; i<out.numberofpoints;i++){
-    /* lone_verts[i-write_here] = lone_verts[i]; */
     if (0 == points_connected[i]) {
       points_connected[write_here] = i;
       write_here ++;
     }
-  }   
+  }   */
   /* printf(" ******************** \n" );
   for(i=0; i<write_here;i++){
     printf(" A vert index %i\n",points_connected[i] );
     } */
   
+  /*  *** since I'm passing -j in to the mode we don't need this list
   listsize = write_here;
   holderlist = PyList_New(listsize);
   for(i=0; i<listsize;i++){
@@ -263,6 +264,7 @@ extern "C" void free();
   }
   ii=PyString_FromString("lonepointlist");
   PyDict_SetItem(holder, ii, holderlist); Py_DECREF(ii); Py_DECREF(holderlist); 
+  */
      
   
   /* Add pointlist */
@@ -404,9 +406,10 @@ extern "C" void free();
   if(!out.regionlist){
     free(out.regionlist); out.regionlist=NULL;
   }
-  if(!points_connected ){
+  
+  /*if(!points_connected ){
     free(points_connected ); points_connected =NULL;
-  }     
+    }     */
   return Py_BuildValue((char *)"O", holder);
 }
 

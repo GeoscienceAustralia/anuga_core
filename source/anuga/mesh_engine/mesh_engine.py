@@ -105,6 +105,7 @@ def generate_mesh(points=None,
     
     #print "mode", mode
     if mode.find('n'):
+        #pass
         mode = 'j' + mode
         # j- Jettisons vertices that are not part of the final
         #    triangulation from the output .node file (including duplicate
