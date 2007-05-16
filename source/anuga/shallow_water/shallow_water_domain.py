@@ -106,6 +106,9 @@ from anuga.config import alpha_balance
 #Shallow water domain
 class Domain(Generic_Domain):
 
+    conserved_quantities = ['stage', 'xmomentum', 'ymomentum']
+    other_quantities = ['elevation', 'friction']
+    
     def __init__(self,
                  coordinates=None,
                  vertices=None,
@@ -124,14 +127,13 @@ class Domain(Generic_Domain):
                  number_of_full_triangles=None):
 
 
-        conserved_quantities = ['stage', 'xmomentum', 'ymomentum']
         other_quantities = ['elevation', 'friction']
         Generic_Domain.__init__(self,
                                 coordinates,
                                 vertices,
                                 boundary,
-                                conserved_quantities,
-                                other_quantities,
+                                Domain.conserved_quantities,
+                                Domain.other_quantities,
                                 tagged_elements,
                                 geo_reference,
                                 use_inscribed_circle,
