@@ -7,7 +7,7 @@
      import compile
      compile.compile(<filename>,..)
 
-   Ole Nielsen, Oct 2001      
+   Ole Nielsen, Duncan Gray Oct 2001      
 """     
 
  
@@ -24,7 +24,6 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
   """
   
   
-  ###########################jhdsgfjgdjfg
   
   import os, string, sys, types
   
@@ -118,7 +117,7 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
     if CC:
       compiler = CC
     else:  
-      compiler = 'gcc.exe'  #Some systems require this (perhaps a security measure?)
+      compiler = 'gcc.exe' #Some systems require this (a security measure?) 
     if LD:
       loader = LD
     else:  
@@ -221,7 +220,6 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
     try:
       open(FN, 'r')
     except:
-      #print 'CWD:', os.getcwd()      
       raise Exception, "Could not open: " + FN
 
     if not object_files: root1 = root  #Remember first filename        
@@ -231,11 +229,15 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
     # Compile
     #
     if utilities_include_dir is None:    
-      s = '%s -c %s -I%s -o %s.o -Wall -O3'\
+      s = '%s -c %s -I"%s" -o "%s.o" -Wall -O3'\
           %(compiler, FN, python_include, root)
     else:
-      s = '%s -c %s -I%s -I%s -o %s.o -Wall -O3'\
-          %(compiler, FN, python_include, utilities_include_dir, root)
+      if FN == "triangle.c" or FN == "mesh_engine_c_layer.c":
+        s = '%s -c %s -I"%s" -I"%s" -o "%s.o" -O3 -DTRILIBRARY=1 -DNO_TIMER=1'\
+            %(compiler, FN, python_include, utilities_include_dir, root)
+      else:
+        s = '%s -c %s -I"%s" -I"%s" -o "%s.o" -Wall -O3'\
+            %(compiler, FN, python_include, utilities_include_dir, root)
 
     if os.name == 'posix' and os.uname()[4] == 'x86_64':
       #Extra flags for 64 bit architectures
@@ -261,8 +263,10 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
 
   
   # Make shared library (*.so or *.dll)
-  
-  s = "%s -%s %s -o %s.%s %s -lm" %(loader, sharedflag, object_files, root1, libext, libs)
+  if libs is "":
+    s = '%s -%s %s -o %s.%s -lm' %(loader, sharedflag, object_files, root1, libext)
+  else:
+    s = '%s -%s %s -o %s.%s "%s" -lm' %(loader, sharedflag, object_files, root1, libext, libs)
   if verbose:
     print s
   else:
@@ -281,51 +285,49 @@ def can_use_C_extension(filename):
     can and should be used.
     """
 
+    from anuga.config import use_extensions
 
     from os.path import splitext
 
     root, ext = splitext(filename)
     
     C=False
-
-    try:
-        s = 'import %s' %root
-        #print s
-        exec(s)
-    except:
+    if use_extensions:
         try:
-            open(filename)
+            s = 'import %s' %root
+            #print s
+            exec(s)
         except:
-            msg = 'C extension %s cannot be opened' %filename
-            print msg                
-        else:    
-            print '------- Trying to compile c-extension %s' %filename
-
-            compile(filename)        
             try:
-                compile(filename)
+                open(filename)
             except:
-                print 'WARNING: Could not compile C-extension %s'\
-                      %filename
-            else:
+                msg = 'C extension %s cannot be opened' %filename
+                print msg                
+            else:    
+                print '------- Trying to compile c-extension %s' %filename
+            
                 try:
-                    exec('import %s' %root)
+                    compile(filename)
                 except:
-                    msg = 'C extension %s seems to compile OK, '
-                    msg += 'but it can still not be imported.'
-                    raise msg
+                    print 'WARNING: Could not compile C-extension %s'\
+                          %filename
                 else:
-                    C=True
-    else:
-        C=True
+                    try:
+                        exec('import %s' %root)
+                    except:
+                        msg = 'C extension %s seems to compile OK, '
+                        msg += 'but it can still not be imported.'
+                        raise msg
+                    else:
+                        C=True
+        else:
+            C=True
             
     if not C:
         pass
         print 'NOTICE: C-extension %s not used' %filename
 
     return C
-
-
 
 
 if __name__ == '__main__':
@@ -359,12 +361,15 @@ if __name__ == '__main__':
               except:
                   pass
 
-          print '--------------------------------------'      
+          print '-------------------------------_-------'      
           print 'Trying to compile c-extension %s in %s'\
                 %(filename, os.getcwd())
-
-          compile(filename)          
           try:
+            if filename == 'triang.c': 
+              compile(['triang.c','triangle.c'])
+            elif  filename == 'mesh_engine_c_layer.c': 
+              compile(['mesh_engine_c_layer.c','triangle.c'])
+            else:
               compile(filename)
           except Exception, e:
               print 'Could not compile C extension %s' %filename
