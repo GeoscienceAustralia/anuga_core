@@ -13,7 +13,7 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference, TitleError
 from anuga.coordinate_transforms.redfearn import degminsec2decimal_degrees
 from anuga.utilities.anuga_exceptions import ANUGAError
 # Ignore these warnings, since we still want to test .xya code.
-import warnings
+import warnings 
 warnings.filterwarnings(action = 'ignore',
                         message='.xya format is deprecated.  Please use .txt.',
                         category=DeprecationWarning)
@@ -32,7 +32,22 @@ warnings.filterwarnings(action = 'ignore',
 
 class Test_Geospatial_data(unittest.TestCase):
     def setUp(self):
-        pass
+        import warnings
+        warnings.filterwarnings(action = 'ignore',
+                                message='.xya format is deprecated.  Please use .txt.',
+                                category=DeprecationWarning)
+        
+        warnings.filterwarnings(action = 'ignore',
+                                message='The text file values must be ab',
+                                category=DeprecationWarning)
+    
+        warnings.filterwarnings(action = 'ignore',
+                                message='Text file format is moving to comma se',
+                                category=DeprecationWarning)
+    
+        warnings.filterwarnings(action = 'ignore',
+                                message='Specifying delimiters will be removed.',
+                                category=DeprecationWarning)
 
     def tearDown(self):
         pass
@@ -1580,7 +1595,6 @@ crap")
         adds an xya and pts files, reads the files and adds them
            checking results are correct
         '''
-
         # create files
         att_dict1 = {}
         pointlist1 = array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
@@ -2141,7 +2155,7 @@ crap")
 if __name__ == "__main__":
 
     #suite = unittest.makeSuite(Test_Geospatial_data, 'test_write_csv_attributes_lat_long')
-    #suite = unittest.makeSuite(Test_Geospatial_data, 'verbose_test_load_pts_blocking')
+    #suite = unittest.makeSuite(Test_Geospatial_data, 'test_export_xya_file')
     suite = unittest.makeSuite(Test_Geospatial_data, 'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
