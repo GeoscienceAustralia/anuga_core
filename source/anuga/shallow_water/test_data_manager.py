@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #
 
+
 import unittest
 import copy
 from Numeric import zeros, array, allclose, Float
@@ -21,7 +22,8 @@ from anuga.coordinate_transforms.redfearn import degminsec2decimal_degrees
 # This is needed to run the tests of local functions
 import data_manager 
 from anuga.coordinate_transforms.redfearn import redfearn
-from anuga.coordinate_transforms.geo_reference import Geo_reference
+from anuga.coordinate_transforms.geo_reference import Geo_reference, \
+     DEFAULT_ZONE
 
 class Test_Data_Manager(unittest.TestCase):
     # Class variable
@@ -167,11 +169,38 @@ class Test_Data_Manager(unittest.TestCase):
         """Test that constant sww information can be written correctly
         (non smooth)
         """
+        self.domain.set_name('datatest' + str(id(self)))
+        self.domain.format = 'sww' #Remove??
+        self.domain.smooth = False
+        
+        sww = get_dataobject(self.domain)
+        sww.store_connectivity()
 
-        import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
-        from Scientific.IO.NetCDF import NetCDFFile
+        fid = NetCDFFile(sww.filename, 'r')  #Open existing file for append
 
+        # Get the variables
+        x = fid.variables['x']
+        y = fid.variables['y']
+        z = fid.variables['elevation']
+        V = fid.variables['volumes']
+
+        assert allclose (x[:], self.X.flat)
+        assert allclose (y[:], self.Y.flat)
+        assert allclose (z[:], self.F.flat)
+
+        P = len(self.domain)
+        for k in range(P):
+            assert V[k, 0] == 3*k
+            assert V[k, 1] == 3*k+1
+            assert V[k, 2] == 3*k+2
+
+        fid.close()
+        os.remove(sww.filename)
+
+    def test_sww_header(self):
+        """Test that constant sww information can be written correctly
+        (non smooth)
+        """
         self.domain.set_name('datatest' + str(id(self)))
         self.domain.format = 'sww' #Remove??
         self.domain.smooth = False
@@ -184,41 +213,52 @@ class Test_Data_Manager(unittest.TestCase):
         fid = NetCDFFile(sww.filename, 'r')  #Open existing file for append
 
         # Get the variables
-        x = fid.variables['x']
-        y = fid.variables['y']
-        z = fid.variables['elevation']
-
-        volumes = fid.variables['volumes']
-
-
-        assert allclose (x[:], self.X.flat)
-        assert allclose (y[:], self.Y.flat)
-        assert allclose (z[:], self.F.flat)
-
-        V = volumes
-
-        P = len(self.domain)
-        for k in range(P):
-            assert V[k, 0] == 3*k
-            assert V[k, 1] == 3*k+1
-            assert V[k, 2] == 3*k+2
-
-
+        sww_revision = fid.revision_number
+        try:
+            revision_number = get_revision_number()
+        except:
+            revision_number = None
+            
+        assert str(revision_number) == sww_revision
         fid.close()
 
-        #Cleanup
+        #print "sww.filename", sww.filename
         os.remove(sww.filename)
 
+    def test_sww_range(self):
+        """Test that constant sww information can be written correctly
+        (non smooth)
+        """
+        self.domain.set_name('datatest' + str(id(self)))
+        self.domain.format = 'sww'
+        self.domain.smooth = True
 
+        sww = get_dataobject(self.domain)
+        sww.store_connectivity()
+        for t in self.domain.evolve(yieldstep = 1, finaltime = 1):
+            pass
+            
+        #Get NetCDF
+        fid = NetCDFFile(sww.filename, 'r')  #Open existing file for append
+
+        from anuga.shallow_water.shallow_water_domain import Domain 
+        sww_quantities = Domain.conserved_quantities
+        # Get the variables
+        range = fid.variables['stage_range'][:]
+        assert allclose(range,[-0.93519, 0.15])
+        range = fid.variables['xmomentum_range'][:]
+        assert allclose(range,[0,0.46950444])
+        range = fid.variables['ymomentum_range'][:]
+        assert allclose(range,[0,0.02174380])
+        
+        fid.close()
+        #print "sww.filename", sww.filename
+        os.remove(sww.filename)
+        
     def test_sww_constant_smooth(self):
         """Test that constant sww information can be written correctly
         (non smooth)
         """
-
-        import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
-        from Scientific.IO.NetCDF import NetCDFFile
-
         self.domain.set_name('datatest' + str(id(self)))
         self.domain.format = 'sww'
         self.domain.smooth = True
@@ -231,51 +271,33 @@ class Test_Data_Manager(unittest.TestCase):
         fid = NetCDFFile(sww.filename, 'r')  #Open existing file for append
 
         # Get the variables
-        x = fid.variables['x']
-        y = fid.variables['y']
-        z = fid.variables['elevation']
-
-        volumes = fid.variables['volumes']
-
-        X = x[:]
-        Y = y[:]
+        X = fid.variables['x'][:]
+        Y = fid.variables['y'][:]
+        Z = fid.variables['elevation'][:]
+        V = fid.variables['volumes']
 
         assert allclose([X[0], Y[0]], array([0.0, 0.0]))
         assert allclose([X[1], Y[1]], array([0.0, 0.5]))
         assert allclose([X[2], Y[2]], array([0.0, 1.0]))
-
         assert allclose([X[4], Y[4]], array([0.5, 0.5]))
-
         assert allclose([X[7], Y[7]], array([1.0, 0.5]))
 
-        Z = z[:]
         assert Z[4] == -0.5
 
-        V = volumes
         assert V[2,0] == 4
         assert V[2,1] == 5
         assert V[2,2] == 1
-
         assert V[4,0] == 6
         assert V[4,1] == 7
         assert V[4,2] == 3
 
-
         fid.close()
-
-        #Cleanup
         os.remove(sww.filename)
-
-
+        
 
     def test_sww_variable(self):
         """Test that sww information can be written correctly
         """
-
-        import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
-        from Scientific.IO.NetCDF import NetCDFFile
-
         self.domain.set_name('datatest' + str(id(self)))
         self.domain.format = 'sww'
         self.domain.smooth = True
@@ -291,12 +313,8 @@ class Test_Data_Manager(unittest.TestCase):
 
 
         # Get the variables
-        x = fid.variables['x']
-        y = fid.variables['y']
-        z = fid.variables['elevation']
         time = fid.variables['time']
         stage = fid.variables['stage']
-
 
         Q = self.domain.quantities['stage']
         Q0 = Q.vertex_values[:,0]
@@ -313,12 +331,8 @@ class Test_Data_Manager(unittest.TestCase):
         #Center point
         assert allclose(A[4], (Q1[0] + Q2[1] + Q0[2] +\
                                  Q0[5] + Q2[6] + Q1[7])/6)
-
-
-
+        
         fid.close()
-
-        #Cleanup
         os.remove(sww.filename)
 
 
@@ -403,7 +417,6 @@ class Test_Data_Manager(unittest.TestCase):
         #Check contents
         #Get NetCDF
         fid = NetCDFFile(sww.filename, 'r')
-
 
         # Get the variables
         x = fid.variables['x']
@@ -1706,7 +1719,7 @@ END CROSS-SECTIONS:
         #Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
-        #os.remove(swwfile)
+        os.remove(swwfile)
 
 
 
@@ -1819,7 +1832,7 @@ END CROSS-SECTIONS:
         #Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
-        #os.remove(swwfile)
+        os.remove(swwfile)
 
 
 
@@ -2855,7 +2868,6 @@ END CROSS-SECTIONS:
         ##NOW TEST IT!!!
         ###################
 
-        #os.remove(domain.get_name() + '.sww')
         os.remove(filename)
 
         bits = ['vertex_coordinates']
@@ -4064,6 +4076,7 @@ NODATA_value  -9999
 
         # is the sww file readable?
         #Lets see if we can convert it to a dem!
+        # if you uncomment, remember to delete the file
         #print "sww_file",sww_file
         #dem_file = tempfile.mktemp(".dem")
         domain = sww2domain(sww_file) ###, dem_file)
@@ -4091,8 +4104,6 @@ NODATA_value  -9999
         # remove sww file
         os.remove(sww_file)
 
-        # remove dem file
-        #os.remove(dem_file)
 
     def test_get_min_max_indexes(self):
         latitudes = [3,2,1,0]
@@ -5062,6 +5073,10 @@ friction  \n \
         geo_reference = Geo_reference(NetCDFObject=fid)
 
         
+        time = fid.variables['time'][:]
+        #print "time", time
+        assert allclose([0.,0.5,1.], time)
+        assert fid.starttime == 0.0
         #Check that first coordinate is correctly represented       
         #Work out the UTM coordinates for first point
         zone, e, n = redfearn(-34.5, 150.66667)       
@@ -5167,6 +5182,36 @@ friction  \n \
         
         fid.close()
         self.delete_mux(files)
+        os.remove(sww_file)
+        
+    def test_urs2sww_minmaxmintmaxt(self):
+        
+        #longitudes = [150.66667, 150.83334, 151., 151.16667]
+        #latitudes = [-34.5, -34.33333, -34.16667, -34]
+
+        tide = 1
+        base_name, files = self.create_mux()
+        urs2sww(base_name,
+                mint=0.25,
+                maxt=0.75,
+                mean_stage=tide,
+                remove_nc_files=True,
+                      verbose=self.verbose
+                )
+        sww_file = base_name + '.sww'
+        
+        #Let's interigate the sww file
+        # Note, the sww info is not gridded.  It is point data.
+        fid = NetCDFFile(sww_file)
+
+        
+        time = fid.variables['time'][:]
+        assert allclose(time, [0.0]) # the time is relative
+        assert fid.starttime == 0.5
+        
+        fid.close()
+        self.delete_mux(files)
+        #print "sww_file", sww_file
         os.remove(sww_file)
         
     def test_lon_lat2grid(self):
@@ -5669,7 +5714,7 @@ friction  \n \
         
         number_of_volumes = fid.variables['volumes']
         #print "number_of_volumes",len(number_of_volumes) 
-        assert allclose(12, len(number_of_volumes))
+        assert allclose(16, len(number_of_volumes))
         
         fid.close()
         self.delete_mux(files)
@@ -5955,75 +6000,193 @@ friction  \n \
         os.remove( base_name + '.sww')
         # extend this so it interpolates onto the boundary.
         # have it fail if there is NaN
-        
-    def davids_test_points_urs_ungridded2sww(self):
-        tide = 5.0
-        base_name = 'o'
-        urs_ungridded2sww(base_name, mean_stage=tide)
-        os.remove( base_name + '.sww')
-        # extend this so it interpolates onto the boundary.
-        # have it fail if there is NaN
 
-    def not_really_test_urs2txt(self):
-        # not really a test, since it doesn't check the output data
+    def test_triangulation(self):
+        # 
+        #  
         
-        #This will write 3 non-gridded mux files, for testing.
-        #If no quantities are passed in,
-        #na and va quantities will be the Easting values.
-        #Depth and ua will be the Northing value.
-        # this was manually checked to be correct
-        
-        tide = 1
-        time_step_count = 3
-        time_step = 2
+        filename = tempfile.mktemp("_data_manager.sww")
+        outfile = NetCDFFile(filename, "w")
+        points_utm = array([[0.,0.],[1.,1.], [0.,1.]])
+        volumes = (0,1,2)
+        elevation = [0,1,2]
+        new_origin = None
+        new_origin = Geo_reference(56, 0, 0)
+        times = [0, 10]
+        number_of_volumes = len(volumes)
+        number_of_points = len(points_utm)
+        sww = Write_sww()
+        sww.header(outfile, times, number_of_volumes,
+                         number_of_points, description='fully sick testing',
+                             verbose=self.verbose)
+        sww.triangulation(outfile, points_utm, volumes,
+                                    elevation,  new_origin=new_origin,
+                                    verbose=self.verbose)       
+        outfile.close()
+        fid = NetCDFFile(filename)
 
-        #Zone:   50    
-        #Easting:  240992.578  Northing: 7620442.472 
-        #Latitude:   -21  30 ' 0.00000 ''  Longitude: 114  30 ' 0.00000 '' 
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+        fid.close()
 
-        # This is gridded
-        lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
-        base_name, files = self.write_mux(lat_long_points,
-                                          time_step_count, time_step)
-        urs2txt(base_name, 0)
-        print "base_name", base_name
-        
-        self.delete_mux(files)
-        #os.remove(sww_file)
-        # delete the txt file if this becomes automatic
-        
-    def daves_urs2txt(self):
-        # not really a test, since it doesn't check the output data
-        
-        #This will write 3 non-gridded mux files, for testing.
-        #If no quantities are passed in,
-        #na and va quantities will be the Easting values.
-        #Depth and ua will be the Northing value.
-        # this was manually checked to be correct
-        
-        tide = 1
-        time_step_count = 3
-        time_step = 2
+        assert allclose(array(map(None, x,y)), points_utm)
+        os.remove(filename)
 
-        #Zone:   50    
-        #Easting:  240992.578  Northing: 7620442.472 
-        #Latitude:   -21  30 ' 0.00000 ''  Longitude: 114  30 ' 0.00000 '' 
-
-        # This is gridded
-        lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
-        base_name, files = self.write_mux(lat_long_points,
-                                          time_step_count, time_step)
-        urs2txt(base_name, 0)
-        print "base_name", base_name
         
-        self.delete_mux(files)
-        #os.remove(sww_file)
-        # delete the txt file if this becomes automatic
+    def test_triangulationII(self):
+        # 
+        #  
+        
+        filename = tempfile.mktemp("_data_manager.sww")
+        outfile = NetCDFFile(filename, "w")
+        points_utm = array([[0.,0.],[1.,1.], [0.,1.]])
+        volumes = (0,1,2)
+        elevation = [0,1,2]
+        new_origin = None
+        #new_origin = Geo_reference(56, 0, 0)
+        times = [0, 10]
+        number_of_volumes = len(volumes)
+        number_of_points = len(points_utm)
+        sww = Write_sww()
+        sww.header(outfile, times, number_of_volumes,
+                         number_of_points, description='fully sick testing',
+                         verbose=self.verbose)
+        sww.triangulation(outfile, points_utm, volumes,
+                                    elevation,  new_origin=new_origin,
+                                    verbose=self.verbose)       
+        outfile.close()
+        fid = NetCDFFile(filename)
+
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+        results_georef = Geo_reference()
+        results_georef.read_NetCDF(fid)
+        assert results_georef == Geo_reference(DEFAULT_ZONE, 0, 0)
+        fid.close()
+
+        assert allclose(array(map(None, x,y)), points_utm)
+        os.remove(filename)
+
+        
+    def test_triangulation_new_origin(self):
+        # 
+        #  
+        
+        filename = tempfile.mktemp("_data_manager.sww")
+        outfile = NetCDFFile(filename, "w")
+        points_utm = array([[0.,0.],[1.,1.], [0.,1.]])
+        volumes = (0,1,2)
+        elevation = [0,1,2]
+        new_origin = None
+        new_origin = Geo_reference(56, 1, 554354)
+        points_utm = new_origin.change_points_geo_ref(points_utm)
+        times = [0, 10]
+        number_of_volumes = len(volumes)
+        number_of_points = len(points_utm)
+        sww = Write_sww()
+        sww.header(outfile, times, number_of_volumes,
+                         number_of_points, description='fully sick testing',
+                         verbose=self.verbose)
+        sww.triangulation(outfile, points_utm, volumes,
+                                    elevation,  new_origin=new_origin,
+                                    verbose=self.verbose)       
+        outfile.close()
+        fid = NetCDFFile(filename)
+
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+        results_georef = Geo_reference()
+        results_georef.read_NetCDF(fid)
+        assert results_georef == new_origin
+        fid.close()
+
+        absolute = Geo_reference(56, 0,0)
+        assert allclose(array( \
+            absolute.change_points_geo_ref(map(None, x,y),
+                                           new_origin)),points_utm)
+        
+        os.remove(filename)
+        
+    def test_triangulation_points_georeference(self):
+        # 
+        #  
+        
+        filename = tempfile.mktemp("_data_manager.sww")
+        outfile = NetCDFFile(filename, "w")
+        points_utm = array([[0.,0.],[1.,1.], [0.,1.]])
+        volumes = (0,1,2)
+        elevation = [0,1,2]
+        new_origin = None
+        points_georeference = Geo_reference(56, 1, 554354)
+        points_utm = points_georeference.change_points_geo_ref(points_utm)
+        times = [0, 10]
+        number_of_volumes = len(volumes)
+        number_of_points = len(points_utm)
+        sww = Write_sww()
+        sww.header(outfile, times, number_of_volumes,
+                         number_of_points, description='fully sick testing',
+                         verbose=self.verbose)
+        sww.triangulation(outfile, points_utm, volumes,
+                                    elevation,  new_origin=new_origin,
+                                    points_georeference=points_georeference,
+                                    verbose=self.verbose)       
+        outfile.close()
+        fid = NetCDFFile(filename)
+
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+        results_georef = Geo_reference()
+        results_georef.read_NetCDF(fid)
+        assert results_georef == points_georeference
+        fid.close()
+
+        assert allclose(array(map(None, x,y)), points_utm)
+        os.remove(filename)
+        
+    def test_triangulation_2_geo_refs(self):
+        # 
+        #  
+        
+        filename = tempfile.mktemp("_data_manager.sww")
+        outfile = NetCDFFile(filename, "w")
+        points_utm = array([[0.,0.],[1.,1.], [0.,1.]])
+        volumes = (0,1,2)
+        elevation = [0,1,2]
+        new_origin = Geo_reference(56, 1, 1)
+        points_georeference = Geo_reference(56, 0, 0)
+        points_utm = points_georeference.change_points_geo_ref(points_utm)
+        times = [0, 10]
+        number_of_volumes = len(volumes)
+        number_of_points = len(points_utm)
+        sww = Write_sww()
+        sww.header(outfile, times, number_of_volumes,
+                         number_of_points, description='fully sick testing',
+                         verbose=self.verbose)
+        sww.triangulation(outfile, points_utm, volumes,
+                                    elevation,  new_origin=new_origin,
+                                    points_georeference=points_georeference,
+                                    verbose=self.verbose)       
+        outfile.close()
+        fid = NetCDFFile(filename)
+
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+        results_georef = Geo_reference()
+        results_georef.read_NetCDF(fid)
+        assert results_georef == new_origin
+        fid.close()
+
+
+        absolute = Geo_reference(56, 0,0)
+        assert allclose(array( \
+            absolute.change_points_geo_ref(map(None, x,y),
+                                           new_origin)),points_utm)
+        os.remove(filename)
 #-------------------------------------------------------------
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sww_origin')
-    #suite = unittest.makeSuite(Test_Data_Manager,'cache_test_URS_points_needed_and_urs_ungridded2sww')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs_ungridded_hole')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_sww_header')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_sww_range')
     if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':
         Test_Data_Manager.verbose=True
         saveout = sys.stdout   
