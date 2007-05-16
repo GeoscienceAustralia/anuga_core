@@ -32,7 +32,7 @@ create_mesh_from_regions( [[0,0], [100,0], [100,100], [0,100]],
                                            'right': [1],
                                            'top': [2],
                                            'left': [3]},
-                          maximum_triangle_area = 0.5,
+                          maximum_triangle_area = 5,
                           filename = 'island.msh' ,
                           interior_regions=[ ([[50,25], [70,25], [70,75], [50,75]], 10.0)]
                           #interior_holes=[[[50,25], [70,25], [70,75], [50,75]]],
@@ -42,8 +42,9 @@ create_mesh_from_regions( [[0,0], [100,0], [100,100], [0,100]],
 
 #Create shallow water domain
 domain = Domain(mesh_filename = 'island.msh')
-domain.smooth = False
-domain.set_name('island')
+domain.smooth = False #True
+domain.set_name('island_unique')
+#domain.set_name('island_not_unique')
 domain.default_order = 2
 
 
@@ -108,7 +109,7 @@ domain.check_integrity()
 #------------------------------------------------------------------------------
 
 import time
-for t in domain.evolve(yieldstep = 1, finaltime = 50):
+for t in domain.evolve(yieldstep = 1, finaltime = 5):
     domain.write_time()
     #if allclose(t, 100):
     #    Q = domain.get_quantity('stage')
