@@ -1,4 +1,5 @@
 """
+
 """
 
 
@@ -51,7 +52,8 @@ class Geo_reference:
          must be the default info, since ANUGA assumes it isn't
          changing.
          """
-
+        if zone is None:
+            zone = DEFAULT_ZONE
         self.false_easting = false_easting
         self.false_northing = false_northing        
         self.datum = datum
@@ -117,12 +119,34 @@ class Geo_reference:
             self.units = infile.units
         except:
             pass
-        assert (self.false_easting == DEFAULT_FALSE_EASTING)
-        assert (self.false_northing == DEFAULT_FALSE_NORTHING)
-
-        assert(self.datum == DEFAULT_DATUM)
-        assert(self.projection == DEFAULT_PROJECTION)
-        assert (self.units == DEFAULT_UNITS)
+        if (self.false_easting != DEFAULT_FALSE_EASTING):
+            print "WARNING: False easting of %f specified." %self.false_easting
+            print "Default false easting is %f." %DEFAULT_FALSE_EASTING
+            print "ANUGA does not correct for differences in False Eastings."
+            
+        if (self.false_northing != DEFAULT_FALSE_NORTHING):
+            print "WARNING: False northing of %f specified." \
+                  %self.false_northing
+            print "Default false northing is %f." %DEFAULT_FALSE_NORTHING
+            print "ANUGA does not correct for differences in False Northings."
+            
+        if (self.datum.upper() != DEFAULT_DATUM.upper()):
+            print "WARNING: Datum of %s specified." \
+                  %self.datum
+            print "Default Datum is %s." %DEFAULT_DATUM
+            print "ANUGA does not correct for differences in datums."
+            
+        if (self.projection.upper() != DEFAULT_PROJECTION.upper()):
+            print "WARNING: Projection of %s specified." \
+                  %self.projection
+            print "Default Projection is %s." %DEFAULT_PROJECTION
+            print "ANUGA does not correct for differences in Projection."
+            
+        if (self.units.upper() != DEFAULT_UNITS.upper()):
+            print "WARNING: Units of %s specified." \
+                  %self.units
+            print "Default units is %s." %DEFAULT_UNITS
+            print "ANUGA does not correct for differences in units."
         
         
     def write_ASCII(self, fd):
@@ -300,12 +324,26 @@ def write_NetCDF_georeference(origin, outfile):
 
     outfile is the name of the file to be written to.
     """
-    if isinstance(origin, Geo_reference): 
-        geo_ref = origin
-    else:
-        geo_ref = apply(Geo_reference,origin)
+    geo_ref = ensure_geo_reference(origin)
     geo_ref.write_NetCDF(outfile)
     return geo_ref
+
+def ensure_geo_reference(origin):
+    """
+    Given a list/tuple of zone, xllcorner and yllcorner of a geo-ref object,
+    return a geo ref object.
+
+    If the origin is None, return None, so calling this function doesn't
+    effect code logic
+    """
+    if isinstance(origin, Geo_reference): 
+        geo_ref = origin
+    elif origin is None:
+        geo_ref = None
+    else:
+        geo_ref = apply(Geo_reference,origin)       
+    return geo_ref
+
     
 #-----------------------------------------------------------------------
 
