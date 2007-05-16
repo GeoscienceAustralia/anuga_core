@@ -10,13 +10,15 @@ from string import lower
 from Numeric import concatenate, array, Float, shape, reshape, ravel, take, \
                         size, shape
 from random import randint
+from copy import deepcopy
+
 #from MA import tolist
 
 from Scientific.IO.NetCDF import NetCDFFile    
 from anuga.coordinate_transforms.lat_long_UTM_conversion import UTMtoLL    
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.coordinate_transforms.geo_reference import Geo_reference, \
-     TitleError, DEFAULT_ZONE
+     TitleError, DEFAULT_ZONE, ensure_geo_reference, write_NetCDF_georeference
 from anuga.coordinate_transforms.redfearn import convert_from_latlon_to_utm
 from anuga.utilities.anuga_exceptions import ANUGAError
 from anuga.config import points_file_block_line_size as MAX_READ_LINES    
@@ -219,11 +221,15 @@ class Geospatial_data:
 
 
     def set_geo_reference(self, geo_reference):
-
+        """
+        Set's the georeference of geospatial.
+        It can also be used to change the georeference
+        """
         from anuga.coordinate_transforms.geo_reference import Geo_reference
 
         if geo_reference is None:
             geo_reference = Geo_reference() # Use default
+        geo_reference = ensure_geo_reference(geo_reference)
         if not isinstance(geo_reference, Geo_reference):
             msg = 'Argument geo_reference must be a valid Geo_reference \n'
             msg += 'object or None.'
@@ -563,8 +569,8 @@ class Geospatial_data:
         file_name is the file name, including the extension
         The point_dict is defined at the top of this file.
         
-        If absolute is True data points at returned added to the xll and yll 
-        and geo_reference as None
+        If absolute is True data the xll and yll are added to the points value 
+        and the xll and yll of the geo_reference are set to 0.
         
         If absolute is False data points at returned as relative to the xll 
         and yll and geo_reference remains uneffected
@@ -578,10 +584,14 @@ class Geospatial_data:
         if (file_name[-4:] == ".xya"):
             msg = '.xya format is deprecated.  Please use .txt.'
             warn(msg, DeprecationWarning)
-            if absolute is True:         
+            if absolute is True:     
+                geo_ref = deepcopy(self.geo_reference)
+                geo_ref.xllcorner = 0
+                geo_ref.yllcorner = 0    
                 _write_xya_file(file_name,
                                 self.get_data_points(absolute=True), 
-                                self.get_all_attributes())
+                                self.get_all_attributes(),
+                                geo_ref)
             else:
                 _write_xya_file(file_name,
                                 self.get_data_points(absolute=False), 
@@ -590,9 +600,13 @@ class Geospatial_data:
                                     
         elif (file_name[-4:] == ".pts"):
             if absolute is True:
+                geo_ref = deepcopy(self.geo_reference)
+                geo_ref.xllcorner = 0
+                geo_ref.yllcorner = 0
                 _write_pts_file(file_name,
                                 self.get_data_points(absolute), 
-                                self.get_all_attributes())
+                                self.get_all_attributes(),
+                                geo_ref)
             else:
                 _write_pts_file(file_name,
                                 self.get_data_points(absolute), 
@@ -1150,7 +1164,7 @@ def _write_pts_file(file_name,
             outfile.variables[key][:] = write_attributes[key] #.astype(Float32)
         
     if write_geo_reference is not None:
-        write_geo_reference.write_NetCDF(outfile)
+        write_NetCDF_georeference(write_geo_reference, outfile)
         
     outfile.close() 
   
@@ -1193,6 +1207,7 @@ def _write_xya_file(file_name,
                  str(vert[1]) + attlist + "\n")
 
     if  write_geo_reference is not None:
+        write_geo_reference = ensure_geo_reference(write_geo_reference)
         write_geo_reference.write_ASCII(fd)
     fd.close()
 
