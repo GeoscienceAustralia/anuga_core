@@ -7,8 +7,6 @@
      import compile
      compile.compile(<filename>,..)
 
-   SPECIAL VERSION FOR TRIANGLE ! 
-
    Ole Nielsen, Oct 2001      
 """     
 
@@ -24,6 +22,8 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
      FNs can be either one filename or a list of filenames
      In the latter case, the first will be used to name so file.
   """
+  
+  
   
   import os, string, sys, types
   
@@ -154,14 +154,14 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
   # Find location of include files
   #
   if sys.platform == 'win32':  #Windows
-    include = os.path.join(sys.exec_prefix, 'include')    
+    python_include = os.path.join(sys.exec_prefix, 'include')    
   else:  
-    include = os.path.join(os.path.join(sys.exec_prefix, 'include'),
-                           'python'+version)
+    python_include = os.path.join(os.path.join(sys.exec_prefix, 'include'),
+                                  'python' + version)
 
   # Check existence of Python.h
   #
-  headerfile = include + os.sep +'Python.h'
+  headerfile = python_include + os.sep + 'Python.h'
   try:
     open(headerfile, 'r')
   except:
@@ -169,6 +169,42 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
     Make sure files for Python C-extensions are installed. 
     In debian linux, for example, you need to install a
     package called something like python2.3-dev""" %headerfile
+
+
+
+  #Add Python path + utilities to includelist (see ticket:31)
+  #Assume there is only one 'utilities' dir under path dirs
+  
+  utilities_include_dir = None
+  for pathdir in sys.path:
+
+    utilities_include_dir = pathdir + os.sep + 'utilities'
+    #print pathdir
+    #print utilities_include_dir
+    try:
+      os.stat(utilities_include_dir)
+    except OSError:
+      pass
+    else:
+      #print 'Found %s to be used as include dir' %utilities_include_dir
+      break
+
+  # This is hacky since it
+  # assumes the location of the compile_all that determines buildroot
+  try:
+    utilities_include_dir = buildroot + os.sep + "source" + os.sep + "anuga" \
+                            + os.sep + 'utilities'
+  except:
+    # This will make compile work locally
+    utilities_include_dir = '.'
+
+
+    
+  try:
+    os.stat(utilities_include_dir)
+  except OSError: 
+    utilities_include_dir = buildroot + os.sep + 'utilities'
+  
   
   
   # Check filename(s)
@@ -182,8 +218,8 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
       raise Exception, "Unrecognised extension: " + FN
     
     try:
-      open(FN,'r')
-    except:    
+      open(FN, 'r')
+    except:
       raise Exception, "Could not open: " + FN
 
     if not object_files: root1 = root  #Remember first filename        
@@ -192,10 +228,21 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
   
     # Compile
     #
-    s = "%s -c %s -I%s -o %s.o -O3  -DTRILIBRARY=1 -DNO_TIMER=1" %(compiler, FN, include, root)
+    if utilities_include_dir is None:    
+      s = '%s -c %s -I"%s" -o "%s.o" -Wall -O3'\
+          %(compiler, FN, python_include, root)
+    else:
+      if FN == "triangle.c" or FN == "mesh_engine_c_layer.c":
+        s = '%s -c %s -I"%s" -I"%s" -o "%s.o" -O3 -DTRILIBRARY=1 -DNO_TIMER=1'\
+            %(compiler, FN, python_include, utilities_include_dir, root)
+      else:
+        s = '%s -c %s -I"%s" -I"%s" -o "%s.o" -Wall -O3'\
+            %(compiler, FN, python_include, utilities_include_dir, root)
 
     if os.name == 'posix' and os.uname()[4] == 'x86_64':
       #Extra flags for 64 bit architectures
+      #Second clause will always fail on Win32 because uname is UNIX specific
+      #but won't get past first clause
 
       #FIXME: Which one?
       #s += ' -fPIC'
@@ -216,8 +263,10 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
 
   
   # Make shared library (*.so or *.dll)
-  
-  s = "%s -%s %s -o %s.%s %s -lm" %(loader, sharedflag, object_files, root1, libext, libs)
+  if libs is "":
+    s = '%s -%s %s -o %s.%s -lm' %(loader, sharedflag, object_files, root1, libext)
+  else:
+    s = '%s -%s %s -o %s.%s "%s" -lm' %(loader, sharedflag, object_files, root1, libext, libs)
   if verbose:
     print s
   else:
@@ -311,21 +360,19 @@ if __name__ == '__main__':
                   os.remove(root + x)
               except:
                   pass
-          if  filename == 'mesh_engine.c': # not part of ANUGA
-              continue
-          print '--------------- Trying to compile c-extension %s' %filename
+
+          print '--------------------------------------'      
+          print 'Trying to compile c-extension %s in %s'\
+                %(filename, os.getcwd())
           try:
             if filename == 'triang.c': 
-              print "********** Manually doing dependencies **************"
               compile(['triang.c','triangle.c'])
             elif  filename == 'mesh_engine_c_layer.c': 
-              #print "********** Manually doing dependencies **************"
               compile(['mesh_engine_c_layer.c','triangle.c'])
-              
             else:
               compile(filename)
-          except:
-              print 'Could not compile C extension %s' %filename            
+          except Exception, e:
+              print 'Could not compile C extension %s' %filename
           else:
               print 'C extension %s OK' %filename
           print    
