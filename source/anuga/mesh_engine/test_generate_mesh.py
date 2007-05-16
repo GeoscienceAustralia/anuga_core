@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 #
-
+"""
+I removed lone test vert's, since I'm working on removing lone verts at a lower
+level of the code, using the -j flag in triangle.
+"""
 import sys
 
 import unittest
@@ -406,7 +409,7 @@ class triangTestCase(unittest.TestCase):
         self.failUnless(data['lonepointlist'] ==[1],
                         'lonepointlist is wrong!')
 
-    def test_lone_vertsII(self):
+    def dont_test_lone_vertsII(self):
 
         points = []
         seglist = []
@@ -442,7 +445,7 @@ class triangTestCase(unittest.TestCase):
         self.failUnless(data['lonepointlist'] ==[0,2,3,4],
                         'lonepointlist is wrong!')
 
-    def test_lone_vertsIII(self):
+    def dont_test_lone_vertsIII(self):
 
         points = []
         seglist = []
@@ -493,7 +496,7 @@ class triangTestCase(unittest.TestCase):
         self.failUnless(data['lonepointlist'] ==[0,1,3,4,5,6,7,11],
                         'lonepointlist is wrong!')
         
-    def test_lone_verts4(self):
+    def dont_test_lone_verts4(self):
         points = []
         seglist = []
         holelist = []
@@ -509,7 +512,12 @@ class triangTestCase(unittest.TestCase):
                               pointattlist,segattlist, mode, points)
         #print "data['generatedtrianglelist']", data['generatedtrianglelist']
         #self.failUnless(data['generatedtrianglelist'] ==[(4, 0, 2),(2, 3, 4)],
-         #               'trianglelist is wrong!')
+        #               'trianglelist is wrong!')
+        print "seglist", seglist
+        print "data['generatedsegmentlist']", data['generatedsegmentlist']
+        print "points", points
+        print "data['generatedpointlist'] ",data['generatedpointlist'] 
+        print "points", points
         self.failUnless(data['generatedsegmentlist'] ==seglist,
                         'segmentlist is wrong!')
         self.failUnless(data['generatedpointlist'] ==points,

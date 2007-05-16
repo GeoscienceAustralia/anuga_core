@@ -101,6 +101,16 @@ def generate_mesh(points=None,
         msg = """ERROR: Segment attributes array not the same shape as
         segment array."""
         raise ANUGAError, msg
+
+    
+    #print "mode", mode
+    if mode.find('n'):
+        mode = 'j' + mode
+        # j- Jettisons vertices that are not part of the final
+        #    triangulation from the output .node file (including duplicate
+        #    input vertices and vertices ``eaten'' by holes).  - output a
+        #    list of neighboring triangles
+            
     #print "points",points 
     #print "segments", segments
     #print "segments.shape", segments.shape
