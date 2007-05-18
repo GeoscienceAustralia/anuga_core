@@ -1,6 +1,6 @@
 
 from Numeric import concatenate, reshape, take, allclose
-from Numeric import array, zeros, Int, Float, sqrt, sum
+from Numeric import array, zeros, Int, Float, sqrt, sum, arange
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 
@@ -358,8 +358,10 @@ class General_mesh:
 
         M = len(self) # Number of triangles
         K = 3*M       # Total number of unique vertices
-        T = reshape(array(range(K)).astype(Int), (M,3))
-
+        
+        #T = reshape(array(range(K)).astype(Int), (M,3))
+        T = reshape(arange(K).astype(Int), (M,3))  # Faster
+        
         return T     
 
     
