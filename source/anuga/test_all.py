@@ -53,7 +53,7 @@ def get_test_files(path):
         if os.path.isdir(absolute_filename):
             sys.path.append(file) #FIXME: May cause name conflicts between pyvolution\mesh.py and pmesh\mesh.py on some systems
             path_files.append(file)
-            print 'Recursing into', file
+            print  file + ',', 
             more_test_files, more_path_files =get_test_files(absolute_filename)
             test_files += more_test_files
             path_files += more_path_files
@@ -67,12 +67,20 @@ def get_test_files(path):
 
 def regressionTest(test_verbose=False):
     path = os.getcwd()
+    print 'Recursing into;'
     test_files, path_files = get_test_files(path)
     files = [x for x in test_files if not x == 'test_all.py']
-
+    print
+    print
     print 'Testing path %s:' %('...'+path[-50:])
+    print
+    print 'Files tested;'
+    #print_files = []
     for file in files:
-        print '  ' + file
+        #print_files += file + ' '
+        print file + ',',
+    print
+    print
     if globals().has_key('exclude_files'):
         for file in exclude_files:
             print 'WARNING: File '+ file + ' to be excluded from testing'
