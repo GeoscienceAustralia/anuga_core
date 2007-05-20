@@ -1641,6 +1641,8 @@ def export_grid(basename_in, extra_name_out = None,
 
     # How many sww files are there?
     dir, base = os.path.split(basename_in)
+    
+    if dir == "": dir = "." # Unix compatibility
     dir_ls = os.listdir(dir)
     interate_over = [x[:-4] for x in dir_ls if base in x and x[-4:] == '.sww']
     #print "interate_over", interate_over
