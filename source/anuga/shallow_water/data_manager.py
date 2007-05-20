@@ -85,6 +85,15 @@ from anuga.shallow_water import Domain
 from anuga.abstract_2d_finite_volumes.pmesh2domain import \
      pmesh_to_domain_instance
 from anuga.abstract_2d_finite_volumes.util import get_revision_number
+
+# formula mappings
+
+quantity_formula = {'momentum':'(xmomentum**2 + ymomentum**2)**0.5',
+                    'depth':'stage-elevation',
+                    'speed': \
+ '(xmomentum**2 + ymomentum**2)**0.5/(stage-elevation+1.e-6/(stage-elevation))'}
+
+
     
 def make_filename(s):
     """Transform argument string into a suitable filename
@@ -1596,9 +1605,76 @@ Only the SURFACE LINE data of the following form will be utilised
                           verbose=verbose, geo_reference=geo_ref)
     geo.export_points_file(ptsname)
 
+def export_grid(basename_in, extra_name_out = None,
+                quantities = None, # defaults to elevation
+                timestep = None,
+                reduction = None,
+                cellsize = 10,
+                NODATA_value = -9999,
+                easting_min = None,
+                easting_max = None,
+                northing_min = None,
+                northing_max = None,
+                verbose = False,
+                origin = None,
+                datum = 'WGS84',
+                format = 'ers'):
+    """
+    
+    Wrapper for sww2dem. - see sww2dem to find out what most of the
+    parameters do.
 
+    Quantities is a list of quantities.  Each quantity will be
+    calculated for each sww file.
+
+    This returns the basenames of the files returned, which is made up
+    of the dir and all of the file name, except the extension.
+
+    This function returns the names of the files produced.
+    """
+    
+    if quantities is None:
+        quantities = ['elevation']
+        
+    if type(quantities) is str:
+            quantities = [quantities]
+
+    # How many sww files are there?
+    dir, base = os.path.split(basename_in)
+    dir_ls = os.listdir(dir)
+    interate_over = [x[:-4] for x in dir_ls if base in x and x[-4:] == '.sww']
+    #print "interate_over", interate_over
+    
+    files_out = []
+    for sww_file in interate_over:
+        for quantity in quantities:
+            if extra_name_out is None:
+                basename_out = sww_file + '_' + quantity
+            else:
+                basename_out = sww_file + '_' + quantity + '_' \
+                               + extra_name_out
+            #print "basename_out", basename_out
+        
+            file_out = sww2dem(sww_file, basename_out,
+                               quantity, 
+                               timestep,
+                               reduction,
+                               cellsize,
+                               NODATA_value,
+                               easting_min,
+                               easting_max,
+                               northing_min,
+                               northing_max,
+                               verbose,
+                               origin,
+                               datum,
+                               format)
+            files_out.append(file_out)
+    #print "basenames_out after",basenames_out 
+    return files_out
+    
 def sww2dem(basename_in, basename_out = None,
-            quantity = None,
+            quantity = None, # defaults to elevation
             timestep = None,
             reduction = None,
             cellsize = 10,
@@ -1610,7 +1686,7 @@ def sww2dem(basename_in, basename_out = None,
             verbose = False,
             origin = None,
             datum = 'WGS84',
-        format = 'ers'):
+            format = 'ers'):
 
     """Read SWW file and convert to Digitial Elevation model format (.asc or .ers)
 
@@ -1642,7 +1718,7 @@ def sww2dem(basename_in, basename_out = None,
 
     The parameter quantity must be the name of an existing quantity or
     an expression involving existing quantities. The default is
-    'elevation'.
+    'elevation'. Quantity is not a list of quantities.
 
     if timestep (an index) is given, output quantity at that timestep
 
@@ -1669,13 +1745,16 @@ def sww2dem(basename_in, basename_out = None,
 
     if quantity is None:
         quantity = 'elevation'
-
+        
     if reduction is None:
         reduction = max
 
     if basename_out is None:
         basename_out = basename_in + '_%s' %quantity
 
+    if quantity_formula.has_key(quantity):
+        quantity = quantity_formula[quantity]
+        
     swwfile = basename_in + '.sww'
     demfile = basename_out + '.' + format
     # Note the use of a .ers extension is optional (write_ermapper_grid will
@@ -1955,6 +2034,8 @@ def sww2dem(basename_in, basename_out = None,
         #Close
         ascid.close()
         fid.close()
+
+        return basename_out
 
 #Backwards compatibility
 def sww2asc(basename_in, basename_out = None,
