@@ -1330,7 +1330,7 @@ class Test_Util(unittest.TestCase):
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Util,'test')
 #    suite = unittest.makeSuite(Test_Util,'test_store_parameters')
-    runner = unittest.TextTestRunner()
+    runner = unittest.TextTestRunner(verbosity=0)
     runner.run(suite)
 
 

@@ -217,6 +217,42 @@ int _update(int N,
 }
 
 
+int _average_vertex_values(int N,
+			   long* vertex_value_indices,
+			   long* number_of_triangles_per_node,
+			   double* vertex_values, 
+			   double* A) {
+  //Average vertex values to obtain one value per node
+
+  int i, index; 
+  int k = 0; //Track triangles touching each node
+  int current_node = 0;
+  double total = 0.0;
+
+  for (i=0; i<N; i++) {
+    index = vertex_value_indices[i];
+    k += 1;
+            
+    //volume_id = index / 3
+    //vertex_id = index % 3
+    //total += self.vertex_values[volume_id, vertex_id]
+    total += vertex_values[index];
+      
+    //printf("current_node=%d, index=%d, k=%d, total=%f\n", current_node, index, k, total);
+    if (number_of_triangles_per_node[current_node] == k) {
+      A[current_node] = total/k;
+                
+      // Move on to next node
+      total = 0.0;
+      k = 0;
+      current_node += 1;
+    }
+  }
+			   
+  return 0;
+}
+
+
 /////////////////////////////////////////////////
 // Gateways to Python
 PyObject *update(PyObject *self, PyObject *args) {
@@ -282,8 +318,8 @@ PyObject *interpolate_from_vertices_to_edges(PyObject *self, PyObject *args) {
 	N = vertex_values -> dimensions[0];
 
 	err = _interpolate(N,
-		     (double*) vertex_values -> data,
-		     (double*) edge_values -> data);
+			   (double*) vertex_values -> data,
+			   (double*) edge_values -> data);
 
 	if (err != 0) {
 	  PyErr_SetString(PyExc_RuntimeError, 
@@ -297,6 +333,47 @@ PyObject *interpolate_from_vertices_to_edges(PyObject *self, PyObject *args) {
 
 	return Py_BuildValue("");
 }
+
+
+PyObject *average_vertex_values(PyObject *self, PyObject *args) {
+
+	PyArrayObject 
+	  *vertex_value_indices, 
+	  *number_of_triangles_per_node,
+	  *vertex_values,
+	  *A;
+	
+
+	int N, err;
+
+	// Convert Python arguments to C
+	if (!PyArg_ParseTuple(args, "OOOO",
+			      &vertex_value_indices, 
+			      &number_of_triangles_per_node,
+			      &vertex_values, 
+			      &A)) {
+	  PyErr_SetString(PyExc_RuntimeError, 
+			  "quantity_ext.c: average_vertex_values could not parse input");
+	  return NULL;
+	}
+	
+	N = vertex_value_indices -> dimensions[0];
+	// printf("Got parameters, N=%d\n", N);
+	err = _average_vertex_values(N,
+				     (long*) vertex_value_indices -> data,
+				     (long*) number_of_triangles_per_node -> data,
+				     (double*) vertex_values -> data, 
+				     (double*) A -> data);
+
+	if (err != 0) {
+	  PyErr_SetString(PyExc_RuntimeError, 
+			  "average_vertex_values could not be computed");
+	  return NULL;
+	}
+
+	return Py_BuildValue("");
+}
+
 
 
 PyObject *compute_gradients(PyObject *self, PyObject *args) {
@@ -566,6 +643,7 @@ static struct PyMethodDef MethodTable[] = {
 	{"interpolate_from_vertices_to_edges",
 		interpolate_from_vertices_to_edges,
 		METH_VARARGS, "Print out"},
+	{"average_vertex_values", average_vertex_values, METH_VARARGS, "Print out"},		
 	{NULL, NULL, 0, NULL}   // sentinel
 };
 

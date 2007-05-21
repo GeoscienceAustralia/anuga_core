@@ -701,6 +701,30 @@ class Mesh(General_mesh):
         #
         #See domain.set_boundary
 
+        # Check integrity of vertex_value_indices
+        current_node = 0
+        k = 0 # Track triangles touching on node
+        for index in self.vertex_value_indices:
+
+            if self.number_of_triangles_per_node[current_node] == 0:
+                # Node is lone - i.e. not part of the mesh
+                continue
+            
+            k += 1
+            
+            volume_id = index / 3
+            vertex_id = index % 3
+            
+            msg = 'Triangle %d, vertex %d points to %d. Should have been %d'\
+                  %(volume_id, vertex_id, self.triangles[volume_id, vertex_id], current_node)
+            assert self.triangles[volume_id, vertex_id] == current_node, msg
+                        
+            if self.number_of_triangles_per_node[current_node] == k:
+                # Move on to next node
+                k = 0
+                current_node += 1
+
+
     def get_lone_vertices(self):
         """Return a list of vertices that are not connected to any triangles.
 

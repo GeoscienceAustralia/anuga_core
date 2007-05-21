@@ -60,6 +60,54 @@ class Test_General_Mesh(unittest.TestCase):
         assert allclose(domain.get_triangles([0,4]),
                         [triangles[0], triangles[4]])
         
+
+    def test_vertex_value_indices(self):
+        """Check that structures are correct.
+        """
+        from mesh_factory import rectangular
+        from Numeric import zeros, Float
+
+        #Create basic mesh
+        nodes, triangles, _ = rectangular(3, 6)
+        domain = General_mesh(nodes, triangles)
+
+        assert sum(domain.number_of_triangles_per_node) ==\
+               len(domain.vertex_value_indices)
+
+        # Check number of triangles per node
+        count = [0]*domain.number_of_nodes
+        for triangle in triangles:
+            for i in triangle:
+                count[i] += 1
+
+        assert allclose(count, domain.number_of_triangles_per_node)
+
+        #print nodes
+        #print triangles
+        #print domain.number_of_triangles_per_node
+        #print domain.vertex_value_indices        
+
+
+        # Check indices
+        current_node = 0
+        k = 0 # Track triangles touching on node
+        for index in domain.vertex_value_indices:
+            k += 1
+            
+            triangle = index / 3
+            vertex = index % 3
+
+            assert triangles[triangle, vertex] == current_node
+
+            if domain.number_of_triangles_per_node[current_node] == k:
+                # Move on to next node
+                k = 0
+                current_node += 1
+                
+
+
+
+
     def test_areas(self):
         from mesh_factory import rectangular
         from shallow_water import Domain

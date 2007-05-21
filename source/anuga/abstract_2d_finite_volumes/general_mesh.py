@@ -393,6 +393,9 @@ class General_mesh:
           self.vertexlist is built
         """
 
+        # FIXME (Ole): Refactor this based on algorithm in test and get
+        # rid of the old vertexlist
+        
         vertexlist = [None]*self.number_of_nodes
         for i in range(self.number_of_triangles):
 
@@ -409,7 +412,41 @@ class General_mesh:
 
                 vertexlist[v].append( (i, vertex_id) )
 
+
+        # Register number of triangles touching each nodes
+        number_of_triangles_per_node = zeros(self.number_of_nodes)        
+        number_of_entries = 0        
+        for i, vertices in enumerate(vertexlist):
+            try:
+                v = len(vertices)
+            except:
+                v = 0 # Lone node - e.g. not part of the mesh
+                
+            number_of_triangles_per_node[i] = v
+            number_of_entries += v
+                
+
+        # Build vertex value index array
+        vertex_value_indices = zeros(number_of_entries)
+        k = 0
+        for vertices in vertexlist:
+            if vertices is not None:
+                for i, v_id in vertices:
+                    vertex_value_indices[k] = 3*i + v_id
+
+                    k += 1
+
+        assert k == number_of_entries    
         self.vertexlist = vertexlist
+
+        self.number_of_triangles_per_node = number_of_triangles_per_node
+        self.vertex_value_indices = vertex_value_indices
+        self.vertexlist = vertexlist
+
+        #print
+        #print number_of_triangles_per_node
+        #print vertex_value_indices
+        #print vertexlist
 
 
     def get_extent(self, absolute=False):

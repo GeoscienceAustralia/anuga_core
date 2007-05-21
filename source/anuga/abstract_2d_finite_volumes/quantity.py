@@ -942,7 +942,6 @@ class Quantity:
                 # Average the values
                 
                 # FIXME (Ole): Should we merge this with get_vertex_values
-                # and use the concept of a reduction operator?
                 sum = 0
                 for triangle_id, vertex_id in triangles:
                     sum += self.vertex_values[triangle_id, vertex_id]
@@ -1032,8 +1031,7 @@ class Quantity:
     def get_vertex_values(self,
                           xy=True,
                           smooth=None,
-                          precision=None,
-                          reduction=None):
+                          precision=None):
         """Return vertex values like an OBJ format i.e. one value per node.
 
         The vertex values are returned as one sequence in the 1D float array A.
@@ -1045,8 +1043,8 @@ class Quantity:
         X, Y and A. 
 
         if smooth is True, vertex values corresponding to one common
-        coordinate set will be smoothed according to the given
-        reduction operator. In this case vertex coordinates will be
+        coordinate set will be smoothed by taking the average of vertex values for each node.
+        In this case vertex coordinates will be
         de-duplicated corresponding to the original nodes as obtained from
         the method general_mesh.get_nodes()
 
@@ -1077,31 +1075,50 @@ class Quantity:
             
 
         if smooth is True:
-            # Ensure continuous vertex values by combining
-            # values at each node using the reduction operator
+            # Ensure continuous vertex values by averaging
+            # values at each node
             
-            if reduction is None:
-                # Take default from domain                
-                reduction = self.domain.reduction
-
             V = self.domain.get_triangles()
             N = self.domain.number_of_full_nodes # Ignore ghost nodes if any
-            A = zeros(N, precision)
+            A = zeros(N, Float)
             points = self.domain.get_nodes()            
+            
+            if 1:
+                # Fast C version
+                average_vertex_values(ensure_numeric(self.domain.vertex_value_indices),
+                                      ensure_numeric(self.domain.number_of_triangles_per_node),
+                                      ensure_numeric(self.vertex_values),
+                                      A)
+                A = A.astype(precision)
+            else:    
 
-            # Reduction loop
-            for k in range(N):
-                L = self.domain.vertexlist[k]
-
-                # Go through all triangle, vertex pairs
-                # contributing to vertex k and register vertex value
-                if L is None: continue # In case there are unused points
-                contributions = []
-                for volume_id, vertex_id in L:
+                # Slow Python version
+                
+                current_node = 0
+                k = 0 # Track triangles touching on node
+                total = 0.0
+                for index in self.domain.vertex_value_indices:
+                    k += 1
+                    
+                    volume_id = index / 3
+                    vertex_id = index % 3
+                 
+                    #assert V[volume_id, vertex_id] == current_node
+                
                     v = self.vertex_values[volume_id, vertex_id]
-                    contributions.append(v)
+                    total += v
 
-                A[k] = reduction(contributions)
+                    #print 'current_node=%d, index=%d, k=%d, total=%f' %(current_node, index, k, total)
+                    if self.domain.number_of_triangles_per_node[current_node] == k:
+                        A[current_node] = total/k
+                
+                    
+                        # Move on to next node
+                        total = 0.0
+                        k = 0
+                        current_node += 1
+
+
 
         else:
             # Allow discontinuous vertex values 
@@ -1449,4 +1466,5 @@ if compile.can_use_C_extension('quantity_ext.c'):
     #Replace python version with c implementations
 
     from quantity_ext import compute_gradients, limit,\
-    extrapolate_second_order, interpolate_from_vertices_to_edges, update
+    extrapolate_second_order, interpolate_from_vertices_to_edges, update,\
+    average_vertex_values

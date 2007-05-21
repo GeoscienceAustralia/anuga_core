@@ -392,11 +392,13 @@ class Test_Data_Manager(unittest.TestCase):
         #Cleanup
         os.remove(sww.filename)
 
-    def test_sww_variable3(self):
+    def no_test_sww_variable3(self):
         """Test that sww information can be written correctly
         multiple timesteps using a different reduction operator (min)
         """
 
+        # Different reduction in sww files has been made obsolete.
+        
         import time, os
         from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
