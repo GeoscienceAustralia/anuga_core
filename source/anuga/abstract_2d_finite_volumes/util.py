@@ -1382,7 +1382,9 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
 # but any number of files.
 def copy_code_files(dir_name, filename1, filename2):
     """Copies "filename1" and "filename2" to "dir_name". Very useful for 
-    information management """
+    information management 
+    filename1 and filename2 are both absolute pathnames    
+    """
 
     if access(dir_name,F_OK) == 0:
         print 'Make directory %s' %dir_name
@@ -1450,5 +1452,118 @@ def get_data_from_file(filename,separator_value = ','):
         
     return header_fields, data
 
+def store_parameters(verbose=False,**kwargs):
+    """
+    Must have a file_name keyword arg, this is what is writing to.
+    might be a better way to do this using CSV module Writer and writeDict
+    
+    writes file to "output_dir" unless "completed" is in kwargs, then it writes to 
+    "file_name" kwargs 
+     Returns a object which is a subset of the original
+        and the data points and attributes in this new object refer to
+        the indices provided
+        
+        Input
+            indices- a list of integers that represent the new object
+        Output
+            New geospatial data object representing points specified by 
+            the indices 
+    """
+    import types
+    import os
+
+    # Check that kwargs is a dictionary
+    if type(kwargs) != types.DictType:
+        raise TypeError
+    
+    try:
+        kwargs['completed']
+        completed=True
+    except:
+        completed=False
+
+    # assert that a file_name exists
+    
+    #get file name and removes from dict
+    if completed:
+        try:
+            file = str(kwargs.pop('file_name'))
+        except:
+            raise 'kwargs must have file_name'
+    else:
+        try:
+            file = str(kwargs.pop('output_dir'))+'detail_temp.csv'
+        except:
+            raise 'kwargs must have output_dir'
+        
+    
+#    print kwargs
+    #extracts the header info and the new line info
+    line=''
+    header=''
+    count=0
+    keys = kwargs.keys()
+#    print 'keys',keys
+    keys.sort()
+#    print 'keys',keys
+    
+#    for k in kwargs.keys():
+    #used the sorted keys to create the header and line data
+    for k in keys:
+        print "%s = %s" %(k, kwargs[k]) 
+        header = header+str(k)
+        line = line+str(kwargs[k])
+        count+=1
+        if count <len(kwargs):
+            header = header+','
+            line = line+','
+
+
+    # checks the header info, if the same, then write, if not create a new file
+    #try to open!
+#    print'file name',file
+    try:
+        fid = open(file,"r")
+        file_header=fid.readline()
+        fid.close()
+        if verbose: print 'read file header %s' %file_header
+        
+    except:
+        msg = 'try to create new file',file
+        if verbose: print msg
+        #tries to open file, maybe directory is bad
+        try:
+            fid = open(file,"w")
+            fid.writelines(header+'\n')
+            fid.close()
+            file_header=header
+        except:
+            msg = 'cannot create new file',file
+            raise msg
+            
+    #if header is same or this is a new file
+    if file_header.strip('\n')==header:
+        fid=open(file,"a")
+        #write new line
+        fid.writelines(line+'\n')
+        fid.close()
+    else:
+        #backup plan, if header is different and has completed will append info to 
+        #end of details_temp.cvs file in output directory
+        file = str(kwargs['output_dir'])+'detail_temp.csv'
+        fid=open(file,"a")
+        fid.writelines(header+'\n')
+        fid.writelines(line+'\n')
+        fid.close()
+        msg = 'file header does not match input info, the input variables have changed, change file name'
+        raise msg
+
+      
+    
+    
+        
+    
+    
+     
 
 

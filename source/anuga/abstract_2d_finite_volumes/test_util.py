@@ -1286,6 +1286,42 @@ class Test_Util(unittest.TestCase):
 #        print '1x',x[:,0]
         
         assert allclose(x[:,0], [1.3, 0.0,4.5, 1.0])
+        
+    def test_store_parameters(self):
+        
+        from os import sep, getenv
+        
+        home = getenv('INUNDATIONHOME')
+        output_dir=home+sep+'data'
+        
+        kwargs = {'file_name':'new2.txt','output_dir':output_dir,'who':'me', 'what':'detail', 'how':2, 'why':241,'Completed':'yes'}
+#        {'data_origin': data_georef.get_origin(),
+#                  'mesh_origin': mesh_georef.get_origin(),
+#                  'alpha': alpha,
+#                  'verbose': verbose}
+        
+#        fileName = tempfile.mktemp(".csv")
+#        store_parameters(kwargs,fileName)
+#        file_name='temp.csv'
+        store_parameters(**kwargs)
+#        store_parameters(file_name=file_name, scenario_name='dampier',\
+#                         who="me", time_thining=12,tide=2.6)
+
+        
+        fid = open(str(kwargs.pop('file_name')))
+        header = fid.readline()
+        line = fid.readline()
+        fid.close()
+        print'header',header,'lines',line
+        
+        #file exists
+#        assert access(file_name,F_OK)
+        a=['who,time']
+#        assert allclose(header, a)
+#        assert allclose(header, [who,time])
+#        assert header=='who,time1
+#        assert allclose(line,['me',12])
+        
 
      
 
@@ -1293,7 +1329,7 @@ class Test_Util(unittest.TestCase):
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Util,'test')
-    #suite = unittest.makeSuite(Test_Util,'test_get_data_from_file')
+#    suite = unittest.makeSuite(Test_Util,'test_store_parameters')
     runner = unittest.TextTestRunner()
     runner.run(suite)
 
