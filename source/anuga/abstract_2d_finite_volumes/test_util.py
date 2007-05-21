@@ -1287,7 +1287,7 @@ class Test_Util(unittest.TestCase):
         
         assert allclose(x[:,0], [1.3, 0.0,4.5, 1.0])
         
-    def test_store_parameters(self):
+    def xxxtest_store_parameters(self):
         
         from os import sep, getenv
         
