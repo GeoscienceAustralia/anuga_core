@@ -462,7 +462,7 @@ class Geospatial_data:
         # Concatenate attributes if any
         if self.attributes is None:
             if other.attributes is not None:
-                msg = 'Both geospatial_data objects must have the same \n'
+                msg = 'Geospatial data must have the same \n'
                 msg += 'attributes to allow addition.'
                 raise Exception, msg
             
@@ -477,7 +477,7 @@ class Geospatial_data:
                     new_attributes[x] = concatenate((attrib1, attrib2))
 
                 else:
-                    msg = 'Both geospatial_data objects must have the same \n'
+                    msg = 'Geospatial data must have the same \n'
                     msg += 'attributes to allow addition.'
                     raise Exception, msg
 
@@ -491,7 +491,7 @@ class Geospatial_data:
     ###
 
     def import_points_file(self, file_name, delimiter=None, verbose=False):
-        """ load an .xya or .pts file
+        """ load an .txt, .csv or .xya or .pts file
         Note: will throw an IOError if it can't load the file.
         Catch these!
 
@@ -525,6 +525,7 @@ class Geospatial_data:
             except (IndexError,ValueError,SyntaxError):
                 fd.close()    
                 msg = 'Could not open file %s ' %file_name
+                msg += 'Check the file location.'
                 raise IOError, msg
             except IOError, e:
                 fd.close()  
@@ -542,14 +543,20 @@ class Geospatial_data:
                 raise IOError, msg  
         
         elif file_name[-4:]== ".txt" or file_name[-4:]== ".csv":
-            #let's do ticket#116 stuff
-            #
             try:
                 data_points, attributes, geo_reference =\
                              _read_csv_file(file_name, verbose)
-            except IOError, e:    
-                msg = 'Could not open file %s ' %file_name
-                raise IOError, msg        
+            except IOError, e:
+                # This should only be if a file is not found
+                msg = 'Could not open file %s. ' %file_name
+                msg += 'Check the file location.'
+                raise IOError, msg
+            except SyntaxError, e:
+                # This should only be if there is a format error
+                msg = 'Could not open file %s. \n' %file_name
+                msg += Error_message['IOError']
+                #print "msg", msg
+                raise SyntaxError, msg
         else:      
             msg = 'Extension %s is unknown' %file_name[-4:]
             raise IOError, msg
@@ -822,7 +829,30 @@ class Geospatial_data:
                 del self.header
                 del self.file_pointer
                 raise
+            except SyntaxError:
+                self.file_pointer.close()
+                del self.header
+                del self.file_pointer
+                # This should only be if there is a format error
+                msg = 'Could not open file %s. \n' %self.file_name
+                msg += Error_message['IOError']
+                raise SyntaxError, msg
         return geo
+##################### Error messages ###########
+Error_message = {}
+Em = Error_message
+Em['IOError'] = "NOTE: The format for a comma seperated .txt/.csv file is:\n"
+Em['IOError'] += "           1st line:     [column names]\n"
+Em['IOError'] += "           other lines:  x, y, [attributes]\n"
+Em['IOError'] += "\n"
+Em['IOError'] += "           for example:\n"
+Em['IOError'] += "           x, y, elevation, friction\n"
+Em['IOError'] += "           0.6, 0.7, 4.9, 0.3\n"
+Em['IOError'] += "           1.9, 2.8, 5, 0.3\n"
+Em['IOError'] += "           2.7, 2.4, 5.2, 0.3\n"
+Em['IOError'] += "\n"
+Em['IOError'] += "The first two columns are assumed to be x, y coordinates.\n"
+Em['IOError'] += "The attributes must be numeric.\n"
 
 def _set_using_lat_long(latitudes,
                         longitudes,
@@ -924,9 +954,6 @@ def _read_csv_file(file_name, verbose=False):
     dic['attributelist']['elevation'] = [[7.0,5.0]
     """
     
-    #from anuga.shallow_water.data_manager import Exposure_csv
-    #csv =Exposure_csv(file_name)
-    
     file_pointer = open(file_name)
     header, file_pointer = _read_csv_file_header(file_pointer)
     try:
@@ -969,8 +996,13 @@ def _read_csv_file_blocking(file_pointer, header,
 
     #This is to remove the x and y headers.
     header = header[:]
-    x_header = header.pop(0)
-    y_header = header.pop(0)
+    try:
+        x_header = header.pop(0)
+        y_header = header.pop(0)
+    except IndexError:
+        # if there are not two columns this will occur.
+        # eg if it is a space seperated file
+        raise SyntaxError
     
     read_lines = 0
     while read_lines<max_read_lines:
@@ -982,28 +1014,24 @@ def _read_csv_file_blocking(file_pointer, header,
         if line[0] == '#':
             continue
         read_lines += 1
-        if True: # remove.. #if numbers != []:
-            try:
-                x = float(numbers[0])
-                y = float(numbers[1])
-                points.append([x,y])
-                numbers.pop(0)
-                numbers.pop(0)
-                if len(header) != len(numbers):
-                    
-                    file_pointer.close() 
-                    # It might not be a problem with the header
-                    #raise TitleAmountError
-                    msg = "File load error.  There might be a problem with the file header"
-                    raise IOError, msg
-                for i,num in enumerate(numbers):
-                    num.strip()
-                    if num != '\n' and num != '':
-                        #attributes.append(float(num))
-                        att_dict.setdefault(header[i],[]).append(float(num))
-            #except IOError:           
-            except ValueError:
-                raise SyntaxError
+        try:
+            x = float(numbers[0])
+            y = float(numbers[1])
+            points.append([x,y])
+            numbers.pop(0)
+            numbers.pop(0)
+            if len(header) != len(numbers):
+                file_pointer.close() 
+                msg = "File load error.  There might be a problem with the file header"
+                raise SyntaxError, msg
+            for i,num in enumerate(numbers):
+                num.strip()
+                if num != '\n' and num != '':
+                    #attributes.append(float(num))
+                    att_dict.setdefault(header[i],[]).append(float(num))
+        #except IOError:           
+        except ValueError:
+            raise SyntaxError
     if points == []:
         raise StopIteration
         

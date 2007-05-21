@@ -977,7 +977,10 @@ crap")
   ###################### .CSV ##############################
 
     def test_load_csv_lat_long_bad_blocking(self):
-        
+        """
+        test_load_csv_lat_long_bad_blocking(self):
+        Different zones in Geo references
+        """
         fileName = tempfile.mktemp(".csv")
         file = open(fileName,"w")
         file.write("Lati,LONG,z \n\
@@ -988,6 +991,8 @@ crap")
         results = Geospatial_data(fileName, max_read_lines=1,
                                   load_file_now=False)
         
+        #for i in results:
+        #    pass
         try:
             for i in results:
                 pass
@@ -1035,7 +1040,8 @@ crap")
         
     def test_load_csv_bad(self):
         """ test_load_csv_bad(self):
-        space delimited
+        header column, body column missmatch
+        (Format error)
         """
         import os
        
@@ -1052,17 +1058,106 @@ crap")
 
         # Blocking
         geo_list = []
+        #for i in results:
+        #    geo_list.append(i)
         try:
             for i in results:
                 geo_list.append(i)
-        except IOError:
+        except SyntaxError:
             pass
         else:
             msg = 'bad file did not raise error!'
             raise msg
         os.remove(fileName)
 
+    def test_load_csv_badII(self):
+        """ test_load_csv_bad(self):
+        header column, body column missmatch
+        (Format error)
+        """
+        import os
+       
+        fileName = tempfile.mktemp(".txt")
+        file = open(fileName,"w")
+        file.write(" x,y,elevation ,  speed \n\
+1.0, 0.0, 10.0, 0.0\n\
+0.0, 1.0, 0.0, 10\n\
+1.0, 0.0 ,10.4 yeah\n")
+        file.close()
+
+        results = Geospatial_data(fileName, max_read_lines=2,
+                                  load_file_now=False)
+
+        # Blocking
+        geo_list = []
+        #for i in results:
+        #    geo_list.append(i)
+        try:
+            for i in results:
+                geo_list.append(i)
+        except SyntaxError:
+            pass
+        else:
+            msg = 'bad file did not raise error!'
+            raise msg
+        os.remove(fileName)
+
+    def test_load_csv_badIII(self):
+        """ test_load_csv_bad(self):
+        space delimited
+        """
+        import os
+       
+        fileName = tempfile.mktemp(".txt")
+        file = open(fileName,"w")
+        file.write(" x y elevation   speed \n\
+1. 0.0 10.0 0.0\n\
+0.0 1.0 0.0 10.0\n\
+1.0 0.0 10.4 40.0\n")
+        file.close()
+
+        try:
+            results = Geospatial_data(fileName, max_read_lines=2,
+                                      load_file_now=True)
+        except SyntaxError:
+            pass
+        else:
+            msg = 'bad file did not raise error!'
+            raise msg
+        os.remove(fileName)
         
+    def test_load_csv_badIV(self):
+        """ test_load_csv_bad(self):
+        header column, body column missmatch
+        (Format error)
+        """
+        import os
+       
+        fileName = tempfile.mktemp(".txt")
+        file = open(fileName,"w")
+        file.write(" x,y,elevation ,  speed \n\
+1.0, 0.0, 10.0, wow\n\
+0.0, 1.0, 0.0, ha\n\
+1.0, 0.0 ,10.4, yeah\n")
+        file.close()
+
+        results = Geospatial_data(fileName, max_read_lines=2,
+                                  load_file_now=False)
+
+        # Blocking
+        geo_list = []
+        #for i in results:
+         #   geo_list.append(i)
+        try:
+            for i in results:
+                geo_list.append(i)
+        except SyntaxError:
+            pass
+        else:
+            msg = 'bad file did not raise error!'
+            raise msg
+        os.remove(fileName)
+
     def test_load_pts_blocking(self):
         #This is pts!
        
