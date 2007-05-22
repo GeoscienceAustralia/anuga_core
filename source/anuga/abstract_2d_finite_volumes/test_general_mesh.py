@@ -65,44 +65,53 @@ class Test_General_Mesh(unittest.TestCase):
         """Check that structures are correct.
         """
         from mesh_factory import rectangular
-        from Numeric import zeros, Float
+        from Numeric import zeros, Float, array
 
-        #Create basic mesh
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        nodes = array([a, b, c, d, e, f])
+        #bac, bce, ecf, dbe, daf, dae
+        triangles = array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
+
+        domain1 = General_mesh(nodes, triangles)
+        
+        #Create larger mesh
         nodes, triangles, _ = rectangular(3, 6)
-        domain = General_mesh(nodes, triangles)
+        domain2 = General_mesh(nodes, triangles)
 
-        assert sum(domain.number_of_triangles_per_node) ==\
-               len(domain.vertex_value_indices)
+        # Test both meshes
+        for domain in [domain1, domain2]:
+            assert sum(domain.number_of_triangles_per_node) ==\
+                   len(domain.vertex_value_indices)
 
-        # Check number of triangles per node
-        count = [0]*domain.number_of_nodes
-        for triangle in triangles:
-            for i in triangle:
-                count[i] += 1
+            # Check number of triangles per node
+            count = [0]*domain.number_of_nodes
+            for triangle in domain.triangles:
+                for i in triangle:
+                    count[i] += 1
 
-        assert allclose(count, domain.number_of_triangles_per_node)
+            assert allclose(count, domain.number_of_triangles_per_node)
 
-        #print nodes
-        #print triangles
-        #print domain.number_of_triangles_per_node
-        #print domain.vertex_value_indices        
+            # Check indices
+            current_node = 0
+            k = 0 # Track triangles touching on node
+            for index in domain.vertex_value_indices:
+                k += 1
+                
+                triangle = index / 3
+                vertex = index % 3
 
+                assert domain.triangles[triangle, vertex] == current_node
 
-        # Check indices
-        current_node = 0
-        k = 0 # Track triangles touching on node
-        for index in domain.vertex_value_indices:
-            k += 1
-            
-            triangle = index / 3
-            vertex = index % 3
-
-            assert triangles[triangle, vertex] == current_node
-
-            if domain.number_of_triangles_per_node[current_node] == k:
-                # Move on to next node
-                k = 0
-                current_node += 1
+                if domain.number_of_triangles_per_node[current_node] == k:
+                    # Move on to next node
+                    k = 0
+                    current_node += 1
                 
 
 

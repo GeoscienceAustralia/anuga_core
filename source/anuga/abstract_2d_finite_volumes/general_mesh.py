@@ -379,18 +379,65 @@ class General_mesh:
 
 
     def build_vertexlist(self):
-        """Build vertexlist indexed by vertex ids and for each entry (point id)
-        build a list of (triangles, vertex_id) pairs that use the point
-        as vertex.
+        """Build information about which triangles belong to each node
 
-        The vertex list will have length N, where N is the number of nodes
-        in the mesh.
+        Two arrays are created and store as mesh attributes
+
+        number_of_triangles_per_node: An integer array of length N
+        listing for each node how many triangles use it. N is the number of
+        nodes in mesh.
+        
+        vertex_value_indices: An array of length M listing indices into
+        triangles ordered by node number. The (triangle_id, vertex_id)
+        pairs are obtained from each index as (index/3, index%3) or each
+        index can be used directly into a flattened triangles array. This
+        is for example the case in the quantity.c where this structure is
+        used to average vertex values efficiently.
+
+        
+        Example:
+        
+        a = [0.0, 0.0] # node 0
+        b = [0.0, 2.0] # node 1
+        c = [2.0, 0.0] # node 2
+        d = [0.0, 4.0] # node 3
+        e = [2.0, 2.0] # node 4
+        f = [4.0, 0.0] # node 5
+
+        nodes = array([a, b, c, d, e, f])
+        
+        #bac, bce, ecf, dbe, daf, dae
+        triangles = array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]])        
+
+
+        For this structure
+
+        number_of_triangles_per_node = [1 3 3 1 3 1]
+        which means that node a has 1 triangle associated with it, node b
+        has 3, node has 3 and so on.
+        
+        vertex_value_indices = [ 1  0  3 10  2  4  7  9  5  6 11  8]
+        which reflects the fact that
+        node 0 is used by triangle 0, vertex 1 (index = 1)
+        node 1 is used by triangle 0, vertex 0 (index = 0)
+                   and by triangle 1, vertex 0 (index = 3)
+                   and by triangle 3, vertex 1 (index = 10)
+        node 2 is used by triangle 0, vertex 2 (index = 2)
+                   and by triangle 1, vertex 1 (index = 4)
+                   and by triangle 2, vertex 1 (index = 7)
+        node 3 is used by triangle 3, vertex 0 (index = 9)
+        node 4 is used by triangle 1, vertex 2 (index = 5)
+                   and by triangle 2, vertex 0 (index = 6)
+                   and by triangle 3, vertex 2 (index = 11)
+        node 5 is used by triangle 2, vertex 2 (index = 8)                   
+        
 
         Preconditions:
           self.nodes and self.triangles are defined
 
         Postcondition:
-          self.vertexlist is built
+          self.number_of_triangles_per_node is built
+          self.vertex_value_indices is built          
         """
 
         # FIXME (Ole): Refactor this based on algorithm in test and get
@@ -441,7 +488,7 @@ class General_mesh:
 
         self.number_of_triangles_per_node = number_of_triangles_per_node
         self.vertex_value_indices = vertex_value_indices
-        self.vertexlist = vertexlist
+        
 
         #print
         #print number_of_triangles_per_node
