@@ -594,6 +594,8 @@ class Mesh(General_mesh):
         from anuga.config import epsilon
         from anuga.utilities.numerical_tools import anglediff
 
+        from Numeric import sort, allclose
+
         N = len(self)
         #Get x,y coordinates for all vertices for all triangles
         V = self.get_vertex_coordinates()
@@ -645,29 +647,19 @@ class Mesh(General_mesh):
 
         self.lone_vertices = []
         #Check that all vertices have been registered
-        for v_id, v in enumerate(self.vertexlist):
+        for node, count in enumerate(self.number_of_triangles_per_node):
+        
+            #msg = 'Node %d does not belong to an element.' %node
+            #assert count > 0, msg
+            if count == 0:
+                self.lone_vertices.append(node)
 
-            #msg = 'Vertex %s does not belong to an element.'
-            #assert v is not None, msg
-            if v is None:
-                #print msg%v_id
-                self.lone_vertices.append(v_id)
 
-        #Check integrity of neighbour structure
+
+        #Check neighbour structure
         for i in range(N):
-#            print i
-            for v in self.triangles[i, :]:
-                #Check that all vertices have been registered
-                assert self.vertexlist[v] is not None
-
-                #Check that this triangle is listed with at least one vertex
-                assert (i, 0) in self.vertexlist[v] or\
-                       (i, 1) in self.vertexlist[v] or\
-                       (i, 2) in self.vertexlist[v]
-
-
-
-            #Check neighbour structure
+            # For each triangle
+            
             for k, neighbour_id in enumerate(self.neighbours[i,:]):
 
                 #Assert that my neighbour's neighbour is me
@@ -700,6 +692,26 @@ class Mesh(General_mesh):
         #NOTE (Ole): I reckon this was resolved late 2004?
         #
         #See domain.set_boundary
+
+
+
+        #Check integrity of inverted triangle structure
+
+        V = self.vertex_value_indices[:] #Take a copy
+        V = sort(V)
+        assert allclose(V, range(3*N))
+
+        assert sum(self.number_of_triangles_per_node) ==\
+               len(self.vertex_value_indices)
+
+        # Check number of triangles per node
+        count = [0]*self.number_of_nodes
+        for triangle in self.triangles:
+            for i in triangle:
+                count[i] += 1
+
+        assert allclose(count, self.number_of_triangles_per_node)
+
 
         # Check integrity of vertex_value_indices
         current_node = 0
