@@ -1329,10 +1329,6 @@ class Test_Util(unittest.TestCase):
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Util,'test')
-#    suite = unittest.makeSuite(Test_Util,'test_store_parameters')
-    runner = unittest.TextTestRunner(verbosity=0)
+    #suite = unittest.makeSuite(Test_Util,'test_get_revision_number')
+    runner = unittest.TextTestRunner()
     runner.run(suite)
-
-
-
-

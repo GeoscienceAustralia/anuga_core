@@ -593,7 +593,14 @@ def get_revision_number():
         
         # No file available - try using Subversion
         try:
-            fid = os.popen('svn info')
+            # The null stuff is so this section fails quitly.
+            # This could cause the svn info command to fail due to
+            # the redirection being bad on some platforms.
+            # If that occurs then change this code.
+            if sys.platform[0:3] == 'win':
+                fid = os.popen('svn info 2> null')
+            else:
+                fid = os.popen('svn info 2>/dev/null')
         except:
             msg = 'No version info stored and command "svn" is not '
             msg += 'recognised on the system PATH. What do you want me to do?'
@@ -601,6 +608,7 @@ def get_revision_number():
         else:
             #print 'Got version from svn'            
             version_info = fid.read()
+        #import sys; sys.exit() 
     else:
         pass
         #print 'Got version from file'
