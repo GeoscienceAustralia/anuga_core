@@ -13,6 +13,9 @@ from os.path import exists, basename
 from warnings import warn
 from shutil import copy
 
+from anuga.utilities.numerical_tools import ensure_numeric
+from Numeric import arange, choose
+    
 from anuga.geospatial_data.geospatial_data import ensure_absolute
 
 def file_function(filename,
@@ -1566,12 +1569,48 @@ def store_parameters(verbose=False,**kwargs):
         msg = 'file header does not match input info, the input variables have changed, change file name'
         raise msg
 
-      
-    
-    
-        
-    
-    
-     
 
+def remove_lone_verts(verts, triangles):
+    verts = ensure_numeric(verts)
+    triangles = ensure_numeric(triangles)
+    N = len(verts)
+    # initialise the array to easily find the index of the first loner
+    loners=arange(2*N, N, -1) # if N=3 [6,5,4]
+    
+    for i,t in enumerate(triangles):
+        for vert in t:
+            loners[vert]= vert # all non-loners will have loners[i]=i 
+    #print loners
 
+    lone_start = 2*N - max(loners) # The index of the first loner
+
+    if lone_start-1 == N:
+        # no loners
+        pass
+    elif min(loners[lone_start:N]) > N:
+        # All the loners are at the end of the vert array
+        verts = verts[0:lone_start]
+    else:
+        # change the loners list so it can be used to modify triangle
+        # Remove the loners from verts
+        # Could've used X=compress(less(loners,N),loners)
+        # verts=take(verts,X)  to Remove the loners from verts
+        # but I think it would use more memory
+        new_i = 0
+        for i in range(lone_start, N):
+            if loners[i] >= N:
+                # Loner!
+                pass
+            else:
+                loners[i] = new_i
+                verts[new_i] = verts[i]
+                new_i += 1
+        verts = verts[0:new_i]
+
+        # Modify the triangles
+        #print "loners", loners
+        #print "triangles before", triangles
+        triangles = choose(triangles,loners)
+        #print "triangles after", triangles
+    return verts, triangles
+ 

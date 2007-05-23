@@ -84,7 +84,8 @@ from anuga.utilities.anuga_exceptions import ANUGAError
 from anuga.shallow_water import Domain
 from anuga.abstract_2d_finite_volumes.pmesh2domain import \
      pmesh_to_domain_instance
-from anuga.abstract_2d_finite_volumes.util import get_revision_number
+from anuga.abstract_2d_finite_volumes.util import get_revision_number, \
+     remove_lone_verts
 
 # formula mappings
 
@@ -1929,6 +1930,9 @@ def sww2dem(basename_in, basename_out = None,
     #Interpolate
     from anuga.fit_interpolate.interpolate import Interpolate
 
+    # Remove loners from vertex_points, volumes here
+    vertex_points, volumes = remove_lone_verts(vertex_points, volumes)
+    
     interp = Interpolate(vertex_points, volumes, verbose = verbose)
 
     #Interpolate using quantity values
