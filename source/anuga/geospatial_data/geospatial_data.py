@@ -842,8 +842,8 @@ class Geospatial_data:
 Error_message = {}
 Em = Error_message
 Em['IOError'] = "NOTE: The format for a comma seperated .txt/.csv file is:\n"
-Em['IOError'] += "           1st line:     [column names]\n"
-Em['IOError'] += "           other lines:  x, y, [attributes]\n"
+Em['IOError'] += "        1st line:     [column names]\n"
+Em['IOError'] += "        other lines:  [x value], [y value], [attributes]\n"
 Em['IOError'] += "\n"
 Em['IOError'] += "           for example:\n"
 Em['IOError'] += "           x, y, elevation, friction\n"
@@ -852,7 +852,7 @@ Em['IOError'] += "           1.9, 2.8, 5, 0.3\n"
 Em['IOError'] += "           2.7, 2.4, 5.2, 0.3\n"
 Em['IOError'] += "\n"
 Em['IOError'] += "The first two columns are assumed to be x, y coordinates.\n"
-Em['IOError'] += "The attributes must be numeric.\n"
+Em['IOError'] += "The attribute values must be numeric.\n"
 
 def _set_using_lat_long(latitudes,
                         longitudes,
