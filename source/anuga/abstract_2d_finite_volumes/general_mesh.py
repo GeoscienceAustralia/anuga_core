@@ -209,9 +209,9 @@ class General_mesh:
             self.edgelengths[i, :] = [l0, l1, l2]
 
         
-        # Build vertex list
-        if verbose: print 'Building vertex list'         
-        self.build_vertexlist()
+        # Build structure listing which trianglse belong to which nodet.
+        if verbose: print 'Building inverted triangle structure'         
+        self.build_inverted_triangle_structure()
 
             
 
@@ -378,8 +378,42 @@ class General_mesh:
         return unique_verts.keys()
 
 
-    def build_vertexlist(self):
-        """Build information about which triangles belong to each node
+    def get_triangles_and_vertices_per_node(self, node=None):
+        """Get triangles associated with given node.
+
+        Return list of triangle_ids, vertex_ids for specified node.
+        If node in None or absent, this information will be returned
+        for all (full) nodes.
+        """
+
+        triangle_list = []
+        if node is not None:
+            # Get index for this node
+            first = sum(self.number_of_triangles_per_node[:node])
+            
+            # Get number of triangles for this node
+            count = self.number_of_triangles_per_node[node]
+
+            for i in range(count):
+                index = self.vertex_value_indices[first+i]
+
+                volume_id = index / 3
+                vertex_id = index % 3
+
+                triangle_list.append( (volume_id, vertex_id) )
+        else:
+            # Get info for all nodes recursively.
+            # If need be, we can speed this up by
+            # working directly with the inverted triangle structure
+            for i in range(self.number_of_full_nodes):
+                L = self.get_triangles_and_vertices_per_node(node=i)
+                triangle_list.append(L)
+
+        return triangle_list
+        
+
+    def build_inverted_triangle_structure(self):
+        """Build structure listing triangles belonging to each node
 
         Two arrays are created and store as mesh attributes
 
@@ -440,61 +474,46 @@ class General_mesh:
           self.vertex_value_indices is built          
         """
 
-        # FIXME (Ole): Refactor this based on algorithm in test and get
-        # rid of the old vertexlist
-        
-        vertexlist = [None]*self.number_of_nodes
-        for i in range(self.number_of_triangles):
+        # Count number of triangles per node
+        number_of_triangles_per_node = zeros(self.number_of_nodes)
+        for volume_id, triangle in enumerate(self.triangles):
+            for vertex_id in triangle:
+                number_of_triangles_per_node[vertex_id] += 1
 
-            a = self.triangles[i, 0]
-            b = self.triangles[i, 1]
-            c = self.triangles[i, 2]
-
-            #Register the vertices v as lists of
-            #(triangle_id, vertex_id) tuples associated with them
-            #This is used for averaging multiple vertex values.
-            for vertex_id, v in enumerate([a,b,c]):
-                if vertexlist[v] is None:
-                    vertexlist[v] = []
-
-                vertexlist[v].append( (i, vertex_id) )
-
-
-        # Register number of triangles touching each nodes
-        number_of_triangles_per_node = zeros(self.number_of_nodes)        
-        number_of_entries = 0        
-        for i, vertices in enumerate(vertexlist):
-            try:
-                v = len(vertices)
-            except:
-                v = 0 # Lone node - e.g. not part of the mesh
-                
-            number_of_triangles_per_node[i] = v
-            number_of_entries += v
-                
-
-        # Build vertex value index array
+        # Allocate space for inverted structure
+        number_of_entries = sum(number_of_triangles_per_node)
         vertex_value_indices = zeros(number_of_entries)
+
+        # Register (triangle, vertex) indices for each node
+        vertexlist = [None]*self.number_of_nodes
+        for volume_id in range(self.number_of_triangles):
+
+            a = self.triangles[volume_id, 0]
+            b = self.triangles[volume_id, 1]
+            c = self.triangles[volume_id, 2]
+
+            for vertex_id, node_id in enumerate([a,b,c]):
+                if vertexlist[node_id] is None:
+                    vertexlist[node_id] = []
+	
+                vertexlist[node_id].append( (volume_id, vertex_id) )
+
+
+        # Build inverted triangle index array
         k = 0
         for vertices in vertexlist:
             if vertices is not None:
-                for i, v_id in vertices:
-                    vertex_value_indices[k] = 3*i + v_id
-
+                for volume_id, vertex_id in vertices:
+                    vertex_value_indices[k] = 3*volume_id + vertex_id
+                                        
                     k += 1
 
-        assert k == number_of_entries    
-        self.vertexlist = vertexlist
-
+        # Save structure
         self.number_of_triangles_per_node = number_of_triangles_per_node
         self.vertex_value_indices = vertex_value_indices
+
+
         
-
-        #print
-        #print number_of_triangles_per_node
-        #print vertex_value_indices
-        #print vertexlist
-
 
     def get_extent(self, absolute=False):
         """Return min and max of all x and y coordinates

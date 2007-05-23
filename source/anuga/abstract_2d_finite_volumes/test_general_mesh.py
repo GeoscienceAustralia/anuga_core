@@ -95,8 +95,10 @@ class Test_General_Mesh(unittest.TestCase):
                 for i in triangle:
                     count[i] += 1
 
+            #print count
+            #
             assert allclose(count, domain.number_of_triangles_per_node)
-
+            
             # Check indices
             current_node = 0
             k = 0 # Track triangles touching on node
@@ -114,7 +116,46 @@ class Test_General_Mesh(unittest.TestCase):
                     current_node += 1
                 
 
+    def test_get_triangles_and_vertices_per_node(self):
+        """test_get_triangles_and_vertices_per_node -
 
+        Test that tuples of triangle, vertex can be extracted
+        from inverted triangles structure
+
+        """
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        nodes = array([a, b, c, d, e, f])
+        #bac, bce, ecf, dbe, daf, dae
+        triangles = array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
+
+        domain = General_mesh(nodes, triangles)
+
+        # One node
+        L = domain.get_triangles_and_vertices_per_node(node=2)
+
+        assert allclose(L[0], [0, 2])
+        assert allclose(L[1], [1, 1])
+        assert allclose(L[2], [2, 1])
+
+        # All nodes
+        ALL = domain.get_triangles_and_vertices_per_node()
+
+        assert len(ALL) == 6
+        for i, Lref in enumerate(ALL):
+            L = domain.get_triangles_and_vertices_per_node(node=i)
+            assert allclose(L, Lref)
+            
+
+        
+
+        
 
 
     def test_areas(self):
@@ -155,7 +196,7 @@ class Test_General_Mesh(unittest.TestCase):
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_General_Mesh,'test')
+    suite = unittest.makeSuite(Test_General_Mesh,'test_vertex_value_indices')
     runner = unittest.TextTestRunner()
     runner.run(suite)
 

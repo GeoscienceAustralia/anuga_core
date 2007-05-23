@@ -63,11 +63,15 @@ def _search_triangles_of_vertices(mesh, candidate_vertices, x):
     for v in candidate_vertices:
         #FIXME (DSG-DSG): this catches verts with no triangle.
         #Currently pmesh is producing these.
-        #this should be stopped, 
-        if mesh.vertexlist[v] is None:
+        #this should be stopped,
+
+        if mesh.number_of_triangles_per_node[v] == 0:
             continue
+        
         #for each triangle id (k) which has v as a vertex
-        for k, _ in mesh.vertexlist[v]:
+
+        vertexlist = mesh.get_triangles_and_vertices_per_node(node=v)
+        for k, _ in vertexlist:
             #Get the three vertex_points of candidate triangle
             xi0 = mesh.get_vertex_coordinate(k, 0)
             xi1 = mesh.get_vertex_coordinate(k, 1)

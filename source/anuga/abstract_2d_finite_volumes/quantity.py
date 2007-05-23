@@ -406,16 +406,18 @@ class Quantity:
 
         elif location == 'unique vertices':
             if indices is None:
-                self.edge_values[:] = X
+                self.edge_values[:] = X  #FIXME (Ole): Shouldn't this be vertex_values?
             else:
 
                 #Go through list of unique vertices
                 for unique_vert_id in indices:
-                    triangles = self.domain.vertexlist[unique_vert_id]
 
+                    triangles = self.domain.get_triangles_and_vertices_per_node(node=unique_vert_id)
+                    
                     #In case there are unused points
-                    if triangles is None: continue
-
+                    if len(triangles) == 0:
+                        continue
+                    
                     #Go through all triangle, vertex pairs
                     #and set corresponding vertex value
                     for triangle_id, vertex_id in triangles:
@@ -931,10 +933,10 @@ class Quantity:
             vert_values = []
             #Go through list of unique vertices
             for unique_vert_id in indices:
-                triangles = self.domain.vertexlist[unique_vert_id]
-
+                triangles = self.domain.get_triangles_and_vertices_per_node(node=unique_vert_id)
+                    
                 #In case there are unused points
-                if triangles is None:
+                if len(triangles) == 0:
                     msg = 'Unique vertex not associated with triangles'
                     raise msg
 
@@ -957,8 +959,7 @@ class Quantity:
     def set_vertex_values(self, A, indices = None):
         """Set vertex values for all unique vertices based on input array A
         which has one entry per unique vertex, i.e.
-        one value for each row in array self.domain.coordinates or
-        one value for each row in vertexlist.
+        one value for each row in array self.domain.nodes.
 
         indices is the list of vertex_id's that will be set.
 
@@ -981,10 +982,14 @@ class Quantity:
             vertex_list = indices
 
         #Go through list of unique vertices
+        
         for i_index, unique_vert_id in enumerate(vertex_list):
-            triangles = self.domain.vertexlist[unique_vert_id]
 
-            if triangles is None: continue #In case there are unused points
+
+            triangles = self.domain.get_triangles_and_vertices_per_node(node=unique_vert_id)
+                    
+            #In case there are unused points
+            if len(triangles) == 0: continue
 
             #Go through all triangle, vertex pairs
             #touching vertex unique_vert_id and set corresponding vertex value
