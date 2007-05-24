@@ -1410,7 +1410,7 @@ def copy_code_files(dir_name, filename1, filename2):
     print 'Please use "from anuga.shallow_water.data_manager import copy_code_files"'
 
     return shallow_water.data_manager.copy_code_files(dir_name, filename1, filename2)
-'''
+    '''
     if access(dir_name,F_OK) == 0:
         print 'Make directory %s' %dir_name
         mkdir (dir_name,0777)
@@ -1418,7 +1418,7 @@ def copy_code_files(dir_name, filename1, filename2):
     copy(filename2, dir_name + sep + basename(filename2))
 #    copy (__file__, project.output_run_time_dir + basename(__file__))
     print 'Files %s and %s copied' %(filename1, filename2)
-'''
+    '''
 
 def add_directories(root_directory, directories):
     """
@@ -1495,7 +1495,7 @@ def get_data_from_file(filename,separator_value = ','):
     
 def store_parameters(verbose=False,**kwargs):
     """
-    Temporary Interface to new location
+      Temporary Interface to new location
     Must have a file_name keyword arg, this is what is writing to.
     might be a better way to do this using CSV module Writer and writeDict
     
@@ -1599,7 +1599,7 @@ def store_parameters(verbose=False,**kwargs):
         print 'head',header.strip('\n')
         msg = 'file header does not match input info, the input variables have changed, suggest to change file name'
         raise msg
-
+    '''
 
 def remove_lone_verts(verts, triangles):
     verts = ensure_numeric(verts)

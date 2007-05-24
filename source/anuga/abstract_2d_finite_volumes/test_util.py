@@ -1244,134 +1244,14 @@ class Test_Util(unittest.TestCase):
 
         check_list(['stage','xmomentum'])
     
-    def test_get_data_from_file(self):
-#    from anuga.abstract_2d_finite_volumes.util import get_data_from_file
-        
-        import os
-       
-        fileName = tempfile.mktemp(".txt")
-#        print"filename",fileName
-        file = open(fileName,"w")
-        file.write("elevation, stage\n\
-1.0, 3  \n\
-0.0, 4 \n\
-4.0, 3 \n\
-1.0, 6 \n")
-        file.close()
-        
-        header,x = get_data_from_file(fileName)
-#        print 'x',x
-        os.remove(fileName)
-        
-        assert allclose(x[:,0], [1.0, 0.0,4.0, 1.0])
-        
-    def test_get_data_from_file1(self):
-#    from anuga.abstract_2d_finite_volumes.util import get_data_from_file
-        
-        import os
-       
-        fileName = tempfile.mktemp(".txt")
-#        print"filename",fileName
-        file = open(fileName,"w")
-        file.write("elevation stage\n\
-1.3 3  \n\
-0.0 4 \n\
-4.5 3.5 \n\
-1.0 6 \n")
-        file.close()
-        
-        header, x = get_data_from_file(fileName,separator_value=' ')
-        os.remove(fileName)
-#        x = get_data_from_file(fileName)
-#        print '1x',x[:,0]
-        
-        assert allclose(x[:,0], [1.3, 0.0,4.5, 1.0])
-        
-    def xxxtest_store_parameters(self):
-        
-        from os import sep, getenv
-        
-        home = getenv('INUNDATIONHOME')
-        output_dir=home+sep+'data'
-        
-        kwargs = {'file_name':'new2.txt','output_dir':output_dir,'who':'me', 'what':'detail', 'how':2, 'why':241,'Completed':'yes'}
-#        {'data_origin': data_georef.get_origin(),
-#                  'mesh_origin': mesh_georef.get_origin(),
-#                  'alpha': alpha,
-#                  'verbose': verbose}
-        
-#        fileName = tempfile.mktemp(".csv")
-#        store_parameters(kwargs,fileName)
-#        file_name='temp.csv'
-        store_parameters(**kwargs)
-#        store_parameters(file_name=file_name, scenario_name='dampier',\
-#                         who="me", time_thining=12,tide=2.6)
-
-        
-        fid = open(str(kwargs.pop('file_name')))
-        header = fid.readline()
-        line = fid.readline()
-        fid.close()
-        print'header',header,'lines',line
-        
-        #file exists
-#        assert access(file_name,F_OK)
-        a=['who,time']
-#        assert allclose(header, a)
-#        assert allclose(header, [who,time])
-#        assert header=='who,time1
-#        assert allclose(line,['me',12])
-        
-
-    def test_remove_lone_verts_d(self):
-        verts = [[0,0],[1,0],[0,1]]
-        tris = [[0,1,2]]
-        new_verts, new_tris = remove_lone_verts(verts, tris)
-        assert new_verts == verts
-        assert new_tris == tris
-     
-
-    def test_remove_lone_verts_e(self):
-        verts = [[0,0],[1,0],[0,1],[99,99]]
-        tris = [[0,1,2]]
-        new_verts, new_tris = remove_lone_verts(verts, tris)
-        assert new_verts == verts[0:3]
-        assert new_tris == tris
-        
-    def test_remove_lone_verts_a(self):
-        verts = [[99,99],[0,0],[1,0],[99,99],[0,1],[99,99]]
-        tris = [[1,2,4]]
-        new_verts, new_tris = remove_lone_verts(verts, tris)
-        #print "new_verts", new_verts
-        assert new_verts == [[0,0],[1,0],[0,1]]
-        assert new_tris == [[0,1,2]]
-     
-    def test_remove_lone_verts_c(self):
-        verts = [[0,0],[1,0],[99,99],[0,1]]
-        tris = [[0,1,3]]
-        new_verts, new_tris = remove_lone_verts(verts, tris)
-        #print "new_verts", new_verts
-        assert new_verts == [[0,0],[1,0],[0,1]]
-        assert new_tris == [[0,1,2]]
-        
-    def test_remove_lone_verts_b(self):
-        verts = [[0,0],[1,0],[0,1],[99,99],[99,99],[99,99]]
-        tris = [[0,1,2]]
-        new_verts, new_tris = remove_lone_verts(verts, tris)
-        assert new_verts == verts[0:3]
-        assert new_tris == tris
-     
-
-    def test_remove_lone_verts_e(self):
-        verts = [[0,0],[1,0],[0,1],[99,99]]
-        tris = [[0,1,2]]
-        new_verts, new_tris = remove_lone_verts(verts, tris)
-        assert new_verts == verts[0:3]
-        assert new_tris == tris
         
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Util,'test')
-    #suite = unittest.makeSuite(Test_Util,'test_remove_lone_verts')
-    runner = unittest.TextTestRunner()
+#    suite = unittest.makeSuite(Test_Util,'test_store_parameters')
+    runner = unittest.TextTestRunner(verbosity=0)
     runner.run(suite)
+
+
+
+
