@@ -527,7 +527,7 @@ def populate_polygon(*args, **kwargs):
 
 def start_screen_catcher(dir_name, myid='', numprocs='', extra_info='',
                          print_to_screen=False, verbose=False):
-    """
+    """Temporary Interface to new location
     Used to store screen output and errors to file, if run on multiple 
     processes eachprocessor will have its own output and error file.
     
@@ -535,6 +535,13 @@ def start_screen_catcher(dir_name, myid='', numprocs='', extra_info='',
     string eg. '_other'
     """
 
+    print 'start_screen_catcher has moved from util.py.  ',
+    print 'Please use "from anuga.shallow_water.data_manager import start_screen_catcher"'
+
+    return shallow_water.data_manager.start_screen_catcher(dir_name, \
+                    myid='', numprocs='', extra_info='',       \
+                    print_to_screen=False, verbose=False)
+'''
     dir_name = dir_name
     if access(dir_name,W_OK) == 0:
         if verbose: print 'Make directory %s' %dir_name
@@ -569,7 +576,7 @@ class Screen_Catcher:
         fid = open(self.filename, 'a')
         fid.write(stuff)
 #        if print_to_screen: print stuff
-
+'''
 def get_revision_number():
     """Get the version number of the SVN
     NOTE: This requires that the command svn is on the system PATH
@@ -1392,11 +1399,18 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
 # FIXME (DSG): Add unit test, make general, not just 2 files,
 # but any number of files.
 def copy_code_files(dir_name, filename1, filename2):
-    """Copies "filename1" and "filename2" to "dir_name". Very useful for 
+    """
+    Temporary Interface to new location
+    Copies "filename1" and "filename2" to "dir_name". Very useful for 
     information management 
     filename1 and filename2 are both absolute pathnames    
     """
 
+    print 'copy_code_files has moved from util.py.  ',
+    print 'Please use "from anuga.shallow_water.data_manager import copy_code_files"'
+
+    return shallow_water.data_manager.copy_code_files(dir_name, filename1, filename2)
+'''
     if access(dir_name,F_OK) == 0:
         print 'Make directory %s' %dir_name
         mkdir (dir_name,0777)
@@ -1404,7 +1418,7 @@ def copy_code_files(dir_name, filename1, filename2):
     copy(filename2, dir_name + sep + basename(filename2))
 #    copy (__file__, project.output_run_time_dir + basename(__file__))
     print 'Files %s and %s copied' %(filename1, filename2)
-
+'''
 
 def add_directories(root_directory, directories):
     """
@@ -1425,10 +1439,25 @@ def add_directories(root_directory, directories):
 
 def get_data_from_file(filename,separator_value = ','):
     """ 
-    Read in data information from file
+    Temporary Interface to new location
+    Read in data information from file and 
+    
+    Returns: 
+        header_fields, a string? of the first line separated 
+        by the 'separator_value'
+        
+        data, a array (N data columns X M lines) in the file 
+        excluding the header
+        
     NOTE: wont deal with columns with different lenghts and there must be
     no blank lines at the end.
     """
+    
+    print 'get_data_from_file has moved from util.py.  ',
+    print 'Please use "from anuga.shallow_water.data_manager import get_data_from_file"'
+    
+    return anuga.shallow_water.data_manager.get_data_from_file(filename,separator_value = ',')
+    '''
     from os import sep, getcwd, access, F_OK, mkdir
     from Numeric import array, resize,shape,Float
     import string
@@ -1462,9 +1491,11 @@ def get_data_from_file(filename,separator_value = ','):
         array_number = array_number +1
         
     return header_fields, data
-
+    '''
+    
 def store_parameters(verbose=False,**kwargs):
     """
+    Temporary Interface to new location
     Must have a file_name keyword arg, this is what is writing to.
     might be a better way to do this using CSV module Writer and writeDict
     
@@ -1480,9 +1511,13 @@ def store_parameters(verbose=False,**kwargs):
             New geospatial data object representing points specified by 
             the indices 
     """
-    import types
-    import os
+    
+    print 'store_parameters has moved from util.py.  ',
+    print 'Please use "from anuga.shallow_water.data_manager import store_parameters"'
 
+    return shallow_water.data_manager.store_parameters(verbose=False,**kwargs)
+
+    '''
     # Check that kwargs is a dictionary
     if type(kwargs) != types.DictType:
         raise TypeError
@@ -1492,10 +1527,8 @@ def store_parameters(verbose=False,**kwargs):
         completed=True
     except:
         completed=False
-
-    # assert that a file_name exists
-    
-    #get file name and removes from dict
+ 
+    #get file name and removes from dict and assert that a file_name exists
     if completed:
         try:
             file = str(kwargs.pop('file_name'))
@@ -1507,16 +1540,12 @@ def store_parameters(verbose=False,**kwargs):
         except:
             raise 'kwargs must have output_dir'
         
-    
-#    print kwargs
     #extracts the header info and the new line info
     line=''
     header=''
     count=0
     keys = kwargs.keys()
-#    print 'keys',keys
     keys.sort()
-#    print 'keys',keys
     
 #    for k in kwargs.keys():
     #used the sorted keys to create the header and line data
@@ -1553,7 +1582,7 @@ def store_parameters(verbose=False,**kwargs):
             raise msg
             
     #if header is same or this is a new file
-    if file_header.strip('\n')==header:
+    if file_header.strip('\n')==str(header):
         fid=open(file,"a")
         #write new line
         fid.writelines(line+'\n')
@@ -1566,7 +1595,9 @@ def store_parameters(verbose=False,**kwargs):
         fid.writelines(header+'\n')
         fid.writelines(line+'\n')
         fid.close()
-        msg = 'file header does not match input info, the input variables have changed, change file name'
+        print 'file',file_header.strip('\n')
+        print 'head',header.strip('\n')
+        msg = 'file header does not match input info, the input variables have changed, suggest to change file name'
         raise msg
 
 
