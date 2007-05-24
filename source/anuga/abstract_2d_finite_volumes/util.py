@@ -127,7 +127,8 @@ def file_function(filename,
     #FIXME (Ole): Pass cache arguments, such as compression, in some sort of
     #structure
 
-
+    f.starttime = starttime
+    
     if domain is not None:
         #Update domain.startime if it is *earlier* than starttime from file
         if starttime > domain.starttime:
@@ -527,7 +528,7 @@ def populate_polygon(*args, **kwargs):
 
 def start_screen_catcher(dir_name, myid='', numprocs='', extra_info='',
                          print_to_screen=False, verbose=False):
-    """Temporary Interface to new location
+    """
     Used to store screen output and errors to file, if run on multiple 
     processes eachprocessor will have its own output and error file.
     
@@ -535,13 +536,6 @@ def start_screen_catcher(dir_name, myid='', numprocs='', extra_info='',
     string eg. '_other'
     """
 
-    print 'start_screen_catcher has moved from util.py.  ',
-    print 'Please use "from anuga.shallow_water.data_manager import start_screen_catcher"'
-
-    return shallow_water.data_manager.start_screen_catcher(dir_name, \
-                    myid='', numprocs='', extra_info='',       \
-                    print_to_screen=False, verbose=False)
-'''
     dir_name = dir_name
     if access(dir_name,W_OK) == 0:
         if verbose: print 'Make directory %s' %dir_name
@@ -576,7 +570,7 @@ class Screen_Catcher:
         fid = open(self.filename, 'a')
         fid.write(stuff)
 #        if print_to_screen: print stuff
-'''
+
 def get_revision_number():
     """Get the version number of the SVN
     NOTE: This requires that the command svn is on the system PATH
@@ -712,6 +706,7 @@ def sww2timeseries(swwfiles,
                    surface = None,
                    time_min = None,
                    time_max = None,
+                   time_unit = None,
                    title_on = None,
                    use_cache = False,
                    verbose = False):
@@ -809,6 +804,7 @@ def sww2timeseries(swwfiles,
                         surface,
                         time_min,
                         time_max,
+                        time_unit,
                         title_on,
                         use_cache,
                         verbose)
@@ -825,6 +821,7 @@ def _sww2timeseries(swwfiles,
                     surface = None,
                     time_min = None,
                     time_max = None,
+                    time_unit = None,
                     title_on = None,
                     use_cache = False,
                     verbose = False):   
@@ -851,7 +848,10 @@ def _sww2timeseries(swwfiles,
 
     if surface is None:
         surface = False
-        
+
+    if time_unit is None:
+        time_unit = 'hours'
+    
     if title_on is None:
         title_on = True
     
@@ -866,7 +866,7 @@ def _sww2timeseries(swwfiles,
     leg_label = []
     themaxT = 0.0
     theminT = 0.0
-    
+
     for swwfile in swwfiles.keys():
 
         try:
@@ -879,7 +879,7 @@ def _sww2timeseries(swwfiles,
         f = file_function(swwfile,
                           quantities = sww_quantity,
                           interpolation_points = gauges,
-                          verbose = True,
+                          verbose = verbose,
                           use_cache = use_cache)
 
         # determine which gauges are contained in sww file
@@ -931,8 +931,8 @@ def _sww2timeseries(swwfiles,
     if len(gauge_index) <> 0:
         texfile, elev_output = generate_figures(plot_quantity, file_loc, report, reportname, surface,
                                                 leg_label, f_list, gauges, locations, elev, gauge_index,
-                                                production_dirs, time_min, time_max, title_on, label_id,
-                                                generate_fig, verbose)
+                                                production_dirs, time_min, time_max, time_unit,
+                                                title_on, label_id, generate_fig, verbose)
     else:
         texfile = ''
         elev_output = []
@@ -1026,8 +1026,8 @@ def calc_bearing(uh, vh):
 
 def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                      leg_label, f_list, gauges, locations, elev, gauge_index,
-                     production_dirs, time_min, time_max, title_on, label_id,
-                     generate_fig, verbose):
+                     production_dirs, time_min, time_max, time_unit,
+                     title_on, label_id, generate_fig, verbose):
     """ Generate figures based on required quantities and gauges for each sww file
     """
     from math import sqrt, atan, degrees
@@ -1090,8 +1090,11 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
     model_time_plot3d = zeros((n0,m), Float)
     stages_plot3d = zeros((n0,m), Float)
     eastings_plot3d = zeros((n0,m),Float)
+    if time_unit is 'mins': scale = 60.0
+    if time_unit is 'hours': scale = 3600.0
     ##### loop over each swwfile #####
     for j, f in enumerate(f_list):
+        starttime = f.starttime
         if verbose: print 'swwfile %d of %d' %(j, len(f_list))
         comparefile = file_loc[j]+sep+'gauges_maxmins'+'.csv'
         fid_compare = open(comparefile, 'w')
@@ -1111,7 +1114,6 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
             fid_out = open(thisfile, 'w')
             s = 'Time, Stage, Momentum, Speed, Elevation, xmom, ymom \n'
             fid_out.write(s)
-            
             #### generate quantities #######
             for i, t in enumerate(f.get_time()):
                 if time_min <= t <= time_max:
@@ -1125,8 +1127,8 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                         vel = 0.0
                     else:
                         vel = m / (depth + 1.e-6/depth) 
-                    #bearing = calc_bearing(uh, vh)
-                    model_time[i,k,j] = t/60.0
+                    #bearing = calc_bearing(uh, vh)                    
+                    model_time[i,k,j] = (t + starttime)/scale #t/60.0
                     stages[i,k,j] = w
                     elevations[i,k,j] = z 
                     xmom[i,k,j] = uh 
@@ -1195,11 +1197,10 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
 
     elev_output = []
     if generate_fig is True:
-        depth_axis = axis([time_min/60.0, time_max/60.0, -0.1, max(max_depths)*1.1])
-        stage_axis = axis([time_min/60.0, time_max/60.0, min(min_stages), max(max_stages)*1.1])
-        #stage_axis = axis([50.0, time_max/60.0, -3.0, 2.0])
-        vel_axis = axis([time_min/60.0, time_max/60.0, min(max_speeds), max(max_speeds)*1.1])
-        mom_axis = axis([time_min/60.0, time_max/60.0, min(max_momentums), max(max_momentums)*1.1])
+        depth_axis = axis([starttime/scale, time_max/scale, -0.1, max(max_depths)*1.1])
+        stage_axis = axis([starttime/scale, time_max/scale, min(min_stages), max(max_stages)*1.1])
+        vel_axis = axis([starttime/scale, time_max/scale, min(max_speeds), max(max_speeds)*1.1])
+        mom_axis = axis([starttime/scale, time_max/scale, min(max_momentums), max(max_momentums)*1.1])
         cstr = ['g', 'r', 'b', 'c', 'm', 'y', 'k']
         nn = len(plot_quantity)
         no_cols = 2
@@ -1269,11 +1270,14 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                         ax = axis([time_min, time_max, 0.0, 360.0])
                         legend(('Bearing','West','East'))
 
-                    xlabel('time (mins)')
-                    if which_quantity == 'stage' and elevations[0:n[j]-1,k,j] > 0:
-                        ylabel('%s (%s)' %('depth', units))
-                    else:
-                        ylabel('%s (%s)' %(which_quantity, units))
+                    if time_unit is 'mins': xlabel('time (mins)')
+                    if time_unit is 'hours': xlabel('time (hours)')
+                    #if which_quantity == 'stage' and elevations[0:n[j]-1,k,j] > 0:
+                    #    ylabel('%s (%s)' %('depth', units))
+                    #else:
+                    #    ylabel('%s (%s)' %(which_quantity, units))
+                        #ylabel('%s (%s)' %('wave height', units))
+                    ylabel('%s (%s)' %(which_quantity, units))
                     if len(label_id) > 1: legend((leg_label),loc='upper right')
 
                     gaugeloc1 = gaugeloc.replace(' ','')
@@ -1399,18 +1403,11 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
 # FIXME (DSG): Add unit test, make general, not just 2 files,
 # but any number of files.
 def copy_code_files(dir_name, filename1, filename2):
-    """
-    Temporary Interface to new location
-    Copies "filename1" and "filename2" to "dir_name". Very useful for 
+    """Copies "filename1" and "filename2" to "dir_name". Very useful for 
     information management 
     filename1 and filename2 are both absolute pathnames    
     """
 
-    print 'copy_code_files has moved from util.py.  ',
-    print 'Please use "from anuga.shallow_water.data_manager import copy_code_files"'
-
-    return shallow_water.data_manager.copy_code_files(dir_name, filename1, filename2)
-    '''
     if access(dir_name,F_OK) == 0:
         print 'Make directory %s' %dir_name
         mkdir (dir_name,0777)
@@ -1418,7 +1415,7 @@ def copy_code_files(dir_name, filename1, filename2):
     copy(filename2, dir_name + sep + basename(filename2))
 #    copy (__file__, project.output_run_time_dir + basename(__file__))
     print 'Files %s and %s copied' %(filename1, filename2)
-    '''
+
 
 def add_directories(root_directory, directories):
     """
@@ -1439,25 +1436,10 @@ def add_directories(root_directory, directories):
 
 def get_data_from_file(filename,separator_value = ','):
     """ 
-    Temporary Interface to new location
-    Read in data information from file and 
-    
-    Returns: 
-        header_fields, a string? of the first line separated 
-        by the 'separator_value'
-        
-        data, a array (N data columns X M lines) in the file 
-        excluding the header
-        
+    Read in data information from file
     NOTE: wont deal with columns with different lenghts and there must be
     no blank lines at the end.
     """
-    
-    print 'get_data_from_file has moved from util.py.  ',
-    print 'Please use "from anuga.shallow_water.data_manager import get_data_from_file"'
-    
-    return anuga.shallow_water.data_manager.get_data_from_file(filename,separator_value = ',')
-    '''
     from os import sep, getcwd, access, F_OK, mkdir
     from Numeric import array, resize,shape,Float
     import string
@@ -1491,11 +1473,9 @@ def get_data_from_file(filename,separator_value = ','):
         array_number = array_number +1
         
     return header_fields, data
-    '''
-    
+
 def store_parameters(verbose=False,**kwargs):
     """
-      Temporary Interface to new location
     Must have a file_name keyword arg, this is what is writing to.
     might be a better way to do this using CSV module Writer and writeDict
     
@@ -1511,13 +1491,9 @@ def store_parameters(verbose=False,**kwargs):
             New geospatial data object representing points specified by 
             the indices 
     """
-    
-    print 'store_parameters has moved from util.py.  ',
-    print 'Please use "from anuga.shallow_water.data_manager import store_parameters"'
+    import types
+    import os
 
-    return shallow_water.data_manager.store_parameters(verbose=False,**kwargs)
-
-    '''
     # Check that kwargs is a dictionary
     if type(kwargs) != types.DictType:
         raise TypeError
@@ -1527,8 +1503,10 @@ def store_parameters(verbose=False,**kwargs):
         completed=True
     except:
         completed=False
- 
-    #get file name and removes from dict and assert that a file_name exists
+
+    # assert that a file_name exists
+    
+    #get file name and removes from dict
     if completed:
         try:
             file = str(kwargs.pop('file_name'))
@@ -1540,12 +1518,16 @@ def store_parameters(verbose=False,**kwargs):
         except:
             raise 'kwargs must have output_dir'
         
+    
+#    print kwargs
     #extracts the header info and the new line info
     line=''
     header=''
     count=0
     keys = kwargs.keys()
+#    print 'keys',keys
     keys.sort()
+#    print 'keys',keys
     
 #    for k in kwargs.keys():
     #used the sorted keys to create the header and line data
@@ -1582,7 +1564,7 @@ def store_parameters(verbose=False,**kwargs):
             raise msg
             
     #if header is same or this is a new file
-    if file_header.strip('\n')==str(header):
+    if file_header.strip('\n')==header:
         fid=open(file,"a")
         #write new line
         fid.writelines(line+'\n')
@@ -1595,11 +1577,9 @@ def store_parameters(verbose=False,**kwargs):
         fid.writelines(header+'\n')
         fid.writelines(line+'\n')
         fid.close()
-        print 'file',file_header.strip('\n')
-        print 'head',header.strip('\n')
-        msg = 'file header does not match input info, the input variables have changed, suggest to change file name'
+        msg = 'file header does not match input info, the input variables have changed, change file name'
         raise msg
-    '''
+
 
 def remove_lone_verts(verts, triangles):
     verts = ensure_numeric(verts)
