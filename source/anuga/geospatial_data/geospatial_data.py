@@ -411,7 +411,7 @@ class Geospatial_data:
         NOTE: doesn't add if objects contain different 
         attributes  
         
-        Always return relative points!
+        Always return absolute points!
         """
 
         # find objects zone and checks if the same
@@ -427,37 +427,44 @@ class Geospatial_data:
         # sets xll and yll as the smallest from self and other
         # FIXME (Duncan and Ole): use lower left corner derived from
         # absolute coordinates
-        if self.geo_reference.xllcorner <= other.geo_reference.xllcorner:
-            xll = self.geo_reference.xllcorner
-        else:
-            xll = other.geo_reference.xllcorner
+        #if self.geo_reference.xllcorner <= other.geo_reference.xllcorner:
+        #    xll = self.geo_reference.xllcorner
+        #else:
+        #    xll = other.geo_reference.xllcorner
 
-        if self.geo_reference.yllcorner <= other.geo_reference.yllcorner:
-            yll = self.geo_reference.yllcorner
-        else:
-            yll = other.geo_reference.yllcorner
-        new_geo_ref = Geo_reference(geo_ref1.get_zone(), xll, yll)
+        #if self.geo_reference.yllcorner <= other.geo_reference.yllcorner:
+        #    yll = self.geo_reference.yllcorner
+        #else:
+        #    yll = other.geo_reference.yllcorner
+            
+        #new_geo_ref = Geo_reference(geo_ref1.get_zone(), xll, yll)
 
-        xll = yll = 0. 
+        #xll = yll = 0. 
         
-        relative_points1 = self.get_data_points(absolute = False)
-        relative_points2 = other.get_data_points(absolute = False)
+#         relative_points1 = self.get_data_points(absolute = False)
+#         relative_points2 = other.get_data_points(absolute = False)
 
         
-        new_relative_points1 = new_geo_ref.\
-                               change_points_geo_ref(relative_points1,
-                                                     geo_ref1)
-        new_relative_points2 = new_geo_ref.\
-                               change_points_geo_ref(relative_points2,
-                                                     geo_ref2)
+#         relative_points1 = new_geo_ref.\
+#                            change_points_geo_ref(relative_points1,
+#                                                  geo_ref1)
+#         relative_points2 = new_geo_ref.\
+#                            change_points_geo_ref(relative_points2,
+#                                                  geo_ref2)
         
-        # Now both point sets are relative to new_geo_ref and
-        # zones have been reconciled
+#         # Now both point sets are relative to new_geo_ref and
+#         # zones have been reconciled
 
-        # Concatenate points
-        new_points = concatenate((new_relative_points1,
-                                  new_relative_points2),
-                                  axis = 0)
+#         # Concatenate points
+#         new_points = concatenate((relative_points1,
+#                                   relative_points2),
+#                                   axis = 0)
+        
+        new_points = concatenate((self.get_data_points(absolute = True),
+                                  other.get_data_points(absolute = True)),
+                                  axis = 0)        
+
+        
       
         # Concatenate attributes if any
         if self.attributes is None:
@@ -481,7 +488,8 @@ class Geospatial_data:
                     msg += 'attributes to allow addition.'
                     raise Exception, msg
 
-        # Instantiate new data object and return    
+        # Instantiate new data object and return absolute coordinates
+        new_geo_ref = Geo_reference(geo_ref1.get_zone(), 0.0, 0.0)
         return Geospatial_data(new_points,
                                new_attributes,
                                new_geo_ref)
