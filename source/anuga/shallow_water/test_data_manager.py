@@ -1303,8 +1303,13 @@ END CROSS-SECTIONS:
         from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
+        try:
+            os.remove('teg*.sww')
+        except:
+            pass
+
         #Setup
-        self.domain.set_name('datatest')
+        self.domain.set_name('teg')
 
         prjfile = self.domain.get_name() + '_elevation.prj'
         ascfile = self.domain.get_name() + '_elevation.asc'
@@ -1380,8 +1385,13 @@ END CROSS-SECTIONS:
         from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
+        try:
+            os.remove('teg*.sww')
+        except:
+            pass
+
         #Setup
-        self.domain.set_name('datatest')
+        self.domain.set_name('tegII')
 
         swwfile = self.domain.get_name() + '.sww'
 
@@ -1503,8 +1513,13 @@ END CROSS-SECTIONS:
         from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
+        try:
+            os.remove('teg*.sww')
+        except:
+            pass
+
         #Setup
-        self.domain.set_name('datatest')
+        self.domain.set_name('tegIII')
 
         swwfile = self.domain.get_name() + '.sww'
 

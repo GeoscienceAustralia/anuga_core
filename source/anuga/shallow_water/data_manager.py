@@ -1642,6 +1642,8 @@ def export_grid(basename_in, extra_name_out = None,
 
     # How many sww files are there?
     dir, base = os.path.split(basename_in)
+    #print "basename_in",basename_in
+    #print "base",base
     
     if dir == "": dir = "." # Unix compatibility
     dir_ls = os.listdir(dir)
