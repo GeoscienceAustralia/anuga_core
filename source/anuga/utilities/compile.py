@@ -126,11 +126,13 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
       sharedflag = SFLAG
     else:  
       sharedflag = 'shared'
+     
     libext = 'dll'
 
     v = version.replace('.','')
     dllfilename = 'python%s.dll' %(v)
     libs = os.path.join(sys.exec_prefix,dllfilename)
+
       
       
   else:
@@ -150,7 +152,8 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
     else:  
       sharedflag = 'G'
 
-            
+   
+       
   # Find location of include files
   #
   if sys.platform == 'win32':  #Windows
@@ -361,7 +364,7 @@ if __name__ == '__main__':
               except:
                   pass
 
-          print '-------------------------------_-------'      
+          print '---------------------------------------'      
           print 'Trying to compile c-extension %s in %s'\
                 %(filename, os.getcwd())
           try:

@@ -85,7 +85,6 @@ N = 600 #Size = 720000
 N = 50
 
 
-
 #N = 15
 
 print 'Creating domain'
