@@ -485,11 +485,15 @@ def _write_ASCII_triangulation(fd,
     fd.write(numVert + " " + numVertAttrib + " # <# of verts> <# of vert attributes>, next lines <vertex #> <x> <y> [attributes] ...Triangulation Vertices..." + "\n")
 
     #<vertex #> <x> <y> [attributes]    
-    index = 0 
+    index = 0
     for vert in vertices:
         attlist = ""
-        for att in vertices_attributes[index]:
-            attlist = attlist + str(att)+" "
+        
+        if vertices_attributes == []:
+            attlist = ""
+        else:
+            for att in vertices_attributes[index]:
+                attlist = attlist + str(att)+" "
         attlist.strip()
         fd.write(str(index) + " "
                  + str(vert[0]) + " "
@@ -510,21 +514,24 @@ def _write_ASCII_triangulation(fd,
     for index in range(n):
         neighbors = ""
         tri = triangles[index]
-        for neighbor in triangle_neighbors[index]:
-            if neighbor:
-                neighbors += str(neighbor) + " "
-            else:
-                if neighbor == 0:
-                    neighbors +=  "0 "
+        if triangle_neighbors == []:
+            neighbors = "-1 -1 -1 "
+        else:
+            for neighbor in triangle_neighbors[index]:
+                if neighbor:
+                    neighbors += str(neighbor) + " "
                 else:
-                    neighbors +=  "-1 "
+                    if neighbor == 0:
+                        neighbors +=  "0 "
+                    else:
+                        neighbors +=  "-1 "
         #Warning even though a list is past, only the first value
         #is written.  There's an assumption that the list only
         # contains one item. This assumption is made since the
         #dict that's being passed around is also be used to communicate
         # with triangle, and it seems to have the option of returning
         # more than one value for triangle attributex
-        if triangles_attributes[index] == ['']:
+        if triangles_attributes == [] or triangles_attributes[index] == ['']:
             att = ""
         else:
             att = str(triangles_attributes[index])
