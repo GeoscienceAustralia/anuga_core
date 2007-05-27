@@ -86,7 +86,7 @@ from anuga.abstract_2d_finite_volumes.pmesh2domain import \
      pmesh_to_domain_instance
 from anuga.abstract_2d_finite_volumes.util import get_revision_number, \
      remove_lone_verts
-
+from anuga.load_mesh.loadASCII import export_mesh_file
 # formula mappings
 
 quantity_formula = {'momentum':'(xmomentum**2 + ymomentum**2)**0.5',
@@ -1934,7 +1934,7 @@ def sww2dem(basename_in, basename_out = None,
 
     # Remove loners from vertex_points, volumes here
     vertex_points, volumes = remove_lone_verts(vertex_points, volumes)
-    
+    #export_mesh_file('monkey.tsh',{'vertices':vertex_points, 'triangles':volumes})
     interp = Interpolate(vertex_points, volumes, verbose = verbose)
 
     #Interpolate using quantity values
