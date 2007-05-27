@@ -1581,14 +1581,26 @@ def store_parameters(verbose=False,**kwargs):
         raise msg
 
 
-def remove_lone_verts(verts, triangles):
+def remove_lone_verts(verts, triangles, number_of_full_nodes=None):
+    """
+    Removes vertices that are not associated with any triangles.
+
+    verts is a list/array of points
+    triangles is a list of 3 element tuples.  Each tuple represents a triangle.
+
+    number_of_full_nodes relate to parallelism when a mesh has an
+        extra layer of ghost points.
+        
+    """
     verts = ensure_numeric(verts)
     triangles = ensure_numeric(triangles)
+    
     N = len(verts)
+    
     # initialise the array to easily find the index of the first loner
     loners=arange(2*N, N, -1) # if N=3 [6,5,4]
     
-    for i,t in enumerate(triangles):
+    for t in triangles:
         for vert in t:
             loners[vert]= vert # all non-loners will have loners[i]=i 
     #print loners
@@ -1602,7 +1614,7 @@ def remove_lone_verts(verts, triangles):
         # All the loners are at the end of the vert array
         verts = verts[0:lone_start]
     else:
-        # change the loners list so it can be used to modify triangle
+        # change the loners list so it can be used to modify triangles
         # Remove the loners from verts
         # Could've used X=compress(less(loners,N),loners)
         # verts=take(verts,X)  to Remove the loners from verts
