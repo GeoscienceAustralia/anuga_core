@@ -60,15 +60,18 @@ class NewQuantity(exceptions.Exception): pass
 
 import csv
 import os
+import shutil
 from struct import unpack
 import array as p_array
 #import time, os
-from os import sep, path
+from os import sep, path, remove, mkdir, access, F_OK, W_OK
 
 from Numeric import concatenate, array, Float, Int, Int32, resize, sometrue, \
      searchsorted, zeros, allclose, around, reshape, transpose, sort, \
      NewAxis, ArrayType
 from Scientific.IO.NetCDF import NetCDFFile
+#from shutil import copy
+from os.path import exists, basename
 
 
 from anuga.coordinate_transforms.redfearn import redfearn, \
@@ -5071,10 +5074,227 @@ class Urs_points:
 
     def close(self):
         self.mux_file.close()
-
+        
     #### END URS UNGRIDDED 2 SWW ###
 
+        
+def start_screen_catcher(dir_name, myid='', numprocs='', extra_info='',
+                         print_to_screen=False, verbose=False):
+    """
+    Used to store screen output and errors to file, if run on multiple 
+    processes eachprocessor will have its own output and error file.
+    
+    extra_info - is used as a string that can identify outputs with another 
+    string eg. '_other'
+    """
+    import sys
+    dir_name = dir_name
+    if access(dir_name,W_OK) == 0:
+        if verbose: print 'Make directory %s' %dir_name
+        if verbose: print "myid", myid
+        mkdir (dir_name,0777)
+    if myid <>'':
+        myid = '_'+str(myid)
+    if numprocs <>'':
+        numprocs = '_'+str(numprocs)
+    if extra_info <>'':
+        extra_info = '_'+str(extra_info)
+    screen_output_name = dir_name + "screen_output%s%s%s.txt" %(myid,numprocs,extra_info)
+    screen_error_name = dir_name + "screen_error%s%s%s.txt" %(myid,numprocs,extra_info)
+    print screen_output_name
+    #used to catch screen output to file
+    sys.stdout = Screen_Catcher(screen_output_name)
+    sys.stderr = Screen_Catcher(screen_error_name)
+
+class Screen_Catcher:
+    """this simply catches the screen output and stores it to file defined by
+    start_screen_catcher (above)
+    """
+    
+    def __init__(self, filename):
+        self.filename = filename
+ 
+        if exists(self.filename)is True:
+            print'Old existing file "%s" has been deleted' %(self.filename)
+            remove(self.filename)
+
+    def write(self, stuff):
+        fid = open(self.filename, 'a')
+        fid.write(stuff)
+#        if print_to_screen: print stuff
+
+def copy_code_files(dir_name, filename1, filename2):
+    """Copies "filename1" and "filename2" to "dir_name". Very useful for 
+    information management 
+    filename1 and filename2 are both absolute pathnames    
+    """
+
+    if access(dir_name,F_OK) == 0:
+        print 'Make directory %s' %dir_name
+        mkdir (dir_name,0777)
+    shutil.copy(filename1, dir_name + sep + basename(filename1))
+    shutil.copy(filename2, dir_name + sep + basename(filename2))
+#    copy (__file__, project.output_run_time_dir + basename(__file__))
+    print 'Files %s and %s copied' %(filename1, filename2)
+
+def get_data_from_file(filename,separator_value = ','):
+    """ 
+    Read in data information from file and 
+    
+    Returns: 
+        header_fields, a string? of the first line separated 
+        by the 'separator_value'
+        
+        data, a array (N data columns X M lines) in the file 
+        excluding the header
+        
+    NOTE: wont deal with columns with different lenghts and there must be
+    no blank lines at the end.
+    """
+    
+    from os import sep, getcwd, access, F_OK, mkdir
+    from Numeric import array, resize,shape,Float
+    import string
+    fid = open(filename)
+    lines = fid.readlines()
+    
+    fid.close()
+    
+    header_line = lines[0]
+    header_fields = header_line.split(separator_value)
+
+    #array to store data, number in there is to allow float...
+    #i'm sure there is a better way!
+    data=array([],typecode=Float)
+    data=resize(data,((len(lines)-1),len(header_fields)))
+#    print 'number of fields',range(len(header_fields))
+#    print 'number of lines',len(lines), shape(data)
+#    print'data',data[1,1],header_line
+
+    array_number = 0
+    line_number = 1
+    while line_number < (len(lines)):
+        for i in range(len(header_fields)): 
+            #this get line below the header, explaining the +1
+            #and also the line_number can be used as the array index
+            fields = lines[line_number].split(separator_value)
+            #assign to array
+            data[array_number,i] = float(fields[i])
+            
+        line_number = line_number +1
+        array_number = array_number +1
+        
+    return header_fields, data
+
+def store_parameters(verbose=False,**kwargs):
+    """
+    Must have a file_name keyword arg, this is what is writing to.
+    might be a better way to do this using CSV module Writer and writeDict
+    
+    writes file to "output_dir" unless "completed" is in kwargs, then it writes to 
+    "file_name" kwargs 
+     Returns a object which is a subset of the original
+        and the data points and attributes in this new object refer to
+        the indices provided
+        
+        Input
+            indices- a list of integers that represent the new object
+        Output
+            New geospatial data object representing points specified by 
+            the indices 
+    """
+    import types
+    import os
+    
+    # Check that kwargs is a dictionary
+    if type(kwargs) != types.DictType:
+        raise TypeError
+    
+    try:
+        kwargs['completed']
+        completed=True
+    except:
+        completed=False
+ 
+    #get file name and removes from dict and assert that a file_name exists
+    if completed:
+        try:
+            file = str(kwargs.pop('file_name'))
+        except:
+            raise 'kwargs must have file_name'
+    else:
+        try:
+            file = str(kwargs.pop('output_dir'))+'detail_temp.csv'
+        except:
+            raise 'kwargs must have output_dir'
+        
+    #extracts the header info and the new line info
+    line=''
+    header=''
+    count=0
+    keys = kwargs.keys()
+    keys.sort()
+    
+#    for k in kwargs.keys():
+    #used the sorted keys to create the header and line data
+    for k in keys:
+        print "%s = %s" %(k, kwargs[k]) 
+        header = header+str(k)
+        line = line+str(kwargs[k])
+        count+=1
+        if count <len(kwargs):
+            header = header+','
+            line = line+','
+
+
+    # checks the header info, if the same, then write, if not create a new file
+    #try to open!
+#    print'file name',file
+    try:
+        fid = open(file,"r")
+        file_header=fid.readline()
+        fid.close()
+        if verbose: print 'read file header %s' %file_header
+        
+    except:
+        msg = 'try to create new file',file
+        if verbose: print msg
+        #tries to open file, maybe directory is bad
+        try:
+            fid = open(file,"w")
+            fid.writelines(header+'\n')
+            fid.close()
+            file_header=header
+        except:
+            msg = 'cannot create new file',file
+            raise msg
+            
+    #if header is same or this is a new file
+    if file_header.strip('\n')==str(header):
+        fid=open(file,"a")
+        #write new line
+        fid.writelines(line+'\n')
+        fid.close()
+    else:
+        #backup plan, if header is different and has completed will append info to 
+        #end of details_temp.cvs file in output directory
+        file = str(kwargs['output_dir'])+'detail_temp.csv'
+        fid=open(file,"a")
+        fid.writelines(header+'\n')
+        fid.writelines(line+'\n')
+        fid.close()
+        print 'file',file_header.strip('\n')
+        print 'head',header.strip('\n')
+        msg = 'WARNING: File header does not match input info, the input variables have changed, suggest to change file name'
+        print msg
+
+
 #-------------------------------------------------------------
-if __name__ == "__main__":    
-        pass
+if __name__ == "__main__":
+    #setting umask from config to force permissions for all files and directories
+    # created to the same. (it was noticed the "mpirun" doesn't honour the umask
+    # set in your .bashrc etc file)
+    from config import umask
+    import os 
+    os.umask(umask)
 

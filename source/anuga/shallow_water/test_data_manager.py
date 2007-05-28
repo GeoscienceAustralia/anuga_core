@@ -6699,6 +6699,87 @@ friction  \n \
             absolute.change_points_geo_ref(map(None, x,y),
                                            new_origin)),points_utm)
         os.remove(filename)
+        
+    def test_get_data_from_file(self):
+#    from anuga.abstract_2d_finite_volumes.util import get_data_from_file
+        
+        import os
+       
+        fileName = tempfile.mktemp(".txt")
+#        print"filename",fileName
+        file = open(fileName,"w")
+        file.write("elevation, stage\n\
+1.0, 3  \n\
+0.0, 4 \n\
+4.0, 3 \n\
+1.0, 6 \n")
+        file.close()
+        
+        header,x = get_data_from_file(fileName)
+#        print 'x',x
+        os.remove(fileName)
+        
+        assert allclose(x[:,0], [1.0, 0.0,4.0, 1.0])
+        
+    def test_get_data_from_file1(self):
+#    from anuga.abstract_2d_finite_volumes.util import get_data_from_file
+        
+        import os
+       
+        fileName = tempfile.mktemp(".txt")
+#        print"filename",fileName
+        file = open(fileName,"w")
+        file.write("elevation stage\n\
+1.3 3  \n\
+0.0 4 \n\
+4.5 3.5 \n\
+1.0 6 \n")
+        file.close()
+        
+        header, x = get_data_from_file(fileName,separator_value=' ')
+        os.remove(fileName)
+#        x = get_data_from_file(fileName)
+#        print '1x',x[:,0]
+        
+        assert allclose(x[:,0], [1.3, 0.0,4.5, 1.0])
+        
+    def xxxtest_store_parameters(self):
+        
+        from os import sep, getenv
+        
+        home = getenv('INUNDATIONHOME')
+        output_dir=home+sep+'data'
+        
+        kwargs = {'file_name':'new2.txt','output_dir':output_dir,'who':'me', 'what':'detail', 'how':2, 'why':241,'Completed':'yes'}
+#        {'data_origin': data_georef.get_origin(),
+#                  'mesh_origin': mesh_georef.get_origin(),
+#                  'alpha': alpha,
+#                  'verbose': verbose}
+        
+#        fileName = tempfile.mktemp(".csv")
+#        store_parameters(kwargs,fileName)
+#        file_name='temp.csv'
+        store_parameters(**kwargs)
+#        store_parameters(file_name=file_name, scenario_name='dampier',\
+#                         who="me", time_thining=12,tide=2.6)
+
+        
+        fid = open(str(kwargs.pop('file_name')))
+        header = fid.readline()
+        line = fid.readline()
+        fid.close()
+        print'header',header,'lines',line
+        
+        #file exists
+#        assert access(file_name,F_OK)
+        a=['who,time']
+#        assert allclose(header, a)
+#        assert allclose(header, [who,time])
+#        assert header=='who,time1
+#        assert allclose(line,['me',12])
+
+
+
 #-------------------------------------------------------------
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sww_origin')
