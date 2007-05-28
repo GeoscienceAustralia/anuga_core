@@ -365,6 +365,7 @@ class Double_gaussian:
         minz = 0.0
         for i in range(N):
             try:
+                if i == 10: print 'hello', x[i], x0, xr[i]
                 z[i] =  -(am/am2) / (amin*(cosh(kappa*(yr[i]-y0)/(wi+wa)))**2) \
                             * (exp(-((xr[i]-x0)/wa)**2) - \
                                 kappad*exp(-((xr[i]-dx-x0)/wa)**2))

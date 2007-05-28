@@ -140,9 +140,9 @@ def calc_max_depth_and_momentum(sww_base_name, points,
     dir_ls = os.listdir(dir)
     interate_over = [x for x in dir_ls if base in x and x[-4:] == '.sww']
     #print "interate_over", interate_over
-
+    from os import sep
     for this_sww_file in interate_over:
-        callable_sww = file_function(this_sww_file,
+        callable_sww = file_function(dir+sep+this_sww_file,
                                      quantities=quantities,
                                      interpolation_points=points,
                                      verbose=verbose,
