@@ -137,3 +137,5 @@ minimum_storable_height = 1.0e-5 #Water depth below which it is *stored* as 0
 
 points_file_block_line_size = 500 # Number of lines read in from a points file
                                   # when blocking
+
+umask = 002  # used to set file and directory permission created by anuga
