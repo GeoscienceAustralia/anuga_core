@@ -9,7 +9,8 @@ from warnings import warn
 from string import lower
 from Numeric import concatenate, array, Float, shape, reshape, ravel, take, \
                         size, shape
-from random import randint
+#from Array import tolist
+from RandomArray import randint
 from copy import deepcopy
 
 #from MA import tolist
@@ -674,14 +675,17 @@ class Geospatial_data:
     
     
     def split(self, factor=0.5, verbose=False):
-        """Returns two geospatial_data object, first is size of the 'factor'
-        smaller the original and the second is the remainer. The two new 
+        """Returns two geospatial_data object, first is the size of the 'factor'
+        smaller the original and the second is the remainder. The two new 
         object are disjoin set of each other. 
         
         Points of the two new object have selected RANDOMLY. 
         AND if factor is a decimal it will round (2.25 to 2 and 2.5 to 3)
         
-        
+        This method create two lists of indices which are passed into get_sample.
+        The lists are created using random numbers, and they are unique sets eg.
+        total_list(1,2,3,4,5,6,7,8,9)  random_list(1,3,6,7,9) and remainder_list(0,2,4,5,8)
+                
         Input - the factor which to split the object, if 0.1 then 10% of the
             object will be returned
         
@@ -694,32 +698,53 @@ class Geospatial_data:
         random_list = []
         remainder_list = []
         new_size = round(factor*self_size)
-   #     print'Split original %s by %s' %(self_size, factor)
-   #     print'New samples are %s and %s in size' %(int(round(factor*self_size)),int(self_size-new_size))
         
         #find unique random numbers
         if verbose: print "make unique random number list and get indices"
-        while i < new_size:
-            random_num = randint(0,self_size-1)
-            if random_num not in random_list:
-                random_list.append(random_num)
-                i=i+1
 
-        #Make list of opposite to random_list
-        if verbose: print "make list of opposite to random list"
-        for i in range(0,self_size,1):
-            remainder_list.append(i)
+        total=array(range(self_size))
+        total_list = total.tolist()
+        if verbose: print "total list len",len(total_list)
+                
+        #there will be repeated random numbers however will not be a 
+        #problem as they are being 'pop'ed out of array so if there
+        #are two numbers the same they will pop different indicies, 
+        #still basically random
+        ## create list of non-unquie random numbers
+        if verbose: print "create random numbers list %s long" %new_size
+        random_num = randint(0,self_size-1,(int(new_size),))
+        random_num = random_num.tolist()
 
-        #remove random list from remainder_list to get correct remainder_list
         #need to sort and reverse so the pop() works correctly
-        random_list.sort()
-        random_list.reverse()
-        if verbose: print "get indices of opposite to random list"
-        for i in random_list:
-            remainder_list.pop(i)
-            if verbose:
-                if ((i/100)==(float(i)/100)): print "reached: ",i
-            
+        random_num.sort()
+        random_num.reverse()        
+        
+        if verbose: print "make random number list and get indices"
+        j=0
+        k=1
+        remainder_list = total_list[:]
+        #pops array index (random_num) from remainder_list (which starts as the 
+        #total_list and appends to random_list  
+        random_num_len = len(random_num)
+        for i in random_num:
+            random_list.append(remainder_list.pop(i))
+            j+=1
+            #prints progress
+            if verbose and round(random_num_len/10*k)==j:
+                print '(%s/%s)' %(j, random_num_len)
+                k+=1
+        
+        #FIXME: move to tests, it might take a long time
+        #then create an array of random lenght between 500 and 1000, 
+        #and use a random factor between 0 and 1 
+        #setup for assertion
+        test_total = random_list[:]
+        test_total.extend(remainder_list)
+        test_total.sort() 
+        msg = 'The two random lists made from the original list when added together '\
+         'DO NOT equal the original list'
+        assert (total_list==test_total),msg
+
         #get new samples
         if verbose: print "get values of indices for random list"
         G1 = self.get_sample(random_list)

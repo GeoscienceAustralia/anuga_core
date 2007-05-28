@@ -3,7 +3,7 @@
 
 import unittest
 import os
-from Numeric import zeros, array, allclose, concatenate
+from Numeric import zeros, array, allclose, concatenate,sort
 from math import sqrt, pi
 import tempfile
 from sets import ImmutableSet
@@ -2231,21 +2231,16 @@ crap")
                       'speed':[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 
                       14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]}
         G = Geospatial_data(points, attributes)
-#        print G.get_data_points()
-#        print G.get_attributes()
 
         factor = 0.21
 
         #will return G1 with 10% of points and G2 with 90%
         G1, G2  = G.split(factor) 
         
-#        print 'len(G): %s len(G1): %s len(G2): %s' %(len(G), len(G1), len(G2))
-#        print 'G: ', len(G),'G1: ', len(G1), 'G2: ', len(G2)
-
         assert allclose(len(G), len(G1)+len(G2))
         assert allclose(round(len(G)*factor), len(G1))
         
-#        assert allclose(G == G1 + G2) must implentent __equal__
+#        assert allclose(G, G1+G2)# must implentent __equal__ or a sort
         
          
 if __name__ == "__main__":
