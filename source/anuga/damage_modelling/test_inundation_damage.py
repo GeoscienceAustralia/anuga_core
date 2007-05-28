@@ -3,7 +3,7 @@
 
 import unittest
 import tempfile
-import os
+import os, sys
 import time
 import csv
 
@@ -23,6 +23,12 @@ def elevation_function(x, y):
     return -x
 
 class Test_inundation_damage(unittest.TestCase):
+    # Class variable
+    verbose = False
+
+    def set_verbose(self):
+        Test_Data_Manager.verbose = True
+        
     def setUp(self):
         #print "****set up****"
         # Create an sww file
@@ -43,25 +49,19 @@ class Test_inundation_damage(unittest.TestCase):
 
 
         #have  a big area covered.
-
         mesh_file = tempfile.mktemp(".tsh")
-        
         points_lat_long = [[-33,152],[-35,152],[-35,150],[-33,150]]
-       
         spat = Geospatial_data(data_points=points_lat_long,
                                points_are_lats_longs=True)
         points_ab = spat.get_data_points( absolute = True)
-
         
         geo =  Geo_reference(56,400000,6000000)
         spat.set_geo_reference(geo)
-
         m = Mesh()
         m.add_vertices(spat)
         m.auto_segment()
         m.generate_mesh(verbose=False)
         m.export_mesh_file(mesh_file)
-
         
         #Create shallow water domain
         domain = Domain(mesh_file)
@@ -70,23 +70,18 @@ class Test_inundation_damage(unittest.TestCase):
         
         domain.default_order=2
         domain.beta_h = 0
-
-
         #Set some field values
         #domain.set_quantity('stage', 1.0)
         domain.set_quantity('elevation', -0.5)
         domain.set_quantity('friction', 0.03)
-
 
         ######################
         # Boundary conditions
         B = Transmissive_boundary(domain)
         domain.set_boundary( {'exterior': B})
 
-
         ######################
         #Initial condition - with jumps
-
         bed = domain.quantities['elevation'].vertex_values
         stage = zeros(bed.shape, Float)
 
@@ -103,7 +98,6 @@ class Test_inundation_damage(unittest.TestCase):
 
         domain.distribute_to_vertices_and_edges()
 
-
         self.domain = domain
 
         C = domain.get_vertex_coordinates()
@@ -111,10 +105,9 @@ class Test_inundation_damage(unittest.TestCase):
         self.Y = C[:,1:6:2].copy()
 
         self.F = bed
-
-        
+      
         #sww_file = tempfile.mktemp("")
-        self.domain.set_name('datatest' + str(time.time()))
+        self.domain.set_name('tid_P0')
         self.domain.format = 'sww'
         self.domain.smooth = True
         self.domain.reduction = mean
@@ -126,6 +119,78 @@ class Test_inundation_damage(unittest.TestCase):
         sww.store_timestep(['stage', 'xmomentum', 'ymomentum'])
         self.sww = sww # so it can be deleted
         
+        #Create another sww file
+        mesh_file = tempfile.mktemp(".tsh")
+        points_lat_long = [[-35,152],[-36,152],[-36,150],[-35,150]]
+        spat = Geospatial_data(data_points=points_lat_long,
+                               points_are_lats_longs=True)
+        points_ab = spat.get_data_points( absolute = True)
+        
+        geo =  Geo_reference(56,400000,6000000)
+        spat.set_geo_reference(geo)
+        m = Mesh()
+        m.add_vertices(spat)
+        m.auto_segment()
+        m.generate_mesh(verbose=False)
+        m.export_mesh_file(mesh_file)
+        
+        #Create shallow water domain
+        domain = Domain(mesh_file)
+
+        os.remove(mesh_file)
+        
+        domain.default_order=2
+        domain.beta_h = 0
+        #Set some field values
+        #domain.set_quantity('stage', 1.0)
+        domain.set_quantity('elevation', -40)
+        domain.set_quantity('friction', 0.03)
+
+        ######################
+        # Boundary conditions
+        B = Transmissive_boundary(domain)
+        domain.set_boundary( {'exterior': B})
+
+        ######################
+        #Initial condition - with jumps
+        bed = domain.quantities['elevation'].vertex_values
+        stage = zeros(bed.shape, Float)
+
+        h = 30.
+        for i in range(stage.shape[0]):
+            if i % 2 == 0:
+                stage[i,:] = bed[i,:] + h
+            else:
+                stage[i,:] = bed[i,:]
+
+        domain.set_quantity('stage', stage)
+        domain.set_quantity('xmomentum', stage*22.0)
+        domain.set_quantity('ymomentum', stage*55.0)
+
+        domain.distribute_to_vertices_and_edges()
+
+        self.domain2 = domain
+
+        C = domain.get_vertex_coordinates()
+        self.X2 = C[:,0:6:2].copy()
+        self.Y2 = C[:,1:6:2].copy()
+
+        self.F2 = bed
+      
+        #sww_file = tempfile.mktemp("")
+        domain.set_name('tid_P1')
+        domain.format = 'sww'
+        domain.smooth = True
+        domain.reduction = mean
+
+        sww = get_dataobject(domain)
+        sww.store_connectivity()
+        sww.store_timestep(['stage', 'xmomentum', 'ymomentum'])
+        domain.time = 2.
+        sww.store_timestep(['stage', 'xmomentum', 'ymomentum'])
+        self.swwII = sww # so it can be deleted
+
+        # print "sww.filename", sww.filename
         #Create a csv file
         self.csv_file = tempfile.mktemp(".csv")
         fd = open(self.csv_file,'wb')
@@ -136,6 +201,16 @@ class Test_inundation_damage(unittest.TestCase):
         writer.writerow(['151','-34.25','150000','76000','Metal','Brick Veneer',200.])
         fd.close()
 
+        #Create a csv file
+        self.csv_fileII = tempfile.mktemp(".csv")
+        fd = open(self.csv_file,'wb')
+        writer = csv.writer(fd)
+        writer.writerow(['LONGITUDE','LATITUDE',STR_VALUE_LABEL,CONT_VALUE_LABEL,'ROOF_TYPE',WALL_TYPE_LABEL, SHORE_DIST_LABEL])
+        writer.writerow(['151.5','-34','199770','130000','Metal','Timber',20.])
+        writer.writerow(['151','-34.5','150000','76000','Metal','Double Brick',200.])
+        writer.writerow(['151','-34.25','150000','76000','Metal','Brick Veneer',200.])
+        writer.writerow(['151.5','-35.5','199770','130000','Metal','Timber',20.])
+        fd.close()
         
     def tearDown(self):
         #print "***** tearDown  ********"
@@ -146,6 +221,7 @@ class Test_inundation_damage(unittest.TestCase):
             # Seems to be that the file is not created, since after it
             # fails there are no sww files in the anuga directory
             os.remove(self.sww.filename)
+            os.remove(self.swwII.filename)
         except OSError:
             pass
         os.remove(self.csv_file)
@@ -386,10 +462,41 @@ class Test_inundation_damage(unittest.TestCase):
                                struct_costs, content_costs)
         results_dic = edm.calc_damage_and_costs(verbose_csv=True)
         #print "results_dic",results_dic
+        
+    def test_calc_max_depth_and_momentum(self):
+        sww_file = "tid" # self.domain.get_name() + "." + self.domain.format
+        points_lat_long = [[-34, 151.5],[-35.5, 151.5],[-50, 151]]
+        spat = Geospatial_data(data_points=points_lat_long,
+                               points_are_lats_longs=True)
+        points_ab = spat.get_data_points( absolute = True)
+        deps, _ = calc_max_depth_and_momentum(sww_file,
+                                              points_ab,
+                                              verbose=self.verbose,
+                                              use_cache = False)
+
+        # Test values based on returned results, so not an excellent test
+        
+        assert allclose(deps[0],0.113204555211)
+        assert allclose(deps[1],11.3215)
+        assert allclose(deps[2],0.0) # this value is outside both sww files
+        
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_inundation_damage,'test_in_damage2')
+    if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':
+        Test_inundation_damage.verbose=True
+        saveout = sys.stdout   
+        filename = ".temp_verbose"
+        fid = open(filename, 'w')
+        sys.stdout = fid
+    else:
+        pass
+    #suite = unittest.makeSuite(Test_inundation_damage,'test_calc_max_depth_and_momentum')
     suite = unittest.makeSuite(Test_inundation_damage,'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
 
+    # Cleaning up
+    if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':
+        sys.stdout = saveout 
+        fid.close() 
+        os.remove(filename)

@@ -3,7 +3,7 @@
    Duncan Gray, Ole Nielsen, Jane Sexton, Nick Bartzis
    Geoscience Australia, 2006
 """
-
+import os
 from math import sqrt
 from Scientific.Functions.Interpolation import InterpolatingFunction
 from Numeric import array, ravel, Float, zeros
@@ -40,7 +40,7 @@ WALL_TYPE_LABEL = 'WALL_TYPE'
 STR_VALUE_LABEL = 'STR_VALUE'
 CONT_VALUE_LABEL = 'CONT_VALUE'
 
-def inundation_damage(sww_file, exposure_file_in,
+def inundation_damage(sww_base_name, exposure_file_in,
                       exposure_file_out=None,
                       ground_floor_height=0.3,
                       overwrite=False, verbose=True,
@@ -55,6 +55,9 @@ def inundation_damage(sww_file, exposure_file_in,
 
     Note, structures outside of the sww file get the minimum inundation
     (-ground_floor_height).
+    
+    These calculations are done over all the sww files with the sww_base_name
+    in the specified directory.
     """
 
     csv = Exposure_csv(exposure_file_in,
@@ -62,7 +65,7 @@ def inundation_damage(sww_file, exposure_file_in,
                                          STR_VALUE_LABEL,CONT_VALUE_LABEL])
     geospatial = csv.get_location()
     geospatial = ensure_absolute(geospatial)
-    max_depths, max_momentums = calc_max_depth_and_momentum(sww_file,
+    max_depths, max_momentums = calc_max_depth_and_momentum(sww_base_name,
                                     geospatial,
                                     ground_floor_height=ground_floor_height,
                                     verbose=verbose,
@@ -82,18 +85,21 @@ def inundation_damage(sww_file, exposure_file_in,
         exposure_file_out = exposure_file_in
     csv.save(exposure_file_out)
     
-def add_depth_and_momentum2csv(sww_file, exposure_file_in,
+def add_depth_and_momentum2csv(sww_base_name, exposure_file_in,
                       exposure_file_out=None,
                       overwrite=False, verbose=True,
                                  use_cache = True):
     """
     Calculate the maximum depth and momemtum in an sww file, for locations
     specified in an csv exposure file.
+    
+    These calculations are done over all the sww files with the sww_base_name
+    in the specified directory.
     """
 
     csv = Exposure_csv(exposure_file_in)
     geospatial = csv.get_location()
-    max_depths, max_momentums = calc_max_depth_and_momentum(sww_file,
+    max_depths, max_momentums = calc_max_depth_and_momentum(sww_base_name,
                                                           geospatial,
                                                           verbose=verbose,
                                                           use_cache=use_cache)
@@ -101,7 +107,7 @@ def add_depth_and_momentum2csv(sww_file, exposure_file_in,
     csv.set_column("MOMENTUM (m^2/s) ",max_momentums, overwrite=overwrite)
     csv.save(exposure_file_out)
     
-def calc_max_depth_and_momentum(sww_file, points,
+def calc_max_depth_and_momentum(sww_base_name, points,
                                 ground_floor_height=0.0,
                                 verbose=True,
                                  use_cache = True):
@@ -111,39 +117,56 @@ def calc_max_depth_and_momentum(sww_file, points,
 
     The inundation value is in the range -ground_floor_height to
     overflow errors.
+
+    These calculations are done over all the sww files with the sww_base_name
+    in the specified directory.
     """
     quantities =  ['stage', 'elevation', 'xmomentum', 'ymomentum']
     #print "points",points 
     points = ensure_absolute(points)
     point_count = len(points)
-    callable_sww = file_function(sww_file,
-                                 quantities=quantities,
-                                 interpolation_points=points,
-                                 verbose=verbose,
-                                 use_cache=use_cache)
+
     # initialise the max lists
     max_depths = [-ground_floor_height]*point_count
     max_momentums = [-ground_floor_height]*point_count
-    for point_i, point in enumerate(points):
-        for time in callable_sww.get_time():
-            quantities = callable_sww(time,point_i)
-            #print "quantities", quantities
-            
-            w = quantities[0]
-            z = quantities[1]
-            uh = quantities[2]
-            vh = quantities[3]
+    
+    # How many sww files are there?
+    dir, base = os.path.split(sww_base_name)
+    #print "basename_in",basename_in
+    if base[-4:] == '.sww':
+        base = base[:-4]
+    #print "base",base
+    if dir == "": dir = "." # Unix compatibility
+    dir_ls = os.listdir(dir)
+    interate_over = [x for x in dir_ls if base in x and x[-4:] == '.sww']
+    #print "interate_over", interate_over
 
-            #  -ground_floor_height is the minimum value.
-            depth = w - z - ground_floor_height
+    for this_sww_file in interate_over:
+        callable_sww = file_function(this_sww_file,
+                                     quantities=quantities,
+                                     interpolation_points=points,
+                                     verbose=verbose,
+                                     use_cache=use_cache)
+    
+        for point_i, point in enumerate(points):
+            for time in callable_sww.get_time():
+                quantity_values = callable_sww(time,point_i)
+            
+                w = quantity_values[0]
+                z = quantity_values[1]
+                uh = quantity_values[2] 
+                vh = quantity_values[3]
+                
+                #  -ground_floor_height is the minimum value.
+                depth = w - z - ground_floor_height
               
-            if depth > max_depths[point_i]:
-                max_depths[point_i] = depth
-            if w == NAN or z == NAN or uh == NAN or vh == NAN:
-                continue
-            momentum = sqrt(uh*uh + vh*vh)
-            if momentum > max_momentums[point_i]:
-                max_momentums[point_i] = momentum
+                if depth > max_depths[point_i]:
+                    max_depths[point_i] = depth
+                if w == NAN or z == NAN or uh == NAN or vh == NAN:
+                    continue
+                momentum = sqrt(uh*uh + vh*vh)
+                if momentum > max_momentums[point_i]:
+                    max_momentums[point_i] = momentum
     return max_depths, max_momentums
 
 class EventDamageModel:
