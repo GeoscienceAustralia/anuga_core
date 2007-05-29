@@ -560,7 +560,23 @@ def get_revision_number():
     try:
         from anuga.stored_version_info import version_info
     except:
-        
+	msg = 'No version info stored and command "svn" is not '
+	msg += 'recognised on the system PATH.\n\n'
+	msg += 'If ANUGA has been installed from a distribution e.g. as '
+	msg += 'obtained from SourceForge\n'
+	msg += 'the version info should be '
+	msg += 'available in the automatically generated file '
+	msg += 'stored_version_info.py\n'
+	msg += 'in the anuga root directory.\n'
+	msg += 'If ANUGA is run from a Subversion sandpit, '
+	msg += 'the version info should '
+	msg += 'be obtained by using the command: "svn info".\n'
+	msg += 'However, if svn is not available on the system path, ANUGA '
+	msg += 'will be unable to use that command.\n'
+	msg += 'In this case, make sure svn is accessible on your system. ' 
+	msg += 'simply aliasing svn to the binary will not work. '
+	msg += 'Good luck!'
+
         # No file available - try using Subversion
         try:
             # The null stuff is so this section fails quitly.
@@ -571,14 +587,15 @@ def get_revision_number():
                 fid = os.popen('svn info 2> null')
             else:
                 fid = os.popen('svn info 2>/dev/null')
+	
         except:
-            msg = 'No version info stored and command "svn" is not '
-            msg += 'recognised on the system PATH. What do you want me to do?'
             raise Exception(msg)
         else:
             #print 'Got version from svn'            
             version_info = fid.read()
-        #import sys; sys.exit() 
+	    
+	    if version_info == '':
+	        raise Exception(msg)    
     else:
         pass
         #print 'Got version from file'
