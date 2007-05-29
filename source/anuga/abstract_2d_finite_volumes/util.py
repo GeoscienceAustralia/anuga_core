@@ -528,48 +528,14 @@ def populate_polygon(*args, **kwargs):
 
 def start_screen_catcher(dir_name, myid='', numprocs='', extra_info='',
                          print_to_screen=False, verbose=False):
-    """
-    Used to store screen output and errors to file, if run on multiple 
-    processes eachprocessor will have its own output and error file.
+    """Temporary Interface to new location"""
+
+
+    print 'start_screen_catcher has moved from util.py.  ',
+    print 'Please use "from anuga.shallow_water.data_manager import start_screen_catcher"'
     
-    extra_info - is used as a string that can identify outputs with another 
-    string eg. '_other'
-    """
-
-    dir_name = dir_name
-    if access(dir_name,W_OK) == 0:
-        if verbose: print 'Make directory %s' %dir_name
-        if verbose: print "myid", myid
-        mkdir (dir_name,0777)
-    if myid <>'':
-        myid = '_'+str(myid)
-    if numprocs <>'':
-        numprocs = '_'+str(numprocs)
-    if extra_info <>'':
-        extra_info = '_'+str(extra_info)
-    screen_output_name = dir_name + "screen_output%s%s%s.txt" %(myid,numprocs,extra_info)
-    screen_error_name = dir_name + "screen_error%s%s%s.txt" %(myid,numprocs,extra_info)
-    print screen_output_name
-    #used to catch screen output to file
-    sys.stdout = Screen_Catcher(screen_output_name)
-    sys.stderr = Screen_Catcher(screen_error_name)
-
-class Screen_Catcher:
-    """this simply catches the screen output and stores it to file defined by
-    start_screen_catcher (above)
-    """
-    
-    def __init__(self, filename):
-        self.filename = filename
- 
-        if exists(self.filename)is True:
-            print'Old existing file "%s" has been deleted' %(self.filename)
-            remove(self.filename)
-
-    def write(self, stuff):
-        fid = open(self.filename, 'a')
-        fid.write(stuff)
-#        if print_to_screen: print stuff
+    return shallow_water.data_manager.start_screen_catcher(dir_name, myid='', numprocs='', extra_info='',
+                         print_to_screen=False, verbose=False)
 
 def get_revision_number():
     """Get the version number of the SVN
@@ -1403,18 +1369,13 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
 # FIXME (DSG): Add unit test, make general, not just 2 files,
 # but any number of files.
 def copy_code_files(dir_name, filename1, filename2):
-    """Copies "filename1" and "filename2" to "dir_name". Very useful for 
-    information management 
-    filename1 and filename2 are both absolute pathnames    
-    """
+    """Temporary Interface to new location"""
 
-    if access(dir_name,F_OK) == 0:
-        print 'Make directory %s' %dir_name
-        mkdir (dir_name,0777)
-    copy(filename1, dir_name + sep + basename(filename1))
-    copy(filename2, dir_name + sep + basename(filename2))
-#    copy (__file__, project.output_run_time_dir + basename(__file__))
-    print 'Files %s and %s copied' %(filename1, filename2)
+
+    print 'copy_code_files has moved from util.py.  ',
+    print 'Please use "from anuga.shallow_water.data_manager import copy_code_files"'
+    
+    return shallow_water.data_manager.copy_code_files(dir_name, filename1, filename2)
 
 
 def add_directories(root_directory, directories):
@@ -1435,151 +1396,20 @@ def add_directories(root_directory, directories):
     return dir
 
 def get_data_from_file(filename,separator_value = ','):
-    """ 
-    Read in data information from file
-    NOTE: wont deal with columns with different lenghts and there must be
-    no blank lines at the end.
-    """
-    from os import sep, getcwd, access, F_OK, mkdir
-    from Numeric import array, resize,shape,Float
-    import string
-    fid = open(filename)
-    lines = fid.readlines()
-    
-    fid.close()
-    
-    header_line = lines[0]
-    header_fields = header_line.split(separator_value)
+    """Temporary Interface to new location"""
 
-    #array to store data, number in there is to allow float...
-    #i'm sure there is a better way!
-    data=array([],typecode=Float)
-    data=resize(data,((len(lines)-1),len(header_fields)))
-#    print 'number of fields',range(len(header_fields))
-#    print 'number of lines',len(lines), shape(data)
-#    print'data',data[1,1],header_line
-
-    array_number = 0
-    line_number = 1
-    while line_number < (len(lines)):
-        for i in range(len(header_fields)): 
-            #this get line below the header, explaining the +1
-            #and also the line_number can be used as the array index
-            fields = lines[line_number].split(separator_value)
-            #assign to array
-            data[array_number,i] = float(fields[i])
-            
-        line_number = line_number +1
-        array_number = array_number +1
-        
-    return header_fields, data
+    print 'get_data_from_file has moved from util.py.  ',
+    print 'Please use "from anuga.shallow_water.data_manager import get_data_from_file"'
+    
+    return shallow_water.data_manager.get_data_from_file(filename,separator_value = ',')
 
 def store_parameters(verbose=False,**kwargs):
-    """
-    Must have a file_name keyword arg, this is what is writing to.
-    might be a better way to do this using CSV module Writer and writeDict
-    
-    writes file to "output_dir" unless "completed" is in kwargs, then it writes to 
-    "file_name" kwargs 
-     Returns a object which is a subset of the original
-        and the data points and attributes in this new object refer to
-        the indices provided
-        
-        Input
-            indices- a list of integers that represent the new object
-        Output
-            New geospatial data object representing points specified by 
-            the indices 
-    """
-    import types
-    import os
+    """Temporary Interface to new location"""
 
-    # Check that kwargs is a dictionary
-    if type(kwargs) != types.DictType:
-        raise TypeError
+    print 'store_parameters has moved from util.py.  ',
+    print 'Please use "from anuga.shallow_water.data_manager import store_parameters"'
     
-    try:
-        kwargs['completed']
-        completed=True
-    except:
-        completed=False
-
-    # assert that a file_name exists
-    
-    #get file name and removes from dict
-    if completed:
-        try:
-            file = str(kwargs.pop('file_name'))
-        except:
-            raise 'kwargs must have file_name'
-    else:
-        try:
-            file = str(kwargs.pop('output_dir'))+'detail_temp.csv'
-        except:
-            raise 'kwargs must have output_dir'
-        
-    
-#    print kwargs
-    #extracts the header info and the new line info
-    line=''
-    header=''
-    count=0
-    keys = kwargs.keys()
-#    print 'keys',keys
-    keys.sort()
-#    print 'keys',keys
-    
-#    for k in kwargs.keys():
-    #used the sorted keys to create the header and line data
-    for k in keys:
-        print "%s = %s" %(k, kwargs[k]) 
-        header = header+str(k)
-        line = line+str(kwargs[k])
-        count+=1
-        if count <len(kwargs):
-            header = header+','
-            line = line+','
-
-
-    # checks the header info, if the same, then write, if not create a new file
-    #try to open!
-#    print'file name',file
-    try:
-        fid = open(file,"r")
-        file_header=fid.readline()
-        fid.close()
-        if verbose: print 'read file header %s' %file_header
-        
-    except:
-        msg = 'try to create new file',file
-        if verbose: print msg
-        #tries to open file, maybe directory is bad
-        try:
-            fid = open(file,"w")
-            fid.writelines(header+'\n')
-            fid.close()
-            file_header=header
-        except:
-            msg = 'cannot create new file',file
-            raise msg
-            
-    #if header is same or this is a new file
-    if file_header.strip('\n')==header:
-        fid=open(file,"a")
-        #write new line
-        fid.writelines(line+'\n')
-        fid.close()
-    else:
-        #backup plan, if header is different and has completed will append info to 
-        #end of details_temp.cvs file in output directory
-        file = str(kwargs['output_dir'])+'detail_temp.csv'
-        fid=open(file,"a")
-        fid.writelines(header+'\n')
-        fid.writelines(line+'\n')
-        fid.close()
-        msg = 'file header does not match input info, the input variables have changed, change file name'
-        raise msg
-
+    return shallow_water.data_manager.get_data_from_file(filename,separator_value = ',')
 
 def remove_lone_verts(verts, triangles, number_of_full_nodes=None):
     """
