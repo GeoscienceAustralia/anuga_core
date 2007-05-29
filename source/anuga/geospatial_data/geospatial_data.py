@@ -1279,7 +1279,7 @@ def _write_csv_file(file_name,
                     as_lat_long=False,
                     delimiter=','):
     """
-    export a file, file_name, with the xya format
+    export a file, file_name, with the csv format
     
     """
     points = write_data_points 
