@@ -529,12 +529,12 @@ def populate_polygon(*args, **kwargs):
 def start_screen_catcher(dir_name, myid='', numprocs='', extra_info='',
                          print_to_screen=False, verbose=False):
     """Temporary Interface to new location"""
-
+    from anuga.shallow_water.data_manager import start_screen_catcher as dm_start_screen_catcher
 
     print 'start_screen_catcher has moved from util.py.  ',
     print 'Please use "from anuga.shallow_water.data_manager import start_screen_catcher"'
     
-    return shallow_water.data_manager.start_screen_catcher(dir_name, myid='', numprocs='', extra_info='',
+    return dm_start_screen_catcher(dir_name, myid='', numprocs='', extra_info='',
                          print_to_screen=False, verbose=False)
 
 def get_revision_number():
@@ -1371,11 +1371,11 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
 def copy_code_files(dir_name, filename1, filename2):
     """Temporary Interface to new location"""
 
-
+    from anuga.shallow_water.data_manager import copy_code_files as dm_copy_code_files
     print 'copy_code_files has moved from util.py.  ',
     print 'Please use "from anuga.shallow_water.data_manager import copy_code_files"'
     
-    return shallow_water.data_manager.copy_code_files(dir_name, filename1, filename2)
+    return dm_copy_code_files(dir_name, filename1, filename2)
 
 
 def add_directories(root_directory, directories):
@@ -1397,19 +1397,20 @@ def add_directories(root_directory, directories):
 
 def get_data_from_file(filename,separator_value = ','):
     """Temporary Interface to new location"""
-
+    from anuga.shallow_water.data_manager import get_data_from_file as dm_get_data_from_file
     print 'get_data_from_file has moved from util.py.  ',
     print 'Please use "from anuga.shallow_water.data_manager import get_data_from_file"'
     
-    return shallow_water.data_manager.get_data_from_file(filename,separator_value = ',')
+    return dm_get_data_from_file(filename,separator_value = ',')
 
 def store_parameters(verbose=False,**kwargs):
     """Temporary Interface to new location"""
-
+    
+    from anuga.shallow_water.data_manager import store_parameters as dm_store_parameters
     print 'store_parameters has moved from util.py.  ',
     print 'Please use "from anuga.shallow_water.data_manager import store_parameters"'
     
-    return shallow_water.data_manager.get_data_from_file(filename,separator_value = ',')
+    return dm_store_parameters(verbose=False,**kwargs)
 
 def remove_lone_verts(verts, triangles, number_of_full_nodes=None):
     """
