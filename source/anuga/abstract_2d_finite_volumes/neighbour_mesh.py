@@ -443,14 +443,14 @@ class Mesh(General_mesh):
         """Return bounding polygon for mesh (counter clockwise)
 
         Using the mesh boundary, derive a bounding polygon for this mesh.
-        If multiple vertex values are present, the algorithm will select the
-        path that contains the mesh.
+        If multiple vertex values are present (vertices stored uniquely), 
+	the algorithm will select the path that contains the entire mesh.
 
         All points are in absolute UTM coordinates
         """
         
         from Numeric import allclose, sqrt, array, minimum, maximum
-        from anuga.utilities.numerical_tools import angle, ensure_numeric        
+        from anuga.utilities.numerical_tools import angle, ensure_numeric     
 
 
         # Get mesh extent
@@ -463,7 +463,7 @@ class Mesh(General_mesh):
         segments = {}
         inverse_segments = {}
         p0 = None
-        mindist = sqrt(sum((pmax-pmin)**2)) #Start value across entire mesh
+        mindist = sqrt(sum((pmax-pmin)**2)) # Start value across entire mesh
         for i, edge_id in self.boundary.keys():
             # Find vertex ids for boundary segment
             if edge_id == 0: a = 1; b = 2
@@ -480,7 +480,7 @@ class Mesh(General_mesh):
             dist_A = sqrt(sum((A-pmin)**2))
             dist_B = sqrt(sum((B-pmin)**2))
 
-            #Find lower leftmost point
+            # Find lower leftmost point
             if dist_A < mindist:
                 mindist = dist_A
                 p0 = A
@@ -496,51 +496,52 @@ class Mesh(General_mesh):
 
             # Register potential paths from A to B
             if not segments.has_key(tuple(A)):
-                segments[tuple(A)] = [] # Empty list for candidate points                
-                
+                segments[tuple(A)] = [] # Empty list for candidate points
+		          
             segments[tuple(A)].append(B)                
 
 
-        #Start with smallest point and follow boundary (counter clock wise)
+        # Start with smallest point and follow boundary (counter clock wise)
         polygon = [p0]      # Storage for final boundary polygon
-        point_registry = {} # Keep track of storage to avoid multiple runs around
-                            # boundary. This will only be the case if there are
-                            # more than one candidate.
+        point_registry = {} # Keep track of storage to avoid multiple runs 
+	                    # around boundary. This will only be the case if 
+			    # there are more than one candidate.
                             # FIXME (Ole): Perhaps we can do away with polygon
                             # and use only point_registry to save space.
 
         point_registry[tuple(p0)] = 0                            
                             
-        #while len(polygon) < len(self.boundary):
         while len(point_registry) < len(self.boundary):
 
             candidate_list = segments[tuple(p0)]
             if len(candidate_list) > 1:
-                # Multiple points detected (this will be the case for meshes with
-                # duplicate points as those used for discontinuous triangles).
-                # Take the candidate that is furthest to the clockwise direction,
-                # as that will follow the boundary.
-
+                # Multiple points detected (this will be the case for meshes 
+		# with duplicate points as those used for discontinuous 
+		# triangles with vertices stored uniquely).
+                # Take the candidate that is furthest to the clockwise 
+		# direction, as that will follow the boundary.
+		#
+		# This will also be the case for pathological triangles
+		# that have no neighbours.
 
                 if verbose:
                     print 'Point %s has multiple candidates: %s'\
                           %(str(p0), candidate_list)
 
-
                 # Check that previous are not in candidate list
                 #for p in candidate_list:
                 #    assert not allclose(p0, p)
 
-
                 # Choose vector against which all angles will be measured
                 if len(polygon) > 1:    
-                    v_prev = p0 - polygon[-2] # Vector that leads to p0 from previous point
+                    v_prev = p0 - polygon[-2] # Vector that leads to p0 
+		                              # from previous point
                 else:
-                    # FIXME (Ole): What do we do if the first point has multiple
-                    # candidates?
+                    # FIXME (Ole): What do we do if the first point has 
+		    # multiple candidates?
                     # Being the lower left corner, perhaps we can use the
-                    # vector [1, 0], but I really don't know if this is completely
-                    # watertight.
+                    # vector [1, 0], but I really don't know if this is 
+		    # completely watertight.
                     v_prev = [1.0, 0.0]
                     
 
@@ -548,33 +549,53 @@ class Mesh(General_mesh):
                 minimum_angle = 2*pi
                 for pc in candidate_list:
 
-                    
                     vc = pc-p0  # Candidate vector (from p0 to candidate pt)
                    
                     # Angle between each candidate and the previous vector
                     # in [-pi, pi]
                     ac = angle(vc, v_prev)
                     if ac > pi:
-                        # Give preference to angles on the right hand side of v_prev
-                        #print 'pc = %s, changing angle from %f to %f' %(pc, ac*180/pi, (ac-2*pi)*180/pi)
+                        # Give preference to angles on the right hand side 
+			# of v_prev 
+                        # print 'pc = %s, changing angle from %f to %f'\
+			# %(pc, ac*180/pi, (ac-2*pi)*180/pi)
                         ac = ac-2*pi
 
-                    # take the minimal angle corresponding to the rightmost vector
+                    # Take the minimal angle corresponding to the 
+		    # rightmost vector
                     if ac < minimum_angle:
                         minimum_angle = ac
                         p1 = pc             # Best candidate 
                         
 
                 if verbose is True:
-                    print '  Best candidate %s, angle %f' %(p1, minimum_angle*180/pi)
+                    print '  Best candidate %s, angle %f'\
+                          %(p1, minimum_angle*180/pi)
                     
             else:
                 p1 = candidate_list[0]
 
+		
             if point_registry.has_key(tuple(p1)):
-                # We have completed the boundary polygon - yeehaa
-                break 
+                # We have reached a point already visited. 
+		
+		if allclose(p1, polygon[0]):
+		    # If it is the initial point, the polygon is complete. 
+		    
+                    if verbose is True:
+		        print '  Stop criterion fulfilled at point %s' %p1
+		        print polygon		    
+			
+                    # We have completed the boundary polygon - yeehaa
+		    break
+		else:    
+		    # The point already visited is not the initial point
+		    # This would be a pathological triangle, but the 
+		    # algorithm must be able to deal with this
+		    pass
+   
             else:
+	        # We are still finding new points on the boundary
                 point_registry[tuple(p1)] = len(point_registry)
             
             polygon.append(p1)

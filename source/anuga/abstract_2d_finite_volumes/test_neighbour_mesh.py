@@ -808,6 +808,55 @@ class Test_Mesh(unittest.TestCase):
         for p in points:
             assert is_inside_polygon(p, P)
 
+	    
+    def test_boundary_polygon_IIIa(self):
+        """test_boundary_polygon_IIIa - Check pathological situation where
+	one triangle has no neighbours. This may be the case if a mesh
+	is partitioned using pymetis.
+        """
+
+        from Numeric import zeros, Float
+
+
+        #Points
+        a = [0.0, 0.0] #0
+        b = [0.0, 0.5] #1
+        c = [0.0, 1.0] #2
+        d = [0.5, 0.0] #3
+        e = [0.5, 0.5] #4
+        f = [1.0, 0.0] #5
+        g = [1.0, 0.5] #6
+        h = [1.0, 1.0] #7
+       
+	# Add pathological triangle with no neighbours to an otherwise
+	# trivial mesh
+	
+	points = [a, b, c, d, e, f, g, h]
+
+        #cbe, aeb, dea, fed, ghe (pathological triangle)
+        vertices = [[2,1,4], [0,4,1], [3,4,0], [5,4,3],
+     	            [6,7,4]]	
+		    
+        mesh = Mesh(points, vertices)
+        mesh.check_integrity()
+
+        P = mesh.get_boundary_polygon(verbose=False)
+
+        
+        assert len(P) == 9
+	
+	# Note that point e appears twice!
+        assert allclose(P, [a, d, f, e, g, h, e, c, b])
+
+        for p in points:
+	    msg = 'Point %s is not inside polygon %s'\
+	    %(p, P)	
+            assert is_inside_polygon(p, P), msg		    
+
+
+				 	
+	    
+	    
 
     def test_boundary_polygon_IV(self):
         """Reproduce test test_spatio_temporal_file_function_time
@@ -1148,7 +1197,7 @@ class Test_Mesh(unittest.TestCase):
         
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Mesh,'test_mesh_get_boundary_polygon_with_georeferencing')
+    #suite = unittest.makeSuite(Test_Mesh,'test_boundary_polygon_IIIa')
     suite = unittest.makeSuite(Test_Mesh,'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
