@@ -6744,6 +6744,8 @@ friction  \n \
         assert allclose(x[:,0], [1.3, 0.0,4.5, 1.0])
         
     def test_store_parameters(self):
+        """tests store temporary file
+        """
         
         from os import sep, getenv
         
@@ -6794,6 +6796,8 @@ friction  \n \
         os.remove(temp)
         
     def test_store_parameters1(self):
+        """tests store in temporary file and other file 
+        """
         
         from os import sep, getenv
         
@@ -6856,6 +6860,8 @@ friction  \n \
         os.remove(file_name)        
         
     def test_store_parameters2(self):
+        """tests appending the data to the end of an existing file
+        """
         
         from os import sep, getenv
         
