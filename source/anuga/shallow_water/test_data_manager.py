@@ -6743,40 +6743,170 @@ friction  \n \
         
         assert allclose(x[:,0], [1.3, 0.0,4.5, 1.0])
         
-    def xxxtest_store_parameters(self):
+    def test_store_parameters(self):
         
         from os import sep, getenv
         
-        home = getenv('INUNDATIONHOME')
-        output_dir=home+sep+'data'
+        output_dir=''
+        file_name='details.csv'
         
-        kwargs = {'file_name':'new2.txt','output_dir':output_dir,'who':'me', 'what':'detail', 'how':2, 'why':241,'Completed':'yes'}
-#        {'data_origin': data_georef.get_origin(),
-#                  'mesh_origin': mesh_georef.get_origin(),
-#                  'alpha': alpha,
-#                  'verbose': verbose}
-        
-#        fileName = tempfile.mktemp(".csv")
-#        store_parameters(kwargs,fileName)
-#        file_name='temp.csv'
-        store_parameters(**kwargs)
-#        store_parameters(file_name=file_name, scenario_name='dampier',\
-#                         who="me", time_thining=12,tide=2.6)
+        kwargs = {'file_name':'new2.txt',
+                  'output_dir':output_dir,
+                  'file_name':file_name,
+                  'who':'me',
+                  'what':'detail',
+                  'how':2,
+                  'why':241,
+#                  'completed':345
+                  }
+        store_parameters(verbose=False,**kwargs)
 
-        
-        fid = open(str(kwargs.pop('file_name')))
-        header = fid.readline()
-        line = fid.readline()
+        temp='detail_temp.csv'
+        fid = open(temp)
+        file_header = fid.readline()
+        file_line = fid.readline()
         fid.close()
-        print'header',header,'lines',line
+        
+        
+        keys = kwargs.keys()
+        keys.sort()
+        line=''
+        header=''
+        count=0
+        #used the sorted keys to create the header and line data
+        for k in keys:
+#            print "%s = %s" %(k, kwargs[k]) 
+            header = header+str(k)
+            line = line+str(kwargs[k])
+            count+=1
+            if count <len(kwargs):
+                header = header+','
+                line = line+','
+        header+='\n'
+        line+='\n'
+        
         
         #file exists
-#        assert access(file_name,F_OK)
-        a=['who,time']
-#        assert allclose(header, a)
-#        assert allclose(header, [who,time])
-#        assert header=='who,time1
-#        assert allclose(line,['me',12])
+        assert access(temp,F_OK)
+        assert header == file_header
+        assert line == file_line
+        
+        os.remove(temp)
+        
+    def test_store_parameters1(self):
+        
+        from os import sep, getenv
+        
+        output_dir=''
+        file_name='details.csv'
+        
+        kwargs = {'file_name':'new2.txt',
+                  'output_dir':output_dir,
+                  'file_name':file_name,
+                  'who':'me',
+                  'what':'detail',
+                  'how':2,
+                  'why':241,
+#                  'completed':345
+                  }
+        store_parameters(verbose=False,**kwargs)
+        
+        kwargs['how']=55
+        kwargs['completed']=345
+
+        keys = kwargs.keys()
+        keys.sort()
+        line=''
+        header=''
+        count=0
+        #used the sorted keys to create the header and line data
+        for k in keys:
+#            print "%s = %s" %(k, kwargs[k]) 
+            header = header+str(k)
+            line = line+str(kwargs[k])
+            count+=1
+            if count <len(kwargs):
+                header = header+','
+                line = line+','
+        header+='\n'
+        line+='\n'
+        
+        kwargs['how']=55
+        kwargs['completed']=345
+        
+        store_parameters(verbose=False,**kwargs)
+        
+#        temp='detail_temp.csv'
+        fid = open(file_name)
+        file_header = fid.readline()
+        file_line1 = fid.readline()
+        file_line2 = fid.readline()
+        fid.close()
+        
+        
+        #file exists
+#        print 'header',header,'line',line
+#        print 'file_header',file_header,'file_line1',file_line1,'file_line2',file_line2
+        assert access(file_name,F_OK)
+        assert header == file_header
+        assert line == file_line1
+        
+        temp='detail_temp.csv'
+        os.remove(temp)
+        os.remove(file_name)        
+        
+    def test_store_parameters2(self):
+        
+        from os import sep, getenv
+        
+        output_dir=''
+        file_name='details.csv'
+        
+        kwargs = {'file_name':'new2.txt',
+                  'output_dir':output_dir,
+                  'file_name':file_name,
+                  'who':'me',
+                  'what':'detail',
+                  'how':2,
+                  'why':241,
+                  'completed':345
+                  }
+        store_parameters(verbose=False,**kwargs)
+        
+        kwargs['how']=55
+        kwargs['completed']=23.54532
+        
+        store_parameters(verbose=False,**kwargs)
+        
+        keys = kwargs.keys()
+        keys.sort()
+        line=''
+        header=''
+        count=0
+        #used the sorted keys to create the header and line data
+        for k in keys:
+#            print "%s = %s" %(k, kwargs[k]) 
+            header = header+str(k)
+            line = line+str(kwargs[k])
+            count+=1
+            if count <len(kwargs):
+                header = header+','
+                line = line+','
+        header+='\n'
+        line+='\n'
+        
+        fid = open(file_name)
+        file_header = fid.readline()
+        file_line1 = fid.readline()
+        file_line2 = fid.readline()
+        fid.close()
+        
+        assert access(file_name,F_OK)
+        assert header == file_header
+        assert line == file_line2
+        
+        os.remove(file_name)        
+        
 
 
 
@@ -6785,7 +6915,7 @@ if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sww_origin')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_sww_header')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_export_grid_parallel')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_export_grid')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_store_parameters')
     if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':
         Test_Data_Manager.verbose=True
         saveout = sys.stdout   

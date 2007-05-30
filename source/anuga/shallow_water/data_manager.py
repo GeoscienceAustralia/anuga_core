@@ -5188,20 +5188,15 @@ def get_data_from_file(filename,separator_value = ','):
 
 def store_parameters(verbose=False,**kwargs):
     """
+    Store "kwargs" into a temp csv file, if "completed" is a kwargs csv file is
+    kwargs[file_name] else it is kwargs[output_dir] + details_temp.csv
+    
     Must have a file_name keyword arg, this is what is writing to.
     might be a better way to do this using CSV module Writer and writeDict
     
     writes file to "output_dir" unless "completed" is in kwargs, then it writes to 
     "file_name" kwargs 
-     Returns a object which is a subset of the original
-        and the data points and attributes in this new object refer to
-        the indices provided
-        
-        Input
-            indices- a list of integers that represent the new object
-        Output
-            New geospatial data object representing points specified by 
-            the indices 
+
     """
     import types
     import os
@@ -5210,6 +5205,7 @@ def store_parameters(verbose=False,**kwargs):
     if type(kwargs) != types.DictType:
         raise TypeError
     
+    #is completed is kwargs?
     try:
         kwargs['completed']
         completed=True
@@ -5219,12 +5215,13 @@ def store_parameters(verbose=False,**kwargs):
     #get file name and removes from dict and assert that a file_name exists
     if completed:
         try:
-            file = str(kwargs.pop('file_name'))
+            file = str(kwargs['file_name'])
         except:
             raise 'kwargs must have file_name'
     else:
+        #write temp file in output directory
         try:
-            file = str(kwargs.pop('output_dir'))+'detail_temp.csv'
+            file = str(kwargs['output_dir'])+'detail_temp.csv'
         except:
             raise 'kwargs must have output_dir'
         
@@ -5235,21 +5232,20 @@ def store_parameters(verbose=False,**kwargs):
     keys = kwargs.keys()
     keys.sort()
     
-#    for k in kwargs.keys():
     #used the sorted keys to create the header and line data
     for k in keys:
-        print "%s = %s" %(k, kwargs[k]) 
+#        print "%s = %s" %(k, kwargs[k]) 
         header = header+str(k)
         line = line+str(kwargs[k])
         count+=1
         if count <len(kwargs):
             header = header+','
             line = line+','
-
+    header+='\n'
+    line+='\n'
 
     # checks the header info, if the same, then write, if not create a new file
     #try to open!
-#    print'file name',file
     try:
         fid = open(file,"r")
         file_header=fid.readline()
@@ -5262,7 +5258,7 @@ def store_parameters(verbose=False,**kwargs):
         #tries to open file, maybe directory is bad
         try:
             fid = open(file,"w")
-            fid.writelines(header+'\n')
+            fid.write(header)
             fid.close()
             file_header=header
         except:
@@ -5270,21 +5266,22 @@ def store_parameters(verbose=False,**kwargs):
             raise msg
             
     #if header is same or this is a new file
-    if file_header.strip('\n')==str(header):
+    if file_header==str(header):
         fid=open(file,"a")
         #write new line
-        fid.writelines(line+'\n')
+        fid.write(line)
         fid.close()
     else:
         #backup plan, if header is different and has completed will append info to 
         #end of details_temp.cvs file in output directory
         file = str(kwargs['output_dir'])+'detail_temp.csv'
         fid=open(file,"a")
-        fid.writelines(header+'\n')
-        fid.writelines(line+'\n')
+        fid.write(header)
+        fid.write(line)
         fid.close()
-        print 'file',file_header.strip('\n')
-        print 'head',header.strip('\n')
+        if verbose: print 'file',file_header.strip('\n')
+        if verbose: print 'head',header.strip('\n')
+        if file_header.strip('\n')==str(header): print 'they equal'
         msg = 'WARNING: File header does not match input info, the input variables have changed, suggest to change file name'
         print msg
 
