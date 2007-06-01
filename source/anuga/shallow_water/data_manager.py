@@ -1663,7 +1663,7 @@ def export_grid(basename_in, extra_name_out = None,
                                + extra_name_out
             #print "basename_out", basename_out
         
-            file_out = sww2dem(sww_file, basename_out,
+            file_out = sww2dem(dir+sep+sww_file, basename_out,
                                quantity, 
                                timestep,
                                reduction,
