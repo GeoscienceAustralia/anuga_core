@@ -386,6 +386,41 @@ class Test_Interpolate(unittest.TestCase):
         #print "answer",answer 
         assert allclose(z, answer)
         
+     
+    def test_sigma_epsilon(self):
+        """
+        def test_sigma_epsilon(self):
+            Testing ticket 168. I could not reduce the bug to this small
+            test though.
+        
+        """
+        v0 = [22031.25, 59687.5]
+        v1 = [22500., 60000.]
+        v2 = [22350.31640625, 59716.71484375]
+
+        vertices = [v0, v1, v2]
+        triangles = [ [1,0,2] ]   #bac
+
+        
+        point_coords = [[22050., 59700.]]
+
+        interp = Interpolate(vertices, triangles)
+        f = linear_function(vertices)
+        z = interp.interpolate(f, point_coords)
+        answer = linear_function(point_coords)
+
+        #print "z",z 
+        #print "answer",answer 
+        assert allclose(z, answer)
+
+        
+        z = interp.interpolate(f, point_coords, start_blocking_len = 2)
+        answer = linear_function(point_coords)
+
+        #print "z",z 
+        #print "answer",answer 
+        assert allclose(z, answer)
+
         
     def test_Geospatial_verts(self):
         v0 = [0.0, 0.0]
@@ -1642,8 +1677,8 @@ class Test_Interpolate(unittest.TestCase):
 #-------------------------------------------------------------
 if __name__ == "__main__":
 
+    #suite = unittest.makeSuite(Test_Interpolate,'test_sigma_epsilon')
     suite = unittest.makeSuite(Test_Interpolate,'test')
-    #suite = unittest.makeSuite(Test_Interpolate,'test_interpolation_function_outside_point')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
 

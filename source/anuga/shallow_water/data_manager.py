@@ -1938,6 +1938,7 @@ def sww2dem(basename_in, basename_out = None,
     # Remove loners from vertex_points, volumes here
     vertex_points, volumes = remove_lone_verts(vertex_points, volumes)
     #export_mesh_file('monkey.tsh',{'vertices':vertex_points, 'triangles':volumes})
+    #import sys; sys.exit()
     interp = Interpolate(vertex_points, volumes, verbose = verbose)
 
     #Interpolate using quantity values
@@ -4559,7 +4560,8 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
         mesh.generate_mesh(minimum_triangle_angle=0.0, verbose=False)
     mesh_dic = mesh.Mesh2MeshList()
 
-    #mesh.export_mesh_file(basename_in + '.tsh')
+    #mesh.export_mesh_file(basename_in + '_168.tsh')
+    #import sys; sys.exit() 
     # These are the times of the mux file
     mux_times = []
     for i in range(a_mux.time_step_count):

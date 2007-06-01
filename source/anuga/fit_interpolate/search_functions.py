@@ -99,11 +99,11 @@ def _search_triangles_of_vertices(mesh, candidate_vertices, x):
             
             # Sigmas are allowed to get negative within
             # machine precision on some machines (e.g nautilus)
-            epsilon = get_machine_precision()            
-            if sigma0 >= -epsilon and sigma1 >= -epsilon and sigma2 >= -epsilon:
+            epsilon = get_machine_precision() * 2
+            if sigma0 >= -epsilon and sigma1 >= -epsilon and sigma2>= -epsilon:
                 element_found = True
                 break
-
+            
         if element_found is True:
             #Don't look for any other triangle
             break
