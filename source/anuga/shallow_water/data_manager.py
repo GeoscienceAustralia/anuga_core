@@ -1654,6 +1654,7 @@ def export_grid(basename_in, extra_name_out = None,
     #print "interate_over", interate_over
     
     files_out = []
+#    print 'sww_file',sww_file
     for sww_file in interate_over:
         for quantity in quantities:
             if extra_name_out is None:
@@ -1661,9 +1662,9 @@ def export_grid(basename_in, extra_name_out = None,
             else:
                 basename_out = sww_file + '_' + quantity + '_' \
                                + extra_name_out
-            #print "basename_out", basename_out
+#            print "basename_out", basename_out
         
-            file_out = sww2dem(dir+sep+sww_file, basename_out,
+            file_out = sww2dem(dir+sep+sww_file, dir+sep+basename_out,
                                quantity, 
                                timestep,
                                reduction,
@@ -1771,7 +1772,10 @@ def sww2dem(basename_in, basename_out = None,
     #if verbose: bye= nsuadsfd[0] #uncomment to check catching verbose errors
     
     #Read sww file
-    if verbose: print 'Reading from %s' %swwfile
+    if verbose: 
+        print 'Reading from %s' %swwfile
+        print 'Output directory is %s' %basename_out
+    
     from Scientific.IO.NetCDF import NetCDFFile
     fid = NetCDFFile(swwfile)
 
