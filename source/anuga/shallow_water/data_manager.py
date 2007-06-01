@@ -1648,10 +1648,15 @@ def export_grid(basename_in, extra_name_out = None,
     #print "basename_in",basename_in
     #print "base",base
     
-    if dir == "": dir = "." # Unix compatibility
+    if dir == "":
+        dir = "." # Unix compatibility
     dir_ls = os.listdir(dir)
     interate_over = [x[:-4] for x in dir_ls if base in x and x[-4:] == '.sww']
-    #print "interate_over", interate_over
+
+    if len(interate_over) == 0:
+        msg = 'No files of the base name %s.'\
+              %(basename_in)
+        raise IOError, msg
     
     files_out = []
 #    print 'sww_file',sww_file

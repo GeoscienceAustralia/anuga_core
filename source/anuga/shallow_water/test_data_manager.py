@@ -1633,6 +1633,22 @@ END CROSS-SECTIONS:
         os.remove(ascfile)
         os.remove(swwfile)
 
+    def test_export_grid_bad(self):
+        """Test that sww information can be converted correctly to asc/prj
+        format readable by e.g. ArcView
+        """
+
+        try:
+            export_grid('a_small_round-egg',
+                        quantities = ['elevation', 'depth'],
+                        cellsize = 99,
+                        verbose = self.verbose,
+                        format = 'asc')
+        except IOError:
+            pass
+        else:
+            self.failUnless(0 ==1,  'Bad input did not throw exception error!')
+
     def test_export_grid_parallel(self):
         """Test that sww information can be converted correctly to asc/prj
         format readable by e.g. ArcView

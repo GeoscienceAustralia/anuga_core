@@ -139,6 +139,10 @@ def calc_max_depth_and_momentum(sww_base_name, points,
     if dir == "": dir = "." # Unix compatibility
     dir_ls = os.listdir(dir)
     interate_over = [x for x in dir_ls if base in x and x[-4:] == '.sww']
+    if len(interate_over) == 0:
+        msg = 'No files of the base name %s.'\
+              %(sww_base_name)
+        raise IOError, msg
     #print "interate_over", interate_over
     from os import sep
     for this_sww_file in interate_over:
