@@ -58,11 +58,8 @@ class Test_Polygon(unittest.TestCase):
 
     def NO_test_polygon_function_csvfile(self):
         from os import sep, getenv
-        #home = getenv('ANUGAHOME')
-        #p1 = read_polygon(home+sep+'anuga_core'+sep+'source'+sep+'anuga'+sep+'utilities'+sep+'mainland_only.csv')
-        home = getenv('INUNDATIONHOME')
-        p1 = read_polygon(home+sep+'data'+sep+'western_australia'+sep+'dampier_tsunami_scenario_2006'+sep+'anuga'+sep+'polygons'+sep+'2007polys'+sep+'mainland_only.csv')
-        #p1 = read_polygon('mainland_only.csv')
+        
+        p1 = read_polygon('mainland_only.csv')
         
         f = Polygon_function( [(p1, 10.0)] )
         z = f([430000,480000], [7720000, 7690000]) #first outside, second inside
