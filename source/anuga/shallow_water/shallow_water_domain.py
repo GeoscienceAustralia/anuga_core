@@ -1813,6 +1813,77 @@ def assign_windfield_values(xmom_update, ymom_update,
 
 
 
+class Rainfall:
+    """Class Rainfall - general 'rain over entire domain' forcing term.
+    
+    Used for implementing Rainfall over the entire domain.
+	
+	Current Limited to only One Gauge..
+	
+	Need to add Spatial Varying Capability 
+	(This module came from copying and amending the Inflow Code)
+    
+    Rainfall(rain)
+        
+    rain [mm/s]:  Total rain rate over the specified domain.  
+	          NOTE: Raingauge Data needs to reflect the time step.
+		  IE: if Gauge is mm read at a time step, then the input
+                  here is as mm/(timeStep) so 10mm in 5minutes becomes
+                  10/(5x60) = 0.0333mm/s.
+	
+	
+                  This parameter can be either a constant or a
+                  function of time. Positive values indicate inflow, 
+                  negative values indicate outflow.
+                  (and be used for Infiltration - Write Seperate Module)
+                  The specified flow will be divided by the area of
+                  the inflow region and then applied to update the
+                  quantity in question. 
+    
+    Examples
+    How to put them in a run File...
+	
+    #--------------------------------------------------------------------------
+    # Setup specialised forcing terms
+    #--------------------------------------------------------------------------
+    # This is the new element implemented by Ole and Rudy to allow direct
+    # input of Inflow in mm/s
+
+    catchmentrainfall = Rainfall(rain=file_function('Q100_2hr_Rain.tms'))  
+                        # Note need path to File in String.
+                        # Else assumed in same directory
+
+    domain.forcing_terms.append(catchmentrainfall)
+    """
+
+    # FIXME (OLE): Add a polygon as an alternative.
+    # FIXME (AnyOne) : Add various methods to allow spatial variations
+    # FIXME (OLE): Generalise to all quantities
+
+    def __init__(self,
+		 rain=0.0,
+		 quantity_name='stage'):
+
+        self.rain = rain
+	self.quantity_name = quantity_name
+    
+    def __call__(self, domain):
+
+        # Update rainfall
+	if callable(self.rain):
+	    rain = self.rain(domain.get_time())
+	else:
+	    rain = self.rain
+
+        # Now rain is a number
+        quantity = domain.quantities[self.quantity_name].explicit_update
+        quantity[:] += rain/1000  # Converting mm/s to m/s to apply in ANUGA
+		# 1mm of rainfall is equivalent to 1 litre /m2 
+		# Flow is expressed as m3/s converted to a stage height in (m)
+		
+		# Note 1m3 = 1x10^9mm3 (mls)
+		# or is that m3 to Litres ??? Check this how is it applied !!!
+
 
 class Inflow:
     """Class Inflow - general 'rain and drain' forcing term.
@@ -1845,6 +1916,18 @@ class Inflow:
     # This corresponds to a rate of change of 0.0142/0.00283 = 5 m/s     
     # over the specified area
     Inflow((0.5, 0.5), 0.03, lambda t: min(0.01*t, 0.0142))
+
+    #--------------------------------------------------------------------------
+    # Setup specialised forcing terms
+    #--------------------------------------------------------------------------
+    # This is the new element implemented by Ole to allow direct input
+    # of Inflow in m^3/s
+
+    hydrograph = Inflow(center=(320, 300), radius=10,
+                        flow=file_function('Q/QPMF_Rot_Sub13.tms'))
+
+    domain.forcing_terms.append(hydrograph)
+    
     """
 
     # FIXME (OLE): Add a polygon as an alternative.
