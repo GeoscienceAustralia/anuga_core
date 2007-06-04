@@ -56,10 +56,20 @@ class Test_Polygon(unittest.TestCase):
 	z = f([5, 5, 27, 35], [5, 9, 8, -5])
 	assert allclose(z, [2,1,0,2])
 
-    def NO_test_polygon_function_csvfile(self):
+    def test_polygon_function_csvfile(self):
         from os import sep, getenv
+
+        try:
+            # When unit test is run from current dir
+            p1 = read_polygon('mainland_only.csv')
+        except: 
+            # When unit test is run from ANUGA root dir
+            from os.path import join
+
+            path = join('utilities', 'mainland_only.csv')
+            p1 = read_polygon(path)
         
-        p1 = read_polygon('mainland_only.csv')
+            
         
         f = Polygon_function( [(p1, 10.0)] )
         z = f([430000,480000], [7720000, 7690000]) #first outside, second inside
