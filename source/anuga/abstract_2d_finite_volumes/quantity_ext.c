@@ -230,6 +230,12 @@ int _average_vertex_values(int N,
   double total = 0.0;
 
   for (i=0; i<N; i++) {
+  
+    //if (current_node == N) {
+    //  printf("Current node exceeding number of nodes (%d)", N);    
+    //  return 1;
+    // }
+    
     index = vertex_value_indices[i];
     k += 1;
             
@@ -365,6 +371,7 @@ PyObject *average_vertex_values(PyObject *self, PyObject *args) {
 				     (double*) vertex_values -> data, 
 				     (double*) A -> data);
 
+	//printf("Error %d", err);
 	if (err != 0) {
 	  PyErr_SetString(PyExc_RuntimeError, 
 			  "average_vertex_values could not be computed");

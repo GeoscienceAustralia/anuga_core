@@ -1103,6 +1103,12 @@ class Quantity:
                 k = 0 # Track triangles touching on node
                 total = 0.0
                 for index in self.domain.vertex_value_indices:
+                    if current_node == N:
+                        msg = 'Current node exceeding number of nodes (%d) ' %(N)
+                        raise msg
+                    
+
+                    
                     k += 1
                     
                     volume_id = index / 3

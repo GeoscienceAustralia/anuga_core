@@ -475,8 +475,8 @@ class General_mesh:
         """
 
         # Count number of triangles per node
-        number_of_triangles_per_node = zeros(self.number_of_nodes)
-        for volume_id, triangle in enumerate(self.triangles):
+        number_of_triangles_per_node = zeros(self.number_of_full_nodes)
+        for volume_id, triangle in enumerate(self.get_triangles()):
             for vertex_id in triangle:
                 number_of_triangles_per_node[vertex_id] += 1
 
@@ -485,8 +485,8 @@ class General_mesh:
         vertex_value_indices = zeros(number_of_entries)
 
         # Register (triangle, vertex) indices for each node
-        vertexlist = [None]*self.number_of_nodes
-        for volume_id in range(self.number_of_triangles):
+        vertexlist = [None]*self.number_of_full_nodes
+        for volume_id in range(self.number_of_full_triangles):
 
             a = self.triangles[volume_id, 0]
             b = self.triangles[volume_id, 1]
