@@ -83,9 +83,8 @@ class Test_Geospatial_data(unittest.TestCase):
     def test_1(self):
         points = [[1.0, 2.1], [3.0, 5.3]]
         attributes = [2, 4]
-        G = Geospatial_data(points, attributes)        
-
-        assert G.attributes.keys()[0] == 'attribute'
+        G = Geospatial_data(points, attributes)       
+        assert G.attributes.keys()[0] == DEFAULT_ATTRIBUTE
         assert allclose(G.attributes.values()[0], [2, 4])
         
 
@@ -118,7 +117,7 @@ class Test_Geospatial_data(unittest.TestCase):
         V = G.get_attributes() #Simply get them
         assert allclose(V, [2, 4])
 
-        V = G.get_attributes('attribute') #Get by name
+        V = G.get_attributes(DEFAULT_ATTRIBUTE) #Get by name
         assert allclose(V, [2, 4])
 
     def test_get_attributes_2(self):

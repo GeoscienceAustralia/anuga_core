@@ -521,6 +521,7 @@ def _fit_to_mesh(vertex_coordinates,
                        {'verbose': verbose,
                         'mesh_origin': mesh_origin,
                         'alpha':alpha},
+                       compression = False,
                        verbose = verbose)        
         
     else:
@@ -553,3 +554,103 @@ def _fit(*args, **kwargs):
     
     return Fit(*args, **kwargs)
 
+
+def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
+                     alpha=DEFAULT_ALPHA, verbose= False,
+                     expand_search = False,
+                     precrop = False,
+                     display_errors = True):
+    """
+    Given a mesh file (tsh) and a point attribute file (xya), fit
+    point attributes to the mesh and write a mesh file with the
+    results.
+
+    Note: the .xya files need titles.  If you want anuga to use the tsh file,
+    make sure the title is elevation.
+
+    NOTE: Throws IOErrors, for a variety of file problems.
+    
+    """
+
+    from load_mesh.loadASCII import import_mesh_file, \
+         export_mesh_file, concatinate_attributelist
+
+
+    try:
+        mesh_dict = import_mesh_file(mesh_file)
+    except IOError,e:
+        if display_errors:
+            print "Could not load bad file. ", e
+        raise IOError  #Could not load bad mesh file.
+    
+    vertex_coordinates = mesh_dict['vertices']
+    triangles = mesh_dict['triangles']
+    if type(mesh_dict['vertex_attributes']) == ArrayType:
+        old_point_attributes = mesh_dict['vertex_attributes'].tolist()
+    else:
+        old_point_attributes = mesh_dict['vertex_attributes']
+
+    if type(mesh_dict['vertex_attribute_titles']) == ArrayType:
+        old_title_list = mesh_dict['vertex_attribute_titles'].tolist()
+    else:
+        old_title_list = mesh_dict['vertex_attribute_titles']
+
+    if verbose: print 'tsh file %s loaded' %mesh_file
+
+    # load in the .pts file
+    try:
+        ###point_dict = import_points_file(point_file, verbose=verbose)
+        geo = Geospatial_data(point_file, verbose=verbose)
+    except IOError,e:
+        if display_errors:
+            print "Could not load bad file. ", e
+        raise IOError  #Re-raise exception  
+
+    point_coordinates = geo.get_data_points(absolute=True)
+    #point_dict['pointlist']
+    #
+    # return list of attribute titles, array of attributes 
+    # title_list,point_attributes = concatinate_attributelist(point_dict['attributelist'])
+    title_list,point_attributes = concatinate_attributelist(geo.get_all_attributes())
+
+    if mesh_dict.has_key('geo_reference') and not mesh_dict['geo_reference'] is None:
+        mesh_origin = mesh_dict['geo_reference'].get_origin()
+    else:
+        mesh_origin = None #(56, 0, 0) #FIXME(DSG-DSG)
+
+    if verbose: print "points file loaded"
+    if verbose: print "fitting to mesh"
+    f = fit_to_mesh(vertex_coordinates,
+                    triangles,
+                    point_coordinates,
+                    point_attributes,
+                    alpha = alpha,
+                    verbose = verbose,
+                    data_origin = None,
+                    mesh_origin = mesh_origin)
+    if verbose: print "finished fitting to mesh"
+
+    # convert array to list of lists
+    new_point_attributes = f.tolist()
+    #FIXME have this overwrite attributes with the same title - DSG
+    #Put the newer attributes last
+    if old_title_list <> []:
+        old_title_list.extend(title_list)
+        #FIXME can this be done a faster way? - DSG
+        for i in range(len(old_point_attributes)):
+            old_point_attributes[i].extend(new_point_attributes[i])
+        mesh_dict['vertex_attributes'] = old_point_attributes
+        mesh_dict['vertex_attribute_titles'] = old_title_list
+    else:
+        mesh_dict['vertex_attributes'] = new_point_attributes
+        mesh_dict['vertex_attribute_titles'] = title_list
+
+    #FIXME (Ole): Remember to output mesh_origin as well
+    if verbose: print "exporting to file ", mesh_output_file
+
+    try:
+        export_mesh_file(mesh_output_file, mesh_dict)
+    except IOError,e:
+        if display_errors:
+            print "Could not write file. ", e
+        raise IOError

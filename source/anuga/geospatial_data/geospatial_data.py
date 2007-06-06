@@ -24,6 +24,8 @@ from anuga.coordinate_transforms.redfearn import convert_from_latlon_to_utm
 from anuga.utilities.anuga_exceptions import ANUGAError
 from anuga.config import points_file_block_line_size as MAX_READ_LINES    
 
+DEFAULT_ATTRIBUTE = 'elevation'
+
 class Geospatial_data:
 
     def __init__(self,
@@ -52,7 +54,7 @@ class Geospatial_data:
         must be either a list or an array of length M or a dictionary
         of lists (or arrays) of length M. In the latter case the keys
         in the dictionary represent the attribute names, in the former
-        the attribute will get the default name "attribute".
+        the attribute will get the default name "elevation".
         
         geo_reference: Object representing the origin of the data
         points. It contains UTM zone, easting and northing and data
@@ -207,7 +209,7 @@ class Geospatial_data:
         
         if not isinstance(attributes, DictType):
             #Convert single attribute into dictionary
-            attributes = {'attribute': attributes}
+            attributes = {DEFAULT_ATTRIBUTE: attributes}
 
         #Check input attributes    
         for key in attributes.keys():
@@ -513,8 +515,9 @@ class Geospatial_data:
         
         attributes = {}
         if file_name[-4:]== ".xya":
-            msg = 'Text file format is moving to comma seperated .txt files.'
-            warn(msg, DeprecationWarning) 
+            # Maybe not phase-out, so we can load in geo-ref info
+            #msg = 'Text file format is moving to comma seperated .txt files.'
+            #warn(msg, DeprecationWarning) 
             try:
                 if delimiter == None:
                     try:

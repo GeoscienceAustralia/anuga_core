@@ -1635,6 +1635,8 @@ def export_grid(basename_in, extra_name_out = None,
     of the dir and all of the file name, except the extension.
 
     This function returns the names of the files produced.
+
+    It will also produce as many output files as there are input sww files. 
     """
     
     if quantities is None:
