@@ -1445,7 +1445,6 @@ def remove_lone_verts(verts, triangles, number_of_full_nodes=None):
     
     # initialise the array to easily find the index of the first loner
     loners=arange(2*N, N, -1) # if N=3 [6,5,4]
-    
     for t in triangles:
         for vert in t:
             loners[vert]= vert # all non-loners will have loners[i]=i 

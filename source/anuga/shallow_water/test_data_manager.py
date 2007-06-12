@@ -1107,7 +1107,9 @@ END CROSS-SECTIONS:
 
 
     def test_sww2dem_asc_elevation_depth(self):
-        """Test that sww information can be converted correctly to asc/prj
+        """
+        test_sww2dem_asc_elevation_depth(self):
+        Test that sww information can be converted correctly to asc/prj
         format readable by e.g. ArcView
         """
 
@@ -1295,7 +1297,9 @@ END CROSS-SECTIONS:
 
 
     def test_export_grid(self):
-        """Test that sww information can be converted correctly to asc/prj
+        """
+        test_export_grid(self):
+        Test that sww information can be converted correctly to asc/prj
         format readable by e.g. ArcView
         """
 
@@ -1377,7 +1381,9 @@ END CROSS-SECTIONS:
         os.remove(swwfile)
 
     def test_export_gridII(self):
-        """Test that sww information can be converted correctly to asc/prj
+        """
+        test_export_gridII(self):
+        Test that sww information can be converted correctly to asc/prj
         format readable by e.g. ArcView
         """
 
@@ -1505,7 +1511,9 @@ END CROSS-SECTIONS:
 
 
     def test_export_gridIII(self):
-        """Test that sww information can be converted correctly to asc/prj
+        """
+        test_export_gridIII
+        Test that sww information can be converted correctly to asc/prj
         format readable by e.g. ArcView
         """
 
@@ -1519,6 +1527,7 @@ END CROSS-SECTIONS:
             pass
 
         #Setup
+        
         self.domain.set_name('tegIII')
 
         swwfile = self.domain.get_name() + '.sww'
@@ -1530,7 +1539,7 @@ END CROSS-SECTIONS:
         self.domain.set_quantity('stage', 1.0)
 
         self.domain.geo_reference = Geo_reference(56,308500,6189000)
-
+        
         sww = get_dataobject(self.domain)
         sww.store_connectivity()
         sww.store_timestep('stage')
@@ -6937,7 +6946,8 @@ if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sww_origin')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_sww_header')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_export_grid_parallel')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_store_parameters')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_export_gridIII')
+    suite = unittest.makeSuite(Test_Data_Manager,'test')
     if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':
         Test_Data_Manager.verbose=True
         saveout = sys.stdout   
@@ -6946,8 +6956,7 @@ if __name__ == "__main__":
         sys.stdout = fid
     else:
         pass
-    suite = unittest.makeSuite(Test_Data_Manager,'test')
-    runner = unittest.TextTestRunner()#(verbosity=2)
+    runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
 
     # Cleaning up

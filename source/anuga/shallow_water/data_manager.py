@@ -4714,8 +4714,7 @@ class Write_sww:
         else:
             number_of_times = 0
             starttime = times
-        #print "times",times
-        #print "starttime", starttime
+            #times = ensure_numeric([])
         outfile.starttime = starttime
         # dimension definitions
         outfile.createDimension('number_of_volumes', number_of_volumes)
@@ -4765,7 +4764,9 @@ class Write_sww:
             # It assumes that netcdf initialises it to a very large number
             outfile.variables[q+Write_sww.RANGE][1] = \
                 -outfile.variables[q+Write_sww.RANGE][1]
-        outfile.variables['time'][:] = times    #Store time relative
+            
+        if type(times) is list or type(times) is ArrayType:  
+            outfile.variables['time'][:] = times    #Store time relative
             
         if verbose:
             print '------------------------------------------------'

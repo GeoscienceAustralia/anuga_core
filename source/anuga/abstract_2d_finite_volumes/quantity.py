@@ -1476,6 +1476,7 @@ from anuga.utilities import compile
 if compile.can_use_C_extension('quantity_ext.c'):
     #Replace python version with c implementations
 
+    from quantity_ext import average_vertex_values
+
     from quantity_ext import compute_gradients, limit,\
-    extrapolate_second_order, interpolate_from_vertices_to_edges, update,\
-    average_vertex_values
+    extrapolate_second_order, interpolate_from_vertices_to_edges, update
