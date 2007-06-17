@@ -88,7 +88,7 @@ from anuga.shallow_water import Domain
 from anuga.abstract_2d_finite_volumes.pmesh2domain import \
      pmesh_to_domain_instance
 from anuga.abstract_2d_finite_volumes.util import get_revision_number, \
-     remove_lone_verts
+     remove_lone_verts, sww2timeseries
 from anuga.load_mesh.loadASCII import export_mesh_file
 # formula mappings
 
@@ -1688,6 +1688,85 @@ def export_grid(basename_in, extra_name_out = None,
             files_out.append(file_out)
     #print "basenames_out after",basenames_out 
     return files_out
+
+
+def get_timeseries(production_dirs, output_dir, scenario_name, gauges_dir_name,
+                   plot_quantity, generate_fig = False,
+                   reportname = None, surface = False, time_min = None,
+                   time_max = None, title_on = False, verbose = True,
+                   nodes=None):
+    """
+    nodes - number of processes used.
+
+    warning - this function has no tests
+    """
+    if reportname == None:
+        report = False
+    else:
+        report = True
+        
+    if nodes is None:
+        is_parallel = False
+    else:
+        is_parallel = True
+        
+    # Generate figures
+    swwfiles = {}
+    
+    if is_parallel is True:    
+        for i in range(nodes):
+            print 'Sending node %d of %d' %(i,nodes)
+            swwfiles = {}
+            if not reportname == None:
+                reportname = report_name + '_%s' %(i)
+            for label_id in production_dirs.keys():
+                if label_id == 'boundaries':
+                    swwfile = best_boundary_sww
+                else:
+                    file_loc = output_dir + label_id + sep
+                    sww_extra = '_P%s_%s' %(i,nodes)
+                    swwfile = file_loc + scenario_name + sww_extra + '.sww'
+                    print 'swwfile',swwfile
+                    swwfiles[swwfile] = label_id
+
+                texname, elev_output = sww2timeseries(swwfiles,
+                                              gauges_dir_name,
+                                              production_dirs,
+                                              report = report,
+                                              reportname = reportname,
+                                              plot_quantity = plot_quantity,
+                                              generate_fig = generate_fig,
+                                              surface = surface,
+                                              time_min = time_min,
+                                              time_max = time_max,
+                                              title_on = title_on,
+                                              verbose = verbose)
+    else:   
+        for label_id in production_dirs.keys():       
+            if label_id == 'boundaries':
+                print 'boundaries'
+                file_loc = project.boundaries_in_dir
+                swwfile = project.boundaries_dir_name3 + '.sww'
+                #  swwfile = boundary_dir_filename
+            else:
+                file_loc = output_dir + label_id + sep
+                swwfile = file_loc + scenario_name + '.sww'
+            swwfiles[swwfile] = label_id
+        
+        texname, elev_output = sww2timeseries(swwfiles,
+                                              gauges_dir_name,
+                                              production_dirs,
+                                              report = report,
+                                              reportname = reportname,
+                                              plot_quantity = plot_quantity,
+                                              generate_fig = generate_fig,
+                                              surface = surface,
+                                              time_min = time_min,
+                                              time_max = time_max,
+                                              title_on = title_on,
+                                              verbose = verbose)
+                                          
+
     
 def sww2dem(basename_in, basename_out = None,
             quantity = None, # defaults to elevation
