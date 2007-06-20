@@ -432,6 +432,108 @@ class Test_Geospatial_data(unittest.TestCase):
         #assert allclose(P_relative, [[1.0, 2.1], [3.0, 5.3], [4.1, 7.1], [5.1, 4.3]])
 
         assert allclose(P, concatenate( (points1,points2) ))
+
+
+    def test_add_with_None(self):
+        """ test that None can be added to a geospatical objects
+        """
+        
+        points1 = array([[2.0, 4.1], [4.0, 7.3]])
+        points2 = array([[5.1, 9.1], [6.1, 6.3]])        
+
+        geo_ref1= Geo_reference(55, 1.0, 2.0)
+        geo_ref2 = Geo_reference(zone=55,
+                                 xllcorner=0.1,
+                                 yllcorner=3.0,
+                                 datum='wgs84',
+                                 projection='UTM',
+                                 units='m')
+        
+
+        attributes1 = {'depth':[2, 4.7], 'elevation':[6.1, 5]}
+        attributes2 = {'depth':[-2.3, 4], 'elevation':[2.5, 1]}
+
+
+        G1 = Geospatial_data(points1, attributes1, geo_ref1)
+        assert allclose(G1.get_geo_reference().get_xllcorner(), 1.0)
+        assert allclose(G1.get_geo_reference().get_yllcorner(), 2.0)
+        assert G1.attributes.has_key('depth')
+        assert G1.attributes.has_key('elevation')
+        assert allclose(G1.attributes['depth'], [2, 4.7])
+        assert allclose(G1.attributes['elevation'], [6.1, 5])        
+        
+        G2 = Geospatial_data(points2, attributes2, geo_ref2)
+        assert allclose(G2.get_geo_reference().get_xllcorner(), 0.1)
+        assert allclose(G2.get_geo_reference().get_yllcorner(), 3.0)
+        assert G2.attributes.has_key('depth')
+        assert G2.attributes.has_key('elevation')
+        assert allclose(G2.attributes['depth'], [-2.3, 4])
+        assert allclose(G2.attributes['elevation'], [2.5, 1])        
+
+        #Check that absolute values are as expected
+        P1 = G1.get_data_points(absolute=True)
+        assert allclose(P1, [[3.0, 6.1], [5.0, 9.3]])
+
+        P2 = G2.get_data_points(absolute=True)
+        assert allclose(P2, [[5.2, 12.1], [6.2, 9.3]])        
+
+        # Normal add
+        G = G1 + None
+
+        assert G.attributes.has_key('depth')
+        assert G.attributes.has_key('elevation')
+        assert allclose(G.attributes['depth'], [2, 4.7])
+        assert allclose(G.attributes['elevation'], [6.1, 5])        
+
+        # Points are now absolute.
+        assert allclose(G.get_geo_reference().get_xllcorner(), 0.0)
+        assert allclose(G.get_geo_reference().get_yllcorner(), 0.0)
+        P = G.get_data_points(absolute=True)        
+        assert allclose(P, [[3.0, 6.1], [5.0, 9.3]])
+
+
+        G = G2 + None
+        assert G.attributes.has_key('depth')
+        assert G.attributes.has_key('elevation')
+        assert allclose(G.attributes['depth'], [-2.3, 4])
+        assert allclose(G.attributes['elevation'], [2.5, 1])        
+
+        assert allclose(G.get_geo_reference().get_xllcorner(), 0.0)
+        assert allclose(G.get_geo_reference().get_yllcorner(), 0.0)
+        P = G.get_data_points(absolute=True)        
+        assert allclose(P, [[5.2, 12.1], [6.2, 9.3]])
+        
+
+
+        # Reverse add
+        G = None + G1
+
+        assert G.attributes.has_key('depth')
+        assert G.attributes.has_key('elevation')
+        assert allclose(G.attributes['depth'], [2, 4.7])
+        assert allclose(G.attributes['elevation'], [6.1, 5])        
+
+        # Points are now absolute.
+        assert allclose(G.get_geo_reference().get_xllcorner(), 0.0)
+        assert allclose(G.get_geo_reference().get_yllcorner(), 0.0)
+        P = G.get_data_points(absolute=True)        
+        assert allclose(P, [[3.0, 6.1], [5.0, 9.3]])        
+
+
+        G = None + G2
+        assert G.attributes.has_key('depth')
+        assert G.attributes.has_key('elevation')
+        assert allclose(G.attributes['depth'], [-2.3, 4])
+        assert allclose(G.attributes['elevation'], [2.5, 1])        
+
+        assert allclose(G.get_geo_reference().get_xllcorner(), 0.0)
+        assert allclose(G.get_geo_reference().get_yllcorner(), 0.0)
+        P = G.get_data_points(absolute=True)        
+        assert allclose(P, [[5.2, 12.1], [6.2, 9.3]])
+
+        
+
+        
                            
         
     def test_clip0(self):

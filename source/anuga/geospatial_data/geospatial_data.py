@@ -415,87 +415,77 @@ class Geospatial_data:
         attributes  
         
         Always return absolute points!
+        This alse means, that if you add None to the object,
+        it will be turned into absolute coordinates
+
+        other can be None in which case nothing is added to self.
         """
+
 
         # find objects zone and checks if the same
         geo_ref1 = self.get_geo_reference()
         zone1 = geo_ref1.get_zone()
-        
-        geo_ref2 = other.get_geo_reference()
-        zone2 = geo_ref2.get_zone()
-
-        geo_ref1.reconcile_zones(geo_ref2)
 
 
-        # sets xll and yll as the smallest from self and other
-        # FIXME (Duncan and Ole): use lower left corner derived from
-        # absolute coordinates
-        #if self.geo_reference.xllcorner <= other.geo_reference.xllcorner:
-        #    xll = self.geo_reference.xllcorner
-        #else:
-        #    xll = other.geo_reference.xllcorner
+        if other is not None:
 
-        #if self.geo_reference.yllcorner <= other.geo_reference.yllcorner:
-        #    yll = self.geo_reference.yllcorner
-        #else:
-        #    yll = other.geo_reference.yllcorner
-            
-        #new_geo_ref = Geo_reference(geo_ref1.get_zone(), xll, yll)
+            geo_ref2 = other.get_geo_reference()
+            zone2 = geo_ref2.get_zone()
 
-        #xll = yll = 0. 
-        
-#         relative_points1 = self.get_data_points(absolute = False)
-#         relative_points2 = other.get_data_points(absolute = False)
+            geo_ref1.reconcile_zones(geo_ref2)
 
         
-#         relative_points1 = new_geo_ref.\
-#                            change_points_geo_ref(relative_points1,
-#                                                  geo_ref1)
-#         relative_points2 = new_geo_ref.\
-#                            change_points_geo_ref(relative_points2,
-#                                                  geo_ref2)
-        
-#         # Now both point sets are relative to new_geo_ref and
-#         # zones have been reconciled
-
-#         # Concatenate points
-#         new_points = concatenate((relative_points1,
-#                                   relative_points2),
-#                                   axis = 0)
-        
-        new_points = concatenate((self.get_data_points(absolute = True),
-                                  other.get_data_points(absolute = True)),
-                                  axis = 0)        
+            new_points = concatenate((self.get_data_points(absolute=True),
+                                      other.get_data_points(absolute=True)),
+                                      axis = 0)        
 
         
       
-        # Concatenate attributes if any
-        if self.attributes is None:
-            if other.attributes is not None:
-                msg = 'Geospatial data must have the same \n'
-                msg += 'attributes to allow addition.'
-                raise Exception, msg
-            
-            new_attributes = None
-        else:    
-            new_attributes = {}
-            for x in self.attributes.keys():
-                if other.attributes.has_key(x):
-
-                    attrib1 = self.attributes[x]
-                    attrib2 = other.attributes[x]
-                    new_attributes[x] = concatenate((attrib1, attrib2))
-
-                else:
+            # Concatenate attributes if any
+            if self.attributes is None:
+                if other.attributes is not None:
                     msg = 'Geospatial data must have the same \n'
                     msg += 'attributes to allow addition.'
                     raise Exception, msg
+                
+                new_attributes = None
+            else:    
+                new_attributes = {}
+                for x in self.attributes.keys():
+                    if other.attributes.has_key(x):
+
+                        attrib1 = self.attributes[x]
+                        attrib2 = other.attributes[x]
+                        new_attributes[x] = concatenate((attrib1, attrib2))
+
+                    else:
+                        msg = 'Geospatial data must have the same \n'
+                        msg += 'attributes to allow addition.'
+                        raise Exception, msg
+
+
+        else:
+            #other is None:
+            
+            new_points = self.get_data_points(absolute=True)
+            new_attributes = self.attributes
+
+                    
 
         # Instantiate new data object and return absolute coordinates
         new_geo_ref = Geo_reference(geo_ref1.get_zone(), 0.0, 0.0)
         return Geospatial_data(new_points,
                                new_attributes,
                                new_geo_ref)
+
+
+    def __radd__(self, other):
+        """Handle cases like None + Geospatial_data(...)
+        """
+
+        return self + other
+
+    
     
     ###
     #  IMPORT/EXPORT POINTS FILES
