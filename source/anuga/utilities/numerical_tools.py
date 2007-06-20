@@ -245,6 +245,8 @@ def ensure_numeric(A, typecode = None):
                      unaltered
                      If not, an attempt is made to convert it to a Numeric
                      array
+        A: Scalar.   Return 0-dimensional array of length 1, containing that value
+        A: String.   Array of ASCII values
         typecode: Numeric type. If specified, use this in the conversion.
                                 If not, let Numeric decide
 

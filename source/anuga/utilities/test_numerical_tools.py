@@ -76,7 +76,7 @@ class Test_Numerical_Tools(unittest.TestCase):
 	
     def test_ensure_numeric(self):
         from numerical_tools import ensure_numeric
-        from Numeric import ArrayType, Float, array
+        from Numeric import ArrayType, Float, Int, array
 
         A = [1,2,3,4]
         B = ensure_numeric(A)
@@ -121,6 +121,22 @@ class Test_Numerical_Tools(unittest.TestCase):
         assert A == B    
         assert A is not B   #Not the same object
 
+        # Check scalars
+        A = 1
+        B = ensure_numeric(A, Float)
+        #print A, B[0], len(B), type(B) 
+        #print B.shape
+        assert A == B
+
+        B = ensure_numeric(A, Int)        
+        #print A, B
+        #print B.shape
+        assert A == B
+
+        # Error situation
+
+        B = ensure_numeric('hello', Int)                
+        assert allclose(B, [104, 101, 108, 108, 111])
 
     def test_gradient(self):
         x0 = 0.0; y0 = 0.0; z0 = 0.0

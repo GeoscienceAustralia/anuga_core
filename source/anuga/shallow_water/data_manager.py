@@ -68,7 +68,7 @@ from os import sep, path, remove, mkdir, access, F_OK, W_OK
 
 from Numeric import concatenate, array, Float, Int, Int32, resize, sometrue, \
      searchsorted, zeros, allclose, around, reshape, transpose, sort, \
-     NewAxis, ArrayType
+     NewAxis, ArrayType, compress, take, arange, argmax
 from Scientific.IO.NetCDF import NetCDFFile
 #from shutil import copy
 from os.path import exists, basename
@@ -1859,7 +1859,7 @@ def sww2dem(basename_in, basename_out = None,
     
     #if verbose: bye= nsuadsfd[0] # uncomment to check catching verbose errors
     
-    #Read sww file
+    # Read sww file
     if verbose: 
         print 'Reading from %s' %swwfile
         print 'Output directory is %s' %basename_out
@@ -1881,12 +1881,12 @@ def sww2dem(basename_in, basename_out = None,
     
     if origin is None:
 
-        #Get geo_reference
-        #sww files don't have to have a geo_ref
+        # Get geo_reference
+        # sww files don't have to have a geo_ref
         try:
             geo_reference = Geo_reference(NetCDFObject=fid)
         except AttributeError, e:
-            geo_reference = Geo_reference() #Default georef object
+            geo_reference = Geo_reference() # Default georef object
 
         xllcorner = geo_reference.get_xllcorner()
         yllcorner = geo_reference.get_yllcorner()
@@ -1898,8 +1898,8 @@ def sww2dem(basename_in, basename_out = None,
 
 
 
-    #FIXME: Refactor using code from Interpolation_function.statistics (in interpolate.py)
-    #Something like print swwstats(swwname)
+    # FIXME: Refactor using code from Interpolation_function.statistics (in interpolate.py)
+    # Something like print swwstats(swwname)
     if verbose:
         print '------------------------------------------------'
         print 'Statistics of SWW file:'
@@ -5376,6 +5376,90 @@ def store_parameters(verbose=False,**kwargs):
         if file_header.strip('\n')==str(header): print 'they equal'
         msg = 'WARNING: File header does not match input info, the input variables have changed, suggest to change file name'
         print msg
+
+
+
+
+
+def get_maximum_inundation_elevation(sww_filename, region=None, timesteps=None, verbose=False):
+    """Compute maximum run up height from sww file.
+
+    Algorithm is as in get_maximum_inundation_elevation from shallow_water_domain
+    except that this function works with the sww file and computes the maximal
+    runup height over multiple timesteps. 
+    
+    Optional argument region restricts this to specified polygon.
+    Optional argument timesteps restricts this to a specified time step (an index)
+    or time interval (a list of indices).
+    """
+
+    # We are using nodal values here as that is what is stored in sww files.
+
+    # Water depth below which it is considered to be 0 in the model
+    # FIXME (Ole): Allow this to be specified as a keyword argument as well
+    
+    from anuga.config import minimum_allowed_height
+
+    if region is not None:
+        msg = 'region not yet implemented in get_maximum_inundation_elevation'
+        raise Exception, msg
+
+
+    root, extension = os.path.splitext(sww_filename)
+    if extension == '':
+        sww_filename += '.sww'
+    
+    # Read sww file
+    if verbose: 
+        print 'Reading from %s' %sww_filename
+    
+    from Scientific.IO.NetCDF import NetCDFFile
+    fid = NetCDFFile(sww_filename)
+
+    # Get extent and reference
+    x = fid.variables['x'][:]
+    y = fid.variables['y'][:]
+    volumes = fid.variables['volumes'][:]
+
+
+    time = fid.variables['time'][:]
+    if timesteps is not None:
+        if type(timesteps) is list or type(timesteps) is ArrayType:  
+            timesteps = ensure_numeric(timesteps, Int)
+        elif type(timesteps) is type(0):
+            timesteps = [timesteps]
+        else:
+            msg = 'timesteps must be either an integer or a sequence of integers. '
+            msg += 'I got timesteps==%s, %s' %(timesteps, type(timesteps))
+            raise Exception, msg
+    else:
+        # Take them all
+        timesteps = arange(len(time))    
+    
+
+    # Get the relevant quantities
+    elevation = fid.variables['elevation'][:] 
+    stage = fid.variables['stage'][:]
+
+
+    # Compute maximal runup for each timestep
+    maximal_runup = None
+    for i in timesteps:
+        #print 'time', time[i]
+        depth = stage[i,:] - elevation[:]
+    
+        # Get wet nodes i.e. nodes with depth>0 within given region and timesteps
+        wet_nodes = compress(depth > minimum_allowed_height, arange(len(depth)))
+
+        # Find maximum elevation among wet nodes and return
+        #runup_index = argmax(take(elevation, wet_nodes)) #FIXME Maybe get loc as well
+        runup = max(take(elevation, wet_nodes))
+
+        if runup > maximal_runup:
+            maximal_runup = runup  # This works even if maximal_runup is None
+                
+
+    return maximal_runup
 
 
 #-------------------------------------------------------------

@@ -813,7 +813,7 @@ class Test_Shallow_Water(unittest.TestCase):
     def test_get_maximum_inundation_3(self):
         """test_get_maximum_inundation_3(self)
 
-        Test real runup example
+        Test of real runup example:
         """
 
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
@@ -945,6 +945,138 @@ class Test_Shallow_Water(unittest.TestCase):
         assert alltrue(wet_elevations<final_runup_height)
         assert allclose(wet_elevations, z)        
         
+
+
+    def test_get_maximum_inundation_from_sww(self):
+        """test_get_maximum_inundation_from_sww(self)
+
+        Test of get_maximum_inundation_elevation(sww_filename) from data_manager.py
+        
+        This is based on test_get_maximum_inundation_3(self) but works with the
+        stored results instead of with the internal data structure.
+        
+        """
+
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
+        from data_manager import get_maximum_inundation_elevation
+        
+
+        initial_runup_height = -0.4
+        final_runup_height = -0.3
+
+
+        #--------------------------------------------------------------
+        # Setup computational domain
+        #--------------------------------------------------------------
+        N = 10
+        points, vertices, boundary = rectangular_cross(N, N) 
+        domain = Domain(points, vertices, boundary)
+        domain.set_name('runup_test')
+        #domain.limit2007 = 1 #FIXME: This works better with old limiters
+
+        #--------------------------------------------------------------
+        # Setup initial conditions
+        #--------------------------------------------------------------
+        def topography(x,y):
+            return -x/2                             # linear bed slope
+            
+
+        domain.set_quantity('elevation', topography)       # Use function for elevation
+        domain.set_quantity('friction', 0.)                # Zero friction 
+        domain.set_quantity('stage', initial_runup_height) # Constant negative initial stage
+
+
+        #--------------------------------------------------------------
+        # Setup boundary conditions
+        #--------------------------------------------------------------
+        Br = Reflective_boundary(domain)              # Reflective wall
+        Bd = Dirichlet_boundary([final_runup_height,  # Constant inflow
+                                 0,
+                                 0])
+
+        # All reflective to begin with (still water) 
+        domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
+
+
+        #--------------------------------------------------------------
+        # Test initial inundation height
+        #--------------------------------------------------------------
+
+        indices = domain.get_wet_elements()
+        z = domain.get_quantity('elevation').\
+            get_values(location='centroids', indices=indices)
+        assert alltrue(z<initial_runup_height)
+
+        q_ref = domain.get_maximum_inundation_elevation()
+        assert allclose(q_ref, initial_runup_height, rtol = 1.0/N) # First order accuracy 
+
+        
+        #--------------------------------------------------------------
+        # Let triangles adjust
+        #--------------------------------------------------------------
+        for t in domain.evolve(yieldstep = 0.1, finaltime = 1.0):
+            pass
+
+
+        #--------------------------------------------------------------
+        # Test inundation height again
+        #--------------------------------------------------------------
+       
+        q_ref = domain.get_maximum_inundation_elevation()
+        q = get_maximum_inundation_elevation('runup_test.sww')
+        msg = 'We got %f, should have been %f' %(q, q_ref)
+        assert allclose(q, q_ref, rtol=1.0/N), msg
+
+
+        q = get_maximum_inundation_elevation('runup_test.sww')
+        msg = 'We got %f, should have been %f' %(q, initial_runup_height)
+        assert allclose(q, initial_runup_height, rtol = 1.0/N), msg 
+
+        
+
+
+        #--------------------------------------------------------------
+        # Update boundary to allow inflow
+        #--------------------------------------------------------------
+        domain.set_boundary({'right': Bd})
+
+        
+        #--------------------------------------------------------------
+        # Evolve system through time
+        #--------------------------------------------------------------
+        q_max = None
+        for t in domain.evolve(yieldstep = 0.1, finaltime = 3.0):
+            q = domain.get_maximum_inundation_elevation()
+            if q > q_max: q_max = q
+
+    
+        #--------------------------------------------------------------
+        # Test inundation height again
+        #--------------------------------------------------------------
+
+        indices = domain.get_wet_elements()
+        z = domain.get_quantity('elevation').\
+            get_values(location='centroids', indices=indices)
+
+        assert alltrue(z<final_runup_height)
+
+        q = domain.get_maximum_inundation_elevation()
+        assert allclose(q, final_runup_height, rtol = 1.0/N) # First order accuracy
+
+        q = get_maximum_inundation_elevation('runup_test.sww', timesteps=31)
+        msg = 'We got %f, should have been %f' %(q, final_runup_height)
+        assert allclose(q, final_runup_height, rtol=1.0/N), msg        
+
+
+        q = get_maximum_inundation_elevation('runup_test.sww')
+        msg = 'We got %f, should have been %f' %(q, q_max)
+        assert allclose(q, q_max, rtol=1.0/N), msg
+
+        q = get_maximum_inundation_elevation('runup_test.sww', timesteps=range(32))
+        msg = 'We got %f, should have been %f' %(q, q_max)
+        assert allclose(q, q_max, rtol=1.0/N), msg                
+
+
 
 
     def test_another_runup_example(self):
@@ -4425,7 +4557,7 @@ friction  \n \
         
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Shallow_Water,'test')
-    #suite = unittest.makeSuite(Test_Shallow_Water,'test_get_maximum_inundation_3')
+    #suite = unittest.makeSuite(Test_Shallow_Water,'test_get_maximum_inundation_from_sww')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_temp')    
     
 
