@@ -1653,16 +1653,16 @@ def export_grid(basename_in, extra_name_out = None,
     if dir == "":
         dir = "." # Unix compatibility
     dir_ls = os.listdir(dir)
-    interate_over = [x[:-4] for x in dir_ls if base in x and x[-4:] == '.sww']
+    iterate_over = [x[:-4] for x in dir_ls if base in x and x[-4:] == '.sww']
 
-    if len(interate_over) == 0:
+    if len(iterate_over) == 0:
         msg = 'No files of the base name %s.'\
               %(basename_in)
         raise IOError, msg
     
     files_out = []
 #    print 'sww_file',sww_file
-    for sww_file in interate_over:
+    for sww_file in iterate_over:
         for quantity in quantities:
             if extra_name_out is None:
                 basename_out = sww_file + '_' + quantity
@@ -1855,7 +1855,7 @@ def sww2dem(basename_in, basename_out = None,
     # Note the use of a .ers extension is optional (write_ermapper_grid will
     # deal with either option
     
-    #if verbose: bye= nsuadsfd[0] #uncomment to check catching verbose errors
+    #if verbose: bye= nsuadsfd[0] # uncomment to check catching verbose errors
     
     #Read sww file
     if verbose: 
@@ -1896,7 +1896,7 @@ def sww2dem(basename_in, basename_out = None,
 
 
 
-    #FIXME: Refactor using code from file_function.statistics
+    #FIXME: Refactor using code from Interpolation_function.statistics (in interpolate.py)
     #Something like print swwstats(swwname)
     if verbose:
         print '------------------------------------------------'

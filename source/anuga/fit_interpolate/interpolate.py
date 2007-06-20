@@ -579,7 +579,7 @@ class Interpolation_function:
           making f a function of time only.
 
 
-      FIXME: f(t, x, y) x, y could overrided location, point_id ignored  
+          FIXME: f(t, x, y) x, y could overrided location, point_id ignored  
 	  FIXME: point_id could also be a slice
 	  FIXME: What if x and y are vectors?
           FIXME: What about f(x,y) without t?
@@ -786,6 +786,9 @@ def read_sww(file_name):
     time - Vector of the times where there is stage information
     stage - array with respect to time and vertices (x,y)
     """
+
+    msg = 'Function read_sww in interpolat.py is obsolete'
+    raise Exception, msg
     
     #FIXME Have this reader as part of data_manager?
     
