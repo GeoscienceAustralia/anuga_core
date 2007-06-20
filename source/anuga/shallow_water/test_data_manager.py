@@ -5748,12 +5748,12 @@ friction  \n \
 
         
         time = fid.variables['time'][:]
-        assert allclose(time, [0.0]) # the time is relative
-        assert fid.starttime == 0.5
+        assert allclose(time, [0.5]) # the time is absolute
+        assert fid.starttime == 0.0
         
         fid.close()
         self.delete_mux(files)
-        #print "sww_file", sww_file
+        ### print "sww_file", sww_file
         os.remove(sww_file)
         
     def test_lon_lat2grid(self):
@@ -6354,7 +6354,8 @@ friction  \n \
         #Check the time vector
         times = fid.variables['time'][:]
         
-        times_actual = [0,100,200,300]
+        times_actual = [0,100,200,300] # times used to be relative
+        times_actual = [200,300,400,500] # now they are actual
        
         assert allclose(ensure_numeric(times),
                         ensure_numeric(times_actual))
