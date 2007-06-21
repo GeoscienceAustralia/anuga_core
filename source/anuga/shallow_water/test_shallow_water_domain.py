@@ -1104,9 +1104,9 @@ class Test_Shallow_Water(unittest.TestCase):
         domain = Domain(points, vertices, boundary) # Create domain
         domain.set_quantities_to_be_stored(None)
         domain.set_maximum_allowed_speed(100) #
-	
-	# FIXME (Ole): Need tests where this is commented out
-        domain.limit2007 = 0 # Backwards compatibility (14/4/7)        		
+        
+        # FIXME (Ole): Need tests where this is commented out
+        domain.limit2007 = 0 # Backwards compatibility (14/4/7)                 
         domain.H0 = 0 # Backwards compatibility (6/2/7)
         domain.beta_h = 0.2 # Backwards compatibility (14/2/7)
 
@@ -1230,8 +1230,8 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.set_quantity('elevation', slope)
         domain.set_quantity('stage', stage)
 
-	# Allow slope limiters to work (FIXME (Ole): Shouldn't this be automatic in ANUGA?)	
-        domain.distribute_to_vertices_and_edges()	
+        # Allow slope limiters to work (FIXME (Ole): Shouldn't this be automatic in ANUGA?)     
+        domain.distribute_to_vertices_and_edges()       
 
         initial_stage = copy.copy(domain.quantities['stage'].vertex_values)
 
@@ -2012,41 +2012,41 @@ class Test_Shallow_Water(unittest.TestCase):
         E = domain.quantities['elevation'].vertex_values
         L = domain.quantities['stage'].vertex_values
 
-	# Get reference values
-	volumes = []
-	for i in range(len(L)):
-	    volumes.append(sum(L[i])/3)
-            assert allclose(volumes[i], domain.quantities['stage'].centroid_values[i])	
+        # Get reference values
+        volumes = []
+        for i in range(len(L)):
+            volumes.append(sum(L[i])/3)
+            assert allclose(volumes[i], domain.quantities['stage'].centroid_values[i])  
         
-	
-	domain._order_ = 1
-	
-	domain.limit2007 = 0
+        
+        domain._order_ = 1
+        
+        domain.limit2007 = 0
         domain.distribute_to_vertices_and_edges()
         assert allclose(L[1], [0.1, 20.1, 20.1])
-	for i in range(len(L)):
-            assert allclose(volumes[i], sum(L[i])/3)			
-	
-	domain.limit2007 = 1 # Allow triangle to be flatter (closer to bed)
+        for i in range(len(L)):
+            assert allclose(volumes[i], sum(L[i])/3)                    
+        
+        domain.limit2007 = 1 # Allow triangle to be flatter (closer to bed)
         domain.distribute_to_vertices_and_edges()
         assert allclose(L[1], [0.298, 20.001, 20.001])
-	for i in range(len(L)):
-            assert allclose(volumes[i], sum(L[i])/3)	
+        for i in range(len(L)):
+            assert allclose(volumes[i], sum(L[i])/3)    
 
         domain._order_ = 2
-	
-	domain.limit2007 = 0
+        
+        domain.limit2007 = 0
         domain.distribute_to_vertices_and_edges()
-        assert allclose(L[1], [0.1, 20.1, 20.1])	
-	for i in range(len(L)):
-            assert allclose(volumes[i], sum(L[i])/3)		
-	
-	domain.limit2007 = 1 # Allow triangle to be flatter (closer to bed)
+        assert allclose(L[1], [0.1, 20.1, 20.1])        
+        for i in range(len(L)):
+            assert allclose(volumes[i], sum(L[i])/3)            
+        
+        domain.limit2007 = 1 # Allow triangle to be flatter (closer to bed)
         domain.distribute_to_vertices_and_edges()
         assert allclose(L[1], [0.298, 20.001, 20.001])
-	for i in range(len(L)):
-            assert allclose(volumes[i], sum(L[i])/3)	
-	
+        for i in range(len(L)):
+            assert allclose(volumes[i], sum(L[i])/3)    
+        
 
 
     def test_distribute_near_bed1(self):
@@ -2083,40 +2083,40 @@ class Test_Shallow_Water(unittest.TestCase):
         L = domain.quantities['stage'].vertex_values
 
         # Get reference values
-	volumes = []
-	for i in range(len(L)):
-	    volumes.append(sum(L[i])/3)
-            assert allclose(volumes[i], domain.quantities['stage'].centroid_values[i])	
-	
+        volumes = []
+        for i in range(len(L)):
+            volumes.append(sum(L[i])/3)
+            assert allclose(volumes[i], domain.quantities['stage'].centroid_values[i])  
+        
         #print E
         domain._order_ = 1
-	
-	domain.limit2007 = 0
+        
+        domain.limit2007 = 0
         domain.distribute_to_vertices_and_edges()
-        assert allclose(L[1], [4.1, 16.1, 20.1])	
-	for i in range(len(L)):
+        assert allclose(L[1], [4.1, 16.1, 20.1])        
+        for i in range(len(L)):
             assert allclose(volumes[i], sum(L[i])/3)
-	
-     		
-	domain.limit2007 = 1 # Allow triangle to be flatter (closer to bed)
+        
+                
+        domain.limit2007 = 1 # Allow triangle to be flatter (closer to bed)
         domain.distribute_to_vertices_and_edges()
         assert allclose(L[1], [4.2386, 16.0604, 20.001])
-	for i in range(len(L)):
-            assert allclose(volumes[i], sum(L[i])/3)	
-	
+        for i in range(len(L)):
+            assert allclose(volumes[i], sum(L[i])/3)    
+        
 
         domain._order_ = 2
-	
-	domain.limit2007 = 0	
+        
+        domain.limit2007 = 0    
         domain.distribute_to_vertices_and_edges()
         assert allclose(L[1], [4.1, 16.1, 20.1])
-	for i in range(len(L)):
-            assert allclose(volumes[i], sum(L[i])/3)	
-	
-	domain.limit2007 = 1 # Allow triangle to be flatter (closer to bed)
+        for i in range(len(L)):
+            assert allclose(volumes[i], sum(L[i])/3)    
+        
+        domain.limit2007 = 1 # Allow triangle to be flatter (closer to bed)
         domain.distribute_to_vertices_and_edges()
         assert allclose(L[1], [4.23370103, 16.06529897, 20.001])
-	for i in range(len(L)):
+        for i in range(len(L)):
             assert allclose(volumes[i], sum(L[i])/3)
 
 
@@ -2169,11 +2169,11 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_vh     = 0.9
         domain.beta_vh_dry = 0.9
         domain.beta_h = 0.0 #Use first order in h-limiter
-	
-	# FIXME (Ole): Need tests where this is commented out
-        domain.limit2007 = 0 # Backwards compatibility (14/4/7)        		
-	
-		
+        
+        # FIXME (Ole): Need tests where this is commented out
+        domain.limit2007 = 0 # Backwards compatibility (14/4/7)                 
+        
+                
         domain.distribute_to_vertices_and_edges()
 
         #print L[1,:]
@@ -2257,8 +2257,8 @@ class Test_Shallow_Water(unittest.TestCase):
 
 
         #Also check that Python and C version produce the same
-	# No longer applicable if limit2007 == 1
-	#print stage.vertex_values
+        # No longer applicable if limit2007 == 1
+        #print stage.vertex_values
         #assert allclose (stage.vertex_values,
         #                 [[2,2,2],
         #                  [1.93333333, 2.03333333, 6.03333333],
@@ -3090,7 +3090,7 @@ class Test_Shallow_Water(unittest.TestCase):
             pass# domain.write_time()
 
         # FIXME (Ole): Need some other assertion here! 
-	#print domain.min_timestep, domain.max_timestep    
+        #print domain.min_timestep, domain.max_timestep    
         #assert allclose(domain.min_timestep, 0.050010003001)
         #assert allclose(domain.max_timestep, 0.050010003001)
 
@@ -3110,10 +3110,10 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.smooth = False
         domain.default_order = 1
         domain.beta_h = 0.0 # Use first order in h-limiter
-	
-	# FIXME (Ole): Need tests where these two are commented out
+        
+        # FIXME (Ole): Need tests where these two are commented out
         domain.H0 = 0        # Backwards compatibility (6/2/7)        
-        domain.limit2007 = 0 # Backwards compatibility (14/4/7)        	
+        domain.limit2007 = 0 # Backwards compatibility (14/4/7)         
 
         #Bed-slope and friction
         def x_slope(x, y):
@@ -3183,10 +3183,10 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_vh     = 0.9
         domain.beta_vh_dry = 0.9
 
-	
-	# FIXME (Ole): Need tests where this is commented out
-        domain.limit2007 = 0 # Backwards compatibility (14/4/7)        	
-	
+        
+        # FIXME (Ole): Need tests where this is commented out
+        domain.limit2007 = 0 # Backwards compatibility (14/4/7)         
+        
         #Bed-slope and friction at vertices (and interpolated elsewhere)
         def x_slope(x, y):
             return -x/3
@@ -3279,9 +3279,9 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_vh     = 0.9
         domain.beta_vh_dry = 0.9
         domain.beta_h = 0.0 #Use first order in h-limiter
-	
-	# FIXME (Ole): Need tests where this is commented out
-        domain.limit2007 = 0 # Backwards compatibility (14/4/7)        		
+        
+        # FIXME (Ole): Need tests where this is commented out
+        domain.limit2007 = 0 # Backwards compatibility (14/4/7)                 
         domain.H0 = 0 # Backwards compatibility (6/2/7)        
 
         #Bed-slope and friction at vertices (and interpolated elsewhere)
@@ -3381,9 +3381,9 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_vh     = 0.9
         domain.beta_vh_dry = 0.9
         domain.beta_h = 0.0 #Use first order in h-limiter
-	
-	# FIXME (Ole): Need tests where this is commented out
-        domain.limit2007 = 0 # Backwards compatibility (14/4/7)        		
+        
+        # FIXME (Ole): Need tests where this is commented out
+        domain.limit2007 = 0 # Backwards compatibility (14/4/7)                 
         domain.H0 = 0 # Backwards compatibility (6/2/7)
 
         #Bed-slope and friction at vertices (and interpolated elsewhere)
@@ -3479,13 +3479,13 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_vh     = 0.9
         domain.beta_vh_dry = 0.9
         domain.beta_h = 0.0 #Use first order in h-limiter
-	
-	
-	# FIXME (Ole): Need tests where these two are commented out
-        domain.H0 = 0        # Backwards compatibility (6/2/7)        
-        domain.limit2007 = 0 # Backwards compatibility (14/4/7)        		
         
-	        
+        
+        # FIXME (Ole): Need tests where these two are commented out
+        domain.H0 = 0        # Backwards compatibility (6/2/7)        
+        domain.limit2007 = 0 # Backwards compatibility (14/4/7)                 
+        
+                
 
         #Bed-slope and friction at vertices (and interpolated elsewhere)
         def x_slope(x, y):
@@ -3594,7 +3594,7 @@ class Test_Shallow_Water(unittest.TestCase):
         """test_bedslope_problem_second_order_more_steps_feb_2007
 
         Test shallow water finite volumes, using parameters from 
-	feb 2007 rather than backward compatibility ad infinitum
+        feb 2007 rather than backward compatibility ad infinitum
         
         """
         from mesh_factory import rectangular
@@ -3615,7 +3615,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_vh_dry = 0.9
         domain.beta_h = 0.0 #Use first order in h-limiter
         domain.H0 = 0.001
-	domain.limit2007 = 1
+        domain.limit2007 = 1
 
         #Bed-slope and friction at vertices (and interpolated elsewhere)
         def x_slope(x, y):
@@ -3667,20 +3667,20 @@ class Test_Shallow_Water(unittest.TestCase):
             pass
 
 
-	    
+            
         assert allclose(domain.quantities['stage'].centroid_values,
-	 [-0.03348416, -0.01749303, -0.03299091, -0.01739241, -0.03246447, -0.01732016,
-	  -0.03205390, -0.01717833, -0.03146383, -0.01699831, -0.03076577, -0.01671795,
-	  -0.07952656, -0.06684763, -0.07721455, -0.06668388, -0.07632976, -0.06600113,
-	  -0.07523678, -0.06546373, -0.07447040, -0.06508861, -0.07438723, -0.06359288,
-	  -0.12526729, -0.11205668, -0.12179433, -0.11068104, -0.12048395, -0.10968948,
-	  -0.11912023, -0.10862628, -0.11784090, -0.10803744, -0.11790629, -0.10742354,
-	  -0.16859613, -0.15427413, -0.16664444, -0.15464452, -0.16570816, -0.15327556,
-	  -0.16409162, -0.15204092, -0.16264608, -0.15102139, -0.16162736, -0.14969205,
-	  -0.18736511, -0.19874036, -0.18811230, -0.19758289, -0.18590182, -0.19580301,
-	  -0.18234588, -0.19423215, -0.18100376, -0.19380116, -0.18509710, -0.19501636,
-	  -0.13982382, -0.14166819, -0.14132775, -0.14528694, -0.14096905, -0.14351126,
-	  -0.13800356, -0.14027920, -0.13613538, -0.13936795, -0.13621902, -0.14204982])
+         [-0.03348416, -0.01749303, -0.03299091, -0.01739241, -0.03246447, -0.01732016,
+          -0.03205390, -0.01717833, -0.03146383, -0.01699831, -0.03076577, -0.01671795,
+          -0.07952656, -0.06684763, -0.07721455, -0.06668388, -0.07632976, -0.06600113,
+          -0.07523678, -0.06546373, -0.07447040, -0.06508861, -0.07438723, -0.06359288,
+          -0.12526729, -0.11205668, -0.12179433, -0.11068104, -0.12048395, -0.10968948,
+          -0.11912023, -0.10862628, -0.11784090, -0.10803744, -0.11790629, -0.10742354,
+          -0.16859613, -0.15427413, -0.16664444, -0.15464452, -0.16570816, -0.15327556,
+          -0.16409162, -0.15204092, -0.16264608, -0.15102139, -0.16162736, -0.14969205,
+          -0.18736511, -0.19874036, -0.18811230, -0.19758289, -0.18590182, -0.19580301,
+          -0.18234588, -0.19423215, -0.18100376, -0.19380116, -0.18509710, -0.19501636,
+          -0.13982382, -0.14166819, -0.14132775, -0.14528694, -0.14096905, -0.14351126,
+          -0.13800356, -0.14027920, -0.13613538, -0.13936795, -0.13621902, -0.14204982])
 
                       
         assert allclose(domain.quantities['xmomentum'].centroid_values,
@@ -3740,10 +3740,10 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_vh     = 0.9
         domain.beta_vh_dry = 0.9
         domain.beta_h = 0.0 #Use first order in h-limiter
-	
-	# FIXME (Ole): Need tests where these two are commented out
+        
+        # FIXME (Ole): Need tests where these two are commented out
         domain.H0 = 0        # Backwards compatibility (6/2/7)        
-        domain.limit2007 = 0 # Backwards compatibility (14/4/7)        			
+        domain.limit2007 = 0 # Backwards compatibility (14/4/7)                         
         
 
         #Bed-slope and friction at vertices (and interpolated elsewhere)
@@ -4382,7 +4382,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.set_quantity('stage', stage)
 
 
-        domain.distribute_to_vertices_and_edges()		
+        domain.distribute_to_vertices_and_edges()               
 
         
 
@@ -4399,7 +4399,7 @@ class Test_Shallow_Water(unittest.TestCase):
         #Evolution
         for t in domain.evolve(yieldstep = 0.1, finaltime = 0.3):
             
-	    #domain.write_time(track_speeds=True)
+            #domain.write_time(track_speeds=True)
             stage = domain.quantities['stage'].vertex_values
 
             #Get NetCDF
