@@ -68,7 +68,7 @@ from os import sep, path, remove, mkdir, access, F_OK, W_OK
 
 from Numeric import concatenate, array, Float, Int, Int32, resize, sometrue, \
      searchsorted, zeros, allclose, around, reshape, transpose, sort, \
-     NewAxis, ArrayType, compress, take, arange, argmax
+     NewAxis, ArrayType, compress, take, arange, argmax, alltrue
 from Scientific.IO.NetCDF import NetCDFFile
 #from shutil import copy
 from os.path import exists, basename
@@ -5381,85 +5381,206 @@ def store_parameters(verbose=False,**kwargs):
 
 
 
-def get_maximum_inundation_elevation(sww_filename, region=None, timesteps=None, verbose=False):
+def get_maximum_inundation_elevation(filename,
+                                     polygon=None,
+                                     time_interval=None,
+                                     verbose=False):
+    
+    """Return highest elevation where depth > 0
+    
+    Usage:
+    max_runup = get_maximum_inundation_elevation(filename,
+                                                 polygon=None,
+                                                 time_interval=None,
+                                                 verbose=False)
+
+    filename is a NetCDF sww file containing ANUGA model output.                                                       
+    Optional arguments polygon and time_interval restricts the maximum runup calculation
+    to a points that lie within the specified polygon and time interval.
+
+    If no inundation is found within polygon and time_interval the return value
+    is None signifying "No Runup" or "Everything is dry".
+
+    See general function get_maximum_inundation_data for details.
+    
+    """
+    
+    runup, _ = get_maximum_inundation_data(filename,
+                                           polygon=polygon,
+                                           time_interval=time_interval,
+                                           verbose=verbose)
+    return runup
+
+
+
+
+def get_maximum_inundation_location(filename,
+                                    polygon=None,
+                                    time_interval=None,
+                                    verbose=False):
+    """Return location of highest elevation where h > 0
+    
+    
+    Usage:
+    max_runup_location = get_maximum_inundation_location(filename,
+                                                         polygon=None,
+                                                         time_interval=None,
+                                                         verbose=False)
+
+    filename is a NetCDF sww file containing ANUGA model output.
+    Optional arguments polygon and time_interval restricts the maximum runup calculation
+    to a points that lie within the specified polygon and time interval.
+
+    If no inundation is found within polygon and time_interval the return value
+    is None signifying "No Runup" or "Everything is dry".
+
+    See general function get_maximum_inundation_data for details.
+    """
+    
+    _, max_loc = get_maximum_inundation_data(filename,
+                                             polygon=polygon,
+                                             time_interval=time_interval,
+                                             verbose=verbose)
+    return max_loc
+    
+
+
+def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
+                                verbose=False):
     """Compute maximum run up height from sww file.
+
+
+    Usage:
+    runup, location = get_maximum_inundation_data(filename,
+                                                  polygon=None,
+                                                  time_interval=None,
+                                                  verbose=False)
+    
 
     Algorithm is as in get_maximum_inundation_elevation from shallow_water_domain
     except that this function works with the sww file and computes the maximal
     runup height over multiple timesteps. 
     
-    Optional argument region restricts this to specified polygon.
-    Optional argument timesteps restricts this to a specified time step (an index)
-    or time interval (a list of indices).
+    Optional arguments polygon and time_interval restricts the maximum runup calculation
+    to a points that lie within the specified polygon and time interval.
+
+    If no inundation is found within polygon and time_interval the return value
+    is None signifying "No Runup" or "Everything is dry".
     """
 
     # We are using nodal values here as that is what is stored in sww files.
 
     # Water depth below which it is considered to be 0 in the model
     # FIXME (Ole): Allow this to be specified as a keyword argument as well
-    
+
+    from anuga.utilities.polygon import inside_polygon    
     from anuga.config import minimum_allowed_height
 
-    if region is not None:
-        msg = 'region not yet implemented in get_maximum_inundation_elevation'
-        raise Exception, msg
 
-
-    root, extension = os.path.splitext(sww_filename)
+    root, extension = os.path.splitext(filename)
     if extension == '':
-        sww_filename += '.sww'
+        filename += '.sww'
     
     # Read sww file
     if verbose: 
-        print 'Reading from %s' %sww_filename
+        print 'Reading from %s' %filename
     
     from Scientific.IO.NetCDF import NetCDFFile
-    fid = NetCDFFile(sww_filename)
+    fid = NetCDFFile(filename)
 
     # Get extent and reference
+    volumes = fid.variables['volumes'][:]    
     x = fid.variables['x'][:]
     y = fid.variables['y'][:]
-    volumes = fid.variables['volumes'][:]
-
-
-    time = fid.variables['time'][:]
-    if timesteps is not None:
-        if type(timesteps) is list or type(timesteps) is ArrayType:  
-            timesteps = ensure_numeric(timesteps, Int)
-        elif type(timesteps) is type(0):
-            timesteps = [timesteps]
-        else:
-            msg = 'timesteps must be either an integer or a sequence of integers. '
-            msg += 'I got timesteps==%s, %s' %(timesteps, type(timesteps))
-            raise Exception, msg
-    else:
-        # Take them all
-        timesteps = arange(len(time))    
-    
 
     # Get the relevant quantities
     elevation = fid.variables['elevation'][:] 
     stage = fid.variables['stage'][:]
 
 
+    # Spatial restriction
+    if polygon is not None:
+        msg = 'polygon must be a sequence of points.'
+        assert len(polygon[0]) == 2, msg
+        # FIXME (Ole): Make a generic polygon input check in polygon.py and call it here
+        
+        points = concatenate((x[:,NewAxis], y[:,NewAxis]), axis=1)
+
+        point_indices = inside_polygon(points, polygon)
+
+        # Restrict quantities to polygon
+        elevation = take(elevation, point_indices)
+        stage = take(stage, point_indices, axis=1)
+
+        # Get info for location of maximal runup
+        points_in_polygon = take(points, point_indices)
+        x = points_in_polygon[:,0]
+        y = points_in_polygon[:,1]        
+    else:
+        # Take all points
+        point_indices = arange(len(x))
+        
+
+    # Temporal restriction
+    time = fid.variables['time'][:]
+    all_timeindices = arange(len(time))        
+    if time_interval is not None:
+        
+        msg = 'time_interval must be a sequence of length 2.'
+        assert len(time_interval) == 2, msg
+        msg = 'time_interval %s must not be decreasing.' %(time_interval)        
+        assert time_interval[1] >= time_interval[0], msg
+        
+        msg = 'Specified time interval [%.8f:%.8f]' %tuple(time_interval)
+        msg += ' must does not match model time interval: [%.8f, %.8f]\n'\
+               %(time[0], time[-1])
+        if time_interval[1] < time[0]: raise ValueError(msg)
+        if time_interval[0] > time[-1]: raise ValueError(msg)
+
+        # Take time indices corresponding to interval (& is bitwise AND)
+        timesteps = compress((time_interval[0] <= time) & (time <= time_interval[1]),
+                             all_timeindices)
+
+
+        msg = 'time_interval %s did not include any model timesteps.' %(time_interval)        
+        assert not alltrue(timesteps == 0), msg
+
+
+    else:
+        # Take them all
+        timesteps = all_timeindices
+    
+
+    fid.close()
+
     # Compute maximal runup for each timestep
     maximal_runup = None
+    maximal_runup_location = None
     for i in timesteps:
-        #print 'time', time[i]
-        depth = stage[i,:] - elevation[:]
+        depth = stage[i,:] - elevation 
     
         # Get wet nodes i.e. nodes with depth>0 within given region and timesteps
         wet_nodes = compress(depth > minimum_allowed_height, arange(len(depth)))
 
-        # Find maximum elevation among wet nodes and return
-        #runup_index = argmax(take(elevation, wet_nodes)) #FIXME Maybe get loc as well
-        runup = max(take(elevation, wet_nodes))
+        if alltrue(wet_nodes == 0):
+            runup = None
+        else:    
+            # Find maximum elevation among wet nodes
+            wet_elevation = take(elevation, wet_nodes)
+
+            runup_index = argmax(wet_elevation)
+            runup = max(wet_elevation)
+            assert wet_elevation[runup_index] == runup # Must always be True
 
         if runup > maximal_runup:
-            maximal_runup = runup  # This works even if maximal_runup is None
-                
+            maximal_runup = runup      # This works even if maximal_runup is None
 
-    return maximal_runup
+            # Record location
+            wet_x = take(x, wet_nodes)
+            wet_y = take(y, wet_nodes)            
+            maximal_runup_location = [wet_x[runup_index], wet_y[runup_index]]                
+
+    return maximal_runup, maximal_runup_location
 
 
 #-------------------------------------------------------------

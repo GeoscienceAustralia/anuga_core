@@ -341,13 +341,13 @@ class Domain(Generic_Domain):
 
 
     def get_maximum_inundation_location(self, indices=None):
-        """Return highest elevation where h > 0
+        """Return location of highest elevation where h > 0
 
         Optional argument:
             indices is the set of element ids that the operation applies to.
 
         Usage:
-            q = get_maximum_inundation_elevation()
+            q = get_maximum_inundation_location()
 
         Note, centroid values are used for this operation            
         """

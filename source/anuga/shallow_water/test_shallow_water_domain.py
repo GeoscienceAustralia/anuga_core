@@ -6,6 +6,7 @@ from math import sqrt, pi
 from anuga.config import g, epsilon
 from Numeric import allclose, alltrue, array, zeros, ones, Float, take
 from anuga.utilities.numerical_tools import mean
+from anuga.utilities.polygon import is_inside_polygon
 
 from shallow_water_domain import *
 from shallow_water_domain import flux_function_central as flux_function
@@ -950,15 +951,17 @@ class Test_Shallow_Water(unittest.TestCase):
     def test_get_maximum_inundation_from_sww(self):
         """test_get_maximum_inundation_from_sww(self)
 
-        Test of get_maximum_inundation_elevation(sww_filename) from data_manager.py
+        Test of get_maximum_inundation_elevation()
+        and get_maximum_inundation_location() from data_manager.py
         
         This is based on test_get_maximum_inundation_3(self) but works with the
         stored results instead of with the internal data structure.
-        
+
+        This test uses the underlying get_maximum_inundation_data for tests
         """
 
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
-        from data_manager import get_maximum_inundation_elevation
+        from data_manager import get_maximum_inundation_elevation, get_maximum_inundation_location, get_maximum_inundation_data
         
 
         initial_runup_height = -0.4
@@ -1032,8 +1035,24 @@ class Test_Shallow_Water(unittest.TestCase):
         msg = 'We got %f, should have been %f' %(q, initial_runup_height)
         assert allclose(q, initial_runup_height, rtol = 1.0/N), msg 
 
-        
 
+        # Test error condition if time interval is out
+        try:
+            q = get_maximum_inundation_elevation('runup_test.sww',
+                                                 time_interval=[2.0, 3.0])
+        except ValueError:
+            pass
+        else:
+            msg = 'should have caught wrong time interval'
+            raise Exception, msg
+
+        # Check correct time interval
+        q, loc = get_maximum_inundation_data('runup_test.sww',
+                                             time_interval=[0.0, 3.0])        
+        msg = 'We got %f, should have been %f' %(q, initial_runup_height)
+        assert allclose(q, initial_runup_height, rtol = 1.0/N), msg
+        assert allclose(-loc[0]/2, q) # From topography formula         
+        
 
         #--------------------------------------------------------------
         # Update boundary to allow inflow
@@ -1045,7 +1064,8 @@ class Test_Shallow_Water(unittest.TestCase):
         # Evolve system through time
         #--------------------------------------------------------------
         q_max = None
-        for t in domain.evolve(yieldstep = 0.1, finaltime = 3.0):
+        for t in domain.evolve(yieldstep = 0.1, finaltime = 3.0,
+                               skip_initial_step = True): 
             q = domain.get_maximum_inundation_elevation()
             if q > q_max: q_max = q
 
@@ -1063,21 +1083,63 @@ class Test_Shallow_Water(unittest.TestCase):
         q = domain.get_maximum_inundation_elevation()
         assert allclose(q, final_runup_height, rtol = 1.0/N) # First order accuracy
 
-        q = get_maximum_inundation_elevation('runup_test.sww', timesteps=31)
+        q, loc = get_maximum_inundation_data('runup_test.sww', time_interval=[3.0, 3.0])
         msg = 'We got %f, should have been %f' %(q, final_runup_height)
-        assert allclose(q, final_runup_height, rtol=1.0/N), msg        
-
+        assert allclose(q, final_runup_height, rtol=1.0/N), msg
+        #print 'loc', loc, q        
+        assert allclose(-loc[0]/2, q) # From topography formula         
 
         q = get_maximum_inundation_elevation('runup_test.sww')
+        loc = get_maximum_inundation_location('runup_test.sww')        
+        msg = 'We got %f, should have been %f' %(q, q_max)
+        assert allclose(q, q_max, rtol=1.0/N), msg
+        #print 'loc', loc, q
+        assert allclose(-loc[0]/2, q) # From topography formula 
+
+        
+
+        q = get_maximum_inundation_elevation('runup_test.sww', time_interval=[0, 3])
         msg = 'We got %f, should have been %f' %(q, q_max)
         assert allclose(q, q_max, rtol=1.0/N), msg
 
-        q = get_maximum_inundation_elevation('runup_test.sww', timesteps=range(32))
+
+        # Check polygon mode
+        polygon = [[0.3, 0.0], [0.9, 0.0], [0.9, 1.0], [0.3, 1.0]] # Runup region
+        q = get_maximum_inundation_elevation('runup_test.sww',
+                                             polygon = polygon,
+                                             time_interval=[0, 3])
         msg = 'We got %f, should have been %f' %(q, q_max)
-        assert allclose(q, q_max, rtol=1.0/N), msg                
+        assert allclose(q, q_max, rtol=1.0/N), msg
+
+        
+        polygon = [[0.9, 0.0], [1.0, 0.0], [1.0, 1.0], [0.9, 1.0]] # Offshore region
+        q, loc = get_maximum_inundation_data('runup_test.sww',
+                                             polygon = polygon,
+                                             time_interval=[0, 3])
+        msg = 'We got %f, should have been %f' %(q, -0.475)
+        assert allclose(q, -0.475, rtol=1.0/N), msg
+        assert is_inside_polygon(loc, polygon)
+        assert allclose(-loc[0]/2, q) # From topography formula         
 
 
+        polygon = [[0.0, 0.0], [0.4, 0.0], [0.4, 1.0], [0.0, 1.0]] # Dry region
+        q, loc = get_maximum_inundation_data('runup_test.sww',
+                                             polygon = polygon,
+                                             time_interval=[0, 3])
+        msg = 'We got %s, should have been None' %(q)
+        assert q is None, msg
+        msg = 'We got %s, should have been None' %(loc)
+        assert loc is None, msg        
 
+        # Check what happens if no time point is within interval
+        try:
+            q = get_maximum_inundation_elevation('runup_test.sww', time_interval=[2.8, 2.8])
+        except AssertionError:
+            pass
+        else:
+            msg = 'Time interval should have raised an exception'
+            raise msg
+            
 
     def test_another_runup_example(self):
         """test_another_runup_example
