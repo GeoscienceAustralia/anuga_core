@@ -2780,6 +2780,96 @@ END CROSS-SECTIONS:
         os.remove(self.test_MOST_file + '.sww')
 
 
+
+    def test_ferret2sww_zscale(self):
+        """Test that zscale workse
+        """
+        from Scientific.IO.NetCDF import NetCDFFile
+        import os, sys
+
+        #The test file has
+        # LON = 150.66667, 150.83334, 151, 151.16667
+        # LAT = -34.5, -34.33333, -34.16667, -34 ;
+        # TIME = 0, 0.1, 0.6, 1.1, 1.6, 2.1 ;
+        #
+        # First value (index=0) in small_ha.nc is 0.3400644 cm,
+        # Fourth value (index==3) is -6.50198 cm
+
+
+        #Read
+        from anuga.coordinate_transforms.redfearn import redfearn
+        fid = NetCDFFile(self.test_MOST_file + '_ha.nc')
+        first_value = fid.variables['HA'][:][0,0,0]
+        fourth_value = fid.variables['HA'][:][0,0,3]
+        fid.close()
+
+        #Call conversion (with no scaling)
+        ferret2sww(self.test_MOST_file, verbose=self.verbose,
+                   origin = (56, 0, 0))
+
+        #Work out the UTM coordinates for first point
+        fid = NetCDFFile(self.test_MOST_file + '.sww')
+
+        #Check values
+        stage_1 = fid.variables['stage'][:]
+        xmomentum_1 = fid.variables['xmomentum'][:]
+        ymomentum_1 = fid.variables['ymomentum'][:]
+
+        assert allclose(stage_1[0,0], first_value/100)  #Meters
+        assert allclose(stage_1[0,3], fourth_value/100)  #Meters
+
+        fid.close()
+
+        #Call conversion (with scaling)
+        ferret2sww(self.test_MOST_file,
+                   zscale = 5,
+                   verbose=self.verbose,
+                   origin = (56, 0, 0))
+
+        #Work out the UTM coordinates for first point
+        fid = NetCDFFile(self.test_MOST_file + '.sww')
+
+        #Check values
+        stage_5 = fid.variables['stage'][:]
+        xmomentum_5 = fid.variables['xmomentum'][:]
+        ymomentum_5 = fid.variables['ymomentum'][:]
+        elevation = fid.variables['elevation'][:]
+
+        assert allclose(stage_5[0,0], 5*first_value/100)  #Meters
+        assert allclose(stage_5[0,3], 5*fourth_value/100)  #Meters
+
+        assert allclose(5*stage_1, stage_5)
+
+        # Momentum will also be changed due to new depth
+
+        depth_1 = stage_1-elevation
+        depth_5 = stage_5-elevation
+
+
+        for i in range(stage_1.shape[0]):
+            for j in range(stage_1.shape[1]):            
+                if depth_1[i,j] > epsilon:
+
+                    scale = depth_5[i,j]/depth_1[i,j]
+                    ref_xmomentum = xmomentum_1[i,j] * scale
+                    ref_ymomentum = ymomentum_1[i,j] * scale
+                    
+                    #print i, scale, xmomentum_1[i,j], xmomentum_5[i,j]
+                    
+                    assert allclose(xmomentum_5[i,j], ref_xmomentum)
+                    assert allclose(ymomentum_5[i,j], ref_ymomentum)
+                    
+        
+
+        fid.close()
+
+
+        #Cleanup
+        import os
+        os.remove(self.test_MOST_file + '.sww')
+
+
+
     def test_ferret2sww_2(self):
         """Test that georeferencing etc works when converting from
         ferret format (lat/lon) to sww format (UTM)
