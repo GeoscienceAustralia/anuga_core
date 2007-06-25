@@ -425,8 +425,7 @@ class Data_format_sww(Data_format):
 
         #Close
         fid.close()
-        
-### FIXME Where are the tests for this object?
+
     def store_timestep(self, names):
         """Store time and named quantities to file
         """
@@ -541,16 +540,15 @@ class Data_format_sww(Data_format):
                 ymomentum, _ = Q.get_vertex_values(xy = False,
                                           precision = self.precision)
                 self.writer.quantities(fid, 
-                                       time=self.domain.time +domain.starttime
-                                       ,
-                                       precision=self.precision,
-                                       stage=stage,
-                                       xmomentum=xmomentum,
-                                       ymomentum=ymomentum)
+                                                 time=self.domain.time,
+                                                 precision=self.precision,
+                                                 stage=stage,
+                                                 xmomentum=xmomentum,
+                                                 ymomentum=ymomentum)
             else:
                 # This is producing a sww that is not standard.
                 #Store time
-                time[i] = self.domain.time + domain.starttime
+                time[i] = self.domain.time
                 
                 for name in names:
                     # Get quantity
@@ -4753,7 +4751,8 @@ class Write_sww:
                          order=1, verbose=False):
         """
         outfile - the name of the file that will be written
-        times - A list of the time slice times 
+        times - A list of the time slice times OR a start time
+        Note, if a list is given the info will be made relative.
         number_of_volumes - the number of triangles
         """
     
@@ -4781,19 +4780,21 @@ class Write_sww:
         #times = ensure_numeric(times) 
         #Start time in seconds since the epoch (midnight 1/1/1970)
 
-        # Values used to be relative, so a start time was important
-        # It may not be needed anymore.
-        # though there is probably code that reads it.
-        outfile.starttime = 0
-        
         # this is being used to seperate one number from a list.
         # what it is actually doing is sorting lists from numeric arrays.
         if type(times) is list or type(times) is ArrayType:  
             number_of_times = len(times)
-            times = ensure_numeric(times)
+            times = ensure_numeric(times)  
+            if number_of_times == 0:
+                starttime = 0
+            else:
+                starttime = times[0]
+                times = times - starttime  #Store relative times
         else:
             number_of_times = 0
-            
+            starttime = times
+            #times = ensure_numeric([])
+        outfile.starttime = starttime
         # dimension definitions
         outfile.createDimension('number_of_volumes', number_of_volumes)
         outfile.createDimension('number_of_vertices', 3)
