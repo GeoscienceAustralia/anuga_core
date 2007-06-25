@@ -86,7 +86,8 @@ class Test_smf(unittest.TestCase):
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_smf,'test_Double_gaussian')
+    #suite = unittest.makeSuite(Test_smf,'test_Double_gaussian')
+    suite = unittest.makeSuite(Test_smf,'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
 
