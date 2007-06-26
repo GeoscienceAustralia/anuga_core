@@ -1964,6 +1964,7 @@ END CROSS-SECTIONS:
 
 
 
+
     def test_sww2dem_boundingbox(self):
         """Test that sww information can be converted correctly to asc/prj
         format readable by e.g. ArcView.
@@ -7029,15 +7030,126 @@ friction  \n \
         os.remove(file_name)        
         
 
+    def test_get_maximum_inundation(self):
+        """Test that sww information can be converted correctly to maximum
+        runup elevation and location (without and with georeferencing)
+
+        This test creates a slope and a runup which is maximal (~11m) at around 10s
+        and levels out to the boundary condition (1m) at about 30s.
+        """
+
+        import time, os
+        from Numeric import array, zeros, allclose, Float, concatenate
+        from Scientific.IO.NetCDF import NetCDFFile
+
+        #Setup
+
+        from mesh_factory import rectangular
+
+        #Create basic mesh (100m x 100m)
+        points, vertices, boundary = rectangular(20, 5, 100, 50)
+
+        #Create shallow water domain
+        domain = Domain(points, vertices, boundary)
+        domain.default_order = 2
+        domain.set_minimum_storable_height(0.01)
+
+        domain.set_name('runuptest')
+        swwfile = domain.get_name() + '.sww'
+
+        domain.set_datadir('.')
+        domain.format = 'sww'
+        domain.smooth = True
+
+
+        Br = Reflective_boundary(domain)
+        Bd = Dirichlet_boundary([1.0,0,0])
+
+
+        #---------- First run without geo referencing
+        
+        domain.set_quantity('elevation', lambda x,y: -0.2*x + 14) # Slope
+        domain.set_quantity('stage', -6)
+        domain.set_boundary( {'left': Br, 'right': Bd, 'top': Br, 'bottom': Br})
+
+        for t in domain.evolve(yieldstep=1, finaltime = 50):
+            pass
+
+
+        # Check maximal runup
+        runup = get_maximum_inundation_elevation(swwfile)
+        location = get_maximum_inundation_location(swwfile)
+        assert allclose(runup, 11)
+        assert allclose(location[0], 15)
+
+        # Check final runup
+        runup = get_maximum_inundation_elevation(swwfile, time_interval=[45,50])
+        location = get_maximum_inundation_location(swwfile, time_interval=[45,50])
+        assert allclose(runup, 1)
+        assert allclose(location[0], 65)
+
+        # Check runup restricted to a polygon
+        p = [[50,1], [99,1], [99,49], [50,49]]
+        runup = get_maximum_inundation_elevation(swwfile, polygon=p)
+        location = get_maximum_inundation_location(swwfile, polygon=p)
+        assert allclose(runup, 4)
+        assert allclose(location[0], 50)                
+
+        #Cleanup
+        os.remove(swwfile)
+        
+
+
+        #------------- Now the same with georeferencing
+
+        domain.time=0.0
+        E = 308500
+        N = 6189000
+        #E = N = 0
+        domain.geo_reference = Geo_reference(56, E, N)
+
+        domain.set_quantity('elevation', lambda x,y: -0.2*x + 14) # Slope
+        domain.set_quantity('stage', -6)
+        domain.set_boundary( {'left': Br, 'right': Bd, 'top': Br, 'bottom': Br})
+
+        for t in domain.evolve(yieldstep=1, finaltime = 50):
+            pass
+
+        # Check maximal runup
+        runup = get_maximum_inundation_elevation(swwfile)
+        location = get_maximum_inundation_location(swwfile)
+        assert allclose(runup, 11)
+        assert allclose(location[0], 15+E)
+
+        # Check final runup
+        runup = get_maximum_inundation_elevation(swwfile, time_interval=[45,50])
+        location = get_maximum_inundation_location(swwfile, time_interval=[45,50])
+        assert allclose(runup, 1)
+        assert allclose(location[0], 65+E)
+
+        # Check runup restricted to a polygon
+        p = array([[50,1], [99,1], [99,49], [50,49]]) + array([E, N])
+
+        runup = get_maximum_inundation_elevation(swwfile, polygon=p)
+        location = get_maximum_inundation_location(swwfile, polygon=p)
+        assert allclose(runup, 4)
+        assert allclose(location[0], 50+E)                
+
+
+        #Cleanup
+        os.remove(swwfile)
+
 
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sww_origin')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_get_maximum_inundation')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_sww_header')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_export_grid_parallel')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_export_gridIII')
     suite = unittest.makeSuite(Test_Data_Manager,'test')
+
+    
     if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':
         Test_Data_Manager.verbose=True
         saveout = sys.stdout   

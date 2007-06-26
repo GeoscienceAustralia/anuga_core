@@ -5463,7 +5463,8 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
     runup height over multiple timesteps. 
     
     Optional arguments polygon and time_interval restricts the maximum runup calculation
-    to a points that lie within the specified polygon and time interval.
+    to a points that lie within the specified polygon and time interval. Polygon is
+    assumed to be in (absolute) UTM coordinates in the same zone as domain.
 
     If no inundation is found within polygon and time_interval the return value
     is None signifying "No Runup" or "Everything is dry".
@@ -5485,14 +5486,28 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
     # Read sww file
     if verbose: 
         print 'Reading from %s' %filename
+        # FIXME: Use general swwstats (when done)
+        
     
     from Scientific.IO.NetCDF import NetCDFFile
     fid = NetCDFFile(filename)
 
-    # Get extent and reference
+    # Get geo_reference
+    # sww files don't have to have a geo_ref
+    try:
+        geo_reference = Geo_reference(NetCDFObject=fid)
+    except AttributeError, e:
+        geo_reference = Geo_reference() # Default georef object
+        
+    xllcorner = geo_reference.get_xllcorner()
+    yllcorner = geo_reference.get_yllcorner()
+    zone = geo_reference.get_zone()
+    
+    # Get extent
     volumes = fid.variables['volumes'][:]    
-    x = fid.variables['x'][:]
-    y = fid.variables['y'][:]
+    x = fid.variables['x'][:] + xllcorner
+    y = fid.variables['y'][:] + yllcorner
+
 
     # Get the relevant quantities
     elevation = fid.variables['elevation'][:] 
