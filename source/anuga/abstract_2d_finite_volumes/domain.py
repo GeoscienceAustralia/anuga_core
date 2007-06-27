@@ -786,7 +786,8 @@ class Domain(Mesh):
 
         duration: Duration of simulation
 
-        finaltime: Time where simulation should end
+        finaltime: Time where simulation should end. This is currently
+        relative time.  So it's the same as duration.
 
         If both duration and finaltime are given an exception is thrown.
 
