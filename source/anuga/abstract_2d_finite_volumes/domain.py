@@ -959,7 +959,7 @@ class Domain(Mesh):
 
         # self.timestep is calculated from speed of characteristics
         # Apply CFL condition here
-        timestep = min(self.CFL*self.timestep,max_timestep)
+        timestep = min(self.CFL*self.timestep, max_timestep)
 
         #Record maximal and minimal values of timestep for reporting
         self.max_timestep = max(timestep, self.max_timestep)

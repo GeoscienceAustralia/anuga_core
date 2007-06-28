@@ -48,7 +48,7 @@ class Geospatial_data:
 
         data_points: x,y coordinates in meters. Type must be either a
         sequence of 2-tuples or an Mx2 Numeric array of floats.  A file name
-        can also be passed in here.
+        with extension .txt, .cvs or .pts can also be passed in here.
 
         attributes: Associated values for each data point. The type
         must be either a list or an array of length M or a dictionary
@@ -146,7 +146,8 @@ class Geospatial_data:
             if delimiter is not None:
                 msg = 'No file specified yet a delimiter is provided!'
                 raise ValueError, msg
-            file_name = None
+            file_name = None #FIXME (Ole): Isn't this line superfluous
+            
             if latitudes is not None or longitudes is not None or \
                    points_are_lats_longs:
                 data_points, geo_reference =  \
@@ -747,18 +748,20 @@ class Geospatial_data:
         return G1, G2
 
     def __iter__(self):
-        """
-        read in the header and save the file pointer position
+        """Read in the header, number_of_points and save the
+        file pointer position
         """
 
         from Scientific.IO.NetCDF import NetCDFFile
         
         #FIXME - what to do if the file isn't there
 
-        if self.file_name[-4:]== ".xya":
+        if self.file_name[-4:] == ".xya":
+            # FIXME (Ole): shouldn't the xya format be replaced by txt/csv?
+
             #let's just read it all
             pass
-        elif self.file_name[-4:]== ".pts":
+        elif self.file_name[-4:] == ".pts":
             
             # see if the file is there.  Throw a QUIET IO error if it isn't
             fd = open(self.file_name,'r')
@@ -769,21 +772,32 @@ class Geospatial_data:
             
             self.blocking_georef, self.blocking_keys, self.last_row = \
                      _read_pts_file_header(self.fid, self.verbose)
-            self.start_row=0
+            self.start_row = 0
             self.show_verbose = 0
-            self.verbose_block_size =  (self.last_row +10) /10
+            self.verbose_block_size = (self.last_row + 10)/10
+            
+            if self.verbose is True:
+                print 'Reading %d points (blocking) from file %s'\
+                      %(self.last_row,
+                        self.file_name)
+            
         else:
+            # It looks like the file is assumed to be a csv file
             file_pointer = open(self.file_name)
             self.header, self.file_pointer = \
                          _read_csv_file_header(file_pointer)
             self.blocking_georef = None # Used for reconciling zones
+            
         if self.max_read_lines is None:
             self.max_read_lines = MAX_READ_LINES
         return self
     
     def next(self):
-        # read a block, instanciate a new geospatial and return it
+        """ read a block, instanciate a new geospatial and return it"""
+        
         if self.file_name[-4:]== ".xya" :
+            # FIXME (Ole): shouldn't the xya format be replaced by txt/csv? 
+            
             if not hasattr(self,'finished_reading') or \
                    self.finished_reading is False:
                 #let's just read it all
@@ -813,17 +827,17 @@ class Geospatial_data:
             
             if self.verbose is True:
                 if self.show_verbose >= self.start_row and \
-                                       self.show_verbose < fin_row:
+                       self.show_verbose < fin_row:
                  print 'Doing %d of %d' %(self.start_row, self.last_row+10)
                  self.show_verbose += max(self.max_read_lines,
                                           self.verbose_block_size)
             #call stuff
             pointlist, att_dict, = \
-                   _read_pts_file_blocking( self.fid,
-                                            self.start_row,
-                                            fin_row,
-                                            self.blocking_keys
-                                            ) 
+                   _read_pts_file_blocking(self.fid,
+                                           self.start_row,
+                                           fin_row,
+                                           self.blocking_keys)
+            
             geo = Geospatial_data(pointlist, att_dict, self.blocking_georef)
             self.start_row = fin_row
             
@@ -922,6 +936,7 @@ def _set_using_lat_long(latitudes,
     data_points, zone  = convert_from_latlon_to_utm(latitudes=latitudes,
                                                     longitudes=longitudes)
     return data_points, Geo_reference(zone=zone)
+
     
 def _read_pts_file(file_name, verbose=False):
     """Read .pts NetCDF file
@@ -1088,8 +1103,7 @@ def _read_csv_file_blocking(file_pointer, header,
 
 def _read_pts_file_header(fid, verbose=False):
 
-    """
-    Read the geo_reference of a .pts file
+    """Read the geo_reference and number_of_points from a .pts file
     """
     
     keys = fid.variables.keys()

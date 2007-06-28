@@ -691,33 +691,36 @@ class Quantity:
         #print points
 
 
-        #Call fit_interpolate.fit function
+        # Call fit_interpolate.fit function
         args = (coordinates, triangles, points, values)
         kwargs = {'data_origin': data_georef.get_origin(),
                   'mesh_origin': mesh_georef.get_origin(),
                   'alpha': alpha,
                   'verbose': verbose}
 
-        #print kwargs
 
-        #FIXME(dsg):Why is this catched? fit_to_mesh handles caching.
-        if use_cache is True:
-            try:
-                from caching import cache
-            except:
-                msg = 'Caching was requested, but caching module'+\
-                      'could not be imported'
-                raise msg
+        # FIXME(dsg):Why is this catched? fit_to_mesh handles caching.
+        # Fair enough - I have commented it out 28/6/7 (Ole)
+        #if use_cache is True:
+        #    try:
+        #        from caching import cache
+        #    except:
+        #        msg = 'Caching was requested, but caching module'+\
+        #              'could not be imported'
+        #        raise msg
+        #
+        #    vertex_attributes = cache(fit_to_mesh,
+        #                              args, kwargs,
+        #                              verbose=verbose,
+        #                              compression=False)
+        #else:
+        #    vertex_attributes = apply(fit_to_mesh,
+        #                              args, kwargs)
 
-            vertex_attributes = cache(fit_to_mesh,
-                                      args, kwargs,
-                                      verbose=verbose,
-                                      compression=False)
-        else:
-            vertex_attributes = apply(fit_to_mesh,
-                                      args, kwargs)
+        vertex_attributes = apply(fit_to_mesh,
+                                  args, kwargs)        
 
-        #Call underlying method using array values
+        # Call underlying method using array values
         self.set_values_from_array(vertex_attributes,
                                    location, indices, verbose)
 
@@ -746,14 +749,14 @@ class Quantity:
         coordinates = self.domain.get_nodes(absolute=True)
         triangles = self.domain.triangles      #FIXME
             
-        vertex_attributes = fit_to_mesh(coordinates, triangles,filename,
+        vertex_attributes = fit_to_mesh(coordinates, triangles, filename,
                                         alpha=alpha,
                                         attribute_name=attribute_name,
                                         use_cache=use_cache,
                                         verbose=verbose,
                                         max_read_lines=max_read_lines)
                                             
-        #Call underlying method using array values
+        # Call underlying method using array values
         self.set_values_from_array(vertex_attributes,
                                    location, indices, verbose)
 

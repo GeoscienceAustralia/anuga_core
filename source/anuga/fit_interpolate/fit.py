@@ -315,6 +315,7 @@ class Fit(FitInterpolate):
         point_coordinates: The co-ordinates of the data points.
               List of coordinate pairs [x, y] of
 	      data points or an nx2 Numeric array or a Geospatial_data object
+              or filename (txt, csv, pts?)
           z: Single 1d vector or array of data at the point_coordinates.
           
         """
@@ -323,7 +324,8 @@ class Fit(FitInterpolate):
             msg = "Don't set a point origin when reading from a file"
             assert point_origin is None, msg
             filename = point_coordinates_or_filename
-            for i,geo_block in enumerate(Geospatial_data(filename,
+            
+            for i, geo_block in enumerate(Geospatial_data(filename,
                                               max_read_lines=max_read_lines,
                                               load_file_now=False,
                                               verbose=verbose)):
@@ -467,17 +469,17 @@ def fit_to_mesh(vertex_coordinates,
                      args, kwargs)
 
 def _fit_to_mesh(vertex_coordinates,
-                triangles,
-                point_coordinates, # this can also be a .csv/.txt file name
-                point_attributes=None,
-                alpha=DEFAULT_ALPHA,
-                verbose=False,
-                acceptable_overshoot=1.01,
-                mesh_origin=None,
-                data_origin=None,
-                max_read_lines=None,
-                attribute_name=None,
-                use_cache = False):
+                 triangles,
+                 point_coordinates, # this can also be a .csv/.txt file name
+                 point_attributes=None,
+                 alpha=DEFAULT_ALPHA,
+                 verbose=False,
+                 acceptable_overshoot=1.01,
+                 mesh_origin=None,
+                 data_origin=None,
+                 max_read_lines=None,
+                 attribute_name=None,
+                 use_cache = False):
     """
     Fit a smooth surface to a triangulation,
     given data points with attributes.
@@ -494,7 +496,8 @@ def _fit_to_mesh(vertex_coordinates,
           integers representing indices of all vertices in the mesh.
 
           point_coordinates: List of coordinate pairs [x, y] of data points
-          (or an nx2 Numeric array)
+          (or an nx2 Numeric array). This can also be a .csv/.txt file name
+          FIXME (Ole): Can't it be a pts file too?
 
           alpha: Smoothing parameter.
 
