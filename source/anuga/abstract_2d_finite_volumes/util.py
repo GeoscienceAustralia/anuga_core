@@ -14,7 +14,7 @@ from warnings import warn
 from shutil import copy
 
 from anuga.utilities.numerical_tools import ensure_numeric
-from Numeric import arange, choose
+from Numeric import arange, choose, zeros, Float
     
 from anuga.geospatial_data.geospatial_data import ensure_absolute
 
@@ -1481,4 +1481,29 @@ def remove_lone_verts(verts, triangles, number_of_full_nodes=None):
         triangles = choose(triangles,loners)
         #print "triangles after", triangles
     return verts, triangles
+
  
+def get_centroid_values(x, triangles):
+    """Compute centroid values from vertex values
+    
+    x: Values at vertices of triangular mesh
+    triangles: Nx3 integer array pointing to vertex information
+    for each of the N triangels. Elements of triangles are
+    indices into x
+    """
+
+        
+    xc = zeros(triangles.shape[0], Float) # Space for centroid info
+    
+    for k in range(triangles.shape[0]):
+        # Indices of vertices
+        i0 = triangles[k][0]
+        i1 = triangles[k][1]
+        i2 = triangles[k][2]        
+        
+        xc[k] = (x[i0] + x[i1] + x[i2])/3
+
+
+    return xc
+
+        
