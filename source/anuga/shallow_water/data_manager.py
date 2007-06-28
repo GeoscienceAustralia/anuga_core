@@ -88,7 +88,7 @@ from anuga.shallow_water import Domain
 from anuga.abstract_2d_finite_volumes.pmesh2domain import \
      pmesh_to_domain_instance
 from anuga.abstract_2d_finite_volumes.util import get_revision_number, \
-     remove_lone_verts, sww2timeseries
+     remove_lone_verts, sww2timeseries, get_centroid_values
 from anuga.load_mesh.loadASCII import export_mesh_file
 # formula mappings
 
@@ -5447,6 +5447,7 @@ def get_maximum_inundation_location(filename,
 
 
 def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
+                                use_centroid_values=False,
                                 verbose=False):
     """Compute maximum run up height from sww file.
 
@@ -5514,6 +5515,15 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
     stage = fid.variables['stage'][:]
 
 
+    # Here's where one could convert nodal information to centroid information
+    # but is probably something we need to write in C.
+    # Here's a Python thought which is NOT finished!!!
+    if use_centroid_values is True:
+        x = get_centroid_values(x, volumes)
+        y = get_centroid_values(y, volumes)    
+        elevation = get_centroid_values(elevation, volumes)    
+
+
     # Spatial restriction
     if polygon is not None:
         msg = 'polygon must be a sequence of points.'
@@ -5573,7 +5583,12 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
     maximal_runup = None
     maximal_runup_location = None
     for i in timesteps:
-        depth = stage[i,:] - elevation 
+        if use_centroid_values is True:
+            stage_i = get_centroid_values(stage[i,:], volumes)                
+        else:
+            stage_i = stage[i,:]
+            
+        depth = stage_i  - elevation 
     
         # Get wet nodes i.e. nodes with depth>0 within given region and timesteps
         wet_nodes = compress(depth > minimum_allowed_height, arange(len(depth)))

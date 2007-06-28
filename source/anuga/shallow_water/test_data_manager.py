@@ -7079,12 +7079,14 @@ friction  \n \
         # Check maximal runup
         runup = get_maximum_inundation_elevation(swwfile)
         location = get_maximum_inundation_location(swwfile)
+        #print runup, location
         assert allclose(runup, 11)
         assert allclose(location[0], 15)
 
         # Check final runup
         runup = get_maximum_inundation_elevation(swwfile, time_interval=[45,50])
         location = get_maximum_inundation_location(swwfile, time_interval=[45,50])
+        #print runup, location        
         assert allclose(runup, 1)
         assert allclose(location[0], 65)
 
@@ -7092,6 +7094,7 @@ friction  \n \
         p = [[50,1], [99,1], [99,49], [50,49]]
         runup = get_maximum_inundation_elevation(swwfile, polygon=p)
         location = get_maximum_inundation_location(swwfile, polygon=p)
+        #print runup, location        
         assert allclose(runup, 4)
         assert allclose(location[0], 50)                
 
