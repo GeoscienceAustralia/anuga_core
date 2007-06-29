@@ -9,7 +9,7 @@ import sys
 import os
 
 from os import remove, mkdir, access, F_OK, W_OK, sep
-from os.path import exists, basename
+from os.path import exists, basename, split
 from warnings import warn
 from shutil import copy
 
@@ -687,6 +687,7 @@ def sww2timeseries(swwfiles,
                    surface = None,
                    time_min = None,
                    time_max = None,
+                   time_thinning = 1,                   
                    time_unit = None,
                    title_on = None,
                    use_cache = False,
@@ -715,7 +716,9 @@ def sww2timeseries(swwfiles,
     production_dirs -  A list of list, example {20061101_121212: '1 in 10000', 
                                                 'boundaries': 'urs boundary'}
                       this will use the second part as the label and the first part 
-                      as the ? 
+                      as the ?
+                      #FIXME: Is it a list or a dictionary
+                      # This is probably obsolete by now
                      
     report          - if True, then write figures to report_figures directory in
                       relevant production directory
@@ -772,6 +775,19 @@ def sww2timeseries(swwfiles,
     and elevation during the scenario run, i.e.
     ['stage', 'elevation', 'xmomentum', 'ymomentum']
     If this has not occurred then sww2timeseries will not work.
+
+
+    Usage example
+    texname = sww2timeseries({project.boundary_name + '.sww': ''},
+                             project.polygons_dir + sep + 'boundary_extent.csv',
+                             project.anuga_dir, 
+                             report = False,
+                             plot_quantity = ['stage', 'speed', 'bearing'],
+                             time_min = None,
+                             time_max = None,
+                             title_on = True,   
+                             verbose = True)
+    
     """
 
     
@@ -785,6 +801,7 @@ def sww2timeseries(swwfiles,
                         surface,
                         time_min,
                         time_max,
+                        time_thinning,                        
                         time_unit,
                         title_on,
                         use_cache,
@@ -802,6 +819,7 @@ def _sww2timeseries(swwfiles,
                     surface = None,
                     time_min = None,
                     time_max = None,
+                    time_thinning = 1,                    
                     time_unit = None,
                     title_on = None,
                     use_cache = False,
@@ -857,16 +875,27 @@ def _sww2timeseries(swwfiles,
                   %(swwfile, e)
             raise msg
 
+        print 'swwfile', swwfile
+
+        # Extract parent dir name and use as label
+        path, _ = os.path.split(swwfile)
+        _, label = os.path.split(path)        
+        
+        #print 'label', label
+        leg_label.append(label)
+
+        
+
         f = file_function(swwfile,
                           quantities = sww_quantity,
                           interpolation_points = gauges,
+                          time_thinning = time_thinning,
                           verbose = verbose,
                           use_cache = use_cache)
 
         # determine which gauges are contained in sww file
         count = 0
         gauge_index = []
-        print 'swwfile', swwfile
         for k, g in enumerate(gauges):
             if f(0.0, point_id = k)[2] > 1.0e6:
                 count += 1
@@ -885,7 +914,7 @@ def _sww2timeseries(swwfiles,
         index = swwfile.rfind(sep)
         file_loc.append(swwfile[:index+1])
         label_id.append(swwfiles[swwfile])
-        leg_label.append(production_dirs[swwfiles[swwfile]])
+
         
         f_list.append(f)
         maxT = max(f.get_time())
@@ -935,31 +964,68 @@ def get_gauges_from_file(filename):
     gauges = []
     gaugelocation = []
     elev = []
+
+    # Check header information    
     line1 = lines[0]
     line11 = line1.split(',')
-    east_index = len(line11)+1
-    north_index = len(line11)+1
-    name_index = len(line11)+1
-    elev_index = len(line11)+1
-    for i in range(len(line11)):
-        if line11[i].strip('\n').strip(' ').lower() == 'easting': east_index = i
-        if line11[i].strip('\n').strip(' ').lower() == 'northing': north_index = i
-        if line11[i].strip('\n').strip(' ').lower() == 'name': name_index = i
-        if line11[i].strip('\n').strip(' ').lower() == 'elevation': elev_index = i
 
-    for line in lines[1:]:
-        fields = line.split(',')
+    if line11[0] is basestring:
+        # We have found text in the first line
+        
+        east_index = len(line11)+1
+        north_index = len(line11)+1
+        name_index = len(line11)+1
+        elev_index = len(line11)+1
+        for i in range(len(line11)):
+            if line11[i].strip('\n').strip(' ').lower() == 'easting': east_index = i
+            if line11[i].strip('\n').strip(' ').lower() == 'northing': north_index = i
+            if line11[i].strip('\n').strip(' ').lower() == 'name': name_index = i
+            if line11[i].strip('\n').strip(' ').lower() == 'elevation': elev_index = i
+
         if east_index < len(line11) and north_index < len(line11):
-            gauges.append([float(fields[east_index]), float(fields[north_index])])
+            pass
         else:
-            msg = 'WARNING: %s does not contain location information' %(filename)
+            msg = 'WARNING: %s does not contain correct header information' %(filename)
+            msg += 'The header must be: easting, northing, name, elevation'
             raise Exception, msg
-        if elev_index < len(line11): elev.append(float(fields[elev_index]))
-        if name_index < len(line11):
+
+        if elev_index >= len(line11):
+            raise Exception
+    
+        if name_index >= len(line11):
+            raise Exception
+
+        lines = lines[1:] # Remove header from data
+    else:
+        # No header, assume that this is a simple easting, northing file
+
+        msg = 'There was no header in file %s and the number of columns is %d' %(filename, len(line11))
+        msg += '- I was assuming two columns corresponding to Easting and Northing'
+        assert len(line11) == 2, msg
+
+        east_index = 0
+        north_index = 1
+
+        N = len(lines)
+        elev = [-9999]*N
+        gaugelocation = range(N)
+        
+        
+    # Read in gauge data
+    for line in lines:
+        fields = line.split(',')
+
+        gauges.append([float(fields[east_index]), float(fields[north_index])])
+
+        if len(fields) > 2:
+            elev.append(float(fields[elev_index]))
             loc = fields[name_index]
             gaugelocation.append(loc.strip('\n'))
+            
 
     return gauges, gaugelocation, elev
+
+
 
 def check_list(quantity):
     """ Check that input quantities in quantity list are possible
@@ -1090,8 +1156,9 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
             max_momentum = 0
             max_speed = 0
             max_depth = 0
-            gaugeloc = locations[k]
-            thisfile = file_loc[j]+sep+'gauges_time_series'+'_'+gaugeloc+'.csv'
+            gaugeloc = str(locations[k])
+            thisfile = file_loc[j]+sep+'gauges_time_series'+'_'\
+                       +gaugeloc+'.csv'
             fid_out = open(thisfile, 'w')
             s = 'Time, Stage, Momentum, Speed, Elevation, xmom, ymom \n'
             fid_out.write(s)
@@ -1261,10 +1328,12 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     ylabel('%s (%s)' %(which_quantity, units))
                     if len(label_id) > 1: legend((leg_label),loc='upper right')
 
-                    gaugeloc1 = gaugeloc.replace(' ','')
+                    #gaugeloc1 = gaugeloc.replace(' ','')
                     #gaugeloc2 = gaugeloc1.replace('_','')
-                    gaugeloc2 = locations[k].replace(' ','')
-                    graphname = '%sgauge%s_%s' %(file_loc[j], gaugeloc2, which_quantity)
+                    gaugeloc2 = str(locations[k]).replace(' ','')
+                    graphname = '%sgauge%s_%s' %(file_loc[j],
+                                                 gaugeloc2,
+                                                 which_quantity)
 
                     if report == True and len(label_id) > 1:
                         figdir = getcwd()+sep+'report_figures'+sep
