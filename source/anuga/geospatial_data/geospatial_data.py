@@ -164,6 +164,11 @@ class Geospatial_data:
             # watch for case where file name and points,
             # attributes etc are provided!!
             # if file name then all provided info will be removed!
+
+            #if verbose is True:
+            #    if file_name is not None:
+            #        print 'Loading Geospatial data from file: %s' %file_name
+            
             self.import_points_file(file_name, delimiter, verbose)
                 
             self.check_data_points(self.data_points)
@@ -171,10 +176,22 @@ class Geospatial_data:
             self.set_geo_reference(self.geo_reference)
             self.set_default_attribute_name(default_attribute_name)
 
+
         #Why?    
         #assert self.attributes is None or isinstance(self.attributes, DictType)
         #This is a hassle when blocking, so I've removed it.
-        
+
+
+        if verbose is True:
+            if file_name is not None:
+                print 'Geospatial data created from file: %s' %file_name
+                if load_file_now is False:
+                    print 'Data will be loaded blockwise on demand'
+
+                    if file_name.endswith('csv') or file_name.endswith('txt'):
+                        print 'ASCII formats are not that great for '
+                        print 'blockwise reading. Consider storing this'
+                        print 'data as a pts NetCDF format'
 
     def __len__(self):
         return len(self.data_points)
@@ -254,9 +271,6 @@ class Geospatial_data:
     def set_verbose(self, verbose=False):
         if verbose in [False, True]:
             self.verbose = verbose
-            
-            if verbose is True:
-                print 'Geospatial_data.verbose = True'
         else:
             msg = 'Illegal value: %s' %str(verbose)
             raise Exception, msg
@@ -758,6 +772,12 @@ class Geospatial_data:
         
         #FIXME - what to do if the file isn't there
 
+        # FIXME (Ole): Shouldn't this go into the constructor?
+        # ... and shouldn't it be called block_size?
+        if self.max_read_lines is None:
+            self.max_read_lines = MAX_READ_LINES
+        
+
         if self.file_name[-4:] == ".xya":
             # FIXME (Ole): shouldn't the xya format be replaced by txt/csv?
             #  Currently both file formats are used.
@@ -773,16 +793,25 @@ class Geospatial_data:
             #throws prints to screen if file not present
             self.fid = NetCDFFile(self.file_name, 'r')
             
-            self.blocking_georef, self.blocking_keys, self.last_row = \
-                     _read_pts_file_header(self.fid, self.verbose)
+            self.blocking_georef, self.blocking_keys, self.number_of_points =\
+                                  _read_pts_file_header(self.fid,
+                                                        self.verbose)
             self.start_row = 0
+            self.last_row = self.number_of_points            
             self.show_verbose = 0
             self.verbose_block_size = (self.last_row + 10)/10
+            self.block_number = 0
+            self.number_of_blocks = self.number_of_points/self.max_read_lines
+            # This computes the number of full blocks. The last block may be
+            # smaller and won't be ircluded in this estimate.
             
             if self.verbose is True:
-                print 'Reading %d points (blocking) from file %s'\
-                      %(self.last_row,
-                        self.file_name)
+                print 'Reading %d points (in ~%d blocks) from file %s. '\
+                      %(self.number_of_points,
+                        self.number_of_blocks,
+                        self.file_name),
+                print 'Each block consists of %d data points'\
+                      %self.max_read_lines
             
         else:
             # assume the file is a csv file
@@ -790,10 +819,9 @@ class Geospatial_data:
             self.header, self.file_pointer = \
                          _read_csv_file_header(file_pointer)
             self.blocking_georef = None # Used for reconciling zones
-            
-        if self.max_read_lines is None:
-            self.max_read_lines = MAX_READ_LINES
+
         return self
+    
     
     def next(self):
         """ read a block, instanciate a new geospatial and return it"""
@@ -827,23 +855,37 @@ class Geospatial_data:
             if fin_row > self.last_row:
                 fin_row = self.last_row
 
-                
+               
             
             if self.verbose is True:
                 if self.show_verbose >= self.start_row and \
                        self.show_verbose < fin_row:
-                 print 'Doing %d of %d' %(self.start_row, self.last_row+10)
-                 self.show_verbose += max(self.max_read_lines,
-                                          self.verbose_block_size)
-            #call stuff
+
+                    
+                    #print 'Doing %d of %d' %(self.start_row, self.last_row+10)
+
+                    print 'Reading block %d (points %d to %d) out of %d'\
+                          %(self.block_number,
+                            self.start_row,
+                            fin_row,
+                            self.number_of_blocks)
+
+                    
+                    self.show_verbose += max(self.max_read_lines,
+                                             self.verbose_block_size)
+
+                 
+            # Read next block
             pointlist, att_dict, = \
-                   _read_pts_file_blocking(self.fid,
-                                           self.start_row,
-                                           fin_row,
-                                           self.blocking_keys)
+                       _read_pts_file_blocking(self.fid,
+                                               self.start_row,
+                                               fin_row,
+                                               self.blocking_keys)
             
             geo = Geospatial_data(pointlist, att_dict, self.blocking_georef)
             self.start_row = fin_row
+            
+            self.block_number += 1            
             
         else:
             # assume the file is a csv file

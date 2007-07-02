@@ -324,15 +324,25 @@ class Fit(FitInterpolate):
             msg = "Don't set a point origin when reading from a file"
             assert point_origin is None, msg
             filename = point_coordinates_or_filename
-            
-            for i, geo_block in enumerate(Geospatial_data(filename,
-                                              max_read_lines=max_read_lines,
-                                              load_file_now=False,
-                                              verbose=verbose)):
+
+            G_data = Geospatial_data(filename,
+                                     max_read_lines=max_read_lines,
+                                     load_file_now=False,
+                                     verbose=verbose)
+            for i, geo_block in enumerate(G_data):
                 if verbose is True and 0 == i%200: # round every 5 minutes
                     # But this is dependant on the # of Triangles, so it
                     #isn't every 5 minutes.
-                    print 'Block %i' %i
+                        
+                    print 'Processing Block %d' %i
+                    # FIXME (Ole): It would be good to say how many blocks
+                    # there are here. But this is no longer necessary
+                    # for pts files as they are reported in geospatial_data
+                    # I suggest deleting this verbose output and make
+                    # Geospatial_data more informative for txt files.
+            
+
+                    
                 # build the array
                 points = geo_block.get_data_points(absolute=True)
                 z = geo_block.get_attributes(attribute_name=attribute_name)
