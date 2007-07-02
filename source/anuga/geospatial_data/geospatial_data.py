@@ -146,7 +146,6 @@ class Geospatial_data:
             if delimiter is not None:
                 msg = 'No file specified yet a delimiter is provided!'
                 raise ValueError, msg
-            file_name = None #FIXME (Ole): Isn't this line superfluous
             
             if latitudes is not None or longitudes is not None or \
                    points_are_lats_longs:
@@ -758,7 +757,8 @@ class Geospatial_data:
 
         if self.file_name[-4:] == ".xya":
             # FIXME (Ole): shouldn't the xya format be replaced by txt/csv?
-
+            #  Currently both file formats are used.
+            
             #let's just read it all
             pass
         elif self.file_name[-4:] == ".pts":
@@ -782,7 +782,7 @@ class Geospatial_data:
                         self.file_name)
             
         else:
-            # It looks like the file is assumed to be a csv file
+            # assume the file is a csv file
             file_pointer = open(self.file_name)
             self.header, self.file_pointer = \
                          _read_csv_file_header(file_pointer)
@@ -797,6 +797,7 @@ class Geospatial_data:
         
         if self.file_name[-4:]== ".xya" :
             # FIXME (Ole): shouldn't the xya format be replaced by txt/csv? 
+            #  Currently both file formats are used.
             
             if not hasattr(self,'finished_reading') or \
                    self.finished_reading is False:
@@ -842,6 +843,7 @@ class Geospatial_data:
             self.start_row = fin_row
             
         else:
+            # assume the file is a csv file
             try:
                 pointlist, att_dict, geo_ref, self.file_pointer = \
                    _read_csv_file_blocking( self.file_pointer,
