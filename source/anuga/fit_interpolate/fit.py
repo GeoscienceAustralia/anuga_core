@@ -470,7 +470,7 @@ def fit_to_mesh(vertex_coordinates,
 
 def _fit_to_mesh(vertex_coordinates,
                  triangles,
-                 point_coordinates, # this can also be a .csv/.txt file name
+                 point_coordinates, # this can also be a points file name
                  point_attributes=None,
                  alpha=DEFAULT_ALPHA,
                  verbose=False,
@@ -496,8 +496,8 @@ def _fit_to_mesh(vertex_coordinates,
           integers representing indices of all vertices in the mesh.
 
           point_coordinates: List of coordinate pairs [x, y] of data points
-          (or an nx2 Numeric array). This can also be a .csv/.txt file name
-          FIXME (Ole): Can't it be a pts file too?
+          (or an nx2 Numeric array). This can also be a .csv/.txt/.pts
+          file name.
 
           alpha: Smoothing parameter.
 
@@ -600,9 +600,8 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
 
     if verbose: print 'tsh file %s loaded' %mesh_file
 
-    # load in the .pts file
+    # load in the points file
     try:
-        ###point_dict = import_points_file(point_file, verbose=verbose)
         geo = Geospatial_data(point_file, verbose=verbose)
     except IOError,e:
         if display_errors:
@@ -610,16 +609,14 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
         raise IOError  #Re-raise exception  
 
     point_coordinates = geo.get_data_points(absolute=True)
-    #point_dict['pointlist']
-    #
-    # return list of attribute titles, array of attributes 
-    # title_list,point_attributes = concatinate_attributelist(point_dict['attributelist'])
-    title_list,point_attributes = concatinate_attributelist(geo.get_all_attributes())
+    title_list,point_attributes = concatinate_attributelist( \
+        geo.get_all_attributes())
 
-    if mesh_dict.has_key('geo_reference') and not mesh_dict['geo_reference'] is None:
+    if mesh_dict.has_key('geo_reference') and \
+           not mesh_dict['geo_reference'] is None:
         mesh_origin = mesh_dict['geo_reference'].get_origin()
     else:
-        mesh_origin = None #(56, 0, 0) #FIXME(DSG-DSG)
+        mesh_origin = None
 
     if verbose: print "points file loaded"
     if verbose: print "fitting to mesh"
@@ -648,7 +645,6 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
         mesh_dict['vertex_attributes'] = new_point_attributes
         mesh_dict['vertex_attribute_titles'] = title_list
 
-    #FIXME (Ole): Remember to output mesh_origin as well
     if verbose: print "exporting to file ", mesh_output_file
 
     try:
