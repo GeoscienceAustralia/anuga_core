@@ -254,6 +254,9 @@ class Geospatial_data:
     def set_verbose(self, verbose=False):
         if verbose in [False, True]:
             self.verbose = verbose
+            
+            if verbose is True:
+                print 'Geospatial_data.verbose = True'
         else:
             msg = 'Illegal value: %s' %str(verbose)
             raise Exception, msg
