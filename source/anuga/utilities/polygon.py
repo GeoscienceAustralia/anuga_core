@@ -741,25 +741,49 @@ def point_in_polygon(polygon, delta=1e-8):
 def number_mesh_triangles(interior_regions, bounding_poly, remainder_res):
     """Calcalutes the approximate number of triangles inside the bounding polygon
     and the other interior regions
+
+    Polygon areas are converted to square Kms 
+
     FIXME: Add tests for this function
     """
-    from anuga.utilities.polygon import polygon_area
     
+    from anuga.utilities.polygon import polygon_area
+
+
     # TO DO check if any of the regions fall inside one another
+
+    print '----------------------------------------------------------------------------'
+    print 'Polygon   Max triangle area (m^2)   Total area (km^2)   Estimated #triangles'
+    print '----------------------------------------------------------------------------'    
+        
     no_triangles = 0.0
     area = polygon_area(bounding_poly)
-#    print 'area of bounding_poly with res ',remainder_res,' is ', area/1000000.
-    for i,j in interior_regions:
-        this_area = polygon_area(i)
-        this_triangles = this_area/j
+    
+    for poly, resolution in interior_regions:
+        this_area = polygon_area(poly)
+        this_triangles = this_area/resolution
         no_triangles += this_triangles
         area -= this_area
-        #convert to square Kms
-        print 'area of',j, 'trigs', this_triangles, 'this area', this_area/1000000.
+        
+        print 'Interior ',
+        print ('%.0f' %resolution).ljust(25),
+        print ('%.2f' %(this_area/1000000)).ljust(19),
+        print '%d' %(this_triangles)
+        
     bound_triangles = area/remainder_res
     no_triangles += bound_triangles
-    print 'area of',remainder_res,'bound triangles:', bound_triangles, 'bound area:', area/1000000.
-    return int(no_triangles/0.7)
+
+    print 'Bounding ',
+    print ('%.0f' %remainder_res).ljust(25),
+    print ('%.2f' %(area/1000000)).ljust(19),
+    print '%d' %(bound_triangles)    
+
+    total_number_of_triangles = no_triangles/0.7
+
+    print 'Estimated total number of triangles: %d' %total_number_of_triangles
+    print 'Note: This is generally about 20% less than the final amount'    
+
+    return int(total_number_of_triangles)
 
 
 ##############################################
