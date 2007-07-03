@@ -969,18 +969,17 @@ def get_gauges_from_file(filename):
     line1 = lines[0]
     line11 = line1.split(',')
 
-    if line11[0] is basestring:
+    if isinstance(line11[0],str) is True:
         # We have found text in the first line
-        
-        east_index = len(line11)+1
-        north_index = len(line11)+1
-        name_index = len(line11)+1
-        elev_index = len(line11)+1
+        east_index = None
+        north_index = None
+        name_index = None
+        elev_index = None
         for i in range(len(line11)):
-            if line11[i].strip('\n').strip(' ').lower() == 'easting': east_index = i
-            if line11[i].strip('\n').strip(' ').lower() == 'northing': north_index = i
-            if line11[i].strip('\n').strip(' ').lower() == 'name': name_index = i
-            if line11[i].strip('\n').strip(' ').lower() == 'elevation': elev_index = i
+            if line11[i].strip('\n').strip('\r').strip(' ').lower() == 'easting': east_index = i
+            if line11[i].strip('\n').strip('\r').strip(' ').lower() == 'northing': north_index = i
+            if line11[i].strip('\n').strip('\r').strip(' ').lower() == 'name': name_index = i
+            if line11[i].strip('\n').strip('\r').strip(' ').lower() == 'elevation': elev_index = i
 
         if east_index < len(line11) and north_index < len(line11):
             pass
@@ -989,10 +988,10 @@ def get_gauges_from_file(filename):
             msg += 'The header must be: easting, northing, name, elevation'
             raise Exception, msg
 
-        if elev_index >= len(line11):
+        if elev_index is None: 
             raise Exception
     
-        if name_index >= len(line11):
+        if name_index is None: 
             raise Exception
 
         lines = lines[1:] # Remove header from data
@@ -1010,7 +1009,6 @@ def get_gauges_from_file(filename):
         elev = [-9999]*N
         gaugelocation = range(N)
         
-        
     # Read in gauge data
     for line in lines:
         fields = line.split(',')
@@ -1021,7 +1019,6 @@ def get_gauges_from_file(filename):
             elev.append(float(fields[elev_index]))
             loc = fields[name_index]
             gaugelocation.append(loc.strip('\n'))
-            
 
     return gauges, gaugelocation, elev
 
