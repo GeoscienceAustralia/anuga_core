@@ -621,7 +621,8 @@ class Polygon_function:
 
         return z
 
-def read_polygon(filename,split=','):
+
+def read_polygon(filename, split=','):
     """Read points assumed to form a polygon.
        There must be exactly two numbers in each line separated by a comma.
        No header.
@@ -638,7 +639,8 @@ def read_polygon(filename,split=','):
 
     return polygon
 
-def populate_polygon(polygon, number_of_points, seed = None, exclude = None):
+
+def populate_polygon(polygon, number_of_points, seed=None, exclude=None):
     """Populate given polygon with uniformly distributed points.
 
     Input:
@@ -694,6 +696,7 @@ def populate_polygon(polygon, number_of_points, seed = None, exclude = None):
 
     return points
 
+
 def point_in_polygon(polygon, delta=1e-8):
     """Return a point inside a given polygon which will be close to the
     polygon edge.
@@ -738,9 +741,10 @@ def point_in_polygon(polygon, delta=1e-8):
             delta = delta*0.1
     return point
 
+
 def number_mesh_triangles(interior_regions, bounding_poly, remainder_res):
-    """Calcalutes the approximate number of triangles inside the bounding polygon
-    and the other interior regions
+    """Calcalutes the approximate number of triangles inside the
+    bounding polygon and the other interior regions
 
     Polygon areas are converted to square Kms 
 

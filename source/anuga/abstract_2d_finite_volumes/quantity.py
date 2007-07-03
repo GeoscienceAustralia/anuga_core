@@ -178,6 +178,7 @@ class Quantity:
                    filename = None, attribute_name = None, #Input from file
                    alpha = None,
                    location = 'vertices',
+                   polygon = None,
                    indices = None,
                    verbose = False,
                    use_cache = False):
@@ -261,6 +262,15 @@ class Quantity:
                   specified locations will be assigned and the others
                   will be left undefined.
 
+
+        polygon: Restrict update of quantity to locations that fall
+                 inside polygon. Polygon works by selecting indices
+                 and calling set_values recursively.
+
+        indices: Restrict update of quantity to locations that are 
+                 identified by indices (e.g. node ids if location
+                 is 'vertices')        
+        
         verbose: True means that output to stdout is generated
 
         use_cache: True means that caching of intermediate results is
@@ -277,6 +287,19 @@ class Quantity:
         from anuga.geospatial_data.geospatial_data import Geospatial_data
         from types import FloatType, IntType, LongType, ListType, NoneType
         from Numeric import ArrayType
+
+
+        # Polygon situation
+        #if polygon is not None:
+        #    if indices is not None:
+        #        msg = 'Only one of polygon and indices can be specified'
+        #        raise Exception, msg
+        #
+        #    Need to get candidate points. I think we should
+        #    simplify this whole thing a bit. Do we really need location?
+        #    point_indices = inside_polygon(points, polygon)
+
+
 
         #General input checks
         L = [numeric, quantity, function, geospatial_data, points, filename]
@@ -387,6 +410,10 @@ class Quantity:
         """Set quantity values from specified constant X
         """
 
+        # FIXME (Ole): Somehow indices refer to centroids
+        # rather than vertices as default. See unit test
+        # test_set_vertex_values_using_general_interface_with_subset(self):
+        
 
         if location == 'centroids':
             if indices is None:

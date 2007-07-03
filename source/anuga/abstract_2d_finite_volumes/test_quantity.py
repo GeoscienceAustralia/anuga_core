@@ -376,6 +376,44 @@ class Test_Quantity(unittest.TestCase):
 
 
 
+    def test_set_vertex_values_using_general_interface_with_subset(self):
+        """test_set_vertex_values_using_general_interface_with_subset(self):
+        Test that indices and polygon works
+        """
+        
+        quantity = Quantity(self.mesh4)
+
+
+        quantity.set_values([0,2,3,5], indices=[0,2,3,5])
+        assert allclose(quantity.vertex_values,
+                        [[0,0,2], [0,2,0], [0,2,5], [3,0,0]])
+
+
+        # Constant
+        quantity.set_values(0.0)
+        quantity.set_values(3.14, indices=[0,2], location='vertices')
+
+        # Indices refer to triangle numbers here - not vertices (why?)
+        assert allclose(quantity.vertex_values,
+                        [[3.14,3.14,3.14], [0,0,0],
+                         [3.14,3.14,3.14], [0,0,0]])        
+        
+
+
+        # FIXME: Not done yet
+        # Now try with polygon (pick points where y>2)
+        #polygon = [[0,2.1], [4,2.1], [4,7], [0,7]]
+        #quantity.set_values(0.0)
+        #quantity.set_values(3.14, polygon=polygon, location='vertices')
+        #
+        #print quantity.vertex_values
+        #
+        ## Indices refer to triangle numbers here - not vertices (why?)
+        #assert allclose(quantity.vertex_values,
+        #                [[0,0,0], [0,0,0], [0,0,0],
+        #                 [3.14,3.14,3.14]])                
+
+        
 
 
     def test_set_values_using_fit(self):
