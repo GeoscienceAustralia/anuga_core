@@ -84,6 +84,7 @@ def inundation_damage(sww_base_name, exposure_file_in,
     if exposure_file_out == None:
         exposure_file_out = exposure_file_in
     csv.save(exposure_file_out)
+    if verbose: print '\n Augmented building file written to %s \n' %exposure_file_out
     
 def add_depth_and_momentum2csv(sww_base_name, exposure_file_in,
                       exposure_file_out=None,
