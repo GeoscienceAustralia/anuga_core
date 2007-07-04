@@ -7,7 +7,7 @@ General functions used in fit and interpolate.
 """
 from Numeric import dot
 
-from numerical_tools import get_machine_precision
+from anuga.utilities.numerical_tools import get_machine_precision
 
 def search_tree_of_vertices(root, mesh, x):
     """
@@ -50,6 +50,15 @@ def search_tree_of_vertices(root, mesh, x):
     return element_found, sigma0, sigma1, sigma2, k
 
 def _search_triangles_of_vertices(mesh, candidate_vertices, x):
+    """Search for triangle containing x amongs candidate_vertices in mesh
+
+    This is called by search_tree_of_vertices once the appropriate node
+    has been found from the quad tree.
+
+    This function is responsible for most of the compute time in
+    fit and interpolate.
+    """
+    
     #Find triangle containing x:
     element_found = False
 

@@ -214,7 +214,7 @@ class Test_Fit(unittest.TestCase):
         triangles = [[0,1,3], [1,0,2], [0,4,5], [0,5,2]] #abd bac aef afc
 
         interp = Fit(vertices, triangles,
-                                alpha=0.0)
+                     alpha=0.0)
 
 
         fileName = tempfile.mktemp(".ddd")
