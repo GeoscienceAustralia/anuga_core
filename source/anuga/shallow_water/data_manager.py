@@ -1649,19 +1649,14 @@ def export_grid(basename_in, extra_name_out = None,
     dir, base = os.path.split(basename_in)
     #print "basename_in",basename_in
     #print "base",base
+
+    iterate_over = get_all_swwfiles(dir,base,verbose)
     
     if dir == "":
         dir = "." # Unix compatibility
-    dir_ls = os.listdir(dir)
-    iterate_over = [x[:-4] for x in dir_ls if base in x and x[-4:] == '.sww']
-
-    if len(iterate_over) == 0:
-        msg = 'No files of the base name %s.'\
-              %(basename_in)
-        raise IOError, msg
     
     files_out = []
-#    print 'sww_file',sww_file
+    #print 'sww_file',iterate_over
     for sww_file in iterate_over:
         for quantity in quantities:
             if extra_name_out is None:
@@ -5612,6 +5607,31 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
             maximal_runup_location = [wet_x[runup_index], wet_y[runup_index]]                
 
     return maximal_runup, maximal_runup_location
+
+def get_all_swwfiles(look_in_dir='',base_name='',verbose=False):
+    '''
+    Finds all the sww files in a "look_in_dir" which contains a "base_name" 
+    
+    Returns: a list of strings
+    '''
+        
+    if look_in_dir == "":
+        look_in_dir = "." # Unix compatibility
+    
+    dir_ls = os.listdir(look_in_dir)
+    #print 'dir_ls',dir_ls, base
+    iterate_over = [x[:-4] for x in dir_ls if base_name in x and x[-4:] == '.sww']
+    if len(iterate_over) == 0:
+        msg = 'No files of the base name %s'\
+              %(base_name)
+        raise IOError, msg
+    if verbose: print 'iterate over %s' %(iterate_over)
+
+    #print 'iter',iterate_over
+#    files_out = []
+    #print 'sww_file',sww_file
+#    for sww_file in iterate_over:
+    return iterate_over
 
 
 #-------------------------------------------------------------
