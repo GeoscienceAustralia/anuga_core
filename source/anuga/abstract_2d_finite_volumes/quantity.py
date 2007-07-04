@@ -294,13 +294,14 @@ class Quantity:
 
 
         # Treat special case: Polygon situation
+        # Location will be ignored and set to 'centroids'
         # FIXME (Ole): This needs to be generalised and
         # perhaps the notion of location and indices simplified
+        
         if polygon is not None:
             if indices is not None:
                 msg = 'Only one of polygon and indices can be specified'
                 raise Exception, msg
-
 
             msg = 'With polygon selected, set_quantity must provide '
             msg += 'the keyword numeric and it must (currently) be '

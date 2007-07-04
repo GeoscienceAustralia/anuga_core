@@ -403,15 +403,36 @@ class Test_Quantity(unittest.TestCase):
         # Now try with polygon (pick points where y>2)
         polygon = [[0,2.1], [4,2.1], [4,7], [0,7]]
         quantity.set_values(0.0)
-        quantity.set_values(3.14, polygon=polygon, location='vertices')
+        quantity.set_values(3.14, polygon=polygon)
         
-        # Indices refer to triangle numbers here - not vertices (why?)
         assert allclose(quantity.vertex_values,
                         [[0,0,0], [0,0,0], [0,0,0],
                          [3.14,3.14,3.14]])                
 
-        
 
+        # Another polygon (pick triangle 1 and 2 (rightmost triangles)
+        polygon = [[2.1, 0.0], [3.5,0.1], [2,2.2], [0.2,2]]
+        quantity.set_values(0.0)
+        quantity.set_values(3.14, polygon=polygon)
+
+        assert allclose(quantity.vertex_values,
+                        [[0,0,0],
+                         [3.14,3.14,3.14],
+                         [3.14,3.14,3.14],                         
+                         [0,0,0]])                
+
+
+
+        # Test input checking
+        try:
+            quantity.set_values(3.14, polygon=polygon, indices = [0,2])
+        except:
+            pass
+        else:
+            msg = 'Should have caught this'
+            raise msg
+
+            
 
     def test_set_values_using_fit(self):
 
