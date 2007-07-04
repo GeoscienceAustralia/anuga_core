@@ -839,7 +839,7 @@ class Geospatial_data:
                 raise StopIteration
                 self.finished_reading = False
                 
-        elif self.file_name[-4:]== ".pts":
+        elif self.file_name[-4:] == ".pts":
             if self.start_row == self.last_row:
                 # read the end of the file last iteration
                 # remove blocking attributes
