@@ -547,6 +547,8 @@ class Interpolation_function:
                     result = interpol.interpolate(Q,
                                                   point_coordinates=\
                                                   self.interpolation_points)
+
+                    #assert len(result), len(interpolation_points)
                     self.precomputed_values[name][i, :] = result
 
                    
@@ -644,7 +646,7 @@ class Interpolation_function:
                     Q0 = Q[self.index, point_id]
                     if ratio > 0:
                         Q1 = Q[self.index+1, point_id]
-            
+
             #Linear temporal interpolation    
             if ratio > 0:
                 if Q0 == NAN and Q1 == NAN:

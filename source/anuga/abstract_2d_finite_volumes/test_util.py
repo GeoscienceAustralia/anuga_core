@@ -688,7 +688,8 @@ class Test_Util(unittest.TestCase):
 
 
 
-    def xtest_spatio_temporal_file_function_time(self):
+    def NOtest_spatio_temporal_file_function_time(self):
+        # FIXME: This passes but needs some TLC
         # Test that File function interpolates correctly
         # When some points are outside the mesh
 

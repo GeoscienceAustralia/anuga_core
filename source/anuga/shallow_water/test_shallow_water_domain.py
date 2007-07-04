@@ -4273,10 +4273,11 @@ class Test_Shallow_Water(unittest.TestCase):
         #the sw-ne diagonal
         #from domain 1. Call it domain2
 
-        points = [ [0,0], [1.0/3,0], [1.0/3,1.0/3],
+        points = [ [0,0],
+                   [1.0/3,0], [1.0/3,1.0/3],
                    [2.0/3,0], [2.0/3,1.0/3], [2.0/3,2.0/3],
-                   [1,0], [1,1.0/3], [1,2.0/3], [1,1]]
-
+                   [1,0],     [1,1.0/3],     [1,2.0/3],     [1,1]]  
+                   
         vertices = [ [1,2,0],
                      [3,4,1], [2,1,4], [4,5,2],
                      [6,7,3], [4,3,7], [7,8,4], [5,4,8], [8,9,5]]
@@ -4385,6 +4386,130 @@ class Test_Shallow_Water(unittest.TestCase):
         #First diagonal midpoint
         R0 = Bf.evaluate(8,0)
         assert allclose(R0[0], ((s1[10] + s1[15])/2 + 2.0*(s2[10] + s2[15])/2)/3 + mean_stage)
+
+
+        #Cleanup
+        os.remove(domain1.get_name() + '.' + domain1.format)
+
+
+    def test_spatio_temporal_boundary_outside(self):
+        """Test that field_boundary catches if a point is outside the sww that defines it
+        """
+
+        import time
+        #Create sww file of simple propagation from left to right
+        #through rectangular domain
+
+        from mesh_factory import rectangular
+
+        #Create basic mesh
+        points, vertices, boundary = rectangular(3, 3)
+
+        #Create shallow water domain
+        domain1 = Domain(points, vertices, boundary)
+
+        domain1.reduction = mean
+        domain1.smooth = True #To mimic MOST output
+
+        domain1.default_order = 2
+        domain1.store = True
+        domain1.set_datadir('.')
+        domain1.set_name('spatio_temporal_boundary_source' + str(time.time()))
+
+        #FIXME: This is extremely important!
+        #How can we test if they weren't stored?
+        domain1.quantities_to_be_stored = ['stage', 'xmomentum', 'ymomentum']
+
+
+        #Bed-slope and friction at vertices (and interpolated elsewhere)
+        domain1.set_quantity('elevation', 0)
+        domain1.set_quantity('friction', 0)
+
+        # Boundary conditions
+        Br = Reflective_boundary(domain1)
+        Bd = Dirichlet_boundary([0.3,0,0])
+        domain1.set_boundary({'left': Bd, 'top': Bd, 'right': Br, 'bottom': Br})
+        #Initial condition
+        domain1.set_quantity('stage', 0)
+        domain1.check_integrity()
+
+        finaltime = 5
+        #Evolution  (full domain - large steps)
+        for t in domain1.evolve(yieldstep = 1, finaltime = finaltime):
+            pass
+            #domain1.write_time()
+
+
+        #Create an triangle shaped domain (coinciding with some
+        #coordinates from domain 1, but one edge outside!),
+        #formed from the lower and right hand  boundaries and
+        #the sw-ne diagonal as in the previous test but scaled
+        #in the x direction by a factor of 2
+
+        points = [ [0,0],
+                   [2.0/3,0], [2.0/3,1.0/3],
+                   [4.0/3,0], [4.0/3,1.0/3], [4.0/3,2.0/3],
+                   [2,0],     [2,1.0/3],     [2,2.0/3],     [2,1]  
+                   ]
+
+        vertices = [ [1,2,0],
+                     [3,4,1], [2,1,4], [4,5,2],
+                     [6,7,3], [4,3,7], [7,8,4], [5,4,8], [8,9,5]]
+
+        boundary = { (0,1):'bottom', (1,1):'bottom', (4,1): 'bottom',
+                     (4,2):'right', (6,2):'right', (8,2):'right',
+                     (0,0):'diagonal', (3,0):'diagonal', (8,0):'diagonal'}
+
+        domain2 = Domain(points, vertices, boundary)
+
+        domain2.reduction = domain1.reduction
+        domain2.smooth = False
+        domain2.default_order = 2
+
+        #Bed-slope and friction at vertices (and interpolated elsewhere)
+        domain2.set_quantity('elevation', 0)
+        domain2.set_quantity('friction', 0)
+        domain2.set_quantity('stage', 0)
+
+
+        #Read results for specific timesteps t=1 and t=2
+        from Scientific.IO.NetCDF import NetCDFFile
+        fid = NetCDFFile(domain1.get_name() + '.' + domain1.format)
+
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+        s1 = fid.variables['stage'][1,:]
+        s2 = fid.variables['stage'][2,:]
+        fid.close()
+
+        from Numeric import take, reshape, concatenate
+        shp = (len(x), 1)
+        points = concatenate( (reshape(x, shp), reshape(y, shp)), axis=1)
+        #The diagonal points of domain 1 are 0, 5, 10, 15
+
+        #print points[0], points[5], points[10], points[15]
+        assert allclose( take(points, [0,5,10,15]),
+                         [[0,0], [1.0/3, 1.0/3], [2.0/3, 2.0/3], [1,1]])
+
+
+        # Boundary conditions
+        Br = Reflective_boundary(domain2)
+        #Bf = Spatio_temporal_boundary(domain1.get_name() + '.' + domain1.format,
+        #                              domain2)
+        Bf = Field_boundary(domain1.get_name() + '.' + domain1.format,
+                            domain2, mean_stage=1)
+        
+        domain2.set_boundary({'right':Br, 'bottom':Br, 'diagonal':Bf})
+        domain2.check_integrity()
+
+        try:
+            for t in domain2.evolve(yieldstep = 1, finaltime = finaltime):
+                pass
+        except:
+            pass
+        else:
+            msg = 'This should have caught NAN at boundary'
+            raise Exception, msg
 
 
         #Cleanup
@@ -4618,7 +4743,8 @@ friction  \n \
         #-------------------------------------------------------------
         
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Shallow_Water,'test')
+    suite = unittest.makeSuite(Test_Shallow_Water,'test')    
+    #suite = unittest.makeSuite(Test_Shallow_Water,'test_spatio_temporal_boundary_outside')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_get_maximum_inundation_from_sww')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_temp')    
     

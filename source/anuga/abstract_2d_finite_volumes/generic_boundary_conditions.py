@@ -1,6 +1,8 @@
 """boundary.py - Classes for implementing boundary conditions
 """
 
+from anuga.utilities.numerical_tools import NAN    
+
 
 class Boundary:
     """Base class for boundary conditions.
@@ -270,7 +272,16 @@ class File_boundary(Boundary):
 
         if vol_id is not None and edge_id is not None:
             i = self.boundary_indices[ vol_id, edge_id ]
-            return self.F(t, point_id = i)
+            res = self.F(t, point_id = i)
+
+            if res == NAN:
+                x,y=self.midpoint_coordinates[i,:]
+                msg = 'NAN value found in file_boundary at '
+                msg += 'point id #%d: (%.2f, %.2f)' %(i, x, y)
+                #print msg
+                raise Exception, msg
+            
+            return res 
         else:
             #raise 'Boundary call without point_id not implemented'
             #FIXME: What should the semantics be?

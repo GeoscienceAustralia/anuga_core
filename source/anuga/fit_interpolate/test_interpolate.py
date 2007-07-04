@@ -13,7 +13,7 @@ import tempfile
 import csv
 
 from Scientific.IO.NetCDF import NetCDFFile
-from Numeric import allclose, array, transpose, zeros, Float
+from Numeric import allclose, array, transpose, zeros, Float, sometrue, alltrue, take, where
 
 
 # ANUGA code imports
@@ -1335,6 +1335,15 @@ class Test_Interpolate(unittest.TestCase):
                                    interpolation_points = interpolation_points,
                                    verbose = False)
 
+        
+        assert alltrue(I.precomputed_values['Attribute'][:,4] != NAN)
+        assert sometrue(I.precomputed_values['Attribute'][:,5] == NAN)
+
+        #X = I.precomputed_values['Attribute'][1,:]
+        #print X
+        #print take(X, X == NAN)
+        #print where(X == NAN, range(len(X)), 0)        
+        
         answer = linear_function(interpolation_points)
           
         t = time[0]
