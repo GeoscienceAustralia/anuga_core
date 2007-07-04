@@ -316,7 +316,7 @@ class Quantity:
             location = 'centroids'
 
 
-            points = self.domain.get_centroid_coordinates()
+            points = self.domain.get_centroid_coordinates(absolute=True)
             indices = inside_polygon(points, polygon)
             
             self.set_values_from_constant(numeric,

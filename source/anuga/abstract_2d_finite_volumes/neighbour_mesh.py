@@ -768,14 +768,24 @@ class Mesh(General_mesh):
         """
         return self.lone_vertices
 
-    def get_centroid_coordinates(self):
+    def get_centroid_coordinates(self, absolute=False):
         """Return all centroid coordinates.
         Return all centroid coordinates for all triangles as an Nx2 array
         (ordered as x0, y0 for each triangle)
+
+        Boolean keyword argument absolute determines whether coordinates
+        are to be made absolute by taking georeference into account
+        Default is False as many parts of ANUGA expects relative coordinates.
         """
-        return self.centroid_coordinates
-	
-	
+
+        V = self.centroid_coordinates
+        if absolute is True:
+            if not self.geo_reference.is_absolute():
+                V = self.geo_reference.get_absolute(V)
+            
+        return V
+
+        
     def get_radii(self):
         """Return all radii.
         Return radius of inscribed cirle for all triangles

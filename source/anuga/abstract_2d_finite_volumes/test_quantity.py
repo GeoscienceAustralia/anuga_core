@@ -432,7 +432,59 @@ class Test_Quantity(unittest.TestCase):
             msg = 'Should have caught this'
             raise msg
 
-            
+
+
+
+
+    def test_set_vertex_values_using_general_interface_subset_and_geo(self):
+        """test_set_vertex_values_using_general_interface_with_subset(self):
+        Test that indices and polygon works using georeferencing
+        """
+        
+        quantity = Quantity(self.mesh4)
+        G = Geo_reference(56, 10, 100)
+        quantity.domain.geo_reference = G
+
+        #print quantity.domain.get_nodes(absolute=True)
+
+
+        # Constant
+        quantity.set_values(0.0)
+        quantity.set_values(3.14, indices=[0,2], location='vertices')
+
+        # Indices refer to triangle numbers here - not vertices (why?)
+        assert allclose(quantity.vertex_values,
+                        [[3.14,3.14,3.14], [0,0,0],
+                         [3.14,3.14,3.14], [0,0,0]])        
+        
+
+
+        # Now try with polygon (pick points where y>2)
+        polygon = array([[0,2.1], [4,2.1], [4,7], [0,7]])
+        polygon += [G.xllcorner, G.yllcorner]
+        
+        quantity.set_values(0.0)
+        quantity.set_values(3.14, polygon=polygon)
+        
+        assert allclose(quantity.vertex_values,
+                        [[0,0,0], [0,0,0], [0,0,0],
+                         [3.14,3.14,3.14]])                
+
+
+        # Another polygon (pick triangle 1 and 2 (rightmost triangles)
+        polygon = array([[2.1, 0.0], [3.5,0.1], [2,2.2], [0.2,2]])
+        polygon += [G.xllcorner, G.yllcorner]
+        
+        quantity.set_values(0.0)
+        quantity.set_values(3.14, polygon=polygon)
+
+        assert allclose(quantity.vertex_values,
+                        [[0,0,0],
+                         [3.14,3.14,3.14],
+                         [3.14,3.14,3.14],                         
+                         [0,0,0]])                
+
+
 
     def test_set_values_using_fit(self):
 
