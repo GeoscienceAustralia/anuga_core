@@ -31,7 +31,6 @@ from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.utilities.sparse import Sparse, Sparse_CSR
 from anuga.utilities.cg_solve import conjugate_gradient, VectorShapeError
 from anuga.coordinate_transforms.geo_reference import Geo_reference
-from anuga.utilities.quad import build_quadtree
 from anuga.utilities.numerical_tools import ensure_numeric, mean, NAN
 from anuga.utilities.polygon import in_and_outside_polygon
 from anuga.geospatial_data.geospatial_data import Geospatial_data
@@ -254,7 +253,7 @@ class Interpolate (FitInterpolate):
         #print "self.inside_poly_indices",self.inside_poly_indices
         #print "self.outside_poly_indices",self.outside_poly_indices 
         #Build n x m interpolation matrix
-        if verbose and len(self.outside_poly_indices) >0:
+        if verbose and len(self.outside_poly_indices) > 0:
             print '\n WARNING: Points outside mesh boundary. \n'
         # Since you can block, throw a warning, not an error.
         if verbose and 0 == len(self.inside_poly_indices):
@@ -270,20 +269,21 @@ class Interpolate (FitInterpolate):
 
         n = len(self.inside_poly_indices)
         #Compute matrix elements for points inside the mesh
-        if verbose: print 'Building interpolation matrix fram %d points' %n
-        for k, i in enumerate(self.inside_poly_indices):
-            #For each data_coordinate point
-            if verbose and k%((n+10)/10)==0: print 'Doing %d of %d' %(k, n)
+        if verbose: print 'Building interpolation matrix from %d points' %n
+        for d, i in enumerate(self.inside_poly_indices):
+            # For each data_coordinate point
+            if verbose and d%((n+10)/10)==0: print 'Doing %d of %d' %(d, n)
             x = point_coordinates[i]
             element_found, sigma0, sigma1, sigma2, k = \
                            search_tree_of_vertices(self.root, self.mesh, x)
-	    #Update interpolation matrix A if necessary
+            
+	    # Update interpolation matrix A if necessary
             if element_found is True:
-                #Assign values to matrix A
+                # Assign values to matrix A
 
-                j0 = self.mesh.triangles[k,0] #Global vertex id for sigma0
-                j1 = self.mesh.triangles[k,1] #Global vertex id for sigma1
-                j2 = self.mesh.triangles[k,2] #Global vertex id for sigma2
+                j0 = self.mesh.triangles[k,0] # Global vertex id for sigma0
+                j1 = self.mesh.triangles[k,1] # Global vertex id for sigma1
+                j2 = self.mesh.triangles[k,2] # Global vertex id for sigma2
 
                 sigmas = {j0:sigma0, j1:sigma1, j2:sigma2}
                 js     = [j0,j1,j2]
