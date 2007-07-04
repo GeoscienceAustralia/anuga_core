@@ -18,6 +18,8 @@ from Numeric import array, zeros, Float, less, concatenate, NewAxis,\
      argmax, allclose, take, reshape
 
 from anuga.utilities.numerical_tools import ensure_numeric, is_scalar
+from anuga.utilities.polygon import inside_polygon
+
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.fit_interpolate.fit import fit_to_mesh
 from anuga.config import points_file_block_line_size as default_block_line_size
@@ -266,6 +268,8 @@ class Quantity:
         polygon: Restrict update of quantity to locations that fall
                  inside polygon. Polygon works by selecting indices
                  and calling set_values recursively.
+                 Polygon mode has only been implemented for
+                 constant values so far.
 
         indices: Restrict update of quantity to locations that are 
                  identified by indices (e.g. node ids if location
@@ -289,15 +293,39 @@ class Quantity:
         from Numeric import ArrayType
 
 
-        # Polygon situation
-        #if polygon is not None:
-        #    if indices is not None:
-        #        msg = 'Only one of polygon and indices can be specified'
-        #        raise Exception, msg
-        #
-        #    Need to get candidate points. I think we should
-        #    simplify this whole thing a bit. Do we really need location?
-        #    point_indices = inside_polygon(points, polygon)
+        # Treat special case: Polygon situation
+        # FIXME (Ole): This needs to be generalised and
+        # perhaps the notion of location and indices simplified
+        if polygon is not None:
+            if indices is not None:
+                msg = 'Only one of polygon and indices can be specified'
+                raise Exception, msg
+
+
+            msg = 'With polygon selected, set_quantity must provide '
+            msg += 'the keyword numeric and it must (currently) be '
+            msg += 'a constant.'
+            if numeric is None:
+                raise Exception, msg            
+            else:
+                # Check that numeric is as constant
+                assert type(numeric) in [FloatType, IntType, LongType], msg
+
+
+            location = 'centroids'
+
+
+            points = self.domain.get_centroid_coordinates()
+            indices = inside_polygon(points, polygon)
+            
+            self.set_values_from_constant(numeric,
+                                          location, indices, verbose)
+            
+            self.extrapolate_first_order()
+            return
+        
+        
+
 
 
 

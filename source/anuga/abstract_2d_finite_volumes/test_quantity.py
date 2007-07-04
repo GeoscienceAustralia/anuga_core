@@ -400,18 +400,15 @@ class Test_Quantity(unittest.TestCase):
         
 
 
-        # FIXME: Not done yet
         # Now try with polygon (pick points where y>2)
-        #polygon = [[0,2.1], [4,2.1], [4,7], [0,7]]
-        #quantity.set_values(0.0)
-        #quantity.set_values(3.14, polygon=polygon, location='vertices')
-        #
-        #print quantity.vertex_values
-        #
-        ## Indices refer to triangle numbers here - not vertices (why?)
-        #assert allclose(quantity.vertex_values,
-        #                [[0,0,0], [0,0,0], [0,0,0],
-        #                 [3.14,3.14,3.14]])                
+        polygon = [[0,2.1], [4,2.1], [4,7], [0,7]]
+        quantity.set_values(0.0)
+        quantity.set_values(3.14, polygon=polygon, location='vertices')
+        
+        # Indices refer to triangle numbers here - not vertices (why?)
+        assert allclose(quantity.vertex_values,
+                        [[0,0,0], [0,0,0], [0,0,0],
+                         [3.14,3.14,3.14]])                
 
         
 
