@@ -67,6 +67,8 @@ class BenchmarkLeastSquares:
               is_fit=True,
               use_least_squares=False,
               use_file_type=None,
+              blocking_len=500000,
+              segments_in_mesh=True,
               save=False,
               verbose=False):
         '''
@@ -78,6 +80,7 @@ class BenchmarkLeastSquares:
         #print "max_points_per_cell", max_points_per_cell
 
         mesh_dict = self._build_regular_mesh_dict(maxArea=maxArea,
+                                                  is_segments=segments_in_mesh,
                                                   save=save)
         points_dict = self._build_points_dict(num_of_points=num_of_points)
             
@@ -129,7 +132,7 @@ class BenchmarkLeastSquares:
                                  max_vertices_per_cell = max_points_per_cell)
                 calc = interp.interpolate(mesh_dict['vertex_attributes']
                                           ,points_dict['points']
-                                          ,start_blocking_len = 500000)
+                                          ,start_blocking_len=blocking_len)
             
         time_taken_sec = (time.time()-t0)
         m1 = mem_usage()
@@ -142,8 +145,9 @@ class BenchmarkLeastSquares:
 
     def _build_regular_mesh_dict(self,
                                  maxArea=1000,
+                                 is_segments=True,
                                  save=False):
-      # make a mesh
+      # make a normalised mesh
         # pretty regular size, with some segments thrown in. 
         m = Mesh()
         m.addUserVertex(0,0)
@@ -152,32 +156,33 @@ class BenchmarkLeastSquares:
         m.addUserVertex(1.0,1.0)
         
         m.auto_segment(alpha = 100 )
-        
-        dict = {}
-        dict['points'] = [[.10,.10],[.90,.20]]
-        dict['segments'] = [[0,1]] 
-        dict['segment_tags'] = ['wall1']   
-        m.addVertsSegs(dict)
-    
-        dict = {}
-        dict['points'] = [[.10,.90],[.40,.20]]
-        dict['segments'] = [[0,1]] 
-        dict['segment_tags'] = ['wall2']   
-        m.addVertsSegs(dict)
-        
-        dict = {}
-        dict['points'] = [[.20,.90],[.60,.60]]
-        dict['segments'] = [[0,1]] 
-        dict['segment_tags'] = ['wall3'] 
-        m.addVertsSegs(dict)
-        
-        dict = {}
-        dict['points'] = [[.60,.20],[.90,.90]]
-        dict['segments'] = [[0,1]] 
-        dict['segment_tags'] = ['wall4']   
-        m.addVertsSegs(dict)
 
-        m.generateMesh(mode = "Q", maxArea = maxArea)       
+        if is_segments:
+            dict = {}
+            dict['points'] = [[.10,.10],[.90,.20]]
+            dict['segments'] = [[0,1]] 
+            dict['segment_tags'] = ['wall1']   
+            m.addVertsSegs(dict)
+    
+            dict = {}
+            dict['points'] = [[.10,.90],[.40,.20]]
+            dict['segments'] = [[0,1]] 
+            dict['segment_tags'] = ['wall2']   
+            m.addVertsSegs(dict)
+        
+            dict = {}
+            dict['points'] = [[.20,.90],[.60,.60]]
+            dict['segments'] = [[0,1]] 
+            dict['segment_tags'] = ['wall3'] 
+            m.addVertsSegs(dict)
+        
+            dict = {}
+            dict['points'] = [[.60,.20],[.90,.90]]
+            dict['segments'] = [[0,1]] 
+            dict['segment_tags'] = ['wall4']   
+            m.addVertsSegs(dict)
+
+        m.generateMesh(mode = "Q", maxArea = maxArea, minAngle=20.0)       
         if save is True:
             m.export_mesh_file("aaaa.tsh")
         mesh_dict =  m.Mesh2IOTriangulationDict()
