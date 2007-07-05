@@ -2,13 +2,15 @@
 
 
 import unittest
-from search_functions import *
+from search_functions import search_tree_of_vertices
+from search_functions import _search_triangles_of_vertices
+
 
 from Numeric import zeros, array, allclose
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-
+from anuga.utilities.polygon import is_inside_polygon
 from anuga.utilities.quad import build_quadtree
 
 
@@ -48,16 +50,121 @@ class Test_search_functions(unittest.TestCase):
         #Test that points are arranged in a counter clock wise order
         mesh.check_integrity()
 
-        #print mesh.nodes
-        #print mesh.triangles
         root = build_quadtree(mesh, max_points_per_cell = 1)
-        #print 'root', root.show()
 
-        x = [0.7, 0.7]
+        x = [0.2, 0.7]
         found, s0, s1, s2, k = search_tree_of_vertices(root, mesh, x)
-        #print k
-        # What is k??
+        assert k == 1 # Triangle one
         assert found is True
+
+    def test_bigger(self):
+        """test_larger mesh
+        """
+
+        points, vertices, boundary = rectangular(4, 4, 1, 1)
+        mesh = Mesh(points, vertices, boundary)
+
+        #Test that points are arranged in a counter clock wise order
+        mesh.check_integrity()
+
+        root = build_quadtree(mesh, max_points_per_cell = 4)
+
+        for x in [[0.6, 0.3], [0.1, 0.2], [0.7,0.7],
+                  [0.1,0.9], [0.4,0.6], [0.9,0.1],
+                  [10, 3]]:
+                
+            found, s0, s1, s2, k = search_tree_of_vertices(root, mesh, x)
+
+            if k >= 0:
+                V = mesh.get_vertex_coordinates(k) # nodes for triangle k
+                assert is_inside_polygon(x, V)
+                assert found is True
+                #print k, x
+            else:
+                assert found is False                
+
+        
+
+    def test_large(self):
+        """test_larger mesh and different quad trees
+        """
+
+        points, vertices, boundary = rectangular(10, 12, 1, 1)
+        mesh = Mesh(points, vertices, boundary)
+
+        #Test that points are arranged in a counter clock wise order
+        mesh.check_integrity()
+
+        
+        for m in range(8):
+            root = build_quadtree(mesh, max_points_per_cell = m)
+            #print m, root.show()
+
+            for x in [[0.6, 0.3], [0.1, 0.2], [0.7,0.7],
+                      [0.1,0.9], [0.4,0.6], [0.9,0.1],
+                      [10, 3]]:
+                
+                found, s0, s1, s2, k = search_tree_of_vertices(root, mesh, x)
+
+                if k >= 0:
+                    V = mesh.get_vertex_coordinates(k) # nodes for triangle k
+                    assert is_inside_polygon(x, V)
+                    assert found is True
+                else:
+                    assert found is False                
+
+                
+
+    def test_underlying_function(self):
+        """test_larger mesh and different quad trees
+        """
+
+        points, vertices, boundary = rectangular(2, 2, 1, 1)
+        mesh = Mesh(points, vertices, boundary)
+
+        root = build_quadtree(mesh, max_points_per_cell = 4)
+
+        # One point
+        x = [0.5, 0.5]
+        candidate_vertices = root.search(x[0], x[1])
+
+        #print x, candidate_vertices
+        found, sigma0, sigma1, sigma2, k = \
+               _search_triangles_of_vertices(mesh,
+                                             candidate_vertices,
+                                             x)
+
+        if k >= 0:
+            V = mesh.get_vertex_coordinates(k) # nodes for triangle k
+            assert is_inside_polygon(x, V)
+            assert found is True
+        else:
+            assert found is False                
+
+        
+
+        # More points    
+        for x in [[0.6, 0.3], [0.1, 0.2], [0.7,0.7],
+                  [0.1,0.9], [0.4,0.6], [0.9,0.1],
+                  [10, 3]]:
+                
+            candidate_vertices = root.search(x[0], x[1])
+
+            #print x, candidate_vertices
+            found, sigma0, sigma1, sigma2, k = \
+                   _search_triangles_of_vertices(mesh,
+                                                 candidate_vertices,
+                                                 x)
+            if k >= 0:
+                V = mesh.get_vertex_coordinates(k) # nodes for triangle k
+                assert is_inside_polygon(x, V)
+                assert found is True
+            else:
+                assert found is False                
+            
+
+        
+                
 
         
         

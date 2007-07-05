@@ -261,13 +261,18 @@ class General_mesh:
         
         
 
-    def get_vertex_coordinates(self, absolute=False):
+    def get_vertex_coordinates(self,
+                               triangle_id=None,
+                               absolute=False):
         """Return vertex coordinates for all triangles. 
         
         Return all vertex coordinates for all triangles as a 3*M x 2 array
         where the jth vertex of the ith triangle is located in row 3*i+j and
         M the number of triangles in the mesh.
 
+        if triangle_id is specified (an integer) the 3 vertex coordinates
+        for triangle_id are returned.
+        
         Boolean keyword argument absolute determines whether coordinates
         are to be made absolute by taking georeference into account
         Default is False as many parts of ANUGA expects relative coordinates.
@@ -277,8 +282,17 @@ class General_mesh:
         if absolute is True:
             if not self.geo_reference.is_absolute():
                 V = self.geo_reference.get_absolute(V)
+
+        if triangle_id is None:        
+            return V
+        else:
+            i = triangle_id
+            msg = 'triangle_id must be an integer'
+            assert int(i) == i, msg
+            assert 0 <= i < self.number_of_triangles
             
-        return V
+            i3 = 3*i
+            return array([V[i3,:], V[i3+1,:], V[i3+2,:]])
 
 
 
@@ -287,8 +301,13 @@ class General_mesh:
         Return value is the numeric array slice [x, y]
         """
 
-        V = self.get_vertex_coordinates(absolute=absolute)
-        return V[3*i+j, :]
+        msg = 'vertex id j must be an integer in [0,1,2]'
+        assert j in [0,1,2], msg
+        
+        V = self.get_vertex_coordinates(triangle_id=i,
+                                        absolute=absolute)
+        return V[j,:]
+    
 
 
     def compute_vertex_coordinates(self):
