@@ -64,14 +64,18 @@ import shutil
 from struct import unpack
 import array as p_array
 #import time, os
-from os import sep, path, remove, mkdir, access, F_OK, W_OK
+from os import sep, path, remove, mkdir, access, F_OK, W_OK, getcwd
+
 
 from Numeric import concatenate, array, Float, Int, Int32, resize, sometrue, \
      searchsorted, zeros, allclose, around, reshape, transpose, sort, \
-     NewAxis, ArrayType, compress, take, arange, argmax, alltrue
+     NewAxis, ArrayType, compress, take, arange, argmax, alltrue,shape,Float
+
+import string
+
 from Scientific.IO.NetCDF import NetCDFFile
 #from shutil import copy
-from os.path import exists, basename
+from os.path import exists, basename, join
 
 
 from anuga.coordinate_transforms.redfearn import redfearn, \
@@ -208,7 +212,7 @@ def create_filename(datadir, filename, format, size=None, time=None):
 
 
 def get_files(datadir, filename, format, size):
-    """Get all file (names) with gven name, size and format
+    """Get all file (names) with given name, size and format
     """
 
     import glob
@@ -5240,9 +5244,6 @@ def get_data_from_file(filename,separator_value = ','):
     no blank lines at the end.
     """
     
-    from os import sep, getcwd, access, F_OK, mkdir
-    from Numeric import array, resize,shape,Float
-    import string
     fid = open(filename)
     lines = fid.readlines()
     
@@ -5287,7 +5288,7 @@ def store_parameters(verbose=False,**kwargs):
 
     """
     import types
-    import os
+#    import os
     
     # Check that kwargs is a dictionary
     if type(kwargs) != types.DictType:
@@ -5473,164 +5474,189 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
 
     from anuga.utilities.polygon import inside_polygon    
     from anuga.config import minimum_allowed_height
+    from Scientific.IO.NetCDF import NetCDFFile
 
-
-    root, extension = os.path.splitext(filename)
-    if extension == '':
-        filename += '.sww'
+    dir, base = os.path.split(filename)
+            
+    iterate_over = get_all_swwfiles(dir,base)
     
     # Read sww file
     if verbose: 
         print 'Reading from %s' %filename
         # FIXME: Use general swwstats (when done)
-        
     
-    from Scientific.IO.NetCDF import NetCDFFile
-    fid = NetCDFFile(filename)
-
-    # Get geo_reference
-    # sww files don't have to have a geo_ref
-    try:
-        geo_reference = Geo_reference(NetCDFObject=fid)
-    except AttributeError, e:
-        geo_reference = Geo_reference() # Default georef object
-        
-    xllcorner = geo_reference.get_xllcorner()
-    yllcorner = geo_reference.get_yllcorner()
-    zone = geo_reference.get_zone()
-    
-    # Get extent
-    volumes = fid.variables['volumes'][:]    
-    x = fid.variables['x'][:] + xllcorner
-    y = fid.variables['y'][:] + yllcorner
-
-
-    # Get the relevant quantities
-    elevation = fid.variables['elevation'][:] 
-    stage = fid.variables['stage'][:]
-
-
-    # Here's where one could convert nodal information to centroid information
-    # but is probably something we need to write in C.
-    # Here's a Python thought which is NOT finished!!!
-    if use_centroid_values is True:
-        x = get_centroid_values(x, volumes)
-        y = get_centroid_values(y, volumes)    
-        elevation = get_centroid_values(elevation, volumes)    
-
-
-    # Spatial restriction
-    if polygon is not None:
-        msg = 'polygon must be a sequence of points.'
-        assert len(polygon[0]) == 2, msg
-        # FIXME (Ole): Make a generic polygon input check in polygon.py and call it here
-        
-        points = concatenate((x[:,NewAxis], y[:,NewAxis]), axis=1)
-
-        point_indices = inside_polygon(points, polygon)
-
-        # Restrict quantities to polygon
-        elevation = take(elevation, point_indices)
-        stage = take(stage, point_indices, axis=1)
-
-        # Get info for location of maximal runup
-        points_in_polygon = take(points, point_indices)
-        x = points_in_polygon[:,0]
-        y = points_in_polygon[:,1]        
-    else:
-        # Take all points
-        point_indices = arange(len(x))
-        
-
-    # Temporal restriction
-    time = fid.variables['time'][:]
-    all_timeindices = arange(len(time))        
-    if time_interval is not None:
-        
-        msg = 'time_interval must be a sequence of length 2.'
-        assert len(time_interval) == 2, msg
-        msg = 'time_interval %s must not be decreasing.' %(time_interval)        
-        assert time_interval[1] >= time_interval[0], msg
-        
-        msg = 'Specified time interval [%.8f:%.8f]' %tuple(time_interval)
-        msg += ' must does not match model time interval: [%.8f, %.8f]\n'\
-               %(time[0], time[-1])
-        if time_interval[1] < time[0]: raise ValueError(msg)
-        if time_interval[0] > time[-1]: raise ValueError(msg)
-
-        # Take time indices corresponding to interval (& is bitwise AND)
-        timesteps = compress((time_interval[0] <= time) & (time <= time_interval[1]),
-                             all_timeindices)
-
-
-        msg = 'time_interval %s did not include any model timesteps.' %(time_interval)        
-        assert not alltrue(timesteps == 0), msg
-
-
-    else:
-        # Take them all
-        timesteps = all_timeindices
-    
-
-    fid.close()
-
-    # Compute maximal runup for each timestep
     maximal_runup = None
     maximal_runup_location = None
-    for i in timesteps:
-        if use_centroid_values is True:
-            stage_i = get_centroid_values(stage[i,:], volumes)                
-        else:
-            stage_i = stage[i,:]
-            
-        depth = stage_i  - elevation 
     
-        # Get wet nodes i.e. nodes with depth>0 within given region and timesteps
-        wet_nodes = compress(depth > minimum_allowed_height, arange(len(depth)))
-
-        if alltrue(wet_nodes == 0):
-            runup = None
-        else:    
-            # Find maximum elevation among wet nodes
-            wet_elevation = take(elevation, wet_nodes)
-
-            runup_index = argmax(wet_elevation)
-            runup = max(wet_elevation)
-            assert wet_elevation[runup_index] == runup # Must always be True
-
-        if runup > maximal_runup:
-            maximal_runup = runup      # This works even if maximal_runup is None
-
-            # Record location
-            wet_x = take(x, wet_nodes)
-            wet_y = take(y, wet_nodes)            
-            maximal_runup_location = [wet_x[runup_index], wet_y[runup_index]]                
-
+    for file, swwfile in enumerate (iterate_over):
+        
+        # Read sww file
+        filename = join(dir,swwfile+'.sww')
+        
+        if verbose: 
+            print 'Reading from %s' %filename
+            # FIXME: Use general swwstats (when done)
+                
+        fid = NetCDFFile(filename)
+    
+        # Get geo_reference
+        # sww files don't have to have a geo_ref
+        try:
+            geo_reference = Geo_reference(NetCDFObject=fid)
+        except AttributeError, e:
+            geo_reference = Geo_reference() # Default georef object
+            
+        xllcorner = geo_reference.get_xllcorner()
+        yllcorner = geo_reference.get_yllcorner()
+        zone = geo_reference.get_zone()
+        
+        # Get extent
+        volumes = fid.variables['volumes'][:]    
+        x = fid.variables['x'][:] + xllcorner
+        y = fid.variables['y'][:] + yllcorner
+    
+    
+        # Get the relevant quantities
+        elevation = fid.variables['elevation'][:] 
+        stage = fid.variables['stage'][:]
+    
+    
+        # Here's where one could convert nodal information to centroid information
+        # but is probably something we need to write in C.
+        # Here's a Python thought which is NOT finished!!!
+        if use_centroid_values is True:
+            x = get_centroid_values(x, volumes)
+            y = get_centroid_values(y, volumes)    
+            elevation = get_centroid_values(elevation, volumes)    
+    
+    
+        # Spatial restriction
+        if polygon is not None:
+            msg = 'polygon must be a sequence of points.'
+            assert len(polygon[0]) == 2, msg
+            # FIXME (Ole): Make a generic polygon input check in polygon.py and call it here
+            
+            points = concatenate((x[:,NewAxis], y[:,NewAxis]), axis=1)
+    
+            point_indices = inside_polygon(points, polygon)
+    
+            # Restrict quantities to polygon
+            elevation = take(elevation, point_indices)
+            stage = take(stage, point_indices, axis=1)
+    
+            # Get info for location of maximal runup
+            points_in_polygon = take(points, point_indices)
+            x = points_in_polygon[:,0]
+            y = points_in_polygon[:,1]        
+        else:
+            # Take all points
+            point_indices = arange(len(x))
+            
+    
+        # Temporal restriction
+        time = fid.variables['time'][:]
+        all_timeindices = arange(len(time))        
+        if time_interval is not None:
+            
+            msg = 'time_interval must be a sequence of length 2.'
+            assert len(time_interval) == 2, msg
+            msg = 'time_interval %s must not be decreasing.' %(time_interval)        
+            assert time_interval[1] >= time_interval[0], msg
+            
+            msg = 'Specified time interval [%.8f:%.8f]' %tuple(time_interval)
+            msg += ' must does not match model time interval: [%.8f, %.8f]\n'\
+                   %(time[0], time[-1])
+            if time_interval[1] < time[0]: raise ValueError(msg)
+            if time_interval[0] > time[-1]: raise ValueError(msg)
+    
+            # Take time indices corresponding to interval (& is bitwise AND)
+            timesteps = compress((time_interval[0] <= time) & (time <= time_interval[1]),
+                                 all_timeindices)
+    
+    
+            msg = 'time_interval %s did not include any model timesteps.' %(time_interval)        
+            assert not alltrue(timesteps == 0), msg
+    
+    
+        else:
+            # Take them all
+            timesteps = all_timeindices
+        
+    
+        fid.close()
+    
+        # Compute maximal runup for each timestep
+        #maximal_runup = None
+        #maximal_runup_location = None
+        #maximal_runups = [None]
+        #maximal_runup_locations = [None]
+        
+        for i in timesteps:
+            if use_centroid_values is True:
+                stage_i = get_centroid_values(stage[i,:], volumes)                
+            else:
+                stage_i = stage[i,:]
+                
+            depth = stage_i  - elevation 
+        
+            # Get wet nodes i.e. nodes with depth>0 within given region and timesteps
+            wet_nodes = compress(depth > minimum_allowed_height, arange(len(depth)))
+    
+            if alltrue(wet_nodes == 0):
+                runup = None
+            else:    
+                # Find maximum elevation among wet nodes
+                wet_elevation = take(elevation, wet_nodes)
+    
+                runup_index = argmax(wet_elevation)
+                runup = max(wet_elevation)
+                assert wet_elevation[runup_index] == runup # Must always be True
+            if runup > maximal_runup:
+                maximal_runup = runup      # This works even if maximal_runups is None
+                #print "NEW RUNUP",runup
+    
+                # Record location
+                wet_x = take(x, wet_nodes)
+                wet_y = take(y, wet_nodes)            
+                maximal_runup_location = [wet_x[runup_index], wet_y[runup_index]]
+    
+    #print 'maximal_runup, maximal_runup_location',maximal_runup, maximal_runup_location
     return maximal_runup, maximal_runup_location
 
 def get_all_swwfiles(look_in_dir='',base_name='',verbose=False):
     '''
-    Finds all the sww files in a "look_in_dir" which contains a "base_name" 
+    Finds all the sww files in a "look_in_dir" which contains a "base_name". 
+    will accept base_name with or without the extension ".sww"
     
     Returns: a list of strings
-    '''
         
+    Usage:     iterate_over = get_all_swwfiles(dir, name)
+    then
+               for swwfile in iterate_over:
+                   do stuff
+                   
+    Check "export_grids" and "get_maximum_inundation_data" for examples
+    '''
+    
+    #plus tests the extension
+    name, extension = os.path.splitext(base_name)
+
+    if extension <>'' and extension <> '.sww':
+        msg = msg='file %s %s must be an NetCDF sww file!'%(base_name,extension)
+        raise IOError, msg
+
     if look_in_dir == "":
         look_in_dir = "." # Unix compatibility
     
     dir_ls = os.listdir(look_in_dir)
     #print 'dir_ls',dir_ls, base
-    iterate_over = [x[:-4] for x in dir_ls if base_name in x and x[-4:] == '.sww']
+    iterate_over = [x[:-4] for x in dir_ls if name in x and x[-4:] == '.sww']
     if len(iterate_over) == 0:
         msg = 'No files of the base name %s'\
-              %(base_name)
+              %(name)
         raise IOError, msg
     if verbose: print 'iterate over %s' %(iterate_over)
 
-    #print 'iter',iterate_over
-#    files_out = []
-    #print 'sww_file',sww_file
-#    for sww_file in iterate_over:
     return iterate_over
 
 

@@ -7141,6 +7141,46 @@ friction  \n \
 
         #Cleanup
         os.remove(swwfile)
+        
+    def test_get_all_swwfiles(self):
+        try:
+            swwfiles = get_all_swwfiles('','test.txt')  #Invalid
+        except IOError:
+            pass
+        else:
+            raise 'Should have raised exception' 
+        
+    def test_get_all_swwfiles1(self):
+        
+        filename0 = tempfile.mktemp('.sww','test')
+        filename1 = tempfile.mktemp('.sww','test')
+        filename2 = tempfile.mktemp('.sww','test')
+        filename3 = tempfile.mktemp('.sww','test')
+       
+#        print filename0,filename1,filename2,filename3
+        
+        fid0 = open(filename0, 'w')
+        fid0.write('hello')
+        fid1 = open(filename1, 'w')
+        fid1.write('hello')
+        fid2 = open(filename2, 'w')
+        fid2.write('hello')
+        fid3 = open(filename3, 'w')
+        fid3.write('hello')
+        
+        iterate=get_all_swwfiles('/tmp','test')
+        
+        assert filename0[:-4]==join('/tmp',iterate[0])
+        assert filename1[:-4]==join('/tmp',iterate[1])
+        assert filename2[:-4]==join('/tmp',iterate[2])        
+        assert filename3[:-4]==join('/tmp',iterate[3])        
+
+        os.remove(filename0)
+        os.remove(filename1)
+        os.remove(filename2)
+        os.remove(filename3)
+        
+        
 
 
 
@@ -7149,7 +7189,7 @@ if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager,'test_get_maximum_inundation')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_sww_header')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_export_grid_parallel')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_export_gridIII')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_get_all_swwfiles')
     suite = unittest.makeSuite(Test_Data_Manager,'test')
 
     
