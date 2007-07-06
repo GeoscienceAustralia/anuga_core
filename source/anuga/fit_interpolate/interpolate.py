@@ -47,7 +47,7 @@ class Interpolate (FitInterpolate):
                  triangles,
                  mesh_origin=None,
                  verbose=False,
-                 max_vertices_per_cell=None):
+                 max_vertices_per_cell=30):
 
 
         """ Build interpolation matrix mapping from
