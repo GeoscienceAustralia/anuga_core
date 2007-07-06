@@ -969,7 +969,9 @@ def get_gauges_from_file(filename):
     line1 = lines[0]
     line11 = line1.split(',')
 
-    if isinstance(line11[0],str) is True:
+    try:
+        float(line11[0])
+    except:    
         # We have found text in the first line
         east_index = None
         north_index = None
@@ -996,7 +998,7 @@ def get_gauges_from_file(filename):
 
         lines = lines[1:] # Remove header from data
     else:
-        # No header, assume that this is a simple easting, northing file
+        # First field in first line contains a number, so there is no header. Assume that this is a simple easting, northing file
 
         msg = 'There was no header in file %s and the number of columns is %d' %(filename, len(line11))
         msg += '- I was assuming two columns corresponding to Easting and Northing'
