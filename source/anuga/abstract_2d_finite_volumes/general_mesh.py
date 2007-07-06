@@ -402,7 +402,8 @@ class General_mesh:
 
         Return list of triangle_ids, vertex_ids for specified node.
         If node in None or absent, this information will be returned
-        for all (full) nodes.
+        for all (full) nodes in a list L where L[v] is the triangle
+        list for node v.
         """
 
         triangle_list = []
@@ -420,12 +421,16 @@ class General_mesh:
                 vertex_id = index % 3
 
                 triangle_list.append( (volume_id, vertex_id) )
+
+            triangle_list = array(triangle_list)    
         else:
             # Get info for all nodes recursively.
             # If need be, we can speed this up by
             # working directly with the inverted triangle structure
             for i in range(self.number_of_full_nodes):
+                
                 L = self.get_triangles_and_vertices_per_node(node=i)
+
                 triangle_list.append(L)
 
         return triangle_list

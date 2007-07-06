@@ -59,6 +59,7 @@ def search_tree_of_vertices(root, mesh, x):
 
     return element_found, sigma0, sigma1, sigma2, k
 
+
 def _search_triangles_of_vertices(mesh, candidate_vertices, x):
     """Search for triangle containing x amongs candidate_vertices in mesh
 
@@ -81,6 +82,7 @@ def _search_triangles_of_vertices(mesh, candidate_vertices, x):
     
     #For all vertices in same cell as point x
     for v in candidate_vertices:
+        
         #FIXME (DSG-DSG): this catches verts with no triangle.
         #Currently pmesh is producing these.
         #this should be stopped,
@@ -88,44 +90,62 @@ def _search_triangles_of_vertices(mesh, candidate_vertices, x):
         if mesh.number_of_triangles_per_node[v] == 0:
             continue
         
-        #for each triangle id (k) which has v as a vertex
-        vertexlist = mesh.get_triangles_and_vertices_per_node(node=v)
-        for k, _ in vertexlist:
-            #Get the three vertex_points of candidate triangle k
-            xi0, xi1, xi2 = mesh.get_vertex_coordinates(triangle_id=k)            
+        # Get all triangles which has v as a vertex
+        # The list has elements (triangle, vertex), but only the
+        # first component will be used here
+        triangle_list = mesh.get_triangles_and_vertices_per_node(node=v)
 
-            # Get the three normals (faster than using API)
-            n0 = mesh.normals[k,0:2]
-            n1 = mesh.normals[k,2:4]
-            n2 = mesh.normals[k,4:6]            
+        # Find triangle that contains x (if any) and interpolate
+        element_found, sigma0, sigma1, sigma2, k =\
+                       find_triangle_compute_interpolation(mesh,
+                                                           triangle_list,
+                                                           x)
 
-            
-            #Compute interpolation
-            sigma2 = dot((x-xi0), n2)/dot((xi2-xi0), n2)
-            sigma0 = dot((x-xi1), n0)/dot((xi0-xi1), n0)
-            sigma1 = dot((x-xi2), n1)/dot((xi1-xi2), n1)
-
-            # Integrity check - machine precision is too hard
-            # so we use hardwired single precision 
-            epsilon = 1.0e-6
-            msg = 'abs(sigma0+sigma1+sigma2-1) = %.15e, eps = %.15e'\
-                  %(abs(sigma0+sigma1+sigma2-1), epsilon)
-            assert abs(sigma0 + sigma1 + sigma2 - 1.0) < epsilon, msg
-
-
-            #Check that this triangle contains the data point
-            
-            # Sigmas are allowed to get negative within
-            # machine precision on some machines (e.g. nautilus)
-            epsilon = get_machine_precision() * 2
-            if sigma0 >= -epsilon and sigma1 >= -epsilon and sigma2 >= -epsilon:
-                element_found = True
-                break
-            
         if element_found is True:
-            # Don't look for any other triangle
+            # Don't look for any other triangle           
             break
+
         
     return element_found, sigma0, sigma1, sigma2, k
 
 
+            
+def find_triangle_compute_interpolation(mesh, triangle_list, x):
+    """Compute linear interpolation of point x and triangle k in mesh.
+    It is assumed that x belongs to triangle k.
+    """
+
+    element_found = False
+    for k, _ in triangle_list:
+        # Get the three vertex_points of candidate triangle k
+        xi0, xi1, xi2 = mesh.get_vertex_coordinates(triangle_id=k)            
+        
+        # Get the three normals 
+        n0 = mesh.get_normal(k, 0)
+        n1 = mesh.get_normal(k, 1)
+        n2 = mesh.get_normal(k, 2)            
+        
+        
+        # Compute interpolation
+        sigma2 = dot((x-xi0), n2)/dot((xi2-xi0), n2)
+        sigma0 = dot((x-xi1), n0)/dot((xi0-xi1), n0)
+        sigma1 = dot((x-xi2), n1)/dot((xi1-xi2), n1)
+
+        # Integrity check - machine precision is too hard
+        # so we use hardwired single precision 
+        epsilon = 1.0e-6
+        delta = abs(sigma0+sigma1+sigma2-1.0) # Should be close to zero
+        msg = 'abs(sigma0+sigma1+sigma2-1) = %.15e, eps = %.15e'\
+              %(delta, epsilon)
+        assert delta < epsilon, msg
+
+
+        # Check that this triangle contains the data point
+        # Sigmas are allowed to get negative within
+        # machine precision on some machines (e.g. nautilus)
+        epsilon = get_machine_precision() * 2
+        if sigma0 >= -epsilon and sigma1 >= -epsilon and sigma2 >= -epsilon:
+            element_found = True
+            break
+            
+    return element_found, sigma0, sigma1, sigma2, k

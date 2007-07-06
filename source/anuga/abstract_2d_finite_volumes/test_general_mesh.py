@@ -165,14 +165,12 @@ class Test_General_Mesh(unittest.TestCase):
 
         # One node
         L = domain.get_triangles_and_vertices_per_node(node=2)
-
         assert allclose(L[0], [0, 2])
         assert allclose(L[1], [1, 1])
         assert allclose(L[2], [2, 1])
 
         # All nodes
         ALL = domain.get_triangles_and_vertices_per_node()
-
         assert len(ALL) == 6
         for i, Lref in enumerate(ALL):
             L = domain.get_triangles_and_vertices_per_node(node=i)
@@ -223,7 +221,6 @@ class Test_General_Mesh(unittest.TestCase):
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_General_Mesh,'test')    
-    #suite = unittest.makeSuite(Test_General_Mesh,'test_vertex_value_indices')
     runner = unittest.TextTestRunner()
     runner.run(suite)
 
