@@ -526,24 +526,15 @@ def _fit_to_mesh(vertex_coordinates,
                             point_coordinates.
 
     """
-    #Since this is a wrapper for fit, lets handle the geo_spatial att's
-    if use_cache is True:
-        interp = cache(_fit,
-                       (vertex_coordinates,
-                        triangles),
-                       {'verbose': verbose,
-                        'mesh_origin': mesh_origin,
-                        'alpha':alpha},
-                       compression = False,
-                       verbose = verbose)        
-        
-    else:
-        interp = Fit(vertex_coordinates,
-                     triangles,
-                     verbose=verbose,
-                     mesh_origin=mesh_origin,
-                     alpha=alpha)
-        
+
+    # Duncan and Ole think that this isn't worth caching.
+    # Caching happens at the higher level anyway.
+    interp = Fit(vertex_coordinates,
+                 triangles,
+                 verbose=verbose,
+                 mesh_origin=mesh_origin,
+                 alpha=alpha)
+
     vertex_attributes = interp.fit(point_coordinates,
                                    point_attributes,
                                    point_origin=data_origin,
@@ -560,12 +551,13 @@ def _fit_to_mesh(vertex_coordinates,
     
     return vertex_attributes
 
-def _fit(*args, **kwargs):
-    """Private function for use with caching. Reason is that classes
-    may change their byte code between runs which is annoying.
-    """
-    
-    return Fit(*args, **kwargs)
+
+#def _fit(*args, **kwargs):
+#    """Private function for use with caching. Reason is that classes
+#    may change their byte code between runs which is annoying.
+#    """
+#    
+#    return Fit(*args, **kwargs)
 
 
 def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
