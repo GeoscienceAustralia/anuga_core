@@ -7152,13 +7152,13 @@ friction  \n \
         
     def test_get_all_swwfiles1(self):
         
-        temp_dir = tempfile.mkdtemp('sww_test')
+        temp_dir = tempfile.mkdtemp('','sww_test')
         filename0 = tempfile.mktemp('.sww','test',temp_dir)
         filename1 = tempfile.mktemp('.sww','test',temp_dir)
         filename2 = tempfile.mktemp('.sww','test',temp_dir)
         filename3 = tempfile.mktemp('.sww','test',temp_dir)
        
-        #print'filename', filename0#,filename1,filename2,filename3
+        #print'filename', filename0,filename1,filename2,filename3
         
         fid0 = open(filename0, 'w')
         fid1 = open(filename1, 'w')
@@ -7190,10 +7190,12 @@ friction  \n \
         _, name2 = os.path.split(filename2)       
         _, name3 = os.path.split(filename3)       
 
-        assert name0[:-4]==iterate[0]
-        assert name1[:-4]==iterate[1]
-        assert name2[:-4]==iterate[2]
-        assert name3[:-4]==iterate[3]
+        assert name0[:-4] in iterate
+        assert name1[:-4] in iterate
+        assert name2[:-4] in iterate
+        assert name3[:-4] in iterate
+        
+        assert len(iterate)==4
 
         
         
