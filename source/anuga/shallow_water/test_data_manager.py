@@ -7161,21 +7161,28 @@ friction  \n \
         #print'filename', filename0#,filename1,filename2,filename3
         
         fid0 = open(filename0, 'w')
-        fid0.write('hello')
         fid1 = open(filename1, 'w')
-        fid1.write('hello')
         fid2 = open(filename2, 'w')
-        fid2.write('hello')
         fid3 = open(filename3, 'w')
+
+        fid0.write('hello')
+        fid1.write('hello')
+        fid2.write('hello')
         fid3.write('hello')
+        
+        fid0.close()
+        fid1.close()
+        fid2.close()
+        fid3.close()
+        
         
         dir, name0 = os.path.split(filename0)
         #print 'dir',dir,name0
         
         iterate=get_all_swwfiles(dir,'test')
         
-#        del_dir(temp_dir)
-        removeall(temp_dir)
+        del_dir(temp_dir)
+#        removeall(temp_dir)
 
         _, name0 = os.path.split(filename0) 
         #print'name0',name0[:-4],iterate[0]    
