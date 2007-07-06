@@ -7152,12 +7152,13 @@ friction  \n \
         
     def test_get_all_swwfiles1(self):
         
-        filename0 = tempfile.mktemp('.sww','test')
-        filename1 = tempfile.mktemp('.sww','test')
-        filename2 = tempfile.mktemp('.sww','test')
-        filename3 = tempfile.mktemp('.sww','test')
+        temp_dir = tempfile.mkdtemp('sww_test')
+        filename0 = tempfile.mktemp('.sww','test',temp_dir)
+        filename1 = tempfile.mktemp('.sww','test',temp_dir)
+        filename2 = tempfile.mktemp('.sww','test',temp_dir)
+        filename3 = tempfile.mktemp('.sww','test',temp_dir)
        
-#        print filename0,filename1,filename2,filename3
+        #print'filename', filename0#,filename1,filename2,filename3
         
         fid0 = open(filename0, 'w')
         fid0.write('hello')
@@ -7168,17 +7169,24 @@ friction  \n \
         fid3 = open(filename3, 'w')
         fid3.write('hello')
         
-        iterate=get_all_swwfiles('/tmp','test')
+        dir, name0 = os.path.split(filename0)
+        #print 'dir',dir,name0
         
-        assert filename0[:-4]==join('/tmp',iterate[0])
-        assert filename1[:-4]==join('/tmp',iterate[1])
-        assert filename2[:-4]==join('/tmp',iterate[2])        
-        assert filename3[:-4]==join('/tmp',iterate[3])        
+        iterate=get_all_swwfiles(dir,'test')
+        
+        del_dir(temp_dir)
 
-        os.remove(filename0)
-        os.remove(filename1)
-        os.remove(filename2)
-        os.remove(filename3)
+        _, name0 = os.path.split(filename0) 
+        #print'name0',name0[:-4],iterate[0]    
+        _, name1 = os.path.split(filename1)       
+        _, name2 = os.path.split(filename2)       
+        _, name3 = os.path.split(filename3)       
+
+        assert name0[:-4]==iterate[0]
+        assert name1[:-4]==iterate[1]
+        assert name2[:-4]==iterate[2]
+        assert name3[:-4]==iterate[3]
+
         
         
 

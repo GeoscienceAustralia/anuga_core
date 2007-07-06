@@ -59,7 +59,7 @@ class NewQuantity(exceptions.Exception): pass
 
 
 import csv
-import os
+import os, sys
 import shutil
 from struct import unpack
 import array as p_array
@@ -132,7 +132,6 @@ def check_dir(path, verbose=None):
 
     """
 
-    import os, sys
     import os.path
 
     if sys.platform in ['nt', 'dos', 'win32', 'what else?']:
@@ -191,6 +190,34 @@ def del_dir(path):
                     print "Could not remove file %s" %X
 
         os.rmdir(path)
+        
+        
+# ANOTHER OPTION, IF NEED IN THE FUTURE, Nick B 7/2007    
+#    def rmgeneric(path, __func__):
+#        ERROR_STR= """Error removing %(path)s, %(error)s """
+#
+#        try:
+#            __func__(path)
+#            print 'Removed ', path
+#        except OSError, (errno, strerror):
+#            print ERROR_STR % {'path' : path, 'error': strerror }
+#                
+#    def removeall(path):
+#    
+#        if not os.path.isdir(path):
+#            return
+#        
+#        files=os.listdir(path)
+#    
+#        for x in files:
+#            fullpath=os.path.join(path, x)
+#            if os.path.isfile(fullpath):
+#                f=os.remove
+#                rmgeneric(fullpath, f)
+#            elif os.path.isdir(fullpath):
+#                removeall(fullpath)
+#                f=os.rmdir
+#                rmgeneric(fullpath, f)
 
 
 
@@ -5658,6 +5685,7 @@ def get_all_swwfiles(look_in_dir='',base_name='',verbose=False):
     if verbose: print 'iterate over %s' %(iterate_over)
 
     return iterate_over
+
 
 
 #-------------------------------------------------------------
