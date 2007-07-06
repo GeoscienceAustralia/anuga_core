@@ -7174,7 +7174,8 @@ friction  \n \
         
         iterate=get_all_swwfiles(dir,'test')
         
-        del_dir(temp_dir)
+#        del_dir(temp_dir)
+        removeall(temp_dir)
 
         _, name0 = os.path.split(filename0) 
         #print'name0',name0[:-4],iterate[0]    

@@ -193,31 +193,31 @@ def del_dir(path):
         
         
 # ANOTHER OPTION, IF NEED IN THE FUTURE, Nick B 7/2007    
-#    def rmgeneric(path, __func__):
-#        ERROR_STR= """Error removing %(path)s, %(error)s """
-#
-#        try:
-#            __func__(path)
-#            print 'Removed ', path
-#        except OSError, (errno, strerror):
-#            print ERROR_STR % {'path' : path, 'error': strerror }
-#                
-#    def removeall(path):
-#    
-#        if not os.path.isdir(path):
-#            return
-#        
-#        files=os.listdir(path)
-#    
-#        for x in files:
-#            fullpath=os.path.join(path, x)
-#            if os.path.isfile(fullpath):
-#                f=os.remove
-#                rmgeneric(fullpath, f)
-#            elif os.path.isdir(fullpath):
-#                removeall(fullpath)
-#                f=os.rmdir
-#                rmgeneric(fullpath, f)
+def rmgeneric(path, __func__,verbose=False):
+    ERROR_STR= """Error removing %(path)s, %(error)s """
+
+    try:
+        __func__(path)
+        if verbose: print 'Removed ', path
+    except OSError, (errno, strerror):
+        print ERROR_STR % {'path' : path, 'error': strerror }
+            
+def removeall(path,verbose=False):
+
+    if not os.path.isdir(path):
+        return
+    
+    files=os.listdir(path)
+
+    for x in files:
+        fullpath=os.path.join(path, x)
+        if os.path.isfile(fullpath):
+            f=os.remove
+            rmgeneric(fullpath, f)
+        elif os.path.isdir(fullpath):
+            removeall(fullpath)
+            f=os.rmdir
+            rmgeneric(fullpath, f,verbose)
 
 
 
