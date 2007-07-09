@@ -6562,6 +6562,29 @@ friction  \n \
 
         self.delete_mux(files)
         
+    def test_urs_ungridded2sww_mint_maxt_bad (self):       
+        #Zone:   50    
+        #Easting:  240992.578  Northing: 7620442.472 
+        #Latitude:   -21  30 ' 0.00000 ''  Longitude: 114  30 ' 0.00000 '' 
+        lat_long = [[-21.5,114.5],[-21,114.5],[-21,115]]
+        time_step_count = 6
+        time_step = 100
+        tide = 9000000
+        base_name, files = self.write_mux(lat_long,
+                                          time_step_count, time_step)
+        try:
+            urs_ungridded2sww(base_name, mean_stage=tide,
+                          origin =(50,23432,4343),
+                          mint=301, maxt=301,
+                              verbose=self.verbose)
+        except: 
+            pass
+        else:
+            self.failUnless(0 ==1, 'Bad input did not throw exception error!')
+
+        self.delete_mux(files)
+
+        
     def test_URS_points_needed_and_urs_ungridded2sww(self):
         # This doesn't actually check anything
         #  
@@ -7207,7 +7230,7 @@ if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager,'test_get_maximum_inundation')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_sww_header')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_export_grid_parallel')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_get_all_swwfiles')
+    #suite = unittest.makeSuite(Test_Data_Manager,'t')
     suite = unittest.makeSuite(Test_Data_Manager,'test')
 
     
