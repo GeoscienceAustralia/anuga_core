@@ -104,7 +104,7 @@ quantity_formula = {'momentum':'(xmomentum**2 + ymomentum**2)**0.5',
 
     
 def make_filename(s):
-    """Transform argument string into a suitable filename
+    """Transform argument string into a Sexsuitable filename
     """
 
     s = s.strip()
@@ -807,8 +807,7 @@ class Exposure_csv:
         #The keys are the column titles.
         #The values are the index positions of file columns.
         self._attribute_dic, self._title_index_dic = \
-        self._load_exposure_csv(self._file_name,
-                                title_check_list=title_check_list)
+            csv2dict(self._file_name, title_check_list=title_check_list)
         try:
             #Have code here that handles caps or lower 
             lats = self._attribute_dic[latitude_title]
@@ -866,45 +865,6 @@ class Exposure_csv:
         else:
             return 1
     
-    def _load_exposure_csv(self, file_name, title_check_list=None):
-        """
-        Load in the csv as a dic, title as key and column info as value, .
-        Also, create a dic, title as key and column index as value,
-        to keep track of the column order. 
-        """
-        #
-        attribute_dic = {}
-        title_index_dic = {}
-        titles_stripped = [] # list of titles
-        reader = csv.reader(file(file_name))
-
-        # Read in and manipulate the title info
-        titles = reader.next()
-        for i,title in enumerate(titles):
-            titles_stripped.append(title.strip())
-            title_index_dic[title.strip()] = i
-        title_count = len(titles_stripped)       
-        #print "title_index_dic",title_index_dic
-        if title_check_list is not None:
-            for title_check in title_check_list:
-                #msg = "Reading error.  This row is not present ", title_check 
-                #assert title_index_dic.has_key(title_check), msg
-                if not title_index_dic.has_key(title_check):
-                    #reader.close()
-                    msg = "Reading error.  This row is not present ", \
-                          title_check                     
-                    raise IOError, msg
-                    
-        
-        
-        #create a dic of colum values, indexed by column title
-        for line in reader:
-            if len(line) <> title_count:
-                raise IOError #FIXME make this nicer
-            for i, value in enumerate(line):
-                attribute_dic.setdefault(titles_stripped[i],[]).append(value)
-            
-        return attribute_dic, title_index_dic
 
     def get_column(self, column_name, use_refind_polygon=False):
         """
@@ -1001,6 +961,52 @@ class Exposure_csv:
                 line[self._title_index_dic[title]]= \
                      self._attribute_dic[title][row_i]
             writer.writerow(line)
+
+
+def csv2dict(file_name, title_check_list=None):
+    """
+    Load in the csv as a dic, title as key and column info as value, .
+    Also, create a dic, title as key and column index as value,
+    to keep track of the column order. 
+    
+    WARNING: Vaules are returned as strings.
+    do this to change a list of strings to a list of floats
+        time = [float(x) for x in time]
+    """
+    
+    #
+    attribute_dic = {}
+    title_index_dic = {}
+    titles_stripped = [] # list of titles
+    reader = csv.reader(file(file_name))
+
+    # Read in and manipulate the title info
+    titles = reader.next()
+    for i,title in enumerate(titles):
+        titles_stripped.append(title.strip())
+        title_index_dic[title.strip()] = i
+    title_count = len(titles_stripped)       
+    #print "title_index_dic",title_index_dic
+    if title_check_list is not None:
+        for title_check in title_check_list:
+            #msg = "Reading error.  This row is not present ", title_check 
+            #assert title_index_dic.has_key(title_check), msg
+            if not title_index_dic.has_key(title_check):
+                #reader.close()
+                msg = "Reading error.  This row is not present ", \
+                      title_check                     
+                raise IOError, msg
+                
+    
+    
+    #create a dic of colum values, indexed by column title
+    for line in reader:
+        if len(line) <> title_count:
+            raise IOError #FIXME make this nicer
+        for i, value in enumerate(line):
+            attribute_dic.setdefault(titles_stripped[i],[]).append(value)
+        
+    return attribute_dic, title_index_dic
 
 
 #Auxiliary
