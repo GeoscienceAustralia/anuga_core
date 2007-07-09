@@ -36,6 +36,8 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.geospatial_data.geospatial_data import Geospatial_data, \
      ensure_absolute
 
+# tests fail if 2 is used
+MAX_VERTICES_PER_CELL = 30
 
 class FitInterpolate:
     
@@ -44,7 +46,7 @@ class FitInterpolate:
                  triangles,
                  mesh_origin=None,
                  verbose=False,
-                 max_vertices_per_cell=30):
+                 max_vertices_per_cell=None):
 
 
         """ Build interpolation matrix mapping from
@@ -73,6 +75,9 @@ class FitInterpolate:
               a mesh origin, since geospatial has its own mesh origin.
         """
 
+        if max_vertices_per_cell == None:
+            max_vertices_per_cell = MAX_VERTICES_PER_CELL
+        
         #Convert input to Numeric arrays
         triangles = ensure_numeric(triangles, Int)
         vertex_coordinates = ensure_absolute(vertex_coordinates,

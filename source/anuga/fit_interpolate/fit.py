@@ -53,7 +53,7 @@ class Fit(FitInterpolate):
                  mesh_origin=None,
                  alpha = None,
                  verbose=False,
-                 max_vertices_per_cell=30):
+                 max_vertices_per_cell=None):
 
 
         """
