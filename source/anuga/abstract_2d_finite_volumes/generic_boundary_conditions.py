@@ -217,7 +217,6 @@ class File_boundary(Boundary):
         #Make ordering unique #FIXME: should this happen in domain.py?
         boundary_keys.sort()
 
-
         #Record ordering #FIXME: should this also happen in domain.py?
         self.boundary_indices = {}
         for i, (vol_id, edge_id) in enumerate(boundary_keys):
@@ -239,7 +238,7 @@ class File_boundary(Boundary):
             #Register point and index
             self.midpoint_coordinates[i,:] = m
 
-            #FIXME I don't think this is being used..
+            #Register index of this boundary edge for use with evaluate
             self.boundary_indices[(vol_id, edge_id)] = i
 
 
@@ -266,6 +265,7 @@ class File_boundary(Boundary):
 
     def evaluate(self, vol_id=None, edge_id=None):
         """Return linearly interpolated values based on domain.time
+	at midpoint of segment defined by vol_id and edge_id.
         """
 
         t = self.domain.time
