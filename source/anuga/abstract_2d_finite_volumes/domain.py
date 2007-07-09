@@ -933,6 +933,10 @@ class Domain(Mesh):
     def update_boundary(self):
         """Go through list of boundary objects and update boundary values
         for all conserved quantities on boundary.
+	It is assumed that the ordering of conserved quantities is 
+	consistent between the domain and the boundary object, i.e. 
+	the jth element of vector q must correspond to the jth conserved
+	quantity in domain.
         """
 
         #FIXME: Update only those that change (if that can be worked out)
