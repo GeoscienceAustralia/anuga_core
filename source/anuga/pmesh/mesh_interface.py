@@ -28,6 +28,7 @@ def create_mesh_from_regions(bounding_polygon,
                              poly_geo_reference=None,
                              mesh_geo_reference=None,
                              minimum_triangle_angle=28.0,
+                             fail_if_polygons_outside=True,
                              use_cache=False,
                              verbose=True):
     """Create mesh from bounding polygons, and resolutions.
@@ -67,6 +68,11 @@ def create_mesh_from_regions(bounding_polygon,
 
     Note, interior regions should be fully nested, as overlaps may cause
     unintended resolutions. 
+
+    fail_if_polygons_outside: If True (the default) Exception in thrown
+    where interior polygons fall outside bounding polygon. If False, these
+    will be ignored and execution continued.
+        
     
     """
     
@@ -81,6 +87,7 @@ def create_mesh_from_regions(bounding_polygon,
               'poly_geo_reference': poly_geo_reference,
               'mesh_geo_reference': mesh_geo_reference,
               'minimum_triangle_angle': minimum_triangle_angle,
+              'fail_if_polygons_outside': fail_if_polygons_outside,
               'verbose': verbose}   # FIXME (Ole): Should be bypassed one day
                                     # What should be bypassed? Verbose?
     
@@ -117,6 +124,7 @@ def _create_mesh_from_regions(bounding_polygon,
                               poly_geo_reference=None,
                               mesh_geo_reference=None,
                               minimum_triangle_angle=28.0,
+                              fail_if_polygons_outside=True,
                               verbose=True):
     """_create_mesh_from_regions - internal function.
 
@@ -144,14 +152,31 @@ def _create_mesh_from_regions(bounding_polygon,
     # 
     if interior_regions is not None:        
         # Test that all the interior polygons are inside the bounding_poly
+        # and throw out those that aren't fully included.
+
+        polygons_inside_boundary = []
         for interior_polygon, res in interior_regions:
             indices = inside_polygon(interior_polygon, bounding_polygon,
                                      closed = True, verbose = False)
     
             if len(indices) <> len(interior_polygon): 
-                msg = 'Interior polygon %s is outside bounding polygon: %s'\
-                      %(str(interior_polygon), str(bounding_polygon))
-                raise PolygonError, msg
+                msg = 'Interior polygon %s is not fully inside'\
+                      %(str(interior_polygon))
+                msg += ' bounding polygon: %s.' %(str(bounding_polygon))
+
+                if fail_if_polygons_outside is True:
+                    raise PolygonError, msg                    
+                else:
+                    msg += ' I will ignore it.'
+                    print msg
+
+            else:
+                polygons_inside_boundary.append([interior_polygon, res])
+                
+        # Record only those that were fully contained        
+        interior_regions = polygons_inside_boundary
+
+            
     
 # the following segment of code could be used to Test that all the 
 # interior polygons are inside the bounding_poly... however it might need 
