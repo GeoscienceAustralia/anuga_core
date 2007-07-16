@@ -1131,6 +1131,10 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
     min_stages = []
     max_stages = []
     max_momentums = []
+    max_xmomentums = []
+    max_ymomentums = []
+    min_xmomentums = []
+    min_ymomentums = []
     max_speeds = []
     max_depths = []
     model_time_plot3d = zeros((n0,m), Float)
@@ -1152,7 +1156,8 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
             if verbose: print 'Gauge %d of %d' %(k, len(gauges))
             min_stage = 10
             max_stage = 0
-            max_momentum = 0
+            max_momentum = max_xmomentum = max_ymomentum = 0
+            min_xmomentum = min_ymomentum = 100
             max_speed = 0
             max_depth = 0
             gaugeloc = str(locations[k])
@@ -1195,6 +1200,10 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     if w > max_stage: max_stage = w
                     if w < min_stage: min_stage = w
                     if m > max_momentum: max_momentum = m
+                    if uh > max_xmomentum: max_xmomentum = uh
+                    if vh > max_ymomentum: max_ymomentum = vh
+                    if uh < min_xmomentum: min_xmomentum = uh
+                    if vh < min_ymomentum: min_ymomentum = vh
                     if vel > max_speed: max_speed = vel
                     if z > 0 and depth > max_depth: max_depth = depth
                     
@@ -1204,8 +1213,12 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
             max_stages.append(max_stage)
             min_stages.append(min_stage)
             max_momentums.append(max_momentum)
-            max_speeds.append(max_speed)
+            max_xmomentums.append(max_xmomentum)
+            max_ymomentums.append(max_ymomentum)
+            min_xmomentums.append(min_xmomentum)
+            min_ymomentums.append(min_ymomentum)
             max_depths.append(max_depth)
+            max_speeds.append(max_speed)
             #### finished generating quantities for each swwfile #####
         
         model_time_plot3d[:,:] = model_time[:,:,j]
@@ -1246,8 +1259,10 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
     if generate_fig is True:
         depth_axis = axis([starttime/scale, time_max/scale, -0.1, max(max_depths)*1.1])
         stage_axis = axis([starttime/scale, time_max/scale, min(min_stages), max(max_stages)*1.1])
-        vel_axis = axis([starttime/scale, time_max/scale, min(max_speeds), max(max_speeds)*1.1])
-        mom_axis = axis([starttime/scale, time_max/scale, min(max_momentums), max(max_momentums)*1.1])
+        vel_axis = axis([starttime/scale, time_max/scale, min(min_speeds), max(max_speeds)*1.1])
+        mom_axis = axis([starttime/scale, time_max/scale, min(min_momentums), max(max_momentums)*1.1])
+        xmom_axis = axis([starttime/scale, time_max/scale, min(min_xmomentums), max(max_xmomentums)*1.1])
+        ymom_axis = axis([starttime/scale, time_max/scale, min(min_ymomentums), max(max_ymomentums)*1.1])
         cstr = ['g', 'r', 'b', 'c', 'm', 'y', 'k']
         nn = len(plot_quantity)
         no_cols = 2
@@ -1297,11 +1312,11 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                         units = 'm^2 / sec'
                     if which_quantity == 'xmomentum':
                         plot(model_time[0:n[j]-1,k,j], xmom[0:n[j]-1,k,j], '-', c = cstr[j])
-                        axis(mom_axis)
+                        axis(xmom_axis)
                         units = 'm^2 / sec'
                     if which_quantity == 'ymomentum':
                         plot(model_time[0:n[j]-1,k,j], ymom[0:n[j]-1,k,j], '-', c = cstr[j])
-                        axis(mom_axis)
+                        axis(ymom_axis)
                         units = 'm^2 / sec'
                     if which_quantity == 'speed':
                         plot(model_time[0:n[j]-1,k,j], speed[0:n[j]-1,k,j], '-', c = cstr[j])
