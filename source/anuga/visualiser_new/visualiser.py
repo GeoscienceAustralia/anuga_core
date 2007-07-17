@@ -81,7 +81,7 @@ class Visualiser(object):
                 self.tk_root.after(100, self.animate)
             else:
                 self.tk_pause.config(text='Resume')
-                self.vis_paused ^= True
+            self.vis_paused ^= True
         self.tk_pause = Button(self.tk_controlFrame, text="Pause", command=pause)
         self.tk_pause.grid(row=0, column=2, columnspan=2)
 
