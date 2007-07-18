@@ -427,7 +427,7 @@ int _balance_deep_and_shallow(int N,
 			      double* xmomv,
 			      double* ymomv,
 			      double H0,
-			      int limit2007,
+			      int tight_slope_limiters,
 			      double alpha_balance) {
 
   int k, k3, i;
@@ -450,7 +450,7 @@ int _balance_deep_and_shallow(int N,
     dz = 0.0;
     hmin = hv[k3];
     for (i=0; i<3; i++) {
-      if (limit2007 == 0) { 
+      if (tight_slope_limiters == 0) { 
         dz = max(dz, fabs(zv[k3+i]-zc[k]));
       }
       
@@ -463,7 +463,7 @@ int _balance_deep_and_shallow(int N,
     //computed by the gradient limiter (both 1st or 2nd order)
     
     
-    if (limit2007 == 0) {     
+    if (tight_slope_limiters == 0) {     
       //If hmin > dz/alpha_balance then alpha = 1 and the bed will have no 
       //effect
       //If hmin < 0 then alpha = 0 reverting to constant height above bed.
@@ -1638,7 +1638,7 @@ PyObject *balance_deep_and_shallow(PyObject *self, PyObject *args) {
   double alpha_balance = 2.0;
   double H0;
 
-  int N, limit2007; //, err;
+  int N, tight_slope_limiters; //, err;
 
   // Convert Python arguments to C
   if (!PyArg_ParseTuple(args, "OOOOOOOOOOOO",
@@ -1669,12 +1669,12 @@ PyObject *balance_deep_and_shallow(PyObject *self, PyObject *args) {
   Py_DECREF(Tmp);
 
   
-  Tmp = PyObject_GetAttrString(domain, "limit2007");
+  Tmp = PyObject_GetAttrString(domain, "tight_slope_limiters");
   if (!Tmp) {
-    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: balance_deep_and_shallow could not obtain object limit2007 from domain");
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: balance_deep_and_shallow could not obtain object tight_slope_limiters from domain");
     return NULL;
   }  
-  limit2007 = PyInt_AsLong(Tmp);
+  tight_slope_limiters = PyInt_AsLong(Tmp);
   Py_DECREF(Tmp);
     
 
@@ -1695,7 +1695,7 @@ PyObject *balance_deep_and_shallow(PyObject *self, PyObject *args) {
 			    (double*) xmomv -> data,
 			    (double*) ymomv -> data,
 			    H0,
-			    (int) limit2007,
+			    (int) tight_slope_limiters,
 			    alpha_balance);
 
 

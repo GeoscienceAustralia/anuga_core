@@ -99,7 +99,7 @@ from anuga.utilities.numerical_tools import gradient, mean
 from anuga.config import minimum_storable_height
 from anuga.config import minimum_allowed_height, maximum_allowed_speed
 from anuga.config import g, beta_h, beta_w, beta_w_dry,\
-     beta_uh, beta_uh_dry, beta_vh, beta_vh_dry, limit2007
+     beta_uh, beta_uh_dry, beta_vh, beta_vh_dry, tight_slope_limiters
 from anuga.config import alpha_balance
 
 
@@ -162,7 +162,7 @@ class Domain(Generic_Domain):
         self.beta_h      = beta_h
         self.alpha_balance = alpha_balance
 
-        self.limit2007 = limit2007
+        self.tight_slope_limiters = tight_slope_limiters
 
         self.flux_function = flux_function_central
         #self.flux_function = flux_function_kinetic
@@ -231,7 +231,7 @@ class Domain(Generic_Domain):
         """
 
         #FIXME (Ole): rename H0 to minimum_allowed_height_in_flux_computation
-        #rename limit2007 to tight_slope_limiters.
+        #rename tight_slope_limiters to tight_slope_limiters.
         #Maybe use histogram to identify isolated extreme speeds and deal with them adaptively
         #similarly to how we used to use 1 order steps to recover.
         self.minimum_allowed_height = minimum_allowed_height

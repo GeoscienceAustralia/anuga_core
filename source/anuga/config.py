@@ -80,7 +80,7 @@ beta_vh     = 1.0
 beta_vh_dry = 0.2
 beta_h      = 0.2
 
-# beta_h can be safely put to zero esp if we are using limit2007 = 1. This will
+# beta_h can be safely put to zero esp if we are using tight_slope_limiters = 1. This will
 # also speed things up.
 beta_h = 0.0
 
@@ -93,9 +93,9 @@ beta_h = 0.0
 alpha_balance = 2.0 
 
 # Flag use of new limiters.
-# limit2007 = 0 means use old limiters (e.g. for some tests)
-# limit2007 = 1 means use new limiters that hug the bathymetry closer
-limit2007 = 0
+# tight_slope_limiters = 0 means use old limiters (e.g. for some tests)
+# tight_slope_limiters = 1 means use new limiters that hug the bathymetry closer
+tight_slope_limiters = 0
 
 
 

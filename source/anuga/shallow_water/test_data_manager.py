@@ -354,7 +354,7 @@ class Test_Data_Manager(unittest.TestCase):
         sww = get_dataobject(self.domain)
         sww.store_connectivity()
         sww.store_timestep('stage')
-        #self.domain.limit2007 = 1
+        #self.domain.tight_slope_limiters = 1
         self.domain.evolve_to_end(finaltime = 0.01)
         sww.store_timestep('stage')
 
@@ -411,7 +411,7 @@ class Test_Data_Manager(unittest.TestCase):
         sww = get_dataobject(self.domain)
         sww.store_connectivity()
         sww.store_timestep('stage')
-        #self.domain.limit2007 = 1
+        #self.domain.tight_slope_limiters = 1
         self.domain.evolve_to_end(finaltime = 0.01)
         sww.store_timestep('stage')
 
@@ -463,7 +463,7 @@ class Test_Data_Manager(unittest.TestCase):
         self.domain.smooth = False
         self.domain.store = True
         self.domain.beta_h = 0
-        #self.domain.limit2007 = 1
+        #self.domain.tight_slope_limiters = 1
 
         #Evolution
         for t in self.domain.evolve(yieldstep = 1.0, finaltime = 4.0):
@@ -506,7 +506,7 @@ class Test_Data_Manager(unittest.TestCase):
         sww.store_connectivity()
         sww.store_timestep('stage')
 
-        #self.domain.limit2007 = 1
+        #self.domain.tight_slope_limiters = 1
         self.domain.evolve_to_end(finaltime = 0.01)
         sww.store_timestep('stage')
 
@@ -1136,7 +1136,7 @@ END CROSS-SECTIONS:
         sww.store_connectivity()
         sww.store_timestep('stage')
 
-        #self.domain.limit2007 = 1
+        #self.domain.tight_slope_limiters = 1
 
         self.domain.evolve_to_end(finaltime = 0.01)
         sww.store_timestep('stage')
@@ -1850,7 +1850,7 @@ END CROSS-SECTIONS:
         sww.store_connectivity()
         sww.store_timestep('stage')
         
-        domain.limit2007 = 1
+        domain.tight_slope_limiters = 1
         domain.evolve_to_end(finaltime = 0.01)
         sww.store_timestep('stage')
 
@@ -2036,7 +2036,7 @@ END CROSS-SECTIONS:
         sww.store_connectivity()
         sww.store_timestep('stage')
 
-        #domain.limit2007 = 1
+        #domain.tight_slope_limiters = 1
         domain.evolve_to_end(finaltime = 0.01)
         sww.store_timestep('stage')
 
@@ -2185,7 +2185,7 @@ END CROSS-SECTIONS:
         sww.store_connectivity()
         sww.store_timestep('stage')
 
-        #self.domain.limit2007 = 1
+        #self.domain.tight_slope_limiters = 1
         self.domain.evolve_to_end(finaltime = 0.01)
         sww.store_timestep('stage')
 
@@ -2297,7 +2297,7 @@ END CROSS-SECTIONS:
         sww.store_connectivity()
         sww.store_timestep('stage')
 
-        #self.domain.limit2007 = 1
+        #self.domain.tight_slope_limiters = 1
         self.domain.evolve_to_end(finaltime = 0.01)
         sww.store_timestep('stage')
 
@@ -2556,7 +2556,7 @@ END CROSS-SECTIONS:
         sww.store_connectivity()
         sww.store_timestep('stage')
 
-        #self.domain.limit2007 = 1
+        #self.domain.tight_slope_limiters = 1
         self.domain.evolve_to_end(finaltime = 0.01)
         sww.store_timestep('stage')
 
@@ -2656,7 +2656,7 @@ END CROSS-SECTIONS:
         sww.store_connectivity()
         sww.store_timestep('stage')
 
-        #self.domain.limit2007 = 1
+        #self.domain.tight_slope_limiters = 1
         self.domain.evolve_to_end(finaltime = 0.01)
         sww.store_timestep('stage')
 
@@ -3408,7 +3408,7 @@ END CROSS-SECTIONS:
         self.domain.smooth = True
         self.domain.reduction = mean
         self.domain.set_datadir('.')
-        #self.domain.limit2007 = 1        
+        #self.domain.tight_slope_limiters = 1        
 
 
         sww = get_dataobject(self.domain)
@@ -3480,7 +3480,7 @@ END CROSS-SECTIONS:
 
         domain.check_integrity()
         #Evolution
-        #domain.limit2007 = 1
+        #domain.tight_slope_limiters = 1
         for t in domain.evolve(yieldstep = yiel, finaltime = 0.05):
             #domain.write_time()
             pass
