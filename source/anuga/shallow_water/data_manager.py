@@ -76,6 +76,7 @@ import string
 from Scientific.IO.NetCDF import NetCDFFile
 #from shutil import copy
 from os.path import exists, basename, join
+from os import getcwd
 
 
 from anuga.coordinate_transforms.redfearn import redfearn, \
@@ -5692,6 +5693,73 @@ def get_all_swwfiles(look_in_dir='',base_name='',verbose=False):
 
     return iterate_over
 
+def get_all_files_with_extension(look_in_dir='',base_name='',extension='.sww',verbose=False):
+    '''
+    Finds all the sww files in a "look_in_dir" which contains a "base_name". 
+    
+    
+    Returns: a list of strings
+        
+    Usage:     iterate_over = get_all_swwfiles(dir, name)
+    then
+               for swwfile in iterate_over:
+                   do stuff
+                   
+    Check "export_grids" and "get_maximum_inundation_data" for examples
+    '''
+    
+    #plus tests the extension
+    name, ext = os.path.splitext(base_name)
+#    print 'look_in_dir',look_in_dir
+
+    if ext <>'' and ext <> extension:
+        msg = msg='base_name %s must be an file with %s extension!'%(base_name,extension)
+        raise IOError, msg
+
+    if look_in_dir == "":
+        look_in_dir = "." # Unix compatibility
+#    print 'look_in_dir',look_in_dir, getcwd()
+    dir_ls = os.listdir(look_in_dir)
+    #print 'dir_ls',dir_ls, base_name
+    iterate_over = [x[:-4] for x in dir_ls if name in x and x[-4:] == extension]
+    if len(iterate_over) == 0:
+        msg = 'No files of the base name %s in %s'\
+              %(name, look_in_dir)
+        raise IOError, msg
+    if verbose: print 'iterate over %s' %(iterate_over)
+
+    return iterate_over
+
+def get_all_directories_with_name(look_in_dir='',base_name='',verbose=False):
+    '''
+    Finds all the sww files in a "look_in_dir" which contains a "base_name". 
+    
+    
+    Returns: a list of strings
+        
+    Usage:     iterate_over = get_all_swwfiles(dir, name)
+    then
+               for swwfile in iterate_over:
+                   do stuff
+                   
+    Check "export_grids" and "get_maximum_inundation_data" for examples
+    '''
+    
+    #plus tests the extension
+
+    if look_in_dir == "":
+        look_in_dir = "." # Unix compatibility
+#    print 'look_in_dir',look_in_dir
+    dir_ls = os.listdir(look_in_dir)
+#    print 'dir_ls',dir_ls
+    iterate_over = [x for x in dir_ls if base_name in x]
+    if len(iterate_over) == 0:
+        msg = 'No files of the base name %s'\
+              %(name)
+        raise IOError, msg
+    if verbose: print 'iterate over %s' %(iterate_over)
+
+    return iterate_over
 
 
 #-------------------------------------------------------------
