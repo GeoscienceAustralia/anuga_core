@@ -5,11 +5,11 @@ import unittest
 from Numeric import zeros, array, allclose, Float
 from math import sqrt, pi
 import tempfile, os
-from os import access, F_OK,sep, removedirs
+from os import access, F_OK,sep, removedirs,remove,mkdir,getcwd
 
 from anuga.abstract_2d_finite_volumes.util import *
 from anuga.config import epsilon
-from anuga.shallow_water.data_manager import timefile2netcdf
+from anuga.shallow_water.data_manager import timefile2netcdf,del_dir
 
 from anuga.utilities.numerical_tools import NAN
 
@@ -1290,13 +1290,105 @@ class Test_Util(unittest.TestCase):
         new_verts, new_tris = remove_lone_verts(verts, tris)
         assert new_verts == verts[0:3]
         assert new_tris == tris
+        
+    def test_get_min_max_values(self):
+        
+        list=[8,9,6,1,4]
+        min1, max1 = get_min_max_values(list)
+        
+        assert min1==1 
+        assert max1==9
+
+    def test_get_min_max_values1(self):
+        
+        list=[-8,-9,-6,-1,-4]
+        min1, max1 = get_min_max_values(list,10,-10)
+        
+#        print 'min1,max1',min1,max1
+        assert min1==-9 
+        assert max1==-1
+
+    def test_get_min_max_values2(self):
+        '''
+        The min and max supplied are greater than the ones in the 
+        list and therefore are the ones returned
+        '''
+        list=[-8,-9,-6,-1,-4]
+        min1, max1 = get_min_max_values(list,-10,10)
+        
+#        print 'min1,max1',min1,max1
+        assert min1==-10 
+        assert max1==10
+        
+    def test_make_plots_from_csv_files(self):
+        
+        try: 
+            import pylab
+        except ImportError:
+            #ANUGA don't need pylab to work so the system doesn't 
+            #rely on pylab being installed 
+            return
+        
+        current_dir=getcwd()+sep+'abstract_2d_finite_volumes'
+        temp_dir = tempfile.mkdtemp('','figures')
+#        print 'temp_dir',temp_dir
+        fileName = temp_dir+sep+'time_series_3.csv'
+        file = open(fileName,"w")
+        file.write("Time,Stage,Speed,Momentum,Elevation\n\
+1.0, 0, 0, 0, 10 \n\
+2.0, 5, 2, 4, 10 \n\
+3.0, 3, 3, 5, 10 \n")
+        file.close()
+
+        fileName1 = temp_dir+sep+'time_series_4.csv'
+        file1 = open(fileName1,"w")
+        file1.write("Time,Stage,Speed,Momentum,Elevation\n\
+1.0, 0, 0, 0, 5 \n\
+2.0, -5, -2, -4, 5 \n\
+3.0, -4, -3, -5, 5 \n")
+        file1.close()
+
+        fileName2 = temp_dir+sep+'time_series_5.csv'
+        file2 = open(fileName2,"w")
+        file2.write("Time,Stage,Speed,Momentum,Elevation\n\
+1.0, 0, 0, 0, 7 \n\
+2.0, 4, -0.45, 57, 7 \n\
+3.0, 6, -0.5, 56, 7 \n")
+        file2.close()
+        
+        dir, name=os.path.split(fileName)
+        make_plots_from_csv_file(directories_dic={dir:['gauge', 0, 0]},
+                            output_dir=temp_dir,
+                            base_name='time_series_',
+                            plot_numbers=['3-5'],
+                            quantities=['Speed','Stage','Momentum'],
+                            assess_all_csv_files=True,
+                            extra_plot_name='test')
+        
+#        print 'stage+fileName[:-4]+test.png',dir+sep+'stage_'+name[:-4]+'_test.png'
+        assert(access(dir+sep+'stage_'+name[:-4]+'_test.png',F_OK)==True)
+        assert(access(dir+sep+'speed_'+name[:-4]+'_test.png',F_OK)==True)
+        assert(access(dir+sep+'momentum_'+name[:-4]+'_test.png',F_OK)==True)
+
+        dir1, name1=os.path.split(fileName1)
+        assert(access(dir+sep+'stage_'+name1[:-4]+'_test.png',F_OK)==True)
+        assert(access(dir+sep+'speed_'+name1[:-4]+'_test.png',F_OK)==True)
+        assert(access(dir+sep+'momentum_'+name1[:-4]+'_test.png',F_OK)==True)
+
+
+        dir2, name2=os.path.split(fileName2)
+        assert(access(dir+sep+'stage_'+name2[:-4]+'_test.png',F_OK)==True)
+        assert(access(dir+sep+'speed_'+name2[:-4]+'_test.png',F_OK)==True)
+        assert(access(dir+sep+'momentum_'+name2[:-4]+'_test.png',F_OK)==True)
+
+        del_dir(temp_dir)
 
     
         
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Util,'test')
-#    suite = unittest.makeSuite(Test_Util,'test_store_parameters')
+#    suite = unittest.makeSuite(Test_Util,'test')
+    suite = unittest.makeSuite(Test_Util,'test_get_min_max_values')
     runner = unittest.TextTestRunner(verbosity=0)
     runner.run(suite)
 
