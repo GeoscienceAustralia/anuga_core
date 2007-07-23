@@ -1387,8 +1387,8 @@ class Test_Util(unittest.TestCase):
         
 #-------------------------------------------------------------
 if __name__ == "__main__":
-#    suite = unittest.makeSuite(Test_Util,'test')
-    suite = unittest.makeSuite(Test_Util,'test_get_min_max_values')
+    suite = unittest.makeSuite(Test_Util,'test')
+#    suite = unittest.makeSuite(Test_Util,'test_get_min_max_values')
     runner = unittest.TextTestRunner(verbosity=0)
     runner.run(suite)
 

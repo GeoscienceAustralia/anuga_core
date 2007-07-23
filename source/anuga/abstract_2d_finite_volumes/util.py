@@ -969,9 +969,7 @@ def get_gauges_from_file(filename):
     line1 = lines[0]
     line11 = line1.split(',')
 
-    try:
-        float(line11[0])
-    except:    
+    if isinstance(line11[0],str) is True:
         # We have found text in the first line
         east_index = None
         north_index = None
@@ -998,7 +996,7 @@ def get_gauges_from_file(filename):
 
         lines = lines[1:] # Remove header from data
     else:
-        # First field in first line contains a number, so there is no header. Assume that this is a simple easting, northing file
+        # No header, assume that this is a simple easting, northing file
 
         msg = 'There was no header in file %s and the number of columns is %d' %(filename, len(line11))
         msg += '- I was assuming two columns corresponding to Easting and Northing'
@@ -1901,16 +1899,6 @@ def get_min_max_values(list=None,min1=100,max1=-100):
         
     return min1, max1
 
-def sortedDictValues(adict):
-    """Sorts a dictionary by the Keys
-    This code was authored by Alex Martelli (8/4/2001) and 
-    sourced from ASPN
-    """
-       
-    items = adict.items()
-    items.sort()
-    print 'items',items
-    return [value for key, value in items]
     
     
     
