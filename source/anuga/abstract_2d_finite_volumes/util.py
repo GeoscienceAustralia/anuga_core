@@ -1130,12 +1130,14 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
     eastings = zeros((n0,m,p), Float)
     min_stages = []
     max_stages = []
+    min_momentums = []    
     max_momentums = []
     max_xmomentums = []
     max_ymomentums = []
     min_xmomentums = []
     min_ymomentums = []
     max_speeds = []
+    min_speeds = []    
     max_depths = []
     model_time_plot3d = zeros((n0,m), Float)
     stages_plot3d = zeros((n0,m), Float)
@@ -1157,9 +1159,10 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
             min_stage = 10
             max_stage = 0
             max_momentum = max_xmomentum = max_ymomentum = 0
-            min_xmomentum = min_ymomentum = 100
+            min_momentum = min_xmomentum = min_ymomentum = 100
             max_speed = 0
-            max_depth = 0
+            min_speed = 0            
+            max_depth = 0            
             gaugeloc = str(locations[k])
             thisfile = file_loc[j]+sep+'gauges_time_series'+'_'\
                        +gaugeloc+'.csv'
@@ -1200,11 +1203,13 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     if w > max_stage: max_stage = w
                     if w < min_stage: min_stage = w
                     if m > max_momentum: max_momentum = m
+                    if m < min_momentum: min_momentum = m                    
                     if uh > max_xmomentum: max_xmomentum = uh
                     if vh > max_ymomentum: max_ymomentum = vh
                     if uh < min_xmomentum: min_xmomentum = uh
                     if vh < min_ymomentum: min_ymomentum = vh
                     if vel > max_speed: max_speed = vel
+                    if vel < min_speed: min_speed = vel                    
                     if z > 0 and depth > max_depth: max_depth = depth
                     
                     
@@ -1217,8 +1222,10 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
             max_ymomentums.append(max_ymomentum)
             min_xmomentums.append(min_xmomentum)
             min_ymomentums.append(min_ymomentum)
+            min_momentums.append(min_momentum)            
             max_depths.append(max_depth)
             max_speeds.append(max_speed)
+            min_speeds.append(min_speed)            
             #### finished generating quantities for each swwfile #####
         
         model_time_plot3d[:,:] = model_time[:,:,j]

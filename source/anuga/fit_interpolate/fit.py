@@ -329,6 +329,7 @@ class Fit(FitInterpolate):
                                      max_read_lines=max_read_lines,
                                      load_file_now=False,
                                      verbose=verbose)
+
             for i, geo_block in enumerate(G_data):
                 if verbose is True and 0 == i%200: # round every 5 minutes
                     # But this is dependant on the # of Triangles, so it

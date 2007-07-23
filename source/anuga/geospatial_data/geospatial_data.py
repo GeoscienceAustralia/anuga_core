@@ -165,9 +165,9 @@ class Geospatial_data:
             # attributes etc are provided!!
             # if file name then all provided info will be removed!
 
-            #if verbose is True:
-            #    if file_name is not None:
-            #        print 'Loading Geospatial data from file: %s' %file_name
+            if verbose is True:
+                if file_name is not None:
+                    print 'Loading Geospatial data from file: %s' %file_name
             
             self.import_points_file(file_name, delimiter, verbose)
                 
@@ -781,9 +781,15 @@ class Geospatial_data:
         if self.file_name[-4:] == ".xya":
             # FIXME (Ole): shouldn't the xya format be replaced by txt/csv?
             #  Currently both file formats are used.
+
+            # FIXME (Ole): This has to go - it caused Ted Rigby to waste
+            # time trying to read in his data in xya format with an
+            # inevitable memory error appearing.
             
             #let's just read it all
-            pass
+            msg = 'The xya format is deprecated. Use csv or pts.'
+            warn(msg, DeprecationWarning)             
+            
         elif self.file_name[-4:] == ".pts":
             
             # see if the file is there.  Throw a QUIET IO error if it isn't
@@ -928,7 +934,7 @@ class Geospatial_data:
 ##################### Error messages ###########
 Error_message = {}
 Em = Error_message
-Em['IOError'] = "NOTE: The format for a comma seperated .txt/.csv file is:\n"
+Em['IOError'] = "NOTE: The format for a comma separated .txt/.csv file is:\n"
 Em['IOError'] += "        1st line:     [column names]\n"
 Em['IOError'] += "        other lines:  [x value], [y value], [attributes]\n"
 Em['IOError'] += "\n"
