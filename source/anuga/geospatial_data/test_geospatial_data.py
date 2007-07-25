@@ -218,8 +218,12 @@ class Test_Geospatial_data(unittest.TestCase):
         zone = 47
         
         geo_reference = Geo_reference(zone=zone)
-        geo = Geospatial_data(boundary_polygon,geo_reference=geo_reference)
-        seg_lat_long = geo.get_data_points(as_lat_long=True,isSH=False)
+        geo = Geospatial_data(boundary_polygon,
+                              geo_reference=geo_reference)
+                              
+        seg_lat_long = geo.get_data_points(as_lat_long=True,
+                                           isSouthHemisphere=False)
+                                           
         lat_result = degminsec2decimal_degrees(8.31,0,0)
         long_result = degminsec2decimal_degrees(98.273,0,0)
         #print "seg_lat_long", seg_lat_long [0]
@@ -1063,7 +1067,7 @@ crap")
         try:
 #            dict = import_points_file(fileName,delimiter=' ')
 #            results = Geospatial_data()
-            results = Geospatial_data(fileName, delimiter=' ', verbose=True)
+            results = Geospatial_data(fileName, delimiter=' ', verbose=False)
 #            results.import_points_file(fileName, delimiter=' ')
         except IOError:
             pass
@@ -2367,7 +2371,7 @@ if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Geospatial_data, 'test_write_csv_attributes_lat_long')
     #suite = unittest.makeSuite(Test_Geospatial_data, 'test_get_data_points_lat_longIII')
     suite = unittest.makeSuite(Test_Geospatial_data, 'test')
-    runner = unittest.TextTestRunner()
+    runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
 
     

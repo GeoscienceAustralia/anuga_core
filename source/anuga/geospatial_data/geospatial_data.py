@@ -359,7 +359,7 @@ class Geospatial_data:
         return self.geo_reference
        
     def get_data_points(self, absolute=True, geo_reference=None,
-                        as_lat_long=False,isSH=True):
+                        as_lat_long=False,isSouthHemisphere=True):
         """Get coordinates for all data points as an Nx2 array
 
         If absolute is False returned coordinates are relative to the
@@ -384,7 +384,7 @@ class Geospatial_data:
             for point in self.get_data_points(True):
                 ### UTMtoLL(northing, easting, zone,
                 lat_calced, long_calced = UTMtoLL(point[1],point[0], 
-                                                  zone, isSH)
+                                                  zone, isSouthHemisphere)
                 lats_longs.append((lat_calced, long_calced)) # to hash
             return lats_longs
             
@@ -593,7 +593,8 @@ class Geospatial_data:
     
 #        return all_data
     
-    def export_points_file(self, file_name, absolute=True, as_lat_long=False):
+    def export_points_file(self, file_name, absolute=True, 
+                           as_lat_long=False, isSouthHemisphere=True):
         
         """
         write a points file, file_name, as a text (.xya) or binary (.pts) file
@@ -605,6 +606,11 @@ class Geospatial_data:
         
         If absolute is False data points at returned as relative to the xll 
         and yll and geo_reference remains uneffected
+        
+        isSouthHemisphere: is only used when getting data 
+        points "as_lat_long" is True and if FALSE will return lats and 
+        longs valid for the Northern Hemisphere.
+        
         """
 
         if absolute is False and file_name[-4:] == ".xya":
@@ -649,7 +655,8 @@ class Geospatial_data:
             assert absolute, msg
             _write_csv_file(file_name,
                             self.get_data_points(absolute=True,
-                                                 as_lat_long=as_lat_long), 
+                                                 as_lat_long=as_lat_long,
+                                  isSouthHemisphere=isSouthHemisphere), 
                             self.get_all_attributes(),
                             as_lat_long=as_lat_long)
               
@@ -657,7 +664,8 @@ class Geospatial_data:
             msg = "ERROR: Can not write a .urs file as a relative file."
             assert absolute, msg
             _write_urs_file(file_name,
-                            self.get_data_points(as_lat_long=True))
+                            self.get_data_points(as_lat_long=True,
+                                  isSouthHemisphere=isSouthHemisphere))
                                                           
         else:
             msg = 'Unknown file type %s ' %file_name
