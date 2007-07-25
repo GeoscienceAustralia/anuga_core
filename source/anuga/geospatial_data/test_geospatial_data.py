@@ -210,6 +210,24 @@ class Test_Geospatial_data(unittest.TestCase):
         assert allclose(seg_lat_long[0][0], lat_result)#lat
         assert allclose(seg_lat_long[0][1], long_result)#long
 
+
+    def test_get_data_points_lat_longIII(self):
+        # x,y  North,east long,lat
+        #for northern hemisphere
+        boundary_polygon = [[419944.8, 918642.4]]
+        zone = 47
+        
+        geo_reference = Geo_reference(zone=zone)
+        geo = Geospatial_data(boundary_polygon,geo_reference=geo_reference)
+        seg_lat_long = geo.get_data_points(as_lat_long=True,isSH=False)
+        lat_result = degminsec2decimal_degrees(8.31,0,0)
+        long_result = degminsec2decimal_degrees(98.273,0,0)
+        #print "seg_lat_long", seg_lat_long [0]
+        #print "lat_result",lat_result 
+        assert allclose(seg_lat_long[0][0], lat_result)#lat
+        assert allclose(seg_lat_long[0][1], long_result)#long
+
+
               
     def test_set_geo_reference(self):
         points_ab = [[12.5,34.7],[-4.5,-60.0]]
@@ -2347,7 +2365,7 @@ crap")
 if __name__ == "__main__":
 
     #suite = unittest.makeSuite(Test_Geospatial_data, 'test_write_csv_attributes_lat_long')
-    #suite = unittest.makeSuite(Test_Geospatial_data, 'test_export_xya_file')
+    #suite = unittest.makeSuite(Test_Geospatial_data, 'test_get_data_points_lat_longIII')
     suite = unittest.makeSuite(Test_Geospatial_data, 'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)

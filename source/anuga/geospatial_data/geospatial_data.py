@@ -359,7 +359,7 @@ class Geospatial_data:
         return self.geo_reference
        
     def get_data_points(self, absolute=True, geo_reference=None,
-                        as_lat_long=False):
+                        as_lat_long=False,isSH=True):
         """Get coordinates for all data points as an Nx2 array
 
         If absolute is False returned coordinates are relative to the
@@ -368,6 +368,10 @@ class Geospatial_data:
 
         If a geo_reference is passed the points are returned relative
         to that geo_reference.
+        
+        isSH (isSouthHemisphere) is only used when getting data 
+        points "as_lat_long" is True and if FALSE will return lats and 
+        longs valid for the Northern Hemisphere.
 
         Default: absolute is True.
         """
@@ -379,7 +383,8 @@ class Geospatial_data:
             lats_longs = []
             for point in self.get_data_points(True):
                 ### UTMtoLL(northing, easting, zone,
-                lat_calced, long_calced = UTMtoLL(point[1],point[0], zone)
+                lat_calced, long_calced = UTMtoLL(point[1],point[0], 
+                                                  zone, isSH)
                 lats_longs.append((lat_calced, long_calced)) # to hash
             return lats_longs
             
