@@ -1542,10 +1542,129 @@ def ensure_geospatial(points, geo_reference=None):
     points = Geospatial_data(data_points=points, geo_reference=geo)        
     return points
 
-#def file2xya(filename):
+
+
+def find_optimal_smoothing_parameter(data_file, 
+                                     smoothing_list=None,
+                                     attribute_smoothed='elevation', 
+                                     mesh_file=None,
+                                     mesh_resolution=100000,
+                                     north_boundary=None,
+                                     south_boundary=None,
+                                     east_boundary=None,
+                                     west_boundary=None,
+                                     plot_name=None
+                                     ):
+    #alpha list, data file, mesh file or boundary area and resolution
+    #plot name and attribute smoothed default elevation
+
+    from anuga.abstract_2d_finite_volumes import domain
+    from anuga.shallow_water import Domain
+    from anuga.geospatial_data.geospatial_data import Geospatial_data
+    from anuga.coordinate_transforms import Geo_reference
+    from anuga.pmesh.mesh_interface import create_mesh_from_regions
+    from anuga.shallow_water import Reflective_boundary
     
-#    G = Geospatial_data(filename)
-#    G.export_points_file()
+    from anuga.utilities.numerical_tools import cov
+    from Numeric import array, resize,shape,Float,zeros,take,argsort
+    from pylab import plot, ion, hold,savefig,semilogx,plotting
+
+    if north_boundary or south_boundary or east_boundary or west_boundary is None:
+        no_boundary=True
+        
+
+    if mesh_file is None:
+        mesh_file='temp.msh'
+        
+        if no_boundary is True:
+            msg= 'all boundary information or a mesh file'
+            raise msg
+
+    is_inside_polygon
+    
+    poly_topo = [[east_boundary,south_boundary],[east_boundary,north_boundary],
+             [west_boundary,north_boundary],[west_boundary,south_boundary]]
+#    mesh_file = 'temp.msh'
+                  
+    create_mesh_from_regions(poly_topo,
+                         boundary_tags={'back': [2], 'side': [1,3],
+                                        'ocean': [0]},
+                         maximum_triangle_area=mesh_resolution,
+                         filename=mesh_file,
+                         use_cache=True,
+                         verbose=True)
+
+
+    topo_dir_name = 'pt_hedland_export.txt'
+#    sample = 'sample.txt'
+#    remainder ='remainder.txt'
+    #split topo data
+    G = Geospatial_data(file_name = topo_dir_name)
+    print 'start split'
+    G_small, G_other = G.split(0.1,True)
+
+
+
+    alphas = [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1.0, 10.0, 100.0,1000.0,100000.0]
+    #alphas = [0.001,1,100]
+    domains = {}
+
+    print 'Setup computational domain'
+    for alpha in alphas:
+    
+        #think about making domain absolute when it is created
+        domain = Domain(mesh_file, use_cache=False, verbose=True)
+        print domain.statistics()
+        domain.set_quantity(attribute_smoothed, 
+                    geospatial_data = G_other,
+                    use_cache = True,
+                    verbose = True,
+                    alpha = alpha)
+        domains[alpha]=domain
+
+    points=G_small.get_data_points()
+    data=array([],typecode=Float)
+    data=resize(data,(len(points),3+len(alphas)))
+    #gets relative point from sample
+
+    data[:,0]=points[:,0]
+    data[:,1]=points[:,1]
+    print'geo',domain.geo_reference,points[0:10],points[0:10,0]
+    elevation_sample=G_small.get_attributes(attribute_name=attribute_smoothed)
+
+    data[:,2]=elevation_sample
+
+    print'data',data[0:10],len(alphas)
+    normal_cov=array(zeros([len(alphas),2]),typecode=Float)
+    i=0
+
+    for domain in domains:
+    #    print'domain',domain
+        points_geo=domains[domain].geo_reference.change_points_geo_ref(points)
+    
+
+        print'poin',points_geo[0:10],elevation_sample[0:10]
+        print'quantities',domains[domain].get_quantity_names()
+        elevation_predicted=domains[domain].quantities[attribute_smoothed].get_values(interpolation_points=points_geo)
+        print'elevation_predicted',elevation_predicted[0:10],len(points),len(elevation_predicted)
+    
+        data[:,i+3]=elevation_predicted
+        sample_cov= cov(elevation_sample)
+
+        ele_cov= cov(elevation_sample-elevation_predicted)
+        normal_cov[i,:]= [domain,ele_cov/sample_cov]
+
+        print'cov',alpha,'= ',normal_cov, ele_cov, sample_cov
+        i+=1
+    
+    
+    print'data',data[100:200]
+    print'normal cov',normal_cov
+    normal_cov0=normal_cov[:,0]
+    normal_cov_new=take(normal_cov,argsort(normal_cov0))
+    semilogx(normal_cov_new[:,0],normal_cov_new[:,1])
+    savefig("alphas",dpi=300)
+    
 
              
 
