@@ -1899,9 +1899,54 @@ def get_min_max_values(list=None,min1=100,max1=-100):
         
     return min1, max1
 
-    
-    
-    
 
+def get_runup_data_for_locations_from_file(gauge_filename,
+                                           sww_filename,
+                                           runup_filename,
+                                           size=10,
+                                           verbose=False):
 
+    '''this will read a csv file with the header x,y. Then look in a square 'size'x2
+    around this position for the 'max_inundaiton_height' in the 'sww_filename' and 
+    report the findings in the 'runup_filename
+    
+    WARNING: NO TESTS!
+    '''
+
+    from anuga.shallow_water.data_manager import get_all_directories_with_name,\
+                                                 get_maximum_inundation_data,\
+                                                 csv2dict
+                                                 
+    file = open(runup_filename,"w")
+    file.write("easting,northing,runup \n ")
+    file.close()
+    
+    #read gauge csv file to dictionary
+    attribute_dic, title_index_dic = csv2dict(gauge_filename)
+    northing = [float(x) for x in attribute_dic["y"]]
+    easting = [float(x) for x in attribute_dic["x"]]
+
+    print 'Reading %s' %sww_filename
+
+    runup_locations=[]
+    for i, x in enumerate(northing):
+#        print 'easting,northing',i,easting[i],northing[i]
+        poly = [[int(easting[i]+size),int(northing[i]+size)],
+                [int(easting[i]+size),int(northing[i]-size)],
+                [int(easting[i]-size),int(northing[i]-size)],
+                [int(easting[i]-size),int(northing[i]+size)]]
         
+        run_up, x_y = get_maximum_inundation_data(filename=sww_filename,
+                                              polygon=poly,
+                                              verbose=False) 
+        #if no runup will return 0 instead of NONE
+        if run_up==None: run_up=0
+        if x_y==None: x_y=[0,0]
+        
+        if verbose:print 'maximum inundation runup near %s is %s meters' %(x_y,run_up)
+        
+        #writes to file
+        file = open(runup_filename,"a")
+        temp = '%s,%s,%s \n' %(x_y[0], x_y[1], run_up)
+        file.write(temp)
+        file.close()
