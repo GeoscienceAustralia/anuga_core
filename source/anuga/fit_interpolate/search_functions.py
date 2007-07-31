@@ -96,56 +96,77 @@ def _search_triangles_of_vertices(mesh, candidate_vertices, x):
         triangle_list = mesh.get_triangles_and_vertices_per_node(node=v)
 
         # Find triangle that contains x (if any) and interpolate
-        element_found, sigma0, sigma1, sigma2, k =\
-                       find_triangle_compute_interpolation(mesh,
-                                                           triangle_list,
-                                                           x)
+        
+        for k, _ in triangle_list:
+            element_found, sigma0, sigma1, sigma2, k =\
+                           find_triangle_compute_interpolation(mesh,
+                                                               k,
+                                                               x)
+
+            if element_found is True:
+                # Don't look for any other triangles in the triangle list
+                break
 
         if element_found is True:
-            # Don't look for any other triangle           
+            # Don't look for any other triangle_lists from the
+            # candidate_vertices
             break
-
         
     return element_found, sigma0, sigma1, sigma2, k
 
 
             
-def find_triangle_compute_interpolation(mesh, triangle_list, x):
+def find_triangle_compute_interpolation(mesh, k, x):
     """Compute linear interpolation of point x and triangle k in mesh.
     It is assumed that x belongs to triangle k.
     """
 
-    element_found = False
-    for k, _ in triangle_list:
-        # Get the three vertex_points of candidate triangle k
-        xi0, xi1, xi2 = mesh.get_vertex_coordinates(triangle_id=k)            
-        
-        # Get the three normals 
-        n0 = mesh.get_normal(k, 0)
-        n1 = mesh.get_normal(k, 1)
-        n2 = mesh.get_normal(k, 2)            
-        
-        
-        # Compute interpolation
-        sigma2 = dot((x-xi0), n2)/dot((xi2-xi0), n2)
-        sigma0 = dot((x-xi1), n0)/dot((xi0-xi1), n0)
-        sigma1 = dot((x-xi2), n1)/dot((xi1-xi2), n1)
+    # Get the three vertex_points of candidate triangle k
+    xi0, xi1, xi2 = mesh.get_vertex_coordinates(triangle_id=k)
 
-        # Integrity check - machine precision is too hard
-        # so we use hardwired single precision 
-        epsilon = 1.0e-6
-        delta = abs(sigma0+sigma1+sigma2-1.0) # Should be close to zero
-        msg = 'abs(sigma0+sigma1+sigma2-1) = %.15e, eps = %.15e'\
-              %(delta, epsilon)
-        assert delta < epsilon, msg
+    # this is where we can call some fast c code.
+    xmax = max(xi0[0], xi1[0], xi2[0])
+    xmin = min(xi0[0], xi1[0], xi2[0])
+    ymax = max(xi0[1], xi1[1], xi2[1])
+    ymin = min(xi0[1], xi1[1], xi2[1])
+
+    # Integrity check - machine precision is too hard
+    # so we use hardwired single precision 
+    epsilon = 1.0e-6
+    
+    if  x[0] > xmax + epsilon:
+        return False,0,0,0,0
+    if  x[0] < xmin - epsilon:
+        return False,0,0,0,0
+    if  x[1] > ymax + epsilon:
+        return False,0,0,0,0
+    if  x[1] < ymin - epsilon:
+        return False,0,0,0,0
+    
+    
+    # Get the three normals 
+    n0 = mesh.get_normal(k, 0)
+    n1 = mesh.get_normal(k, 1)
+    n2 = mesh.get_normal(k, 2)            
+        
+        
+    # Compute interpolation
+    sigma2 = dot((x-xi0), n2)/dot((xi2-xi0), n2)
+    sigma0 = dot((x-xi1), n0)/dot((xi0-xi1), n0)
+    sigma1 = dot((x-xi2), n1)/dot((xi1-xi2), n1)
+
+    delta = abs(sigma0+sigma1+sigma2-1.0) # Should be close to zero
+    msg = 'abs(sigma0+sigma1+sigma2-1) = %.15e, eps = %.15e'\
+          %(delta, epsilon)
+    assert delta < epsilon, msg
 
 
-        # Check that this triangle contains the data point
-        # Sigmas are allowed to get negative within
-        # machine precision on some machines (e.g. nautilus)
-        epsilon = get_machine_precision() * 2
-        if sigma0 >= -epsilon and sigma1 >= -epsilon and sigma2 >= -epsilon:
-            element_found = True
-            break
-            
+    # Check that this triangle contains the data point
+    # Sigmas are allowed to get negative within
+    # machine precision on some machines (e.g. nautilus)
+    epsilon = get_machine_precision() * 2
+    if sigma0 >= -epsilon and sigma1 >= -epsilon and sigma2 >= -epsilon:
+        element_found = True
+    else:
+        element_found = False 
     return element_found, sigma0, sigma1, sigma2, k

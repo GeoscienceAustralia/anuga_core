@@ -13,16 +13,14 @@ ben = BenchmarkLeastSquares()
 
 ofile = 'lbm_resultsII.csv'
 delimiter = ','
-
+run_profile = True
 use_least_squares_list = [False]
-is_fit_list = [True]
-num_of_points_list = [200, 600, 2000, 6000, 10000, 20000] 
+is_fit_list = [True, False]
+num_of_points_list = [3, 200, 600, 2000, 6000, 10000, 20000] 
 maxArea_list = [ 0.008, 0.0016, 0.0008]
 max_points_per_cell_list = [2,4,8,16,30,64]
 use_file_type_list = ['pts']
-
-
-num_of_points_list = [200] 
+#num_of_points_list = [3, 200]
 maxArea_list = [ 0.008]
 max_points_per_cell_list = [30]
 
@@ -35,6 +33,7 @@ fd.write("use_file_type" + delimiter +
          "num_of_triangles" + delimiter +
          "max_points_per_cell" + delimiter +
          "is_fit" + delimiter +
+         "is_profiling" + delimiter +
          "mem"  + delimiter +
          "time" + delimiter + "\n")
 
@@ -52,7 +51,7 @@ for maxArea in maxArea_list:
                                                    ,segments_in_mesh=False
                                                    ,use_file_type=use_file_type
                                                    ,save=True
-                                                   ,run_profile=True
+                                                   ,run_profile=run_profile
                                                )
                     print "time",time
                     print "mem", mem
@@ -62,6 +61,7 @@ for maxArea in maxArea_list:
                              str(num_tri) + delimiter +
                              str(max_points_per_cell) + delimiter +
                              str(is_fit) + delimiter +
+                             str(run_profile) + delimiter +
                              str(mem)  + delimiter +
                              str(time) + delimiter + "\n")
 fd.close()                         

@@ -90,8 +90,11 @@ class BenchmarkLeastSquares:
         t0 = time.time()
         #m0 = None on windows
         m0 = mem_usage()
-        
-        profile_file = "P" + str(num_of_points) + \
+        if is_fit is True:
+            op = "Fit_"
+        else:
+            op = "Interp_"
+        profile_file = op + "P" + str(num_of_points) + \
                        "T" + str(len(mesh_dict['triangles'])) + \
                        "PPC" + str(max_points_per_cell) + \
                        ".txt"
@@ -159,21 +162,32 @@ class BenchmarkLeastSquares:
                 interp = Interpolate(mesh_dict['vertices'],
                                      mesh_dict['triangles'], 
                                  max_vertices_per_cell = max_points_per_cell)
-                s = """calc = interp.interpolate(mesh_dict['vertex_attributes']
+                
+                if run_profile:
+                    s="""calc=interp.interpolate(mesh_dict['vertex_attributes']
+                    ,points_dict['points'],start_blocking_len=blocking_len)"""
+                    pobject = profile.Profile()
+                    presult = pobject.runctx(s,
+                                             vars(sys.modules[__name__]),
+                                             vars())
+                    prof_file = tempfile.mktemp(".prof")
+                    presult.dump_stats(prof_file)
+                    #
+                    # Let process these results
+                    S = pstats.Stats(prof_file)
+                    saveout = sys.stdout 
+                    pfile = open(profile_file, "w")
+                    sys.stdout = pfile
+                    s = S.sort_stats('cumulative').print_stats(30)
+                    sys.stdout = saveout 
+                    pfile.close()
+                    os.remove(prof_file)
+                    
+                else:
+                    calc = interp.interpolate(mesh_dict['vertex_attributes']
                                           ,points_dict['points']
-                                          ,start_blocking_len=blocking_len)"""
+                                          ,start_blocking_len = 500000)
                 
-                fileName = tempfile.mktemp(".prof")
-                profile.run(s, fileName) #profile_file)
-                
-                S = pstats.Stats(fileName)
-                s = S.sort_stats('cumulative').print_stats(30)
-                print "***********"
-                print s
-                print "***********"
-                pfile = file.open(profile_file, "w")
-                pfile.write(s)
-                pfile.close()
         time_taken_sec = (time.time()-t0)
         m1 = mem_usage()
         if m0 is None or m1 is None:
