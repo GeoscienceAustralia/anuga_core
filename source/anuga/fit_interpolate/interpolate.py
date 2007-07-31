@@ -240,18 +240,13 @@ class Interpolate (FitInterpolate):
         
         #Convert point_coordinates to Numeric arrays, in case it was a list.
         point_coordinates = ensure_numeric(point_coordinates, Float)
-        # for ticket 160
-	#boundary = self.mesh.get_boundary_polygon()
-        #geo = Geospatial_data(boundary)
-        #geo.export_points_file('serial-boundary.xya')
-        #geo.export_points_file('serial-boundary.txt')
+        
         if verbose: print 'Getting indices inside mesh boundary'
         self.inside_poly_indices, self.outside_poly_indices  = \
                      in_and_outside_polygon(point_coordinates,
                                             self.mesh.get_boundary_polygon(),
                                             closed = True, verbose = verbose)
-        #print "self.inside_poly_indices",self.inside_poly_indices
-        #print "self.outside_poly_indices",self.outside_poly_indices 
+        
         #Build n x m interpolation matrix
         if verbose and len(self.outside_poly_indices) > 0:
             print '\n WARNING: Points outside mesh boundary. \n'

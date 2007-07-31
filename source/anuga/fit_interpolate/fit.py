@@ -435,7 +435,7 @@ class Fit(FitInterpolate):
 
 def fit_to_mesh(vertex_coordinates,
                 triangles,
-                point_coordinates, # this can also be a .csv/.txt file name
+                point_coordinates, # this can also be a points file name
                 point_attributes=None,
                 alpha=DEFAULT_ALPHA,
                 verbose=False,

@@ -20,6 +20,8 @@ import sys
 import time
 from random import seed, random
 import tempfile
+import profile , pstats
+import tempfile
 
 from anuga.fit_interpolate.interpolate import Interpolate
 from anuga.fit_interpolate.fit import Fit
@@ -70,11 +72,11 @@ class BenchmarkLeastSquares:
               blocking_len=500000,
               segments_in_mesh=True,
               save=False,
-              verbose=False):
+              verbose=False,
+              run_profile=False):
         '''
         num_of_points 
         '''
-        
         #print "num_of_points",num_of_points
         #print "maxArea",maxArea
         #print "max_points_per_cell", max_points_per_cell
@@ -88,7 +90,12 @@ class BenchmarkLeastSquares:
         t0 = time.time()
         #m0 = None on windows
         m0 = mem_usage()
-
+        
+        profile_file = "P" + str(num_of_points) + \
+                       "T" + str(len(mesh_dict['triangles'])) + \
+                       "PPC" + str(max_points_per_cell) + \
+                       ".txt"
+                       
         if use_least_squares is True:
             from anuga.where.least_squares import Interpolation
             interp = Interpolation(mesh_dict['vertices'],
@@ -107,6 +114,7 @@ class BenchmarkLeastSquares:
                 calc = interp.interpolate(mesh_dict['vertex_attributes'])
         else: 
             if is_fit is True:
+                from anuga.fit_interpolate.fit import Fit
                 interp = Fit(mesh_dict['vertices'],
                                  mesh_dict['triangles'], 
                                  max_vertices_per_cell = max_points_per_cell)
@@ -120,7 +128,28 @@ class BenchmarkLeastSquares:
                     G1 = Geospatial_data(points_dict['points'],
                                          points_dict['point_attributes'])
                     G1.export_points_file(fileName, absolute=True)
-                    calc = interp.fit(fileName, verbose=verbose)
+
+                    if run_profile:
+                    
+                        s = """interp.fit(fileName, verbose=verbose)"""
+                        pobject = profile.Profile()
+                        presult = pobject.runctx(s,
+                                                 vars(sys.modules[__name__]),
+                                                 vars())
+                        prof_file = tempfile.mktemp(".prof")
+                        presult.dump_stats(prof_file)
+                        #
+                        # Let process these results
+                        S = pstats.Stats(prof_file)
+                        saveout = sys.stdout 
+                        pfile = open(profile_file, "w")
+                        sys.stdout = pfile
+                        s = S.sort_stats('cumulative').print_stats(30)
+                        sys.stdout = saveout 
+                        pfile.close()
+                        os.remove(prof_file)
+                    else:
+                        interp.fit(fileName, verbose=verbose)
                     os.remove(fileName)
                     
             else:
@@ -130,10 +159,21 @@ class BenchmarkLeastSquares:
                 interp = Interpolate(mesh_dict['vertices'],
                                      mesh_dict['triangles'], 
                                  max_vertices_per_cell = max_points_per_cell)
-                calc = interp.interpolate(mesh_dict['vertex_attributes']
+                s = """calc = interp.interpolate(mesh_dict['vertex_attributes']
                                           ,points_dict['points']
-                                          ,start_blocking_len=blocking_len)
-            
+                                          ,start_blocking_len=blocking_len)"""
+                
+                fileName = tempfile.mktemp(".prof")
+                profile.run(s, fileName) #profile_file)
+                
+                S = pstats.Stats(fileName)
+                s = S.sort_stats('cumulative').print_stats(30)
+                print "***********"
+                print s
+                print "***********"
+                pfile = file.open(profile_file, "w")
+                pfile.write(s)
+                pfile.close()
         time_taken_sec = (time.time()-t0)
         m1 = mem_usage()
         if m0 is None or m1 is None:

@@ -90,6 +90,7 @@ class FitInterpolate:
         self.mesh.check_integrity()
         
         if verbose: print 'FitInterpolate: Building quad tree'
+        # This stores indices of vertices
         self.root = build_quadtree(self.mesh,
                                    max_points_per_cell = max_vertices_per_cell)
         #print "self.root",self.root.show() 

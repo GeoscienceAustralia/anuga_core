@@ -16,10 +16,15 @@ delimiter = ','
 
 use_least_squares_list = [False]
 is_fit_list = [True]
-num_of_points_list = [200, 600, 2000, 6000, 10000, 20000]  #[5000] #, 500] #, 10000, 100000] #, 10000000]
+num_of_points_list = [200, 600, 2000, 6000, 10000, 20000] 
 maxArea_list = [ 0.008, 0.0016, 0.0008]
-max_points_per_cell_list = [2,4,8,16,30,64] #,4,8,16,32,64,128,255]
+max_points_per_cell_list = [2,4,8,16,30,64]
 use_file_type_list = ['pts']
+
+
+num_of_points_list = [200] 
+maxArea_list = [ 0.008]
+max_points_per_cell_list = [30]
 
 fd = open(ofile,'a')
 # write the title line
@@ -47,6 +52,7 @@ for maxArea in maxArea_list:
                                                    ,segments_in_mesh=False
                                                    ,use_file_type=use_file_type
                                                    ,save=True
+                                                   ,run_profile=True
                                                )
                     print "time",time
                     print "mem", mem

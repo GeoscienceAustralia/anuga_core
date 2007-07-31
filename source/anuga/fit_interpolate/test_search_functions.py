@@ -160,16 +160,7 @@ class Test_search_functions(unittest.TestCase):
                 assert is_inside_polygon(x, V)
                 assert found is True
             else:
-                assert found is False                
-            
-
-        
-                
-
-        
-        
-
-        
+                assert found is False   
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_search_functions,'test')
