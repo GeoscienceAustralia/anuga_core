@@ -1741,10 +1741,11 @@ def make_plots_from_csv_file(directories_dic={},
 
         for j, filename in enumerate(which_csv_to_assess):
             if assess_all_csv_files==False:
-                dir_filename=directory+base_name+sep+filename
+#                dir_filename=directory+sep+base_name+filename
+                dir_filename=join(directory,base_name+filename)
             else:
                 dir_filename=join(directory,filename)
-                
+#            print'dir_filename',dir_filename
             attribute_dic, title_index_dic = csv2dict(dir_filename+
                                                        '.csv')
 
@@ -1784,7 +1785,7 @@ def make_plots_from_csv_file(directories_dic={},
                     (max_t+max_start_time)/seconds_in_hour,
                      min_mom, max_mom)
 #    ion()
-    pylab.hold()
+#    pylab.hold()
     
     
     cstr = ['b', 'r', 'g', 'c', 'm', 'y', 'k']
