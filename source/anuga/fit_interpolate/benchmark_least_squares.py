@@ -27,7 +27,9 @@ from anuga.fit_interpolate.interpolate import Interpolate
 from anuga.fit_interpolate.fit import Fit
 from anuga.pmesh.mesh import Mesh
 from anuga.geospatial_data.geospatial_data import Geospatial_data
-#from anuga.shallow_water import Domain
+from anuga.shallow_water import Domain
+from anuga.fit_interpolate.fit import Fit, fit_to_mesh
+from anuga.fit_interpolate.interpolate import benchmark_interpolate
 
 def mem_usage():
     '''
@@ -95,33 +97,32 @@ class BenchmarkLeastSquares:
                        "T" + str(len(mesh_dict['triangles'])) + \
                        "PPC" + str(max_points_per_cell) + \
                        ".txt"
-                       
+                    
+        
+        domain = Domain(mesh_dict['vertices'], mesh_dict['triangles'],
+                        use_cache=False, verbose=False)
         #Initial time and memory
         t0 = time.time()
         #m0 = None on windows
         m0 = mem_usage()
         
-        #domain = Domain(mesh_dict['vertices'], mesh_dict['triangles'],
-         #               use_cache=False, verbose=False)
         if is_fit is True:
-            from anuga.fit_interpolate.fit import Fit, fit_to_mesh
 
             print "Fit in Fit"
+            geospatial = Geospatial_data(points_dict['points'],
+                                     points_dict['point_attributes'])
             if use_file_type == None:
-                points = points_dict['points']
-                point_attributes = points_dict['point_attributes']
+                points = geospatial
+                filename = None
             else:
                 #check that the type
                 fileName = tempfile.mktemp("." + use_file_type)
-                G1 = Geospatial_data(points_dict['points'],
-                                     points_dict['point_attributes'])
-                G1.export_points_file(fileName, absolute=True)
-                points = fileName
-                point_attributes = None
-                
+                geospatial.export_points_file(fileName, absolute=True)
+                points = None
+                filename = fileName
             if run_profile is True:
                     
-                s = """fit_to_mesh(mesh_dict['vertices'], mesh_dict['triangles'],points,point_attributes)"""
+                s = """domain.set_quantity('elevation',points,filename=filename,use_cache=False)"""
                 pobject = profile.Profile()
                 presult = pobject.runctx(s,
                                          vars(sys.modules[__name__]),
@@ -139,10 +140,8 @@ class BenchmarkLeastSquares:
                 pfile.close()
                 os.remove(prof_file)
             else:
-                fit_to_mesh(mesh_dict['vertices'],
-                            mesh_dict['triangles'],
-                            points, # this can also be a points file name
-                            point_attributes)
+                domain.set_quantity('elevation',points,filename=filename,
+                                    use_cache=False)
             if not use_file_type == None:
                 os.remove(fileName)
                     
@@ -150,13 +149,8 @@ class BenchmarkLeastSquares:
             # run an interploate problem.
             print "Interpolate!"
             
-            interp = Interpolate(mesh_dict['vertices'],
-                                 mesh_dict['triangles'], 
-                                 max_vertices_per_cell = max_points_per_cell)
-            
             if run_profile:
-                s="""calc=interp.interpolate(mesh_dict['vertex_attributes']
-                ,points_dict['points'],start_blocking_len=blocking_len)"""
+                s="""benchmark_interpolate(mesh_dict['vertices'],mesh_dict['vertex_attributes'],mesh_dict['triangles'],points_dict['points'],max_points_per_cell=max_points_per_cell)"""
                 pobject = profile.Profile()
                 presult = pobject.runctx(s,
                                          vars(sys.modules[__name__]),
@@ -175,10 +169,11 @@ class BenchmarkLeastSquares:
                 os.remove(prof_file)
                     
             else:
-                calc = interp.interpolate(mesh_dict['vertex_attributes']
-                                          ,points_dict['points']
-                                          ,start_blocking_len = 500000)
-            
+                 benchmark_interpolate(mesh_dict['vertices'],
+                                       mesh_dict['vertex_attributes'],
+                                       mesh_dict['triangles'],
+                                       points_dict['points'],
+                                       max_points_per_cell=max_points_per_cell)
         time_taken_sec = (time.time()-t0)
         m1 = mem_usage()
         if m0 is None or m1 is None:

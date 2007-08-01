@@ -290,6 +290,26 @@ class Interpolate (FitInterpolate):
                 raise Exception(msg)
         return A
 
+def benchmark_interpolate(vertices,
+                          vertex_attributes,
+                          triangles, points,
+                          max_points_per_cell=None,
+                          start_blocking_len=500000):
+    """
+    No test for this yet.
+    Note, this has no time the input data has no time dimension.  Which is
+    different from most of the data we interpolate, eg sww info.
+     
+	Output:
+	  Interpolated values at inputted points.
+    """
+    interp = Interpolate(vertices,
+                         triangles, 
+                         max_vertices_per_cell=max_points_per_cell)
+            
+    calc = interp.interpolate(vertex_attributes
+                              ,points
+                              ,start_blocking_len=start_blocking_len)
 def interpolate_sww2csv(sww_file,
                         points,
                         depth_file,

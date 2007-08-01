@@ -125,14 +125,16 @@ def find_triangle_compute_interpolation(mesh, k, x):
     xi0, xi1, xi2 = mesh.get_vertex_coordinates(triangle_id=k)
 
     # this is where we can call some fast c code.
+      
+    # Integrity check - machine precision is too hard
+    # so we use hardwired single precision 
+    epsilon = 1.0e-6
+    
     xmax = max(xi0[0], xi1[0], xi2[0])
     xmin = min(xi0[0], xi1[0], xi2[0])
     ymax = max(xi0[1], xi1[1], xi2[1])
     ymin = min(xi0[1], xi1[1], xi2[1])
 
-    # Integrity check - machine precision is too hard
-    # so we use hardwired single precision 
-    epsilon = 1.0e-6
     
     if  x[0] > xmax + epsilon:
         return False,0,0,0,0
@@ -142,7 +144,6 @@ def find_triangle_compute_interpolation(mesh, k, x):
         return False,0,0,0,0
     if  x[1] < ymin - epsilon:
         return False,0,0,0,0
-    
     
     # Get the three normals 
     n0 = mesh.get_normal(k, 0)
