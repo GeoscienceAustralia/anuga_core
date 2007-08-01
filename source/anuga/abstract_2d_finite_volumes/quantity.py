@@ -754,25 +754,6 @@ class Quantity:
                   'alpha': alpha,
                   'verbose': verbose}
 
-
-        # FIXME(dsg):Why is this catched? fit_to_mesh handles caching.
-        # Fair enough - I have commented it out 28/6/7 (Ole)
-        #if use_cache is True:
-        #    try:
-        #        from caching import cache
-        #    except:
-        #        msg = 'Caching was requested, but caching module'+\
-        #              'could not be imported'
-        #        raise msg
-        #
-        #    vertex_attributes = cache(fit_to_mesh,
-        #                              args, kwargs,
-        #                              verbose=verbose,
-        #                              compression=False)
-        #else:
-        #    vertex_attributes = apply(fit_to_mesh,
-        #                              args, kwargs)
-
         vertex_attributes = apply(fit_to_mesh,
                                   args, kwargs)        
 

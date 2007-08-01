@@ -37,7 +37,7 @@ from anuga.geospatial_data.geospatial_data import Geospatial_data, \
      ensure_absolute
 
 # tests fail if 2 is used
-MAX_VERTICES_PER_CELL = 30
+MAX_VERTICES_PER_CELL = 8
 
 class FitInterpolate:
     
