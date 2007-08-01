@@ -464,8 +464,8 @@ def fit_to_mesh(vertex_coordinates,
     if use_cache is True:
         if isinstance(point_coordinates, basestring):
             # We assume that point_coordinates is the name of a .csv/.txt
-            # file which must be passed onto caching as a dependency (in case it
-            # has changed on disk)
+            # file which must be passed onto caching as a dependency 
+            # (in case it has changed on disk)
             dep = [point_coordinates]
         else:
             dep = None

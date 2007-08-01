@@ -27,6 +27,7 @@ from anuga.fit_interpolate.interpolate import Interpolate
 from anuga.fit_interpolate.fit import Fit
 from anuga.pmesh.mesh import Mesh
 from anuga.geospatial_data.geospatial_data import Geospatial_data
+#from anuga.shallow_water import Domain
 
 def mem_usage():
     '''
@@ -67,7 +68,6 @@ class BenchmarkLeastSquares:
               maxArea=1000,
               max_points_per_cell=4,
               is_fit=True,
-              use_least_squares=False,
               use_file_type=None,
               blocking_len=500000,
               segments_in_mesh=True,
@@ -85,11 +85,8 @@ class BenchmarkLeastSquares:
                                                   is_segments=segments_in_mesh,
                                                   save=save)
         points_dict = self._build_points_dict(num_of_points=num_of_points)
-            
-        #Initial time and memory
-        t0 = time.time()
-        #m0 = None on windows
-        m0 = mem_usage()
+
+
         if is_fit is True:
             op = "Fit_"
         else:
@@ -99,95 +96,89 @@ class BenchmarkLeastSquares:
                        "PPC" + str(max_points_per_cell) + \
                        ".txt"
                        
-        if use_least_squares is True:
-            from anuga.where.least_squares import Interpolation
-            interp = Interpolation(mesh_dict['vertices'],
-                                   mesh_dict['triangles'],
-                                   points_dict['points'],
-                                   expand_search=True,
-                                   verbose = False,
-                                   max_points_per_cell = max_points_per_cell) 
-            if is_fit is True:
-                print "Fit in least squares"
-                calc = interp.fit_points(points_dict['point_attributes'])
-                
+        #Initial time and memory
+        t0 = time.time()
+        #m0 = None on windows
+        m0 = mem_usage()
+        
+        #domain = Domain(mesh_dict['vertices'], mesh_dict['triangles'],
+         #               use_cache=False, verbose=False)
+        if is_fit is True:
+            from anuga.fit_interpolate.fit import Fit, fit_to_mesh
+
+            print "Fit in Fit"
+            if use_file_type == None:
+                points = points_dict['points']
+                point_attributes = points_dict['point_attributes']
             else:
-                # run an interploate problem.
-                print "Interpolate!"
-                calc = interp.interpolate(mesh_dict['vertex_attributes'])
-        else: 
-            if is_fit is True:
-                from anuga.fit_interpolate.fit import Fit
-                interp = Fit(mesh_dict['vertices'],
+                #check that the type
+                fileName = tempfile.mktemp("." + use_file_type)
+                G1 = Geospatial_data(points_dict['points'],
+                                     points_dict['point_attributes'])
+                G1.export_points_file(fileName, absolute=True)
+                points = fileName
+                point_attributes = None
+                
+            if run_profile is True:
+                    
+                s = """fit_to_mesh(mesh_dict['vertices'], mesh_dict['triangles'],points,point_attributes)"""
+                pobject = profile.Profile()
+                presult = pobject.runctx(s,
+                                         vars(sys.modules[__name__]),
+                                         vars())
+                prof_file = tempfile.mktemp(".prof")
+                presult.dump_stats(prof_file)
+                #
+                # Let process these results
+                S = pstats.Stats(prof_file)
+                saveout = sys.stdout 
+                pfile = open(profile_file, "w")
+                sys.stdout = pfile
+                s = S.sort_stats('cumulative').print_stats(30)
+                sys.stdout = saveout 
+                pfile.close()
+                os.remove(prof_file)
+            else:
+                fit_to_mesh(mesh_dict['vertices'],
+                            mesh_dict['triangles'],
+                            points, # this can also be a points file name
+                            point_attributes)
+            if not use_file_type == None:
+                os.remove(fileName)
+                    
+        else:
+            # run an interploate problem.
+            print "Interpolate!"
+            
+            interp = Interpolate(mesh_dict['vertices'],
                                  mesh_dict['triangles'], 
                                  max_vertices_per_cell = max_points_per_cell)
-                print "Fit in Fit"
-                if use_file_type == None:
-                    calc = interp.fit(points_dict['points'],
-                                      points_dict['point_attributes'])
-                else:
-                    #check that the type
-                    fileName = tempfile.mktemp("." + use_file_type)
-                    G1 = Geospatial_data(points_dict['points'],
-                                         points_dict['point_attributes'])
-                    G1.export_points_file(fileName, absolute=True)
-
-                    if run_profile:
-                    
-                        s = """interp.fit(fileName, verbose=verbose)"""
-                        pobject = profile.Profile()
-                        presult = pobject.runctx(s,
-                                                 vars(sys.modules[__name__]),
-                                                 vars())
-                        prof_file = tempfile.mktemp(".prof")
-                        presult.dump_stats(prof_file)
-                        #
-                        # Let process these results
-                        S = pstats.Stats(prof_file)
-                        saveout = sys.stdout 
-                        pfile = open(profile_file, "w")
-                        sys.stdout = pfile
-                        s = S.sort_stats('cumulative').print_stats(30)
-                        sys.stdout = saveout 
-                        pfile.close()
-                        os.remove(prof_file)
-                    else:
-                        interp.fit(fileName, verbose=verbose)
-                    os.remove(fileName)
+            
+            if run_profile:
+                s="""calc=interp.interpolate(mesh_dict['vertex_attributes']
+                ,points_dict['points'],start_blocking_len=blocking_len)"""
+                pobject = profile.Profile()
+                presult = pobject.runctx(s,
+                                         vars(sys.modules[__name__]),
+                                         vars())
+                prof_file = tempfile.mktemp(".prof")
+                presult.dump_stats(prof_file)
+                #
+                # Let process these results
+                S = pstats.Stats(prof_file)
+                saveout = sys.stdout 
+                pfile = open(profile_file, "w")
+                sys.stdout = pfile
+                s = S.sort_stats('cumulative').print_stats(30)
+                sys.stdout = saveout 
+                pfile.close()
+                os.remove(prof_file)
                     
             else:
-                # run an interploate problem.
-                print "Interpolate!"
-                
-                interp = Interpolate(mesh_dict['vertices'],
-                                     mesh_dict['triangles'], 
-                                 max_vertices_per_cell = max_points_per_cell)
-                
-                if run_profile:
-                    s="""calc=interp.interpolate(mesh_dict['vertex_attributes']
-                    ,points_dict['points'],start_blocking_len=blocking_len)"""
-                    pobject = profile.Profile()
-                    presult = pobject.runctx(s,
-                                             vars(sys.modules[__name__]),
-                                             vars())
-                    prof_file = tempfile.mktemp(".prof")
-                    presult.dump_stats(prof_file)
-                    #
-                    # Let process these results
-                    S = pstats.Stats(prof_file)
-                    saveout = sys.stdout 
-                    pfile = open(profile_file, "w")
-                    sys.stdout = pfile
-                    s = S.sort_stats('cumulative').print_stats(30)
-                    sys.stdout = saveout 
-                    pfile.close()
-                    os.remove(prof_file)
-                    
-                else:
-                    calc = interp.interpolate(mesh_dict['vertex_attributes']
+                calc = interp.interpolate(mesh_dict['vertex_attributes']
                                           ,points_dict['points']
                                           ,start_blocking_len = 500000)
-                
+            
         time_taken_sec = (time.time()-t0)
         m1 = mem_usage()
         if m0 is None or m1 is None:
