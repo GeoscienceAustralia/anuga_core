@@ -71,7 +71,8 @@ class Cell(TreeNode):
         self.AddChild(Cell(cs,(cn+cs)/2,cw,(cw+ce)/2,self.name+'_sw'))
         
  
-    def search(self, x, y, get_vertices=False):
+    def search(self, x, y):
+    #def search_new(self, x, y):
         """Find all point indices sharing the same cell as point (x, y)
         """
         branch = []
@@ -82,16 +83,16 @@ class Cell(TreeNode):
                     brothers = list(self.children)
                     brothers.remove(child)
                     branch.append(brothers)
-                    points, branch = child.search_branch(x,y, branch,
-                                                  get_vertices=get_vertices)
+                    points, branch = child.search_branch(x,y, branch)
         else:
             # Leaf node: Get actual waypoints
-            points = self.retrieve(get_vertices=get_vertices)
+            points = self.retrieve()
+
         self.branch = branch   
         return points
 
 
-    def search_branch(self, x, y, branch, get_vertices=False):
+    def search_branch(self, x, y, branch):
         """Find all point indices sharing the same cell as point (x, y)
         """
         points = []
@@ -101,16 +102,15 @@ class Cell(TreeNode):
                     brothers = list(self.children)
                     brothers.remove(child)
                     branch.append(brothers)
-                    points, branch = child.search_branch(x,y, branch,
-                                                  get_vertices=get_vertices)
+                    points, branch = child.search_branch(x,y, branch)
                     
         else:
             # Leaf node: Get actual waypoints
-            points = self.retrieve(get_vertices=get_vertices)      
+            points = self.retrieve()      
         return points, branch
 
 
-    def expand_search(self, get_vertices=False):
+    def expand_search(self):
         """Find all point indices 'up' one cell from the last search
         """
         points = []
@@ -120,7 +120,7 @@ class Cell(TreeNode):
             three_cells = self.branch.pop()
             for cell in three_cells:
                 #print "cell ", cell.show() 
-                points += cell.retrieve(get_vertices=get_vertices)
+                points += cell.retrieve()
         return points, self.branch
 
 
@@ -199,37 +199,7 @@ class Cell(TreeNode):
             self.points.extend(objects)
 
 
-    def retrieve_triangles(self):
-        """return a list of lists. For the inner lists,
-        The first element is the triangle index,
-        the second element is a list.for this list
-           the first element is a list of three (x, y) vertices,
-           the following elements are the three triangle normals.
-
-        This info is used in searching for a triangle that a point is in.
-        """
-        # FIXME Tidy up the structure that is returned.
-        # if the triangles att has been made
-        # return it.
-        if not hasattr(self,'triangles'):
-            # use a dictionary to remove duplicates
-            triangles = {}
-            verts = self.retrieve_vertices()
-            # print "verts", verts
-            for vert in verts:
-                triangle_list = self.__class__.mesh.get_triangles_and_vertices_per_node(vert)
-                for k, _ in triangle_list:
-                    if not triangles.has_key(k):
-                        # print 'k',k
-                        tri = self.__class__.mesh.get_vertex_coordinates(k)
-                        n0 = self.__class__.mesh.get_normal(k, 0)
-                        n1 = self.__class__.mesh.get_normal(k, 1)
-                        n2 = self.__class__.mesh.get_normal(k, 2) 
-                        triangles[k]=(tri, (n0, n1, n2))
-            self.triangles = triangles.items()
-        return self.triangles
-            
-    def retrieve_vertices(self):
+    def retrieve(self):
          objects = []
          if self.children is None:
              objects = self.points
@@ -238,13 +208,6 @@ class Cell(TreeNode):
                  objects += child.retrieve()
          return objects  
 
-
-    def retrieve(self, get_vertices=True):
-        if get_vertices is True:
-            return self.retrieve_vertices()
-        else:
-            return self.retrieve_triangles()
-        
 
     def count(self, keywords=None):
         """retrieve number of stored objects beneath this node inclusive

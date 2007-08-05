@@ -36,31 +36,31 @@ def search_tree_of_vertices(root, mesh, x):
     sigma1 = -10.0
     k = -10.0
             
-    #Get triangles in the cell that the point is in.
-    # Triangle is a list, first element triangle_id,
-    # second element the triangle
-    triangles = root.search(x[0], x[1])
+    #Find vertices near x
+    candidate_vertices = root.search(x[0], x[1])
     is_more_elements = True
 
     element_found, sigma0, sigma1, sigma2, k = \
                    _search_triangles_of_vertices(mesh,
-                                                 triangles, x)
+                                                 candidate_vertices, x)
     while not element_found and is_more_elements:
-        triangles, branch = root.expand_search()
+        candidate_vertices, branch = root.expand_search()
         if branch == []:
             # Searching all the verts from the root cell that haven't
             # been searched.  This is the last try
             element_found, sigma0, sigma1, sigma2, k = \
-                           _search_triangles_of_vertices(mesh,triangles, x)
+                           _search_triangles_of_vertices(mesh,
+                                                         candidate_vertices, x)
             is_more_elements = False
         else:
             element_found, sigma0, sigma1, sigma2, k = \
-                       _search_triangles_of_vertices(mesh,triangles, x)
+                       _search_triangles_of_vertices(mesh,
+                                                     candidate_vertices, x)
 
     return element_found, sigma0, sigma1, sigma2, k
 
 
-def _search_triangles_of_vertices(mesh, triangles, x):
+def _search_triangles_of_vertices(mesh, candidate_vertices, x):
     """Search for triangle containing x amongs candidate_vertices in mesh
 
     This is called by search_tree_of_vertices once the appropriate node
@@ -81,28 +81,48 @@ def _search_triangles_of_vertices(mesh, triangles, x):
     k = -10
     
     #For all vertices in same cell as point x
-    for k, tri_verts_norms in triangles:
-        tri = tri_verts_norms[0]
-        n0, n1, n2 = tri_verts_norms[1]
-        # k is the triangle index
-        # tri is a list of verts (x, y), representing a tringle
+    for v in candidate_vertices:
+        
+        #FIXME (DSG-DSG): this catches verts with no triangle.
+        #Currently pmesh is producing these.
+        #this should be stopped,
+
+        if mesh.number_of_triangles_per_node[v] == 0:
+            continue
+        
+        # Get all triangles which has v as a vertex
+        # The list has elements (triangle, vertex), but only the
+        # first component will be used here
+        triangle_list = mesh.get_triangles_and_vertices_per_node(node=v)
+
         # Find triangle that contains x (if any) and interpolate
-        element_found, sigma0, sigma1, sigma2 =\
-                       find_triangle_compute_interpolation(tri, n0, n1, n2, x)
+        
+        for k, _ in triangle_list:
+            element_found, sigma0, sigma1, sigma2, k =\
+                           find_triangle_compute_interpolation(mesh,
+                                                               k,
+                                                               x)
+
+            if element_found is True:
+                # Don't look for any other triangles in the triangle list
+                break
+
         if element_found is True:
-            # Don't look for any other triangles in the triangle list
+            # Don't look for any other triangle_lists from the
+            # candidate_vertices
             break
+        
     return element_found, sigma0, sigma1, sigma2, k
 
 
             
-def find_triangle_compute_interpolation(triangle, n0, n1, n2, x):
+def find_triangle_compute_interpolation(mesh, k, x):
     """Compute linear interpolation of point x and triangle k in mesh.
     It is assumed that x belongs to triangle k.
     """
 
     # Get the three vertex_points of candidate triangle k
-    xi0, xi1, xi2 = triangle
+    xi0, xi1, xi2 = mesh.get_vertex_coordinates(triangle_id=k)
 
     # this is where we can call some fast c code.
       
@@ -117,18 +137,19 @@ def find_triangle_compute_interpolation(triangle, n0, n1, n2, x):
 
     
     if  x[0] > xmax + epsilon:
-        return False,0,0,0
+        return False,0,0,0,0
     if  x[0] < xmin - epsilon:
-        return False,0,0,0
+        return False,0,0,0,0
     if  x[1] > ymax + epsilon:
-        return False,0,0,0
+        return False,0,0,0,0
     if  x[1] < ymin - epsilon:
-        return False,0,0,0
+        return False,0,0,0,0
     
     # Get the three normals 
-    #n0 = norms[0]  
-    #n1 = norms[1]
-    #n2 = norms[2]
+    n0 = mesh.get_normal(k, 0)
+    n1 = mesh.get_normal(k, 1)
+    n2 = mesh.get_normal(k, 2)            
+        
         
     # Compute interpolation
     sigma2 = dot((x-xi0), n2)/dot((xi2-xi0), n2)
@@ -149,4 +170,4 @@ def find_triangle_compute_interpolation(triangle, n0, n1, n2, x):
         element_found = True
     else:
         element_found = False 
-    return element_found, sigma0, sigma1, sigma2
+    return element_found, sigma0, sigma1, sigma2, k

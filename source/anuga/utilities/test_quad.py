@@ -1,7 +1,7 @@
 import unittest
-from Numeric import array, allclose
-
 from quad import Cell, build_quadtree
+
+#from domain import *
 from anuga.abstract_2d_finite_volumes.general_mesh import General_mesh as Mesh
 
 import types, sys
@@ -23,7 +23,6 @@ class Test_Quad(unittest.TestCase):
         h = [30, 130]
 
         points = [a, b, c, d, e, f, g, h]
-        
         #bac, bce, ecf, dbe, daf, dae
         vertices = [[1,0,2], [1,3,4], [1,2,3], [5,4,7], [4,6,7]]
 
@@ -56,7 +55,7 @@ class Test_Quad(unittest.TestCase):
         self.cell.insert([0,1,2,3,4,5,6,7])
 	self.cell.split(4)
 
-        result =  self.cell.search(x = 1, y = 101, get_vertices=True)
+        result =  self.cell.search(x = 1, y = 101)
         assert type(result) in [types.ListType,types.TupleType],\
 	                        'should be a list'
         self.assertEqual(result, [0,1,2,3])
@@ -126,7 +125,7 @@ class Test_Quad(unittest.TestCase):
 
 
 
-        result = Q.search(3, 105, get_vertices=True)
+        result = Q.search(3, 105)
         assert type(result) in [types.ListType,types.TupleType],\
 	                        'should be a list'
         #print "result",result
@@ -151,66 +150,9 @@ class Test_Quad(unittest.TestCase):
         #This was causing round off error
         Q = build_quadtree(mesh)
 
-    def test_retrieve_triangles(self):
-
-        cell = Cell(0, 6, 0, 6, 'cell', max_points_per_cell=4)
-
-        p0 = [2,1]
-        p1 = [4,1]
-        p2 = [4.,4]
-        p3 = [2,4]
-        p4 = [5,4]
-
-        points = [p0,p1,p2, p3, p4]
-        #
-        vertices = [[0,1,2],[0,2,3],[1,4,2]]
-
-	mesh = Mesh(points, vertices)
-
-        Q = build_quadtree(mesh)
-        results = Q.search(5,1)
-        assert len(results),2
-        #print "results", results
-        #print "results[0][0]", results[0][0]
-        assert results[0],0
-        assert results[1],2
-        assert results[0][1],[[ 2.,  1.],
-                     [ 4.,  1.],
-                     [ 4.,  4.]]
-        assert results[1][1],[[ 4.,  1.],
-                     [ 5.,  4.],
-                     [ 4.,  4.]]
-        # this is the normals
-        assert results[0][1][1],[[1.,  0.],
-                     [-0.83205029,  0.5547002],
-                     [ 0.,  -1.]]
-                     
-        # assert allclose(array(results),[[[ 2.,  1.],
-        #[ 4.,  1.], [ 4.,  4.]], [[ 4.,  1.],[ 5.,  4.],[ 4.,  4.]]] )
-        results = Q.search(5,4.)
-        ### print "results",results 
-        # results_dic={}
-        # results_dic.update(results)
-        assert len(results),3
-        #print "results_dic[0]", results_dic[0]
-        assert results[0][1],[[ 2.,  1.],
-                     [ 4.,  1.],
-                     [ 4.,  4.]]
-        assert results[1][1],[[ 2.,  1.],
-                     [ 4.,  4.],
-                     [ 2.,  4.]]
-        assert results[2][1],[[ 4.,  1.],
-                     [ 5.,  4.],
-                     [ 4.,  4.]]
-        #assert allclose(array(results),[[[ 2.,  1.],[ 4.,  1.], [ 4.,  4.]]
-         #                               ,[[ 2.,  1.],[ 4.,  4.], [ 2.,  4.]],
-        #[[ 4.,  1.],  [ 5.,  4.], [ 4.,  4.]],
-         #                               [[ 4.,  1.], [ 5.,  4.], [ 4.,  4.]]])
-        
 #-------------------------------------------------------------
 if __name__ == "__main__":
 
     mysuite = unittest.makeSuite(Test_Quad,'test')
-    # mysuite = unittest.makeSuite(Test_Quad,'test_retrieve_triangles')
     runner = unittest.TextTestRunner()
     runner.run(mysuite)
