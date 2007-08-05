@@ -13,7 +13,7 @@ ben = BenchmarkLeastSquares()
 
 ofile = 'lbm_resultsII.csv'
 delimiter = ','
-run_profile = True #False #True
+run_profile = False #True
 is_fit_list = [True, False]
 num_of_points_list = [3, 200, 600, 2000, 6000, 10000, 20000] 
 #maxArea_list = [ 0.008, 0.0016, 0.0008]
