@@ -34,7 +34,6 @@ class Geospatial_data:
                  geo_reference=None,
                  default_attribute_name=None,
                  file_name=None,
-                 delimiter=None,
                  latitudes=None,
                  longitudes=None,
                  points_are_lats_longs=False,
@@ -118,9 +117,6 @@ class Geospatial_data:
             dic['pointlist'] = [[1.0,2.0],[3.0,5.0]]
             dic['attributelist']['elevation'] = [[7.0,5.0]
                 
-        delimiter: is the file delimiter that will be used when 
-            importing a .xya file, which is being phased out.
-            
         verbose:
 
           
@@ -135,15 +131,7 @@ class Geospatial_data:
         self.file_name = file_name
         self.max_read_lines = max_read_lines
 
-        if delimiter is not None:
-            msg = 'Specifying delimiters will be removed.'
-            msg = 'Text file format is moving to comma seperated .txt files.'
-            warn(msg, DeprecationWarning) 
         if file_name is None:
-            if delimiter is not None:
-                msg = 'No file specified yet a delimiter is provided!'
-                raise ValueError, msg
-            
             if latitudes is not None or longitudes is not None or \
                    points_are_lats_longs:
                 data_points, geo_reference =  \
@@ -166,7 +154,7 @@ class Geospatial_data:
                 if file_name is not None:
                     print 'Loading Geospatial data from file: %s' %file_name
             
-            self.import_points_file(file_name, delimiter, verbose)
+            self.import_points_file(file_name, verbose=verbose)
                 
             self.check_data_points(self.data_points)
             self.set_attributes(self.attributes) 
