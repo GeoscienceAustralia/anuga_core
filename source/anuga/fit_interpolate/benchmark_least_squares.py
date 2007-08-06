@@ -135,7 +135,7 @@ class BenchmarkLeastSquares:
                 saveout = sys.stdout 
                 pfile = open(profile_file, "w")
                 sys.stdout = pfile
-                s = S.sort_stats('cumulative').print_stats(30)
+                s = S.sort_stats('cumulative').print_stats(60)
                 sys.stdout = saveout 
                 pfile.close()
                 os.remove(prof_file)
@@ -163,7 +163,7 @@ class BenchmarkLeastSquares:
                 saveout = sys.stdout 
                 pfile = open(profile_file, "w")
                 sys.stdout = pfile
-                s = S.sort_stats('cumulative').print_stats(30)
+                s = S.sort_stats('cumulative').print_stats(60)
                 sys.stdout = saveout 
                 pfile.close()
                 os.remove(prof_file)

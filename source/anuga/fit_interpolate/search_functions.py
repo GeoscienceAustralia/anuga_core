@@ -70,7 +70,8 @@ def _search_triangles_of_vertices(mesh, triangles, x):
     This function is responsible for most of the compute time in
     fit and interpolate.
     """
-    
+
+    # these statments are needed if triangles is empty
     #Find triangle containing x:
     element_found = False
 
@@ -110,43 +111,43 @@ def find_triangle_compute_interpolation(triangle, n0, n1, n2, x):
     # so we use hardwired single precision 
     epsilon = 1.0e-6
     
-    xmax = max(xi0[0], xi1[0], xi2[0])
-    xmin = min(xi0[0], xi1[0], xi2[0])
-    ymax = max(xi0[1], xi1[1], xi2[1])
-    ymin = min(xi0[1], xi1[1], xi2[1])
-
-    
-    if  x[0] > xmax + epsilon:
+    if  x[0] > max(xi0[0], xi1[0], xi2[0]) + epsilon:
         return False,0,0,0
-    if  x[0] < xmin - epsilon:
+    if  x[0] < min(xi0[0], xi1[0], xi2[0]) - epsilon:
         return False,0,0,0
-    if  x[1] > ymax + epsilon:
+    if  x[1] > max(xi0[1], xi1[1], xi2[1]) + epsilon:
         return False,0,0,0
-    if  x[1] < ymin - epsilon:
+    if  x[1] < min(xi0[1], xi1[1], xi2[1]) - epsilon:
         return False,0,0,0
     
-    # Get the three normals 
-    #n0 = norms[0]  
-    #n1 = norms[1]
-    #n2 = norms[2]
-        
-    # Compute interpolation
-    sigma2 = dot((x-xi0), n2)/dot((xi2-xi0), n2)
+    # machine precision on some machines (e.g. nautilus)
+    epsilon = get_machine_precision() * 2
+    
+    # Compute interpolation - return as soon as possible
+    
     sigma0 = dot((x-xi1), n0)/dot((xi0-xi1), n0)
+    if sigma0 < -epsilon:
+        return False,0,0,0
     sigma1 = dot((x-xi2), n1)/dot((xi1-xi2), n1)
-
-    delta = abs(sigma0+sigma1+sigma2-1.0) # Should be close to zero
-    msg = 'abs(sigma0+sigma1+sigma2-1) = %.15e, eps = %.15e'\
-          %(delta, epsilon)
-    assert delta < epsilon, msg
+    if sigma1 < -epsilon:
+        return False,0,0,0
+    sigma2 = dot((x-xi0), n2)/dot((xi2-xi0), n2)
+    if sigma2 < -epsilon:
+        return False,0,0,0
+    
+    # epsilon = 1.0e-6
+    # we want to speed this up, so don't do assertions
+    #delta = abs(sigma0+sigma1+sigma2-1.0) # Should be close to zero
+    #msg = 'abs(sigma0+sigma1+sigma2-1) = %.15e, eps = %.15e'\
+    #      %(delta, epsilon)
+    #assert delta < epsilon, msg
 
 
     # Check that this triangle contains the data point
     # Sigmas are allowed to get negative within
     # machine precision on some machines (e.g. nautilus)
-    epsilon = get_machine_precision() * 2
-    if sigma0 >= -epsilon and sigma1 >= -epsilon and sigma2 >= -epsilon:
-        element_found = True
-    else:
-        element_found = False 
-    return element_found, sigma0, sigma1, sigma2
+    #if sigma0 >= -epsilon and sigma1 >= -epsilon and sigma2 >= -epsilon:
+    #    element_found = True
+    #else:
+    #    element_found = False 
+    return True, sigma0, sigma1, sigma2
