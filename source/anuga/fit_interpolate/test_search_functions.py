@@ -11,10 +11,7 @@ from Numeric import zeros, array, allclose
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 from anuga.utilities.polygon import is_inside_polygon
-from anuga.utilities.quad import build_quadtree
-
-
-
+from anuga.utilities.quad import build_quadtree, Cell
 
 
 class Test_search_functions(unittest.TestCase):
@@ -160,10 +157,61 @@ class Test_search_functions(unittest.TestCase):
                 assert is_inside_polygon(x, V)
                 assert found is True
             else:
-                assert found is False   
+                assert found is False
+
+                
+
+    def expanding_search(self):
+        """test_larger mesh and different quad trees
+        """
+        
+        p0 = [2,1]
+        p1 = [4,1]
+        p2 = [4.,4]
+        p3 = [2,4]
+        p4 = [5,4]
+
+        p5 = [-1,-1]
+        p6 = [1,-1]
+        p7 = [1,1]
+        p8 = [-1,1]
+
+        points = [p0,p1,p2, p3,p4,p5,p6,p7,p8]
+        #
+        vertices = [[0,1,2],[0,2,3],[1,4,2],[5,6,7], [5,7,8]]
+        mesh = Mesh(points, vertices)
+
+        # Don't do this, want to control the mx and mins
+        #root = build_quadtree(mesh, max_points_per_cell=4)
+    
+        #Initialise
+        Cell.initialise(mesh)
+
+        root = Cell(-3, 9, -3, 9,
+                    max_points_per_cell = 4)
+        #Insert indices of all vertices
+        root.insert( range(mesh.number_of_nodes) )
+
+        #Build quad tree and return
+        root.split()
+        
+        # One point
+        #x = [3.5, 1.5]
+        x = [2.5, 1.5]
+        element_found, sigma0, sigma1, sigma2, k = \
+                       search_tree_of_vertices(root, mesh, x)
+        # One point
+        x = [3.00005, 2.999994]
+        element_found, sigma0, sigma1, sigma2, k = \
+                       search_tree_of_vertices(root, mesh, x)
+        assert element_found is True
+        assert k == 1
+        
+
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_search_functions,'test')
+    #suite = unittest.makeSuite(Test_search_functions,'expanding_search')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
     
