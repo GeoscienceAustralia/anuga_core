@@ -1031,7 +1031,8 @@ def _read_csv_file_blocking(file_pointer, header,
             numbers.pop(0)
             if len(header) != len(numbers):
                 file_pointer.close() 
-                msg = "File load error.  There might be a problem with the file header"
+                msg = "File load error.  \
+                There might be a problem with the file header"
                 raise SyntaxError, msg
             for i,num in enumerate(numbers):
                 num.strip()
@@ -1382,7 +1383,8 @@ def find_optimal_smoothing_parameter(data_file,
     from Numeric import array, resize,shape,Float,zeros,take,argsort
     from pylab import plot, ion, hold,savefig,semilogx,plotting
 
-    if north_boundary or south_boundary or east_boundary or west_boundary is None:
+    if north_boundary or south_boundary or east_boundary or \
+           west_boundary is None:
         no_boundary=True
         
 
@@ -1418,7 +1420,8 @@ def find_optimal_smoothing_parameter(data_file,
 
 
 
-    alphas = [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1.0, 10.0, 100.0,1000.0,100000.0]
+    alphas = [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1,
+              1.0, 10.0, 100.0,1000.0,100000.0]
     #alphas = [0.001,1,100]
     domains = {}
 
