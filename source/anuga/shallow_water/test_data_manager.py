@@ -599,7 +599,7 @@ class Test_Data_Manager(unittest.TestCase):
 
 
     def test_dem2pts_bounding_box_v2(self):
-        """Test conversion from dem in ascii format to native NetCDF xya format
+        """Test conversion from dem in ascii format to native NetCDF format
         """
 
         import time, os
@@ -713,7 +713,7 @@ Parameters
 
 
     def test_dem2pts_bounding_box_removeNullvalues_v2(self):
-        """Test conversion from dem in ascii format to native NetCDF xya format
+        """Test conversion from dem in ascii format to native NetCDF format
         """
 
         import time, os
@@ -843,7 +843,7 @@ Parameters
 
 
     def test_dem2pts_bounding_box_removeNullvalues_v3(self):
-        """Test conversion from dem in ascii format to native NetCDF xya format
+        """Test conversion from dem in ascii format to native NetCDF format
         Check missing values on clipping boundary
         """
 
@@ -4019,7 +4019,7 @@ END CROSS-SECTIONS:
                 verbose = True)
 
     def test_read_asc(self):
-        """Test conversion from dem in ascii format to native NetCDF xya format
+        """Test conversion from dem in ascii format to native NetCDF format
         """
 
         import time, os
@@ -5024,7 +5024,7 @@ friction  \n \
 
 ########## testing nbed class ##################
     def test_exposure_csv_loading(self):
-        file_name = tempfile.mktemp(".xya")
+        file_name = tempfile.mktemp(".csv")
         file = open(file_name,"w")
         file.write("LATITUDE, LONGITUDE ,sound  , speed \n\
 115.0, -21.0, splat, 0.0\n\
@@ -5044,7 +5044,7 @@ friction  \n \
     def test_exposure_csv_loadingII(self):
         
 
-        file_name = tempfile.mktemp(".xya")
+        file_name = tempfile.mktemp(".txt")
         file = open(file_name,"w")
         file.write("LATITUDE, LONGITUDE ,sound  , speed \n\
 115.0, -21.0, splat, 0.0\n\
@@ -5067,9 +5067,9 @@ friction  \n \
         # The hacks below are to get around this.        
         if sys.platform == 'win32':
             file_name = tempfile.gettempdir() + \
-                    "test_exposure_csv_loading_title_check_list.xya"
+                    "test_exposure_csv_loading_title_check_list.csv"
         else:
-            file_name = tempfile.mktemp(".xya")
+            file_name = tempfile.mktemp(".csv")
         file = open(file_name,"w")
         file.write("LATITUDE, LONGITUDE ,sound  , speed \n\
 115.0, -21.0, splat, 0.0\n\
@@ -5087,7 +5087,7 @@ friction  \n \
             os.remove(file_name)
         
     def test_exposure_csv_cmp(self):
-        file_name = tempfile.mktemp(".xya")
+        file_name = tempfile.mktemp(".csv")
         file = open(file_name,"w")
         file.write("LATITUDE, LONGITUDE ,sound  , speed \n\
 115.0, -21.0, splat, 0.0\n\
@@ -5105,7 +5105,7 @@ friction  \n \
         self.failUnless(cmp(e1,"hey")==1,
                         'FAILED!')
         
-        file_name = tempfile.mktemp(".xya")
+        file_name = tempfile.mktemp(".csv")
         file = open(file_name,"w")
         # Note, this has less spaces in the title,
         # the instances will be the same.
@@ -5120,7 +5120,7 @@ friction  \n \
         self.failUnless(cmp(e3,e2)==0,
                         'FAILED!')
         
-        file_name = tempfile.mktemp(".xya")
+        file_name = tempfile.mktemp(".csv")
         file = open(file_name,"w")
         # Note, 40 changed to 44 .
         file.write("LATITUDE,LONGITUDE ,sound, speed \n\
@@ -5135,7 +5135,7 @@ friction  \n \
         self.failUnless(cmp(e4,e2)<>0,
                         'FAILED!')
         
-        file_name = tempfile.mktemp(".xya")
+        file_name = tempfile.mktemp(".csv")
         file = open(file_name,"w")
         # Note, the first two columns are swapped.
         file.write("LONGITUDE,LATITUDE ,sound, speed \n\
@@ -5152,7 +5152,7 @@ friction  \n \
     def test_exposure_csv_saving(self):
         
 
-        file_name = tempfile.mktemp(".xya")
+        file_name = tempfile.mktemp(".csv")
         file = open(file_name,"w")
         file.write("LATITUDE, LONGITUDE ,sound  , speed \n\
 115.0, -21.0, splat, 0.0\n\
@@ -5161,7 +5161,7 @@ friction  \n \
         file.close()
         e1 = Exposure_csv(file_name)
         
-        file_name2 = tempfile.mktemp(".xya")
+        file_name2 = tempfile.mktemp(".csv")
         e1.save(file_name = file_name2)
         e2 = Exposure_csv(file_name2)
        
@@ -5171,7 +5171,7 @@ friction  \n \
         os.remove(file_name2)
 
     def test_exposure_csv_get_location(self):
-        file_name = tempfile.mktemp(".xya")
+        file_name = tempfile.mktemp(".csv")
         file = open(file_name,"w")
         file.write("LONGITUDE , LATITUDE, sound  , speed \n\
 150.916666667, -34.5, splat, 0.0\n\
@@ -5193,7 +5193,7 @@ friction  \n \
         os.remove(file_name)
         
     def test_exposure_csv_set_column_get_column(self):
-        file_name = tempfile.mktemp(".xya")
+        file_name = tempfile.mktemp(".csv")
         file = open(file_name,"w")
         file.write("LONGITUDE , LATITUDE, sound  , speed \n\
 150.916666667, -34.5, splat, 0.0\n\
@@ -5209,7 +5209,7 @@ friction  \n \
         self.failUnless(returned_values == new_values,
                         ' Error!')
         
-        file_name2 = tempfile.mktemp(".xya")
+        file_name2 = tempfile.mktemp(".csv")
         e1.save(file_name = file_name2)
         e2 = Exposure_csv(file_name2)
         returned_values = e2.get_column(new_title)
@@ -5218,7 +5218,7 @@ friction  \n \
         os.remove(file_name2)
 
     def test_exposure_csv_set_column_get_column_error_checking(self):
-        file_name = tempfile.mktemp(".xya")
+        file_name = tempfile.mktemp(".csv")
         file = open(file_name,"w")
         file.write("LONGITUDE , LATITUDE, sound  , speed \n\
 150.916666667, -34.5, splat, 0.0\n\
@@ -5258,7 +5258,7 @@ friction  \n \
             pass
         else:
             self.failUnless(0 ==1,  'Error not thrown error!')
-        file_name2 = tempfile.mktemp(".xya")
+        file_name2 = tempfile.mktemp(".csv")
         e1.save(file_name = file_name2)
         e2 = Exposure_csv(file_name2)
         returned_values = e2.get_column(new_title)
@@ -5277,7 +5277,7 @@ friction  \n \
     def test_exposure_csv_loading_x_y(self):
         
 
-        file_name = tempfile.mktemp(".xya")
+        file_name = tempfile.mktemp(".csv")
         file = open(file_name,"w")
         file.write("x, y ,sound  , speed \n\
 115.0, 7, splat, 0.0\n\

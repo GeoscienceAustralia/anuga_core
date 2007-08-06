@@ -101,12 +101,9 @@ class Geospatial_data:
             1.9, 2.8, 5, 0.3
             2.7, 2.4, 5.2, 0.3
 
-        The first two columns are always  assumed to be x, y
+        The first two columns have to be x, y or lat, long
         coordinates.
      
-        An issue with the xya format is that the attribute column order
-        is not be controlled.  The info is stored in a dictionary and it's
-        written in an order dependent on the hash order
         
         The format for a Points dictionary is:
 
@@ -175,12 +172,6 @@ class Geospatial_data:
             self.set_attributes(self.attributes) 
             self.set_geo_reference(self.geo_reference)
             self.set_default_attribute_name(default_attribute_name)
-
-
-        #Why?    
-        #assert self.attributes is None or isinstance(self.attributes, DictType)
-        #This is a hassle when blocking, so I've removed it.
-
 
         if verbose is True:
             if file_name is not None:
@@ -514,8 +505,8 @@ class Geospatial_data:
     ###
 
     def import_points_file(self, file_name, delimiter=None, verbose=False):
-        """ load an .txt, .csv or .xya or .pts file
-        Note: will throw an IOError if it can't load the file.
+        """ load an .txt, .csv or .pts file
+        Note: will throw an IOError/SyntaxError if it can't load the file.
         Catch these!
 
         Post condition: self.attributes dictionary has been set
@@ -526,39 +517,7 @@ class Geospatial_data:
             raise IOError, msg
         
         attributes = {}
-        if file_name[-4:]== ".xya":
-            # Maybe not phase-out, so we can load in geo-ref info
-            #msg = 'Text file format is moving to comma seperated .txt files.'
-            #warn(msg, DeprecationWarning) 
-            try:
-                if delimiter == None:
-                    try:
-                        fd = open(file_name)
-                        data_points, attributes, geo_reference =\
-                                     _read_xya_file(fd, ',')
-                    except TitleError:
-                        fd.close()
-                        fd = open(file_name)
-                        data_points, attributes, geo_reference =\
-                                     _read_xya_file(fd, ' ')
-                else:
-                    fd = open(file_name)
-                    data_points, attributes, geo_reference =\
-                                 _read_xya_file(fd, delimiter)
-                fd.close()
-            except (IndexError,ValueError,SyntaxError):
-                fd.close()    
-                msg = 'Could not open file %s ' %file_name
-                msg += 'Check the file location.'
-                raise IOError, msg
-            except IOError, e:
-                fd.close()  
-                # Catch this to add an error message
-                msg = 'Could not open file or incorrect file format %s:%s'\
-                      %(file_name, e)
-                raise IOError, msg
-                
-        elif file_name[-4:]== ".pts":
+        if file_name[-4:]== ".pts":
             try:
                 data_points, attributes, geo_reference =\
                              _read_pts_file(file_name, verbose)
@@ -613,29 +572,7 @@ class Geospatial_data:
         
         """
 
-        if absolute is False and file_name[-4:] == ".xya":
-            msg = 'The text file values must be absolute.   '
-            msg += 'Text file format is moving to comma seperated .txt files.'
-            warn(msg, DeprecationWarning) 
-
-        if (file_name[-4:] == ".xya"):
-            msg = '.xya format is deprecated.  Please use .txt.'
-            warn(msg, DeprecationWarning)
-            if absolute is True:     
-                geo_ref = deepcopy(self.geo_reference)
-                geo_ref.xllcorner = 0
-                geo_ref.yllcorner = 0    
-                _write_xya_file(file_name,
-                                self.get_data_points(absolute=True), 
-                                self.get_all_attributes(),
-                                geo_ref)
-            else:
-                _write_xya_file(file_name,
-                                self.get_data_points(absolute=False), 
-                                self.get_all_attributes(),
-                                self.get_geo_reference())
-                                    
-        elif (file_name[-4:] == ".pts"):
+        if (file_name[-4:] == ".pts"):
             if absolute is True:
                 geo_ref = deepcopy(self.geo_reference)
                 geo_ref.xllcorner = 0
@@ -698,19 +635,21 @@ class Geospatial_data:
     
     
     def split(self, factor=0.5, verbose=False):
-        """Returns two geospatial_data object, first is the size of the 'factor'
-        smaller the original and the second is the remainder. The two new 
-        object are disjoin set of each other. 
+        """Returns two
+        geospatial_data object, first is the size of the 'factor'
+        smaller the original and the second is the remainder. The two
+        new object are disjoin set of each other.
         
         Points of the two new object have selected RANDOMLY. 
         AND if factor is a decimal it will round (2.25 to 2 and 2.5 to 3)
         
-        This method create two lists of indices which are passed into get_sample.
-        The lists are created using random numbers, and they are unique sets eg.
-        total_list(1,2,3,4,5,6,7,8,9)  random_list(1,3,6,7,9) and remainder_list(0,2,4,5,8)
+        This method create two lists of indices which are passed into
+        get_sample.  The lists are created using random numbers, and
+        they are unique sets eg.  total_list(1,2,3,4,5,6,7,8,9)
+        random_list(1,3,6,7,9) and remainder_list(0,2,4,5,8)
                 
         Input - the factor which to split the object, if 0.1 then 10% of the
-            object will be returned
+together             object will be returned
         
         Output - two geospatial_data objects that are disjoint sets of the 
             original
@@ -746,7 +685,8 @@ class Geospatial_data:
         j=0
         k=1
         remainder_list = total_list[:]
-        #pops array index (random_num) from remainder_list (which starts as the 
+        #pops array index (random_num) from remainder_list
+        # (which starts as the 
         #total_list and appends to random_list  
         random_num_len = len(random_num)
         for i in random_num:
@@ -764,8 +704,8 @@ class Geospatial_data:
         test_total = random_list[:]
         test_total.extend(remainder_list)
         test_total.sort() 
-        msg = 'The two random lists made from the original list when added together '\
-         'DO NOT equal the original list'
+        msg = 'The two random lists made from the original list when added '\
+         'together DO NOT equal the original list'
         assert (total_list==test_total),msg
 
         #get new samples
@@ -790,20 +730,7 @@ class Geospatial_data:
         if self.max_read_lines is None:
             self.max_read_lines = MAX_READ_LINES
         
-
-        if self.file_name[-4:] == ".xya":
-            # FIXME (Ole): shouldn't the xya format be replaced by txt/csv?
-            #  Currently both file formats are used.
-
-            # FIXME (Ole): This has to go - it caused Ted Rigby to waste
-            # time trying to read in his data in xya format with an
-            # inevitable memory error appearing.
-            
-            #let's just read it all
-            msg = 'The xya format is deprecated. Use csv or pts.'
-            warn(msg, DeprecationWarning)             
-            
-        elif self.file_name[-4:] == ".pts":
+        if self.file_name[-4:] == ".pts":
             
             # see if the file is there.  Throw a QUIET IO error if it isn't
             fd = open(self.file_name,'r')
@@ -845,20 +772,7 @@ class Geospatial_data:
     def next(self):
         """ read a block, instanciate a new geospatial and return it"""
         
-        if self.file_name[-4:]== ".xya" :
-            # FIXME (Ole): shouldn't the xya format be replaced by txt/csv? 
-            #  Currently both file formats are used.
-            
-            if not hasattr(self,'finished_reading') or \
-                   self.finished_reading is False:
-                #let's just read it all
-                geo = Geospatial_data(self.file_name)
-                self.finished_reading = True
-            else:
-                raise StopIteration
-                self.finished_reading = False
-                
-        elif self.file_name[-4:] == ".pts":
+        if self.file_name[-4:] == ".pts":
             if self.start_row == self.last_row:
                 # read the end of the file last iteration
                 # remove blocking attributes
@@ -1205,51 +1119,6 @@ def _read_pts_file_blocking(fid, start_row, fin_row, keys):
 
     return pointlist, attributes
     
-    
-def _read_xya_file(fd, delimiter):
-    points = []
-    pointattributes = []
-    title = fd.readline()
-    att_names = clean_line(title,delimiter)
-    att_dict = {}
-    line = fd.readline()
-    numbers = clean_line(line,delimiter)
-    
-    while len(numbers) > 1 and line[0] <> '#':
-        if numbers != []:
-            try:
-                x = float(numbers[0])
-                y = float(numbers[1])
-                points.append([x,y])
-                numbers.pop(0)
-                numbers.pop(0)
-                if len(att_names) != len(numbers):
-                    fd.close()
-                    # It might not be a problem with the title
-                    #raise TitleAmountError
-                    raise IOError
-                for i,num in enumerate(numbers):
-                    num.strip()
-                    if num != '\n' and num != '':
-                        #attributes.append(float(num))
-                        att_dict.setdefault(att_names[i],[]).append(float(num))
-            except ValueError:
-                raise SyntaxError
-        line = fd.readline()
-        numbers = clean_line(line,delimiter)
-    
-    if line == '':
-        geo_reference = None
-    else:
-        geo_reference = Geo_reference(ASCIIFile=fd,read_title=line)
-        
-    
-    pointlist = array(points).astype(Float)
-    for key in att_dict.keys():
-        att_dict[key] = array(att_dict[key]).astype(Float)
-    
-    return pointlist, att_dict, geo_reference
-
 def _write_pts_file(file_name,
                     write_data_points,
                     write_attributes=None, 
@@ -1302,50 +1171,6 @@ def _write_pts_file(file_name,
         
     outfile.close() 
   
-
-
-def _write_xya_file(file_name,
-                    write_data_points,
-                    write_attributes=None, 
-                    write_geo_reference=None, 
-                    delimiter=','):
-    """
-    export a file, file_name, with the xya format
-    
-    """
-    points = write_data_points 
-    pointattributes = write_attributes
-    
-    fd = open(file_name,'w')
-    titlelist = ""
-    if pointattributes is not None:    
-        for title in pointattributes.keys():
-            titlelist = titlelist + title + delimiter
-        titlelist = titlelist[0:-len(delimiter)] # remove the last delimiter
-    fd.write(titlelist+"\n")
-    
-    #<vertex #> <x> <y> [attributes]
-    for i, vert in enumerate( points):
-
-
-        if pointattributes is not None:            
-            attlist = ","
-            for att in pointattributes.keys():
-                attlist = attlist + str(pointattributes[att][i])+ delimiter
-            attlist = attlist[0:-len(delimiter)] # remove the last delimiter
-            attlist.strip()
-        else:
-            attlist = ''
-
-        fd.write(str(vert[0]) + delimiter +
-                 str(vert[1]) + attlist + "\n")
-
-    if  write_geo_reference is not None:
-        write_geo_reference = ensure_geo_reference(write_geo_reference)
-        write_geo_reference.write_ASCII(fd)
-    fd.close()
-
-
 def _write_csv_file(file_name,
                     write_data_points,
                     write_attributes=None,

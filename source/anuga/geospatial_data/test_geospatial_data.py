@@ -12,42 +12,10 @@ from anuga.geospatial_data.geospatial_data import *
 from anuga.coordinate_transforms.geo_reference import Geo_reference, TitleError
 from anuga.coordinate_transforms.redfearn import degminsec2decimal_degrees
 from anuga.utilities.anuga_exceptions import ANUGAError
-# Ignore these warnings, since we still want to test .xya code.
-import warnings 
-warnings.filterwarnings(action = 'ignore',
-                        message='.xya format is deprecated.  Please use .txt.',
-                        category=DeprecationWarning)
-
-warnings.filterwarnings(action = 'ignore',
-                        message='The text file values must be ab',
-                        category=DeprecationWarning)
-
-warnings.filterwarnings(action = 'ignore',
-                        message='Text file format is moving to comma se',
-                        category=DeprecationWarning)
-
-warnings.filterwarnings(action = 'ignore',
-                        message='Specifying delimiters will be removed.',
-                        category=DeprecationWarning)
 
 class Test_Geospatial_data(unittest.TestCase):
     def setUp(self):
-        import warnings
-        warnings.filterwarnings(action = 'ignore',
-                                message='.xya format is deprecated.  Please use .txt.',
-                                category=DeprecationWarning)
-        
-        warnings.filterwarnings(action = 'ignore',
-                                message='The text file values must be ab',
-                                category=DeprecationWarning)
-    
-        warnings.filterwarnings(action = 'ignore',
-                                message='Text file format is moving to comma se',
-                                category=DeprecationWarning)
-    
-        warnings.filterwarnings(action = 'ignore',
-                                message='Specifying delimiters will be removed.',
-                                category=DeprecationWarning)
+        pass
 
     def tearDown(self):
         pass
@@ -771,65 +739,6 @@ class Test_Geospatial_data(unittest.TestCase):
         os.remove(FN)
 
         
-    def test_create_from_xya_file(self):
-        """Check that object can be created from a points file (.pts and .xya)
-        """
-
-        points = [[1.0, 2.1], [3.0, 5.3], [5.0, 6.1], [6.0, 3.3]]
-        attributes = [2, 4, 5, 76]
-        '''
-        # Use old pointsdict format
-        pointsdict = {'pointlist': points,
-                      'attributelist': {'att1': attributes,
-                                        'att2': array(attributes) + 1}} 
-        '''
-        att_dict = {'att1': attributes,
-                    'att2': array(attributes) +1}
-                    
-        # Create points as an xya file 
-        FN = 'test_points.xya'
-        G1 = Geospatial_data(points, att_dict)
-        G1.export_points_file(FN)
-#        G1.export_points_file(ofile)
-
-        #Create object from file
-        G = Geospatial_data(file_name = FN)
-        
-        assert allclose(G.get_data_points(), points)
-        assert allclose(G.get_attributes('att1'), attributes)
-        assert allclose(G.get_attributes('att2'), array(attributes) + 1)
-        
-        os.remove(FN)
-
-    def test_create_from_xya_file1(self):
-        """
-        Check that object can be created from an Absolute xya file
-        """
-
-        points = [[1.0, 2.1], [3.0, 5.3], [5.0, 6.1], [6.0, 3.3]]
-        attributes = [2, 4, 5, 76]
-
-        att_dict = {'att1': attributes,
-                    'att2': array(attributes) +1}
-
-        geo_ref = Geo_reference(56, 10, 5)
-                    
-        # Create points as an xya file 
-        FN = 'test_points.xya'
-        G1 = Geospatial_data(points, att_dict, geo_ref)
-
-        G1.export_points_file(FN, absolute=True)
-
-        #Create object from file
-        G = Geospatial_data(file_name = FN)
-        
-        assert allclose(G.get_data_points(absolute=True), 
-                        G1.get_data_points(absolute=True))
-        assert allclose(G.get_attributes('att1'), attributes)
-        assert allclose(G.get_attributes('att2'), array(attributes) + 1)
-        
-        os.remove(FN)
-    
     def test_load_csv(self):
         
         import os
@@ -843,7 +752,7 @@ class Test_Geospatial_data(unittest.TestCase):
 1.0 0.0 10.4 40.0\n")
         file.close()
         #print fileName
-        results = Geospatial_data(fileName, delimiter=',')
+        results = Geospatial_data(fileName)
         os.remove(fileName)
 #        print 'data', results.get_data_points()
         assert allclose(results.get_data_points(), [[1.0, 0.0],[0.0, 1.0],
@@ -852,250 +761,6 @@ class Test_Geospatial_data(unittest.TestCase):
                         [10.0, 0.0, 10.4])
         assert allclose(results.get_attributes(attribute_name='speed'),
                         [0.0, 10.0, 40.0])
-
-        
-    def test_load_xya(self):
-        """ test_load_xya(self):
-        comma delimited
-        """
-        fileName = tempfile.mktemp(".xya")
-        file = open(fileName,"w")
-        file.write("elevation  , speed \n\
-1.0, 0.0, 10.0, 0.0\n\
-0.0, 1.0, 0.0, 10.0\n\
-1.0, 0.0, 10.4, 40.0\n")
-        file.close()
-        results = Geospatial_data(fileName, delimiter=',')
-        os.remove(fileName)
-#        print 'data', results.get_data_points()
-        assert allclose(results.get_data_points(), [[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
-        assert allclose(results.get_attributes(attribute_name='elevation'), [10.0, 0.0, 10.4])
-        assert allclose(results.get_attributes(attribute_name='speed'), [0.0, 10.0, 40.0])
-
-    def test_loadxya2(self):
-        """ test_loadxya2(self):
-        space delimited
-        """
-        import os
-       
-        fileName = tempfile.mktemp(".xya")
-        file = open(fileName,"w")
-        file.write("  elevation   speed \n\
-1.0 0.0 10.0 0.0\n\
-0.0 1.0 0.0 10.0\n\
-1.0 0.0 10.4 40.0\n")
-        file.close()
-
-        results = Geospatial_data(fileName, delimiter=' ')
-
-        os.remove(fileName)
-
-        assert allclose(results.get_data_points(), [[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
-        assert allclose(results.get_attributes(attribute_name='elevation'), [10.0, 0.0, 10.4])
-        assert allclose(results.get_attributes(attribute_name='speed'), [0.0, 10.0, 40.0])
-     
-    def test_loadxya3(self):
-        """
-        test_loadxya3(self):
-        space delimited
-        """
-        import os
-       
-        fileName = tempfile.mktemp(".xya")
-        file = open(fileName,"w")
-        file.write("  elevation   speed \n\
-1.0 0.0 10.0 0.0\n\
-0.0 1.0 0.0 10.0\n\
-1.0 0.0 10.4 40.0\n\
-#geocrap\n\
-56\n\
-56.6\n\
-3\n")
-        file.close()
-
-        results = Geospatial_data(fileName, delimiter=' ')
-
-        os.remove(fileName)
-        assert allclose(results.get_data_points(absolute=False), [[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
-        assert allclose(results.get_attributes(attribute_name='elevation'), [10.0, 0.0, 10.4])
-        assert allclose(results.get_attributes(attribute_name='speed'), [0.0, 10.0, 40.0])
-
-    def BADtest_loadxya4(self):
-        """
-        comma delimited
-        """
-        fileName = tempfile.mktemp(".xya")
-        file = open(fileName,"w")
-        file.write("elevation  , speed \n\
-1.0, 0.0, splat, 0.0\n\
-0.0, 1.0, 0.0, 10.0\n\
-1.0, 0.0, 10.4, 40.0\n")
-        file.close()
-        results = Geospatial_data(fileName, delimiter=',')
-        os.remove(fileName)
-#        print 'data', results.get_data_points()
-        assert allclose(results.get_data_points(), [[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
-        assert allclose(results.get_attributes(attribute_name='elevation'), ["splat", 0.0, 10.4])
-        assert allclose(results.get_attributes(attribute_name='speed'), [0.0, 10.0, 40.0])
-        
-    def test_read_write_points_file_bad2(self):
-        att_dict = {}
-        pointlist = array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
-        att_dict['elevation'] = array([10.0, 0.0, 10.4])
-        att_dict['brightness'] = array([10.0, 0.0, 10.4])
-        geo_reference=Geo_reference(56,1.9,1.9)
-        
-        G = Geospatial_data(pointlist, att_dict, geo_reference)
-        
-        try:
-            G.export_points_file("_???/yeah.xya")
-            
-        except IOError:
-            pass
-        else:
-            msg = 'bad points file extension did not raise error!'
-            raise msg
-#            self.failUnless(0 == 1,
-#                        'bad points file extension did not raise error!')
-                   
-    def test_loadxy_bad(self):
-        import os
-       
-        fileName = tempfile.mktemp(".xya")
-        file = open(fileName,"w")
-        file.write("  elevation   \n\
-1.0 0.0 10.0 0.0\n\
-0.0 1.0 0.0 10.0\n\
-1.0 0.0 10.4 40.0\n")
-        file.close()
-        #print fileName
-        try:
-            results = Geospatial_data(fileName, delimiter=' ')
-        except IOError:
-            pass
-        else:
-            msg = 'bad xya file did not raise error!'
-            raise msg
-#            self.failUnless(0 == 1,
-#                        'bad xya file did not raise error!')
-        os.remove(fileName)
-       
-    def test_loadxy_bad2(self):
-        import os
-       
-        fileName = tempfile.mktemp(".xya")
-        file = open(fileName,"w")
-        file.write("elevation\n\
-1.0 0.0 10.0 \n\
-0.0 1.0\n\
-1.0 \n")
-        file.close()
-        #print fileName
-        try:
-            results = Geospatial_data(fileName, delimiter=' ')
-        except IOError:
-            pass
-        else:
-            msg = 'bad xya file did not raise error!'
-            raise msg
-        os.remove(fileName)
-   
-    def test_loadxy_bad3(self):
-        """ test_loadxy_bad3(self):
-        specifying wrong delimiter
-        """
-        import os
-       
-        fileName = tempfile.mktemp(".xya")
-        file = open(fileName,"w")
-        file.write("  elevation  , speed \n\
-1.0, 0.0, 10.0, 0.0\n\
-0.0, 1.0, 0.0, 10.0\n\
-1.0, 0.0, 10.4, 40.0\n")
-        file.close()
-        try:
-            results = Geospatial_data(fileName, delimiter=' ')
-        except IOError:
-            pass
-        else:
-            msg = 'bad xya file did not raise error!'
-            raise msg
-        os.remove(fileName)
-     
-    def test_loadxy_bad4(self):
-        """ test_loadxy_bad4(self):
-         specifying wrong delimiter
-        """
-        import os
-        fileName = tempfile.mktemp(".xya")
-        file = open(fileName,"w")
-        file.write("  elevation   speed \n\
-1.0 0.0 10.0 0.0\n\
-0.0 1.0 0.0 10.0\n\
-1.0 0.0 10.4 40.0\n\
-#geocrap\n\
-56\n\
-56.6\n\
-3\n"
-)
-        file.close()
-        try:
-            results = Geospatial_data(fileName, delimiter=',')
-        except IOError:
-            pass
-        else:
-            msg = 'bad xya file did not raise error!'
-            raise msg
-
-        os.remove(fileName)
-
-    def test_loadxy_bad5(self):
-        """ test_loadxy_bad5(self):
-        specifying wrong delimiter
-        """
-        import os
-       
-        fileName = tempfile.mktemp(".xya")
-        file = open(fileName,"w")
-        file.write("  elevation   speed \n\
-1.0 0.0 10.0 0.0\n\
-0.0 1.0 0.0 10.0\n\
-1.0 0.0 10.4 40.0\n\
-#geocrap\n\
-crap")
-        file.close()
-        try:
-#            dict = import_points_file(fileName,delimiter=' ')
-#            results = Geospatial_data()
-            results = Geospatial_data(fileName, delimiter=' ', verbose=False)
-#            results.import_points_file(fileName, delimiter=' ')
-        except IOError:
-            pass
-        else:
-            msg = 'bad xya file did not raise error!'
-            raise msg
-
-#            self.failUnless(0 ==1,
-#                        'bad xya file did not raise error!')    
-        os.remove(fileName)              
-
-    def test_loadxy_bad_no_file_xya(self):
-        import os
-       
-        fileName = tempfile.mktemp(".xya")
-        try:
-            results = Geospatial_data(fileName, delimiter=' ')
-        except IOError:
-            pass
-        else:
-            msg = 'imaginary file did not raise error!'
-            raise msg
-
-#        except IOError:
-#            pass
-#        else:
-#            self.failUnless(0 == 1,
-#                        'imaginary file did not raise error!')
 
 
   ###################### .CSV ##############################
@@ -1403,85 +1068,7 @@ crap")
         os.remove(pts_file)
         
         
-    def test_export_xya_file(self):
-        # depreciated since it's testing using geo refs in a text file
-#        dict = {}
-        att_dict = {}
-        pointlist = array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
-        att_dict['elevation'] = array([10.0, 0.0, 10.4])
-        att_dict['brightness'] = array([10.0, 0.0, 10.4])
-#        dict['attributelist'] = att_dict
-        geo_reference=Geo_reference(56,1.9,1.9)
-        
-        
-        fileName = tempfile.mktemp(".xya")
-        G = Geospatial_data(pointlist, att_dict, geo_reference)
-        G.export_points_file(fileName, False)
 
-#        dict2 = import_points_file(fileName)
-        results = Geospatial_data(file_name = fileName)
-        #print "fileName",fileName 
-        os.remove(fileName)
-        
-        assert allclose(results.get_data_points(absolute=False),[[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
-        assert allclose(results.get_attributes(attribute_name='elevation'), [10.0, 0.0, 10.4])
-        answer = [10.0, 0.0, 10.4]
-        assert allclose(results.get_attributes(attribute_name='brightness'), answer)
-        #print "dict2['geo_reference']",dict2['geo_reference'] 
-        self.failUnless(results.get_geo_reference() == geo_reference,
-                         'test_writepts failed. Test geo_reference')
-
-    def test_export_xya_file2(self):
-        """ test_export_xya_file2(self):
-        test absolute xya file
-        """
-        att_dict = {}
-        pointlist = array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
-        att_dict['elevation'] = array([10.0, 0.0, 10.4])
-        att_dict['brightness'] = array([10.0, 0.0, 10.4])
-        
-        fileName = tempfile.mktemp(".xya")
-        G = Geospatial_data(pointlist, att_dict)
-        G.export_points_file(fileName)
-        results = Geospatial_data(file_name = fileName)
-#        dict2 = import_points_file(fileName)
-        os.remove(fileName)
-        
-        assert allclose(results.get_data_points(False),[[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
-        assert allclose(results.get_attributes('elevation'), [10.0, 0.0, 10.4])
-        answer = [10.0, 0.0, 10.4]
-        assert allclose(results.get_attributes('brightness'), answer)
-
-    def test_export_xya_file3(self):
-        """ test_export_xya_file3(self):
-        test absolute xya file with geo_ref
-        """
-        att_dict = {}
-        pointlist = array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
-        att_dict['elevation'] = array([10.0, 0.0, 10.4])
-        att_dict['brightness'] = array([10.0, 0.0, 10.4])
-        geo_reference=Geo_reference(56,1.9,1.9)
-        
-        
-        fileName = tempfile.mktemp(".xya")
-        G = Geospatial_data(pointlist, att_dict, geo_reference)
-        
-        G.export_points_file(fileName, absolute=True)
-        
-        results = Geospatial_data(file_name = fileName)
-        os.remove(fileName)
-
-        assert allclose(results.get_data_points(),
-                        [[2.9, 1.9],[1.9, 2.9],[2.9, 1.9]])
-        assert allclose(results.get_attributes(attribute_name='elevation'),
-                         [10.0, 0.0, 10.4])
-        answer = [10.0, 0.0, 10.4]
-        assert allclose(results.get_attributes(attribute_name='brightness'), answer)
-        self.failUnless(results.get_geo_reference() == geo_reference,
-                         'test_writepts failed. Test geo_reference')                         
-                        
-                        
-                        
     def test_new_export_pts_file(self):
         att_dict = {}
         pointlist = array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
@@ -1584,27 +1171,6 @@ crap")
         self.failUnless(geo_reference == geo_reference,
                          'test_writepts failed. Test geo_reference')
 
-    def test_write_xya_attributes(self):
-        #test_write xya: Test that storage of x,y,attributes works
-        
-        att_dict = {}
-        pointlist = array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
-        att_dict['elevation'] = array([10.0, 0.0, 10.4])
-        att_dict['brightness'] = array([10.0, 0.0, 10.4])
-        geo_reference=Geo_reference(56,0,0)
-        # Test xya format
-        fileName = tempfile.mktemp(".xya")
-        G = Geospatial_data(pointlist, att_dict, geo_reference)
-        G.export_points_file(fileName)
-        results = Geospatial_data(file_name=fileName)
-        os.remove(fileName)
-        assert allclose(results.get_data_points(False),[[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
-        assert allclose(results.get_attributes('elevation'), [10.0, 0.0, 10.4])
-        answer = [10.0, 0.0, 10.4]
-        assert allclose(results.get_attributes('brightness'), answer)
-        self.failUnless(geo_reference == geo_reference,
-                         'test_writepts failed. Test geo_reference')
-
     def test_write_csv_attributes(self):
         #test_write : Test that storage of x,y,attributes works
         
@@ -1613,7 +1179,7 @@ crap")
         att_dict['elevation'] = array([10.0, 0.0, 10.4])
         att_dict['brightness'] = array([10.0, 0.0, 10.4])
         geo_reference=Geo_reference(56,0,0)
-        # Test xya format
+        # Test txt format
         fileName = tempfile.mktemp(".txt")
         G = Geospatial_data(pointlist, att_dict, geo_reference)
         G.export_points_file(fileName)
@@ -1665,30 +1231,14 @@ crap")
         self.failUnless(geo_reference == geo_reference,
                          'test_writepts failed. Test geo_reference')
         
-    def test_write_xya_no_attributes(self):
-        #test_write xya _no_attributes: Test that storage of x,y alone works
-        
-        att_dict = {}
-        pointlist = array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
-        geo_reference=Geo_reference(56,0,0)
-        # Test xya format
-        fileName = tempfile.mktemp(".xya")
-        G = Geospatial_data(pointlist, None, geo_reference)
-        G.export_points_file(fileName)
-        results = Geospatial_data(file_name=fileName)
-        os.remove(fileName)
-        assert allclose(results.get_data_points(False),[[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
-        self.failUnless(geo_reference == geo_reference,
-                         'test_writepts failed. Test geo_reference')
-
        
     def test_write_csv_no_attributes(self):
-        #test_write xya _no_attributes: Test that storage of x,y alone works
+        #test_write txt _no_attributes: Test that storage of x,y alone works
         
         att_dict = {}
         pointlist = array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
         geo_reference=Geo_reference(56,0,0)
-        # Test xya format
+        # Test format
         fileName = tempfile.mktemp(".txt")
         G = Geospatial_data(pointlist, None, geo_reference)
         G.export_points_file(fileName)
@@ -1811,7 +1361,7 @@ crap")
         
     def test_add_(self):
         '''test_add_(self):
-        adds an xya and pts files, reads the files and adds them
+        adds an txt and pts files, reads the files and adds them
            checking results are correct
         '''
         # create files
@@ -1830,7 +1380,7 @@ crap")
         G1 = Geospatial_data(pointlist1, att_dict1, geo_reference1)
         G2 = Geospatial_data(pointlist2, att_dict2, geo_reference2)
         
-        fileName1 = tempfile.mktemp(".xya")
+        fileName1 = tempfile.mktemp(".txt")
         fileName2 = tempfile.mktemp(".pts")
 
         #makes files
@@ -1924,23 +1474,6 @@ crap")
            
         assert allclose(new_points, ab_points)
 
-       
-        fileName = tempfile.mktemp(".xya")
-        file = open(fileName,"w")
-        file.write("  elevation   speed \n\
-1.0 0.0 10.0 0.0\n\
-0.0 1.0 0.0 10.0\n\
-1.0 0.0 10.4 40.0\n\
-#geocrap\n\
-56\n\
-10\n\
-20\n")
-        file.close()
-        
-        ab_points = ensure_absolute(fileName)
-        actual =  [[11, 20.0],[10.0, 21.0],[11.0, 20.0]]
-        assert allclose(ab_points, actual)
-        os.remove(fileName)
 
         
     def test_ensure_geospatial(self):
@@ -2009,20 +1542,16 @@ crap")
 
         import os
        
-        fileName = tempfile.mktemp(".xya")
+        fileName = tempfile.mktemp(".csv")
         file = open(fileName,"w")
-        file.write("  elevation   speed \n\
-1.0 0.0 10.0 0.0\n\
-0.0 1.0 0.0 10.0\n\
-1.0 0.0 10.4 40.0\n\
-#geocrap\n\
-56\n\
-56.6\n\
-3\n")
+        file.write("x,y,  elevation ,  speed \n\
+1.0, 0.0, 10.0, 0.0\n\
+0.0, 1.0, 0.0, 10.0\n\
+1.0, 0.0, 10.4, 40.0\n")
         file.close()
 
         results = Geospatial_data(fileName)
-        assert allclose(results.get_data_points(absolute=False), \
+        assert allclose(results.get_data_points(absolute=True), \
                         [[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
         assert allclose(results.get_attributes(attribute_name='elevation'), \
                         [10.0, 0.0, 10.4])
@@ -2031,18 +1560,6 @@ crap")
 
         os.remove(fileName)
         
-    def test_delimiter(self):
-        
-        try:
-            G = Geospatial_data(delimiter=',')
-#            results = Geospatial_data(file_name = fileName)
-#            dict = import_points_file(fileName)
-        except ValueError:
-            pass
-        else:
-            msg = 'Instance with No fileName but has a delimiter\
-                  did not raise error!'
-            raise msg
 
     def test_no_constructors(self):
         
@@ -2056,72 +1573,6 @@ crap")
             msg = 'Instance must have a filename or data points'
             raise msg        
 
-    def test_check_geo_reference(self):
-        """
-        checks geo reference details are OK. eg can be called '#geo reference'
-        if not throws a clear error message
-        """
-        import os
-        fileName = tempfile.mktemp(".xya")
-        file = open(fileName,"w")
-        file.write("  elevation  \n\
-1.0 0.0 10.0\n\
-0.0 1.0 0.0\n\
-1.0 0.0 10.4\n\
-#ge oreference\n\
-56\n\
-1.1\n\
-1.0\n")
-
-        file.close()
-        results = Geospatial_data(fileName)
-        assert allclose(results.get_geo_reference().get_xllcorner(), 1.1)
-        assert allclose(results.get_geo_reference().get_yllcorner(), 1.0)
-
-        os.remove(fileName)
-        
-        fileName = tempfile.mktemp(".xya")
-        file = open(fileName,"w")
-        file.write("  elevation  \n\
-1.0 0.0 10.0\n\
-0.0 1.0 0.0\n\
-1.0 0.0 10.4\n")
-
-        file.close()
-        results = Geospatial_data(fileName)
-       
-        os.remove(fileName)
-        
-    def test_check_geo_reference1(self):
-        """
-        checks geo reference details are OK. eg can be called '#geo reference'
-        if not throws a clear error message
-        """
-        import os
-        fileName = tempfile.mktemp(".xya")
-        file = open(fileName,"w")
-        file.write("  elevation  \n\
-1.0 0.0 10.0\n\
-0.0 1.0 0.0\n\
-1.0 0.0 10.4\n\
-#geo t t\n\
-56\n\
-1.1\n"
-)
-        file.close()
-
-        try:
-            results = Geospatial_data(fileName, delimiter = " ")
-        except IOError:
-            pass
-        else:
-            msg = 'Geo reference data format is incorrect'
-            raise msg        
-
-
-        os.remove(fileName)
-
-
     def test_load_csv_lat_long(self):
         """ 
         comma delimited
@@ -2133,7 +1584,7 @@ crap")
 150.916666667,-34.50,452.688000, 10\n\
 150.0,-34,459.126000, 10\n")
         file.close()
-        results = Geospatial_data(fileName, delimiter=',')
+        results = Geospatial_data(fileName)
         os.remove(fileName)
         points = results.get_data_points()
         
@@ -2154,7 +1605,7 @@ crap")
 -34.50,150.916666667,452.688000\n\
 -34,150.0,459.126000\n")
         file.close()
-        results = Geospatial_data(fileName, delimiter=',')
+        results = Geospatial_data(fileName)
         os.remove(fileName)
         points = results.get_data_points()
         
@@ -2176,7 +1627,7 @@ crap")
 -34,150.0,459.126000\n")
         file.close()
         try:
-            results = Geospatial_data(fileName, delimiter=',')
+            results = Geospatial_data(fileName)
         except ANUGAError:
             pass
         else:

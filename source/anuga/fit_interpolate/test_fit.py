@@ -659,11 +659,9 @@ class Test_Fit(unittest.TestCase):
 
 
         #Fit surface to mesh
-        interp = Fit(points, triangles, 
-                               alpha=0.0) #,
-                               # mesh_origin = mesh_origin)
-
-        f1 = interp.fit(data_points1,z) #Fitted values at vertices (using same z as before)
+        interp = Fit(points, triangles, alpha=0.0)
+        #Fitted values at vertices (using same z as before)
+        f1 = interp.fit(data_points1,z) 
 
         assert allclose(f,f1), 'Fit should have been unaltered'
 
@@ -751,10 +749,13 @@ class Test_Fit(unittest.TestCase):
         mesh_file = tempfile.mktemp(".tsh")
         export_mesh_file(mesh_file,mesh_dic)
 
-        # create an .xya file
-        point_file = tempfile.mktemp(".xya")
+        # create a points .csv file
+        point_file = tempfile.mktemp(".csv")
         fd = open(point_file,'w')
-        fd.write("elevation, stage \n 1.0, 1.0,2.,4 \n 1.0, 3.0,4,8 \n 3.0,1.0,4.,8 \n")
+        fd.write("x,y, elevation, stage \n\
+        1.0, 1.0,2.,4 \n\
+        1.0, 3.0,4,8 \n\
+        3.0,1.0,4.,8 \n")
         fd.close()
 
         mesh_output_file = tempfile.mktemp(".tsh") 
@@ -807,12 +808,15 @@ class Test_Fit(unittest.TestCase):
         mesh_file = tempfile.mktemp(".tsh")
         export_mesh_file(mesh_file,mesh_dic)
 
-        # create an .xya file
-        point_file = tempfile.mktemp(".xya")
+        # create a points .csv file
+        point_file = tempfile.mktemp(".csv")
         fd = open(point_file,'w')
-        fd.write("elevation, stage \n 1.0, 1.0,2.,4 \n 1.0, 3.0,4,8 \n 3.0,1.0,4.,8 \n")
+        fd.write("x,y, elevation, stage \n\
+        1.0, 1.0,2.,4 \n\
+        1.0, 3.0,4,8 \n\
+        3.0,1.0,4.,8 \n")
         fd.close()
-
+        
         mesh_output_file = tempfile.mktemp(".tsh")
         fit_to_mesh_file(mesh_file,
                          point_file,
@@ -824,60 +828,6 @@ class Test_Fit(unittest.TestCase):
         ans =[[0.0, 0.0],
               [5.0, 10.0],
               [5.0,10.0]]
-        assert allclose(mesh_dic['vertex_attributes'],ans)
-
-        self.failUnless(mesh_dic['vertex_attribute_titles']  ==
-                        ['elevation','stage'],
-                        'test_fit_to_mesh_file failed')
-
-        #clean up
-        os.remove(mesh_file)
-        os.remove(point_file)
-        os.remove(mesh_output_file)
-
-    def test_fit_to_mesh_file4(self):
-        from load_mesh.loadASCII import import_mesh_file, \
-             export_mesh_file
-        import tempfile
-        import os
-
-        # create a .tsh file, no user outline
-        mesh_dic = {}
-        mesh_dic['vertices'] = [[0.76, 0.76],
-                                [0.76, 5.76],
-                                [5.76, 0.76]]
-        mesh_dic['triangles'] =  [[0, 2, 1]]
-        mesh_dic['segments'] = [[0, 1], [2, 0], [1, 2]]
-        mesh_dic['triangle_tags'] = ['']
-        mesh_dic['vertex_attributes'] = [[], [], []]
-        mesh_dic['vertiex_attribute_titles'] = []
-        mesh_dic['triangle_neighbors'] = [[-1, -1, -1]]
-        mesh_dic['segment_tags'] = ['external',
-                                    'external',
-                                    'external']
-        mesh_dic['geo_reference'] = Geo_reference(56,-0.76,-0.76)
-        mesh_file = tempfile.mktemp(".tsh")
-        export_mesh_file(mesh_file,mesh_dic)
-
-        geo_ref = Geo_reference(56,-200,-400)
-        # create an .xya file
-        point_file = tempfile.mktemp(".xya")
-        fd = open(point_file,'w')
-        fd.write("elevation, stage \n 201.0, 401.0,2.,4 \n 201.0, 403.0,4,8 \n 203.0, 401.0,4.,8 \n")
-        geo_ref.write_ASCII(fd)
-        fd.close()
-
-        mesh_output_file = tempfile.mktemp(".tsh")
-        fit_to_mesh_file(mesh_file,
-                         point_file,
-                         mesh_output_file,
-                         alpha = 0.0)
-        # load in the .tsh file we just wrote
-        mesh_dic = import_mesh_file(mesh_output_file)
-        #print "mesh_dic",mesh_dic
-        ans =[[0.0, 0.0],
-              [5.0, 10.0],
-              [5.0, 10.0]]
         assert allclose(mesh_dic['vertex_attributes'],ans)
 
         self.failUnless(mesh_dic['vertex_attribute_titles']  ==
@@ -912,10 +862,13 @@ class Test_Fit(unittest.TestCase):
         mesh_file = tempfile.mktemp(".tsh")
         export_mesh_file(mesh_file,mesh_dic)
 
-        # create an .xya file
-        point_file = tempfile.mktemp(".xya")
+        # create a points .csv file
+        point_file = tempfile.mktemp(".csv")
         fd = open(point_file,'w')
-        fd.write("elevation, stage \n 1.0, 1.0,2.,4 \n 1.0, 3.0,4,8 \n 3.0,1.0,4.,8 \n")
+        fd.write("x,y,elevation, stage \n\
+        1.0, 1.0,2.,4 \n\
+        1.0, 3.0,4,8 \n\
+        3.0,1.0,4.,8 \n")
         fd.close()
 
         mesh_output_file = "new_triangle.tsh"
@@ -958,17 +911,20 @@ class Test_Fit(unittest.TestCase):
         mesh_file = tempfile.mktemp(".tsh")
         export_mesh_file(mesh_file,mesh_dic)
 
-        # create an .xya file
-        point_file = tempfile.mktemp(".xya")
+        # create a bad points .csv file
+        point_file = tempfile.mktemp(".csv")
         fd = open(point_file,'w')
-        fd.write("elevation stage \n 1.0, 1.0,2.,4 \n 1.0, 3.0,4,8 \n 3.0,1.0,4.,8 \n")
+        fd.write("x,y,elevation stage \n\
+        1.0, 1.0,2.,4 \n\
+        1.0, 3.0,4,8 \n\
+        3.0,1.0,4.,8 \n")
         fd.close()
 
         mesh_output_file = "new_triangle.tsh"
         try:
             fit_to_mesh_file(mesh_file, point_file,
                              mesh_output_file, display_errors = False)
-        except IOError:
+        except SyntaxError:
             pass
         else:
             #self.failUnless(0 ==1,  'Bad file did not raise error!')
@@ -989,10 +945,13 @@ class Test_Fit(unittest.TestCase):
         fd.write("unit testing a bad .tsh file \n")
         fd.close()
 
-        # create an .xya file
-        point_file = tempfile.mktemp(".xya")
+        # create a points .csv file
+        point_file = tempfile.mktemp(".csv")
         fd = open(point_file,'w')
-        fd.write("elevation, stage \n 1.0, 1.0,2.,4 \n 1.0, 3.0,4,8 \n 3.0,1.0,4.,8 \n")
+        fd.write("x,y,elevation, stage \n\
+        1.0, 1.0,2.,4 \n\
+        1.0, 3.0,4,8 \n\
+        3.0,1.0,4.,8 \n")
         fd.close()
 
         mesh_output_file = "new_triangle.tsh"
@@ -1026,10 +985,14 @@ class Test_Fit(unittest.TestCase):
         mesh_file = tempfile.mktemp(".tsh")
         export_mesh_file(mesh_file,mesh_dic)
 
-        # create an .xya file
-        point_file = tempfile.mktemp(".xya")
+
+        # create a points .csv file
+        point_file = tempfile.mktemp(".csv")
         fd = open(point_file,'w')
-        fd.write("elevation, stage \n 1.0, 1.0,2.,4 \n 1.0, 3.0,4,8 \n 3.0,1.0,4.,8 \n")
+        fd.write("x,y,elevation, stage \n\
+        1.0, 1.0,2.,4 \n\
+        1.0, 3.0,4,8 \n\
+        3.0,1.0,4.,8 \n")
         fd.close()
 
         #This a deliberately illegal filename to invoke the error.
