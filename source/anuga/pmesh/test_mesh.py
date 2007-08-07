@@ -978,10 +978,10 @@ class meshTestCase(unittest.TestCase):
                         'loading and saving of a mesh outline fialed')
 
 
-    def test_loadxy(self):
+    def test_load_csv(self):
         """
-        To test the mesh side of loading xya files.
-        Not the loading of xya files
+        To test the mesh side of loading csv files.
+        Not the loading of csv files
         """
         import os
         import tempfile
@@ -1009,7 +1009,7 @@ class meshTestCase(unittest.TestCase):
         #self.failUnless(m.userVertices[1].attributes == [0.0,10.0],
         #                'loadxy, test 5 failed')
         
-    def exportPointsFile(self):
+    def test_exportPointsFile(self):
         a = Vertex (0,0)
         b = Vertex (0,3)
         c = Vertex (3,3)
@@ -1030,30 +1030,29 @@ class meshTestCase(unittest.TestCase):
                  holes = [h1])
         
         fileName = tempfile.mktemp(".txt")
-        #fileName = 't.xya'
+        #fileName = 't.csv'
         #os.remove(fileName)
         m.exportPointsFile(fileName)
         file = open(fileName)
         lFile = file.read().split('\n')
         file.close()
-
         os.remove(fileName)
-        self.failUnless(lFile[0] == "x,y" and
-                        lFile[1] == "0,0" and
-                        lFile[2] == "0,3" and
-                        lFile[3] == "3,3" 
+        self.failUnless(lFile[0] == "x,y," and
+                        lFile[1] == "0.0,0.0" and
+                        lFile[2] == "0.0,3.0" and
+                        lFile[3] == "3.0,3.0" 
                         ,
-                        'exported Ascii xya file is wrong')
-        self.failUnless(lFile[4] == "1,2" and
-                        lFile[5] == "3,1" 
+                        'exported Ascii csv file is wrong')
+        self.failUnless(lFile[4] == "1.0,2.0" and
+                        lFile[5] == "3.0,1.0" 
                         ,
-                        'exported Ascii xya file is wrong')
+                        'exported Ascii csv file is wrong')
         
         # vertex e is outside of the outline, so
         # it is a loner and it is removed.
         m.generateMesh("Q", maxArea = 2.1)
-        fileName = tempfile.mktemp(".xya")
-        #fileName = 't.xya'
+        fileName = tempfile.mktemp(".txt")
+        #fileName = 't.csv'
         #m.export_mesh_file('m.tsh')
         m.exportPointsFile(fileName)
         file = open(fileName)
@@ -1061,13 +1060,13 @@ class meshTestCase(unittest.TestCase):
         file.close()
         os.remove(fileName)
         
-        self.failUnless(lFile[0] == "" and
+        self.failUnless(lFile[0] == "x,y," and
                         lFile[1] == "0.0,0.0" and
                         lFile[2] == "0.0,3.0" and
                         lFile[3] == "3.0,3.0" and
                         lFile[4] == "1.0,2.0"
                         ,
-                        'exported Ascii xya file is wrong')
+                        'exported Ascii csv file is wrong')
      
     def to_be_test_lone_vert_in_mesh_gen_c_layer(self):
         # currently just a copy of the above test
@@ -1091,7 +1090,7 @@ class meshTestCase(unittest.TestCase):
                  holes = [h1])
         
         fileName = tempfile.mktemp(".csv")
-        #fileName = 't.xya'
+        #fileName = 't.csv'
         #os.remove(fileName)
         m.exportPointsFile(fileName)
         file = open(fileName)
@@ -1104,17 +1103,17 @@ class meshTestCase(unittest.TestCase):
                         lFile[2] == "0,3" and
                         lFile[3] == "3,3" 
                         ,
-                        'exported Ascii xya file is wrong')
+                        'exported Ascii csv file is wrong')
         self.failUnless(lFile[4] == "1,2" and
                         lFile[5] == "3,1" 
                         ,
-                        'exported Ascii xya file is wrong')
+                        'exported Ascii csv file is wrong')
         
         # vertex e is outside of the outline, so
         # it is a loner and it is removed.
         m.generateMesh("Q", maxArea = 2.1)
         fileName = tempfile.mktemp(".csv")
-        #fileName = 't.xya'
+        #fileName = 't.csv'
         #m.export_mesh_file('m.tsh')
         m.exportPointsFile(fileName)
         file = open(fileName)
@@ -1128,7 +1127,7 @@ class meshTestCase(unittest.TestCase):
                         lFile[3] == "3.0,3.0" and
                         lFile[4] == "1.0,2.0"
                         ,
-                        'exported Ascii xya file is wrong')
+                        'exported Ascii csv file is wrong')
         
     def NOT_test_exportPointsFilefile2(self):
         #geospatial needs at least one point
@@ -1146,7 +1145,7 @@ class meshTestCase(unittest.TestCase):
         #print "************* test_mesh exportPointsFilefile"
         self.failUnless(lFile[0] == "" 
                         ,
-                        'exported Ascii xya file is wrong')
+                        'exported Ascii csv file is wrong')
         
     def test_strings2ints(self):
         list = ["sea","river inlet","","sea","","moat"]
@@ -2338,8 +2337,8 @@ def list_comp(A,B):
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(meshTestCase,'test')
-    #suite = unittest.makeSuite(meshTestCase,'test_exportASCIIsegmentoutlinefile')
-    #suite = unittest.makeSuite(meshTestCase,'test_e')
-    runner = unittest.TextTestRunner() #verbosity=2)
+    #suite = unittest.makeSuite(meshTestCase,'test_exportoutlinefile')
+    #suite = unittest.makeSuite(meshTestCase,'test_exportPointsFile')
+    runner = unittest.TextTestRunner() # verbosity=2)
     runner.run(suite)
     

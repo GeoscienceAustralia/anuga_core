@@ -38,7 +38,7 @@ def alpha_shape_via_files(point_file, boundary_file, alpha= None):
     Load a point file and return the alpha shape boundary as a boundary file.
     
     Inputs:
-    point_file: File location of the input file, points format (.xya or .pts)
+    point_file: File location of the input file, points format (.csv or .pts)
     boundary_file: File location of the generated output file
     alpha: The alpha value can be optionally specified.  If it is not specified
     the optimum alpha value will be used.
@@ -675,13 +675,13 @@ if __name__ == "__main__":
     Determine the alpha shape boundary
     Save the boundary to a file.
 
-    usage: alpha_shape.py point_file.xya boundary_file.bnd [alpha]
+    usage: alpha_shape.py point_file.csv boundary_file.bnd [alpha]
     
     The alpha value is optional.
     """
     
     import os, sys
-    usage = "usage: %s point_file.xya boundary_file.bnd [alpha]"%os.path.basename(sys.argv[0])
+    usage = "usage: %s point_file.csv boundary_file.bnd [alpha]"%os.path.basename(sys.argv[0])
     if len(sys.argv) < 3:
         print usage
     else:

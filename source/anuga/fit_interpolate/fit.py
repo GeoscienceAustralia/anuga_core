@@ -315,7 +315,7 @@ class Fit(FitInterpolate):
         point_coordinates: The co-ordinates of the data points.
               List of coordinate pairs [x, y] of
 	      data points or an nx2 Numeric array or a Geospatial_data object
-              or filename (txt, csv, pts?)
+              or points file filename 
           z: Single 1d vector or array of data at the point_coordinates.
           
         """
@@ -567,11 +567,11 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
                      precrop = False,
                      display_errors = True):
     """
-    Given a mesh file (tsh) and a point attribute file (xya), fit
+    Given a mesh file (tsh) and a point attribute file, fit
     point attributes to the mesh and write a mesh file with the
     results.
 
-    Note: the .xya files need titles.  If you want anuga to use the tsh file,
+    Note: the points file needs titles.  If you want anuga to use the tsh file,
     make sure the title is elevation.
 
     NOTE: Throws IOErrors, for a variety of file problems.

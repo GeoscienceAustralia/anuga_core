@@ -1213,7 +1213,8 @@ class Mesh:
         for v in Vertices:
             del v.dupindex
         return Vertices,counter
-    
+
+    # FIXME (DSG-DSG) Move this to geospatial
     def thinoutVertices(self, delta):
         """Pre-condition: There are no user segments
         This function will keep the first duplicate
@@ -2014,7 +2015,7 @@ class Mesh:
     # Note: this function is not in the gui
     def exportPointsFile(self,ofile):
         """
-        export a points (.xya or .pts)  file, ofile.
+        export a points file, ofile.
         
         """
         
@@ -2998,11 +2999,11 @@ def readUngenerateFile(fd):
     return ungenerated_dict
 
 def importMeshFromFile(ofile):
-    """returns a mesh object, made from a .xya/.pts or .tsh/.msh file
+    """returns a mesh object, made from a points file or .tsh/.msh file
     Often raises IOError,RuntimeError
     """
     newmesh = None
-    if (ofile[-4:]== ".xya" or ofile[-4:]== ".pts" or ofile[-4:]== ".txt" or \
+    if (ofile[-4:]== ".pts" or ofile[-4:]== ".txt" or \
         ofile[-4:]== ".csv"):
         geospatial = Geospatial_data(ofile)
         dict = {}

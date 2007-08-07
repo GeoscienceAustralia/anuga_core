@@ -118,8 +118,8 @@ class Draw(AppShell.AppShell):
                                  command=self.exportASCIIsegmentoutlinefile)
         
         self.menuBar.addmenuitem('File', 'command',
-                                 'Export ASCII xya file',
-                                 label='Export ASCII xya file...',
+                                 'Export ASCII csv file',
+                                 label='Export ASCII csv file...',
                                  command=self.exportPointsFile)
         
         self.menuBar.addmenuitem('File', 'command',
@@ -1188,8 +1188,8 @@ class Draw(AppShell.AppShell):
             self.mesh.addVertsSegs(dict)
             
         except SyntaxError: 
-            #this is assuming that the SyntaxError is thrown in
-            #loadxyafile
+            # This is assuming that the SyntaxError is thrown in
+            # importUngenerateFile
             showerror('File error',
                       ofile + ' is not in the correct format.')
         except IOError: 
@@ -1225,14 +1225,14 @@ class Draw(AppShell.AppShell):
     def exportPointsFile(self):
         ofile = tkFileDialog.asksaveasfilename(initialdir=self.currentPath,
                                          filetypes=[("point files",
-                                                     "*.xya *.pts"),
+                                                     "*.csv *.txt *.pts"),
                                                 ("All Files", "*")])
         if ofile:
-            # .xya is the default file format
-            if (ofile[-4:] == ".xya" or ofile[-4:] == ".pts"):  
+            # .csv is the default file format
+            if (ofile[-4:] == ".csv" or ofile[-4:] == ".pts"):  
                 self.currentFilePathName = ofile
             else:
-                self.currentFilePathName = ofile + ".xya"
+                self.currentFilePathName = ofile + ".csv"
                 
             try:
                 self.mesh.exportPointsFile(ofile)
@@ -1247,7 +1247,7 @@ class Draw(AppShell.AppShell):
         print "self.currentPath",self.currentPath
         ofile = tkFileDialog.askopenfilename(initialdir=self.currentPath,
                                              filetypes=[ ("text Mesh", "*.tsh *.msh"),
-                                                         ("points", "*.xya *.pts"),
+                                                         ("points", "*.csv *.txt *.pts"),
                                            ("All Files", "*")])
         if ofile == "":
             # The user cancelled the loading action

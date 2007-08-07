@@ -172,10 +172,9 @@ class TestCase(unittest.TestCase):
         import os
         import tempfile
 
-        fileName = tempfile.mktemp(".xya")
-        #(h,fileName) = tempfile.mkstemp(".xya") 
+        fileName = tempfile.mktemp(".csv")
         file = open(fileName,"w")
-        file.write("\n\
+        file.write("x,y\n\
 0.0, 0.0\n\
 1.0, 0.0\n\
 2.0, 0.0\n\

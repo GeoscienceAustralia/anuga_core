@@ -8,16 +8,6 @@ import os
 from geo_reference import *
 from Numeric import allclose,array
 
-# Ignore these warnings, since we still want to test .xya code.
-import warnings
-warnings.filterwarnings(action = 'ignore',
-                        message='.xya format is deprecated.  Please use .txt.',
-                        category=DeprecationWarning)
-
-warnings.filterwarnings(action = 'ignore',
-                        message='Text file format is moving to comma se',
-                        category=DeprecationWarning)
-
 
 class geo_referenceTestCase(unittest.TestCase):
     def setUp(self):
@@ -311,8 +301,8 @@ class geo_referenceTestCase(unittest.TestCase):
             raise msg
   
     def test_bad_ASCII_title(self):      
- # create an .xya file
-        point_file = tempfile.mktemp(".xya")
+ # create an text file
+        point_file = tempfile.mktemp(".xxx")
         fd = open(point_file,'w')
         fd.write("# hey! \n")
         fd.close()
@@ -387,9 +377,9 @@ class geo_referenceTestCase(unittest.TestCase):
 
         self.failUnless(g == new_g, 'test_read_write_ASCII failed')
         
-    def xxtest_good_title(self):      
- # create an .xya file
-        point_file = tempfile.mktemp(".xya")
+    def test_good_title(self):      
+ # create an .xxx file
+        point_file = tempfile.mktemp(".xxx")
         fd = open(point_file,'w')
         fd.write("#Geo crap \n 56\n ")
         fd.close()
@@ -401,7 +391,7 @@ class geo_referenceTestCase(unittest.TestCase):
             new_g = Geo_reference(ASCIIFile=fd)
             fd.close()
             os.remove(point_file)
-        except TitleError:
+        except ValueError:
             fd.close()
             os.remove(point_file)
         else:

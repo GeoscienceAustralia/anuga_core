@@ -14,7 +14,7 @@ from anuga.utilities.anuga_exceptions import ANUGAError, TitleError, ParsingErro
 
 
 DEFAULT_ZONE = -1
-TITLE = '#geo reference' + "\n" #this title is referred to in the .xya format
+TITLE = '#geo reference' + "\n" #this title is referred to in the test format
 
 DEFAULT_PROJECTION = 'UTM'
 DEFAULT_DATUM = 'wgs84'
@@ -148,7 +148,7 @@ class Geo_reference:
             print "Default units is %s." %DEFAULT_UNITS
             print "ANUGA does not correct for differences in units."
         
-        
+    ### ASCII files with geo-refs are currently not used   
     def write_ASCII(self, fd):
         fd.write(TITLE)
         fd.write(str(self.zone) + "\n") 

@@ -129,7 +129,11 @@ class Geospatial_data:
         self.set_verbose(verbose)
         self.geo_reference=None #create the attribute 
         self.file_name = file_name
-        self.max_read_lines = max_read_lines
+        
+        if max_read_lines is None:
+            self.max_read_lines = MAX_READ_LINES
+        else:
+            self.max_read_lines = max_read_lines
 
         if file_name is None:
             if latitudes is not None or longitudes is not None or \
@@ -544,7 +548,7 @@ class Geospatial_data:
                            as_lat_long=False, isSouthHemisphere=True):
         
         """
-        write a points file, file_name, as a text (.xya) or binary (.pts) file
+        write a points file, file_name, as a text (.csv) or binary (.pts) file
         file_name is the file name, including the extension
         The point_dict is defined at the top of this file.
         
@@ -714,7 +718,9 @@ together             object will be returned
         #FIXME - what to do if the file isn't there
 
         # FIXME (Ole): Shouldn't this go into the constructor?
+        # This method acts like the constructor when blcoking.
         # ... and shouldn't it be called block_size?
+        # 
         if self.max_read_lines is None:
             self.max_read_lines = MAX_READ_LINES
         

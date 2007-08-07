@@ -323,7 +323,7 @@ def interpolate_sww2csv(sww_file,
     an sww file.
     The results are written to a csv file.
 
-    In the future let points be a csv or xya file.
+    In the future let points be a points file.
     And the user choose the quantities.
 
     This is currently quite specific.

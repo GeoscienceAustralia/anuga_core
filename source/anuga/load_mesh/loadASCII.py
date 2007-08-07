@@ -1,26 +1,5 @@
 """
-The format for a .xya file is:
-1st line:     [attribute names]
-other lines:  x y [attributes]
 
-for example:
-elevation, friction
-0.6, 0.7, 4.9, 0.3
-1.9, 2.8, 5, 0.3
-2.7, 2.4, 5.2, 0.3
-
-The first two columns are always implicitly assumed to be x, y coordinates.
-Use the same delimiter for the attribute names and the data
-
-An xya file can optionally end with
-#geo reference
-56
-466600.0
-8644444.0
-
-When the 1st # is the zone,
-2nd # the xllcorner and 
-3rd # the yllcorner
 The format for a Points dictionary is:
 
   ['pointlist'] a 2 column array describing points. 1st column x, 2nd column y.
@@ -41,7 +20,8 @@ The format for a Points dictionary is:
     segments: [[v1,v2],[v3,v4],...] (lists of integers) 
     segment_tags : [tag,tag,...] list of strings
     triangles : [(v1,v2,v3), (v4,v5,v6),....] lists of points
-    triangle_tags: [s1,s2,...] A list of list of strings (probably not neccecary.  a list of string should be ok)
+    triangle_tags: [s1,s2,...] A list of list of strings (probably not
+    neccecary.  a list of string should be ok)
     triangle_neighbors: [[t1,t2,t3], [t4,t5,t6],..] lists of triangles
         
     (the outline)   
@@ -57,7 +37,7 @@ The format for a Points dictionary is:
     geo_reference: a Geo_refernece object. Use if the point information
         is relative. This is optional.
 
-    Points files are .xya for ascii and .pts for NetCDF
+    Points files are .csv for ascii and .pts for NetCDF
     Mesh files are .tsh for ascii and .msh for NetCDF
 
     Note: point att's have no titles - that's currently ok, since least

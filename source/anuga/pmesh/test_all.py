@@ -76,23 +76,7 @@ def regressionTest():
     return unittest.TestSuite(map(load, modules))
 
 if __name__ == '__main__':
-
-    from os import sep
-
-    #Attempt to compile all extensions
-    execfile('..' + sep + 'utilities' + sep + 'compile.py')
-
-    #FIXME: Temporary measure
-    os.chdir('..' + sep + 'utilities')
-    execfile('compile.py')
-    os.chdir('..' + sep + 'pmesh')    
+    # Assume everything is compiled
     
-    #FIXME: Temporary measure
-    os.chdir('..' + sep + 'mesh_engine')
-    execfile('compile.py')
-    os.chdir('..' + sep + 'pmesh')   
-    
-    #os.system('python compile.py') 
-
     #print regressionTest()
     unittest.main(defaultTest='regressionTest')

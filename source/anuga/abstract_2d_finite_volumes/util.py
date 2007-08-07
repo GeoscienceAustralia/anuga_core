@@ -948,11 +948,7 @@ def _sww2timeseries(swwfiles,
         elev_output = []
 
     return texfile, elev_output
-                         
-
-
-#Fixme - Use geospatial to read this file - it's an xya file
-#Need to include other information into this filename, so xya + Name - required for report
+               
 def get_gauges_from_file(filename):
     """ Read in gauge information from file
     """

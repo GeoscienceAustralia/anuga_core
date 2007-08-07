@@ -10,7 +10,7 @@ Formats used within AnuGA:
 .sww: Netcdf format for storing model output f(t,x,y)
 .tms: Netcdf format for storing time series f(t)
 
-.xya: ASCII format for storing arbitrary points and associated attributes
+.csv: ASCII format for storing arbitrary points and associated attributes
 .pts: NetCDF format for storing arbitrary points and associated attributes
 
 .asc: ASCII format of regular DEMs as output from ArcView
@@ -1816,7 +1816,8 @@ def sww2dem(basename_in, basename_out = None,
             datum = 'WGS84',
             format = 'ers'):
 
-    """Read SWW file and convert to Digitial Elevation model format (.asc or .ers)
+    """Read SWW file and convert to Digitial Elevation model format
+    (.asc or .ers)
 
     Example (ASC):
 
@@ -1858,11 +1859,14 @@ def sww2dem(basename_in, basename_out = None,
     """
 
     import sys
-    from Numeric import array, Float, concatenate, NewAxis, zeros, reshape, sometrue
+    from Numeric import array, Float, concatenate, NewAxis, zeros, reshape, \
+         sometrue
     from Numeric import array2string
 
-    from anuga.utilities.polygon import inside_polygon, outside_polygon, separate_points_by_polygon
-    from anuga.abstract_2d_finite_volumes.util import apply_expression_to_dictionary
+    from anuga.utilities.polygon import inside_polygon, outside_polygon, \
+         separate_points_by_polygon
+    from anuga.abstract_2d_finite_volumes.util import \
+         apply_expression_to_dictionary
 
     msg = 'Format must be either asc or ers'
     assert format.lower() in ['asc', 'ers'], msg
@@ -1929,7 +1933,8 @@ def sww2dem(basename_in, basename_out = None,
 
 
 
-    # FIXME: Refactor using code from Interpolation_function.statistics (in interpolate.py)
+    # FIXME: Refactor using code from Interpolation_function.statistics
+    # (in interpolate.py)
     # Something like print swwstats(swwname)
     if verbose:
         print '------------------------------------------------'
