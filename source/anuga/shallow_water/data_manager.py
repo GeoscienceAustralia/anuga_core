@@ -2174,7 +2174,6 @@ def sww2dem(basename_in, basename_out = None,
         #Close
         ascid.close()
         fid.close()
-
         return basename_out
 
 #Backwards compatibility
@@ -4906,7 +4905,8 @@ class Write_sww:
         How about passing new_origin and current_origin.
         If you get both, do a convertion from the old to the new.
         
-        If you only get new_origin, the points are absolute, convert to relative
+        If you only get new_origin, the points are absolute,
+        convert to relative
         
         if you only get the current_origin the points are relative, store
         as relative.
@@ -4927,7 +4927,8 @@ class Write_sww:
         """
         
         number_of_points = len(points_utm)   
-        volumes = array(volumes)
+        volumes = array(volumes)  
+        points_utm = array(points_utm)
 
         # given the two geo_refs and the points, do the stuff
         # described in the method header
@@ -4950,7 +4951,8 @@ class Write_sww:
         geo_ref.write_NetCDF(outfile)
     
         # This will put the geo ref in the middle
-        #geo_ref = Geo_reference(refzone,(max(x)+min(x))/2.0,(max(x)+min(y))/2.)
+        #geo_ref=Geo_reference(refzone,(max(x)+min(x))/2.0,(max(x)+min(y))/2.)
+        
         x =  points[:,0]
         y =  points[:,1]
         z = outfile.variables['z'][:]
@@ -5121,7 +5123,7 @@ def urs2txt(basename_in, location_index=None):
         i = 0
         #Title
         fid.write('time' +d+ 'HA depth m'+d+ \
-                      'UA momentum East x m/sec' +d+ 'VA momentum North y m/sec' \
+                 'UA momentum East x m/sec' +d+ 'VA momentum North y m/sec' \
                       + "\n")
         for HA, UA, VA in map(None, mux['HA'], mux['UA'], mux['VA']):
             fid.write(str(i*time_step) +d+ str(HA[location_index])+d+ \
@@ -5230,8 +5232,12 @@ def start_screen_catcher(dir_name, myid='', numprocs='', extra_info='',
         numprocs = '_'+str(numprocs)
     if extra_info <>'':
         extra_info = '_'+str(extra_info)
-    screen_output_name = dir_name + "screen_output%s%s%s.txt" %(myid,numprocs,extra_info)
-    screen_error_name = dir_name + "screen_error%s%s%s.txt" %(myid,numprocs,extra_info)
+    screen_output_name = dir_name + "screen_output%s%s%s.txt" %(myid,
+                                                                numprocs,
+                                                                extra_info)
+    screen_error_name = dir_name + "screen_error%s%s%s.txt" %(myid,
+                                                              numprocs,
+                                                              extra_info)
     print screen_output_name
     #used to catch screen output to file
     sys.stdout = Screen_Catcher(screen_output_name)
@@ -5322,8 +5328,8 @@ def store_parameters(verbose=False,**kwargs):
     Must have a file_name keyword arg, this is what is writing to.
     might be a better way to do this using CSV module Writer and writeDict
     
-    writes file to "output_dir" unless "completed" is in kwargs, then it writes to 
-    "file_name" kwargs 
+    writes file to "output_dir" unless "completed" is in kwargs, then
+    it writes to "file_name" kwargs
 
     """
     import types
@@ -5400,7 +5406,8 @@ def store_parameters(verbose=False,**kwargs):
         fid.write(line)
         fid.close()
     else:
-        #backup plan, if header is different and has completed will append info to 
+        #backup plan,
+        # if header is different and has completed will append info to 
         #end of details_temp.cvs file in output directory
         file = str(kwargs['output_dir'])+'detail_temp.csv'
         fid=open(file,"a")
@@ -5430,8 +5437,9 @@ def get_maximum_inundation_elevation(filename,
                                                  time_interval=None,
                                                  verbose=False)
 
-    filename is a NetCDF sww file containing ANUGA model output.                                                       
-    Optional arguments polygon and time_interval restricts the maximum runup calculation
+    filename is a NetCDF sww file containing ANUGA model output.    
+    Optional arguments polygon and time_interval restricts the maximum
+    runup calculation
     to a points that lie within the specified polygon and time interval.
 
     If no inundation is found within polygon and time_interval the return value
@@ -5464,7 +5472,8 @@ def get_maximum_inundation_location(filename,
                                                          verbose=False)
 
     filename is a NetCDF sww file containing ANUGA model output.
-    Optional arguments polygon and time_interval restricts the maximum runup calculation
+    Optional arguments polygon and time_interval restricts the maximum
+    runup calculation
     to a points that lie within the specified polygon and time interval.
 
     If no inundation is found within polygon and time_interval the return value
@@ -5494,12 +5503,15 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
                                                   verbose=False)
     
 
-    Algorithm is as in get_maximum_inundation_elevation from shallow_water_domain
+    Algorithm is as in get_maximum_inundation_elevation from
+    shallow_water_domain
     except that this function works with the sww file and computes the maximal
     runup height over multiple timesteps. 
     
-    Optional arguments polygon and time_interval restricts the maximum runup calculation
-    to a points that lie within the specified polygon and time interval. Polygon is
+    Optional arguments polygon and time_interval restricts the
+    maximum runup calculation
+    to a points that lie within the specified polygon and time interval.
+    Polygon is
     assumed to be in (absolute) UTM coordinates in the same zone as domain.
 
     If no inundation is found within polygon and time_interval the return value
@@ -5560,7 +5572,8 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
         stage = fid.variables['stage'][:]
     
     
-        # Here's where one could convert nodal information to centroid information
+        # Here's where one could convert nodal information to centroid
+        # information
         # but is probably something we need to write in C.
         # Here's a Python thought which is NOT finished!!!
         if use_centroid_values is True:
@@ -5573,7 +5586,8 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
         if polygon is not None:
             msg = 'polygon must be a sequence of points.'
             assert len(polygon[0]) == 2, msg
-            # FIXME (Ole): Make a generic polygon input check in polygon.py and call it here
+            # FIXME (Ole): Make a generic polygon input check in polygon.py
+            # and call it here
             
             points = concatenate((x[:,NewAxis], y[:,NewAxis]), axis=1)
     
@@ -5599,7 +5613,7 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
             
             msg = 'time_interval must be a sequence of length 2.'
             assert len(time_interval) == 2, msg
-            msg = 'time_interval %s must not be decreasing.' %(time_interval)        
+            msg = 'time_interval %s must not be decreasing.' %(time_interval)
             assert time_interval[1] >= time_interval[0], msg
             
             msg = 'Specified time interval [%.8f:%.8f]' %tuple(time_interval)
@@ -5632,7 +5646,7 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
         
         for i in timesteps:
             if use_centroid_values is True:
-                stage_i = get_centroid_values(stage[i,:], volumes)                
+                stage_i = get_centroid_values(stage[i,:], volumes)   
             else:
                 stage_i = stage[i,:]
                 

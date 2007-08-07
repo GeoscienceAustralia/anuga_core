@@ -27,7 +27,8 @@ from Numeric import array, Float, Int
 class NoTrianglesError(exceptions.Exception): pass
  
 #import load_mesh
-from anuga.coordinate_transforms.geo_reference import Geo_reference,DEFAULT_ZONE
+from anuga.coordinate_transforms.geo_reference import Geo_reference, \
+     DEFAULT_ZONE
 from anuga.utilities.polygon import point_in_polygon 
 from  anuga.load_mesh.loadASCII import NOMAXAREA, export_mesh_file, \
      import_mesh_file 
@@ -39,7 +40,7 @@ from anuga.mesh_engine.mesh_engine import generate_mesh
 try:  
     import kinds  
 except ImportError:  
-    # Hand-built mockup of the things we need from the kinds package, since it  
+    # Hand-built mockup of the things we need from the kinds package, since it
     # was recently removed from the standard Numeric distro.  Some users may  
     # not have it by default.  
     class _bunch:  
@@ -88,7 +89,8 @@ class Point(MeshObject):
         """
         Returns the distance from this point to another
         """
-        SumOfSquares = ((self.x - OtherPoint.x)**2) + ((self.y - OtherPoint.y)**2)
+        SumOfSquares = ((self.x - OtherPoint.x)**2) + \
+                       ((self.y - OtherPoint.y)**2)
         return math.sqrt(SumOfSquares)
         
     def IsInsideCircle(self, Center, Radius):
@@ -153,7 +155,8 @@ class Vertex(Point):
         self.attributes = attributes
         
     VERTEXSQUARESIDELENGTH = 6
-    def draw(self, canvas, tags, colour = 'black',scale = 1, xoffset = 0, yoffset =0, ):
+    def draw(self, canvas, tags, colour = 'black',scale = 1, xoffset = 0,
+             yoffset =0, ):
         x =  scale*(self.x + xoffset)
         y = -1*scale*(self.y + yoffset)  # - since for a canvas - is up
         #print "draw x:", x
@@ -188,7 +191,8 @@ class Hole(Point):
 
     HOLECORNERLENGTH = 6
     
-    def draw(self, canvas, tags, colour = 'purple',scale = 1, xoffset = 0, yoffset =0, ):
+    def draw(self, canvas, tags, colour = 'purple',scale = 1, xoffset = 0,
+             yoffset =0, ):
         x =  scale*(self.x + xoffset)
         y = -1*scale*(self.y + yoffset)  # - since for a canvas - is up
         #print "draw x:", x
@@ -259,7 +263,8 @@ class Region(Point):
     def isMaxArea(self):
         return len(self.attributes)> 1
     
-    def draw(self, canvas, tags, scale=1, xoffset = 0, yoffset =0, colour = "black"):
+    def draw(self, canvas, tags, scale=1, xoffset = 0, yoffset =0,
+             colour = "black"):
         """
         Draw a black cross, returning the objectID
         """
@@ -300,7 +305,8 @@ class Triangle(MeshObject):
     Attributes based on the Triangle program.
     """
 
-    def __init__(self, vertex1, vertex2, vertex3, attribute = None, neighbors = None ):
+    def __init__(self, vertex1, vertex2, vertex3, attribute = None,
+                 neighbors = None ):
         """
         Vertices, the initial arguments, are listed in counterclockwise order.
         """
@@ -346,11 +352,15 @@ class Triangle(MeshObject):
             pass
         else:
             if offset == 1:
-                self.vertices = [self.vertices[1],self.vertices[2],self.vertices[0]]
-                self.neighbors = [self.neighbors[1],self.neighbors[2],self.neighbors[0]]
+                self.vertices = [self.vertices[1],self.vertices[2],
+                                 self.vertices[0]]
+                self.neighbors = [self.neighbors[1],self.neighbors[2],
+                                  self.neighbors[0]]
             if offset == 2:
-                self.vertices = [self.vertices[2],self.vertices[0],self.vertices[1]]
-                self.neighbors = [self.neighbors[2],self.neighbors[0],self.neighbors[1]]
+                self.vertices = [self.vertices[2],self.vertices[0],
+                                 self.vertices[1]]
+                self.neighbors = [self.neighbors[2],self.neighbors[0],
+                                  self.neighbors[1]]
 
     def rotate_longest_side(self):
         self.rotate(self.longestSideID())
@@ -394,7 +404,7 @@ class Triangle(MeshObject):
 
         return a+b+c
             
-    def setNeighbors(self,neighbor1 = None, neighbor2 = None, neighbor3 = None):
+    def setNeighbors(self,neighbor1=None, neighbor2=None, neighbor3=None):
         """
         neighbor1 is the triangle opposite vertex1 and so on.
         Null represents no neighbor
@@ -412,7 +422,8 @@ class Triangle(MeshObject):
         return "[%s,%s]" % (self.vertices,self.attribute)
         
 
-    def draw(self, canvas, tags, scale=1, xoffset = 0, yoffset =0, colour = "green"):
+    def draw(self, canvas, tags, scale=1, xoffset=0, yoffset=0,
+             colour="green"):
         """
         Draw a triangle, returning the objectID
         """
@@ -447,7 +458,7 @@ class Segment(MeshObject):
         return "[%s,%s]" % (self.vertices,self.tag)
             
         
-    def draw(self, canvas, tags,scale=1 , xoffset=0 , yoffset=0,colour='blue' ):
+    def draw(self, canvas, tags,scale=1, xoffset=0, yoffset=0,colour='blue'):
         x=[]
         y=[]
         for end in self.vertices:
@@ -528,7 +539,8 @@ class Mesh:
     Representation of a 2D triangular mesh.
     User attributes describe the mesh region/segments/vertices/attributes
 
-    mesh attributes describe the mesh that is produced eg triangles and vertices.
+    mesh attributes describe the mesh that is produced eg triangles and
+    vertices.
     All point information is relative to the geo_reference passed in
     
     
@@ -681,6 +693,22 @@ class Mesh:
                                                  points_geo_ref=geo_reference)
         return self._addRegion(x, y)
 
+    def build_grid(self,  vert_rows, vert_columns):
+        """
+        Build a grid with vert_rows number of vertex rows and
+        vert_columns number if vertex columns
+
+        Grid spacing of 1, the origin is the lower left hand corner.
+
+        FIXME(DSG-DSG) no test.
+        """
+
+        for i in range(vert_rows):
+            for j in range(vert_columns):
+                self.addUserVertex(j,i)
+        self.auto_segment()
+        self.generateMesh(mode = "Q", minAngle=20.0)
+        
     # Depreciated
     def addRegionEN(self, x,y):
         print "depreciated, use add_region"
@@ -1140,7 +1168,6 @@ class Mesh:
              segment_ints2strings(generatedMesh['generatedsegmentmarkerlist'],
                                   segconverter)
         #print "processed gen",generatedMesh['generatedsegmentmarkerlist']
-        #print "generatedtriangleattributelist",generatedMesh['generatedtriangleattributelist']
         generatedMesh['generatedtriangleattributelist'] = \
          region_ints2strings(generatedMesh['generatedtriangleattributelist'],
                                   regionconverter)
@@ -1669,7 +1696,8 @@ class Mesh:
         points=[]
         for vertex in self.getUserVertices():
             points.append((vertex.x,vertex.y))
-        self.shape = anuga.alpha_shape.alpha_shape.Alpha_Shape(points, alpha = alpha)
+        self.shape = anuga.alpha_shape.alpha_shape.Alpha_Shape(points,
+                                                               alpha=alpha)
 
 
     def _boundary2mesh(self, raw_boundary=True,
@@ -2682,7 +2710,8 @@ class Mesh:
                                 parent_segment = alphaSegments.pop(user_line)
                             tag = parent_segment.tag
                             offspring = [line]
-                            offspring.extend(self.subtract_line(user_line,line))
+                            offspring.extend(self.subtract_line(user_line,
+                                                                line))
                             affine_lines.remove(user_line)
                             for newline in offspring:
                                 line_vertices = []
@@ -2694,7 +2723,8 @@ class Mesh:
                                         userVertices[vert]=True
                                         point_keys[point]=vert
                                     line_vertices.append(vert)
-                                segment = Segment(line_vertices[0],line_vertices[1],tag)
+                                segment = Segment(line_vertices[0],
+                                                  line_vertices[1],tag)
                                 userSegments[newline]=segment
                                 affine_lines.append(newline)
                             #break
@@ -2713,7 +2743,8 @@ class Mesh:
 				userVertices[vert]=True
 				point_keys[point]=vert
 			    line_vertices.append(vert)
-			segment = Segment(line_vertices[0],line_vertices[1],tag)
+			segment = Segment(line_vertices[0],
+                                          line_vertices[1],tag)
                         userSegments[line]=segment
                         affine_lines.append(line)
         
@@ -2818,7 +2849,7 @@ class Mesh:
         y1=line[1][1]
         return ((x1-x0)**2-(y1-y0)**2)**0.5     
 
-    def threshold(self,setName,min=None,max=None,attribute_name = 'elevation'):
+    def threshold(self,setName,min=None,max=None,attribute_name='elevation'):
         """
         threshold using  d
         """
@@ -3315,8 +3346,14 @@ def split(mesh, triangle, new_point):
 	new triangles and update the mesh.
 	"""
 
-	new_triangle1 = Triangle(new_point,triangle.vertices[0],triangle.vertices[1],attribute = triangle.attribute, neighbors = None)
-	new_triangle2 = Triangle(new_point,triangle.vertices[2],triangle.vertices[0],attribute = triangle.attribute, neighbors = None)
+	new_triangle1 = Triangle(new_point,triangle.vertices[0],
+                                 triangle.vertices[1],
+                                 attribute = triangle.attribute,
+                                 neighbors = None)
+	new_triangle2 = Triangle(new_point,triangle.vertices[2],
+                                 triangle.vertices[0],
+                                 attribute = triangle.attribute,
+                                 neighbors = None)
 
         new_triangle1.setNeighbors(triangle.neighbors[2],None,new_triangle2)
         new_triangle2.setNeighbors(triangle.neighbors[1],new_triangle1,None)
@@ -3357,7 +3394,8 @@ class BisectionState(State):
             self.neighbour = self.current_triangle.neighbors[0]
             if not self.neighbour is None:
                 self.neighbour.rotate_longest_side()
-            self.next_case = self.get_next_case(mesh,self.neighbour,self.current_triangle)
+            self.next_case = self.get_next_case(mesh,self.neighbour,
+                                                self.current_triangle)
         if self.case == 'vertex':
             self.new_point=self.old_point
 
@@ -3392,7 +3430,8 @@ class BisectionState(State):
             att = (coordinate1.attributes[i]+coordinate2.attributes[i])/2
             attributes.append(att)
 	new_coordinate = [((a[0]-b[0])/2+b[0]),((a[1]-b[1])/2+b[1])]
-	newVertex = Vertex(new_coordinate[0],new_coordinate[1], attributes = attributes)
+	newVertex = Vertex(new_coordinate[0],new_coordinate[1],
+                           attributes = attributes)
         mesh.maxVertexIndex+=1
         newVertex.index = mesh.maxVertexIndex
         mesh.meshVertices.append(newVertex)

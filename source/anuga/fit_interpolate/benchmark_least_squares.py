@@ -21,7 +21,6 @@ import time
 from random import seed, random
 import tempfile
 import profile , pstats
-import tempfile
 
 from anuga.fit_interpolate.interpolate import Interpolate
 from anuga.fit_interpolate.fit import Fit
