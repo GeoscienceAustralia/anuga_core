@@ -26,7 +26,7 @@ class Cell(TreeNode):
         count()
     """
   
-    def __init__(self, southern, northern, western, eastern, 
+    def __init__(self, southern, northern, western, eastern, mesh,
 		 name = 'cell',
     	         max_points_per_cell = 4):
   
@@ -38,6 +38,7 @@ class Cell(TreeNode):
         self.northern = round(northern,5)
         self.western = round(western,5)    
         self.eastern = round(eastern,5)
+        self.mesh = mesh
 
         # The points in this cell     
         self.points = []
@@ -62,13 +63,14 @@ class Cell(TreeNode):
         cs = self.southern    
         cn = self.northern
         cw = self.western    
-        ce = self.eastern
+        ce = self.eastern   
+        mesh = self.mesh
 
         # create 4 child cells
-        self.AddChild(Cell((cn+cs)/2,cn,cw,(cw+ce)/2,self.name+'_nw'))
-        self.AddChild(Cell((cn+cs)/2,cn,(cw+ce)/2,ce,self.name+'_ne'))
-        self.AddChild(Cell(cs,(cn+cs)/2,(cw+ce)/2,ce,self.name+'_se'))
-        self.AddChild(Cell(cs,(cn+cs)/2,cw,(cw+ce)/2,self.name+'_sw'))
+        self.AddChild(Cell((cn+cs)/2,cn,cw,(cw+ce)/2,mesh,self.name+'_nw'))
+        self.AddChild(Cell((cn+cs)/2,cn,(cw+ce)/2,ce,mesh,self.name+'_ne'))
+        self.AddChild(Cell(cs,(cn+cs)/2,(cw+ce)/2,ce,mesh,self.name+'_se'))
+        self.AddChild(Cell(cs,(cn+cs)/2,cw,(cw+ce)/2,mesh,self.name+'_sw'))
         
  
     def search(self, x, y, get_vertices=False):
@@ -139,7 +141,7 @@ class Cell(TreeNode):
 	self = args[0]
 	if len(args) == 2:
 	    point_id = int(args[1])
-            x, y = self.__class__.mesh.get_nodes()[point_id]
+            x, y = self.mesh.get_nodes()[point_id]
 
             #print point_id, x, y
 	elif len(args) == 3:
@@ -180,8 +182,8 @@ class Cell(TreeNode):
                 if self.contains(point):
                     self.store(point)
                 else:
-                    x = self.__class__.mesh.coordinates[point][0]
-                    y = self.__class__.mesh.coordinates[point][1]
+                    x = self.mesh.coordinates[point][0]
+                    y = self.mesh.coordinates[point][1]
                     print "(" + str(x) + "," + str(y) + ")"
                     raise 'point not in region: %s' %str(point)
 		
@@ -222,14 +224,14 @@ class Cell(TreeNode):
             verts = self.retrieve_vertices()
             # print "verts", verts
             for vert in verts:
-                triangle_list = self.__class__.mesh.get_triangles_and_vertices_per_node(vert)
+                triangle_list = self.mesh.get_triangles_and_vertices_per_node(vert)
                 for k, _ in triangle_list:
                     if not triangles.has_key(k):
                         # print 'k',k
-                        tri = self.__class__.mesh.get_vertex_coordinates(k)
-                        n0 = self.__class__.mesh.get_normal(k, 0)
-                        n1 = self.__class__.mesh.get_normal(k, 1)
-                        n2 = self.__class__.mesh.get_normal(k, 2) 
+                        tri = self.mesh.get_vertex_coordinates(k)
+                        n0 = self.mesh.get_normal(k, 0)
+                        n1 = self.mesh.get_normal(k, 1)
+                        n2 = self.mesh.get_normal(k, 2) 
                         triangles[k]=(tri, (n0, n1, n2))
             self.triangles = triangles.items()
             # Delete the old cell data structure to save memory
@@ -417,22 +419,23 @@ class Cell(TreeNode):
 	return max_depth, max_points    
 	
 
-    #Class initialisation method	
-    def initialise(cls, mesh):
-        cls.mesh = mesh
+    #Class initialisation method
+    # this is bad.  It adds a huge memory structure to the class.
+    # When the instance is deleted the mesh hangs round (leaks).
+    #def initialise(cls, mesh):
+    #    cls.mesh = mesh
 
-    initialise = classmethod(initialise)
+    #initialise = classmethod(initialise)
 
 def build_quadtree(mesh, max_points_per_cell = 4):
     """Build quad tree for mesh.
 
-    All vertices in mesh are stored in quadtree and a reference to the root is returned.
+    All vertices in mesh are stored in quadtree and a reference
+    to the root is returned.
     """
 
     from Numeric import minimum, maximum
 
-    #Initialise
-    Cell.initialise(mesh)
 
     #Make root cell
     #print mesh.coordinates
@@ -444,10 +447,11 @@ def build_quadtree(mesh, max_points_per_cell = 4):
     ymax = max(nodes[:,1])
 
     
-    #Ensure boundary points are fully contained in region
-    #It is a property of the cell structure that points on xmax or ymax of any given cell
-    #belong to the neighbouring cell.
-    #Hence, the root cell needs to be expanded slightly
+    # Ensure boundary points are fully contained in region
+    # It is a property of the cell structure that
+    # points on xmax or ymax of any given cell
+    # belong to the neighbouring cell.
+    # Hence, the root cell needs to be expanded slightly
     ymax += (ymax-ymin)/10
     xmax += (xmax-xmin)/10
 
@@ -461,7 +465,7 @@ def build_quadtree(mesh, max_points_per_cell = 4):
     #print "ymax", ymax
     
     #FIXME: Use mesh.filename if it exists
-    root = Cell(ymin, ymax, xmin, xmax,
+    root = Cell(ymin, ymax, xmin, xmax,mesh,
                 #name = .... 
                 max_points_per_cell = max_points_per_cell)
 

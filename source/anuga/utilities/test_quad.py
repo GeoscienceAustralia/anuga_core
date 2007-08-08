@@ -11,7 +11,6 @@ import types, sys
 class Test_Quad(unittest.TestCase):
 
     def setUp(self):
-        self.cell = Cell(100, 140, 0, 40, 'cell')
 
         a = [3, 107]
         b = [5, 107]
@@ -29,7 +28,7 @@ class Test_Quad(unittest.TestCase):
 
 	mesh = Mesh(points, vertices)
         self.mesh = mesh
-        Cell.initialise(mesh)
+        self.cell = Cell(100, 140, 0, 40, mesh, 'cell')
 
     def tearDown(self):
         pass

@@ -181,13 +181,11 @@ class Test_search_functions(unittest.TestCase):
         vertices = [[0,1,2],[0,2,3],[1,4,2],[5,6,7], [5,7,8]]
         mesh = Mesh(points, vertices)
 
-        # Don't do this, want to control the mx and mins
+        # Don't do this, want to control the max and mins
         #root = build_quadtree(mesh, max_points_per_cell=4)
     
-        #Initialise
-        Cell.initialise(mesh)
 
-        root = Cell(-3, 9, -3, 9,
+        root = Cell(-3, 9, -3, 9, mesh,
                     max_points_per_cell = 4)
         #Insert indices of all vertices
         root.insert( range(mesh.number_of_nodes) )
