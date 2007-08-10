@@ -5,6 +5,7 @@ import sys
 from types import ListType, TupleType
 
 import anuga.mesh_engine.mesh_engine_c_layer as triang
+#import anuga.mesh_engine.list_dic as triang
 
 from Numeric import array, Float, Int32
 
@@ -120,8 +121,10 @@ def generate_mesh(points=None,
     #print "pointatts", pointatts
     #print "segatts", segatts
     #print "mode", mode
-    return triang.genMesh(points,segments,holes,regions,
+    mesh_dict = triang.genMesh(points,segments,holes,regions,
                           pointatts,segatts, mode, segments.flat)
+    mesh_dict['qaz'] = 1 #debugging
+    return mesh_dict
 
 def add_area_tag(regions):
     """

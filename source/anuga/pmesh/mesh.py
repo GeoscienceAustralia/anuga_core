@@ -1164,6 +1164,7 @@ class Mesh:
                               self.mode,
                               meshDict['pointlist'])
         #print "%%%%%%%%%%%%%%%%%%%%%%%%%%%generated",generatedMesh
+        generatedMesh['qaa'] = 1
         generatedMesh['generatedsegmentmarkerlist'] = \
              segment_ints2strings(generatedMesh['generatedsegmentmarkerlist'],
                                   segconverter)
@@ -1490,9 +1491,6 @@ class Mesh:
             -1 means there's no triangle neighbor
         triangle attribute list: [(T1att), (T2att), ...]
 
-
-            (list of a list of strings)
-        lone point list:[point1, ...] (list of integers)
         """
         #Clear the current generated mesh values
         self.meshTriangles=[]
@@ -1566,7 +1564,18 @@ class Mesh:
             # Remove the loner vertex
             #print "Removing the loner", loner
             #self.meshVertices.pop(loner)
-
+        # delete the info from this data structure
+        del genDict['generatedtriangleneighborlist']
+        del genDict['generatedpointmarkerlist']
+        del genDict['generatedpointlist']
+        del genDict['generatedpointattributetitlelist']
+        del genDict['generatedsegmentlist']
+        del genDict['generatedsegmentmarkerlist']
+        del genDict['generatedtrianglelist']
+        del genDict['generatedtriangleattributelist']
+        del genDict['generatedpointattributelist']
+        genDict['zpp'] = 1 # just an identifier
+            
     def setMesh(self, genDict):
         """
         Set the user Mesh attributes given a dictionary of the lists

@@ -224,7 +224,17 @@ class Alpha_Shape:
         reg_edge = self.get_regular_edges(self.alpha)
         self.boundary = [self.edge[k] for k in reg_edge]
         #print "alpha boundary edges ", self.boundary
-        self._init_boundary_triangles()            
+        self._init_boundary_triangles()
+        
+        del tridata['generatedtriangleneighborlist']
+        del tridata['generatedpointmarkerlist']
+        del tridata['generatedpointlist']
+        #del tridata['generatedpointattributetitlelist']
+        del tridata['generatedsegmentlist']
+        del tridata['generatedsegmentmarkerlist']
+        del tridata['generatedtrianglelist']
+        del tridata['generatedtriangleattributelist']
+        del tridata['generatedpointattributelist']
         return
 
     def _tri_circumradius(self):

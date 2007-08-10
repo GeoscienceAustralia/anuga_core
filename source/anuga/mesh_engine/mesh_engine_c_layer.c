@@ -25,7 +25,16 @@
      mode: String - the commands sent to triangle
           
      This is all that is needed to accomplish an intial triangulation.       
-     A dictionary of the Triangle output is returned.                                   
+     A dictionary of the Triangle output is returned.
+            
+     I thought this function was leaking. That the returned data 
+     structure didn't get garbage collected.  I decided this using  
+     gc.get_objects() and seeing the dic still hanging around.
+     I'm not so sure this means its leaking.  Check by looking at 
+     the overall memory use.  Anyhow, I delete the lists that are 
+     returned in the dic structre after they are used now, in alpha
+     shape and mesh_engine.
+     
      Precondition
      End list in the pointattributelist has to have the same length
      
@@ -310,7 +319,6 @@ extern "C" void free();
     PyDict_SetItem(holder, ii, holderlist);
     Py_DECREF(ii); Py_DECREF(holderlist);
   }   
-     
   /* Free in/out structure memory */
   
   /* OUT */
@@ -355,6 +363,7 @@ extern "C" void free();
     free(out.regionlist); out.regionlist=NULL;
   }
   
+  /*Py_DECREF(holder);*/
   return Py_BuildValue((char *)"O", holder);
 }
 

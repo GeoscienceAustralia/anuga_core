@@ -131,7 +131,7 @@ if __name__ == "__main__":
 
     ofile = 'lbm_resultsII.csv'
     run_profile = False #True
-    size_list = [[4,5],[5,40]]
+    size_list = [[4,5],[50,40]]
     #size_list = [[5,4]]
 
     quantitiy_list = [['elevation'],
@@ -165,7 +165,8 @@ if __name__ == "__main__":
             print "mem", mem
             gc.collect()
             print "mem", mem
-            print " gc.get_objects() ", gc.get_objects() 
+            #print "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+            #print "gc.get_referrers()", gc.get_referrers()
             #sys.gettotalrefcount() 
             fd.write(str(size[0]*size[1]) + delimiter +
                      str(len(quantitiy)) + delimiter +
@@ -174,4 +175,5 @@ if __name__ == "__main__":
                      str(m0)  + delimiter +
                      str(m1)  + delimiter +
                      str(time) + delimiter + "\n")
-fd.close()                         
+    print " gc.get_objects() ", gc.get_objects()
+    fd.close()                         
