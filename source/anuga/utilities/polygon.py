@@ -743,7 +743,7 @@ def point_in_polygon(polygon, delta=1e-8):
 
 
 def number_mesh_triangles(interior_regions, bounding_poly, remainder_res):
-    """Calcalutes the approximate number of triangles inside the
+    """Calculate the approximate number of triangles inside the
     bounding polygon and the other interior regions
 
     Polygon areas are converted to square Kms 
