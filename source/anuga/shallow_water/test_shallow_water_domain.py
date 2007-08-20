@@ -1133,7 +1133,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Check what happens if no time point is within interval
         try:
-            q = get_maximum_inundation_elevation('runup_test.sww', time_interval=[2.8, 2.8])
+            q = get_maximum_inundation_elevation('runup_test.sww', time_interval=[2.75, 2.75])
         except AssertionError:
             pass
         else:
