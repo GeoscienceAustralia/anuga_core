@@ -507,6 +507,7 @@ class Test_Domain(unittest.TestCase):
         domain.timestepping_statistics(track_speeds=True)
 
 
+
     def test_region_tags(self):
         """
         get values based on triangle lists.
@@ -606,7 +607,7 @@ class Test_Domain(unittest.TestCase):
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
-#    suite = unittest.makeSuite(Test_Domain,'test')
-    suite = unittest.makeSuite(Test_Domain,'test_track_speeds')
+    suite = unittest.makeSuite(Test_Domain,'test')
+    #suite = unittest.makeSuite(Test_Domain,'test_track_speeds')
     runner = unittest.TextTestRunner()
     runner.run(suite)
