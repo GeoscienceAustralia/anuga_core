@@ -247,9 +247,11 @@ class Test_Data_Manager(unittest.TestCase):
         range = fid.variables['stage_range'][:]
         assert allclose(range,[-0.93519, 0.15])
         range = fid.variables['xmomentum_range'][:]
-        assert allclose(range,[0,0.46950444])
+        #assert allclose(range,[0,0.46950444])
+        assert allclose(range,[0,0.4695096])        
         range = fid.variables['ymomentum_range'][:]
-        assert allclose(range,[0,0.02174380])
+        #assert allclose(range,[0,0.02174380])
+        assert allclose(range,[0,0.02174439])        
         
         fid.close()
         #print "sww.filename", sww.filename

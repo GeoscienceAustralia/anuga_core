@@ -170,10 +170,14 @@ class Domain(Mesh):
                         
 
         #Defaults
-        from anuga.config import max_smallsteps, beta_w, beta_h, epsilon, CFL
+        from anuga.config import max_smallsteps, beta_w, beta_h, epsilon
+        from anuga.config import CFL
+        from anuga.config import protect_against_isolated_degenerate_timesteps
         self.beta_w = beta_w
         self.beta_h = beta_h
         self.epsilon = epsilon
+        self.protect_against_isolated_degenerate_timesteps = protect_against_isolated_degenerate_timesteps
+        
 
         #FIXME: Maybe have separate orders for h-limiter and w-limiter?
         #Or maybe get rid of order altogether and use beta_w and beta_h
@@ -645,10 +649,12 @@ class Domain(Mesh):
             msg += '    Quantity \t vertex values\t\t\t\t\t centroid values\n'
             for name in self.quantities:
                 q = self.quantities[name]
-                X,Y,A,V = q.get_vertex_values()                
+
+                V = q.get_values(location='vertices', indices=[k])[0]
+                C = q.get_values(location='centroids', indices=[k])                 
                 
                 s = '    %s:\t %.4f,\t %.4f,\t %.4f,\t %.4f\n'\
-                    %(name, A[3*k], A[3*k+1], A[3*k+2], q.get_values(location='centroids')[k]) 
+                    %(name, V[0], V[1], V[2], C[0])                 
 
                 msg += s
 
@@ -961,6 +967,47 @@ class Domain(Mesh):
 
         from anuga.config import min_timestep, max_timestep
 
+        
+        
+        # Protect against degenerate timesteps arising from isolated
+        # triangles
+        if self.protect_against_isolated_degenerate_timesteps is True and\
+               self.max_speed > 10.0:
+
+            # Setup 10 bins for speed histogram
+            from anuga.utilities.numerical_tools import histogram, create_bins
+        
+            bins = create_bins(self.max_speed, 10)
+            hist = histogram(self.max_speed, bins)
+
+            # Look for characteristic signature
+            if len(hist) > 1 and\
+                hist[-1] > 0 and\
+                hist[4] == hist[5] == hist[6] == hist[7] == hist[8] == 0:
+                    # Danger of isolated degenerate triangles
+                    # print self.timestepping_statistics(track_speeds=True)  
+                    
+                    # Find triangles in last bin
+                    # FIXME - speed up using Numeric
+                    d = 0
+                    for i in range(self.number_of_full_triangles):
+                        if self.max_speed[i] > bins[-1]:
+                            msg = 'Time=%f: Ignoring isolated high speed triangle ' %self.time
+                            msg += '#%d of %d with max speed=%f'\
+                                  %(i, self.number_of_full_triangles, self.max_speed[i])
+                            #print msg
+                    
+                            # print 'Found offending triangle', i, self.max_speed[i] 
+                            self.get_quantity('xmomentum').set_values(0.0, indices=[i])
+                            self.get_quantity('ymomentum').set_values(0.0, indices=[i])
+                            self.max_speed[i]=0.0
+                            d += 1
+                    
+                    #print 'Adjusted %d triangles' %d        
+                    #print self.timestepping_statistics(track_speeds=True)      
+                
+
+                        
         # self.timestep is calculated from speed of characteristics
         # Apply CFL condition here
         timestep = min(self.CFL*self.timestep, max_timestep)
@@ -969,6 +1016,8 @@ class Domain(Mesh):
         self.max_timestep = max(timestep, self.max_timestep)
         self.min_timestep = min(timestep, self.min_timestep)
 
+           
+ 
         #Protect against degenerate time steps
         if timestep < min_timestep:
 
@@ -987,10 +1036,10 @@ class Domain(Mesh):
                     timestep = min_timestep  #Try enforcing min_step
 
 
-                    print self.timestepping_statistics(track_speeds=True)
+                    #print self.timestepping_statistics(track_speeds=True)
 
 
-                    raise Exception
+                    raise Exception, msg
                 else:
                     #Try to overcome situation by switching to 1 order
                     self._order_ = 1

@@ -990,9 +990,9 @@ class Quantity:
                 vert_values.append(sum/len(triangles))
             return Numeric.array(vert_values)
         else:
-            if (indices ==  None):
+            if (indices is None):
                 indices = range(len(self))
-            return take(self.vertex_values,indices)
+            return take(self.vertex_values, indices)
 
 
 

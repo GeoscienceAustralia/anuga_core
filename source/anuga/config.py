@@ -103,6 +103,12 @@ CFL = 1.0  #FIXME (ole): Is this in use yet??
            #(Steve) yes, change domain.CFL to
            #make changes
 
+# Option to search for signatures where isolated triangles are
+# responsible for a small global timestep.
+# Treating these by limiting their momenta may help speed up the
+# overall computation.
+# This facility is experimental.
+protect_against_isolated_degenerate_timesteps = False
 
 pmesh_filename = '.\\pmesh'
 version_filename = 'stored_version_info.py'

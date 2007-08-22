@@ -125,6 +125,31 @@ int limit_gradient(double *dqv, double qmin, double qmax, double beta_w){
 }
 
 
+void adjust_froude_number(double *uh,
+			  double h, 
+			  double g) {
+			  
+  // Adjust momentum if Froude number is excessive
+  double max_froude_number = 20.0;  			  
+  double froude_number;
+  
+  //Compute Froude number (stability diagnostics)
+  froude_number = *uh/sqrt(g*h)/h;
+
+  if (froude_number > max_froude_number) {
+    printf("---------------------------------------------\n");
+    printf("froude_number=%f (uh=%f, h=%f)\n", froude_number, *uh, h);
+    
+    *uh = *uh/fabs(*uh) * max_froude_number * sqrt(g*h)*h;
+    
+    froude_number = *uh/sqrt(g*h)/h;    
+    printf("Adjusted froude_number=%f (uh=%f, h=%f)\n", froude_number, *uh, h);
+    printf("---------------------------------------------\n");    
+  }
+}
+
+
+
 // Function to obtain speed from momentum and depth.
 // This is used by flux functions
 // Input parameters uh and h may be modified by this function.
@@ -134,15 +159,21 @@ double _compute_speed(double *uh,
 		      double h0) {
   
   double u;
+
+  //adjust_froude_number(uh, *h, 9.81); // Highly experimental and 
+                                        // probably unneccessary
   
   if (*h < epsilon) {
     *h = 0.0;  //Could have been negative
     u = 0.0;
   } else {
-    u = *uh/(*h + h0/ *h);
+    u = *uh/(*h + h0/ *h);    
   }
+  
 
-  // printf("u=%f, h=%f\n", u, h);  
+  // Adjust momentum to be consistent with speed
+  *uh = u * *h;
+  
   return u;
 }
 
@@ -168,12 +199,15 @@ int flux_function_central(double *q_left, double *q_right,
 
   double w_left, h_left, uh_left, vh_left, u_left;
   double w_right, h_right, uh_right, vh_right, u_right;
+  double v_left, v_right;  
   double s_min, s_max, soundspeed_left, soundspeed_right;
   double denom, z;
   double q_left_copy[3], q_right_copy[3];
   double flux_right[3], flux_left[3];
 
   double h0 = H0*H0; //This ensures a good balance when h approaches H0.
+                     //But evidence suggests that h0 can be as little as
+		     //epsilon!
   
   //Copy conserved quantities to protect from modification
   for (i=0; i<3; i++) {
@@ -202,11 +236,15 @@ int flux_function_central(double *q_left, double *q_right,
   vh_left  = q_left_copy[2];
   vh_right = q_right_copy[2];
 
+  // Limit momentum if necessary  
+  v_left =_compute_speed(&vh_left, &h_left, epsilon, h0);
+  v_right =_compute_speed(&vh_right, &h_right, epsilon, h0);
 
   //Maximal and minimal wave speeds
   soundspeed_left  = sqrt(g*h_left);
   soundspeed_right = sqrt(g*h_right);
 
+  
   s_max = max(u_left+soundspeed_left, u_right+soundspeed_right);
   if (s_max < 0.0) s_max = 0.0;
 
