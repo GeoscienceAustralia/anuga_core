@@ -504,7 +504,7 @@ class Domain(Mesh):
                 msg = 'ERROR (domain.py): Tag "%s" has not been ' %tag
                 msg += 'bound to a boundary object.\n'
                 msg += 'All boundary tags defined in domain must appear '
-                msg += 'in the supplied dictionary.\n'
+                msg += 'in set_boundary.\n'
                 msg += 'The tags are: %s' %self.get_boundary_tags()
                 raise msg
 

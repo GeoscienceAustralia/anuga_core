@@ -918,7 +918,7 @@ class Quantity:
         location and indices are ignored
         
         location: Where values are to be stored.
-                  Permissible options are: vertices, edges, centroid
+                  Permissible options are: vertices, edges, centroids
                   and unique vertices. Default is 'vertices'
 
 
