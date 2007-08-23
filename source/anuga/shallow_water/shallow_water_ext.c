@@ -1190,6 +1190,7 @@ PyObject *rotate(PyObject *self, PyObject *args, PyObject *kwargs) {
   // Where q is assumed to be a Float numeric array of length 3 and
   // normal a Float numeric array of length 2.
 
+  // FIXME(Ole): I don't think this is used anymore
 
   PyObject *Q, *Normal;
   PyArrayObject *q, *r, *normal;
@@ -1303,15 +1304,15 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
     *stage_explicit_update,
     *xmom_explicit_update,
     *ymom_explicit_update,
-    *already_computed_flux,//tracks whether the flux across an edge has already been computed
+    *already_computed_flux, //Tracks whether the flux across an edge has already been computed
     *max_speed_array; //Keeps track of max speeds for each triangle
 
   // Local variables
-  double timestep, max_speed, epsilon, g, H0, length;
+  double timestep, max_speed, epsilon, g, H0, length, area;
   double normal[2], ql[3], qr[3], zl, zr;
   double edgeflux[3]; // Work array for summing up fluxes
 
-  int number_of_elements, k, i, m, n;
+  int number_of_elements, k, i, j, m, n, computation_needed;
   int ki, nm=0, ki2; // Index shorthands
   static long call=1; // Static local variable flagging already computed flux
 
@@ -1390,6 +1391,28 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
 	zr =    ((double *) bed_edge_values -> data)[nm];
       }
       
+      
+      // Check if flux calculation is necessary across this edge
+      // FIXME (Ole): Work in progress!
+      computation_needed = 0;
+      //for (j=0; j<3; j++) {      
+      //if (ql[j] != qr[j]) computation_needed = 1;
+      //}
+      
+      //if (computation_needed == 0) {
+	//printf("flux exemption identified\n");
+	
+	//((long *) already_computed_flux -> data)[ki] = call; // #k Done	
+	//if (n>=0)
+	//  ((long *) already_computed_flux -> data)[nm] = call; // #n Done
+	
+	//max_speed = 0.0;
+	//continue;
+      //}
+      
+
+      
+            
       // Outward pointing normal vector (domain.normals[k, 2*i:2*i+2])
       ki2 = 2*ki; //k*6 + i*2
       normal[0] = ((double *) normals -> data)[ki2];
@@ -1440,9 +1463,10 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
     
     // Normalise triangle k by area and store for when all conserved
     // quantities get updated
-    ((double *) stage_explicit_update -> data)[k] /= ((double *) areas -> data)[k];
-    ((double *) xmom_explicit_update -> data)[k] /= ((double *) areas -> data)[k];
-    ((double *) ymom_explicit_update -> data)[k] /= ((double *) areas -> data)[k];
+    area = ((double *) areas -> data)[k];
+    ((double *) stage_explicit_update -> data)[k] /= area;
+    ((double *) xmom_explicit_update -> data)[k] /= area;
+    ((double *) ymom_explicit_update -> data)[k] /= area;
     
    
     // Keep track of maximal speeds
