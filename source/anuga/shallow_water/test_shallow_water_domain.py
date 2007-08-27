@@ -190,6 +190,50 @@ class Test_Shallow_Water(unittest.TestCase):
         assert allclose(flux, [-0.04072676, -0.07096636, -0.01604364])
         assert allclose(max_speed, 1.31414103233)
 
+    def test_flux_computation(self):	
+        """test_flux_computation - test flux calculation (actual C implementation)
+	This one tests the constant case where only the pressure term contributes to each edge and cancels out 
+	once the total flux has been summed up.
+	"""
+		
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0,0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0,0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe, daf, dae
+        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices)
+        domain.check_integrity()
+
+	# The constant case		
+	domain.set_quantity('elevation', -1)
+	domain.set_quantity('stage', 1)	
+	
+	domain.compute_fluxes()
+	assert allclose(domain.get_quantity('stage').explicit_update[1], 0) # Central triangle
+	
+
+	# The more general case			
+        def surface(x,y):
+            return -x/2                    
+	
+	domain.set_quantity('elevation', -10)
+	domain.set_quantity('stage', surface)	
+	domain.set_quantity('xmomentum', 1)		
+	
+	domain.compute_fluxes()
+	
+	print domain.get_quantity('stage').explicit_update
+	# FIXME (Ole): TODO the general case
+	#assert allclose(domain.get_quantity('stage').explicit_update[1], ........??)
+		
+	
+		
     def test_sw_domain_simple(self):
         a = [0.0, 0.0]
         b = [0.0, 2.0]
@@ -4754,7 +4798,7 @@ friction  \n \
         #-------------------------------------------------------------
         
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Shallow_Water,'test')    
+    suite = unittest.makeSuite(Test_Shallow_Water,'test_flux_computation')    
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_tight_slope_limiters')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_get_maximum_inundation_from_sww')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_temp')    
