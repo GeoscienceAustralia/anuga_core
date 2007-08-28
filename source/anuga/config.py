@@ -129,7 +129,9 @@ use_psyco = True  #Use psyco optimisations
 #use_psyco = False  #Do not use psyco optimisations
 
 
-optimised_gradient_limiter = True #Use hardwired gradient limiter
+optimise_dry_cells = True # Exclude dry and still cells from flux computation
+
+optimised_gradient_limiter = True # Use hardwired gradient limiter
 
 #Specific to shallow water W.E.
 minimum_allowed_height = 1.0e-3 #Water depth below which it is considered to be 0 in the model
@@ -139,9 +141,10 @@ maximum_allowed_speed = 1.0 # Maximal particle speed of water
                             # Too small (0) creates 'creep'
 
 
-minimum_storable_height = 1.0e-5 #Water depth below which it is *stored* as 0
+minimum_storable_height = 1.0e-5 # Water depth below which it is *stored* as 0
 
 points_file_block_line_size = 500 # Number of lines read in from a points file
                                   # when blocking
 
 umask = 002  # used to set file and directory permission created by anuga
+

@@ -228,7 +228,7 @@ class Test_Shallow_Water(unittest.TestCase):
 	
 	domain.compute_fluxes()
 	
-	print domain.get_quantity('stage').explicit_update
+	#print domain.get_quantity('stage').explicit_update
 	# FIXME (Ole): TODO the general case
 	#assert allclose(domain.get_quantity('stage').explicit_update[1], ........??)
 		
@@ -1305,8 +1305,11 @@ class Test_Shallow_Water(unittest.TestCase):
 
 
     #####################################################
-    def test_initial_condition(self):
-        """Test that initial condition is output at time == 0
+
+    def test_flux_optimisation(self):
+        """test_flux_optimisation
+        Test that fluxes are correctly computed using
+        dry and still cell exclusions
         """
 
         from anuga.config import g
@@ -1343,14 +1346,80 @@ class Test_Shallow_Water(unittest.TestCase):
 
         domain.set_boundary({'exterior': Reflective_boundary(domain)})
 
+
+        #  Check that update arrays are initialised to zero 
+        assert allclose(domain.get_quantity('stage').explicit_update, 0)
+        assert allclose(domain.get_quantity('xmomentum').explicit_update, 0)
+        assert allclose(domain.get_quantity('ymomentum').explicit_update, 0)               
+
+
+        # Get true values
+        domain.optimise_dry_cells = False
+        domain.compute_fluxes()
+        stage_ref = copy.copy(domain.get_quantity('stage').explicit_update)
+        xmom_ref = copy.copy(domain.get_quantity('xmomentum').explicit_update)
+        ymom_ref = copy.copy(domain.get_quantity('ymomentum').explicit_update)       
+
+        # Try with flux optimisation
+        domain.optimise_dry_cells = True
+        domain.compute_fluxes()
+
+        assert allclose(stage_ref, domain.get_quantity('stage').explicit_update)
+        assert allclose(xmom_ref, domain.get_quantity('xmomentum').explicit_update)
+        assert allclose(ymom_ref, domain.get_quantity('ymomentum').explicit_update)
+        
+   
+        
+    def test_initial_condition(self):
+        """test_initial_condition
+        Test that initial condition is output at time == 0 and that
+        computed values change as system evolves
+        """
+
+        from anuga.config import g
+        import copy
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe
+        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices)
+
+        #Set up for a gradient of (3,0) at mid triangle (bce)
+        def slope(x, y):
+            return 3*x
+
+        h = 0.1
+        def stage(x,y):
+            return slope(x,y)+h
+
+        domain.set_quantity('elevation', slope)
+        domain.set_quantity('stage', stage)
+
+        # Allow slope limiters to work (FIXME (Ole): Shouldn't this be automatic in ANUGA?)     
+        domain.distribute_to_vertices_and_edges()       
+
+        initial_stage = copy.copy(domain.quantities['stage'].vertex_values)
+
+        domain.set_boundary({'exterior': Reflective_boundary(domain)})
+
+        domain.optimise_dry_cells = True
         #Evolution
-        for t in domain.evolve(yieldstep = 1.0, finaltime = 2.0):
+        for t in domain.evolve(yieldstep = 0.5, finaltime = 2.0):
             stage = domain.quantities['stage'].vertex_values
 
             if t == 0.0:
                 assert allclose(stage, initial_stage)
             else:
                 assert not allclose(stage, initial_stage)
+
 
         os.remove(domain.get_name() + '.sww')
 
@@ -4798,7 +4867,8 @@ friction  \n \
         #-------------------------------------------------------------
         
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Shallow_Water,'test_flux_computation')    
+
+    suite = unittest.makeSuite(Test_Shallow_Water,'test')    
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_tight_slope_limiters')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_get_maximum_inundation_from_sww')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_temp')    

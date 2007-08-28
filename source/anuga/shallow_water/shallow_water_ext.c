@@ -244,13 +244,13 @@ int flux_function_central(double *q_left, double *q_right,
   soundspeed_left  = sqrt(g*h_left);
   soundspeed_right = sqrt(g*h_right);
 
-  
   s_max = max(u_left+soundspeed_left, u_right+soundspeed_right);
   if (s_max < 0.0) s_max = 0.0;
 
   s_min = min(u_left-soundspeed_left, u_right-soundspeed_right);
-  if (s_min > 0.0) s_min = 0.0;
+   if (s_min > 0.0) s_min = 0.0;
 
+  
   //Flux formulas
   flux_left[0] = u_left*h_left;
   flux_left[1] = u_left*uh_left + 0.5*g*h_left*h_left;
@@ -260,7 +260,8 @@ int flux_function_central(double *q_left, double *q_right,
   flux_right[1] = u_right*uh_right + 0.5*g*h_right*h_right;
   flux_right[2] = u_right*vh_right;
 
-
+  
+  
   //Flux computation
   denom = s_max-s_min;
   if (denom == 0.0) {
@@ -1280,7 +1281,8 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
                                      Stage.explicit_update,
                                      Xmom.explicit_update,
                                      Ymom.explicit_update,
-                                     already_computed_flux)
+                                     already_computed_flux,
+				     optimise_dry_cells)				     
 
 
     Post conditions:
@@ -1307,18 +1309,21 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
     *already_computed_flux, //Tracks whether the flux across an edge has already been computed
     *max_speed_array; //Keeps track of max speeds for each triangle
 
+
   // Local variables
   double timestep, max_speed, epsilon, g, H0, length, area;
+  int optimise_dry_cells=0; // Optimisation flag  
   double normal[2], ql[3], qr[3], zl, zr;
   double edgeflux[3]; // Work array for summing up fluxes
 
-  int number_of_elements, k, i, j, m, n, computation_needed;
+  int number_of_elements, k, i, m, n; //, j, computation_needed;
+
   int ki, nm=0, ki2; // Index shorthands
   static long call=1; // Static local variable flagging already computed flux
 
 
   // Convert Python arguments to C
-  if (!PyArg_ParseTuple(args, "ddddOOOOOOOOOOOOOOOOOOO",
+  if (!PyArg_ParseTuple(args, "ddddOOOOOOOOOOOOOOOOOOOi",
 			&timestep,
 			&epsilon,
 			&H0,
@@ -1339,10 +1344,12 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
 			&xmom_explicit_update,
 			&ymom_explicit_update,
 			&already_computed_flux,
-			&max_speed_array)) {
+			&max_speed_array,
+			&optimise_dry_cells)) {
     PyErr_SetString(PyExc_RuntimeError, "Input arguments failed");
     return NULL;
   }
+  
   
   number_of_elements = stage_edge_values -> dimensions[0];
 
@@ -1366,6 +1373,7 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
       if (((long *) already_computed_flux->data)[ki] == call)
         // We've already computed the flux across this edge
 	continue;
+	
 	
       ql[0] = ((double *) stage_edge_values -> data)[ki];
       ql[1] = ((double *) xmom_edge_values -> data)[ki];
@@ -1392,23 +1400,24 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
       }
       
       
-      // Check if flux calculation is necessary across this edge
-      // FIXME (Ole): Work in progress!
-      computation_needed = 0;
-      //for (j=0; j<3; j++) {      
-      //if (ql[j] != qr[j]) computation_needed = 1;
-      //}
-      
-      //if (computation_needed == 0) {
-	//printf("flux exemption identified\n");
+      if (optimise_dry_cells) {      
+	// Check if flux calculation is necessary across this edge
+	// This check will exclude dry cells.
+	// This will also optimise cases where zl != zr as 
+	// long as both are dry
+
+	if ( fabs(ql[0] - zl) < epsilon && 
+	     fabs(qr[0] - zr) < epsilon ) {
+	  // Cell boundary is dry
+	  
+	  ((long *) already_computed_flux -> data)[ki] = call; // #k Done	
+	  if (n>=0)
+	    ((long *) already_computed_flux -> data)[nm] = call; // #n Done
 	
-	//((long *) already_computed_flux -> data)[ki] = call; // #k Done	
-	//if (n>=0)
-	//  ((long *) already_computed_flux -> data)[nm] = call; // #n Done
-	
-	//max_speed = 0.0;
-	//continue;
-      //}
+	  max_speed = 0.0;
+	  continue;
+	}
+      }
       
 
       
@@ -1458,6 +1467,7 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
 	    timestep = min(timestep, ((double *) radii -> data)[n]/max_speed);
 	}
       }
+      
     } // End edge i
     
     

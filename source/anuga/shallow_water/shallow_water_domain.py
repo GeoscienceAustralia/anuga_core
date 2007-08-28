@@ -101,6 +101,7 @@ from anuga.config import minimum_allowed_height, maximum_allowed_speed
 from anuga.config import g, beta_h, beta_w, beta_w_dry,\
      beta_uh, beta_uh_dry, beta_vh, beta_vh_dry, tight_slope_limiters
 from anuga.config import alpha_balance
+from anuga.config import optimise_dry_cells
 
 
 #Shallow water domain
@@ -163,6 +164,7 @@ class Domain(Generic_Domain):
         self.alpha_balance = alpha_balance
 
         self.tight_slope_limiters = tight_slope_limiters
+        self.optimise_dry_cells = optimise_dry_cells
 
         self.flux_function = flux_function_central
         #self.flux_function = flux_function_kinetic
@@ -888,7 +890,8 @@ def compute_fluxes_c(domain):
                                          Xmom.explicit_update,
                                          Ymom.explicit_update,
                                          domain.already_computed_flux,
-                                         domain.max_speed)
+                                         domain.max_speed,
+                                         int(domain.optimise_dry_cells))
 
 
 ####################################
