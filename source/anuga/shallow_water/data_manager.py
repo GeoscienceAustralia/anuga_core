@@ -2434,7 +2434,8 @@ def convert_dem_from_ascii2netcdf(basename_in, basename_out = None,
     if use_cache is True:
         from caching import cache
         result = cache(_convert_dem_from_ascii2netcdf, basename_in, kwargs,
-                       dependencies = [basename_in + '.asc'],
+                       dependencies = [basename_in + '.asc',
+                                       basename_in + '.prj'],
                        verbose = verbose)
 
     else:
