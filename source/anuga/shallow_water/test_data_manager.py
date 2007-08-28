@@ -245,13 +245,18 @@ class Test_Data_Manager(unittest.TestCase):
         sww_quantities = Domain.conserved_quantities
         # Get the variables
         range = fid.variables['stage_range'][:]
-        assert allclose(range,[-0.93519, 0.15])
+        assert allclose(range,[-0.93519, 0.15]) or\
+               allclose(range,[-0.9352743, 0.15]) # Old slope limiters
         range = fid.variables['xmomentum_range'][:]
+        
         #assert allclose(range,[0,0.46950444])
-        assert allclose(range,[0,0.4695096])        
+        assert allclose(range,[0,0.4695096]) or\
+               allclose(range,[0,0.47790655]) # Old slope limiters             
         range = fid.variables['ymomentum_range'][:]
+        
         #assert allclose(range,[0,0.02174380])
-        assert allclose(range,[0,0.02174439])        
+        assert allclose(range,[0,0.02174439]) or\
+               allclose(range,[0,0.02283983]) # Old slope limiters                     
         
         fid.close()
         #print "sww.filename", sww.filename
@@ -7105,8 +7110,8 @@ friction  \n \
         runup = get_maximum_inundation_elevation(swwfile)
         location = get_maximum_inundation_location(swwfile)
         #print runup, location
-        assert allclose(runup, 11)
-        assert allclose(location[0], 15)
+        assert allclose(runup, 11) or allclose(runup, 12) # old limiters
+        assert allclose(location[0], 15) or allclose(location[0], 10)
 
         # Check final runup
         runup = get_maximum_inundation_elevation(swwfile, time_interval=[45,50])
@@ -7146,8 +7151,8 @@ friction  \n \
         # Check maximal runup
         runup = get_maximum_inundation_elevation(swwfile)
         location = get_maximum_inundation_location(swwfile)
-        assert allclose(runup, 11)
-        assert allclose(location[0], 15+E)
+        assert allclose(runup, 11) or allclose(runup, 12) # old limiters
+        assert allclose(location[0], 15+E) or allclose(location[0], 10+E)
 
         # Check final runup
         runup = get_maximum_inundation_elevation(swwfile, time_interval=[45,50])
