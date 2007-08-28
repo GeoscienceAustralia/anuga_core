@@ -1499,17 +1499,18 @@ def gravity_c(domain):
     xmom = domain.quantities['xmomentum'].explicit_update
     ymom = domain.quantities['ymomentum'].explicit_update
 
-    Stage = domain.quantities['stage']
-    Elevation = domain.quantities['elevation']
-    h = Stage.edge_values - Elevation.edge_values
-    v = Elevation.vertex_values
+    stage = domain.quantities['stage']
+    elevation = domain.quantities['elevation']
+
+    h = stage.centroid_values - elevation.centroid_values
+    z = elevation.vertex_values
 
     x = domain.get_vertex_coordinates()
     g = domain.g
-
+    
 
     from shallow_water_ext import gravity
-    gravity(g, h, v, x, xmom, ymom)
+    gravity(g, h, z, x, xmom, ymom) #, 1.0e-6)
 
 
 

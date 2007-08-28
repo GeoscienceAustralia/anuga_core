@@ -202,45 +202,45 @@ int flux_function_central(double *q_left, double *q_right,
   double v_left, v_right;  
   double s_min, s_max, soundspeed_left, soundspeed_right;
   double denom, z;
-  double q_left_copy[3], q_right_copy[3];
+  double q_left_rotated[3], q_right_rotated[3];
   double flux_right[3], flux_left[3];
 
   double h0 = H0*H0; //This ensures a good balance when h approaches H0.
                      //But evidence suggests that h0 can be as little as
 		     //epsilon!
   
-  //Copy conserved quantities to protect from modification
+  // Copy conserved quantities to protect from modification
   for (i=0; i<3; i++) {
-    q_left_copy[i] = q_left[i];
-    q_right_copy[i] = q_right[i];
+    q_left_rotated[i] = q_left[i];
+    q_right_rotated[i] = q_right[i];
   }
 
-  //Align x- and y-momentum with x-axis
-  _rotate(q_left_copy, n1, n2);
-  _rotate(q_right_copy, n1, n2);
+  // Align x- and y-momentum with x-axis
+  _rotate(q_left_rotated, n1, n2);
+  _rotate(q_right_rotated, n1, n2);
 
-  z = (z_left+z_right)/2; //Take average of field values
+  z = (z_left+z_right)/2; // Average elevation values
 
-  //Compute speeds in x-direction
-  w_left = q_left_copy[0];          
+  // Compute speeds in x-direction
+  w_left = q_left_rotated[0];          
   h_left = w_left-z;
-  uh_left = q_left_copy[1];
+  uh_left = q_left_rotated[1];
   u_left = _compute_speed(&uh_left, &h_left, epsilon, h0);
 
-  w_right = q_right_copy[0];
+  w_right = q_right_rotated[0];
   h_right = w_right-z;
-  uh_right = q_right_copy[1];
+  uh_right = q_right_rotated[1];
   u_right = _compute_speed(&uh_right, &h_right, epsilon, h0);  
 
-  //Momentum in y-direction
-  vh_left  = q_left_copy[2];
-  vh_right = q_right_copy[2];
+  // Momentum in y-direction
+  vh_left  = q_left_rotated[2];
+  vh_right = q_right_rotated[2];
 
   // Limit y-momentum if necessary  
   v_left = _compute_speed(&vh_left, &h_left, epsilon, h0);
   v_right = _compute_speed(&vh_right, &h_right, epsilon, h0);
 
-  //Maximal and minimal wave speeds
+  // Maximal and minimal wave speeds
   soundspeed_left  = sqrt(g*h_left);
   soundspeed_right = sqrt(g*h_right);
 
@@ -251,7 +251,7 @@ int flux_function_central(double *q_left, double *q_right,
    if (s_min > 0.0) s_min = 0.0;
 
   
-  //Flux formulas
+  // Flux formulas
   flux_left[0] = u_left*h_left;
   flux_left[1] = u_left*uh_left + 0.5*g*h_left*h_left;
   flux_left[2] = u_left*vh_left;
@@ -262,7 +262,7 @@ int flux_function_central(double *q_left, double *q_right,
 
   
   
-  //Flux computation
+  // Flux computation
   denom = s_max-s_min;
   if (denom == 0.0) {
     for (i=0; i<3; i++) edgeflux[i] = 0.0;
@@ -270,14 +270,14 @@ int flux_function_central(double *q_left, double *q_right,
   } else {
     for (i=0; i<3; i++) {
       edgeflux[i] = s_max*flux_left[i] - s_min*flux_right[i];
-      edgeflux[i] += s_max*s_min*(q_right_copy[i]-q_left_copy[i]);
+      edgeflux[i] += s_max*s_min*(q_right_rotated[i]-q_left_rotated[i]);
       edgeflux[i] /= denom;
     }
 
-    //Maximal wavespeed
+    // Maximal wavespeed
     *max_speed = max(fabs(s_max), fabs(s_min));
 
-    //Rotate back
+    // Rotate back
     _rotate(edgeflux, n1, -n2);
   }
   
@@ -320,37 +320,37 @@ int flux_function_kinetic(double *q_left, double *q_right,
   double w_right, h_right, uh_right, vh_right, u_right, F_right;
   double s_min, s_max, soundspeed_left, soundspeed_right;
   double z;
-  double q_left_copy[3], q_right_copy[3];
+  double q_left_rotated[3], q_right_rotated[3];
 
   double h0 = H0*H0; //This ensures a good balance when h approaches H0.
 
   //Copy conserved quantities to protect from modification
   for (i=0; i<3; i++) {
-    q_left_copy[i] = q_left[i];
-    q_right_copy[i] = q_right[i];
+    q_left_rotated[i] = q_left[i];
+    q_right_rotated[i] = q_right[i];
   }
 
   //Align x- and y-momentum with x-axis
-  _rotate(q_left_copy, n1, n2);
-  _rotate(q_right_copy, n1, n2);
+  _rotate(q_left_rotated, n1, n2);
+  _rotate(q_right_rotated, n1, n2);
 
   z = (z_left+z_right)/2; //Take average of field values
 
   //Compute speeds in x-direction
-  w_left = q_left_copy[0];          
+  w_left = q_left_rotated[0];          
   h_left = w_left-z;
-  uh_left = q_left_copy[1];
+  uh_left = q_left_rotated[1];
   u_left =_compute_speed(&uh_left, &h_left, epsilon, h0);
 
-  w_right = q_right_copy[0];
+  w_right = q_right_rotated[0];
   h_right = w_right-z;
-  uh_right = q_right_copy[1];
+  uh_right = q_right_rotated[1];
   u_right =_compute_speed(&uh_right, &h_right, epsilon, h0);  
 
 
   //Momentum in y-direction
-  vh_left  = q_left_copy[2];
-  vh_right = q_right_copy[2];
+  vh_left  = q_left_rotated[2];
+  vh_right = q_right_rotated[2];
 
 
   //Maximal and minimal wave speeds
@@ -701,13 +701,15 @@ PyObject *gravity(PyObject *self, PyObject *args) {
 
 
   PyArrayObject *h, *v, *x, *xmom, *ymom;
-  int k, i, N, k3, k6;
+  int k, N, k3, k6;
   double g, avg_h, zx, zy;
   double x0, y0, x1, y1, x2, y2, z0, z1, z2;
+  //double epsilon;
 
   if (!PyArg_ParseTuple(args, "dOOOOO",
 			&g, &h, &v, &x,
 			&xmom, &ymom)) {
+    //&epsilon)) {
     PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: gravity could not parse input arguments");
     return NULL;
   }
@@ -715,16 +717,25 @@ PyObject *gravity(PyObject *self, PyObject *args) {
   N = h -> dimensions[0];
   for (k=0; k<N; k++) {
     k3 = 3*k;  // base index
+
+    // Get bathymetry
+    z0 = ((double*) v -> data)[k3 + 0];
+    z1 = ((double*) v -> data)[k3 + 1];
+    z2 = ((double*) v -> data)[k3 + 2];
+
+    // Optimise for flat bed
+    // Note (Ole): This didn't produce measurable speed up.
+    // Revisit later
+    //if (fabs(z0-z1)<epsilon && fabs(z1-z2)<epsilon) {
+    //  continue;
+    //} 
+
+    // Get average depth from centroid values
+    avg_h = ((double *) h -> data)[k];
+
+    // Compute bed slope
     k6 = 6*k;  // base index
-
-    avg_h = 0.0;
-    for (i=0; i<3; i++) {
-      avg_h += ((double *) h -> data)[k3+i];
-    }
-    avg_h /= 3;
-
-
-    //Compute bed slope
+  
     x0 = ((double*) x -> data)[k6 + 0];
     y0 = ((double*) x -> data)[k6 + 1];
     x1 = ((double*) x -> data)[k6 + 2];
@@ -733,13 +744,9 @@ PyObject *gravity(PyObject *self, PyObject *args) {
     y2 = ((double*) x -> data)[k6 + 5];
 
 
-    z0 = ((double*) v -> data)[k3 + 0];
-    z1 = ((double*) v -> data)[k3 + 1];
-    z2 = ((double*) v -> data)[k3 + 2];
-
     _gradient(x0, y0, x1, y1, x2, y2, z0, z1, z2, &zx, &zy);
 
-    //Update momentum
+    // Update momentum
     ((double*) xmom -> data)[k] += -g*zx*avg_h;
     ((double*) ymom -> data)[k] += -g*zy*avg_h;
   }
@@ -1316,7 +1323,7 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
   double normal[2], ql[3], qr[3], zl, zr;
   double edgeflux[3]; // Work array for summing up fluxes
 
-  int number_of_elements, k, i, m, n; //, j, computation_needed;
+  int number_of_elements, k, i, m, n;
 
   int ki, nm=0, ki2; // Index shorthands
   static long call=1; // Static local variable flagging already computed flux
@@ -1419,14 +1426,13 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
 	}
       }
       
-
-      
             
       // Outward pointing normal vector (domain.normals[k, 2*i:2*i+2])
       ki2 = 2*ki; //k*6 + i*2
       normal[0] = ((double *) normals -> data)[ki2];
       normal[1] = ((double *) normals -> data)[ki2+1];
       
+
       // Edge flux computation (triangle k, edge i)
       flux_function_central(ql, qr, zl, zr,
 			    normal[0], normal[1],
