@@ -20,6 +20,7 @@
 //Shared code snippets
 #include "util_ext.h"
 
+
 const double pi = 3.14159265358979;
 
 // Computational function for rotation
@@ -866,6 +867,7 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
   double dx1,dx2,dy1,dy2,dxv0,dxv1,dxv2,dyv0,dyv1,dyv2,dq0,dq1,dq2,area2;
   double dqv[3], qmin, qmax, hmin;
   double hc, h0, h1, h2;
+  double epsilon=1.0e-12; // FIXME Pass in
   double beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry, beta_tmp;
   double minimum_allowed_height;
   //provisional jumps from centroids to v'tices and safety factor re limiting
@@ -951,7 +953,9 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
     k3=k*3;
     k6=k*6;
 
-    if (((long *) number_of_boundaries->data)[k]==3){/*no neighbours, set gradient on the triangle to zero*/
+    
+    if (((long *) number_of_boundaries->data)[k]==3){
+      // No neighbours, set gradient on the triangle to zero*/
       ((double *) stage_vertex_values->data)[k3]=((double *)stage_centroid_values->data)[k];
       ((double *) stage_vertex_values->data)[k3+1]=((double *)stage_centroid_values->data)[k];
       ((double *) stage_vertex_values->data)[k3+2]=((double *)stage_centroid_values->data)[k];
@@ -963,26 +967,44 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
       ((double *) ymom_vertex_values->data)[k3+2]=((double *)ymom_centroid_values->data)[k];
       continue;
     }
-    else {//we will need centroid coordinates and vertex coordinates of the triangle
-      //get the vertex coordinates of the FV triangle
+    else {
+      // Triangle k has one or more neighbours. 
+      // Get centroid and vertex coordinates of the triangle
+      
+      // Get the vertex coordinates
       xv0=((double *)vertex_coordinates->data)[k6]; yv0=((double *)vertex_coordinates->data)[k6+1];
       xv1=((double *)vertex_coordinates->data)[k6+2]; yv1=((double *)vertex_coordinates->data)[k6+3];
       xv2=((double *)vertex_coordinates->data)[k6+4]; yv2=((double *)vertex_coordinates->data)[k6+5];
-      //get the centroid coordinates of the FV triangle
+      
+      // Get the centroid coordinates
       coord_index=2*k;
       x=((double *)centroid_coordinates->data)[coord_index];
       y=((double *)centroid_coordinates->data)[coord_index+1];
-      //store x- and y- differentials for the vertices of the FV triangle relative to the centroid
+      
+      // Store x- and y- differentials for the vertices of the FV triangle relative to the centroid
       dxv0=xv0-x; dxv1=xv1-x; dxv2=xv2-x;
       dyv0=yv0-y; dyv1=yv1-y; dyv2=yv2-y;
     }
+
+
+    
+    
+    
+            
     if (((long *)number_of_boundaries->data)[k]<=1){
-      //if no boundaries, auxiliary triangle is formed from the centroids of the three neighbours
-      //if one boundary, auxiliary triangle is formed from this centroid and its two neighbours
+    
+      //==============================================
+      // Number of boundaries <= 1
+      //==============================================    
+    
+    
+      // If no boundaries, auxiliary triangle is formed from the centroids of the three neighbours
+      // If one boundary, auxiliary triangle is formed from this centroid and its two neighbours
       k0=((long *)surrogate_neighbours->data)[k3];
       k1=((long *)surrogate_neighbours->data)[k3+1];
       k2=((long *)surrogate_neighbours->data)[k3+2];
-      //get the auxiliary triangle's vertex coordinates (really the centroids of neighbouring triangles)
+      
+      // Get the auxiliary triangle's vertex coordinates (really the centroids of neighbouring triangles)
       coord_index=2*k0;
       x0=((double *)centroid_coordinates->data)[coord_index];
       y0=((double *)centroid_coordinates->data)[coord_index+1];
@@ -992,43 +1014,62 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
       coord_index=2*k2;
       x2=((double *)centroid_coordinates->data)[coord_index];
       y2=((double *)centroid_coordinates->data)[coord_index+1];
-      //store x- and y- differentials for the vertices of the auxiliary triangle
+      
+      // Store x- and y- differentials for the vertices of the auxiliary triangle
       dx1=x1-x0; dx2=x2-x0;
       dy1=y1-y0; dy2=y2-y0;
-      //calculate 2*area of the auxiliary triangle
+      
+      // Calculate 2*area of the auxiliary triangle
       area2 = dy2*dx1 - dy1*dx2;//the triangle is guaranteed to be counter-clockwise
-      //If the mesh is 'weird' near the boundary, the trianlge might be flat or clockwise:
+      
+      // If the mesh is 'weird' near the boundary, the triangle might be flat or clockwise:
       if (area2<=0) {
 	PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: negative triangle area encountered");
 	return NULL;
       }  
       
-
-      //### Calculate heights of neighbouring cells
+      // Calculate heights of neighbouring cells
       hc = ((double *)stage_centroid_values->data)[k]  - ((double *)elevation_centroid_values->data)[k];
       h0 = ((double *)stage_centroid_values->data)[k0] - ((double *)elevation_centroid_values->data)[k0];
       h1 = ((double *)stage_centroid_values->data)[k1] - ((double *)elevation_centroid_values->data)[k1];
       h2 = ((double *)stage_centroid_values->data)[k2] - ((double *)elevation_centroid_values->data)[k2];
       hmin = min(hc,min(h0,min(h1,h2)));
       
-      //### stage ###
-      //calculate the difference between vertex 0 of the auxiliary triangle and the FV triangle centroid
+      
+      // Dry cell optimisation experiment
+      //printf("hmin = %e\n", hmin);      
+      //if (hmin < epsilon) {
+        //printf("Dry\n");
+	//continue;
+      //}
+
+            
+      //-----------------------------------
+      // stage
+      //-----------------------------------      
+      
+      // Calculate the difference between vertex 0 of the auxiliary triangle and the FV triangle centroid
       dq0=((double *)stage_centroid_values->data)[k0]-((double *)stage_centroid_values->data)[k];
-      //calculate differentials between the vertices of the auxiliary triangle
+      
+      // Calculate differentials between the vertices of the auxiliary triangle
       dq1=((double *)stage_centroid_values->data)[k1]-((double *)stage_centroid_values->data)[k0];
       dq2=((double *)stage_centroid_values->data)[k2]-((double *)stage_centroid_values->data)[k0];
-      //calculate the gradient of stage on the auxiliary triangle
+      
+      // Calculate the gradient of stage on the auxiliary triangle
       a = dy2*dq1 - dy1*dq2;
       a /= area2;
       b = dx1*dq2 - dx2*dq1;
       b /= area2;
-      //calculate provisional jumps in stage from the centroid of the FV tri to its vertices, to be limited
+      
+      // Calculate provisional jumps in stage from the centroid of the FV tri to its vertices, to be limited
       dqv[0]=a*dxv0+b*dyv0;
       dqv[1]=a*dxv1+b*dyv1;
       dqv[2]=a*dxv2+b*dyv2;
-      //now we want to find min and max of the centroid and the vertices of the auxiliary triangle
-      //and compute jumps from the centroid to the min and max
+      
+      // Now we want to find min and max of the centroid and the vertices of the auxiliary triangle
+      // and compute jumps from the centroid to the min and max
       find_qmin_and_qmax(dq0,dq1,dq2,&qmin,&qmax);
+      
       // Playing with dry wet interface
       hmin = qmin;
       beta_tmp = beta_w;
@@ -1038,23 +1079,31 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
       for (i=0;i<3;i++)
 	((double *)stage_vertex_values->data)[k3+i]=((double *)stage_centroid_values->data)[k]+dqv[i];
       
-      //### xmom ###
-      //calculate the difference between vertex 0 of the auxiliary triangle and the FV triangle centroid
+      
+      //-----------------------------------
+      // xmomentum
+      //-----------------------------------            
+
+      // Calculate the difference between vertex 0 of the auxiliary triangle and the FV triangle centroid
       dq0=((double *)xmom_centroid_values->data)[k0]-((double *)xmom_centroid_values->data)[k];
-      //calculate differentials between the vertices of the auxiliary triangle
+      
+      // Calculate differentials between the vertices of the auxiliary triangle
       dq1=((double *)xmom_centroid_values->data)[k1]-((double *)xmom_centroid_values->data)[k0];
       dq2=((double *)xmom_centroid_values->data)[k2]-((double *)xmom_centroid_values->data)[k0];
-      //calculate the gradient of xmom on the auxiliary triangle
+      
+      // Calculate the gradient of xmom on the auxiliary triangle
       a = dy2*dq1 - dy1*dq2;
       a /= area2;
       b = dx1*dq2 - dx2*dq1;
       b /= area2;
-      //calculate provisional jumps in stage from the centroid of the FV tri to its vertices, to be limited
+      
+      // Calculate provisional jumps in stage from the centroid of the FV tri to its vertices, to be limited
       dqv[0]=a*dxv0+b*dyv0;
       dqv[1]=a*dxv1+b*dyv1;
       dqv[2]=a*dxv2+b*dyv2;
-      //now we want to find min and max of the centroid and the vertices of the auxiliary triangle
-      //and compute jumps from the centroid to the min and max
+      
+      // Now we want to find min and max of the centroid and the vertices of the auxiliary triangle
+      // and compute jumps from the centroid to the min and max
       find_qmin_and_qmax(dq0,dq1,dq2,&qmin,&qmax);
       beta_tmp = beta_uh;
       if (hmin<minimum_allowed_height)
@@ -1063,23 +1112,31 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
       for (i=0;i<3;i++)
 	((double *)xmom_vertex_values->data)[k3+i]=((double *)xmom_centroid_values->data)[k]+dqv[i];
       
-      //### ymom ###
-      //calculate the difference between vertex 0 of the auxiliary triangle and the FV triangle centroid
+      
+      //-----------------------------------
+      // ymomentum
+      //-----------------------------------                  
+
+      // Calculate the difference between vertex 0 of the auxiliary triangle and the FV triangle centroid
       dq0=((double *)ymom_centroid_values->data)[k0]-((double *)ymom_centroid_values->data)[k];
-      //calculate differentials between the vertices of the auxiliary triangle
+      
+      // Calculate differentials between the vertices of the auxiliary triangle
       dq1=((double *)ymom_centroid_values->data)[k1]-((double *)ymom_centroid_values->data)[k0];
       dq2=((double *)ymom_centroid_values->data)[k2]-((double *)ymom_centroid_values->data)[k0];
-      //calculate the gradient of xmom on the auxiliary triangle
+      
+      // Calculate the gradient of xmom on the auxiliary triangle
       a = dy2*dq1 - dy1*dq2;
       a /= area2;
       b = dx1*dq2 - dx2*dq1;
       b /= area2;
-      //calculate provisional jumps in stage from the centroid of the FV tri to its vertices, to be limited
+      
+      // Calculate provisional jumps in stage from the centroid of the FV tri to its vertices, to be limited
       dqv[0]=a*dxv0+b*dyv0;
       dqv[1]=a*dxv1+b*dyv1;
       dqv[2]=a*dxv2+b*dyv2;
-      //now we want to find min and max of the centroid and the vertices of the auxiliary triangle
-      //and compute jumps from the centroid to the min and max
+      
+      // Now we want to find min and max of the centroid and the vertices of the auxiliary triangle
+      // and compute jumps from the centroid to the min and max
       find_qmin_and_qmax(dq0,dq1,dq2,&qmin,&qmax);
       beta_tmp = beta_vh;
       if (hmin<minimum_allowed_height)
@@ -1087,10 +1144,16 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
       limit_gradient(dqv,qmin,qmax,beta_tmp);//the gradient will be limited
       for (i=0;i<3;i++)
 	((double *)ymom_vertex_values->data)[k3+i]=((double *)ymom_centroid_values->data)[k]+dqv[i];
-    }//if (number_of_boundaries[k]<=1)
-    else{//number_of_boundaries==2
-      //one internal neighbour and gradient is in direction of the neighbour's centroid
-      //find the only internal neighbour
+    } // End number_of_boundaries <=1 
+    else{
+
+      //==============================================
+      // Number of boundaries == 2
+      //==============================================        
+        
+      // One internal neighbour and gradient is in direction of the neighbour's centroid
+      
+      // Find the only internal neighbour
       for (k2=k3;k2<k3+3;k2++){//k2 just indexes the edges of triangle k
 	if (((long *)surrogate_neighbours->data)[k2]!=k)//find internal neighbour of triabngle k
 	  break;
@@ -1101,31 +1164,43 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
       }
       
       k1=((long *)surrogate_neighbours->data)[k2];
-      //the coordinates of the triangle are already (x,y). Get centroid of the neighbour (x1,y1)
+      
+      // The coordinates of the triangle are already (x,y). Get centroid of the neighbour (x1,y1)
       coord_index=2*k1;
       x1=((double *)centroid_coordinates->data)[coord_index];
       y1=((double *)centroid_coordinates->data)[coord_index+1];
-      //compute x- and y- distances between the centroid of the FV triangle and that of its neighbour
+      
+      // Compute x- and y- distances between the centroid of the FV triangle and that of its neighbour
       dx1=x1-x; dy1=y1-y;
-      //set area2 as the square of the distance
+      
+      // Set area2 as the square of the distance
       area2=dx1*dx1+dy1*dy1;
-      //set dx2=(x1-x0)/((x1-x0)^2+(y1-y0)^2) and dy2=(y1-y0)/((x1-x0)^2+(y1-y0)^2) which
-      //respectively correspond to the x- and y- gradients of the conserved quantities
+      
+      // Set dx2=(x1-x0)/((x1-x0)^2+(y1-y0)^2) and dy2=(y1-y0)/((x1-x0)^2+(y1-y0)^2) which
+      // respectively correspond to the x- and y- gradients of the conserved quantities
       dx2=1.0/area2;
       dy2=dx2*dy1;
       dx2*=dx1;
       
-      //## stage ###
-      //compute differentials
+      
+      
+      //-----------------------------------
+      // stage
+      //-----------------------------------            
+
+      // Compute differentials
       dq1=((double *)stage_centroid_values->data)[k1]-((double *)stage_centroid_values->data)[k];
-      //calculate the gradient between the centroid of the FV triangle and that of its neighbour
+      
+      // Calculate the gradient between the centroid of the FV triangle and that of its neighbour
       a=dq1*dx2;
       b=dq1*dy2;
-      //calculate provisional vertex jumps, to be limited
+      
+      // Calculate provisional vertex jumps, to be limited
       dqv[0]=a*dxv0+b*dyv0;
       dqv[1]=a*dxv1+b*dyv1;
       dqv[2]=a*dxv2+b*dyv2;
-      //now limit the jumps
+      
+      // Now limit the jumps
       if (dq1>=0.0){
 	qmin=0.0;
 	qmax=dq1;
@@ -1140,17 +1215,23 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
       for (i=0;i<3;i++)
 	((double *)stage_vertex_values->data)[k3+i]=((double *)stage_centroid_values->data)[k]+dqv[i];
       
-      //## xmom ###
-      //compute differentials
+      //-----------------------------------
+      // xmomentum
+      //-----------------------------------                        
+      
+      // Compute differentials
       dq1=((double *)xmom_centroid_values->data)[k1]-((double *)xmom_centroid_values->data)[k];
-      //calculate the gradient between the centroid of the FV triangle and that of its neighbour
+      
+      // Calculate the gradient between the centroid of the FV triangle and that of its neighbour
       a=dq1*dx2;
       b=dq1*dy2;
-      //calculate provisional vertex jumps, to be limited
+      
+      // Calculate provisional vertex jumps, to be limited
       dqv[0]=a*dxv0+b*dyv0;
       dqv[1]=a*dxv1+b*dyv1;
       dqv[2]=a*dxv2+b*dyv2;
-      //now limit the jumps
+      
+      // Now limit the jumps
       if (dq1>=0.0){
 	qmin=0.0;
 	qmax=dq1;
@@ -1163,17 +1244,23 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
       for (i=0;i<3;i++)
 	((double *)xmom_vertex_values->data)[k3+i]=((double *)xmom_centroid_values->data)[k]+dqv[i];
       
-      //## ymom ###
-      //compute differentials
+      //-----------------------------------
+      // ymomentum
+      //-----------------------------------                        
+
+      // Compute differentials
       dq1=((double *)ymom_centroid_values->data)[k1]-((double *)ymom_centroid_values->data)[k];
-      //calculate the gradient between the centroid of the FV triangle and that of its neighbour
+      
+      // Calculate the gradient between the centroid of the FV triangle and that of its neighbour
       a=dq1*dx2;
       b=dq1*dy2;
-      //calculate provisional vertex jumps, to be limited
+      
+      // Calculate provisional vertex jumps, to be limited
       dqv[0]=a*dxv0+b*dyv0;
       dqv[1]=a*dxv1+b*dyv1;
       dqv[2]=a*dxv2+b*dyv2;
-      //now limit the jumps
+      
+      // Now limit the jumps
       if (dq1>=0.0){
 	qmin=0.0;
 	qmax=dq1;
@@ -1185,8 +1272,9 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
       limit_gradient(dqv,qmin,qmax,beta_w);//the gradient will be limited
       for (i=0;i<3;i++)
 	((double *)ymom_vertex_values->data)[k3+i]=((double *)ymom_centroid_values->data)[k]+dqv[i];
-    }//else [number_of_boudaries==2]
+    }//else [number_of_boundaries==2]
   }//for k=0 to number_of_elements-1
+  
   return Py_BuildValue("");
 }//extrapolate_second-order_sw
 
