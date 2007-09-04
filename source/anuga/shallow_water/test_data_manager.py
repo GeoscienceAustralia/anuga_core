@@ -58,8 +58,6 @@ class Test_Data_Manager(unittest.TestCase):
 
         ######################
         #Initial condition - with jumps
-
-
         bed = domain.quantities['elevation'].vertex_values
         stage = zeros(bed.shape, Float)
 
@@ -232,31 +230,74 @@ class Test_Data_Manager(unittest.TestCase):
         self.domain.set_name('datatest' + str(id(self)))
         self.domain.format = 'sww'
         self.domain.smooth = True
+        sww = get_dataobject(self.domain)        
 
-        sww = get_dataobject(self.domain)
-        sww.store_connectivity()
         for t in self.domain.evolve(yieldstep = 1, finaltime = 1):
             pass
             
-        #Get NetCDF
-        fid = NetCDFFile(sww.filename, 'r')  #Open existing file for append
+        # Get NetCDF
+        fid = NetCDFFile(sww.filename, 'r') # Open existing file for append
 
-        from anuga.shallow_water.shallow_water_domain import Domain 
-        sww_quantities = Domain.conserved_quantities
         # Get the variables
         range = fid.variables['stage_range'][:]
         assert allclose(range,[-0.93519, 0.15]) or\
                allclose(range,[-0.9352743, 0.15]) # Old slope limiters
+        
         range = fid.variables['xmomentum_range'][:]
-        
-        #assert allclose(range,[0,0.46950444])
         assert allclose(range,[0,0.4695096]) or\
-               allclose(range,[0,0.47790655]) # Old slope limiters             
-        range = fid.variables['ymomentum_range'][:]
+               allclose(range,[0,0.47790655]) # Old slope limiters
         
+        range = fid.variables['ymomentum_range'][:]
         #assert allclose(range,[0,0.02174380])
         assert allclose(range,[0,0.02174439]) or\
-               allclose(range,[0,0.02283983]) # Old slope limiters                     
+               allclose(range,[0,0.02283983]) # Old slope limiters 
+        
+        fid.close()
+        os.remove(sww.filename)
+
+    def NOtest_sww_extrema(self):
+        """Test that extrema of quantities can be retrieved at every vertex
+        Extrema are updated at every *internal* timestep
+        """
+
+        domain = self.domain
+        
+        domain.set_name('datatest' + str(id(self)))
+        domain.format = 'sww'
+        domain.smooth = True
+
+        assert domain.quantities_to_be_monitored is None
+        assert domain.monitor_polygon is None
+        assert domain.monitor_time_interval is None        
+        
+        domain.set_quantities_to_be_monitored(['stage', 'ymomentum'])
+        
+        assert len(domain.quantities_to_be_monitored) == 2
+        assert domain.quantities_to_be_monitored[0] == 'stage'
+        assert domain.quantities_to_be_monitored[1] == 'ymomentum'        
+        assert domain.monitor_polygon is None
+        assert domain.monitor_time_interval is None        
+        
+        sww = get_dataobject(domain)
+
+        for t in domain.evolve(yieldstep = 1, finaltime = 1):
+            print domain.timestepping_statistics()
+            print domain.quantity_statistics()
+
+            
+        # Get NetCDF
+        fid = NetCDFFile(sww.filename, 'r') # Open existing file for append
+
+        # Get the variables
+        extrema = fid.variables['stage_extrema'][:]
+        assert allclose(range, [])
+
+        extrema = fid.variables['xmomentum_extrema'][:]
+        assert allclose(range,[])
+        
+        extrema = fid.variables['ymomentum_extrema'][:]
+        assert allclose(range,[])
+
         
         fid.close()
         #print "sww.filename", sww.filename

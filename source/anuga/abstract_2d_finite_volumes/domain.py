@@ -169,7 +169,7 @@ class Domain(Mesh):
         assert allclose(self.tri_full_flag[:self.number_of_full_nodes],1)
                         
 
-        #Defaults
+        # Defaults
         from anuga.config import max_smallsteps, beta_w, beta_h, epsilon
         from anuga.config import CFL
         from anuga.config import protect_against_isolated_degenerate_timesteps
@@ -179,8 +179,8 @@ class Domain(Mesh):
         self.protect_against_isolated_degenerate_timesteps = protect_against_isolated_degenerate_timesteps
         
 
-        #FIXME: Maybe have separate orders for h-limiter and w-limiter?
-        #Or maybe get rid of order altogether and use beta_w and beta_h
+        # FIXME: Maybe have separate orders for h-limiter and w-limiter?
+        # Or maybe get rid of order altogether and use beta_w and beta_h
         self.set_default_order(1)
         #self.default_order = 1
         #self._order_ = self.default_order
@@ -194,28 +194,26 @@ class Domain(Mesh):
         self.boundary_map = None  # Will be populated by set_boundary        
         
 
-        #Model time
+        # Model time
         self.time = 0.0
         self.finaltime = None
         self.min_timestep = self.max_timestep = 0.0
         self.starttime = 0 #Physical starttime if any (0 is 1 Jan 1970 00:00:00)
 
-        ######OBSOLETE
-        #Origin in UTM coordinates
-        #FIXME: This should be set if read by a msh file
-        #self.zone = zone
-        #self.xllcorner = xllcorner
-        #self.yllcorner = yllcorner
+        # Monitoring
+        self.quantities_to_be_monitored = None
+        self.monitor_polygon = None
+        self.monitor_time_interval = None                
 
 
-        #Checkpointing and storage
+        # Checkpointing and storage
         from anuga.config import default_datadir
         self.datadir = default_datadir
         self.simulation_name = 'domain'
         self.checkpoint = False
 
-        #MH310505 To avoid calculating the flux across each edge twice, keep an integer (boolean) array,
-        #to be used during the flux calculation
+        # MH310505 To avoid calculating the flux across each edge twice, keep an integer (boolean) array,
+        # to be used during the flux calculation
         N = len(self) #number_of_triangles
         self.already_computed_flux = zeros((N, 3), Int)
 
@@ -300,6 +298,9 @@ class Domain(Mesh):
         internal ordering.
 
         """
+        
+        # FIXME: Could we name this a bit more intuitively
+        # E.g. set_quantities_from_dictionary
         for key in quantity_dict.keys():
             self.set_quantity(key, quantity_dict[key], location='vertices')
 
@@ -543,6 +544,65 @@ class Domain(Mesh):
                 function(tag, self.tagged_elements[tag], self)
 
 
+
+
+    def set_quantities_to_be_monitored(self, q,
+                                       polygon=None,
+                                       time_interval=None):
+        """Specify which quantities will be monitored for extrema.
+
+        q must be either:
+          - the name of a quantity
+          - a list of quantity names
+          - None
+
+        In the two first cases, the named quantities will be monitored at
+        each internal timestep
+        
+        If q is None, monitoring will be switched off altogether.
+
+        polygon (if specified) will restrict monitoring to triangles inside polygon.
+        If omitted all triangles will be included.
+
+        time_interval (if specified) will restrict monitoring to time steps in
+        that interval. If omitted all timesteps will be included.
+
+        FIXME: Derived quantities such as 'stage-elevation' will appear later
+        """
+
+        # FIXME (Ole): This is under construction. See ticket:192
+
+        if q is None:
+            self.quantities_to_be_monitored = None
+            self.monitor_polygon = None
+            self.monitor_time_interval = None                    
+            return
+
+        if isinstance(q, basestring):
+            q = [q] # Turn argument into a list
+
+        # Check correcness
+        for quantity_name in q:
+            msg = 'Quantity %s is not a valid conserved quantity'\
+                  %quantity_name
+            
+            assert quantity_name in self.conserved_quantities, msg
+
+        if polygon is not None:
+            # FIXME Check input
+            pass
+
+        if time_interval is not None:
+            # FIXME Check input
+            pass        
+
+
+        self.quantities_to_be_monitored = q
+        self.monitor_polygon = polygon
+        self.monitor_time_interval = time_interval        
+        
+
+
     #MISC
     def check_integrity(self):
         Mesh.check_integrity(self)
@@ -741,6 +801,21 @@ class Domain(Mesh):
 
 
         return msg
+
+
+
+    def quantity_statistics(self):
+        """Return string with statistics about quantities for printing or logging
+
+        Quantities reported are specified through method
+
+           set_quantities_to_be_monitored
+           
+        """
+
+        pass
+
+
 
 
     def get_name(self):

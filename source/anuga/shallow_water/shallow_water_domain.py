@@ -172,12 +172,13 @@ class Domain(Generic_Domain):
         self.forcing_terms.append(manning_friction)
         self.forcing_terms.append(gravity)
 
-        #Stored output
+        # Stored output
         self.store = True
         self.format = 'sww'
         self.set_store_vertices_uniquely(False)
         self.minimum_storable_height = minimum_storable_height
         self.quantities_to_be_stored = ['stage','xmomentum','ymomentum']
+        
                 
 
     def set_all_limiters(self, beta):
@@ -233,9 +234,10 @@ class Domain(Generic_Domain):
         """
 
         #FIXME (Ole): rename H0 to minimum_allowed_height_in_flux_computation
-        #rename tight_slope_limiters to tight_slope_limiters.
-        #Maybe use histogram to identify isolated extreme speeds and deal with them adaptively
-        #similarly to how we used to use 1 order steps to recover.
+
+        #FIXME (Ole): Maybe use histogram to identify isolated extreme speeds
+        #and deal with them adaptively similarly to how we used to use 1 order
+        #steps to recover.
         self.minimum_allowed_height = minimum_allowed_height
         self.H0 = minimum_allowed_height   
         
@@ -261,6 +263,7 @@ class Domain(Generic_Domain):
         """
         self.points_file_block_line_size = points_file_block_line_size
         
+        
     def set_quantities_to_be_stored(self, q):
         """Specify which quantities will be stored in the sww file.
 
@@ -285,7 +288,7 @@ class Domain(Generic_Domain):
         if isinstance(q, basestring):
             q = [q] # Turn argument into a list
 
-        #Check correcness
+        # Check correcness
         for quantity_name in q:
             msg = 'Quantity %s is not a valid conserved quantity'\
                   %quantity_name
@@ -929,7 +932,7 @@ def distribute_to_vertices_and_edges(domain):
     if optimised_gradient_limiter:
         #MH090605 if second order,
         #perform the extrapolation and limiting on
-        #all of the conserved quantitie
+        #all of the conserved quantities
 
         if (domain._order_ == 1):
             for name in domain.conserved_quantities:
@@ -943,9 +946,22 @@ def distribute_to_vertices_and_edges(domain):
         #old code:
         for name in domain.conserved_quantities:
             Q = domain.quantities[name]
+
             if domain._order_ == 1:
                 Q.extrapolate_first_order()
             elif domain._order_ == 2:
+
+                # Experiment
+                #if name == 'stage':
+                #    #print name, 'second'
+                #    Q.extrapolate_second_order()
+                #    Q.limit()
+                #else:
+                #    #print name, 'first'                
+                #    Q.extrapolate_first_order()
+                #    #Q.extrapolate_second_order()
+                #    #Q.limit()                
+                
                 Q.extrapolate_second_order()
                 Q.limit()
             else:
