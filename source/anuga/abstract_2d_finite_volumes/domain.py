@@ -572,6 +572,9 @@ class Domain(Mesh):
 
         # FIXME (Ole): This is under construction. See ticket:192
 
+        from anuga.abstract_2d_finite_volumes.util import\
+             apply_expression_to_dictionary        
+
         if q is None:
             self.quantities_to_be_monitored = None
             self.monitor_polygon = None
@@ -581,12 +584,20 @@ class Domain(Mesh):
         if isinstance(q, basestring):
             q = [q] # Turn argument into a list
 
-        # Check correcness
+        # Check correcness and initialise
+        self.quantities_to_be_monitored = {}
         for quantity_name in q:
             msg = 'Quantity %s is not a valid conserved quantity'\
                   %quantity_name
             
-            assert quantity_name in self.conserved_quantities, msg
+
+            if not quantity_name in self.quantities:
+                # See if this expression is valid
+                apply_expression_to_dictionary(quantity_name, self.quantities)
+
+            # Initialise extrema
+            self.quantities_to_be_monitored[quantity_name] = [None, None]
+            
 
         if polygon is not None:
             # FIXME Check input
@@ -597,7 +608,7 @@ class Domain(Mesh):
             pass        
 
 
-        self.quantities_to_be_monitored = q
+        
         self.monitor_polygon = polygon
         self.monitor_time_interval = time_interval        
         
@@ -693,17 +704,17 @@ class Domain(Mesh):
             k = argmax(self.max_speed)
 
             x, y = self.get_centroid_coordinates()[k]
-	    radius = self.get_radii()[k]
-	    area = self.get_areas()[k]	    
-            max_speed = self.max_speed[k]	    
+            radius = self.get_radii()[k]
+            area = self.get_areas()[k]      
+            max_speed = self.max_speed[k]           
 
             msg += '  Triangle #%d with centroid (%.4f, %.4f), ' %(k, x, y)
-	    msg += 'area = %.4f and radius = %.4f ' %(area, radius)
+            msg += 'area = %.4f and radius = %.4f ' %(area, radius)
             msg += 'had the largest computed speed: %.6f m/s ' %(max_speed)
-	    if max_speed > 0.0:
+            if max_speed > 0.0:
                 msg += '(timestep=%.6f)\n' %(radius/max_speed)
             else:
-                msg += '(timestep=%.6f)\n' %(0)	    
+                msg += '(timestep=%.6f)\n' %(0)     
             
             # Report all quantity values at vertices
             msg += '    Quantity \t vertex values\t\t\t\t\t centroid values\n'
@@ -1014,18 +1025,18 @@ class Domain(Mesh):
     def update_boundary(self):
         """Go through list of boundary objects and update boundary values
         for all conserved quantities on boundary.
-	It is assumed that the ordering of conserved quantities is 
-	consistent between the domain and the boundary object, i.e. 
-	the jth element of vector q must correspond to the jth conserved
-	quantity in domain.
+        It is assumed that the ordering of conserved quantities is 
+        consistent between the domain and the boundary object, i.e. 
+        the jth element of vector q must correspond to the jth conserved
+        quantity in domain.
         """
 
         #FIXME: Update only those that change (if that can be worked out)
         #FIXME: Boundary objects should not include ghost nodes.
         for i, ((vol_id, edge_id), B) in enumerate(self.boundary_objects):
-	    if B is None:
-	        print 'WARNING: Ignored boundary segment %d (None)'
-	    else:
+            if B is None:
+                print 'WARNING: Ignored boundary segment %d (None)'
+            else:
                 q = B.evaluate(vol_id, edge_id)
 
                 for j, name in enumerate(self.conserved_quantities):

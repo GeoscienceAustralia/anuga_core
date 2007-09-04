@@ -191,7 +191,53 @@ class Test_Domain(unittest.TestCase):
 
 
 
+    def test_set_quanitities_to_be_monitored(self):
+        """test_set_quanitities_to_be_monitored
+        """
 
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0,0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0,0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe, daf, dae
+        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+
+        domain = Domain(points, vertices, boundary=None,
+                        conserved_quantities =\
+                        ['stage', 'xmomentum', 'ymomentum'],
+                        other_quantities = ['elevation', 'friction', 'depth'])
+
+
+        assert domain.quantities_to_be_monitored is None
+        domain.set_quantities_to_be_monitored(['stage', 'stage-elevation'])
+        assert len(domain.quantities_to_be_monitored) == 2
+        assert domain.quantities_to_be_monitored.has_key('stage')
+        assert domain.quantities_to_be_monitored.has_key('stage-elevation')
+        assert domain.quantities_to_be_monitored['stage'][0] == None
+        assert domain.quantities_to_be_monitored['stage'][1] == None                
+        
+
+        # Check that invalid request are dealt with
+        try:
+            domain.set_quantities_to_be_monitored(['yyyyy'])        
+        except:
+            pass
+        else:
+            msg = 'Should have caught illegal quantity'
+            raise Exception, msg
+
+        try:
+            domain.set_quantities_to_be_monitored(['stage-xx'])        
+        except NameError:
+            pass
+        else:
+            msg = 'Should have caught illegal quantity'
+            raise Exception, msg        
 
     def test_set_quantity_from_expression(self):
         """Quantity set using arbitrary expression
