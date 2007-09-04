@@ -261,6 +261,8 @@ class Test_Data_Manager(unittest.TestCase):
         fid.close()
         #print "sww.filename", sww.filename
         os.remove(sww.filename)
+
+        
         
     def test_sww_constant_smooth(self):
         """Test that constant sww information can be written correctly

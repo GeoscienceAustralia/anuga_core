@@ -148,3 +148,5 @@ points_file_block_line_size = 500 # Number of lines read in from a points file
 
 umask = 002  # used to set file and directory permission created by anuga
 
+max_float = 1.0e36 # Largest number. Used to initialise (max, min) ranges.
+    

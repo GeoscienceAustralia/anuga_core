@@ -86,6 +86,7 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference, \
 from anuga.geospatial_data.geospatial_data import Geospatial_data,\
      ensure_absolute
 from anuga.config import minimum_storable_height as default_minimum_storable_height
+from anuga.config import max_float
 from anuga.utilities.numerical_tools import ensure_numeric,  mean
 from anuga.caching.caching import myhash
 from anuga.utilities.anuga_exceptions import ANUGAError
@@ -4779,6 +4780,7 @@ class Write_sww:
     from anuga.shallow_water.shallow_water_domain import Domain 
     sww_quantities = Domain.conserved_quantities
     RANGE = '_range'
+
     def __init__(self):
         pass
     
@@ -4797,7 +4799,7 @@ class Write_sww:
         outfile.institution = 'Geoscience Australia'
         outfile.description = description
 
-        #For sww compatibility
+        # For sww compatibility
         if smoothing is True:
             # Smoothing to be depreciated
             outfile.smoothing = 'Yes'
@@ -4812,13 +4814,16 @@ class Write_sww:
             revision_number = get_revision_number()
         except:
             revision_number = None
-        # writing a string so None can be written    
-        outfile.revision_number = str(revision_number)
-        #times - A list or array of the time slice times OR a start time
-        #times = ensure_numeric(times) 
-        #Start time in seconds since the epoch (midnight 1/1/1970)
+        # Allow None to be stored as a string                
+        outfile.revision_number = str(revision_number) 
 
-        # this is being used to seperate one number from a list.
+
+        
+        # times - A list or array of the time slice times OR a start time
+        # times = ensure_numeric(times) 
+        # Start time in seconds since the epoch (midnight 1/1/1970)
+
+        # This is being used to seperate one number from a list.
         # what it is actually doing is sorting lists from numeric arrays.
         if type(times) is list or type(times) is ArrayType:  
             number_of_times = len(times)
@@ -4856,10 +4861,11 @@ class Write_sww:
         q = 'elevation'
         outfile.createVariable(q+Write_sww.RANGE, precision,
                                ('numbers_in_range',))
-        # The values are initally filled with large (10e+36) numbers.
-        # I'm relying on this feature.  Maybe I shouldn't?
-        outfile.variables[q+Write_sww.RANGE][1] = \
-                          -1*outfile.variables[q+Write_sww.RANGE][1]
+
+        # Initialise ranges with small and large sentinels.
+        # If this was in pure Python we could have used None sensibly
+        outfile.variables[q+Write_sww.RANGE][0] = max_float  # Min               
+        outfile.variables[q+Write_sww.RANGE][1] = -max_float # Max
 
         #FIXME: Backwards compatibility
         outfile.createVariable('z', precision, ('number_of_points',))
@@ -4877,10 +4883,11 @@ class Write_sww:
                                     'number_of_points'))  
             outfile.createVariable(q+Write_sww.RANGE, precision,
                                    ('numbers_in_range',))
-            # Initialising the max value to a very small number.
-            # It assumes that netcdf initialises it to a very large number
-            outfile.variables[q+Write_sww.RANGE][1] = \
-                -outfile.variables[q+Write_sww.RANGE][1]
+
+            # Initialise ranges with small and large sentinels.
+            # If this was in pure Python we could have used None sensibly
+            outfile.variables[q+Write_sww.RANGE][0] = max_float  # Min               
+            outfile.variables[q+Write_sww.RANGE][1] = -max_float # Max
             
         if type(times) is list or type(times) is ArrayType:  
             outfile.variables['time'][:] = times    #Store time relative
@@ -5037,11 +5044,11 @@ class Write_sww:
         print '------------------------------------------------'
         print 'More Statistics:'
         for q in Write_sww.sww_quantities:
-            print '  %s in [%f, %f]' %(q
-                                       ,outfile.variables[q+Write_sww.RANGE][0]
-                                       ,outfile.variables[q+Write_sww.RANGE][1]
-                                       )
+            print '  %s in [%f, %f]' %(q,
+                                       outfile.variables[q+Write_sww.RANGE][0],
+                                       outfile.variables[q+Write_sww.RANGE][1])
         print '------------------------------------------------'
+
         
 def obsolete_write_sww_time_slices(outfile, has, uas, vas, elevation,
                          mean_stage=0, zscale=1,
