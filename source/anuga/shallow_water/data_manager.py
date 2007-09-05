@@ -350,33 +350,32 @@ class Data_format_sww(Data_format):
                 if poly is not None:
                     N = len(poly)
                     fid.createDimension('polygon_length', N)
-                    fid.createVariable('extrema:polygon',
+                    fid.createVariable('extrema.polygon',
                                        self.precision,
                                        ('polygon_length',
                                         'two'))
-                    fid.variables['extrema:polygon'][:] = poly                                    
+                    fid.variables['extrema.polygon'][:] = poly                                    
+
                     
                 interval = domain.monitor_time_interval
                 if interval is not None:
-                    fid.createVariable('extrema:time_interval',
+                    fid.createVariable('extrema.time_interval',
                                        self.precision,
                                        ('two',))
-                    fid.variables['extrema:time_interval'][:] = interval
-                    
-                
+                    fid.variables['extrema.time_interval'][:] = interval
 
                 
                 for q in domain.quantities_to_be_monitored:
                     #print 'doing', q
-                    fid.createVariable(q+':extrema', self.precision,
+                    fid.createVariable(q+'.extrema', self.precision,
                                        ('numbers_in_range',))
-                    fid.createVariable(q+':min_location', self.precision,
+                    fid.createVariable(q+'.min_location', self.precision,
                                        ('numbers_in_range',))
-                    fid.createVariable(q+':max_location', self.precision,
+                    fid.createVariable(q+'.max_location', self.precision,
                                        ('numbers_in_range',))
-                    fid.createVariable(q+':min_time', self.precision,
+                    fid.createVariable(q+'.min_time', self.precision,
                                        ('singleton',))
-                    fid.createVariable(q+':max_time', self.precision,
+                    fid.createVariable(q+'.max_time', self.precision,
                                        ('singleton',))
 
                     
@@ -581,16 +580,16 @@ class Data_format_sww(Data_format):
                 for q, info in domain.quantities_to_be_monitored.items():
 
                     if info['min'] is not None:
-                        fid.variables[q + ':extrema'][0] = info['min']
-                        fid.variables[q + ':min_location'][:] =\
+                        fid.variables[q + '.extrema'][0] = info['min']
+                        fid.variables[q + '.min_location'][:] =\
                                         info['min_location']
-                        fid.variables[q + ':min_time'][0] = info['min_time']
+                        fid.variables[q + '.min_time'][0] = info['min_time']
                         
                     if info['max'] is not None:
-                        fid.variables[q + ':extrema'][1] = info['max']
-                        fid.variables[q + ':max_location'][:] =\
+                        fid.variables[q + '.extrema'][1] = info['max']
+                        fid.variables[q + '.max_location'][:] =\
                                         info['max_location']
-                        fid.variables[q + ':max_time'][0] = info['max_time']
+                        fid.variables[q + '.max_time'][0] = info['max_time']
 
             
 

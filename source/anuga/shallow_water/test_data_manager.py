@@ -303,28 +303,28 @@ class Test_Data_Manager(unittest.TestCase):
         fid = NetCDFFile(sww.filename, 'r') # Open existing file for append
 
         # Get the variables
-        extrema = fid.variables['stage-elevation:extrema'][:]
+        extrema = fid.variables['stage-elevation.extrema'][:]
         assert allclose(extrema, [0.00, 0.30])
 
-        loc = fid.variables['stage-elevation:min_location'][:]
+        loc = fid.variables['stage-elevation.min_location'][:]
         assert allclose(loc, [0.16666667, 0.33333333])
 
-        loc = fid.variables['stage-elevation:max_location'][:]        
+        loc = fid.variables['stage-elevation.max_location'][:]        
         assert allclose(loc, [0.8333333, 0.16666667])        
 
-        time = fid.variables['stage-elevation:max_time'][:]
+        time = fid.variables['stage-elevation.max_time'][:]
         assert allclose(time, 0.0)                
 
-        extrema = fid.variables['xmomentum:extrema'][:]
+        extrema = fid.variables['xmomentum.extrema'][:]
         assert allclose(extrema,[-0.06062178, 0.47886313])
         
-        extrema = fid.variables['ymomentum:extrema'][:]
+        extrema = fid.variables['ymomentum.extrema'][:]
         assert allclose(extrema,[0.00, 0.06241221])        
 
-        time_interval = fid.variables['extrema:time_interval'][:]
+        time_interval = fid.variables['extrema.time_interval'][:]
         assert allclose(time_interval, [0,1])
         
-        polygon = fid.variables['extrema:polygon'][:]        
+        polygon = fid.variables['extrema.polygon'][:]        
         assert allclose(polygon, domain.get_boundary_polygon())
         
         fid.close()
