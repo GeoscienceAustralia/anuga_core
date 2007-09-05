@@ -121,7 +121,7 @@ class Test_Quantity(unittest.TestCase):
                                                [4.5, 4.5, 0.],
                                                [3.0, -1.5, -1.5]])
 
-    def test_get_maximum_1(self):
+    def test_get_extrema_1(self):
         quantity = Conserved_quantity(self.mesh4,
                                       [[1,2,3], [5,5,5], [0,0,9], [-6, 3, 3]])
         assert allclose(quantity.centroid_values, [2., 5., 3., 0.]) #Centroids
@@ -129,8 +129,14 @@ class Test_Quantity(unittest.TestCase):
         v = quantity.get_maximum_value()
         assert v == 5
 
+        v = quantity.get_minimum_value()
+        assert v == 0        
+
         i = quantity.get_maximum_index()
         assert i == 1
+
+        i = quantity.get_minimum_index()
+        assert i == 3        
         
         x,y = quantity.get_maximum_location()
         xref, yref = 4.0/3, 4.0/3
@@ -139,6 +145,12 @@ class Test_Quantity(unittest.TestCase):
 
         v = quantity.get_values(interpolation_points = [[x,y]])
         assert allclose(v, 5)
+
+
+        x,y = quantity.get_minimum_location()
+        v = quantity.get_values(interpolation_points = [[x,y]])
+        assert allclose(v, 0)
+
 
     def test_get_maximum_2(self):
 
@@ -161,8 +173,14 @@ class Test_Quantity(unittest.TestCase):
         v = quantity.get_maximum_value()
         assert v == 6
 
+        v = quantity.get_minimum_value()
+        assert v == 2        
+
         i = quantity.get_maximum_index()
         assert i == 3
+
+        i = quantity.get_minimum_index()
+        assert i == 0        
         
         x,y = quantity.get_maximum_location()
         xref, yref = 2.0/3, 8.0/3
@@ -172,6 +190,9 @@ class Test_Quantity(unittest.TestCase):
         v = quantity.get_values(interpolation_points = [[x,y]])
         assert allclose(v, 6)
 
+        x,y = quantity.get_minimum_location()        
+        v = quantity.get_values(interpolation_points = [[x,y]])
+        assert allclose(v, 2)
 
         #Multiple locations for maximum -
         #Test that the algorithm picks the first occurrence        

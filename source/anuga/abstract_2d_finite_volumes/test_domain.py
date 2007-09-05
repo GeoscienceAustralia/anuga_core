@@ -218,11 +218,11 @@ class Test_Domain(unittest.TestCase):
         assert len(domain.quantities_to_be_monitored) == 2
         assert domain.quantities_to_be_monitored.has_key('stage')
         assert domain.quantities_to_be_monitored.has_key('stage-elevation')
-        assert domain.quantities_to_be_monitored['stage'][0] == None
-        assert domain.quantities_to_be_monitored['stage'][1] == None                
-        
+        for key in domain.quantities_to_be_monitored['stage'].keys():
+            assert domain.quantities_to_be_monitored['stage'][key] is None
 
-        # Check that invalid request are dealt with
+
+        # Check that invalid requests are dealt with
         try:
             domain.set_quantities_to_be_monitored(['yyyyy'])        
         except:
@@ -237,7 +237,34 @@ class Test_Domain(unittest.TestCase):
             pass
         else:
             msg = 'Should have caught illegal quantity'
+            raise Exception, msg
+
+        try:
+            domain.set_quantities_to_be_monitored('stage', 'stage-elevation')
+        except:
+            pass
+        else:
+            msg = 'Should have caught too many arguments'
+            raise Exception, msg
+
+        try:
+            domain.set_quantities_to_be_monitored('stage', 'blablabla')
+        except:
+            pass
+        else:
+            msg = 'Should have caught polygon as a string'
             raise Exception, msg        
+
+
+
+        # Now try with a polygon restriction
+        domain.set_quantities_to_be_monitored('xmomentum',
+                                              polygon=[[1,1], [1,3], [3,3], [3,1]],
+                                              time_interval = [0,3])
+        assert domain.monitor_indices[0] == 1
+        assert domain.monitor_time_interval[0] == 0
+        assert domain.monitor_time_interval[1] == 3        
+        
 
     def test_set_quantity_from_expression(self):
         """Quantity set using arbitrary expression

@@ -4634,6 +4634,117 @@ class Test_Shallow_Water(unittest.TestCase):
 
 
 
+
+    def test_extrema(self):
+        """Test that extrema of quantities are computed correctly
+        Extrema are updated at every *internal* timestep
+        """
+
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
+
+        initial_runup_height = -0.4
+        final_runup_height = -0.3
+
+
+        #--------------------------------------------------------------
+        # Setup computational domain
+        #--------------------------------------------------------------
+        N = 5
+        points, vertices, boundary = rectangular_cross(N, N) 
+        domain = Domain(points, vertices, boundary)
+        domain.set_name('extrema_test')
+
+        #--------------------------------------------------------------
+        # Setup initial conditions
+        #--------------------------------------------------------------
+        def topography(x,y):
+            return -x/2                             # linear bed slope
+            
+
+        domain.set_quantity('elevation', topography)       # Use function for elevation
+        domain.set_quantity('friction', 0.)                # Zero friction 
+        domain.set_quantity('stage', initial_runup_height) # Constant negative initial stage
+        domain.set_quantities_to_be_monitored(['stage', 'stage-elevation'],
+                                              time_interval = [0.5, 2.7],
+                                              polygon = [[0,0], [0,1], [1,1], [1,0]])
+        
+        assert len(domain.quantities_to_be_monitored) == 2
+        assert domain.quantities_to_be_monitored.has_key('stage')
+        assert domain.quantities_to_be_monitored.has_key('stage-elevation')
+        for key in domain.quantities_to_be_monitored['stage'].keys():
+            assert domain.quantities_to_be_monitored['stage'][key] is None        
+
+
+        #--------------------------------------------------------------
+        # Setup boundary conditions
+        #--------------------------------------------------------------
+        Br = Reflective_boundary(domain)              # Reflective wall
+        Bd = Dirichlet_boundary([final_runup_height,  # Constant inflow
+                                 0,
+                                 0])
+
+        # All reflective to begin with (still water) 
+        domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
+
+
+        #--------------------------------------------------------------
+        # Let triangles adjust and check extrema 
+        #--------------------------------------------------------------
+        for t in domain.evolve(yieldstep = 0.1, finaltime = 1.0):
+            domain.quantity_statistics() # Run it silently
+
+
+
+        #--------------------------------------------------------------
+        # Test extrema
+        #--------------------------------------------------------------
+
+        stage = domain.quantities_to_be_monitored['stage']
+        assert stage['min'] <= stage['max']
+
+        #print stage['min'], stage['max'] 
+        assert allclose(stage['min'], initial_runup_height,
+                        rtol = 1.0/N) # First order accuracy
+
+
+        depth = domain.quantities_to_be_monitored['stage-elevation']
+        assert depth['min'] <= depth['max'] 
+        assert depth['min'] >= 0.0
+        assert depth['max'] >= 0.0        
+        ##assert depth[1] <= ?? initial_runup_height        
+
+
+        #--------------------------------------------------------------
+        # Update boundary to allow inflow
+        #--------------------------------------------------------------
+        domain.set_boundary({'right': Bd})
+
+        
+        #--------------------------------------------------------------
+        # Evolve system through time
+        #--------------------------------------------------------------
+        for t in domain.evolve(yieldstep = 0.1, finaltime = 3.0):
+            #domain.write_time()
+            domain.quantity_statistics() # Run it silently           
+            
+    
+        #--------------------------------------------------------------
+        # Test extrema again
+        #--------------------------------------------------------------
+
+        stage = domain.quantities_to_be_monitored['stage']
+        assert stage['min'] <= stage['max']
+
+        assert allclose(stage['min'], initial_runup_height,
+                        rtol = 1.0/N) # First order accuracy        
+
+        depth = domain.quantities_to_be_monitored['stage-elevation']
+        assert depth['min'] <= depth['max'] 
+        assert depth['min'] >= 0.0
+        assert depth['max'] >= 0.0        
+        
+
+
     def test_tight_slope_limiters(self):
         """Test that new slope limiters (Feb 2007) don't induce extremely
         small timesteps. This test actually reveals the problem as it
@@ -4871,7 +4982,8 @@ friction  \n \
         
 if __name__ == "__main__":
 
-    suite = unittest.makeSuite(Test_Shallow_Water,'test')    
+    #suite = unittest.makeSuite(Test_Shallow_Water,'test')    
+    suite = unittest.makeSuite(Test_Shallow_Water,'test_extrema')    
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_tight_slope_limiters')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_get_maximum_inundation_from_sww')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_temp')    

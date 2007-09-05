@@ -255,14 +255,14 @@ class Test_Data_Manager(unittest.TestCase):
         fid.close()
         os.remove(sww.filename)
 
-    def NOtest_sww_extrema(self):
+    def test_sww_extrema(self):
         """Test that extrema of quantities can be retrieved at every vertex
         Extrema are updated at every *internal* timestep
         """
 
         domain = self.domain
         
-        domain.set_name('datatest' + str(id(self)))
+        domain.set_name('extrema_test' + str(id(self)))
         domain.format = 'sww'
         domain.smooth = True
 
@@ -270,33 +270,46 @@ class Test_Data_Manager(unittest.TestCase):
         assert domain.monitor_polygon is None
         assert domain.monitor_time_interval is None        
         
-        domain.set_quantities_to_be_monitored(['stage', 'ymomentum'])
+        domain.set_quantities_to_be_monitored(['xmomentum',
+                                               'ymomentum',
+                                               'stage-elevation'])
         
-        assert len(domain.quantities_to_be_monitored) == 2
-        assert domain.quantities_to_be_monitored[0] == 'stage'
-        assert domain.quantities_to_be_monitored[1] == 'ymomentum'        
+        assert len(domain.quantities_to_be_monitored) == 3
+        assert domain.quantities_to_be_monitored.has_key('stage-elevation')
+        assert domain.quantities_to_be_monitored.has_key('xmomentum')                
+        assert domain.quantities_to_be_monitored.has_key('ymomentum')        
         assert domain.monitor_polygon is None
         assert domain.monitor_time_interval is None        
         
         sww = get_dataobject(domain)
 
         for t in domain.evolve(yieldstep = 1, finaltime = 1):
-            print domain.timestepping_statistics()
-            print domain.quantity_statistics()
+            pass
+            #print domain.timestepping_statistics()
+            #print domain.quantity_statistics(precision = '%.8f')
 
             
         # Get NetCDF
         fid = NetCDFFile(sww.filename, 'r') # Open existing file for append
 
         # Get the variables
-        extrema = fid.variables['stage_extrema'][:]
-        assert allclose(range, [])
+        extrema = fid.variables['stage-elevation:extrema'][:]
+        assert allclose(extrema, [0.00, 0.30])
 
-        extrema = fid.variables['xmomentum_extrema'][:]
-        assert allclose(range,[])
+        loc = fid.variables['stage-elevation:min_location'][:]
+        assert allclose(loc, [0.16666667, 0.33333333])
+
+        loc = fid.variables['stage-elevation:max_location'][:]        
+        assert allclose(loc, [0.8333333, 0.16666667])        
+
+        time = fid.variables['stage-elevation:max_time'][:]
+        assert allclose(time, 0.0)                
+
+        extrema = fid.variables['xmomentum:extrema'][:]
+        assert allclose(extrema,[-0.06062178, 0.47886313])
         
-        extrema = fid.variables['ymomentum_extrema'][:]
-        assert allclose(range,[])
+        extrema = fid.variables['ymomentum:extrema'][:]
+        assert allclose(extrema,[0.00, 0.06241221])        
 
         
         fid.close()
@@ -6722,12 +6735,12 @@ friction  \n \
         number_of_volumes = len(volumes)
         number_of_points = len(points_utm)
         sww = Write_sww()
-        sww.header(outfile, times, number_of_volumes,
+        sww.store_header(outfile, times, number_of_volumes,
                          number_of_points, description='fully sick testing',
-                             verbose=self.verbose)
-        sww.triangulation(outfile, points_utm, volumes,
-                                    elevation,  new_origin=new_origin,
-                                    verbose=self.verbose)       
+                         verbose=self.verbose)
+        sww.store_triangulation(outfile, points_utm, volumes,
+                                elevation,  new_origin=new_origin,
+                                verbose=self.verbose)       
         outfile.close()
         fid = NetCDFFile(filename)
 
@@ -6754,12 +6767,12 @@ friction  \n \
         number_of_volumes = len(volumes)
         number_of_points = len(points_utm)
         sww = Write_sww()
-        sww.header(outfile, times, number_of_volumes,
+        sww.store_header(outfile, times, number_of_volumes,
                          number_of_points, description='fully sick testing',
                          verbose=self.verbose)
-        sww.triangulation(outfile, points_utm, volumes,
-                                    elevation,  new_origin=new_origin,
-                                    verbose=self.verbose)       
+        sww.store_triangulation(outfile, points_utm, volumes,
+                                elevation,  new_origin=new_origin,
+                                verbose=self.verbose)       
         outfile.close()
         fid = NetCDFFile(filename)
 
@@ -6790,12 +6803,12 @@ friction  \n \
         number_of_volumes = len(volumes)
         number_of_points = len(points_utm)
         sww = Write_sww()
-        sww.header(outfile, times, number_of_volumes,
+        sww.store_header(outfile, times, number_of_volumes,
                          number_of_points, description='fully sick testing',
                          verbose=self.verbose)
-        sww.triangulation(outfile, points_utm, volumes,
-                                    elevation,  new_origin=new_origin,
-                                    verbose=self.verbose)       
+        sww.store_triangulation(outfile, points_utm, volumes,
+                                elevation,  new_origin=new_origin,
+                                verbose=self.verbose)       
         outfile.close()
         fid = NetCDFFile(filename)
 
@@ -6829,13 +6842,13 @@ friction  \n \
         number_of_volumes = len(volumes)
         number_of_points = len(points_utm)
         sww = Write_sww()
-        sww.header(outfile, times, number_of_volumes,
+        sww.store_header(outfile, times, number_of_volumes,
                          number_of_points, description='fully sick testing',
                          verbose=self.verbose)
-        sww.triangulation(outfile, points_utm, volumes,
-                                    elevation,  new_origin=new_origin,
-                                    points_georeference=points_georeference,
-                                    verbose=self.verbose)       
+        sww.store_triangulation(outfile, points_utm, volumes,
+                                elevation,  new_origin=new_origin,
+                                points_georeference=points_georeference,
+                                verbose=self.verbose)       
         outfile.close()
         fid = NetCDFFile(filename)
 
@@ -6865,13 +6878,13 @@ friction  \n \
         number_of_volumes = len(volumes)
         number_of_points = len(points_utm)
         sww = Write_sww()
-        sww.header(outfile, times, number_of_volumes,
+        sww.store_header(outfile, times, number_of_volumes,
                          number_of_points, description='fully sick testing',
                          verbose=self.verbose)
-        sww.triangulation(outfile, points_utm, volumes,
-                                    elevation,  new_origin=new_origin,
-                                    points_georeference=points_georeference,
-                                    verbose=self.verbose)       
+        sww.store_triangulation(outfile, points_utm, volumes,
+                                elevation,  new_origin=new_origin,
+                                points_georeference=points_georeference,
+                                verbose=self.verbose)       
         outfile.close()
         fid = NetCDFFile(filename)
 
@@ -7280,8 +7293,8 @@ if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager,'test_get_maximum_inundation')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_sww_header')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_export_grid_parallel')
-    #suite = unittest.makeSuite(Test_Data_Manager,'t')
     suite = unittest.makeSuite(Test_Data_Manager,'test')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_sww_extrema')
 
     
     if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':

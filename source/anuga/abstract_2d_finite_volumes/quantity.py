@@ -15,7 +15,7 @@ To create:
 """
 
 from Numeric import array, zeros, Float, less, concatenate, NewAxis,\
-     argmax, allclose, take, reshape
+     argmax, argmin, allclose, take, reshape
 
 from anuga.utilities.numerical_tools import ensure_numeric, is_scalar
 from anuga.utilities.polygon import inside_polygon
@@ -798,17 +798,18 @@ class Quantity:
                                    location, indices, verbose)
 
    
-    def get_maximum_index(self, indices=None):
-        """Return index for maximum value of quantity (on centroids)
+    def get_extremum_index(self, mode=None, indices=None):
+        """Return index for maximum or minimum value of quantity (on centroids)
 
-        Optional argument:
+        Optional arguments:
+            mode is either 'max'(default) or 'min'.
             indices is the set of element ids that the operation applies to.
 
         Usage:
-            i = get_maximum_index()
+            i = get_extreme_index()
 
         Notes:
-            We do not seek the maximum at vertices as each vertex can
+            We do not seek the extremum at vertices as each vertex can
             have multiple values - one for each triangle sharing it.
 
             If there are multiple cells with same maximum value, the
@@ -818,12 +819,25 @@ class Quantity:
         V = self.get_values(location='centroids', indices=indices)
 
         # Always return absolute indices
-        i = argmax(V)
+        if mode is None or mode == 'max':
+            i = argmax(V)
+        elif mode == 'min':    
+            i = argmin(V)
 
+            
         if indices is None:
             return i
         else:
             return indices[i]
+
+
+    def get_maximum_index(self, indices=None):
+        """See get extreme index for details
+        """
+
+        return self.get_extremum_index(mode='max',
+                                       indices=indices)
+
 
         
     def get_maximum_value(self, indices=None):
@@ -865,6 +879,57 @@ class Quantity:
         """
 
         i = self.get_maximum_index(indices)
+        x, y = self.domain.get_centroid_coordinates()[i]
+
+        return x, y
+
+
+    def get_minimum_index(self, indices=None):
+        """See get extreme index for details
+        """        
+
+        return self.get_extremum_index(mode='min',
+                                       indices=indices)
+
+
+    def get_minimum_value(self, indices=None):
+        """Return minimum value of quantity (on centroids)
+
+        Optional argument:
+            indices is the set of element ids that the operation applies to.
+
+        Usage:
+            v = get_minimum_value()
+
+        See get_maximum_value for more details.    
+        """
+
+
+        i = self.get_minimum_index(indices)
+        V = self.get_values(location='centroids')
+        
+        return V[i]
+        
+
+    def get_minimum_location(self, indices=None):
+        """Return location of minimum value of quantity (on centroids)
+
+        Optional argument:
+            indices is the set of element ids that the operation applies to.
+
+        Usage:
+            x, y = get_minimum_location()
+
+
+        Notes:
+            We do not seek the maximum at vertices as each vertex can
+            have multiple values - one for each triangle sharing it.
+
+            If there are multiple cells with same maximum value, the
+            first cell encountered in the triangle array is returned.       
+        """
+
+        i = self.get_minimum_index(indices)
         x, y = self.domain.get_centroid_coordinates()[i]
 
         return x, y

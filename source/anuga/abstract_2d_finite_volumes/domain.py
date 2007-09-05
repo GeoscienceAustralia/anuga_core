@@ -26,6 +26,9 @@ from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_to_domain
 from anuga.abstract_2d_finite_volumes.region\
      import Set_region as region_set_region
 
+from anuga.utilities.polygon import inside_polygon
+from anuga.abstract_2d_finite_volumes.util import get_textual_float
+
 import types
 
 class Domain(Mesh):
@@ -204,7 +207,7 @@ class Domain(Mesh):
         self.quantities_to_be_monitored = None
         self.monitor_polygon = None
         self.monitor_time_interval = None                
-
+        self.monitor_indices = None
 
         # Checkpointing and storage
         from anuga.config import default_datadir
@@ -578,7 +581,8 @@ class Domain(Mesh):
         if q is None:
             self.quantities_to_be_monitored = None
             self.monitor_polygon = None
-            self.monitor_time_interval = None                    
+            self.monitor_time_interval = None
+            self.monitor_indices = None            
             return
 
         if isinstance(q, basestring):
@@ -595,18 +599,52 @@ class Domain(Mesh):
                 # See if this expression is valid
                 apply_expression_to_dictionary(quantity_name, self.quantities)
 
-            # Initialise extrema
-            self.quantities_to_be_monitored[quantity_name] = [None, None]
+            # Initialise extrema information
+            info_block = {'min': None,          # Min value
+                          'max': None,          # Max value
+                          'min_location': None, # Argmin (x, y)
+                          'max_location': None, # Argmax (x, y)
+                          'min_time': None,     # Argmin (t) 
+                          'max_time': None}     # Argmax (t)
+            
+            self.quantities_to_be_monitored[quantity_name] = info_block
+
             
 
         if polygon is not None:
-            # FIXME Check input
-            pass
+            # Check input
+            if isinstance(polygon, basestring):
+
+                # Check if multiple quantities were accidentally
+                # given as separate argument rather than a list.
+                msg = 'Multiple quantities must be specified in a list. '
+                msg += 'Not as multiple arguments. '
+                msg += 'I got "%s" as a second argument' %polygon
+                
+                if polygon in self.quantities:
+                    raise Exception, msg
+                
+                try:
+                    apply_expression_to_dictionary(polygon, self.quantities)
+                except:
+                    # At least polygon wasn't an expression involving quantitites
+                    pass
+                else:
+                    raise Exception, msg
+
+                # In any case, we don't allow polygon to be a string
+                msg = 'argument "polygon" must not be a string: '
+                msg += 'I got polygon=\'%s\' ' %polygon
+                raise Exception, msg
+
+
+            # Get indices for centroids that are inside polygon
+            points = self.get_centroid_coordinates(absolute=True)
+            self.monitor_indices = inside_polygon(points, polygon)
+            
 
         if time_interval is not None:
-            # FIXME Check input
-            pass        
-
+            assert len(time_interval) == 2
 
         
         self.monitor_polygon = polygon
@@ -757,7 +795,7 @@ class Domain(Mesh):
 
         """
 
-        #Input checks
+        # Input checks
         import types, string
 
         if quantities is None:
@@ -779,14 +817,14 @@ class Domain(Mesh):
         msg += 'string or list. I got %s' %str(tags)
         assert type(tags) == types.ListType, msg
 
-        #Determine width of longest quantity name (for cosmetic purposes)
+        # Determine width of longest quantity name (for cosmetic purposes)
         maxwidth = 0
         for name in quantities:
             w = len(name)
             if w > maxwidth:
                 maxwidth = w
 
-        #Output stats
+        # Output stats
         msg = 'Boundary values at time %.4f:\n' %self.time
         for tag in tags:
             msg += '    %s:\n' %tag
@@ -794,7 +832,7 @@ class Domain(Mesh):
             for name in quantities:
                 q = self.quantities[name]
 
-                #Find range of boundary values for tag and q
+                # Find range of boundary values for tag and q
                 maxval = minval = None
                 for i, ((vol_id, edge_id), B) in\
                         enumerate(self.boundary_objects):
@@ -814,8 +852,55 @@ class Domain(Mesh):
         return msg
 
 
+    def update_extrema(self):
+        """Update extrema if requested by set_quantities_to_be_monitored.
+        This data is used for reporting e.g. by running
+        print domain.quantity_statistics()
+        and may also stored in output files (see data_manager in shallow_water)
+        """
 
-    def quantity_statistics(self):
+        if self.quantities_to_be_monitored is None:
+            return
+
+        # Observe time interval restriction if any
+        if self.monitor_time_interval is not None and\
+               (self.time < self.monitor_time_interval[0] or\
+               self.time > self.monitor_time_interval[1]):
+            return
+            
+        
+        # Update extrema for each specified quantity subject to
+        # polygon restriction (via monitor_indices).
+        for quantity_name in self.quantities_to_be_monitored:
+
+            if quantity_name in self.quantities:
+                Q = self.get_quantity(quantity_name)
+            else:
+                Q = self.create_quantity_from_expression(quantity_name)
+
+            info_block = self.quantities_to_be_monitored[quantity_name]
+
+            # Update maximum (n > None is always True)
+            maxval = Q.get_maximum_value(self.monitor_indices)
+            if maxval > info_block['max']:
+                info_block['max'] = maxval
+                maxloc = Q.get_maximum_location()
+                info_block['max_location'] = maxloc
+                info_block['max_time'] = self.time
+
+
+            # Update minimum (n < None is always False)
+            minval = Q.get_minimum_value(self.monitor_indices)
+            if info_block['min'] is None or\
+                   minval < info_block['min']:
+                info_block['min'] = minval                
+                minloc = Q.get_minimum_location()
+                info_block['min_location'] = minloc
+                info_block['min_time'] = self.time                
+        
+
+
+    def quantity_statistics(self, precision = '%.4f'):
         """Return string with statistics about quantities for printing or logging
 
         Quantities reported are specified through method
@@ -824,9 +909,45 @@ class Domain(Mesh):
            
         """
 
-        pass
+        maxlen = 128 # Max length of polygon string representation
+
+        # Output stats
+        msg = 'Monitored quantities at time %.4f:\n' %self.time
+        if self.monitor_polygon is not None:
+            p_str = str(self.monitor_polygon)
+            msg += '- Restricted by polygon: %s' %p_str[:maxlen]
+            if len(p_str) >= maxlen:
+                msg += '...\n'
+            else:
+                msg += '\n'
 
 
+        if self.monitor_time_interval is not None:
+            msg += '- Restricted by time interval: %s\n' %str(self.monitor_time_interval)
+            time_interval_start = self.monitor_time_interval[0]
+        else:
+            time_interval_start = 0.0
+
+            
+        for quantity_name, info in self.quantities_to_be_monitored.items():
+            msg += '    %s:\n' %quantity_name
+
+            msg += '      values since time = %.2f in [%s, %s]\n'\
+                   %(time_interval_start,
+                     get_textual_float(info['min'], precision),
+                     get_textual_float(info['max'], precision))                     
+                     
+            msg += '      minimum attained at time = %s, location = %s\n'\
+                   %(get_textual_float(info['min_time'], precision),
+                     get_textual_float(info['min_location'], precision))                     
+                     
+
+            msg += '      maximum attained at time = %s, location = %s\n'\
+                   %(get_textual_float(info['max_time'], precision),
+                     get_textual_float(info['max_location'], precision))                   
+
+
+        return msg
 
 
     def get_name(self):
@@ -901,7 +1022,7 @@ class Domain(Mesh):
 
         from anuga.config import min_timestep, max_timestep, epsilon
 
-        #FIXME: Maybe lump into a larger check prior to evolving
+        # FIXME: Maybe lump into a larger check prior to evolving
         msg = 'Boundary tags must be bound to boundary objects before '
         msg += 'evolving system, '
         msg += 'e.g. using the method set_boundary.\n'
@@ -919,7 +1040,7 @@ class Domain(Mesh):
 
 
         if finaltime is not None and duration is not None:
-            #print 'F', finaltime, duration
+            # print 'F', finaltime, duration
             msg = 'Only one of finaltime and duration may be specified'
             raise msg
         else:
@@ -931,61 +1052,67 @@ class Domain(Mesh):
 
 
 
-        self.yieldtime = 0.0 #Time between 'yields'
+        self.yieldtime = 0.0 # Track time between 'yields'
 
-        #Initialise interval of timestep sizes (for reporting only)
+        # Initialise interval of timestep sizes (for reporting only)
         self.min_timestep = max_timestep
         self.max_timestep = min_timestep
         self.number_of_steps = 0
         self.number_of_first_order_steps = 0
 
-        #update ghosts
+        # Update ghosts
         self.update_ghosts()
 
-        #Initial update of vertex and edge values
+        # Initial update of vertex and edge values
         self.distribute_to_vertices_and_edges()
 
-        #Initial update boundary values
+        # Update extrema if necessary (for reporting)
+        self.update_extrema()
+        
+        # Initial update boundary values
         self.update_boundary()
 
-        #Or maybe restore from latest checkpoint
+        # Or maybe restore from latest checkpoint
         if self.checkpoint is True:
             self.goto_latest_checkpoint()
 
         if skip_initial_step is False:
-            yield(self.time)  #Yield initial values
+            yield(self.time)  # Yield initial values
 
         while True:
-            #Compute fluxes across each element edge
+            # Compute fluxes across each element edge
             self.compute_fluxes()
 
-            #Update timestep to fit yieldstep and finaltime
+            # Update timestep to fit yieldstep and finaltime
             self.update_timestep(yieldstep, finaltime)
 
-            #Update conserved quantities
+            # Update conserved quantities
             self.update_conserved_quantities()
 
-            #update ghosts
+            # Update ghosts
             self.update_ghosts()
 
-            #Update vertex and edge values
+            # Update vertex and edge values
             self.distribute_to_vertices_and_edges()
 
-            #Update boundary values
+            # Update extrema if necessary (for reporting)
+            self.update_extrema()            
+
+            # Update boundary values
             self.update_boundary()
 
-            #Update time
+            # Update time
             self.time += self.timestep
             self.yieldtime += self.timestep
             self.number_of_steps += 1
             if self._order_ == 1:
                 self.number_of_first_order_steps += 1
 
-            #Yield results
+            # Yield results
             if finaltime is not None and self.time >= finaltime-epsilon:
 
                 if self.time > finaltime:
-                    #FIXME (Ole, 30 April 2006): Do we need this check?
+                    # FIXME (Ole, 30 April 2006): Do we need this check?
                     print 'WARNING (domain.py): time overshot finaltime. Contact Ole.Nielsen@ga.gov.au'
                     self.time = finaltime
 

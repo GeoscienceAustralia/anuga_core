@@ -431,6 +431,32 @@ def apply_expression_to_dictionary(expression, dictionary):#dictionary):
         raise ValueError, msg
     
 
+def get_textual_float(value, format = '%.2f'):
+    """Get textual representation of floating point numbers
+    and accept None as valid entry
+
+    format is a string - default = '%.2f'
+    """
+
+    if value is None:
+        return 'None'
+    else:
+        try:
+            float(value)
+        except:
+            # May this is a vector
+            if len(value) > 1:
+                s = '('
+                for v in value:
+                    s += get_textual_float(v, format) + ', '
+                    
+                s = s[:-2] + ')' # Strip trailing comma and close
+                return s
+            else:
+                raise 'Illegal input to get_textual_float:', value
+        else:
+            return format %float(value)
+
 
 
 ####################################
