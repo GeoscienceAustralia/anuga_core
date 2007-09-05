@@ -344,6 +344,28 @@ class Data_format_sww(Data_format):
 
             if domain.quantities_to_be_monitored is not None:
                 fid.createDimension('singleton', 1)
+                fid.createDimension('two', 2)                
+
+                poly = domain.monitor_polygon
+                if poly is not None:
+                    N = len(poly)
+                    fid.createDimension('polygon_length', N)
+                    fid.createVariable('extrema:polygon',
+                                       self.precision,
+                                       ('polygon_length',
+                                        'two'))
+                    fid.variables['extrema:polygon'][:] = poly                                    
+                    
+                interval = domain.monitor_time_interval
+                if interval is not None:
+                    fid.createVariable('extrema:time_interval',
+                                       self.precision,
+                                       ('two',))
+                    fid.variables['extrema:time_interval'][:] = interval
+                    
+                
+
+                
                 for q in domain.quantities_to_be_monitored:
                     #print 'doing', q
                     fid.createVariable(q+':extrema', self.precision,

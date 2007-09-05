@@ -273,20 +273,30 @@ class Test_Data_Manager(unittest.TestCase):
         domain.set_quantities_to_be_monitored(['xmomentum',
                                                'ymomentum',
                                                'stage-elevation'])
+
+        assert domain.monitor_polygon is None
+        assert domain.monitor_time_interval is None
+
+
+        domain.set_quantities_to_be_monitored(['xmomentum',
+                                               'ymomentum',
+                                               'stage-elevation'],
+                                              polygon=domain.get_boundary_polygon(),
+                                              time_interval=[0,1])
+        
         
         assert len(domain.quantities_to_be_monitored) == 3
         assert domain.quantities_to_be_monitored.has_key('stage-elevation')
         assert domain.quantities_to_be_monitored.has_key('xmomentum')                
         assert domain.quantities_to_be_monitored.has_key('ymomentum')        
-        assert domain.monitor_polygon is None
-        assert domain.monitor_time_interval is None        
+
         
         sww = get_dataobject(domain)
 
         for t in domain.evolve(yieldstep = 1, finaltime = 1):
             pass
             #print domain.timestepping_statistics()
-            #print domain.quantity_statistics(precision = '%.8f')
+            domain.quantity_statistics(precision = '%.8f') # Silent
 
             
         # Get NetCDF
@@ -311,6 +321,11 @@ class Test_Data_Manager(unittest.TestCase):
         extrema = fid.variables['ymomentum:extrema'][:]
         assert allclose(extrema,[0.00, 0.06241221])        
 
+        time_interval = fid.variables['extrema:time_interval'][:]
+        assert allclose(time_interval, [0,1])
+        
+        polygon = fid.variables['extrema:polygon'][:]        
+        assert allclose(polygon, domain.get_boundary_polygon())
         
         fid.close()
         #print "sww.filename", sww.filename

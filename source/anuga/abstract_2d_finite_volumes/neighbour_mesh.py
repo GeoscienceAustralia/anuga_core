@@ -497,12 +497,12 @@ class Mesh(General_mesh):
             # Register potential paths from A to B
             if not segments.has_key(tuple(A)):
                 segments[tuple(A)] = [] # Empty list for candidate points
-		          
+
             segments[tuple(A)].append(B)                
 
 
         # Start with smallest point and follow boundary (counter clock wise)
-        polygon = [p0]      # Storage for final boundary polygon
+        polygon = [list(p0)]# Storage for final boundary polygon
         point_registry = {} # Keep track of storage to avoid multiple runs 
 	                    # around boundary. This will only be the case if 
 			    # there are more than one candidate.
@@ -598,7 +598,7 @@ class Mesh(General_mesh):
 	        # We are still finding new points on the boundary
                 point_registry[tuple(p1)] = len(point_registry)
             
-            polygon.append(p1)
+            polygon.append(list(p1)) # De-Numeric each point :-)
             p0 = p1
 
 
