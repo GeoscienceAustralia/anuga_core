@@ -859,6 +859,9 @@ class Domain(Mesh):
         and may also stored in output files (see data_manager in shallow_water)
         """
 
+        # Define a tolerance for extremum computations
+        epsilon = 1.0e-6 # Import 'single_precision' from config
+        
         if self.quantities_to_be_monitored is None:
             return
 
@@ -867,8 +870,7 @@ class Domain(Mesh):
                (self.time < self.monitor_time_interval[0] or\
                self.time > self.monitor_time_interval[1]):
             return
-            
-        
+
         # Update extrema for each specified quantity subject to
         # polygon restriction (via monitor_indices).
         for quantity_name in self.quantities_to_be_monitored:
@@ -880,19 +882,21 @@ class Domain(Mesh):
 
             info_block = self.quantities_to_be_monitored[quantity_name]
 
-            # Update maximum (n > None is always True)
+            # Update maximum
+            # (n > None is always True, but we check explicitly because of the epsilon)
             maxval = Q.get_maximum_value(self.monitor_indices)
-            if maxval > info_block['max']:
+            if info_block['max'] is None or\
+                   maxval > info_block['max'] + epsilon:
                 info_block['max'] = maxval
                 maxloc = Q.get_maximum_location()
                 info_block['max_location'] = maxloc
                 info_block['max_time'] = self.time
 
 
-            # Update minimum (n < None is always False)
+            # Update minimum
             minval = Q.get_minimum_value(self.monitor_indices)
             if info_block['min'] is None or\
-                   minval < info_block['min']:
+                   minval < info_block['min'] - epsilon:
                 info_block['min'] = minval                
                 minloc = Q.get_minimum_location()
                 info_block['min_location'] = minloc
