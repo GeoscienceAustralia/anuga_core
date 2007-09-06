@@ -98,7 +98,7 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
 from anuga.utilities.numerical_tools import gradient, mean
 from anuga.config import minimum_storable_height
 from anuga.config import minimum_allowed_height, maximum_allowed_speed
-from anuga.config import g, beta_h, beta_w, beta_w_dry,\
+from anuga.config import g, epsilon, beta_h, beta_w, beta_w_dry,\
      beta_uh, beta_uh_dry, beta_vh, beta_vh_dry, tight_slope_limiters
 from anuga.config import alpha_balance
 from anuga.config import optimise_dry_cells
@@ -562,7 +562,6 @@ def flux_function_central(normal, ql, qr, zl, zr):
     Bed elevations zl and zr.
     """
 
-    from anuga.config import g, epsilon
     from math import sqrt
 
     #Align momentums with x-axis
@@ -656,7 +655,6 @@ def flux_function_kinetic(normal, ql, qr, zl, zr):
     Bed elevations zl and zr.
     """
 
-    from anuga.config import g, epsilon
     from math import sqrt
     from Numeric import array
 
@@ -834,11 +832,12 @@ def extrapolate_second_order_sw_c(domain):
 
     N = len(domain) # number_of_triangles
 
-    #Shortcuts
+    # Shortcuts
     Stage = domain.quantities['stage']
     Xmom = domain.quantities['xmomentum']
     Ymom = domain.quantities['ymomentum']
     Elevation = domain.quantities['elevation']
+
     from shallow_water_ext import extrapolate_second_order_sw
     extrapolate_second_order_sw(domain,
                                 domain.surrogate_neighbours,
@@ -852,7 +851,8 @@ def extrapolate_second_order_sw_c(domain):
                                 Stage.vertex_values,
                                 Xmom.vertex_values,
                                 Ymom.vertex_values,
-                                Elevation.vertex_values)
+                                Elevation.vertex_values,
+                                int(domain.optimise_dry_cells))
 
 def compute_fluxes_c(domain):
     """Wrapper calling C version of compute fluxes

@@ -47,14 +47,18 @@ int _rotate(double *q, double n1, double n2) {
   return 0;
 }
 
-int find_qmin_and_qmax(double dq0, double dq1, double dq2, double *qmin, double *qmax){
-  //Considering the centroid of an FV triangle and the vertices of its auxiliary triangle, find
-  //qmin=min(q)-qc and qmax=max(q)-qc, where min(q) and max(q) are respectively min and max over the
-  //four values (at the centroid of the FV triangle and the auxiliary triangle vertices),
-  //and qc is the centroid
-  //dq0=q(vertex0)-q(centroid of FV triangle)
-  //dq1=q(vertex1)-q(vertex0)
-  //dq2=q(vertex2)-q(vertex0)
+int find_qmin_and_qmax(double dq0, double dq1, double dq2, 
+		       double *qmin, double *qmax){
+  // Considering the centroid of an FV triangle and the vertices of its 
+  // auxiliary triangle, find 
+  // qmin=min(q)-qc and qmax=max(q)-qc, 
+  // where min(q) and max(q) are respectively min and max over the
+  // four values (at the centroid of the FV triangle and the auxiliary 
+  // triangle vertices),
+  // and qc is the centroid
+  // dq0=q(vertex0)-q(centroid of FV triangle)
+  // dq1=q(vertex1)-q(vertex0)
+  // dq2=q(vertex2)-q(vertex0)
   if (dq0>=0.0){
     if (dq1>=dq2){
       if (dq1>=0.0)
@@ -62,17 +66,17 @@ int find_qmin_and_qmax(double dq0, double dq1, double dq2, double *qmin, double 
       else
 	*qmax=dq0;
       if ((*qmin=dq0+dq2)<0)
-	;//qmin is already set to correct value
+	;// qmin is already set to correct value
       else
 	*qmin=0.0;
     }
-    else{//dq1<dq2
+    else{// dq1<dq2
       if (dq2>0)
 	*qmax=dq0+dq2;
       else
 	*qmax=dq0;
       if ((*qmin=dq0+dq1)<0)
-	;//qmin is the correct value
+	;// qmin is the correct value
       else
 	*qmin=0.0;
     }
@@ -84,17 +88,17 @@ int find_qmin_and_qmax(double dq0, double dq1, double dq2, double *qmin, double 
       else
 	*qmin=dq0;
       if ((*qmax=dq0+dq2)>0.0)
-	;//qmax is already set to the correct value
+	;// qmax is already set to the correct value
       else
 	*qmax=0.0;
     }
-    else{//dq1>dq2
+    else{// dq1>dq2
       if (dq2<0.0)
 	*qmin=dq0+dq2;
       else
 	*qmin=dq0;
       if ((*qmax=dq0+dq1)>0.0)
-	;//qmax is already set to the correct value
+	;// qmax is already set to the correct value
       else
 	*qmax=0.0;
     }
@@ -103,22 +107,27 @@ int find_qmin_and_qmax(double dq0, double dq1, double dq2, double *qmin, double 
 }
 
 int limit_gradient(double *dqv, double qmin, double qmax, double beta_w){
-  //given provisional jumps dqv from the FV triangle centroid to its vertices and
-  //jumps qmin (qmax) between the centroid of the FV triangle and the
-  //minimum (maximum) of the values at the centroid of the FV triangle and the auxiliary triangle vertices,
-  //calculate a multiplicative factor phi by which the provisional vertex jumps are to be limited
+  // Given provisional jumps dqv from the FV triangle centroid to its 
+  // vertices and jumps qmin (qmax) between the centroid of the FV 
+  // triangle and the minimum (maximum) of the values at the centroid of 
+  // the FV triangle and the auxiliary triangle vertices,
+  // calculate a multiplicative factor phi by which the provisional 
+  // vertex jumps are to be limited
   int i;
   double r=1000.0, r0=1.0, phi=1.0;
-  static double TINY = 1.0e-100;//to avoid machine accuracy problems.
-  //Any provisional jump with magnitude < TINY does not contribute to the limiting process.
-  for (i=0;i<3;i++){
+  static double TINY = 1.0e-100; // to avoid machine accuracy problems.
+  // FIXME: Perhaps use the epsilon used elsewhere.
+  
+  // Any provisional jump with magnitude < TINY does not contribute to 
+  // the limiting process.
+    for (i=0;i<3;i++){
     if (dqv[i]<-TINY)
       r0=qmin/dqv[i];
     if (dqv[i]>TINY)
       r0=qmax/dqv[i];
     r=min(r0,r);
-    //
   }
+  
   phi=min(r*beta_w,1.0);
   for (i=0;i<3;i++)
     dqv[i]=dqv[i]*phi;
@@ -865,15 +874,16 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
   int number_of_elements,k,k0,k1,k2,k3,k6,coord_index,i;
   double x,y,x0,y0,x1,y1,x2,y2,xv0,yv0,xv1,yv1,xv2,yv2;//vertices of the auxiliary triangle
   double dx1,dx2,dy1,dy2,dxv0,dxv1,dxv2,dyv0,dyv1,dyv2,dq0,dq1,dq2,area2;
-  double dqv[3], qmin, qmax, hmin;
+  double dqv[3], qmin, qmax, hmin, hmax;
   double hc, h0, h1, h2;
-  double epsilon=1.0e-12; // FIXME Pass in
+  double epsilon=1.0e-12;
+  int optimise_dry_cells=1; // Optimisation flag    
   double beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry, beta_tmp;
   double minimum_allowed_height;
-  //provisional jumps from centroids to v'tices and safety factor re limiting
-  //by which these jumps are limited
+  // Provisional jumps from centroids to v'tices and safety factor re limiting
+  // by which these jumps are limited
   // Convert Python arguments to C
-  if (!PyArg_ParseTuple(args, "OOOOOOOOOOOOO",
+  if (!PyArg_ParseTuple(args, "OOOOOOOOOOOOOi",
 			&domain,
 			&surrogate_neighbours,
 			&number_of_boundaries,
@@ -886,12 +896,17 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
 			&stage_vertex_values,
 			&xmom_vertex_values,
 			&ymom_vertex_values,
-			&elevation_vertex_values)) {
-    PyErr_SetString(PyExc_RuntimeError, "Input arguments failed");
+			&elevation_vertex_values,
+			&optimise_dry_cells)) {			
+			
+    PyErr_SetString(PyExc_RuntimeError, "Input arguments to extrapolate_second_order_sw failed");
     return NULL;
   }
 
-  //get the safety factor beta_w, set in the config.py file. This is used in the limiting process
+  // FIXME (Ole): Investigate if it is quicker to obtain all input arguments using GetAttrString rather than ParseTuple.
+  // It certainly looked as if passing domain.epsilon is slowed things down
+  
+  // Get the safety factor beta_w, set in the config.py file. This is used in the limiting process
   Tmp = PyObject_GetAttrString(domain, "beta_w");
   if (!Tmp) {
     PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: extrapolate_second_order_sw could not obtain object beta_w from domain");
@@ -942,12 +957,20 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
   
   Tmp = PyObject_GetAttrString(domain, "minimum_allowed_height");
   if (!Tmp) {
-    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: extrapolate_second_order_sw could not obtain object minimum_allowed_heigt");
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: extrapolate_second_order_sw could not obtain object minimum_allowed_height");
     return NULL;
   }  
   minimum_allowed_height = PyFloat_AsDouble(Tmp);
   Py_DECREF(Tmp);  
-  
+
+  Tmp = PyObject_GetAttrString(domain, "epsilon");
+  if (!Tmp) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: extrapolate_second_order_sw could not obtain object epsilon");
+    return NULL;
+  }  
+  epsilon = PyFloat_AsDouble(Tmp);
+  Py_DECREF(Tmp);  
+    
   number_of_elements = stage_centroid_values -> dimensions[0];
   for (k=0; k<number_of_elements; k++) {
     k3=k*3;
@@ -1033,15 +1056,18 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
       h0 = ((double *)stage_centroid_values->data)[k0] - ((double *)elevation_centroid_values->data)[k0];
       h1 = ((double *)stage_centroid_values->data)[k1] - ((double *)elevation_centroid_values->data)[k1];
       h2 = ((double *)stage_centroid_values->data)[k2] - ((double *)elevation_centroid_values->data)[k2];
-      hmin = min(hc,min(h0,min(h1,h2)));
+      hmin = min(hc,min(h0,min(h1,h2)));  // FIXME Don't need to include hc
       
       
-      // Dry cell optimisation experiment
-      //printf("hmin = %e\n", hmin);      
-      //if (hmin < epsilon) {
-        //printf("Dry\n");
-	//continue;
-      //}
+      if (optimise_dry_cells) {      
+	// Check if linear reconstruction is necessary for triangle k
+	// This check will exclude dry cells.
+
+	hmax = max(h0,max(h1,h2));      
+	if (hmax < epsilon) {
+	  continue;
+	}
+      }
 
             
       //-----------------------------------

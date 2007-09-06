@@ -2858,6 +2858,7 @@ class Test_Shallow_Water(unittest.TestCase):
                         0.00241523, 0.02656103, 0.00241523, 0.0272623])
 
         domain.distribute_to_vertices_and_edges()
+
         assert allclose(domain.quantities['stage'].vertex_values[:12,0],
                         [0.0001714, 0.02656103, 0.00024152,
                         0.02656103, 0.00024152, 0.02656103,
@@ -4982,8 +4983,8 @@ friction  \n \
         
 if __name__ == "__main__":
 
-    #suite = unittest.makeSuite(Test_Shallow_Water,'test')    
-    suite = unittest.makeSuite(Test_Shallow_Water,'test_extrema')    
+    suite = unittest.makeSuite(Test_Shallow_Water,'test')    
+    #suite = unittest.makeSuite(Test_Shallow_Water,'test_extrema')    
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_tight_slope_limiters')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_get_maximum_inundation_from_sww')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_temp')    
