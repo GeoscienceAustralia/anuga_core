@@ -103,6 +103,10 @@ CFL = 1.0  #FIXME (ole): Is this in use yet??
            #(Steve) yes, change domain.CFL to
            #make changes
 
+# Choose type of timestepping,
+timestepping_method = 'euler' # 1st order euler
+#timestepping_method = 'rk2'   # 2nd Order TVD scheme
+
 # Option to search for signatures where isolated triangles are
 # responsible for a small global timestep.
 # Treating these by limiting their momenta may help speed up the

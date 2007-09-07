@@ -1304,6 +1304,9 @@ class Conserved_quantity(Quantity):
         N = len(domain) # number_of_triangles
         self.explicit_update = zeros(N, Float )
         self.semi_implicit_update = zeros(N, Float )
+        self.centroid_backup_values = zeros(N, Float)       
+
+        
 
 
     def update(self, timestep):
@@ -1317,18 +1320,26 @@ class Conserved_quantity(Quantity):
         #(either from this module or C-extension)
         return compute_gradients(self)
 
-
     def limit(self):
         #Call correct module function
         #(either from this module or C-extension)
         limit(self)
-
 
     def extrapolate_second_order(self):
         #Call correct module function
         #(either from this module or C-extension)
         extrapolate_second_order(self)
 
+    def backup_centroid_values(self):
+        #Call correct module function
+        #(either from this module or C-extension)
+        backup_centroid_values(self)
+
+    def saxpy_centroid_values(self,a,b):
+        #Call correct module function
+        #(either from this module or C-extension)
+        saxpy_centroid_values(self,a,b)
+    
 
 def update(quantity, timestep):
     """Update centroid values based on values stored in
@@ -1416,30 +1427,26 @@ def interpolate_from_vertices_to_edges(quantity):
 
 
 
-def extrapolate_second_order(quantity):
-    """Extrapolate conserved quantities from centroid to
-    vertices for each volume using
-    second order scheme.
-    """
+def backup_centroid_values(quantity):
+    """Copy centroid values to backup array"""
 
-    a, b = quantity.compute_gradients()
-
-    X = quantity.domain.get_vertex_coordinates()
     qc = quantity.centroid_values
-    qv = quantity.vertex_values
+    qb = quantity.centroid_backup_values
 
     #Check each triangle
     for k in range(len(quantity.domain)):
-        #Centroid coordinates
-        x, y = quantity.domain.centroid_coordinates[k]
+        qb[k] = qc[k]
 
-        #vertex coordinates
-        x0, y0, x1, y1, x2, y2 = X[k,:]
 
-        #Extrapolate
-        qv[k,0] = qc[k] + a[k]*(x0-x) + b[k]*(y0-y)
-        qv[k,1] = qc[k] + a[k]*(x1-x) + b[k]*(y1-y)
-        qv[k,2] = qc[k] + a[k]*(x2-x) + b[k]*(y2-y)
+def saxpy_centroid_values(quantity,a,b):
+    """saxpy operation between centroid value and backup"""
+
+    qc = quantity.centroid_values
+    qb = quantity.centroid_backup_values
+
+    #Check each triangle
+    for k in range(len(quantity.domain)):
+        qc[k] = a*qc[k]+b*qb[k]       
 
 
 def compute_gradients(quantity):
@@ -1581,7 +1588,8 @@ from anuga.utilities import compile
 if compile.can_use_C_extension('quantity_ext.c'):
     #Replace python version with c implementations
 
-    from quantity_ext import average_vertex_values
+    from quantity_ext import average_vertex_values, backup_centroid_values, \
+         saxpy_centroid_values
 
     from quantity_ext import compute_gradients, limit,\
     extrapolate_second_order, interpolate_from_vertices_to_edges, update

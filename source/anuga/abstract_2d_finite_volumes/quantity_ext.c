@@ -99,6 +99,7 @@ int _compute_gradients(int N,
 }
 
 
+
 int _extrapolate(int N,
 		 double* centroids,
 		 double* centroid_values,
@@ -161,6 +162,43 @@ int _interpolate(int N,
 	}
 	return 0;
 }
+
+int _backup_centroid_values(int N,
+			    double* centroid_values,
+			    double* centroid_backup_values) {
+    //Backup centroid values
+
+
+    int k;
+
+    for (k=0; k<N; k++) {
+	centroid_backup_values[k] = centroid_values[k];
+    }
+
+
+    return 0;
+}
+
+
+int _saxpy_centroid_values(int N,
+			   double a,
+			   double b,
+			   double* centroid_values,
+			   double* centroid_backup_values) {
+    //saxby centroid values
+
+
+    int k;
+
+
+    for (k=0; k<N; k++) {
+	centroid_values[k] = a*centroid_values[k] + b*centroid_backup_values[k];
+    }
+
+
+    return 0;
+}
+
 
 int _update(int N,
 	    double timestep,
@@ -299,6 +337,72 @@ PyObject *update(PyObject *self, PyObject *args) {
 	Py_DECREF(centroid_values);
 	Py_DECREF(explicit_update);
 	Py_DECREF(semi_implicit_update);
+
+	return Py_BuildValue("");
+}
+
+
+PyObject *backup_centroid_values(PyObject *self, PyObject *args) {
+
+	PyObject *quantity;
+	PyArrayObject *centroid_values, *centroid_backup_values;
+
+	int N, err;
+
+
+	// Convert Python arguments to C
+	if (!PyArg_ParseTuple(args, "O", &quantity)) {
+	  PyErr_SetString(PyExc_RuntimeError, 
+			  "quantity_ext.c: backup_centroid_values could not parse input");
+	  return NULL;
+	}
+
+	centroid_values        = get_consecutive_array(quantity, "centroid_values");
+	centroid_backup_values = get_consecutive_array(quantity, "centroid_backup_values");
+
+	N = centroid_values -> dimensions[0];
+
+	err = _backup_centroid_values(N,
+		      (double*) centroid_values -> data,
+		      (double*) centroid_backup_values -> data);
+
+
+	//Release and return
+	Py_DECREF(centroid_values);
+	Py_DECREF(centroid_backup_values);
+
+	return Py_BuildValue("");
+}
+
+PyObject *saxpy_centroid_values(PyObject *self, PyObject *args) {
+
+	PyObject *quantity;
+	PyArrayObject *centroid_values, *centroid_backup_values;
+
+	double a,b;
+	int N, err;
+
+
+	// Convert Python arguments to C
+	if (!PyArg_ParseTuple(args, "Odd", &quantity, &a, &b)) {
+	  PyErr_SetString(PyExc_RuntimeError, 
+			  "quantity_ext.c: saxpy_centroid_values could not parse input");
+	  return NULL;
+	}
+
+	centroid_values        = get_consecutive_array(quantity, "centroid_values");
+	centroid_backup_values = get_consecutive_array(quantity, "centroid_backup_values");
+
+	N = centroid_values -> dimensions[0];
+
+	err = _saxpy_centroid_values(N,a,b,
+		      (double*) centroid_values -> data,
+		      (double*) centroid_backup_values -> data);
+
+
+	//Release and return
+	Py_DECREF(centroid_values);
+	Py_DECREF(centroid_backup_values);
 
 	return Py_BuildValue("");
 }
@@ -644,6 +748,8 @@ PyObject *limit(PyObject *self, PyObject *args) {
 static struct PyMethodDef MethodTable[] = {
 	{"limit", limit, METH_VARARGS, "Print out"},
 	{"update", update, METH_VARARGS, "Print out"},
+	{"backup_centroid_values", backup_centroid_values, METH_VARARGS, "Print out"},
+	{"saxpy_centroid_values", saxpy_centroid_values, METH_VARARGS, "Print out"},
 	{"compute_gradients", compute_gradients, METH_VARARGS, "Print out"},
 	{"extrapolate_second_order", extrapolate_second_order,
 		METH_VARARGS, "Print out"},

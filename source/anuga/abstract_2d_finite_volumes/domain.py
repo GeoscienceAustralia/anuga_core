@@ -31,6 +31,8 @@ from anuga.abstract_2d_finite_volumes.util import get_textual_float
 
 import types
 
+
+
 class Domain(Mesh):
 
 
@@ -175,11 +177,13 @@ class Domain(Mesh):
         # Defaults
         from anuga.config import max_smallsteps, beta_w, beta_h, epsilon
         from anuga.config import CFL
+        from anuga.config import timestepping_method
         from anuga.config import protect_against_isolated_degenerate_timesteps
         self.beta_w = beta_w
         self.beta_h = beta_h
         self.epsilon = epsilon
         self.protect_against_isolated_degenerate_timesteps = protect_against_isolated_degenerate_timesteps
+        
         
 
         # FIXME: Maybe have separate orders for h-limiter and w-limiter?
@@ -193,7 +197,8 @@ class Domain(Mesh):
         self.number_of_steps = 0
         self.number_of_first_order_steps = 0
         self.CFL = CFL
-
+        self.set_timestepping_method(timestepping_method)
+        
         self.boundary_map = None  # Will be populated by set_boundary        
         
 
@@ -953,6 +958,17 @@ class Domain(Mesh):
 
         return msg
 
+    def get_timestepping_method(self):
+        return self.timestepping_method
+
+    def set_timestepping_method(self,timestepping_method):
+        
+        if timestepping_method in ['euler', 'rk2']:
+            self.timestepping_method = timestepping_method
+            return
+
+        msg = '%s is an incorrect timestepping type'% timestepping_method
+        raise Exception, msg
 
     def get_name(self):
         return self.simulation_name
@@ -972,6 +988,12 @@ class Domain(Mesh):
 
     def set_datadir(self, name):
         self.datadir = name
+
+    def get_starttime(self):
+        return self.starttime
+
+    def set_starttime(self, time):
+        self.starttime = float(time)        
 
 
 
@@ -1084,29 +1106,18 @@ class Domain(Mesh):
             yield(self.time)  # Yield initial values
 
         while True:
-            # Compute fluxes across each element edge
-            self.compute_fluxes()
 
-            # Update timestep to fit yieldstep and finaltime
-            self.update_timestep(yieldstep, finaltime)
-
-            # Update conserved quantities
-            self.update_conserved_quantities()
-
-            # Update ghosts
-            self.update_ghosts()
-
-            # Update vertex and edge values
-            self.distribute_to_vertices_and_edges()
+            # Evolve One Step, using appropriate timestepping method
+            if self.get_timestepping_method() == 'euler':
+                self.evolve_one_euler_step(yieldstep,finaltime)
+                
+            elif self.get_timestepping_method() == 'rk2':
+                self.evolve_one_rk2_step(yieldstep,finaltime)               
 
             # Update extrema if necessary (for reporting)
             self.update_extrema()            
 
-            # Update boundary values
-            self.update_boundary()
 
-            # Update time
-            self.time += self.timestep
             self.yieldtime += self.timestep
             self.number_of_steps += 1
             if self._order_ == 1:
@@ -1144,6 +1155,95 @@ class Domain(Mesh):
                 self.number_of_first_order_steps = 0
 
 
+    def evolve_one_euler_step(self, yieldstep, finaltime):
+        """One Euler Time Step"""
+
+        #Compute fluxes across each element edge
+        self.compute_fluxes()
+
+        #Update timestep to fit yieldstep and finaltime
+        self.update_timestep(yieldstep, finaltime)
+
+        #Update conserved quantities
+        self.update_conserved_quantities()
+
+        #update ghosts
+        self.update_ghosts()
+
+        #Update vertex and edge values
+        self.distribute_to_vertices_and_edges()
+
+        #Update boundary values
+        self.update_boundary()
+
+        #Update time
+        self.time += self.timestep
+
+        
+
+
+    def evolve_one_rk2_step(self,yieldstep, finaltime):
+        """One 2nd order RK timestep"""
+
+        #Save initial initial conserved quantities values
+        self.backup_conserved_quantities()            
+
+        #--------------------------------------
+        #First euler step
+        #--------------------------------------
+
+        #Compute fluxes across each element edge
+        self.compute_fluxes()
+
+        #Update timestep to fit yieldstep and finaltime
+        self.update_timestep(yieldstep, finaltime)
+
+        #Update conserved quantities
+        self.update_conserved_quantities()
+
+        #update ghosts
+        self.update_ghosts()
+
+        #Update vertex and edge values
+        self.distribute_to_vertices_and_edges()
+
+        #Update boundary values
+        self.update_boundary()
+
+        #Update time
+        self.time += self.timestep
+
+        #------------------------------------
+        #Second Euler step
+        #------------------------------------
+            
+        #Compute fluxes across each element edge
+        self.compute_fluxes()
+
+        #Update conserved quantities
+        self.update_conserved_quantities()
+
+        #------------------------------------
+        #Combine initial and final values
+        #of conserved quantities
+        #------------------------------------
+
+        self.saxpy_conserved_quantities(0.5, 0.5)
+
+        #------------------------------------
+        #Clean up rk step
+        #------------------------------------
+            
+        #update ghosts
+        self.update_ghosts()
+
+        #Update vertex and edge values
+        self.distribute_to_vertices_and_edges()
+
+        #Update boundary values
+        self.update_boundary()
+
+
     def evolve_to_end(self, finaltime = 1.0):
         """Iterate evolve all the way to the end
         """
@@ -1152,6 +1252,22 @@ class Domain(Mesh):
             pass
 
 
+    def backup_conserved_quantities(self):
+        N = len(self) #number_of_triangles
+
+        #backup conserved_quantities centroid values
+        for name in self.conserved_quantities:
+            Q = self.quantities[name]
+            Q.backup_centroid_values()        
+
+    def saxpy_conserved_quantities(self,a,b):
+        N = len(self) #number_of_triangles
+
+        #backup conserved_quantities centroid values
+        for name in self.conserved_quantities:
+            Q = self.quantities[name]
+            Q.saxpy_centroid_values(a,b)        
+    
 
     def update_boundary(self):
         """Go through list of boundary objects and update boundary values

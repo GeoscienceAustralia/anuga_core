@@ -200,6 +200,7 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
   except:
     # This will make compile work locally
     utilities_include_dir = '.'
+    utilities_include_dir = '../utilities'
 
 
     

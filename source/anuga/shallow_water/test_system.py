@@ -46,7 +46,7 @@ class Test_system(unittest.TestCase):
         domain = pmesh_instance_to_domain_instance(mesh, Domain)
         domain.set_name(boundary_name)                 
         domain.set_datadir(dir)          
-        domain.starttime = boundary_starttime
+        domain.set_starttime(boundary_starttime)
         
         # Setup initial conditions
         domain.set_quantity('elevation', 0.0) 
@@ -70,6 +70,7 @@ class Test_system(unittest.TestCase):
         to the output sww file.
         
         """
+     
         boundary_starttime = 500
         boundary_filename = self.create_sww_boundary(boundary_starttime)
         filename = tempfile.mktemp(".sww")
@@ -94,9 +95,11 @@ class Test_system(unittest.TestCase):
 
         # Setup boundary conditions
         domain.set_boundary({'exterior': Bf})
-        for t in domain.evolve(yieldstep = 5, finaltime = 10.0):
+
+        
+        for t in domain.evolve(yieldstep = 5.0, finaltime = 10.0):
             pass
-            #domain.write_time()
+            #print domain.write_time()
             #print "domain.time", domain.time
 
         # do an assertion on the time of the produced sww file
@@ -116,6 +119,7 @@ class Test_system(unittest.TestCase):
         test_boundary_timeII(self):
         Test that starttime can be set in the middle of a boundary condition
         """
+        
         boundary_starttime = 500
         boundary_filename = self.create_sww_boundary(boundary_starttime)
         #print "boundary_filename",boundary_filename 
@@ -133,7 +137,7 @@ class Test_system(unittest.TestCase):
         domain.set_name(senario_name)                 
         domain.set_datadir(dir)
         new_starttime = 510.
-        domain.starttime = new_starttime
+        domain.set_starttime(new_starttime)
 
         # Setup initial conditions
         domain.set_quantity('elevation', 0.0) 
@@ -145,7 +149,7 @@ class Test_system(unittest.TestCase):
         domain.set_boundary({'exterior': Bf})
         for t in domain.evolve(yieldstep = 5, finaltime = 9.0):
             pass
-            #domain.write_time()
+            #print domain.write_time()
             #print "domain.time", domain.time
 
         # do an assertion on the time of the produced sww file

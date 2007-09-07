@@ -445,8 +445,10 @@ class Domain(Generic_Domain):
         assert 0 <= self.beta_w <= 1.0, msg
 
 
-        #Initial update of vertex and edge values before any storage
+        #Initial update of vertex and edge values before any STORAGE
         #and or visualisation
+        #This is done again in the initialisation of the Generic_Domain
+        #evolve loop but we do it here to ensure the values are ok for storage
         self.distribute_to_vertices_and_edges()
 
         if self.store is True and self.time == 0.0:

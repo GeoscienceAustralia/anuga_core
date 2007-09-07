@@ -1367,6 +1367,29 @@ class Test_Quantity(unittest.TestCase):
 
 
 
+    def test_backup_saxpy_centroid_values(self):
+        quantity = Conserved_quantity(self.mesh4)
+
+        #Set up for a gradient of (3,1), f(x) = 3x+y
+        c_values = array([2.0+2.0/3, 4.0+4.0/3, 8.0+2.0/3, 2.0+8.0/3])
+        d_values = array([1.0, 2.0, 3.0, 4.0])
+        quantity.set_values(c_values, location = 'centroids')
+
+        #Backup
+        quantity.backup_centroid_values()
+
+        #print quantity.vertex_values
+        assert allclose(quantity.centroid_values, quantity.centroid_backup_values)
+
+
+        quantity.set_values(d_values, location = 'centroids')
+
+        quantity.saxpy_centroid_values(2.0, 3.0)
+
+        assert(quantity.centroid_values, 2.0*d_values + 3.0*c_values)
+
+
+
     def test_first_order_extrapolator(self):
         quantity = Conserved_quantity(self.mesh4)
 

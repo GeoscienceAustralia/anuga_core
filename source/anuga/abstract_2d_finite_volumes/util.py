@@ -84,7 +84,7 @@ def file_function(filename,
         if quantities is None: 
             quantities = domain.conserved_quantities
             
-        domain_starttime = domain.starttime
+        domain_starttime = domain.get_starttime()
     else:
         domain_starttime = None
 
@@ -139,7 +139,7 @@ def file_function(filename,
             msg += ' Modifying domain starttime accordingly.'
             
             if verbose: print msg
-            domain.starttime = starttime #Modifying model time
+            domain.set_starttime(starttime) #Modifying model time
             if verbose: print 'Domain starttime is now set to %f'\
                %domain.starttime
 

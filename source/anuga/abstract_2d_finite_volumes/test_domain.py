@@ -318,9 +318,47 @@ class Test_Domain(unittest.TestCase):
 
 
 
+    def test_setting_timestepping_method(self):
+        """test_set_quanitities_to_be_monitored
+        """
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0,0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0,0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe, daf, dae
+        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
 
+        domain = Domain(points, vertices, boundary=None,
+                        conserved_quantities =\
+                        ['stage', 'xmomentum', 'ymomentum'],
+                        other_quantities = ['elevation', 'friction', 'depth'])
 
+
+        domain.timestepping_method = None
+
+
+        # Check that invalid requests are dealt with
+        try:
+            domain.set_timestepping_method('eee')        
+        except:
+            pass
+        else:
+            msg = 'Should have caught illegal method'
+            raise Exception, msg
+
+
+        #Should have no trouble with euler or rk2
+        domain.set_timestepping_method('euler')
+        domain.set_timestepping_method('rk2')
+
+        #test get timestepping method
+        assert domain.get_timestepping_method() == 'rk2'
 
 
 
