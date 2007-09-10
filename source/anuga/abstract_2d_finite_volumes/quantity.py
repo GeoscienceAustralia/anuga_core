@@ -1381,7 +1381,7 @@ def update(quantity, timestep):
     N = quantity.centroid_values.shape[0]
 
 
-    #Divide H by conserved quantity to obtain G (see docstring above)
+    # Divide H by conserved quantity to obtain G (see docstring above)
 
 
     for k in range(N):
@@ -1393,7 +1393,7 @@ def update(quantity, timestep):
             quantity.semi_implicit_update[k] /= x
 
 
-    #Semi implicit updates
+    # Semi implicit updates
     denominator = ones(N, Float)-timestep*quantity.semi_implicit_update
 
     if sum(less(denominator, 1.0)) > 0.0:
