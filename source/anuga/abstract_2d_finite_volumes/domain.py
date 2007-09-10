@@ -1164,7 +1164,10 @@ class Domain(Mesh):
 
 
     def evolve_one_euler_step(self, yieldstep, finaltime):
-        """One Euler Time Step"""
+        """
+        One Euler Time Step
+        Q^{n+1} = E(h) Q^n
+        """
 
         #Compute fluxes across each element edge
         self.compute_fluxes()
@@ -1191,7 +1194,10 @@ class Domain(Mesh):
 
 
     def evolve_one_rk2_step(self, yieldstep, finaltime):
-        """One 2nd order RK timestep"""
+        """
+        One 2nd order RK timestep
+        Q^{n+1} = 0.5 Q^n + 0.5 E(h)^2 Q^n
+        """
 
         #Save initial initial conserved quantities values
         self.backup_conserved_quantities()            
@@ -1250,9 +1256,11 @@ class Domain(Mesh):
 
 
     def evolve_one_rk3_step(self, yieldstep, finaltime):
-        """One 2nd order RK timestep"""
-
-
+        """
+        One 3rd order RK timestep
+        Q^(1) = 3/4 Q^n + 1/4 E(h)^2 Q^n  (at time t^n + h/2)
+        Q^{n+1} = 1/3 Q^n + 2/3 E(h) Q^(1) (at time t^{n+1})
+        """
 
         #Save initial initial conserved quantities values
         self.backup_conserved_quantities()            
@@ -1295,9 +1303,10 @@ class Domain(Mesh):
         self.update_conserved_quantities()
 
         #------------------------------------
-        #Combine final and initial values
-        #of conserved quantities and cleanup
+        #Combine steps to obtain intermediate
+        #solution at time t^n + 0.5 h
         #------------------------------------
+
         #combine steps
         self.saxpy_conserved_quantities(0.25, 0.75)
  
@@ -1325,7 +1334,7 @@ class Domain(Mesh):
 
         #------------------------------------
         #Combine final and initial values
-        #of conserved quantities and cleanup
+        #and cleanup
         #------------------------------------
         #combine steps
         self.saxpy_conserved_quantities(2.0/3.0, 1.0/3.0)
@@ -1339,11 +1348,9 @@ class Domain(Mesh):
         #Update boundary values
         self.update_boundary()
 
-        #set substep time
+        #set new time
         self.time = initial_time + self.timestep       
         
-
-
 
     def evolve_to_end(self, finaltime = 1.0):
         """Iterate evolve all the way to the end
