@@ -823,7 +823,7 @@ def compute_fluxes(domain):
         domain.max_speed[k] = max_speed
 
 
-    domain.timestep = timestep
+    domain.flux_timestep = timestep
 
 #MH090605 The following method belongs to the shallow_water domain class
 #see comments in the corresponding method in shallow_water_ext.c
@@ -874,7 +874,7 @@ def compute_fluxes_c(domain):
     from shallow_water_ext import\
          compute_fluxes_ext_central as compute_fluxes_ext
 
-    domain.timestep = compute_fluxes_ext(timestep, domain.epsilon,
+    domain.flux_timestep = compute_fluxes_ext(timestep, domain.epsilon,
                                          domain.H0,
                                          domain.g,
                                          domain.neighbours,

@@ -207,6 +207,8 @@ class Domain(Mesh):
         self.finaltime = None
         self.min_timestep = self.max_timestep = 0.0
         self.starttime = 0 #Physical starttime if any (0 is 1 Jan 1970 00:00:00)
+        self.timestep = 0.0
+        self.flux_timestep = 0.0
 
         # Monitoring
         self.quantities_to_be_monitored = None
@@ -241,15 +243,7 @@ class Domain(Mesh):
 
 
 
-    def set_default_order(self, n):
-        """Set default (spatial) order to either 1 or 2
-        """
 
-        msg = 'Default order must be either 1 or 2. I got %s' %n
-        assert n in [1,2], msg
-
-        self.default_order = n
-        self._order_ = self.default_order
 
 
     #Public interface to Domain
@@ -294,6 +288,17 @@ class Domain(Mesh):
         """Get the model time (seconds)"""
 
         return self.time
+
+    def set_default_order(self, n):
+        """Set default (spatial) order to either 1 or 2
+        """
+
+        msg = 'Default order must be either 1 or 2. I got %s' %n
+        assert n in [1,2], msg
+
+        self.default_order = n
+        self._order_ = self.default_order
+        
 
     def set_quantity_vertices_dict(self, quantity_dict):
         """Set values for named quantities.
@@ -963,7 +968,7 @@ class Domain(Mesh):
 
     def set_timestepping_method(self,timestepping_method):
         
-        if timestepping_method in ['euler', 'rk2']:
+        if timestepping_method in ['euler', 'rk2', 'rk3']:
             self.timestepping_method = timestepping_method
             return
 
@@ -1112,8 +1117,11 @@ class Domain(Mesh):
                 self.evolve_one_euler_step(yieldstep,finaltime)
                 
             elif self.get_timestepping_method() == 'rk2':
-                self.evolve_one_rk2_step(yieldstep,finaltime)               
+                self.evolve_one_rk2_step(yieldstep,finaltime)
 
+            elif self.get_timestepping_method() == 'rk3':
+                self.evolve_one_rk3_step(yieldstep,finaltime)               
+            
             # Update extrema if necessary (for reporting)
             self.update_extrema()            
 
@@ -1182,7 +1190,7 @@ class Domain(Mesh):
         
 
 
-    def evolve_one_rk2_step(self,yieldstep, finaltime):
+    def evolve_one_rk2_step(self, yieldstep, finaltime):
         """One 2nd order RK timestep"""
 
         #Save initial initial conserved quantities values
@@ -1225,15 +1233,11 @@ class Domain(Mesh):
 
         #------------------------------------
         #Combine initial and final values
-        #of conserved quantities
+        #of conserved quantities and cleanup
         #------------------------------------
-
+        #combine steps
         self.saxpy_conserved_quantities(0.5, 0.5)
-
-        #------------------------------------
-        #Clean up rk step
-        #------------------------------------
-            
+ 
         #update ghosts
         self.update_ghosts()
 
@@ -1242,6 +1246,103 @@ class Domain(Mesh):
 
         #Update boundary values
         self.update_boundary()
+
+
+
+    def evolve_one_rk3_step(self, yieldstep, finaltime):
+        """One 2nd order RK timestep"""
+
+
+
+        #Save initial initial conserved quantities values
+        self.backup_conserved_quantities()            
+
+        initial_time = self.time
+        
+        #--------------------------------------
+        #First euler step
+        #--------------------------------------
+
+        #Compute fluxes across each element edge
+        self.compute_fluxes()
+
+        #Update timestep to fit yieldstep and finaltime
+        self.update_timestep(yieldstep, finaltime)
+
+        #Update conserved quantities
+        self.update_conserved_quantities()
+
+        #update ghosts
+        self.update_ghosts()
+
+        #Update vertex and edge values
+        self.distribute_to_vertices_and_edges()
+
+        #Update boundary values
+        self.update_boundary()
+
+        #Update time
+        self.time += self.timestep
+
+        #------------------------------------
+        #Second Euler step
+        #------------------------------------
+            
+        #Compute fluxes across each element edge
+        self.compute_fluxes()
+
+        #Update conserved quantities
+        self.update_conserved_quantities()
+
+        #------------------------------------
+        #Combine final and initial values
+        #of conserved quantities and cleanup
+        #------------------------------------
+        #combine steps
+        self.saxpy_conserved_quantities(0.25, 0.75)
+ 
+        #update ghosts
+        self.update_ghosts()
+
+        #Update vertex and edge values
+        self.distribute_to_vertices_and_edges()
+
+        #Update boundary values
+        self.update_boundary()
+
+        #set substep time
+        self.time = initial_time + self.timestep*0.5
+
+        #------------------------------------
+        #Third Euler step
+        #------------------------------------
+            
+        #Compute fluxes across each element edge
+        self.compute_fluxes()
+
+        #Update conserved quantities
+        self.update_conserved_quantities()
+
+        #------------------------------------
+        #Combine final and initial values
+        #of conserved quantities and cleanup
+        #------------------------------------
+        #combine steps
+        self.saxpy_conserved_quantities(2.0/3.0, 1.0/3.0)
+ 
+        #update ghosts
+        self.update_ghosts()
+
+        #Update vertex and edge values
+        self.distribute_to_vertices_and_edges()
+
+        #Update boundary values
+        self.update_boundary()
+
+        #set substep time
+        self.time = initial_time + self.timestep       
+        
+
 
 
     def evolve_to_end(self, finaltime = 1.0):
@@ -1343,7 +1444,7 @@ class Domain(Mesh):
                         
         # self.timestep is calculated from speed of characteristics
         # Apply CFL condition here
-        timestep = min(self.CFL*self.timestep, max_timestep)
+        timestep = min(self.CFL*self.flux_timestep, max_timestep)
 
         #Record maximal and minimal values of timestep for reporting
         self.max_timestep = max(timestep, self.max_timestep)
