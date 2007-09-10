@@ -483,8 +483,8 @@ int _balance_deep_and_shallow(int N,
   int k, k3, i;
   double dz, hmin, alpha, h_diff;
 
-  //Compute linear combination between w-limited stages and
-  //h-limited stages close to the bed elevation.
+  // Compute linear combination between w-limited stages and
+  // h-limited stages close to the bed elevation.
 
   for (k=0; k<N; k++) {
     // Compute maximal variation in bed elevation
@@ -496,40 +496,40 @@ int _balance_deep_and_shallow(int N,
 
     k3 = 3*k;
 
-    //FIXME: Try with this one precomputed
+    
     dz = 0.0;
-    hmin = hv[k3];
-    for (i=0; i<3; i++) {
-      if (tight_slope_limiters == 0) { 
-        dz = max(dz, fabs(zv[k3+i]-zc[k]));
+    if (tight_slope_limiters == 0) {     
+      // FIXME: Try with this one precomputed
+      for (i=0; i<3; i++) {
+	dz = max(dz, fabs(zv[k3+i]-zc[k]));
       }
-      
-      hmin = min(hmin, hv[k3+i]);
     }
 
+    // Calculate minimal depth across all three vertices
+    hmin = min(hv[k3], min(hv[k3+1], hv[k3+2]));
+    
+    
 
-    //Create alpha in [0,1], where alpha==0 means using the h-limited
-    //stage and alpha==1 means using the w-limited stage as
-    //computed by the gradient limiter (both 1st or 2nd order)
-    
-    
+    // Create alpha in [0,1], where alpha==0 means using the h-limited
+    // stage and alpha==1 means using the w-limited stage as
+    // computed by the gradient limiter (both 1st or 2nd order)
     if (tight_slope_limiters == 0) {     
-      //If hmin > dz/alpha_balance then alpha = 1 and the bed will have no 
-      //effect
-      //If hmin < 0 then alpha = 0 reverting to constant height above bed.
-      //The parameter alpha_balance==2 by default 
+      // If hmin > dz/alpha_balance then alpha = 1 and the bed will have no 
+      // effect
+      // If hmin < 0 then alpha = 0 reverting to constant height above bed.
+      // The parameter alpha_balance==2 by default 
 
       
       if (dz > 0.0) {
 	alpha = max( min( alpha_balance*hmin/dz, 1.0), 0.0 );      
       } else {
-	alpha = 1.0;  //Flat bed
+	alpha = 1.0;  // Flat bed
       }
       //printf("Using old style limiter\n");
       
     } else {
 
-      // 2007 Balanced Limiter
+      // Tight Slope Limiter (2007)
     
       // Make alpha as large as possible but still ensure that 
       // final depth is positive
@@ -590,10 +590,10 @@ int _balance_deep_and_shallow(int N,
       for (i=0; i<3; i++) {
 	wv[k3+i] = zv[k3+i] + (1-alpha)*hvbar[k3+i] + alpha*hv[k3+i];
 
-	//Update momentum as a linear combination of
-	//xmomc and ymomc (shallow) and momentum
-	//from extrapolator xmomv and ymomv (deep).
-	//FIXME (Ole): Is this really needed?
+	// Update momentum as a linear combination of
+	// xmomc and ymomc (shallow) and momentum
+	// from extrapolator xmomv and ymomv (deep).
+	// FIXME (Ole): Is this really needed?
 	xmomv[k3+i] = (1-alpha)*xmomc[k] + alpha*xmomv[k3+i];
 	ymomv[k3+i] = (1-alpha)*ymomc[k] + alpha*ymomv[k3+i];
       }
@@ -617,7 +617,7 @@ int _protect(int N,
   double hc;
   double u, v, reduced_speed;
 
-  //Protect against initesimal and negative heights
+  // Protect against initesimal and negative heights
   for (k=0; k<N; k++) {
     hc = wc[k] - zc[k];
 
