@@ -36,11 +36,11 @@ int _rotate(double *q, double n1, double n2) {
 
   double q1, q2;
 
-  //Shorthands
-  q1 = q[1];  //uh momentum
-  q2 = q[2];  //vh momentum
+  // Shorthands
+  q1 = q[1];  // uh momentum
+  q2 = q[2];  // vh momentum
 
-  //Rotate
+  // Rotate
   q[1] =  n1*q1 + n2*q2;
   q[2] = -n2*q1 + n1*q2;
 
@@ -212,10 +212,9 @@ int flux_function_central(double *q_left, double *q_right,
   double v_left, v_right;  
   double s_min, s_max, soundspeed_left, soundspeed_right;
   double denom, z;
-  
-  // FIXME (Ole): Try making these static
-  double q_left_rotated[3], q_right_rotated[3];
-  double flux_right[3], flux_left[3];
+
+  // Workspace (allocate once, use many)
+  static double q_left_rotated[3], q_right_rotated[3], flux_right[3], flux_left[3];
 
   double h0 = H0*H0; // This ensures a good balance when h approaches H0.
                      // But evidence suggests that h0 can be as little as
@@ -1401,15 +1400,13 @@ double _compute_fluxes_central(int number_of_elements,
 			       int optimise_dry_cells) {
 			       
   // Local variables
-  double max_speed, length, area;
-  
-  // FIXME (Ole): Try making arrays static  
-  double normal[2], ql[3], qr[3], zl, zr;
-  double edgeflux[3]; // Work array for summing up fluxes
-
+  double max_speed, length, area, zl, zr;
   int k, i, m, n;
-
   int ki, nm=0, ki2; // Index shorthands
+  
+  // Workspace (making them static actually made function slightly slower (Ole))  
+  double ql[3], qr[3], edgeflux[3]; // Work array for summing up fluxes
+
   static long call=1; // Static local variable flagging already computed flux
 			       
 	
@@ -1439,7 +1436,7 @@ double _compute_fluxes_central(int number_of_elements,
       ql[0] = stage_edge_values[ki];
       ql[1] = xmom_edge_values[ki];
       ql[2] = ymom_edge_values[ki];
-      zl =    bed_edge_values[ki];
+      zl = bed_edge_values[ki];
 
       // Quantities at neighbour on nearest face
       n = neighbours[ki];
@@ -1483,13 +1480,10 @@ double _compute_fluxes_central(int number_of_elements,
       
       // Outward pointing normal vector (domain.normals[k, 2*i:2*i+2])
       ki2 = 2*ki; //k*6 + i*2
-      normal[0] = normals[ki2];
-      normal[1] = normals[ki2+1];
-      
 
       // Edge flux computation (triangle k, edge i)
       flux_function_central(ql, qr, zl, zr,
-			    normal[0], normal[1],
+			    normals[ki2], normals[ki2+1],
 			    epsilon, H0, g,
 			    edgeflux, &max_speed);
       
