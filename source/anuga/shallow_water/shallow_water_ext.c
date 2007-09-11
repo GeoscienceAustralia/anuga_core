@@ -1258,16 +1258,22 @@ int _extrapolate_second_order_sw(int number_of_elements,
 
 
 PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
-  /*Compute the vertex values based on a linear reconstruction on each triangle
+  /*Compute the vertex values based on a linear reconstruction 
+    on each triangle
+    
     These values are calculated as follows:
-    1) For each triangle not adjacent to a boundary, we consider the auxiliary triangle
-    formed by the centroids of its three neighbours.
-    2) For each conserved quantity, we integrate around the auxiliary triangle's boundary the product
-    of the quantity and the outward normal vector. Dividing by the triangle area gives (a,b), the average
-    of the vector (q_x,q_y) on the auxiliary triangle. We suppose that the linear reconstruction on the
-    original triangle has gradient (a,b).
-    3) Provisional vertex jumps dqv[0,1,2] are computed and these are then limited by calling the functions
-    find_qmin_and_qmax and limit_gradient
+    1) For each triangle not adjacent to a boundary, we consider the 
+       auxiliary triangle formed by the centroids of its three 
+       neighbours.
+    2) For each conserved quantity, we integrate around the auxiliary 
+       triangle's boundary the product of the quantity and the outward 
+       normal vector. Dividing by the triangle area gives (a,b), the 
+       average of the vector (q_x,q_y) on the auxiliary triangle. 
+       We suppose that the linear reconstruction on the original 
+       triangle has gradient (a,b).
+    3) Provisional vertex jumps dqv[0,1,2] are computed and these are 
+       then limited by calling the functions find_qmin_and_qmax and 
+       limit_gradient
 
     Python call:
     extrapolate_second_order_sw(domain.surrogate_neighbours,
@@ -1282,7 +1288,8 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
                                 Ymom.vertex_values)
 
     Post conditions:
-            The vertices of each triangle have values from a limited linear reconstruction
+            The vertices of each triangle have values from a 
+	    limited linear reconstruction
 	    based on centroid values
 
   */
@@ -1324,14 +1331,15 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
 			&elevation_vertex_values,
 			&optimise_dry_cells)) {			
 			
-    PyErr_SetString(PyExc_RuntimeError, "Input arguments to extrapolate_second_order_sw failed");
+    PyErr_SetString(PyExc_RuntimeError, 
+		    "Input arguments to extrapolate_second_order_sw failed");
     return NULL;
   }
 
-  // FIXME (Ole): Investigate if it is quicker to obtain all input arguments using GetAttrString rather than ParseTuple.
-  // It certainly looked as if passing domain.epsilon is slowed things down
+  // Get the safety factor beta_w, set in the config.py file. 
+  // This is used in the limiting process
   
-  // Get the safety factor beta_w, set in the config.py file. This is used in the limiting process
+  
   Tmp = PyObject_GetAttrString(domain, "beta_w");
   if (!Tmp) {
     PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: extrapolate_second_order_sw could not obtain object beta_w from domain");
@@ -1395,7 +1403,8 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
   }  
   epsilon = PyFloat_AsDouble(Tmp);
   Py_DECREF(Tmp);  
-
+  
+  
   // Call underlying computational routine
   number_of_elements = stage_centroid_values -> dimensions[0];  
   e = _extrapolate_second_order_sw(number_of_elements,
@@ -1510,8 +1519,6 @@ PyObject *extrapolate_second_order_sw_original(PyObject *self, PyObject *args) {
     return NULL;
   }
 
-  // FIXME (Ole): Investigate if it is quicker to obtain all input arguments using GetAttrString rather than ParseTuple.
-  // It certainly looked as if passing domain.epsilon is slowed things down
   
   // Get the safety factor beta_w, set in the config.py file. This is used in the limiting process
   Tmp = PyObject_GetAttrString(domain, "beta_w");
@@ -2252,12 +2259,12 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
 				     epsilon,
 				     H0,
 				     g,
-				     (long*) neighbours -> data,				 
+				     (long*) neighbours -> data,
 				     (long*) neighbour_edges -> data,
 				     (double*) normals -> data,
 				     (double*) edgelengths -> data, 
-				     (double*) radii  -> data, 
-				     (double*) areas  -> data,
+				     (double*) radii -> data, 
+				     (double*) areas -> data,
 				     (long*) tri_full_flag -> data,
 				     (double*) stage_edge_values -> data,
 				     (double*) xmom_edge_values -> data,
@@ -2266,7 +2273,7 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
 				     (double*) stage_boundary_values -> data,
 				     (double*) xmom_boundary_values -> data,
 				     (double*) ymom_boundary_values -> data,
-				     (double*) stage_explicit_update -> data,			       
+				     (double*) stage_explicit_update -> data,
 				     (double*) xmom_explicit_update -> data,
 				     (double*) ymom_explicit_update -> data,
 				     (long*) already_computed_flux -> data,
@@ -2781,6 +2788,11 @@ PyObject *balance_deep_and_shallow(PyObject *self, PyObject *args) {
     return NULL;
   }  
 	  
+	  
+  // FIXME (Ole): I tested this without GetAttrString and got time down
+  // marginally from 4.0s to 3.8s. Consider passing everything in 
+  // through ParseTuple and profile.
+  
   // Pull out parameters
   Tmp = PyObject_GetAttrString(domain, "alpha_balance");
   if (!Tmp) {
@@ -2807,9 +2819,12 @@ PyObject *balance_deep_and_shallow(PyObject *self, PyObject *args) {
   }  
   tight_slope_limiters = PyInt_AsLong(Tmp);
   Py_DECREF(Tmp);
-    
-
   
+  
+      
+  //alpha_balance = 2.0; 
+  //H0 = 0.001;
+  //tight_slope_limiters = 1;
   
   N = wc -> dimensions[0];
 
