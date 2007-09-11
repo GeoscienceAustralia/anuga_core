@@ -35,10 +35,10 @@ int _compute_gradients(int N,
 		index3 = 3*k;
 
 		if (number_of_boundaries[k] < 2) {
-			//Two or three true neighbours
+			// Two or three true neighbours
 
-			//Get indices of neighbours (or self when used as surrogate)
-			//k0, k1, k2 = surrogate_neighbours[k,:]
+			// Get indices of neighbours (or self when used as surrogate)
+			// k0, k1, k2 = surrogate_neighbours[k,:]
 
 			k0 = surrogate_neighbours[index3 + 0];
 			k1 = surrogate_neighbours[index3 + 1];
@@ -47,7 +47,7 @@ int _compute_gradients(int N,
 
 			if (k0 == k1 || k1 == k2) return -1;
 
-			//Get data
+			// Get data
 			q0 = centroid_values[k0];
 			q1 = centroid_values[k1];
 			q2 = centroid_values[k2];
@@ -56,13 +56,13 @@ int _compute_gradients(int N,
 			x1 = centroids[k1*2]; y1 = centroids[k1*2+1];
 			x2 = centroids[k2*2]; y2 = centroids[k2*2+1];
 
-			//Gradient
+			// Gradient
 			_gradient(x0, y0, x1, y1, x2, y2, q0, q1, q2, &a[k], &b[k]);
 
 		} else if (number_of_boundaries[k] == 2) {
-			//One true neighbour
+			// One true neighbour
 
-			//Get index of the one neighbour
+			// Get index of the one neighbour
 			i=0; k0 = k;
 			while (i<3 && k0==k) {
 				k0 = surrogate_neighbours[index3 + i];
@@ -72,28 +72,20 @@ int _compute_gradients(int N,
 
 			k1 = k; //self
 
-			//Get data
+			// Get data
 			q0 = centroid_values[k0];
 			q1 = centroid_values[k1];
 
 			x0 = centroids[k0*2]; y0 = centroids[k0*2+1];
 			x1 = centroids[k1*2]; y1 = centroids[k1*2+1];
 
-			//Two point gradient
+			// Two point gradient
 			_gradient2(x0, y0, x1, y1, q0, q1, &a[k], &b[k]);
 
-
-			//Old (wrong code)
-			//det = x0*y1 - x1*y0;
-			//if (det != 0.0) {
-			//	a[k] = (y1*q0 - y0*q1)/det;
-			//	b[k] = (x0*q1 - x1*q0)/det;
-			//}
 		}
 		//    else:
 		//        #No true neighbours -
 		//        #Fall back to first order scheme
-		//        pass
 	}
 	return 0;
 }
@@ -116,11 +108,11 @@ int _extrapolate(int N,
 		k3 = 3*k;
 		k2 = 2*k;
 
-		//Centroid coordinates
+		// Centroid coordinates
 		x = centroids[k2]; y = centroids[k2+1];
 
-		//vertex coordinates
-		//x0, y0, x1, y1, x2, y2 = X[k,:]
+		// vertex coordinates
+		// x0, y0, x1, y1, x2, y2 = X[k,:]
 		x0 = vertex_coordinates[k6 + 0];
 		y0 = vertex_coordinates[k6 + 1];
 		x1 = vertex_coordinates[k6 + 2];
@@ -128,7 +120,7 @@ int _extrapolate(int N,
 		x2 = vertex_coordinates[k6 + 4];
 		y2 = vertex_coordinates[k6 + 5];
 
-		//Extrapolate
+		// Extrapolate
 		vertex_values[k3+0] = centroid_values[k] + a[k]*(x0-x) + b[k]*(y0-y);
 		vertex_values[k3+1] = centroid_values[k] + a[k]*(x1-x) + b[k]*(y1-y);
 		vertex_values[k3+2] = centroid_values[k] + a[k]*(x2-x) + b[k]*(y2-y);
@@ -155,7 +147,6 @@ int _interpolate(int N,
 		q1 = vertex_values[k3 + 1];
 		q2 = vertex_values[k3 + 2];
 
-		//printf("%f, %f, %f\n", q0, q1, q2);
 		edge_values[k3 + 0] = 0.5*(q1+q2);
 		edge_values[k3 + 1] = 0.5*(q0+q2);
 		edge_values[k3 + 2] = 0.5*(q0+q1);
@@ -166,7 +157,7 @@ int _interpolate(int N,
 int _backup_centroid_values(int N,
 			    double* centroid_values,
 			    double* centroid_backup_values) {
-    //Backup centroid values
+    // Backup centroid values
 
 
     int k;
@@ -185,7 +176,7 @@ int _saxpy_centroid_values(int N,
 			   double b,
 			   double* centroid_values,
 			   double* centroid_backup_values) {
-    //saxby centroid values
+    // Saxby centroid values
 
 
     int k;
@@ -205,15 +196,15 @@ int _update(int N,
 	    double* centroid_values,
 	    double* explicit_update,
 	    double* semi_implicit_update) {
-	//Update centroid values based on values stored in
-	//explicit_update and semi_implicit_update as well as given timestep
+	// Update centroid values based on values stored in
+	// explicit_update and semi_implicit_update as well as given timestep
 
 
 	int k;
 	double denominator, x;
 
 
-	//Divide semi_implicit update by conserved quantity
+	// Divide semi_implicit update by conserved quantity
 	for (k=0; k<N; k++) {
 		x = centroid_values[k];
 		if (x == 0.0) {
@@ -224,7 +215,7 @@ int _update(int N,
 	}
 
 
-	//Semi implicit updates
+	// Semi implicit updates
 	for (k=0; k<N; k++) {
 		denominator = 1.0 - timestep*semi_implicit_update[k];
 		if (denominator == 0.0) {
@@ -235,18 +226,14 @@ int _update(int N,
 		}
 	}
 
-	/*  for (k=0; k<N; k++) {*/
-	/*    centroid_values[k] = exp(timestep*semi_implicit_update[k])*centroid_values[k];*/
-	/*  }*/
 
-
-	//Explicit updates
+	// Explicit updates
 	for (k=0; k<N; k++) {
 		centroid_values[k] += timestep*explicit_update[k];
 	}
 
 
-	//MH080605 set semi_implicit_update[k] to 0.0 here, rather than in update_conserved_quantities.py
+	// MH080605 set semi_implicit_update[k] to 0.0 here, rather than in update_conserved_quantities.py
 	for (k=0;k<N;k++){
 		semi_implicit_update[k]=0.0;
 	}
@@ -260,7 +247,7 @@ int _average_vertex_values(int N,
 			   long* number_of_triangles_per_node,
 			   double* vertex_values, 
 			   double* A) {
-  //Average vertex values to obtain one value per node
+  // Average vertex values to obtain one value per node
 
   int i, index; 
   int k = 0; //Track triangles touching each node
@@ -269,20 +256,20 @@ int _average_vertex_values(int N,
 
   for (i=0; i<N; i++) {
   
-    //if (current_node == N) {
-    //  printf("Current node exceeding number of nodes (%d)", N);    
-    //  return 1;
+    // if (current_node == N) {
+    //   printf("Current node exceeding number of nodes (%d)", N);    
+    //   return 1;
     // }
     
     index = vertex_value_indices[i];
     k += 1;
             
-    //volume_id = index / 3
-    //vertex_id = index % 3
-    //total += self.vertex_values[volume_id, vertex_id]
+    // volume_id = index / 3
+    // vertex_id = index % 3
+    // total += self.vertex_values[volume_id, vertex_id]
     total += vertex_values[index];
       
-    //printf("current_node=%d, index=%d, k=%d, total=%f\n", current_node, index, k, total);
+    // printf("current_node=%d, index=%d, k=%d, total=%f\n", current_node, index, k, total);
     if (number_of_triangles_per_node[current_node] == k) {
       A[current_node] = total/k;
                 
@@ -333,7 +320,7 @@ PyObject *update(PyObject *self, PyObject *args) {
 	  return NULL;
 	}
 
-	//Release and return
+	// Release and return
 	Py_DECREF(centroid_values);
 	Py_DECREF(explicit_update);
 	Py_DECREF(semi_implicit_update);
@@ -367,7 +354,7 @@ PyObject *backup_centroid_values(PyObject *self, PyObject *args) {
 		      (double*) centroid_backup_values -> data);
 
 
-	//Release and return
+	// Release and return
 	Py_DECREF(centroid_values);
 	Py_DECREF(centroid_backup_values);
 
@@ -400,7 +387,7 @@ PyObject *saxpy_centroid_values(PyObject *self, PyObject *args) {
 		      (double*) centroid_backup_values -> data);
 
 
-	//Release and return
+	// Release and return
 	Py_DECREF(centroid_values);
 	Py_DECREF(centroid_backup_values);
 
@@ -437,7 +424,7 @@ PyObject *interpolate_from_vertices_to_edges(PyObject *self, PyObject *args) {
 	  return NULL;
 	}
 
-	//Release and return
+	// Release and return
 	Py_DECREF(vertex_values);
 	Py_DECREF(edge_values);
 
@@ -513,7 +500,7 @@ PyObject *compute_gradients(PyObject *self, PyObject *args) {
 	  return NULL;
 	}
 
-	//Get pertinent variables
+	// Get pertinent variables
 
 	centroids = get_consecutive_array(domain, "centroid_coordinates");
 	centroid_values = get_consecutive_array(quantity, "centroid_values");
@@ -522,10 +509,10 @@ PyObject *compute_gradients(PyObject *self, PyObject *args) {
 
 	N = centroid_values -> dimensions[0];
 
-	//Release
+	// Release
 	Py_DECREF(domain);
 
-	//Allocate space for return vectors a and b (don't DECREF)
+	// Allocate space for return vectors a and b (don't DECREF)
 	dimensions[0] = N;
 	a = (PyArrayObject *) PyArray_FromDims(1, dimensions, PyArray_DOUBLE);
 	b = (PyArrayObject *) PyArray_FromDims(1, dimensions, PyArray_DOUBLE);
@@ -545,13 +532,13 @@ PyObject *compute_gradients(PyObject *self, PyObject *args) {
 	  return NULL;
 	}
 
-	//Release
+	// Release
 	Py_DECREF(centroids);
 	Py_DECREF(centroid_values);
 	Py_DECREF(number_of_boundaries);
 	Py_DECREF(surrogate_neighbours);
 
-	//Build result, release and return
+	// Build result, release and return
 	R = Py_BuildValue("OO", PyArray_Return(a), PyArray_Return(b));
 	Py_DECREF(a);
 	Py_DECREF(b);
@@ -590,7 +577,7 @@ PyObject *extrapolate_second_order(PyObject *self, PyObject *args) {
 	  return NULL;
 	}
 
-	//Get pertinent variables
+	// Get pertinent variables
 	centroids = get_consecutive_array(domain, "centroid_coordinates");
 	centroid_values = get_consecutive_array(quantity, "centroid_values");
 	surrogate_neighbours = get_consecutive_array(domain, "surrogate_neighbours");
@@ -600,7 +587,7 @@ PyObject *extrapolate_second_order(PyObject *self, PyObject *args) {
 
 	N = centroid_values -> dimensions[0];
 
-	//Release
+	// Release
 	Py_DECREF(domain);
 
 	//Allocate space for return vectors a and b (don't DECREF)
@@ -646,7 +633,7 @@ PyObject *extrapolate_second_order(PyObject *self, PyObject *args) {
 
 
 
-	//Release
+	// Release
 	Py_DECREF(centroids);
 	Py_DECREF(centroid_values);
 	Py_DECREF(number_of_boundaries);
@@ -691,7 +678,7 @@ PyObject *limit(PyObject *self, PyObject *args) {
 	//neighbours = (PyArrayObject*) PyObject_GetAttrString(domain, "neighbours");
 	neighbours = get_consecutive_array(domain, "neighbours");
 
-	//Get safety factor beta_w
+	// Get safety factor beta_w
 	Tmp = PyObject_GetAttrString(domain, "beta_w");
 	if (!Tmp) {
 	  PyErr_SetString(PyExc_RuntimeError, 
@@ -712,7 +699,7 @@ PyObject *limit(PyObject *self, PyObject *args) {
 
 	N = qc -> dimensions[0];
 
-	//Find min and max of this and neighbour's centroid values
+	// Find min and max of this and neighbour's centroid values
 	qmin = malloc(N * sizeof(double));
 	qmax = malloc(N * sizeof(double));
 	for (k=0; k<N; k++) {
@@ -764,5 +751,5 @@ static struct PyMethodDef MethodTable[] = {
 void initquantity_ext(void){
   Py_InitModule("quantity_ext", MethodTable);
 
-  import_array();     //Necessary for handling of NumPY structures
+  import_array(); // Necessary for handling of NumPY structures
 }

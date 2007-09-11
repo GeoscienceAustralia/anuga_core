@@ -149,7 +149,9 @@ class Quantity:
         """Compute interpolated values at edges and centroid
         Pre-condition: vertex_values have been set
         """
-
+        # FIXME (Ole): This function is not called
+        # in real model runs. Consider removing it.
+        
         N = self.vertex_values.shape[0]
         for i in range(N):
             v0 = self.vertex_values[i, 0]
