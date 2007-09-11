@@ -59,6 +59,7 @@ int find_qmin_and_qmax(double dq0, double dq1, double dq2,
   // dq0=q(vertex0)-q(centroid of FV triangle)
   // dq1=q(vertex1)-q(vertex0)
   // dq2=q(vertex2)-q(vertex0)
+  
   if (dq0>=0.0){
     if (dq1>=dq2){
       if (dq1>=0.0)
@@ -113,6 +114,7 @@ int limit_gradient(double *dqv, double qmin, double qmax, double beta_w){
   // the FV triangle and the auxiliary triangle vertices,
   // calculate a multiplicative factor phi by which the provisional 
   // vertex jumps are to be limited
+  
   int i;
   double r=1000.0, r0=1.0, phi=1.0;
   static double TINY = 1.0e-100; // to avoid machine accuracy problems.
@@ -120,17 +122,20 @@ int limit_gradient(double *dqv, double qmin, double qmax, double beta_w){
   
   // Any provisional jump with magnitude < TINY does not contribute to 
   // the limiting process.
-    for (i=0;i<3;i++){
+  for (i=0;i<3;i++){
     if (dqv[i]<-TINY)
       r0=qmin/dqv[i];
+      
     if (dqv[i]>TINY)
       r0=qmax/dqv[i];
+      
     r=min(r0,r);
   }
   
   phi=min(r*beta_w,1.0);
   for (i=0;i<3;i++)
     dqv[i]=dqv[i]*phi;
+    
   return 0;
 }
 
@@ -829,11 +834,606 @@ PyObject *manning_friction_explicit(PyObject *self, PyObject *args) {
 
 
 
-// FIXME (Ole): Split this function up into gateway and computational function
-// as done with the others (most recently flux 11/9/7). 
-// That will make the code faster and more readable.
-//
+// Computational routine
+int _extrapolate_second_order_sw(int number_of_elements,
+				  double epsilon,
+				  double minimum_allowed_height,
+				  double beta_w,
+				  double beta_w_dry,
+				  double beta_uh,
+				  double beta_uh_dry,
+				  double beta_vh,
+				  double beta_vh_dry,
+				  long* surrogate_neighbours,
+				  long* number_of_boundaries,
+				  double* centroid_coordinates,
+				  double* stage_centroid_values,
+				  double* xmom_centroid_values,
+				  double* ymom_centroid_values,
+				  double* elevation_centroid_values,
+				  double* vertex_coordinates,
+				  double* stage_vertex_values,
+				  double* xmom_vertex_values,
+				  double* ymom_vertex_values,
+				  double* elevation_vertex_values,
+				  int optimise_dry_cells) {
+				  
+				  
+
+  // Local variables
+  double a, b; // Gradient vector used to calculate vertex values from centroids
+  int k,k0,k1,k2,k3,k6,coord_index,i;
+  double x,y,x0,y0,x1,y1,x2,y2,xv0,yv0,xv1,yv1,xv2,yv2; // Vertices of the auxiliary triangle
+  double dx1,dx2,dy1,dy2,dxv0,dxv1,dxv2,dyv0,dyv1,dyv2,dq0,dq1,dq2,area2;
+  double dqv[3], qmin, qmax, hmin, hmax;
+  double hc, h0, h1, h2, beta_tmp;
+
+	
+  for (k=0; k<number_of_elements; k++) {
+    k3=k*3;
+    k6=k*6;
+
+    
+    if (number_of_boundaries[k]==3){
+      // No neighbours, set gradient on the triangle to zero
+      
+      stage_vertex_values[k3]   = stage_centroid_values[k];
+      stage_vertex_values[k3+1] = stage_centroid_values[k];
+      stage_vertex_values[k3+2] = stage_centroid_values[k];
+      xmom_vertex_values[k3]    = xmom_centroid_values[k];
+      xmom_vertex_values[k3+1]  = xmom_centroid_values[k];
+      xmom_vertex_values[k3+2]  = xmom_centroid_values[k];
+      ymom_vertex_values[k3]    = ymom_centroid_values[k];
+      ymom_vertex_values[k3+1]  = ymom_centroid_values[k];
+      ymom_vertex_values[k3+2]  = ymom_centroid_values[k];
+      
+      continue;
+    }
+    else {
+      // Triangle k has one or more neighbours. 
+      // Get centroid and vertex coordinates of the triangle
+      
+      // Get the vertex coordinates
+      xv0 = vertex_coordinates[k6];   yv0=vertex_coordinates[k6+1];
+      xv1 = vertex_coordinates[k6+2]; yv1=vertex_coordinates[k6+3];
+      xv2 = vertex_coordinates[k6+4]; yv2=vertex_coordinates[k6+5];
+      
+      // Get the centroid coordinates
+      coord_index=2*k;
+      x=centroid_coordinates[coord_index];
+      y=centroid_coordinates[coord_index+1];
+      
+      // Store x- and y- differentials for the vertices of 
+      // triangle k relative to the centroid
+      dxv0=xv0-x; dxv1=xv1-x; dxv2=xv2-x;
+      dyv0=yv0-y; dyv1=yv1-y; dyv2=yv2-y;
+    }
+
+
+            
+    if (number_of_boundaries[k]<=1){
+    
+      //==============================================
+      // Number of boundaries <= 1
+      //==============================================    
+    
+    
+      // If no boundaries, auxiliary triangle is formed 
+      // from the centroids of the three neighbours
+      // If one boundary, auxiliary triangle is formed 
+      // from this centroid and its two neighbours
+      
+      k0=surrogate_neighbours[k3];
+      k1=surrogate_neighbours[k3+1];
+      k2=surrogate_neighbours[k3+2];
+      
+      // Get the auxiliary triangle's vertex coordinates 
+      // (really the centroids of neighbouring triangles)
+      coord_index=2*k0;
+      x0=centroid_coordinates[coord_index];
+      y0=centroid_coordinates[coord_index+1];
+      
+      coord_index=2*k1;
+      x1=centroid_coordinates[coord_index];
+      y1=centroid_coordinates[coord_index+1];
+      
+      coord_index=2*k2;
+      x2=centroid_coordinates[coord_index];
+      y2=centroid_coordinates[coord_index+1];
+      
+      // Store x- and y- differentials for the vertices 
+      // of the auxiliary triangle
+      dx1=x1-x0; dx2=x2-x0;
+      dy1=y1-y0; dy2=y2-y0;
+      
+      // Calculate 2*area of the auxiliary triangle
+      // The triangle is guaranteed to be counter-clockwise      
+      area2 = dy2*dx1 - dy1*dx2; 
+      
+      // If the mesh is 'weird' near the boundary, 
+      // the triangle might be flat or clockwise:
+      if (area2<=0) {
+	PyErr_SetString(PyExc_RuntimeError, 
+			"shallow_water_ext.c: negative triangle area encountered");
+	return -1;
+      }  
+      
+      // Calculate heights of neighbouring cells
+      hc = stage_centroid_values[k]  - elevation_centroid_values[k];
+      h0 = stage_centroid_values[k0] - elevation_centroid_values[k0];
+      h1 = stage_centroid_values[k1] - elevation_centroid_values[k1];
+      h2 = stage_centroid_values[k2] - elevation_centroid_values[k2];
+      hmin = min(h0,min(h1,h2));
+      
+      
+      if (optimise_dry_cells) {      
+	// Check if linear reconstruction is necessary for triangle k
+	// This check will exclude dry cells.
+
+	hmax = max(h0,max(h1,h2));      
+	if (hmax < epsilon) {
+	  continue;
+	}
+      }
+
+            
+      //-----------------------------------
+      // stage
+      //-----------------------------------      
+      
+      // Calculate the difference between vertex 0 of the auxiliary 
+      // triangle and the centroid of triangle k
+      dq0=stage_centroid_values[k0]-stage_centroid_values[k];
+      
+      // Calculate differentials between the vertices 
+      // of the auxiliary triangle (centroids of neighbouring triangles)
+      dq1=stage_centroid_values[k1]-stage_centroid_values[k0];
+      dq2=stage_centroid_values[k2]-stage_centroid_values[k0];
+      
+      // Calculate the gradient of stage on the auxiliary triangle
+      a = dy2*dq1 - dy1*dq2;
+      a /= area2;
+      b = dx1*dq2 - dx2*dq1;
+      b /= area2;
+      
+      // Calculate provisional jumps in stage from the centroid 
+      // of triangle k to its vertices, to be limited
+      dqv[0]=a*dxv0+b*dyv0;
+      dqv[1]=a*dxv1+b*dyv1;
+      dqv[2]=a*dxv2+b*dyv2;
+      
+      // Now we want to find min and max of the centroid and the 
+      // vertices of the auxiliary triangle and compute jumps 
+      // from the centroid to the min and max
+      find_qmin_and_qmax(dq0,dq1,dq2,&qmin,&qmax);
+      
+      // Playing with dry wet interface
+      hmin = qmin;
+      beta_tmp = beta_w;
+      if (hmin<minimum_allowed_height)
+	beta_tmp = beta_w_dry;
+	
+      // Limit the gradient
+      limit_gradient(dqv,qmin,qmax,beta_tmp); 
+      
+      for (i=0;i<3;i++)
+	stage_vertex_values[k3+i]=stage_centroid_values[k]+dqv[i];
+      
+      
+      //-----------------------------------
+      // xmomentum
+      //-----------------------------------            
+
+      // Calculate the difference between vertex 0 of the auxiliary 
+      // triangle and the centroid of triangle k      
+      dq0=xmom_centroid_values[k0]-xmom_centroid_values[k];
+      
+      // Calculate differentials between the vertices 
+      // of the auxiliary triangle
+      dq1=xmom_centroid_values[k1]-xmom_centroid_values[k0];
+      dq2=xmom_centroid_values[k2]-xmom_centroid_values[k0];
+      
+      // Calculate the gradient of xmom on the auxiliary triangle
+      a = dy2*dq1 - dy1*dq2;
+      a /= area2;
+      b = dx1*dq2 - dx2*dq1;
+      b /= area2;
+      
+      // Calculate provisional jumps in stage from the centroid 
+      // of triangle k to its vertices, to be limited      
+      dqv[0]=a*dxv0+b*dyv0;
+      dqv[1]=a*dxv1+b*dyv1;
+      dqv[2]=a*dxv2+b*dyv2;
+      
+      // Now we want to find min and max of the centroid and the 
+      // vertices of the auxiliary triangle and compute jumps 
+      // from the centroid to the min and max
+      find_qmin_and_qmax(dq0,dq1,dq2,&qmin,&qmax);
+      beta_tmp = beta_uh;
+      if (hmin<minimum_allowed_height)
+	beta_tmp = beta_uh_dry;
+	
+      // Limit the gradient
+      limit_gradient(dqv,qmin,qmax,beta_tmp);
+
+      for (i=0;i<3;i++)
+	xmom_vertex_values[k3+i]=xmom_centroid_values[k]+dqv[i];
+      
+      
+      //-----------------------------------
+      // ymomentum
+      //-----------------------------------                  
+
+      // Calculate the difference between vertex 0 of the auxiliary 
+      // triangle and the centroid of triangle k
+      dq0=ymom_centroid_values[k0]-ymom_centroid_values[k];
+      
+      // Calculate differentials between the vertices 
+      // of the auxiliary triangle
+      dq1=ymom_centroid_values[k1]-ymom_centroid_values[k0];
+      dq2=ymom_centroid_values[k2]-ymom_centroid_values[k0];
+      
+      // Calculate the gradient of xmom on the auxiliary triangle
+      a = dy2*dq1 - dy1*dq2;
+      a /= area2;
+      b = dx1*dq2 - dx2*dq1;
+      b /= area2;
+      
+      // Calculate provisional jumps in stage from the centroid 
+      // of triangle k to its vertices, to be limited
+      dqv[0]=a*dxv0+b*dyv0;
+      dqv[1]=a*dxv1+b*dyv1;
+      dqv[2]=a*dxv2+b*dyv2;
+      
+      // Now we want to find min and max of the centroid and the 
+      // vertices of the auxiliary triangle and compute jumps 
+      // from the centroid to the min and max
+      find_qmin_and_qmax(dq0,dq1,dq2,&qmin,&qmax);
+      beta_tmp = beta_vh;
+      
+      if (hmin<minimum_allowed_height)
+	beta_tmp = beta_vh_dry;
+	
+      // Limit the gradient
+      limit_gradient(dqv,qmin,qmax,beta_tmp);
+      
+      for (i=0;i<3;i++)
+	ymom_vertex_values[k3+i]=ymom_centroid_values[k]+dqv[i];
+	
+    } // End number_of_boundaries <=1 
+    else{
+
+      //==============================================
+      // Number of boundaries == 2
+      //==============================================        
+        
+      // One internal neighbour and gradient is in direction of the neighbour's centroid
+      
+      // Find the only internal neighbour
+      for (k2=k3;k2<k3+3;k2++){
+	// Find internal neighbour of triangle k      
+	// k2 indexes the edges of triangle k	
+      
+	if (surrogate_neighbours[k2]!=k)
+	  break;
+      }
+      if ((k2==k3+3)) {
+	// If we didn't find an internal neighbour
+	PyErr_SetString(PyExc_RuntimeError, 
+			"shallow_water_ext.c: Internal neighbour not found");      
+	return -1;
+      }
+      
+      k1=surrogate_neighbours[k2];
+      
+      // The coordinates of the triangle are already (x,y). 
+      // Get centroid of the neighbour (x1,y1)
+      coord_index=2*k1;
+      x1=centroid_coordinates[coord_index];
+      y1=centroid_coordinates[coord_index+1];
+      
+      // Compute x- and y- distances between the centroid of 
+      // triangle k and that of its neighbour
+      dx1=x1-x; dy1=y1-y;
+      
+      // Set area2 as the square of the distance
+      area2=dx1*dx1+dy1*dy1;
+      
+      // Set dx2=(x1-x0)/((x1-x0)^2+(y1-y0)^2) 
+      // and dy2=(y1-y0)/((x1-x0)^2+(y1-y0)^2) which
+      // respectively correspond to the x- and y- gradients 
+      // of the conserved quantities
+      dx2=1.0/area2;
+      dy2=dx2*dy1;
+      dx2*=dx1;
+      
+      
+      
+      //-----------------------------------
+      // stage
+      //-----------------------------------            
+
+      // Compute differentials
+      dq1=stage_centroid_values[k1]-stage_centroid_values[k];
+      
+      // Calculate the gradient between the centroid of triangle k 
+      // and that of its neighbour
+      a=dq1*dx2;
+      b=dq1*dy2;
+      
+      // Calculate provisional vertex jumps, to be limited
+      dqv[0]=a*dxv0+b*dyv0;
+      dqv[1]=a*dxv1+b*dyv1;
+      dqv[2]=a*dxv2+b*dyv2;
+      
+      // Now limit the jumps
+      if (dq1>=0.0){
+	qmin=0.0;
+	qmax=dq1;
+      }
+      else{
+	qmin=dq1;
+	qmax=0.0;
+      }
+      
+      // Limit the gradient
+      limit_gradient(dqv,qmin,qmax,beta_w);
+      
+      for (i=0;i<3;i++)
+	stage_vertex_values[k3+i]=stage_centroid_values[k]+dqv[i];
+      
+      
+      //-----------------------------------
+      // xmomentum
+      //-----------------------------------                        
+      
+      // Compute differentials
+      dq1=xmom_centroid_values[k1]-xmom_centroid_values[k];
+      
+      // Calculate the gradient between the centroid of triangle k 
+      // and that of its neighbour
+      a=dq1*dx2;
+      b=dq1*dy2;
+      
+      // Calculate provisional vertex jumps, to be limited
+      dqv[0]=a*dxv0+b*dyv0;
+      dqv[1]=a*dxv1+b*dyv1;
+      dqv[2]=a*dxv2+b*dyv2;
+      
+      // Now limit the jumps
+      if (dq1>=0.0){
+	qmin=0.0;
+	qmax=dq1;
+      }
+      else{
+	qmin=dq1;
+	qmax=0.0;
+      }
+      
+      // Limit the gradient      
+      limit_gradient(dqv,qmin,qmax,beta_w);
+      
+      for (i=0;i<3;i++)
+	xmom_vertex_values[k3+i]=xmom_centroid_values[k]+dqv[i];
+      
+      
+      //-----------------------------------
+      // ymomentum
+      //-----------------------------------                        
+
+      // Compute differentials
+      dq1=ymom_centroid_values[k1]-ymom_centroid_values[k];
+      
+      // Calculate the gradient between the centroid of triangle k 
+      // and that of its neighbour
+      a=dq1*dx2;
+      b=dq1*dy2;
+      
+      // Calculate provisional vertex jumps, to be limited
+      dqv[0]=a*dxv0+b*dyv0;
+      dqv[1]=a*dxv1+b*dyv1;
+      dqv[2]=a*dxv2+b*dyv2;
+      
+      // Now limit the jumps
+      if (dq1>=0.0){
+	qmin=0.0;
+	qmax=dq1;
+      }
+      else{
+	qmin=dq1;
+	qmax=0.0;
+      }
+      
+      // Limit the gradient
+      limit_gradient(dqv,qmin,qmax,beta_w);
+      
+      for (i=0;i<3;i++)
+	ymom_vertex_values[k3+i]=ymom_centroid_values[k]+dqv[i];
+	
+    } // else [number_of_boundaries==2]
+  } // for k=0 to number_of_elements-1
+  
+  return 0;
+}			
+
+
 PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
+  /*Compute the vertex values based on a linear reconstruction on each triangle
+    These values are calculated as follows:
+    1) For each triangle not adjacent to a boundary, we consider the auxiliary triangle
+    formed by the centroids of its three neighbours.
+    2) For each conserved quantity, we integrate around the auxiliary triangle's boundary the product
+    of the quantity and the outward normal vector. Dividing by the triangle area gives (a,b), the average
+    of the vector (q_x,q_y) on the auxiliary triangle. We suppose that the linear reconstruction on the
+    original triangle has gradient (a,b).
+    3) Provisional vertex jumps dqv[0,1,2] are computed and these are then limited by calling the functions
+    find_qmin_and_qmax and limit_gradient
+
+    Python call:
+    extrapolate_second_order_sw(domain.surrogate_neighbours,
+                                domain.number_of_boundaries
+                                domain.centroid_coordinates,
+                                Stage.centroid_values
+                                Xmom.centroid_values
+                                Ymom.centroid_values
+                                domain.vertex_coordinates,
+                                Stage.vertex_values,
+                                Xmom.vertex_values,
+                                Ymom.vertex_values)
+
+    Post conditions:
+            The vertices of each triangle have values from a limited linear reconstruction
+	    based on centroid values
+
+  */
+  PyArrayObject *surrogate_neighbours,
+    *number_of_boundaries,
+    *centroid_coordinates,
+    *stage_centroid_values,
+    *xmom_centroid_values,
+    *ymom_centroid_values,
+	*elevation_centroid_values,
+    *vertex_coordinates,
+    *stage_vertex_values,
+    *xmom_vertex_values,
+    *ymom_vertex_values,
+	*elevation_vertex_values;
+  PyObject *domain, *Tmp;
+
+  
+  double beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry;    
+  double minimum_allowed_height, epsilon;
+  int optimise_dry_cells, number_of_elements, e;
+  
+  // Provisional jumps from centroids to v'tices and safety factor re limiting
+  // by which these jumps are limited
+  // Convert Python arguments to C
+  if (!PyArg_ParseTuple(args, "OOOOOOOOOOOOOi",
+			&domain,
+			&surrogate_neighbours,
+			&number_of_boundaries,
+			&centroid_coordinates,
+			&stage_centroid_values,
+			&xmom_centroid_values,
+			&ymom_centroid_values,
+			&elevation_centroid_values,
+			&vertex_coordinates,
+			&stage_vertex_values,
+			&xmom_vertex_values,
+			&ymom_vertex_values,
+			&elevation_vertex_values,
+			&optimise_dry_cells)) {			
+			
+    PyErr_SetString(PyExc_RuntimeError, "Input arguments to extrapolate_second_order_sw failed");
+    return NULL;
+  }
+
+  // FIXME (Ole): Investigate if it is quicker to obtain all input arguments using GetAttrString rather than ParseTuple.
+  // It certainly looked as if passing domain.epsilon is slowed things down
+  
+  // Get the safety factor beta_w, set in the config.py file. This is used in the limiting process
+  Tmp = PyObject_GetAttrString(domain, "beta_w");
+  if (!Tmp) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: extrapolate_second_order_sw could not obtain object beta_w from domain");
+    return NULL;
+  }  
+  beta_w = PyFloat_AsDouble(Tmp);
+  Py_DECREF(Tmp);
+  
+  Tmp = PyObject_GetAttrString(domain, "beta_w_dry");
+  if (!Tmp) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: extrapolate_second_order_sw could not obtain object beta_w_dry from domain");
+    return NULL;
+  }  
+  beta_w_dry = PyFloat_AsDouble(Tmp);
+  Py_DECREF(Tmp);
+  
+  Tmp = PyObject_GetAttrString(domain, "beta_uh");
+  if (!Tmp) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: extrapolate_second_order_sw could not obtain object beta_uh from domain");
+    return NULL;
+  }  
+  beta_uh = PyFloat_AsDouble(Tmp);
+  Py_DECREF(Tmp);
+  
+  Tmp = PyObject_GetAttrString(domain, "beta_uh_dry");
+  if (!Tmp) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: extrapolate_second_order_sw could not obtain object beta_uh_dry from domain");
+    return NULL;
+  }  
+  beta_uh_dry = PyFloat_AsDouble(Tmp);
+  Py_DECREF(Tmp); 
+
+  Tmp = PyObject_GetAttrString(domain, "beta_vh");
+  if (!Tmp) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: extrapolate_second_order_sw could not obtain object beta_vh from domain");
+    return NULL;
+  }  
+  beta_vh = PyFloat_AsDouble(Tmp);
+  Py_DECREF(Tmp);
+  
+  Tmp = PyObject_GetAttrString(domain, "beta_vh_dry");
+  if (!Tmp) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: extrapolate_second_order_sw could not obtain object beta_vh_dry from domain");
+    return NULL;
+  }  
+  beta_vh_dry = PyFloat_AsDouble(Tmp);
+  Py_DECREF(Tmp);
+  
+  Tmp = PyObject_GetAttrString(domain, "minimum_allowed_height");
+  if (!Tmp) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: extrapolate_second_order_sw could not obtain object minimum_allowed_height");
+    return NULL;
+  }  
+  minimum_allowed_height = PyFloat_AsDouble(Tmp);
+  Py_DECREF(Tmp);  
+
+  Tmp = PyObject_GetAttrString(domain, "epsilon");
+  if (!Tmp) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: extrapolate_second_order_sw could not obtain object epsilon");
+    return NULL;
+  }  
+  epsilon = PyFloat_AsDouble(Tmp);
+  Py_DECREF(Tmp);  
+
+  // Call underlying computational routine
+  number_of_elements = stage_centroid_values -> dimensions[0];  
+  e = _extrapolate_second_order_sw(number_of_elements,
+				   epsilon,
+				   minimum_allowed_height,
+				   beta_w,
+				   beta_w_dry,
+				   beta_uh,
+				   beta_uh_dry,
+				   beta_vh,
+				   beta_vh_dry,
+				   (long*) surrogate_neighbours -> data,
+				   (long*) number_of_boundaries -> data,
+				   (double*) centroid_coordinates -> data,
+				   (double*) stage_centroid_values -> data,
+				   (double*) xmom_centroid_values -> data,
+				   (double*) ymom_centroid_values -> data,
+				   (double*) elevation_centroid_values -> data,
+				   (double*) vertex_coordinates -> data,
+				   (double*) stage_vertex_values -> data,
+				   (double*) xmom_vertex_values -> data,
+				   (double*) ymom_vertex_values -> data,
+				   (double*) elevation_vertex_values -> data,
+				   optimise_dry_cells);
+  if (e == -1) {
+    // Use error string set inside computational routine
+    return NULL;
+  }  				  
+  
+  
+  return Py_BuildValue("");
+  
+}// extrapolate_second-order_sw
+
+
+
+// FIXME (Ole): This function is obsolete as of 12 Sep 2007
+PyObject *extrapolate_second_order_sw_original(PyObject *self, PyObject *args) {
   /*Compute the vertex values based on a linear reconstruction on each triangle
     These values are calculated as follows:
     1) For each triangle not adjacent to a boundary, we consider the auxiliary triangle
@@ -886,6 +1486,7 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
   int optimise_dry_cells=1; // Optimisation flag    
   double beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry, beta_tmp;
   double minimum_allowed_height;
+  
   // Provisional jumps from centroids to v'tices and safety factor re limiting
   // by which these jumps are limited
   // Convert Python arguments to C
