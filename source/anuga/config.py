@@ -130,7 +130,7 @@ use_extensions = True    #Try to use C-extensions
 #use_extensions = False   #Do not use C-extensions
 
 use_psyco = True  #Use psyco optimisations
-#use_psyco = False  #Do not use psyco optimisations
+se_psyco = False  #Do not use psyco optimisations
 
 
 optimise_dry_cells = True # Exclude dry and still cells from flux computation
@@ -140,7 +140,8 @@ optimised_gradient_limiter = True # Use hardwired gradient limiter
 #Specific to shallow water W.E.
 minimum_allowed_height = 1.0e-3 #Water depth below which it is considered to be 0 in the model
 
-maximum_allowed_speed = 1.0 # Maximal particle speed of water
+maximum_allowed_speed = 0.0 # Maximal particle speed of water
+#maximum_allowed_speed = 1.0 # Maximal particle speed of water
                             # Too large (100) creates 'flopping' water
                             # Too small (0) creates 'creep'
 
