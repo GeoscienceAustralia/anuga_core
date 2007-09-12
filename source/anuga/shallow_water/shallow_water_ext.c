@@ -279,7 +279,7 @@ int flux_function_central(double *q_left, double *q_right,
   
   // Flux computation
   denom = s_max-s_min;
-  if (denom == 0.0) {  // FIXME (Ole): Try using epsilon here
+  if (denom < epsilon) { // FIXME (Ole): Try using H0 here
     for (i=0; i<3; i++) edgeflux[i] = 0.0;
     *max_speed = 0.0;
   } else {
@@ -622,53 +622,63 @@ int _protect(int N,
   double hc;
   double u, v, reduced_speed;
 
-  // Protect against initesimal and negative heights
-  for (k=0; k<N; k++) {
-    hc = wc[k] - zc[k];
 
-    if (hc < minimum_allowed_height) {
+  // Protect against initesimal and negative heights  
+  if (maximum_allowed_speed < epsilon) {
+    for (k=0; k<N; k++) {
+      hc = wc[k] - zc[k];
+
+      if (hc < minimum_allowed_height) {
     	
-      //Old code: Set momentum to zero and ensure h is non negative
-      //xmomc[k] = 0.0;
-      //ymomc[k] = 0.0;
-      //if (hc <= 0.0) wc[k] = zc[k];
-
-
-      //New code: Adjust momentum to guarantee speeds are physical
-      //          ensure h is non negative
-      //FIXME (Ole): This is only implemented in this C extension and
-      //             has no Python equivalent
-            
-      if (hc <= 0.0) {
-      	wc[k] = zc[k];
+	// Set momentum to zero and ensure h is non negative
 	xmomc[k] = 0.0;
 	ymomc[k] = 0.0;
-      } else {
-        //Reduce excessive speeds derived from division by small hc
-	//FIXME (Ole): This may be unnecessary with new slope limiters 
-	//in effect.
-        
-        u = xmomc[k]/hc;
-	if (fabs(u) > maximum_allowed_speed) {
-	  reduced_speed = maximum_allowed_speed * u/fabs(u);
-	  //printf("Speed (u) has been reduced from %.3f to %.3f\n",
-	  //	 u, reduced_speed);
-	  xmomc[k] = reduced_speed * hc;
-	}
+	if (hc <= 0.0) wc[k] = zc[k];
+      }
+    }
+  } else {
+   
+    // Protect against initesimal and negative heights
+    for (k=0; k<N; k++) {
+      hc = wc[k] - zc[k];
 
-        v = ymomc[k]/hc;
-	if (fabs(v) > maximum_allowed_speed) {
-	  reduced_speed = maximum_allowed_speed * v/fabs(v);
-	  //printf("Speed (v) has been reduced from %.3f to %.3f\n",
-	  //	 v, reduced_speed);
-	  ymomc[k] = reduced_speed * hc;
-	}
+      if (hc < minimum_allowed_height) {
+
+        //New code: Adjust momentum to guarantee speeds are physical
+        //          ensure h is non negative
+        //FIXME (Ole): This is only implemented in this C extension and
+        //             has no Python equivalent
+              
+        if (hc <= 0.0) {
+        	wc[k] = zc[k];
+    	xmomc[k] = 0.0;
+    	ymomc[k] = 0.0;
+        } else {
+          //Reduce excessive speeds derived from division by small hc
+    	//FIXME (Ole): This may be unnecessary with new slope limiters 
+    	//in effect.
+          
+          u = xmomc[k]/hc;
+	  if (fabs(u) > maximum_allowed_speed) {
+	    reduced_speed = maximum_allowed_speed * u/fabs(u);
+	    //printf("Speed (u) has been reduced from %.3f to %.3f\n",
+	    //	 u, reduced_speed);
+	    xmomc[k] = reduced_speed * hc;
+	  }
+
+          v = ymomc[k]/hc;
+	  if (fabs(v) > maximum_allowed_speed) {
+	    reduced_speed = maximum_allowed_speed * v/fabs(v);
+	    //printf("Speed (v) has been reduced from %.3f to %.3f\n",
+	    //	 v, reduced_speed);
+	    ymomc[k] = reduced_speed * hc;
+	  }
+        }
       }
     }
   }
   return 0;
 }
-
 
 
 
@@ -679,7 +689,7 @@ int _assign_wind_field_values(int N,
 			      double* phi_vec,
 			      double cw) {
 
-  //Assign windfield values to momentum updates
+  // Assign windfield values to momentum updates
 
   int k;
   double S, s, phi, u, v;

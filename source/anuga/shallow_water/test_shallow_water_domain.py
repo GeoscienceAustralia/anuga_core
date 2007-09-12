@@ -872,7 +872,8 @@ class Test_Shallow_Water(unittest.TestCase):
         #--------------------------------------------------------------
         N = 5
         points, vertices, boundary = rectangular_cross(N, N) 
-        domain = Domain(points, vertices, boundary)            
+        domain = Domain(points, vertices, boundary)
+        domain.set_maximum_allowed_speed(1.0)        
 
         #--------------------------------------------------------------
         # Setup initial conditions
@@ -1019,6 +1020,7 @@ class Test_Shallow_Water(unittest.TestCase):
         points, vertices, boundary = rectangular_cross(N, N) 
         domain = Domain(points, vertices, boundary)
         domain.set_name('runup_test')
+        domain.set_maximum_allowed_speed(1.0)
         #domain.tight_slope_limiters = 1 #FIXME: This works better with old limiters
 
         #--------------------------------------------------------------
@@ -2988,7 +2990,8 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_vh     = 0.9
         domain.beta_vh_dry = 0.9        
         #domain.minimum_allowed_height = 0.0 #Makes it like the 'oldstyle' balance
-        domain.H0 = 0 # Backwards compatibility (6/2/7)        
+        domain.H0 = 0 # Backwards compatibility (6/2/7)
+        domain.set_maximum_allowed_speed(1.0)        
 
         # Boundary conditions
         Br = Reflective_boundary(domain)
@@ -3103,7 +3106,8 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_uh_dry = 0.9
         domain.beta_vh     = 0.9
         domain.beta_vh_dry = 0.9
-        domain.H0 = 0 # Backwards compatibility (6/2/7)        
+        domain.H0 = 0 # Backwards compatibility (6/2/7)
+        domain.set_maximum_allowed_speed(1.0)        
 
         # Boundary conditions
         Br = Reflective_boundary(domain)
