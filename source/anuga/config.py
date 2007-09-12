@@ -80,8 +80,9 @@ beta_vh     = 1.0
 beta_vh_dry = 0.2
 beta_h      = 0.2
 
-# beta_h can be safely put to zero esp if we are using tight_slope_limiters = 1. This will
-# also speed things up.
+# beta_h can be safely put to zero esp if we are using
+# tight_slope_limiters = 1. This will
+# also speed things up in general
 beta_h = 0.0
 
 
@@ -130,7 +131,7 @@ use_extensions = True    #Try to use C-extensions
 #use_extensions = False   #Do not use C-extensions
 
 use_psyco = True  #Use psyco optimisations
-se_psyco = False  #Do not use psyco optimisations
+#use_psyco = False  #Do not use psyco optimisations
 
 
 optimise_dry_cells = True # Exclude dry and still cells from flux computation

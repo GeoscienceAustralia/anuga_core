@@ -11,6 +11,153 @@ from anuga.utilities.polygon import is_inside_polygon
 from shallow_water_domain import *
 from shallow_water_domain import flux_function_central as flux_function
 
+class Weir:
+    """Set a bathymetry for weir with a hole and a downstream gutter
+    x,y are assumed to be in the unit square
+    """
+
+    def __init__(self, stage):
+        self.inflow_stage = stage
+
+    def __call__(self, x, y):
+        from Numeric import zeros, Float
+        from math import sqrt
+
+        N = len(x)
+        assert N == len(y)
+
+        z = zeros(N, Float)
+        for i in range(N):
+            z[i] = -x[i]/2  #General slope
+
+            #Flattish bit to the left
+            if x[i] < 0.3:
+                z[i] = -x[i]/10
+
+            #Weir
+            if x[i] >= 0.3 and x[i] < 0.4:
+                z[i] = -x[i]+0.9
+
+            #Dip
+            x0 = 0.6
+            #depth = -1.3
+            depth = -1.0
+            #plateaux = -0.9
+            plateaux = -0.6
+            if y[i] < 0.7:
+                if x[i] > x0 and x[i] < 0.9:
+                    z[i] = depth
+
+                #RHS plateaux
+                if x[i] >= 0.9:
+                    z[i] = plateaux
+
+
+            elif y[i] >= 0.7 and y[i] < 1.5:
+                #Restrict and deepen
+                if x[i] >= x0 and x[i] < 0.8:
+                    z[i] = depth-(y[i]/3-0.3)
+                    #z[i] = depth-y[i]/5
+                    #z[i] = depth
+                elif x[i] >= 0.8:
+                    #RHS plateaux
+                    z[i] = plateaux
+
+            elif y[i] >= 1.5:
+                if x[i] >= x0 and x[i] < 0.8 + (y[i]-1.5)/1.2:
+                    #Widen up and stay at constant depth
+                    z[i] = depth-1.5/5
+                elif x[i] >= 0.8 + (y[i]-1.5)/1.2:
+                    #RHS plateaux
+                    z[i] = plateaux
+
+
+            #Hole in weir (slightly higher than inflow condition)
+            if x[i] >= 0.3 and x[i] < 0.4 and y[i] > 0.2 and y[i] < 0.4:
+                z[i] = -x[i]+self.inflow_stage + 0.02
+
+            #Channel behind weir
+            x0 = 0.5
+            if x[i] >= 0.4 and x[i] < x0 and y[i] > 0.2 and y[i] < 0.4:
+                z[i] = -x[i]+self.inflow_stage + 0.02
+
+            if x[i] >= x0 and x[i] < 0.6 and y[i] > 0.2 and y[i] < 0.4:
+                #Flatten it out towards the end
+                z[i] = -x0+self.inflow_stage + 0.02 + (x0-x[i])/5
+
+            #Hole to the east
+            x0 = 1.1; y0 = 0.35
+            #if x[i] < -0.2 and y < 0.5:
+            if sqrt((2*(x[i]-x0))**2 + (2*(y[i]-y0))**2) < 0.2:
+                z[i] = sqrt(((x[i]-x0))**2 + ((y[i]-y0))**2)-1.0
+
+            #Tiny channel draining hole
+            if x[i] >= 1.14 and x[i] < 1.2 and y[i] >= 0.4 and y[i] < 0.6:
+                z[i] = -0.9 #North south
+
+            if x[i] >= 0.9 and x[i] < 1.18 and y[i] >= 0.58 and y[i] < 0.65:
+                z[i] = -1.0 + (x[i]-0.9)/3 #East west
+
+
+
+            #Stuff not in use
+
+            #Upward slope at inlet to the north west
+            #if x[i] < 0.0: # and y[i] > 0.5:
+            #    #z[i] = -y[i]+0.5  #-x[i]/2
+            #    z[i] = x[i]/4 - y[i]**2 + 0.5
+
+            #Hole to the west
+            #x0 = -0.4; y0 = 0.35 # center
+            #if sqrt((2*(x[i]-x0))**2 + (2*(y[i]-y0))**2) < 0.2:
+            #    z[i] = sqrt(((x[i]-x0))**2 + ((y[i]-y0))**2)-0.2
+
+
+
+
+
+        return z/2
+
+class Weir_simple:
+    """Set a bathymetry for weir with a hole and a downstream gutter
+    x,y are assumed to be in the unit square
+    """
+
+    def __init__(self, stage):
+        self.inflow_stage = stage
+
+    def __call__(self, x, y):
+        from Numeric import zeros, Float
+
+        N = len(x)
+        assert N == len(y)
+
+        z = zeros(N, Float)
+        for i in range(N):
+            z[i] = -x[i]  #General slope
+
+            #Flat bit to the left
+            if x[i] < 0.3:
+                z[i] = -x[i]/10  #General slope
+
+            #Weir
+            if x[i] > 0.3 and x[i] < 0.4:
+                z[i] = -x[i]+0.9
+
+            #Dip
+            if x[i] > 0.6 and x[i] < 0.9:
+                z[i] = -x[i]-0.5  #-y[i]/5
+
+            #Hole in weir (slightly higher than inflow condition)
+            if x[i] > 0.3 and x[i] < 0.4 and y[i] > 0.2 and y[i] < 0.4:
+                z[i] = -x[i]+self.inflow_stage + 0.05
+
+
+        return z/2
+
+
+
+
 #Variable windfield implemented using functions
 def speed(t,x,y):
     """Large speeds halfway between center and edges
@@ -3265,7 +3412,8 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
         #Initial condition
-        domain.set_quantity('stage', Constant_height(x_slope, 0.05))
+        #domain.set_quantity('stage', Constant_height(x_slope, 0.05))
+        domain.set_quantity('stage', expression='elevation+0.05')
         domain.check_integrity()
 
         #Evolution
@@ -3309,7 +3457,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
         #Initial condition
-        domain.set_quantity('stage', Constant_height(x_slope, 0.05))
+        domain.set_quantity('stage', expression='elevation+0.05')
         domain.check_integrity()
 
         #Evolution
@@ -3381,7 +3529,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
         #Initial condition
-        domain.set_quantity('stage', Constant_height(x_slope, 0.05))
+        domain.set_quantity('stage', expression='elevation+0.05')
         domain.check_integrity()
 
         assert allclose(domain.quantities['stage'].centroid_values,
@@ -3478,7 +3626,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
         #Initial condition
-        domain.set_quantity('stage', Constant_height(x_slope, 0.05))
+        domain.set_quantity('stage', expression='elevation+0.05')
         domain.check_integrity()
 
         assert allclose(domain.quantities['stage'].centroid_values,
@@ -3580,7 +3728,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
         #Initial condition
-        domain.set_quantity('stage', Constant_height(x_slope, 0.05))
+        domain.set_quantity('stage', expression='elevation+0.05')
         domain.check_integrity()
 
         assert allclose(domain.quantities['stage'].centroid_values,
@@ -3941,7 +4089,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
         #Initial condition
-        domain.set_quantity('stage', Constant_height(x_slope, 0.05))
+        domain.set_quantity('stage', expression='elevation+0.05')
         domain.check_integrity()
 
         #Evolution
@@ -3983,7 +4131,7 @@ class Test_Shallow_Water(unittest.TestCase):
         Bd = Dirichlet_boundary([inflow_stage, 0.0, 0.0])
         domain.set_boundary({'left': Bd, 'right': Br, 'bottom': Br, 'top': Br})
 
-        domain.set_quantity('stage', Constant_height(Z, 0.))
+        domain.set_quantity('stage', expression='elevation')
 
         for t in domain.evolve(yieldstep = 0.02, finaltime = 0.2):
             pass

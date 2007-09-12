@@ -205,7 +205,7 @@ class Domain(Generic_Domain):
         # FIXME (Ole): how about using the word continuous vertex values?
         self.smooth = not flag
 
-        #Reduction operation for get_vertex_values
+        # Reduction operation for get_vertex_values
         if reduction is None:
             self.reduction = mean
             #self.reduction = min  #Looks better near steep slopes
@@ -505,7 +505,7 @@ class Domain(Generic_Domain):
 
 
 
-#Rotation of momentum vector
+# Rotation of momentum vector
 def rotate(q, normal, direction = 1):
     """Rotate the momentum component q (q[1], q[2])
     from x,y coordinates to coordinates based on normal vector.
@@ -1220,41 +1220,54 @@ def balance_deep_and_shallow_c(domain):
     """Wrapper for C implementation
     """
 
-    #Shortcuts
+    # FIXME (Ole): I reckon this can be simplified significantly:
+    #
+    # Always use beta_h == 0, and phase it out.
+    # Compute hc and hv in the c-code
+    # Omit updating xmomv 
+    #
+    from shallow_water_ext import balance_deep_and_shallow
+    
+    # Shortcuts
     wc = domain.quantities['stage'].centroid_values
     zc = domain.quantities['elevation'].centroid_values
-    hc = wc - zc
+    #hc = wc - zc
 
     wv = domain.quantities['stage'].vertex_values
     zv = domain.quantities['elevation'].vertex_values
-    hv = wv - zv
+    #hv = wv - zv
 
-    #Momentums at centroids
+    # Momentums at centroids
     xmomc = domain.quantities['xmomentum'].centroid_values
     ymomc = domain.quantities['ymomentum'].centroid_values
 
-    #Momentums at vertices
+    # Momentums at vertices
     xmomv = domain.quantities['xmomentum'].vertex_values
     ymomv = domain.quantities['ymomentum'].vertex_values
 
     #Limit h
     if domain.beta_h > 0:
         hvbar = h_limiter(domain)
+        
+        balance_deep_and_shallow(domain, domain.beta_h,
+                                 wc, zc, wv, zv, hvbar,
+                                 xmomc, ymomc, xmomv, ymomv)        
     else:
         # print 'Using first order h-limiter'
-      
+        # FIXME: Pass wc in for now - it will be ignored.
         
         #This is how one would make a first order h_limited value
         #as in the old balancer (pre 17 Feb 2005):
         # If we wish to hard wire this, one should modify the C-code
-        from Numeric import zeros, Float
-        hvbar = zeros( (len(hc), 3), Float)
-        for i in range(3):
-            hvbar[:,i] = hc[:]
+        #from Numeric import zeros, Float
+        #hvbar = zeros( (len(wc), 3), Float)
+        #for i in range(3):
+        #    hvbar[:,i] = wc[:] - zc[:]
 
-    from shallow_water_ext import balance_deep_and_shallow
-    balance_deep_and_shallow(domain, wc, zc, hc, wv, zv, hv, hvbar,
-                             xmomc, ymomc, xmomv, ymomv)
+        balance_deep_and_shallow(domain, domain.beta_h,
+                                 wc, zc, wv, zv, wc, 
+                                 xmomc, ymomc, xmomv, ymomv)
+
 
 
 
@@ -2004,365 +2017,13 @@ class Inflow:
             quantity[k] += flow/self.area		        
 
 
-##############################
-#OBSOLETE STUFF
-
-def balance_deep_and_shallow_old(domain):
-    """Compute linear combination between stage as computed by
-    gradient-limiters and stage computed as constant height above bed.
-    The former takes precedence when heights are large compared to the
-    bed slope while the latter takes precedence when heights are
-    relatively small.  Anything in between is computed as a balanced
-    linear combination in order to avoid numerical disturbances which
-    would otherwise appear as a result of hard switching between
-    modes.
-    """
-
-    #OBSOLETE
-
-    #Shortcuts
-    wc = domain.quantities['stage'].centroid_values
-    zc = domain.quantities['elevation'].centroid_values
-    hc = wc - zc
-
-    wv = domain.quantities['stage'].vertex_values
-    zv = domain.quantities['elevation'].vertex_values
-    hv = wv-zv
-
-
-    #Computed linear combination between constant stages and and
-    #stages parallel to the bed elevation.
-    for k in range(len(domain)):
-        #Compute maximal variation in bed elevation
-        #  This quantitiy is
-        #    dz = max_i abs(z_i - z_c)
-        #  and it is independent of dimension
-        #  In the 1d case zc = (z0+z1)/2
-        #  In the 2d case zc = (z0+z1+z2)/3
-
-        dz = max(abs(zv[k,0]-zc[k]),
-                 abs(zv[k,1]-zc[k]),
-                 abs(zv[k,2]-zc[k]))
-
-
-        hmin = min( hv[k,:] )
-
-        #Create alpha in [0,1], where alpha==0 means using shallow
-        #first order scheme and alpha==1 means using the stage w as
-        #computed by the gradient limiter (1st or 2nd order)
-        #
-        #If hmin > dz/2 then alpha = 1 and the bed will have no effect
-        #If hmin < 0 then alpha = 0 reverting to constant height above bed.
-
-        if dz > 0.0:
-            alpha = max( min( 2*hmin/dz, 1.0), 0.0 )
-        else:
-            #Flat bed
-            alpha = 1.0
-
-        #Weighted balance between stage parallel to bed elevation
-        #(wvi = zvi + hc) and stage as computed by 1st or 2nd
-        #order gradient limiter
-        #(wvi = zvi + hvi) where i=0,1,2 denotes the vertex ids
-        #
-        #It follows that the updated wvi is
-        #  wvi := (1-alpha)*(zvi+hc) + alpha*(zvi+hvi) =
-        #  zvi + hc + alpha*(hvi - hc)
-        #
-        #Note that hvi = zc+hc-zvi in the first order case (constant).
-
-        if alpha < 1:
-            for i in range(3):
-                wv[k,i] = zv[k,i] + hc[k] + alpha*(hv[k,i]-hc[k])
-
-
-            #Momentums at centroids
-            xmomc = domain.quantities['xmomentum'].centroid_values
-            ymomc = domain.quantities['ymomentum'].centroid_values
-
-            #Momentums at vertices
-            xmomv = domain.quantities['xmomentum'].vertex_values
-            ymomv = domain.quantities['ymomentum'].vertex_values
-
-            # Update momentum as a linear combination of
-            # xmomc and ymomc (shallow) and momentum
-            # from extrapolator xmomv and ymomv (deep).
-            xmomv[k,:] = (1-alpha)*xmomc[k] + alpha*xmomv[k,:]
-            ymomv[k,:] = (1-alpha)*ymomc[k] + alpha*ymomv[k,:]
-
-
-
-
-
-###########################
-###########################
-#Geometries
-
-
-#FIXME: Rethink this way of creating values.
-
-
-class Weir:
-    """Set a bathymetry for weir with a hole and a downstream gutter
-    x,y are assumed to be in the unit square
-    """
-
-    def __init__(self, stage):
-        self.inflow_stage = stage
-
-    def __call__(self, x, y):
-        from Numeric import zeros, Float
-        from math import sqrt
-
-        N = len(x)
-        assert N == len(y)
-
-        z = zeros(N, Float)
-        for i in range(N):
-            z[i] = -x[i]/2  #General slope
-
-            #Flattish bit to the left
-            if x[i] < 0.3:
-                z[i] = -x[i]/10
-
-            #Weir
-            if x[i] >= 0.3 and x[i] < 0.4:
-                z[i] = -x[i]+0.9
-
-            #Dip
-            x0 = 0.6
-            #depth = -1.3
-            depth = -1.0
-            #plateaux = -0.9
-            plateaux = -0.6
-            if y[i] < 0.7:
-                if x[i] > x0 and x[i] < 0.9:
-                    z[i] = depth
-
-                #RHS plateaux
-                if x[i] >= 0.9:
-                    z[i] = plateaux
-
-
-            elif y[i] >= 0.7 and y[i] < 1.5:
-                #Restrict and deepen
-                if x[i] >= x0 and x[i] < 0.8:
-                    z[i] = depth-(y[i]/3-0.3)
-                    #z[i] = depth-y[i]/5
-                    #z[i] = depth
-                elif x[i] >= 0.8:
-                    #RHS plateaux
-                    z[i] = plateaux
-
-            elif y[i] >= 1.5:
-                if x[i] >= x0 and x[i] < 0.8 + (y[i]-1.5)/1.2:
-                    #Widen up and stay at constant depth
-                    z[i] = depth-1.5/5
-                elif x[i] >= 0.8 + (y[i]-1.5)/1.2:
-                    #RHS plateaux
-                    z[i] = plateaux
-
-
-            #Hole in weir (slightly higher than inflow condition)
-            if x[i] >= 0.3 and x[i] < 0.4 and y[i] > 0.2 and y[i] < 0.4:
-                z[i] = -x[i]+self.inflow_stage + 0.02
-
-            #Channel behind weir
-            x0 = 0.5
-            if x[i] >= 0.4 and x[i] < x0 and y[i] > 0.2 and y[i] < 0.4:
-                z[i] = -x[i]+self.inflow_stage + 0.02
-
-            if x[i] >= x0 and x[i] < 0.6 and y[i] > 0.2 and y[i] < 0.4:
-                #Flatten it out towards the end
-                z[i] = -x0+self.inflow_stage + 0.02 + (x0-x[i])/5
-
-            #Hole to the east
-            x0 = 1.1; y0 = 0.35
-            #if x[i] < -0.2 and y < 0.5:
-            if sqrt((2*(x[i]-x0))**2 + (2*(y[i]-y0))**2) < 0.2:
-                z[i] = sqrt(((x[i]-x0))**2 + ((y[i]-y0))**2)-1.0
-
-            #Tiny channel draining hole
-            if x[i] >= 1.14 and x[i] < 1.2 and y[i] >= 0.4 and y[i] < 0.6:
-                z[i] = -0.9 #North south
-
-            if x[i] >= 0.9 and x[i] < 1.18 and y[i] >= 0.58 and y[i] < 0.65:
-                z[i] = -1.0 + (x[i]-0.9)/3 #East west
-
-
-
-            #Stuff not in use
-
-            #Upward slope at inlet to the north west
-            #if x[i] < 0.0: # and y[i] > 0.5:
-            #    #z[i] = -y[i]+0.5  #-x[i]/2
-            #    z[i] = x[i]/4 - y[i]**2 + 0.5
-
-            #Hole to the west
-            #x0 = -0.4; y0 = 0.35 # center
-            #if sqrt((2*(x[i]-x0))**2 + (2*(y[i]-y0))**2) < 0.2:
-            #    z[i] = sqrt(((x[i]-x0))**2 + ((y[i]-y0))**2)-0.2
-
-
-
-
-
-        return z/2
-
-class Weir_simple:
-    """Set a bathymetry for weir with a hole and a downstream gutter
-    x,y are assumed to be in the unit square
-    """
-
-    def __init__(self, stage):
-        self.inflow_stage = stage
-
-    def __call__(self, x, y):
-        from Numeric import zeros, Float
-
-        N = len(x)
-        assert N == len(y)
-
-        z = zeros(N, Float)
-        for i in range(N):
-            z[i] = -x[i]  #General slope
-
-            #Flat bit to the left
-            if x[i] < 0.3:
-                z[i] = -x[i]/10  #General slope
-
-            #Weir
-            if x[i] > 0.3 and x[i] < 0.4:
-                z[i] = -x[i]+0.9
-
-            #Dip
-            if x[i] > 0.6 and x[i] < 0.9:
-                z[i] = -x[i]-0.5  #-y[i]/5
-
-            #Hole in weir (slightly higher than inflow condition)
-            if x[i] > 0.3 and x[i] < 0.4 and y[i] > 0.2 and y[i] < 0.4:
-                z[i] = -x[i]+self.inflow_stage + 0.05
-
-
-        return z/2
-
-
-
-class Constant_stage:
-    """Set an initial condition with constant stage
-    """
-    def __init__(self, s):
-        self.s = s
-
-    def __call__(self, x, y):
-        return self.s
-
-class Constant_height:
-    """Set an initial condition with constant water height, e.g
-    stage s = z+h
-    """
-
-    def __init__(self, W, h):
-        self.W = W
-        self.h = h
-
-    def __call__(self, x, y):
-        if self.W is None:
-            from Numeric import ones, Float
-            return self.h*ones(len(x), Float)
-        else:
-            return self.W(x,y) + self.h
-
-
-
-
-def compute_fluxes_python(domain):
-    """Compute all fluxes and the timestep suitable for all volumes
-    in domain.
-
-    Compute total flux for each conserved quantity using "flux_function"
-
-    Fluxes across each edge are scaled by edgelengths and summed up
-    Resulting flux is then scaled by area and stored in
-    explicit_update for each of the three conserved quantities
-    stage, xmomentum and ymomentum
-
-    The maximal allowable speed computed by the flux_function for each volume
-    is converted to a timestep that must not be exceeded. The minimum of
-    those is computed as the next overall timestep.
-
-    Post conditions:
-      domain.explicit_update is reset to computed flux values
-      domain.timestep is set to the largest step satisfying all volumes.
-    """
-
-    import sys
-    from Numeric import zeros, Float
-
-    N = len(domain) # number_of_triangles
-
-    #Shortcuts
-    Stage = domain.quantities['stage']
-    Xmom = domain.quantities['xmomentum']
-    Ymom = domain.quantities['ymomentum']
-    Bed = domain.quantities['elevation']
-
-    #Arrays
-    stage = Stage.edge_values
-    xmom =  Xmom.edge_values
-    ymom =  Ymom.edge_values
-    bed =   Bed.edge_values
-
-    stage_bdry = Stage.boundary_values
-    xmom_bdry =  Xmom.boundary_values
-    ymom_bdry =  Ymom.boundary_values
-
-    flux = zeros((N,3), Float) #Work array for summing up fluxes
-
-    #Loop
-    timestep = float(sys.maxint)
-    for k in range(N):
-
-        for i in range(3):
-            #Quantities inside volume facing neighbour i
-            ql = [stage[k, i], xmom[k, i], ymom[k, i]]
-            zl = bed[k, i]
-
-            #Quantities at neighbour on nearest face
-            n = domain.neighbours[k,i]
-            if n < 0:
-                m = -n-1 #Convert negative flag to index
-                qr = [stage_bdry[m], xmom_bdry[m], ymom_bdry[m]]
-                zr = zl #Extend bed elevation to boundary
-            else:
-                m = domain.neighbour_edges[k,i]
-                qr = [stage[n, m], xmom[n, m], ymom[n, m]]
-                zr = bed[n, m]
-
-
-            #Outward pointing normal vector
-            normal = domain.normals[k, 2*i:2*i+2]
-
-            #Flux computation using provided function
-            edgeflux, max_speed = flux_function(normal, ql, qr, zl, zr)
-
-            flux[k,:] = edgeflux
-
-    return flux
-
-
-
-
-
-
-
-##############################################
-#Initialise module
-
+#------------------
+# Initialise module
+#------------------
 
 from anuga.utilities import compile
 if compile.can_use_C_extension('shallow_water_ext.c'):
-    #Replace python version with c implementations
+    # Replace python version with c implementations
 
     from shallow_water_ext import rotate, assign_windfield_values
     compute_fluxes = compute_fluxes_c
@@ -2379,7 +2040,7 @@ if compile.can_use_C_extension('shallow_water_ext.c'):
 
 
 
-#Optimisation with psyco
+# Optimisation with psyco
 from anuga.config import use_psyco
 if use_psyco:
     try:
@@ -2400,6 +2061,4 @@ if use_psyco:
 if __name__ == "__main__":
     pass
 
-# Profiling stuff
-#import profile
-#profiler = profile.Profile()
+
