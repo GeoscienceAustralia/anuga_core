@@ -548,6 +548,8 @@ def rotate(q, normal, direction = 1):
 
 ####################################
 # Flux computation
+# FIXME (Ole): Delete Python versions of code that is
+# always used in C-extensions - they get out of sync anyway
 def flux_function_central(normal, ql, qr, zl, zr):
     """Compute fluxes between volumes for the shallow water wave equation
     cast in terms of w = h+z using the 'central scheme' as described in

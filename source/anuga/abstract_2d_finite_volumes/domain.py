@@ -371,17 +371,6 @@ class Domain(Mesh):
         return self.quantities[name] #.get_values( location, indices = indices)
 
 
-    def get_quantity_object(self, name):
-        """Get object for named quantity
-
-        name: Name of quantity
-
-        FIXME: Obsolete
-        """
-
-        print 'get_quantity_object has been deprecated. Please use get_quantity'
-        return self.quantities[name]
-
 
     def create_quantity_from_expression(self, expression):
         """Create new quantity from other quantities using arbitrary expression
@@ -408,25 +397,6 @@ class Domain(Mesh):
         return apply_expression_to_dictionary(expression, self.quantities)
 
 
-
-    #def modify_boundary(self, boundary_map):
-    #    """Modify existing boundary by elements in boundary map#
-    #
-    #    Input:#
-    #
-    #    boundary_map: Dictionary mapping tags to boundary objects
-    #
-    #    See set_boundary for more details on how this works
-    #
-    #      OBSOLETE
-    #    """
-    #
-    #    for key in boundary_map.keys():
-    #        self.boundary_map[key] = boundary_map[key]
-    #
-    #    self.set_boundary(self.boundary_map)
-        
-        
 
     def set_boundary(self, boundary_map):
         """Associate boundary objects with tagged boundary segments.
@@ -565,7 +535,7 @@ class Domain(Mesh):
         """Specify which quantities will be monitored for extrema.
 
         q must be either:
-          - the name of a quantity
+          - the name of a quantity or a derived quantity such as 'stage-elevation'
           - a list of quantity names
           - None
 
@@ -579,11 +549,7 @@ class Domain(Mesh):
 
         time_interval (if specified) will restrict monitoring to time steps in
         that interval. If omitted all timesteps will be included.
-
-        FIXME: Derived quantities such as 'stage-elevation' will appear later
         """
-
-        # FIXME (Ole): This is under construction. See ticket:192
 
         from anuga.abstract_2d_finite_volumes.util import\
              apply_expression_to_dictionary        
@@ -1136,8 +1102,11 @@ class Domain(Mesh):
 
                 if self.time > finaltime:
                     # FIXME (Ole, 30 April 2006): Do we need this check?
-                    print 'WARNING (domain.py): time overshot finaltime. Contact Ole.Nielsen@ga.gov.au'
-                    self.time = finaltime
+                    # Probably not (Ole, 18 September 2008). Now changed to Exception
+                    msg = 'WARNING (domain.py): time overshot finaltime. Contact Ole.Nielsen@ga.gov.au'
+                    raise Exception, msg
+                    #self.time = finaltime
+                    
 
                 # Yield final time and stop
                 self.time = finaltime

@@ -326,6 +326,7 @@ def get_machine_precision():
 
 ####################################################################
 #Python versions of function that are also implemented in numerical_tools_ext.c
+# FIXME (Ole): Delete these and update tests
 #
 
 def gradient_python(x0, y0, x1, y1, x2, y2, q0, q1, q2):
@@ -362,7 +363,7 @@ def gradient2_python(x0, y0, x1, y1, q0, q1):
     return a, b        
 
 
-##############################################
+#-----------------
 #Initialise module
 
 from anuga.utilities import compile
@@ -376,26 +377,4 @@ else:
 if __name__ == "__main__":
     pass
 
-
-    
-def angle_obsolete(v):
-    """Compute angle between e1 (the unit vector in the x-direction)
-    and the specified vector v.
-    
-    Return a number in [0, 2pi]
-    """
-    from math import acos, pi, sqrt
-  
-    # Normalise v
-    v = ensure_numeric(v, Float)
-    v = v/sqrt(sum(v**2))
-   
-    # Compute angle
-    theta = acos(v[0])
-     
-    if v[1] < 0: 
-       #Quadrant 3 or 4
-        theta = 2*pi-theta
-    
-    return theta
     

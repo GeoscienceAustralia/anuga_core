@@ -171,14 +171,13 @@ class Quantity:
 
 
 
-    #New leaner interface to setting values
+    # New leaner interface to setting values
     def set_values(self,
                    numeric = None,    # List, numeric array or constant
                    quantity = None,   # Another quantity
                    function = None,   # Callable object: f(x,y)
                    geospatial_data = None, # Arbitrary dataset
-                   points = None, values = None, data_georef = None, #Input
-                   # for fit (obsoleted by use of geo_spatial object)
+                   points = None, values = None, data_georef = None, # Obsoleted by use of geo_spatial object
                    filename = None, attribute_name = None, #Input from file
                    alpha = None,
                    location = 'vertices',
@@ -355,7 +354,8 @@ class Quantity:
 
             msg = 'Using points, values or data_georef with set_quantity '
             msg += 'is obsolete. Please use a Geospatial_data object instead.'
-            warn(msg, DeprecationWarning)
+            #warn(msg, DeprecationWarning)
+            raise Exception, msg
 
 
 
@@ -399,16 +399,12 @@ class Quantity:
                                                      verbose = verbose,
                                                      use_cache = use_cache)
         elif points is not None:
-            print 'The usage of points in set_values will be deprecated.' +\
-                  'Please use the geospatial_data object.'
+            msg = 'The usage of points in set_values has been deprecated.' +\
+                  'Please use the geospatial_data object instead.'
+            raise Exception, msg
 
-            msg = 'When points are specified, associated values must also be.'
-            assert values is not None, msg
-            self.set_values_from_points(points, values, alpha,
-                                        location, indices,
-                                        data_georef = data_georef,
-                                        verbose = verbose,
-                                        use_cache = use_cache)
+
+            
         elif filename is not None:
             if hasattr(self.domain, 'points_file_block_line_size'):
                 max_read_lines = self.domain.points_file_block_line_size
@@ -703,25 +699,6 @@ class Quantity:
 
 
 
-        self.set_values_from_points(points, values, alpha,
-                                    location, indices,
-                                    data_georef = data_georef,
-                                    verbose = verbose,
-                                    use_cache = use_cache)
-
-
-
-    def set_values_from_points(self, points, values, alpha,
-                               location, indices,
-                               data_georef = None,
-                               verbose = False,
-                               use_cache = False):
-        """
-        Set quantity values from arbitray data points using
-        fit_interpolate.fit
-        """
-
-
         from anuga.coordinate_transforms.geo_reference import Geo_reference
 
 
@@ -744,10 +721,6 @@ class Quantity:
 
         mesh_georef = self.domain.geo_reference
 
-        #print mesh_georef
-        #print data_georef
-        #print points
-
 
         # Call fit_interpolate.fit function
         args = (coordinates, triangles, points, values)
@@ -762,6 +735,21 @@ class Quantity:
         # Call underlying method using array values
         self.set_values_from_array(vertex_attributes,
                                    location, indices, verbose)
+
+
+
+    def set_values_from_points(self, points, values, alpha,
+                               location, indices,
+                               data_georef = None,
+                               verbose = False,
+                               use_cache = False):
+        """
+        Set quantity values from arbitray data points using
+        fit_interpolate.fit
+        """
+
+        raise Exception, 'set_values_from_points is obsolete, use geospatial data object instead'
+        
 
     def set_values_from_file(self, filename, attribute_name, alpha,
                              location, indices,
@@ -781,7 +769,7 @@ class Quantity:
 
 
         if location != 'vertices':
-            msg = 'set_values_from_points is only defined for '+\
+            msg = 'set_values_from_file is only defined for '+\
                   'location=\'vertices\''
             raise msg
 
