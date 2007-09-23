@@ -19,7 +19,7 @@
 	Crossings test.
 	if a little preprocessing and extra storage is available:
 	  - For general polygons
-	  * with few sides, use thehalf-plane or spackman test
+	  * with few sides, use the half-plane or spackman test
 	  * with many sides use the crossings test
 	  - For convex polygons
 	  * with few sides, use the hybrid half-plane or spackman test
