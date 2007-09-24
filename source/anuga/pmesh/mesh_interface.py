@@ -1,8 +1,4 @@
 
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# Assume that the directory anuga_core/source is included in your pythonpath
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 from anuga.coordinate_transforms.geo_reference import Geo_reference,DEFAULT_ZONE
 from anuga.utilities.polygon import  point_in_polygon ,populate_polygon
 from anuga.utilities.numerical_tools import ensure_numeric
@@ -43,8 +39,10 @@ def create_mesh_from_regions(bounding_polygon,
     maximum_triangle_area is the maximal area per triangle
     for the bounding polygon, excluding the  interior regions.
 
-    Interior_regions is a list of tuples consisting of (polygon, resolution)
-    for each region to be separately refined. 
+    Interior_regions is a list of tuples consisting of (polygon,
+    resolution) for each region to be separately refined. Do not have
+    polygon lines cross or be on-top of each other.  Also do not have
+    polygon close to each other.
     
     NOTE: If a interior_region is outside the bounding_polygon it should 
     throw an error
