@@ -308,14 +308,14 @@ class Cell(TreeNode):
                 #Split is needed
                 points = self.retrieve()    # Get points from leaf cell
                 self.clear()                # and remove them from storage
-                
+                    
                 self.spawn()                # Spawn child cells and move
                 for p in points:            # points to appropriate child
                     for child in self:
                         if child.contains(p):
                             child.insert(p) 
                             break
-    
+                        
         if self.children:                   # Parent cell
             for child in self:              # split (possibly newly created) 
                 child.split(threshold)      # child cells recursively

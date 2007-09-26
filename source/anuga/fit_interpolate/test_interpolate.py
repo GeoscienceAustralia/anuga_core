@@ -1683,11 +1683,72 @@ class Test_Interpolate(unittest.TestCase):
         os.remove(depth_file)
         os.remove(velocity_x_file)
         os.remove(velocity_y_file)
+
+        
+    def test_interpolate_one_point_many_triangles(self):
+        # this test has 10 triangles that share the same vert.
+        # If the number of points per cell in  a quad tree is less
+        # than 10 it will crash.
+        z0 = [2.0, 5.0]
+        z1 = [2.0, 5.0]
+        z2 = [2.0, 5.0]
+        z3 = [2.0, 5.0]
+        z4 = [2.0, 5.0]
+        z5 = [2.0, 5.0]
+        z6 = [2.0, 5.0]
+        z7 = [2.0, 5.0]
+        z8 = [2.0, 5.0]
+        z9 = [2.0, 5.0]
+        z10 = [2.0, 5.0]
+        
+        v0 = [0.0, 0.0]
+        v1 = [1.0, 0.0]
+        v2 = [2.0, 0.0]
+        v3 = [3.0, 0.0]
+        v4 = [4.0, 0.0]
+        v5 = [0.0, 10.0]
+        v6 = [1.0, 10.0]
+        v7 = [2.0, 10.0]
+        v8 = [3.0, 10.0]
+        v9 = [4.0, 10.0]
+
+        vertices = [z0,v0, v1, v2, v3,v4 ,v5, v6, v7, v8, v9,
+                    z1, z2, z3, z4, z5, z6, z7, z8, z9]
+        triangles = [
+                      [11,1,2],
+                      [12,2,3],
+                      [13,3,4],
+                      [14,4,5],
+                      [7,6,15],
+                      [8,7,16],
+                      [9,8,17],
+                      [10,9,18],
+                      [6,1,19],
+                      [5,10,0]
+                      ]
+
+        d0 = [1.0, 1.0]
+        d1 = [1.0, 2.0]
+        d2 = [3.0, 1.0]
+        point_coords = [ d0, d1, d2]
+        try:
+            interp = Interpolate(vertices, triangles)
+        except RuntimeError:
+            self.failUnless(0 ==1,  'quad fails with 10 verts at the same \
+            position. Real problems have had 9. \
+            Should be able to handle 13.')
+        f = linear_function(vertices)
+        z = interp.interpolate(f, point_coords)
+        answer = linear_function(point_coords)
+
+        #print "z",z 
+        #print "answer",answer 
+        assert allclose(z, answer)
+
 #-------------------------------------------------------------
 if __name__ == "__main__":
-
-    #suite = unittest.makeSuite(Test_Interpolate,'test_sigma_epsilon')
     suite = unittest.makeSuite(Test_Interpolate,'test')
+    #suite = unittest.makeSuite(Test_Interpolate,'test_interpolate_one_point_many_triangles')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
 

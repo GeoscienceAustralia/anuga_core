@@ -37,7 +37,8 @@ from anuga.geospatial_data.geospatial_data import Geospatial_data, \
      ensure_absolute
 
 # tests fail if 2 is used
-MAX_VERTICES_PER_CELL = 8
+MAX_VERTICES_PER_CELL = 13 # A value of 8 or lower can cause problems,
+                           # if a vert has 9 triangles.
 
 class FitInterpolate:
     
