@@ -8,6 +8,7 @@ from math import sqrt
 from Scientific.Functions.Interpolation import InterpolatingFunction
 from Numeric import array, ravel, Float, zeros
 from random import choice
+from types import StringType
 
 try:  
     import kinds  
@@ -40,8 +41,8 @@ WALL_TYPE_LABEL = 'WALL_TYPE'
 STR_VALUE_LABEL = 'STR_VALUE'
 CONT_VALUE_LABEL = 'CONT_VALUE'
 
-def inundation_damage(sww_base_name, exposure_file_in,
-                      exposure_file_out=None,
+def inundation_damage(sww_base_name, exposure_files_in,
+                      exposure_file_out_marker=None,
                       ground_floor_height=0.3,
                       overwrite=False, verbose=True,
                                  use_cache = True):
@@ -58,33 +59,46 @@ def inundation_damage(sww_base_name, exposure_file_in,
     
     These calculations are done over all the sww files with the sww_base_name
     in the specified directory.
-    """
 
-    csv = Exposure_csv(exposure_file_in,
-                       title_check_list=[SHORE_DIST_LABEL,WALL_TYPE_LABEL,
-                                         STR_VALUE_LABEL,CONT_VALUE_LABEL])
-    geospatial = csv.get_location()
-    geospatial = ensure_absolute(geospatial)
-    max_depths, max_momentums = calc_max_depth_and_momentum(sww_base_name,
-                                    geospatial,
-                                    ground_floor_height=ground_floor_height,
-                                    verbose=verbose,
-                                    use_cache=use_cache)
-    edm = EventDamageModel(max_depths,
-                           csv.get_column(SHORE_DIST_LABEL),
-                           csv.get_column(WALL_TYPE_LABEL),
-                           csv.get_column(STR_VALUE_LABEL),
-                           csv.get_column(CONT_VALUE_LABEL)
-                           )
-    results_dic = edm.calc_damage_and_costs(verbose_csv=True, verbose=verbose)
-    for title, value in results_dic.iteritems():
-        csv.set_column(title, value, overwrite=overwrite)
+    exposure_files_in - a file or a list of files to input from
+    exposure_file_out_marker -  this string will be added to the input file
+                                name to get the output file name
+    """
+    if type(exposure_files_in) == StringType:
+        exposure_files_in = [exposure_files_in]
+
+
+    for exposure_file_in in exposure_files_in:
+        csv = Exposure_csv(exposure_file_in,
+                           title_check_list=[SHORE_DIST_LABEL,WALL_TYPE_LABEL,
+                                             STR_VALUE_LABEL,CONT_VALUE_LABEL])
+        geospatial = csv.get_location()
+        geospatial = ensure_absolute(geospatial)
+        max_depths, max_momentums = calc_max_depth_and_momentum(sww_base_name,
+                        geospatial,
+                        ground_floor_height=ground_floor_height,
+                        verbose=verbose,
+                        use_cache=use_cache)
+        edm = EventDamageModel(max_depths,
+                               csv.get_column(SHORE_DIST_LABEL),
+                               csv.get_column(WALL_TYPE_LABEL),
+                               csv.get_column(STR_VALUE_LABEL),
+                               csv.get_column(CONT_VALUE_LABEL)
+                               )
+        results_dic = edm.calc_damage_and_costs(verbose_csv=True,
+                                                verbose=verbose)
+        for title, value in results_dic.iteritems():
+            csv.set_column(title, value, overwrite=overwrite)
     
-    # Save info back to csv file
-    if exposure_file_out == None:
-        exposure_file_out = exposure_file_in
-    csv.save(exposure_file_out)
-    if verbose: print '\n Augmented building file written to %s \n' %exposure_file_out
+        # Save info back to csv file
+        if exposure_file_out_marker == None:
+            exposure_file_out = exposure_file_in
+        else:
+            name, extension = exposure_file_in.split('.')
+            exposure_file_out = name + exposure_file_out_marker + \
+                                '.' + extension
+        csv.save(exposure_file_out)
+        if verbose: print '\n Augmented building file written to %s \n' %exposure_file_out
     
 def add_depth_and_momentum2csv(sww_base_name, exposure_file_in,
                       exposure_file_out=None,

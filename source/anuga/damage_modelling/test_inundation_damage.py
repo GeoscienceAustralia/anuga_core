@@ -203,13 +203,12 @@ class Test_inundation_damage(unittest.TestCase):
 
         #Create a csv file
         self.csv_fileII = tempfile.mktemp(".csv")
-        fd = open(self.csv_file,'wb')
+        fd = open(self.csv_fileII,'wb')
         writer = csv.writer(fd)
         writer.writerow(['LONGITUDE','LATITUDE',STR_VALUE_LABEL,CONT_VALUE_LABEL,'ROOF_TYPE',WALL_TYPE_LABEL, SHORE_DIST_LABEL])
         writer.writerow(['151.5','-34','199770','130000','Metal','Timber',20.])
         writer.writerow(['151','-34.5','150000','76000','Metal','Double Brick',200.])
         writer.writerow(['151','-34.25','150000','76000','Metal','Brick Veneer',200.])
-        writer.writerow(['151.5','-35.5','199770','130000','Metal','Timber',20.])
         fd.close()
         
     def tearDown(self):
@@ -225,6 +224,7 @@ class Test_inundation_damage(unittest.TestCase):
         except OSError:
             pass
         os.remove(self.csv_file)
+        os.remove(self.csv_fileII)
 
     
     def test_inundation_damage(self):
@@ -236,6 +236,15 @@ class Test_inundation_damage(unittest.TestCase):
         inundation_damage(sww_file, self.csv_file, verbose=False)
 
     
+    def test_inundation_damage_list_as_input(self):
+
+        # Note, this isn't testing the results,
+        # just that is all runs
+        sww_file = self.domain.get_name() + "." + self.domain.format
+        #print "sww_file",sww_file
+        inundation_damage(sww_file,
+                          [self.csv_file, self.csv_fileII], verbose=False)
+
     def test_inundation_damage2(self):
 
         # create mesh
@@ -308,6 +317,106 @@ class Test_inundation_damage(unittest.TestCase):
         assert allclose(depth,[5.5,4.5,0.1,-0.3])
         os.remove(sww.filename)
         os.remove(csv_file)
+         
+    def test_inundation_damage_list(self):
+
+        # create mesh
+        mesh_file = tempfile.mktemp(".tsh")    
+        points = [[0.0,0.0],[6.0,0.0],[6.0,6.0],[0.0,6.0]]
+        m = Mesh()
+        m.add_vertices(points)
+        m.auto_segment()
+        m.generate_mesh(verbose=False)
+        m.export_mesh_file(mesh_file)
+        
+        #Create shallow water domain
+        domain = Domain(mesh_file)
+        os.remove(mesh_file)
+        
+        domain.default_order=2
+        domain.beta_h = 0
+
+        #Set some field values
+        domain.set_quantity('elevation', elevation_function)
+        domain.set_quantity('friction', 0.03)
+        domain.set_quantity('xmomentum', 22.0)
+        domain.set_quantity('ymomentum', 55.0)
+
+        ######################
+        # Boundary conditions
+        B = Transmissive_boundary(domain)
+        domain.set_boundary( {'exterior': B})
+
+        # This call mangles the stage values.
+        domain.distribute_to_vertices_and_edges()
+        domain.set_quantity('stage', 0.3)
+
+        #sww_file = tempfile.mktemp("")
+        domain.set_name('datatest' + str(time.time()))
+        domain.format = 'sww'
+        domain.smooth = True
+        domain.reduction = mean
+
+        sww = get_dataobject(domain)
+        sww.store_connectivity()
+        sww.store_timestep(['stage', 'xmomentum', 'ymomentum'])
+        domain.set_quantity('stage', -0.3)
+        domain.time = 2.
+        sww.store_timestep(['stage', 'xmomentum', 'ymomentum'])
+        
+        #Create a csv file
+        csv_file = tempfile.mktemp(".csv")
+        fd = open(csv_file,'wb')
+        writer = csv.writer(fd)
+        writer.writerow(['x','y',STR_VALUE_LABEL,CONT_VALUE_LABEL,'ROOF_TYPE',WALL_TYPE_LABEL, SHORE_DIST_LABEL])
+        writer.writerow([5.5,0.5,'10','130000','Metal','Timber',20])
+        writer.writerow([4.5,1.0,'150','76000','Metal','Double Brick',20])
+        writer.writerow([0.1,1.5,'100','76000','Metal','Brick Veneer',300])
+        writer.writerow([6.1,1.5,'100','76000','Metal','Brick Veneer',300])
+        fd.close()
+        
+        extension = ".csv"
+        csv_fileII = tempfile.mktemp(extension)
+        fd = open(csv_fileII,'wb')
+        writer = csv.writer(fd)
+        writer.writerow(['x','y',STR_VALUE_LABEL,CONT_VALUE_LABEL,'ROOF_TYPE',WALL_TYPE_LABEL, SHORE_DIST_LABEL])
+        writer.writerow([5.5,0.5,'10','130000','Metal','Timber',20])
+        writer.writerow([4.5,1.0,'150','76000','Metal','Double Brick',20])
+        writer.writerow([0.1,1.5,'100','76000','Metal','Brick Veneer',300])
+        writer.writerow([6.1,1.5,'100','76000','Metal','Brick Veneer',300])
+        fd.close()
+        
+        sww_file = domain.get_name() + "." + domain.format
+        #print "sww_file",sww_file
+        marker='_gosh'
+        inundation_damage(sww_file, [csv_file, csv_fileII],
+                          exposure_file_out_marker=marker,
+                          verbose=False)
+
+        # Test one file
+        csv_handle = Exposure_csv(csv_file[:-4]+marker+extension)
+        struct_loss = csv_handle.get_column(EventDamageModel.STRUCT_LOSS_TITLE)
+        #print "struct_loss",struct_loss
+        struct_loss = [float(x) for x in struct_loss]
+        assert allclose(struct_loss,[10,150,16.9,0])       
+        depth = csv_handle.get_column(EventDamageModel.MAX_DEPTH_TITLE)
+        #print "depth",depth
+        depth = [float(x) for x in depth]
+        assert allclose(depth,[5.5,4.5,0.1,-0.3])
+       
+        # Test another file
+        csv_handle = Exposure_csv(csv_fileII[:-4]+marker+extension)
+        struct_loss = csv_handle.get_column(EventDamageModel.STRUCT_LOSS_TITLE)
+        #print "struct_loss",struct_loss
+        struct_loss = [float(x) for x in struct_loss]
+        assert allclose(struct_loss,[10,150,16.9,0])       
+        depth = csv_handle.get_column(EventDamageModel.MAX_DEPTH_TITLE)
+        #print "depth",depth
+        depth = [float(x) for x in depth]
+        assert allclose(depth,[5.5,4.5,0.1,-0.3]) 
+        os.remove(sww.filename)
+        os.remove(csv_file)
+        os.remove(csv_fileII)
         
     def ztest_add_depth_and_momentum2csv(self):
         sww_file = self.domain.get_name() + "." + self.domain.format
@@ -490,8 +599,8 @@ if __name__ == "__main__":
         sys.stdout = fid
     else:
         pass
-    #suite = unittest.makeSuite(Test_inundation_damage,'test_calc_max_depth_and_momentum')
     suite = unittest.makeSuite(Test_inundation_damage,'test')
+    #suite = unittest.makeSuite(Test_inundation_damage,'test_inundation_damage_list_as_input')
     runner = unittest.TextTestRunner()
     runner.run(suite)
 
