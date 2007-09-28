@@ -1154,6 +1154,7 @@ class Mesh:
          regionconverter] =  region_strings2ints(meshDict['regionlist'])
         #print "%%%%%%%%%%%%%%%%%%%%%%%%%%%regionlist",meshDict['regionlist']
         #print "meshDict['segmenttaglist']", meshDict['segmenttaglist'
+        #print "self.mode", self.mode
         generatedMesh = generate_mesh(
                               meshDict['pointlist'],
                               meshDict['segmentlist'],

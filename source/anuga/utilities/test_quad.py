@@ -149,7 +149,58 @@ class Test_Quad(unittest.TestCase):
 
         #This was causing round off error
         Q = build_quadtree(mesh)
+        
+    def test_interpolate_one_point_many_triangles(self):
+        # this test has 10 triangles that share the same vert.
+        # If the number of points per cell in  a quad tree is less
+        # than 10 it should crash 
+        z0 = [2.0, 5.0]
+        z1 = [2.0, 5.0]
+        z2 = [2.0, 5.0]
+        z3 = [2.0, 5.0]
+        z4 = [2.0, 5.0]
+        z5 = [2.0, 5.0]
+        z6 = [2.0, 5.0]
+        z7 = [2.0, 5.0]
+        z8 = [2.0, 5.0]
+        z9 = [2.0, 5.0]
+        z10 = [2.0, 5.0]
+        
+        v0 = [0.0, 0.0]
+        v1 = [1.0, 0.0]
+        v2 = [2.0, 0.0]
+        v3 = [3.0, 0.0]
+        v4 = [4.0, 0.0]
+        v5 = [0.0, 10.0]
+        v6 = [1.0, 10.0]
+        v7 = [2.0, 10.0]
+        v8 = [3.0, 10.0]
+        v9 = [4.0, 10.0]
 
+        vertices = [z0,v0, v1, v2, v3,v4 ,v5, v6, v7, v8, v9,
+                    z1, z2, z3, z4, z5, z6, z7, z8, z9]
+        triangles = [
+                      [11,1,2],
+                      [12,2,3],
+                      [13,3,4],
+                      [14,4,5],
+                      [7,6,15],
+                      [8,7,16],
+                      [9,8,17],
+                      [10,9,18],
+                      [6,1,19],
+                      [5,10,0]
+                      ]
+        
+	mesh = Mesh(vertices, triangles)
+        try:
+            Q = build_quadtree(mesh, max_points_per_cell = 9)
+        except RuntimeError:
+            pass
+        else:
+            self.failUnless(0 ==1,  'many verts at the same position no  \
+            longer causes as error')
+    
     def test_retrieve_triangles(self):
 
         cell = Cell(0, 6, 0, 6, 'cell', max_points_per_cell=4)
@@ -211,6 +262,6 @@ class Test_Quad(unittest.TestCase):
 if __name__ == "__main__":
 
     mysuite = unittest.makeSuite(Test_Quad,'test')
-    # mysuite = unittest.makeSuite(Test_Quad,'test_retrieve_triangles')
+    #mysuite = unittest.makeSuite(Test_Quad,'test_interpolate_one_point_many_triangles')
     runner = unittest.TextTestRunner()
     runner.run(mysuite)
