@@ -1378,7 +1378,7 @@ def find_optimal_smoothing_parameter(data_file,
                                      south_boundary=None,
                                      east_boundary=None,
                                      west_boundary=None,
-                                     plot_name=None,
+                                     plot_name='all_alphas',
                                      seed_num=None,
                                      cache=False,
                                      verbose=False
@@ -1424,7 +1424,6 @@ def find_optimal_smoothing_parameter(data_file,
     
     from anuga.utilities.numerical_tools import cov
     from Numeric import array, resize,shape,Float,zeros,take,argsort,argmin
-    from pylab import plot, ion, hold,savefig,semilogx,plotting,loglog
 
     attribute_smoothed='elevation'
 
@@ -1441,8 +1440,7 @@ def find_optimal_smoothing_parameter(data_file,
     if mesh_file is None:
         mesh_file='temp.msh'
 
-    if plot_name is None:
-        plot_name='alphas'
+        
         
     poly_topo = [[east_boundary,south_boundary],
                  [east_boundary,north_boundary],
@@ -1518,12 +1516,17 @@ def find_optimal_smoothing_parameter(data_file,
         normal_cov[i,:]= [alpha,ele_cov/sample_cov]
 
         if verbose: print'cov',normal_cov[i][0],'= ',normal_cov[i][1]
-    
+
     normal_cov0=normal_cov[:,0]
     normal_cov_new=take(normal_cov,argsort(normal_cov0))
-    semilogx(normal_cov_new[:,0],normal_cov_new[:,1])
-    loglog(normal_cov_new[:,0],normal_cov_new[:,1])
-    savefig(plot_name,dpi=300)
+
+    if plot_name is not None:
+
+        from pylab import savefig,semilogx,loglog
+   
+        semilogx(normal_cov_new[:,0],normal_cov_new[:,1])
+        loglog(normal_cov_new[:,0],normal_cov_new[:,1])
+        savefig(plot_name,dpi=300)
     
     remove(mesh_file)
     

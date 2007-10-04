@@ -1900,14 +1900,13 @@ class Test_Geospatial_data(unittest.TestCase):
                                              south_boundary=-5,
                                              east_boundary=5,
                                              west_boundary=-5,
-                                             plot_name='all_alphas',
+                                             plot_name=None,
                                              seed_num=100000,
                                              verbose=False)
 
 
         results = Geospatial_data(fileName)
         os.remove(fileName)
-        os.remove('all_alphas.png')
         
  #       print value, alpha
         assert (alpha==0.01)
@@ -1917,9 +1916,9 @@ class Test_Geospatial_data(unittest.TestCase):
 if __name__ == "__main__":
 
     #suite = unittest.makeSuite(Test_Geospatial_data, 'test_write_csv_attributes_lat_long')
-#    suite = unittest.makeSuite(Test_Geospatial_data, 'test_find_optimal_smoothing_parameter')
+    suite = unittest.makeSuite(Test_Geospatial_data, 'test_find_optimal_smoothing_parameter')
 #    suite = unittest.makeSuite(Test_Geospatial_data, 'test_split')
-    suite = unittest.makeSuite(Test_Geospatial_data, 'test')
+#    suite = unittest.makeSuite(Test_Geospatial_data, 'test')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
 
