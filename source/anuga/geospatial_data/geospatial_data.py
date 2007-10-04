@@ -3,14 +3,14 @@ associated attributes.
 
 """
 from sys import maxint
-from os import access, F_OK, R_OK
+from os import access, F_OK, R_OK,remove
 from types import DictType
 from warnings import warn
 from string import lower
 from Numeric import concatenate, array, Float, shape, reshape, ravel, take, \
                         size, shape
 #from Array import tolist
-from RandomArray import randint
+from RandomArray import randint, seed
 from copy import deepcopy
 
 #from MA import tolist
@@ -626,8 +626,9 @@ class Geospatial_data:
         return Geospatial_data(sampled_points, sampled_attributes)
     
     
-    def split(self, factor=0.5, verbose=False):
+    def split(self, factor=0.5,seed_num=None, verbose=False):
         """Returns two
+        
         geospatial_data object, first is the size of the 'factor'
         smaller the original and the second is the remainder. The two
         new object are disjoin set of each other.
@@ -641,7 +642,7 @@ class Geospatial_data:
         random_list(1,3,6,7,9) and remainder_list(0,2,4,5,8)
                 
         Input - the factor which to split the object, if 0.1 then 10% of the
-together             object will be returned
+            together object will be returned
         
         Output - two geospatial_data objects that are disjoint sets of the 
             original
@@ -666,6 +667,11 @@ together             object will be returned
         #still basically random
         ## create list of non-unquie random numbers
         if verbose: print "create random numbers list %s long" %new_size
+        
+        #set seed if provided, mainly important for unit test!
+        if seed_num != None:
+            seed(seed_num,seed_num)
+        
         random_num = randint(0,self_size-1,(int(new_size),))
         random_num = random_num.tolist()
 
@@ -1365,130 +1371,163 @@ def ensure_geospatial(points, geo_reference=None):
 
 
 def find_optimal_smoothing_parameter(data_file, 
-                                     smoothing_list=None,
-                                     attribute_smoothed='elevation', 
+                                     alpha_list=None,
                                      mesh_file=None,
                                      mesh_resolution=100000,
                                      north_boundary=None,
                                      south_boundary=None,
                                      east_boundary=None,
                                      west_boundary=None,
-                                     plot_name=None
+                                     plot_name=None,
+                                     seed_num=None,
+                                     cache=False,
+                                     verbose=False
                                      ):
-    #alpha list, data file, mesh file or boundary area and resolution
-    #plot name and attribute smoothed default elevation
+    
+    """
+    data_file: must not contain points outside the boundaries defined
+           and it either a pts, txt or csv file. 
+    
+    alpha_list: the alpha values to test in a single list
+    
+    mesh_file: name of the created mesh file
+    
+    mesh_resolution: the maximum area size for a triangle
+    
+    north_boundary... west_boundary: the value of the boundary
+    
+    plot_name: the name for the plot contain the results
+    
+    seed_num: the seed to the random number generator
+    
+    USAGE:
+        find_optimal_smoothing_parameter(data_file=fileName, 
+                                             alpha_list=[0.0001, 0.01, 1],
+                                             mesh_file=None,
+                                             mesh_resolution=3,
+                                             north_boundary=5,
+                                             south_boundary=-5,
+                                             east_boundary=5,
+                                             west_boundary=-5,
+                                             plot_name='all_alphas',
+                                             seed_num=100000,
+                                             verbose=False)
+    
+    OUTPUT: returns the minumum normalised covalance calculate AND the 
+           alpha that created it. PLUS writes a plot of the results
+        
+    """
 
-    from anuga.abstract_2d_finite_volumes import domain
     from anuga.shallow_water import Domain
     from anuga.geospatial_data.geospatial_data import Geospatial_data
-    from anuga.coordinate_transforms import Geo_reference
     from anuga.pmesh.mesh_interface import create_mesh_from_regions
-    from anuga.shallow_water import Reflective_boundary
     
     from anuga.utilities.numerical_tools import cov
-    from Numeric import array, resize,shape,Float,zeros,take,argsort
-    from pylab import plot, ion, hold,savefig,semilogx,plotting
+    from Numeric import array, resize,shape,Float,zeros,take,argsort,argmin
+    from pylab import plot, ion, hold,savefig,semilogx,plotting,loglog
 
-    if north_boundary or south_boundary or east_boundary or \
-           west_boundary is None:
+    attribute_smoothed='elevation'
+
+    if north_boundary is None or south_boundary is None or \
+       east_boundary is None or west_boundary is None:
         no_boundary=True
-        
+    else:
+        no_boundary=False
+    
+    if no_boundary is True:
+        msg= 'All boundaries must be defined'
+        raise msg
 
     if mesh_file is None:
         mesh_file='temp.msh'
-        
-        if no_boundary is True:
-            msg= 'all boundary information or a mesh file'
-            raise msg
 
-    is_inside_polygon
-    
-    poly_topo = [[east_boundary,south_boundary],[east_boundary,north_boundary],
-             [west_boundary,north_boundary],[west_boundary,south_boundary]]
-#    mesh_file = 'temp.msh'
+    if plot_name is None:
+        plot_name='alphas'
+        
+    poly_topo = [[east_boundary,south_boundary],
+                 [east_boundary,north_boundary],
+                 [west_boundary,north_boundary],
+                 [west_boundary,south_boundary]]
                   
     create_mesh_from_regions(poly_topo,
-                         boundary_tags={'back': [2], 'side': [1,3],
-                                        'ocean': [0]},
+                             boundary_tags={'back': [2],
+                                            'side': [1,3],
+                                            'ocean': [0]},
                          maximum_triangle_area=mesh_resolution,
                          filename=mesh_file,
-                         use_cache=True,
-                         verbose=True)
+                         use_cache=cache,
+                         verbose=verbose)
 
-
-    topo_dir_name = 'pt_hedland_export.txt'
-#    sample = 'sample.txt'
-#    remainder ='remainder.txt'
     #split topo data
-    G = Geospatial_data(file_name = topo_dir_name)
-    print 'start split'
-    G_small, G_other = G.split(0.1,True)
-
-
-
-    alphas = [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1,
-              1.0, 10.0, 100.0,1000.0,100000.0]
-    #alphas = [0.001,1,100]
+    G = Geospatial_data(file_name = data_file)
+    if verbose: print 'start split'
+    G_small, G_other = G.split(0.1,seed_num, verbose=verbose)
+    if verbose: print 'finish split'
+    points=G_small.get_data_points()
+    if verbose: print "Number of points in sample to compare: ", len(points)
+    
+    if alpha_list==None:
+        alphas = [0.001,0.01,100]
+        #alphas = [0.000001, 0.00001, 0.0001, 0.001, 0.01,\
+         #         0.1, 1.0, 10.0, 100.0,1000.0,10000.0]
+        
+    else:
+        alphas=alpha_list
     domains = {}
 
-    print 'Setup computational domain'
+    if verbose: print 'Setup computational domains with different alphas'
     for alpha in alphas:
-    
-        #think about making domain absolute when it is created
-        domain = Domain(mesh_file, use_cache=False, verbose=True)
-        print domain.statistics()
+        #add G_other data to domains with different alphas
+        domain = Domain(mesh_file, use_cache=False, verbose=verbose)
+        if verbose:print domain.statistics()
         domain.set_quantity(attribute_smoothed, 
                     geospatial_data = G_other,
                     use_cache = True,
-                    verbose = True,
+                    verbose = verbose,
                     alpha = alpha)
         domains[alpha]=domain
 
-    points=G_small.get_data_points()
+    #creates array with columns 1 and 2 are x, y. column 3 is elevation
+    #4 onwards is the elevation_predicted using the alpha, which will 
+    #be compared later against the real removed data
     data=array([],typecode=Float)
-    data=resize(data,(len(points),3+len(alphas)))
-    #gets relative point from sample
 
+    data=resize(data,(len(points),3+len(alphas)))
+
+    #gets relative point from sample
     data[:,0]=points[:,0]
     data[:,1]=points[:,1]
-    print'geo',domain.geo_reference,points[0:10],points[0:10,0]
     elevation_sample=G_small.get_attributes(attribute_name=attribute_smoothed)
-
     data[:,2]=elevation_sample
 
-    print'data',data[0:10],len(alphas)
     normal_cov=array(zeros([len(alphas),2]),typecode=Float)
-    i=0
 
-    for domain in domains:
-    #    print'domain',domain
-        points_geo=domains[domain].geo_reference.change_points_geo_ref(points)
-    
-
-        print'poin',points_geo[0:10],elevation_sample[0:10]
-        print'quantities',domains[domain].get_quantity_names()
-        elevation_predicted=domains[domain].quantities[attribute_smoothed].get_values(interpolation_points=points_geo)
-        print'elevation_predicted',elevation_predicted[0:10],len(points),len(elevation_predicted)
+    for i,alpha in enumerate(domains):
+        #print'alpha',alpha
+        points_geo=domains[alpha].geo_reference.change_points_geo_ref(points)
+        #returns the predicted elevation of the points that were "split" out 
+        #of the original data set for one particular alpha
+        elevation_predicted=domains[alpha].quantities[attribute_smoothed] \
+                                  .get_values(interpolation_points=points_geo)
     
         data[:,i+3]=elevation_predicted
+
         sample_cov= cov(elevation_sample)
-
+        #print elevation_predicted
         ele_cov= cov(elevation_sample-elevation_predicted)
-        normal_cov[i,:]= [domain,ele_cov/sample_cov]
+        normal_cov[i,:]= [alpha,ele_cov/sample_cov]
 
-        print'cov',alpha,'= ',normal_cov, ele_cov, sample_cov
-        i+=1
+        if verbose: print'cov',normal_cov[i][0],'= ',normal_cov[i][1]
     
-    
-    print'data',data[100:200]
-    print'normal cov',normal_cov
     normal_cov0=normal_cov[:,0]
     normal_cov_new=take(normal_cov,argsort(normal_cov0))
     semilogx(normal_cov_new[:,0],normal_cov_new[:,1])
-    savefig("alphas",dpi=300)
+    loglog(normal_cov_new[:,0],normal_cov_new[:,1])
+    savefig(plot_name,dpi=300)
     
-
-             
+    remove(mesh_file)
+    
+    return min(normal_cov_new[:,1]) , normal_cov_new[(argmin(normal_cov_new,axis=0))[1],0]
 
          
 if __name__ == "__main__":

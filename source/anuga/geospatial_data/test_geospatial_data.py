@@ -1809,18 +1809,116 @@ class Test_Geospatial_data(unittest.TestCase):
         factor = 0.21
 
         #will return G1 with 10% of points and G2 with 90%
-        G1, G2  = G.split(factor) 
+        G1, G2  = G.split(factor,100) 
         
         assert allclose(len(G), len(G1)+len(G2))
         assert allclose(round(len(G)*factor), len(G1))
+
+        P = G1.get_data_points(absolute=False)
+        assert allclose(P, [[5.0,4.0],[4.0,3.0],[4.0,2.0],[3.0,1.0],[2.0,3.0]])
+
+        A = G1.get_attributes()
+        assert allclose(A,[24, 18, 17, 11, 8])
+ 
         
-#        assert allclose(G, G1+G2)# must implentent __equal__ or a sort
+
+#    def test_find_optimal_smoothing_parameter1(self):
+#        from anuga.pmesh.mesh_interface import create_mesh_from_regions
+#        from anuga.shallow_water import Domain
+#        from anuga.shallow_water import Reflective_boundary
+#        from cmath import cos
+#        
+#        "make sphere domain"
+#
+#        fileName = tempfile.mktemp(".csv")
+#        file = open(fileName,"w")
+#        file.write("x,y,elevation \n")
+#
+#        for i in range(-5,6):
+#            for j in range(-5,6):
+#                z = abs(cos(((i*i) + (j*j))*.1)*2)
+##                print 'x,y,f',i,j,z
+#                file.write("%s, %s, %s\n" %(i, j, z))
+#                
+#        file.close()
+#
+#
+#
+#        poly = [[5,-5], [5,5], [-5,5], [-5,-5]]
+#        mesh_file='temp.msh'
+#        
+#        create_mesh_from_regions(poly,
+#                        boundary_tags={'back': [2],
+#                                       'side': [1,3],
+#                                       'ocean': [0]},
+#                        maximum_triangle_area=3,
+#                        filename=mesh_file,
+#                        use_cache=False,
+#                        verbose=False)
+#
+#        domain = Domain(mesh_file, use_cache=False, verbose=True)
+#        domain.set_name('test')
+#        domain.set_quantity('elevation', filename = fileName ,verbose=True, alpha=0.1)
+#        
+#
+#        Br = Reflective_boundary(domain)
+#
+#        domain.set_boundary({'back': Br,
+#                         'side': Br,
+#                         'ocean': Br}) 
+#
+#        for t in domain.evolve(yieldstep = 1, finaltime = 1): 
+#            domain.write_time()
+
+    def test_find_optimal_smoothing_parameter(self):
+        """
+        Creates a elevation file represting hill (sort of) and runs 
+        find_optimal_smoothing_parameter for 3 different alphas,
+        
+        NOTE the random number seed is provided to control the results
+        """
+        from cmath import cos
+        
+        fileName = tempfile.mktemp(".csv")
+        file = open(fileName,"w")
+        file.write("x,y,elevation \n")
+
+        for i in range(-5,6):
+            for j in range(-5,6):
+                #this equation made surface like a circle ripple
+                z = abs(cos(((i*i) + (j*j))*.1)*2)
+#                print 'x,y,f',i,j,z
+                file.write("%s, %s, %s\n" %(i, j, z))
+                
+        file.close()
+ 
+        value, alpha = find_optimal_smoothing_parameter(data_file=fileName, 
+                                             alpha_list=[0.0001, 0.01, 1],
+                                             mesh_file=None,
+                                             mesh_resolution=3,
+                                             north_boundary=5,
+                                             south_boundary=-5,
+                                             east_boundary=5,
+                                             west_boundary=-5,
+                                             plot_name='all_alphas',
+                                             seed_num=100000,
+                                             verbose=False)
+
+
+        results = Geospatial_data(fileName)
+        os.remove(fileName)
+        os.remove('all_alphas.png')
+        
+ #       print value, alpha
+        assert (alpha==0.01)
+
         
          
 if __name__ == "__main__":
 
     #suite = unittest.makeSuite(Test_Geospatial_data, 'test_write_csv_attributes_lat_long')
-    #suite = unittest.makeSuite(Test_Geospatial_data, 'test_get_data_points_lat_longIII')
+#    suite = unittest.makeSuite(Test_Geospatial_data, 'test_find_optimal_smoothing_parameter')
+#    suite = unittest.makeSuite(Test_Geospatial_data, 'test_split')
     suite = unittest.makeSuite(Test_Geospatial_data, 'test')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
