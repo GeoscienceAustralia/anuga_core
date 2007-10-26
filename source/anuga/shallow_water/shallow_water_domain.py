@@ -1438,7 +1438,15 @@ class Field_boundary(Boundary):
     Optionally, the user can specify mean_stage to offset the stage provided in the
     sww file.
 
-    This function is a thin wrapper around the generic File_boundary.
+    This function is a thin wrapper around the generic File_boundary. The 
+    difference between the file_boundary and field_boundary is only that the
+    field_boundary will allow you to change the level of the stage height when
+    you read in the boundary condition. This is very useful when running 
+    different tide heights in the same area as you need only to convert one 
+    boundary condition to a SWW file, ideally for tide height of 0 m 
+    (saving disk space). Then you can use field_boundary to read this SWW file
+    and change the stage height (tide) on the fly depending on the scenario.
+    
     """
 
 
@@ -1451,8 +1459,17 @@ class Field_boundary(Boundary):
 
         filename: Name of sww file
         domain: pointer to shallow water domain for which the boundary applies
-        mean_stage: The mean water level which will be added to stage derived from the sww file
-        time_thinning:
+        mean_stage: The mean water level which will be added to stage derived
+                    from the sww file
+        time_thinning: Will set how many time steps from the sww file read in
+                       will be interpolated to the boundary. For example if 
+                       the sww file has 1 second time steps and is 24 hours
+                       in length it has 86400 time steps. If you set 
+                       time_thinning to 1 it will read all these steps. 
+                       If you set it to 100 it will read every 100th step eg
+                       only 864 step. This parameter is very useful to increase
+                       the speed of a model run that you are setting up 
+                       and testing.
         use_cache:
         verbose:
         
