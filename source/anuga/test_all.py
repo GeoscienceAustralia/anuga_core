@@ -120,7 +120,18 @@ def regressionTest(test_verbose=False):
                         pass # No all classes have set_verbose
     return unittest.TestSuite(testCaseClasses)
 
+def check_anuga_import():
+    try:
+        # importing something that loads quickly
+        import anuga.utilities.anuga_exceptions
+    except ImportError:
+        print "Python cannot import ANUGA module."
+        print "Check you have followed all steps of its installation."
+        import sys; sys.exit() 
+
+    
 if __name__ == '__main__':
+    check_anuga_import()
     if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':
         test_verbose = True
         saveout = sys.stdout   
