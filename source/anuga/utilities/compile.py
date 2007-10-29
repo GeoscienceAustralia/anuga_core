@@ -128,8 +128,8 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
 
     v = version.replace('.','')
     dllfilename = 'python%s.dll' %(v)
-    libs = os.path.join(sys.exec_prefix,dllfilename)
-
+    #libs = os.path.join(sys.exec_prefix,dllfilename)
+    libs, is_found = set_python_dll_path()
       
   else:
     if verbose: print "Unrecognised platform %s - revert to default"\
@@ -329,8 +329,10 @@ def can_use_C_extension(filename):
 
     return C
 
-def check_python_dll():
-  """ Check that the python dll is present
+def set_python_dll_path():
+  """ Find which of the two usual hiding places the python dll is located.
+
+  If the file can't be found, return None.
   """
   import sys
   from os import access, F_OK
@@ -339,14 +341,26 @@ def check_python_dll():
   v = version.replace('.','')
   dllfilename = 'python%s.dll' %(v)
   libs = os.path.join(sys.exec_prefix,dllfilename)
-  
+
+  is_found = True   
   if access(libs,F_OK) == 0 :
-    print "%s not present.\nPlease install.\nIt is available on the web." \
-          %(libs)
+    # Hacky - fix if you want
+    libs = os.path.join('c:'+os.sep+'WINNT'+os.sep+'system32',dllfilename)
+    if access(libs,F_OK) == 0 :
+      # could not find the dll
+      libs = os.path.join(sys.exec_prefix,dllfilename)
+      is_found = False
+  return libs, is_found
+
+def check_python_dll():
+  libs, is_found = set_python_dll_path()
+  if not is_found:
+    print "%s not found.\nPlease install.\nIt is available on the web." \
+              %(libs)
     import sys; sys.exit()
+    
       
 if __name__ == '__main__':
-
   from os.path import splitext
   check_python_dll()
   if len(sys.argv) > 1:
