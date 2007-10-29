@@ -362,7 +362,9 @@ def check_python_dll():
       
 if __name__ == '__main__':
   from os.path import splitext
-  check_python_dll()
+  
+  if sys.platform == 'win32':
+    check_python_dll()
   if len(sys.argv) > 1:
       files = sys.argv[1:]
       for filename in files:
