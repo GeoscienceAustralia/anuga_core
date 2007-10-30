@@ -64,8 +64,11 @@ rho_w = 1023   #Fluid density [kg/m^3] (rho_w = 1023 for salt water)
 # the presence of steep slopes. One example of this would be
 # stationary water 'lapping' upwards to a higher point on the coast.
 #
-#
-#
+# NOTE (Ole): I believe this was addressed with the introduction of
+# tight_slope_limiters. I wish to retire the beta_? parameters.
+# Can you please let me know if you disagree?
+
+
 #There are separate betas for the w, uh, vh and h limiters
 #
 #Good values are:

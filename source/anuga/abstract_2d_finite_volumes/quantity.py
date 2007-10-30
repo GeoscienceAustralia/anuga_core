@@ -526,7 +526,9 @@ class Quantity:
 
         if indices is not None:
             indices = array(indices).astype(Int)
-            msg = 'Number of values must match number of indices'
+            msg = 'Number of values must match number of indices:'
+            msg += 'You specified %d values and %d indices'\
+                   %(values.shape[0], indices.shape[0])
             assert values.shape[0] == indices.shape[0], msg
 
         N = self.centroid_values.shape[0]
@@ -995,9 +997,12 @@ class Quantity:
 
         The values will be stored in elements following their
         internal ordering.
-
         """
         from Numeric import take
+
+        # FIXME (Ole): I reckon we should have the option of passing a
+        #              polygon into get_values. The question becomes how
+        #              resulting values should be ordered.
 
         if interpolation_points is not None:
             return self.get_interpolated_values(interpolation_points)
