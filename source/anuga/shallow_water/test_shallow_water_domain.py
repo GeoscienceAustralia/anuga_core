@@ -9,7 +9,9 @@ from anuga.utilities.numerical_tools import mean
 from anuga.utilities.polygon import is_inside_polygon
 
 from shallow_water_domain import *
-from shallow_water_domain import flux_function_central as flux_function
+
+# Get gateway to C implementation of flux function for direct testing
+from shallow_water_ext import flux_function_central as flux_function
 
 class Weir:
     """Set a bathymetry for weir with a hole and a downstream gutter
@@ -251,15 +253,18 @@ class Test_Shallow_Water(unittest.TestCase):
             raise 'Should have raised an exception'
 
 
-    #FIXME (Ole): Individual flux tests do NOT test C implementation directly.    
+    # Individual flux tests
     def test_flux_zero_case(self):
         ql = zeros( 3, Float )
         qr = zeros( 3, Float )
         normal = zeros( 2, Float )
+        edgeflux = zeros( 3, Float )
         zl = zr = 0.
-        flux, max_speed = flux_function(normal, ql, qr, zl, zr)
+        H0 = 0.0
+        
+        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux, epsilon, g, H0)
 
-        assert allclose(flux, [0,0,0])
+        assert allclose(edgeflux, [0,0,0])
         assert max_speed == 0.
 
     def test_flux_constants(self):
@@ -268,12 +273,13 @@ class Test_Shallow_Water(unittest.TestCase):
         normal = array([1.,0])
         ql = array([w, 0, 0])
         qr = array([w, 0, 0])
+        edgeflux = zeros(3, Float)        
         zl = zr = 0.
         h = w - (zl+zr)/2
+        H0 = 0.0
 
-        flux, max_speed = flux_function(normal, ql, qr, zl, zr)
-
-        assert allclose(flux, [0., 0.5*g*h**2, 0.])
+        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux, epsilon, g, H0)        
+        assert allclose(edgeflux, [0., 0.5*g*h**2, 0.])
         assert max_speed == sqrt(g*h)
 
     #def test_flux_slope(self):
@@ -298,9 +304,13 @@ class Test_Shallow_Water(unittest.TestCase):
         ql = array([-0.2, 2, 3])
         qr = array([-0.2, 2, 3])
         zl = zr = -0.5
-        flux, max_speed = flux_function(normal, ql, qr, zl, zr)
+        edgeflux = zeros(3, Float)                
 
-        assert allclose(flux, [2.,13.77433333, 20.])
+        H0 = 0.0
+
+        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux, epsilon, g, H0)        
+
+        assert allclose(edgeflux, [2.,13.77433333, 20.])
         assert allclose(max_speed, 8.38130948661)
 
 
@@ -310,9 +320,12 @@ class Test_Shallow_Water(unittest.TestCase):
         ql = array([-0.075, 2, 3])
         qr = array([-0.075, 2, 3])
         zl = zr = -0.375
-        flux, max_speed = flux_function(normal, ql, qr, zl, zr)
 
-        assert allclose(flux, [-3.,-20.0, -30.441])
+        edgeflux = zeros(3, Float)                
+        H0 = 0.0
+        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux, epsilon, g, H0)        
+
+        assert allclose(edgeflux, [-3.,-20.0, -30.441])
         assert allclose(max_speed, 11.7146428199)
 
     def test_flux3(self):
@@ -321,9 +334,12 @@ class Test_Shallow_Water(unittest.TestCase):
         ql = array([-0.075, 2, 3])
         qr = array([-0.075, 2, 3])
         zl = zr = -0.375
-        flux, max_speed = flux_function(normal, ql, qr, zl, zr)
 
-        assert allclose(flux, [sqrt(2)/2, 4.40221112, 7.3829019])
+        edgeflux = zeros(3, Float)                
+        H0 = 0.0
+        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux, epsilon, g, H0)        
+
+        assert allclose(edgeflux, [sqrt(2)/2, 4.40221112, 7.3829019])
         assert allclose(max_speed, 4.0716654239)
 
     def test_flux4(self):
@@ -332,9 +348,12 @@ class Test_Shallow_Water(unittest.TestCase):
         ql = array([-0.34319278, 0.10254161, 0.07273855])
         qr = array([-0.30683287, 0.1071986, 0.05930515])
         zl = zr = -0.375
-        flux, max_speed = flux_function(normal, ql, qr, zl, zr)
 
-        assert allclose(flux, [-0.04072676, -0.07096636, -0.01604364])
+        edgeflux = zeros(3, Float)                
+        H0 = 0.0
+        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux, epsilon, g, H0)                
+
+        assert allclose(edgeflux, [-0.04072676, -0.07096636, -0.01604364])
         assert allclose(max_speed, 1.31414103233)
 
     def test_flux_computation(self):	
@@ -531,8 +550,8 @@ class Test_Shallow_Water(unittest.TestCase):
 
 
     def test_compute_fluxes0(self):
-        #Do a full triangle and check that fluxes cancel out for
-        #the constant stage case
+        # Do a full triangle and check that fluxes cancel out for
+        # the constant stage case
 
         a = [0.0, 0.0]
         b = [0.0, 2.0]
@@ -553,53 +572,62 @@ class Test_Shallow_Water(unittest.TestCase):
         assert allclose(domain.neighbours, [[-1,1,-1], [2,3,0], [-1,-1,1],[1,-1,-1]])
         assert allclose(domain.neighbour_edges, [[-1,2,-1], [2,0,1], [-1,-1,0],[1,-1,-1]])
 
-        zl=zr=0. #Assume flat bed
+        zl=zr=0. # Assume flat bed
 
-        #Flux across right edge of volume 1
+        edgeflux = zeros(3, Float)        
+        edgeflux0 = zeros(3, Float)
+        edgeflux1 = zeros(3, Float)
+        edgeflux2 = zeros(3, Float)                                
+        H0 = 0.0        
+
+        # Flux across right edge of volume 1
         normal = domain.get_normal(1,0)
         ql = domain.get_conserved_quantities(vol_id=1, edge=0)
         qr = domain.get_conserved_quantities(vol_id=2, edge=2)
-        flux0, max_speed = flux_function(normal, ql, qr, zl, zr)
+        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux0, epsilon, g, H0)                        
 
-        #Check that flux seen from other triangles is inverse
+        # Check that flux seen from other triangles is inverse
         tmp = qr; qr=ql; ql=tmp
         normal = domain.get_normal(2,2)
-        flux, max_speed = flux_function(normal, ql, qr, zl, zr)
-        assert allclose(flux + flux0, 0.)
+        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux, epsilon, g, H0)                                
 
-        #Flux across upper edge of volume 1
+        assert allclose(edgeflux0 + edgeflux, 0.)
+
+        # Flux across upper edge of volume 1
         normal = domain.get_normal(1,1)
         ql = domain.get_conserved_quantities(vol_id=1, edge=1)
         qr = domain.get_conserved_quantities(vol_id=3, edge=0)
-        flux1, max_speed = flux_function(normal, ql, qr, zl, zr)
+        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux1, epsilon, g, H0)                                        
 
-        #Check that flux seen from other triangles is inverse
+        # Check that flux seen from other triangles is inverse
         tmp = qr; qr=ql; ql=tmp
         normal = domain.get_normal(3,0)
-        flux, max_speed = flux_function(normal, ql, qr, zl, zr)
-        assert allclose(flux + flux1, 0.)
+        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux, epsilon, g, H0)                                               
 
-        #Flux across lower left hypotenuse of volume 1
+        assert allclose(edgeflux1 + edgeflux, 0.)        
+        
+
+        # Flux across lower left hypotenuse of volume 1
         normal = domain.get_normal(1,2)
         ql = domain.get_conserved_quantities(vol_id=1, edge=2)
         qr = domain.get_conserved_quantities(vol_id=0, edge=1)
-        flux2, max_speed = flux_function(normal, ql, qr, zl, zr)
+        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux2, epsilon, g, H0)                                                               
 
-        #Check that flux seen from other triangles is inverse
+        # Check that flux seen from other triangles is inverse
         tmp = qr; qr=ql; ql=tmp
         normal = domain.get_normal(0,1)
-        flux, max_speed = flux_function(normal, ql, qr, zl, zr)
-        assert allclose(flux + flux2, 0.)
+        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux, epsilon, g, H0)                                                       
+        assert allclose(edgeflux2 + edgeflux, 0.)
 
 
-        #Scale by edgelengths, add up anc check that total flux is zero
+        # Scale by edgelengths, add up anc check that total flux is zero
         e0 = domain.edgelengths[1, 0]
         e1 = domain.edgelengths[1, 1]
         e2 = domain.edgelengths[1, 2]
 
-        assert allclose(e0*flux0+e1*flux1+e2*flux2, 0.)
+        assert allclose(e0*edgeflux0+e1*edgeflux1+e2*edgeflux2, 0.)
 
-        #Now check that compute_flux yields zeros as well
+        # Now check that compute_flux yields zeros as well
         domain.compute_fluxes()
 
         for name in ['stage', 'xmomentum', 'ymomentum']:
@@ -634,7 +662,14 @@ class Test_Shallow_Water(unittest.TestCase):
 
         zl=zr=0. #Assume flat bed
 
-        #Flux across right edge of volume 1
+        edgeflux = zeros(3, Float)        
+        edgeflux0 = zeros(3, Float)
+        edgeflux1 = zeros(3, Float)
+        edgeflux2 = zeros(3, Float)                                
+        H0 = 0.0        
+        
+
+        # Flux across right edge of volume 1
         normal = domain.get_normal(1,0) #Get normal 0 of triangle 1
         assert allclose(normal, [1, 0])
         
@@ -643,36 +678,39 @@ class Test_Shallow_Water(unittest.TestCase):
         
         qr = domain.get_conserved_quantities(vol_id=2, edge=2)
         assert allclose(qr, [val2, 0, 0])
-        
-        flux0, max_speed = flux_function(normal, ql, qr, zl, zr)
 
-        #Flux across edge in the east direction (as per normal vector)
-        assert allclose(flux0, [-15.3598804, 253.71111111, 0.])
+        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux0, epsilon, g, H0)                                                       
+
+        # Flux across edge in the east direction (as per normal vector)
+        assert allclose(edgeflux0, [-15.3598804, 253.71111111, 0.])
         assert allclose(max_speed, 9.21592824046)
 
 
         #Flux across edge in the west direction (opposite sign for xmomentum)
         normal_opposite = domain.get_normal(2,2) #Get normal 2 of triangle 2
         assert allclose(normal_opposite, [-1, 0])
-        flux_opposite, max_speed = flux_function([-1, 0], ql, qr, zl, zr)
-        assert allclose(flux_opposite, [-15.3598804, -253.71111111, 0.])
+
+        max_speed = flux_function(normal_opposite, ql, qr, zl, zr, edgeflux, epsilon, g, H0)                                             
+        #flux_opposite, max_speed = flux_function([-1, 0], ql, qr, zl, zr)
+        assert allclose(edgeflux, [-15.3598804, -253.71111111, 0.])
         
 
         #Flux across upper edge of volume 1
         normal = domain.get_normal(1,1)
         ql = domain.get_conserved_quantities(vol_id=1, edge=1)
         qr = domain.get_conserved_quantities(vol_id=3, edge=0)
-        flux1, max_speed = flux_function(normal, ql, qr, zl, zr)
-        assert allclose(flux1, [2.4098563, 0., 123.04444444])
+        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux1, epsilon, g, H0)                                                               
+
+        assert allclose(edgeflux1, [2.4098563, 0., 123.04444444])
         assert allclose(max_speed, 7.22956891292)
 
         #Flux across lower left hypotenuse of volume 1
         normal = domain.get_normal(1,2)
         ql = domain.get_conserved_quantities(vol_id=1, edge=2)
         qr = domain.get_conserved_quantities(vol_id=0, edge=1)
-        flux2, max_speed = flux_function(normal, ql, qr, zl, zr)
+        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux2, epsilon, g, H0)        
 
-        assert allclose(flux2, [9.63942522, -61.59685738, -61.59685738])
+        assert allclose(edgeflux2, [9.63942522, -61.59685738, -61.59685738])
         assert allclose(max_speed, 7.22956891292)
 
         #Scale, add up and check that compute_fluxes is correct for vol 1
@@ -680,7 +718,7 @@ class Test_Shallow_Water(unittest.TestCase):
         e1 = domain.edgelengths[1, 1]
         e2 = domain.edgelengths[1, 2]
 
-        total_flux = -(e0*flux0+e1*flux1+e2*flux2)/domain.areas[1]
+        total_flux = -(e0*edgeflux0+e1*edgeflux1+e2*edgeflux2)/domain.areas[1]
         assert allclose(total_flux, [-0.68218178, -166.6, -35.93333333])
 
 
@@ -732,6 +770,12 @@ class Test_Shallow_Water(unittest.TestCase):
         val3 = 2.+8.0/3
 
         zl=zr=0 #Assume flat zero bed
+        edgeflux = zeros(3, Float)        
+        edgeflux0 = zeros(3, Float)
+        edgeflux1 = zeros(3, Float)
+        edgeflux2 = zeros(3, Float)                                
+        H0 = 0.0        
+        
 
         domain.set_quantity('elevation', zl*ones( (4,3) ))
 
@@ -758,26 +802,26 @@ class Test_Shallow_Water(unittest.TestCase):
         normal = domain.get_normal(1,0)
         ql = domain.get_conserved_quantities(vol_id=1, edge=0)
         qr = domain.get_conserved_quantities(vol_id=2, edge=2)
-        flux0, max_speed = flux_function(normal, ql, qr, zl, zr)
+        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux0, epsilon, g, H0)                
 
         #Flux across upper edge of volume 1
         normal = domain.get_normal(1,1)
         ql = domain.get_conserved_quantities(vol_id=1, edge=1)
         qr = domain.get_conserved_quantities(vol_id=3, edge=0)
-        flux1, max_speed = flux_function(normal, ql, qr, zl, zr)
+        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux1, epsilon, g, H0)                        
 
         #Flux across lower left hypotenuse of volume 1
         normal = domain.get_normal(1,2)
         ql = domain.get_conserved_quantities(vol_id=1, edge=2)
         qr = domain.get_conserved_quantities(vol_id=0, edge=1)
-        flux2, max_speed = flux_function(normal, ql, qr, zl, zr)
+        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux2, epsilon, g, H0)                
 
         #Scale, add up and check that compute_fluxes is correct for vol 1
         e0 = domain.edgelengths[1, 0]
         e1 = domain.edgelengths[1, 1]
         e2 = domain.edgelengths[1, 2]
 
-        total_flux = -(e0*flux0+e1*flux1+e2*flux2)/domain.areas[1]
+        total_flux = -(e0*edgeflux0+e1*edgeflux1+e2*edgeflux2)/domain.areas[1]
 
 
         domain.compute_fluxes()
@@ -812,6 +856,14 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.set_quantity('elevation', zl*ones( (4,3) ))
 
 
+        edgeflux = zeros(3, Float)        
+        edgeflux0 = zeros(3, Float)
+        edgeflux1 = zeros(3, Float)
+        edgeflux2 = zeros(3, Float)                                
+        H0 = 0.0        
+        
+
+
         domain.set_quantity('stage', [[val0, val0-1, val0-2],
                                       [val1, val1+1, val1],
                                       [val2, val2-2, val2],
@@ -834,26 +886,26 @@ class Test_Shallow_Water(unittest.TestCase):
         normal = domain.get_normal(1,0)
         ql = domain.get_conserved_quantities(vol_id=1, edge=0)
         qr = domain.get_conserved_quantities(vol_id=2, edge=2)
-        flux0, max_speed = flux_function(normal, ql, qr, zl, zr)
+        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux0, epsilon, g, H0)
 
         #Flux across upper edge of volume 1
         normal = domain.get_normal(1,1)
         ql = domain.get_conserved_quantities(vol_id=1, edge=1)
         qr = domain.get_conserved_quantities(vol_id=3, edge=0)
-        flux1, max_speed = flux_function(normal, ql, qr, zl, zr)
+        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux1, epsilon, g, H0)        
 
         #Flux across lower left hypotenuse of volume 1
         normal = domain.get_normal(1,2)
         ql = domain.get_conserved_quantities(vol_id=1, edge=2)
         qr = domain.get_conserved_quantities(vol_id=0, edge=1)
-        flux2, max_speed = flux_function(normal, ql, qr, zl, zr)
+        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux2, epsilon, g, H0)        
 
         #Scale, add up and check that compute_fluxes is correct for vol 1
         e0 = domain.edgelengths[1, 0]
         e1 = domain.edgelengths[1, 1]
         e2 = domain.edgelengths[1, 2]
 
-        total_flux = -(e0*flux0+e1*flux1+e2*flux2)/domain.areas[1]
+        total_flux = -(e0*edgeflux0+e1*edgeflux1+e2*edgeflux2)/domain.areas[1]
 
         domain.compute_fluxes()
         for i, name in enumerate(['stage', 'xmomentum', 'ymomentum']):
@@ -5135,7 +5187,7 @@ friction  \n \
         
 if __name__ == "__main__":
 
-    suite = unittest.makeSuite(Test_Shallow_Water,'test')    
+    suite = unittest.makeSuite(Test_Shallow_Water,'test')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_extrema')    
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_tight_slope_limiters')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_get_maximum_inundation_from_sww')

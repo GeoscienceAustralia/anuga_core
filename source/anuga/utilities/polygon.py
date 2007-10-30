@@ -253,102 +253,7 @@ def separate_points_by_polygon(points, polygon,
     Algorithm is based on work by Darel Finley,
     http://www.alienryderflex.com/polygon/
 
-    """
-
-    #Input checks
-
-
-    try:
-        points = ensure_numeric(points, Float)
-    except NameError, e:
-        raise NameError, e
-    except:
-        msg = 'Points could not be converted to Numeric array'
-	raise msg
-
-    try:
-        polygon = ensure_numeric(polygon, Float)
-    except NameError, e:
-        raise NameError, e
-    except:
-        msg = 'Polygon could not be converted to Numeric array'
-	raise msg
-
-    assert len(polygon.shape) == 2,\
-       'Polygon array must be a 2d array of vertices'
-
-    assert polygon.shape[1] == 2,\
-       'Polygon array must have two columns'
-
-    assert len(points.shape) == 2,\
-       'Points array must be a 2d array'
-
-    assert points.shape[1] == 2,\
-       'Points array must have two columns'
-
-    N = polygon.shape[0] #Number of vertices in polygon
-    M = points.shape[0]  #Number of points
-
-    px = polygon[:,0]
-    py = polygon[:,1]
-
-    #Used for an optimisation when points are far away from polygon
-    minpx = min(px); maxpx = max(px)
-    minpy = min(py); maxpy = max(py)
-
-
-    #Begin main loop
-    indices = zeros(M, Int)
-
-    inside_index = 0    #Keep track of points inside
-    outside_index = M-1 #Keep track of points outside (starting from end)
-
-    if verbose: print 'Separating %d points' %M        
-    for k in range(M):
-
-        if verbose:
-            if k %((M+10)/10)==0: print 'Doing %d of %d' %(k, M)
-
-        #for each point
-	x = points[k, 0]
-	y = points[k, 1]
-
-        inside = False
-
-        if not x > maxpx or x < minpx or y > maxpy or y < minpy:
-            #Check polygon
-            for i in range(N):
-	        j = (i+1)%N
-
-	        #Check for case where point is contained in line segment
-	        if point_on_line(x, y, px[i], py[i], px[j], py[j]):
-	            if closed:
-	    	        inside = True
-	    	    else:
-	                inside = False
-	    	    break
-	        else:
- 	            #Check if truly inside polygon
-                    if py[i] < y and py[j] >= y or\
-                       py[j] < y and py[i] >= y:
-	    	        if px[i] + (y-py[i])/(py[j]-py[i])*(px[j]-px[i]) < x:
-	        	    inside = not inside
-
-        if inside:
-	    indices[inside_index] = k
-	    inside_index += 1
-	else:
-	    indices[outside_index] = k
-	    outside_index -= 1
-
-    return indices, inside_index
-
-
-def separate_points_by_polygon_c(points, polygon,
-                                 closed = True, verbose = False):
-    """Determine whether points are inside or outside a polygon
-
-    C-wrapper
+    Uses underlying C-implementation in polygon_ext.c
     """
 
 
@@ -395,7 +300,7 @@ def separate_points_by_polygon_c(points, polygon,
     N = polygon.shape[0] #Number of vertices in polygon
     M = points.shape[0]  #Number of points
 
-    from polygon_ext import separate_points_by_polygon
+
 
     if verbose: print 'Allocating array for indices'
 
@@ -403,8 +308,9 @@ def separate_points_by_polygon_c(points, polygon,
 
     #if verbose: print 'Calling C-version of inside poly'
 
-    count = separate_points_by_polygon(points, polygon, indices,
-                                       int(closed), int(verbose))
+    from polygon_ext import separate_points_by_polygon as sep_points
+    count = sep_points(points, polygon, indices,
+                       int(closed), int(verbose))
 
     if verbose: print 'Found %d points (out of %d) inside polygon'\
        %(count, M)
@@ -791,8 +697,14 @@ def number_mesh_triangles(interior_regions, bounding_poly, remainder_res):
 
 from anuga.utilities.compile import can_use_C_extension
 if can_use_C_extension('polygon_ext.c'):
+    # Underlying C implementations can be accessed 
+
     from polygon_ext import point_on_line
-    separate_points_by_polygon = separate_points_by_polygon_c
+else:
+    msg = 'C implementations could not be accessed by %s.\n ' %__file__
+    msg += 'Make sure compile_all.py has been run as described in '
+    msg += 'the ANUGA installation guide.'
+    raise Exception, msg
 
 
 if __name__ == "__main__":

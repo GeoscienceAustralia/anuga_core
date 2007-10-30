@@ -193,11 +193,11 @@ double _compute_speed(double *uh,
 }
 
 // Innermost flux function (using stage w=z+h)
-int flux_function_central(double *q_left, double *q_right,
-			  double z_left, double z_right,
-			  double n1, double n2,
-			  double epsilon, double H0, double g,
-			  double *edgeflux, double *max_speed) {
+int _flux_function_central(double *q_left, double *q_right,
+			   double z_left, double z_right,
+			   double n1, double n2,
+			   double epsilon, double H0, double g,
+			   double *edgeflux, double *max_speed) {
 
   /*Compute fluxes between volumes for the shallow water wave equation
     cast in terms of the 'stage', w = h+z using
@@ -736,6 +736,41 @@ int _assign_wind_field_values(int N,
 
 ///////////////////////////////////////////////////////////////////
 // Gateways to Python
+
+
+
+PyObject *flux_function_central(PyObject *self, PyObject *args) {
+  //
+  // Gateway to innermost flux function.
+  // This is only used by the unit tests as the c implementation is
+  // normally called by compute_fluxes in this module.
+
+
+  PyArrayObject *normal, *ql, *qr,  *edgeflux;
+  double g, epsilon, max_speed, H0, zl, zr;
+
+  if (!PyArg_ParseTuple(args, "OOOddOddd",
+			&normal, &ql, &qr, &zl, &zr, &edgeflux,
+			&epsilon, &g, &H0)) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: flux_function_central could not parse input arguments");
+    return NULL;
+  }
+
+  
+  _flux_function_central((double*) ql -> data, 
+			 (double*) qr -> data, 
+			 zl, 
+			 zr, 			 			 
+			 ((double*) normal -> data)[0], 			 			 			 
+			 ((double*) normal -> data)[1],			 
+			 epsilon, H0, g,
+			 (double*) edgeflux -> data, 
+			 &max_speed);
+  
+  return Py_BuildValue("d", max_speed);  
+}
+
+
 
 PyObject *gravity(PyObject *self, PyObject *args) {
   //
@@ -1493,7 +1528,7 @@ PyObject *rotate(PyObject *self, PyObject *args, PyObject *kwargs) {
     return NULL;
   }  
 
-  //Input checks (convert sequences into numeric arrays)
+  // Input checks (convert sequences into numeric arrays)
   q = (PyArrayObject *)
     PyArray_ContiguousFromObject(Q, PyArray_DOUBLE, 0, 0);
   normal = (PyArrayObject *)
@@ -1505,28 +1540,28 @@ PyObject *rotate(PyObject *self, PyObject *args, PyObject *kwargs) {
     return NULL;
   }
 
-  //Allocate space for return vector r (don't DECREF)
+  // Allocate space for return vector r (don't DECREF)
   dimensions[0] = 3;
   r = (PyArrayObject *) PyArray_FromDims(1, dimensions, PyArray_DOUBLE);
 
-  //Copy
+  // Copy
   for (i=0; i<3; i++) {
     ((double *) (r -> data))[i] = ((double *) (q -> data))[i];
   }
 
-  //Get normal and direction
+  // Get normal and direction
   n1 = ((double *) normal -> data)[0];
   n2 = ((double *) normal -> data)[1];
   if (direction == -1) n2 = -n2;
 
-  //Rotate
+  // Rotate
   _rotate((double *) r -> data, n1, n2);
 
-  //Release numeric arrays
+  // Release numeric arrays
   Py_DECREF(q);
   Py_DECREF(normal);
 
-  //return result using PyArray to avoid memory leak
+  // Return result using PyArray to avoid memory leak
   return PyArray_Return(r);
 }
 
@@ -1641,10 +1676,10 @@ double _compute_fluxes_central(int number_of_elements,
       ki2 = 2*ki; //k*6 + i*2
 
       // Edge flux computation (triangle k, edge i)
-      flux_function_central(ql, qr, zl, zr,
-			    normals[ki2], normals[ki2+1],
-			    epsilon, H0, g,
-			    edgeflux, &max_speed);
+      _flux_function_central(ql, qr, zl, zr,
+			     normals[ki2], normals[ki2+1],
+			     epsilon, H0, g,
+			     edgeflux, &max_speed);
       
       
       // Multiply edgeflux by edgelength
@@ -1897,10 +1932,10 @@ PyObject *compute_fluxes_ext_kinetic(PyObject *self, PyObject *args) {
     *stage_explicit_update,
     *xmom_explicit_update,
     *ymom_explicit_update,
-    *already_computed_flux;//tracks whether the flux across an edge has already been computed
+    *already_computed_flux; // Tracks whether the flux across an edge has already been computed
 
 
-  //Local variables
+  // Local variables
   double timestep, max_speed, epsilon, g, H0;
   double normal[2], ql[3], qr[3], zl, zr;
   double edgeflux[3]; //Work arrays for summing up fluxes
@@ -2059,6 +2094,15 @@ PyObject *protect(PyObject *self, PyObject *args) {
 
 
 PyObject *balance_deep_and_shallow(PyObject *self, PyObject *args) {
+  // Compute linear combination between stage as computed by
+  // gradient-limiters limiting using w, and stage computed by
+  // gradient-limiters limiting using h (h-limiter).
+  // The former takes precedence when heights are large compared to the
+  // bed slope while the latter takes precedence when heights are
+  // relatively small.  Anything in between is computed as a balanced
+  // linear combination in order to avoid numerical disturbances which
+  // would otherwise appear as a result of hard switching between
+  // modes.
   //
   //    balance_deep_and_shallow(beta_h, wc, zc, wv, zv,
   //                             xmomc, ymomc, xmomv, ymomv)
@@ -2159,7 +2203,7 @@ PyObject *h_limiter(PyObject *self, PyObject *args) {
 
   int k, i, n, N, k3;
   int dimensions[2];
-  double beta_h; //Safety factor (see config.py)
+  double beta_h; // Safety factor (see config.py)
   double *hmin, *hmax, hn;
 
   // Convert Python arguments to C
@@ -2200,11 +2244,11 @@ PyObject *h_limiter(PyObject *self, PyObject *args) {
     for (i=0; i<3; i++) {
       n = ((long*) neighbours -> data)[k3+i];
 
-      //Initialise hvbar with values from hv
+      // Initialise hvbar with values from hv
       ((double*) hvbar -> data)[k3+i] = ((double*) hv -> data)[k3+i];
 
       if (n >= 0) {
-	hn = ((double*) hc -> data)[n]; //Neighbour's centroid value
+	hn = ((double*) hc -> data)[n]; // Neighbour's centroid value
 
 	hmin[k] = min(hmin[k], hn);
 	hmax[k] = max(hmax[k], hn);
@@ -2215,13 +2259,12 @@ PyObject *h_limiter(PyObject *self, PyObject *args) {
   // Call underlying standard routine
   _limit(N, beta_h, (double*) hc -> data, (double*) hvbar -> data, hmin, hmax);
 
-  // // //Py_DECREF(domain); //FIXME: NEcessary?
+  // // //Py_DECREF(domain); //FIXME: Necessary?
   free(hmin);
   free(hmax);
 
-  //return result using PyArray to avoid memory leak
+  // Return result using PyArray to avoid memory leak
   return PyArray_Return(hvbar);
-  //return Py_BuildValue("");
 }
 
 PyObject *h_limiter_sw(PyObject *self, PyObject *args) {
@@ -2336,8 +2379,9 @@ PyObject *assign_windfield_values(PyObject *self, PyObject *args) {
 
 
 
-//////////////////////////////////////////
+//-------------------------------
 // Method table for python module
+//-------------------------------
 static struct PyMethodDef MethodTable[] = {
   /* The cast of the function is necessary since PyCFunction values
    * only take two PyObject* parameters, and rotate() takes
@@ -2350,6 +2394,7 @@ static struct PyMethodDef MethodTable[] = {
   {"compute_fluxes_ext_kinetic", compute_fluxes_ext_kinetic, METH_VARARGS, "Print out"},
   {"gravity", gravity, METH_VARARGS, "Print out"},
   {"manning_friction", manning_friction, METH_VARARGS, "Print out"},
+  {"flux_function_central", flux_function_central, METH_VARARGS, "Print out"},  
   {"balance_deep_and_shallow", balance_deep_and_shallow,
    METH_VARARGS, "Print out"},
   {"h_limiter", h_limiter,
@@ -2359,12 +2404,6 @@ static struct PyMethodDef MethodTable[] = {
   {"protect", protect, METH_VARARGS | METH_KEYWORDS, "Print out"},
   {"assign_windfield_values", assign_windfield_values,
    METH_VARARGS | METH_KEYWORDS, "Print out"},
-  //{"distribute_to_vertices_and_edges",
-  // distribute_to_vertices_and_edges, METH_VARARGS},
-  //{"update_conserved_quantities",
-  // update_conserved_quantities, METH_VARARGS},
-  //{"set_initialcondition",
-  // set_initialcondition, METH_VARARGS},
   {NULL, NULL}
 };
 

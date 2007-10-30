@@ -319,60 +319,16 @@ class Sparse_CSR:
         return csr_mv(self,B) 
 
 
-
-def csr_mv(self, B):
-    """Python version of sparse (CSR) matrix multiplication
-    """
-
-    from Numeric import zeros, Float
-
-
-    #Assume numeric types from now on
-	
-    if len(B.shape) == 0:
-        #Scalar - use __rmul__ method
-        R = B*self
-        
-    elif len(B.shape) == 1:
-        #Vector
-        assert B.shape[0] == self.N, 'Mismatching dimensions'
-        
-        R = zeros(self.M, Float) #Result
-        
-        #Multiply nonzero elements
-        for i in range(self.M):
-            for ckey in range(self.row_ptr[i],self.row_ptr[i+1]):
-                j = self.colind[ckey]
-                R[i] += self.data[ckey]*B[j]            
-                
-    elif len(B.shape) == 2:
-	
-        R = zeros((self.M, B.shape[1]), Float) #Result matrix
-        
-        #Multiply nonzero elements
-        
-        for col in range(R.shape[1]):
-            #For each column
-            for i in range(self.M):
-                for ckey in range(self.row_ptr[i],self.row_ptr[i+1]):
-                    j = self.colind[ckey]
-                    R[i, col] += self.data[ckey]*B[j,col]            
-                    
-    else:
-        raise ValueError, 'Dimension too high: d=%d' %len(B.shape)
-    
-    return R
-
-
-
-#Setup for C extensions
+# Setup for C extensions
 from anuga.utilities import compile
 if compile.can_use_C_extension('sparse_ext.c'):
-    #Replace python version with c implementation
+    # Access underlying c implementations
     from sparse_ext import csr_mv
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
+    # A little selftest
+    
     from Numeric import allclose, array, Float 
     
     A = Sparse(3,3)

@@ -331,7 +331,7 @@ class Quantity:
 
 
 
-        #General input checks
+        # General input checks
         L = [numeric, quantity, function, geospatial_data, points, filename]
         msg = 'Exactly one of the arguments '+\
               'numeric, quantity, function, geospatial_data, points, '+\
@@ -359,7 +359,7 @@ class Quantity:
 
 
 
-        #Determine which 'set_values_from_...' to use
+        # Determine which 'set_values_from_...' to use
 
         if numeric is not None:
             if type(numeric) in [FloatType, IntType, LongType]:
@@ -1336,255 +1336,21 @@ class Conserved_quantity(Quantity):
         saxpy_centroid_values(self,a,b)
     
 
-def update(quantity, timestep):
-    """Update centroid values based on values stored in
-    explicit_update and semi_implicit_update as well as given timestep
-
-    Function implementing forcing terms must take on argument
-    which is the domain and they must update either explicit
-    or implicit updates, e,g,:
-
-    def gravity(domain):
-        ....
-        domain.quantities['xmomentum'].explicit_update = ...
-        domain.quantities['ymomentum'].explicit_update = ...
-
-
-
-    Explicit terms must have the form
-
-        G(q, t)
-
-    and explicit scheme is
-
-       q^{(n+1}) = q^{(n)} + delta_t G(q^{n}, n delta_t)
-
-
-    Semi implicit forcing terms are assumed to have the form
-
-       G(q, t) = H(q, t) q
-
-    and the semi implicit scheme will then be
-
-      q^{(n+1}) = q^{(n)} + delta_t H(q^{n}, n delta_t) q^{(n+1})
-
-
-    """
-
-    from Numeric import sum, equal, ones, exp, Float
-
-    N = quantity.centroid_values.shape[0]
-
-
-    # Divide H by conserved quantity to obtain G (see docstring above)
-
-
-    for k in range(N):
-        x = quantity.centroid_values[k]
-        if x == 0.0:
-            #FIXME: Is this right
-            quantity.semi_implicit_update[k] = 0.0
-        else:
-            quantity.semi_implicit_update[k] /= x
-
-
-    # Semi implicit updates
-    denominator = ones(N, Float)-timestep*quantity.semi_implicit_update
-
-    if sum(less(denominator, 1.0)) > 0.0:
-        msg = 'denominator < 1.0 in semi implicit update. Call Stephen :-)'
-        raise msg
-
-    if sum(equal(denominator, 0.0)) > 0.0:
-        msg = 'Zero division in semi implicit update. Call Stephen :-)'
-        raise msg
-    else:
-        #Update conserved_quantities from semi implicit updates
-        quantity.centroid_values /= denominator
-
-#    quantity.centroid_values = exp(timestep*quantity.semi_implicit_update)*quantity.centroid_values
-
-    #Explicit updates
-    quantity.centroid_values += timestep*quantity.explicit_update
-
-def interpolate_from_vertices_to_edges(quantity):
-    """Compute edge values from vertex values using linear interpolation
-    """
-
-    for k in range(quantity.vertex_values.shape[0]):
-        q0 = quantity.vertex_values[k, 0]
-        q1 = quantity.vertex_values[k, 1]
-        q2 = quantity.vertex_values[k, 2]
-
-        quantity.edge_values[k, 0] = 0.5*(q1+q2)
-        quantity.edge_values[k, 1] = 0.5*(q0+q2)
-        quantity.edge_values[k, 2] = 0.5*(q0+q1)
-
-
-
-def backup_centroid_values(quantity):
-    """Copy centroid values to backup array"""
-
-    qc = quantity.centroid_values
-    qb = quantity.centroid_backup_values
-
-    #Check each triangle
-    for k in range(len(quantity.domain)):
-        qb[k] = qc[k]
-
-
-def saxpy_centroid_values(quantity,a,b):
-    """saxpy operation between centroid value and backup"""
-
-    qc = quantity.centroid_values
-    qb = quantity.centroid_backup_values
-
-    #Check each triangle
-    for k in range(len(quantity.domain)):
-        qc[k] = a*qc[k]+b*qb[k]       
-
-
-def compute_gradients(quantity):
-    """Compute gradients of triangle surfaces defined by centroids of
-    neighbouring volumes.
-    If one edge is on the boundary, use own centroid as neighbour centroid.
-    If two or more are on the boundary, fall back to first order scheme.
-    """
-
-    from Numeric import zeros, Float
-    from utilitites.numerical_tools import gradient
-
-    centroid_coordinates = quantity.domain.centroid_coordinates
-    surrogate_neighbours = quantity.domain.surrogate_neighbours
-    centroid_values = quantity.centroid_values
-    number_of_boundaries = quantity.domain.number_of_boundaries
-
-    N = centroid_values.shape[0]
-
-    a = zeros(N, Float)
-    b = zeros(N, Float)
-
-    for k in range(N):
-        if number_of_boundaries[k] < 2:
-            #Two or three true neighbours
-
-            #Get indices of neighbours (or self when used as surrogate)
-            k0, k1, k2 = surrogate_neighbours[k,:]
-
-            #Get data
-            q0 = centroid_values[k0]
-            q1 = centroid_values[k1]
-            q2 = centroid_values[k2]
-
-            x0, y0 = centroid_coordinates[k0] #V0 centroid
-            x1, y1 = centroid_coordinates[k1] #V1 centroid
-            x2, y2 = centroid_coordinates[k2] #V2 centroid
-
-            #Gradient
-            a[k], b[k] = gradient(x0, y0, x1, y1, x2, y2, q0, q1, q2)
-
-        elif number_of_boundaries[k] == 2:
-            #One true neighbour
-
-            #Get index of the one neighbour
-            for k0 in surrogate_neighbours[k,:]:
-                if k0 != k: break
-            assert k0 != k
-
-            k1 = k  #self
-
-            #Get data
-            q0 = centroid_values[k0]
-            q1 = centroid_values[k1]
-
-            x0, y0 = centroid_coordinates[k0] #V0 centroid
-            x1, y1 = centroid_coordinates[k1] #V1 centroid
-
-            #Gradient
-            a[k], b[k] = gradient2(x0, y0, x1, y1, q0, q1)
-        else:
-            #No true neighbours -
-            #Fall back to first order scheme
-            pass
-
-
-    return a, b
-
-
-
-def limit(quantity):
-    """Limit slopes for each volume to eliminate artificial variance
-    introduced by e.g. second order extrapolator
-
-    This is an unsophisticated limiter as it does not take into
-    account dependencies among quantities.
-
-    precondition:
-    vertex values are estimated from gradient
-    postcondition:
-    vertex values are updated
-    """
-
-    from Numeric import zeros, Float
-
-    N = quantity.domain.number_of_nodes
-
-    beta_w = quantity.domain.beta_w
-
-    qc = quantity.centroid_values
-    qv = quantity.vertex_values
-
-    #Find min and max of this and neighbour's centroid values
-    qmax = zeros(qc.shape, Float)
-    qmin = zeros(qc.shape, Float)
-
-    for k in range(N):
-        qmax[k] = qc[k]
-        qmin[k] = qc[k]
-        for i in range(3):
-            n = quantity.domain.neighbours[k,i]
-            if n >= 0:
-                qn = qc[n] #Neighbour's centroid value
-
-                qmin[k] = min(qmin[k], qn)
-                qmax[k] = max(qmax[k], qn)
-        qmax[k] = min(qmax[k], 2.0*qc[k])
-        qmin[k] = max(qmin[k], 0.5*qc[k])
-
-
-    #Diffences between centroids and maxima/minima
-    dqmax = qmax - qc
-    dqmin = qmin - qc
-
-    #Deltas between vertex and centroid values
-    dq = zeros(qv.shape, Float)
-    for i in range(3):
-        dq[:,i] = qv[:,i] - qc
-
-    #Phi limiter
-    for k in range(N):
-
-        #Find the gradient limiter (phi) across vertices
-        phi = 1.0
-        for i in range(3):
-            r = 1.0
-            if (dq[k,i] > 0): r = dqmax[k]/dq[k,i]
-            if (dq[k,i] < 0): r = dqmin[k]/dq[k,i]
-
-            phi = min( min(r*beta_w, 1), phi )
-
-        #Then update using phi limiter
-        for i in range(3):
-            qv[k,i] = qc[k] + phi*dq[k,i]
-
-
 
 from anuga.utilities import compile
-if compile.can_use_C_extension('quantity_ext.c'):
-    #Replace python version with c implementations
+if compile.can_use_C_extension('quantity_ext.c'):    
+    # Underlying C implementations can be accessed 
 
     from quantity_ext import average_vertex_values, backup_centroid_values, \
          saxpy_centroid_values
 
     from quantity_ext import compute_gradients, limit,\
-    extrapolate_second_order, interpolate_from_vertices_to_edges, update
+    extrapolate_second_order, interpolate_from_vertices_to_edges, update    
+else:
+    msg = 'C implementations could not be accessed by %s.\n ' %__file__
+    msg += 'Make sure compile_all.py has been run as described in '
+    msg += 'the ANUGA installation guide.'
+    raise Exception, msg
+
+
+

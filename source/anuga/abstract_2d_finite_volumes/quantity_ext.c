@@ -287,6 +287,40 @@ int _average_vertex_values(int N,
 /////////////////////////////////////////////////
 // Gateways to Python
 PyObject *update(PyObject *self, PyObject *args) {
+  // FIXME (Ole): It would be great to turn this text into a Python DOC string
+
+  /*"""Update centroid values based on values stored in
+    explicit_update and semi_implicit_update as well as given timestep
+
+    Function implementing forcing terms must take on argument
+    which is the domain and they must update either explicit
+    or implicit updates, e,g,:
+
+    def gravity(domain):
+        ....
+        domain.quantities['xmomentum'].explicit_update = ...
+        domain.quantities['ymomentum'].explicit_update = ...
+
+
+
+    Explicit terms must have the form
+
+        G(q, t)
+
+    and explicit scheme is
+
+       q^{(n+1}) = q^{(n)} + delta_t G(q^{n}, n delta_t)
+
+
+    Semi implicit forcing terms are assumed to have the form
+
+       G(q, t) = H(q, t) q
+
+    and the semi implicit scheme will then be
+
+      q^{(n+1}) = q^{(n)} + delta_t H(q^{n}, n delta_t) q^{(n+1})
+
+  */
 
 	PyObject *quantity;
 	PyArrayObject *centroid_values, *explicit_update, *semi_implicit_update;
@@ -396,7 +430,10 @@ PyObject *saxpy_centroid_values(PyObject *self, PyObject *args) {
 
 
 PyObject *interpolate_from_vertices_to_edges(PyObject *self, PyObject *args) {
-
+        //
+        //Compute edge values from vertex values using linear interpolation
+        // 
+	
 	PyObject *quantity;
 	PyArrayObject *vertex_values, *edge_values;
 
@@ -475,6 +512,12 @@ PyObject *average_vertex_values(PyObject *self, PyObject *args) {
 
 
 PyObject *compute_gradients(PyObject *self, PyObject *args) {
+  //"""Compute gradients of triangle surfaces defined by centroids of
+  //neighbouring volumes.
+  //If one edge is on the boundary, use own centroid as neighbour centroid.
+  //If two or more are on the boundary, fall back to first order scheme.
+  //"""
+
 
 	PyObject *quantity, *domain, *R;
 	PyArrayObject
@@ -649,6 +692,17 @@ PyObject *extrapolate_second_order(PyObject *self, PyObject *args) {
 
 
 PyObject *limit(PyObject *self, PyObject *args) {
+  //Limit slopes for each volume to eliminate artificial variance
+  //introduced by e.g. second order extrapolator
+
+  //This is an unsophisticated limiter as it does not take into
+  //account dependencies among quantities.
+
+  //precondition:
+  //  vertex values are estimated from gradient
+  //postcondition:
+  //  vertex values are updated
+  //
 
 	PyObject *quantity, *domain, *Tmp;
 	PyArrayObject

@@ -73,11 +73,11 @@ ModifiedBy:
 
 """
 
-#Subversion keywords:
+# Subversion keywords:
 #
-#$LastChangedDate$
-#$LastChangedRevision$
-#$LastChangedBy$
+# $LastChangedDate$
+# $LastChangedRevision$
+# $LastChangedBy$
 
 from Numeric import zeros, ones, Float, array, sum, size
 from Numeric import compress, arange
@@ -103,8 +103,9 @@ from anuga.config import g, epsilon, beta_h, beta_w, beta_w_dry,\
 from anuga.config import alpha_balance
 from anuga.config import optimise_dry_cells
 
-
-#Shallow water domain
+#---------------------
+# Shallow water domain
+#---------------------
 class Domain(Generic_Domain):
 
     conserved_quantities = ['stage', 'xmomentum', 'ymomentum']
@@ -148,8 +149,7 @@ class Domain(Generic_Domain):
                                 number_of_full_nodes=number_of_full_nodes,
                                 number_of_full_triangles=number_of_full_triangles) 
 
-        #self.minimum_allowed_height = minimum_allowed_height
-        #self.H0 = minimum_allowed_height
+
         self.set_minimum_allowed_height(minimum_allowed_height)
         
         self.maximum_allowed_speed = maximum_allowed_speed
@@ -166,10 +166,7 @@ class Domain(Generic_Domain):
         self.tight_slope_limiters = tight_slope_limiters
         self.optimise_dry_cells = optimise_dry_cells
 
-        self.flux_function = flux_function_central
-        #self.flux_function = flux_function_kinetic
-        
-        self.forcing_terms.append(manning_friction)
+        self.forcing_terms.append(manning_friction_implicit)
         self.forcing_terms.append(gravity)
 
         # Stored output
@@ -384,48 +381,10 @@ class Domain(Generic_Domain):
         compute_fluxes(self)
 
     def distribute_to_vertices_and_edges(self):
-        #Call correct module function
-        #(either from this module or C-extension)
+        # Call correct module function
+        # (either from this module or C-extension)
         distribute_to_vertices_and_edges(self)
 
-
-    #FIXME: Under construction
-#     def set_defaults(self):
-#         """Set default values for uninitialised quantities.
-#         This is specific to the shallow water wave equation
-#         Defaults for 'elevation', 'friction', 'xmomentum' and 'ymomentum'
-#         are 0.0. Default for 'stage' is whatever the value of 'elevation'.
-#         """
-
-#         for name in self.other_quantities + self.conserved_quantities:
-#             print name
-#             print self.quantities.keys()
-#             if not self.quantities.has_key(name):
-#                 if name == 'stage':
-
-#                     if self.quantities.has_key('elevation'):
-#                         z = self.quantities['elevation'].vertex_values
-#                         self.set_quantity(name, z)
-#                     else:
-#                         self.set_quantity(name, 0.0)
-#                 else:
-#                     self.set_quantity(name, 0.0)
-
-
-
-#         #Lift negative heights up
-#         #z = self.quantities['elevation'].vertex_values
-#         #w = self.quantities['stage'].vertex_values
-
-#         #h = w-z
-
-#         #for k in range(h.shape[0]):
-#         #    for i in range(3):
-#         #        if h[k, i] < 0.0:
-#         #            w[k, i] = z[k, i]
-
-
-#         #self.quantities['stage'].interpolate()
 
 
     def evolve(self,
@@ -436,8 +395,8 @@ class Domain(Generic_Domain):
         """Specialisation of basic evolve method from parent class
         """
 
-        #Call check integrity here rather than from user scripts
-        #self.check_integrity()
+        # Call check integrity here rather than from user scripts
+        # self.check_integrity()
 
         msg = 'Parameter beta_h must be in the interval [0, 1['
         assert 0 <= self.beta_h <= 1.0, msg
@@ -445,38 +404,39 @@ class Domain(Generic_Domain):
         assert 0 <= self.beta_w <= 1.0, msg
 
 
-        #Initial update of vertex and edge values before any STORAGE
-        #and or visualisation
-        #This is done again in the initialisation of the Generic_Domain
-        #evolve loop but we do it here to ensure the values are ok for storage
+        # Initial update of vertex and edge values before any STORAGE
+        # and or visualisation
+        # This is done again in the initialisation of the Generic_Domain
+        # evolve loop but we do it here to ensure the values are ok for storage
         self.distribute_to_vertices_and_edges()
 
         if self.store is True and self.time == 0.0:
             self.initialise_storage()
-            #print 'Storing results in ' + self.writer.filename
+            # print 'Storing results in ' + self.writer.filename
         else:
             pass
-            #print 'Results will not be stored.'
-            #print 'To store results set domain.store = True'
-            #FIXME: Diagnostic output should be controlled by
+            # print 'Results will not be stored.'
+            # print 'To store results set domain.store = True'
+            # FIXME: Diagnostic output should be controlled by
             # a 'verbose' flag living in domain (or in a parent class)
 
-        #Call basic machinery from parent class
+        # Call basic machinery from parent class
         for t in Generic_Domain.evolve(self,
                                        yieldstep=yieldstep,
                                        finaltime=finaltime,
                                        duration=duration,
                                        skip_initial_step=skip_initial_step):
 
-            #Store model data, e.g. for subsequent visualisation
+            # Store model data, e.g. for subsequent visualisation
             if self.store is True:
                 self.store_timestep(self.quantities_to_be_stored)
 
-            #FIXME: Could maybe be taken from specified list
-            #of 'store every step' quantities
+            # FIXME: Could maybe be taken from specified list
+            # of 'store every step' quantities
 
-            #Pass control on to outer loop for more specific actions
+            # Pass control on to outer loop for more specific actions
             yield(t)
+
 
     def initialise_storage(self):
         """Create and initialise self.writer object for storing data.
@@ -485,10 +445,10 @@ class Domain(Generic_Domain):
 
         from anuga.shallow_water.data_manager import get_dataobject
 
-        #Initialise writer
+        # Initialise writer
         self.writer = get_dataobject(self, mode = 'w')
 
-        #Store vertices and connectivity
+        # Store vertices and connectivity
         self.writer.store_connectivity()
 
 
@@ -501,241 +461,12 @@ class Domain(Generic_Domain):
         self.writer.store_timestep(name)
 
 
-#=============== End of Shallow Water Domain ===============================
+#=============== End of class Shallow Water Domain ===============================
 
 
-
-# Rotation of momentum vector
-def rotate(q, normal, direction = 1):
-    """Rotate the momentum component q (q[1], q[2])
-    from x,y coordinates to coordinates based on normal vector.
-
-    If direction is negative the rotation is inverted.
-
-    Input vector is preserved
-
-    This function is specific to the shallow water wave equation
-    """
-
-    assert len(q) == 3,\
-           'Vector of conserved quantities must have length 3'\
-           'for 2D shallow water equation'
-
-    try:
-        l = len(normal)
-    except:
-        raise 'Normal vector must be an Numeric array'
-
-    assert l == 2, 'Normal vector must have 2 components'
-
-
-    n1 = normal[0]
-    n2 = normal[1]
-
-    r = zeros(len(q), Float) #Rotated quantities
-    r[0] = q[0]              #First quantity, height, is not rotated
-
-    if direction == -1:
-        n2 = -n2
-
-
-    r[1] =  n1*q[1] + n2*q[2]
-    r[2] = -n2*q[1] + n1*q[2]
-
-    return r
-
-
-
-####################################
+#-----------------
 # Flux computation
-# FIXME (Ole): Delete Python versions of code that is
-# always used in C-extensions - they get out of sync anyway
-def flux_function_central(normal, ql, qr, zl, zr):
-    """Compute fluxes between volumes for the shallow water wave equation
-    cast in terms of w = h+z using the 'central scheme' as described in
-
-    Kurganov, Noelle, Petrova. 'Semidiscrete Central-Upwind Schemes For
-    Hyperbolic Conservation Laws and Hamilton-Jacobi Equations'.
-    Siam J. Sci. Comput. Vol. 23, No. 3, pp. 707-740.
-
-    The implemented formula is given in equation (3.15) on page 714
-
-    Conserved quantities w, uh, vh are stored as elements 0, 1 and 2
-    in the numerical vectors ql and qr.
-
-    Bed elevations zl and zr.
-    """
-
-    from math import sqrt
-
-    #Align momentums with x-axis
-    q_left  = rotate(ql, normal, direction = 1)
-    q_right = rotate(qr, normal, direction = 1)
-
-    z = (zl+zr)/2 #Take average of field values
-
-    w_left  = q_left[0]   #w=h+z
-    h_left  = w_left-z
-    uh_left = q_left[1]
-
-    if h_left < epsilon:
-        u_left = 0.0  #Could have been negative
-        h_left = 0.0
-    else:
-        u_left  = uh_left/h_left
-
-
-    w_right  = q_right[0]  #w=h+z
-    h_right  = w_right-z
-    uh_right = q_right[1]
-
-
-    if h_right < epsilon:
-        u_right = 0.0  #Could have been negative
-        h_right = 0.0
-    else:
-        u_right  = uh_right/h_right
-
-    vh_left  = q_left[2]
-    vh_right = q_right[2]
-
-    soundspeed_left  = sqrt(g*h_left)
-    soundspeed_right = sqrt(g*h_right)
-
-    #Maximal wave speed
-    s_max = max(u_left+soundspeed_left, u_right+soundspeed_right, 0)
-
-    #Minimal wave speed
-    s_min = min(u_left-soundspeed_left, u_right-soundspeed_right, 0)
-
-    #Flux computation
-
-    #FIXME(Ole): Why is it again that we don't
-    #use uh_left and uh_right directly in the first entries?
-    flux_left  = array([u_left*h_left,
-                        u_left*uh_left + 0.5*g*h_left**2,
-                        u_left*vh_left])
-    flux_right = array([u_right*h_right,
-                        u_right*uh_right + 0.5*g*h_right**2,
-                        u_right*vh_right])
-
-    denom = s_max-s_min
-    if denom == 0.0:
-        edgeflux = array([0.0, 0.0, 0.0])
-        max_speed = 0.0
-    else:
-        edgeflux = (s_max*flux_left - s_min*flux_right)/denom
-        edgeflux += s_max*s_min*(q_right-q_left)/denom
-
-        edgeflux = rotate(edgeflux, normal, direction=-1)
-        max_speed = max(abs(s_max), abs(s_min))
-
-    return edgeflux, max_speed
-
-def erfcc(x):
-
-    from math import fabs, exp
-
-    z=fabs(x)
-    t=1.0/(1.0+0.5*z)
-    result=t*exp(-z*z-1.26551223+t*(1.00002368+t*(.37409196+
-         t*(.09678418+t*(-.18628806+t*(.27886807+t*(-1.13520398+
-         t*(1.48851587+t*(-.82215223+t*.17087277)))))))))
-    if x < 0.0:
-        result = 2.0-result
-
-    return result
-
-def flux_function_kinetic(normal, ql, qr, zl, zr):
-    """Compute fluxes between volumes for the shallow water wave equation
-    cast in terms of w = h+z using the 'central scheme' as described in
-
-    Zhang et. al., Advances in Water Resources, 26(6), 2003, 635-647.
-
-
-    Conserved quantities w, uh, vh are stored as elements 0, 1 and 2
-    in the numerical vectors ql an qr.
-
-    Bed elevations zl and zr.
-    """
-
-    from math import sqrt
-    from Numeric import array
-
-    #Align momentums with x-axis
-    q_left  = rotate(ql, normal, direction = 1)
-    q_right = rotate(qr, normal, direction = 1)
-
-    z = (zl+zr)/2 #Take average of field values
-
-    w_left  = q_left[0]   #w=h+z
-    h_left  = w_left-z
-    uh_left = q_left[1]
-
-    if h_left < epsilon:
-        u_left = 0.0  #Could have been negative
-        h_left = 0.0
-    else:
-        u_left  = uh_left/h_left
-
-
-    w_right  = q_right[0]  #w=h+z
-    h_right  = w_right-z
-    uh_right = q_right[1]
-
-
-    if h_right < epsilon:
-        u_right = 0.0  #Could have been negative
-        h_right = 0.0
-    else:
-        u_right  = uh_right/h_right
-
-    vh_left  = q_left[2]
-    vh_right = q_right[2]
-
-    soundspeed_left  = sqrt(g*h_left)
-    soundspeed_right = sqrt(g*h_right)
-
-    #Maximal wave speed
-    s_max = max(u_left+soundspeed_left, u_right+soundspeed_right, 0)
-
-    #Minimal wave speed
-    s_min = min(u_left-soundspeed_left, u_right-soundspeed_right, 0)
-
-    #Flux computation
-
-    F_left  = 0.0
-    F_right = 0.0
-    from math import sqrt, pi, exp
-    if h_left > 0.0:
-        F_left = u_left/sqrt(g*h_left)
-    if h_right > 0.0:
-        F_right = u_right/sqrt(g*h_right)
-
-    edgeflux = array([0.0, 0.0, 0.0])
-
-    edgeflux[0] = h_left*u_left/2.0*erfcc(-F_left) +  \
-          h_left*sqrt(g*h_left)/2.0/sqrt(pi)*exp(-(F_left**2)) + \
-          h_right*u_right/2.0*erfcc(F_right) -  \
-          h_right*sqrt(g*h_right)/2.0/sqrt(pi)*exp(-(F_right**2))
-
-    edgeflux[1] = (h_left*u_left**2 + g/2.0*h_left**2)/2.0*erfcc(-F_left) + \
-          u_left*h_left*sqrt(g*h_left)/2.0/sqrt(pi)*exp(-(F_left**2)) + \
-          (h_right*u_right**2 + g/2.0*h_right**2)/2.0*erfcc(F_right) -  \
-          u_right*h_right*sqrt(g*h_right)/2.0/sqrt(pi)*exp(-(F_right**2))
-
-    edgeflux[2] = vh_left*u_left/2.0*erfcc(-F_left) + \
-          vh_left*sqrt(g*h_left)/2.0/sqrt(pi)*exp(-(F_left**2)) + \
-          vh_right*u_right/2.0*erfcc(F_right) - \
-          vh_right*sqrt(g*h_right)/2.0/sqrt(pi)*exp(-(F_right**2))
-
-
-    edgeflux = rotate(edgeflux, normal, direction=-1)
-    max_speed = max(abs(s_max), abs(s_min))
-
-    return edgeflux, max_speed
-
-
+#-----------------
 
 def compute_fluxes(domain):
     """Compute all fluxes and the timestep suitable for all volumes
@@ -755,81 +486,63 @@ def compute_fluxes(domain):
     Post conditions:
       domain.explicit_update is reset to computed flux values
       domain.timestep is set to the largest step satisfying all volumes.
+    
+
+    This wrapper calls the underlying C version of compute fluxes
     """
 
     import sys
 
     N = len(domain) # number_of_triangles
 
-    #Shortcuts
+    # Shortcuts
     Stage = domain.quantities['stage']
     Xmom = domain.quantities['xmomentum']
     Ymom = domain.quantities['ymomentum']
     Bed = domain.quantities['elevation']
 
-    #Arrays
-    stage = Stage.edge_values
-    xmom =  Xmom.edge_values
-    ymom =  Ymom.edge_values
-    bed =   Bed.edge_values
-
-    stage_bdry = Stage.boundary_values
-    xmom_bdry =  Xmom.boundary_values
-    ymom_bdry =  Ymom.boundary_values
-
-    flux = zeros(3, Float) #Work array for summing up fluxes
-
-
-    #Loop
     timestep = float(sys.maxint)
-    for k in range(N):
-
-        flux[:] = 0.  #Reset work array
-        for i in range(3):
-            #Quantities inside volume facing neighbour i
-            ql = [stage[k, i], xmom[k, i], ymom[k, i]]
-            zl = bed[k, i]
-
-            #Quantities at neighbour on nearest face
-            n = domain.neighbours[k,i]
-            if n < 0:
-                m = -n-1 #Convert negative flag to index
-                qr = [stage_bdry[m], xmom_bdry[m], ymom_bdry[m]]
-                zr = zl #Extend bed elevation to boundary
-            else:
-                m = domain.neighbour_edges[k,i]
-                qr = [stage[n, m], xmom[n, m], ymom[n, m]]
-                zr = bed[n, m]
+    from shallow_water_ext import\
+         compute_fluxes_ext_central as compute_fluxes_ext
 
 
-            #Outward pointing normal vector
-            normal = domain.normals[k, 2*i:2*i+2]
+    flux_timestep = compute_fluxes_ext(timestep,
+                                       domain.epsilon,
+                                       domain.H0,
+                                       domain.g,
+                                       domain.neighbours,
+                                       domain.neighbour_edges,
+                                       domain.normals,
+                                       domain.edgelengths,
+                                       domain.radii,
+                                       domain.areas,
+                                       domain.tri_full_flag,
+                                       Stage.edge_values,
+                                       Xmom.edge_values,
+                                       Ymom.edge_values,
+                                       Bed.edge_values,
+                                       Stage.boundary_values,
+                                       Xmom.boundary_values,
+                                       Ymom.boundary_values,
+                                       Stage.explicit_update,
+                                       Xmom.explicit_update,
+                                       Ymom.explicit_update,
+                                       domain.already_computed_flux,
+                                       domain.max_speed,
+                                       int(domain.optimise_dry_cells))
 
-            #Flux computation using provided function
-            edgeflux, max_speed = domain.flux_function(normal, ql, qr, zl, zr)
-            flux -= edgeflux * domain.edgelengths[k,i]
-
-            #Update optimal_timestep on full cells
-            if  domain.tri_full_flag[k] == 1:
-                try:
-                    timestep = min(timestep, 0.5*domain.radii[k]/max_speed)
-                except ZeroDivisionError:
-                    pass
-
-        #Normalise by area and store for when all conserved
-        #quantities get updated
-        flux /= domain.areas[k]
-        Stage.explicit_update[k] = flux[0]
-        Xmom.explicit_update[k] = flux[1]
-        Ymom.explicit_update[k] = flux[2]
-        domain.max_speed[k] = max_speed
+    domain.flux_timestep = flux_timestep
 
 
-    domain.flux_timestep = timestep
 
-#MH090605 The following method belongs to the shallow_water domain class
-#see comments in the corresponding method in shallow_water_ext.c
-def extrapolate_second_order_sw_c(domain):
+#---------------------------------------
+# Module functions for gradient limiting
+#---------------------------------------
+
+
+# MH090605 The following method belongs to the shallow_water domain class
+# see comments in the corresponding method in shallow_water_ext.c
+def extrapolate_second_order_sw(domain):
     """Wrapper calling C version of extrapolate_second_order_sw
     """
     import sys
@@ -842,67 +555,22 @@ def extrapolate_second_order_sw_c(domain):
     Ymom = domain.quantities['ymomentum']
     Elevation = domain.quantities['elevation']
 
-    from shallow_water_ext import extrapolate_second_order_sw
-    extrapolate_second_order_sw(domain,
-                                domain.surrogate_neighbours,
-                                domain.number_of_boundaries,
-                                domain.centroid_coordinates,
-                                Stage.centroid_values,
-                                Xmom.centroid_values,
-                                Ymom.centroid_values,
-                                Elevation.centroid_values,
-                                domain.vertex_coordinates,
-                                Stage.vertex_values,
-                                Xmom.vertex_values,
-                                Ymom.vertex_values,
-                                Elevation.vertex_values,
-                                int(domain.optimise_dry_cells))
+    from shallow_water_ext import extrapolate_second_order_sw as extrapol2
+    extrapol2(domain,
+              domain.surrogate_neighbours,
+              domain.number_of_boundaries,
+              domain.centroid_coordinates,
+              Stage.centroid_values,
+              Xmom.centroid_values,
+              Ymom.centroid_values,
+              Elevation.centroid_values,
+              domain.vertex_coordinates,
+              Stage.vertex_values,
+              Xmom.vertex_values,
+              Ymom.vertex_values,
+              Elevation.vertex_values,
+              int(domain.optimise_dry_cells))
 
-def compute_fluxes_c(domain):
-    """Wrapper calling C version of compute fluxes
-    """
-
-    import sys
-
-    N = len(domain) # number_of_triangles
-
-    #Shortcuts
-    Stage = domain.quantities['stage']
-    Xmom = domain.quantities['xmomentum']
-    Ymom = domain.quantities['ymomentum']
-    Bed = domain.quantities['elevation']
-
-    timestep = float(sys.maxint)
-    from shallow_water_ext import\
-         compute_fluxes_ext_central as compute_fluxes_ext
-
-    domain.flux_timestep = compute_fluxes_ext(timestep, domain.epsilon,
-                                         domain.H0,
-                                         domain.g,
-                                         domain.neighbours,
-                                         domain.neighbour_edges,
-                                         domain.normals,
-                                         domain.edgelengths,
-                                         domain.radii,
-                                         domain.areas,
-                                         domain.tri_full_flag,
-                                         Stage.edge_values,
-                                         Xmom.edge_values,
-                                         Ymom.edge_values,
-                                         Bed.edge_values,
-                                         Stage.boundary_values,
-                                         Xmom.boundary_values,
-                                         Ymom.boundary_values,
-                                         Stage.explicit_update,
-                                         Xmom.explicit_update,
-                                         Ymom.explicit_update,
-                                         domain.already_computed_flux,
-                                         domain.max_speed,
-                                         int(domain.optimise_dry_cells))
-
-
-####################################
-# Module functions for gradient limiting (distribute_to_vertices_and_edges)
 
 def distribute_to_vertices_and_edges(domain):
     """Distribution from centroids to vertices specific to the
@@ -929,14 +597,14 @@ def distribute_to_vertices_and_edges(domain):
 
     from anuga.config import optimised_gradient_limiter
 
-    #Remove very thin layers of water
+    # Remove very thin layers of water
     protect_against_infinitesimal_and_negative_heights(domain)
 
-    #Extrapolate all conserved quantities
+    # Extrapolate all conserved quantities
     if optimised_gradient_limiter:
-        #MH090605 if second order,
-        #perform the extrapolation and limiting on
-        #all of the conserved quantities
+        # MH090605 if second order,
+        # perform the extrapolation and limiting on
+        # all of the conserved quantities
 
         if (domain._order_ == 1):
             for name in domain.conserved_quantities:
@@ -947,7 +615,7 @@ def distribute_to_vertices_and_edges(domain):
         else:
             raise 'Unknown order'
     else:
-        #old code:
+        # Old code:
         for name in domain.conserved_quantities:
             Q = domain.quantities[name]
 
@@ -985,31 +653,7 @@ def protect_against_infinitesimal_and_negative_heights(domain):
     """Protect against infinitesimal heights and associated high velocities
     """
 
-    #Shortcuts
-    wc = domain.quantities['stage'].centroid_values
-    zc = domain.quantities['elevation'].centroid_values
-    xmomc = domain.quantities['xmomentum'].centroid_values
-    ymomc = domain.quantities['ymomentum'].centroid_values
-    hc = wc - zc  #Water depths at centroids
-
-    #Update
-    #FIXME: Modify according to c-version - or discard altogether.
-    for k in range(len(domain)):
-
-        if hc[k] < domain.minimum_allowed_height:
-            #Control stage
-            if hc[k] < domain.epsilon:
-                wc[k] = zc[k] # Contain 'lost mass' error
-
-            #Control momentum
-            xmomc[k] = ymomc[k] = 0.0
-
-
-def protect_against_infinitesimal_and_negative_heights_c(domain):
-    """Protect against infinitesimal heights and associated high velocities
-    """
-
-    #Shortcuts
+    # Shortcuts
     wc = domain.quantities['stage'].centroid_values
     zc = domain.quantities['elevation'].centroid_values
     xmomc = domain.quantities['xmomentum'].centroid_values
@@ -1021,76 +665,7 @@ def protect_against_infinitesimal_and_negative_heights_c(domain):
             domain.epsilon, wc, zc, xmomc, ymomc)
 
 
-
 def h_limiter(domain):
-    """Limit slopes for each volume to eliminate artificial variance
-    introduced by e.g. second order extrapolator
-
-    limit on h = w-z
-
-    This limiter depends on two quantities (w,z) so it resides within
-    this module rather than within quantity.py
-    """
-
-    N = len(domain)
-    beta_h = domain.beta_h
-
-    #Shortcuts
-    wc = domain.quantities['stage'].centroid_values
-    zc = domain.quantities['elevation'].centroid_values
-    hc = wc - zc
-
-    wv = domain.quantities['stage'].vertex_values
-    zv = domain.quantities['elevation'].vertex_values
-    hv = wv-zv
-
-    hvbar = zeros(hv.shape, Float) #h-limited values
-
-    #Find min and max of this and neighbour's centroid values
-    hmax = zeros(hc.shape, Float)
-    hmin = zeros(hc.shape, Float)
-
-    for k in range(N):
-        hmax[k] = hmin[k] = hc[k]
-        for i in range(3):
-            n = domain.neighbours[k,i]
-            if n >= 0:
-                hn = hc[n] #Neighbour's centroid value
-
-                hmin[k] = min(hmin[k], hn)
-                hmax[k] = max(hmax[k], hn)
-
-
-    #Diffences between centroids and maxima/minima
-    dhmax = hmax - hc
-    dhmin = hmin - hc
-
-    #Deltas between vertex and centroid values
-    dh = zeros(hv.shape, Float)
-    for i in range(3):
-        dh[:,i] = hv[:,i] - hc
-
-    #Phi limiter
-    for k in range(N):
-
-        #Find the gradient limiter (phi) across vertices
-        phi = 1.0
-        for i in range(3):
-            r = 1.0
-            if (dh[k,i] > 0): r = dhmax[k]/dh[k,i]
-            if (dh[k,i] < 0): r = dhmin[k]/dh[k,i]
-
-            phi = min( min(r*beta_h, 1), phi )
-
-        #Then update using phi limiter
-        for i in range(3):
-            hvbar[k,i] = hc[k] + phi*dh[k,i]
-
-    return hvbar
-
-
-
-def h_limiter_c(domain):
     """Limit slopes for each volume to eliminate artificial variance
     introduced by e.g. second order extrapolator
 
@@ -1105,7 +680,7 @@ def h_limiter_c(domain):
     N = len(domain) # number_of_triangles
     beta_h = domain.beta_h
 
-    #Shortcuts
+    # Shortcuts
     wc = domain.quantities['stage'].centroid_values
     zc = domain.quantities['elevation'].centroid_values
     hc = wc - zc
@@ -1115,8 +690,8 @@ def h_limiter_c(domain):
     hv = wv - zv
 
     #Call C-extension
-    from shallow_water_ext import h_limiter_sw as h_limiter
-    hvbar = h_limiter(domain, hc, hv)
+    from shallow_water_ext import h_limiter_sw
+    hvbar = h_limiter_sw(domain, hc, hv)
 
     return hvbar
 
@@ -1132,94 +707,7 @@ def balance_deep_and_shallow(domain):
     would otherwise appear as a result of hard switching between
     modes.
 
-    The h-limiter is always applied irrespective of the order.
-    """
-
-    #Shortcuts
-    wc = domain.quantities['stage'].centroid_values
-    zc = domain.quantities['elevation'].centroid_values
-    hc = wc - zc
-
-    wv = domain.quantities['stage'].vertex_values
-    zv = domain.quantities['elevation'].vertex_values
-    hv = wv-zv
-
-    #Limit h
-    hvbar = h_limiter(domain)
-
-    for k in range(len(domain)):
-        #Compute maximal variation in bed elevation
-        #  This quantitiy is
-        #    dz = max_i abs(z_i - z_c)
-        #  and it is independent of dimension
-        #  In the 1d case zc = (z0+z1)/2
-        #  In the 2d case zc = (z0+z1+z2)/3
-
-        dz = max(abs(zv[k,0]-zc[k]),
-                 abs(zv[k,1]-zc[k]),
-                 abs(zv[k,2]-zc[k]))
-
-
-        hmin = min( hv[k,:] )
-
-        #Create alpha in [0,1], where alpha==0 means using the h-limited
-        #stage and alpha==1 means using the w-limited stage as
-        #computed by the gradient limiter (both 1st or 2nd order)
-
-        #If hmin > dz/2 then alpha = 1 and the bed will have no effect
-        #If hmin < 0 then alpha = 0 reverting to constant height above bed.
-
-        if dz > 0.0:
-            alpha = max( min( 2*hmin/dz, 1.0), 0.0 )
-        else:
-            #Flat bed
-            alpha = 1.0
-
-        #Let
-        #
-        #  wvi be the w-limited stage (wvi = zvi + hvi)
-        #  wvi- be the h-limited state (wvi- = zvi + hvi-)
-        #
-        #
-        #where i=0,1,2 denotes the vertex ids
-        #
-        #Weighted balance between w-limited and h-limited stage is
-        #
-        #  wvi := (1-alpha)*(zvi+hvi-) + alpha*(zvi+hvi)
-        #
-        #It follows that the updated wvi is
-        #  wvi := zvi + (1-alpha)*hvi- + alpha*hvi
-        #
-        # Momentum is balanced between constant and limited
-
-
-        #for i in range(3):
-        #    wv[k,i] = zv[k,i] + hvbar[k,i]
-
-        #return
-
-        if alpha < 1:
-
-            for i in range(3):
-                wv[k,i] = zv[k,i] + (1-alpha)*hvbar[k,i] + alpha*hv[k,i]
-
-            #Momentums at centroids
-            xmomc = domain.quantities['xmomentum'].centroid_values
-            ymomc = domain.quantities['ymomentum'].centroid_values
-
-            #Momentums at vertices
-            xmomv = domain.quantities['xmomentum'].vertex_values
-            ymomv = domain.quantities['ymomentum'].vertex_values
-
-            # Update momentum as a linear combination of
-            # xmomc and ymomc (shallow) and momentum
-            # from extrapolator xmomv and ymomv (deep).
-            xmomv[k,:] = (1-alpha)*xmomc[k] + alpha*xmomv[k,:]
-            ymomv[k,:] = (1-alpha)*ymomc[k] + alpha*ymomv[k,:]
-
-
-def balance_deep_and_shallow_c(domain):
-    """Wrapper for C implementation
+    Wrapper for C implementation
     """
 
     # FIXME (Ole): I reckon this can be simplified significantly:
@@ -1228,16 +716,14 @@ def balance_deep_and_shallow_c(domain):
     # Compute hc and hv in the c-code
     # Omit updating xmomv 
     #
-    from shallow_water_ext import balance_deep_and_shallow
+    from shallow_water_ext import balance_deep_and_shallow as balance_deep_and_shallow_c
     
     # Shortcuts
     wc = domain.quantities['stage'].centroid_values
     zc = domain.quantities['elevation'].centroid_values
-    #hc = wc - zc
 
     wv = domain.quantities['stage'].vertex_values
     zv = domain.quantities['elevation'].vertex_values
-    #hv = wv - zv
 
     # Momentums at centroids
     xmomc = domain.quantities['xmomentum'].centroid_values
@@ -1247,35 +733,35 @@ def balance_deep_and_shallow_c(domain):
     xmomv = domain.quantities['xmomentum'].vertex_values
     ymomv = domain.quantities['ymomentum'].vertex_values
 
-    #Limit h
+    # Limit h
     if domain.beta_h > 0:
         hvbar = h_limiter(domain)
         
-        balance_deep_and_shallow(domain, domain.beta_h,
-                                 wc, zc, wv, zv, hvbar,
-                                 xmomc, ymomc, xmomv, ymomv)        
+        balance_deep_and_shallow_c(domain, domain.beta_h,
+                                   wc, zc, wv, zv, hvbar,
+                                   xmomc, ymomc, xmomv, ymomv)        
     else:
         # print 'Using first order h-limiter'
         # FIXME: Pass wc in for now - it will be ignored.
         
-        #This is how one would make a first order h_limited value
-        #as in the old balancer (pre 17 Feb 2005):
-        # If we wish to hard wire this, one should modify the C-code
-        #from Numeric import zeros, Float
-        #hvbar = zeros( (len(wc), 3), Float)
-        #for i in range(3):
-        #    hvbar[:,i] = wc[:] - zc[:]
+        # This is how one would make a first order h_limited value
+        # as in the old balancer (pre 17 Feb 2005):
+        #  If we wish to hard wire this, one should modify the C-code
+        # from Numeric import zeros, Float
+        # hvbar = zeros( (len(wc), 3), Float)
+        # for i in range(3):
+        #     hvbar[:,i] = wc[:] - zc[:]
 
-        balance_deep_and_shallow(domain, domain.beta_h,
-                                 wc, zc, wv, zv, wc, 
-                                 xmomc, ymomc, xmomv, ymomv)
-
-
+        balance_deep_and_shallow_c(domain, domain.beta_h,
+                                   wc, zc, wv, zv, wc, 
+                                   xmomc, ymomc, xmomv, ymomv)
 
 
 
-###############################################
-#Boundaries - specific to the shallow water wave equation
+
+#------------------------------------------------------------------
+# Boundary conditions - specific to the shallow water wave equation
+#------------------------------------------------------------------
 class Reflective_boundary(Boundary):
     """Reflective boundary returns same conserved quantities as
     those present in its neighbour volume but reflected.
@@ -1292,7 +778,7 @@ class Reflective_boundary(Boundary):
             msg = 'Domain must be specified for reflective boundary'
             raise msg
 
-        #Handy shorthands
+        # Handy shorthands
         self.stage   = domain.quantities['stage'].edge_values
         self.xmom    = domain.quantities['xmomentum'].edge_values
         self.ymom    = domain.quantities['ymomentum'].edge_values
@@ -1376,13 +862,13 @@ class Transmissive_Momentum_Set_Stage_boundary(Boundary):
         return q
 
 
-        #FIXME: Consider this (taken from File_boundary) to allow
-        #spatial variation
-        #if vol_id is not None and edge_id is not None:
-        #    i = self.boundary_indices[ vol_id, edge_id ]
-        #    return self.F(t, point_id = i)
-        #else:
-        #    return self.F(t)
+        # FIXME: Consider this (taken from File_boundary) to allow
+        # spatial variation
+        # if vol_id is not None and edge_id is not None:
+        #     i = self.boundary_indices[ vol_id, edge_id ]
+        #     return self.F(t, point_id = i)
+        # else:
+        #     return self.F(t)
 
 
 
@@ -1423,13 +909,13 @@ class Dirichlet_Discharge_boundary(Boundary):
         return q
 
 
-        #FIXME: Consider this (taken from File_boundary) to allow
-        #spatial variation
-        #if vol_id is not None and edge_id is not None:
-        #    i = self.boundary_indices[ vol_id, edge_id ]
-        #    return self.F(t, point_id = i)
-        #else:
-        #    return self.F(t)
+        # FIXME: Consider this (taken from File_boundary) to allow
+        # spatial variation
+        # if vol_id is not None and edge_id is not None:
+        #     i = self.boundary_indices[ vol_id, edge_id ]
+        #     return self.F(t, point_id = i)
+        # else:
+        #     return self.F(t)
 
 
 class Field_boundary(Boundary):
@@ -1510,40 +996,13 @@ class Field_boundary(Boundary):
 
     
 
-#########################
-#Standard forcing terms:
-#
+#-----------------------
+# Standard forcing terms
+#-----------------------
+
 def gravity(domain):
     """Apply gravitational pull in the presence of bed slope
-    """
-
-    xmom = domain.quantities['xmomentum'].explicit_update
-    ymom = domain.quantities['ymomentum'].explicit_update
-
-    Stage = domain.quantities['stage']
-    Elevation = domain.quantities['elevation']
-    h = Stage.edge_values - Elevation.edge_values
-    v = Elevation.vertex_values
-
-    x = domain.get_vertex_coordinates()
-    g = domain.g
-
-    for k in range(len(domain)):
-        avg_h = sum( h[k,:] )/3
-
-        #Compute bed slope
-        x0, y0, x1, y1, x2, y2 = x[k,:]
-        z0, z1, z2 = v[k,:]
-
-        zx, zy = gradient(x0, y0, x1, y1, x2, y2, z0, z1, z2)
-
-        #Update momentum
-        xmom[k] += -g*zx*avg_h
-        ymom[k] += -g*zy*avg_h
-
-
-def gravity_c(domain):
-    """Wrapper calling C version
+    Wrapper calls underlying C implementation
     """
 
     xmom = domain.quantities['xmomentum'].explicit_update
@@ -1559,46 +1018,14 @@ def gravity_c(domain):
     g = domain.g
     
 
-    from shallow_water_ext import gravity
-    gravity(g, h, z, x, xmom, ymom) #, 1.0e-6)
+    from shallow_water_ext import gravity as gravity_c
+    gravity_c(g, h, z, x, xmom, ymom) #, 1.0e-6)
 
 
 
-def manning_friction(domain):
-    """Apply (Manning) friction to water momentum
-    (Python version)
-    """
-
-    from math import sqrt
-
-    w = domain.quantities['stage'].centroid_values
-    z = domain.quantities['elevation'].centroid_values
-    h = w-z
-
-    uh = domain.quantities['xmomentum'].centroid_values
-    vh = domain.quantities['ymomentum'].centroid_values
-    eta = domain.quantities['friction'].centroid_values
-
-    xmom_update = domain.quantities['xmomentum'].semi_implicit_update
-    ymom_update = domain.quantities['ymomentum'].semi_implicit_update
-
-    N = len(domain)
-    eps = domain.minimum_allowed_height
-    g = domain.g
-
-    for k in range(N):
-        if eta[k] >= eps:
-            if h[k] >= eps:
-                S = -g * eta[k]**2 * sqrt((uh[k]**2 + vh[k]**2))
-                S /= h[k]**(7.0/3)
-
-                #Update momentum
-                xmom_update[k] += S*uh[k]
-                ymom_update[k] += S*vh[k]
-
-
-def manning_friction_implicit_c(domain):
-    """Wrapper for c version
+def manning_friction_implicit(domain):
+    """Apply (Manning) friction to water momentum    
+    Wrapper for c version
     """
 
 
@@ -1621,15 +1048,16 @@ def manning_friction_implicit_c(domain):
     eps = domain.minimum_allowed_height
     g = domain.g
 
-    from shallow_water_ext import manning_friction
-    manning_friction(g, eps, w, z, uh, vh, eta, xmom_update, ymom_update)
+    from shallow_water_ext import manning_friction as manning_friction_c
+    manning_friction_c(g, eps, w, z, uh, vh, eta, xmom_update, ymom_update)
 
 
-def manning_friction_explicit_c(domain):
-    """Wrapper for c version
+def manning_friction_explicit(domain):
+    """Apply (Manning) friction to water momentum    
+    Wrapper for c version
     """
 
-    #print 'Explicit friction'
+    # print 'Explicit friction'
 
     xmom = domain.quantities['xmomentum']
     ymom = domain.quantities['ymomentum']
@@ -1648,10 +1076,12 @@ def manning_friction_explicit_c(domain):
     eps = domain.minimum_allowed_height
     g = domain.g
 
-    from shallow_water_ext import manning_friction
-    manning_friction(g, eps, w, z, uh, vh, eta, xmom_update, ymom_update)
+    from shallow_water_ext import manning_friction as manning_friction_c
+    manning_friction_c(g, eps, w, z, uh, vh, eta, xmom_update, ymom_update)
 
 
+# FIXME (Ole): This was implemented for use with one of the analytical solutions (Sampson?)
+# Is it still needed (30 Oct 2007)?
 def linear_friction(domain):
     """Apply linear friction to water momentum
 
@@ -1686,6 +1116,9 @@ def linear_friction(domain):
 
 
 
+#---------------------------------
+# Experimental auxiliary functions
+#---------------------------------
 def check_forcefield(f):
     """Check that f is either
     1: a callable object f(t,x,y), where x and y are vectors
@@ -1702,7 +1135,7 @@ def check_forcefield(f):
             q = f(1.0, x=x, y=y)
         except Exception, e:
             msg = 'Function %s could not be executed:\n%s' %(f, e)
-            #FIXME: Reconsider this semantics
+            # FIXME: Reconsider this semantics
             raise msg
 
         try:
@@ -1713,7 +1146,7 @@ def check_forcefield(f):
             msg += 'Specified function should return either list or array.'
             raise msg
 
-        #Is this really what we want?
+        # Is this really what we want?
         msg = 'Return vector from function %s ' %f
         msg += 'must have same lenght as input vectors'
         assert len(q) == N, msg
@@ -1780,12 +1213,12 @@ class Wind_stress:
             s = args[0]
             phi = args[1]
         elif len(args) == 1:
-            #Assume vector function returning (s, phi)(t,x,y)
+            # Assume vector function returning (s, phi)(t,x,y)
             vector_function = args[0]
             s = lambda t,x,y: vector_function(t,x=x,y=y)[0]
             phi = lambda t,x,y: vector_function(t,x=x,y=y)[1]
         else:
-           #Assume info is in 2 keyword arguments
+           # Assume info is in 2 keyword arguments
 
            if len(kwargs) == 2:
                s = kwargs['s']
@@ -1816,7 +1249,7 @@ class Wind_stress:
             xc = domain.get_centroid_coordinates()
             s_vec = self.speed(t, xc[:,0], xc[:,1])
         else:
-            #Assume s is a scalar
+            # Assume s is a scalar
 
             try:
                 s_vec = self.speed * ones(N, Float)
@@ -1829,7 +1262,7 @@ class Wind_stress:
             xc = domain.get_centroid_coordinates()
             phi_vec = self.phi(t, xc[:,0], xc[:,1])
         else:
-            #Assume phi is a scalar
+            # Assume phi is a scalar
 
             try:
                 phi_vec = self.phi * ones(N, Float)
@@ -1853,14 +1286,14 @@ def assign_windfield_values(xmom_update, ymom_update,
         s = s_vec[k]
         phi = phi_vec[k]
 
-        #Convert to radians
+        # Convert to radians
         phi = phi*pi/180
 
-        #Compute velocity vector (u, v)
+        # Compute velocity vector (u, v)
         u = s*cos(phi)
         v = s*sin(phi)
 
-        #Compute wind stress
+        # Compute wind stress
         S = const * sqrt(u**2 + v**2)
         xmom_update[k] += S*u
         ymom_update[k] += S*v
@@ -2040,23 +1473,17 @@ class Inflow:
 # Initialise module
 #------------------
 
+
 from anuga.utilities import compile
 if compile.can_use_C_extension('shallow_water_ext.c'):
-    # Replace python version with c implementations
+    # Underlying C implementations can be accessed 
 
     from shallow_water_ext import rotate, assign_windfield_values
-    compute_fluxes = compute_fluxes_c
-    extrapolate_second_order_sw=extrapolate_second_order_sw_c
-    gravity = gravity_c
-    manning_friction = manning_friction_implicit_c
-    h_limiter = h_limiter_c
-    balance_deep_and_shallow = balance_deep_and_shallow_c
-    protect_against_infinitesimal_and_negative_heights =\
-                    protect_against_infinitesimal_and_negative_heights_c
-
-    #distribute_to_vertices_and_edges =\
-    #              distribute_to_vertices_and_edges_c #(like MH's)
-
+else:
+    msg = 'C implementations could not be accessed by %s.\n ' %__file__
+    msg += 'Make sure compile_all.py has been run as described in '
+    msg += 'the ANUGA installation guide.'
+    raise Exception, msg
 
 
 # Optimisation with psyco
