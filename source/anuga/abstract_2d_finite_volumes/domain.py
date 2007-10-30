@@ -189,8 +189,6 @@ class Domain(Mesh):
         # FIXME: Maybe have separate orders for h-limiter and w-limiter?
         # Or maybe get rid of order altogether and use beta_w and beta_h
         self.set_default_order(1)
-        #self.default_order = 1
-        #self._order_ = self.default_order
 
         self.smallsteps = 0
         self.max_smallsteps = max_smallsteps
@@ -206,7 +204,8 @@ class Domain(Mesh):
         self.time = 0.0
         self.finaltime = None
         self.min_timestep = self.max_timestep = 0.0
-        self.starttime = 0 #Physical starttime if any (0 is 1 Jan 1970 00:00:00)
+        self.starttime = 0 # Physical starttime if any
+                           # (0 is 1 Jan 1970 00:00:00)
         self.timestep = 0.0
         self.flux_timestep = 0.0
 
@@ -222,12 +221,14 @@ class Domain(Mesh):
         self.simulation_name = 'domain'
         self.checkpoint = False
 
-        # MH310505 To avoid calculating the flux across each edge twice, keep an integer (boolean) array,
-        # to be used during the flux calculation
-        N = len(self) #number_of_triangles
+        # To avoid calculating the flux across each edge twice,
+        # keep an integer (boolean) array, to be used during the flux
+        # calculation
+        N = len(self) # Number_of_triangles
         self.already_computed_flux = zeros((N, 3), Int)
 
-        # Storage for maximal speeds computed for each triangle by compute_fluxes
+        # Storage for maximal speeds computed for each triangle by
+        # compute_fluxes
         # This is used for diagnostics only
         self.max_speed = zeros(N, Float)
 
@@ -245,8 +246,9 @@ class Domain(Mesh):
 
 
 
-
-    #Public interface to Domain
+    #---------------------------    
+    # Public interface to Domain
+    #---------------------------        
     def get_conserved_quantities(self, vol_id, vertex=None, edge=None):
         """Get conserved quantities at volume vol_id
 
@@ -331,16 +333,7 @@ class Domain(Mesh):
         See Quantity.set_values for further documentation.
         """
 
-        #FIXME (Ole): Allow new quantities here
-        #from quantity import Quantity, Conserved_quantity
-        #Create appropriate quantity object
-        ##if name in self.conserved_quantities:
-        ##    self.quantities[name] = Conserved_quantity(self)
-        ##else:
-        ##    self.quantities[name] = Quantity(self)
-
-
-        #Do the expression stuff
+        # Do the expression stuff
         if kwargs.has_key('expression'):
             expression = kwargs['expression']
             del kwargs['expression']
@@ -348,7 +341,7 @@ class Domain(Mesh):
             Q = self.create_quantity_from_expression(expression)
             kwargs['quantity'] = Q
 
-        #Assign values
+        # Assign values
         self.quantities[name].set_values(*args, **kwargs)
 
 
@@ -462,18 +455,18 @@ class Domain(Mesh):
                 self.boundary_map[key] = boundary_map[key]
                 
         
-        #FIXME: Try to remove the sorting and fix test_mesh.py
+        # FIXME (Ole): Try to remove the sorting and fix test_mesh.py
         x = self.boundary.keys()
         x.sort()
 
-        #Loop through edges that lie on the boundary and associate them with
-        #callable boundary objects depending on their tags
+        # Loop through edges that lie on the boundary and associate them with
+        # callable boundary objects depending on their tags
         self.boundary_objects = []        
         for k, (vol_id, edge_id) in enumerate(x):
             tag = self.boundary[ (vol_id, edge_id) ]
 
             if self.boundary_map.has_key(tag):
-                B = self.boundary_map[tag]  #Get callable boundary object
+                B = self.boundary_map[tag]  # Get callable boundary object
 
                 if B is not None:
                     self.boundary_objects.append( ((vol_id, edge_id), B) )
@@ -508,12 +501,11 @@ class Domain(Mesh):
         A callable region class or a list of callable region classes
         can also be passed into this function.
         """
-        #print "*args", args
-        #print "**kwargs", kwargs 
+
         if len(args) == 1:
             self._set_region(*args, **kwargs)
         else:
-            #Assume it is arguments for the region.set_region function
+            # Assume it is arguments for the region.set_region function
             func = region_set_region(*args, **kwargs)
             self._set_region(func)
             
@@ -627,8 +619,9 @@ class Domain(Mesh):
         self.monitor_time_interval = time_interval        
         
 
-
-    #MISC
+    #--------------------------    
+    # Miscellaneous diagnostics
+    #--------------------------        
     def check_integrity(self):
         Mesh.check_integrity(self)
 
@@ -637,6 +630,7 @@ class Domain(Mesh):
             assert quantity in self.quantities, msg
 
         ##assert hasattr(self, 'boundary_objects')
+            
 
     def write_time(self, track_speeds=False):
         print self.timestepping_statistics(track_speeds)
@@ -645,8 +639,9 @@ class Domain(Mesh):
     def timestepping_statistics(self, track_speeds=False):
         """Return string with time stepping statistics for printing or logging
 
-        Optional boolean keyword track_speeds decides whether to report location of
-        smallest timestep as well as a histogram and percentile report. 
+        Optional boolean keyword track_speeds decides whether to report
+        location of smallest timestep as well as a histogram and percentile
+        report. 
         """
 
         from anuga.utilities.numerical_tools import histogram, create_bins
@@ -671,23 +666,24 @@ class Domain(Mesh):
             msg += '\n'
 
 
-            #Setup 10 bins for speed histogram
+            # Setup 10 bins for speed histogram
             bins = create_bins(self.max_speed, 10)
             hist = histogram(self.max_speed, bins)
 
             msg += '------------------------------------------------\n'
-            msg += '  Speeds in [%f, %f]\n' %(min(self.max_speed), max(self.max_speed))
+            msg += '  Speeds in [%f, %f]\n' %(min(self.max_speed),
+                                              max(self.max_speed))
             msg += '  Histogram:\n'
 
             hi = bins[0]
             for i, count in enumerate(hist):
                 lo = hi
                 if i+1 < len(bins):
-                    #Open upper interval                
+                    # Open upper interval                
                     hi = bins[i+1]
                     msg += '    [%f, %f[: %d\n' %(lo, hi, count)                
                 else:
-                    #Closed upper interval
+                    # Closed upper interval
                     hi = max(self.max_speed)
                     msg += '    [%f, %f]: %d\n' %(lo, hi, count)
 
@@ -701,7 +697,8 @@ class Domain(Mesh):
                 k = 0
                 lower = min(speed)
                 for i, a in enumerate(speed):        
-                    if i % (N/10) == 0 and i != 0: #For every 10% of the sorted speeds
+                    if i % (N/10) == 0 and i != 0:
+                        # For every 10% of the sorted speeds
                         msg += '    %d speeds in [%f, %f]\n' %(i-k, lower, a)
                         lower = a
                         k = i
@@ -710,7 +707,6 @@ class Domain(Mesh):
                        %(N-k, lower, max(speed))                    
                 
                       
-            
 
                 
             
@@ -754,8 +750,10 @@ class Domain(Mesh):
 
 
         Input:
-          quantities: either None, a string or a list of strings naming the quantities to be reported
-          tags:       either None, a string or a list of strings naming the tags to be reported
+          quantities: either None, a string or a list of strings naming the
+                      quantities to be reported
+          tags:       either None, a string or a list of strings naming the
+                      tags to be reported
 
 
         Example output:
@@ -766,7 +764,8 @@ class Domain(Mesh):
         Tag 'ocean'
 
 
-        If quantities are specified only report on those. Otherwise take all conserved quantities.
+        If quantities are specified only report on those. Otherwise take all
+        conserved quantities.
         If tags are specified only report on those, otherwise take all tags.
 
         """
@@ -800,7 +799,7 @@ class Domain(Mesh):
             if w > maxwidth:
                 maxwidth = w
 
-        # Output stats
+        # Output statistics
         msg = 'Boundary values at time %.4f:\n' %self.time
         for tag in tags:
             msg += '    %s:\n' %tag
@@ -859,7 +858,8 @@ class Domain(Mesh):
             info_block = self.quantities_to_be_monitored[quantity_name]
 
             # Update maximum
-            # (n > None is always True, but we check explicitly because of the epsilon)
+            # (n > None is always True, but we check explicitly because
+            # of the epsilon)
             maxval = Q.get_maximum_value(self.monitor_indices)
             if info_block['max'] is None or\
                    maxval > info_block['max'] + epsilon:
@@ -881,7 +881,8 @@ class Domain(Mesh):
 
 
     def quantity_statistics(self, precision = '%.4f'):
-        """Return string with statistics about quantities for printing or logging
+        """Return string with statistics about quantities for
+        printing or logging
 
         Quantities reported are specified through method
 
@@ -891,7 +892,7 @@ class Domain(Mesh):
 
         maxlen = 128 # Max length of polygon string representation
 
-        # Output stats
+        # Output statistics
         msg = 'Monitored quantities at time %.4f:\n' %self.time
         if self.monitor_polygon is not None:
             p_str = str(self.monitor_polygon)
@@ -903,7 +904,8 @@ class Domain(Mesh):
 
 
         if self.monitor_time_interval is not None:
-            msg += '- Restricted by time interval: %s\n' %str(self.monitor_time_interval)
+            msg += '- Restricted by time interval: %s\n'\
+                   %str(self.monitor_time_interval)
             time_interval_start = self.monitor_time_interval[0]
         else:
             time_interval_start = 0.0
@@ -915,16 +917,16 @@ class Domain(Mesh):
             msg += '      values since time = %.2f in [%s, %s]\n'\
                    %(time_interval_start,
                      get_textual_float(info['min'], precision),
-                     get_textual_float(info['max'], precision))                     
+                     get_textual_float(info['max'], precision))       
                      
             msg += '      minimum attained at time = %s, location = %s\n'\
                    %(get_textual_float(info['min_time'], precision),
-                     get_textual_float(info['min_location'], precision))                     
-                     
+                     get_textual_float(info['min_location'], precision))
+            
 
             msg += '      maximum attained at time = %s, location = %s\n'\
                    %(get_textual_float(info['max_time'], precision),
-                     get_textual_float(info['max_location'], precision))                   
+                     get_textual_float(info['max_location'], precision))
 
 
         return msg
@@ -968,17 +970,9 @@ class Domain(Mesh):
 
 
 
-    #def set_defaults(self):
-    #    """Set default values for uninitialised quantities.
-    #    Should be overridden or specialised by specific modules
-    #    """#
-    #
-    #    for name in self.conserved_quantities + self.other_quantities:
-    #        self.set_quantity(name, 0.0)
-
-
-    ###########################
-    #Main components of evolve
+    #--------------------------
+    # Main components of evolve
+    #--------------------------    
 
     def evolve(self,
                yieldstep = None,
@@ -1102,10 +1096,11 @@ class Domain(Mesh):
 
                 if self.time > finaltime:
                     # FIXME (Ole, 30 April 2006): Do we need this check?
-                    # Probably not (Ole, 18 September 2008). Now changed to Exception
-                    msg = 'WARNING (domain.py): time overshot finaltime. Contact Ole.Nielsen@ga.gov.au'
+                    # Probably not (Ole, 18 September 2008). Now changed to
+                    # Exception
+                    msg = 'WARNING (domain.py): time overshot finaltime. '
+                    msg += 'Contact Ole.Nielsen@ga.gov.au'
                     raise Exception, msg
-                    #self.time = finaltime
                     
 
                 # Yield final time and stop
@@ -1330,9 +1325,9 @@ class Domain(Mesh):
 
 
     def backup_conserved_quantities(self):
-        N = len(self) #number_of_triangles
+        N = len(self) # Number_of_triangles
 
-        #backup conserved_quantities centroid values
+        # Backup conserved_quantities centroid values
         for name in self.conserved_quantities:
             Q = self.quantities[name]
             Q.backup_centroid_values()        
@@ -1340,7 +1335,7 @@ class Domain(Mesh):
     def saxpy_conserved_quantities(self,a,b):
         N = len(self) #number_of_triangles
 
-        #backup conserved_quantities centroid values
+        # Backup conserved_quantities centroid values
         for name in self.conserved_quantities:
             Q = self.quantities[name]
             Q.saxpy_centroid_values(a,b)        
@@ -1355,8 +1350,8 @@ class Domain(Mesh):
         quantity in domain.
         """
 
-        #FIXME: Update only those that change (if that can be worked out)
-        #FIXME: Boundary objects should not include ghost nodes.
+        # FIXME: Update only those that change (if that can be worked out)
+        # FIXME: Boundary objects should not include ghost nodes.
         for i, ((vol_id, edge_id), B) in enumerate(self.boundary_objects):
             if B is None:
                 print 'WARNING: Ignored boundary segment %d (None)'
@@ -1402,12 +1397,14 @@ class Domain(Mesh):
                     d = 0
                     for i in range(self.number_of_full_triangles):
                         if self.max_speed[i] > bins[-1]:
-                            msg = 'Time=%f: Ignoring isolated high speed triangle ' %self.time
+                            msg = 'Time=%f: Ignoring isolated high ' %self.time
+                            msg += 'speed triangle ' 
                             msg += '#%d of %d with max speed=%f'\
-                                  %(i, self.number_of_full_triangles, self.max_speed[i])
-                            #print msg
+                                  %(i, self.number_of_full_triangles,
+                                    self.max_speed[i])
                     
-                            # print 'Found offending triangle', i, self.max_speed[i] 
+                            # print 'Found offending triangle', i,
+                            # self.max_speed[i] 
                             self.get_quantity('xmomentum').set_values(0.0, indices=[i])
                             self.get_quantity('ymomentum').set_values(0.0, indices=[i])
                             self.max_speed[i]=0.0
@@ -1422,20 +1419,20 @@ class Domain(Mesh):
         # Apply CFL condition here
         timestep = min(self.CFL*self.flux_timestep, max_timestep)
 
-        #Record maximal and minimal values of timestep for reporting
+        # Record maximal and minimal values of timestep for reporting
         self.max_timestep = max(timestep, self.max_timestep)
         self.min_timestep = min(timestep, self.min_timestep)
 
            
  
-        #Protect against degenerate time steps
+        # Protect against degenerate time steps
         if timestep < min_timestep:
 
-            #Number of consecutive small steps taken b4 taking action
+            # Number of consecutive small steps taken b4 taking action
             self.smallsteps += 1
 
             if self.smallsteps > self.max_smallsteps:
-                self.smallsteps = 0 #Reset
+                self.smallsteps = 0 # Reset
 
                 if self._order_ == 1:
                     msg = 'WARNING: Too small timestep %.16f reached '\
@@ -1443,15 +1440,13 @@ class Domain(Mesh):
                     msg += 'even after %d steps of 1 order scheme'\
                            %self.max_smallsteps
                     print msg
-                    timestep = min_timestep  #Try enforcing min_step
-
+                    timestep = min_timestep  # Try enforcing min_step
 
                     #print self.timestepping_statistics(track_speeds=True)
 
-
                     raise Exception, msg
                 else:
-                    #Try to overcome situation by switching to 1 order
+                    # Try to overcome situation by switching to 1 order
                     self._order_ = 1
 
         else:
@@ -1460,11 +1455,11 @@ class Domain(Mesh):
                 self._order_ = 2
 
 
-        #Ensure that final time is not exceeded
+        # Ensure that final time is not exceeded
         if finaltime is not None and self.time + timestep > finaltime :
             timestep = finaltime-self.time
 
-        #Ensure that model time is aligned with yieldsteps
+        # Ensure that model time is aligned with yieldsteps
         if self.yieldtime + timestep > yieldstep:
             timestep = yieldstep-self.yieldtime
 
@@ -1490,29 +1485,22 @@ class Domain(Mesh):
 
         from Numeric import ones, sum, equal, Float
 
-        N = len(self) #number_of_triangles
+        N = len(self) # Number_of_triangles
         d = len(self.conserved_quantities)
 
         timestep = self.timestep
 
-        #Compute forcing terms
+        # Compute forcing terms
         self.compute_forcing_terms()
 
-        #Update conserved_quantities
+        # Update conserved_quantities
         for name in self.conserved_quantities:
             Q = self.quantities[name]
             Q.update(timestep)
 
-            #Clean up
-            #Note that Q.explicit_update is reset by compute_fluxes
-
-            #MH090605 commented out the following since semi_implicit_update is now re-initialized
-            #at the end of the _update function in quantity_ext.c (This is called by the
-            #preceeding Q.update(timestep) statement above).
-            #For run_profile.py with N=128, the time of update_conserved_quantities is cut from 14.00 secs
-            #to 8.35 secs
-
-            #Q.semi_implicit_update[:] = 0.0
+            # Note that Q.explicit_update is reset by compute_fluxes
+            # Where is Q.semi_implicit_update reset?
+            
 
     def update_ghosts(self):
         pass
@@ -1550,10 +1538,11 @@ class Domain(Mesh):
 
 
 
-##############################################
-#Initialise module
+#------------------
+# Initialise module
+#------------------
 
-#Optimisation with psyco
+# Optimisation with psyco
 from anuga.config import use_psyco
 if use_psyco:
     try:
@@ -1562,14 +1551,14 @@ if use_psyco:
         import os
         if os.name == 'posix' and os.uname()[4] == 'x86_64':
             pass
-            #Psyco isn't supported on 64 bit systems, but it doesn't matter
+            # Psyco isn't supported on 64 bit systems, but it doesn't matter
         else:
             msg = 'WARNING: psyco (speedup) could not import'+\
                   ', you may want to consider installing it'
             print msg
     else:
         psyco.bind(Domain.update_boundary)
-        #psyco.bind(Domain.update_timestep)     #Not worth it
+        #psyco.bind(Domain.update_timestep) # Not worth it
         psyco.bind(Domain.update_conserved_quantities)
         psyco.bind(Domain.distribute_to_vertices_and_edges)
 
