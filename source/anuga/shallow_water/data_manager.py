@@ -956,10 +956,14 @@ def csv2dict(file_name, title_check_list=None):
     Load in the csv as a dic, title as key and column info as value, .
     Also, create a dic, title as key and column index as value,
     to keep track of the column order. 
+
+    Two dictionaries are returned.
     
     WARNING: Vaules are returned as strings.
     do this to change a list of strings to a list of floats
         time = [float(x) for x in time]
+
+        
     """
     
     #

@@ -1094,7 +1094,8 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                      leg_label, f_list, gauges, locations, elev, gauge_index,
                      production_dirs, time_min, time_max, time_unit,
                      title_on, label_id, generate_fig, verbose):
-    """ Generate figures based on required quantities and gauges for each sww file
+    """ Generate figures based on required quantities and gauges for
+    each sww file
     """
     from math import sqrt, atan, degrees
     from Numeric import ones, allclose, zeros, Float, ravel
@@ -1638,6 +1639,9 @@ def make_plots_from_csv_file(directories_dic={},
     plot time series such as Stage, Speed, etc. Will also plot several
     time series on one plot. Filenames must follow this convention,
     <base_name><plot_number>.csv eg gauge_timeseries3.csv
+
+    Each file represents a location and within each file there are
+    time, quantity columns.
     
     For example:    
     if "directories_dic" defines 4 directories and in each directories
@@ -1662,7 +1666,7 @@ def make_plots_from_csv_file(directories_dic={},
                       [0-4,10,15-17] will read and attempt to plot
                        the follow 0,1,2,3,4,10,15,16,17
         quantities: Currently limited to "Stage", "Speed", and 
-                    "Momentum", should be changed to incorporate 
+                     "Momentum", should be changed to incorporate 
                     any quantity read from CSV file....
                     
         extra_plot_name: A string that is appended to the end of the 
