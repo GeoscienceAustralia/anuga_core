@@ -1289,7 +1289,7 @@ def _dem2pts(basename_in, basename_out=None, verbose=False,
     Internal function. See public function dem2pts for details.
     """
 
-    #FIXME: Can this be written feasibly using write_pts?
+    # FIXME: Can this be written feasibly using write_pts?
 
     import os
     from Scientific.IO.NetCDF import NetCDFFile
@@ -1297,15 +1297,15 @@ def _dem2pts(basename_in, basename_out=None, verbose=False,
 
     root = basename_in
 
-    #Get NetCDF
-    infile = NetCDFFile(root + '.dem', 'r')  #Open existing netcdf file for read
+    # Get NetCDF
+    infile = NetCDFFile(root + '.dem', 'r')  # Open existing netcdf file for read
 
     if verbose: print 'Reading DEM from %s' %(root + '.dem')
 
     ncols = infile.ncols[0]
     nrows = infile.nrows[0]
-    xllcorner = infile.xllcorner[0]  #Easting of lower left corner
-    yllcorner = infile.yllcorner[0]  #Northing of lower left corner
+    xllcorner = infile.xllcorner[0]  # Easting of lower left corner
+    yllcorner = infile.yllcorner[0]  # Northing of lower left corner
     cellsize = infile.cellsize[0]
     NODATA_value = infile.NODATA_value[0]
     dem_elevation = infile.variables['elevation']
@@ -1314,13 +1314,13 @@ def _dem2pts(basename_in, basename_out=None, verbose=False,
     false_easting = infile.false_easting[0]
     false_northing = infile.false_northing[0]
 
-    #Text strings
+    # Text strings
     projection = infile.projection
     datum = infile.datum
     units = infile.units
 
 
-    #Get output file
+    # Get output file
     if basename_out == None:
         ptsname = root + '.pts'
     else:
@@ -1330,24 +1330,24 @@ def _dem2pts(basename_in, basename_out=None, verbose=False,
     # NetCDF file definition
     outfile = NetCDFFile(ptsname, 'w')
 
-    #Create new file
+    # Create new file
     outfile.institution = 'Geoscience Australia'
     outfile.description = 'NetCDF pts format for compact and portable storage ' +\
                       'of spatial point data'
-    #assign default values
+    # Assign default values
     if easting_min is None: easting_min = xllcorner
     if easting_max is None: easting_max = xllcorner + ncols*cellsize
     if northing_min is None: northing_min = yllcorner
     if northing_max is None: northing_max = yllcorner + nrows*cellsize
 
-    #compute offsets to update georeferencing
+    # Compute offsets to update georeferencing
     easting_offset = xllcorner - easting_min
     northing_offset = yllcorner - northing_min
 
-    #Georeferencing
+    # Georeferencing
     outfile.zone = zone
-    outfile.xllcorner = easting_min #Easting of lower left corner
-    outfile.yllcorner = northing_min #Northing of lower left corner
+    outfile.xllcorner = easting_min # Easting of lower left corner
+    outfile.yllcorner = northing_min # Northing of lower left corner
     outfile.false_easting = false_easting
     outfile.false_northing = false_northing
 
@@ -1356,15 +1356,15 @@ def _dem2pts(basename_in, basename_out=None, verbose=False,
     outfile.units = units
 
 
-    #Grid info (FIXME: probably not going to be used, but heck)
+    # Grid info (FIXME: probably not going to be used, but heck)
     outfile.ncols = ncols
     outfile.nrows = nrows
 
     dem_elevation_r = reshape(dem_elevation, (nrows, ncols))
     totalnopoints = nrows*ncols
 
-    # calculating number of NODATA_values for each row in clipped region
-    #FIXME: use array operations to do faster
+    # Calculating number of NODATA_values for each row in clipped region
+    # FIXME: use array operations to do faster
     nn = 0
     k = 0
     i1_0 = 0
@@ -1389,7 +1389,7 @@ def _dem2pts(basename_in, basename_out=None, verbose=False,
     index1 = j1_0
     index2 = thisj
 
-    # dimension definitions
+    # Dimension definitions
     nrows_in_bounding_box = int(round((northing_max-northing_min)/cellsize))
     ncols_in_bounding_box = int(round((easting_max-easting_min)/cellsize))
 
@@ -1406,7 +1406,7 @@ def _dem2pts(basename_in, basename_out=None, verbose=False,
     outfile.createDimension('number_of_points', nopoints)
     outfile.createDimension('number_of_dimensions', 2) #This is 2d data
 
-    # variable definitions
+    # Variable definitions
     outfile.createVariable('points', Float, ('number_of_points',
                                              'number_of_dimensions'))
     outfile.createVariable('elevation', Float, ('number_of_points',))
@@ -1416,9 +1416,9 @@ def _dem2pts(basename_in, basename_out=None, verbose=False,
     elevation = outfile.variables['elevation']
 
     lenv = index2-index1+1
-    #Store data
+    # Store data
     global_index = 0
-    #for i in range(nrows):
+    # for i in range(nrows):
     for i in range(i1_0,thisi+1,1):
         if verbose and i%((nrows+10)/10)==0:
             print 'Processing row %d of %d' %(i, nrows)
@@ -1428,9 +1428,9 @@ def _dem2pts(basename_in, basename_out=None, verbose=False,
         v = dem_elevation_r[i,index1:index2+1]
         no_NODATA = sum(v == NODATA_value)
         if no_NODATA > 0:
-            newcols = lenv - no_NODATA #ncols_in_bounding_box - no_NODATA
+            newcols = lenv - no_NODATA # ncols_in_bounding_box - no_NODATA
         else:
-            newcols = lenv #ncols_in_bounding_box
+            newcols = lenv # ncols_in_bounding_box
 
         telev = zeros(newcols, Float)
         tpoints = zeros((newcols, 2), Float)

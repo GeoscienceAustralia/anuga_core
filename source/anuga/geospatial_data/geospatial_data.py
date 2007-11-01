@@ -654,21 +654,21 @@ class Geospatial_data:
         remainder_list = []
         new_size = round(factor*self_size)
         
-        #find unique random numbers
+        # Find unique random numbers
         if verbose: print "make unique random number list and get indices"
 
         total=array(range(self_size))
         total_list = total.tolist()
         if verbose: print "total list len",len(total_list)
                 
-        #there will be repeated random numbers however will not be a 
-        #problem as they are being 'pop'ed out of array so if there
-        #are two numbers the same they will pop different indicies, 
-        #still basically random
+        # There will be repeated random numbers however will not be a 
+        # problem as they are being 'pop'ed out of array so if there
+        # are two numbers the same they will pop different indicies, 
+        # still basically random
         ## create list of non-unquie random numbers
         if verbose: print "create random numbers list %s long" %new_size
         
-        #set seed if provided, mainly important for unit test!
+        # Set seed if provided, mainly important for unit test!
         if seed_num != None:
             seed(seed_num,seed_num)
         
@@ -683,9 +683,9 @@ class Geospatial_data:
         j=0
         k=1
         remainder_list = total_list[:]
-        #pops array index (random_num) from remainder_list
+        # pops array index (random_num) from remainder_list
         # (which starts as the 
-        #total_list and appends to random_list  
+        # total_list and appends to random_list  
         random_num_len = len(random_num)
         for i in random_num:
             random_list.append(remainder_list.pop(i))
@@ -695,10 +695,10 @@ class Geospatial_data:
                 print '(%s/%s)' %(j, random_num_len)
                 k+=1
         
-        #FIXME: move to tests, it might take a long time
-        #then create an array of random lenght between 500 and 1000, 
-        #and use a random factor between 0 and 1 
-        #setup for assertion
+        # FIXME: move to tests, it might take a long time
+        # then create an array of random lenght between 500 and 1000, 
+        # and use a random factor between 0 and 1 
+        # setup for assertion
         test_total = random_list[:]
         test_total.extend(remainder_list)
         test_total.sort() 
@@ -706,7 +706,7 @@ class Geospatial_data:
          'together DO NOT equal the original list'
         assert (total_list==test_total),msg
 
-        #get new samples
+        # Get new samples
         if verbose: print "get values of indices for random list"
         G1 = self.get_sample(random_list)
         if verbose: print "get values of indices for opposite of random list"
@@ -732,11 +732,11 @@ class Geospatial_data:
         
         if self.file_name[-4:] == ".pts":
             
-            # see if the file is there.  Throw a QUIET IO error if it isn't
+            # See if the file is there.  Throw a QUIET IO error if it isn't
             fd = open(self.file_name,'r')
             fd.close()
     
-            #throws prints to screen if file not present
+            # Throws prints to screen if file not present
             self.fid = NetCDFFile(self.file_name, 'r')
             
             self.blocking_georef, self.blocking_keys, self.number_of_points =\
@@ -760,7 +760,7 @@ class Geospatial_data:
                       %self.max_read_lines
             
         else:
-            # assume the file is a csv file
+            # Assume the file is a csv file
             file_pointer = open(self.file_name)
             self.header, self.file_pointer = \
                          _read_csv_file_header(file_pointer)
@@ -774,8 +774,8 @@ class Geospatial_data:
         
         if self.file_name[-4:] == ".pts":
             if self.start_row == self.last_row:
-                # read the end of the file last iteration
-                # remove blocking attributes
+                # Read the end of the file last iteration
+                # Remove blocking attributes
                 self.fid.close()
                 del self.max_read_lines
                 del self.blocking_georef
@@ -821,7 +821,7 @@ class Geospatial_data:
             self.block_number += 1            
             
         else:
-            # assume the file is a csv file
+            # Assume the file is a csv file
             try:
                 pointlist, att_dict, geo_ref, self.file_pointer = \
                    _read_csv_file_blocking( self.file_pointer,
@@ -858,6 +858,8 @@ class Geospatial_data:
                 msg += Error_message['IOError']
                 raise SyntaxError, msg
         return geo
+
+    
 ##################### Error messages ###########
 Error_message = {}
 Em = Error_message
@@ -932,11 +934,11 @@ def _read_pts_file(file_name, verbose=False):
     if verbose: print 'Reading ', file_name
     
         
-    # see if the file is there.  Throw a QUIET IO error if it isn't
+    # See if the file is there.  Throw a QUIET IO error if it isn't
     fd = open(file_name,'r')
     fd.close()
     
-    #throws prints to screen if file not present
+    # Throws prints to screen if file not present
     fid = NetCDFFile(file_name, 'r') 
     
     pointlist = array(fid.variables['points'])
@@ -1015,7 +1017,7 @@ def _read_csv_file_blocking(file_pointer, header,
     pointattributes = []
     att_dict = {}
 
-    #This is to remove the x and y headers.
+    # This is to remove the x and y headers.
     header = header[:]
     try:
         x_header = header.pop(0)
@@ -1062,7 +1064,7 @@ def _read_csv_file_blocking(file_pointer, header,
     for key in att_dict.keys():
         att_dict[key] = array(att_dict[key]).astype(Float)
 
-    #Do stuff here so the info is in lat's and longs
+    # Do stuff here so the info is in lat's and longs
     geo_ref = None
     x_header = lower(x_header[:3])
     y_header = lower(y_header[:3])
@@ -1145,17 +1147,17 @@ def _write_pts_file(file_name,
     # NetCDF file definition
     outfile = NetCDFFile(file_name, 'w')
     
-    #Create new file
+    # Create new file
     outfile.institution = 'Geoscience Australia'
     outfile.description = 'NetCDF format for compact and portable storage ' +\
                           'of spatial point data'
     
-    # dimension definitions
+    # Dimension definitions
     shape = write_data_points.shape[0]
     outfile.createDimension('number_of_points', shape)  
     outfile.createDimension('number_of_dimensions', 2) #This is 2d data
     
-    # variable definition
+    # Variable definition
     outfile.createVariable('points', Float, ('number_of_points',
                                              'number_of_dimensions'))
 
