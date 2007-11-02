@@ -269,7 +269,7 @@ class Test_Fit(unittest.TestCase):
         c = [300000, 7620000]
         points = [a, b, c]
         elements = [[0,2,1]]
-        f = fit_to_mesh(points, elements, txt_file,
+        f = fit_to_mesh(txt_file, points, elements, 
                         alpha=0.0, max_read_lines=2)
         answer = linear_function(points)
         #print "f",f
@@ -311,7 +311,7 @@ class Test_Fit(unittest.TestCase):
         fileName_pts = tempfile.mktemp(".pts")
         points = geo.get_data_points(absolute=True)
         atts = geo.get_attributes()
-        f = fit_to_mesh(vertices, triangles,points,atts,
+        f = fit_to_mesh(points,atts, vertices, triangles,
                                 alpha=0.0, max_read_lines=2,
                         use_cache=True, verbose=True)
         answer = linear_function(vertices)
@@ -351,7 +351,47 @@ class Test_Fit(unittest.TestCase):
         geo = Geospatial_data(fileName)
         fileName_pts = tempfile.mktemp(".pts")
         geo.export_points_file(fileName_pts)
-        f = fit_to_mesh(vertices, triangles,fileName_pts,
+        f = fit_to_mesh(fileName_pts, vertices, triangles,
+                                alpha=0.0, max_read_lines=2)
+        answer = linear_function(vertices)
+        #print "f\n",f
+        #print "answer\n",answer
+        assert allclose(f, answer)
+        os.remove(fileName)
+        os.remove(fileName_pts)
+        
+    def test_fit_to_mesh_pts_passing_mesh_in(self):
+        a = [-1.0, 0.0]
+        b = [3.0, 4.0]
+        c = [4.0,1.0]
+        d = [-3.0, 2.0] #3
+        e = [-1.0,-2.0]
+        f = [1.0, -2.0] #5
+
+        vertices = [a, b, c, d,e,f]
+        triangles = [[0,1,3], [1,0,2], [0,4,5], [0,5,2]] #abd bac aef afc
+
+
+        fileName = tempfile.mktemp(".txt")
+        file = open(fileName,"w")
+        file.write(" x, y, elevation \n\
+-2.0, 2.0, 0.\n\
+-1.0, 1.0, 0.\n\
+0.0, 2.0 , 2.\n\
+1.0, 1.0 , 2.\n\
+ 2.0,  1.0 ,3. \n\
+ 0.0,  0.0 , 0.\n\
+ 1.0,  0.0 , 1.\n\
+ 0.0,  -1.0, -1.\n\
+ -0.2, -0.5, -0.7\n\
+ -0.9, -1.5, -2.4\n\
+ 0.5,  -1.9, -1.4\n\
+ 3.0,  1.0 , 4.\n")
+        file.close()
+        geo = Geospatial_data(fileName)
+        fileName_pts = tempfile.mktemp(".pts")
+        geo.export_points_file(fileName_pts)
+        f = fit_to_mesh(fileName_pts, vertices, triangles,
                                 alpha=0.0, max_read_lines=2)
         answer = linear_function(vertices)
         #print "f\n",f
@@ -390,7 +430,7 @@ class Test_Fit(unittest.TestCase):
  3.0,  1.0 , 4.\n")
         file.close()
         
-        f = fit_to_mesh(vertices, triangles,fileName,
+        f = fit_to_mesh(fileName, vertices, triangles,
                                 alpha=0.0, max_read_lines=2)
                         #use_cache=True, verbose=True)
         answer = linear_function(vertices)
@@ -431,7 +471,7 @@ class Test_Fit(unittest.TestCase):
  3.0,  1.0 , 4., 40. \n")
         file.close()
         
-        f = fit_to_mesh(vertices, triangles,fileName,
+        f = fit_to_mesh(fileName, vertices, triangles,
                         alpha=0.0, 
                         attribute_name='elevation', max_read_lines=2)
         answer = linear_function(vertices)
@@ -685,7 +725,9 @@ class Test_Fit(unittest.TestCase):
         data_coords = [d1, d2, d3]
         z = [z1, z2, z3]
 
-        f = fit_to_mesh(points, triangles, data_coords, z, alpha=0.0)
+        f = fit_to_mesh(data_coords, vertex_coordinates=points,
+                        triangles=triangles,
+                        point_attributes=z, alpha=0.0)
         answer = [[0, 0], [5., 10.], [5., 10.]]
 
         assert allclose(f, answer)
@@ -719,7 +761,9 @@ class Test_Fit(unittest.TestCase):
         #      data_geo.get_absolute(data_points)
         
         #Fit
-        zz = fit_to_mesh(vertex_coordinates, triangles, data_points, z,
+        zz = fit_to_mesh(data_points, vertex_coordinates=vertex_coordinates,
+                         triangles=triangles,
+                         point_attributes=z,
                          data_origin = data_geo.get_origin(),
                          mesh_origin = mesh_geo.get_origin(),
                          alpha = 0)
@@ -1051,7 +1095,7 @@ class Test_Fit(unittest.TestCase):
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Fit,'test')
-    #suite = unittest.makeSuite(Test_Fit,'cache_test_fit_to_mesh_pts')
+    #suite = unittest.makeSuite(Test_Fit,'test_fit_to_mesh_pts_passing_mesh_in')
     #suite = unittest.makeSuite(Test_Fit,'')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)

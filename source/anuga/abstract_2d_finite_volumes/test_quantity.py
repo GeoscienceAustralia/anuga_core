@@ -540,10 +540,10 @@ class Test_Quantity(unittest.TestCase):
 
 
         #Now try by setting the same values directly
-        vertex_attributes = fit_to_mesh(quantity.domain.get_nodes(),
+        vertex_attributes = fit_to_mesh(data_points,
+                                        quantity.domain.get_nodes(),
                                         quantity.domain.triangles, #FIXME
-                                        data_points,
-                                        z,
+                                        point_attributes=z,
                                         alpha = 0,
                                         verbose=False)
 
@@ -583,7 +583,8 @@ class Test_Quantity(unittest.TestCase):
 
 
         #Reference
-        ref = fit_to_mesh(vertex_coordinates, triangles, data_points, z,
+        ref = fit_to_mesh(data_points, vertex_coordinates, triangles,
+                          point_attributes=z,
                           data_origin = data_georef.get_origin(),
                           mesh_origin = mesh_georef.get_origin(),
                           alpha = 0)
@@ -1047,6 +1048,8 @@ class Test_Quantity(unittest.TestCase):
 
         x0 = 314036.58727982
         y0 = 6224951.2960092
+        #x0 = 0.0
+        #y0 = 0.0
 
         a = [0.0, 0.0]
         b = [0.0, 2.0]

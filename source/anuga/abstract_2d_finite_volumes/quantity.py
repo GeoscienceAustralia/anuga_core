@@ -725,8 +725,13 @@ class Quantity:
 
 
         # Call fit_interpolate.fit function
-        args = (coordinates, triangles, points, values)
-        kwargs = {'data_origin': data_georef.get_origin(),
+        #args = (coordinates, triangles, points, values)
+        args = (points, )
+        kwargs = {'vertex_coordinates': coordinates,
+                  'triangles': triangles,
+                  'mesh': None,
+                  'point_attributes': values,
+                  'data_origin': data_georef.get_origin(),
                   'mesh_origin': mesh_georef.get_origin(),
                   'alpha': alpha,
                   'verbose': verbose}
@@ -775,10 +780,11 @@ class Quantity:
                   'location=\'vertices\''
             raise msg
 
-        coordinates = self.domain.get_nodes(absolute=True)
-        triangles = self.domain.triangles      #FIXME
-            
-        vertex_attributes = fit_to_mesh(coordinates, triangles, filename,
+        #coordinates = self.domain.get_nodes(absolute=True)
+        #triangles = self.domain.triangles      #FIXME
+        #vertex_attributes = fit_to_mesh(coordinates, triangles, filename, 
+        vertex_attributes = fit_to_mesh(filename,
+                                        mesh = self.domain, 
                                         alpha=alpha,
                                         attribute_name=attribute_name,
                                         use_cache=use_cache,

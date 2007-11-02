@@ -26,8 +26,9 @@
 """
 import types
 
-from Numeric import zeros, Float, ArrayType,take 
+from Numeric import zeros, Float, ArrayType,take, Int
 
+from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.caching import cache            
 from anuga.geospatial_data.geospatial_data import Geospatial_data, \
      ensure_absolute
@@ -48,8 +49,9 @@ DEFAULT_ALPHA = 0.001
 class Fit(FitInterpolate):
     
     def __init__(self,
-                 vertex_coordinates,
-                 triangles,
+                 vertex_coordinates=None,
+                 triangles=None,
+                 mesh=None,
                  mesh_origin=None,
                  alpha = None,
                  verbose=False,
@@ -97,6 +99,7 @@ class Fit(FitInterpolate):
         FitInterpolate.__init__(self,
                  vertex_coordinates,
                  triangles,
+                 mesh,
                  mesh_origin,
                  verbose,
                  max_vertices_per_cell)
@@ -433,9 +436,10 @@ class Fit(FitInterpolate):
 
 ############################################################################
 
-def fit_to_mesh(vertex_coordinates,
-                triangles,
-                point_coordinates, # this can also be a points file name
+def fit_to_mesh(point_coordinates, # this can also be a points file name
+                vertex_coordinates=None,
+                triangles=None,
+                mesh=None,
                 point_attributes=None,
                 alpha=DEFAULT_ALPHA,
                 verbose=False,
@@ -449,8 +453,11 @@ def fit_to_mesh(vertex_coordinates,
     
     """
     
-    args = (vertex_coordinates, triangles, point_coordinates, )
-    kwargs = {'point_attributes': point_attributes,
+    args = (point_coordinates, )
+    kwargs = {'vertex_coordinates': vertex_coordinates,
+              'triangles': triangles,
+              'mesh': mesh,
+              'point_attributes': point_attributes,
               'alpha': alpha,
               'verbose': verbose,
               'acceptable_overshoot': acceptable_overshoot,
@@ -479,9 +486,10 @@ def fit_to_mesh(vertex_coordinates,
         return apply(_fit_to_mesh,
                      args, kwargs)
 
-def _fit_to_mesh(vertex_coordinates,
-                 triangles,
-                 point_coordinates, # this can also be a points file name
+def _fit_to_mesh(point_coordinates, # this can also be a points file name
+                 vertex_coordinates=None,
+                 triangles=None,
+                 mesh=None,
                  point_attributes=None,
                  alpha=DEFAULT_ALPHA,
                  verbose=False,
@@ -512,10 +520,13 @@ def _fit_to_mesh(vertex_coordinates,
 
           alpha: Smoothing parameter.
 
-          acceptable overshoot: controls the allowed factor by which fitted values
+          acceptable overshoot: NOT IMPLEMENTED
+          controls the allowed factor by which
+          fitted values
           may exceed the value of input data. The lower limit is defined
           as min(z) - acceptable_overshoot*delta z and upper limit
           as max(z) + acceptable_overshoot*delta z
+          
 
           mesh_origin: A geo_reference object or 3-tuples consisting of
               UTM zone, easting and northing.
@@ -530,10 +541,22 @@ def _fit_to_mesh(vertex_coordinates,
 
     # Duncan and Ole think that this isn't worth caching.
     # Caching happens at the higher level anyway.
-    interp = Fit(vertex_coordinates,
-                 triangles,
+    
+    if mesh is None:
+        # Fixme (DSG) Throw errors if triangles or vertex_coordinates
+        # are None
+            
+        #Convert input to Numeric arrays
+        triangles = ensure_numeric(triangles, Int)
+        vertex_coordinates = ensure_absolute(vertex_coordinates,
+                                             geo_reference = mesh_origin)
+
+        if verbose: print 'FitInterpolate: Building mesh'        
+        mesh = Mesh(vertex_coordinates, triangles)
+        mesh.check_integrity()
+    
+    interp = Fit(mesh=mesh,
                  verbose=verbose,
-                 mesh_origin=mesh_origin,
                  alpha=alpha)
 
     vertex_attributes = interp.fit(point_coordinates,
@@ -623,9 +646,10 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
 
     if verbose: print "points file loaded"
     if verbose: print "fitting to mesh"
-    f = fit_to_mesh(vertex_coordinates,
+    f = fit_to_mesh(point_coordinates,
+                    vertex_coordinates,
                     triangles,
-                    point_coordinates,
+                    None,
                     point_attributes,
                     alpha = alpha,
                     verbose = verbose,

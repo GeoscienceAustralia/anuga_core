@@ -258,7 +258,30 @@ class General_mesh:
                 V = self.geo_reference.get_absolute(V)
                 
         return V
-        
+    
+    def get_node(self, i,
+                 absolute=False):
+        """Return node coordinates.
+
+        The nodes are ordered in an Nx2 array where N is the number of nodes.
+        This is the same format they were provided in the constructor
+        i.e. without any duplication.
+
+        Boolean keyword argument absolute determines whether coordinates
+        are to be made absolute by taking georeference into account
+        Default is False as many parts of ANUGA expects relative coordinates.
+        (To see which, switch to default absolute=True and run tests).        
+        """
+
+       
+        V = self.nodes[i,:]
+        if absolute is True:
+            if not self.geo_reference.is_absolute():
+                V[0] += self.geo_reference.xllcorner
+                V[1] += self.geo_reference.yllcorner
+                
+        return V
+    
         
 
     def get_vertex_coordinates(self,

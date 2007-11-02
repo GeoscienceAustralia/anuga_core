@@ -83,11 +83,11 @@ class Interpolate (FitInterpolate):
         self._point_coordinates = None
         
         FitInterpolate.__init__(self,
-                                vertex_coordinates,
-                                triangles,
-                                mesh_origin,
-                                verbose,
-                                max_vertices_per_cell)
+                                vertex_coordinates=vertex_coordinates,
+                                triangles=triangles,
+                                mesh_origin=mesh_origin,
+                                verbose=verbose,
+                                max_vertices_per_cell=max_vertices_per_cell)
 
     # FIXME: What is a good start_blocking_len value?
     def interpolate(self,

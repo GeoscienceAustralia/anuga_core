@@ -8,6 +8,7 @@ from math import sqrt, pi
 from anuga.config import epsilon
 from Numeric import allclose, array, ones, Float
 from general_mesh import General_mesh
+from anuga.coordinate_transforms.geo_reference import Geo_reference
 
 
 
@@ -215,12 +216,46 @@ class Test_General_Mesh(unittest.TestCase):
         unique_vertices.sort()
         assert unique_vertices == [0,2,4,5,6,7]
 
+    def test_get_node(self):
+        """test_get_triangles_and_vertices_per_node -
 
+        Test that tuples of triangle, vertex can be extracted
+        from inverted triangles structure
+
+        """
         
+        x0 = 314036.58727982
+        y0 = 6224951.2960092
+        geo = Geo_reference(56, x0, y0)
+        
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        nodes = array([a, b, c, d, e, f])
+
+        nodes_absolute = geo.get_absolute(nodes)
+        
+        #bac, bce, ecf, dbe, daf, dae
+        triangles = array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
+
+        domain = General_mesh(nodes, triangles,
+                       geo_reference = geo)
+        node = domain.get_node(2)        
+        self.assertEqual(c, node)
+        
+        node = domain.get_node(2, absolute=True)     
+        self.assertEqual(nodes_absolute[2], node)
+        
+
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_General_Mesh,'test')    
+    suite = unittest.makeSuite(Test_General_Mesh,'test') 
+    #suite = unittest.makeSuite(Test_General_Mesh,'test_get_node')    
     runner = unittest.TextTestRunner()
     runner.run(suite)
 

@@ -43,8 +43,9 @@ MAX_VERTICES_PER_CELL = 13 # A value of 8 or lower can cause problems,
 class FitInterpolate:
     
     def __init__(self,
-                 vertex_coordinates,
-                 triangles,
+                 vertex_coordinates=None,
+                 triangles=None,
+                 mesh=None,
                  mesh_origin=None,
                  verbose=False,
                  max_vertices_per_cell=None):
@@ -53,6 +54,9 @@ class FitInterpolate:
         """ Build interpolation matrix mapping from
         function values at vertices to function values at data points
 
+        Pass in a mesh instance or vertex_coordinates and triangles
+        and optionally mesh_origin
+        
         Inputs:
 
           vertex_coordinates: List of coordinate pairs [xi, eta] of
@@ -63,6 +67,8 @@ class FitInterpolate:
 
           triangles: List of 3-tuples (or a Numeric array) of
               integers representing indices of all vertices in the mesh.
+
+        mesh: A mesh instance describing the mesh.
 
           mesh_origin: A geo_reference object or 3-tuples consisting of
               UTM zone, easting and northing.
@@ -78,17 +84,21 @@ class FitInterpolate:
 
         if max_vertices_per_cell == None:
             max_vertices_per_cell = MAX_VERTICES_PER_CELL
-        
-        #Convert input to Numeric arrays
-        triangles = ensure_numeric(triangles, Int)
-        vertex_coordinates = ensure_absolute(vertex_coordinates,
-                                             geo_reference = mesh_origin)
 
-        #Don't pass geo_reference to mesh.  It doesn't work. (Still??)
-        
-        if verbose: print 'FitInterpolate: Building mesh'        
-        self.mesh = Mesh(vertex_coordinates, triangles)
-        self.mesh.check_integrity()
+        if mesh is None:
+            # Fixme (DSG) Throw errors if triangles or vertex_coordinates
+            # are None
+            
+            #Convert input to Numeric arrays
+            triangles = ensure_numeric(triangles, Int)
+            vertex_coordinates = ensure_absolute(vertex_coordinates,
+                                                 geo_reference = mesh_origin)
+
+            if verbose: print 'FitInterpolate: Building mesh'        
+            self.mesh = Mesh(vertex_coordinates, triangles)
+            self.mesh.check_integrity()
+        else:
+            self.mesh = mesh
         
         if verbose: print 'FitInterpolate: Building quad tree'
         # This stores indices of vertices

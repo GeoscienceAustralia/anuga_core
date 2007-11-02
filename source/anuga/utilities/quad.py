@@ -141,7 +141,7 @@ class Cell(TreeNode):
 	self = args[0]
 	if len(args) == 2:
 	    point_id = int(args[1])
-            x, y = self.mesh.get_nodes()[point_id]
+            x, y = self.mesh.get_node(point_id, absolute=True)
 
             #print point_id, x, y
 	elif len(args) == 3:
@@ -182,9 +182,12 @@ class Cell(TreeNode):
                 if self.contains(point):
                     self.store(point)
                 else:
-                    x = self.mesh.coordinates[point][0]
-                    y = self.mesh.coordinates[point][1]
-                    print "(" + str(x) + "," + str(y) + ")"
+                    # Have to take into account of georef.
+                    #x = self.mesh.coordinates[point][0]
+                    #y = self.mesh.coordinates[point][1]
+                    node = self.mesh.get_node(point, absolute=True)
+                    print "node", node
+                    print "(" + str(node[0]) + "," + str(node[1]) + ")"
                     raise 'point not in region: %s' %str(point)
 		
 		
@@ -228,7 +231,8 @@ class Cell(TreeNode):
                 for k, _ in triangle_list:
                     if not triangles.has_key(k):
                         # print 'k',k
-                        tri = self.mesh.get_vertex_coordinates(k)
+                        tri = self.mesh.get_vertex_coordinates(k,
+                                                               absolute=True)
                         n0 = self.mesh.get_normal(k, 0)
                         n1 = self.mesh.get_normal(k, 1)
                         n2 = self.mesh.get_normal(k, 2) 
@@ -440,12 +444,15 @@ def build_quadtree(mesh, max_points_per_cell = 4):
     #Make root cell
     #print mesh.coordinates
 
-    nodes = mesh.get_nodes()
+    
+    nodes = mesh.get_nodes(absolute=True)
     xmin = min(nodes[:,0])
     xmax = max(nodes[:,0])
     ymin = min(nodes[:,1])
     ymax = max(nodes[:,1])
 
+    # Don't know why this didn't work
+    #xmin, xmax, ymin, ymax = mesh.get_extent(absolute=True)
     
     # Ensure boundary points are fully contained in region
     # It is a property of the cell structure that

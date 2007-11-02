@@ -13,7 +13,8 @@ import tempfile
 import csv
 
 from Scientific.IO.NetCDF import NetCDFFile
-from Numeric import allclose, array, transpose, zeros, Float, sometrue, alltrue, take, where
+from Numeric import allclose, array, transpose, zeros, Float, sometrue, \
+     alltrue, take, where
 
 
 # ANUGA code imports
