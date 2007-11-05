@@ -1,6 +1,5 @@
 import sys
 from os import sep
-sys.path.append('..'+sep+'pyvolution')
 
 """Class Domain -
 2D triangular domains for finite-volume computations of
@@ -34,7 +33,7 @@ except:
     pass
 
 
-from domain import *
+from anuga.abstract_2d_finite_volumes.domain import *
 Generic_domain = Domain #Rename
 
 class Domain(Generic_domain):
