@@ -5,8 +5,6 @@
 #FIXME (Ole): Temporary access to global config file
 from anuga_config import epsilon, default_boundary_tag
 
-
-
 #FIXME (Ole): More of these may need to be moved to anuga_config.py
 time_format = '%d/%m/%y %H:%M:%S'
 
