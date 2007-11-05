@@ -19,16 +19,15 @@ Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou
 Geoscience Australia, 2004
 """
 
-print '************Advection module called'
 
-import logging, logging.config
-logger = logging.getLogger('advection')
-logger.setLevel(logging.WARNING)
-
-try:
-    logging.config.fileConfig('log.ini')
-except:
-    pass
+#import logging, logging.config
+#logger = logging.getLogger('advection')
+#logger.setLevel(logging.WARNING)
+#
+#try:
+#    logging.config.fileConfig('log.ini')
+#except:
+#    pass
 
 
 from anuga.abstract_2d_finite_volumes.domain import *
@@ -330,7 +329,7 @@ class Domain(Generic_domain):
         }
         """
 
-        logger.debug('Trying to weave advection.compute_fluxes')
+        #logger.debug('Trying to weave advection.compute_fluxes')
         weave.inline(code, ['stage_edge','stage_bdry','stage_update',
                              'neighbours','neighbour_edges','normals',
                              'areas','radii','edgelengths','tri_full_flag',

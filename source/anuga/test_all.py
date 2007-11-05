@@ -18,9 +18,15 @@ import tempfile
 #E.g. if they are known to fail and under development
 
 exclude_files = []
-if sys.platform != 'win32':  #Windows
-    exclude_files.append('test_advection.py') #Weave doesn't work on Linux
-    
+
+#if sys.platform != 'win32':  
+#    exclude_files.append('test_advection.py') #Weave doesn't work on Linux
+
+# Exclude test_advection on all platforms for the time being. See ticket:205
+exclude_files.append('test_advection.py') #Weave doesn't work on Linux
+
+
+# Directories that should not be searched for test files.    
 exclude_dirs = ['pypar_dist', #Special requirements
                 'props', 'wcprops', 'prop-base', 'text-base', '.svn', #Svn
                 'tmp']
