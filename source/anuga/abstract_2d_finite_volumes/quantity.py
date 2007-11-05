@@ -692,7 +692,6 @@ class Quantity:
                                         location, indices,
                                         verbose = False,
                                         use_cache = False):
-
         #FIXME: Use this function for the time being. Later move code in here
 
         points = geospatial_data.get_data_points(absolute = False)

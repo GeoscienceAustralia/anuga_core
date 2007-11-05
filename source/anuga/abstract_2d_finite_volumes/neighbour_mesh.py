@@ -178,6 +178,15 @@ class Mesh(General_mesh):
         if verbose: print 'Mesh: Building tagged elements dictionary'        
         self.build_tagged_elements_dictionary(tagged_elements)
 
+        # Build a list of vertices that are not connected to any triangles
+        self.lone_vertices = []
+        #Check that all vertices have been registered
+        for node, count in enumerate(self.number_of_triangles_per_node):    
+            #msg = 'Node %d does not belong to an element.' %node
+            #assert count > 0, msg
+            if count == 0:
+                self.lone_vertices.append(node)
+                
         #Update boundary indices FIXME: OBSOLETE
         #self.build_boundary_structure()
 
@@ -666,14 +675,6 @@ class Mesh(General_mesh):
                 msg += ' Inner product is %e.' %x                
                 assert x < epsilon, msg
 
-        self.lone_vertices = []
-        #Check that all vertices have been registered
-        for node, count in enumerate(self.number_of_triangles_per_node):
-        
-            #msg = 'Node %d does not belong to an element.' %node
-            #assert count > 0, msg
-            if count == 0:
-                self.lone_vertices.append(node)
 
 
 
@@ -761,10 +762,6 @@ class Mesh(General_mesh):
     def get_lone_vertices(self):
         """Return a list of vertices that are not connected to any triangles.
 
-        Precondition
-        FIXME(DSG - DSG) Pull the code out of check integrity that builds this
-                         structure.
-        check_integrity has to have been called. 
         """
         return self.lone_vertices
 

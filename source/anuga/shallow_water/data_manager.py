@@ -4773,6 +4773,11 @@ class Write_sww:
     # FIXME (Ole): Hardwiring the conserved quantities like
     # this could be a problem. I would prefer taking them from
     # the instantiation of Domain.
+    #
+    # (DSG) There is not always a Domain instance when Write_sww is used.
+    # Check to see if this is the same level of hardwiring as is in
+    # shallow water doamain.
+    
     sww_quantities = Domain.conserved_quantities
 
 
@@ -4875,7 +4880,7 @@ class Write_sww:
 
         outfile.createVariable('volumes', Int, ('number_of_volumes',
                                                 'number_of_vertices'))
-        
+
         outfile.createVariable('time', precision,
                                ('number_of_timesteps',))
         

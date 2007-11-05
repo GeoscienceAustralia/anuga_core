@@ -2,16 +2,25 @@
 
 import unittest, os
 from math import sqrt, pi
+import tempfile
 
 from anuga.config import g, epsilon
 from Numeric import allclose, alltrue, array, zeros, ones, Float, take
 from anuga.utilities.numerical_tools import mean
 from anuga.utilities.polygon import is_inside_polygon
+from anuga.coordinate_transforms.geo_reference import Geo_reference
+from anuga.abstract_2d_finite_volumes.quantity import Quantity
+from anuga.geospatial_data.geospatial_data import Geospatial_data
 
 from shallow_water_domain import *
 
 # Get gateway to C implementation of flux function for direct testing
 from shallow_water_ext import flux_function_central as flux_function
+
+# For test_fitting_using_shallow_water_domain example
+def linear_function(point):
+    point = array(point)
+    return point[:,0]+point[:,1]
 
 class Weir:
     """Set a bathymetry for weir with a hole and a downstream gutter
@@ -5184,11 +5193,116 @@ friction  \n \
          os.remove(fileName)
 
         #-------------------------------------------------------------
+
+    def test_get_lone_vertices(self):
+        
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0,0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0,0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe
+        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4] ]
+        boundary = { (0, 0): 'Third',
+                     (0, 2): 'First',
+                     (2, 0): 'Second',
+                     (2, 1): 'Second',
+                     (3, 1): 'Second',
+                     (3, 2): 'Third'}
+
+
+        domain = Domain(points, vertices, boundary)
+        #domain.check_integrity()
+        domain.get_lone_vertices()
+
+        
+    def test_fitting_using_shallow_water_domain(self):
+        
+        #Mesh in zone 56 (absolute coords)
+
+        x0 = 314036.58727982
+        y0 = 6224951.2960092
+
+        a = [x0+0.0, y0+0.0]
+        b = [x0+0.0, y0+2.0]
+        c = [x0+2.0, y0+0.0]
+        d = [x0+0.0, y0+4.0]
+        e = [x0+2.0, y0+2.0]
+        f = [x0+4.0, y0+0.0]
+
+        points = [a, b, c, d, e, f]
+
+        #bac, bce, ecf, dbe
+        elements = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4] ]
+
+        #absolute going in ..
+        mesh4 = Domain(points, elements,
+                       geo_reference = Geo_reference(56, 0, 0))
+        mesh4.check_integrity()
+        quantity = Quantity(mesh4)
+
+        #Get (enough) datapoints (relative to georef)
+        data_points_rel = [[ 0.66666667, 0.66666667],
+                       [ 1.33333333, 1.33333333],
+                       [ 2.66666667, 0.66666667],
+                       [ 0.66666667, 2.66666667],
+                       [ 0.0, 1.0],
+                       [ 0.0, 3.0],
+                       [ 1.0, 0.0],
+                       [ 1.0, 1.0],
+                       [ 1.0, 2.0],
+                       [ 1.0, 3.0],
+                       [ 2.0, 1.0],
+                       [ 3.0, 0.0],
+                       [ 3.0, 1.0]]
+
+        data_geo_spatial = Geospatial_data(data_points_rel,
+                         geo_reference = Geo_reference(56, x0, y0))
+        data_points_absolute = data_geo_spatial.get_data_points(absolute=True)
+        attributes = linear_function(data_points_absolute)
+        att = 'spam_and_eggs'
+        
+        #Create .txt file
+        ptsfile = tempfile.mktemp(".txt")
+        file = open(ptsfile,"w")
+        file.write(" x,y," + att + " \n")
+        for data_point, attribute in map(None, data_points_absolute
+                                         ,attributes):
+            row = str(data_point[0]) + ',' + str(data_point[1]) \
+                  + ',' + str(attribute)
+            file.write(row + "\n")
+        file.close()
+
+        #file = open(ptsfile, 'r')
+        #lines = file.readlines()
+        #file.close()
+     
+
+        #Check that values can be set from file
+        quantity.set_values(filename = ptsfile,
+                            attribute_name = att, alpha = 0)
+        answer = linear_function(quantity.domain.get_vertex_coordinates())
+
+        assert allclose(quantity.vertex_values.flat, answer)
+
+
+        #Check that values can be set from file using default attribute
+        quantity.set_values(filename = ptsfile, alpha = 0)
+        assert allclose(quantity.vertex_values.flat, answer)
+
+        #Cleanup
+        import os
+        os.remove(ptsfile)
+
+
         
 if __name__ == "__main__":
 
     suite = unittest.makeSuite(Test_Shallow_Water,'test')
-    #suite = unittest.makeSuite(Test_Shallow_Water,'test_extrema')    
+    #suite = unittest.makeSuite(Test_Shallow_Water,'test_fitting_using_shallow_water_domain')    
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_tight_slope_limiters')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_get_maximum_inundation_from_sww')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_temp')    
