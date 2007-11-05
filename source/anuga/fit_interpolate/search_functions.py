@@ -36,7 +36,7 @@ def search_tree_of_vertices(root, mesh, x):
     sigma1 = -10.0
     k = -10.0
             
-    #Get triangles in the cell that the point is in.
+    # Get triangles in the cell that the point is in.
     # Triangle is a list, first element triangle_id,
     # second element the triangle
     triangles = root.search(x[0], x[1])

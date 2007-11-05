@@ -149,8 +149,11 @@ class Quantity:
         """Compute interpolated values at edges and centroid
         Pre-condition: vertex_values have been set
         """
-        # FIXME (Ole): This function is not called
-        # in real model runs. Consider removing it.
+        
+        # FIXME (Ole): Maybe this function
+        # should move to the C-interface?
+        # However, it isn't called by validate_all.py, so it
+        # may not be that important to optimise it?
         
         N = self.vertex_values.shape[0]
         for i in range(N):
