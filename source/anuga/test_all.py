@@ -20,7 +20,7 @@ import tempfile
 exclude_files = []
 if sys.platform != 'win32':  #Windows
     exclude_files.append('test_advection.py') #Weave doesn't work on Linux
-
+    
 exclude_dirs = ['pypar_dist', #Special requirements
                 'props', 'wcprops', 'prop-base', 'text-base', '.svn', #Svn
                 'tmp']

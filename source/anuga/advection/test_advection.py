@@ -1,16 +1,16 @@
 import sys
 from os import sep
-sys.path.append('..'+sep+'pyvolution')
 
 import unittest
 from math import sqrt, pi
 
 from anuga.config import g, epsilon
 from Numeric import allclose, array, zeros, ones, Float
-from anuga.advection.advection import *
+from anuga.advection.advection import Domain, Transmissive_boundary, Dirichlet_boundary
 
 class Test_Advection(unittest.TestCase):
     def setUp(self):
+        print 'Running an advection test'
         pass
 
     def tearDown(self):
@@ -146,7 +146,7 @@ class Test_Advection(unittest.TestCase):
     def test_advection_example(self):
         #Test that system can evolve
 
-        from mesh_factory import rectangular
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         points, vertices, boundary = rectangular(6, 6)
 
@@ -162,8 +162,10 @@ class Test_Advection(unittest.TestCase):
         domain.set_boundary( {'left': D, 'right': T, 'bottom': T, 'top': T} )
         domain.check_integrity()
 
+        print 'Advection domain evolving'
         #Check that the boundary value gets propagated to all elements
         for t in domain.evolve(yieldstep = 0.05, finaltime = 10):
+            domain.write_time()
             if allclose(domain.quantities['stage'].centroid_values, 3.1415):
                 break
 
@@ -172,6 +174,6 @@ class Test_Advection(unittest.TestCase):
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Advection,'test')
+    suite = unittest.makeSuite(Test_Advection, 'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)

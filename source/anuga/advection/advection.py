@@ -1,6 +1,3 @@
-import sys
-from os import sep
-
 """Class Domain -
 2D triangular domains for finite-volume computations of
 the advection equation.
@@ -22,6 +19,7 @@ Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou
 Geoscience Australia, 2004
 """
 
+print '************Advection module called'
 
 import logging, logging.config
 logger = logging.getLogger('advection')
@@ -34,7 +32,7 @@ except:
 
 
 from anuga.abstract_2d_finite_volumes.domain import *
-Generic_domain = Domain #Rename
+Generic_domain = Domain # Rename
 
 class Domain(Generic_domain):
 
