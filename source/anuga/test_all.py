@@ -84,13 +84,13 @@ def regressionTest(test_verbose=False):
     if globals().has_key('exclude_files'):
         for file in exclude_files:
             print 'WARNING: File '+ file + ' to be excluded from testing'
-        try:    
-            files.remove(file)
-        except ValueError, e:
-            msg = 'File "%s" was not found in test suite.\n' %file
-            msg += 'Original error is "%s"\n' %e
-            msg += 'Perhaps it should be removed from exclude list?' 
-            raise Exception, msg
+            try:    
+                files.remove(file)
+            except ValueError, e:
+                msg = 'File "%s" was not found in test suite.\n' %file
+                msg += 'Original error is "%s"\n' %e
+                msg += 'Perhaps it should be removed from exclude list?' 
+                raise Exception, msg
 
     filenameToModuleName = lambda f: os.path.splitext(f)[0]
     moduleNames = map(filenameToModuleName, files)
