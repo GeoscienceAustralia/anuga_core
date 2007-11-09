@@ -1377,7 +1377,7 @@ class Domain(Mesh):
         # Protect against degenerate timesteps arising from isolated
         # triangles
         if self.protect_against_isolated_degenerate_timesteps is True and\
-               self.max_speed > 10.0:
+               self.max_speed > 10.0: # FIXME (Ole): Make this configurable
 
             # Setup 10 bins for speed histogram
             from anuga.utilities.numerical_tools import histogram, create_bins

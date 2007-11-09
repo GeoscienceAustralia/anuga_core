@@ -114,6 +114,8 @@ timestepping_method = 'euler' # 1st order euler
 # Treating these by limiting their momenta may help speed up the
 # overall computation.
 # This facility is experimental.
+
+# protect_against_isolated_degenerate_timesteps = False
 protect_against_isolated_degenerate_timesteps = False
 
 pmesh_filename = '.\\pmesh'
@@ -142,6 +144,8 @@ optimised_gradient_limiter = True # Use hardwired gradient limiter
 #Specific to shallow water W.E.
 minimum_allowed_height = 1.0e-3 #Water depth below which it is considered to be 0 in the model
 
+# FIXME (Ole): Redefine this parameter to control maximal speeds in general
+# and associate it with protect_against_isolated_degenerate_timesteps = True
 maximum_allowed_speed = 0.0 # Maximal particle speed of water
 #maximum_allowed_speed = 1.0 # Maximal particle speed of water
                             # Too large (100) creates 'flopping' water

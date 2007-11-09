@@ -1214,7 +1214,9 @@ class Test_Shallow_Water(unittest.TestCase):
         """
 
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
-        from data_manager import get_maximum_inundation_elevation, get_maximum_inundation_location, get_maximum_inundation_data
+        from data_manager import get_maximum_inundation_elevation
+        from data_manager import get_maximum_inundation_location
+        from data_manager import get_maximum_inundation_data
         
 
         initial_runup_height = -0.4
@@ -1229,7 +1231,8 @@ class Test_Shallow_Water(unittest.TestCase):
         domain = Domain(points, vertices, boundary)
         domain.set_name('runup_test')
         domain.set_maximum_allowed_speed(1.0)
-        #domain.tight_slope_limiters = 1 #FIXME: This works better with old limiters
+
+        domain.tight_slope_limiters = 0 # FIXME: This works better with old limiters so far
 
         #--------------------------------------------------------------
         # Setup initial conditions
