@@ -782,11 +782,12 @@ class Quantity:
                   'location=\'vertices\''
             raise msg
 
-        #coordinates = self.domain.get_nodes(absolute=True)
-        #triangles = self.domain.triangles      #FIXME
-        #vertex_attributes = fit_to_mesh(coordinates, triangles, filename, 
+        coordinates = self.domain.get_nodes(absolute=True)
+        triangles = self.domain.triangles      #FIXME 
+        #vertex_attributes = fit_to_mesh(filename,
+         #                               mesh = self.domain, 
         vertex_attributes = fit_to_mesh(filename,
-                                        mesh = self.domain, 
+                                        coordinates, triangles, 
                                         alpha=alpha,
                                         attribute_name=attribute_name,
                                         use_cache=use_cache,
