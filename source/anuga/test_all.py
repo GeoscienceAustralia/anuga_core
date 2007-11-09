@@ -60,14 +60,17 @@ def get_test_files(path):
             sys.path.append(file) #FIXME: May cause name conflicts between pyvolution\mesh.py and pmesh\mesh.py on some systems
             path_files.append(file)
             print  file + ',', 
-            more_test_files, more_path_files =get_test_files(absolute_filename)
+            more_test_files, more_path_files =\
+                             get_test_files(absolute_filename)
+            
             test_files += more_test_files
             path_files += more_path_files
         elif file.startswith('test_') and file.endswith('.py'):
             test_files.append(file)
         else:
             pass
-    return test_files , path_files
+        
+    return test_files, path_files
 
 
 
@@ -75,7 +78,11 @@ def regressionTest(test_verbose=False):
     path = os.getcwd()
     print 'Recursing into;'
     test_files, path_files = get_test_files(path)
+
     files = [x for x in test_files if not x == 'test_all.py']
+
+    files.sort() # Ensure same order on all platforms
+    
     print
     print
     print 'Testing path %s:' %('...'+path[-50:])
@@ -101,9 +108,11 @@ def regressionTest(test_verbose=False):
     filenameToModuleName = lambda f: os.path.splitext(f)[0]
     moduleNames = map(filenameToModuleName, files)
     modules = map(__import__, moduleNames)
+    
     # Fix up the system path
     for file in path_files:
         sys.path.remove(file)
+        
     load = unittest.defaultTestLoader.loadTestsFromModule
     testCaseClasses = map(load, modules)
 

@@ -9,8 +9,8 @@
 //
 // Ole Nielsen, GA 2004
 //
-//NOTE: On 64 bit systems use long* instead of int* for Numeric arrays
-//this will also work on 32 bit systems
+// NOTE: We use long* instead of int* for Numeric arrays as this will work both 
+//       for 64 as well as 32 bit systems
 
 
 #include "Python.h"
