@@ -782,17 +782,25 @@ class Quantity:
                   'location=\'vertices\''
             raise msg
 
-        coordinates = self.domain.get_nodes(absolute=True)
-        triangles = self.domain.triangles      #FIXME 
-        #vertex_attributes = fit_to_mesh(filename,
-         #                               mesh = self.domain, 
-        vertex_attributes = fit_to_mesh(filename,
-                                        coordinates, triangles, 
-                                        alpha=alpha,
-                                        attribute_name=attribute_name,
-                                        use_cache=use_cache,
-                                        verbose=verbose,
-                                        max_read_lines=max_read_lines)
+        if True:
+            vertex_attributes = fit_to_mesh(filename,
+                                            mesh = self.domain,  
+                                            alpha=alpha,
+                                            attribute_name=attribute_name,
+                                            use_cache=use_cache,
+                                            verbose=verbose,
+                                            max_read_lines=max_read_lines)
+        else:
+        
+            coordinates = self.domain.get_nodes(absolute=True)
+            triangles = self.domain.triangles      #FIXME 
+            vertex_attributes = fit_to_mesh(filename,
+                                            coordinates, triangles, 
+                                            alpha=alpha,
+                                            attribute_name=attribute_name,
+                                            use_cache=use_cache,
+                                            verbose=verbose,
+                                            max_read_lines=max_read_lines)
                                             
         # Call underlying method using array values
         self.set_values_from_array(vertex_attributes,

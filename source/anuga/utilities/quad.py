@@ -142,8 +142,6 @@ class Cell(TreeNode):
 	if len(args) == 2:
 	    point_id = int(args[1])
             x, y = self.mesh.get_node(point_id, absolute=True)
-
-            #print point_id, x, y
 	elif len(args) == 3:
 	    x = float(args[1])
 	    y = float(args[2])
@@ -444,15 +442,7 @@ def build_quadtree(mesh, max_points_per_cell = 4):
     #Make root cell
     #print mesh.coordinates
 
-    
-    nodes = mesh.get_nodes(absolute=True)
-    xmin = min(nodes[:,0])
-    xmax = max(nodes[:,0])
-    ymin = min(nodes[:,1])
-    ymax = max(nodes[:,1])
-
-    # Don't know why this didn't work
-    #xmin, xmax, ymin, ymax = mesh.get_extent(absolute=True)
+    xmin, xmax, ymin, ymax = mesh.get_extent(absolute=True)
     
     # Ensure boundary points are fully contained in region
     # It is a property of the cell structure that
@@ -472,8 +462,8 @@ def build_quadtree(mesh, max_points_per_cell = 4):
     #print "ymax", ymax
     
     #FIXME: Use mesh.filename if it exists
+    # why?
     root = Cell(ymin, ymax, xmin, xmax,mesh,
-                #name = .... 
                 max_points_per_cell = max_points_per_cell)
 
     #root.show()

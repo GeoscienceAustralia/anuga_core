@@ -250,6 +250,9 @@ class Test_General_Mesh(unittest.TestCase):
         node = domain.get_node(2, absolute=True)     
         self.assertEqual(nodes_absolute[2], node)
         
+        node = domain.get_node(2, absolute=True)     
+        self.assertEqual(nodes_absolute[2], node)
+        
 
 
 #-------------------------------------------------------------

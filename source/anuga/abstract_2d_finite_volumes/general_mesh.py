@@ -277,10 +277,12 @@ class General_mesh:
         V = self.nodes[i,:]
         if absolute is True:
             if not self.geo_reference.is_absolute():
-                V[0] += self.geo_reference.xllcorner
-                V[1] += self.geo_reference.yllcorner
-                
-        return V
+                return V + array([self.geo_reference.get_xllcorner(),
+                                  self.geo_reference.get_yllcorner()])
+            else:
+                return V
+        else:
+            return V
     
         
 
@@ -579,7 +581,7 @@ class General_mesh:
         xmax = max(X.flat)
         ymin = min(Y.flat)
         ymax = max(Y.flat)
-
+        #print "C",C
         return xmin, xmax, ymin, ymax
 
     def get_areas(self):
