@@ -14,6 +14,8 @@
 # it has only really been used with gcc.
 
 import os, string, sys, types
+
+separation_line = '---------------------------------------'      
  
 def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
   """compile(FNs=None, CC=None, LD = None, SFLAG = None):
@@ -29,7 +31,7 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
   
   # Input check
   #
-  assert not FNs is None, "No filename provided"
+  assert not FNs is None, 'No filename provided'
 
   if not type(FNs) == types.ListType:
     FNs = [FNs]
@@ -154,9 +156,11 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
 
   # Verify that compiler can be executed
   print 'Compiler: %s, version ' %compiler,
+  sys.stdout.flush()
   s = '%s -dumpversion' %(compiler)
   err = os.system(s)
   print
+  
   if err != 0:
       msg = 'Unable to execute compiler: %s. ' %compiler
       msg += 'Make sure it is available on the system path.\n'
@@ -411,7 +415,7 @@ if __name__ == '__main__':
               except:
                   pass
 
-          print '---------------------------------------'      
+          print separation_line
           print 'Trying to compile c-extension %s in %s'\
                 %(filename, os.getcwd())
           try:
