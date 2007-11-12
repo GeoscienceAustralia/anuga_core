@@ -148,7 +148,18 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
     else:  
       sharedflag = 'G'
 
-   
+
+  # Verify that compiler can be executed
+  s = '%s --version' %compiler
+  s = s + ' > /dev/null' # Suppress output
+  err = os.system(s)
+  if err != 0:
+      msg = 'Unable to execute compiler: %s.' %compiler
+      msg += 'Make sure it is available on the system path.'
+      msg += 'One way is to try to check that %s runs on ' %compiler
+      msg += 'the commandline.'
+      raise Exception, msg
+      
        
   # Find location of include files
   #
@@ -328,6 +339,7 @@ def can_use_C_extension(filename):
         print 'NOTICE: C-extension %s not used' %filename
 
     return C
+
 
 def set_python_dll_path():
   """ Find which of the two usual hiding places the python dll is located.
