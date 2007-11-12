@@ -80,7 +80,8 @@ class Time_boundary(Boundary):
     which must return conserved quantities as a function time
     """
 
-
+    # FIXME (Ole): We should rename f to function to be consistent with
+    # Transmissive_Momentum_Set_Stage_Boundary (cf posting by rrraman)
     def __init__(self, domain = None, f = None):
         Boundary.__init__(self)
 
