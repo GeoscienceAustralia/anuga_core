@@ -10,6 +10,9 @@
    Ole Nielsen, Duncan Gray Oct 2001      
 """     
 
+# FIXME (Ole): Although this script says it works with a range of compilers,
+# it has only really been used with gcc.
+
 import os, string, sys, types
  
 def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
@@ -150,17 +153,18 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
 
 
   # Verify that compiler can be executed
-  s = '%s --version' %compiler
-  s = s + ' > /dev/null' # Suppress output
+  print 'Compiler: %s, version ' %compiler,
+  s = '%s -dumpversion' %(compiler)
   err = os.system(s)
+  print
   if err != 0:
-      msg = 'Unable to execute compiler: %s.' %compiler
-      msg += 'Make sure it is available on the system path.'
-      msg += 'One way is to try to check that %s runs on ' %compiler
+      msg = 'Unable to execute compiler: %s. ' %compiler
+      msg += 'Make sure it is available on the system path.\n'
+      msg += 'One way to check this is to run %s on ' %compiler
       msg += 'the commandline.'
-      raise Exception, msg
-      
-       
+      raise Exception, msg    
+
+  
   # Find location of include files
   #
   if sys.platform == 'win32':  #Windows
@@ -182,8 +186,8 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
 
 
 
-  #Add Python path + utilities to includelist (see ticket:31)
-  #Assume there is only one 'utilities' dir under path dirs
+  # Add Python path + utilities to includelist (see ticket:31)
+  # Assume there is only one 'utilities' dir under path dirs
   
   utilities_include_dir = None
   for pathdir in sys.path:
@@ -262,9 +266,11 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
       
     if verbose:
       print s
-    else:
-      s = s + ' 2> /dev/null' #Suppress errors
-  
+
+    # Doesn't work on Windows anyway  
+    #else:
+    #  s = s + ' 2> /dev/null' #Suppress errors
+    
     try:
       err = os.system(s)
       if err != 0:
@@ -278,15 +284,18 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
     s = '%s -%s %s -o %s.%s -lm' %(loader, sharedflag, object_files, root1, libext)
   else:
     s = '%s -%s %s -o %s.%s "%s" -lm' %(loader, sharedflag, object_files, root1, libext, libs)
+    
   if verbose:
     print s
-  else:
-    s = s + ' 2> /dev/null' #Suppress warnings
+
+  # Doesn't work on Windows anyway      
+  #else:
+  #  s = s + ' 2> /dev/null' #Suppress warnings
   
   try:  
     err=os.system(s)
     if err != 0:        
-        raise 'Atempting to link %s failed - please try manually' %root1     
+        raise 'Attempting to link %s failed - please try manually' %root1     
   except:
     raise 'Could not link %s - please try manually' %root1
     
@@ -413,7 +422,9 @@ if __name__ == '__main__':
             else:
               compile(filename)
           except Exception, e:
-              print 'Could not compile C extension %s' %filename
+              msg = 'Could not compile C extension %s\n' %filename
+              msg += str(e)
+              raise Exception, msg
           else:
               print 'C extension %s OK' %filename
           print    
