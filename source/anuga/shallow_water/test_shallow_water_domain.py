@@ -32,7 +32,6 @@ class Weir:
 
     def __call__(self, x, y):
         from Numeric import zeros, Float
-        from math import sqrt
 
         N = len(x)
         assert N == len(y)
@@ -175,7 +174,7 @@ def speed(t,x,y):
     Low speeds at center and edges
     """
 
-    from math import sqrt, exp, cos, pi
+    from math import exp, cos, pi
 
     x = array(x)
     y = array(y)
@@ -205,7 +204,7 @@ def scalar_func(t,x,y):
 def angle(t,x,y):
     """Rotating field
     """
-    from math import sqrt, atan, pi
+    from math import atan, pi
 
     x = array(x)
     y = array(y)
@@ -365,12 +364,12 @@ class Test_Shallow_Water(unittest.TestCase):
         assert allclose(edgeflux, [-0.04072676, -0.07096636, -0.01604364])
         assert allclose(max_speed, 1.31414103233)
 
-    def test_flux_computation(self):	
+    def test_flux_computation(self):    
         """test_flux_computation - test flux calculation (actual C implementation)
-	This one tests the constant case where only the pressure term contributes to each edge and cancels out 
-	once the total flux has been summed up.
-	"""
-		
+        This one tests the constant case where only the pressure term contributes to each edge and cancels out 
+        once the total flux has been summed up.
+        """
+                
         a = [0.0, 0.0]
         b = [0.0, 2.0]
         c = [2.0,0.0]
@@ -385,30 +384,30 @@ class Test_Shallow_Water(unittest.TestCase):
         domain = Domain(points, vertices)
         domain.check_integrity()
 
-	# The constant case		
-	domain.set_quantity('elevation', -1)
-	domain.set_quantity('stage', 1)	
-	
-	domain.compute_fluxes()
-	assert allclose(domain.get_quantity('stage').explicit_update[1], 0) # Central triangle
-	
+        # The constant case             
+        domain.set_quantity('elevation', -1)
+        domain.set_quantity('stage', 1) 
+        
+        domain.compute_fluxes()
+        assert allclose(domain.get_quantity('stage').explicit_update[1], 0) # Central triangle
+        
 
-	# The more general case			
+        # The more general case                 
         def surface(x,y):
             return -x/2                    
-	
-	domain.set_quantity('elevation', -10)
-	domain.set_quantity('stage', surface)	
-	domain.set_quantity('xmomentum', 1)		
-	
-	domain.compute_fluxes()
-	
-	#print domain.get_quantity('stage').explicit_update
-	# FIXME (Ole): TODO the general case
-	#assert allclose(domain.get_quantity('stage').explicit_update[1], ........??)
-		
-	
-		
+        
+        domain.set_quantity('elevation', -10)
+        domain.set_quantity('stage', surface)   
+        domain.set_quantity('xmomentum', 1)             
+        
+        domain.compute_fluxes()
+        
+        #print domain.get_quantity('stage').explicit_update
+        # FIXME (Ole): TODO the general case
+        #assert allclose(domain.get_quantity('stage').explicit_update[1], ........??)
+                
+        
+                
     def test_sw_domain_simple(self):
         a = [0.0, 0.0]
         b = [0.0, 2.0]
@@ -1750,7 +1749,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
     def test_constant_wind_stress(self):
         from anuga.config import rho_a, rho_w, eta_w
-        from math import pi, cos, sin, sqrt
+        from math import pi, cos, sin
 
         a = [0.0, 0.0]
         b = [0.0, 2.0]
@@ -1802,7 +1801,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
     def test_variable_wind_stress(self):
         from anuga.config import rho_a, rho_w, eta_w
-        from math import pi, cos, sin, sqrt
+        from math import pi, cos, sin
 
         a = [0.0, 0.0]
         b = [0.0, 2.0]
@@ -1871,7 +1870,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
     def test_windfield_from_file(self):
         from anuga.config import rho_a, rho_w, eta_w
-        from math import pi, cos, sin, sqrt
+        from math import pi, cos, sin
         from anuga.config import time_format
         from anuga.abstract_2d_finite_volumes.util import file_function
         import time
@@ -1981,7 +1980,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
     def test_windfield_from_file_seconds(self):
         from anuga.config import rho_a, rho_w, eta_w
-        from math import pi, cos, sin, sqrt
+        from math import pi, cos, sin
         from anuga.config import time_format
         from anuga.abstract_2d_finite_volumes.util import file_function
         import time
@@ -2095,7 +2094,7 @@ class Test_Shallow_Water(unittest.TestCase):
         """
 
         from anuga.config import rho_a, rho_w, eta_w
-        from math import pi, cos, sin, sqrt
+        from math import pi, cos, sin
 
         a = [0.0, 0.0]
         b = [0.0, 2.0]
@@ -2585,6 +2584,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
     def test_balance_deep_and_shallow(self):
         """Test that balanced limiters preserve conserved quantites.
+        This test is using old depth based balanced limiters
         """
         import copy
 
@@ -2600,49 +2600,126 @@ class Test_Shallow_Water(unittest.TestCase):
         #bac, bce, ecf, dbe
         elements = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4] ]
 
-        mesh = Domain(points, elements)
-        mesh.check_integrity()
+        domain = Domain(points, elements)
+        domain.check_integrity()
 
         #Create a deliberate overshoot
-        mesh.set_quantity('stage', [[3,0,3], [2,2,6], [5,3,8], [8,3,5]])
-        mesh.set_quantity('elevation', 0) #Flat bed
-        stage = mesh.quantities['stage']
+        domain.set_quantity('stage', [[3,0,3], [2,2,6], [5,3,8], [8,3,5]])
+        domain.set_quantity('elevation', 0) #Flat bed
+        stage = domain.quantities['stage']
 
         ref_centroid_values = copy.copy(stage.centroid_values[:]) #Copy
 
         #Limit
-        mesh.distribute_to_vertices_and_edges()
+        domain.tight_slope_limiters = 0                
+        domain.distribute_to_vertices_and_edges()
 
         #Assert that quantities are conserved
         from Numeric import sum
-        for k in range(len(mesh)):
+        for k in range(len(domain)):
             assert allclose (ref_centroid_values[k],
                              sum(stage.vertex_values[k,:])/3)
 
 
         #Now try with a non-flat bed - closely hugging initial stage in places
         #This will create alphas in the range [0, 0.478260, 1]
-        mesh.set_quantity('stage', [[3,0,3], [2,2,6], [5,3,8], [8,3,5]])
-        mesh.set_quantity('elevation', [[0,0,0],
+        domain.set_quantity('stage', [[3,0,3], [2,2,6], [5,3,8], [8,3,5]])
+        domain.set_quantity('elevation', [[0,0,0],
                                         [1.8,1.9,5.9],
                                         [4.6,0,0],
                                         [0,2,4]])
-        stage = mesh.quantities['stage']
+        stage = domain.quantities['stage']
 
         ref_centroid_values = copy.copy(stage.centroid_values[:]) #Copy
         ref_vertex_values = copy.copy(stage.vertex_values[:]) #Copy
 
         #Limit
-        mesh.distribute_to_vertices_and_edges()
+        domain.tight_slope_limiters = 0        
+        domain.distribute_to_vertices_and_edges()
 
 
         #Assert that all vertex quantities have changed
-        for k in range(len(mesh)):
+        for k in range(len(domain)):
             #print ref_vertex_values[k,:], stage.vertex_values[k,:]
             assert not allclose (ref_vertex_values[k,:], stage.vertex_values[k,:])
         #and assert that quantities are still conserved
         from Numeric import sum
-        for k in range(len(mesh)):
+        for k in range(len(domain)):
+            assert allclose (ref_centroid_values[k],
+                             sum(stage.vertex_values[k,:])/3)
+
+
+        # Check actual results
+        assert allclose (stage.vertex_values,
+                         [[2,2,2],
+                          [1.93333333, 2.03333333, 6.03333333],
+                          [6.93333333, 4.53333333, 4.53333333],
+                          [5.33333333, 5.33333333, 5.33333333]])
+
+
+    def test_balance_deep_and_shallow_tight_SL(self):
+        """Test that balanced limiters preserve conserved quantites.
+        This test is using Tight Slope Limiters
+        """
+        import copy
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+
+        #bac, bce, ecf, dbe
+        elements = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4] ]
+
+        domain = Domain(points, elements)
+        domain.check_integrity()
+
+        #Create a deliberate overshoot
+        domain.set_quantity('stage', [[3,0,3], [2,2,6], [5,3,8], [8,3,5]])
+        domain.set_quantity('elevation', 0) #Flat bed
+        stage = domain.quantities['stage']
+
+        ref_centroid_values = copy.copy(stage.centroid_values[:]) #Copy
+
+        #Limit
+        domain.tight_slope_limiters = 1                
+        domain.distribute_to_vertices_and_edges()
+
+        #Assert that quantities are conserved
+        from Numeric import sum
+        for k in range(len(domain)):
+            assert allclose (ref_centroid_values[k],
+                             sum(stage.vertex_values[k,:])/3)
+
+
+        #Now try with a non-flat bed - closely hugging initial stage in places
+        #This will create alphas in the range [0, 0.478260, 1]
+        domain.set_quantity('stage', [[3,0,3], [2,2,6], [5,3,8], [8,3,5]])
+        domain.set_quantity('elevation', [[0,0,0],
+                                        [1.8,1.9,5.9],
+                                        [4.6,0,0],
+                                        [0,2,4]])
+        stage = domain.quantities['stage']
+
+        ref_centroid_values = copy.copy(stage.centroid_values[:]) #Copy
+        ref_vertex_values = copy.copy(stage.vertex_values[:]) #Copy
+
+        #Limit
+        domain.tight_slope_limiters = 1        
+        domain.distribute_to_vertices_and_edges()
+
+
+        #Assert that all vertex quantities have changed
+        for k in range(len(domain)):
+            #print ref_vertex_values[k,:], stage.vertex_values[k,:]
+            assert not allclose (ref_vertex_values[k,:], stage.vertex_values[k,:])
+        #and assert that quantities are still conserved
+        from Numeric import sum
+        for k in range(len(domain)):
             assert allclose (ref_centroid_values[k],
                              sum(stage.vertex_values[k,:])/3)
 
@@ -2656,6 +2733,187 @@ class Test_Shallow_Water(unittest.TestCase):
         #                  [6.93333333, 4.53333333, 4.53333333],
         #                  [5.33333333, 5.33333333, 5.33333333]])
 
+
+
+    def test_balance_deep_and_shallow_Froude(self):
+        """Test that balanced limiters preserve conserved quantites -
+        and also that excessive Froude numbers are dealt with.
+        This test is using tight slope limiters.
+        """
+        import copy
+        from Numeric import sqrt, absolute
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+
+        # bac, bce, ecf, dbe
+        elements = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4] ]
+
+        domain = Domain(points, elements)
+        domain.check_integrity()
+
+        # Create non-flat bed - closely hugging initial stage in places
+        # This will create alphas in the range [0, 0.478260, 1]
+        domain.set_quantity('stage', [[3,0,3], [2,2,6], [5,3,8], [8,3,5]])
+        domain.set_quantity('elevation', [[0,0,0],
+                                        [1.8,1.999,5.999],
+                                        [4.6,0,0],
+                                        [0,2,4]])
+
+        # Create small momenta, that nonetheless will generate large speeds
+        # due to shallow depth at isolated vertices
+        domain.set_quantity('xmomentum', -0.0058)
+        domain.set_quantity('ymomentum', 0.0890)
+
+
+
+        
+        stage = domain.quantities['stage']
+        elevation = domain.quantities['elevation']
+        xmomentum = domain.quantities['xmomentum']
+        ymomentum = domain.quantities['ymomentum']        
+
+        # Setup triangle #1 to mimick real Froude explosion observed
+        # in the Onslow example 13 Nov 2007.
+
+        stage.vertex_values[1,:] = [1.6385, 1.6361, 1.2953]
+        elevation.vertex_values[1,:] = [1.6375, 1.6336, 0.4647]        
+        xmomentum.vertex_values[1,:] = [-0.0058, -0.0050, -0.0066]
+        ymomentum.vertex_values[1,:] = [0.0890, 0.0890, 0.0890]
+
+        xmomentum.interpolate()
+        ymomentum.interpolate()        
+        stage.interpolate()       
+        elevation.interpolate()
+
+        # Verify interpolation
+        assert allclose(stage.centroid_values[1], 1.5233)
+        assert allclose(elevation.centroid_values[1], 1.2452667)
+        assert allclose(xmomentum.centroid_values[1], -0.0058)
+        assert allclose(ymomentum.centroid_values[1], 0.089)
+
+        # Derived quantities
+        depth = stage-elevation
+        u = xmomentum/depth
+        v = ymomentum/depth
+
+        denom = (depth*g)**0.5 
+        Fx = u/denom
+        Fy = v/denom
+        
+   
+        # Verify against Onslow example (14 Nov 2007)
+        assert allclose(depth.centroid_values[1], 0.278033)
+        assert allclose(u.centroid_values[1], -0.0208608)
+        assert allclose(v.centroid_values[1], 0.3201055)
+
+        assert allclose(denom.centroid_values[1],
+                        sqrt(depth.centroid_values[1]*g))
+
+        assert allclose(u.centroid_values[1]/denom.centroid_values[1],
+                        -0.012637746977)
+        assert allclose(Fx.centroid_values[1],
+                        u.centroid_values[1]/denom.centroid_values[1])
+
+        # Check that Froude numbers are small at centroids.
+        assert allclose(Fx.centroid_values[1], -0.012637746977)
+        assert allclose(Fy.centroid_values[1], 0.193924048435)
+
+
+        # But Froude numbers are huge at some vertices and edges
+        assert allclose(Fx.vertex_values[1,:], [-5.85888475e+01,
+                                                -1.27775313e+01,
+                                                -2.78511420e-03])
+
+        assert allclose(Fx.edge_values[1,:], [-6.89150773e-03,
+                                              -7.38672488e-03,
+                                              -2.35626238e+01])
+
+        assert allclose(Fy.vertex_values[1,:], [8.99035764e+02,
+                                                2.27440057e+02,
+                                                3.75568430e-02])
+
+        assert allclose(Fy.edge_values[1,:], [1.05748998e-01,
+                                              1.06035244e-01,
+                                              3.88346947e+02])
+        
+        
+        # The task is now to arrange the limiters such that Froude numbers
+        # remain under control whil at the same time obeying the conservation
+        # laws.
+
+        
+        ref_centroid_values = copy.copy(stage.centroid_values[:]) #Copy
+        ref_vertex_values = copy.copy(stage.vertex_values[:]) #Copy
+
+        # Limit (and invoke balance_deep_and_shallow)
+        domain.tight_slope_limiters = 1
+        domain.distribute_to_vertices_and_edges()
+
+        # Redo derived quantities
+        depth = stage-elevation
+        u = xmomentum/depth
+        v = ymomentum/depth
+
+        denom = (depth*g)**0.5 
+        Fx = u/denom
+        Fy = v/denom
+
+
+        # Assert that Froude numbers are less than max value (TBA)
+        # at vertices, edges and centroids.
+        from anuga.config import maximum_froude_number
+        assert alltrue(absolute(Fx.vertex_values[1,:]) < maximum_froude_number)
+        assert alltrue(absolute(Fy.vertex_values[1,:]) < maximum_froude_number)
+
+
+        # Assert that all vertex quantities have changed
+        for k in range(len(domain)):
+            #print ref_vertex_values[k,:], stage.vertex_values[k,:]
+            assert not allclose (ref_vertex_values[k,:],
+                                 stage.vertex_values[k,:])
+            
+        # Assert that quantities are still conserved
+        from Numeric import sum
+        for k in range(len(domain)):
+            assert allclose (ref_centroid_values[k],
+                             sum(stage.vertex_values[k,:])/3)
+
+
+        
+        return
+    
+        qwidth = 12
+        for k in [1]: #range(len(domain)):
+            print 'Triangle %d (C, V, E)' %k
+            
+            print 'stage'.ljust(qwidth), stage.centroid_values[k],\
+                  stage.vertex_values[k,:], stage.edge_values[k,:]
+            print 'elevation'.ljust(qwidth), elevation.centroid_values[k],\
+                  elevation.vertex_values[k,:], elevation.edge_values[k,:]
+            print 'depth'.ljust(qwidth), depth.centroid_values[k],\
+                  depth.vertex_values[k,:], depth.edge_values[k,:]
+            print 'xmomentum'.ljust(qwidth), xmomentum.centroid_values[k],\
+                  xmomentum.vertex_values[k,:], xmomentum.edge_values[k,:]
+            print 'ymomentum'.ljust(qwidth), ymomentum.centroid_values[k],\
+                  ymomentum.vertex_values[k,:], ymomentum.edge_values[k,:]
+            print 'u'.ljust(qwidth),u.centroid_values[k],\
+                  u.vertex_values[k,:], u.edge_values[k,:]
+            print 'v'.ljust(qwidth), v.centroid_values[k],\
+                  v.vertex_values[k,:], v.edge_values[k,:]
+            print 'Fx'.ljust(qwidth), Fx.centroid_values[k],\
+                  Fx.vertex_values[k,:], Fx.edge_values[k,:]
+            print 'Fy'.ljust(qwidth), Fy.centroid_values[k],\
+                  Fy.vertex_values[k,:], Fy.edge_values[k,:]
+            
+            
+        
 
 
 
@@ -5305,6 +5563,9 @@ friction  \n \
 if __name__ == "__main__":
 
     suite = unittest.makeSuite(Test_Shallow_Water,'test')
+
+    #suite = unittest.makeSuite(Test_Shallow_Water,'test_balance_deep_and_shallow_Froude')
+    
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_fitting_using_shallow_water_domain')    
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_tight_slope_limiters')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_get_maximum_inundation_from_sww')

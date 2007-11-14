@@ -23,6 +23,7 @@ from anuga.utilities.polygon import inside_polygon
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.fit_interpolate.fit import fit_to_mesh
 from anuga.config import points_file_block_line_size as default_block_line_size
+from anuga.config import epsilon
 
 class Quantity:
 
@@ -108,25 +109,64 @@ class Quantity:
         E.g other can be a constant, an array, a function, another quantity
         (except for a filename or points, attributes (for now))
         - see set_values for details
-
-        Note that if two quantitites q1 and q2 are multiplied,
-        vertex values are multiplied entry by entry
-        while centroid and edge values are re-interpolated.
-        Hence they won't be the product of centroid or edge values
-        from q1 and q2.
         """
 
-        Q = Quantity(self.domain)
-        Q.set_values(other)
+        if isinstance(other, Quantity):
+            Q = other
+        else:    
+            Q = Quantity(self.domain)
+            Q.set_values(other)
 
         result = Quantity(self.domain)
-        result.set_values(self.vertex_values * Q.vertex_values)
+
+        # The product of vertex_values, edge_values and centroid_values
+        # are calculated and assigned directly without using
+        # set_values (which calls interpolate). Otherwise
+        # edge and centroid values wouldn't be products from q1 and q2
+        result.vertex_values = self.vertex_values * Q.vertex_values
+        result.edge_values = self.edge_values * Q.edge_values
+        result.centroid_values = self.centroid_values * Q.centroid_values
+        
         return result
 
     def __rmul__(self, other):
         """Handle cases like 3*Q, where Q is an instance of class Quantity
         """
         return self * other
+
+    def __div__(self, other):
+        """Divide self with anything that could populate a quantity
+
+        E.g other can be a constant, an array, a function, another quantity
+        (except for a filename or points, attributes (for now))
+        - see set_values for details
+
+        Zero division is dealt with by adding an epsilon to the divisore
+        FIXME (Ole): Replace this with native INF once we migrate to NumPy
+        """
+
+        if isinstance(other, Quantity):
+            Q = other
+        else:    
+            Q = Quantity(self.domain)
+            Q.set_values(other)
+
+        result = Quantity(self.domain)
+
+        # The quotient of vertex_values, edge_values and centroid_values
+        # are calculated and assigned directly without using
+        # set_values (which calls interpolate). Otherwise
+        # edge and centroid values wouldn't be quotient of q1 and q2
+        result.vertex_values = self.vertex_values/(Q.vertex_values + epsilon)
+        result.edge_values = self.edge_values/(Q.edge_values + epsilon)
+        result.centroid_values = self.centroid_values/(Q.centroid_values + epsilon)
+
+        return result
+
+    def __rdiv__(self, other):
+        """Handle cases like 3/Q, where Q is an instance of class Quantity
+        """
+        return self / other
 
     def __pow__(self, other):
         """Raise quantity to (numerical) power
@@ -139,11 +179,29 @@ class Quantity:
 
         """
 
+        if isinstance(other, Quantity):
+            Q = other
+        else:    
+            Q = Quantity(self.domain)
+            Q.set_values(other)
+
         result = Quantity(self.domain)
-        result.set_values(self.vertex_values**other)
+
+        # The power of vertex_values, edge_values and centroid_values
+        # are calculated and assigned directly without using
+        # set_values (which calls interpolate). Otherwise
+        # edge and centroid values wouldn't be correct
+        result.vertex_values = self.vertex_values ** other
+        result.edge_values = self.edge_values ** other
+        result.centroid_values = self.centroid_values ** other
+
         return result
 
-
+    #def __sqrt__(self, other):
+    #    """Define in terms of x**0.5
+    #    """
+    #    pass
+        
 
     def interpolate(self):
         """Compute interpolated values at edges and centroid

@@ -152,6 +152,8 @@ maximum_allowed_speed = 0.0 # Maximal particle speed of water
                             # Too small (0) creates 'creep'
 
 
+maximum_froude_number = 100.0 # To be used in limiters.
+
 minimum_storable_height = 1.0e-5 # Water depth below which it is *stored* as 0
 
 points_file_block_line_size = 500 # Number of lines read in from a points file

@@ -140,27 +140,24 @@ int limit_gradient(double *dqv, double qmin, double qmax, double beta_w){
 }
 
 
-void adjust_froude_number(double *uh,
-			  double h, 
-			  double g) {
+double compute_froude_number(double uh,
+			     double h, 
+			     double g,
+			     double epsilon) {
 			  
-  // Adjust momentum if Froude number is excessive
-  double max_froude_number = 20.0;  			  
+  // Compute Froude number; v/sqrt(gh)
+  
   double froude_number;
   
   //Compute Froude number (stability diagnostics)
-  froude_number = *uh/sqrt(g*h)/h;
-
-  if (froude_number > max_froude_number) {
-    printf("---------------------------------------------\n");
-    printf("froude_number=%f (uh=%f, h=%f)\n", froude_number, *uh, h);
-    
-    *uh = *uh/fabs(*uh) * max_froude_number * sqrt(g*h)*h;
-    
-    froude_number = *uh/sqrt(g*h)/h;    
-    printf("Adjusted froude_number=%f (uh=%f, h=%f)\n", froude_number, *uh, h);
-    printf("---------------------------------------------\n");    
+  if (h > epsilon) { 
+    froude_number = uh/sqrt(g*h)/h;
+  } else {
+    froude_number = 0.0;
+    // FIXME (Ole): What should it be when dry??
   }
+  
+  return froude_number;
 }
 
 
@@ -175,8 +172,6 @@ double _compute_speed(double *uh,
   
   double u;
 
-  //adjust_froude_number(uh, *h, 9.81); // Highly experimental and 
-                                        // probably unneccessary
   
   if (*h < epsilon) {
     *h = 0.0;  //Could have been negative
@@ -483,10 +478,12 @@ int _balance_deep_and_shallow(int N,
 			      int tight_slope_limiters,
 			      double alpha_balance) {
 
-  int k, k3, i;
+  int k, k3, i, excessive_froude_number=0;
   double dz, hmin, alpha, h_diff, hc_k;
-  double epsilon = 1.0e-6; // Temporary measure
-  double hv[3]; // Depths at vertices
+  double epsilon = 1.0e-6; // FIXME: Temporary measure
+  double g = 9.81; // FIXME: Temporary measure
+  double hv[3], h; // Depths at vertices
+  double Fx, Fy; // Froude numbers
 
   // Compute linear combination between w-limited stages and
   // h-limited stages close to the bed elevation.
@@ -510,7 +507,7 @@ int _balance_deep_and_shallow(int N,
       }
     }
 
-    // Calculate depth at vertices
+    // Calculate depth at vertices (possibly negative here!)
     hv[0] = wv[k3] -   zv[k3];
     hv[1] = wv[k3+1] - zv[k3+1];
     hv[2] = wv[k3+2] - zv[k3+2];        
@@ -605,9 +602,9 @@ int _balance_deep_and_shallow(int N,
     //
     //	 Momentum is balanced between constant and limited
 
-    if (alpha < 1) {
+
+    if (alpha < 1) {      
       for (i=0; i<3; i++) {
-      
 	// FIXME (Ole): Simplify when (if) hvbar gets retired	    
 	if (beta_h > epsilon) {	  
 	  wv[k3+i] = zv[k3+i] + (1-alpha)*hvbar[k3+i] + alpha*hv[i];
@@ -621,6 +618,50 @@ int _balance_deep_and_shallow(int N,
 	// FIXME (Ole): Is this really needed?
 	xmomv[k3+i] = (1-alpha)*xmomc[k] + alpha*xmomv[k3+i];
 	ymomv[k3+i] = (1-alpha)*ymomc[k] + alpha*ymomv[k3+i];
+      }
+    }
+	
+
+	
+    if (tight_slope_limiters == 1) {     		
+    
+      // Ensure that the Froude number is kept realistic at vertices
+      // FIXME (Ole): I think it could be used to adjust alpha down
+      // whenever Fr is too large. Possible make sure it doesn't deviate 
+      // too much from the value at the centroid. I like this idea!
+      
+      // FIXME (Ole): currently only used with tights_SL
+
+      excessive_froude_number=0;    
+      for (i=0; i<3; i++) {    
+      
+	// Recalculate depth at vertex i
+	h = wv[k3+i] - zv[k3+i];
+	
+	Fx = compute_froude_number(xmomv[k3+i], h, g, epsilon);
+	Fy = compute_froude_number(ymomv[k3+i], h, g, epsilon);
+	
+	if ( (fabs(Fx) > 100.0) || (fabs(Fy) > 100.0)) {
+	  // FIXME: use max_froude - or base it on centroid value of F
+	  // printf("Excessive Froude number detected: %f or %f\n", Fx, Fy);
+	  excessive_froude_number=1;          
+	}
+      }
+     
+      if (excessive_froude_number) { 
+    
+	// printf("Adjusting momentum to first order.\n"); 
+	// Go back to first order (alpha = 0) for this triangle
+	for (i=0; i<3; i++) {          
+	  xmomv[k3+i] = xmomc[k];
+	  ymomv[k3+i] = ymomc[k];
+	  
+	  if (beta_h > epsilon) {	  
+	    wv[k3+i] = zv[k3+i] + hvbar[k3+i];
+	  } else {
+	    wv[k3+i] = zv[k3+i] + hc_k;	
+	  }
+	}	
       }
     }
   }
