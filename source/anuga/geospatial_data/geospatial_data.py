@@ -10,7 +10,7 @@ from string import lower
 from Numeric import concatenate, array, Float, shape, reshape, ravel, take, \
                         size, shape
 #from Array import tolist
-from RandomArray import randint, seed
+from RandomArray import randint, seed, get_seed
 from copy import deepcopy
 
 #from MA import tolist
@@ -669,8 +669,12 @@ class Geospatial_data:
         if verbose: print "create random numbers list %s long" %new_size
         
         # Set seed if provided, mainly important for unit test!
+        # plus recalcule seed when no seed provided.
         if seed_num != None:
             seed(seed_num,seed_num)
+        else:
+            seed()
+        if verbose: print "seed:", get_seed()
         
         random_num = randint(0,self_size-1,(int(new_size),))
         random_num = random_num.tolist()
@@ -1392,7 +1396,9 @@ def find_optimal_smoothing_parameter(data_file,
     
     alpha_list: the alpha values to test in a single list
     
-    mesh_file: name of the created mesh file
+    mesh_file: name of the created mesh file or if passed in will read it.
+            NOTE, if there is a mesh file mesh_resolution, 
+            north_boundary, south... etc will be ignored.
     
     mesh_resolution: the maximum area size for a triangle
     
@@ -1403,7 +1409,7 @@ def find_optimal_smoothing_parameter(data_file,
     seed_num: the seed to the random number generator
     
     USAGE:
-        find_optimal_smoothing_parameter(data_file=fileName, 
+        value, alpha = find_optimal_smoothing_parameter(data_file=fileName, 
                                              alpha_list=[0.0001, 0.01, 1],
                                              mesh_file=None,
                                              mesh_resolution=3,
@@ -1429,34 +1435,38 @@ def find_optimal_smoothing_parameter(data_file,
 
     attribute_smoothed='elevation'
 
-    if north_boundary is None or south_boundary is None or \
-       east_boundary is None or west_boundary is None:
-        no_boundary=True
-    else:
-        no_boundary=False
-    
-    if no_boundary is True:
-        msg= 'All boundaries must be defined'
-        raise msg
-
     if mesh_file is None:
         mesh_file='temp.msh'
 
+        if north_boundary is None or south_boundary is None or \
+           east_boundary is None or west_boundary is None:
+            no_boundary=True
+        else:
+            no_boundary=False
         
-        
-    poly_topo = [[east_boundary,south_boundary],
-                 [east_boundary,north_boundary],
-                 [west_boundary,north_boundary],
-                 [west_boundary,south_boundary]]
-                  
-    create_mesh_from_regions(poly_topo,
-                             boundary_tags={'back': [2],
-                                            'side': [1,3],
-                                            'ocean': [0]},
-                         maximum_triangle_area=mesh_resolution,
-                         filename=mesh_file,
-                         use_cache=cache,
-                         verbose=verbose)
+        if no_boundary is True:
+            msg= 'All boundaries must be defined'
+            raise msg
+
+        poly_topo = [[east_boundary,south_boundary],
+                     [east_boundary,north_boundary],
+                     [west_boundary,north_boundary],
+                     [west_boundary,south_boundary]]
+                      
+        create_mesh_from_regions(poly_topo,
+                                 boundary_tags={'back': [2],
+                                                'side': [1,3],
+                                                'ocean': [0]},
+                             maximum_triangle_area=mesh_resolution,
+                             filename=mesh_file,
+                             use_cache=cache,
+                             verbose=verbose)
+
+    else: # if mesh file provided
+        #test mesh file exists?
+        if access(mesh_file,F_OK) == 0:
+            msg="file %s doesn't exist!" %mesh_file
+            raise IOError, msg
 
     #split topo data
     G = Geospatial_data(file_name = data_file)
@@ -1529,8 +1539,8 @@ def find_optimal_smoothing_parameter(data_file,
         semilogx(normal_cov_new[:,0],normal_cov_new[:,1])
         loglog(normal_cov_new[:,0],normal_cov_new[:,1])
         savefig(plot_name,dpi=300)
-    
-    remove(mesh_file)
+    if mesh_file == 'temp.msh':
+        remove(mesh_file)
     
     return min(normal_cov_new[:,1]) , normal_cov_new[(argmin(normal_cov_new,axis=0))[1],0]
 
