@@ -1774,7 +1774,7 @@ def __cachestat(sortidx=4,period=-1,showuser=None,cachedir=None):
 
   import os
   import os.path
-  from string import split, rstrip, find, atof, atoi
+  from string import split, rstrip, find
   from time import strptime, localtime, strftime, mktime, ctime
 
   # sortidx = 4    # Index into Fields[1:]. What to sort by.
@@ -1826,11 +1826,10 @@ def __cachestat(sortidx=4,period=-1,showuser=None,cachedir=None):
       total_read = total_read + len(A)
       for record in A:
         record = tuple(split(rstrip(record),','))
-        #print record
+        #print record, len(record)
 
-        if len(record) in [8,9]:
-          n = 0
-          timestamp = record[n]; n=n+1
+        if len(record) == 9:
+          timestamp = record[0]
 	
 	  try:
             t = mktime(strptime(timestamp))
@@ -1843,20 +1842,32 @@ def __cachestat(sortidx=4,period=-1,showuser=None,cachedir=None):
           if t < firstday:
             firstday = t
 
-          user     = record[n]; n=n+1
-          func     = record[n]; n=n+1
+          user     = record[1]
+          func     = record[2]
 
           # Strip hash-stamp off 
           #
           i = find(func,'[')
           func = func[:i]
 
-          size        = atof(record[n]); n=n+1
-          compression = atoi(record[n]); n=n+1
-          hit         = atoi(record[n]); n=n+1
-          reason      = atoi(record[n]); n=n+1   # Not used here    
-          cputime     = atof(record[n]); n=n+1
-          loadtime    = atof(record[n]); n=n+1
+          size        = float(record[3])
+
+          # Compression kepword can be Boolean
+          if record[4] in ['True', '1']:
+            compression = 1
+          elif record[4] in ['False', '0']:  
+            compression = 0
+          else:
+            print 'Unknown value of compression', record[4]
+            print record
+            total_discarded = total_discarded + 1            
+            continue
+
+          #compression = int(record[4]) # Can be Boolean
+          hit         = int(record[5])
+          reason      = int(record[6])   # Not used here    
+          cputime     = float(record[7])
+          loadtime    = float(record[8])
 
           if hit:
             total_hits = total_hits + 1
