@@ -463,6 +463,78 @@ void _manning_friction_explicit(double g, double eps, int N,
 }
 */
 
+
+
+
+double velocity_balance(double uh_i, 
+			double uh,
+			double h_i, 
+			double h, 
+			double alpha,
+			double epsilon) {
+  // Find alpha such that speed at the vertex is within one
+  // order of magnitude of the centroid speed	
+
+  // FIXME(Ole): Work in progress
+  
+  double a, b, estimate;
+  double m=10; // One order of magnitude - allow for velocity deviations at vertices
+
+  
+  printf("alpha = %f, uh_i=%f, uh=%f, h_i=%f, h=%f\n",
+	 alpha, uh_i, uh, h_i, h);
+      
+  
+  
+    
+  // Shorthands and determine inequality
+  if (fabs(uh) < epsilon) {
+    a = 1.0e10; // Limit
+  } else {
+    a = fabs(uh_i - uh)/fabs(uh);
+  }
+      
+  if (h < epsilon) {
+    b = 1.0e10; // Limit
+  } else {	 
+    b = m*fabs(h_i - h)/h;
+  }
+
+  printf("a %f, b %f\n", a, b); 
+
+  if (a > b) {
+    estimate = (m-1)/(a-b);		
+    
+    printf("Alpha %f, estimate %f\n", 
+	   alpha, estimate);    
+	   
+    if (alpha < estimate) {
+      printf("Adjusting alpha from %f to %f\n", 
+	     alpha, estimate);
+      alpha = estimate;
+    }
+  } else {
+  
+    if (h < h_i) {
+      estimate = (m-1)/(a-b);		      
+    
+      printf("Alpha %f, estimate %f\n", 
+	     alpha, estimate);    
+	   
+      if (alpha < estimate) {
+	printf("Adjusting alpha from %f to %f\n", 
+	       alpha, estimate);
+	alpha = estimate;
+      }    
+    }
+    // Always fulfilled as alpha and m-1 are non negative
+  }
+  
+  
+  return alpha;
+}
+
+
 int _balance_deep_and_shallow(int N,
 			      double beta_h,
 			      double* wc,
@@ -479,6 +551,7 @@ int _balance_deep_and_shallow(int N,
 			      double alpha_balance) {
 
   int k, k3, i, excessive_froude_number=0;
+
   double dz, hmin, alpha, h_diff, hc_k;
   double epsilon = 1.0e-6; // FIXME: Temporary measure
   double g = 9.81; // FIXME: Temporary measure
@@ -538,19 +611,19 @@ int _balance_deep_and_shallow(int N,
       // Tight Slope Limiter (2007)
     
       // Make alpha as large as possible but still ensure that 
-      // final depth is positive
+      // final depth is positive and that velocities at vertices
+      // are controlled
     
       if (hmin < H0) {
 	alpha = 1.0;
 	for (i=0; i<3; i++) {
-
-	  // FIXME (Ole): Simplify when (if) hvbar gets retired
-	  if (beta_h > epsilon) {
-	    h_diff = hvbar[k3+i] - hv[i];
-	  } else {
-	    h_diff = hc_k - hv[i];	  
-	  }
 	
+	  // FIXME (Ole): Simplify (remove) when (if) hvbar gets retired
+	  if (beta_h > epsilon) {
+	    hc_k = hvbar[k3+i]; // Depth to be used at vertices
+	  }
+	  
+	  h_diff = hc_k - hv[i];	  
 	  if (h_diff <= 0) {
 	    // Deep water triangle is further away from bed than 
 	    // shallow water (hbar < h). Any alpha will do
@@ -559,12 +632,7 @@ int _balance_deep_and_shallow(int N,
 	    // Denominator is positive which means that we need some of the 
 	    // h-limited stage.
 	    
-	    // FIXME (Ole): Simplify when (if) hvbar gets retired	    
-	    if (beta_h > epsilon) {	  
-	      alpha = min(alpha, (hvbar[k3+i] - H0)/h_diff);
-	    } else {
-	      alpha = min(alpha, (hc_k - H0)/h_diff);	    
-	    }
+	    alpha = min(alpha, (hc_k - H0)/h_diff);	    
 	  }
 	}
 
@@ -573,13 +641,34 @@ int _balance_deep_and_shallow(int N,
 	if (alpha<0.0) alpha=0.0;
 	
       } else {
-	// Use w-limited stage exclusively
+	// Use w-limited stage exclusively in deeper water.
 	alpha = 1.0;       
       }
+
+      
+      /*      
+      // Experimental code for controlling velocities at vertices.
+      // Adjust alpha (down towards first order) such that 
+      // velocities at vertices remain within one order of magnitude 
+      // of those at the centroid.
+      
+      for (i=0; i<3; i++) {      
+      
+	// FIXME (Ole): Simplify (remove) when (if) hvbar gets retired
+	if (beta_h > epsilon) {
+	  hc_k = hvbar[k3+i]; // Depth to be used at vertices
+	}
+	
+	
+	alpha = velocity_balance(xmomv[k3+i], xmomc[k],
+				 hv[i], hc_k, alpha, epsilon);
+				 
+	alpha = velocity_balance(ymomv[k3+i], ymomc[k],
+				 hv[i], hc_k, alpha, epsilon);				 
+      }
+      */
     }
-    	
-    
-        
+	    
     //printf("k=%d, hmin=%.2f, dz=%.2f, alpha=%.2f, alpha_balance=%.2f\n", 
     //	   k, hmin, dz, alpha, alpha_balance);
 
@@ -623,6 +712,7 @@ int _balance_deep_and_shallow(int N,
 	
 
 	
+    //if (0) {  // FIXME(Ole): Disabled while testing balancing of velocities above
     if (tight_slope_limiters == 1) {     		
     
       // Ensure that the Froude number is kept realistic at vertices

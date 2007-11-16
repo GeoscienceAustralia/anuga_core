@@ -2861,6 +2861,14 @@ class Test_Shallow_Water(unittest.TestCase):
         u = xmomentum/depth
         v = ymomentum/depth
 
+        # Assert that all vertex velocities stay within one
+        # order of magnitude of centroid velocities.
+        #print u.vertex_values[1,:]
+        #print u.centroid_values[1]
+        
+        assert alltrue(absolute(u.vertex_values[1,:]) <= absolute(u.centroid_values[1])*10)
+        assert alltrue(absolute(v.vertex_values[1,:]) <= absolute(v.centroid_values[1])*10) 
+
         denom = (depth*g)**0.5 
         Fx = u/denom
         Fy = v/denom
