@@ -96,6 +96,7 @@ class Fit(FitInterpolate):
             self.alpha = DEFAULT_ALPHA
         else:    
             self.alpha = alpha
+            
         FitInterpolate.__init__(self,
                  vertex_coordinates,
                  triangles,
@@ -347,10 +348,12 @@ class Fit(FitInterpolate):
             
 
                     
-                # build the array
+                # Build the array
                 points = geo_block.get_data_points(absolute=True)
                 z = geo_block.get_attributes(attribute_name=attribute_name)
                 self.build_fit_subset(points, z)
+
+                
             point_coordinates = None
         else:
             point_coordinates =  point_coordinates_or_filename
@@ -415,22 +418,21 @@ class Fit(FitInterpolate):
 
         """
 
-        #FIXME(DSG-DSG): Check that the vert and point coords
-        #have the same zone.
+        # FIXME(DSG-DSG): Check that the vert and point coords
+        # have the same zone.
         if isinstance(point_coordinates,Geospatial_data):
             point_coordinates = point_coordinates.get_data_points( \
                 absolute = True)
         
-        #Convert input to Numeric arrays
+        # Convert input to Numeric arrays
         if z is not None:
             z = ensure_numeric(z, Float)
         else:
             msg = 'z not specified'
             assert isinstance(point_coordinates,Geospatial_data), msg
             z = point_coordinates.get_attributes(attribute_name)
-            
-        point_coordinates = ensure_numeric(point_coordinates, Float)
 
+        point_coordinates = ensure_numeric(point_coordinates, Float)
         self._build_matrix_AtA_Atz(point_coordinates, z, verbose)
 
 
@@ -543,7 +545,7 @@ def _fit_to_mesh(point_coordinates, # this can also be a points file name
     # Caching happens at the higher level anyway.
     
     if mesh is None:
-        # Fixme (DSG) Throw errors if triangles or vertex_coordinates
+        # FIXME(DSG): Throw errors if triangles or vertex_coordinates
         # are None
             
         #Convert input to Numeric arrays
