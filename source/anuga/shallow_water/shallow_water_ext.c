@@ -557,6 +557,7 @@ int _balance_deep_and_shallow(int N,
   double g = 9.81; // FIXME: Temporary measure
   double hv[3], h; // Depths at vertices
   double Fx, Fy; // Froude numbers
+  double uc, vc; // Centroid speeds
 
   // Compute linear combination between w-limited stages and
   // h-limited stages close to the bed elevation.
@@ -701,12 +702,33 @@ int _balance_deep_and_shallow(int N,
 	  wv[k3+i] = zv[k3+i] + (1-alpha)*hc_k + alpha*hv[i];	
 	}
 
-	// Update momentum as a linear combination of
-	// xmomc and ymomc (shallow) and momentum
-	// from extrapolator xmomv and ymomv (deep).
-	// FIXME (Ole): Is this really needed?
-	xmomv[k3+i] = (1-alpha)*xmomc[k] + alpha*xmomv[k3+i];
-	ymomv[k3+i] = (1-alpha)*ymomc[k] + alpha*ymomv[k3+i];
+	// Update momentum at vertices
+	if (tight_slope_limiters == 1) {     	
+	  // FIXME(Ole): Here's what I think (as of 17 Nov 2007) 
+	  // we need to do. Simple and efficient:
+	
+	  // Speeds at centroids
+	  if (hc_k > epsilon) {
+	    uc = xmomc[k]/hc_k;
+	    vc = ymomc[k]/hc_k;
+	  } else {
+	    uc = 0.0;
+	    vc = 0.0;
+	  }
+	  // Vertex momenta guaranteed to be consistent with depth guaranteeing
+	  // controlled speed
+	  xmomv[k3+i] = uc*hv[i];
+	  ymomv[k3+i] = vc*hv[i];	
+	} else {
+	  // Update momentum as a linear combination of
+	  // xmomc and ymomc (shallow) and momentum
+	  // from extrapolator xmomv and ymomv (deep).
+	  // FIXME (Ole): Is this really needed?
+	  
+	  xmomv[k3+i] = (1-alpha)*xmomc[k] + alpha*xmomv[k3+i];
+	  ymomv[k3+i] = (1-alpha)*ymomc[k] + alpha*ymomv[k3+i];
+	
+	}
       }
     }
 	
@@ -721,6 +743,8 @@ int _balance_deep_and_shallow(int N,
       // too much from the value at the centroid. I like this idea!
       
       // FIXME (Ole): currently only used with tights_SL
+      
+      // FIXME (Ole): may not be necessary now
 
       excessive_froude_number=0;    
       for (i=0; i<3; i++) {    
