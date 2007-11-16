@@ -715,15 +715,18 @@ int _balance_deep_and_shallow(int N,
 	    uc = 0.0;
 	    vc = 0.0;
 	  }
+	  
 	  // Vertex momenta guaranteed to be consistent with depth guaranteeing
 	  // controlled speed
+	  hv[i] = wv[k3+i] - zv[k3+i]; // Recompute (balanced) vertex depth
 	  xmomv[k3+i] = uc*hv[i];
 	  ymomv[k3+i] = vc*hv[i];	
 	} else {
 	  // Update momentum as a linear combination of
 	  // xmomc and ymomc (shallow) and momentum
 	  // from extrapolator xmomv and ymomv (deep).
-	  // FIXME (Ole): Is this really needed?
+	  // FIXME (Ole): Is this really needed? Could we use the above 
+	  // instead?
 	  
 	  xmomv[k3+i] = (1-alpha)*xmomc[k] + alpha*xmomv[k3+i];
 	  ymomv[k3+i] = (1-alpha)*ymomc[k] + alpha*ymomv[k3+i];
@@ -734,8 +737,8 @@ int _balance_deep_and_shallow(int N,
 	
 
 	
-    //if (0) {  // FIXME(Ole): Disabled while testing balancing of velocities above
-    if (tight_slope_limiters == 1) {     		
+    if (0) {  // FIXME(Ole): Disabled while testing balancing of velocities above
+      //if (tight_slope_limiters == 1) {     		
     
       // Ensure that the Froude number is kept realistic at vertices
       // FIXME (Ole): I think it could be used to adjust alpha down
