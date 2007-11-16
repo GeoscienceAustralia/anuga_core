@@ -1298,10 +1298,10 @@ class Test_Interpolate(unittest.TestCase):
         # Test that spatio temporal function performs the correct
         # interpolations in both time and space
     
-        #Three timesteps
+        # Three timesteps
         time = [1.0, 5.0, 6.0]    
 
-        #Setup mesh used to represent fitted function
+        # Setup mesh used to represent fitted function
         a = [0.0, 0.0]
         b = [0.0, 2.0]
         c = [2.0, 0.0]
@@ -1314,7 +1314,7 @@ class Test_Interpolate(unittest.TestCase):
         triangles = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
 
-        #New datapoints where interpolated values are sought
+        # New datapoints where interpolated values are sought
         interpolation_points = [[ 0.0, 0.0],
                                 [ 0.5, 0.5],
                                 [ 0.7, 0.7],
@@ -1322,20 +1322,21 @@ class Test_Interpolate(unittest.TestCase):
                                 [ 2.0, 0.4],
                                 [ 545354534, 4354354353]] # outside the mesh
 
-        #One quantity
+        # One quantity
         Q = zeros( (3,6), Float )
 
-        #Linear in time and space
+        # Linear in time and space
         for i, t in enumerate(time):
             Q[i, :] = t*linear_function(points)
 
-        #Check interpolation of one quantity using interpolaton points)
+        # Check interpolation of one quantity using interpolaton points)
+
         I = Interpolation_function(time, Q,
                                    vertex_coordinates = points,
                                    triangles = triangles, 
                                    interpolation_points = interpolation_points,
                                    verbose = False)
-
+        
         
         assert alltrue(I.precomputed_values['Attribute'][:,4] != NAN)
         assert sometrue(I.precomputed_values['Attribute'][:,5] == NAN)

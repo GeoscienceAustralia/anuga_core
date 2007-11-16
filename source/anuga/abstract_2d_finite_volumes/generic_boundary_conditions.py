@@ -197,14 +197,14 @@ class File_boundary(Boundary):
 
         Boundary.__init__(self)
 
-        #Get x,y vertex coordinates for all triangles
+        # Get x,y vertex coordinates for all triangles
         V = domain.vertex_coordinates
 
-        #Compute midpoint coordinates for all boundary elements
-        #Only a subset may be invoked when boundary is evaluated but
-        #we don't know which ones at this stage since this object can
-        #be attached to
-        #any tagged boundary later on.
+        # Compute midpoint coordinates for all boundary elements
+        # Only a subset may be invoked when boundary is evaluated but
+        # we don't know which ones at this stage since this object can
+        # be attached to
+        # any tagged boundary later on.
 
         if verbose: print 'Find midpoint coordinates of entire boundary'
         self.midpoint_coordinates = zeros( (len(domain.boundary), 2), Float)
@@ -215,10 +215,10 @@ class File_boundary(Boundary):
         yllcorner = domain.geo_reference.get_yllcorner()        
         
 
-        #Make ordering unique #FIXME: should this happen in domain.py?
+        # Make ordering unique #FIXME: should this happen in domain.py?
         boundary_keys.sort()
 
-        #Record ordering #FIXME: should this also happen in domain.py?
+        # Record ordering #FIXME: should this also happen in domain.py?
         self.boundary_indices = {}
         for i, (vol_id, edge_id) in enumerate(boundary_keys):
 
@@ -227,19 +227,19 @@ class File_boundary(Boundary):
             x1, y1 = V[base_index+1, :]
             x2, y2 = V[base_index+2, :]
             
-            #Compute midpoints
+            # Compute midpoints
             if edge_id == 0: m = array([(x1 + x2)/2, (y1 + y2)/2])
             if edge_id == 1: m = array([(x0 + x2)/2, (y0 + y2)/2])
             if edge_id == 2: m = array([(x1 + x0)/2, (y1 + y0)/2])
 
-            #Convert to absolute UTM coordinates
+            # Convert to absolute UTM coordinates
             m[0] += xllcorner
             m[1] += yllcorner
             
-            #Register point and index
+            # Register point and index
             self.midpoint_coordinates[i,:] = m
 
-            #Register index of this boundary edge for use with evaluate
+            # Register index of this boundary edge for use with evaluate
             self.boundary_indices[(vol_id, edge_id)] = i
 
 
@@ -251,7 +251,28 @@ class File_boundary(Boundary):
                                verbose=verbose)
         self.domain = domain
 
-        #Test
+        # Test
+
+        # Here we'll flag indices outside the mesh as a warning
+        # as suggested by Joaquim Luis in sourceforge posting
+        # November 2007
+        # We won't make it an error as it is conceivable that
+        # only part of mesh boundary is actually used with a given
+        # file boundary sww file. 
+        if hasattr(self.F, 'indices_outside_mesh') and\
+               len(self.F.indices_outside_mesh) > 0:
+            msg = 'WARNING: File_boundary has points outside the mesh '
+            msg += 'given in %s. ' %filename
+            msg += 'See warning message issued by Interpolation_function '
+            msg += 'for details (should appear above somewhere if '
+            msg += 'verbose is True).\n'
+            msg += 'This is perfectly OK as long as the points that are '
+            msg += 'outside aren\'t used on the actual boundary segment.'
+            if verbose is True:            
+                print msg
+            #raise Exception(msg)
+
+        
         q = self.F(0, point_id=0)
 
         d = len(domain.conserved_quantities)
@@ -278,14 +299,30 @@ class File_boundary(Boundary):
             if res == NAN:
                 x,y=self.midpoint_coordinates[i,:]
                 msg = 'NAN value found in file_boundary at '
-                msg += 'point id #%d: (%.2f, %.2f)' %(i, x, y)
-                #print msg
+                msg += 'point id #%d: (%.2f, %.2f).\n' %(i, x, y)
+
+                if hasattr(self.F, 'indices_outside_mesh') and\
+                       len(self.F.indices_outside_mesh) > 0:
+                    # Check if NAN point is due it being outside
+                    # boundary defined in sww file.
+
+                    if i in self.F.indices_outside_mesh:
+                        msg += 'This point refers to one outside the '
+                        msg += 'mesh defined by the file %s.\n'\
+                               %self.F.filename
+                        msg += 'Make sure that the file covers '
+                        msg += 'the boundary segment it is assigned to '
+                        msg += 'in set_boundary.'
+                    else:
+                        msg += 'This point is inside the mesh defined '
+                        msg += 'the file %s.\n' %self.F.filename
+                        msg += 'Check this file for NANs.'
                 raise Exception, msg
             
             return res 
         else:
-            #raise 'Boundary call without point_id not implemented'
-            #FIXME: What should the semantics be?
+            # raise 'Boundary call without point_id not implemented'
+            # FIXME: What should the semantics be?
             return self.F(t)
 
 

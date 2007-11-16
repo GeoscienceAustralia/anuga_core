@@ -520,6 +520,39 @@ class Interpolation_function:
                 raise msg
 
 
+            # Check that all interpolation points fall within
+            # mesh boundary as defined by triangles and vertex_coordinates.
+            from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
+            from anuga.utilities.polygon import outside_polygon            
+            
+            mesh = Mesh(vertex_coordinates, triangles)
+            
+            indices = outside_polygon(interpolation_points,
+                                      mesh.get_boundary_polygon())
+
+
+            # Record result
+            self.indices_outside_mesh = indices
+
+            # Report
+            if len(indices) > 0:
+                msg = 'Interpolation points in Interpolation function fall ' 
+                msg += 'outside specified mesh. '
+                msg += 'Offending points:\n'
+                for i in indices:
+                    msg += '%d: %s\n' %(i, interpolation_points[i])
+
+                # Joaquim Luis suggested this as an Exception, so
+                # that the user can now what the problem is rather than
+                # looking for NaN's. However, NANs are handy as they can
+                # be ignored leaving good points for continued processing.
+                if verbose:
+                    print msg
+                #raise Exception(msg)
+
+
+            
+
             m = len(self.interpolation_points)
             p = len(self.time)
             
@@ -625,27 +658,27 @@ class Interpolation_function:
 
         oldindex = self.index #Time index
 
-        #Find current time slot
+        # Find current time slot
         while t > self.time[self.index]: self.index += 1
         while t < self.time[self.index]: self.index -= 1
 
         if t == self.time[self.index]:
-            #Protect against case where t == T[-1] (last time)
-            # - also works in general when t == T[i]
+            # Protect against case where t == T[-1] (last time)
+            #  - also works in general when t == T[i]
             ratio = 0
         else:
-            #t is now between index and index+1
+            # t is now between index and index+1
             ratio = (t - self.time[self.index])/\
                     (self.time[self.index+1] - self.time[self.index])
 
-        #Compute interpolated values
+        # Compute interpolated values
         q = zeros(len(self.quantity_names), Float)
-        #print "self.precomputed_values", self.precomputed_values
+        # print "self.precomputed_values", self.precomputed_values
 	for i, name in enumerate(self.quantity_names):
             Q = self.precomputed_values[name]
 
             if self.spatial is False:
-                #If there is no spatial info                
+                # If there is no spatial info                
                 assert len(Q.shape) == 1
 
                 Q0 = Q[self.index]
@@ -653,16 +686,16 @@ class Interpolation_function:
 
             else:
                 if x is not None and y is not None:
-                    #Interpolate to x, y
+                    # Interpolate to x, y
                     
                     raise 'x,y interpolation not yet implemented'
                 else:
-                    #Use precomputed point
+                    # Use precomputed point
                     Q0 = Q[self.index, point_id]
                     if ratio > 0:
                         Q1 = Q[self.index+1, point_id]
 
-            #Linear temporal interpolation    
+            # Linear temporal interpolation    
             if ratio > 0:
                 if Q0 == NAN and Q1 == NAN:
                     q[i]  = Q0
@@ -672,20 +705,20 @@ class Interpolation_function:
                 q[i] = Q0
 
 
-        #Return vector of interpolated values
-        #if len(q) == 1:
-        #    return q[0]
-        #else:
-        #    return q
+        # Return vector of interpolated values
+        # if len(q) == 1:
+        #     return q[0]
+        # else:
+        #     return q
 
 
-        #Return vector of interpolated values
-        #FIXME:
+        # Return vector of interpolated values
+        # FIXME:
         if self.spatial is True:
             return q
         else:
-            #Replicate q according to x and y
-            #This is e.g used for Wind_stress
+            # Replicate q according to x and y
+            # This is e.g used for Wind_stress
             if x is None or y is None: 
                 return q
             else:
@@ -695,7 +728,7 @@ class Interpolation_function:
                     return q
                 else:
                     from Numeric import ones, Float
-                    #x is a vector - Create one constant column for each value
+                    # x is a vector - Create one constant column for each value
                     N = len(x)
                     assert len(y) == N, 'x and y must have same length'
                     res = []

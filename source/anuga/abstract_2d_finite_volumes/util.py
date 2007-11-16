@@ -74,14 +74,14 @@ def file_function(filename,
     """
 
 
-    #FIXME (OLE): Should check origin of domain against that of file
-    #In fact, this is where origin should be converted to that of domain
-    #Also, check that file covers domain fully.
+    # FIXME (OLE): Should check origin of domain against that of file
+    # In fact, this is where origin should be converted to that of domain
+    # Also, check that file covers domain fully.
 
-    #Take into account:
-    #- domain's georef
-    #- sww file's georef
-    #- interpolation points as absolute UTM coordinates
+    # Take into account:
+    # - domain's georef
+    # - sww file's georef
+    # - interpolation points as absolute UTM coordinates
 
 
 
@@ -135,6 +135,7 @@ def file_function(filename,
     #structure
 
     f.starttime = starttime
+    f.filename = filename
     
     if domain is not None:
         #Update domain.startime if it is *earlier* than starttime from file
@@ -212,12 +213,12 @@ def get_netcdf_file_function(filename,
     """
     
     
-    #FIXME: Check that model origin is the same as file's origin
-    #(both in UTM coordinates)
-    #If not - modify those from file to match domain
-    #(origin should be passed in)
-    #Take this code from e.g. dem2pts in data_manager.py
-    #FIXME: Use geo_reference to read and write xllcorner...
+    # FIXME: Check that model origin is the same as file's origin
+    # (both in UTM coordinates)
+    # If not - modify those from file to match domain
+    # (origin should be passed in)
+    # Take this code from e.g. dem2pts in data_manager.py
+    # FIXME: Use geo_reference to read and write xllcorner...
         
 
     import time, calendar, types
@@ -225,7 +226,7 @@ def get_netcdf_file_function(filename,
     from Scientific.IO.NetCDF import NetCDFFile
     from Numeric import array, zeros, Float, alltrue, concatenate, reshape
 
-    #Open NetCDF file
+    # Open NetCDF file
     if verbose: print 'Reading', filename
     fid = NetCDFFile(filename, 'r')
 
@@ -233,9 +234,9 @@ def get_netcdf_file_function(filename,
         quantity_names = [quantity_names]        
     
     if quantity_names is None or len(quantity_names) < 1:
-        #If no quantities are specified get quantities from file
-        #x, y, time are assumed as the independent variables so
-        #they are excluded as potentiol quantities
+        # If no quantities are specified get quantities from file
+        # x, y, time are assumed as the independent variables so
+        # they are excluded as potentiol quantities
         quantity_names = []
         for name in fid.variables.keys():
             if name not in ['x', 'y', 'time']:
@@ -252,8 +253,8 @@ def get_netcdf_file_function(filename,
         assert interpolation_points.shape[1] == 2, msg
 
 
-    #Now assert that requested quantitites (and the independent ones)
-    #are present in file 
+    # Now assert that requested quantitites (and the independent ones)
+    # are present in file 
     missing = []
     for quantity in ['time'] + quantity_names:
         if not fid.variables.has_key(quantity):
@@ -265,7 +266,7 @@ def get_netcdf_file_function(filename,
         fid.close()
         raise Exception, msg
 
-    #Decide whether this data has a spatial dimension
+    # Decide whether this data has a spatial dimension
     spatial = True
     for quantity in ['x', 'y']:
         if not fid.variables.has_key(quantity):
@@ -279,20 +280,20 @@ def get_netcdf_file_function(filename,
         msg = 'Files of type sww must contain spatial information'        
         raise msg        
 
-    #Get first timestep
+    # Get first timestep
     try:
         starttime = fid.starttime[0]
     except ValueError:
         msg = 'Could not read starttime from file %s' %filename
         raise msg
 
-    #Get variables
-    #if verbose: print 'Get variables'    
+    # Get variables
+    # if verbose: print 'Get variables'    
     time = fid.variables['time'][:]    
 
     # Get time independent stuff
     if spatial:
-        #Get origin
+        # Get origin
         xllcorner = fid.xllcorner[0]
         yllcorner = fid.yllcorner[0]
         zone = fid.zone[0]        
@@ -306,7 +307,7 @@ def get_netcdf_file_function(filename,
         vertex_coordinates = concatenate((x,y), axis=1) #m x 2 array
 
         if interpolation_points is not None:
-            #Adjust for georef
+            # Adjust for georef
             interpolation_points[:,0] -= xllcorner
             interpolation_points[:,1] -= yllcorner        
         
@@ -315,16 +316,16 @@ def get_netcdf_file_function(filename,
 
     if domain_starttime is not None:
 
-        #If domain_startime is *later* than starttime,
-        #move time back - relative to domain's time
+        # If domain_startime is *later* than starttime,
+        # move time back - relative to domain's time
         if domain_starttime > starttime:
             time = time - domain_starttime + starttime
 
-        #FIXME Use method in geo to reconcile
-        #if spatial:
-        #assert domain.geo_reference.xllcorner == xllcorner
-        #assert domain.geo_reference.yllcorner == yllcorner
-        #assert domain.geo_reference.zone == zone        
+        # FIXME Use method in geo to reconcile
+        # if spatial:
+        # assert domain.geo_reference.xllcorner == xllcorner
+        # assert domain.geo_reference.yllcorner == yllcorner
+        # assert domain.geo_reference.zone == zone        
         
     if verbose:
         print 'File_function data obtained from: %s' %filename
@@ -344,7 +345,6 @@ def get_netcdf_file_function(filename,
     fid.close()
     
 
-    #from least_squares import Interpolation_function
     from anuga.fit_interpolate.interpolate import Interpolation_function
 
     if not spatial:
