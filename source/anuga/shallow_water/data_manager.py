@@ -2508,9 +2508,32 @@ def _convert_dem_from_ascii2netcdf(basename_in, basename_out = None,
 
     ncols = int(lines[0].split()[1].strip())
     nrows = int(lines[1].split()[1].strip())
-    xllcorner = float(lines[2].split()[1].strip())
-    yllcorner = float(lines[3].split()[1].strip())
-    cellsize = float(lines[4].split()[1].strip())
+
+    # Do cellsize (line 4) before line 2 and 3
+    cellsize = float(lines[4].split()[1].strip())    
+
+    # Checks suggested by Joaquim Luis
+    # Our internal representation of xllcorner
+    # and yllcorner is non-standard.
+    xref = lines[2].split()
+    if xref[0].strip() == 'xllcorner':
+        xllcorner = float(xref[1].strip()) # + 0.5*cellsize # Correct offset
+    elif xref[0].strip() == 'xllcenter':
+        xllcorner = float(xref[1].strip())
+    else:
+        msg = 'Unknown keyword: %s' %xref[0].strip()
+        raise Exception, msg
+
+    yref = lines[3].split()
+    if yref[0].strip() == 'yllcorner':
+        yllcorner = float(yref[1].strip()) # + 0.5*cellsize # Correct offset
+    elif yref[0].strip() == 'yllcenter':
+        yllcorner = float(yref[1].strip())
+    else:
+        msg = 'Unknown keyword: %s' %yref[0].strip()
+        raise Exception, msg
+        
+
     NODATA_value = int(lines[5].split()[1].strip())
 
     assert len(lines) == nrows + 6
