@@ -1105,7 +1105,9 @@ class Mesh:
         generate a new mesh
         mode is a string that sets conditions on the mesh generations
         see triangle_instructions.txt for a definition of the commands
-        PreCondition: maxArea is a double
+        
+        PreCondition: maxArea is a double between 1e-20 and 1e30 or is a
+        string.
         """
         #print "mode ",mode
         if mode == None:
@@ -1136,6 +1138,11 @@ class Mesh:
                              # (rather than one)
         if maxArea != None:
             self.mode += 'a' + str(maxArea)
+            try:
+                self.mode += 'a' + '%20.20f' %maxArea
+            except TypeError:
+                self.mode += 'a' + str(maxArea)
+            #print "self.mode", self.mode
         #FIXME (DSG-DSG) This isn't explained. 
         if isRegionalMaxAreas:
             self.mode += 'a'

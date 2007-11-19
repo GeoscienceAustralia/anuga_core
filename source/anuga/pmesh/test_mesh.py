@@ -2323,6 +2323,22 @@ END\n")
         
         self.failUnless(points_ab==points_new,
                         'FAILED!')
+
+    def mode_string_float_problems(self):
+        numbers = [0.0000000001,1000000000000.0, 1e-19,1e19, 1e-25,1e30,1e40,
+                   1e41,'0.00001','0.000000000000000000000000000000000001']
+        numbers = [1e-21,1e-20,1e30,1e35,1e40]
+        for num in numbers:
+            mode = 'a' + str(num)
+            #print " mode += 'a' + str(num)", mode
+            print "====================="
+            
+            try:
+                mode = 'a' + '%20.20f' %num
+            except TypeError:
+                mode = 'a' + str(num)
+            print "mode += 'a' + '%20.20f' %num", mode
+        #print "", mode
         
         
 def list_comp(A,B):
@@ -2331,13 +2347,11 @@ def list_comp(A,B):
         if not item in B:
             yes = False
     return yes
-
-
             
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(meshTestCase,'test')
-    #suite = unittest.makeSuite(meshTestCase,'test_exportoutlinefile')
+    #suite = unittest.makeSuite(meshTestCase,'mode_string_float_problems')
     #suite = unittest.makeSuite(meshTestCase,'test_exportPointsFile')
     runner = unittest.TextTestRunner() # verbosity=2)
     runner.run(suite)
