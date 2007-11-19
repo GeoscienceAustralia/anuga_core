@@ -4,7 +4,9 @@ from toolbarbutton import ToolBarButton
 import tkFileDialog
 from   tkSimpleDialog import Dialog
 import mesh
-from Tkinter import  FALSE,TRUE, Frame,X, LEFT,YES,BOTH,ALL,Widget,CURRENT, Label,W, Entry, E, StringVar, END, Checkbutton, Radiobutton, IntVar, DISABLED, NORMAL
+from Tkinter import  FALSE,TRUE, Frame,X, LEFT,YES,BOTH,ALL,Widget,CURRENT, \
+     Label,W, Entry, E, StringVar, END, Checkbutton, Radiobutton, IntVar, \
+     DISABLED, NORMAL
 #from cursornames import TLC,TRC, BLC, BRC, TS, RS, LS, BS
 from tkMessageBox import showerror, _show, QUESTION,YESNOCANCEL
 import types
@@ -499,7 +501,8 @@ class Draw(AppShell.AppShell):
         """
         
         
-        from anuga.coordinate_transforms.geo_reference import Geo_reference,DEFAULT_ZONE
+        from anuga.coordinate_transforms.geo_reference import Geo_reference, \
+             DEFAULT_ZONE
         offset_x = 30
         offset_y = 40
 
@@ -1155,8 +1158,9 @@ class Draw(AppShell.AppShell):
         fileType = "obj"
         fileTypeDesc = "obj mesh"
         
-        ofile = tkFileDialog.asksaveasfilename(filetypes=[(fileTypeDesc, fileType),
-                                                ("All Files", "*")])
+        ofile = tkFileDialog.asksaveasfilename(filetypes=[(fileTypeDesc,
+                                                           fileType),
+                                                          ("All Files", "*")])
         if ofile:
             addOn = "." + fileType
             jumpback = - len(addOn)
@@ -1175,7 +1179,7 @@ class Draw(AppShell.AppShell):
 
     def ImportUngenerate(self):
         ofile = tkFileDialog.askopenfilename(initialdir=self.currentPath,
-                                             filetypes=[ ("ungenerated polygon information", "txt"),
+                   filetypes=[ ("ungenerated polygon information", "txt"),
                                            ("All Files", "*")])
         if ofile == "":
             # The user cancelled the loading action
@@ -1246,9 +1250,11 @@ class Draw(AppShell.AppShell):
         """
         print "self.currentPath",self.currentPath
         ofile = tkFileDialog.askopenfilename(initialdir=self.currentPath,
-                                             filetypes=[ ("text Mesh", "*.tsh *.msh"),
-                                                         ("points", "*.csv *.txt *.pts"),
-                                           ("All Files", "*")])
+                                             filetypes=[ ("text Mesh",
+                                                          "*.tsh *.msh"),
+                                                         ("points",
+                                                          "*.csv *.txt *.pts"),
+                                                         ("All Files", "*")])
         if ofile == "":
             # The user cancelled the loading action
             return

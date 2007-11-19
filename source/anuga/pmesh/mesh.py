@@ -29,7 +29,6 @@ class NoTrianglesError(exceptions.Exception): pass
 #import load_mesh
 from anuga.coordinate_transforms.geo_reference import Geo_reference, \
      DEFAULT_ZONE
-from anuga.utilities.polygon import point_in_polygon 
 from  anuga.load_mesh.loadASCII import NOMAXAREA, export_mesh_file, \
      import_mesh_file 
 import anuga.alpha_shape.alpha_shape
@@ -806,6 +805,10 @@ class Mesh:
         it they can.
         
         """
+        # Only import this if necessary.
+        # Trying to get pmesh working in an uncompiled environment
+        from anuga.utilities.polygon import point_in_polygon
+        
         #get absolute values
         if geo_reference is not None:
             polygon = geo_reference.get_absolute(polygon)
