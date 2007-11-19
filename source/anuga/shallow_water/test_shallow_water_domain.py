@@ -4196,7 +4196,11 @@ class Test_Shallow_Water(unittest.TestCase):
 
         #Evolution
         for t in domain.evolve(yieldstep = 0.05, finaltime = 0.5):
-            pass
+
+            # Check that diagnostics works
+            msg = domain.timestepping_statistics(track_speeds=True)
+            #FIXME(Ole): One might check the contents of msg here.
+
 
 
         assert allclose(domain.quantities['stage'].centroid_values,
