@@ -1885,8 +1885,10 @@ double _compute_fluxes_central(int number_of_elements,
     ymom_explicit_update[k] /= area;
     
    
-    // Keep track of maximal speeds
-    max_speed_array[k] = max_speed;    
+    // Keep track of maximal speeds so far
+    if (max_speed > max_speed_array[k]) {
+      max_speed_array[k] = max_speed;
+    }    
     
   } // End triangle k
 	

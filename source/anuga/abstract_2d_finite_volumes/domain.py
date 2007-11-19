@@ -7,7 +7,7 @@
    Geoscience Australia
 """
 
-from Numeric import allclose, argmax
+from Numeric import allclose, argmax, zeros, Float
 from anuga.config import epsilon
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
@@ -229,7 +229,7 @@ class Domain(Mesh):
 
         # Storage for maximal speeds computed for each triangle by
         # compute_fluxes
-        # This is used for diagnostics only
+        # This is used for diagnostics only (reset at every yieldstep)
         self.max_speed = zeros(N, Float)
 
         if mesh_filename is not None:
@@ -725,6 +725,11 @@ class Domain(Mesh):
             msg += '  Triangle #%d with centroid (%.4f, %.4f), ' %(k, x, y)
             msg += 'area = %.4f and radius = %.4f ' %(area, radius)
             msg += 'had the largest computed speed: %.6f m/s ' %(max_speed)
+            msg += 'during last time interval. Quantities below '
+            msg += 'are reported at their present value, and not what '
+            msg += 'they were at the time the maximal speed was attained.'
+            msg += 'To see this, rerun the model with yieldsteps smaller '
+            msg += 'than the smallest internal timestep reported.'
             if max_speed > 0.0:
                 msg += '(timestep=%.6f)\n' %(radius/max_speed)
             else:
@@ -1054,7 +1059,7 @@ class Domain(Mesh):
 
 
 
-
+        N = len(self) # Number of triangles
         self.yieldtime = 0.0 # Track time between 'yields'
 
         # Initialise interval of timestep sizes (for reporting only)
@@ -1062,6 +1067,7 @@ class Domain(Mesh):
         self.max_timestep = min_timestep
         self.number_of_steps = 0
         self.number_of_first_order_steps = 0
+
 
         # Update ghosts
         self.update_ghosts()
@@ -1137,7 +1143,7 @@ class Domain(Mesh):
                 self.max_timestep = min_timestep
                 self.number_of_steps = 0
                 self.number_of_first_order_steps = 0
-
+                self.max_speed = zeros(N, Float)
 
     def evolve_one_euler_step(self, yieldstep, finaltime):
         """
