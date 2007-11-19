@@ -1171,6 +1171,7 @@ class Test_Shallow_Water(unittest.TestCase):
         # Evolve system through time
         #--------------------------------------------------------------
         for t in domain.evolve(yieldstep = 0.1, finaltime = 3.0):
+            #print domain.timestepping_statistics(track_speeds=True)
             #domain.write_time()
             pass
     

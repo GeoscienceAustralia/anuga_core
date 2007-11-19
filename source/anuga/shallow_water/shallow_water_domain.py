@@ -460,6 +460,143 @@ class Domain(Generic_Domain):
         """
         self.writer.store_timestep(name)
 
+        
+    def timestepping_statistics(self, track_speeds=False):
+        """Return string with time stepping statistics for printing or logging
+
+        Optional boolean keyword track_speeds decides whether to report
+        location of smallest timestep as well as a histogram and percentile
+        report.
+        """
+
+        from Numeric import sqrt
+        from anuga.config import epsilon, g                
+
+
+        # Call basic machinery from parent class
+        msg = Generic_Domain.timestepping_statistics(self, track_speeds)
+
+        if track_speeds is True:
+
+            # qwidth determines the text field used for quantities
+            qwidth = self.qwidth
+        
+            # Triangle with maximum speed
+            k = self.k
+
+            # Report some derived quantities at vertices, edges and centroid
+            # specific to the shallow water wave equation
+
+            z = self.quantities['elevation']
+            w = self.quantities['stage']            
+
+            Vw = w.get_values(location='vertices', indices=[k])[0]
+            Ew = w.get_values(location='edges', indices=[k])[0]
+            Cw = w.get_values(location='centroids', indices=[k])
+
+            Vz = z.get_values(location='vertices', indices=[k])[0]
+            Ez = z.get_values(location='edges', indices=[k])[0]
+            Cz = z.get_values(location='centroids', indices=[k])                             
+                
+
+            name = 'depth'
+            Vh = Vw-Vz
+            Eh = Ew-Ez
+            Ch = Cw-Cz
+            
+            s  = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n'\
+                 %(name.ljust(qwidth), Vh[0], Vh[1], Vh[2])
+            
+            s += '    %s: edge_values =    %.4f,\t %.4f,\t %.4f\n'\
+                 %(name.ljust(qwidth), Eh[0], Eh[1], Eh[2])
+            
+            s += '    %s: centroid_value = %.4f\n'\
+                 %(name.ljust(qwidth), Ch[0])                                
+            
+            msg += s
+
+            uh = self.quantities['xmomentum']
+            vh = self.quantities['ymomentum']
+
+            Vuh = uh.get_values(location='vertices', indices=[k])[0]
+            Euh = uh.get_values(location='edges', indices=[k])[0]
+            Cuh = uh.get_values(location='centroids', indices=[k])
+            
+            Vvh = vh.get_values(location='vertices', indices=[k])[0]
+            Evh = vh.get_values(location='edges', indices=[k])[0]
+            Cvh = vh.get_values(location='centroids', indices=[k])
+
+            # Speeds in each direction
+            Vu = Vuh/(Vh + epsilon)
+            Eu = Euh/(Eh + epsilon)
+            Cu = Cuh/(Ch + epsilon)            
+            name = 'U'
+            s  = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n'\
+                 %(name.ljust(qwidth), Vu[0], Vu[1], Vu[2])
+            
+            s += '    %s: edge_values =    %.4f,\t %.4f,\t %.4f\n'\
+                 %(name.ljust(qwidth), Eu[0], Eu[1], Eu[2])
+            
+            s += '    %s: centroid_value = %.4f\n'\
+                 %(name.ljust(qwidth), Cu[0])                                
+            
+            msg += s
+
+            Vv = Vvh/(Vh + epsilon)
+            Ev = Evh/(Eh + epsilon)
+            Cv = Cvh/(Ch + epsilon)            
+            name = 'V'
+            s  = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n'\
+                 %(name.ljust(qwidth), Vv[0], Vv[1], Vv[2])
+            
+            s += '    %s: edge_values =    %.4f,\t %.4f,\t %.4f\n'\
+                 %(name.ljust(qwidth), Ev[0], Ev[1], Ev[2])
+            
+            s += '    %s: centroid_value = %.4f\n'\
+                 %(name.ljust(qwidth), Cv[0])                                
+            
+            msg += s
+
+
+            # Froude number in each direction
+            name = 'Froude (x)'
+            Vfx = Vu/(sqrt(g*Vh) + epsilon)
+            Efx = Eu/(sqrt(g*Eh) + epsilon)
+            Cfx = Cu/(sqrt(g*Ch) + epsilon)
+            
+            s  = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n'\
+                 %(name.ljust(qwidth), Vfx[0], Vfx[1], Vfx[2])
+            
+            s += '    %s: edge_values =    %.4f,\t %.4f,\t %.4f\n'\
+                 %(name.ljust(qwidth), Efx[0], Efx[1], Efx[2])
+            
+            s += '    %s: centroid_value = %.4f\n'\
+                 %(name.ljust(qwidth), Cfx[0])                                
+            
+            msg += s
+
+
+            name = 'Froude (y)'
+            Vfy = Vv/(sqrt(g*Vh) + epsilon)
+            Efy = Ev/(sqrt(g*Eh) + epsilon)
+            Cfy = Cv/(sqrt(g*Ch) + epsilon)
+            
+            s  = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n'\
+                 %(name.ljust(qwidth), Vfy[0], Vfy[1], Vfy[2])
+            
+            s += '    %s: edge_values =    %.4f,\t %.4f,\t %.4f\n'\
+                 %(name.ljust(qwidth), Efy[0], Efy[1], Efy[2])
+            
+            s += '    %s: centroid_value = %.4f\n'\
+                 %(name.ljust(qwidth), Cfy[0])                                
+            
+            msg += s            
+
+                
+
+        return msg
+        
+        
 
 #=============== End of class Shallow Water Domain ===============================
 

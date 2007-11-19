@@ -647,6 +647,10 @@ class Domain(Mesh):
         from anuga.utilities.numerical_tools import histogram, create_bins
         
 
+        # qwidth determines the text field used for quantities
+        qwidth = self.qwidth = 12
+
+
         msg = ''
         if self.min_timestep == self.max_timestep:
             msg += 'Time = %.4f, delta t = %.8f, steps=%d (%d)'\
@@ -711,7 +715,7 @@ class Domain(Mesh):
                 
             
             # Find index of largest computed flux speed
-            k = argmax(self.max_speed)
+            k = self.k = argmax(self.max_speed)
 
             x, y = self.get_centroid_coordinates()[k]
             radius = self.get_radii()[k]
@@ -726,16 +730,24 @@ class Domain(Mesh):
             else:
                 msg += '(timestep=%.6f)\n' %(0)     
             
-            # Report all quantity values at vertices
-            msg += '    Quantity \t vertex values\t\t\t\t\t centroid values\n'
+            # Report all quantity values at vertices, edges and centroid
+            msg += '    Quantity'
+            msg += '------------'
             for name in self.quantities:
                 q = self.quantities[name]
 
                 V = q.get_values(location='vertices', indices=[k])[0]
+                E = q.get_values(location='edges', indices=[k])[0]
                 C = q.get_values(location='centroids', indices=[k])                 
                 
-                s = '    %s:\t %.4f,\t %.4f,\t %.4f,\t %.4f\n'\
-                    %(name, V[0], V[1], V[2], C[0])                 
+                s  = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n'\
+                     %(name.ljust(qwidth), V[0], V[1], V[2])
+
+                s += '    %s: edge_values =    %.4f,\t %.4f,\t %.4f\n'\
+                     %(name.ljust(qwidth), E[0], E[1], E[2])
+
+                s += '    %s: centroid_value = %.4f\n'\
+                     %(name.ljust(qwidth), C[0])                                
 
                 msg += s
 
