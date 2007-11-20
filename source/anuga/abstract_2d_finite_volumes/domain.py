@@ -737,7 +737,7 @@ class Domain(Mesh):
             
             # Report all quantity values at vertices, edges and centroid
             msg += '    Quantity'
-            msg += '------------'
+            msg += '------------\n'
             for name in self.quantities:
                 q = self.quantities[name]
 
