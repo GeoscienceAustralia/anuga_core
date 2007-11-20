@@ -40,7 +40,7 @@ from anuga.utilities.cg_solve import conjugate_gradient
 from anuga.utilities.numerical_tools import ensure_numeric, gradient
 
 import exceptions
-class ToFewPointsError(exceptions.Exception): pass
+class TooFewPointsError(exceptions.Exception): pass
 class VertsWithNoTrianglesError(exceptions.Exception): pass
 
 DEFAULT_ALPHA = 0.001
@@ -212,9 +212,9 @@ class Fit(FitInterpolate):
             self.D[v2,v0] += e20
             self.D[v0,v2] += e20
 
-
     def get_D(self):
         return self.D.todense()
+
 
 
     def _build_matrix_AtA_Atz(self,
@@ -323,6 +323,7 @@ class Fit(FitInterpolate):
           z: Single 1d vector or array of data at the point_coordinates.
           
         """
+
         # use blocking to load in the point info
         if type(point_coordinates_or_filename) == types.StringType:
             msg = "Don't set a point origin when reading from a file"
@@ -349,9 +350,10 @@ class Fit(FitInterpolate):
 
                     
                 # Build the array
+
                 points = geo_block.get_data_points(absolute=True)
                 z = geo_block.get_attributes(attribute_name=attribute_name)
-                self.build_fit_subset(points, z)
+                self.build_fit_subset(points, z, verbose=verbose)
 
                 
             point_coordinates = None
@@ -378,7 +380,7 @@ class Fit(FitInterpolate):
 	    msg += 'Need at least %d\n' %m
             msg += 'Alternatively, set smoothing parameter alpha to a small '
 	    msg += 'positive value,\ne.g. 1.0e-3.'
-            raise ToFewPointsError(msg)
+            raise TooFewPointsError(msg)
 
         self._build_coefficient_matrix_B(verbose)
         loners = self.mesh.get_lone_vertices()
@@ -544,6 +546,7 @@ def _fit_to_mesh(point_coordinates, # this can also be a points file name
     # Duncan and Ole think that this isn't worth caching.
     # Caching happens at the higher level anyway.
     
+
     if mesh is None:
         # FIXME(DSG): Throw errors if triangles or vertex_coordinates
         # are None

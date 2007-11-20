@@ -548,7 +548,7 @@ class Test_Fit(unittest.TestCase):
         #Must raise an exception
         try:
             f = interp.fit(data_points,z)
-        except ToFewPointsError:
+        except TooFewPointsError:
             pass
 
         #Now try with smoothing parameter
