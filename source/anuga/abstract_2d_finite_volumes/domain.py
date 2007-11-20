@@ -636,12 +636,17 @@ class Domain(Mesh):
         print self.timestepping_statistics(track_speeds)
 
 
-    def timestepping_statistics(self, track_speeds=False):
+    def timestepping_statistics(self,
+                                track_speeds=False,
+                                triangle_id=None):
         """Return string with time stepping statistics for printing or logging
 
         Optional boolean keyword track_speeds decides whether to report
         location of smallest timestep as well as a histogram and percentile
-        report. 
+        report.
+
+        Optional keyword triangle_id can be used to specify a particular
+        triangle rather than the one with the largest speed. 
         """
 
         from anuga.utilities.numerical_tools import histogram, create_bins
@@ -715,7 +720,14 @@ class Domain(Mesh):
                 
             
             # Find index of largest computed flux speed
-            k = self.k = argmax(self.max_speed)
+            if triangle_id is None:
+                k = self.k = argmax(self.max_speed)
+            else:
+                errmsg = 'Triangle_id %d does not exist in mesh: %s' %(triangle_id,
+                                                                    str(self))
+                assert 0 <= triangle_id < len(self), errmsg
+                k = self.k = triangle_id
+            
 
             x, y = self.get_centroid_coordinates()[k]
             radius = self.get_radii()[k]
@@ -724,12 +736,11 @@ class Domain(Mesh):
 
             msg += '  Triangle #%d with centroid (%.4f, %.4f), ' %(k, x, y)
             msg += 'area = %.4f and radius = %.4f ' %(area, radius)
-            msg += 'had the largest computed speed: %.6f m/s ' %(max_speed)
-            msg += 'during last time interval. Quantities below '
-            msg += 'are reported at their present value, and not what '
-            msg += 'they were at the time the maximal speed was attained.'
-            msg += 'To see this, rerun the model with yieldsteps smaller '
-            msg += 'than the smallest internal timestep reported.'
+            if triangle_id is None:
+                msg += 'had the largest computed speed: %.6f m/s ' %(max_speed)
+            else:
+                msg += 'had computed speed: %.6f m/s ' %(max_speed)
+                
             if max_speed > 0.0:
                 msg += '(timestep=%.6f)\n' %(radius/max_speed)
             else:

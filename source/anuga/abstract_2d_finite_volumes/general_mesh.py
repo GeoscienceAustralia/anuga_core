@@ -261,11 +261,7 @@ class General_mesh:
     
     def get_node(self, i,
                  absolute=False):
-        """Return node coordinates.
-
-        The nodes are ordered in an Nx2 array where N is the number of nodes.
-        This is the same format they were provided in the constructor
-        i.e. without any duplication.
+        """Return node coordinates for triangle i.
 
         Boolean keyword argument absolute determines whether coordinates
         are to be made absolute by taking georeference into account
@@ -595,4 +591,5 @@ class General_mesh:
 
         return sum(self.areas)
 
+        
         

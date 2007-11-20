@@ -461,7 +461,9 @@ class Domain(Generic_Domain):
         self.writer.store_timestep(name)
 
         
-    def timestepping_statistics(self, track_speeds=False):
+    def timestepping_statistics(self,
+                                track_speeds=False,
+                                triangle_id=None):        
         """Return string with time stepping statistics for printing or logging
 
         Optional boolean keyword track_speeds decides whether to report
@@ -474,14 +476,16 @@ class Domain(Generic_Domain):
 
 
         # Call basic machinery from parent class
-        msg = Generic_Domain.timestepping_statistics(self, track_speeds)
+        msg = Generic_Domain.timestepping_statistics(self,
+                                                     track_speeds,
+                                                     triangle_id)
 
         if track_speeds is True:
 
             # qwidth determines the text field used for quantities
             qwidth = self.qwidth
         
-            # Triangle with maximum speed
+            # Selected triangle
             k = self.k
 
             # Report some derived quantities at vertices, edges and centroid

@@ -859,3 +859,36 @@ class Mesh(General_mesh):
 
         return str
 
+    def get_triangle_containing_point(self, point):
+        """Return triangle id for triangle containing specifiend point (x,y)
+
+        If point isn't within mesh, raise exception
+
+        """
+        
+        # FIXME(Ole): This function is currently brute force
+        # because I needed it for diagnostics.
+        # We should make it fast - probably based on the
+        # quad tree structure.
+        from anuga.utilities.polygon import is_outside_polygon,\
+             is_inside_polygon
+
+        polygon = self.get_boundary_polygon()
+        #print polygon, point
+        
+        if is_outside_polygon(point, polygon):
+            msg = 'Point %s is outside mesh' %str(point)
+            raise Exception, msg
+
+
+        V = self.get_vertex_coordinates(absolute=True)
+
+        # FIXME: Horrible brute force
+        for i, triangle in enumerate(self.triangles):
+            poly = V[3*i:3*i+3]
+            #print i, poly
+
+            if is_inside_polygon(point, poly, closed=True):
+                return i
+                
+        return

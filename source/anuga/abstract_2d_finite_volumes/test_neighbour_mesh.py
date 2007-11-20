@@ -1194,10 +1194,45 @@ class Test_Mesh(unittest.TestCase):
         boundary_polygon = mesh.get_boundary_polygon()
 
         assert allclose(absolute_points, boundary_polygon)
+
+    def test_get_triangle_containing_point(self):
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe
+        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+        mesh = Mesh(points, vertices)
         
+        mesh.check_integrity()
+
+
+        try:
+            id = mesh.get_triangle_containing_point([3.0, 5.0])
+        except:
+            pass
+        else:
+            msg = 'Should have caught point outside polygon (Non)'            
+            raise Exception, msg
+            
+        id = mesh.get_triangle_containing_point([0.5, 1.0])
+        assert id == 0
+
+        id = mesh.get_triangle_containing_point([1.0, 3.0])
+        assert id == 3        
+
+        for i, point in enumerate(mesh.get_centroid_coordinates()):
+            id = mesh.get_triangle_containing_point(point)
+            assert id == i        
+            
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Mesh,'test_boundary_polygon_IIIa')
+    #suite = unittest.makeSuite(Test_Mesh,'test_get_triangle_containing_point')
     suite = unittest.makeSuite(Test_Mesh,'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
