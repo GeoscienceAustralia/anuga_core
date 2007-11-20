@@ -511,7 +511,7 @@ class Interpolation_function:
                 raise 'Triangles and vertex_coordinates must be specified'
             
             try:
-	        self.interpolation_points = ensure_numeric(interpolation_points)
+	        self.interpolation_points = interpolation_points = ensure_numeric(interpolation_points)
             except:
 	        msg = 'Interpolation points must be an N x 2 Numeric array '+\
                       'or a list of points\n'
@@ -524,14 +524,18 @@ class Interpolation_function:
             # mesh boundary as defined by triangles and vertex_coordinates.
             from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
             from anuga.utilities.polygon import outside_polygon            
-            
+
+            # Create temporary mesh object from mesh info passed
+            # into this function. 
             mesh = Mesh(vertex_coordinates, triangles)
+            mesh_boundary_polygon = mesh.get_boundary_polygon()
+
             
             indices = outside_polygon(interpolation_points,
-                                      mesh.get_boundary_polygon())
-
+                                      mesh_boundary_polygon)
 
             # Record result
+            #self.mesh_boundary_polygon = mesh_boundary_polygon
             self.indices_outside_mesh = indices
 
             # Report
@@ -550,7 +554,19 @@ class Interpolation_function:
                     print msg
                 #raise Exception(msg)
 
+            # Plot boundary and interpolation points
+            # FIXME (Jane): Here's a beginning towards plotting 
+            #if verbose is True:
+            #    from anuga.utilities.polygon import plot_polygons
+            #    from pylab import ion, hold, plot, axis, figure, legend, savefig, xlabel, ylabel, title, close                
+            #    plot_polygons([mesh_boundary_polygon],
+            #                  verbose=verbose)
 
+                # Add cloud of interpolation points to polygon plot
+            #    x = interpolation_points[:,0]
+            #    y = interpolation_points[:,1]                
+            #    plot(x, y, 'b.')
+            #    title('Interpolation function: Polygon and interpolation points')
             
 
             m = len(self.interpolation_points)
