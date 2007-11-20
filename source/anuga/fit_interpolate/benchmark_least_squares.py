@@ -29,6 +29,7 @@ from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.shallow_water import Domain
 from anuga.fit_interpolate.fit import Fit, fit_to_mesh
 from anuga.fit_interpolate.interpolate import benchmark_interpolate
+from anuga.coordinate_transforms.geo_reference import Geo_reference
 
 def mem_usage():
     '''
@@ -82,10 +83,14 @@ class BenchmarkLeastSquares:
         #print "maxArea",maxArea
         #print "max_points_per_cell", max_points_per_cell
 
+        geo = Geo_reference(xllcorner = 2.0,
+                 yllcorner = 2.0)
         mesh_dict = self._build_regular_mesh_dict(maxArea=maxArea,
                                                   is_segments=segments_in_mesh,
-                                                  save=save)
-        points_dict = self._build_points_dict(num_of_points=num_of_points)
+                                                  save=save,
+                                                  geo=geo)
+        points_dict = self._build_points_dict(num_of_points=num_of_points,
+                                                  geo=geo)
 
 
         if is_fit is True:
@@ -97,24 +102,30 @@ class BenchmarkLeastSquares:
                        "PPC" + str(max_points_per_cell) + \
                        ".txt"
                     
+        # Apply the geo_ref to the points, so they are relative
+        # Pass in the geo_ref
         
         domain = Domain(mesh_dict['vertices'], mesh_dict['triangles'],
-                        use_cache=False, verbose=False)
+                        use_cache=False, verbose=False,
+                                     geo_reference=geo)
         #Initial time and memory
         t0 = time.time()
         #m0 = None on windows
         m0 = mem_usage()
         
+        # Apply the geo_ref to the points, so they are relative
+        # Pass in the geo_ref
+        geospatial = Geospatial_data(points_dict['points'],
+                                     points_dict['point_attributes'],
+                                     geo_reference=geo)
         if is_fit is True:
 
-            print "Fit in Fit"
-            geospatial = Geospatial_data(points_dict['points'],
-                                     points_dict['point_attributes'])
+            # print "Fit in Fit"
             if use_file_type == None:
                 points = geospatial
                 filename = None
             else:
-                #check that the type
+                #FIXME (DSG) check that the type
                 fileName = tempfile.mktemp("." + use_file_type)
                 geospatial.export_points_file(fileName, absolute=True)
                 points = None
@@ -146,10 +157,13 @@ class BenchmarkLeastSquares:
                     
         else:
             # run an interploate problem.
-            print "Interpolate!"
+            #print "Interpolate!"
             
             if run_profile:
-                s="""benchmark_interpolate(mesh_dict['vertices'],mesh_dict['vertex_attributes'],mesh_dict['triangles'],points_dict['points'],max_points_per_cell=max_points_per_cell)"""
+                # pass in the geospatial points
+                # and the mesh origin
+                 
+                s="""benchmark_interpolate(mesh_dict['vertices'],mesh_dict['vertex_attributes'],mesh_dict['triangles'],geospatial,max_points_per_cell=max_points_per_cell,mesh_origin=geo)"""
                 pobject = profile.Profile()
                 presult = pobject.runctx(s,
                                          vars(sys.modules[__name__]),
@@ -168,10 +182,12 @@ class BenchmarkLeastSquares:
                 os.remove(prof_file)
                     
             else:
+                # pass in the geospatial points
                  benchmark_interpolate(mesh_dict['vertices'],
                                        mesh_dict['vertex_attributes'],
                                        mesh_dict['triangles'],
-                                       points_dict['points'],
+                                       geospatial,
+                                       mesh_origin=geo,
                                        max_points_per_cell=max_points_per_cell)
         time_taken_sec = (time.time()-t0)
         m1 = mem_usage()
@@ -185,9 +201,12 @@ class BenchmarkLeastSquares:
     def _build_regular_mesh_dict(self,
                                  maxArea=1000,
                                  is_segments=True,
-                                 save=False):
+                                 save=False,
+                                 geo=None):
       # make a normalised mesh
-        # pretty regular size, with some segments thrown in. 
+        # pretty regular size, with some segments thrown in.
+
+        #x_min = 
         m = Mesh()
         m.addUserVertex(0,0)
         m.addUserVertex(1.0,0)
@@ -234,7 +253,8 @@ class BenchmarkLeastSquares:
 
         return mesh_dict
 
-    def _build_points_dict(self, num_of_points=20000):
+    def _build_points_dict(self, num_of_points=20000,
+                                 geo=None):
         
         points_dict = {}
         points = []

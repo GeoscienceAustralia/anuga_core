@@ -242,8 +242,6 @@ class Geo_reference:
 
         #if self.is_absolute():
         #    return points
-        
-
         is_list = False
         if type(points) == types.ListType:
             is_list = True

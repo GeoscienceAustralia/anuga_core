@@ -42,6 +42,43 @@ class Test_General_Mesh(unittest.TestCase):
                 k = triangles[i,j]  #Index of vertex j in triangle i
                 assert allclose(V[3*i+j,:], nodes[k])
 
+    def test_get_vertex_coordinates_with_geo_ref(self):
+        x0 = 314036.58727982
+        y0 = 6224951.2960092
+        geo = Geo_reference(56, x0, y0)
+        
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        nodes = array([a, b, c, d, e, f])
+
+        nodes_absolute = geo.get_absolute(nodes)
+        
+        #bac, bce, ecf, dbe, daf, dae
+        triangles = array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
+
+        domain = General_mesh(nodes, triangles,
+                       geo_reference = geo)
+        verts = domain.get_vertex_coordinates(triangle_id=0)        
+        self.assert_(allclose(array([b,a,c]), verts)) 
+        verts = domain.get_vertex_coordinates(triangle_id=0)       
+        self.assert_(allclose(array([b,a,c]), verts))
+        verts = domain.get_vertex_coordinates(triangle_id=0,
+                                              absolute=True)       
+        self.assert_(allclose(array([nodes_absolute[1],
+                                     nodes_absolute[0],
+                                     nodes_absolute[2]]), verts))
+        verts = domain.get_vertex_coordinates(triangle_id=0,
+                                              absolute=True)       
+        self.assert_(allclose(array([nodes_absolute[1],
+                                     nodes_absolute[0],
+                                     nodes_absolute[2]]), verts))
+        
+        
 
     def test_get_vertex_coordinates_triangle_id(self):
         """test_get_vertex_coordinates_triangle_id

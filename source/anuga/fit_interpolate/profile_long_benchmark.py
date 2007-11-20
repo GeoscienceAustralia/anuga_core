@@ -15,9 +15,9 @@ ofile = 'lbm_results.csv'
 delimiter = ','
 
 use_least_squares_list = [False]
-is_fit_list = [True, False]
-num_of_points_list = [50, 1000] #, 500, 10000, 100000] #, 10000000]
-maxArea_list = [0.01, 0.001, 0.0001] #,0.00001] #, 0.0000001] #, 0.06, 0.00001, 0.0000001]
+is_fit_list = [True]
+num_of_points_list = [1000] #, 500, 10000, 100000] #, 10000000]
+maxArea_list = [0.0001] #,0.00001] #, 0.0000001] #, 0.06, 0.00001, 0.0000001]
 max_points_per_cell_list = [8]
 use_file_type_list = ['pts']
 
@@ -48,6 +48,7 @@ for is_fit in is_fit_list:
                         ,segments_in_mesh=False
                         ,use_file_type=use_file_type
                         ,save=True
+                        ,run_profile=True
                         )
                     print "time",time
                     print "mem", mem

@@ -294,8 +294,13 @@ def benchmark_interpolate(vertices,
                           vertex_attributes,
                           triangles, points,
                           max_points_per_cell=None,
-                          start_blocking_len=500000):
+                          start_blocking_len=500000,
+                          mesh_origin=None):
     """
+    points: Interpolate mesh data to these positions.
+              List of coordinate pairs [x, y] of
+	      data points or an nx2 Numeric array or a Geospatial_data object
+              
     No test for this yet.
     Note, this has no time the input data has no time dimension.  Which is
     different from most of the data we interpolate, eg sww info.
@@ -305,11 +310,14 @@ def benchmark_interpolate(vertices,
     """
     interp = Interpolate(vertices,
                          triangles, 
-                         max_vertices_per_cell=max_points_per_cell)
+                         max_vertices_per_cell=max_points_per_cell,
+                         mesh_origin=mesh_origin)
             
     calc = interp.interpolate(vertex_attributes
                               ,points
                               ,start_blocking_len=start_blocking_len)
+    #print "calc", calc
+    
 def interpolate_sww2csv(sww_file,
                         points,
                         depth_file,

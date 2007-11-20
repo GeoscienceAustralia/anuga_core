@@ -840,7 +840,7 @@ class Quantity:
                   'location=\'vertices\''
             raise msg
 
-        if False:  # FIXME (Ole): True takes less memory,
+        if True:  # FIXME (Ole): True takes less memory,
                    # but appears to be slower. 
             vertex_attributes = fit_to_mesh(filename,
                                             mesh=self.domain,  

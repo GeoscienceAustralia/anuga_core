@@ -300,11 +300,12 @@ class General_mesh:
         """
         
         V = self.vertex_coordinates
-        if absolute is True:
-            if not self.geo_reference.is_absolute():
-                V = self.geo_reference.get_absolute(V)
 
-        if triangle_id is None:        
+        if triangle_id is None:   
+            if absolute is True:
+                if not self.geo_reference.is_absolute():
+                    V = self.geo_reference.get_absolute(V)
+     
             return V
         else:
             i = triangle_id
@@ -312,9 +313,16 @@ class General_mesh:
             assert int(i) == i, msg
             assert 0 <= i < self.number_of_triangles
             
-            i3 = 3*i
-            return array([V[i3,:], V[i3+1,:], V[i3+2,:]])
-
+            i3 = 3*i  
+            if absolute is True and not self.geo_reference.is_absolute():
+                offset=array([self.geo_reference.get_xllcorner(),
+                                  self.geo_reference.get_yllcorner()])
+                return array([V[i3,:]+offset,
+                              V[i3+1,:]+offset,
+                              V[i3+2,:]+offset])
+            else:
+                return array([V[i3,:], V[i3+1,:], V[i3+2,:]])
+                
 
 
     def get_vertex_coordinate(self, i, j, absolute=False):
