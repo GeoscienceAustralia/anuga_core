@@ -1,59 +1,52 @@
-"""Module where global pyvolution model parameters are set
+"""Module where global ANUGA model parameters and default values are set
 """
 
+#--------------------
+# Numerical constants
+#--------------------
+epsilon = 1.0e-12 # Smallest number - used for safe division
+max_float = 1.0e36 # Largest number - used to initialise (max, min) ranges
 
-#FIXME (Ole): Temporary access to global config file
-from anuga_config import epsilon, default_boundary_tag
 
-#FIXME (Ole): More of these may need to be moved to anuga_config.py
+#-------------------------------------------
+# Standard filenames, directories and system 
+# parameters used by ANUGA
+#-------------------------------------------
+pmesh_filename = '.\\pmesh'
+version_filename = 'stored_version_info.py'
+default_datadir = '.'
 time_format = '%d/%m/%y %H:%M:%S'
+umask = 002  # Controls file and directory permission created by anuga
+default_boundary_tag = 'exterior' 
 
-min_timestep = 1.0e-6 #Should be computed based on geometry
-max_timestep = 1.0e+3
-#This is how:
-#Define maximal possible speed in open water v_max, e.g. 500m/s (soundspeed?)
-#Then work out minimal internal distance in mesh r_min and set
-#min_timestep = r_min/v_max
-#
-#Max speeds are calculated in the flux function as
-#
-#lambda = v +/- sqrt(gh)
-#
-# so with 500 m/s, h ~ 500^2/g = 2500 m well out of the domain of the
-# shallow water wave equation
-#
-#The actual soundspeed can be as high as 1530m/s
-#(see http://staff.washington.edu/aganse/public.projects/clustering/clustering.html),
-#but that would only happen with h>225000m in this equation. Why ?
-#The maximal speed we specify is really related to the max speed
-#of surface pertubation
-#
+# Major revision number for use with create_distribution
+# and update_anuga_user_guide
+major_revision = '1.0beta'
 
 
-#v_max = 100 #For use in domain_ext.c
-sound_speed = 500
-
-
-max_smallsteps = 50  #Max number of degenerate steps allowed b4 trying first order
-
-manning = 0.03  #Manning's friction coefficient
-#g = 9.80665       #Gravity
+#-------------------
+# Physical constants
+#-------------------
+manning = 0.03  # Manning's friction coefficient
+#g = 9.80665    # Gravity - FIXME reinstate this and fix unit tests.
 g = 9.8
 #g(phi) = 9780313 * (1 + 0.0053024 sin(phi)**2 - 0.000 0059 sin(2*phi)**2) micro m/s**2, where phi is the latitude
 #The 'official' average is 9.80665
-
-
-
 
 eta_w = 3.0e-3 #Wind stress coefficient
 rho_a = 1.2e-3 #Atmospheric density
 rho_w = 1023   #Fluid density [kg/m^3] (rho_w = 1023 for salt water)
 
 
-#Betas [0;1] control the allowed steepness of gradient for second order
-#extrapolations. Values of 1 allow the steepes gradients while
-#lower values are more conservative. Values of 0 correspond to
-#1'st order extrapolations.
+#-----------------------------------------------------
+# Limiters - used with linear reconstruction of vertex 
+# values from centroid values
+#-----------------------------------------------------
+
+# Betas [0;1] control the allowed steepness of gradient for second order
+# extrapolations. Values of 1 allow the steepes gradients while
+# lower values are more conservative. Values of 0 correspond to
+# 1'st order extrapolations.
 #
 # Large values of beta_h may cause simulations to require more timesteps
 # as surface will 'hug' closer to the bed.
@@ -66,12 +59,7 @@ rho_w = 1023   #Fluid density [kg/m^3] (rho_w = 1023 for salt water)
 # tight_slope_limiters. I wish to retire the beta_? parameters.
 # Can you please let me know if you disagree?
 
-
-#There are separate betas for the w, uh, vh and h limiters
-#
-#Good values are:
-
-
+# There are separate betas for the w, uh, vh and h limiters
 # I think these are better SR but they conflict with the unit tests!
 beta_w      = 1.0
 beta_w_dry  = 0.2
@@ -101,10 +89,12 @@ tight_slope_limiters = 0
 
 
 
-CFL = 1.0  #FIXME (ole): Is this in use yet??
-           #(Steve) yes, change domain.CFL to
-           #make changes
+#-------------
+# Timestepping
+#-------------
 
+CFL = 1.0  # CFL condition assigned to domain.CFL - controls timestep size
+      
 # Choose type of timestepping,
 timestepping_method = 'euler' # 1st order euler
 #timestepping_method = 'rk2'   # 2nd Order TVD scheme
@@ -118,31 +108,44 @@ timestepping_method = 'euler' # 1st order euler
 # protect_against_isolated_degenerate_timesteps = False
 protect_against_isolated_degenerate_timesteps = False
 
-pmesh_filename = '.\\pmesh'
-version_filename = 'stored_version_info.py'
+
+min_timestep = 1.0e-6 # Minimal timestep accepted in ANUGA
+max_timestep = 1.0e+3
+max_smallsteps = 50  # Max number of degenerate steps allowed b4 trying first order
+
+#Perhaps minimal timestep could be based on the geometry as follows:
+#Define maximal possible speed in open water v_max, e.g. 500m/s (soundspeed?)
+#Then work out minimal internal distance in mesh r_min and set
+#min_timestep = r_min/v_max
+#
+#Max speeds are calculated in the flux function as
+#
+#lambda = v +/- sqrt(gh)
+#
+# so with 500 m/s, h ~ 500^2/g = 2500 m well out of the domain of the
+# shallow water wave equation
+#
+#The actual soundspeed can be as high as 1530m/s
+#(see http://staff.washington.edu/aganse/public.projects/clustering/clustering.html),
+#but that would only happen with h>225000m in this equation. Why ?
+#The maximal speed we specify is really related to the max speed
+#of surface pertubation
+#
+#v_max = 100 #For use in domain_ext.c
+#sound_speed = 500
 
 
-import os, sys
+#---------------------------------------------------
+# Ranges specific to the shallow water wave equation
+# These control maximal and minimal values of 
+# quantities
+#---------------------------------------------------
 
-if sys.platform == 'win32':
-    default_datadir = '.'
-else:
-    default_datadir = '.'
+# Water depth below which it is considered to be 0 in the model
+minimum_allowed_height = 1.0e-3 
 
-
-use_extensions = True    #Try to use C-extensions
-#use_extensions = False   #Do not use C-extensions
-
-use_psyco = True  #Use psyco optimisations
-#use_psyco = False  #Do not use psyco optimisations
-
-
-optimise_dry_cells = True # Exclude dry and still cells from flux computation
-
-optimised_gradient_limiter = True # Use hardwired gradient limiter
-
-#Specific to shallow water W.E.
-minimum_allowed_height = 1.0e-3 #Water depth below which it is considered to be 0 in the model
+# Water depth below which it is *stored* as 0
+minimum_storable_height = 1.0e-5
 
 # FIXME (Ole): Redefine this parameter to control maximal speeds in general
 # and associate it with protect_against_isolated_degenerate_timesteps = True
@@ -150,16 +153,26 @@ maximum_allowed_speed = 0.0 # Maximal particle speed of water
 #maximum_allowed_speed = 1.0 # Maximal particle speed of water
                             # Too large (100) creates 'flopping' water
                             # Too small (0) creates 'creep'
-
-
+			    
 maximum_froude_number = 100.0 # To be used in limiters.
 
-minimum_storable_height = 1.0e-5 # Water depth below which it is *stored* as 0
+
+#------------------------------------------------------------
+# Performance parameters used to invoke various optimisations
+#------------------------------------------------------------
+
+use_extensions = True # Use C-extensions
+use_psyco = True # Use psyco optimisations
+
+optimise_dry_cells = True # Exclude dry and still cells from flux computation
+optimised_gradient_limiter = True # Use hardwired gradient limiter
 
 points_file_block_line_size = 500 # Number of lines read in from a points file
                                   # when blocking
 
-umask = 002  # used to set file and directory permission created by anuga
 
-max_float = 1.0e36 # Largest number. Used to initialise (max, min) ranges.
+
+
+
+
     
