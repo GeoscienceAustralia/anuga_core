@@ -1379,6 +1379,7 @@ def ensure_geospatial(points, geo_reference=None):
 def find_optimal_smoothing_parameter(data_file, 
                                      alpha_list=None,
                                      mesh_file=None,
+                                     boundary_poly=None,
                                      mesh_resolution=100000,
                                      north_boundary=None,
                                      south_boundary=None,
@@ -1423,6 +1424,9 @@ def find_optimal_smoothing_parameter(data_file,
     
     OUTPUT: returns the minumum normalised covalance calculate AND the 
            alpha that created it. PLUS writes a plot of the results
+           
+    NOTE: code will not work if the data_file extend is greater than the
+    boundary_polygon or the north_boundary...west_boundary
         
     """
 
@@ -1432,6 +1436,7 @@ def find_optimal_smoothing_parameter(data_file,
     
     from anuga.utilities.numerical_tools import cov
     from Numeric import array, resize,shape,Float,zeros,take,argsort,argmin
+    from anuga.utilities.polygon import is_inside_polygon 
 
     attribute_smoothed='elevation'
 
@@ -1474,6 +1479,21 @@ def find_optimal_smoothing_parameter(data_file,
     G_small, G_other = G.split(0.1,seed_num, verbose=verbose)
     if verbose: print 'finish split'
     points=G_small.get_data_points()
+
+    #FIXME: Remove points outside boundary polygon
+#    print 'new point',len(points)
+#    
+#    new_points=[]
+#    new_points=array([],typecode=Float)
+#    new_points=resize(new_points,(len(points),2))
+#    print "BOUNDARY", boundary_poly
+#    for i,point in enumerate(points):
+#        if is_inside_polygon(point,boundary_poly, verbose=True):
+#            new_points[i] = point
+#            print"WOW",i,new_points[i]
+#    points = new_points
+
+    
     if verbose: print "Number of points in sample to compare: ", len(points)
     
     if alpha_list==None:
@@ -1488,11 +1508,12 @@ def find_optimal_smoothing_parameter(data_file,
     if verbose: print 'Setup computational domains with different alphas'
     for alpha in alphas:
         #add G_other data to domains with different alphas
-        domain = Domain(mesh_file, use_cache=False, verbose=verbose)
+        if verbose:print '\n Calculating domain and mesh for Alpha = ',alpha,'\n'
+        domain = Domain(mesh_file, use_cache=cache, verbose=verbose)
         if verbose:print domain.statistics()
         domain.set_quantity(attribute_smoothed, 
                     geospatial_data = G_other,
-                    use_cache = True,
+                    use_cache = cache,
                     verbose = verbose,
                     alpha = alpha)
         domains[alpha]=domain
@@ -1512,14 +1533,17 @@ def find_optimal_smoothing_parameter(data_file,
 
     normal_cov=array(zeros([len(alphas),2]),typecode=Float)
 
+    if verbose: print 'Determine difference between predicted results and actual data'
     for i,alpha in enumerate(domains):
-        #print'alpha',alpha
+        if verbose: print'Alpha =',alpha
+        
         points_geo=domains[alpha].geo_reference.change_points_geo_ref(points)
         #returns the predicted elevation of the points that were "split" out 
         #of the original data set for one particular alpha
-        elevation_predicted=domains[alpha].quantities[attribute_smoothed] \
-                                  .get_values(interpolation_points=points_geo)
-    
+        elevation_predicted=domains[alpha].quantities[attribute_smoothed].\
+                            get_values(interpolation_points=points_geo)
+ 
+        #add predicted elevation to array that starts with x, y, z...
         data[:,i+3]=elevation_predicted
 
         sample_cov= cov(elevation_sample)
