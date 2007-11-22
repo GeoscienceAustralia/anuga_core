@@ -377,7 +377,7 @@ def plot_polygons_points(polygons_points, style=None,
     maxy = 0.0
 
     if label is None: label = ''
-    
+
     n = len(polygons_points)
     colour = []
     if style is None:
@@ -388,15 +388,14 @@ def plot_polygons_points(polygons_points, style=None,
             colour.append('b-')
     else:
         for s in style:
-            if s == 'line':
-                colour.append('b-')            
-            if s == 'outside':
-                colour.append('r.')
-            else:
-                colour.append('g.')
+            if s == 'line': colour.append('b-')            
+            if s == 'outside': colour.append('r.')
+            if s <> 'line':
+                if s <> 'outside':
+                    colour.append('g.')
             
     for i, item in enumerate(polygons_points):
-        x, y = poly_xy(item)  
+        x, y = poly_xy(item)
         if min(x) < minx: minx = min(x)
         if max(x) > maxx: maxx = max(x)
         if min(y) < miny: miny = min(y)
@@ -405,7 +404,15 @@ def plot_polygons_points(polygons_points, style=None,
         xlabel('x')
         ylabel('y')
         title(label)
-
+        
+    if minx <> 0:
+        axis([minx*0.9,maxx*1.1,miny*0.9,maxy*1.1])
+    else:
+        if miny == 0:
+            axis([-maxx*.01,maxx*1.1,-maxy*0.01,maxy*1.1])
+        else:
+            axis([-maxx*.01,maxx*1.1,miny*0.9,maxy*1.1])
+    
     if figname is not None:
         savefig(figname)
     else:
