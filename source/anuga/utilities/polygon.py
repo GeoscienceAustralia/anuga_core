@@ -340,7 +340,8 @@ def polygon_area(polygon):
         
     return abs(poly_area/2)
 
-def plot_polygons_points(polygons_points, style=None, figname=None, label=None, verbose=False):
+def plot_polygons_points(polygons_points, style=None, 
+                         figname=None, label=None, verbose=False):
     
     """ Take list of polygons and plot.
 
@@ -349,6 +350,8 @@ def plot_polygons_points(polygons_points, style=None, figname=None, label=None, 
     polygons         - list of polygons
 
     style            - style list corresponding to each polygon
+                     - for a polygon, use 'line'
+                     - for points falling outside a polygon, use 'outside'
                         
     figname          - name to save figure to
 
@@ -376,22 +379,29 @@ def plot_polygons_points(polygons_points, style=None, figname=None, label=None, 
     if label is None: label = ''
     
     n = len(polygons_points)
+    colour = []
     if style is None:
         style_type = 'line' 
         style = []
         for i in range(n):
             style.append(style_type)
-        
+            colour.append('b-')
+    else:
+        for s in style:
+            if s == 'line':
+                colour.append('b-')            
+            if s == 'outside':
+                colour.append('r.')
+            else:
+                colour.append('g.')
+            
     for i, item in enumerate(polygons_points):
         x, y = poly_xy(item)  
         if min(x) < minx: minx = min(x)
         if max(x) > maxx: maxx = max(x)
         if min(y) < miny: miny = min(y)
         if max(y) > maxy: maxy = max(y)
-        if style[i] is 'line':
-            plot(x,y,'b-')
-        else:
-            plot(x,y,'r.')
+        plot(x,y,colour[i])
         xlabel('x')
         ylabel('y')
         title(label)

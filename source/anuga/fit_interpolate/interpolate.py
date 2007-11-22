@@ -554,6 +554,13 @@ class Interpolation_function:
                 for i in indices:
                     msg += '%d: %s\n' %(i, interpolation_points[i])
 
+                #from anuga.utilities.polygon import plot_polygons_points
+                #in_interp_pts = 
+                #out_interp_pts = take(interpolation_points,[indices])
+                #title = 'Interpolation points fall outside specified mesh'
+                #plot_polygons_points([mesh_boundary_polygon,in_interp_pts,out_interp_pts],
+                #                     ['line','point','outside'],label=title,verbose=verbose)
+
                 # Joaquim Luis suggested this as an Exception, so
                 # that the user can now what the problem is rather than
                 # looking for NaN's. However, NANs are handy as they can
@@ -563,7 +570,6 @@ class Interpolation_function:
                 #raise Exception(msg)
 
             # Plot boundary and interpolation points
-            # FIXME (Jane): Here's a beginning towards plotting 
             if verbose is True:
                 from anuga.utilities.polygon import plot_polygons_points
                 title = 'Interpolation function: Polygon and interpolation points'

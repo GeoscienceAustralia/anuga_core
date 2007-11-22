@@ -972,7 +972,7 @@ class Test_Mesh(unittest.TestCase):
         """
 
 
-        from anuga.utilities.polygon import plot_polygons
+        from anuga.utilities.polygon import plot_polygons_points
 
         # First do the continuous version of mesh
 
