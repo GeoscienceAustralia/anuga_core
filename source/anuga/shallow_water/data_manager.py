@@ -5255,19 +5255,24 @@ class Urs_points:
 
         
 def start_screen_catcher(dir_name, myid='', numprocs='', extra_info='',
-                         print_to_screen=False, verbose=False):
-    """
+                         verbose=False):
+    """ 
     Used to store screen output and errors to file, if run on multiple 
     processes eachprocessor will have its own output and error file.
     
     extra_info - is used as a string that can identify outputs with another 
     string eg. '_other'
+    
+    FIXME: Would be good if you could suppress all the screen output and 
+    only save it to file... however it seems a bit tricky as this caputure
+    techique response to sys.stdout and by this time it is already printed out.
+    
     """
     import sys
     dir_name = dir_name
     if access(dir_name,W_OK) == 0:
-        if verbose: print 'Make directory %s' %dir_name
-        if verbose: print "myid", myid
+        if verbose: print 'Making directory %s' %dir_name
+      #  if verbose: print "myid", myid
         mkdir (dir_name,0777)
     if myid <>'':
         myid = '_'+str(myid)
@@ -5281,7 +5286,7 @@ def start_screen_catcher(dir_name, myid='', numprocs='', extra_info='',
     screen_error_name = dir_name + "screen_error%s%s%s.txt" %(myid,
                                                               numprocs,
                                                               extra_info)
-    print screen_output_name
+    if verbose: print screen_output_name
     #used to catch screen output to file
     sys.stdout = Screen_Catcher(screen_output_name)
     sys.stderr = Screen_Catcher(screen_error_name)
@@ -5301,9 +5306,8 @@ class Screen_Catcher:
     def write(self, stuff):
         fid = open(self.filename, 'a')
         fid.write(stuff)
-#        if print_to_screen: print stuff
 
-def copy_code_files(dir_name, filename1, filename2):
+def copy_code_files(dir_name, filename1, filename2=None):
     """Copies "filename1" and "filename2" to "dir_name". Very useful for 
     information management 
     filename1 and filename2 are both absolute pathnames    
@@ -5313,9 +5317,11 @@ def copy_code_files(dir_name, filename1, filename2):
         print 'Make directory %s' %dir_name
         mkdir (dir_name,0777)
     shutil.copy(filename1, dir_name + sep + basename(filename1))
-    shutil.copy(filename2, dir_name + sep + basename(filename2))
-#    copy (__file__, project.output_run_time_dir + basename(__file__))
-    print 'Files %s and %s copied' %(filename1, filename2)
+    if filename2!=None:
+        shutil.copy(filename2, dir_name + sep + basename(filename2))
+        print 'Files %s and %s copied' %(filename1, filename2)
+    else:
+        print 'File %s copied' %(filename1)
 
 def get_data_from_file(filename,separator_value = ','):
     """ 
