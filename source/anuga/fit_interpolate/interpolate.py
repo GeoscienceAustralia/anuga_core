@@ -564,18 +564,11 @@ class Interpolation_function:
 
             # Plot boundary and interpolation points
             # FIXME (Jane): Here's a beginning towards plotting 
-            #if verbose is True:
-            #    from anuga.utilities.polygon import plot_polygons
-            #    from pylab import ion, hold, plot, axis, figure, legend, savefig, xlabel, ylabel, title, close                
-            #    plot_polygons([mesh_boundary_polygon],
-            #                  verbose=verbose)
-
-                # Add cloud of interpolation points to polygon plot
-            #    x = interpolation_points[:,0]
-            #    y = interpolation_points[:,1]                
-            #    plot(x, y, 'b.')
-            #    title('Interpolation function: Polygon and interpolation points')
-            
+            if verbose is True:
+                from anuga.utilities.polygon import plot_polygons_points
+                title = 'Interpolation function: Polygon and interpolation points'
+                plot_polygons_points([mesh_boundary_polygon,interpolation_points],
+                                     ['line','point'],label=title,verbose=verbose)
 
             m = len(self.interpolation_points)
             p = len(self.time)

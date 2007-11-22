@@ -340,15 +340,19 @@ def polygon_area(polygon):
         
     return abs(poly_area/2)
 
-def plot_polygons(polygons, figname=None, verbose=False):
+def plot_polygons_points(polygons_points, style=None, figname=None, label=None, verbose=False):
     
     """ Take list of polygons and plot.
 
     Inputs:
 
     polygons         - list of polygons
+
+    style            - style list corresponding to each polygon
                         
     figname          - name to save figure to
+
+    label            - title for plot
 
     Outputs:
 
@@ -356,10 +360,10 @@ def plot_polygons(polygons, figname=None, verbose=False):
     - plot of polygons
     """ 
 
-    from pylab import ion, hold, plot, axis, figure, legend, savefig, xlabel, ylabel, title, close
+    from pylab import ion, hold, plot, axis, figure, legend, savefig, xlabel, ylabel, title, close, title
 
-    assert type(polygons) == list,\
-               'input must be a list of polygons'
+    assert type(polygons_points) == list,\
+               'input must be a list of polygons and/or points'
                
     ion()
     hold(True)
@@ -368,21 +372,34 @@ def plot_polygons(polygons, figname=None, verbose=False):
     maxx = 0.0
     miny = 1e10
     maxy = 0.0
+
+    if label is None: label = ''
     
-    for polygon in polygons:
-        x, y = poly_xy(polygon)  
+    n = len(polygons_points)
+    if style is None:
+        style_type = 'line' 
+        style = []
+        for i in range(n):
+            style.append(style_type)
+        
+    for i, item in enumerate(polygons_points):
+        x, y = poly_xy(item)  
         if min(x) < minx: minx = min(x)
         if max(x) > maxx: maxx = max(x)
         if min(y) < miny: miny = min(y)
         if max(y) > maxy: maxy = max(y)
-        plot(x,y,'r-')
+        if style[i] is 'line':
+            plot(x,y,'b-')
+        else:
+            plot(x,y,'r.')
         xlabel('x')
         ylabel('y')
+        title(label)
 
-    if figname is not None:    
+    if figname is not None:
         savefig(figname)
     else:
-        raw_input('Press a key to continue')
+        savefig('test_image')
 
     close('all')
 

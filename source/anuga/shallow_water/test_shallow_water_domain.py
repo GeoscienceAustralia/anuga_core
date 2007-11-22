@@ -4928,7 +4928,7 @@ class Test_Shallow_Water(unittest.TestCase):
         #Bf = Spatio_temporal_boundary(domain1.get_name() + '.' + domain1.format,
         #                              domain2)
         Bf = Field_boundary(domain1.get_name() + '.' + domain1.format,
-                            domain2, mean_stage=mean_stage)
+                            domain2, mean_stage=mean_stage, verbose=False)
         
         domain2.set_boundary({'right':Br, 'bottom':Br, 'diagonal':Bf})
         domain2.check_integrity()
@@ -5102,7 +5102,7 @@ class Test_Shallow_Water(unittest.TestCase):
         #Bf = Spatio_temporal_boundary(domain1.get_name() + '.' + domain1.format,
         #                              domain2)
         Bf = Field_boundary(domain1.get_name() + '.' + domain1.format,
-                            domain2, mean_stage=1)
+                            domain2, mean_stage=1, verbose=True)
         
         domain2.set_boundary({'right':Br, 'bottom':Br, 'diagonal':Bf})
         domain2.check_integrity()
