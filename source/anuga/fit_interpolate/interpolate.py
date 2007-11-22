@@ -556,11 +556,12 @@ class Interpolation_function:
                     msg += '%d: %s\n' %(i, interpolation_points[i])
                     out_interp_pts.append(ensure_numeric(interpolation_points[i]))
 
-                from anuga.utilities.polygon import plot_polygons_points
-                #out_interp_pts = take(interpolation_points,[indices])
-                title = 'Interpolation points fall outside specified mesh'
-                plot_polygons_points([mesh_boundary_polygon,interpolation_points,out_interp_pts],
-                                     ['line','point','outside'],figname='points_boundary_out',label=title,verbose=verbose)
+                if verbose is True:
+                    from anuga.utilities.polygon import plot_polygons_points
+                    #out_interp_pts = take(interpolation_points,[indices])
+                    title = 'Interpolation points fall outside specified mesh'
+                    plot_polygons_points([mesh_boundary_polygon,interpolation_points,out_interp_pts],
+                                         ['line','point','outside'],figname='points_boundary_out',label=title,verbose=verbose)
 
                 # Joaquim Luis suggested this as an Exception, so
                 # that the user can now what the problem is rather than
