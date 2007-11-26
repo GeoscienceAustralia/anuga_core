@@ -32,7 +32,7 @@ from anuga.shallow_water.data_manager import Exposure_csv
 from anuga.abstract_2d_finite_volumes.util import file_function
 from anuga.geospatial_data.geospatial_data import ensure_absolute
 from anuga.utilities.numerical_tools import NAN
-from anuga_config import epsilon
+from config import epsilon
 depth_epsilon = epsilon
 
 # Change these if the ouput from nexix changes
