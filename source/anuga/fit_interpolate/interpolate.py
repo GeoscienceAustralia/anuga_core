@@ -557,10 +557,10 @@ class Interpolation_function:
                     out_interp_pts.append(ensure_numeric(interpolation_points[i]))
 
                 if verbose is True:
-                    from anuga.utilities.polygon import plot_polygons_points
+                    from anuga.utilities.polygon import plot_polygons
                     #out_interp_pts = take(interpolation_points,[indices])
                     title = 'Interpolation points fall outside specified mesh'
-                    plot_polygons_points([mesh_boundary_polygon,interpolation_points,out_interp_pts],
+                    plot_polygons([mesh_boundary_polygon,interpolation_points,out_interp_pts],
                                          ['line','point','outside'],figname='points_boundary_out',label=title,verbose=verbose)
 
                 # Joaquim Luis suggested this as an Exception, so
@@ -573,9 +573,9 @@ class Interpolation_function:
 
             # Plot boundary and interpolation points
             if verbose is True:
-                from anuga.utilities.polygon import plot_polygons_points
+                from anuga.utilities.polygon import plot_polygons
                 title = 'Interpolation function: Polygon and interpolation points'
-                plot_polygons_points([mesh_boundary_polygon,interpolation_points],
+                plot_polygons([mesh_boundary_polygon,interpolation_points],
                                      ['line','point'],figname='points_boundary',label=title,verbose=verbose)
 
             m = len(self.interpolation_points)

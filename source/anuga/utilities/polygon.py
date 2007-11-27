@@ -340,7 +340,7 @@ def polygon_area(polygon):
         
     return abs(poly_area/2)
 
-def plot_polygons_points(polygons_points, style=None, 
+def plot_polygons(polygons_points, style=None, 
                          figname=None, label=None, verbose=False):
     
     """ Take list of polygons and plot.
