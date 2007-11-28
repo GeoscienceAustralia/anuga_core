@@ -69,7 +69,7 @@ from os import sep, path, remove, mkdir, access, F_OK, W_OK, getcwd
 
 from Numeric import concatenate, array, Float, Int, Int32, resize, sometrue, \
      searchsorted, zeros, allclose, around, reshape, transpose, sort, \
-     NewAxis, ArrayType, compress, take, arange, argmax, alltrue,shape,Float
+     NewAxis, ArrayType, compress, take, arange, argmax, alltrue,shape,Float32
 
 import string
 
@@ -336,7 +336,8 @@ class Data_format_sww(Data_format):
                                      self.domain.number_of_full_nodes,
                                      description=description,
                                      smoothing=domain.smooth,
-                                     order=domain.default_order)
+                                     order=domain.default_order,
+                                     sww_precision=self.precision)
 
             # Extra optional information
             if hasattr(domain, 'texture'):
@@ -541,7 +542,7 @@ class Data_format_sww(Data_format):
                 # Write quantities to NetCDF
                 self.writer.store_quantities(fid, 
                                              time=self.domain.time,
-                                             precision=self.precision,
+                                             sww_precision=self.precision,
                                              stage=stage,
                                              xmomentum=xmomentum,
                                              ymomentum=ymomentum)
@@ -2897,10 +2898,11 @@ def ferret2sww(basename_in, basename_out = None,
     
     # Create new file
     starttime = times[0]
+    
     sww = Write_sww()
     sww.store_header(outfile, times, number_of_volumes,
                      number_of_points, description=description,
-                     verbose=verbose)
+                     verbose=verbose,sww_precision=Float)
 
     # Store
     from anuga.coordinate_transforms.redfearn import redfearn
@@ -2956,6 +2958,7 @@ def ferret2sww(basename_in, basename_out = None,
             z = elevations
     #FIXME: z should be obtained from MOST and passed in here
 
+    #FIXME use the Write_sww instance(sww) to write this info
     from Numeric import resize
     z = resize(z,outfile.variables['z'][:].shape)
     outfile.variables['x'][:] = x - geo_ref.get_xllcorner()
@@ -4741,7 +4744,7 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
     # work out sww_times and the index range this covers
     sww = Write_sww()
     sww.store_header(outfile, times, len(volumes), len(points_utm),
-                     verbose=verbose)
+                     verbose=verbose,sww_precision=Float)
     outfile.mean_stage = mean_stage
     outfile.zscale = zscale
 
@@ -4763,7 +4766,8 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
                                  verbose=verbose,
                                  stage=stage,
                                  xmomentum=xmomentum,
-                                 ymomentum=ymomentum)
+                                 ymomentum=ymomentum,
+                                 sww_precision=Float)
         j += 1
     if verbose: sww.verbose_quantities(outfile)
     outfile.close()
@@ -4817,7 +4821,9 @@ class Write_sww:
                      number_of_points,
                      description='Converted from XXX',
                      smoothing=True,
-                     order=1, verbose=False):
+                     order=1,
+                     sww_precision=Float32,
+                     verbose=False):
         """
         outfile - the name of the file that will be written
         times - A list of the time slice times OR a start time
@@ -4884,39 +4890,39 @@ class Write_sww:
         outfile.createDimension('number_of_timesteps', number_of_times)
 
         # variable definitions
-        outfile.createVariable('x', precision, ('number_of_points',))
-        outfile.createVariable('y', precision, ('number_of_points',))
-        outfile.createVariable('elevation', precision, ('number_of_points',))
+        outfile.createVariable('x', sww_precision, ('number_of_points',))
+        outfile.createVariable('y', sww_precision, ('number_of_points',))
+        outfile.createVariable('elevation', sww_precision, ('number_of_points',))
         q = 'elevation'
-        outfile.createVariable(q+Write_sww.RANGE, precision,
+        outfile.createVariable(q+Write_sww.RANGE, sww_precision,
                                ('numbers_in_range',))
 
 
         # Initialise ranges with small and large sentinels.
         # If this was in pure Python we could have used None sensibly
-        outfile.variables[q+Write_sww.RANGE][0] = max_float  # Min               
+        outfile.variables[q+Write_sww.RANGE][0] = max_float  # Min 
         outfile.variables[q+Write_sww.RANGE][1] = -max_float # Max
 
         # FIXME: Backwards compatibility
-        outfile.createVariable('z', precision, ('number_of_points',))
+        outfile.createVariable('z', sww_precision, ('number_of_points',))
         #################################
 
         outfile.createVariable('volumes', Int, ('number_of_volumes',
                                                 'number_of_vertices'))
-
-        outfile.createVariable('time', precision,
+        # Doing sww_precision instead of Float gives cast errors.
+        outfile.createVariable('time', Float,
                                ('number_of_timesteps',))
         
         for q in Write_sww.sww_quantities:
-            outfile.createVariable(q, precision,
+            outfile.createVariable(q, sww_precision,
                                    ('number_of_timesteps',
                                     'number_of_points'))  
-            outfile.createVariable(q+Write_sww.RANGE, precision,
+            outfile.createVariable(q+Write_sww.RANGE, sww_precision,
                                    ('numbers_in_range',))
 
             # Initialise ranges with small and large sentinels.
             # If this was in pure Python we could have used None sensibly
-            outfile.variables[q+Write_sww.RANGE][0] = max_float  # Min               
+            outfile.variables[q+Write_sww.RANGE][0] = max_float  # Min
             outfile.variables[q+Write_sww.RANGE][1] = -max_float # Max
             
         if type(times) is list or type(times) is ArrayType:  
@@ -5015,6 +5021,7 @@ class Write_sww:
             print '------------------------------------------------'
             
         #z = resize(bath_grid,outfile.variables['z'][:].shape)
+        #print "points[:,0]", points[:,0]
         outfile.variables['x'][:] = points[:,0] #- geo_ref.get_xllcorner()
         outfile.variables['y'][:] = points[:,1] #- geo_ref.get_yllcorner()
         outfile.variables['z'][:] = elevation
@@ -5027,7 +5034,7 @@ class Write_sww:
         outfile.variables[q+Write_sww.RANGE][1] = max(elevation)
 
 
-    def store_quantities(self, outfile, precision=Float,
+    def store_quantities(self, outfile, sww_precision=Float32,
                          slice_index=None, time=None,
                          verbose=False, **quant):
         """
@@ -5063,7 +5070,8 @@ class Write_sww:
                 raise NewQuantity, msg
             else:
                 q_values = quant[q]
-                outfile.variables[q][slice_index] = q_values.astype(precision)
+                outfile.variables[q][slice_index] = \
+                                q_values.astype(sww_precision)
 
                 # This updates the _range values
                 q_range = outfile.variables[q+Write_sww.RANGE][:]
@@ -5712,7 +5720,10 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
     
                 runup_index = argmax(wet_elevation)
                 runup = max(wet_elevation)
-                assert wet_elevation[runup_index] == runup # Must always be True
+                assert wet_elevation[runup_index] == runup # Must be True
+            #print "runup", runup
+            #print "maximal_runup", maximal_runup
+            
             if runup > maximal_runup:
                 maximal_runup = runup      # This works even if maximal_runups is None
                 #print "NEW RUNUP",runup

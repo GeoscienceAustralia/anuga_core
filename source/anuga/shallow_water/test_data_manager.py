@@ -6769,7 +6769,7 @@ friction  \n \
         sww = Write_sww()
         sww.store_header(outfile, times, number_of_volumes,
                          number_of_points, description='fully sick testing',
-                         verbose=self.verbose)
+                         verbose=self.verbose,sww_precision=Float)
         sww.store_triangulation(outfile, points_utm, volumes,
                                 elevation,  new_origin=new_origin,
                                 verbose=self.verbose)       
@@ -6801,10 +6801,10 @@ friction  \n \
         sww = Write_sww()
         sww.store_header(outfile, times, number_of_volumes,
                          number_of_points, description='fully sick testing',
-                         verbose=self.verbose)
+                         verbose=self.verbose,sww_precision=Float)
         sww.store_triangulation(outfile, points_utm, volumes,
                                 elevation,  new_origin=new_origin,
-                                verbose=self.verbose)       
+                                verbose=self.verbose)
         outfile.close()
         fid = NetCDFFile(filename)
 
@@ -6837,10 +6837,10 @@ friction  \n \
         sww = Write_sww()
         sww.store_header(outfile, times, number_of_volumes,
                          number_of_points, description='fully sick testing',
-                         verbose=self.verbose)
+                         verbose=self.verbose,sww_precision=Float)
         sww.store_triangulation(outfile, points_utm, volumes,
                                 elevation,  new_origin=new_origin,
-                                verbose=self.verbose)       
+                                verbose=self.verbose)
         outfile.close()
         fid = NetCDFFile(filename)
 
@@ -6876,7 +6876,7 @@ friction  \n \
         sww = Write_sww()
         sww.store_header(outfile, times, number_of_volumes,
                          number_of_points, description='fully sick testing',
-                         verbose=self.verbose)
+                         verbose=self.verbose,sww_precision=Float)
         sww.store_triangulation(outfile, points_utm, volumes,
                                 elevation,  new_origin=new_origin,
                                 points_georeference=points_georeference,
@@ -6912,7 +6912,7 @@ friction  \n \
         sww = Write_sww()
         sww.store_header(outfile, times, number_of_volumes,
                          number_of_points, description='fully sick testing',
-                         verbose=self.verbose)
+                         verbose=self.verbose,sww_precision=Float)
         sww.store_triangulation(outfile, points_utm, volumes,
                                 elevation,  new_origin=new_origin,
                                 points_georeference=points_georeference,
@@ -7326,11 +7326,10 @@ friction  \n \
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_get_maximum_inundation')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_sww_header')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_export_grid_parallel')
     suite = unittest.makeSuite(Test_Data_Manager,'test')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_sww_extrema')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs_ungridded_holeII')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_sww_range')
 
     
     if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':
