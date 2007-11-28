@@ -11,16 +11,25 @@ from benchmark_least_squares import BenchmarkLeastSquares
 
 ben = BenchmarkLeastSquares()
 
-ofile = 'lbm_results.csv'
 delimiter = ','
 
 use_least_squares_list = [False]
-is_fit_list = [True]
-num_of_points_list = [1000] #, 500, 10000, 100000] #, 10000000]
-maxArea_list = [0.0001] #,0.00001] #, 0.0000001] #, 0.06, 0.00001, 0.0000001]
-max_points_per_cell_list = [8]
+is_fit_list = [True, False]
+# 45 is for the interp example
+# 4617 is 3 points per triangle
+#30780 is 20 points per triangle
+# 92340 is 60 points per triangle
+num_of_points_list = [92340] #[45,4617,30780,92340,] #, 500, 10000, 100000] #, 10000000]
+maxArea_list = [0.001] #,0.00001] #, 0.0000001] #, 0.06, 0.00001, 0.0000001]
+max_points_per_cell_list = [13]
 use_file_type_list = ['pts']
+run_profile = True
 
+
+if run_profile is True:
+    ofile = 'profiling_lbm_results.csv'
+else:
+    ofile = 'lbm_results.csv'
 fd = open(ofile,'a')
 # write the title line
 
@@ -30,6 +39,9 @@ fd.write("use_file_type" + delimiter +
          "num_of_triangles" + delimiter +
          "max_points_per_cell" + delimiter +
          "is_fit" + delimiter +
+         "search_one_cell_time" + delimiter +
+         "search_more_cells_time" + delimiter +
+         "build_quadtree_time" + delimiter +
          "mem"  + delimiter +
          "time" + delimiter + "\n")
 
@@ -40,7 +52,7 @@ for is_fit in is_fit_list:
             for num_of_points in num_of_points_list:
                 for max_points_per_cell in max_points_per_cell_list:
     
-                    time, mem, num_tri = ben.trial(
+                    time, mem, num_tri, one_t, more_t, quad_t = ben.trial(
                         num_of_points=num_of_points
                         ,maxArea=maxArea
                         ,max_points_per_cell=max_points_per_cell
@@ -48,7 +60,7 @@ for is_fit in is_fit_list:
                         ,segments_in_mesh=False
                         ,use_file_type=use_file_type
                         ,save=True
-                        ,run_profile=True
+                        ,run_profile=run_profile
                         )
                     print "time",time
                     print "mem", mem
@@ -59,6 +71,9 @@ for is_fit in is_fit_list:
                              str(num_tri) + delimiter +
                              str(max_points_per_cell) + delimiter +
                              str(is_fit) + delimiter +
+                             str(one_t) + delimiter +
+                             str(more_t) + delimiter +
+                             str(quad_t) + delimiter +
                              str(mem)  + delimiter +
                              str(time) + delimiter + "\n")
 fd.close()                         

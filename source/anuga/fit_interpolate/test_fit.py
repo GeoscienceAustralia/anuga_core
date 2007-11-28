@@ -130,8 +130,8 @@ class Test_Fit(unittest.TestCase):
 
    
     def test_smooth_attributes_to_meshIV(self):
-        """ Testing 2 attributes smoothed to the mesh
-        """
+        # Testing 2 attributes smoothed to the mesh
+        
 
         a = [0.0, 0.0]
         b = [0.0, 5.0]
@@ -707,8 +707,8 @@ class Test_Fit(unittest.TestCase):
 
 
     def test_smooth_attributes_to_mesh_function(self):
-        """ Testing 2 attributes smoothed to the mesh
-        """
+        #Testing 2 attributes smoothed to the mesh
+        
 
         a = [0.0, 0.0]
         b = [0.0, 5.0]
@@ -1095,7 +1095,7 @@ class Test_Fit(unittest.TestCase):
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Fit,'test')
-    #suite = unittest.makeSuite(Test_Fit,'test_fit_to_mesh_pts_passing_mesh_in')
+    #suite = unittest.makeSuite(Test_Fit,'test_smooth_attributes_to_mesh_function')
     #suite = unittest.makeSuite(Test_Fit,'')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)

@@ -2,7 +2,7 @@
 
 
 import unittest
-from search_functions import search_tree_of_vertices
+from search_functions import search_tree_of_vertices, set_last_triangle
 from search_functions import _search_triangles_of_vertices
 
 
@@ -48,6 +48,7 @@ class Test_search_functions(unittest.TestCase):
         mesh.check_integrity()
 
         root = build_quadtree(mesh, max_points_per_cell = 1)
+        set_last_triangle()
 
         x = [0.2, 0.7]
         found, s0, s1, s2, k = search_tree_of_vertices(root, mesh, x)
@@ -65,6 +66,7 @@ class Test_search_functions(unittest.TestCase):
         mesh.check_integrity()
 
         root = build_quadtree(mesh, max_points_per_cell = 4)
+        set_last_triangle()
 
         for x in [[0.6, 0.3], [0.1, 0.2], [0.7,0.7],
                   [0.1,0.9], [0.4,0.6], [0.9,0.1],
@@ -95,6 +97,7 @@ class Test_search_functions(unittest.TestCase):
         
         for m in range(8):
             root = build_quadtree(mesh, max_points_per_cell = m)
+            set_last_triangle()
             #print m, root.show()
 
             for x in [[0.6, 0.3], [0.1, 0.2], [0.7,0.7],
@@ -120,6 +123,7 @@ class Test_search_functions(unittest.TestCase):
         mesh = Mesh(points, vertices, boundary)
 
         root = build_quadtree(mesh, max_points_per_cell = 4)
+        set_last_triangle()
 
         # One point
         x = [0.5, 0.5]

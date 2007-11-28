@@ -56,6 +56,7 @@ class Sparse:
     def __setitem__(self, key, x):
 
         i,j = key
+        # removing these asserts will not speed things up
         assert 0 <= i < self.M
         assert 0 <= j < self.N        
 
@@ -68,6 +69,7 @@ class Sparse:
     def __getitem__(self, key):
         
         i,j = key
+        # removing these asserts will not speed things up
         assert 0 <= i < self.M
         assert 0 <= j < self.N                
 

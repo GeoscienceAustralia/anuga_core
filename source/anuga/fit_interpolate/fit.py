@@ -36,6 +36,7 @@ from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
 from anuga.utilities.sparse import Sparse, Sparse_CSR
 from anuga.utilities.polygon import in_and_outside_polygon
 from anuga.fit_interpolate.search_functions import search_tree_of_vertices
+
 from anuga.utilities.cg_solve import conjugate_gradient
 from anuga.utilities.numerical_tools import ensure_numeric, gradient
 
@@ -90,7 +91,6 @@ class Fit(FitInterpolate):
         
         """
         # Initialise variabels
-
         if alpha is None:
 
             self.alpha = DEFAULT_ALPHA
@@ -254,9 +254,10 @@ class Fit(FitInterpolate):
                 self.Atz = zeros((m,), Float)
             assert z.shape[0] == point_coordinates.shape[0] 
 
-            self.AtA = Sparse(m,m)
+            AtA = Sparse(m,m)
             # The memory damage has been done by now.
-            
+        else:
+             AtA = self.AtA #Did this for speed, did ~nothing
         self.point_count += point_coordinates.shape[0]
         #print "_build_matrix_AtA_Atz - self.point_count", self.point_count
         if verbose: print 'Getting indices inside mesh boundary'
@@ -275,6 +276,7 @@ class Fit(FitInterpolate):
         n = len(inside_poly_indices)
         if verbose: print 'Building fitting matrix from %d points' %n        
         #Compute matrix elements for points inside the mesh
+        triangles = self.mesh.triangles #Did this for speed, did ~nothing
         for d, i in enumerate(inside_poly_indices):
             #For each data_coordinate point
             if verbose and d%((n+10)/10)==0: print 'Doing %d of %d' %(d, n)
@@ -283,9 +285,9 @@ class Fit(FitInterpolate):
                            search_tree_of_vertices(self.root, self.mesh, x)
             
             if element_found is True:
-                j0 = self.mesh.triangles[k,0] #Global vertex id for sigma0
-                j1 = self.mesh.triangles[k,1] #Global vertex id for sigma1
-                j2 = self.mesh.triangles[k,2] #Global vertex id for sigma2
+                j0 = triangles[k,0] #Global vertex id for sigma0
+                j1 = triangles[k,1] #Global vertex id for sigma1
+                j2 = triangles[k,2] #Global vertex id for sigma2
 
                 sigmas = {j0:sigma0, j1:sigma1, j2:sigma2}
                 js     = [j0,j1,j2]
@@ -299,11 +301,11 @@ class Fit(FitInterpolate):
                     #print "result", sigmas[j]*z[i]
                     
                     for k in js:
-                        self.AtA[j,k] += sigmas[j]*sigmas[k]
+                        AtA[j,k] += sigmas[j]*sigmas[k]
             else:
                 msg = 'Could not find triangle for point', x 
                 raise Exception(msg)
-    
+            self.AtA = AtA
         
     def fit(self, point_coordinates_or_filename=None, z=None,
             verbose=False,
@@ -323,7 +325,6 @@ class Fit(FitInterpolate):
           z: Single 1d vector or array of data at the point_coordinates.
           
         """
-
         # use blocking to load in the point info
         if type(point_coordinates_or_filename) == types.StringType:
             msg = "Don't set a point origin when reading from a file"
@@ -336,9 +337,9 @@ class Fit(FitInterpolate):
                                      verbose=verbose)
 
             for i, geo_block in enumerate(G_data):
-                if verbose is True and 0 == i%200: # round every 5 minutes
-                    # But this is dependant on the # of Triangles, so it
-                    #isn't every 5 minutes.
+                if verbose is True and 0 == i%200: 
+                    # The time this will take
+                    # is dependant on the # of Triangles
                         
                     print 'Processing Block %d' %i
                     # FIXME (Ole): It would be good to say how many blocks
@@ -352,6 +353,7 @@ class Fit(FitInterpolate):
                 # Build the array
 
                 points = geo_block.get_data_points(absolute=True)
+                #print "fit points", points
                 z = geo_block.get_attributes(attribute_name=attribute_name)
                 self.build_fit_subset(points, z, verbose=verbose)
 

@@ -35,10 +35,16 @@ from anuga.utilities.quad import build_quadtree
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.geospatial_data.geospatial_data import Geospatial_data, \
      ensure_absolute
+from anuga.fit_interpolate.search_functions import set_last_triangle
 
 # tests fail if 2 is used
 MAX_VERTICES_PER_CELL = 13 # A value of 8 or lower can cause problems,
                            # if a vert has 9 triangles.
+                           
+build_quadtree_time = 0
+
+def get_build_quadtree_time():
+    return build_quadtree_time
 
 class FitInterpolate:
     
@@ -81,10 +87,9 @@ class FitInterpolate:
           Note: Don't supply a vertex coords as a geospatial object and
               a mesh origin, since geospatial has its own mesh origin.
         """
-
+        global build_quadtree_time
         if max_vertices_per_cell == None:
             max_vertices_per_cell = MAX_VERTICES_PER_CELL
-
         if mesh is None:
             # Fixme (DSG) Throw errors if triangles or vertex_coordinates
             # are None
@@ -102,10 +107,15 @@ class FitInterpolate:
         
         if verbose: print 'FitInterpolate: Building quad tree'
         # This stores indices of vertices
+        t0 = time.time()
+        #print "self.mesh.get_extent(absolute=True)", \
+              #self.mesh.get_extent(absolute=True)
         self.root = build_quadtree(self.mesh,
                                    max_points_per_cell = max_vertices_per_cell)
-        #print "self.root",self.root.show() 
+        #print "self.root",self.root.show()
         
+        build_quadtree_time =  time.time()-t0
+        set_last_triangle()
         
     def __repr__(self):
         return 'Interpolation object based on: ' + repr(self.mesh)

@@ -6,8 +6,22 @@ General functions used in fit and interpolate.
 
 """
 from Numeric import dot
+import time
+
+from Numeric import array
 
 from anuga.utilities.numerical_tools import get_machine_precision
+from anuga.config import max_float
+
+initial_search_value = 'uncomment search_functions code first'#0
+search_one_cell_time = initial_search_value
+search_more_cells_time = initial_search_value
+
+#FIXME test what happens if a 
+LAST_TRIANGLE = [[-10,[(array([max_float,max_float]),
+                        array([max_float,max_float]),
+                        array([max_float,max_float])),
+                       (array([1,1]),array([0,0]),array([-1.1,-1.1]))]]]
 
 def search_tree_of_vertices(root, mesh, x):
     """
@@ -27,6 +41,9 @@ def search_tree_of_vertices(root, mesh, x):
         k: Index of triangle (if found)
 
     """
+    global search_one_cell_time
+    global search_more_cells_time
+
     #Find triangle containing x:
     element_found = False
 
@@ -35,16 +52,31 @@ def search_tree_of_vertices(root, mesh, x):
     sigma0 = -10.0
     sigma1 = -10.0
     k = -10.0
-            
+
+    # Search the last triangle first
+    element_found, sigma0, sigma1, sigma2, k = \
+                   _search_triangles_of_vertices(mesh,
+                                                 last_triangle, x)
+    #print "last_triangle", last_triangle
+    if element_found is True:
+        #print "last_triangle", last_triangle
+        return element_found, sigma0, sigma1, sigma2, k
+        
+    
+    
+    #t0 = time.time()
     # Get triangles in the cell that the point is in.
     # Triangle is a list, first element triangle_id,
     # second element the triangle
     triangles = root.search(x[0], x[1])
     is_more_elements = True
-
+    
     element_found, sigma0, sigma1, sigma2, k = \
                    _search_triangles_of_vertices(mesh,
                                                  triangles, x)
+    #search_one_cell_time += time.time()-t0
+    #print "search_one_cell_time",search_one_cell_time
+    #t0 = time.time()
     while not element_found and is_more_elements:
         triangles, branch = root.expand_search()
         if branch == []:
@@ -56,7 +88,9 @@ def search_tree_of_vertices(root, mesh, x):
         else:
             element_found, sigma0, sigma1, sigma2, k = \
                        _search_triangles_of_vertices(mesh,triangles, x)
-
+        #search_more_cells_time += time.time()-t0
+    #print "search_more_cells_time", search_more_cells_time
+        
     return element_found, sigma0, sigma1, sigma2, k
 
 
@@ -70,7 +104,8 @@ def _search_triangles_of_vertices(mesh, triangles, x):
     This function is responsible for most of the compute time in
     fit and interpolate.
     """
-
+    global last_triangle
+    
     # these statments are needed if triangles is empty
     #Find triangle containing x:
     element_found = False
@@ -92,6 +127,7 @@ def _search_triangles_of_vertices(mesh, triangles, x):
                        find_triangle_compute_interpolation(tri, n0, n1, n2, x)
         if element_found is True:
             # Don't look for any other triangles in the triangle list
+            last_triangle = [[k,tri_verts_norms]]
             break
     return element_found, sigma0, sigma1, sigma2, k
 
@@ -99,7 +135,7 @@ def _search_triangles_of_vertices(mesh, triangles, x):
             
 def find_triangle_compute_interpolation(triangle, n0, n1, n2, x):
     """Compute linear interpolation of point x and triangle k in mesh.
-    It is assumed that x belongs to triangle k.
+    It is assumed that x belongs to triangle k.max_float
     """
 
     # Get the three vertex_points of candidate triangle k
@@ -112,6 +148,7 @@ def find_triangle_compute_interpolation(triangle, n0, n1, n2, x):
     epsilon = 1.0e-6
     
     if  x[0] > max(xi0[0], xi1[0], xi2[0]) + epsilon:
+        # print "max(xi0[0], xi1[0], xi2[0])", max(xi0[0], xi1[0], xi2[0])
         return False,0,0,0
     if  x[0] < min(xi0[0], xi1[0], xi2[0]) - epsilon:
         return False,0,0,0
@@ -124,6 +161,9 @@ def find_triangle_compute_interpolation(triangle, n0, n1, n2, x):
     epsilon = get_machine_precision() * 2
     
     # Compute interpolation - return as soon as possible
+    #  print "(xi0-xi1)", (xi0-xi1)
+    # print "n0", n0
+    # print "dot((xi0-xi1), n0)", dot((xi0-xi1), n0)
     
     sigma0 = dot((x-xi1), n0)/dot((xi0-xi1), n0)
     if sigma0 < -epsilon:
@@ -151,3 +191,21 @@ def find_triangle_compute_interpolation(triangle, n0, n1, n2, x):
     #else:
     #    element_found = False 
     return True, sigma0, sigma1, sigma2
+
+def set_last_triangle():
+    global last_triangle
+    last_triangle = LAST_TRIANGLE
+    
+def search_times():
+
+    global search_one_cell_time
+    global search_more_cells_time
+
+    return search_one_cell_time, search_more_cells_time
+
+def reset_search_times():
+
+    global search_one_cell_time
+    global search_more_cells_time
+    search_one_cell_time = initial_search_value
+    search_more_cells_time = initial_search_value

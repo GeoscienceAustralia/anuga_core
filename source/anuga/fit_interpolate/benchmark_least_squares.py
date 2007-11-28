@@ -21,6 +21,11 @@ import time
 from random import seed, random
 import tempfile
 import profile , pstats
+from math import sqrt
+from Numeric import array
+
+from anuga.fit_interpolate.search_functions import search_times, \
+     reset_search_times
 
 from anuga.fit_interpolate.interpolate import Interpolate
 from anuga.fit_interpolate.fit import Fit
@@ -30,6 +35,59 @@ from anuga.shallow_water import Domain
 from anuga.fit_interpolate.fit import Fit, fit_to_mesh
 from anuga.fit_interpolate.interpolate import benchmark_interpolate
 from anuga.coordinate_transforms.geo_reference import Geo_reference
+from anuga.fit_interpolate.general_fit_interpolate import \
+     get_build_quadtree_time
+
+"""
+
+Code from the web;
+
+from ctypes import *
+from ctypes.wintypes import DWORD
+
+SIZE_T = c_ulong
+
+class _MEMORYSTATUS(Structure):
+_fields_ = [("dwLength", DWORD),
+("dwMemoryLength", DWORD),
+("dwTotalPhys", SIZE_T),
+("dwAvailPhys", SIZE_T),
+("dwTotalPageFile", SIZE_T),
+("dwAvailPageFile", SIZE_T),
+("dwTotalVirtual", SIZE_T),
+("dwAvailVirtualPhys", SIZE_T)]
+def show(self):
+for field_name, field_type in self._fields_:
+print field_name, getattr(self, field_name)
+
+memstatus = _MEMORYSTATUS()
+windll.kernel32.GlobalMemoryStatus(byref(memstatus ))
+memstatus.show()
+
+
+_______________________________
+
+from ctypes import *
+from ctypes.wintypes import *
+
+class MEMORYSTATUS(Structure):
+_fields_ = [
+('dwLength', DWORD),
+('dwMemoryLoad', DWORD),
+('dwTotalPhys', DWORD),
+('dwAvailPhys', DWORD),
+('dwTotalPageFile', DWORD),
+('dwAvailPageFile', DWORD),
+('dwTotalVirtual', DWORD),
+('dwAvailVirtual', DWORD),
+]
+
+def winmem():
+x = MEMORYSTATUS()
+windll.kernel32.GlobalMemoryStatus(byref(x))
+return x
+
+"""
 
 def mem_usage():
     '''
@@ -75,7 +133,8 @@ class BenchmarkLeastSquares:
               segments_in_mesh=True,
               save=False,
               verbose=False,
-              run_profile=False):
+              run_profile=False,
+              gridded=True):
         '''
         num_of_points 
         '''
@@ -83,16 +142,16 @@ class BenchmarkLeastSquares:
         #print "maxArea",maxArea
         #print "max_points_per_cell", max_points_per_cell
 
-        geo = Geo_reference(xllcorner = 2.0,
-                 yllcorner = 2.0)
+        geo = None #Geo_reference(xllcorner = 2.0, yllcorner = 2.0)
         mesh_dict = self._build_regular_mesh_dict(maxArea=maxArea,
                                                   is_segments=segments_in_mesh,
                                                   save=save,
                                                   geo=geo)
         points_dict = self._build_points_dict(num_of_points=num_of_points,
-                                                  geo=geo)
+                                              gridded=gridded,
+                                              verbose=verbose)
 
-
+        #print "len(mesh_dict['triangles'])",len(mesh_dict['triangles'])
         if is_fit is True:
             op = "Fit_"
         else:
@@ -106,7 +165,7 @@ class BenchmarkLeastSquares:
         # Pass in the geo_ref
         
         domain = Domain(mesh_dict['vertices'], mesh_dict['triangles'],
-                        use_cache=False, verbose=False,
+                        use_cache=False, verbose=verbose,
                                      geo_reference=geo)
         #Initial time and memory
         t0 = time.time()
@@ -118,6 +177,7 @@ class BenchmarkLeastSquares:
         geospatial = Geospatial_data(points_dict['points'],
                                      points_dict['point_attributes'],
                                      geo_reference=geo)
+        del points_dict
         if is_fit is True:
 
             # print "Fit in Fit"
@@ -151,7 +211,7 @@ class BenchmarkLeastSquares:
                 os.remove(prof_file)
             else:
                 domain.set_quantity('elevation',points,filename=filename,
-                                    use_cache=False)
+                                    use_cache=False, verbose=verbose)
             if not use_file_type == None:
                 os.remove(fileName)
                     
@@ -188,7 +248,8 @@ class BenchmarkLeastSquares:
                                        mesh_dict['triangles'],
                                        geospatial,
                                        mesh_origin=geo,
-                                       max_points_per_cell=max_points_per_cell)
+                                       max_points_per_cell=max_points_per_cell,
+                                       verbose=verbose)
         time_taken_sec = (time.time()-t0)
         m1 = mem_usage()
         if m0 is None or m1 is None:
@@ -196,7 +257,19 @@ class BenchmarkLeastSquares:
         else:
             memory_used = (m1 - m0)
         #print 'That took %.2f seconds' %time_taken_sec
-        return time_taken_sec, memory_used, len(mesh_dict['triangles'])
+
+        # return the times spent in first cell searching and
+        # backing up.
+        
+        search_one_cell_time, search_more_cells_time = search_times()
+        reset_search_times()
+        #print "bench - search_one_cell_time",search_one_cell_time
+        #print "bench - search_more_cells_time", search_more_cells_time
+        #print "bench - build_quadtree_time", get_build_quadtree_time()
+        return time_taken_sec, memory_used, len(mesh_dict['triangles']), \
+               search_one_cell_time, search_more_cells_time, \
+               get_build_quadtree_time()
+    
 
     def _build_regular_mesh_dict(self,
                                  maxArea=1000,
@@ -206,8 +279,9 @@ class BenchmarkLeastSquares:
       # make a normalised mesh
         # pretty regular size, with some segments thrown in.
 
-        #x_min = 
-        m = Mesh()
+        # don't pass in the geo ref.
+        # it is applied in domain
+        m = Mesh() #geo_reference=geo)
         m.addUserVertex(0,0)
         m.addUserVertex(1.0,0)
         m.addUserVertex(0,1.0)
@@ -253,24 +327,47 @@ class BenchmarkLeastSquares:
 
         return mesh_dict
 
-    def _build_points_dict(self, num_of_points=20000,
-                                 geo=None):
+    def _build_points_dict(self, num_of_points=20000
+                           , gridded=True, verbose=False):
         
         points_dict = {}
         points = []
         point_atts = []
 
+        if gridded is True:
+            grid = int(sqrt(num_of_points))
+        
         for point in range(num_of_points):
-            points.append([random(), random()])
+            if gridded is True:
+
+                # point starts at 0.0
+                # the 2 and 0.25 is to make sure all points are in the
+                # range 0 - 1
+                points.append([float(point/grid)/float(grid*1.1)+0.0454,
+                               float(point%grid)/float(grid*1.1)+0.0454])
+            else:
+                points.append([random(), random()])
             point_atts.append(10.0)
 
         points_dict['points'] = points
         points_dict['point_attributes'] = point_atts
+        
+        for point in points:
+            assert point[0] < 1.0
+            assert point[1] < 1.0
+            assert point[0] > 0.0
+            assert point[1] > 0.0
+            
+        if verbose is True:
+            pass
+            #print "points", points
+            #import sys; sys.exit() 
+            
+                                    
+            
         return points_dict
 
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
-        b = BenchmarkLeastSquares()
-        b._build_regular_mesh_dict()
         b._build_points_dict()
