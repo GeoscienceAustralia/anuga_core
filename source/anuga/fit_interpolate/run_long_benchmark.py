@@ -19,8 +19,8 @@ is_fit_list = [True] #[True, False]
 # a maxArea of 0.00001 gives 155195 triangles
 # Simulating Cairns. Seemed to take too long to run.  Need to Try again.
  
-#maxArea_list = [0.00001]
-#num_of_points_list = [1863558]
+maxArea_list = [0.00001]
+num_of_points_list = [1863558]
 
 # a maxArea of 0.0001 gives 15568 triangles
 #maxArea_list = [0.0001]
@@ -49,15 +49,15 @@ is_fit_list = [True] #[True, False]
 #num_of_points_list = [450,3000] #,19800]
 
 # Quick check
-maxArea_list = [0.61] 
-num_of_points_list = [4] 
+# maxArea_list = [0.61] 
+#num_of_points_list = [4] 
 
 
 
 
 max_points_per_cell_list = [13]
 use_file_type_list = ['pts']
-run_profile =   False # True #True # False #
+run_profile =   True #False # True #True # False #
 gridded_list = [True] #, False]
 
 

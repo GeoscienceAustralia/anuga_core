@@ -115,6 +115,8 @@ class Fit(FitInterpolate):
             if verbose: print 'Building smoothing matrix'
             self._build_smoothing_matrix_D()
             
+        self.mesh_boundary_polygon = self.mesh.get_boundary_polygon()    
+            
     def _build_coefficient_matrix_B(self,
                                   verbose = False):
         """
@@ -267,7 +269,7 @@ class Fit(FitInterpolate):
 
         inside_poly_indices, outside_poly_indices  = \
                      in_and_outside_polygon(point_coordinates,
-                                            self.mesh.get_boundary_polygon(),
+                                            self.mesh_boundary_polygon,
                                             closed = True, verbose = verbose)
         #print "self.inside_poly_indices",self.inside_poly_indices
         #print "self.outside_poly_indices",self.outside_poly_indices
