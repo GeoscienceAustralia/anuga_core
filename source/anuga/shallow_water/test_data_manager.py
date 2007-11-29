@@ -7326,6 +7326,8 @@ friction  \n \
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
+
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_get_maximum_inundation')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_sww_header')
     suite = unittest.makeSuite(Test_Data_Manager,'test')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs_ungridded_holeII')

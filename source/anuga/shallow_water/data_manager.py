@@ -69,7 +69,7 @@ from os import sep, path, remove, mkdir, access, F_OK, W_OK, getcwd
 
 from Numeric import concatenate, array, Float, Int, Int32, resize, sometrue, \
      searchsorted, zeros, allclose, around, reshape, transpose, sort, \
-     NewAxis, ArrayType, compress, take, arange, argmax, alltrue,shape,Float32
+     NewAxis, ArrayType, compress, take, arange, argmax, alltrue, shape, Float32
 
 import string
 
@@ -5624,9 +5624,9 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
         y = fid.variables['y'][:] + yllcorner
     
     
-        # Get the relevant quantities
-        elevation = fid.variables['elevation'][:] 
-        stage = fid.variables['stage'][:]
+        # Get the relevant quantities (Convert from single precison)
+        elevation = array(fid.variables['elevation'][:], Float) 
+        stage = array(fid.variables['stage'][:], Float)
     
     
         # Here's where one could convert nodal information to centroid
