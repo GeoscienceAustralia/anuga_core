@@ -1564,7 +1564,8 @@ class Inflow:
     def __init__(self,
 		 center=None, radius=None,
 		 flow=0.0,
-		 quantity_name = 'stage'):
+		 quantity_name='stage',
+                 verbose=False):
 
         from math import pi
 
@@ -1581,6 +1582,7 @@ class Inflow:
         self.area = radius**2*pi
         self.flow = flow
 	self.quantity_name = quantity_name
+        self.verbose = verbose
     
     def __call__(self, domain):
 
@@ -1604,6 +1606,9 @@ class Inflow:
 	    flow = self.flow
 
         # Now flow is a number
+        if self.verbose is True:
+            print 'Inflow at time = %.2f = %f' %(domain.get_time(),
+                                                 flow)
         
         quantity = domain.quantities[self.quantity_name].explicit_update
         for k in self.indices:
