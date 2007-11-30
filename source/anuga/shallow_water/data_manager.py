@@ -67,9 +67,10 @@ import array as p_array
 from os import sep, path, remove, mkdir, access, F_OK, W_OK, getcwd
 
 
-from Numeric import concatenate, array, Float, Int, Int32, resize, sometrue, \
-     searchsorted, zeros, allclose, around, reshape, transpose, sort, \
-     NewAxis, ArrayType, compress, take, arange, argmax, alltrue, shape, Float32
+from Numeric import concatenate, array, Float, Int, Int32, resize, \
+     sometrue, searchsorted, zeros, allclose, around, reshape, \
+     transpose, sort, NewAxis, ArrayType, compress, take, arange, \
+     argmax, alltrue, shape, Float32, size
 
 import string
 
@@ -424,15 +425,21 @@ class Data_format_sww(Data_format):
         fid.close()
 
 
-    def store_timestep(self, names):
+    def store_timestep(self, names=None):
         """Store time and named quantities to file
         """
+        
         from Scientific.IO.NetCDF import NetCDFFile
         import types
         from time import sleep
         from os import stat
 
         from Numeric import choose
+
+
+        if names is None:
+            # Standard shallow water wave equation quantitites in ANUGA
+            names = ['stage', 'xmomentum', 'ymomentum']
         
         # Get NetCDF       
         retries = 0
@@ -521,23 +528,32 @@ class Data_format_sww(Data_format):
             if 'stage' in names and 'xmomentum' in names and \
                'ymomentum' in names:
 
-                # Get stage
+                # Get stage, elevation, depth and select only those
+                # values where minimum_storable_height is exceeded
                 Q = domain.quantities['stage']
-                A,_ = Q.get_vertex_values(xy = False,
-                                          precision = self.precision)                
+                A, _ = Q.get_vertex_values(xy = False,
+                                           precision = self.precision)
                 z = fid.variables['elevation']
-                stage = choose(A-z[:] >= self.minimum_storable_height,
-                           (z[:], A))
+
+                storable_indices = A-z[:] >= self.minimum_storable_height
+                stage = choose(storable_indices, (z[:], A))
                 
-                # Get xmomentum
+                # Define a zero vector of same size and type as A
+                # for use with momenta
+                null = zeros(size(A), A.typecode())
+                
+                # Get xmomentum where depth exceeds minimum_storable_height
                 Q = domain.quantities['xmomentum']
-                xmomentum, _ = Q.get_vertex_values(xy = False,
-                                          precision = self.precision)
+                xmom, _ = Q.get_vertex_values(xy = False,
+                                              precision = self.precision)
+                xmomentum = choose(storable_indices, (null, xmom))
                 
-                # Get ymomentum
+
+                # Get ymomentum where depth exceeds minimum_storable_height
                 Q = domain.quantities['ymomentum']
-                ymomentum, _ = Q.get_vertex_values(xy = False,
-                                          precision = self.precision)
+                ymom, _ = Q.get_vertex_values(xy = False,
+                                              precision = self.precision)
+                ymomentum = choose(storable_indices, (null, ymom))                
                 
                 # Write quantities to NetCDF
                 self.writer.store_quantities(fid, 
@@ -547,32 +563,10 @@ class Data_format_sww(Data_format):
                                              xmomentum=xmomentum,
                                              ymomentum=ymomentum)
             else:
-                # This is producing a sww that is not standard.
-                # Store time
-                time[i] = self.domain.time
-                
-                for name in names:
-                    # Get quantity
-                    Q = domain.quantities[name]
-                    A,V = Q.get_vertex_values(xy = False,
-                                              precision = self.precision)
-
-                    # FIXME: Make this general (see below)
-                    if name == 'stage':
-                        z = fid.variables['elevation']
-                        A = choose(A-z[:] >= self.minimum_storable_height,
-                                   (z[:], A))
-                        stage[i,:] = A.astype(self.precision)
-                    elif name == 'xmomentum':
-                        xmomentum[i,:] = A.astype(self.precision)
-                    elif name == 'ymomentum':
-                        ymomentum[i,:] = A.astype(self.precision)
-
-                   #As in....
-                   #eval( name + '[i,:] = A.astype(self.precision)' )
-                   #FIXME (Ole): But we need a UNIT test for that before
-                   # refactoring
-
+                msg = 'Quantities stored must be: stage, xmomentum, ymomentum.'
+                msg += ' Instead I got: ' + str(names)
+                raise Exception, msg
+            
 
 
             # Update extrema if requested
@@ -594,7 +588,7 @@ class Data_format_sww(Data_format):
 
             
 
-            #Flush and close
+            # Flush and close
             fid.sync()
             fid.close()
 
@@ -3579,7 +3573,7 @@ def decimate_dem(basename_in, stencil, cellsize_new, basename_out=None,
 
 
 
-def tsh2sww(filename, verbose=False): #test_tsh2sww
+def tsh2sww(filename, verbose=False): 
     """
     to check if a tsh/msh file 'looks' good.
     """
@@ -3604,7 +3598,7 @@ def tsh2sww(filename, verbose=False): #test_tsh2sww
               domain.get_name() + "." + domain.format
     sww = get_dataobject(domain)
     sww.store_connectivity()
-    sww.store_timestep('stage')
+    sww.store_timestep()
 
 
 def asc_csiro2sww(bath_dir,

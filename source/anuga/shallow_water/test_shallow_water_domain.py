@@ -3041,7 +3041,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.smooth = False
         domain.default_order = 2
         domain.beta_h = 0.2
-        domain.set_quantities_to_be_stored(['stage'])
+        domain.set_quantities_to_be_stored(['stage', 'xmomentum', 'ymomentum'])
 
         #IC
         def x_slope(x, y):
