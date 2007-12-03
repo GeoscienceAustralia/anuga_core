@@ -55,15 +55,34 @@ def search_tree_of_vertices(root, mesh, x):
 
     # Search the last triangle first
     element_found, sigma0, sigma1, sigma2, k = \
-                   _search_triangles_of_vertices(mesh,
-                                                 last_triangle, x)
+                   _search_triangles_of_vertices(mesh,last_triangle, x)
     #print "last_triangle", last_triangle
     if element_found is True:
         #print "last_triangle", last_triangle
         return element_found, sigma0, sigma1, sigma2, k
-        
-    
-    
+
+    # This was only slightly faster than just checking the
+    # last triangle and it significantly slowed down
+    # non-gridded fitting
+    # If the last element was a dud, search its neighbours
+    #print "last_triangle[0][0]", last_triangle[0][0]
+    #neighbours = mesh.get_triangle_neighbours(last_triangle[0][0])
+    #print "neighbours", neighbours
+    #neighbours = []
+  #   for k in neighbours:
+#         if k >= 0:
+#             tri = mesh.get_vertex_coordinates(k,
+#                                                    absolute=True)
+#             n0 = mesh.get_normal(k, 0)
+#             n1 = mesh.get_normal(k, 1)
+#             n2 = mesh.get_normal(k, 2) 
+#             triangle =[[k,(tri, (n0, n1, n2))]]
+#             element_found, sigma0, sigma1, sigma2, k = \
+#                            _search_triangles_of_vertices(mesh,
+#                                                          triangle, x)
+#             if element_found is True:
+#                 return element_found, sigma0, sigma1, sigma2, k
+            
     #t0 = time.time()
     # Get triangles in the cell that the point is in.
     # Triangle is a list, first element triangle_id,

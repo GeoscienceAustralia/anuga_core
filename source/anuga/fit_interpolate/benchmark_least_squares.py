@@ -126,7 +126,7 @@ class BenchmarkLeastSquares:
     def trial(self,
               num_of_points=20000,
               maxArea=1000,
-              max_points_per_cell=4,
+              max_points_per_cell=13,
               is_fit=True,
               use_file_type=None,
               blocking_len=500000,
@@ -134,15 +134,18 @@ class BenchmarkLeastSquares:
               save=False,
               verbose=False,
               run_profile=False,
-              gridded=True):
+              gridded=True,
+              geo_ref=True):
         '''
         num_of_points 
         '''
         #print "num_of_points",num_of_points
         #print "maxArea",maxArea
         #print "max_points_per_cell", max_points_per_cell
-
-        geo = None #Geo_reference(xllcorner = 2.0, yllcorner = 2.0)
+        if geo_ref is True:
+            geo = Geo_reference(xllcorner = 2.0, yllcorner = 2.0)
+        else:
+            geo = None
         mesh_dict = self._build_regular_mesh_dict(maxArea=maxArea,
                                                   is_segments=segments_in_mesh,
                                                   save=save,

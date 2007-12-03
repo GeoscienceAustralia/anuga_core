@@ -892,3 +892,19 @@ class Mesh(General_mesh):
                 return i
                 
         return
+
+
+    def get_triangle_neighbours(self, tri_id):
+        """ Given a triangle id, Return an array of the
+        3 neighbour triangle id's.
+
+        Negative returned triangle id's represent a boundary as a neighbour.
+        
+        If the given triangle id is bad, return an empty list.
+        """
+
+        try:
+            return self.neighbours[tri_id,:]
+        except IndexError:
+            return []
+        

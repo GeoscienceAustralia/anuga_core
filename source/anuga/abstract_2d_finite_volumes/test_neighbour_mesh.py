@@ -1229,10 +1229,26 @@ class Test_Mesh(unittest.TestCase):
         for i, point in enumerate(mesh.get_centroid_coordinates()):
             id = mesh.get_triangle_containing_point(point)
             assert id == i        
-            
+
+    def test_get_triangle_neighbours(self):
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0,0.0]
+        e = [2.0, 2.0]
+        points = [a, b, c, e]
+        vertices = [ [1,0,2], [1,2,3] ]   #bac, bce
+        mesh = Mesh(points, vertices)
+
+        neighbours = mesh.get_triangle_neighbours(0)
+        assert allclose(neighbours, [-1,1,-1])
+        neighbours = mesh.get_triangle_neighbours(-10)
+        assert neighbours == []
+        neighbours = mesh.get_triangle_neighbours(2)
+        assert neighbours == []   
+
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Mesh,'test_get_triangle_containing_point')
+    #suite = unittest.makeSuite(Test_Mesh,'test_two_triangles')
     suite = unittest.makeSuite(Test_Mesh,'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
