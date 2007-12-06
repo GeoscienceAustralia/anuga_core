@@ -15,6 +15,13 @@ from anuga.utilities.numerical_tools import NAN
 
 from sys import platform 
 
+from anuga.pmesh.mesh import Mesh
+from anuga.shallow_water import Domain, Transmissive_boundary
+from anuga.shallow_water.data_manager import get_dataobject
+from csv import reader,writer
+import time
+import string
+
 def test_function(x, y):
     return x+y
 
@@ -1391,13 +1398,239 @@ class Test_Util(unittest.TestCase):
             del_dir(temp_dir)
         
 
-    
+    def test_gauges_sww2csv(self):
+
+        def elevation_function(x, y):
+            return -x
+        
+        """Most of this test was copied from test_interpolate test_interpole_sww2csv
+        
+        This is testing the gauge_sww2csv function, by creating a sww file and
+        then exporting the gauges and checking the results.
+        """
+        
+        # create mesh
+        mesh_file = tempfile.mktemp(".tsh")    
+        points = [[0.0,0.0],[6.0,0.0],[6.0,6.0],[0.0,6.0]]
+        m = Mesh()
+        m.add_vertices(points)
+        m.auto_segment()
+        m.generate_mesh(verbose=False)
+        m.export_mesh_file(mesh_file)
+        
+        #Create shallow water domain
+        domain = Domain(mesh_file)
+        os.remove(mesh_file)
+        
+        domain.default_order=2
+        domain.beta_h = 0
+
+        #Set some field values
+        domain.set_quantity('elevation', elevation_function)
+        domain.set_quantity('friction', 0.03)
+        domain.set_quantity('xmomentum', 3.0)
+        domain.set_quantity('ymomentum', 4.0)
+
+        ######################
+        # Boundary conditions
+        B = Transmissive_boundary(domain)
+        domain.set_boundary( {'exterior': B})
+
+        # This call mangles the stage values.
+        domain.distribute_to_vertices_and_edges()
+        domain.set_quantity('stage', 1.0)
+
+
+        domain.set_name('datatest' + str(time.time()))
+        domain.format = 'sww'
+        domain.smooth = True
+        domain.reduction = mean
+
+        sww = get_dataobject(domain)
+        sww.store_connectivity()
+        sww.store_timestep(['stage', 'xmomentum', 'ymomentum','elevation'])
+        domain.set_quantity('stage', 10.0) # This is automatically limited
+        # so it will not be less than the elevation
+        domain.time = 2.
+        sww.store_timestep(['stage','elevation', 'xmomentum', 'ymomentum'])
+
+        # test the function
+        points = [[5.0,1.],[0.5,2.]]
+
+        points_file = tempfile.mktemp(".csv")
+#        points_file = 'test_point.csv'
+        file_id = open(points_file,"w")
+        file_id.write("name, easting, northing, elevation \n\
+point1, 5.0, 1.0, 3.0\n\
+point2, 0.5, 2.0, 9.0\n")
+        file_id.close()
+
+        
+        gauges_sww2csv(sww.filename, 
+                            points_file,
+                            verbose=False,
+                            use_cache=False)
+
+        point1_answers_array = [[0.0,1.0,-5.0,3.0,4.0], [2.0,10.0,-5.0,3.0,4.0]]
+        point1_filename = 'gauge_point1.csv'
+        point1_handle = file(point1_filename)
+        point1_reader = reader(point1_handle)
+        point1_reader.next()
+
+        line=[]
+        for i,row in enumerate(point1_reader):
+#            print 'i',i,'row',row
+            line.append([float(row[0]),float(row[1]),float(row[2]),float(row[3]),float(row[4])])
+            #print 'assert line',line[i],'point1',point1_answers_array[i]
+            assert allclose(line[i], point1_answers_array[i])
+
+        point2_answers_array = [[0.0,1.0,-0.5,3.0,4.0], [2.0,10.0,-0.5,3.0,4.0]]
+        point2_filename = 'gauge_point2.csv' 
+        point2_handle = file(point2_filename)
+        point2_reader = reader(point2_handle)
+        point2_reader.next()
+                        
+        line=[]
+        for i,row in enumerate(point2_reader):
+#            print 'i',i,'row',row
+            line.append([float(row[0]),float(row[1]),float(row[2]),float(row[3]),float(row[4])])
+            #print 'assert line',line[i],'point1',point1_answers_array[i]
+            assert allclose(line[i], point2_answers_array[i])
+                         
+        # clean up
+        point1_handle.close()
+        point2_handle.close()
+        #print "sww.filename",sww.filename 
+        os.remove(sww.filename)
+        os.remove(points_file)
+        os.remove(point1_filename)
+        os.remove(point2_filename)
+
+
+
+    def test_gauges_sww2csv1(self):
+        from anuga.pmesh.mesh import Mesh
+        from anuga.shallow_water import Domain, Transmissive_boundary
+        from anuga.shallow_water.data_manager import get_dataobject
+        from csv import reader,writer
+        import time
+        import string
+
+        def elevation_function(x, y):
+            return -x
+        
+        """Most of this test was copied from test_interpolate test_interpole_sww2csv
+        
+        This is testing the gauge_sww2csv function, by creating a sww file and
+        then exporting the gauges and checking the results.
+        
+        This tests the ablity not to have elevation in the points file and 
+        not store xmomentum and ymomentum
+        """
+        
+        # create mesh
+        mesh_file = tempfile.mktemp(".tsh")    
+        points = [[0.0,0.0],[6.0,0.0],[6.0,6.0],[0.0,6.0]]
+        m = Mesh()
+        m.add_vertices(points)
+        m.auto_segment()
+        m.generate_mesh(verbose=False)
+        m.export_mesh_file(mesh_file)
+        
+        #Create shallow water domain
+        domain = Domain(mesh_file)
+        os.remove(mesh_file)
+        
+        domain.default_order=2
+        domain.beta_h = 0
+
+        #Set some field values
+        domain.set_quantity('elevation', elevation_function)
+        domain.set_quantity('friction', 0.03)
+        domain.set_quantity('xmomentum', 3.0)
+        domain.set_quantity('ymomentum', 4.0)
+
+        ######################
+        # Boundary conditions
+        B = Transmissive_boundary(domain)
+        domain.set_boundary( {'exterior': B})
+
+        # This call mangles the stage values.
+        domain.distribute_to_vertices_and_edges()
+        domain.set_quantity('stage', 1.0)
+
+
+        domain.set_name('datatest' + str(time.time()))
+        domain.format = 'sww'
+        domain.smooth = True
+        domain.reduction = mean
+
+        sww = get_dataobject(domain)
+        sww.store_connectivity()
+        sww.store_timestep(['stage', 'xmomentum', 'ymomentum'])
+        domain.set_quantity('stage', 10.0) # This is automatically limited
+        # so it will not be less than the elevation
+        domain.time = 2.
+        sww.store_timestep(['stage', 'xmomentum', 'ymomentum'])
+
+        # test the function
+        points = [[5.0,1.],[0.5,2.]]
+
+        points_file = tempfile.mktemp(".csv")
+#        points_file = 'test_point.csv'
+        file_id = open(points_file,"w")
+        file_id.write("name, easting, northing \n\
+point1, 5.0, 1.0\n\
+point2, 0.5, 2.0\n")
+        file_id.close()
+
+        gauges_sww2csv(sww.filename, 
+                            points_file,
+                            quantities=['Stage', 'elevation'],
+                            use_cache=False,
+                            verbose=False)
+
+        point1_answers_array = [[0.0,1.0,-5.0], [2.0,10.0,-5.0]]
+        point1_filename = 'gauge_point1.csv'
+        point1_handle = file(point1_filename)
+        point1_reader = reader(point1_handle)
+        point1_reader.next()
+
+        line=[]
+        for i,row in enumerate(point1_reader):
+#            print 'i',i,'row',row
+            line.append([float(row[0]),float(row[1]),float(row[2])])
+            #print 'line',line[i],'point1',point1_answers_array[i]
+            assert allclose(line[i], point1_answers_array[i])
+
+        point2_answers_array = [[0.0,1.0,-0.5], [2.0,10.0,-0.5]]
+        point2_filename = 'gauge_point2.csv' 
+        point2_handle = file(point2_filename)
+        point2_reader = reader(point2_handle)
+        point2_reader.next()
+                        
+        line=[]
+        for i,row in enumerate(point2_reader):
+#            print 'i',i,'row',row
+            line.append([float(row[0]),float(row[1]),float(row[2])])
+#            print 'line',line[i],'point1',point1_answers_array[i]
+            assert allclose(line[i], point2_answers_array[i])
+                         
+        # clean up
+        point1_handle.close()
+        point2_handle.close()
+        #print "sww.filename",sww.filename 
+        os.remove(sww.filename)
+        os.remove(points_file)
+        os.remove(point1_filename)
+        os.remove(point2_filename)
         
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Util,'test')
-#    suite = unittest.makeSuite(Test_Util,'test_get_min_max_values')
-    runner = unittest.TextTestRunner(verbosity=2)
+#    suite = unittest.makeSuite(Test_Util,'test_gauges_sww')
+#    runner = unittest.TextTestRunner(verbosity=2)
+    runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
 
 

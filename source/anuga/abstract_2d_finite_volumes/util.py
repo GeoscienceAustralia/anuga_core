@@ -8,7 +8,7 @@ import anuga.utilities.polygon
 import sys
 import os
 
-from os import remove, mkdir, access, F_OK, W_OK, sep,mkdir
+from os import remove, mkdir, access, F_OK, R_OK, W_OK, sep,mkdir
 from os.path import exists, basename, split,join
 from warnings import warn
 from shutil import copy
@@ -1493,17 +1493,21 @@ def get_centroid_values(x, triangles):
 
     return xc
 
-def make_plots_from_csv_file(directories_dic={},
+def csv2timeseries_graphs(directories_dic={},
                             output_dir='',
                             base_name=None,
                             plot_numbers='0',
-                            quantities=['Stage'],
+                            quantities=['stage'],
                             extra_plot_name='',
                             assess_all_csv_files=True,                            
                             create_latex=False,
                             verbose=False):
                                 
-    """Read in csv files that have the right header information and
+    """
+    WARNING!! NO UNIT TESTS... could make some as to test filename..but have
+    spend ages on this already...
+    
+    Read in csv files that have the right header information and
     plot time series such as Stage, Speed, etc. Will also plot several
     time series on one plot. Filenames must follow this convention,
     <base_name><plot_number>.csv eg gauge_timeseries3.csv
@@ -1564,33 +1568,18 @@ def make_plots_from_csv_file(directories_dic={},
     #the dictionary that is returned from the csv2dict this could 
     #be very good and very flexable.... but this works for now!
 
-    #FIXME plot all available data from the csv file, currently will
-    #only plot Stage,Speed and Momentum and only if the header is 
-    #named like wise
-
-#    quantities_dic={'time':'time (hour)'}
-#    if 'time' in quantities:
-#        quantities_dic['time']='time (hour)'
-#    if 'Time' in quantities:
-#        quantities_dic['Time']='time (hour)'
-#    if 'stage' in quantities:
-#        quantities_dic['stage']='wave height (m)'
-#    if 'Stage' in quantities:
-#        quantities_dic['Stage']='wave height (m)'
-#    if 'speed' in quantities:
-#        quantities_dic['speed']='speed (m/s)'
-#    if 'Speed' in quantities:
-#        quantities_dic['Speed']='speed (m/s)'
-#    if 'stage' or 'Stage' in quantities:
-#        quantities_dic['stage']='speed (m/s)'
-#    if 'stage' or 'Stage' in quantities:
-#        quantities_dic['stage']='speed (m/s)'
+    #FIXME MAKE NICER at the end i have started a new version...
+    # it almost completely works...
 
     seconds_in_hour = 3600
     time_label = 'time (hour)'
     stage_label = 'wave height (m)'
     speed_label = 'speed (m/s)'
     momentum_label = 'momentum (m^2/sec)'
+    xmomentum_label = 'momentum (m^2/sec)'
+    ymomentum_label = 'momentum (m^2/sec)'
+    depth_label = 'water depth (m)'
+    bearing_label = 'degrees (o)'
     
     if extra_plot_name != '':
         extra_plot_name='_'+extra_plot_name
@@ -1605,7 +1594,8 @@ def make_plots_from_csv_file(directories_dic={},
 #    print 'list_filenames',list_filenames
 
     #use all the files to get the values for the plot axis
-    max_st=max_sp=max_mom=min_st=min_sp=min_mom=max_t=min_t=0.
+    max_xmom=min_xmom=max_ymom=min_ymom=max_st=max_sp=max_mom=min_st=min_sp=min_mom=\
+    max_depth=min_depth=max_bearing=min_bearing=max_t=min_t=0.
     max_start_time= 0.
     min_start_time = 100000 
 
@@ -1646,20 +1636,42 @@ def make_plots_from_csv_file(directories_dic={},
             directory_start_time = directories_dic[directory][1]
             directory_add_tide = directories_dic[directory][2]
 
-            time = [float(x) for x in attribute_dic["Time"]]
+            time = [float(x) for x in attribute_dic["time"]]
             min_t, max_t = get_min_max_values(time,min_t,max_t)
             
-            stage = [float(x) for x in attribute_dic["Stage"]]
+            stage = [float(x) for x in attribute_dic["stage"]]
             stage =array(stage)+directory_add_tide
             min_st, max_st = get_min_max_values(stage,min_st,max_st)
+        
+            if "speed" in quantities:
+                speed = [float(x) for x in attribute_dic["speed"]]
+                min_sp, max_sp = get_min_max_values(speed,min_sp,max_sp)
             
-            speed = [float(x) for x in attribute_dic["Speed"]]
-            min_sp, max_sp = get_min_max_values(speed,min_sp,max_sp)
-            
-            momentum = [float(x) for x in attribute_dic["Momentum"]]
-            min_mom, max_mom = get_min_max_values(momentum,
+            if "momentum" in quantities:
+                momentum = [float(x) for x in attribute_dic["momentum"]]
+                min_mom, max_mom = get_min_max_values(momentum,
                                                   min_mom,
                                                   max_mom)
+            if "xmomentum" in quantities:
+                xmomentum = [float(x) for x in attribute_dic["xmomentum"]]
+                min_xmom, max_xmom = get_min_max_values(xmomentum,
+                                                  min_xmom,
+                                                  max_xmom)
+            if "ymomentum" in quantities:
+                ymomentum = [float(x) for x in attribute_dic["ymomentum"]]
+                min_ymom, max_ymom = get_min_max_values(ymomentum,
+                                                  min_ymom,
+                                                  max_ymom)
+            if "depth" in quantities:
+                depth = [float(x) for x in attribute_dic["depth"]]
+                min_depth, max_depth = get_min_max_values(depth,
+                                                  min_depth,
+                                                  max_depth)
+            if "bearing" in quantities:
+                bearing = [float(x) for x in attribute_dic["bearing"]]
+                min_bearing, max_bearing = get_min_max_values(bearing,
+                                                  min_bearing,
+                                                  max_bearing)
                                                                       
 #            print 'min_sp, max_sp',min_sp, max_sp, 
             # print directory_start_time
@@ -1675,13 +1687,22 @@ def make_plots_from_csv_file(directories_dic={},
     speed_axis = (min_start_time/seconds_in_hour,
                  (max_t+max_start_time)/seconds_in_hour,
                  min_sp, max_sp)
+    xmomentum_axis = (min_start_time/seconds_in_hour,
+                    (max_t+max_start_time)/seconds_in_hour,
+                     min_xmom, max_xmom)
+    ymomentum_axis = (min_start_time/seconds_in_hour,
+                    (max_t+max_start_time)/seconds_in_hour,
+                     min_ymom, max_ymom)
     momentum_axis = (min_start_time/seconds_in_hour,
                     (max_t+max_start_time)/seconds_in_hour,
                      min_mom, max_mom)
-#    ion()
-#    pylab.hold()
-    
-    
+    depth_axis = (min_start_time/seconds_in_hour,
+                    (max_t+max_start_time)/seconds_in_hour,
+                     min_depth, max_depth)
+    bearing_axis = (min_start_time/seconds_in_hour,
+                    (max_t+max_start_time)/seconds_in_hour,
+                     min_bearing, max_bearing)
+  
     cstr = ['b', 'r', 'g', 'c', 'm', 'y', 'k']
     
 #    if verbose: print 'Now start to plot \n'
@@ -1703,13 +1724,23 @@ def make_plots_from_csv_file(directories_dic={},
             #print 'i %s,j %s, number %s, file %s' %(i,j,number,file)
             attribute_dic, title_index_dic = csv2dict(file+'.csv')
             #get data from dict in to list
-            t = [float(x) for x in attribute_dic["Time"]]
+            t = [float(x) for x in attribute_dic["time"]]
 
             #do maths to list by changing to array
             t=(array(t)+directory_start_time)/seconds_in_hour
-            stage = [float(x) for x in attribute_dic["Stage"]]
-            speed = [float(x) for x in attribute_dic["Speed"]]
-            momentum = [float(x) for x in attribute_dic["Momentum"]]
+            stage = [float(x) for x in attribute_dic["stage"]]
+            if "speed" in quantities:
+                speed = [float(x) for x in attribute_dic["speed"]]
+            if "xmomentum" in quantities:
+                xmomentum = [float(x) for x in attribute_dic["xmomentum"]]
+            if "ymomentum" in quantities:
+                ymomentum = [float(x) for x in attribute_dic["ymomentum"]]
+            if "momentum" in quantities:
+                momentum = [float(x) for x in attribute_dic["momentum"]]
+            if "depth" in quantities:
+                depth = [float(x) for x in attribute_dic["depth"]]
+            if "bearing" in quantities:
+                bearing = [float(x) for x in attribute_dic["bearing"]]
                         
             #Can add tide so plots are all on the same tide height
             stage =array(stage)+directory_add_tide
@@ -1717,7 +1748,7 @@ def make_plots_from_csv_file(directories_dic={},
             #finds the maximum elevation
             max_ele=-100000
             min_ele=100000
-            elevation = [float(x) for x in attribute_dic["Elevation"]]
+            elevation = [float(x) for x in attribute_dic["elevation"]]
             
             min_ele, max_ele = get_min_max_values(elevation,
                                                   min_ele,
@@ -1742,43 +1773,423 @@ def make_plots_from_csv_file(directories_dic={},
                     legend_list.append('%s (elevation = %sm)'%(k,l))
                     #print k,l, legend_list_dic[j]
          
-            if "Stage" in quantities:
+            if "stage" in quantities:
                 pylab.figure(100+j)
                 pylab.plot(t, stage, c = cstr[i], linewidth=1)
                 pylab.xlabel(time_label)
                 pylab.ylabel(stage_label)
                 pylab.axis(stage_axis)
                 pylab.legend(legend_list,loc='upper right')
-                figname = '%sstage_%s%s.png' %(output_dir+sep,
+                if output_dir =='':
+                    figname = '%sstage_%s%s.png' %(directory+sep,
                                                base_name+number,
                                                extra_plot_name)
+                else:    
+                    figname = '%sstage_%s%s.png' %(output_dir+sep,
+                                               base_name+number,
+                                               extra_plot_name)
+                if verbose: print 'saving figure here %s' %figname
                 pylab.savefig(figname)
-            if "Speed" in quantities:
+
+            if "speed" in quantities:
                 pylab.figure(200+j)
                 pylab.plot(t, speed, c = cstr[i], linewidth=1)
                 pylab.xlabel(time_label)
                 pylab.ylabel(speed_label)
                 pylab.axis(speed_axis)
                 pylab.legend(legend_list,loc='upper right')
-                figname = '%sspeed_%s%s.png' %(output_dir+sep,
+                if output_dir =='':
+                    figname = '%sspeed_%s%s.png' %(directory+sep,
                                                base_name+number,
                                                extra_plot_name)
+                else:
+                    figname = '%sspeed_%s%s.png' %(output_dir+sep,
+                                               base_name+number,
+                                               extra_plot_name)
+                if verbose: print 'saving figure here %s' %figname
                 pylab.savefig(figname)
-            if "Momentum" in quantities:
+            if "xmomentum" in quantities:
                 pylab.figure(300+j)
+                pylab.plot(t, xmomentum, c = cstr[i], linewidth=1)
+                pylab.xlabel(time_label)
+                pylab.ylabel(xmomentum_label)
+                pylab.axis(xmomentum_axis)
+                pylab.legend(legend_list,loc='upper right')
+                if output_dir =='':
+                    figname = '%sxmomentum_%s%s.png' %(directory+sep,
+                                                  base_name+number,
+                                                  extra_plot_name)
+                else:
+                    figname = '%sxmomentum_%s%s.png' %(output_dir+sep,
+                                                  base_name+number,
+                                                  extra_plot_name)
+                if verbose: print 'saving figure here %s' %figname
+                pylab.savefig(figname)
+                
+            if "ymomentum" in quantities:
+                pylab.figure(400+j)
+                pylab.plot(t, ymomentum, c = cstr[i], linewidth=1)
+                pylab.xlabel(time_label)
+                pylab.ylabel(ymomentum_label)
+                pylab.axis(ymomentum_axis)
+                pylab.legend(legend_list,loc='upper right')
+                if output_dir =='':
+                    figname = '%symomentum_%s%s.png' %(directory+sep,
+                                                  base_name+number,
+                                                  extra_plot_name)
+                else:
+                    figname = '%symomentum_%s%s.png' %(output_dir+sep,
+                                                  base_name+number,
+                                                  extra_plot_name)
+                if verbose: print 'saving figure here %s' %figname
+                pylab.savefig(figname)
+
+            if "momentum" in quantities:
+                pylab.figure(500+j)
                 pylab.plot(t, momentum, c = cstr[i], linewidth=1)
                 pylab.xlabel(time_label)
                 pylab.ylabel(momentum_label)
                 pylab.axis(momentum_axis)
                 pylab.legend(legend_list,loc='upper right')
-                figname = '%smomentum_%s%s.png' %(output_dir+sep,
+                if output_dir =='':
+                    figname = '%smomentum_%s%s.png' %(directory+sep,
                                                   base_name+number,
                                                   extra_plot_name)
+                else:
+                    figname = '%smomentum_%s%s.png' %(output_dir+sep,
+                                                  base_name+number,
+                                                  extra_plot_name)
+                if verbose: print 'saving figure here %s' %figname
                 pylab.savefig(figname)
+
+            if "bearing" in quantities:
+                pylab.figure(600+j)
+                pylab.plot(t, bearing, c = cstr[i], linewidth=1)
+                pylab.xlabel(time_label)
+                pylab.ylabel(bearing_label)
+                pylab.axis(bearing_axis)
+                pylab.legend(legend_list,loc='upper right')
+                if output_dir =='':
+                    figname = '%sbearing_%s%s.png' %(output_dir+sep,
+                                                  base_name+number,
+                                                  extra_plot_name)
+                else:
+                    figname = '%sbearing_%s%s.png' %(output_dir+sep,
+                                                  base_name+number,
+                                                  extra_plot_name)
+                if verbose: print 'saving figure here %s' %figname
+                pylab.savefig(figname)
+
+            if "depth" in quantities:
+                pylab.figure(700+j)
+                pylab.plot(t, depth, c = cstr[i], linewidth=1)
+                pylab.xlabel(time_label)
+                pylab.ylabel(depth_label)
+                pylab.axis(depth_axis)
+                pylab.legend(legend_list,loc='upper right')
+                if output_dir == '':
+                    figname = '%sdepth_%s%s.png' %(directory,
+                                                  base_name+number,
+                                                  extra_plot_name)
+                else:
+                    figname = '%sdepth_%s%s.png' %(output_dir+sep,
+                                                  base_name+number,
+                                                  extra_plot_name)
+                if verbose: print 'saving figure here %s' %figname
+                pylab.savefig(figname)
+                
     if verbose: print 'Closing all plots'
     pylab.close('all')
     del pylab
     if verbose: print 'Finished closing plots'
+    
+def XXX_csv2timeseries_graphs(directories_dic={},
+                            output_dir='',
+                            base_name='',
+                            plot_numbers='',
+                            quantities=['stage'],
+                            extra_plot_name='',
+                            assess_all_csv_files=False,                            
+                            create_latex=False,
+                            verbose=False):
+                                
+    """     
+    NOTE! DOES not work 100% yet. eg don't use assess_all_csv_files=True
+    everything else is ok?                 
+    Use sww2timeseries....            
+    
+    Read in csv files that have the right header information and
+    plot time series such as Stage, Speed, etc. Will also plot several
+    time series on one plot. Filenames must follow this convention,
+    <base_name><plot_number>.csv eg gauge_timeseries3.csv
+
+    Each file represents a location and within each file there are
+    time, quantity columns.
+    
+    For example:    
+    if "directories_dic" defines 4 directories and in each directories
+    there is a csv files corresponding to the right "plot_numbers", 
+    this will create a plot with 4 lines one for each directory AND 
+    one plot for each "quantities".  ??? FIXME: unclear.
+    
+    Inputs:
+        directories_dic: dictionary of directory with values (plot 
+                         legend name for directory), (start time of 
+                         the time series) and the (value to add to 
+                         stage if needed). For example
+                        {dir1:['Anuga_ons',5000, 0],
+                         dir2:['b_emoth',5000,1.5],
+                         dir3:['b_ons',5000,1.5]}
+                         
+        output_dir: directory for the plot outputs
+        
+        base_name: common name to all the csv files to be read, Note is 
+                   ignored if assess_all_csv_files=True
+        
+        plot_numbers: a String list of numbers to plot. For example 
+                      [0-4,10,15-17] will read and attempt to plot
+                       the follow 0,1,2,3,4,10,15,16,17
+                       NOTE: if no plot numbers this will create only
+                       one plot per quantity
+        quantities: Currently limited to "stage", "speed", and 
+                     "Momentum", should be changed to incorporate 
+                    any quantity read from CSV file....
+                    
+        extra_plot_name: A string that is appended to the end of the 
+                         output filename.
+                    
+        assess_all_csv_files: if true it will read ALL csv file with
+                             "base_name", regardless of 'plot_numbers'
+                              and determine a uniform set of axes for 
+                              Stage, Speed and Momentum. IF FALSE it 
+                              will only read the csv file within the
+                             'plot_numbers'
+                             
+        create_latex: NOT IMPLEMENTED YET!! sorry Jane....
+        
+    OUTPUTS: None, it saves the plots to 
+              <output_dir><base_name><plot_number><extra_plot_name>.png
+    """
+
+    import pylab# import plot, xlabel, ylabel, savefig, \
+                #ion, hold, axis, close, figure, legend
+    from os import sep
+    from anuga.shallow_water.data_manager import \
+                               get_all_files_with_extension, csv2dict
+    #find all the files that meet the specs
+
+    seconds_in_hour = 3600
+    
+    quantities_label={}
+    quantities_label['time'] = 'time (hour)'
+    quantities_label['stage'] = 'wave height (m)'
+    quantities_label['speed'] = 'speed (m/s)'
+    quantities_label['momentum'] = 'momentum (m^2/sec)'
+    quantities_label['depth'] = 'momentum (m^2/sec)'
+    quantities_label['xmomentum'] = 'momentum (m^2/sec)'
+    quantities_label['ymomentum'] = 'momentum (m^2/sec)'
+    quantities_label['bearing'] = 'degrees'
+    
+    if extra_plot_name != '':
+        extra_plot_name='_'+extra_plot_name
+
+    new_plot_numbers=[]
+    #change plot_numbers to list, eg ['0-4','10'] 
+    #to ['0','1','2','3','4','10']
+    for i, num_string in enumerate(plot_numbers):
+        if '-' in num_string: 
+            start = int(num_string[:num_string.rfind('-')])
+            end = int(num_string[num_string.rfind('-')+1:])+1
+            for x in range(start, end):
+                new_plot_numbers.append(str(x))
+        else:
+            new_plot_numbers.append(num_string)
+
+    #finds all the files that fit the specs and return a list of them
+    #so to help find a uniform max and min for the plots... 
+    list_filenames=[]
+    filenames=[]
+    all_csv_filenames=[]
+    if verbose: print 'Determining files to access for axes ranges \n'
+#    print directories_dic.keys, base_name
+ 
+    for i,directory in enumerate(directories_dic.keys()):
+        all_csv_filenames.append(get_all_files_with_extension(directory,
+                                  base_name,'.csv'))
+        if assess_all_csv_files==True:
+            list_filenames.append(get_all_files_with_extension(directory,
+                                  base_name,'.csv'))
+        else:
+            if plot_numbers == '': 
+                list_filenames.append(base_name)
+            else:
+                for number in new_plot_numbers:
+                    filenames.append(base_name+number)
+                list_filenames.append(filenames)
+    print "list_filenames", list_filenames
+
+    #use all the files to get the values for the plot axis
+    #max_st=max_sp=max_mom=min_st=min_sp=min_mom=max_t=min_t=0.
+    max_t=-100
+    min_t=100000
+    max_start_time= -1000.
+    min_start_time = 100000 
+    
+    if verbose: print 'Determining uniform axes \n' 
+    #this entire loop is to determine the min and max range for the 
+    #axes of the plots
+
+    quantities.insert(0,'time')  
+    
+    for i, directory in enumerate(directories_dic.keys()):
+        
+        if assess_all_csv_files==False:
+            which_csv_to_assess = list_filenames[i]
+        else:
+            #gets list of filenames for directory "i"
+            which_csv_to_assess = all_csv_filenames[i]
+
+        
+        for j, filename in enumerate(which_csv_to_assess):
+#        for j, filename in enumerate(list_filenames[i]):
+
+            dir_filename=join(directory,filename)
+            attribute_dic, title_index_dic = csv2dict(dir_filename+
+                                                       '.csv')
+
+            directory_start_time = directories_dic[directory][1]
+            directory_add_tide = directories_dic[directory][2]
+
+            print 'keys',attribute_dic.keys()
+            quantity_value={}
+            min_quantity_value={}
+            max_quantity_value={}
+#            print 'Quantities',quantities, attribute_dic
+        
+            #add time to get values
+            for k, quantity in enumerate(quantities):
+                quantity_value[quantity] = [float(x) for x in attribute_dic[quantity]]
+                min_quantity_value[quantity], max_quantity_value[quantity] = get_min_max_values(quantity_value[quantity],\
+                                                                  min_t,max_t)
+
+                if quantity == 'stage':
+                     quantity_value[quantity]=array(quantity_value[quantity])+directory_add_tide
+
+            #set the time... ???
+            if min_start_time > directory_start_time: 
+                min_start_time = directory_start_time
+            if max_start_time < directory_start_time: 
+                max_start_time = directory_start_time
+#            print 'start_time' , max_start_time, min_start_time
+    
+
+    #final step to unifrom axis for the graphs
+    quantities_axis={}
+    for i, quantity in enumerate(quantities):
+        print 'max_t %s max_start_time, seconds_in_hour',max_t, max_start_time, seconds_in_hour
+        quantities_axis[quantity] = (min_start_time/seconds_in_hour,
+                                        (max_quantity_value['time']+max_start_time)/seconds_in_hour,
+                                         min_quantity_value[quantity], 
+                                         max_quantity_value[quantity])
+        print 'axis for quantity %s are %s' %(quantity, quantities_axis[quantity])
+
+    cstr = ['b', 'r', 'g', 'c', 'm', 'y', 'k']
+
+   
+    if verbose: print 'Now start to plot \n'
+    
+    i_max = len(directories_dic.keys())
+    legend_list_dic =[]
+    legend_list =[]
+    for i, directory in enumerate(directories_dic.keys()): 
+        if verbose: print'Plotting in %s' %directory, new_plot_numbers
+#        for j, number in enumerate(new_plot_numbers):
+        for j, filename in enumerate(list_filenames[i]):
+            
+#            if verbose: print'Starting %s' %base_name+number  
+            if verbose: print'Starting %s' %filename  
+            directory_name = directories_dic[directory][0]
+            directory_start_time = directories_dic[directory][1]
+            directory_add_tide = directories_dic[directory][2]
+            
+            #create an if about the start time and tide hieght 
+            #if they don't exist
+#            file=directory+sep+base_name+number
+            #print 'i %s,j %s, number %s, file %s' %(i,j,number,file)
+            attribute_dic, title_index_dic = csv2dict(filename+'.csv')
+            #get data from dict in to list
+            t = [float(x) for x in attribute_dic["time"]]
+
+            #do maths to list by changing to array
+            t=(array(t)+directory_start_time)/seconds_in_hour
+
+            #finds the maximum elevation, used only as a test
+            # and as info in the graphs
+            max_ele=-100000
+            min_ele=100000
+            elevation = [float(x) for x in attribute_dic["elevation"]]
+            
+            min_ele, max_ele = get_min_max_values(elevation,
+                                                  min_ele,
+                                                  max_ele)
+            if min_ele != max_ele:
+                print "Note! Elevation changes in %s" %dir_filename
+
+            #populates the legend_list_dic with dir_name and the elevation
+            if i==0:
+                legend_list_dic.append({directory_name:max_ele})
+            else:
+                print j,max_ele, directory_name, legend_list_dic
+                legend_list_dic[j][directory_name]=max_ele
+
+            # creates a list for the legend after at "legend_dic" has been fully populated
+            # only runs on the last iteration for all the gauges(csv) files
+            # empties the list before creating it 
+            if i==i_max-1:
+                legend_list=[]
+                for k, l in legend_list_dic[j].iteritems():
+                    legend_list.append('%s (elevation = %sm)'%(k,l))
+                    #print k,l, legend_list_dic[j]
+            
+            print 'filename',filename, quantities
+            #remove time so it is not plotted!
+#            quantities.remove('time')
+            for k, quantity in enumerate(quantities):
+                if quantity != 'time':
+                    quantity_value[quantity] = [float(x) for x in attribute_dic[quantity]]
+
+                    if quantity=='stage':
+                        quantity_value[quantity] =array(quantity_value[quantity])+directory_add_tide
+        
+            #Can add tide so plots are all on the same tide height
+#                print'plot stuff',quantities_label['time']
+#                print quantities_label[quantity]
+#                print quantities_axis[quantity]
+                    num=int(k*100+j)
+                    pylab.figure(num)
+                    pylab.plot(t, quantity_value[quantity], c = cstr[i], linewidth=1)
+                    pylab.xlabel(quantities_label['time'])
+                    pylab.ylabel(quantities_label[quantity])
+                    pylab.axis(quantities_axis[quantity])
+                    pylab.legend(legend_list,loc='upper right')
+                    if output_dir == '':
+                        figname = '%s%s_%s%s.png' %(directory,
+                                            quantity,
+                                            filename,
+                                            extra_plot_name)
+                    else:
+                        figname = '%s%s_%s%s.png' %(output_dir,
+                                            quantity,
+                                            filename,
+                                            extra_plot_name)
+                    if verbose: print 'saving figure here %s' %figname
+                    pylab.savefig(figname)
+           
+    if verbose: print 'Closing all plots'
+    pylab.close('all')
+    del pylab
+    if verbose: print 'Finished closing plots'
+
 
 def get_min_max_values(list=None,min1=100,max1=-100):
     """ Returns the min and max of the list it was provided.
@@ -1846,6 +2257,182 @@ def get_runup_data_for_locations_from_file(gauge_filename,
         temp = '%s,%s,%s \n' %(x_y[0], x_y[1], run_up)
         file.write(temp)
         file.close()
+
+def gauges_sww2csv(sww_file,
+                   gauge_file,
+                   quantities = ['stage', 'elevation', 'xmomentum', 'ymomentum'],
+                   verbose=False,
+                   use_cache = True):
+    """
+    
+    Inputs: 
+        
+        sww_file: ...
+        
+        points_file: Assumes that it follows this format
+            name, easting, northing, elevation
+            point1, 100.3, 50.2, 10.0
+            point2, 10.3, 70.3, 78.0
+        
+    Outputs:
+        one file for each gauge/point location in the points file. They
+        will be named with this format
+            gauge_<name>.csv    eg gauge_point1.csv
+            
+        They will all have a header
+    
+    Interpolate the quantities at a given set of locations, given
+    an sww file.
+    The results are written to a csv file.
+
+    In the future let points be a points file.
+    And the user choose the quantities.
+
+    This is currently quite specific.
+    If it need to be more general, chagne things.
+
+    This is really returning speed, not velocity.
+    """
+    from csv import reader,writer
+    from anuga.utilities.numerical_tools import ensure_numeric, mean, NAN
+    from Numeric import array, resize,shape,Float,zeros,take,argsort,argmin
+    import string
+    from anuga.shallow_water.data_manager import get_all_swwfiles
+#    quantities =  ['stage', 'elevation', 'xmomentum', 'ymomentum']
+    #print "points",points 
+
+    assert type(gauge_file) == type(''),\
+           'Gauge filename must be a string'
+    
+    try:
+    #    fid = open(gauge_file)
+        point_reader = reader(file(gauge_file))
+
+    except Exception, e:
+        msg = 'File "%s" could not be opened: Error="%s"'\
+                  %(gauge_file, e)
+        raise msg
+    if verbose: print '\n Gauges obtained from: %s \n' %gauge_filename
+    
+    
+    point_reader = reader(file(gauge_file))
+    points = []
+    point_name = []
+    
+    #skip header
+    point_reader.next()
+    #read point info from file
+    for i,row in enumerate(point_reader):
+#        print 'i',i,'row',row
+        points.append([float(row[1]),float(row[2])])
+        point_name.append(row[0])
+        
+    #convert to array for file_function
+    points_array = array(points,Float)
+        
+    points_array = ensure_absolute(points_array)
+
+    dir_name, base = os.path.split(sww_file)    
+#    print 'dirname',dir_name, base
+    if access(sww_file,R_OK):
+        if verbose: print 'File %s exists' %(sww_file)
+    else:
+        msg = 'File "%s" could not be opened: Error="%s"'\
+               %(sww_file, e)
+        raise msg
+
+    sww_files = get_all_swwfiles(look_in_dir=dir_name,
+                                 base_name=base,
+                                 verbose=verbose)
+    
+    #to make all the quantities lower case for file_function
+    quantities = [quantity.lower() for quantity in quantities]
+
+    # what is quantities are needed from sww file to calculate output quantities
+    # also 
+
+    core_quantities = ['stage', 'elevation', 'xmomentum', 'ymomentum']
+    
+    for sww_file in sww_files:
+    
+#        print 'sww_file',sww_file
+        sww_file = join(dir_name, sww_file+'.sww')
+#        print 'sww_file',sww_file, core_quantities
+        
+        callable_sww = file_function(sww_file,
+                                 quantities=core_quantities,
+                                 interpolation_points=points_array,
+                                 verbose=verbose,
+                                 use_cache=use_cache)
+
+    gauge_file='gauge_'
+
+    heading = [quantity for quantity in quantities]
+    heading.insert(0,'time')
+#    print heading, quantities
+
+    #create a list of csv writers for all the points and write header
+    points_writer = []
+    for i,point in enumerate(points):
+        points_writer.append(writer(file('gauge_'+point_name[i]+'.csv', "wb")))
+        points_writer[i].writerow(heading)
+
+    for time in callable_sww.get_time():
+       # points_list = []
+
+        for point_i, point in enumerate(points_array):
+            points_list = [time]
+#            print'time',time,'point_i',point_i,point, points_array
+            point_quantities = callable_sww(time,point_i)
+#            print "quantities", point_quantities
+            
+#            for i, quantity in enumerate(quantities):
+#                points_list.append(quantities)
+            for quantity in quantities:
+                if quantity==NAN:
+                    if verbose: print 'quantity does not exist in' %callable_sww.get_name
+                else:
+                    if quantity == 'stage':
+                        points_list.append(point_quantities[0])
+                        
+                    if quantity == 'elevation':
+                        points_list.append(point_quantities[1])
+                        
+                    if quantity == 'xmomentum':
+                        points_list.append(point_quantities[2])
+                        
+                    if quantity == 'ymomentum':
+                        points_list.append(point_quantities[3])
+                        
+                    if quantity == 'depth':
+                        points_list.append(point_quantities[0] - point_quantities[1])
+                        
+                        
+                    if quantity == 'momentum':
+                        momentum = sqrt(point_quantities[2]**2 +\
+                                        point_quantities[3]**2)
+                        points_list.append(momentum)
+                        
+                    if quantity == 'speed':
+                        #if depth is less than 0.001 then speed = 0.0
+                        if point_quantities[0] - point_quantities[1] < 0.001:
+                            vel = 0.0
+                        else:
+                            momentum = sqrt(point_quantities[2]**2 +\
+                                            point_quantities[3]**2)
+                            vel = momentum/depth              
+#                            vel = momentum/(depth + 1.e-6/depth)              
+                        
+                        points_list.append(vel)
+                        
+                    if quantity == 'bearing':
+                        points_list.append(calc_bearing(point_quantities[2],
+                                                        point_quantities[3]))
+                        
+                #print 'list',points_list
+                
+            points_writer[point_i].writerow(points_list)
+        
 
 
             
