@@ -1386,6 +1386,7 @@ def find_optimal_smoothing_parameter(data_file,
                                      east_boundary=None,
                                      west_boundary=None,
                                      plot_name='all_alphas',
+                                     split_factor=0.1,
                                      seed_num=None,
                                      cache=False,
                                      verbose=False
@@ -1476,7 +1477,7 @@ def find_optimal_smoothing_parameter(data_file,
     #split topo data
     G = Geospatial_data(file_name = data_file)
     if verbose: print 'start split'
-    G_small, G_other = G.split(0.1,seed_num, verbose=verbose)
+    G_small, G_other = G.split(split_factor,seed_num, verbose=verbose)
     if verbose: print 'finish split'
     points=G_small.get_data_points()
 
@@ -1557,9 +1558,7 @@ def find_optimal_smoothing_parameter(data_file,
     normal_cov_new=take(normal_cov,argsort(normal_cov0))
 
     if plot_name is not None:
-
         from pylab import savefig,semilogx,loglog
-   
         semilogx(normal_cov_new[:,0],normal_cov_new[:,1])
         loglog(normal_cov_new[:,0],normal_cov_new[:,1])
         savefig(plot_name,dpi=300)
