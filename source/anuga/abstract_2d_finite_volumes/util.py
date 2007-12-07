@@ -1503,9 +1503,9 @@ def csv2timeseries_graphs(directories_dic={},
                             create_latex=False,
                             verbose=False):
                                 
-    """
-    WARNING!! NO UNIT TESTS... could make some as to test filename..but have
+    """    WARNING!! NO UNIT TESTS... could make some as to test filename..but have
     spend ages on this already...
+    
     
     Read in csv files that have the right header information and
     plot time series such as Stage, Speed, etc. Will also plot several
@@ -1555,10 +1555,22 @@ def csv2timeseries_graphs(directories_dic={},
         
         OUTPUTS: None, it saves the plots to 
               <output_dir><base_name><plot_number><extra_plot_name>.png
+
+    Usage:  csv2timeseries_graphs({'J:'+sep+'anuga_validation'+sep:['new',20,-.1],
+                                   'J:'+sep+'conical_island'+sep:['test',0,0]},
+                                   output_dir='',
+                                   plot_numbers=['1','3'],
+                                   quantities=['stage','depth','bearing'],
+                                   base_name='gauge_b',
+                                   assess_all_csv_files=True,
+                                  verbose=True)    
+            This will produce one plot for each quantity (therefore 3) in the current directory, 
+            each plot will have 2 lines on them. The first plot named 'new' will have the time 
+            offseted by 20secs and the stage height adjusted by -0.1m
+
     
     """
-    import pylab# import plot, xlabel, ylabel, savefig, \
-                #ion, hold, axis, close, figure, legend
+    import pylab# 
     from os import sep
     from anuga.shallow_water.data_manager import \
                                get_all_files_with_extension, csv2dict
@@ -2281,6 +2293,10 @@ def gauges_sww2csv(sww_file,
             
         They will all have a header
     
+    Usage: gauges_sww2csv(sww_file='test1.sww',
+               quantities = ['stage', 'elevation','depth','bearing'],
+               gauge_file='gauge.txt')    
+    
     Interpolate the quantities at a given set of locations, given
     an sww file.
     The results are written to a csv file.
@@ -2292,6 +2308,8 @@ def gauges_sww2csv(sww_file,
     If it need to be more general, chagne things.
 
     This is really returning speed, not velocity.
+    
+    
     """
     from csv import reader,writer
     from anuga.utilities.numerical_tools import ensure_numeric, mean, NAN
