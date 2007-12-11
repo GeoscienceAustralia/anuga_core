@@ -106,20 +106,22 @@ class Test_Quantity(unittest.TestCase):
         quantity.extrapolate_second_order()
 
         #print quantity.vertex_values
-        #assert allclose(quantity.vertex_values, [[2., 2., 2.],
-        #                                         [3.+2./3, 6.+2./3, 4.+2./3],
-        #                                         [7.5, 0.5, 1.],
-        #                                         [-5, -2.5, 7.5]])
-
-        assert allclose(quantity.vertex_values[1,:],[3.+2./3, 6.+2./3, 4.+2./3])
-        #FIXME: Work out the others
-
+        assert allclose(quantity.vertex_values, [[3.5, -1.0, 3.5],
+                                                 [3.+2./3, 6.+2./3, 4.+2./3],
+                                                 [4.6, 3.4, 1.],
+                                                 [-5.0, 1.0, 4.0]])
 
         #print quantity.edge_values
-        assert allclose(quantity.edge_values, [[2.5, 2.0, 1.5],
-                                               [5., 5., 5.],
-                                               [4.5, 4.5, 0.],
-                                               [3.0, -1.5, -1.5]])
+        assert allclose(quantity.edge_values, [[1.25, 3.5, 1.25],
+                                               [5. + 2/3.0, 4.0 + 1.0/6, 5.0 + 1.0/6],
+                                               [2.2, 2.8, 4.0],
+                                               [2.5, -0.5, -2.0]])
+
+
+        #assert allclose(quantity.edge_values, [[2.5, 2.0, 1.5],
+        #                                       [5., 5., 5.],
+        #                                       [4.5, 4.5, 0.],
+        #                                       [3.0, -1.5, -1.5]])
 
     def test_get_extrema_1(self):
         quantity = Conserved_quantity(self.mesh4,

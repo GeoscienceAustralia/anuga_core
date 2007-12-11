@@ -2415,7 +2415,7 @@ PyObject *h_limiter(PyObject *self, PyObject *args) {
   }
 
   // Call underlying standard routine
-  _limit(N, beta_h, (double*) hc -> data, (double*) hvbar -> data, hmin, hmax);
+  _limit_old(N, beta_h, (double*) hc -> data, (double*) hvbar -> data, hmin, hmax);
 
   // // //Py_DECREF(domain); //FIXME: Necessary?
   free(hmin);

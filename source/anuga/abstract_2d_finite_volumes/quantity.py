@@ -1326,15 +1326,17 @@ class Quantity:
 
     def extrapolate_first_order(self):
         """Extrapolate conserved quantities from centroid to
-        vertices for each volume using
+        vertices and edges for each volume using
         first order scheme.
         """
 
         qc = self.centroid_values
         qv = self.vertex_values
+        qe = self.edge_values
 
         for i in range(3):
             qv[:,i] = qc
+            qe[:,i] = qc
 
 
     def get_integral(self):
@@ -1390,15 +1392,29 @@ class Conserved_quantity(Quantity):
         #(either from this module or C-extension)
         return compute_gradients(self)
 
+
     def limit(self):
-        #Call correct module function
-        #(either from this module or C-extension)
-        limit(self)
+        #Call correct module depending on whether
+        #basing limit calculations on edges or vertices
+        limit_old(self)
+
+
+##     def limit_by_vertex(self):
+##         #Call correct module function
+##         #(either from this module or C-extension)
+##         limit_by_vertex()
+
+
+##     def limit_by_edge(self):
+##         #Call correct module function
+##         #(either from this module or C-extension)
+##         limit_by_edge()        
 
     def extrapolate_second_order(self):
         #Call correct module function
         #(either from this module or C-extension)
         extrapolate_second_order(self)
+
 
     def backup_centroid_values(self):
         #Call correct module function
@@ -1416,11 +1432,15 @@ from anuga.utilities import compile
 if compile.can_use_C_extension('quantity_ext.c'):    
     # Underlying C implementations can be accessed 
 
-    from quantity_ext import average_vertex_values, backup_centroid_values, \
-         saxpy_centroid_values
-
-    from quantity_ext import compute_gradients, limit,\
-    extrapolate_second_order, interpolate_from_vertices_to_edges, update    
+    from quantity_ext import \
+         average_vertex_values,\
+         backup_centroid_values,\
+         saxpy_centroid_values,\
+         compute_gradients,\
+         limit_old,\
+         extrapolate_second_order,\
+         interpolate_from_vertices_to_edges,\
+         update    
 else:
     msg = 'C implementations could not be accessed by %s.\n ' %__file__
     msg += 'Make sure compile_all.py has been run as described in '

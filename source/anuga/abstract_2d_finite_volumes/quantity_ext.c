@@ -97,6 +97,7 @@ int _extrapolate(int N,
 		 double* centroid_values,
 		 double* vertex_coordinates,
 		 double* vertex_values,
+		 double* edge_values,
 		 double* a,
 		 double* b) {
 
@@ -124,6 +125,11 @@ int _extrapolate(int N,
 		vertex_values[k3+0] = centroid_values[k] + a[k]*(x0-x) + b[k]*(y0-y);
 		vertex_values[k3+1] = centroid_values[k] + a[k]*(x1-x) + b[k]*(y1-y);
 		vertex_values[k3+2] = centroid_values[k] + a[k]*(x2-x) + b[k]*(y2-y);
+
+
+		edge_values[k3+0] = 0.5*(vertex_values[k3 + 1]+vertex_values[k3 + 2]);
+		edge_values[k3+1] = 0.5*(vertex_values[k3 + 2]+vertex_values[k3 + 0]);
+		edge_values[k3+2] = 0.5*(vertex_values[k3 + 0]+vertex_values[k3 + 1]);
 
 	}
 	return 0;
@@ -594,13 +600,14 @@ PyObject *extrapolate_second_order(PyObject *self, PyObject *args) {
 
 	PyObject *quantity, *domain;
 	PyArrayObject
-		*centroids,            //Coordinates at centroids
-		*centroid_values,      //Values at centroids
-		*vertex_coordinates,   //Coordinates at vertices
-		*vertex_values,        //Values at vertices
-		*number_of_boundaries, //Number of boundaries for each triangle
-		*surrogate_neighbours, //True neighbours or - if one missing - self
-		*a, *b;                //Gradients
+	    *centroids,            //Coordinates at centroids
+	    *centroid_values,      //Values at centroids
+	    *vertex_coordinates,   //Coordinates at vertices
+	    *vertex_values,        //Values at vertices
+	    *edge_values,          //Values at edges
+	    *number_of_boundaries, //Number of boundaries for each triangle
+	    *surrogate_neighbours, //True neighbours or - if one missing - self
+	    *a, *b;                //Gradients
 
 	//int N, err;
 	int dimensions[1], N, err;
@@ -621,12 +628,13 @@ PyObject *extrapolate_second_order(PyObject *self, PyObject *args) {
 	}
 
 	// Get pertinent variables
-	centroids = get_consecutive_array(domain, "centroid_coordinates");
-	centroid_values = get_consecutive_array(quantity, "centroid_values");
-	surrogate_neighbours = get_consecutive_array(domain, "surrogate_neighbours");
-	number_of_boundaries = get_consecutive_array(domain, "number_of_boundaries");
-	vertex_coordinates = get_consecutive_array(domain, "vertex_coordinates");
-	vertex_values = get_consecutive_array(quantity, "vertex_values");
+	centroids            = get_consecutive_array(domain,   "centroid_coordinates");
+	centroid_values      = get_consecutive_array(quantity, "centroid_values");
+	surrogate_neighbours = get_consecutive_array(domain,   "surrogate_neighbours");
+	number_of_boundaries = get_consecutive_array(domain,   "number_of_boundaries");
+	vertex_coordinates   = get_consecutive_array(domain,   "vertex_coordinates");
+	vertex_values        = get_consecutive_array(quantity, "vertex_values");
+	edge_values          = get_consecutive_array(quantity, "edge_values");
 
 	N = centroid_values -> dimensions[0];
 
@@ -664,6 +672,7 @@ PyObject *extrapolate_second_order(PyObject *self, PyObject *args) {
 			(double*) centroid_values -> data,
 			(double*) vertex_coordinates -> data,
 			(double*) vertex_values -> data,
+			(double*) edge_values -> data,
 			(double*) a -> data,
 			(double*) b -> data);
 
@@ -683,6 +692,7 @@ PyObject *extrapolate_second_order(PyObject *self, PyObject *args) {
 	Py_DECREF(surrogate_neighbours);
 	Py_DECREF(vertex_coordinates);
 	Py_DECREF(vertex_values);
+	Py_DECREF(edge_values);
 	Py_DECREF(a);
 	Py_DECREF(b);
 
@@ -691,7 +701,7 @@ PyObject *extrapolate_second_order(PyObject *self, PyObject *args) {
 
 
 
-PyObject *limit(PyObject *self, PyObject *args) {
+PyObject *limit_old(PyObject *self, PyObject *args) {
   //Limit slopes for each volume to eliminate artificial variance
   //introduced by e.g. second order extrapolator
 
@@ -706,9 +716,9 @@ PyObject *limit(PyObject *self, PyObject *args) {
 
 	PyObject *quantity, *domain, *Tmp;
 	PyArrayObject
-		*qv, //Conserved quantities at vertices
-		*qc, //Conserved quantities at centroids
-		*neighbours;
+	    *qv, //Conserved quantities at vertices
+	    *qc, //Conserved quantities at centroids
+	    *neighbours;
 
 	int k, i, n, N, k3;
 	double beta_w; //Safety factor
@@ -717,14 +727,14 @@ PyObject *limit(PyObject *self, PyObject *args) {
 	// Convert Python arguments to C
 	if (!PyArg_ParseTuple(args, "O", &quantity)) {
 	  PyErr_SetString(PyExc_RuntimeError, 
-			  "quantity_ext.c: limit could not parse input");
+			  "quantity_ext.c: limit_old could not parse input");
 	  return NULL;
 	}
 
 	domain = PyObject_GetAttrString(quantity, "domain");
 	if (!domain) {
 	  PyErr_SetString(PyExc_RuntimeError, 
-			  "quantity_ext.c: limit could not obtain domain object from quantity");		  	
+			  "quantity_ext.c: limit_old could not obtain domain object from quantity");		  	
 	  
 	  return NULL;
 	}
@@ -736,7 +746,7 @@ PyObject *limit(PyObject *self, PyObject *args) {
 	Tmp = PyObject_GetAttrString(domain, "beta_w");
 	if (!Tmp) {
 	  PyErr_SetString(PyExc_RuntimeError, 
-			  "quantity_ext.c: limit could not obtain beta_w object from domain");		  	
+			  "quantity_ext.c: limit_old could not obtain beta_w object from domain");		  	
 	  
 	  return NULL;
 	}	
@@ -776,7 +786,7 @@ PyObject *limit(PyObject *self, PyObject *args) {
 	}
 
 	// Call underlying routine
-	_limit(N, beta_w, (double*) qc -> data, (double*) qv -> data, qmin, qmax);
+	_limit_old(N, beta_w, (double*) qc -> data, (double*) qv -> data, qmin, qmax);
 
 	free(qmin);
 	free(qmax);
@@ -787,7 +797,7 @@ PyObject *limit(PyObject *self, PyObject *args) {
 
 // Method table for python module
 static struct PyMethodDef MethodTable[] = {
-	{"limit", limit, METH_VARARGS, "Print out"},
+	{"limit_old", limit_old, METH_VARARGS, "Print out"},
 	{"update", update, METH_VARARGS, "Print out"},
 	{"backup_centroid_values", backup_centroid_values, METH_VARARGS, "Print out"},
 	{"saxpy_centroid_values", saxpy_centroid_values, METH_VARARGS, "Print out"},
