@@ -261,11 +261,8 @@ class Fit(FitInterpolate):
         else:
              AtA = self.AtA #Did this for speed, did ~nothing
         self.point_count += point_coordinates.shape[0]
-        #print "_build_matrix_AtA_Atz - self.point_count", self.point_count
-        if verbose: print 'Getting indices inside mesh boundary'
-        #print 'point_coordinates.shape', point_coordinates.shape         
-        #print 'self.mesh.get_boundary_polygon()',\
-        #      self.mesh.get_boundary_polygon()
+
+        #if verbose: print 'Getting indices inside mesh boundary'
 
         inside_poly_indices, outside_poly_indices  = \
                      in_and_outside_polygon(point_coordinates,
@@ -280,8 +277,8 @@ class Fit(FitInterpolate):
         #Compute matrix elements for points inside the mesh
         triangles = self.mesh.triangles #Did this for speed, did ~nothing
         for d, i in enumerate(inside_poly_indices):
-            #For each data_coordinate point
-            if verbose and d%((n+10)/10)==0: print 'Doing %d of %d' %(d, n)
+            # For each data_coordinate point
+            # if verbose and d%((n+10)/10)==0: print 'Doing %d of %d' %(d, n)
             x = point_coordinates[i]
             element_found, sigma0, sigma1, sigma2, k = \
                            search_tree_of_vertices(self.root, self.mesh, x)

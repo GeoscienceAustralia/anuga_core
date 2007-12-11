@@ -72,7 +72,7 @@ def inside_polygon(points, polygon, closed=True, verbose=False):
        a list or a numeric array
     """
 
-    if verbose: print 'Checking input to inside_polygon'
+    #if verbose: print 'Checking input to inside_polygon'
 
     try:
         points = ensure_absolute(points)
@@ -136,7 +136,7 @@ def outside_polygon(points, polygon, closed = True, verbose = False):
        See separate_points_by_polygon for documentation
     """
 
-    if verbose: print 'Checking input to outside_polygon'
+    #if verbose: print 'Checking input to outside_polygon'
     try:
         points = ensure_numeric(points, Float)
     except NameError, e:
@@ -178,7 +178,7 @@ def in_and_outside_polygon(points, polygon, closed = True, verbose = False):
        Returns an array of points inside and an array of points outside the polygon
     """
 
-    if verbose: print 'Checking input to outside_polygon'
+    #if verbose: print 'Checking input to outside_polygon'
     try:
         points = ensure_numeric(points, Float)
     except NameError, e:
@@ -257,7 +257,7 @@ def separate_points_by_polygon(points, polygon,
     """
 
 
-    if verbose: print 'Checking input to separate_points_by_polygon'
+    #if verbose: print 'Checking input to separate_points_by_polygon'
 
 
     #Input checks
@@ -301,12 +301,7 @@ def separate_points_by_polygon(points, polygon,
     M = points.shape[0]  #Number of points
 
 
-
-    if verbose: print 'Allocating array for indices'
-
     indices = zeros( M, Int )
-
-    #if verbose: print 'Calling C-version of inside poly'
 
     from polygon_ext import separate_points_by_polygon as sep_points
     count = sep_points(points, polygon, indices,
@@ -429,7 +424,7 @@ def poly_xy(polygon, verbose=False):
         the first point so can have closed polygon in plot
     """
 
-    if verbose: print 'Checking input to poly_xy'
+    #if verbose: print 'Checking input to poly_xy'
 
     try:
         polygon = ensure_numeric(polygon, Float)
