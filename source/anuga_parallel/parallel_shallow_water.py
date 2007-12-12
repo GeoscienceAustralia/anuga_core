@@ -151,8 +151,8 @@ class Parallel_Domain(Domain):
         if use_reduce_broadcast:
             t0 = time.time()
             pypar.reduce(self.local_timestep, pypar.MIN, 0,
-                         buffer=self.global_timestep,
-                         bypass=True)
+                         buffer=self.global_timestep)#,
+                         #bypass=True)
 
         else:
             #Alternative: Try using straight send and receives
@@ -177,8 +177,8 @@ class Parallel_Domain(Domain):
 
         #Broadcast minimal timestep to all
         t0 = time.time()
-        pypar.broadcast(self.global_timestep, 0,
-                        bypass=True)
+        pypar.broadcast(self.global_timestep, 0)#,
+                        #bypass=True)
 
         self.communication_broadcast_time += time.time()-t0
 

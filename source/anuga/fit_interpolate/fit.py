@@ -267,13 +267,15 @@ class Fit(FitInterpolate):
         inside_poly_indices, outside_poly_indices  = \
                      in_and_outside_polygon(point_coordinates,
                                             self.mesh_boundary_polygon,
-                                            closed = True, verbose = verbose)
+                                            closed = True,
+                                            verbose = False) # There's too much output if True
         #print "self.inside_poly_indices",self.inside_poly_indices
         #print "self.outside_poly_indices",self.outside_poly_indices
 
         
         n = len(inside_poly_indices)
-        if verbose: print 'Building fitting matrix from %d points' %n        
+        #if verbose: print 'Building fitting matrix from %d points' %n        
+
         #Compute matrix elements for points inside the mesh
         triangles = self.mesh.triangles #Did this for speed, did ~nothing
         for d, i in enumerate(inside_poly_indices):
@@ -346,6 +348,8 @@ class Fit(FitInterpolate):
                     # for pts files as they are reported in geospatial_data
                     # I suggest deleting this verbose output and make
                     # Geospatial_data more informative for txt files.
+                    #
+                    # I still think so (12/12/7, Ole).
             
 
                     
