@@ -229,6 +229,11 @@ class Quantity:
         #(either from this module or C-extension)
         interpolate_from_vertices_to_edges(self)
 
+    def interpolate_from_edges_to_vertices(self):
+        #Call correct module function
+        #(either from this module or C-extension)
+        interpolate_from_edges_to_vertices(self)
+
 
 
 
@@ -1399,16 +1404,16 @@ class Conserved_quantity(Quantity):
         limit_old(self)
 
 
-##     def limit_by_vertex(self):
-##         #Call correct module function
-##         #(either from this module or C-extension)
-##         limit_by_vertex()
+    def limit_by_vertex(self):
+        #Call correct module function
+        #(either from this module or C-extension)
+        limit_by_vertex(self)
 
 
-##     def limit_by_edge(self):
-##         #Call correct module function
-##         #(either from this module or C-extension)
-##         limit_by_edge()        
+    def limit_by_edge(self):
+        #Call correct module function
+        #(either from this module or C-extension)
+        limit_by_edge(self)        
 
     def extrapolate_second_order(self):
         #Call correct module function
@@ -1438,8 +1443,11 @@ if compile.can_use_C_extension('quantity_ext.c'):
          saxpy_centroid_values,\
          compute_gradients,\
          limit_old,\
+         limit_by_vertex,\
+         limit_by_edge,\
          extrapolate_second_order,\
          interpolate_from_vertices_to_edges,\
+         interpolate_from_edges_to_vertices,\
          update    
 else:
     msg = 'C implementations could not be accessed by %s.\n ' %__file__

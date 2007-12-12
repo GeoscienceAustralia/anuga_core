@@ -1444,7 +1444,7 @@ class Test_Quantity(unittest.TestCase):
 
 
 
-    def test_limiter(self):
+    def test_vertex_limiter(self):
         quantity = Conserved_quantity(self.mesh4)
 
         #Create a deliberate overshoot (e.g. from gradient computation)
@@ -1452,7 +1452,7 @@ class Test_Quantity(unittest.TestCase):
 
 
         #Limit
-        quantity.limit()
+        quantity.limit_by_vertex()
 
         #Assert that central triangle is limited by neighbours
         assert quantity.vertex_values[1,0] >= quantity.vertex_values[0,0]
@@ -1463,6 +1463,36 @@ class Test_Quantity(unittest.TestCase):
 
         assert quantity.vertex_values[1,2] <= quantity.vertex_values[2,0]
         assert quantity.vertex_values[1,2] <= quantity.vertex_values[3,1]
+
+
+
+        #Assert that quantities are conserved
+        from Numeric import sum
+        for k in range(quantity.centroid_values.shape[0]):
+            assert allclose (quantity.centroid_values[k],
+                             sum(quantity.vertex_values[k,:])/3)
+
+
+
+    def test_edge_limiter(self):
+        quantity = Conserved_quantity(self.mesh4)
+
+        #Create a deliberate overshoot (e.g. from gradient computation)
+        quantity.set_values([[3,0,3], [2,2,6], [5,3,8], [8,3,5]])
+
+
+        #Limit
+        quantity.limit_by_edge()
+
+        #Assert that central triangle is limited by neighbours
+        assert quantity.edge_values[1,0] <= quantity.centroid_values[2]
+        assert quantity.edge_values[1,0] >= quantity.centroid_values[0]
+
+        assert quantity.edge_values[1,1] <= quantity.centroid_values[2]
+        assert quantity.edge_values[1,1] >= quantity.centroid_values[0]
+
+        assert quantity.edge_values[1,2] <= quantity.centroid_values[2]
+        assert quantity.edge_values[1,2] <= quantity.centroid_values[0]
 
 
 
@@ -1517,16 +1547,44 @@ class Test_Quantity(unittest.TestCase):
         assert allclose(quantity.centroid_values, [1, 2, 3, 4]) #Centroid
 
 
-        #Extrapolate
+        #Extrapolate from centroid to vertices and edges
         quantity.extrapolate_first_order()
 
         #Interpolate
-        quantity.interpolate_from_vertices_to_edges()
+        #quantity.interpolate_from_vertices_to_edges()
 
         assert allclose(quantity.vertex_values,
                         [[1,1,1], [2,2,2], [3,3,3], [4, 4, 4]])
         assert allclose(quantity.edge_values, [[1,1,1], [2,2,2],
                                                [3,3,3], [4, 4, 4]])
+
+
+    def test_interpolate_from_vertices_to_edges(self):
+        quantity = Quantity(self.mesh4)
+
+        quantity.vertex_values = array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]],Float)
+
+        quantity.interpolate_from_vertices_to_edges()
+
+        assert allclose(quantity.edge_values, [[1., 1.5, 0.5],
+                                               [3., 2.5, 1.5],
+                                               [3.5, 4.5, 3.],
+                                               [2.5, 3.5, 2]])
+
+
+    def test_interpolate_from_edges_to_vertices(self):
+        quantity = Quantity(self.mesh4)
+
+        quantity.edge_values = array([[1., 1.5, 0.5],
+                                [3., 2.5, 1.5],
+                                [3.5, 4.5, 3.],
+                                [2.5, 3.5, 2]],Float)
+
+        quantity.interpolate_from_edges_to_vertices()
+
+        assert allclose(quantity.vertex_values,
+                        [[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
+
 
 
     def test_distribute_second_order(self):
