@@ -1310,7 +1310,7 @@ class Test_Util(unittest.TestCase):
         
         assert min1==1 
         assert max1==9
-
+        
     def test_get_min_max_values1(self):
         
         list=[-8,-9,-6,-1,-4]
@@ -1624,7 +1624,19 @@ point2, 0.5, 2.0\n")
         os.remove(points_file)
         os.remove(point1_filename)
         os.remove(point2_filename)
+
+    def test_greens_law(self):
+
+        from math import sqrt
         
+        d1 = 80.0
+        d2 = 20.0
+        h1 = 1.0
+        h2 = greens_law(d1,d2,h1)
+
+        assert h2==sqrt(2.0)
+       
+
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Util,'test')

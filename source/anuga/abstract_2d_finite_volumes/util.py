@@ -2452,8 +2452,44 @@ def gauges_sww2csv(sww_file,
             points_writer[point_i].writerow(points_list)
         
 
+def greens_law(d1,d2,h1,verbose=False):
+    """
 
-            
+    Green's Law allows an approximation of wave amplitude at
+    a given depth based on the fourh root of the ratio of two depths
+    and the amplitude at another given depth.
 
+    Note, wave amplitude is equal to stage.
     
+    Inputs:
+
+    d1, d2 - the two depths
+    h1     - the wave amplitude at d1
+    h2     - the derived amplitude at d2
+
+    h2 = h1 (d1/d2)^(1/4), where d2 cannot equal 0.
+    
+    """
+
+    d1 = ensure_numeric(d1)
+    d2 = ensure_numeric(d2)
+    h1 = ensure_numeric(h1)
+
+    if d1 <= 0.0:
+        msg = 'the first depth, d1 (%f), must be strictly positive' %(d1)
+        raise Exception(msg)
+
+    if d2 <= 0.0:
+        msg = 'the second depth, d2 (%f), must be strictly positive' %(d2)
+        raise Exception(msg)
+    
+    if h1 <= 0.0:
+        msg = 'the wave amplitude, h1 (%f), must be strictly positive' %(h1)
+        raise Exception(msg)
+    
+    h2 = h1*(d1/d2)**0.25
+
+    assert h2 > 0
+    
+    return h2
         
