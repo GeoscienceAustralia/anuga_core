@@ -228,7 +228,7 @@ def _create_mesh_from_regions(bounding_polygon,
 
     # Do bounding polygon
     m.add_region_from_polygon(bounding_polygon,
-                              tags=boundary_tags,
+                              segment_tags=boundary_tags,
                               geo_reference=poly_geo_reference)
 
     # Find one point inside region automatically

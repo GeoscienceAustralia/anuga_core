@@ -1904,7 +1904,8 @@ END\n")
     def test_add_region_from_polygon(self):
         m=Mesh()
         region = m.add_region_from_polygon([[0,0],[1,0],[0,1]],
-                                  max_triangle_area = 88)
+                                  max_triangle_area = 88,
+                                           region_tag='cassady')
         self.failUnless(len(m.regions)==1,
                         'FAILED!')
         self.failUnless(region.getMaxArea()==88,
@@ -1912,6 +1913,8 @@ END\n")
         self.failUnless(len(m.getUserSegments())==3,
                         'FAILED!')
         self.failUnless(len(m.userVertices)==3,
+                        'FAILED!')
+        self.failUnless(region.getTag()=='cassady',
                         'FAILED!')
        
     def test_add_region_from_polygon2(self):
@@ -2136,7 +2139,7 @@ END\n")
         
         #m.export_mesh_file("aaat.msh")
         
-    def FIXMEtest_auto_set_geo_reference(self):
+    def NOTIMPLEMENTEDtest_auto_set_geo_reference(self):
         x=50000
         y=1000
         m=Mesh(geo_reference=Geo_reference(56,x,y))

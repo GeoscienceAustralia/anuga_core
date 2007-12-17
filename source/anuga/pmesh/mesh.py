@@ -730,7 +730,8 @@ class Mesh:
             v=Vertex(point[0], point[1])
             self.userVertices.append(v)
             
-    def add_hole_from_polygon(self, polygon, tags=None, geo_reference=None):
+    def add_hole_from_polygon(self, polygon, segment_tags=None,
+                              geo_reference=None):
         """
         Add a polygon with tags to the current mesh, as a region.
         The maxArea of the region can be specified.
@@ -747,14 +748,16 @@ class Mesh:
         This returns the region instance, so if the user whats to modify
         it they can.       
         """
-        return self._add_area_from_polygon(polygon, tags=tags,
+        return self._add_area_from_polygon(polygon,
+                                           segment_tags=segment_tags,
                                            hole=True,
                                            geo_reference=geo_reference
                                            )
 
         
-    def add_region_from_polygon(self, polygon, tags=None,
-                                max_triangle_area=None, geo_reference=None):
+    def add_region_from_polygon(self, polygon, segment_tags=None,
+                                max_triangle_area=None, geo_reference=None,
+                                region_tag=None):
         """
         Add a polygon with tags to the current mesh, as a region.
         The maxArea of the region can be specified.
@@ -766,7 +769,9 @@ class Mesh:
 
         polygon a list of points, in meters that describe the polygon
              (e.g. [[x1,y1],[x2,y2],...]
-        tags (e.g.{'wall':[0,1,3],'ocean':[2]})
+        segment_tags (e.g.{'wall':[0,1,3],'ocean':[2]}) add tags to the
+        segements of the region
+        region_tags  - add a tag to all of the triangles in the region.
 
         This returns the region instance (if a max_triangle_area is given),
         so if the user whats to modify it they can.     
@@ -776,15 +781,20 @@ class Mesh:
         else:
             create_region = True
             
-        region = self._add_area_from_polygon(polygon, tags=tags,
+        region = self._add_area_from_polygon(polygon,
+                                             segment_tags=segment_tags,
                                              geo_reference=geo_reference,
                                              region=create_region)
         if max_triangle_area is not None:
             region.setMaxArea(max_triangle_area)
+        if region_tag is not None:
+            region.setTag(region_tag)
+        
+        
         return region
     
         
-    def _add_area_from_polygon(self, polygon, tags=None,
+    def _add_area_from_polygon(self, polygon, segment_tags=None,
                                geo_reference=None,
                                hole=False,
                                region=False):
@@ -799,7 +809,8 @@ class Mesh:
 
         polygon a list of points, in meters that describe the polygon
              (e.g. [[x1,y1],[x2,y2],...]
-        tags (e.g.{'wall':[0,1,3],'ocean':[2]})
+        segment_tags (e.g.{'wall':[0,1,3],'ocean':[2]})add tags to the
+        segements of the region.
 
         This returns the region instance, so if the user whats to modify
         it they can.
@@ -830,7 +841,7 @@ class Mesh:
             hi = (lo + 1) % N
             segments.append( [lo, hi] ) 
         region_dict['segments'] = segments
-        region_dict['segment_tags'] = self._tag_dict2list(tags, N)
+        region_dict['segment_tags'] = self._tag_dict2list(segment_tags, N)
        
     
         self.addVertsSegs(region_dict) #this is passing absolute values
@@ -902,7 +913,7 @@ class Mesh:
         # build the tags
         tags = {tag:range(segment_count)}
         
-        return self._add_area_from_polygon(polygon, tags=tags,
+        return self._add_area_from_polygon(polygon, segment_tags=tags,
                                            region=region, hole=hole,
                                            geo_reference=center_geo_reference)
 
