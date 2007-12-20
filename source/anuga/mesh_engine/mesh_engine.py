@@ -121,6 +121,7 @@ def generate_mesh(points=None,
     #print "pointatts", pointatts
     #print "segatts", segatts
     #print "mode", mode
+    #print "yeah" 
     mesh_dict = triang.genMesh(points,segments,holes,regions,
                           pointatts,segatts, mode, segments.flat)
     mesh_dict['qaz'] = 1 #debugging

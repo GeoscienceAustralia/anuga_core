@@ -41,7 +41,7 @@ class triangTestCase(unittest.TestCase):
         seglist = test = ensure_numeric(seglist, Int)
         data = triang.genMesh(points,seglist,holelist,regionlist,
                               pointattlist,segattlist, mode, test)
-
+        print "data", data
         self.failUnless(data['generatedtrianglelist'] ==[(1, 0, 2), (2, 3, 1)],
                         'trianglelist is wrong!')
         self.failUnless(data['generatedsegmentlist'] ==[(0, 1), (1, 3),

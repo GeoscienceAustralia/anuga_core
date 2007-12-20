@@ -7,8 +7,8 @@
 /*
 
     This code interfaces pmesh directly with "triangle", a general        
-    purpose triangulation code. In doing so, Python Numeric data structures          
-    are passed to C for  use by "triangle" and the results are then          
+    purpose triangulation code. In doing so, Python Numeric data structures
+     are passed to C for  use by "triangle" and the results are then          
     converted back. This was accomplished using the Python/C API.            
                                                                            
     I. Arrays of points,edges,holes, and regions must normally be 
@@ -34,7 +34,10 @@
      the overall memory use.  Anyhow, I delete the lists that are 
      returned in the dic structre after they are used now, in alpha
      shape and mesh_engine.
-     
+
+     to return numeric arrays, check how it is done in 
+     quantity_ext.c compute_gradients
+          
      Precondition
      End list in the pointattributelist has to have the same length
      
@@ -82,8 +85,15 @@ extern "C" void free();
   PyArrayObject *pointattributelist;
   PyArrayObject *segmarkerlist;
   PyArrayObject *test;
+  
+  
+  PyArrayObject *r_test;
+  PyObject *R;
+
+  int dimensions[1];
+    
   REAL Attr;
-  int i, j, iatt, n, write_here;
+  int i, j, iatt, n, write_here,N;
   int a,b,c;
   int marker;
   int tuplesize;
@@ -319,6 +329,14 @@ extern "C" void free();
     PyDict_SetItem(holder, ii, holderlist);
     Py_DECREF(ii); Py_DECREF(holderlist);
   }   
+  /*
+  // Testing passing a numeric array out
+  dimensions[0] = 4;
+  // Allocate space for return vectors a and b (don't DECREF)
+  // This is crashing - don't know why
+  r_test = (PyArrayObject *) PyArray_FromDims(1, dimensions, PyArray_DOUBLE);
+  */ 
+  
   /* Free in/out structure memory */
   
   /* OUT */
@@ -364,7 +382,9 @@ extern "C" void free();
   }
   
   /*Py_DECREF(holder);*/
-  return Py_BuildValue((char *)"O", holder);
+  R = Py_BuildValue((char *)"O", holder);
+  /*Py_DECREF(holder);* Try this to fix memory problems */
+  return R;
 }
 
 /* end of my function*/
