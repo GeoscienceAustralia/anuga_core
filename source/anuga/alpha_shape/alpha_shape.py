@@ -226,15 +226,6 @@ class Alpha_Shape:
         #print "alpha boundary edges ", self.boundary
         self._init_boundary_triangles()
         
-        del tridata['generatedtriangleneighborlist']
-        del tridata['generatedpointmarkerlist']
-        del tridata['generatedpointlist']
-        #del tridata['generatedpointattributetitlelist']
-        del tridata['generatedsegmentlist']
-        del tridata['generatedsegmentmarkerlist']
-        del tridata['generatedtrianglelist']
-        del tridata['generatedtriangleattributelist']
-        del tridata['generatedpointattributelist']
         return
 
     def _tri_circumradius(self):

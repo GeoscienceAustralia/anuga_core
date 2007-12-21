@@ -122,9 +122,10 @@ def generate_mesh(points=None,
     #print "segatts", segatts
     #print "mode", mode
     #print "yeah" 
-    mesh_dict = triang.genMesh(points,segments,holes,regions,
+    mesh_dict, r_test = triang.genMesh(points,segments,holes,regions,
                           pointatts,segatts, mode, segments.flat)
     mesh_dict['qaz'] = 1 #debugging
+    ##print "r_test", r_test
     return mesh_dict
 
 def add_area_tag(regions):

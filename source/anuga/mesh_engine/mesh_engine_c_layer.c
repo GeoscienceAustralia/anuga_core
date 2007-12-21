@@ -61,8 +61,12 @@ extern "C" void free();
 
 #include "Python.h" 
 
-#include "Numeric/arrayobject.h"
+//#define PY_ARRAY_UNIQUE_SYMBOL API_YEAH 
 
+#define PY_ARRAY_UNIQUE_SYMBOL API_YEAH
+//#define NO_IMPORT_ARRAY
+#include "Numeric/arrayobject.h"
+#include <sys/types.h>
 
  static PyObject *triang_genMesh(PyObject *self, PyObject *args){
      
@@ -213,7 +217,24 @@ extern "C" void free();
   
   /*printf("\n\nTriangulate input args: %s \n\n", mod); */
   triangulate(mod, &in, &out, (struct triangulateio *)NULL );
-
+  
+  
+  /*
+  PyArray_FromDims allolws you to create a Numeric array with unitialized data.
+   The first argument is the size of the second argument (
+   the dimensions array).
+    The dimension array argument is just a 1D C array where each element of
+     the array is the size of that dimension. 
+     (int dimensions[2] = { 4, 3 }; defines a 4 by 3 array.) 
+     The third argument is just the desired type.
+  */
+  
+  //Py_Initialize();
+  // Testing passing a numeric array out
+  dimensions[0] = 4;
+  // Allocate space for return vectors a and b (don't DECREF)
+  r_test = (PyArrayObject *) PyArray_FromDims(1, dimensions, PyArray_DOUBLE);
+  
   /* printf(" ***  back from triangulate\n" );    */
   /*
     ------- Pass point numbers,coordinates and neighbors back to Python ------
@@ -329,13 +350,8 @@ extern "C" void free();
     PyDict_SetItem(holder, ii, holderlist);
     Py_DECREF(ii); Py_DECREF(holderlist);
   }   
-  /*
-  // Testing passing a numeric array out
-  dimensions[0] = 4;
-  // Allocate space for return vectors a and b (don't DECREF)
-  // This is crashing - don't know why
-  r_test = (PyArrayObject *) PyArray_FromDims(1, dimensions, PyArray_DOUBLE);
-  */ 
+  
+  
   
   /* Free in/out structure memory */
   
@@ -381,9 +397,10 @@ extern "C" void free();
     free(out.regionlist); out.regionlist=NULL;
   }
   
-  /*Py_DECREF(holder);*/
-  R = Py_BuildValue((char *)"O", holder);
-  /*Py_DECREF(holder);* Try this to fix memory problems */
+  /* R = Py_BuildValue((char *)"O", holder); */
+  R = Py_BuildValue((char *)"OO", holder, PyArray_Return(r_test));
+  Py_DECREF(holder); /** This fixed a  memory problem ticket#189 */
+  Py_DECREF(r_test);
   return R;
 }
 
@@ -396,4 +413,6 @@ static PyMethodDef triang_methods[] = {
 
 void initmesh_engine_c_layer(){
   Py_InitModule((char *)"mesh_engine_c_layer",triang_methods);
+  
+  import_array(); // Necessary for handling of NumPY structures
 }    

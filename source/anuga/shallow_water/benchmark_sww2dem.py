@@ -1,4 +1,4 @@
-"""Least squares smooting and interpolation.
+"""Least squares smoothing and interpolation.
 
    measure the speed of least squares.
 
@@ -24,7 +24,7 @@ import tempfile
 import gc
 
 from Scientific.IO.NetCDF import NetCDFFile
-from Numeric import array
+from Numeric import array, Float
 
 from anuga.fit_interpolate.interpolate import Interpolate
 from anuga.fit_interpolate.fit import Fit
@@ -106,15 +106,15 @@ def build_sww(vert_rows, vert_columns, save):
     # NetCDF file definition
     fid = NetCDFFile(sww_fileName, 'w')
     sww = Write_sww()
-    sww.header(fid, 0,
+    sww.store_header(fid, 0,
                len(mesh_dict['triangles']),
-               len(mesh_dict["vertices"]))
-    sww.triangulation(fid,
+               len(mesh_dict["vertices"]),sww_precision=Float)
+    sww.store_triangulation(fid,
                       mesh_dict["vertices"], mesh_dict['triangles'],
                       elevation)
         
     for time_step in range(10):
-        sww.quantities(fid, 
+        sww.store_quantities(fid, 
                        time=time_step,
                        stage=stage,
                        xmomentum=xmomentum,

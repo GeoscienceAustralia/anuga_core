@@ -1580,23 +1580,6 @@ class Mesh:
                                                    ObjectNeighbor[1],
                                                    ObjectNeighbor[2])
             index += 1
-        #genDict['lonepointlist'].sort() 
-        #genDict['lonepointlist'].reverse()       
-        #for loner in genDict['lonepointlist']:
-            # Remove the loner vertex
-            #print "Removing the loner", loner
-            #self.meshVertices.pop(loner)
-        # delete the info from this data structure
-        del genDict['generatedtriangleneighborlist']
-        del genDict['generatedpointmarkerlist']
-        del genDict['generatedpointlist']
-        del genDict['generatedpointattributetitlelist']
-        del genDict['generatedsegmentlist']
-        del genDict['generatedsegmentmarkerlist']
-        del genDict['generatedtrianglelist']
-        del genDict['generatedtriangleattributelist']
-        del genDict['generatedpointattributelist']
-        genDict['zpp'] = 1 # just an identifier
             
     def setMesh(self, genDict):
         """
