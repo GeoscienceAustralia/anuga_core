@@ -249,6 +249,7 @@ class Quantity:
                    location = 'vertices',
                    polygon = None,
                    indices = None,
+                   smooth = False,
                    verbose = False,
                    use_cache = False):
 
@@ -388,8 +389,14 @@ class Quantity:
             
             self.set_values_from_constant(numeric,
                                           location, indices, verbose)
-            
+
+
             self.extrapolate_first_order()
+
+            if smooth:
+                self.smooth_vertex_values()
+
+                
             return
         
         
@@ -1180,36 +1187,12 @@ class Quantity:
         self.interpolate()
 
 
-    def smooth_vertex_values(self, value_array='field_values',
-                             precision = None):
-        """ Smooths field_values or conserved_quantities data.
-        TODO: be able to smooth individual fields
-        NOTE:  This function does not have a test.
-        FIXME: NOT DONE - do we need it?
-        FIXME: this function isn't called by anything.
-               Maybe it should be removed..-DSG
+    def smooth_vertex_values(self):
+        """ Smooths vertex values.
         """
 
-        from Numeric import concatenate, zeros, Float, Int, array, reshape
-
-
-        A,V = self.get_vertex_values(xy=False,
-                                     value_array=value_array,
-                                     smooth = True,
-                                     precision = precision)
-
-        #Set some field values
-        for volume in self:
-            for i,v in enumerate(volume.vertices):
-                if value_array == 'field_values':
-                    volume.set_field_values('vertex', i, A[v,:])
-                elif value_array == 'conserved_quantities':
-                    volume.set_conserved_quantities('vertex', i, A[v,:])
-
-        if value_array == 'field_values':
-            self.precompute()
-        elif value_array == 'conserved_quantities':
-            Volume.interpolate_conserved_quantities()
+        A,V = self.get_vertex_values(xy=False, smooth = True)
+        self.set_vertex_values(A)
 
 
     # Methods for outputting model results
@@ -1253,7 +1236,10 @@ class Quantity:
 
         if smooth is None:
             # Take default from domain
-            smooth = self.domain.smooth
+            try:
+                smooth = self.domain.smooth
+            except:
+                smooth = False
 
         if precision is None:
             precision = Float
@@ -1391,35 +1377,35 @@ class Conserved_quantity(Quantity):
         #(either from this module or C-extension)
         return update(self, timestep)
 
-
     def compute_gradients(self):
         #Call correct module function
         #(either from this module or C-extension)
         return compute_gradients(self)
-
 
     def limit(self):
         #Call correct module depending on whether
         #basing limit calculations on edges or vertices
         limit_old(self)
 
-
-    def limit_by_vertex(self):
+    def limit_vertices_by_all_neighbours(self):
         #Call correct module function
         #(either from this module or C-extension)
-        limit_by_vertex(self)
+        limit_vertices_by_all_neighbours(self)
 
-
-    def limit_by_edge(self):
+    def limit_edges_by_all_neighbours(self):
         #Call correct module function
         #(either from this module or C-extension)
-        limit_by_edge(self)        
+        limit_edges_by_all_neighbours(self)
+
+    def limit_edges_by_neighbour(self):
+        #Call correct module function
+        #(either from this module or C-extension)
+        limit_edges_by_neighbour(self)               
 
     def extrapolate_second_order(self):
         #Call correct module function
         #(either from this module or C-extension)
         extrapolate_second_order(self)
-
 
     def backup_centroid_values(self):
         #Call correct module function
@@ -1443,8 +1429,9 @@ if compile.can_use_C_extension('quantity_ext.c'):
          saxpy_centroid_values,\
          compute_gradients,\
          limit_old,\
-         limit_by_vertex,\
-         limit_by_edge,\
+         limit_vertices_by_all_neighbours,\
+         limit_edges_by_all_neighbours,\
+         limit_edges_by_neighbour,\
          extrapolate_second_order,\
          interpolate_from_vertices_to_edges,\
          interpolate_from_edges_to_vertices,\

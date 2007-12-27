@@ -379,7 +379,7 @@ class Domain(Mesh):
 
             Depth = domain.create_quantity_from_expression('stage-elevation')
 
-            exp = '(xmomentum*xmomentum + ymomentum*ymomentum)**0.5')        
+            exp = '(xmomentum*xmomentum + ymomentum*ymomentum)**0.5'        
             Absolute_momentum = domain.create_quantity_from_expression(exp)
 
         """

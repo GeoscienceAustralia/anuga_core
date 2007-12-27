@@ -136,7 +136,7 @@ int _extrapolate(int N,
 }
 
 
-int _limit_by_vertex(int N, double beta,
+int _limit_vertices_by_all_neighbours(int N, double beta,
 		     double* centroid_values,
 		     double* vertex_values,
 		     double* edge_values,
@@ -194,7 +194,7 @@ int _limit_by_vertex(int N, double beta,
 	return 0;
 }
 
-int _limit_by_edge(int N, double beta,
+int _limit_edges_by_all_neighbours(int N, double beta,
 		     double* centroid_values,
 		     double* vertex_values,
 		     double* edge_values,
@@ -239,6 +239,61 @@ int _limit_by_edge(int N, double beta,
 		}
     
 		//Update vertex and edge values using phi limiter
+		edge_values[k3+0] = qc + phi*dqa[0];
+		edge_values[k3+1] = qc + phi*dqa[1];
+		edge_values[k3+2] = qc + phi*dqa[2];
+		
+		vertex_values[k3+0] = edge_values[k3+1] + edge_values[k3+2] - edge_values[k3+0];
+		vertex_values[k3+1] = edge_values[k3+2] + edge_values[k3+0] - edge_values[k3+1];
+		vertex_values[k3+2] = edge_values[k3+0] + edge_values[k3+1] - edge_values[k3+2];
+
+	}
+
+	return 0;
+}
+
+
+int _limit_edges_by_neighbour(int N, double beta,
+		     double* centroid_values,
+		     double* vertex_values,
+		     double* edge_values,
+		     long*   neighbours) {
+
+	int i, k, k2, k3, k6;
+	long n;
+	double qmin, qmax, qn, qc;
+	double dq, dqa[3], phi, r;
+
+	for (k=0; k<N; k++){
+		k6 = 6*k;
+		k3 = 3*k;
+		k2 = 2*k;
+
+		qc = centroid_values[k];
+		phi = 1.0;
+
+		for (i=0; i<3; i++) {
+		    dq = edge_values[k3+i] - qc;     //Delta between edge and centroid values
+		    dqa[i] = dq;                      //Save dq for use in updating vertex values
+
+		    n = neighbours[k3+i];
+		    if (n >= 0) {
+			qn = centroid_values[n]; //Neighbour's centroid value
+
+			qmin = min(qc, qn);
+			qmax = max(qc, qn);
+
+			r = 1.0;
+      
+			if (dq > 0.0) r = (qmax - qc)/dq;
+			if (dq < 0.0) r = (qmin - qc)/dq;      
+		    
+			phi = min( min(r*beta, 1.0), phi);    
+		    }
+		}
+
+
+		//Update edge and vertex values using phi limiter
 		edge_values[k3+0] = qc + phi*dqa[0];
 		edge_values[k3+1] = qc + phi*dqa[1];
 		edge_values[k3+2] = qc + phi*dqa[2];
@@ -973,7 +1028,7 @@ PyObject *limit_old(PyObject *self, PyObject *args) {
 }
 
 
-PyObject *limit_by_vertex(PyObject *self, PyObject *args) {
+PyObject *limit_vertices_by_all_neighbours(PyObject *self, PyObject *args) {
   //Limit slopes for each volume to eliminate artificial variance
   //introduced by e.g. second order extrapolator
 
@@ -1032,12 +1087,12 @@ PyObject *limit_by_vertex(PyObject *self, PyObject *args) {
 
 	N = centroid_values -> dimensions[0];
 
-	err = _limit_by_vertex(N, beta_w,
-			       (double*) centroid_values -> data,
-			       (double*) vertex_values -> data,
-			       (double*) edge_values -> data,
-			       (long*)   neighbours -> data);
-
+	err = _limit_vertices_by_all_neighbours(N, beta_w,
+						(double*) centroid_values -> data,
+						(double*) vertex_values -> data,
+						(double*) edge_values -> data,
+						(long*)   neighbours -> data);
+	
 	if (err != 0) {
 	  PyErr_SetString(PyExc_RuntimeError,
 			  "Internal function _limit_by_vertex failed");
@@ -1058,7 +1113,7 @@ PyObject *limit_by_vertex(PyObject *self, PyObject *args) {
 
 
 
-PyObject *limit_by_edge(PyObject *self, PyObject *args) {
+PyObject *limit_edges_by_all_neighbours(PyObject *self, PyObject *args) {
   //Limit slopes for each volume to eliminate artificial variance
   //introduced by e.g. second order extrapolator
 
@@ -1085,14 +1140,14 @@ PyObject *limit_by_edge(PyObject *self, PyObject *args) {
 	// Convert Python arguments to C
 	if (!PyArg_ParseTuple(args, "O", &quantity)) {
 	  PyErr_SetString(PyExc_RuntimeError, 
-			  "quantity_ext.c: limit_by_edge could not parse input");
+			  "quantity_ext.c: limit_edges_by_all_neighbours could not parse input");
 	  return NULL;
 	}
 
 	domain = PyObject_GetAttrString(quantity, "domain");
 	if (!domain) {
 	  PyErr_SetString(PyExc_RuntimeError, 
-			  "quantity_ext.c: limit_by_edge could not obtain domain object from quantity");		  	
+			  "quantity_ext.c: limit_edges_by_all_neighbours could not obtain domain object from quantity");		  	
 	  
 	  return NULL;
 	}
@@ -1101,7 +1156,7 @@ PyObject *limit_by_edge(PyObject *self, PyObject *args) {
 	Tmp = PyObject_GetAttrString(domain, "beta_w");
 	if (!Tmp) {
 	  PyErr_SetString(PyExc_RuntimeError, 
-			  "quantity_ext.c: limit_by_edge could not obtain beta_w object from domain");		  	
+			  "quantity_ext.c: limit_edges_by_all_neighbours could not obtain beta_w object from domain");		  	
 	  
 	  return NULL;
 	}	
@@ -1117,11 +1172,11 @@ PyObject *limit_by_edge(PyObject *self, PyObject *args) {
 
 	N = centroid_values -> dimensions[0];
 
-	err = _limit_by_edge(N, beta_w,
-			       (double*) centroid_values -> data,
-			       (double*) vertex_values -> data,
-			       (double*) edge_values -> data,
-			       (long*)   neighbours -> data);
+	err = _limit_edges_by_all_neighbours(N, beta_w,
+					     (double*) centroid_values -> data,
+					     (double*) vertex_values -> data,
+					     (double*) edge_values -> data,
+					     (long*)   neighbours -> data);
 
 	if (err != 0) {
 	  PyErr_SetString(PyExc_RuntimeError,
@@ -1142,12 +1197,96 @@ PyObject *limit_by_edge(PyObject *self, PyObject *args) {
 }
 
 
+PyObject *limit_edges_by_neighbour(PyObject *self, PyObject *args) {
+  //Limit slopes for each volume to eliminate artificial variance
+  //introduced by e.g. second order extrapolator
+
+  //This is an unsophisticated limiter as it does not take into
+  //account dependencies among quantities.
+
+  //precondition:
+  //  vertex values are estimated from gradient
+  //postcondition:
+  //  vertex and edge values are updated
+  //
+
+	PyObject *quantity, *domain, *Tmp;
+	PyArrayObject
+	    *vertex_values,   //Conserved quantities at vertices
+	    *centroid_values, //Conserved quantities at centroids
+	    *edge_values,     //Conserved quantities at edges
+	    *neighbours;
+
+	double beta_w; //Safety factor
+	int N, err;
+
+
+	// Convert Python arguments to C
+	if (!PyArg_ParseTuple(args, "O", &quantity)) {
+	  PyErr_SetString(PyExc_RuntimeError, 
+			  "quantity_ext.c: limit_edges_by_neighbour could not parse input");
+	  return NULL;
+	}
+
+	domain = PyObject_GetAttrString(quantity, "domain");
+	if (!domain) {
+	  PyErr_SetString(PyExc_RuntimeError, 
+			  "quantity_ext.c: limit_edges_by_neighbour could not obtain domain object from quantity");		  	
+	  
+	  return NULL;
+	}
+
+	// Get safety factor beta_w
+	Tmp = PyObject_GetAttrString(domain, "beta_w");
+	if (!Tmp) {
+	  PyErr_SetString(PyExc_RuntimeError, 
+			  "quantity_ext.c: limit_by_vertex could not obtain beta_w object from domain");		  	
+	  
+	  return NULL;
+	}	
+
+
+	// Get pertinent variables
+	neighbours       = get_consecutive_array(domain, "neighbours");
+	centroid_values  = get_consecutive_array(quantity, "centroid_values");
+	vertex_values    = get_consecutive_array(quantity, "vertex_values");
+	edge_values      = get_consecutive_array(quantity, "edge_values");
+	beta_w           = PyFloat_AsDouble(Tmp);
+
+
+	N = centroid_values -> dimensions[0];
+
+	err = _limit_edges_by_neighbour(N, beta_w,
+					(double*) centroid_values -> data,
+					(double*) vertex_values -> data,
+					(double*) edge_values -> data,
+					(long*)   neighbours -> data);
+	
+	if (err != 0) {
+	  PyErr_SetString(PyExc_RuntimeError,
+			  "Internal function _limit_by_vertex failed");
+	  return NULL;
+	}	
+
+
+	// Release
+	Py_DECREF(neighbours);
+	Py_DECREF(centroid_values);
+	Py_DECREF(vertex_values);
+	Py_DECREF(edge_values);
+	Py_DECREF(Tmp);
+
+
+	return Py_BuildValue("");
+}
+
 
 // Method table for python module
 static struct PyMethodDef MethodTable[] = {
 	{"limit_old", limit_old, METH_VARARGS, "Print out"},
-	{"limit_by_vertex", limit_by_vertex, METH_VARARGS, "Print out"},
-	{"limit_by_edge", limit_by_edge, METH_VARARGS, "Print out"},
+	{"limit_vertices_by_all_neighbours", limit_vertices_by_all_neighbours, METH_VARARGS, "Print out"},
+	{"limit_edges_by_all_neighbours", limit_edges_by_all_neighbours, METH_VARARGS, "Print out"},
+	{"limit_edges_by_neighbour", limit_edges_by_neighbour, METH_VARARGS, "Print out"},
 	{"update", update, METH_VARARGS, "Print out"},
 	{"backup_centroid_values", backup_centroid_values, METH_VARARGS, "Print out"},
 	{"saxpy_centroid_values", saxpy_centroid_values, METH_VARARGS, "Print out"},

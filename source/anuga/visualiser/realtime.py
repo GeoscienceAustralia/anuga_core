@@ -1,4 +1,4 @@
-from Numeric import Float, zeros
+from Numeric import Float, zeros, shape
 from Tkinter import Button, E, Tk, W
 from threading import Event
 from visualiser import Visualiser
@@ -44,13 +44,14 @@ class RealtimeVisualiser(Visualiser):
         N_tri = len(self.source)
         verticies = self.source.get_vertex_coordinates()
         N_vert = len(verticies)
+
         # Also build vert_index - a list of the x & y values of each vertex
         self.vert_index = zeros((N_vert,2), Float)
         for n in range(N_tri):
             self.vtk_cells.InsertNextCell(3)
             for v in range(3):
-                self.vert_index[triangles[n][v]] = verticies[n * 3 + v]
-                self.vtk_cells.InsertCellPoint(triangles[n][v])
+                self.vert_index[n * 3 + v] = verticies[n * 3 + v]
+                self.vtk_cells.InsertCellPoint(n * 3 + v)
 
     def update_height_quantity(self, quantityName, dynamic=True):
         N_vert = len(self.source.get_vertex_coordinates())
@@ -58,10 +59,8 @@ class RealtimeVisualiser(Visualiser):
         triangles = self.source.get_triangles()
         vertex_values, _ = self.source.get_quantity(quantityName).get_vertex_values(xy=False, smooth=False)
 
-        for n in range(len(triangles)):
-            for v in range(3):
-                #qty_index[triangles[n][v]] = self.source.get_quantity(quantityName).vertex_values[n][v]
-                qty_index[triangles[n][v]] = vertex_values[n * 3 + v]
+        for n in range(N_vert):
+            qty_index[n] = vertex_values[n]
 
         points = vtkPoints()
         for v in range(N_vert):
@@ -123,13 +122,26 @@ class RealtimeVisualiser(Visualiser):
             self.sync_idle.set()
         Visualiser.redraw(self)
 
-    def update(self):
+    def update(self,pause=False):
         """Sync the visualiser to the domain. Call this in the evolve loop."""
+            
         if self.running:
             self.sync_redrawReady.set()
             self.sync_idle.wait()
             self.sync_idle.clear()
             self.sync_unpaused.wait()
+
+        if pause and self.running:
+            if self.sync_unpaused.isSet():
+                self.sync_unpaused.clear()
+                self.tk_pauseResume.config(text="Resume")
+                
+                self.sync_redrawReady.set()
+                self.sync_idle.wait()
+                self.sync_idle.clear()
+                self.sync_unpaused.wait()
+            
+
 
     def evolveFinished(self):
         """Stop the visualiser from waiting on signals from the evolve loop.

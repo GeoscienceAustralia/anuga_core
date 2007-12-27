@@ -1444,7 +1444,7 @@ class Test_Quantity(unittest.TestCase):
 
 
 
-    def test_vertex_limiter(self):
+    def test_limit_vertices_by_all_neighbours(self):
         quantity = Conserved_quantity(self.mesh4)
 
         #Create a deliberate overshoot (e.g. from gradient computation)
@@ -1452,7 +1452,7 @@ class Test_Quantity(unittest.TestCase):
 
 
         #Limit
-        quantity.limit_by_vertex()
+        quantity.limit_vertices_by_all_neighbours()
 
         #Assert that central triangle is limited by neighbours
         assert quantity.vertex_values[1,0] >= quantity.vertex_values[0,0]
@@ -1474,7 +1474,7 @@ class Test_Quantity(unittest.TestCase):
 
 
 
-    def test_edge_limiter(self):
+    def test_limit_edges_by_all_neighbours(self):
         quantity = Conserved_quantity(self.mesh4)
 
         #Create a deliberate overshoot (e.g. from gradient computation)
@@ -1482,7 +1482,7 @@ class Test_Quantity(unittest.TestCase):
 
 
         #Limit
-        quantity.limit_by_edge()
+        quantity.limit_edges_by_all_neighbours()
 
         #Assert that central triangle is limited by neighbours
         assert quantity.edge_values[1,0] <= quantity.centroid_values[2]
@@ -1492,7 +1492,7 @@ class Test_Quantity(unittest.TestCase):
         assert quantity.edge_values[1,1] >= quantity.centroid_values[0]
 
         assert quantity.edge_values[1,2] <= quantity.centroid_values[2]
-        assert quantity.edge_values[1,2] <= quantity.centroid_values[0]
+        assert quantity.edge_values[1,2] >= quantity.centroid_values[0]
 
 
 
@@ -1502,6 +1502,34 @@ class Test_Quantity(unittest.TestCase):
             assert allclose (quantity.centroid_values[k],
                              sum(quantity.vertex_values[k,:])/3)
 
+
+    def test_limit_edges_by_neighbour(self):
+        quantity = Conserved_quantity(self.mesh4)
+
+        #Create a deliberate overshoot (e.g. from gradient computation)
+        quantity.set_values([[3,0,3], [2,2,6], [5,3,8], [8,3,5]])
+
+
+        #Limit
+        quantity.limit_edges_by_neighbour()
+
+        #Assert that central triangle is limited by neighbours
+        assert quantity.edge_values[1,0] <= quantity.centroid_values[3]
+        assert quantity.edge_values[1,0] >= quantity.centroid_values[1]
+
+        assert quantity.edge_values[1,1] <= quantity.centroid_values[2]
+        assert quantity.edge_values[1,1] >= quantity.centroid_values[1]
+
+        assert quantity.edge_values[1,2] <= quantity.centroid_values[1]
+        assert quantity.edge_values[1,2] >= quantity.centroid_values[0]
+
+
+
+        #Assert that quantities are conserved
+        from Numeric import sum
+        for k in range(quantity.centroid_values.shape[0]):
+            assert allclose (quantity.centroid_values[k],
+                             sum(quantity.vertex_values[k,:])/3)
 
     def test_limiter2(self):
         """Taken from test_shallow_water
@@ -2206,6 +2234,55 @@ class Test_Quantity(unittest.TestCase):
         #print "answer",answer
         assert allclose(subset, answer)
 
+    def test_smooth_vertex_values(self):
+        """
+        get values based on triangle lists.
+        """
+        from mesh_factory import rectangular
+        from shallow_water import Domain
+        from Numeric import zeros, Float
+
+        #Create basic mesh
+        points, vertices, boundary = rectangular(2, 2)
+
+        #print "points",points
+        #print "vertices",vertices
+        #print "boundary",boundary
+
+        #Create shallow water domain
+        domain = Domain(points, vertices, boundary)
+        #print "domain.number_of_elements ",domain.number_of_elements
+        quantity = Quantity(domain,[[0,0,0],[1,1,1],[2,2,2],[3,3,3],
+                                    [4,4,4],[5,5,5],[6,6,6],[7,7,7]])
+
+        #print "quantity.get_values(location = 'unique vertices')", \
+        #      quantity.get_values(location = 'unique vertices')
+
+        #print "quantity.get_values(location = 'unique vertices')", \
+        #      quantity.get_values(indices=[0,1,2,3,4,5,6,7], \
+        #                          location = 'unique vertices')
+
+        #print quantity.get_values(location = 'unique vertices')
+        #print quantity.domain.number_of_triangles_per_node
+        #print quantity.vertex_values
+        
+        #answer = [0.5, 2, 3, 3, 3.5, 4, 4, 5, 6.5]
+        #assert allclose(answer,
+        #                quantity.get_values(location = 'unique vertices'))
+
+        quantity.smooth_vertex_values()
+
+        #print quantity.vertex_values
+
+
+        answer_vertex_values = [[3,3.5,0.5],[2,0.5,3.5],[3.5,4,2],[3,2,4],
+                                [4,5,3],[3.5,3,5],[5,6.5,3.5],[4,3.5,6.5]]
+        
+        assert allclose(answer_vertex_values,
+                        quantity.vertex_values)
+        #print "quantity.centroid_values",quantity.centroid_values
+        #print "quantity.get_values(location = 'centroids') ",\
+        #      quantity.get_values(location = 'centroids')
 
 
 
