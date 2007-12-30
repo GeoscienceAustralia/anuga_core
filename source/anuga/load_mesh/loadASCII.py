@@ -622,11 +622,15 @@ def _write_msh_file(file_name, mesh):
     WARNING: This function mangles the mesh data structure
     """
   
-    # FIXME(Ole and John): We ran into a problem on Bogong (64 bit) where integers appeared as arrays.
-    # This may be similar to problem seen by Steve in changeset:2778 where he had to wrap them in int.
-    # Now we are trying with the native Integer format (Int == 'l' == Int64). However, that caused casting errors, when 64bit arrays
-    # are to be assigned to their NetCDF counterparts. It seems that the NetCDF arrays are 32bit even though they are created with
-    # the type Int64. Need to look at the NetCDF library in more detail.
+    # FIXME(Ole and John): We ran into a problem on Bogong (64 bit)
+    # where integers appeared as arrays.  This may be similar to
+    # problem seen by Steve in changeset:2778 where he had to wrap
+    # them in int.  Now we are trying with the native Integer format
+    # (Int == 'l' == Int64). However, that caused casting errors, when
+    # 64bit arrays are to be assigned to their NetCDF counterparts. It
+    # seems that the NetCDF arrays are 32bit even though they are
+    # created with the type Int64. Need to look at the NetCDF library
+    # in more detail.
     
     IntType = Int32
     #IntType = Int
@@ -731,7 +735,8 @@ def _write_msh_file(file_name, mesh):
                                 'num_of_triangle_faces'))
         outfile.variables['triangles'][:] = mesh['triangles']
         outfile.variables['triangle_neighbors'][:] = mesh['triangle_neighbors']
-        if (mesh['triangle_tags'].shape[1] > 0):
+        if mesh['triangle_tags'] is not None and \
+               (mesh['triangle_tags'].shape[1] > 0):
             outfile.createDimension('num_of_triangle_tag_chars',
                                     mesh['triangle_tags'].shape[1]) 
             outfile.createVariable('triangle_tags',

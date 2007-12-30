@@ -526,17 +526,14 @@ class triangTestCase(unittest.TestCase):
 
 
 
-    def test_transition_to_arrays(self):
-        # segattlist = []
+    def dont_test_transition_to_arrays(self):
         points = []
         seglist = []
         holelist = []
         regionlist = []
-
 	points = [(0.0,0.0),(0.0,10.0),(3.0,0.0),(3.0,10.0)]
 	pointattlist = []
         # 5.0 is the region tag, 99.0 is the max area
-        # REgion tag isn't working though
 	regionlist.append( [0.2,0.2,5.0,99.0] )
 	seglist = [(0,1),(1,3),(3,2),(2,0)]
         segattlist = [21,22,23,24]
@@ -549,8 +546,6 @@ class triangTestCase(unittest.TestCase):
 
         self.failUnless(data['generatedtrianglelist'] ==[(1, 0, 2), (2, 3, 1)],
                         'trianglelist is wrong!')
-        #print "data['generatedtrianglelist']",data['generatedtrianglelist']
-        #print "data['trianglelist']", data['trianglelist']
         self.failUnless(data['generatedtrianglelist'] ==data['trianglelist'],
                         'trianglelist is wrong!')
         self.failUnless(data['generatedsegmentlist'] ==[(0, 1), (1, 3),
@@ -584,8 +579,83 @@ class triangTestCase(unittest.TestCase):
         self.failUnless(data['generatedtriangleneighborlist'] == \
                         data['triangleneighborlist'],
                         ' is wrong!')
-                        
+        
+    def test_numeric_arrays(self):
+        points = []
+        seglist = []
+        holelist = []
+        regionlist = []
+	points = [(0.0,0.0),(0.0,10.0),(3.0,0.0),(3.0,10.0)]
+	pointattlist = []
+        # 5.0 is the region tag, 99.0 is the max area
+        tri_tag = 123456.0
+	regionlist.append( [0.2,0.2, tri_tag,99.0] )
+	seglist = [(0,1),(1,3),(3,2),(2,0)]
+        segattlist = [21,22,23,24]
+         #The 'A' has to be there to get the region marker stuff working
+        mode = "QzpnA"
+        #mode = "jQpznAa2000.1a"
+        data = generate_mesh(points,seglist,holelist,regionlist,
+                              pointattlist,segattlist, mode, points)
+        #print "data", data
+
+        self.failUnless(data['generatedtrianglelist'] ==[(1, 0, 2), (2, 3, 1)],
+                        'trianglelist is wrong!')
+        self.failUnless(data['generatedsegmentlist'] ==[(0, 1), (1, 3),
+                                                        (3, 2), (2, 0)],
+                        'segmentlist is wrong!')
+        self.failUnless(data['generatedpointlist'] ==[(0.0, 0.0), (0.0, 10.0),
+                                                      (3.0, 0.0), (3.0, 10.0)],
+                        ' is wrong!')
+        self.failUnless(data['generatedtriangleattributelist'] == [[tri_tag],
+                                                                   [tri_tag]],
+                        ' is wrong!')
+        
+        self.failUnless(data['generatedsegmentlist'] == seglist,
+                        ' is wrong!')
+        self.failUnless(data['generatedsegmentmarkerlist'] == segattlist,
+                        ' is wrong!')
+        # I copied these answers from the output, so bad test..
+        self.failUnless(data['generatedtriangleneighborlist'] == \
+                        [(-1, 1, -1), (-1, 0, -1)],
+                        ' is wrong!')
+        
     def test_pointattlist(self):
+        # segattlist = []
+        points = []
+        seglist = []
+        holelist = []
+        regionlist = []
+
+	points = [(0.0,0.0),(0.0,4.0),(4.0,2.0),(2.0,0.0)]
+	pointattlist = [0.,0.,10.,10.]
+	regionlist.append( [0.2,0.2,2.1, 99.] )
+	seglist = [(0,1),(1,2),(2,3),(3,0)]
+        segattlist = [11,12,13,14]
+        mode = "Qzp"
+        data = generate_mesh(points,seglist,holelist,regionlist,
+                              pointattlist,segattlist, mode, points)
+        self.failUnless(data['generatedpointattributelist'] == [[0.0],[0.0],
+                                                                [10],[10]],
+                        ' is wrong!')
+        
+        
+	pointattlist = [[0.],[0.],[10.],[10.]]
+        mode = "Qzp"        
+        data = generate_mesh(points,seglist,holelist,regionlist,
+                              pointattlist,segattlist, mode, points)
+        self.failUnless(data['generatedpointattributelist'] == [[0.0],[0.0],
+                                                                [10],[10]],
+                        ' is wrong!')
+	pointattlist = [[0.,1],[0.,1],[10.,20],[10.,20]]
+        mode = "Qzp"        
+        data = generate_mesh(points,seglist,holelist,regionlist,
+                              pointattlist,segattlist, mode, points)
+        #print "data", data
+        self.failUnless(data['generatedpointattributelist'] == pointattlist,
+                        ' is wrong!')
+           
+    def dont_test_transition_pointattlist(self):
         # segattlist = []
         points = []
         seglist = []

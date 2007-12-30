@@ -274,7 +274,7 @@ class loadASCIITestCase(unittest.TestCase):
         fileName = tempfile.mktemp(".tsh")
         export_mesh_file(fileName,dict)
         loaded_dict = import_mesh_file(fileName)
-        dict = self.tri_dict    
+        dict = self.tri_dict
         self.check_mesh_dicts(loaded_dict,dict, 'test_read_write_msh_file6')  
         os.remove(fileName)
         
@@ -544,7 +544,7 @@ showme1.0 0.0 10.0 \n\
 if __name__ == "__main__":
 
     suite = unittest.makeSuite(loadASCIITestCase,'test')
-    #suite = unittest.makeSuite(loadASCIITestCase,'test_writepts')
-    runner = unittest.TextTestRunner() #verbosity=0)
+    #suite = unittest.makeSuite(loadASCIITestCase,'test_rs')
+    runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
     

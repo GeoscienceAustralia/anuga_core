@@ -745,7 +745,7 @@ class TestCase(unittest.TestCase):
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(TestCase,'test')
-#    suite = unittest.makeSuite(TestCase,'test_create_mesh_from_regions_interior_regions')
+    #suite = unittest.makeSuite(TestCase,'test_create_mesh_from_regions4')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
     

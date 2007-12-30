@@ -4648,7 +4648,8 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
       If a point is just below the center of the midpoint, it will have a
       +ve value in grid A and a -ve value in grid B.
     """ 
-    from anuga.pmesh.mesh import Mesh, NoTrianglesError
+    from anuga.mesh_engine.mesh_engine import NoTrianglesError
+    from anuga.pmesh.mesh import Mesh
 
     files_in = [basename_in + WAVEHEIGHT_MUX_LABEL,
                 basename_in + EAST_VELOCITY_LABEL,
@@ -4719,8 +4720,6 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
     # If this raise is removed there is currently no downstream errors
            
     points_utm=ensure_numeric(points_utm)
-    #print "mesh_dic['generatedpointlist']", mesh_dic['generatedpointlist']
-    #print "points_utm", points_utm 
     assert ensure_numeric(mesh_dic['generatedpointlist']) == \
            ensure_numeric(points_utm)
     

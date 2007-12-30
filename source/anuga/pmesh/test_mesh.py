@@ -417,7 +417,7 @@ class meshTestCase(unittest.TestCase):
         
         m = Mesh(userVertices=[a,b,c,d,e,f,g], userSegments=[s1,s2,s3,s4,s5,s6,s7,s8,s9,s10], regions=[r1,r2,r3] )
         m.generateMesh("Q", maxArea = 2.1 )
-        #print m
+        
         Triangulation =  m.getTriangulation()
         #print Triangulation[0].attribute
         #print Triangulation[1].attribute 
@@ -1652,6 +1652,7 @@ END\n")
                         'test_Mesh2IODict failed. test 5')
         self.failUnless( dict['triangle_neighbors'][0] == [-1,2,3],
                         'test_Mesh2IODict failed. test 6')
+        #print "dict['triangle_tags'][0]", dict['triangle_tags'][0]
         self.failUnless( dict['triangle_tags'][0] == "1.3",
                          'test_Mesh2IODict failed. test 7')
 
@@ -2355,7 +2356,8 @@ def list_comp(A,B):
 if __name__ == "__main__":
     suite = unittest.makeSuite(meshTestCase,'test')
     #suite = unittest.makeSuite(meshTestCase,'mode_string_float_problems')
-    #suite = unittest.makeSuite(meshTestCase,'test_exportPointsFile')
+    #suite = unittest.makeSuite(meshTestCase,'test_import_mesh')
+    #suite = unittest.makeSuite(meshTestCase,'test_Mesh2IODict')
     runner = unittest.TextTestRunner() # verbosity=2)
     runner.run(suite)
     

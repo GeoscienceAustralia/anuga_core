@@ -24,7 +24,7 @@ import exceptions
 from Numeric import array, Float, Int
 
 
-class NoTrianglesError(exceptions.Exception): pass
+#class NoTrianglesError(exceptions.Exception): pass
  
 #import load_mesh
 from anuga.coordinate_transforms.geo_reference import Geo_reference, \
@@ -1189,17 +1189,21 @@ class Mesh:
                               meshDict['pointlist'])
         #print "%%%%%%%%%%%%%%%%%%%%%%%%%%%generated",generatedMesh
         generatedMesh['qaa'] = 1
-        generatedMesh['generatedsegmentmarkerlist'] = \
-             segment_ints2strings(generatedMesh['generatedsegmentmarkerlist'],
-                                  segconverter)
+        if generatedMesh['generatedsegmentmarkerlist'] is not None:
+            generatedMesh['generatedsegmentmarkerlist'] = \
+              segment_ints2strings(generatedMesh['generatedsegmentmarkerlist'],
+                                   segconverter)
         #print "processed gen",generatedMesh['generatedsegmentmarkerlist']
-        generatedMesh['generatedtriangleattributelist'] = \
-         region_ints2strings(generatedMesh['generatedtriangleattributelist'],
+        #print "pmesh mesh generatedMesh['generatedtriangleattributelist']", generatedMesh['generatedtriangleattributelist']
+        if generatedMesh['generatedtriangleattributelist'] is not None:
+            generatedMesh['generatedtriangleattributelist'] = \
+            region_ints2strings(generatedMesh['generatedtriangleattributelist'],
                                   regionconverter)
 
+        #print "pmesh mesh generatedMesh['generatedtriangleattributelist']", generatedMesh['generatedtriangleattributelist']
         #FIXME (DSG-DSG)  move above section into generate_mesh.py
-
-        if len(generatedMesh['generatedpointattributelist'][0])==0:
+       
+        if generatedMesh['generatedpointattributelist'].shape[1] ==0:
             self.attributeTitles = []
         generatedMesh['generatedpointattributetitlelist']= \
                                             self.attributeTitles
@@ -1553,13 +1557,14 @@ class Mesh:
             index +=1
             self.meshTriangles.append(tObject)
 
-        index = 0
-        for att in genDict['generatedtriangleattributelist']:
-            if att == []:
-                self.meshTriangles[index].setAttribute("")
-            else:
-                self.meshTriangles[index].setAttribute(att[0])
-            index += 1
+        if genDict['generatedtriangleattributelist'] is not None:
+            index = 0
+            for att in genDict['generatedtriangleattributelist']:
+                if att == []:
+                    self.meshTriangles[index].setAttribute("")
+                else:
+                    self.meshTriangles[index].setAttribute(att[0])
+                index += 1
             
         index = 0
         for att in genDict['generatedpointattributelist']:
@@ -3151,12 +3156,17 @@ def region_strings2ints(region_list):
 def region_ints2strings(region_list,convertint2string):
     """Reverses the transformation of region_strings2ints
     """
-    if region_list == []:
-        raise NoTrianglesError
-    if region_list[0] != []:
+    #print 'region_ints2strings region_list', region_list
+    
+    returned_region_list = []
+    # may not need (not region_list[0] == [])
+    # or region_list[0] == [0.0]
+    if (not region_list[0] == []): # or region_list[0] == [0.0]:
+        #print "in loop"
         for i in xrange(len(region_list)):
-            region_list[i] = [convertint2string[int(region_list[i][0])]]
-    return region_list
+            temp = region_list[i]
+            returned_region_list.append([convertint2string[int(temp[0])]])
+    return returned_region_list
 
 def segment_ints2strings(intlist, convertint2string):
     """Reverses the transformation of segment_strings2ints """

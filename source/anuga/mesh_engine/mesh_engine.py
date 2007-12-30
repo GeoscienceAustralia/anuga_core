@@ -4,6 +4,9 @@ import sys
 
 from types import ListType, TupleType
 
+import exceptions
+
+class NoTrianglesError(exceptions.Exception): pass
 import anuga.mesh_engine.mesh_engine_c_layer as triang
 #import anuga.mesh_engine.list_dic as triang
 
@@ -129,18 +132,32 @@ def generate_mesh(points=None,
     mesh_dict, trianglelist, pointlist, pointmarkerlist, pointattributelist, triangleattributelist, segmentlist, segmentmarkerlist, neighborlist = triang.genMesh(points,segments,holes,regions,
                           pointatts,segatts, mode, segments.flat)
     # the values as arrays
-    mesh_dict['trianglelist'] = trianglelist
-    mesh_dict['pointlist'] = pointlist
-
-    # WARNING - pointmarkerlist IS UNTESTED
-    mesh_dict['pointmarkerlist'] = pointmarkerlist
-    mesh_dict['pointattributelist'] = pointattributelist
-    mesh_dict['triangleattributelist'] = triangleattributelist 
-    mesh_dict['segmentlist'] = segmentlist 
-    mesh_dict['segmentmarkerlist'] =  segmentmarkerlist
-    mesh_dict['triangleneighborlist'] = neighborlist
+    mesh_dict['generatedtrianglelist'] = trianglelist
+    mesh_dict['generatedpointlist'] = pointlist
+    #print "mesh engine mesh_dict['generatedpointlist']", mesh_dict['generatedpointlist']
+    # WARNING - generatedpointmarkerlist IS UNTESTED
+    mesh_dict['generatedpointmarkerlist'] = pointmarkerlist
+    mesh_dict['generatedpointattributelist'] = pointattributelist
+    mesh_dict['generatedsegmentlist'] = segmentlist 
+    mesh_dict['generatedsegmentmarkerlist'] =  segmentmarkerlist
+    mesh_dict['generatedtriangleneighborlist'] = neighborlist
     mesh_dict['qaz'] = 1 #debugging
-    ##print "r_test", r_test
+
+    mesh_dict['triangleattributelist'] = triangleattributelist
+    #print "mesh eng generatedtrianglelist", trianglelist
+    #print "mesh eng mesh_dict['triangleattributelist'] ",mesh_dict['triangleattributelist']
+    #print "mesh eng mesh_dict['generatedtriangleattributelist'] ", mesh_dict['generatedtriangleattributelist']    
+    
+    if True: 
+        mesh_dict['generatedtriangleattributelist'] = triangleattributelist
+
+        if mesh_dict['generatedtriangleattributelist'].shape[1] == 0:
+            mesh_dict['generatedtriangleattributelist'] = None
+        if trianglelist.shape[0] == 0:
+            # There are no triangles.
+            # this is used by urs_ungridded2sww
+            raise NoTrianglesError
+    #print "mesh eng mesh_dict['generatedtriangleattributelist'] ", mesh_dict['generatedtriangleattributelist']    
     
     return mesh_dict
 
