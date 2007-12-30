@@ -129,8 +129,9 @@ def generate_mesh(points=None,
     #print "segatts", segatts
     #XSprint "mode", mode
     #print "yeah" 
-    mesh_dict, trianglelist, pointlist, pointmarkerlist, pointattributelist, triangleattributelist, segmentlist, segmentmarkerlist, neighborlist = triang.genMesh(points,segments,holes,regions,
+    trianglelist, pointlist, pointmarkerlist, pointattributelist, triangleattributelist, segmentlist, segmentmarkerlist, neighborlist = triang.genMesh(points,segments,holes,regions,
                           pointatts,segatts, mode, segments.flat)
+    mesh_dict = {}
     # the values as arrays
     mesh_dict['generatedtrianglelist'] = trianglelist
     mesh_dict['generatedpointlist'] = pointlist

@@ -114,12 +114,7 @@ extern "C" void free();
   PyObject *pair;
      
   char *mod;
-  PyObject *holder, *holderlist, *attributelist;
-  int listsize,attsize ;
-  PyObject  *ii;
-  
-  /* used for testing numeric arrays*/
-  int n_test;     
+    
   if(!PyArg_ParseTuple(args,(char *)"OOOOOOOO",&pointlist,&seglist,&holelist,&regionlist,&pointattributelist,&segmarkerlist,&mode,&test)){
     return NULL;
   }
@@ -233,8 +228,7 @@ extern "C" void free();
     ------- Pass point numbers,coordinates and neighbors back to Python ------
     we send back a dictionary:                                               
     { index : [ coordinates, [connections], Attribute ] } 
-  */
-  holder = PyDict_New();    
+  */  
  
   /*
   
@@ -259,19 +253,6 @@ extern "C" void free();
 						    PyArray_INT);
   gentrianglelist -> data = out.trianglelist;
     
-  /* Add triangle list */
-  listsize = out.numberoftriangles;
-  /* printf(" out.numberoftriangles %i\n", out.numberoftriangles ); */
-  holderlist = PyList_New(listsize);
-  for(i=0; i<listsize;i++){
-    PyObject *mlist = Py_BuildValue((char *)"(i,i,i)", 
-				    out.trianglelist[i*3  ], out.trianglelist [i*3+1], out.trianglelist [i*3+2]);    
-    PyList_SetItem(holderlist,i, mlist);
-  }    
-  ii=PyString_FromString("generatedtrianglelist");
-  PyDict_SetItem(holder, ii, holderlist); Py_DECREF(ii); Py_DECREF(holderlist);
-  
-  
   /* Add pointlist */
   dimensions[0] = out.numberofpoints;
   dimensions[1] = 2;   
@@ -284,19 +265,7 @@ extern "C" void free();
   ( genpointlist -> data) = (double*) out.pointlist;
   
   */
-  genpointlist -> data = out.pointlist;
-     
-  /* Add pointlist */
-  listsize = out.numberofpoints;
-  holderlist = PyList_New(listsize);
-     
-  for(i=0; i<out.numberofpoints;i++){
-    PyObject *mlist = Py_BuildValue((char *)"(d,d)", 
-				    out.pointlist[i*2  ], out.pointlist[i*2+1]);  
-    PyList_SetItem(holderlist,i, mlist);
-  }  
-  ii=PyString_FromString("generatedpointlist");
-  PyDict_SetItem(holder, ii, holderlist); Py_DECREF(ii); Py_DECREF(holderlist);
+   genpointlist -> data = out.pointlist;
   
   /* Add point marker list */
   dimensions[0] = out.numberofpoints;
@@ -305,18 +274,6 @@ extern "C" void free();
 						    PyArray_INT);
   genpointmarkerlist -> data = out.pointmarkerlist;
   
-  /* Add point marker list */
-  listsize = out.numberofpoints;
-  holderlist = PyList_New(listsize);
-  
-  for(i=0; i<listsize;i++){
-    PyObject *mlist = Py_BuildValue((char *)"i", 
-				    out.pointmarkerlist[i]);     
-    PyList_SetItem(holderlist,i, mlist); 
-  }  
-  ii=PyString_FromString("generatedpointmarkerlist");
-  PyDict_SetItem(holder, ii, holderlist); Py_DECREF(ii); Py_DECREF(holderlist);
-    
   /* Add point attribute list */
   dimensions[0] = out.numberofpoints;
   dimensions[1] = out.numberofpointattributes;   
@@ -326,22 +283,6 @@ extern "C" void free();
   genpointattributelist -> data = out.pointattributelist;	
   
   
-  /* Add point attribute list */
-  listsize = out.numberofpoints;
-  holderlist = PyList_New(listsize);
-  
-  for(i=0; i<listsize;i++){
-    attsize = out.numberofpointattributes;
-    attributelist = PyList_New(attsize);
-    for(iatt=0; iatt<attsize;iatt++){
-      PyObject *mlist = Py_BuildValue((char *)"d", 
-				      out.pointattributelist[i*attsize + iatt]);     
-      PyList_SetItem(attributelist,iatt, mlist);
-    }      
-    PyList_SetItem(holderlist,i, attributelist);
-  }  
-  ii=PyString_FromString("generatedpointattributelist");
-  PyDict_SetItem(holder, ii, holderlist); Py_DECREF(ii); Py_DECREF(holderlist);  
  
   /* Add triangle attribute list */
   dimensions[0] = out.numberoftriangles;
@@ -350,22 +291,6 @@ extern "C" void free();
 						 dimensions, 
 						 PyArray_DOUBLE);
   gentriangleattributelist -> data = out.triangleattributelist;
-  
-  /* Add triangle attribute list */
-  listsize = out.numberoftriangles;
-  holderlist = PyList_New(listsize);
-     
-  for(i=0; i<listsize; i++){
-    attsize = out.numberoftriangleattributes;
-    attributelist = PyList_New(attsize);       
-    for(iatt=0; iatt<attsize;iatt++){
-      PyObject *mlist = Py_BuildValue((char *)"d",out.triangleattributelist[i*attsize + iatt]);  
-      PyList_SetItem(attributelist,iatt, mlist);
-    }      
-    PyList_SetItem(holderlist,i, attributelist);
-  }  
-  ii=PyString_FromString("generatedtriangleattributelist");
-  PyDict_SetItem(holder, ii, holderlist); Py_DECREF(ii); Py_DECREF(holderlist);
   
   /* Add segment list */
   dimensions[0] = out.numberofsegments;
@@ -376,37 +301,12 @@ extern "C" void free();
   gensegmentlist -> data = out.segmentlist;
   
   
-  /* Add segment list */
-  listsize = out.numberofsegments;
-  holderlist = PyList_New(listsize);
-  for(i=0; i<listsize;i++){
-    PyObject *mlist = Py_BuildValue((char *)"(i,i)", 
-				    out.segmentlist[i*2  ],
-				    out.segmentlist [i*2+1]);
-    PyList_SetItem(holderlist,i, mlist);
-  }    
-  ii=PyString_FromString("generatedsegmentlist");
-  PyDict_SetItem(holder, ii, holderlist); Py_DECREF(ii); Py_DECREF(holderlist);  
-  
   /* Add segment marker list */
   dimensions[0] = out.numberofsegments;
   gensegmentmarkerlist = (PyArrayObject *) PyArray_FromDims(1, 
 						    dimensions, 
 						    PyArray_INT);
   gensegmentmarkerlist -> data = out.segmentmarkerlist;
-  
-  
-  /* Add segment marker list */
-  listsize = out.numberofsegments;
-  holderlist = PyList_New(listsize);
-  for(i=0; i<listsize;i++){
-    PyObject *mlist = Py_BuildValue((char *)"i", 
-				    out.segmentmarkerlist[i]);
-    PyList_SetItem(holderlist,i, mlist);
-  }    
-  ii=PyString_FromString("generatedsegmentmarkerlist");
-  PyDict_SetItem(holder, ii, holderlist); Py_DECREF(ii); 
-  Py_DECREF(holderlist);  
   
   /* Add triangle neighbor list */
   dimensions[0] = out.numberoftriangles;
@@ -418,7 +318,7 @@ extern "C" void free();
   
   
   /* Add triangle neighbor list */
-  if (out.neighborlist != NULL) {
+  /*if (out.neighborlist != NULL) {
     listsize = out.numberoftriangles;
     holderlist = PyList_New(listsize);
     for(i=0; i<listsize;i++){
@@ -432,7 +332,7 @@ extern "C" void free();
     PyDict_SetItem(holder, ii, holderlist);
     Py_DECREF(ii); Py_DECREF(holderlist);
   }   
-  
+   */
   
   
   /* Free in/out structure memory */
@@ -480,7 +380,7 @@ extern "C" void free();
   }
   
   /* R = Py_BuildValue((char *)"O", holder); */
-  R = Py_BuildValue((char *)"OOOOOOOOO", holder 
+  R = Py_BuildValue((char *)"OOOOOOOO"
 		    ,PyArray_Return(gentrianglelist)
 		    ,PyArray_Return(genpointlist)
 		    ,PyArray_Return(genpointmarkerlist)
@@ -490,7 +390,7 @@ extern "C" void free();
 		    ,PyArray_Return(gensegmentmarkerlist)
 		    ,PyArray_Return(genneighborlist)
 		    );
-  Py_DECREF(holder); /** This fixed a  memory problem ticket#189 */
+   /*Py_DECREF(holder);* This fixed a  memory problem ticket#189 */
   Py_DECREF(gentrianglelist);
   Py_DECREF(genpointlist);
   Py_DECREF(genpointmarkerlist);
