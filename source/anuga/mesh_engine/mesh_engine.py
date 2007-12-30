@@ -7,7 +7,7 @@ from types import ListType, TupleType
 import anuga.mesh_engine.mesh_engine_c_layer as triang
 #import anuga.mesh_engine.list_dic as triang
 
-from Numeric import array, Float, Int32
+from Numeric import array, Float, Int32, reshape
 
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.utilities.anuga_exceptions import ANUGAError
@@ -17,7 +17,10 @@ def generate_mesh(points=None,
                   pointatts=None,segatts=None,
                   mode=None, dummy_test=None):
     """
-    
+    pointatts can be a list of lists.
+
+    generatedtriangleattributelist is used to represent tagged regions.
+    #FIXME (DSG-DSG): add comments
     """
     #FIXME (DSG-DSG): Catch parameters that are lists,
     #instead of lists of lists
@@ -51,10 +54,10 @@ def generate_mesh(points=None,
     # This is after points is numeric
     if pointatts is None or pointatts == []:
         pointatts = [[] for x in range(points.shape[0])]
-        
     try:
         # If Int is used, instead of Int32, it fails in Linux
         segments = ensure_numeric(segments, Int32)
+        
     except ValueError:
         msg = 'ERROR: Inconsistent segments array.'
         raise ANUGAError, msg
@@ -62,7 +65,6 @@ def generate_mesh(points=None,
     # This is after segments is numeric
     if segatts is None or segatts == []:
         segatts = [0 for x in range(segments.shape[0])]
-        
     try:
         holes = ensure_numeric(holes, Float)
     except ValueError:
@@ -82,7 +84,6 @@ def generate_mesh(points=None,
         raise ANUGAError, msg
     
     try:
-        #print "pointatts",pointatts 
         pointatts = ensure_numeric(pointatts, Float)
     except (ValueError, TypeError):
         msg = 'ERROR: Inconsistent point attributes array.'
@@ -92,6 +93,8 @@ def generate_mesh(points=None,
         msg = """ERROR: Point attributes array not the same shape as
         point array."""
         raise ANUGAError, msg
+    if len(pointatts.shape) == 1:
+        pointatts = reshape(pointatts,(pointatts.shape[0],1))
     
     try:
         segatts = ensure_numeric(segatts, Int32)
@@ -112,6 +115,7 @@ def generate_mesh(points=None,
         #    triangulation from the output .node file (including duplicate
         #    input vertices and vertices ``eaten'' by holes).  - output a
         #    list of neighboring triangles
+        # EG handles lone verts!
             
     #print "points",points 
     #print "segments", segments
@@ -120,12 +124,24 @@ def generate_mesh(points=None,
     #print "regions", regions
     #print "pointatts", pointatts
     #print "segatts", segatts
-    #print "mode", mode
+    #XSprint "mode", mode
     #print "yeah" 
-    mesh_dict, r_test = triang.genMesh(points,segments,holes,regions,
+    mesh_dict, trianglelist, pointlist, pointmarkerlist, pointattributelist, triangleattributelist, segmentlist, segmentmarkerlist, neighborlist = triang.genMesh(points,segments,holes,regions,
                           pointatts,segatts, mode, segments.flat)
+    # the values as arrays
+    mesh_dict['trianglelist'] = trianglelist
+    mesh_dict['pointlist'] = pointlist
+
+    # WARNING - pointmarkerlist IS UNTESTED
+    mesh_dict['pointmarkerlist'] = pointmarkerlist
+    mesh_dict['pointattributelist'] = pointattributelist
+    mesh_dict['triangleattributelist'] = triangleattributelist 
+    mesh_dict['segmentlist'] = segmentlist 
+    mesh_dict['segmentmarkerlist'] =  segmentmarkerlist
+    mesh_dict['triangleneighborlist'] = neighborlist
     mesh_dict['qaz'] = 1 #debugging
     ##print "r_test", r_test
+    
     return mesh_dict
 
 def add_area_tag(regions):

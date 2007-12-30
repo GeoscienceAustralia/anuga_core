@@ -35,8 +35,6 @@
      returned in the dic structre after they are used now, in alpha
      shape and mesh_engine.
 
-     to return numeric arrays, check how it is done in 
-     quantity_ext.c compute_gradients
           
      Precondition
      End list in the pointattributelist has to have the same length
@@ -91,10 +89,18 @@ extern "C" void free();
   PyArrayObject *test;
   
   
-  PyArrayObject *r_test;
+  PyArrayObject *gentrianglelist;
+  PyArrayObject *genpointlist;
+  PyArrayObject *genseglist;
+  PyArrayObject *genpointmarkerlist;
+  PyArrayObject *genpointattributelist;
+  PyArrayObject *gentriangleattributelist;
+  PyArrayObject *gensegmentlist;
+  PyArrayObject *gensegmentmarkerlist;
+  PyArrayObject *genneighborlist;
   PyObject *R;
 
-  int dimensions[1];
+  int dimensions[2];
     
   REAL Attr;
   int i, j, iatt, n, write_here,N;
@@ -148,6 +154,8 @@ extern "C" void free();
   }     
   
   /* Point attribute list */
+   /*printf ("in.pointattributelist -> dimensions[0] %i\n", pointattributelist -> dimensions[0]);
+  printf ("in.pointattributelist -> dimensions[1] %i\n", pointattributelist -> dimensions[1]); */
   if (0 == pointattributelist -> dimensions[0]) {
     in.numberofpointattributes = 0;
     in.pointattributelist =  NULL;
@@ -219,7 +227,20 @@ extern "C" void free();
   triangulate(mod, &in, &out, (struct triangulateio *)NULL );
   
   
+ 
+  /* printf(" ***  back from triangulate\n" );    */
   /*
+    ------- Pass point numbers,coordinates and neighbors back to Python ------
+    we send back a dictionary:                                               
+    { index : [ coordinates, [connections], Attribute ] } 
+  */
+  holder = PyDict_New();    
+ 
+  /*
+  
+     to return numeric arrays, check how it is done in 
+     abs quantity_ext.c compute_gradients
+     
   PyArray_FromDims allolws you to create a Numeric array with unitialized data.
    The first argument is the size of the second argument (
    the dimensions array).
@@ -229,20 +250,15 @@ extern "C" void free();
      The third argument is just the desired type.
   */
   
-  //Py_Initialize();
-  // Testing passing a numeric array out
-  dimensions[0] = 4;
-  // Allocate space for return vectors a and b (don't DECREF)
-  r_test = (PyArrayObject *) PyArray_FromDims(1, dimensions, PyArray_DOUBLE);
   
-  /* printf(" ***  back from triangulate\n" );    */
-  /*
-    ------- Pass point numbers,coordinates and neighbors back to Python ------
-    we send back a dictionary:                                               
-    { index : [ coordinates, [connections], Attribute ] } 
-  */
-  holder = PyDict_New();    
-  
+  /* Add triangle list */
+  dimensions[0] = out.numberoftriangles;
+  dimensions[1] = 3;   
+  gentrianglelist = (PyArrayObject *) PyArray_FromDims(2, 
+						    dimensions, 
+						    PyArray_INT);
+  gentrianglelist -> data = out.trianglelist;
+    
   /* Add triangle list */
   listsize = out.numberoftriangles;
   /* printf(" out.numberoftriangles %i\n", out.numberoftriangles ); */
@@ -254,6 +270,21 @@ extern "C" void free();
   }    
   ii=PyString_FromString("generatedtrianglelist");
   PyDict_SetItem(holder, ii, holderlist); Py_DECREF(ii); Py_DECREF(holderlist);
+  
+  
+  /* Add pointlist */
+  dimensions[0] = out.numberofpoints;
+  dimensions[1] = 2;   
+  genpointlist = (PyArrayObject *) PyArray_FromDims(2, 
+						 dimensions, 
+						 PyArray_DOUBLE);
+  /*						 
+  (double*) genpointlist -> data = out.pointlist;		 
+  ((double*) genpointlist -> data) = out.pointlist;
+  ( genpointlist -> data) = (double*) out.pointlist;
+  
+  */
+  genpointlist -> data = out.pointlist;
      
   /* Add pointlist */
   listsize = out.numberofpoints;
@@ -268,17 +299,33 @@ extern "C" void free();
   PyDict_SetItem(holder, ii, holderlist); Py_DECREF(ii); Py_DECREF(holderlist);
   
   /* Add point marker list */
+  dimensions[0] = out.numberofpoints;
+  genpointmarkerlist = (PyArrayObject *) PyArray_FromDims(1, 
+						    dimensions, 
+						    PyArray_INT);
+  genpointmarkerlist -> data = out.pointmarkerlist;
+  
+  /* Add point marker list */
   listsize = out.numberofpoints;
   holderlist = PyList_New(listsize);
   
   for(i=0; i<listsize;i++){
-    PyObject *mlist = Py_BuildValue((char *)"d", 
+    PyObject *mlist = Py_BuildValue((char *)"i", 
 				    out.pointmarkerlist[i]);     
     PyList_SetItem(holderlist,i, mlist); 
   }  
   ii=PyString_FromString("generatedpointmarkerlist");
   PyDict_SetItem(holder, ii, holderlist); Py_DECREF(ii); Py_DECREF(holderlist);
     
+  /* Add point attribute list */
+  dimensions[0] = out.numberofpoints;
+  dimensions[1] = out.numberofpointattributes;   
+  genpointattributelist = (PyArrayObject *) PyArray_FromDims(2, 
+						 dimensions, 
+						 PyArray_DOUBLE);
+  genpointattributelist -> data = out.pointattributelist;	
+  
+  
   /* Add point attribute list */
   listsize = out.numberofpoints;
   holderlist = PyList_New(listsize);
@@ -296,6 +343,13 @@ extern "C" void free();
   ii=PyString_FromString("generatedpointattributelist");
   PyDict_SetItem(holder, ii, holderlist); Py_DECREF(ii); Py_DECREF(holderlist);  
  
+  /* Add triangle attribute list */
+  dimensions[0] = out.numberoftriangles;
+  dimensions[1] = out.numberoftriangleattributes;   
+  gentriangleattributelist = (PyArrayObject *) PyArray_FromDims(2, 
+						 dimensions, 
+						 PyArray_DOUBLE);
+  gentriangleattributelist -> data = out.triangleattributelist;
   
   /* Add triangle attribute list */
   listsize = out.numberoftriangles;
@@ -314,6 +368,15 @@ extern "C" void free();
   PyDict_SetItem(holder, ii, holderlist); Py_DECREF(ii); Py_DECREF(holderlist);
   
   /* Add segment list */
+  dimensions[0] = out.numberofsegments;
+  dimensions[1] = 2;   
+  gensegmentlist = (PyArrayObject *) PyArray_FromDims(2, 
+						    dimensions, 
+						    PyArray_INT);
+  gensegmentlist -> data = out.segmentlist;
+  
+  
+  /* Add segment list */
   listsize = out.numberofsegments;
   holderlist = PyList_New(listsize);
   for(i=0; i<listsize;i++){
@@ -326,6 +389,14 @@ extern "C" void free();
   PyDict_SetItem(holder, ii, holderlist); Py_DECREF(ii); Py_DECREF(holderlist);  
   
   /* Add segment marker list */
+  dimensions[0] = out.numberofsegments;
+  gensegmentmarkerlist = (PyArrayObject *) PyArray_FromDims(1, 
+						    dimensions, 
+						    PyArray_INT);
+  gensegmentmarkerlist -> data = out.segmentmarkerlist;
+  
+  
+  /* Add segment marker list */
   listsize = out.numberofsegments;
   holderlist = PyList_New(listsize);
   for(i=0; i<listsize;i++){
@@ -334,7 +405,18 @@ extern "C" void free();
     PyList_SetItem(holderlist,i, mlist);
   }    
   ii=PyString_FromString("generatedsegmentmarkerlist");
-  PyDict_SetItem(holder, ii, holderlist); Py_DECREF(ii); Py_DECREF(holderlist);  
+  PyDict_SetItem(holder, ii, holderlist); Py_DECREF(ii); 
+  Py_DECREF(holderlist);  
+  
+  /* Add triangle neighbor list */
+  dimensions[0] = out.numberoftriangles;
+  dimensions[1] = 3;   
+  genneighborlist = (PyArrayObject *) PyArray_FromDims(2, 
+						    dimensions, 
+						    PyArray_INT);
+  genneighborlist -> data = out.neighborlist;
+  
+  
   /* Add triangle neighbor list */
   if (out.neighborlist != NULL) {
     listsize = out.numberoftriangles;
@@ -398,9 +480,25 @@ extern "C" void free();
   }
   
   /* R = Py_BuildValue((char *)"O", holder); */
-  R = Py_BuildValue((char *)"OO", holder, PyArray_Return(r_test));
+  R = Py_BuildValue((char *)"OOOOOOOOO", holder 
+		    ,PyArray_Return(gentrianglelist)
+		    ,PyArray_Return(genpointlist)
+		    ,PyArray_Return(genpointmarkerlist)
+		    ,PyArray_Return(genpointattributelist)
+		    ,PyArray_Return(gentriangleattributelist)
+		    ,PyArray_Return(gensegmentlist)
+		    ,PyArray_Return(gensegmentmarkerlist)
+		    ,PyArray_Return(genneighborlist)
+		    );
   Py_DECREF(holder); /** This fixed a  memory problem ticket#189 */
-  Py_DECREF(r_test);
+  Py_DECREF(gentrianglelist);
+  Py_DECREF(genpointlist);
+  Py_DECREF(genpointmarkerlist);
+  Py_DECREF(genpointattributelist);
+  Py_DECREF(gentriangleattributelist);
+  Py_DECREF(gensegmentlist);
+  Py_DECREF(gensegmentmarkerlist);
+  Py_DECREF(genneighborlist);
   return R;
 }
 

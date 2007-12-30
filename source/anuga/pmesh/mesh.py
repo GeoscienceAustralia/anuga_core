@@ -1162,6 +1162,8 @@ class Mesh:
 
         #FIXME (DSG-DSG)  move below section into generate_mesh.py
         #                  & 4 functions eg segment_strings2ints
+        # Actually, because of region_list.append((1.0,2.0,""))
+        # don't move it, without careful thought
         #print "*************************!@!@ This is going to triangle   !@!@"
         #print meshDict
         #print "************************!@!@ This is going to triangle   !@!@"
