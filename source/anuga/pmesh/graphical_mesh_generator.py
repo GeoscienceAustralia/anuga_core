@@ -1082,20 +1082,8 @@ class Draw(AppShell.AppShell):
         visualise vertices, segments, triangulation, holes
         """
         if self.Visualise:
-            for triangle in mesh.getTriangulation():
-                self.serial +=1
-                self.uniqueID = 'M*%d' % self.serial
-                self.Triangles.visualise(triangle,
-                                        self.uniqueID,
-                                        self.canvas,
-                                        self.SCALE)
-
-        if self.Visualise:
-            Triangles = mesh.sets[mesh.setID[self.selSet]]
-            for triangle in Triangles:
-                triangle.draw(self.canvas,1,
-                              scale = self.SCALE,
-                              colour = SET_COLOUR)
+            mesh.tri_mesh.draw_triangulation(self.canvas,
+                                             scale = self.SCALE)
 
         for segment in mesh.getUserSegments():
             self.serial +=1

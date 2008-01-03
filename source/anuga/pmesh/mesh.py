@@ -519,19 +519,45 @@ class Rigid_triangulation:
                  segments,
                  vertices,
                  triangle_tags,
-                 triangle_neighbor,
+                 triangle_neighbors,
                  segment_tags,
                  ):
        
-        self.triangles=ensure_numeric(triangles) 
-        self.triangle_neighbor=ensure_numeric(triangle_neighbor)
-        self.triangle_tags=triangle_tags
-        self.segments=ensure_numeric(segments) 
+        self.triangles = ensure_numeric(triangles) 
+        self.triangle_neighbors = ensure_numeric(triangle_neighbors)
+        self.triangle_tags = triangle_tags # list of strings
+        self.segments = ensure_numeric(segments) 
         
-        self.segment_tags=segment_tags # string
-        self.vertices=ensure_numeric(vertices)
+        self.segment_tags = segment_tags # list of strings
+        self.vertices = ensure_numeric(vertices)
 
+       
+    def draw_triangulation(self, canvas, scale=1, xoffset=0, yoffset=0,
+             colour="green"):
+        """
+        Draw a triangle, returning the objectID
+        """
         
+        # FIXME(DSG-DSG) This could be a data structure that is
+        # remembered and doesn't have any duplicates.
+        # but I wouldn't be able to use create_polygon.
+        # regard it as drawing a heap of segments
+        
+        for tri in self.triangles:
+            vertices = []
+            for v_index in range(3):
+                vertices.append(self.vertices[tri[v_index]])
+            
+            objectID = canvas.create_polygon(
+                scale*(vertices[1][0] + xoffset),
+                scale*-1*(vertices[1][1] + yoffset),
+                scale*(vertices[0][0] + xoffset),
+                scale*-1*(vertices[0][1] + yoffset),
+                scale*(vertices[2][0] + xoffset),
+                scale*-1*(vertices[2][1] + yoffset),
+                outline = colour,fill = ''
+                )
+ 
         
 class Mesh:
     """
@@ -574,6 +600,9 @@ class Mesh:
         self.meshSegments=[]
         self.meshVertices=[]
 
+        # Rigid
+        self.tri_mesh=None
+        
         self.setID={}
         #a dictionary of names.
         #multiple sets are allowed, but the gui does not yet
@@ -1210,7 +1239,6 @@ class Mesh:
         #print "################  FROM TRIANGLE"
         #print "generatedMesh",generatedMesh
         #print "##################"
-        
         self.setTriangulation(generatedMesh)
     
     def clearTriangulation(self):
@@ -1563,7 +1591,7 @@ class Mesh:
                 if att == []:
                     self.meshTriangles[index].setAttribute("")
                 else:
-                    self.meshTriangles[index].setAttribute(att[0])
+                    self.meshTriangles[index].setAttribute(att)
                 index += 1
             
         index = 0
@@ -1587,6 +1615,16 @@ class Mesh:
                                                    ObjectNeighbor[1],
                                                    ObjectNeighbor[2])
             index += 1
+        
+        # Setting up the rigid triangulation
+        self.tri_mesh = Rigid_triangulation(
+            genDict['generatedtrianglelist']
+            ,genDict['generatedsegmentlist']
+            ,genDict['generatedpointlist']
+            ,genDict['generatedtriangleattributelist']
+            ,genDict['generatedtriangleneighborlist']
+            ,genDict['generatedsegmentmarkerlist']
+            )
             
     def setMesh(self, genDict):
         """
@@ -2205,6 +2243,15 @@ class Mesh:
         meshDict['triangle_tags'] = triangle_tags
         meshDict['triangle_neighbors'] = triangle_neighbors
         
+        if self.tri_mesh is not None:
+            meshDict['triangles'] = self.tri_mesh.triangles
+            meshDict['triangle_tags'] = self.tri_mesh.triangle_tags
+            #print "mesh meshDict['triangle_tags']", meshDict['triangle_tags']
+            meshDict['triangle_neighbors'] = self.tri_mesh.triangle_neighbors
+        else:
+            meshDict['triangles'] = []
+            meshDict['triangle_tags'] = []
+            meshDict['triangle_neighbors'] = []
         #print "mesh.Mesh2IOTriangulationDict*)*)"
         #print meshDict
         #print "mesh.Mesh2IOTriangulationDict*)*)"
@@ -2287,11 +2334,12 @@ class Mesh:
         Set the mesh attributes given an tsh IO dictionary
         """
         #Clear the current generated mesh values
-        self.meshTriangles=[]
-        self.attributeTitles=[]
-        self.meshSegments=[]
-        self.meshVertices=[]
-
+        self.meshTriangles = []
+        self.attributeTitles = []
+        self.meshSegments = []
+        self.meshVertices = []
+        self.tri_mesh = None
+        
         #print "mesh.setTriangulation@#@#@#"
         #print genDict
         #print "@#@#@#"
@@ -2352,6 +2400,14 @@ class Mesh:
                                                    ObjectNeighbor[2])
             index += 1
 
+        self.tri_mesh = Rigid_triangulation(
+            genDict['triangles']
+            ,genDict['segments']
+            ,genDict['vertices']
+            ,genDict['triangle_tags']
+            ,genDict['triangle_neighbors']
+            ,genDict['segment_tags']
+            )
 
     def IOOutline2Mesh(self, genDict):
         """
@@ -3165,7 +3221,7 @@ def region_ints2strings(region_list,convertint2string):
         #print "in loop"
         for i in xrange(len(region_list)):
             temp = region_list[i]
-            returned_region_list.append([convertint2string[int(temp[0])]])
+            returned_region_list.append(convertint2string[int(temp[0])])
     return returned_region_list
 
 def segment_ints2strings(intlist, convertint2string):
@@ -3931,9 +3987,4 @@ class Affine_Linespace(Mapped_Discretised_Tuple_Set):
 
 # instead of functionName
 if __name__ == "__main__":
-    #from mesh import *
-    # THIS CAN BE DELETED
-    m = Mesh()
-    dict = importUngenerateFile("ungen_test.txt")
-    m.addVertsSegs(dict)
-    print m3
+    pass

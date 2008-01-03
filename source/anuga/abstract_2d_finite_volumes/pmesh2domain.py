@@ -189,11 +189,13 @@ def build_tagged_elements_dictionary(mesh_dict):
     { (tag): [e1, e2, e3..] }
     """
     tri_atts = mesh_dict['triangle_tags']
-    #print "tri_atts", tri_atts
     tagged_elements = {}
-    for tri_att_index in range(len(tri_atts)):
-        tagged_elements.setdefault(tri_atts[tri_att_index],[]).append(tri_att_index)
-    #print "DSG pm2do tagged_elements", tagged_elements
+    if tri_atts is None:
+       tagged_elements[''] = range(len(mesh_dict['triangles']))
+    else:
+        for tri_att_index in range(len(tri_atts)):
+            tagged_elements.setdefault(tri_atts[tri_att_index],
+                                       []).append(tri_att_index)
     return tagged_elements
 
 def pmesh_dict_to_tag_dict(mesh_dict):

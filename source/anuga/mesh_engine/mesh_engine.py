@@ -147,18 +147,26 @@ def generate_mesh(points=None,
     mesh_dict['triangleattributelist'] = triangleattributelist
     #print "mesh eng generatedtrianglelist", trianglelist
     #print "mesh eng mesh_dict['triangleattributelist'] ",mesh_dict['triangleattributelist']
-    #print "mesh eng mesh_dict['generatedtriangleattributelist'] ", mesh_dict['generatedtriangleattributelist']    
-    
+    #print "mesh eng mesh_dict['generatedtriangleattributelist'] ", mesh_dict['generatedtriangleattributelist']   
     if True: 
         mesh_dict['generatedtriangleattributelist'] = triangleattributelist
 
         if mesh_dict['generatedtriangleattributelist'].shape[1] == 0:
             mesh_dict['generatedtriangleattributelist'] = None
+            
         if trianglelist.shape[0] == 0:
             # There are no triangles.
             # this is used by urs_ungridded2sww
             raise NoTrianglesError
-    #print "mesh eng mesh_dict['generatedtriangleattributelist'] ", mesh_dict['generatedtriangleattributelist']    
+    #print "mesh eng mesh_dict['generatedtriangleattributelist'] ", mesh_dict['generatedtriangleattributelist']  
+    
+    # the structure of generatedtriangleattributelist is an list of
+    # list of integers.  It is transformed into a list of list of
+    # strings later on.  This is then inputted into an triangle
+    # object.  The triangle object outputs a list of strings.  Note
+    # the subtle change!  How should I handle this?  For my code, when
+    # the list of list of integers is transformed, transform it into a
+    # list of strings, not a list of list of strings.
     
     return mesh_dict
 

@@ -20,8 +20,7 @@ The format for a Points dictionary is:
     segments: [[v1,v2],[v3,v4],...] (lists of integers) 
     segment_tags : [tag,tag,...] list of strings
     triangles : [(v1,v2,v3), (v4,v5,v6),....] lists of points
-    triangle_tags: [s1,s2,...] A list of list of strings (probably not
-    neccecary.  a list of string should be ok)
+    triangle_tags: [s1,s2,...] A list of strings 
     triangle_neighbors: [[t1,t2,t3], [t4,t5,t6],..] lists of triangles
         
     (the outline)   
@@ -511,7 +510,9 @@ def _write_ASCII_triangulation(fd,
         #dict that's being passed around is also be used to communicate
         # with triangle, and it seems to have the option of returning
         # more than one value for triangle attributex
-        if triangles_attributes == [] or triangles_attributes[index] == ['']:
+        if triangles_attributes == None or \
+               triangles_attributes == [] or \
+               triangles_attributes[index] == ['']:
             att = ""
         else:
             att = str(triangles_attributes[index])
