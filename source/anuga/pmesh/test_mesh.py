@@ -35,22 +35,6 @@ class meshTestCase(unittest.TestCase):
         self.failUnless( a.DistanceToPoint(b) == 10.0,
                         'Point DistanceToPoint is wrong!')
         
-    def testTriangle(self):
-        a = Vertex (0.0, 0.0)
-        b = Vertex (0.0, 2.0)
-        c = Vertex (2.0,0.0)
-        d = Vertex (0.0, 4.0)
-        e = Vertex (2.0, 2.0)
-        f = Vertex (4.0,0.0)
-        
-        t1 = Triangle(b,a,c)       
-        t2 = Triangle(b,c,e)      
-        t3 = Triangle(e,c,f)      
-        t4 = Triangle(d,b,e)
-        t2.setNeighbors(t3,t4,t1)
-        
-        self.failUnless( t2.neighbors[2].vertices[0] == b, 'Triangle initialisation is wrong!')
-    
         
     def testSegment(self):
         a = Vertex (0.0, 0.0)
@@ -273,23 +257,6 @@ class meshTestCase(unittest.TestCase):
         self.failUnless(len(mesh.userVertices) == 3,
                         'Vertex deleted, instead of segment.')
 
-    def testTriangleArea(self):
-        a = Vertex (10.0, 10.0)
-        b = Vertex (10.0, 20.0)
-        c = Vertex (20.0,10.0)
-        
-        d = Vertex (-20.0, 0.0)
-        e = Vertex (-20.0, -20.0)
-        f = Vertex (20.0,-20.0)
-        
-        t1 = Triangle(b,a,c)      
-        t2 = Triangle(e,d,f)
-        
-#         print "t1", t1
-#         print "t1 area ", t1.calcArea()
-#         print "t2", t2
-#         print "t2 area ", t2.calcArea()
-        self.failUnless( t1.calcArea() == 50 and t2.calcArea() == 400, 'Triangle area is wrong!')
     def testisUserSegmentNew (self):
         mesh = Mesh()
         a = mesh.addUserVertex(0.0, 0.0)
@@ -1751,158 +1718,6 @@ END\n")
             self.failUnless( regmaxarea == regactual.getMaxArea(),
                         'loadASCIITestCase failed. test 7')
 
-
-#___________beginning of Peters tests
-
-    def test_set_stuff(self):
-        """
-        Documentation
-        """
-        #making a test mesh
-        p0=[0.,2.]
-        p1=[1.,2.]
-        p2=[0.,1.]
-        p3=[1.,1.]
-        p4=[0.,0.]
-        p5=[2.,0.]
-        p6=[-1.,1.]
-        point_list = [p0,p1,p2,p3,p4,p5,p6]
-
-        a0=[0]
-        a1=[0]
-        a2=[100]
-        a3=[0]
-        a4=[0]
-        a5=[0]
-        a6=[0]
-        attribute=[a0,a1,a2,a3,a4,a5,a6]
-        
-        t0=[0,3,1]
-        t1=[0,2,3]
-        t2=[2,4,3]
-        t3=[4,5,3]
-        t4=[1,3,5]
-        t5=[2,6,4]
-
-        n0=[4,-1,2]
-        n1=[2,0,-1]
-        n2=[3,1,5]
-        n3=[4,2,-1]
-        n4=[3,-1,0]
-        n5=[-1,2,-1]
-
-        tri_list = [t0,t1,t2,t3,t4,t5]
-        n_list = [n0,n1,n2,n3,n4,n5]
-        for i in range(6):
-            for j in (0,1,2):
-                a=attribute[tri_list[i][j]]
-                tri_list[i][j]=point_list[tri_list[i][j]]
-                tri_list[i][j]=Vertex(tri_list[i][j][0]\
-                                      ,tri_list[i][j][1],a)
-            neighbours=n_list[i]
-            tri_list[i]=Triangle(tri_list[i][0],\
-                                 tri_list[i][1],tri_list[i][2]\
-                                ,neighbors=neighbours)
-
-        #testing selectAll
-        mesh = Mesh()
-        mesh.attributeTitles=['attrib']
-
-        mesh.meshTriangles=tri_list
-
-        mesh.selectAllTriangles()
-        A=mesh.sets[mesh.setID['All']]
-        assert list_comp(tri_list,A)
-
-       #testing threshold
-        mesh = Mesh()
-        mesh.attributeTitles=['attrib']
-
-        mesh.meshTriangles=tri_list
-        mesh.selectAllTriangles()
-        mesh.threshold('All',min=30,max=35,attribute_name = 'attrib')
-        A = [tri_list[1],tri_list[2],tri_list[5]]
-        B = mesh.sets[mesh.setID['All']]
-        assert list_comp(A,B)
-       
-
-        A = [tri_list[3],tri_list[2],tri_list[5]]
-        assert not list_comp(A,B)
-
-        #testing 
-
-    def test_Discretised_Tuple_Set_rounding(self):
-        #This is the hardest bit of DST
-
-        tol = 0.1
-        a=Discretised_Tuple_Set(p_rel=1,t_rel= tol)
-        m = 0.541
-        m_up = 0.6
-        m_down = 0.5
-        assert m_up == a.round_up_rel(m)
-        assert m_down == a.round_down_rel(m)
-
-        tol = 0.1
-        a=Discretised_Tuple_Set(p_rel=1,t_rel = tol)
-        m = 0.539
-        m_up = 0.5
-        m_down = 0.5
-        assert m_up == a.round_up_rel(m)
-        assert m_down == a.round_down_rel(m)
-
-        tol = 0.5
-        a=Discretised_Tuple_Set(p_rel=1,t_rel = tol)
-
-
-        m = 0.6
-        m_up = 0.7
-        m_down = 0.5
-        assert m_up == a.round_up_rel(m)
-        assert m_down == a.round_down_rel(m)
-
-        m = 0.599
-        m_up = 0.6
-        m_down = 0.5
-        assert m_up == a.round_up_rel(m)
-        assert m_down == a.round_down_rel(m)
-
-    def test_Discretised_Tuple_Set_get(self):
-        
-        tol = 0.25
-        a=Discretised_Tuple_Set(p_rel=1,t_rel = tol)
-        b = (1.1,1.1)
-        a.append(b)
-        list = [(1.2,1.),(1.,1.),(1.,1.2),(1.2,1.2)]
-        for key in list:
-            assert a[key][0]==b
-            assert len(a[key])==1
-        
-        c = (2.1,1.)
-        a.append(c)
-        assert a[(2.,1.)][0]==c
-        assert a[(2.2,1.)][0]==c
-
-    def test_mapped_Discretised_Tuple_Set(self):
-
-        def map(sequence):
-            return [len(sequence)]
-
-        tol = 0.5
-        a=Mapped_Discretised_Tuple_Set(map,p_rel=1,t_rel = tol)
-        b = range(20)
-        a.append(b)
-        assert b in a[range(17)] 
-        assert b in a[range(22)]
-
-        tol = 0.01
-        a=Mapped_Discretised_Tuple_Set(map,p_rel=1,t_rel = tol)
-        b = range(20)
-        a.append(b)
-        assert b in a[range(20)] 
-        assert b in a[range(19)] 
-        assert not range(17) in a
-
-#___________end of Peters tests
 
     def test_add_region_from_polygon(self):
         m=Mesh()
