@@ -154,6 +154,8 @@ def generate_mesh(points=None,
         if mesh_dict['generatedtriangleattributelist'].shape[1] == 0:
             mesh_dict['generatedtriangleattributelist'] = None
             
+        if mesh_dict['generatedpointattributelist'].shape[1] == 0:
+            mesh_dict['generatedpointattributelist'] = None
         if trianglelist.shape[0] == 0:
             # There are no triangles.
             # this is used by urs_ungridded2sww

@@ -386,9 +386,9 @@ class TestCase(unittest.TestCase):
         m = importMeshFromFile(file_name)
         
         #print "file_name",file_name 
-        self.failUnless(len(m.meshTriangles) <= 900,
+        self.failUnless(len(m.getTriangulation()) <= 900,
                         'Test mesh interface failed!')
-        self.failUnless(len(m.meshTriangles) >= 200,
+        self.failUnless(len(m.getTriangulation()) >= 200,
                         'Test mesh interface failed!')
         
         create_mesh_from_regions(polygon_outer
@@ -402,7 +402,7 @@ class TestCase(unittest.TestCase):
         m = importMeshFromFile(file_name)
         
         #print "len(m.meshTriangles)",len(m.meshTriangles) 
-        self.failUnless(len(m.meshTriangles) <= 100,
+        self.failUnless(len(m.getTriangulation()) <= 100,
                         'Test mesh interface failed!')
 
         os.remove(file_name)
@@ -441,10 +441,10 @@ class TestCase(unittest.TestCase):
         m = importMeshFromFile(file_name)
         #print "file_name",file_name
         #print "len(m.meshTriangles",len(m.meshTriangles) 
-        self.failUnless(len(m.meshTriangles) <= 2000, 
+        self.failUnless(len(m.getTriangulation()) <= 2000, 
                         'Test mesh interface failed!')
  
-        self.failUnless(len(m.meshTriangles) >= 900,
+        self.failUnless(len(m.getTriangulation()) >= 900,
                         'Test mesh interface failed!')
 
         os.remove(file_name)
@@ -488,10 +488,10 @@ class TestCase(unittest.TestCase):
         m = importMeshFromFile(file_name)
         #print "file_name",file_name
         #print "len(m.meshTriangles",len(m.meshTriangles) 
-        self.failUnless(len(m.meshTriangles) <= 2000, 
+        self.failUnless(len(m.getTriangulation()) <= 2000, 
                         'Test mesh interface failed!')
  
-        self.failUnless(len(m.meshTriangles) >= 900,
+        self.failUnless(len(m.getTriangulation()) >= 900,
                         'Test mesh interface failed!')
 
         os.remove(file_name)
@@ -537,10 +537,10 @@ class TestCase(unittest.TestCase):
         m = importMeshFromFile(file_name)
         #print "file_name",file_name
         #print "len(m.meshTriangles",len(m.meshTriangles) 
-        self.failUnless(len(m.meshTriangles) <= 3000, 
+        self.failUnless(len(m.getTriangulation()) <= 3000, 
                         'Test mesh interface failed!')
  
-        self.failUnless(len(m.meshTriangles) >= 2000,
+        self.failUnless(len(m.getTriangulation()) >= 2000,
                         'Test mesh interface failed!')
 
         os.remove(file_name)

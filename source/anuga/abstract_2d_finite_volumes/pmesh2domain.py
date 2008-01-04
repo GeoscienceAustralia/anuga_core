@@ -174,8 +174,9 @@ def _pmesh_to_domain(file_name=None,
     point_atts = transpose(mesh_dict['vertex_attributes'])
     point_titles  = mesh_dict['vertex_attribute_titles']
     geo_reference  = mesh_dict['geo_reference']
-    for quantity, value_vector in map (None, point_titles, point_atts):
-        vertex_quantity_dict[quantity] = value_vector
+    if point_atts != None:
+        for quantity, value_vector in map (None, point_titles, point_atts):
+            vertex_quantity_dict[quantity] = value_vector
     tag_dict = pmesh_dict_to_tag_dict(mesh_dict)
     tagged_elements_dict = build_tagged_elements_dictionary(mesh_dict)
     return vertex_coordinates, volumes, tag_dict, vertex_quantity_dict, tagged_elements_dict, geo_reference

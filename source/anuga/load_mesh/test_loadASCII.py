@@ -93,7 +93,7 @@ class loadASCIITestCase(unittest.TestCase):
         self.tri_dict['triangles'] = [[0,1,2]]
         self.tri_dict['segments'] = [[0,1]]
         self.tri_dict['triangle_tags'] = ['']
-        self.tri_dict['vertex_attributes'] = [[],[],[]]
+        self.tri_dict['vertex_attributes'] = None
         self.tri_dict['triangle_neighbors'] = [[0,0,0]]
         self.tri_dict['segment_tags'] = ['']
         self.tri_dict['vertex_attribute_titles'] = []
@@ -111,7 +111,7 @@ class loadASCIITestCase(unittest.TestCase):
         self.seg_dict['triangles'] = []
         self.seg_dict['segments'] = [[0,1]]
         self.seg_dict['triangle_tags'] = []
-        self.seg_dict['vertex_attributes'] = [[],[]]
+        self.seg_dict['vertex_attributes'] = None
         self.seg_dict['triangle_neighbors'] = []
         self.seg_dict['segment_tags'] = ['']
         self.seg_dict['vertex_attribute_titles'] = []
@@ -475,8 +475,11 @@ showme1.0 0.0 10.0 \n\
                               loaded_dict['triangle_tags']):
             self.failUnless(ob  == ldob,
                         fail_string + ' failed!! Test triangle_tags')
-        self.failUnless(loaded_dict['vertex_attributes']  ==
-                        dict['vertex_attributes'],
+        # A bit hacky
+        self.failUnless((loaded_dict['vertex_attributes']  ==
+                        dict['vertex_attributes']) or \
+                        (loaded_dict['vertex_attributes']  == None and \
+                         dict['vertex_attributes'] == []),
                         fail_string + ' failed!! Test vertex_attributes')
  
         assert allclose(array(dict['triangle_neighbors']),
@@ -544,7 +547,7 @@ showme1.0 0.0 10.0 \n\
 if __name__ == "__main__":
 
     suite = unittest.makeSuite(loadASCIITestCase,'test')
-    #suite = unittest.makeSuite(loadASCIITestCase,'test_rs')
+    #suite = unittest.makeSuite(loadASCIITestCase,'test_read_write_tsh_file4')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
     

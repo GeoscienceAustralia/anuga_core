@@ -1114,7 +1114,7 @@ class Draw(AppShell.AppShell):
                                     self.uniqueID,
                                     self.canvas,
                                     self.SCALE)
-    def normalise4ObjMesh(self):
+    def obsolete_normalise4ObjMesh(self):
         if self.mesh:
             self.clearSelections()
             self.canvas.delete(ALL)
@@ -1123,7 +1123,7 @@ class Draw(AppShell.AppShell):
             self.ResizeToFit()
             self.ResizeToFit()
             
-    def normaliseMesh(self):
+    def obsolete_nnormaliseMesh(self):
         if self.mesh:
             self.clearSelections()
             self.canvas.delete(ALL)

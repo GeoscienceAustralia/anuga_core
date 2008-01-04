@@ -521,6 +521,8 @@ class Rigid_triangulation:
                  triangle_tags,
                  triangle_neighbors,
                  segment_tags,
+                 vertex_attributes,
+                 vertex_attribute_titles=None
                  ):
        
         self.triangles = ensure_numeric(triangles) 
@@ -530,7 +532,15 @@ class Rigid_triangulation:
         
         self.segment_tags = segment_tags # list of strings
         self.vertices = ensure_numeric(vertices)
-
+        # This is needed for __cmp__
+        if vertex_attributes is None:
+            self.vertex_attributes = []
+        else:
+            self.vertex_attributes = ensure_numeric(vertex_attributes)
+        if vertex_attribute_titles is None:
+            self.vertex_attribute_titles = []
+        else:
+            self.vertex_attribute_titles = vertex_attribute_titles
        
     def draw_triangulation(self, canvas, scale=1, xoffset=0, yoffset=0,
              colour="green"):
@@ -1093,15 +1103,27 @@ class Mesh:
     def clearUserSegments(self):
         self.userSegments = []
         self.alphaUserSegments = []
-                
+
+       #FIXME see where this is used. return an array instead
     def getTriangulation(self):
-        return self.meshTriangles
+        #return self.meshTriangles
+        return self.tri_mesh.triangles.tolist()
     
     def getMeshVertices(self):
-        return self.meshVertices
+        #return self.meshVertices
+        return self.tri_mesh.vertices
  
+    def getMeshVerticeAttributes(self):
+        #return self.meshVertices
+        return self.tri_mesh.vertex_attributes
+    
     def getMeshSegments(self):
-        return self.meshSegments
+        #return self.meshSegments
+        return self.tri_mesh.segments
+    
+    def getMeshSegmentTags(self):
+        #return self.meshSegments
+        return self.tri_mesh.segment_tags
     
     def getHoles(self):
         return self.holes
@@ -1232,7 +1254,8 @@ class Mesh:
         #print "pmesh mesh generatedMesh['generatedtriangleattributelist']", generatedMesh['generatedtriangleattributelist']
         #FIXME (DSG-DSG)  move above section into generate_mesh.py
        
-        if generatedMesh['generatedpointattributelist'].shape[1] ==0:
+        if generatedMesh['generatedpointattributelist'] is None or \
+               generatedMesh['generatedpointattributelist'].shape[1] ==0:
             self.attributeTitles = []
         generatedMesh['generatedpointattributetitlelist']= \
                                             self.attributeTitles
@@ -1443,6 +1466,8 @@ class Mesh:
         """
         Convert the Mesh to a dictionary of lists describing the
         triangulation variables;
+
+        This is used by __cmp__
         generated point list: [(x1,y1),(x2,y2),...] (Tuples of doubles)
         generated point attribute list: [(a11,a12,...),(a21,a22),...]
             (Tuples of doubles)
@@ -1462,54 +1487,33 @@ class Mesh:
         Used to produce .tsh file
         """
         
-        meshDict = {}        
-        pointlist=[]
-        pointattributelist=[]
-
-
-        self.maxVertexIndex=0
-        for vertex in self.meshVertices:
-            vertex.index = self.maxVertexIndex 
-            pointlist.append((vertex.x,vertex.y))
-            pointattributelist.append((vertex.attributes))           
-            self.maxVertexIndex += 1
-
-        meshDict['generatedpointlist'] = pointlist
-        meshDict['generatedpointattributelist'] = pointattributelist
-        meshDict['generatedpointattributetitlelist'] = self.attributeTitles
-        #segments
-        segmentlist=[]
-        segmenttaglist=[]
-        for seg in self.meshSegments:
-            segmentlist.append((seg.vertices[0].index,seg.vertices[1].index))
-            segmenttaglist.append(seg.tag)
-        meshDict['generatedsegmentlist'] =segmentlist 
-        meshDict['generatedsegmenttaglist'] =segmenttaglist 
-
-        # Make sure that the indexation is correct
-        index = 0
-        for tri in self.meshTriangles:
-            tri.index = index           
-            index += 1
-
-        trianglelist = []
-        triangleattributelist = []
-        triangleneighborlist = []
-        for tri in self.meshTriangles:  
-            trianglelist.append((tri.vertices[0].index,tri.vertices[1].index,
-                                 tri.vertices[2].index))  
-            triangleattributelist.append([tri.attribute])
-            neighborlist = [-1,-1,-1]
-            for neighbor,index in map(None,tri.neighbors,
-                                      range(len(tri.neighbors))):
-                if neighbor:    
-                    neighborlist[index] = neighbor.index
-            triangleneighborlist.append(neighborlist)
-        
-        meshDict['generatedtrianglelist'] = trianglelist 
-        meshDict['generatedtriangleattributelist'] = triangleattributelist
-        meshDict['generatedtriangleneighborlist'] = triangleneighborlist
-        
+        meshDict = {}   
+        #print "old meshDict['generatedpointattributetitlelist']",meshDict['generatedpointattributetitlelist']
+        #print "self.tri_mesh", self.tri_mesh
+        if self.tri_mesh is not None:
+            #print "self.tri_mesh.triangles.tolist()", self.tri_mesh.triangles.tolist()
+            meshDict['generatedtrianglelist'] = self.tri_mesh.triangles.tolist()
+            meshDict['generatedtriangleattributelist'] = self.tri_mesh.triangle_tags
+            meshDict['generatedtriangleneighborlist'] = self.tri_mesh.triangle_neighbors.tolist()
+            meshDict['generatedpointlist'] = self.tri_mesh.vertices.tolist()
+            if  self.tri_mesh.vertex_attributes == []:
+                meshDict['generatedpointattributelist'] = []
+            #meshDict['generatedpointattributelist'] = self.tri_mesh.vertex_attributes
+            meshDict['generatedpointattributetitlelist'] = \
+                       self.tri_mesh.vertex_attribute_titles
+            meshDict['generatedsegmentlist'] = self.tri_mesh.segments.tolist()
+            meshDict['generatedsegmenttaglist'] = self.tri_mesh.segment_tags
+        else:
+            meshDict['generatedtrianglelist'] = []
+            meshDict['generatedtriangleattributelist'] = []
+            meshDict['generatedtriangleneighborlist'] = []
+            meshDict['generatedpointlist'] = []
+            meshDict['generatedpointattributelist'] = []
+            meshDict['generatedpointattributetitlelist'] = []
+            meshDict['generatedsegmentlist'] = []
+            meshDict['generatedsegmenttaglist'] = []
+            
+        #print "new meshDict['generatedpointattributetitlelist']",meshDict['generatedpointattributetitlelist']
         #print "mesh.Mesh2MeshList*)*)"
         #print meshDict
         #print "mesh.Mesh2MeshList*)*)"
@@ -1534,88 +1538,20 @@ class Mesh:
         returned from the triang module       
         generated point list: [(x1,y1),(x2,y2),...] (Tuples of doubles)  
         generated point attribute list:[(P1att1,P1attt2, ...),
-            (P2att1,P2attt2,...),...]
+            (P2att1,P2attt2,...),...]- not implemented
         generated point attribute title list:[A1Title, A2Title ...]
-            (list of strings)
+            (list of strings) - not implemented
         generated segment list: [(point1,point2),(p3,p4),...]
             (Tuples of integers)
-        generated segment marker list: [S1Tag, S2Tag, ...] (list of ints)
+        generated segment marker list: [S1Tag, S2Tag, ...] (list of strings)
         triangle list:  [(point1,point2, point3),(p5,p4, p1),...]
             (Tuples of integers)
         triangle neighbor list: [(triangle1,triangle2, triangle3),
             (t5,t4, t1),...] (Tuples of integers)
             -1 means there's no triangle neighbor
-        triangle attribute list: [(T1att), (T2att), ...]
+        triangle attribute list: [(T1att), (T2att), ...](list of strings)
 
         """
-        #Clear the current generated mesh values
-        self.meshTriangles=[]
-        self.attributeTitles=[]
-        self.meshSegments=[]
-        self.meshVertices=[]
-
-        #print "mesh.setTriangulation@#@#@#"
-        #print genDict
-        #print "@#@#@#"
-
-        self.maxVertexIndex = 0
-        for point in genDict['generatedpointlist']:
-            v=Vertex(point[0], point[1])
-            v.index =  self.maxVertexIndex
-            self.maxVertexIndex +=1
-            self.meshVertices.append(v)
-
-        self.attributeTitles = genDict['generatedpointattributetitlelist']
-
-        index = 0
-        for seg,marker in map(None,genDict['generatedsegmentlist'],
-                              genDict['generatedsegmentmarkerlist']):
-            segObject = Segment( self.meshVertices[int(seg[0])],
-                           self.meshVertices[int(seg[1])], tag = marker )
-            segObject.index = index
-            index +=1
-            self.meshSegments.append(segObject)
-
-        index = 0
-        for triangle in genDict['generatedtrianglelist']:
-            tObject =Triangle( self.meshVertices[int(triangle[0])],
-                        self.meshVertices[int(triangle[1])],
-                        self.meshVertices[int(triangle[2])] )
-            tObject.index = index
-            index +=1
-            self.meshTriangles.append(tObject)
-
-        if genDict['generatedtriangleattributelist'] is not None:
-            index = 0
-            for att in genDict['generatedtriangleattributelist']:
-                if att == []:
-                    self.meshTriangles[index].setAttribute("")
-                else:
-                    self.meshTriangles[index].setAttribute(att)
-                index += 1
-            
-        index = 0
-        for att in genDict['generatedpointattributelist']:
-            if att == None:
-                self.meshVertices[index].setAttributes([])
-            else:
-                self.meshVertices[index].setAttributes(att)
-            index += 1
-    
-        index = 0
-        for triangle in genDict['generatedtriangleneighborlist']:
-            # Build a list of triangle object neighbors
-            ObjectNeighbor = []
-            for neighbor in triangle:
-                if ( neighbor != -1):
-                    ObjectNeighbor.append(self.meshTriangles[int(neighbor)])
-                else:
-                    ObjectNeighbor.append(None)
-            self.meshTriangles[index].setNeighbors(ObjectNeighbor[0],
-                                                   ObjectNeighbor[1],
-                                                   ObjectNeighbor[2])
-            index += 1
-        
         # Setting up the rigid triangulation
         self.tri_mesh = Rigid_triangulation(
             genDict['generatedtrianglelist']
@@ -1624,6 +1560,8 @@ class Mesh:
             ,genDict['generatedtriangleattributelist']
             ,genDict['generatedtriangleneighborlist']
             ,genDict['generatedsegmentmarkerlist']
+            ,genDict['generatedpointattributelist']
+            ,genDict['generatedpointattributetitlelist']
             )
             
     def setMesh(self, genDict):
@@ -2194,64 +2132,27 @@ class Mesh:
         
         Used to produce .tsh file
         """
-        
-        meshDict = {}        
-        vertices=[]
-        vertex_attributes=[]
-
-        self.maxVertexIndex=0
-        for vertex in self.meshVertices:
-            vertex.index = self.maxVertexIndex 
-            vertices.append([vertex.x,vertex.y])
-            vertex_attributes.append(vertex.attributes)           
-            self.maxVertexIndex += 1
-
-        meshDict['vertices'] = vertices
-        meshDict['vertex_attributes'] = vertex_attributes
-        meshDict['vertex_attribute_titles'] = self.attributeTitles
-        #segments
-        segments=[]
-        segment_tags=[]
-        for seg in self.meshSegments:
-            segments.append([seg.vertices[0].index,seg.vertices[1].index])
-            segment_tags.append(seg.tag)
-        meshDict['segments'] =segments 
-        meshDict['segment_tags'] =segment_tags
-
-        # Make sure that the indexation is correct
-        index = 0
-        for tri in self.meshTriangles:
-            tri.index = index           
-            index += 1
-
-        triangles = []
-        triangle_tags = []
-        triangle_neighbors = []
-        for tri in self.meshTriangles:  
-            triangles.append([tri.vertices[0].index,
-                              tri.vertices[1].index,
-                              tri.vertices[2].index])  
-            triangle_tags.append(tri.attribute)
-            neighborlist = [-1,-1,-1]
-            for neighbor,index in map(None,tri.neighbors,
-                                      range(len(tri.neighbors))):
-                if neighbor:    
-                    neighborlist[index] = neighbor.index
-            triangle_neighbors.append(neighborlist)
-        
-        meshDict['triangles'] = triangles
-        meshDict['triangle_tags'] = triangle_tags
-        meshDict['triangle_neighbors'] = triangle_neighbors
-        
+        meshDict = {}
         if self.tri_mesh is not None:
             meshDict['triangles'] = self.tri_mesh.triangles
             meshDict['triangle_tags'] = self.tri_mesh.triangle_tags
             #print "mesh meshDict['triangle_tags']", meshDict['triangle_tags']
             meshDict['triangle_neighbors'] = self.tri_mesh.triangle_neighbors
+            meshDict['vertices'] = self.tri_mesh.vertices
+            meshDict['vertex_attributes'] = self.tri_mesh.vertex_attributes
+            meshDict['vertex_attribute_titles'] = \
+                               self.tri_mesh.vertex_attribute_titles
+            meshDict['segments'] = self.tri_mesh.segments 
+            meshDict['segment_tags'] = self.tri_mesh.segment_tags
         else:
             meshDict['triangles'] = []
             meshDict['triangle_tags'] = []
             meshDict['triangle_neighbors'] = []
+            meshDict['vertices'] = []
+            meshDict['vertex_attributes'] = []
+            meshDict['vertex_attribute_titles'] = []
+            meshDict['segments'] = []
+            meshDict['segment_tags'] = []
         #print "mesh.Mesh2IOTriangulationDict*)*)"
         #print meshDict
         #print "mesh.Mesh2IOTriangulationDict*)*)"
@@ -2334,72 +2235,8 @@ class Mesh:
         Set the mesh attributes given an tsh IO dictionary
         """
         #Clear the current generated mesh values
-        self.meshTriangles = []
-        self.attributeTitles = []
-        self.meshSegments = []
-        self.meshVertices = []
         self.tri_mesh = None
         
-        #print "mesh.setTriangulation@#@#@#"
-        #print genDict
-        #print "@#@#@#"
-
-        self.maxVertexIndex = 0
-        for point in genDict['vertices']:
-            v=Vertex(point[0], point[1])
-            v.index =  self.maxVertexIndex
-            self.maxVertexIndex +=1
-            self.meshVertices.append(v)
-
-        self.attributeTitles = genDict['vertex_attribute_titles']
-
-        index = 0
-        for seg,tag in map(None,genDict['segments'],genDict['segment_tags']):
-            segObject = Segment( self.meshVertices[int(seg[0])],
-                           self.meshVertices[int(seg[1])], tag = tag )
-            segObject.index = index
-            index +=1
-            self.meshSegments.append(segObject)
-
-        index = 0
-        for triangle in genDict['triangles']:
-            tObject =Triangle( self.meshVertices[int(triangle[0])],
-                        self.meshVertices[int(triangle[1])],
-                        self.meshVertices[int(triangle[2])] )
-            tObject.index = index
-            index +=1
-            self.meshTriangles.append(tObject)
-
-        index = 0
-        for att in genDict['triangle_tags']:
-            if att == []:
-                self.meshTriangles[index].setAttribute("")
-            else:
-                self.meshTriangles[index].setAttribute(att)
-            index += 1
-            
-        index = 0
-        for att in genDict['vertex_attributes']:
-            if att == None:
-                self.meshVertices[index].setAttributes([])
-            else:
-                self.meshVertices[index].setAttributes(att)
-            index += 1
-    
-        index = 0
-        for triangle in genDict['triangle_neighbors']:
-            # Build a list of triangle object neighbors
-            ObjectNeighbor = []
-            for neighbor in triangle:
-                if ( neighbor != -1):
-                    ObjectNeighbor.append(self.meshTriangles[int(neighbor)])
-                else:
-                    ObjectNeighbor.append(None)
-            self.meshTriangles[index].setNeighbors(ObjectNeighbor[0],
-                                                   ObjectNeighbor[1],
-                                                   ObjectNeighbor[2])
-            index += 1
-
         self.tri_mesh = Rigid_triangulation(
             genDict['triangles']
             ,genDict['segments']
@@ -2407,8 +2244,13 @@ class Mesh:
             ,genDict['triangle_tags']
             ,genDict['triangle_neighbors']
             ,genDict['segment_tags']
+            ,genDict['vertex_attributes']
+            ,genDict['vertex_attribute_titles']
             )
-
+        self.attributeTitles = genDict['vertex_attribute_titles']
+        self.maxVertexIndex = len(genDict['vertices'])
+        #print "self.maxVertexIndex ", self.maxVertexIndex
+        
     def IOOutline2Mesh(self, genDict):
         """
         Set the outline (user Mesh attributes) given a IO tsh dictionary

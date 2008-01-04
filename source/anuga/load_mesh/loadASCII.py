@@ -192,7 +192,8 @@ def _read_triangulation(fd):
         #print fragments
         for fragment in fragments:
             apointattributes.append(float(fragment))
-        pointattributes.append(apointattributes)
+        if apointattributes != []:
+            pointattributes.append(apointattributes)
         
     ######### loading the point title info
     line = fd.readline()
@@ -261,7 +262,10 @@ def _read_triangulation(fd):
             
     meshDict = {}
     meshDict['vertices'] = points
-    meshDict['vertex_attributes'] = pointattributes
+    if pointattributes == []:
+        meshDict['vertex_attributes'] = None
+    else:
+        meshDict['vertex_attributes'] = pointattributes
     meshDict['triangles'] = triangles
     meshDict['triangle_tags'] = triangleattributes
     meshDict['triangle_neighbors'] = triangleneighbors 
@@ -457,7 +461,12 @@ def _write_ASCII_triangulation(fd,
     segment_tags = gen_dict['segment_tags']
      
     numVert = str(len(vertices))
-    if (numVert == "0") or len(vertices_attributes) == 0:
+    #print "load vertices_attributes", vertices_attributes
+    # Don't understand why we have to do vertices_attributes[0] is None,
+    # but it doesn't work otherwise...
+    if vertices_attributes == None or \
+           (numVert == "0") or \
+           len(vertices_attributes) == 0:
         numVertAttrib = "0"
     else:
         numVertAttrib = str(len(vertices_attributes[0]))
@@ -468,7 +477,8 @@ def _write_ASCII_triangulation(fd,
     for vert in vertices:
         attlist = ""
         
-        if vertices_attributes == []:
+        if vertices_attributes == None or \
+               vertices_attributes == []:
             attlist = ""
         else:
             for att in vertices_attributes[index]:
@@ -639,7 +649,9 @@ def _write_msh_file(file_name, mesh):
     # 
     #the triangulation
     mesh['vertices'] = array(mesh['vertices']).astype(Float)
-    mesh['vertex_attributes'] = array(mesh['vertex_attributes']).astype(Float)
+    if mesh['vertex_attributes'] != None:
+        mesh['vertex_attributes'] = \
+               array(mesh['vertex_attributes']).astype(Float)
     mesh['vertex_attribute_titles'] = array(mesh['vertex_attribute_titles']).astype(Character) 
     mesh['segments'] = array(mesh['segments']).astype(IntType)
     mesh['segment_tags'] = array(mesh['segment_tags']).astype(Character)
@@ -689,7 +701,8 @@ def _write_msh_file(file_name, mesh):
         outfile.createVariable('vertices', Float, ('num_of_vertices',
                                                    'num_of_dimensions'))
         outfile.variables['vertices'][:] = mesh['vertices']
-        if (mesh['vertex_attributes'].shape[0] > 0 and mesh['vertex_attributes'].shape[1] > 0):
+        if mesh['vertex_attributes']  != None and \
+               (mesh['vertex_attributes'].shape[0] > 0 and mesh['vertex_attributes'].shape[1] > 0):
             outfile.createDimension('num_of_vertex_attributes',
                                     mesh['vertex_attributes'].shape[1])
             outfile.createDimension('num_of_vertex_attribute_title_chars',
@@ -828,7 +841,6 @@ def _read_msh_file(file_name):
 
     #throws prints to screen if file not present
     fid = NetCDFFile(file_name, 'r') 
-
     mesh = {}
     # Get the variables
     # the triangulation
@@ -839,9 +851,10 @@ def _read_msh_file(file_name):
     try:
         mesh['vertex_attributes'] = fid.variables['vertex_attributes'][:]
     except KeyError:
-        mesh['vertex_attributes'] = []
-        for ob in mesh['vertices']:
-            mesh['vertex_attributes'].append([])
+        mesh['vertex_attributes'] = None
+        #for ob in mesh['vertices']:
+            #mesh['vertex_attributes'].append([])
+    
     mesh['vertex_attribute_titles'] = []
     try:
         titles = fid.variables['vertex_attribute_titles'][:]
