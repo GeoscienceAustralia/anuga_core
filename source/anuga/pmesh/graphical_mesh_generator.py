@@ -848,10 +848,8 @@ class Draw(AppShell.AppShell):
             # This doesn't catch tempMesh.generateMesh failing
             pass
         meshArea = 0
-        for triangle in tempMesh.getTriangulation():
-             meshArea += triangle.calcArea()
-        print "meshArea: ", meshArea
-
+        #print "tempMesh.getTriangulation()", tempMesh.getTriangulation()
+        meshArea = tempMesh.tri_mesh.calc_mesh_area()
         maxArea = meshArea/numTriangles
 
         
@@ -1427,7 +1425,8 @@ class Draw(AppShell.AppShell):
 	#self.createSetTools()
 	#self.createSetIcons()
 	self.createVisualiseIcons()
-        #self.addCylinders() # !!!DSG start pmesh with a triangle
+        print "FIX THIS BEFORE "
+        self.addCylinders() # !!!DSG start pmesh with a triangle
         self.selectFunc('pointer')
         self.currentPath = os.getcwd() 
 

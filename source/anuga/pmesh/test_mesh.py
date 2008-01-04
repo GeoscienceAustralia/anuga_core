@@ -2346,6 +2346,28 @@ END\n")
             print "mode += 'a' + '%20.20f' %num", mode
         #print "", mode
         
+  
+    
+    def testgenerateMesh_calc_mesh_area(self):
+        a = Vertex (0.0, 0.0)
+        d = Vertex (0.0, 4.0)
+        f = Vertex (4.0,0.0)
+
+        s1 = Segment(a,d)
+        s2 = Segment(d,f)
+        s3 = Segment(a,f)
+
+        r1 = Region(0.3, 0.3,tag = 1.3,maxArea = .6)
+        #print r1
+        m = Mesh(userVertices=[a,d,f], userSegments=[s1,s2,s3], regions=[r1] )
+        
+        m.generateMesh("Q", maxArea = 2.1 )
+        calc_mesh_area = m.tri_mesh.calc_mesh_area()
+        #print "calc_mesh_area", calc_mesh_area
+        delta  = 0.0000000001
+        self.failUnless((8.0 < calc_mesh_area + delta) or
+                        (8.0 > calc_mesh_area - delta),
+                        'generated mesh is wrong!')
         
 def list_comp(A,B):
     yes = len(A)==len(B)

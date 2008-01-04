@@ -567,7 +567,24 @@ class Rigid_triangulation:
                 scale*-1*(vertices[2][1] + yoffset),
                 outline = colour,fill = ''
                 )
- 
+            
+    def calc_mesh_area(self):
+        area = 0
+        for tri in self.triangles:
+            vertices = []
+            for v_index in range(3):
+                vertices.append(self.vertices[tri[v_index]])
+            ax = vertices[0][0]
+            ay = vertices[0][1]
+            
+            bx = vertices[1][0]
+            by = vertices[1][1]
+            
+            cx = vertices[2][0]
+            cy = vertices[2][1]
+            
+            area += abs((bx*ay-ax*by)+(cx*by-bx*cy)+(ax*cy-cx*ay))/2
+        return area            
         
 class Mesh:
     """
