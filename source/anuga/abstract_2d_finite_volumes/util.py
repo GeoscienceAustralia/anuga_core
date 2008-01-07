@@ -1020,8 +1020,8 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
     ymom = zeros((n0,m,p), Float)
     speed = zeros((n0,m,p), Float)
     bearings = zeros((n0,m,p), Float)
-    due_east = 90.0*ones(n0, Float)
-    due_west = 270.0*ones(n0, Float)
+    due_east = 90.0*ones((n0,1), Float)
+    due_west = 270.0*ones((n0,1), Float)
     depths = zeros((n0,m,p), Float)
     eastings = zeros((n0,m,p), Float)
     min_stages = []
@@ -1228,11 +1228,13 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     if which_quantity == 'bearing':
                         #due_east = 90.0*ones(shape(model_time[0:n[j]-1,k,j],Float))
                         #due_west = 270.0*ones(shape(model_time[0:n[j]-1,k,j],Float))
+                        print 'hello', bearings
+                        print 'east', due_east
                         plot(model_time[0:n[j]-1,k,j], bearings[0:n[j]-1,k,j], '-', 
                              model_time[0:n[j]-1,k,j], due_west[0:n[j]-1], '-.', 
                              model_time[0:n[j]-1,k,j], due_east[0:n[j]-1], '-.')
                         units = 'degrees from North'
-                        ax = axis([time_min, time_max, 0.0, 360.0])
+                        #ax = axis([time_min, time_max, 0.0, 360.0])
                         legend(('Bearing','West','East'))
 
                     if time_unit is 'mins': xlabel('time (mins)')
