@@ -1398,7 +1398,7 @@ class Test_Util(unittest.TestCase):
             del_dir(temp_dir)
         
 
-    def test_gauges_sww2csv(self):
+    def test_sww2csv_gauges(self):
 
         def elevation_function(x, y):
             return -x
@@ -1466,7 +1466,7 @@ point2, 0.5, 2.0, 9.0\n")
         file_id.close()
 
         
-        gauges_sww2csv(sww.filename, 
+        sww2csv_gauges(sww.filename, 
                             points_file,
                             verbose=False,
                             use_cache=False)
@@ -1508,7 +1508,7 @@ point2, 0.5, 2.0, 9.0\n")
 
 
 
-    def test_gauges_sww2csv1(self):
+    def test_sww2csv_gauges1(self):
         from anuga.pmesh.mesh import Mesh
         from anuga.shallow_water import Domain, Transmissive_boundary
         from anuga.shallow_water.data_manager import get_dataobject
@@ -1584,7 +1584,7 @@ point1, 5.0, 1.0\n\
 point2, 0.5, 2.0\n")
         file_id.close()
 
-        gauges_sww2csv(sww.filename, 
+        sww2csv_gauges(sww.filename, 
                             points_file,
                             quantities=['Stage', 'elevation'],
                             use_cache=False,

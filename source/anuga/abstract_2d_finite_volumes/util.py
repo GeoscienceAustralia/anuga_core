@@ -684,6 +684,11 @@ def sww2timeseries(swwfiles,
     
     """
 
+    msg = 'NOTE: A new function is available to create csv files from sww files called'
+    msg += 'sww2csv_gauges in anuga.abstract_2d_finite_volumes.util'
+    msg += 'PLUS another new function to create graphs from csv files called'   
+    msg += 'csv2timeseries_graphs in anuga.abstract_2d_finite_volumes.util'
+    print msg
     
     k = _sww2timeseries(swwfiles,
                         gauge_filename,
@@ -1493,6 +1498,27 @@ def get_centroid_values(x, triangles):
 
     return xc
 
+def make_plots_from_csv_file(directories_dic={dir:['gauge', 0, 0]},
+                                output_dir='',
+                                base_name='',
+                                plot_numbers=['3-5'],
+                                quantities=['Speed','Stage','Momentum'],
+                                assess_all_csv_files=True,
+                                extra_plot_name='test' ):
+    
+    print 'make_plots_from_csv_file has been replaced by csv2timeseries_graphs ',
+    print 'Please use "from anuga.shallow_water.util import csv2timeseries_graphs"'
+    
+    return csv2timeseries_graphs(directories_dic,
+                                 output_dir,
+                                 base_name,
+                                 plot_numbers,
+                                 quantities,
+                                 extra_plot_name,
+                                 assess_all_csv_files
+                                 )
+    
+
 def csv2timeseries_graphs(directories_dic={},
                             output_dir='',
                             base_name=None,
@@ -1503,8 +1529,10 @@ def csv2timeseries_graphs(directories_dic={},
                             create_latex=False,
                             verbose=False):
                                 
-    """    WARNING!! NO UNIT TESTS... could make some as to test filename..but have
+    """    
+    WARNING!! NO UNIT TESTS... could make some as to test filename..but have
     spend ages on this already...
+    AND NOTE Create_latex is NOT implemented yet.
     
     
     Read in csv files that have the right header information and
@@ -1570,7 +1598,15 @@ def csv2timeseries_graphs(directories_dic={},
 
     
     """
-    import pylab# 
+    import pylab 
+    try: 
+        import pylab
+    except ImportError:
+        msg='csv2timeseries_graphs needs pylab to be installed correctly'
+        raise msg
+            #ANUGA don't need pylab to work so the system doesn't 
+            #rely on pylab being installed 
+        return
     from os import sep
     from anuga.shallow_water.data_manager import \
                                get_all_files_with_extension, csv2dict
@@ -1926,9 +1962,10 @@ def XXX_csv2timeseries_graphs(directories_dic={},
                             verbose=False):
                                 
     """     
-    NOTE! DOES not work 100% yet. eg don't use assess_all_csv_files=True
-    everything else is ok?                 
-    Use sww2timeseries....            
+    NOTE! This code has NOT been removed as it is very close to working 
+    the same as the current code for sww2timeseries_graphs HOWEVER IT WOULD
+    BE MUCH NICER!! instead of explicit if statments it uses loops and halves
+    the number of lines of code.... but it doesn't work yet           
     
     Read in csv files that have the right header information and
     plot time series such as Stage, Speed, etc. Will also plot several
@@ -2270,7 +2307,7 @@ def get_runup_data_for_locations_from_file(gauge_filename,
         file.write(temp)
         file.close()
 
-def gauges_sww2csv(sww_file,
+def sww2csv_gauges(sww_file,
                    gauge_file,
                    quantities = ['stage', 'elevation', 'xmomentum', 'ymomentum'],
                    verbose=False,
