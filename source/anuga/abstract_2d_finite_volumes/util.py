@@ -1020,6 +1020,8 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
     ymom = zeros((n0,m,p), Float)
     speed = zeros((n0,m,p), Float)
     bearings = zeros((n0,m,p), Float)
+    due_east = 90.0*ones(n0, Float)
+    due_west = 270.0*ones(n0, Float)
     depths = zeros((n0,m,p), Float)
     eastings = zeros((n0,m,p), Float)
     min_stages = []
@@ -1061,7 +1063,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
             thisfile = file_loc[j]+sep+'gauges_time_series'+'_'\
                        +gaugeloc+'.csv'
             fid_out = open(thisfile, 'w')
-            s = 'Time, Stage, Momentum, Speed, Elevation, xmom, ymom \n'
+            s = 'Time, Stage, Momentum, Speed, Elevation, xmom, ymom, Bearing \n'
             fid_out.write(s)
             #### generate quantities #######
             for i, t in enumerate(f.get_time()):
@@ -1076,7 +1078,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                         vel = 0.0
                     else:
                         vel = m / (depth + 1.e-6/depth) 
-                    #bearing = calc_bearing(uh, vh)                    
+                    bearing = calc_bearing(uh, vh)                    
                     model_time[i,k,j] = (t + starttime)/scale #t/60.0
                     stages[i,k,j] = w
                     elevations[i,k,j] = z 
@@ -1084,11 +1086,11 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     ymom[i,k,j] = vh 
                     momenta[i,k,j] = m 
                     speed[i,k,j] = vel 
-                    #bearings[i,k,j] = bearing 
+                    bearings[i,k,j] = bearing 
                     depths[i,k,j] = depth
                     thisgauge = gauges[k]
                     eastings[i,k,j] = thisgauge[0]
-                    s = '%.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f\n' %(t, w, m, vel, z, uh, vh)
+                    s = '%.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f,\n' %(t, w, m, vel, z, uh, vh, bearing)
                     fid_out.write(s)
                     if t == 0:
                         s = '%.2f, %.2f, %.2f\n' %(g[0], g[1], w)
@@ -1224,11 +1226,11 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                         axis(vel_axis)
                         units = 'm / sec'
                     if which_quantity == 'bearing':
-                        due_east = 90.0*ones(shape(model_time[0:n[j]-1,k,j],Float))
-                        due_west = 270.0*ones(shape(model_time[0:n[j]-1,k,j],Float))
-                        plot(model_time[0:n[j]-1,k,j], bearings, '-', 
-                             model_time[0:n[j]-1,k,j], due_west, '-.', 
-                             model_time[0:n[j]-1,k,j], due_east, '-.')
+                        #due_east = 90.0*ones(shape(model_time[0:n[j]-1,k,j],Float))
+                        #due_west = 270.0*ones(shape(model_time[0:n[j]-1,k,j],Float))
+                        plot(model_time[0:n[j]-1,k,j], bearings[0:n[j]-1,k,j], '-', 
+                             model_time[0:n[j]-1,k,j], due_west[0:n[j]-1], '-.', 
+                             model_time[0:n[j]-1,k,j], due_east[0:n[j]-1], '-.')
                         units = 'degrees from North'
                         ax = axis([time_min, time_max, 0.0, 360.0])
                         legend(('Bearing','West','East'))
