@@ -17,6 +17,7 @@ from anuga.utilities.numerical_tools import ensure_numeric
 from Numeric import arange, choose, zeros, Float, array
     
 from anuga.geospatial_data.geospatial_data import ensure_absolute
+from math import sqrt, atan, degrees
 
 
 
@@ -946,7 +947,7 @@ def check_list(quantity):
 def calc_bearing(uh, vh):
     """ Calculate velocity bearing from North
     """
-    from math import atan, degrees
+#    from math import atan, degrees
     
     angle = degrees(atan(vh/(uh+1.e-15)))
     if (0 < angle < 90.0):
@@ -970,7 +971,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
     """ Generate figures based on required quantities and gauges for
     each sww file
     """
-    from math import sqrt, atan, degrees
+#    from math import sqrt, atan, degrees
     from Numeric import ones, allclose, zeros, Float, ravel
     from os import sep, altsep, getcwd, mkdir, access, F_OK, environ
 
@@ -2327,6 +2328,9 @@ def sww2csv_gauges(sww_file,
             point1, 100.3, 50.2, 10.0
             point2, 10.3, 70.3, 78.0
         
+        NOTE: order of column can change but names eg 'easting', elevation' 
+        must be the same!
+        
     Outputs:
         one file for each gauge/point location in the points file. They
         will be named with this format
@@ -2371,20 +2375,28 @@ def sww2csv_gauges(sww_file,
         msg = 'File "%s" could not be opened: Error="%s"'\
                   %(gauge_file, e)
         raise msg
-    if verbose: print '\n Gauges obtained from: %s \n' %gauge_filename
+    if verbose: print '\n Gauges obtained from: %s \n' %gauge_file
     
     
     point_reader = reader(file(gauge_file))
     points = []
     point_name = []
     
-    #skip header
-    point_reader.next()
     #read point info from file
     for i,row in enumerate(point_reader):
 #        print 'i',i,'row',row
-        points.append([float(row[1]),float(row[2])])
-        point_name.append(row[0])
+        #read header and determine the column numbers to read correcty.
+        if i==0:
+            for j,value in enumerate(row):
+#                print 'j',j,value, row
+                if value.strip()=='easting':easting=j
+                if value.strip()=='northing':northing=j
+                if value.strip()=='name':name=j
+                if value.strip()=='elevation':elevation=j
+        else:
+#            print i,'easting',easting,'northing',northing, row[easting]
+            points.append([float(row[easting]),float(row[northing])])
+            point_name.append(row[name])
         
     #convert to array for file_function
     points_array = array(points,Float)
@@ -2479,7 +2491,8 @@ def sww2csv_gauges(sww_file,
                         else:
                             momentum = sqrt(point_quantities[2]**2 +\
                                             point_quantities[3]**2)
-                            vel = momentum/depth              
+#                            vel = momentum/depth              
+                            vel = momentum/(point_quantities[0] - point_quantities[1])
 #                            vel = momentum/(depth + 1.e-6/depth)              
                         
                         points_list.append(vel)

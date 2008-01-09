@@ -1579,7 +1579,7 @@ point2, 0.5, 2.0, 9.0\n")
         points_file = tempfile.mktemp(".csv")
 #        points_file = 'test_point.csv'
         file_id = open(points_file,"w")
-        file_id.write("name, easting, northing \n\
+        file_id.write("name,easting,northing \n\
 point1, 5.0, 1.0\n\
 point2, 0.5, 2.0\n")
         file_id.close()
@@ -1640,7 +1640,7 @@ point2, 0.5, 2.0\n")
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Util,'test')
-#    suite = unittest.makeSuite(Test_Util,'test_gauges_sww')
+#    suite = unittest.makeSuite(Test_Util,'test_sww2')
 #    runner = unittest.TextTestRunner(verbosity=2)
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
