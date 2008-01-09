@@ -61,8 +61,7 @@ extern "C" void free();
 
 //#define PY_ARRAY_UNIQUE_SYMBOL API_YEAH 
 
-//#define PY_ARRAY_UNIQUE_SYMBOL API_YEAH
-
+#define PY_ARRAY_UNIQUE_SYMBOL API_YEAH
 //#define NO_IMPORT_ARRAY
 #include "Numeric/arrayobject.h"
 #include <sys/types.h>
@@ -116,7 +115,7 @@ extern "C" void free();
      
   char *mod;
     
-  if(!PyArg_ParseTuple(args,(char *)"OOOOOOOO",&pointlist,&seglist,&holelist,&regionlist,&pointattributelist,&segmarkerlist,&mode,&test)){
+  if(!PyArg_ParseTuple(args,(char *)"OOOOOOO",&pointlist,&seglist,&holelist,&regionlist,&pointattributelist,&segmarkerlist,&mode)){
     return NULL;
   }
   
@@ -127,19 +126,23 @@ extern "C" void free();
   
   /* Initialize and fill up region list */
   in.numberofregions = regionlist-> dimensions[0]; 
+  
   in.regionlist = (double *) regionlist -> data;
   
   /*Initialize segments and segment markers */
   in.numberofsegments = seglist -> dimensions[0]; 
   in.segmentlist = (int *) seglist -> data;
-  /* in.segmentlist = (int *) test -> data; */
   in.segmentmarkerlist = (int *) segmarkerlist -> data;
+  //in.segmentmarkerlist = (int *) NULL;
   
   /*Initialize triangles */
   in.numberoftriangles = 0;
   in.trianglelist = (int *)NULL;
   in.numberoftriangleattributes = 0;  
   in.triangleattributelist  = (REAL *)NULL; 
+  in.trianglearealist  = (REAL *)NULL; 
+  in.neighborlist = (int *)NULL;
+  in.numberofcorners = 0;
      
   /*Initialize holes */
   in.numberofholes = holelist  -> dimensions[0];
@@ -154,11 +157,11 @@ extern "C" void free();
   printf ("in.pointattributelist -> dimensions[1] %i\n", pointattributelist -> dimensions[1]); */
   if (0 == pointattributelist -> dimensions[0]) {
     in.numberofpointattributes = 0;
-    in.pointattributelist =  NULL;
+    in.pointattributelist =  (double *) NULL;
   } else {
     if (0 == pointattributelist -> dimensions[1]) {
     in.numberofpointattributes = 0;
-    in.pointattributelist =  NULL;
+    in.pointattributelist =  (double *) NULL;
     } else {
       in.numberofpointattributes = pointattributelist -> dimensions[1];
       in.pointattributelist =  (double *) pointattributelist -> data;
@@ -169,18 +172,25 @@ extern "C" void free();
   printf(" ***  hello world\n" );  
  
   printf ("numberofpoints %i\n", in.numberofpoints);
+  printf ("numberofpointattributes %i\n", in.numberofpointattributes);
   for(i = 0; i < in.numberofpoints; i++) {
     printf("(%f,%f)\n",in.pointlist[i* 2+ 0],in.pointlist[i* 2+ 1]);
+    for(j = 0; j < in.numberofpointattributes; j++) {
+      printf("point att (%f)\n",in.pointattributelist[i* in.numberofpointattributes + j]);
+    }
+    
   }
       
   printf ("numberofregions %i\n", in.numberofregions);
   for(i = 0; i < in.numberofregions; i++) {
-    printf("(%f,%f)\n",in.regionlist[i* 2+ 0],in.regionlist[i* 2+ 1]);
+    printf("(%f,%f)  ",in.regionlist[i* 4+ 0],in.regionlist[i* 4+ 1]);
+    printf("index %f Area %f\n",in.regionlist[i* 4+ 2],in.regionlist[i* 4+ 3]);
   }
    
   printf ("numberofsegments %i\n", in.numberofsegments);
   for(i = 0; i < in.numberofsegments; i++) {
-      printf("(%i,%i)",in.segmentlist[i* 2+ 0],in.segmentlist[i* 2+ 1]);
+      printf("(%i,%i)\n",in.segmentlist[i* 2+ 0],in.segmentlist[i* 2+ 1]);
+      printf("Segment marker (%i)\n",in.segmentmarkerlist[i + 0]);
       }
  
  
@@ -193,15 +203,15 @@ extern "C" void free();
       for(i = 0; i < in.numberoftriangles; i++) {
       printf("(%i,%i,%i)",in.trianglelist[i* 3+ 0],in.trianglelist[i* 3+ 1], in.trianglelist[i* 3+ 2]);
       } 
-  printf(" ***  see ya world\n" );       */
-      
+  printf(" ***  see ya world\n" );       
+      */
   /* set up the switch arguments to the triangulation routine */
   mod = PyString_AS_STRING(mode);
      
          
   out.pointlist = (REAL *)NULL;
   out.pointmarkerlist = (int *)NULL;
-  out.numberofpointattributes = in.numberofpointattributes;
+  //out.numberofpointattributes = in.numberofpointattributes;
   out.pointattributelist = (REAL *)NULL;
   
   out.trianglelist = (int *)NULL;
@@ -219,12 +229,10 @@ extern "C" void free();
   out.regionlist = (REAL *)NULL;
     
   
-  /*printf("\n\nTriangulate input args: %s \n\n", mod); */
   triangulate(mod, &in, &out, (struct triangulateio *)NULL );
   
   
- 
-  /* printf(" ***  back from triangulate\n" );    */
+    
   /*
     ------- Pass point numbers,coordinates and neighbors back to Python ------
     we send back a dictionary:                                               
@@ -249,94 +257,83 @@ extern "C" void free();
   /* Add triangle list */
   dimensions[0] = out.numberoftriangles;
   dimensions[1] = 3;   
-  gentrianglelist = (PyArrayObject *) PyArray_FromDims(2, 
-  						       dimensions, 
-  						       PyArray_INT);
-  gentrianglelist -> data = out.trianglelist;
-  
-  /*gentrianglelist = PyArray_ContiguousFromObject(out.trianglelist, 
-						 PyArray_DOUBLE, 
-						 0, 
-  */						   
-  
-  /*gentrianglelist = PyArray_FromDimsAndData(2,
+  gentrianglelist = (PyArrayObject *) PyArray_FromDimsAndData(2,
 					    dimensions,
 					    PyArray_INT, 
-  					    (int*) out.trianglelist);    
-  */  
+  					    (char*) out.trianglelist); 
+    
   /* Add pointlist */
   dimensions[0] = out.numberofpoints;
   dimensions[1] = 2;   
-  
-  /*genpointlist = (PyArrayObject *) PyArray_FromDims(2, 
-						    dimensions, 
-						    PyArray_DOUBLE);
-  */
+  genpointlist = (PyArrayObject *) PyArray_FromDimsAndData(2,
+					 dimensions,
+					 PyArray_DOUBLE, 
+					 (char*) out.pointlist);
+					   
   /*						 
   (double*) genpointlist -> data = out.pointlist;		 
   ((double*) genpointlist -> data) = out.pointlist;
   ( genpointlist -> data) = (double*) out.pointlist;
+   genpointlist -> data = (double) out.pointlist;
   
   */
-  //genpointlist -> data = out.pointlist;
-  
-  
-  genpointlist = PyArray_FromDimsAndData(2,
-					 dimensions,
-					 PyArray_DOUBLE, 
-					 (char*) out.pointlist);  
-  
-  
   
   /* Add point marker list */
   dimensions[0] = out.numberofpoints;
-  genpointmarkerlist = (PyArrayObject *) PyArray_FromDims(1, 
-							  dimensions, 
-							  PyArray_INT);
-  genpointmarkerlist -> data = out.pointmarkerlist;
+  genpointmarkerlist = (PyArrayObject *) PyArray_FromDimsAndData(1, 
+				  	 dimensions, 
+				         PyArray_INT,
+				        (char*) out.pointmarkerlist);
   
   /* Add point attribute list */
   dimensions[0] = out.numberofpoints;
   dimensions[1] = out.numberofpointattributes;   
-  genpointattributelist = (PyArrayObject *) PyArray_FromDims(2, 
-						 dimensions, 
-						 PyArray_DOUBLE);
-  genpointattributelist -> data = out.pointattributelist;	
+  genpointattributelist = (PyArrayObject *) PyArray_FromDimsAndData(2, 
+					  dimensions, 
+					  PyArray_DOUBLE,
+					  (char*) out.pointattributelist);
   
   
  
   /* Add triangle attribute list */
   dimensions[0] = out.numberoftriangles;
   dimensions[1] = out.numberoftriangleattributes;   
-  gentriangleattributelist = (PyArrayObject *) PyArray_FromDims(2, 
-						 dimensions, 
-						 PyArray_DOUBLE);
-  gentriangleattributelist -> data = out.triangleattributelist;
+  gentriangleattributelist = (PyArrayObject *) PyArray_FromDimsAndData(2, 
+					   dimensions, 
+					   PyArray_DOUBLE,
+					  (char*)out.triangleattributelist);
   
   /* Add segment list */
   dimensions[0] = out.numberofsegments;
   dimensions[1] = 2;   
-  gensegmentlist = (PyArrayObject *) PyArray_FromDims(2, 
+  gensegmentlist = (PyArrayObject *) PyArray_FromDimsAndData(2, 
 						    dimensions, 
-						    PyArray_INT);
-  gensegmentlist -> data = out.segmentlist;
+						    PyArray_INT,
+						    (char*)out.segmentlist);
   
   
   /* Add segment marker list */
   dimensions[0] = out.numberofsegments;
-  gensegmentmarkerlist = (PyArrayObject *) PyArray_FromDims(1, 
-						    dimensions, 
-						    PyArray_INT);
-  gensegmentmarkerlist -> data = out.segmentmarkerlist;
+  gensegmentmarkerlist = (PyArrayObject *) PyArray_FromDimsAndData(1, 
+					    dimensions, 
+					    PyArray_INT,
+					   (char*)out.segmentmarkerlist);
   
   /* Add triangle neighbor list */
-  dimensions[0] = out.numberoftriangles;
-  dimensions[1] = 3;   
-  genneighborlist = (PyArrayObject *) PyArray_FromDims(2, 
-						    dimensions, 
-						    PyArray_INT);
-  genneighborlist -> data = out.neighborlist;
-  
+  if (out.neighborlist != NULL) {
+    dimensions[0] = out.numberoftriangles;
+    dimensions[1] = 3;   
+    genneighborlist = (PyArrayObject *) PyArray_FromDimsAndData(2, 
+					 	 dimensions, 
+					      	 PyArray_INT,
+					       	 (char*)out.neighborlist);
+  }else{ 
+    dimensions[0] = 0;
+    dimensions[1] = 0;   
+    genneighborlist = (PyArrayObject *) PyArray_FromDims(2, 
+							 dimensions, 
+							 PyArray_INT);
+  }
   
   /* Add triangle neighbor list */
   /*if (out.neighborlist != NULL) {
@@ -356,9 +353,30 @@ extern "C" void free();
    */
   
   
-  /* Free in/out structure memory */
+  /* R = Py_BuildValue((char *)"O", holder); */
+  R = Py_BuildValue((char *)"OOOOOOOO"
+		    ,PyArray_Return(gentrianglelist)
+		    ,PyArray_Return(genpointlist)
+		    ,PyArray_Return(genpointmarkerlist)
+		    ,PyArray_Return(genpointattributelist)
+		    ,PyArray_Return(gentriangleattributelist)
+		    ,PyArray_Return(gensegmentlist)
+		    ,PyArray_Return(gensegmentmarkerlist)
+		    ,PyArray_Return(genneighborlist)
+		    );
+   /*Py_DECREF(holder);* This fixed a  memory problem ticket#189 */
+  Py_DECREF(gentrianglelist);
+  Py_DECREF(genpointlist);
+  Py_DECREF(genpointmarkerlist);
+  Py_DECREF(genpointattributelist);
+  Py_DECREF(gentriangleattributelist);
+  Py_DECREF(gensegmentlist);
+  Py_DECREF(gensegmentmarkerlist);
+  Py_DECREF(genneighborlist);
   
-  /* OUT */
+  
+  /* Free in/out structure memory */
+  /* OUT 
 
   if(!out.pointlist){
     free(out.pointlist);  out.pointlist=NULL;
@@ -367,6 +385,9 @@ extern "C" void free();
     free(out.pointmarkerlist); out.pointmarkerlist=NULL;
   }
   if(!out.pointattributelist){    
+    free(out.pointattributelist); out.pointattributelist=NULL;
+  }   
+  if(!in.pointattributelist){    
     free(out.pointattributelist); out.pointattributelist=NULL;
   }   
   if(!out.trianglelist){    
@@ -399,27 +420,7 @@ extern "C" void free();
   if(!out.regionlist){
     free(out.regionlist); out.regionlist=NULL;
   }
-  
-  /* R = Py_BuildValue((char *)"O", holder); */
-  R = Py_BuildValue((char *)"OOOOOOOO"
-		    ,PyArray_Return(gentrianglelist)
-		    ,PyArray_Return(genpointlist)
-		    ,PyArray_Return(genpointmarkerlist)
-		    ,PyArray_Return(genpointattributelist)
-		    ,PyArray_Return(gentriangleattributelist)
-		    ,PyArray_Return(gensegmentlist)
-		    ,PyArray_Return(gensegmentmarkerlist)
-		    ,PyArray_Return(genneighborlist)
-		    );
-   /*Py_DECREF(holder);* This fixed a  memory problem ticket#189 */
-  Py_DECREF(gentrianglelist);
-  Py_DECREF(genpointlist);
-  Py_DECREF(genpointmarkerlist);
-  Py_DECREF(genpointattributelist);
-  Py_DECREF(gentriangleattributelist);
-  Py_DECREF(gensegmentlist);
-  Py_DECREF(gensegmentmarkerlist);
-  Py_DECREF(genneighborlist);
+    */
   return R;
 }
 

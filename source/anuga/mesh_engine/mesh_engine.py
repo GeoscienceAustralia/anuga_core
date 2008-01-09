@@ -57,6 +57,7 @@ def generate_mesh(points=None,
     # This is after points is numeric
     if pointatts is None or pointatts == []:
         pointatts = [[] for x in range(points.shape[0])]
+        
     try:
         # If Int is used, instead of Int32, it fails in Linux
         segments = ensure_numeric(segments, Int32)
@@ -68,6 +69,7 @@ def generate_mesh(points=None,
     # This is after segments is numeric
     if segatts is None or segatts == []:
         segatts = [0 for x in range(segments.shape[0])]
+        
     try:
         holes = ensure_numeric(holes, Float)
     except ValueError:
@@ -108,7 +110,6 @@ def generate_mesh(points=None,
         msg = """ERROR: Segment attributes array not the same shape as
         segment array."""
         raise ANUGAError, msg
-
     
     #print "mode", mode
     if mode.find('n'):
@@ -127,10 +128,11 @@ def generate_mesh(points=None,
     #print "regions", regions
     #print "pointatts", pointatts
     #print "segatts", segatts
-    #XSprint "mode", mode
-    #print "yeah" 
+    #print "mode", mode
+    #print "yeah"
+    # .copy()
     trianglelist, pointlist, pointmarkerlist, pointattributelist, triangleattributelist, segmentlist, segmentmarkerlist, neighborlist = triang.genMesh(points,segments,holes,regions,
-                          pointatts,segatts, mode, segments.flat)
+                          pointatts,segatts, mode)
     mesh_dict = {}
     # the values as arrays
     mesh_dict['generatedtrianglelist'] = trianglelist
@@ -144,7 +146,7 @@ def generate_mesh(points=None,
     mesh_dict['generatedtriangleneighborlist'] = neighborlist
     mesh_dict['qaz'] = 1 #debugging
 
-    mesh_dict['triangleattributelist'] = triangleattributelist
+    #mesh_dict['triangleattributelist'] = triangleattributelist
     #print "mesh eng generatedtrianglelist", trianglelist
     #print "mesh eng mesh_dict['triangleattributelist'] ",mesh_dict['triangleattributelist']
     #print "mesh eng mesh_dict['generatedtriangleattributelist'] ", mesh_dict['generatedtriangleattributelist']   
@@ -156,12 +158,17 @@ def generate_mesh(points=None,
             
         if mesh_dict['generatedpointattributelist'].shape[1] == 0:
             mesh_dict['generatedpointattributelist'] = None
+            
+        if mesh_dict['generatedtriangleneighborlist'].shape[1] == 0:
+            mesh_dict['generatedtriangleneighborlist'] = None
+            
         if trianglelist.shape[0] == 0:
             # There are no triangles.
             # this is used by urs_ungridded2sww
             raise NoTrianglesError
     #print "mesh eng mesh_dict['generatedtriangleattributelist'] ", mesh_dict['generatedtriangleattributelist']  
-    
+    a = mesh_dict['generatedtriangleattributelist']
+    #print 'mesh_dict', mesh_dict
     # the structure of generatedtriangleattributelist is an list of
     # list of integers.  It is transformed into a list of list of
     # strings later on.  This is then inputted into an triangle

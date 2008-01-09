@@ -354,7 +354,6 @@ class triangTestCase(unittest.TestCase):
                         'triangleattributelist is wrong!')
 
     def testrectangle_regionsII(self):
-
         points = []
         seglist = []
         holelist = []
@@ -702,7 +701,8 @@ class triangTestCase(unittest.TestCase):
 if __name__ == "__main__":
 
     suite = unittest.makeSuite(triangTestCase,'test')
-    #suite = unittest.makeSuite(triangTestCase,'test_lone_verts4')
-    #suite = unittest.makeSuite(triangTestCase,'test_transition_to_arrays')
-    runner = unittest.TextTestRunner() #verbosity=2)
+    #suite = unittest.makeSuite(triangTestCase,'testrectangleIIb')
+    #suite = unittest.makeSuite(triangTestCase,'testsegmarker')
+    #suite = unittest.makeSuite(triangTestCase,'testrectangle_regionsII')
+    runner = unittest.TextTestRunner()  #verbosity=2)
     runner.run(suite)
