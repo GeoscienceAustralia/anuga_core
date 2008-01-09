@@ -61,7 +61,8 @@ extern "C" void free();
 
 //#define PY_ARRAY_UNIQUE_SYMBOL API_YEAH 
 
-#define PY_ARRAY_UNIQUE_SYMBOL API_YEAH
+//#define PY_ARRAY_UNIQUE_SYMBOL API_YEAH
+
 //#define NO_IMPORT_ARRAY
 #include "Numeric/arrayobject.h"
 #include <sys/types.h>
@@ -249,29 +250,49 @@ extern "C" void free();
   dimensions[0] = out.numberoftriangles;
   dimensions[1] = 3;   
   gentrianglelist = (PyArrayObject *) PyArray_FromDims(2, 
-						    dimensions, 
-						    PyArray_INT);
+  						       dimensions, 
+  						       PyArray_INT);
   gentrianglelist -> data = out.trianglelist;
-    
+  
+  /*gentrianglelist = PyArray_ContiguousFromObject(out.trianglelist, 
+						 PyArray_DOUBLE, 
+						 0, 
+  */						   
+  
+  /*gentrianglelist = PyArray_FromDimsAndData(2,
+					    dimensions,
+					    PyArray_INT, 
+  					    (int*) out.trianglelist);    
+  */  
   /* Add pointlist */
   dimensions[0] = out.numberofpoints;
   dimensions[1] = 2;   
-  genpointlist = (PyArrayObject *) PyArray_FromDims(2, 
-						 dimensions, 
-						 PyArray_DOUBLE);
+  
+  /*genpointlist = (PyArrayObject *) PyArray_FromDims(2, 
+						    dimensions, 
+						    PyArray_DOUBLE);
+  */
   /*						 
   (double*) genpointlist -> data = out.pointlist;		 
   ((double*) genpointlist -> data) = out.pointlist;
   ( genpointlist -> data) = (double*) out.pointlist;
   
   */
-   genpointlist -> data = out.pointlist;
+  //genpointlist -> data = out.pointlist;
+  
+  
+  genpointlist = PyArray_FromDimsAndData(2,
+					 dimensions,
+					 PyArray_DOUBLE, 
+					 (char*) out.pointlist);  
+  
+  
   
   /* Add point marker list */
   dimensions[0] = out.numberofpoints;
   genpointmarkerlist = (PyArrayObject *) PyArray_FromDims(1, 
-						    dimensions, 
-						    PyArray_INT);
+							  dimensions, 
+							  PyArray_INT);
   genpointmarkerlist -> data = out.pointmarkerlist;
   
   /* Add point attribute list */
