@@ -24,9 +24,6 @@ import exceptions
 from Numeric import array, Float, Int
 
 
-#class NoTrianglesError(exceptions.Exception): pass
- 
-#import load_mesh
 from anuga.coordinate_transforms.geo_reference import Geo_reference, \
      DEFAULT_ZONE
 from  anuga.load_mesh.loadASCII import NOMAXAREA, export_mesh_file, \
@@ -52,18 +49,11 @@ except ImportError:
      
     kinds = _kinds()
     
-#FIXME: this is not tested.
-from anuga.utilities.numerical_tools import gradient
-
-
 
 # 1st and third values must be the same
 # FIXME: maybe make this a switch that the user can change? - DSG
 initialconversions = ['', 'exterior', '']
 
-#from os import sep
-#sys.path.append('..'+sep+'pmesh')
-#print "sys.path",sys.path
 
 class MeshObject:
     """
@@ -1602,54 +1592,6 @@ class Mesh:
         self.alphaUserSegments = alpha_segs_no_user_segs
         return alpha_segs_no_user_segs, segs2delete, optimum_alpha
     
-    def _boundary2mesh_old(self, raw_boundary=True,
-                    remove_holes=False,
-                    smooth_indents=False,
-                    expand_pinch=False):
-        """
-        Precon there must be a shape object.
-        """
-        self.shape.set_boundary_type(raw_boundary=raw_boundary,
-                                 remove_holes=remove_holes,
-                                 smooth_indents=smooth_indents,
-                                 expand_pinch=expand_pinch)
-        boundary_segs = self.shape.get_boundary()
-        #print "boundary_segs",boundary_segs
-        segs2delete = self.alphaUserSegments
-
-        #FIXME(DSG-DSG) this algorithm needs comments
-        #FIXME(DSG-DSG) can it be sped up?  It's slow
-        new_segs = []
-        alpha_segs = []
-        user_segs = []
-        for seg in boundary_segs:
-            v1 = self.userVertices[int(seg[0])]
-            v2 = self.userVertices[int(seg[1])]
-            alpha_seg = self.representedAlphaUserSegment(v1, v2)
-            user_seg = self.representedUserSegment(v1, v2)
-            #DSG!!!
-            assert not(not (alpha_seg == None) and not (user_seg == None))
-            if not alpha_seg == None:
-                alpha_segs.append(alpha_seg)
-            elif not user_seg  == None:
-                user_segs.append(user_seg)
-            else:
-                unique_seg = Segment(v1, v2)
-                new_segs.append(unique_seg)
-                
-            for seg in alpha_segs:
-                try:
-                    segs2delete.remove(seg)
-                except:
-                    pass
-        
-        self.alphaUserSegments = []
-        self.alphaUserSegments.extend(new_segs)
-        self.alphaUserSegments.extend(alpha_segs)
-
-        optimum_alpha = self.shape.get_alpha()
-        # need to draw newsegs
-        return new_segs, segs2delete, optimum_alpha
     
     def representedAlphaUserSegment(self, v1,v2):
         identicalSegs= [x for x in self.alphaUserSegments \
@@ -2436,8 +2378,6 @@ def segment_strings2ints(stringlist, preset):
     for x in stringlist:
         intlist.append(convertstring2int[x])
     return [intlist, convertint2string]
-
-
 
 
 def unique(s):
