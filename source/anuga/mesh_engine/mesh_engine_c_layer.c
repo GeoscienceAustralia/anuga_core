@@ -270,14 +270,7 @@ extern "C" void free();
 					 PyArray_DOUBLE, 
 					 (char*) out.pointlist);
 					   
-  /*						 
-  (double*) genpointlist -> data = out.pointlist;		 
-  ((double*) genpointlist -> data) = out.pointlist;
-  ( genpointlist -> data) = (double*) out.pointlist;
-   genpointlist -> data = (double) out.pointlist;
-  
-  */
-  
+ 
   /* Add point marker list */
   dimensions[0] = out.numberofpoints;
   genpointmarkerlist = (PyArrayObject *) PyArray_FromDimsAndData(1, 
@@ -335,25 +328,7 @@ extern "C" void free();
 							 PyArray_INT);
   }
   
-  /* Add triangle neighbor list */
-  /*if (out.neighborlist != NULL) {
-    listsize = out.numberoftriangles;
-    holderlist = PyList_New(listsize);
-    for(i=0; i<listsize;i++){
-      PyObject *mlist = Py_BuildValue((char *)"(i,i,i)", 
-				      out.neighborlist[i*3  ],
-				      out.neighborlist [i*3+1],
-				      out.neighborlist [i*3+2]);    
-      PyList_SetItem(holderlist,i, mlist);
-    }    
-    ii=PyString_FromString("generatedtriangleneighborlist");
-    PyDict_SetItem(holder, ii, holderlist);
-    Py_DECREF(ii); Py_DECREF(holderlist);
-  }   
-   */
   
-  
-  /* R = Py_BuildValue((char *)"O", holder); */
   R = Py_BuildValue((char *)"OOOOOOOO"
 		    ,PyArray_Return(gentrianglelist)
 		    ,PyArray_Return(genpointlist)
@@ -364,7 +339,7 @@ extern "C" void free();
 		    ,PyArray_Return(gensegmentmarkerlist)
 		    ,PyArray_Return(genneighborlist)
 		    );
-   /*Py_DECREF(holder);* This fixed a  memory problem ticket#189 */
+		    
   Py_DECREF(gentrianglelist);
   Py_DECREF(genpointlist);
   Py_DECREF(genpointmarkerlist);
@@ -375,38 +350,45 @@ extern "C" void free();
   Py_DECREF(genneighborlist);
   
   
-  /* Free in/out structure memory */
-  /* OUT 
-
+  /* These memory blocks are passed into Numeric arrays 
+   so don't free them  */
+  /*
+  if(!out.trianglelist){    
+    free(out.trianglelist); out.trianglelist=NULL;
+    
+    
   if(!out.pointlist){
     free(out.pointlist);  out.pointlist=NULL;
-  }
+  }  
+  
   if(!out.pointmarkerlist){    
     free(out.pointmarkerlist); out.pointmarkerlist=NULL;
   }
+  
   if(!out.pointattributelist){    
     free(out.pointattributelist); out.pointattributelist=NULL;
   }   
-  if(!in.pointattributelist){    
-    free(out.pointattributelist); out.pointattributelist=NULL;
-  }   
-  if(!out.trianglelist){    
-    free(out.trianglelist); out.trianglelist=NULL;
-  }
+  
   if(!out.triangleattributelist){    
     free(out.triangleattributelist); out.triangleattributelist=NULL;
-  }
-  if(!out.trianglearealist){    
-    free(out.trianglearealist); out.trianglearealist=NULL;
-  }
-  if(!out.neighborlist){    
-    free(out.neighborlist); out.neighborlist=NULL;
   }
   if(!out.segmentlist){
     free(out.segmentlist); out.segmentlist =NULL;
   }
   if(!out.segmentmarkerlist){
     free(out.segmentmarkerlist); out.segmentmarkerlist  =NULL;
+  }
+  if(!out.neighborlist){    
+    free(out.neighborlist); out.neighborlist=NULL;
+  }
+   */
+
+    
+  
+  /* Free in/out structure memory */
+  
+  if(!out.trianglearealist){    
+    free(out.trianglearealist); out.trianglearealist=NULL;
   }
   if(!out.edgelist){
     free(out.edgelist);  out.edgelist=NULL;
@@ -420,7 +402,6 @@ extern "C" void free();
   if(!out.regionlist){
     free(out.regionlist); out.regionlist=NULL;
   }
-    */
   return R;
 }
 
