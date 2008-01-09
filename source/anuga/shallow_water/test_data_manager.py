@@ -7355,6 +7355,31 @@ friction  \n \
         
         assert len(iterate)==4
 
+    def test_screen_catcher(self):
+    
+        stdout_orginal = sys.stdout
+        stderr_orginal = sys.stderr
+        
+        output_dir = tempfile.mkdtemp('','output_test')
+        #print output_dir
+        start_screen_catcher(output_dir+sep,verbose=False)
+        
+        print 'hello screen catcher'
+        print 'goodbye screen catcher'
+        
+        sys.stdout = stdout_orginal
+        sys.stderr = stderr_orginal
+        
+        output_file = output_dir+sep+'screen_output.txt'
+        assert access(output_file,F_OK)
+        
+        fid = open(output_file)
+        file_line1 = fid.readline()
+        file_line2 = fid.readline()
+        
+        #print 'file contents',file_line1, file_line2
+        assert (file_line1 == 'hello screen catcher\n')
+        assert (file_line2 == 'goodbye screen catcher\n')
         
         
 
@@ -7364,7 +7389,7 @@ friction  \n \
 if __name__ == "__main__":
 
     #suite = unittest.makeSuite(Test_Data_Manager,'test_export_gridII')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_sww_header')
+#    suite = unittest.makeSuite(Test_Data_Manager,'test_screen_catcher')
     suite = unittest.makeSuite(Test_Data_Manager,'test')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs_ungridded_holeII')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs_ungridded_holeII')

@@ -5256,7 +5256,7 @@ class Urs_points:
 
         
 def start_screen_catcher(dir_name, myid='', numprocs='', extra_info='',
-                         verbose=False):
+                         verbose=True):
     """ 
     Used to store screen output and errors to file, if run on multiple 
     processes eachprocessor will have its own output and error file.
@@ -5275,19 +5275,23 @@ def start_screen_catcher(dir_name, myid='', numprocs='', extra_info='',
         if verbose: print 'Making directory %s' %dir_name
       #  if verbose: print "myid", myid
         mkdir (dir_name,0777)
+#    print 'helloa'
     if myid <>'':
         myid = '_'+str(myid)
     if numprocs <>'':
         numprocs = '_'+str(numprocs)
     if extra_info <>'':
         extra_info = '_'+str(extra_info)
+#    print 'hello1'
     screen_output_name = dir_name + "screen_output%s%s%s.txt" %(myid,
                                                                 numprocs,
                                                                 extra_info)
     screen_error_name = dir_name + "screen_error%s%s%s.txt" %(myid,
                                                               numprocs,
                                                               extra_info)
-    if verbose: print screen_output_name
+
+    if verbose: print 'Starting ScreenCatcher, all output will be stored in %s' \
+                                     %(screen_output_name)
     #used to catch screen output to file
     sys.stdout = Screen_Catcher(screen_output_name)
     sys.stderr = Screen_Catcher(screen_error_name)
@@ -5299,7 +5303,7 @@ class Screen_Catcher:
     
     def __init__(self, filename):
         self.filename = filename
- 
+#        print 'init'
         if exists(self.filename)is True:
             print'Old existing file "%s" has been deleted' %(self.filename)
             remove(self.filename)
@@ -5307,7 +5311,8 @@ class Screen_Catcher:
     def write(self, stuff):
         fid = open(self.filename, 'a')
         fid.write(stuff)
-
+        fid.close()
+        
 def copy_code_files(dir_name, filename1, filename2=None):
     """Copies "filename1" and "filename2" to "dir_name". Very useful for 
     information management 
