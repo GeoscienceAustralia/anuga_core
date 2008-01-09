@@ -1819,6 +1819,29 @@ class Test_Geospatial_data(unittest.TestCase):
 
         A = G1.get_attributes()
         assert allclose(A,[24, 18, 17, 11, 8])
+        
+    def test_split1(self):
+        """test if the results from spilt are disjoin sets"""
+        from RandomArray import randint,seed
+        seed(100,100)
+        a_points = randint(0,999999,(10,2))
+        points = a_points.tolist()
+#        print points
+
+        G = Geospatial_data(points)
+
+        factor = 0.1
+
+        #will return G1 with 10% of points and G2 with 90%
+        G1, G2  = G.split(factor,100) 
+        
+#        print 'G1',G1
+        assert allclose(len(G), len(G1)+len(G2))
+        assert allclose(round(len(G)*factor), len(G1))
+
+        P = G1.get_data_points(absolute=False)
+        assert allclose(P, [[982420.,28233.]])
+
  
     def test_find_optimal_smoothing_parameter(self):
         """
@@ -1938,7 +1961,7 @@ if __name__ == "__main__":
 
     #suite = unittest.makeSuite(Test_Geospatial_data, 'test_write_csv_attributes_lat_long')
 #    suite = unittest.makeSuite(Test_Geospatial_data, 'test_find_optimal_smoothing_parameter')
-#    suite = unittest.makeSuite(Test_Geospatial_data, 'test_split')
+#    suite = unittest.makeSuite(Test_Geospatial_data, 'test_split1')
     suite = unittest.makeSuite(Test_Geospatial_data, 'test')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
