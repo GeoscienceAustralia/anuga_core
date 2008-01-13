@@ -353,12 +353,13 @@ class Test_Domain(unittest.TestCase):
             raise Exception, msg
 
 
-        #Should have no trouble with euler or rk2
+        #Should have no trouble with euler, rk2 or rk3
         domain.set_timestepping_method('euler')
         domain.set_timestepping_method('rk2')
+        domain.set_timestepping_method('rk3')
 
         #test get timestepping method
-        assert domain.get_timestepping_method() == 'rk2'
+        assert domain.get_timestepping_method() == 'rk3'
 
 
 

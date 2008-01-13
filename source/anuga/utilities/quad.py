@@ -129,25 +129,23 @@ class Cell(TreeNode):
 
     def contains(*args):    
         """True only if P's coordinates lie within cell boundaries
-	This methods has two forms:
-	
-	cell.contains(index)
-	  #True if cell contains indexed point
-	cell.contains(x, y)
-	  #True if cell contains point (x,y)	
-
+        This methods has two forms:
+        
+        cell.contains(index)
+        #True if cell contains indexed point
+        cell.contains(x, y)
+        #True if cell contains point (x,y)	
         """
-	
-	self = args[0]
-	if len(args) == 2:
-	    point_id = int(args[1])
+        self = args[0]
+        if len(args) == 2:
+            point_id = int(args[1])
             x, y = self.mesh.get_node(point_id, absolute=True)
-	elif len(args) == 3:
-	    x = float(args[1])
-	    y = float(args[2])
-	else:
-	    msg = 'Number of arguments to method must be two or three'
-	    raise msg    		      
+        elif len(args) == 3:
+            x = float(args[1])
+            y = float(args[2])
+        else:
+            msg = 'Number of arguments to method must be two or three'
+            raise msg    		      
 	
         if y <  self.southern: return False
         if y >= self.northern: return False
@@ -301,9 +299,9 @@ class Cell(TreeNode):
 	    
         #FIXME, mincellsize removed.  base it on side length, if needed
         
-	#Protect against silly thresholds such as -1
-	if threshold < 1:
-	    return
+        #Protect against silly thresholds such as -1
+        if threshold < 1:
+            return
 	
         if not self.children:               # Leaf cell
             if self.count() > threshold :   
