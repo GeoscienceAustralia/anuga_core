@@ -947,7 +947,14 @@ def check_list(quantity):
 def calc_bearing(uh, vh):
     """ Calculate velocity bearing from North
     """
-#    from math import atan, degrees
+    #FIXME (Ole): I reckon we should refactor this one to use
+    #             the function angle() in utilities/numerical_tools
+    #
+    #             It will be a simple matter of
+    # * converting from radians to degrees
+    # * moving the reference direction from [1,0] to North
+    # * changing from counter clockwise to clocwise.
+    
     
     angle = degrees(atan(vh/(uh+1.e-15)))
     if (0 < angle < 90.0):
