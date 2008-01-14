@@ -1314,23 +1314,23 @@ class Test_Util(unittest.TestCase):
     def test_get_min_max_values1(self):
         
         list=[-8,-9,-6,-1,-4]
-        min1, max1 = get_min_max_values(list,10,-10)
+        min1, max1 = get_min_max_values(list)
         
 #        print 'min1,max1',min1,max1
         assert min1==-9 
         assert max1==-1
 
-    def test_get_min_max_values2(self):
-        '''
-        The min and max supplied are greater than the ones in the 
-        list and therefore are the ones returned
-        '''
-        list=[-8,-9,-6,-1,-4]
-        min1, max1 = get_min_max_values(list,-10,10)
-        
-#        print 'min1,max1',min1,max1
-        assert min1==-10 
-        assert max1==10
+#    def test_get_min_max_values2(self):
+#        '''
+#        The min and max supplied are greater than the ones in the 
+#        list and therefore are the ones returned
+#        '''
+#        list=[-8,-9,-6,-1,-4]
+#        min1, max1 = get_min_max_values(list,-10,10)
+#        
+##        print 'min1,max1',min1,max1
+#        assert min1==-10 
+#        assert max1==10
         
     def bad_test_make_plots_from_csv_files(self):
         
@@ -1471,7 +1471,8 @@ point2, 0.5, 2.0, 9.0\n")
                             verbose=False,
                             use_cache=False)
 
-        point1_answers_array = [[0.0,1.0,-5.0,3.0,4.0], [2.0,10.0,-5.0,3.0,4.0]]
+#        point1_answers_array = [[0.0,1.0,-5.0,3.0,4.0], [2.0,10.0,-5.0,3.0,4.0]]
+        point1_answers_array = [[0.0,1.0,6.0,-5.0,3.0,4.0], [2.0,10.0,15.0,-5.0,3.0,4.0]]
         point1_filename = 'gauge_point1.csv'
         point1_handle = file(point1_filename)
         point1_reader = reader(point1_handle)
@@ -1479,12 +1480,12 @@ point2, 0.5, 2.0, 9.0\n")
 
         line=[]
         for i,row in enumerate(point1_reader):
-#            print 'i',i,'row',row
-            line.append([float(row[0]),float(row[1]),float(row[2]),float(row[3]),float(row[4])])
+            #print 'i',i,'row',row
+            line.append([float(row[0]),float(row[1]),float(row[2]),float(row[3]),float(row[4]),float(row[5])])
             #print 'assert line',line[i],'point1',point1_answers_array[i]
             assert allclose(line[i], point1_answers_array[i])
 
-        point2_answers_array = [[0.0,1.0,-0.5,3.0,4.0], [2.0,10.0,-0.5,3.0,4.0]]
+        point2_answers_array = [[0.0,1.0,1.5,-0.5,3.0,4.0], [2.0,10.0,10.5,-0.5,3.0,4.0]]
         point2_filename = 'gauge_point2.csv' 
         point2_handle = file(point2_filename)
         point2_reader = reader(point2_handle)
@@ -1492,8 +1493,8 @@ point2, 0.5, 2.0, 9.0\n")
                         
         line=[]
         for i,row in enumerate(point2_reader):
-#            print 'i',i,'row',row
-            line.append([float(row[0]),float(row[1]),float(row[2]),float(row[3]),float(row[4])])
+            #print 'i',i,'row',row
+            line.append([float(row[0]),float(row[1]),float(row[2]),float(row[3]),float(row[4]),float(row[5])])
             #print 'assert line',line[i],'point1',point1_answers_array[i]
             assert allclose(line[i], point2_answers_array[i])
                          
@@ -1586,7 +1587,7 @@ point2, 0.5, 2.0\n")
 
         sww2csv_gauges(sww.filename, 
                             points_file,
-                            quantities=['Stage', 'elevation'],
+                            quantities=['stage', 'elevation'],
                             use_cache=False,
                             verbose=False)
 
@@ -1640,7 +1641,7 @@ point2, 0.5, 2.0\n")
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Util,'test')
-#    suite = unittest.makeSuite(Test_Util,'test_sww2')
+#    suite = unittest.makeSuite(Test_Util,'test_sww2csv')
 #    runner = unittest.TextTestRunner(verbosity=2)
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
