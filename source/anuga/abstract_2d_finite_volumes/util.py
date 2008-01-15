@@ -8,7 +8,7 @@ import anuga.utilities.polygon
 import sys
 import os
 
-from os import remove, mkdir, access, F_OK, R_OK, W_OK, sep,mkdir
+from os import remove, mkdir, access, F_OK, R_OK, W_OK, sep,getcwd
 from os.path import exists, basename, split,join
 from warnings import warn
 from shutil import copy
@@ -2200,10 +2200,10 @@ def csv2timeseries_graphs(directories_dic={},
             dir_filename=join(directory,filename)
             attribute_dic, title_index_dic = csv2dict(dir_filename+
                                                        '.csv')
-
             directory_start_time = directories_dic[directory][1]
             directory_add_tide = directories_dic[directory][2]
 
+            if verbose: print 'reading: %s.csv' %dir_filename
 #            print 'keys',attribute_dic.keys()
             #add time to get values
             for k, quantity in enumerate(quantities):
@@ -2259,7 +2259,7 @@ def csv2timeseries_graphs(directories_dic={},
                                quantities_axis[quantity][2],
                                quantities_axis[quantity][3],
                                quantities_label[quantity])
-        print  quantities_axis[quantity]
+        #print  quantities_axis[quantity]
 
     cstr = ['b', 'r', 'g', 'c', 'm', 'y', 'k']
 
@@ -2536,7 +2536,12 @@ def sww2csv_gauges(sww_file,
     points_array = ensure_absolute(points_array)
 
     dir_name, base = os.path.split(sww_file)    
-#    print 'dirname',dir_name, base
+    #print 'dirname',dir_name, base
+    #need to get current directory so when path and file
+    #are "joined" below the directory is correct
+    if dir_name == '':
+        dir_name =getcwd()
+        
     if access(sww_file,R_OK):
         if verbose: print 'File %s exists' %(sww_file)
     else:
@@ -2573,28 +2578,30 @@ def sww2csv_gauges(sww_file,
     heading = [quantity for quantity in quantities]
     heading.insert(0,'time')
 
-#    print heading, quantities
+#    print 'start time', callable_sww.starttime, heading, quantities
 
     #create a list of csv writers for all the points and write header
     points_writer = []
     for i,point in enumerate(points):
+        #print 'gauge file:',dir_name+sep+'gauge_'+point_name[i]+'.csv'
         points_writer.append(writer(file(dir_name+sep+'gauge_'+point_name[i]+'.csv', "wb")))
         points_writer[i].writerow(heading)
 
+    
+    if verbose: print 'Writing csv files'
+
     for time in callable_sww.get_time():
-       # points_list = []
 
         for point_i, point in enumerate(points_array):
-            points_list = [time]
+            #add domain starttime to relative time.
+            points_list = [time+callable_sww.starttime]
 #            print'time',time,'point_i',point_i,point, points_array
             point_quantities = callable_sww(time,point_i)
 #            print "quantities", point_quantities
             
-#            for i, quantity in enumerate(quantities):
-#                points_list.append(quantities)
             for quantity in quantities:
                 if quantity==NAN:
-                    if verbose: print 'quantity does not exist in' %callable_sww.get_name
+                    print 'quantity does not exist in' %callable_sww.get_name
                 else:
                     if quantity == 'stage':
                         points_list.append(point_quantities[0])
