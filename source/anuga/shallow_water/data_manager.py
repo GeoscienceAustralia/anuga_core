@@ -5054,9 +5054,11 @@ class Write_sww:
             slice_index = len(file_time)
             file_time[slice_index] = time    
 
-        # write the conserved quantities from Domain.
+        # Write the conserved quantities from Domain.
         # Typically stage,  xmomentum, ymomentum
         # other quantities will be ignored, silently.
+        # Also write the ranges: stage_range,
+        # xmomentum_range and ymomentum_range
         for q in Write_sww.sww_quantities:
             if not quant.has_key(q):
                 msg = 'SWW file can not write quantity %s' %q
