@@ -1,13 +1,24 @@
 """Track IP of data files included in this distribution. 
-
-
 """
 
 from os import remove, walk, sep
-from os.path import join
+from os.path import join, splitext
 
-def identify_data_files(distro_dir):
-    """ Identify potential data files that might violate IP
+
+def IP_verified(directory):
+    """Find and audit potential data files that might violate IP
+
+    This is the public function to be used to ascertain that
+    all data in the specified directory tree has been audited according
+    to the GA data IP tracking process.
+
+    if IP_verified is False:
+        # Stop and take remedial action
+        ...
+    else:
+        # Proceed boldly with confidence
+        
+
     """
 
     print '---------------------------------------------'
@@ -17,19 +28,68 @@ def identify_data_files(distro_dir):
     # Print header
     dirwidth = 72
     print '---------------------------------------------'
-    print 'Directory'.ljust(dirwidth), 'File'
+    print 'File'.ljust(dirwidth), 'Status'
     print '---------------------------------------------'
 
+    # Identify data files
+    all_files_accounted_for = True
+    for dirpath, datafile in identify_datafiles(directory):
+        print join(dirpath, datafile) + ': ',
+
+        basename, ext = splitext(datafile)
+
+        # Look for a XML license file with the .lic
+        try:
+            fid = open(join(dirpath, basename + '.lic'))
+        except IOError:
+            print 'NO LICENSE FILE'
+            all_files_accounted_for = False
+        else:
+            if license_file_is_valid(fid):
+                print 'OK'
+            else:
+                print 'LICENSE FILE NOT VALID'
+                all_files_accounted_for = False
+            fid.close()
+
+    # Return result        
+    return all_files_accounted_for
+
+
+def identify_datafiles(root):
+    """ Identify files that might contain data
+    """
+
     # Ignore source code files
-    extensions_to_ignore = ['.py','.c','.h', '.f'] #,'gif']
+    extensions_to_ignore = ['.py','.c','.h', '.f'] #, '.gif', '.jpg', '.png']
+
+    # Ignore generated stuff 
+    extensions_to_ignore += ['.pyc', '.o', '.so', '~']
+    extensions_to_ignore += ['.aux', '.log', '.idx', 'ilg', '.ind',
+                             '.bbl', '.blg']
+
+    # Ignore license files themselves
+    extensions_to_ignore += ['.lic']    
+    
 
     # Ignore certain other files
     files_to_ignore = ['README.txt']
 
-    for dirpath, dirnames, filenames in walk(distro_dir):
+    # Ignore directories
+    directories_to_ignore = ['anuga_work', 'pymetis', 'obsolete_code',
+                             'anuga_parallel', 'anuga_viewer',
+                             'planning', 'coding_standards',
+                             'experimentation',
+                             '.svn', 'misc', '.metadata']
+
+    for dirpath, dirnames, filenames in walk(root):
+
+        for ignore in directories_to_ignore:
+            if ignore in dirnames:
+                dirnames.remove(ignore)  # don't visit ignored directories
 
         #print 'Searching dir', dirpath
-   
+        
 
         for filename in filenames:
 
@@ -44,13 +104,16 @@ def identify_data_files(distro_dir):
                 ignore = True
 
             if ignore is False:
-                subdirs = dirpath.split(sep)
-                
-                print join(subdirs[3:],sep).ljust(dirwidth), filename
-        
+                yield dirpath, filename
 
 
-# FIXME (Ole): Here we could put in a check testing if
-# all the files above have a .license file associated with them
-# explaining their origins.
+def license_file_is_valid(fid):
+    """Check that XML license file is valid
+    """
 
+    # TODO
+
+    print fid.read()
+    import sys
+    from xml.dom import minidom
+    doc =  minidom.parse(fid)

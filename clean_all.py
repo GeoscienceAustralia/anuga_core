@@ -15,7 +15,8 @@ import os
 extensions_to_delete = ['~',
                         '.pyc',       # Python
                         '.o', '.so', '.dll',  # C
-                        '.aux', '.ps']        # LaTeX 
+                        '.aux', '.ps',        # LaTeX
+                        '.sww']
 
 filenames_to_delete = []    
 for dirpath, dirnames, filenames in os.walk('.'):
