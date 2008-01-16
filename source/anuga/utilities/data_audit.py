@@ -4,6 +4,13 @@
 from os import remove, walk, sep
 from os.path import join, splitext
 
+from anuga.utilities.xml_tools import parse, print_tree, get_elements, get_text
+
+# Audit exceptions
+class NotPublishable(Exception): pass
+class Invalid(Exception): pass
+class WrongTags(Exception): pass
+
 
 def IP_verified(directory):
     """Find and audit potential data files that might violate IP
@@ -111,9 +118,110 @@ def license_file_is_valid(fid):
     """Check that XML license file is valid
     """
 
-    # TODO
+    doc = parse(fid)
+    #print_tree(doc)
 
-    print fid.read()
-    import sys
-    from xml.dom import minidom
-    doc =  minidom.parse(fid)
+    # Check that file is valid (e.g. all elements there)
+    # FIXME (Ole): Todo
+    
+
+    if doc.nodeName != '#document':
+        msg = 'License file %s does not appear' %fid.name
+        msg += 'to be a valid XML document'
+        msg += 'The root node has name %s' %doc.nodeName
+        msg += 'but it should be %s' %'#document'
+        raise Invalid, msg        
+
+    if len(doc.childNodes) != 2:
+        msg = 'License file %s must have two elements' %fid.name
+        msg += ' at the root level. They are\n '
+        msg += '<?xml version="1.0" encoding="iso-8859-1"?>\n'
+        msg += '<ga_license_file>'
+        raise Invalid, msg
+    
+
+    # Start looking at document in earnest
+    root_node = doc.childNodes[1]
+    if root_node.nodeName != 'ga_license_file':
+        msg = 'License file %s must have two elements' %fid.name
+        msg += ' at the root level. They are\n '
+        msg += '<?xml version="1.0" encoding="iso-8859-1"?>\n'
+        msg += '<ga_license_file>\n'
+        msg += 'The second element was found to be %s' %root_node.nodeName
+        raise WrongTags, msg
+    
+
+    # Validate elements: source, datafile, datafile, ...
+    elements = get_elements(root_node.childNodes)
+    if elements[0].nodeName != 'source':
+        msg = 'The first element under %s must be "source"'\
+              %root_node.nodeName
+        msg += 'The element found was %s' %elements[0].nodeName
+        raise WrongTags, msg
+
+    for node in elements[1:]:
+        if node.nodeName != 'datafile':
+            msg = 'All elements, except the first, under %s must '\
+                  %root_node.nodeName            
+            msg += 'be "datafile"'
+            msg += 'The element found was %s' %node.nodeName
+            raise WrongTags, msg        
+
+    print 
+    # Extract information for source section
+    for node in get_elements(elements[0].childNodes):
+        if node.nodeName == 'author':
+            # Do something
+            print 'Author is', get_text(node.childNodes)
+
+        if node.nodeName == 'svn_keywords':
+            # Do something
+            pass
+        
+    # Extract information for datafile sections
+    for datanode in elements[1:]:
+        print    
+    
+        for node in get_elements(datanode.childNodes):
+            #print 'Node', node.nodeName, node.childNodes
+            #continue
+            
+            if node.nodeName == 'filename':
+                # FIXME Check correctness
+                print 'Filename is "%s"' %get_text(node.childNodes)
+
+            if node.nodeName == 'accountable':
+                print 'Accountable is "%s"' %get_text(node.childNodes)
+
+            if node.nodeName == 'location':
+                print 'Location is "%s"' %get_text(node.childNodes)
+
+            if node.nodeName == 'IP_owner':
+                print 'IP owner is "%s"' %get_text(node.childNodes)
+
+            if node.nodeName == 'IP_info':
+                print 'IP info is "%s"' %get_text(node.childNodes)                                
+                
+
+            if node.nodeName == 'publishable':
+                value = get_text(node.childNodes)
+                if value.upper() != 'YES':
+                    msg = 'Data file %s is not flagged as publishable'\
+                          %fid.name
+                    print msg
+                    #raise NotPublishable, msg
+                else:
+                    print 'Data file %s is flagged publishable' %fid.name                
+        
+    
+    #for node in elements:
+    #    print node
+    #print 
+
+
+
+    # Check that file is deemed publishable
+    items = doc.getElementsByTagName('publishable')
+    for i in items:
+        print i
+        #i.getAttribute()
