@@ -151,10 +151,10 @@ def license_file_is_valid(fid):
         raise WrongTags, msg
     
 
-    # Validate elements: source, datafile, datafile, ...
+    # Validate elements: metadata, datafile, datafile, ...
     elements = get_elements(root_node.childNodes)
-    if elements[0].nodeName != 'source':
-        msg = 'The first element under %s must be "source"'\
+    if elements[0].nodeName != 'metadata':
+        msg = 'The first element under %s must be "metadata"'\
               %root_node.nodeName
         msg += 'The element found was %s' %elements[0].nodeName
         raise WrongTags, msg
@@ -193,8 +193,8 @@ def license_file_is_valid(fid):
             if node.nodeName == 'accountable':
                 print 'Accountable is "%s"' %get_text(node.childNodes)
 
-            if node.nodeName == 'location':
-                print 'Location is "%s"' %get_text(node.childNodes)
+            if node.nodeName == 'source':
+                print 'Source is "%s"' %get_text(node.childNodes)
 
             if node.nodeName == 'IP_owner':
                 print 'IP owner is "%s"' %get_text(node.childNodes)

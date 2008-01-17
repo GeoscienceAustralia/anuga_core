@@ -2,20 +2,20 @@
 
   <!DOCTYPE ga_license_file [
       <!ELEMENT ga_license_file (source, datafile+)>
-      <!ELEMENT source (author, svn_keywords)>
+      <!ELEMENT metadata (author, svn_keywords)>
       <!ELEMENT svn_keywords (author, date, revision, url, id)>    
       <!ELEMENT datafile (filename, publishable, accountable, 
       			owner, location, IP_info)>    
       <!ELEMENT filename (#PCDATA)>
       <!ELEMENT publishable (#PCDATA)>    
       <!ELEMENT accountable (#PCDATA)>        
-      <!ELEMENT location (#PCDATA)>        			
+      <!ELEMENT source (#PCDATA)>        			
       <!ELEMENT IP_owner (#PCDATA)>            
       <!ELEMENT IP_info (#PCDATA)>                
   ]>
 
   <ga_license_file>
-    <source>
+    <metadata>
       <author>Ole Nielsen</author>
       <svn_keywords>
         <author>$Author$</author>  
@@ -24,12 +24,12 @@
         <url>$URL$</url>
         <id>$Id$</id>
       </svn_keywords>
-    </source>
+    </metadata>
     <datafile>
       <filename>mainland_only.csv</filename>
-      <publishable>no</publishable>
+      <publishable>No</publishable>
       <accountable>Jane Sexton</accountable>
-      <location></location>
+      <source>Unknown</source>
       <IP_owner>Geoscience Australia</IP_owner>
       <IP_info>This is a polygon tracing the coastline at Dampier WA. The origin and license issues are undecided</IP_info>
     </datafile>
