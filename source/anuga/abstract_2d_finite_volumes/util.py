@@ -1234,10 +1234,6 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                         axis(vel_axis)
                         units = 'm / sec'
                     if which_quantity == 'bearing':
-                        #due_east = 90.0*ones(shape(model_time[0:n[j]-1,k,j],Float))
-                        #due_west = 270.0*ones(shape(model_time[0:n[j]-1,k,j],Float))
-                        print 'hello', bearings
-                        print 'east', due_east
                         plot(model_time[0:n[j]-1,k,j], bearings[0:n[j]-1,k,j], '-', 
                              model_time[0:n[j]-1,k,j], due_west[0:n[j]-1], '-.', 
                              model_time[0:n[j]-1,k,j], due_east[0:n[j]-1], '-.')
