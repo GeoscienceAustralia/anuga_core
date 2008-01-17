@@ -83,7 +83,7 @@ except:
     print 'No visualiser'
 
 
-domain.default_order = 1
+domain.default_order = 2
 
 #Boundaries
 from shallow_water import Transmissive_boundary, Reflective_boundary
@@ -98,7 +98,7 @@ domain.set_boundary( {'outflow': R, 'inflow': R, 'inner':R, 'exterior': R, 'open
 # Evolution
 t0 = time.time()
 
-print 'No of elements %d'%(domain.number_of_elements)
+print 'No of triangles %d'%(domain.number_of_triangles)
 
 
 for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):

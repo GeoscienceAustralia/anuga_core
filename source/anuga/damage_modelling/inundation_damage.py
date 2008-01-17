@@ -94,9 +94,10 @@ def inundation_damage(sww_base_name, exposure_files_in,
         if exposure_file_out_marker == None:
             exposure_file_out = exposure_file_in
         else:
-            name, extension = exposure_file_in.split('.')
-            exposure_file_out = name + exposure_file_out_marker + \
-                                '.' + extension
+            # split off extension, in such a way to deal with more than one '.' in the name of file
+            split_name = exposure_file_in.split('.')
+            exposure_file_out =  '.'.join(split_name[:-1]) + exposure_file_out_marker + \
+                                '.' + split_name[-1]
         csv.save(exposure_file_out)
         if verbose: print '\n Augmented building file written to %s \n' %exposure_file_out
     
