@@ -175,7 +175,7 @@ def license_file_is_valid(fid):
             print 'Author is', get_text(node.childNodes)
 
         if node.nodeName == 'svn_keywords':
-            # Do something
+            # Do nothing
             pass
         
     # Extract information for datafile sections
@@ -212,7 +212,9 @@ def license_file_is_valid(fid):
                     #raise NotPublishable, msg
                 else:
                     print 'Data file %s is flagged publishable' %fid.name                
-        
+
+    #FIXME (Ole): Use hash code for original datafile as an XML element
+    # USE CRC32 in zlib or hash
     
     #for node in elements:
     #    print node

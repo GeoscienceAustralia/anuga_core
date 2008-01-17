@@ -24,7 +24,21 @@ class Test_system_tools(unittest.TestCase):
 
         # print host
         assert isinstance(host, basestring), 'User name should be a string'        
+    def test_compute_checksum(self):
+        """test_compute_checksum(self):
+
+        Check that checksums on files are OK
+        """
+        # FIXME: Not Done Yet
+
+        from temp import mkstemp
+
+        # Generate a text file
+        fd, pathname = mkstemp(['.tmp', '', '.', ''])
+
         
+        
+
         
 #-------------------------------------------------------------
 if __name__ == "__main__":
