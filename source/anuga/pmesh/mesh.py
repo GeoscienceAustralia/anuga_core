@@ -2328,7 +2328,7 @@ def segment_ints2strings(intlist, convertint2string):
     """Reverses the transformation of segment_strings2ints """
     stringlist = []
     for x in intlist:
-        stringlist.append(convertint2string[x])
+        stringlist.append(convertint2string[int(x)])
     return stringlist
 
 def segment_strings2ints(stringlist, preset):

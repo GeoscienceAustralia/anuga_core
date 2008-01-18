@@ -2198,6 +2198,7 @@ if __name__ == "__main__":
     #suite = unittest.makeSuite(meshTestCase,'test_import_mesh')
     #suite = unittest.makeSuite(meshTestCase,'test_asciiFile')
     #suite = unittest.makeSuite(meshTestCase,'test_mesh2IO')
+    #suite = unittest.makeSuite(meshTestCase,'testgenerateMesh')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
     

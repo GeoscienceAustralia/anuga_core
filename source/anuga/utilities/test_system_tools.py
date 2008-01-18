@@ -31,10 +31,10 @@ class Test_system_tools(unittest.TestCase):
         """
         # FIXME: Not Done Yet
 
-        from temp import mkstemp
+        from tempfile import mkstemp
 
         # Generate a text file
-        fd, pathname = mkstemp(['.tmp', '', '.', ''])
+        fd, pathname = mkstemp('.tmp', '', '.', '')
 
         
         

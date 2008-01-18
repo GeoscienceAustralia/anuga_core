@@ -361,10 +361,10 @@ class Alpha_Shape:
         vertexinterval = [ [] for i in range(nv)] 
         for t in range(len(self.deltri)):
             for j in self.deltri[t]:
-                vertexnbrs[j].append(t)
+                vertexnbrs[int(j)].append(t)
         for h in range(len(self.hulledges)):
             for j in self.hulledges[h]:
-                vertexnbrs[j].append(-1)
+                vertexnbrs[int(j)].append(-1)
         
         for i in range(nv):
             radii = [ self.triradius[t] for t in vertexnbrs[i] if t>=0 ]
