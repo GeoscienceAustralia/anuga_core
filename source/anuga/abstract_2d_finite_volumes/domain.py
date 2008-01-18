@@ -103,7 +103,7 @@ class Domain(Mesh):
 
         if verbose: print 'Initialising Domain'
         from Numeric import zeros, Float, Int, ones
-        from quantity import Quantity, Conserved_quantity
+        from quantity import Quantity
 
         # List of quantity names entering
         # the conservation equations
@@ -124,7 +124,7 @@ class Domain(Mesh):
 
         #FIXME: remove later - maybe OK, though....
         for name in self.conserved_quantities:
-            self.quantities[name] = Conserved_quantity(self)
+            self.quantities[name] = Quantity(self)
         for name in self.other_quantities:
             self.quantities[name] = Quantity(self)
 

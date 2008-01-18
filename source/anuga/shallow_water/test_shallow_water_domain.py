@@ -2303,7 +2303,10 @@ class Test_Shallow_Water(unittest.TestCase):
 
         domain.set_quantity('stage', stage, location='centroids')
 
-        a, b = domain.quantities['stage'].compute_gradients()
+        domain.quantities['stage'].compute_gradients()
+
+        a, b = domain.quantities['stage'].get_gradients()
+                
         assert allclose(a[1], 3.33333334)
         assert allclose(b[1], 0.0)
 
@@ -2347,7 +2350,8 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.set_quantity('stage', stage, location='centroids')
         #print domain.quantities['stage'].centroid_values
 
-        a, b = domain.quantities['stage'].compute_gradients()
+        domain.quantities['stage'].compute_gradients()
+        a, b = domain.quantities['stage'].get_gradients()
         assert allclose(a[1], 25.18518519)
         assert allclose(b[1], 3.33333333)
 

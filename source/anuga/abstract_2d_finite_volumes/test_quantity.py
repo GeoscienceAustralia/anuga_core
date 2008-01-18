@@ -98,7 +98,7 @@ class Test_Quantity(unittest.TestCase):
 
 
     def test_interpolation2(self):
-        quantity = Conserved_quantity(self.mesh4,
+        quantity = Quantity(self.mesh4,
                             [[1,2,3], [5,5,5], [0,0,9], [-6, 3, 3]])
         assert allclose(quantity.centroid_values, [2., 5., 3., 0.]) #Centroid
 
@@ -124,7 +124,7 @@ class Test_Quantity(unittest.TestCase):
         #                                       [3.0, -1.5, -1.5]])
 
     def test_get_extrema_1(self):
-        quantity = Conserved_quantity(self.mesh4,
+        quantity = Quantity(self.mesh4,
                                       [[1,2,3], [5,5,5], [0,0,9], [-6, 3, 3]])
         assert allclose(quantity.centroid_values, [2., 5., 3., 0.]) #Centroids
 
@@ -230,7 +230,7 @@ class Test_Quantity(unittest.TestCase):
         
 
     def test_boundary_allocation(self):
-        quantity = Conserved_quantity(self.mesh4,
+        quantity = Quantity(self.mesh4,
                             [[1,2,3], [5,5,5], [0,0,9], [-6, 3, 3]])
 
         assert quantity.boundary_values.shape[0] == len(self.mesh4.boundary)
@@ -1288,8 +1288,8 @@ class Test_Quantity(unittest.TestCase):
 
 
 
-    def test_gradient(self):
-        quantity = Conserved_quantity(self.mesh4)
+    def test_compute_gradient(self):
+        quantity = Quantity(self.mesh4)
 
         #Set up for a gradient of (2,0) at mid triangle
         quantity.set_values([2.0, 4.0, 6.0, 2.0],
@@ -1297,8 +1297,10 @@ class Test_Quantity(unittest.TestCase):
 
 
         #Gradients
-        a, b = quantity.compute_gradients()
+        quantity.compute_gradients()
 
+        a = quantity.x_gradient
+        b = quantity.y_gradient
         #print self.mesh4.centroid_coordinates
         #print a, b
 
@@ -1345,17 +1347,64 @@ class Test_Quantity(unittest.TestCase):
         #q(4,0) = 6 + a*(4 - 8/3) + b*(-2/3)
         assert allclose(quantity.vertex_values[2,2], 8)
 
+    def test_get_gradients(self):
+        quantity = Quantity(self.mesh4)
+
+        #Set up for a gradient of (2,0) at mid triangle
+        quantity.set_values([2.0, 4.0, 6.0, 2.0],
+                            location = 'centroids')
+
+
+        #Gradients
+        quantity.compute_gradients()
+
+        a, b = quantity.get_gradients()
+        #print self.mesh4.centroid_coordinates
+        #print a, b
+
+        #The central triangle (1)
+        #(using standard gradient based on neigbours controid values)
+        assert allclose(a[1], 2.0)
+        assert allclose(b[1], 0.0)
+
+
+        #Left triangle (0) using two point gradient
+        #q0 = q1 + a*(x0-x1) + b*(y0-y1)  <=>
+        #2  = 4  + a*(-2/3)  + b*(-2/3)
+        assert allclose(a[0] + b[0], 3)
+        #From orthogonality (a*(y0-y1) + b*(x0-x1) == 0)
+        assert allclose(a[0] - b[0], 0)
+
+
+        #Right triangle (2) using two point gradient
+        #q2 = q1 + a*(x2-x1) + b*(y2-y1)  <=>
+        #6  = 4  + a*(4/3)  + b*(-2/3)
+        assert allclose(2*a[2] - b[2], 3)
+        #From orthogonality (a*(y1-y2) + b*(x2-x1) == 0)
+        assert allclose(a[2] + 2*b[2], 0)
+
+
+        #Top triangle (3) using two point gradient
+        #q3 = q1 + a*(x3-x1) + b*(y3-y1)  <=>
+        #2  = 4  + a*(-2/3)  + b*(4/3)
+        assert allclose(a[3] - 2*b[3], 3)
+        #From orthogonality (a*(y1-y3) + b*(x3-x1) == 0)
+        assert allclose(2*a[3] + b[3], 0)
+
 
     def test_second_order_extrapolation2(self):
-        quantity = Conserved_quantity(self.mesh4)
+        quantity = Quantity(self.mesh4)
 
         #Set up for a gradient of (3,1), f(x) = 3x+y
         quantity.set_values([2.0+2.0/3, 4.0+4.0/3, 8.0+2.0/3, 2.0+8.0/3],
                             location = 'centroids')
 
         #Gradients
-        a, b = quantity.compute_gradients()
+        quantity.compute_gradients()
 
+        a = quantity.x_gradient
+        b = quantity.y_gradient
+        
         #print a, b
 
         assert allclose(a[1], 3.0)
@@ -1373,7 +1422,7 @@ class Test_Quantity(unittest.TestCase):
 
 
     def test_backup_saxpy_centroid_values(self):
-        quantity = Conserved_quantity(self.mesh4)
+        quantity = Quantity(self.mesh4)
 
         #Set up for a gradient of (3,1), f(x) = 3x+y
         c_values = array([2.0+2.0/3, 4.0+4.0/3, 8.0+2.0/3, 2.0+8.0/3])
@@ -1396,7 +1445,7 @@ class Test_Quantity(unittest.TestCase):
 
 
     def test_first_order_extrapolator(self):
-        quantity = Conserved_quantity(self.mesh4)
+        quantity = Quantity(self.mesh4)
 
         #Test centroids
         quantity.set_values([1.,2.,3.,4.], location = 'centroids')
@@ -1405,13 +1454,18 @@ class Test_Quantity(unittest.TestCase):
         #Extrapolate
         quantity.extrapolate_first_order()
 
+        #Check that gradient is zero
+        a,b = quantity.get_gradients()
+        assert allclose(a, [0,0,0,0])
+        assert allclose(b, [0,0,0,0])
+
         #Check vertices but not edge values
         assert allclose(quantity.vertex_values,
                         [[1,1,1], [2,2,2], [3,3,3], [4, 4, 4]])
 
 
     def test_second_order_extrapolator(self):
-        quantity = Conserved_quantity(self.mesh4)
+        quantity = Quantity(self.mesh4)
 
         #Set up for a gradient of (3,0) at mid triangle
         quantity.set_values([2.0, 4.0, 8.0, 2.0],
@@ -1445,7 +1499,7 @@ class Test_Quantity(unittest.TestCase):
 
 
     def test_limit_vertices_by_all_neighbours(self):
-        quantity = Conserved_quantity(self.mesh4)
+        quantity = Quantity(self.mesh4)
 
         #Create a deliberate overshoot (e.g. from gradient computation)
         quantity.set_values([[3,0,3], [2,2,6], [5,3,8], [8,3,5]])
@@ -1475,7 +1529,7 @@ class Test_Quantity(unittest.TestCase):
 
 
     def test_limit_edges_by_all_neighbours(self):
-        quantity = Conserved_quantity(self.mesh4)
+        quantity = Quantity(self.mesh4)
 
         #Create a deliberate overshoot (e.g. from gradient computation)
         quantity.set_values([[3,0,3], [2,2,6], [5,3,8], [8,3,5]])
@@ -1504,7 +1558,7 @@ class Test_Quantity(unittest.TestCase):
 
 
     def test_limit_edges_by_neighbour(self):
-        quantity = Conserved_quantity(self.mesh4)
+        quantity = Quantity(self.mesh4)
 
         #Create a deliberate overshoot (e.g. from gradient computation)
         quantity.set_values([[3,0,3], [2,2,6], [5,3,8], [8,3,5]])
@@ -1534,7 +1588,7 @@ class Test_Quantity(unittest.TestCase):
     def test_limiter2(self):
         """Taken from test_shallow_water
         """
-        quantity = Conserved_quantity(self.mesh4)
+        quantity = Quantity(self.mesh4)
         quantity.domain.beta_w = 0.9
         
         #Test centroids
@@ -1568,7 +1622,7 @@ class Test_Quantity(unittest.TestCase):
 
 
     def test_distribute_first_order(self):
-        quantity = Conserved_quantity(self.mesh4)
+        quantity = Quantity(self.mesh4)
 
         #Test centroids
         quantity.set_values([1.,2.,3.,4.], location = 'centroids')
@@ -1616,7 +1670,7 @@ class Test_Quantity(unittest.TestCase):
 
 
     def test_distribute_second_order(self):
-        quantity = Conserved_quantity(self.mesh4)
+        quantity = Quantity(self.mesh4)
 
         #Test centroids
         quantity.set_values([2.,4.,8.,2.], location = 'centroids')
@@ -1630,7 +1684,7 @@ class Test_Quantity(unittest.TestCase):
 
 
     def test_update_explicit(self):
-        quantity = Conserved_quantity(self.mesh4)
+        quantity = Quantity(self.mesh4)
 
         #Test centroids
         quantity.set_values([1.,2.,3.,4.], location = 'centroids')
@@ -1646,7 +1700,7 @@ class Test_Quantity(unittest.TestCase):
         assert allclose( quantity.centroid_values, x)
 
     def test_update_semi_implicit(self):
-        quantity = Conserved_quantity(self.mesh4)
+        quantity = Quantity(self.mesh4)
 
         #Test centroids
         quantity.set_values([1.,2.,3.,4.], location = 'centroids')
@@ -1667,7 +1721,7 @@ class Test_Quantity(unittest.TestCase):
 
 
     def test_both_updates(self):
-        quantity = Conserved_quantity(self.mesh4)
+        quantity = Quantity(self.mesh4)
 
         #Test centroids
         quantity.set_values([1.,2.,3.,4.], location = 'centroids')

@@ -59,8 +59,24 @@ class Quantity:
         self.centroid_values = zeros(N, Float)
         self.edge_values = zeros((N, 3), Float)
 
+        #Allocate space for Gradient
+        self.x_gradient = zeros(N, Float)
+        self.y_gradient = zeros(N, Float)        
+
         #Intialise centroid and edge_values
         self.interpolate()
+
+        #Allocate space for boundary values
+        L = len(domain.boundary)
+        self.boundary_values = zeros(L, Float)
+
+        #Allocate space for updates of conserved quantities by
+        #flux calculations and forcing functions
+
+        N = len(domain) # number_of_triangles
+        self.explicit_update = zeros(N, Float )
+        self.semi_implicit_update = zeros(N, Float )
+        self.centroid_backup_values = zeros(N, Float)       
 
 
 
@@ -1329,6 +1345,9 @@ class Quantity:
             qv[:,i] = qc
             qe[:,i] = qc
 
+        self.x_gradient *= 0.0
+        self.y_gradient *= 0.0
+
 
     def get_integral(self):
         """Compute the integral of quantity across entire domain
@@ -1341,35 +1360,11 @@ class Quantity:
 
         return integral
 
+    def get_gradients(self):
+        """Provide gradients. Use compute_gradients first
+        """
 
-
-
-class Conserved_quantity(Quantity):
-    """Class conserved quantity adds to Quantity:
-
-    boundary values, storage and method for updating, and
-    methods for (second order) extrapolation from centroid to vertices inluding
-    gradients and limiters
-    """
-
-    def __init__(self, domain, vertex_values=None):
-        Quantity.__init__(self, domain, vertex_values)
-
-        from Numeric import zeros, Float
-
-        #Allocate space for boundary values
-        L = len(domain.boundary)
-        self.boundary_values = zeros(L, Float)
-
-        #Allocate space for updates of conserved quantities by
-        #flux calculations and forcing functions
-
-        N = len(domain) # number_of_triangles
-        self.explicit_update = zeros(N, Float )
-        self.semi_implicit_update = zeros(N, Float )
-        self.centroid_backup_values = zeros(N, Float)       
-
-        
+        return self.x_gradient, self.y_gradient
 
 
     def update(self, timestep):
@@ -1405,7 +1400,8 @@ class Conserved_quantity(Quantity):
     def extrapolate_second_order(self):
         #Call correct module function
         #(either from this module or C-extension)
-        extrapolate_second_order(self)
+        compute_gradients(self)
+        extrapolate_from_gradient(self)
 
     def backup_centroid_values(self):
         #Call correct module function
@@ -1417,6 +1413,20 @@ class Conserved_quantity(Quantity):
         #(either from this module or C-extension)
         saxpy_centroid_values(self,a,b)
     
+
+
+class Conserved_quantity(Quantity):
+    """Class conserved quantity being removed, use Quantity
+
+    """
+
+    def __init__(self, domain, vertex_values=None):
+        #Quantity.__init__(self, domain, vertex_values)
+
+        msg = 'ERROR: Use Quantity instead of Conserved_quantity'
+
+        raise Exception, msg
+
 
 
 from anuga.utilities import compile
@@ -1432,7 +1442,8 @@ if compile.can_use_C_extension('quantity_ext.c'):
          limit_vertices_by_all_neighbours,\
          limit_edges_by_all_neighbours,\
          limit_edges_by_neighbour,\
-         extrapolate_second_order,\
+         limit_gradient_by_neighbour,\
+         extrapolate_from_gradient,\
          interpolate_from_vertices_to_edges,\
          interpolate_from_edges_to_vertices,\
          update    

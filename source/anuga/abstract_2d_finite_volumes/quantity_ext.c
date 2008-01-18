@@ -92,7 +92,7 @@ int _compute_gradients(int N,
 
 
 
-int _extrapolate(int N,
+int _extrapolate_from_gradient(int N,
 		 double* centroids,
 		 double* centroid_values,
 		 double* vertex_coordinates,
@@ -257,6 +257,63 @@ int _limit_edges_by_neighbour(int N, double beta,
 		     double* centroid_values,
 		     double* vertex_values,
 		     double* edge_values,
+		     long*   neighbours) {
+
+	int i, k, k2, k3, k6;
+	long n;
+	double qmin, qmax, qn, qc;
+	double dq, dqa[3], phi, r;
+
+	for (k=0; k<N; k++){
+		k6 = 6*k;
+		k3 = 3*k;
+		k2 = 2*k;
+
+		qc = centroid_values[k];
+		phi = 1.0;
+
+		for (i=0; i<3; i++) {
+		    dq = edge_values[k3+i] - qc;     //Delta between edge and centroid values
+		    dqa[i] = dq;                      //Save dq for use in updating vertex values
+
+		    n = neighbours[k3+i];
+		    if (n >= 0) {
+			qn = centroid_values[n]; //Neighbour's centroid value
+
+			qmin = min(qc, qn);
+			qmax = max(qc, qn);
+
+			r = 1.0;
+      
+			if (dq > 0.0) r = (qmax - qc)/dq;
+			if (dq < 0.0) r = (qmin - qc)/dq;      
+		    
+			phi = min( min(r*beta, 1.0), phi);    
+		    }
+		}
+
+
+		//Update edge and vertex values using phi limiter
+		edge_values[k3+0] = qc + phi*dqa[0];
+		edge_values[k3+1] = qc + phi*dqa[1];
+		edge_values[k3+2] = qc + phi*dqa[2];
+		
+		vertex_values[k3+0] = edge_values[k3+1] + edge_values[k3+2] - edge_values[k3+0];
+		vertex_values[k3+1] = edge_values[k3+2] + edge_values[k3+0] - edge_values[k3+1];
+		vertex_values[k3+2] = edge_values[k3+0] + edge_values[k3+1] - edge_values[k3+2];
+
+	}
+
+	return 0;
+}
+
+
+int _limit_gradient_by_neighbour(int N, double beta,
+		     double* centroid_values,
+		     double* vertex_values,
+		     double* edge_values,
+		     double* x_gradient,
+		     double* y_gradient,
 		     long*   neighbours) {
 
 	int i, k, k2, k3, k6;
@@ -751,86 +808,86 @@ PyObject *average_vertex_values(PyObject *self, PyObject *args) {
 
 
 
-PyObject *compute_gradients(PyObject *self, PyObject *args) {
-  //"""Compute gradients of triangle surfaces defined by centroids of
-  //neighbouring volumes.
-  //If one edge is on the boundary, use own centroid as neighbour centroid.
-  //If two or more are on the boundary, fall back to first order scheme.
-  //"""
+/* PyObject *compute_gradients(PyObject *self, PyObject *args) { */
+/*   //"""Compute gradients of triangle surfaces defined by centroids of */
+/*   //neighbouring volumes. */
+/*   //If one edge is on the boundary, use own centroid as neighbour centroid. */
+/*   //If two or more are on the boundary, fall back to first order scheme. */
+/*   //""" */
 
 
-	PyObject *quantity, *domain, *R;
-	PyArrayObject
-		*centroids,            //Coordinates at centroids
-		*centroid_values,      //Values at centroids
-		*number_of_boundaries, //Number of boundaries for each triangle
-		*surrogate_neighbours, //True neighbours or - if one missing - self
-		*a, *b;                //Return values
+/* 	PyObject *quantity, *domain, *R; */
+/* 	PyArrayObject */
+/* 		*centroids,            //Coordinates at centroids */
+/* 		*centroid_values,      //Values at centroids */
+/* 		*number_of_boundaries, //Number of boundaries for each triangle */
+/* 		*surrogate_neighbours, //True neighbours or - if one missing - self */
+/* 		*a, *b;                //Return values */
 
-	int dimensions[1], N, err;
+/* 	int dimensions[1], N, err; */
 
-	// Convert Python arguments to C
-	if (!PyArg_ParseTuple(args, "O", &quantity)) {
-	  PyErr_SetString(PyExc_RuntimeError, 
-			  "quantity_ext.c: compute_gradients could not parse input");	
-	  return NULL;
-	}
+/* 	// Convert Python arguments to C */
+/* 	if (!PyArg_ParseTuple(args, "O", &quantity)) { */
+/* 	  PyErr_SetString(PyExc_RuntimeError,  */
+/* 			  "quantity_ext.c: compute_gradients could not parse input");	 */
+/* 	  return NULL; */
+/* 	} */
 
-	domain = PyObject_GetAttrString(quantity, "domain");
-	if (!domain) {
-	  PyErr_SetString(PyExc_RuntimeError, 
-			  "compute_gradients could not obtain domain object from quantity");
-	  return NULL;
-	}
+/* 	domain = PyObject_GetAttrString(quantity, "domain"); */
+/* 	if (!domain) { */
+/* 	  PyErr_SetString(PyExc_RuntimeError,  */
+/* 			  "compute_gradients could not obtain domain object from quantity"); */
+/* 	  return NULL; */
+/* 	} */
 
-	// Get pertinent variables
+/* 	// Get pertinent variables */
 
-	centroids = get_consecutive_array(domain, "centroid_coordinates");
-	centroid_values = get_consecutive_array(quantity, "centroid_values");
-	surrogate_neighbours = get_consecutive_array(domain, "surrogate_neighbours");
-	number_of_boundaries = get_consecutive_array(domain, "number_of_boundaries");
+/* 	centroids = get_consecutive_array(domain, "centroid_coordinates"); */
+/* 	centroid_values = get_consecutive_array(quantity, "centroid_values"); */
+/* 	surrogate_neighbours = get_consecutive_array(domain, "surrogate_neighbours"); */
+/* 	number_of_boundaries = get_consecutive_array(domain, "number_of_boundaries"); */
 
-	N = centroid_values -> dimensions[0];
+/* 	N = centroid_values -> dimensions[0]; */
 
-	// Release
-	Py_DECREF(domain);
+/* 	// Release */
+/* 	Py_DECREF(domain); */
 
-	// Allocate space for return vectors a and b (don't DECREF)
-	dimensions[0] = N;
-	a = (PyArrayObject *) PyArray_FromDims(1, dimensions, PyArray_DOUBLE);
-	b = (PyArrayObject *) PyArray_FromDims(1, dimensions, PyArray_DOUBLE);
-
-
-
-	err = _compute_gradients(N,
-			(double*) centroids -> data,
-			(double*) centroid_values -> data,
-			(long*) number_of_boundaries -> data,
-			(long*) surrogate_neighbours -> data,
-			(double*) a -> data,
-			(double*) b -> data);
-
-	if (err != 0) {
-	  PyErr_SetString(PyExc_RuntimeError, "Gradient could not be computed");
-	  return NULL;
-	}
-
-	// Release
-	Py_DECREF(centroids);
-	Py_DECREF(centroid_values);
-	Py_DECREF(number_of_boundaries);
-	Py_DECREF(surrogate_neighbours);
-
-	// Build result, release and return
-	R = Py_BuildValue("OO", PyArray_Return(a), PyArray_Return(b));
-	Py_DECREF(a);
-	Py_DECREF(b);
-	return R;
-}
+/* 	// Allocate space for return vectors a and b (don't DECREF) */
+/* 	dimensions[0] = N; */
+/* 	a = (PyArrayObject *) PyArray_FromDims(1, dimensions, PyArray_DOUBLE); */
+/* 	b = (PyArrayObject *) PyArray_FromDims(1, dimensions, PyArray_DOUBLE); */
 
 
 
-PyObject *extrapolate_second_order(PyObject *self, PyObject *args) {
+/* 	err = _compute_gradients(N, */
+/* 			(double*) centroids -> data, */
+/* 			(double*) centroid_values -> data, */
+/* 			(long*) number_of_boundaries -> data, */
+/* 			(long*) surrogate_neighbours -> data, */
+/* 			(double*) a -> data, */
+/* 			(double*) b -> data); */
+
+/* 	if (err != 0) { */
+/* 	  PyErr_SetString(PyExc_RuntimeError, "Gradient could not be computed"); */
+/* 	  return NULL; */
+/* 	} */
+
+/* 	// Release */
+/* 	Py_DECREF(centroids); */
+/* 	Py_DECREF(centroid_values); */
+/* 	Py_DECREF(number_of_boundaries); */
+/* 	Py_DECREF(surrogate_neighbours); */
+
+/* 	// Build result, release and return */
+/* 	R = Py_BuildValue("OO", PyArray_Return(a), PyArray_Return(b)); */
+/* 	Py_DECREF(a); */
+/* 	Py_DECREF(b); */
+/* 	return R; */
+/* } */
+
+
+
+PyObject *extrapolate_from_gradient(PyObject *self, PyObject *args) {
 
 	PyObject *quantity, *domain;
 	PyArrayObject
@@ -841,23 +898,25 @@ PyObject *extrapolate_second_order(PyObject *self, PyObject *args) {
 	    *edge_values,          //Values at edges
 	    *number_of_boundaries, //Number of boundaries for each triangle
 	    *surrogate_neighbours, //True neighbours or - if one missing - self
-	    *a, *b;                //Gradients
+	    *x_gradient,           //x gradient
+	    *y_gradient;           //y gradient
 
 	//int N, err;
-	int dimensions[1], N, err;
+	//int dimensions[1];
+	int N, err;
 	//double *a, *b;  //Gradients
 
 	// Convert Python arguments to C
 	if (!PyArg_ParseTuple(args, "O", &quantity)) {
 	  PyErr_SetString(PyExc_RuntimeError, 
-			  "extrapolate_second_order could not parse input");	
+			  "extrapolate_gradient could not parse input");	
 	  return NULL;
 	}
 
 	domain = PyObject_GetAttrString(quantity, "domain");
 	if (!domain) {
 	  PyErr_SetString(PyExc_RuntimeError, 
-			  "extrapolate_second_order could not obtain domain object from quantity");	
+			  "extrapolate_gradient could not obtain domain object from quantity");	
 	  return NULL;
 	}
 
@@ -869,6 +928,8 @@ PyObject *extrapolate_second_order(PyObject *self, PyObject *args) {
 	vertex_coordinates   = get_consecutive_array(domain,   "vertex_coordinates");
 	vertex_values        = get_consecutive_array(quantity, "vertex_values");
 	edge_values          = get_consecutive_array(quantity, "edge_values");
+	x_gradient           = get_consecutive_array(quantity, "x_gradient");
+	y_gradient           = get_consecutive_array(quantity, "y_gradient");
 
 	N = centroid_values -> dimensions[0];
 
@@ -876,9 +937,9 @@ PyObject *extrapolate_second_order(PyObject *self, PyObject *args) {
 	Py_DECREF(domain);
 
 	//Allocate space for return vectors a and b (don't DECREF)
-	dimensions[0] = N;
-	a = (PyArrayObject *) PyArray_FromDims(1, dimensions, PyArray_DOUBLE);
-	b = (PyArrayObject *) PyArray_FromDims(1, dimensions, PyArray_DOUBLE);
+	//dimensions[0] = N;
+	//a = (PyArrayObject *) PyArray_FromDims(1, dimensions, PyArray_DOUBLE);
+	//b = (PyArrayObject *) PyArray_FromDims(1, dimensions, PyArray_DOUBLE);
 
 	//FIXME: Odd that I couldn't use normal arrays
 	//Allocate space for return vectors a and b (don't DECREF)
@@ -888,27 +949,27 @@ PyObject *extrapolate_second_order(PyObject *self, PyObject *args) {
 	//if (!b) return NULL;
 
 
-	err = _compute_gradients(N,
-			(double*) centroids -> data,
-			(double*) centroid_values -> data,
-			(long*) number_of_boundaries -> data,
-			(long*) surrogate_neighbours -> data,
-			(double*) a -> data,
-			(double*) b -> data);
+/* 	err = _compute_gradients(N, */
+/* 			(double*) centroids -> data, */
+/* 			(double*) centroid_values -> data, */
+/* 			(long*) number_of_boundaries -> data, */
+/* 			(long*) surrogate_neighbours -> data, */
+/* 			(double*) x_gradient -> data, */
+/* 			(double*) y_gradient -> data); */
 
-	if (err != 0) {
-	  PyErr_SetString(PyExc_RuntimeError, "Gradient could not be computed");
-	  return NULL;
-	}
+/* 	if (err != 0) { */
+/* 	  PyErr_SetString(PyExc_RuntimeError, "Gradient could not be computed"); */
+/* 	  return NULL; */
+/* 	} */
 
-	err = _extrapolate(N,
+	err = _extrapolate_from_gradient(N,
 			(double*) centroids -> data,
 			(double*) centroid_values -> data,
 			(double*) vertex_coordinates -> data,
 			(double*) vertex_values -> data,
 			(double*) edge_values -> data,
-			(double*) a -> data,
-			(double*) b -> data);
+			(double*) x_gradient -> data,
+			(double*) y_gradient -> data);
 
 
 	if (err != 0) {
@@ -927,8 +988,117 @@ PyObject *extrapolate_second_order(PyObject *self, PyObject *args) {
 	Py_DECREF(vertex_coordinates);
 	Py_DECREF(vertex_values);
 	Py_DECREF(edge_values);
-	Py_DECREF(a);
-	Py_DECREF(b);
+	Py_DECREF(x_gradient);
+	Py_DECREF(y_gradient);
+
+	return Py_BuildValue("");
+}
+
+
+
+PyObject *compute_gradients(PyObject *self, PyObject *args) {
+
+	PyObject *quantity, *domain;
+	PyArrayObject
+	    *centroids,            //Coordinates at centroids
+	    *centroid_values,      //Values at centroids
+	    *vertex_coordinates,   //Coordinates at vertices
+	    *vertex_values,        //Values at vertices
+	    *edge_values,          //Values at edges
+	    *number_of_boundaries, //Number of boundaries for each triangle
+	    *surrogate_neighbours, //True neighbours or - if one missing - self
+	    *x_gradient,           //x gradient
+	    *y_gradient;           //y gradient
+
+	//int N, err;
+	//int dimensions[1];
+	int N, err;
+	//double *a, *b;  //Gradients
+
+	// Convert Python arguments to C
+	if (!PyArg_ParseTuple(args, "O", &quantity)) {
+	  PyErr_SetString(PyExc_RuntimeError, 
+			  "compute_gradients could not parse input");	
+	  return NULL;
+	}
+
+	domain = PyObject_GetAttrString(quantity, "domain");
+	if (!domain) {
+	  PyErr_SetString(PyExc_RuntimeError, 
+			  "compute_gradients could not obtain domain object from quantity");	
+	  return NULL;
+	}
+
+	// Get pertinent variables
+	centroids            = get_consecutive_array(domain,   "centroid_coordinates");
+	centroid_values      = get_consecutive_array(quantity, "centroid_values");
+	surrogate_neighbours = get_consecutive_array(domain,   "surrogate_neighbours");
+	number_of_boundaries = get_consecutive_array(domain,   "number_of_boundaries");
+	vertex_coordinates   = get_consecutive_array(domain,   "vertex_coordinates");
+	vertex_values        = get_consecutive_array(quantity, "vertex_values");
+	edge_values          = get_consecutive_array(quantity, "edge_values");
+	x_gradient           = get_consecutive_array(quantity, "x_gradient");
+	y_gradient           = get_consecutive_array(quantity, "y_gradient");
+
+	N = centroid_values -> dimensions[0];
+
+	// Release
+	Py_DECREF(domain);
+
+	//Allocate space for return vectors a and b (don't DECREF)
+	//dimensions[0] = N;
+	//a = (PyArrayObject *) PyArray_FromDims(1, dimensions, PyArray_DOUBLE);
+	//b = (PyArrayObject *) PyArray_FromDims(1, dimensions, PyArray_DOUBLE);
+
+	//FIXME: Odd that I couldn't use normal arrays
+	//Allocate space for return vectors a and b (don't DECREF)
+	//a = (double*) malloc(N * sizeof(double));
+	//if (!a) return NULL;
+	//b = (double*) malloc(N * sizeof(double));
+	//if (!b) return NULL;
+
+
+	err = _compute_gradients(N,
+			(double*) centroids -> data,
+			(double*) centroid_values -> data,
+			(long*) number_of_boundaries -> data,
+			(long*) surrogate_neighbours -> data,
+			(double*) x_gradient -> data,
+			(double*) y_gradient -> data);
+
+	if (err != 0) {
+	  PyErr_SetString(PyExc_RuntimeError, "Gradient could not be computed");
+	  return NULL;
+	}
+
+/* 	err = _extrapolate(N, */
+/* 			(double*) centroids -> data, */
+/* 			(double*) centroid_values -> data, */
+/* 			(double*) vertex_coordinates -> data, */
+/* 			(double*) vertex_values -> data, */
+/* 			(double*) edge_values -> data, */
+/* 			(double*) x_gradient -> data, */
+/* 			(double*) y_gradient -> data); */
+
+
+/* 	if (err != 0) { */
+/* 	  PyErr_SetString(PyExc_RuntimeError, */
+/* 			  "Internal function _extrapolate failed"); */
+/* 	  return NULL; */
+/* 	} */
+
+
+
+	// Release
+	Py_DECREF(centroids);
+	Py_DECREF(centroid_values);
+	Py_DECREF(number_of_boundaries);
+	Py_DECREF(surrogate_neighbours);
+	Py_DECREF(vertex_coordinates);
+	Py_DECREF(vertex_values);
+	Py_DECREF(edge_values);
+	Py_DECREF(x_gradient);
+	Py_DECREF(y_gradient);
 
 	return Py_BuildValue("");
 }
@@ -1281,17 +1451,111 @@ PyObject *limit_edges_by_neighbour(PyObject *self, PyObject *args) {
 }
 
 
+PyObject *limit_gradient_by_neighbour(PyObject *self, PyObject *args) {
+  //Limit slopes for each volume to eliminate artificial variance
+  //introduced by e.g. second order extrapolator
+
+  //This is an unsophisticated limiter as it does not take into
+  //account dependencies among quantities.
+
+  //precondition:
+  //  vertex values are estimated from gradient
+  //postcondition:
+  //  vertex and edge values are updated
+  //
+
+	PyObject *quantity, *domain, *Tmp;
+	PyArrayObject
+	    *vertex_values,   //Conserved quantities at vertices
+	    *centroid_values, //Conserved quantities at centroids
+	    *edge_values,     //Conserved quantities at edges
+	    *x_gradient,
+	    *y_gradient,
+	    *neighbours;
+
+	double beta_w; //Safety factor
+	int N, err;
+
+
+	// Convert Python arguments to C
+	if (!PyArg_ParseTuple(args, "O", &quantity)) {
+	  PyErr_SetString(PyExc_RuntimeError, 
+			  "quantity_ext.c: limit_gradient_by_neighbour could not parse input");
+	  return NULL;
+	}
+
+	domain = PyObject_GetAttrString(quantity, "domain");
+	if (!domain) {
+	  PyErr_SetString(PyExc_RuntimeError, 
+			  "quantity_ext.c: limit_gradient_by_neighbour could not obtain domain object from quantity");		  	
+	  
+	  return NULL;
+	}
+
+	// Get safety factor beta_w
+	Tmp = PyObject_GetAttrString(domain, "beta_w");
+	if (!Tmp) {
+	  PyErr_SetString(PyExc_RuntimeError, 
+			  "quantity_ext.c: limit_gradient_by_neighbour could not obtain beta_w object from domain");		  	
+	  
+	  return NULL;
+	}	
+
+
+	// Get pertinent variables
+	neighbours       = get_consecutive_array(domain, "neighbours");
+	centroid_values  = get_consecutive_array(quantity, "centroid_values");
+	vertex_values    = get_consecutive_array(quantity, "vertex_values");
+	edge_values      = get_consecutive_array(quantity, "edge_values");
+	x_gradient       = get_consecutive_array(quantity, "x_gradient");
+	y_gradient       = get_consecutive_array(quantity, "y_gradient");
+
+	beta_w           = PyFloat_AsDouble(Tmp);
+
+
+	N = centroid_values -> dimensions[0];
+
+	err = _limit_gradient_by_neighbour(N, beta_w,
+					(double*) centroid_values -> data,
+					(double*) vertex_values -> data,
+					(double*) edge_values -> data,
+					(double*) x_gradient -> data,
+					(double*) y_gradient -> data,
+					(long*)   neighbours -> data);
+	
+	if (err != 0) {
+	  PyErr_SetString(PyExc_RuntimeError,
+			  "Internal function _limit_gradient_by_neighbour failed");
+	  return NULL;
+	}	
+
+
+	// Release
+	Py_DECREF(neighbours);
+	Py_DECREF(centroid_values);
+	Py_DECREF(vertex_values);
+	Py_DECREF(edge_values);
+	Py_DECREF(x_gradient);
+	Py_DECREF(y_gradient);
+	Py_DECREF(Tmp);
+
+
+	return Py_BuildValue("");
+}
+
+
 // Method table for python module
 static struct PyMethodDef MethodTable[] = {
 	{"limit_old", limit_old, METH_VARARGS, "Print out"},
 	{"limit_vertices_by_all_neighbours", limit_vertices_by_all_neighbours, METH_VARARGS, "Print out"},
 	{"limit_edges_by_all_neighbours", limit_edges_by_all_neighbours, METH_VARARGS, "Print out"},
 	{"limit_edges_by_neighbour", limit_edges_by_neighbour, METH_VARARGS, "Print out"},
+	{"limit_gradient_by_neighbour", limit_gradient_by_neighbour, METH_VARARGS, "Print out"},
 	{"update", update, METH_VARARGS, "Print out"},
 	{"backup_centroid_values", backup_centroid_values, METH_VARARGS, "Print out"},
 	{"saxpy_centroid_values", saxpy_centroid_values, METH_VARARGS, "Print out"},
 	{"compute_gradients", compute_gradients, METH_VARARGS, "Print out"},
-	{"extrapolate_second_order", extrapolate_second_order,
+	{"extrapolate_from_gradient", extrapolate_from_gradient,
 		METH_VARARGS, "Print out"},
 	{"interpolate_from_vertices_to_edges",
 		interpolate_from_vertices_to_edges,
