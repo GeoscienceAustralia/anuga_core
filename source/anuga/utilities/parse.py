@@ -21,6 +21,6 @@ fid = open(sys.argv[1])
 #print_tree(doc)
 
 from data_audit import license_file_is_valid
-license_file_is_valid(fid)
+license_file_is_valid(fid, '.')
 
 

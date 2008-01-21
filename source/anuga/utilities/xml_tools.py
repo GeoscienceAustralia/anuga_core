@@ -21,6 +21,9 @@ def print_tree(n, indent=0):
         n = n.nextSibling
 
 
+def pretty_print_tree(n, indent=0):
+    print n
+
 def parse(fid):
     """Parse XML file descriptor and return DOM object.
     """
@@ -29,6 +32,7 @@ def parse(fid):
     #validate(fid, handler)
     #doc = minidom.parse(fid, make_parser())
 
+    fid.seek(0)
     doc = minidom.parse(fid)    
     return doc
 

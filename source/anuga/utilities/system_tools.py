@@ -171,15 +171,17 @@ def store_version_info(destination_path='.', verbose=False):
             print 'Version info stored to %s' %filename
             
 
-def compute_checksum(filename):
+def compute_checksum(filename, max_length=2**20):
     """Compute the CRC32 checksum for specified file
+
+    Optional parameter max_length sets the maximum number
+    of bytes used to limit time used with large files.
+    Default = 2**20 (1MB)
     """
 
-    import zlib
-    #FIXME(Ole): Do we need to limit the size?
-
-    fid = open(filename)
-
-    crcval = zlib.crc32(fid.read())
+    #from zlib import crc32
+    from binascii import crc32 #(works as well)
     
+    fid = open(filename)
+    crcval = crc32(fid.read(max_length))
     return crcval

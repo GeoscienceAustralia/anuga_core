@@ -4,13 +4,17 @@
 from os import remove, walk, sep
 from os.path import join, splitext
 
-from anuga.utilities.xml_tools import parse, print_tree, get_elements, get_text
+from anuga.utilities.xml_tools import parse, pretty_print_tree, get_elements, get_text
+from anuga.utilities.system_tools import compute_checksum
 
 # Audit exceptions
 class NotPublishable(Exception): pass
+class FilenameMismatch(Exception): pass
+class CRCMismatch(Exception): pass
 class Invalid(Exception): pass
 class WrongTags(Exception): pass
 
+audit_exceptions = (NotPublishable, FilenameMismatch, CRCMismatch, Invalid, WrongTags)
 
 def IP_verified(directory):
     """Find and audit potential data files that might violate IP
@@ -41,7 +45,9 @@ def IP_verified(directory):
     # Identify data files
     all_files_accounted_for = True
     for dirpath, datafile in identify_datafiles(directory):
-        print join(dirpath, datafile) + ': ',
+        filename = join(dirpath, datafile)
+        
+        print filename + ' (Checksum=%s): ' %str(compute_checksum(filename)),
 
         basename, ext = splitext(datafile)
 
@@ -52,11 +58,21 @@ def IP_verified(directory):
             print 'NO LICENSE FILE'
             all_files_accounted_for = False
         else:
-            if license_file_is_valid(fid):
-                print 'OK'
-            else:
+            try:
+                license_file_is_valid(fid, dirpath, verbose=False)
+            except audit_exceptions, e:
+                all_files_accounted_for = False                                
                 print 'LICENSE FILE NOT VALID'
-                all_files_accounted_for = False
+                print 'REASON:', e
+
+                #doc = parse(fid)
+                #pretty_print_tree(doc)
+                fid.seek(0)
+                print fid.read()
+
+            else:        
+                print 'OK'
+
             fid.close()
 
     # Return result        
@@ -114,10 +130,11 @@ def identify_datafiles(root):
                 yield dirpath, filename
 
 
-def license_file_is_valid(fid):
+def license_file_is_valid(fid, dirpath, verbose=False):
     """Check that XML license file is valid
     """
 
+    license_filename = fid.name
     doc = parse(fid)
     #print_tree(doc)
 
@@ -126,24 +143,23 @@ def license_file_is_valid(fid):
     
 
     if doc.nodeName != '#document':
-        msg = 'License file %s does not appear' %fid.name
+        msg = 'License file %s does not appear' %license_filename
         msg += 'to be a valid XML document'
         msg += 'The root node has name %s' %doc.nodeName
         msg += 'but it should be %s' %'#document'
         raise Invalid, msg        
 
-    if len(doc.childNodes) != 2:
-        msg = 'License file %s must have two elements' %fid.name
-        msg += ' at the root level. They are\n '
-        msg += '<?xml version="1.0" encoding="iso-8859-1"?>\n'
+    if len(doc.childNodes) != 1:
+        msg = 'License file %s must have only one element' %license_filename
+        msg += ' at the root level. It is\n '
         msg += '<ga_license_file>'
         raise Invalid, msg
     
 
     # Start looking at document in earnest
-    root_node = doc.childNodes[1]
+    root_node = doc.childNodes[0]
     if root_node.nodeName != 'ga_license_file':
-        msg = 'License file %s must have two elements' %fid.name
+        msg = 'License file %s must have two elements' %license_filename
         msg += ' at the root level. They are\n '
         msg += '<?xml version="1.0" encoding="iso-8859-1"?>\n'
         msg += '<ga_license_file>\n'
@@ -167,12 +183,12 @@ def license_file_is_valid(fid):
             msg += 'The element found was %s' %node.nodeName
             raise WrongTags, msg        
 
-    print 
+    if verbose: print    
     # Extract information for source section
     for node in get_elements(elements[0].childNodes):
         if node.nodeName == 'author':
             # Do something
-            print 'Author is', get_text(node.childNodes)
+            if verbose: print 'Author:   ', get_text(node.childNodes)
 
         if node.nodeName == 'svn_keywords':
             # Do nothing
@@ -180,7 +196,7 @@ def license_file_is_valid(fid):
         
     # Extract information for datafile sections
     for datanode in elements[1:]:
-        print    
+        if verbose: print
     
         for node in get_elements(datanode.childNodes):
             #print 'Node', node.nodeName, node.childNodes
@@ -188,42 +204,67 @@ def license_file_is_valid(fid):
             
             if node.nodeName == 'filename':
                 # FIXME Check correctness
-                print 'Filename is "%s"' %get_text(node.childNodes)
+                filename = join(dirpath, get_text(node.childNodes))
+                if verbose: print 'Filename: "%s"' %filename
+                try:
+                    fid = open(filename, 'r')
+                except:
+                    msg = 'Specified filename %s could not be opened'\
+                          %filename
+                    raise FilenameMismatch, msg
+
+            if node.nodeName == 'checksum':
+                # FIXME (Ole): This relies on crc being preceded by filename
+                reported_crc = get_text(node.childNodes)
+                if verbose: print 'Checksum: "%s"' %reported_crc
+
+                file_crc = str(compute_checksum(filename))
+
+                if reported_crc != file_crc:
+                    msg = 'Bad checksum (CRC).\n'
+                    msg += '  The CRC reported in license file "%s" is "%s"\n'\
+                          %(license_filename, reported_crc)
+                    msg += '  The CRC computed from file "%s" is "%s"'\
+                           %(filename, file_crc)
+                    raise CRCMismatch, msg
+                
 
             if node.nodeName == 'accountable':
-                print 'Accountable is "%s"' %get_text(node.childNodes)
+                accountable = get_text(node.childNodes)
+                if verbose: print 'Accountable: "%s"' %accountable
+                if accountable == "":
+                    msg = 'No accountable person specified'
+                    raise Exception, msg
 
             if node.nodeName == 'source':
-                print 'Source is "%s"' %get_text(node.childNodes)
+                source = get_text(node.childNodes)
+                if verbose: print 'Source: "%s"' %source
+                if source == "":
+                    msg = 'No source specified'
+                    raise Exception, msg                
 
             if node.nodeName == 'IP_owner':
-                print 'IP owner is "%s"' %get_text(node.childNodes)
+                ip_owner = get_text(node.childNodes)
+                if verbose: print 'IP owner: "%s"' %ip_owner
+                if ip_owner == "":
+                    msg = 'No IP owner specified'
+                    raise Exception, msg                                
+                
 
             if node.nodeName == 'IP_info':
-                print 'IP info is "%s"' %get_text(node.childNodes)                                
+                if verbose: print 'IP info: "%s"' %get_text(node.childNodes)  
                 
 
             if node.nodeName == 'publishable':
+                
+                if verbose: print 'Publishable: %s' %fid.name                
                 value = get_text(node.childNodes)
                 if value.upper() != 'YES':
                     msg = 'Data file %s is not flagged as publishable'\
                           %fid.name
-                    print msg
-                    #raise NotPublishable, msg
-                else:
-                    print 'Data file %s is flagged publishable' %fid.name                
-
-    #FIXME (Ole): Use hash code for original datafile as an XML element
-    # USE CRC32 in zlib or hash
-    
-    #for node in elements:
-    #    print node
-    #print 
+                    raise NotPublishable, msg
 
 
 
-    # Check that file is deemed publishable
-    items = doc.getElementsByTagName('publishable')
-    for i in items:
-        print i
-        #i.getAttribute()
+    # If we get this far, the license file is OK
+    return True
