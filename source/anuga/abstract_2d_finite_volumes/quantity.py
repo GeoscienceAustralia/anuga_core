@@ -1413,7 +1413,7 @@ class Quantity:
         #(either from this module or C-extension)
         saxpy_centroid_values(self,a,b)
     
-
+#Conserved_quantity = Quantity
 
 class Conserved_quantity(Quantity):
     """Class conserved quantity being removed, use Quantity
