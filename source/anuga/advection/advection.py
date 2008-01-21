@@ -110,16 +110,10 @@ class Domain(Generic_domain):
     def compute_fluxes(self):
 
         try:
-            import weave
-            self.weave_available = True
+            self.compute_fluxes_ext()
         except:
-            self.weave_available = False
-
-        if self.weave_available:
-            self.compute_fluxes_weave()
-        else:
             self.compute_fluxes_python()
-
+ 
 
 
     def compute_fluxes_python(self):
@@ -210,7 +204,8 @@ class Domain(Generic_domain):
 
         self.timestep = timestep
 
-    def compute_fluxes_weave(self):
+
+    def compute_fluxes_ext(self):
         """Compute all fluxes and the timestep suitable for all volumes
         in domain.
 
@@ -261,84 +256,17 @@ class Domain(Generic_domain):
 
         huge_timestep = float(sys.maxint)
 
-        v1 = self.velocity[0]
-        v2 = self.velocity[1]
+        v = self.velocity
 
-        code = """
-        //Loop
+        from advection_ext import compute_fluxes
+		
+        compute_fluxes(stage_edge,stage_bdry,stage_update,
+                       neighbours,neighbour_edges,normals,
+                       areas,radii,edgelengths,
+                       tri_full_flag,
+                       huge_timestep,timestep,v)			 
 
-        double qr,ql;
-        int m,n;
-        double normal[2];
-        double normal_velocity;
-        double flux, edgeflux;
-        double max_speed;
-        double optimal_timestep;
-        for (int k=0; k<N; k++){
-
-            optimal_timestep = huge_timestep;
-            flux = 0.0;  //Reset work array
-            for (int i=0; i<3; i++){
-                //Quantities inside volume facing neighbour i
-                ql = stage_edge(k, i);
-
-                //Quantities at neighbour on nearest face
-                n = neighbours(k,i);
-                if (n < 0) {
-                    m = -n-1; //Convert neg flag to index
-                    qr = stage_bdry(m);
-                } else {
-                    m = neighbour_edges(k,i);
-                    qr = stage_edge(n, m);
-                }
-
-
-                //Outward pointing normal vector
-                for (int j=0; j<2; j++){
-                    normal[j] = normals(k, 2*i+j);
-                }
-
-
-                //Flux computation using provided function
-                normal_velocity = v1*normal[0] + v2*normal[1];
-
-                if (normal_velocity < 0) {
-                    edgeflux = qr * normal_velocity;
-                } else {
-                    edgeflux = ql * normal_velocity;
-                }
-
-                max_speed = fabs(normal_velocity);
-                flux = flux - edgeflux * edgelengths(k,i);
-
-                //Update optimal_timestep
-                if (tri_full_flag(k) == 1) {
-                    if (max_speed != 0.0) {
-                        optimal_timestep = (optimal_timestep>radii(k)/max_speed) ? radii(k)/max_speed : optimal_timestep;
-                    }
-                }
-
-            }
-
-            //Normalise by area and store for when all conserved
-            //quantities get updated
-            stage_update(k) = flux/areas(k);
-
-            timestep(0) = (timestep(0)>optimal_timestep) ? optimal_timestep : timestep(0);
-
-        }
-        """
-
-        #logger.debug('Trying to weave advection.compute_fluxes')
-        weave.inline(code, ['stage_edge','stage_bdry','stage_update',
-                             'neighbours','neighbour_edges','normals',
-                             'areas','radii','edgelengths','tri_full_flag',
-                             'huge_timestep',
-                             'timestep','v1','v2','N'],
-                             type_converters = converters.blitz, compiler='gcc');
-
-        self.timestep = timestep[0]
-
+        self.timestep = timestep
 
 
     def evolve(self,
