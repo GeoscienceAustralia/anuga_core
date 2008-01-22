@@ -16,7 +16,7 @@ class WrongTags(Exception): pass
 
 audit_exceptions = (NotPublishable, FilenameMismatch, CRCMismatch, Invalid, WrongTags)
 
-def IP_verified(directory):
+def IP_verified(directory, verbose=False):
     """Find and audit potential data files that might violate IP
 
     This is the public function to be used to ascertain that
@@ -29,6 +29,10 @@ def IP_verified(directory):
     else:
         # Proceed boldly with confidence
         
+    verbose controls standard output.
+    If verbose is False, only diagnostics about failed audits will appear.
+    All files that check OK will pass silently.
+    
 
     """
 
@@ -45,35 +49,40 @@ def IP_verified(directory):
     # Identify data files
     all_files_accounted_for = True
     for dirpath, datafile in identify_datafiles(directory):
-        filename = join(dirpath, datafile)
         
-        print filename + ' (Checksum=%s): ' %str(compute_checksum(filename)),
-
+        filename = join(dirpath, datafile)
         basename, ext = splitext(datafile)
 
         # Look for a XML license file with the .lic
+        status = 'OK'
         try:
             fid = open(join(dirpath, basename + '.lic'))
         except IOError:
-            print 'NO LICENSE FILE'
+            status = 'NO LICENSE FILE'
             all_files_accounted_for = False
         else:
             try:
-                license_file_is_valid(fid, dirpath, verbose=False)
+                license_file_is_valid(fid, dirpath, verbose=verbose)
             except audit_exceptions, e:
                 all_files_accounted_for = False                                
-                print 'LICENSE FILE NOT VALID'
-                print 'REASON:', e
+                status = 'LICENSE FILE NOT VALID'
+                status += 'REASON: %s' %e
 
                 #doc = parse(fid)
                 #pretty_print_tree(doc)
                 fid.seek(0)
-                print fid.read()
+                status += fid.read()
 
-            else:        
-                print 'OK'
+            #else:        
+            #    if verbose: print 'OK'
 
             fid.close()
+            
+        if status != 'OK' or verbose is True:
+            print filename + ' (Checksum=%s): '\
+                  %str(compute_checksum(filename)), status
+
+
 
     # Return result        
     return all_files_accounted_for
