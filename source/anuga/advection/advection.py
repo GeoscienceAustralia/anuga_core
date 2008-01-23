@@ -109,10 +109,12 @@ class Domain(Generic_domain):
 
     def compute_fluxes(self):
 
-        try:
-            self.compute_fluxes_ext()
-        except:
-            self.compute_fluxes_python()
+        
+        self.compute_fluxes_ext()
+##         try:
+##             self.compute_fluxes_ext()
+##         except:
+##             self.compute_fluxes_python()
  
 
 
@@ -229,14 +231,9 @@ class Domain(Generic_domain):
         from Numeric import zeros, Float
         from anuga.config import max_timestep
 
-        import weave
-        from weave import converters
-
         N = len(self)
 
-
-        timestep    = zeros( 1, Float);
-        timestep[0] = float(max_timestep) #FIXME: Get rid of this
+        timestep = max_timestep
 
         #Shortcuts
         Stage = self.quantities['stage']
@@ -259,12 +256,19 @@ class Domain(Generic_domain):
         v = self.velocity
 
         from advection_ext import compute_fluxes
+
+
+        print 'N = ',N
+        print 'timestep = ',timestep
+        print 'huge_timestep = ',huge_timestep
 		
-        compute_fluxes(stage_edge,stage_bdry,stage_update,
-                       neighbours,neighbour_edges,normals,
-                       areas,radii,edgelengths,
-                       tri_full_flag,
-                       huge_timestep,timestep,v)			 
+        timestep = compute_fluxes(stage_edge,stage_bdry,stage_update,
+                                  neighbours,neighbour_edges,normals,
+                                  areas,radii,edgelengths,
+                                  tri_full_flag,
+                                  huge_timestep,max_timestep,v,N)
+        
+        print 'timestep out2 =',timestep
 
         self.timestep = timestep
 

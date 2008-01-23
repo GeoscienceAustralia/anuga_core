@@ -1,19 +1,20 @@
 #include "math.h"
+#include "stdio.h"
 
-void compute_fluxes(double* stage_edge,
-					double* stage_bdry,
-					double* stage_update,
+double compute_fluxes(double* stage_edge,
+		    double* stage_bdry,
+		    double* stage_update,
                     int* neighbours,
-					int* neighbour_edges,
-					double* normals,
+		    int* neighbour_edges,
+		    double* normals,
                     double* areas,
-					double* radii,
-					double* edgelengths,
-					int* tri_full_flag,
-                    double huge_timestep,
-                    double timestep,
-					double* v,
-					int N){
+		    double* radii,
+		    double* edgelengths,
+		    int*    tri_full_flag,
+                    double  huge_timestep,
+                    double  max_timestep,
+		    double* v,
+		    int N){
         //Loop
 
         double qr,ql;
@@ -22,9 +23,16 @@ void compute_fluxes(double* stage_edge,
         double flux, edgeflux;
         double max_speed;
         double optimal_timestep;
-		int I,M,K;
-		int k,i,j,n,m;
-		
+	double timestep;
+	int I,M,K;
+	int k,i,j,n,m;
+	
+	timestep = max_timestep;
+
+	printf("N = %i\n",N);
+	printf("timestep = %g\n",timestep);
+	printf("huge_timestep = %g\n",huge_timestep);
+
 		
         for (k=0; k<N; k++){
             optimal_timestep = huge_timestep;
@@ -81,5 +89,9 @@ void compute_fluxes(double* stage_edge,
             timestep = (timestep>optimal_timestep) ? optimal_timestep : timestep;
 
         }
+
+	printf("timestep out = %g\n",timestep);
+
+	return timestep;
 }
 

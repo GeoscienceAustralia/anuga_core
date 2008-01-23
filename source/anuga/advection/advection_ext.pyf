@@ -2,43 +2,28 @@
 ! File advection_ext.pyf
 python module advection_ext
 interface
-	subroutine compute_fluxes(stage_edge,stage_bdry,stage_update,neighbours,neighbour_edges,normals,areas,radii,edgelengths,tri_full_flag,huge_timestep,timestep,v,n)
+	double precision function compute_fluxes(stage_edge,stage_bdry,stage_update,neighbours,neighbour_edges,normals,areas,radii,edgelengths,tri_full_flag,huge_timestep,max_timestep,v,n)
 		intent(c) compute_fluxes
 		intent(c)
 	
-		double precision dimension(3,n) ::    stage_edge
-		double precision dimension(3,n) :: 	  stage_bdry,
-		double precision dimension(n) :: 	  stage_update,
-        integer dimension(n) ::               neighbours,
-		integer dimension(n) ::			      neighbour_edges,
-		double precision dimension(6,n) :: 	  normals
-        double precision dimension(n) ::      areas
-		double precision dimension(n) :: 	  radii
-		double precision dimension(3,n) :: 	  edgelengths
-		integer dimension(n) :: 			  tri_full_flag
-        double precision  ::                  huge_timestep
-        double precision  ::                  timestep
+		double precision dimension(*) ::      stage_edge
+		double precision dimension(*) ::      stage_bdry,
+		double precision dimension(*) ::      stage_update,
+                integer dimension(*) ::               neighbours,
+		integer dimension(*) ::		      neighbour_edges,
+		double precision dimension(*) ::      normals
+                double precision dimension(*) ::      areas
+		double precision dimension(*) ::      radii
+		double precision dimension(*) ::      edgelengths
+		integer dimension(*) :: 	      tri_full_flag
+                double precision   ::                 huge_timestep
+                double precision   ::                 max_timestep
 		double precision dimension(2) ::      v
-        integer optional,check(shape(stage_edge,1)==n),depend(stage_edge) :: n=shape(stage_edge,0)
+                integer  ::                           n
 
-	end subroutine compute_fluxes
+	end function compute_fluxes
 end interface
 end python module
 
 
 
-
-void compute_fluxes(double* stage_edge,
-					double* stage_bdry,
-					double* stage_update,
-                    int* neighbours,
-					int* neighbour_edges,
-					double* normals,
-                    double* areas,
-					double* radii,
-					double* edgelengths,
-					int* tri_full_flag,
-                    double huge_timestep,
-                    double timestep,
-					double* v,
-					int N){
