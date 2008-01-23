@@ -24,40 +24,40 @@ double compute_fluxes(double* stage_edge,
         double max_speed;
         double optimal_timestep;
 	double timestep;
-	int I,M,K;
+	int k_i,n_m,k_i_j;
 	int k,i,j,n,m;
 	
 	timestep = max_timestep;
 
-	printf("N = %i\n",N);
-	printf("timestep = %g\n",timestep);
-	printf("huge_timestep = %g\n",huge_timestep);
+	//printf("N = %i\n",N);
+	//printf("timestep = %g\n",timestep);
+	//printf("huge_timestep = %g\n",huge_timestep);
 
-		
         for (k=0; k<N; k++){
             optimal_timestep = huge_timestep;
             flux = 0.0;  //Reset work array
             for (i=0; i<3; i++){
-				I = 6*k+i;
+	        k_i = 3*k+i;
                 //Quantities inside volume facing neighbour i
-                ql = stage_edge[I];
+                ql = stage_edge[k_i];
+		//printf("stage_edge[%i] = %g\n",k_i,stage_edge[k_i]);
 
                 //Quantities at neighbour on nearest face
-                n = neighbours[I];
+                n = neighbours[k_i];
                 if (n < 0) {
                     m = -n-1; //Convert neg flag to index
                     qr = stage_bdry[m];
                 } else {
-                    m = neighbour_edges[I];
-					M = 6*n+m;
-                    qr = stage_edge[M];
+                    m = neighbour_edges[k_i];
+		    n_m = 3*n+m;
+                    qr = stage_edge[n_m];
                 }
 
 
                 //Outward pointing normal vector
                 for (j=0; j<2; j++){
-					K = 6*k+2*i+j;
-                    normal[j] = normals[K];
+		    k_i_j = 6*k+2*i+j;
+                    normal[j] = normals[k_i_j];
                 }
 
 
@@ -71,7 +71,7 @@ double compute_fluxes(double* stage_edge,
                 }
 
                 max_speed = fabs(normal_velocity);
-                flux = flux - edgeflux * edgelengths[K];
+                flux = flux - edgeflux * edgelengths[k_i];
 
                 //Update optimal_timestep
                 if (tri_full_flag[k] == 1) {
@@ -90,7 +90,7 @@ double compute_fluxes(double* stage_edge,
 
         }
 
-	printf("timestep out = %g\n",timestep);
+	//printf("timestep out = %g\n",timestep);
 
 	return timestep;
 }

@@ -258,9 +258,9 @@ class Domain(Generic_domain):
         from advection_ext import compute_fluxes
 
 
-        print 'N = ',N
-        print 'timestep = ',timestep
-        print 'huge_timestep = ',huge_timestep
+        #print 'N = ',N
+        #print 'timestep = ',timestep
+        #print 'huge_timestep = ',huge_timestep
 		
         timestep = compute_fluxes(stage_edge,stage_bdry,stage_update,
                                   neighbours,neighbour_edges,normals,
@@ -268,7 +268,7 @@ class Domain(Generic_domain):
                                   tri_full_flag,
                                   huge_timestep,max_timestep,v,N)
         
-        print 'timestep out2 =',timestep
+        #print 'timestep out2 =',timestep
 
         self.timestep = timestep
 
