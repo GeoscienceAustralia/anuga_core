@@ -139,7 +139,7 @@ def identify_datafiles(root):
                 yield dirpath, filename
 
 
-def license_file_is_valid(fid, dirpath, verbose=False):
+def license_file_is_valid(fid, dirpath='.', verbose=False):
     """Check that XML license file is valid
     """
 
