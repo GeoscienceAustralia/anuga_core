@@ -231,7 +231,7 @@ class Domain(Generic_domain):
         from Numeric import zeros, Float
         from anuga.config import max_timestep
 
-        N = len(self)
+        ntri = len(self)
 
         timestep = max_timestep
 
@@ -255,18 +255,35 @@ class Domain(Generic_domain):
 
         v = self.velocity
 
+        nbdry = len(stage_bdry)
+
         from advection_ext import compute_fluxes
 
+        print "stage_update",stage_update
+        print "stage_edge",stage_edge
+        print "stage_bdry",stage_bdry
+        print "neighbours",neighbours
+        print "neighbour_edges",neighbour_edges
+        print "normals",normals
+        print "areas",areas
+        print "radii",radii
+        print "edgelengths",edgelengths
+        print "tri_full_flag",tri_full_flag
+        print "huge_timestep",huge_timestep
+        print "max_timestep",max_timestep
+        print "v",v
+        print "ntri",ntri
+        print "nbdry",nbdry
 
-        #print 'N = ',N
-        #print 'timestep = ',timestep
-        #print 'huge_timestep = ',huge_timestep
+
 		
         timestep = compute_fluxes(stage_update,stage_edge,stage_bdry,
                                   neighbours,neighbour_edges,normals,
                                   areas,radii,edgelengths,
                                   tri_full_flag,
-                                  huge_timestep,max_timestep,v,N)
+                                  huge_timestep,max_timestep,v,ntri,nbdry)
+
+        print "stage_update",stage_update        
         
         #print 'timestep out2 =',timestep
 

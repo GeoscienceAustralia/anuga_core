@@ -2,27 +2,31 @@
 ! File advection_ext.pyf
 python module advection_ext
 interface
-	double precision function compute_fluxes(stage_update,stage_edge,stage_bdry,&
+	function compute_fluxes(stage_update,stage_edge,stage_bdry,&
 			neighbours,neighbour_edges,&
 			normals,areas,radii,edgelengths,&
-			tri_full_flag,huge_timestep,max_timestep,v,n)
+			tri_full_flag,huge_timestep,max_timestep,v,n,nbdry)
 		intent(c) compute_fluxes
-		intent(c)
+		double precision compute_fluxes
 
-		double precision dimension(n) ::      stage_update,	
-		double precision dimension(3,n) ::    stage_edge
-		double precision dimension(3,n) ::    stage_bdry,
-                integer dimension(3,n) ::             neighbours,
-		integer dimension(3,n) ::	      neighbour_edges,
-		double precision dimension(6,n) ::    normals
-                double precision dimension(n) ::      areas
-		double precision dimension(n) ::      radii
-		double precision dimension(3,n) ::    edgelengths
-		integer dimension(n) :: 	      tri_full_flag
-                double precision   ::                 huge_timestep
-                double precision   ::                 max_timestep
-		double precision dimension(2) ::      v
-                integer  ::                           n
+		double precision stage_update(n)	
+		intent(in,out)    stage_update
+		intent(c)         stage_update	
+		double precision stage_edge(n,3)
+		double precision stage_bdry(nbdry)
+                integer           neighbours(n,3)
+		integer           neighbour_edges(n,3)
+		double precision normals(n,6)
+                double precision areas(n)
+		double precision radii(n)
+		double precision edgelengths(n,3)
+		integer          tri_full_flag(n)
+                double precision huge_timestep, max_timestep
+                intent(c)        huge_timestep, max_timestep
+		double precision v(2)
+                integer          n, nbdry
+		intent(c)        n, nbdry
+
 
 	end function compute_fluxes
 end interface

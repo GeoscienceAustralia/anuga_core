@@ -1,6 +1,45 @@
 #include "math.h"
 #include "stdio.h"
 
+void  print_double_array(char* name, double* array, int n, int m){
+
+    int k,i,km;
+
+    printf("%s = [",name);
+    for (k=0; k<n; k++){
+	km = m*k;
+	printf("[");
+	for (i=0; i<m ; i++){
+	    printf("%g ",array[km+i]);
+	}
+	if (k==(n-1))
+	    printf("]");
+	else
+	    printf("]\n");
+    }
+    printf("]\n");
+}
+
+void  print_int_array(char* name, int* array, int n, int m){
+
+    int k,i,km;
+
+    printf("%s = [",name);
+    for (k=0; k<n; k++){
+	km = m*k;
+	printf("[");
+	for (i=0; i<m ; i++){
+	    printf("%i ",array[km+i]);
+	}
+	if (k==(n-1))
+	    printf("]");
+	else
+	    printf("]\n");
+    }
+    printf("]\n");
+}
+
+
 double compute_fluxes(
 		    double* stage_update,
 		    double* stage_edge,
@@ -11,11 +50,12 @@ double compute_fluxes(
                     double* areas,
 		    double* radii,
 		    double* edgelengths,
-		    int*    tri_full_flag,
+		    int*   tri_full_flag,
                     double  huge_timestep,
                     double  max_timestep,
 		    double* v,
-		    int N){
+		    int ntri,
+		    int nbdry){
         //Loop
 
         double qr,ql;
@@ -25,23 +65,43 @@ double compute_fluxes(
         double max_speed;
         double optimal_timestep;
 	double timestep;
-	int k_i,n_m,k_i_j;
+	int  k_i,n_m,k_i_j;
 	int k,i,j,n,m;
+	int k3;
 	
 	timestep = max_timestep;
 
-	//printf("N = %i\n",N);
-	//printf("timestep = %g\n",timestep);
-	//printf("huge_timestep = %g\n",huge_timestep);
 
-        for (k=0; k<N; k++){
+	printf("======================================================\n");
+	printf("INSIDE compute_fluxes\n");
+
+
+        print_double_array( "stage_update",stage_update, ntri, 1);
+        print_double_array( "stage_edge",stage_edge, ntri, 3);
+        print_double_array( "stage_bdry",stage_bdry, nbdry, 1);
+        print_int_array( "neighbours",neighbours, ntri, 3);
+        print_int_array( "neighbour_edges",neighbour_edges, ntri, 3);
+        print_double_array( "normals",normals, ntri, 6);
+        print_double_array( "areas",areas, ntri, 1);
+        print_double_array( "radii",radii, ntri, 1);
+        print_double_array( "edgelengths",edgelengths, ntri, 3);
+        print_int_array( "tri_full_flag",tri_full_flag, ntri, 1);
+	printf("huge_timestep = %g\n",huge_timestep);
+	printf("max_timestep = %g\n",max_timestep);
+        print_double_array( "v",v, 2, 1);
+	printf("ntri = %i\n",ntri);
+	printf("nbdry = %i\n",nbdry);
+
+
+        for (k=0; k<ntri; k++){
             optimal_timestep = huge_timestep;
-            flux = 0.0; 
+            flux = 0.0;
+	    k3 = 3*k;
             for (i=0; i<3; i++){
-	        k_i = 3*k+i;
+	        k_i = k3+i;
                 //Quantities inside volume facing neighbour i
                 ql = stage_edge[k_i];
-		//printf("stage_edge[%i] = %g\n",k_i,stage_edge[k_i]);
+
 
                 //Quantities at neighbour on nearest face
                 n = neighbours[k_i];
@@ -92,6 +152,16 @@ double compute_fluxes(
         }
 
 	//printf("timestep out = %g\n",timestep);
+
+
+
+	printf("INSIDE compute_fluxes, end \n");
+
+        print_double_array( "stage_update",stage_update, ntri, 1);
+
+	printf("FINISHED compute_fluxes\n");
+	printf("======================================================\n");
+
 
 	return timestep;
 }
