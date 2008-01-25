@@ -2,8 +2,8 @@
 ! File advection_ext.pyf
 python module advection_ext
 interface
-	double precision function compute_fluxes(stage_edge,stage_bdry,&
-			stage_update,neighbours,neighbour_edges,&
+	double precision function compute_fluxes(stage_update,stage_edge,stage_bdry,&
+			neighbours,neighbour_edges,&
 			normals,areas,radii,edgelengths,&
 			tri_full_flag,huge_timestep,max_timestep,v,n)
 		intent(c) compute_fluxes
