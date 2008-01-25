@@ -1,9 +1,10 @@
 #include "math.h"
 #include "stdio.h"
 
-double compute_fluxes(double* stage_edge,
-		    double* stage_bdry,
+double compute_fluxes(
 		    double* stage_update,
+		    double* stage_edge,
+		    double* stage_bdry,
                     int* neighbours,
 		    int* neighbour_edges,
 		    double* normals,
@@ -35,7 +36,7 @@ double compute_fluxes(double* stage_edge,
 
         for (k=0; k<N; k++){
             optimal_timestep = huge_timestep;
-            flux = 0.0;  //Reset work array
+            flux = 0.0; 
             for (i=0; i<3; i++){
 	        k_i = 3*k+i;
                 //Quantities inside volume facing neighbour i

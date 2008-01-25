@@ -8,10 +8,10 @@ interface
 			tri_full_flag,huge_timestep,max_timestep,v,n)
 		intent(c) compute_fluxes
 		intent(c)
-	
+
+		double precision dimension(n) ::      stage_update,	
 		double precision dimension(3,n) ::    stage_edge
 		double precision dimension(3,n) ::    stage_bdry,
-		double precision dimension(n) ::      stage_update,
                 integer dimension(3,n) ::             neighbours,
 		integer dimension(3,n) ::	      neighbour_edges,
 		double precision dimension(6,n) ::    normals

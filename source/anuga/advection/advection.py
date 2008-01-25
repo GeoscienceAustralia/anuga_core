@@ -262,7 +262,7 @@ class Domain(Generic_domain):
         #print 'timestep = ',timestep
         #print 'huge_timestep = ',huge_timestep
 		
-        timestep = compute_fluxes(stage_edge,stage_bdry,stage_update,
+        timestep = compute_fluxes(stage_update,stage_edge,stage_bdry,
                                   neighbours,neighbour_edges,normals,
                                   areas,radii,edgelengths,
                                   tri_full_flag,

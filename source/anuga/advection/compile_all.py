@@ -7,7 +7,7 @@ import os
 separation_line = '---------------------------------------'
 print separation_line
 
-command = 'python setup.py build_src build_ext --inplace'
+command = 'python setup.py build_src build_ext --inplace --compiler=mingw32'
 print 'Trying to run %s in directory %s' % (command, os.getcwd())
 os.system(command)
 
