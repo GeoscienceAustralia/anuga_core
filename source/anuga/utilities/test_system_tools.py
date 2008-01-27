@@ -33,44 +33,48 @@ class Test_system_tools(unittest.TestCase):
         """
 
         import zlib
-        from tempfile import NamedTemporaryFile, mktemp
+        from tempfile import mkstemp, mktemp
 
         # Generate a text file
-        fid = NamedTemporaryFile(mode='w',
-                                 suffix='.tmp',
-                                 dir='.')
+        tmp_fd , tmp_name = mkstemp(suffix='.tmp',dir='.')
+        fid = os.fdopen(tmp_fd,'w')
         string = 'My temp file with textual content. AAAABBBBCCCC1234'
         fid.write(string)
         fid.flush()
 
 
         ref_crc = zlib.crc32(string)
-        checksum = compute_checksum(fid.name)
+
+
+
+        checksum = compute_checksum(tmp_name)
 
         assert checksum == ref_crc
 
-        # Close and remove temporary file
         fid.close()
+        os.remove(tmp_name)
+        
 
 
 
         # Binary file
-        fid = NamedTemporaryFile(mode='w+b',
-                                 suffix='.tmp',
-                                 dir='.')
+        tmp_fd , tmp_name = mkstemp(suffix='.tmp',dir='.')
+        fid = os.fdopen(tmp_fd,'w+b')
+        
+
         string = 'My temp file with binary content. AAAABBBBCCCC1234'
         fid.write(string)
         fid.flush()
 
 
         ref_crc = zlib.crc32(string)
-        checksum = compute_checksum(fid.name)
+        checksum = compute_checksum(tmp_name)
 
         assert checksum == ref_crc
 
         # Close and remove temporary file
         fid.close()
-        
+        os.remove(tmp_name)        
         
         # Binary NetCDF File X 2 (use mktemp's name)
 

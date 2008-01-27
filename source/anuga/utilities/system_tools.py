@@ -184,4 +184,5 @@ def compute_checksum(filename, max_length=2**20):
     
     fid = open(filename)
     crcval = crc32(fid.read(max_length))
+    fid.close()
     return crcval
