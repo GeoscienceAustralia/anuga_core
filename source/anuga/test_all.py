@@ -23,7 +23,7 @@ exclude_files = []
 #    exclude_files.append('test_advection.py') #Weave doesn't work on Linux
 
 # Exclude test_advection on all platforms for the time being. See ticket:205
-exclude_files.append('test_advection.py') #Weave doesn't work on Linux
+#exclude_files.append('test_advection.py') #Weave doesn't work on Linux
 
 
 # Directories that should not be searched for test files.    

@@ -60,10 +60,6 @@ class Test_Advection(unittest.TestCase):
         U = -domain.quantities['stage'].explicit_update
         R = -0.5/domain.areas[0]
 
-        print 'U ', U
-        print 'R ', R
-        
-
         assert U==R, '%s %s' %(U, R)
 
 

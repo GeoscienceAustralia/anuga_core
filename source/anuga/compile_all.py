@@ -8,6 +8,10 @@ os.chdir('utilities')
 execfile('compile.py')
 
 os.chdir('..')
+os.chdir('advection')
+execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
+
+os.chdir('..')
 os.chdir('abstract_2d_finite_volumes')
 execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 

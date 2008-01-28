@@ -165,7 +165,63 @@ void _limit_old(int N, double beta, double* qc, double* qv,
 }
 
 
+void  print_double_array(char* name, double* array, int n, int m){
 
+    int k,i,km;
+
+    printf("%s = [",name);
+    for (k=0; k<n; k++){
+	km = m*k;
+	printf("[");
+	for (i=0; i<m ; i++){
+	    printf("%g ",array[km+i]);
+	}
+	if (k==(n-1))
+	    printf("]");
+	else
+	    printf("]\n");
+    }
+    printf("]\n");
+}
+
+void  print_int_array(char* name, int* array, int n, int m){
+
+    int k,i,km;
+
+    printf("%s = [",name);
+    for (k=0; k<n; k++){
+	km = m*k;
+	printf("[");
+	for (i=0; i<m ; i++){
+	    printf("%i ",array[km+i]);
+	}
+	if (k==(n-1))
+	    printf("]");
+	else
+	    printf("]\n");
+    }
+    printf("]\n");
+}
+
+
+void  print_long_array(char* name, long* array, int n, int m){
+
+    int k,i,km;
+
+    printf("%s = [",name);
+    for (k=0; k<n; k++){
+	km = m*k;
+	printf("[");
+	for (i=0; i<m ; i++){
+	  printf("%i ",(int) array[km+i]);
+	}
+	if (k==(n-1))
+	    printf("]");
+	else
+	    printf("]\n");
+    }
+    printf("]\n");
+}
 
 void print_numeric_array(PyArrayObject *x) {  
   int i, j;
@@ -215,4 +271,25 @@ PyArrayObject *get_consecutive_array(PyObject *O, char *name) {
   if (!A) return NULL;
   return A;
 }
+
+double get_double(PyObject *O, char *name) {
+  PyObject *TObject;
+  double tmp;
+  
+
+  //Get double from attribute
+  TObject = PyObject_GetAttrString(O, name);
+  if (!TObject) {
+    PyErr_SetString(PyExc_RuntimeError, "util_ext.h: get_double could not obtain double from object");
+    return 0.0;
+  }  
+  
+  tmp = PyFloat_AsDouble(TObject);
+  
+  Py_DECREF(TObject);
+  
+  return tmp;
+}
+
+
 

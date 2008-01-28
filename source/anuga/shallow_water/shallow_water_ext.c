@@ -1520,13 +1520,14 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
     *stage_centroid_values,
     *xmom_centroid_values,
     *ymom_centroid_values,
-	*elevation_centroid_values,
+    *elevation_centroid_values,
     *vertex_coordinates,
     *stage_vertex_values,
     *xmom_vertex_values,
     *ymom_vertex_values,
-	*elevation_vertex_values;
-  PyObject *domain, *Tmp;
+    *elevation_vertex_values;
+  
+  PyObject *domain;
 
   
   double beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry;    
@@ -1560,74 +1561,20 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
   // Get the safety factor beta_w, set in the config.py file. 
   // This is used in the limiting process
   
-  
-  Tmp = PyObject_GetAttrString(domain, "beta_w");
-  if (!Tmp) {
-    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: extrapolate_second_order_sw could not obtain object beta_w from domain");
-    return NULL;
-  }  
-  beta_w = PyFloat_AsDouble(Tmp);
-  Py_DECREF(Tmp);
-  
-  Tmp = PyObject_GetAttrString(domain, "beta_w_dry");
-  if (!Tmp) {
-    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: extrapolate_second_order_sw could not obtain object beta_w_dry from domain");
-    return NULL;
-  }  
-  beta_w_dry = PyFloat_AsDouble(Tmp);
-  Py_DECREF(Tmp);
-  
-  Tmp = PyObject_GetAttrString(domain, "beta_uh");
-  if (!Tmp) {
-    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: extrapolate_second_order_sw could not obtain object beta_uh from domain");
-    return NULL;
-  }  
-  beta_uh = PyFloat_AsDouble(Tmp);
-  Py_DECREF(Tmp);
-  
-  Tmp = PyObject_GetAttrString(domain, "beta_uh_dry");
-  if (!Tmp) {
-    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: extrapolate_second_order_sw could not obtain object beta_uh_dry from domain");
-    return NULL;
-  }  
-  beta_uh_dry = PyFloat_AsDouble(Tmp);
-  Py_DECREF(Tmp); 
 
-  Tmp = PyObject_GetAttrString(domain, "beta_vh");
-  if (!Tmp) {
-    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: extrapolate_second_order_sw could not obtain object beta_vh from domain");
-    return NULL;
-  }  
-  beta_vh = PyFloat_AsDouble(Tmp);
-  Py_DECREF(Tmp);
-  
-  Tmp = PyObject_GetAttrString(domain, "beta_vh_dry");
-  if (!Tmp) {
-    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: extrapolate_second_order_sw could not obtain object beta_vh_dry from domain");
-    return NULL;
-  }  
-  beta_vh_dry = PyFloat_AsDouble(Tmp);
-  Py_DECREF(Tmp);
-  
-  Tmp = PyObject_GetAttrString(domain, "minimum_allowed_height");
-  if (!Tmp) {
-    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: extrapolate_second_order_sw could not obtain object minimum_allowed_height");
-    return NULL;
-  }  
-  minimum_allowed_height = PyFloat_AsDouble(Tmp);
-  Py_DECREF(Tmp);  
+  beta_w      = get_double(domain,"beta_w");
+  beta_w_dry  = get_double(domain,"beta_w_dry");
+  beta_uh     = get_double(domain,"beta_uh");
+  beta_uh_dry = get_double(domain,"beta_uh_dry");
+  beta_vh     = get_double(domain,"beta_vh");
+  beta_vh_dry = get_double(domain,"beta_vh_dry");  
 
-  Tmp = PyObject_GetAttrString(domain, "epsilon");
-  if (!Tmp) {
-    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: extrapolate_second_order_sw could not obtain object epsilon");
-    return NULL;
-  }  
-  epsilon = PyFloat_AsDouble(Tmp);
-  Py_DECREF(Tmp);  
-  
-  
-  // Call underlying computational routine
+  minimum_allowed_height = get_double(domain,"minimum_allowed_height");
+  epsilon = get_double(domain,"epsilon");
+
   number_of_elements = stage_centroid_values -> dimensions[0];  
+
+  // Call underlying computational routine
   e = _extrapolate_second_order_sw(number_of_elements,
 				   epsilon,
 				   minimum_allowed_height,

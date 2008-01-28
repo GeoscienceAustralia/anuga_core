@@ -593,8 +593,8 @@ PyObject *update(PyObject *self, PyObject *args) {
 	  return NULL;
 	}
 
-	centroid_values = get_consecutive_array(quantity, "centroid_values");
-	explicit_update = get_consecutive_array(quantity, "explicit_update");
+	centroid_values      = get_consecutive_array(quantity, "centroid_values");
+	explicit_update      = get_consecutive_array(quantity, "explicit_update");
 	semi_implicit_update = get_consecutive_array(quantity, "semi_implicit_update");
 
 	N = centroid_values -> dimensions[0];
@@ -607,7 +607,7 @@ PyObject *update(PyObject *self, PyObject *args) {
 
 	if (err != 0) {
 	  PyErr_SetString(PyExc_RuntimeError,
-			  "Zero division in semi implicit update - call Stephen :)");
+			  "quantity_ext.c: update, divsion by zero in semi implicit update - call Stephen :)");
 	  return NULL;
 	}
 

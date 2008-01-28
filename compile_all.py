@@ -29,6 +29,11 @@ os.chdir('abstract_2d_finite_volumes')
 execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 
 os.chdir('..')
+os.chdir('advection')
+execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
+
+
+os.chdir('..')
 os.chdir('shallow_water')
 execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 

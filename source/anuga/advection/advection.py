@@ -65,11 +65,11 @@ class Domain(Generic_domain):
                                 processor=processor,
                                 numproc=numproc)
 
-
+        import Numeric
         if velocity is None:
-            self.velocity = [1,0]
+            self.velocity = Numeric.array([1,0],'d')
         else:
-            self.velocity = velocity
+            self.velocity = Numeric.array(velocity,'d')
 
         #Only first is implemented for advection
         self.default_order = self.order = 1
@@ -107,15 +107,79 @@ class Domain(Generic_domain):
         max_speed = abs(normal_velocity)
         return flux, max_speed
 
-    def compute_fluxes(self):
 
-        
-        self.compute_fluxes_ext()
-##         try:
-##             self.compute_fluxes_ext()
-##         except:
-##             self.compute_fluxes_python()
- 
+
+    def compute_fluxes(self):
+        """Compute all fluxes and the timestep suitable for all volumes
+        in domain.
+
+        Compute total flux for each conserved quantity using "flux_function"
+
+        Fluxes across each edge are scaled by edgelengths and summed up
+        Resulting flux is then scaled by area and stored in
+        domain.explicit_update
+
+        The maximal allowable speed computed by the flux_function
+        for each volume
+        is converted to a timestep that must not be exceeded. The minimum of
+        those is computed as the next overall timestep.
+
+        Post conditions:
+        domain.explicit_update is reset to computed flux values
+        domain.timestep is set to the largest step satisfying all volumes.
+        """
+
+        import sys
+        from Numeric import zeros, Float
+        from anuga.config import max_timestep
+
+
+        huge_timestep = float(sys.maxint)
+        Stage = self.quantities['stage']
+
+        """
+        print "======================================"
+        print "BEFORE compute_fluxes"
+        print "stage_update",Stage.explicit_update
+        print "stage_edge",Stage.edge_values
+        print "stage_bdry",Stage.boundary_values
+        print "neighbours",self.neighbours
+        print "neighbour_edges",self.neighbour_edges
+        print "normals",self.normals
+        print "areas",self.areas
+        print "radii",self.radii
+        print "edgelengths",self.edgelengths
+        print "tri_full_flag",self.tri_full_flag
+        print "huge_timestep",huge_timestep
+        print "max_timestep",max_timestep
+        print "velocity",self.velocity
+        """
+
+        import advection_ext		
+        self.timestep = advection_ext.compute_fluxes(self, Stage, huge_timestep, max_timestep)
+
+
+
+    def evolve(self,
+               yieldstep = None,
+               finaltime = None,
+               duration = None,
+               skip_initial_step = False):
+
+        """Specialisation of basic evolve method from parent class
+        """
+
+        #Call basic machinery from parent class
+        for t in Generic_domain.evolve(self,
+                                       yieldstep=yieldstep,
+                                       finaltime=finaltime,
+                                       duration=duration,
+                                       skip_initial_step=skip_initial_step):
+
+            #Pass control on to outer loop for more specific actions
+            yield(t)
+
+
 
 
     def compute_fluxes_python(self):
@@ -206,105 +270,3 @@ class Domain(Generic_domain):
 
         self.timestep = timestep
 
-
-    def compute_fluxes_ext(self):
-        """Compute all fluxes and the timestep suitable for all volumes
-        in domain.
-
-        Compute total flux for each conserved quantity using "flux_function"
-
-        Fluxes across each edge are scaled by edgelengths and summed up
-        Resulting flux is then scaled by area and stored in
-        domain.explicit_update
-
-        The maximal allowable speed computed by the flux_function
-        for each volume
-        is converted to a timestep that must not be exceeded. The minimum of
-        those is computed as the next overall timestep.
-
-        Post conditions:
-        domain.explicit_update is reset to computed flux values
-        domain.timestep is set to the largest step satisfying all volumes.
-        """
-
-        import sys
-        from Numeric import zeros, Float
-        from anuga.config import max_timestep
-
-        ntri = len(self)
-
-        timestep = max_timestep
-
-        #Shortcuts
-        Stage = self.quantities['stage']
-
-        #Arrays
-        neighbours      = self.neighbours
-        neighbour_edges = self.neighbour_edges
-        normals         = self.normals
-        areas           = self.areas
-        radii           = self.radii
-        edgelengths     = self.edgelengths
-        tri_full_flag   = self.tri_full_flag
-
-        stage_edge      = Stage.edge_values
-        stage_bdry      = Stage.boundary_values
-        stage_update    = Stage.explicit_update
-
-        huge_timestep = float(sys.maxint)
-
-        v = self.velocity
-
-        nbdry = len(stage_bdry)
-
-        from advection_ext import compute_fluxes
-
-        print "stage_update",stage_update
-        print "stage_edge",stage_edge
-        print "stage_bdry",stage_bdry
-        print "neighbours",neighbours
-        print "neighbour_edges",neighbour_edges
-        print "normals",normals
-        print "areas",areas
-        print "radii",radii
-        print "edgelengths",edgelengths
-        print "tri_full_flag",tri_full_flag
-        print "huge_timestep",huge_timestep
-        print "max_timestep",max_timestep
-        print "v",v
-        print "ntri",ntri
-        print "nbdry",nbdry
-
-
-		
-        timestep = compute_fluxes(stage_update,stage_edge,stage_bdry,
-                                  neighbours,neighbour_edges,normals,
-                                  areas,radii,edgelengths,
-                                  tri_full_flag,
-                                  huge_timestep,max_timestep,v,ntri,nbdry)
-
-        print "stage_update",stage_update        
-        
-        #print 'timestep out2 =',timestep
-
-        self.timestep = timestep
-
-
-    def evolve(self,
-               yieldstep = None,
-               finaltime = None,
-               duration = None,
-               skip_initial_step = False):
-
-        """Specialisation of basic evolve method from parent class
-        """
-
-        #Call basic machinery from parent class
-        for t in Generic_domain.evolve(self,
-                                       yieldstep=yieldstep,
-                                       finaltime=finaltime,
-                                       duration=duration,
-                                       skip_initial_step=skip_initial_step):
-
-            #Pass control on to outer loop for more specific actions
-            yield(t)
