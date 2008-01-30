@@ -1752,6 +1752,62 @@ point2, 0.5, 2.0, 9.0\n")
         h2 = greens_law(d1,d2,h1)
 
         assert h2==sqrt(2.0)
+        
+    def test_calc_bearings(self):
+ 
+        from math import atan, degrees
+        #Test East
+        uh = 1
+        vh = 1.e-15
+        angle = calc_bearing(uh, vh)
+        if 89 < angle < 91: v=1
+        assert v==1
+        #Test West
+        uh = -1
+        vh = 1.e-15
+        angle = calc_bearing(uh, vh)
+        if 269 < angle < 271: v=1
+        assert v==1
+        #Test North
+        uh = 1.e-15
+        vh = 1
+        angle = calc_bearing(uh, vh)
+        if -1 < angle < 1: v=1
+        assert v==1
+        #Test South
+        uh = 1.e-15
+        vh = -1
+        angle = calc_bearing(uh, vh)
+        if 179 < angle < 181: v=1
+        assert v==1
+        #Test South-East
+        uh = 1
+        vh = -1
+        angle = calc_bearing(uh, vh)
+        if 134 < angle < 136: v=1
+        assert v==1
+        #Test North-East
+        uh = 1
+        vh = 1
+        angle = calc_bearing(uh, vh)
+        if 44 < angle < 46: v=1
+        assert v==1
+        #Test South-West
+        uh = -1
+        vh = -1
+        angle = calc_bearing(uh, vh)
+        if 224 < angle < 226: v=1
+        assert v==1
+        #Test North-West
+        uh = -1
+        vh = 1
+        angle = calc_bearing(uh, vh)
+        if 314 < angle < 316: v=1
+        assert v==1
+
+ 
+
+
        
 
 #-------------------------------------------------------------
