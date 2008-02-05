@@ -1403,6 +1403,11 @@ class Quantity:
         compute_gradients(self)
         extrapolate_from_gradient(self)
 
+    def extrapolate_second_order_and_limit(self):
+        #Call correct module function
+        #(either from this module or C-extension)
+        extrapolate_second_order_and_limit(self)        
+
     def backup_centroid_values(self):
         #Call correct module function
         #(either from this module or C-extension)
