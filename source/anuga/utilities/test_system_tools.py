@@ -41,20 +41,17 @@ class Test_system_tools(unittest.TestCase):
         string = 'My temp file with textual content. AAAABBBBCCCC1234'
         fid.write(string)
         fid.flush()
-
+        fid.close()
 
         ref_crc = zlib.crc32(string)
 
-
-
         checksum = compute_checksum(tmp_name)
+
 
         assert checksum == ref_crc
 
-        fid.close()
         os.remove(tmp_name)
         
-
 
 
         # Binary file

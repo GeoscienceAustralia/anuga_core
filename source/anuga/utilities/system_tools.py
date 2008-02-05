@@ -179,10 +179,13 @@ def compute_checksum(filename, max_length=2**20):
     Default = 2**20 (1MB)
     """
 
-    #from zlib import crc32
-    from binascii import crc32 #(works as well)
+    from zlib import crc32
+    # On bogong binascii.crc32 gave a different answer to
+    # zlib.crc32
+    #from binascii import crc32 #(works as well on 32 bit machines)
     
     fid = open(filename)
     crcval = crc32(fid.read(max_length))
+
     fid.close()
     return crcval
