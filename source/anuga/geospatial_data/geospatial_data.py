@@ -22,7 +22,9 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference, \
      TitleError, DEFAULT_ZONE, ensure_geo_reference, write_NetCDF_georeference
 from anuga.coordinate_transforms.redfearn import convert_from_latlon_to_utm
 from anuga.utilities.anuga_exceptions import ANUGAError
-from anuga.config import points_file_block_line_size as MAX_READ_LINES    
+from anuga.config import points_file_block_line_size as MAX_READ_LINES  
+#from anuga.fit_interpolate.benchmark_least_squares import mem_usage 
+  
 
 DEFAULT_ATTRIBUTE = 'elevation'
 
@@ -1438,6 +1440,233 @@ def find_optimal_smoothing_parameter(data_file,
     from anuga.utilities.numerical_tools import cov
     from Numeric import array, resize,shape,Float,zeros,take,argsort,argmin
     from anuga.utilities.polygon import is_inside_polygon 
+    from anuga.fit_interpolate.benchmark_least_squares import mem_usage 
+    
+
+    attribute_smoothed='elevation'
+
+    if mesh_file is None:
+        mesh_file='temp.msh'
+
+        if north_boundary is None or south_boundary is None or \
+           east_boundary is None or west_boundary is None:
+            no_boundary=True
+        else:
+            no_boundary=False
+        
+        if no_boundary is True:
+            msg= 'All boundaries must be defined'
+            raise msg
+
+        poly_topo = [[east_boundary,south_boundary],
+                     [east_boundary,north_boundary],
+                     [west_boundary,north_boundary],
+                     [west_boundary,south_boundary]]
+                      
+        create_mesh_from_regions(poly_topo,
+                                 boundary_tags={'back': [2],
+                                                'side': [1,3],
+                                                'ocean': [0]},
+                             maximum_triangle_area=mesh_resolution,
+                             filename=mesh_file,
+                             use_cache=cache,
+                             verbose=verbose)
+
+    else: # if mesh file provided
+        #test mesh file exists?
+        if access(mesh_file,F_OK) == 0:
+            msg="file %s doesn't exist!" %mesh_file
+            raise IOError, msg
+
+    #split topo data
+    G = Geospatial_data(file_name = data_file)
+    if verbose: print 'start split'
+    G_small, G_other = G.split(split_factor,seed_num, verbose=verbose)
+    if verbose: print 'finish split'
+    points=G_small.get_data_points()
+
+
+
+
+    #FIXME: Remove points outside boundary polygon
+#    print 'new point',len(points)
+#    
+#    new_points=[]
+#    new_points=array([],typecode=Float)
+#    new_points=resize(new_points,(len(points),2))
+#    print "BOUNDARY", boundary_poly
+#    for i,point in enumerate(points):
+#        if is_inside_polygon(point,boundary_poly, verbose=True):
+#            new_points[i] = point
+#            print"WOW",i,new_points[i]
+#    points = new_points
+
+    
+    if verbose: print "Number of points in sample to compare: ", len(points)
+    
+    if alpha_list==None:
+        alphas = [0.001,0.01,100]
+        #alphas = [0.000001, 0.00001, 0.0001, 0.001, 0.01,\
+         #         0.1, 1.0, 10.0, 100.0,1000.0,10000.0]
+        
+    else:
+        alphas=alpha_list
+#    domains = {}
+
+    #creates array with columns 1 and 2 are x, y. column 3 is elevation
+    #4 onwards is the elevation_predicted using the alpha, which will 
+    #be compared later against the real removed data
+    data=array([],typecode=Float)
+
+    data=resize(data,(len(points),3+len(alphas)))
+
+    #gets relative point from sample
+    data[:,0]=points[:,0]
+    data[:,1]=points[:,1]
+    elevation_sample=G_small.get_attributes(attribute_name=attribute_smoothed)
+    data[:,2]=elevation_sample
+
+    normal_cov=array(zeros([len(alphas),2]),typecode=Float)
+
+
+
+
+
+    if verbose: print 'Setup computational domains with different alphas'
+
+    #print 'memory usage before domains',mem_usage()
+
+    for i,alpha in enumerate(alphas):
+        #add G_other data to domains with different alphas
+        if verbose:print '\n Calculating domain and mesh for Alpha = ',alpha,'\n'
+        domain = Domain(mesh_file, use_cache=cache, verbose=verbose)
+        if verbose:print domain.statistics()
+        domain.set_quantity(attribute_smoothed, 
+                    geospatial_data = G_other,
+                    use_cache = cache,
+                    verbose = verbose,
+                    alpha = alpha)
+#        domains[alpha]=domain
+
+        points_geo=domain.geo_reference.change_points_geo_ref(points)
+        #returns the predicted elevation of the points that were "split" out 
+        #of the original data set for one particular alpha
+        elevation_predicted=domain.quantities[attribute_smoothed].\
+                            get_values(interpolation_points=points_geo)
+ 
+        #add predicted elevation to array that starts with x, y, z...
+        data[:,i+3]=elevation_predicted
+
+        sample_cov= cov(elevation_sample)
+        #print elevation_predicted
+        ele_cov= cov(elevation_sample-elevation_predicted)
+        normal_cov[i,:]= [alpha,ele_cov/sample_cov]
+        #print 'memory usage during compare',mem_usage()
+        
+
+        if verbose: print'cov',normal_cov[i][0],'= ',normal_cov[i][1]
+
+
+
+#    if verbose: print 'Determine difference between predicted results and actual data'
+#    for i,alpha in enumerate(domains):
+#        if verbose: print'Alpha =',alpha
+#        
+#        points_geo=domains[alpha].geo_reference.change_points_geo_ref(points)
+#        #returns the predicted elevation of the points that were "split" out 
+#        #of the original data set for one particular alpha
+#        elevation_predicted=domains[alpha].quantities[attribute_smoothed].\
+#                            get_values(interpolation_points=points_geo)
+# 
+#        #add predicted elevation to array that starts with x, y, z...
+#        data[:,i+3]=elevation_predicted
+#
+#        sample_cov= cov(elevation_sample)
+#        #print elevation_predicted
+#        ele_cov= cov(elevation_sample-elevation_predicted)
+#        normal_cov[i,:]= [alpha,ele_cov/sample_cov]
+#        print 'memory usage during compare',mem_usage()
+#        
+#
+#        if verbose: print'cov',normal_cov[i][0],'= ',normal_cov[i][1]
+
+    normal_cov0=normal_cov[:,0]
+    normal_cov_new=take(normal_cov,argsort(normal_cov0))
+
+    if plot_name is not None:
+        from pylab import savefig,semilogx,loglog
+        semilogx(normal_cov_new[:,0],normal_cov_new[:,1])
+        loglog(normal_cov_new[:,0],normal_cov_new[:,1])
+        savefig(plot_name,dpi=300)
+    if mesh_file == 'temp.msh':
+        remove(mesh_file)
+    
+    return min(normal_cov_new[:,1]) , normal_cov_new[(argmin(normal_cov_new,axis=0))[1],0]
+
+def old_find_optimal_smoothing_parameter(data_file, 
+                                     alpha_list=None,
+                                     mesh_file=None,
+                                     boundary_poly=None,
+                                     mesh_resolution=100000,
+                                     north_boundary=None,
+                                     south_boundary=None,
+                                     east_boundary=None,
+                                     west_boundary=None,
+                                     plot_name='all_alphas',
+                                     split_factor=0.1,
+                                     seed_num=None,
+                                     cache=False,
+                                     verbose=False
+                                     ):
+    
+    """
+    data_file: must not contain points outside the boundaries defined
+           and it either a pts, txt or csv file. 
+    
+    alpha_list: the alpha values to test in a single list
+    
+    mesh_file: name of the created mesh file or if passed in will read it.
+            NOTE, if there is a mesh file mesh_resolution, 
+            north_boundary, south... etc will be ignored.
+    
+    mesh_resolution: the maximum area size for a triangle
+    
+    north_boundary... west_boundary: the value of the boundary
+    
+    plot_name: the name for the plot contain the results
+    
+    seed_num: the seed to the random number generator
+    
+    USAGE:
+        value, alpha = find_optimal_smoothing_parameter(data_file=fileName, 
+                                             alpha_list=[0.0001, 0.01, 1],
+                                             mesh_file=None,
+                                             mesh_resolution=3,
+                                             north_boundary=5,
+                                             south_boundary=-5,
+                                             east_boundary=5,
+                                             west_boundary=-5,
+                                             plot_name='all_alphas',
+                                             seed_num=100000,
+                                             verbose=False)
+    
+    OUTPUT: returns the minumum normalised covalance calculate AND the 
+           alpha that created it. PLUS writes a plot of the results
+           
+    NOTE: code will not work if the data_file extend is greater than the
+    boundary_polygon or the north_boundary...west_boundary
+        
+    """
+
+    from anuga.shallow_water import Domain
+    from anuga.geospatial_data.geospatial_data import Geospatial_data
+    from anuga.pmesh.mesh_interface import create_mesh_from_regions
+    
+    from anuga.utilities.numerical_tools import cov
+    from Numeric import array, resize,shape,Float,zeros,take,argsort,argmin
+    from anuga.utilities.polygon import is_inside_polygon 
+    from anuga.fit_interpolate.benchmark_least_squares import mem_usage 
+    
 
     attribute_smoothed='elevation'
 
@@ -1507,6 +1736,9 @@ def find_optimal_smoothing_parameter(data_file,
     domains = {}
 
     if verbose: print 'Setup computational domains with different alphas'
+
+    print 'memory usage before domains',mem_usage()
+
     for alpha in alphas:
         #add G_other data to domains with different alphas
         if verbose:print '\n Calculating domain and mesh for Alpha = ',alpha,'\n'
@@ -1518,6 +1750,8 @@ def find_optimal_smoothing_parameter(data_file,
                     verbose = verbose,
                     alpha = alpha)
         domains[alpha]=domain
+
+    print 'memory usage after domains',mem_usage()
 
     #creates array with columns 1 and 2 are x, y. column 3 is elevation
     #4 onwards is the elevation_predicted using the alpha, which will 
@@ -1551,6 +1785,8 @@ def find_optimal_smoothing_parameter(data_file,
         #print elevation_predicted
         ele_cov= cov(elevation_sample-elevation_predicted)
         normal_cov[i,:]= [alpha,ele_cov/sample_cov]
+        print 'memory usage during compare',mem_usage()
+        
 
         if verbose: print'cov',normal_cov[i][0],'= ',normal_cov[i][1]
 
