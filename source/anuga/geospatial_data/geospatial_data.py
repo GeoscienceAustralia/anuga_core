@@ -1551,6 +1551,7 @@ def find_optimal_smoothing_parameter(data_file,
         points_geo=domain.geo_reference.change_points_geo_ref(points)
         #returns the predicted elevation of the points that were "split" out 
         #of the original data set for one particular alpha
+        if verbose: print 'get predicted elevation for location to be compared'
         elevation_predicted=domain.quantities[attribute_smoothed].\
                             get_values(interpolation_points=points_geo)
  
@@ -1563,10 +1564,7 @@ def find_optimal_smoothing_parameter(data_file,
         normal_cov[i,:]= [alpha,ele_cov/sample_cov]
         #print 'memory usage during compare',mem_usage()
         
-
-        if verbose: print'cov',normal_cov[i][0],'= ',normal_cov[i][1]
-
-
+        if verbose: print'covariance for alpha ',normal_cov[i][0],'= ',normal_cov[i][1]
 
 #    if verbose: print 'Determine difference between predicted results and actual data'
 #    for i,alpha in enumerate(domains):
@@ -1601,6 +1599,12 @@ def find_optimal_smoothing_parameter(data_file,
     if mesh_file == 'temp.msh':
         remove(mesh_file)
     
+    if verbose: 
+        print 'Final results:'
+        for i in len(alphas):
+            print'covariance for alpha %s = %s ' %(normal_cov[i][0],normal_cov[i][1])
+        print '\n Optimal alpha is: %s ' % normal_cov_new[(argmin(normal_cov_new,axis=0))[1],0]
+
     return min(normal_cov_new[:,1]) , normal_cov_new[(argmin(normal_cov_new,axis=0))[1],0]
 
 def old_find_optimal_smoothing_parameter(data_file, 
