@@ -3,7 +3,8 @@
 
 import unittest
 from Numeric import zeros, array, allclose, Float
-from tempfile import NamedTemporaryFile
+from tempfile import mkstemp, mktemp
+
 import os
 
 from xml_tools import *
@@ -16,7 +17,7 @@ class Test_xml_tools(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def notest_generate_xml(self):
+    def test_generate_xml(self):
 	"""Test that xml code is generated from XMLobject model
 	"""
 
@@ -43,21 +44,20 @@ class Test_xml_tools(unittest.TestCase):
                         contents=[X1, X2, X3])
         doc = XML_document(contents=X)
 
-        print doc
+        #print doc.pretty_print()        
+        #print doc
+        assert doc['all']['second element']['texts']['title 4'].elements == 'example text 4'
 
-        print doc.pretty_print()
         
 
-    def notest_xml2object(self):
+    def test_xml2object(self):
         """Test that XML_document can be generated from file
         """
 
-        fid = NamedTemporaryFile(mode='w',
-                                 suffix='.xml',
-                                 dir='.')
-
+        tmp_fd , tmp_name = mkstemp(suffix='.xml', dir='.')
+        fid = os.fdopen(tmp_fd, 'w')
+        
 	xml_string = """<?xml version="1.0" encoding="iso-8859-1"?>
-
   <ga_license_file>
     <metadata>
       <author>Ole Nielsen</author>
@@ -78,19 +78,55 @@ class Test_xml_tools(unittest.TestCase):
       <IP_owner>Geoscience Australia</IP_owner>
       <IP_info>This is a test</IP_info>
     </datafile>
-
   </ga_license_file>
 """ %('1234')
 
 	fid.write(xml_string)
-	fid.flush()
+	fid.close()
 
-	print fid.read()
+        fid = open(tmp_name)
+	reference = fid.read()
+        reflines = reference.split('\n')
 	
-        xml2object(fid, verbose=True)
+        xmlobject = xml2object(fid, verbose=True)
+
+
+        #print xmlobject.pretty_print()
+        
+        xmllines = str(xmlobject).split('\n')
+
+        #for line in reflines:
+        #    print line
+        #print    
+        #for line in xmllines:
+        #    print line            
+
+            
+        assert len(reflines) == len(xmllines)
+
+        for i, refline in enumerate(reflines):
+            msg = '%s != %s' %(refline.strip(), xmllines[i].strip())
+            assert refline.strip() == xmllines[i].strip(), msg
+
+        # Check dictionary behaviour    
+        for tag in xmlobject['ga_license_file'].keys():
+            xmlobject['ga_license_file'][tag]
+
+        assert xmlobject['ga_license_file']['datafile']['accountable'].elements == 'Jane Sexton'
+        
+
+        #print
+        #print
+        #print xmlobject['ga_license_file']['metadata']
+        #print xmlobject['ga_license_file']['datafile']
+        #print xmlobject['ga_license_file']['datafile']['accountable']        
+
+        #print xmlobject['ga_license_file'].keys()
+
+        #for tag in xmlobject['ga_license_file'].keys():
+        #    print xmlobject['ga_license_file'][tag]
 	    	
         # Clean up
-
 	fid.close()
 
 	

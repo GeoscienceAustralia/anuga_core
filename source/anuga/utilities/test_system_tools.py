@@ -36,18 +36,14 @@ class Test_system_tools(unittest.TestCase):
         from tempfile import mkstemp, mktemp
 
         # Generate a text file
-        tmp_fd , tmp_name = mkstemp(suffix='.tmp',dir='.')
-        fid = os.fdopen(tmp_fd,'w')
+        tmp_fd , tmp_name = mkstemp(suffix='.tmp', dir='.')
+        fid = os.fdopen(tmp_fd, 'w')
         string = 'My temp file with textual content. AAAABBBBCCCC1234'
         fid.write(string)
-        fid.flush()
         fid.close()
 
         ref_crc = zlib.crc32(string)
-
         checksum = compute_checksum(tmp_name)
-
-
         assert checksum == ref_crc
 
         os.remove(tmp_name)
@@ -55,13 +51,12 @@ class Test_system_tools(unittest.TestCase):
 
 
         # Binary file
-        tmp_fd , tmp_name = mkstemp(suffix='.tmp',dir='.')
-        fid = os.fdopen(tmp_fd,'w+b')
-        
+        tmp_fd , tmp_name = mkstemp(suffix='.tmp', dir='.')
+        fid = os.fdopen(tmp_fd, 'w+b')
 
         string = 'My temp file with binary content. AAAABBBBCCCC1234'
         fid.write(string)
-        fid.flush()
+        fid.close()
 
 
         ref_crc = zlib.crc32(string)
@@ -69,8 +64,6 @@ class Test_system_tools(unittest.TestCase):
 
         assert checksum == ref_crc
 
-        # Close and remove temporary file
-        fid.close()
         os.remove(tmp_name)        
         
         # Binary NetCDF File X 2 (use mktemp's name)

@@ -69,7 +69,7 @@ def get_text(nodelist):
 # XML object model
 #----------------------------
 
-class XML_element:
+class XML_element(dict):
     def __init__(self, tag=None, contents=None):
         """
         contents can be either
@@ -83,8 +83,11 @@ class XML_element:
             contents = [contents]
             
         self.elements = contents
-
         self.tag = tag
+        # FIXME: It might be better to represent these objects
+        # in a proper dictionary format with
+        # {tag: elements, ...}
+        
 
     def __add__(self, other):
         return str(self) + str(other)
@@ -94,9 +97,6 @@ class XML_element:
 
     def __repr__(self):
         return str(self)
-
-    def __str__(self):
-        pass
 
     def __str__(self, indent=0):
 
@@ -113,6 +113,19 @@ class XML_element:
 
         s += '</%s>\n' %self.tag
         return s
+
+
+    def __getitem__(self, key):
+        """Return sub-tree starting at element with tag equal to specified key
+        """
+
+        #if isinstance(self, XML_element):
+        for node in self.elements:
+            if node.tag == key:
+                return node
+
+    def keys(self):
+        return [str(node.tag) for node in self.elements]
 
     
 
@@ -137,7 +150,7 @@ class XML_element:
 class XML_document(XML_element):
 
     def __init__(self, contents=None, version='1.0', encoding='iso-8859-1'):
-        tag = '?xml version="%s" encoding="%s"' %(version, encoding)
+        tag = '?xml version="%s" encoding="%s"?' %(version, encoding)
 
         XML_element.__init__(self,
                              tag=tag,
@@ -150,6 +163,7 @@ class XML_document(XML_element):
         s = '<%s>\n' %self.tag
         for e in self.elements:
             s += str(e)
+
         return s
 
     def pretty_print(self):
@@ -179,36 +193,48 @@ def xml2object(xml, verbose=False):
     #fid = open(xml)
     dom = parse(xml)
 
-    print 'Res',    dom2object(dom)
+    return dom2object(dom)
 
 
 
 def dom2object(node):
+    """Convert DOM representation to XML_object hierarchy.
+    """
 
-    if node.nodeType == 3 and len(node.nodeValue.strip()) == 0:
-        return None
-        
-    print 'Node name: "%s",' %node.nodeName,\
-          'Node type: "%s",' %node.nodeType,\
-          'Node value: "%s",' %str(node.nodeValue).strip(),\
-          'Node children: %d' %len(node.childNodes)
+    contents = []
+    for n in node.childNodes:
 
-    
+        #print 'Node name: "%s",' %n.nodeName,\
+        #      'Node type: "%s",' %n.nodeType,\
+        #      'Node value: "%s",' %str(n.nodeValue).strip(),\
+        #      'Node children: %d' %len(n.childNodes)        
 
-    if node.nodeType == 3:
-        contents = node.nodeValue.strip()
-    else:    
-        contents = []
-        for n in node.childNodes:
-            x = dom2object(n)
-            if x is not None:
-                contents.append(x)
+        if n.nodeType == 3:
+            # Child is a text element - omit the dom tag #text and
+            # go straight to the text value.
+
+            msg = 'Text element has child nodes - this shouldn\'t happen'
+            assert len(n.childNodes) == 0, msg
+
+            
+            x = n.nodeValue.strip()
+            if len(x) == 0:
+                # Skip empty text children
+                continue
+            
+            contents = x
+        else:
+            contents.append(dom2object(n))
+
+
 
 
     if node.nodeType == 9:
-        # Document
-        X = XML_document()
+        # Document root
+        X = XML_document(contents=contents)
+    else:
+        # Node
+        X = XML_element(tag=node.nodeName,
+                        contents=contents)
         
-    X = XML_element(tag=node.nodeName,
-                    contents=contents)
     return X
