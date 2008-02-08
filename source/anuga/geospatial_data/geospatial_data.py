@@ -260,7 +260,7 @@ class Geospatial_data:
             msg = 'Illegal value: %s' %str(verbose)
             raise Exception, msg
 
-    def clip(self, polygon, closed=True):
+    def clip(self, polygon, closed=True, verbose=False):
         """Clip geospatial data by a polygon
 
         Input
@@ -281,9 +281,11 @@ class Geospatial_data:
         if isinstance(polygon, Geospatial_data):
             # Polygon is an object - extract points
             polygon = polygon.get_data_points()
+            #print 'polygon',polygon
 
         points = self.get_data_points()    
-        inside_indices = inside_polygon(points, polygon, closed)
+        #print '%s points:%s' %(verbose,points)
+        inside_indices = inside_polygon(points, polygon, closed, verbose)
 
         clipped_G = self.get_sample(inside_indices)
 #        clipped_points = take(points, inside_indices)
@@ -300,7 +302,7 @@ class Geospatial_data:
         return clipped_G
         
         
-    def clip_outside(self, polygon, closed=True):
+    def clip_outside(self, polygon, closed=True,verbose=False):
         """Clip geospatial date by a polygon, keeping data OUTSIDE of polygon
 
         Input
@@ -322,7 +324,7 @@ class Geospatial_data:
             polygon = polygon.get_data_points()
 
         points = self.get_data_points()    
-        outside_indices = outside_polygon(points, polygon, closed)
+        outside_indices = outside_polygon(points, polygon, closed,verbose)
 
         clipped_G = self.get_sample(outside_indices)
 
@@ -629,14 +631,12 @@ class Geospatial_data:
     
     
     def split(self, factor=0.5,seed_num=None, verbose=False):
-        """Returns two
-        
+        """Returns two        
         geospatial_data object, first is the size of the 'factor'
         smaller the original and the second is the remainder. The two
         new object are disjoin set of each other.
         
         Points of the two new object have selected RANDOMLY. 
-        AND if factor is a decimal it will round (2.25 to 2 and 2.5 to 3)
         
         This method create two lists of indices which are passed into
         get_sample.  The lists are created using random numbers, and
@@ -678,7 +678,9 @@ class Geospatial_data:
             seed()
         if verbose: print "seed:", get_seed()
         
+        #print 'size',self_size, new_size
         random_num = randint(0,self_size-1,(int(new_size),))
+        #print 'random num',random_num
         random_num = random_num.tolist()
 
         #need to sort and reverse so the pop() works correctly
@@ -1446,6 +1448,7 @@ def find_optimal_smoothing_parameter(data_file,
     attribute_smoothed='elevation'
 
     if mesh_file is None:
+        if verbose: print "building mesh"
         mesh_file='temp.msh'
 
         if north_boundary is None or south_boundary is None or \
@@ -1474,15 +1477,17 @@ def find_optimal_smoothing_parameter(data_file,
 
     else: # if mesh file provided
         #test mesh file exists?
+        if verbose: "reading from file: %s" %mesh_file 
         if access(mesh_file,F_OK) == 0:
             msg="file %s doesn't exist!" %mesh_file
             raise IOError, msg
 
     #split topo data
+    if verbose: print 'Reading elevation file: %s' %data_file
     G = Geospatial_data(file_name = data_file)
-    if verbose: print 'start split'
+    if verbose: print 'Start split'
     G_small, G_other = G.split(split_factor,seed_num, verbose=verbose)
-    if verbose: print 'finish split'
+    if verbose: print 'Finish split'
     points=G_small.get_data_points()
 
 
@@ -1551,7 +1556,7 @@ def find_optimal_smoothing_parameter(data_file,
         points_geo=domain.geo_reference.change_points_geo_ref(points)
         #returns the predicted elevation of the points that were "split" out 
         #of the original data set for one particular alpha
-        if verbose: print 'get predicted elevation for location to be compared'
+        if verbose: print 'Get predicted elevation for location to be compared'
         elevation_predicted=domain.quantities[attribute_smoothed].\
                             get_values(interpolation_points=points_geo)
  
@@ -1564,8 +1569,8 @@ def find_optimal_smoothing_parameter(data_file,
         normal_cov[i,:]= [alpha,ele_cov/sample_cov]
         #print 'memory usage during compare',mem_usage()
         
-        if verbose: print'covariance for alpha ',normal_cov[i][0],'= ',normal_cov[i][1]
-
+        if verbose: print'Covariance for alpha ',normal_cov[i][0],'= ',normal_cov[i][1]
+        if verbose: print'-------------------------------------------- \n'
 #    if verbose: print 'Determine difference between predicted results and actual data'
 #    for i,alpha in enumerate(domains):
 #        if verbose: print'Alpha =',alpha
@@ -1601,7 +1606,7 @@ def find_optimal_smoothing_parameter(data_file,
     
     if verbose: 
         print 'Final results:'
-        for i in len(alphas):
+        for i,alpha in enumerate(alphas):
             print'covariance for alpha %s = %s ' %(normal_cov[i][0],normal_cov[i][1])
         print '\n Optimal alpha is: %s ' % normal_cov_new[(argmin(normal_cov_new,axis=0))[1],0]
 
