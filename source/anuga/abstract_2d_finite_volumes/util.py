@@ -369,8 +369,6 @@ def get_netcdf_file_function(filename,
 
 
 
-
-
 def multiple_replace(text, dictionary):
     """Multiple replace of words in text
 
