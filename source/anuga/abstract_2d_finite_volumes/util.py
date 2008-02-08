@@ -561,7 +561,7 @@ def populate_polygon(*args, **kwargs):
 ##################### end of obsolete stuff ? ############
 
 def start_screen_catcher(dir_name, myid='', numprocs='', extra_info='',
-                         print_to_screen=False, verbose=False):
+                         verbose=False):
     """Temporary Interface to new location"""
     from anuga.shallow_water.data_manager import start_screen_catcher as dm_start_screen_catcher
 
@@ -569,7 +569,7 @@ def start_screen_catcher(dir_name, myid='', numprocs='', extra_info='',
     print 'Please use "from anuga.shallow_water.data_manager import start_screen_catcher"'
     
     return dm_start_screen_catcher(dir_name, myid='', numprocs='', extra_info='',
-                         print_to_screen=False, verbose=False)
+                         verbose=False)
 
 
 def sww2timeseries(swwfiles,
