@@ -48,7 +48,7 @@ class Test_xml_tools(unittest.TestCase):
 
         assert doc['second element']['texts']['title 4'] == 'example text 4'
         
-        
+        assert doc.has_key('first element')
 
         
 
@@ -174,6 +174,50 @@ class Test_xml_tools(unittest.TestCase):
         assert str(xmldoc) == str(xmlobject)
 
         os.remove(tmp_name)
+
+
+    def test_duplicate_tags(self):
+	"""Test handling of duplicate tags.
+	"""
+
+        X1 = XML_element(tag='datafile',
+                         value=XML_element(tag='some_text',
+                                           value='hello world'))
+
+        
+        X2 = XML_element(tag='second_element',
+                         value=XML_element(tag='texts',
+                                           value='egg and spam'))
+        X3 = XML_element(tag='datafile',
+                         value='42')        
+
+
+        # Need to have one main element according to minidom
+        main = XML_element(tag='all', value=[X1, X2, X3])
+        xmldoc = XML_element(value=main)
+        #print xmldoc
+
+        tmp_fd , tmp_name = mkstemp(suffix='.xml', dir='.')
+        fid = os.fdopen(tmp_fd, 'w')
+
+        fid.write(str(xmldoc))
+        fid.close()
+
+        # Now read it back
+        xmlobject = xml2object(tmp_name, verbose=True)        
+        #print xmlobject
+
+        assert str(xmldoc) == str(xmlobject)
+
+        assert xmlobject['all'].has_key('datafile')
+
+        
+        assert len(xmlobject['all']['datafile']) == 2
+        #print xmlobject['all']['datafile']
+
+        os.remove(tmp_name)
+
+        
 	
 #-------------------------------------------------------------
 if __name__ == "__main__":

@@ -63,6 +63,17 @@ def get_text(nodelist):
 
 
 
+def remove_whitespace(s):
+    """Remove excess whitespace including newlines from string
+    """
+    import string
+    words = s.split() # Split on whitespace
+
+    return string.join(words)
+
+    #return s.replace('\n', '')
+    #s.translate(string.maketrans)
+    
 
 
 #----------------------------
@@ -129,7 +140,7 @@ class XML_element(dict):
         
         s += '<%s>' %self.tag
         if isinstance(self.value, basestring):
-            s += self.value
+            s += remove_whitespace(self.value)
         else:
             s += '\n'
             for e in self.value:
@@ -147,15 +158,38 @@ class XML_element(dict):
         If node is terminal, its text value will be returned instead of itself.
         This will allow statements such as
 
-        assert xmlobject['datafile']['accountable'] == 'Jane Sexton'        
+        assert xmlobject['datafile']['accountable'] == 'Jane Sexton'
+
+        If more than one element matches the given key a list of all
+        matches will be returned
         """
 
+        result = []
         for node in self.value:
             if node.tag == key:
                 if isinstance(node.value, basestring):
-                    return node.value
+                    result.append(str(node.value))
+                    #return node.value
                 else:
-                    return node
+                    result.append(node)
+                    #return node
+                    
+        if len(result) == 0:
+            return None
+        if len(result) == 1:
+            return result[0]
+        if len(result) > 1:
+            return result
+                    
+
+    def has_key(self, key):
+        found = False
+        for node in self.value:
+            if node.tag == key:
+                found = True
+
+        return found
+        
 
     def keys(self):
         return [str(node.tag) for node in self.value]
@@ -201,7 +235,6 @@ def xml2object(xml, verbose=False):
     else:
         fid = xml
 
-    #print fid.read()    
     dom = parse(fid)
 
     return dom2object(dom)

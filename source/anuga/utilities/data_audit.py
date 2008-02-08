@@ -4,8 +4,12 @@
 from os import remove, walk, sep
 from os.path import join, splitext
 
-from anuga.utilities.xml_tools import parse, pretty_print_tree, get_elements, get_text
+from anuga.utilities.xml_tools import xml2object, XML_element
 from anuga.utilities.system_tools import compute_checksum
+
+from data_audit_config import extensions_to_ignore, directories_to_ignore, files_to_ignore
+
+
 
 # Audit exceptions
 class NotPublishable(Exception): pass
@@ -14,7 +18,11 @@ class CRCMismatch(Exception): pass
 class Invalid(Exception): pass
 class WrongTags(Exception): pass
 
-audit_exceptions = (NotPublishable, FilenameMismatch, CRCMismatch, Invalid, WrongTags)
+audit_exceptions = (NotPublishable,
+                    FilenameMismatch,
+                    CRCMismatch,
+                    Invalid,
+                    WrongTags)
 
 def IP_verified(directory, verbose=False):
     """Find and audit potential data files that might violate IP
@@ -36,17 +44,11 @@ def IP_verified(directory, verbose=False):
 
     """
 
-    print '---------------------------------------------'
-    print 'Files that need to be assessed for IP issues:'
-    print '---------------------------------------------'
-
     # Print header
     dirwidth = 72
-    print '---------------------------------------------'
-    print 'File'.ljust(dirwidth), 'Status'
-    print '---------------------------------------------'
 
     # Identify data files
+    first_time = True
     all_files_accounted_for = True
     for dirpath, datafile in identify_datafiles(directory):
         
@@ -65,20 +67,28 @@ def IP_verified(directory, verbose=False):
                 license_file_is_valid(fid, dirpath, verbose=verbose)
             except audit_exceptions, e:
                 all_files_accounted_for = False                                
-                status = 'LICENSE FILE NOT VALID'
-                status += 'REASON: %s' %e
+                status = 'LICENSE FILE NOT VALID\n'
+                status += 'REASON: %s\n' %e
 
-                #doc = parse(fid)
-                #pretty_print_tree(doc)
-                fid.seek(0)
-                status += fid.read()
-
-            #else:        
-            #    if verbose: print 'OK'
+                try:
+                    doc = xml2object(fid)
+                except:
+                    status += 'XML file could not be read:'
+                    fid.seek(0)
+                    status += fid.read()                    
+                else:    
+                    status += str(doc)
 
             fid.close()
             
         if status != 'OK' or verbose is True:
+            if first_time is True:
+                # Print header
+                print '---------------------------------------------'
+                print 'Files that need to be assessed for IP issuses'.ljust(dirwidth), 'Status'
+                print '---------------------------------------------'
+                first_time = False
+
             print filename + ' (Checksum=%s): '\
                   %str(compute_checksum(filename)), status
 
@@ -91,28 +101,6 @@ def IP_verified(directory, verbose=False):
 def identify_datafiles(root):
     """ Identify files that might contain data
     """
-
-    # Ignore source code files
-    extensions_to_ignore = ['.py','.c','.h', '.f'] #, '.gif', '.jpg', '.png']
-
-    # Ignore generated stuff 
-    extensions_to_ignore += ['.pyc', '.o', '.so', '~']
-    extensions_to_ignore += ['.aux', '.log', '.idx', 'ilg', '.ind',
-                             '.bbl', '.blg']
-
-    # Ignore license files themselves
-    extensions_to_ignore += ['.lic']    
-    
-
-    # Ignore certain other files
-    files_to_ignore = ['README.txt']
-
-    # Ignore directories
-    directories_to_ignore = ['anuga_work', 'pymetis', 'obsolete_code',
-                             'anuga_parallel', 'anuga_viewer',
-                             'planning', 'coding_standards',
-                             'experimentation',
-                             '.svn', 'misc', '.metadata']
 
     for dirpath, dirnames, filenames in walk(root):
 
@@ -144,134 +132,122 @@ def license_file_is_valid(fid, dirpath='.', verbose=False):
     """
 
     license_filename = fid.name
-    doc = parse(fid)
-    #print_tree(doc)
+    
+    doc = xml2object(fid)
+    #print doc
 
+    
     # Check that file is valid (e.g. all elements there)
-    # FIXME (Ole): Todo
-    
-
-    if doc.nodeName != '#document':
-        msg = 'License file %s does not appear' %license_filename
-        msg += 'to be a valid XML document'
-        msg += 'The root node has name %s' %doc.nodeName
-        msg += 'but it should be %s' %'#document'
-        raise Invalid, msg        
-
-    if len(doc.childNodes) != 1:
-        msg = 'License file %s must have only one element' %license_filename
-        msg += ' at the root level. It is\n '
-        msg += '<ga_license_file>'
-        raise Invalid, msg
-    
-
-    # Start looking at document in earnest
-    root_node = doc.childNodes[0]
-    if root_node.nodeName != 'ga_license_file':
+    if not doc.has_key('ga_license_file'):
         msg = 'License file %s must have two elements' %license_filename
-        msg += ' at the root level. They are\n '
-        msg += '<?xml version="1.0" encoding="iso-8859-1"?>\n'
-        msg += '<ga_license_file>\n'
-        msg += 'The second element was found to be %s' %root_node.nodeName
+        msg += ' at the root level. They are\n'
+        msg += '  <?xml version="1.0" encoding="iso-8859-1"?>\n'
+        msg += '  <ga_license_file>\n'
+        msg += 'The second element was found to be %s' %doc.keys()
         raise WrongTags, msg
     
 
     # Validate elements: metadata, datafile, datafile, ...
-    elements = get_elements(root_node.childNodes)
-    if elements[0].nodeName != 'metadata':
-        msg = 'The first element under %s must be "metadata"'\
-              %root_node.nodeName
+    elements = doc['ga_license_file']
+    if not elements.has_key('metadata'):
+        msg = 'Tag %s must have the element "metadata"'\
+              %doc.keys()[0]
         msg += 'The element found was %s' %elements[0].nodeName
         raise WrongTags, msg
 
-    for node in elements[1:]:
-        if node.nodeName != 'datafile':
-            msg = 'All elements, except the first, under %s must '\
-                  %root_node.nodeName            
-            msg += 'be "datafile"'
-            msg += 'The element found was %s' %node.nodeName
-            raise WrongTags, msg        
+    if not elements.has_key('datafile'):
+        msg = 'Tag %s must have the element "datafile"'\
+              %doc.keys()[0]
+        msg += 'The element found was %s' %elements[0].nodeName
+        raise WrongTags, msg    
 
-    if verbose: print    
-    # Extract information for source section
-    for node in get_elements(elements[0].childNodes):
-        if node.nodeName == 'author':
-            # Do something
-            if verbose: print 'Author:   ', get_text(node.childNodes)
+    for key in elements.keys():
+        msg = 'Invalid tag: %s' %key
+        if not key in ['metadata', 'datafile']:
+            raise WrongTags, msg                    
 
-        if node.nodeName == 'svn_keywords':
-            # Do nothing
-            pass
+    
+    # Extract information for metadata section
+    if verbose: print
+    metadata = elements['metadata']
+
+    author = metadata['author']
+    if verbose: print 'Author:   ', author
+    
+    #svn_keywords = metadata['svn_keywords']
+    #if verbose: print 'SVN keywords:   ', svn_keywords
+    
         
     # Extract information for datafile sections
-    for datanode in elements[1:]:
+    datafile = elements['datafile']
+    if isinstance(datafile, XML_element):
+        datafile = [datafile]
+
+    for data in datafile:
         if verbose: print
-    
-        for node in get_elements(datanode.childNodes):
-            #print 'Node', node.nodeName, node.childNodes
-            #continue
-            
-            if node.nodeName == 'filename':
-                # FIXME Check correctness
-                filename = join(dirpath, get_text(node.childNodes))
-                if verbose: print 'Filename: "%s"' %filename
-                try:
-                    fid = open(filename, 'r')
-                except:
-                    msg = 'Specified filename %s could not be opened'\
-                          %filename
-                    raise FilenameMismatch, msg
 
-            if node.nodeName == 'checksum':
-                # FIXME (Ole): This relies on crc being preceded by filename
-                reported_crc = get_text(node.childNodes)
-                if verbose: print 'Checksum: "%s"' %reported_crc
+        # Filename
+        if data['filename'] == '':
+            msg = 'Missing filename'
+            raise FilenameMismatch, msg            
+        else:    
+            filename = join(dirpath, data['filename'])
+            if verbose: print 'Filename: "%s"' %filename
+            try:
+                fid = open(filename, 'r')
+            except:
+                msg = 'Specified filename %s could not be opened'\
+                      %filename
+                raise FilenameMismatch, msg
 
-                file_crc = str(compute_checksum(filename))
-
-                if reported_crc != file_crc:
-                    msg = 'Bad checksum (CRC).\n'
-                    msg += '  The CRC reported in license file "%s" is "%s"\n'\
-                          %(license_filename, reported_crc)
-                    msg += '  The CRC computed from file "%s" is "%s"'\
-                           %(filename, file_crc)
-                    raise CRCMismatch, msg
+        # CRC
+        reported_crc = data['checksum']
+        if verbose: print 'Checksum: "%s"' %reported_crc
+        
+        file_crc = str(compute_checksum(filename))
+        if reported_crc != file_crc:
+            msg = 'Bad checksum (CRC).\n'
+            msg += '  The CRC reported in license file "%s" is "%s"\n'\
+                   %(license_filename, reported_crc)
+            msg += '  The CRC computed from file "%s" is "%s"'\
+                   %(filename, file_crc)
+            raise CRCMismatch, msg
                 
+        # Accountable
+        accountable = data['accountable']
+        if verbose: print 'Accountable: "%s"' %accountable
+        if accountable == '':
+            msg = 'No accountable person specified'
+            raise Exception, msg
 
-            if node.nodeName == 'accountable':
-                accountable = get_text(node.childNodes)
-                if verbose: print 'Accountable: "%s"' %accountable
-                if accountable == "":
-                    msg = 'No accountable person specified'
-                    raise Exception, msg
+        # Source
+        source = data['source']
+        if verbose: print 'Source: "%s"' %source
+        if source == '':
+            msg = 'No source specified'
+            raise Exception, msg                
 
-            if node.nodeName == 'source':
-                source = get_text(node.childNodes)
-                if verbose: print 'Source: "%s"' %source
-                if source == "":
-                    msg = 'No source specified'
-                    raise Exception, msg                
-
-            if node.nodeName == 'IP_owner':
-                ip_owner = get_text(node.childNodes)
-                if verbose: print 'IP owner: "%s"' %ip_owner
-                if ip_owner == "":
-                    msg = 'No IP owner specified'
-                    raise Exception, msg                                
+        # IP owner
+        ip_owner = data['IP_owner']
+        if verbose: print 'IP owner: "%s"' %ip_owner
+        if ip_owner == '':
+            msg = 'No IP owner specified'
+            raise Exception, msg                                
                 
+        # IP info
+        ip_info = data['IP_info']
+        if verbose: print 'IP info: "%s"' %ip_info
+        if ip_info == '':
+            msg = 'No IP info specified'
+            raise Exception, msg                                               
 
-            if node.nodeName == 'IP_info':
-                if verbose: print 'IP info: "%s"' %get_text(node.childNodes)  
-                
-
-            if node.nodeName == 'publishable':
-                
-                if verbose: print 'Publishable: %s' %fid.name                
-                value = get_text(node.childNodes)
-                if value.upper() != 'YES':
-                    msg = 'Data file %s is not flagged as publishable'\
-                          %fid.name
-                    raise NotPublishable, msg
+        # Publishable
+        publishable = data['publishable'].upper()
+        if verbose: print 'Publishable: "%s"' %publishable        
+        if publishable != 'YES':
+            msg = 'Data file %s is not flagged as publishable'\
+                  %fid.name
+            raise NotPublishable, msg
 
 
 
