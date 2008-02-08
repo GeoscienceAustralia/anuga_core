@@ -70,23 +70,41 @@ def get_text(nodelist):
 #----------------------------
 
 class XML_element(dict):
-    def __init__(self, tag=None, contents=None):
+    def __init__(self,
+                 tag=None,
+                 value=None,
+                 version='1.0',
+                 encoding='iso-8859-1'):                 
         """
-        contents can be either
+        value can be either
           * An XML_element
-          * a list of XML_elements
+          * a list of XML_value
           * a text string
         
         """
         
-        if isinstance(contents, XML_element):
-            contents = [contents]
+        if isinstance(value, XML_element):
+            value = [value]
             
-        self.elements = contents
+        self.value = value
+
+
+
+        if tag is None:
+            tag = '?xml version="%s" encoding="%s"?' %(version, encoding)
+            self.root_element = True
+        else:
+            self.root_element = False
+        
         self.tag = tag
+
+
+
+        
         # FIXME: It might be better to represent these objects
         # in a proper dictionary format with
-        # {tag: elements, ...}
+        # {tag: value, ...}
+        # No, tried that - it removes any notion of ordering.
         
 
     def __add__(self, other):
@@ -99,33 +117,48 @@ class XML_element(dict):
         return str(self)
 
     def __str__(self, indent=0):
+        """String representation of XML element
+        """
 
+        if self.root_element is True:
+            increment = 0
+        else:
+            increment = 4
+            
         s = tab = ' '*indent
         
         s += '<%s>' %self.tag
-        if isinstance(self.elements, basestring):
-            s += self.elements
+        if isinstance(self.value, basestring):
+            s += self.value
         else:
             s += '\n'
-            for e in self.elements:
-                s += e.__str__(indent+4)
+            for e in self.value:
+                s += e.__str__(indent+increment)
             s += tab
 
-        s += '</%s>\n' %self.tag
+        if self.root_element is False:    
+            s += '</%s>\n' %self.tag
+            
         return s
 
 
     def __getitem__(self, key):
         """Return sub-tree starting at element with tag equal to specified key
+        If node is terminal, its text value will be returned instead of itself.
+        This will allow statements such as
+
+        assert xmlobject['datafile']['accountable'] == 'Jane Sexton'        
         """
 
-        #if isinstance(self, XML_element):
-        for node in self.elements:
+        for node in self.value:
             if node.tag == key:
-                return node
+                if isinstance(node.value, basestring):
+                    return node.value
+                else:
+                    return node
 
     def keys(self):
-        return [str(node.tag) for node in self.elements]
+        return [str(node.tag) for node in self.value]
 
     
 
@@ -135,63 +168,41 @@ class XML_element(dict):
 
         s = tab = ' '*indent
         s += '%s: ' %self.tag        
-        if isinstance(self.elements, basestring):
-            s += self.elements
+        if isinstance(self.value, basestring):
+            s += self.value
         else:
             s += '\n'
-            for e in self.elements:
+            for e in self.value:
                 s += e.pretty_print(indent+4)
         s += '\n'
         
         return s
     
     
-    
-class XML_document(XML_element):
-
-    def __init__(self, contents=None, version='1.0', encoding='iso-8859-1'):
-        tag = '?xml version="%s" encoding="%s"?' %(version, encoding)
-
-        XML_element.__init__(self,
-                             tag=tag,
-                             contents=contents)
-
-
-    def __str__(self):
-        """Generate XML representation for use with xml2object function
-        """
-        s = '<%s>\n' %self.tag
-        for e in self.elements:
-            s += str(e)
-
-        return s
-
-    def pretty_print(self):
-        s = ''
-        for e in self.elements:
-            s += e.pretty_print()
-
-        return s
-
-
 def xml2object(xml, verbose=False):
     """Generate XML object model from XML file or XML text
 
-    This is the inverse operation to the __str__ representation.
+    This is the inverse operation to the __str__ representation
+    (up to whitespace).
 
     Input xml can be either an
-    * xml string ??
     * xml file
     * open xml file object 
 
     Return XML_document instance.
     """
 
-    #FIXME(Ole): Do the input tests
-    #Assume open file object for now
+    # FIXME - can we allow xml to be string?
+    # This would depend on minidom's parse function
 
-    #fid = open(xml)
-    dom = parse(xml)
+    # Input tests
+    if isinstance(xml, basestring):
+        fid = open(xml)
+    else:
+        fid = xml
+
+    #print fid.read()    
+    dom = parse(fid)
 
     return dom2object(dom)
 
@@ -201,7 +212,7 @@ def dom2object(node):
     """Convert DOM representation to XML_object hierarchy.
     """
 
-    contents = []
+    value = []
     for n in node.childNodes:
 
         #print 'Node name: "%s",' %n.nodeName,\
@@ -222,19 +233,22 @@ def dom2object(node):
                 # Skip empty text children
                 continue
             
-            contents = x
+            value = x
         else:
-            contents.append(dom2object(n))
+            value.append(dom2object(n))
 
 
 
 
     if node.nodeType == 9:
-        # Document root
-        X = XML_document(contents=contents)
+        # Root node (document)
+        tag = None
     else:
-        # Node
-        X = XML_element(tag=node.nodeName,
-                        contents=contents)
+        # Normal XML node
+        tag = node.nodeName
+
+        
+    X = XML_element(tag=tag,
+                    value=value)
         
     return X
