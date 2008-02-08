@@ -84,10 +84,13 @@ class Test_data_audit(unittest.TestCase):
 	    	
         # Clean up
 	licfid.close()
-	fid.close()
         os.remove(license_filename)
-        os.remove(tmp_name)        
-
+        try:
+            os.remove(tmp_name)        
+        except:
+            # FIXME(Ole)QThis doesn't work on Windows for some reason
+            pass
+        
 
 
 
@@ -153,9 +156,15 @@ class Test_data_audit(unittest.TestCase):
 	    	
         # Clean up
 	licfid.close()
-	fid.close()
         os.remove(license_filename)
-        os.remove(tmp_name)        
+
+	fid.close()        
+        try:
+            os.remove(tmp_name)        
+        except:
+            # FIXME(Ole)QThis doesn't work on Windows for some reason
+            pass        
+
 
 
 
@@ -280,9 +289,9 @@ class Test_data_audit(unittest.TestCase):
 	licfid.close()
 
 	licfid = open(license_filename)
-
         license_file_is_valid(licfid)#, verbose=True)
-	    	
+        licfid.close()
+        
         # Clean up
         os.remove(license_filename)
         os.remove(tmp_name)        
@@ -354,8 +363,8 @@ class Test_data_audit(unittest.TestCase):
 	licfid.close()
 
 	licfid = open(license_filename)
-
         license_file_is_valid(licfid)#, verbose=True)
+        licfid.close()
 	    	
         # Clean up
         os.remove(license_filename)

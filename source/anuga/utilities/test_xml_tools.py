@@ -127,8 +127,9 @@ class Test_xml_tools(unittest.TestCase):
         #    print xmlobject['ga_license_file'][tag]
 	    	
         # Clean up
+        fid.close()
         os.remove(tmp_name)
-	fid.close()
+
 
 	
 
