@@ -235,7 +235,13 @@ def xml2object(xml, verbose=False):
     else:
         fid = xml
 
-    dom = parse(fid)
+    try:
+        dom = parse(fid)
+    except Exception, e:
+        # Throw filename into dom exception
+        msg = 'XML file "%s" could not be parsed: ' %fid.name
+        msg += str(e)
+        raise Exception, msg
 
     return dom2object(dom)
 

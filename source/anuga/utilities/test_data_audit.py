@@ -75,7 +75,7 @@ class Test_data_audit(unittest.TestCase):
 	#print licfid.read()
 
         try:
-            license_file_is_valid(licfid)
+            license_file_is_valid(licfid, tmp_name)
         except CRCMismatch:
 	    pass
 	else:
@@ -147,7 +147,7 @@ class Test_data_audit(unittest.TestCase):
 
 
         try:
-            license_file_is_valid(licfid)
+            license_file_is_valid(licfid, tmp_name)
         except NotPublishable:
 	    pass
 	else:
@@ -221,7 +221,7 @@ class Test_data_audit(unittest.TestCase):
 
 
         try:
-            license_file_is_valid(licfid)
+            license_file_is_valid(licfid, basename + '.no_exist')
         except FilenameMismatch:
 	    pass
 	else:
@@ -289,7 +289,7 @@ class Test_data_audit(unittest.TestCase):
 	licfid.close()
 
 	licfid = open(license_filename)
-        license_file_is_valid(licfid)#, verbose=True)
+        license_file_is_valid(licfid, data_filename)
         licfid.close()
         
         # Clean up
@@ -363,7 +363,8 @@ class Test_data_audit(unittest.TestCase):
 	licfid.close()
 
 	licfid = open(license_filename)
-        license_file_is_valid(licfid)#, verbose=True)
+        license_file_is_valid(licfid, data_filename1)
+        license_file_is_valid(licfid, data_filename2)        
         licfid.close()
 	    	
         # Clean up

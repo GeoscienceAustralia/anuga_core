@@ -80,7 +80,8 @@ def IP_verified(directory,
             all_files_accounted_for = False
         else:
             try:
-                license_file_is_valid(fid, dirpath, verbose=verbose)
+                license_file_is_valid(fid, datafile, dirpath,
+                                      verbose=verbose)
             except audit_exceptions, e:
                 all_files_accounted_for = False                                
                 status = 'LICENSE FILE NOT VALID\n'
@@ -150,12 +151,20 @@ def identify_datafiles(root,
                 yield dirpath, filename
 
 
-def license_file_is_valid(fid, dirpath='.', verbose=False):
-    """Check that XML license file is valid.
+def license_file_is_valid(fid, filename_to_verify,
+                          dirpath='.', verbose=False):
+    """Check that XML license file for given filename_to_verify is valid.
+
+    Input:
+        fid: Open file object for XML license file
+        file_name_to_verify: The data filename that is being audited
+        dir_path: Where the files live
+        verbose: Optional verbosity
+        
 
     Check for each datafile listed that
 
-    * Datafile tags are there
+    * Datafile tags are there and match the one specified
     * Fields are non empty
     * Datafile exists
     * Checksum is correct
@@ -166,7 +175,7 @@ def license_file_is_valid(fid, dirpath='.', verbose=False):
     """
 
     license_filename = fid.name
-    
+
     doc = xml2object(fid)
     #print doc
 
@@ -223,6 +232,19 @@ def license_file_is_valid(fid, dirpath='.', verbose=False):
     if isinstance(datafile, XML_element):
         datafile = [datafile]
 
+
+    # Check that filename to verify is listed in license file
+    found = False
+    for data in datafile:    
+        if data['filename'] == filename_to_verify:
+            found = True
+    if not found:
+        msg = 'Specified filename to verify %s ' %filename_to_verify
+        msg += 'did not appear in license file %s' %license_filename
+        raise FilenameMismatch, msg                
+            
+        
+    # Check contents
     for data in datafile:
         if verbose: print
 
@@ -230,7 +252,7 @@ def license_file_is_valid(fid, dirpath='.', verbose=False):
         if data['filename'] == '':
             msg = 'Missing filename'
             raise FilenameMismatch, msg            
-        else:    
+        else:
             filename = join(dirpath, data['filename'])
             if verbose: print 'Filename: "%s"' %filename
             try:
