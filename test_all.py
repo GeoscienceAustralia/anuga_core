@@ -1,4 +1,4 @@
-from anuga.utilities.data_audit import IP_verified
+from anuga.utilities.data_audit_wrapper import IP_verified
 from tempfile import mktemp
 
 import os
@@ -13,6 +13,19 @@ print 'Changing to', os.getcwd() #This is now different from buildroot
 execfile('test_all.py')
 
 
+print
+print '************************** NOTE *************************************'
+print 'If all unit tests passed you should run the suite of validation tests'
+print 'Go to the directory anuga_validation/automated_validation_tests'
+print 'and run'
+print '    python validate_all.py'
+print
+print 'These tests will take a few hours and will verify that ANUGA'
+print 'produces the physical results expected.'
+print '*********************************************************************'
+
+
+
 # Temporary bail out
 import sys; sys.exit() 
 
@@ -22,11 +35,20 @@ import sys; sys.exit()
 #---------------------------
 
 # Create temporary area for svn to export source files
+# FIXME (Ole): It would be good to make sure these files
+# are exactly the same as those walked over by the
+# release script: create_distribution.
+#
+# Come to think of it - this is probably not the best
+# place for this check. It may have to move up one level.
+# What do you all think?
+
+
+
 temp_dir = mktemp()
 
 print 'Temp dir', temp_dir
 os.mkdir(temp_dir)
-
 
 # Get the ANUGA core source files
 s = 'svn export . %s%sanuga' %(temp_dir, os.sep) 
@@ -41,15 +63,6 @@ if not IP_verified(temp_dir):
 
 
 
-print
-print '************************** NOTE *************************************'
-print 'If all unit tests passed you should run the suite of validation tests'
-print 'Go to the directory anuga_validation/automated_validation_tests'
-print 'and run'
-print '    python validate_all.py'
-print
-print 'These tests will take a few hours and will verify that ANUGA'
-print 'produces the physical results expected.'
-print '*********************************************************************'
+
 
     

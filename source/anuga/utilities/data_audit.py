@@ -1,4 +1,6 @@
-"""Track IP of data files included in this distribution. 
+"""Track IP of data files in an entire directory tree.
+See docstring for the public function IP_verified()
+for details.
 """
 
 from os import remove, walk, sep
@@ -6,9 +8,6 @@ from os.path import join, splitext
 
 from anuga.utilities.xml_tools import xml2object, XML_element
 from anuga.utilities.system_tools import compute_checksum
-
-from data_audit_config import extensions_to_ignore, directories_to_ignore, files_to_ignore
-
 
 
 # Audit exceptions
@@ -24,7 +23,12 @@ audit_exceptions = (NotPublishable,
                     Invalid,
                     WrongTags)
 
-def IP_verified(directory, verbose=False):
+
+def IP_verified(directory,
+                extensions_to_ignore=None,
+                directories_to_ignore=None,
+                files_to_ignore=None,
+                verbose=False):
     """Find and audit potential data files that might violate IP
 
     This is the public function to be used to ascertain that
@@ -40,8 +44,17 @@ def IP_verified(directory, verbose=False):
     verbose controls standard output.
     If verbose is False, only diagnostics about failed audits will appear.
     All files that check OK will pass silently.
-    
 
+    Optional arguments extensions_to_ignore, directories_to_ignore, and
+    files_to_ignore are lists of things to skip.
+
+    Examples are:
+    extensions_to_ignore = ['.py','.c','.h', '.f'] # Ignore source code
+    files_to_ignore = ['README.txt']
+    directories_to_ignore = ['.svn', 'misc']
+
+    None is also OK for these parameters.
+    
     """
 
     # Print header
@@ -50,7 +63,10 @@ def IP_verified(directory, verbose=False):
     # Identify data files
     first_time = True
     all_files_accounted_for = True
-    for dirpath, datafile in identify_datafiles(directory):
+    for dirpath, datafile in identify_datafiles(directory,
+                                                extensions_to_ignore,
+                                                directories_to_ignore,
+                                                files_to_ignore):
         
         filename = join(dirpath, datafile)
         basename, ext = splitext(datafile)
@@ -98,8 +114,17 @@ def IP_verified(directory, verbose=False):
     return all_files_accounted_for
 
 
-def identify_datafiles(root):
+
+#------------------
+# Private functions
+#------------------
+def identify_datafiles(root,
+                       extensions_to_ignore=None,
+                       directories_to_ignore=None,
+                       files_to_ignore=None):
     """ Identify files that might contain data
+
+    See function IP_verified() for details about optinoal parmeters
     """
 
     for dirpath, dirnames, filenames in walk(root):
@@ -108,8 +133,6 @@ def identify_datafiles(root):
             if ignore in dirnames:
                 dirnames.remove(ignore)  # don't visit ignored directories
 
-        #print 'Searching dir', dirpath
-        
 
         for filename in filenames:
 
@@ -128,7 +151,18 @@ def identify_datafiles(root):
 
 
 def license_file_is_valid(fid, dirpath='.', verbose=False):
-    """Check that XML license file is valid
+    """Check that XML license file is valid.
+
+    Check for each datafile listed that
+
+    * Datafile tags are there
+    * Fields are non empty
+    * Datafile exists
+    * Checksum is correct
+    * Datafile is flagged as publishable
+
+    If anything is violated an appropriate exception is raised.
+    If everything is honky dory the function will return True.
     """
 
     license_filename = fid.name
@@ -148,6 +182,9 @@ def license_file_is_valid(fid, dirpath='.', verbose=False):
     
 
     # Validate elements: metadata, datafile, datafile, ...
+    # FIXME (Ole): I'd like this to verified by the parser
+    # using a proper DTD template one day....
+    # For not, let's check the main ones.
     elements = doc['ga_license_file']
     if not elements.has_key('metadata'):
         msg = 'Tag %s must have the element "metadata"'\
@@ -173,6 +210,9 @@ def license_file_is_valid(fid, dirpath='.', verbose=False):
 
     author = metadata['author']
     if verbose: print 'Author:   ', author
+    if author == '':
+        msg = 'Missing author'
+        raise Exception, msg                
     
     #svn_keywords = metadata['svn_keywords']
     #if verbose: print 'SVN keywords:   ', svn_keywords
