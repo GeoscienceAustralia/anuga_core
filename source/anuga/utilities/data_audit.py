@@ -72,19 +72,24 @@ def IP_verified(directory,
         
         all_files += 1
         
-        filename = join(dirpath, datafile)
+        data_filename = join(dirpath, datafile)
         basename, ext = splitext(datafile)
+        license_filename = join(dirpath, basename + '.lic')
 
         # Look for a XML license file with the .lic
         status = 'OK'
         try:
-            fid = open(join(dirpath, basename + '.lic'))
+            fid = open(license_filename)
         except IOError:
             status = 'NO LICENSE FILE'
             all_files_accounted_for = False
         else:
+            fid.close()
+            
             try:
-                license_file_is_valid(fid, datafile, dirpath,
+                license_file_is_valid(license_filename,
+                                      data_filename,
+                                      dirpath,
                                       verbose=False)
             except audit_exceptions, e:
                 all_files_accounted_for = False                                
@@ -92,15 +97,16 @@ def IP_verified(directory,
                 status += 'REASON: %s\n' %e
 
                 try:
-                    doc = xml2object(fid)
+                    doc = xml2object(license_filename)
                 except:
-                    status += 'XML file could not be read:'
-                    fid.seek(0)
-                    status += fid.read()                    
+                    status += 'XML file %s could not be read:' %license_filename
+                    fid = open(license_filename)
+                    status += fid.read()
+                    fid.close()
                 else:    
                     status += str(doc)
 
-            fid.close()
+
 
         if status == 'OK':
             ok_files += 1
@@ -113,8 +119,8 @@ def IP_verified(directory,
                 print '---------------------------------------------'
                 first_time = False
 
-            print filename + ' (Checksum=%s): '\
-                  %str(compute_checksum(filename)), status
+            print data_filename + ' (Checksum=%s): '\
+                  %str(compute_checksum(data_filename)), status
 
 
     if verbose is True:
@@ -164,12 +170,12 @@ def identify_datafiles(root,
                 yield dirpath, filename
 
 
-def license_file_is_valid(fid, filename_to_verify,
+def license_file_is_valid(license_filename, filename_to_verify,
                           dirpath='.', verbose=False):
     """Check that XML license file for given filename_to_verify is valid.
 
     Input:
-        fid: Open file object for XML license file
+        license_filename: XML license file
         file_name_to_verify: The data filename that is being audited
         dir_path: Where the files live
         verbose: Optional verbosity
@@ -187,9 +193,9 @@ def license_file_is_valid(fid, filename_to_verify,
     If everything is honky dory the function will return True.
     """
 
-    license_filename = fid.name
 
-    doc = xml2object(fid)
+
+    doc = xml2object(license_filename)
     #print doc
 
     
