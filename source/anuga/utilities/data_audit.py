@@ -61,12 +61,16 @@ def IP_verified(directory,
     dirwidth = 72
 
     # Identify data files
+    all_files = 0
+    ok_files = 0
     first_time = True
     all_files_accounted_for = True
     for dirpath, datafile in identify_datafiles(directory,
                                                 extensions_to_ignore,
                                                 directories_to_ignore,
                                                 files_to_ignore):
+        
+        all_files += 1
         
         filename = join(dirpath, datafile)
         basename, ext = splitext(datafile)
@@ -97,8 +101,11 @@ def IP_verified(directory,
                     status += str(doc)
 
             fid.close()
-            
-        if status != 'OK' or verbose is True:
+
+        if status == 'OK':
+            ok_files += 1
+        else:
+            # Only print status if there is a problem (no news is good news)
             if first_time is True:
                 # Print header
                 print '---------------------------------------------'
@@ -109,6 +116,12 @@ def IP_verified(directory,
             print filename + ' (Checksum=%s): '\
                   %str(compute_checksum(filename)), status
 
+
+    if verbose is True:
+        print
+        print 'Audit result for %s:' %dirpath
+        print 'Number of files in audited:  %d' %(all_files)
+        print 'Number of files in verified: %d' %(ok_files)        
 
 
     # Return result        
