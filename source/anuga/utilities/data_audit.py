@@ -304,9 +304,14 @@ def license_file_is_valid(fid, filename_to_verify,
             raise Exception, msg                                               
 
         # Publishable
-        publishable = data['publishable'].upper()
-        if verbose: print 'Publishable: "%s"' %publishable        
-        if publishable != 'YES':
+        publishable = data['publishable']
+        if verbose: print 'Publishable: "%s"' %publishable
+        if publishable == '':
+            msg = 'No publishable value specified'
+            raise NotPublishable, msg
+        
+        print 'PUB', publishable
+        if publishable.upper() != 'YES':
             msg = 'Data file %s is not flagged as publishable'\
                   %fid.name
             raise NotPublishable, msg
