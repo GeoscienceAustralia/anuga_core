@@ -81,7 +81,7 @@ def IP_verified(directory,
         else:
             try:
                 license_file_is_valid(fid, datafile, dirpath,
-                                      verbose=verbose)
+                                      verbose=False)
             except audit_exceptions, e:
                 all_files_accounted_for = False                                
                 status = 'LICENSE FILE NOT VALID\n'
@@ -310,7 +310,6 @@ def license_file_is_valid(fid, filename_to_verify,
             msg = 'No publishable value specified'
             raise NotPublishable, msg
         
-        print 'PUB', publishable
         if publishable.upper() != 'YES':
             msg = 'Data file %s is not flagged as publishable'\
                   %fid.name

@@ -167,13 +167,16 @@ class XML_element(dict):
         result = []
         for node in self.value:
             if node.tag == key:
+                #print 'node tag = %s, node value = %s' %(node.tag, node.value)
+                
                 if isinstance(node.value, basestring):
                     result.append(str(node.value))
                     #return node.value
                 else:
                     result.append(node)
                     #return node
-                    
+
+        #print 'result', result
         if len(result) == 0:
             return None
         if len(result) == 1:
@@ -254,11 +257,6 @@ def dom2object(node):
     value = []
     for n in node.childNodes:
 
-        #print 'Node name: "%s",' %n.nodeName,\
-        #      'Node type: "%s",' %n.nodeType,\
-        #      'Node value: "%s",' %str(n.nodeValue).strip(),\
-        #      'Node children: %d' %len(n.childNodes)        
-
         if n.nodeType == 3:
             # Child is a text element - omit the dom tag #text and
             # go straight to the text value.
@@ -274,10 +272,14 @@ def dom2object(node):
             
             value = x
         else:
+            # XML element
+
             value.append(dom2object(n))
 
-
-
+                
+    # Deal with empty elements
+    if len(value) == 0: value = ''
+    
 
     if node.nodeType == 9:
         # Root node (document)
@@ -291,3 +293,16 @@ def dom2object(node):
                     value=value)
         
     return X
+
+
+
+
+
+    #=================== Useful print statement
+    #if n.nodeType == 3 and str(n.nodeValue).strip() == '':
+    #    pass
+    #else:
+    #    print 'Node name: "%s",' %n.nodeName,\
+    #          'Node type: "%s",' %n.nodeType,\
+    #          'Node value: "%s",' %str(n.nodeValue).strip(),\
+    #          'Node children: %d' %len(n.childNodes)        
