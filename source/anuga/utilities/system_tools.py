@@ -182,7 +182,10 @@ def compute_checksum(filename, max_length=2**20):
     from zlib import crc32
     
     fid = open(filename, 'rb') # Use binary for portability
-    crcval = crc32(fid.read(max_length))
+    x = crc32(fid.read(max_length))
 
     fid.close()
+
+    crcval = x - ((x & 0x80000000) << 1) #Guido's 64 bit fix (http://bugs.python.org/issue1202)
+    
     return crcval
