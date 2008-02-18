@@ -38,12 +38,15 @@ class Test_system_tools(unittest.TestCase):
 
         # Generate a text file
         tmp_fd , tmp_name = mkstemp(suffix='.tmp', dir='.')
-        fid = os.fdopen(tmp_fd, 'w')
+        fid = os.fdopen(tmp_fd, 'w+b')
         string = 'My temp file with textual content. AAAABBBBCCCC1234'
         fid.write(string)
         fid.close()
 
-        ref_crc = zlib.crc32(string)
+        # Have to apply the 64 bit fix here since we aren't comparing two
+        # files, but rather a string and a file.
+        ref_crc = safe_crc(string)
+
         checksum = compute_checksum(tmp_name)
         assert checksum == ref_crc
 
@@ -59,8 +62,7 @@ class Test_system_tools(unittest.TestCase):
         fid.write(string)
         fid.close()
 
-
-        ref_crc = zlib.crc32(string)
+        ref_crc = safe_crc(string)
         checksum = compute_checksum(tmp_name)
 
         assert checksum == ref_crc

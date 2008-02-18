@@ -169,7 +169,25 @@ def store_version_info(destination_path='.', verbose=False):
 
         if verbose is True:
             print 'Version info stored to %s' %filename
-            
+
+def safe_crc(string):
+    """64 bit safe crc computation.
+
+       See Guido's 64 bit fix at http://bugs.python.org/issue1202            
+    """
+
+    from zlib import crc32
+    import os
+
+    x = crc32(string)
+        
+    if os.name == 'posix' and os.uname()[4] == 'x86_64':
+        crcval = x - ((x & 0x80000000) << 1)
+    else:
+        crcval = x
+        
+    return crcval
+
 
 def compute_checksum(filename, max_length=2**20):
     """Compute the CRC32 checksum for specified file
@@ -179,16 +197,8 @@ def compute_checksum(filename, max_length=2**20):
     Default = 2**20 (1MB)
     """
 
-    from zlib import crc32
-    
     fid = open(filename, 'rb') # Use binary for portability
-    x = crc32(fid.read(max_length))
-
+    crcval = safe_crc(fid.read(max_length))
     fid.close()
 
-    if os.name == 'posix' and os.uname()[4] == 'x86_64':
-        #Guido's 64 bit fix (http://bugs.python.org/issue1202)        
-        crcval = x - ((x & 0x80000000) << 1)
-    else:
-        crcval = x
     return crcval
