@@ -71,11 +71,12 @@ class Test_data_audit(unittest.TestCase):
 	licfid.write(xml_string)
 	licfid.close()
 
-	licfid = open(license_filename)
+	#licfid = open(license_filename)
 	#print licfid.read()
+        #licfid.close()
 
         try:
-            license_file_is_valid(licfid, tmp_name)
+            license_file_is_valid(license_filename, tmp_name)
         except CRCMismatch:
 	    pass
 	else:
@@ -83,12 +84,12 @@ class Test_data_audit(unittest.TestCase):
 	    raise Exception, msg    	
 	    	
         # Clean up
-	licfid.close()
+	#licfid.close()
         os.remove(license_filename)
         try:
             os.remove(tmp_name)        
         except:
-            # FIXME(Ole)QThis doesn't work on Windows for some reason
+            # FIXME(Ole) This doesn't work on Windows for some reason
             pass
         
 

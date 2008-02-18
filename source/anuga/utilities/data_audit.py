@@ -65,16 +65,16 @@ def IP_verified(directory,
     ok_files = 0
     first_time = True
     all_files_accounted_for = True
-    for dirpath, datafile in identify_datafiles(directory,
+    for dirpath, filename in identify_datafiles(directory,
                                                 extensions_to_ignore,
                                                 directories_to_ignore,
                                                 files_to_ignore):
         
         all_files += 1
         
-        data_filename = join(dirpath, datafile)
-        basename, ext = splitext(datafile)
+        basename, ext = splitext(filename)
         license_filename = join(dirpath, basename + '.lic')
+
 
         # Look for a XML license file with the .lic
         status = 'OK'
@@ -88,7 +88,7 @@ def IP_verified(directory,
             
             try:
                 license_file_is_valid(license_filename,
-                                      data_filename,
+                                      filename,
                                       dirpath,
                                       verbose=False)
             except audit_exceptions, e:
@@ -99,7 +99,8 @@ def IP_verified(directory,
                 try:
                     doc = xml2object(license_filename)
                 except:
-                    status += 'XML file %s could not be read:' %license_filename
+                    status += 'XML file %s could not be read:'\
+                              %license_filename
                     fid = open(license_filename)
                     status += fid.read()
                     fid.close()
@@ -115,19 +116,21 @@ def IP_verified(directory,
             if first_time is True:
                 # Print header
                 print '---------------------------------------------'
-                print 'Files that need to be assessed for IP issuses'.ljust(dirwidth), 'Status'
+                msg = 'Files that need to be assessed for IP issuses'
+                print msg.ljust(dirwidth), 'Status'
                 print '---------------------------------------------'
                 first_time = False
 
-            print data_filename + ' (Checksum=%s): '\
-                  %str(compute_checksum(data_filename)), status
+            print filename + ' (Checksum=%s): '\
+                  %str(compute_checksum(join(dirpath, filename))),\
+                  status
 
 
     if verbose is True:
         print
         print 'Audit result for %s:' %dirpath
-        print 'Number of files in audited:  %d' %(all_files)
-        print 'Number of files in verified: %d' %(ok_files)        
+        print 'Number of files audited:  %d' %(all_files)
+        print 'Number of files verified: %d' %(ok_files)        
 
 
     # Return result        
@@ -170,13 +173,13 @@ def identify_datafiles(root,
                 yield dirpath, filename
 
 
-def license_file_is_valid(license_filename, filename_to_verify,
+def license_file_is_valid(license_filename, data_filename,
                           dirpath='.', verbose=False):
     """Check that XML license file for given filename_to_verify is valid.
 
     Input:
-        license_filename: XML license file
-        file_name_to_verify: The data filename that is being audited
+        license_filename: XML license file (must be an absolute path name)
+        data_filename: The data filename that is being audited
         dir_path: Where the files live
         verbose: Optional verbosity
         
@@ -193,11 +196,7 @@ def license_file_is_valid(license_filename, filename_to_verify,
     If everything is honky dory the function will return True.
     """
 
-
-
     doc = xml2object(license_filename)
-    #print doc
-
     
     # Check that file is valid (e.g. all elements there)
     if not doc.has_key('ga_license_file'):
@@ -255,10 +254,10 @@ def license_file_is_valid(license_filename, filename_to_verify,
     # Check that filename to verify is listed in license file
     found = False
     for data in datafile:    
-        if data['filename'] == filename_to_verify:
+        if data['filename'] == data_filename:
             found = True
     if not found:
-        msg = 'Specified filename to verify %s ' %filename_to_verify
+        msg = 'Specified filename to verify %s ' %data_filename
         msg += 'did not appear in license file %s' %license_filename
         raise FilenameMismatch, msg                
             
