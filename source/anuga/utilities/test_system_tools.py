@@ -5,8 +5,9 @@ import unittest
 from Numeric import zeros, array, allclose, Float
 from Scientific.IO.NetCDF import NetCDFFile
 import zlib
+from os.path import join, split, sep
 
-from system_tools import *
+from anuga.utilities.system_tools import *
 
 class Test_system_tools(unittest.TestCase):
     def setUp(self):
@@ -104,12 +105,16 @@ class Test_system_tools(unittest.TestCase):
         Check that checksums on a png file is OK
         """
 
-        filename = 'crc_test_file.png'
+        # Get path where this test is run
+        import anuga.utilities as u
+        path = u.__path__[0]
+        filename = path + sep +  'crc_test_file.png'
 
         ref_crc = 1203293305 # Computed on Windows box
         checksum = compute_checksum(filename)
 
-        msg = 'Computed checksum = %s, should have been %s' %(checksum, ref_crc)
+        msg = 'Computed checksum = %s, should have been %s'\
+              %(checksum, ref_crc)
         assert checksum == ref_crc, msg
         #print checksum
         
