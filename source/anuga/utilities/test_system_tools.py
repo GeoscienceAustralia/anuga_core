@@ -106,7 +106,7 @@ class Test_system_tools(unittest.TestCase):
 
         filename = 'crc_test_file.png'
 
-        ref_crc = -1808745910  # Computed on Windows box
+        ref_crc = 1203293305 # Computed on Windows box
         checksum = compute_checksum(filename)
 
         msg = 'Computed checksum = %s, should have been %s' %(checksum, ref_crc)
