@@ -16,12 +16,14 @@ class FilenameMismatch(Exception): pass
 class CRCMismatch(Exception): pass
 class Invalid(Exception): pass
 class WrongTags(Exception): pass
+class Empty(Exception): pass
 
 audit_exceptions = (NotPublishable,
                     FilenameMismatch,
                     CRCMismatch,
                     Invalid,
-                    WrongTags)
+                    WrongTags,
+                    Empty)
 
 
 def IP_verified(directory,
@@ -57,10 +59,8 @@ def IP_verified(directory,
     
     """
 
-    # Print header
-    dirwidth = 72
-
     # Identify data files
+    oldpath = None
     all_files = 0
     ok_files = 0
     first_time = True
@@ -69,7 +69,14 @@ def IP_verified(directory,
                                                 extensions_to_ignore,
                                                 directories_to_ignore,
                                                 files_to_ignore):
-        
+
+
+        if oldpath != dirpath:
+            dir_change = True
+            oldpath = dirpath
+        else:
+            dir_change = False
+
         all_files += 1
         
         basename, ext = splitext(filename)
@@ -104,23 +111,26 @@ def IP_verified(directory,
                     fid = open(license_filename)
                     status += fid.read()
                     fid.close()
-                else:    
-                    status += str(doc)
+                else:
+                    pass
+                    #if verbose is True:
+                    #    status += str(doc)
 
 
+
+       # Only print status if there is a problem (no news is good news)
+        if dir_change is True:
+            print
+            print '------------------------------------'
+            msg = 'Files without licensing info in dir:'
+            print msg, dirpath
+            print '------------------------------------'
+                
 
         if status == 'OK':
             ok_files += 1
         else:
-            # Only print status if there is a problem (no news is good news)
-            if first_time is True:
-                # Print header
-                print '---------------------------------------------'
-                msg = 'Files that need to be assessed for IP issuses'
-                print msg.ljust(dirwidth), 'Status'
-                print '---------------------------------------------'
-                first_time = False
-
+            #print dir_change, dirpath, filename + ' (Checksum=%s): '\
             print filename + ' (Checksum=%s): '\
                   %str(compute_checksum(join(dirpath, filename))),\
                   status
@@ -128,10 +138,12 @@ def IP_verified(directory,
 
     if verbose is True:
         print
-        print 'Audit result for %s:' %dirpath
+        print '---------------------'        
+        print 'Audit result for dir: %s:' %directory
+        print '---------------------'                
         print 'Number of files audited:  %d' %(all_files)
         print 'Number of files verified: %d' %(ok_files)        
-
+        print
 
     # Return result        
     return all_files_accounted_for
@@ -187,7 +199,7 @@ def license_file_is_valid(license_filename, data_filename,
     Check for each datafile listed that
 
     * Datafile tags are there and match the one specified
-    * Fields are non empty
+    * Fields are non empty (except IP_info which can be left blank)
     * Datafile exists
     * Checksum is correct
     * Datafile is flagged as publishable
@@ -256,82 +268,84 @@ def license_file_is_valid(license_filename, data_filename,
     for data in datafile:    
         if data['filename'] == data_filename:
             found = True
+            break
+            
     if not found:
         msg = 'Specified filename to verify %s ' %data_filename
         msg += 'did not appear in license file %s' %license_filename
         raise FilenameMismatch, msg                
             
         
-    # Check contents
-    for data in datafile:
-        if verbose: print
+    # Check contents for selected data_filename
+    #for data in datafile:
+    #    if verbose: print
 
-        # Filename
-        if data['filename'] == '':
-            msg = 'Missing filename'
-            raise FilenameMismatch, msg            
-        else:
-            filename = join(dirpath, data['filename'])
-            if verbose: print 'Filename: "%s"' %filename
-            try:
-                fid = open(filename, 'r')
-            except:
-                msg = 'Specified filename %s could not be opened'\
-                      %filename
-                raise FilenameMismatch, msg
+    # Filename
+    if data['filename'] == '':
+        msg = 'Missing filename'
+        raise FilenameMismatch, msg            
+    else:
+        filename = join(dirpath, data['filename'])
+        if verbose: print 'Filename: "%s"' %filename
+        try:
+            fid = open(filename, 'r')
+        except:
+            msg = 'Specified filename %s could not be opened'\
+                  %filename
+            raise FilenameMismatch, msg
 
-        # CRC
-        reported_crc = data['checksum']
-        if verbose: print 'Checksum: "%s"' %reported_crc
-        
-        file_crc = str(compute_checksum(filename))
-        if reported_crc != file_crc:
-            msg = 'Bad checksum (CRC).\n'
-            msg += '  The CRC reported in license file "%s" is "%s"\n'\
-                   %(license_filename, reported_crc)
-            msg += '  The CRC computed from file "%s" is "%s"'\
-                   %(filename, file_crc)
-            raise CRCMismatch, msg
-                
-        # Accountable
-        accountable = data['accountable']
-        if verbose: print 'Accountable: "%s"' %accountable
-        if accountable == '':
-            msg = 'No accountable person specified'
-            raise Exception, msg
+    # CRC
+    reported_crc = data['checksum']
+    if verbose: print 'Checksum: "%s"' %reported_crc
+    
+    file_crc = str(compute_checksum(filename))
+    if reported_crc != file_crc:
+        msg = 'Bad checksum (CRC).\n'
+        msg += '  The CRC reported in license file "%s" is "%s"\n'\
+               %(license_filename, reported_crc)
+        msg += '  The CRC computed from file "%s" is "%s"'\
+               %(filename, file_crc)
+        raise CRCMismatch, msg
+            
+    # Accountable
+    accountable = data['accountable']
+    if verbose: print 'Accountable: "%s"' %accountable
+    if accountable == '':
+        msg = 'No accountable person specified'
+        raise Empty, msg
 
-        # Source
-        source = data['source']
-        if verbose: print 'Source: "%s"' %source
-        if source == '':
-            msg = 'No source specified'
-            raise Exception, msg                
+    # Source
+    source = data['source']
+    if verbose: print 'Source: "%s"' %source
+    if source == '':
+        msg = 'No source specified'
+        raise Empty, msg                
 
-        # IP owner
-        ip_owner = data['IP_owner']
-        if verbose: print 'IP owner: "%s"' %ip_owner
-        if ip_owner == '':
-            msg = 'No IP owner specified'
-            raise Exception, msg                                
-                
-        # IP info
-        ip_info = data['IP_info']
-        if verbose: print 'IP info: "%s"' %ip_info
-        if ip_info == '':
-            msg = 'No IP info specified'
-            raise Exception, msg                                               
+    # IP owner
+    ip_owner = data['IP_owner']
+    if verbose: print 'IP owner: "%s"' %ip_owner
+    if ip_owner == '':
+        msg = 'No IP owner specified'
+        raise Empty, msg                                
+            
+    # IP info
+    ip_info = data['IP_info']
+    if verbose: print 'IP info: "%s"' %ip_info
+    #if ip_info == '':
+    #    msg = 'No IP info specified'
+    #    raise Empty, msg                                               
 
-        # Publishable
-        publishable = data['publishable']
-        if verbose: print 'Publishable: "%s"' %publishable
-        if publishable == '':
-            msg = 'No publishable value specified'
-            raise NotPublishable, msg
-        
-        if publishable.upper() != 'YES':
-            msg = 'Data file %s is not flagged as publishable'\
-                  %fid.name
-            raise NotPublishable, msg
+    # Publishable
+    publishable = data['publishable']
+    if verbose: print 'Publishable: "%s"' %publishable
+    if publishable == '':
+        msg = 'No publishable value specified'
+        raise NotPublishable, msg
+    
+    if publishable.upper() != 'YES':
+        msg = 'Data file %s is not flagged as publishable'\
+              %fid.name
+        raise NotPublishable, msg
 
 
 
