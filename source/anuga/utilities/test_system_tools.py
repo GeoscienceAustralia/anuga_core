@@ -4,6 +4,7 @@
 import unittest
 from Numeric import zeros, array, allclose, Float
 from Scientific.IO.NetCDF import NetCDFFile
+import zlib
 
 from system_tools import *
 
@@ -32,7 +33,6 @@ class Test_system_tools(unittest.TestCase):
         Check that checksums on files are OK
         """
 
-        import zlib
         from tempfile import mkstemp, mktemp
 
         # Generate a text file
@@ -97,6 +97,22 @@ class Test_system_tools(unittest.TestCase):
         os.remove(filename1)
         os.remove(filename2)
 
+
+    def test_compute_checksum_real(self):
+        """test_compute_checksum(self):
+
+        Check that checksums on a png file is OK
+        """
+
+        filename = 'crc_test_file.png'
+
+        ref_crc = -1808745910  # Computed on Windows box
+        checksum = compute_checksum(filename)
+
+        msg = 'Computed checksum = %s, should have been %s' %(checksum, ref_crc)
+        assert checksum == ref_crc, msg
+        #print checksum
+        
         
 #-------------------------------------------------------------
 if __name__ == "__main__":
