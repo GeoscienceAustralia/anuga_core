@@ -186,6 +186,9 @@ def compute_checksum(filename, max_length=2**20):
 
     fid.close()
 
-    crcval = x - ((x & 0x80000000) << 1) #Guido's 64 bit fix (http://bugs.python.org/issue1202)
-    
+    if os.name == 'posix' and os.uname()[4] == 'x86_64':
+        #Guido's 64 bit fix (http://bugs.python.org/issue1202)        
+        crcval = x - ((x & 0x80000000) << 1)
+    else:
+        crcval = x
     return crcval
