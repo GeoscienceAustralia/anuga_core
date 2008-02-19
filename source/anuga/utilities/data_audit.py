@@ -109,7 +109,6 @@ def IP_verified(directory,
     oldpath = None
     all_files = 0
     ok_files = 0
-    files_found_in_dir = True
     all_files_accounted_for = True
     for dirpath, filename in identify_datafiles(directory,
                                                 extensions_to_ignore,
@@ -118,11 +117,11 @@ def IP_verified(directory,
 
 
         if oldpath != dirpath:
-            dir_change = True
+            # Decide if dir header needs to be printed                        
             oldpath = dirpath
-            files_found_in_dir = False # Reset for this dir
-        else:
-            dir_change = False
+            first_time_this_dir = True
+            
+
 
         all_files += 1
         
@@ -164,24 +163,20 @@ def IP_verified(directory,
                     #    status += str(doc)
 
 
-        # Decide if dir header needs to be printed            
-        if status != 'OK':
-            files_found_in_dir = True
-            
-                    
-        # Only print status if there is a problem (no news is good news)
-        if dir_change is True and files_found_in_dir is True:
-            print
-            print '------------------------------------'
-            msg = 'Files without licensing info in dir:'
-            print msg, dirpath
-            print '------------------------------------'
-                
 
         if status == 'OK':
             ok_files += 1
         else:
-            #print dir_change, dirpath, filename + ' (Checksum=%s): '\
+            # Only print status if there is a problem (no news is good news)
+            if first_time_this_dir is True:
+                print
+                print '------------------------------------'
+                msg = 'Files without licensing info in dir:'
+                print msg, dirpath
+                print '------------------------------------'
+                first_time_this_dir = False
+            
+
             print filename + ' (Checksum=%s): '\
                   %str(compute_checksum(join(dirpath, filename))),\
                   status
