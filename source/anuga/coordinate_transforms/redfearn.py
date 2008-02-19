@@ -1,5 +1,10 @@
 """Implementation of Redfearn's formula to compute UTM projections from latitude and longitude
 
+Based in part on spreadsheet
+www.icsm.gov.au/gda/gdatm/redfearn.xls
+downloaded from INTERGOVERNMENTAL COMMITTEE ON SURVEYING & MAPPING (ICSM)
+http://www.icsm.gov.au/icsm/
+
 """
 from anuga.coordinate_transforms.geo_reference import Geo_reference, DEFAULT_ZONE
 from Numeric import array
