@@ -13,7 +13,7 @@ These will generally be specific to each software project.
 from data_audit import IP_verified as IP_engine
 
 # Ignore source code files
-extensions_to_ignore = ['.py','.c', '.h', '.cpp', '.f', '.bat', '.m']
+extensions_to_ignore = ['.py','.c', '.h', '.cpp', '.f', '.bat', '.m','.sh','.awk']
 
 # Ignore LaTeX documents
 extensions_to_ignore += ['.tex', '.sty', '.cls', '.bib', '.def']
