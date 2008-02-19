@@ -59,14 +59,15 @@ class Test_Polygon(unittest.TestCase):
     def test_polygon_function_csvfile(self):
         from os import sep, getenv
 
+        
         try:
             # When unit test is run from current dir
             p1 = read_polygon('mainland_only.csv')
         except: 
             # When unit test is run from ANUGA root dir
-            from os.path import join
-
-            path = join('utilities', 'mainland_only.csv')
+            from os.path import join, split
+            dir, tail = split( __file__)
+            path = join(dir, 'mainland_only.csv')
             p1 = read_polygon(path)
         
             
