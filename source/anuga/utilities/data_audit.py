@@ -63,7 +63,7 @@ def IP_verified(directory,
     oldpath = None
     all_files = 0
     ok_files = 0
-    first_time = True
+    files_found_in_dir = True
     all_files_accounted_for = True
     for dirpath, filename in identify_datafiles(directory,
                                                 extensions_to_ignore,
@@ -74,6 +74,7 @@ def IP_verified(directory,
         if oldpath != dirpath:
             dir_change = True
             oldpath = dirpath
+            files_found_in_dir = False # Reset for this dir
         else:
             dir_change = False
 
@@ -117,9 +118,13 @@ def IP_verified(directory,
                     #    status += str(doc)
 
 
-
-       # Only print status if there is a problem (no news is good news)
-        if dir_change is True:
+        # Decide if dir header needs to be printed            
+        if status != 'OK':
+            files_found_in_dir = True
+            
+                    
+        # Only print status if there is a problem (no news is good news)
+        if dir_change is True and files_found_in_dir is True:
             print
             print '------------------------------------'
             msg = 'Files without licensing info in dir:'

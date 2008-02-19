@@ -16,7 +16,7 @@ from data_audit import IP_verified as IP_engine
 extensions_to_ignore = ['.py','.c', '.h', '.cpp', '.f', '.bat']
 
 # Ignore LaTeX documents
-extensions_to_ignore += ['.tex', '.sty', '.cls', '.bib']
+extensions_to_ignore += ['.tex', '.sty', '.cls', '.bib', '.def']
 
 # Ignore pdf and doc documents
 extensions_to_ignore += ['.pdf', '.doc']
@@ -24,7 +24,7 @@ extensions_to_ignore += ['.pdf', '.doc']
 # Ignore generated stuff 
 extensions_to_ignore += ['.pyc', '.o', '.so', '~']
 extensions_to_ignore += ['.aux', '.log', '.idx', 'ilg', '.ind',
-                         '.bbl', '.blg']
+                         '.bbl', '.blg', '.syn', '.toc']
 
 # Ignore license files themselves
 extensions_to_ignore += ['.lic']    
