@@ -32,7 +32,7 @@ extensions_to_ignore += ['.lic']
 
 # Ignore certain other files,
 files_to_ignore = ['README.txt', 'LICENSE.txt', 'Makefile',
-                   '.temp', 'SConstruct', 'SConscript']
+                   '.temp', 'SConstruct', 'SConscript', 'log.ini']
 
 # Ignore directories
 directories_to_ignore = ['.svn', 'misc', '.metadata']
