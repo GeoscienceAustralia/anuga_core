@@ -5257,9 +5257,9 @@ class Urs_points:
     #### END URS UNGRIDDED 2 SWW ###
 
         
-def start_screen_catcher(dir_name, myid='', numprocs='', extra_info='',
+def start_screen_catcher(dir_name=None, myid='', numprocs='', extra_info='',
                          verbose=True):
-    """ 
+    """
     Used to store screen output and errors to file, if run on multiple 
     processes eachprocessor will have its own output and error file.
     
@@ -5267,17 +5267,20 @@ def start_screen_catcher(dir_name, myid='', numprocs='', extra_info='',
     string eg. '_other'
     
     FIXME: Would be good if you could suppress all the screen output and 
-    only save it to file... however it seems a bit tricky as this caputure
+    only save it to file... however it seems a bit tricky as this capture
     techique response to sys.stdout and by this time it is already printed out.
-    
     """
+    
     import sys
-    dir_name = dir_name
+#    dir_name = dir_name
+    if dir_name == None:
+        dir_name=getcwd()
+        
     if access(dir_name,W_OK) == 0:
         if verbose: print 'Making directory %s' %dir_name
       #  if verbose: print "myid", myid
         mkdir (dir_name,0777)
-#    print 'helloa'
+
     if myid <>'':
         myid = '_'+str(myid)
     if numprocs <>'':
@@ -5285,12 +5288,12 @@ def start_screen_catcher(dir_name, myid='', numprocs='', extra_info='',
     if extra_info <>'':
         extra_info = '_'+str(extra_info)
 #    print 'hello1'
-    screen_output_name = dir_name + "screen_output%s%s%s.txt" %(myid,
+    screen_output_name = join(dir_name, "screen_output%s%s%s.txt" %(myid,
                                                                 numprocs,
-                                                                extra_info)
-    screen_error_name = dir_name + "screen_error%s%s%s.txt" %(myid,
+                                                                extra_info))
+    screen_error_name = join(dir_name,  "screen_error%s%s%s.txt" %(myid,
                                                               numprocs,
-                                                              extra_info)
+                                                              extra_info))
 
     if verbose: print 'Starting ScreenCatcher, all output will be stored in %s' \
                                      %(screen_output_name)
