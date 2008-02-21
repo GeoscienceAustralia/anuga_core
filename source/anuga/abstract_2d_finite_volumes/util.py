@@ -1728,6 +1728,7 @@ def csv2timeseries_graphs(directories_dic={},
     max_start_time= -1000.
     min_start_time = 100000 
     
+    
     if verbose: print 'Determining uniform axes \n' 
     #this entire loop is to determine the min and max range for the 
     #axes of the plots
@@ -1735,21 +1736,26 @@ def csv2timeseries_graphs(directories_dic={},
 #    quantities.insert(0,'elevation')
     quantities.insert(0,'time')
 
-    quantity_value={}
+    directory_quantity_value={}
+#    quantity_value={}
     min_quantity_value={}
     max_quantity_value={}
 
     
     for i, directory in enumerate(directories_dic.keys()):
-        
+        filename_quantity_value={}
         if assess_all_csv_files==False:
             which_csv_to_assess = list_filenames[i]
         else:
             #gets list of filenames for directory "i"
             which_csv_to_assess = all_csv_filenames[i]
+#        print'IN DIR', list_filenames[i]
+        
+
 
         
         for j, filename in enumerate(which_csv_to_assess):
+            quantity_value={}
 
             dir_filename=join(directory,filename)
             attribute_dic, title_index_dic = csv2dict(dir_filename+
@@ -1789,22 +1795,28 @@ def csv2timeseries_graphs(directories_dic={},
                     #min and max are multipled by "1+increase_axis" to get axes that are slighty bigger
                     # than the max and mins so the plots look good.
 
-                    increase_axis = 0.05
+                    increase_axis = (max-min)*0.05
+#                    print quantity, "MIN MAX", max, min
                     if min<=min_quantity_value[quantity]:
                         if quantity == 'time': 
                             min_quantity_value[quantity]=min
                         else:
-                            if round(min,1) == 0.0:
-                                min_quantity_value[quantity]=-2.
+                            if round(min,2) == 0.00:
+                                min_quantity_value[quantity]=-increase_axis
+#                                min_quantity_value[quantity]=-2.
                                 #min_quantity_value[quantity]= -max_quantity_value[quantity]*increase_axis
                             else:
-                                min_quantity_value[quantity]=min*(1+increase_axis)
+#                                min_quantity_value[quantity]=min*(1+increase_axis)
+                                min_quantity_value[quantity]=min-increase_axis
+#                        print quantity, min_quantity_value[quantity]
                     
                     if max>max_quantity_value[quantity]: 
                         if quantity == 'time': 
                             max_quantity_value[quantity]=max
                         else:
-                            max_quantity_value[quantity]=max*(1+increase_axis)
+                            max_quantity_value[quantity]=max+increase_axis
+#                            max_quantity_value[quantity]=max*(1+increase_axis)
+#                        print quantity, max_quantity_value[quantity],increase_axis
                 
 #                print 'min,maj',quantity, min_quantity_value[quantity],max_quantity_value[quantity]
 
@@ -1817,8 +1829,11 @@ def csv2timeseries_graphs(directories_dic={},
             if max_start_time < directory_start_time: 
                 max_start_time = directory_start_time
             #print 'start_time' , max_start_time, min_start_time
+            
+            filename_quantity_value[filename]=quantity_value
+            
+        directory_quantity_value[directory]=filename_quantity_value
     
-
     #final step to unifrom axis for the graphs
     quantities_axis={}
     for i, quantity in enumerate(quantities):
@@ -1847,7 +1862,11 @@ def csv2timeseries_graphs(directories_dic={},
     for i, directory in enumerate(directories_dic.keys()): 
         if verbose: print'Plotting in %s %s' %(directory, new_plot_numbers)
 #        print 'LIST',list_filenames
+        #FIXME THIS SORT IS VERY IMPORTANT, without it the assigned plot numbers may not work correctly
+        #there must be a better way
+        list_filenames[i].sort()
         for j, filename in enumerate(list_filenames[i]):
+#            print'IN plot', list_filenames[i]
             
             if verbose: print'Starting %s' %filename  
             directory_name = directories_dic[directory][0]
@@ -1859,10 +1878,11 @@ def csv2timeseries_graphs(directories_dic={},
             #print 'i %s,j %s, number %s, file %s' %(i,j,number,file)
             attribute_dic, title_index_dic = csv2dict(directory+filename+'.csv')
             #get data from dict in to list
-            t = [float(x) for x in attribute_dic["time"]]
+#            t = [float(x) for x in attribute_dic["time"]]
 
             #do maths to list by changing to array
-            t=(array(t)+directory_start_time)/seconds_in_minutes
+#            t=(array(t)+directory_start_time)/seconds_in_minutes
+            t=(array(directory_quantity_value[directory][filename]['time'])+directory_start_time)/seconds_in_minutes
 
             #finds the maximum elevation, used only as a test
             # and as info in the graphs
@@ -1877,10 +1897,10 @@ def csv2timeseries_graphs(directories_dic={},
 
             #populates the legend_list_dic with dir_name and the elevation
             if i==0:
-                legend_list_dic.append({directory_name:round(max_ele,2)})
+                legend_list_dic.append({directory_name:round(max_ele,3)})
             else:
                 #print j,max_ele, directory_name, legend_list_dic
-                legend_list_dic[j][directory_name]=round(max_ele,2)
+                legend_list_dic[j][directory_name]=round(max_ele,3)
 
             # creates a list for the legend after at "legend_dic" has been fully populated
             # only runs on the last iteration for all the gauges(csv) files
@@ -1895,13 +1915,17 @@ def csv2timeseries_graphs(directories_dic={},
             #remove time so it is not plotted!
             for k, quantity in enumerate(quantities):
                 if quantity != 'time' and quantity != 'elevation':
-                    quantity_value[quantity] = [float(x) for x in attribute_dic[quantity]]
-        
+                    #quantity_value[quantity] = [float(x) for x in attribute_dic[quantity]]
+                    
+                    #add tide to stage if provided
+#                    if quantity == 'stage':
+#                        quantity_value[quantity]=array(quantity_value[quantity])+directory_add_tide
+                    
                     num=int(k*100+j)
                     pylab.figure(num)
-
+#                    print directory,len(t),'LENgth',len(directory_quantity_value[directory]),directory_quantity_value[directory][filename][quantity][1:10]
                     pylab.ylabel(quantities_label[quantity])
-                    pylab.plot(t, quantity_value[quantity], c = cstr[i], linewidth=1)
+                    pylab.plot(t, directory_quantity_value[directory][filename][quantity], c = cstr[i], linewidth=1)
                     pylab.xlabel(quantities_label['time'])
                     pylab.axis(quantities_axis[quantity])
                     pylab.legend(legend_list,loc='upper right')
