@@ -1857,7 +1857,7 @@ def csv2timeseries_graphs(directories_dic={},
     if verbose: print 'Now start to plot \n'
     
     i_max = len(directories_dic.keys())
-    legend_list_dic =[]
+    legend_list_dic={}
     legend_list =[]
     for i, directory in enumerate(directories_dic.keys()): 
         if verbose: print'Plotting in %s %s' %(directory, new_plot_numbers)
@@ -1878,10 +1878,7 @@ def csv2timeseries_graphs(directories_dic={},
             #print 'i %s,j %s, number %s, file %s' %(i,j,number,file)
             attribute_dic, title_index_dic = csv2dict(directory+filename+'.csv')
             #get data from dict in to list
-#            t = [float(x) for x in attribute_dic["time"]]
-
             #do maths to list by changing to array
-#            t=(array(t)+directory_start_time)/seconds_in_minutes
             t=(array(directory_quantity_value[directory][filename]['time'])+directory_start_time)/seconds_in_minutes
 
             #finds the maximum elevation, used only as a test
@@ -1895,40 +1892,39 @@ def csv2timeseries_graphs(directories_dic={},
             if min_ele != max_ele:
                 print "Note! Elevation changes in %s" %dir_filename
 
-            #populates the legend_list_dic with dir_name and the elevation
-            if i==0:
-                legend_list_dic.append({directory_name:round(max_ele,3)})
-            else:
-                #print j,max_ele, directory_name, legend_list_dic
-                legend_list_dic[j][directory_name]=round(max_ele,3)
+            # creates a dictionary with keys that is the filename and attributes are a list of 
+            # lists containing 'directory_name' and 'elevation'. This is used to make the contents
+            # for the legends in the graphs, this is the name of the model and the elevation.
+            # All in this great one liner from DG. If the key 'filename' doesn't exist it creates the 
+            # entry if the entry exist it appends to the key.
+            
+            legend_list_dic.setdefault(filename,[]).append([directory_name,round(max_ele,3)])
 
-            # creates a list for the legend after at "legend_dic" has been fully populated
+            # creates a LIST for the legend on the last iteration of the directories
+            # which is when "legend_list_dic" has been fully populated. Creates a list of strings 
+            # which is used in the legend
             # only runs on the last iteration for all the gauges(csv) files
             # empties the list before creating it 
             if i==i_max-1:
                 legend_list=[]
-                for k, l in legend_list_dic[j].iteritems():
-                    legend_list.append('%s (elevation = %sm)'%(k,l))
-                    #print k,l, legend_list_dic[j]
+    
+                print 'DIC',legend_list_dic
+                for name_and_elevation in legend_list_dic[filename]:
+                    legend_list.append('%s (elevation = %sm)'%(name_and_elevation[0],name_and_elevation[1]))
             
             #print 'filename',filename, quantities
-            #remove time so it is not plotted!
+            #skip time and elevation so it is not plotted!
             for k, quantity in enumerate(quantities):
                 if quantity != 'time' and quantity != 'elevation':
-                    #quantity_value[quantity] = [float(x) for x in attribute_dic[quantity]]
-                    
-                    #add tide to stage if provided
-#                    if quantity == 'stage':
-#                        quantity_value[quantity]=array(quantity_value[quantity])+directory_add_tide
                     
                     num=int(k*100+j)
                     pylab.figure(num)
-#                    print directory,len(t),'LENgth',len(directory_quantity_value[directory]),directory_quantity_value[directory][filename][quantity][1:10]
                     pylab.ylabel(quantities_label[quantity])
                     pylab.plot(t, directory_quantity_value[directory][filename][quantity], c = cstr[i], linewidth=1)
                     pylab.xlabel(quantities_label['time'])
                     pylab.axis(quantities_axis[quantity])
                     pylab.legend(legend_list,loc='upper right')
+                    
                     pylab.title('%s at %s gauge' %(quantity,filename[len(base_name):]))
                     if output_dir == '':
                         figname = '%s%s_%s%s.png' %(directory,
