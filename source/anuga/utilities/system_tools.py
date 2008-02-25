@@ -202,3 +202,39 @@ def compute_checksum(filename, max_length=2**20):
     fid.close()
 
     return crcval
+
+def get_pathname_from_package(package):
+    """Get pathname of given package (provided as string)
+
+    This is useful for reading files residing in the same directory as
+    a particular module. Typically, this is required in unit tests depending
+    on external files.
+
+    The given module must start from a directory on the pythonpath
+    and be importable using the import statement.
+
+    Example
+    path = get_pathname_from_package('anuga.utilities')
+
+    """
+
+    exec('import %s as x' %package)
+
+    path = x.__path__[0]
+    
+    return path
+
+    # Alternative approach that has been used at times
+    #try:
+    #    # When unit test is run from current dir
+    #    p1 = read_polygon('mainland_only.csv')
+    #except: 
+    #    # When unit test is run from ANUGA root dir
+    #    from os.path import join, split
+    #    dir, tail = split(__file__)
+    #    path = join(dir, 'mainland_only.csv')
+    #    p1 = read_polygon(path)
+        
+            
+
+

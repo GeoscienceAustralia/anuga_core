@@ -108,8 +108,8 @@ class Test_system_tools(unittest.TestCase):
         """
 
         # Get path where this test is run
-        import anuga.utilities as u
-        path = u.__path__[0]
+        path = get_pathname_from_package('anuga.utilities')
+        
         filename = path + sep +  'crc_test_file.png'
 
         ref_crc = 1203293305 # Computed on Windows box

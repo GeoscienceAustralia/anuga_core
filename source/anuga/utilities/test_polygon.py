@@ -5,6 +5,7 @@ import unittest
 from Numeric import zeros, array, allclose
 from math import sqrt, pi
 from anuga.utilities.numerical_tools import ensure_numeric
+from anuga.utilities.system_tools import get_pathname_from_package
 
 from polygon import *
 from anuga.coordinate_transforms.geo_reference import Geo_reference
@@ -59,18 +60,14 @@ class Test_Polygon(unittest.TestCase):
     def test_polygon_function_csvfile(self):
         from os import sep, getenv
 
+
+        # Get path where this test is run
+        path = get_pathname_from_package('anuga.utilities')
+
+        # Form absolute filename and read
+        filename = path + sep +  'mainland_only.csv'
+        p1 = read_polygon(filename)        
         
-        try:
-            # When unit test is run from current dir
-            p1 = read_polygon('mainland_only.csv')
-        except: 
-            # When unit test is run from ANUGA root dir
-            from os.path import join, split
-            dir, tail = split( __file__)
-            path = join(dir, 'mainland_only.csv')
-            p1 = read_polygon(path)
-        
-            
         
         f = Polygon_function( [(p1, 10.0)] )
         z = f([430000,480000], [7720000, 7690000]) #first outside, second inside
