@@ -11,7 +11,7 @@ from anuga.abstract_2d_finite_volumes.util import add_directories, \
 
 from anuga.utilities.system_tools import get_user_name
 
-boundary_file = 'boundary.tsm'
+boundary_file = 'boundary_mellow.tsm'
 
 class Project:    
     def __init__(self,
