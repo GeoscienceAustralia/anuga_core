@@ -1471,7 +1471,7 @@ class Domain(Mesh):
                     print msg
                     timestep = min_timestep  # Try enforcing min_step
 
-                    #print self.timestepping_statistics(track_speeds=True)
+                    print self.timestepping_statistics(track_speeds=True)
 
                     raise Exception, msg
                 else:
