@@ -26,9 +26,9 @@ from os.path import dirname  #, basename
 
 # Related major packages
 from anuga.shallow_water import Domain, Reflective_boundary, \
-                            Dirichlet_boundary,  Time_boundary, \
-                            File_boundary, \
-                            Transmissive_Momentum_Set_Stage_boundary
+     Dirichlet_boundary,  Time_boundary, \
+     File_boundary, \
+     Transmissive_Momentum_Set_Stage_boundary
 from anuga.fit_interpolate.interpolate import interpolate_sww2csv
 from anuga.abstract_2d_finite_volumes.util import start_screen_catcher, \
      copy_code_files, file_function
@@ -58,6 +58,7 @@ def main(friction=0.01, outputdir_name=None, is_trial_run=False):
         yieldstep = 0.1
         finaltime = 15.
         maximum_triangle_area=0.01
+        #maximum_triangle_area=0.1 #OK
     else:
         yieldstep = 0.02
         finaltime = 15.1
@@ -68,7 +69,7 @@ def main(friction=0.01, outputdir_name=None, is_trial_run=False):
     pro_instance = project.Project([],
                                    outputdir_name=outputdir_name,
                                    home='.')
-    print "The output dir is", pro_instance.outputdir
+    print 'The output dir is', pro_instance.outputdir
     copy_code_files(pro_instance.outputdir,__file__,
                     dirname(project.__file__) \
                     + sep + project.__name__+'.py')
@@ -89,6 +90,8 @@ def main(friction=0.01, outputdir_name=None, is_trial_run=False):
         start_screen_catcher(pro_instance.outputdir, rank, pypar.size())
 
     print 'USER:    ', pro_instance.user
+
+    
     #-------------------------------------------------------------------------
     # Create the triangular mesh
     #-------------------------------------------------------------------------
@@ -131,6 +134,11 @@ def main(friction=0.01, outputdir_name=None, is_trial_run=False):
 
     # Create boundary function from timeseries provided in file
     function = file_function(project.boundary_file, domain, verbose=True)
+
+    #print dir(function)
+    #print function.time, function.quantities_range
+    #import sys; sys.exit()
+    
     Bts = Transmissive_Momentum_Set_Stage_boundary(domain, function)
 
     Br = Reflective_boundary(domain)
@@ -144,10 +152,11 @@ def main(friction=0.01, outputdir_name=None, is_trial_run=False):
     t0 = time.time()
 
     for t in domain.evolve(yieldstep, finaltime):
-    
-        domain.write_time()
-        print 'That took %.2f seconds' %(time.time()-t0)
-        print 'finished'
+        print domain.timestepping_statistics(track_speeds=False)
+        print domain.boundary_statistics(tags=['wave'])
+        
+    print 'That took %.2f seconds' %(time.time()-t0)
+    print 'finished'
 
     points = [[2.8,0.225],  #-1.8m from SWL
               [5.1,0.225],  #0.5m from SWL
