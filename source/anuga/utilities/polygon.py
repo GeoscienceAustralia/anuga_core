@@ -4,11 +4,12 @@
 """
 
 
-try:
-    from scipy import Float, Int, zeros, ones, array, concatenate, reshape, dot
-except:
-    #print 'Could not find scipy - using Numeric'
-    from Numeric import Float, Int, zeros, ones, array, concatenate, reshape, dot
+#try:
+#    from scipy import Float, Int, zeros, ones, array, concatenate, reshape, dot
+#except:
+#    #print 'Could not find scipy - using Numeric'
+
+from Numeric import Float, Int, zeros, ones, array, concatenate, reshape, dot
 
 
 from math import sqrt
@@ -336,7 +337,7 @@ def polygon_area(polygon):
     return abs(poly_area/2)
 
 def plot_polygons(polygons_points, style=None, 
-                         figname=None, label=None, verbose=False):
+                  figname=None, label=None, verbose=False):
     
     """ Take list of polygons and plot.
 
@@ -571,6 +572,20 @@ def read_polygon(filename, split=','):
     return polygon
 
 
+def write_polygon(polygon, filename=None):
+    """Write polygon to csv file.
+       There will be exactly two numbers, easting and northing,
+       in each line separated by a comma.
+       
+       No header.    
+    """
+
+    fid = open(filename, 'w')
+    for point in polygon:
+        fid.write('%f, %f\n' %point)
+    fid.close()
+    
+
 def populate_polygon(polygon, number_of_points, seed=None, exclude=None):
     """Populate given polygon with uniformly distributed points.
 
@@ -594,7 +609,7 @@ def populate_polygon(polygon, number_of_points, seed=None, exclude=None):
 
     points = []
 
-    #Find outer extent of polygon
+    # Find outer extent of polygon
     max_x = min_x = polygon[0][0]
     max_y = min_y = polygon[0][1]
     for point in polygon[1:]:
@@ -720,6 +735,38 @@ def number_mesh_triangles(interior_regions, bounding_poly, remainder_res):
 
     return int(total_number_of_triangles)
 
+
+def decimate_polygon(polygon, factor=10):
+    """Reduce number of points in polygon by the specified
+    factor (default=10, hence the name of the function) such that
+    the extrema in both axes are preserved.
+
+    Return reduced polygon
+    """
+
+    # FIXME(Ole): This doesn't work at present,
+    # but it isn't critical either
+
+    # Find outer extent of polygon
+    num_polygon = ensure_numeric(polygon)
+    max_x = max(num_polygon[:,0])
+    max_y = max(num_polygon[:,1])
+    min_x = min(num_polygon[:,0])
+    min_y = min(num_polygon[:,1])        
+
+    # Keep only some points making sure extrema are kept
+    reduced_polygon = []    
+    for i, point in enumerate(polygon):
+        x = point[0]
+        y = point[1]        
+        if x in [min_x, max_x] and y in [min_y, max_y]:
+            # Keep
+            reduced_polygon.append(point)
+        else:
+            if len(reduced_polygon)*factor < i:
+                reduced_polygon.append(point)                
+
+    return reduced_polygon
 
 ##############################################
 #Initialise module

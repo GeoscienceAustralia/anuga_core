@@ -67,11 +67,10 @@ class Test_Polygon(unittest.TestCase):
         # Form absolute filename and read
         filename = path + sep +  'mainland_only.csv'
         p1 = read_polygon(filename)        
-        
-        
-        f = Polygon_function( [(p1, 10.0)] )
-        z = f([430000,480000], [7720000, 7690000]) #first outside, second inside
 
+        f = Polygon_function( [(p1, 10.0)] )
+        z = f([430000,480000], [490000,7720000]) #first outside, second inside
+        
         assert allclose(z, [0,10])
 
     def test_polygon_function_georef(self):
@@ -720,7 +719,39 @@ class Test_Polygon(unittest.TestCase):
 	assert is_inside_polygon(points_spatial, polygon_absolute)
 
 	assert is_inside_polygon(points_absolute, polygon_absolute)
+
+
+    def NOtest_decimate_polygon(self):
+
+        polygon = [[0,0], [10,10], [15,5], [20, 10],
+                   [25,0], [30,10], [40,-10], [35, -5]]
+
+        #plot_polygons([polygon], figname='test')
         
+        dpoly = decimate_polygon(polygon, factor=2)
+
+        print dpoly
+        
+        assert len(dpoly)*2==len(polygon)
+
+        minx = maxx = polygon[0][0]
+        miny = maxy = polygon[0][1]
+        for point in polygon[1:]:
+            x, y = point
+            
+            if x < minx: minx = x
+            if x > maxx: maxx = x
+            if y < miny: miny = y
+            if y > maxy: maxy = y
+            
+
+        assert [minx, miny] in polygon
+        print minx, maxy
+        assert [minx, maxy] in polygon
+        assert [maxx, miny] in polygon
+        assert [maxx, maxy] in polygon                
+        
+
         
 #-------------------------------------------------------------
 if __name__ == "__main__":
