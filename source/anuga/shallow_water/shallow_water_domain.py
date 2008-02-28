@@ -993,15 +993,18 @@ class Transmissive_Momentum_Set_Stage_boundary(Boundary):
 
         q = self.domain.get_conserved_quantities(vol_id, edge = edge_id)
 
-        # Roll boundary over if time exceeds
+
         t = self.domain.time
-        while t > self.function.time[-1]:
-            msg = 'WARNING: domain time %.2f has exceeded' %t
-            msg += 'time provided in '
-            msg += 'transmissive_momentum_set_stage boundary object.\n'
-            msg += 'I will continue, reusing the object from t==0'
-            print msg
-            t -= self.function.time[-1]
+
+        if hasattr(self.function, 'time'):
+            # Roll boundary over if time exceeds            
+            while t > self.function.time[-1]:
+                msg = 'WARNING: domain time %.2f has exceeded' %t
+                msg += 'time provided in '
+                msg += 'transmissive_momentum_set_stage boundary object.\n'
+                msg += 'I will continue, reusing the object from t==0'
+                print msg
+                t -= self.function.time[-1]
 
 
         value = self.function(t)

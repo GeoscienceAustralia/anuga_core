@@ -400,15 +400,17 @@ def plot_polygons(polygons_points, style=None,
         xlabel('x')
         ylabel('y')
         title(label)
-        
-    if minx <> 0:
-        axis([minx*0.9,maxx*1.1,miny*0.9,maxy*1.1])
-    else:
-        if miny == 0:
-            axis([-maxx*.01,maxx*1.1,-maxy*0.01,maxy*1.1])
-        else:
-            axis([-maxx*.01,maxx*1.1,miny*0.9,maxy*1.1])
-    
+
+    #raw_input('wait 1')
+    #FIXME(Ole): This makes for some strange scalings sometimes.
+    #if minx <> 0:
+    #    axis([minx*0.9,maxx*1.1,miny*0.9,maxy*1.1])
+    #else:
+    #    if miny == 0:
+    #        axis([-maxx*.01,maxx*1.1,-maxy*0.01,maxy*1.1])
+    #    else:
+    #        axis([-maxx*.01,maxx*1.1,miny*0.9,maxy*1.1])
+
     if figname is not None:
         savefig(figname)
     else:
