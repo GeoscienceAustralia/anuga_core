@@ -5,7 +5,7 @@ Currently only the METIS_PartMeshNodal function is implemented.
 
 Build instructions:
 Linux:
-run make in the top pymetis directory.
+run "make" in the top pymetis directory.
 
 Should the metis version change, the new metis package should be in a new
 subdirectory. Metis 4.0 is in metis-4.0
