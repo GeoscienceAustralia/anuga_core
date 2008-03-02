@@ -89,8 +89,14 @@ class Test_data_audit(unittest.TestCase):
         try:
             os.remove(tmp_name)        
         except:
-            # FIXME(Ole) This doesn't work on Windows for some reason
-            pass
+            # FIXME(DSG) Windows seems to have a problem deleting this file
+            # This is a work-a-round. It doesn't fix the root problem
+            # It does delete the file though.
+            fid = open(tmp_name, 'a')        
+            string = 'Example data file'
+            fid.write(string)
+            fid.close()
+            os.remove(tmp_name) 
         
 
 
@@ -163,8 +169,14 @@ class Test_data_audit(unittest.TestCase):
         try:
             os.remove(tmp_name)        
         except:
-            # FIXME(Ole)QThis doesn't work on Windows for some reason
-            pass        
+            # FIXME(DSG) Windows seems to have a problem deleting this file
+            # This is a work-a-round. It doesn't fix the root problem
+            # It does delete the file though.
+            fid = open(tmp_name, 'a')        
+            string = 'Example data file'
+            fid.write(string)
+            fid.close()
+            os.remove(tmp_name) 
 
 
 
