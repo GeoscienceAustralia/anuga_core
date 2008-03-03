@@ -4167,11 +4167,17 @@ def urs2nc(basename_in = 'o', basename_out = 'urs'):
                  basename_out+'_va.nc']
     quantities = ['HA','UA','VA']
 
-    for file_name in files_in:
-        if os.access(file_name, os.F_OK) == 0 :
-            msg = 'File %s does not exist or is not accessible' %file_name
-            raise IOError, msg
-        
+    #if os.access(files_in[0]+'.mux', os.F_OK) == 0 :
+    print "dfdfds"
+    for i, file_name in enumerate(files_in):
+        if os.access(file_name, os.F_OK) == 0:
+            if os.access(file_name+'.mux', os.F_OK) == 0 :
+                msg = 'File %s does not exist or is not accessible' %file_name
+                raise IOError, msg
+            else:
+               files_in[i] += '.mux'
+               print "file_name", file_name
+    print "files_in",   files_in
     hashed_elevation = None
     for file_in, file_out, quantity in map(None, files_in,
                                            files_out,
