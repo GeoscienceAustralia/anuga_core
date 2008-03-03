@@ -101,7 +101,7 @@ for time in times:
 #zoomed			32.81299996	33.5940001
 
 # results on dsg's pc dell precision 390.
-# anuga version 1497
+# anuga version 4897
 Number of user verts.  2
 maxArea 0.0001
 user_outline_created   0.00
@@ -129,7 +129,7 @@ user_outline_created   0.49   0.00
 mesh_generated   1.94   0.00
 export_mesh_file   2.75   0.00
 
-
+# anuga version 4897 
 Results of tornado head node
 Number of user verts.  2
 maxArea 5e-05

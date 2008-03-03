@@ -220,15 +220,14 @@ class Draw(AppShell.AppShell):
         ToolBarButton(self, self.toolbar, 'sep', 'sep.gif', width=10,
                       state='disabled')
         for key, func, balloon in [
-                ('visualise', self.visualise, 'Visualise mesh triangles'),
-                ('unvisualise', self.unvisualise, 'Do not visualise mesh triangles (for large meshes)')]:
+                ('see', self.visualise, 'Visualise mesh triangles'),
+                ('no_see', self.unvisualise, 'Do not visualise mesh triangles (for large meshes)')]:
             ToolBarButton(self, self.toolbar, key, '%s.gif' %key,
                           command=func, balloonhelp=balloon,
                                statushelp='' )
 
 
     def clearSelection(self,parent):
-    #FIXME looks like self.clearSelections - change name (Peter)
         """
         """
         self.canvas.delete(ALL)
