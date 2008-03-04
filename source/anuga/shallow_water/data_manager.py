@@ -1957,13 +1957,14 @@ def sww2dem(basename_in, basename_out = None,
     if verbose: print 'Processing quantity %s' %quantity
 
     # Turn NetCDF objects into Numeric arrays
-    quantity_dict = {}
-    for name in fid.variables.keys():
-        quantity_dict[name] = fid.variables[name][:] 
-
-
-    # Convert quantity expression to quantities found in sww file    
-    q = apply_expression_to_dictionary(quantity, quantity_dict)
+    try:
+        q = fid.variables[quantity][:] 
+    except:
+        quantity_dict = {}
+        for name in fid.variables.keys():
+            quantity_dict[name] = fid.variables[name][:] 
+        #Convert quantity expression to quantities found in sww file    
+        q = apply_expression_to_dictionary(quantity, quantity_dict)
 
     if len(q.shape) == 2:
         #q has a time component and needs to be reduced along
@@ -1983,7 +1984,6 @@ def sww2dem(basename_in, basename_out = None,
     #Post condition: Now q has dimension: number_of_points
     assert len(q.shape) == 1
     assert q.shape[0] == number_of_points
-
 
     if verbose:
         print 'Processed values for %s are in [%f, %f]' %(quantity, min(q), max(q))
@@ -2017,6 +2017,7 @@ def sww2dem(basename_in, basename_out = None,
     if verbose: print 'Creating grid'
     ncols = int((xmax-xmin)/cellsize)+1
     nrows = int((ymax-ymin)/cellsize)+1
+    
 
 
     #New absolute reference and coordinates
@@ -4168,7 +4169,6 @@ def urs2nc(basename_in = 'o', basename_out = 'urs'):
     quantities = ['HA','UA','VA']
 
     #if os.access(files_in[0]+'.mux', os.F_OK) == 0 :
-    print "dfdfds"
     for i, file_name in enumerate(files_in):
         if os.access(file_name, os.F_OK) == 0:
             if os.access(file_name+'.mux', os.F_OK) == 0 :
@@ -4177,7 +4177,6 @@ def urs2nc(basename_in = 'o', basename_out = 'urs'):
             else:
                files_in[i] += '.mux'
                print "file_name", file_name
-    print "files_in",   files_in
     hashed_elevation = None
     for file_in, file_out, quantity in map(None, files_in,
                                            files_out,
