@@ -1396,7 +1396,10 @@ class Test_Shallow_Water(unittest.TestCase):
         else:
             msg = 'Time interval should have raised an exception'
             raise msg
-            
+
+        #Cleanup
+        os.remove(domain.get_name() + '.' + domain.format)
+        
 
     def test_another_runup_example(self):
         """test_another_runup_example
@@ -5234,6 +5237,9 @@ class Test_Shallow_Water(unittest.TestCase):
         assert depth['min'] <= depth['max'] 
         assert depth['min'] >= 0.0
         assert depth['max'] >= 0.0        
+
+        #Cleanup
+        os.remove(domain.get_name() + '.' + domain.format)
         
 
 
