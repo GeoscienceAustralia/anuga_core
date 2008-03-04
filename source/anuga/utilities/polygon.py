@@ -484,27 +484,31 @@ class Polygon_function:
 
     Note: If two polygons overlap, the one last in the list takes precedence
 
-    Coordinates specified in the call are assumed to be relative to the origin (georeference)
-    e.g. used by domain. By specifying the optional argument georeference, all points are made relative.
+    Coordinates specified in the call are assumed to be relative to the
+    origin (georeference) e.g. used by domain.
+    By specifying the optional argument georeference,
+    all points are made relative.
 
     FIXME: This should really work with geo_spatial point sets.
     """
 
-    def __init__(self, regions, default = 0.0, geo_reference = None):
+    def __init__(self, regions, default=0.0, geo_reference=None):
 
 	try:
 	    len(regions)
 	except:
-	    msg = 'Polygon_function takes a list of pairs (polygon, value). Got %s' %polygons
-	    raise msg
+            msg = 'Polygon_function takes a list of pairs (polygon, value).'
+            msg += 'Got %s' %polygons
+            raise msg
 
 
         T = regions[0]
 	try:
             a = len(T)
 	except:
-	    msg = 'Polygon_function takes a list of pairs (polygon, value). Got %s' %polygons
-	    raise msg
+            msg = 'Polygon_function takes a list of pairs (polygon, value).'
+            msg += 'Got %s' %polygons
+            raise msg
 
 	assert a == 2, 'Must have two component each: %s' %T
 
@@ -516,9 +520,9 @@ class Polygon_function:
 
         self.default = default
 
-        #Make points in polygons relative to geo_reference
+        # Make points in polygons relative to geo_reference
         self.regions = []
-	for polygon, value in regions:
+        for polygon, value in regions:
             P = geo_reference.change_points_geo_ref(polygon)
             self.regions.append( (P, value) )
 
@@ -543,7 +547,7 @@ class Polygon_function:
 	for polygon, value in self.regions:
 	    indices = inside_polygon(points, polygon)
 
-	    #FIXME: This needs to be vectorised
+	    # FIXME: This needs to be vectorised
 	    if callable(value):
 	        for i in indices:
 		    xx = array([x[i]])
