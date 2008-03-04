@@ -12,6 +12,7 @@ from anuga.geospatial_data.geospatial_data import *
 from anuga.coordinate_transforms.geo_reference import Geo_reference, TitleError
 from anuga.coordinate_transforms.redfearn import degminsec2decimal_degrees
 from anuga.utilities.anuga_exceptions import ANUGAError
+from anuga.utilities.system_tools import get_host_name
 
 class Test_Geospatial_data(unittest.TestCase):
     def setUp(self):
@@ -1795,52 +1796,59 @@ class Test_Geospatial_data(unittest.TestCase):
     def test_split(self):
         """test if the results from spilt are disjoin sets"""
         
-        points = [[1.0, 1.0], [1.0, 2.0],[1.0, 3.0], [1.0, 4.0], [1.0, 5.0],
-                  [2.0, 1.0], [2.0, 2.0],[2.0, 3.0], [2.0, 4.0], [2.0, 5.0],
-                  [3.0, 1.0], [3.0, 2.0],[3.0, 3.0], [3.0, 4.0], [3.0, 5.0],
-                  [4.0, 1.0], [4.0, 2.0],[4.0, 3.0], [4.0, 4.0], [4.0, 5.0],
-                  [5.0, 1.0], [5.0, 2.0],[5.0, 3.0], [5.0, 4.0], [5.0, 5.0]]
-        attributes = {'depth':[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 
-                      14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25],
-                      'speed':[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 
-                      14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]}
-        G = Geospatial_data(points, attributes)
-
-        factor = 0.21
-
-        #will return G1 with 10% of points and G2 with 90%
-        G1, G2  = G.split(factor,100) 
-        
-        assert allclose(len(G), len(G1)+len(G2))
-        assert allclose(round(len(G)*factor), len(G1))
-
-        P = G1.get_data_points(absolute=False)
-        assert allclose(P, [[5.0,4.0],[4.0,3.0],[4.0,2.0],[3.0,1.0],[2.0,3.0]])
-
-        A = G1.get_attributes()
-        assert allclose(A,[24, 18, 17, 11, 8])
+        #below is a work around until the randint works on cyclones compute nodes
+        if get_host_name()[8:9]!='0':
+                
+            
+            points = [[1.0, 1.0], [1.0, 2.0],[1.0, 3.0], [1.0, 4.0], [1.0, 5.0],
+                      [2.0, 1.0], [2.0, 2.0],[2.0, 3.0], [2.0, 4.0], [2.0, 5.0],
+                      [3.0, 1.0], [3.0, 2.0],[3.0, 3.0], [3.0, 4.0], [3.0, 5.0],
+                      [4.0, 1.0], [4.0, 2.0],[4.0, 3.0], [4.0, 4.0], [4.0, 5.0],
+                      [5.0, 1.0], [5.0, 2.0],[5.0, 3.0], [5.0, 4.0], [5.0, 5.0]]
+            attributes = {'depth':[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 
+                          14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25],
+                          'speed':[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 
+                          14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]}
+            G = Geospatial_data(points, attributes)
+    
+            factor = 0.21
+    
+            #will return G1 with 10% of points and G2 with 90%
+            G1, G2  = G.split(factor,100) 
+            
+            assert allclose(len(G), len(G1)+len(G2))
+            assert allclose(round(len(G)*factor), len(G1))
+    
+            P = G1.get_data_points(absolute=False)
+            assert allclose(P, [[5.0,4.0],[4.0,3.0],[4.0,2.0],[3.0,1.0],[2.0,3.0]])
+    
+            A = G1.get_attributes()
+            assert allclose(A,[24, 18, 17, 11, 8])
         
     def test_split1(self):
         """test if the results from spilt are disjoin sets"""
-        from RandomArray import randint,seed
-        seed(100,100)
-        a_points = randint(0,999999,(10,2))
-        points = a_points.tolist()
-#        print points
+        #below is a work around until the randint works on cyclones compute nodes
+        if get_host_name()[8:9]!='0':
 
-        G = Geospatial_data(points)
-
-        factor = 0.1
-
-        #will return G1 with 10% of points and G2 with 90%
-        G1, G2  = G.split(factor,100) 
-        
-#        print 'G1',G1
-        assert allclose(len(G), len(G1)+len(G2))
-        assert allclose(round(len(G)*factor), len(G1))
-
-        P = G1.get_data_points(absolute=False)
-        assert allclose(P, [[982420.,28233.]])
+            from RandomArray import randint,seed
+            seed(100,100)
+            a_points = randint(0,999999,(10,2))
+            points = a_points.tolist()
+    #        print points
+    
+            G = Geospatial_data(points)
+    
+            factor = 0.1
+    
+            #will return G1 with 10% of points and G2 with 90%
+            G1, G2  = G.split(factor,100) 
+            
+    #        print 'G1',G1
+            assert allclose(len(G), len(G1)+len(G2))
+            assert allclose(round(len(G)*factor), len(G1))
+    
+            P = G1.get_data_points(absolute=False)
+            assert allclose(P, [[982420.,28233.]])
 
  
     def test_find_optimal_smoothing_parameter(self):
@@ -1851,36 +1859,39 @@ class Test_Geospatial_data(unittest.TestCase):
         NOTE the random number seed is provided to control the results
         """
         from cmath import cos
-        
-        filename = tempfile.mktemp(".csv")
-        file = open(filename,"w")
-        file.write("x,y,elevation \n")
 
-        for i in range(-5,6):
-            for j in range(-5,6):
-                #this equation made surface like a circle ripple
-                z = abs(cos(((i*i) + (j*j))*.1)*2)
-#                print 'x,y,f',i,j,z
-                file.write("%s, %s, %s\n" %(i, j, z))
-                
-        file.close()
- 
-        value, alpha = find_optimal_smoothing_parameter(data_file=filename, 
-                                             alpha_list=[0.0001, 0.01, 1],
-                                             mesh_file=None,
-                                             mesh_resolution=3,
-                                             north_boundary=5,
-                                             south_boundary=-5,
-                                             east_boundary=5,
-                                             west_boundary=-5,
-                                             plot_name=None,
-                                             seed_num=100000,
-                                             verbose=False)
+        #below is a work around until the randint works on cyclones compute nodes
+        if get_host_name()[8:9]!='0':
 
-        os.remove(filename)
-        
-#        print value, alpha
-        assert (alpha==0.01)
+            filename = tempfile.mktemp(".csv")
+            file = open(filename,"w")
+            file.write("x,y,elevation \n")
+    
+            for i in range(-5,6):
+                for j in range(-5,6):
+                    #this equation made surface like a circle ripple
+                    z = abs(cos(((i*i) + (j*j))*.1)*2)
+    #                print 'x,y,f',i,j,z
+                    file.write("%s, %s, %s\n" %(i, j, z))
+                    
+            file.close()
+     
+            value, alpha = find_optimal_smoothing_parameter(data_file=filename, 
+                                                 alpha_list=[0.0001, 0.01, 1],
+                                                 mesh_file=None,
+                                                 mesh_resolution=3,
+                                                 north_boundary=5,
+                                                 south_boundary=-5,
+                                                 east_boundary=5,
+                                                 west_boundary=-5,
+                                                 plot_name=None,
+                                                 seed_num=100000,
+                                                 verbose=False)
+    
+            os.remove(filename)
+            
+    #        print value, alpha
+            assert (alpha==0.01)
 
     def test_find_optimal_smoothing_parameter1(self):
         """
@@ -1890,47 +1901,50 @@ class Test_Geospatial_data(unittest.TestCase):
         
         NOTE the random number seed is provided to control the results
         """
-        from cmath import cos
-        from anuga.pmesh.mesh_interface import create_mesh_from_regions
-        
-        filename = tempfile.mktemp(".csv")
-        file = open(filename,"w")
-        file.write("x,y,elevation \n")
+        #below is a work around until the randint works on cyclones compute nodes
+        if get_host_name()[8:9]!='0':
 
-        for i in range(-5,6):
-            for j in range(-5,6):
-                #this equation made surface like a circle ripple
-                z = abs(cos(((i*i) + (j*j))*.1)*2)
-#                print 'x,y,f',i,j,z
-                file.write("%s, %s, %s\n" %(i, j, z))
-                
-        file.close()
-        poly=[[5,5],[5,-5],[-5,-5],[-5,5]]
-        internal_poly=[[[[1,1],[1,-1],[-1,-1],[-1,1]],.5]]
-        mesh_filename= tempfile.mktemp(".msh")
-        
-        create_mesh_from_regions(poly,
-                             boundary_tags={'back': [2],
-                                            'side': [1,3],
-                                            'ocean': [0]},
-                         maximum_triangle_area=3,
-                         interior_regions=internal_poly,
-                         filename=mesh_filename,
-                         use_cache=False,
-                         verbose=False)
- 
-        value, alpha = find_optimal_smoothing_parameter(data_file=filename, 
-                                             alpha_list=[0.0001, 0.01, 1],
-                                             mesh_file=mesh_filename,
-                                             plot_name=None,
-                                             seed_num=174,
-                                             verbose=False)
-
-        os.remove(filename)
-        os.remove(mesh_filename)
-        
-#        print value, alpha
-        assert (alpha==0.01)
+            from cmath import cos
+            from anuga.pmesh.mesh_interface import create_mesh_from_regions
+            
+            filename = tempfile.mktemp(".csv")
+            file = open(filename,"w")
+            file.write("x,y,elevation \n")
+    
+            for i in range(-5,6):
+                for j in range(-5,6):
+                    #this equation made surface like a circle ripple
+                    z = abs(cos(((i*i) + (j*j))*.1)*2)
+    #                print 'x,y,f',i,j,z
+                    file.write("%s, %s, %s\n" %(i, j, z))
+                    
+            file.close()
+            poly=[[5,5],[5,-5],[-5,-5],[-5,5]]
+            internal_poly=[[[[1,1],[1,-1],[-1,-1],[-1,1]],.5]]
+            mesh_filename= tempfile.mktemp(".msh")
+            
+            create_mesh_from_regions(poly,
+                                 boundary_tags={'back': [2],
+                                                'side': [1,3],
+                                                'ocean': [0]},
+                             maximum_triangle_area=3,
+                             interior_regions=internal_poly,
+                             filename=mesh_filename,
+                             use_cache=False,
+                             verbose=False)
+     
+            value, alpha = find_optimal_smoothing_parameter(data_file=filename, 
+                                                 alpha_list=[0.0001, 0.01, 1],
+                                                 mesh_file=mesh_filename,
+                                                 plot_name=None,
+                                                 seed_num=174,
+                                                 verbose=False)
+    
+            os.remove(filename)
+            os.remove(mesh_filename)
+            
+    #        print value, alpha
+            assert (alpha==0.01)
 
     def test_find_optimal_smoothing_parameter2(self):
         """
