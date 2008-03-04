@@ -48,7 +48,7 @@ class Test_Polygon(unittest.TestCase):
 
 
 	f = Polygon_function( [(p2, 2.0)] )
-	z = f([5, 5, 27, 35], [5, 9, 8, -5]) #First and last inside p2
+	z = f([5, 5, 27, 35], [5, 9, 8, -5]) # First and last inside p2
 	assert allclose(z, [2,0,0,2])
 
 
@@ -69,7 +69,7 @@ class Test_Polygon(unittest.TestCase):
         p1 = read_polygon(filename)        
 
         f = Polygon_function( [(p1, 10.0)] )
-        z = f([430000,480000], [490000,7720000]) #first outside, second inside
+        z = f([430000,480000], [490000,7720000]) # first outside, second inside
         
         assert allclose(z, [0,10])
 
@@ -81,29 +81,29 @@ class Test_Polygon(unittest.TestCase):
 
         geo = Geo_reference(56, 200, 1000)
 
-        #Make points 'absolute'
+        # Make points 'absolute'
         p1 = [[200,1000], [210,1000], [210,1010], [200,1010]]
         p2 = [[200,1000], [210,1010], [215,1005], [220, 1010], [225,1000],
               [230,1010], [240,990]]
 
-	f = Polygon_function( [(p1, 1.0)], geo_reference = geo )
+	f = Polygon_function( [(p1, 1.0)], geo_reference=geo)
 	z = f([5, 5, 27, 35], [5, 9, 8, -5]) #Two first inside p1
 
 	assert allclose(z, [1,1,0,0])
 
 
-	f = Polygon_function( [(p2, 2.0)], geo_reference = geo )
+	f = Polygon_function( [(p2, 2.0)], geo_reference=geo)
 	z = f([5, 5, 27, 35], [5, 9, 8, -5]) #First and last inside p2
 	assert allclose(z, [2,0,0,2])
 
 
-	#Combined
-	f = Polygon_function( [(p1, 1.0), (p2, 2.0)], geo_reference = geo )
+	# Combined
+	f = Polygon_function( [(p1, 1.0), (p2, 2.0)], geo_reference=geo)
 	z = f([5, 5, 27, 35], [5, 9, 8, -5])
 	assert allclose(z, [2,1,0,2])
 
 
-	#Check that it would fail without geo
+	# Check that it would fail without geo
 	f = Polygon_function( [(p1, 1.0), (p2, 2.0)])
 	z = f([5, 5, 27, 35], [5, 9, 8, -5])
 	assert not allclose(z, [2,1,0,2])        
@@ -121,19 +121,19 @@ class Test_Polygon(unittest.TestCase):
 	z = f([5, 5, 27, 35], [5, 9, 8, -5]) #Two first inside p1
 	assert allclose(z, [10,14,0,0])
 
-	#Combined
+	# Combined
 	f = Polygon_function( [(p1, test_function), (p2, 2.0)] )
 	z = f([5, 5, 27, 35], [5, 9, 8, -5])
 	assert allclose(z, [2,14,0,2])
 
 
-	#Combined w default
+	# Combined w default
 	f = Polygon_function( [(p1, test_function), (p2, 2.0)], default = 3.14)
 	z = f([5, 5, 27, 35], [5, 9, 8, -5])
 	assert allclose(z, [2,14,3.14,2])
 
 
-	#Combined w default func
+	# Combined w default func
 	f = Polygon_function( [(p1, test_function), (p2, 2.0)],
 			      default = test_function)
 	z = f([5, 5, 27, 35], [5, 9, 8, -5])

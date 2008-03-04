@@ -1397,8 +1397,13 @@ class Test_Shallow_Water(unittest.TestCase):
             msg = 'Time interval should have raised an exception'
             raise msg
 
-        #Cleanup
-        os.remove(domain.get_name() + '.' + domain.format)
+        # Cleanup
+        try:
+            os.remove(domain.get_name() + '.' + domain.format)
+        except:
+            pass
+            #FIXME(Ole): Windows won't allow removal of this
+            
         
 
     def test_another_runup_example(self):
