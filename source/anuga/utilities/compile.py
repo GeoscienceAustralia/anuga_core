@@ -131,9 +131,6 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
      
     libext = 'dll'
 
-    v = version.replace('.','')
-    dllfilename = 'python%s.dll' %(v)
-    #libs = os.path.join(sys.exec_prefix,dllfilename)
     libs, is_found = set_python_dll_path()
       
   else:
@@ -355,7 +352,8 @@ def can_use_C_extension(filename):
 
 
 def set_python_dll_path():
-  """ Find which of the two usual hiding places the python dll is located.
+  """ On windows, find which of the two usual hiding places the python
+  dll is located.
 
   If the file can't be found, return None.
   """
@@ -369,8 +367,9 @@ def set_python_dll_path():
 
   is_found = True   
   if access(libs,F_OK) == 0 :
-    # Hacky - fix if you want
-    libs = os.path.join('c:'+os.sep+'WINNT'+os.sep+'system32',dllfilename)
+    # Sometimes python dll is hidden in %WINDIR%/system32
+    libs = os.path.join(os.environ.get('WINDIR', 'C:\WINNT'), 'system32',
+                        dllfilename)
     if access(libs,F_OK) == 0 :
       # could not find the dll
       libs = os.path.join(sys.exec_prefix,dllfilename)
