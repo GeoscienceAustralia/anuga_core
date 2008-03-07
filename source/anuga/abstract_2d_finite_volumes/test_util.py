@@ -1332,16 +1332,16 @@ class Test_Util(unittest.TestCase):
 #        assert min1==-10 
 #        assert max1==10
         
-    def bad_test_make_plots_from_csv_files(self):
-        
-        try: 
-            import pylab
-        except ImportError:
-            #ANUGA don't need pylab to work so the system doesn't 
-            #rely on pylab being installed 
-            return
+    def test_make_plots_from_csv_files(self):
         
         if sys.platform == 'win32':  #Windows
+            try: 
+                import pylab
+            except ImportError:
+                #ANUGA don't need pylab to work so the system doesn't 
+                #rely on pylab being installed 
+                return
+            
         
             current_dir=getcwd()+sep+'abstract_2d_finite_volumes'
             temp_dir = tempfile.mkdtemp('','figures')
