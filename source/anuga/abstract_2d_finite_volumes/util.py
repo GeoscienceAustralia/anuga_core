@@ -2026,11 +2026,11 @@ def sww2csv_gauges(sww_file,
             point2, 10.3, 70.3, 78.0
         
         NOTE: order of column can change but names eg 'easting', elevation' 
-        must be the same!
+        must be the same! ALL lowercaps!
         
     Outputs:
         one file for each gauge/point location in the points file. They
-        will be named with this format
+        will be named with this format in the same directory as the 'sww_file'
             gauge_<name>.csv    eg gauge_point1.csv
             
         They will all have a header
