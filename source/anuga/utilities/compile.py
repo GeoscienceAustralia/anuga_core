@@ -129,7 +129,12 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
     else:  
       sharedflag = 'shared'
      
-    libext = 'dll'
+    # As of python2.5, .pyd is the extension for python extension
+    # modules.
+    if sys.version_info[0:2] >= (2, 5):
+      libext = 'pyd'
+    else:
+      libext = 'dll'
 
     libs, is_found = set_python_dll_path()
       
