@@ -1836,10 +1836,11 @@ def csv2timeseries_graphs(directories_dic={},
     
     #final step to unifrom axis for the graphs
     quantities_axis={}
+    
     for i, quantity in enumerate(quantities):
-        quantities_axis[quantity] = (min_start_time/seconds_in_minutes,
-                                        (max_quantity_value['time']+max_start_time)\
-                                              /seconds_in_minutes,
+        quantities_axis[quantity] = (float(min_start_time)/float(seconds_in_minutes),
+                                        (float(max_quantity_value['time'])+float(max_start_time))\
+                                              /float(seconds_in_minutes),
                                          min_quantity_value[quantity], 
                                          max_quantity_value[quantity])
         if verbose and (quantity != 'time' and quantity != 'elevation'): 
@@ -1850,6 +1851,7 @@ def csv2timeseries_graphs(directories_dic={},
                                quantities_axis[quantity][2],
                                quantities_axis[quantity][3],
                                quantities_label[quantity])
+    
         #print  quantities_axis[quantity]
 
     cstr = ['b', 'r', 'g', 'c', 'm', 'y', 'k']
@@ -1908,7 +1910,7 @@ def csv2timeseries_graphs(directories_dic={},
             if i==i_max-1:
                 legend_list=[]
     
-                print 'DIC',legend_list_dic
+                #print 'DIC',legend_list_dic
                 for name_and_elevation in legend_list_dic[filename]:
                     legend_list.append('%s (elevation = %sm)'%(name_and_elevation[0],name_and_elevation[1]))
             
