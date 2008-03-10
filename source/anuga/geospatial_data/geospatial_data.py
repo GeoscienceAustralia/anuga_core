@@ -281,13 +281,13 @@ class Geospatial_data:
         if isinstance(polygon, Geospatial_data):
             # Polygon is an object - extract points
             polygon = polygon.get_data_points()
-            #print 'polygon',polygon
 
         points = self.get_data_points()    
-        #print '%s points:%s' %(verbose,points)
+#        if verbose: print '%s points:%s' %(verbose,points)
         inside_indices = inside_polygon(points, polygon, closed, verbose)
 
         clipped_G = self.get_sample(inside_indices)
+
 #        clipped_points = take(points, inside_indices)
 
         # Clip all attributes
@@ -374,7 +374,6 @@ class Geospatial_data:
                                                   zone, isSouthHemisphere)
                 lats_longs.append((lat_calced, long_calced)) # to hash
             return lats_longs
-            
         if absolute is True and geo_reference is None:
             return self.geo_reference.get_absolute(self.data_points)
         elif geo_reference is not None:
@@ -383,7 +382,7 @@ class Geospatial_data:
                                 self.geo_reference)
         else:
             return self.data_points
-        
+
     
     def get_attributes(self, attribute_name=None):
         """Return values for one named attribute.
@@ -616,7 +615,7 @@ class Geospatial_data:
             the indices 
             """
         #FIXME: add the geo_reference to this
-        
+#        print 'hello from get_sample'
         points = self.get_data_points()
         sampled_points = take(points, indices)
 
@@ -626,6 +625,8 @@ class Geospatial_data:
         if attributes is not None:
             for key, att in attributes.items():
                 sampled_attributes[key] = take(att, indices)
+
+#        print 'goodbye from get_sample'
 
         return Geospatial_data(sampled_points, sampled_attributes)
     
@@ -1397,6 +1398,11 @@ def find_optimal_smoothing_parameter(data_file,
                                      ):
     
     """
+    Removes a small random sample of points from 'data_file'. Then creates 
+    models with different alpha values from 'alpha_list' and cross validates 
+    the predicted value to the previously removed point data. Returns the
+    alpha value which has the smallest covariance.
+    
     data_file: must not contain points outside the boundaries defined
            and it either a pts, txt or csv file. 
     
@@ -1430,8 +1436,8 @@ def find_optimal_smoothing_parameter(data_file,
     OUTPUT: returns the minumum normalised covalance calculate AND the 
            alpha that created it. PLUS writes a plot of the results
            
-    NOTE: code will not work if the data_file extend is greater than the
-    boundary_polygon or the north_boundary...west_boundary
+    NOTE: code will not work if the data_file extent is greater than the
+    boundary_polygon or any of the boundaries, eg north_boundary...west_boundary
         
     """
 
@@ -1490,23 +1496,6 @@ def find_optimal_smoothing_parameter(data_file,
     if verbose: print 'Finish split'
     points=G_small.get_data_points()
 
-
-
-
-    #FIXME: Remove points outside boundary polygon
-#    print 'new point',len(points)
-#    
-#    new_points=[]
-#    new_points=array([],typecode=Float)
-#    new_points=resize(new_points,(len(points),2))
-#    print "BOUNDARY", boundary_poly
-#    for i,point in enumerate(points):
-#        if is_inside_polygon(point,boundary_poly, verbose=True):
-#            new_points[i] = point
-#            print"WOW",i,new_points[i]
-#    points = new_points
-
-    
     if verbose: print "Number of points in sample to compare: ", len(points)
     
     if alpha_list==None:
@@ -1516,7 +1505,6 @@ def find_optimal_smoothing_parameter(data_file,
         
     else:
         alphas=alpha_list
-#    domains = {}
 
     #creates array with columns 1 and 2 are x, y. column 3 is elevation
     #4 onwards is the elevation_predicted using the alpha, which will 
@@ -1533,10 +1521,6 @@ def find_optimal_smoothing_parameter(data_file,
 
     normal_cov=array(zeros([len(alphas),2]),typecode=Float)
 
-
-
-
-
     if verbose: print 'Setup computational domains with different alphas'
 
     #print 'memory usage before domains',mem_usage()
@@ -1551,7 +1535,6 @@ def find_optimal_smoothing_parameter(data_file,
                     use_cache = cache,
                     verbose = verbose,
                     alpha = alpha)
-#        domains[alpha]=domain
 
         points_geo=domain.geo_reference.change_points_geo_ref(points)
         #returns the predicted elevation of the points that were "split" out 
@@ -1571,27 +1554,6 @@ def find_optimal_smoothing_parameter(data_file,
         
         if verbose: print'Covariance for alpha ',normal_cov[i][0],'= ',normal_cov[i][1]
         if verbose: print'-------------------------------------------- \n'
-#    if verbose: print 'Determine difference between predicted results and actual data'
-#    for i,alpha in enumerate(domains):
-#        if verbose: print'Alpha =',alpha
-#        
-#        points_geo=domains[alpha].geo_reference.change_points_geo_ref(points)
-#        #returns the predicted elevation of the points that were "split" out 
-#        #of the original data set for one particular alpha
-#        elevation_predicted=domains[alpha].quantities[attribute_smoothed].\
-#                            get_values(interpolation_points=points_geo)
-# 
-#        #add predicted elevation to array that starts with x, y, z...
-#        data[:,i+3]=elevation_predicted
-#
-#        sample_cov= cov(elevation_sample)
-#        #print elevation_predicted
-#        ele_cov= cov(elevation_sample-elevation_predicted)
-#        normal_cov[i,:]= [alpha,ele_cov/sample_cov]
-#        print 'memory usage during compare',mem_usage()
-#        
-#
-#        if verbose: print'cov',normal_cov[i][0],'= ',normal_cov[i][1]
 
     normal_cov0=normal_cov[:,0]
     normal_cov_new=take(normal_cov,argsort(normal_cov0))
@@ -1610,6 +1572,7 @@ def find_optimal_smoothing_parameter(data_file,
             print'covariance for alpha %s = %s ' %(normal_cov[i][0],normal_cov[i][1])
         print '\n Optimal alpha is: %s ' % normal_cov_new[(argmin(normal_cov_new,axis=0))[1],0]
 
+    # covariance and optimal alpha
     return min(normal_cov_new[:,1]) , normal_cov_new[(argmin(normal_cov_new,axis=0))[1],0]
 
 def old_find_optimal_smoothing_parameter(data_file, 
