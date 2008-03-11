@@ -102,6 +102,7 @@ from anuga.config import g, epsilon, beta_h, beta_w, beta_w_dry,\
      beta_uh, beta_uh_dry, beta_vh, beta_vh_dry, tight_slope_limiters
 from anuga.config import alpha_balance
 from anuga.config import optimise_dry_cells
+from anuga.config import optimised_gradient_limiter
 
 #---------------------
 # Shallow water domain
@@ -175,7 +176,11 @@ class Domain(Generic_Domain):
         self.set_store_vertices_uniquely(False)
         self.minimum_storable_height = minimum_storable_height
         self.quantities_to_be_stored = ['stage','xmomentum','ymomentum']
-        
+
+        # Limiters
+        self.use_old_limiter = True
+
+        self.optimised_gradient_limiter = optimised_gradient_limiter
                 
 
     def set_all_limiters(self, beta):
@@ -186,10 +191,16 @@ class Domain(Generic_Domain):
 
         self.beta_w      = beta
         self.beta_w_dry  = beta
+        self.quantities['stage'].beta = beta
+        
         self.beta_uh     = beta
         self.beta_uh_dry = beta
+        self.quantities['xmomentum'].beta = beta
+        
         self.beta_vh     = beta
         self.beta_vh_dry = beta
+        self.quantities['ymomentum'].beta = beta
+        
         self.beta_h      = beta
         
 
@@ -383,7 +394,20 @@ class Domain(Generic_Domain):
     def distribute_to_vertices_and_edges(self):
         # Call correct module function
         # (either from this module or C-extension)
-        distribute_to_vertices_and_edges(self)
+        if self.use_old_limiter:
+            distribute_to_vertices_and_edges(self)
+        else:
+            for name in self.conserved_quantities:
+                Q = self.quantities[name]
+                if self._order_ == 1:
+                    Q.extrapolate_first_order()
+                elif self._order_ == 2:
+                    Q.extrapolate_second_order_and_limit()
+                    if name == 'stage':
+                        Q.bound_vertices_below_by_quantity(self.quantities['elevation'])
+                else:
+                    raise 'Unknown order'
+ 
 
 
 
@@ -398,10 +422,10 @@ class Domain(Generic_Domain):
         # Call check integrity here rather than from user scripts
         # self.check_integrity()
 
-        msg = 'Parameter beta_h must be in the interval [0, 1['
-        assert 0 <= self.beta_h <= 1.0, msg
-        msg = 'Parameter beta_w must be in the interval [0, 1['
-        assert 0 <= self.beta_w <= 1.0, msg
+        msg = 'Parameter beta_h must be in the interval [0, 2['
+        assert 0 <= self.beta_h <= 2.0, msg
+        msg = 'Parameter beta_w must be in the interval [0, 2['
+        assert 0 <= self.beta_w <= 2.0, msg
 
 
         # Initial update of vertex and edge values before any STORAGE
@@ -736,13 +760,13 @@ def distribute_to_vertices_and_edges(domain):
 
     """
 
-    from anuga.config import optimised_gradient_limiter
+    
 
     # Remove very thin layers of water
     protect_against_infinitesimal_and_negative_heights(domain)
 
     # Extrapolate all conserved quantities
-    if optimised_gradient_limiter:
+    if domain.optimised_gradient_limiter:
         # MH090605 if second order,
         # perform the extrapolation and limiting on
         # all of the conserved quantities
@@ -763,18 +787,6 @@ def distribute_to_vertices_and_edges(domain):
             if domain._order_ == 1:
                 Q.extrapolate_first_order()
             elif domain._order_ == 2:
-
-                # Experiment
-                #if name == 'stage':
-                #    #print name, 'second'
-                #    Q.extrapolate_second_order()
-                #    Q.limit()
-                #else:
-                #    #print name, 'first'                
-                #    Q.extrapolate_first_order()
-                #    #Q.extrapolate_second_order()
-                #    #Q.limit()                
-                
                 Q.extrapolate_second_order()
                 Q.limit()
             else:

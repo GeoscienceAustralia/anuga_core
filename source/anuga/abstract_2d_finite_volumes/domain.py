@@ -9,6 +9,7 @@
 
 from Numeric import allclose, argmax, zeros, Float
 from anuga.config import epsilon
+from anuga.config import beta_euler, beta_rk2
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
@@ -300,6 +301,14 @@ class Domain(Mesh):
 
         self.default_order = n
         self._order_ = self.default_order
+
+        if self.default_order == 1:
+            self.set_timestepping_method('euler')
+            #self.set_all_limiters(beta_euler)
+
+        if self.default_order == 2:
+            self.set_timestepping_method('rk2')
+            #self.set_all_limiters(beta_rk2)
         
 
     def set_quantity_vertices_dict(self, quantity_dict):
@@ -1549,10 +1558,10 @@ class Domain(Mesh):
                 Q.extrapolate_first_order()
             elif self._order_ == 2:
                 Q.extrapolate_second_order()
-                Q.limit()
+                #Q.limit()
             else:
                 raise 'Unknown order'
-            Q.interpolate_from_vertices_to_edges()
+            #Q.interpolate_from_vertices_to_edges()
 
 
     def centroid_norm(self, quantity, normfunc):

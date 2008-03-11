@@ -247,13 +247,19 @@ class Test_Data_Manager(unittest.TestCase):
                allclose(range,[-0.9352743, 0.15]) # Old slope limiters
         
         range = fid.variables['xmomentum_range'][:]
-        assert allclose(range,[0,0.4695096]) or\
-               allclose(range,[0,0.47790655]) # Old slope limiters
+
+
+
+        assert allclose(range,[0,0.4695096]) or \
+               allclose(range,[0,0.47790655]) or\
+               allclose(range,[0,0.46941957]) 
         
         range = fid.variables['ymomentum_range'][:]
         #assert allclose(range,[0,0.02174380])
+        
         assert allclose(range,[0,0.02174439]) or\
-               allclose(range,[0,0.02283983]) # Old slope limiters 
+               allclose(range,[0,0.02283983]) or\
+               allclose(range,[0,0.0217342]) # Old slope limiters 
         
         fid.close()
         os.remove(sww.filename)
@@ -323,10 +329,10 @@ class Test_Data_Manager(unittest.TestCase):
         assert allclose(time, 0.0)                
 
         extrema = fid.variables['xmomentum.extrema'][:]
-        assert allclose(extrema,[-0.06062178, 0.47886313])
+        assert allclose(extrema,[-0.06062178, 0.47873023])
         
         extrema = fid.variables['ymomentum.extrema'][:]
-        assert allclose(extrema,[0.00, 0.06241221])        
+        assert allclose(extrema,[0.00, 0.0625786])        
 
         time_interval = fid.variables['extrema.time_interval'][:]
         assert allclose(time_interval, [0,1])

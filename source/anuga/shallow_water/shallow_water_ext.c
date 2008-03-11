@@ -1087,7 +1087,7 @@ int _extrapolate_second_order_sw(int number_of_elements,
   double x,y,x0,y0,x1,y1,x2,y2,xv0,yv0,xv1,yv1,xv2,yv2; // Vertices of the auxiliary triangle
   double dx1,dx2,dy1,dy2,dxv0,dxv1,dxv2,dyv0,dyv1,dyv2,dq0,dq1,dq2,area2;
   double dqv[3], qmin, qmax, hmin, hmax;
-  double hc, h0, h1, h2, beta_tmp;
+  double hc, h0, h1, h2, beta_tmp, hfactor;
 
 	
   for (k=0; k<number_of_elements; k++) {
@@ -1184,8 +1184,13 @@ int _extrapolate_second_order_sw(int number_of_elements,
       h0 = stage_centroid_values[k0] - elevation_centroid_values[k0];
       h1 = stage_centroid_values[k1] - elevation_centroid_values[k1];
       h2 = stage_centroid_values[k2] - elevation_centroid_values[k2];
-      hmin = min(h0,min(h1,h2));
-      
+      hmin = min(min(h0,min(h1,h2)),hc);
+      //hfactor = hc/(hc + 1.0);
+
+      hfactor = 0.0;
+      if (hmin > 0.1 ) {
+	  hfactor = (hmin-0.1)/(hmin+0.4);
+      }
       
       if (optimise_dry_cells) {      
 	// Check if linear reconstruction is necessary for triangle k
@@ -1229,11 +1234,15 @@ int _extrapolate_second_order_sw(int number_of_elements,
       find_qmin_and_qmax(dq0,dq1,dq2,&qmin,&qmax);
       
       // Playing with dry wet interface
-      hmin = qmin;
-      beta_tmp = beta_w;
-      if (hmin<minimum_allowed_height)
-	beta_tmp = beta_w_dry;
+      //hmin = qmin;
+      //beta_tmp = beta_w_dry;
+      //if (hmin>minimum_allowed_height)
+      beta_tmp = beta_w_dry + (beta_w - beta_w_dry) * hfactor;
 	
+      //printf("min_alled_height = %f\n",minimum_allowed_height);
+      //printf("hmin = %f\n",hmin);
+      //printf("beta_w = %f\n",beta_w);
+      //printf("beta_tmp = %f\n",beta_tmp);
       // Limit the gradient
       limit_gradient(dqv,qmin,qmax,beta_tmp); 
       
@@ -1270,10 +1279,11 @@ int _extrapolate_second_order_sw(int number_of_elements,
       // vertices of the auxiliary triangle and compute jumps 
       // from the centroid to the min and max
       find_qmin_and_qmax(dq0,dq1,dq2,&qmin,&qmax);
-      beta_tmp = beta_uh;
-      if (hmin<minimum_allowed_height)
-	beta_tmp = beta_uh_dry;
-	
+      //beta_tmp = beta_uh;
+      //if (hmin<minimum_allowed_height)
+      //beta_tmp = beta_uh_dry;
+      beta_tmp = beta_uh_dry + (beta_uh - beta_uh_dry) * hfactor;
+
       // Limit the gradient
       limit_gradient(dqv,qmin,qmax,beta_tmp);
 
@@ -1310,11 +1320,13 @@ int _extrapolate_second_order_sw(int number_of_elements,
       // vertices of the auxiliary triangle and compute jumps 
       // from the centroid to the min and max
       find_qmin_and_qmax(dq0,dq1,dq2,&qmin,&qmax);
-      beta_tmp = beta_vh;
       
-      if (hmin<minimum_allowed_height)
-	beta_tmp = beta_vh_dry;
-	
+      //beta_tmp = beta_vh;
+      //
+      //if (hmin<minimum_allowed_height)
+      //beta_tmp = beta_vh_dry;
+      beta_tmp = beta_vh_dry + (beta_vh - beta_vh_dry) * hfactor;	
+
       // Limit the gradient
       limit_gradient(dqv,qmin,qmax,beta_tmp);
       
@@ -1562,15 +1574,15 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
   // This is used in the limiting process
   
 
-  beta_w      = get_double(domain,"beta_w");
-  beta_w_dry  = get_double(domain,"beta_w_dry");
-  beta_uh     = get_double(domain,"beta_uh");
-  beta_uh_dry = get_double(domain,"beta_uh_dry");
-  beta_vh     = get_double(domain,"beta_vh");
-  beta_vh_dry = get_double(domain,"beta_vh_dry");  
+  beta_w                 = get_python_double(domain,"beta_w");
+  beta_w_dry             = get_python_double(domain,"beta_w_dry");
+  beta_uh                = get_python_double(domain,"beta_uh");
+  beta_uh_dry            = get_python_double(domain,"beta_uh_dry");
+  beta_vh                = get_python_double(domain,"beta_vh");
+  beta_vh_dry            = get_python_double(domain,"beta_vh_dry");  
 
-  minimum_allowed_height = get_double(domain,"minimum_allowed_height");
-  epsilon = get_double(domain,"epsilon");
+  minimum_allowed_height = get_python_double(domain,"minimum_allowed_height");
+  epsilon                = get_python_double(domain,"epsilon");
 
   number_of_elements = stage_centroid_values -> dimensions[0];  
 

@@ -61,7 +61,10 @@ class Quantity:
 
         #Allocate space for Gradient
         self.x_gradient = zeros(N, Float)
-        self.y_gradient = zeros(N, Float)        
+        self.y_gradient = zeros(N, Float)
+
+        #Allocate space for Limiter Phi
+        self.phi = zeros(N, Float)        
 
         #Intialise centroid and edge_values
         self.interpolate()
@@ -73,10 +76,12 @@ class Quantity:
         #Allocate space for updates of conserved quantities by
         #flux calculations and forcing functions
 
-        N = len(domain) # number_of_triangles
+        #Allocate space for update fields
         self.explicit_update = zeros(N, Float )
         self.semi_implicit_update = zeros(N, Float )
-        self.centroid_backup_values = zeros(N, Float)       
+        self.centroid_backup_values = zeros(N, Float)
+
+        self.beta = 1.0
 
 
 
@@ -1402,11 +1407,24 @@ class Quantity:
         #(either from this module or C-extension)
         compute_gradients(self)
         extrapolate_from_gradient(self)
-
+        
     def extrapolate_second_order_and_limit(self):
         #Call correct module function
         #(either from this module or C-extension)
-        extrapolate_second_order_and_limit(self)        
+        extrapolate_second_order_and_limit(self)
+
+    def bound_vertices_below_by_constant(self, bound):
+        #Call correct module function
+        #(either from this module or C-extension)
+        bound_vertices_below_by_constant(self, bound)
+
+    def bound_vertices_below_by_quantity(self, quantity):
+        #Call correct module function
+        #(either from this module or C-extension)
+
+        #check consistency
+        assert self.domain == quantity.domain
+        bound_vertices_below_by_quantity(self, quantity)                        
 
     def backup_centroid_values(self):
         #Call correct module function
@@ -1449,6 +1467,9 @@ if compile.can_use_C_extension('quantity_ext.c'):
          limit_edges_by_neighbour,\
          limit_gradient_by_neighbour,\
          extrapolate_from_gradient,\
+         extrapolate_second_order_and_limit,\
+         bound_vertices_below_by_constant,\
+         bound_vertices_below_by_quantity,\
          interpolate_from_vertices_to_edges,\
          interpolate_from_edges_to_vertices,\
          update    

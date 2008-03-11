@@ -99,6 +99,15 @@ CFL = 1.0  # CFL condition assigned to domain.CFL - controls timestep size
 timestepping_method = 'euler' # 1st order euler
 #timestepping_method = 'rk2'   # 2nd Order TVD scheme
 
+# rk2 is a little more stable than euler, so rk2 timestepping
+# can deal with a larger beta when slope limiting the reconstructed
+# solution. The large beta is needed if solving problems sensitive
+# to numerical diffusion, like a small forced wave in an ocean
+beta_euler = 1.0
+beta_rk2   = 1.6
+
+
+
 # Option to search for signatures where isolated triangles are
 # responsible for a small global timestep.
 # Treating these by limiting their momenta may help speed up the

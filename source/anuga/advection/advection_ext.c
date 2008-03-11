@@ -1,9 +1,8 @@
 // Python - C extension module for advection.py
 //
 // To compile (Python2.X):
-// use python ../utilities/compile.py
-//
-// See the module advection.py
+// use python ../utilities/compile.py to
+// compile all C files within a directory
 //
 //
 // Steve Roberts, ANU 2008
@@ -18,6 +17,9 @@
 #include "util_ext.h"
 
 
+//-------------------------------------------
+// Low level routines (called from wrappers)
+//------------------------------------------
 
 double _compute_fluxes(
 		    double* quantity_update,
@@ -37,7 +39,7 @@ double _compute_fluxes(
 		    int nbdry){
 
  
-        //Loop
+        //Local Variables
 
         double qr,ql;
         double normal[2];
@@ -50,6 +52,8 @@ double _compute_fluxes(
 	int k,i,j,n,m;
 	int k3;
 	
+	//Loop through triangles
+
 	timestep = max_timestep;
 
         for (k=0; k<ntri; k++){
@@ -58,7 +62,7 @@ double _compute_fluxes(
 	    k3 = 3*k;
             for (i=0; i<3; i++){
 	        k_i = k3+i;
-                //Quantities inside volume facing neighbour i
+                //Quantities inside triangle facing neighbour i
                 ql = quantity_edge[k_i];
 
 
@@ -143,6 +147,7 @@ PyObject *compute_fluxes(PyObject *self, PyObject *args) {
   */
 
   PyObject *domain, *quantity;
+ 
   PyArrayObject 
     * quantity_update,
     * quantity_edge,
