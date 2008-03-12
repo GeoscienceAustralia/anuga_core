@@ -1348,7 +1348,7 @@ class Test_Util(unittest.TestCase):
     #        print 'temp_dir',temp_dir
             fileName = temp_dir+sep+'time_series_3.csv'
             file = open(fileName,"w")
-            file.write("Time,Stage,Speed,Momentum,Elevation\n\
+            file.write("time,stage,speed,momentum,elevation\n\
 1.0, 0, 0, 0, 10 \n\
 2.0, 5, 2, 4, 10 \n\
 3.0, 3, 3, 5, 10 \n")
@@ -1356,7 +1356,7 @@ class Test_Util(unittest.TestCase):
     
             fileName1 = temp_dir+sep+'time_series_4.csv'
             file1 = open(fileName1,"w")
-            file1.write("Time,Stage,Speed,Momentum,Elevation\n\
+            file1.write("time,stage,speed,momentum,elevation\n\
 1.0, 0, 0, 0, 5 \n\
 2.0, -5, -2, -4, 5 \n\
 3.0, -4, -3, -5, 5 \n")
@@ -1364,7 +1364,7 @@ class Test_Util(unittest.TestCase):
     
             fileName2 = temp_dir+sep+'time_series_5.csv'
             file2 = open(fileName2,"w")
-            file2.write("Time,Stage,Speed,Momentum,Elevation\n\
+            file2.write("time,stage,speed,momentum,elevation\n\
 1.0, 0, 0, 0, 7 \n\
 2.0, 4, -0.45, 57, 7 \n\
 3.0, 6, -0.5, 56, 7 \n")
@@ -1375,25 +1375,25 @@ class Test_Util(unittest.TestCase):
                                 output_dir=temp_dir,
                                 base_name='time_series_',
                                 plot_numbers=['3-5'],
-                                quantities=['Speed','Stage','Momentum'],
+                                quantities=['speed','stage','momentum'],
                                 assess_all_csv_files=True,
                                 extra_plot_name='test')
             
-    #        print 'stage+fileName[:-4]+test.png',dir+sep+'stage_'+name[:-4]+'_test.png'
-            assert(access(dir+sep+'stage_'+name[:-4]+'_test.png',F_OK)==True)
-            assert(access(dir+sep+'speed_'+name[:-4]+'_test.png',F_OK)==True)
-            assert(access(dir+sep+'momentum_'+name[:-4]+'_test.png',F_OK)==True)
+            #print dir+sep+name[:-4]+'_stage_test.png'
+            assert(access(dir+sep+name[:-4]+'_stage_test.png',F_OK)==True)
+            assert(access(dir+sep+name[:-4]+'_speed_test.png',F_OK)==True)
+            assert(access(dir+sep+name[:-4]+'_momentum_test.png',F_OK)==True)
     
             dir1, name1=os.path.split(fileName1)
-            assert(access(dir+sep+'stage_'+name1[:-4]+'_test.png',F_OK)==True)
-            assert(access(dir+sep+'speed_'+name1[:-4]+'_test.png',F_OK)==True)
-            assert(access(dir+sep+'momentum_'+name1[:-4]+'_test.png',F_OK)==True)
+            assert(access(dir+sep+name1[:-4]+'_stage_test.png',F_OK)==True)
+            assert(access(dir+sep+name1[:-4]+'_speed_test.png',F_OK)==True)
+            assert(access(dir+sep+name1[:-4]+'_momentum_test.png',F_OK)==True)
     
     
             dir2, name2=os.path.split(fileName2)
-            assert(access(dir+sep+'stage_'+name2[:-4]+'_test.png',F_OK)==True)
-            assert(access(dir+sep+'speed_'+name2[:-4]+'_test.png',F_OK)==True)
-            assert(access(dir+sep+'momentum_'+name2[:-4]+'_test.png',F_OK)==True)
+            assert(access(dir+sep+name2[:-4]+'_stage_test.png',F_OK)==True)
+            assert(access(dir+sep+name2[:-4]+'_speed_test.png',F_OK)==True)
+            assert(access(dir+sep+name2[:-4]+'_momentum_test.png',F_OK)==True)
     
             del_dir(temp_dir)
         

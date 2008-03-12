@@ -1508,12 +1508,12 @@ def make_plots_from_csv_file(directories_dic={dir:['gauge', 0, 0]},
                                 output_dir='',
                                 base_name='',
                                 plot_numbers=['3-5'],
-                                quantities=['Speed','Stage','Momentum'],
+                                quantities=['speed','stage','momentum'],
                                 assess_all_csv_files=True,
                                 extra_plot_name='test' ):
     
     print 'make_plots_from_csv_file has been replaced by csv2timeseries_graphs ',
-    print 'Please use "from anuga.shallow_water.util import csv2timeseries_graphs"'
+    print 'Please use "from anuga.abstract_2d_finite_volumes.util import csv2timeseries_graphs"'
     
     return csv2timeseries_graphs(directories_dic,
                                  output_dir,
@@ -1703,7 +1703,8 @@ def csv2timeseries_graphs(directories_dic={},
     list_filenames=[]
     all_csv_filenames=[]
     if verbose: print 'Determining files to access for axes ranges \n'
-#    print directories_dic.keys, base_name
+    
+    #print directories_dic.keys(), base_name
  
     for i,directory in enumerate(directories_dic.keys()):
         all_csv_filenames.append(get_all_files_with_extension(directory,
@@ -1722,7 +1723,7 @@ def csv2timeseries_graphs(directories_dic={},
 
 
 
-#    print "list_filenames", list_filenames
+    #print "list_filenames", list_filenames
 
     #use all the files to get the values for the plot axis
     max_start_time= -1000.
@@ -1861,7 +1862,8 @@ def csv2timeseries_graphs(directories_dic={},
     i_max = len(directories_dic.keys())
     legend_list_dic={}
     legend_list =[]
-    for i, directory in enumerate(directories_dic.keys()): 
+    for i, directory in enumerate(directories_dic.keys()):
+        
         if verbose: print'Plotting in %s %s' %(directory, new_plot_numbers)
 #        print 'LIST',list_filenames
         #FIXME THIS SORT IS VERY IMPORTANT, without it the assigned plot numbers may not work correctly
@@ -1878,7 +1880,7 @@ def csv2timeseries_graphs(directories_dic={},
             #create an if about the start time and tide hieght 
             #if they don't exist
             #print 'i %s,j %s, number %s, file %s' %(i,j,number,file)
-            attribute_dic, title_index_dic = csv2dict(directory+filename+'.csv')
+            attribute_dic, title_index_dic = csv2dict(directory+sep+filename+'.csv')
             #get data from dict in to list
             #do maths to list by changing to array
             t=(array(directory_quantity_value[directory][filename]['time'])+directory_start_time)/seconds_in_minutes
@@ -1929,12 +1931,12 @@ def csv2timeseries_graphs(directories_dic={},
                     
                     pylab.title('%s at %s gauge' %(quantity,filename[len(base_name):]))
                     if output_dir == '':
-                        figname = '%s%s_%s%s.png' %(directory,
+                        figname = '%s%s%s_%s%s.png' %(directory,sep,
                                             filename,
                                             quantity,
                                             extra_plot_name)
                     else:
-                        figname = '%s%s_%s%s.png' %(output_dir,
+                        figname = '%s%s%s_%s%s.png' %(output_dir,sep,
                                             filename,
                                             quantity,
                                             extra_plot_name)
