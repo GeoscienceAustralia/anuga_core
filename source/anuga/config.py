@@ -175,6 +175,7 @@ use_psyco = True # Use psyco optimisations
 
 optimise_dry_cells = True # Exclude dry and still cells from flux computation
 optimised_gradient_limiter = True # Use hardwired gradient limiter
+use_edge_limiter = False # The edge limiter is better, but most runs have been using vertex limiting 
 
 points_file_block_line_size = 500 # Number of lines read in from a points file
                                   # when blocking

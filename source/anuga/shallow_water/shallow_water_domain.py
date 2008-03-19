@@ -103,6 +103,7 @@ from anuga.config import g, epsilon, beta_h, beta_w, beta_w_dry,\
 from anuga.config import alpha_balance
 from anuga.config import optimise_dry_cells
 from anuga.config import optimised_gradient_limiter
+from anuga.config import use_edge_limiter
 
 #---------------------
 # Shallow water domain
@@ -178,7 +179,7 @@ class Domain(Generic_Domain):
         self.quantities_to_be_stored = ['stage','xmomentum','ymomentum']
 
         # Limiters
-        self.use_old_limiter = True
+        self.use_edge_limiter = use_edge_limiter
 
         self.optimised_gradient_limiter = optimised_gradient_limiter
                 
@@ -394,20 +395,24 @@ class Domain(Generic_Domain):
     def distribute_to_vertices_and_edges(self):
         # Call correct module function
         # (either from this module or C-extension)
-        if self.use_old_limiter:
-            distribute_to_vertices_and_edges(self)
-        else:
+        if self.use_edge_limiter:            
             for name in self.conserved_quantities:
                 Q = self.quantities[name]
                 if self._order_ == 1:
                     Q.extrapolate_first_order()
                 elif self._order_ == 2:
                     Q.extrapolate_second_order_and_limit()
-                    if name == 'stage':
-                        Q.bound_vertices_below_by_quantity(self.quantities['elevation'])
                 else:
                     raise 'Unknown order'
- 
+            balance_deep_and_shallow(self)
+
+            #Compute edge values by interpolation
+            for name in self.conserved_quantities:
+                Q = self.quantities[name]
+                Q.interpolate_from_vertices_to_edges()
+        else:
+            distribute_to_vertices_and_edges(self)
+
 
 
 
@@ -870,7 +875,9 @@ def balance_deep_and_shallow(domain):
     # Omit updating xmomv 
     #
     from shallow_water_ext import balance_deep_and_shallow as balance_deep_and_shallow_c
-    
+
+
+    #print 'calling balance depth and shallow'
     # Shortcuts
     wc = domain.quantities['stage'].centroid_values
     zc = domain.quantities['elevation'].centroid_values

@@ -2517,7 +2517,8 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.distribute_to_vertices_and_edges()
         #print L[1]
         assert allclose(L[1], [4.23370103, 16.06529897, 20.001]) or\
-               allclose(L[1], [4.18944138, 16.10955862, 20.001]) # old limiters
+               allclose(L[1], [4.18944138, 16.10955862, 20.001]) or\
+               allclose(L[1], [4.19351461, 16.10548539, 20.001]) # old limiters
         
         for i in range(len(L)):
             assert allclose(volumes[i], sum(L[i])/3)

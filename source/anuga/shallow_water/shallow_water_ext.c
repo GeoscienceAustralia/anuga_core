@@ -588,6 +588,10 @@ int _balance_deep_and_shallow(int N,
     
     // Calculate minimal depth across all three vertices
     hmin = min(hv[0], min(hv[1], hv[2]));
+
+    //if (hmin < 0.0 ) {
+    //	printf("hmin = %f\n",hmin);
+    //}
     
 
     // Create alpha in [0,1], where alpha==0 means using the h-limited
@@ -646,7 +650,8 @@ int _balance_deep_and_shallow(int N,
 	alpha = 1.0;       
       }
 
-      
+      //printf("alpha=%f, tight_slope_limiters=%d\n", alpha, tight_slope_limiters);
+
       /*      
       // Experimental code for controlling velocities at vertices.
       // Adjust alpha (down towards first order) such that 
@@ -703,8 +708,19 @@ int _balance_deep_and_shallow(int N,
 	}
 
 	// Update momentum at vertices
-	if (tight_slope_limiters == 1) {     	
-	  // FIXME(Ole): Here's what I think (as of 17 Nov 2007) 
+
+
+	// Update momentum at vertices
+	// Update momentum as a linear combination of
+	// xmomc and ymomc (shallow) and momentum
+	// from extrapolator xmomv and ymomv (deep).
+
+
+	//xmomv[k3+i] = (1-alpha)*xmomc[k] + alpha*xmomv[k3+i];
+	//ymomv[k3+i] = (1-alpha)*ymomc[k] + alpha*ymomv[k3+i];
+
+	if (tight_slope_limiters == 1) {
+	  // FIXME(Ole): Here's what I think (as of 17 Nov 2007)
 	  // we need to do. Simple and efficient:
 	
 	  // Speeds at centroids
@@ -720,12 +736,12 @@ int _balance_deep_and_shallow(int N,
 	  // controlled speed
 	  hv[i] = wv[k3+i] - zv[k3+i]; // Recompute (balanced) vertex depth
 	  xmomv[k3+i] = uc*hv[i];
-	  ymomv[k3+i] = vc*hv[i];	
+	  ymomv[k3+i] = vc*hv[i];
 	} else {
 	  // Update momentum as a linear combination of
 	  // xmomc and ymomc (shallow) and momentum
 	  // from extrapolator xmomv and ymomv (deep).
-	  // FIXME (Ole): Is this really needed? Could we use the above 
+	  // FIXME (Ole): Is this really needed? Could we use the above
 	  // instead?
 	  
 	  xmomv[k3+i] = (1-alpha)*xmomc[k] + alpha*xmomv[k3+i];
@@ -1188,8 +1204,8 @@ int _extrapolate_second_order_sw(int number_of_elements,
       //hfactor = hc/(hc + 1.0);
 
       hfactor = 0.0;
-      if (hmin > 0.1 ) {
-	  hfactor = (hmin-0.1)/(hmin+0.4);
+      if (hmin > 0.001 ) {
+	  hfactor = (hmin-0.001)/(hmin+0.004);
       }
       
       if (optimise_dry_cells) {      
