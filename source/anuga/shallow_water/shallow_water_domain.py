@@ -395,7 +395,8 @@ class Domain(Generic_Domain):
     def distribute_to_vertices_and_edges(self):
         # Call correct module function
         # (either from this module or C-extension)
-        if self.use_edge_limiter:            
+        if self.use_edge_limiter:
+            protect_against_infinitesimal_and_negative_heights(self)
             for name in self.conserved_quantities:
                 Q = self.quantities[name]
                 if self._order_ == 1:
