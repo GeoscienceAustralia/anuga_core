@@ -1501,6 +1501,8 @@ class Rainfall:
                   The specified flow will be divided by the area of
                   the inflow region and then applied to update the
                   quantity in question. 
+
+    polygon: Specifies a polygon to restrict the rainfall.
     
     Examples
     How to put them in a run File...
@@ -1522,14 +1524,20 @@ class Rainfall:
     # FIXME (AnyOne) : Add various methods to allow spatial variations
     # FIXME (OLE): Generalise to all quantities
 
+    
     def __init__(self,
 		 rain=0.0,
-		 quantity_name='stage'):
+		 quantity_name='stage',
+                 polygon=None):
 
         self.rain = rain
 	self.quantity_name = quantity_name
+        self.polygon = polygon
     
     def __call__(self, domain):
+        
+        # FIXME(Ole): Move this to top of file eventually
+        from anuga.utilities.polygon import inside_polygon        
 
         # Update rainfall
 	if callable(self.rain):
@@ -1538,13 +1546,34 @@ class Rainfall:
 	    rain = self.rain
 
         # Now rain is a number
+        # Converting mm/s to m/s to apply in ANUGA
+        # 1mm of rainfall is equivalent to 1 litre /m2 
+        # Flow is expressed as m3/s converted to a stage height in (m)
+        
+        # Note 1m3 = 1x10^9mm3 (mls)
+        # or is that m3 to Litres ??? Check this how is it applied !!!
+        rain_fall = rain/1000
+
+        # Find indices for coordinates inside polygon if specified
+        indices = None
+        if self.polygon is not None:
+            points = domain.get_centroid_coordinates(absolute=True)
+            indices = inside_polygon(points, self.polygon)
+            
+
+        # Assign rainfall value to explicit update vector to be used as
+        # a forcing term
         quantity = domain.quantities[self.quantity_name].explicit_update
-        quantity[:] += rain/1000  # Converting mm/s to m/s to apply in ANUGA
-		# 1mm of rainfall is equivalent to 1 litre /m2 
-		# Flow is expressed as m3/s converted to a stage height in (m)
-		
-		# Note 1m3 = 1x10^9mm3 (mls)
-		# or is that m3 to Litres ??? Check this how is it applied !!!
+        if indices is None:
+            quantity[:] += rain_fall
+        else:
+            # Brute force assignment of restricted rainfall
+            for i in indices:
+                quantity[i] += rain_fall
+
+        
+
+
 
 
 class Inflow:

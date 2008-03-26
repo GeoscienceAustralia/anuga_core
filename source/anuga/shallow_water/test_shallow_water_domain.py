@@ -1877,6 +1877,8 @@ class Test_Shallow_Water(unittest.TestCase):
 
 
 
+
+
     def test_windfield_from_file(self):
         from anuga.config import rho_a, rho_w, eta_w
         from math import pi, cos, sin
@@ -2159,6 +2161,84 @@ class Test_Shallow_Water(unittest.TestCase):
         else:
             msg = 'Should have raised exception'
             raise msg
+
+
+
+    def test_rainfall(self):
+        from math import pi, cos, sin
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe
+        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+
+        domain = Domain(points, vertices)
+
+        #Flat surface with 1m of water
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('stage', 1.0)
+        domain.set_quantity('friction', 0)
+
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'exterior': Br})
+
+        # Setup only one forcing term, constant rainfall
+        domain.forcing_terms = []
+        domain.forcing_terms.append( Rainfall(rain=2.0) )
+
+        domain.compute_forcing_terms()
+        assert allclose(domain.quantities['stage'].explicit_update, 2.0/1000)
+
+
+        # FIXME: Do Time dependent rainfall
+
+
+
+    def test_rainfall_restricted_by_polygon(self):
+        from math import pi, cos, sin
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe
+        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+
+        domain = Domain(points, vertices)
+
+        #Flat surface with 1m of water
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('stage', 1.0)
+        domain.set_quantity('friction', 0)
+
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'exterior': Br})
+
+        # Setup only one forcing term, constant rainfall restricted to a polygon enclosing triangle #1 (bce)
+        domain.forcing_terms = []
+        domain.forcing_terms.append( Rainfall(rain=2.0, polygon = [[1,1], [2,1], [2,2], [1,2]]))
+
+        domain.compute_forcing_terms()
+        #print domain.quantities['stage'].explicit_update
+        
+        assert allclose(domain.quantities['stage'].explicit_update[1], 2.0/1000)
+        assert allclose(domain.quantities['stage'].explicit_update[0], 0)
+        assert allclose(domain.quantities['stage'].explicit_update[2:], 0)        
+        
+        # FIXME: Do Time dependent rainfall with poly
+
 
 
     #####################################################

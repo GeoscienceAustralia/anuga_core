@@ -272,7 +272,7 @@ class File_boundary(Boundary):
                 print msg
             #raise Exception(msg)
 
-        
+        # Test that file function can be called
         q = self.F(0, point_id=0)
 
         d = len(domain.conserved_quantities)
