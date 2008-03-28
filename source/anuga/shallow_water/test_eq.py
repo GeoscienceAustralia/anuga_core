@@ -22,7 +22,7 @@ class Test_eq(unittest.TestCase):
         rake = 90.0
         test = -2205.904774487
 
-        print 'depth', depth
+        #print 'depth', depth
         z = Okada_func(length=length, width=width, dip=dip, \
                        x0=x0, y0=y0, strike=strike, depth=depth, \
                        slip=slip, rake=rake, test=test)
@@ -37,10 +37,10 @@ class Test_eq(unittest.TestCase):
         assert allclose(z.dip, dip)
         assert allclose(z.rake, rake)
 
-        print 'in test', z.test
+        #print 'in test', z.test
         assert allclose(z.test, -2205.904774487)
         
-        print 'hello finished okada'
+        #print 'hello finished okada'
 
     def test_earthquake_tsunami(self):
 
