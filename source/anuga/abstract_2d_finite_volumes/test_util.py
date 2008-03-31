@@ -1334,7 +1334,7 @@ class Test_Util(unittest.TestCase):
         
     def test_make_plots_from_csv_files(self):
         
-        if sys.platform == 'win32':  #Windows
+        #if sys.platform == 'win32':  #Windows
             try: 
                 import pylab
             except ImportError:
@@ -1371,13 +1371,13 @@ class Test_Util(unittest.TestCase):
             file2.close()
             
             dir, name=os.path.split(fileName)
-            make_plots_from_csv_file(directories_dic={dir:['gauge', 0, 0]},
-                                output_dir=temp_dir,
-                                base_name='time_series_',
-                                plot_numbers=['3-5'],
-                                quantities=['speed','stage','momentum'],
-                                assess_all_csv_files=True,
-                                extra_plot_name='test')
+            csv2timeseries_graphs(directories_dic={dir:['gauge', 0, 0]},
+                                  output_dir=temp_dir,
+                                  base_name='time_series_',
+                                  plot_numbers=['3-5'],
+                                  quantities=['speed','stage','momentum'],
+                                  assess_all_csv_files=True,
+                                  extra_plot_name='test')
             
             #print dir+sep+name[:-4]+'_stage_test.png'
             assert(access(dir+sep+name[:-4]+'_stage_test.png',F_OK)==True)

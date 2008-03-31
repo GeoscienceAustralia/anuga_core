@@ -1511,10 +1511,11 @@ def make_plots_from_csv_file(directories_dic={dir:['gauge', 0, 0]},
                                 quantities=['speed','stage','momentum'],
                                 assess_all_csv_files=True,
                                 extra_plot_name='test' ):
-    
-    print 'make_plots_from_csv_file has been replaced by csv2timeseries_graphs ',
-    print 'Please use "from anuga.abstract_2d_finite_volumes.util import csv2timeseries_graphs"'
-    
+
+    msg = 'make_plots_from_csv_file has been replaced by csv2timeseries_graphs ',
+    msg += 'Please use "from anuga.abstract_2d_finite_volumes.util import csv2timeseries_graphs"'
+
+    raise Exception, msg
     return csv2timeseries_graphs(directories_dic,
                                  output_dir,
                                  base_name,
