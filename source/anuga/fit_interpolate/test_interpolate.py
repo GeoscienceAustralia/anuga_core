@@ -1581,7 +1581,7 @@ class Test_Interpolate(unittest.TestCase):
         def elevation_function(x, y):
             return -x
         
-        # create mesh
+        # Create mesh
         mesh_file = tempfile.mktemp(".tsh")    
         points = [[0.0,0.0],[6.0,0.0],[6.0,6.0],[0.0,6.0]]
         m = Mesh()
@@ -1590,14 +1590,18 @@ class Test_Interpolate(unittest.TestCase):
         m.generate_mesh(verbose=False)
         m.export_mesh_file(mesh_file)
         
-        #Create shallow water domain
+        # Create shallow water domain
         domain = Domain(mesh_file)
         os.remove(mesh_file)
         
-        domain.default_order=2
+        domain.default_order = 2
         domain.beta_h = 0
 
-        #Set some field values
+        # This test was made before tight_slope_limiters were introduced
+        # Since were are testing interpolation values this is OK
+        domain.tight_slope_limiters = 0 
+
+        # Set some field values
         domain.set_quantity('elevation', elevation_function)
         domain.set_quantity('friction', 0.03)
         domain.set_quantity('xmomentum', 3.0)
@@ -1621,12 +1625,12 @@ class Test_Interpolate(unittest.TestCase):
         sww = get_dataobject(domain)
         sww.store_connectivity()
         sww.store_timestep(['stage', 'xmomentum', 'ymomentum'])
-        domain.set_quantity('stage', 10.0) # This is automatically limmited
-        # so it will not be less than the elevation
+        domain.set_quantity('stage', 10.0) # This is automatically limited
+        # So it will not be less than the elevation
         domain.time = 2.
         sww.store_timestep(['stage', 'xmomentum', 'ymomentum'])
 
-        # test the function
+        # Test the function
         points = [[5.0,1.],[0.5,2.]]
         depth_file = tempfile.mktemp(".csv") 
         velocity_x_file = tempfile.mktemp(".csv") 

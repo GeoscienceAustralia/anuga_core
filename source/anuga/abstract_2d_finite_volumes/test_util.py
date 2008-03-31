@@ -1403,13 +1403,14 @@ class Test_Util(unittest.TestCase):
         def elevation_function(x, y):
             return -x
         
-        """Most of this test was copied from test_interpolate test_interpole_sww2csv
+        """Most of this test was copied from test_interpolate
+        test_interpole_sww2csv
         
         This is testing the gauge_sww2csv function, by creating a sww file and
         then exporting the gauges and checking the results.
         """
         
-        # create mesh
+        # Create mesh
         mesh_file = tempfile.mktemp(".tsh")    
         points = [[0.0,0.0],[6.0,0.0],[6.0,6.0],[0.0,6.0]]
         m = Mesh()
@@ -1418,14 +1419,19 @@ class Test_Util(unittest.TestCase):
         m.generate_mesh(verbose=False)
         m.export_mesh_file(mesh_file)
         
-        #Create shallow water domain
+        # Create shallow water domain
         domain = Domain(mesh_file)
         os.remove(mesh_file)
         
         domain.default_order=2
         domain.beta_h = 0
+        
+        # This test was made before tight_slope_limiters were introduced
+        # Since were are testing interpolation values this is OK
+        domain.tight_slope_limiters = 0 
+        
 
-        #Set some field values
+        # Set some field values
         domain.set_quantity('elevation', elevation_function)
         domain.set_quantity('friction', 0.03)
         domain.set_quantity('xmomentum', 3.0)
@@ -1445,6 +1451,7 @@ class Test_Util(unittest.TestCase):
         domain.format = 'sww'
         domain.smooth = True
         domain.reduction = mean
+
 
         sww = get_dataobject(domain)
         sww.store_connectivity()
@@ -1467,9 +1474,9 @@ point2, 0.5, 2.0, 9.0\n")
 
         
         sww2csv_gauges(sww.filename, 
-                            points_file,
-                            verbose=False,
-                            use_cache=False)
+                       points_file,
+                       verbose=False,
+                       use_cache=False)
 
 #        point1_answers_array = [[0.0,1.0,-5.0,3.0,4.0], [2.0,10.0,-5.0,3.0,4.0]]
         point1_answers_array = [[0.0,1.0,6.0,-5.0,3.0,4.0], [2.0,10.0,15.0,-5.0,3.0,4.0]]
@@ -1520,7 +1527,8 @@ point2, 0.5, 2.0, 9.0\n")
         def elevation_function(x, y):
             return -x
         
-        """Most of this test was copied from test_interpolate test_interpole_sww2csv
+        """Most of this test was copied from test_interpolate
+        test_interpole_sww2csv
         
         This is testing the gauge_sww2csv function, by creating a sww file and
         then exporting the gauges and checking the results.
@@ -1529,7 +1537,7 @@ point2, 0.5, 2.0, 9.0\n")
         not store xmomentum and ymomentum
         """
         
-        # create mesh
+        # Create mesh
         mesh_file = tempfile.mktemp(".tsh")    
         points = [[0.0,0.0],[6.0,0.0],[6.0,6.0],[0.0,6.0]]
         m = Mesh()
@@ -1538,14 +1546,14 @@ point2, 0.5, 2.0, 9.0\n")
         m.generate_mesh(verbose=False)
         m.export_mesh_file(mesh_file)
         
-        #Create shallow water domain
+        # Create shallow water domain
         domain = Domain(mesh_file)
         os.remove(mesh_file)
         
         domain.default_order=2
         domain.beta_h = 0
 
-        #Set some field values
+        # Set some field values
         domain.set_quantity('elevation', elevation_function)
         domain.set_quantity('friction', 0.03)
         domain.set_quantity('xmomentum', 3.0)
@@ -1632,16 +1640,17 @@ point2, 0.5, 2.0\n")
         def elevation_function(x, y):
             return -x
         
-        """Most of this test was copied from test_interpolate test_interpole_sww2csv
+        """Most of this test was copied from test_interpolate
+        test_interpole_sww2csv
         
         This is testing the gauge_sww2csv function, by creating a sww file and
         then exporting the gauges and checking the results.
         
-        This is the same as sww2csv_gauges except set domain.set_starttime to 5. Therefore
-        testing the storing of the absolute time in the csv files
+        This is the same as sww2csv_gauges except set domain.set_starttime to 5.
+        Therefore testing the storing of the absolute time in the csv files
         """
         
-        # create mesh
+        # Create mesh
         mesh_file = tempfile.mktemp(".tsh")    
         points = [[0.0,0.0],[6.0,0.0],[6.0,6.0],[0.0,6.0]]
         m = Mesh()
@@ -1650,14 +1659,18 @@ point2, 0.5, 2.0\n")
         m.generate_mesh(verbose=False)
         m.export_mesh_file(mesh_file)
         
-        #Create shallow water domain
+        # Create shallow water domain
         domain = Domain(mesh_file)
         os.remove(mesh_file)
         
         domain.default_order=2
         domain.beta_h = 0
 
-        #Set some field values
+        # This test was made before tight_slope_limiters were introduced
+        # Since were are testing interpolation values this is OK
+        domain.tight_slope_limiters = 0         
+
+        # Set some field values
         domain.set_quantity('elevation', elevation_function)
         domain.set_quantity('friction', 0.03)
         domain.set_quantity('xmomentum', 3.0)

@@ -85,7 +85,7 @@ alpha_balance = 2.0
 # Flag use of new limiters.
 # tight_slope_limiters = 0 means use old limiters (e.g. for some tests)
 # tight_slope_limiters = 1 means use new limiters that hug the bathymetry closer
-tight_slope_limiters = 0
+tight_slope_limiters = True
 
 
 
