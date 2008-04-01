@@ -4,9 +4,9 @@ Title: ANGUA shallow_water_domain - 2D triangular domains for finite-volume
        computations of the shallow water wave equation.
 
 
-Author: Ole Nielsen (Ole.Nielsen@ga.gov.au),
-        Stephen Roberts (Stephen.Roberts@anu.edu.au),
-        Duncan Gray (Duncan.Gray@ga.gov.au), etc
+Author: Ole Nielsen, Ole.Nielsen@ga.gov.au
+        Stephen Roberts, Stephen.Roberts@anu.edu.au
+        Duncan Gray, Duncan.Gray@ga.gov.au
 
 CreationDate: 2004
 
