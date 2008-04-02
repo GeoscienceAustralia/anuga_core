@@ -24,6 +24,7 @@ import data_manager
 from anuga.coordinate_transforms.redfearn import redfearn
 from anuga.coordinate_transforms.geo_reference import Geo_reference, \
      DEFAULT_ZONE
+from anuga.geospatial_data.geospatial_data import Geospatial_data
 
 class Test_Data_Manager(unittest.TestCase):
     # Class variable
@@ -2751,8 +2752,6 @@ END CROSS-SECTIONS:
         import time, os
         from Numeric import array, zeros, allclose, Float, concatenate, NewAxis
         from Scientific.IO.NetCDF import NetCDFFile
-        from anuga.geospatial_data.geospatial_data import Geospatial_data
-
         # Used for points that lie outside mesh
         NODATA_value = 1758323
 
@@ -7390,6 +7389,23 @@ friction  \n \
         assert (file_line1 == 'hello screen catcher\n')
         assert (file_line2 == 'goodbye screen catcher\n')
         
+ 
+    def test_points2polygon(self):  
+        att_dict = {}
+        pointlist = array([[1.0, 0.0],[0.0, 1.0],[0.0, 0.0]])
+        att_dict['elevation'] = array([10.1, 0.0, 10.4])
+        att_dict['brightness'] = array([10.0, 1.0, 10.4])
+        
+        fileName = tempfile.mktemp(".csv")
+        
+        G = Geospatial_data(pointlist, att_dict)
+        
+        G.export_points_file(fileName)
+        
+        polygon = points2polygon(fileName)
+        
+        # This test may fail if the order changes
+        assert (polygon == [[0.0, 0.0],[1.0, 0.0],[0.0, 1.0]])
         
 
 

@@ -1944,6 +1944,7 @@ def sww2dem(basename_in, basename_out = None,
             print '    t [s] in [%f, %f], len(t) == %d'\
               %(min(times), max(times), len(times))
         print '  Quantities [SI units]:'
+        # Comment out for reduced memory consumption
         for name in ['stage', 'xmomentum', 'ymomentum']:
             q = fid.variables[name][:].flat
             if timestep is not None:
@@ -1959,13 +1960,15 @@ def sww2dem(basename_in, basename_out = None,
     # Turn NetCDF objects into Numeric arrays
     try:
         q = fid.variables[quantity][:] 
+        
+        
     except:
         quantity_dict = {}
         for name in fid.variables.keys():
             quantity_dict[name] = fid.variables[name][:] 
         #Convert quantity expression to quantities found in sww file    
         q = apply_expression_to_dictionary(quantity, quantity_dict)
-
+    #print "q.shape",q.shape
     if len(q.shape) == 2:
         #q has a time component and needs to be reduced along
         #the temporal dimension
@@ -2162,6 +2165,7 @@ def sww2dem(basename_in, basename_out = None,
         ascid.close()
         fid.close()
         return basename_out
+
 
 #Backwards compatibility
 def sww2asc(basename_in, basename_out = None,
@@ -5848,6 +5852,29 @@ def get_all_directories_with_name(look_in_dir='',base_name='',verbose=False):
 
     return iterate_over
 
+def points2polygon(points_file,
+                    minimum_triangle_angle=3.0):
+    """
+    WARNING: This function is not fully working.  
+    
+    Function to return a polygon returned from alpha shape, given a points file.
+    
+    WARNING: Alpha shape returns multiple polygons, but this function only returns one polygon.
+    
+    """
+    from anuga.pmesh.mesh import Mesh, importMeshFromFile
+    from anuga.shallow_water import Domain    
+    from anuga.pmesh.mesh_interface import create_mesh_from_regions
+    
+    mesh = importMeshFromFile(points_file)
+    mesh.auto_segment()
+    mesh.exportASCIIsegmentoutlinefile("outline.tsh")
+    mesh2 = importMeshFromFile("outline.tsh")
+    mesh2.generate_mesh(maximum_triangle_area=1000000000, minimum_triangle_angle=minimum_triangle_angle, verbose=False)
+    mesh2.export_mesh_file('outline_meshed.tsh')
+    domain = Domain("outline_meshed.tsh", use_cache = False)
+    polygon =  domain.get_boundary_polygon()
+    return polygon 
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
@@ -5857,4 +5884,3 @@ if __name__ == "__main__":
     from config import umask
     import os 
     os.umask(umask)
-
