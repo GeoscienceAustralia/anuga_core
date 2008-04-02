@@ -4,6 +4,7 @@ from toolbarbutton import ToolBarButton
 import tkFileDialog
 from   tkSimpleDialog import Dialog
 import mesh
+from mesh import SEG_COLOUR
 from Tkinter import  FALSE,TRUE, Frame,X, LEFT,YES,BOTH,ALL,Widget,CURRENT, \
      Label,W, Entry, E, StringVar, END, Checkbutton, Radiobutton, IntVar, \
      DISABLED, NORMAL
@@ -19,7 +20,6 @@ from anuga.alpha_shape.alpha_shape import AlphaError
 # CONSTANTS 
 VERT_SELECT_ADDING_SEG_COLOR = 'orange'
 SELECT_COLOR = 'red'
-SEG_COLOUR = 'blue'
 TRIANGLE_COLOUR = 'green'
 APPLICATION_NAME = 'Pmesh'
 
@@ -228,6 +228,7 @@ class Draw(AppShell.AppShell):
 
 
     def clearSelection(self,parent):
+    #FIXME looks like self.clearSelections - change name (Peter)
         """
         """
         self.canvas.delete(ALL)

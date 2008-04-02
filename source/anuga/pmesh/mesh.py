@@ -53,6 +53,7 @@ except ImportError:
 # 1st and third values must be the same
 # FIXME: maybe make this a switch that the user can change? - DSG
 initialconversions = ['', 'exterior', '']
+SEG_COLOUR = 'blue'
 
 
 class MeshObject:
@@ -156,6 +157,12 @@ class Vertex(Point):
         #canvas.create_text(x+ 2*cornerOffset,
         #                   y+ 2*cornerOffset,
         #                        text=tags)
+        
+        # This gives points info.  It is a mess though, since numbers are
+        # not deleted when zaooming in.
+        #canvas.create_text(x+ 2*cornerOffset,
+        #                   y+ 2*cornerOffset,
+        #                        text=str(x)+','+str(y))
         
         return canvas.create_rectangle(x-cornerOffset,
                                        y-cornerOffset,
@@ -308,7 +315,8 @@ class Segment(MeshObject):
         return "[%s,%s]" % (self.vertices,self.tag)
             
         
-    def draw(self, canvas, tags,scale=1, xoffset=0, yoffset=0,colour='blue'):
+    def draw(self, canvas, tags,scale=1, xoffset=0,
+             yoffset=0, colour=SEG_COLOUR):
         x=[]
         y=[]
         for end in self.vertices:
@@ -1536,6 +1544,8 @@ class Mesh:
                     expand_pinch=False): 
         """
         Precon: There must be 3 or more vertices in the userVertices structure
+        
+        This returns alpha_segs_no_user_segs, segs2delete, optimum_alpha
         """
         self._createBoundary(alpha=alpha)
         return self._boundary2mesh(raw_boundary=raw_boundary,
