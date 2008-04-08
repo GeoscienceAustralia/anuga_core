@@ -52,8 +52,10 @@ Here's a DTD format, we might implement one day
 from os import remove, walk, sep
 from os.path import join, splitext
 
-from anuga.utilities.xml_tools import xml2object, XML_element
-from anuga.utilities.system_tools import compute_checksum
+# Don't add anuga.utilities to these imports
+# EQRM also uses this file, but has a different directory structure
+from xml_tools import xml2object, XML_element
+from system_tools import compute_checksum
 
 
 # Audit exceptions
