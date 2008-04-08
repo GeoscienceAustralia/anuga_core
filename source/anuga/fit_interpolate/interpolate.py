@@ -323,6 +323,7 @@ def interpolate_sww2csv(sww_file,
                         depth_file,
                         velocity_x_file,
                         velocity_y_file,
+                        stage_file=None,
                         #quantities = ['depth', 'velocity'],
                         verbose=True,
                         use_cache = True):
@@ -352,17 +353,23 @@ def interpolate_sww2csv(sww_file,
     depth_writer = writer(file(depth_file, "wb"))
     velocity_x_writer = writer(file(velocity_x_file, "wb"))
     velocity_y_writer = writer(file(velocity_y_file, "wb"))
+    if stage_file is not None:
+        stage_writer = writer(file(stage_file, "wb"))
     # Write heading
     heading = [str(x[0])+ ':' + str(x[1]) for x in points]
     heading.insert(0, "time")
     depth_writer.writerow(heading)
     velocity_x_writer.writerow(heading)
     velocity_y_writer.writerow(heading)
+    if stage_file is not None:
+        stage_writer.writerow(heading)    
     
     for time in callable_sww.get_time():
         depths = [time]
         velocity_xs = [time]
         velocity_ys = [time]
+        if stage_file is not None:  
+            stages = [time]  
         for point_i, point in enumerate(points):
             quantities = callable_sww(time,point_i)
             #print "quantities", quantities
@@ -390,9 +397,13 @@ def interpolate_sww2csv(sww_file,
             depths.append(depth)
             velocity_xs.append(velocity_x)
             velocity_ys.append(velocity_y)
+            if stage_file is not None:
+                stages.append(w)
         depth_writer.writerow(depths)
         velocity_x_writer.writerow(velocity_xs)
         velocity_y_writer.writerow(velocity_ys)
+        if stage_file is not None:
+            stage_writer.writerow(stages)        
 
 
 class Interpolation_function:
