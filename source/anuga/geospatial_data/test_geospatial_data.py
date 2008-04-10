@@ -31,12 +31,13 @@ class Test_Geospatial_data(unittest.TestCase):
 
         assert allclose(G.data_points, [[1.0, 2.1], [3.0, 5.3]])
 
-        #Check __repr__
-
+        # Check __repr__
+        # FIXME (Ole): Is this really machine independent?
         rep = `G`
         ref = '[[ 1.   2.1]\n [ 3.   5.3]]'
-        assert rep == ref
 
+        msg = 'Representation %s is not equal to %s' %(rep, ref)
+        assert rep == ref, msg
 
         #Check getter
         assert allclose(G.get_data_points(), [[1.0, 2.1], [3.0, 5.3]])
