@@ -35,9 +35,7 @@ class HeightQuantity(Feature):
             vtk_points.SetNumberOfPoints(nPoints)
             setPoint = vtkPoints.SetPoint
             for i in xrange(nPoints):
-                z = points[i]
-                z *= self.zScale
-                z += self.offset
+                z = points[i] * self.zScale + self.offset
                 setPoint(vtk_points, i, self.visualiser.xPoints[i], self.visualiser.yPoints[i], z)
 
             polyData = vtkPolyData()

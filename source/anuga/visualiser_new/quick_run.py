@@ -7,5 +7,5 @@ vis.add_feature(HeightQuantity('elevation'))
 vis.add_feature(HeightQuantity('stage', dynamic=True, #colour=(lambda q:q['stage'], 0.0, 10.0), offset=-0.01))
                                colour=(0.0, 0.0, 0.8)))
 
-import profile
-profile.run('vis.run()')
+import cProfile
+cProfile.run('vis.run()')
