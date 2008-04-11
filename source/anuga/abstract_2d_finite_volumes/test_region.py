@@ -6,7 +6,7 @@ from math import sqrt
 from domain import *
 from region import *
 #from anuga.config import epsilon
-from Numeric import allclose #, array, ones, Float
+from Numeric import allclose, average #, array, ones, Float
 
 
 def add_x_y(x, y):
@@ -173,6 +173,81 @@ class Test_Region(unittest.TestCase):
                          [ 0.07,  1.07,  0.07],
                          [ 0.07,  0.07,  0.07],
                          [ 0.07,  0.07,  0.07]])
+                         
+    def test_unique_vertices_average_loc_vert(self):
+        """
+        get values based on triangle lists.
+        """
+        from mesh_factory import rectangular
+        from shallow_water import Domain
+        from Numeric import zeros, Float
+
+        #Create basic mesh
+        points, vertices, boundary = rectangular(1, 3)
+        #Create shallow water domain
+        domain = Domain(points, vertices, boundary)
+        domain.build_tagged_elements_dictionary({'bottom':[0,1],
+                                                 'top':[4,5],
+                                                 'not_bottom':[2,3,4,5]})
+
+        #Set friction
+        domain.set_quantity('friction', add_x_y)
+        av_bottom = 2.0/3.0
+        add = 60.0
+        calc_frict = av_bottom + add
+        domain.set_region(Add_value_to_region('bottom', 'friction', add,
+                          initial_quantity='friction',
+                           #location='unique vertices',
+                           location='vertices',
+                           average=True
+                          ))
+
+        #print domain.quantities['friction'].get_values()
+        frict_points = domain.quantities['friction'].get_values()
+        assert allclose(frict_points[0],\
+                        [ calc_frict, calc_frict, calc_frict])
+        assert allclose(frict_points[1],\
+                        [ calc_frict, calc_frict, calc_frict])
+  
+    def test_unique_vertices_average_loc_unique_vert(self):
+        """
+        get values based on triangle lists.
+        """
+        from mesh_factory import rectangular
+        from shallow_water import Domain
+        from Numeric import zeros, Float
+
+        #Create basic mesh
+        points, vertices, boundary = rectangular(1, 3)
+        #Create shallow water domain
+        domain = Domain(points, vertices, boundary)
+        domain.build_tagged_elements_dictionary({'bottom':[0,1],
+                                                 'top':[4,5],
+                                                 'not_bottom':[2,3,4,5]})
+
+        #Set friction
+        domain.set_quantity('friction', add_x_y)
+        av_bottom = 2.0/3.0
+        add = 60.0
+        calc_frict = av_bottom + add
+        domain.set_region(Add_value_to_region('bottom', 'friction', add,
+                          initial_quantity='friction',
+                           location='unique vertices',
+                           average=True
+                          ))
+
+        #print domain.quantities['friction'].get_values()
+        frict_points = domain.quantities['friction'].get_values()
+        assert allclose(frict_points[0],\
+                        [ calc_frict, calc_frict, calc_frict])
+        assert allclose(frict_points[1],\
+                        [ calc_frict, calc_frict, calc_frict])
+        assert allclose(frict_points[2],\
+                        [ calc_frict, 1.0 + 2.0/3.0, calc_frict])
+        assert allclose(frict_points[3],\
+                        [ 2.0/3.0,calc_frict, 1.0 + 2.0/3.0])
+                                                
+                         
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Region,'test')

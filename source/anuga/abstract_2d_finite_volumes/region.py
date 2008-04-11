@@ -1,4 +1,4 @@
-"""boundary.py - Classes for implementing region conditions
+"""region.py - Classes for implementing region conditions
 
 NOTE: I've only set it up for testing X values of constants and functions.
 Although it should work for vectors/arrays of values, that implies
@@ -7,6 +7,7 @@ operate.
 """
 # FIXME (DSG-DSG) add better comments
 
+from Numeric import average
 class Region:
     """Base class for modifying quantities based on a region.
     """   
@@ -60,15 +61,23 @@ class Set_region(Region):
 class Add_value_to_region(Region):
     """
     Will add a value to the current quantity value.
+    
+    quantity = initial_quantity + X.
+    
+    This method does not work with functions
+    
+    Use average to add X to a mean average of the quantity values.
+    eg if applying this to elevation this will give a flat roof.
     """
     
-    def __init__(self, tag, quantity, X, location='vertices', initial_quantity=None):
+    def __init__(self, tag, quantity, X, location='vertices', initial_quantity=None, average=False):
         #I have to get this going!
         #Region.__init__(self)
         self.tag = tag 
         self.quantity_answer = quantity
         self.location = location
         self.X = X
+        self.average = average
         if initial_quantity is None:
             self.quantity_initial_value = quantity
         else:
@@ -86,17 +95,25 @@ class Add_value_to_region(Region):
             #new_values = domain.get_quantity(self.quantity_initial_value,
             #              indices=self.build_indices(elements, domain),
             #              location=self.location) + self.X
-
             Q = domain.get_quantity(self.quantity_initial_value)
-            new_values = Q.get_values(indices=self.build_indices(elements, domain),
-                                      location=self.location) + self.X            
+            if self.average is True:
+                # Average the points, and then the verts in the averaged point.  
+                values = Q.get_values(indices=self.build_indices(elements, domain),
+                                      location=self.location)
+                av = average(values)
+                if self.location == "vertices":
+                    av = average(av)
+                new_values = av + self.X    
+            else:
+                new_values = Q.get_values(indices=self.build_indices(elements, domain),
+                                      location=self.location) + self.X    
             domain.set_quantity(self.quantity_answer, new_values,
                                 indices=self.build_indices(elements, domain),
                                 location=self.location)
 
 class Add_quantities(Region):
     """
-    Will add a value to the current quantity value.
+    Will add a quantity to the current quantity value.
     """
     
     def __init__(self, tag, quantity_answer, adding_quantity, location='vertices'):
