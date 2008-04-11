@@ -7,7 +7,7 @@ from domain import *
 from region import *
 #from anuga.config import epsilon
 from Numeric import allclose, average #, array, ones, Float
- """
+"""
 This is what the mesh in these tests look like;
 
 3---7
