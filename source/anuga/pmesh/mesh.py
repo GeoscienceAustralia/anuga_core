@@ -1885,11 +1885,12 @@ class Mesh:
     def import_ungenerate_file(self,ofile, tag=None, region_tag=None):
         """
         Imports an ungenerate file, from arcGIS into mesh.
+        This file describes many polygons.
 
         ofile is the name of the ungenerated file.
         Tag is a string name to be taggged on each segment.
         
-        region_tag is the tag applied to the building regions.
+        region_tag is the tag applied to the polygon regions.
         if it is a string the one value will be assigned to all regions
         if it is a list the first value in the list will be applied to the first polygon etc.
         WARNING: size of list and number of polygons isn't checked 
