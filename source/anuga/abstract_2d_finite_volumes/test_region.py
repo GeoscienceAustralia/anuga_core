@@ -7,7 +7,20 @@ from domain import *
 from region import *
 #from anuga.config import epsilon
 from Numeric import allclose, average #, array, ones, Float
+ """
+This is what the mesh in these tests look like;
 
+3---7
+|5 /|
+| /6|
+2---6
+|3 /|
+| /2|
+1---5
+|1 /|
+| /0|
+0---4
+"""
 
 def add_x_y(x, y):
     return x+y
