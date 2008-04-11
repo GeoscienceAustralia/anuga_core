@@ -17,21 +17,23 @@ class Test_eq(unittest.TestCase):
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
         from anuga.shallow_water import Domain
         from anuga.abstract_2d_finite_volumes.quantity import Quantity
-
+        from anuga.utilities.system_tools import get_pathname_from_package
         """
-        Pick the test you want to dop; T= 0 test a point source,
+        Pick the test you want to do; T= 0 test a point source,
         T= 1  test single rectangular source, T= 2 test multiple
         rectangular sources
         """
-
+        #get path where this test is run
+        path= get_pathname_from_package('anuga.shallow_water')
         #choose what test to proceed
-        T=2
+        T=1
+        
 
-        home = getenv('INUNDATIONHOME') + sep +'sandpits'+sep+'hdamlami'+sep+'test_okada'+sep 
 
         if T==0:
             # fotran output file
-            filename = home+'fullokada_SP.txt'
+            
+            filename = path+sep+'fullokada_SP.txt'
         # initial condition of earthquake for multiple source
             x0 = 7000.0
             y0 = 10000.0
@@ -46,7 +48,7 @@ class Test_eq(unittest.TestCase):
             NSMAX=1
         elif T==1:
         # fotran output file
-            filename = home+'fullokada_SS.txt'
+            filename = path+sep+'fullokada_SS.txt'
         # initial condition of earthquake for multiple source
             x0 = 7000.0
             y0 = 10000.0
@@ -63,7 +65,7 @@ class Test_eq(unittest.TestCase):
         elif T==2:
 
         # fotran output file
-            filename = home+'fullokada_MS.txt'
+            filename = path+sep+'fullokada_MS.txt'
         # initial condition of earthquake for multiple source
             x0 = [7000.0,10000.0]
             y0 = [10000.0,7000.0]
@@ -114,7 +116,7 @@ class Test_eq(unittest.TestCase):
         zrec.set_values(topography)
         
         # call okada
-        Ts= Okada_func(ns, NSMAX,length=length, width=width, dip=dip, \
+        Ts= Okada_func(ns=ns, NSMAX=NSMAX,length=length, width=width, dip=dip, \
                        x0=x0, y0=y0, strike=strike, depth=depth, \
                        slip=slip, rake=rake,zrec=zrec)
 
@@ -147,21 +149,23 @@ class Test_eq(unittest.TestCase):
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
         from anuga.shallow_water import Domain
         from anuga.abstract_2d_finite_volumes.quantity import Quantity
-
+        from anuga.utilities.system_tools import get_pathname_from_package
         """
         Pick the test you want to dop; T= 0 test a point source,
         T= 1  test single rectangular source, T= 2 test multiple
         rectangular sources
         """
-
+        
+        #get path where this test is run
+        path= get_pathname_from_package('anuga.shallow_water')
+        
         #choose what test to proceed
-        T=2
-
-        home = getenv('INUNDATIONHOME') + sep +'sandpits'+sep+'hdamlami'+sep+'test_okada'+sep 
+        T=1
 
         if T==0:
-            # fotran output file
-            filename = home+'fullokada_SP.txt'
+        # fotran output file
+            
+            filename = path+sep+'fullokada_SP.txt'
         # initial condition of earthquake for multiple source
             x0 = 7000.0
             y0 = 10000.0
@@ -176,7 +180,7 @@ class Test_eq(unittest.TestCase):
             NSMAX=1
         elif T==1:
         # fotran output file
-            filename = home+'fullokada_SS.txt'
+            filename = path+sep+'fullokada_SS.txt'
         # initial condition of earthquake for multiple source
             x0 = 7000.0
             y0 = 10000.0
@@ -193,7 +197,7 @@ class Test_eq(unittest.TestCase):
         elif T==2:
 
         # fotran output file
-            filename = home+'fullokada_MS.txt'
+            filename = path+sep+'fullokada_MS.txt'
         # initial condition of earthquake for multiple source
             x0 = [7000.0,10000.0]
             y0 = [10000.0,7000.0]
@@ -236,11 +240,16 @@ class Test_eq(unittest.TestCase):
         domain = Domain(points, vertices, boundary)   
         domain.set_name('test')
         domain.set_quantity('elevation',topography)
+        zrec = Quantity(domain)
+        zrec.set_values(topography)
         
-        earthquake_tsunami(ns,NSMAX,length, width, strike, depth, \
-                       dip, x0, y0, slip=1.0, rake=90.,\
-                       domain=domain, verbose=False)
-
+        Ts = earthquake_tsunami(ns=ns,NSMAX=NSMAX,length=length, width=width, strike=strike,\
+                                depth=depth,dip=dip, xi=x0, yi=y0, slip=slip, rake=rake,\
+                                zrec=zrec,domain=domain, verbose=False)
+        
+        #create a variable to store vertical displacement throughout the domain
+        tsunami = Quantity(domain)
+        tsunami.set_values(Ts)
         k=0.0
         for i in range(0,6):
             for j in range(0,6):
