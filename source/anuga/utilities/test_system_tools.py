@@ -7,7 +7,11 @@ from Scientific.IO.NetCDF import NetCDFFile
 import zlib
 from os.path import join, split, sep
 
-from anuga.utilities.system_tools import *
+
+# Please, don't add anuga.utilities to these imports.
+# I'm trying to keep this file general, so it works for EQRM and ANUGA
+# EQRM also uses this file, but has a different directory structure
+from system_tools import *
 
 class Test_system_tools(unittest.TestCase):
     def setUp(self):
@@ -108,7 +112,14 @@ class Test_system_tools(unittest.TestCase):
         """
 
         # Get path where this test is run
-        path = get_pathname_from_package('anuga.utilities')
+        try:
+            path = get_pathname_from_package('anuga.utilities')
+        except ImportError:
+            # I'm trying to keep this file general,
+            # so it works for EQRM and ANUGA
+            # EQRM also uses this file,
+            # but has a different directory structure
+            path = get_pathname_from_package('eqrm_code.ANUGA_utilities')
         
         filename = path + sep +  'crc_test_file.png'
 
