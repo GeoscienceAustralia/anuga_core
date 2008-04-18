@@ -112,14 +112,10 @@ class Test_system_tools(unittest.TestCase):
         """
 
         # Get path where this test is run
-        try:
-            path = get_pathname_from_package('anuga.utilities')
-        except ImportError:
-            # I'm trying to keep this file general,
-            # so it works for EQRM and ANUGA
-            # EQRM also uses this file,
-            # but has a different directory structure
-            path = get_pathname_from_package('eqrm_code.ANUGA_utilities')
+        # I'm trying to keep this file general, so it works for EQRM and ANUGA
+        path, tail = split(__file__)
+        if path == '':
+            path = '.' + sep
         
         filename = path + sep +  'crc_test_file.png'
 
