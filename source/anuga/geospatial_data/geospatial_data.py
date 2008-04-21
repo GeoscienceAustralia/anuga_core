@@ -993,7 +993,8 @@ def _read_csv_file(file_name, verbose=False):
                    _read_csv_file_blocking( \
                 file_pointer,
                 header,
-                max_read_lines=1e30) #If the file is bigger that this, block..
+                max_read_lines=1e30) #If the file is bigger that this, block..  # FIXME (Ole) What's up here?
+                
     except ANUGAError:
         file_pointer.close()
         raise 

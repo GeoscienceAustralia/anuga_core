@@ -119,12 +119,10 @@ class Interpolate (FitInterpolate):
 	  Interpolated values at inputted points (z).
         """
 
-        
-        # FIXME (Ole): Need an input check that dimensions are compatible
-
         # FIXME (Ole): Why is the interpolation matrix rebuilt everytime the
         # method is called even if interpolation points are unchanged.
-        
+
+
         #print "point_coordinates interpolate.interpolate", point_coordinates 
         if isinstance(point_coordinates, Geospatial_data):
             point_coordinates = point_coordinates.get_data_points( \
@@ -145,6 +143,7 @@ class Interpolate (FitInterpolate):
                 #There are no good point_coordinates. import sys; sys.exit()
                 msg = 'ERROR (interpolate.py): No point_coordinates inputted'
                 raise Exception(msg)
+
         
         if point_coordinates is not None:   
             self._point_coordinates = point_coordinates
@@ -183,8 +182,9 @@ class Interpolate (FitInterpolate):
                                            verbose=verbose)
                 z = concatenate((z,t))
         return z
+    
 
-    def interpolate_block(self, f, point_coordinates=None, verbose=False):
+    def interpolate_block(self, f, point_coordinates, verbose=False):
         """
         Call this if you want to control the blocking or make sure blocking
         doesn't occur.
@@ -194,12 +194,36 @@ class Interpolate (FitInterpolate):
         See interpolate for doc info.
         """
         if isinstance(point_coordinates,Geospatial_data):
-            point_coordinates = point_coordinates.get_data_points( \
-                absolute = True)
-        if point_coordinates is not None:
-            self._A = self._build_interpolation_matrix_A(point_coordinates,
-                                                         verbose=verbose)
+            point_coordinates = point_coordinates.get_data_points(\
+                absolute=True)
+
+        # Convert lists to Numeric arrays if necessary
+        point_coordinates = ensure_numeric(point_coordinates, Float)
+        f = ensure_numeric(f, Float)        
+            
+
+        self._A = self._build_interpolation_matrix_A(point_coordinates,
+                                                     verbose=verbose)
+
+
+        # Check that input dimensions are compatible
+        msg = 'Two colums must be specified in point coordinates. I got shape=%s'\
+              %(str(point_coordinates.shape))
+        assert point_coordinates.shape[1] == 2, msg
+
+        msg = 'The number of rows in matrix A must be the same as the number of points supplied.'
+        msg += ' I got %d points and %d matrix rows.'\
+               %(point_coordinates.shape[0], self._A.shape[0])
+        assert point_coordinates.shape[0] == self._A.shape[0], msg        
+
+        msg = 'The number of columns in matrix A must be the same as the number of mesh vertices.'
+        msg += ' I got %d vertices and %d matrix columns.'\
+               %(f.shape[0], self._A.shape[1])        
+        assert self._A.shape[1] == f.shape[0], msg
+
+        # Compute Matrix vector product and return
         return self._get_point_data_z(f)
+    
 
     def _get_point_data_z(self, f, verbose=False):
         """
@@ -208,6 +232,7 @@ class Interpolate (FitInterpolate):
         Precondition,
         The _A matrix has been created
         """
+
         z = self._A * f
         # Taking into account points outside the mesh.
         #print "self.outside_poly_indices", self.outside_poly_indices
@@ -237,9 +262,10 @@ class Interpolate (FitInterpolate):
         """
 
         #print 'Building interpolation matrix'
-        
-        #Convert point_coordinates to Numeric arrays, in case it was a list.
+
+        # Convert point_coordinates to Numeric arrays, in case it was a list.
         point_coordinates = ensure_numeric(point_coordinates, Float)
+        
         
         if verbose: print 'Getting indices inside mesh boundary'
         self.inside_poly_indices, self.outside_poly_indices  = \
@@ -623,14 +649,17 @@ class Interpolation_function:
 	    for i, t in enumerate(self.time):
                 # Interpolate quantities at this timestep
                 if verbose and i%((p+10)/10)==0:
-                    print ' time step %d of %d' %(i, p)
+                    print '  time step %d of %d' %(i, p)
                     
                 for name in quantity_names:
                     if len(quantities[name].shape) == 2:
                         Q = quantities[name][i,:] # Quantities at timestep i
                     else:
                         Q = quantities[name][:]   # No time dependency
-                       
+
+                    if verbose and i%((p+10)/10)==0:
+                        print '    quantity %s, size=%d' %(name, len(Q))
+                        
                     # Interpolate    
                     result = interpol.interpolate(Q,
                                                   point_coordinates=\
