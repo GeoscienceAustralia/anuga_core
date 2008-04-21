@@ -9,38 +9,99 @@
 #except:
 #    #print 'Could not find scipy - using Numeric'
 
-from Numeric import Float, Int, zeros, ones, array, concatenate, reshape, dot
+from Numeric import Float, Int, zeros, ones, array, concatenate, reshape, dot, allclose
 
 
 from math import sqrt
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.geospatial_data.geospatial_data import ensure_absolute
 
-def point_on_line(x, y, x0, y0, x1, y1):
+def point_on_line(point, line):
     """Determine whether a point is on a line segment
 
-    Input: x, y, x0, x0, x1, y1: where
-        point is given by x, y
-	line is given by (x0, y0) and (x1, y1)
+    Input: 
+        point is given by [x, y]
+	line is given by [x0, y0], [x1, y1]] or
+        the equivalent 2x2 Numeric array with each row corresponding to a point.
 
+    Output:
+        
     """
 
-    a = array([x - x0, y - y0])
-    a_normal = array([a[1], -a[0]])
+    point = ensure_numeric(point)
+    line = ensure_numeric(line)
 
-    b = array([x1 - x0, y1 - y0])
 
-    if dot(a_normal, b) == 0:
-        #Point is somewhere on the infinite extension of the line
+    res = _point_on_line(point[0], point[1],
+                         line[0,0], line[0,1],
+                         line[1,0], line[1,1])
+    
+    return bool(res)
 
-        len_a = sqrt(sum(a**2))
-        len_b = sqrt(sum(b**2))
-        if dot(a, b) >= 0 and len_a <= len_b:
-           return True
-	else:
-           return False
+
+
+
+
+def intersection(line0, line1):
+    """Returns intersecting point between two line segments or None (if parallel or no intersection is found)
+
+    Inputs:
+        line0, line1: Each defined by two end points as in: [[x0, y0], [x1, y1]]
+                      A line can also be a 2x2 numeric array with each row corresponding to a point.
+
+
+    Output:
+        Point [x,y] or None.
+
+    If line extensions intersect outside their limits, None is returned as well.
+    
+    """
+
+    # FIXME (Ole): Write this in C
+
+    line0 = ensure_numeric(line0, Float)
+    line1 = ensure_numeric(line1, Float)    
+
+    x0 = line0[0,0]; y0 = line0[0,1]
+    x1 = line0[1,0]; y1 = line0[1,1]
+
+    x2 = line1[0,0]; y2 = line1[0,1]
+    x3 = line1[1,0]; y3 = line1[1,1]
+
+    denom = (y3-y2)*(x1-x0) - (x3-x2)*(y1-y0)
+
+    #print 'denom', denom, line0, line1
+    if allclose(denom, 0.0):
+        # Lines are parallel
+        return None
     else:
-      return False
+        u0 = (x3-x2)*(y0-y2) - (y3-y2)*(x0-x2)
+        u0 = u0/denom
+
+        u1 = (x2-x0)*(y1-y0) - (y2-y0)*(x1-x0)
+        u1 = u1/denom        
+
+        x = x0 + u0*(x1-x0)
+        y = y0 + u0*(y1-y0)
+
+        assert allclose(x, x2 + u1*(x3-x2))
+        assert allclose(y, y2 + u1*(y3-y2))        
+
+        # Check if point found lies within given line segments
+        if 0.0 <= u0 <= 1.0 and 0.0 <= u1 <= 1.0: 
+            # We have intersection
+
+            # Need tolerances if going ahead with this check
+            #msg = 'Algorithm error. Intersection was detected but point (%f, %f) does not lie ' %(x,y)
+            #msg += 'on line0: %s' %(line0)
+            #assert point_on_line([x, y], line0), msg
+            #msg = 'Algorithm error. Intersection was detected but point (%f, %f) does not lie ' %(x,y)
+            #msg += 'on line1: %s' %(line1)            
+            #assert point_on_line([x, y], line1), msg
+        
+            return [x, y]
+        else:
+            return None
 
 
 def is_inside_polygon(point, polygon, closed=True, verbose=False):
@@ -304,9 +365,8 @@ def separate_points_by_polygon(points, polygon,
 
     indices = zeros( M, Int )
 
-    from polygon_ext import separate_points_by_polygon as sep_points
-    count = sep_points(points, polygon, indices,
-                       int(closed), int(verbose))
+    count = _separate_points_by_polygon(points, polygon, indices,
+                                        int(closed), int(verbose))
 
     if verbose: print 'Found %d points (out of %d) inside polygon'\
        %(count, M)
@@ -779,9 +839,10 @@ def decimate_polygon(polygon, factor=10):
 
 from anuga.utilities.compile import can_use_C_extension
 if can_use_C_extension('polygon_ext.c'):
-    # Underlying C implementations can be accessed 
+    # Underlying C implementations can be accessed
+    from polygon_ext import _point_on_line
+    from polygon_ext import _separate_points_by_polygon
 
-    from polygon_ext import point_on_line
 else:
     msg = 'C implementations could not be accessed by %s.\n ' %__file__
     msg += 'Make sure compile_all.py has been run as described in '

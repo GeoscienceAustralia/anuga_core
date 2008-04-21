@@ -18,9 +18,9 @@
 #include "math.h"
 
 
-int _point_on_line(double x, double y,
-		   double x0, double y0,
-		   double x1, double y1) {
+int __point_on_line(double x, double y,
+		    double x0, double y0,
+		    double x1, double y1) {
   /*Determine whether a point is on a line segment
 
     Input: x, y, x0, x0, x1, y1: where
@@ -40,8 +40,9 @@ int _point_on_line(double x, double y,
   b0 = x1 - x0;
   b1 = y1 - y0;
 
-  if ( a_normal0*b0 + a_normal1*b1 == 0 ) {
+  if ( a_normal0*b0 + a_normal1*b1 == 0.0 ) {
     //Point is somewhere on the infinite extension of the line
+    // FIXME (Ole): Perhaps add a tolerance here instead of 0.0 
 
     len_a = sqrt(a0*a0 + a1*a1);
     len_b = sqrt(b0*b0 + b1*b1);
@@ -58,7 +59,7 @@ int _point_on_line(double x, double y,
 
 
 
-int _separate_points_by_polygon(int M,     // Number of points
+int __separate_points_by_polygon(int M,     // Number of points
 				int N,     // Number of polygon vertices
 				double* points,
 				double* polygon,
@@ -116,7 +117,7 @@ int _separate_points_by_polygon(int M,     // Number of points
         py_j = polygon[2*j+1];
 
         //Check for case where point is contained in line segment
-        if (_point_on_line(x, y, px_i, py_i, px_j, py_j)) {
+        if (__point_on_line(x, y, px_i, py_i, px_j, py_j)) {
 	  if (closed == 1) {
 	    inside = 1;
 	  } else {
@@ -148,7 +149,7 @@ int _separate_points_by_polygon(int M,     // Number of points
 
 
 // Gateways to Python
-PyObject *point_on_line(PyObject *self, PyObject *args) {
+PyObject *_point_on_line(PyObject *self, PyObject *args) {
   //
   // point_on_line(x, y, x0, y0, x1, y1)
   //
@@ -166,7 +167,7 @@ PyObject *point_on_line(PyObject *self, PyObject *args) {
 
 
   // Call underlying routine
-  res = _point_on_line(x, y, x0, y0, x1, y1);
+  res = __point_on_line(x, y, x0, y0, x1, y1);
 
   // Return values a and b
   result = Py_BuildValue("i", res);
@@ -175,7 +176,7 @@ PyObject *point_on_line(PyObject *self, PyObject *args) {
 
 
 
-PyObject *separate_points_by_polygon(PyObject *self, PyObject *args) {
+PyObject *_separate_points_by_polygon(PyObject *self, PyObject *args) {
   //def separate_points_by_polygon(points, polygon, closed, verbose, one_point):
   //  """Determine whether points are inside or outside a polygon
   //
@@ -244,11 +245,11 @@ PyObject *separate_points_by_polygon(PyObject *self, PyObject *args) {
   if (verbose) printf("Got %d points and %d polygon vertices\n", M, N);
   
   //Call underlying routine
-  count = _separate_points_by_polygon(M, N,
-				      (double*) points -> data,
-				      (double*) polygon -> data,
-				      (long*) indices -> data,
-				      closed, verbose);
+  count = __separate_points_by_polygon(M, N,
+				       (double*) points -> data,
+				       (double*) polygon -> data,
+				       (long*) indices -> data,
+				       closed, verbose);
   
   //NOTE: return number of points inside..
   return Py_BuildValue("i", count);
@@ -263,8 +264,8 @@ static struct PyMethodDef MethodTable[] = {
    * three.
    */
 
-  {"point_on_line", point_on_line, METH_VARARGS, "Print out"},
-  {"separate_points_by_polygon", separate_points_by_polygon, 
+  {"_point_on_line", _point_on_line, METH_VARARGS, "Print out"},
+  {"_separate_points_by_polygon", _separate_points_by_polygon, 
                                  METH_VARARGS, "Print out"},
   {NULL, NULL, 0, NULL}   /* sentinel */
 };

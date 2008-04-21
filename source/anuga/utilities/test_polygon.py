@@ -37,7 +37,7 @@ class Test_Polygon(unittest.TestCase):
                 import polygon_ext
 
 
-    #Polygon stuff
+    # Polygon stuff
     def test_polygon_function_constants(self):
         p1 = [[0,0], [10,0], [10,10], [0,10]]
         p2 = [[0,0], [10,10], [15,5], [20, 10], [25,0], [30,10], [40,-10]]
@@ -143,26 +143,26 @@ class Test_Polygon(unittest.TestCase):
 
     def test_point_on_line(self):
 
-	#Endpoints first
-	assert point_on_line( 0, 0, 0,0, 1,0 )
-	assert point_on_line( 1, 0, 0,0, 1,0 )
+	# Endpoints first
+	assert point_on_line( [0, 0], [[0,0], [1,0]] )
+	assert point_on_line( [1, 0], [[0,0], [1,0]] )
 
-	#Then points on line
-	assert point_on_line( 0.5, 0, 0,0, 1,0 )
-	assert point_on_line( 0, 0.5, 0,1, 0,0 )
-	assert point_on_line( 1, 0.5, 1,1, 1,0 )
-	assert point_on_line( 0.5, 0.5, 0,0, 1,1 )
+	# Then points on line
+	assert point_on_line( [0.5, 0], [[0,0], [1,0]] )
+	assert point_on_line( [0, 0.5], [[0,1], [0,0]] )
+	assert point_on_line( [1, 0.5], [[1,1], [1,0]] )
+	assert point_on_line( [0.5, 0.5], [[0,0], [1,1]] )
 
-	#Then points not on line
-	assert not point_on_line( 0.5, 0, 0,1, 1,1 )
-	assert not point_on_line( 0, 0.5, 0,0, 1,1 )
+	# Then points not on line
+	assert not point_on_line( [0.5, 0], [[0,1], [1,1]] )
+	assert not point_on_line( [0, 0.5], [[0,0], [1,1]] )
 
-	#From real example that failed
-	assert not point_on_line( 40,50, 40,20, 40,40 )
+	# From real example that failed
+	assert not point_on_line( [40,50], [[40,20], [40,40]] )
 
 
-	#From real example that failed
-	assert not point_on_line( 40,19, 40,20, 40,40 )
+	# From real example that failed
+	assert not point_on_line( [40,19], [[40,20], [40,40]] )
 
 
 
@@ -170,7 +170,7 @@ class Test_Polygon(unittest.TestCase):
     def test_is_inside_polygon_main(self):
 
 
-        #Simplest case: Polygon is the unit square
+        # Simplest case: Polygon is the unit square
         polygon = [[0,0], [1,0], [1,1], [0,1]]
 
 	assert is_inside_polygon( (0.5, 0.5), polygon )
@@ -179,7 +179,7 @@ class Test_Polygon(unittest.TestCase):
 	assert not is_inside_polygon( (-0.5, 0.5), polygon )
 	assert not is_inside_polygon( (1.5, 0.5), polygon )
 
-	#Try point on borders
+	# Try point on borders
 	assert is_inside_polygon( (1., 0.5), polygon, closed=True)
 	assert is_inside_polygon( (0.5, 1), polygon, closed=True)
 	assert is_inside_polygon( (0., 0.5), polygon, closed=True)
@@ -193,10 +193,10 @@ class Test_Polygon(unittest.TestCase):
 
     def test_inside_polygon_main(self):
 
-        #Simplest case: Polygon is the unit square
+        # Simplest case: Polygon is the unit square
         polygon = [[0,0], [1,0], [1,1], [0,1]]        
 
-        #From real example (that failed)
+        # From real example (that failed)
 	polygon = [[20,20], [40,20], [40,40], [20,40]]
 	points = [ [40, 50] ]
 	res = inside_polygon(points, polygon)
@@ -210,7 +210,7 @@ class Test_Polygon(unittest.TestCase):
 
 
 
-	#More convoluted and non convex polygon
+	# More convoluted and non convex polygon
         polygon = [[0,0], [1,0], [0.5,-1], [2, -1], [2,1], [0,1]]
 	assert is_inside_polygon( (0.5, 0.5), polygon )
 	assert is_inside_polygon( (1, -0.5), polygon )
@@ -220,7 +220,7 @@ class Test_Polygon(unittest.TestCase):
 	assert not is_inside_polygon( (0.5, -0.5), polygon )
 
 
-	#Very convoluted polygon
+	# Very convoluted polygon
         polygon = [[0,0], [10,10], [15,5], [20, 10], [25,0], [30,10], [40,-10]]
 	assert is_inside_polygon( (5, 5), polygon )
 	assert is_inside_polygon( (17, 7), polygon )
@@ -232,7 +232,7 @@ class Test_Polygon(unittest.TestCase):
 
 
 
-	#Another combination (that failed)
+	# Another combination (that failed)
         polygon = [[0,0], [10,0], [10,10], [0,10]]
 	assert is_inside_polygon( (5, 5), polygon )
 	assert is_inside_polygon( (7, 7), polygon )
@@ -245,7 +245,7 @@ class Test_Polygon(unittest.TestCase):
 
 
 
-	#Multiple polygons
+	# Multiple polygons
 
         polygon = [[0,0], [1,0], [1,1], [0,1], [0,0],
 		   [10,10], [11,10], [11,11], [10,11], [10,10]]
@@ -255,7 +255,7 @@ class Test_Polygon(unittest.TestCase):
 	#FIXME: Fails if point is 5.5, 5.5
         assert not is_inside_polygon( (0, 5.5), polygon )
 
-	#Polygon with a hole
+	# Polygon with a hole
         polygon = [[-1,-1], [2,-1], [2,2], [-1,2], [-1,-1],
 	           [0,0], [1,0], [1,1], [0,1], [0,0]]
 
@@ -267,7 +267,7 @@ class Test_Polygon(unittest.TestCase):
     def test_duplicate_points_being_ok(self):
 
 
-        #Simplest case: Polygon is the unit square
+        # Simplest case: Polygon is the unit square
         polygon = [[0,0], [1,0], [1,0], [1,0], [1,1], [0,1], [0,0]]
 
 	assert is_inside_polygon( (0.5, 0.5), polygon )
@@ -276,7 +276,7 @@ class Test_Polygon(unittest.TestCase):
 	assert not is_inside_polygon( (-0.5, 0.5), polygon )
 	assert not is_inside_polygon( (1.5, 0.5), polygon )
 
-	#Try point on borders
+	# Try point on borders
 	assert is_inside_polygon( (1., 0.5), polygon, closed=True)
 	assert is_inside_polygon( (0.5, 1), polygon, closed=True)
 	assert is_inside_polygon( (0., 0.5), polygon, closed=True)
@@ -287,7 +287,7 @@ class Test_Polygon(unittest.TestCase):
 	assert not is_inside_polygon( (0.5, 0.), polygon, closed=False)
 	assert not is_inside_polygon( (1., 0.5), polygon, closed=False)
 
-        #From real example
+        # From real example
 	polygon = [[20,20], [40,20], [40,40], [20,40]]
 	points = [ [40, 50] ]
 	res = inside_polygon(points, polygon)
@@ -296,7 +296,7 @@ class Test_Polygon(unittest.TestCase):
         
 
     def test_inside_polygon_vector_version(self):
-	#Now try the vector formulation returning indices
+	# Now try the vector formulation returning indices
         polygon = [[0,0], [1,0], [0.5,-1], [2, -1], [2,1], [0,1]]
 	points = [ [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
 	res = inside_polygon( points, polygon, verbose=False )
@@ -307,15 +307,15 @@ class Test_Polygon(unittest.TestCase):
         U = [[0,0], [1,0], [1,1], [0,1]] #Unit square    
 
         assert not is_outside_polygon( [0.5, 0.5], U )
-        #evaluate to False as the point 0.5, 0.5 is inside the unit square
+        # evaluate to False as the point 0.5, 0.5 is inside the unit square
         
         assert is_outside_polygon( [1.5, 0.5], U )
-        #evaluate to True as the point 1.5, 0.5 is outside the unit square
+        # evaluate to True as the point 1.5, 0.5 is outside the unit square
         
         indices = outside_polygon( [[0.5, 0.5], [1, -0.5], [0.3, 0.2]], U )
         assert allclose( indices, [1] )
         
-        #One more test of vector formulation returning indices
+        # One more test of vector formulation returning indices
         polygon = [[0,0], [1,0], [0.5,-1], [2, -1], [2,1], [0,1]]
 	points = [ [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
 	res = outside_polygon( points, polygon )
@@ -334,10 +334,10 @@ class Test_Polygon(unittest.TestCase):
         U = [[0,0], [1,0], [1,1], [0,1]] #Unit square    
    
         assert not outside_polygon( [0.5, 1.0], U, closed = True )
-        #evaluate to False as the point 0.5, 1.0 is inside the unit square
+        # evaluate to False as the point 0.5, 1.0 is inside the unit square
         
         assert is_outside_polygon( [0.5, 1.0], U, closed = False )
-        #evaluate to True as the point 0.5, 1.0 is outside the unit square
+        # evaluate to True as the point 0.5, 1.0 is outside the unit square
 
     def test_all_outside_polygon(self):
         """Test case where all points are outside poly
@@ -576,8 +576,111 @@ class Test_Polygon(unittest.TestCase):
         inside, outside =  in_and_outside_polygon( points, polygon)
 	assert (inside, [1,3])
 	assert (outside, [0,2,4,5])
+
+
+    def test_intersection1(self):
+        line0 = [[-1,0], [1,0]]
+        line1 = [[0,-1], [0,1]]
+
+        p = intersection(line0, line1)
+        assert allclose(p, [0.0, 0.0])
+
+    def test_intersection2(self):
+        line0 = [[0,0], [24,12]]
+        line1 = [[0,12], [24,0]]
+
+        p = intersection(line0, line1)
+        assert allclose(p, [12.0, 6.0])
+
+        # Swap direction of one line
+        line1 = [[24,0], [0,12]]
+
+        p = intersection(line0, line1)
+        assert allclose(p, [12.0, 6.0])
+
+        # Swap order of lines
+        p = intersection(line1, line0)
+        assert allclose(p, [12.0, 6.0])        
         
-    def zzztest_inside_polygon_main(self):  
+    def test_intersection3(self):
+        line0 = [[0,0], [24,12]]
+        line1 = [[0,17], [24,0]]
+
+        p = intersection(line0, line1)
+        #print p
+        assert allclose(p, [14.068965517, 7.0344827586])
+
+        # Swap direction of one line
+        line1 = [[24,0], [0,17]]
+
+        p = intersection(line0, line1)
+        #print p
+        assert allclose(p, [14.068965517, 7.0344827586])        
+
+        # Swap order of lines
+        p = intersection(line1, line0)
+        assert allclose(p, [14.068965517, 7.0344827586])        
+
+
+    def test_intersection4(self):
+        line0 = [[0,0], [24,12]]
+        line1 = [[0,22], [21,0]]
+
+        p = intersection(line0, line1)
+        #print 'P',p
+
+        
+    def test_intersection_direction_invariance(self):
+        """This runs through a number of examples and checks that direction of lines don't matter.
+        """
+
+              
+        line0 = [[0,0], [100,100]]
+
+        common_end_point = [20, 150]
+        
+        for i in range(100):
+            x = 20 + i * 1.0/100
+
+            line1 = [[x,0], common_end_point]
+            p1 = intersection(line0, line1)
+
+            # Swap direction of line1
+            line1 = [common_end_point, [x,0]]            
+            p2 = intersection(line0, line1)
+
+            msg = 'Orientation of line shouldn not matter.\n'
+            msg += 'However, segment [%f,%f], [%f, %f]' %(x,
+                                                          0,
+                                                          common_end_point[0],
+                                                          common_end_point[1])
+            msg += ' gave %s, \nbut when reversed we got %s' %(p1, p2)
+            assert allclose(p1, p2), msg
+
+            # Swap order of lines
+            p3 = intersection(line1, line0)
+            msg = 'Order of lines gave different results'
+            assert allclose(p1, p3), msg
+
+    def test_no_intersection(self):
+        line0 = [[-1,1], [1,1]]
+        line1 = [[0,-1], [0,0]]
+
+        p = intersection(line0, line1)
+        assert p is None
+
+    def test_intersection_parallel(self):
+        line0 = [[-1,1], [1,1]]
+        line1 = [[-1,0], [5,0]]
+
+        p = intersection(line0, line1)
+        assert p is None                
+
+        
+        
+    def zzztest_inside_polygon_main(self):  \
+
+        #FIXME (Ole): Why is this disabled?
         print "inside",inside
         print "outside",outside
         
