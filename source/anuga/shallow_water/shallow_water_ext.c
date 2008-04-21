@@ -230,7 +230,10 @@ int _flux_function_central(double *q_left, double *q_right,
   _rotate(q_left_rotated, n1, n2);
   _rotate(q_right_rotated, n1, n2);
 
-  z = (z_left+z_right)/2; // Average elevation values
+  z = (z_left+z_right)/2; // Average elevation values. 
+                          // Even though this will nominally allow for discontinuities 
+			  // in the elevation data, there is currently no numerical 
+			  // support for this so results may be strange near jumps in the bed.
 
   // Compute speeds in x-direction
   w_left = q_left_rotated[0];          
@@ -1768,13 +1771,15 @@ double _compute_fluxes_central(int number_of_elements,
       // Quantities at neighbour on nearest face
       n = neighbours[ki];
       if (n < 0) {
-	m = -n-1; // Convert negative flag to index
+        // Neighbour is a boundary condition
+	m = -n-1; // Convert negative flag to boundary index
 	
 	qr[0] = stage_boundary_values[m];
 	qr[1] = xmom_boundary_values[m];
 	qr[2] = ymom_boundary_values[m];
 	zr = zl; // Extend bed elevation to boundary
       } else {
+        // Neighbour is a real element
 	m = neighbour_edges[ki];
 	nm = n*3+m; // Linear index (triangle n, edge m)
 	
@@ -1846,10 +1851,27 @@ double _compute_fluxes_central(int number_of_elements,
 	  timestep = min(timestep, radii[k]/max_speed);
 	  if (n>=0) 
 	    timestep = min(timestep, radii[n]/max_speed);
+	  
+	  // Ted Rigby's suggestion
+	  //if (n>=0) { 	    
+	  //  timestep = min(timestep, 0.8*(radii[k]+radii[n])/max_speed);
+	  //} else {
+	  //  timestep = min(timestep, radii[k]/max_speed);
+	  // }
+	  
+	  
+	  // Ole's modification
+	  //if (n>=0) { 	    
+	  //  timestep = min(timestep, max(radii[k],radii[n])/max_speed);
+	  //} else {
+	  //  timestep = min(timestep, radii[k]/max_speed);
+	  //}
+	  
+	  
 	}
       }
       
-    } // End edge i
+    } // End edge i (and neighbour n)
     
     
     // Normalise triangle k by area and store for when all conserved
@@ -2009,7 +2031,9 @@ PyObject *compute_fluxes_ext_kinetic(PyObject *self, PyObject *args) {
   /*Compute all fluxes and the timestep suitable for all volumes
     in domain.
 
-    Compute total flux for each conserved quantity using "flux_function_central"
+    THIS IS AN EXPERIMENTAL FUNCTION - NORMALLY flux_function_central IS USED.
+    
+    Compute total flux for each conserved quantity using "flux_function_kinetic"
 
     Fluxes across each edge are scaled by edgelengths and summed up
     Resulting flux is then scaled by area and stored in
