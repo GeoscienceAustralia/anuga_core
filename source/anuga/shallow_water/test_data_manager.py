@@ -18,6 +18,7 @@ from anuga.config import epsilon
 from anuga.utilities.anuga_exceptions import ANUGAError
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.coordinate_transforms.redfearn import degminsec2decimal_degrees
+from anuga.abstract_2d_finite_volumes.util import file_function
 
 # This is needed to run the tests of local functions
 import data_manager 
@@ -7305,8 +7306,97 @@ friction  \n \
         assert allclose(location[0], 50+E)                
 
 
-        #Cleanup
+        # Cleanup
         os.remove(swwfile)
+
+
+    def NOtest_get_flow_through_cross_section(self):
+        """test_get_flow_through_cross_section(self):
+
+        Test that the total flow through a cross section can be
+        correctly obtained from an sww file.
+        
+        This test creates a flat bed with a known flow through it and tests
+        that the function correctly returns the expected flow.
+
+        The specifics are
+        u = 2 m/s
+        h = 1 m
+        w = 5 m (width of channel)
+
+        q = u*h*w = 10 m^3/s 
+        
+        """
+
+        import time, os
+        from Numeric import array, zeros, allclose, Float, concatenate
+        from Scientific.IO.NetCDF import NetCDFFile
+
+        # Setup
+        from mesh_factory import rectangular
+
+        # Create basic mesh (100m x 5m)
+        width = 5
+        len = 100
+        points, vertices, boundary = rectangular(len, width, 100, 5)
+
+        # Create shallow water domain
+        domain = Domain(points, vertices, boundary)
+        domain.default_order = 2
+        domain.set_minimum_storable_height(0.01)
+
+        domain.set_name('flowtest')
+        swwfile = domain.get_name() + '.sww'
+
+        domain.set_datadir('.')
+        domain.format = 'sww'
+        domain.smooth = True
+
+        h = 1.0
+        u = 2.0
+        uh = u*h
+
+        Br = Reflective_boundary(domain)     # Side walls
+        Bd = Dirichlet_boundary([h, uh, 0])  # 2 m/s across the 5 m inlet: 
+
+
+        #---------- First run without geo referencing
+        
+        domain.set_quantity('elevation', 0.0)
+        domain.set_quantity('stage', h)
+        domain.set_quantity('xmomentum', uh)
+        domain.set_boundary( {'left': Bd, 'right': Bd, 'top': Br, 'bottom': Br})
+
+        for t in domain.evolve(yieldstep=1, finaltime = 50):
+            pass
+
+        # Check that momentum is as it should be in the interior
+        f = file_function(swwfile,
+                          quantities=['stage', 'xmomentum', 'ymomentum'],
+                          interpolation_points=[[0,width/2],
+                                                [len/2, width/2],
+                                                [len, width/2]],
+                          verbose=False)
+
+        for t in range(50):
+            for i in range(3):
+                assert allclose(f(t, i), [1, 2, 0])
+            
+
+
+        # Check flow through the middle
+        cross_section = [[len/2,0], [len/2,width]]
+        Q = get_flow_through_cross_section(swwfile,
+                                           cross_section,
+                                           verbose=True)
+
+        assert allclose(Q, uh*width)  
+                                      
+
+
+
+
+        
         
     def test_get_all_swwfiles(self):
         try:
@@ -7416,7 +7506,7 @@ if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager,'test_export_gridII')
 #    suite = unittest.makeSuite(Test_Data_Manager,'test_screen_catcher')
     suite = unittest.makeSuite(Test_Data_Manager,'test')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs_ungridded_holeII')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_get_flow_through_cross_section')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs_ungridded_holeII')
 
     

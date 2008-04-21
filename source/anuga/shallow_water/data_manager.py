@@ -97,6 +97,9 @@ from anuga.abstract_2d_finite_volumes.pmesh2domain import \
 from anuga.abstract_2d_finite_volumes.util import get_revision_number, \
      remove_lone_verts, sww2timeseries, get_centroid_values
 from anuga.load_mesh.loadASCII import export_mesh_file
+from anuga.utilities.polygon import intersection
+
+
 # formula mappings
 
 quantity_formula = {'momentum':'(xmomentum**2 + ymomentum**2)**0.5',
@@ -5490,6 +5493,129 @@ def store_parameters(verbose=False,**kwargs):
         print msg
 
 
+
+# ----------------------------------------------
+# Functions to obtain diagnostics from sww files
+#-----------------------------------------------
+
+def get_mesh_and_quantities_from_sww_file(filename, quantity_names, verbose=False):
+    """Get and rebuild mesh structure and the associated quantities from sww file
+    """
+
+    #FIXME(Ole): This is work in progress
+    
+    import types
+    # FIXME (Ole): Maybe refactor filefunction using this more fundamental code.
+
+    return
+    
+    # Open NetCDF file
+    if verbose: print 'Reading', filename
+    fid = NetCDFFile(filename, 'r')
+
+    if type(quantity_names) == types.StringType:
+        quantity_names = [quantity_names]        
+
+    if quantity_names is None or len(quantity_names) < 1:
+        msg = 'No quantities are specified'
+        raise Exception, msg
+
+    # Now assert that requested quantitites (and the independent ones)
+    # are present in file 
+    missing = []
+    for quantity in ['x', 'y', 'volumes', 'time'] + quantity_names:
+        if not fid.variables.has_key(quantity):
+            missing.append(quantity)
+
+    if len(missing) > 0:
+        msg = 'Quantities %s could not be found in file %s'\
+              %(str(missing), filename)
+        fid.close()
+        raise Exception, msg
+
+    if not filename.endswith('.sww'):
+        msg = 'Filename must have extension .sww'        
+        raise Exception, msg        
+
+    # Get first timestep
+    try:
+        starttime = fid.starttime[0]
+    except ValueError:
+        msg = 'Could not read starttime from file %s' %filename
+        raise msg
+
+    # Get variables
+    time = fid.variables['time'][:]    
+
+    # Get origin
+    xllcorner = fid.xllcorner[0]
+    yllcorner = fid.yllcorner[0]
+    zone = fid.zone[0]
+    georeference = Geo_reference(zone, xllcorner, yllcorner)
+
+
+    x = fid.variables['x'][:]
+    y = fid.variables['y'][:]
+    triangles = fid.variables['volumes'][:]
+
+    x = reshape(x, (len(x),1))
+    y = reshape(y, (len(y),1))
+    vertex_coordinates = concatenate((x,y), axis=1) #m x 2 array
+
+    #if interpolation_points is not None:
+    #    # Adjust for georef
+    #    interpolation_points[:,0] -= xllcorner
+    #    interpolation_points[:,1] -= yllcorner        
+        
+
+    # Produce values for desired data points at
+    # each timestep for each quantity
+    quantities = {}
+    for name in quantity_names:
+        quantities[name] = fid.variables[name][:]
+        
+    fid.close()
+
+    # Create mesh and quad tree
+    #interpolator = Interpolate(vertex_coordinates, triangles)
+
+    #return interpolator, quantities, geo_reference, time
+
+
+def get_flow_through_cross_section(filename,
+                                   polyline,
+                                   verbose=False):
+    """Obtain flow (m^3/s) perpendicular to cross section given by the argument polyline.
+
+    Inputs:
+        filename: Name of sww file
+        polyline: Representation of desired cross section - it may contain multiple
+                  sections allowing for complex shapes.
+
+    Output:
+        Q: Hydrograph of total flow across given segments for all stored timesteps.
+
+    The normal flow is computed for each triangle intersected by the polyline and added up.
+    If multiple sections are specified normal flows may partially cancel each other.
+
+    """
+
+    # Get mesh and quantities from sww file
+    X = get_mesh_and_quantities_from_sww_file(filename, ['elevation',
+                                                         'stage',
+                                                         'xmomentum',
+                                                         'ymomentum'], verbose=verbose)
+    interpolator, quantities, geo_reference, time = X
+
+
+    
+    # Find all intersections and associated triangles.
+    
+    get_intersecting_segments(polyline)
+    
+    # Then store for each triangle the length of the intersecting segment(s),
+    # right hand normal(s) and midpoints. 
+    pass
 
 
 
