@@ -117,19 +117,21 @@ class Sparse:
             raise msg
             
 
-        #Assume numeric types from now on
+        # Assume numeric types from now on
 	
         if len(B.shape) == 0:
-            #Scalar - use __rmul__ method
+            # Scalar - use __rmul__ method
             R = B*self
 	    
         elif len(B.shape) == 1:
-            #Vector
-            assert B.shape[0] == self.N, 'Mismatching dimensions'
+            # Vector
+            msg = 'Mismatching dimensions: You cannot multiply (%d x %d) matrix onto %d-vector'\
+                  %(self.M, self.N, B.shape[0])
+            assert B.shape[0] == self.N, msg
 
             R = zeros(self.M, Float) #Result
 	    
-            #Multiply nonzero elements
+            # Multiply nonzero elements
             for key in self.Data.keys():
                 i, j = key
 
@@ -139,9 +141,9 @@ class Sparse:
             
             R = zeros((self.M, B.shape[1]), Float) #Result matrix
 
-            #Multiply nonzero elements
+            # Multiply nonzero elements
 	    for col in range(R.shape[1]):
-	        #For each column
+	        # For each column
 		
                 for key in self.Data.keys():
                     i, j = key
