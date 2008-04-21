@@ -244,7 +244,9 @@ class File_boundary(Boundary):
 
 
         if verbose: print 'Initialise file_function'
-        self.F = file_function(filename, domain,
+        self.F = file_function(filename,
+                               domain,
+                               quantities=domain.conserved_quantities,
 	                       interpolation_points=self.midpoint_coordinates,
                                time_thinning=time_thinning,
                                use_cache=use_cache, 

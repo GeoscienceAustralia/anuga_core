@@ -950,23 +950,29 @@ class Test_Util(unittest.TestCase):
         vertices = [[0,1,2]]
         domain = Domain(points, vertices)
 
-        #Check that domain.starttime is updated if non-existing
-        F = file_function(filename + '.tms', domain)
-        
+        # Check that domain.starttime is updated if non-existing
+        F = file_function(filename + '.tms',
+                          domain,
+                          quantities = ['Attribute0', 'Attribute1', 'Attribute2'])  
         assert allclose(domain.starttime, start)
 
-        #Check that domain.starttime is updated if too early
+        # Check that domain.starttime is updated if too early
         domain.starttime = start - 1
-        F = file_function(filename + '.tms', domain)
+        F = file_function(filename + '.tms',
+                          domain,
+                          quantities = ['Attribute0', 'Attribute1', 'Attribute2'])
         assert allclose(domain.starttime, start)
 
-        #Check that domain.starttime isn't updated if later
+        # Check that domain.starttime isn't updated if later
         domain.starttime = start + 1
-        F = file_function(filename + '.tms', domain)        
+        F = file_function(filename + '.tms',
+                          domain,
+                          quantities = ['Attribute0', 'Attribute1', 'Attribute2'])
         assert allclose(domain.starttime, start+1)
 
         domain.starttime = start
-        F = file_function(filename + '.tms', domain,
+        F = file_function(filename + '.tms',
+                          domain,
                           quantities = ['Attribute0', 'Attribute1', 'Attribute2'],
                           use_cache=True)
         

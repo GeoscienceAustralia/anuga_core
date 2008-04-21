@@ -87,7 +87,7 @@ class General_mesh:
           
         """
 
-        if verbose: print 'General_mesh: Building basic mesh structure' 
+        if verbose: print 'General_mesh: Building basic mesh structure in ANUGA domain' 
 
         self.triangles = array(triangles, Int)
         self.nodes = array(nodes, Float)

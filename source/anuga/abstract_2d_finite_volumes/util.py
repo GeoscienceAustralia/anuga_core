@@ -61,8 +61,9 @@ def file_function(filename,
     quantities - the name of the quantity to be interpolated or a
                  list of quantity names. The resulting function will return
                  a tuple of values - one for each quantity
-                 If quantities are None, domain's conserved quantities
-                 are used.
+                 If quantities are None, the default quantities are
+                 ['stage', 'xmomentum', 'ymomentum']
+                 
 
     interpolation_points - list of absolute UTM coordinates for points (N x 2)
     or geospatial object or points file name at which values are sought
@@ -71,7 +72,7 @@ def file_function(filename,
                Interpolation_function is attempted
 
     
-    See Interpolation function for further documentation
+    See Interpolation function in anuga.fit_interpolate.interpolation for further documentation
     """
 
 
@@ -84,14 +85,17 @@ def file_function(filename,
     # - sww file's georef
     # - interpolation points as absolute UTM coordinates
 
+    if quantities is None:
+        if verbose:
+            msg = 'Quantities specified in file_function are None,'
+            msg += ' so I will use stage, xmomentum, and ymomentum in that order.'
+            print msg
 
-
-
-    # Use domain's conserved_quantity names as defaults
-    if domain is not None:    
-        if quantities is None: 
-            quantities = domain.conserved_quantities
+        quantities = ['stage', 'xmomentum', 'ymomentum']
             
+
+    # Use domain's startime if available
+    if domain is not None:    
         domain_starttime = domain.get_starttime()
     else:
         domain_starttime = None
@@ -233,19 +237,10 @@ def get_netcdf_file_function(filename,
 
     if type(quantity_names) == types.StringType:
         quantity_names = [quantity_names]        
-    
-    if quantity_names is None or len(quantity_names) < 1:
-        # If no quantities are specified get quantities from file
-        # x, y, time are assumed as the independent variables so
-        # they are excluded as potentiol quantities
-        quantity_names = []
-        for name in fid.variables.keys():
-            if name not in ['x', 'y', 'time']:
-                quantity_names.append(name)
 
-    if len(quantity_names) < 1:                
-        msg = 'ERROR: At least one independent value must be specified'
-        raise msg
+    if quantity_names is None or len(quantity_names) < 1:
+        msg = 'No quantities are specified in file_function'
+        raise Exception, msg
 
 
     if interpolation_points is not None:

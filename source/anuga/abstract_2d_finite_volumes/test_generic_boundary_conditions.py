@@ -252,7 +252,8 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
 
         
         try:
-            F = File_boundary(filename + '.tms', domain)            
+            F = File_boundary(filename + '.tms',
+                              domain)
         except:
             pass
         else:
