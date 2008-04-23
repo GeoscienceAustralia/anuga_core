@@ -6,7 +6,8 @@
 //
 // or use python compile.py
 //
-// See the module shallow_water.py
+// See the module shallow_water_domain.py for more documentation on 
+// how to use this module
 //
 //
 // Ole Nielsen, GA 2004
@@ -66,20 +67,18 @@ int find_qmin_and_qmax(double dq0, double dq1, double dq2,
 	*qmax=dq0+dq1;
       else
 	*qmax=dq0;
-      if ((*qmin=dq0+dq2)<0)
-	;// qmin is already set to correct value
-      else
-	*qmin=0.0;
+	
+      *qmin=dq0+dq2;
+      if (*qmin>=0.0) *qmin = 0.0;
     }
     else{// dq1<dq2
       if (dq2>0)
 	*qmax=dq0+dq2;
       else
 	*qmax=dq0;
-      if ((*qmin=dq0+dq1)<0)
-	;// qmin is the correct value
-      else
-	*qmin=0.0;
+	
+      *qmin=dq0+dq1;	
+      if (*qmin>=0.0) *qmin=0.0;
     }
   }
   else{//dq0<0
@@ -88,20 +87,18 @@ int find_qmin_and_qmax(double dq0, double dq1, double dq2,
 	*qmin=dq0+dq1;
       else
 	*qmin=dq0;
-      if ((*qmax=dq0+dq2)>0.0)
-	;// qmax is already set to the correct value
-      else
-	*qmax=0.0;
+	
+      *qmax=dq0+dq2;	
+      if (*qmax<=0.0) *qmax=0.0;
     }
     else{// dq1>dq2
       if (dq2<0.0)
 	*qmin=dq0+dq2;
       else
 	*qmin=dq0;
-      if ((*qmax=dq0+dq1)>0.0)
-	;// qmax is already set to the correct value
-      else
-	*qmax=0.0;
+	
+      *qmax=dq0+dq1;
+      if (*qmax<=0.0) *qmax=0.0;
     }
   }
   return 0;
@@ -1848,26 +1845,18 @@ double _compute_fluxes_central(int number_of_elements,
       // Update timestep based on edge i and possibly neighbour n
       if (tri_full_flag[k] == 1) {
 	if (max_speed > epsilon) {
+	
+	  // Original CFL calculation
 	  timestep = min(timestep, radii[k]/max_speed);
 	  if (n>=0) 
 	    timestep = min(timestep, radii[n]/max_speed);
 	  
-	  // Ted Rigby's suggestion
+	  // Ted Rigby's suggested less conservative version
 	  //if (n>=0) { 	    
-	  //  timestep = min(timestep, 0.8*(radii[k]+radii[n])/max_speed);
+	  //  timestep = min(timestep, (radii[k]+radii[n])/max_speed);
 	  //} else {
 	  //  timestep = min(timestep, radii[k]/max_speed);
 	  // }
-	  
-	  
-	  // Ole's modification
-	  //if (n>=0) { 	    
-	  //  timestep = min(timestep, max(radii[k],radii[n])/max_speed);
-	  //} else {
-	  //  timestep = min(timestep, radii[k]/max_speed);
-	  //}
-	  
-	  
 	}
       }
       
