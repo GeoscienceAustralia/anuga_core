@@ -39,7 +39,7 @@ def earthquake_tsunami(ns,NSMAX,length, width, strike, depth,\
         y0[0]=yi
     else:
         x0=xi
-        y10=yi
+        y0=yi
     if domain is not None:
         xllcorner = domain.geo_reference.get_xllcorner()
         yllcorner = domain.geo_reference.get_yllcorner()
@@ -167,8 +167,12 @@ class Okada_func:
             rakes[0]=rake
             widths[0]=width
             dips[0]=dip
-            xs[0]=x0
-            ys[0]=y0
+            try:
+                xs[0]=x0
+                ys[0]=y0
+            except:
+                xs[0]=x0[0]
+                ys[0]=y0[0]
         else:
             dislocations=dislocation
             strikes=strike
@@ -188,7 +192,7 @@ class Okada_func:
 	DISL3 = 0.0
 	AL1 = 0.0
 	AW2 = 0.0
-	rad=1.745329252e-2
+	#rad=1.745329252e-2
 	#zrec = domain.get_quantity('elevation').get_values(interpolation_points=[[x, y]])   #get Zrec... has to be constant!!!
         #zrec=zreci.get_values(interpolation_points=[[x, y]])
         #zrec=0
@@ -1078,7 +1082,7 @@ class Okada_func:
              self.DCCON2(XI[J],ET[K],Q,SD,CD,KXI[K],KET[J])                
              self.UA(XI[J],ET[K],Q,DD1,DD2,DD3)
              DUA=self.DUA
-             for I in range(0,10,3):                                                 
+             for I in range(0,10,3):
                   DU[I]  =-DUA[I]                                               
                   DU[I+1]=-DUA[I+1]*CD+DUA[I+2]*SD                              
                   DU[I+2]=-DUA[I+1]*SD-DUA[I+2]*CD                              
@@ -1197,9 +1201,9 @@ class Okada_func:
 
       from Numeric import zeros, Float
         
-      U=zeros((12,1),Float)
-      DU=zeros((12,1),Float)
-      DUA=zeros((12,1),Float)
+      U=zeros(12,Float)
+      DU=zeros(12,Float)
+      DUA=zeros(12,Float)
       F0 =0.0
       F2=2.0
       PI2=6.283185307179586
@@ -1303,7 +1307,6 @@ class Okada_func:
             U[I]=U[I]+DISL3/PI2*DU[I]                                                                                                   
       #for I in range (0,12):
           #DUA[I]=U[I]     
-
       self.DUA=U
 
     
@@ -1331,9 +1334,9 @@ class Okada_func:
 
       from Numeric import zeros, Float
         
-      DUB=zeros((12,1),Float)
-      DU=zeros((12,1),Float)
-      U=zeros((12,1),Float)
+      DUB=zeros(12,Float)
+      DU=zeros(12,Float)
+      U=zeros(12,Float)
       
       F0=0.0
       F1=1.0
@@ -1498,9 +1501,9 @@ class Okada_func:
 
       from Numeric import zeros, Float
         
-      DUC=zeros((12,1),Float)
-      DU=zeros((12,1),Float)
-      U=zeros((12,1),Float)
+      DUC=zeros(12,Float)
+      DU=zeros(12,Float)
+      U=zeros(12,Float)
       
       F0=0.0
       F1=1.0
