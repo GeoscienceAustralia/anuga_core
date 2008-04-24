@@ -1,6 +1,6 @@
 import unittest
 from Numeric import allclose
-from tsunami_okada import earthquake_tsunami,Okada_func
+from tsunami_okada_V2 import earthquake_tsunami,Okada_func
 
 class Test_eq(unittest.TestCase):
     def setUp(self):
@@ -112,9 +112,10 @@ class Test_eq(unittest.TestCase):
         domain.set_quantity('elevation',topography)
         
         #create variable with elevation data to implement in okada
-        zrec = Quantity(domain)
-        zrec.set_values(topography)
-        
+        zrec0 = Quantity(domain)
+        zrec0.set_values(topography)
+        zrec=zrec0.get_vertex_values(xy=True)
+        print zrec
         # call okada
         Ts= Okada_func(ns=ns, NSMAX=NSMAX,length=length, width=width, dip=dip, \
                        x0=x0, y0=y0, strike=strike, depth=depth, \
@@ -240,9 +241,9 @@ class Test_eq(unittest.TestCase):
         domain = Domain(points, vertices, boundary)   
         domain.set_name('test')
         domain.set_quantity('elevation',topography)
-        zrec = Quantity(domain)
-        zrec.set_values(topography)
-        
+        zrec0 = Quantity(domain)
+        zrec0.set_values(topography)
+        zrec=zrec0.get_vertex_values(xy=True)
         Ts = earthquake_tsunami(ns=ns,NSMAX=NSMAX,length=length, width=width, strike=strike,\
                                 depth=depth,dip=dip, xi=x0, yi=y0, slip=slip, rake=rake,\
                                 zrec=zrec,domain=domain, verbose=False)

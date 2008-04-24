@@ -138,7 +138,7 @@ class Okada_func:
         rake = self.rake
         dislocation = self.slip
         ns=self.ns
-        zreci=self.zrec
+        zrec=self.zrec
         #initialization
         disp0=zeros(3,Float)
         strain0=zeros(6,Float)
@@ -198,12 +198,18 @@ class Okada_func:
         #zrec=0
 	#Z=-zrec
         eps = 1.0e-6
+    
 #
         for irec in range(0,N):
             xrec=y
             yrec=x
-            zrec=zreci.get_values(interpolation_points=[[xrec[irec],yrec[irec]]],location='edges')
-            Z=zrec[0]
+            for i in range(0,len(zrec[0])):
+                if zrec[0][i]==yrec and zrec[1][i]==xrec:
+                    Z=zrec[2][i]
+                    break
+                else: continue
+            #zrec=zreci.get_values(interpolation_points=[[xrec[irec],yrec[irec]]],location='edges')
+            
             for ist in range(0,ns):
                 #st = radians(strikes[ist])
                 st=radians(strikes[ist])
