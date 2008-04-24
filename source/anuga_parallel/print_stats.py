@@ -49,6 +49,7 @@ def build_full_flag(domain, ghost_recv_dict):
     for i in ghost_recv_dict.keys():
         for id in ghost_recv_dict[i][0]:
             tri_full_flag[id] = 0
+        
 
     return tri_full_flag
 

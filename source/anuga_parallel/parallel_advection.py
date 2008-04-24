@@ -21,7 +21,7 @@ try:
 except:
     pass
 
-from anuga.abstract_2d_finite_volumes.advection_vtk import *
+from anuga.advection import *
 from Numeric import zeros, Float, Int, ones, allclose, array
 import pypar
 

@@ -165,6 +165,7 @@ class Domain(Mesh):
         # =1 for full
         # =0 for ghost
         N = len(self) #number_of_elements
+        self.number_of_elements = N
         self.tri_full_flag = ones(N, Int)
         for i in self.ghost_recv_dict.keys():
             for id in self.ghost_recv_dict[i][0]:
@@ -172,7 +173,8 @@ class Domain(Mesh):
 
         # Test the assumption that all full triangles are store before
         # the ghost triangles.
-        assert allclose(self.tri_full_flag[:self.number_of_full_nodes],1)
+        if not allclose(self.tri_full_flag[:self.number_of_full_nodes],1):
+            print 'WARNING:  Not all full triangles are store before ghost triangles'
                         
 
         # Defaults
@@ -1414,6 +1416,8 @@ class Domain(Mesh):
         
         # Protect against degenerate timesteps arising from isolated
         # triangles
+        # FIXME (Steve): This should be in shallow_water as it assumes x and y
+        # momentum
         if self.protect_against_isolated_degenerate_timesteps is True and\
                self.max_speed > 10.0: # FIXME (Ole): Make this configurable
 

@@ -156,7 +156,7 @@ class Domain(Generic_domain):
         """
 
         import advection_ext		
-        self.timestep = advection_ext.compute_fluxes(self, Stage, huge_timestep, max_timestep)
+        self.flux_timestep = advection_ext.compute_fluxes(self, Stage, huge_timestep, max_timestep)
 
 
 

@@ -14,11 +14,14 @@ Modified by Linda Stals, March 2006, to include ghost boundaries
 
 
 import sys
-from Numeric import array, zeros, Float, Int
+from Numeric import array, zeros, Float, Int, ones, sum
 
 import pypar
 
 from anuga.config import epsilon
+
+
+
 
 
 def parallel_rectangle(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)):
@@ -180,6 +183,10 @@ def parallel_rectangle(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)):
         full_send_dict[(processor+1)%numproc]  = [Idfr, Idfr]
         ghost_recv_dict[(processor+1)%numproc] = [Idgr, Idgr]
 
+
+
+        
+    
     return  points, elements, boundary, full_send_dict, ghost_recv_dict
 
 

@@ -75,11 +75,6 @@ print "Myid = ", myid, "no points = ", len(points), \
 domain = Parallel_Domain(points, vertices, boundary,
                          full_send_dict, ghost_recv_dict, velocity=[1.0, 0.0])
 
-# Turn on the visualisation
-
-# rect = [0.0, 0.0, 1.0, 1.0]
-# domain.initialise_visualiser(rect=rect)
-
 # Boundaries
 
 T = Transmissive_boundary(domain)

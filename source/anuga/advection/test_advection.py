@@ -142,7 +142,7 @@ class Test_Advection(unittest.TestCase):
         assert X[0] == -X[1]
 
 
-    def FIXME_test_advection_example(self):
+    def test_advection_example(self):
         #Test that system can evolve
 
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
