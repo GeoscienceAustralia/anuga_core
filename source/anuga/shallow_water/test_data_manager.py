@@ -6116,6 +6116,25 @@ friction  \n \
         URS_points_needed(boundary_polygon, ll_lat, ll_long, grid_spacing, 
                           lat_amount, long_amount,
                           verbose=self.verbose)
+
+    def test_URS_points_needed_poly1(self):
+        # domain in southern hemisphere zone 51
+        grid_spacing = 2./60.
+        poly1 = [[296361.89, 8091928.62],[429495.07,8028278.82], [447230.56,8000674.05],
+		     [429661.2,7982177.6],[236945.9,7897453.16],[183493.44,7942782.27],
+		     [226583.04,8008058.96]]
+        URS_points_needed_to_file('test_example_poly1',poly1,51,
+                                  grid_spacing,verbose=self.verbose) 
+
+    def test_URS_points_needed_poly2(self):
+        # domain in northern hemisphere zone 47
+        grid_spacing = 2./60.
+        poly2 = [[419336.424,810100.845],[342405.0281,711455.8026],[274649.9152,723352.9603],
+                  [272089.092,972393.0131],[347633.3754,968551.7784],
+			[427979.2022,885965.2313],[427659.0993,875721.9386],
+			[429259.6138,861317.3083],[436301.8775,840830.723]]
+        URS_points_needed_to_file('test_example_poly2',poly2,47,
+                                  grid_spacing,verbose=self.verbose) 
         
     #### END TESTS URS UNGRIDDED 2 SWW ###
     def test_Urs_points(self):
