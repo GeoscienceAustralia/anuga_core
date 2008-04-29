@@ -4402,11 +4402,12 @@ def lon_lat2grid(long_lat_dep):
             
     return long, lat, quantity
 
-    ####  END URS 2 SWW  ###
+####  END URS 2 SWW  ###
 
-    #### URS UNGRIDDED 2 SWW ###
+#### URS UNGRIDDED 2 SWW ###
 
-    ### PRODUCING THE POINTS NEEDED FILE ###
+### PRODUCING THE POINTS NEEDED FILE ###
+
 # Ones used for FESA 2007 results
 #LL_LAT = -50.0
 #LL_LONG = 80.0
@@ -4439,7 +4440,7 @@ def URS_points_needed_to_file(file_name, boundary_polygon, zone,
     """
     geo = URS_points_needed(boundary_polygon, zone, ll_lat, ll_long,
                             grid_spacing, 
-                      lat_amount, long_amount,use_cache, verbose)
+                            lat_amount, long_amount,use_cache, verbose)
     if not file_name[-4:] == ".urs":
         file_name += ".urs"
     geo.export_points_file(file_name)
@@ -4448,9 +4449,9 @@ def URS_points_needed_to_file(file_name, boundary_polygon, zone,
             file_name = file_name[:-4] + ".csv"
         geo.export_points_file(file_name)
 
-def URS_points_needed(boundary_polygon, zone, ll_lat=LL_LAT,
-                      ll_long=LL_LONG, grid_spacing=GRID_SPACING, 
-                      lat_amount=LAT_AMOUNT, long_amount=LONG_AMOUNT,
+def URS_points_needed(boundary_polygon, zone, ll_lat,
+                      ll_long, grid_spacing, 
+                      lat_amount, long_amount,
                       use_cache=False, verbose=False):
     args = (boundary_polygon,
                       zone)
@@ -4476,20 +4477,21 @@ def URS_points_needed(boundary_polygon, zone, ll_lat=LL_LAT,
         #I was getting 'got multiple values for keyword argument' errors
         #geo = apply(_URS_points_needed, args, kwargs)
         geo = _URS_points_needed(boundary_polygon,
+                                 zone, ll_lat,
+                                 ll_long, grid_spacing, 
+                                 lat_amount, long_amount)
+
+    return geo
+
+def _URS_points_needed(boundary_polygon,
                       zone, ll_lat,
                       ll_long, grid_spacing, 
-                      lat_amount, long_amount)
-
-    return geo    
-def _URS_points_needed(boundary_polygon,
-                      zone, ll_lat=LL_LAT,
-                      ll_long=LL_LONG, grid_spacing=GRID_SPACING, 
-                      lat_amount=LAT_AMOUNT, long_amount=LONG_AMOUNT):
+                      lat_amount, long_amount):
     """
 
     boundary_polygon - a list of points that describes a polygon.
                       The last point is assumed ot join the first point.
-                      This is in UTM (lat long would be better though)
+                      This is in UTM (lat long would b better though)
 
     ll_lat - lower left latitude, in decimal degrees
     ll-long - lower left longitude, in decimal degrees
@@ -4500,7 +4502,7 @@ def _URS_points_needed(boundary_polygon,
     from sets import ImmutableSet
     
     msg = "grid_spacing can not be zero"
-    assert not grid_spacing ==0, msg 
+    assert not grid_spacing == 0, msg 
     a = boundary_polygon
     # List of segments.  Each segment is two points.
     segs = [i and [a[i-1], a[i]] or [a[len(a)-1], a[0]] for i in range(len(a))]

@@ -6118,23 +6118,57 @@ friction  \n \
                           verbose=self.verbose)
 
     def test_URS_points_needed_poly1(self):
-        # domain in southern hemisphere zone 51
-        grid_spacing = 2./60.
-        poly1 = [[296361.89, 8091928.62],[429495.07,8028278.82], [447230.56,8000674.05],
-		     [429661.2,7982177.6],[236945.9,7897453.16],[183493.44,7942782.27],
-		     [226583.04,8008058.96]]
-        URS_points_needed_to_file('test_example_poly1',poly1,51,
-                                  grid_spacing,verbose=self.verbose) 
+        # Values used for FESA 2007 results
+        # domain in southern hemisphere zone 51        
+        LL_LAT = -50.0
+        LL_LONG = 80.0
+        GRID_SPACING = 2.0/60.0
+        LAT_AMOUNT = 4800
+        LONG_AMOUNT = 3600
+        ZONE = 51
+        
+        poly1 = [[296361.89, 8091928.62],
+                 [429495.07,8028278.82],
+                 [447230.56,8000674.05],
+                 [429661.2,7982177.6],
+                 [236945.9,7897453.16],
+                 [183493.44,7942782.27],
+                 [226583.04,8008058.96]]
 
-    def test_URS_points_needed_poly2(self):
-        # domain in northern hemisphere zone 47
-        grid_spacing = 2./60.
-        poly2 = [[419336.424,810100.845],[342405.0281,711455.8026],[274649.9152,723352.9603],
-                  [272089.092,972393.0131],[347633.3754,968551.7784],
-			[427979.2022,885965.2313],[427659.0993,875721.9386],
-			[429259.6138,861317.3083],[436301.8775,840830.723]]
-        URS_points_needed_to_file('test_example_poly2',poly2,47,
-                                  grid_spacing,verbose=self.verbose) 
+        URS_points_needed_to_file('test_example_poly2', poly1,
+                                  ZONE,
+                                  LL_LAT, LL_LONG,
+                                  GRID_SPACING,
+                                  LAT_AMOUNT, LONG_AMOUNT,
+                                  verbose=self.verbose)         
+
+
+    def Xtest_URS_points_needed_poly2(self):
+        # Values used for 2004 validation work
+        # domain in northern hemisphere zone 47        
+        LL_LAT = 0.0
+        LL_LONG = 90.0
+        GRID_SPACING = 2.0/60.0
+        LAT_AMOUNT = (15-LL_LAT)/GRID_SPACING
+        LONG_AMOUNT = (100-LL_LONG)/GRID_SPACING 
+        ZONE = 47
+        
+        poly2 = [[419336.424,810100.845],
+                 [342405.0281,711455.8026],
+                 [274649.9152,723352.9603],
+                 [272089.092,972393.0131],
+                 [347633.3754,968551.7784],
+                 [427979.2022,885965.2313],
+                 [427659.0993,875721.9386],
+                 [429259.6138,861317.3083],
+                 [436301.8775,840830.723]]
+        
+        URS_points_needed_to_file('test_example_poly2', poly2,
+                                  ZONE,
+                                  LL_LAT, LL_LONG,
+                                  GRID_SPACING,
+                                  LAT_AMOUNT, LONG_AMOUNT,
+                                  verbose=self.verbose) 
         
     #### END TESTS URS UNGRIDDED 2 SWW ###
     def test_Urs_points(self):
