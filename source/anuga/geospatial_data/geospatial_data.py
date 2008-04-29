@@ -909,7 +909,7 @@ def _set_using_lat_long(latitudes,
             msg = """Data points are not specified !"""
             raise ValueError, msg
         lats_longs = ensure_numeric(data_points)
-        print 'hello', lats_longs
+
         latitudes = ravel(lats_longs[:,0:1])
         longitudes = ravel(lats_longs[:,1:])
         
