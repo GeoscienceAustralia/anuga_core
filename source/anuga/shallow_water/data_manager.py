@@ -4415,9 +4415,9 @@ def lon_lat2grid(long_lat_dep):
 #LONG_AMOUNT = 3600
 
 def URS_points_needed_to_file(file_name, boundary_polygon, zone,
-                              ll_lat=LL_LAT, ll_long=LL_LONG,
-                              grid_spacing=GRID_SPACING, 
-                              lat_amount=LAT_AMOUNT, long_amount=LONG_AMOUNT,
+                              ll_lat, ll_long,
+                              grid_spacing, 
+                              lat_amount, long_amount,
                               export_csv=False, use_cache=False,
                               verbose=False):
     """
