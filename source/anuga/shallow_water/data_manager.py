@@ -4407,11 +4407,13 @@ def lon_lat2grid(long_lat_dep):
     #### URS UNGRIDDED 2 SWW ###
 
     ### PRODUCING THE POINTS NEEDED FILE ###
-LL_LAT = -50.0
-LL_LONG = 80.0
-GRID_SPACING = 1.0/60.0
-LAT_AMOUNT = 4800
-LONG_AMOUNT = 3600
+# Ones used for FESA 2007 results
+#LL_LAT = -50.0
+#LL_LONG = 80.0
+#GRID_SPACING = 1.0/60.0
+#LAT_AMOUNT = 4800
+#LONG_AMOUNT = 3600
+
 def URS_points_needed_to_file(file_name, boundary_polygon, zone,
                               ll_lat=LL_LAT, ll_long=LL_LONG,
                               grid_spacing=GRID_SPACING, 
@@ -4424,9 +4426,13 @@ def URS_points_needed_to_file(file_name, boundary_polygon, zone,
                       The last point is assumed ot join the first point.
                       This is in UTM (lat long would be better though)
 
+     This is info about the URS model that needs to be inputted.
+     If you do not, default values will be used, which may be incorrect.
     ll_lat - lower left latitude, in decimal degrees
     ll-long - lower left longitude, in decimal degrees
     grid_spacing - in deciamal degrees
+    lat_amount - number of latitudes
+    long_amount- number of longs
 
 
     Don't add the file extension.  It will be added.
