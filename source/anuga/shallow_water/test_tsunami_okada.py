@@ -50,13 +50,13 @@ class Test_eq(unittest.TestCase):
         # fotran output file
             filename = path+sep+'fullokada_SS.txt'
         # initial condition of earthquake for multiple source
-            x0 = 7000.0
-            y0 = 10000.0
-            length = 10.0
-            width =6.0
+            x0 = 50000.0
+            y0 = 25000.0
+            length = 50.0
+            width =10.0
             strike = 0.0
-            depth = 15.0
-            slip = 10.0
+            depth = 10.0
+            slip = 30.0
             dip =15.0
             rake =90.0
             ns=1
@@ -98,11 +98,11 @@ class Test_eq(unittest.TestCase):
                 
         #create domain 
         dx = dy = 4000
-        l=20000
-        w=20000
+        l=100000
+        w=100000
         #create topography
         def topography(x,y):
-            el=-1.000
+            el=-1000
             return el
         
         points, vertices, boundary = rectangular_cross(int(l/dx), int(w/dy),
@@ -113,7 +113,7 @@ class Test_eq(unittest.TestCase):
         
         #create variable with elevation data to implement in okada
         zrec0 = Quantity(domain)
-        zrec0.set_values(topography)
+        zrec0.set_values(0.0)
         zrec=zrec0.get_vertex_values(xy=True)
         # call okada
         Ts= Okada_func(ns=ns, NSMAX=NSMAX,length=length, width=width, dip=dip, \
@@ -134,7 +134,7 @@ class Test_eq(unittest.TestCase):
                 Xt=k
                 Z=tsunami.get_values(interpolation_points=[[Xt,Yt]]
                                      ,location='edges')
-                stage.append(Z[0])
+                stage.append(-Z[0])
             k=k+4000
         
         assert allclose(stage,tmp,atol=1.e-8)
@@ -231,7 +231,7 @@ class Test_eq(unittest.TestCase):
         w=20000
         #create topography
         def topography(x,y):
-            el=-1.000
+            el=-1000
             return el
         
         points, vertices, boundary = rectangular_cross(int(l/dx), int(w/dy),
@@ -240,7 +240,7 @@ class Test_eq(unittest.TestCase):
         domain.set_name('test')
         domain.set_quantity('elevation',topography)
         Ts = earthquake_tsunami(ns=ns,NSMAX=NSMAX,length=length, width=width, strike=strike,\
-                                depth=depth,dip=dip, xi=x0, yi=y0, slip=slip, rake=rake,\
+                                depth=depth,dip=dip, xi=x0, yi=y0,z0=0, slip=slip, rake=rake,\
                                 domain=domain, verbose=True)
         
         #create a variable to store vertical displacement throughout the domain
@@ -254,12 +254,11 @@ class Test_eq(unittest.TestCase):
                 Xt=k
                 Z=tsunami.get_values(interpolation_points=[[Xt,Yt]]
                                      ,location='edges')
-                stage.append(Z[0])
+                stage.append(-Z[0])
             k=k+4000
 
         print tmp
-        print 'hello'
-        print stage    
+        print 'hello',stage   
         assert allclose(stage,tmp,atol=1.e-3)
 
         
