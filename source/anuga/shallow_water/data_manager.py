@@ -4438,8 +4438,8 @@ def URS_points_needed_to_file(file_name, boundary_polygon, zone,
     ll_lat - lower left latitude, in decimal degrees
     ll-long - lower left longitude, in decimal degrees
     grid_spacing - in deciamal degrees
-    lat_amount - number of latitudes
-    long_amount- number of longs
+    lat_amount - number of latitudes 
+    long_amount- number of longs 
 
 
     Don't add the file extension.  It will be added.
@@ -4455,6 +4455,7 @@ def URS_points_needed_to_file(file_name, boundary_polygon, zone,
         if file_name[-4:] == ".urs":
             file_name = file_name[:-4] + ".csv"
         geo.export_points_file(file_name)
+    return geo
 
 def URS_points_needed(boundary_polygon, zone, ll_lat,
                       ll_long, grid_spacing, 
@@ -4530,16 +4531,18 @@ def points_needed(seg, ll_lat, ll_long, grid_spacing,
                   lat_amount, long_amount, zone,
                   isSouthHemisphere):
     """
-    seg is one point, in UTM
+    seg is two points, in UTM
     return a list of the points, in lats and longs that are needed to
     interpolate any point on the segment.
     """
     from math import sqrt
     #print "zone",zone 
     geo_reference = Geo_reference(zone=zone)
+    #print "seg", seg
     geo = Geospatial_data(seg,geo_reference=geo_reference)
     seg_lat_long = geo.get_data_points(as_lat_long=True,
                                        isSouthHemisphere=isSouthHemisphere)
+    #print "seg_lat_long", seg_lat_long
     # 1.415 = 2^0.5, rounded up....
     sqrt_2_rounded_up = 1.415
     buffer = sqrt_2_rounded_up * grid_spacing
@@ -4549,6 +4552,9 @@ def points_needed(seg, ll_lat, ll_long, grid_spacing,
     min_lat = min(seg_lat_long[0][0], seg_lat_long[1][0]) - buffer
     min_long = min(seg_lat_long[0][1], seg_lat_long[1][1]) - buffer
 
+    #print "min_long", min_long
+    #print "ll_long", ll_long
+    #print "grid_spacing", grid_spacing
     first_row = (min_long - ll_long)/grid_spacing
     # To round up
     first_row_long = int(round(first_row + 0.5))
@@ -4576,6 +4582,8 @@ def points_needed(seg, ll_lat, ll_long, grid_spacing,
     # Create a list of the lat long points to include.
     for index_lat in range(first_row_lat, last_row_lat + 1):
         for index_long in range(first_row_long, last_row_long + 1):
+            #print "index_lat", index_lat
+            #print "index_long", index_long
             lat = ll_lat + index_lat*grid_spacing
             long = ll_long + index_long*grid_spacing
 
@@ -4597,10 +4605,21 @@ def keep_point(lat, long, seg, max_distance):
     y1 = seg[0][1]
     x2 = seg[1][0]
     y2 = seg[1][1]
-
     x2_1 = x2-x1
     y2_1 = y2-y1
-    d = abs((x2_1)*(y1-y0)-(x1-x0)*(y2_1))/sqrt((x2_1)*(x2_1)+(y2_1)*(y2_1))
+    try:
+        d = abs((x2_1)*(y1-y0)-(x1-x0)*(y2_1))/sqrt( \
+            (x2_1)*(x2_1)+(y2_1)*(y2_1))
+    except ZeroDivisionError:
+        #print "seg", seg
+        #print "x0", x0
+        #print "y0", y0
+        if sqrt((x2_1)*(x2_1)+(y2_1)*(y2_1)) == 0 and \
+           abs((x2_1)*(y1-y0)-(x1-x0)*(y2_1)) == 0:
+            return True
+        else:
+            return False
+    
     if d <= max_distance:
         return True
     else:

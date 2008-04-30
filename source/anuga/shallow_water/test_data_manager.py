@@ -6116,8 +6116,61 @@ friction  \n \
         URS_points_needed(boundary_polygon, ll_lat, ll_long, grid_spacing, 
                           lat_amount, long_amount,
                           verbose=self.verbose)
+        
+    def test_URS_points_northern_hemisphere(self):
+               
+        LL_LAT = 8.0
+        LL_LONG = 97.0
+        GRID_SPACING = 2.0/60.0
+        LAT_AMOUNT = 2
+        LONG_AMOUNT = 2
+        ZONE = 47
 
-    def test_URS_points_needed_poly1(self):
+        # 
+        points = []
+        for i in range(2):
+            for j in range(2):
+                points.append((degminsec2decimal_degrees(8,1+i*2,0),
+                               degminsec2decimal_degrees(97,1+i*2,0)))
+        #print "points", points
+        geo_poly = Geospatial_data(data_points=points,
+                                     points_are_lats_longs=True)
+        poly_lat_long = geo_poly.get_data_points(as_lat_long=False,
+                                       isSouthHemisphere=False)
+        #print "seg_lat_long",  poly_lat_long
+        
+        #geo=URS_points_needed_to_file('test_example_poly3', poly_lat_long,
+        geo=URS_points_needed(poly_lat_long,
+                                  ZONE,
+                                  LL_LAT, LL_LONG,
+                                  GRID_SPACING,
+                                  LAT_AMOUNT, LONG_AMOUNT,
+                                  isSouthHemisphere=False,
+                                  verbose=self.verbose) 
+        results = ImmutableSet(geo.get_data_points(as_lat_long=True,
+                                  isSouthHemisphere=False))
+        #print 'results',results
+
+        # These are a set of points that have to be in results
+        points = [] 
+        for i in range(2):
+            for j in range(2):
+                points.append((degminsec2decimal_degrees(8,i*2,0),
+                               degminsec2decimal_degrees(97,i*2,0)))
+        #print "answer points", points
+        answer = ImmutableSet(points)
+        
+        for point in points:
+            found = False
+            for result in results:
+                if allclose(point, result):
+                    found = True
+                    break
+            if not found:
+                assert False
+        
+
+    def covered_in_other_tests_test_URS_points_needed_poly1(self):
         # Values used for FESA 2007 results
         # domain in southern hemisphere zone 51        
         LL_LAT = -50.0
@@ -6140,10 +6193,11 @@ friction  \n \
                                   LL_LAT, LL_LONG,
                                   GRID_SPACING,
                                   LAT_AMOUNT, LONG_AMOUNT,
-                                  verbose=self.verbose)         
+                                  verbose=self.verbose)
+        
 
 
-    def test_URS_points_needed_poly2(self):
+    def covered_in_other_tests_test_URS_points_needed_poly2(self):
         # Values used for 2004 validation work
         # domain in northern hemisphere zone 47        
         LL_LAT = 0.0
@@ -7561,7 +7615,7 @@ if __name__ == "__main__":
 #    suite = unittest.makeSuite(Test_Data_Manager,'test_screen_catcher')
     suite = unittest.makeSuite(Test_Data_Manager,'test')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_get_flow_through_cross_section')
-    #suite = unittest.makeSuite(Test_Data_Manager,'Xtest')
+    #suite = unittest.makeSuite(Test_Data_Manager,'covered_')
 
     
     if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':
