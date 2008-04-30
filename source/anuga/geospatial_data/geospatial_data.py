@@ -901,28 +901,27 @@ def _set_using_lat_long(latitudes,
     
     if data_points is not None and not points_are_lats_longs:
         msg = """Data points are specified yet latitude and
-        longitude are also specified!"""
+        longitude are also specified."""
         raise ValueError, msg
     
     if points_are_lats_longs:
         if data_points is None:
-            msg = """Data points are not specified !"""
+            msg = """Data points are not specified."""
             raise ValueError, msg
         lats_longs = ensure_numeric(data_points)
-
         latitudes = ravel(lats_longs[:,0:1])
         longitudes = ravel(lats_longs[:,1:])
         
     if latitudes is None and longitudes is None:
-        msg = """Latitudes and Longitudes are not."""
+        msg = """Latitudes and Longitudes are not specified."""
         raise ValueError, msg
     
     if latitudes is None:
-        msg = """Longitudes are specified yet latitudes aren't!"""
+        msg = """Longitudes are specified yet latitudes aren't."""
         raise ValueError, msg
     
     if longitudes is None:
-        msg = """Latitudes are specified yet longitudes aren't!"""
+        msg = """Latitudes are specified yet longitudes aren't."""
         raise ValueError, msg
     
     data_points, zone  = convert_from_latlon_to_utm(latitudes=latitudes,

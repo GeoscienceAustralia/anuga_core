@@ -4419,16 +4419,22 @@ def URS_points_needed_to_file(file_name, boundary_polygon, zone,
                               ll_lat, ll_long,
                               grid_spacing, 
                               lat_amount, long_amount,
+                              isSouthernHemisphere=True,
                               export_csv=False, use_cache=False,
                               verbose=False):
     """
+    Given the info to replicate the URS grid and a polygon output
+    a file that specifies the cloud of boundary points for URS.
+    
+    Note: The polygon cannot cross zones or hemispheres.
+    
     file_name - name of the urs file produced for David.
     boundary_polygon - a list of points that describes a polygon.
                       The last point is assumed ot join the first point.
                       This is in UTM (lat long would be better though)
 
      This is info about the URS model that needs to be inputted.
-     If you do not, default values will be used, which may be incorrect.
+     
     ll_lat - lower left latitude, in decimal degrees
     ll-long - lower left longitude, in decimal degrees
     grid_spacing - in deciamal degrees
@@ -4440,10 +4446,11 @@ def URS_points_needed_to_file(file_name, boundary_polygon, zone,
     """
     geo = URS_points_needed(boundary_polygon, zone, ll_lat, ll_long,
                             grid_spacing, 
-                            lat_amount, long_amount,use_cache, verbose)
+                            lat_amount, long_amount, isSouthernHemisphere,
+                            use_cache, verbose)
     if not file_name[-4:] == ".urs":
         file_name += ".urs"
-    geo.export_points_file(file_name)
+    geo.export_points_file(file_name, isSouthHemisphere=isSouthernHemisphere)
     if export_csv:
         if file_name[-4:] == ".urs":
             file_name = file_name[:-4] + ".csv"
@@ -4451,15 +4458,13 @@ def URS_points_needed_to_file(file_name, boundary_polygon, zone,
 
 def URS_points_needed(boundary_polygon, zone, ll_lat,
                       ll_long, grid_spacing, 
-                      lat_amount, long_amount,
+                      lat_amount, long_amount, isSouthHemisphere=True,
                       use_cache=False, verbose=False):
     args = (boundary_polygon,
-                      zone)
-    kwargs = {'ll_lat': ll_lat,
-              'll_long': ll_long,
-              'grid_spacing': grid_spacing,
-              'lat_amount': lat_amount,
-              'long_amount': long_amount}  
+            zone, ll_lat,
+            ll_long, grid_spacing, 
+            lat_amount, long_amount, isSouthHemisphere)
+    kwargs = {}  
     if use_cache is True:
         try:
             from anuga.caching import cache
@@ -4474,21 +4479,16 @@ def URS_points_needed(boundary_polygon, zone, ll_lat,
                   verbose=verbose,
                   compression=False)
     else:
-        #I was getting 'got multiple values for keyword argument' errors
-        #geo = apply(_URS_points_needed, args, kwargs)
-        geo = _URS_points_needed(boundary_polygon,
-                                 zone, ll_lat,
-                                 ll_long, grid_spacing, 
-                                 lat_amount, long_amount)
+        geo = apply(_URS_points_needed, args, kwargs)
 
     return geo
 
 def _URS_points_needed(boundary_polygon,
                       zone, ll_lat,
                       ll_long, grid_spacing, 
-                      lat_amount, long_amount):
+                      lat_amount, long_amount,
+                       isSouthHemisphere):
     """
-
     boundary_polygon - a list of points that describes a polygon.
                       The last point is assumed ot join the first point.
                       This is in UTM (lat long would b better though)
@@ -4506,7 +4506,6 @@ def _URS_points_needed(boundary_polygon,
     a = boundary_polygon
     # List of segments.  Each segment is two points.
     segs = [i and [a[i-1], a[i]] or [a[len(a)-1], a[0]] for i in range(len(a))]
-
     # convert the segs to Lat's and longs.
     
     # Don't assume the zone of the segments is the same as the lower left
@@ -4515,26 +4514,32 @@ def _URS_points_needed(boundary_polygon,
     lat_long_set = ImmutableSet()
     for seg in segs:
         points_lat_long = points_needed(seg, ll_lat, ll_long, grid_spacing, 
-                      lat_amount, long_amount, zone)
+                      lat_amount, long_amount, zone, isSouthHemisphere)
         lat_long_set |= ImmutableSet(points_lat_long)
-    #print "lat_long_set",lat_long_set 
+    if lat_long_set == ImmutableSet([]):
+        msg = """URS region specified and polygon does not overlap."""
+        raise ValueError, msg
+
+    # Warning there is no info in geospatial saying the hemisphere of
+    # these points.  There should be.
     geo = Geospatial_data(data_points=list(lat_long_set),
                               points_are_lats_longs=True)
     return geo
     
 def points_needed(seg, ll_lat, ll_long, grid_spacing, 
-                  lat_amount, long_amount, zone):
+                  lat_amount, long_amount, zone,
+                  isSouthHemisphere):
     """
+    seg is one point, in UTM
     return a list of the points, in lats and longs that are needed to
     interpolate any point on the segment.
     """
     from math import sqrt
     #print "zone",zone 
     geo_reference = Geo_reference(zone=zone)
-    #print "seg",seg 
     geo = Geospatial_data(seg,geo_reference=geo_reference)
-    seg_lat_long = geo.get_data_points(as_lat_long=True)
-    #print "seg_lat_long", seg_lat_long
+    seg_lat_long = geo.get_data_points(as_lat_long=True,
+                                       isSouthHemisphere=isSouthHemisphere)
     # 1.415 = 2^0.5, rounded up....
     sqrt_2_rounded_up = 1.415
     buffer = sqrt_2_rounded_up * grid_spacing

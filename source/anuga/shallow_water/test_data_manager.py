@@ -6143,7 +6143,7 @@ friction  \n \
                                   verbose=self.verbose)         
 
 
-    def Xtest_URS_points_needed_poly2(self):
+    def test_URS_points_needed_poly2(self):
         # Values used for 2004 validation work
         # domain in northern hemisphere zone 47        
         LL_LAT = 0.0
@@ -6168,6 +6168,7 @@ friction  \n \
                                   LL_LAT, LL_LONG,
                                   GRID_SPACING,
                                   LAT_AMOUNT, LONG_AMOUNT,
+                                  isSouthernHemisphere=False,
                                   verbose=self.verbose) 
         
     #### END TESTS URS UNGRIDDED 2 SWW ###
@@ -7560,7 +7561,7 @@ if __name__ == "__main__":
 #    suite = unittest.makeSuite(Test_Data_Manager,'test_screen_catcher')
     suite = unittest.makeSuite(Test_Data_Manager,'test')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_get_flow_through_cross_section')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs_ungridded_holeII')
+    #suite = unittest.makeSuite(Test_Data_Manager,'Xtest')
 
     
     if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':
