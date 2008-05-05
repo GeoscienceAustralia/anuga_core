@@ -1,4 +1,4 @@
-#from anuga.utilities.data_audit_wrapper import IP_verified
+from anuga.utilities.data_audit_wrapper import IP_verified
 from tempfile import mktemp
 
 import os
@@ -56,10 +56,10 @@ print s
 os.system(s)
 
 print 'Verifying data IP'
-#if not IP_verified(temp_dir):
-#    msg = 'Files have not been verified for IP.\n'
-#    msg += 'Each data file must have a license file with it.'
-#    raise Exception, msg
+if not IP_verified(temp_dir):
+    msg = 'Files have not been verified for IP.\n'
+    msg += 'Each data file must have a license file with it.'
+    raise Exception, msg
 
 
 
