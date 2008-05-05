@@ -5628,7 +5628,7 @@ def get_flow_through_cross_section(filename,
         Q: Hydrograph of total flow across given segments for all stored timesteps.
 
     The normal flow is computed for each triangle intersected by the polyline and added up.
-    If multiple sections are specified normal flows may partially cancel each other.
+    If multiple segments at different angles are specified the normal flows may partially cancel each other.
 
     """
 
