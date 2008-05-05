@@ -858,6 +858,7 @@ class Mesh(General_mesh):
         
 
         return str
+    
 
     def get_triangle_containing_point(self, point):
         """Return triangle id for triangle containing specifiend point (x,y)
@@ -893,6 +894,27 @@ class Mesh(General_mesh):
                 
         return
 
+
+    def get_intersecting_segments(self, polyline):
+      """Find edges intersected by polyline
+
+      Input:
+          polyline - list of points forming a segmented line
+
+      Output:
+          dictionary where
+              keys are triangle ids for those elements that are intersected
+              values are a list of segments each represented as a triplet: 
+                  length of the intersecting segment
+                  right hand normal
+                  midpoint of intersecting segment
+
+      The polyline may break inside any triangle causing multiple segments per triabgle.
+      """
+
+      pass
+
+  
 
     def get_triangle_neighbours(self, tri_id):
         """ Given a triangle id, Return an array of the

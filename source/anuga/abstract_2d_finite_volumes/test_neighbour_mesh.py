@@ -1244,8 +1244,16 @@ class Test_Mesh(unittest.TestCase):
         neighbours = mesh.get_triangle_neighbours(-10)
         assert neighbours == []
         neighbours = mesh.get_triangle_neighbours(2)
-        assert neighbours == []   
+        assert neighbours == []
 
+
+    def NOtest_get_intersecting_segments(self):
+        """test_get_intersecting_segments(self):
+        
+        """
+
+        pass
+        
 #-------------------------------------------------------------
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Mesh,'test_two_triangles')

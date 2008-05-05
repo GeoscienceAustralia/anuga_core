@@ -7422,7 +7422,7 @@ friction  \n \
         """test_get_mesh_and_quantities_from_sww_file(self):
 	"""	
 	
-	# Generate a test sww file
+	# Generate a test sww file with non trivial georeference
 	
 	import time, os
         from Numeric import array, zeros, allclose, Float, concatenate
@@ -7433,11 +7433,13 @@ friction  \n \
 
         # Create basic mesh (100m x 5m)
         width = 5
-        len = 100
-        points, vertices, boundary = rectangular(len, width, 100, 5)
+        length = 100
+        t_end = 10
+        points, vertices, boundary = rectangular(length, width, 100, 5)
 
         # Create shallow water domain
-        domain = Domain(points, vertices, boundary)
+        domain = Domain(points, vertices, boundary,
+                        geo_reference = Geo_reference(56,308500,6189000))
 
         domain.set_name('flowtest')
         swwfile = domain.get_name() + '.sww'
@@ -7448,15 +7450,48 @@ friction  \n \
 
         domain.set_boundary( {'left': Bd, 'right': Bd, 'top': Br, 'bottom': Br})
 
-        for t in domain.evolve(yieldstep=1, finaltime = 50):
+        for t in domain.evolve(yieldstep=1, finaltime = t_end):
             pass
 
         
 	# Read it
-	
-	# FIXME (Ole): TODO	
-	
-	
+
+        # Get mesh and quantities from sww file
+        X = get_mesh_and_quantities_from_file(swwfile,
+                                              quantities=['elevation',
+                                                          'stage',
+                                                          'xmomentum',
+                                                          'ymomentum'], 
+                                              verbose=False)
+        mesh, quantities, time = X
+        
+
+        # Check that mesh has been recovered
+        assert alltrue(mesh.triangles == domain.triangles)
+        assert allclose(mesh.nodes, domain.nodes)
+
+        # Check that time has been recovered
+	assert allclose(time, range(t_end+1))
+
+        # Check that quantities have been recovered
+        # (sww files use single precision)
+        z=domain.get_quantity('elevation').get_values(location='unique vertices')
+	assert allclose(quantities['elevation'], z)
+
+        for q in ['stage', 'xmomentum', 'ymomentum']:
+            # Get quantity at last timestep
+            q_ref=domain.get_quantity(q).get_values(location='unique vertices')
+
+            #print q,quantities[q]
+            q_sww=quantities[q][-1,:]
+
+            msg = 'Quantity %s failed to be recovered' %q
+            assert allclose(q_ref, q_sww, atol=1.0e-6), msg
+            
+        # Cleanup
+        os.remove(swwfile)
+        
+
     def NOtest_get_flow_through_cross_section(self):
         """test_get_flow_through_cross_section(self):
 
@@ -7484,8 +7519,10 @@ friction  \n \
 
         # Create basic mesh (100m x 5m)
         width = 5
-        len = 100
-        points, vertices, boundary = rectangular(len, width, 100, 5)
+        length = 100
+        t_end = 10
+        points, vertices, boundary = rectangular(length, width,
+                                                 length, width)
 
         # Create shallow water domain
         domain = Domain(points, vertices, boundary)
@@ -7514,25 +7551,28 @@ friction  \n \
         domain.set_quantity('xmomentum', uh)
         domain.set_boundary( {'left': Bd, 'right': Bd, 'top': Br, 'bottom': Br})
 
-        for t in domain.evolve(yieldstep=1, finaltime = 50):
+        for t in domain.evolve(yieldstep=1, finaltime = t_end):
             pass
 
         # Check that momentum is as it should be in the interior
+
+        I = [[0, width/2.],
+             [length/2., width/2.],
+             [length, width/2.]]
+        
         f = file_function(swwfile,
                           quantities=['stage', 'xmomentum', 'ymomentum'],
-                          interpolation_points=[[0,width/2],
-                                                [len/2, width/2],
-                                                [len, width/2]],
+                          interpolation_points=I,
                           verbose=False)
 
-        for t in range(50):
+        for t in range(t_end+1):
             for i in range(3):
                 assert allclose(f(t, i), [1, 2, 0])
             
 
 
         # Check flow through the middle
-        cross_section = [[len/2,0], [len/2,width]]
+        cross_section = [[length/2., 0], [length/2., width]]
         Q = get_flow_through_cross_section(swwfile,
                                            cross_section,
                                            verbose=True)

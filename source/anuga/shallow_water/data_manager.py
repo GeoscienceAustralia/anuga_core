@@ -3197,9 +3197,9 @@ def extent_sww(file_name):
     return [min(x),max(x),min(y),max(y),min(stage.flat),max(stage.flat)]
 
 
-def sww2domain(filename,boundary=None,t=None,\
-               fail_if_NaN=True,NaN_filler=0\
-               ,verbose = False,very_verbose = False):
+def sww2domain(filename, boundary=None, t=None,
+               fail_if_NaN=True ,NaN_filler=0,
+               verbose = False, very_verbose = False):
     """
     Usage: domain = sww2domain('file.sww',t=time (default = last time in file))
 
@@ -3232,7 +3232,9 @@ def sww2domain(filename,boundary=None,t=None,\
 
     starttime = fid.starttime[0]
     volumes = fid.variables['volumes'][:] #Connectivity
-    coordinates=transpose(asarray([x.tolist(),y.tolist()]))
+    coordinates = transpose(asarray([x.tolist(),y.tolist()]))
+    #FIXME (Ole): Something like this might be better: concatenate( (x, y), axis=1 )
+    # or concatenate( (x[:,NewAxis],x[:,NewAxis]), axis=1 )
 
     conserved_quantities = []
     interpolated_quantities = {}
@@ -3354,6 +3356,7 @@ def sww2domain(filename,boundary=None,t=None,\
     fid.close()
     return domain
 
+
 def interpolated_quantity(saved_quantity,time_interp):
 
     #given an index and ratio, interpolate quantity with respect to time.
@@ -3365,6 +3368,7 @@ def interpolated_quantity(saved_quantity,time_interp):
         q = Q[index]
     #Return vector of interpolated values
     return q
+
 
 def get_time_interp(time,t=None):
     #Finds the ratio and index for time interpolation.
@@ -5530,94 +5534,88 @@ def store_parameters(verbose=False,**kwargs):
 # Functions to obtain diagnostics from sww files
 #-----------------------------------------------
 
-def get_mesh_and_quantities_from_sww_file(filename, quantity_names, verbose=False):
+def get_mesh_and_quantities_from_file(filename,
+                                      quantities=None,
+                                      verbose=False):
     """Get and rebuild mesh structure and the associated quantities from sww file
+
+    Input:
+        filename - Name os sww file
+        quantities - Names of quantities to load
+
+    Output:
+        mesh - instance of class Interpolate
+               (including mesh and interpolation functionality)
+        quantities - arrays with quantity values at each mesh node
+        time - vector of stored timesteps
     """
-
-    #FIXME(Ole): This is work in progress
-    
-    import types
+ 
     # FIXME (Ole): Maybe refactor filefunction using this more fundamental code.
+   
+    import types
+    from Scientific.IO.NetCDF import NetCDFFile
+    from shallow_water import Domain
+    from Numeric import asarray, transpose, resize
+    from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 
-    return
+    if verbose: print 'Reading from ', filename
+    fid = NetCDFFile(filename, 'r')    # Open existing file for read
+    time = fid.variables['time']       # Time vector
+    time += fid.starttime[0]
     
-    # Open NetCDF file
-    if verbose: print 'Reading', filename
-    fid = NetCDFFile(filename, 'r')
-
-    if type(quantity_names) == types.StringType:
-        quantity_names = [quantity_names]        
-
-    if quantity_names is None or len(quantity_names) < 1:
-        msg = 'No quantities are specified'
-        raise Exception, msg
-
-    # Now assert that requested quantitites (and the independent ones)
-    # are present in file 
-    missing = []
-    for quantity in ['x', 'y', 'volumes', 'time'] + quantity_names:
-        if not fid.variables.has_key(quantity):
-            missing.append(quantity)
-
-    if len(missing) > 0:
-        msg = 'Quantities %s could not be found in file %s'\
-              %(str(missing), filename)
-        fid.close()
-        raise Exception, msg
-
-    if not filename.endswith('.sww'):
-        msg = 'Filename must have extension .sww'        
-        raise Exception, msg        
-
-    # Get first timestep
-    try:
-        starttime = fid.starttime[0]
-    except ValueError:
-        msg = 'Could not read starttime from file %s' %filename
-        raise msg
-
-    # Get variables
-    time = fid.variables['time'][:]    
-
-    # Get origin
-    xllcorner = fid.xllcorner[0]
-    yllcorner = fid.yllcorner[0]
-    zone = fid.zone[0]
-    georeference = Geo_reference(zone, xllcorner, yllcorner)
+    # Get the variables as Numeric arrays
+    x = fid.variables['x'][:]                   # x-coordinates of nodes
+    y = fid.variables['y'][:]                   # y-coordinates of nodes
+    elevation = fid.variables['elevation'][:]   # Elevation
+    stage = fid.variables['stage'][:]           # Water level
+    xmomentum = fid.variables['xmomentum'][:]   # Momentum in the x-direction
+    ymomentum = fid.variables['ymomentum'][:]   # Momentum in the y-direction
 
 
-    x = fid.variables['x'][:]
-    y = fid.variables['y'][:]
+    # Mesh (nodes (Mx2), triangles (Nx3))
+    nodes = concatenate( (x[:, NewAxis], y[:, NewAxis]), axis=1 )
     triangles = fid.variables['volumes'][:]
+    
+    # Get geo_reference
+    try:
+        geo_reference = Geo_reference(NetCDFObject=fid)
+    except: #AttributeError, e:
+        # Sww files don't have to have a geo_ref
+        geo_reference = None
 
-    x = reshape(x, (len(x),1))
-    y = reshape(y, (len(y),1))
-    vertex_coordinates = concatenate((x,y), axis=1) #m x 2 array
+    if verbose: print '    building mesh from sww file %s' %filename
+    boundary = None
 
-    #if interpolation_points is not None:
-    #    # Adjust for georef
-    #    interpolation_points[:,0] -= xllcorner
-    #    interpolation_points[:,1] -= yllcorner        
-        
+    #FIXME (Peter Row): Should this be in mesh?
+    if fid.smoothing != 'Yes':
+        nodes = nodes.tolist()
+        triangles = triangles.tolist()
+        nodes, triangles, boundary=weed(nodes, triangles, boundary)
 
-    # Produce values for desired data points at
-    # each timestep for each quantity
+
+    try:
+        mesh = Mesh(nodes, triangles, boundary,
+                    geo_reference=geo_reference)
+    except AssertionError, e:
+        fid.close()
+        msg = 'Domain could not be created: %s. "' %e
+        raise DataDomainError, msg
+
+
     quantities = {}
-    for name in quantity_names:
-        quantities[name] = fid.variables[name][:]
-        
-    fid.close()
+    quantities['elevation'] = elevation
+    quantities['stage'] = stage    
+    quantities['xmomentum'] = xmomentum
+    quantities['ymomentum'] = ymomentum    
+    
+    return mesh, quantities, time
 
-    # Create mesh and quad tree
-    #interpolator = Interpolate(vertex_coordinates, triangles)
-
-    #return interpolator, quantities, geo_reference, time
 
 
 def get_flow_through_cross_section(filename,
                                    polyline,
                                    verbose=False):
-    """Obtain flow (m^3/s) perpendicular to cross section given by the argument polyline.
+    """Obtain flow (m^3/s) perpendicular to specified cross section.
 
     Inputs:
         filename: Name of sww file
@@ -5625,31 +5623,36 @@ def get_flow_through_cross_section(filename,
                   sections allowing for complex shapes.
 
     Output:
-        Q: Hydrograph of total flow across given segments for all stored timesteps.
+        time: All stored times
+        Q: Hydrograph of total flow across given segments for all stored times.
 
-    The normal flow is computed for each triangle intersected by the polyline and added up.
-    If multiple segments at different angles are specified the normal flows may partially cancel each other.
+    The normal flow is computed for each triangle intersected by the polyline and
+    added up.  multiple segments at different angles are specified the normal flows
+    may partially cancel each other.
 
     """
 
     # Get mesh and quantities from sww file
-    X = get_mesh_and_quantities_from_sww_file(filename, 
-                                              ['elevation',
-                                               'stage',
-                                               'xmomentum',
-                                               'ymomentum'], 
-					      verbose=verbose)
-    interpolator, quantities, geo_reference, time = X
+    X = get_mesh_and_quantities_from_file(filename,
+                                          quantities=['elevation',
+                                                      'stage',
+                                                      'xmomentum',
+                                                      'ymomentum'], 
+                                          verbose=verbose)
+    mesh, quantities, time = X
 
 
     
     # Find all intersections and associated triangles.
     
-    get_intersecting_segments(polyline)
+    mesh.get_intersecting_segments(polyline)
     
     # Then store for each triangle the length of the intersecting segment(s),
-    # right hand normal(s) and midpoints. 
-    pass
+    # right hand normal(s) and midpoints.
+
+    return time, Q
+    
+
 
 
 
