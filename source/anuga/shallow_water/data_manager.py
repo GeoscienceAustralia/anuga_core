@@ -5633,10 +5633,12 @@ def get_flow_through_cross_section(filename,
     """
 
     # Get mesh and quantities from sww file
-    X = get_mesh_and_quantities_from_sww_file(filename, ['elevation',
-                                                         'stage',
-                                                         'xmomentum',
-                                                         'ymomentum'], verbose=verbose)
+    X = get_mesh_and_quantities_from_sww_file(filename, 
+                                              ['elevation',
+                                               'stage',
+                                               'xmomentum',
+                                               'ymomentum'], 
+					      verbose=verbose)
     interpolator, quantities, geo_reference, time = X
 
 

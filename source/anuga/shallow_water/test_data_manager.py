@@ -7418,6 +7418,45 @@ friction  \n \
         os.remove(swwfile)
 
 
+    def test_get_mesh_and_quantities_from_sww_file(self):
+        """test_get_mesh_and_quantities_from_sww_file(self):
+	"""	
+	
+	# Generate a test sww file
+	
+	import time, os
+        from Numeric import array, zeros, allclose, Float, concatenate
+        from Scientific.IO.NetCDF import NetCDFFile
+
+        # Setup
+        from mesh_factory import rectangular
+
+        # Create basic mesh (100m x 5m)
+        width = 5
+        len = 100
+        points, vertices, boundary = rectangular(len, width, 100, 5)
+
+        # Create shallow water domain
+        domain = Domain(points, vertices, boundary)
+
+        domain.set_name('flowtest')
+        swwfile = domain.get_name() + '.sww'
+        domain.set_datadir('.')
+
+        Br = Reflective_boundary(domain)    # Side walls
+        Bd = Dirichlet_boundary([1, 0, 0])  # inflow
+
+        domain.set_boundary( {'left': Bd, 'right': Bd, 'top': Br, 'bottom': Br})
+
+        for t in domain.evolve(yieldstep=1, finaltime = 50):
+            pass
+
+        
+	# Read it
+	
+	# FIXME (Ole): TODO	
+	
+	
     def NOtest_get_flow_through_cross_section(self):
         """test_get_flow_through_cross_section(self):
 
