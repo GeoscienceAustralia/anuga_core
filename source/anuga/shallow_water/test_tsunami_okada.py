@@ -10,7 +10,7 @@ class Test_eq(unittest.TestCase):
         pass
 
 
-    def NOtest_Okada_func(self):
+    def test_Okada_func(self):
         from os import sep, getenv
         from Numeric import zeros, Float,allclose
         import sys

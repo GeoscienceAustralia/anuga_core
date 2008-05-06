@@ -116,6 +116,7 @@ def intersection(line0, line1):
                 # Lines are parallel and would coincide if extended, but not as they are.
                 return 3, None
 
+
             # One line fully included in the other. Use direction of included line
             if line0_starts_on_line1 and line0_ends_on_line1:
                 # Shared segment is line0 fully included in line1

@@ -9,6 +9,7 @@
 
 from general_mesh import General_mesh
 from math import pi, sqrt
+from Numeric import array, allclose
         
 
 class Mesh(General_mesh):
@@ -229,6 +230,8 @@ class Mesh(General_mesh):
             if ratio >= max_ratio: max_ratio = ratio
             if ratio <= min_ratio: min_ratio = ratio
         return max_ratio,min_ratio
+
+
 
     def build_neighbour_structure(self):
         """Update all registered triangles to point to their neighbours.
@@ -627,23 +630,25 @@ class Mesh(General_mesh):
         from Numeric import sort, allclose
 
         N = len(self)
-        #Get x,y coordinates for all vertices for all triangles
+
+        # Get x,y coordinates for all vertices for all triangles
         V = self.get_vertex_coordinates()
-        #Check each triangle
+
+        # Check each triangle
         for i in range(N):
 
             x0, y0 = V[3*i, :]
             x1, y1 = V[3*i+1, :]
             x2, y2 = V[3*i+2, :]
             
-            #Check that area hasn't been compromised
+            # Check that area hasn't been compromised
             area = self.areas[i]
             ref = abs((x1*y0-x0*y1)+(x2*y1-x1*y2)+(x0*y2-x2*y0))/2
             msg = 'Wrong area for vertex coordinates: %f %f %f %f %f %f'\
                   %(x0,y0,x1,y1,x2,y2)
             assert abs((area - ref)/area) < epsilon, msg
 
-            #Check that points are arranged in counter clock-wise order
+            # Check that points are arranged in counter clock-wise order
             v0 = [x1-x0, y1-y0]
             v1 = [x2-x1, y2-y1]
             v2 = [x0-x2, y0-y2]
@@ -655,8 +660,8 @@ class Mesh(General_mesh):
             in counter clockwise order''' %(x0, y0, x1, y1, x2, y2)
             assert a0 < pi and a1 < pi and a2 < pi, msg
 
-            #Check that normals are orthogonal to edge vectors
-            #Note that normal[k] lies opposite vertex k
+            # Check that normals are orthogonal to edge vectors
+            # Note that normal[k] lies opposite vertex k
 
             normal0 = self.normals[i, 0:2]
             normal1 = self.normals[i, 2:4]
@@ -664,11 +669,11 @@ class Mesh(General_mesh):
 
             for u, v in [ (v0, normal2), (v1, normal0), (v2, normal1) ]:
 
-                #Normalise
+                # Normalise
                 l_u = sqrt(u[0]*u[0] + u[1]*u[1])
                 l_v = sqrt(v[0]*v[0] + v[1]*v[1])                
 
-                x = (u[0]*v[0] + u[1]*v[1])/l_u/l_v #Inner product
+                x = (u[0]*v[0] + u[1]*v[1])/l_u/l_v # Inner product
                 
                 msg = 'Normal vector (%f,%f) is not perpendicular to' %tuple(v)
                 msg += ' edge (%f,%f) in triangle %d.' %(tuple(u) + (i,))
@@ -895,6 +900,121 @@ class Mesh(General_mesh):
         return
 
 
+    def _get_intersecting_segments(self, line, triangle_intersections={}):
+      """Find edges intersected by line
+
+      Input:
+          line - list of two points forming a segmented line
+          triangle_intersections to be updated
+      Output:
+          list of instances of class Triangle_intersection
+
+      This method is used by the public method
+      get_intersecting_segments(self, polyline) which also contains
+      more documentation.
+      """
+
+      from anuga.utilities.polygon import intersection
+      
+      msg = 'Line segment must contain exactly two points'
+      assert len(line) == 2, msg
+      
+      
+      # Check intersection with edge segments for all triangles
+      # FIXME (Ole): This should be implemented in C
+      V = self.get_vertex_coordinates()
+      N = len(self)
+
+      for i in range(N):
+          # Get nodes and edge segments for each triangle
+          x0, y0 = V[3*i, :]
+          x1, y1 = V[3*i+1, :]
+          x2, y2 = V[3*i+2, :]
+            
+
+          edge_segments = [[[x0,y0], [x1, y1]],
+                            [[x1,y1], [x2, y2]],
+                            [[x2,y2], [x0, y0]]]
+
+          # Find segments that are intersected by line
+          intersections = []
+          for edge in edge_segments:
+
+              status, value = intersection(line, edge)
+              if status == 1:
+                  # Normal intersection of one edge
+
+                  # Exclude singular intersections with vertices
+                  if not(allclose(value, edge[0]) or\
+                         allclose(value, edge[1])):
+                      intersections.append(value)
+
+              if status == 2:
+                  # Edge is sharing a segment with line
+
+                  # Add identified line segment
+                  for j in range(value.shape[0]):
+                      intersections.append(value[j,:])
+
+
+          msg = 'There can be only two or no intersections'
+          assert len(intersections) in [0,2], msg
+
+
+          if len(intersections) == 2:
+
+              # Calculate attributes for this segment
+
+              # Origin of intersecting line to be used for direction
+              xi0 = line[0][0]
+              eta0 = line[0][1]
+
+              # End points of intersecting segment
+              x0, y0 = intersections[0]
+              x1, y1 = intersections[1]
+
+
+              # Determine which end point is closer to the origin of the line
+              # This is necessary for determining the direction of
+              # the line and the normals
+
+              # Distances from line origin to the two intersections
+              z0 = array([x0 - xi0, y0 - eta0])
+              z1 = array([x1 - xi0, y1 - eta0])              
+              d0 = sqrt(sum(z0**2)) 
+              d1 = sqrt(sum(z1**2))
+                 
+              if d1 < d0:
+                  # Swap
+                  xi, eta = x0, y0
+                  x0, y0 = x1, y1
+                  x1, y1 = xi, eta
+
+              # (x0,y0) is now the origin of the intersecting segment
+                  
+
+              # Normal direction (right hand side relative to direction of line)
+              vector = array([x1 - x0, y1 - y0]) # Segment vector
+              length = sqrt(sum(vector**2))      # Segment length
+              normal = array([vector[1], -vector[0]])/length
+
+
+              segment = ((x0,y0), (x1, y1))    
+              T = Triangle_intersection(segment=segment,
+                                        normal=normal,
+                                        length=length,
+                                        triangle_id=i)
+
+
+              # Add segment unless it was done earlier
+              if not triangle_intersections.has_key(segment):    
+                  triangle_intersections[segment] = T
+
+
+      #return triangle_intersections
+
+
+
     def get_intersecting_segments(self, polyline):
       """Find edges intersected by polyline
 
@@ -902,17 +1022,38 @@ class Mesh(General_mesh):
           polyline - list of points forming a segmented line
 
       Output:
-          dictionary where
-              keys are triangle ids for those elements that are intersected
-              values are a list of segments each represented as a triplet: 
-                  length of the intersecting segment
-                  right hand normal
-                  midpoint of intersecting segment
+          list of instances of class Triangle_intersection
 
-      The polyline may break inside any triangle causing multiple segments per triabgle.
+      The polyline may break inside any triangle causing multiple
+      segments per triangle - consequently the same triangle may
+      appear in several entries.
+
+      If a polyline segment coincides with a triangle edge,
+      the the entire shared segment will be used.
+
+      Onle one of the triangles thus intersected will be used and that
+      is the first one encoutered.
+
+      intersections with single vertices are ignored.
+
+      Resulting segments are unsorted
       """
 
-      pass
+      msg = 'Polyline must contain at least two points'
+      assert len(polyline) >= 2, msg
+
+      # For all segments in polyline
+      triangle_intersections = {}
+      for i, point0 in enumerate(polyline[:-1]):
+          point1 = polyline[i+1]
+          
+          line = [point0, point1]
+
+          self._get_intersecting_segments(line, triangle_intersections)
+
+
+      return triangle_intersections.values()
+  
 
   
 
@@ -930,3 +1071,38 @@ class Mesh(General_mesh):
         except IndexError:
             return []
         
+
+
+class Triangle_intersection:
+    """Store information about line segments intersecting a triangle
+    
+    Attributes are
+
+        segment: Line segment intersecting triangle [[x0,y0], [x1, y1]]
+        normal: [a,b] right hand normal to segment
+        length: Length of intersecting segment
+        triangle_id: id (in mesh) of triangle being intersected
+
+    """
+
+
+    def __init__(self,
+                 segment=None,
+                 normal=None,
+                 length=None,
+                 triangle_id=None):
+        self.segment = segment              
+        self.normal = normal
+        self.length = length
+        self.triangle_id = triangle_id
+        
+
+    def __repr__(self):
+        s = 'Triangle_intersection('
+        s += 'segment=%s, normal=%s, length=%s, triangle_id=%s)'\
+             %(self.segment,
+               self.normal,
+               self.length,
+               self.triangle_id)
+    
+        return s

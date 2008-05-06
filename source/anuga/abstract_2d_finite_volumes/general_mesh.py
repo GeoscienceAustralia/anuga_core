@@ -209,7 +209,7 @@ class General_mesh:
             self.edgelengths[i, :] = [l0, l1, l2]
 
         
-        # Build structure listing which trianglse belong to which nodet.
+        # Build structure listing which trianglse belong to which node.
         if verbose: print 'Building inverted triangle structure'         
         self.build_inverted_triangle_structure()
 

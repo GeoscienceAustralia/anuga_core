@@ -1247,16 +1247,122 @@ class Test_Mesh(unittest.TestCase):
         assert neighbours == []
 
 
-    def NOtest_get_intersecting_segments(self):
+    def test_get_intersecting_segments1(self):
         """test_get_intersecting_segments(self):
+
+        Very simple test
+        """
+
+        # Build test mesh
+        
+        # Create basic mesh
+        # 9 points at (0,0), (0, 1), ..., (2,2)
+        # 8 triangles enumerated from left bottom to right top.
+        points, vertices, boundary = rectangular(2, 2, 2, 2)
+        mesh = Mesh(points, vertices, boundary)
+
+        # Very simple horizontal line intersecting
+        #
+
+
+        for y_line in [0.1, 0.2, 0.314159, 0.41, 0.6, 0.99, 1.01, 1.5, 1.77, 1.9]:
+            if y_line < 1:
+                ceiling = 1
+                floor = 0
+                intersected_triangles = [0,1,4,5]
+            elif y_line > 1:
+                ceiling = 2
+                floor = 1
+                intersected_triangles = [2,3,6,7]
+            else:
+                raise Exception, 'this test is not for parallel lines'
+
+
+            line = [[-1,y_line], [3,y_line]]
+
+            L = mesh.get_intersecting_segments(line)
+            assert len(L) == 4
+
+            
+
+            # Check all normals point straight down etc
+            for x in L:
+                if x.triangle_id % 2 == 0:
+                    assert allclose(x.length, ceiling-y_line)
+                else:
+                    assert allclose(x.length, y_line-floor)                
+
+                
+                assert allclose(x.normal, [0,-1])
+
+                assert allclose(x.segment[1][0], x.segment[0][0] + x.length)
+                assert allclose(x.segment[0][1], y_line)
+                assert allclose(x.segment[1][1], y_line)                
+
+                assert x.triangle_id in intersected_triangles
+
+
+    def test_get_intersecting_segments_coinciding(self):
+        """test_get_intersecting_segments_coinciding(self):
+
+        Test that lines coinciding with triangle edges work.
+        """
+
+        # Build test mesh
+        
+        # Create basic mesh
+        # 9 points at (0,0), (0, 1), ..., (2,2)
+        # 8 triangles enumerated from left bottom to right top.
+        points, vertices, boundary = rectangular(2, 2, 2, 2)
+        mesh = Mesh(points, vertices, boundary)
+        intersected_triangles = [1,5]
+
+        # Very simple horizontal line intersecting
+        #
+
+        y_line = 1.0
+        
+        line = [[-1,y_line], [3,y_line]]
+
+        L = mesh.get_intersecting_segments(line)
+
+
+        msg = 'Only two triangles should be returned'    
+        assert len(L) == 2, msg    
+            
+
+        # Check all normals point straight down
+        for i, x in enumerate(L): 
+            assert allclose(x.length, 1.0)
+            assert allclose(x.normal, [0,-1])
+
+            assert allclose(x.segment[1][0], x.segment[0][0] + x.length)
+            assert allclose(x.segment[0][1], y_line)
+            assert allclose(x.segment[1][1], y_line)                            
+
+
+
+            assert x.triangle_id in intersected_triangles
+
+            
+
+    def test_get_intersecting_segments2(self):
+        """test_get_intersecting_segments(self):
+
+        More complex mesh
         
         """
 
+        # Build test mesh (from bounding polygon tests
+        
+
+        
         pass
         
 #-------------------------------------------------------------
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Mesh,'test_two_triangles')
+    #suite = unittest.makeSuite(Test_Mesh,'test_get_intersecting_segments_coinciding')
     suite = unittest.makeSuite(Test_Mesh,'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
