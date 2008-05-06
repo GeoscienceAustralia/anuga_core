@@ -126,16 +126,18 @@ class Test_eq(unittest.TestCase):
 
         # get vertical displacement at each point of the domain respecting
         # original script's order
+        interpolation_points=[]
         k=0.0
         for i in range(0,6):
             for j in range(0,6):
                 p=j*4000
                 Yt=p
                 Xt=k
-                Z=tsunami.get_values(interpolation_points=[[Xt,Yt]]
-                                     ,location='edges')
-                stage.append(-Z[0])
+                interpolation_points.append([Xt, Yt])
+
             k=k+4000
+        Z=tsunami.get_values(interpolation_points=interpolation_points,
+                             location='edges')
         
         assert allclose(stage,tmp,atol=1.e-8)
         print stage
@@ -248,9 +250,7 @@ class Test_eq(unittest.TestCase):
         # Create a variable to store vertical displacement throughout the domain
         tsunami = Quantity(domain)
         tsunami.set_values(Ts)
-<<<<<<< .mine
         interpolation_points=[]
-=======
 
         #k=0.0
         #for i in range(0,6):
@@ -267,7 +267,6 @@ class Test_eq(unittest.TestCase):
 
         # Here's a faster way - try that in the first test
         interpolation_points=[]
->>>>>>> .r5278
         k=0.0
         for i in range(0,6):
             for j in range(0,6):
@@ -277,8 +276,6 @@ class Test_eq(unittest.TestCase):
                 interpolation_points.append([Xt, Yt])
 
             k=k+4000
-
-<<<<<<< .mine
         Z=tsunami.get_values(interpolation_points=interpolation_points,
                              location='edges')
 
@@ -288,14 +285,6 @@ class Test_eq(unittest.TestCase):
         #print tmp
         #print 'hello',stage   
         assert allclose(stage,tmp,atol=1.e-3)
-=======
-        Z=tsunami.get_values(interpolation_points=interpolation_points,
-                             location='edges')
->>>>>>> .r5278
-
-        stage = -Z # FIXME(Ole): Why the sign flip?
-        
-        assert allclose(stage, tmp, atol=1.e-3)
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
