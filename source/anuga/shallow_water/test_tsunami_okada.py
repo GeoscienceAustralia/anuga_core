@@ -248,54 +248,20 @@ class Test_eq(unittest.TestCase):
         # Create a variable to store vertical displacement throughout the domain
         tsunami = Quantity(domain)
         tsunami.set_values(Ts)
-<<<<<<< .mine
-        interpolation_points=[]
-=======
 
-        #k=0.0
-        #for i in range(0,6):
-        #    for j in range(0,6):
-        #        p=j*4000
-        #        Yt=p
-        #        Xt=k
-        #        Z=tsunami.get_values(interpolation_points=[[Xt,Yt]]
-        #                             ,location='edges')
-        #        stage.append(-Z[0])
-        #    k=k+4000
-        #
-        #assert allclose(stage,tmp,atol=1.e-3)
-
-        # Here's a faster way - try that in the first test
-        interpolation_points=[]
->>>>>>> .r5278
         k=0.0
         for i in range(0,6):
             for j in range(0,6):
                 p=j*4000
                 Yt=p
                 Xt=k
-                interpolation_points.append([Xt, Yt])
-
+                Z=tsunami.get_values(interpolation_points=[[Xt,Yt]]
+                                     ,location='edges')
+                stage.append(-Z[0])
             k=k+4000
-
-<<<<<<< .mine
-        Z=tsunami.get_values(interpolation_points=interpolation_points,
-                             location='edges')
-
-        stage = -Z # FIXME(Ole): Why the sign flip?
-                   # Displacement in fortran code is looking downward
-        #print 'c est fini'
-        #print tmp
-        #print 'hello',stage   
-        assert allclose(stage,tmp,atol=1.e-3)
-=======
-        Z=tsunami.get_values(interpolation_points=interpolation_points,
-                             location='edges')
->>>>>>> .r5278
-
-        stage = -Z # FIXME(Ole): Why the sign flip?
         
         assert allclose(stage, tmp, atol=1.e-3)
+        print 'c est fini'
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
