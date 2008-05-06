@@ -65,7 +65,7 @@ def intersection(line0, line1):
         status == 1: One intersection point found and returned in value as [x,y]
         status == 2: Coinciding line segment found. Value taks the form [[x0,y0], [x1,y1]]
         status == 3: Lines would coincide but only if extended. Value set to None
-        status == 4: Lines are parallel with a fixed distance apart. Value set to that distance.
+        status == 4: Lines are parallel with a fixed distance apart. Value set to None.
     
     """
 
@@ -149,7 +149,7 @@ def intersection(line0, line1):
             return 2, segment
         else:
             # Lines are parallel but they don't coincide
-            return 4, None
+            return 4, None #FIXME (Ole): Add distance here instead of None 
             
     else:
         # Lines are not parallel or coinciding
@@ -159,6 +159,7 @@ def intersection(line0, line1):
         x = x0 + u0*(x1-x0)
         y = y0 + u0*(y1-y0)
 
+        # Sanity check - can be removed to speed up if needed
         assert allclose(x, x2 + u1*(x3-x2))
         assert allclose(y, y2 + u1*(y3-y2))        
 
@@ -166,7 +167,7 @@ def intersection(line0, line1):
         if 0.0 <= u0 <= 1.0 and 0.0 <= u1 <= 1.0: 
             # We have intersection
 
-            return 1, [x, y]
+            return 1, array([x, y])
         else:
             # No intersection
             return 0, None
