@@ -43,17 +43,29 @@ def point_on_line(point, line):
 
 
 def intersection(line0, line1):
-    """Returns intersecting point between two line segments or None (if parallel or no intersection is found)
+    """Returns intersecting point between two line segments or None
+    (if parallel or no intersection is found).
+
+    However, if parallel lines coincide partly (i.e. shara a common segment,
+    the line segment where lines coincide is returned
+    
 
     Inputs:
         line0, line1: Each defined by two end points as in: [[x0, y0], [x1, y1]]
-                      A line can also be a 2x2 numeric array with each row corresponding to a point.
+                      A line can also be a 2x2 numeric array with each row
+                      corresponding to a point.
 
 
     Output:
-        Point [x,y] or None.
+        status, value
 
-    If line extensions intersect outside their limits, None is returned as well.
+        where status is interpreted as follows
+        
+        status == 0: no intersection with value set to None
+        status == 1: One intersection point found and returned in value as [x,y]
+        status == 2: Coinciding line segment found. Value taks the form [[x0,y0], [x1,y1]]
+        status == 3: Lines would coincide but only if extended. Value set to None
+        status == 4: Lines are parallel with a fixed distance apart. Value set to that distance.
     
     """
 
@@ -69,16 +81,79 @@ def intersection(line0, line1):
     x3 = line1[1,0]; y3 = line1[1,1]
 
     denom = (y3-y2)*(x1-x0) - (x3-x2)*(y1-y0)
-
-    #print 'denom', denom, line0, line1
+    u0 = (x3-x2)*(y0-y2) - (y3-y2)*(x0-x2)
+    u1 = (x2-x0)*(y1-y0) - (y2-y0)*(x1-x0)
+        
     if allclose(denom, 0.0):
-        # Lines are parallel
-        return None
-    else:
-        u0 = (x3-x2)*(y0-y2) - (y3-y2)*(x0-x2)
-        u0 = u0/denom
+        # Lines are parallel - check if they coincide on a shared a segment
 
-        u1 = (x2-x0)*(y1-y0) - (y2-y0)*(x1-x0)
+        if allclose( [u0, u1], 0.0 ):
+            # We now know that the lines if continued coincide
+            # The remaining check will establish if the finite lines share a segment
+
+            line0_starts_on_line1 = line0_ends_on_line1 =\
+            line1_starts_on_line0 = line1_ends_on_line0 = False
+                
+            if point_on_line([x0, y0], line1):
+                line0_starts_on_line1 = True
+
+            if point_on_line([x1, y1], line1):
+                line0_ends_on_line1 = True
+ 
+            if point_on_line([x2, y2], line0):
+                line1_starts_on_line0 = True
+
+            if point_on_line([x3, y3], line0):
+                line1_ends_on_line0 = True                               
+
+            #print line0_starts_on_line1
+            #print line1_starts_on_line0            
+            #print line1_ends_on_line0
+            #print line0_ends_on_line1            
+
+            if not(line0_starts_on_line1 or line0_ends_on_line1\
+               or line1_starts_on_line0 or line1_ends_on_line0):
+                # Lines are parallel and would coincide if extended, but not as they are.
+                return 3, None
+
+            # One line fully included in the other. Use direction of included line
+            if line0_starts_on_line1 and line0_ends_on_line1:
+                # Shared segment is line0 fully included in line1
+                segment = array([[x0, y0], [x1, y1]])                
+
+            if line1_starts_on_line0 and line1_ends_on_line0:
+                # Shared segment is line1 fully included in line0
+                segment = array([[x2, y2], [x3, y3]])
+            
+
+            # Overlap with lines are oriented the same way
+            if line0_starts_on_line1 and line1_ends_on_line0:
+                # Shared segment from line0 start to line 1 end
+                segment = array([[x0, y0], [x3, y3]])
+
+            if line1_starts_on_line0 and line0_ends_on_line1:
+                # Shared segment from line1 start to line 0 end
+                segment = array([[x2, y2], [x1, y1]])                                
+
+
+            # Overlap in opposite directions - use direction of line0
+            if line0_starts_on_line1 and line1_starts_on_line0:
+                # Shared segment from line0 start to line 1 end
+                segment = array([[x0, y0], [x2, y2]])
+
+            if line0_ends_on_line1 and line1_ends_on_line0:
+                # Shared segment from line0 start to line 1 end
+                segment = array([[x3, y3], [x1, y1]])                
+
+                
+            return 2, segment
+        else:
+            # Lines are parallel but they don't coincide
+            return 4, None
+            
+    else:
+        # Lines are not parallel or coinciding
+        u0 = u0/denom
         u1 = u1/denom        
 
         x = x0 + u0*(x1-x0)
@@ -91,17 +166,11 @@ def intersection(line0, line1):
         if 0.0 <= u0 <= 1.0 and 0.0 <= u1 <= 1.0: 
             # We have intersection
 
-            # Need tolerances if going ahead with this check
-            #msg = 'Algorithm error. Intersection was detected but point (%f, %f) does not lie ' %(x,y)
-            #msg += 'on line0: %s' %(line0)
-            #assert point_on_line([x, y], line0), msg
-            #msg = 'Algorithm error. Intersection was detected but point (%f, %f) does not lie ' %(x,y)
-            #msg += 'on line1: %s' %(line1)            
-            #assert point_on_line([x, y], line1), msg
-        
-            return [x, y]
+            return 1, [x, y]
         else:
-            return None
+            # No intersection
+            return 0, None
+
 
 
 def is_inside_polygon(point, polygon, closed=True, verbose=False):

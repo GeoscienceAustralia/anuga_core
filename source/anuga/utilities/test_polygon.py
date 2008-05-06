@@ -582,58 +582,54 @@ class Test_Polygon(unittest.TestCase):
         line0 = [[-1,0], [1,0]]
         line1 = [[0,-1], [0,1]]
 
-        p = intersection(line0, line1)
-        assert allclose(p, [0.0, 0.0])
+        status, value = intersection(line0, line1)
+        assert status == 1
+        assert allclose(value, [0.0, 0.0])
 
     def test_intersection2(self):
         line0 = [[0,0], [24,12]]
         line1 = [[0,12], [24,0]]
 
-        p = intersection(line0, line1)
-        assert allclose(p, [12.0, 6.0])
+        status, value = intersection(line0, line1)
+        assert status == 1
+        assert allclose(value, [12.0, 6.0])
 
         # Swap direction of one line
         line1 = [[24,0], [0,12]]
 
-        p = intersection(line0, line1)
-        assert allclose(p, [12.0, 6.0])
+        status, value = intersection(line0, line1)
+        assert status == 1
+        assert allclose(value, [12.0, 6.0])
 
         # Swap order of lines
-        p = intersection(line1, line0)
-        assert allclose(p, [12.0, 6.0])        
+        status, value = intersection(line1, line0)
+        assert status == 1
+        assert allclose(value, [12.0, 6.0])        
         
     def test_intersection3(self):
         line0 = [[0,0], [24,12]]
         line1 = [[0,17], [24,0]]
 
-        p = intersection(line0, line1)
-        #print p
-        assert allclose(p, [14.068965517, 7.0344827586])
+        status, value = intersection(line0, line1)
+        assert status == 1
+        assert allclose(value, [14.068965517, 7.0344827586])
 
         # Swap direction of one line
         line1 = [[24,0], [0,17]]
 
-        p = intersection(line0, line1)
-        #print p
-        assert allclose(p, [14.068965517, 7.0344827586])        
+        status, value = intersection(line0, line1)
+        assert status == 1
+        assert allclose(value, [14.068965517, 7.0344827586])        
 
         # Swap order of lines
-        p = intersection(line1, line0)
-        assert allclose(p, [14.068965517, 7.0344827586])        
+        status, value = intersection(line1, line0)
+        assert status == 1        
+        assert allclose(value, [14.068965517, 7.0344827586])        
 
 
-    def test_intersection4(self):
-        line0 = [[0,0], [24,12]]
-        line1 = [[0,22], [21,0]]
-
-        p = intersection(line0, line1)
-        #print 'P',p
-
-        
     def test_intersection_direction_invariance(self):
         """This runs through a number of examples and checks that direction of lines don't matter.
         """
-
               
         line0 = [[0,0], [100,100]]
 
@@ -643,11 +639,14 @@ class Test_Polygon(unittest.TestCase):
             x = 20 + i * 1.0/100
 
             line1 = [[x,0], common_end_point]
-            p1 = intersection(line0, line1)
+            status, p1 = intersection(line0, line1)
+            assert status == 1
+
 
             # Swap direction of line1
             line1 = [common_end_point, [x,0]]            
-            p2 = intersection(line0, line1)
+            status, p2 = intersection(line0, line1)
+            assert status == 1            
 
             msg = 'Orientation of line shouldn not matter.\n'
             msg += 'However, segment [%f,%f], [%f, %f]' %(x,
@@ -658,24 +657,131 @@ class Test_Polygon(unittest.TestCase):
             assert allclose(p1, p2), msg
 
             # Swap order of lines
-            p3 = intersection(line1, line0)
+            status, p3 = intersection(line1, line0)
+            assert status == 1                        
             msg = 'Order of lines gave different results'
             assert allclose(p1, p3), msg
+            
 
     def test_no_intersection(self):
         line0 = [[-1,1], [1,1]]
         line1 = [[0,-1], [0,0]]
 
-        p = intersection(line0, line1)
-        assert p is None
+        status, value = intersection(line0, line1)
+        assert status == 0
+        assert value is None
+        
 
     def test_intersection_parallel(self):
         line0 = [[-1,1], [1,1]]
         line1 = [[-1,0], [5,0]]
 
-        p = intersection(line0, line1)
-        assert p is None                
+        status, value = intersection(line0, line1)
+        assert status == 4        
+        assert value is None
 
+
+        line0 = [[0,0], [10,100]]
+        line1 = [[-10,5], [0,105]]
+
+        status, value = intersection(line0, line1)
+        assert status == 4                
+        assert value is None        
+
+
+    def test_intersection_coincide(self):
+        """def test_intersection_coincide(self):
+        Test what happens whe two lines partly coincide
+        """
+
+        # Overlap 1
+        line0 = [[0,0], [5,0]]
+        line1 = [[-3,0], [3,0]]
+
+        status, value = intersection(line0, line1)
+        assert status == 2
+        assert allclose(value, [[0,0], [3,0]])
+
+        # Overlap 2
+        line0 = [[-10,0], [5,0]]
+        line1 = [[-3,0], [10,0]]
+
+        status, value = intersection(line0, line1)
+        assert status == 2
+        assert allclose(value, [[-3, 0], [5,0]])        
+
+        # Inclusion 1
+        line0 = [[0,0], [5,0]]
+        line1 = [[2,0], [3,0]]
+
+        status, value = intersection(line0, line1)
+        assert status == 2        
+        assert allclose(value, line1)
+
+        # Inclusion 2
+        line0 = [[1,0], [5,0]]
+        line1 = [[-10,0], [15,0]]
+
+        status, value = intersection(line0, line1)
+        assert status == 2        
+        assert allclose(value, line0)                                        
+
+
+        # Exclusion (no intersection)
+        line0 = [[-10,0], [1,0]]
+        line1 = [[3,0], [15,0]]
+
+        status, value = intersection(line0, line1)
+        assert status == 3        
+        assert value is None
+        
+
+        # Try examples with some slope (y=2*x+5)
+
+        # Overlap
+        line0 = [[0,5], [7,19]]
+        line1 = [[1,7], [10,25]]
+        status, value = intersection(line0, line1)
+        assert status == 2                
+        assert allclose(value, [[1, 7], [7, 19]])
+
+        status, value = intersection(line1, line0)
+        assert status == 2
+        assert allclose(value, [[1, 7], [7, 19]])
+
+        # Swap direction
+        line0 = [[7,19], [0,5]]
+        line1 = [[1,7], [10,25]]
+        status, value = intersection(line0, line1)
+        assert status == 2
+        assert allclose(value, [[7, 19], [1, 7]])
+
+        line0 = [[0,5], [7,19]]
+        line1 = [[10,25], [1,7]]
+        status, value = intersection(line0, line1)
+        assert status == 2
+        assert allclose(value, [[1, 7], [7, 19]])        
+        
+
+        # Inclusion
+        line0 = [[1,7], [7,19]]
+        line1 = [[0,5], [10,25]]
+        status, value = intersection(line0, line1)
+        assert status == 2                        
+        assert allclose(value, [[1,7], [7, 19]])                
+
+        line0 = [[0,5], [10,25]]
+        line1 = [[1,7], [7,19]]
+        status, value = intersection(line0, line1)
+        assert status == 2                        
+        assert allclose(value, [[1,7], [7, 19]])
+
+
+        line0 = [[0,5], [10,25]]
+        line1 = [[7,19], [1,7]]
+        status, value = intersection(line0, line1)
+        assert status == 2                        
+        assert allclose(value, [[7, 19], [1, 7]])                       
         
         
     def zzztest_inside_polygon_main(self):  \
