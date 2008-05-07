@@ -7492,7 +7492,7 @@ friction  \n \
         os.remove(swwfile)
         
 
-    def NOtest_get_flow_through_cross_section(self):
+    def test_get_flow_through_cross_section(self):
         """test_get_flow_through_cross_section(self):
 
         Test that the total flow through a cross section can be
@@ -7506,7 +7506,9 @@ friction  \n \
         h = 1 m
         w = 5 m (width of channel)
 
-        q = u*h*w = 10 m^3/s 
+        q = u*h*w = 10 m^3/s
+
+        #---------- First run without geo referencing        
         
         """
 
@@ -7520,7 +7522,7 @@ friction  \n \
         # Create basic mesh (100m x 5m)
         width = 5
         length = 100
-        t_end = 10
+        t_end = 3
         points, vertices, boundary = rectangular(length, width,
                                                  length, width)
 
@@ -7544,7 +7546,7 @@ friction  \n \
         Bd = Dirichlet_boundary([h, uh, 0])  # 2 m/s across the 5 m inlet: 
 
 
-        #---------- First run without geo referencing
+
         
         domain.set_quantity('elevation', 0.0)
         domain.set_quantity('stage', h)
@@ -7570,20 +7572,151 @@ friction  \n \
                 assert allclose(f(t, i), [1, 2, 0])
             
 
+        # Check flows through the middle
+        for i in range(10):
+            x = length/2. + i*0.23674563 # Arbitrary
+            cross_section = [[x, 0], [x, width]]
+            time, Q = get_flow_through_cross_section(swwfile,
+                                                     cross_section,
+                                                     verbose=False)
 
-        # Check flow through the middle
-        cross_section = [[length/2., 0], [length/2., width]]
-        Q = get_flow_through_cross_section(swwfile,
-                                           cross_section,
-                                           verbose=True)
+            assert allclose(Q, uh*width)
 
-        assert allclose(Q, uh*width)  
+
+       
+        # Try the same with partial lines
+        x = length/2.
+        for i in range(10):
+            start_point = [length/2., i*width/10.]
+            #print start_point
+                            
+            cross_section = [start_point, [length/2., width]]
+            time, Q = get_flow_through_cross_section(swwfile,
+                                                     cross_section,
+                                                     verbose=False)
+
+            #print i, Q, (width-start_point[1])
+            assert allclose(Q, uh*(width-start_point[1]))
+
+
+        # Verify no flow when line is parallel to flow
+        cross_section = [[length/2.-10, width/2.], [length/2.+10, width/2.]]
+        time, Q = get_flow_through_cross_section(swwfile,
+                                                 cross_section,
+                                                 verbose=False)
+
+        #print i, Q
+        assert allclose(Q, 0)        
+
+
+        # Try with lines on an angle (all flow still runs through here)
+        cross_section = [[length/2., 0], [length/2.+width, width]]
+        time, Q = get_flow_through_cross_section(swwfile,
+                                                 cross_section,
+                                                 verbose=False)
+
+        assert allclose(Q, uh*width)        
+        
+
+
                                       
+    def test_get_flow_through_cross_section_with_geo(self):
+        """test_get_flow_through_cross_section(self):
 
+        Test that the total flow through a cross section can be
+        correctly obtained from an sww file.
+        
+        This test creates a flat bed with a known flow through it and tests
+        that the function correctly returns the expected flow.
+
+        The specifics are
+        u = 2 m/s
+        h = 1 m
+        w = 5 m (width of channel)
+
+        q = u*h*w = 10 m^3/s
+
+
+        This run tries it with georeferencing
+        
+        """
+
+        import time, os
+        from Numeric import array, zeros, allclose, Float, concatenate
+        from Scientific.IO.NetCDF import NetCDFFile
+
+        # Setup
+        from mesh_factory import rectangular
+
+        # Create basic mesh (100m x 5m)
+        width = 5
+        length = 100
+        t_end = 1
+        points, vertices, boundary = rectangular(length, width,
+                                                 length, width)
+
+        # Create shallow water domain
+        domain = Domain(points, vertices, boundary,
+                        geo_reference = Geo_reference(56,308500,6189000))
+
+        domain.default_order = 2
+        domain.set_minimum_storable_height(0.01)
+
+        domain.set_name('flowtest')
+        swwfile = domain.get_name() + '.sww'
+
+        domain.set_datadir('.')
+        domain.format = 'sww'
+        domain.smooth = True
+
+        h = 1.0
+        u = 2.0
+        uh = u*h
+
+        Br = Reflective_boundary(domain)     # Side walls
+        Bd = Dirichlet_boundary([h, uh, 0])  # 2 m/s across the 5 m inlet: 
 
 
 
         
+        domain.set_quantity('elevation', 0.0)
+        domain.set_quantity('stage', h)
+        domain.set_quantity('xmomentum', uh)
+        domain.set_boundary( {'left': Bd, 'right': Bd, 'top': Br, 'bottom': Br})
+
+        for t in domain.evolve(yieldstep=1, finaltime = t_end):
+            pass
+
+        # Check that momentum is as it should be in the interior
+
+        I = [[0, width/2.],
+             [length/2., width/2.],
+             [length, width/2.]]
+        
+        I = domain.geo_reference.get_absolute(I)
+        f = file_function(swwfile,
+                          quantities=['stage', 'xmomentum', 'ymomentum'],
+                          interpolation_points=I,
+                          verbose=False)
+
+        for t in range(t_end+1):
+            for i in range(3):
+                assert allclose(f(t, i), [1, 2, 0])
+            
+
+        # Check flows through the middle
+        for i in range(10):
+            x = length/2. + i*0.23674563 # Arbitrary
+            cross_section = [[x, 0], [x, width]]
+
+            cross_section = domain.geo_reference.get_absolute(cross_section)            
+            time, Q = get_flow_through_cross_section(swwfile,
+                                                     cross_section,
+                                                     verbose=False)
+
+            assert allclose(Q, uh*width)
+
+
         
     def test_get_all_swwfiles(self):
         try:
@@ -7693,7 +7826,7 @@ if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager,'test_export_gridII')
 #    suite = unittest.makeSuite(Test_Data_Manager,'test_screen_catcher')
     suite = unittest.makeSuite(Test_Data_Manager,'test')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_get_flow_through_cross_section')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_get_flow_through_cross_section_with_geo')
     #suite = unittest.makeSuite(Test_Data_Manager,'covered_')
 
     

@@ -273,6 +273,47 @@ class Geo_reference:
         return points
 
 
+    def get_relative(self, points):
+        """
+        Given a set of points in absolute UTM coordinates,
+        make them relative to this geo_reference instance,
+        return the points as relative values.
+
+        This is the inverse of get_absolute.
+        """
+
+        is_list = False
+        if type(points) == types.ListType:
+            is_list = True
+
+        points = ensure_numeric(points, Float)
+        if len(points.shape) == 1:
+            #One point has been passed
+            msg = 'Single point must have two elements'
+            if not len(points) == 2:
+                raise ShapeError, msg    
+                #points = reshape(points, (1,2))
+
+
+        msg = 'Input must be an N x 2 array or list of (x,y) values. '
+        msg += 'I got an %d x %d array' %points.shape    
+        if not points.shape[1] == 2:
+            raise ShapeError, msg    
+            
+        
+        # Subtract geo ref from points
+        if not self.is_absolute():
+            points[:,0] -= self.xllcorner 
+            points[:,1] -= self.yllcorner
+
+        
+        if is_list:
+            points = points.tolist()
+             
+        return points
+
+
+
     def reconcile_zones(self, other):
         if other is None:
             other = Geo_reference()

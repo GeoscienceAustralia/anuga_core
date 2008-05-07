@@ -627,6 +627,27 @@ class Test_Polygon(unittest.TestCase):
         assert allclose(value, [14.068965517, 7.0344827586])        
 
 
+    def test_intersection_endpoints(self):
+        """test_intersection_endpoints(self):
+
+        Test that coinciding endpoints are picked up
+        """
+        line0 = [[0,0], [1,1]]
+        line1 = [[1,1], [2,1]]
+
+        status, value = intersection(line0, line1)
+        assert status == 1
+        assert allclose(value, [1.0, 1.0])
+
+
+        line0 = [[1,1], [2,0]]
+        line1 = [[1,1], [2,1]]
+
+        status, value = intersection(line0, line1)
+        assert status == 1
+        assert allclose(value, [1.0, 1.0])        
+        
+
     def test_intersection_direction_invariance(self):
         """This runs through a number of examples and checks that direction of lines don't matter.
         """

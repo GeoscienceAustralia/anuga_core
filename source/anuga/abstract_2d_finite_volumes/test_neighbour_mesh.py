@@ -1337,9 +1337,9 @@ class Test_Mesh(unittest.TestCase):
         assert len(L) == 2, msg    
             
 
-        # Check all normals point straight down
+        # Check all 
         total_length = 0
-        for i, x in enumerate(L): 
+        for x in L:
             assert allclose(x.length, 1.0)
             assert allclose(x.normal, [0,-1])
 
@@ -1354,7 +1354,60 @@ class Test_Mesh(unittest.TestCase):
             total_length += x.length
 
         msg = 'Segments do not add up'
-        assert allclose(total_length, 2), msg            
+        assert allclose(total_length, 2), msg
+        
+
+    def test_get_intersecting_segments_partially_coinciding(self):
+        """test_get_intersecting_segments_partially_coinciding(self):
+
+        Test that line coinciding with triangle edges work.
+        But this ones only coincide with parts of the edge. 
+        """
+
+        # Build test mesh
+        
+        # Create basic mesh
+        # 9 points at (0,0), (0, 1), ..., (2,2)
+        # 8 triangles enumerated from left bottom to right top.
+        points, vertices, boundary = rectangular(2, 2, 2, 2)
+        mesh = Mesh(points, vertices, boundary)
+        intersected_triangles = [1,5]
+
+        # Horizontal line intersecting along center but stopping
+        # parway through second triangle's edge
+        #
+
+        y_line = 1.0
+        
+        #line = [[0, y_line], [2, y_line]]
+        line = [[0, y_line], [1.5, y_line]]
+
+        L = mesh.get_intersecting_segments(line)
+        #for x in L:
+        #    print x
+
+        msg = 'Two triangles should be returned'    
+        assert len(L) == 2, msg    
+            
+
+        # Check all 
+        total_length = 0
+        for x in L:
+            if x.triangle_id == 1:
+                assert allclose(x.length, 1)        
+                assert allclose(x.normal, [0, -1])
+                
+            if x.triangle_id == 5:
+                assert allclose(x.length, 0.5)
+                assert allclose(x.normal, [0, -1])
+
+
+            assert x.triangle_id in intersected_triangles
+
+            total_length += x.length
+
+        msg = 'Segments do not add up'
+        assert allclose(total_length, 1.5), msg            
 
 
 
@@ -1746,12 +1799,59 @@ class Test_Mesh(unittest.TestCase):
       #assert allclose(segmentlength, linelength), msg    
 
 
+
+
+    def test_get_intersecting_segments7(self):
+        """test_get_intersecting_segments(self):
+
+        Check that line can stop inside a triangle - this is from
+        flow throug a cross sections example in test_datamanager.
+        
+        """
+
+        # Build test mesh
+        width = 5
+        length = 100
+        t_end = 1
+        points, vertices, boundary = rectangular(length, width,
+                                                 length, width)
+
+        mesh = Mesh(points, vertices, boundary)
+        
+
+        # A range of partial lines
+        x = length/2.
+        for i in range(10):
+            start_point = [length/2., i*width/10.]
+            #print 
+            #print start_point
+                            
+            line = [start_point, [length/2., width]]
+ 
+            L = mesh.get_intersecting_segments(line)
+
+            if start_point[1] < 1:
+                assert len(L) == 5
+                
+            
+            total_length = 0    
+            for x in L:
+                total_length += x.length
+                
+
+            ref_length = line[1][1] - line[0][1]
+            #print ref_length, total_length
+            assert allclose(total_length, ref_length)
+
+
+
         
 #-------------------------------------------------------------
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Mesh,'test_two_triangles')
-    #suite = unittest.makeSuite(Test_Mesh,'test_get_intersecting_segments_coinciding')
-    suite = unittest.makeSuite(Test_Mesh,'test') #_get_intersecting_segments6')
+    #suite = unittest.makeSuite(Test_Mesh,'test_get_intersecting_segments_partially_coinciding')
+    #suite = unittest.makeSuite(Test_Mesh,'test_get_intersecting_segments7')
+    suite = unittest.makeSuite(Test_Mesh,'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
 

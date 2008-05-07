@@ -671,9 +671,12 @@ class Mesh(General_mesh):
 
                 # Normalise
                 l_u = sqrt(u[0]*u[0] + u[1]*u[1])
-                l_v = sqrt(v[0]*v[0] + v[1]*v[1])                
+                l_v = sqrt(v[0]*v[0] + v[1]*v[1])
 
-                x = (u[0]*v[0] + u[1]*v[1])/l_u/l_v # Inner product
+                msg = 'Normal vector in triangle %d does not have unit length' %i
+                assert allclose(l_v, 1), msg
+
+                x = (u[0]*v[0] + u[1]*v[1])/l_u # Inner product
                 
                 msg = 'Normal vector (%f,%f) is not perpendicular to' %tuple(v)
                 msg += ' edge (%f,%f) in triangle %d.' %(tuple(u) + (i,))
@@ -947,6 +950,8 @@ class Mesh(General_mesh):
           for edge in edge_segments:
 
               status, value = intersection(line, edge)
+              #if value is not None: print 'Triangle %d, Got' %i, status, value
+                  
               if status == 1:
                   # Normal intersection of one edge or vertex
                   intersections[tuple(value)] = i                  
@@ -959,13 +964,15 @@ class Mesh(General_mesh):
               if status == 2:
                   # Edge is sharing a segment with line
 
-                  # This is currently covered by the two
+                  # This is usually covered by the two
                   # vertices that would have been picked up
-                  # under status == 1
-                  pass
+                  # under status == 1.
+                  # However, if coinciding line stops partway
+                  # along this edge, it will be recorded here.
+                  intersections[tuple(value[0,:])] = i
+                  intersections[tuple(value[1,:])] = i                                    
+
                   
-
-
           if len(intersections) == 1:
               # Check if either line end point lies fully within this triangle
               # If this is the case accept that as one end of the intersecting

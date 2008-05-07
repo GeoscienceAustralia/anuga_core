@@ -304,6 +304,8 @@ def get_netcdf_file_function(filename,
 
         if interpolation_points is not None:
             # Adjust for georef
+
+            # FIXME (Ole): Use geo_reference.get_relative
             interpolation_points[:,0] -= xllcorner
             interpolation_points[:,1] -= yllcorner        
         

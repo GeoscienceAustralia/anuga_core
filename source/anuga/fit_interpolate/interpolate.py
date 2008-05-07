@@ -438,18 +438,20 @@ class Interpolation_function:
     triangular mesh (such as those stored in sww files)
 
     Let m be the number of vertices, n the number of triangles
-    and p the number of timesteps. 
+    and p the number of timesteps.
+    Also, let N be the number of interpolation points.
 
     Mandatory input
         time:               px1 array of monotonously increasing times (Float)
         quantities:         Dictionary of arrays or 1 array (Float) 
                             The arrays must either have dimensions pxm or mx1.
                             The resulting function will be time dependent in
-                            the former case while it will be constan with
+                            the former case while it will be constant with
                             respect to time in the latter case.
         
     Optional input:
-        quantity_names:     List of keys into the quantities dictionary 
+        quantity_names:     List of keys into the quantities dictionary for
+                            imposing a particular order on the output vector.
         vertex_coordinates: mx2 array of coordinates (Float)
         triangles:          nx3 array of indices into vertex_coordinates (Int)
         interpolation_points: Nx2 array of coordinates to be interpolated to 
@@ -469,7 +471,9 @@ class Interpolation_function:
     FIXME (Ole): Need to allow vertex coordinates and interpolation points to be
     geospatial data objects
 
-    Time assumed to be relative to starttime    
+    Time assumed to be relative to starttime (FIXME (Ole): This comment should be removed)
+    All coordinates assume origin of (0,0) - e.g. georeferencing must be taken care of
+    outside this function
     """
   
     
@@ -521,7 +525,9 @@ class Interpolation_function:
         # Check spatial info
         if vertex_coordinates is None:
             self.spatial = False
-        else:    
+        else:
+            # FIXME (Ole): Try ensure_numeric here -
+            #this function knows nothing about georefering.
             vertex_coordinates = ensure_absolute(vertex_coordinates)
 
             assert triangles is not None, 'Triangles array must be specified'
