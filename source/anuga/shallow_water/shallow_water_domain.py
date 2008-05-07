@@ -104,6 +104,8 @@ from anuga.config import alpha_balance
 from anuga.config import optimise_dry_cells
 from anuga.config import optimised_gradient_limiter
 from anuga.config import use_edge_limiter
+from anuga.config import use_centroid_velocities
+
 
 #---------------------
 # Shallow water domain
@@ -180,9 +182,9 @@ class Domain(Generic_Domain):
 
         # Limiters
         self.use_edge_limiter = use_edge_limiter
-
         self.optimised_gradient_limiter = optimised_gradient_limiter
-                
+        self.use_centroid_velocities = use_centroid_velocities
+
 
     def set_all_limiters(self, beta):
         """Shorthand to assign one constant value [0,1[ to all limiters.
@@ -740,7 +742,8 @@ def extrapolate_second_order_sw(domain):
               Xmom.vertex_values,
               Ymom.vertex_values,
               Elevation.vertex_values,
-              int(domain.optimise_dry_cells))
+              int(domain.optimise_dry_cells),
+              int(domain.use_centroid_velocities))
 
 
 def distribute_to_vertices_and_edges(domain):
@@ -799,10 +802,10 @@ def distribute_to_vertices_and_edges(domain):
                 raise 'Unknown order'
 
 
-    #Take bed elevation into account when water heights are small
+    # Take bed elevation into account when water heights are small
     balance_deep_and_shallow(domain)
 
-    #Compute edge values by interpolation
+    # Compute edge values by interpolation
     for name in domain.conserved_quantities:
         Q = domain.quantities[name]
         Q.interpolate_from_vertices_to_edges()

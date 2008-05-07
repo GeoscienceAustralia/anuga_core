@@ -1436,6 +1436,8 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.tight_slope_limiters = 0 # Backwards compatibility (14/4/7)                 
         domain.H0 = 0 # Backwards compatibility (6/2/7)
         domain.beta_h = 0.2 # Backwards compatibility (14/2/7)
+        domain.use_centroid_velocities = 0 # Backwards compatibility (7/5/8)
+        
 
         #-----------------------------------------------------------------
         # Setup initial conditions
@@ -2656,6 +2658,7 @@ class Test_Shallow_Water(unittest.TestCase):
         
         # FIXME (Ole): Need tests where this is commented out
         domain.tight_slope_limiters = 0 # Backwards compatibility (14/4/7)                 
+        domain.use_centroid_velocities = 0 # Backwards compatibility (7/5/8)
         
                 
         domain.distribute_to_vertices_and_edges()
@@ -3868,7 +3871,8 @@ class Test_Shallow_Water(unittest.TestCase):
         
         # FIXME (Ole): Need tests where these two are commented out
         domain.H0 = 0        # Backwards compatibility (6/2/7)        
-        domain.tight_slope_limiters = 0 # Backwards compatibility (14/4/7)         
+        domain.tight_slope_limiters = 0 # Backwards compatibility (14/4/7)
+        domain.use_centroid_velocities = 0 # Backwards compatibility (7/5/8)                 
 
         #Bed-slope and friction
         def x_slope(x, y):
@@ -3940,7 +3944,8 @@ class Test_Shallow_Water(unittest.TestCase):
 
         
         # FIXME (Ole): Need tests where this is commented out
-        domain.tight_slope_limiters = 0 # Backwards compatibility (14/4/7)         
+        domain.tight_slope_limiters = 0 # Backwards compatibility (14/4/7)
+        domain.use_centroid_velocities = 0 # Backwards compatibility (7/5/8)      
         
         #Bed-slope and friction at vertices (and interpolated elsewhere)
         def x_slope(x, y):
@@ -4037,7 +4042,9 @@ class Test_Shallow_Water(unittest.TestCase):
         
         # FIXME (Ole): Need tests where this is commented out
         domain.tight_slope_limiters = 0 # Backwards compatibility (14/4/7)                 
-        domain.H0 = 0 # Backwards compatibility (6/2/7)        
+        domain.H0 = 0 # Backwards compatibility (6/2/7)
+        domain.use_centroid_velocities = 0 # Backwards compatibility (7/5/8)
+        
 
         #Bed-slope and friction at vertices (and interpolated elsewhere)
         def x_slope(x, y):
@@ -4140,6 +4147,8 @@ class Test_Shallow_Water(unittest.TestCase):
         # FIXME (Ole): Need tests where this is commented out
         domain.tight_slope_limiters = 0 # Backwards compatibility (14/4/7)                 
         domain.H0 = 0 # Backwards compatibility (6/2/7)
+        domain.use_centroid_velocities = 0 # Backwards compatibility (7/5/8)
+        
 
         #Bed-slope and friction at vertices (and interpolated elsewhere)
         def x_slope(x, y):
@@ -4239,6 +4248,7 @@ class Test_Shallow_Water(unittest.TestCase):
         # FIXME (Ole): Need tests where these two are commented out
         domain.H0 = 0        # Backwards compatibility (6/2/7)        
         domain.tight_slope_limiters = 0 # Backwards compatibility (14/4/7)                 
+        domain.use_centroid_velocities = 0 # Backwards compatibility (7/5/8)
         
                 
 
@@ -4503,7 +4513,8 @@ class Test_Shallow_Water(unittest.TestCase):
         
         # FIXME (Ole): Need tests where these two are commented out
         domain.H0 = 0        # Backwards compatibility (6/2/7)        
-        domain.tight_slope_limiters = 0 # Backwards compatibility (14/4/7)                         
+        domain.tight_slope_limiters = 0 # Backwards compatibility (14/4/7)
+        domain.use_centroid_velocities = 0 # Backwards compatibility (7/5/8)        
         
 
         #Bed-slope and friction at vertices (and interpolated elsewhere)
@@ -5673,8 +5684,7 @@ if __name__ == "__main__":
 
     suite = unittest.makeSuite(Test_Shallow_Water,'test')
 
-    #suite = unittest.makeSuite(Test_Shallow_Water,'test_balance_deep_and_shallow_Froude')
-    
+    #suite = unittest.makeSuite(Test_Shallow_Water,'test_bedslope_problem_first_order_moresteps')    
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_fitting_using_shallow_water_domain')    
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_tight_slope_limiters')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_get_maximum_inundation_from_sww')

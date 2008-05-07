@@ -143,7 +143,8 @@ double compute_froude_number(double uh,
 			     double epsilon) {
 			  
   // Compute Froude number; v/sqrt(gh)
-  
+  // FIXME (Ole): Not currently in use
+    
   double froude_number;
   
   //Compute Froude number (stability diagnostics)
@@ -548,15 +549,15 @@ int _balance_deep_and_shallow(int N,
 			      double* ymomv,
 			      double H0,
 			      int tight_slope_limiters,
+			      int use_centroid_velocities,			      
 			      double alpha_balance) {
 
-  int k, k3, i, excessive_froude_number=0;
+  int k, k3, i; //, excessive_froude_number=0;
 
   double dz, hmin, alpha, h_diff, hc_k;
   double epsilon = 1.0e-6; // FIXME: Temporary measure
-  double g = 9.81; // FIXME: Temporary measure
-  double hv[3], h; // Depths at vertices
-  double Fx, Fy; // Froude numbers
+  double hv[3]; // Depths at vertices
+  //double Fx, Fy; // Froude numbers
   double uc, vc; // Centroid speeds
 
   // Compute linear combination between w-limited stages and
@@ -700,6 +701,7 @@ int _balance_deep_and_shallow(int N,
 
     if (alpha < 1) {      
       for (i=0; i<3; i++) {
+      
 	// FIXME (Ole): Simplify when (if) hvbar gets retired	    
 	if (beta_h > epsilon) {	  
 	  wv[k3+i] = zv[k3+i] + (1-alpha)*hvbar[k3+i] + alpha*hv[i];
@@ -708,20 +710,10 @@ int _balance_deep_and_shallow(int N,
 	}
 
 	// Update momentum at vertices
-
-
-	// Update momentum at vertices
-	// Update momentum as a linear combination of
-	// xmomc and ymomc (shallow) and momentum
-	// from extrapolator xmomv and ymomv (deep).
-
-
-	//xmomv[k3+i] = (1-alpha)*xmomc[k] + alpha*xmomv[k3+i];
-	//ymomv[k3+i] = (1-alpha)*ymomc[k] + alpha*ymomv[k3+i];
-
-	if (tight_slope_limiters == 1) {
-	  // FIXME(Ole): Here's what I think (as of 17 Nov 2007)
-	  // we need to do. Simple and efficient:
+	if (use_centroid_velocities == 1) {
+	  // This is a simple, efficient and robust option
+	  // It uses first order approximation of velocities, but retains
+	  // the order used by stage.
 	
 	  // Speeds at centroids
 	  if (hc_k > epsilon) {
@@ -737,64 +729,19 @@ int _balance_deep_and_shallow(int N,
 	  hv[i] = wv[k3+i] - zv[k3+i]; // Recompute (balanced) vertex depth
 	  xmomv[k3+i] = uc*hv[i];
 	  ymomv[k3+i] = vc*hv[i];
+	  
 	} else {
 	  // Update momentum as a linear combination of
 	  // xmomc and ymomc (shallow) and momentum
 	  // from extrapolator xmomv and ymomv (deep).
-	  // FIXME (Ole): Is this really needed? Could we use the above
-	  // instead?
+	  // This assumes that values from xmomv and ymomv have
+	  // been established e.g. by the gradient limiter.
+
 	  
 	  xmomv[k3+i] = (1-alpha)*xmomc[k] + alpha*xmomv[k3+i];
 	  ymomv[k3+i] = (1-alpha)*ymomc[k] + alpha*ymomv[k3+i];
 	
 	}
-      }
-    }
-	
-
-	
-    if (0) {  // FIXME(Ole): Disabled while testing balancing of velocities above
-      //if (tight_slope_limiters == 1) {     		
-    
-      // Ensure that the Froude number is kept realistic at vertices
-      // FIXME (Ole): I think it could be used to adjust alpha down
-      // whenever Fr is too large. Possible make sure it doesn't deviate 
-      // too much from the value at the centroid. I like this idea!
-      
-      // FIXME (Ole): currently only used with tights_SL
-      
-      // FIXME (Ole): may not be necessary now
-
-      excessive_froude_number=0;    
-      for (i=0; i<3; i++) {    
-      
-	// Recalculate depth at vertex i
-	h = wv[k3+i] - zv[k3+i];
-	
-	Fx = compute_froude_number(xmomv[k3+i], h, g, epsilon);
-	Fy = compute_froude_number(ymomv[k3+i], h, g, epsilon);
-	
-	if ( (fabs(Fx) > 100.0) || (fabs(Fy) > 100.0)) {
-	  // FIXME: use max_froude - or base it on centroid value of F
-	  // printf("Excessive Froude number detected: %f or %f\n", Fx, Fy);
-	  excessive_froude_number=1;          
-	}
-      }
-     
-      if (excessive_froude_number) { 
-    
-	// printf("Adjusting momentum to first order.\n"); 
-	// Go back to first order (alpha = 0) for this triangle
-	for (i=0; i<3; i++) {          
-	  xmomv[k3+i] = xmomc[k];
-	  ymomv[k3+i] = ymomc[k];
-	  
-	  if (beta_h > epsilon) {	  
-	    wv[k3+i] = zv[k3+i] + hvbar[k3+i];
-	  } else {
-	    wv[k3+i] = zv[k3+i] + hc_k;	
-	  }
-	}	
       }
     }
   }
@@ -1093,7 +1040,8 @@ int _extrapolate_second_order_sw(int number_of_elements,
 				  double* xmom_vertex_values,
 				  double* ymom_vertex_values,
 				  double* elevation_vertex_values,
-				  int optimise_dry_cells) {
+				  int optimise_dry_cells,
+				  int use_centroid_velocities) {
 				  
 				  
 
@@ -1358,7 +1306,7 @@ int _extrapolate_second_order_sw(int number_of_elements,
         
       // One internal neighbour and gradient is in direction of the neighbour's centroid
       
-      // Find the only internal neighbour
+      // Find the only internal neighbour (k1?)
       for (k2=k3;k2<k3+3;k2++){
 	// Find internal neighbour of triangle k      
 	// k2 indexes the edges of triangle k	
@@ -1366,6 +1314,7 @@ int _extrapolate_second_order_sw(int number_of_elements,
 	if (surrogate_neighbours[k2]!=k)
 	  break;
       }
+      
       if ((k2==k3+3)) {
 	// If we didn't find an internal neighbour
 	PyErr_SetString(PyExc_RuntimeError, 
@@ -1395,7 +1344,6 @@ int _extrapolate_second_order_sw(int number_of_elements,
       dx2=1.0/area2;
       dy2=dx2*dy1;
       dx2*=dx1;
-      
       
       
       //-----------------------------------
@@ -1560,12 +1508,12 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
   
   double beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry;    
   double minimum_allowed_height, epsilon;
-  int optimise_dry_cells, number_of_elements, e;
+  int optimise_dry_cells, number_of_elements, e, use_centroid_velocities;
   
   // Provisional jumps from centroids to v'tices and safety factor re limiting
   // by which these jumps are limited
   // Convert Python arguments to C
-  if (!PyArg_ParseTuple(args, "OOOOOOOOOOOOOi",
+  if (!PyArg_ParseTuple(args, "OOOOOOOOOOOOOii",
 			&domain,
 			&surrogate_neighbours,
 			&number_of_boundaries,
@@ -1579,7 +1527,8 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
 			&xmom_vertex_values,
 			&ymom_vertex_values,
 			&elevation_vertex_values,
-			&optimise_dry_cells)) {			
+			&optimise_dry_cells,
+			&use_centroid_velocities)) {			
 			
     PyErr_SetString(PyExc_RuntimeError, 
 		    "Input arguments to extrapolate_second_order_sw failed");
@@ -1624,7 +1573,8 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
 				   (double*) xmom_vertex_values -> data,
 				   (double*) ymom_vertex_values -> data,
 				   (double*) elevation_vertex_values -> data,
-				   optimise_dry_cells);
+				   optimise_dry_cells,
+				   use_centroid_velocities);
   if (e == -1) {
     // Use error string set inside computational routine
     return NULL;
@@ -2270,7 +2220,7 @@ PyObject *balance_deep_and_shallow(PyObject *self, PyObject *args) {
   double alpha_balance = 2.0;
   double H0, beta_h;
 
-  int N, tight_slope_limiters; //, err;
+  int N, tight_slope_limiters, use_centroid_velocities; //, err;
 
   // Convert Python arguments to C
   if (!PyArg_ParseTuple(args, "OdOOOOOOOOO",
@@ -2317,6 +2267,16 @@ PyObject *balance_deep_and_shallow(PyObject *self, PyObject *args) {
   Py_DECREF(Tmp);
   
   
+  Tmp = PyObject_GetAttrString(domain, "use_centroid_velocities");
+  if (!Tmp) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: balance_deep_and_shallow could not obtain object use_centroid_velocities from domain");
+    return NULL;
+  }  
+  use_centroid_velocities = PyInt_AsLong(Tmp);
+  Py_DECREF(Tmp);
+  
+  
+  
   N = wc -> dimensions[0];
   _balance_deep_and_shallow(N,
 			    beta_h,
@@ -2331,6 +2291,7 @@ PyObject *balance_deep_and_shallow(PyObject *self, PyObject *args) {
 			    (double*) ymomv -> data,
 			    H0,
 			    (int) tight_slope_limiters,
+			    (int) use_centroid_velocities,			    
 			    alpha_balance);
 
 

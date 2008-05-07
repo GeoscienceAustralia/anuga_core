@@ -234,6 +234,8 @@ class Test_Data_Manager(unittest.TestCase):
         self.domain.smooth = True
 
         self.domain.tight_slope_limiters = 0 # Backwards compatibility
+        self.domain.use_centroid_velocities = 0 # Backwards compatibility (7/5/8)
+        
         
         sww = get_dataobject(self.domain)        
 
@@ -308,6 +310,8 @@ class Test_Data_Manager(unittest.TestCase):
         #domain.protect_against_isolated_degenerate_timesteps = True
         #domain.tight_slope_limiters = 1
         domain.tight_slope_limiters = 0 # Backwards compatibility
+        domain.use_centroid_velocities = 0 # Backwards compatibility (7/5/8)
+        
         
         sww = get_dataobject(domain)
 
@@ -7317,7 +7321,8 @@ friction  \n \
         # FIXME (Ole): Backwards compatibility
         # Look at sww file and see what happens when
         # domain.tight_slope_limiters = 1
-        domain.tight_slope_limiters = 0 
+        domain.tight_slope_limiters = 0
+        domain.use_centroid_velocities = 0 # Backwards compatibility (7/5/8)        
         
         Br = Reflective_boundary(domain)
         Bd = Dirichlet_boundary([1.0,0,0])
@@ -7433,9 +7438,9 @@ friction  \n \
 
         # Create basic mesh (100m x 5m)
         width = 5
-        length = 100
+        length = 50
         t_end = 10
-        points, vertices, boundary = rectangular(length, width, 100, 5)
+        points, vertices, boundary = rectangular(length, width, 50, 5)
 
         # Create shallow water domain
         domain = Domain(points, vertices, boundary,
@@ -7521,7 +7526,7 @@ friction  \n \
 
         # Create basic mesh (100m x 5m)
         width = 5
-        length = 100
+        length = 50
         t_end = 3
         points, vertices, boundary = rectangular(length, width,
                                                  length, width)
@@ -7650,7 +7655,7 @@ friction  \n \
 
         # Create basic mesh (100m x 5m)
         width = 5
-        length = 100
+        length = 50
         t_end = 1
         points, vertices, boundary = rectangular(length, width,
                                                  length, width)

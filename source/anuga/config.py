@@ -87,6 +87,12 @@ alpha_balance = 2.0
 # tight_slope_limiters = 1 means use new limiters that hug the bathymetry closer
 tight_slope_limiters = True
 
+# Use centroid velocities to reconstruct momentum at vertices
+# This option has a firts order flavour to it, but we still have second order
+# reconstruction of stage and this option speeds ANUGA up
+#
+# This option must be used with tight_slope_limiters.
+use_centroid_velocities = True
 
 
 #-------------
