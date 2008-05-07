@@ -900,12 +900,11 @@ class Mesh(General_mesh):
         return
 
 
-    def _get_intersecting_segments(self, line, triangle_intersections={}):
+    def _get_intersecting_segments(self, line):
       """Find edges intersected by line
 
       Input:
-          line - list of two points forming a segmented line
-          triangle_intersections to be updated
+          line - list of two points forming a segmented line  
       Output:
           list of instances of class Triangle_intersection
 
@@ -915,16 +914,22 @@ class Mesh(General_mesh):
       """
 
       from anuga.utilities.polygon import intersection
+      from anuga.utilities.polygon import is_inside_polygon
       
       msg = 'Line segment must contain exactly two points'
       assert len(line) == 2, msg
-      
+
+      # Origin of intersecting line to be used for
+      # establishing direction
+      xi0 = line[0][0]
+      eta0 = line[0][1]
+
       
       # Check intersection with edge segments for all triangles
       # FIXME (Ole): This should be implemented in C
       V = self.get_vertex_coordinates()
       N = len(self)
-
+      triangle_intersections={} # Keep track of segments already done
       for i in range(N):
           # Get nodes and edge segments for each triangle
           x0, y0 = V[3*i, :]
@@ -937,24 +942,43 @@ class Mesh(General_mesh):
                             [[x2,y2], [x0, y0]]]
 
           # Find segments that are intersected by line
-          intersections = []
+          
+          intersections = {} # Use dictionary to record points only once
           for edge in edge_segments:
 
               status, value = intersection(line, edge)
               if status == 1:
-                  # Normal intersection of one edge
+                  # Normal intersection of one edge or vertex
+                  intersections[tuple(value)] = i                  
 
                   # Exclude singular intersections with vertices
-                  if not(allclose(value, edge[0]) or\
-                         allclose(value, edge[1])):
-                      intersections.append(value)
+                  #if not(allclose(value, edge[0]) or\
+                  #       allclose(value, edge[1])):
+                  #    intersections.append(value)
 
               if status == 2:
                   # Edge is sharing a segment with line
 
-                  # Add identified line segment
-                  for j in range(value.shape[0]):
-                      intersections.append(value[j,:])
+                  # This is currently covered by the two
+                  # vertices that would have been picked up
+                  # under status == 1
+                  pass
+                  
+
+
+          if len(intersections) == 1:
+              # Check if either line end point lies fully within this triangle
+              # If this is the case accept that as one end of the intersecting
+              # segment
+
+              poly = V[3*i:3*i+3]
+              if is_inside_polygon(line[1], poly, closed=False):
+                  intersections[tuple(line[1])] = i
+              elif is_inside_polygon(line[0], poly, closed=False):
+                  intersections[tuple(line[0])] = i         
+              else:
+                  # Ignore situations where one vertex is touch, for instance                   
+                  continue
 
 
           msg = 'There can be only two or no intersections'
@@ -965,13 +989,11 @@ class Mesh(General_mesh):
 
               # Calculate attributes for this segment
 
-              # Origin of intersecting line to be used for direction
-              xi0 = line[0][0]
-              eta0 = line[0][1]
 
               # End points of intersecting segment
-              x0, y0 = intersections[0]
-              x1, y1 = intersections[1]
+              points = intersections.keys()
+              x0, y0 = points[0]
+              x1, y1 = points[1]
 
 
               # Determine which end point is closer to the origin of the line
@@ -993,7 +1015,8 @@ class Mesh(General_mesh):
               # (x0,y0) is now the origin of the intersecting segment
                   
 
-              # Normal direction (right hand side relative to direction of line)
+              # Normal direction:
+              # Right hand side relative to line direction
               vector = array([x1 - x0, y1 - y0]) # Segment vector
               length = sqrt(sum(vector**2))      # Segment length
               normal = array([vector[1], -vector[0]])/length
@@ -1011,7 +1034,8 @@ class Mesh(General_mesh):
                   triangle_intersections[segment] = T
 
 
-      #return triangle_intersections
+      # Return segments as a list            
+      return triangle_intersections.values()
 
 
 
@@ -1030,11 +1054,10 @@ class Mesh(General_mesh):
 
       If a polyline segment coincides with a triangle edge,
       the the entire shared segment will be used.
-
       Onle one of the triangles thus intersected will be used and that
       is the first one encoutered.
 
-      intersections with single vertices are ignored.
+      Intersections with single vertices are ignored.
 
       Resulting segments are unsorted
       """
@@ -1043,16 +1066,16 @@ class Mesh(General_mesh):
       assert len(polyline) >= 2, msg
 
       # For all segments in polyline
-      triangle_intersections = {}
+      triangle_intersections = []
       for i, point0 in enumerate(polyline[:-1]):
           point1 = polyline[i+1]
           
           line = [point0, point1]
 
-          self._get_intersecting_segments(line, triangle_intersections)
+          triangle_intersections += self._get_intersecting_segments(line)
 
 
-      return triangle_intersections.values()
+      return triangle_intersections
   
 
   

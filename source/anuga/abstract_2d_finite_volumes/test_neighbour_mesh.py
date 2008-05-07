@@ -1250,7 +1250,7 @@ class Test_Mesh(unittest.TestCase):
     def test_get_intersecting_segments1(self):
         """test_get_intersecting_segments(self):
 
-        Very simple test
+        Very simple test (horizontal lines)
         """
 
         # Build test mesh
@@ -1286,6 +1286,7 @@ class Test_Mesh(unittest.TestCase):
             
 
             # Check all normals point straight down etc
+            total_length = 0
             for x in L:
                 if x.triangle_id % 2 == 0:
                     assert allclose(x.length, ceiling-y_line)
@@ -1301,6 +1302,11 @@ class Test_Mesh(unittest.TestCase):
 
                 assert x.triangle_id in intersected_triangles
 
+                total_length += x.length
+
+            msg = 'Segments do not add up'
+            assert allclose(total_length, 2), msg
+            
 
     def test_get_intersecting_segments_coinciding(self):
         """test_get_intersecting_segments_coinciding(self):
@@ -1332,6 +1338,7 @@ class Test_Mesh(unittest.TestCase):
             
 
         # Check all normals point straight down
+        total_length = 0
         for i, x in enumerate(L): 
             assert allclose(x.length, 1.0)
             assert allclose(x.normal, [0,-1])
@@ -1344,26 +1351,407 @@ class Test_Mesh(unittest.TestCase):
 
             assert x.triangle_id in intersected_triangles
 
-            
+            total_length += x.length
+
+        msg = 'Segments do not add up'
+        assert allclose(total_length, 2), msg            
+
+
 
     def test_get_intersecting_segments2(self):
         """test_get_intersecting_segments(self):
 
-        More complex mesh
+        Lines with a slope
+        """
+
+        s2 = sqrt(2.0)/2
+        
+
+        # Build test mesh
+        
+        # Create basic mesh
+        # 9 points at (0,0), (0, 1), ..., (2,2)
+        # 8 triangles enumerated from left bottom to right top.
+        points, vertices, boundary = rectangular(2, 2, 2, 2)
+        mesh = Mesh(points, vertices, boundary)
+        
+
+        # Diagonal cutting through a vertex and hypothenuses
+        line = [[0, 2], [2, 0]]
+        intersected_triangles = [3,2,5,4]                
+
+        L = mesh.get_intersecting_segments(line)
+        assert len(L) == 4
+
+        #print L
+        
+        # Check all segments
+        total_length = 0
+        for i, x in enumerate(L): 
+            assert allclose(x.length, s2)
+            assert allclose(x.normal, [-s2, -s2])
+            assert allclose(sum(x.normal**2), 1)
+            
+            assert x.triangle_id in intersected_triangles
+
+            total_length += x.length
+
+        msg = 'Segments do not add up'
+        assert allclose(total_length, 4*s2), msg
+
+
+        # Diagonal cutting through a vertex and hypothenuses (reversed)
+        line = [[2, 0], [0, 2]]
+        intersected_triangles = [3,2,5,4]                
+
+        L = mesh.get_intersecting_segments(line)
+        assert len(L) == 4
+
+        #print L
+        
+        # Check all segments
+        total_length = 0
+        for i, x in enumerate(L): 
+            assert allclose(x.length, s2)
+            assert allclose(x.normal, [s2, s2])
+            assert allclose(sum(x.normal**2), 1)
+            
+            assert x.triangle_id in intersected_triangles
+
+            total_length += x.length
+
+        msg = 'Segments do not add up'
+        assert allclose(total_length, 4*s2), msg                    
+
+
+
+        # Diagonal coinciding with hypothenuses
+        line = [[2, 2], [0, 0]]
+        intersected_triangles = [6,0]                
+
+        L = mesh.get_intersecting_segments(line)
+        assert len(L) == 2
+
+        #print L
+        
+        # Check all segments
+        total_length = 0
+        for i, x in enumerate(L): 
+            assert allclose(x.length, 2*s2)
+            assert allclose(x.normal, [-s2, s2])
+            assert allclose(sum(x.normal**2), 1)
+            
+            assert x.triangle_id in intersected_triangles
+
+            total_length += x.length
+
+        msg = 'Segments do not add up'
+        assert allclose(total_length, 4*s2), msg                        
+
+
+        # Diagonal coinciding with hypothenuses (reversed)
+        line = [[0, 0], [2, 2]]
+        intersected_triangles = [6,0]                
+
+        L = mesh.get_intersecting_segments(line)
+        assert len(L) == 2
+
+        #print L
+        
+        # Check all segments
+        total_length = 0
+        for i, x in enumerate(L): 
+            assert allclose(x.length, 2*s2)
+            assert allclose(x.normal, [s2, -s2])
+            assert allclose(sum(x.normal**2), 1)
+            
+            assert x.triangle_id in intersected_triangles
+
+            total_length += x.length
+
+        msg = 'Segments do not add up'
+        assert allclose(total_length, 4*s2), msg                        
+
+
+
+        # line with slope [1, -1] cutting through vertices of tri 7 and 6
+        line = [[1, 2], [2, 1]]
+        intersected_triangles = [7,6]                
+
+        L = mesh.get_intersecting_segments(line)
+        assert len(L) == 2
+
+        #print L
+        
+        # Check all segments
+        total_length = 0
+        for i, x in enumerate(L): 
+            assert allclose(x.length, s2)
+            assert allclose(x.normal, [-s2, -s2])
+            assert allclose(sum(x.normal**2), 1)
+            
+            assert x.triangle_id in intersected_triangles
+
+            total_length += x.length
+
+        msg = 'Segments do not add up'
+        assert allclose(total_length, 2*s2), msg
+
+
+        # Arbitrary line with slope [1, -1] cutting through tri 7 and 6
+        line = [[1.1, 2], [2.1, 1]]
+        intersected_triangles = [7,6]                
+
+        L = mesh.get_intersecting_segments(line)
+        assert len(L) == 2
+        
+        # Check all segments
+        total_length = 0
+        for i, x in enumerate(L): 
+            assert allclose(x.normal, [-s2, -s2])
+            assert allclose(sum(x.normal**2), 1)
+
+            msg = 'Triangle %d' %x.triangle_id + ' is not in %s' %(intersected_triangles)
+            assert x.triangle_id in intersected_triangles, msg
+            
+
+
+    def test_get_intersecting_segments3(self):
+        """test_get_intersecting_segments(self):
+
+        Check that line can stop inside a triangle
         
         """
 
-        # Build test mesh (from bounding polygon tests
+
+
+        s2 = sqrt(2.0)/2
         
 
+        # Build test mesh
         
-        pass
+        # Create basic mesh
+        # 9 points at (0,0), (0, 1), ..., (2,2)
+        # 8 triangles enumerated from left bottom to right top.
+        points, vertices, boundary = rectangular(2, 2, 2, 2)
+        mesh = Mesh(points, vertices, boundary)
+        
+
+        # Line cutting through one triangle and ending on its edge
+        line = [[0.5, 3], [0.5, 1.5]]
+        intersected_triangles = [3]                
+
+        L = mesh.get_intersecting_segments(line)
+        assert len(L) == 1
+        assert L[0].triangle_id == 3
+        assert allclose(L[0].length, 0.5)        
+        assert allclose(L[0].normal, [-1,0])                
+
+
+
+        # Now try to shorten it so that its endpoint falls short of the far edge
+        line = [[0.5, 3], [0.5, 1.6]]
+        intersected_triangles = [3]                
+
+        L = mesh.get_intersecting_segments(line)
+        assert len(L) == 1
+        assert L[0].triangle_id == 3
+        assert allclose(L[0].length, 0.4)
+        assert allclose(L[0].normal, [-1,0])
+
+        intersected_triangles = [3]
+
+        # Now the same, but with direction changed
+        line = [[0.5, 3], [0.5, 1.6]]
+        line = [[0.5, 1.6], [0.5, 3]]        
+        intersected_triangles = [3]                
+
+        L = mesh.get_intersecting_segments(line)
+        assert len(L) == 1
+        assert L[0].triangle_id == 3
+        assert allclose(L[0].length, 0.4)
+        assert allclose(L[0].normal, [1,0])                
+        
+
+            
+
+    def test_get_intersecting_segments4(self):
+        """test_get_intersecting_segments(self):
+
+        Simple poly line
+        
+        """
+
+
+
+        s2 = sqrt(2.0)/2
+        
+
+        # Build test mesh
+        
+        # Create basic mesh
+        # 9 points at (0,0), (0, 1), ..., (2,2)
+        # 8 triangles enumerated from left bottom to right top.
+        points, vertices, boundary = rectangular(2, 2, 2, 2)
+        mesh = Mesh(points, vertices, boundary)
+        
+
+        # Polyline with three segments cutting through mesh
+        line = [[0.5, 3], [0.5, 1.5], [1,1]]
+
+        L = mesh.get_intersecting_segments(line)
+        assert len(L) == 2
+
+        for x in L:
+            if x.triangle_id == 3:
+                assert allclose(x.length, 0.5)        
+                assert allclose(x.normal, [-1,0])
+                
+            if x.triangle_id == 2:
+                assert allclose(x.length, s2)
+                assert allclose(x.normal, [-s2,-s2])
+
+
+
+    def test_get_intersecting_segments5(self):
+        """test_get_intersecting_segments(self):
+
+        More complex poly line
+        
+        """
+
+
+
+        s2 = sqrt(2.0)/2
+        
+
+        # Build test mesh
+        
+        # Create basic mesh
+        # 9 points at (0,0), (0, 1), ..., (2,2)
+        # 8 triangles enumerated from left bottom to right top.
+        points, vertices, boundary = rectangular(2, 2, 2, 2)
+        mesh = Mesh(points, vertices, boundary)
+        
+
+        # Polyline with three segments cutting through mesh
+        line = [[0.5, 3], [0.5, 1.5], [1.25, 0.75]] 
+
+        L = mesh.get_intersecting_segments(line)
+        assert len(L) == 3
+
+        for x in L:
+            if x.triangle_id == 3:
+                assert allclose(x.length, 0.5)        
+                assert allclose(x.normal, [-1,0])
+                
+            if x.triangle_id == 2:
+                msg = str(x.length)
+                assert allclose(x.length, s2), msg
+                assert allclose(x.normal, [-s2,-s2])
+
+            if x.triangle_id == 5:
+                segvec = array([line[2][0]-1,
+                                line[2][1]-1])
+                msg = str(x.length)
+                assert allclose(x.length, sqrt(sum(segvec**2))), msg
+                assert allclose(x.normal, [-s2,-s2])                                                
+
+
+    def test_get_intersecting_segments6(self):
+        """test_get_intersecting_segments(self):
+
+        Even more complex poly line, where line breaks within triangle 5
+
+        5 segments are returned even though only four triangles [3,2,5,6] are touched.
+        Triangle 5 therefor has two segments in it.
+        
+        """
+
+
+
+        s2 = sqrt(2.0)/2
+        
+
+        # Build test mesh
+        
+        # Create basic mesh
+        # 9 points at (0,0), (0, 1), ..., (2,2)
+        # 8 triangles enumerated from left bottom to right top.
+        points, vertices, boundary = rectangular(2, 2, 2, 2)
+        mesh = Mesh(points, vertices, boundary)
+        
+
+        # Polyline with three segments cutting through mesh
+        line = [[0.5, 3], [0.5, 1.5], [1.25, 0.75], [2.25, 1.75]]
+
+        L = mesh.get_intersecting_segments(line)
+        #for x in L:
+        #    print x
+
+        assert len(L) == 5
+
+        for x in L:
+            if x.triangle_id == 3:
+                assert allclose(x.length, 0.5)        
+                assert allclose(x.normal, [-1,0])
+                
+            if x.triangle_id == 2:
+                msg = str(x.length)
+                assert allclose(x.length, s2), msg
+                assert allclose(x.normal, [-s2,-s2])
+
+            if x.triangle_id == 5:
+                if x.segment == ((1.0, 1.0), (1.25, 0.75)):                    
+                    segvec = array([line[2][0]-1,
+                                    line[2][1]-1])
+                    msg = str(x.length)
+                    assert allclose(x.length, sqrt(sum(segvec**2))), msg
+                    assert allclose(x.normal, [-s2,-s2])
+                elif x.segment == ((1.25, 0.75), (1.5, 1.0)):
+                    segvec = array([1.5-line[2][0],
+                                    1.0-line[2][1]])
+                    
+                    assert allclose(x.length, sqrt(sum(segvec**2))), msg
+                    assert allclose(x.normal, [s2,-s2])
+                else:
+                    msg = 'Unknow segment: %s' %x.segment
+                    raise Exception, msg
+                
+
+                    
+            if x.triangle_id == 6:
+                assert allclose(x.normal, [s2,-s2])
+                assert allclose(x.segment, ((1.5, 1.0), (2, 1.5)))
+
+
+      # Internal test that sum of line segments add up
+      # to length of input line
+      #
+      # Could be useful perhaps
+      #
+      #xi1 = line[1][0]
+      #eta1 = line[1][1]
+      #linevector = array([xi1-xi0, eta1-eta0])
+      #linelength = sqrt(sum(linevector**2))
+      #
+      #segmentlength = 0
+      #for segment in triangle_intersections:
+      #    vector = array([segment[1][0] - segment[0][0],
+      #                    segment[1][1] - segment[0][1]])
+      #    length = sqrt(sum(vector**2))      
+      #    segmentlength += length
+      #
+      #msg = 'Sum of intersecting segments do not add up'    
+      #assert allclose(segmentlength, linelength), msg    
+
+
         
 #-------------------------------------------------------------
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Mesh,'test_two_triangles')
     #suite = unittest.makeSuite(Test_Mesh,'test_get_intersecting_segments_coinciding')
-    suite = unittest.makeSuite(Test_Mesh,'test')
+    suite = unittest.makeSuite(Test_Mesh,'test') #_get_intersecting_segments6')
     runner = unittest.TextTestRunner()
     runner.run(suite)
 
