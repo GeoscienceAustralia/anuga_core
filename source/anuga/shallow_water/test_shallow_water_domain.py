@@ -2193,7 +2193,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Setup only one forcing term, constant rainfall
         domain.forcing_terms = []
-        domain.forcing_terms.append( Rainfall(rain=2.0) )
+        domain.forcing_terms.append( Rainfall(domain, rate=2.0) )
 
         domain.compute_forcing_terms()
         assert allclose(domain.quantities['stage'].explicit_update, 2.0/1000)
@@ -2230,7 +2230,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Setup only one forcing term, constant rainfall restricted to a polygon enclosing triangle #1 (bce)
         domain.forcing_terms = []
-        domain.forcing_terms.append( Rainfall(rain=2.0, polygon = [[1,1], [2,1], [2,2], [1,2]]))
+        domain.forcing_terms.append( Rainfall(domain, rate=2.0, polygon = [[1,1], [2,1], [2,2], [1,2]]))
 
         domain.compute_forcing_terms()
         #print domain.quantities['stage'].explicit_update
@@ -2241,6 +2241,81 @@ class Test_Shallow_Water(unittest.TestCase):
         
         # FIXME: Do Time dependent rainfall with poly
 
+
+
+
+    def test_inflow_using_circle(self):
+        from math import pi, cos, sin
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe
+        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+
+        domain = Domain(points, vertices)
+
+        # Flat surface with 1m of water
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('stage', 1.0)
+        domain.set_quantity('friction', 0)
+
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'exterior': Br})
+
+        # Setup only one forcing term, constant inflow of 2 m^3/s on a circle affecting triangles #0 and #1 (bac and bce)
+        domain.forcing_terms = []
+        domain.forcing_terms.append( Inflow(domain, rate=2.0, center=(1,1), radius=1) )
+
+        domain.compute_forcing_terms()
+        #print domain.quantities['stage'].explicit_update
+        
+        assert allclose(domain.quantities['stage'].explicit_update[1], 2.0/pi)
+        assert allclose(domain.quantities['stage'].explicit_update[0], 2.0/pi)
+        assert allclose(domain.quantities['stage'].explicit_update[2:], 0)        
+
+
+    def test_inflow_using_circle_function(self):
+        from math import pi, cos, sin
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe
+        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+
+        domain = Domain(points, vertices)
+
+        # Flat surface with 1m of water
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('stage', 1.0)
+        domain.set_quantity('friction', 0)
+
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'exterior': Br})
+
+        # Setup only one forcing term, time dependent inflow of 2 m^3/s on a circle affecting triangles #0 and #1 (bac and bce)
+        domain.forcing_terms = []
+        domain.forcing_terms.append( Inflow(domain, rate=lambda t: 2., center=(1,1), radius=1) )
+
+        domain.compute_forcing_terms()
+        
+        assert allclose(domain.quantities['stage'].explicit_update[1], 2.0/pi)
+        assert allclose(domain.quantities['stage'].explicit_update[0], 2.0/pi)
+        assert allclose(domain.quantities['stage'].explicit_update[2:], 0)        
+        
 
 
     #####################################################
@@ -3278,21 +3353,21 @@ class Test_Shallow_Water(unittest.TestCase):
         from mesh_factory import rectangular
         from Numeric import array
 
-        #Create basic mesh
+        # Create basic mesh
         points, vertices, boundary = rectangular(6, 6)
 
-        #Create shallow water domain
+        # Create shallow water domain
         domain = Domain(points, vertices, boundary)
         domain.smooth = False
-        domain.default_order=2
+        domain.default_order = 2
 
-        #IC
+        # IC
         def x_slope(x, y):
             return x/3
 
         domain.set_quantity('elevation', x_slope)
         domain.set_quantity('friction', 0)
-        domain.set_quantity('stage', 0.4) #Steady
+        domain.set_quantity('stage', 0.4) # Steady
 
         # Boundary conditions (reflective everywhere)
         Br = Reflective_boundary(domain)
@@ -3307,20 +3382,21 @@ class Test_Shallow_Water(unittest.TestCase):
         initial_xmom = domain.quantities['xmomentum'].get_integral()
 
 
-        #Evolution
+        # Evolution
         for t in domain.evolve(yieldstep = 0.05, finaltime = 15.0):
             stage =  domain.quantities['stage'].get_integral()
             xmom = domain.quantities['xmomentum'].get_integral()
             ymom = domain.quantities['ymomentum'].get_integral()
 
-            if allclose(t, 6):  #Steady state reached
+            if allclose(t, 6):  # Steady state reached
                 steady_xmom = domain.quantities['xmomentum'].get_integral()
                 steady_ymom = domain.quantities['ymomentum'].get_integral()
                 steady_stage = domain.quantities['stage'].get_integral()
 
             if t > 6:
                 #print '%.2f %14.8f %14.8f' %(t, ymom, steady_ymom)
-                assert allclose(xmom, steady_xmom)
+                msg = 'xmom=%.2f, steady_xmom=%.2f' %(xmom, steady_xmom)
+                assert allclose(xmom, steady_xmom), msg
                 assert allclose(ymom, steady_ymom)
                 assert allclose(stage, steady_stage)
 
@@ -3404,7 +3480,7 @@ class Test_Shallow_Water(unittest.TestCase):
         #Create shallow water domain
         domain = Domain(points, vertices, boundary)
         domain.smooth = False
-        domain.default_order=2
+        domain.default_order = 2
         domain.beta_w      = 0.9
         domain.beta_w_dry  = 0.9
         domain.beta_uh     = 0.9
@@ -3420,11 +3496,11 @@ class Test_Shallow_Water(unittest.TestCase):
 
         domain.check_integrity()
 
-        #Evolution
+        # Evolution
         for t in domain.evolve(yieldstep = 0.05, finaltime = 0.05):
             pass# domain.write_time()
 
-        #Data from earlier version of abstract_2d_finite_volumes
+        # Data from earlier version of abstract_2d_finite_volumes
         assert allclose(domain.min_timestep, 0.0396825396825)
         assert allclose(domain.max_timestep, 0.0396825396825)
 
@@ -3565,6 +3641,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_vh_dry = 0.9        
         #domain.minimum_allowed_height = 0.0 #Makes it like the 'oldstyle' balance
         domain.H0 = 0 # Backwards compatibility (6/2/7)
+        domain.use_centroid_velocities = False # Backwards compatibility (8/5/8)
         domain.set_maximum_allowed_speed(1.0)        
 
         # Boundary conditions
@@ -3574,12 +3651,14 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.set_boundary({'left': Bd, 'right': Br, 'top': Br, 'bottom': Br})
         domain.check_integrity()
 
-        #Evolution
+        # Evolution
         for t in domain.evolve(yieldstep = 0.01, finaltime = 0.03):
             pass
 
+        msg = 'min step was %f instead of %f' %(domain.min_timestep,
+                                                0.0210448446782) 
 
-        assert allclose(domain.min_timestep, 0.0210448446782)
+        assert allclose(domain.min_timestep, 0.0210448446782), msg
         assert allclose(domain.max_timestep, 0.0210448446782)
 
         #print domain.quantities['stage'].vertex_values[:4,0]
@@ -3629,7 +3708,8 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_vh     = 0.9
         domain.beta_vh_dry = 0.9        
         domain.maximum_allowed_speed = 0.0 #Makes it like the 'oldstyle'
-        domain.H0 = 0 # Backwards compatibility (6/2/7)        
+        domain.H0 = 0 # Backwards compatibility (6/2/7)
+        domain.use_centroid_velocities = False # Backwards compatibility (8/5/8)        
 
         # Boundary conditions
         Br = Reflective_boundary(domain)
@@ -3681,6 +3761,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_vh     = 0.9
         domain.beta_vh_dry = 0.9
         domain.H0 = 0 # Backwards compatibility (6/2/7)
+        domain.use_centroid_velocities = False # Backwards compatibility (8/5/8)        
         domain.set_maximum_allowed_speed(1.0)        
 
         # Boundary conditions

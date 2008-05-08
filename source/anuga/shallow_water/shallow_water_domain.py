@@ -95,7 +95,7 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
      import Transmissive_boundary
 
-from anuga.utilities.numerical_tools import gradient, mean
+from anuga.utilities.numerical_tools import gradient, mean, ensure_numeric
 from anuga.config import minimum_storable_height
 from anuga.config import minimum_allowed_height, maximum_allowed_speed
 from anuga.config import g, epsilon, beta_h, beta_w, beta_w_dry,\
@@ -105,6 +105,10 @@ from anuga.config import optimise_dry_cells
 from anuga.config import optimised_gradient_limiter
 from anuga.config import use_edge_limiter
 from anuga.config import use_centroid_velocities
+
+
+from anuga.utilities.polygon import inside_polygon, polygon_area        
+
 
 
 #---------------------
@@ -1478,7 +1482,150 @@ def assign_windfield_values(xmom_update, ymom_update,
 
 
 
-class Rainfall:
+
+
+class General_forcing:
+    """Class General_forcing - general explicit forcing term for update of quantity
+    
+    This is used by Inflow and Rainfall for instance
+    
+
+    General_forcing(quantity_name, rate, center, radius, polygon)
+
+    domain:     ANUGA computational domain
+    quantity_name: Name of quantity to update. It must be a known conserved quantity.
+    rate [?/s]: Total rate of change over the specified area.  
+                This parameter can be either a constant or a
+                function of time. Positive values indicate increases, 
+                negative values indicate decreases.
+                Rate can be None at initialisation but must be specified
+                before forcting term is applied (i.e. simulation has started).
+
+    center [m]: Coordinates at center of flow point
+    radius [m]: Size of circular area
+    polygon:    Arbitrary polygon.
+
+
+    Either center, radius or polygon can be specified but not both.
+    If neither are specified the entire domain gets updated.
+    
+    See Inflow or Rainfall for examples of use
+    """
+
+
+    # FIXME (AnyOne) : Add various methods to allow spatial variations
+
+    def __init__(self,
+                 domain,
+                 quantity_name,
+                 rate=None,
+		 center=None, radius=None,
+                 polygon=None,
+                 verbose=False):
+                     
+
+        from math import pi
+
+        self.domain = domain
+        self.quantity_name = quantity_name
+        self.rate = rate
+        self.center = ensure_numeric(center)
+        self.radius = radius
+        self.polygon = polygon        
+        self.verbose = verbose
+
+        # Update area if applicable
+        self.area = None        
+        if center is not None and radius is not None:
+            assert len(center) == 2
+            msg = 'Polygon cannot be specified when center and radius are'
+            assert polygon is None, msg
+
+            self.area = radius**2*pi
+	
+        if polygon is not None:
+            self.area = polygon_area(self.polygon)
+
+
+        # Pointer to update vector
+        self.update = domain.quantities[self.quantity_name].explicit_update            
+
+        # Determine indices in flow area
+        N = len(domain)    
+        points = domain.get_centroid_coordinates(absolute=True)
+
+        self.indices = None
+        if self.center is not None and self.radius is not None:
+            # Inlet is circular
+            
+            self.indices = []
+            for k in range(N):
+                x, y = points[k,:] # Centroid
+                if ((x-self.center[0])**2+(y-self.center[1])**2) < self.radius**2:
+                    self.indices.append(k)
+                    
+        if self.polygon is not None:                    
+            # Inlet is polygon
+            self.indices = inside_polygon(points, self.polygon)
+            
+
+            
+
+
+    def __call__(self, domain):
+        """Apply inflow function at time specified in domain and update stage
+        """
+
+        # Call virtual method allowing local modifications
+        rate = self.update_rate(domain.get_time())
+        if rate is None:
+            msg = 'Attribute rate must be specified in General_forcing'
+            msg += ' or its descendants before attempting to call it'
+            raise Exception, msg
+        
+
+        # Now rate is a number
+        if self.verbose is True:
+            print 'Rate of %s at time = %.2f = %f' %(self.quantity_name,
+                                                     domain.get_time(),
+                                                     rate)
+
+
+        if self.indices is None:
+            self.update[:] += rate
+        else:
+            # Brute force assignment of restricted rate
+            for k in self.indices:
+                self.update[k] += rate
+
+
+    def update_rate(self, t):
+        """Virtual method allowing local modifications by writing an
+        overriding version in descendant
+        
+        """
+	if callable(self.rate):
+	    rate = self.rate(t)
+	else:
+	    rate = self.rate
+
+        return rate
+
+
+    def get_quantity_values(self):
+        """Return values for specified quantity restricted to opening 
+        """
+        return self.domain.quantities[self.quantity_name].get_values(indices=self.indices)
+    
+
+    def set_quantity_values(self, val):
+        """Set values for specified quantity restricted to opening 
+        """
+        self.domain.quantities[self.quantity_name].set_values(val, indices=self.indices)    
+
+
+
+class Rainfall(General_forcing):
     """Class Rainfall - general 'rain over entire domain' forcing term.
     
     Used for implementing Rainfall over the entire domain.
@@ -1489,7 +1636,8 @@ class Rainfall:
 	(This module came from copying and amending the Inflow Code)
     
     Rainfall(rain)
-        
+
+    domain    
     rain [mm/s]:  Total rain rate over the specified domain.  
 	          NOTE: Raingauge Data needs to reflect the time step.
 		  IE: if Gauge is mm read at a time step, then the input
@@ -1503,7 +1651,7 @@ class Rainfall:
                   (and be used for Infiltration - Write Seperate Module)
                   The specified flow will be divided by the area of
                   the inflow region and then applied to update the
-                  quantity in question. 
+                  stage quantity.
 
     polygon: Specifies a polygon to restrict the rainfall.
     
@@ -1523,78 +1671,53 @@ class Rainfall:
     domain.forcing_terms.append(catchmentrainfall)
     """
 
-    # FIXME (OLE): Add a polygon as an alternative.
-    # FIXME (AnyOne) : Add various methods to allow spatial variations
-    # FIXME (OLE): Generalise to all quantities
-
     
     def __init__(self,
-		 rain=0.0,
-		 quantity_name='stage',
-                 polygon=None):
+                 domain,
+		 rate=0.0,
+		 center=None, radius=None,
+                 polygon=None,
+                 verbose=False):
 
-        self.rain = rain
-	self.quantity_name = quantity_name
-        self.polygon = polygon
-    
-    def __call__(self, domain):
-        
-        # FIXME(Ole): Move this to top of file eventually
-        from anuga.utilities.polygon import inside_polygon        
-
-        # Update rainfall
-	if callable(self.rain):
-	    rain = self.rain(domain.get_time())
-	else:
-	    rain = self.rain
-
-        # Now rain is a number
-        # Converting mm/s to m/s to apply in ANUGA
-        # 1mm of rainfall is equivalent to 1 litre /m2 
-        # Flow is expressed as m3/s converted to a stage height in (m)
-        
-        # Note 1m3 = 1x10^9mm3 (mls)
-        # or is that m3 to Litres ??? Check this how is it applied !!!
-        rain_fall = rain/1000
-
-        # Find indices for coordinates inside polygon if specified
-        indices = None
-        if self.polygon is not None:
-            points = domain.get_centroid_coordinates(absolute=True)
-            indices = inside_polygon(points, self.polygon)
-            
-
-        # Assign rainfall value to explicit update vector to be used as
-        # a forcing term
-        quantity = domain.quantities[self.quantity_name].explicit_update
-        if indices is None:
-            quantity[:] += rain_fall
+        # Converting mm/s to m/s to apply in ANUGA)
+        if callable(rate):
+            rain = lambda t: rate(t)/1000.0
         else:
-            # Brute force assignment of restricted rainfall
-            for i in indices:
-                quantity[i] += rain_fall
+            rain = rate/1000.0            
+            
+        General_forcing.__init__(self,
+                                 domain,
+                                 'stage',
+                                 rate=rain,
+                                 center=center, radius=radius,
+                                 polygon=polygon,
+                                 verbose=verbose)
 
         
 
 
 
 
-class Inflow:
+class Inflow(General_forcing):
     """Class Inflow - general 'rain and drain' forcing term.
     
     Useful for implementing flows in and out of the domain.
     
-    Inflow(center, radius, flow)
-    
-    center [m]: Coordinates at center of flow point
-    radius [m]: Size of circular area
+    Inflow(flow, center, radius, polygon)
+
+    domain
     flow [m^3/s]: Total flow rate over the specified area.  
                   This parameter can be either a constant or a
                   function of time. Positive values indicate inflow, 
                   negative values indicate outflow.
                   The specified flow will be divided by the area of
                   the inflow region and then applied to update the
-                  quantity in question. 
+                  quantity in question.     
+    center [m]: Coordinates at center of flow point
+    radius [m]: Size of circular area
+    polygon:    Arbitrary polygon.
+
+    Either center, radius or polygon must be specified
     
     Examples
 
@@ -1611,6 +1734,7 @@ class Inflow:
     # over the specified area
     Inflow((0.5, 0.5), 0.03, lambda t: min(0.01*t, 0.0142))
 
+
     #--------------------------------------------------------------------------
     # Setup specialised forcing terms
     #--------------------------------------------------------------------------
@@ -1624,61 +1748,46 @@ class Inflow:
     
     """
 
-    # FIXME (OLE): Add a polygon as an alternative.
-    # FIXME (OLE): Generalise to all quantities
 
     def __init__(self,
+                 domain,
+		 rate=0.0,
 		 center=None, radius=None,
-		 flow=0.0,
-		 quantity_name='stage',
-                 verbose=False):
+                 polygon=None,
+                 verbose=False):                 
 
-        from math import pi
+
+        #msg = 'Class Inflow must have either center & radius or a polygon specified.'
+        #assert center is not None and radius is not None or\
+        #       polygon is not None, msg
+
+
+        # Create object first to make area is available
+        General_forcing.__init__(self,
+                                 domain,
+                                 'stage',
+                                 rate=rate,
+                                 center=center, radius=radius,
+                                 polygon=polygon,
+                                 verbose=verbose)
+
+    def update_rate(self, t):
+        """Virtual method allowing local modifications by writing an
+        overriding version in descendant
+
+        This one converts m^3/s to m/s which can be added directly to 'stage' in ANUGA
+        """
 
         
-		 
-        if center is not None and radius is not None:
-            assert len(center) == 2
-	else:
-	    msg = 'Both center and radius must be specified'
-	    raise Exception, msg
-    
-        self.center = center
-	self.radius = radius
-        self.area = radius**2*pi
-        self.flow = flow
-	self.quantity_name = quantity_name
-        self.verbose = verbose
-    
-    def __call__(self, domain):
-
-        # Determine indices in flow area
-    	if not hasattr(self, 'indices'):
-	    center = self.center
-	    radius = self.radius
-	    
-    	    N = len(domain)    
-    	    self.indices = []
-    	    coordinates = domain.get_centroid_coordinates()	
-    	    for k in range(N):
-    	        x, y = coordinates[k,:] # Centroid
-    	 	if ((x-center[0])**2+(y-center[1])**2) < radius**2:
-		    self.indices.append(k)    
-
-        # Update inflow
-	if callable(self.flow):
-	    flow = self.flow(domain.get_time())
-	else:
-	    flow = self.flow
-
-        # Now flow is a number
-        if self.verbose is True:
-            print 'Inflow at time = %.2f = %f' %(domain.get_time(),
-                                                 flow)
         
-        quantity = domain.quantities[self.quantity_name].explicit_update
-        for k in self.indices:
-            quantity[k] += flow/self.area		        
+	if callable(self.rate):
+	    _rate = self.rate(t)/self.area
+	else:
+	    _rate = self.rate/self.area
+
+        return _rate
+
+
 
 
 #------------------
