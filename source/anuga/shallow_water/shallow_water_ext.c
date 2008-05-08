@@ -549,7 +549,7 @@ int _balance_deep_and_shallow(int N,
 			      double* ymomv,
 			      double H0,
 			      int tight_slope_limiters,
-			      int use_centroid_velocities,			      
+			      int use_centroid_velocities,		      
 			      double alpha_balance) {
 
   int k, k3, i; //, excessive_froude_number=0;
@@ -651,35 +651,8 @@ int _balance_deep_and_shallow(int N,
 	alpha = 1.0;       
       }
 
-      //printf("alpha=%f, tight_slope_limiters=%d\n", alpha, tight_slope_limiters);
-
-      /*      
-      // Experimental code for controlling velocities at vertices.
-      // Adjust alpha (down towards first order) such that 
-      // velocities at vertices remain within one order of magnitude 
-      // of those at the centroid.
-      
-      for (i=0; i<3; i++) {      
-      
-	// FIXME (Ole): Simplify (remove) when (if) hvbar gets retired
-	if (beta_h > epsilon) {
-	  hc_k = hvbar[k3+i]; // Depth to be used at vertices
-	}
-	
-	
-	alpha = velocity_balance(xmomv[k3+i], xmomc[k],
-				 hv[i], hc_k, alpha, epsilon);
-				 
-	alpha = velocity_balance(ymomv[k3+i], ymomc[k],
-				 hv[i], hc_k, alpha, epsilon);				 
-      }
-      */
     }
 	    
-    //printf("k=%d, hmin=%.2f, dz=%.2f, alpha=%.2f, alpha_balance=%.2f\n", 
-    //	   k, hmin, dz, alpha, alpha_balance);
-
-    //printf("dz = %.3f, alpha = %.8f\n", dz, alpha);
 
     //	Let
     //
@@ -710,27 +683,7 @@ int _balance_deep_and_shallow(int N,
 	}
 
 	// Update momentum at vertices
-	if (use_centroid_velocities == 1) {
-	  // This is a simple, efficient and robust option
-	  // It uses first order approximation of velocities, but retains
-	  // the order used by stage.
-	
-	  // Speeds at centroids
-	  if (hc_k > epsilon) {
-	    uc = xmomc[k]/hc_k;
-	    vc = ymomc[k]/hc_k;
-	  } else {
-	    uc = 0.0;
-	    vc = 0.0;
-	  }
-	  
-	  // Vertex momenta guaranteed to be consistent with depth guaranteeing
-	  // controlled speed
-	  hv[i] = wv[k3+i] - zv[k3+i]; // Recompute (balanced) vertex depth
-	  xmomv[k3+i] = uc*hv[i];
-	  ymomv[k3+i] = vc*hv[i];
-	  
-	} else {
+	if (use_centroid_velocities == 0) {
 	  // Update momentum as a linear combination of
 	  // xmomc and ymomc (shallow) and momentum
 	  // from extrapolator xmomv and ymomv (deep).
@@ -743,6 +696,32 @@ int _balance_deep_and_shallow(int N,
 	
 	}
       }
+    } // If alpha == 1 use quantities as calculated by the gradient-limiter
+    
+    if (use_centroid_velocities == 1) {    
+      // This is a simple, efficient and robust option in shallow water
+      // It uses first order approximation of velocities, but retains
+      // the order used by stage.
+      // In this case the xmomv and ymomv calculations should be switched off
+      // in the gradient limiter.
+
+      for (i=0; i<3; i++) {    
+	
+	// Speeds at centroids
+	if (hc_k > epsilon) {
+	  uc = xmomc[k]/hc_k;
+	  vc = ymomc[k]/hc_k;
+	} else {
+	  uc = 0.0;
+	  vc = 0.0;
+	}
+	
+	// Vertex momenta guaranteed to be consistent with depth guaranteeing
+	// controlled speed
+	hv[i] = wv[k3+i] - zv[k3+i]; // Recompute (balanced) vertex depth
+	xmomv[k3+i] = uc*hv[i];
+	ymomv[k3+i] = vc*hv[i];
+      } 
     }
   }
   return 0;
@@ -1047,7 +1026,7 @@ int _extrapolate_second_order_sw(int number_of_elements,
 
   // Local variables
   double a, b; // Gradient vector used to calculate vertex values from centroids
-  int k,k0,k1,k2,k3,k6,coord_index,i;
+  int k,k0,k1,k2,k3,k6,coord_index, i;
   double x,y,x0,y0,x1,y1,x2,y2,xv0,yv0,xv1,yv1,xv2,yv2; // Vertices of the auxiliary triangle
   double dx1,dx2,dy1,dy2,dxv0,dxv1,dxv2,dyv0,dyv1,dyv2,dq0,dq1,dq2,area2;
   double dqv[3], qmin, qmax, hmin, hmax;
@@ -1212,6 +1191,18 @@ int _extrapolate_second_order_sw(int number_of_elements,
       
       for (i=0;i<3;i++)
 	stage_vertex_values[k3+i]=stage_centroid_values[k]+dqv[i];
+      
+      
+      if (use_centroid_velocities == 1) {
+	// Use first order reconstruction using speeds only.
+	
+	// This happens in balance_deep_and_shallow so there
+	// is no need to do more here
+	
+	// FIXME (Ole): Optionally we could put the computation here but then
+	// it'd go into all other variants of the gradient limiter  
+	continue;
+      }
       
       
       //-----------------------------------
