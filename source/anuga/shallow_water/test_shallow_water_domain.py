@@ -4596,8 +4596,9 @@ class Test_Shallow_Water(unittest.TestCase):
         
         # FIXME (Ole): Need tests where these two are commented out
         domain.H0 = 0        # Backwards compatibility (6/2/7)        
-        domain.tight_slope_limiters = 0 # Backwards compatibility (14/4/7)
-        domain.use_centroid_velocities = 0 # Backwards compatibility (7/5/8)        
+        domain.tight_slope_limiters = False # Backwards compatibility (14/4/7)
+        domain.use_centroid_velocities = False # Backwards compatibility (7/5/8)
+        domain.use_edge_limiter = False # Backwards compatibility (9/5/8)        
         
 
         #Bed-slope and friction at vertices (and interpolated elsewhere)
