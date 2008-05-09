@@ -7,15 +7,12 @@ May need to include ability to have a function that controls the blockage level 
 
 """
 
-from anuga.utilities.polygon import read_polygon, plot_polygons
+from anuga.utilities.polygon import plot_polygons
 from culvert_polygons import create_culvert_polygons
 
-# Read these values or passed from some where
-culvert_description= '2.4mx1.2m Box Culvert'
-
 # Culvert location
-x1= 5.0; y1= 5.0  # One end
-x2=15.0; y2=10.0  # Other end
+x0 = 5.0; y0 = 5.0  # One end
+x1 = 15.0; y1 = 20.0  # Other end
 
 # Culvert Size
 culvert_width=2.4
@@ -23,19 +20,19 @@ culvert_height=1.2
 
 
 # Call function
-P = create_culvert_polygons(center1=[x1, y1],
-                            center2=[x2, y2],
+P = create_culvert_polygons(end_point0=[x0, y0],
+                            end_point1=[x1, y1],
                             width=culvert_width,
                             height=culvert_height)
 
 
 
-culv_polygon = [[x1,y1], [x2,y2]]
+culv_polygon = [[x0,y0], [x1,y1]]
 plot_polygons([culv_polygon,
+               P['exchange_polygon0'],
                P['exchange_polygon1'],
-               P['exchange_polygon2'],
-               P['enquiry_polygon1'],
-               P['enquiry_polygon2']],
-              figname='Culvert Check')
+               P['enquiry_polygon0'],
+               P['enquiry_polygon1']],
+              figname='culvert_polygon_example')
 
 
