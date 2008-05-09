@@ -91,8 +91,8 @@ tight_slope_limiters = True
 # This option has a firts order flavour to it, but we still have second order
 # reconstruction of stage and this option speeds ANUGA up
 #
-# This option must be used with tight_slope_limiters.
-use_centroid_velocities = True
+# This option is good with tight_slope_limiters, especially for large domains.
+use_centroid_velocities = False
 
 
 #-------------

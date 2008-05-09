@@ -2929,6 +2929,8 @@ class Test_Shallow_Water(unittest.TestCase):
 
         domain = Domain(points, elements)
         domain.check_integrity()
+        domain.tight_slope_limiters = True
+        domain.use_centroid_velocities = True                
 
         # Create non-flat bed - closely hugging initial stage in places
         # This will create alphas in the range [0, 0.478260, 1]

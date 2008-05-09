@@ -1518,7 +1518,7 @@ class General_forcing:
     def __init__(self,
                  domain,
                  quantity_name,
-                 rate=None,
+                 rate=0.0,
 		 center=None, radius=None,
                  polygon=None,
                  verbose=False):
@@ -1533,6 +1533,8 @@ class General_forcing:
         self.radius = radius
         self.polygon = polygon        
         self.verbose = verbose
+        self.value = 0.0 # Can be used to remember value at
+                         # previous timestep in order to obtain rate
 
         # Update area if applicable
         self.area = None        
