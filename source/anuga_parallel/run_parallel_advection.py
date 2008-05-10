@@ -101,21 +101,9 @@ if myid == 0:
     import time
     t0 = time.time()
 
-# Start the evolve computions
-import hotshot
-profiler = hotshot.Profile("hotshot." + str(numprocs) + "." + str(myid) + ".prof")
-s = '''for t in domain.evolve(yieldstep = 0.1, finaltime = 2.0):
-  if myid == 0:
-    domain.write_time()
-'''
-    
-
-result = profiler.runctx(s, globals(), locals())
-profiler.close()
-
-# for t in domain.evolve(yieldstep = 0.1, finaltime = 3.0):
-#     if myid == 0:
-#         domain.write_time()
+for t in domain.evolve(yieldstep = 0.1, finaltime = 3.0):
+    if myid == 0:
+        domain.write_time()
 
 # Output some computation statistics
 

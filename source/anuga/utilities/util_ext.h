@@ -297,6 +297,25 @@ double get_python_double(PyObject *O, char *name) {
   return tmp;
 }
 
+int get_python_integer(PyObject *O, char *name) {
+  PyObject *TObject;
+  int tmp;
+  
+
+  //Get double from attribute
+  TObject = PyObject_GetAttrString(O, name);
+  if (!TObject) {
+    PyErr_SetString(PyExc_RuntimeError, "util_ext.h: get_python_integer could not obtain double from object");
+    return 0;
+  }  
+  
+  tmp = PyFloat_AsDouble(TObject);
+  
+  Py_DECREF(TObject);
+  
+  return tmp;
+}
+
 
 PyObject *get_python_object(PyObject *O, char *name) {
   PyObject *Oout;

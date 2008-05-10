@@ -265,7 +265,10 @@ int _limit_vertices_by_all_neighbours(int N, double beta,
 		     double* centroid_values,
 		     double* vertex_values,
 		     double* edge_values,
-		     long*   neighbours) {
+		     long*   neighbours,
+		     double* x_gradient,
+		     double* y_gradient) {
+
 
 	int i, k, k2, k3, k6;
 	long n;
@@ -304,8 +307,11 @@ int _limit_vertices_by_all_neighbours(int N, double beta,
 		    
 		    phi = min( min(r*beta, 1.0), phi);    
 		}
+
+		//Update gradient, vertex and edge values using phi limiter
+		x_gradient[k] = x_gradient[k]*phi;
+		y_gradient[k] = y_gradient[k]*phi;
     
-		//Update vertex and edge values using phi limiter
 		vertex_values[k3+0] = qc + phi*dqa[0];
 		vertex_values[k3+1] = qc + phi*dqa[1];
 		vertex_values[k3+2] = qc + phi*dqa[2];
@@ -1125,7 +1131,7 @@ PyObject *extrapolate_from_gradient(PyObject *self, PyObject *args) {
 }
 
 
-PyObject *extrapolate_second_order_and_limit(PyObject *self, PyObject *args) {
+PyObject *extrapolate_second_order_and_limit_by_edge(PyObject *self, PyObject *args) {
     /* Compute edge values using second order approximation and limit values 
        so that edge values are limited by the two corresponding centroid values
        
@@ -1230,6 +1236,132 @@ PyObject *extrapolate_second_order_and_limit(PyObject *self, PyObject *args) {
   if (err != 0) {
       PyErr_SetString(PyExc_RuntimeError,
 			  "quantity_ext.c: Internal function _limit_edges_by_all_neighbours failed");
+      return NULL;
+  }
+
+
+  // Release
+  Py_DECREF(domain_centroids);
+  Py_DECREF(domain_surrogate_neighbours);
+  Py_DECREF(domain_number_of_boundaries);
+  Py_DECREF(domain_vertex_coordinates);
+
+  Py_DECREF(quantity_centroid_values);
+  Py_DECREF(quantity_vertex_values);
+  Py_DECREF(quantity_edge_values);
+  Py_DECREF(quantity_phi);
+  Py_DECREF(quantity_x_gradient);
+  Py_DECREF(quantity_y_gradient);
+
+  return Py_BuildValue("");
+}
+
+
+PyObject *extrapolate_second_order_and_limit_by_vertex(PyObject *self, PyObject *args) {
+    /* Compute edge values using second order approximation and limit values 
+       so that edge values are limited by the two corresponding centroid values
+       
+       Python Call:
+       extrapolate_second_order_and_limit(domain,quantity,beta)
+    */
+
+    PyObject *quantity, *domain;
+	
+    PyArrayObject
+	*domain_centroids,              //Coordinates at centroids
+	*domain_vertex_coordinates,     //Coordinates at vertices
+	*domain_number_of_boundaries,   //Number of boundaries for each triangle
+	*domain_surrogate_neighbours,   //True neighbours or - if one missing - self
+	*domain_neighbours,             //True neighbours, or if negative a link to boundary
+
+	*quantity_centroid_values,      //Values at centroids	
+	*quantity_vertex_values,        //Values at vertices
+	*quantity_edge_values,          //Values at edges
+	*quantity_phi,                  //limiter phi values
+	*quantity_x_gradient,           //x gradient
+	*quantity_y_gradient;           //y gradient
+    
+
+  // Local variables
+  int ntri;
+  double beta;
+  int err;
+    
+  // Convert Python arguments to C
+  if (!PyArg_ParseTuple(args, "O",&quantity)) {
+      PyErr_SetString(PyExc_RuntimeError, 
+		      "quantity_ext.c: extrapolate_second_order_and_limit could not parse input");	
+      return NULL;
+  }
+
+  domain = PyObject_GetAttrString(quantity, "domain");
+  if (!domain) {
+      PyErr_SetString(PyExc_RuntimeError, 
+		      "quantity_ext.c: extrapolate_second_order_and_limit could not obtain domain object from quantity");	
+      return NULL;
+  }
+
+	
+  // Get pertinent variables
+  domain_centroids              = get_consecutive_array(domain,   "centroid_coordinates");
+  domain_surrogate_neighbours   = get_consecutive_array(domain,   "surrogate_neighbours");
+  domain_number_of_boundaries   = get_consecutive_array(domain,   "number_of_boundaries");
+  domain_vertex_coordinates     = get_consecutive_array(domain,   "vertex_coordinates");
+  domain_neighbours             = get_consecutive_array(domain,   "neighbours");
+
+  quantity_centroid_values      = get_consecutive_array(quantity, "centroid_values");
+  quantity_vertex_values        = get_consecutive_array(quantity, "vertex_values");
+  quantity_edge_values          = get_consecutive_array(quantity, "edge_values");
+  quantity_phi                  = get_consecutive_array(quantity, "phi");
+  quantity_x_gradient           = get_consecutive_array(quantity, "x_gradient");
+  quantity_y_gradient           = get_consecutive_array(quantity, "y_gradient");
+
+  beta = get_python_double(quantity,"beta");
+
+  ntri = quantity_centroid_values -> dimensions[0];
+
+  err = _compute_gradients(ntri,
+			   (double*) domain_centroids -> data,
+			   (double*) quantity_centroid_values -> data,
+			   (long*)   domain_number_of_boundaries -> data,
+			   (long*)   domain_surrogate_neighbours -> data,
+			   (double*) quantity_x_gradient -> data,
+			   (double*) quantity_y_gradient -> data);
+
+  if (err != 0) {
+      PyErr_SetString(PyExc_RuntimeError,
+			  "quantity_ext.c: Internal function _compute_gradient failed");
+      return NULL;
+  }
+
+
+  err = _extrapolate_from_gradient(ntri, 
+				   (double*) domain_centroids -> data,
+				   (double*) quantity_centroid_values -> data,
+				   (double*) domain_vertex_coordinates -> data,
+				   (double*) quantity_vertex_values -> data,
+				   (double*) quantity_edge_values -> data,
+				   (double*) quantity_x_gradient -> data,
+				   (double*) quantity_y_gradient -> data);
+
+  if (err != 0) {
+      PyErr_SetString(PyExc_RuntimeError,
+			  "quantity_ext.c: Internal function _extrapolate_from_gradient failed");
+      return NULL;
+  }
+
+
+  err = _limit_vertices_by_all_neighbours(ntri, beta,
+				       (double*) quantity_centroid_values -> data,
+				       (double*) quantity_vertex_values -> data,
+				       (double*) quantity_edge_values -> data,
+				       (long*)   domain_neighbours -> data,
+				       (double*) quantity_x_gradient -> data,
+				       (double*) quantity_y_gradient -> data);
+
+  if (err != 0) {
+      PyErr_SetString(PyExc_RuntimeError,
+			  "quantity_ext.c: Internal function _limit_vertices_by_all_neighbours failed");
       return NULL;
   }
 
@@ -1444,7 +1576,9 @@ PyObject *limit_vertices_by_all_neighbours(PyObject *self, PyObject *args) {
 	    *vertex_values,   //Conserved quantities at vertices
 	    *centroid_values, //Conserved quantities at centroids
 	    *edge_values,     //Conserved quantities at edges
-	    *neighbours;
+	    *neighbours,
+	    *x_gradient,
+	    *y_gradient;
 
 	double beta_w; //Safety factor
 	int N, err;
@@ -1480,7 +1614,10 @@ PyObject *limit_vertices_by_all_neighbours(PyObject *self, PyObject *args) {
 	centroid_values  = get_consecutive_array(quantity, "centroid_values");
 	vertex_values    = get_consecutive_array(quantity, "vertex_values");
 	edge_values      = get_consecutive_array(quantity, "edge_values");
-	beta_w           = PyFloat_AsDouble(Tmp);
+	x_gradient       = get_consecutive_array(quantity, "x_gradient");
+	y_gradient       = get_consecutive_array(quantity, "y_gradient");
+	beta_w           = get_python_double(domain,"beta_w");
+
 
 
 	N = centroid_values -> dimensions[0];
@@ -1489,7 +1626,11 @@ PyObject *limit_vertices_by_all_neighbours(PyObject *self, PyObject *args) {
 						(double*) centroid_values -> data,
 						(double*) vertex_values -> data,
 						(double*) edge_values -> data,
-						(long*)   neighbours -> data);
+						(long*)   neighbours -> data,
+						(double*) x_gradient -> data,
+						(double*) y_gradient -> data);
+
+
 	
 	if (err != 0) {
 	  PyErr_SetString(PyExc_RuntimeError,
@@ -1503,6 +1644,8 @@ PyObject *limit_vertices_by_all_neighbours(PyObject *self, PyObject *args) {
 	Py_DECREF(centroid_values);
 	Py_DECREF(vertex_values);
 	Py_DECREF(edge_values);
+	Py_DECREF(x_gradient);
+	Py_DECREF(y_gradient);
 	Py_DECREF(Tmp);
 
 
@@ -1556,7 +1699,7 @@ PyObject *limit_edges_by_all_neighbours(PyObject *self, PyObject *args) {
 	y_gradient       = get_consecutive_array(quantity, "y_gradient");
 	beta_w           = get_python_double(domain,"beta_w");
 
-	Py_DECREF(domain);
+
 
 	N = centroid_values -> dimensions[0];
 
@@ -1580,6 +1723,8 @@ PyObject *limit_edges_by_all_neighbours(PyObject *self, PyObject *args) {
 	Py_DECREF(centroid_values);
 	Py_DECREF(vertex_values);
 	Py_DECREF(edge_values);
+	Py_DECREF(x_gradient);
+	Py_DECREF(y_gradient);
 
 
 
@@ -1624,7 +1769,6 @@ PyObject *bound_vertices_below_by_constant(PyObject *self, PyObject *args) {
 
 
 
-	Py_DECREF(domain);
 
 	N = centroid_values -> dimensions[0];
 
@@ -1920,7 +2064,9 @@ static struct PyMethodDef MethodTable[] = {
 	{"compute_gradients", compute_gradients, METH_VARARGS, "Print out"},
 	{"extrapolate_from_gradient", extrapolate_from_gradient,
 		METH_VARARGS, "Print out"},
-	{"extrapolate_second_order_and_limit", extrapolate_second_order_and_limit,
+	{"extrapolate_second_order_and_limit_by_edge", extrapolate_second_order_and_limit_by_edge,
+		METH_VARARGS, "Print out"},
+	{"extrapolate_second_order_and_limit_by_vertex", extrapolate_second_order_and_limit_by_vertex,
 		METH_VARARGS, "Print out"},
 	{"interpolate_from_vertices_to_edges",
 		interpolate_from_vertices_to_edges,

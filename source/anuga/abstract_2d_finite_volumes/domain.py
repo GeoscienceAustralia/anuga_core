@@ -305,11 +305,13 @@ class Domain(Mesh):
         self._order_ = self.default_order
 
         if self.default_order == 1:
-            self.set_timestepping_method('euler')
+            pass
+            #self.set_timestepping_method('euler')
             #self.set_all_limiters(beta_euler)
 
         if self.default_order == 2:
-            self.set_timestepping_method('rk2')
+            pass
+            #self.set_timestepping_method('rk2')
             #self.set_all_limiters(beta_rk2)
         
 

@@ -400,25 +400,10 @@ class Domain(Generic_Domain):
 
     def distribute_to_vertices_and_edges(self):
         # Call correct module function
-        # (either from this module or C-extension)
         if self.use_edge_limiter:
-            protect_against_infinitesimal_and_negative_heights(self)
-            for name in self.conserved_quantities:
-                Q = self.quantities[name]
-                if self._order_ == 1:
-                    Q.extrapolate_first_order()
-                elif self._order_ == 2:
-                    Q.extrapolate_second_order_and_limit()
-                else:
-                    raise 'Unknown order'
-            balance_deep_and_shallow(self)
-
-            #Compute edge values by interpolation
-            for name in self.conserved_quantities:
-                Q = self.quantities[name]
-                Q.interpolate_from_vertices_to_edges()
+            distribute_using_edge_limiter(self)            
         else:
-            distribute_to_vertices_and_edges(self)
+            distribute_using_vertex_limiter(self)
 
 
 
@@ -750,7 +735,7 @@ def extrapolate_second_order_sw(domain):
               int(domain.use_centroid_velocities))
 
 
-def distribute_to_vertices_and_edges(domain):
+def distribute_using_vertex_limiter(domain):
     """Distribution from centroids to vertices specific to the
     shallow water wave
     equation.
@@ -800,13 +785,56 @@ def distribute_to_vertices_and_edges(domain):
             if domain._order_ == 1:
                 Q.extrapolate_first_order()
             elif domain._order_ == 2:
-                Q.extrapolate_second_order()
-                Q.limit()
+                Q.extrapolate_second_order_and_limit_by_vertex()
             else:
                 raise 'Unknown order'
 
 
     # Take bed elevation into account when water heights are small
+    balance_deep_and_shallow(domain)
+
+    # Compute edge values by interpolation
+    for name in domain.conserved_quantities:
+        Q = domain.quantities[name]
+        Q.interpolate_from_vertices_to_edges()
+
+
+
+def distribute_using_edge_limiter(domain):
+    """Distribution from centroids to edges specific to the
+    shallow water wave
+    equation.
+
+    It will ensure that h (w-z) is always non-negative even in the
+    presence of steep bed-slopes by taking a weighted average between shallow
+    and deep cases.
+
+    In addition, all conserved quantities get distributed as per either a
+    constant (order==1) or a piecewise linear function (order==2).
+
+
+    Precondition:
+      All quantities defined at centroids and bed elevation defined at
+      vertices.
+
+    Postcondition
+      Conserved quantities defined at vertices
+
+    """
+
+    # Remove very thin layers of water
+    protect_against_infinitesimal_and_negative_heights(domain)
+
+
+    for name in domain.conserved_quantities:
+        Q = domain.quantities[name]
+        if domain._order_ == 1:
+            Q.extrapolate_first_order()
+        elif domain._order_ == 2:
+            Q.extrapolate_second_order_and_limit_by_edge()
+        else:
+            raise 'Unknown order'
+
     balance_deep_and_shallow(domain)
 
     # Compute edge values by interpolation

@@ -1408,10 +1408,16 @@ class Quantity:
         compute_gradients(self)
         extrapolate_from_gradient(self)
         
-    def extrapolate_second_order_and_limit(self):
+    def extrapolate_second_order_and_limit_by_edge(self):
         #Call correct module function
         #(either from this module or C-extension)
-        extrapolate_second_order_and_limit(self)
+        extrapolate_second_order_and_limit_by_edge(self)
+
+
+    def extrapolate_second_order_and_limit_by_vertex(self):
+        #Call correct module function
+        #(either from this module or C-extension)
+        extrapolate_second_order_and_limit_by_vertex(self)
 
     def bound_vertices_below_by_constant(self, bound):
         #Call correct module function
@@ -1467,7 +1473,8 @@ if compile.can_use_C_extension('quantity_ext.c'):
          limit_edges_by_neighbour,\
          limit_gradient_by_neighbour,\
          extrapolate_from_gradient,\
-         extrapolate_second_order_and_limit,\
+         extrapolate_second_order_and_limit_by_edge,\
+         extrapolate_second_order_and_limit_by_vertex,\
          bound_vertices_below_by_constant,\
          bound_vertices_below_by_quantity,\
          interpolate_from_vertices_to_edges,\

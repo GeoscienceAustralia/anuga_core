@@ -1822,6 +1822,162 @@ double _compute_fluxes_central(int number_of_elements,
   return timestep;
 }
 
+//=========================================================================
+// Python Glue
+//=========================================================================
+
+PyObject *compute_fluxes_ext_central_new(PyObject *self, PyObject *args) {
+  /*Compute all fluxes and the timestep suitable for all volumes
+    in domain.
+
+    Compute total flux for each conserved quantity using "flux_function_central"
+
+    Fluxes across each edge are scaled by edgelengths and summed up
+    Resulting flux is then scaled by area and stored in
+    explicit_update for each of the three conserved quantities
+    stage, xmomentum and ymomentum
+
+    The maximal allowable speed computed by the flux_function for each volume
+    is converted to a timestep that must not be exceeded. The minimum of
+    those is computed as the next overall timestep.
+
+    Python call:
+    timestep = compute_fluxes(timestep, domain, stage, xmom, ymom, bed)
+
+
+    Post conditions:
+      domain.explicit_update is reset to computed flux values
+      returns timestep which is the largest step satisfying all volumes.
+
+
+  */
+
+    PyObject 
+	*domain,
+	*stage, 
+	*xmom, 
+	*ymom, 
+	*bed;
+
+    PyArrayObject 
+	*neighbours, 
+	*neighbour_edges,
+	*normals, 
+	*edgelengths, 
+	*radii, 
+	*areas,
+	*tri_full_flag,
+	*stage_edge_values,
+	*xmom_edge_values,
+	*ymom_edge_values,
+	*bed_edge_values,
+	*stage_boundary_values,
+	*xmom_boundary_values,
+	*ymom_boundary_values,
+	*stage_explicit_update,
+	*xmom_explicit_update,
+	*ymom_explicit_update,
+	*already_computed_flux, //Tracks whether the flux across an edge has already been computed
+	*max_speed_array; //Keeps track of max speeds for each triangle
+
+    
+    double timestep, epsilon, H0, g;
+    int optimise_dry_cells;
+    
+    // Convert Python arguments to C
+    if (!PyArg_ParseTuple(args, "dOOOO", &timestep, &domain, &stage, &xmom, &ymom, &bed )) {
+	PyErr_SetString(PyExc_RuntimeError, "Input arguments failed");
+	return NULL;
+    }
+
+    epsilon           = get_python_double(domain,"epsilon");
+    H0                = get_python_double(domain,"H0");
+    g                 = get_python_double(domain,"g");
+    optimise_dry_cells = get_python_integer(domain,"optimse_dry_cells");
+    
+    neighbours        = get_consecutive_array(domain, "neighbours");
+    neighbour_edges   = get_consecutive_array(domain, "neighbour_edges"); 
+    normals           = get_consecutive_array(domain, "normals");
+    edgelengths       = get_consecutive_array(domain, "edge_lengths");    
+    radii             = get_consecutive_array(domain, "radii");    
+    areas             = get_consecutive_array(domain, "areas");    
+    tri_full_flag     = get_consecutive_array(domain, "normals");
+    already_computed_flux  = get_consecutive_array(domain, "already_computed_flux");
+    max_speed_array   = get_consecutive_array(domain, "max_speed");
+    
+    stage_edge_values = get_consecutive_array(stage, "edge_values");    
+    xmom_edge_values  = get_consecutive_array(xmom, "edge_values");    
+    ymom_edge_values  = get_consecutive_array(ymom, "edge_values"); 
+    bed_edge_values   = get_consecutive_array(bed, "edge_values");    
+
+    stage_boundary_values = get_consecutive_array(stage, "boundary_values");    
+    xmom_boundary_values  = get_consecutive_array(xmom, "boundary_values");    
+    ymom_boundary_values  = get_consecutive_array(ymom, "boundary_values"); 
+
+    stage_explicit_update = get_consecutive_array(stage, "explicit_update");    
+    xmom_explicit_update  = get_consecutive_array(xmom, "explicit_update");    
+    ymom_explicit_update  = get_consecutive_array(ymom, "explicit_update"); 
+
+
+  int number_of_elements = stage_edge_values -> dimensions[0];
+
+  // Call underlying flux computation routine and update 
+  // the explicit update arrays 
+  timestep = _compute_fluxes_central(number_of_elements,
+				     timestep,
+				     epsilon,
+				     H0,
+				     g,
+				     (long*) neighbours -> data,
+				     (long*) neighbour_edges -> data,
+				     (double*) normals -> data,
+				     (double*) edgelengths -> data, 
+				     (double*) radii -> data, 
+				     (double*) areas -> data,
+				     (long*) tri_full_flag -> data,
+				     (double*) stage_edge_values -> data,
+				     (double*) xmom_edge_values -> data,
+				     (double*) ymom_edge_values -> data,
+				     (double*) bed_edge_values -> data,
+				     (double*) stage_boundary_values -> data,
+				     (double*) xmom_boundary_values -> data,
+				     (double*) ymom_boundary_values -> data,
+				     (double*) stage_explicit_update -> data,
+				     (double*) xmom_explicit_update -> data,
+				     (double*) ymom_explicit_update -> data,
+				     (long*) already_computed_flux -> data,
+				     (double*) max_speed_array -> data,
+				     optimise_dry_cells);
+
+  Py_DECREF(neighbours);
+  Py_DECREF(neighbour_edges);
+  Py_DECREF(normals);
+  Py_DECREF(edgelengths);
+  Py_DECREF(radii);
+  Py_DECREF(areas);
+  Py_DECREF(tri_full_flag);
+  Py_DECREF(already_computed_flux);
+  Py_DECREF(max_speed_array);
+  Py_DECREF(stage_edge_values);
+  Py_DECREF(xmom_edge_values);
+  Py_DECREF(ymom_edge_values);
+  Py_DECREF(bed_edge_values);
+  Py_DECREF(stage_boundary_values);
+  Py_DECREF(xmom_boundary_values);
+  Py_DECREF(ymom_boundary_values);
+  Py_DECREF(stage_explicit_update);
+  Py_DECREF(xmom_explicit_update);
+  Py_DECREF(ymom_explicit_update);
+
+  
+  // Return updated flux timestep
+  return Py_BuildValue("d", timestep);
+}
+
+
+
+
+
 
 PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
   /*Compute all fluxes and the timestep suitable for all volumes
@@ -1954,6 +2110,8 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
   // Return updated flux timestep
   return Py_BuildValue("d", timestep);
 }
+
+
 
 
 
@@ -2489,6 +2647,7 @@ static struct PyMethodDef MethodTable[] = {
   {"rotate", (PyCFunction)rotate, METH_VARARGS | METH_KEYWORDS, "Print out"},
   {"extrapolate_second_order_sw", extrapolate_second_order_sw, METH_VARARGS, "Print out"},
   {"compute_fluxes_ext_central", compute_fluxes_ext_central, METH_VARARGS, "Print out"},
+  {"compute_fluxes_ext_central_new", compute_fluxes_ext_central_new, METH_VARARGS, "Print out"},
   {"compute_fluxes_ext_kinetic", compute_fluxes_ext_kinetic, METH_VARARGS, "Print out"},
   {"gravity", gravity, METH_VARARGS, "Print out"},
   {"manning_friction", manning_friction, METH_VARARGS, "Print out"},
