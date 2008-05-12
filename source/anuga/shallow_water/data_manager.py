@@ -5560,7 +5560,7 @@ def get_mesh_and_quantities_from_file(filename,
 
     if verbose: print 'Reading from ', filename
     fid = NetCDFFile(filename, 'r')    # Open existing file for read
-    time = fid.variables['time']       # Time vector
+    time = fid.variables['time'][:]    # Time vector
     time += fid.starttime[0]
     
     # Get the variables as Numeric arrays
