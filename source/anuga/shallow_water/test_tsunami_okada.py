@@ -50,13 +50,13 @@ class Test_eq(unittest.TestCase):
         # fotran output file
             filename = path+sep+'fullokada_SS.txt'
         # initial condition of earthquake for multiple source
-            x0 = 50000.0
-            y0 = 25000.0
-            length = 50.0
-            width =10.0
+            x0 = 7000.0
+            y0 = 10000.0
+            length = 10.0
+            width =6.0
             strike = 0.0
-            depth = 10.0
-            slip = 30.0
+            depth = 15.0
+            slip = 10.0
             dip =15.0
             rake =90.0
             ns=1
@@ -138,12 +138,13 @@ class Test_eq(unittest.TestCase):
             k=k+4000
         Z=tsunami.get_values(interpolation_points=interpolation_points,
                              location='edges')
-        
-        assert allclose(stage,tmp,atol=1.e-8)
-        print stage
-        print tmp
-        print 'c est fini'
 
+        stage = -Z # FIXME(Ole): Why the sign flip?
+                   # Displacement in fortran code is looking downward
+        print tmp
+        print 'hello',stage
+        assert allclose(stage,tmp,atol=1.e-3)
+        
     def test_earthquake_tsunami(self):
         from os import sep, getenv
         from Numeric import zeros, Float,allclose
@@ -281,7 +282,7 @@ class Test_eq(unittest.TestCase):
 
         stage = -Z # FIXME(Ole): Why the sign flip?
                    # Displacement in fortran code is looking downward
-        #print 'c est fini'
+        print 'c est fini'
         #print tmp
         #print 'hello',stage   
         assert allclose(stage,tmp,atol=1.e-3)
