@@ -7527,9 +7527,9 @@ friction  \n \
         # Setup
         from mesh_factory import rectangular
 
-        # Create basic mesh (100m x 5m)
-        width = 5
-        length = 50
+        # Create basic mesh (20m x 3m)
+        width = 3
+        length = 20
         t_end = 3
         points, vertices, boundary = rectangular(length, width,
                                                  length, width)
@@ -7581,7 +7581,7 @@ friction  \n \
             
 
         # Check flows through the middle
-        for i in range(10):
+        for i in range(5):
             x = length/2. + i*0.23674563 # Arbitrary
             cross_section = [[x, 0], [x, width]]
             time, Q = get_flow_through_cross_section(swwfile,
@@ -7594,8 +7594,8 @@ friction  \n \
        
         # Try the same with partial lines
         x = length/2.
-        for i in range(10):
-            start_point = [length/2., i*width/10.]
+        for i in range(5):
+            start_point = [length/2., i*width/5.]
             #print start_point
                             
             cross_section = [start_point, [length/2., width]]
@@ -7656,9 +7656,9 @@ friction  \n \
         # Setup
         from mesh_factory import rectangular
 
-        # Create basic mesh (100m x 5m)
-        width = 5
-        length = 50
+        # Create basic mesh (20m x 3m)
+        width = 3
+        length = 20
         t_end = 1
         points, vertices, boundary = rectangular(length, width,
                                                  length, width)
@@ -7713,7 +7713,7 @@ friction  \n \
             
 
         # Check flows through the middle
-        for i in range(10):
+        for i in range(5):
             x = length/2. + i*0.23674563 # Arbitrary
             cross_section = [[x, 0], [x, width]]
 
