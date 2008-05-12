@@ -141,8 +141,8 @@ class Test_eq(unittest.TestCase):
 
         stage = -Z # FIXME(Ole): Why the sign flip?
                    # Displacement in fortran code is looking downward
-        print tmp
-        print 'hello',stage
+        #print tmp
+        #print 'hello',stage
         assert allclose(stage,tmp,atol=1.e-3)
         
     def test_earthquake_tsunami(self):
@@ -282,7 +282,7 @@ class Test_eq(unittest.TestCase):
 
         stage = -Z # FIXME(Ole): Why the sign flip?
                    # Displacement in fortran code is looking downward
-        print 'c est fini'
+        #print 'c est fini'
         #print tmp
         #print 'hello',stage   
         assert allclose(stage,tmp,atol=1.e-3)
