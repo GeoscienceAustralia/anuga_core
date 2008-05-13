@@ -731,8 +731,7 @@ def extrapolate_second_order_sw(domain):
               Xmom.vertex_values,
               Ymom.vertex_values,
               Elevation.vertex_values,
-              int(domain.optimise_dry_cells),
-              int(domain.use_centroid_velocities))
+              int(domain.optimise_dry_cells))
 
 
 def distribute_using_vertex_limiter(domain):
