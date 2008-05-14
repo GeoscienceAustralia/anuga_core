@@ -122,8 +122,8 @@ class Interpolate (FitInterpolate):
         # FIXME (Ole): Why is the interpolation matrix rebuilt everytime the
         # method is called even if interpolation points are unchanged.
 
-
-        #print "point_coordinates interpolate.interpolate", point_coordinates 
+        #print "point_coordinates interpolate.interpolate", point_coordinates
+        if verbose: print 'Build intepolation object' 
         if isinstance(point_coordinates, Geospatial_data):
             point_coordinates = point_coordinates.get_data_points( \
                 absolute = True)
@@ -143,9 +143,8 @@ class Interpolate (FitInterpolate):
                 #There are no good point_coordinates. import sys; sys.exit()
                 msg = 'ERROR (interpolate.py): No point_coordinates inputted'
                 raise Exception(msg)
-
-        
-        if point_coordinates is not None:   
+            
+        if point_coordinates is not None:
             self._point_coordinates = point_coordinates
             if len(point_coordinates) < start_blocking_len or \
                    start_blocking_len == 0:
@@ -201,7 +200,6 @@ class Interpolate (FitInterpolate):
         point_coordinates = ensure_numeric(point_coordinates, Float)
         f = ensure_numeric(f, Float)        
             
-
         self._A = self._build_interpolation_matrix_A(point_coordinates,
                                                      verbose=verbose)
 
@@ -261,7 +259,7 @@ class Interpolate (FitInterpolate):
         Point_coordindates and mesh vertices have the same origin.
         """
 
-        #print 'Building interpolation matrix'
+        if verbose: print 'Building interpolation matrix'
 
         # Convert point_coordinates to Numeric arrays, in case it was a list.
         point_coordinates = ensure_numeric(point_coordinates, Float)
@@ -669,7 +667,8 @@ class Interpolation_function:
                     # Interpolate    
                     result = interpol.interpolate(Q,
                                                   point_coordinates=\
-                                                  self.interpolation_points)
+                                                  self.interpolation_points,
+                                                  verbose=False) # Don't clutter
 
                     #assert len(result), len(interpolation_points)
                     self.precomputed_values[name][i, :] = result

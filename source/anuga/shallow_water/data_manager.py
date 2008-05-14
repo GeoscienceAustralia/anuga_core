@@ -5654,7 +5654,7 @@ def get_flow_through_cross_section(filename,
     polyline = mesh.geo_reference.get_relative(polyline)
     
     # Find all intersections and associated triangles.
-    segments = mesh.get_intersecting_segments(polyline)
+    segments = mesh.get_intersecting_segments(polyline, verbose=verbose)
     #print
     #for x in segments:
     #    print x
@@ -5668,6 +5668,11 @@ def get_flow_through_cross_section(filename,
         interpolation_points.append(midpoint)
 
 
+    if verbose:
+        print 'Interpolating - ',        
+        print 'total number of interpolation points = %d'\
+              %len(interpolation_points)
+
     I = Interpolation_function(time,
                                quantities,
                                quantity_names=quantity_names,
@@ -5676,6 +5681,7 @@ def get_flow_through_cross_section(filename,
                                interpolation_points=interpolation_points,
                                verbose=verbose)
 
+    if verbose: print 'Computing hydrograph'
     # Compute hydrograph
     Q = []
     for t in time:

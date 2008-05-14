@@ -903,11 +903,13 @@ class Mesh(General_mesh):
         return
 
 
-    def _get_intersecting_segments(self, line):
+    def _get_intersecting_segments(self, line,
+                                   verbose=False):
       """Find edges intersected by line
 
       Input:
-          line - list of two points forming a segmented line  
+          line - list of two points forming a segmented line
+          verbose
       Output:
           list of instances of class Triangle_intersection
 
@@ -1046,11 +1048,13 @@ class Mesh(General_mesh):
 
 
 
-    def get_intersecting_segments(self, polyline):
+    def get_intersecting_segments(self, polyline,
+                                  verbose=False):
       """Find edges intersected by polyline
 
       Input:
           polyline - list of points forming a segmented line
+          verbose
 
       Output:
           list of instances of class Triangle_intersection
@@ -1075,7 +1079,13 @@ class Mesh(General_mesh):
       # For all segments in polyline
       triangle_intersections = []
       for i, point0 in enumerate(polyline[:-1]):
+
           point1 = polyline[i+1]
+          if verbose:
+              print 'Extracting mesh intersections from line:',
+              print '(%.2f, %.2f) - (%.2f, %.2f)' %(point0[0], point0[1],
+                                                    point1[0], point1[1])
+             
           
           line = [point0, point1]
 

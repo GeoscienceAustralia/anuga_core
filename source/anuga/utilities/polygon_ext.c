@@ -59,6 +59,111 @@ int __point_on_line(double x, double y,
 
 
 
+/*
+WORK IN PROGRESS TO OPTIMISE INTERSECTION
+int __intersection(double x0, double y0,
+		   double x1, double y1) {
+
+
+    x0 = line0[0,0]; y0 = line0[0,1]
+    x1 = line0[1,0]; y1 = line0[1,1]
+
+    x2 = line1[0,0]; y2 = line1[0,1]
+    x3 = line1[1,0]; y3 = line1[1,1]
+
+    denom = (y3-y2)*(x1-x0) - (x3-x2)*(y1-y0)
+    u0 = (x3-x2)*(y0-y2) - (y3-y2)*(x0-x2)
+    u1 = (x2-x0)*(y1-y0) - (y2-y0)*(x1-x0)
+        
+    if allclose(denom, 0.0):
+        # Lines are parallel - check if they coincide on a shared a segment
+
+        if allclose( [u0, u1], 0.0 ):
+            # We now know that the lines if continued coincide
+            # The remaining check will establish if the finite lines share a segment
+
+            line0_starts_on_line1 = line0_ends_on_line1 =\
+            line1_starts_on_line0 = line1_ends_on_line0 = False
+                
+            if point_on_line([x0, y0], line1):
+                line0_starts_on_line1 = True
+
+            if point_on_line([x1, y1], line1):
+                line0_ends_on_line1 = True
+ 
+            if point_on_line([x2, y2], line0):
+                line1_starts_on_line0 = True
+
+            if point_on_line([x3, y3], line0):
+                line1_ends_on_line0 = True                               
+
+            if not(line0_starts_on_line1 or line0_ends_on_line1\
+               or line1_starts_on_line0 or line1_ends_on_line0):
+                # Lines are parallel and would coincide if extended, but not as they are.
+                return 3, None
+
+
+            # One line fully included in the other. Use direction of included line
+            if line0_starts_on_line1 and line0_ends_on_line1:
+                # Shared segment is line0 fully included in line1
+                segment = array([[x0, y0], [x1, y1]])                
+
+            if line1_starts_on_line0 and line1_ends_on_line0:
+                # Shared segment is line1 fully included in line0
+                segment = array([[x2, y2], [x3, y3]])
+            
+
+            # Overlap with lines are oriented the same way
+            if line0_starts_on_line1 and line1_ends_on_line0:
+                # Shared segment from line0 start to line 1 end
+                segment = array([[x0, y0], [x3, y3]])
+
+            if line1_starts_on_line0 and line0_ends_on_line1:
+                # Shared segment from line1 start to line 0 end
+                segment = array([[x2, y2], [x1, y1]])                                
+
+
+            # Overlap in opposite directions - use direction of line0
+            if line0_starts_on_line1 and line1_starts_on_line0:
+                # Shared segment from line0 start to line 1 end
+                segment = array([[x0, y0], [x2, y2]])
+
+            if line0_ends_on_line1 and line1_ends_on_line0:
+                # Shared segment from line0 start to line 1 end
+                segment = array([[x3, y3], [x1, y1]])                
+
+                
+            return 2, segment
+        else:
+            # Lines are parallel but they do not coincide
+            return 4, None #FIXME (Ole): Add distance here instead of None 
+            
+    else:
+        # Lines are not parallel or coinciding
+        u0 = u0/denom
+        u1 = u1/denom        
+
+        x = x0 + u0*(x1-x0)
+        y = y0 + u0*(y1-y0)
+
+        # Sanity check - can be removed to speed up if needed
+        assert allclose(x, x2 + u1*(x3-x2))
+        assert allclose(y, y2 + u1*(y3-y2))        
+
+        # Check if point found lies within given line segments
+        if 0.0 <= u0 <= 1.0 and 0.0 <= u1 <= 1.0: 
+            # We have intersection
+
+            return 1, array([x, y])
+        else:
+            # No intersection
+            return 0, None
+
+
+} 
+*/
+
+
 int __separate_points_by_polygon(int M,     // Number of points
 				int N,     // Number of polygon vertices
 				double* points,
@@ -175,6 +280,33 @@ PyObject *_point_on_line(PyObject *self, PyObject *args) {
 }
 
 
+/*
+PyObject *_intersection(PyObject *self, PyObject *args) {
+  //
+  // intersection(x0, y0, x1, y1)
+  //
+
+  double x, y, x0, y0, x1, y1;
+  int res;
+  PyObject *result;
+
+  // Convert Python arguments to C
+  if (!PyArg_ParseTuple(args, "dddddd", &x, &y, &x0, &y0, &x1, &y1)) {
+    PyErr_SetString(PyExc_RuntimeError, 
+		    "point_on_line could not parse input");    
+    return NULL;
+  }
+
+
+  // Call underlying routine
+  res = __intersection(x, y, x0, y0, x1, y1);
+
+  // Return values a and b
+  result = Py_BuildValue("i", res);
+  return result;
+}
+*/
+
 
 PyObject *_separate_points_by_polygon(PyObject *self, PyObject *args) {
   //def separate_points_by_polygon(points, polygon, closed, verbose, one_point):
@@ -265,6 +397,7 @@ static struct PyMethodDef MethodTable[] = {
    */
 
   {"_point_on_line", _point_on_line, METH_VARARGS, "Print out"},
+  //{"_intersection", _intersection, METH_VARARGS, "Print out"},  
   {"_separate_points_by_polygon", _separate_points_by_polygon, 
                                  METH_VARARGS, "Print out"},
   {NULL, NULL, 0, NULL}   /* sentinel */

@@ -101,7 +101,7 @@ class FitInterpolate:
 
             if verbose: print 'FitInterpolate: Building mesh'        
             self.mesh = Mesh(vertex_coordinates, triangles)
-            self.mesh.check_integrity()
+            #self.mesh.check_integrity() # Time consuming
         else:
             self.mesh = mesh
         

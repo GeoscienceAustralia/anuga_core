@@ -106,11 +106,6 @@ def intersection(line0, line1):
             if point_on_line([x3, y3], line0):
                 line1_ends_on_line0 = True                               
 
-            #print line0_starts_on_line1
-            #print line1_starts_on_line0            
-            #print line1_ends_on_line0
-            #print line0_ends_on_line1            
-
             if not(line0_starts_on_line1 or line0_ends_on_line1\
                or line1_starts_on_line0 or line1_ends_on_line0):
                 # Lines are parallel and would coincide if extended, but not as they are.
@@ -172,6 +167,47 @@ def intersection(line0, line1):
         else:
             # No intersection
             return 0, None
+
+
+def NEW_C_intersection(line0, line1):
+    #FIXME(Ole): To write in C
+    """Returns intersecting point between two line segments or None
+    (if parallel or no intersection is found).
+
+    However, if parallel lines coincide partly (i.e. shara a common segment,
+    the line segment where lines coincide is returned
+    
+
+    Inputs:
+        line0, line1: Each defined by two end points as in: [[x0, y0], [x1, y1]]
+                      A line can also be a 2x2 numeric array with each row
+                      corresponding to a point.
+
+
+    Output:
+        status, value
+
+        where status is interpreted as follows
+        
+        status == 0: no intersection with value set to None
+        status == 1: One intersection point found and returned in value as [x,y]
+        status == 2: Coinciding line segment found. Value taks the form [[x0,y0], [x1,y1]]
+        status == 3: Lines would coincide but only if extended. Value set to None
+        status == 4: Lines are parallel with a fixed distance apart. Value set to None.
+    
+    """
+
+
+    line0 = ensure_numeric(line0, Float)
+    line1 = ensure_numeric(line1, Float)    
+
+    status, value = _intersection(line0[0,0], line0[0,1],
+                                  line0[1,0], line0[1,1],
+                                  line1[0,0], line1[0,1],
+                                  line1[1,0], line1[1,1])
+
+    return status, value
+
 
 
 
@@ -913,6 +949,7 @@ if can_use_C_extension('polygon_ext.c'):
     # Underlying C implementations can be accessed
     from polygon_ext import _point_on_line
     from polygon_ext import _separate_points_by_polygon
+    #from polygon_ext import _intersection
 
 else:
     msg = 'C implementations could not be accessed by %s.\n ' %__file__
