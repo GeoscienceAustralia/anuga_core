@@ -109,6 +109,7 @@ def file_function(filename,
     # if domain is passed in as instances change hash code.
     # Instead we pass in those attributes that are needed (and return them
     # if modified)
+
     kwargs = {'quantities': quantities,
               'interpolation_points': interpolation_points,
               'domain_starttime': domain_starttime,
@@ -248,6 +249,8 @@ def get_netcdf_file_function(filename,
         msg = 'Points must by N x 2. I got %d' %interpolation_points.shape[1]
         assert interpolation_points.shape[1] == 2, msg
 
+    if verbose:
+        print 'File_function using quantities %s from file %s' %(str(quantity_names), filename)
 
     # Now assert that requested quantitites (and the independent ones)
     # are present in file 
@@ -778,6 +781,7 @@ def _sww2timeseries(swwfiles,
         
         #print 'label', label
         leg_label.append(label)
+
 
         
 
@@ -2140,10 +2144,10 @@ def sww2csv_gauges(sww_file,
 #        print 'sww_file',sww_file, core_quantities
         
         callable_sww = file_function(sww_file,
-                                 quantities=core_quantities,
-                                 interpolation_points=points_array,
-                                 verbose=verbose,
-                                 use_cache=use_cache)
+                                     quantities=core_quantities,
+                                     interpolation_points=points_array,
+                                     verbose=verbose,
+                                     use_cache=use_cache)
 
     gauge_file='gauge_'
 
