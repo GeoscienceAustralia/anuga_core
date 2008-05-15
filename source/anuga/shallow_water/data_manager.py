@@ -5607,7 +5607,8 @@ def get_mesh_and_quantities_from_file(filename,
     quantities['stage'] = stage    
     quantities['xmomentum'] = xmomentum
     quantities['ymomentum'] = ymomentum    
-    
+
+    fid.close()
     return mesh, quantities, time
 
 
