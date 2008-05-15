@@ -7,7 +7,7 @@
   
   <datafile>
     <filename>fullokada_SP.txt</filename>
-    <checksum>88429353</checksum>
+    <checksum>-899887719</checksum>
     <publishable>Yes</publishable>
     <accountable>Jane Sexton</accountable>
     <source>Output from fortran code of Okada. SP = source point</source>

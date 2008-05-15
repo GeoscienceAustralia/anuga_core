@@ -7,7 +7,7 @@
   
   <datafile>
     <filename>fullokada_MS.txt</filename>
-    <checksum>88429353</checksum>
+    <checksum>1591397974</checksum>
     <publishable>Yes</publishable>
     <accountable>Jane Sexton</accountable>
     <source>Output from fortran code of Okada. MS = multiple source</source>
