@@ -2696,7 +2696,11 @@ def ferret2sww(basename_in, basename_out = None,
     times = file_h.variables[dim_h_time]
     latitudes = file_h.variables[dim_h_latitude]
     longitudes = file_h.variables[dim_h_longitude]
-    
+
+    kmin, kmax, lmin, lmax = _get_min_max_indexes(latitudes[:],
+                                                  longitudes[:],
+                                                  minlat, maxlat,
+                                                  minlon, maxlon)
     # get dimensions for file_e
     for dimension in file_e.dimensions.keys():
         if dimension[:3] == 'LON':
@@ -3911,8 +3915,12 @@ def _get_min_max_indexes(latitudes_ref,longitudes_ref,
 
     latitudes = ensure_numeric(latitudes)
     longitudes = ensure_numeric(longitudes)
-    
+
     assert allclose(sort(longitudes), longitudes)
+
+    print latitudes[0],longitudes[0]
+    print len(latitudes),len(longitudes)
+    print latitudes[len(latitudes)-1],longitudes[len(longitudes)-1]
     
     lat_ascending = True
     if not allclose(sort(latitudes), latitudes):
@@ -4815,7 +4823,57 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
     #
     # Do some conversions while writing the sww file
 
+    ##################################
+    # READ MUX2 FILES line of points #
+    ##################################
+
+WAVEHEIGHT_MUX2_LABEL = '_waveheight-z-mux2'
+EAST_VELOCITY_MUX2_LABEL =  '_velocity-e-mux2'
+NORTH_VELOCITY_MUX2_LABEL =  '_velocity-n-mux2'    
+
+def read_mux2_py(filenames,weights=None):
+
+    from Numeric import ones,Float,compress,zeros,arange
+    from urs_ext import read_mux2
+
+    if weights is None:
+        weights=ones(len(filenames),Float)/len(filenames) #default 1/numSrc
+
+    file_params=-1*ones(3,Float)#[nsta,dt,nt]
+    write=1 #write txt files to current directory as well
+    data=read_mux2(1,filenames,weights,file_params,write)
+
+    msg='File parameter values were not read in correctly from c file'
+    assert len(compress(file_params>0,file_params))!=0,msg
+    msg='The number of stations specifed in the c array and in the file are inconsitent'
+    assert file_params[0]==data.shape[0],msg
     
+    nsta=int(file_params[0])
+    msg='Must have at least one station'
+    assert nsta>0,msg
+    dt=file_params[1]
+    msg='Must have a postive timestep'
+    assert dt>0,msg
+    nt=int(file_params[2])
+    msg='Must have at least one gauge value'
+    assert nt>0,msg
+    
+    OFFSET=5 #number of site parameters p passed back with data
+    #p=[geolat,geolon,depth,start_tstep,finish_tstep]
+
+    times=dt*arange(1,(data.shape[1]-OFFSET)+1)
+    latitudes=zeros(data.shape[0],Float)
+    longitudes=zeros(data.shape[0],Float)
+    elevation=zeros(data.shape[0],Float)
+    stage=zeros((data.shape[0],data.shape[1]-OFFSET),Float)
+    for i in range(0,data.shape[0]):
+        latitudes[i]=data[i][data.shape[1]-OFFSET]
+        longitudes[i]=data[i][data.shape[1]-OFFSET+1]
+        elevation[i]=-data[i][data.shape[1]-OFFSET+2]
+        stage[i]=data[i][:-OFFSET]
+
+    return times, latitudes, longitudes, elevation, stage
+
 def mux2sww_time(mux_times, mint, maxt):
     """
     """
@@ -4833,6 +4891,142 @@ def mux2sww_time(mux_times, mint, maxt):
         mux_times_fin_i = searchsorted(mux_times, maxt)
 
     return mux_times_start_i, mux_times_fin_i
+
+
+def urs2sts(basename_in, basename_out = None, verbose = False, origin = None,
+            mean_stage=0.0,zscale=1.0,
+            minlat = None, maxlat = None,
+            minlon = None, maxlon = None):
+    """Convert URS mux2 format for wave propagation to sts format
+
+    Specify only basename_in and read files of the form
+    out_waveheight-z-mux2
+
+    Also convert latitude and longitude to UTM. All coordinates are
+    assumed to be given in the GDA94 datum
+
+    origin is a 3-tuple with geo referenced
+    UTM coordinates (zone, easting, northing)
+    """
+    import os
+    from Scientific.IO.NetCDF import NetCDFFile
+    from Numeric import Float, Int, Int32, searchsorted, zeros, array
+    from Numeric import allclose, around
+
+    precision = Float
+
+    msg = 'Must use latitudes and longitudes for minlat, maxlon etc'
+
+    if minlat != None:
+        assert -90 < minlat < 90 , msg
+    if maxlat != None:
+        assert -90 < maxlat < 90 , msg
+        if minlat != None:
+            assert maxlat > minlat
+    if minlon != None:
+        assert -180 < minlon < 180 , msg
+    if maxlon != None:
+        assert -180 < maxlon < 180 , msg
+        if minlon != None:
+            assert maxlon > minlon
+
+    if basename_out is None:
+        stsname = basename_in + '.sts'
+    else:
+        stsname = basename_out + '.sts'
+
+    files_in = [basename_in + WAVEHEIGHT_MUX2_LABEL,
+                basename_in + EAST_VELOCITY_MUX2_LABEL,
+                basename_in + NORTH_VELOCITY_MUX2_LABEL]
+    quantities = ['HA','UA','VA']
+
+    #need to do this for velocity-e-mux2 and velocity-n-mux2 files as well
+    #for now set x_momentum and y_moentum quantities to zero
+    if (verbose): print 'reading mux2 file'
+    mux={}
+    for quantity, file in map(None, quantities, files_in):
+        times_urs, latitudes_urs, longitudes_urs, elevation, mux[quantity] = read_mux2_py([file])
+        if quantity!=quantities[0]:
+            msg='%s, %s and %s have inconsitent gauge data'%(files_in[0],files_in[1],files_in[2])
+            assert allclose(times_urs,times_urs_old),msg
+            assert allclose(latitudes_urs,latitudes_urs_old),msg
+            assert allclose(longitudes_urs,longitudes_urs_old),msg
+            assert allclose(elevation,elevation_old),msg
+        times_urs_old=times_urs
+        latitudes_urs_old=latitudes_urs
+        longitudes_urs_old=longitudes_urs
+        elevation_old=elevation
+        
+    if (minlat is not None) and (minlon is not None) and (maxlat is not None) and (maxlon is not None):
+        latitudes = compress((latitudes_urs>=minlat)&(latitudes_urs<=maxlat)&(longitudes_urs>=minlon)&(longitudes_urs<=maxlon),latitudes_urs)
+        longitudes = compress((latitudes_urs>=minlat)&(latitudes_urs<=maxlat)&(longitudes_urs>=minlon)&(longitudes_urs<=maxlon),longitudes_urs)
+        times = compress((latitudes_urs>=minlat)&(latitudes_urs<=maxlat)&(longitudes_urs>=minlon)&(longitudes_urs<=maxlon),times_urs)
+    else:
+        latitudes=latitudes_urs
+        longitudes=longitudes_urs
+        times=times_urs
+
+    number_of_points = latitudes.shape[0]
+    number_of_times = times.shape[0]
+    number_of_latitudes = latitudes.shape[0]
+    number_of_longitudes = longitudes.shape[0]
+
+    # NetCDF file definition
+    outfile = NetCDFFile(stsname, 'w')
+
+    description = 'Converted from URS mux2 files: %s'\
+                  %(basename_in)
+    
+    # Create new file
+    starttime = times[0]
+    sts = Write_sts()
+    sts.store_header(outfile, times,number_of_points, description=description,
+                     verbose=verbose,sts_precision=Float)
+    
+    # Store
+    from anuga.coordinate_transforms.redfearn import redfearn
+    x = zeros(number_of_points, Float)  #Easting
+    y = zeros(number_of_points, Float)  #Northing
+
+    # Check zone boundaries
+    refzone, _, _ = redfearn(latitudes[0],longitudes[0])  
+
+    for i in range(number_of_points):
+        zone, easting, northing = redfearn(latitudes[i],longitudes[i])
+        x[i] = easting
+        y[i] = northing
+        #print zone,easting,northing
+
+    if origin is None:
+        origin = Geo_reference(refzone,min(x),min(y))
+    geo_ref = write_NetCDF_georeference(origin, outfile)
+
+    z = elevation
+    
+    #print geo_ref.get_xllcorner()
+    #print geo_ref.get_yllcorner()
+
+    z = resize(z,outfile.variables['z'][:].shape)
+    outfile.variables['x'][:] = x - geo_ref.get_xllcorner()
+    outfile.variables['y'][:] = y - geo_ref.get_yllcorner()
+    outfile.variables['z'][:] = z             #FIXME HACK for bacwards compat.
+    outfile.variables['elevation'][:] = z
+
+    stage = outfile.variables['stage']
+    xmomentum = outfile.variables['xmomentum']
+    ymomentum =outfile.variables['ymomentum']
+
+    if verbose: print 'Converting quantities'
+    for j in range(len(times)):
+        for i in range(number_of_points):
+            w = zscale*mux['HA'][i,j] + mean_stage
+            h=w-elevation[i]
+            stage[j,i] = w
+            #delete following two lines once velcotu files are read in.
+            xmomentum[j,i] = mux['UA'][i,j]*h
+            ymomentum[j,i] = mux['VA'][i,j]*h
+
+    outfile.close()
 
 
 class Write_sww:
@@ -5225,6 +5419,241 @@ def urs2txt(basename_in, location_index=None):
                       + "\n")
             
             i +=1
+
+class Write_sts:
+
+    sts_quantities = ['stage','xmomentum','ymomentum']
+
+
+    RANGE = '_range'
+    EXTREMA = ':extrema'
+    
+    def __init__(self):
+        pass
+
+    def store_header(self,
+                     outfile,
+                     times,
+                     number_of_points,
+                     description='Converted from URS mux2 format',
+                     sts_precision=Float32,
+                     verbose=False):
+        """
+        outfile - the name of the file that will be written
+        times - A list of the time slice times OR a start time
+        Note, if a list is given the info will be made relative.
+        number_of_points - the number of urs gauges sites
+        """
+
+        outfile.institution = 'Geoscience Australia'
+        outfile.description = description
+        
+        try:
+            revision_number = get_revision_number()
+        except:
+            revision_number = None
+        # Allow None to be stored as a string                
+        outfile.revision_number = str(revision_number) 
+        
+        # times - A list or array of the time slice times OR a start time
+        # Start time in seconds since the epoch (midnight 1/1/1970)
+
+        # This is being used to seperate one number from a list.
+        # what it is actually doing is sorting lists from numeric arrays.
+        if type(times) is list or type(times) is ArrayType:  
+            number_of_times = len(times)
+            times = ensure_numeric(times)  
+            if number_of_times == 0:
+                starttime = 0
+            else:
+                starttime = times[0]
+                times = times - starttime  #Store relative times
+        else:
+            number_of_times = 0
+            starttime = times
+
+        outfile.starttime = starttime
+
+        # Dimension definitions
+        outfile.createDimension('number_of_points', number_of_points)
+        outfile.createDimension('number_of_timesteps', number_of_times)
+        outfile.createDimension('numbers_in_range', 2)
+
+        # Variable definitions
+        outfile.createVariable('x', sts_precision, ('number_of_points',))
+        outfile.createVariable('y', sts_precision, ('number_of_points',))
+        outfile.createVariable('elevation', sts_precision,('number_of_points',))
+
+        q = 'elevation'
+        outfile.createVariable(q+Write_sts.RANGE, sts_precision,
+                               ('numbers_in_range',))
+
+        # Initialise ranges with small and large sentinels.
+        # If this was in pure Python we could have used None sensibly
+        outfile.variables[q+Write_sts.RANGE][0] = max_float  # Min 
+        outfile.variables[q+Write_sts.RANGE][1] = -max_float # Max
+
+        outfile.createVariable('z', sts_precision, ('number_of_points',))
+        # Doing sts_precision instead of Float gives cast errors.
+        outfile.createVariable('time', Float, ('number_of_timesteps',))
+
+        for q in Write_sts.sts_quantities:
+            outfile.createVariable(q, sts_precision,
+                                   ('number_of_timesteps',
+                                    'number_of_points'))
+            outfile.createVariable(q+Write_sts.RANGE, sts_precision,
+                                   ('numbers_in_range',))
+            # Initialise ranges with small and large sentinels.
+            # If this was in pure Python we could have used None sensibly
+            outfile.variables[q+Write_sts.RANGE][0] = max_float  # Min
+            outfile.variables[q+Write_sts.RANGE][1] = -max_float # Max
+
+        if type(times) is list or type(times) is ArrayType:  
+            outfile.variables['time'][:] = times    #Store time relative
+
+        if verbose:
+            print '------------------------------------------------'
+            print 'Statistics:'
+            print '    t in [%f, %f], len(t) == %d'\
+                  %(min(times.flat), max(times.flat), len(times.flat))
+
+    def store_points(self,
+                     outfile,
+                     points_utm,
+                     elevation, zone=None, new_origin=None, 
+                     points_georeference=None, verbose=False):
+
+        """
+        points_utm - currently a list or array of the points in UTM.
+        points_georeference - the georeference of the points_utm
+
+        How about passing new_origin and current_origin.
+        If you get both, do a convertion from the old to the new.
+        
+        If you only get new_origin, the points are absolute,
+        convert to relative
+        
+        if you only get the current_origin the points are relative, store
+        as relative.
+        
+        if you get no georefs create a new georef based on the minimums of
+        points_utm.  (Another option would be to default to absolute)
+        
+        Yes, and this is done in another part of the code.
+        Probably geospatial.
+        
+        If you don't supply either geo_refs, then supply a zone. If not
+        the default zone will be used.
+
+        precondition:
+             header has been called.
+        """
+
+        number_of_points = len(points_utm)
+        points_utm = array(points_utm)
+
+        # given the two geo_refs and the points, do the stuff
+        # described in the method header
+        points_georeference = ensure_geo_reference(points_georeference)
+        new_origin = ensure_geo_reference(new_origin)
+        
+        if new_origin is None and points_georeference is not None:
+            points = points_utm
+            geo_ref = points_georeference
+        else:
+            if new_origin is None:
+                new_origin = Geo_reference(zone,min(points_utm[:,0]),
+                                           min(points_utm[:,1]))
+            points = new_origin.change_points_geo_ref(points_utm,
+                                                      points_georeference)
+            geo_ref = new_origin
+
+        # At this stage I need a georef and points
+        # the points are relative to the georef
+        geo_ref.write_NetCDF(outfile)
+
+        x =  points[:,0]
+        y =  points[:,1]
+        z = outfile.variables['z'][:]
+    
+        if verbose:
+            print '------------------------------------------------'
+            print 'More Statistics:'
+            print '  Extent (/lon):'
+            print '    x in [%f, %f], len(lat) == %d'\
+                  %(min(x), max(x),
+                    len(x))
+            print '    y in [%f, %f], len(lon) == %d'\
+                  %(min(y), max(y),
+                    len(y))
+            print '    z in [%f, %f], len(z) == %d'\
+                  %(min(elevation), max(elevation),
+                    len(elevation))
+            print 'geo_ref: ',geo_ref
+            print '------------------------------------------------'
+            
+        #z = resize(bath_grid,outfile.variables['z'][:].shape)
+        #print "points[:,0]", points[:,0]
+        outfile.variables['x'][:] = points[:,0] #- geo_ref.get_xllcorner()
+        outfile.variables['y'][:] = points[:,1] #- geo_ref.get_yllcorner()
+        outfile.variables['z'][:] = elevation
+        outfile.variables['elevation'][:] = elevation  #FIXME HACK4
+
+        q = 'elevation'
+        # This updates the _range values
+        outfile.variables[q+Write_sts.RANGE][0] = min(elevation)
+        outfile.variables[q+Write_sts.RANGE][1] = max(elevation)
+
+    def store_quantities(self, outfile, sts_precision=Float32,
+                         slice_index=None, time=None,
+                         verbose=False, **quant):
+        
+        """
+        Write the quantity info.
+
+        **quant is extra keyword arguments passed in. These must be
+          the sts quantities, currently; stage.
+        
+        if the time array is already been built, use the slice_index
+        to specify the index.
+        
+        Otherwise, use time to increase the time dimension
+
+        Maybe make this general, but the viewer assumes these quantities,
+        so maybe we don't want it general - unless the viewer is general
+        
+        precondition:
+            triangulation and
+            header have been called.
+        """
+        if time is not None:
+            file_time = outfile.variables['time']
+            slice_index = len(file_time)
+            file_time[slice_index] = time    
+
+        # Write the conserved quantities from Domain.
+        # Typically stage,  xmomentum, ymomentum
+        # other quantities will be ignored, silently.
+        # Also write the ranges: stage_range
+        for q in Write_sts.sts_quantities:
+            if not quant.has_key(q):
+                msg = 'STS file can not write quantity %s' %q
+                raise NewQuantity, msg
+            else:
+                q_values = quant[q]
+                outfile.variables[q][slice_index] = \
+                                q_values.astype(sts_precision)
+
+                # This updates the _range values
+                q_range = outfile.variables[q+Write_sts.RANGE][:]
+                q_values_min = min(q_values)
+                if q_values_min < q_range[0]:
+                    outfile.variables[q+Write_sts.RANGE][0] = q_values_min
+                q_values_max = max(q_values)
+                if q_values_max > q_range[1]:
+                    outfile.variables[q+Write_sts.RANGE][1] = q_values_max
+
+
     
 class Urs_points:
     """
