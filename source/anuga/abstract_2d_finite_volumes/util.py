@@ -18,7 +18,7 @@ from Numeric import arange, choose, zeros, Float, array
     
 from anuga.geospatial_data.geospatial_data import ensure_absolute
 from math import sqrt, atan, degrees
-
+from exceptions import IOError
 
 
 # FIXME (Ole): Temporary short cuts - remove and update scripts where they are used
@@ -178,10 +178,10 @@ def _file_function(filename,
 
     try:
         fid = open(filename)
-    except Exception, e:
+    except IOError, e:
         msg = 'File "%s" could not be opened: Error="%s"'\
                   %(filename, e)
-        raise msg
+        raise IOError, msg # So IOErrors can be caught
 
     line = fid.readline()
     fid.close()

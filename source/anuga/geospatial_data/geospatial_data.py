@@ -727,9 +727,8 @@ class Geospatial_data:
         """Read in the header, number_of_points and save the
         file pointer position
         """
-
         from Scientific.IO.NetCDF import NetCDFFile
-        
+        #print "Starting to block"
         #FIXME - what to do if the file isn't there
 
         # FIXME (Ole): Shouldn't this go into the constructor?
@@ -738,7 +737,6 @@ class Geospatial_data:
         # 
         if self.max_read_lines is None:
             self.max_read_lines = MAX_READ_LINES
-        
         if self.file_name[-4:] == ".pts":
             
             # See if the file is there.  Throw a QUIET IO error if it isn't
@@ -832,6 +830,7 @@ class Geospatial_data:
         else:
             # Assume the file is a csv file
             try:
+                #print "self.max_read_lines", self.max_read_lines
                 pointlist, att_dict, geo_ref, self.file_pointer = \
                    _read_csv_file_blocking( self.file_pointer,
                                             self.header[:],

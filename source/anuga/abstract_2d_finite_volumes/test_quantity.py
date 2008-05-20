@@ -883,9 +883,10 @@ class Test_Quantity(unittest.TestCase):
         os.remove(txt_file)
         os.remove(pts_file)
         
-    def verbose_test_set_values_from_UTM_pts(self):
+    def test_set_values_from_UTM_pts(self):
         quantity = Quantity(self.mesh_onslow)
 
+        VERBOSE = False # Change this to True to see output
         #Get (enough) datapoints
         data_points = [[-21.5, 114.5],[-21.4, 114.6],[-21.45,114.65],
                        [-21.35, 114.65],[-21.45, 114.55],[-21.45,114.6],
@@ -940,7 +941,7 @@ class Test_Quantity(unittest.TestCase):
 
         #Check that values can be set from file
         quantity.set_values_from_file(pts_file, att, 0,
-                                      'vertices', None, verbose = True,
+                                      'vertices', None, verbose = VERBOSE,
                                       max_read_lines=2)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
         #print "quantity.vertex_values.flat", quantity.vertex_values.flat
@@ -948,7 +949,7 @@ class Test_Quantity(unittest.TestCase):
         assert allclose(quantity.vertex_values.flat, answer)
 
         #Check that values can be set from file
-        quantity.set_values(filename = pts_file,
+        quantity.set_values(filename = pts_file, verbose = VERBOSE,
                             attribute_name = att, alpha = 0)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
         #print "quantity.vertex_values.flat", quantity.vertex_values.flat
@@ -960,6 +961,11 @@ class Test_Quantity(unittest.TestCase):
         quantity.set_values(filename = txt_file, alpha = 0)
         assert allclose(quantity.vertex_values.flat, answer)
 
+        #Check that values can be block read from a text file
+        quantity.set_values_from_file(txt_file, att, 0,
+                                      'vertices', None, verbose = VERBOSE,
+                                      max_read_lines=2)
+        
         #Cleanup
         import os
         os.remove(txt_file)
@@ -2347,5 +2353,5 @@ if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Quantity, 'test_set_values_from_UTM')
     #print "restricted test"
     #suite = unittest.makeSuite(Test_Quantity,'verbose_test_set_values_from_UTM_pts')
-    runner = unittest.TextTestRunner()
+    runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)

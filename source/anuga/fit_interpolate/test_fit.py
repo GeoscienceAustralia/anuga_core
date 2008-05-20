@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+"""
+Note, fitting/blocking is also tested in
+test_quantity.test_set_values_from_UTM_pts.
+"""
+
 #TEST
 import sys
 import unittest

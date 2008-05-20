@@ -1,6 +1,7 @@
 """Least squares fitting.
 
    Implements a penalised least-squares fit.
+   putting point data onto the mesh.
 
    The penalty term (or smoothing term) is controlled by the smoothing
    parameter alpha.
