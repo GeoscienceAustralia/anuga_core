@@ -174,9 +174,12 @@ class Geospatial_data:
                     print 'Data will be loaded blockwise on demand'
 
                     if file_name.endswith('csv') or file_name.endswith('txt'):
-                        print 'ASCII formats are not that great for '
-                        print 'blockwise reading. Consider storing this'
-                        print 'data as a pts NetCDF format'
+                        pass
+                        # This message was misleading.
+                        # FIXME (Ole): Are we blocking here or not?
+                        #print 'ASCII formats are not that great for '
+                        #print 'blockwise reading. Consider storing this'
+                        #print 'data as a pts NetCDF format'
 
     def __len__(self):
         return len(self.data_points)
