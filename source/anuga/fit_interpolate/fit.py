@@ -40,12 +40,13 @@ from anuga.fit_interpolate.search_functions import search_tree_of_vertices
 
 from anuga.utilities.cg_solve import conjugate_gradient
 from anuga.utilities.numerical_tools import ensure_numeric, gradient
+from anuga.config import default_smoothing_parameter as DEFAULT_ALPHA
 
 import exceptions
 class TooFewPointsError(exceptions.Exception): pass
 class VertsWithNoTrianglesError(exceptions.Exception): pass
 
-DEFAULT_ALPHA = 0.001
+#DEFAULT_ALPHA = 0.001
 
 
 class Fit(FitInterpolate):
@@ -93,7 +94,6 @@ class Fit(FitInterpolate):
         """
         # Initialise variabels
         if alpha is None:
-
             self.alpha = DEFAULT_ALPHA
         else:    
             self.alpha = alpha

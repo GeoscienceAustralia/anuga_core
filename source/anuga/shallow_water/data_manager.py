@@ -3918,9 +3918,9 @@ def _get_min_max_indexes(latitudes_ref,longitudes_ref,
 
     assert allclose(sort(longitudes), longitudes)
 
-    print latitudes[0],longitudes[0]
-    print len(latitudes),len(longitudes)
-    print latitudes[len(latitudes)-1],longitudes[len(longitudes)-1]
+    #print latitudes[0],longitudes[0]
+    #print len(latitudes),len(longitudes)
+    #print latitudes[len(latitudes)-1],longitudes[len(longitudes)-1]
     
     lat_ascending = True
     if not allclose(sort(latitudes), latitudes):
