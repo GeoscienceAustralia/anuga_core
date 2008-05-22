@@ -4,7 +4,7 @@
 
 import unittest
 import copy
-from Numeric import zeros, array, allclose, Float
+from Numeric import zeros, array, allclose, Float, Int, ones,transpose
 from anuga.utilities.numerical_tools import mean
 import tempfile
 import os
@@ -75,7 +75,6 @@ class Test_Data_Manager(unittest.TestCase):
 
         domain.distribute_to_vertices_and_edges()		
         self.initial_stage = copy.copy(domain.quantities['stage'].vertex_values)
-
 
 
         self.domain = domain
@@ -5976,10 +5975,9 @@ friction  \n \
         #print "sww_file", sww_file
         os.remove(sww_file)
         
-
     def write_mux2(self,lat_long_points, time_step_count, time_step,
-                  depth=None, ha=None, ua=None, va=None
-                  ):
+                   first_tstep, last_tstep,
+                   depth=None, ha=None, ua=None, va=None):
         """
         This will write 3 non-gridded mux files, for testing.
         If no quantities are passed in,
@@ -6001,44 +5999,62 @@ friction  \n \
         mux_names = [WAVEHEIGHT_MUX2_LABEL,
                      EAST_VELOCITY_MUX2_LABEL,
                      NORTH_VELOCITY_MUX2_LABEL]
+
+        msg='first_tstep and last_step arrays must have same length as number of points'
+        assert len(first_tstep)==points_num,msg
+        assert len(last_tstep)==points_num,msg
+
+        if depth is not None:
+            depth=ensure_numeric(depth)
+            assert len(depth)==points_num
+        if ha is not None:
+            ha=ensure_numeric(ha)
+            assert ha.shape==(points_num,time_step_count)
+        if ua is not None:
+            ua=ensure_numeric(ua)
+            assert ua.shape==(points_num,time_step_count)
+        if va is not None:
+            va=ensure_numeric(va)
+            assert va.shape==(points_num,time_step_count)
+
         quantities_init = [[],[],[]]
         # urs binary is latitude fastest
-        for point in lat_long_points:
+        for i,point in enumerate(lat_long_points):
             lat = point[0]
             lon = point[1]
             _ , e, n = redfearn(lat, lon)
             if depth is None:
                 this_depth = n
             else:
-                this_depth = depth
+                this_depth = depth[i]
+            latlondeps.append([lat, lon, this_depth])
+
             if ha is None:
                 this_ha = e
+                quantities_init[0].append(ones(time_step_count,Float)*this_ha) # HA
             else:
-                this_ha = ha
+                quantities_init[0].append(ha[i])
             if ua is None:
                 this_ua = n
+                quantities_init[1].append(ones(time_step_count,Float)*this_ua) # UA
             else:
-                this_ua = ua
+                quantities_init[1].append(ua[i])
             if va is None:
-                this_va = e   
+                this_va = e
+                quantities_init[2].append(ones(time_step_count,Float)*this_va) #
             else:
-                this_va = va         
-            latlondeps.append([lat, lon, this_depth])
-            quantities_init[0].append(this_ha) # HA
-            quantities_init[1].append(this_ua) # UA
-            quantities_init[2].append(this_va) # VA
+                quantities_init[2].append(va[i])            
 
         file_handle, base_name = tempfile.mkstemp("")
         os.close(file_handle)
         os.remove(base_name)
 
         files = []        
-        for i,q in enumerate(quantities): 
-            quantities_init[i] = ensure_numeric(quantities_init[i])
-            #print "HA_init", HA_init
+        for i,q in enumerate(quantities):
             q_time = zeros((time_step_count, points_num), Float)
+            quantities_init[i] = ensure_numeric(quantities_init[i])
             for time in range(time_step_count):
-                q_time[time,:] = quantities_init[i] #* time * 4
+                q_time[time,:]=quantities_init[i][:,time]
 
             #Write C files
             columns = 3 # long, lat , depth
@@ -6068,45 +6084,60 @@ friction  \n \
                 for j in range(4): # identifier
                     f.write(pack('f',id))    
 
-            first_tstep=1
-            last_tstep=time_step_count
-            for latlondep in latlondeps:
-                f.write(pack('i',first_tstep))
-            for latlondep in latlondeps:
-                f.write(pack('i',last_tstep))
+            #first_tstep=1
+            #last_tstep=time_step_count
+            for i,latlondep in enumerate(latlondeps):
+                f.write(pack('i',first_tstep[i]))
+            for i,latlondep in enumerate(latlondeps):
+                f.write(pack('i',last_tstep[i]))
 
-            # Write quantity info
+            # Find when first station starts recording
+            min_tstep = min(first_tstep)
+            # Find when all stations have stoped recording
+            max_tstep = max(last_tstep)
 
-            for time in  range(time_step_count):
-                #first timestep always assumed to be zero
-                f.write(pack('f',0.0))
-                for point_i in range(points_num):
-                    f.write(pack('f',q_time[time,point_i]))
+            #for time in  range(time_step_count):
+            for time in range(min_tstep-1,max_tstep):
+                    f.write(pack('f',time*time_step))                
+                    for point_i in range(points_num):
+                        if time+1>=first_tstep[point_i] and time+1<=last_tstep[point_i]:
+                            f.write(pack('f',q_time[time,point_i]))
 
-            f.close()
         return base_name, files
 
     def test_read_mux2_py(self):
-        from Numeric import ones,Float
+        """Constant stage,momentum at each gauge
+        """
         tide = 1
         time_step_count = 3
         time_step = 2
         lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
-        depth=20
-        ha=2
-        ua=5
-        va=-10 #-ve added to take into account mux file format where south
-               # is positive.
+        n=len(lat_long_points)
+        first_tstep=ones(n,Int)
+        last_tstep=time_step_count*ones(n,Int)
+        depth=20*ones(n,Float)
+        ha=2*ones((n,time_step_count),Float)
+        ua=5*ones((n,time_step_count),Float)
+        va=-10*ones((n,time_step_count),Float)
+        #-ve added to take into account mux file format where south is positive.
         base_name, files = self.write_mux2(lat_long_points,
-                                     time_step_count, time_step,
-                                     depth=depth,
-                                     ha=ha,
-                                     ua=ua,
-                                     va=va)
+                                      time_step_count, time_step,
+                                      first_tstep, last_tstep,
+                                      depth=depth,
+                                      ha=ha,
+                                      ua=ua,
+                                      va=va)
 
         weights=ones(1,Float)
         #ensure that files are indeed mux2 files
         times, latitudes, longitudes, elevation, stage=read_mux2_py([files[0]],weights)
+        ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity=read_mux2_py([files[1]],weights)
+        msg='ha and ua have different gauge meta data'
+        assert allclose(times,ua_times) and allclose(latitudes,ua_latitudes) and allclose(longitudes,ua_longitudes) and allclose(elevation,ua_elevation),msg
+        va_times, va_latitudes, va_longitudes, va_elevation, yvelocity=read_mux2_py([files[2]],weights)
+        msg='ha and va have different gauge meta data'
+        assert allclose(times,va_times) and allclose(latitudes,va_latitudes) and allclose(longitudes,va_longitudes) and allclose(elevation,va_elevation),msg
+
         self.delete_mux(files)
 
         msg='time array has incorrect length'
@@ -6116,14 +6147,148 @@ friction  \n \
         msg='Incorrect gauge positions returned'
         for i,point in enumerate(lat_long_points):
             assert allclose(latitudes[i],point[0]) and allclose(longitudes[i],point[1]),msg
+
         msg='Incorrect gauge depths returned'
-        assert allclose(elevation,-depth*ones(len(lat_long_points),Float)),msg
-        msg='incorrect gauge time series returned'
-        assert allclose(stage,ha*ones((len(lat_long_points),time_step_count),Float))
+        assert allclose(elevation,-depth),msg
+        msg='incorrect gauge height time series returned'
+        assert allclose(stage,ha)
+        msg='incorrect gauge ua time series returned'
+        assert allclose(xvelocity,ua)
+        msg='incorrect gauge va time series returned'
+        assert allclose(yvelocity,va)
+
+    def test_read_mux2_py2(self):
+        """Spatially varing stage
+        """
+        tide = 1
+        time_step_count = 3
+        time_step = 2
+        lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
+        n=len(lat_long_points)
+        first_tstep=ones(n,Int)
+        last_tstep=(time_step_count)*ones(n,Int)
+        depth=20*ones(n,Float)
+        ha=2*ones((n,time_step_count),Float)
+        ha[0]=arange(0,time_step_count)+1
+        ha[1]=time_step_count-arange(1,time_step_count+1)
+        ha[1]=arange(time_step_count,2*time_step_count)
+        ha[2]=arange(2*time_step_count,3*time_step_count)
+        ha[3]=arange(3*time_step_count,4*time_step_count)
+        ua=5*ones((n,time_step_count),Float)
+        va=-10*ones((n,time_step_count),Float)
+        #-ve added to take into account mux file format where south is positive.
+        base_name, files = self.write_mux2(lat_long_points,
+                                      time_step_count, time_step,
+                                      first_tstep, last_tstep,
+                                      depth=depth,
+                                      ha=ha,
+                                      ua=ua,
+                                      va=va)
+
+        weights=ones(1,Float)
+        #ensure that files are indeed mux2 files
+        times, latitudes, longitudes, elevation, stage=read_mux2_py([files[0]],weights)
+        ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity=read_mux2_py([files[1]],weights)
+        msg='ha and ua have different gauge meta data'
+        assert allclose(times,ua_times) and allclose(latitudes,ua_latitudes) and allclose(longitudes,ua_longitudes) and allclose(elevation,ua_elevation),msg
+        va_times, va_latitudes, va_longitudes, va_elevation, yvelocity=read_mux2_py([files[2]],weights)
+        msg='ha and va have different gauge meta data'
+        assert allclose(times,va_times) and allclose(latitudes,va_latitudes) and allclose(longitudes,va_longitudes) and allclose(elevation,va_elevation),msg
+
+
+        self.delete_mux(files)
+
+        msg='time array has incorrect length'
+        #assert times.shape[0]==time_step_count,msg
+        msg = 'time array is incorrect'
+        #assert allclose(times,time_step*arange(1,time_step_count+1)),msg
+        msg='Incorrect gauge positions returned'
+        for i,point in enumerate(lat_long_points):
+            assert allclose(latitudes[i],point[0]) and allclose(longitudes[i],point[1]),msg
+
+        msg='Incorrect gauge depths returned'
+        assert allclose(elevation,-depth),msg
+        msg='incorrect gauge height time series returned'
+        assert allclose(stage,ha)
+        msg='incorrect gauge ua time series returned'
+        assert allclose(xvelocity,ua)
+        msg='incorrect gauge va time series returned'
+        assert allclose(yvelocity,va)
+
+    def test_read_mux2_py3(self):
+        """Varying start and finsh times
+        """
+        tide = 1
+        time_step_count = 3
+        time_step = 2
+        lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
+        n=len(lat_long_points)
+        first_tstep=ones(n,Int)
+        first_tstep[0]+=1
+        first_tstep[2]+=1
+        last_tstep=(time_step_count)*ones(n,Int)
+        last_tstep[0]-=1
+
+        depth=20*ones(n,Float)
+        ha=2*ones((n,time_step_count),Float)
+        ha[0]=arange(0,time_step_count)
+        ha[1]=arange(time_step_count,2*time_step_count)
+        ha[2]=arange(2*time_step_count,3*time_step_count)
+        ha[3]=arange(3*time_step_count,4*time_step_count)
+        ua=5*ones((n,time_step_count),Float)
+        va=-10*ones((n,time_step_count),Float)
+        #-ve added to take into account mux file format where south is positive.
+        base_name, files = self.write_mux2(lat_long_points,
+                                      time_step_count, time_step,
+                                      first_tstep, last_tstep,
+                                      depth=depth,
+                                      ha=ha,
+                                      ua=ua,
+                                      va=va)
+
+        weights=ones(1,Float)
+        #ensure that files are indeed mux2 files
+        times, latitudes, longitudes, elevation, stage=read_mux2_py([files[0]],weights)
+        ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity=read_mux2_py([files[1]],weights)
+        msg='ha and ua have different gauge meta data'
+        assert allclose(times,ua_times) and allclose(latitudes,ua_latitudes) and allclose(longitudes,ua_longitudes) and allclose(elevation,ua_elevation),msg
+        va_times, va_latitudes, va_longitudes, va_elevation, yvelocity=read_mux2_py([files[2]],weights)
+        msg='ha and va have different gauge meta data'
+        assert allclose(times,va_times) and allclose(latitudes,va_latitudes) and allclose(longitudes,va_longitudes) and allclose(elevation,va_elevation),msg
+
+        self.delete_mux(files)
+
+        msg='time array has incorrect length'
+        #assert times.shape[0]==time_step_count,msg
+        msg = 'time array is incorrect'
+        #assert allclose(times,time_step*arange(1,time_step_count+1)),msg
+        msg='Incorrect gauge positions returned'
+        for i,point in enumerate(lat_long_points):
+            assert allclose(latitudes[i],point[0]) and allclose(longitudes[i],point[1]),msg
+
+
+        # Set original data used to write mux file to be zero when gauges are 
+        #not recdoring
+        ha[0][0]=0.0
+        ha[0][time_step_count-1]=0.0;
+        ha[2][0]=0.0;
+        ua[0][0]=0.0
+        ua[0][time_step_count-1]=0.0;
+        ua[2][0]=0.0;
+        va[0][0]=0.0
+        va[0][time_step_count-1]=0.0;
+        va[2][0]=0.0;
+        msg='Incorrect gauge depths returned'
+        assert allclose(elevation,-depth),msg
+        msg='incorrect gauge height time series returned'
+        assert allclose(stage,ha)
+        msg='incorrect gauge ua time series returned'
+        assert allclose(xvelocity,ua)
+        msg='incorrect gauge va time series returned'
+        assert allclose(yvelocity,va)
 
     def test_urs2sts(self):
-        from Numeric import ones,Float
-        tide = 1
+        """tide = 1
         time_step_count = 3
         time_step = 2
         lat_long = [[-21.5,114.5],[-21,114.5],[-21,115]]
@@ -6132,12 +6297,35 @@ friction  \n \
         ua=5
         va=-10 #-ve added to take into account mux file format where south
                # is positive.
-        base_name, files = self.write_mux2(lat_long,
-                                     time_step_count, time_step,
-                                     depth=depth,
-                                     ha=ha,
-                                     ua=ua,
-                                     va=va)
+        """
+        #tide = 1
+        tide=0
+        time_step_count = 3
+        time_step = 2
+        lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
+        n=len(lat_long_points)
+        first_tstep=ones(n,Int)
+        first_tstep[0]+=1
+        first_tstep[2]+=1
+        last_tstep=(time_step_count)*ones(n,Int)
+        last_tstep[0]-=1
+
+        gauge_depth=20*ones(n,Float)
+        ha=2*ones((n,time_step_count),Float)
+        ha[0]=arange(0,time_step_count)
+        ha[1]=arange(time_step_count,2*time_step_count)
+        ha[2]=arange(2*time_step_count,3*time_step_count)
+        ha[3]=arange(3*time_step_count,4*time_step_count)
+        ua=5*ones((n,time_step_count),Float)
+        va=-10*ones((n,time_step_count),Float)
+        #-ve added to take into account mux file format where south is positive.
+        base_name, files = self.write_mux2(lat_long_points,
+                                      time_step_count, time_step,
+                                      first_tstep, last_tstep,
+                                      depth=gauge_depth,
+                                      ha=ha,
+                                      ua=ua,
+                                      va=va)
 
         urs2sts(base_name,mean_stage=tide,verbose=False)
 
@@ -6161,7 +6349,7 @@ friction  \n \
 
         #Check that first coordinate is correctly represented       
         #Work out the UTM coordinates for first point
-        zone, e, n = redfearn(lat_long[0][0], lat_long[0][1]) 
+        zone, e, n = redfearn(lat_long_points[0][0], lat_long_points[0][1]) 
         assert allclose([x[0],y[0]], [e,n])
 
         #Check the time vector
@@ -6179,38 +6367,41 @@ friction  \n \
         xmomentum = fid.variables['xmomentum'][:]
         ymomentum = fid.variables['ymomentum'][:]
         elevation = fid.variables['elevation'][:]
-        assert allclose(stage[0,0], ha+tide)  #Meters
 
+        # Set original data used to write mux file to be zero when gauges are
+        #not recdoring
+        ha[0][0]=0.0
+        ha[0][time_step_count-1]=0.0;
+        ha[2][0]=0.0;
+        ua[0][0]=0.0
+        ua[0][time_step_count-1]=0.0;
+        ua[2][0]=0.0;
+        va[0][0]=0.0
+        va[0][time_step_count-1]=0.0;
+        va[2][0]=0.0;
+
+        assert allclose(transpose(ha),stage)  #Meters
 
         #Check the momentums - ua
         #momentum = velocity*(stage-elevation)
         # elevation = - depth
         #momentum = velocity_ua *(stage+depth)
 
-        answer_x = ua*(ha+tide+depth)
-        actual_x = xmomentum[0,0]
-        #print "answer_x",answer_x
-        #print "actual_x",actual_x 
-        assert allclose(answer_x, actual_x)  #Meters
+        depth=zeros((len(lat_long_points),time_step_count),Float)
+        for i in range(len(lat_long_points)):
+            depth[i]=gauge_depth[i]+tide+ha[i]
+        assert allclose(transpose(ua*depth),xmomentum) 
 
         #Check the momentums - va
         #momentum = velocity*(stage-elevation)
         # elevation = - depth
         #momentum = velocity_va *(stage+depth)
 
-        answer_y = va*(ha+tide+depth)
-        actual_y = ymomentum[0,0]
-        #print "answer_y",answer_y
-        #print "actual_y",actual_y 
-        assert allclose(answer_y, actual_y)  #Meters
+        assert allclose(transpose(va*depth),ymomentum)
 
-        # check the stage values, first time step.
-        assert allclose(stage[0], ha +tide)  #Meters
         # check the elevation values.
         # -ve since urs measures depth, sww meshers height,
-        # these arrays are equal since the northing values were used as
-        # the elevation
-        assert allclose(-elevation, depth)  #Meters
+        assert allclose(-elevation, gauge_depth)  #Meters
 
         fid.close()
         self.delete_mux(files)

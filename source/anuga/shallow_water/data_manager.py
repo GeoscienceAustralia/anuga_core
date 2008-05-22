@@ -4840,7 +4840,7 @@ def read_mux2_py(filenames,weights=None):
         weights=ones(len(filenames),Float)/len(filenames) #default 1/numSrc
 
     file_params=-1*ones(3,Float)#[nsta,dt,nt]
-    write=1 #write txt files to current directory as well
+    write=0 #if true write txt files to current directory as well
     data=read_mux2(1,filenames,weights,file_params,write)
 
     msg='File parameter values were not read in correctly from c file'
@@ -4865,14 +4865,14 @@ def read_mux2_py(filenames,weights=None):
     latitudes=zeros(data.shape[0],Float)
     longitudes=zeros(data.shape[0],Float)
     elevation=zeros(data.shape[0],Float)
-    stage=zeros((data.shape[0],data.shape[1]-OFFSET),Float)
+    quantity=zeros((data.shape[0],data.shape[1]-OFFSET),Float)
     for i in range(0,data.shape[0]):
         latitudes[i]=data[i][data.shape[1]-OFFSET]
         longitudes[i]=data[i][data.shape[1]-OFFSET+1]
         elevation[i]=-data[i][data.shape[1]-OFFSET+2]
-        stage[i]=data[i][:-OFFSET]
+        quantity[i]=data[i][:-OFFSET]
 
-    return times, latitudes, longitudes, elevation, stage
+    return times, latitudes, longitudes, elevation, quantity
 
 def mux2sww_time(mux_times, mint, maxt):
     """
@@ -4940,6 +4940,11 @@ def urs2sts(basename_in, basename_out = None, verbose = False, origin = None,
                 basename_in + NORTH_VELOCITY_MUX2_LABEL]
     quantities = ['HA','UA','VA']
 
+    for file_in in files_in:
+        if (os.access(file_in, os.F_OK) == 0):
+            msg = 'File %s does not exist or is not accessible' %file_in
+            raise IOError, msg
+
     #need to do this for velocity-e-mux2 and velocity-n-mux2 files as well
     #for now set x_momentum and y_moentum quantities to zero
     if (verbose): print 'reading mux2 file'
@@ -4958,6 +4963,7 @@ def urs2sts(basename_in, basename_out = None, verbose = False, origin = None,
         elevation_old=elevation
         
     if (minlat is not None) and (minlon is not None) and (maxlat is not None) and (maxlon is not None):
+        if verbose: print 'Cliiping urs data'
         latitudes = compress((latitudes_urs>=minlat)&(latitudes_urs<=maxlat)&(longitudes_urs>=minlon)&(longitudes_urs<=maxlon),latitudes_urs)
         longitudes = compress((latitudes_urs>=minlat)&(latitudes_urs<=maxlat)&(longitudes_urs>=minlon)&(longitudes_urs<=maxlon),longitudes_urs)
         times = compress((latitudes_urs>=minlat)&(latitudes_urs<=maxlat)&(longitudes_urs>=minlon)&(longitudes_urs<=maxlon),times_urs)
@@ -4965,6 +4971,9 @@ def urs2sts(basename_in, basename_out = None, verbose = False, origin = None,
         latitudes=latitudes_urs
         longitudes=longitudes_urs
         times=times_urs
+
+    msg='File is empty and or clipped region not in file region'
+    assert len(latitudes>0),msg
 
     number_of_points = latitudes.shape[0]
     number_of_times = times.shape[0]
@@ -4995,7 +5004,8 @@ def urs2sts(basename_in, basename_out = None, verbose = False, origin = None,
         zone, easting, northing = redfearn(latitudes[i],longitudes[i])
         x[i] = easting
         y[i] = northing
-        #print zone,easting,northing
+        msg='all sts gauges need to be in the same zone'
+        assert zone==refzone,msg
 
     if origin is None:
         origin = Geo_reference(refzone,min(x),min(y))
@@ -5027,7 +5037,6 @@ def urs2sts(basename_in, basename_out = None, verbose = False, origin = None,
             ymomentum[j,i] = mux['VA'][i,j]*h
 
     outfile.close()
-
 
 class Write_sww:
     from anuga.shallow_water.shallow_water_domain import Domain
