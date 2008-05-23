@@ -41,22 +41,34 @@ See doc strings of individual functions for detailed documentation.
 
 # Determine platform
 #
+from os import getenv
+
 import os
 if os.name in ['nt', 'dos', 'win32', 'what else?']:
   unix = 0
 else:
   unix = 1
 
+cache_dir = '.python_cache'
 # Make default caching directory name
 #
 if unix:
-  homedir = '~'
+  homedir = getenv('INUNDATIONHOME')
+  if homedir is None:
+    homedir = '~'
+  else:
+    homedir = homedir + os.sep + '.cache'
+    # Since homedir will be a group area, individually label the caches
+    user = getenv('LOGNAME')
+    if user is not None:
+      cache_dir += '_' + user
+    
   CR = '\n'
 else:
   homedir = 'c:'
   CR = '\r\n'  #FIXME: Not tested under windows
   
-cachedir = homedir + os.sep + '.python_cache' + os.sep
+cachedir = homedir + os.sep + cache_dir + os.sep
 
 # -----------------------------------------------------------------------------
 # Options directory with default values - to be set by user
@@ -2412,3 +2424,7 @@ def test_error(msg):
   #import sys
   #sys.exit()
   raise StandardError
+
+#-------------------------------------------------------------
+if __name__ == "__main__":
+  pass
