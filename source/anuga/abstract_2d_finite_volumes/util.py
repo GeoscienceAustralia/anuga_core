@@ -18,7 +18,7 @@ from Numeric import arange, choose, zeros, Float, array
     
 from anuga.geospatial_data.geospatial_data import ensure_absolute
 from math import sqrt, atan, degrees
-from exceptions import IOError
+
 
 
 # FIXME (Ole): Temporary short cuts - remove and update scripts where they are used
@@ -109,7 +109,6 @@ def file_function(filename,
     # if domain is passed in as instances change hash code.
     # Instead we pass in those attributes that are needed (and return them
     # if modified)
-
     kwargs = {'quantities': quantities,
               'interpolation_points': interpolation_points,
               'domain_starttime': domain_starttime,
@@ -178,10 +177,10 @@ def _file_function(filename,
 
     try:
         fid = open(filename)
-    except IOError, e:
+    except Exception, e:
         msg = 'File "%s" could not be opened: Error="%s"'\
                   %(filename, e)
-        raise IOError, msg # So IOErrors can be caught
+        raise msg
 
     line = fid.readline()
     fid.close()
@@ -243,14 +242,12 @@ def get_netcdf_file_function(filename,
         msg = 'No quantities are specified in file_function'
         raise Exception, msg
 
-
+ 
     if interpolation_points is not None:
         interpolation_points = ensure_absolute(interpolation_points)
         msg = 'Points must by N x 2. I got %d' %interpolation_points.shape[1]
         assert interpolation_points.shape[1] == 2, msg
 
-    if verbose:
-        print 'File_function using quantities %s from file %s' %(str(quantity_names), filename)
 
     # Now assert that requested quantitites (and the independent ones)
     # are present in file 
@@ -272,12 +269,17 @@ def get_netcdf_file_function(filename,
             spatial = False
 
     if filename[-3:] == 'tms' and spatial is True:
-        msg = 'Files of type tms must not contain spatial information'
+        msg = 'Files of type tms must not contain spatial  information'
         raise msg
 
     if filename[-3:] == 'sww' and spatial is False:
         msg = 'Files of type sww must contain spatial information'        
-        raise msg        
+        raise msg
+
+    if filename[-3:] == 'sts' and spatial is False:
+        #What if mux file only contains one point
+        msg = 'Files of type sts must contain spatial information'        
+        raise msg
 
     # Get first timestep
     try:
@@ -299,7 +301,8 @@ def get_netcdf_file_function(filename,
 
         x = fid.variables['x'][:]
         y = fid.variables['y'][:]
-        triangles = fid.variables['volumes'][:]
+        if filename[-3:] == 'sww':
+            triangles = fid.variables['volumes'][:]
 
         x = reshape(x, (len(x),1))
         y = reshape(y, (len(y),1))
@@ -307,13 +310,8 @@ def get_netcdf_file_function(filename,
 
         if interpolation_points is not None:
             # Adjust for georef
-
-            # FIXME (Ole): Use geo_reference.get_relative
             interpolation_points[:,0] -= xllcorner
             interpolation_points[:,1] -= yllcorner        
-        
-
-
 
     if domain_starttime is not None:
 
@@ -349,8 +347,10 @@ def get_netcdf_file_function(filename,
     from anuga.fit_interpolate.interpolate import Interpolation_function
 
     if not spatial:
-        vertex_coordinates = triangles = interpolation_points = None         
-
+        vertex_coordinates = triangles = interpolation_points = None
+    if filename[-3:] == 'sts':#added
+        triangles = None
+        #vertex coordinates is position of urs gauges
 
     # Return Interpolation_function instance as well as
     # starttime for use to possible modify that of domain
@@ -781,7 +781,6 @@ def _sww2timeseries(swwfiles,
         
         #print 'label', label
         leg_label.append(label)
-
 
         
 
@@ -2144,10 +2143,10 @@ def sww2csv_gauges(sww_file,
 #        print 'sww_file',sww_file, core_quantities
         
         callable_sww = file_function(sww_file,
-                                     quantities=core_quantities,
-                                     interpolation_points=points_array,
-                                     verbose=verbose,
-                                     use_cache=use_cache)
+                                 quantities=core_quantities,
+                                 interpolation_points=points_array,
+                                 verbose=verbose,
+                                 use_cache=use_cache)
 
     gauge_file='gauge_'
 

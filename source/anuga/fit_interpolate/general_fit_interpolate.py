@@ -91,31 +91,35 @@ class FitInterpolate:
         if max_vertices_per_cell == None:
             max_vertices_per_cell = MAX_VERTICES_PER_CELL
         if mesh is None:
-            # Fixme (DSG) Throw errors if triangles or vertex_coordinates
-            # are None
+            if vertex_coordinates is not None and  triangles is not None:
+                # Fixme (DSG) Throw errors if triangles or vertex_coordinates
+                # are None
             
-            #Convert input to Numeric arrays
-            triangles = ensure_numeric(triangles, Int)
-            vertex_coordinates = ensure_absolute(vertex_coordinates,
+                #Convert input to Numeric arrays
+                triangles = ensure_numeric(triangles, Int)
+                vertex_coordinates = ensure_absolute(vertex_coordinates,
                                                  geo_reference = mesh_origin)
 
-            if verbose: print 'FitInterpolate: Building mesh'        
-            self.mesh = Mesh(vertex_coordinates, triangles)
-            #self.mesh.check_integrity() # Time consuming
+                if verbose: print 'FitInterpolate: Building mesh'        
+                self.mesh = Mesh(vertex_coordinates, triangles)
+                #self.mesh.check_integrity() # Time consuming
+            else:
+                self.mesh = None
         else:
             self.mesh = mesh
+
+        if self.mesh is not None:
+            if verbose: print 'FitInterpolate: Building quad tree'
+            #This stores indices of vertices
+            t0 = time.time()
+            #print "self.mesh.get_extent(absolute=True)", \
+            #self.mesh.get_extent(absolute=True)
+            self.root = build_quadtree(self.mesh,
+                                       max_points_per_cell = max_vertices_per_cell)
+            #print "self.root",self.root.show()
         
-        if verbose: print 'FitInterpolate: Building quad tree'
-        # This stores indices of vertices
-        t0 = time.time()
-        #print "self.mesh.get_extent(absolute=True)", \
-              #self.mesh.get_extent(absolute=True)
-        self.root = build_quadtree(self.mesh,
-                                   max_points_per_cell = max_vertices_per_cell)
-        #print "self.root",self.root.show()
-        
-        build_quadtree_time =  time.time()-t0
-        set_last_triangle()
+            build_quadtree_time =  time.time()-t0
+            set_last_triangle()
         
     def __repr__(self):
         return 'Interpolation object based on: ' + repr(self.mesh)

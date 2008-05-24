@@ -89,6 +89,72 @@ class Interpolate (FitInterpolate):
                                 verbose=verbose,
                                 max_vertices_per_cell=max_vertices_per_cell)
 
+    def interpolate_polyline(self,
+                             f,
+                             vertex_coordinates,
+                             point_coordinates=None,
+                             start_blocking_len=500000,
+                             verbose=False):
+ 
+        if isinstance(point_coordinates, Geospatial_data):
+            point_coordinates = point_coordinates.get_data_points( \
+                absolute = True)
+ 
+        from utilities.polygon import point_on_line,point_on_line_py
+        from Numeric import ones
+        z=ones(len(point_coordinates),Float)
+
+        msg='point coordinates are not given (interpolate.py)'
+        assert point_coordinates is not None, msg
+        msg='function value must be specified at every interpolation node'
+        assert f.shape[0]==vertex_coordinates.shape[0],msg
+        msg='Must define function value at one or more nodes'
+        assert f.shape[0]>0,msg
+
+        #print point_on_line_py(point_coordinates[3],[vertex_coordinates[0],vertex_coordinates[1]])
+        #print vertex_coordinates[0],vertex_coordinates[1]
+
+        #print point_coordinates
+        #print vertex_coordinates
+        n=f.shape[0]
+        if n==1:
+            z=f*z
+        elif n>1:
+            index=0#index of segment on which last point was found
+            k=0#number of points on line
+            for i in range(len(point_coordinates)):
+                found = False
+                #find the segment the cetnroid lies on
+                #Start with the segment the last point was found on
+                #For n points there will be n-1 segments
+                for j in range(n-1):
+                    #print 'searcing segment', index+j
+                    #reached last segment look at first segment
+                    if (index+j)==n-2:
+                        index=0
+                    if point_on_line_py(point_coordinates[i],[vertex_coordinates[(j)+index],vertex_coordinates[(j+1)+index]]):
+                        found=True
+                        x0=vertex_coordinates[j][0];y0=vertex_coordinates[j][1]
+                        x1=vertex_coordinates[j+1][0];y1=vertex_coordinates[j+1][1]
+                        x2=point_coordinates[i][0];y2=point_coordinates[i][1]
+                        
+                        segment_len=sqrt((x1-x0)**2+(y1-y0)**2)
+                        dist=sqrt((x2-x0)**2+(y2-y0)**2)
+                        z[i]=(f[j+1]-f[j])/segment_len*dist+f[j]
+                        #print 'element found on segment',j+index
+                        index=j
+                        break
+                    
+                
+                if not found:
+                    z[i]=0.0
+                    #print 'point not on urs boundary'
+                else:
+                    k+=1
+        #print 'number of midpoints on urs boundary',k
+        #print z
+        return z
+
     # FIXME: What is a good start_blocking_len value?
     def interpolate(self,
                     f,
@@ -528,9 +594,9 @@ class Interpolation_function:
             #this function knows nothing about georefering.
             vertex_coordinates = ensure_absolute(vertex_coordinates)
 
-            assert triangles is not None, 'Triangles array must be specified'
-            triangles = ensure_numeric(triangles)
-            self.spatial = True            
+            if triangles is not None:
+                triangles = ensure_numeric(triangles)
+            self.spatial = True          
 
         # Thin timesteps if needed
         # Note array() is used to make the thinned arrays contiguous in memory
@@ -556,9 +622,10 @@ class Interpolation_function:
             
         # Precomputed spatial interpolation if requested
         if interpolation_points is not None:
-            if self.spatial is False:
-                raise 'Triangles and vertex_coordinates must be specified'
-            
+            #no longer true. sts files have spatial = True but
+            #if self.spatial is False:
+            #    raise 'Triangles and vertex_coordinates must be specified'
+            # 
             try:
 	        self.interpolation_points = interpolation_points = ensure_numeric(interpolation_points)
             except:
@@ -568,51 +635,57 @@ class Interpolation_function:
                                       '...')
                 raise msg
 
+            if triangles is not None and vertex_coordinates is not None:
+                # Check that all interpolation points fall within
+                # mesh boundary as defined by triangles and vertex_coordinates.
+                from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
+                from anuga.utilities.polygon import outside_polygon            
 
-            # Check that all interpolation points fall within
-            # mesh boundary as defined by triangles and vertex_coordinates.
-            from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
-            from anuga.utilities.polygon import outside_polygon            
-
-            # Create temporary mesh object from mesh info passed
-            # into this function. 
-            mesh = Mesh(vertex_coordinates, triangles)
-            mesh_boundary_polygon = mesh.get_boundary_polygon()
+                # Create temporary mesh object from mesh info passed
+                # into this function. 
+                mesh = Mesh(vertex_coordinates, triangles)
+                mesh_boundary_polygon = mesh.get_boundary_polygon()
 
             
-            indices = outside_polygon(interpolation_points,
-                                      mesh_boundary_polygon)
+                indices = outside_polygon(interpolation_points,
+                                          mesh_boundary_polygon)
 
-            # Record result
-            #self.mesh_boundary_polygon = mesh_boundary_polygon
-            self.indices_outside_mesh = indices
+                # Record result
+                #self.mesh_boundary_polygon = mesh_boundary_polygon
+                self.indices_outside_mesh = indices
 
-            # Report
-            if len(indices) > 0:
-                msg = 'Interpolation points in Interpolation function fall ' 
-                msg += 'outside specified mesh. '
-                msg += 'Offending points:\n'
-                out_interp_pts = []
-                for i in indices:
-                    msg += '%d: %s\n' %(i, interpolation_points[i])
-                    out_interp_pts.append(ensure_numeric(interpolation_points[i]))
+                # Report
+                if len(indices) > 0:
+                    msg = 'Interpolation points in Interpolation function fall ' 
+                    msg += 'outside specified mesh. '
+                    msg += 'Offending points:\n'
+                    out_interp_pts = []
+                    for i in indices:
+                        msg += '%d: %s\n' %(i, interpolation_points[i])
+                        out_interp_pts.append(ensure_numeric(interpolation_points[i]))
 
-                if verbose is True:
-                    import sys
-                    if sys.platform == 'win32':
-                        from anuga.utilities.polygon import plot_polygons
-                        #out_interp_pts = take(interpolation_points,[indices])
-                        title = 'Interpolation points fall outside specified mesh'
-                        plot_polygons([mesh_boundary_polygon,interpolation_points,out_interp_pts],
-                                      ['line','point','outside'],figname='points_boundary_out',label=title,verbose=verbose)
+                    if verbose is True:
+                        import sys
+                        if sys.platform == 'win32':
+                            from anuga.utilities.polygon import plot_polygons
+                            #out_interp_pts = take(interpolation_points,[indices])
+                            title = 'Interpolation points fall outside specified mesh'
+                            plot_polygons([mesh_boundary_polygon,interpolation_points,out_interp_pts],
+                                          ['line','point','outside'],figname='points_boundary_out',label=title,verbose=verbose)
 
-                # Joaquim Luis suggested this as an Exception, so
-                # that the user can now what the problem is rather than
-                # looking for NaN's. However, NANs are handy as they can
-                # be ignored leaving good points for continued processing.
-                if verbose:
-                    print msg
-                #raise Exception(msg)
+                    # Joaquim Luis suggested this as an Exception, so
+                    # that the user can now what the problem is rather than
+                    # looking for NaN's. However, NANs are handy as they can
+                    # be ignored leaving good points for continued processing.
+                    if verbose:
+                        print msg
+                    #raise Exception(msg)
+            elif triangles is None and vertex_coordinates is not None:#jj
+                #Dealing with sts file
+                pass
+            else:
+                msg = 'Sww file function requires both triangles and vertex_coordinates. sts file file function requires the later.'
+                raise Exception(msg)
 
             # Plot boundary and interpolation points
             if verbose is True:
@@ -631,9 +704,13 @@ class Interpolation_function:
 
             # Build interpolator
             if verbose:
-                msg = 'Building interpolation matrix from source mesh '
-                msg += '(%d vertices, %d triangles)' %(vertex_coordinates.shape[0],
-                                                       triangles.shape[0])
+                if triangles is not None and vertex_coordinates is not None:
+                    msg = 'Building interpolation matrix from source mesh '
+                    msg += '(%d vertices, %d triangles)' %(vertex_coordinates.shape[0],
+                                                           triangles.shape[0])
+                elif triangles is None and vertex_coordinates is not None:
+                    msg = 'Building interpolation matrix from source points'
+                
                 print msg
 
                 
@@ -664,11 +741,14 @@ class Interpolation_function:
                     if verbose and i%((p+10)/10)==0:
                         print '    quantity %s, size=%d' %(name, len(Q))
                         
-                    # Interpolate    
-                    result = interpol.interpolate(Q,
-                                                  point_coordinates=\
-                                                  self.interpolation_points,
-                                                  verbose=False) # Don't clutter
+                    # Interpolate 
+                    if triangles is not None and vertex_coordinates is not None:   
+                        result = interpol.interpolate(Q,
+                                                      point_coordinates=\
+                                                      self.interpolation_points,
+                                                      verbose=False) # Don't clutter
+                    elif triangles is None and vertex_coordinates is not None:
+                        result=interpol.interpolate_polyline(Q,vertex_coordinates,point_coordinates=self.interpolation_points)
 
                     #assert len(result), len(interpolation_points)
                     self.precomputed_values[name][i, :] = result
