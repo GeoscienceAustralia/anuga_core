@@ -6639,14 +6639,23 @@ friction  \n \
                                        isSouthHemisphere=False)
         #print "seg_lat_long",  poly_lat_long
         
-        #geo=URS_points_needed_to_file('test_example_poly3', poly_lat_long,
+      #   geo=URS_points_needed_to_file('test_example_poly3', poly_lat_long,
+#                                   ZONE,
+#                                   LL_LAT, LL_LONG,
+#                                   GRID_SPACING,
+#                                   LAT_AMOUNT, LONG_AMOUNT,
+#                                   isSouthernHemisphere=False,
+#                                   export_csv=True,
+#                                   verbose=self.verbose)
+        
         geo=URS_points_needed(poly_lat_long,
                                   ZONE,
                                   LL_LAT, LL_LONG,
                                   GRID_SPACING,
                                   LAT_AMOUNT, LONG_AMOUNT,
                                   isSouthHemisphere=False,
-                                  verbose=self.verbose) 
+                                  verbose=self.verbose)
+        
         results = ImmutableSet(geo.get_data_points(as_lat_long=True,
                                   isSouthHemisphere=False))
         #print 'results',results

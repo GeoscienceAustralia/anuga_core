@@ -4437,8 +4437,15 @@ def URS_points_needed_to_file(file_name, boundary_polygon, zone,
     """
     Given the info to replicate the URS grid and a polygon output
     a file that specifies the cloud of boundary points for URS.
+
+    This creates a .urs file.  This is in the format used by URS;
+    1st line is the number of points,
+    each line after represents a point,in lats and longs.
     
     Note: The polygon cannot cross zones or hemispheres.
+
+    A work-a-round for different zones or hemispheres is to run this twice,
+    once for each zone, and then combine the output.
     
     file_name - name of the urs file produced for David.
     boundary_polygon - a list of points that describes a polygon.
