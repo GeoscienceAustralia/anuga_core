@@ -189,7 +189,7 @@ class File_boundary(Boundary):
     # rather than File_boundary
 
     def __init__(self, filename, domain, time_thinning=1, 
-                 use_cache=False, verbose=False):
+                 use_cache=False, verbose=False, boundary_polygon=None):
         import time
         from Numeric import array, zeros, Float
         from anuga.config import time_format
@@ -209,7 +209,6 @@ class File_boundary(Boundary):
         if verbose: print 'Find midpoint coordinates of entire boundary'
         self.midpoint_coordinates = zeros( (len(domain.boundary), 2), Float)
         boundary_keys = domain.boundary.keys()
-
 
         xllcorner = domain.geo_reference.get_xllcorner()
         yllcorner = domain.geo_reference.get_yllcorner()        
@@ -242,7 +241,6 @@ class File_boundary(Boundary):
             # Register index of this boundary edge for use with evaluate
             self.boundary_indices[(vol_id, edge_id)] = i
 
-
         if verbose: print 'Initialise file_function'
         self.F = file_function(filename,
                                domain,
@@ -250,7 +248,9 @@ class File_boundary(Boundary):
 	                       interpolation_points=self.midpoint_coordinates,
                                time_thinning=time_thinning,
                                use_cache=use_cache, 
-                               verbose=verbose)
+                               verbose=verbose,
+                               boundary_polygon=boundary_polygon)
+
         self.domain = domain
 
         # Test
@@ -276,7 +276,6 @@ class File_boundary(Boundary):
 
         # Test that file function can be called
         q = self.F(0, point_id=0)
-
         d = len(domain.conserved_quantities)
         msg = 'Values specified in file %s must be ' %filename
         msg += ' a list or an array of length %d' %d
@@ -293,11 +292,9 @@ class File_boundary(Boundary):
         """
 
         t = self.domain.time
-
         if vol_id is not None and edge_id is not None:
             i = self.boundary_indices[ vol_id, edge_id ]
             res = self.F(t, point_id = i)
-
             if res == NAN:
                 x,y=self.midpoint_coordinates[i,:]
                 msg = 'NAN value found in file_boundary at '
