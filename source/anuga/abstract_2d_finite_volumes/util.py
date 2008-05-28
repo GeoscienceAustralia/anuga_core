@@ -115,7 +115,7 @@ def file_function(filename,
               'domain_starttime': domain_starttime,
               'time_thinning': time_thinning,                   
               'verbose': verbose,
-              'boundary_polygon':boundary_polygon}
+              'boundary_polygon': boundary_polygon}
 
 
     # Call underlying engine with or without caching
@@ -131,8 +131,7 @@ def file_function(filename,
                              args, kwargs,
                              dependencies=[filename],
                              compression=False,                  
-                             verbose=verbose,
-                             boundary_polygon=boundary_polygon)
+                             verbose=verbose)
 
     else:
         f, starttime = apply(_file_function,
@@ -363,7 +362,9 @@ def get_netcdf_file_function(filename,
             # Adjust for georef
             interpolation_points[:,0] -= xllcorner
             interpolation_points[:,1] -= yllcorner        
-
+    
+    else:
+        gauge_neighbour_id=None
     if domain_starttime is not None:
 
         # If domain_startime is *later* than starttime,
