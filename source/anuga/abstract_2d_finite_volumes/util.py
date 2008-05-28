@@ -14,7 +14,7 @@ from warnings import warn
 from shutil import copy
 
 from anuga.utilities.numerical_tools import ensure_numeric
-from Numeric import arange, choose, zeros, Float, array
+from Numeric import arange, choose, zeros, Float, array, allclose, take, compress
     
 from anuga.geospatial_data.geospatial_data import ensure_absolute
 from math import sqrt, atan, degrees
@@ -32,7 +32,8 @@ def file_function(filename,
                   interpolation_points=None,
                   time_thinning=1,
                   verbose=False,
-                  use_cache=False):
+                  use_cache=False,
+                  boundary_polygon=None):
     """Read time history of spatial data from NetCDF file and return
     a callable object.
 
@@ -113,7 +114,8 @@ def file_function(filename,
               'interpolation_points': interpolation_points,
               'domain_starttime': domain_starttime,
               'time_thinning': time_thinning,                   
-              'verbose': verbose}
+              'verbose': verbose,
+              'boundary_polygon':boundary_polygon}
 
 
     # Call underlying engine with or without caching
@@ -129,7 +131,8 @@ def file_function(filename,
                              args, kwargs,
                              dependencies=[filename],
                              compression=False,                  
-                             verbose=verbose)
+                             verbose=verbose,
+                             boundary_polygon=boundary_polygon)
 
     else:
         f, starttime = apply(_file_function,
@@ -165,7 +168,8 @@ def _file_function(filename,
                    interpolation_points=None,
                    domain_starttime=None,
                    time_thinning=1,
-                   verbose=False):
+                   verbose=False,
+                   boundary_polygon=None):
     """Internal function
     
     See file_function for documentatiton
@@ -192,7 +196,8 @@ def _file_function(filename,
                                         interpolation_points,
                                         domain_starttime,
                                         time_thinning=time_thinning,
-                                        verbose=verbose)
+                                        verbose=verbose,
+                                        boundary_polygon=boundary_polygon)
     else:
         raise 'Must be a NetCDF File'
 
@@ -203,7 +208,8 @@ def get_netcdf_file_function(filename,
                              interpolation_points=None,
                              domain_starttime=None,                            
                              time_thinning=1,                             
-                             verbose=False):
+                             verbose=False,
+                             boundary_polygon=None):
     """Read time history of spatial data from NetCDF sww file and
     return a callable object f(t,x,y)
     which will return interpolated values based on the input file.
@@ -281,6 +287,11 @@ def get_netcdf_file_function(filename,
         msg = 'Files of type sts must contain spatial information'        
         raise msg
 
+    if filename[-3:] == 'sts' and boundary_polygon is None:
+        #What if mux file only contains one point
+        msg = 'Files of type sts require boundary polygon'        
+        raise msg
+
     # Get first timestep
     try:
         starttime = fid.starttime[0]
@@ -307,6 +318,46 @@ def get_netcdf_file_function(filename,
         x = reshape(x, (len(x),1))
         y = reshape(y, (len(y),1))
         vertex_coordinates = concatenate((x,y), axis=1) #m x 2 array
+
+        if boundary_polygon is not None:
+            #removes sts points that do not lie on boundary
+            boundary_polygon=ensure_numeric(boundary_polygon)
+            boundary_polygon[:,0] -= xllcorner
+            boundary_polygon[:,1] -= yllcorner
+            temp=[]
+            boundary_id=[]
+            gauge_id=[]
+            for i in range(len(boundary_polygon)):
+                for j in range(len(x)):
+                    if allclose(vertex_coordinates[j],boundary_polygon[i],1e-4):
+                        #FIX ME:
+                        #currently gauges lat and long is stored as float and
+                        #then cast to double. This cuases slight repositioning
+                        #of vertex_coordinates.
+                        temp.append(boundary_polygon[i])
+                        gauge_id.append(j)
+                        boundary_id.append(i)
+                        break
+            gauge_neighbour_id=[]
+            for i in range(len(boundary_id)-1):
+                if boundary_id[i]+1==boundary_id[i+1]:
+                    gauge_neighbour_id.append(i+1)
+                else:
+                    gauge_neighbour_id.append(-1)
+            if boundary_id[len(boundary_id)-1]==len(boundary_polygon)-1 and boundary_id[0]==0:
+                gauge_neighbour_id.append(0)
+            else:
+                gauge_neighbour_id.append(-1)
+            gauge_neighbour_id=ensure_numeric(gauge_neighbour_id)
+            if len(compress(gauge_neighbour_id>=0,gauge_neighbour_id))!=len(temp)-1:
+                msg='incorrect number of segments'
+                raise msg
+            vertex_coordinates=ensure_numeric(temp)
+            if len(vertex_coordinates)==0:
+                msg = 'None of the sts gauges fall on the boundary'
+                raise msg
+        else:
+            gauge_neighbour_id=None
 
         if interpolation_points is not None:
             # Adjust for georef
@@ -341,8 +392,10 @@ def get_netcdf_file_function(filename,
     quantities = {}
     for i, name in enumerate(quantity_names):
         quantities[name] = fid.variables[name][:]
+        if boundary_polygon is not None:
+            #removes sts points that do not lie on boundary
+            quantities[name] = take(quantities[name],gauge_id,1)
     fid.close()
-    
 
     from anuga.fit_interpolate.interpolate import Interpolation_function
 
@@ -361,7 +414,7 @@ def get_netcdf_file_function(filename,
                                   triangles,
                                   interpolation_points,
                                   time_thinning=time_thinning,
-                                  verbose=verbose), starttime
+                                  verbose=verbose,gauge_neighbour_id=gauge_neighbour_id), starttime
 
     # NOTE (Ole): Caching Interpolation function is too slow as
     # the very long parameters need to be hashed.

@@ -92,8 +92,8 @@ class Interpolate (FitInterpolate):
     def interpolate_polyline(self,
                              f,
                              vertex_coordinates,
+                             gauge_neighbour_id,
                              point_coordinates=None,
-                             start_blocking_len=500000,
                              verbose=False):
  
         if isinstance(point_coordinates, Geospatial_data):
@@ -111,48 +111,32 @@ class Interpolate (FitInterpolate):
         msg='Must define function value at one or more nodes'
         assert f.shape[0]>0,msg
 
-        #print point_on_line_py(point_coordinates[3],[vertex_coordinates[0],vertex_coordinates[1]])
-        #print vertex_coordinates[0],vertex_coordinates[1]
-
-        #print point_coordinates
-        #print vertex_coordinates
         n=f.shape[0]
         if n==1:
             z=f*z
         elif n>1:
-            index=0#index of segment on which last point was found
-            k=0#number of points on line
             for i in range(len(point_coordinates)):
                 found = False
-                #find the segment the cetnroid lies on
-                #Start with the segment the last point was found on
-                #For n points there will be n-1 segments
-                for j in range(n-1):
-                    #print 'searcing segment', index+j
-                    #reached last segment look at first segment
-                    if (index+j)==n-2:
-                        index=0
-                    if point_on_line_py(point_coordinates[i],[vertex_coordinates[(j)+index],vertex_coordinates[(j+1)+index]]):
-                        found=True
-                        x0=vertex_coordinates[j][0];y0=vertex_coordinates[j][1]
-                        x1=vertex_coordinates[j+1][0];y1=vertex_coordinates[j+1][1]
-                        x2=point_coordinates[i][0];y2=point_coordinates[i][1]
-                        
-                        segment_len=sqrt((x1-x0)**2+(y1-y0)**2)
-                        dist=sqrt((x2-x0)**2+(y2-y0)**2)
-                        z[i]=(f[j+1]-f[j])/segment_len*dist+f[j]
-                        #print 'element found on segment',j+index
-                        index=j
-                        break
-                    
-                
+                for j in range(n):
+                    if gauge_neighbour_id[j]>=0:
+                        if point_on_line_py(point_coordinates[i],[vertex_coordinates[j],vertex_coordinates[gauge_neighbour_id[j]]]):
+                            found=True
+                            x0=vertex_coordinates[j][0]
+                            y0=vertex_coordinates[j][1]
+                            x1=vertex_coordinates[gauge_neighbour_id[j]][0]
+                            y1=vertex_coordinates[gauge_neighbour_id[j]][1]
+                            x2=point_coordinates[i][0]
+                            y2=point_coordinates[i][1]
+                            
+                            segment_len=sqrt((x1-x0)**2+(y1-y0)**2)
+                            dist=sqrt((x2-x0)**2+(y2-y0)**2)
+                            z[i]=(f[gauge_neighbour_id[j]]-f[j])/segment_len*dist+f[j]
+                            #print 'element found on segment'
+                            break
+                                  
                 if not found:
                     z[i]=0.0
                     #print 'point not on urs boundary'
-                else:
-                    k+=1
-        #print 'number of midpoints on urs boundary',k
-        #print z
         return z
 
     # FIXME: What is a good start_blocking_len value?
@@ -549,7 +533,8 @@ class Interpolation_function:
                  triangles=None,
                  interpolation_points=None,
                  time_thinning=1,
-                 verbose=False):
+                 verbose=False,
+                 gauge_neighbour_id=None):
         """Initialise object and build spatial interpolation if required
 
         Time_thinning_number controls how many timesteps to use. Only timesteps with
@@ -748,7 +733,7 @@ class Interpolation_function:
                                                       self.interpolation_points,
                                                       verbose=False) # Don't clutter
                     elif triangles is None and vertex_coordinates is not None:
-                        result=interpol.interpolate_polyline(Q,vertex_coordinates,point_coordinates=self.interpolation_points)
+                        result=interpol.interpolate_polyline(Q,vertex_coordinates,gauge_neighbour_id,point_coordinates=self.interpolation_points)
 
                     #assert len(result), len(interpolation_points)
                     self.precomputed_values[name][i, :] = result
