@@ -254,17 +254,16 @@ float** _read_mux2(int numSrc, char **muxFileNameArray, float *weights, double *
    fread(fros,nsta0*sizeof(int),1,fp);
    fread(lros,nsta0*sizeof(int),1,fp);
 
-      /* compute the size of the data block for source 0 */   
+   /* compute the size of the data block for source 0 */   
    numData = getNumData(fros, lros, nsta0);
 
    /* Burbidge: Added a sanity check here */
-      if (numData < 0)
-	{
-	  fprintf(stderr,"Size of data block appears to be negative!\n");
-	  //fprintf(stderr,"numData=%d fros=%d lros=%d nsta0=%d\n",numData,fros,lros,nsta0);
-	  exit(-1);
-	}
-
+   if (numData < 0) {
+     fprintf(stderr,"Size of data block appears to be negative!\n");
+     //fprintf(stderr,"numData=%d fros=%d lros=%d nsta0=%d\n",numData,fros,lros,nsta0);
+     exit(-1);
+   }
+   
    /* allocate space for these data, read them and close the file */   
    *muxData = (float*) malloc(numData*sizeof(float));
    fread(*muxData, numData*sizeof(float),1,fp);
@@ -273,7 +272,13 @@ float** _read_mux2(int numSrc, char **muxFileNameArray, float *weights, double *
    if(numSrc > 1){
       /* allocate space for tgsrwg for the other sources */
       mytgs = (struct tgsrwg *)malloc( nsta0*sizeof(struct tgsrwg) );
+   } else {
+     /* FIXME (Ole): What should happen in case the are no source files?*/
+     /* If we exit here, tests will break */
+     // fprintf(stderr, "No source file specified\n");
+     // exit(-1);       
    }
+   
    /* loop over sources, check compatibility, and read them into *muxData */
    for(isrc=1; isrc<numSrc; isrc++){
      muxFileName = muxFileNameArray[isrc];
