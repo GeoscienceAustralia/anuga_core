@@ -5811,6 +5811,8 @@ class Screen_Catcher:
         fid.write(stuff)
         fid.close()
         
+# FIXME (DSG): Add unit test, make general, not just 2 files,
+# but any number of files.
 def copy_code_files(dir_name, filename1, filename2=None):
     """Copies "filename1" and "filename2" to "dir_name". Very useful for 
     information management 
