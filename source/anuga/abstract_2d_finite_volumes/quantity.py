@@ -55,28 +55,28 @@ class Quantity:
 
         self.domain = domain
 
-        #Allocate space for other quantities
+        # Allocate space for other quantities
         self.centroid_values = zeros(N, Float)
         self.edge_values = zeros((N, 3), Float)
 
-        #Allocate space for Gradient
+        # Allocate space for Gradient
         self.x_gradient = zeros(N, Float)
         self.y_gradient = zeros(N, Float)
 
-        #Allocate space for Limiter Phi
+        # Allocate space for Limiter Phi
         self.phi = zeros(N, Float)        
 
-        #Intialise centroid and edge_values
+        # Intialise centroid and edge_values
         self.interpolate()
 
-        #Allocate space for boundary values
+        # Allocate space for boundary values
         L = len(domain.boundary)
         self.boundary_values = zeros(L, Float)
 
-        #Allocate space for updates of conserved quantities by
-        #flux calculations and forcing functions
+        # Allocate space for updates of conserved quantities by
+        # flux calculations and forcing functions
 
-        #Allocate space for update fields
+        # Allocate space for update fields
         self.explicit_update = zeros(N, Float )
         self.semi_implicit_update = zeros(N, Float )
         self.centroid_backup_values = zeros(N, Float)
@@ -85,7 +85,7 @@ class Quantity:
 
 
 
-    #Methods for operator overloading
+    # Methods for operator overloading
     def __len__(self):
         return self.centroid_values.shape[0]
 
@@ -246,13 +246,13 @@ class Quantity:
 
 
     def interpolate_from_vertices_to_edges(self):
-        #Call correct module function
-        #(either from this module or C-extension)
+        # Call correct module function
+        # (either from this module or C-extension)
         interpolate_from_vertices_to_edges(self)
 
     def interpolate_from_edges_to_vertices(self):
-        #Call correct module function
-        #(either from this module or C-extension)
+        # Call correct module function
+        # (either from this module or C-extension)
         interpolate_from_edges_to_vertices(self)
 
 
@@ -525,7 +525,7 @@ class Quantity:
 
 
 
-    #Specific functions for setting values
+    # Specific functions for setting values
     def set_values_from_constant(self, X,
                                  location, indices, verbose):
         """Set quantity values from specified constant X
@@ -786,7 +786,7 @@ class Quantity:
                                         location, indices,
                                         verbose = False,
                                         use_cache = False):
-        #FIXME: Use this function for the time being. Later move code in here
+        # FIXME: Use this function for the time being. Later move code in here
 
         points = geospatial_data.get_data_points(absolute = False)
         values = geospatial_data.get_attributes()
@@ -1139,11 +1139,12 @@ class Quantity:
             if (indices ==  None):
                 indices=range(self.domain.number_of_nodes)
             vert_values = []
-            #Go through list of unique vertices
+            
+            # Go through list of unique vertices
             for unique_vert_id in indices:
                 triangles = self.domain.get_triangles_and_vertices_per_node(node=unique_vert_id)
                     
-                #In case there are unused points
+                # In case there are unused points
                 if len(triangles) == 0:
                     msg = 'Unique vertex not associated with triangles'
                     raise msg
@@ -1176,10 +1177,10 @@ class Quantity:
 
         from Numeric import array, Float
 
-        #Assert that A can be converted to a Numeric array of appropriate dim
-        A = array(A, Float)
+        # Assert that A can be converted to a Numeric array of appropriate dim
+        A = ensure_numeric(A, Float)
 
-        #print 'SHAPE A', A.shape
+        # print 'SHAPE A', A.shape
         assert len(A.shape) == 1
 
         if indices is None:
@@ -1189,22 +1190,21 @@ class Quantity:
             assert A.shape[0] == len(indices)
             vertex_list = indices
 
-        #Go through list of unique vertices
-        
+        # Go through list of unique vertices
         for i_index, unique_vert_id in enumerate(vertex_list):
 
 
             triangles = self.domain.get_triangles_and_vertices_per_node(node=unique_vert_id)
                     
-            #In case there are unused points
+            # In case there are unused points
             if len(triangles) == 0: continue
 
-            #Go through all triangle, vertex pairs
-            #touching vertex unique_vert_id and set corresponding vertex value
+            # Go through all triangle, vertex pairs
+            # touching vertex unique_vert_id and set corresponding vertex value
             for triangle_id, vertex_id in triangles:
                 self.vertex_values[triangle_id, vertex_id] = A[i_index]
 
-        #Intialise centroid and edge_values
+        # Intialise centroid and edge_values
         self.interpolate()
 
 
@@ -1373,73 +1373,73 @@ class Quantity:
 
 
     def update(self, timestep):
-        #Call correct module function
-        #(either from this module or C-extension)
+        # Call correct module function
+        # (either from this module or C-extension)
         return update(self, timestep)
 
     def compute_gradients(self):
-        #Call correct module function
-        #(either from this module or C-extension)
+        # Call correct module function
+        # (either from this module or C-extension)
         return compute_gradients(self)
 
     def limit(self):
-        #Call correct module depending on whether
-        #basing limit calculations on edges or vertices
+        # Call correct module depending on whether
+        # basing limit calculations on edges or vertices
         limit_old(self)
 
     def limit_vertices_by_all_neighbours(self):
-        #Call correct module function
-        #(either from this module or C-extension)
+        # Call correct module function
+        # (either from this module or C-extension)
         limit_vertices_by_all_neighbours(self)
 
     def limit_edges_by_all_neighbours(self):
-        #Call correct module function
-        #(either from this module or C-extension)
+        # Call correct module function
+        # (either from this module or C-extension)
         limit_edges_by_all_neighbours(self)
 
     def limit_edges_by_neighbour(self):
-        #Call correct module function
-        #(either from this module or C-extension)
+        # Call correct module function
+        # (either from this module or C-extension)
         limit_edges_by_neighbour(self)               
 
     def extrapolate_second_order(self):
-        #Call correct module function
-        #(either from this module or C-extension)
+        # Call correct module function
+        # (either from this module or C-extension)
         compute_gradients(self)
         extrapolate_from_gradient(self)
         
     def extrapolate_second_order_and_limit_by_edge(self):
-        #Call correct module function
-        #(either from this module or C-extension)
+        # Call correct module function
+        # (either from this module or C-extension)
         extrapolate_second_order_and_limit_by_edge(self)
 
 
     def extrapolate_second_order_and_limit_by_vertex(self):
-        #Call correct module function
-        #(either from this module or C-extension)
+        # Call correct module function
+        # (either from this module or C-extension)
         extrapolate_second_order_and_limit_by_vertex(self)
 
     def bound_vertices_below_by_constant(self, bound):
-        #Call correct module function
-        #(either from this module or C-extension)
+        # Call correct module function
+        # (either from this module or C-extension)
         bound_vertices_below_by_constant(self, bound)
 
     def bound_vertices_below_by_quantity(self, quantity):
-        #Call correct module function
-        #(either from this module or C-extension)
+        # Call correct module function
+        # (either from this module or C-extension)
 
-        #check consistency
+        # check consistency
         assert self.domain == quantity.domain
         bound_vertices_below_by_quantity(self, quantity)                        
 
     def backup_centroid_values(self):
-        #Call correct module function
-        #(either from this module or C-extension)
+        # Call correct module function
+        # (either from this module or C-extension)
         backup_centroid_values(self)
 
     def saxpy_centroid_values(self,a,b):
-        #Call correct module function
-        #(either from this module or C-extension)
+        # Call correct module function
+        # (either from this module or C-extension)
         saxpy_centroid_values(self,a,b)
     
 #Conserved_quantity = Quantity
