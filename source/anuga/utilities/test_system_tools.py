@@ -3,7 +3,6 @@
 
 import unittest
 from Numeric import zeros, array, allclose, Float
-from Scientific.IO.NetCDF import NetCDFFile
 import zlib
 from os.path import join, split, sep
 
@@ -75,34 +74,40 @@ class Test_system_tools(unittest.TestCase):
         
         # Binary NetCDF File X 2 (use mktemp's name)
 
-        test_array = array([[7.0, 3.14], [-31.333, 0.0]])
+        try:
+            from Scientific.IO.NetCDF import NetCDFFile
+        except ImportError:
+            # This code is also used by EQRM which does not require NetCDF
+            pass
+        else:
+            test_array = array([[7.0, 3.14], [-31.333, 0.0]])
 
-        # First file
-        filename1 = mktemp(suffix='.nc', dir='.')
-        fid = NetCDFFile(filename1, 'w')
-        fid.createDimension('two', 2)
-        fid.createVariable('test_array', Float,
-                           ('two', 'two'))
-        fid.variables['test_array'][:] = test_array
-        fid.close()
+            # First file
+            filename1 = mktemp(suffix='.nc', dir='.')
+            fid = NetCDFFile(filename1, 'w')
+            fid.createDimension('two', 2)
+            fid.createVariable('test_array', Float,
+                               ('two', 'two'))
+            fid.variables['test_array'][:] = test_array
+            fid.close()
+            
+            # Second file
+            filename2 = mktemp(suffix='.nc', dir='.')
+            fid = NetCDFFile(filename2, 'w')
+            fid.createDimension('two', 2)
+            fid.createVariable('test_array', Float,
+                               ('two', 'two'))
+            fid.variables['test_array'][:] = test_array
+            fid.close()
+            
+            
+            checksum1 = compute_checksum(filename1)
+            checksum2 = compute_checksum(filename2)        
+            assert checksum1 == checksum2
 
-        # Second file
-        filename2 = mktemp(suffix='.nc', dir='.')
-        fid = NetCDFFile(filename2, 'w')
-        fid.createDimension('two', 2)
-        fid.createVariable('test_array', Float,
-                           ('two', 'two'))
-        fid.variables['test_array'][:] = test_array
-        fid.close()
 
-        
-        checksum1 = compute_checksum(filename1)
-        checksum2 = compute_checksum(filename2)        
-        assert checksum1 == checksum2
-
-
-        os.remove(filename1)
-        os.remove(filename2)
+            os.remove(filename1)
+            os.remove(filename2)
 
 
     def test_compute_checksum_real(self):
