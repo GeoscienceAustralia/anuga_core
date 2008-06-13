@@ -5412,7 +5412,7 @@ def urs2txt(basename_in, location_index=None):
     # the non-time dependent stuff
     #Title
     fid.write('location_index'+d+'lat'+d+ 'long' +d+ 'Easting' +d+ \
-                  'Northing' +d+ 'depth m' + "\n")
+              'Northing' +d+ 'depth m' + "\n")
     i = 0
     for depth, point_utm, lat, long in map(None, depths,
                                                points_utm, latitudes,

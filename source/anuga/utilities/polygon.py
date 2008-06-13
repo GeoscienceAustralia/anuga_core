@@ -16,49 +16,8 @@ from math import sqrt
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.geospatial_data.geospatial_data import ensure_absolute
 
-def point_on_line_py(point, line):
-    from Numeric import fabs
-    point = ensure_numeric(point)
-    line = ensure_numeric(line)
 
-
-    x=point[0];y=point[1]
-    x0=line[0,0];y0=line[0,1]
-    x1=line[1,0];y1=line[1,1]
-    #from pylab import plot,show
-    #plot(line[:,0],line[:,1])
-    #plot([x],[y],'o')
-    #show()
-    a0 = x - x0;
-    a1 = y - y0;
-
-    a_normal0 = a1;
-    a_normal1 = -a0;
-
-    b0 = x1 - x0;
-    b1 = y1 - y0;
-
-    #if ( a_normal0*b0 + a_normal1*b1 == 0.0 ):
-    eps=200
-    #print 'normal',a_normal0*b0 + a_normal1*b1
-    if ( fabs(a_normal0*b0 + a_normal1*b1) < eps ):
-        #for some reason (perhaps catastrophic cancellation) urs_boundary.py
-        #example only works for eps=2
-        #point is somewhere on the infinite extension of the line
-        # FIXME (Ole): Perhaps add a tolerance here instead of 0.0 
-
-        len_a = sqrt(a0*a0 + a1*a1);
-        len_b = sqrt(b0*b0 + b1*b1);
-
-        if (a0*b0 + a1*b1 >= 0 and len_a <= len_b):
-            return 1
-        else:
-            return 0
-    else:
-        return 0
-
-
-def point_on_line(point, line):
+def point_on_line(point, line, rtol=0.0, atol=0.0):
     """Determine whether a point is on a line segment
 
     Input: 
@@ -67,16 +26,19 @@ def point_on_line(point, line):
         the equivalent 2x2 Numeric array with each row corresponding to a point.
 
     Output:
-        
+
+    Note: Line can be degenerate and function still works to discern coinciding points from non-coinciding.
     """
+
+    # FIXME(Ole): Perhaps make defaults as in allclose: rtol=1.0e-5, atol=1.0e-8
 
     point = ensure_numeric(point)
     line = ensure_numeric(line)
 
-
     res = _point_on_line(point[0], point[1],
                          line[0,0], line[0,1],
-                         line[1,0], line[1,1])
+                         line[1,0], line[1,1],
+                         rtol, atol)
     
     return bool(res)
 

@@ -164,6 +164,9 @@ class Test_Polygon(unittest.TestCase):
 	# From real example that failed
 	assert not point_on_line( [40,19], [[40,20], [40,40]] )
 
+        # Degenerate line
+        assert point_on_line( [40,19], [[40,19], [40,19]] )
+        assert not point_on_line( [40,19], [[40,40], [40,40]] )        
 
 
 

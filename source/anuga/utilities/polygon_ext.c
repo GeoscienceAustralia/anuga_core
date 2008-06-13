@@ -20,7 +20,9 @@
 
 int __point_on_line(double x, double y,
 		    double x0, double y0,
-		    double x1, double y1) {
+		    double x1, double y1,
+		    double rtol,
+		    double atol) {
   /*Determine whether a point is on a line segment
 
     Input: x, y, x0, x0, x1, y1: where
@@ -30,6 +32,8 @@ int __point_on_line(double x, double y,
   */
 
   double a0, a1, a_normal0, a_normal1, b0, b1, len_a, len_b;
+  double nominator, denominator;
+  int is_parallel;
 
   a0 = x - x0;
   a1 = y - y0;
@@ -40,9 +44,26 @@ int __point_on_line(double x, double y,
   b0 = x1 - x0;
   b1 = y1 - y0;
 
-  if ( a_normal0*b0 + a_normal1*b1 == 0.0 ) {
-    //Point is somewhere on the infinite extension of the line
-    // FIXME (Ole): Perhaps add a tolerance here instead of 0.0 
+  nominator = fabs(a_normal0*b0 + a_normal1*b1);
+  denominator = b0*b0 + b1*b1;
+  
+  // Determine if line is parallel to point vector up to a tolerance
+  is_parallel = 0;
+  if (denominator == 0.0) {
+    // Use absolute tolerance
+    if (nominator <= atol) {
+      is_parallel = 1;
+    }
+  } else {
+    // Denominator is positive - use relative tolerance
+    if (nominator/denominator <= rtol) {
+      is_parallel = 1;
+    }    
+  }
+    
+  if (is_parallel) {
+    // Point is somewhere on the infinite extension of the line
+    // subject to specified absolute tolerance
 
     len_a = sqrt(a0*a0 + a1*a1);
     len_b = sqrt(b0*b0 + b1*b1);
@@ -172,7 +193,7 @@ int __separate_points_by_polygon(int M,     // Number of points
 				int closed,
 				int verbose) {
 
-  double minpx, maxpx, minpy, maxpy, x, y, px_i, py_i, px_j, py_j;
+  double minpx, maxpx, minpy, maxpy, x, y, px_i, py_i, px_j, py_j, rtol=0.0, atol=0.0;
   int i, j, k, outside_index, inside_index, inside;
 
   //Find min and max of poly used for optimisation when points
@@ -222,7 +243,7 @@ int __separate_points_by_polygon(int M,     // Number of points
         py_j = polygon[2*j+1];
 
         //Check for case where point is contained in line segment
-        if (__point_on_line(x, y, px_i, py_i, px_j, py_j)) {
+        if (__point_on_line(x, y, px_i, py_i, px_j, py_j, rtol, atol)) {
 	  if (closed == 1) {
 	    inside = 1;
 	  } else {
@@ -259,12 +280,12 @@ PyObject *_point_on_line(PyObject *self, PyObject *args) {
   // point_on_line(x, y, x0, y0, x1, y1)
   //
 
-  double x, y, x0, y0, x1, y1;
+  double x, y, x0, y0, x1, y1, rtol, atol;
   int res;
   PyObject *result;
 
   // Convert Python arguments to C
-  if (!PyArg_ParseTuple(args, "dddddd", &x, &y, &x0, &y0, &x1, &y1)) {
+  if (!PyArg_ParseTuple(args, "dddddddd", &x, &y, &x0, &y0, &x1, &y1, &rtol, &atol)) {
     PyErr_SetString(PyExc_RuntimeError, 
 		    "point_on_line could not parse input");    
     return NULL;
@@ -272,7 +293,7 @@ PyObject *_point_on_line(PyObject *self, PyObject *args) {
 
 
   // Call underlying routine
-  res = __point_on_line(x, y, x0, y0, x1, y1);
+  res = __point_on_line(x, y, x0, y0, x1, y1, rtol, atol);
 
   // Return values a and b
   result = Py_BuildValue("i", res);

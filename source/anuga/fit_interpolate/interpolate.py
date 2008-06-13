@@ -95,31 +95,61 @@ class Interpolate (FitInterpolate):
                              gauge_neighbour_id,
                              point_coordinates=None,
                              verbose=False):
- 
+        """Interpolate linearly between values f on nodes (vertex coordinates) of a polyline to midpoints of triangles
+        of boundary.
+
+        f is the data on the polyline nodes.
+
+        The mesh values representing a smooth surface are
+        assumed to be specified in f.
+
+        Inputs:
+          f: Vector or array of data at the polyline nodes.
+              If f is an array, interpolation will be done for each column as
+              per underlying matrix-matrix multiplication
+          point_coordinates: Interpolate polyline data to these positions.
+              List of coordinate pairs [x, y] of
+	      data points or an nx2 Numeric array or a Geospatial_data object
+              
+	Output:
+	  Interpolated values at inputted points (z).
+        """
+        
+
+        # FIXME: There is an option of passing a tolerance into this
+        
         if isinstance(point_coordinates, Geospatial_data):
             point_coordinates = point_coordinates.get_data_points( \
                 absolute = True)
  
-        from utilities.polygon import point_on_line,point_on_line_py
+        from utilities.polygon import point_on_line
         from Numeric import ones
         z=ones(len(point_coordinates),Float)
 
         msg='point coordinates are not given (interpolate.py)'
         assert point_coordinates is not None, msg
         msg='function value must be specified at every interpolation node'
-        assert f.shape[0]==vertex_coordinates.shape[0],msg
+        assert f.shape[0]==vertex_coordinates.shape[0], msg
         msg='Must define function value at one or more nodes'
-        assert f.shape[0]>0,msg
+        assert f.shape[0]>0, msg
 
         n=f.shape[0]
         if n==1:
             z=f*z
+            msg = 'Polyline contained only one point. I need more. ', str(f)
+            raise Exception, msg
+            
+        # FIXME (John): add unit test for only One vertex point. Exception should be thrown.
+
+        
         elif n>1:
             for i in range(len(point_coordinates)):
                 found = False
                 for j in range(n):
                     if gauge_neighbour_id[j]>=0:
-                        if point_on_line_py(point_coordinates[i],[vertex_coordinates[j],vertex_coordinates[gauge_neighbour_id[j]]]):
+                        if point_on_line(point_coordinates[i],
+                                         [vertex_coordinates[j], vertex_coordinates[gauge_neighbour_id[j]]],
+                                         rtol=1.0e-6):
                             found=True
                             x0=vertex_coordinates[j][0]
                             y0=vertex_coordinates[j][1]
