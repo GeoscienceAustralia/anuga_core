@@ -2023,7 +2023,6 @@ def sww2dem(basename_in, basename_out = None,
     if verbose: print 'Creating grid'
     ncols = int((xmax-xmin)/cellsize)+1
     nrows = int((ymax-ymin)/cellsize)+1
-    
 
 
     #New absolute reference and coordinates
