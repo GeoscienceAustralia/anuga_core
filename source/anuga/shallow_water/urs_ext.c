@@ -28,7 +28,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
 /*Read in mux 2 file
    
     Python call:
-    read_mux2(filenames,weights,numSrc)
+    read_mux2(numSrc,filenames,weights,file_params,write)
 
     NOTE:
     A Python int is equivalent to a C long
@@ -80,9 +80,9 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     return NULL; 
   }
 
-  if(PyList_Size(filenames) != pyweights->nd){
-    PyErr_SetString(PyExc_ValueError, "Must specify one weight for each filename");
-    return NULL;
+  if(PyList_Size(filenames) != pyweights->dimensions[0]){
+      PyErr_SetString(PyExc_ValueError, "Must specify one weight for each filename");
+      return NULL;
   }
 
   muxFileNameArray = (char **) malloc((int)numSrc*sizeof(char *));
@@ -114,7 +114,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     weights[i]=(float)(*(double *)(pyweights->data+i*pyweights->strides[0]));
   }
 
-  cdata=_read_mux2((int)pyweights->nd,muxFileNameArray,weights,(double*)file_params->data,(int)write);
+  cdata=_read_mux2((int)numSrc,muxFileNameArray,weights,(double*)file_params->data,(int)write);
 
 
   // Allocate space for return vector
@@ -199,8 +199,7 @@ float** _read_mux2(int numSrc, char **muxFileNameArray, float *weights, double *
    
    /* note starting time */
    time(&start_time);
-   
-   
+
    /* allocate space for the names and the weights and pointers to the data*/    
    wt = (float *) malloc(numSrc*sizeof(float));
    muxData = (float**) malloc(numSrc*sizeof(float*));
@@ -273,7 +272,7 @@ float** _read_mux2(int numSrc, char **muxFileNameArray, float *weights, double *
       /* allocate space for tgsrwg for the other sources */
       mytgs = (struct tgsrwg *)malloc( nsta0*sizeof(struct tgsrwg) );
    } else {
-     /* FIXME (Ole): What should happen in case the are no source files?*/
+     /* FIXME (JJ): What should happen in case the are no source files?*/
      /* If we exit here, tests will break */
      // fprintf(stderr, "No source file specified\n");
      // exit(-1);       
@@ -438,11 +437,11 @@ float** _read_mux2(int numSrc, char **muxFileNameArray, float *weights, double *
    //free(data0);
    //free(mytgs0);
    
-   if(numSrc>1)
-   {
+   //if(numSrc>1)
+   //{
      //free(data);
      //free(mytgs);
-   } 
+   //} 
    //can't free arrays because I only fill array by making pointer not copy
    //for(isrc=0; isrc<numSrc;isrc++)
    //   free(*(muxData+isrc));

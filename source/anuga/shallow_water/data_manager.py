@@ -4837,17 +4837,16 @@ WAVEHEIGHT_MUX2_LABEL = '_waveheight-z-mux2'
 EAST_VELOCITY_MUX2_LABEL =  '_velocity-e-mux2'
 NORTH_VELOCITY_MUX2_LABEL =  '_velocity-n-mux2'    
 
-def read_mux2_py(filenames,weights=None):
+def read_mux2_py(filenames,weights):
 
     from Numeric import ones,Float,compress,zeros,arange
     from urs_ext import read_mux2
 
-    if weights is None:
-        weights=ones(len(filenames),Float)/len(filenames) #default 1/numSrc
+    numSrc=len(filenames)
 
     file_params=-1*ones(3,Float)#[nsta,dt,nt]
     write=0 #if true write txt files to current directory as well
-    data=read_mux2(1,filenames,weights,file_params,write)
+    data=read_mux2(numSrc,filenames,weights,file_params,write)
 
     msg='File parameter values were not read in correctly from c file'
     assert len(compress(file_params>0,file_params))!=0,msg
@@ -4872,13 +4871,15 @@ def read_mux2_py(filenames,weights=None):
     longitudes=zeros(data.shape[0],Float)
     elevation=zeros(data.shape[0],Float)
     quantity=zeros((data.shape[0],data.shape[1]-OFFSET),Float)
+    starttime=1e16
     for i in range(0,data.shape[0]):
         latitudes[i]=data[i][data.shape[1]-OFFSET]
         longitudes[i]=data[i][data.shape[1]-OFFSET+1]
         elevation[i]=-data[i][data.shape[1]-OFFSET+2]
         quantity[i]=data[i][:-OFFSET]
-
-    return times, latitudes, longitudes, elevation, quantity
+        starttime=min(dt*data[i][data.shape[1]-OFFSET+3],starttime)
+        
+    return times, latitudes, longitudes, elevation, quantity, starttime
 
 def mux2sww_time(mux_times, mint, maxt):
     """
@@ -4899,14 +4900,12 @@ def mux2sww_time(mux_times, mint, maxt):
     return mux_times_start_i, mux_times_fin_i
 
 
-def urs2sts(basename_in, basename_out = None, verbose = False, origin = None,
+def urs2sts(basename_in, basename_out = None, weights=None,
+            verbose = False, origin = None,
             mean_stage=0.0,zscale=1.0,
             minlat = None, maxlat = None,
             minlon = None, maxlon = None):
     """Convert URS mux2 format for wave propagation to sts format
-
-    Specify only basename_in and read files of the form
-    out_waveheight-z-mux2
 
     Also convert latitude and longitude to UTM. All coordinates are
     assumed to be given in the GDA94 datum
@@ -4917,7 +4916,30 @@ def urs2sts(basename_in, basename_out = None, verbose = False, origin = None,
     import os
     from Scientific.IO.NetCDF import NetCDFFile
     from Numeric import Float, Int, Int32, searchsorted, zeros, array
-    from Numeric import allclose, around
+    from Numeric import allclose, around,ones,Float
+    from types import ListType,StringType
+    from operator import __and__
+    
+    if not isinstance(basename_in, ListType):
+        if verbose: print 'Reading single source'
+        basename_in=[basename_in]
+
+    # Check that basename is a list of strings
+    if not reduce(__and__, map(lambda z:isinstance(z,StringType),basename_in)):
+        msg= 'basename_in must be a string or list of strings'
+        raise Exception, msg
+
+    # Find the number of sources to be used
+    numSrc=len(basename_in)
+
+    # A weight must be specified for each source
+    if weights is None:
+        weights=ones(numSrc,Float)/numSrc
+    else:
+        weights = ensure_numeric(weights)
+        msg = 'When combining multiple sources must specify a weight for '+\
+              'mux2 source file'
+        assert len(weights)== numSrc, msg
 
     precision = Float
 
@@ -4937,39 +4959,53 @@ def urs2sts(basename_in, basename_out = None, verbose = False, origin = None,
             assert maxlon > minlon
 
     if basename_out is None:
-        stsname = basename_in + '.sts'
+        stsname = basename_in[0] + '.sts'
     else:
         stsname = basename_out + '.sts'
 
-    files_in = [basename_in + WAVEHEIGHT_MUX2_LABEL,
-                basename_in + EAST_VELOCITY_MUX2_LABEL,
-                basename_in + NORTH_VELOCITY_MUX2_LABEL]
+    files_in=[[],[],[]]
+    for files in basename_in:
+        files_in[0].append(files + WAVEHEIGHT_MUX2_LABEL),
+        files_in[1].append(files + EAST_VELOCITY_MUX2_LABEL)
+        files_in[2].append(files + NORTH_VELOCITY_MUX2_LABEL)
+        
+    #files_in = [basename_in + WAVEHEIGHT_MUX2_LABEL,
+    #            basename_in + EAST_VELOCITY_MUX2_LABEL,
+    #            basename_in + NORTH_VELOCITY_MUX2_LABEL]
+    
     quantities = ['HA','UA','VA']
 
-    for file_in in files_in:
-        if (os.access(file_in, os.F_OK) == 0):
-            msg = 'File %s does not exist or is not accessible' %file_in
-            raise IOError, msg
+    # For each source file check that there exists three files ending with:
+    # WAVEHEIGHT_MUX2_LABEL,
+    # EAST_VELOCITY_MUX2_LABEL, and 
+    # NORTH_VELOCITY_MUX2_LABEL
+    for i in range(len(quantities)): 
+        for file_in in files_in[i]:
+            if (os.access(file_in, os.F_OK) == 0):
+                msg = 'File %s does not exist or is not accessible' %file_in
+                raise IOError, msg
 
     #need to do this for velocity-e-mux2 and velocity-n-mux2 files as well
     #for now set x_momentum and y_moentum quantities to zero
     if (verbose): print 'reading mux2 file'
     mux={}
-    for quantity, file in map(None, quantities, files_in):
-        times_urs, latitudes_urs, longitudes_urs, elevation, mux[quantity] = read_mux2_py([file])
+    for i,quantity in enumerate(quantities):
+        times_urs, latitudes_urs, longitudes_urs, elevation, mux[quantity],starttime = read_mux2_py(files_in[i],weights)
         if quantity!=quantities[0]:
             msg='%s, %s and %s have inconsitent gauge data'%(files_in[0],files_in[1],files_in[2])
             assert allclose(times_urs,times_urs_old),msg
             assert allclose(latitudes_urs,latitudes_urs_old),msg
             assert allclose(longitudes_urs,longitudes_urs_old),msg
             assert allclose(elevation,elevation_old),msg
+            assert allclose(starttime,starttime_old)
         times_urs_old=times_urs
         latitudes_urs_old=latitudes_urs
         longitudes_urs_old=longitudes_urs
         elevation_old=elevation
+        starttime_old=starttime
         
     if (minlat is not None) and (minlon is not None) and (maxlat is not None) and (maxlon is not None):
-        if verbose: print 'Cliiping urs data'
+        if verbose: print 'Cliping urs data'
         latitudes = compress((latitudes_urs>=minlat)&(latitudes_urs<=maxlat)&(longitudes_urs>=minlon)&(longitudes_urs<=maxlon),latitudes_urs)
         longitudes = compress((latitudes_urs>=minlat)&(latitudes_urs<=maxlat)&(longitudes_urs>=minlon)&(longitudes_urs<=maxlon),longitudes_urs)
         times = compress((latitudes_urs>=minlat)&(latitudes_urs<=maxlat)&(longitudes_urs>=minlon)&(longitudes_urs<=maxlon),times_urs)
@@ -4993,9 +5029,9 @@ def urs2sts(basename_in, basename_out = None, verbose = False, origin = None,
                   %(basename_in)
     
     # Create new file
-    starttime = times[0]
+    #starttime = times[0]
     sts = Write_sts()
-    sts.store_header(outfile, times,number_of_points, description=description,
+    sts.store_header(outfile, times+starttime,number_of_points, description=description,
                      verbose=verbose,sts_precision=Float)
     
     # Store
