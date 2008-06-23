@@ -6422,31 +6422,34 @@ friction  \n \
         ha[3]=arange(3*time_step_count,4*time_step_count)
         ua=5*ones((n,time_step_count),Float)
         va=-10*ones((n,time_step_count),Float)
-    
+
+        # Create two identical mux files to be combined by urs2sts
         base_nameI, filesI = self.write_mux2(lat_long_points,
-                                      time_step_count, time_step,
-                                      first_tstep, last_tstep,
-                                      depth=gauge_depth,
-                                      ha=ha,
-                                      ua=ua,
-                                      va=va)
+                                             time_step_count, time_step,
+                                             first_tstep, last_tstep,
+                                             depth=gauge_depth,
+                                             ha=ha,
+                                             ua=ua,
+                                             va=va)
 
         base_nameII, filesII = self.write_mux2(lat_long_points,
-                                      time_step_count, time_step,
-                                      first_tstep, last_tstep,
-                                      depth=gauge_depth,
-                                      ha=ha,
-                                      ua=ua,
-                                      va=va)
+                                               time_step_count, time_step,
+                                               first_tstep, last_tstep,
+                                               depth=gauge_depth,
+                                               ha=ha,
+                                               ua=ua,
+                                               va=va)
 
-        urs2sts([base_nameI,base_nameII],weights=[1.0,1.0],mean_stage=tide,
+        # Call urs2sts with multiple mux files
+        urs2sts([base_nameI, base_nameII], weights=[1.0,1.0],
+                mean_stage=tide,
                 verbose=False)
 
         # now I want to check the sts file ...
         sts_file = base_nameI + '.sts'
 
-        #Let's interigate the sww file
-        # Note, the sww info is not gridded.  It is point data.
+        #Let's interrogate the sts file
+        # Note, the sts info is not gridded.  It is point data.
         fid = NetCDFFile(sts_file)
 
         # Make x and y absolute
@@ -6482,7 +6485,7 @@ friction  \n \
         elevation = fid.variables['elevation'][:]
 
         # Set original data used to write mux file to be zero when gauges are
-        #not recdoring
+        # not recdoring
         
         ha[0][0]=0.0
         ha[0][time_step_count-1]=0.0
@@ -6496,8 +6499,9 @@ friction  \n \
 
         # The stage stored in the .sts file should be the sum of the stage
         # in the two mux2 files because both have weights = 1. In this case
-        #the mux2 files are the same so stage == 2.0 * ha
-        assert allclose(2.0*transpose(ha),stage)  #Meters
+        # the mux2 files are the same so stage == 2.0 * ha
+        #print 2.0*transpose(ha) - stage 
+        assert allclose(2.0*transpose(ha), stage)  #Meters
 
         #Check the momentums - ua
         #momentum = velocity*(stage-elevation)
@@ -6511,7 +6515,7 @@ friction  \n \
 
         # The xmomentum stored in the .sts file should be the sum of the ua
         # in the two mux2 files multiplied by the depth.
-        assert allclose(2.0*transpose(ua*depth),xmomentum) 
+        assert allclose(2.0*transpose(ua*depth), xmomentum) 
 
         #Check the momentums - va
         #momentum = velocity*(stage-elevation)
@@ -6520,7 +6524,7 @@ friction  \n \
 
         # The ymomentum stored in the .sts file should be the sum of the va
         # in the two mux2 files multiplied by the depth.
-        assert allclose(2.0*transpose(va*depth),ymomentum)
+        assert allclose(2.0*transpose(va*depth), ymomentum)
 
         # check the elevation values.
         # -ve since urs measures depth, sww meshers height,
