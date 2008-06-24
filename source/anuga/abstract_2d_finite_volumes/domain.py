@@ -31,6 +31,7 @@ from anuga.utilities.polygon import inside_polygon
 from anuga.abstract_2d_finite_volumes.util import get_textual_float
 
 import types
+from time import time as walltime
 
 
 
@@ -191,6 +192,7 @@ class Domain(Mesh):
 
         # FIXME: Maybe have separate orders for h-limiter and w-limiter?
         # Or maybe get rid of order altogether and use beta_w and beta_h
+        # FIXME (Ole): In any case, this should appear in the config file - not here
         self.set_default_order(1)
 
         self.smallsteps = 0
@@ -212,6 +214,8 @@ class Domain(Mesh):
         self.timestep = 0.0
         self.flux_timestep = 0.0
 
+        self.last_walltime = walltime()
+        
         # Monitoring
         self.quantities_to_be_monitored = None
         self.monitor_polygon = None
@@ -670,20 +674,35 @@ class Domain(Mesh):
 
 
         msg = ''
+        #if self.min_timestep == self.max_timestep:
+        #    msg += 'Time = %.4f, delta t = %.8f, steps=%d (%d)'\
+        #           %(self.time, self.min_timestep, self.number_of_steps,
+        #             self.number_of_first_order_steps)
+        #elif self.min_timestep > self.max_timestep:
+        #    msg += 'Time = %.4f, steps=%d (%d)'\
+        #           %(self.time, self.number_of_steps,
+        #             self.number_of_first_order_steps)
+        #else:
+        #    msg += 'Time = %.4f, delta t in [%.8f, %.8f], steps=%d (%d)'\
+        #           %(self.time, self.min_timestep,
+        #             self.max_timestep, self.number_of_steps,
+        #             self.number_of_first_order_steps)
+                     
+                     
         if self.min_timestep == self.max_timestep:
-            msg += 'Time = %.4f, delta t = %.8f, steps=%d (%d)'\
-                   %(self.time, self.min_timestep, self.number_of_steps,
-                     self.number_of_first_order_steps)
+            msg += 'Time = %.4f, delta t = %.8f, steps=%d'\
+                   %(self.time, self.min_timestep, self.number_of_steps)
         elif self.min_timestep > self.max_timestep:
-            msg += 'Time = %.4f, steps=%d (%d)'\
-                   %(self.time, self.number_of_steps,
-                     self.number_of_first_order_steps)
+            msg += 'Time = %.4f, steps=%d'\
+                   %(self.time, self.number_of_steps)
         else:
-            msg += 'Time = %.4f, delta t in [%.8f, %.8f], steps=%d (%d)'\
+            msg += 'Time = %.4f, delta t in [%.8f, %.8f], steps=%d'\
                    %(self.time, self.min_timestep,
-                     self.max_timestep, self.number_of_steps,
-                     self.number_of_first_order_steps)
-
+                     self.max_timestep, self.number_of_steps)
+                                          
+        msg += ' (%ds)' %(walltime() - self.last_walltime)    
+        self.last_walltime = walltime()            
+        
         if track_speeds is True:
             msg += '\n'
 

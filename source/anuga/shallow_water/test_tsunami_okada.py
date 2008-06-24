@@ -24,9 +24,9 @@ class Test_eq(unittest.TestCase):
         rectangular sources
         """
         #get path where this test is run
-        path= get_pathname_from_package('anuga.shallow_water')
+        path = get_pathname_from_package('anuga.shallow_water')
         #choose what test to proceed
-        T=1
+        T = 1
         
 
 

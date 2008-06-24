@@ -277,6 +277,9 @@ class Geospatial_data:
           New geospatial data object representing points inside
           specified polygon.
         
+        
+        Note - this method is non-destructive and leaves the data in 'self' 
+        unchanged
         """
 
         from anuga.utilities.polygon import inside_polygon
@@ -349,7 +352,7 @@ class Geospatial_data:
         return self.geo_reference
        
     def get_data_points(self, absolute=True, geo_reference=None,
-                        as_lat_long=False,isSouthHemisphere=True):
+                        as_lat_long=False, isSouthHemisphere=True):
         """Get coordinates for all data points as an Nx2 array
 
         If absolute is False returned coordinates are relative to the
