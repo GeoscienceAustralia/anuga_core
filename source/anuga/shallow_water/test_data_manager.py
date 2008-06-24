@@ -6535,7 +6535,7 @@ friction  \n \
         self.delete_mux(filesII)
         os.remove(sts_file)
 
-    def test_file_boundary_sts(self):
+    def test_file_boundary_stsI(self):
         from anuga.shallow_water import Domain
         from anuga.shallow_water import Reflective_boundary
         from anuga.shallow_water import Dirichlet_boundary
@@ -6608,10 +6608,13 @@ friction  \n \
         os.remove(sts_file+'.sts')
         os.remove(meshname)
 
-    def test_file_boundary_sts2(self):
-        # mux2 file has points not included in boundary
-        # mux2 gauges are not stored with the same order as they are 
-        # found in bounding_polygon
+    def test_file_boundary_stsII(self):
+        """ mux2 file has points not included in boundary
+         mux2 gauges are not stored with the same order as they are 
+         found in bounding_polygon. This does not matter as long as bounding
+         polygon passed to file_function contains the mux2 points needed (in
+         the correct order).
+         """
         from anuga.shallow_water import Domain
         from anuga.shallow_water import Reflective_boundary
         from anuga.shallow_water import Dirichlet_boundary
@@ -6660,6 +6663,125 @@ friction  \n \
         domain_fbound = pmesh_to_domain_instance(meshname, Domain)
         domain_fbound.set_quantity('stage', tide)
         Bf = File_boundary(sts_file+'.sts', domain_fbound, boundary_polygon=bounding_polygon)
+        Br = Reflective_boundary(domain_fbound)
+        Bd=Dirichlet_boundary([2.0,220,-220])
+        domain_fbound.set_boundary({'ocean': Bf,'otherocean': Br})
+        finaltime=time_step*(time_step_count-1)
+        yieldstep=time_step
+        temp_fbound=zeros(int(finaltime/yieldstep)+1,Float)
+        i=0
+        for t in domain_fbound.evolve(yieldstep=yieldstep,finaltime=finaltime, 
+                                      skip_initial_step = False):
+            temp_fbound[i]=domain_fbound.quantities['stage'].centroid_values[2]
+            i+=1
+        
+        domain_drchlt = pmesh_to_domain_instance(meshname, Domain)
+        domain_drchlt.set_quantity('stage', tide)
+        Br = Reflective_boundary(domain_drchlt)
+        Bd=Dirichlet_boundary([2.0,220,-220])
+        domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
+        temp_drchlt=zeros(int(finaltime/yieldstep)+1,Float)
+        i=0
+        for t in domain_drchlt.evolve(yieldstep=yieldstep,finaltime=finaltime, 
+                                      skip_initial_step = False):
+            temp_drchlt[i]=domain_drchlt.quantities['stage'].centroid_values[2]
+            i+=1
+
+        assert allclose(temp_fbound,temp_drchlt)
+        os.remove(sts_file+'.sts')
+        os.remove(meshname)
+
+    def test_file_boundary_stsIII(self):
+        """Read correct points from order file
+        """
+        from anuga.shallow_water import Domain
+        from anuga.shallow_water import Reflective_boundary
+        from anuga.shallow_water import Dirichlet_boundary
+        from anuga.shallow_water import File_boundary
+        from anuga.pmesh.mesh_interface import create_mesh_from_regions
+        from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_to_domain_instance
+
+        lat_long_points=[[6.01,97.0],[6.02,97.0],[6.05,96.9],[6.0,97.0]]
+        bounding_polygon=[[6.0,97.0],[6.01,97.0],[6.02,97.0],[6.02,97.02],[6.00,97.02]]
+        tide=0.
+        time_step_count = 5
+        time_step = 2
+        n=len(lat_long_points)
+        first_tstep=ones(n,Int)
+        last_tstep=(time_step_count)*ones(n,Int)
+        gauge_depth=20*ones(n,Float)
+        ha=2*ones((n,time_step_count),Float)
+        ua=10*ones((n,time_step_count),Float)
+        va=-10*ones((n,time_step_count),Float)
+        base_name, files = self.write_mux2(lat_long_points,
+                                   time_step_count, time_step,
+                                   first_tstep, last_tstep,
+                                   depth=gauge_depth,
+                                   ha=ha,
+                                   ua=ua,
+                                   va=va)
+
+        #Write order file
+        file_handle, order_base_name = tempfile.mkstemp("")
+        os.close(file_handle)
+        os.remove(order_base_name)
+        d=","
+        order_file=order_base_name+'order.txt'
+        fid=open(order_file,'w')
+        #Write Header
+        header="index,longitude,latitude\n"
+        fid.write(header)
+        indices=[3,0,1]
+        for i in indices:
+            line=str(i)+d+str(lat_long_points[i][0])+d+\
+                str(lat_long_points[i][1])+"\n"
+            fid.write(line)
+        fid.close()
+
+        sts_file=base_name
+        urs2sts(base_name,sts_file,mean_stage=tide,verbose=False)
+        self.delete_mux(files)
+
+        boundary_polygon = create_sts_boundary(order_file,base_name)
+
+        os.remove(order_file)
+
+        #Append the remaining part of the boundary polygon to be defined by
+        #the user
+        bounding_polygon_utm=[]
+        for point in bounding_polygon:
+            zone,easting,northing=redfearn(point[0],point[1])
+            bounding_polygon_utm.append([easting,northing])
+
+        boundary_polygon.append(bounding_polygon_utm[3])
+        boundary_polygon.append(bounding_polygon_utm[4])
+
+        plot=False
+        if plot:
+            from pylab import plot,show,axis
+            boundary_polygon=ensure_numeric(boundary_polygon)
+            bounding_polygon_utm=ensure_numeric(bounding_polygon_utm)
+            #plot(lat_long_points[:,0],lat_long_points[:,1],'o')
+            plot(boundary_polygon[:,0], boundary_polygon[:,1])
+            plot(bounding_polygon_utm[:,0],bounding_polygon_utm[:,1])
+            show()
+
+        assert allclose(bounding_polygon_utm,boundary_polygon)
+
+
+        extent_res=1000000
+        meshname = 'urs_test_mesh' + '.tsh'
+        interior_regions=None
+        boundary_tags={'ocean': [0,4], 'otherocean': [1,2,3]}
+        #have to change boundary tags from last example because now bounding
+        #polygon starts in different place.
+        create_mesh_from_regions(boundary_polygon,boundary_tags=boundary_tags,
+                         maximum_triangle_area=extent_res,filename=meshname,
+                         interior_regions=interior_regions,verbose=False)
+        
+        domain_fbound = pmesh_to_domain_instance(meshname, Domain)
+        domain_fbound.set_quantity('stage', tide)
+        Bf = File_boundary(sts_file+'.sts', domain_fbound, boundary_polygon=boundary_polygon)
         Br = Reflective_boundary(domain_fbound)
         Bd=Dirichlet_boundary([2.0,220,-220])
         domain_fbound.set_boundary({'ocean': Bf,'otherocean': Br})
@@ -8553,7 +8675,11 @@ if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Data_Manager,'test')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_export_gridII')
 #    suite = unittest.makeSuite(Test_Data_Manager,'test_screen_catcher')
+<<<<<<< .mine
+    suite = unittest.makeSuite(Test_Data_Manager,'test')
+=======
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2stsII')
+>>>>>>> .r5417
     #suite = unittest.makeSuite(Test_Data_Manager,'test_get_flow_through_cross_section_with_geo')
     #suite = unittest.makeSuite(Test_Data_Manager,'covered_')
 

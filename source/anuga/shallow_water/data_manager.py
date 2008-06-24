@@ -5080,6 +5080,69 @@ def urs2sts(basename_in, basename_out = None, weights=None,
 
     outfile.close()
 
+def create_sts_boundary(order_file,stsname):
+    """
+        Create boundary segments from .sts file. Points can be stored in
+    arbitrary order within the .sts file. The order in which the .sts points
+    make up the boundary are given in order.txt file
+    """
+    
+    if not order_file[-3:] == 'txt':
+        msg = 'Order file must be a txt file'
+        raise Exception, msg
+
+    try:
+        fid=open(order_file,'r')
+        file_header=fid.readline()
+        lines=fid.readlines()
+        fid.close()
+    except:
+        msg = 'Cannot open %s'%filename
+        raise msg
+
+    header="index,longitude,latitude\n"
+
+    if not file_header==header:
+        msg = 'File must contain header\n'+header+"\n"
+        raise Exception, msg
+
+    try:
+        fid = NetCDFFile(stsname+'.sts', 'r')
+    except:
+        msg = 'Cannot open %s'%filename+'.sts'
+
+
+    xllcorner = fid.xllcorner[0]
+    yllcorner = fid.yllcorner[0]
+    #Points stored in sts file are normailsed to [xllcorner,yllcorner] but 
+    #we cannot assume that boundary polygon will be. At least the
+    #additional points specified by the user after this function is called
+    x = fid.variables['x'][:]+xllcorner
+    y = fid.variables['y'][:]+yllcorner
+
+    x = reshape(x, (len(x),1))
+    y = reshape(y, (len(y),1))
+    sts_points = concatenate((x,y), axis=1)
+
+    xllcorner = fid.xllcorner[0]
+    yllcorner = fid.yllcorner[0]
+
+    boundary_polygon=[]
+    for line in lines:
+        fields = line.split(',')
+        index=int(fields[0])
+        zone,easting,northing=redfearn(float(fields[1]),float(fields[2]))
+        if not zone == fid.zone[0]:
+            msg = 'Inconsitent zones'
+            raise Exception, msg
+        if not allclose(array([easting,northing]),sts_points[index]):
+            msg = "Points in sts file do not match those in the"+\
+                ".txt file spcifying the order of the boundary points"
+            raise Exception, msg
+        boundary_polygon.append(sts_points[index].tolist())
+    
+    return boundary_polygon
+
 class Write_sww:
     from anuga.shallow_water.shallow_water_domain import Domain
 
