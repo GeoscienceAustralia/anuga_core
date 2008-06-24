@@ -5080,7 +5080,7 @@ def urs2sts(basename_in, basename_out = None, weights=None,
 
     outfile.close()
 
-def create_sts_boundary(order_file,stsname):
+def create_sts_boundary(order_file,stsname,lat_long=True):
     """
         Create boundary segments from .sts file. Points can be stored in
     arbitrary order within the .sts file. The order in which the .sts points
@@ -5104,6 +5104,10 @@ def create_sts_boundary(order_file,stsname):
 
     if not file_header==header:
         msg = 'File must contain header\n'+header+"\n"
+        raise Exception, msg
+
+    if len(lines)<2:
+        msg = 'File must contain at least two points'
         raise Exception, msg
 
     try:
@@ -5131,10 +5135,14 @@ def create_sts_boundary(order_file,stsname):
     for line in lines:
         fields = line.split(',')
         index=int(fields[0])
-        zone,easting,northing=redfearn(float(fields[1]),float(fields[2]))
-        if not zone == fid.zone[0]:
-            msg = 'Inconsitent zones'
-            raise Exception, msg
+        if lat_long:
+            zone,easting,northing=redfearn(float(fields[1]),float(fields[2]))
+            if not zone == fid.zone[0]:
+                msg = 'Inconsitent zones'
+                raise Exception, msg
+        else:
+            easting = float(fields[1])
+            northing = float(fields[2])
         if not allclose(array([easting,northing]),sts_points[index]):
             msg = "Points in sts file do not match those in the"+\
                 ".txt file spcifying the order of the boundary points"

@@ -8675,11 +8675,6 @@ if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Data_Manager,'test')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_export_gridII')
 #    suite = unittest.makeSuite(Test_Data_Manager,'test_screen_catcher')
-<<<<<<< .mine
-    suite = unittest.makeSuite(Test_Data_Manager,'test')
-=======
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2stsII')
->>>>>>> .r5417
     #suite = unittest.makeSuite(Test_Data_Manager,'test_get_flow_through_cross_section_with_geo')
     #suite = unittest.makeSuite(Test_Data_Manager,'covered_')
 
