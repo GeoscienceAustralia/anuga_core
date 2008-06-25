@@ -6,6 +6,16 @@
 import sys
 import os
 
+def log_to_file(filename, s, verbose=True):
+    """Log string to open file descriptor
+    """
+
+    fid = open(filename, 'a')
+    if verbose: print s
+    fid.write(s + '\n')
+    fid.close()
+
+
 def get_user_name():
     """Get user name provide by operating system
     """

@@ -1526,7 +1526,7 @@ class General_forcing:
                 function of time. Positive values indicate increases, 
                 negative values indicate decreases.
                 Rate can be None at initialisation but must be specified
-                before forcting term is applied (i.e. simulation has started).
+                before forcing term is applied (i.e. simulation has started).
 
     center [m]: Coordinates at center of flow point
     radius [m]: Size of circular area
@@ -1564,16 +1564,16 @@ class General_forcing:
                          # previous timestep in order to obtain rate
 
         # Update area if applicable
-        self.area = None        
+        self.exchange_area = None        
         if center is not None and radius is not None:
             assert len(center) == 2
             msg = 'Polygon cannot be specified when center and radius are'
             assert polygon is None, msg
 
-            self.area = radius**2*pi
+            self.exchange_area = radius**2*pi
 	
         if polygon is not None:
-            self.area = polygon_area(self.polygon)
+            self.exchange_area = polygon_area(self.polygon)
 
 
         # Pointer to update vector
@@ -1583,19 +1583,20 @@ class General_forcing:
         N = len(domain)    
         points = domain.get_centroid_coordinates(absolute=True)
 
-        self.indices = None
+        # Calculate indices in exchange area for this forcing term
+        self.exchange_indices = None
         if self.center is not None and self.radius is not None:
             # Inlet is circular
             
-            self.indices = []
+            self.exchange_indices = []
             for k in range(N):
                 x, y = points[k,:] # Centroid
                 if ((x-self.center[0])**2+(y-self.center[1])**2) < self.radius**2:
-                    self.indices.append(k)
+                    self.exchange_indices.append(k)
                     
         if self.polygon is not None:                    
             # Inlet is polygon
-            self.indices = inside_polygon(points, self.polygon)
+            self.exchange_indices = inside_polygon(points, self.polygon)
             
 
             
@@ -1620,11 +1621,11 @@ class General_forcing:
                                                      rate)
 
 
-        if self.indices is None:
+        if self.exchange_indices is None:
             self.update[:] += rate
         else:
             # Brute force assignment of restricted rate
-            for k in self.indices:
+            for k in self.exchange_indices:
                 self.update[k] += rate
 
 
@@ -1644,13 +1645,13 @@ class General_forcing:
     def get_quantity_values(self):
         """Return values for specified quantity restricted to opening 
         """
-        return self.domain.quantities[self.quantity_name].get_values(indices=self.indices)
+        return self.domain.quantities[self.quantity_name].get_values(indices=self.exchange_indices)
     
 
     def set_quantity_values(self, val):
         """Set values for specified quantity restricted to opening 
         """
-        self.domain.quantities[self.quantity_name].set_values(val, indices=self.indices)    
+        self.domain.quantities[self.quantity_name].set_values(val, indices=self.exchange_indices)    
 
 
 
@@ -1810,9 +1811,9 @@ class Inflow(General_forcing):
         
         
 	if callable(self.rate):
-	    _rate = self.rate(t)/self.area
+	    _rate = self.rate(t)/self.exchange_area
 	else:
-	    _rate = self.rate/self.area
+	    _rate = self.rate/self.exchange_area
 
         return _rate
 

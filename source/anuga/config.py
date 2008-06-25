@@ -9,6 +9,8 @@ max_float = 1.0e36 # Largest number - used to initialise (max, min) ranges
 default_smoothing_parameter = 0.001 # Default alpha for penalised
                                     # least squares fitting
 
+velocity_protection = 1.0e-6                                     
+
 #-------------------------------------------
 # Standard filenames, directories and system 
 # parameters used by ANUGA

@@ -2230,7 +2230,11 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Setup only one forcing term, constant rainfall restricted to a polygon enclosing triangle #1 (bce)
         domain.forcing_terms = []
-        domain.forcing_terms.append( Rainfall(domain, rate=2.0, polygon = [[1,1], [2,1], [2,2], [1,2]]))
+        R = Rainfall(domain, rate=2.0, polygon = [[1,1], [2,1], [2,2], [1,2]])
+
+        assert allclose(R.exchange_area, 1)
+        
+        domain.forcing_terms.append(R)
 
         domain.compute_forcing_terms()
         #print domain.quantities['stage'].explicit_update
