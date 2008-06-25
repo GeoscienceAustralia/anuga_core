@@ -93,14 +93,24 @@ class Culvert_flow:
         if blockage_topdwn is None: blockage_topdwn=0.00
         if blockage_bottup is None: blockage_bottup=0.00
         if culvert_routine is None: culvert_routine=boyd_generalised_culvert_model
-        if label is None: label = 'culvert_flow_' + id(self) 
+        if label is None: label = 'culvert_flow'
+        label += '_' + str(id(self)) 
         
         # Open log file for storing some specific results...
         self.log_filename = label + '.log' 
         self.label = label
 
+        # Print something
+        log_to_file(self.log_filename, self.label)        
+        log_to_file(self.log_filename, description)
+        log_to_file(self.log_filename, self.culvert_type)        
 
-        # Create the fundamental culvert polygons from POLYGON 
+
+        # Create the fundamental culvert polygons from POLYGON
+        if self.culvert_type == 'circle':
+            # Redefine width and height for use with create_culvert_polygons
+            width = height = diameter
+        
         P = create_culvert_polygons(end_point0,
                                     end_point1,
                                     width=width,   
@@ -134,7 +144,6 @@ class Culvert_flow:
         self.length = P['length']; assert self.length > 0.0
         self.verbose = verbose
         self.last_time = 0.0        
-        self.temp_keep_delta_t = 0.0
         
 
         # Store hydraulic parameters 
@@ -238,19 +247,31 @@ class Culvert_flow:
             else:
                 elevation = dq['elevation'].get_values(location='centroids', indices=opening.exchange_indices)
                 z = mean(elevation)                   # Average elevation
-                
-            # Estimated depth above the culvert inlet
-            d = w - z
 
+            # Estimated depth above the culvert inlet
+            d = w - z  # Used for calculations involving depth
             if d < 0.0:
                 # This is possible since w and z are taken at different locations
                 #msg = 'D < 0.0: %f' %d
                 #raise msg
                 d = 0.0
             
+
+
+            # Depth at exchange area used to trigger calculations
+            stage = dq['stage'].get_values(location='centroids', indices=enquiry_indices)
+            elevation = dq['elevation'].get_values(location='centroids', indices=enquiry_indices)
+            depth = stage - elevation
+            d_trigger = mean(depth)
+
+
+
             # Ratio of depth to culvert height.
             # If ratio > 1 then culvert is running full
-            ratio = d/self.height  
+            if self.culvert_type == 'circle':
+                ratio = d/self.diameter
+            else:    
+                ratio = d/self.height  
             opening.ratio = ratio
                 
             # Average measures of energy in front of this opening
@@ -259,8 +280,9 @@ class Culvert_flow:
             opening.total_energy = Et
             opening.specific_energy = Es            
             
-            # Store current average stage and depth with each opening object 
+            # Store current average stage and depth with each opening object
             opening.depth = d
+            opening.depth_trigger = d_trigger            
             opening.stage = w
             opening.elevation = z
             

@@ -57,8 +57,8 @@ def boyd_generalised_culvert_model(culvert, inlet, outlet, delta_Et, g):
     manning = culvert.manning
     sum_loss = culvert.sum_loss
     length = culvert.length
-    
-    if inlet.depth >= 0.01:
+
+    if inlet.depth_trigger >= 0.01 and inlet.depth >= 0.01:
         # Calculate driving energy
         E = inlet.specific_energy
 
@@ -90,14 +90,14 @@ def boyd_generalised_culvert_model(culvert, inlet, outlet, delta_Et, g):
                 flow_area = diameter**2 * (alpha - sin(alpha)*cos(alpha))
                 outlet_culvert_depth = inlet.depth
                 width = diameter*sin(alpha)
-                perimeter = alpha*diameter                
+                #perimeter = alpha*diameter                
                 case = 'Inlet unsubmerged'
             else:    
                 Q = Q_inlet_submerged
                 flow_area = (diameter/2)**2 * pi
                 outlet_culvert_depth = diameter
                 width = diameter
-                perimeter = diameter
+                #perimeter = diameter
                 case = 'Inlet submerged'                    
 
 
@@ -128,6 +128,19 @@ def boyd_generalised_culvert_model(culvert, inlet, outlet, delta_Et, g):
                     width = diameter*sin(alpha)                    
                     case = 'Outlet is open channel flow'
 
+                hyd_rad = flow_area/perimeter
+                s = 'hydraulic radius at outlet = %f' %hyd_rad
+                log_to_file(log_filename, s)
+
+                # Outlet control velocity using tail water
+                culvert_velocity = sqrt(delta_Et/((sum_loss/2*g)+(manning**2*length)/hyd_rad**1.33333)) 
+                Q_outlet_tailwater = flow_area * culvert_velocity
+
+                s = 'Q_outlet_tailwater = %.6f' %Q_outlet_tailwater
+                log_to_file(log_filename, s)
+                Q = min(Q, Q_outlet_tailwater)
+                    
+
 
         else:
             # Box culvert (rectangle or square)
@@ -147,13 +160,13 @@ def boyd_generalised_culvert_model(culvert, inlet, outlet, delta_Et, g):
                 Q = Q_inlet_unsubmerged
                 flow_area = width*inlet.depth
                 outlet_culvert_depth = inlet.depth
-                perimeter=(width+2.0*inlet.depth)                
+                #perimeter=(width+2.0*inlet.depth)                
                 case = 'Inlet unsubmerged'
             else:    
                 Q = Q_inlet_submerged
                 flow_area = width*height
                 outlet_culvert_depth = height
-                perimeter=2.0*(width+height)                
+                #perimeter=2.0*(width+height)                
                 case = 'Inlet submerged'                    
 
             if delta_Et < E:
@@ -175,25 +188,22 @@ def boyd_generalised_culvert_model(culvert, inlet, outlet, delta_Et, g):
                     flow_area=width*outlet.depth
                     perimeter=(width+2.0*outlet.depth)
                     case = 'Outlet is open channel flow'
-                    
+
+                hyd_rad = flow_area/perimeter
+                s = 'hydraulic radius at outlet = %f' %hyd_rad
+                log_to_file(log_filename, s)
+
+                # Outlet control velocity using tail water
+                culvert_velocity = sqrt(delta_Et/((sum_loss/2*g)+(manning**2*length)/hyd_rad**1.33333)) 
+                Q_outlet_tailwater = flow_area * culvert_velocity
+
+                s = 'Q_outlet_tailwater = %.6f' %Q_outlet_tailwater
+                log_to_file(log_filename, s)
+                Q = min(Q, Q_outlet_tailwater)
 
 
-
-        # Common code for rectangular and circular culvert types    
-        hyd_rad = flow_area/perimeter
-        s = 'hydraulic radius at outlet = %f' %hyd_rad
-        log_to_file(log_filename, s)
-
-        # Outlet control velocity using tail water
-        culvert_velocity = sqrt(delta_Et/((sum_loss/2*g)+(manning**2*length)/hyd_rad**1.33333)) 
-        Q_outlet_tailwater = flow_area * culvert_velocity
-
-        s = 'Q_outlet_tailwater = %.6f' %Q_outlet_tailwater
-        log_to_file(log_filename, s)
-        Q = min(Q, Q_outlet_tailwater)
-
+        # Common code for circle and square geometries
         log_to_file(log_filename, 'Case: "%s"' %case)
-    
         flow_rate_control=Q
 
         s = 'Flow Rate Control = %f' %flow_rate_control
@@ -208,6 +218,8 @@ def boyd_generalised_culvert_model(culvert, inlet, outlet, delta_Et, g):
 
         # Determine momentum at the outlet 
         barrel_velocity = Q/(flow_area + velocity_protection/flow_area)
+
+
     else: #inlet.depth < 0.01:
         Q = barrel_velocity = outlet_culvert_depth = 0.0
         
