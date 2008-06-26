@@ -98,7 +98,7 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
 from anuga.utilities.numerical_tools import gradient, mean, ensure_numeric
 from anuga.config import minimum_storable_height
 from anuga.config import minimum_allowed_height, maximum_allowed_speed
-from anuga.config import g, epsilon, beta_h, beta_w, beta_w_dry,\
+from anuga.config import g, epsilon, beta_w, beta_w_dry,\
      beta_uh, beta_uh_dry, beta_vh, beta_vh_dry, tight_slope_limiters
 from anuga.config import alpha_balance
 from anuga.config import optimise_dry_cells
@@ -168,7 +168,6 @@ class Domain(Generic_Domain):
         self.beta_uh_dry = beta_uh_dry
         self.beta_vh     = beta_vh
         self.beta_vh_dry = beta_vh_dry
-        self.beta_h      = beta_h
         self.alpha_balance = alpha_balance
 
         self.tight_slope_limiters = tight_slope_limiters
@@ -208,7 +207,6 @@ class Domain(Generic_Domain):
         self.beta_vh_dry = beta
         self.quantities['ymomentum'].beta = beta
         
-        self.beta_h      = beta
         
 
     def set_store_vertices_uniquely(self, flag, reduction=None):
@@ -419,8 +417,6 @@ class Domain(Generic_Domain):
         # Call check integrity here rather than from user scripts
         # self.check_integrity()
 
-        msg = 'Parameter beta_h must be in the interval [0, 2['
-        assert 0 <= self.beta_h <= 2.0, msg
         msg = 'Parameter beta_w must be in the interval [0, 2['
         assert 0 <= self.beta_w <= 2.0, msg
 
@@ -858,36 +854,6 @@ def protect_against_infinitesimal_and_negative_heights(domain):
             domain.epsilon, wc, zc, xmomc, ymomc)
 
 
-def h_limiter(domain):
-    """Limit slopes for each volume to eliminate artificial variance
-    introduced by e.g. second order extrapolator
-
-    limit on h = w-z
-
-    This limiter depends on two quantities (w,z) so it resides within
-    this module rather than within quantity.py
-
-    Wrapper for c-extension
-    """
-
-    N = len(domain) # number_of_triangles
-    beta_h = domain.beta_h
-
-    # Shortcuts
-    wc = domain.quantities['stage'].centroid_values
-    zc = domain.quantities['elevation'].centroid_values
-    hc = wc - zc
-
-    wv = domain.quantities['stage'].vertex_values
-    zv = domain.quantities['elevation'].vertex_values
-    hv = wv - zv
-
-    #Call C-extension
-    from shallow_water_ext import h_limiter_sw
-    hvbar = h_limiter_sw(domain, hc, hv)
-
-    return hvbar
-
 
 def balance_deep_and_shallow(domain):
     """Compute linear combination between stage as computed by
@@ -903,16 +869,9 @@ def balance_deep_and_shallow(domain):
     Wrapper for C implementation
     """
 
-    # FIXME (Ole): I reckon this can be simplified significantly:
-    #
-    # Always use beta_h == 0, and phase it out.
-    # Compute hc and hv in the c-code
-    # Omit updating xmomv 
-    #
     from shallow_water_ext import balance_deep_and_shallow as balance_deep_and_shallow_c
 
 
-    #print 'calling balance depth and shallow'
     # Shortcuts
     wc = domain.quantities['stage'].centroid_values
     zc = domain.quantities['elevation'].centroid_values
@@ -928,28 +887,9 @@ def balance_deep_and_shallow(domain):
     xmomv = domain.quantities['xmomentum'].vertex_values
     ymomv = domain.quantities['ymomentum'].vertex_values
 
-    # Limit h
-    if domain.beta_h > 0:
-        hvbar = h_limiter(domain)
-        
-        balance_deep_and_shallow_c(domain, domain.beta_h,
-                                   wc, zc, wv, zv, hvbar,
-                                   xmomc, ymomc, xmomv, ymomv)        
-    else:
-        # print 'Using first order h-limiter'
-        # FIXME: Pass wc in for now - it will be ignored.
-        
-        # This is how one would make a first order h_limited value
-        # as in the old balancer (pre 17 Feb 2005):
-        #  If we wish to hard wire this, one should modify the C-code
-        # from Numeric import zeros, Float
-        # hvbar = zeros( (len(wc), 3), Float)
-        # for i in range(3):
-        #     hvbar[:,i] = wc[:] - zc[:]
-
-        balance_deep_and_shallow_c(domain, domain.beta_h,
-                                   wc, zc, wv, zv, wc, 
-                                   xmomc, ymomc, xmomv, ymomv)
+    balance_deep_and_shallow_c(domain,
+                               wc, zc, wv, zv, wc, 
+                               xmomc, ymomc, xmomv, ymomv)
 
 
 

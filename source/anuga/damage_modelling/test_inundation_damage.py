@@ -69,7 +69,6 @@ class Test_inundation_damage(unittest.TestCase):
         os.remove(mesh_file)
         
         domain.default_order=2
-        domain.beta_h = 0
         #Set some field values
         #domain.set_quantity('stage', 1.0)
         domain.set_quantity('elevation', -0.5)
@@ -140,7 +139,6 @@ class Test_inundation_damage(unittest.TestCase):
         os.remove(mesh_file)
         
         domain.default_order=2
-        domain.beta_h = 0
         #Set some field values
         #domain.set_quantity('stage', 1.0)
         domain.set_quantity('elevation', -40)
@@ -261,7 +259,6 @@ class Test_inundation_damage(unittest.TestCase):
         os.remove(mesh_file)
         
         domain.default_order=2
-        domain.beta_h = 0
 
         #Set some field values
         domain.set_quantity('elevation', elevation_function)
@@ -334,7 +331,6 @@ class Test_inundation_damage(unittest.TestCase):
         os.remove(mesh_file)
         
         domain.default_order=2
-        domain.beta_h = 0
 
         #Set some field values
         domain.set_quantity('elevation', elevation_function)

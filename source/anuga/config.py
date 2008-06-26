@@ -51,18 +51,8 @@ rho_w = 1023   #Fluid density [kg/m^3] (rho_w = 1023 for salt water)
 # lower values are more conservative. Values of 0 correspond to
 # 1'st order extrapolations.
 #
-# Large values of beta_h may cause simulations to require more timesteps
-# as surface will 'hug' closer to the bed.
-# Small values of beta_h will make code faster, but one may experience
-# artificial momenta caused by discontinuities in water depths in
-# the presence of steep slopes. One example of this would be
-# stationary water 'lapping' upwards to a higher point on the coast.
-#
-# NOTE (Ole): I believe this was addressed with the introduction of
-# tight_slope_limiters. I wish to retire the beta_? parameters.
-# Can you please let me know if you disagree?
 
-# There are separate betas for the w, uh, vh and h limiters
+# There are separate betas for the w, uh, and vh limiters
 # I think these are better SR but they conflict with the unit tests!
 beta_w      = 1.0
 beta_w_dry  = 0.2
@@ -70,11 +60,6 @@ beta_uh     = 1.0
 beta_uh_dry = 0.2
 beta_vh     = 1.0
 beta_vh_dry = 0.2
-
-# beta_h can be safely put to zero esp if we are using
-# tight_slope_limiters = 1. This will
-# also speed things up in general
-beta_h = 0.0
 
 
 # Alpha_balance controls how limiters are balanced between deep and shallow.

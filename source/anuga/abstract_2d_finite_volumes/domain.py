@@ -179,19 +179,16 @@ class Domain(Mesh):
                         
 
         # Defaults
-        from anuga.config import max_smallsteps, beta_w, beta_h, epsilon
+        from anuga.config import max_smallsteps, beta_w, epsilon
         from anuga.config import CFL
         from anuga.config import timestepping_method
         from anuga.config import protect_against_isolated_degenerate_timesteps
         self.beta_w = beta_w
-        self.beta_h = beta_h
         self.epsilon = epsilon
         self.protect_against_isolated_degenerate_timesteps = protect_against_isolated_degenerate_timesteps
         
         
-
-        # FIXME: Maybe have separate orders for h-limiter and w-limiter?
-        # Or maybe get rid of order altogether and use beta_w and beta_h
+        # Maybe get rid of order altogether and use beta_w
         # FIXME (Ole): In any case, this should appear in the config file - not here
         self.set_default_order(1)
 

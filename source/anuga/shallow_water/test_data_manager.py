@@ -561,7 +561,6 @@ class Test_Data_Manager(unittest.TestCase):
         self.domain.format = 'sww'
         self.domain.smooth = False
         self.domain.store = True
-        self.domain.beta_h = 0
 
         self.domain.tight_slope_limiters = True
         self.domain.use_centroid_velocities = True        

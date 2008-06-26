@@ -537,7 +537,6 @@ double velocity_balance(double uh_i,
 
 
 int _balance_deep_and_shallow(int N,
-			      double beta_h,
 			      double* wc,
 			      double* zc,
 			      double* wv,
@@ -622,11 +621,6 @@ int _balance_deep_and_shallow(int N,
       if (hmin < H0) {
 	alpha = 1.0;
 	for (i=0; i<3; i++) {
-	
-	  // FIXME (Ole): Simplify (remove) when (if) hvbar gets retired
-	  if (beta_h > epsilon) {
-	    hc_k = hvbar[k3+i]; // Depth to be used at vertices
-	  }
 	  
 	  h_diff = hc_k - hv[i];	  
 	  if (h_diff <= 0) {
@@ -673,12 +667,7 @@ int _balance_deep_and_shallow(int N,
     if (alpha < 1) {      
       for (i=0; i<3; i++) {
       
-	// FIXME (Ole): Simplify when (if) hvbar gets retired	    
-	if (beta_h > epsilon) {	  
-	  wv[k3+i] = zv[k3+i] + (1-alpha)*hvbar[k3+i] + alpha*hv[i];
-	} else {
-	  wv[k3+i] = zv[k3+i] + (1-alpha)*hc_k + alpha*hv[i];	
-	}
+	wv[k3+i] = zv[k3+i] + (1-alpha)*hc_k + alpha*hv[i];	
 
 	// Update momentum at vertices
 	if (use_centroid_velocities == 1) {
@@ -2331,7 +2320,7 @@ PyObject *balance_deep_and_shallow(PyObject *self, PyObject *args) {
   // would otherwise appear as a result of hard switching between
   // modes.
   //
-  //    balance_deep_and_shallow(beta_h, wc, zc, wv, zv,
+  //    balance_deep_and_shallow(wc, zc, wv, zv,
   //                             xmomc, ymomc, xmomv, ymomv)
 
 
@@ -2349,14 +2338,13 @@ PyObject *balance_deep_and_shallow(PyObject *self, PyObject *args) {
   PyObject *domain, *Tmp;
     
   double alpha_balance = 2.0;
-  double H0, beta_h;
+  double H0;
 
   int N, tight_slope_limiters, use_centroid_velocities; //, err;
 
   // Convert Python arguments to C
-  if (!PyArg_ParseTuple(args, "OdOOOOOOOOO",
+  if (!PyArg_ParseTuple(args, "OOOOOOOOOO",
 			&domain,
-			&beta_h,
 			&wc, &zc, 
 			&wv, &zv, &hvbar,
 			&xmomc, &ymomc, &xmomv, &ymomv)) {
@@ -2410,7 +2398,6 @@ PyObject *balance_deep_and_shallow(PyObject *self, PyObject *args) {
   
   N = wc -> dimensions[0];
   _balance_deep_and_shallow(N,
-			    beta_h,
 			    (double*) wc -> data,
 			    (double*) zc -> data,
 			    (double*) wv -> data,
@@ -2431,148 +2418,6 @@ PyObject *balance_deep_and_shallow(PyObject *self, PyObject *args) {
 
 
 
-PyObject *h_limiter(PyObject *self, PyObject *args) {
-
-  PyObject *domain, *Tmp;
-  PyArrayObject
-    *hv, *hc, //Depth at vertices and centroids
-    *hvbar,   //Limited depth at vertices (return values)
-    *neighbours;
-
-  int k, i, n, N, k3;
-  int dimensions[2];
-  double beta_h; // Safety factor (see config.py)
-  double *hmin, *hmax, hn;
-
-  // Convert Python arguments to C
-  if (!PyArg_ParseTuple(args, "OOO", &domain, &hc, &hv)) {
-    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: h_limiter could not parse input arguments");
-    return NULL;
-  }  
-  
-  neighbours = get_consecutive_array(domain, "neighbours");
-
-  //Get safety factor beta_h
-  Tmp = PyObject_GetAttrString(domain, "beta_h");
-  if (!Tmp) {
-    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: h_limiter could not obtain object beta_h from domain");
-    return NULL;
-  }  
-  beta_h = PyFloat_AsDouble(Tmp);
-
-  Py_DECREF(Tmp);
-
-  N = hc -> dimensions[0];
-
-  //Create hvbar
-  dimensions[0] = N;
-  dimensions[1] = 3;
-  hvbar = (PyArrayObject *) PyArray_FromDims(2, dimensions, PyArray_DOUBLE);
-
-
-  //Find min and max of this and neighbour's centroid values
-  hmin = malloc(N * sizeof(double));
-  hmax = malloc(N * sizeof(double));
-  for (k=0; k<N; k++) {
-    k3=k*3;
-
-    hmin[k] = ((double*) hc -> data)[k];
-    hmax[k] = hmin[k];
-
-    for (i=0; i<3; i++) {
-      n = ((long*) neighbours -> data)[k3+i];
-
-      // Initialise hvbar with values from hv
-      ((double*) hvbar -> data)[k3+i] = ((double*) hv -> data)[k3+i];
-
-      if (n >= 0) {
-	hn = ((double*) hc -> data)[n]; // Neighbour's centroid value
-
-	hmin[k] = min(hmin[k], hn);
-	hmax[k] = max(hmax[k], hn);
-      }
-    }
-  }
-
-  // Call underlying standard routine
-  _limit_old(N, beta_h, (double*) hc -> data, (double*) hvbar -> data, hmin, hmax);
-
-  // // //Py_DECREF(domain); //FIXME: Necessary?
-  free(hmin);
-  free(hmax);
-
-  // Return result using PyArray to avoid memory leak
-  return PyArray_Return(hvbar);
-}
-
-PyObject *h_limiter_sw(PyObject *self, PyObject *args) {
-  //a faster version of h_limiter above
-  PyObject *domain, *Tmp;
-  PyArrayObject
-    *hv, *hc, //Depth at vertices and centroids
-    *hvbar,   //Limited depth at vertices (return values)
-    *neighbours;
-
-  int k, i, N, k3,k0,k1,k2;
-  int dimensions[2];
-  double beta_h; //Safety factor (see config.py)
-  double hmin, hmax, dh[3];
-// Convert Python arguments to C
-  if (!PyArg_ParseTuple(args, "OOO", &domain, &hc, &hv)) {
-    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: h_limiter_sw could not parse input arguments");
-    return NULL;
-  }  
-  neighbours = get_consecutive_array(domain, "neighbours");
-
-  //Get safety factor beta_h
-  Tmp = PyObject_GetAttrString(domain, "beta_h");
-  if (!Tmp) {
-    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: h_limiter_sw could not obtain object beta_h from domain");
-    return NULL;
-  }  
-  beta_h = PyFloat_AsDouble(Tmp);
-
-  Py_DECREF(Tmp);
-
-  N = hc -> dimensions[0];
-
-  //Create hvbar
-  dimensions[0] = N;
-  dimensions[1] = 3;
-  hvbar = (PyArrayObject *) PyArray_FromDims(2, dimensions, PyArray_DOUBLE);
-  for (k=0;k<N;k++){
-    k3=k*3;
-    //get the ids of the neighbours
-    k0 = ((long*) neighbours -> data)[k3];
-    k1 = ((long*) neighbours -> data)[k3+1];
-    k2 = ((long*) neighbours -> data)[k3+2];
-    //set hvbar provisionally
-    for (i=0;i<3;i++){
-      ((double*) hvbar -> data)[k3+i] = ((double*) hv -> data)[k3+i];
-      dh[i]=((double*) hvbar -> data)[k3+i]-((double*) hc -> data)[k];
-    }
-    hmin=((double*) hc -> data)[k];
-    hmax=hmin;
-    if (k0>=0){
-      hmin=min(hmin,((double*) hc -> data)[k0]);
-      hmax=max(hmax,((double*) hc -> data)[k0]);
-    }
-    if (k1>=0){
-      hmin=min(hmin,((double*) hc -> data)[k1]);
-      hmax=max(hmax,((double*) hc -> data)[k1]);
-    }
-    if (k2>=0){
-      hmin=min(hmin,((double*) hc -> data)[k2]);
-      hmax=max(hmax,((double*) hc -> data)[k2]);
-    }
-    hmin-=((double*) hc -> data)[k];
-    hmax-=((double*) hc -> data)[k];
-    limit_gradient(dh,hmin,hmax,beta_h);
-    for (i=0;i<3;i++)
-      ((double*) hvbar -> data)[k3+i] = ((double*) hc -> data)[k]+dh[i];
-  }
-  return PyArray_Return(hvbar);
-}
 
 PyObject *assign_windfield_values(PyObject *self, PyObject *args) {
   //
@@ -2635,10 +2480,6 @@ static struct PyMethodDef MethodTable[] = {
   {"manning_friction", manning_friction, METH_VARARGS, "Print out"},
   {"flux_function_central", flux_function_central, METH_VARARGS, "Print out"},  
   {"balance_deep_and_shallow", balance_deep_and_shallow,
-   METH_VARARGS, "Print out"},
-  {"h_limiter", h_limiter,
-   METH_VARARGS, "Print out"},
-  {"h_limiter_sw", h_limiter_sw,
    METH_VARARGS, "Print out"},
   {"protect", protect, METH_VARARGS | METH_KEYWORDS, "Print out"},
   {"assign_windfield_values", assign_windfield_values,

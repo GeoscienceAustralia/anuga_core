@@ -1435,7 +1435,6 @@ class Test_Shallow_Water(unittest.TestCase):
         # FIXME (Ole): Need tests where this is commented out
         domain.tight_slope_limiters = 0 # Backwards compatibility (14/4/7)                 
         domain.H0 = 0 # Backwards compatibility (6/2/7)
-        domain.beta_h = 0.0 # Backwards compatibility (14/2/7)
         domain.use_centroid_velocities = 0 # Backwards compatibility (7/5/8)
         
 
@@ -1488,7 +1487,7 @@ class Test_Shallow_Water(unittest.TestCase):
         #    print i, gauge_values[i]
         #    print 
 
-        #Reference (nautilus 26/6/2008) (beta_h == 0)
+        #Reference (nautilus 26/6/2008)
         
         G0 = [-0.20000000000000001, -0.20000000000000001, -0.19920600846161715, -0.19153647344085376, -0.19127622768281194, -0.1770671909675095, -0.16739412133181927, -0.16196038919122191, -0.15621633053131384, -0.15130021599977705, -0.13930978857215484, -0.19349274358263582, -0.19975307598803765, -0.19999897143103357, -0.1999999995532111, -0.19999999999949952, -0.19999999999949952, -0.19999999999949952, -0.19997270012494556, -0.19925805948554556, -0.19934513778450533, -0.19966484196394893, -0.1997352860102084, -0.19968260481750394, -0.19980280797303882, -0.19998804881822749, -0.19999999778075916, -0.19999999999966167, -0.19999999999966167, -0.19999999999966167, -0.19999999999966167, -0.19999999999966167, -0.19999999999966167, -0.19999999999966167, -0.19999999999966167, -0.19999999999966167, -0.19999999999966167, -0.19999999999966167, -0.19999999999966167, -0.19999999999966167, -0.19999999999966167, -0.19999999999966167, -0.19999999999966167, -0.19999999999966167, -0.19999999999966167, -0.19999999999966167, -0.19999999999966167, -0.19999999999966167, -0.19999999999966167, -0.19999999999966167, -0.19999999999966167]
 
@@ -2733,7 +2732,6 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_uh_dry = 0.9
         domain.beta_vh     = 0.9
         domain.beta_vh_dry = 0.9
-        domain.beta_h = 0.0 #Use first order in h-limiter
         
         # FIXME (Ole): Need tests where this is commented out
         domain.tight_slope_limiters = 0 # Backwards compatibility (14/4/7)                 
@@ -3217,7 +3215,6 @@ class Test_Shallow_Water(unittest.TestCase):
         domain = Domain(points, vertices, boundary)
         domain.smooth = False
         domain.default_order = 2
-        domain.beta_h = 0.0
         domain.set_quantities_to_be_stored(['stage', 'xmomentum', 'ymomentum'])
 
         #IC
@@ -3290,7 +3287,6 @@ class Test_Shallow_Water(unittest.TestCase):
         domain = Domain(points, vertices, boundary)
         domain.smooth = False
         domain.default_order=2
-        domain.beta_h = 0.0
 
         #IC
         def x_slope(x, y):
@@ -3954,7 +3950,6 @@ class Test_Shallow_Water(unittest.TestCase):
         domain = Domain(points, vertices, boundary)
         domain.smooth = False
         domain.default_order = 1
-        domain.beta_h = 0.0 # Use first order in h-limiter
         
         # FIXME (Ole): Need tests where these two are commented out
         domain.H0 = 0        # Backwards compatibility (6/2/7)        
@@ -4125,7 +4120,6 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_uh_dry = 0.9
         domain.beta_vh     = 0.9
         domain.beta_vh_dry = 0.9
-        domain.beta_h = 0.0 #Use first order in h-limiter
         
         # FIXME (Ole): Need tests where this is commented out
         domain.tight_slope_limiters = 0 # Backwards compatibility (14/4/7)                 
@@ -4229,7 +4223,6 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_uh_dry = 0.9
         domain.beta_vh     = 0.9
         domain.beta_vh_dry = 0.9
-        domain.beta_h = 0.0 #Use first order in h-limiter
         
         # FIXME (Ole): Need tests where this is commented out
         domain.tight_slope_limiters = 0 # Backwards compatibility (14/4/7)                 
@@ -4329,7 +4322,6 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_uh_dry = 0.9
         domain.beta_vh     = 0.9
         domain.beta_vh_dry = 0.9
-        domain.beta_h = 0.0 #Use first order in h-limiter
         
         
         # FIXME (Ole): Need tests where these two are commented out
@@ -4469,7 +4461,6 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_uh_dry = 0.9
         domain.beta_vh     = 0.9
         domain.beta_vh_dry = 0.9
-        domain.beta_h = 0.0 #Use first order in h-limiter
         domain.H0 = 0.001
         domain.tight_slope_limiters = 1
 
@@ -4596,7 +4587,6 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_uh_dry = 0.9
         domain.beta_vh     = 0.9
         domain.beta_vh_dry = 0.9
-        domain.beta_h = 0.0 #Use first order in h-limiter
         
         # FIXME (Ole): Need tests where these two are commented out
         domain.H0 = 0        # Backwards compatibility (6/2/7)        
@@ -5501,7 +5491,6 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.set_datadir('.')
         domain.smooth = False
         domain.store = True
-        domain.beta_h = 0
         
 
         #Evolution

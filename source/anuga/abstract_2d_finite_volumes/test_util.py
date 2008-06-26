@@ -1430,7 +1430,6 @@ class Test_Util(unittest.TestCase):
         os.remove(mesh_file)
         
         domain.default_order=2
-        domain.beta_h = 0
         
         # This test was made before tight_slope_limiters were introduced
         # Since were are testing interpolation values this is OK
@@ -1557,7 +1556,6 @@ point2, 0.5, 2.0, 9.0\n")
         os.remove(mesh_file)
         
         domain.default_order=2
-        domain.beta_h = 0
 
         # Set some field values
         domain.set_quantity('elevation', elevation_function)
@@ -1670,7 +1668,6 @@ point2, 0.5, 2.0\n")
         os.remove(mesh_file)
         
         domain.default_order=2
-        domain.beta_h = 0
 
         # This test was made before tight_slope_limiters were introduced
         # Since were are testing interpolation values this is OK

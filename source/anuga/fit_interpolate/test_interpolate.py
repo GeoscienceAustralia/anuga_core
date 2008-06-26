@@ -48,7 +48,6 @@ class Test_Interpolate(unittest.TestCase):
         #Create shallow water domain
         domain = Domain(points, vertices, boundary)
         domain.default_order=2
-        domain.beta_h = 0
 
 
         #Set some field values
@@ -1595,7 +1594,6 @@ class Test_Interpolate(unittest.TestCase):
         os.remove(mesh_file)
         
         domain.default_order = 2
-        domain.beta_h = 0
 
         # This test was made before tight_slope_limiters were introduced
         # Since were are testing interpolation values this is OK
