@@ -70,7 +70,6 @@ beta_uh     = 1.0
 beta_uh_dry = 0.2
 beta_vh     = 1.0
 beta_vh_dry = 0.2
-beta_h      = 0.2
 
 # beta_h can be safely put to zero esp if we are using
 # tight_slope_limiters = 1. This will
