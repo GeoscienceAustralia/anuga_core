@@ -429,12 +429,18 @@ def interpolate_sww2csv(sww_file,
                         velocity_y_file,
                         stage_file=None,
                         #quantities = ['depth', 'velocity'],
+                        time_thinning=1,
                         verbose=True,
                         use_cache = True):
     """
     Interpolate the quantities at a given set of locations, given
     an sww file.
     The results are written to a csv file.
+    
+    Time_thinning_number controls how many timesteps to use. Only
+        timesteps with index%time_thinning_number == 0 will used, or
+        in other words a value of 3, say, will cause the algorithm to
+        use every third time step.
 
     In the future let points be a points file.
     And the user choose the quantities.
@@ -452,6 +458,7 @@ def interpolate_sww2csv(sww_file,
                                  quantities=quantities,
                                  interpolation_points=points,
                                  verbose=verbose,
+                                 time_thinning=time_thinning,
                                  use_cache=use_cache)
     
     depth_writer = writer(file(depth_file, "wb"))
