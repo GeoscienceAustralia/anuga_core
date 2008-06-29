@@ -2321,6 +2321,51 @@ class Test_Shallow_Water(unittest.TestCase):
         
 
 
+
+    def test_inflow_catch_too_few_triangles(self):
+        """test_inflow_catch_too_few_triangles
+        
+        Test that exception is thrown if no triangles are covered by the inflow area
+        """
+        from math import pi, cos, sin
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe
+        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+
+        domain = Domain(points, vertices)
+
+        # Flat surface with 1m of water
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('stage', 1.0)
+        domain.set_quantity('friction', 0)
+
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'exterior': Br})
+
+        # Setup only one forcing term, constant inflow of 2 m^3/s on a circle affecting triangles #0 and #1 (bac and bce)
+
+        try:
+            Inflow(domain, rate=2.0, center=(1,1.1), radius=0.01)
+        except:
+            pass
+        else:
+            msg = 'Should have raised exception'
+            raise Exception, msg
+
+
+
+        
+        
+
     #####################################################
     def test_first_order_extrapolator_const_z(self):
 

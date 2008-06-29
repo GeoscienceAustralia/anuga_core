@@ -1490,7 +1490,16 @@ class General_forcing:
                  polygon=None,
                  verbose=False):
                      
-
+        if center is None:
+            msg = 'I got radius but no center.'        
+            assert radius is None, msg
+            
+        if radius is None:
+            msg += 'I got center but no radius.'        
+            assert center is None, msg
+            
+            
+                     
         from math import pi
 
         self.domain = domain
@@ -1528,6 +1537,8 @@ class General_forcing:
         if self.center is not None and self.radius is not None:
             # Inlet is circular
             
+            inlet_region = 'center=%s, radius=%s' %(self.center, self.radius) 
+            
             self.exchange_indices = []
             for k in range(N):
                 x, y = points[k,:] # Centroid
@@ -1536,10 +1547,18 @@ class General_forcing:
                     
         if self.polygon is not None:                    
             # Inlet is polygon
+            
+            inlet_region = 'polygon=%s' %(self.polygon) 
+                        
             self.exchange_indices = inside_polygon(points, self.polygon)
             
-
             
+        if self.exchange_indices is not None:
+            #print inlet_region
+        
+            if len(self.exchange_indices) == 0:
+                msg = 'No triangles have been identified in specified region: %s' %inlet_region
+                raise Exception, msg
 
 
     def __call__(self, domain):
