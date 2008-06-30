@@ -214,9 +214,12 @@ class Culvert_flow:
                                                                   indices=opening.exchange_indices)
 
             # Indices corresponding to energy enquiry field for this opening
-            coordinates = domain.get_centroid_coordinates() # Get all centroid points (x,y)
+            coordinates = domain.get_centroid_coordinates(absolute=True) # Get all centroid points (x,y)
             enquiry_indices = inside_polygon(coordinates, self.enquiry_polygons[i]) 
-            
+
+            if len(enquiry_indices) == 0:
+                msg = 'No triangles have been identified in specified region: %s' %str(self.enquiry_polygons[i])
+                raise Exception, msg                
             
             # Get model values for points in enquiry polygon for this opening
             dq = domain.quantities
