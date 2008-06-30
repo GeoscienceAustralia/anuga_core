@@ -5148,6 +5148,8 @@ def create_sts_boundary(order_file,stsname,lat_long=True):
                 ".txt file spcifying the order of the boundary points"
             raise Exception, msg
         boundary_polygon.append(sts_points[index].tolist())
+
+    fid.close()
     
     return boundary_polygon
 
