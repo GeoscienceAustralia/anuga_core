@@ -435,7 +435,18 @@ def interpolate_sww2csv(sww_file,
     """
     Interpolate the quantities at a given set of locations, given
     an sww file.
-    The results are written to a csv file.
+    The results are written to csv files.
+
+    sww_file is the input sww file.
+    points is a list of the 'gauges' x,y location.
+    depth_file is the name of the output depth file
+    velocity_x_file is the name of the output x velocity file.
+    velocity_y_file is the name of the output y velocity file.
+    stage_file is the name of the output stage file.
+
+    In the csv files columns represents the gauges and each row is a
+    time slice.
+    
     
     Time_thinning_number controls how many timesteps to use. Only
         timesteps with index%time_thinning_number == 0 will used, or
@@ -443,12 +454,11 @@ def interpolate_sww2csv(sww_file,
         use every third time step.
 
     In the future let points be a points file.
-    And the user choose the quantities.
+    And let the user choose the quantities.
 
     This is currently quite specific.
-    If it need to be more general, chagne things.
+    If it is need to be more general, change things.
 
-    This is really returning speed, not velocity.
     """
     quantities =  ['stage', 'elevation', 'xmomentum', 'ymomentum']
     #print "points",points 
