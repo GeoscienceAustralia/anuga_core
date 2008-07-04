@@ -5060,10 +5060,11 @@ def urs2sts(basename_in, basename_out = None, weights=None,
             msg = 'Cannot open %s'%ordering_filename
             raise Exception, msg
 
-        reference_header = 'index, longitude, latitude\n'.split(',')
+        reference_header = 'index, longitude, latitude\n'
+        reference_header_split = reference_header.split(',')
         for i in range(3):
-            if not file_header[i] == reference_header[i]:
-                msg = 'File must contain header\n'+header+'\n'
+            if not file_header[i] == reference_header_split[i]:
+                msg = 'File must contain header: '+reference_header+'\n'
                 raise Exception, msg
 
         if len(ordering_lines)<2:
@@ -5180,36 +5181,17 @@ def urs2sts(basename_in, basename_out = None, weights=None,
 
     outfile.close()
 
-def create_sts_boundary(order_file,stsname,lat_long=True):
+def create_sts_boundary(stsname):
     """
         Create boundary segments from .sts file. Points can be stored in
     arbitrary order within the .sts file. The order in which the .sts points
     make up the boundary are given in order.txt file
-    """
     
-    if not order_file[-3:] == 'txt':
-        msg = 'Order file must be a txt file'
-        raise Exception, msg
-
-    try:
-        fid=open(order_file,'r')
-        file_header=fid.readline()
-        lines=fid.readlines()
-        fid.close()
-    except:
-        msg = 'Cannot open %s'%filename
-        raise msg
-
-    header="index,longitude,latitude\n"
-
-    if not file_header==header:
-        msg = 'File must contain header\n'+header+"\n"
-        raise Exception, msg
-
-    if len(lines)<2:
-        msg = 'File must contain at least two points'
-        raise Exception, msg
-
+    FIXME:
+    Point coordinates are stored in relative eastings and northings. 
+    But boundary is produced in absolute coordinates
+    
+    """
     try:
         fid = NetCDFFile(stsname+'.sts', 'r')
     except:
@@ -5228,32 +5210,7 @@ def create_sts_boundary(order_file,stsname,lat_long=True):
     y = reshape(y, (len(y),1))
     sts_points = concatenate((x,y), axis=1)
 
-    xllcorner = fid.xllcorner[0]
-    yllcorner = fid.yllcorner[0]
-
-    # Walk through ordering file
-    boundary_polygon=[]
-    for line in lines:
-        fields = line.split(',')
-        index=int(fields[0])
-        if lat_long:
-            zone,easting,northing=redfearn(float(fields[1]),float(fields[2]))
-            if not zone == fid.zone[0]:
-                msg = 'Inconsistent zones'
-                raise Exception, msg
-        else:
-            easting = float(fields[1])
-            northing = float(fields[2])
-            
-        if not allclose(array([easting,northing]),sts_points[index]):
-            msg = "Points in sts file do not match those in the"+\
-                ".txt file specifying the order of the boundary points"
-            raise Exception, msg
-        boundary_polygon.append(sts_points[index].tolist())
-
-    fid.close()
-    
-    return boundary_polygon
+    return sts_points.tolist()
 
 class Write_sww:
     from anuga.shallow_water.shallow_water_domain import Domain

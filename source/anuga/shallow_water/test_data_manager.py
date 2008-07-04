@@ -6936,20 +6936,23 @@ friction  \n \
         order_file=order_base_name+'order.txt'
         fid=open(order_file,'w')
         #Write Header
-        header="index,longitude,latitude\n"
+        header='index, longitude, latitude\n'
         fid.write(header)
         indices=[3,0,1]
         for i in indices:
-            line=str(i)+d+str(lat_long_points[i][0])+d+\
-                str(lat_long_points[i][1])+"\n"
+            line=str(i)+d+str(lat_long_points[i][1])+d+\
+                str(lat_long_points[i][0])+"\n"
             fid.write(line)
         fid.close()
 
         sts_file=base_name
-        urs2sts(base_name,sts_file,mean_stage=tide,verbose=False)
+        urs2sts(base_name, basename_out=sts_file,
+                ordering_filename=order_file,
+                mean_stage=tide,
+                verbose=False)
         self.delete_mux(files)
 
-        boundary_polygon = create_sts_boundary(order_file,base_name)
+        boundary_polygon = create_sts_boundary(base_name)
 
         os.remove(order_file)
 
