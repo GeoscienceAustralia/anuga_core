@@ -4120,8 +4120,8 @@ def urs2sww(basename_in='o', basename_out=None, verbose=False,
     sww format native to abstract_2d_finite_volumes.
 
     Specify only basename_in and read files of the form
-    basefilename_velocity-z-mux, basefilename_velocity-e-mux and
-    basefilename_waveheight-n-mux containing relative height,
+    basefilename-z-mux2, basefilename-e-mux2 and
+    basefilename-n-mux2 containing relative height,
     x-velocity and y-velocity, respectively.
 
     Also convert latitude and longitude to UTM. All coordinates are
@@ -4172,9 +4172,9 @@ def urs2nc(basename_in = 'o', basename_out = 'urs'):
     Convert the 3 urs files to 4 nc files.
 
     The name of the urs file names must be;
-    [basename_in]_velocity-z-mux
-    [basename_in]_velocity-e-mux
-    [basename_in]_waveheight-n-mux
+    [basename_in]-z-mux
+    [basename_in]-e-mux
+    [basename_in]-n-mux
     
     """
     
@@ -4645,9 +4645,9 @@ def keep_point(lat, long, seg, max_distance):
     
     #### CONVERTING UNGRIDDED URS DATA TO AN SWW FILE ####
    
-WAVEHEIGHT_MUX_LABEL = '_waveheight-z-mux'
-EAST_VELOCITY_LABEL =  '_velocity-e-mux'
-NORTH_VELOCITY_LABEL =  '_velocity-n-mux' 
+WAVEHEIGHT_MUX_LABEL = '-z-mux'
+EAST_VELOCITY_LABEL =  '-e-mux'
+NORTH_VELOCITY_LABEL =  '-n-mux' 
 def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
                       mint=None, maxt=None,
                       mean_stage=0,
@@ -4660,8 +4660,8 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
 
 
     Specify only basename_in and read files of the form
-    basefilename_velocity-z-mux, basefilename_velocity-e-mux and
-    basefilename_waveheight-n-mux containing relative height,
+    basefilename-z-mux, basefilename-e-mux and
+    basefilename-n-mux containing relative height,
     x-velocity and y-velocity, respectively.
 
     Also convert latitude and longitude to UTM. All coordinates are
@@ -4833,9 +4833,9 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
     # READ MUX2 FILES line of points #
     ##################################
 
-WAVEHEIGHT_MUX2_LABEL = '_waveheight-z-mux2'
-EAST_VELOCITY_MUX2_LABEL =  '_velocity-e-mux2'
-NORTH_VELOCITY_MUX2_LABEL =  '_velocity-n-mux2'    
+WAVEHEIGHT_MUX2_LABEL = '-z-mux2'
+EAST_VELOCITY_MUX2_LABEL =  '-e-mux2'
+NORTH_VELOCITY_MUX2_LABEL =  '-n-mux2'    
 
 def read_mux2_py(filenames,weights):
 
@@ -4918,9 +4918,9 @@ def urs2sts(basename_in, basename_out = None, weights=None,
     basename_in: list of source file prefixes
     
     These are combined with the extensions:
-    WAVEHEIGHT_MUX2_LABEL = '_waveheight-z-mux2' for stage
-    EAST_VELOCITY_MUX2_LABEL =  '_velocity-e-mux2' xmomentum
-    NORTH_VELOCITY_MUX2_LABEL =  '_velocity-n-mux2' and ymomentum
+    WAVEHEIGHT_MUX2_LABEL = '-z-mux2' for stage
+    EAST_VELOCITY_MUX2_LABEL =  '-e-mux2' xmomentum
+    NORTH_VELOCITY_MUX2_LABEL =  '-n-mux2' and ymomentum
     
     to create a 2D list of mux2 file. The rows are associated with each quantity and must have the above extensions
     the columns are the list of file prefixes.

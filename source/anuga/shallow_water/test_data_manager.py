@@ -7017,7 +7017,13 @@ friction  \n \
             i+=1
 
         assert allclose(temp_fbound,temp_drchlt)
-        os.remove(sts_file+'.sts')
+
+        try:
+            os.remove(sts_file+'.sts')
+        except:
+            # Windoze can't remove this file for some reason 
+            pass
+        
         os.remove(meshname)
 
     def test_lon_lat2grid(self):

@@ -396,6 +396,8 @@ def get_netcdf_file_function(filename,
         if boundary_polygon is not None:
             #removes sts points that do not lie on boundary
             quantities[name] = take(quantities[name],gauge_id,1)
+            
+    # Close sww, tms or sts netcdf file         
     fid.close()
 
     from anuga.fit_interpolate.interpolate import Interpolation_function
