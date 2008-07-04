@@ -4902,7 +4902,8 @@ def mux2sww_time(mux_times, mint, maxt):
 
 def urs2sts(basename_in, basename_out = None, weights=None,
             verbose = False, origin = None,
-            mean_stage=0.0,zscale=1.0,
+            mean_stage=0.0, zscale=1.0,
+            ordering_filename = None,
             minlat = None, maxlat = None,
             minlon = None, maxlon = None):
     """Convert URS mux2 format for wave propagation to sts format
@@ -4912,6 +4913,38 @@ def urs2sts(basename_in, basename_out = None, weights=None,
 
     origin is a 3-tuple with geo referenced
     UTM coordinates (zone, easting, northing)
+    
+    input:
+    basename_in: list of source file prefixes
+    
+    These are combined with the extensions:
+    WAVEHEIGHT_MUX2_LABEL = '_waveheight-z-mux2' for stage
+    EAST_VELOCITY_MUX2_LABEL =  '_velocity-e-mux2' xmomentum
+    NORTH_VELOCITY_MUX2_LABEL =  '_velocity-n-mux2' and ymomentum
+    
+    to create a 2D list of mux2 file. The rows are associated with each quantity and must have the above extensions
+    the columns are the list of file prefixes.
+    
+    ordering: a .txt file name specifying which mux2 gauge points are sto be stored. This is indicated by the index of
+    the gauge in the ordering file.
+    
+    ordering file format:
+    header
+    index,longitude,latitude
+    
+    header='index,longitude,latitude\n'
+    If ordering is None all points are taken in the order they appear in the mux2 file subject to rectangular clipping box (see below).
+    
+    
+    minlat, minlon, maxlat, maxlon define a rectangular clipping box and can be used to extract gauge information in a rectangular box. This is useful for extracting
+    information at gauge points not on the boundary.
+    if ordering_filename is specified clipping box cannot be used
+    
+    
+    output:
+    baename_out: name of sts file in which mux2 data is stored.
+    
+    
     """
     import os
     from Scientific.IO.NetCDF import NetCDFFile
@@ -4943,8 +4976,14 @@ def urs2sts(basename_in, basename_out = None, weights=None,
 
     precision = Float
 
+    if ordering_filename is not None:
+        msg = 'If ordering_filename is specified,'
+        msg += ' rectangular clipping box cannot be specified as well. '
+        assert minlat is None and maxlat is None and\
+            minlon is None and maxlon is None, msg
+    
+    
     msg = 'Must use latitudes and longitudes for minlat, maxlon etc'
-
     if minlat != None:
         assert -90 < minlat < 90 , msg
     if maxlat != None:
@@ -4958,10 +4997,13 @@ def urs2sts(basename_in, basename_out = None, weights=None,
         if minlon != None:
             assert maxlon > minlon
 
+
+    # Check output filename    
     if basename_out is None:
-        stsname = basename_in[0] + '.sts'
-    else:
-        stsname = basename_out + '.sts'
+        msg = 'STS filename must be specified'
+        raise Exception, msg
+    
+    stsname = basename_out + '.sts'
 
     files_in=[[],[],[]]
     for files in basename_in:
@@ -4990,29 +5032,83 @@ def urs2sts(basename_in, basename_out = None, weights=None,
     if (verbose): print 'reading mux2 file'
     mux={}
     for i,quantity in enumerate(quantities):
-        times_urs, latitudes_urs, longitudes_urs, elevation, mux[quantity],starttime = read_mux2_py(files_in[i],weights)
+        # For each quantity read the associated list of source mux2 file with extenstion associated with that quantity
+        times, latitudes_urs, longitudes_urs, elevation, mux[quantity],starttime = read_mux2_py(files_in[i],weights)
         if quantity!=quantities[0]:
             msg='%s, %s and %s have inconsitent gauge data'%(files_in[0],files_in[1],files_in[2])
-            assert allclose(times_urs,times_urs_old),msg
+            assert allclose(times,times_old),msg
             assert allclose(latitudes_urs,latitudes_urs_old),msg
             assert allclose(longitudes_urs,longitudes_urs_old),msg
             assert allclose(elevation,elevation_old),msg
             assert allclose(starttime,starttime_old)
-        times_urs_old=times_urs
+        times_old=times
         latitudes_urs_old=latitudes_urs
         longitudes_urs_old=longitudes_urs
         elevation_old=elevation
         starttime_old=starttime
+
         
-    if (minlat is not None) and (minlon is not None) and (maxlat is not None) and (maxlon is not None):
+    if ordering_filename is not None:
+        # Read ordering file 
+        
+        try:
+            fid=open(ordering_filename, 'r')
+            file_header=fid.readline().split(',')
+            ordering_lines=fid.readlines()
+            fid.close()
+        except:
+            msg = 'Cannot open %s'%ordering_filename
+            raise Exception, msg
+
+        reference_header = 'index, longitude, latitude\n'.split(',')
+        for i in range(3):
+            if not file_header[i] == reference_header[i]:
+                msg = 'File must contain header\n'+header+'\n'
+                raise Exception, msg
+
+        if len(ordering_lines)<2:
+            msg = 'File must contain at least two points'
+            raise Exception, msg
+
+   
+        
+        permutation = [int(line.split(',')[0]) for line in ordering_lines]
+   
+        latitudes = take(latitudes_urs, permutation)
+        longitudes = take(longitudes_urs, permutation)
+        
+        # Self check - can be removed to improve speed
+        ref_longitudes = [float(line.split(',')[1]) for line in ordering_lines]                
+        ref_latitudes = [float(line.split(',')[2]) for line in ordering_lines]        
+        
+        msg = 'Longitudes specified in ordering file do not match those found in mux files'
+        msg += 'I got %s instead of %s (only beginning shown)'\
+            %(str(longitudes[:10]) + '...',
+              str(ref_longitudes[:10]) + '...')        
+        assert allclose(longitudes, ref_longitudes), msg        
+        
+        msg = 'Latitudes specified in ordering file do not match those found in mux files. '
+        msg += 'I got %s instead of %s (only beginning shown)'\
+            %(str(latitudes[:10]) + '...',
+              str(ref_latitudes[:10]) + '...')                
+        assert allclose(latitudes, ref_latitudes), msg
+        
+    elif (minlat is not None) and (minlon is not None) and (maxlat is not None) and (maxlon is not None):
+        #FIXME - this branch is probably not working    
         if verbose: print 'Cliping urs data'
         latitudes = compress((latitudes_urs>=minlat)&(latitudes_urs<=maxlat)&(longitudes_urs>=minlon)&(longitudes_urs<=maxlon),latitudes_urs)
         longitudes = compress((latitudes_urs>=minlat)&(latitudes_urs<=maxlat)&(longitudes_urs>=minlon)&(longitudes_urs<=maxlon),longitudes_urs)
-        times = compress((latitudes_urs>=minlat)&(latitudes_urs<=maxlat)&(longitudes_urs>=minlon)&(longitudes_urs<=maxlon),times_urs)
+        
+        permutation = range(latitudes.shape[0])        
+        
+        msg = 'Clipping is not done yet'
+        raise Exception, msg
+        
     else:
         latitudes=latitudes_urs
         longitudes=longitudes_urs
-        times=times_urs
+        permutation = range(latitudes.shape[0])                
+        
 
     msg='File is empty and or clipped region not in file region'
     assert len(latitudes>0),msg
@@ -5031,8 +5127,12 @@ def urs2sts(basename_in, basename_out = None, weights=None,
     # Create new file
     #starttime = times[0]
     sts = Write_sts()
-    sts.store_header(outfile, times+starttime,number_of_points, description=description,
-                     verbose=verbose,sts_precision=Float)
+    sts.store_header(outfile, 
+                     times+starttime,
+                     number_of_points, 
+                     description=description,
+                     verbose=verbose,
+                     sts_precision=Float)
     
     # Store
     from anuga.coordinate_transforms.redfearn import redfearn
@@ -5066,17 +5166,17 @@ def urs2sts(basename_in, basename_out = None, weights=None,
 
     stage = outfile.variables['stage']
     xmomentum = outfile.variables['xmomentum']
-    ymomentum =outfile.variables['ymomentum']
+    ymomentum = outfile.variables['ymomentum']
 
     if verbose: print 'Converting quantities'
     for j in range(len(times)):
-        for i in range(number_of_points):
-            w = zscale*mux['HA'][i,j] + mean_stage
-            h=w-elevation[i]
+        for i, index in enumerate(permutation):
+            w = zscale*mux['HA'][index,j] + mean_stage
+            h=w-elevation[index]
             stage[j,i] = w
-            #delete following two lines once velcotu files are read in.
-            xmomentum[j,i] = mux['UA'][i,j]*h
-            ymomentum[j,i] = mux['VA'][i,j]*h
+
+            xmomentum[j,i] = mux['UA'][index,j]*h
+            ymomentum[j,i] = mux['VA'][index,j]*h
 
     outfile.close()
 
@@ -5118,7 +5218,7 @@ def create_sts_boundary(order_file,stsname,lat_long=True):
 
     xllcorner = fid.xllcorner[0]
     yllcorner = fid.yllcorner[0]
-    #Points stored in sts file are normailsed to [xllcorner,yllcorner] but 
+    #Points stored in sts file are normalised to [xllcorner,yllcorner] but 
     #we cannot assume that boundary polygon will be. At least the
     #additional points specified by the user after this function is called
     x = fid.variables['x'][:]+xllcorner
@@ -5131,6 +5231,7 @@ def create_sts_boundary(order_file,stsname,lat_long=True):
     xllcorner = fid.xllcorner[0]
     yllcorner = fid.yllcorner[0]
 
+    # Walk through ordering file
     boundary_polygon=[]
     for line in lines:
         fields = line.split(',')
@@ -5138,14 +5239,15 @@ def create_sts_boundary(order_file,stsname,lat_long=True):
         if lat_long:
             zone,easting,northing=redfearn(float(fields[1]),float(fields[2]))
             if not zone == fid.zone[0]:
-                msg = 'Inconsitent zones'
+                msg = 'Inconsistent zones'
                 raise Exception, msg
         else:
             easting = float(fields[1])
             northing = float(fields[2])
+            
         if not allclose(array([easting,northing]),sts_points[index]):
             msg = "Points in sts file do not match those in the"+\
-                ".txt file spcifying the order of the boundary points"
+                ".txt file specifying the order of the boundary points"
             raise Exception, msg
         boundary_polygon.append(sts_points[index].tolist())
 
