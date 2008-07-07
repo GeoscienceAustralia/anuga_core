@@ -22,13 +22,13 @@ void fillDataArray(int, int, int, int, int *, int *, float *, int *, int *, floa
 long getNumData(int*, int*, int);
 char isdata(float);
 void wrttxt(char *, float, int, float *, float, float, float, float, float, int, int, int);
-PyArrayObject *_read_mux2(int, char **, float *, double *, int);
+PyArrayObject *_read_mux2(int, char **, float *, double *, PyObject *, int);
 
 PyObject *read_mux2(PyObject *self, PyObject *args){
 /*Read in mux 2 file
    
     Python call:
-    read_mux2(numSrc,filenames,weights,file_params,verbose)
+    read_mux2(numSrc,filenames,weights,file_params,permutation,verbose)
 
     NOTE:
     A Python int is equivalent to a C long
@@ -37,6 +37,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
   PyObject *filenames;
   PyArrayObject *pyweights,*file_params;
   PyArrayObject *sts_data;
+  PyObject *permutation;
   PyObject *fname;
 
   char **muxFileNameArray;
@@ -50,8 +51,8 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
   int i;
   
   // Convert Python arguments to C
-  if (!PyArg_ParseTuple(args, "iOOOi",
-			&numSrc,&filenames,&pyweights,&file_params,&verbose)) {			
+  if (!PyArg_ParseTuple(args, "iOOOOi",
+			&numSrc,&filenames,&pyweights,&file_params,&permutation,&verbose)) {			
 			
     PyErr_SetString(PyExc_RuntimeError, 
 		    "Input arguments to read_mux2 failed");
@@ -81,18 +82,19 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
 
   muxFileNameArray = (char **) malloc((int)numSrc*sizeof(char *));
   if (muxFileNameArray == NULL) {
-     printf("ERROR: Memory for muxFileNameArray could not be allocated.\n");
-     exit(-1);
+     PyErr_SetString(PyExc_RuntimeError,"Memory for muxFileNameArray could not be allocated");
+     return NULL;
   }
   for (i=0;i<PyList_Size(filenames);i++){
     muxFileNameArray[i] = (char *) malloc((MAX_FILE_NAME_LENGTH+1)*sizeof(char));
     if (muxFileNameArray[i] == NULL) {
-      printf("ERROR: Memory for muxFileNameArray could not be allocated.\n");
-      exit(-1);
+      PyErr_SetString(PyExc_RuntimeError,"Memory for muxFileNameArray could not be allocated");
+      return NULL;
     }
     fname=PyList_GetItem(filenames, i);
     if (!PyString_Check(fname)) {
       PyErr_SetString(PyExc_ValueError, "filename not a string");
+      return NULL;
     }
     muxFileNameArray[i]=PyString_AsString(fname);
   }
@@ -110,8 +112,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
   }
 
   // Read in mux2 data from file
-  sts_data=_read_mux2((int)numSrc,muxFileNameArray,weights,(double*)file_params->data,(int)verbose);
-
+  sts_data=_read_mux2((int)numSrc,muxFileNameArray,weights,(double*)file_params->data,permutation,(int)verbose);
 
   // Allocate space for return vector
   nsta0=(int)*(double *) (file_params -> data+0*file_params->strides[0]);
@@ -124,10 +125,10 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
 
 }
 
-PyArrayObject *_read_mux2(int numSrc, char **muxFileNameArray, float *weights, double *params, int verbose)
+PyArrayObject *_read_mux2(int numSrc, char **muxFileNameArray, float *weights, double *params, PyObject *permutation, int verbose)
 {
    FILE *fp;
-   int nsta, nsta0, i, t, isrc, ista;
+   int nsta, nsta0, i, j, t, isrc, ista, N;
    struct tgsrwg *mytgs, *mytgs0;
    char *muxFileName;                                                                  
    int istart, istop;
@@ -143,6 +144,9 @@ PyArrayObject *_read_mux2(int numSrc, char **muxFileNameArray, float *weights, d
    int len_sts_data;
    float *temp_sts_data;
    PyArrayObject *sts_data;
+   
+   int permuation_dimensions[1];
+   PyArrayObject *permutation_array;
    
    long int offset;
 
@@ -173,13 +177,30 @@ PyArrayObject *_read_mux2(int numSrc, char **muxFileNameArray, float *weights, d
    
    /* Open the first muxfile */
    if((fp=fopen(muxFileNameArray[0],"r"))==NULL){
-      fprintf(stderr, "cannot open file %s\n", muxFileNameArray[0]);
-      exit(-1);  
+     fprintf(stderr,"Cannot open file %s\n", muxFileNameArray[0]);
+     PyErr_SetString(PyExc_RuntimeError,"");
+     return NULL;  
    }
  
    /* Read in the header */
    /* First read the number of stations*/   
    fread(&nsta0,sizeof(int),1,fp);
+   
+   if (permutation == Py_None){
+     // if no permutation is specified return the times series of all the gauges in the mux file
+     permuation_dimensions[0]=nsta0;
+     permutation_array=(PyArrayObject *) PyArray_FromDims(1, permuation_dimensions, PyArray_INT);
+     for (ista=0; ista<nsta0; ista++){
+       *(long *) (permutation_array -> data+ista*permutation_array->strides[0])=ista;
+     } 
+   }else{
+     // Specifies the gauge numbers that for which data is to be extracted
+     permutation_array=(PyArrayObject *) PyArray_ContiguousFromObject(permutation,PyArray_INT,1,1);
+   }
+   if(permutation_array == NULL){
+     PyErr_SetString(PyExc_RuntimeError,"ERROR: Memory for permutation_array array could not be allocated");
+     return NULL;
+   }
    
    /*now allocate space for, and read in, the structures for each station*/
    mytgs0 = (struct tgsrwg *) malloc(nsta0*sizeof(struct tgsrwg));
@@ -202,7 +223,8 @@ PyArrayObject *_read_mux2(int numSrc, char **muxFileNameArray, float *weights, d
    /* Burbidge: Added a sanity check here */
    if (numData < 0) {
      fprintf(stderr,"Size of data block appears to be negative!\n");
-     exit(-1);
+     PyErr_SetString(PyExc_RuntimeError,"");
+     return NULL;  
    }
    fclose(fp); 
 
@@ -228,27 +250,30 @@ PyArrayObject *_read_mux2(int numSrc, char **muxFileNameArray, float *weights, d
      if((fp=fopen(muxFileName,"r"))==NULL)
        {
 	 fprintf(stderr, "cannot open file %s\n", muxFileName);
-         exit(-1);  
+	 PyErr_SetString(PyExc_RuntimeError,"");
+	 return NULL; 
        }
      
      /* check that the mux files are compatible */      
      fread(&nsta,sizeof(int),1,fp);
      if(nsta != nsta0){
        fprintf(stderr,"%s has different number of stations to %s\n", muxFileName, muxFileNameArray[0]);
+       PyErr_SetString(PyExc_RuntimeError,"");
        fclose(fp);
-       exit(-1);   
+       return NULL; 
      }
      fread(&mytgs[0], nsta*sizeof(struct tgsrwg), 1, fp);
      for(ista=0; ista < nsta; ista++){
        if(mytgs[ista].dt != mytgs0[ista].dt){
 	 fprintf(stderr,"%s has different sampling rate to %s\n", muxFileName, muxFileNameArray[0]);
 	 fclose(fp);
-	 exit(-1);                 
+	 return NULL;                
        }   
        if(mytgs[ista].nt != num_ts){
 	 fprintf(stderr,"%s has different series length to %s\n", muxFileName, muxFileNameArray[0]);
+	 PyErr_SetString(PyExc_RuntimeError,"");
 	 fclose(fp);
-	 exit(-1);                 
+	 return NULL;              
        }
      }
 
@@ -262,16 +287,20 @@ PyArrayObject *_read_mux2(int numSrc, char **muxFileNameArray, float *weights, d
       /* Burbidge: Added a sanity check here */
       if (numData < 0){
 	  fprintf(stderr,"Size of data block appears to be negative!\n");
-	  exit(-1);
+	  PyErr_SetString(PyExc_RuntimeError,"");
+	  return NULL;
       }
       fclose(fp);             
    }
-   params[0]=(double)nsta0;
+   N = permutation_array->dimensions[0];
+   
+   params[0]=(double)N;
    params[1]=(double)mytgs0[0].dt;
-   params[2]=(double)mytgs0[0].nt;
+   params[2]=(double)num_ts;
   
     
    // Find min and max start times of all gauges
+   // FIXME: ONLY CHECK gauges in permutation for start and finsh times
    start_tstep=num_ts+1;
    finish_tstep=-1;
    for (ista=0;ista<nsta0;ista++){
@@ -284,35 +313,36 @@ PyArrayObject *_read_mux2(int numSrc, char **muxFileNameArray, float *weights, d
    }
    
    if ((start_tstep>num_ts) | (finish_tstep < 0)){
-     printf("ERROR: Gauge data has incorrect start and finsh times\n");
+     PyErr_SetString(PyExc_RuntimeError,"Gauge data has incorrect start and finsh times");
      return NULL;
    }
    
    if (start_tstep>=finish_tstep){
-     printf("ERROR: Gauge data has non-postive_length\n");
+     PyErr_SetString(PyExc_RuntimeError,"Gauge data has non-postive_length");
      return NULL;
    }
    
    /* Make array(s) to hold the demuxed data */
    len_sts_data=num_ts+POFFSET;
-   dimensions[0]=nsta0;
+   dimensions[0]=N;
    dimensions[1]=len_sts_data;
    sts_data = (PyArrayObject *) PyArray_FromDims(2, dimensions, PyArray_DOUBLE);
    if(sts_data == NULL){
-    printf("ERROR: Memory for pydata array could not be allocated.\n");
+    PyErr_SetString(PyExc_RuntimeError,"Memory for pydata array could not be allocated");
     return NULL;
    }
    
    /* Initialise sts data to zero */
-   for (ista=0;ista<nsta0;ista++){
+   for(i=0; i<N; i++){ 
+     ista = *(long *) (permutation_array -> data+i*permutation_array->strides[0]);
      for (t=0;t<num_ts;t++){
-       *(double *) (sts_data -> data+ista*sts_data->strides[0]+t*sts_data->strides[1])=0.0;
+       *(double *) (sts_data -> data+i*sts_data->strides[0]+t*sts_data->strides[1])=0.0;
      }
-     *(double *) (sts_data -> data+ista*sts_data->strides[0]+(num_ts)*sts_data->strides[1])=(float)mytgs0[ista].geolat;
-     *(double *) (sts_data -> data+ista*sts_data->strides[0]+(num_ts+1)*sts_data->strides[1])=(float)mytgs0[ista].geolon;
-     *(double *) (sts_data -> data+ista*sts_data->strides[0]+(num_ts+2)*sts_data->strides[1])=(float)mytgs0[ista].z;
-     *(double *) (sts_data -> data+ista*sts_data->strides[0]+(num_ts+3)*sts_data->strides[1])=(float)fros[ista];
-     *(double *) (sts_data -> data+ista*sts_data->strides[0]+(num_ts+4)*sts_data->strides[1])=(float)lros[ista];
+     *(double *) (sts_data -> data+i*sts_data->strides[0]+(num_ts)*sts_data->strides[1])=(float)mytgs0[ista].geolat;
+     *(double *) (sts_data -> data+i*sts_data->strides[0]+(num_ts+1)*sts_data->strides[1])=(float)mytgs0[ista].geolon;
+     *(double *) (sts_data -> data+i*sts_data->strides[0]+(num_ts+2)*sts_data->strides[1])=(float)mytgs0[ista].z;
+     *(double *) (sts_data -> data+i*sts_data->strides[0]+(num_ts+3)*sts_data->strides[1])=(float)fros[ista];
+     *(double *) (sts_data -> data+i*sts_data->strides[0]+(num_ts+4)*sts_data->strides[1])=(float)lros[ista];
    } 
 
    temp_sts_data = (float *)calloc(len_sts_data, sizeof(float) );
@@ -326,9 +356,9 @@ PyArrayObject *_read_mux2(int numSrc, char **muxFileNameArray, float *weights, d
      muxFileName = muxFileNameArray[isrc];
      if((fp=fopen(muxFileName,"r"))==NULL)
        {
-	 //fprintf(stderr, "%s: cannot open file %s\n", av[0], muxFileName);
-	 fprintf(stderr, "cannot open file %s\n", muxFileName);
-         exit(-1);  
+	 fprintf(stderr, "Cannot open file %s\n", muxFileName);
+	 PyErr_SetString(PyExc_RuntimeError,"");
+         return NULL;
        }
        
      if (verbose){
@@ -344,23 +374,27 @@ PyArrayObject *_read_mux2(int numSrc, char **muxFileNameArray, float *weights, d
      fclose(fp); 	 
 
      /* loop over stations */
-     for(ista=0; ista<nsta0; ista++){               
+     for(j=0; j<N; j++){ 
+       ista = *(long *) (permutation_array -> data+j*permutation_array->strides[0]);
+       //printf("%d\n",(int)*(long *) (permutation_array -> data+j*permutation_array->strides[0]));
        
        /* fill the data0 array from the mux file, and weight it */
        fillDataArray(ista, nsta0, num_ts, mytgs0[ista].ig, fros+isrc*nsta0, lros+isrc*nsta0, temp_sts_data, &istart, &istop, muxData);
        
        /* weight appropriately and add */
-       for(i=0; i<num_ts; i++){
-	 if((isdata(*(double *) (sts_data -> data+ista*sts_data->strides[0]+i*sts_data->strides[1]))) && isdata(temp_sts_data[i])){
-	   *(double *) (sts_data -> data+ista*sts_data->strides[0]+i*sts_data->strides[1]) += temp_sts_data[i] * weights[isrc];
+       for(t=0; t<num_ts; t++){
+	 if((isdata(*(double *) (sts_data -> data+j*sts_data->strides[0]+t*sts_data->strides[1]))) && isdata(temp_sts_data[t])){
+	   *(double *) (sts_data -> data+j*sts_data->strides[0]+t*sts_data->strides[1]) += temp_sts_data[t] * weights[isrc];
 	 }else{
-	   *(double *) (sts_data -> data+ista*sts_data->strides[0]+i*sts_data->strides[1]) = 0.0;
+	   *(double *) (sts_data -> data+j*sts_data->strides[0]+t*sts_data->strides[1]) = 0.0;
 	 }
        }
      }
-   }
+   }   
    free(muxData);
    free(temp_sts_data);
+   free(fros);
+   free(lros);
    return sts_data;
 }   
 

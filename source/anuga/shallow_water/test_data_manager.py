@@ -6104,7 +6104,7 @@ friction  \n \
 
         return base_name, files
 
-    def test_read_mux2_pyI(self):
+    def test_read_mux2_py0(self):
         """Constant stage,momentum at each gauge
         """
         tide = 1
@@ -6542,7 +6542,6 @@ friction  \n \
     def test_urs2sts_ordering(self):
         """Test multiple sources with ordering file
         """
-        
         tide=0
         time_step_count = 3
         time_step = 2
@@ -6944,7 +6943,7 @@ friction  \n \
                 str(lat_long_points[i][0])+"\n"
             fid.write(line)
         fid.close()
-
+        
         sts_file=base_name
         urs2sts(base_name, basename_out=sts_file,
                 ordering_filename=order_file,
@@ -8888,6 +8887,7 @@ friction  \n \
 #-------------------------------------------------------------
 if __name__ == "__main__":
 
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_read_mux2_py0')
     suite = unittest.makeSuite(Test_Data_Manager,'test')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_export_gridII')
 #    suite = unittest.makeSuite(Test_Data_Manager,'test_screen_catcher')
