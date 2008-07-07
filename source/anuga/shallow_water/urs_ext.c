@@ -28,7 +28,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
 /*Read in mux 2 file
    
     Python call:
-    read_mux2(numSrc,filenames,weights,file_params,write)
+    read_mux2(numSrc,filenames,weights,file_params,verbose)
 
     NOTE:
     A Python int is equivalent to a C long
@@ -42,7 +42,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
   char **muxFileNameArray;
   float *weights;
   long numSrc;
-  long write;
+  long verbose;
 
   float **cdata;
   int dimensions[2];
@@ -57,7 +57,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
   
   // Convert Python arguments to C
   if (!PyArg_ParseTuple(args, "iOOOi",
-			&numSrc,&filenames,&pyweights,&file_params,&write)) {			
+			&numSrc,&filenames,&pyweights,&file_params,&verbose)) {			
 			
     PyErr_SetString(PyExc_RuntimeError, 
 		    "Input arguments to read_mux2 failed");
@@ -116,7 +116,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
   }
 
   // Read in mux2 data from file
-  cdata=_read_mux2((int)numSrc,muxFileNameArray,weights,(double*)file_params->data,(int)write);
+  cdata=_read_mux2((int)numSrc,muxFileNameArray,weights,(double*)file_params->data,(int)verbose);
 
 
   // Allocate space for return vector
@@ -180,11 +180,12 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
 
   free(weights);
   free(muxFileNameArray);
+  free(cdata);
   return  PyArray_Return(pydata);
 
 }
 
-float** _read_mux2(int numSrc, char **muxFileNameArray, float *weights, double *params, int write)
+float** _read_mux2(int numSrc, char **muxFileNameArray, float *weights, double *params, int verbose)
 {
    FILE *fp;
    int nsta, nsta0, i, isrc, ista;
@@ -224,16 +225,18 @@ float** _read_mux2(int numSrc, char **muxFileNameArray, float *weights, double *
       printf("**************************************************************************\n\n");
    }   
                      
+   if (verbose){
+     printf("Reading mux header information\n");
+   }
    
-   /* open the first muxfile */
-   if((fp=fopen(muxFileNameArray[0],"r"))==NULL)
-   {
+   /* Open the first muxfile */
+   if((fp=fopen(muxFileNameArray[0],"r"))==NULL){
       fprintf(stderr, "cannot open file %s\n", muxFileNameArray[0]);
       exit(-1);  
    }
  
-   /* read in the header */
-   /*first read the number of stations*/   
+   /* Read in the header */
+   /* First read the number of stations*/   
    fread(&nsta0,sizeof(int),1,fp);
    
    /*now allocate space for, and read in, the structures for each station*/
@@ -363,6 +366,10 @@ float** _read_mux2(int numSrc, char **muxFileNameArray, float *weights, double *
 	 fprintf(stderr, "cannot open file %s\n", muxFileName);
          exit(-1);  
        }
+       
+     if (verbose){
+       printf("Reading mux file %s\n",muxFileName);
+     }
 
      offset=sizeof(int)+nsta0*(sizeof(struct tgsrwg)+2*sizeof(int));
      fseek(fp,offset,0);

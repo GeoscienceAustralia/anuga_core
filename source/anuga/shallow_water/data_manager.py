@@ -4837,7 +4837,7 @@ WAVEHEIGHT_MUX2_LABEL = '-z-mux2'
 EAST_VELOCITY_MUX2_LABEL =  '-e-mux2'
 NORTH_VELOCITY_MUX2_LABEL =  '-n-mux2'    
 
-def read_mux2_py(filenames,weights):
+def read_mux2_py(filenames,weights,verbose=False):
 
     from Numeric import ones,Float,compress,zeros,arange
     from urs_ext import read_mux2
@@ -4845,8 +4845,14 @@ def read_mux2_py(filenames,weights):
     numSrc=len(filenames)
 
     file_params=-1*ones(3,Float)#[nsta,dt,nt]
-    write=0 #if true write txt files to current directory as well
-    data=read_mux2(numSrc,filenames,weights,file_params,write)
+    
+    # Convert verbose to int C flag
+    if verbose:
+        verbose=1
+    else:
+        verbose=0
+        
+    data=read_mux2(numSrc,filenames,weights,file_params,verbose)
 
     msg='File parameter values were not read in correctly from c file'
     assert len(compress(file_params>0,file_params))!=0,msg
@@ -5033,7 +5039,7 @@ def urs2sts(basename_in, basename_out = None, weights=None,
     mux={}
     for i,quantity in enumerate(quantities):
         # For each quantity read the associated list of source mux2 file with extenstion associated with that quantity
-        times, latitudes_urs, longitudes_urs, elevation, mux[quantity],starttime = read_mux2_py(files_in[i],weights)
+        times, latitudes_urs, longitudes_urs, elevation, mux[quantity],starttime = read_mux2_py(files_in[i],weights,verbose=verbose)
         if quantity!=quantities[0]:
             msg='%s, %s and %s have inconsitent gauge data'%(files_in[0],files_in[1],files_in[2])
             assert allclose(times,times_old),msg
