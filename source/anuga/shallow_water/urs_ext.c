@@ -143,14 +143,13 @@ PyArrayObject *_read_mux2(int numSrc, char **muxFileNameArray, float *weights, d
    int dimensions[2];
    int len_sts_data;
    float *temp_sts_data;
+
    PyArrayObject *sts_data;
    
    int permuation_dimensions[1];
    PyArrayObject *permutation_array;
    
-   long int offset;
-
-   /* Allocate space for the names and the weights and pointers to the data*/    
+   long int offset;   
    
    /* Check that the input files have mux2 extension*/
    susMuxFileName=0;
@@ -186,36 +185,12 @@ PyArrayObject *_read_mux2(int numSrc, char **muxFileNameArray, float *weights, d
    /* First read the number of stations*/   
    fread(&nsta0,sizeof(int),1,fp);
    
-   if (permutation == Py_None){
-     // if no permutation is specified return the times series of all the gauges in the mux file
-     permuation_dimensions[0]=nsta0;
-     permutation_array=(PyArrayObject *) PyArray_FromDims(1, permuation_dimensions, PyArray_INT);
-     for (ista=0; ista<nsta0; ista++){
-       *(long *) (permutation_array -> data+ista*permutation_array->strides[0])=ista;
-     } 
-   }else{
-     // Specifies the gauge numbers that for which data is to be extracted
-     permutation_array=(PyArrayObject *) PyArray_ContiguousFromObject(permutation,PyArray_INT,1,1);
-     N = permutation_array->dimensions[0]; //FIXME: this is overwritten below
-     for (ista=0; ista<N; ista++){
-       if ((int)*(long *) (permutation_array -> data+ista*permutation_array->strides[0])>=nsta0){
-	 printf("Maximum index = %d, you had %d\n",nsta0-1,(int)*(long *) (permutation_array -> data+ista*permutation_array->strides[0]));
-	 PyErr_SetString(PyExc_RuntimeError,"The permutation specified is out of bounds");
-	 return NULL;
-       }
-     }
-   }
-   if(permutation_array == NULL){
-     PyErr_SetString(PyExc_RuntimeError,"Memory for permutation_array array could not be allocated");
-     return NULL;
-   }
    /*now allocate space for, and read in, the structures for each station*/
    mytgs0 = (struct tgsrwg *) malloc(nsta0*sizeof(struct tgsrwg));
    fread(&mytgs0[0], nsta0*sizeof(struct tgsrwg), 1, fp);
 
    /*make an array to hold the start and stop steps for each station for each
      source*/   
-   //FIXME: Should only store start and stop times for one source
    fros = (int *) malloc(nsta0*numSrc*sizeof(int));
    lros = (int *) malloc(nsta0*numSrc*sizeof(int));
    
@@ -234,21 +209,17 @@ PyArrayObject *_read_mux2(int numSrc, char **muxFileNameArray, float *weights, d
      return NULL;  
    }
    fclose(fp); 
+
    // Allocate header array for each remaining source file.
-   // FIXME: only need to store for one source and which is compared to all subsequent
-   // source headers
    if(numSrc > 1){
       /* allocate space for tgsrwg for the other sources */
       mytgs = (struct tgsrwg *)malloc( nsta0*sizeof(struct tgsrwg) );
    } else {
      /* FIXME (JJ): What should happen in case the are no source files?*/
-     /* If we exit here, tests will break */
-     // fprintf(stderr, "No source file specified\n");
-     // exit(-1);       
+     /* If we exit here, tests will break */       
    }
    
-   /* loop over remaining sources, check compatibility, and read them into 
-    *muxData */
+   /* loop over remaining sources and read headers */
    for(isrc=1; isrc<numSrc; isrc++){
      muxFileName = muxFileNameArray[isrc];
      
@@ -290,7 +261,6 @@ PyArrayObject *_read_mux2(int numSrc, char **muxFileNameArray, float *weights, d
       /* compute the size of the data block for this source */
       numData = getNumData(fros+isrc*nsta0, lros+isrc*nsta0, nsta0);
 
-      /* Burbidge: Added a sanity check here */
       if (numData < 0){
 	  fprintf(stderr,"Size of data block appears to be negative!\n");
 	  PyErr_SetString(PyExc_RuntimeError,"");
@@ -298,6 +268,36 @@ PyArrayObject *_read_mux2(int numSrc, char **muxFileNameArray, float *weights, d
       }
       fclose(fp);             
    }
+
+   for (i=0;i<nsta0*numSrc;i++){
+       printf("%d, fros %d\n",i,fros[i]);
+       printf("%d, lros %d\n",i,lros[i]);
+   }
+
+   if (permutation == Py_None){
+       // if no permutation is specified return the times series of all the gauges in the mux file
+       permuation_dimensions[0]=nsta0;
+       permutation_array=(PyArrayObject *) PyArray_FromDims(1, permuation_dimensions, PyArray_INT);
+       for (ista=0; ista<nsta0; ista++){
+	   *(long *) (permutation_array -> data+ista*permutation_array->strides[0])=ista;
+       } 
+   }else{
+       // Specifies the gauge numbers that for which data is to be extracted
+       permutation_array=(PyArrayObject *) PyArray_ContiguousFromObject(permutation,PyArray_INT,1,1);
+       N = permutation_array->dimensions[0]; //FIXME: this is overwritten below
+       for (ista=0; ista<N; ista++){
+	   if ((int)*(long *) (permutation_array -> data+ista*permutation_array->strides[0])>=nsta0){
+	       printf("Maximum index = %d, you had %d\n",nsta0-1,(int)*(long *) (permutation_array -> data+ista*permutation_array->strides[0]));
+	       PyErr_SetString(PyExc_RuntimeError,"The permutation specified is out of bounds");
+	       return NULL;
+	   }
+       }
+   }
+   if(permutation_array == NULL){
+     PyErr_SetString(PyExc_RuntimeError,"Memory for permutation_array array could not be allocated");
+     return NULL;
+   }
+
    N = permutation_array->dimensions[0];
    
    params[0]=(double)N;
@@ -306,19 +306,20 @@ PyArrayObject *_read_mux2(int numSrc, char **muxFileNameArray, float *weights, d
   
     
    // Find min and max start times of all gauges
-   // FIXME: ONLY CHECK gauges in permutation for start and finsh times
    start_tstep=num_ts+1;
    finish_tstep=-1;
-   for (ista=0;ista<nsta0;ista++){
-     if (fros[ista]< start_tstep){
-       start_tstep=fros[ista];
-     }
-     if (lros[0+nsta0*ista] > finish_tstep){
-       finish_tstep=lros[ista]; 
-     }
+   for (i=0;i<N;i++){
+       ista = *(long *) (permutation_array -> data+i*permutation_array->strides[0]);  
+       if (fros[ista]< start_tstep){
+	   start_tstep=fros[ista];
+       }
+       if (lros[0+nsta0*ista] > finish_tstep){
+	   finish_tstep=lros[ista]; 
+       }
    }
    
    if ((start_tstep>num_ts) | (finish_tstep < 0)){
+       printf("s=%d,f=%d,num_ts=%d\n",start_tstep,finish_tstep,num_ts);
      PyErr_SetString(PyExc_RuntimeError,"Gauge data has incorrect start and finsh times");
      return NULL;
    }
@@ -481,29 +482,7 @@ void fillDataArray(int ista, int nsta, int nt, int ig, int *nst, int *nft, float
    }
 } 
 
-/* Burbidge: No "offset" is sent. Replace with max. Added grid_id */
-void wrttxt( fname, dt, nt, x, beg, lat, lon, max, depth, grid_id, istart, istop )
-char *fname;
-float dt, *x, beg, max, lat, lon, depth;
-int grid_id;
-int nt;
-int istart, istop;
-{
-   int it;
-   float t;
-   FILE *fp;
-
-   fp = fopen(fname,"w");
-   fprintf(fp,"> lat %g lon %g depth %g max %g start_time %g stop_time %g grid_id %d\n", lat, lon, depth, max, 
-            istart*dt, istop*dt, grid_id );
-   for(it=0;it<nt;it++)
-   {
-      t=beg+it*dt;
-      fprintf(fp,"%9.3f %g\n", t, x[it]);
-   }
-   fclose(fp);
-}
-  
+ 
 char isdata(float x)
 {
   //char value;
