@@ -22,7 +22,7 @@ void fillDataArray(int, int, int, int, int *, int *, float *, int *, int *, floa
 long getNumData(int*, int*, int);
 char isdata(float);
 void wrttxt(char *, float, int, float *, float, float, float, float, float, int, int, int);
-float** _read_mux2(int, char **, float *, double *, int);
+PyArrayObject *_read_mux2(int, char **, float *, double *, int);
 
 PyObject *read_mux2(PyObject *self, PyObject *args){
 /*Read in mux 2 file
@@ -36,7 +36,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
 */
   PyObject *filenames;
   PyArrayObject *pyweights,*file_params;
-  PyArrayObject *pydata;
+  PyArrayObject *sts_data;
   PyObject *fname;
 
   char **muxFileNameArray;
@@ -44,16 +44,10 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
   long numSrc;
   long verbose;
 
-  float **cdata;
-  int dimensions[2];
   int nsta0;
   int nt;
   double dt;
-  int i,j;
-  int start_tstep;
-  int finish_tstep;
-  int it,time;
-  int num_ts;
+  int i;
   
   // Convert Python arguments to C
   if (!PyArg_ParseTuple(args, "iOOOi",
@@ -116,7 +110,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
   }
 
   // Read in mux2 data from file
-  cdata=_read_mux2((int)numSrc,muxFileNameArray,weights,(double*)file_params->data,(int)verbose);
+  sts_data=_read_mux2((int)numSrc,muxFileNameArray,weights,(double*)file_params->data,(int)verbose);
 
 
   // Allocate space for return vector
@@ -124,71 +118,16 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
   dt=*(double *) (file_params -> data+1*file_params->strides[0]);
   nt=(int)*(double *) (file_params -> data+2*file_params->strides[0]);
 
-  
-  // Find min and max start times of all gauges
-  start_tstep=nt+1;
-  finish_tstep=-1;
-  for (i=0;i<nsta0;i++){
-    if ((int)cdata[i][nt+3] < start_tstep){
-      start_tstep=(int)cdata[i][nt+3];
-    }
-    if ((int)cdata[i][nt+4] > finish_tstep){
-      finish_tstep=(int)cdata[i][nt+4]; 
-    }
-  }
-
-  if ((start_tstep>nt) | (finish_tstep < 0)){
-    printf("ERROR: Gauge data has incorrect start and finsh times\n");
-    return NULL;
-  }
-
-  if (start_tstep>=finish_tstep){
-    printf("ERROR: Gauge data has non-postive_length\n");
-    return NULL;
-  }
-
-  num_ts=finish_tstep-start_tstep+1;
-  dimensions[0]=nsta0;
-  dimensions[1]=num_ts+POFFSET;
-  pydata = (PyArrayObject *) PyArray_FromDims(2, dimensions, PyArray_DOUBLE);
-  if(pydata == NULL){
-    printf("ERROR: Memory for pydata array could not be allocated.\n");
-    return NULL;
-  }
-
-  // Each gauge begins and ends recording at different times. When a gauge is
-  // not recording but at least one other gauge is. Pad the non-recording gauge
-  // array with zeros.
-  for (i=0;i<nsta0;i++){
-    time=0;
-    for (it=0;it<finish_tstep;it++){
-      if((it+1>=start_tstep)&&(it+1<=finish_tstep)){
-	if (it+1>(int)cdata[i][nt+4]){
-	  //This gauge has stopped recording but others are still recording
-	*(double *) (pydata -> data+i*pydata->strides[0]+time*pydata->strides[1])=0.0;
-	}else{
-	  *(double *) (pydata -> data+i*pydata->strides[0]+time*pydata->strides[1])=cdata[i][it];
-	}
-	time++;
-      }
-    }
-    // Pass back lat,lon,elevation
-    for (j=0; j<POFFSET; j++){
-      *(double *) (pydata -> data+i*pydata->strides[0]+(num_ts+j)*pydata->strides[1])=cdata[i][nt+j];
-     }
-  }
-
   free(weights);
   free(muxFileNameArray);
-  free(cdata);
-  return  PyArray_Return(pydata);
+  return  PyArray_Return(sts_data);
 
 }
 
-float** _read_mux2(int numSrc, char **muxFileNameArray, float *weights, double *params, int verbose)
+PyArrayObject *_read_mux2(int numSrc, char **muxFileNameArray, float *weights, double *params, int verbose)
 {
    FILE *fp;
-   int nsta, nsta0, i, isrc, ista;
+   int nsta, nsta0, i, t, isrc, ista;
    struct tgsrwg *mytgs, *mytgs0;
    char *muxFileName;                                                                  
    int istart, istop;
@@ -197,10 +136,13 @@ float** _read_mux2(int numSrc, char **muxFileNameArray, float *weights, double *
    float *muxData;
    long numData;
 
-
+   int start_tstep;
+   int finish_tstep;
+   int num_ts;
+   int dimensions[2];
    int len_sts_data;
-   float **sts_data;
    float *temp_sts_data;
+   PyArrayObject *sts_data;
    
    long int offset;
 
@@ -255,7 +197,8 @@ float** _read_mux2(int numSrc, char **muxFileNameArray, float *weights, double *
 
    /* compute the size of the data block for source 0 */   
    numData = getNumData(fros, lros, nsta0);
-
+   num_ts = mytgs0[0].nt;
+   
    /* Burbidge: Added a sanity check here */
    if (numData < 0) {
      fprintf(stderr,"Size of data block appears to be negative!\n");
@@ -302,7 +245,7 @@ float** _read_mux2(int numSrc, char **muxFileNameArray, float *weights, double *
 	 fclose(fp);
 	 exit(-1);                 
        }   
-       if(mytgs[ista].nt != mytgs0[ista].nt){
+       if(mytgs[ista].nt != num_ts){
 	 fprintf(stderr,"%s has different series length to %s\n", muxFileName, muxFileNameArray[0]);
 	 fclose(fp);
 	 exit(-1);                 
@@ -326,30 +269,51 @@ float** _read_mux2(int numSrc, char **muxFileNameArray, float *weights, double *
    params[0]=(double)nsta0;
    params[1]=(double)mytgs0[0].dt;
    params[2]=(double)mytgs0[0].nt;
-   
-   /* make array(s) to hold the demuxed data */
-   //FIXME: This can be reduced to only contain stations in order file
-   sts_data = (float **)malloc (nsta0 * sizeof(float *));
-   
-   if (sts_data == NULL){
-     printf("ERROR: Memory for sts_data could not be allocated.\n");
-     exit(-1);
-   }
-   
-   len_sts_data=mytgs0[0].nt + POFFSET;
-   for (ista=0; ista<nsta0; ista++){
-     // Initialise sts_data to zero
-     sts_data[ista] = (float *)calloc(len_sts_data, sizeof(float) );
-     if (sts_data[ista] == NULL){
-       printf("ERROR: Memory for sts_data could not be allocated.\n");
-       exit(-1);
+  
+    
+   // Find min and max start times of all gauges
+   start_tstep=num_ts+1;
+   finish_tstep=-1;
+   for (ista=0;ista<nsta0;ista++){
+     if (fros[ista]< start_tstep){
+       start_tstep=fros[ista];
      }
-     sts_data[ista][mytgs0[0].nt]=(float)mytgs0[ista].geolat;
-     sts_data[ista][mytgs0[0].nt+1]=(float)mytgs0[ista].geolon;
-     sts_data[ista][mytgs0[0].nt+2]=(float)mytgs0[ista].z;
-     sts_data[ista][mytgs0[0].nt+3]=(float)fros[ista];
-     sts_data[ista][mytgs0[0].nt+4]=(float)lros[ista];
+     if (lros[0+nsta0*ista] > finish_tstep){
+       finish_tstep=lros[ista]; 
+     }
    }
+   
+   if ((start_tstep>num_ts) | (finish_tstep < 0)){
+     printf("ERROR: Gauge data has incorrect start and finsh times\n");
+     return NULL;
+   }
+   
+   if (start_tstep>=finish_tstep){
+     printf("ERROR: Gauge data has non-postive_length\n");
+     return NULL;
+   }
+   
+   /* Make array(s) to hold the demuxed data */
+   len_sts_data=num_ts+POFFSET;
+   dimensions[0]=nsta0;
+   dimensions[1]=len_sts_data;
+   sts_data = (PyArrayObject *) PyArray_FromDims(2, dimensions, PyArray_DOUBLE);
+   if(sts_data == NULL){
+    printf("ERROR: Memory for pydata array could not be allocated.\n");
+    return NULL;
+   }
+   
+   /* Initialise sts data to zero */
+   for (ista=0;ista<nsta0;ista++){
+     for (t=0;t<num_ts;t++){
+       *(double *) (sts_data -> data+ista*sts_data->strides[0]+t*sts_data->strides[1])=0.0;
+     }
+     *(double *) (sts_data -> data+ista*sts_data->strides[0]+(num_ts)*sts_data->strides[1])=(float)mytgs0[ista].geolat;
+     *(double *) (sts_data -> data+ista*sts_data->strides[0]+(num_ts+1)*sts_data->strides[1])=(float)mytgs0[ista].geolon;
+     *(double *) (sts_data -> data+ista*sts_data->strides[0]+(num_ts+2)*sts_data->strides[1])=(float)mytgs0[ista].z;
+     *(double *) (sts_data -> data+ista*sts_data->strides[0]+(num_ts+3)*sts_data->strides[1])=(float)fros[ista];
+     *(double *) (sts_data -> data+ista*sts_data->strides[0]+(num_ts+4)*sts_data->strides[1])=(float)lros[ista];
+   } 
 
    temp_sts_data = (float *)calloc(len_sts_data, sizeof(float) );
       
@@ -383,15 +347,14 @@ float** _read_mux2(int numSrc, char **muxFileNameArray, float *weights, double *
      for(ista=0; ista<nsta0; ista++){               
        
        /* fill the data0 array from the mux file, and weight it */
-       fillDataArray(ista, nsta0, mytgs0[ista].nt, mytgs0[ista].ig, fros+isrc*nsta0, lros+isrc*nsta0, temp_sts_data, &istart, &istop, muxData);
+       fillDataArray(ista, nsta0, num_ts, mytgs0[ista].ig, fros+isrc*nsta0, lros+isrc*nsta0, temp_sts_data, &istart, &istop, muxData);
        
        /* weight appropriately and add */
-       for(i=0; i<mytgs0[ista].nt; i++){
-	 if((isdata(sts_data[ista][i])) && isdata(temp_sts_data[i])){
-	   sts_data[ista][i] += temp_sts_data[i] * weights[isrc];
-	   //printf("%d,%d,%f\n",ista,i,sts_data[ista][i]);
+       for(i=0; i<num_ts; i++){
+	 if((isdata(*(double *) (sts_data -> data+ista*sts_data->strides[0]+i*sts_data->strides[1]))) && isdata(temp_sts_data[i])){
+	   *(double *) (sts_data -> data+ista*sts_data->strides[0]+i*sts_data->strides[1]) += temp_sts_data[i] * weights[isrc];
 	 }else{
-	   sts_data[ista][i] = NODATA;
+	   *(double *) (sts_data -> data+ista*sts_data->strides[0]+i*sts_data->strides[1]) = 0.0;
 	 }
        }
      }
