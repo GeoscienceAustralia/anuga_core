@@ -209,7 +209,6 @@ PyArrayObject *_read_mux2(int numSrc, char **muxFileNameArray, float *weights, d
      PyErr_SetString(PyExc_RuntimeError,"Memory for permutation_array array could not be allocated");
      return NULL;
    }
-   
    /*now allocate space for, and read in, the structures for each station*/
    mytgs0 = (struct tgsrwg *) malloc(nsta0*sizeof(struct tgsrwg));
    fread(&mytgs0[0], nsta0*sizeof(struct tgsrwg), 1, fp);
@@ -235,7 +234,6 @@ PyArrayObject *_read_mux2(int numSrc, char **muxFileNameArray, float *weights, d
      return NULL;  
    }
    fclose(fp); 
-
    // Allocate header array for each remaining source file.
    // FIXME: only need to store for one source and which is compared to all subsequent
    // source headers
