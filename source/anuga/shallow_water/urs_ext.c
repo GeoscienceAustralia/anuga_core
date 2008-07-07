@@ -1,5 +1,5 @@
 /*
-gcc -fPIC -c urs_ext.c -I/usr/include/python2.4 -o urs_ext.o -Wall -O
+gcc -fPIC -c urs_ext.c -I/usr/include/python2.5 -o urs_ext.o -Wall -O
 gcc -shared urs_ext.o  -o urs_ext.so
 */
 #include "Python.h"
@@ -109,11 +109,13 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     return NULL; 
   }
 
+  // Create array for weights which are passed to read_mux2
   weights = (float *) malloc((int)numSrc*sizeof(float));
   for (i=0;i<(int)numSrc;i++){
     weights[i]=(float)(*(double *)(pyweights->data+i*pyweights->strides[0]));
   }
 
+  // Read in mux2 data from file
   cdata=_read_mux2((int)numSrc,muxFileNameArray,weights,(double*)file_params->data,(int)write);
 
 
@@ -122,6 +124,8 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
   dt=*(double *) (file_params -> data+1*file_params->strides[0]);
   nt=(int)*(double *) (file_params -> data+2*file_params->strides[0]);
 
+  
+  // Find min and max start times of all gauges
   start_tstep=nt+1;
   finish_tstep=-1;
   for (i=0;i<nsta0;i++){
@@ -152,6 +156,9 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     return NULL;
   }
 
+  // Each gauge begins and ends recording at different times. When a gauge is
+  // not recording but at least one other gauge is. Pad the non-recording gauge
+  // array with zeros.
   for (i=0;i<nsta0;i++){
     time=0;
     for (it=0;it<finish_tstep;it++){
@@ -165,6 +172,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
 	time++;
       }
     }
+    // Pass back lat,lon,elevation
     for (j=0; j<POFFSET; j++){
       *(double *) (pydata -> data+i*pydata->strides[0]+(num_ts+j)*pydata->strides[1])=cdata[i][nt+j];
      }
@@ -177,39 +185,31 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
 }
 
 float** _read_mux2(int numSrc, char **muxFileNameArray, float *weights, double *params, int write)
-//void _read_mux2(int numSrc, char **muxFileNameArray, float *weights, float **mydata)
 {
    FILE *fp;
-   int nsta, nsta0, i, isrc, ista;//numSrc;
+   int nsta, nsta0, i, isrc, ista;
    struct tgsrwg *mytgs, *mytgs0;
-   //char *muxFileNameArray;
    char *muxFileName;                                                                  
-   char outFileName[MAX_FILE_NAME_LENGTH+1];
-   float *wt;
-   float max, amax;
-   float *data, *data0;
    int istart, istop;
    int *fros, *lros;
    char susMuxFileName;
-   float **muxData;
+   float *muxData;
    long numData;
-   time_t   start_time, stop_time;
 
-   float **mydata;
-   
-   /* note starting time */
-   time(&start_time);
 
-   /* allocate space for the names and the weights and pointers to the data*/    
-   wt = (float *) malloc(numSrc*sizeof(float));
-   muxData = (float**) malloc(numSrc*sizeof(float*));
+   int len_sts_data;
+   float **sts_data;
+   float *temp_sts_data;
    
-   /*read the mux file names and the associated weight from stdin*/     
+   long int offset;
+
+   /* Allocate space for the names and the weights and pointers to the data*/    
+   
+   /* Check that the input files have mux2 extension*/
    susMuxFileName=0;
    for(isrc=0;isrc<numSrc;isrc++)
      { 
        muxFileName=muxFileNameArray[isrc];
-       wt=weights;
        if(!susMuxFileName && strcmp(muxFileName+strlen(muxFileName)-4,"mux2")!=0){
 	 susMuxFileName=1;
        }
@@ -224,12 +224,6 @@ float** _read_mux2(int numSrc, char **muxFileNameArray, float *weights, double *
       printf("**************************************************************************\n\n");
    }   
                      
-   //printf("Demuxing mux files with weights:\n\n");
-   for(isrc=0;isrc<numSrc;isrc++){
-     muxFileName = muxFileNameArray[isrc];
-     //printf("%s %f\n", muxFileName, *(wt+isrc));
-   } 
-   //printf("\n");
    
    /* open the first muxfile */
    if((fp=fopen(muxFileNameArray[0],"r"))==NULL)
@@ -241,11 +235,14 @@ float** _read_mux2(int numSrc, char **muxFileNameArray, float *weights, double *
    /* read in the header */
    /*first read the number of stations*/   
    fread(&nsta0,sizeof(int),1,fp);
+   
    /*now allocate space for, and read in, the structures for each station*/
    mytgs0 = (struct tgsrwg *) malloc(nsta0*sizeof(struct tgsrwg));
    fread(&mytgs0[0], nsta0*sizeof(struct tgsrwg), 1, fp);
 
-   /*make an array to hold the start and stop steps for each station for each source*/   
+   /*make an array to hold the start and stop steps for each station for each
+     source*/   
+   //FIXME: Should only store start and stop times for one source
    fros = (int *) malloc(nsta0*numSrc*sizeof(int));
    lros = (int *) malloc(nsta0*numSrc*sizeof(int));
    
@@ -259,15 +256,13 @@ float** _read_mux2(int numSrc, char **muxFileNameArray, float *weights, double *
    /* Burbidge: Added a sanity check here */
    if (numData < 0) {
      fprintf(stderr,"Size of data block appears to be negative!\n");
-     //fprintf(stderr,"numData=%d fros=%d lros=%d nsta0=%d\n",numData,fros,lros,nsta0);
      exit(-1);
    }
-   
-   /* allocate space for these data, read them and close the file */   
-   *muxData = (float*) malloc(numData*sizeof(float));
-   fread(*muxData, numData*sizeof(float),1,fp);
    fclose(fp); 
 
+   // Allocate header array for each remaining source file.
+   // FIXME: only need to store for one source and which is compared to all subsequent
+   // source headers
    if(numSrc > 1){
       /* allocate space for tgsrwg for the other sources */
       mytgs = (struct tgsrwg *)malloc( nsta0*sizeof(struct tgsrwg) );
@@ -278,14 +273,14 @@ float** _read_mux2(int numSrc, char **muxFileNameArray, float *weights, double *
      // exit(-1);       
    }
    
-   /* loop over sources, check compatibility, and read them into *muxData */
+   /* loop over remaining sources, check compatibility, and read them into 
+    *muxData */
    for(isrc=1; isrc<numSrc; isrc++){
      muxFileName = muxFileNameArray[isrc];
      
      /* open the mux file */
      if((fp=fopen(muxFileName,"r"))==NULL)
        {
-	 //fprintf(stderr, "%s: cannot open file %s\n", av[0], muxFileName);
 	 fprintf(stderr, "cannot open file %s\n", muxFileName);
          exit(-1);  
        }
@@ -321,13 +316,8 @@ float** _read_mux2(int numSrc, char **muxFileNameArray, float *weights, double *
       /* Burbidge: Added a sanity check here */
       if (numData < 0){
 	  fprintf(stderr,"Size of data block appears to be negative!\n");
-	  //fprintf(stderr,"numData=%d fros=%d lros=%d nsta0=%d\n");
 	  exit(-1);
       }
-
-      /* allocate space, read the data and close the file */
-      *(muxData+isrc) = (float*) malloc(numData*sizeof(float));
-      fread(*(muxData+isrc), numData*sizeof(float),1,fp);
       fclose(fp);             
    }
    params[0]=(double)nsta0;
@@ -335,131 +325,73 @@ float** _read_mux2(int numSrc, char **muxFileNameArray, float *weights, double *
    params[2]=(double)mytgs0[0].nt;
    
    /* make array(s) to hold the demuxed data */
-   mydata = (float **)malloc (nsta0 * sizeof(float *));
-   if (mydata == NULL){
-     printf("ERROR: Memory for mydata could not be allocated.\n");
+   //FIXME: This can be reduced to only contain stations in order file
+   sts_data = (float **)malloc (nsta0 * sizeof(float *));
+   
+   if (sts_data == NULL){
+     printf("ERROR: Memory for sts_data could not be allocated.\n");
      exit(-1);
    }
+   
+   len_sts_data=mytgs0[0].nt + POFFSET;
    for (ista=0; ista<nsta0; ista++){
-     mydata[ista] = (float *)malloc( (mytgs0[0].nt + POFFSET)* sizeof(float) );
-     if (mydata[ista] == NULL){
-       printf("ERROR: Memory for mydata could not be allocated.\n");
+     // Initialise sts_data to zero
+     sts_data[ista] = (float *)calloc(len_sts_data, sizeof(float) );
+     if (sts_data[ista] == NULL){
+       printf("ERROR: Memory for sts_data could not be allocated.\n");
        exit(-1);
      }
-     mydata[ista][mytgs0[0].nt]=(float)mytgs0[ista].geolat;
-     mydata[ista][mytgs0[0].nt+1]=(float)mytgs0[ista].geolon;
-     mydata[ista][mytgs0[0].nt+2]=(float)mytgs0[ista].z;
-     mydata[ista][mytgs0[0].nt+3]=(float)fros[ista];
-     mydata[ista][mytgs0[0].nt+4]=(float)lros[ista];
+     sts_data[ista][mytgs0[0].nt]=(float)mytgs0[ista].geolat;
+     sts_data[ista][mytgs0[0].nt+1]=(float)mytgs0[ista].geolon;
+     sts_data[ista][mytgs0[0].nt+2]=(float)mytgs0[ista].z;
+     sts_data[ista][mytgs0[0].nt+3]=(float)fros[ista];
+     sts_data[ista][mytgs0[0].nt+4]=(float)lros[ista];
    }
 
-   //data0 = (float *)malloc( mytgs0[0].nt * sizeof(float) );
-   if(numSrc > 1)
-      data = (float *)malloc( mytgs0[0].nt * sizeof(float) );
-         
-   /* loop over stations */
-   for(ista=0; ista<nsta0; ista++){              
-     data0= mydata[ista];
-     data=data0;
-     istart = -1;
-     istop = -1;
-     /* fill the data0 array from the first mux file, and weight it */
-     isrc=0;
-     //muxFileName = muxFileNameArray + isrc*(MAX_FILE_NAME_LENGTH+1);
+   temp_sts_data = (float *)calloc(len_sts_data, sizeof(float) );
+      
+   /* Loop over all sources */
+   //FIXME: remove istart and istop they are not used.
+   istart = -1;
+   istop = -1;
+   for (isrc=0;isrc<numSrc;isrc++){
+     /* Read in data block from mux2 file */
      muxFileName = muxFileNameArray[isrc];
-     //printf("Demuxing station %d\n",ista);
-     //printf("   ... source %s\n",muxFileName);
-     
-     fillDataArray(ista, nsta0, mytgs0[ista].nt, mytgs0[ista].ig, fros+isrc*nsta0, lros+isrc*nsta0, data0, &istart, &istop, *(muxData+isrc));
-     
-     /* apply the weights */
-     for(i=0; i<mytgs0[ista].nt; i++)
-       if(isdata(*(data0+i)))
-	 *(data0+i) *= *wt;
-     
-     /* loop over the rest of the sources */
-     for(isrc=1;isrc<numSrc;isrc++)
+     if((fp=fopen(muxFileName,"r"))==NULL)
        {
-         /* fill the data array */
-         //muxFileName = muxFileNameArray + isrc*(MAX_FILE_NAME_LENGTH+1);
-	 muxFileName = muxFileNameArray[isrc];
-         //printf("   ... source %s\n",muxFileName);
-         fillDataArray(ista, nsta0, mytgs0[ista].nt, mytgs0[ista].ig, fros+isrc*nsta0, lros+isrc*nsta0, data, &istart, &istop, *(muxData+isrc)); 
-         
-         /* weight appropriately and add */
-         for(i=0; i<mytgs0[ista].nt; i++)
-	   {
-	     if(isdata(*(data0+i))&&isdata(*(data+i)))
-               *(data0+i) += *(data+i)* *(wt+isrc);                                                                   
-	     else
-               *(data0+i) = NODATA;
-	   }      
-	 
-       }  /* end of loop over sources */ 
+	 //fprintf(stderr, "%s: cannot open file %s\n", av[0], muxFileName);
+	 fprintf(stderr, "cannot open file %s\n", muxFileName);
+         exit(-1);  
+       }
+
+     offset=sizeof(int)+nsta0*(sizeof(struct tgsrwg)+2*sizeof(int));
+     fseek(fp,offset,0);
      
-     /* now compute the maxima for this station */      
-     max = 0.0;
-     amax = 0.0;
-     for(i=0; i<mytgs0[ista].nt; i++){
-       if(isdata(*(data0+i)))
-         {
-	   max = ((*(data0+i) > max) ? *(data0+i):max);
-	   amax = ((fabs(*(data0+i)) > amax) ? fabs(*(data0+i)):amax);  
-         }   
-     }
-     /* write out sac file for the current station  */
-     /*thomas - instead of passing beg(=0), should pass dt*/
-     /*thomas - uncomment the following if you want sac files*/
-     /*sprintf(outFileName,"S%03d.sac", ista );
-       printf("   ... writing file=%s\n", outFileName);
-       wrtsac2(outFileName, mytgs0[ista].dt, mytgs0[ista].nt, &data0[0], mytgs0[ista].dt, 
-       mytgs0[ista].geolat, mytgs0[ista].geolon,
-       mytgs0[ista].center_lat, mytgs0[ista].center_lon, 
-       mytgs0[ista].offset, mytgs0[ista].z );*/
-     
-     /* write out text file for the current station  */
-     /* DB added check for non-zero max */
-     if (max >0) 
-       {
-	 /* Burbidge: added tide gauge grid id output. no .id field in tgsrwg */
-	 /* thomas: instead of passing beg(=0), pass dt */   
-	 /*      wrttxt(outFileName, mytgs0[ista].dt, mytgs0[ista].nt, &data0[0], beg, mytgs0[ista].geolat, 
-		 mytgs0[ista].geolon, max, mytgs0[ista].z, mytgs0[ista].ig ); */
-	 if (write) {
-	   sprintf(outFileName,"S%5.5d.txt", ista );
-	   //printf("   ... writing file=%s\n", outFileName);
-	   wrttxt(outFileName, mytgs0[ista].dt, mytgs0[ista].nt, &data0[0], mytgs0[ista].dt, mytgs0[ista].geolat, 
-		  mytgs0[ista].geolon, max, mytgs0[ista].z, mytgs0[ista].ig, istart, istop );
+     numData = getNumData(fros+isrc*nsta0, lros+isrc*nsta0, nsta0);
+     muxData = (float*) malloc(numData*sizeof(float));
+     fread(muxData, numData*sizeof(float),1,fp); 
+     fclose(fp); 	 
+
+     /* loop over stations */
+     for(ista=0; ista<nsta0; ista++){               
+       
+       /* fill the data0 array from the mux file, and weight it */
+       fillDataArray(ista, nsta0, mytgs0[ista].nt, mytgs0[ista].ig, fros+isrc*nsta0, lros+isrc*nsta0, temp_sts_data, &istart, &istop, muxData);
+       
+       /* weight appropriately and add */
+       for(i=0; i<mytgs0[ista].nt; i++){
+	 if((isdata(sts_data[ista][i])) && isdata(temp_sts_data[i])){
+	   sts_data[ista][i] += temp_sts_data[i] * weights[isrc];
+	   //printf("%d,%d,%f\n",ista,i,sts_data[ista][i]);
+	 }else{
+	   sts_data[ista][i] = NODATA;
 	 }
        }
-     
-   }  /* end of loop over stations */
-   //free(data0);
-   //free(mytgs0);
-   
-   //if(numSrc>1)
-   //{
-     //free(data);
-     //free(mytgs);
-   //} 
-   //can't free arrays because I only fill array by making pointer not copy
-   //for(isrc=0; isrc<numSrc;isrc++)
-   //   free(*(muxData+isrc));
-   //   
-   //free(muxData);
-   // free(muxFileNameArray);
-   
-   if(susMuxFileName)
-   {
-      printf("\n**************************************************************************\n");
-      printf("   WARNING: This program operates only on multiplexed files in mux2 format\n"); 
-      printf("   At least one input filename does not end with mux2\n");
-      printf("   Check your results carefully!\n");
-      printf("**************************************************************************\n");
-   }   
-   time(&stop_time);
-   //fprintf(stdout, "\nElapsed time: %10.0f seconds\n", difftime(stop_time, start_time));
-   return mydata;
+     }
+   }
+   free(muxData);
+   free(temp_sts_data);
+   return sts_data;
 }   
 
 
