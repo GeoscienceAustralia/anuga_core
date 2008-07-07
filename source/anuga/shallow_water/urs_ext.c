@@ -196,9 +196,17 @@ PyArrayObject *_read_mux2(int numSrc, char **muxFileNameArray, float *weights, d
    }else{
      // Specifies the gauge numbers that for which data is to be extracted
      permutation_array=(PyArrayObject *) PyArray_ContiguousFromObject(permutation,PyArray_INT,1,1);
+     N = permutation_array->dimensions[0]; //FIXME: this is overwritten below
+     for (ista=0; ista<N; ista++){
+       if ((int)*(long *) (permutation_array -> data+ista*permutation_array->strides[0])>=nsta0){
+	 printf("Maximum index = %d, you had %d\n",nsta0-1,(int)*(long *) (permutation_array -> data+ista*permutation_array->strides[0]));
+	 PyErr_SetString(PyExc_RuntimeError,"The permutation specified is out of bounds");
+	 return NULL;
+       }
+     }
    }
    if(permutation_array == NULL){
-     PyErr_SetString(PyExc_RuntimeError,"ERROR: Memory for permutation_array array could not be allocated");
+     PyErr_SetString(PyExc_RuntimeError,"Memory for permutation_array array could not be allocated");
      return NULL;
    }
    
