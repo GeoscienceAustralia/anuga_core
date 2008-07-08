@@ -198,6 +198,8 @@ def _file_function(filename,
                                         verbose=verbose,
                                         boundary_polygon=boundary_polygon)
     else:
+        # FIXME (Ole): Could add csv file here to address Ted Rigby's suggestion about reading hydrographs.
+        # This may also deal with the gist of ticket:289 
         raise 'Must be a NetCDF File'
 
 

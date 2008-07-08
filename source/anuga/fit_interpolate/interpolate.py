@@ -884,7 +884,7 @@ class Interpolation_function:
             # Linear temporal interpolation    
             if ratio > 0:
                 if Q0 == NAN and Q1 == NAN:
-                    q[i]  = Q0
+                    q[i] = Q0
                 else:
                     q[i] = Q0 + ratio*(Q1 - Q0)
             else:

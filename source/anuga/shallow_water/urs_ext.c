@@ -269,10 +269,11 @@ PyArrayObject *_read_mux2(int numSrc, char **muxFileNameArray, float *weights, d
       fclose(fp);             
    }
 
+   /*
    for (i=0;i<nsta0*numSrc;i++){
        printf("%d, fros %d\n",i,fros[i]);
        printf("%d, lros %d\n",i,lros[i]);
-   }
+       }*/
 
    if (permutation == Py_None){
        // if no permutation is specified return the times series of all the gauges in the mux file
