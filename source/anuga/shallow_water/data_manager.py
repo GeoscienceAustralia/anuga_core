@@ -48,6 +48,9 @@ TSH + Boundary SWW -> SWW: Simluation using abstract_2d_finite_volumes
 
 """
 
+# This file was reverted from changeset:5484 to changeset:5470 on 10th July 
+# by Ole.
+
 import exceptions
 class TitleValueError(exceptions.Exception): pass
 class DataMissingValuesError(exceptions.Exception): pass
@@ -4837,20 +4840,8 @@ WAVEHEIGHT_MUX2_LABEL = '-z-mux2'
 EAST_VELOCITY_MUX2_LABEL =  '-e-mux2'
 NORTH_VELOCITY_MUX2_LABEL =  '-n-mux2'    
 
-def read_mux2_py(filenames,weights,permutation=None,verbose=False):
-    """
-    Access the mux files specified in the filenames list. Combine the
-    data found therin as a weighted linear sum as specifed by the weights.
-    If permutation is None extract timeseries data for all gauges within the
-    files.
-    
-    Input:
-    filenames:   List of filenames specifiying the file containing the
-                 timeseries data (mux2 format) for each source
-    weights:     Weights associated with each source
-    permutation: Specifies the gauge numbers that for which data is to be
-                 extracted
-    """
+def read_mux2_py(filenames,weights,verbose=False):
+
     from Numeric import ones,Float,compress,zeros,arange
     from urs_ext import read_mux2
 
@@ -4864,7 +4855,7 @@ def read_mux2_py(filenames,weights,permutation=None,verbose=False):
     else:
         verbose=0
         
-    data=read_mux2(numSrc,filenames,weights,file_params,permutation,verbose)
+    data=read_mux2(numSrc,filenames,weights,file_params,verbose)
 
     msg='File parameter values were not read in correctly from c file'
     assert len(compress(file_params>0,file_params))!=0,msg
@@ -5045,6 +5036,27 @@ def urs2sts(basename_in, basename_out = None, weights=None,
                 msg = 'File %s does not exist or is not accessible' %file_in
                 raise IOError, msg
 
+    #need to do this for velocity-e-mux2 and velocity-n-mux2 files as well
+    #for now set x_momentum and y_moentum quantities to zero
+    if (verbose): print 'reading mux2 file'
+    mux={}
+    for i,quantity in enumerate(quantities):
+        # For each quantity read the associated list of source mux2 file with extenstion associated with that quantity
+        times, latitudes_urs, longitudes_urs, elevation, mux[quantity],starttime = read_mux2_py(files_in[i],weights,verbose=verbose)
+        if quantity!=quantities[0]:
+            msg='%s, %s and %s have inconsitent gauge data'%(files_in[0],files_in[1],files_in[2])
+            assert allclose(times,times_old),msg
+            assert allclose(latitudes_urs,latitudes_urs_old),msg
+            assert allclose(longitudes_urs,longitudes_urs_old),msg
+            assert allclose(elevation,elevation_old),msg
+            assert allclose(starttime,starttime_old)
+        times_old=times
+        latitudes_urs_old=latitudes_urs
+        longitudes_urs_old=longitudes_urs
+        elevation_old=elevation
+        starttime_old=starttime
+
+        
     if ordering_filename is not None:
         # Read ordering file 
         
@@ -5060,7 +5072,7 @@ def urs2sts(basename_in, basename_out = None, weights=None,
         reference_header = 'index, longitude, latitude\n'
         reference_header_split = reference_header.split(',')
         for i in range(3):
-            if not file_header[i].strip() == reference_header_split[i].strip():
+            if not file_header[i] == reference_header_split[i]:
                 msg = 'File must contain header: '+reference_header+'\n'
                 raise Exception, msg
 
@@ -5071,30 +5083,9 @@ def urs2sts(basename_in, basename_out = None, weights=None,
    
         
         permutation = [int(line.split(',')[0]) for line in ordering_lines]
-    else:
-        permutation = None  
-
-    if (verbose): print 'reading mux2 file'
-    mux={}
-    for i,quantity in enumerate(quantities):
-        # For each quantity read the associated list of source mux2 file with extenstion associated with that quantity
-        times, latitudes_urs, longitudes_urs, elevation, mux[quantity],starttime = read_mux2_py(files_in[i],weights,permutation=permutation,verbose=verbose)
-        if quantity!=quantities[0]:
-            msg='%s, %s and %s have inconsitent gauge data'%(files_in[0],files_in[1],files_in[2])
-            assert allclose(times,times_old),msg
-            assert allclose(latitudes_urs,latitudes_urs_old),msg
-            assert allclose(longitudes_urs,longitudes_urs_old),msg
-            assert allclose(elevation,elevation_old),msg
-            assert allclose(starttime,starttime_old)
-        times_old=times
-        latitudes_urs_old=latitudes_urs
-        longitudes_urs_old=longitudes_urs
-        elevation_old=elevation
-        starttime_old=starttime
-        
-    if ordering_filename is not None:
-        latitudes = latitudes_urs
-        longitudes = longitudes_urs
+   
+        latitudes = take(latitudes_urs, permutation)
+        longitudes = take(longitudes_urs, permutation)
         
         # Self check - can be removed to improve speed
         ref_longitudes = [float(line.split(',')[1]) for line in ordering_lines]                
@@ -5127,6 +5118,7 @@ def urs2sts(basename_in, basename_out = None, weights=None,
         latitudes=latitudes_urs
         longitudes=longitudes_urs
         permutation = range(latitudes.shape[0])                
+        
 
     msg='File is empty and or clipped region not in file region'
     assert len(latitudes>0),msg
@@ -5188,13 +5180,13 @@ def urs2sts(basename_in, basename_out = None, weights=None,
 
     if verbose: print 'Converting quantities'
     for j in range(len(times)):
-        for i in range(number_of_points):
-            w = zscale*mux['HA'][i,j] + mean_stage
-            h=w-elevation[i]
+        for i, index in enumerate(permutation):
+            w = zscale*mux['HA'][index,j] + mean_stage
+            h=w-elevation[index]
             stage[j,i] = w
 
-            xmomentum[j,i] = mux['UA'][i,j]*h
-            ymomentum[j,i] = mux['VA'][i,j]*h
+            xmomentum[j,i] = mux['UA'][index,j]*h
+            ymomentum[j,i] = mux['VA'][index,j]*h
 
     outfile.close()
 
