@@ -428,6 +428,7 @@ def interpolate_sww2csv(sww_file,
                         velocity_x_file,
                         velocity_y_file,
                         stage_file=None,
+                        froude_file=None,
                         #quantities = ['depth', 'velocity'],
                         time_thinning=1,
                         verbose=True,
@@ -476,6 +477,8 @@ def interpolate_sww2csv(sww_file,
     velocity_y_writer = writer(file(velocity_y_file, "wb"))
     if stage_file is not None:
         stage_writer = writer(file(stage_file, "wb"))
+    if froude_file is not None:
+        froude_writer = writer(file(froude_file, "wb"))
     # Write heading
     heading = [str(x[0])+ ':' + str(x[1]) for x in points]
     heading.insert(0, "time")
@@ -483,7 +486,9 @@ def interpolate_sww2csv(sww_file,
     velocity_x_writer.writerow(heading)
     velocity_y_writer.writerow(heading)
     if stage_file is not None:
-        stage_writer.writerow(heading)    
+        stage_writer.writerow(heading) 
+    if froude_file is not None:
+        froude_writer.writerow(heading)     
     
     for time in callable_sww.get_time():
         depths = [time]
@@ -491,6 +496,8 @@ def interpolate_sww2csv(sww_file,
         velocity_ys = [time]
         if stage_file is not None:  
             stages = [time]  
+        if froude_file is not None:  
+            froudes = [time]  
         for point_i, point in enumerate(points):
             quantities = callable_sww(time,point_i)
             #print "quantities", quantities
@@ -515,16 +522,25 @@ def interpolate_sww2csv(sww_file,
                     velocity_y = momentum_y / depth  #Absolute velocity
                 else:
                     velocity_y = 0
+            if depth < 1.e-30: # use epsilon
+                froude = NAN
+            else:
+                froude = sqrt(velocity_x*velocity_x + velocity_y*velocity_y)/ \
+                         sqrt(depth * 9.8066) # gravity m/s/s
             depths.append(depth)
             velocity_xs.append(velocity_x)
             velocity_ys.append(velocity_y)
             if stage_file is not None:
                 stages.append(w)
+            if froude_file is not None:
+                froudes.append(froude)
         depth_writer.writerow(depths)
         velocity_x_writer.writerow(velocity_xs)
         velocity_y_writer.writerow(velocity_ys)
         if stage_file is not None:
-            stage_writer.writerow(stages)        
+            stage_writer.writerow(stages)   
+        if froude_file is not None:
+            froude_writer.writerow(froudes)            
 
 
 class Interpolation_function:
