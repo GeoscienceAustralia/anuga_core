@@ -1695,13 +1695,12 @@ class Inflow(General_forcing):
     Inflow(flow, center, radius, polygon)
 
     domain
-    flow [m^3/s]: Total flow rate over the specified area.  
+    rate [m^3/s]: Total flow rate over the specified area.  
                   This parameter can be either a constant or a
                   function of time. Positive values indicate inflow, 
                   negative values indicate outflow.
                   The specified flow will be divided by the area of
-                  the inflow region and then applied to update the
-                  quantity in question.     
+                  the inflow region and then applied to update stage.     
     center [m]: Coordinates at center of flow point
     radius [m]: Size of circular area
     polygon:    Arbitrary polygon.
@@ -1731,7 +1730,7 @@ class Inflow(General_forcing):
     # of Inflow in m^3/s
 
     hydrograph = Inflow(center=(320, 300), radius=10,
-                        flow=file_function('Q/QPMF_Rot_Sub13.tms'))
+                        rate=file_function('Q/QPMF_Rot_Sub13.tms'))
 
     domain.forcing_terms.append(hydrograph)
     
