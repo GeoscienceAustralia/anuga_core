@@ -252,7 +252,7 @@ class Test_Quantity(unittest.TestCase):
                                                [3.0, -1.5, -1.5]])
 
 
-        #Test default
+        # Test default
         quantity.set_values([[1,2,3], [5,5,5], [0,0,9], [-6, 3, 3]])
         assert allclose(quantity.vertex_values,
                         [[1,2,3], [5,5,5], [0,0,9], [-6, 3, 3]])
@@ -262,17 +262,11 @@ class Test_Quantity(unittest.TestCase):
                                                [4.5, 4.5, 0.],
                                                [3.0, -1.5, -1.5]])
 
-        #Test centroids
+        # Test centroids
         quantity.set_values([1,2,3,4], location = 'centroids')
         assert allclose(quantity.centroid_values, [1., 2., 3., 4.]) #Centroid
 
-        #Test edges
-        quantity.set_values([[1,2,3], [5,5,5], [0,0,9], [-6, 3, 3]],
-                            location = 'edges')
-        assert allclose(quantity.edge_values,
-                        [[1,2,3], [5,5,5], [0,0,9], [-6, 3, 3]])
-
-        #Test exceptions
+        # Test exceptions
         try:
             quantity.set_values([[1,2,3], [5,5,5], [0,0,9], [-6, 3, 3]],
                                 location = 'bas kamel tuba')
@@ -305,12 +299,6 @@ class Test_Quantity(unittest.TestCase):
 
         quantity.set_values(2.0, location = 'centroids')
         assert allclose(quantity.centroid_values, [2, 2, 2, 2])
-
-        quantity.set_values(3.0, location = 'edges')
-        assert allclose(quantity.edge_values, [[3, 3, 3],
-                                               [3, 3, 3],
-                                               [3, 3, 3],
-                                               [3, 3, 3]])
 
 
     def test_set_values_func(self):

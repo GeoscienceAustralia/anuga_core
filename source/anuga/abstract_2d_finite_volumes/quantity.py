@@ -367,7 +367,6 @@ class Quantity:
         from types import FloatType, IntType, LongType, ListType, NoneType
         from Numeric import ArrayType
 
-
         # Treat special case: Polygon situation
         # Location will be ignored and set to 'centroids'
         # FIXME (Ole): This needs to be generalised and
@@ -375,6 +374,9 @@ class Quantity:
 
         # FIXME (Ole): Need to compute indices based on polygon (and location) and
         # use existing code after that.
+        
+        # Perhaps deprecate 'centroids' as a location option. It is really just a 
+        # first order version of what is currently called vertices  
         
         if polygon is not None:
             if indices is not None:
@@ -422,8 +424,12 @@ class Quantity:
         assert L.count(None) == len(L)-1, msg
 
 
-        if location not in ['vertices', 'centroids', 'edges',
-                            'unique vertices']:
+        if location == 'edges':
+            msg = 'edges has been deprecated as valid location'
+            raise Exception, msg
+            
+            
+        if location not in ['vertices', 'centroids', 'unique vertices']:
             msg = 'Invalid location: %s' %location
             raise Exception, msg
 
@@ -521,13 +527,13 @@ class Quantity:
                 for i in indices:
                     self.centroid_values[i] = X
 
-        elif location == 'edges':
-            if indices is None:
-                self.edge_values[:] = X
-            else:
-                # Brute force
-                for i in indices:
-                    self.edge_values[i] = X
+        #elif location == 'edges':
+        #    if indices is None:
+        #        self.edge_values[:] = X
+        #    else:
+        #        # Brute force
+        #        for i in indices:
+        #            self.edge_values[i] = X
 
         elif location == 'unique vertices':
             if indices is None:
@@ -569,7 +575,7 @@ class Quantity:
 
         values: Numeric array
         location: Where values are to be stored.
-        Permissible options are: vertices, edges, centroid, unique vertices
+        Permissible options are: vertices, centroid, unique vertices
         Default is 'vertices'
 
         indices - if this action is carried out on a subset of
@@ -620,18 +626,18 @@ class Quantity:
                 for i in range(len(indices)):
                     self.centroid_values[indices[i]] = values[i]
 
-        elif location == 'edges':
-            # FIXME (Ole): No mention of indices here. However, I don't
-            # think we ever need to set values at edges anyway
-            assert len(values.shape) == 2, 'Values array must be 2d'
-
-            msg = 'Number of values must match number of elements'
-            assert values.shape[0] == N, msg
-
-            msg = 'Array must be N x 3'
-            assert values.shape[1] == 3, msg
-
-            self.edge_values = values
+        #elif location == 'edges':
+        #    # FIXME (Ole): No mention of indices here. However, I don't
+        #    # think we ever need to set values at edges anyway
+        #    assert len(values.shape) == 2, 'Values array must be 2d'
+        # 
+        #    msg = 'Number of values must match number of elements'
+        #    assert values.shape[0] == N, msg
+        #
+        #       msg = 'Array must be N x 3'
+        #    assert values.shape[1] == 3, msg
+        #
+        #     self.edge_values = values
 
         elif location == 'unique vertices':
             assert len(values.shape) == 1 or allclose(values.shape[1:], 1),\
@@ -691,7 +697,7 @@ class Quantity:
         
         f: x, y -> z Function where x, y and z are arrays
         location: Where values are to be stored.
-                  Permissible options are: vertices, centroid, edges,
+                  Permissible options are: vertices, centroid,
                   unique vertices
                   Default is "vertices"
         indices:  
@@ -1095,7 +1101,8 @@ class Quantity:
             return self.get_interpolated_values(interpolation_points)
         
         
-
+        # FIXME (Ole): Consider deprecating 'edges' - but not if it is used
+        # elsewhere in ANUGA.
         if location not in ['vertices', 'centroids', 'edges',
                             'unique vertices']:
             msg = 'Invalid location: %s' %location
