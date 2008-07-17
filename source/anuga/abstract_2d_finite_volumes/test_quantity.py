@@ -13,6 +13,7 @@ from anuga.fit_interpolate.fit import fit_to_mesh
 from domain import Domain
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.coordinate_transforms.geo_reference import Geo_reference
+from anuga.utilities.polygon import *
 
 #Aux for fit_interpolate.fit example
 def linear_function(point):
@@ -416,7 +417,7 @@ class Test_Quantity(unittest.TestCase):
         quantity.set_values(0.0)
         quantity.set_values(3.14, indices=[0,2], location='vertices')
 
-        # Indices refer to triangle numbers here - not vertices (why?)
+        # Indices refer to triangle numbers
         assert allclose(quantity.vertex_values,
                         [[3.14,3.14,3.14], [0,0,0],
                          [3.14,3.14,3.14], [0,0,0]])        
@@ -433,11 +434,10 @@ class Test_Quantity(unittest.TestCase):
                          [3.14,3.14,3.14]])                
 
 
-        # Another polygon (pick triangle 1 and 2 (rightmost triangles)
+        # Another polygon (pick triangle 1 and 2 (rightmost triangles) using centroids
         polygon = [[2.1, 0.0], [3.5,0.1], [2,2.2], [0.2,2]]
         quantity.set_values(0.0)
-        quantity.set_values(3.14, polygon=polygon)
-
+        quantity.set_values(3.14, location='centroids', polygon=polygon)
         assert allclose(quantity.vertex_values,
                         [[0,0,0],
                          [3.14,3.14,3.14],
@@ -445,6 +445,18 @@ class Test_Quantity(unittest.TestCase):
                          [0,0,0]])                
 
 
+        # Same polygon now use vertices (default)
+        polygon = [[2.1, 0.0], [3.5,0.1], [2,2.2], [0.2,2]]
+        quantity.set_values(0.0)
+        #print 'Here 2'
+        quantity.set_values(3.14, polygon=polygon)
+        assert allclose(quantity.vertex_values,
+                        [[0,0,0],
+                         [3.14,3.14,3.14],
+                         [3.14,3.14,3.14],                         
+                         [0,0,0]])                
+        
+        #print 'done'
 
         # Test input checking
         try:
@@ -487,7 +499,7 @@ class Test_Quantity(unittest.TestCase):
         polygon += [G.xllcorner, G.yllcorner]
         
         quantity.set_values(0.0)
-        quantity.set_values(3.14, polygon=polygon)
+        quantity.set_values(3.14, polygon=polygon, location='centroids')
         
         assert allclose(quantity.vertex_values,
                         [[0,0,0], [0,0,0], [0,0,0],
@@ -678,6 +690,85 @@ class Test_Quantity(unittest.TestCase):
         #Cleanup
         import os
         os.remove(ptsfile)
+
+
+
+    def XXXXtest_set_values_from_file_using_polygon(self):
+        quantity = Quantity(self.mesh4)
+
+        #Get (enough) datapoints
+        data_points = [[ 0.66666667, 0.66666667],
+                       [ 1.33333333, 1.33333333],
+                       [ 2.66666667, 0.66666667],
+                       [ 0.66666667, 2.66666667],
+                       [ 0.0, 1.0],
+                       [ 0.0, 3.0],
+                       [ 1.0, 0.0],
+                       [ 1.0, 1.0],
+                       [ 1.0, 2.0],
+                       [ 1.0, 3.0],
+                       [ 2.0, 1.0],
+                       [ 3.0, 0.0],
+                       [ 3.0, 1.0]]
+
+        data_geo_spatial = Geospatial_data(data_points,
+                         geo_reference = Geo_reference(56, 0, 0))
+        data_points_absolute = data_geo_spatial.get_data_points(absolute=True)
+        attributes = linear_function(data_points_absolute)
+        att = 'spam_and_eggs'
+        
+        #Create .txt file
+        ptsfile = tempfile.mktemp(".txt")
+        file = open(ptsfile,"w")
+        file.write(" x,y," + att + " \n")
+        for data_point, attribute in map(None, data_points_absolute
+                                         ,attributes):
+            row = str(data_point[0]) + ',' + str(data_point[1]) \
+                  + ',' + str(attribute)
+            file.write(row + "\n")
+        file.close()
+
+        # Create restricting polygon (containing vertex #4 (2,2) or centroid of triangle #1 (bce)
+        polygon = [[1.0, 1.0], [4.0, 1.0],
+                   [4.0, 4.0], [1.0, 4.0]]
+
+        #print self.mesh4.nodes
+        #print inside_polygon(self.mesh4.nodes, polygon)
+        assert allclose(inside_polygon(self.mesh4.nodes, polygon), 4)
+
+        #print quantity.domain.get_vertex_coordinates()
+        #print quantity.domain.get_nodes()        
+        
+        # Check that values can be set from file
+        quantity.set_values(filename=ptsfile,
+                            polygon=polygon,
+                            location='unique vertices',
+                            alpha=0)
+
+        # Get indices for vertex coordinates in polygon
+        indices = inside_polygon(quantity.domain.get_vertex_coordinates(), polygon)
+        points = take(quantity.domain.get_vertex_coordinates(), indices)
+        
+        answer = linear_function(points)
+
+        #print quantity.vertex_values.flat
+        #print answer
+
+        # Check vertices in polygon have been set
+        assert allclose(take(quantity.vertex_values.flat, indices),
+                             answer)
+
+        # Check vertices outside polygon are zero
+        indices = outside_polygon(quantity.domain.get_vertex_coordinates(), polygon)        
+        assert allclose(take(quantity.vertex_values.flat, indices),
+                             0.0)        
+
+        #Cleanup
+        import os
+        os.remove(ptsfile)
+
+
+        
 
     def Cache_cache_test_set_values_from_file(self):
         quantity = Quantity(self.mesh4)
@@ -883,10 +974,9 @@ class Test_Quantity(unittest.TestCase):
         os.remove(txt_file)
         os.remove(pts_file)
         
-    def test_set_values_from_UTM_pts(self):
+    def verbose_test_set_values_from_UTM_pts(self):
         quantity = Quantity(self.mesh_onslow)
 
-        VERBOSE = False # Change this to True to see output
         #Get (enough) datapoints
         data_points = [[-21.5, 114.5],[-21.4, 114.6],[-21.45,114.65],
                        [-21.35, 114.65],[-21.45, 114.55],[-21.45,114.6],
@@ -941,7 +1031,7 @@ class Test_Quantity(unittest.TestCase):
 
         #Check that values can be set from file
         quantity.set_values_from_file(pts_file, att, 0,
-                                      'vertices', None, verbose = VERBOSE,
+                                      'vertices', None, verbose = True,
                                       max_read_lines=2)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
         #print "quantity.vertex_values.flat", quantity.vertex_values.flat
@@ -949,7 +1039,7 @@ class Test_Quantity(unittest.TestCase):
         assert allclose(quantity.vertex_values.flat, answer)
 
         #Check that values can be set from file
-        quantity.set_values(filename = pts_file, verbose = VERBOSE,
+        quantity.set_values(filename = pts_file,
                             attribute_name = att, alpha = 0)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
         #print "quantity.vertex_values.flat", quantity.vertex_values.flat
@@ -961,11 +1051,6 @@ class Test_Quantity(unittest.TestCase):
         quantity.set_values(filename = txt_file, alpha = 0)
         assert allclose(quantity.vertex_values.flat, answer)
 
-        #Check that values can be block read from a text file
-        quantity.set_values_from_file(txt_file, att, 0,
-                                      'vertices', None, verbose = VERBOSE,
-                                      max_read_lines=2)
-        
         #Cleanup
         import os
         os.remove(txt_file)
@@ -1183,13 +1268,13 @@ class Test_Quantity(unittest.TestCase):
                              location = 'vertices')
 
 
-        #Negation
+        # Negation
         Q = -quantity1
         assert allclose(Q.vertex_values, -quantity1.vertex_values)
         assert allclose(Q.centroid_values, -quantity1.centroid_values)
         assert allclose(Q.edge_values, -quantity1.edge_values)
 
-        #Addition
+        # Addition
         Q = quantity1 + 7
         assert allclose(Q.vertex_values, quantity1.vertex_values + 7)
         assert allclose(Q.centroid_values, quantity1.centroid_values + 7)
@@ -2348,10 +2433,11 @@ class Test_Quantity(unittest.TestCase):
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Quantity, 'test')
+    suite = unittest.makeSuite(Test_Quantity, 'test')    
+    #suite = unittest.makeSuite(Test_Quantity, 'test_set_values_from_file_using_polygon')
 
-    #suite = unittest.makeSuite(Test_Quantity, 'test_set_values_from_UTM')
+    #suite = unittest.makeSuite(Test_Quantity, 'test_set_vertex_values_using_general_interface_with_subset')
     #print "restricted test"
     #suite = unittest.makeSuite(Test_Quantity,'verbose_test_set_values_from_UTM_pts')
-    runner = unittest.TextTestRunner() #verbosity=2)
+    runner = unittest.TextTestRunner()
     runner.run(suite)
