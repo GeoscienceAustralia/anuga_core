@@ -402,7 +402,8 @@ class Test_Quantity(unittest.TestCase):
 
     def test_set_vertex_values_using_general_interface_with_subset(self):
         """test_set_vertex_values_using_general_interface_with_subset(self):
-        Test that indices and polygon works
+        
+        Test that indices and polygon works (for constants values)
         """
         
         quantity = Quantity(self.mesh4)
@@ -434,7 +435,8 @@ class Test_Quantity(unittest.TestCase):
                          [3.14,3.14,3.14]])                
 
 
-        # Another polygon (pick triangle 1 and 2 (rightmost triangles) using centroids
+        # Another polygon (pick triangle 1 and 2 (rightmost triangles) 
+        # using centroids
         polygon = [[2.1, 0.0], [3.5,0.1], [2,2.2], [0.2,2]]
         quantity.set_values(0.0)
         quantity.set_values(3.14, location='centroids', polygon=polygon)
@@ -456,7 +458,6 @@ class Test_Quantity(unittest.TestCase):
                          [3.14,3.14,3.14],                         
                          [0,0,0]])                
         
-        #print 'done'
 
         # Test input checking
         try:
@@ -693,7 +694,12 @@ class Test_Quantity(unittest.TestCase):
 
 
 
-    def XXXXtest_set_values_from_file_using_polygon(self):
+    def Xtest_set_values_from_file_using_polygon(self):
+        """test_set_values_from_file_using_polygon(self):
+        
+        Test that polygon restriction works for general points data
+        """
+        
         quantity = Quantity(self.mesh4)
 
         #Get (enough) datapoints
@@ -728,7 +734,8 @@ class Test_Quantity(unittest.TestCase):
             file.write(row + "\n")
         file.close()
 
-        # Create restricting polygon (containing vertex #4 (2,2) or centroid of triangle #1 (bce)
+        # Create restricting polygon (containing node #4 (2,2) and 
+        # centroid of triangle #1 (bce)
         polygon = [[1.0, 1.0], [4.0, 1.0],
                    [4.0, 4.0], [1.0, 4.0]]
 
@@ -746,7 +753,8 @@ class Test_Quantity(unittest.TestCase):
                             alpha=0)
 
         # Get indices for vertex coordinates in polygon
-        indices = inside_polygon(quantity.domain.get_vertex_coordinates(), polygon)
+        indices = inside_polygon(quantity.domain.get_vertex_coordinates(), 
+                                 polygon)
         points = take(quantity.domain.get_vertex_coordinates(), indices)
         
         answer = linear_function(points)
@@ -759,7 +767,8 @@ class Test_Quantity(unittest.TestCase):
                              answer)
 
         # Check vertices outside polygon are zero
-        indices = outside_polygon(quantity.domain.get_vertex_coordinates(), polygon)        
+        indices = outside_polygon(quantity.domain.get_vertex_coordinates(), 
+                                  polygon)        
         assert allclose(take(quantity.vertex_values.flat, indices),
                              0.0)        
 
@@ -770,7 +779,9 @@ class Test_Quantity(unittest.TestCase):
 
         
 
-    def Cache_cache_test_set_values_from_file(self):
+    def test_cache_test_set_values_from_file(self):
+        # FIXME (Ole): What is this about?
+        # I don't think it checks anything new
         quantity = Quantity(self.mesh4)
 
         #Get (enough) datapoints
@@ -788,13 +799,15 @@ class Test_Quantity(unittest.TestCase):
                        [ 3.0, 0.0],
                        [ 3.0, 1.0]]
 
+        georef = Geo_reference(56, 0, 0)
         data_geo_spatial = Geospatial_data(data_points,
-                         geo_reference = Geo_reference(56, 0, 0))
+                                           geo_reference=georef)
+                                           
         data_points_absolute = data_geo_spatial.get_data_points(absolute=True)
         attributes = linear_function(data_points_absolute)
         att = 'spam_and_eggs'
         
-        #Create .txt file
+        # Create .txt file
         ptsfile = tempfile.mktemp(".txt")
         file = open(ptsfile,"w")
         file.write(" x,y," + att + " \n")
@@ -806,27 +819,29 @@ class Test_Quantity(unittest.TestCase):
         file.close()
 
 
-        #Check that values can be set from file
-        quantity.set_values(filename = ptsfile,
-                            attribute_name = att, alpha = 0, use_cache=True,
-                            verbose=True)
+        # Check that values can be set from file
+        quantity.set_values(filename=ptsfile,
+                            attribute_name=att, 
+                            alpha=0, 
+                            use_cache=True,
+                            verbose=False)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
-
-        #print quantity.vertex_values.flat
-        #print answer
-
-
         assert allclose(quantity.vertex_values.flat, answer)
 
 
-        #Check that values can be set from file using default attribute
-        quantity.set_values(filename = ptsfile, alpha = 0)
+        # Check that values can be set from file using default attribute
+        quantity.set_values(filename=ptsfile, 
+                            alpha=0)
         assert allclose(quantity.vertex_values.flat, answer)
 
-        #checking cache
-        #quantity.set_values(filename = ptsfile,
-         #                   attribute_name = att, alpha = 0, use_cache=True,
-          #                  verbose=True)
+        # Check cache
+        quantity.set_values(filename=ptsfile,
+                            attribute_name=att, 
+                            alpha=0, 
+                            use_cache=True,
+                            verbose=False)
+        
+        
         #Cleanup
         import os
         os.remove(ptsfile)
@@ -857,8 +872,9 @@ class Test_Quantity(unittest.TestCase):
 
 
         #Check that values can be set from file
-        quantity.set_values(filename = txt_file,
-                            attribute_name = att, alpha = 0)
+        quantity.set_values(filename=txt_file,
+                            attribute_name=att, 
+                            alpha=0)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
 
         #print "quantity.vertex_values.flat", quantity.vertex_values.flat
@@ -868,7 +884,7 @@ class Test_Quantity(unittest.TestCase):
 
 
         #Check that values can be set from file using default attribute
-        quantity.set_values(filename = txt_file, alpha = 0)
+        quantity.set_values(filename=txt_file, alpha=0)
         assert allclose(quantity.vertex_values.flat, answer)
 
         #Cleanup
@@ -901,8 +917,8 @@ class Test_Quantity(unittest.TestCase):
 
 
         #Check that values can be set from file
-        quantity.set_values(filename = txt_file,
-                            attribute_name = att, alpha = 0)
+        quantity.set_values(filename=txt_file,
+                            attribute_name=att, alpha=0)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
 
         #print "quantity.vertex_values.flat", quantity.vertex_values.flat
@@ -912,7 +928,7 @@ class Test_Quantity(unittest.TestCase):
 
 
         #Check that values can be set from file using default attribute
-        quantity.set_values(filename = txt_file, alpha = 0)
+        quantity.set_values(filename=txt_file, alpha=0)
         assert allclose(quantity.vertex_values.flat, answer)
 
         #Cleanup
@@ -957,8 +973,8 @@ class Test_Quantity(unittest.TestCase):
         assert allclose(quantity.vertex_values.flat, answer)
 
         #Check that values can be set from file
-        quantity.set_values(filename = pts_file,
-                            attribute_name = att, alpha = 0)
+        quantity.set_values(filename=pts_file,
+                            attribute_name=att, alpha=0)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
         #print "quantity.vertex_values.flat", quantity.vertex_values.flat
         #print "answer",answer
@@ -966,7 +982,7 @@ class Test_Quantity(unittest.TestCase):
 
 
         #Check that values can be set from file using default attribute
-        quantity.set_values(filename = txt_file, alpha = 0)
+        quantity.set_values(filename=txt_file, alpha=0)
         assert allclose(quantity.vertex_values.flat, answer)
 
         #Cleanup
@@ -1039,8 +1055,8 @@ class Test_Quantity(unittest.TestCase):
         assert allclose(quantity.vertex_values.flat, answer)
 
         #Check that values can be set from file
-        quantity.set_values(filename = pts_file,
-                            attribute_name = att, alpha = 0)
+        quantity.set_values(filename=pts_file,
+                            attribute_name=att, alpha=0)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
         #print "quantity.vertex_values.flat", quantity.vertex_values.flat
         #print "answer",answer
@@ -1048,7 +1064,7 @@ class Test_Quantity(unittest.TestCase):
 
 
         #Check that values can be set from file using default attribute
-        quantity.set_values(filename = txt_file, alpha = 0)
+        quantity.set_values(filename=txt_file, alpha=0)
         assert allclose(quantity.vertex_values.flat, answer)
 
         #Cleanup
@@ -1119,15 +1135,15 @@ class Test_Quantity(unittest.TestCase):
      
 
         #Check that values can be set from file
-        quantity.set_values(filename = ptsfile,
-                            attribute_name = att, alpha = 0)
+        quantity.set_values(filename=ptsfile,
+                            attribute_name=att, alpha=0)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
 
         assert allclose(quantity.vertex_values.flat, answer)
 
 
         #Check that values can be set from file using default attribute
-        quantity.set_values(filename = ptsfile, alpha = 0)
+        quantity.set_values(filename=ptsfile, alpha=0)
         assert allclose(quantity.vertex_values.flat, answer)
 
         #Cleanup
@@ -1196,8 +1212,8 @@ class Test_Quantity(unittest.TestCase):
 
 
         #Check that values can be set from file
-        quantity.set_values(filename = ptsfile,
-                            attribute_name = att, alpha = 0)
+        quantity.set_values(filename=ptsfile,
+                            attribute_name=att, alpha=0)
         answer = linear_function(quantity.domain. \
                                  get_vertex_coordinates(absolute=True))
 
@@ -1206,7 +1222,7 @@ class Test_Quantity(unittest.TestCase):
 
 
         #Check that values can be set from file using default attribute
-        quantity.set_values(filename = ptsfile, alpha = 0)
+        quantity.set_values(filename=ptsfile, alpha=0)
         assert allclose(quantity.vertex_values.flat, answer)
 
         #Cleanup
@@ -1226,7 +1242,7 @@ class Test_Quantity(unittest.TestCase):
 
 
         quantity2 = Quantity(self.mesh4)
-        quantity2.set_values(quantity = quantity1)
+        quantity2.set_values(quantity=quantity1)
         assert allclose(quantity2.vertex_values,
                         [[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
 
@@ -1246,6 +1262,35 @@ class Test_Quantity(unittest.TestCase):
 
 
 
+    def Xtest_set_values_from_quantity_using_polygon(self):
+        """test_set_values_from_quantity_using_polygon(self):
+        
+        Check that polygon can be used to restrict set_values when
+        using another quantity as argument.
+        """
+        
+        # Create restricting polygon (containing node #4 (2,2) and 
+        # centroid of triangle #1 (bce)
+        polygon = [[1.0, 1.0], [4.0, 1.0],
+                   [4.0, 4.0], [1.0, 4.0]]
+        assert allclose(inside_polygon(self.mesh4.nodes, polygon), 4)                   
+        
+        quantity1 = Quantity(self.mesh4)
+        quantity1.set_vertex_values([0,1,2,3,4,5])
+
+        assert allclose(quantity1.vertex_values,
+                        [[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
+
+
+        quantity2 = Quantity(self.mesh4)
+        quantity2.set_values(quantity=quantity1,
+                             polygon=polygon)
+                             
+        msg = 'Only node #4(e) at (2,2) should have values applied '
+        assert allclose(quantity2.vertex_values,
+                        [[0,0,0], [0,0,4], [4,0,0], [0,0,4]]), msg        
+                        #bac,     bce,     ecf,     dbe
+                        
 
 
     def test_overloading(self):
