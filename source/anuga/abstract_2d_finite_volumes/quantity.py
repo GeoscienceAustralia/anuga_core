@@ -260,19 +260,19 @@ class Quantity:
 
     # New leaner interface to setting values
     def set_values(self,
-                   numeric = None,    # List, numeric array or constant
-                   quantity = None,   # Another quantity
-                   function = None,   # Callable object: f(x,y)
-                   geospatial_data = None, # Arbitrary dataset
-                   points = None, values = None, data_georef = None, # Obsoleted by use of geo_spatial object
-                   filename = None, attribute_name = None, #Input from file
-                   alpha = None,
-                   location = 'vertices',
-                   polygon = None,
-                   indices = None,
-                   smooth = False,
-                   verbose = False,
-                   use_cache = False):
+                   numeric=None,    # List, numeric array or constant
+                   quantity=None,   # Another quantity
+                   function=None,   # Callable object: f(x,y)
+                   geospatial_data=None, # Arbitrary dataset
+                   points=None, values=None, data_georef=None, # Obsoleted by use of geo_spatial object
+                   filename=None, attribute_name=None, #Input from file
+                   alpha=None,
+                   location='vertices',
+                   polygon=None,
+                   indices=None,
+                   smooth=False,
+                   verbose=False,
+                   use_cache=False):
 
         """Set values for quantity based on different sources.
 
@@ -342,10 +342,11 @@ class Quantity:
                   The values will be stored in elements following their
                   internal ordering.
 
-                  If location is not 'unique vertices' Indices is the
-                  set of element ids that the operation applies to.
-                  If location is 'unique vertices' Indices is the set
-                  of vertex ids that the operation applies to.
+                  If location is 'unique vertices' indices refers the set
+                  of node ids that the operation applies to.
+                  If location is not 'unique vertices' indices refers the
+                  set of triangle ids that the operation applies to.
+
 
                   If selected location is vertices, values for
                   centroid and edges will be assigned interpolated
@@ -362,7 +363,7 @@ class Quantity:
 
         indices: Restrict update of quantity to locations that are 
                  identified by indices (e.g. node ids if location
-                 is 'vertices')        
+                 is 'unique vertices' or triangle ids otherwise).
         
         verbose: True means that output to stdout is generated
 
@@ -386,6 +387,9 @@ class Quantity:
         # Location will be ignored and set to 'centroids'
         # FIXME (Ole): This needs to be generalised and
         # perhaps the notion of location and indices simplified
+
+        # FIXME (Ole): Need to compute indices based on polygon (and location) and
+        # use existing code after that.
         
         if polygon is not None:
             if indices is not None:
@@ -472,8 +476,8 @@ class Quantity:
                 self.set_values_from_geospatial_data(numeric,
                                                      alpha,
                                                      location, indices,
-                                                     verbose = verbose,
-                                                     use_cache = use_cache)
+                                                     verbose=verbose,
+                                                     use_cache=use_cache)
             else:
                 msg = 'Illegal type for argument numeric: %s' %str(numeric)
                 raise msg
@@ -490,8 +494,8 @@ class Quantity:
                 self.set_values_from_geospatial_data(geospatial_data,
                                                      alpha,
                                                      location, indices,
-                                                     verbose = verbose,
-                                                     use_cache = use_cache)
+                                                     verbose=verbose,
+                                                     use_cache=use_cache)
         elif points is not None:
             msg = 'The usage of points in set_values has been deprecated.' +\
                   'Please use the geospatial_data object instead.'
@@ -506,9 +510,9 @@ class Quantity:
                 max_read_lines = default_block_line_size
             self.set_values_from_file(filename, attribute_name, alpha,
                                       location, indices,
-                                      verbose = verbose,
+                                      verbose=verbose,
                                       max_read_lines=max_read_lines,
-                                      use_cache = use_cache)
+                                      use_cache=use_cache)
         else:
             raise Exception, 'This can\'t happen :-)'
 
@@ -540,7 +544,7 @@ class Quantity:
             if indices is None:
                 self.centroid_values[:] = X
             else:
-                #Brute force
+                # Brute force
                 for i in indices:
                     self.centroid_values[i] = X
 
@@ -548,7 +552,7 @@ class Quantity:
             if indices is None:
                 self.edge_values[:] = X
             else:
-                #Brute force
+                # Brute force
                 for i in indices:
                     self.edge_values[i] = X
 
@@ -557,27 +561,27 @@ class Quantity:
                 self.edge_values[:] = X  #FIXME (Ole): Shouldn't this be vertex_values?
             else:
 
-                #Go through list of unique vertices
+                # Go through list of unique vertices
                 for unique_vert_id in indices:
 
                     triangles = self.domain.get_triangles_and_vertices_per_node(node=unique_vert_id)
                     
-                    #In case there are unused points
+                    # In case there are unused points
                     if len(triangles) == 0:
                         continue
                     
-                    #Go through all triangle, vertex pairs
-                    #and set corresponding vertex value
+                    # Go through all triangle, vertex pairs
+                    # and set corresponding vertex value
                     for triangle_id, vertex_id in triangles:
                         self.vertex_values[triangle_id, vertex_id] = X
 
-                    #Intialise centroid and edge_values
+                    # Intialise centroid and edge_values
                     self.interpolate()
         else:
             if indices is None:
                 self.vertex_values[:] = X
             else:
-                #Brute force
+                # Brute force
                 for i_vertex in indices:
                     self.vertex_values[i_vertex] = X
 
@@ -621,7 +625,7 @@ class Quantity:
         if indices is not None:
             indices = array(indices).astype(Int)
             msg = 'Number of values must match number of indices:'
-            msg += 'You specified %d values and %d indices'\
+            msg += ' You specified %d values and %d indices'\
                    %(values.shape[0], indices.shape[0])
             assert values.shape[0] == indices.shape[0], msg
 
@@ -668,7 +672,7 @@ class Quantity:
                 self.set_vertex_values(values, indices=indices)
 
             elif len(values.shape) == 2:
-                #Vertex values are given as a triplet for each triangle
+                # Vertex values are given as a triplet for each triangle
 
                 msg = 'Array must be N x 3'
                 assert values.shape[1] == 3, msg
@@ -722,10 +726,10 @@ class Quantity:
                   
         """
 
-        #FIXME: Should check that function returns something sensible and
-        #raise a meaningfull exception if it returns None for example
+        # FIXME: Should check that function returns something sensible and
+        # raise a meaningfull exception if it returns None for example
 
-        #FIXME: Should supply absolute coordinates
+        # FIXME: Should supply absolute coordinates
 
 
         # Compute the function values and call set_values again
@@ -784,11 +788,11 @@ class Quantity:
 
     def set_values_from_geospatial_data(self, geospatial_data, alpha,
                                         location, indices,
-                                        verbose = False,
-                                        use_cache = False):
+                                        verbose=False,
+                                        use_cache=False):
         # FIXME: Use this function for the time being. Later move code in here
 
-        points = geospatial_data.get_data_points(absolute = False)
+        points = geospatial_data.get_data_points(absolute=False)
         values = geospatial_data.get_attributes()
         data_georef = geospatial_data.get_geo_reference()
 
@@ -809,7 +813,7 @@ class Quantity:
         triangles = self.domain.triangles      #FIXME
 
 
-        #Take care of georeferencing
+        # Take care of georeferencing
         if data_georef is None:
             data_georef = Geo_reference()
 
@@ -818,7 +822,7 @@ class Quantity:
 
 
         # Call fit_interpolate.fit function
-        #args = (coordinates, triangles, points, values)
+        # args = (coordinates, triangles, points, values)
         args = (points, )
         kwargs = {'vertex_coordinates': coordinates,
                   'triangles': triangles,
@@ -840,9 +844,9 @@ class Quantity:
 
     def set_values_from_points(self, points, values, alpha,
                                location, indices,
-                               data_georef = None,
-                               verbose = False,
-                               use_cache = False):
+                               data_georef=None,
+                               verbose=False,
+                               use_cache=False):
         """
         Set quantity values from arbitray data points using
         fit_interpolate.fit
@@ -853,8 +857,8 @@ class Quantity:
 
     def set_values_from_file(self, filename, attribute_name, alpha,
                              location, indices,
-                             verbose = False,
-                             use_cache = False,
+                             verbose=False,
+                             use_cache=False,
                              max_read_lines=None):
         """Set quantity based on arbitrary points in a points file
         using attribute_name selects name of attribute
@@ -1139,7 +1143,7 @@ class Quantity:
             if (indices ==  None):
                 indices=range(self.domain.number_of_nodes)
             vert_values = []
-            
+
             # Go through list of unique vertices
             for unique_vert_id in indices:
                 triangles = self.domain.get_triangles_and_vertices_per_node(node=unique_vert_id)
@@ -1212,7 +1216,7 @@ class Quantity:
         """ Smooths vertex values.
         """
 
-        A,V = self.get_vertex_values(xy=False, smooth = True)
+        A,V = self.get_vertex_values(xy=False, smooth=True)
         self.set_vertex_values(A)
 
 
@@ -1412,7 +1416,6 @@ class Quantity:
         # Call correct module function
         # (either from this module or C-extension)
         extrapolate_second_order_and_limit_by_edge(self)
-
 
     def extrapolate_second_order_and_limit_by_vertex(self):
         # Call correct module function
