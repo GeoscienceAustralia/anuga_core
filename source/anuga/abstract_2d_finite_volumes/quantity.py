@@ -258,14 +258,15 @@ class Quantity:
 
 
 
-    # New leaner interface to setting values
+    #---------------------------------------------
+    # Public interface for setting quantity values
+    #---------------------------------------------
     def set_values(self,
                    numeric=None,    # List, numeric array or constant
                    quantity=None,   # Another quantity
                    function=None,   # Callable object: f(x,y)
                    geospatial_data=None, # Arbitrary dataset
-                   points=None, values=None, data_georef=None, # Obsoleted by use of geo_spatial object
-                   filename=None, attribute_name=None, #Input from file
+                   filename=None, attribute_name=None, # Input from file
                    alpha=None,
                    location='vertices',
                    polygon=None,
@@ -296,22 +297,6 @@ class Quantity:
           Arbitrary geo spatial dataset in the form of the class
           Geospatial_data. Mesh points are populated using
           fit_interpolate.fit fitting
-
-        points:
-          Nx2 array of data points for use with fit_interpolate.fit
-          If points are present, an N array of attribute
-          values corresponding to
-          each data point must be present.
-          (Obsoleted by geospatial_data)          
-
-        values:
-          If points is specified, values is an array of length N containing
-          attribute values for each point.
-          (Obsoleted by geospatial_data)          
-
-        data_georef:
-          If points is specified, geo_reference applies to each point.
-          (Obsoleted by geospatial_data)          
 
         filename:
           Name of a points file containing data points and attributes for
@@ -374,7 +359,7 @@ class Quantity:
 
 
         Exactly one of the arguments
-          numeric, quantity, function, points, filename
+          numeric, quantity, function, filename
         must be present.
         """
 
@@ -430,9 +415,9 @@ class Quantity:
 
 
         # General input checks
-        L = [numeric, quantity, function, geospatial_data, points, filename]
+        L = [numeric, quantity, function, geospatial_data, filename]
         msg = 'Exactly one of the arguments '+\
-              'numeric, quantity, function, geospatial_data, points, '+\
+              'numeric, quantity, function, geospatial_data, '+\
               'or filename must be present.'
         assert L.count(None) == len(L)-1, msg
 
@@ -445,15 +430,6 @@ class Quantity:
 
         msg = 'Indices must be a list or None'
         assert type(indices) in [ListType, NoneType, ArrayType], msg
-
-
-        if not(points is None and values is None and data_georef is None):
-            from warnings import warn
-
-            msg = 'Using points, values or data_georef with set_quantity '
-            msg += 'is obsolete. Please use a Geospatial_data object instead.'
-            #warn(msg, DeprecationWarning)
-            raise Exception, msg
 
 
 
@@ -496,12 +472,6 @@ class Quantity:
                                                      location, indices,
                                                      verbose=verbose,
                                                      use_cache=use_cache)
-        elif points is not None:
-            msg = 'The usage of points in set_values has been deprecated.' +\
-                  'Please use the geospatial_data object instead.'
-            raise Exception, msg
-
-
             
         elif filename is not None:
             if hasattr(self.domain, 'points_file_block_line_size'):
@@ -529,7 +499,10 @@ class Quantity:
 
 
 
-    # Specific functions for setting values
+    #-------------------------------------------------------------        
+    # Specific internal functions for setting values based on type
+    #-------------------------------------------------------------            
+    
     def set_values_from_constant(self, X,
                                  location, indices, verbose):
         """Set quantity values from specified constant X
@@ -775,7 +748,7 @@ class Quantity:
                 for j in range(3):
                     self.vertex_values[:,j] = values[j::3]                 
             else:    
-                #Brute force
+                # Brute force
                 for i in indices:
                     for j in range(3):
                         self.vertex_values[i,j] = values[3*i+j]
@@ -901,7 +874,9 @@ class Quantity:
         self.set_values_from_array(vertex_attributes,
                                    location, indices, verbose)
 
-   
+    
+    
+    #-----------------------------------------------------    
     def get_extremum_index(self, mode=None, indices=None):
         """Return index for maximum or minimum value of quantity (on centroids)
 
