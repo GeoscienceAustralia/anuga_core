@@ -375,9 +375,6 @@ class Quantity:
         # FIXME (Ole): Need to compute indices based on polygon (and location) and
         # use existing code after that.
         
-        # Perhaps deprecate 'centroids' as a location option. It is really just a 
-        # first order version of what is currently called vertices  
-        
         if polygon is not None:
             if indices is not None:
                 msg = 'Only one of polygon and indices can be specified'
@@ -427,7 +424,6 @@ class Quantity:
         if location == 'edges':
             msg = 'edges has been deprecated as valid location'
             raise Exception, msg
-            
             
         if location not in ['vertices', 'centroids', 'unique vertices']:
             msg = 'Invalid location: %s' %location
@@ -622,22 +618,9 @@ class Quantity:
                 msg = 'Number of values must match number of indices'
                 assert values.shape[0] == indices.shape[0], msg
 
-                #Brute force
+                # Brute force
                 for i in range(len(indices)):
                     self.centroid_values[indices[i]] = values[i]
-
-        #elif location == 'edges':
-        #    # FIXME (Ole): No mention of indices here. However, I don't
-        #    # think we ever need to set values at edges anyway
-        #    assert len(values.shape) == 2, 'Values array must be 2d'
-        # 
-        #    msg = 'Number of values must match number of elements'
-        #    assert values.shape[0] == N, msg
-        #
-        #       msg = 'Array must be N x 3'
-        #    assert values.shape[1] == 3, msg
-        #
-        #     self.edge_values = values
 
         elif location == 'unique vertices':
             assert len(values.shape) == 1 or allclose(values.shape[1:], 1),\
