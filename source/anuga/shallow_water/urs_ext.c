@@ -109,26 +109,20 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     for (i = 0; i < numSrc; i++)
     {
         printf("Checkpoint 2.1 for urs2sts_ext.c\n");        
-        muxFileNameArray[i] = (char*)malloc((MAX_FILE_NAME_LENGTH + 1)*sizeof(char));
-        
+	
+        fname = PyList_GetItem(filenames, i);
+        if (!PyString_Check(fname)) 
+        {
+            PyErr_SetString(PyExc_ValueError, "filename not a string");
+	    return NULL;
+	}	
+	
+        muxFileNameArray[i] = PyString_AsString(fname);
         if (muxFileNameArray[i] == NULL) 
         {
             printf("ERROR: Memory for muxFileNameArray could not be allocated.\n");
             exit(-1);
         }
-
-        printf("Checkpoint 2.2 for urs2sts_ext.c\n");        	
-        fname = PyList_GetItem(filenames, i);
-        printf("Checkpoint 2.3 for urs2sts_ext.c\n");
-	     			
-        if (!PyString_Check(fname)) 
-        {
-            PyErr_SetString(PyExc_ValueError, "filename not a string");
-	    return NULL;
-	}
-
-        printf("Checkpoint 2.4 for urs2sts_ext.c\n");        		
-        muxFileNameArray[i] = PyString_AsString(fname);
     }
 
     printf("Checkpoint 3 for urs2sts_ext.c\n");        
@@ -229,10 +223,11 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     printf("Checkpoint 10 for urs2sts_ext.c\n");                                
     free(weights);
     
+    /*
     for (i = 0; i < numSrc; ++i)
     {
         free(muxFileNameArray[i]);
-    }
+	}*/
     free(muxFileNameArray);
     
     for (i = 0; i < nsta0; ++i)
