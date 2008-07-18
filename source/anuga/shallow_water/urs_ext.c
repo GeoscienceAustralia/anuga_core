@@ -49,8 +49,8 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     float **cdata;
     float *weights;
     int dimensions[2];
-    long numSrc;
-    long verbose;
+    int numSrc;
+    int verbose;
     int nsta0;
     int nt;
     double dt;
@@ -98,24 +98,32 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
         return NULL;
     }
 
-    muxFileNameArray = (char**)malloc((int)numSrc*sizeof(char*));
+    muxFileNameArray = (char**)malloc(numSrc*sizeof(char*));
     if (muxFileNameArray == NULL) 
     {
         printf("ERROR: Memory for muxFileNameArray could not be allocated.\n");
-        exit(-1);
+        return NULL;
     }
 
     //printf("Checkpoint 2 for urs2sts_ext.c\n");    
+    //printf("numSrc = %d\n", numSrc);
     for (i = 0; i < numSrc; i++)
     {
-	
+
+        //printf("check 2.1, i=%d\n", i);         
         fname = PyList_GetItem(filenames, i);
-        if (!PyString_Check(fname)) 
+        //printf("check 2.2\n");                  
+        if (!fname) 
         {
+	  //printf("error\n");          
             PyErr_SetString(PyExc_ValueError, "filename not a string");
-	    return NULL;
-	}	
-	
+            return NULL;
+        }       
+        //printf("check 2.3\n");          
+        //printf("fname = %s\n", PyString_AsString(fname));
+        
+        
+        //printf("check 2.4\n");  
         muxFileNameArray[i] = PyString_AsString(fname);
         if (muxFileNameArray[i] == NULL) 
         {
@@ -134,15 +142,19 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
 
     //printf("Checkpoint 4 for urs2sts_ext.c\n");        
     // Create array for weights which are passed to read_mux2
-    weights = (float*) malloc((int)numSrc*sizeof(float));
-    for (i = 0; i < (int)numSrc; i++)
+    weights = (float*) malloc(numSrc*sizeof(float));
+    for (i = 0; i < numSrc; i++)
     {
         weights[i] = (float)(*(double*)(pyweights->data + i*pyweights->strides[0]));
     }
     
     //printf("Checkpoint 5 for urs2sts_ext.c\n");            
     // Read in mux2 data from file
-    cdata = _read_mux2((int)numSrc, muxFileNameArray, weights, (double*)file_params->data, (int)verbose);
+    cdata = _read_mux2(numSrc, 
+                       muxFileNameArray, 
+                       weights, 
+                       (double*)file_params->data, 
+                       verbose);
 
     //printf("Checkpoint 6 for urs2sts_ext.c\n");                
     // Allocate space for return vector
@@ -236,7 +248,11 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     return  PyArray_Return(pydata);
 }
 
-float** _read_mux2(int numSrc, char **muxFileNameArray, float *weights, double *params, int verbose)
+float** _read_mux2(int numSrc, 
+                   char **muxFileNameArray, 
+                   float *weights, 
+                   double *params, 
+                   int verbose)
 {
     FILE *fp;
     int nsta, nsta0, i, isrc, ista;
@@ -283,12 +299,12 @@ float** _read_mux2(int numSrc, char **muxFileNameArray, float *weights, double *
     }
 
     /* loop over remaining sources, check compatibility, and read them into 
-    *muxData */	
-	for (isrc = 0; isrc < numSrc; isrc++)
+    *muxData */ 
+        for (isrc = 0; isrc < numSrc; isrc++)
     {
         muxFileName = muxFileNameArray[isrc];
 
-		/* open the mux file */
+                /* open the mux file */
         if((fp = fopen(muxFileName, "r")) == NULL)
         {
             fprintf(stderr, "cannot open file %s\n", muxFileName);
@@ -297,15 +313,15 @@ float** _read_mux2(int numSrc, char **muxFileNameArray, float *weights, double *
         
         if (!isrc)
         {
-			fread(&nsta0, sizeof(int), 1, fp);
-			
-			fros = (int*)malloc(nsta0*numSrc*sizeof(int)); 
-			lros = (int*)malloc(nsta0*numSrc*sizeof(int));
+            fread(&nsta0, sizeof(int), 1, fp);
+        
+            fros = (int*)malloc(nsta0*numSrc*sizeof(int)); 
+            lros = (int*)malloc(nsta0*numSrc*sizeof(int));
       
-			mytgs0 = (struct tgsrwg*)malloc(nsta0*sizeof(struct tgsrwg));
-			mytgs = (struct tgsrwg*)malloc(nsta0*sizeof(struct tgsrwg));
+            mytgs0 = (struct tgsrwg*)malloc(nsta0*sizeof(struct tgsrwg));
+            mytgs = (struct tgsrwg*)malloc(nsta0*sizeof(struct tgsrwg));
 
-			fread(mytgs0, nsta0*sizeof(struct tgsrwg), 1, fp);
+            fread(mytgs0, nsta0*sizeof(struct tgsrwg), 1, fp);
         }
         else
         {
