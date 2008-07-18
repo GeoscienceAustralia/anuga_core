@@ -4840,7 +4840,22 @@ WAVEHEIGHT_MUX2_LABEL = '-z-mux2'
 EAST_VELOCITY_MUX2_LABEL =  '-e-mux2'
 NORTH_VELOCITY_MUX2_LABEL =  '-n-mux2'    
 
-def read_mux2_py(filenames,weights,verbose=False):
+def read_mux2_py(filenames,
+                 weights,
+                 permutation=None,
+                 verbose=False):
+    """Access the mux files specified in the filenames list. Combine the 
+       data found therin as a weighted linear sum as specifed by the weights. 
+       If permutation is None extract timeseries data for all gauges within the 
+       files. 
+         
+       Input: 
+           filenames:   List of filenames specifiying the file containing the 
+                        timeseries data (mux2 format) for each source 
+           weights:     Weights associated with each source 
+           permutation: Specifies the gauge numbers that for which data is to be 
+                        extracted 
+    """ 
 
     from Numeric import ones,Float,compress,zeros,arange
     from urs_ext import read_mux2
@@ -4855,6 +4870,7 @@ def read_mux2_py(filenames,weights,verbose=False):
     else:
         verbose=0
         
+    # Call underlying C implementation urs2sts_ext.c    
     data=read_mux2(numSrc,filenames,weights,file_params,verbose)
 
     msg='File parameter values were not read in correctly from c file'
@@ -4909,12 +4925,13 @@ def mux2sww_time(mux_times, mint, maxt):
     return mux_times_start_i, mux_times_fin_i
 
 
-def urs2sts(basename_in, basename_out = None, weights=None,
-            verbose = False, origin = None,
-            mean_stage=0.0, zscale=1.0,
-            ordering_filename = None,
-            minlat = None, maxlat = None,
-            minlon = None, maxlon = None):
+def urs2sts(basename_in, basename_out=None, 
+            weights=None,
+            verbose=False, 
+            origin=None,
+            mean_stage=0.0, 
+            zscale=1.0,
+            ordering_filename=None):
     """Convert URS mux2 format for wave propagation to sts format
 
     Also convert latitude and longitude to UTM. All coordinates are
@@ -4923,35 +4940,34 @@ def urs2sts(basename_in, basename_out = None, weights=None,
     origin is a 3-tuple with geo referenced
     UTM coordinates (zone, easting, northing)
     
-    input:
+    inputs:
+        
     basename_in: list of source file prefixes
     
-    These are combined with the extensions:
-    WAVEHEIGHT_MUX2_LABEL = '-z-mux2' for stage
-    EAST_VELOCITY_MUX2_LABEL =  '-e-mux2' xmomentum
-    NORTH_VELOCITY_MUX2_LABEL =  '-n-mux2' and ymomentum
+        These are combined with the extensions:
+        WAVEHEIGHT_MUX2_LABEL = '-z-mux2' for stage
+        EAST_VELOCITY_MUX2_LABEL =  '-e-mux2' xmomentum
+        NORTH_VELOCITY_MUX2_LABEL =  '-n-mux2' and ymomentum
     
-    to create a 2D list of mux2 file. The rows are associated with each quantity and must have the above extensions
-    the columns are the list of file prefixes.
+        to create a 2D list of mux2 file. The rows are associated with each 
+        quantity and must have the above extensions
+        the columns are the list of file prefixes.
     
-    ordering: a .txt file name specifying which mux2 gauge points are sto be stored. This is indicated by the index of
-    the gauge in the ordering file.
+    ordering: a .txt file name specifying which mux2 gauge points are 
+              to be stored. This is indicated by the index of the gauge 
+              in the ordering file.
     
-    ordering file format:
-    header
-    index,longitude,latitude
-    
-    header='index,longitude,latitude\n'
-    If ordering is None all points are taken in the order they appear in the mux2 file subject to rectangular clipping box (see below).
-    
-    
-    minlat, minlon, maxlat, maxlon define a rectangular clipping box and can be used to extract gauge information in a rectangular box. This is useful for extracting
-    information at gauge points not on the boundary.
-    if ordering_filename is specified clipping box cannot be used
+              ordering file format:
+              1st line:    'index,longitude,latitude\n'
+              other lines: index,longitude,latitude
+              
+
+              If ordering is None all points are taken in the order they 
+              appear in the mux2 file.
     
     
     output:
-    baename_out: name of sts file in which mux2 data is stored.
+      basename_out: name of sts file in which mux2 data is stored.
     
     
     """
@@ -4967,7 +4983,7 @@ def urs2sts(basename_in, basename_out = None, weights=None,
         basename_in=[basename_in]
 
     # Check that basename is a list of strings
-    if not reduce(__and__, map(lambda z:isinstance(z,StringType),basename_in)):
+    if not reduce(__and__, map(lambda z:isinstance(z,StringType), basename_in)):
         msg= 'basename_in must be a string or list of strings'
         raise Exception, msg
 
@@ -4976,6 +4992,7 @@ def urs2sts(basename_in, basename_out = None, weights=None,
 
     # A weight must be specified for each source
     if weights is None:
+        # Default is equal weighting
         weights=ones(numSrc,Float)/numSrc
     else:
         weights = ensure_numeric(weights)
@@ -4983,73 +5000,49 @@ def urs2sts(basename_in, basename_out = None, weights=None,
               'mux2 source file'
         assert len(weights)== numSrc, msg
 
-    precision = Float
-
-    if ordering_filename is not None:
-        msg = 'If ordering_filename is specified,'
-        msg += ' rectangular clipping box cannot be specified as well. '
-        assert minlat is None and maxlat is None and\
-            minlon is None and maxlon is None, msg
-    
-    
-    msg = 'Must use latitudes and longitudes for minlat, maxlon etc'
-    if minlat != None:
-        assert -90 < minlat < 90 , msg
-    if maxlat != None:
-        assert -90 < maxlat < 90 , msg
-        if minlat != None:
-            assert maxlat > minlat
-    if minlon != None:
-        assert -180 < minlon < 180 , msg
-    if maxlon != None:
-        assert -180 < maxlon < 180 , msg
-        if minlon != None:
-            assert maxlon > minlon
-
-
     # Check output filename    
     if basename_out is None:
         msg = 'STS filename must be specified'
         raise Exception, msg
-    
     stsname = basename_out + '.sts'
 
+    # Create input filenames from basenames and check their existence
     files_in=[[],[],[]]
     for files in basename_in:
         files_in[0].append(files + WAVEHEIGHT_MUX2_LABEL),
         files_in[1].append(files + EAST_VELOCITY_MUX2_LABEL)
         files_in[2].append(files + NORTH_VELOCITY_MUX2_LABEL)
-        
-    #files_in = [basename_in + WAVEHEIGHT_MUX2_LABEL,
-    #            basename_in + EAST_VELOCITY_MUX2_LABEL,
-    #            basename_in + NORTH_VELOCITY_MUX2_LABEL]
     
-    quantities = ['HA','UA','VA']
-
-    # For each source file check that there exists three files ending with:
-    # WAVEHEIGHT_MUX2_LABEL,
-    # EAST_VELOCITY_MUX2_LABEL, and 
-    # NORTH_VELOCITY_MUX2_LABEL
+    quantities = ['HA','UA','VA'] # Quantity names used in the MUX2 format
     for i in range(len(quantities)): 
         for file_in in files_in[i]:
             if (os.access(file_in, os.F_OK) == 0):
                 msg = 'File %s does not exist or is not accessible' %file_in
                 raise IOError, msg
 
-    #need to do this for velocity-e-mux2 and velocity-n-mux2 files as well
-    #for now set x_momentum and y_moentum quantities to zero
+    # Read MUX2 files
     if (verbose): print 'reading mux2 file'
     mux={}
-    for i,quantity in enumerate(quantities):
-        # For each quantity read the associated list of source mux2 file with extenstion associated with that quantity
-        times, latitudes_urs, longitudes_urs, elevation, mux[quantity],starttime = read_mux2_py(files_in[i],weights,verbose=verbose)
+    for i, quantity in enumerate(quantities):
+    
+        # For each quantity read the associated list of source mux2 file with 
+        # extention associated with that quantity
+        times,\
+        latitudes_urs,\
+        longitudes_urs,\
+        elevation,\
+        mux[quantity],\
+        starttime = read_mux2_py(files_in[i], weights, verbose=verbose)
+    
+        # Check that all quantities have consistent time and space information     
         if quantity!=quantities[0]:
-            msg='%s, %s and %s have inconsitent gauge data'%(files_in[0],files_in[1],files_in[2])
-            assert allclose(times,times_old),msg
-            assert allclose(latitudes_urs,latitudes_urs_old),msg
-            assert allclose(longitudes_urs,longitudes_urs_old),msg
-            assert allclose(elevation,elevation_old),msg
-            assert allclose(starttime,starttime_old)
+            msg='%s, %s and %s have inconsistent gauge data'\
+                %(files_in[0], files_in[1], files_in[2])
+            assert allclose(times, times_old), msg
+            assert allclose(latitudes_urs, latitudes_urs_old), msg
+            assert allclose(longitudes_urs, longitudes_urs_old), msg
+            assert allclose(elevation, elevation_old), msg
+            assert allclose(starttime, starttime_old), msg
         times_old=times
         latitudes_urs_old=latitudes_urs
         longitudes_urs_old=longitudes_urs
@@ -5103,23 +5096,14 @@ def urs2sts(basename_in, basename_out = None, weights=None,
               str(ref_latitudes[:10]) + '...')                
         assert allclose(latitudes, ref_latitudes), msg
         
-    elif (minlat is not None) and (minlon is not None) and (maxlat is not None) and (maxlon is not None):
-        #FIXME - this branch is probably not working    
-        if verbose: print 'Cliping urs data'
-        latitudes = compress((latitudes_urs>=minlat)&(latitudes_urs<=maxlat)&(longitudes_urs>=minlon)&(longitudes_urs<=maxlon),latitudes_urs)
-        longitudes = compress((latitudes_urs>=minlat)&(latitudes_urs<=maxlat)&(longitudes_urs>=minlon)&(longitudes_urs<=maxlon),longitudes_urs)
-        
-        permutation = range(latitudes.shape[0])        
-        
-        msg = 'Clipping is not done yet'
-        raise Exception, msg
-        
     else:
         latitudes=latitudes_urs
         longitudes=longitudes_urs
         permutation = range(latitudes.shape[0])                
         
-
+        
+        
+    # Store timeseries in NetCDF STS file    
     msg='File is empty and or clipped region not in file region'
     assert len(latitudes>0),msg
 
