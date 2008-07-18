@@ -115,7 +115,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
         //printf("check 2.2\n");                  
         if (!fname) 
         {
-	  //printf("error\n");          
+          //printf("error\n");          
             PyErr_SetString(PyExc_ValueError, "filename not a string");
             return NULL;
         }       
@@ -255,7 +255,7 @@ float** _read_mux2(int numSrc,
                    int verbose)
 {
     FILE *fp;
-    int nsta, nsta0, i, isrc, ista;
+    int nsta, nsta0, i, isrc, ista, k;
     struct tgsrwg *mytgs=0, *mytgs0=0;
     char *muxFileName;                                                                  
     int istart, istop;
@@ -298,9 +298,8 @@ float** _read_mux2(int numSrc,
         printf("Reading mux header information\n");
     }
 
-    /* loop over remaining sources, check compatibility, and read them into 
-    *muxData */ 
-        for (isrc = 0; isrc < numSrc; isrc++)
+    /* loop over all sources, read headers and check compatibility */
+    for (isrc = 0; isrc < numSrc; isrc++)
     {
         muxFileName = muxFileNameArray[isrc];
 
@@ -375,7 +374,7 @@ float** _read_mux2(int numSrc,
     params[2] = (double)mytgs0[0].nt;
 
     /* make array(s) to hold the demuxed data */
-    //FIXME: This can be reduced to only contain stations in order file
+    //FIXME: This can be reduced to only contain stations given in permutation file
     sts_data = (float**)malloc(nsta0*sizeof(float *));
     if (sts_data == NULL)
     {
@@ -431,22 +430,31 @@ float** _read_mux2(int numSrc,
         fclose(fp);
 
         /* loop over stations */
+        /* This is where we should only take stations with indices in the permutation array 
+           (and in that order) */
+        
+        //for i in range(len(permution)):
+        //     ista = permutation[i]
+        //     use ista with mux data
+        //     use i with the processed data to be returned         
+        i=0;
+        
         for(ista = 0; ista < nsta0; ista++)
         {               
             /* fill the data0 array from the mux file, and weight it */
             fillDataArray(ista, nsta0, mytgs0[ista].nt, mytgs0[ista].ig, fros + isrc*nsta0, lros + isrc*nsta0, temp_sts_data, &istart, &istop, muxData);
 
             /* weight appropriately and add */
-            for(i = 0; i < mytgs0[ista].nt; i++)
+            for(k = 0; k < mytgs0[ista].nt; k++)
             {
-                if((isdata(sts_data[ista][i])) && isdata(temp_sts_data[i]))
+                if((isdata(sts_data[ista][k])) && isdata(temp_sts_data[k]))
                 {
-                    sts_data[ista][i] += temp_sts_data[i] * weights[isrc];
-                    //printf("%d,%d,%f\n",ista,i,sts_data[ista][i]);
+                    sts_data[ista][k] += temp_sts_data[k] * weights[isrc];
+                    //printf("%d,%d,%f\n",ista,k,sts_data[ista][k]);
                 }
                 else
                 {
-                    sts_data[ista][i] = NODATA;
+                    sts_data[ista][k] = NODATA;
                 }
             }
         }

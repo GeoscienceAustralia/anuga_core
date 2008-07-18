@@ -75,7 +75,7 @@ class Test_Data_Manager(unittest.TestCase):
         domain.set_quantity('stage', stage)
 
 
-        domain.distribute_to_vertices_and_edges()		
+        domain.distribute_to_vertices_and_edges()               
         self.initial_stage = copy.copy(domain.quantities['stage'].vertex_values)
 
 
@@ -579,7 +579,7 @@ class Test_Data_Manager(unittest.TestCase):
         #Evolution
         for t in self.domain.evolve(yieldstep = 1.0, finaltime = 4.0):
             
-	    #########self.domain.write_time(track_speeds=True)
+            #########self.domain.write_time(track_speeds=True)
             stage = self.domain.quantities['stage'].vertex_values
 
             #Get NetCDF
@@ -6901,7 +6901,7 @@ friction  \n \
         os.remove(meshname)
 
     def test_file_boundary_stsIII(self):
-        """Read correct points from order file
+        """Read correct points from ordering file
         """
         from anuga.shallow_water import Domain
         from anuga.shallow_water import Reflective_boundary
@@ -8489,11 +8489,11 @@ friction  \n \
 
     def test_get_mesh_and_quantities_from_sww_file(self):
         """test_get_mesh_and_quantities_from_sww_file(self):
-	"""	
-	
-	# Generate a test sww file with non trivial georeference
-	
-	import time, os
+        """     
+        
+        # Generate a test sww file with non trivial georeference
+        
+        import time, os
         from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
@@ -8523,7 +8523,7 @@ friction  \n \
             pass
 
         
-	# Read it
+        # Read it
 
         # Get mesh and quantities from sww file
         X = get_mesh_and_quantities_from_file(swwfile,
@@ -8540,12 +8540,12 @@ friction  \n \
         assert allclose(mesh.nodes, domain.nodes)
 
         # Check that time has been recovered
-	assert allclose(time, range(t_end+1))
+        assert allclose(time, range(t_end+1))
 
         # Check that quantities have been recovered
         # (sww files use single precision)
         z=domain.get_quantity('elevation').get_values(location='unique vertices')
-	assert allclose(quantities['elevation'], z)
+        assert allclose(quantities['elevation'], z)
 
         for q in ['stage', 'xmomentum', 'ymomentum']:
             # Get quantity at last timestep
