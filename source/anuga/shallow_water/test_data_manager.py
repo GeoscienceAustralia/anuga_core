@@ -6106,8 +6106,9 @@ friction  \n \
 
         return base_name, files
 
-    def test_read_mux2_pyI(self):
-        """Constant stage,momentum at each gauge
+    def test_urs2sts_read_mux2_pyI(self):
+        """test_urs2sts_read_mux2_pyI(self):
+        Constant stage,momentum at each gauge
         """
         tide = 1
         time_step_count = 3
@@ -6158,7 +6159,7 @@ friction  \n \
         msg='incorrect gauge va time series returned'
         assert allclose(yvelocity,va)
 
-    def test_read_mux2_pyII(self):
+    def test_urs2sts_read_mux2_pyII(self):
         """Spatially varing stage
         """
         tide = 1
@@ -6216,7 +6217,7 @@ friction  \n \
         msg='incorrect gauge va time series returned'
         assert allclose(yvelocity,va)
 
-    def test_read_mux2_pyIII(self):
+    def test_urs2sts_read_mux2_pyIII(self):
         """Varying start and finsh times
         """
         tide = 1
@@ -6586,34 +6587,6 @@ friction  \n \
         # Create ordering file
         permutation = [3,0,2]
 
-        # Do it wrongly at first and check that exception is being raised
-        _, ordering_filename = tempfile.mkstemp('')
-        order_fid = open(ordering_filename, 'w')  
-        order_fid.write('index, longitude, latitude\n')
-        for index in permutation:
-            order_fid.write('%d, %f, %f\n' %(index, 
-                                             lat_long_points[index][0], 
-                                             lat_long_points[index][1]))
-        order_fid.close()
-        
-        try:
-            urs2sts([base_nameI, base_nameII], 
-                    basename_out=base_nameI, 
-                    ordering_filename=ordering_filename,
-                    weights=[1.0,1.0],
-                    mean_stage=tide,
-                    verbose=False)  
-            os.remove(ordering_filename)            
-        except:
-            pass
-        else:
-            msg = 'Should have caught wrong lat longs'
-            raise Exception, msg
-
-
-        
-            
-        # Then do it right
         _, ordering_filename = tempfile.mkstemp('')
         order_fid = open(ordering_filename, 'w')  
         order_fid.write('index, longitude, latitude\n')
@@ -6742,7 +6715,83 @@ friction  \n \
         os.remove(sts_file)
         
 
-    def test_file_boundary_stsI(self):
+        
+        
+        
+    def test_urs2sts_ordering_exception(self):
+        """Test that inconsistent lats and lons in ordering file are caught.
+        """
+        
+        tide=0
+        time_step_count = 3
+        time_step = 2
+        lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
+        n=len(lat_long_points)
+        first_tstep=ones(n,Int)
+        first_tstep[0]+=1
+        first_tstep[2]+=1
+        last_tstep=(time_step_count)*ones(n,Int)
+        last_tstep[0]-=1
+
+        gauge_depth=20*ones(n,Float)
+        ha=2*ones((n,time_step_count),Float)
+        ha[0]=arange(0,time_step_count)
+        ha[1]=arange(time_step_count,2*time_step_count)
+        ha[2]=arange(2*time_step_count,3*time_step_count)
+        ha[3]=arange(3*time_step_count,4*time_step_count)
+        ua=5*ones((n,time_step_count),Float)
+        va=-10*ones((n,time_step_count),Float)
+
+        # Create two identical mux files to be combined by urs2sts
+        base_nameI, filesI = self.write_mux2(lat_long_points,
+                                             time_step_count, time_step,
+                                             first_tstep, last_tstep,
+                                             depth=gauge_depth,
+                                             ha=ha,
+                                             ua=ua,
+                                             va=va)
+
+        base_nameII, filesII = self.write_mux2(lat_long_points,
+                                               time_step_count, time_step,
+                                               first_tstep, last_tstep,
+                                               depth=gauge_depth,
+                                               ha=ha,
+                                               ua=ua,
+                                               va=va)
+
+                                               
+        # Create ordering file
+        permutation = [3,0,2]
+
+        # Do it wrongly and check that exception is being raised
+        _, ordering_filename = tempfile.mkstemp('')
+        order_fid = open(ordering_filename, 'w')  
+        order_fid.write('index, longitude, latitude\n')
+        for index in permutation:
+            order_fid.write('%d, %f, %f\n' %(index, 
+                                             lat_long_points[index][0], 
+                                             lat_long_points[index][1]))
+        order_fid.close()
+        
+        try:
+            urs2sts([base_nameI, base_nameII], 
+                    basename_out=base_nameI, 
+                    ordering_filename=ordering_filename,
+                    weights=[1.0,1.0],
+                    mean_stage=tide,
+                    verbose=False)  
+            os.remove(ordering_filename)            
+        except:
+            pass
+        else:
+            msg = 'Should have caught wrong lat longs'
+            raise Exception, msg
+
+
+        
+        
+        
+    def test_urs2sts_file_boundary_stsI(self):
         from anuga.shallow_water import Domain
         from anuga.shallow_water import Reflective_boundary
         from anuga.shallow_water import Dirichlet_boundary
@@ -6817,7 +6866,7 @@ friction  \n \
         os.remove(sts_file+'.sts')
         os.remove(meshname)
 
-    def test_file_boundary_stsII(self):
+    def test_urs2sts_file_boundary_stsII(self):
         """ mux2 file has points not included in boundary
          mux2 gauges are not stored with the same order as they are 
          found in bounding_polygon. This does not matter as long as bounding
@@ -6900,7 +6949,7 @@ friction  \n \
         os.remove(sts_file+'.sts')
         os.remove(meshname)
 
-    def test_file_boundary_stsIII(self):
+    def test_urs2sts_file_boundary_stsIII_ordering(self):
         """Read correct points from ordering file
         """
         from anuga.shallow_water import Domain
@@ -8890,9 +8939,9 @@ friction  \n \
 #-------------------------------------------------------------
 if __name__ == "__main__":
 
-    suite = unittest.makeSuite(Test_Data_Manager,'test')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts0')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_export_gridII')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test')
+    suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_read_mux2_pyI')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_get_flow_through_cross_section_with_geo')
     #suite = unittest.makeSuite(Test_Data_Manager,'covered_')
 
@@ -8905,7 +8954,7 @@ if __name__ == "__main__":
         sys.stdout = fid
     else:
         pass
-    runner = unittest.TextTestRunner() # verbosity=2)
+    runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
 
     # Cleaning up

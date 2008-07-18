@@ -4846,7 +4846,7 @@ def read_mux2_py(filenames,
                  verbose=False):
     """Access the mux files specified in the filenames list. Combine the 
        data found therin as a weighted linear sum as specifed by the weights. 
-       If permutation is None extract timeseries data for all gauges within the 
+       If permutation is None or empty extract timeseries data for all gauges within the 
        files. 
          
        Input: 
@@ -4870,20 +4870,32 @@ def read_mux2_py(filenames,
     else:
         verbose=0
         
+        
+    #msg = 'I got the permutation vector:' + str(permutation)
+    #assert permutation is not None, msg
+    if permutation is None:
+        permutation = ensure_numeric([], Float)    
+        
     # Call underlying C implementation urs2sts_ext.c    
-    data=read_mux2(numSrc,filenames,weights,file_params,verbose)
+    data=read_mux2(numSrc,filenames,weights,file_params,permutation,verbose)
 
     msg='File parameter values were not read in correctly from c file'
     assert len(compress(file_params>0,file_params))!=0,msg
-    msg='The number of stations specifed in the c array and in the file are inconsitent'
-    assert file_params[0]==data.shape[0],msg
+    
+    msg='The number of stations specifed in the c array and in the file are inconsistent'
+    assert file_params[0] >= len(permutation)
+    
+    msg='The number of stations returned is inconsistent with the requested number'    
+    assert len(permutation) == 0 or len(permutation) == data.shape[0], msg
     
     nsta=int(file_params[0])
     msg='Must have at least one station'
     assert nsta>0,msg
+    
     dt=file_params[1]
     msg='Must have a postive timestep'
     assert dt>0,msg
+    
     nt=int(file_params[2])
     msg='Must have at least one gauge value'
     assert nt>0,msg
@@ -4961,8 +4973,8 @@ def urs2sts(basename_in, basename_out=None,
               1st line:    'index,longitude,latitude\n'
               other lines: index,longitude,latitude
               
-
-              If ordering is None all points are taken in the order they 
+              If ordering is None or ordering file is empty then 
+               all points are taken in the order they 
               appear in the mux2 file.
     
     
@@ -5020,39 +5032,10 @@ def urs2sts(basename_in, basename_out=None,
                 msg = 'File %s does not exist or is not accessible' %file_in
                 raise IOError, msg
 
-    # Read MUX2 files
-    if (verbose): print 'reading mux2 file'
-    mux={}
-    for i, quantity in enumerate(quantities):
-    
-        # For each quantity read the associated list of source mux2 file with 
-        # extention associated with that quantity
-        times,\
-        latitudes_urs,\
-        longitudes_urs,\
-        elevation,\
-        mux[quantity],\
-        starttime = read_mux2_py(files_in[i], weights, verbose=verbose)
-    
-        # Check that all quantities have consistent time and space information     
-        if quantity!=quantities[0]:
-            msg='%s, %s and %s have inconsistent gauge data'\
-                %(files_in[0], files_in[1], files_in[2])
-            assert allclose(times, times_old), msg
-            assert allclose(latitudes_urs, latitudes_urs_old), msg
-            assert allclose(longitudes_urs, longitudes_urs_old), msg
-            assert allclose(elevation, elevation_old), msg
-            assert allclose(starttime, starttime_old), msg
-        times_old=times
-        latitudes_urs_old=latitudes_urs
-        longitudes_urs_old=longitudes_urs
-        elevation_old=elevation
-        starttime_old=starttime
-
-        
+    # Establish permutation array
     if ordering_filename is not None:
+    
         # Read ordering file 
-        
         try:
             fid=open(ordering_filename, 'r')
             file_header=fid.readline().split(',')
@@ -5073,44 +5056,73 @@ def urs2sts(basename_in, basename_out=None,
             msg = 'File must contain at least two points'
             raise Exception, msg
 
-   
+        permutation = ensure_numeric([int(line.split(',')[0]) for line in ordering_lines])
+    else:
+        # Use empty array to signify 'all' points
+        # We could have used 'None' but it got too hard in the C-code ;-)
+        permutation = ensure_numeric([], Float)
+
+                
+    # Read MUX2 files
+    if (verbose): print 'reading mux2 file'
+    mux={}
+    for i, quantity in enumerate(quantities):
+    
+        # For each quantity read the associated list of source mux2 file with 
+        # extention associated with that quantity
+        times,\
+        latitudes,\
+        longitudes,\
+        elevation,\
+        mux[quantity],\
+        starttime = read_mux2_py(files_in[i], weights, permutation, verbose=verbose)
+    
+        # Check that all quantities have consistent time and space information     
+        if quantity!=quantities[0]:
+            msg='%s, %s and %s have inconsistent gauge data'\
+                %(files_in[0], files_in[1], files_in[2])
+            assert allclose(times, times_old), msg
+            assert allclose(latitudes, latitudes_old), msg
+            assert allclose(longitudes, longitudes_old), msg
+            assert allclose(elevation, elevation_old), msg
+            assert allclose(starttime, starttime_old), msg
+        times_old=times
+        latitudes_old=latitudes
+        longitudes_old=longitudes
+        elevation_old=elevation
+        starttime_old=starttime
+
+
         
-        permutation = [int(line.split(',')[0]) for line in ordering_lines]
-   
-        latitudes = take(latitudes_urs, permutation)
-        longitudes = take(longitudes_urs, permutation)
+        
         
         # Self check - can be removed to improve speed
-        ref_longitudes = [float(line.split(',')[1]) for line in ordering_lines]                
-        ref_latitudes = [float(line.split(',')[2]) for line in ordering_lines]        
+
+        #ref_longitudes = [float(line.split(',')[1]) for line in ordering_lines]                
+        #ref_latitudes = [float(line.split(',')[2]) for line in ordering_lines]        
+        #
+        #msg = 'Longitudes specified in ordering file do not match those found in mux files'
+        #msg += 'I got %s instead of %s (only beginning shown)'\
+        #    %(str(longitudes[:10]) + '...',
+        #      str(ref_longitudes[:10]) + '...')        
+        #assert allclose(longitudes, ref_longitudes), msg        
+        # 
+        #msg = 'Latitudes specified in ordering file do not match those found in mux files. '
+        #msg += 'I got %s instead of %s (only beginning shown)'\
+        #    %(str(latitudes[:10]) + '...',
+        #      str(ref_latitudes[:10]) + '...')                
+        #assert allclose(latitudes, ref_latitudes), msg
         
-        msg = 'Longitudes specified in ordering file do not match those found in mux files'
-        msg += 'I got %s instead of %s (only beginning shown)'\
-            %(str(longitudes[:10]) + '...',
-              str(ref_longitudes[:10]) + '...')        
-        assert allclose(longitudes, ref_longitudes), msg        
-        
-        msg = 'Latitudes specified in ordering file do not match those found in mux files. '
-        msg += 'I got %s instead of %s (only beginning shown)'\
-            %(str(latitudes[:10]) + '...',
-              str(ref_latitudes[:10]) + '...')                
-        assert allclose(latitudes, ref_latitudes), msg
-        
-    else:
-        latitudes=latitudes_urs
-        longitudes=longitudes_urs
-        permutation = range(latitudes.shape[0])                
-        
-        
+                
         
     # Store timeseries in NetCDF STS file    
     msg='File is empty and or clipped region not in file region'
     assert len(latitudes>0),msg
 
-    number_of_points = latitudes.shape[0]
-    number_of_times = times.shape[0]
-    number_of_latitudes = latitudes.shape[0]
-    number_of_longitudes = longitudes.shape[0]
+    number_of_points = latitudes.shape[0]      # Number of stations retrieved
+    number_of_times = times.shape[0]           # Number of timesteps
+    number_of_latitudes = latitudes.shape[0]   # Number latitudes
+    number_of_longitudes = longitudes.shape[0] # Number longitudes
 
     # NetCDF file definition
     outfile = NetCDFFile(stsname, 'w')
@@ -5119,7 +5131,6 @@ def urs2sts(basename_in, basename_out=None,
                   %(basename_in)
     
     # Create new file
-    #starttime = times[0]
     sts = Write_sts()
     sts.store_header(outfile, 
                      times+starttime,
@@ -5130,8 +5141,8 @@ def urs2sts(basename_in, basename_out=None,
     
     # Store
     from anuga.coordinate_transforms.redfearn import redfearn
-    x = zeros(number_of_points, Float)  #Easting
-    y = zeros(number_of_points, Float)  #Northing
+    x = zeros(number_of_points, Float)  # Easting
+    y = zeros(number_of_points, Float)  # Northing
 
     # Check zone boundaries
     refzone, _, _ = redfearn(latitudes[0],longitudes[0])  
@@ -5164,13 +5175,13 @@ def urs2sts(basename_in, basename_out=None,
 
     if verbose: print 'Converting quantities'
     for j in range(len(times)):
-        for i, index in enumerate(permutation):
-            w = zscale*mux['HA'][index,j] + mean_stage
-            h=w-elevation[index]
+        for i in range(number_of_points):
+            w = zscale*mux['HA'][i,j] + mean_stage
+            h=w-elevation[i]
             stage[j,i] = w
 
-            xmomentum[j,i] = mux['UA'][index,j]*h
-            ymomentum[j,i] = mux['VA'][index,j]*h
+            xmomentum[j,i] = mux['UA'][i,j]*h
+            ymomentum[j,i] = mux['VA'][i,j]*h
 
     outfile.close()
 
