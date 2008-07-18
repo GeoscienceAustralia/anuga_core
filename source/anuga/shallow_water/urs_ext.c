@@ -62,7 +62,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     int time;
     int num_ts;
     
-    printf("Checkpoint 1 for urs2sts_ext.c\n");
+    //printf("Checkpoint 1 for urs2sts_ext.c\n");
 
     // Convert Python arguments to C
     if (!PyArg_ParseTuple(args, "iOOOi",
@@ -105,10 +105,9 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
         exit(-1);
     }
 
-    printf("Checkpoint 2 for urs2sts_ext.c\n");    
+    //printf("Checkpoint 2 for urs2sts_ext.c\n");    
     for (i = 0; i < numSrc; i++)
     {
-        printf("Checkpoint 2.1 for urs2sts_ext.c\n");        
 	
         fname = PyList_GetItem(filenames, i);
         if (!PyString_Check(fname)) 
@@ -121,11 +120,11 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
         if (muxFileNameArray[i] == NULL) 
         {
             printf("ERROR: Memory for muxFileNameArray could not be allocated.\n");
-            exit(-1);
+            return NULL;
         }
     }
 
-    printf("Checkpoint 3 for urs2sts_ext.c\n");        
+    //printf("Checkpoint 3 for urs2sts_ext.c\n");        
     if (file_params->nd != 1 || file_params->descr->type_num != PyArray_DOUBLE) 
     {
         PyErr_SetString(PyExc_ValueError,
@@ -133,7 +132,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
         return NULL; 
     }
 
-    printf("Checkpoint 4 for urs2sts_ext.c\n");        
+    //printf("Checkpoint 4 for urs2sts_ext.c\n");        
     // Create array for weights which are passed to read_mux2
     weights = (float*) malloc((int)numSrc*sizeof(float));
     for (i = 0; i < (int)numSrc; i++)
@@ -141,17 +140,17 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
         weights[i] = (float)(*(double*)(pyweights->data + i*pyweights->strides[0]));
     }
     
-    printf("Checkpoint 5 for urs2sts_ext.c\n");            
+    //printf("Checkpoint 5 for urs2sts_ext.c\n");            
     // Read in mux2 data from file
     cdata = _read_mux2((int)numSrc, muxFileNameArray, weights, (double*)file_params->data, (int)verbose);
 
-    printf("Checkpoint 6 for urs2sts_ext.c\n");                
+    //printf("Checkpoint 6 for urs2sts_ext.c\n");                
     // Allocate space for return vector
     nsta0 = (int)*(double*)(file_params->data + 0*file_params->strides[0]);
     dt = *(double*)(file_params->data + 1*file_params->strides[0]);
     nt = (int)*(double*)(file_params->data + 2*file_params->strides[0]);
 
-    printf("Checkpoint 7 for urs2sts_ext.c\n");                    
+    //printf("Checkpoint 7 for urs2sts_ext.c\n");                    
     // Find min and max start times of all gauges
     start_tstep = nt + 1;
     finish_tstep = -1;
@@ -167,7 +166,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
         }
     }
 
-    printf("Checkpoint 8 for urs2sts_ext.c\n");                        
+    //printf("Checkpoint 8 for urs2sts_ext.c\n");                        
     if ((start_tstep > nt) | (finish_tstep < 0))
     {
         printf("ERROR: Gauge data has incorrect start and finsh times\n");
@@ -190,7 +189,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
         return NULL;
     }
 
-    printf("Checkpoint 9 for urs2sts_ext.c\n");                            
+    //printf("Checkpoint 9 for urs2sts_ext.c\n");                            
     // Each gauge begins and ends recording at different times. When a gauge is
     // not recording but at least one other gauge is. Pad the non-recording gauge
     // array with zeros.
@@ -220,14 +219,11 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
         }
     }
 
-    printf("Checkpoint 10 for urs2sts_ext.c\n");                                
+    //printf("Checkpoint 10 for urs2sts_ext.c\n");                                
     free(weights);
     
-    /*
-    for (i = 0; i < numSrc; ++i)
-    {
-        free(muxFileNameArray[i]);
-	}*/
+    // Free filename array, but not independent Python strings
+    // FIXME(Ole): Do we need to update a reference counter in this case?
     free(muxFileNameArray);
     
     for (i = 0; i < nsta0; ++i)
@@ -236,7 +232,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     }
     free(cdata);
 
-    printf("Checkpoint 11 for urs2sts_ext.c\n");                                    
+    //printf("Checkpoint 11 for urs2sts_ext.c\n");                                    
     return  PyArray_Return(pydata);
 }
 
