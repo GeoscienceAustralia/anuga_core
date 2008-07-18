@@ -6288,7 +6288,7 @@ friction  \n \
         msg='incorrect gauge va time series returned'
         assert allclose(yvelocity,va)
 
-    def test_urs2stsI(self):
+    def test_urs2sts0(self):
         """
         Test single source
         """
@@ -8890,7 +8890,7 @@ friction  \n \
 #-------------------------------------------------------------
 if __name__ == "__main__":
 
-    suite = unittest.makeSuite(Test_Data_Manager,'test')
+    suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts0')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_export_gridII')
 #    suite = unittest.makeSuite(Test_Data_Manager,'test_screen_catcher')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_get_flow_through_cross_section_with_geo')
