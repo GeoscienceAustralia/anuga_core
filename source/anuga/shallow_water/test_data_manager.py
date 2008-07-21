@@ -5976,7 +5976,7 @@ friction  \n \
         #print "sww_file", sww_file
         os.remove(sww_file)
         
-    def write_mux2(self,lat_long_points, time_step_count, time_step,
+    def write_mux2(self, lat_long_points, time_step_count, time_step,
                    first_tstep, last_tstep,
                    depth=None, ha=None, ua=None, va=None):
         """
@@ -6546,8 +6546,8 @@ friction  \n \
         """Test multiple sources with ordering file
         """
         
-        tide=0
-        time_step_count = 3
+        tide = 0.35
+        time_step_count = 6 # I made this a little longer (Ole)
         time_step = 2
         lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
         n=len(lat_long_points)
@@ -6681,7 +6681,7 @@ friction  \n \
         gauge_depth_permutation = take(gauge_depth, permutation)                         
 
         
-        assert allclose(2.0*transpose(ha_permutation), stage)  # Meters
+        assert allclose(2.0*transpose(ha_permutation)+tide, stage)  # Meters
 
         #Check the momentums - ua
         #momentum = velocity*(stage-elevation)
@@ -6793,39 +6793,291 @@ friction  \n \
 
 
         
+
+        
+    def test_urs2sts_ordering_different_sources(self):
+        """Test multiple sources with ordering file, different source files and weights.
+           This test also has more variable values than the previous ones
+        """
+        
+        from Numeric import sin, cos
+                
+        tide = 1.5
+        time_step_count = 10
+        time_step = 0.2
+        
+        times_ref = arange(0, time_step_count*time_step, time_step)
+        #print 'time vector', times_ref
+        
+        lat_long_points = [(-21.5,114.5), (-21,114.5), (-21.5,115), (-21.,115.), (-22., 117.)]
+        n = len(lat_long_points)
+        
+        # Create non-trivial weights
+        weights = [0.8, 1.5]
+        
+        # Create different timeseries starting and ending at different times 
+        first_tstep=ones(n,Int)
+        first_tstep[0]+=2   # Point 0 starts at 2
+        first_tstep[1]+=4   # Point 1 starts at 4        
+        first_tstep[2]+=3   # Point 2 starts at 3
+        
+        last_tstep=(time_step_count)*ones(n,Int)
+        last_tstep[0]-=1    # Point 0 ends 1 step early
+        last_tstep[1]-=2    # Point 1 ends 2 steps early                
+        last_tstep[4]-=3    # Point 4 ends 3 steps early        
+        
+        #print
+        #print 'time_step_count', time_step_count
+        #print 'time_step', time_step
+        #print 'first_tstep', first_tstep
+        #print 'last_tstep', last_tstep                
         
         
-    def test_urs2sts_file_boundary_stsI(self):
+        # Create varying elevation data (positive values for seafloor)
+        gauge_depth=20*ones(n,Float)
+        for i in range(n):
+            gauge_depth[i] += i**2
+            
+        #print 'gauge_depth', gauge_depth
+        
+        # Create data to be written to first mux file        
+        ha0=2*ones((n,time_step_count),Float)
+        ha0[0]=arange(0,time_step_count)
+        ha0[1]=arange(time_step_count,2*time_step_count)
+        ha0[2]=arange(2*time_step_count,3*time_step_count)
+        ha0[3]=arange(3*time_step_count,4*time_step_count)
+        ua0=5*ones((n,time_step_count),Float)
+        va0=-10*ones((n,time_step_count),Float)
+
+        # Ensure data used to write mux file to be zero when gauges are
+        # not recording
+        for i in range(n):
+             # For each point
+             
+             for j in range(0, first_tstep[i]-1) + range(last_tstep[i], time_step_count):
+                 # For timesteps before and after recording range
+                 ha0[i][j] = ua0[i][j] = va0[i][j] = 0.0                                  
+
+
+        #print 
+        #print 'using varying start and end time'
+        #print 'ha0', ha0
+        #print 'ua0', ua0
+        #print 'va0', va0        
+        
+        # Write first mux file to be combined by urs2sts
+        base_nameI, filesI = self.write_mux2(lat_long_points,
+                                             time_step_count, time_step,
+                                             first_tstep, last_tstep,
+                                             depth=gauge_depth,
+                                             ha=ha0,
+                                             ua=ua0,
+                                             va=va0)
+
+                                             
+                                             
+        # Create data to be written to second mux file        
+        ha1=zeros((n,time_step_count),Float)
+        ha1[0]=sin(times_ref)
+        ha1[1]=2*sin(times_ref - 3)
+        ha1[2]=5*sin(4*times_ref)
+        ha1[3]=sin(times_ref)
+        ha1[4]=sin(2*times_ref-0.7)
+                
+        ua1=zeros((n,time_step_count),Float)
+        ua1[0]=3*cos(times_ref)        
+        ua1[1]=2*sin(times_ref-0.7)   
+        ua1[2]=arange(3*time_step_count,4*time_step_count)
+        ua1[4]=2*ones(time_step_count)
+        
+        va1=zeros((n,time_step_count),Float)
+        va1[0]=2*cos(times_ref-0.87)        
+        va1[1]=3*ones(time_step_count)
+        va1[3]=2*sin(times_ref-0.71)        
+        
+        
+        # Ensure data used to write mux file to be zero when gauges are
+        # not recording
+        for i in range(n):
+             # For each point
+             
+             for j in range(0, first_tstep[i]-1) + range(last_tstep[i], time_step_count):
+                 # For timesteps before and after recording range
+                 ha1[i][j] = ua1[i][j] = va1[i][j] = 0.0                                  
+
+
+        #print 
+        #print 'using varying start and end time'
+        #print 'ha1', ha1
+        #print 'ua1', ua1
+        #print 'va1', va1        
+                                             
+                                             
+        # Write second mux file to be combined by urs2sts                                             
+        base_nameII, filesII = self.write_mux2(lat_long_points,
+                                               time_step_count, time_step,
+                                               first_tstep, last_tstep,
+                                               depth=gauge_depth,
+                                               ha=ha1,
+                                               ua=ua1,
+                                               va=va1)
+
+                                               
+        # Create ordering file
+        permutation = [4,0,2]
+
+        _, ordering_filename = tempfile.mkstemp('')
+        order_fid = open(ordering_filename, 'w')  
+        order_fid.write('index, longitude, latitude\n')
+        for index in permutation:
+            order_fid.write('%d, %f, %f\n' %(index, 
+                                             lat_long_points[index][1], 
+                                             lat_long_points[index][0]))
+        order_fid.close()
+        
+            
+
+                                               
+        # Call urs2sts with multiple mux files
+        urs2sts([base_nameI, base_nameII], 
+                basename_out=base_nameI, 
+                ordering_filename=ordering_filename,
+                weights=weights,
+                mean_stage=tide,
+                verbose=False)
+
+        # Now read the sts file and check that values have been stored correctly.
+        sts_file = base_nameI + '.sts'
+        fid = NetCDFFile(sts_file)
+
+        # Make x and y absolute
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+
+        geo_reference = Geo_reference(NetCDFObject=fid)
+        points = geo_reference.get_absolute(map(None, x, y))
+        points = ensure_numeric(points)
+
+        x = points[:,0]
+        y = points[:,1]
+
+        for i, index in enumerate(permutation):
+            # Check that STS points are stored in the correct order
+            
+            # Work out the UTM coordinates sts point i
+            zone, e, n = redfearn(lat_long_points[index][0], 
+                                  lat_long_points[index][1])             
+
+            #print i, [x[i],y[i]], [e,n]
+            assert allclose([x[i],y[i]], [e,n])
+            
+                        
+        # Check the time vector
+        times = fid.variables['time'][:]
+        assert allclose(ensure_numeric(times),
+                        ensure_numeric(times_ref))
+                        
+
+        # Check sts values
+        stage = fid.variables['stage'][:]
+        xmomentum = fid.variables['xmomentum'][:]
+        ymomentum = fid.variables['ymomentum'][:]
+        elevation = fid.variables['elevation'][:]
+
+        
+        # The quantities stored in the .sts file should be the weighted sum of the 
+        # quantities written to the mux2 files subject to the permutation vector.
+        
+        ha_ref = weights[0]*take(ha0, permutation) + weights[1]*take(ha1, permutation)
+        ua_ref = weights[0]*take(ua0, permutation) + weights[1]*take(ua1, permutation)        
+        va_ref = weights[0]*take(va0, permutation) + weights[1]*take(va1, permutation)                
+
+        gauge_depth_ref = take(gauge_depth, permutation)                         
+
+        
+        assert allclose(transpose(ha_ref)+tide, stage)  # Meters
+
+        #Check the momentums - ua
+        #momentum = velocity*(stage-elevation)
+        # elevation = - depth
+        #momentum = velocity_ua *(stage+depth)
+
+        depth_ref = zeros((len(permutation), time_step_count), Float)
+        for i in range(len(permutation)):
+            depth_ref[i]=gauge_depth_ref[i]+tide+ha_ref[i]
+
+            
+        
+
+        # The xmomentum stored in the .sts file should be the sum of the ua
+        # in the two mux2 files multiplied by the depth.
+        assert allclose(transpose(ua_ref*depth_ref), xmomentum) 
+
+        #Check the momentums - va
+        #momentum = velocity*(stage-elevation)
+        # elevation = - depth
+        #momentum = velocity_va *(stage+depth)
+
+        # The ymomentum stored in the .sts file should be the sum of the va
+        # in the two mux2 files multiplied by the depth.
+        assert allclose(transpose(va_ref*depth_ref), ymomentum)
+
+        # check the elevation values.
+        # -ve since urs measures depth, sww meshers height,
+        assert allclose(-gauge_depth_ref, elevation)  #Meters
+
+        fid.close()
+        self.delete_mux(filesI)
+        self.delete_mux(filesII)
+        os.remove(sts_file)
+        
+
+        
+        
+        
+        
+                
+        
+    def test_file_boundary_stsI(self):
+        """test_file_boundary_stsI(self):
+        """
+        
         from anuga.shallow_water import Domain
         from anuga.shallow_water import Reflective_boundary
         from anuga.shallow_water import Dirichlet_boundary
         from anuga.shallow_water import File_boundary
         from anuga.pmesh.mesh_interface import create_mesh_from_regions
-        from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_to_domain_instance
+
         bounding_polygon=[[6.0,97.0],[6.01,97.0],[6.02,97.0],[6.02,97.02],[6.00,97.02]]
-        tide=0.
+        tide = 0.37
         time_step_count = 5
         time_step = 2
         lat_long_points =bounding_polygon[0:3]
         n=len(lat_long_points)
         first_tstep=ones(n,Int)
         last_tstep=(time_step_count)*ones(n,Int)
-        gauge_depth=20*ones(n,Float)
-        ha=2*ones((n,time_step_count),Float)
-        ua=10*ones((n,time_step_count),Float)
-        va=-10*ones((n,time_step_count),Float)
+
+        h = 20        
+        w = 2
+        u = 10
+        v = -10
+        gauge_depth=h*ones(n,Float)
+        ha=w*ones((n,time_step_count),Float)
+        ua=u*ones((n,time_step_count),Float)
+        va=v*ones((n,time_step_count),Float)
         base_name, files = self.write_mux2(lat_long_points,
-                                   time_step_count, time_step,
-                                   first_tstep, last_tstep,
-                                   depth=gauge_depth,
-                                   ha=ha,
-                                   ua=ua,
-                                   va=va)
+                                           time_step_count, time_step,
+                                           first_tstep, last_tstep,
+                                           depth=gauge_depth,
+                                           ha=ha,
+                                           ua=ua,
+                                           va=va)
 
         sts_file=base_name
         urs2sts(base_name,
                 sts_file,
-                mean_stage=tide,verbose=False)
+                mean_stage=tide,
+                verbose=False)
         self.delete_mux(files)
 
         #print 'start create mesh from regions'
@@ -6839,53 +7091,69 @@ friction  \n \
                          maximum_triangle_area=extent_res,filename=meshname,
                          interior_regions=interior_regions,verbose=False)
         
-        domain_fbound = pmesh_to_domain_instance(meshname, Domain)
+        domain_fbound = Domain(meshname)
         domain_fbound.set_quantity('stage', tide)
         Bf = File_boundary(sts_file+'.sts', domain_fbound, boundary_polygon=bounding_polygon)
         Br = Reflective_boundary(domain_fbound)
-        Bd=Dirichlet_boundary([2.0,220,-220])
+
         domain_fbound.set_boundary({'ocean': Bf,'otherocean': Br})
         finaltime=time_step*(time_step_count-1)
         yieldstep=time_step
         temp_fbound=zeros(int(finaltime/yieldstep)+1,Float)
-        i=0
-        for t in domain_fbound.evolve(yieldstep=yieldstep,finaltime=finaltime, 
-                                      skip_initial_step = False):
+
+        for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,finaltime=finaltime, 
+                                                   skip_initial_step = False)):
             temp_fbound[i]=domain_fbound.quantities['stage'].centroid_values[2]
-            i+=1
+
         
-        domain_drchlt = pmesh_to_domain_instance(meshname, Domain)
+        domain_drchlt = Domain(meshname)
         domain_drchlt.set_quantity('stage', tide)
         Br = Reflective_boundary(domain_drchlt)
-        Bd=Dirichlet_boundary([2.0,220,-220])
+        Bd = Dirichlet_boundary([w+tide, u*(w+h+tide), v*(w+h+tide)])
         domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
         temp_drchlt=zeros(int(finaltime/yieldstep)+1,Float)
-        i=0
-        for t in domain_drchlt.evolve(yieldstep=yieldstep,finaltime=finaltime, 
-                                      skip_initial_step = False):
-            temp_drchlt[i]=domain_drchlt.quantities['stage'].centroid_values[2]
-            i+=1
 
+        for i, t in enumerate(domain_drchlt.evolve(yieldstep=yieldstep,finaltime=finaltime, 
+                                                   skip_initial_step = False)):
+            temp_drchlt[i]=domain_drchlt.quantities['stage'].centroid_values[2]
+
+        #print domain_fbound.quantities['stage'].vertex_values
+        #print domain_drchlt.quantities['stage'].vertex_values
+                    
         assert allclose(temp_fbound,temp_drchlt)
+        
+        assert allclose(domain_fbound.quantities['stage'].vertex_values,
+                        domain_drchlt.quantities['stage'].vertex_values)
+                        
+        assert allclose(domain_fbound.quantities['xmomentum'].vertex_values,
+                        domain_drchlt.quantities['xmomentum'].vertex_values)                        
+                        
+        assert allclose(domain_fbound.quantities['ymomentum'].vertex_values,
+                        domain_drchlt.quantities['ymomentum'].vertex_values)                                                
+        
+        
         os.remove(sts_file+'.sts')
         os.remove(meshname)
 
-    def test_urs2sts_file_boundary_stsII(self):
-        """ mux2 file has points not included in boundary
+    def test_file_boundary_stsII(self):
+        """test_file_boundary_stsII(self):
+        
+         mux2 file has points not included in boundary
          mux2 gauges are not stored with the same order as they are 
          found in bounding_polygon. This does not matter as long as bounding
          polygon passed to file_function contains the mux2 points needed (in
          the correct order).
          """
+         
         from anuga.shallow_water import Domain
         from anuga.shallow_water import Reflective_boundary
         from anuga.shallow_water import Dirichlet_boundary
         from anuga.shallow_water import File_boundary
         from anuga.pmesh.mesh_interface import create_mesh_from_regions
-        from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_to_domain_instance
+
         bounding_polygon=[[6.01,97.0],[6.02,97.0],[6.02,97.02],[6.00,97.02],[6.0,97.0]]
-        tide=0.
-        time_step_count = 5
+        tide = 0.0 # FIXME (Ole): For some reason, this one has to be zero        
+        time_step_count = 20
         time_step = 2
         lat_long_points=bounding_polygon[0:2]
         lat_long_points.insert(0,bounding_polygon[len(bounding_polygon)-1])
@@ -6916,57 +7184,76 @@ friction  \n \
         meshname = 'urs_test_mesh' + '.tsh'
         interior_regions=None
         boundary_tags={'ocean': [0,4], 'otherocean': [1,2,3]}
-        #have to change boundary tags from last example because now bounding
-        #polygon starts in different place.
+        # have to change boundary tags from last example because now bounding
+        # polygon starts in different place.
         create_mesh_from_regions(bounding_polygon,boundary_tags=boundary_tags,
                          maximum_triangle_area=extent_res,filename=meshname,
                          interior_regions=interior_regions,verbose=False)
         
-        domain_fbound = pmesh_to_domain_instance(meshname, Domain)
+        domain_fbound = Domain(meshname)
         domain_fbound.set_quantity('stage', tide)
         Bf = File_boundary(sts_file+'.sts', domain_fbound, boundary_polygon=bounding_polygon)
         Br = Reflective_boundary(domain_fbound)
-        Bd=Dirichlet_boundary([2.0,220,-220])
+
         domain_fbound.set_boundary({'ocean': Bf,'otherocean': Br})
         finaltime=time_step*(time_step_count-1)
         yieldstep=time_step
         temp_fbound=zeros(int(finaltime/yieldstep)+1,Float)
-        i=0
-        for t in domain_fbound.evolve(yieldstep=yieldstep,finaltime=finaltime, 
-                                      skip_initial_step = False):
-            temp_fbound[i]=domain_fbound.quantities['stage'].centroid_values[2]
-            i+=1
         
-        domain_drchlt = pmesh_to_domain_instance(meshname, Domain)
+        for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,finaltime=finaltime, 
+                                                   skip_initial_step = False)):
+            temp_fbound[i]=domain_fbound.quantities['stage'].centroid_values[2]
+        
+        domain_drchlt = Domain(meshname)
         domain_drchlt.set_quantity('stage', tide)
         Br = Reflective_boundary(domain_drchlt)
-        Bd=Dirichlet_boundary([2.0,220,-220])
+        Bd = Dirichlet_boundary([2.0+tide,220+10*tide,-220-10*tide])
         domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
         temp_drchlt=zeros(int(finaltime/yieldstep)+1,Float)
-        i=0
-        for t in domain_drchlt.evolve(yieldstep=yieldstep,finaltime=finaltime, 
-                                      skip_initial_step = False):
-            temp_drchlt[i]=domain_drchlt.quantities['stage'].centroid_values[2]
-            i+=1
 
-        assert allclose(temp_fbound,temp_drchlt)
+        for i, t in enumerate(domain_drchlt.evolve(yieldstep=yieldstep,finaltime=finaltime, 
+                                                   skip_initial_step = False)):
+            temp_drchlt[i]=domain_drchlt.quantities['stage'].centroid_values[2]
+
+
+        assert allclose(temp_fbound,temp_drchlt)            
+            
+        #print domain_fbound.quantities['stage'].vertex_values
+        #print domain_drchlt.quantities['stage'].vertex_values
+                    
+            
+        assert allclose(domain_fbound.quantities['stage'].vertex_values,
+                        domain_drchlt.quantities['stage'].vertex_values)
+                        
+        assert allclose(domain_fbound.quantities['xmomentum'].vertex_values,
+                        domain_drchlt.quantities['xmomentum'].vertex_values)                        
+                        
+        assert allclose(domain_fbound.quantities['ymomentum'].vertex_values,
+                        domain_drchlt.quantities['ymomentum'].vertex_values)                                                
+        
+        
+            
+            
+
         os.remove(sts_file+'.sts')
         os.remove(meshname)
 
-    def test_urs2sts_file_boundary_stsIII_ordering(self):
-        """Read correct points from ordering file
+        
+        
+    def test_file_boundary_stsIII_ordering(self):
+        """test_file_boundary_stsIII_ordering(self):
+        Read correct points from ordering file and apply sts to boundary
         """
         from anuga.shallow_water import Domain
         from anuga.shallow_water import Reflective_boundary
         from anuga.shallow_water import Dirichlet_boundary
         from anuga.shallow_water import File_boundary
         from anuga.pmesh.mesh_interface import create_mesh_from_regions
-        from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_to_domain_instance
 
         lat_long_points=[[6.01,97.0],[6.02,97.0],[6.05,96.9],[6.0,97.0]]
         bounding_polygon=[[6.0,97.0],[6.01,97.0],[6.02,97.0],[6.02,97.02],[6.00,97.02]]
-        tide=0.
-        time_step_count = 5
+        tide = 0.0 # FIXME (Ole): For some reason, this one has to be zero
+        time_step_count = 50
         time_step = 2
         n=len(lat_long_points)
         first_tstep=ones(n,Int)
@@ -6983,14 +7270,15 @@ friction  \n \
                                    ua=ua,
                                    va=va)
 
-        #Write order file
+        # Write order file
         file_handle, order_base_name = tempfile.mkstemp("")
         os.close(file_handle)
         os.remove(order_base_name)
         d=","
         order_file=order_base_name+'order.txt'
         fid=open(order_file,'w')
-        #Write Header
+        
+        # Write Header
         header='index, longitude, latitude\n'
         fid.write(header)
         indices=[3,0,1]
@@ -7011,8 +7299,8 @@ friction  \n \
 
         os.remove(order_file)
 
-        #Append the remaining part of the boundary polygon to be defined by
-        #the user
+        # Append the remaining part of the boundary polygon to be defined by
+        # the user
         bounding_polygon_utm=[]
         for point in bounding_polygon:
             zone,easting,northing=redfearn(point[0],point[1])
@@ -7038,40 +7326,60 @@ friction  \n \
         meshname = 'urs_test_mesh' + '.tsh'
         interior_regions=None
         boundary_tags={'ocean': [0,4], 'otherocean': [1,2,3]}
-        #have to change boundary tags from last example because now bounding
-        #polygon starts in different place.
+        
+        # have to change boundary tags from last example because now bounding
+        # polygon starts in different place.
         create_mesh_from_regions(boundary_polygon,boundary_tags=boundary_tags,
                          maximum_triangle_area=extent_res,filename=meshname,
                          interior_regions=interior_regions,verbose=False)
         
-        domain_fbound = pmesh_to_domain_instance(meshname, Domain)
+        domain_fbound = Domain(meshname)
         domain_fbound.set_quantity('stage', tide)
         Bf = File_boundary(sts_file+'.sts', domain_fbound, boundary_polygon=boundary_polygon)
         Br = Reflective_boundary(domain_fbound)
-        Bd=Dirichlet_boundary([2.0,220,-220])
+
         domain_fbound.set_boundary({'ocean': Bf,'otherocean': Br})
         finaltime=time_step*(time_step_count-1)
         yieldstep=time_step
         temp_fbound=zeros(int(finaltime/yieldstep)+1,Float)
-        i=0
-        for t in domain_fbound.evolve(yieldstep=yieldstep,finaltime=finaltime, 
-                                      skip_initial_step = False):
+    
+        for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,finaltime=finaltime, 
+                                                   skip_initial_step = False)):
             temp_fbound[i]=domain_fbound.quantities['stage'].centroid_values[2]
-            i+=1
+    
         
-        domain_drchlt = pmesh_to_domain_instance(meshname, Domain)
+        domain_drchlt = Domain(meshname)
         domain_drchlt.set_quantity('stage', tide)
         Br = Reflective_boundary(domain_drchlt)
-        Bd=Dirichlet_boundary([2.0,220,-220])
+        Bd = Dirichlet_boundary([2.0+tide,220+10*tide,-220-10*tide])
         domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
         temp_drchlt=zeros(int(finaltime/yieldstep)+1,Float)
-        i=0
-        for t in domain_drchlt.evolve(yieldstep=yieldstep,finaltime=finaltime, 
-                                      skip_initial_step = False):
+        
+        for i, t in enumerate(domain_drchlt.evolve(yieldstep=yieldstep,finaltime=finaltime, 
+                                                   skip_initial_step = False)):
             temp_drchlt[i]=domain_drchlt.quantities['stage'].centroid_values[2]
-            i+=1
 
+        
+        #print domain_fbound.quantities['stage'].vertex_values
+        #print domain_drchlt.quantities['stage'].vertex_values
+                    
         assert allclose(temp_fbound,temp_drchlt)
+
+        
+        assert allclose(domain_fbound.quantities['stage'].vertex_values,
+                        domain_drchlt.quantities['stage'].vertex_values)
+                        
+        assert allclose(domain_fbound.quantities['xmomentum'].vertex_values,
+                        domain_drchlt.quantities['xmomentum'].vertex_values)                        
+                        
+        assert allclose(domain_fbound.quantities['ymomentum'].vertex_values,
+                        domain_drchlt.quantities['ymomentum'].vertex_values)
+        
+        # Use known Dirichlet condition (if sufficient timesteps have been taken)
+        assert allclose(domain_drchlt.quantities['stage'].vertex_values[6], 2)        
+        assert allclose(domain_fbound.quantities['stage'].vertex_values[6], 2)
+        
+        
 
         try:
             os.remove(sts_file+'.sts')
@@ -7080,6 +7388,199 @@ friction  \n \
             pass
         
         os.remove(meshname)
+        
+
+        
+    def Xtest_file_boundary_stsIV_sinewave_ordering(self):
+        """test_file_boundary_stsIV_sinewave_ordering(self):
+        Read correct points from ordering file and apply sts to boundary
+        This one uses a sine wave and compares to time boundary
+        """
+        #FIXME (Ole): Under construction
+        
+        from anuga.shallow_water import Domain
+        from anuga.shallow_water import Reflective_boundary
+        from anuga.shallow_water import Dirichlet_boundary
+        from anuga.shallow_water import File_boundary
+        from anuga.pmesh.mesh_interface import create_mesh_from_regions
+
+        lat_long_points=[[6.01,97.0],[6.02,97.0],[6.05,96.9],[6.0,97.0]]
+        bounding_polygon=[[6.0,97.0],[6.01,97.0],[6.02,97.0],[6.02,97.02],[6.00,97.02]]
+        tide = 0.35
+        time_step_count = 50
+        time_step = 2
+        
+        n=len(lat_long_points)
+        first_tstep=ones(n,Int)
+        last_tstep=(time_step_count)*ones(n,Int)
+        
+        gauge_depth=20*ones(n,Float)
+        ha=2*ones((n,time_step_count),Float)
+        ua=10*ones((n,time_step_count),Float)
+        va=-10*ones((n,time_step_count),Float)
+        
+        
+        base_name, files = self.write_mux2(lat_long_points,
+                                           time_step_count, time_step,
+                                           first_tstep, last_tstep,
+                                           depth=gauge_depth,
+                                           ha=ha,
+                                           ua=ua,
+                                           va=va)
+
+        # Write order file
+        file_handle, order_base_name = tempfile.mkstemp("")
+        os.close(file_handle)
+        os.remove(order_base_name)
+        d=","
+        order_file=order_base_name+'order.txt'
+        fid=open(order_file,'w')
+        
+        # Write Header
+        header='index, longitude, latitude\n'
+        fid.write(header)
+        indices=[3,0,1]
+        for i in indices:
+            line=str(i)+d+str(lat_long_points[i][1])+d+\
+                str(lat_long_points[i][0])+"\n"
+            fid.write(line)
+        fid.close()
+
+        sts_file=base_name
+        urs2sts(base_name, basename_out=sts_file,
+                ordering_filename=order_file,
+                mean_stage=tide,
+                verbose=False)
+        self.delete_mux(files)
+        
+        
+        
+        # Now read the sts file and check that values have been stored correctly.
+        fid = NetCDFFile(sts_file + '.sts')
+
+        # Check the time vector
+        times = fid.variables['time'][:]
+        
+        #print times
+
+        # Check sts quantities
+        stage = fid.variables['stage'][:]
+        xmomentum = fid.variables['xmomentum'][:]
+        ymomentum = fid.variables['ymomentum'][:]
+        elevation = fid.variables['elevation'][:]
+
+        #print stage
+        #print xmomentum
+        #print ymomentum
+        #print elevation
+        
+        
+
+        # Create beginnings of boundary polygon based on sts_boundary
+        boundary_polygon = create_sts_boundary(base_name)
+        
+        os.remove(order_file)
+
+        # Append the remaining part of the boundary polygon to be defined by
+        # the user
+        bounding_polygon_utm=[]
+        for point in bounding_polygon:
+            zone,easting,northing=redfearn(point[0],point[1])
+            bounding_polygon_utm.append([easting,northing])
+
+        boundary_polygon.append(bounding_polygon_utm[3])
+        boundary_polygon.append(bounding_polygon_utm[4])
+
+        #print 'boundary_polygon', boundary_polygon
+        
+        plot=False
+        if plot:
+            from pylab import plot,show,axis
+            boundary_polygon=ensure_numeric(boundary_polygon)
+            bounding_polygon_utm=ensure_numeric(bounding_polygon_utm)
+            #plot(lat_long_points[:,0],lat_long_points[:,1],'o')
+            plot(boundary_polygon[:,0], boundary_polygon[:,1])
+            plot(bounding_polygon_utm[:,0],bounding_polygon_utm[:,1])
+            show()
+
+        assert allclose(bounding_polygon_utm,boundary_polygon)
+
+
+        extent_res=1000000
+        meshname = 'urs_test_mesh' + '.tsh'
+        interior_regions=None
+        boundary_tags={'ocean': [0,4], 'otherocean': [1,2,3]}
+        
+        # have to change boundary tags from last example because now bounding
+        # polygon starts in different place.
+        create_mesh_from_regions(boundary_polygon,
+                                 boundary_tags=boundary_tags,
+                                 maximum_triangle_area=extent_res,
+                                 filename=meshname,
+                                 interior_regions=interior_regions,
+                                 verbose=False)
+        
+        domain_fbound = Domain(meshname)
+        domain_fbound.set_quantity('stage', tide)
+        Bf = File_boundary(sts_file+'.sts', 
+                           domain_fbound, 
+                           boundary_polygon=boundary_polygon)
+        Br = Reflective_boundary(domain_fbound)
+
+        domain_fbound.set_boundary({'ocean': Bf,'otherocean': Br})
+        finaltime=time_step*(time_step_count-1)
+        yieldstep=time_step
+        temp_fbound=zeros(int(finaltime/yieldstep)+1,Float)
+    
+        for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
+                                                   finaltime=finaltime, 
+                                                   skip_initial_step=False)):
+            temp_fbound[i]=domain_fbound.quantities['stage'].centroid_values[2]
+    
+        
+        domain_drchlt = Domain(meshname)
+        domain_drchlt.set_quantity('stage', tide)
+        Br = Reflective_boundary(domain_drchlt)
+        w = 2.0+tide
+        h = 20+w
+        Bd = Dirichlet_boundary([w, 10*h,-10*h])
+        domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
+        
+        temp_drchlt=zeros(int(finaltime/yieldstep)+1,Float)
+        
+        for i, t in enumerate(domain_drchlt.evolve(yieldstep=yieldstep,finaltime=finaltime, 
+                                                   skip_initial_step=False)):
+            temp_drchlt[i]=domain_drchlt.quantities['stage'].centroid_values[2]
+
+
+
+        print temp_fbound
+        print temp_drchlt
+
+        print domain_fbound.quantities['stage'].vertex_values
+        print domain_drchlt.quantities['stage'].vertex_values
+        
+        assert allclose(temp_fbound, temp_drchlt)                
+        assert allclose(domain_fbound.quantities['stage'].vertex_values,
+                        domain_drchlt.quantities['stage'].vertex_values)
+                        
+        assert allclose(domain_fbound.quantities['xmomentum'].vertex_values,
+                        domain_drchlt.quantities['xmomentum'].vertex_values)                        
+                        
+        assert allclose(domain_fbound.quantities['ymomentum'].vertex_values,
+                        domain_drchlt.quantities['ymomentum'].vertex_values)                                                
+        
+
+        try:
+            os.remove(sts_file+'.sts')
+        except:
+            # Windoze can't remove this file for some reason 
+            pass
+        
+        os.remove(meshname)
+        
+        
+        
 
     def test_lon_lat2grid(self):
         lonlatdep = [
@@ -8943,9 +9444,9 @@ friction  \n \
 #-------------------------------------------------------------
 if __name__ == "__main__":
 
-    #suite = unittest.makeSuite(Test_Data_Manager,'test')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_read_mux2_pyI')
     suite = unittest.makeSuite(Test_Data_Manager,'test')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_sts')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_ordering_different_sources')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_get_flow_through_cross_section_with_geo')
     #suite = unittest.makeSuite(Test_Data_Manager,'covered_')
 
