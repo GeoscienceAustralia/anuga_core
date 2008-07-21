@@ -31,7 +31,7 @@ float** _read_mux2(int numSrc,
 		   char **muxFileNameArray, 
 		   float *weights, 
 		   double *params, 
-		   int number_of_selected_stations,
+		   int *number_of_stations,
 		   int *permutation,
 		   int verbose);
 
@@ -42,9 +42,10 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     read_mux2(numSrc,filenames,weights,file_params,permutation,verbose)
 
     NOTE:
-    A Python int is equivalent to a C long
+    A Python int is equivalent to a C long (this becomes really important on 64 bit architectures)
     A Python double corresponds to a C double
     */
+    
     PyObject *filenames;
     PyArrayObject *pyweights;
     PyArrayObject *file_params;
@@ -70,8 +71,6 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     int time;
     int num_ts;
     
-    //printf("Checkpoint 1 for urs2sts_ext.c\n");
-
     // Convert Python arguments to C
     if (!PyArg_ParseTuple(args, "iOOOOi",
 			  &numSrc, &filenames, &pyweights, &file_params, &permutation, &verbose)) 
@@ -109,29 +108,20 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     muxFileNameArray = (char**)malloc(numSrc*sizeof(char*));
     if (muxFileNameArray == NULL) 
     {
-        printf("ERROR: Memory for muxFileNameArray could not be allocated.\n");
+        PyErr_SetString(PyExc_ValueError, "ERROR: Memory for muxFileNameArray could not be allocated.");
         return NULL;
     }
 
-    printf("Checkpoint 2 for urs2sts_ext.c\n");    
-    //printf("numSrc = %d\n", numSrc);
     for (i = 0; i < numSrc; i++)
     {
 
-        //printf("check 2.1, i=%d\n", i);         
         fname = PyList_GetItem(filenames, i);
-        //printf("check 2.2\n");                  
         if (!fname) 
         {
-          //printf("error\n");          
             PyErr_SetString(PyExc_ValueError, "filename not a string");
             return NULL;
         }       
-        //printf("check 2.3\n");          
-        //printf("fname = %s\n", PyString_AsString(fname));
-        
-        
-        //printf("check 2.4\n");  
+
         muxFileNameArray[i] = PyString_AsString(fname);
         if (muxFileNameArray[i] == NULL) 
         {
@@ -141,7 +131,6 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
         }
     }
 
-    //printf("Checkpoint 3 for urs2sts_ext.c\n");        
     if (file_params->nd != 1 || file_params->descr->type_num != PyArray_DOUBLE) 
     {
         PyErr_SetString(PyExc_ValueError,
@@ -149,7 +138,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
         return NULL; 
     }
 
-    printf("Checkpoint 4 for urs2sts_ext.c\n");        
+
     // Create array for weights which are passed to read_mux2
     weights = (float*) malloc(numSrc*sizeof(float));
     for (i = 0; i < numSrc; i++)
@@ -157,15 +146,14 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
         weights[i] = (float)(*(double*)(pyweights->data + i*pyweights->strides[0]));
     }
     
-   
     number_of_selected_stations = (int) permutation->dimensions[0];
-    printf("Checkpoint 5 for urs2sts_ext.c\n");        
+
     // Read in mux2 data from file
     cdata = _read_mux2(numSrc, 
                        muxFileNameArray, 
                        weights, 
                        (double*)file_params->data,
-		       number_of_selected_stations, // Desired number of stations
+		       &number_of_selected_stations, // Desired number of stations
 		       (int*) permutation->data, // Ordering of selected stations
                        verbose);
 
@@ -176,21 +164,19 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     }       
 		       
 		       
-    //printf("Checkpoint 6 for urs2sts_ext.c\n");                
     // Allocate space for return vector
     nsta0 = (int)*(double*)(file_params->data + 0*file_params->strides[0]);
     dt = *(double*)(file_params->data + 1*file_params->strides[0]);
     nt = (int)*(double*)(file_params->data + 2*file_params->strides[0]);
 
-    printf("Checkpoint 7 for urs2sts_ext.c\n");                    
     
     // Find min and max start times of all gauges
     start_tstep = nt + 1;
     finish_tstep = -1;
     for (i = 0; i < number_of_selected_stations; i++)
     {
-        printf("cdata[%d] start = %f\n", i, (double) cdata[i][nt+3]);
-        printf("cdata[%d] finish = %f\n", i, (double) cdata[i][nt+4]);	
+        //printf("cdata[%d] start = %f\n", i, (double) cdata[i][nt+3]);
+        // printf("cdata[%d] finish = %f\n", i, (double) cdata[i][nt+4]);	
 	
         if ((int)cdata[i][nt + 3] < start_tstep)
         {
@@ -202,7 +188,6 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
         }
     }
 
-    printf("Checkpoint 8 for urs2sts_ext.c\n");                        
     if ((start_tstep > nt) | (finish_tstep < 0))
     {
         printf("ERROR: Gauge data has incorrect start and finish times:\n");
@@ -228,7 +213,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
         return NULL;
     }
 
-    printf("Checkpoint 9 for urs2sts_ext.c\n");                            
+    
     // Each gauge begins and ends recording at different times. When a gauge is
     // not recording but at least one other gauge is. Pad the non-recording gauge
     // array with zeros.
@@ -241,7 +226,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
             {
                 if (it + 1 > (int)cdata[i][nt + 4])
                 {
-                    //This gauge has stopped recording but others are still recording
+                    // This gauge has stopped recording but others are still recording
                     *(double*)(pydata->data + i*pydata->strides[0] + time*pydata->strides[1]) = 0.0;
                 }
                 else
@@ -258,7 +243,6 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
         }
     }
 
-    printf("Checkpoint 10 for urs2sts_ext.c\n");                                
     free(weights);
     
     // Free filename array, but not independent Python strings
@@ -271,7 +255,6 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     }
     free(cdata);
 
-    printf("Checkpoint 11 for urs2sts_ext.c\n");                                    
     return  PyArray_Return(pydata);
 }
 
@@ -279,7 +262,7 @@ float** _read_mux2(int numSrc,
                    char **muxFileNameArray, 
                    float *weights, 
                    double *params, 
-		   int number_of_selected_stations,
+		   int *number_of_stations,
 		   int *permutation,
                    int verbose)
 {
@@ -289,6 +272,7 @@ float** _read_mux2(int numSrc,
     char *muxFileName;                                                                  
     int istart, istop;
     int *fros=0, *lros=0;
+    int number_of_selected_stations;
     char susMuxFileName;
     float *muxData;
     long numData;
@@ -327,7 +311,6 @@ float** _read_mux2(int numSrc,
         printf("Reading mux header information\n");
     }
 
-    printf("P1\n");
     /* Loop over all sources, read headers and check compatibility */
     for (isrc = 0; isrc < numSrc; isrc++)
     {
@@ -405,31 +388,30 @@ float** _read_mux2(int numSrc,
         fclose(fp);          
     }
 
-    printf("P2\n");    
     params[0] = (double)nsta0;
     params[1] = (double)mytgs0[0].dt;
     params[2] = (double)mytgs0[0].nt;
 
     // Apply rule that an empty permutation file means 'take all stations'
     // We can change this later by passing in None instead of the empty permutation.
-    
-    printf("number_of_selected_stations B4 = %d\n", number_of_selected_stations);    
+
+        
+    number_of_selected_stations = *number_of_stations;	
     if (number_of_selected_stations == 0)
     {
         number_of_selected_stations = nsta0;  
+	*number_of_stations = nsta0;     // Return possibly updated number of stations
       
-	printf("Creating identity permutation vector of length = %d\n", nsta0);
         // Create the Identity permutation vector
         permutation = (int *) malloc(number_of_selected_stations*sizeof(int));
         for (i = 0; i < number_of_selected_stations; i++)
         {
 	  permutation[i] = i;  
         }
-      
     }
     
-    printf("P3\n");        
-    printf("Number of selected stations = %d\n", number_of_selected_stations);
+    
+    
     /* Make array(s) to hold demuxed data for stations given in the permutation file */
     sts_data = (float**)malloc(number_of_selected_stations*sizeof(float*));
     if (sts_data == NULL)
@@ -438,13 +420,10 @@ float** _read_mux2(int numSrc,
         return NULL;
     }
 
-    printf("P4\n");            
     // For each selected station, allocate space for its data
     len_sts_data = mytgs0[0].nt + POFFSET; // Max length of each timeseries (I think)
     for (i = 0; i < number_of_selected_stations; i++)
     {
-        printf("P4.1, i=%d\n", i);                
-    
         // Initialise sts_data to zero
         sts_data[i] = (float*)calloc(len_sts_data, sizeof(float));
         if (sts_data[i] == NULL)
@@ -453,20 +432,15 @@ float** _read_mux2(int numSrc,
 	    return NULL;
         }
 
-	
-	printf("P4.2, i=%d\n", i);                	
 	ista = permutation[i]; // Get global index into mux data
 	
-
-	printf("P4.3, i=%d\n", i);                	
         sts_data[i][mytgs0[0].nt] = (float)mytgs0[ista].geolat;
         sts_data[i][mytgs0[0].nt + 1] = (float)mytgs0[ista].geolon;
         sts_data[i][mytgs0[0].nt + 2] = (float)mytgs0[ista].z;
         sts_data[i][mytgs0[0].nt + 3] = (float)fros[ista];
         sts_data[i][mytgs0[0].nt + 4] = (float)lros[ista];
     }
-
-    printf("P5\n");                
+    
     temp_sts_data = (float*)calloc(len_sts_data, sizeof(float));
 
     /* Loop over all sources */
@@ -479,7 +453,6 @@ float** _read_mux2(int numSrc,
         muxFileName = muxFileNameArray[isrc];
         if((fp = fopen(muxFileName, "r")) == NULL)
         {
-            //fprintf(stderr, "%s: cannot open file %s\n", av[0], muxFileName);
             fprintf(stderr, "cannot open file %s\n", muxFileName);
 	    return NULL;   		    	    
         }
@@ -523,7 +496,6 @@ float** _read_mux2(int numSrc,
                 if((isdata(sts_data[i][k])) && isdata(temp_sts_data[k]))
                 {
                     sts_data[i][k] += temp_sts_data[k] * weights[isrc];
-                    //printf("%d,%d,%f\n",ista,k,sts_data[ista][k]);
                 }
                 else
                 {
@@ -533,7 +505,6 @@ float** _read_mux2(int numSrc,
         }
     }
 
-    printf("P6\n");                    
     free(muxData);
     free(temp_sts_data);
     free(fros);

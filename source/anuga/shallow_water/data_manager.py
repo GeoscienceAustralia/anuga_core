@@ -5058,9 +5058,7 @@ def urs2sts(basename_in, basename_out=None,
 
         permutation = ensure_numeric([int(line.split(',')[0]) for line in ordering_lines])
     else:
-        # Use empty array to signify 'all' points
-        # We could have used 'None' but it got too hard in the C-code ;-)
-        permutation = ensure_numeric([], Float)
+        permutation = None
 
                 
     # Read MUX2 files

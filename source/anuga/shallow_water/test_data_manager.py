@@ -6718,7 +6718,7 @@ friction  \n \
         
         
         
-    def test_urs2sts_ordering_exception(self):
+    def Xtest_urs2sts_ordering_exception(self):
         """Test that inconsistent lats and lons in ordering file are caught.
         """
         
@@ -8939,8 +8939,8 @@ friction  \n \
 #-------------------------------------------------------------
 if __name__ == "__main__":
 
-    #suite = unittest.makeSuite(Test_Data_Manager,'test')
-    suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_read_mux2_pyI')
+    suite = unittest.makeSuite(Test_Data_Manager,'test')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_read_mux2_pyI')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_get_flow_through_cross_section_with_geo')
     #suite = unittest.makeSuite(Test_Data_Manager,'covered_')
@@ -8954,7 +8954,7 @@ if __name__ == "__main__":
         sys.stdout = fid
     else:
         pass
-    runner = unittest.TextTestRunner(verbosity=2)
+    runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
 
     # Cleaning up
