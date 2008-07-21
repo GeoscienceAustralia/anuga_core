@@ -24,7 +24,8 @@ by Ole.
 
 #define POFFSET 5 //Number of site_params
 
-void fillDataArray(int, int, int, int, int *, int *, float *, int *, int *, float *);
+void fillDataArray(int, int, int, int, int *, int *, float *, 
+		   int *, int *, float *);
 long getNumData(const int *fros, const int *lros, const int nsta);
 char isdata(float);
 float** _read_mux2(int numSrc, 
@@ -42,14 +43,16 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     read_mux2(numSrc,filenames,weights,file_params,permutation,verbose)
 
     NOTE:
-    A Python int is equivalent to a C long (this becomes really important on 64 bit architectures)
+    A Python int is equivalent to a C long 
+    (this becomes really important on 64 bit architectures)
+    
     A Python double corresponds to a C double
     */
     
     PyObject *filenames;
     PyArrayObject *pyweights;
     PyArrayObject *file_params;
-    PyArrayObject *permutation;    
+    PyArrayObject *permutation;  // Ordering of selected stations    
     PyArrayObject *pydata;
     PyObject *fname;
 
@@ -102,14 +105,16 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
 
     if(PyList_Size(filenames) != pyweights->dimensions[0])
     {
-        PyErr_SetString(PyExc_ValueError, "Must specify one weight for each filename");
+        PyErr_SetString(PyExc_ValueError, 
+			"Must specify one weight for each filename");
         return NULL;
     }
 
     muxFileNameArray = (char**)malloc(numSrc*sizeof(char*));
     if (muxFileNameArray == NULL) 
     {
-        PyErr_SetString(PyExc_ValueError, "ERROR: Memory for muxFileNameArray could not be allocated.");
+        PyErr_SetString(PyExc_ValueError, 
+	  "ERROR: Memory for muxFileNameArray could not be allocated.");
         return NULL;
     }
 
@@ -127,7 +132,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
         if (muxFileNameArray[i] == NULL) 
         {
             PyErr_SetString(PyExc_ValueError, 
-			    "ERROR: Memory for muxFileNameArray could not be allocated.\n");
+	      "ERROR: Memory for muxFileNameArray could not be allocated.\n");
             return NULL;
         }
     }
@@ -135,7 +140,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     if (file_params->nd != 1 || file_params->descr->type_num != PyArray_DOUBLE) 
     {
         PyErr_SetString(PyExc_ValueError,
-			"file_params must be one-dimensional and of type double");
+	      "file_params must be one-dimensional and of type double");
         return NULL; 
     }
 
@@ -144,9 +149,11 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     weights = (float*) malloc(numSrc*sizeof(float));
     for (i = 0; i < numSrc; i++)
     {
-        weights[i] = (float)(*(double*)(pyweights->data + i*pyweights->strides[0]));
+        weights[i] = (float)(*(double*)
+	             (pyweights->data + i*pyweights->strides[0]));
     }
     
+    // Desired number of stations
     number_of_selected_stations = (int) permutation->dimensions[0];
 
     // Read in mux2 data from file
@@ -154,8 +161,8 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
                        muxFileNameArray, 
                        weights, 
                        (double*)file_params->data,
-		       &number_of_selected_stations, // Desired number of stations
-		       (long*) permutation->data, // Ordering of selected stations
+		       &number_of_selected_stations, 
+		       (long*) permutation->data,
                        verbose);
 
     if (!cdata) 
@@ -192,15 +199,19 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     if ((start_tstep > nt) | (finish_tstep < 0))
     {
         printf("ERROR: Gauge data has incorrect start and finish times:\n");
-	printf("   start_tstep = %d, max_number_of_steps = %d\n", start_tstep, nt);
-	printf("   finish_tstep = %d, min_number_of_steps = %d\n", finish_tstep, 0);	
+	printf("   start_tstep = %d, max_number_of_steps = %d\n", 
+	           start_tstep, nt);
+	printf("   finish_tstep = %d, min_number_of_steps = %d\n", 
+	           finish_tstep, 0);	
+		   
         PyErr_SetString(PyExc_ValueError, "Incorrect start and finish times");	
         return NULL;
     }
 
     if (start_tstep >= finish_tstep)
     {
-        PyErr_SetString(PyExc_ValueError, "ERROR: Gauge data has non-postive_length");
+        PyErr_SetString(PyExc_ValueError,
+	                "ERROR: Gauge data has non-postive_length");
         return NULL;
     }
 
@@ -211,14 +222,15 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     pydata = (PyArrayObject*)PyArray_FromDims(2, dimensions, PyArray_DOUBLE);
     if(pydata == NULL)
     {
-        PyErr_SetString(PyExc_ValueError, "ERROR: Memory for pydata array could not be allocated.");
+        PyErr_SetString(PyExc_ValueError, 
+	      "ERROR: Memory for pydata array could not be allocated.");
         return NULL;
     }
 
     
     // Each gauge begins and ends recording at different times. When a gauge is
-    // not recording but at least one other gauge is. Pad the non-recording gauge
-    // array with zeros.
+    // not recording but at least one other gauge is. 
+    // Pad the non-recording gauge array with zeros.
     for (i = 0; i < number_of_selected_stations; i++)
     {
         time = 0;
@@ -228,12 +240,17 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
             {
                 if (it + 1 > (int)cdata[i][nt + 4])
                 {
-                    // This gauge has stopped recording but others are still recording
-                    *(double*)(pydata->data + i*pydata->strides[0] + time*pydata->strides[1]) = 0.0;
+                    // This gauge has stopped recording but others are 
+		    // still recording
+                    *(double*)(pydata->data + i*pydata->strides[0] 
+		                            + time*pydata->strides[1]) = 
+					    0.0;
                 }
                 else
                 {
-                    *(double*)(pydata->data + i*pydata->strides[0] + time*pydata->strides[1]) = cdata[i][it];
+                    *(double*)(pydata->data + i*pydata->strides[0] 
+		                            + time*pydata->strides[1]) = 
+					    cdata[i][it];
                 }
                 time++;
             }
@@ -241,7 +258,9 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
         // Pass back lat,lon,elevation
         for (j = 0; j < POFFSET; j++)
         {
-            *(double*)(pydata->data + i*pydata->strides[0] + (num_ts + j)*pydata->strides[1]) = cdata[i][nt + j];
+            *(double*)(pydata->data + i*pydata->strides[0] 
+	                            + (num_ts + j)*pydata->strides[1]) = 
+				    cdata[i][nt + j];
         }
     }
 
@@ -276,7 +295,7 @@ float** _read_mux2(int numSrc,
     int *fros=0, *lros=0;
     int number_of_selected_stations;
     char susMuxFileName;
-    float *muxData;
+    float *muxData=NULL; // Suppress warning
     long numData;
 
     int len_sts_data;
@@ -285,14 +304,15 @@ float** _read_mux2(int numSrc,
 
     long int offset;
 
-    /* Allocate space for the names and the weights and pointers to the data*/    
+    /* Allocate space for the names and the weights and pointers to the data*/
 
     /* Check that the input files have mux2 extension*/
     susMuxFileName = 0;
     for(isrc = 0; isrc < numSrc; isrc++)
     { 
         muxFileName = muxFileNameArray[isrc];
-        if(!susMuxFileName && strcmp(muxFileName + strlen(muxFileName) - 4, "mux2") != 0)
+        if(!susMuxFileName && strcmp(muxFileName + strlen(muxFileName) - 4, 
+				     "mux2") != 0)
         {
             susMuxFileName = 1;
             break;
@@ -395,14 +415,15 @@ float** _read_mux2(int numSrc,
     params[2] = (double)mytgs0[0].nt;
 
     // Apply rule that an empty permutation file means 'take all stations'
-    // We can change this later by passing in None instead of the empty permutation.
-
-        
+    // We could change this later by passing in None instead of the empty 
+    // permutation.
     number_of_selected_stations = *number_of_stations;	
     if (number_of_selected_stations == 0)
     {
         number_of_selected_stations = nsta0;  
-	*number_of_stations = nsta0;     // Return possibly updated number of stations
+	
+	// Return possibly updated number of stations
+	*number_of_stations = nsta0;     
       
         // Create the Identity permutation vector
         permutation = (long *) malloc(number_of_selected_stations*sizeof(long));
@@ -421,7 +442,8 @@ float** _read_mux2(int numSrc,
     
         
     
-    /* Make array(s) to hold demuxed data for stations given in the permutation file */
+    // Make array(s) to hold demuxed data for stations given in the 
+    // permutation file 
     sts_data = (float**)malloc(number_of_selected_stations*sizeof(float*));
     if (sts_data == NULL)
     {
@@ -430,7 +452,7 @@ float** _read_mux2(int numSrc,
     }
 
     // For each selected station, allocate space for its data
-    len_sts_data = mytgs0[0].nt + POFFSET; // Max length of each timeseries (I think)
+    len_sts_data = mytgs0[0].nt + POFFSET; // Max length of each timeseries?
     for (i = 0; i < number_of_selected_stations; i++)
     {
         // Initialise sts_data to zero
@@ -526,7 +548,9 @@ float** _read_mux2(int numSrc,
 
 
 /* thomas */
-void fillDataArray(int ista, int nsta, int nt, int ig, int *nst, int *nft, float *data, int *istart_p, int *istop_p, float *muxData)
+void fillDataArray(int ista, int nsta, int nt, int ig, int *nst, 
+                   int *nft, float *data, int *istart_p, 
+		   int *istop_p, float *muxData)
 {
     int it, last_it, jsta;
     long int offset=0;
@@ -561,7 +585,8 @@ void fillDataArray(int ista, int nsta, int nt, int ig, int *nst, int *nft, float
     }     
     if (ig == -1 || nst[ista] == -1) /* currently ig==-1 => nst[ista]==-1 */
     {
-        /* gauge never started recording, or was outside of all grids, fill array with 0 */
+        /* gauge never started recording, or was outside of all grids, 
+	fill array with 0 */
         for(it = 0; it < nt; it++)
         {
             data[it] = 0.0;
@@ -592,7 +617,7 @@ void fillDataArray(int ista, int nsta, int nt, int ig, int *nst, int *nft, float
                 data[it] = 0.0;
             }   
             else
-                /* gauge has finished recording */                                            
+                /* gauge has finished recording */
             {
                 data[it] = NODATA;
                 break;
@@ -605,7 +630,8 @@ void fillDataArray(int ista, int nsta, int nt, int ig, int *nst, int *nft, float
         }
 
         if(last_it < nt - 1)
-            /* the loop was exited early because the gauge had finished recording */
+            /* the loop was exited early because the gauge had 
+	    finished recording */
             for(it = last_it+1; it < nt; it++)
                 data[it] = NODATA;
     }
@@ -637,7 +663,8 @@ long getNumData(const int *fros, const int *lros, const int nsta)
         if(*(fros + ista) != -1)
         {
             numData += *(lros + ista) - *(fros + ista) + 1;
-            last_output_step = (last_output_step < *(lros+ista) ? *(lros+ista):last_output_step);
+            last_output_step = (last_output_step < *(lros+ista) ? 
+	                        *(lros+ista):last_output_step);
         }   
         numData += last_output_step*nsta; /* these are the t records */
         return numData;
