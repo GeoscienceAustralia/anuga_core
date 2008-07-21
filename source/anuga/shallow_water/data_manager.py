@@ -4875,7 +4875,7 @@ def read_mux2_py(filenames,
     #assert permutation is not None, msg
     if permutation is None:
         permutation = ensure_numeric([], Float)    
-        
+
     # Call underlying C implementation urs2sts_ext.c    
     data=read_mux2(numSrc,filenames,weights,file_params,permutation,verbose)
 
@@ -5060,7 +5060,8 @@ def urs2sts(basename_in, basename_out=None,
     else:
         permutation = None
 
-                
+
+    #print 'permutation', permutation
     # Read MUX2 files
     if (verbose): print 'reading mux2 file'
     mux={}

@@ -32,7 +32,7 @@ float** _read_mux2(int numSrc,
 		   float *weights, 
 		   double *params, 
 		   int *number_of_stations,
-		   int *permutation,
+		   long *permutation,
 		   int verbose);
 
 PyObject *read_mux2(PyObject *self, PyObject *args){
@@ -73,7 +73,8 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     
     // Convert Python arguments to C
     if (!PyArg_ParseTuple(args, "iOOOOi",
-			  &numSrc, &filenames, &pyweights, &file_params, &permutation, &verbose)) 
+			  &numSrc, &filenames, &pyweights, &file_params, 
+			  &permutation, &verbose)) 
     {
             PyErr_SetString(PyExc_RuntimeError, 
                 "Input arguments to read_mux2 failed");
@@ -154,7 +155,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
                        weights, 
                        (double*)file_params->data,
 		       &number_of_selected_stations, // Desired number of stations
-		       (int*) permutation->data, // Ordering of selected stations
+		       (long*) permutation->data, // Ordering of selected stations
                        verbose);
 
     if (!cdata) 
@@ -206,6 +207,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     num_ts = finish_tstep - start_tstep + 1;
     dimensions[0] = number_of_selected_stations;
     dimensions[1] = num_ts + POFFSET;
+    
     pydata = (PyArrayObject*)PyArray_FromDims(2, dimensions, PyArray_DOUBLE);
     if(pydata == NULL)
     {
@@ -263,7 +265,7 @@ float** _read_mux2(int numSrc,
                    float *weights, 
                    double *params, 
 		   int *number_of_stations,
-		   int *permutation,
+		   long *permutation,
                    int verbose)
 {
     FILE *fp;
@@ -403,14 +405,21 @@ float** _read_mux2(int numSrc,
 	*number_of_stations = nsta0;     // Return possibly updated number of stations
       
         // Create the Identity permutation vector
-        permutation = (int *) malloc(number_of_selected_stations*sizeof(int));
+        permutation = (long *) malloc(number_of_selected_stations*sizeof(long));
         for (i = 0; i < number_of_selected_stations; i++)
         {
-	  permutation[i] = i;  
+	  permutation[i] = (long) i;  
         }
     }
     
+    /*
+    printf("number_of_selected_stations = %d\n", number_of_selected_stations);
+    for (i = 0; i < number_of_selected_stations; i++) {
+      printf("permutation[%d] = %d\n", i, (int) permutation[i]);
+    }    
+    */
     
+        
     
     /* Make array(s) to hold demuxed data for stations given in the permutation file */
     sts_data = (float**)malloc(number_of_selected_stations*sizeof(float*));
@@ -432,7 +441,7 @@ float** _read_mux2(int numSrc,
 	    return NULL;
         }
 
-	ista = permutation[i]; // Get global index into mux data
+	ista = (int) permutation[i]; // Get global index into mux data
 	
         sts_data[i][mytgs0[0].nt] = (float)mytgs0[ista].geolat;
         sts_data[i][mytgs0[0].nt + 1] = (float)mytgs0[ista].geolon;
@@ -476,7 +485,7 @@ float** _read_mux2(int numSrc,
         for(i = 0; i < number_of_selected_stations; i++)
         {               
 	
-	    ista = permutation[i]; // Get global index into mux data	
+	    ista = (int) permutation[i]; // Get global index into mux data	
 	    
             /* fill the data0 array from the mux file, and weight it */
             fillDataArray(ista, 

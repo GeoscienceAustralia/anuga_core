@@ -6625,13 +6625,17 @@ friction  \n \
         x = points[:,0]
         y = points[:,1]
 
+        #print
+        #print x
+        #print y
         for i, index in enumerate(permutation):
             # Check that STS points are stored in the correct order
             
             # Work out the UTM coordinates sts point i
             zone, e, n = redfearn(lat_long_points[index][0], 
                                   lat_long_points[index][1])             
-            
+
+            #print i, [x[i],y[i]], [e,n]
             assert allclose([x[i],y[i]], [e,n])
             
                         
@@ -8939,9 +8943,9 @@ friction  \n \
 #-------------------------------------------------------------
 if __name__ == "__main__":
 
-    suite = unittest.makeSuite(Test_Data_Manager,'test')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_read_mux2_pyI')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts')
+    suite = unittest.makeSuite(Test_Data_Manager,'test')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_get_flow_through_cross_section_with_geo')
     #suite = unittest.makeSuite(Test_Data_Manager,'covered_')
 
