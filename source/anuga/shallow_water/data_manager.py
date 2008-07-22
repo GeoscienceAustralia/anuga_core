@@ -5039,7 +5039,9 @@ def urs2sts(basename_in, basename_out=None,
 
     # Establish permutation array
     if ordering_filename is not None:
-    
+
+        if verbose is True:
+            print 'Reading ordering file', ordering_filename
         # Read ordering file 
         try:
             fid=open(ordering_filename, 'r')
@@ -5053,8 +5055,8 @@ def urs2sts(basename_in, basename_out=None,
         reference_header = 'index, longitude, latitude\n'
         reference_header_split = reference_header.split(',')
         for i in range(3):
-            if not file_header[i] == reference_header_split[i]:
-                msg = 'File must contain header: '+reference_header+'\n'
+            if not file_header[i].strip() == reference_header_split[i].strip():
+                msg = 'File must contain header: '+reference_header
                 raise Exception, msg
 
         if len(ordering_lines)<2:
