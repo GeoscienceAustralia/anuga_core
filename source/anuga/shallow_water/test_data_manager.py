@@ -7095,34 +7095,73 @@ friction  \n \
         meshname = 'urs_test_mesh' + '.tsh'
         interior_regions=None
         boundary_tags={'ocean': [0,1], 'otherocean': [2,3,4]}
-        create_mesh_from_regions(bounding_polygon,boundary_tags=boundary_tags,
-                         maximum_triangle_area=extent_res,filename=meshname,
-                         interior_regions=interior_regions,verbose=False)
+        create_mesh_from_regions(bounding_polygon,
+                                 boundary_tags=boundary_tags,
+                                 maximum_triangle_area=extent_res,
+                                 filename=meshname,
+                                 interior_regions=interior_regions,
+                                 verbose=False)
         
         domain_fbound = Domain(meshname)
         domain_fbound.set_quantity('stage', tide)
-        Bf = File_boundary(sts_file+'.sts', domain_fbound, boundary_polygon=bounding_polygon)
+        Bf = File_boundary(sts_file+'.sts', 
+                           domain_fbound, 
+                           boundary_polygon=bounding_polygon)
         Br = Reflective_boundary(domain_fbound)
+        Bd = Dirichlet_boundary([w+tide, u*(w+h+tide), v*(w+h+tide)])        
 
         domain_fbound.set_boundary({'ocean': Bf,'otherocean': Br})
+        
+        # Check boundary object evaluates as it should
+        for i, ((vol_id, edge_id), B) in enumerate(domain_fbound.boundary_objects):
+            if B is Bf:
+            
+                qf = B.evaluate(vol_id, edge_id)  # File boundary
+                qd = Bd.evaluate(vol_id, edge_id) # Dirichlet boundary
+
+                assert allclose(qf, qd) 
+                
+        
+        # Evolve
         finaltime=time_step*(time_step_count-1)
         yieldstep=time_step
         temp_fbound=zeros(int(finaltime/yieldstep)+1,Float)
 
-        for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,finaltime=finaltime, 
-                                                   skip_initial_step = False)):
-            temp_fbound[i]=domain_fbound.quantities['stage'].centroid_values[2]
+        for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
+                                                   finaltime=finaltime, 
+                                                   skip_initial_step=False)):
+                                                   
+            D = domain_fbound
+            temp_fbound[i]=D.quantities['stage'].centroid_values[2]
+
+            # Check that file boundary object has populated 
+            # boundary array correctly  
+            # FIXME (Ole): Do this for the other tests too!
+            for j, val in enumerate(D.get_quantity('stage').boundary_values):
+            
+                (vol_id, edge_id), B = D.boundary_objects[j]
+                if isinstance(B, File_boundary):
+                    #print j, val
+                    assert allclose(val, w + tide)
+
+
+
+        
+        
+        
+            
 
         
         domain_drchlt = Domain(meshname)
         domain_drchlt.set_quantity('stage', tide)
         Br = Reflective_boundary(domain_drchlt)
-        Bd = Dirichlet_boundary([w+tide, u*(w+h+tide), v*(w+h+tide)])
+
         domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
         temp_drchlt=zeros(int(finaltime/yieldstep)+1,Float)
 
-        for i, t in enumerate(domain_drchlt.evolve(yieldstep=yieldstep,finaltime=finaltime, 
-                                                   skip_initial_step = False)):
+        for i, t in enumerate(domain_drchlt.evolve(yieldstep=yieldstep,
+                                                   finaltime=finaltime, 
+                                                   skip_initial_step=False)):
             temp_drchlt[i]=domain_drchlt.quantities['stage'].centroid_values[2]
 
         #print domain_fbound.quantities['stage'].vertex_values
@@ -9453,7 +9492,7 @@ friction  \n \
 if __name__ == "__main__":
 
     suite = unittest.makeSuite(Test_Data_Manager,'test')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_sts')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_stsI')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_ordering_different_sources')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_get_flow_through_cross_section_with_geo')
     #suite = unittest.makeSuite(Test_Data_Manager,'covered_')
