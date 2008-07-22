@@ -5014,9 +5014,14 @@ def urs2sts(basename_in, basename_out=None,
 
     # Check output filename    
     if basename_out is None:
-        msg = 'STS filename must be specified'
+        msg = 'STS filename must be specified as basename_out'
+        msg += ' in function urs2sts'
         raise Exception, msg
-    stsname = basename_out + '.sts'
+    
+    if basename_out.endswith('.sts'):
+        stsname = basename_out
+    else:    
+        stsname = basename_out + '.sts'        
 
     # Create input filenames from basenames and check their existence
     files_in=[[],[],[]]
@@ -5157,16 +5162,15 @@ def urs2sts(basename_in, basename_out=None,
         origin = Geo_reference(refzone,min(x),min(y))
     geo_ref = write_NetCDF_georeference(origin, outfile)
 
-    z = elevation
+
     
     #print geo_ref.get_xllcorner()
     #print geo_ref.get_yllcorner()
 
-    z = resize(z,outfile.variables['z'][:].shape)
+    elevation = resize(elevation,outfile.variables['elevation'][:].shape)
     outfile.variables['x'][:] = x - geo_ref.get_xllcorner()
     outfile.variables['y'][:] = y - geo_ref.get_yllcorner()
-    outfile.variables['z'][:] = z             #FIXME HACK for bacwards compat.
-    outfile.variables['elevation'][:] = z
+    outfile.variables['elevation'][:] = elevation
 
     stage = outfile.variables['stage']
     xmomentum = outfile.variables['xmomentum']
@@ -5679,7 +5683,6 @@ class Write_sts:
         outfile.variables[q+Write_sts.RANGE][0] = max_float  # Min 
         outfile.variables[q+Write_sts.RANGE][1] = -max_float # Max
 
-        outfile.createVariable('z', sts_precision, ('number_of_points',))
         # Doing sts_precision instead of Float gives cast errors.
         outfile.createVariable('time', Float, ('number_of_timesteps',))
 
