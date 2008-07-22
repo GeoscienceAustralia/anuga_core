@@ -25,18 +25,25 @@ by Ole.
 #define POFFSET 5 //Number of site_params
 
 void fillDataArray(int, int, int, int, int *, int *, float *, 
-		   int *, int *, float *);
+           int *, int *, float *);
 long getNumData(const int *fros, const int *lros, const int nsta);
 char isdata(float);
-float** _read_mux2(int numSrc, 
-		   char **muxFileNameArray, 
-		   float *weights, 
-		   double *params, 
-		   int *number_of_stations,
-		   long *permutation,
-		   int verbose);
+void _read_mux2_headers(int numSrc, 
+                           char **muxFileNameArray, 
+                   double *params,
+				   int** fros, int** lros, struct tgsrwg ** mytgs0,
+                   int* nsta0,
+                   int verbose);
 
-PyObject *read_mux2(PyObject *self, PyObject *args){
+float** _read_mux2(int numSrc, 
+           char **muxFileNameArray, 
+           float *weights, 
+           double *params, 
+           int *number_of_stations,
+           long *permutation,
+           int verbose);
+
+    PyObject *read_mux2(PyObject *self, PyObject *args){
     /*Read in mux 2 file
 
     Python call:
@@ -76,8 +83,8 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     
     // Convert Python arguments to C
     if (!PyArg_ParseTuple(args, "iOOOOi",
-			  &numSrc, &filenames, &pyweights, &file_params, 
-			  &permutation, &verbose)) 
+              &numSrc, &filenames, &pyweights, &file_params, 
+              &permutation, &verbose)) 
     {
             PyErr_SetString(PyExc_RuntimeError, 
                 "Input arguments to read_mux2 failed");
@@ -106,7 +113,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     if(PyList_Size(filenames) != pyweights->dimensions[0])
     {
         PyErr_SetString(PyExc_ValueError, 
-			"Must specify one weight for each filename");
+            "Must specify one weight for each filename");
         return NULL;
     }
 
@@ -114,7 +121,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     if (muxFileNameArray == NULL) 
     {
         PyErr_SetString(PyExc_ValueError, 
-	  "ERROR: Memory for muxFileNameArray could not be allocated.");
+      "ERROR: Memory for muxFileNameArray could not be allocated.");
         return NULL;
     }
 
@@ -132,7 +139,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
         if (muxFileNameArray[i] == NULL) 
         {
             PyErr_SetString(PyExc_ValueError, 
-	      "ERROR: Memory for muxFileNameArray could not be allocated.\n");
+          "ERROR: Memory for muxFileNameArray could not be allocated.\n");
             return NULL;
         }
     }
@@ -140,7 +147,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     if (file_params->nd != 1 || file_params->descr->type_num != PyArray_DOUBLE) 
     {
         PyErr_SetString(PyExc_ValueError,
-	      "file_params must be one-dimensional and of type double");
+          "file_params must be one-dimensional and of type double");
         return NULL; 
     }
 
@@ -149,8 +156,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     weights = (float*) malloc(numSrc*sizeof(float));
     for (i = 0; i < numSrc; i++)
     {
-        weights[i] = (float)(*(double*)
-	             (pyweights->data + i*pyweights->strides[0]));
+        weights[i] = (float)(*(double*)(pyweights->data + i*pyweights->strides[0]));
     }
     
     // Desired number of stations
@@ -161,17 +167,17 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
                        muxFileNameArray, 
                        weights, 
                        (double*)file_params->data,
-		       &number_of_selected_stations, 
-		       (long*) permutation->data,
+                       &number_of_selected_stations, 
+                       (long*) permutation->data,
                        verbose);
 
     if (!cdata) 
     {
         PyErr_SetString(PyExc_ValueError, "No STS_DATA returned");
-	return NULL;
+        return NULL;
     }       
-		       
-		       
+               
+               
     // Allocate space for return vector
     nsta0 = (int)*(double*)(file_params->data + 0*file_params->strides[0]);
     dt = *(double*)(file_params->data + 1*file_params->strides[0]);
@@ -184,8 +190,8 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     for (i = 0; i < number_of_selected_stations; i++)
     {
         //printf("cdata[%d] start = %f\n", i, (double) cdata[i][nt+3]);
-        // printf("cdata[%d] finish = %f\n", i, (double) cdata[i][nt+4]);	
-	
+        // printf("cdata[%d] finish = %f\n", i, (double) cdata[i][nt+4]);   
+    
         if ((int)cdata[i][nt + 3] < start_tstep)
         {
             start_tstep = (int)cdata[i][nt + 3];
@@ -199,19 +205,19 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     if ((start_tstep > nt) | (finish_tstep < 0))
     {
         printf("ERROR: Gauge data has incorrect start and finish times:\n");
-	printf("   start_tstep = %d, max_number_of_steps = %d\n", 
-	           start_tstep, nt);
-	printf("   finish_tstep = %d, min_number_of_steps = %d\n", 
-	           finish_tstep, 0);	
-		   
-        PyErr_SetString(PyExc_ValueError, "Incorrect start and finish times");	
+        printf("   start_tstep = %d, max_number_of_steps = %d\n", 
+               start_tstep, nt);
+        printf("   finish_tstep = %d, min_number_of_steps = %d\n", 
+               finish_tstep, 0);    
+           
+        PyErr_SetString(PyExc_ValueError, "Incorrect start and finish times");  
         return NULL;
     }
 
     if (start_tstep >= finish_tstep)
     {
         PyErr_SetString(PyExc_ValueError,
-	                "ERROR: Gauge data has non-postive_length");
+                    "ERROR: Gauge data has non-postive_length");
         return NULL;
     }
 
@@ -223,7 +229,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     if(pydata == NULL)
     {
         PyErr_SetString(PyExc_ValueError, 
-	      "ERROR: Memory for pydata array could not be allocated.");
+          "ERROR: Memory for pydata array could not be allocated.");
         return NULL;
     }
 
@@ -241,16 +247,16 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
                 if (it + 1 > (int)cdata[i][nt + 4])
                 {
                     // This gauge has stopped recording but others are 
-		    // still recording
+            // still recording
                     *(double*)(pydata->data + i*pydata->strides[0] 
-		                            + time*pydata->strides[1]) = 
-					    0.0;
+                                    + time*pydata->strides[1]) = 
+                        0.0;
                 }
                 else
                 {
                     *(double*)(pydata->data + i*pydata->strides[0] 
-		                            + time*pydata->strides[1]) = 
-					    cdata[i][it];
+                                    + time*pydata->strides[1]) = 
+                        cdata[i][it];
                 }
                 time++;
             }
@@ -259,8 +265,8 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
         for (j = 0; j < POFFSET; j++)
         {
             *(double*)(pydata->data + i*pydata->strides[0] 
-	                            + (num_ts + j)*pydata->strides[1]) = 
-				    cdata[i][nt + j];
+                                + (num_ts + j)*pydata->strides[1]) = 
+                    cdata[i][nt + j];
         }
     }
 
@@ -279,22 +285,22 @@ PyObject *read_mux2(PyObject *self, PyObject *args){
     return  PyArray_Return(pydata);
 }
 
+
 float** _read_mux2(int numSrc, 
                    char **muxFileNameArray, 
                    float *weights, 
                    double *params, 
-		   int *number_of_stations,
-		   long *permutation,
+                   int *number_of_stations,
+                   long *permutation,
                    int verbose)
 {
     FILE *fp;
-    int nsta, nsta0, i, isrc, ista, k;
-    struct tgsrwg *mytgs=0, *mytgs0=0;
-    char *muxFileName;                                                                  
+    int nsta0, i, isrc, ista, k;
+    struct tgsrwg* mytgs0=NULL;
+    char *muxFileName;
     int istart, istop;
     int *fros=0, *lros=0;
     int number_of_selected_stations;
-    char susMuxFileName;
     float *muxData=NULL; // Suppress warning
     long numData;
 
@@ -304,6 +310,162 @@ float** _read_mux2(int numSrc,
 
     long int offset;
 
+    _read_mux2_headers(numSrc, 
+                       muxFileNameArray, 
+                       params,
+                       &fros, 
+                       &lros, 
+                       &mytgs0,
+                       &nsta0,
+                       verbose);
+    // Apply rule that an empty permutation file means 'take all stations'
+    // We could change this later by passing in None instead of the empty 
+    // permutation.
+    number_of_selected_stations = *number_of_stations;  
+    if (number_of_selected_stations == 0)
+    {
+        number_of_selected_stations = nsta0;  
+    
+        // Return possibly updated number of stations
+        *number_of_stations = nsta0;     
+      
+        // Create the Identity permutation vector
+        permutation = (long *) malloc(number_of_selected_stations*sizeof(long));
+        for (i = 0; i < number_of_selected_stations; i++)
+        {
+            permutation[i] = (long) i;  
+        }
+    }
+    
+    /*
+    printf("number_of_selected_stations = %d\n", number_of_selected_stations);
+    for (i = 0; i < number_of_selected_stations; i++) {
+      printf("permutation[%d] = %d\n", i, (int) permutation[i]);
+    }    
+    */
+    
+        
+    
+    // Make array(s) to hold demuxed data for stations given in the 
+    // permutation file 
+    sts_data = (float**)malloc(number_of_selected_stations*sizeof(float*));
+    if (sts_data == NULL)
+    {
+        printf("ERROR: Memory for sts_data could not be allocated.\n");
+        return NULL;
+    }
+
+    // For each selected station, allocate space for its data
+
+    len_sts_data = mytgs0[0].nt + POFFSET; // Max length of each timeseries?
+    for (i = 0; i < number_of_selected_stations; i++)
+    {
+        // Initialise sts_data to zero
+        sts_data[i] = (float*)calloc(len_sts_data, sizeof(float));
+        if (sts_data[i] == NULL)
+        {
+            printf("ERROR: Memory for sts_data could not be allocated.\n");
+            return NULL;
+        }
+
+        ista = (int) permutation[i]; // Get global index into mux data
+    
+        sts_data[i][mytgs0[0].nt] = (float)mytgs0[ista].geolat;
+        sts_data[i][mytgs0[0].nt + 1] = (float)mytgs0[ista].geolon;
+        sts_data[i][mytgs0[0].nt + 2] = (float)mytgs0[ista].z;
+        sts_data[i][mytgs0[0].nt + 3] = (float)fros[ista];
+        sts_data[i][mytgs0[0].nt + 4] = (float)lros[ista];
+    }
+
+    temp_sts_data = (float*)calloc(len_sts_data, sizeof(float));
+
+    /* Loop over all sources */
+    //FIXME: remove istart and istop they are not used.
+    istart = -1;
+    istop = -1;
+    for (isrc = 0; isrc < numSrc; isrc++)
+    {
+        /* Read in data block from mux2 file */
+        muxFileName = muxFileNameArray[isrc];
+        if((fp = fopen(muxFileName, "r")) == NULL)
+        {
+            fprintf(stderr, "cannot open file %s\n", muxFileName);
+            return NULL;                    
+        }
+
+        if (verbose){
+            printf("Reading mux file %s\n", muxFileName);
+        }
+
+        offset = sizeof(int) + nsta0*(sizeof(struct tgsrwg) + 2*sizeof(int));
+        fseek(fp, offset, 0);
+
+        numData = getNumData(fros + isrc*nsta0, lros + isrc*nsta0, nsta0);
+        muxData = (float*)malloc(numData*sizeof(float));
+        fread(muxData, numData*sizeof(float), 1, fp); 
+        fclose(fp);
+
+        // loop over stations present in the permutation array 
+        //     use ista with mux data
+        //     use i with the processed data to be returned         
+        
+        for(i = 0; i < number_of_selected_stations; i++)
+        {               
+    
+            ista = (int) permutation[i]; // Get global index into mux data  
+        
+            /* fill the data0 array from the mux file, and weight it */
+            fillDataArray(ista, 
+                          nsta0, 
+                          mytgs0[ista].nt, 
+                          mytgs0[ista].ig, 
+                          fros + isrc*nsta0, 
+                          lros + isrc*nsta0, 
+                          temp_sts_data, 
+                          &istart, 
+                          &istop, 
+                          muxData);
+
+            /* weight appropriately and add */
+            for(k = 0; k < mytgs0[ista].nt; k++)
+            {
+                if((isdata(sts_data[i][k])) && isdata(temp_sts_data[k]))
+                {
+                    sts_data[i][k] += temp_sts_data[k] * weights[isrc];
+                }
+                else
+                {
+                    sts_data[i][k] = NODATA;
+                }
+            }
+        }
+        free(muxData);
+    }
+
+    free(temp_sts_data);
+    free(fros);
+    free(lros);
+    free(mytgs0);
+
+    return sts_data;
+}
+
+void _read_mux2_headers(int numSrc, 
+                        char **muxFileNameArray, 
+                        double *params,
+                        int** fros, 
+                        int** lros, 
+                        struct tgsrwg ** mytgs0,
+                        int* nsta0,
+                        int verbose)
+{
+    FILE *fp;
+    int nsta, isrc, ista;
+    struct tgsrwg *mytgs=0;
+    char *muxFileName;                                                                  
+    char susMuxFileName;
+    long numData;
+
     /* Allocate space for the names and the weights and pointers to the data*/
 
     /* Check that the input files have mux2 extension*/
@@ -312,7 +474,7 @@ float** _read_mux2(int numSrc,
     { 
         muxFileName = muxFileNameArray[isrc];
         if(!susMuxFileName && strcmp(muxFileName + strlen(muxFileName) - 4, 
-				     "mux2") != 0)
+                     "mux2") != 0)
         {
             susMuxFileName = 1;
             break;
@@ -338,219 +500,90 @@ float** _read_mux2(int numSrc,
     {
         muxFileName = muxFileNameArray[isrc];
 
-	/* open the mux file */
+        /* open the mux file */
         if((fp = fopen(muxFileName, "r")) == NULL)
         {
             fprintf(stderr, "cannot open file %s\n", muxFileName);
-            return NULL;  
+            exit(-1);  
         }
         
         if (!isrc)
         {
-            fread(&nsta0, sizeof(int), 1, fp);
+            fread(nsta0, sizeof(int), 1, fp);
         
-            fros = (int*)malloc(nsta0*numSrc*sizeof(int)); 
-            lros = (int*)malloc(nsta0*numSrc*sizeof(int));
+            *fros = (int*)malloc(*nsta0*numSrc*sizeof(int)); 
+            *lros = (int*)malloc(*nsta0*numSrc*sizeof(int));
       
-            mytgs0 = (struct tgsrwg*)malloc(nsta0*sizeof(struct tgsrwg));
-            mytgs = (struct tgsrwg*)malloc(nsta0*sizeof(struct tgsrwg));
+            *mytgs0 = (struct tgsrwg*)malloc(*nsta0*sizeof(struct tgsrwg));
+            mytgs = (struct tgsrwg*)malloc(*nsta0*sizeof(struct tgsrwg));
 
-            fread(mytgs0, nsta0*sizeof(struct tgsrwg), 1, fp);
+            fread(*mytgs0, *nsta0*sizeof(struct tgsrwg), 1, fp);
         }
         else
         {
             /* check that the mux files are compatible */      
             fread(&nsta, sizeof(int), 1, fp);
-            if(nsta != nsta0)
+            if(nsta != *nsta0)
             {
                 fprintf(stderr,"%s has different number of stations to %s\n", 
-			muxFileName, 
-			muxFileNameArray[0]);
+                muxFileName, 
+                muxFileNameArray[0]);
                 fclose(fp);
-                return NULL;   
+                exit(-1);   
             }
 
             fread(mytgs, nsta*sizeof(struct tgsrwg), 1, fp); 
             
             for (ista = 0; ista < nsta; ista++)
             {
-                if (mytgs[ista].dt != mytgs0[ista].dt)
+                if (mytgs[ista].dt != (*mytgs0)[ista].dt)
                 {
                     fprintf(stderr,"%s has different sampling rate to %s\n", 
-			    muxFileName, 
-			    muxFileNameArray[0]);
+                    muxFileName, 
+                    muxFileNameArray[0]);
                     fclose(fp);
-		    return NULL;   		    
+                    exit(-1);            
                 }   
-                if (mytgs[ista].nt != mytgs0[ista].nt)
+                if (mytgs[ista].nt != (*mytgs0)[ista].nt)
                 {
                     fprintf(stderr,"%s has different series length to %s\n", 
-			    muxFileName, 
-			    muxFileNameArray[0]);
+                    muxFileName, 
+                    muxFileNameArray[0]);
                     fclose(fp);
-		    return NULL;   		    
+                    exit(-1);            
                 }
             }
         }
 
         /* Read the start and stop times for this source */
-        fread(fros + isrc*nsta0, nsta0*sizeof(int), 1, fp);
-        fread(lros + isrc*nsta0, nsta0*sizeof(int), 1, fp);
+        fread(*fros + isrc*(*nsta0), *nsta0*sizeof(int), 1, fp);
+        fread(*lros + isrc*(*nsta0), *nsta0*sizeof(int), 1, fp);
 
         /* Compute the size of the data block for this source */
-        numData = getNumData(fros + isrc*nsta0, lros + isrc*nsta0, nsta0);
+        numData = getNumData(*fros + isrc*(*nsta0), *lros + isrc*(*nsta0), (*nsta0));
 
         /* Sanity check */
         if (numData < 0)
         {
             fprintf(stderr,"Size of data block appears to be negative!\n");
-	    return NULL;   	    
+            exit(-1);        
         }
 
         fclose(fp);          
     }
 
-    params[0] = (double)nsta0;
-    params[1] = (double)mytgs0[0].dt;
-    params[2] = (double)mytgs0[0].nt;
+    params[0] = (double)*nsta0;
+    params[1] = (double)(*mytgs0)[0].dt;
+    params[2] = (double)(*mytgs0)[0].nt;
 
-    // Apply rule that an empty permutation file means 'take all stations'
-    // We could change this later by passing in None instead of the empty 
-    // permutation.
-    number_of_selected_stations = *number_of_stations;	
-    if (number_of_selected_stations == 0)
-    {
-        number_of_selected_stations = nsta0;  
-	
-	// Return possibly updated number of stations
-	*number_of_stations = nsta0;     
-      
-        // Create the Identity permutation vector
-        permutation = (long *) malloc(number_of_selected_stations*sizeof(long));
-        for (i = 0; i < number_of_selected_stations; i++)
-        {
-	  permutation[i] = (long) i;  
-        }
-    }
-    
-    /*
-    printf("number_of_selected_stations = %d\n", number_of_selected_stations);
-    for (i = 0; i < number_of_selected_stations; i++) {
-      printf("permutation[%d] = %d\n", i, (int) permutation[i]);
-    }    
-    */
-    
-        
-    
-    // Make array(s) to hold demuxed data for stations given in the 
-    // permutation file 
-    sts_data = (float**)malloc(number_of_selected_stations*sizeof(float*));
-    if (sts_data == NULL)
-    {
-        printf("ERROR: Memory for sts_data could not be allocated.\n");
-        return NULL;
-    }
-
-    // For each selected station, allocate space for its data
-    len_sts_data = mytgs0[0].nt + POFFSET; // Max length of each timeseries?
-    for (i = 0; i < number_of_selected_stations; i++)
-    {
-        // Initialise sts_data to zero
-        sts_data[i] = (float*)calloc(len_sts_data, sizeof(float));
-        if (sts_data[i] == NULL)
-        {
-            printf("ERROR: Memory for sts_data could not be allocated.\n");
-	    return NULL;
-        }
-
-	ista = (int) permutation[i]; // Get global index into mux data
-	
-        sts_data[i][mytgs0[0].nt] = (float)mytgs0[ista].geolat;
-        sts_data[i][mytgs0[0].nt + 1] = (float)mytgs0[ista].geolon;
-        sts_data[i][mytgs0[0].nt + 2] = (float)mytgs0[ista].z;
-        sts_data[i][mytgs0[0].nt + 3] = (float)fros[ista];
-        sts_data[i][mytgs0[0].nt + 4] = (float)lros[ista];
-    }
-    
-    temp_sts_data = (float*)calloc(len_sts_data, sizeof(float));
-
-    /* Loop over all sources */
-    //FIXME: remove istart and istop they are not used.
-    istart = -1;
-    istop = -1;
-    for (isrc = 0; isrc < numSrc; isrc++)
-    {
-        /* Read in data block from mux2 file */
-        muxFileName = muxFileNameArray[isrc];
-        if((fp = fopen(muxFileName, "r")) == NULL)
-        {
-            fprintf(stderr, "cannot open file %s\n", muxFileName);
-	    return NULL;   		    	    
-        }
-
-        if (verbose){
-            printf("Reading mux file %s\n", muxFileName);
-        }
-
-        offset = sizeof(int) + nsta0*(sizeof(struct tgsrwg) + 2*sizeof(int));
-        fseek(fp, offset, 0);
-
-        numData = getNumData(fros + isrc*nsta0, lros + isrc*nsta0, nsta0);
-        muxData = (float*)malloc(numData*sizeof(float));
-        fread(muxData, numData*sizeof(float), 1, fp); 
-        fclose(fp);
-
-        // loop over stations present in the permutation array 
-        //     use ista with mux data
-        //     use i with the processed data to be returned         
-        
-        for(i = 0; i < number_of_selected_stations; i++)
-        {               
-	
-	    ista = (int) permutation[i]; // Get global index into mux data	
-	    
-            /* fill the data0 array from the mux file, and weight it */
-            fillDataArray(ista, 
-			  nsta0, 
-			  mytgs0[ista].nt, 
-			  mytgs0[ista].ig, 
-			  fros + isrc*nsta0, 
-			  lros + isrc*nsta0, 
-			  temp_sts_data, 
-			  &istart, 
-			  &istop, 
-			  muxData);
-
-            /* weight appropriately and add */
-            for(k = 0; k < mytgs0[ista].nt; k++)
-            {
-                if((isdata(sts_data[i][k])) && isdata(temp_sts_data[k]))
-                {
-                    sts_data[i][k] += temp_sts_data[k] * weights[isrc];
-                }
-                else
-                {
-                    sts_data[i][k] = NODATA;
-                }
-            }
-        }
-    }
-
-    free(muxData);
-    free(temp_sts_data);
-    free(fros);
-    free(lros);
-    free(mytgs0);
-    free(mytgs);
-
-    return sts_data;
+	free(mytgs);
 }
 
 
 /* thomas */
 void fillDataArray(int ista, int nsta, int nt, int ig, int *nst, 
                    int *nft, float *data, int *istart_p, 
-		   int *istop_p, float *muxData)
+           int *istop_p, float *muxData)
 {
     int it, last_it, jsta;
     long int offset=0;
@@ -586,7 +619,7 @@ void fillDataArray(int ista, int nsta, int nt, int ig, int *nst,
     if (ig == -1 || nst[ista] == -1) /* currently ig==-1 => nst[ista]==-1 */
     {
         /* gauge never started recording, or was outside of all grids, 
-	fill array with 0 */
+    fill array with 0 */
         for(it = 0; it < nt; it++)
         {
             data[it] = 0.0;
@@ -631,7 +664,7 @@ void fillDataArray(int ista, int nsta, int nt, int ig, int *nst,
 
         if(last_it < nt - 1)
             /* the loop was exited early because the gauge had 
-	    finished recording */
+        finished recording */
             for(it = last_it+1; it < nt; it++)
                 data[it] = NODATA;
     }
@@ -664,7 +697,7 @@ long getNumData(const int *fros, const int *lros, const int nsta)
         {
             numData += *(lros + ista) - *(fros + ista) + 1;
             last_output_step = (last_output_step < *(lros+ista) ? 
-	                        *(lros+ista):last_output_step);
+                            *(lros+ista):last_output_step);
         }   
         numData += last_output_step*nsta; /* these are the t records */
         return numData;
