@@ -6985,6 +6985,9 @@ friction  \n \
         elevation = fid.variables['elevation'][:]
 
         
+        #print 'stage', stage
+        #print 'elevation', elevation
+        
         # The quantities stored in the .sts file should be the weighted sum of the 
         # quantities written to the mux2 files subject to the permutation vector.
         
@@ -7020,6 +7023,11 @@ friction  \n \
 
         # The ymomentum stored in the .sts file should be the sum of the va
         # in the two mux2 files multiplied by the depth.
+        
+        
+        #print transpose(va_ref*depth_ref)
+        #print ymomentum
+        
         assert allclose(transpose(va_ref*depth_ref), ymomentum)
 
         # check the elevation values.
