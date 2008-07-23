@@ -183,6 +183,13 @@ def err(x, y=0, n=2, relative=True):
        if y is omitted or
        if keyword relative is False,
        absolute error is returned
+
+       If there is x and y, n=2 and relative=False, this will calc;
+       sqrt(sum_over_x&y((xi - yi)^2))
+
+       Given this value (err), to calc the root mean square deviation, do
+       err/sqrt(n)
+       where n is the number of elements,(len(x))
     """
 
     x = ensure_numeric(x)

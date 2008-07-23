@@ -18,7 +18,6 @@ class Test_Numerical_Tools(unittest.TestCase):
     def tearDown(self):
         pass
 
-
     def test_angle1(self):
         """Test angles between one vector and the x-axis
 	"""
@@ -29,7 +28,7 @@ class Test_Numerical_Tools(unittest.TestCase):
         assert allclose(angle([-1.0, 0.0])/pi*180, 180.0)
         assert allclose(angle([-1.0, -1.0])/pi*180, 225.0)
         assert allclose(angle([0.0, -1.0])/pi*180, 270.0)
-        assert allclose(angle([1.0, -1.0])/pi*180, 315.0)		
+        assert allclose(angle([1.0, -1.0])/pi*180, 315.0)
 		
 							  
     def test_angle2(self):
@@ -60,18 +59,8 @@ class Test_Numerical_Tools(unittest.TestCase):
         assert allclose(angle(vc, v_prev)/pi*180, 270.0)                
 
 
-		
-	
-				
-		
-	
-		
-
-
     def test_anglediff(self):
         assert allclose(anglediff([0.0, 1.], [1.0, 1.0])/pi*180, 45.0)
-
-
 
 	
     def test_ensure_numeric(self):
@@ -84,27 +73,23 @@ class Test_Numerical_Tools(unittest.TestCase):
         assert B.typecode() == 'l'
         assert B[0] == 1 and B[1] == 2 and B[2] == 3 and B[3] == 4
 
-
         A = [1,2,3.14,4]
         B = ensure_numeric(A)
         assert type(B) == ArrayType
         assert B.typecode() == 'd'
         assert B[0] == 1 and B[1] == 2 and B[2] == 3.14 and B[3] == 4
 
-
         A = [1,2,3,4]
         B = ensure_numeric(A, Float)
         assert type(B) == ArrayType
         assert B.typecode() == 'd'
         assert B[0] == 1.0 and B[1] == 2.0 and B[2] == 3.0 and B[3] == 4.0
 
-
         A = [1,2,3,4]
         B = ensure_numeric(A, Float)
         assert type(B) == ArrayType
         assert B.typecode() == 'd'
         assert B[0] == 1.0 and B[1] == 2.0 and B[2] == 3.0 and B[3] == 4.0
-
 
         A = array([1,2,3,4])
         B = ensure_numeric(A)
@@ -112,7 +97,6 @@ class Test_Numerical_Tools(unittest.TestCase):
         assert B.typecode() == 'l'        
         assert A == B    
         assert A is B   #Same object
-
 
         A = array([1,2,3,4])
         B = ensure_numeric(A, Float)
@@ -138,6 +122,7 @@ class Test_Numerical_Tools(unittest.TestCase):
         B = ensure_numeric('hello', Int)                
         assert allclose(B, [104, 101, 108, 108, 111])
 
+
     def test_gradient(self):
         x0 = 0.0; y0 = 0.0; z0 = 0.0
         x1 = 1.0; y1 = 0.0; z1 = -1.0
@@ -147,6 +132,7 @@ class Test_Numerical_Tools(unittest.TestCase):
 
         assert zx == -1.0
         assert zy == 0.0
+
 
     def test_gradient_more(self):
         x0 = 2.0/3; y0 = 2.0/3
@@ -181,6 +167,7 @@ class Test_Numerical_Tools(unittest.TestCase):
 
         z2_computed = z0 + a*(x2-x0) + b*(y2-y0)
         assert z2_computed == z2
+
         
     def test_gradient2_more(self):
         """Test two-point gradient more
@@ -220,28 +207,22 @@ class Test_Numerical_Tools(unittest.TestCase):
         
         a = [1,1,1,1,1,2,1,3,2,3,1,2,3,4,1]
 
-
         #There are four elements greater than or equal to 3
         bins = [3]
         assert allclose(histogram(a, bins), [4])
 
-
         bins = [ min(a) ]
         assert allclose(histogram(a, bins), [len(a)])
 
-
         bins = [ max(a)+0.00001 ]
         assert allclose(histogram(a, bins), [0])        
-
         
         bins = [1,2,3,4]
         assert allclose(histogram(a, bins), [8,3,3,1])
 
-
         bins = [1.1,2,3.1,4]
         #print histogram(a, bins)
         assert allclose(histogram(a, bins), [0,6,0,1])
-
 
         bins = [0,1.5,2,3]
         assert allclose(histogram(a, bins), [8,0,3,4])
@@ -262,8 +243,7 @@ class Test_Numerical_Tools(unittest.TestCase):
 
         a = [-1.7]
         bins = [-1.7]
-        assert allclose(histogram(a, bins), [1])
-        
+        assert allclose(histogram(a, bins), [1])        
         
 
     def test_that_C_extension_compiles(self):
@@ -311,7 +291,6 @@ class Test_Numerical_Tools(unittest.TestCase):
         q1 = uniform(1.0, 3.0, 4)
         q2 = uniform(7.0, 20.0, 4)
 
-
         for i in range(4):
             #Gradient of fitted pwl surface
             a_ref, b_ref = gradient_python(x0, y0, x1, y1, x2, y2,
@@ -325,11 +304,48 @@ class Test_Numerical_Tools(unittest.TestCase):
             assert abs(a - a_ref) < epsilon
             assert abs(b - b_ref) < epsilon
 
+     
+    def test_err(self):
+        x = [2,5] # diff at first position = 4, 4^2 = 16
+        y = [6,7] # diff at secnd position = 2, 2^2 = 4
+        # 16 + 4 = 20
+        
+        # If there is x and y, n=2 and relative=False, this will calc;
+        # sqrt(sum_over_x&y((xi - yi)^2))
+        err__1 = err(x,y,2,False)
+        assert err__1 == sqrt(20)
+        #print "err_", err_
+        #rmsd_1 = err__1*sqrt(1./len(x))
+        #print "err__1*sqrt(1./len(x))", err__1*sqrt(1./len(x))
+        #print "sqrt(10)", sqrt(10)
+        
+        x = [2,7,100]
+        y = [5,10,103]
+        err__2 = err(x,y,2,False)
+        assert err__2 == sqrt(27)
+        #rmsd_2 = err__2*sqrt(1./len(x))
+        #print "err__2*sqrt(1./len(x))", err__2*sqrt(1./len(x))
+
+        x = [2,5,2,7,100]
+        y = [6,7,5,10,103]
+        err_3 = err(x,y,2,False)
+        assert err_3 == sqrt(47)
+        
+        #rmsd_3 = err_3*sqrt(1./len(x))
+        #print "err__3*sqrt(1./len(x))", err__3*sqrt(1./len(x))
+        #print "rmsd_3", rmsd_3
+        #print "sqrt(err_1*err__1+err__2*err__2)/sqrt(5)", \
+        # sqrt(err__1*err__1+err__2*err__2)/sqrt(5)
+        #print "(rmsd_1 + rmsd_2)/2.", (rmsd_1 + rmsd_2)/2.
+        #print "sqrt((rmsd_1*rmsd_1 + rmsd_2*rmsd_2))/2.", \
+        #sqrt((rmsd_1*rmsd_1 + rmsd_2*rmsd_2))/2.
         
 
+                                    
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Numerical_Tools,'test')
+    #suite = unittest.makeSuite(Test_Numerical_Tools,'test_err')
     runner = unittest.TextTestRunner()
     runner.run(suite)
