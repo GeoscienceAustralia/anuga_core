@@ -625,7 +625,7 @@ class Interpolation_function:
             quantities = ensure_numeric(quantities)
             quantity_names = ['Attribute']
 
-            #Make it a dictionary
+            # Make it a dictionary
             quantities = {quantity_names[0]: quantities}
 
 
