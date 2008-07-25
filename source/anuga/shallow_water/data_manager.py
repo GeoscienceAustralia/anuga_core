@@ -5204,7 +5204,7 @@ def create_sts_boundary(stsname):
     try:
         fid = NetCDFFile(stsname+'.sts', 'r')
     except:
-        msg = 'Cannot open %s'%filename+'.sts'
+        msg = 'Cannot open %s'%stsname+'.sts'
 
 
     xllcorner = fid.xllcorner[0]
