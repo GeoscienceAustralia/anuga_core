@@ -107,7 +107,7 @@ from anuga.config import use_edge_limiter
 from anuga.config import use_centroid_velocities
 
 
-from anuga.utilities.polygon import inside_polygon, polygon_area        
+from anuga.utilities.polygon import inside_polygon, polygon_area, is_inside_polygon
 
 
 
@@ -1500,7 +1500,7 @@ class General_forcing:
             
             
                      
-        from math import pi
+        from math import pi, cos, sin
 
         self.domain = domain
         self.quantity_name = quantity_name
@@ -1512,6 +1512,10 @@ class General_forcing:
         self.value = 0.0 # Can be used to remember value at
                          # previous timestep in order to obtain rate
 
+                         
+        bounding_polygon = domain.get_boundary_polygon()
+
+
         # Update area if applicable
         self.exchange_area = None        
         if center is not None and radius is not None:
@@ -1520,9 +1524,43 @@ class General_forcing:
             assert polygon is None, msg
 
             self.exchange_area = radius**2*pi
+
+            # Check that circle center lies within the mesh.
+            msg = 'Center %s specified for forcing term did not' %(str(center))
+            msg += 'fall within the domain boundary.'
+            assert is_inside_polygon(center, bounding_polygon), msg
+
+            # Check that circle periphery lies within the mesh.
+            N = 100
+            periphery_points = []
+            for i in range(N):
+
+                theta = 2*pi*i/100
+                
+                x = center[0] + radius*cos(theta)
+                y = center[1] + radius*sin(theta)
+
+                periphery_points.append([x,y])
+
+
+            for point in periphery_points:
+                msg = 'Point %s on periphery for forcing term did not' %(str(point))
+                msg += ' fall within the domain boundary.'
+                assert is_inside_polygon(point, bounding_polygon), msg
+
 	
         if polygon is not None:
             self.exchange_area = polygon_area(self.polygon)
+
+            # Check that polygon lies within the mesh.
+            for point in self.polygon:
+                msg = 'Point %s in polygon for forcing term did not' %(str(point))
+                msg += 'fall within the domain boundary.'
+                assert is_inside_polygon(point, bounding_polygon), msg
+        
+
+
+            
 
 
         # Pointer to update vector

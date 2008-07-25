@@ -1,6 +1,9 @@
 from anuga.shallow_water.shallow_water_domain import Inflow, General_forcing
 from anuga.culvert_flows.culvert_polygons import create_culvert_polygons
 from anuga.utilities.system_tools import log_to_file
+from anuga.utilities.polygon import inside_polygon
+from anuga.utilities.polygon import is_inside_polygon
+
 
 class Culvert_flow:
     """Culvert flow - transfer water from one hole to another
@@ -124,7 +127,22 @@ class Culvert_flow:
             #               P['enquiry_polygon0'],
             #               P['enquiry_polygon1']],
             #              figname='culvert_polygon_output')
+
+
+        # Check that all polygons lie within the mesh.
+        bounding_polygon = domain.get_boundary_polygon()
+        for key in P.keys():
+            print 'Key', key
+            for point in P[key]:
+
+                print 'Passing in:', point
+                msg = 'Point %s in polygon %s for culvert %s did not'\
+                      %(str(point), key, self.label)
+                msg += 'fall within the domain boundary.'
+                assert is_inside_polygon(point, bounding_polygon), msg
         
+
+        # Create inflow object at each end of the culvert. 
         self.openings = []
         self.openings.append(Inflow(domain,
                                     polygon=P['exchange_polygon0']))
@@ -187,7 +205,7 @@ class Culvert_flow:
         
     def __call__(self, domain):
         from anuga.utilities.numerical_tools import mean
-        from anuga.utilities.polygon import inside_polygon
+        
         from anuga.config import g, epsilon
         from Numeric import take, sqrt
         from anuga.config import velocity_protection        
@@ -208,31 +226,38 @@ class Culvert_flow:
         # Get average water depths at each opening        
         openings = self.openings   # There are two Opening [0] and [1]
         for i, opening in enumerate(openings):
-            stage = domain.quantities['stage'].get_values(location='centroids',
-                                                          indices=opening.exchange_indices)
-            elevation = domain.quantities['elevation'].get_values(location='centroids',
-                                                                  indices=opening.exchange_indices)
+            dq = domain.quantities
+            
+            stage = dq['stage'].get_values(location='centroids',
+                                           indices=opening.exchange_indices)
+            elevation = dq['elevation'].get_values(location='centroids',
+                                                   indices=opening.exchange_indices)
 
             # Indices corresponding to energy enquiry field for this opening
             coordinates = domain.get_centroid_coordinates(absolute=True) # Get all centroid points (x,y)
-            enquiry_indices = inside_polygon(coordinates, self.enquiry_polygons[i]) 
+            enquiry_indices = inside_polygon(coordinates,
+                                             self.enquiry_polygons[i]) 
 
             if len(enquiry_indices) == 0:
                 msg = 'No triangles have been identified in specified region: %s' %str(self.enquiry_polygons[i])
                 raise Exception, msg                
             
             # Get model values for points in enquiry polygon for this opening
-            dq = domain.quantities
-            stage = dq['stage'].get_values(location='centroids', indices=enquiry_indices)
-            xmomentum = dq['xmomentum'].get_values(location='centroids', indices=enquiry_indices)
-            ymomentum = dq['ymomentum'].get_values(location='centroids', indices=enquiry_indices)                        
-            elevation = dq['elevation'].get_values(location='centroids', indices=enquiry_indices)
+            stage = dq['stage'].get_values(location='centroids',
+                                           indices=enquiry_indices)
+            xmomentum = dq['xmomentum'].get_values(location='centroids',
+                                                   indices=enquiry_indices)
+            ymomentum = dq['ymomentum'].get_values(location='centroids',
+                                                   indices=enquiry_indices)
+            elevation = dq['elevation'].get_values(location='centroids',
+                                                   indices=enquiry_indices)
             depth = stage - elevation
 
             # Compute mean values of selected quantitites in the enquiry area in front of the culvert
             # Epsilon handles a dry cell case
             ux = xmomentum/(depth+velocity_protection/depth)   # Velocity (x-direction)
             uy = ymomentum/(depth+velocity_protection/depth)   # Velocity (y-direction)
+            print 'Velocity in culvert:', ux, uy, depth, xmomentum, ymomentum
             v = mean(sqrt(ux**2+uy**2))      # Average velocity
             w = mean(stage)                  # Average stage
 

@@ -198,6 +198,8 @@ int __separate_points_by_polygon(int M,     // Number of points
 
   //Find min and max of poly used for optimisation when points
   //are far away from polygon
+  
+  //FIXME(Ole): Pass in rtol and atol from Python
 
   minpx = polygon[0]; maxpx = minpx;
   minpy = polygon[1]; maxpy = minpy;

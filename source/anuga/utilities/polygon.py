@@ -456,19 +456,35 @@ def separate_points_by_polygon(points, polygon,
         msg = 'Polygon could not be converted to Numeric array'
 	raise msg
 
-    #if verbose: print 'check'
+    msg = 'Polygon array must be a 2d array of vertices'
+    assert len(polygon.shape) == 2, msg
 
-    assert len(polygon.shape) == 2,\
-       'Polygon array must be a 2d array of vertices'
+    msg = 'Polygon array must have two columns' 
+    assert polygon.shape[1] == 2, msg
 
-    assert polygon.shape[1] == 2,\
-       'Polygon array must have two columns'
 
-    assert len(points.shape) == 2,\
-       'Points array must be a 2d array'
+    msg = 'Points array must be 1 or 2 dimensional.'
+    msg += ' I got %d dimensions' %len(points.shape)
+    assert 0 < len(points.shape) < 3, msg
 
-    assert points.shape[1] == 2,\
-       'Points array must have two columns'
+
+    if len(points.shape) == 1:
+        # Only one point was passed in.
+        # Convert to array of points
+        points = reshape(points, (1,2))
+
+    
+    msg = 'Point array must have two columns (x,y), '
+    msg += 'I got points.shape[1] == %d' %points.shape[0]
+    assert points.shape[1] == 2, msg
+
+       
+    msg = 'Points array must be a 2d array. I got %s' %str(points[:30])
+    assert len(points.shape) == 2, msg
+
+    msg = 'Points array must have two columns'
+    assert points.shape[1] == 2, msg
+
 
     N = polygon.shape[0] #Number of vertices in polygon
     M = points.shape[0]  #Number of points
