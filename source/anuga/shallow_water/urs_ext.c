@@ -124,14 +124,13 @@ void fillDataArray(int ista, int total_number_of_stations, int nt, int ig, int *
 
 char isdata(float x)
 {
-    //char value;
     if(x < NODATA + EPSILON && NODATA < x + EPSILON)
     {
-       return 0;
+      return 0;
     }
     else
     {
-        return 1;  
+      return 1;  
     }
 }
 
@@ -271,7 +270,9 @@ int _read_mux2_headers(int numSrc,
         fread(lros + i*(*total_number_of_stations), *total_number_of_stations*sizeof(int), 1, fp);
 
         /* Compute the size of the data block for this source */
-        numData = getNumData(fros + i*(*total_number_of_stations), lros + i*(*total_number_of_stations), (*total_number_of_stations));
+        numData = getNumData(fros + i*(*total_number_of_stations), 
+			     lros + i*(*total_number_of_stations), 
+			     (*total_number_of_stations));
 
         /* Sanity check */
         if (numData < 0)
@@ -288,10 +289,13 @@ int _read_mux2_headers(int numSrc,
         fclose(fp);          
     }
 
+    // Store time resolution and number of timesteps    
+    // These are the same for all stations, so 
+    // we take the first one.
     *delta_t = (double)mytgs0[0].dt;
     *number_of_time_steps = mytgs0[0].nt;
 
-	free(mytgs);
+    free(mytgs);
 
     return 1;
 }

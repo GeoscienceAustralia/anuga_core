@@ -5010,7 +5010,10 @@ def urs2sts(basename_in, basename_out=None,
         weights = ensure_numeric(weights)
         msg = 'When combining multiple sources must specify a weight for '+\
               'mux2 source file'
-        assert len(weights)== numSrc, msg
+        assert len(weights) == numSrc, msg
+        
+    if verbose:
+        print 'Weights used in urs2sts:', weights
 
     # Check output filename    
     if basename_out is None:

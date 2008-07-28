@@ -6130,7 +6130,7 @@ friction  \n \
                                       ua=ua,
                                       va=va)
 
-        weights=ones(1,Float)
+        weights=ones(1, Float)
         #ensure that files are indeed mux2 files
         times, latitudes, longitudes, elevation, stage, starttime =read_mux2_py([files[0]],weights)
         ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity,starttime_ua=read_mux2_py([files[1]],weights)
@@ -6187,7 +6187,7 @@ friction  \n \
                                       ua=ua,
                                       va=va)
 
-        weights=ones(1,Float)
+        weights=ones(1, Float)
         #ensure that files are indeed mux2 files
         times, latitudes, longitudes, elevation, stage,starttime=read_mux2_py([files[0]],weights)
         ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity,starttime_ua=read_mux2_py([files[1]],weights)
@@ -6248,7 +6248,7 @@ friction  \n \
                                       ua=ua,
                                       va=va)
 
-        weights=ones(1,Float)
+        weights=ones(1, Float)
         #ensure that files are indeed mux2 files
         times, latitudes, longitudes, elevation, stage,starttime=read_mux2_py([files[0]],weights)
         ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity,starttime_ua=read_mux2_py([files[1]],weights)
@@ -6447,7 +6447,7 @@ friction  \n \
         # Call urs2sts with multiple mux files
         urs2sts([base_nameI, base_nameII], 
                 basename_out=base_nameI, 
-                weights=[1.0,1.0],
+                weights=[1.0, 1.0],
                 mean_stage=tide,
                 verbose=False)
 
@@ -6603,7 +6603,7 @@ friction  \n \
         urs2sts([base_nameI, base_nameII], 
                 basename_out=base_nameI, 
                 ordering_filename=ordering_filename,
-                weights=[1.0,1.0],
+                weights=[1.0, 1.0],
                 mean_stage=tide,
                 verbose=False)
 
@@ -6781,7 +6781,7 @@ friction  \n \
             urs2sts([base_nameI, base_nameII], 
                     basename_out=base_nameI, 
                     ordering_filename=ordering_filename,
-                    weights=[1.0,1.0],
+                    weights=[1.0, 1.0],
                     mean_stage=tide,
                     verbose=False)  
             os.remove(ordering_filename)            
@@ -6813,7 +6813,20 @@ friction  \n \
         n = len(lat_long_points)
         
         # Create non-trivial weights
-        weights = [0.8, 1.5]
+        #weights = [0.8, 1.5] # OK
+        #weights = [0.8, 10.5] # Fail (up to allclose tolerance)
+        #weights = [10.5, 10.5] # OK
+        #weights = [0.0, 10.5] # OK
+        #weights = [0.8, 0.] # OK                
+        #weights = [8, 0.1] # OK                        
+        #weights = [0.8, 10.0] # OK                                
+        #weights = [0.8, 10.6] # OK           
+        weights = [3.8, 7.6] # OK                   
+        #weights = [0.5, 0.5] # OK                           
+        #weights = [2., 2.] # OK                            
+        #weights = [0.0, 0.5] # OK                                          
+        #weights = [1.0, 1.0] # OK                                                  
+        
         
         # Create different timeseries starting and ending at different times 
         first_tstep=ones(n,Int)
@@ -6859,9 +6872,10 @@ friction  \n \
                  ha0[i][j] = ua0[i][j] = va0[i][j] = 0.0                                  
 
 
+                 
         #print 
         #print 'using varying start and end time'
-        #print 'ha0', ha0
+        #print 'ha0', ha0[4]
         #print 'ua0', ua0
         #print 'va0', va0        
         
@@ -6877,7 +6891,7 @@ friction  \n \
                                              
                                              
         # Create data to be written to second mux file        
-        ha1=zeros((n,time_step_count),Float)
+        ha1=ones((n,time_step_count),Float)
         ha1[0]=sin(times_ref)
         ha1[1]=2*sin(times_ref - 3)
         ha1[2]=5*sin(4*times_ref)
@@ -6908,7 +6922,7 @@ friction  \n \
 
         #print 
         #print 'using varying start and end time'
-        #print 'ha1', ha1
+        #print 'ha1', ha1[4]
         #print 'ua1', ua1
         #print 'va1', va1        
                                              
@@ -6937,6 +6951,222 @@ friction  \n \
         
             
 
+        #------------------------------------------------------------
+        # Now read the mux files one by one with out weights and test
+        
+        # Call urs2sts with mux file #0
+        urs2sts([base_nameI], 
+                basename_out=base_nameI, 
+                ordering_filename=ordering_filename,
+                mean_stage=tide,
+                verbose=False)
+
+        # Now read the sts file and check that values have been stored correctly.
+        sts_file = base_nameI + '.sts'
+        fid = NetCDFFile(sts_file)
+
+        # Make x and y absolute
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+
+        geo_reference = Geo_reference(NetCDFObject=fid)
+        points = geo_reference.get_absolute(map(None, x, y))
+        points = ensure_numeric(points)
+
+        x = points[:,0]
+        y = points[:,1]
+
+        for i, index in enumerate(permutation):
+            # Check that STS points are stored in the correct order
+            
+            # Work out the UTM coordinates sts point i
+            zone, e, n = redfearn(lat_long_points[index][0], 
+                                  lat_long_points[index][1])             
+
+            #print i, [x[i],y[i]], [e,n]
+            assert allclose([x[i],y[i]], [e,n])
+            
+                        
+        # Check the time vector
+        times = fid.variables['time'][:]
+        assert allclose(ensure_numeric(times),
+                        ensure_numeric(times_ref))
+                        
+
+        # Check sts values for mux #0
+        stage0 = fid.variables['stage'][:].copy()
+        xmomentum0 = fid.variables['xmomentum'][:].copy()
+        ymomentum0 = fid.variables['ymomentum'][:].copy()
+        elevation0 = fid.variables['elevation'][:].copy()
+
+        
+        #print 'stage', stage0
+        #print 'xmomentum', xmomentum0
+        #print 'ymomentum', ymomentum0        
+        #print 'elevation', elevation0
+        
+        # The quantities stored in the .sts file should be the weighted sum of the 
+        # quantities written to the mux2 files subject to the permutation vector.
+        
+        ha_ref = take(ha0, permutation)
+        ua_ref = take(ua0, permutation)        
+        va_ref = take(va0, permutation)                
+
+        gauge_depth_ref = take(gauge_depth, permutation)                         
+
+
+        #print 
+        #print stage0
+        #print transpose(ha_ref)+tide - stage0
+
+        
+        assert allclose(transpose(ha_ref)+tide, stage0)  # Meters
+        
+        #Check the momentums - ua
+        #momentum = velocity*(stage-elevation)
+        # elevation = - depth
+        #momentum = velocity_ua *(stage+depth)
+
+        depth_ref = zeros((len(permutation), time_step_count), Float)
+        for i in range(len(permutation)):
+            depth_ref[i]=gauge_depth_ref[i]+tide+ha_ref[i]
+
+
+        # The xmomentum stored in the .sts file should be the sum of the ua
+        # in the two mux2 files multiplied by the depth.
+        assert allclose(transpose(ua_ref*depth_ref), xmomentum0) 
+
+        #Check the momentums - va
+        #momentum = velocity*(stage-elevation)
+        # elevation = - depth
+        #momentum = velocity_va *(stage+depth)
+
+        # The ymomentum stored in the .sts file should be the sum of the va
+        # in the two mux2 files multiplied by the depth.
+        
+        
+        #print transpose(va_ref*depth_ref)
+        #print ymomentum
+        assert allclose(transpose(va_ref*depth_ref), ymomentum0)        
+
+        # check the elevation values.
+        # -ve since urs measures depth, sww meshers height,
+        assert allclose(-gauge_depth_ref, elevation0) 
+
+        fid.close()
+        os.remove(sts_file)
+        
+        
+
+        
+        # Call urs2sts with mux file #1
+        urs2sts([base_nameII], 
+                basename_out=base_nameI, 
+                ordering_filename=ordering_filename,
+                mean_stage=tide,
+                verbose=False)
+
+        # Now read the sts file and check that values have been stored correctly.
+        sts_file = base_nameI + '.sts'
+        fid = NetCDFFile(sts_file)
+
+        # Make x and y absolute
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+
+        geo_reference = Geo_reference(NetCDFObject=fid)
+        points = geo_reference.get_absolute(map(None, x, y))
+        points = ensure_numeric(points)
+
+        x = points[:,0]
+        y = points[:,1]
+
+        for i, index in enumerate(permutation):
+            # Check that STS points are stored in the correct order
+            
+            # Work out the UTM coordinates sts point i
+            zone, e, n = redfearn(lat_long_points[index][0], 
+                                  lat_long_points[index][1])             
+
+            #print i, [x[i],y[i]], [e,n]
+            assert allclose([x[i],y[i]], [e,n])
+            
+                        
+        # Check the time vector
+        times = fid.variables['time'][:]
+        assert allclose(ensure_numeric(times),
+                        ensure_numeric(times_ref))
+                        
+
+        # Check sts values for mux #1 
+        stage1 = fid.variables['stage'][:].copy()
+        xmomentum1 = fid.variables['xmomentum'][:].copy()
+        ymomentum1 = fid.variables['ymomentum'][:].copy()
+        elevation1 = fid.variables['elevation'][:].copy()
+
+        
+        #print 'stage', stage1
+        #print 'xmomentum', xmomentum1
+        #print 'ymomentum', ymomentum1       
+        #print 'elevation', elevation1
+        
+        # The quantities stored in the .sts file should be the weighted sum of the 
+        # quantities written to the mux2 files subject to the permutation vector.
+        
+        ha_ref = take(ha1, permutation)
+        ua_ref = take(ua1, permutation)        
+        va_ref = take(va1, permutation)                
+
+        gauge_depth_ref = take(gauge_depth, permutation)                         
+
+
+        #print 
+        #print stage1
+        #print transpose(ha_ref)+tide - stage1
+        
+
+        assert allclose(transpose(ha_ref)+tide, stage1)  # Meters
+        #import sys; sys.exit()
+
+        #Check the momentums - ua
+        #momentum = velocity*(stage-elevation)
+        # elevation = - depth
+        #momentum = velocity_ua *(stage+depth)
+
+        depth_ref = zeros((len(permutation), time_step_count), Float)
+        for i in range(len(permutation)):
+            depth_ref[i]=gauge_depth_ref[i]+tide+ha_ref[i]
+
+
+        # The xmomentum stored in the .sts file should be the sum of the ua
+        # in the two mux2 files multiplied by the depth.
+        assert allclose(transpose(ua_ref*depth_ref), xmomentum1) 
+
+        #Check the momentums - va
+        #momentum = velocity*(stage-elevation)
+        # elevation = - depth
+        #momentum = velocity_va *(stage+depth)
+
+        # The ymomentum stored in the .sts file should be the sum of the va
+        # in the two mux2 files multiplied by the depth.
+        
+        
+        #print transpose(va_ref*depth_ref)
+        #print ymomentum
+        assert allclose(transpose(va_ref*depth_ref), ymomentum1)        
+
+        # check the elevation values.
+        # -ve since urs measures depth, sww meshers height,
+        assert allclose(-gauge_depth_ref, elevation1) 
+
+        fid.close()
+        os.remove(sts_file)
+        
+        
+        
+        #----------------------
+        # Then read the mux files together and test
+        
                                                
         # Call urs2sts with multiple mux files
         urs2sts([base_nameI, base_nameII], 
@@ -6979,10 +7209,10 @@ friction  \n \
                         
 
         # Check sts values
-        stage = fid.variables['stage'][:]
-        xmomentum = fid.variables['xmomentum'][:]
-        ymomentum = fid.variables['ymomentum'][:]
-        elevation = fid.variables['elevation'][:]
+        stage = fid.variables['stage'][:].copy()
+        xmomentum = fid.variables['xmomentum'][:].copy()
+        ymomentum = fid.variables['ymomentum'][:].copy()
+        elevation = fid.variables['elevation'][:].copy()
 
         
         #print 'stage', stage
@@ -6997,7 +7227,11 @@ friction  \n \
 
         gauge_depth_ref = take(gauge_depth, permutation)                         
 
-        
+
+        #print 
+        #print stage
+        #print transpose(ha_ref)+tide - stage
+
         assert allclose(transpose(ha_ref)+tide, stage)  # Meters
 
         #Check the momentums - ua
@@ -7046,6 +7280,15 @@ friction  \n \
         os.remove(sts_file)
         
 
+        
+        #---------------
+        # "Manually" add the timeseries up with weights and test
+        # Tide is discounted from individual results and added back in       
+        #
+
+        stage_man = weights[0]*(stage0-tide) + weights[1]*(stage1-tide) + tide
+        assert allclose(stage_man, stage)
+        
         
         
         
