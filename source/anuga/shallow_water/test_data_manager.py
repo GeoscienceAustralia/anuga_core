@@ -7731,9 +7731,9 @@ friction  \n \
         last_tstep=(time_step_count)*ones(n,Int)
         
         gauge_depth=20*ones(n,Float)
-        ha=2*ones((n,time_step_count),Float)
-        ua=10*ones((n,time_step_count),Float)
-        va=-10*ones((n,time_step_count),Float)
+        ha1[1]=2*sin(times_ref - 3)
+        ua=0.0*ones((n,time_step_count),Float)
+        va=0.0*ones((n,time_step_count),Float)
         
         
         base_name, files = self.write_mux2(lat_long_points,
@@ -7825,7 +7825,7 @@ friction  \n \
         extent_res=1000000
         meshname = 'urs_test_mesh' + '.tsh'
         interior_regions=None
-        boundary_tags={'ocean': [0,4], 'otherocean': [1,2,3]}
+        boundary_tags={'ocean': [0,1], 'otherocean': [2,3,4]}
         
         # have to change boundary tags from last example because now bounding
         # polygon starts in different place.
@@ -9762,7 +9762,7 @@ if __name__ == "__main__":
 
     suite = unittest.makeSuite(Test_Data_Manager,'test')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_stsI')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_ordering_different_sources')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_stsIV_sinewave_ordering')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_get_flow_through_cross_section_with_geo')
     #suite = unittest.makeSuite(Test_Data_Manager,'covered_')
 
