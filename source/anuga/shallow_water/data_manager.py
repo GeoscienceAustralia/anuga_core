@@ -952,6 +952,31 @@ class Exposure_csv:
             writer.writerow(line)
 
 
+def csv2array(file_name):
+    """Convert CSV files of the form
+    
+    time, discharge, velocity
+    0.0,  1.2,       0.0
+    0.1,  3.2,       1.1
+    ...
+    
+    to a dictionary of numeric arrays.
+    
+    
+    See underlying function csv2dict for more details.
+    
+    """
+    
+    
+    X, _ = csv2dict(file_name)
+    
+    Y = {}
+    for key in X.keys():
+        Y[key] = array([float(x) for x in X[key]])
+        
+    return Y    
+    
+            
 def csv2dict(file_name, title_check_list=None):
     """
     Load in the csv as a dic, title as key and column info as value, .
@@ -960,7 +985,7 @@ def csv2dict(file_name, title_check_list=None):
 
     Two dictionaries are returned.
     
-    WARNING: Vaules are returned as strings.
+    WARNING: Values are returned as strings.
     do this to change a list of strings to a list of floats
         time = [float(x) for x in time]
 

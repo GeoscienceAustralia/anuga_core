@@ -106,11 +106,16 @@ class Culvert_flow:
         if label is None: label = 'culvert_flow'
         label += '_' + str(id(self)) 
         
-        # Open log file for storing some specific results...
-        self.log_filename = label + '.log' 
         self.label = label
+        
+        # File for storing culvert quantities
+        self.timeseries_filename = label + '_timeseries.csv'
+        fid = open(self.timeseries_filename, 'w')
+        fid.write('time, E0, E1, Velocity, Discharge\n')
+        fid.close()
 
-        # Print something
+        # Log file for storing general textual output
+        self.log_filename = label + '.log'         
         log_to_file(self.log_filename, self.label)        
         log_to_file(self.log_filename, description)
         log_to_file(self.log_filename, self.culvert_type)        
@@ -141,14 +146,12 @@ class Culvert_flow:
         # Check that all polygons lie within the mesh.
         bounding_polygon = domain.get_boundary_polygon()
         for key in P.keys():
-            print 'Key', key
             if key in ['exchange_polygon0', 
                        'exchange_polygon1',
                        'enquiry_polygon0',
                        'enquiry_polygon1']:
                 for point in P[key]:
                 
-                    print 'Passing in:', point
                     msg = 'Point %s in polygon %s for culvert %s did not'\
                         %(str(point), key, self.label)
                     msg += 'fall within the domain boundary.'
@@ -270,7 +273,7 @@ class Culvert_flow:
             # Epsilon handles a dry cell case
             ux = xmomentum/(depth+velocity_protection/depth)   # Velocity (x-direction)
             uy = ymomentum/(depth+velocity_protection/depth)   # Velocity (y-direction)
-            print 'Velocity in culvert:', ux, uy, depth, xmomentum, ymomentum
+            #print 'Velocity in culvert:', ux, uy, depth, xmomentum, ymomentum
             v = mean(sqrt(ux**2+uy**2))      # Average velocity
             w = mean(stage)                  # Average stage
 
@@ -389,6 +392,17 @@ class Culvert_flow:
         s = 'Directional momentum = (%f, %f)' %(outlet_mom_x, outlet_mom_y)
         log_to_file(log_filename, s)
 
+        # Log timeseries to file
+        fid = open(self.timeseries_filename, 'a')        
+        fid.write('%f, %f, %f, %f, %f\n'\
+                      %(time, 
+                        openings[0].total_energy,
+                        openings[1].total_energy,
+                        barrel_velocity,
+                        Q))
+        fid.close()
+
+        # Update momentum        
         delta_t = time - self.last_time
         if delta_t > 0.0:
             xmomentum_rate = outlet_mom_x - outlet.momentum[0].value

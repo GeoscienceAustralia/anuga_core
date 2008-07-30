@@ -6,8 +6,8 @@
 import sys
 import os
 
-def log_to_file(filename, s, verbose=True):
-    """Log string to open file descriptor
+def log_to_file(filename, s, verbose=False):
+    """Log string to file name
     """
 
     fid = open(filename, 'a')
