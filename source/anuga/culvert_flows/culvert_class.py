@@ -3,6 +3,8 @@ from anuga.culvert_flows.culvert_polygons import create_culvert_polygons
 from anuga.utilities.system_tools import log_to_file
 from anuga.utilities.polygon import inside_polygon
 from anuga.utilities.polygon import is_inside_polygon
+from anuga.utilities.polygon import plot_polygons
+
 
 
 class Culvert_flow:
@@ -52,6 +54,7 @@ class Culvert_flow:
                  blockage_topdwn=None,
                  blockage_bottup=None,
                  culvert_routine=None,
+                 number_of_barrels=1,
                  verbose=False):
         
         from Numeric import sqrt, sum
@@ -87,6 +90,10 @@ class Culvert_flow:
             
         assert self.culvert_type in ['circle', 'square', 'rectangle']
         
+        assert number_of_barrels >= 1
+        self.number_of_barrels = number_of_barrels
+        
+        
         # Set defaults
         if manning is None: manning = 0.012   # Set a Default Mannings Roughness for Pipe
         if loss_exit is None: loss_exit = 1.00
@@ -117,7 +124,8 @@ class Culvert_flow:
         P = create_culvert_polygons(end_point0,
                                     end_point1,
                                     width=width,   
-                                    height=height)
+                                    height=height,
+                                    number_of_barrels=number_of_barrels)
         
         if verbose is True:
             pass
@@ -127,6 +135,7 @@ class Culvert_flow:
             #               P['enquiry_polygon0'],
             #               P['enquiry_polygon1']],
             #              figname='culvert_polygon_output')
+            #import sys; sys.exit()                           
 
 
         # Check that all polygons lie within the mesh.
@@ -361,9 +370,14 @@ class Culvert_flow:
         s = 'Delta total energy = %.3f' %(delta_Et)
         log_to_file(log_filename, s)
 
-        
+
+        # Calculate discharge for one barrel
         Q, barrel_velocity, culvert_outlet_depth = self.culvert_routine(self, inlet, outlet, delta_Et, g)
-        #####################################################
+        
+        # Adjust discharge for multiple barrels
+        Q *= self.number_of_barrels
+
+        # Compute barrel momentum
         barrel_momentum = barrel_velocity*culvert_outlet_depth
                 
         s = 'Barrel velocity = %f' %barrel_velocity

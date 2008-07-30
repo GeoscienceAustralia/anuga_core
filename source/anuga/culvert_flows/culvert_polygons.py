@@ -9,7 +9,8 @@ def create_culvert_polygons(end_point0,
                             end_point1, 
                             width, height=None,
                             enquiry_gap_factor=1.0,
-                            enquiry_shape_factor=2.0):
+                            enquiry_shape_factor=2.0,
+                            number_of_barrels=1):
     """Create polygons at the end of a culvert inlet and outlet.
     At either end two polygons will be created; one for the actual flow to pass through and one a little further away
     for enquiring the total energy at both ends of the culvert and transferring flow.
@@ -25,6 +26,7 @@ def create_culvert_polygons(end_point0,
         enquiry_shape_factor - sets the shape of the enquiry polygon
                                (large value widens polygon but reduces height
                                to preserve same area as exchange polygon)
+        number_of_barrels - number of identical pipes.
         
     Output:
 
@@ -54,6 +56,10 @@ def create_culvert_polygons(end_point0,
     vector = array([dx, dy])
     length = sqrt(sum(vector**2))
 
+    # Adjust polygon width to number of barrels in this culvert
+    width *= number_of_barrels
+    
+    
     # Unit direction vector and normal 
     vector /= length
     normal = array([-dy, dx])/length
