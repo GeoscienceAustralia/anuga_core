@@ -133,13 +133,17 @@ class Culvert_flow:
         bounding_polygon = domain.get_boundary_polygon()
         for key in P.keys():
             print 'Key', key
-            for point in P[key]:
-
-                print 'Passing in:', point
-                msg = 'Point %s in polygon %s for culvert %s did not'\
-                      %(str(point), key, self.label)
-                msg += 'fall within the domain boundary.'
-                assert is_inside_polygon(point, bounding_polygon), msg
+            if key in ['exchange_polygon0', 
+                       'exchange_polygon1',
+                       'enquiry_polygon0',
+                       'enquiry_polygon1']:
+                for point in P[key]:
+                
+                    print 'Passing in:', point
+                    msg = 'Point %s in polygon %s for culvert %s did not'\
+                        %(str(point), key, self.label)
+                    msg += 'fall within the domain boundary.'
+                    assert is_inside_polygon(point, bounding_polygon), msg
         
 
         # Create inflow object at each end of the culvert. 
