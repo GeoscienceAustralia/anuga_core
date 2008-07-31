@@ -6540,7 +6540,153 @@ friction  \n \
         self.delete_mux(filesI)
         self.delete_mux(filesII)
         os.remove(sts_file)
+
+    def test_urs2sts_individual_sources(self):   
+        """Test that individual sources compare to actual urs output
+           Test that the first recording time is the smallest
+           over waveheight, easting and northing velocity
+        """
+        from Numeric import asarray,transpose,sqrt,argmax,argmin,arange,Float,\
+            compress,zeros,fabs,take,size
         
+        ordering_filename='thinned_bound_order_test.txt'
+        dir = 'urs_test_data'
+        sources = ['1-z.grd','2-z.grd','3-z.grd']
+        source_number = 0
+        
+        # make sts file for each source
+        for source in sources:
+            source_number += 1
+            urs_filenames = os.path.join(dir,source)
+            weights = [1.]
+            sts_name_out = 'test'
+            
+            urs2sts(urs_filenames,
+                    basename_out=sts_name_out,
+                    ordering_filename=ordering_filename,
+                    weights=weights,
+                    mean_stage=0.0,
+                    verbose=False)
+
+            # read in sts file for first source
+            fid = NetCDFFile(sts_name_out+'.sts', 'r')    #Open existing file for read
+            x = fid.variables['x'][:]+fid.xllcorner   #x-coordinates of vertices
+            y = fid.variables['y'][:]+fid.yllcorner   #y-coordinates of vertices
+            points=transpose(asarray([x.tolist(),y.tolist()]))
+            time=fid.variables['time'][:]+fid.starttime
+
+            # make sure start time is 9.5 which is the minimum time across all quantities, i.e. starting time
+
+            # get quantity data from sts file
+            quantity_names=['stage','xmomentum','ymomentum']
+            quantities = {}
+            for i, name in enumerate(quantity_names):
+                quantities[name] = fid.variables[name][:]
+
+            # for each station, compare urs2sts output to known urs output
+            
+            # taken manually from header files from urs output
+            time_start_z = [[10.0,11.5,13,14.5,17.7],
+                            [9.8,11.2,12.7,14.2,17.4],
+                            [9.5,10.9,12.4,13.9,17.1]]
+            delta_t = 0.1
+            #time_start_e = time_start_z
+            #time_start_n = time_start_z
+            
+            for j in range(len(x)):
+                index_start_urs = 0
+                index_end_urs = 0
+                index_start = 0
+                index_end = 0
+                count = 0
+                urs_file_name = 'z_'+str(source_number)+'_'+str(j)+'.csv'
+                dict = csv2array(os.path.join(dir,urs_file_name))
+                urs_stage = dict['urs_stage']
+                for i in range(len(urs_stage)):
+                    if urs_stage[i] == 0.0:
+                        index_start_urs = i+1
+                    if int(urs_stage[i]) == 99 and count <> 1:
+                        count +=1
+                        index_end_urs = i
+
+                if count == 0: index_end_urs = len(urs_stage)
+
+                start_times = time_start_z[source_number-1]
+                # check that actual start time matches header information
+                msg = 'start time from urs file is not the same as the header file for source %i and station %i' %(source_number,j)
+                assert allclose(index_start_urs,start_times[j]/delta_t), msg
+
+                index_start = 0
+                index_end = 0
+                count = 0
+                sts_stage = quantities['stage'][:,j]
+                for i in range(len(sts_stage)):
+                    if sts_stage[i] <> 0.0 and count <> 1:
+                        count += 1
+                        index_start = i
+                    if int(sts_stage[i]) == 99 and count <> 1:
+                        count += 1
+                        index_end = i
+
+                index_end = index_start + len(urs_stage[index_start_urs:index_end_urs])
+
+                # check that the lengths of urs stage and sts stage are the same
+                msg = 'Length of urs stage is not equal to the length of sts stage for station %i' %j
+                assert allclose(len(urs_stage[index_start_urs:index_end_urs]), len(sts_stage[index_start:index_end])), msg
+
+                #print urs_stage[index_start_urs:index_end_urs]
+                #print sts_stage[index_start:index_end]
+                # check that urs stage and sts stage are the same
+                msg = 'urs stage is not equal to sts stage for station %i' %j
+                max_error = max(urs_stage[index_start_urs:index_end_urs] - sts_stage[index_start:index_end])
+                min_error = min(urs_stage[index_start_urs:index_end_urs] - sts_stage[index_start:index_end])
+                assert max_error < 1.e-5, msg
+                assert abs(min_error) < 1.e5, msg
+                
+            fid.close()
+
+        #from os import sys
+        #sys.exit()
+        os.remove(sts_name_out+'.sts')
+
+    def test_urs2sts_combined_sources(self):   
+        """Test that combined sources compare to actual urs output
+           Test that the first recording time is the smallest
+           over waveheight, easting and northing velocity
+        """
+        from Numeric import asarray,transpose,sqrt,argmax,argmin,arange,Float,\
+            compress,zeros,fabs,take,size
+        
+        # make sts file for combined sources
+        weights = [1., 2., 3.]
+        ordering_filename='thinned_bound_order_test.txt'
+        dir = 'urs_test_data'
+        urs_filenames = [os.path.join(dir,'1-z.grd'),os.path.join(dir,'2-z.grd'),os.path.join(dir,'3-z.grd')]
+        sts_name_out = 'test'
+        
+        urs2sts(urs_filenames,
+                basename_out=sts_name_out,
+                ordering_filename=ordering_filename,
+                weights=weights,
+                mean_stage=0.0,
+                verbose=False)
+        
+        # read in sts file for third source
+        fid = NetCDFFile(sts_name_out+'.sts', 'r')    #Open existing file for read
+        x = fid.variables['x'][:]+fid.xllcorner   #x-coordinates of vertices
+        y = fid.variables['y'][:]+fid.yllcorner   #y-coordinates of vertices
+        points=transpose(asarray([x.tolist(),y.tolist()]))
+        time=fid.variables['time'][:]+fid.starttime
+
+        # get quantity data from sts file
+        quantity_names=['stage','xmomentum','ymomentum']
+        quantities = {}
+        for i, name in enumerate(quantity_names):
+            quantities[name] = fid.variables[name][:]
+
+        fid.close()
+        
+        os.remove(sts_name_out+'.sts')
         
     def test_urs2sts_ordering(self):
         """Test multiple sources with ordering file
@@ -9765,6 +9911,7 @@ if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_stsIV_sinewave_ordering')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_get_flow_through_cross_section_with_geo')
     #suite = unittest.makeSuite(Test_Data_Manager,'covered_')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_individual_sources')
 
     
     if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':

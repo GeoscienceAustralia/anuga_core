@@ -5166,6 +5166,7 @@ def urs2sts(basename_in, basename_out=None,
     
     # Create new file
     sts = Write_sts()
+
     sts.store_header(outfile, 
                      times+starttime,
                      number_of_points, 
@@ -5667,7 +5668,7 @@ class Write_sts:
 
         outfile.institution = 'Geoscience Australia'
         outfile.description = description
-        
+
         try:
             revision_number = get_revision_number()
         except:
