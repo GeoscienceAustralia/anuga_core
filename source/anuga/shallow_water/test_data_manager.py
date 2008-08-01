@@ -6550,14 +6550,22 @@ friction  \n \
             compress,zeros,fabs,take,size
         
         ordering_filename='thinned_bound_order_test.txt'
-        dir = 'urs_test_data'
+        testdir = 'urs_test_data'
         sources = ['1-z.grd','2-z.grd','3-z.grd']
-        source_number = 0
         
-        # make sts file for each source
-        for source in sources:
-            source_number += 1
-            urs_filenames = os.path.join(dir,source)
+        
+        # Start times by source and station taken manually from urs header files
+        time_start_z = array([[10.0,11.5,13,14.5,17.7],
+                              [9.8,11.2,12.7,14.2,17.4],
+                              [9.5,10.9,12.4,13.9,17.1]])
+                            
+        
+        
+        # Make sts file for each source
+        for k, source_filename in enumerate(sources):
+            source_number = k + 1 # Source numbering starts at 1
+            
+            urs_filenames = os.path.join(testdir, source_filename)
             weights = [1.]
             sts_name_out = 'test'
             
@@ -6568,27 +6576,32 @@ friction  \n \
                     mean_stage=0.0,
                     verbose=False)
 
-            # read in sts file for first source
-            fid = NetCDFFile(sts_name_out+'.sts', 'r')    #Open existing file for read
-            x = fid.variables['x'][:]+fid.xllcorner   #x-coordinates of vertices
-            y = fid.variables['y'][:]+fid.yllcorner   #y-coordinates of vertices
+            # Read in sts file for this source file
+            fid = NetCDFFile(sts_name_out+'.sts', 'r') # Open existing file for read
+            x = fid.variables['x'][:]+fid.xllcorner    # x-coordinates of vertices
+            y = fid.variables['y'][:]+fid.yllcorner    # y-coordinates of vertices
             points=transpose(asarray([x.tolist(),y.tolist()]))
             time=fid.variables['time'][:]+fid.starttime
 
-            # make sure start time is 9.5 which is the minimum time across all quantities, i.e. starting time
 
-            # get quantity data from sts file
+            # Get quantity data from sts file
             quantity_names=['stage','xmomentum','ymomentum']
             quantities = {}
             for i, name in enumerate(quantity_names):
                 quantities[name] = fid.variables[name][:]
 
-            # for each station, compare urs2sts output to known urs output
+            # For each station, compare urs2sts output to known urs output
             
-            # taken manually from header files from urs output
-            time_start_z = [[10.0,11.5,13,14.5,17.7],
-                            [9.8,11.2,12.7,14.2,17.4],
-                            [9.5,10.9,12.4,13.9,17.1]]
+                            
+            # Make sure start time from sts file is the minimum starttime 
+            # across all stations (for this source)
+            #print k, time_start_z[k,:]
+            starttime = min(time_start_z[k, :])
+            msg = 'Starttime for source %d was %f. Should have been %f'\
+                %(source_number, fid.starttime, starttime)
+            assert allclose(fid.starttime, starttime), msg
+                            
+                            
             delta_t = 0.1
             #time_start_e = time_start_z
             #time_start_n = time_start_z
@@ -6600,7 +6613,7 @@ friction  \n \
                 index_end = 0
                 count = 0
                 urs_file_name = 'z_'+str(source_number)+'_'+str(j)+'.csv'
-                dict = csv2array(os.path.join(dir,urs_file_name))
+                dict = csv2array(os.path.join(testdir, urs_file_name))
                 urs_stage = dict['urs_stage']
                 for i in range(len(urs_stage)):
                     if urs_stage[i] == 0.0:
@@ -6612,8 +6625,10 @@ friction  \n \
                 if count == 0: index_end_urs = len(urs_stage)
 
                 start_times = time_start_z[source_number-1]
-                # check that actual start time matches header information
-                msg = 'start time from urs file is not the same as the header file for source %i and station %i' %(source_number,j)
+                
+                # Check that actual start time matches header information
+                msg = 'start time from urs file is not the same as the '
+                msg += 'header file for source %i and station %i' %(source_number,j)
                 assert allclose(index_start_urs,start_times[j]/delta_t), msg
 
                 index_start = 0
@@ -6632,21 +6647,26 @@ friction  \n \
 
                 # check that the lengths of urs stage and sts stage are the same
                 msg = 'Length of urs stage is not equal to the length of sts stage for station %i' %j
-                assert allclose(len(urs_stage[index_start_urs:index_end_urs]), len(sts_stage[index_start:index_end])), msg
+                assert allclose(len(urs_stage[index_start_urs:index_end_urs]), 
+                                len(sts_stage[index_start:index_end])), msg
 
                 #print urs_stage[index_start_urs:index_end_urs]
                 #print sts_stage[index_start:index_end]
+                
                 # check that urs stage and sts stage are the same
                 msg = 'urs stage is not equal to sts stage for station %i' %j
-                max_error = max(urs_stage[index_start_urs:index_end_urs] - sts_stage[index_start:index_end])
-                min_error = min(urs_stage[index_start_urs:index_end_urs] - sts_stage[index_start:index_end])
-                assert max_error < 1.e-5, msg
-                assert abs(min_error) < 1.e5, msg
+                assert allclose(urs_stage[index_start_urs:index_end_urs],
+                                sts_stage[index_start:index_end], 
+                                rtol=1.0e-6, atol=1.0e-5 ), msg
+                                
                 
+                # Now check momentum (when csv files have been checked in)
+                sts_xmomentum = quantities['xmomentum'][:,j]                                
+                                
+                                
+                                
             fid.close()
-
-        #from os import sys
-        #sys.exit()
+            
         os.remove(sts_name_out+'.sts')
 
     def test_urs2sts_combined_sources(self):   
@@ -6660,8 +6680,10 @@ friction  \n \
         # make sts file for combined sources
         weights = [1., 2., 3.]
         ordering_filename='thinned_bound_order_test.txt'
-        dir = 'urs_test_data'
-        urs_filenames = [os.path.join(dir,'1-z.grd'),os.path.join(dir,'2-z.grd'),os.path.join(dir,'3-z.grd')]
+        testdir = 'urs_test_data'
+        urs_filenames = [os.path.join(testdir,'1-z.grd'),
+                         os.path.join(testdir,'2-z.grd'),
+                         os.path.join(testdir,'3-z.grd')]
         sts_name_out = 'test'
         
         urs2sts(urs_filenames,
@@ -6687,6 +6709,8 @@ friction  \n \
         fid.close()
         
         os.remove(sts_name_out+'.sts')
+        
+        
         
     def test_urs2sts_ordering(self):
         """Test multiple sources with ordering file
