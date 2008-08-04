@@ -34,17 +34,17 @@ static long numDataMax=0;
 //Auxiliary functions
 void fillDataArray(int ista, int total_number_of_stations, int nt, int ig, int *nst, 
                    int *nft, float *data, int *istart_p, 
-           int *istop_p, float *muxData)
+		   int *istop_p, float *muxData)
 {
     int it, last_it, jsta;
     long int offset=0;
 
 
     last_it = -1;
-    /* make arrays of starting and finishing time steps for the tide gauges */
+    /* Make arrays of starting and finishing time steps for the tide gauges */
     /* and fill them from the file */
 
-    /* update start and stop timesteps for this gauge */
+    /* Update start and stop timesteps for this gauge */
     if (nst[ista]!= -1)
     {
         if(*istart_p == -1)
@@ -157,12 +157,12 @@ long getNumData(const int *fros, const int *lros, const int total_number_of_stat
 /////////////////////////////////////////////////////////////////////////
 //Internal Functions
 int _read_mux2_headers(int numSrc, 
-                        char **muxFileNameArray, 
-                        int* total_number_of_stations,
-						int* number_of_time_steps,
-						double* delta_t,
-                        //long* numDataMax,
-                        int verbose)
+		       char **muxFileNameArray, 
+		       int* total_number_of_stations,
+		       int* number_of_time_steps,
+		       double* delta_t,
+		       //long* numDataMax,
+		       int verbose)
 {
     FILE *fp;
     int numsta, i, j;
@@ -414,7 +414,10 @@ float** _read_mux2(int numSrc,
         offset = sizeof(int) + total_number_of_stations*(sizeof(struct tgsrwg) + 2*sizeof(int));
         fseek(fp, offset, 0);
 
-        numData = getNumData(fros + isrc*total_number_of_stations, lros + isrc*total_number_of_stations, total_number_of_stations);
+        numData = getNumData(fros + isrc*total_number_of_stations, 
+			     lros + isrc*total_number_of_stations, 
+			     total_number_of_stations);
+			     
         fread(muxData, numData*sizeof(float), 1, fp); 
         fclose(fp);
 

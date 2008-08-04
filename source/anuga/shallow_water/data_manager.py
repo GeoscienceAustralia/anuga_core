@@ -4925,23 +4925,29 @@ def read_mux2_py(filenames,
     msg='Must have at least one gauge value'
     assert nt>0,msg
     
-    OFFSET=5 #number of site parameters p passed back with data
-    #p=[geolat,geolon,depth,start_tstep,finish_tstep]
+    OFFSET=5 # Number of site parameters p passed back with data
+             # p=[geolat,geolon,depth,start_tstep,finish_tstep]
 
-    times=dt*arange(1,(data.shape[1]-OFFSET)+1)
-    latitudes=zeros(data.shape[0],Float)
-    longitudes=zeros(data.shape[0],Float)
-    elevation=zeros(data.shape[0],Float)
-    quantity=zeros((data.shape[0],data.shape[1]-OFFSET),Float)
+    parameters_index = data.shape[1]-OFFSET          
+             
+    times=dt*arange(parameters_index)    
+    latitudes=zeros(data.shape[0], Float)
+    longitudes=zeros(data.shape[0], Float)
+    elevation=zeros(data.shape[0], Float)
+    quantity=zeros((data.shape[0], parameters_index), Float)
+    
+    
     starttime=1e16
-    for i in range(0,data.shape[0]):
-        latitudes[i]=data[i][data.shape[1]-OFFSET]
-        longitudes[i]=data[i][data.shape[1]-OFFSET+1]
-        elevation[i]=-data[i][data.shape[1]-OFFSET+2]
-        quantity[i]=data[i][:-OFFSET]
-        starttime=min(dt*data[i][data.shape[1]-OFFSET+3],starttime)
+    for i in range(0, data.shape[0]):
+        latitudes[i]=data[i][parameters_index]
+        longitudes[i]=data[i][parameters_index+1]
+        elevation[i]=-data[i][parameters_index+2]
+        quantity[i][:]=data[i][:parameters_index] # Was data[i][:-OFFSET] 
+        
+        starttime=min(dt*data[i][parameters_index+3],starttime)
         
     return times, latitudes, longitudes, elevation, quantity, starttime
+    
 
 def mux2sww_time(mux_times, mint, maxt):
     """

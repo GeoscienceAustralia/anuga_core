@@ -6146,8 +6146,11 @@ friction  \n \
 
         msg='time array has incorrect length'
         assert times.shape[0]==time_step_count,msg
+        
         msg = 'time array is incorrect'
-        assert allclose(times,time_step*arange(1,time_step_count+1)),msg
+        #assert allclose(times,time_step*arange(1,time_step_count+1)),msg
+        assert allclose(times,time_step*arange(time_step_count)), msg
+        
         msg='Incorrect gauge positions returned'
         for i,point in enumerate(lat_long_points):
             assert allclose(latitudes[i],point[0]) and allclose(longitudes[i],point[1]),msg
@@ -6611,8 +6614,11 @@ friction  \n \
             sts_starttime = fid.starttime[0]
             msg = 'sts starttime for source %d was %f. Should have been %f'\
                 %(source_number, sts_starttime, starttime)
+                
             #assert allclose(sts_starttime-delta_t, starttime), msg
             ## FIXME - have done a dodgy to get it through here ###   
+            
+            #print source_filename, sts_starttime, starttime
             assert allclose(sts_starttime, starttime), msg             
             
             for j in range(len(x)):
