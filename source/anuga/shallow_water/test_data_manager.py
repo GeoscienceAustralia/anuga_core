@@ -22,6 +22,8 @@ from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.coordinate_transforms.redfearn import degminsec2decimal_degrees
 from anuga.abstract_2d_finite_volumes.util import file_function
 
+from anuga.utilities.system_tools import get_pathname_from_package
+
 # This is needed to run the tests of local functions
 import data_manager 
 from anuga.coordinate_transforms.redfearn import redfearn
@@ -6549,8 +6551,13 @@ friction  \n \
         from Numeric import asarray,transpose,sqrt,argmax,argmin,arange,Float,\
             compress,zeros,fabs,take,size
         
-        ordering_filename='thinned_bound_order_test.txt'
-        testdir = 'urs_test_data'
+        # Get path where this test is run
+        path = get_pathname_from_package('anuga.shallow_water')        
+        
+        testdir = os.path.join(path, 'urs_test_data')
+        ordering_filename=os.path.join(testdir, 'thinned_bound_order_test.txt')
+        
+        
         sources = ['1-z.grd','2-z.grd','3-z.grd']
         
         # Start times by source and station taken manually from urs header files
@@ -6758,8 +6765,12 @@ friction  \n \
         
         # make sts file for combined sources
         weights = [1., 2., 3.]
-        ordering_filename='thinned_bound_order_test.txt'
-        testdir = 'urs_test_data'
+        
+        path = get_pathname_from_package('anuga.shallow_water')        
+                
+        testdir = os.path.join(path, 'urs_test_data')        
+        ordering_filename=os.path.join(testdir, 'thinned_bound_order_test.txt')
+
         urs_filenames = [os.path.join(testdir,'1-z.grd'),
                          os.path.join(testdir,'2-z.grd'),
                          os.path.join(testdir,'3-z.grd')]

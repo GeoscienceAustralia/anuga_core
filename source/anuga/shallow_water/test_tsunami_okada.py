@@ -23,18 +23,18 @@ class Test_eq(unittest.TestCase):
         T= 1  test single rectangular source, T= 2 test multiple
         rectangular sources
         """
-        #get path where this test is run
+        # Get path where this test is run
         path = get_pathname_from_package('anuga.shallow_water')
-        #choose what test to proceed
+        
+        # Choose what test to proceed
         T = 1
         
 
-
         if T==0:
-            # fotran output file
-            
+            # Fortran output file            
             filename = path+sep+'fullokada_SP.txt'
-        # initial condition of earthquake for multiple source
+            
+            # Initial condition of earthquake for multiple source
             x0 = 7000.0
             y0 = 10000.0
             length = 0
@@ -47,9 +47,10 @@ class Test_eq(unittest.TestCase):
             ns=1
             NSMAX=1
         elif T==1:
-        # fotran output file
+            # Fortran output file        
             filename = path+sep+'fullokada_SS.txt'
-        # initial condition of earthquake for multiple source
+            
+            # Initial condition of earthquake for multiple source
             x0 = 7000.0
             y0 = 10000.0
             length = 10.0
@@ -64,9 +65,10 @@ class Test_eq(unittest.TestCase):
             
         elif T==2:
 
-        # fotran output file
+            # Fortran output file
             filename = path+sep+'fullokada_MS.txt'
-        # initial condition of earthquake for multiple source
+            
+            # Initial condition of earthquake for multiple source
             x0 = [7000.0,10000.0]
             y0 = [10000.0,7000.0]
             length = [10.0,10.0]
@@ -81,8 +83,8 @@ class Test_eq(unittest.TestCase):
 
 
 
-        # get output file from original okada fortran script.
-        # vertical displacement is listed under tmp.
+        # Get output file from original okada fortran script.
+        # Vertical displacement is listed under tmp.
         polyline_file=open(filename,'r')
         lines=polyline_file.readlines()
         polyline_file.close()
@@ -159,17 +161,17 @@ class Test_eq(unittest.TestCase):
         rectangular sources
         """
 
-        #get path where this test is run
+        # Get path where this test is run
         path= get_pathname_from_package('anuga.shallow_water')
         
-        #choose what test to proceed
+        # Choose what test to proceed
         T=1
 
         if T==0:
-        # fotran output file
-            
+            # Fortran output file
             filename = path+sep+'fullokada_SP.txt'
-        # initial condition of earthquake for multiple source
+            
+            # Initial condition of earthquake for multiple source
             x0 = 7000.0
             y0 = 10000.0
             length = 0
@@ -182,9 +184,10 @@ class Test_eq(unittest.TestCase):
             ns=1
             NSMAX=1
         elif T==1:
-        # fotran output file
+            # Fortran output file
             filename = path+sep+'fullokada_SS.txt'
-        # initial condition of earthquake for multiple source
+            
+            # Initial condition of earthquake for multiple source
             x0 = 7000.0
             y0 = 10000.0
             length = 10.0
@@ -199,9 +202,10 @@ class Test_eq(unittest.TestCase):
             
         elif T==2:
 
-        # fotran output file
+            # Fortran output file
             filename = path+sep+'fullokada_MS.txt'
-        # initial condition of earthquake for multiple source
+            
+            # Initial condition of earthquake for multiple source
             x0 = [7000.0,10000.0]
             y0 = [10000.0,7000.0]
             length = [10.0,10.0]
@@ -216,8 +220,8 @@ class Test_eq(unittest.TestCase):
 
 
 
-        # get output file from original okada fortran script.
-        # vertical displacement is listed under tmp.
+        # Get output file from original okada fortran script.
+        # Vertical displacement is listed under tmp.
         polyline_file=open(filename,'r')
         lines=polyline_file.readlines()
         polyline_file.close()
