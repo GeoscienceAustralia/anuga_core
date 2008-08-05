@@ -5,7 +5,6 @@ import unittest
 from Numeric import zeros, array, allclose
 from math import sqrt, pi
 from anuga.config import epsilon
-
 from numerical_tools import *
 
 def test_function(x, y):
@@ -64,7 +63,6 @@ class Test_Numerical_Tools(unittest.TestCase):
 
 	
     def test_ensure_numeric(self):
-        from numerical_tools import ensure_numeric
         from Numeric import ArrayType, Float, Int, array
 
         A = [1,2,3,4]
@@ -340,6 +338,9 @@ class Test_Numerical_Tools(unittest.TestCase):
         #print "sqrt((rmsd_1*rmsd_1 + rmsd_2*rmsd_2))/2.", \
         #sqrt((rmsd_1*rmsd_1 + rmsd_2*rmsd_2))/2.
         
+    def test_norm(self):
+        x = norm(ensure_numeric([3,4]))
+        assert x == 5.
 
                                     
 
