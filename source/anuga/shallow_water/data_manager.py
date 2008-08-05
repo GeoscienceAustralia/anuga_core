@@ -5025,6 +5025,10 @@ def urs2sts(basename_in, basename_out=None,
         if verbose: print 'Reading single source'
         basename_in=[basename_in]
 
+    # This is the value used in the mux file format to indicate NAN data
+    # FIXME (Ole): This should be changed everywhere to IEEE NAN when we upgrade to Numpy
+    NODATA = 99    
+
     # Check that basename is a list of strings
     if not reduce(__and__, map(lambda z:isinstance(z,StringType), basename_in)):
         msg= 'basename_in must be a string or list of strings'
@@ -5216,12 +5220,24 @@ def urs2sts(basename_in, basename_out=None,
     if verbose: print 'Converting quantities'
     for j in range(len(times)):
         for i in range(number_of_points):
-            w = zscale*mux['HA'][i,j] + mean_stage
+            ha = mux['HA'][i,j]
+            ua = mux['UA'][i,j]
+            va = mux['VA'][i,j]
+            if ha == NODATA:
+                if verbose:
+                    msg = 'Setting nodata value %d to 0 at time = %f, point = %d'\
+                          %(ha, times[j], i)
+                    print msg
+                ha = 0.0
+                ua = 0.0
+                va = 0.0
+                
+            w = zscale*ha + mean_stage
             h=w-elevation[i]
             stage[j,i] = w
 
-            xmomentum[j,i] = mux['UA'][i,j]*h
-            ymomentum[j,i] = mux['VA'][i,j]*h
+            xmomentum[j,i] = ua*h
+            ymomentum[j,i] = va*h
 
     outfile.close()
 
