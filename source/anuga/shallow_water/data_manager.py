@@ -4902,7 +4902,7 @@ def read_mux2_py(filenames,
         permutation = ensure_numeric([], Float)    
 
     # Call underlying C implementation urs2sts_ext.c    
-    data=read_mux2(numSrc,filenames,weights,file_params,permutation,verbose)
+    data = read_mux2(numSrc,filenames,weights,file_params,permutation,verbose)
 
     msg='File parameter values were not read in correctly from c file'
     assert len(compress(file_params>0,file_params))!=0,msg
@@ -4944,6 +4944,8 @@ def read_mux2_py(filenames,
         elevation[i]=-data[i][parameters_index+2]
         quantity[i][:]=data[i][:parameters_index] # Was data[i][:-OFFSET] 
         
+        first_time_step = data[i][parameters_index+3]
+        #print 'datamanager:', i, first_time_step, dt*first_time_step
         starttime=min(dt*data[i][parameters_index+3],starttime)
         
     return times, latitudes, longitudes, elevation, quantity, starttime

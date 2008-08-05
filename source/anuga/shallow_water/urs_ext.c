@@ -56,6 +56,7 @@ void fillDataArray(int ista, int total_number_of_stations, int nt, int ig, int *
             *istart_p = ((nst[ista] < *istart_p) ? nst[ista] : *istart_p);
         }
     }
+    
     if (nft[ista] != -1)
     {
         if (*istop_p == -1)
@@ -67,10 +68,11 @@ void fillDataArray(int ista, int total_number_of_stations, int nt, int ig, int *
             *istop_p = ((nft[ista] < *istop_p) ? nft[ista] : *istop_p);
         }
     }     
+    
     if (ig == -1 || nst[ista] == -1) /* currently ig==-1 => nst[ista]==-1 */
     {
         /* gauge never started recording, or was outside of all grids, 
-    fill array with 0 */
+        fill array with 0 */
         for(it = 0; it < nt; it++)
         {
             data[it] = 0.0;
@@ -90,8 +92,8 @@ void fillDataArray(int ista, int total_number_of_stations, int nt, int ig, int *
 
             /* deal with the tide gauge at hand */
             if(it + 1 >= nst[ista] && it + 1 <= nft[ista])
-                /* gauge is recording at this time */
             {
+                /* gauge is recording at this time */
                 memcpy(data + it, muxData + offset, sizeof(float));
                 offset++;
             }
@@ -115,7 +117,7 @@ void fillDataArray(int ista, int total_number_of_stations, int nt, int ig, int *
 
         if(last_it < nt - 1)
             /* the loop was exited early because the gauge had 
-        finished recording */
+            finished recording */
             for(it = last_it+1; it < nt; it++)
                 data[it] = NODATA;
     }
@@ -266,8 +268,10 @@ int _read_mux2_headers(int numSrc,
         }
 
         /* Read the start and stop times for this source */
-        fread(fros + i*(*total_number_of_stations), *total_number_of_stations*sizeof(int), 1, fp);
-        fread(lros + i*(*total_number_of_stations), *total_number_of_stations*sizeof(int), 1, fp);
+        fread(fros + i*(*total_number_of_stations), 
+	      *total_number_of_stations*sizeof(int), 1, fp);
+        fread(lros + i*(*total_number_of_stations), 
+	      *total_number_of_stations*sizeof(int), 1, fp);
 
         /* Compute the size of the data block for this source */
         numData = getNumData(fros + i*(*total_number_of_stations), 
@@ -290,7 +294,7 @@ int _read_mux2_headers(int numSrc,
     }
 
     // Store time resolution and number of timesteps    
-    // These are the same for all stations, so 
+    // These are the same for all stations as tested above, so 
     // we take the first one.
     *delta_t = (double)mytgs0[0].dt;
     *number_of_time_steps = mytgs0[0].nt;
@@ -311,9 +315,8 @@ float** _read_mux2(int numSrc,
 {
     FILE *fp;
     int total_number_of_stations, i, isrc, ista, k;
-    //struct tgsrwg* mytgs0=NULL;
     char *muxFileName;
-    int istart, istop;
+    int istart=-1, istop=-1;
     int number_of_selected_stations;
     float *muxData=NULL; // Suppress warning
     long numData;
@@ -324,9 +327,12 @@ float** _read_mux2(int numSrc,
 
     long int offset;
 
-    int number_of_time_steps;
+    int number_of_time_steps, N;
     double delta_t;
-    //long numDataMax;
+    
+    // Shorthands pointing to memory blocks for each source
+    int *fros_per_source=NULL;     
+    int *lros_per_source=NULL;         
     
     _read_mux2_headers(numSrc, 
                        muxFileNameArray, 
@@ -369,8 +375,7 @@ float** _read_mux2(int numSrc,
     }
 
     // For each selected station, allocate space for its data
-
-    len_sts_data = mytgs0[0].nt + POFFSET; // Max length of each timeseries?
+    len_sts_data = number_of_time_steps + POFFSET; // Max length of each timeseries?
     for (i = 0; i < number_of_selected_stations; i++)
     {
         // Initialise sts_data to zero
@@ -380,25 +385,22 @@ float** _read_mux2(int numSrc,
             printf("ERROR: Memory for sts_data could not be allocated.\n");
             return NULL;
         }
-
-        ista = (int) permutation[i]; // Get global index into mux data
-    
-        sts_data[i][mytgs0[0].nt] = (float)mytgs0[ista].geolat;
-        sts_data[i][mytgs0[0].nt + 1] = (float)mytgs0[ista].geolon;
-        sts_data[i][mytgs0[0].nt + 2] = (float)mytgs0[ista].z;
-        sts_data[i][mytgs0[0].nt + 3] = (float)fros[ista];
-        sts_data[i][mytgs0[0].nt + 4] = (float)lros[ista];
     }
 
     temp_sts_data = (float*)calloc(len_sts_data, sizeof(float));
 
     muxData = (float*)malloc(numDataMax*sizeof(float));
+    
     /* Loop over all sources */
-    //FIXME: remove istart and istop they are not used.
-    istart = -1;
-    istop = -1;
     for (isrc = 0; isrc < numSrc; isrc++)
     {
+    
+        // Shorthands to local memory
+        fros_per_source = (int*) fros + isrc*total_number_of_stations; 
+        lros_per_source = (int*) lros + isrc*total_number_of_stations; 	    
+	    
+    
+    
         /* Read in data block from mux2 file */
         muxFileName = muxFileNameArray[isrc];
         if((fp = fopen(muxFileName, "r")) == NULL)
@@ -414,8 +416,8 @@ float** _read_mux2(int numSrc,
         offset = sizeof(int) + total_number_of_stations*(sizeof(struct tgsrwg) + 2*sizeof(int));
         fseek(fp, offset, 0);
 
-        numData = getNumData(fros + isrc*total_number_of_stations, 
-			     lros + isrc*total_number_of_stations, 
+        numData = getNumData(fros_per_source, 
+			     lros_per_source, 
 			     total_number_of_stations);
 			     
         fread(muxData, numData*sizeof(float), 1, fp); 
@@ -430,19 +432,19 @@ float** _read_mux2(int numSrc,
     
             ista = (int) permutation[i]; // Get global index into mux data  
         
-            /* fill the data0 array from the mux file, and weight it */
+            // fill the data0 array from the mux file, and weight it
             fillDataArray(ista, 
                           total_number_of_stations, 
-                          mytgs0[ista].nt, 
+			  number_of_time_steps,
                           mytgs0[ista].ig, 
-                          fros + isrc*total_number_of_stations, 
-                          lros + isrc*total_number_of_stations, 
+                          fros_per_source, 
+                          lros_per_source, 
                           temp_sts_data, 
                           &istart, 
                           &istop, 
                           muxData);
 
-            /* weight appropriately and add */
+            // Weight appropriately and add
             for(k = 0; k < mytgs0[ista].nt; k++)
             {
                 if((isdata(sts_data[i][k])) && isdata(temp_sts_data[k]))
@@ -454,6 +456,49 @@ float** _read_mux2(int numSrc,
                     sts_data[i][k] = NODATA;
                 }
             }
+	    
+	    // Update metadata (e.g. start time and end time)
+	    N = number_of_time_steps;
+	    
+	    
+	    /*
+	    printf("station =  %d, source = %d, fros = %f, lros = %f\n", 
+		   ista, 
+		   isrc, 
+		   (float) fros_per_source[ista],
+		   (float) lros_per_source[ista]);		   
+	    */
+		   
+		   
+		    
+	    if (isrc == 0) {
+	        // Assign values for first source
+	        sts_data[i][N] = (float)mytgs0[ista].geolat;
+		sts_data[i][N+1] = (float)mytgs0[ista].geolon;
+		sts_data[i][N+2] = (float)mytgs0[ista].z;
+		sts_data[i][N+3] = (float)fros_per_source[ista];
+		sts_data[i][N+4] = (float)lros_per_source[ista];
+	    } else {
+	        // Update first and last timesteps for subsequent sources
+	        if (sts_data[i][N+3] > (float)fros_per_source[ista]) {		
+		    if (verbose) {
+		        printf("Adjusting start time for station %d and source %d",
+			       ista, isrc);
+			printf(" from %f to %f\n", sts_data[i][N+3], (float)fros_per_source[ista]);  
+		    }
+		    sts_data[i][N+3] = (float)fros_per_source[ista];
+		}
+		
+		
+	        if (sts_data[i][N+4] < (float)lros_per_source[ista]) {		
+		    if (verbose) {
+		        printf("Adjusting end time for station %d and source %d",
+			       ista, isrc);
+			printf(" from %f to %f\n", sts_data[i][N+4], (float)lros_per_source[ista]);  
+		    }
+		    sts_data[i][N+4] = (float)lros_per_source[ista];
+		}		
+	    }
         }
     }
 

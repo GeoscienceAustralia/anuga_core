@@ -6570,6 +6570,7 @@ friction  \n \
 
         time_start_e = time_start_z
 
+        # FIXME(Ole): Should they really be treated differently?
 	time_start_n = array([[10.0,11.5,13,14.5,17.7],
                               [10.6,11.8,12.9,14.2,17.4],
                               [10.6,11.3,12.4,13.9,17.1]])
@@ -6811,8 +6812,8 @@ friction  \n \
         sts_starttime = fid.starttime[0]
         msg = 'sts starttime was %f. Should have been %f'\
             %(sts_starttime, starttime)
-        assert allclose(sts_starttime-delta_t, starttime), msg
-        #assert allclose(sts_starttime, starttime), msg
+        #assert allclose(sts_starttime-delta_t, starttime), msg
+        assert allclose(sts_starttime, starttime), msg
         ## FIXME - have done a dodgy to get it through here ###   
     
 	#stations = [1,2,3]
@@ -10198,7 +10199,7 @@ if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager,'test_get_flow_through_cross_section_with_geo')
     #suite = unittest.makeSuite(Test_Data_Manager,'covered_')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_individual_sources')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_combined_sources')	
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts')	
 
     
     if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':
