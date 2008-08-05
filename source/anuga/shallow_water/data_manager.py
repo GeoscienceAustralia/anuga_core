@@ -4887,7 +4887,7 @@ def read_mux2_py(filenames,
 
     numSrc=len(filenames)
 
-    file_params=-1*ones(3,Float)#[nsta,dt,nt]
+    file_params=-1*ones(3,Float) #[nsta,dt,nt]
     
     # Convert verbose to int C flag
     if verbose:
@@ -4895,14 +4895,11 @@ def read_mux2_py(filenames,
     else:
         verbose=0
         
-        
-    #msg = 'I got the permutation vector:' + str(permutation)
-    #assert permutation is not None, msg
     if permutation is None:
         permutation = ensure_numeric([], Float)    
 
     # Call underlying C implementation urs2sts_ext.c    
-    data = read_mux2(numSrc,filenames,weights,file_params,permutation,verbose)
+    data = read_mux2(numSrc, filenames, weights, file_params, permutation, verbose)
 
     msg='File parameter values were not read in correctly from c file'
     assert len(compress(file_params>0,file_params))!=0,msg
@@ -4924,29 +4921,47 @@ def read_mux2_py(filenames,
     nt=int(file_params[2])
     msg='Must have at least one gauge value'
     assert nt>0,msg
-    
+   
     OFFSET=5 # Number of site parameters p passed back with data
              # p=[geolat,geolon,depth,start_tstep,finish_tstep]
+     
+    # FIXME (Ole): What is the relationship with params and data.shape ?
+    # It looks as if the following asserts should pass but they don't always
+    #
+             
+    #print
+    #print nsta, nt, data.shape
+        
+    #msg = 'nt = %d, data.shape[1] == %d' %(nt, data.shape[1])
+    #assert nt == data.shape[1] - OFFSET, msg 
+    
+    #msg = 'nsta = %d, data.shape[0] == %d' %(nsta, data.shape[0])    
+    #assert nsta == data.shape[0], msg
 
+    
+    # Number of stations in ordering file
+    number_of_selected_stations = data.shape[0]
+
+    # Index where data ends and parameters begin
     parameters_index = data.shape[1]-OFFSET          
              
     times=dt*arange(parameters_index)    
-    latitudes=zeros(data.shape[0], Float)
-    longitudes=zeros(data.shape[0], Float)
-    elevation=zeros(data.shape[0], Float)
-    quantity=zeros((data.shape[0], parameters_index), Float)
+    latitudes=zeros(number_of_selected_stations, Float)
+    longitudes=zeros(number_of_selected_stations, Float)
+    elevation=zeros(number_of_selected_stations, Float)
+    quantity=zeros((number_of_selected_stations, parameters_index), Float)
     
     
     starttime=1e16
-    for i in range(0, data.shape[0]):
+    for i in range(number_of_selected_stations):
+        quantity[i][:]=data[i][:parameters_index]
+    
         latitudes[i]=data[i][parameters_index]
         longitudes[i]=data[i][parameters_index+1]
         elevation[i]=-data[i][parameters_index+2]
-        quantity[i][:]=data[i][:parameters_index] # Was data[i][:-OFFSET] 
-        
         first_time_step = data[i][parameters_index+3]
-        #print 'datamanager:', i, first_time_step, dt*first_time_step
-        starttime=min(dt*data[i][parameters_index+3],starttime)
+        
+        starttime=min(dt*first_time_step, starttime)
         
     return times, latitudes, longitudes, elevation, quantity, starttime
     
