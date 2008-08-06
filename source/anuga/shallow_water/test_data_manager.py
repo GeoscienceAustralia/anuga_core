@@ -6560,7 +6560,6 @@ friction  \n \
         testdir = os.path.join(path, 'urs_test_data')
         ordering_filename=os.path.join(testdir, 'thinned_bound_order_test.txt')
         
-        
         sources = ['1-z.grd','2-z.grd','3-z.grd']
         
         # Start times by source and station taken manually from urs header files
@@ -6568,13 +6567,10 @@ friction  \n \
                               [9.8,11.2,12.7,14.2,17.4],
                               [9.5,10.9,12.4,13.9,17.1]])
 
-        time_start_e = time_start_z
+        time_start_e = time_start_n = time_start_z
 
-        # FIXME(Ole): Should they really be treated differently?
-	time_start_n = array([[10.0,11.5,13,14.5,17.7],
-                              [10.6,11.8,12.9,14.2,17.4],
-                              [10.6,11.3,12.4,13.9,17.1]])
-
+        # time step in urs output
+        delta_t = 0.1
         
         # Make sts file for each source
         for k, source_filename in enumerate(sources):
@@ -6603,10 +6599,6 @@ friction  \n \
             quantities = {}
             for i, name in enumerate(quantity_names):
                 quantities[name] = fid.variables[name][:]
-
-            # For each station, compare urs2sts output to known urs output
-            
-            delta_t = 0.1
             
             # Make sure start time from sts file is the minimum starttime 
             # across all stations (for this source)
@@ -6615,13 +6607,9 @@ friction  \n \
             sts_starttime = fid.starttime[0]
             msg = 'sts starttime for source %d was %f. Should have been %f'\
                 %(source_number, sts_starttime, starttime)
-                
-            #assert allclose(sts_starttime-delta_t, starttime), msg
-            ## FIXME - have done a dodgy to get it through here ###   
-            
-            #print source_filename, sts_starttime, starttime
             assert allclose(sts_starttime, starttime), msg             
-            
+
+            # For each station, compare urs2sts output to known urs output
             for j in range(len(x)):
                 index_start_urs = 0
                 index_end_urs = 0
@@ -6652,31 +6640,15 @@ friction  \n \
 
                 start_times_z = time_start_z[source_number-1]
 
-		count = 0
-		# find start and end time for e velocity
-		for i in range(len(urs_e)):
-		    if urs_e[i] == 0.0:
-                        index_start_urs_e = i+1
-                    if int(urs_e[i]) == 99 and count <> 1:
-                        count +=1
-                        index_end_urs_e = i
-
-                if count == 0: index_end_urs_e = len(urs_e)
-
+                # start times for easting velocities should be the same as stage
                 start_times_e = time_start_e[source_number-1]
+                index_start_urs_e = index_start_urs_z
+                index_end_urs_e = index_end_urs_z
 
-  		count = 0
-		# find start and end time for n velocity
-		for i in range(len(urs_n)):
-                    if urs_n[i] == 0.0:
-                        index_start_urs_n = i+1
-                    if int(urs_n[i]) == 99 and count <> 1:
-                        count +=1
-                        index_end_urs_n = i
-
-                if count == 0: index_end_urs_n = len(urs_n)
-
+                # start times for northing velocities should be the same as stage
                 start_times_n = time_start_n[source_number-1]
+                index_start_urs_n = index_start_urs_z
+                index_end_urs_n = index_end_urs_z
                 
                 # Check that actual start time matches header information for stage
                 msg = 'stage start time from urs file is not the same as the '
@@ -6706,48 +6678,30 @@ friction  \n \
 
                 index_end_stage = index_start_stage + len(urs_stage[index_start_urs_z:index_end_urs_z])
 
-		index_start_x = 0
-                index_end_x = 0
-                count = 0
                 sts_xmom = quantities['xmomentum'][:,j]
-                for i in range(len(sts_xmom)):
-                    if sts_xmom[i] <> 0.0 and count <> 1:
-                        count += 1
-                        index_start_x = i
-                    if int(sts_xmom[i]) == 99 and count <> 1:
-                        count += 1
-                        index_end_x = i
-
+                index_start_x = index_start_stage
                 index_end_x = index_start_x + len(urs_e[index_start_urs_e:index_end_urs_e])
 
-		index_start_y = 0
-                index_end_y = 0
-                count = 0
                 sts_ymom = quantities['ymomentum'][:,j]
-                for i in range(len(sts_ymom)):
-                    if sts_ymom[i] <> 0.0 and count <> 1:
-                        count += 1
-                        index_start_y = i
-                    if int(sts_ymom[i]) == 99 and count <> 1:
-                        count += 1
-                        index_end_y = i
-
+                index_start_y = index_start_stage
                 index_end_y = index_start_y + len(urs_n[index_start_urs_n:index_end_urs_n])
 
                 # check that urs stage and sts stage are the same
-                msg = 'urs stage is not equal to sts stage for station %i' %j
+                msg = 'urs stage is not equal to sts stage for for source %i and station %i' %(source_number,j)
                 assert allclose(urs_stage[index_start_urs_z:index_end_urs_z],
                                 sts_stage[index_start_stage:index_end_stage], 
                                 rtol=1.0e-6, atol=1.0e-5 ), msg                                
 				
                 # check that urs e velocity and sts xmomentum are the same
-		msg = 'urs e velocity is not equivalent to sts x momentum for station %i' %j
+		msg = 'urs e velocity is not equivalent to sts x momentum for for source %i and station %i' %(source_number,j)
                 assert allclose(urs_e[index_start_urs_e:index_end_urs_e]*(urs_stage[index_start_urs_e:index_end_urs_e]-elevation[j]),
                                 sts_xmom[index_start_x:index_end_x], 
                                 rtol=1.0e-5, atol=1.0e-4 ), msg
 		
                 # check that urs n velocity and sts ymomentum are the same
-                msg = 'urs n velocity is not equivalent to sts y momentum for station %i' %j
+                #print 'urs n velocity', urs_n[index_start_urs_n:index_end_urs_n]*(urs_stage[index_start_urs_n:index_end_urs_n]-elevation[j])
+                #print 'sts momentum', sts_ymom[index_start_y:index_end_y]                                                             
+                msg = 'urs n velocity is not equivalent to sts y momentum for source %i and station %i' %(source_number,j)
                 assert allclose(urs_n[index_start_urs_n:index_end_urs_n]*(urs_stage[index_start_urs_n:index_end_urs_n]-elevation[j]),
                                 sts_ymom[index_start_y:index_end_y], 
                                 rtol=1.0e-5, atol=1.0e-4 ), msg
@@ -6767,9 +6721,8 @@ friction  \n \
 
         # combined
         time_start_z = array([9.5,10.9,12.4,13.9,17.1])
-        time_start_e = time_start_z
-        time_start_n = array([10.0,11.3,12.4,13.9,17.1])
-        
+        time_start_e = time_start_n = time_start_z
+         
         # make sts file for combined sources
         weights = [1., 2., 3.]
         
@@ -6812,9 +6765,7 @@ friction  \n \
         sts_starttime = fid.starttime[0]
         msg = 'sts starttime was %f. Should have been %f'\
             %(sts_starttime, starttime)
-        #assert allclose(sts_starttime-delta_t, starttime), msg
         assert allclose(sts_starttime, starttime), msg
-        ## FIXME - have done a dodgy to get it through here ###   
     
 	#stations = [1,2,3]
         #for j in stations: 
@@ -6850,31 +6801,11 @@ friction  \n \
 
             start_times_z = time_start_z[j]
 
-	    count = 0
-	    # find start and end time for e velocity
-	    for i in range(len(urs_e)):
-		if urs_e[i] == 0.0:
-                    index_start_urs_e = i+1
-                if int(urs_e[i]) == 99 and count <> 1:
-                    count +=1
-                    index_end_urs_e = i
-
-            if count == 0: index_end_urs_e = len(urs_e)
-
             start_times_e = time_start_e[j]
-
-  	    count = 0
-	    # find start and end time for n velocity
-	    for i in range(len(urs_n)):
-                if urs_n[i] == 0.0:
-                    index_start_urs_n = i+1
-                if int(urs_n[i]) == 99 and count <> 1:
-                    count +=1
-                    index_end_urs_n = i
-
-            if count == 0: index_end_urs_n = len(urs_n)
+            index_start_urs_e = index_start_urs_z
 
             start_times_n = time_start_n[j]
+            index_start_urs_n = index_start_urs_z
                
             # Check that actual start time matches header information for stage
             msg = 'stage start time from urs file is not the same as the '
@@ -6909,43 +6840,13 @@ friction  \n \
                 
 	    index_end_stage = index_start_stage + len(urs_stage[index_start_urs_z:index_end_urs_z])
 
-   	    index_start_x = 0
-            index_end_x = 0
-            count = 0
-            count1 = -1
-            index_end=[0]
-            sts_xmom = quantities['xmomentum'][:,j]
-            for i in range(len(sts_xmom)):
-                if sts_xmom[i] <> 0.0 and count <> 1:
-                    count += 1
-                    index_start_x = i
-                if sts_xmom[i] == 0.0 and i <> 1:
-                    index_end.append(i)
-                    count1 += 1
-                    if index_end[count1]-index_end[count1-1]>1:
-		        index_end_x = index_end[count1]
-
-	    if index_end_x < index_start_x: index_end_x = len(sts_xmom)
+	    index_start_x = index_start_stage
 	    index_end_x = index_start_x + len(urs_stage[index_start_urs_e:index_end_urs_e])
+	    sts_xmom = quantities['ymomentum'][:,j]
 
-	    index_start_y = 0
-            index_end_y = 0
-            count = 0
-            count1 = -1
-	    index_end = [0]
-            sts_ymom = quantities['ymomentum'][:,j]
-            for i in range(len(sts_ymom)):
-                if sts_ymom[i] <> 0.0 and count <> 1:
-                    count += 1
-                    index_start_y = i
-                if sts_ymom[i] == 0.0 and i > 1: 
-                    index_end.append(i)
-                    count1 +=1 
-	            if index_end[count1]-index_end[count1-1]>1:
-                        index_end_y = index_end[count1]
-
-	    if index_end_y < index_start_y: index_end_y = len(sts_ymom)
+	    index_start_y = index_start_stage
 	    index_end_y = index_start_y + len(urs_stage[index_start_urs_n:index_end_urs_n])
+	    sts_ymom = quantities['ymomentum'][:,j]
 
             # check that urs stage and sts stage are the same
             msg = 'urs stage is not equal to sts stage for station %i' %j
@@ -10199,6 +10100,7 @@ if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager,'test_get_flow_through_cross_section_with_geo')
     #suite = unittest.makeSuite(Test_Data_Manager,'covered_')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_individual_sources')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_combined_sources')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts')	
 
     
