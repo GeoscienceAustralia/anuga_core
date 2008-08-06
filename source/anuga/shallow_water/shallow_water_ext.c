@@ -1758,9 +1758,13 @@ double _compute_fluxes_central(int number_of_elements,
       if (tri_full_flag[k] == 1) {
 	if (max_speed > epsilon) {
 	
-	  // Original CFL calculation
+	  // Apply CFL condition for triangles joining this edge (triangle k and triangle n)
+	  
+	  // CFL for triangle k
 	  timestep = min(timestep, radii[k]/max_speed);
+	  
 	  if (n>=0) 
+	    // Apply CFL condition for neigbour n (which is on the ith edge of triangle k)
 	    timestep = min(timestep, radii[n]/max_speed);
 	  
 	  // Ted Rigby's suggested less conservative version
