@@ -1669,6 +1669,7 @@ def export_grid(basename_in, extra_name_out = None,
                 timestep = None,
                 reduction = None,
                 cellsize = 10,
+                number_of_decimal_places = None,
                 NODATA_value = -9999,
                 easting_min = None,
                 easting_max = None,
@@ -1726,6 +1727,7 @@ def export_grid(basename_in, extra_name_out = None,
                                timestep,
                                reduction,
                                cellsize,
+                               number_of_decimal_places,
                                NODATA_value,
                                easting_min,
                                easting_max,
@@ -1823,6 +1825,7 @@ def sww2dem(basename_in, basename_out = None,
             timestep = None,
             reduction = None,
             cellsize = 10,
+            number_of_decimal_places = None,
             NODATA_value = -9999,
             easting_min = None,
             easting_max = None,
@@ -1903,6 +1906,9 @@ def sww2dem(basename_in, basename_out = None,
 
     if quantity_formula.has_key(quantity):
         quantity = quantity_formula[quantity]
+
+    if number_of_decimal_places is None:
+        number_of_decimal_places = 9
         
     swwfile = basename_in + '.sww'
     demfile = basename_out + '.' + format
@@ -2180,9 +2186,9 @@ def sww2dem(basename_in, basename_out = None,
             base_index = (nrows-i-1)*ncols
 
             slice = grid_values[base_index:base_index+ncols]
-            s = array2string(slice, max_line_width=sys.maxint)
+            #s = array2string(slice, max_line_width=sys.maxint)
+            s = array2string(slice, max_line_width=sys.maxint, precision=number_of_decimal_places)
             ascid.write(s[1:-1] + '\n')
-
 
             #print
             #for j in range(ncols):
@@ -2212,6 +2218,7 @@ def sww2asc(basename_in, basename_out = None,
             timestep = timestep,
             reduction = reduction,
             cellsize = cellsize,
+            number_of_decimal_places = number_of_decimal_places,
             verbose = verbose,
             origin = origin,
         datum = 'WGS84',
@@ -2232,6 +2239,7 @@ def sww2ers(basename_in, basename_out = None,
             timestep = timestep,
             reduction = reduction,
             cellsize = cellsize,
+            number_of_decimal_places = number_of_decimal_places,
             verbose = verbose,
             origin = origin,
             datum = datum,

@@ -1280,6 +1280,7 @@ END CROSS-SECTIONS:
         sww2dem(self.domain.get_name(),
                 quantity = 'elevation',
                 cellsize = cellsize,
+                number_of_decimal_places = 9,
                 verbose = self.verbose,
                 format = 'asc')
 
@@ -1368,6 +1369,7 @@ END CROSS-SECTIONS:
         sww2dem(self.domain.get_name(),
                 quantity = 'depth',
                 cellsize = cellsize,
+                number_of_decimal_places = 9,
                 verbose = self.verbose,
                 format = 'asc')
         
@@ -2002,6 +2004,7 @@ END CROSS-SECTIONS:
         sww2dem(domain.get_name(),
                 quantity = 'elevation',
                 cellsize = cellsize,
+                number_of_decimal_places = 9,
                 verbose = self.verbose,
                 format = 'asc')
 
@@ -2188,6 +2191,7 @@ END CROSS-SECTIONS:
         sww2dem(domain.get_name(),
                 quantity = 'elevation',
                 cellsize = cellsize,
+                number_of_decimal_places = 9,
                 easting_min = 308530,
                 easting_max = 308570,
                 northing_min = 6189050,
@@ -2335,6 +2339,7 @@ END CROSS-SECTIONS:
         sww2dem(self.domain.get_name(),
                 quantity = 'stage',
                 cellsize = cellsize,
+                number_of_decimal_places = 9,
                 reduction = min,
                 format = 'asc',
                 verbose=self.verbose)
@@ -2448,6 +2453,7 @@ END CROSS-SECTIONS:
                 basename_out = 'datatest_depth',
                 quantity = 'stage - elevation',
                 cellsize = cellsize,
+                number_of_decimal_places = 9,
                 reduction = min,
                 format = 'asc',
                 verbose = self.verbose)
@@ -2599,6 +2605,7 @@ END CROSS-SECTIONS:
         sww2dem(domain.get_name(),
                 quantity = 'elevation',
                 cellsize = cellsize,
+                number_of_decimal_places = 9,
                 verbose = self.verbose,
                 format = 'asc')
 
@@ -2706,6 +2713,7 @@ END CROSS-SECTIONS:
         sww2dem(self.domain.get_name(),
                 quantity = 'elevation',
                 cellsize = cellsize,
+                number_of_decimal_places = 9,
                 NODATA_value = NODATA_value,
                 verbose = self.verbose,
                 format = 'ers')
@@ -4147,6 +4155,7 @@ END CROSS-SECTIONS:
         sww2dem('karratha_100m',
                 quantity = 'depth',
                 cellsize = 200000,
+                number_of_decimal_places = 9,
                 verbose = True)
 
     def test_read_asc(self):
