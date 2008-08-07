@@ -238,17 +238,22 @@ def xml2object(xml, verbose=False):
     else:
         fid = xml
 
-    dom = parse(fid)
+    try:
+        dom = parse(fid)
+    except Exception, e:
+        # Throw filename into dom exception
+        msg = 'XML file "%s" could not be parsed.\n' %fid.name
+        msg += 'Error message from parser: "%s"' %str(e)
+        raise Exception, msg
 
-##     try:
-##         dom = parse(fid)
-##     except Exception, e:
-##         # Throw filename into dom exception
-##         msg = 'XML file "%s" could not be parsed: ' %fid.name
-##         msg += str(e)
-##         raise Exception, msg
-
-    return dom2object(dom)
+    try:
+        xml_object = dom2object(dom)
+    except Exception, e:
+        msg = 'Could not convert %s into XML object.\n' %fid.name
+        msg += str(e)
+        raise Exception, msg
+    
+    return xml_object
 
 
 
@@ -257,12 +262,15 @@ def dom2object(node):
     """
 
     value = []
+    textnode_encountered = None
     for n in node.childNodes:
-
+    
         if n.nodeType == 3:
             # Child is a text element - omit the dom tag #text and
             # go straight to the text value.
-
+            
+            # Note - only the last text value will be recorded
+            
             msg = 'Text element has child nodes - this shouldn\'t happen'
             assert len(n.childNodes) == 0, msg
 
@@ -272,9 +280,17 @@ def dom2object(node):
                 # Skip empty text children
                 continue
             
-            value = x
+            textnode_encountered = value = x
         else:
             # XML element
+            
+            
+            if textnode_encountered is not None:
+                msg = 'A text node was followed by a non-text tag. This is not allowed.\n'
+                msg += 'Offending text node: "%s" ' %str(textnode_encountered)            
+                msg += 'was followed by node named: "<%s>"' %str(n.nodeName)
+                raise Exception, msg
+            
 
             value.append(dom2object(n))
 

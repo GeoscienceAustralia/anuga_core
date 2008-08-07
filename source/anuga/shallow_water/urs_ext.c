@@ -3,11 +3,6 @@ gcc -fPIC -c urs_ext.c -I/usr/include/python2.5 -o urs_ext.o -Wall -O
 gcc -shared urs_ext.o  -o urs_ext.so
 */
 
-/*
-This file was reverted from changeset:5484 to changeset:5470 on 10th July 
-by Ole.
-*/
-
 #include "Python.h"
 #include "Numeric/arrayobject.h"
 #include "structure.h"
@@ -29,6 +24,14 @@ static int *lros=NULL;
 static struct tgsrwg* mytgs0=NULL;
 
 static long numDataMax=0;
+
+
+/*The MUX file format 
+
+
+ */
+
+
 
 /////////////////////////////////////////////////////////////////////////
 //Auxiliary functions
@@ -293,6 +296,7 @@ int _read_mux2_headers(int numSrc,
         fclose(fp);          
     }
 
+    
     // Store time resolution and number of timesteps    
     // These are the same for all stations as tested above, so 
     // we take the first one.
@@ -393,7 +397,7 @@ float** _read_mux2(int numSrc,
 
     muxData = (float*) malloc(numDataMax*sizeof(float));
     
-    /* Loop over all sources */
+    // Loop over all sources
     for (isrc = 0; isrc < numSrc; isrc++)
     {
     
@@ -436,7 +440,7 @@ float** _read_mux2(int numSrc,
             fillDataArray(ista, 
                           total_number_of_stations, 
 			  number_of_time_steps,
-                          mytgs0[ista].ig, 
+                          mytgs0[ista].ig, // Grid number (if -1 fill with zeros)
                           fros_per_source, 
                           lros_per_source, 
                           temp_sts_data, 

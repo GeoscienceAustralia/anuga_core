@@ -256,6 +256,9 @@ def license_file_is_valid(license_filename, data_filename,
     If everything is honky dory the function will return True.
     """
 
+    if verbose:
+        print 'Parsing', license_filename
+        
     doc = xml2object(license_filename)
     
     # Check that file is valid (e.g. all elements there)
