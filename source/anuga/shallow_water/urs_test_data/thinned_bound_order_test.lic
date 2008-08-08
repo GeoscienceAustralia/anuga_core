@@ -6,8 +6,8 @@
   </metadata>
   
   <datafile>
-    <filename>thinned_boundary_order_text.txt</filename>
-    <checksum></checksum>
+    <filename>thinned_bound_order_test.txt</filename>
+    <checksum>-159938038</checksum>
     <publishable>Yes</publishable>
     <accountable>Jane Sexton</accountable>
     <source>List of five stations (0,1,2,3,4) for urs2sts test suite.</source>

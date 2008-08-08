@@ -1849,6 +1849,9 @@ def sww2dem(basename_in, basename_out = None,
     NODATA_value  -9999
     138.3698 137.4194 136.5062 135.5558 ..........
 
+    The number of decimal places can be specified by the user to save
+    on disk space requirements by specifying in the call to sww2dem.
+    
     Also write accompanying file with same basename_in but extension .prj
     used to fix the UTM zone, datum, false northings and eastings.
 
@@ -1908,7 +1911,7 @@ def sww2dem(basename_in, basename_out = None,
         quantity = quantity_formula[quantity]
 
     if number_of_decimal_places is None:
-        number_of_decimal_places = 9
+        number_of_decimal_places = 3
         
     swwfile = basename_in + '.sww'
     demfile = basename_out + '.' + format
