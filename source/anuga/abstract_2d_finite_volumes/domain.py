@@ -287,13 +287,15 @@ class Domain(Mesh):
 
     def set_time(self, time=0.0):
         """Set the model time (seconds)"""
+        # FIXME: this is setting the relative time
+        # Note that get_time and set_time are now not symmetric
 
         self.time = time
 
     def get_time(self):
-        """Get the model time (seconds)"""
+        """Get the absolute model time (seconds)"""
 
-        return self.time
+        return self.time + self.starttime
 
     def set_default_order(self, n):
         """Set default (spatial) order to either 1 or 2
@@ -684,17 +686,17 @@ class Domain(Mesh):
         #           %(self.time, self.min_timestep,
         #             self.max_timestep, self.number_of_steps,
         #             self.number_of_first_order_steps)
-                     
-                     
+
+        model_time = self.get_time()
         if self.min_timestep == self.max_timestep:
             msg += 'Time = %.4f, delta t = %.8f, steps=%d'\
-                   %(self.time, self.min_timestep, self.number_of_steps)
+                   %(model_time, self.min_timestep, self.number_of_steps)
         elif self.min_timestep > self.max_timestep:
             msg += 'Time = %.4f, steps=%d'\
-                   %(self.time, self.number_of_steps)
+                   %(model_time, self.number_of_steps)
         else:
             msg += 'Time = %.4f, delta t in [%.8f, %.8f], steps=%d'\
-                   %(self.time, self.min_timestep,
+                   %(model_time, self.min_timestep,
                      self.max_timestep, self.number_of_steps)
                                           
         msg += ' (%ds)' %(walltime() - self.last_walltime)    
