@@ -799,10 +799,140 @@ END\n")
         os.remove(fileName)
         m.generate_mesh(maximum_triangle_area=max_area,verbose=False)
         m.export_mesh_file('b_test_mesh_iknterface.tsh')
+
+    def concept_ungenerateII(self):
+        
+        from anuga.shallow_water import Domain, Reflective_boundary, \
+                            Dirichlet_boundary
+        x=0
+        y=0
+        mesh_geo = geo_reference=Geo_reference(56,x,y)
+        
+        # These are the absolute values
+        polygon_absolute = [[0,0],[100,0],[100,100],[0,100]]
+        
+        x_p = -10
+        y_p = -40
+        geo_ref_poly = Geo_reference(56, x_p, y_p)
+        polygon = geo_ref_poly.change_points_geo_ref(polygon_absolute)
+
+        boundary_tags = {'wall':[0,1,3],'wave':[2]}
+        
+        inner1_polygon_absolute = [[10,10],[20,10],[20,20],[10,20]]
+        inner1_polygon = geo_ref_poly. \
+                         change_points_geo_ref(inner1_polygon_absolute)
+
+        inner2_polygon_absolute = [[30,30],[40,30],[40,40],[30,40]]
+        inner2_polygon = geo_ref_poly. \
+                         change_points_geo_ref(inner2_polygon_absolute)
+        
+        max_area = 1
+        interior_regions = [(inner1_polygon, 5),(inner2_polygon, 10)]
+        m = create_mesh_from_regions(polygon,
+                                     boundary_tags,
+                                     max_area,
+                                     interior_regions=interior_regions,
+                                     poly_geo_reference=geo_ref_poly,
+                                     mesh_geo_reference=mesh_geo)
+                    
+        m.export_mesh_file('a_test_mesh_iknterface.tsh')                 
+        
+        fileName = tempfile.mktemp(".txt")
+        file = open(fileName,"w")
+        file.write("         1       ??      ??\n\
+       90.0       90.0\n\
+       81.0       90.0\n\
+       81.0       81.0\n\
+       90.0       81.0\n\
+       90.0       90.0\n\
+END\n\
+         2      ?? ??\n\
+       10.0       80.0\n\
+       10.0       90.0\n\
+       20.0       90.0\n\
+       10.0       80.0\n\
+END\n\
+END\n")
+        file.close() 
+        
+        m.import_ungenerate_file(fileName) #, tag='wall')
+        os.remove(fileName)
+        m.generate_mesh(maximum_triangle_area=max_area,verbose=False)
+        mesh_filename = "bento_b.tsh"
+        m.export_mesh_file(mesh_filename)
+
+        domain = Domain(mesh_filename, use_cache = False)
+        
+        Br = Reflective_boundary(domain)
+        Bd = Dirichlet_boundary([3,0,0]) 
+        domain.set_boundary( {'wall': Br, 'wave': Bd} )
+        yieldstep = 0.1
+        finaltime = 10
+        for t in domain.evolve(yieldstep, finaltime):    
+            domain.write_time()
+    
+    def concept_ungenerateIII(self):
+        
+        from anuga.shallow_water import Domain, Reflective_boundary, \
+                            Dirichlet_boundary
+       
+        from anuga.pmesh.mesh_interface import create_mesh_from_regions
+        
+        # These are the absolute values
+        polygon = [[0,0],[100,0],[100,100],[0,100]]
+        
+        boundary_tags = {'wall':[0,1,3],'wave':[2]}
+        
+        inner1_polygon = [[10,10],[20,10],[20,20],[10,20]]
+        
+
+        inner2_polygon = [[30,30],[40,30],[40,40],[30,40]]
+        
+        
+        max_area = 1
+        interior_regions = [(inner1_polygon, 5),(inner2_polygon, 10)]
+        m = create_mesh_from_regions(polygon,
+                                     boundary_tags,
+                                     max_area,
+                                     interior_regions=interior_regions)
+                    
+        fileName = tempfile.mktemp(".txt")
+        file = open(fileName,"w")
+        file.write("         1       ??      ??\n\
+       90.0       90.0\n\
+       81.0       90.0\n\
+       81.0       81.0\n\
+       90.0       81.0\n\
+       90.0       90.0\n\
+END\n\
+         2      ?? ??\n\
+       10.0       80.0\n\
+       10.0       90.0\n\
+       20.0       90.0\n\
+       10.0       80.0\n\
+END\n\
+END\n")
+        file.close() 
+        
+        m.import_ungenerate_file(fileName) 
+        os.remove(fileName)
+        m.generate_mesh(maximum_triangle_area=max_area,verbose=False)
+        mesh_filename = "mesh.tsh"
+        m.export_mesh_file(mesh_filename)
+
+        domain = Domain(mesh_filename, use_cache = False)
+        
+        Br = Reflective_boundary(domain)
+        Bd = Dirichlet_boundary([3,0,0]) 
+        domain.set_boundary( {'wall': Br, 'wave': Bd} )
+        yieldstep = 0.1
+        finaltime = 10
+        for t in domain.evolve(yieldstep, finaltime):    
+            domain.write_time()
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(TestCase,'test')
-    #suite = unittest.makeSuite(TestCase,'test_create_mesh_from_regions_with_ungenerate')
+    #suite = unittest.makeSuite(TestCase,'concept_ungenerateIII')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
     
