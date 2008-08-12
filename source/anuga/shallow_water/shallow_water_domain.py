@@ -1089,7 +1089,8 @@ class Field_boundary(Boundary):
                  mean_stage=0.0,
                  time_thinning=1, 
                  use_cache=False,
-                 verbose=False):
+                 verbose=False,
+                 boundary_polygon=None):
         """Constructor
 
         filename: Name of sww file
@@ -1114,7 +1115,8 @@ class Field_boundary(Boundary):
         self.file_boundary = File_boundary(filename, domain,
                                            time_thinning=time_thinning,
                                            use_cache=use_cache,
-                                           verbose=verbose)
+                                           verbose=verbose,
+                                           boundary_polygon=boundary_polygon) 
         
         # Record information from File_boundary
         self.F = self.file_boundary.F
