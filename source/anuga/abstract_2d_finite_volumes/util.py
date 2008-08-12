@@ -2261,12 +2261,16 @@ def sww2csv_gauges(sww_file,
                         if point_quantities[0] - point_quantities[1] < 0.001:
                             vel = 0.0
                         else:
-                            momentum = sqrt(point_quantities[2]**2 +\
-                                            point_quantities[3]**2)
-#                            vel = momentum/depth              
-                            vel = momentum/(point_quantities[0] - point_quantities[1])
-#                            vel = momentum/(depth + 1.e-6/depth)              
-                        
+                            if point_quantities[2] < 1.0e6:
+                                momentum = sqrt(point_quantities[2]**2 +\
+                                                point_quantities[3]**2)
+    #                            vel = momentum/depth              
+                                vel = momentum/(point_quantities[0] - point_quantities[1])
+    #                            vel = momentum/(depth + 1.e-6/depth)
+                            else:
+                                momentum = 0
+                                vel = 0
+                            
                         points_list.append(vel)
                         
                     if quantity == 'bearing':
