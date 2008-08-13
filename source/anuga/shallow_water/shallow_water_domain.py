@@ -1087,10 +1087,11 @@ class Field_boundary(Boundary):
 
     def __init__(self, filename, domain,
                  mean_stage=0.0,
-                 time_thinning=1, 
+                 time_thinning=1,
+                 boundary_polygon=None,    
+                 default_boundary=None,                  
                  use_cache=False,
-                 verbose=False,
-                 boundary_polygon=None):
+                 verbose=False):
         """Constructor
 
         filename: Name of sww file
@@ -1106,6 +1107,12 @@ class Field_boundary(Boundary):
                        only 864 step. This parameter is very useful to increase
                        the speed of a model run that you are setting up 
                        and testing.
+                       
+        default_boundary: Must be either None or an instance of a 
+                          class descending from class Boundary.
+                          This will be used in case model time exceeds 
+                          that available in the underlying data.
+                                                
         use_cache:
         verbose:
         
@@ -1114,9 +1121,11 @@ class Field_boundary(Boundary):
         # Create generic file_boundary object
         self.file_boundary = File_boundary(filename, domain,
                                            time_thinning=time_thinning,
+                                           boundary_polygon=boundary_polygon,
+                                           default_boundary=default_boundary,
                                            use_cache=use_cache,
-                                           verbose=verbose,
-                                           boundary_polygon=boundary_polygon) 
+                                           verbose=verbose)
+
         
         # Record information from File_boundary
         self.F = self.file_boundary.F

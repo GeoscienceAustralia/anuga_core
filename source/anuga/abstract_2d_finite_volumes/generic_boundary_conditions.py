@@ -1,7 +1,11 @@
 """boundary.py - Classes for implementing boundary conditions
 """
 
+from warnings import warn
+
 from anuga.utilities.numerical_tools import NAN    
+from anuga.fit_interpolate.interpolate import Modeltime_too_late
+from anuga.fit_interpolate.interpolate import Modeltime_too_early
 
 
 class Boundary:
@@ -182,14 +186,24 @@ class File_boundary(Boundary):
 
     Note that the resulting solution history is not exactly the same as if
     the models were coupled as there is no feedback into the source model.
+    
+    Optional keyword argument default_boundary must be either None or 
+    an instance of class descending from class Boundary.
+    This will be used in case model time exceeds that available in the 
+    underlying data.
        
     """
 
     # FIXME (Ole): I kind of like the name Spatio_Temporal_boundary for this
     # rather than File_boundary
 
-    def __init__(self, filename, domain, time_thinning=1, 
-                 use_cache=False, verbose=False, boundary_polygon=None):
+    def __init__(self, filename, domain, 
+                 time_thinning=1, 
+                 boundary_polygon=None,    
+                 default_boundary=None,
+                 use_cache=False, 
+                 verbose=False): 
+
         import time
         from Numeric import array, zeros, Float
         from anuga.config import time_format
@@ -250,8 +264,18 @@ class File_boundary(Boundary):
                                use_cache=use_cache, 
                                verbose=verbose,
                                boundary_polygon=boundary_polygon)
+                             
+        # Check and store default_boundary
+        msg = 'Keyword argument default_boundary must be either None '
+        msg += 'or a boundary object.\n I got %s' %(str(default_boundary))
+        assert default_boundary is None or isinstance(default_boundary, Boundary), msg
+        self.default_boundary = default_boundary
+        self.default_boundary_invoked = False    # Flag
 
+        # Store pointer to domain
         self.domain = domain
+        
+        self.verbose = verbose
 
         # Test
 
@@ -292,9 +316,35 @@ class File_boundary(Boundary):
         """
 
         t = self.domain.time
+        
         if vol_id is not None and edge_id is not None:
             i = self.boundary_indices[ vol_id, edge_id ]
-            res = self.F(t, point_id = i)
+            
+            
+            #res = self.F(t, point_id = i)            
+            try:
+                res = self.F(t, point_id = i)
+            except (Modeltime_too_late, Modeltime_too_early), e:
+                if self.default_boundary is None:
+                    raise Exception, e # Reraise exception
+                else:
+                    if self.default_boundary_invoked is False:
+                        # Issue warning the first time
+                        msg = '%s' %str(e)
+                        msg += 'Instead I will using the default boundary: %s\n'\
+                            %str(self.default_boundary) 
+                        msg += 'Note: Further warnings will be supressed'
+                        warn(msg)
+                   
+                        # FIXME (Ole): Replace this crude flag with
+                        # Python's ability to print warnings only once.
+                        # See http://docs.python.org/lib/warning-filter.html
+                        self.default_boundary_invoked = True
+                    
+                    # Pass control to default boundary
+                    res = self.default_boundary.evaluate(vol_id, edge_id)
+                    
+                
             if res == NAN:
                 x,y=self.midpoint_coordinates[i,:]
                 msg = 'NAN value found in file_boundary at '

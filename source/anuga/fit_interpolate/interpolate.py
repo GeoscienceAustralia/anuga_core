@@ -39,6 +39,12 @@ from anuga.fit_interpolate.search_functions import search_tree_of_vertices
 from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
 from anuga.abstract_2d_finite_volumes.util import file_function
 
+# Interpolation specific exceptions
+
+class Modeltime_too_late(Exception): pass
+class Modeltime_too_early(Exception): pass
+
+
 
 class Interpolate (FitInterpolate):
         
@@ -855,8 +861,8 @@ class Interpolation_function:
 
         msg = 'Time interval [%.16f:%.16f]' %(self.time[0], self.time[-1])
         msg += ' does not match model time: %.16f\n' %t
-        if t < self.time[0]: raise Exception(msg)
-        if t > self.time[-1]: raise Exception(msg)
+        if t < self.time[0]: raise Modeltime_too_early(msg)
+        if t > self.time[-1]: raise Modeltime_too_late(msg)
 
         oldindex = self.index #Time index
 

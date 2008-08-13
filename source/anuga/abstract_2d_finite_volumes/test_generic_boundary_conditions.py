@@ -103,6 +103,10 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
     def test_fileboundary_time_only(self):
         """Test that boundary values can be read from file and interpolated
         This is using the .tms file format
+        
+        See also test_util for comprenhensive testing of the underlying 
+        file_function and also tests in test_datamanager which tests 
+        file_function using the sts format
         """
 
         from domain import Domain
@@ -268,7 +272,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Generic_Boundary_Conditions,'test')
+    suite = unittest.makeSuite(Test_Generic_Boundary_Conditions, 'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
 

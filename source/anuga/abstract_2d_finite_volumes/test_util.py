@@ -520,7 +520,7 @@ class Test_Util(unittest.TestCase):
         
 
 
-    def qtest_spatio_temporal_file_function_time(self):
+    def test_spatio_temporal_file_function_time(self):
         """Test that File function interpolates correctly
         between given times.
         NetCDF version (x,y,t dependency)
@@ -553,7 +553,7 @@ class Test_Util(unittest.TestCase):
         #(0:15, -20:10)
         points, vertices, boundary =\
                 rectangular(4, 4, 15, 30, origin = (0, -20))
-        print "points", points
+        #print "points", points
 
         #print 'Number of elements', len(vertices)
         domain = Domain(points, vertices, boundary)
@@ -638,8 +638,8 @@ class Test_Util(unittest.TestCase):
                 #print i, k, t, q
                 #print ' ', q0
                 #print ' ', q1
-                print "q",q
-                print "actual", actual
+                #print "q",q
+                #print "actual", actual
                 #print
                 if q0 == NAN:
                      self.failUnless( q == actual, 'Fail!')
@@ -695,7 +695,7 @@ class Test_Util(unittest.TestCase):
 
 
 
-    def NOtest_spatio_temporal_file_function_time(self):
+    def Xtest_spatio_temporal_file_function_time(self):
         # FIXME: This passes but needs some TLC
         # Test that File function interpolates correctly
         # When some points are outside the mesh
