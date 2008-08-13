@@ -36,13 +36,16 @@ def decimal_degrees2degminsec(dec):
     
     return sign*dd, mm, ss
 
-def redfearn(lat, lon, false_easting=None, false_northing=None):
+def redfearn(lat, lon, false_easting=None, false_northing=None, zone=None):
     """Compute UTM projection using Redfearn's formula
 
     lat, lon is latitude and longitude in decimal degrees
 
     If false easting and northing are specified they will override
     the standard
+
+    If zone is specified reproject lat and long to specified zone instead of
+    standard zone
     """
 
 
