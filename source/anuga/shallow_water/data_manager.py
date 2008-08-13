@@ -5224,8 +5224,14 @@ def urs2sts(basename_in, basename_out=None,
         zone, easting, northing = redfearn(latitudes[i],longitudes[i])
         x[i] = easting
         y[i] = northing
-        msg='all sts gauges need to be in the same zone'
-        assert zone==refzone,msg
+        if zone != refzone:
+            msg='All sts gauges need to be in the same zone. \n'
+            msg+='offending gauge:Zone %d,%.4f, %4f\n' %(zone, easting, northing)
+            msg+='previous gauge:Zone %d,%.4f, %4f' %(old_zone, old_easting, old_northing) 
+            raise Exception, msg
+        old_zone = zone
+        old_easting = easting
+        old_northing = northing
 
     if origin is None:
         origin = Geo_reference(refzone,min(x),min(y))
