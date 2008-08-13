@@ -48,14 +48,13 @@ Geoscience Australia, June 2005
 
 def slide_tsunami(length, depth, slope, width=None, thickness=None, \
                   x0=0.0, y0=0.0, alpha=0.0, \
-                  gravity=9.8, gamma=1.85, \
-                  massco=1, dragco=1, frictionco=0, psi=0, \
-                  dx=None, kappa=3.0, kappad=0.8, zsmall=0.01, \
-                  domain=None,
-                  verbose=False):
+                  gravity=9.8, gamma=None, \
+                  massco=None, dragco=None, frictionco=0, psi=0, \
+                  dx=None, kappa=None, kappad=None, zsmall=0.01, \
+                  scale=None, domain=None, verbose=False):
 
     from math import sin, tan, radians, pi, sqrt, exp
-
+    
     if domain is not None:
         xllcorner = domain.geo_reference.get_xllcorner()
         yllcorner = domain.geo_reference.get_yllcorner()
@@ -69,6 +68,24 @@ def slide_tsunami(length, depth, slope, width=None, thickness=None, \
     #if thickness not provided, set to typical value
     if thickness is None:
         thickness = 0.01 * length
+
+    if gamma is None:
+        gamma = 1.85
+
+    if massco is None:
+        massco = 1.
+
+    if dragco is None:
+        dragco = 1.
+
+    if kappa is None:
+        kappa = 3.
+
+    if kappad is None:
+        kappa = 0.8
+
+    if dx is None:
+        dx = 0.
 
     #calculate some parameters of the slide
 
@@ -128,7 +145,7 @@ def slide_tsunami(length, depth, slope, width=None, thickness=None, \
 
     return Double_gaussian(a3D=a3D, wavelength=w, width=width, \
                            x0=x0, y0=y0, alpha=alpha, \
-                           dx=dx, kappa=kappa, kappad=kappad, zsmall=zsmall)
+                           dx=dx, kappa=kappa, kappad=kappad, zsmall=zsmall, scale=scale)
 
 #
 # slump_tsunami function
@@ -181,7 +198,7 @@ Geoscience Australia, June 2005
 
 def slump_tsunami(length, depth, slope, width=None, thickness=None, \
                   radius=None, dphi=0.48, x0=0.0, y0=0.0, alpha=0.0, \
-                  gravity=9.8, gamma=1.85, \
+                  gravity=9.8, gamma=None, \
                   massco=1, dragco=1, frictionco=0, \
                   dx=None, kappa=3.0, kappad=1.0, zsmall=0.01, \
                   domain=None,
@@ -306,7 +323,7 @@ Geoscience Australia, June 2005
 class Double_gaussian:
 
     def __init__(self, a3D, wavelength, width, x0, y0, alpha, \
-                 dx, kappa, kappad, zsmall):
+                 dx, kappa, kappad, zsmall, scale):
         self.a3D = a3D
         self.wavelength = wavelength
         self.width = width
@@ -315,6 +332,7 @@ class Double_gaussian:
         self.alpha = alpha
         self.kappa = kappa
         self.kappad = kappad
+        self.scale = scale
 
         if dx is None:
             self.determineDX(zsmall=zsmall)
@@ -347,6 +365,7 @@ class Double_gaussian:
         dx = self.dx
         kappa = self.kappa
         kappad = self.kappad
+        scale = self.scale
         #amin = self.find_min(x0,wa,kappad,kappa,dx,am)
         amin = 1.0
 
@@ -363,21 +382,22 @@ class Double_gaussian:
         z = zeros(N, Float)
         maxz = 0.0
         minz = 0.0
+        
         for i in range(N):
             try:
-                if i == 10: print 'hello', x[i], x0, xr[i]
-                z[i] =  -(am/am2) / (amin*(cosh(kappa*(yr[i]-y0)/(wi+wa)))**2) \
+                #if i == 10: print 'hello', x[i], x0, xr[i]
+                z[i] =  -scale / ((cosh(kappa*(yr[i]-y0)/(wi+wa)))**2) \
                             * (exp(-((xr[i]-x0)/wa)**2) - \
                                 kappad*exp(-((xr[i]-dx-x0)/wa)**2))
                 if z[i] > maxz: maxz = z[i]
                 if z[i] < minz: minz = z[i]
-                
+                                
             except OverflowError:
                 pass
 
         print 'max z', maxz
         print 'min z', minz
-                
+                        
         return z
 
     def determineDX(self, zsmall):
