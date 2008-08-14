@@ -685,19 +685,28 @@ class Polygon_function:
 	    len(regions)
 	except:
             msg = 'Polygon_function takes a list of pairs (polygon, value).'
-            msg += 'Got %s' %polygons
+            msg += 'Got %s' %regions
             raise msg
 
 
         T = regions[0]
+
+        if isinstance(T, basestring):
+            msg = 'You passed in a list of text values into polygon_function'
+            msg += ' instead of a list of pairs (polygon, value): "%s"' %T
+            
+            raise Exception, msg
+        
 	try:
             a = len(T)
 	except:
             msg = 'Polygon_function takes a list of pairs (polygon, value).'
-            msg += 'Got %s' %polygons
+            msg += 'Got %s' %str(T)
             raise msg
 
-	assert a == 2, 'Must have two component each: %s' %T
+        msg = 'Each entry in regions have two components: (polygon, value).'
+        msg +='I got %s' %str(T)
+	assert a == 2, msg
 
 
         if geo_reference is None:
