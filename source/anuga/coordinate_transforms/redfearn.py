@@ -138,7 +138,9 @@ def redfearn(lat, lon, false_easting=None, false_northing=None, zone=None):
     m = term1 + term2 + term3 + term4 #OK
 
     #Zone
-    zone = int((lon - longitude_of_western_edge_zone0)/zone_width)
+    if zone is None:
+        zone = int((lon - longitude_of_western_edge_zone0)/zone_width)
+
     central_meridian = zone*zone_width+longitude_of_central_meridian_zone0
 
     omega = (lon-central_meridian)*pi/180 #Relative longitude (radians)
@@ -149,8 +151,7 @@ def redfearn(lat, lon, false_easting=None, false_northing=None, zone=None):
     omega6 = omega3*omega3
     omega7 = omega*omega6
     omega8 = omega4*omega4
-    
-    
+     
     #Northing
     term1 = nu*sinphi*cosphi*omega2/2  
     term2 = nu*sinphi*cosphi3*(4*psi2+psi-t2)*omega4/24

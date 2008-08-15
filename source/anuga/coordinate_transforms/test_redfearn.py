@@ -118,6 +118,120 @@ class TestCase(unittest.TestCase):
         assert allclose(easting, 308728.009)
         assert allclose(northing, 6180432.601)
 
+    def test_UTM_6_nonstandard_projection(self):
+        #Test 6 (Geraldton, WA)
+
+        #First test native projection (zone 50)
+        zone, easting, northing = redfearn(-29.233299999,114.05)
+
+        assert zone == 50
+        assert allclose(easting, 213251.040253)
+        assert allclose(northing, 6762559.15978)
+
+        #Testing using the native zone
+        zone, easting, northing = redfearn(-29.233299999,114.05, zone=50)
+
+        assert zone == 50
+        assert allclose(easting, 213251.040253)
+        assert allclose(northing, 6762559.15978)
+
+        #Then project to zone 49
+        zone, easting, northing = redfearn(-29.233299999,114.05,zone=49)
+
+        assert zone == 49
+        assert allclose(easting, 796474.020057)
+        assert allclose(northing, 6762310.25162)
+
+       
+
+        
+
+        #First test native projection (zone 49)
+        zone, easting, northing = redfearn(-29.1333,113.9667)
+
+        assert zone == 49
+        assert allclose(easting, 788653.192779)
+        assert allclose(northing, 6773605.46384)
+
+        #Then project to zone 50
+        zone, easting, northing = redfearn(-29.1333,113.9667,zone=50)
+
+        assert zone == 50
+        assert allclose(easting, 204863.606467)
+        assert allclose(northing, 6773440.04726)
+
+        #Testing point on zone boundary
+        #First test native projection (zone 50)
+        zone, easting, northing = redfearn(-29.1667,114)
+
+        assert zone == 50
+        assert allclose(easting, 208199.768268)
+        assert allclose(northing, 6769820.01453)
+
+        #Then project to zone 49
+        zone, easting, northing = redfearn(-29.1667,114,zone=49)
+
+        assert zone == 49
+        assert allclose(easting, 791800.231817)
+        assert allclose(northing, 6769820.01453)
+
+        #Testing furthest point in Geraldton scenario)
+        #First test native projection (zone 49)
+        zone, easting, northing = redfearn(-28.2167,113.4167)
+
+        assert zone == 49
+        assert allclose(easting, 737178.16131)
+        assert allclose(northing, 6876426.38578)
+
+        #Then project to zone 50
+        zone, easting, northing = redfearn(-28.2167,113.4167,zone=50)
+
+        assert zone == 50
+        assert allclose(easting, 148260.567427)
+        assert allclose(northing, 6873587.50926)
+
+        #Testing outside GDA zone (New Zeland)
+        #First test native projection (zone 60)
+        zone, easting, northing = redfearn(-44,178)
+
+        assert zone == 60
+        assert allclose(easting, 580174.259843)
+        assert allclose(northing, 5127641.114461)
+
+        #Then project to zone 59
+        zone, easting, northing = redfearn(-44,178,zone=59)
+
+        assert zone == 59
+        assert allclose(easting, 1061266.922118)
+        assert allclose(northing, 5104249.395469)
+
+        #Then skip three zones 57 (native 60)
+        zone, easting, northing = redfearn(-44,178,zone=57)
+
+        assert zone == 57
+        assert allclose(easting, 2023865.527497)
+        assert allclose(northing, 4949253.934967)
+
+#Note Projecting into the Northern Hemisphere Does not coincide
+#redfearn or ArcMap conversions
+##        #Testing outside GDA zone (Northern Hemisphere)
+##        #First test native projection (zone 57)
+##        zone, easting, northing = redfearn(44,156)
+##
+##        assert zone == 57
+##        assert allclose(easting, 259473.678944)
+##        assert allclose(northing, 14876249.1268)
+##
+##        #Then project to zone 59
+##        zone, easting, northing = redfearn(44,156,zone=56)
+##
+##        assert zone == 56
+##        assert allclose(easting, 740526.321055)
+##        assert allclose(northing, 14876249.1268)
+
+
+        
+
 
     #def test_UTM_6(self):
     #    """Test 6 (Don's Wollongong file's ref point)
@@ -286,6 +400,7 @@ class TestCase(unittest.TestCase):
 if __name__ == "__main__":
 
     #mysuite = unittest.makeSuite(TestCase,'test_convert_latlon_to_UTM1')
+    #mysuite = unittest.makeSuite(TestCase,'test_UTM_6_nonstandard_projection')
     mysuite = unittest.makeSuite(TestCase,'test')
     runner = unittest.TextTestRunner()
     runner.run(mysuite)
