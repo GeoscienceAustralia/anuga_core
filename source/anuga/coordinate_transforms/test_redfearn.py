@@ -212,23 +212,34 @@ class TestCase(unittest.TestCase):
         assert allclose(easting, 2023865.527497)
         assert allclose(northing, 4949253.934967)
 
-#Note Projecting into the Northern Hemisphere Does not coincide
-#redfearn or ArcMap conversions
-##        #Testing outside GDA zone (Northern Hemisphere)
-##        #First test native projection (zone 57)
-##        zone, easting, northing = redfearn(44,156)
-##
-##        assert zone == 57
-##        assert allclose(easting, 259473.678944)
-##        assert allclose(northing, 14876249.1268)
-##
-##        #Then project to zone 59
-##        zone, easting, northing = redfearn(44,156,zone=56)
-##
-##        assert zone == 56
-##        assert allclose(easting, 740526.321055)
-##        assert allclose(northing, 14876249.1268)
+        # Note Projecting into the Northern Hemisphere Does not coincide
+        # redfearn or ArcMap conversions. The difference lies in
+        # False Northing which is 0 for the Northern hemisphere
+        # in the redfearn implementation but 10 million in Arc.
+        #
+        # But the redfearn implementation does coincide with
+        # Google Earth (he he)
+        
+        #Testing outside GDA zone (Northern Hemisphere)
+        #First test native projection (zone 57)
+        zone, easting, northing = redfearn(44,156)
 
+        # Google Earth interpretation
+        assert zone == 57
+        assert allclose(easting, 259473.69)
+        assert allclose(northing, 4876249.13)
+
+        # ArcMap's interpretation
+        #assert zone == 57        
+        #assert allclose(easting, 259473.678944)
+        #assert allclose(northing, 14876249.1268)
+        
+        #Then project to zone 56
+        zone, easting, northing = redfearn(44,156,zone=56)
+
+        assert zone == 56
+        assert allclose(easting, 740526.321055)
+        assert allclose(northing, 4876249.13)
 
         
 
