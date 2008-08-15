@@ -2024,7 +2024,7 @@ def sww2dem(basename_in, basename_out = None,
 
         q = q_reduced
 
-    #Post condition: Now q has dimension: number_of_points
+    #Post condition: Now q has dimension: http://www.sagemath.org/number_of_points
     assert len(q.shape) == 1
     assert q.shape[0] == number_of_points
 
@@ -2054,9 +2054,16 @@ def sww2dem(basename_in, basename_out = None,
         ymax = max(y)
     else:
         ymax = northing_max - yllcorner
+    
 
+    msg = 'xmax must be greater than or equal to xmin.\n'
+    msg += 'I got xmin = %f, xmax = %f' %(xmin, xmax)
+    assert xmax >= xmin, msg
 
-
+    msg = 'yax must be greater than or equal to xmin.\n'
+    msg += 'I got ymin = %f, ymax = %f' %(ymin, ymax)
+    assert ymax >= ymin, msg    
+    
     if verbose: print 'Creating grid'
     ncols = int((xmax-xmin)/cellsize)+1
     nrows = int((ymax-ymin)/cellsize)+1
