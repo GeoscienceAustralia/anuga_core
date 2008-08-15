@@ -2024,7 +2024,7 @@ def sww2dem(basename_in, basename_out = None,
 
         q = q_reduced
 
-    #Post condition: Now q has dimension: http://www.sagemath.org/number_of_points
+    #Post condition: Now q has dimension: number_of_points
     assert len(q.shape) == 1
     assert q.shape[0] == number_of_points
 
