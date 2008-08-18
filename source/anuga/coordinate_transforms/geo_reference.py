@@ -203,6 +203,10 @@ class Geo_reference:
             assert len(points) == 2, msg
             points = reshape(points, (1,2))
 
+        msg = 'Points array must be two dimensional.\n'
+        msg += 'I got %d dimensions' %len(points.shape)
+        assert len(points.shape) == 2, msg
+
         msg = 'Input must be an N x 2 array or list of (x,y) values. '
         msg += 'I got an %d x %d array' %points.shape    
         assert points.shape[1] == 2, msg                
