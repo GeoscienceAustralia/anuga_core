@@ -100,7 +100,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         assert allclose(q, [1.5, 2.5])
 
 
-    def test_fileboundary_time_only(self):
+    def NOtest_fileboundary_time_only(self):
         """Test that boundary values can be read from file and interpolated
         This is using the .tms file format
         
@@ -108,7 +108,10 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         file_function and also tests in test_datamanager which tests 
         file_function using the sts format
         """
-
+        #FIXME (Ole): This test was disabled 18 August 2008 as no
+        # need for this was found. Rather I implemented an Exception
+        # to catch possible errors in the model setup
+        
         from domain import Domain
         from quantity import Quantity
         import time, os

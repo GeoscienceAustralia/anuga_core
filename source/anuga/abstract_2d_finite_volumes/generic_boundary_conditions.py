@@ -268,7 +268,8 @@ class File_boundary(Boundary):
         # Check and store default_boundary
         msg = 'Keyword argument default_boundary must be either None '
         msg += 'or a boundary object.\n I got %s' %(str(default_boundary))
-        assert default_boundary is None or isinstance(default_boundary, Boundary), msg
+        assert default_boundary is None or\
+            isinstance(default_boundary, Boundary), msg
         self.default_boundary = default_boundary
         self.default_boundary_invoked = False    # Flag
 
@@ -320,18 +321,21 @@ class File_boundary(Boundary):
         if vol_id is not None and edge_id is not None:
             i = self.boundary_indices[ vol_id, edge_id ]
             
-            
-            #res = self.F(t, point_id = i)            
             try:
-                res = self.F(t, point_id = i)
-            except (Modeltime_too_late, Modeltime_too_early), e:
+                res = self.F(t, point_id=i)
+            except Modeltime_too_early, e:
+                raise Modeltime_too_early, e
+            except Modeltime_too_late, e:
                 if self.default_boundary is None:
                     raise Exception, e # Reraise exception
                 else:
+                    # Pass control to default boundary
+                    res = self.default_boundary.evaluate(vol_id, edge_id)
+                                    
                     if self.default_boundary_invoked is False:
                         # Issue warning the first time
                         msg = '%s' %str(e)
-                        msg += 'Instead I will using the default boundary: %s\n'\
+                        msg += 'Instead I will use the default boundary: %s\n'\
                             %str(self.default_boundary) 
                         msg += 'Note: Further warnings will be supressed'
                         warn(msg)
@@ -341,8 +345,7 @@ class File_boundary(Boundary):
                         # See http://docs.python.org/lib/warning-filter.html
                         self.default_boundary_invoked = True
                     
-                    # Pass control to default boundary
-                    res = self.default_boundary.evaluate(vol_id, edge_id)
+
                     
                 
             if res == NAN:
@@ -370,9 +373,11 @@ class File_boundary(Boundary):
             
             return res 
         else:
-            # raise 'Boundary call without point_id not implemented'
+            msg = 'Boundary call without point_id not implemented.\n'
+            msg += 'vol_id=%s, edge_id=%s' %(str(vol_id), str(edge_id))
+            raise Exception, msg
             # FIXME: What should the semantics be?
-            return self.F(t)
+            #return self.F(t)
 
 
 

@@ -1193,25 +1193,25 @@ class Domain(Mesh):
         Q^{n+1} = E(h) Q^n
         """
 
-        #Compute fluxes across each element edge
+        # Compute fluxes across each element edge
         self.compute_fluxes()
 
-        #Update timestep to fit yieldstep and finaltime
+        # Update timestep to fit yieldstep and finaltime
         self.update_timestep(yieldstep, finaltime)
 
-        #Update conserved quantities
+        # Update conserved quantities
         self.update_conserved_quantities()
 
-        #update ghosts
+        # Update ghosts
         self.update_ghosts()
 
-        #Update vertex and edge values
+        # Update vertex and edge values
         self.distribute_to_vertices_and_edges()
 
-        #Update boundary values
+        # Update boundary values
         self.update_boundary()
 
-        #Update time
+        # Update time
         self.time += self.timestep
 
         
@@ -1223,58 +1223,59 @@ class Domain(Mesh):
         Q^{n+1} = 0.5 Q^n + 0.5 E(h)^2 Q^n
         """
 
-        #Save initial initial conserved quantities values
+        # Save initial initial conserved quantities values
         self.backup_conserved_quantities()            
 
         #--------------------------------------
-        #First euler step
+        # First euler step
         #--------------------------------------
 
-        #Compute fluxes across each element edge
+        # Compute fluxes across each element edge
         self.compute_fluxes()
 
-        #Update timestep to fit yieldstep and finaltime
+        # Update timestep to fit yieldstep and finaltime
         self.update_timestep(yieldstep, finaltime)
 
-        #Update conserved quantities
+        # Update conserved quantities
         self.update_conserved_quantities()
 
-        #update ghosts
+        # Update ghosts
         self.update_ghosts()
 
-        #Update vertex and edge values
+        # Update vertex and edge values
         self.distribute_to_vertices_and_edges()
 
-        #Update boundary values
+        # Update boundary values
         self.update_boundary()
 
-        #Update time
+        # Update time
         self.time += self.timestep
 
         #------------------------------------
-        #Second Euler step
+        # Second Euler step
         #------------------------------------
             
-        #Compute fluxes across each element edge
+        # Compute fluxes across each element edge
         self.compute_fluxes()
 
-        #Update conserved quantities
+        # Update conserved quantities
         self.update_conserved_quantities()
 
         #------------------------------------
-        #Combine initial and final values
-        #of conserved quantities and cleanup
+        # Combine initial and final values
+        # of conserved quantities and cleanup
         #------------------------------------
-        #combine steps
+        
+        # Combine steps
         self.saxpy_conserved_quantities(0.5, 0.5)
  
-        #update ghosts
+        # Update ghosts
         self.update_ghosts()
 
-        #Update vertex and edge values
+        # Update vertex and edge values
         self.distribute_to_vertices_and_edges()
 
-        #Update boundary values
+        # Update boundary values
         self.update_boundary()
 
 
@@ -1286,44 +1287,44 @@ class Domain(Mesh):
         Q^{n+1} = 1/3 Q^n + 2/3 E(h) Q^(1) (at time t^{n+1})
         """
 
-        #Save initial initial conserved quantities values
+        # Save initial initial conserved quantities values
         self.backup_conserved_quantities()            
 
         initial_time = self.time
         
         #--------------------------------------
-        #First euler step
+        # First euler step
         #--------------------------------------
 
-        #Compute fluxes across each element edge
+        # Compute fluxes across each element edge
         self.compute_fluxes()
 
-        #Update timestep to fit yieldstep and finaltime
+        # Update timestep to fit yieldstep and finaltime
         self.update_timestep(yieldstep, finaltime)
 
-        #Update conserved quantities
+        # Update conserved quantities
         self.update_conserved_quantities()
 
-        #update ghosts
+        # Update ghosts
         self.update_ghosts()
 
-        #Update vertex and edge values
+        # Update vertex and edge values
         self.distribute_to_vertices_and_edges()
 
-        #Update boundary values
+        # Update boundary values
         self.update_boundary()
 
-        #Update time
+        # Update time
         self.time += self.timestep
 
         #------------------------------------
-        #Second Euler step
+        # Second Euler step
         #------------------------------------
             
-        #Compute fluxes across each element edge
+        # Compute fluxes across each element edge
         self.compute_fluxes()
 
-        #Update conserved quantities
+        # Update conserved quantities
         self.update_conserved_quantities()
 
         #------------------------------------
@@ -1331,48 +1332,49 @@ class Domain(Mesh):
         #solution at time t^n + 0.5 h
         #------------------------------------
 
-        #combine steps
+        # Combine steps
         self.saxpy_conserved_quantities(0.25, 0.75)
  
-        #update ghosts
+        # Update ghosts
         self.update_ghosts()
 
-        #Update vertex and edge values
+        # Update vertex and edge values
         self.distribute_to_vertices_and_edges()
 
-        #Update boundary values
+        # Update boundary values
         self.update_boundary()
 
-        #set substep time
+        # Set substep time
         self.time = initial_time + self.timestep*0.5
 
         #------------------------------------
-        #Third Euler step
+        # Third Euler step
         #------------------------------------
             
-        #Compute fluxes across each element edge
+        # Compute fluxes across each element edge
         self.compute_fluxes()
 
-        #Update conserved quantities
+        # Update conserved quantities
         self.update_conserved_quantities()
 
         #------------------------------------
-        #Combine final and initial values
-        #and cleanup
+        # Combine final and initial values
+        # and cleanup
         #------------------------------------
-        #combine steps
+        
+        # Combine steps
         self.saxpy_conserved_quantities(2.0/3.0, 1.0/3.0)
  
-        #update ghosts
+        # Update ghosts
         self.update_ghosts()
 
-        #Update vertex and edge values
+        # Update vertex and edge values
         self.distribute_to_vertices_and_edges()
 
-        #Update boundary values
+        # Update boundary values
         self.update_boundary()
 
-        #set new time
+        # Set new time
         self.time = initial_time + self.timestep       
         
 
