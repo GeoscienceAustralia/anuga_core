@@ -1144,7 +1144,7 @@ class Field_boundary(Boundary):
 
         vol_id and edge_id are ignored
         """
-
+        
         # Evaluate file boundary
         q = self.file_boundary.evaluate(vol_id, edge_id)
 

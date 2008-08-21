@@ -7800,11 +7800,12 @@ friction  \n \
         from anuga.shallow_water import File_boundary
         from anuga.pmesh.mesh_interface import create_mesh_from_regions
 
-        bounding_polygon=[[6.0,97.0],[6.01,97.0],[6.02,97.0],[6.02,97.02],[6.00,97.02]]
+        bounding_polygon=[[6.0,97.0],[6.01,97.0],[6.02,97.0],
+                          [6.02,97.02],[6.00,97.02]]
         tide = 0.37
         time_step_count = 5
         time_step = 2
-        lat_long_points =bounding_polygon[0:3]
+        lat_long_points = bounding_polygon[0:3]
         n=len(lat_long_points)
         first_tstep=ones(n,Int)
         last_tstep=(time_step_count)*ones(n,Int)
@@ -7935,7 +7936,129 @@ friction  \n \
         os.remove(sts_file+'.sts')
         os.remove(meshname)
 
+
         
+                
+        
+    def test_field_boundary_stsI_beyond_model_time(self):
+        """test_field_boundary(self):
+        
+        Test that field_boundary can work when model time
+        exceeds available data whilst adjusting mean_stage.
+        
+        """
+        
+        # Don't do warnings in unit test
+        import warnings
+        warnings.simplefilter('ignore')
+        
+        from anuga.shallow_water import Domain
+        from anuga.shallow_water import Reflective_boundary
+        from anuga.shallow_water import Dirichlet_boundary
+        from anuga.shallow_water import File_boundary
+        from anuga.pmesh.mesh_interface import create_mesh_from_regions
+
+        bounding_polygon=[[6.0,97.0],[6.01,97.0],[6.02,97.0],
+                          [6.02,97.02],[6.00,97.02]]
+        tide = 0.37
+        time_step_count = 5
+        time_step = 2
+        lat_long_points = bounding_polygon[0:3]
+        n=len(lat_long_points)
+        first_tstep=ones(n,Int)
+        last_tstep=(time_step_count)*ones(n,Int)
+
+        h = 20        
+        w = 2
+        u = 10
+        v = -10
+        gauge_depth=h*ones(n,Float)
+        ha=w*ones((n,time_step_count),Float)
+        ua=u*ones((n,time_step_count),Float)
+        va=v*ones((n,time_step_count),Float)
+        base_name, files = self.write_mux2(lat_long_points,
+                                           time_step_count, time_step,
+                                           first_tstep, last_tstep,
+                                           depth=gauge_depth,
+                                           ha=ha,
+                                           ua=ua,
+                                           va=va)
+
+        sts_file=base_name
+        urs2sts(base_name,
+                sts_file,
+                mean_stage=0.0, # Deliberately let Field_boundary do the adjustment
+                verbose=False)
+        self.delete_mux(files)
+
+        #print 'start create mesh from regions'
+        for i in range(len(bounding_polygon)):
+            zone,\
+            bounding_polygon[i][0],\
+            bounding_polygon[i][1]=redfearn(bounding_polygon[i][0],
+                                            bounding_polygon[i][1])
+                                            
+        extent_res=1000000
+        meshname = 'urs_test_mesh' + '.tsh'
+        interior_regions=None
+        boundary_tags={'ocean': [0,1], 'otherocean': [2,3,4]}
+        create_mesh_from_regions(bounding_polygon,
+                                 boundary_tags=boundary_tags,
+                                 maximum_triangle_area=extent_res,
+                                 filename=meshname,
+                                 interior_regions=interior_regions,
+                                 verbose=False)
+        
+        domain_fbound = Domain(meshname)
+        domain_fbound.set_quantity('stage', tide)
+        
+        Br = Reflective_boundary(domain_fbound)
+        Bd = Dirichlet_boundary([w+tide, u*(w+h), v*(w+h)])
+        Bdefault = Dirichlet_boundary([w, u*(w+h), v*(w+h)])        
+                
+        Bf = Field_boundary(sts_file+'.sts', 
+                           domain_fbound, 
+                           mean_stage=tide, # Field boundary to adjust for tide
+                           boundary_polygon=bounding_polygon,
+                           default_boundary=Bdefault) # Condition to be used 
+                                                      # if model time exceeds 
+                                                      # available data
+
+        domain_fbound.set_boundary({'ocean': Bf,'otherocean': Br})
+        
+        # Check boundary object evaluates as it should
+        for i, ((vol_id, edge_id), B) in enumerate(domain_fbound.boundary_objects):
+            if B is Bf:
+            
+                qf = B.evaluate(vol_id, edge_id)  # Field boundary
+                qd = Bd.evaluate(vol_id, edge_id) # Dirichlet boundary
+                
+                msg = 'Got %s, should have been %s' %(qf, qd)
+                assert allclose(qf, qd), msg 
+                
+        # Evolve
+        data_finaltime = time_step*(time_step_count-1)
+        finaltime = data_finaltime + 10 # Let model time exceed available data
+        yieldstep = time_step
+        temp_fbound=zeros(int(finaltime/yieldstep)+1, Float)
+
+        for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
+                                                   finaltime=finaltime, 
+                                                   skip_initial_step=False)):
+                                                   
+            D = domain_fbound
+            temp_fbound[i]=D.quantities['stage'].centroid_values[2]
+
+            # Check that file boundary object has populated 
+            # boundary array correctly  
+            # FIXME (Ole): Do this for the other tests too!
+            for j, val in enumerate(D.get_quantity('stage').boundary_values):
+            
+                (vol_id, edge_id), B = D.boundary_objects[j]
+                if isinstance(B, Field_boundary):
+                    msg = 'Got %f should have been %f' %(val, w+tide)
+                    assert allclose(val, w + tide), msg
+
 
     def test_file_boundary_stsII(self):
         """test_file_boundary_stsII(self):

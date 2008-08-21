@@ -331,7 +331,13 @@ class File_boundary(Boundary):
                 else:
                     # Pass control to default boundary
                     res = self.default_boundary.evaluate(vol_id, edge_id)
-                                    
+                    
+                    # Ensure that result cannot be manipulated
+                    # This is a real danger in case the 
+                    # default_boundary is a Dirichlet type 
+                    # for instance. 
+                    res = res.copy() 
+                    
                     if self.default_boundary_invoked is False:
                         # Issue warning the first time
                         msg = '%s' %str(e)
@@ -346,8 +352,6 @@ class File_boundary(Boundary):
                         self.default_boundary_invoked = True
                     
 
-                    
-                
             if res == NAN:
                 x,y=self.midpoint_coordinates[i,:]
                 msg = 'NAN value found in file_boundary at '
