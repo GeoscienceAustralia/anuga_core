@@ -23,10 +23,9 @@ class Test_smf(unittest.TestCase):
         zsmall = 0.01
         scale = 1.0
 
-        dg = Double_gaussian(a3D=a3D, wavelength=wavelength, width=width, \
-                             x0=x0, y0=y0, alpha=alpha, dx = dx, \
-                             kappa=kappa, kappad = kappad, zsmall = zsmall,
-                             scale=scale)
+        dg = Double_gaussian(a3D, wavelength, width, \
+                             x0, y0, alpha, \
+                             kappa, kappad, zsmall, dx, scale)
 
         assert allclose(dg.a3D, a3D)
         assert allclose(dg.wavelength, wavelength)
@@ -38,7 +37,7 @@ class Test_smf(unittest.TestCase):
         assert allclose(dg.kappad, kappad)
         assert allclose(dg.dx, dx)
 
-
+    
     def test_slide_tsunami(self):
 
         len = 600.0
@@ -47,45 +46,89 @@ class Test_smf(unittest.TestCase):
         thk = 15.0
         wid = 340.0
         kappa = 3.0
+        kappad = 0.8
+        x0 = 100000.
 
-        slide = slide_tsunami(length=len, depth=dep, slope=th, \
-                              width = wid, thickness=thk, kappa=kappa)
+        slide = slide_tsunami(length=len, depth=dep, slope=th, x0=x0, \
+                              width = wid, thickness=thk, kappa=kappa, kappad=kappad, \
+			      verbose=False)
 
         assert allclose(slide.a3D, 0.07775819)
         assert allclose(slide.wavelength, 2938.66695708)
         assert allclose(slide.width, 340.0)
-        assert allclose(slide.x0, 0.0)
         assert allclose(slide.y0, 0.0)
         assert allclose(slide.alpha, 0.0)
-        assert allclose(slide.kappa, 3.0)
-        assert allclose(slide.kappad, 0.8)
 
 
-##    def test_slump_tsunami(self):
-##
-##        len = 4500.0
-##        thk = 760.0
-##        wid = 4500.0
-##        dep = 1200.0
-##        rad = 3330
-##        dp = 0.23
-##        th = 12
-##        alpha = 0.0
-##        x0 = 0
-##        y0 = 0
-##
-##        slump = slump_tsunami(length=len, depth=dep, slope=th, thickness=thk,\
-##                  radius=rad, dphi=dp, x0=x0, y0=y0, alpha=alpha)
-##
-##        assert allclose(slump.a3D, 9.82538623)
-##        assert allclose(slump.wavelength, 3660.37606554)
-##        assert allclose(slump.width, 4500.0)
-##        assert allclose(slump.x0, 0.0)
-##        assert allclose(slump.y0, 0.0)
-##        assert allclose(slump.alpha, 0.0)
-##        assert allclose(slump.kappa, 3.0)
-##        assert allclose(slump.kappad, 1.0)
-##
+    def test_slump_tsunami(self):
+
+        length = 4500.0
+        thk = 760.0
+        wid = 4500.0
+        dep = 1200.0
+        rad = 3330
+        dp = 0.23
+        th = 12
+        alpha = 0.0
+        x0 = 0
+        y0 = 0
+        gamma = 1.85
+
+        slump = slump_tsunami(length, dep, th, wid, thk, rad, dp, x0, y0, alpha, gamma, scale=1.0)
+
+        assert allclose(slump.a3D, 9.82538623)
+        assert allclose(slump.wavelength, 3660.37606554)
+        assert allclose(slump.width, 4500.0)
+        assert allclose(slump.x0, 0.0)
+        assert allclose(slump.y0, 0.0)
+        assert allclose(slump.alpha, 0.0)
+        assert allclose(slump.kappa, 3.0)
+        assert allclose(slump.kappad, 1.0)
+
+    def test_slide_tsunami_domain(self):
+
+        length = 600.0
+        dep = 150.0
+        th = 9.0
+        thk = 15.0
+        wid = 340.0
+        kappa = 3.0
+        kappad = 0.8
+        x0 = 100000.
+        y0 = x0
+        
+        from anuga.pmesh.mesh_interface import create_mesh_from_regions
+        polygon = [[0,0],[200000,0],[200000,200000],[0,200000]]
+        create_mesh_from_regions(polygon,
+                                 {'e0': [0], 'e1': [1], 'e2': [2], 'e3': [3]},
+                                 maximum_triangle_area=5000000000,
+                                 filename='test.msh',
+                                 verbose = False)
+
+        from anuga.shallow_water import Domain
+        domain = Domain('test.msh', use_cache = True, verbose = False)
+
+        slide = slide_tsunami(length, dep, th, x0, y0, \
+                              wid, thk, kappa, kappad, \
+			      domain=domain,verbose=False)
+
+        domain.set_quantity('stage', slide)
+	stage = domain.get_quantity('stage')
+	w = stage.get_values()
+
+##	check = [[-0.0 -0.0 -0.0],
+##                 [-.189709745 -517.877716 -0.0],
+##                 [-0.0 -0.0 -2.7695931e-08],
+##                 [-0.0 -2.7695931e-08 -1.897097e-01]
+##                 [-0.0 -517.877716 -0.0],
+##                 [-0.0 -0.0 -0.0],
+##                 [-0.0 -0.0 -0.0],
+##                 [-0.0 -0.0 -0.0]]
+
+        assert allclose(min(min(w)), -517.877771593)
+        assert allclose(max(max(w)), 0.0)
+        assert allclose(slide.a3D, 518.38797486)
+
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
