@@ -1499,7 +1499,7 @@ END\n")
         dict = {}
         points =  [[0.0, 0.0], [1.0, 0.0], [1.0, 1.0]]
         segments = [[0, 1], [1, 2]]
-        segment_tags = {'do-op':[1]}
+        segment_tags = {'hair':[1]}
         m.add_points_and_segments(points,
                                     segments, segment_tags)
         # have to reset this , since it's a class attribute
@@ -1512,7 +1512,29 @@ END\n")
                         'Wrong vertex list length.')
         self.failUnless(m.userSegments[0].tag =='food',
                         'Wrong segment tag length.')
-        self.failUnless(m.userSegments[1].tag =='do-op',
+        self.failUnless(m.userSegments[1].tag =='hair',
+                        'Wrong segment tag.')
+        
+    def test_add_points_and_segmentsII(self):
+        m = Mesh()
+        Segment.set_default_tag("food")
+        dict = {}
+        points =  [[0.0, 0.0], [1.0, 0.0], [1.0, 1.0]]
+        segments = None #[[0, 1], [1, 2]]
+        segment_tags = {'hair':[1]}
+        m.add_points_and_segments(points,
+                                    segments, segment_tags)
+        # have to reset this , since it's a class attribute
+        Segment.set_default_tag("")
+
+        
+        self.failUnless(len(m.userSegments) ==2,
+                        'Wrong segment list length.')
+        self.failUnless(len(m.userVertices) == 3,
+                        'Wrong vertex list length.')
+        self.failUnless(m.userSegments[0].tag =='food',
+                        'Wrong segment tag length.')
+        self.failUnless(m.userSegments[1].tag =='hair',
                         'Wrong segment tag.')
         
     def test_exportASCIImeshfile(self):
@@ -1841,7 +1863,7 @@ END\n")
                         'FAILED!') 
          
         self.failUnless(segs[2].tag=='bom',
-                        'FAILED!') 
+                        'FAILED!')
         self.failUnless(segs[3].tag=='',
                         'FAILED!') 
        
@@ -2286,7 +2308,7 @@ if __name__ == "__main__":
     #suite = unittest.makeSuite(meshTestCase,'test_import_mesh')
     #suite = unittest.makeSuite(meshTestCase,'test_asciiFile')
     #suite = unittest.makeSuite(meshTestCase,'test_mesh2IO')
-    #suite = unittest.makeSuite(meshTestCase,'test_import_ungenerate_file')
+    #suite = unittest.makeSuite(meshTestCase,'test_add_points_and_segmentsII')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
     

@@ -871,13 +871,12 @@ class Mesh:
 
 
     def add_points_and_segments(self, points,
-                                  segments, segment_tags = None):
+                                  segments=None, segment_tags = None):
         """
         Add an outline of the mesh.
-        Vertices is a list of points/ a standard representation of points.
+        Points is a list of points a standard representation of points.
         Segments is a list of tuples of integers.  Each tuple defines the
-           start and end of the segment by it's vertex index, in relation to
-           the list of vertices.
+           start and end of the segment by it's point index.
         segment_tags is an optional dictionary which is used to add tags to
            the segments.  The key is the tag name, value is the list of segment
            indexes the tag will apply to.
@@ -886,7 +885,12 @@ class Mesh:
         """
         #make sure the points are absolute
         points = ensure_absolute(points)
-        
+
+        if segments is None:
+            segments = []
+            for i in range(len(points)-1):
+                segments.append([i, i+1])
+            
         #create points, segs and tags
         region_dict = {}
         region_dict['points'] = points
