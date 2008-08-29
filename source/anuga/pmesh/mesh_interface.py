@@ -5,6 +5,8 @@ from anuga.utilities.numerical_tools import ensure_numeric
 from Numeric import Float
 from anuga.utilities.polygon import inside_polygon
 
+
+
 # This is due to pmesh being a package and a module and
 # the current dir being unknown 
 try:
@@ -14,6 +16,7 @@ except ImportError:
 
 import exceptions
 class PolygonError(exceptions.Exception): pass
+class SegmentError(exceptions.Exception): pass
 
 def create_mesh_from_regions(bounding_polygon,
                              boundary_tags,
@@ -128,18 +131,22 @@ def _create_mesh_from_regions(bounding_polygon,
 
     See create_mesh_from_regions for documentation.
     """
-    #FIXME (OLE-DSG)
+
+    
     # check the segment indexes - throw an error if they are out of bounds
-    #(DSG) Yes!
+    if boundary_tags is not None:
+        max_segs = len(bounding_polygon)
+        for key in boundary_tags.keys():
+            if len([x for x in boundary_tags[key] if x > max_segs-1]) >= 1:
+                msg = 'Boundary tag %s has segment out of bounds.'\
+                      %(str(key))
+                raise SegmentError, msg
+
+        
 
     
     #In addition I reckon the polygons could be of class Geospatial_data 
     #(DSG) If polygons were classes caching would break in places.
-
-    # First check that interior polygons are fully contained in bounding
-    # polygon
-    #Note, Both poly's have the same geo_ref, therefore don't take into account
-    # geo_ref
 
     # Simple check
     bounding_polygon = ensure_numeric(bounding_polygon, Float)
@@ -148,9 +155,13 @@ def _create_mesh_from_regions(bounding_polygon,
     assert bounding_polygon.shape[1] == 2, msg    
 
     # 
-    if interior_regions is not None:        
-        # Test that all the interior polygons are inside the bounding_poly
-        # and throw out those that aren't fully included.
+    if interior_regions is not None:
+        
+        # Test that all the interior polygons are inside the
+        # bounding_poly and throw out those that aren't fully
+        # included.  #Note, Both poly's have the same geo_ref,
+        # therefore don't take into account # geo_ref
+
 
         polygons_inside_boundary = []
         for interior_polygon, res in interior_regions:

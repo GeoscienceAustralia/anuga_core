@@ -929,10 +929,48 @@ END\n")
         finaltime = 10
         for t in domain.evolve(yieldstep, finaltime):    
             domain.write_time()
+
+            
+        
+    def test_create_mesh_from_regions_check_segs(self):
+        """Test that create_mesh_from_regions fails when an interior region is
+         outside bounding polygon.       """
+        
+
+        # These are the absolute values
+        min_x = 10 
+        min_y = 88
+        polygon = [[min_x,min_y],[1000,100],[1000,1000],[100,1000]]
+        
+        boundary_tags = {'walls':[0,1,3],'bom':[2]}
+#        boundary_tags = {'walls':[0,1]}
+        # This one is inside bounding polygon - should pass
+        inner_polygon = [[800,400],[900,500],[800,600]]
+
+        interior_regions = [(inner_polygon, 5)]
+        m = create_mesh_from_regions(polygon,
+                                     boundary_tags,
+                                     10000000,
+                                     interior_regions=interior_regions)
+
+        boundary_tags = {'walls':[0,1,3,4],'bom':[2]}
+        
+        try:
+            m = create_mesh_from_regions(polygon,
+                                         boundary_tags,
+                                         10000000,
+                                         interior_regions=interior_regions)
+        except:
+            pass
+        else:
+            msg = 'segment out of bounds not caught '
+            raise msg
+
+        
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(TestCase,'test')
-    #suite = unittest.makeSuite(TestCase,'concept_ungenerateIII')
+    #suite = unittest.makeSuite(TestCase,'test_create_mesh_from_regions_check_segs')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
     
