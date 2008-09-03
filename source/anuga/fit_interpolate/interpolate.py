@@ -720,12 +720,17 @@ class Interpolation_function:
 
                     if verbose is True:
                         import sys
-                        if sys.platform == 'win32':
+                        if sys.platform == 'win32': # FIXME (Ole): Why only Windoze?
                             from anuga.utilities.polygon import plot_polygons
                             #out_interp_pts = take(interpolation_points,[indices])
                             title = 'Interpolation points fall outside specified mesh'
-                            plot_polygons([mesh_boundary_polygon,interpolation_points,out_interp_pts],
-                                          ['line','point','outside'],figname='points_boundary_out',label=title,verbose=verbose)
+                            plot_polygons([mesh_boundary_polygon,
+                                           interpolation_points,
+                                           out_interp_pts],
+                                          ['line','point','outside'],
+                                          figname='points_boundary_out',
+                                          label=title,
+                                          verbose=verbose)
 
                     # Joaquim Luis suggested this as an Exception, so
                     # that the user can now what the problem is rather than
@@ -734,6 +739,7 @@ class Interpolation_function:
                     if verbose:
                         print msg
                     #raise Exception(msg)
+                    
             elif triangles is None and vertex_coordinates is not None:#jj
                 #Dealing with sts file
                 pass
@@ -747,8 +753,12 @@ class Interpolation_function:
                 if sys.platform == 'win32':
                     from anuga.utilities.polygon import plot_polygons
                     title = 'Interpolation function: Polygon and interpolation points'
-                    plot_polygons([mesh_boundary_polygon,interpolation_points],
-                                         ['line','point'],figname='points_boundary',label=title,verbose=verbose)
+                    plot_polygons([mesh_boundary_polygon,
+                                   interpolation_points],
+                                  ['line','point'],
+                                  figname='points_boundary',
+                                  label=title,
+                                  verbose=verbose)
 
             m = len(self.interpolation_points)
             p = len(self.time)

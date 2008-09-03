@@ -6251,8 +6251,8 @@ def store_parameters(verbose=False,**kwargs):
 def get_mesh_and_quantities_from_file(filename,
                                       quantities=None,
                                       verbose=False):
-    """Get and rebuild mesh structure and the associated quantities from sww file
-
+    """Get and rebuild mesh structure and associated quantities from sww file
+    
     Input:
         filename - Name os sww file
         quantities - Names of quantities to load
@@ -6262,6 +6262,9 @@ def get_mesh_and_quantities_from_file(filename,
                (including mesh and interpolation functionality)
         quantities - arrays with quantity values at each mesh node
         time - vector of stored timesteps
+        
+        
+    This function is used by e.g. get_interpolated_quantities_at_polyline_midpoints
     """
  
     # FIXME (Ole): Maybe refactor filefunction using this more fundamental code.
@@ -6326,37 +6329,32 @@ def get_mesh_and_quantities_from_file(filename,
     return mesh, quantities, time
 
 
+    
 
-def get_flow_through_cross_section(filename,
-                                   polyline,
-                                   verbose=False):
-    """Obtain flow (m^3/s) perpendicular to specified cross section.
-
-    Inputs:
-        filename: Name of sww file
-        polyline: Representation of desired cross section - it may contain multiple
-                  sections allowing for complex shapes. Assume absolute UTM coordinates.
-                  Format [[x0, y0], [x1, y1], ...]
+def get_interpolated_quantities_at_polyline_midpoints(filename,
+                                                      quantity_names=None,
+                                                      polyline=None, 
+                                                      verbose=False):
+    """Get values for quantities interpolated to polyline midpoints from sww file
+    
+    Input:
+        filename - Name of sww file
+        quantity_names - Names of quantities to load
+        polyline: Representation of desired cross section - it may contain 
+                  multiple sections allowing for complex shapes. Assume 
+                  absolute UTM coordinates.
+                  Format [[x0, y0], [x1, y1], ...]              
 
     Output:
-        time: All stored times in sww file
-        Q: Hydrograph of total flow across given segments for all stored times.
-
-    The normal flow is computed for each triangle intersected by the polyline and
-    added up.  Multiple segments at different angles are specified the normal flows
-    may partially cancel each other.
-
-    The typical usage of this function would be to get flow through a channel,
-    and the polyline would then be a cross section perpendicular to the flow.
-
+        segments: list of instances of class Triangle_intersection 
+        interpolation_function: Instance of class Interpolation_function
+          
+          
+      This function is used by get_flow_through_cross_section and 
+      get_energy_through_cross_section          
     """
-
+    
     from anuga.fit_interpolate.interpolate import Interpolation_function
-
-    quantity_names =['elevation',
-                     'stage',
-                     'xmomentum',
-                     'ymomentum']
 
     # Get mesh and quantities from sww file
     X = get_mesh_and_quantities_from_file(filename,
@@ -6370,11 +6368,8 @@ def get_flow_through_cross_section(filename,
     
     # Find all intersections and associated triangles.
     segments = mesh.get_intersecting_segments(polyline, verbose=verbose)
-    #print
-    #for x in segments:
-    #    print x
-
     
+        
     # Then store for each triangle the length of the intersecting segment(s),
     # right hand normal(s) and midpoints as interpolation_points.
     interpolation_points = []
@@ -6387,7 +6382,9 @@ def get_flow_through_cross_section(filename,
         print 'Interpolating - ',        
         print 'total number of interpolation points = %d'\
               %len(interpolation_points)
-
+              
+              
+    
     I = Interpolation_function(time,
                                quantities,
                                quantity_names=quantity_names,
@@ -6395,6 +6392,52 @@ def get_flow_through_cross_section(filename,
                                triangles=mesh.triangles,
                                interpolation_points=interpolation_points,
                                verbose=verbose)
+                               
+    return segments, I
+    
+
+def get_flow_through_cross_section(filename,
+                                   polyline,
+                                   verbose=False):
+    """Obtain flow (m^3/s) perpendicular to specified cross section.
+
+    Inputs:
+        filename: Name of sww file
+        polyline: Representation of desired cross section - it may contain 
+                  multiple sections allowing for complex shapes. Assume 
+                  absolute UTM coordinates.
+                  Format [[x0, y0], [x1, y1], ...]
+
+    Output:
+        time: All stored times in sww file
+        Q: Hydrograph of total flow across given segments for all stored times.
+
+    The normal flow is computed for each triangle intersected by the polyline 
+    and added up.  Multiple segments at different angles are specified the 
+    normal flows may partially cancel each other.
+
+    The typical usage of this function would be to get flow through a channel,
+    and the polyline would then be a cross section perpendicular to the flow.
+
+    """
+
+    quantity_names =['elevation',
+                     'stage',
+                     'xmomentum',
+                     'ymomentum']
+
+
+    # Get values for quantities at each midpoint of poly line from sww file
+    X = get_interpolated_quantities_at_polyline_midpoints(filename,
+                                                          quantity_names=quantity_names,
+                                                          polyline=polyline,
+                                                          verbose=verbose)    
+    segments, interpolation_function = X
+
+    
+    # Get vectors for time and interpolation_points
+    time = interpolation_function.time
+    interpolation_points = interpolation_function.interpolation_points    
 
     if verbose: print 'Computing hydrograph'
     # Compute hydrograph
@@ -6402,7 +6445,7 @@ def get_flow_through_cross_section(filename,
     for t in time:
         total_flow=0
         for i, p in enumerate(interpolation_points):
-            elevation, stage, uh, vh = I(t, point_id=i)
+            elevation, stage, uh, vh = interpolation_function(t, point_id=i)
             normal = segments[i].normal
 
             # Inner product of momentum vector with segment normal [m^2/s] 
@@ -6417,7 +6460,6 @@ def get_flow_through_cross_section(filename,
 
         # Store flow at this timestep    
         Q.append(total_flow)
-    
 
 
     return time, Q
