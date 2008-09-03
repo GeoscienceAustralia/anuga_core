@@ -6465,6 +6465,104 @@ def get_flow_through_cross_section(filename,
     return time, Q
     
 
+def get_energy_through_cross_section(filename,
+                                     polyline,
+                                     kind = 'total',
+                                     verbose=False):
+    """Obtain flow (m^3/s) perpendicular to specified cross section.
+
+    Inputs:
+        filename: Name of sww file
+        polyline: Representation of desired cross section - it may contain 
+                  multiple sections allowing for complex shapes. Assume 
+                  absolute UTM coordinates.
+                  Format [[x0, y0], [x1, y1], ...]
+        kind:     Select which energy to compute. 
+                  Options are 'specific' and 'total' (default)
+
+    Output:
+        time: All stored times in sww file
+        Q: Average energy [m] across given segments for all stored times.
+
+    The average velocity is computed for each triangle intersected by the polyline 
+    and averaged weigted by segment lengths. 
+
+    The typical usage of this function would be to get average energy of flow in a channel,
+    and the polyline would then be a cross section perpendicular to the flow.
+
+    
+    #FIXME (Ole) - need name for this energy reflecting that its dimension is [m].
+    """
+
+    from anuga.config import g, epsilon, velocity_protection as h0        
+            
+    quantity_names =['elevation',
+                     'stage',
+                     'xmomentum',
+                     'ymomentum']
+
+
+    # Get values for quantities at each midpoint of poly line from sww file
+    X = get_interpolated_quantities_at_polyline_midpoints(filename,
+                                                          quantity_names=quantity_names,
+                                                          polyline=polyline,
+                                                          verbose=verbose)    
+    segments, interpolation_function = X
+
+    
+    # Get vectors for time and interpolation_points
+    time = interpolation_function.time
+    interpolation_points = interpolation_function.interpolation_points    
+
+    if verbose: print 'Computing %s energy' %kind
+    
+    # Compute total length of polyline for use with weighted averages
+    total_line_length = 0.0
+    for segment in segments:
+        total_line_length += segment.length
+        
+    # Compute energy
+    E = []
+    for t in time:
+        average_energy=0.0
+        for i, p in enumerate(interpolation_points):
+            elevation, stage, uh, vh = interpolation_function(t, point_id=i)
+            
+            # Depth
+            h = depth = stage-elevation
+            
+            # Average velocity across this segment
+            if h > epsilon:
+                # Use protection against degenerate velocities
+                u = uh/(h + h0/h)
+                v = vh/(h + h0/h)
+            else:
+                u = v = 0.0
+                
+            speed_squared = u*u + v*v    
+            kinetic_energy = 0.5*speed_squared/g
+            
+            if kind == 'specific':
+                segment_energy = depth + kinetic_energy
+            elif kind == 'total':
+                segment_energy = stage + kinetic_energy                
+            else:
+                msg = 'Energy kind must be either "specific" or "total".'
+                msg += ' I got %s' %kind
+                
+
+            # Add to weighted average
+            weigth = segments[i].length/total_line_length
+            average_energy += segment_energy*weigth
+             
+
+        # Store energy at this timestep    
+        E.append(average_energy)
+
+
+    return time, E
+    
+
 
 
 

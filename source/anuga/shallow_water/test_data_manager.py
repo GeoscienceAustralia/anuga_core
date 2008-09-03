@@ -16,7 +16,7 @@ from sets import ImmutableSet
 
 from anuga.shallow_water import *
 from anuga.shallow_water.data_manager import *
-from anuga.config import epsilon
+from anuga.config import epsilon, g
 from anuga.utilities.anuga_exceptions import ANUGAError
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.coordinate_transforms.redfearn import degminsec2decimal_degrees
@@ -10197,13 +10197,13 @@ friction  \n \
 
         The specifics are
         u = 2 m/s
-        h = 1 m
+        h = 2 m
         w = 5 m (width of channel)
 
-        q = u*h*w = 10 m^3/s
+        q = u*h*w = 20 m^3/s
 
 
-        This run tries it with georeferencing
+        This run tries it with georeferencing and with elevation = -1
         
         """
 
@@ -10235,18 +10235,20 @@ friction  \n \
         domain.format = 'sww'
         domain.smooth = True
 
-        h = 1.0
+        e = -1.0
+        w = 1.0
+        h = w-e
         u = 2.0
         uh = u*h
 
         Br = Reflective_boundary(domain)     # Side walls
-        Bd = Dirichlet_boundary([h, uh, 0])  # 2 m/s across the 5 m inlet: 
+        Bd = Dirichlet_boundary([w, uh, 0])  # 2 m/s across the 5 m inlet: 
 
 
 
         
-        domain.set_quantity('elevation', 0.0)
-        domain.set_quantity('stage', h)
+        domain.set_quantity('elevation', e)
+        domain.set_quantity('stage', w)
         domain.set_quantity('xmomentum', uh)
         domain.set_boundary( {'left': Bd, 'right': Bd, 'top': Br, 'bottom': Br})
 
@@ -10267,7 +10269,8 @@ friction  \n \
 
         for t in range(t_end+1):
             for i in range(3):
-                assert allclose(f(t, i), [1, 2, 0])
+                #print i, t, f(t, i)            
+                assert allclose(f(t, i), [w, uh, 0])
             
 
         # Check flows through the middle
@@ -10283,6 +10286,114 @@ friction  \n \
             assert allclose(Q, uh*width)
 
 
+            
+    def test_get_energy_through_cross_section(self):
+        """test_get_energy_through_cross_section(self):
+
+        Test that the specific and total energy through a cross section can be
+        correctly obtained from an sww file.
+        
+        This test creates a flat bed with a known flow through it and tests
+        that the function correctly returns the expected energies.
+
+        The specifics are
+        u = 2 m/s
+        h = 1 m
+        w = 5 m (width of channel)
+
+        q = u*h*w = 10 m^3/s
+        Es = h + 0.5*v*v/g  # Specific energy head [m]
+        Et = w + 0.5*v*v/g  # Total energy head [m]        
+
+
+        This test uses georeferencing
+        
+        """
+
+        import time, os
+        from Numeric import array, zeros, allclose, Float, concatenate
+        from Scientific.IO.NetCDF import NetCDFFile
+
+        # Setup
+        from mesh_factory import rectangular
+
+        # Create basic mesh (20m x 3m)
+        width = 3
+        length = 20
+        t_end = 1
+        points, vertices, boundary = rectangular(length, width,
+                                                 length, width)
+
+        # Create shallow water domain
+        domain = Domain(points, vertices, boundary,
+                        geo_reference = Geo_reference(56,308500,6189000))
+
+        domain.default_order = 2
+        domain.set_minimum_storable_height(0.01)
+
+        domain.set_name('flowtest')
+        swwfile = domain.get_name() + '.sww'
+
+        domain.set_datadir('.')
+        domain.format = 'sww'
+        domain.smooth = True
+
+        e = -1.0
+        w = 1.0
+        h = w-e
+        u = 2.0
+        uh = u*h
+
+        Br = Reflective_boundary(domain)     # Side walls
+        Bd = Dirichlet_boundary([w, uh, 0])  # 2 m/s across the 5 m inlet: 
+
+        
+        domain.set_quantity('elevation', e)
+        domain.set_quantity('stage', w)
+        domain.set_quantity('xmomentum', uh)
+        domain.set_boundary( {'left': Bd, 'right': Bd, 'top': Br, 'bottom': Br})
+
+        for t in domain.evolve(yieldstep=1, finaltime = t_end):
+            pass
+
+        # Check that momentum is as it should be in the interior
+
+        I = [[0, width/2.],
+             [length/2., width/2.],
+             [length, width/2.]]
+        
+        I = domain.geo_reference.get_absolute(I)
+        f = file_function(swwfile,
+                          quantities=['stage', 'xmomentum', 'ymomentum'],
+                          interpolation_points=I,
+                          verbose=False)
+
+        for t in range(t_end+1):
+            for i in range(3):
+                #print i, t, f(t, i)
+                assert allclose(f(t, i), [w, uh, 0])
+            
+
+        # Check energies through the middle
+        for i in range(5):
+            x = length/2. + i*0.23674563 # Arbitrary
+            cross_section = [[x, 0], [x, width]]
+
+            cross_section = domain.geo_reference.get_absolute(cross_section)            
+            
+            time, Es = get_energy_through_cross_section(swwfile,
+                                                       cross_section,
+                                                       kind='specific',
+                                                       verbose=False)
+            assert allclose(Es, h + 0.5*u*u/g)
+            
+            time, Et = get_energy_through_cross_section(swwfile,
+                                                        cross_section,
+                                                        kind='total',
+                                                        verbose=False)
+            assert allclose(Et, w + 0.5*u*u/g)            
+
+            
         
     def test_get_all_swwfiles(self):
         try:
