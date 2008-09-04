@@ -2178,8 +2178,8 @@ def sww2csv_gauges(sww_file,
     if access(sww_file,R_OK):
         if verbose: print 'File %s exists' %(sww_file)
     else:
-        msg = 'File "%s" could not be opened: Error="%s"'\
-               %(sww_file, e)
+        msg = 'File "%s" could not be opened: Error=line2181'\
+               %(sww_file)
         raise msg
 
     sww_files = get_all_swwfiles(look_in_dir=dir_name,
