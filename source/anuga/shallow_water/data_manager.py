@@ -5009,6 +5009,7 @@ def urs2sts(basename_in, basename_out=None,
             weights=None,
             verbose=False, 
             origin=None,
+            zone=None,
             mean_stage=0.0, 
             zscale=1.0,
             ordering_filename=None):
@@ -5230,7 +5231,7 @@ def urs2sts(basename_in, basename_out=None,
     refzone, _, _ = redfearn(latitudes[0],longitudes[0])  
 
     for i in range(number_of_points):
-        zone, easting, northing = redfearn(latitudes[i],longitudes[i])
+        zone, easting, northing = redfearn(latitudes[i],longitudes[i], zone=zone)
         x[i] = easting
         y[i] = northing
         if zone != refzone:

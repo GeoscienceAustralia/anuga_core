@@ -6359,8 +6359,9 @@ friction  \n \
 
         #Check that first coordinate is correctly represented       
         #Work out the UTM coordinates for first point
-        zone, e, n = redfearn(lat_long_points[0][0], lat_long_points[0][1]) 
-        assert allclose([x[0],y[0]], [e,n])
+        for i in range(4):
+            zone, e, n = redfearn(lat_long_points[i][0], lat_long_points[i][1]) 
+            assert allclose([x[i],y[i]], [e,n])
 
         #Check the time vector
         times = fid.variables['time'][:]
@@ -6416,6 +6417,68 @@ friction  \n \
         fid.close()
         self.delete_mux(files)
         os.remove(sts_file)
+
+    def test_urs2sts_nonstandard_projection(self):
+        """
+        Test single source
+        """
+        tide=0
+        time_step_count = 3
+        time_step = 2
+        lat_long_points =[(-21.,114.5),(-21.,113.5),(-21.,114.), (-21.,115.)]
+        n=len(lat_long_points)
+        first_tstep=ones(n,Int)
+        first_tstep[0]+=1
+        first_tstep[2]+=1
+        last_tstep=(time_step_count)*ones(n,Int)
+        last_tstep[0]-=1
+
+        gauge_depth=20*ones(n,Float)
+        ha=2*ones((n,time_step_count),Float)
+        ha[0]=arange(0,time_step_count)
+        ha[1]=arange(time_step_count,2*time_step_count)
+        ha[2]=arange(2*time_step_count,3*time_step_count)
+        ha[3]=arange(3*time_step_count,4*time_step_count)
+        ua=5*ones((n,time_step_count),Float)
+        va=-10*ones((n,time_step_count),Float)
+
+        base_name, files = self.write_mux2(lat_long_points,
+                                      time_step_count, time_step,
+                                      first_tstep, last_tstep,
+                                      depth=gauge_depth,
+                                      ha=ha,
+                                      ua=ua,
+                                      va=va)
+
+        urs2sts(base_name,
+                basename_out=base_name, 
+                zone=50,
+                mean_stage=tide,verbose=False)
+
+        # now I want to check the sts file ...
+        sts_file = base_name + '.sts'
+
+        #Let's interigate the sww file
+        # Note, the sww info is not gridded.  It is point data.
+        fid = NetCDFFile(sts_file)
+
+        # Make x and y absolute
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+
+        geo_reference = Geo_reference(NetCDFObject=fid)
+        points = geo_reference.get_absolute(map(None, x, y))
+        points = ensure_numeric(points)
+
+        x = points[:,0]
+        y = points[:,1]
+
+        #Check that all coordinate are correctly represented       
+        #Using the non standard projection (50) 
+        for i in range(4):
+            zone, e, n = redfearn(lat_long_points[i][0], lat_long_points[i][1], zone=50) 
+            assert allclose([x[i],y[i]], [e,n])
+            assert zone==geo_reference.zone
 
     def test_urs2stsII(self):
         """
