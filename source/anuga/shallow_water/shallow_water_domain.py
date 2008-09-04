@@ -96,6 +96,8 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
      import Transmissive_boundary
 
 from anuga.utilities.numerical_tools import gradient, mean, ensure_numeric
+from anuga.geospatial_data.geospatial_data import ensure_geospatial
+
 from anuga.config import minimum_storable_height
 from anuga.config import minimum_allowed_height, maximum_allowed_speed
 from anuga.config import g, epsilon, beta_w, beta_w_dry,\
@@ -408,7 +410,10 @@ class Domain(Generic_Domain):
         midpoints = segment_midpoints(segments)       
         
         # FIXME (Ole): HACK - need to make midpoints Geospatial instances
-        midpoints = self.geo_reference.get_absolute(midpoints)        
+        #midpoints = self.geo_reference.get_absolute(midpoints)        
+        
+        # Make midpoints Geospatial instances
+        midpoints = ensure_geospatial(midpoints, self.geo_reference)        
         
         # Compute flow        
         if verbose: print 'Computing flow through specified cross section'

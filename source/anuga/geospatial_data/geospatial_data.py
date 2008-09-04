@@ -227,28 +227,35 @@ class Geospatial_data:
 
         self.attributes = attributes    
 
+    #def set_geo_reference(self, geo_reference):
+    #    # FIXME (Ole): Backwards compatibility - deprecate
+    #    self.setgeo_reference(geo_reference)
 
     def set_geo_reference(self, geo_reference):
-        """
-        Set's the georeference of geospatial.
-        It can also be used to change the georeference
+        """Set the georeference of geospatial data.
+        
+        It can also be used to change the georeference and will ensure that
+        the absolute coordinate values are unchanged.
         """
         from anuga.coordinate_transforms.geo_reference import Geo_reference
 
         if geo_reference is None:
-            geo_reference = Geo_reference() # Use default
+            # Use default - points are in absolute coordinates
+            geo_reference = Geo_reference()
+            
+        # Allow for tuple (zone, xllcorner, yllcorner)    
         geo_reference = ensure_geo_reference(geo_reference)
+        
         if not isinstance(geo_reference, Geo_reference):
+            # FIXME (Ole): This exception will be raised if geo_reference is None
             msg = 'Argument geo_reference must be a valid Geo_reference \n'
             msg += 'object or None.'
             raise msg
 
-        # if a geo ref already exists, change the point data to
-        # represent the new geo-ref
+        # If a geo_reference already exists, change the point data according to
+        # the new geo reference
         if  self.geo_reference is not None:
-            #FIXME: Maybe put out a warning here...
-            self.data_points = self.get_data_points \
-                               (geo_reference=geo_reference)
+            self.data_points = self.get_data_points(geo_reference=geo_reference)
             
         self.geo_reference = geo_reference
 
@@ -375,11 +382,13 @@ class Geospatial_data:
             assert self.geo_reference.get_zone() is not DEFAULT_ZONE, msg
             lats_longs = []
             for point in self.get_data_points(True):
-                ### UTMtoLL(northing, easting, zone,
+            
+                # UTMtoLL(northing, easting, zone,
                 lat_calced, long_calced = UTMtoLL(point[1],point[0], 
                                                   zone, isSouthHemisphere)
                 lats_longs.append((lat_calced, long_calced)) # to hash
             return lats_longs
+            
         if absolute is True and geo_reference is None:
             return self.geo_reference.get_absolute(self.data_points)
         elif geo_reference is not None:
@@ -387,6 +396,7 @@ class Geospatial_data:
                                (self.data_points, 
                                 self.geo_reference)
         else:
+            # If absolute is False 
             return self.data_points
 
     
@@ -1314,12 +1324,13 @@ def clean_line(line,delimiter):
     return numbers
             
 def ensure_absolute(points, geo_reference=None):
-    """
+    """Ensure that points are in absolute coordinates.
+    
     This function inputs several formats and
     outputs one format. - a numeric array of absolute points.
 
-    Inputed formats are;
-    points: List or numeric array of coordinate pairs [xi, eta] of
+    Input formats are;
+      points: List or numeric array of coordinate pairs [xi, eta] of
               points or geospatial object or points file name
 
     mesh_origin: A geo_reference object or 3-tuples consisting of
@@ -1327,19 +1338,20 @@ def ensure_absolute(points, geo_reference=None):
                  If specified vertex coordinates are assumed to be
                  relative to their respective origins.
     """
-    if isinstance(points,type('')):
-        #It's a string
-        #assume it is a point file
-        points = Geospatial_data(file_name = points)
+
+    # Input check
+    if isinstance(points, basestring):
+        #It's a string - assume it is a point file
+        points = Geospatial_data(file_name=points)
         
-    if isinstance(points,Geospatial_data):
-        points = points.get_data_points( \
-                absolute = True)
-        msg = "Use a Geospatial_data object or a mesh origin. Not both."
+    if isinstance(points, Geospatial_data):
+        points = points.get_data_points(absolute=True)
+        msg = 'Use a Geospatial_data object or a mesh origin. Not both.'
         assert geo_reference == None, msg
-            
     else:
         points = ensure_numeric(points, Float)
+        
+    # Sort of geo_reference and convert points
     if geo_reference is None:
         geo = None #Geo_reference()
     else:
@@ -1350,6 +1362,8 @@ def ensure_absolute(points, geo_reference=None):
                                 geo_reference[1],
                                 geo_reference[2])
         points = geo.get_absolute(points)
+        
+    # Return    
     return points
      
 
@@ -1367,12 +1381,17 @@ def ensure_geospatial(points, geo_reference=None):
                  If specified vertex coordinates are assumed to be
                  relative to their respective origins.
     """
-    if isinstance(points,Geospatial_data):
+    
+    # Input check
+    if isinstance(points, Geospatial_data):
         msg = "Use a Geospatial_data object or a mesh origin. Not both."
-        assert geo_reference == None, msg
+        assert geo_reference is None, msg
         return points    
     else:
+        # List or numeric array of absolute points
         points = ensure_numeric(points, Float)
+
+    # Sort out geo reference    
     if geo_reference is None:
         geo = None
     else:
@@ -1382,6 +1401,8 @@ def ensure_geospatial(points, geo_reference=None):
             geo = Geo_reference(geo_reference[0],
                                 geo_reference[1],
                                 geo_reference[2])
+                                
+    # Create Geospatial_data object with appropriate geo reference and return                            
     points = Geospatial_data(data_points=points, geo_reference=geo)        
     return points
 

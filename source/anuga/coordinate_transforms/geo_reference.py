@@ -384,7 +384,7 @@ def ensure_geo_reference(origin):
     elif origin is None:
         geo_ref = None
     else:
-        geo_ref = apply(Geo_reference,origin)       
+        geo_ref = apply(Geo_reference, origin)       
     return geo_ref
 
     

@@ -204,25 +204,35 @@ class Test_Geospatial_data(unittest.TestCase):
 
               
     def test_set_geo_reference(self):
+        """test_set_georeference
+        
+        Test that georeference can be changed without changing the 
+        absolute values.
+        """
+            
         points_ab = [[12.5,34.7],[-4.5,-60.0]]
         x_p = -10
         y_p = -40
         geo_ref = Geo_reference(56, x_p, y_p)
         points_rel = geo_ref.change_points_geo_ref(points_ab)
-        spatial = Geospatial_data(points_rel)
-        # since the geo_ref wasn't set
-        assert not allclose( points_ab, spatial.get_data_points(absolute=True))
         
-        spatial = Geospatial_data(points_rel, geo_reference=geo_ref)
-        assert allclose( points_ab, spatial.get_data_points(absolute=True))
+        # Create without geo_ref properly set
+        G = Geospatial_data(points_rel)        
+        assert not allclose(points_ab, G.get_data_points(absolute=True))
         
+        # Create the way it should be
+        G = Geospatial_data(points_rel, geo_reference=geo_ref)
+        assert allclose(points_ab, G.get_data_points(absolute=True))
+        
+        # Change georeference and check that absolute values are unchanged.
         x_p = 10
         y_p = 400
         new_geo_ref = Geo_reference(56, x_p, y_p)
-        spatial.set_geo_reference(new_geo_ref)
-        assert allclose( points_ab, spatial.get_data_points(absolute=True))
+        G.set_geo_reference(new_geo_ref)
+        assert allclose(points_ab, G.get_data_points(absolute=True))
         
-        
+
+                
         
     def test_conversions_to_points_dict(self):
         #test conversions to points_dict
