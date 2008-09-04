@@ -10072,9 +10072,9 @@ friction  \n \
         The specifics are
         u = 2 m/s
         h = 1 m
-        w = 5 m (width of channel)
+        w = 3 m (width of channel)
 
-        q = u*h*w = 10 m^3/s
+        q = u*h*w = 6 m^3/s
 
         #---------- First run without geo referencing        
         
@@ -10111,7 +10111,7 @@ friction  \n \
         uh = u*h
 
         Br = Reflective_boundary(domain)     # Side walls
-        Bd = Dirichlet_boundary([h, uh, 0])  # 2 m/s across the 5 m inlet: 
+        Bd = Dirichlet_boundary([h, uh, 0])  # 2 m/s across the 3 m inlet: 
 
 
         
@@ -10198,9 +10198,9 @@ friction  \n \
         The specifics are
         u = 2 m/s
         h = 2 m
-        w = 5 m (width of channel)
+        w = 3 m (width of channel)
 
-        q = u*h*w = 20 m^3/s
+        q = u*h*w = 12 m^3/s
 
 
         This run tries it with georeferencing and with elevation = -1
@@ -10242,7 +10242,7 @@ friction  \n \
         uh = u*h
 
         Br = Reflective_boundary(domain)     # Side walls
-        Bd = Dirichlet_boundary([w, uh, 0])  # 2 m/s across the 5 m inlet: 
+        Bd = Dirichlet_boundary([w, uh, 0])  # 2 m/s across the 3 m inlet: 
 
 
 
@@ -10299,9 +10299,9 @@ friction  \n \
         The specifics are
         u = 2 m/s
         h = 1 m
-        w = 5 m (width of channel)
+        w = 3 m (width of channel)
 
-        q = u*h*w = 10 m^3/s
+        q = u*h*w = 6 m^3/s
         Es = h + 0.5*v*v/g  # Specific energy head [m]
         Et = w + 0.5*v*v/g  # Total energy head [m]        
 
@@ -10345,7 +10345,7 @@ friction  \n \
         uh = u*h
 
         Br = Reflective_boundary(domain)     # Side walls
-        Bd = Dirichlet_boundary([w, uh, 0])  # 2 m/s across the 5 m inlet: 
+        Bd = Dirichlet_boundary([w, uh, 0])  # 2 m/s across the 3 m inlet: 
 
         
         domain.set_quantity('elevation', e)

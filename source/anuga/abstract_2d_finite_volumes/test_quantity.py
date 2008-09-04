@@ -2353,6 +2353,60 @@ class Test_Quantity(unittest.TestCase):
 
 
 
+    def test_get_interpolated_values_with_georef(self):
+    
+        zone = 56
+        xllcorner = 308500
+        yllcorner = 6189000
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0,0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0,0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe
+        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices,
+                        geo_reference=Geo_reference(zone,xllcorner,yllcorner))
+
+        quantity = Quantity(domain)
+        quantity.set_values(lambda x, y: x+2*y) #2 4 4 6
+
+        #First pick one point (and turn it into absolute coordinates)
+        x, y = 2.0/3, 8.0/3
+        v = quantity.get_values(interpolation_points = [[x+xllcorner,y+yllcorner]])
+        assert allclose(v, 6)
+        
+
+        # Then another to test that algorithm won't blindly
+        # reuse interpolation matrix 
+        x, y = 4.0/3, 4.0/3
+        v = quantity.get_values(interpolation_points = [[x+xllcorner,y+yllcorner]])
+        assert allclose(v, 4)        
+        
+        # Try two points
+        pts = [[2.0/3 + xllcorner, 8.0/3 + yllcorner], 
+               [4.0/3 + xllcorner, 4.0/3 + yllcorner]]         
+        v = quantity.get_values(interpolation_points=pts)
+        assert allclose(v, [6, 4])               
+        
+        # Test it using the geospatial data format with absolute input points and default georef
+        pts = Geospatial_data(data_points=pts)
+        v = quantity.get_values(interpolation_points=pts)
+        assert allclose(v, [6, 4])                                
+        
+        
+        # Test it using the geospatial data format with relative input points
+        pts = Geospatial_data(data_points=[[2.0/3, 8.0/3], [4.0/3, 4.0/3]], 
+                              geo_reference=Geo_reference(zone,xllcorner,yllcorner))
+        v = quantity.get_values(interpolation_points=pts)
+        assert allclose(v, [6, 4])                        
+        
+        
+        
 
     def test_getting_some_vertex_values(self):
         """

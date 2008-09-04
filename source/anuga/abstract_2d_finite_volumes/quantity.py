@@ -752,12 +752,12 @@ class Quantity:
                                         location, indices,
                                         verbose=False,
                                         use_cache=False):
-        # FIXME: Use this function for the time being. Later move code in here
+        """ Set values based on geo referenced geospatial data object.
+        """
 
         points = geospatial_data.get_data_points(absolute=False)
         values = geospatial_data.get_attributes()
         data_georef = geospatial_data.get_geo_reference()
-
 
 
         from anuga.coordinate_transforms.geo_reference import Geo_reference
@@ -1006,11 +1006,37 @@ class Quantity:
 
 
     def get_interpolated_values(self, interpolation_points):
+        """ Get values at interpolation points
+        
+        If interpolation points have been given previously, the 
+        associated matrices will be reused to save time.
+        
+        The argument interpolation points must be given as either a list of absolute UTM coordinates or
+        a geospatial data object.
+        """
 
-        # Interpolation object based on internal (discontinuous triangles)
+        # FIXME (Ole): Could do with an input check (should be generalised and used widely)
+        # That will check that interpolation points is either a list of points, Nx2 array, or geospatial
+        
+        # Ensure points are converted to coordinates relative to mesh origin
+        # FIXME (Ole): This could all be refactored using the 'change_points_geo_ref' method 
+        # of Class geo_reference. The purpose is to make interpolation points relative
+        # to the mesh origin.
+        #
+        # Speed is also a consideration here.
+        
+        if isinstance(interpolation_points, Geospatial_data):        
+            # Ensure interpolation points are in absolute UTM coordinates
+            interpolation_points = interpolation_points.get_data_points(absolute=True)
+            
+        # Reconcile interpolation points with georeference of domain
+        interpolation_points = self.domain.geo_reference.get_relative(interpolation_points) 
+        interpolation_points = ensure_numeric(interpolation_points)
+        
+        # Get internal (discontinuous) triangles for use with the interpolation object.
         x, y, vertex_values, triangles = self.get_vertex_values(xy=True,
                                                                 smooth=False)
-        # FIXME: This concat should roll into get_vertex_values
+        # FIXME (Ole): This concat should roll into get_vertex_values
         vertex_coordinates = concatenate((x[:, NewAxis], y[:, NewAxis]),
                                          axis=1)
 
@@ -1019,8 +1045,10 @@ class Quantity:
             # Reuse to save time
             I = self.interpolation_object
 
-            if allclose(interpolation_points, I._point_coordinates):
-                can_reuse = True
+            if allclose(interpolation_points.shape, 
+                        I._point_coordinates.shape):
+                if allclose(interpolation_points, I._point_coordinates):
+                    can_reuse = True
                 
 
         if can_reuse is True:
@@ -1046,13 +1074,17 @@ class Quantity:
         """get values for quantity
 
         return X, Compatible list, Numeric array (see below)
-        interpolation_points: List of x, y coordinates where value is
-        sought (using interpolation). If points are given, values of
-        location and indices are ignored
         
-        location: Where values are to be stored.
-                  Permissible options are: vertices, edges, centroids
-                  and unique vertices. Default is 'vertices'
+        Inputs:
+           interpolation_points: List of x, y coordinates where value is
+                                 sought (using interpolation). If points 
+                                 are given, values of location and indices 
+                                 are ignored. Assume either absolute UTM
+                                 coordinates or geospatial data object.
+        
+           location: Where values are to be stored.
+                     Permissible options are: vertices, edges, centroids
+                     and unique vertices. Default is 'vertices'
 
 
         The returned values with be a list the length of indices
@@ -1074,6 +1106,7 @@ class Quantity:
         The values will be stored in elements following their
         internal ordering.
         """
+        
         from Numeric import take
 
         # FIXME (Ole): I reckon we should have the option of passing a
@@ -1085,7 +1118,10 @@ class Quantity:
         
         
         # FIXME (Ole): Consider deprecating 'edges' - but not if it is used
-        # elsewhere in ANUGA.
+        # elsewhere in ANUGA. 
+        # Edges have already been deprecated in set_values, see changeset:5521,
+        # but *might* be useful in get_values. Any thoughts anyone?
+        
         if location not in ['vertices', 'centroids', 'edges',
                             'unique vertices']:
             msg = 'Invalid location: %s' %location

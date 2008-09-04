@@ -368,7 +368,7 @@ class Domain(Mesh):
         return self.quantities.keys()
 
     def get_quantity(self, name, location='vertices', indices = None):
-        """Get quantity object.
+        """Get pointer to quantity object.
 
         name: Name of quantity
 

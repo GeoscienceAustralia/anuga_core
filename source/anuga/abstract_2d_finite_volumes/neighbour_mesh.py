@@ -1112,6 +1112,7 @@ class Mesh(General_mesh):
             return []
         
 
+        
 
 class Triangle_intersection:
     """Store information about line segments intersecting a triangle
@@ -1146,3 +1147,26 @@ class Triangle_intersection:
                self.triangle_id)
     
         return s
+
+def segment_midpoints(segments):
+    """Calculate midpoints of all segments
+    
+    Inputs:
+       segments: List of instances of class Segment
+       
+    Ouputs:
+       midpoints: List of points
+    """
+    
+    midpoints = []
+    msg = 'Elements of input list to segment_midpoints must be of class Triangle_intersection'
+    for segment in segments:
+        assert isinstance(segment, Triangle_intersection), msg
+        
+        midpoint = sum(array(segment.segment))/2
+        midpoints.append(midpoint)
+
+    return midpoints
+    
+    
+    

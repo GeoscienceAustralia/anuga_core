@@ -99,6 +99,8 @@ from anuga.abstract_2d_finite_volumes.pmesh2domain import \
      pmesh_to_domain_instance
 from anuga.abstract_2d_finite_volumes.util import get_revision_number, \
      remove_lone_verts, sww2timeseries, get_centroid_values
+     
+from anuga.abstract_2d_finite_volumes.neighbour_mesh import segment_midpoints
 from anuga.load_mesh.loadASCII import export_mesh_file
 from anuga.utilities.polygon import intersection
 
@@ -6369,21 +6371,14 @@ def get_interpolated_quantities_at_polyline_midpoints(filename,
     # Find all intersections and associated triangles.
     segments = mesh.get_intersecting_segments(polyline, verbose=verbose)
     
-        
-    # Then store for each triangle the length of the intersecting segment(s),
-    # right hand normal(s) and midpoints as interpolation_points.
-    interpolation_points = []
-    for segment in segments:
-        midpoint = sum(array(segment.segment))/2
-        interpolation_points.append(midpoint)
+    # Get midpoints
+    interpolation_points = segment_midpoints(segments)       
 
-
+    # Interpolate
     if verbose:
         print 'Interpolating - ',        
         print 'total number of interpolation points = %d'\
               %len(interpolation_points)
-              
-              
     
     I = Interpolation_function(time,
                                quantities,
@@ -6444,7 +6439,7 @@ def get_flow_through_cross_section(filename,
     Q = []
     for t in time:
         total_flow=0
-        for i, p in enumerate(interpolation_points):
+        for i in range(len(interpolation_points)):
             elevation, stage, uh, vh = interpolation_function(t, point_id=i)
             normal = segments[i].normal
 

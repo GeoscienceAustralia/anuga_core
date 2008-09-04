@@ -312,6 +312,8 @@ def create_bins(data, number_of_bins = None):
         bins = arange(mn, mx, (mx-mn)/number_of_bins)
 
     return bins
+    
+
 
 def get_machine_precision():
     """Calculate the machine precision for Floats

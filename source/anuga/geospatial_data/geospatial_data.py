@@ -1542,7 +1542,10 @@ def find_optimal_smoothing_parameter(data_file,
                     verbose = verbose,
                     alpha = alpha)
 
-        points_geo=domain.geo_reference.change_points_geo_ref(points)
+        
+        # Convert points to geospatial data for use with get_values below
+        points_geo = Geospatial_data(points, domain.geo_reference)
+        
         #returns the predicted elevation of the points that were "split" out 
         #of the original data set for one particular alpha
         if verbose: print 'Get predicted elevation for location to be compared'

@@ -82,7 +82,7 @@ ModifiedBy:
 from Numeric import zeros, ones, Float, array, sum, size
 from Numeric import compress, arange
 
-
+from anuga.abstract_2d_finite_volumes.neighbour_mesh import segment_midpoints
 from anuga.abstract_2d_finite_volumes.domain import Domain as Generic_Domain
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
      import Boundary
@@ -373,6 +373,70 @@ class Domain(Generic_Domain):
         wet_elements = self.get_wet_elements(indices)
         return self.get_quantity('elevation').\
                get_maximum_location(indices=wet_elements)    
+               
+               
+               
+               
+    def get_flow_through_cross_section(self, polyline,
+                                       verbose=False):               
+        """Get the total flow through an arbitrary poly line.        
+        
+        This is a run-time equivalent of the function with same name in data_manager.py
+        
+        Input:
+            polyline: Representation of desired cross section - it may contain 
+                      multiple sections allowing for complex shapes. Assume 
+                      absolute UTM coordinates.
+                      Format [[x0, y0], [x1, y1], ...]        
+                  
+        Output:        
+            Q: Total flow [m^3/s] across given segments.
+        
+         
+        """       
+        
+        # Adjust polyline to mesh spatial origin
+        polyline = self.geo_reference.get_relative(polyline)
+        
+        # Find all intersections and associated triangles.
+        segments = self.get_intersecting_segments(polyline, verbose=verbose)
+
+        msg = 'No segments found'
+        assert len(segments) > 0, msg
+        
+        # Get midpoints
+        midpoints = segment_midpoints(segments)       
+        
+        # FIXME (Ole): HACK - need to make midpoints Geospatial instances
+        midpoints = self.geo_reference.get_absolute(midpoints)        
+        
+        # Compute flow        
+        if verbose: print 'Computing flow through specified cross section'
+        
+        # Get interpolated values
+        xmomentum = self.get_quantity('xmomentum')
+        ymomentum = self.get_quantity('ymomentum')        
+        
+        uh = xmomentum.get_values(interpolation_points=midpoints)
+        vh = ymomentum.get_values(interpolation_points=midpoints)        
+        
+        # Compute and sum flows across each segment
+        total_flow=0
+        for i in range(len(uh)):
+            
+            # Inner product of momentum vector with segment normal [m^2/s] 
+            normal = segments[i].normal
+            normal_momentum = uh[i]*normal[0] + vh[i]*normal[1] 
+                
+            # Flow across this segment [m^3/s]
+            segment_flow = normal_momentum*segments[i].length
+
+            # Accumulate
+            total_flow += segment_flow
+
+            
+        return total_flow
+        
 
     def check_integrity(self):
         Generic_Domain.check_integrity(self)
