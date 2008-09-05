@@ -1011,16 +1011,19 @@ class Quantity:
         If interpolation points have been given previously, the 
         associated matrices will be reused to save time.
         
-        The argument interpolation points must be given as either a list of absolute UTM coordinates or
-        a geospatial data object.
+        The argument interpolation points must be given as either a 
+        list of absolute UTM coordinates or a geospatial data object.
         """
 
-        # FIXME (Ole): Could do with an input check (should be generalised and used widely)
-        # That will check that interpolation points is either a list of points, Nx2 array, or geospatial
+        # FIXME (Ole): Could do with an input check (should be generalised 
+        # and used widely)
+        # That will check that interpolation points is either a list of 
+        # points, Nx2 array, or geospatial
         
         # Ensure points are converted to coordinates relative to mesh origin
-        # FIXME (Ole): This could all be refactored using the 'change_points_geo_ref' method 
-        # of Class geo_reference. The purpose is to make interpolation points relative
+        # FIXME (Ole): This could all be refactored using the 
+        # 'change_points_geo_ref' method of Class geo_reference. 
+        # The purpose is to make interpolation points relative
         # to the mesh origin.
         #
         # Speed is also a consideration here.
@@ -1033,7 +1036,10 @@ class Quantity:
         interpolation_points = self.domain.geo_reference.get_relative(interpolation_points) 
         interpolation_points = ensure_numeric(interpolation_points)
         
-        # Get internal (discontinuous) triangles for use with the interpolation object.
+        
+        
+        # Get internal (discontinuous) triangles for use with the 
+        # interpolation object.
         x, y, vertex_values, triangles = self.get_vertex_values(xy=True,
                                                                 smooth=False)
         # FIXME (Ole): This concat should roll into get_vertex_values

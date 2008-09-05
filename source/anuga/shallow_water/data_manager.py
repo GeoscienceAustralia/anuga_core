@@ -6465,10 +6465,9 @@ def get_energy_through_cross_section(filename,
                                      polyline,
                                      kind = 'total',
                                      verbose=False):
-    """Obtain flow (m^3/s) perpendicular to specified cross section.
+    """Obtain average energy head [m] across specified cross section.
 
     Inputs:
-        filename: Name of sww file
         polyline: Representation of desired cross section - it may contain 
                   multiple sections allowing for complex shapes. Assume 
                   absolute UTM coordinates.
@@ -6477,17 +6476,17 @@ def get_energy_through_cross_section(filename,
                   Options are 'specific' and 'total' (default)
 
     Output:
-        time: All stored times in sww file
-        Q: Average energy [m] across given segments for all stored times.
+        E: Average energy [m] across given segments for all stored times.
 
-    The average velocity is computed for each triangle intersected by the polyline 
-    and averaged weigted by segment lengths. 
+    The average velocity is computed for each triangle intersected by 
+    the polyline and averaged weighted by segment lengths. 
 
-    The typical usage of this function would be to get average energy of flow in a channel,
-    and the polyline would then be a cross section perpendicular to the flow.
+    The typical usage of this function would be to get average energy of 
+    flow in a channel, and the polyline would then be a cross section 
+    perpendicular to the flow.
 
-    
-    #FIXME (Ole) - need name for this energy reflecting that its dimension is [m].
+    #FIXME (Ole) - need name for this energy reflecting that its dimension 
+    is [m].
     """
 
     from anuga.config import g, epsilon, velocity_protection as h0        
@@ -6500,7 +6499,8 @@ def get_energy_through_cross_section(filename,
 
     # Get values for quantities at each midpoint of poly line from sww file
     X = get_interpolated_quantities_at_polyline_midpoints(filename,
-                                                          quantity_names=quantity_names,
+                                                          quantity_names=\
+                                                          quantity_names,
                                                           polyline=polyline,
                                                           verbose=verbose)    
     segments, interpolation_function = X

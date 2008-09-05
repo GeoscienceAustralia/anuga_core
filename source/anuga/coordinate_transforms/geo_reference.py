@@ -211,14 +211,18 @@ class Geo_reference:
         msg += 'I got an %d x %d array' %points.shape    
         assert points.shape[1] == 2, msg                
 
-            
+        
+        # FIXME (Ole): Could also check if zone, xllcorner, yllcorner 
+        # are identical in the two geo refs.    
         if points_geo_ref is not self:
-            #add point geo ref to points
+            # If georeferences are different
+        
             if not points_geo_ref is None:
+                # Convert points to absolute coordinates
                 points[:,0] += points_geo_ref.xllcorner 
                 points[:,1] += points_geo_ref.yllcorner 
         
-            #subtract primary geo ref from points
+            # Make points relative to primary geo reference
             points[:,0] -= self.xllcorner 
             points[:,1] -= self.yllcorner
 

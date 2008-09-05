@@ -383,7 +383,8 @@ class Domain(Generic_Domain):
                                        verbose=False):               
         """Get the total flow through an arbitrary poly line.        
         
-        This is a run-time equivalent of the function with same name in data_manager.py
+        This is a run-time equivalent of the function with same name 
+        in data_manager.py
         
         Input:
             polyline: Representation of desired cross section - it may contain 
@@ -408,9 +409,6 @@ class Domain(Generic_Domain):
         
         # Get midpoints
         midpoints = segment_midpoints(segments)       
-        
-        # FIXME (Ole): HACK - need to make midpoints Geospatial instances
-        #midpoints = self.geo_reference.get_absolute(midpoints)        
         
         # Make midpoints Geospatial instances
         midpoints = ensure_geospatial(midpoints, self.geo_reference)        
@@ -438,10 +436,109 @@ class Domain(Generic_Domain):
 
             # Accumulate
             total_flow += segment_flow
-
             
         return total_flow
+
         
+               
+    def get_energy_through_cross_section(self, polyline,
+                                         kind = 'total',
+                                         verbose=False):               
+        """Obtain average energy head [m] across specified cross section.
+
+        Inputs:
+            polyline: Representation of desired cross section - it may contain 
+                      multiple sections allowing for complex shapes. Assume 
+                      absolute UTM coordinates.
+                      Format [[x0, y0], [x1, y1], ...]
+            kind:     Select which energy to compute. 
+                      Options are 'specific' and 'total' (default)
+
+        Output:
+            E: Average energy [m] across given segments for all stored times.
+
+        The average velocity is computed for each triangle intersected by 
+        the polyline and averaged weighted by segment lengths. 
+
+        The typical usage of this function would be to get average energy of 
+        flow in a channel, and the polyline would then be a cross section 
+        perpendicular to the flow.
+
+        #FIXME (Ole) - need name for this energy reflecting that its dimension 
+        is [m].
+        """
+
+        from anuga.config import g, epsilon, velocity_protection as h0        
+                                         
+        
+        # Adjust polyline to mesh spatial origin
+        polyline = self.geo_reference.get_relative(polyline)
+        
+        # Find all intersections and associated triangles.
+        segments = self.get_intersecting_segments(polyline, verbose=verbose)
+
+        msg = 'No segments found'
+        assert len(segments) > 0, msg
+        
+        # Get midpoints
+        midpoints = segment_midpoints(segments)       
+        
+        # Make midpoints Geospatial instances
+        midpoints = ensure_geospatial(midpoints, self.geo_reference)        
+        
+        # Compute energy        
+        if verbose: print 'Computing %s energy' %kind        
+        
+        # Get interpolated values
+        stage = self.get_quantity('stage')        
+        elevation = self.get_quantity('elevation')                
+        xmomentum = self.get_quantity('xmomentum')
+        ymomentum = self.get_quantity('ymomentum')        
+
+        w = stage.get_values(interpolation_points=midpoints)
+        z = elevation.get_values(interpolation_points=midpoints)        
+        uh = xmomentum.get_values(interpolation_points=midpoints)
+        vh = ymomentum.get_values(interpolation_points=midpoints)        
+        h = w-z # Depth
+        
+        # Compute total length of polyline for use with weighted averages
+        total_line_length = 0.0
+        for segment in segments:
+            total_line_length += segment.length
+        
+        # Compute and sum flows across each segment
+        average_energy=0.0
+        for i in range(len(w)):
+            
+            # Average velocity across this segment
+            if h[i] > epsilon:
+                # Use protection against degenerate velocities
+                u = uh[i]/(h[i] + h0/h[i])
+                v = vh[i]/(h[i] + h0/h[i])
+            else:
+                u = v = 0.0
+                
+            speed_squared = u*u + v*v    
+            kinetic_energy = 0.5*speed_squared/g
+            
+            if kind == 'specific':
+                segment_energy = h[i] + kinetic_energy
+            elif kind == 'total':
+                segment_energy = w[i] + kinetic_energy                
+            else:
+                msg = 'Energy kind must be either "specific" or "total".'
+                msg += ' I got %s' %kind
+                
+
+            # Add to weighted average
+            weigth = segments[i].length/total_line_length
+            average_energy += segment_energy*weigth
+             
+            
+        return average_energy
+        
+
+                        
 
     def check_integrity(self):
         Generic_Domain.check_integrity(self)
@@ -1532,7 +1629,7 @@ def assign_windfield_values(xmom_update, ymom_update,
 
 
 class General_forcing:
-    """Class General_forcing - general explicit forcing term for update of quantity
+    """General explicit forcing term for update of quantity
     
     This is used by Inflow and Rainfall for instance
     
@@ -1540,7 +1637,9 @@ class General_forcing:
     General_forcing(quantity_name, rate, center, radius, polygon)
 
     domain:     ANUGA computational domain
-    quantity_name: Name of quantity to update. It must be a known conserved quantity.
+    quantity_name: Name of quantity to update. 
+                   It must be a known conserved quantity.
+                   
     rate [?/s]: Total rate of change over the specified area.  
                 This parameter can be either a constant or a
                 function of time. Positive values indicate increases, 
@@ -1624,8 +1723,8 @@ class General_forcing:
 
 
             for point in periphery_points:
-                msg = 'Point %s on periphery for forcing term did not' %(str(point))
-                msg += ' fall within the domain boundary.'
+                msg = 'Point %s on periphery for forcing term' %(str(point))
+                msg += ' did not fall within the domain boundary.'
                 assert is_inside_polygon(point, bounding_polygon), msg
 
 	
@@ -1634,17 +1733,13 @@ class General_forcing:
 
             # Check that polygon lies within the mesh.
             for point in self.polygon:
-                msg = 'Point %s in polygon for forcing term did not' %(str(point))
-                msg += 'fall within the domain boundary.'
+                msg = 'Point %s in polygon for forcing term' %(str(point))
+                msg += ' did not fall within the domain boundary.'
                 assert is_inside_polygon(point, bounding_polygon), msg
-        
-
-
-            
 
 
         # Pointer to update vector
-        self.update = domain.quantities[self.quantity_name].explicit_update            
+        self.update = domain.quantities[self.quantity_name].explicit_update
 
         # Determine indices in flow area
         N = len(domain)    
@@ -1660,7 +1755,9 @@ class General_forcing:
             self.exchange_indices = []
             for k in range(N):
                 x, y = points[k,:] # Centroid
-                if ((x-self.center[0])**2+(y-self.center[1])**2) < self.radius**2:
+                
+                c = self.center
+                if ((x-c[0])**2+(y-c[1])**2) < self.radius**2:
                     self.exchange_indices.append(k)
                     
         if self.polygon is not None:                    
@@ -1675,7 +1772,8 @@ class General_forcing:
             #print inlet_region
         
             if len(self.exchange_indices) == 0:
-                msg = 'No triangles have been identified in specified region: %s' %inlet_region
+                msg = 'No triangles have been identified in '
+                msg += 'specified region: %s' %inlet_region
                 raise Exception, msg
 
 
@@ -1722,13 +1820,17 @@ class General_forcing:
     def get_quantity_values(self):
         """Return values for specified quantity restricted to opening 
         """
-        return self.domain.quantities[self.quantity_name].get_values(indices=self.exchange_indices)
+        
+        q = self.domain.quantities[self.quantity_name]
+        return q.get_values(indices=self.exchange_indices)
     
 
     def set_quantity_values(self, val):
         """Set values for specified quantity restricted to opening 
         """
-        self.domain.quantities[self.quantity_name].set_values(val, indices=self.exchange_indices)    
+
+        q = self.domain.quantities[self.quantity_name]                
+        q.set_values(val, indices=self.exchange_indices)    
 
 
 
@@ -1765,9 +1867,9 @@ class Rainfall(General_forcing):
     Examples
     How to put them in a run File...
 	
-    #--------------------------------------------------------------------------
+    #------------------------------------------------------------------------
     # Setup specialised forcing terms
-    #--------------------------------------------------------------------------
+    #------------------------------------------------------------------------
     # This is the new element implemented by Ole and Rudy to allow direct
     # input of Inflow in mm/s
 
@@ -1841,9 +1943,9 @@ class Inflow(General_forcing):
     Inflow((0.5, 0.5), 0.03, lambda t: min(0.01*t, 0.0142))
 
 
-    #--------------------------------------------------------------------------
+    #------------------------------------------------------------------------
     # Setup specialised forcing terms
-    #--------------------------------------------------------------------------
+    #------------------------------------------------------------------------
     # This is the new element implemented by Ole to allow direct input
     # of Inflow in m^3/s
 
@@ -1863,11 +1965,6 @@ class Inflow(General_forcing):
                  verbose=False):                 
 
 
-        #msg = 'Class Inflow must have either center & radius or a polygon specified.'
-        #assert center is not None and radius is not None or\
-        #       polygon is not None, msg
-
-
         # Create object first to make area is available
         General_forcing.__init__(self,
                                  domain,
@@ -1881,7 +1978,8 @@ class Inflow(General_forcing):
         """Virtual method allowing local modifications by writing an
         overriding version in descendant
 
-        This one converts m^3/s to m/s which can be added directly to 'stage' in ANUGA
+        This one converts m^3/s to m/s which can be added directly 
+        to 'stage' in ANUGA
         """
 
         
