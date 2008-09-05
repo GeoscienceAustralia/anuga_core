@@ -247,7 +247,8 @@ class Geospatial_data:
         geo_reference = ensure_geo_reference(geo_reference)
         
         if not isinstance(geo_reference, Geo_reference):
-            # FIXME (Ole): This exception will be raised if geo_reference is None
+            # FIXME (Ole): This exception will be raised even 
+            # if geo_reference is None. Is that the intent Duncan?
             msg = 'Argument geo_reference must be a valid Geo_reference \n'
             msg += 'object or None.'
             raise msg
@@ -392,9 +393,8 @@ class Geospatial_data:
         if absolute is True and geo_reference is None:
             return self.geo_reference.get_absolute(self.data_points)
         elif geo_reference is not None:
-            return geo_reference.change_points_geo_ref \
-                               (self.data_points, 
-                                self.geo_reference)
+            return geo_reference.change_points_geo_ref(self.data_points, 
+                                                       self.geo_reference)
         else:
             # If absolute is False 
             return self.data_points
