@@ -280,13 +280,19 @@ PyArrayObject *get_consecutive_array(PyObject *O, char *name) {
 
 double get_python_double(PyObject *O, char *name) {
   PyObject *TObject;
+  #define BUFFER_SIZE 80
+  char buf[BUFFER_SIZE];
   double tmp;
+  int n;
   
 
   //Get double from attribute
   TObject = PyObject_GetAttrString(O, name);
   if (!TObject) {
-    PyErr_SetString(PyExc_RuntimeError, "util_ext.h: get_python_double could not obtain double from object");
+	n =  snprintf(buf, BUFFER_SIZE, "util_ext.h: get_python_double could not obtain double %s.\n", name);
+	//printf("name = %s",name);
+    PyErr_SetString(PyExc_RuntimeError, buf);
+
     return 0.0;
   }  
   
@@ -297,19 +303,27 @@ double get_python_double(PyObject *O, char *name) {
   return tmp;
 }
 
+
+
+
 int get_python_integer(PyObject *O, char *name) {
   PyObject *TObject;
-  int tmp;
+  #define BUFFER_SIZE 80
+  char buf[BUFFER_SIZE];
+  long tmp;
+  int n;
   
 
   //Get double from attribute
   TObject = PyObject_GetAttrString(O, name);
   if (!TObject) {
-    PyErr_SetString(PyExc_RuntimeError, "util_ext.h: get_python_integer could not obtain double from object");
+  	n =  snprintf(buf, BUFFER_SIZE, "util_ext.h: get_python_integer could not obtain double %s.\n", name);
+	//printf("name = %s",name);
+    PyErr_SetString(PyExc_RuntimeError, buf);
     return 0;
   }  
   
-  tmp = PyFloat_AsDouble(TObject);
+  tmp = PyInt_AsLong(TObject);
   
   Py_DECREF(TObject);
   
