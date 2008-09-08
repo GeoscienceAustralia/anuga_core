@@ -6821,6 +6821,14 @@ friction  \n \
         y = fid.variables['y'][:]+fid.yllcorner   #y-coordinates of vertices
 	elevation = fid.variables['elevation'][:]
         time=fid.variables['time'][:]+fid.starttime
+        
+        
+        # Check that stored permutation is as per default
+        permutation = range(len(x))
+        stored_permutation = fid.variables['permutation'][:]
+        msg = 'Permutation was not stored correctly. I got '
+        msg += str(stored_permutation)
+        assert allclose(stored_permutation, permutation), msg        
 
         # get quantity data from sts file
         quantity_names=['stage','xmomentum','ymomentum']
@@ -7019,6 +7027,13 @@ friction  \n \
         #Let's interrogate the sts file
         # Note, the sts info is not gridded.  It is point data.
         fid = NetCDFFile(sts_file)
+        
+        # Check that original indices have been stored
+        stored_permutation = fid.variables['permutation'][:]
+        msg = 'Permutation was not stored correctly. I got '
+        msg += str(stored_permutation)
+        assert allclose(stored_permutation, permutation), msg
+        
 
         # Make x and y absolute
         x = fid.variables['x'][:]
@@ -7358,7 +7373,7 @@ friction  \n \
             
 
         #------------------------------------------------------------
-        # Now read the mux files one by one with out weights and test
+        # Now read the mux files one by one without weights and test
         
         # Call urs2sts with mux file #0
         urs2sts([base_nameI], 
@@ -7371,6 +7386,15 @@ friction  \n \
         sts_file = base_nameI + '.sts'
         fid = NetCDFFile(sts_file)
 
+        # Check that original indices have been stored
+        stored_permutation = fid.variables['permutation'][:]
+        msg = 'Permutation was not stored correctly. I got '
+        msg += str(stored_permutation)
+        assert allclose(stored_permutation, permutation), msg
+        
+
+        
+        
         # Make x and y absolute
         x = fid.variables['x'][:]
         y = fid.variables['y'][:]
@@ -7475,7 +7499,13 @@ friction  \n \
         # Now read the sts file and check that values have been stored correctly.
         sts_file = base_nameI + '.sts'
         fid = NetCDFFile(sts_file)
-
+        
+        # Check that original indices have been stored
+        stored_permutation = fid.variables['permutation'][:]
+        msg = 'Permutation was not stored correctly. I got '
+        msg += str(stored_permutation)
+        assert allclose(stored_permutation, permutation), msg
+        
         # Make x and y absolute
         x = fid.variables['x'][:]
         y = fid.variables['y'][:]

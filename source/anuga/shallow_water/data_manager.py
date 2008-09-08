@@ -5206,6 +5206,15 @@ def urs2sts(basename_in, basename_out=None,
     number_of_latitudes = latitudes.shape[0]   # Number latitudes
     number_of_longitudes = longitudes.shape[0] # Number longitudes
 
+    
+    # The permutation vector of contains original indices 
+    # as given in ordering file or None in which case points 
+    # are assigned the trivial indices enumerating them from 
+    # 0 to number_of_points-1
+    if permutation is None:
+        permutation = arange(number_of_points, typecode=Int)
+    
+    
     # NetCDF file definition
     outfile = NetCDFFile(stsname, 'w')
 
@@ -5253,6 +5262,7 @@ def urs2sts(basename_in, basename_out=None,
     #print geo_ref.get_yllcorner()
 
     elevation = resize(elevation,outfile.variables['elevation'][:].shape)
+    outfile.variables['permutation'][:] = permutation
     outfile.variables['x'][:] = x - geo_ref.get_xllcorner()
     outfile.variables['y'][:] = y - geo_ref.get_yllcorner()
     outfile.variables['elevation'][:] = elevation
@@ -5767,6 +5777,7 @@ class Write_sts:
         outfile.createDimension('numbers_in_range', 2)
 
         # Variable definitions
+        outfile.createVariable('permutation', Int, ('number_of_points',))        
         outfile.createVariable('x', sts_precision, ('number_of_points',))
         outfile.createVariable('y', sts_precision, ('number_of_points',))
         outfile.createVariable('elevation', sts_precision,('number_of_points',))
