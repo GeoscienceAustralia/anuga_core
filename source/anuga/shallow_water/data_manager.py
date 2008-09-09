@@ -5777,7 +5777,7 @@ class Write_sts:
         outfile.createDimension('numbers_in_range', 2)
 
         # Variable definitions
-        outfile.createVariable('permutation', Int, ('number_of_points',))        
+        outfile.createVariable('permutation', Int, ('number_of_points',))  
         outfile.createVariable('x', sts_precision, ('number_of_points',))
         outfile.createVariable('y', sts_precision, ('number_of_points',))
         outfile.createVariable('elevation', sts_precision,('number_of_points',))
