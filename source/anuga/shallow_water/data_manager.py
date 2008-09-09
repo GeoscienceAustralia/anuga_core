@@ -3892,9 +3892,9 @@ def asc_csiro2sww(bath_dir,
     z = resize(bath_grid,outfile.variables['z'][:].shape)
     outfile.variables['x'][:] = x - geo_ref.get_xllcorner()
     outfile.variables['y'][:] = y - geo_ref.get_yllcorner()
-    outfile.variables['z'][:] = z
-    outfile.variables['elevation'][:] = z  #FIXME HACK
-    outfile.variables['volumes'][:] = volumes.astype(Int32) #On Opteron 64
+    outfile.variables['z'][:] = z # FIXME (Ole): Remove once viewer has been recompiled and changed to use elevation instead of z
+    outfile.variables['elevation'][:] = z  
+    outfile.variables['volumes'][:] = volumes.astype(Int32) # On Opteron 64
 
     stage = outfile.variables['stage']
     xmomentum = outfile.variables['xmomentum']
@@ -5262,7 +5262,7 @@ def urs2sts(basename_in, basename_out=None,
     #print geo_ref.get_yllcorner()
 
     elevation = resize(elevation,outfile.variables['elevation'][:].shape)
-    outfile.variables['permutation'][:] = permutation
+    outfile.variables['permutation'][:] = permutation.astype(Int32) # On Opteron 64
     outfile.variables['x'][:] = x - geo_ref.get_xllcorner()
     outfile.variables['y'][:] = y - geo_ref.get_yllcorner()
     outfile.variables['elevation'][:] = elevation
