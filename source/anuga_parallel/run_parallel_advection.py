@@ -77,6 +77,9 @@ domain = Parallel_Domain(points, vertices, boundary,
 
 # Turn on the visualisation
 
+
+
+
 # rect = [0.0, 0.0, 1.0, 1.0]
 # domain.initialise_visualiser(rect=rect)
 
@@ -97,6 +100,19 @@ domain.set_quantity('stage', Set_Stage(0.2,0.4,1.0))
 
 # Let processor 0 output some timing information
 
+visualise = True
+if visualise:
+    from anuga.visualiser import RealtimeVisualiser
+    vis = RealtimeVisualiser(domain)
+    vis.render_quantity_height("elevation", offset=0.01, dynamic=False)
+    vis.render_quantity_height("stage", dynamic=True)
+    vis.colour_height_quantity('stage', (0.2, 0.2, 0.8))
+    vis.start()
+    import time
+    time.sleep(2.0)
+    
+
+
 if myid == 0:
     import time
     t0 = time.time()
@@ -104,6 +120,14 @@ if myid == 0:
 for t in domain.evolve(yieldstep = 0.1, finaltime = 3.0):
     if myid == 0:
         domain.write_time()
+        
+    if visualise:
+        vis.update()						
+
+        
+
+if visualise: vis.evolveFinished()
+    
 
 # Output some computation statistics
 
@@ -113,3 +137,6 @@ if myid == 0:
           %domain.communication_time
     print 'Reduction Communication time %.2f seconds'\
           %domain.communication_reduce_time
+        
+  
+vis.join()      
