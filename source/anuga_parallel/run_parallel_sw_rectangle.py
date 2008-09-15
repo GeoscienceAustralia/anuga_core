@@ -29,7 +29,9 @@ from parallel_shallow_water import Parallel_Domain
 # mesh partition routines
 from parallel_meshes import parallel_rectangle
 
-
+###############################
+# Read in processor information
+###############################
 numprocs = pypar.size()
 myid = pypar.rank()
 processor_name = pypar.Get_processor_name()
@@ -37,38 +39,23 @@ processor_name = pypar.Get_processor_name()
 M = 50
 N = M*numprocs
 
+
 if myid == 0:
     print 'N == %d' %N
 
 points, vertices, boundary, full_send_dict, ghost_recv_dict =\
         parallel_rectangle(N, M, len1_g=1.0*numprocs, len2_g = 1.0)
 
+print "Myid = ", myid, "no points = ", len(points), \
+      "no vertices = ", len(vertices), "no boundaries = ", len(boundary)
 
+###########################################
+# Start the computations on each subpartion
+###########################################
 
 domain = Parallel_Domain(points, vertices, boundary,
                          full_send_dict  = full_send_dict,
                          ghost_recv_dict = ghost_recv_dict)
-
-# Make a notes of which triangles are full and which are ghost
-
-tri_full_flag = build_full_flag(domain, ghost_recv_dict)
-
-print 'number of triangles = ', domain.number_of_elements
-
-
-rect = [ 0.0, 0.0, 1.0*numprocs, 1.0]
-## try:
-##     domain.initialise_visualiser(rect=rect)
-##     domain.visualiser.qcolor['stage'] = (0.0, 0.0, 0.8)
-##     domain.visualiser.scale_z['stage'] = 1.0
-##     domain.visualiser.scale_z['elevation'] = 0.05
-## except:
-##     print 'No visualiser'
-
-
-
-
-
 
 
 #Boundaries
@@ -79,6 +66,10 @@ R = Reflective_boundary(domain)
 
 
 domain.set_boundary( {'left': R, 'right': R, 'bottom': R, 'top': R, 'ghost': None} )
+
+
+
+
 domain.check_integrity()
 
 class Set_Stage:
@@ -98,32 +89,43 @@ class Set_Stage:
 
 domain.set_quantity('stage', Set_Stage(0.2, 0.4, 0.25, 0.75, 1.0, 0.00))
 
+
+# Set Evolve parameters
+domain.set_default_order(2)
+domain.set_timestepping_method('rk2')
+
+print domain.get_timestepping_method()
+
+#domain.use_edge_limiter = True
+#domain.tight_slope_limiters = True
+#domain.use_centroid_velocities = False
+
+domain.CFL = 1.0
+
+domain.set_beta(0.8)
+
+
+
 if myid == 0:
     import time
     t0 = time.time()
 
 
 # Turn on the visualisation
+visualise = True
+if visualise:
+    from anuga.visualiser import RealtimeVisualiser
+    vis = RealtimeVisualiser(domain)
+    vis.render_quantity_height("elevation", offset=0.001, dynamic=False)
+    vis.render_quantity_height("stage", dynamic=True)
+    vis.colour_height_quantity('stage', (0.2, 0.2, 0.8))
+    vis.start()
+    import time
+    time.sleep(2.0)
 
-rect = [0.0, 0.0, 1.0, 1.0]
-domain.initialise_visualiser()
 
-domain.default_order = 2
-domain.beta_w      = 1.0
-domain.beta_w_dry  = 0.2
-domain.beta_uh     = 1.0
-domain.beta_uh_dry = 0.2
-domain.beta_vh     = 1.0
-domain.beta_vh_dry = 0.2
 
-#domain.beta_w      = 0.9
-#domain.beta_w_dry  = 0.9
-#domain.beta_uh     = 0.9
-#domain.beta_uh_dry = 0.9
-#domain.beta_vh     = 0.9
-#domain.beta_vh_dry = 0.9
-
-yieldstep = 0.005
+yieldstep = 0.01
 finaltime = 1.0
 
 #Check that the boundary value gets propagated to all elements
@@ -131,6 +133,12 @@ for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
     if myid == 0:
         domain.write_time()
     #print_test_stats(domain, tri_full_flag)
+    if visualise:
+        vis.update()						
+
+
+
+if visualise: vis.evolveFinished()
 
 if myid == 0:
     print 'That took %.2f seconds' %(time.time()-t0)
@@ -139,4 +147,5 @@ if myid == 0:
     print 'Broadcast time %.2f seconds'%domain.communication_broadcast_time
 
 
+if visualise: vis.join()
 pypar.finalize()

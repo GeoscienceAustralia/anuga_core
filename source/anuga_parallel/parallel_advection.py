@@ -78,13 +78,13 @@ class Parallel_Domain(Domain):
         # For some reason it looks like pypar only reduces numeric arrays
         # hence we need to create some dummy arrays for communication
         ltimestep = ones( 1, Float )
-        ltimestep[0] = self.timestep
+        ltimestep[0] = self.flux_timestep
         gtimestep = zeros( 1, Float) # Buffer for results
         
         pypar.raw_reduce(ltimestep, gtimestep, pypar.MIN, 0)
         pypar.broadcast(gtimestep,0)
 
-        self.timestep = gtimestep[0]
+        self.flux_timestep = gtimestep[0]
         
         self.communication_reduce_time += time.time()-t0
 

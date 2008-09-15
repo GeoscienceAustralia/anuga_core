@@ -49,8 +49,8 @@ numprocs = pypar.size()
 myid = pypar.rank()
 processor_name = pypar.Get_processor_name()
 
-N = 80
-M = 80
+N = 100
+M = 100
 
 #######################
 # Partition the mesh
@@ -75,20 +75,31 @@ print "Myid = ", myid, "no points = ", len(points), \
 domain = Parallel_Domain(points, vertices, boundary,
                          full_send_dict, ghost_recv_dict, velocity=[1.0, 0.0])
 
-# Turn on the visualisation
-
-
-
-
-# rect = [0.0, 0.0, 1.0, 1.0]
-# domain.initialise_visualiser(rect=rect)
-
 # Boundaries
 
 T = Transmissive_boundary(domain)
-domain.default_order = 2
+
+
+
+
 domain.set_boundary( {'left': T, 'right': T, 'bottom': T, 'top': T, \
                       'ghost': None} )
+
+
+# Set Evolve parameters
+domain.set_default_order(2)
+domain.set_timestepping_method('rk2')
+
+print domain.get_timestepping_method()
+
+#domain.use_edge_limiter = True
+#domain.tight_slope_limiters = True
+#domain.use_centroid_velocities = False
+
+domain.CFL = 1.0
+
+domain.set_beta(0.8)
+
 
 # Ensure that the domain definitions make sense
 
@@ -104,7 +115,7 @@ visualise = True
 if visualise:
     from anuga.visualiser import RealtimeVisualiser
     vis = RealtimeVisualiser(domain)
-    vis.render_quantity_height("elevation", offset=0.01, dynamic=False)
+    #vis.render_quantity_height("elevation", offset=0.01, dynamic=False)
     vis.render_quantity_height("stage", dynamic=True)
     vis.colour_height_quantity('stage', (0.2, 0.2, 0.8))
     vis.start()
@@ -139,4 +150,4 @@ if myid == 0:
           %domain.communication_reduce_time
         
   
-vis.join()      
+if visualise: vis.join()

@@ -117,11 +117,13 @@ class Parallel_Domain(Domain):
         #Broadcast local timestep from every processor to every other
         for pid in range(self.numproc):
             #print 'P%d calling broadcast from %d' %(self.processor, pid)
-            self.local_timestep[0] = self.timestep
+            self.local_timestep[0] = self.flux_timestep
             pypar.broadcast(self.local_timestep, pid, bypass=True)
             self.local_timesteps[pid] = self.local_timestep[0]
 
-        self.timestep = min(self.local_timesteps)
+        self.flux_timestep = min(self.local_timesteps)
+
+        #print 'Flux Timestep %d P%d_%d' %(self.flux_timestep, self.processor, self.numproc)
 
         pypar.barrier()
         self.communication_broadcast_time += time.time()-t0
@@ -146,7 +148,7 @@ class Parallel_Domain(Domain):
 
         import time
         #Compute minimal timestep across all processes
-        self.local_timestep[0] = self.timestep
+        self.local_timestep[0] = self.flux_timestep
         use_reduce_broadcast = True
         if use_reduce_broadcast:
             t0 = time.time()
@@ -157,7 +159,7 @@ class Parallel_Domain(Domain):
         else:
             #Alternative: Try using straight send and receives
             t0 = time.time()
-            self.global_timestep[0] = self.timestep
+            self.global_timestep[0] = self.flux_timestep
 
             if self.processor == 0:
                 for i in range(1, self.numproc):
@@ -182,8 +184,9 @@ class Parallel_Domain(Domain):
 
         self.communication_broadcast_time += time.time()-t0
 
-
-        self.timestep = self.global_timestep[0]
+        #old_timestep = self.flux_timestep
+        self.flux_timestep = self.global_timestep[0]
+        #print 'Flux Timestep %15.5e %15.5e P%d_%d' %(self.flux_timestep, old_timestep, self.processor, self.numproc)
         
         # LINDA:
         # update local stats now
