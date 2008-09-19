@@ -15,24 +15,32 @@ class Culvert_flow:
 
     2008_May_08
     To Ole:
-    OK so here we need to get the Polygon Creating code to create polygons for the culvert Based on
-    the two input Points (X0,Y0) and (X1,Y1) - need to be passed to create polygon
+    OK so here we need to get the Polygon Creating code to create 
+    polygons for the culvert Based on
+    the two input Points (X0,Y0) and (X1,Y1) - need to be passed 
+    to create polygon
 
     The two centers are now passed on to create_polygon.
     
 
-    Input: Two points, pipe_size (either diameter or width, height), mannings_rougness,
+    Input: Two points, pipe_size (either diameter or width, height), 
+    mannings_rougness,
     inlet/outlet energy_loss_coefficients, internal_bend_coefficent,
     top-down_blockage_factor and bottom_up_blockage_factor
     
     
-    And the Delta H enquiry should be change from Openings in line 412 to the enquiry Polygons infront
-    of the culvert
-    At the moment this script uses only Depth, later we can change it to Energy...
+    And the Delta H enquiry should be change from Openings in line 412 
+    to the enquiry Polygons infront of the culvert
+    At the moment this script uses only Depth, later we can change it to 
+    Energy...
 
-    Once we have Delta H can calculate a Flow Rate and from Flow Rate an Outlet Velocity
+    Once we have Delta H can calculate a Flow Rate and from Flow Rate 
+    an Outlet Velocity
     The Outlet Velocity x Outlet Depth = Momentum to be applied at the Outlet...
 	
+    Invert levels are optional. If left out they will default to the 
+    elevation at the opening.
+        
     """	
 
     def __init__(self,
@@ -45,8 +53,8 @@ class Culvert_flow:
                  height=None,
                  diameter=None,
                  manning=None,          # Mannings Roughness for Culvert
-                 invert_level0=None,    # Invert level if not the same as the Elevation on the Domain
-                 invert_level1=None,    # Invert level if not the same as the Elevation on the Domain
+                 invert_level0=None,    # Invert level at opening 0
+                 invert_level1=None,    # Invert level at opening 1
                  loss_exit=None,
                  loss_entry=None,
                  loss_bend=None,
@@ -64,7 +72,8 @@ class Culvert_flow:
             self.culvert_type = 'circle'
             self.diameter = diameter
             if height is not None or width is not None:
-                msg = 'Either diameter or width&height must be specified, but not both.'
+                msg = 'Either diameter or width&height must be specified, '
+                msg += 'but not both.'
                 raise Exception, msg
         else:
             if height is not None:
@@ -95,17 +104,18 @@ class Culvert_flow:
         
         
         # Set defaults
-        if manning is None: manning = 0.012   # Set a Default Mannings Roughness for Pipe
+        if manning is None: manning = 0.012   # Default roughness for pipe
         if loss_exit is None: loss_exit = 1.00
         if loss_entry is None: loss_entry = 0.50
         if loss_bend is None: loss_bend=0.00
         if loss_special is None: loss_special=0.00
         if blockage_topdwn is None: blockage_topdwn=0.00
         if blockage_bottup is None: blockage_bottup=0.00
-        if culvert_routine is None: culvert_routine=boyd_generalised_culvert_model
+        if culvert_routine is None: 
+            culvert_routine=boyd_generalised_culvert_model
+            
         if label is None: label = 'culvert_flow'
         label += '_' + str(id(self)) 
-        
         self.label = label
         
         # File for storing culvert quantities
@@ -173,7 +183,9 @@ class Culvert_flow:
         # Store basic geometry 
         self.end_points = [end_point0, end_point1]
         self.invert_levels = [invert_level0, invert_level1]                
-        self.enquiry_polygons = [P['enquiry_polygon0'], P['enquiry_polygon1']]
+        #self.enquiry_polygons = [P['enquiry_polygon0'], P['enquiry_polygon1']]
+        self.enquiry_polylines = [P['enquiry_polygon0'][:2], 
+                                  P['enquiry_polygon1'][:2]]
         self.vector = P['vector']
         self.length = P['length']; assert self.length > 0.0
         self.verbose = verbose
@@ -244,53 +256,20 @@ class Culvert_flow:
         for i, opening in enumerate(openings):
             dq = domain.quantities
             
-            stage = dq['stage'].get_values(location='centroids',
-                                           indices=opening.exchange_indices)
-            elevation = dq['elevation'].get_values(location='centroids',
-                                                   indices=opening.exchange_indices)
-
-            # Indices corresponding to energy enquiry field for this opening
-            coordinates = domain.get_centroid_coordinates(absolute=True) # Get all centroid points (x,y)
-            enquiry_indices = inside_polygon(coordinates,
-                                             self.enquiry_polygons[i]) 
-
-            if len(enquiry_indices) == 0:
-                msg = 'No triangles have been identified in specified region: %s' %str(self.enquiry_polygons[i])
-                raise Exception, msg                
-            
-            # Get model values for points in enquiry polygon for this opening
-            stage = dq['stage'].get_values(location='centroids',
-                                           indices=enquiry_indices)
-            xmomentum = dq['xmomentum'].get_values(location='centroids',
-                                                   indices=enquiry_indices)
-            ymomentum = dq['ymomentum'].get_values(location='centroids',
-                                                   indices=enquiry_indices)
-            elevation = dq['elevation'].get_values(location='centroids',
-                                                   indices=enquiry_indices)
-            depth = stage - elevation
-
-            # Compute mean values of selected quantitites in the enquiry area in front of the culvert
-            # Epsilon handles a dry cell case
-            ux = xmomentum/(depth+velocity_protection/depth)   # Velocity (x-direction)
-            uy = ymomentum/(depth+velocity_protection/depth)   # Velocity (y-direction)
-            #print 'Velocity in culvert:', ux, uy, depth, xmomentum, ymomentum
-            v = mean(sqrt(ux**2+uy**2))      # Average velocity
-            w = mean(stage)                  # Average stage
-
-            # Store values at enquiry field
-            opening.velocity = v
-
-
             # Compute mean values of selected quantitites in the exchange area in front of the culvert
             # Stage and velocity comes from enquiry area and elevation from exchange area
             
+            stage = dq['stage'].get_values(location='centroids',
+                                           indices=opening.exchange_indices)            
+            w = mean(stage) # Average stage
+
             # Use invert level instead of elevation if specified
             invert_level = self.invert_levels[i]
             if invert_level is not None:
                 z = invert_level
             else:
                 elevation = dq['elevation'].get_values(location='centroids', indices=opening.exchange_indices)
-                z = mean(elevation)                   # Average elevation
+                z = mean(elevation) # Average elevation
 
             # Estimated depth above the culvert inlet
             d = w - z  # Used for calculations involving depth
@@ -301,15 +280,6 @@ class Culvert_flow:
                 d = 0.0
             
 
-
-            # Depth at exchange area used to trigger calculations
-            stage = dq['stage'].get_values(location='centroids', indices=enquiry_indices)
-            elevation = dq['elevation'].get_values(location='centroids', indices=enquiry_indices)
-            depth = stage - elevation
-            d_trigger = mean(depth)
-
-
-
             # Ratio of depth to culvert height.
             # If ratio > 1 then culvert is running full
             if self.culvert_type == 'circle':
@@ -318,15 +288,17 @@ class Culvert_flow:
                 ratio = d/self.height  
             opening.ratio = ratio
                 
+                
             # Average measures of energy in front of this opening
-            Es = d + 0.5*v**2/g  #  Specific energy in exchange area
-            Et = w + 0.5*v**2/g  #  Total energy in the enquiry area
-            opening.total_energy = Et
-            opening.specific_energy = Es            
-            
+            polyline = self.enquiry_polylines[i]
+            #print 't = %.4f, opening=%d,' %(domain.time, i),
+            opening.total_energy = domain.get_energy_through_cross_section(polyline,
+                                                                           kind='total')            
+            #print 'Et = %.3f m' %opening.total_energy
+
             # Store current average stage and depth with each opening object
             opening.depth = d
-            opening.depth_trigger = d_trigger            
+            opening.depth_trigger = d # Use this for now
             opening.stage = w
             opening.elevation = z
             
@@ -341,16 +313,16 @@ class Culvert_flow:
 
         if delta_Et > 0:
             #print 'Flow U/S ---> D/S'
-            inlet=openings[0]
-            outlet=openings[1]
+            inlet = openings[0]
+            outlet = openings[1]
 
             inlet.momentum = self.opening_momentum[0]
             outlet.momentum = self.opening_momentum[1]
 
         else:
             #print 'Flow D/S ---> U/S'
-            inlet=openings[1]
-            outlet=openings[0]
+            inlet = openings[1]
+            outlet = openings[0]
 
             inlet.momentum = self.opening_momentum[1]
             outlet.momentum = self.opening_momentum[0]

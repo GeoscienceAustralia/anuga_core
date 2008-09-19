@@ -36,9 +36,9 @@ fid = open('Culvert_Headwall', 'w')
 length = 40.
 width = 5.
 
-#dx = dy = 1           # Resolution: Length of subdivisions on both axes
+dx = dy = 1           # Resolution: Length of subdivisions on both axes
 #dx = dy = .5           # Resolution: Length of subdivisions on both axes
-dx = dy = .5           # Resolution: Length of subdivisions on both axes
+#dx = dy = .5           # Resolution: Length of subdivisions on both axes
 #dx = dy = .1           # Resolution: Length of subdivisions on both axes
 
 points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
