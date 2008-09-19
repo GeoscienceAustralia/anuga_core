@@ -442,7 +442,7 @@ class Domain(Generic_Domain):
         
                
     def get_energy_through_cross_section(self, polyline,
-                                         kind = 'total',
+                                         kind='total',
                                          verbose=False):               
         """Obtain average energy head [m] across specified cross section.
 

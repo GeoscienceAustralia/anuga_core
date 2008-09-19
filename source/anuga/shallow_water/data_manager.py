@@ -6933,7 +6933,7 @@ def get_all_directories_with_name(look_in_dir='',base_name='',verbose=False):
     return iterate_over
 
 def points2polygon(points_file,
-                    minimum_triangle_angle=3.0):
+                   minimum_triangle_angle=3.0):
     """
     WARNING: This function is not fully working.  
     
