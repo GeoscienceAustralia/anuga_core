@@ -1005,7 +1005,8 @@ class Quantity:
 
 
 
-    def get_interpolated_values(self, interpolation_points):
+    def get_interpolated_values(self, interpolation_points,
+                                verbose=False):
         """ Get values at interpolation points
         
         If interpolation points have been given previously, the 
@@ -1046,37 +1047,18 @@ class Quantity:
         vertex_coordinates = concatenate((x[:, NewAxis], y[:, NewAxis]),
                                          axis=1)
 
-        can_reuse = False
-        if hasattr(self, 'interpolation_object'):
-            # Reuse to save time
-            I = self.interpolation_object
-
-            if allclose(interpolation_points.shape, 
-                        I._point_coordinates.shape):
-                if allclose(interpolation_points, I._point_coordinates):
-                    can_reuse = True
-                
-
-        if can_reuse is True:
-            # Use absence of points to indicate reuse in I.interpolate
-            result = I.interpolate(vertex_values) 
-        else:    
-            from anuga.fit_interpolate.interpolate import Interpolate
-
-            # Create interpolation object with matrix
-            I = Interpolate(vertex_coordinates, triangles)
-            self.interpolation_object = I
-
-            # Call interpolate with points the first time
-            interpolation_points = ensure_numeric(interpolation_points, Float)
-            result = I.interpolate(vertex_values, interpolation_points)     
-
-        return result
+        # Use caching to reuse interpolation information
+        from anuga.fit_interpolate.interpolate import interpolate
+        return interpolate(vertex_coordinates, triangles, vertex_values, interpolation_points,
+                           use_cache=True, 
+                           verbose=verbose)
 
 
-    def get_values(self, interpolation_points=None,
+    def get_values(self, 
+                   interpolation_points=None,
                    location='vertices',
-                   indices = None):
+                   indices=None,
+                   verbose=False):
         """get values for quantity
 
         return X, Compatible list, Numeric array (see below)
@@ -1118,9 +1100,13 @@ class Quantity:
         # FIXME (Ole): I reckon we should have the option of passing a
         #              polygon into get_values. The question becomes how
         #              resulting values should be ordered.
+        
+        if verbose is True:
+            print 'Getting values from %s' %location
 
         if interpolation_points is not None:
-            return self.get_interpolated_values(interpolation_points)
+            return self.get_interpolated_values(interpolation_points,
+                                                verbose=verbose)
         
         
         # FIXME (Ole): Consider deprecating 'edges' - but not if it is used

@@ -2309,8 +2309,9 @@ class Test_Quantity(unittest.TestCase):
         interpolation_points = domain.get_centroid_coordinates()
         answer = quantity.get_values(location='centroids')
         #print answer
-        #print quantity.get_values(points=interpolation_points)
-        assert allclose(answer, quantity.get_values(interpolation_points=interpolation_points))        
+        #print quantity.get_values(interpolation_points=interpolation_points)
+        assert allclose(answer, quantity.get_values(interpolation_points=interpolation_points,
+                                                    verbose=False))        
                         
 
         #FIXME TODO
