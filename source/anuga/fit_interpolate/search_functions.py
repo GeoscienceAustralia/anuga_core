@@ -54,8 +54,12 @@ def search_tree_of_vertices(root, mesh, x):
     k = -10.0
 
     # Search the last triangle first
-    element_found, sigma0, sigma1, sigma2, k = \
-                   _search_triangles_of_vertices(mesh,last_triangle, x)
+    try:
+        element_found, sigma0, sigma1, sigma2, k = \
+            _search_triangles_of_vertices(mesh, last_triangle, x)
+    except:
+        element_found = False
+                   
     #print "last_triangle", last_triangle
     if element_found is True:
         #print "last_triangle", last_triangle
@@ -102,11 +106,11 @@ def search_tree_of_vertices(root, mesh, x):
             # Searching all the verts from the root cell that haven't
             # been searched.  This is the last try
             element_found, sigma0, sigma1, sigma2, k = \
-                           _search_triangles_of_vertices(mesh,triangles, x)
+                           _search_triangles_of_vertices(mesh, triangles, x)
             is_more_elements = False
         else:
             element_found, sigma0, sigma1, sigma2, k = \
-                       _search_triangles_of_vertices(mesh,triangles, x)
+                       _search_triangles_of_vertices(mesh, triangles, x)
         #search_more_cells_time += time.time()-t0
     #print "search_more_cells_time", search_more_cells_time
         

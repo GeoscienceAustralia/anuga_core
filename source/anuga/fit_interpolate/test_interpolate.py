@@ -102,7 +102,8 @@ class Test_Interpolate(unittest.TestCase):
         data = [ [2.0/3, 2.0/3] ] #Use centroid as one data point
 
         interp = Interpolate(points, vertices)
-        assert allclose(interp._build_interpolation_matrix_A(data).todense(),
+        A, _, _ = interp._build_interpolation_matrix_A(data)
+        assert allclose(A.todense(),
                         [[1./3, 1./3, 1./3]])
 
 
@@ -114,15 +115,15 @@ class Test_Interpolate(unittest.TestCase):
         from Numeric import zeros, Float
         from abstract_2d_finite_volumes.quantity import Quantity
 
-        #Create basic mesh
+        # Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
 
-        #Create shallow water domain
+        # Create shallow water domain
         domain = Domain(points, vertices, boundary)
 
-        #---------------
+        #----------------
         #Constant values
-        #---------------        
+        #----------------        
         quantity = Quantity(domain,[[0,0,0],[1,1,1],[2,2,2],[3,3,3],
                                     [4,4,4],[5,5,5]])
 
@@ -141,9 +142,9 @@ class Test_Interpolate(unittest.TestCase):
         assert allclose(result, answer)
 
 
-        #---------------
-        #Variable values
-        #---------------
+        #----------------
+        # Variable values
+        #----------------
         quantity = Quantity(domain,[[0,1,2],[3,1,7],[2,1,2],[3,3,7],
                                     [1,4,-9],[2,5,0]])
         
@@ -161,6 +162,101 @@ class Test_Interpolate(unittest.TestCase):
         assert allclose(result, answer)        
         
 
+    def test_simple_interpolation_example_using_direct_interface(self):
+        
+        from mesh_factory import rectangular
+        from shallow_water import Domain
+        from Numeric import zeros, Float
+        from abstract_2d_finite_volumes.quantity import Quantity
+
+        # Create basic mesh
+        points, vertices, boundary = rectangular(1, 3)
+
+        # Create shallow water domain
+        domain = Domain(points, vertices, boundary)
+
+        #----------------
+        # Constant values
+        #----------------        
+        quantity = Quantity(domain,[[0,0,0],[1,1,1],[2,2,2],[3,3,3],
+                                    [4,4,4],[5,5,5]])
+
+
+        x, y, vertex_values, triangles = quantity.get_vertex_values(xy=True, smooth=False)
+        vertex_coordinates = concatenate( (x[:, NewAxis], y[:, NewAxis]), axis=1 )
+        # FIXME: This concat should roll into get_vertex_values
+
+
+        # Get interpolated values at centroids
+        interpolation_points = domain.get_centroid_coordinates()
+        answer = quantity.get_values(location='centroids')
+
+        result = interpolate(vertex_coordinates, triangles, vertex_values, interpolation_points)
+        assert allclose(result, answer)
+
+
+        #----------------
+        # Variable values
+        #----------------
+        quantity = Quantity(domain,[[0,1,2],[3,1,7],[2,1,2],[3,3,7],
+                                    [1,4,-9],[2,5,0]])
+        
+        x, y, vertex_values, triangles = quantity.get_vertex_values(xy=True, smooth=False)
+        vertex_coordinates = concatenate( (x[:, NewAxis], y[:, NewAxis]), axis=1 )
+        # FIXME: This concat should roll into get_vertex_values
+
+
+        # Get interpolated values at centroids
+        interpolation_points = domain.get_centroid_coordinates()
+        answer = quantity.get_values(location='centroids')
+
+        result = interpolate(vertex_coordinates, triangles,
+                             vertex_values, interpolation_points)
+        assert allclose(result, answer)        
+        
+        
+    def test_simple_interpolation_example_using_direct_interface_and_caching(self):
+        
+        from mesh_factory import rectangular
+        from shallow_water import Domain
+        from Numeric import zeros, Float
+        from abstract_2d_finite_volumes.quantity import Quantity
+
+        # Create basic mesh
+        points, vertices, boundary = rectangular(1, 3)
+
+        # Create shallow water domain
+        domain = Domain(points, vertices, boundary)
+
+        #----------------
+        # First call
+        #----------------
+        quantity = Quantity(domain,[[0,1,2],[3,1,7],[2,1,2],[3,3,7],
+                                    [1,4,-9],[2,5,0]])
+        
+        x, y, vertex_values, triangles = quantity.get_vertex_values(xy=True, smooth=False)
+        vertex_coordinates = concatenate( (x[:, NewAxis], y[:, NewAxis]), axis=1 )
+        # FIXME: This concat should roll into get_vertex_values
+
+
+        # Get interpolated values at centroids
+        interpolation_points = domain.get_centroid_coordinates()
+        answer = quantity.get_values(location='centroids')
+
+        result = interpolate(vertex_coordinates, triangles,
+                             vertex_values, interpolation_points,
+                             use_cache=True,
+                             verbose=False)
+        assert allclose(result, answer)                
+        
+        # Second call using the cache
+        result = interpolate(vertex_coordinates, triangles,
+                             vertex_values, interpolation_points,
+                             use_cache=True,
+                             verbose=False)
+        assert allclose(result, answer)                        
+        
+        
     def test_quad_tree(self):
         p0 = [-10.0, -10.0]
         p1 = [20.0, -10.0]
@@ -191,17 +287,17 @@ class Test_Interpolate(unittest.TestCase):
         answer =  [ [ 0.06666667,  0.46666667,  0.46666667,  0.,
                       0., 0. , 0., 0., 0., 0.]]
 
+        A,_,_ = interp._build_interpolation_matrix_A(data)
+        assert allclose(A.todense(), answer)
         
-        assert allclose(interp._build_interpolation_matrix_A(data).todense(),
-                        answer)
         #interp.set_point_coordinates([[-30, -30]]) #point outside of mesh
         #print "PDSG - interp.get_A()", interp.get_A()
         data = [[-30, -30]]
         answer =  [ [ 0.0,  0.0,  0.0,  0.,
                       0., 0. , 0., 0., 0., 0.]]
         
-        assert allclose(interp._build_interpolation_matrix_A(data).todense(),
-                        answer)
+        A,_,_ = interp._build_interpolation_matrix_A(data)        
+        assert allclose(A.todense(), answer)
 
 
         #point outside of quad tree root cell
@@ -210,8 +306,10 @@ class Test_Interpolate(unittest.TestCase):
         data = [[-70, -70]]
         answer =  [ [ 0.0,  0.0,  0.0,  0.,
                       0., 0. , 0., 0., 0., 0.]]
-        assert allclose(interp._build_interpolation_matrix_A(data).todense(),
-                        answer)
+                      
+        A,_,_ = interp._build_interpolation_matrix_A(data)        
+        assert allclose(A.todense(), answer)
+
 
     def test_datapoints_at_vertices(self):
         #Test that data points coinciding with vertices yield a diagonal matrix
@@ -229,8 +327,9 @@ class Test_Interpolate(unittest.TestCase):
         answer = [[1., 0., 0.],
                    [0., 1., 0.],
                    [0., 0., 1.]]
-        assert allclose(interp._build_interpolation_matrix_A(data).todense(),
-                        answer)
+                   
+        A,_,_ = interp._build_interpolation_matrix_A(data)
+        assert allclose(A.todense(), answer)
 
 
     def test_datapoints_on_edge_midpoints(self):
@@ -250,8 +349,8 @@ class Test_Interpolate(unittest.TestCase):
                     [0.0, 0.5, 0.5]]
         interp = Interpolate(points, vertices)
 
-        assert allclose(interp._build_interpolation_matrix_A(data).todense(),
-                        answer)
+        A,_,_ = interp._build_interpolation_matrix_A(data)
+        assert allclose(A.todense(), answer)
 
     def test_datapoints_on_edges(self):
         #Try datapoints on edges -
@@ -271,8 +370,8 @@ class Test_Interpolate(unittest.TestCase):
 
         interp = Interpolate(points, vertices)
 
-        assert allclose(interp._build_interpolation_matrix_A(data).todense(),
-                        answer)
+        A,_,_ = interp._build_interpolation_matrix_A(data)
+        assert allclose(A.todense(), answer)
 
 
     def test_arbitrary_datapoints(self):
@@ -291,7 +390,9 @@ class Test_Interpolate(unittest.TestCase):
 
         interp = Interpolate(points, vertices)
         #print "interp.get_A()", interp.get_A()
-        results = interp._build_interpolation_matrix_A(data).todense()
+        
+        A,_,_ = interp._build_interpolation_matrix_A(data)
+        results = A.todense()
         assert allclose(sum(results, axis=1), 1.0)
 
     def test_arbitrary_datapoints_some_outside(self):
@@ -310,7 +411,9 @@ class Test_Interpolate(unittest.TestCase):
         data = [ [0.2, 1.5], [0.123, 1.768], [1.43, 0.44], [5.0, 7.0]]
 
         interp = Interpolate(points, vertices)
-        results = interp._build_interpolation_matrix_A(data).todense()
+        
+        A,_,_ = interp._build_interpolation_matrix_A(data)
+        results = A.todense()
         assert allclose(sum(results, axis=1), [1,1,1,0])
 
 
@@ -340,7 +443,8 @@ class Test_Interpolate(unittest.TestCase):
                   [1./3, 0.0, 0.0, 0.0, 1./3, 1./3]] #Affects points a, e and f
 
 
-        A = interp._build_interpolation_matrix_A(data).todense()
+        A,_,_ = interp._build_interpolation_matrix_A(data)
+        A = A.todense()
         for i in range(A.shape[0]):
             for j in range(A.shape[1]):
                 if not allclose(A[i,j], answer[i][j]):

@@ -45,6 +45,91 @@ class Modeltime_too_late(Exception): pass
 class Modeltime_too_early(Exception): pass
 
 
+def interpolate(vertex_coordinates,
+                triangles,
+                vertex_values,
+                interpolation_points,
+                mesh_origin=None,
+                max_vertices_per_cell=None,
+                start_blocking_len=500000,
+                use_cache=False,             
+                verbose=False):                 
+    """Interpolate vertex_values to interpolation points.
+    
+    Inputs (mandatory):
+
+   
+    vertex_coordinates: List of coordinate pairs [xi, eta] of
+                        points constituting a mesh 
+                        (or an m x 2 Numeric array or
+                        a geospatial object)
+                        Points may appear multiple times
+                        (e.g. if vertices have discontinuities)
+
+    triangles: List of 3-tuples (or a Numeric array) of
+               integers representing indices of all vertices 
+               in the mesh.
+               
+    vertex_values: Vector or array of data at the mesh vertices.
+                   If array, interpolation will be done for each column as
+                   per underlying matrix-matrix multiplication
+              
+    interpolation_points: Interpolate mesh data to these positions.
+                          List of coordinate pairs [x, y] of
+	                  data points or an nx2 Numeric array or a Geospatial_data object
+               
+    Inputs (optional)
+               
+    mesh_origin: A geo_reference object or 3-tuples consisting of
+                 UTM zone, easting and northing.
+                 If specified vertex coordinates are assumed to be
+                 relative to their respective origins.
+
+    max_vertices_per_cell: Number of vertices in a quad tree cell
+                           at which the cell is split into 4.
+
+                           Note: Don't supply a vertex coords as a geospatial object and
+                           a mesh origin, since geospatial has its own mesh origin.
+                           
+    start_blocking_len: If the # of points is more or greater than this,
+                        start blocking 
+                        
+    use_cache: True or False
+                            
+
+    Output:
+    
+    Interpolated values at specified point_coordinates                           
+    
+    
+    Note: This function is a simple shortcut for case where interpolation matrix is unnecessary
+    Note: This function does not take blocking into account, but allows caching.
+    
+    """
+    
+    from anuga.caching import cache
+
+    # Create interpolation object with matrix
+    args = (vertex_coordinates, triangles)
+    kwargs = {'mesh_origin': mesh_origin,
+              'max_vertices_per_cell': max_vertices_per_cell,
+              'verbose': verbose}
+              
+    if use_cache is True:
+        I = cache(Interpolate, args, kwargs,
+                  verbose=verbose)
+    else:
+        I = apply(Interpolate, args, kwargs)
+                  
+    
+    # Call interpolate method with interpolation points
+    result = I.interpolate_block(vertex_values, interpolation_points,
+                                 use_cache=use_cache,
+                                 verbose=verbose)
+                           
+    return result
+    
+
 
 class Interpolate (FitInterpolate):
         
@@ -94,6 +179,8 @@ class Interpolate (FitInterpolate):
                                 mesh_origin=mesh_origin,
                                 verbose=verbose,
                                 max_vertices_per_cell=max_vertices_per_cell)
+                                
+                                
 
     def interpolate_polyline(self,
                              f,
@@ -207,6 +294,8 @@ class Interpolate (FitInterpolate):
 
         # FIXME (Ole): Why is the interpolation matrix rebuilt everytime the
         # method is called even if interpolation points are unchanged.
+        # This really should use some kind of caching in cases where
+        # interpolation points are reused.
 
         #print "point_coordinates interpolate.interpolate", point_coordinates
         if verbose: print 'Build intepolation object' 
@@ -269,7 +358,8 @@ class Interpolate (FitInterpolate):
         return z
     
 
-    def interpolate_block(self, f, point_coordinates, verbose=False):
+    def interpolate_block(self, f, point_coordinates, 
+                          use_cache=False, verbose=False):
         """
         Call this if you want to control the blocking or make sure blocking
         doesn't occur.
@@ -286,9 +376,18 @@ class Interpolate (FitInterpolate):
         point_coordinates = ensure_numeric(point_coordinates, Float)
         f = ensure_numeric(f, Float)        
             
-        self._A = self._build_interpolation_matrix_A(point_coordinates,
-                                                     verbose=verbose)
-
+        if use_cache is True:
+            X = cache(self._build_interpolation_matrix_A,
+                      (point_coordinates),
+                      {'verbose': verbose},                        
+                      verbose=verbose)        
+        else:
+            X = self._build_interpolation_matrix_A(point_coordinates,
+                                                   verbose=verbose)    
+        
+        # Unpack result                                       
+        self._A, self.inside_poly_indices, self.outside_poly_indices = X
+        
 
         # Check that input dimensions are compatible
         msg = 'Two colums must be specified in point coordinates. I got shape=%s'\
@@ -352,16 +451,17 @@ class Interpolate (FitInterpolate):
         
         
         if verbose: print 'Getting indices inside mesh boundary'
-        self.inside_poly_indices, self.outside_poly_indices  = \
-                     in_and_outside_polygon(point_coordinates,
-                                            self.mesh.get_boundary_polygon(),
-                                            closed = True, verbose = verbose)
+        inside_poly_indices, outside_poly_indices  =\
+            in_and_outside_polygon(point_coordinates,
+                                   self.mesh.get_boundary_polygon(),
+                                   closed = True, verbose = verbose)
         
-        #Build n x m interpolation matrix
+        # Build n x m interpolation matrix
         if verbose and len(self.outside_poly_indices) > 0:
             print '\n WARNING: Points outside mesh boundary. \n'
+            
         # Since you can block, throw a warning, not an error.
-        if verbose and 0 == len(self.inside_poly_indices):
+        if verbose and 0 == len(inside_poly_indices):
             print '\n WARNING: No points within the mesh! \n'
             
         m = self.mesh.number_of_nodes  # Nbr of basis functions (1/vertex)
@@ -372,10 +472,11 @@ class Interpolate (FitInterpolate):
 
         A = Sparse(n,m)
 
-        n = len(self.inside_poly_indices)
-        #Compute matrix elements for points inside the mesh
+        n = len(inside_poly_indices)
+        
+        # Compute matrix elements for points inside the mesh
         if verbose: print 'Building interpolation matrix from %d points' %n
-        for d, i in enumerate(self.inside_poly_indices):
+        for d, i in enumerate(inside_poly_indices):
             # For each data_coordinate point
             if verbose and d%((n+10)/10)==0: print 'Doing %d of %d' %(d, n)
             x = point_coordinates[i]
@@ -398,7 +499,7 @@ class Interpolate (FitInterpolate):
             else:
                 msg = 'Could not find triangle for point', x 
                 raise Exception(msg)
-        return A
+        return A, inside_poly_indices, outside_poly_indices
 
 def benchmark_interpolate(vertices,
                           vertex_attributes,
