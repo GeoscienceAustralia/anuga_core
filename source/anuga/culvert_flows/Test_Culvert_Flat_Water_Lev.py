@@ -20,6 +20,9 @@ from anuga.shallow_water import Domain, Reflective_boundary,\
      Dirichlet_boundary,\
      Transmissive_boundary, Time_boundary
 
+from anuga.culvert_flows.culvert_class import Culvert_flow
+from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
+     
 from math import pi,pow,sqrt
 from Numeric import choose, greater, ones, sin, exp, cosh
 #------------------------------------------------------------------------------
@@ -61,17 +64,17 @@ def topography(x, y):
     z=-x/1000
     
 	# Changing Slopes in the X- Direction
-   # N = len(x)
-   # for i in range(N):
-   #     if 0 <x[i] < 5.1:
-   #         z[i] -= -x[i]/10
-   #     if 5 <x[i] < 10.1:
-   #         z[i] -= -x[i]/100                              
-   #     if 10 <x[i]: 
-   #         z[i] -= -x[i]/20                            
-   # return z
+    # N = len(x)
+    # for i in range(N):
+    #     if 0 <x[i] < 5.1:
+    #         z[i] -= -x[i]/10
+    #     if 5 <x[i] < 10.1:
+    #         z[i] -= -x[i]/100                              
+    #     if 10 <x[i]: 
+    #         z[i] -= -x[i]/20                            
+    # return z
 
-   #       NOW Add bits and Pieces to topography
+    #       NOW Add bits and Pieces to topography
     N = len(x)
     for i in range(N):
 
@@ -125,15 +128,21 @@ domain.set_quantity('stage',
 # Setup CULVERT INLETS and OUTLETS in Current Topography
 #------------------------------------------------------------------------------
 print 'DEFINING any Structures if Required'
-#   ++++++++    Ole I do not have Latest installe don this machine.... YET !!!    Will Do IT
 
 #  DEFINE CULVERT INLET AND OUTLETS
-#culvert = Culvert_flow(domain,
-#                       center0=[9.0, 2.5], radius0=1.00,    #  U/S Opening
-#                       center1=[13.0, 2.5], radius1=1.00,     #  D/S  Opening
-#                      transfer_flow=None) # Hardwired for now
-                       
-#domain.forcing_terms.append(culvert)
+
+
+culvert = Culvert_flow(domain,
+                       label='Culvert No. 1',
+                       description='This culvert is a test unit 1.2m Wide by 0.75m High',   
+                       end_point0=[9.0, 2.5], 
+                       end_point1=[13.0, 2.5],
+                       width=1.20,height=0.75,
+                       culvert_routine=boyd_generalised_culvert_model,        
+                       number_of_barrels=1,
+                       verbose=True)
+
+domain.forcing_terms.append(culvert)
 
 #------------------------------------------------------------------------------
 # Setup boundary conditions
