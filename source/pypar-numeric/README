@@ -1,0 +1,360 @@
+------------------------------------------------
+PyPAR - Parallel Python, efficient and scalable 
+parallelism using the message passing interface (MPI).
+
+Author:  Ole Nielsen (2001, 2002, 2003)
+Email:   Ole.Nielsen@anu.edu.au
+Version: See pypar.__version__
+Date:    See pypar.__date__
+
+Major contributions by 
+    Gian Paolo Ciceri (gp.ciceri@acm.org)
+    Prabhu Ramachandran (prabhu@aero.iitm.ernet.in) 
+  
+Minor but important contributions by
+    Doug Orr (doug@arbor.net)    
+    Michal Kaukic (mike@frcatel.fri.utc.sk)	    
+    
+------------------------------------------------
+
+The python module pypar.py and the C-extension mpi.c 
+implements scalable parallelism on distributed and shared 
+memory architectures using the essential subset of 
+the Message Passing Interface (MPI) standard.
+
+FEATURES
+
+- Python interpreter is not modified: 
+  Parallel python programs need only import the pypar module.
+
+- Easy installation: This is essentially about compiling and linking 
+  the C-extension with the local MPI installation. A distutils setup file
+  is included.
+
+- Flexibility: Pypar allows communication of general Python objects 
+  of any type.  
+  
+- Intuitive API: 
+  The user need only specify what to send and to which processor.
+  Pypar takes care of details about 
+  data types and MPI specifics such as tags, communicators and buffers.
+  Receiving is analogous.
+ 
+- Efficiency:
+  Full bandwidth of C-MPI programs is achieved for consecutive Numerical 
+  arrays. Latency is less than twice that of pure C-MPI programs. 
+  Test programs to verify this are included (pytiming, ctiming.c)
+  
+- Lightweight:
+  Pypar consists of just two files: mpiext.c and pypar.py	    
+
+See the DOC file for instructions on how to program with pypar.
+
+    
+  
+PRE-REQUISITES (on all nodes)
+
+  Python 2.0 or later
+  Numeric Python (incl RandomArray) matching the Python installation
+  Native MPI C library
+  Native C compiler
+  
+  Pypar has been tested on the following platforms
+    MPI on DEC Alpha
+    LAM/MPI (6.5.6, 7.0) on Linux (Debian Woody/Cid and Red Hat 7.1) 
+    MPICH and LAM 7.0 on Solaris (Sun Enterprise)
+    MPICH on Linux
+    MPICH on Windows (NT/2000)
+    MPICH for Darwin (Mac OS)
+    LAM/MPI with Linux on Opteron 64 bit
+   
+  
+INSTALL
+
+  UNIX PLATFORMS	
+    Type
+      python setup.py install 
+ 
+    This should install pypar and its extension in the default
+    site-packages directory on your system.
+    
+    If you wish to install it in your home directory use
+  
+      python setup.py install --prefix=~    	 
+      
+  WINDOWS (NT/2000, MPICH)
+    To build, you need:
+      1) MPICH (http://www-unix.mcs.anl.gov/mpi/mpich/)
+      2) MinGW (http://www.mingw.org). Tested with GCC v 2.95-3.6.
+      3) Set MPICH_DIR to the appropriate directory
+      4) Build using 'python setup.py build --compiler=mingw32'
+      5) Install using 'python setup.py install'.
+
+  ---
+  If you encountered any installation problems, read on.
+  Do not worry about messages about unresolved symbols. This is normal 
+  for shared libraries on some machines.
+    
+  To compile C-extension mpi.c requires either a mpi-aware c compiler
+  such as mpicc or a standard c compiler with mpi libraries linked in.
+  See local MPI installation for details, possibly edit Makefile and 
+  type make.   
+  See installation notes below about compiling under mpi. 
+
+  
+TESTING
+  Pypar comes with a number of tests and demos available in the 
+  examples directory - please try these to verify the installation.
+  
+
+RUNNING PYTHON MPI JOBS 
+ 
+  Pypar runs in exactly the same way as MPI programs written in 
+  C or Fortran. 
+  
+  E.g. to run the enclosed demo script (demo.py) on 4 processors, 
+  enter a command similar to
+   
+    mpirun -np 4 python demo.py
+ 
+  Consult your MPI distribution for exact syntax of mpirun. 
+  Sometimes it is called prun and often parallel jobs will be
+  submitted in batch mode.
+  
+  You can also execute demo.py as a stand-alone executable python script 
+  
+    mpirun -np 4 demo.py
+  
+  
+  Enclosed is a script to estimate the communication speed of your system.
+  Execute  
+  
+    mpirun -np 4 pytiming
+  
+  Care has been taken in pypar to achieve the same bandwidth and almost as 
+  good communication latency as corresponding C/MPI programs.
+  Please compile and run ctiming.c to see the reference values:
+  
+    make ctiming
+    mpirun -np 4 ctiming       
+    
+  Note that timings might fluctuate from run to run due to variable 
+  system load.   
+
+  An example of a master-slave program using pypar is available in demo2.py.  
+  
+  
+INSTALLATION NOTES (If all else fails)
+
+Most MPI implementations provide a script or an executable called 
+"mpicc" which compiles C programs using MPI and does 
+not require any explicitly mentioned libraries. 
+If such a script exists, but with a different name, change
+the name in the beginning of compile.py. If no such script exists, put
+the name of your C compiler in that place and add all required linking
+options yourself.
+
+For example, on an Alpha server it would look something like
+
+ cc -c mpi.c -I/opt/Python-2.1/include/python2.1/
+ cc -shared mpi.o -o mpi.so -lmpi -lelan
+ 
+ or using the wrapper
+ 
+ mpicc -c mpi.c -I/opt/Python-2.1/include/python2.1/
+ mpicc -shared mpi.o -o mpi.so
+
+On Linux (using LAM-MPI) it is 
+
+ mpicc -c mpi.c -I/opt/Python-2.1/include/python2.1/
+ mpicc -shared mpi.o -o mpi.so
+
+ Start processors using
+ lamboot -v lamhosts  
+ 
+The script install.py (which is using compile.py) is a non-distutils 
+way of compiling the extension.
+
+
+HOW DOES PYPAR WORK?
+
+Pypar works as follows
+    1  mpirun starts P python processes as specified by mpirun -np P
+    2  each python process imports pypar which in turn imports a shared
+       library (python extension mpiext.so) that has been statically linked 
+       to the C MPI libraries using e.g. mpicc (or cc -lmpi)
+    3  The Python extension proceeds to call MPI_init with any commandline
+       parameters passed in by mpirun (As far as I remember MPICH uses this 
+       to identify rank and size, whereas LAM doesn't)
+    4  The supported MPI calls are made available to Python through the
+       pypar interface
+
+    If  pypar is invoked sequentially it supports a rudimentary interface
+    with e.g. rank() == 0 and size() == 1
+ 
+ 
+ 
+DOCUMENTATION
+
+  See the file DOC for an introduction to pypar.
+  See also examples demo.py and pytiming
+  as well as documentation in pypar.py. 
+
+  
+HISTORY
+version 1.9.3 (24 April 2007)
+  added bypass form for reduce 
+version 1.9.2
+  First version under Subversion
+version 1.9.1 (15 Dec 2003)
+  Consistent naming (all lower case, no abbreviations)
+version 1.9 (3 Dec 2003)
+  Obsoleted raw forms of communication as they were confusing.
+  The semantics of send, receive, scatter, gather etc is now that 
+  one can optionally specify a buffer to use if desired.
+  Bypass forms added.
+  
+version 1.8.2 (16 November 2003)
+  Fixed scatter, gather and reduce calls to automatically
+  figure out buffer lengths. Also tested scatter and gather for
+  complex and multidimensional data.
+version 1.8.1 (13 November 2003)
+  Added direct support (i.e. not using the vanilla protocol) 
+  for multidimensional Numeric arrays of type Complex. 
+version 1.8 (11 November 2003)
+  Changed status object to be (optionally) returned from receive and
+  raw_receive rather maintaining a global state where one instance of
+  the status object is modified.
+  This was suggested by the audience at presentation at Department of
+  Computer Science, Australian National University, 18 June 2003.
+  
+version 1.7 (7 November 2003)
+  Added support for Numerical arrays of arbitrary dimension 
+  in send, receive and bcast.
+  The need for this obvious functionality was pointed by Michal Kaukic.
+  
+version 1.6.5 (30 August 2003)
+  Added NULL commandline argument as required by LAM 7.0 and
+  identified by Doug Orr and Dave Reed.
+version 1.6.4 (10 Jan 2003)
+  Comments and review of installation
+version 1.6.3 (10 Jan 2003)
+  Minor issues and clean-up
+version 1.6.2 (29 Oct 2002)
+  Added Windows platform to installation as contributed by 
+  Simon Frost
+version 1.6.0 (18 Oct 2002)
+  Changed installation to distutils as contributed by
+  Prabhu Ramachandran
+  
+version 1.5 (30 April 2002)
+  Got pypar to work with MPICH/Linux and cleaned up initialisation
+version 1.4 (4 March 2002)
+  Fixed-up and ran testpypar on 22 processors on Sun
+version 1.3 (21 February 2002)                                      
+  Added gather and reduce fixed up testpypar.py
+  
+version 1.2.2, 1.2.3 (17 February 2002)                                      
+  Minor fixes in distribution
+version 1.2.1 (16 February 2002)                                      
+  Status block, MPI_ANY_TAG, MPI_ANY_SOURCE exported                 
+Version 1.2 (15 February 2002)                                       	   
+  Scatter added by Gian Paolo Ciceri                                   
+Version 1.1 (14 February 2002)                                       	   
+  Bcast added by Gian Paolo Ciceri                                   
+Version 1.0.2 (10 February 2002)                                          
+  Modified by Gian Paulo Ciceri to allow pypar run under Python 2.2  
+Version 1.0.1 (8 February 2002)                                       
+  Modified to install on SUN enterprise systems under Mpich          
+Version 1.0 (7 February 2002)                                         
+  First public release for Python 2.1 (OMN)                          
+  
+TODO  
+  max_tag is set to 32767. This works for Linux/LAM      
+  I couldn't use MPI_TAG_UB as it returned 0.
+  I would like a general solution.
+
+
+  Scatter needs to send buffer specified on all processes
+  even though it is ignored by all non-root processes.
+  How could we overcome that?
+  Similar problem for gather
+  
+  Gather an scatter: One should be able to specify along which axis
+  arrays should be concatenated.
+
+
+KNOWN BUGS
+  Scatter for the moment works only properly when the amount of data is a 
+  multiple of the number of processors (as does the underlying MPI_Scatter).
+  I am working on a more general scatter (and gather) which will
+  distribute data as evenly as possible for all amounts of data.  
+
+      
+LICENSE
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License (http://www.gnu.org/copyleft/gpl.html)
+    for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
+
+
+ Contact address: Ole.Nielsen@anu.edu.au
+
+ =============================================================================
+   
+ACKNOWLEDGEMENTS  
+  This work was supported by School of Mathematical Sciences at 
+  the Australian National University and funded by Australian 
+  Partnership for Advanced Computing (APAC).
+  Many thanks go to 
+  
+    Gian Paolo Ciceri (gp.ciceri@acm.org) 
+        for fixing pypar to run under Python 2.2 and for adding all the 
+        collective communication stuff from version 1.1 and onwards.
+    Prabhu Ramachandran (prabhu@aero.iitm.ernet.in)
+        for making a proper distutils installation procedure
+    Simon D. W. Frost (sdfrost@ucsd.edu)
+        for testing pypar under Windows and adding installation procedure 
+    Jakob Schiotz (schiotz@fysik.dtu.dk) and Steven Farcy (steven@artabel.net) 
+        for pointing out initial problems with pypar and MPICH.
+    Markus Hegland (Markus.Hegland@anu.edu.au)
+        for supporting the work.
+    Doug Orr (doug@arbor.net)
+        for identifying and fixing problem with LAM 7.0 requiring 
+	last commandline argumnet to be NULL.
+    Dave Reed (dreed@capital.edu)
+        for pointing out problem with LAM 7.0 and for testing the fix.	
+    Matthew Wakefield (matthew.wakefield@anu.edu.au)
+    	for pointing out and fixing support for Mac OS X (darwin)
+    David Brown (David.L.Brown@kla-tencor.com)
+    	for contributing to the Windows/Cygwin installation procedure	
+    Michal Kaukic (mike@frcatel.fri.utc.sk)	
+	for pointing out the need for multi dimensional arrays and 
+	for suggesting an implementation in the 2D case.	
+	
+
+
+  
+     
+
+
+
+
+
+
+
+
+
+
+
+

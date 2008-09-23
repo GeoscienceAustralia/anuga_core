@@ -1,0 +1,6 @@
+mpirun -np 3 python -i -c "import pypar"
+
+Remember to put pypar.pth in site-packages automatically..
+
+
+

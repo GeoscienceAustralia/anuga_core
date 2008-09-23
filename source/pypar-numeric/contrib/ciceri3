@@ -1,0 +1,33 @@
+Hello,
+I've just finished with gather and do some work for reduce.
+
+I'd like to have remarks from you about:
+1. the MPI_Op decoding hack.
+2. How to implement reduce with the operation MAXLOC and MINLOC
+
+Have fun
+/gp
+
+-- 
+Discussion: How do you feel about Open Source firms making
+millions through public offerings?
+
+"I wish these companies were making the same millions without
+distributing any non-free, user-subjugating software." --
+                                              Richard Stallman
+
+"We're so forward that sometimes we reach ourself." --
+                                              g.p.
+
+"It is amazing how much you can achieve when you don't have
+to do the real work yourself." --
+                                              Joe Celko
+
+   Gian Paolo Ciceri        Via B.Diotti 45 - 20153 Milano MI ITALY
+       CTO @ Louise         mobile :   ++39 347 4106213
+                                   :   ++39 348 3658272
+                            eMail  :   gp.ciceri@acm.org,
+                                       gp.ciceri@computer.org
+                                   :   gp.ciceri@louise.it
+                            webSite:   http://www.louise.it
+                            ICQ #  :   94620118

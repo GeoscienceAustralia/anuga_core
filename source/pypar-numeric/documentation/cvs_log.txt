@@ -1,0 +1,2157 @@
+
+RCS file: /home/cvs/pypar/DOC,v
+Working file: DOC
+head: 1.26
+branch:
+locks: strict
+access list:
+symbolic names:
+	release-1-9-2: 1.26
+	release-1-9-1: 1.25
+	release-1-9: 1.23
+	release-1-8-2: 1.22
+	release-1-8-1: 1.21
+	release-1-8: 1.19
+	release-1-7: 1.17
+	release-1-6-5: 1.17
+	release-1-6-4: 1.17
+	release-1-6-3-1: 1.15
+	release-1-6-3: 1.15
+	SG-release-1-1: 1.13
+	SG-release-1-0: 1.13
+	release-0-1: 1.13
+	release-1-6-2: 1.13
+	release-1-6-1: 1.13
+	release-1-6-0: 1.13
+	release-1-5-4: 1.12
+	release-1-5-3: 1.11
+	release-1-5-2: 1.11
+	release-1-5-1: 1.11
+	release-1-5: 1.11
+	release-1-4-1: 1.10
+	release-1-4-0: 1.10
+	release-1-4: 1.9
+	release-1-3: 1.9
+	release-1-2-4: 1.9
+	release-1-2-3: 1.9
+	release-1-2-2: 1.7
+	revision-1-2-1: 1.7
+	release-1-2: 1.7
+	release-1-1: 1.7
+	release-1-0-2: 1.6
+	release-1-0-1: 1.5
+	release-1-0: 1.4
+keyword substitution: kv
+total revisions: 26;	selected revisions: 26
+description:
+----------------------------
+revision 1.26
+date: 2004-12-29 08:55:52 +0000;  author: ole;  state: Exp;  lines: +2 -2
+Update DOC
+----------------------------
+revision 1.25
+date: 2004-01-07 11:39:32 +0000;  author: ole;  state: Exp;  lines: +1 -1
+Nothing
+----------------------------
+revision 1.24
+date: 2004-01-07 11:36:17 +0000;  author: ole;  state: Exp;  lines: +19 -12
+Changed naming conventions to be more consistent
+----------------------------
+revision 1.23
+date: 2003-12-03 10:13:58 +0000;  author: ole;  state: Exp;  lines: +82 -56
+Updated doc for obsoletion of raw forms
+----------------------------
+revision 1.22
+date: 2003-11-16 10:04:48 +0000;  author: ole;  state: Exp;  lines: +16 -10
+Fixed up gather, scatter and reduce to automatically calculate buffer size. Also cleaned up control_info. Updated web site and release script
+----------------------------
+revision 1.21
+date: 2003-11-13 11:36:04 +0000;  author: ole;  state: Exp;  lines: +1 -2
+Added support for the complex datatype
+----------------------------
+revision 1.20
+date: 2003-11-12 07:44:17 +0000;  author: ole;  state: Exp;  lines: +1 -1
+*** empty log message ***
+----------------------------
+revision 1.19
+date: 2003-11-11 11:05:12 +0000;  author: ole;  state: Exp;  lines: +1 -1
+Dates and cleaned up old comment
+----------------------------
+revision 1.18
+date: 2003-11-11 10:57:37 +0000;  author: ole;  state: Exp;  lines: +26 -6
+Status object optionally returned from receive. Reserved control_tag, trimmed string buffers to actual length. Minor clean up
+----------------------------
+revision 1.17
+date: 2003-02-04 01:54:18 +0000;  author: ole;  state: Exp;  lines: +30 -23
+Changed argument names in gather, reduce, ... and updated doc
+----------------------------
+revision 1.16
+date: 2003-01-15 02:17:12 +0000;  author: ole;  state: Exp;  lines: +17 -3
+Added paragraph about performance and raw versions in Documentation.
+----------------------------
+revision 1.15
+date: 2002-12-18 03:10:35 +0000;  author: ole;  state: Exp;  lines: +0 -5
+Fixed reintroduced problem about hanging under LAM linux.
+It is not possible to call init in a separate shell and then later within
+the python script.
+----------------------------
+revision 1.14
+date: 2002-12-17 23:47:37 +0000;  author: ole;  state: Exp;  lines: +6 -1
+Nothing
+----------------------------
+revision 1.13
+date: 2002-10-18 04:24:03 +0000;  author: ole;  state: Exp;  lines: +1 -1
+*** empty log message ***
+----------------------------
+revision 1.12
+date: 2002-10-18 04:20:42 +0000;  author: ole;  state: Exp;  lines: +1 -1
+doc
+----------------------------
+revision 1.11
+date: 2002-04-30 04:57:21 +0000;  author: ole;  state: Exp;  lines: +45 -9
+Doc
+----------------------------
+revision 1.10
+date: 2002-03-04 02:41:06 +0000;  author: ole;  state: Exp;  lines: +1 -1
+x
+----------------------------
+revision 1.9
+date: 2002-02-17 22:40:10 +0000;  author: ole;  state: Exp;  lines: +1 -1
+x
+----------------------------
+revision 1.8
+date: 2002-02-17 04:58:37 +0000;  author: ole;  state: Exp;  lines: +5 -1
+minor
+----------------------------
+revision 1.7
+date: 2002-02-14 07:20:40 +0000;  author: ole;  state: Exp;  lines: +3 -0
+Added bcast - thanks to Gian Paolo Ciceri
+----------------------------
+revision 1.6
+date: 2002-02-10 23:05:31 +0000;  author: ole;  state: Exp;  lines: +2 -2
+Version 1.0.2
+Bugfix from Gian Paulo Ciceri preventing pypar from running under Python 2.2
+----------------------------
+revision 1.5
+date: 2002-02-08 03:58:58 +0000;  author: ole;  state: Exp;  lines: +3 -1
+Got it to run on a Sun Enterprise server under Mpich.
+Only small changes.
+----------------------------
+revision 1.4
+date: 2002-02-07 01:51:07 +0000;  author: ole;  state: Exp;  lines: +2 -2
+*** empty log message ***
+----------------------------
+revision 1.3
+date: 2002-02-07 01:40:47 +0000;  author: ole;  state: Exp;  lines: +31 -1
+*** empty log message ***
+----------------------------
+revision 1.2
+date: 2002-02-07 01:33:16 +0000;  author: ole;  state: Exp;  lines: +157 -2
+*** empty log message ***
+----------------------------
+revision 1.1
+date: 2002-02-07 00:49:27 +0000;  author: ole;  state: Exp;
+Documemtation file
+=============================================================================
+
+RCS file: /home/cvs/pypar/FAQ,v
+Working file: FAQ
+head: 1.3
+branch:
+locks: strict
+access list:
+symbolic names:
+	release-1-9-2: 1.3
+keyword substitution: kv
+total revisions: 3;	selected revisions: 3
+description:
+----------------------------
+revision 1.3
+date: 2004-02-08 17:09:47 +0000;  author: ole;  state: Exp;  lines: +8 -0
+no message
+----------------------------
+revision 1.2
+date: 2004-02-08 16:56:16 +0000;  author: ole;  state: Exp;  lines: +18 -0
+no message
+----------------------------
+revision 1.1
+date: 2004-02-08 16:53:49 +0000;  author: ole;  state: Exp;
+added FAQ
+=============================================================================
+
+RCS file: /home/cvs/pypar/Makefile,v
+Working file: Makefile
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+	release-1-9-2: 1.2
+	release-1-9-1: 1.2
+	release-1-9: 1.2
+	release-1-8-2: 1.2
+	release-1-8-1: 1.2
+	release-1-8: 1.2
+	release-1-7: 1.2
+	release-1-6-5: 1.2
+	release-1-6-4: 1.2
+	release-1-6-3-1: 1.2
+	release-1-6-3: 1.2
+	SG-release-1-1: 1.2
+	SG-release-1-0: 1.2
+	release-0-1: 1.2
+	release-1-6-2: 1.2
+	release-1-6-1: 1.2
+	release-1-6-0: 1.2
+	release-1-5-4: 1.2
+	release-1-5-3: 1.2
+	release-1-5-2: 1.2
+	release-1-5-1: 1.2
+	release-1-5: 1.2
+	release-1-4-1: 1.1.1.1
+	release-1-4-0: 1.1.1.1
+	release-1-4: 1.1.1.1
+	release-1-3: 1.1.1.1
+	release-1-2-4: 1.1.1.1
+	release-1-2-3: 1.1.1.1
+	release-1-2-2: 1.1.1.1
+	revision-1-2-1: 1.1.1.1
+	release-1-2: 1.1.1.1
+	release-1-1: 1.1.1.1
+	release-1-0-2: 1.1.1.1
+	release-1-0-1: 1.1.1.1
+	release-1-0: 1.1.1.1
+	start: 1.1.1.1
+	ole: 1.1.1
+keyword substitution: kv
+total revisions: 3;	selected revisions: 3
+description:
+----------------------------
+revision 1.2
+date: 2002-04-30 05:02:08 +0000;  author: ole;  state: Exp;  lines: +2 -2
+Rev 1.5
+----------------------------
+revision 1.1
+date: 2002-01-22 03:28:17 +0000;  author: ole;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002-01-22 03:28:17 +0000;  author: ole;  state: Exp;  lines: +0 -0
+Initial CVS import
+=============================================================================
+
+RCS file: /home/cvs/pypar/README,v
+Working file: README
+head: 1.37
+branch:
+locks: strict
+access list:
+symbolic names:
+	release-1-9-2: 1.37
+	release-1-9-1: 1.37
+	release-1-9: 1.34
+	release-1-8-2: 1.31
+	release-1-8-1: 1.29
+	release-1-8: 1.28
+	release-1-7: 1.26
+	release-1-6-5: 1.24
+	release-1-6-4: 1.23
+	release-1-6-3-1: 1.21
+	release-1-6-3: 1.20
+	SG-release-1-1: 1.20
+	SG-release-1-0: 1.19
+	release-0-1: 1.19
+	release-1-6-2: 1.19
+	release-1-6-1: 1.17
+	release-1-6-0: 1.17
+	release-1-5-4: 1.16
+	release-1-5-3: 1.15
+	release-1-5-2: 1.15
+	release-1-5-1: 1.15
+	release-1-5: 1.13
+	release-1-4-1: 1.12
+	release-1-4-0: 1.12
+	release-1-4: 1.10
+	release-1-3: 1.10
+	release-1-2-4: 1.9
+	release-1-2-3: 1.9
+	release-1-2-2: 1.7
+	revision-1-2-1: 1.7
+	release-1-2: 1.7
+	release-1-1: 1.7
+	release-1-0-2: 1.6
+	release-1-0-1: 1.5
+	release-1-0: 1.5
+	start: 1.1.1.1
+	ole: 1.1.1
+keyword substitution: kv
+total revisions: 38;	selected revisions: 38
+description:
+----------------------------
+revision 1.37
+date: 2004-01-07 11:42:07 +0000;  author: ole;  state: Exp;  lines: +2 -2
+Nothing
+----------------------------
+revision 1.36
+date: 2004-01-07 11:39:32 +0000;  author: ole;  state: Exp;  lines: +3 -1
+Nothing
+----------------------------
+revision 1.35
+date: 2004-01-07 11:36:17 +0000;  author: ole;  state: Exp;  lines: +15 -3
+Changed naming conventions to be more consistent
+----------------------------
+revision 1.34
+date: 2003-12-07 10:49:56 +0000;  author: ole;  state: Exp;  lines: +4 -3
+*** empty log message ***
+----------------------------
+revision 1.33
+date: 2003-12-03 10:13:58 +0000;  author: ole;  state: Exp;  lines: +2 -6
+Updated doc for obsoletion of raw forms
+----------------------------
+revision 1.32
+date: 2003-11-19 04:18:15 +0000;  author: ole;  state: Exp;  lines: +4 -0
+Finalised obsoletion of raw forms
+----------------------------
+revision 1.31
+date: 2003-11-16 12:01:27 +0000;  author: ole;  state: Exp;  lines: +0 -7
+Nothing
+----------------------------
+revision 1.30
+date: 2003-11-16 10:04:48 +0000;  author: ole;  state: Exp;  lines: +13 -4
+Fixed up gather, scatter and reduce to automatically calculate buffer size. Also cleaned up control_info. Updated web site and release script
+----------------------------
+revision 1.29
+date: 2003-11-13 11:36:04 +0000;  author: ole;  state: Exp;  lines: +18 -6
+Added support for the complex datatype
+----------------------------
+revision 1.28
+date: 2003-11-11 11:05:12 +0000;  author: ole;  state: Exp;  lines: +6 -5
+Dates and cleaned up old comment
+----------------------------
+revision 1.27
+date: 2003-11-11 10:57:37 +0000;  author: ole;  state: Exp;  lines: +6 -1
+Status object optionally returned from receive. Reserved control_tag, trimmed string buffers to actual length. Minor clean up
+----------------------------
+revision 1.26
+date: 2003-11-07 03:29:04 +0000;  author: ole;  state: Exp;  lines: +45 -23
+Added support for arrays of arbitray dimension
+----------------------------
+revision 1.25
+date: 2003-10-09 02:03:53 +0000;  author: ole;  state: Exp;  lines: +5 -0
+darwin fix, error msg fix
+----------------------------
+revision 1.24
+date: 2003-08-30 10:17:02 +0000;  author: ole;  state: Exp;  lines: +29 -12
+Work towards version 1.6.5 -
+Fixed Null argument needed in commandline by LAM 7.0
+----------------------------
+revision 1.23
+date: 2003-01-10 04:32:21 +0000;  author: ole;  state: Exp;  lines: +2 -1
+Added __version__ etc
+----------------------------
+revision 1.22
+date: 2003-01-09 23:27:42 +0000;  author: ole;  state: Exp;  lines: +3 -2
+Nothing
+----------------------------
+revision 1.21
+date: 2003-01-09 23:24:51 +0000;  author: ole;  state: Exp;  lines: +5 -2
+x
+----------------------------
+revision 1.20
+date: 2002-11-12 03:44:31 +0000;  author: ole;  state: Exp;  lines: +3 -3
+Added status.bytes() to get number of bytes transmitted
+----------------------------
+revision 1.19
+date: 2002-10-29 03:40:51 +0000;  author: ole;  state: Exp;  lines: +4 -1
+*** empty log message ***
+----------------------------
+revision 1.18
+date: 2002-10-29 03:38:12 +0000;  author: ole;  state: Exp;  lines: +26 -11
+Added Windows installation from Simon Frost
+----------------------------
+revision 1.17
+date: 2002-10-18 04:24:03 +0000;  author: ole;  state: Exp;  lines: +2 -4
+*** empty log message ***
+----------------------------
+revision 1.16
+date: 2002-10-18 04:20:42 +0000;  author: ole;  state: Exp;  lines: +39 -16
+doc
+----------------------------
+revision 1.15
+date: 2002-05-01 08:50:54 +0000;  author: ole;  state: Exp;  lines: +1 -1
+x
+----------------------------
+revision 1.14
+date: 2002-05-01 08:43:07 +0000;  author: ole;  state: Exp;  lines: +17 -9
+Updates of feature list
+----------------------------
+revision 1.13
+date: 2002-04-30 04:57:21 +0000;  author: ole;  state: Exp;  lines: +11 -4
+Doc
+----------------------------
+revision 1.12
+date: 2002-03-04 02:44:36 +0000;  author: ole;  state: Exp;  lines: +1 -1
+x
+----------------------------
+revision 1.11
+date: 2002-03-04 02:41:06 +0000;  author: ole;  state: Exp;  lines: +3 -1
+x
+----------------------------
+revision 1.10
+date: 2002-02-21 04:24:40 +0000;  author: ole;  state: Exp;  lines: +6 -4
+ver 1.3
+----------------------------
+revision 1.9
+date: 2002-02-17 22:40:10 +0000;  author: ole;  state: Exp;  lines: +20 -2
+x
+----------------------------
+revision 1.8
+date: 2002-02-17 04:58:37 +0000;  author: ole;  state: Exp;  lines: +4 -3
+minor
+----------------------------
+revision 1.7
+date: 2002-02-14 07:20:40 +0000;  author: ole;  state: Exp;  lines: +15 -4
+Added bcast - thanks to Gian Paolo Ciceri
+----------------------------
+revision 1.6
+date: 2002-02-10 23:05:31 +0000;  author: ole;  state: Exp;  lines: +32 -23
+Version 1.0.2
+Bugfix from Gian Paulo Ciceri preventing pypar from running under Python 2.2
+----------------------------
+revision 1.5
+date: 2002-02-07 01:58:31 +0000;  author: ole;  state: Exp;  lines: +3 -1
+*** empty log message ***
+----------------------------
+revision 1.4
+date: 2002-02-07 01:49:42 +0000;  author: ole;  state: Exp;  lines: +21 -0
+*** empty log message ***
+----------------------------
+revision 1.3
+date: 2002-02-07 01:33:16 +0000;  author: ole;  state: Exp;  lines: +27 -37
+*** empty log message ***
+----------------------------
+revision 1.2
+date: 2002-02-07 00:49:05 +0000;  author: ole;  state: Exp;  lines: +16 -10
+x
+----------------------------
+revision 1.1
+date: 2002-01-22 03:28:17 +0000;  author: ole;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002-01-22 03:28:17 +0000;  author: ole;  state: Exp;  lines: +0 -0
+Initial CVS import
+=============================================================================
+
+RCS file: /home/cvs/pypar/__init__.py,v
+Working file: __init__.py
+head: 1.7
+branch:
+locks: strict
+access list:
+symbolic names:
+	release-1-9-2: 1.7
+	release-1-9-1: 1.7
+	release-1-9: 1.7
+	release-1-8-2: 1.7
+	release-1-8-1: 1.7
+	release-1-8: 1.7
+	release-1-7: 1.7
+	release-1-6-5: 1.7
+	release-1-6-4: 1.7
+	release-1-6-3-1: 1.6
+	release-1-6-3: 1.5
+	SG-release-1-1: 1.4
+	SG-release-1-0: 1.4
+	release-0-1: 1.4
+	release-1-6-2: 1.4
+	release-1-6-1: 1.3
+	release-1-6-0: 1.3
+	release-1-5-4: 1.3
+	release-1-5-3: 1.3
+	release-1-5-2: 1.3
+	release-1-5-1: 1.3
+	release-1-5: 1.3
+	release-1-4-1: 1.3
+	release-1-4-0: 1.3
+	release-1-4: 1.3
+	release-1-3: 1.3
+	release-1-2-4: 1.3
+	release-1-2-3: 1.3
+	release-1-2-2: 1.3
+	revision-1-2-1: 1.3
+	release-1-2: 1.3
+	release-1-1: 1.3
+	release-1-0-2: 1.3
+	release-1-0-1: 1.3
+	release-1-0: 1.3
+keyword substitution: kv
+total revisions: 7;	selected revisions: 7
+description:
+----------------------------
+revision 1.7
+date: 2003-01-10 04:32:21 +0000;  author: ole;  state: Exp;  lines: +3 -0
+Added __version__ etc
+----------------------------
+revision 1.6
+date: 2003-01-09 23:24:51 +0000;  author: ole;  state: Exp;  lines: +5 -2
+x
+----------------------------
+revision 1.5
+date: 2003-01-07 22:54:30 +0000;  author: ole;  state: Exp;  lines: +2 -2
+Import all funtions in __init__
+----------------------------
+revision 1.4
+date: 2002-10-22 07:12:38 +0000;  author: ole;  state: Exp;  lines: +4 -1
+Fixed use as a package (I think)
+----------------------------
+revision 1.3
+date: 2002-02-06 07:00:22 +0000;  author: ole;  state: Exp;  lines: +2 -0
+*** empty log message ***
+----------------------------
+revision 1.2
+date: 2002-01-23 05:54:13 +0000;  author: ole;  state: Exp;  lines: +1 -0
+Modified codes to work with Python packages
+----------------------------
+revision 1.1
+date: 2002-01-23 03:54:44 +0000;  author: ole;  state: Exp;
+Added to work as a Python module
+=============================================================================
+
+RCS file: /home/cvs/pypar/compile.py,v
+Working file: compile.py
+head: 1.6
+branch:
+locks: strict
+access list:
+symbolic names:
+	release-1-9-2: 1.6
+	release-1-9-1: 1.6
+	release-1-9: 1.6
+	release-1-8-2: 1.6
+	release-1-8-1: 1.6
+	release-1-8: 1.6
+	release-1-7: 1.6
+	release-1-6-5: 1.6
+	release-1-6-4: 1.6
+	release-1-6-3-1: 1.6
+	release-1-6-3: 1.6
+	SG-release-1-1: 1.6
+	SG-release-1-0: 1.6
+	release-0-1: 1.6
+	release-1-6-2: 1.6
+	release-1-6-1: 1.6
+	release-1-6-0: 1.6
+	release-1-5-4: 1.6
+	release-1-5-3: 1.6
+	release-1-5-2: 1.5
+	release-1-5-1: 1.5
+	release-1-5: 1.5
+	release-1-4-1: 1.5
+	release-1-4-0: 1.4
+	release-1-4: 1.4
+	release-1-3: 1.4
+	release-1-2-4: 1.4
+	release-1-2-3: 1.4
+	release-1-2-2: 1.4
+	revision-1-2-1: 1.4
+	release-1-2: 1.4
+	release-1-1: 1.4
+	release-1-0-2: 1.4
+	release-1-0-1: 1.4
+	release-1-0: 1.3
+	start: 1.1.1.1
+	ole: 1.1.1
+keyword substitution: kv
+total revisions: 7;	selected revisions: 7
+description:
+----------------------------
+revision 1.6
+date: 2002-09-17 06:33:33 +0000;  author: ole;  state: Exp;  lines: +1 -1
+Auto compilation in packages
+----------------------------
+revision 1.5
+date: 2002-03-19 01:06:04 +0000;  author: ole;  state: Exp;  lines: +14 -0
+Added support for 'darwin' MAC OS X, BSD Unix for Macintosh
+(Thanks to Gavin Huttley)
+----------------------------
+revision 1.4
+date: 2002-02-08 03:58:58 +0000;  author: ole;  state: Exp;  lines: +10 -5
+Got it to run on a Sun Enterprise server under Mpich.
+Only small changes.
+----------------------------
+revision 1.3
+date: 2002-01-23 03:58:13 +0000;  author: ole;  state: Exp;  lines: +42 -28
+New multiple version of compile.py from pytools
+----------------------------
+revision 1.2
+date: 2002-01-23 00:42:25 +0000;  author: ole;  state: Exp;  lines: +21 -2
+*** empty log message ***
+----------------------------
+revision 1.1
+date: 2002-01-22 03:28:17 +0000;  author: ole;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002-01-22 03:28:17 +0000;  author: ole;  state: Exp;  lines: +0 -0
+Initial CVS import
+=============================================================================
+
+RCS file: /home/cvs/pypar/ctiming.c,v
+Working file: ctiming.c
+head: 1.4
+branch:
+locks: strict
+access list:
+symbolic names:
+	release-1-9-2: 1.4
+	release-1-9-1: 1.4
+	release-1-9: 1.4
+	release-1-8-2: 1.4
+	release-1-8-1: 1.4
+	release-1-8: 1.4
+	release-1-7: 1.4
+	release-1-6-5: 1.4
+	release-1-6-4: 1.4
+	release-1-6-3-1: 1.4
+	release-1-6-3: 1.4
+	SG-release-1-1: 1.4
+	SG-release-1-0: 1.4
+	release-0-1: 1.4
+	release-1-6-2: 1.4
+	release-1-6-1: 1.4
+	release-1-6-0: 1.4
+	release-1-5-4: 1.4
+	release-1-5-3: 1.4
+	release-1-5-2: 1.4
+	release-1-5-1: 1.4
+	release-1-5: 1.4
+	release-1-4-1: 1.4
+	release-1-4-0: 1.4
+	release-1-4: 1.4
+	release-1-3: 1.4
+	release-1-2-4: 1.4
+	release-1-2-3: 1.4
+	release-1-2-2: 1.4
+	revision-1-2-1: 1.4
+	release-1-2: 1.4
+	release-1-1: 1.4
+	release-1-0-2: 1.4
+	release-1-0-1: 1.4
+	release-1-0: 1.4
+	start: 1.1.1.1
+	ole: 1.1.1
+keyword substitution: kv
+total revisions: 5;	selected revisions: 5
+description:
+----------------------------
+revision 1.4
+date: 2002-02-06 23:54:55 +0000;  author: ole;  state: Exp;  lines: +4 -0
+Streamlined interface
+----------------------------
+revision 1.3
+date: 2002-02-06 05:40:28 +0000;  author: ole;  state: Exp;  lines: +3 -2
+x
+----------------------------
+revision 1.2
+date: 2002-02-06 05:28:51 +0000;  author: ole;  state: Exp;  lines: +10 -9
+Made output from pytimimng and ctiming more userfriendly
+----------------------------
+revision 1.1
+date: 2002-01-22 03:28:17 +0000;  author: ole;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002-01-22 03:28:17 +0000;  author: ole;  state: Exp;  lines: +0 -0
+Initial CVS import
+=============================================================================
+
+RCS file: /home/cvs/pypar/demo.py,v
+Working file: demo.py
+head: 1.5
+branch:
+locks: strict
+access list:
+symbolic names:
+	release-1-9-2: 1.5
+	release-1-9-1: 1.5
+	release-1-9: 1.4
+	release-1-8-2: 1.4
+	release-1-8-1: 1.4
+	release-1-8: 1.4
+	release-1-7: 1.3
+	release-1-6-5: 1.3
+	release-1-6-4: 1.3
+	release-1-6-3-1: 1.3
+	release-1-6-3: 1.3
+	SG-release-1-1: 1.3
+	SG-release-1-0: 1.1
+	release-0-1: 1.1
+	release-1-6-2: 1.1
+	release-1-6-1: 1.1
+	release-1-6-0: 1.1
+	release-1-5-4: 1.1
+	release-1-5-3: 1.1
+	release-1-5-2: 1.1
+	release-1-5-1: 1.1
+	release-1-5: 1.1
+	release-1-4-1: 1.1
+	release-1-4-0: 1.1
+	release-1-4: 1.1
+	release-1-3: 1.1
+	release-1-2-4: 1.1
+	release-1-2-3: 1.1
+	release-1-2-2: 1.1
+	revision-1-2-1: 1.1
+	release-1-2: 1.1
+	release-1-1: 1.1
+	release-1-0-2: 1.1
+	release-1-0-1: 1.1
+	release-1-0: 1.1
+keyword substitution: kv
+total revisions: 5;	selected revisions: 5
+description:
+----------------------------
+revision 1.5
+date: 2004-01-07 11:36:17 +0000;  author: ole;  state: Exp;  lines: +2 -2
+Changed naming conventions to be more consistent
+----------------------------
+revision 1.4
+date: 2003-11-11 10:57:37 +0000;  author: ole;  state: Exp;  lines: +5 -4
+Status object optionally returned from receive. Reserved control_tag, trimmed string buffers to actual length. Minor clean up
+----------------------------
+revision 1.3
+date: 2002-11-12 04:20:40 +0000;  author: ole;  state: Exp;  lines: +2 -2
+Nothing
+----------------------------
+revision 1.2
+date: 2002-11-12 03:44:31 +0000;  author: ole;  state: Exp;  lines: +6 -1
+Added status.bytes() to get number of bytes transmitted
+----------------------------
+revision 1.1
+date: 2002-02-07 00:49:05 +0000;  author: ole;  state: Exp;
+x
+=============================================================================
+
+RCS file: /home/cvs/pypar/Attic/demo1.py,v
+Working file: demo1.py
+head: 1.3
+branch:
+locks: strict
+access list:
+symbolic names:
+	start: 1.1.1.1
+	ole: 1.1.1
+keyword substitution: kv
+total revisions: 4;	selected revisions: 4
+description:
+----------------------------
+revision 1.3
+date: 2002-02-07 00:49:05 +0000;  author: ole;  state: dead;  lines: +0 -0
+x
+----------------------------
+revision 1.2
+date: 2002-02-06 04:55:04 +0000;  author: ole;  state: Exp;  lines: +2 -2
+Fixed differences between Alphaserver and LAM/Linux
+----------------------------
+revision 1.1
+date: 2002-01-22 03:28:17 +0000;  author: ole;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002-01-22 03:28:17 +0000;  author: ole;  state: Exp;  lines: +0 -0
+Initial CVS import
+=============================================================================
+
+RCS file: /home/cvs/pypar/demo2.py,v
+Working file: demo2.py
+head: 1.12
+branch:
+locks: strict
+access list:
+symbolic names:
+	release-1-9-2: 1.12
+	release-1-9-1: 1.12
+	release-1-9: 1.11
+	release-1-8-2: 1.11
+	release-1-8-1: 1.11
+	release-1-8: 1.11
+	release-1-7: 1.11
+	release-1-6-5: 1.11
+	release-1-6-4: 1.11
+	release-1-6-3-1: 1.11
+	release-1-6-3: 1.11
+	SG-release-1-1: 1.11
+	SG-release-1-0: 1.11
+	release-1-1: 1.11
+	release-0-1: 1.11
+	release-1-6-2: 1.11
+	release-1-6-1: 1.11
+	release-1-6-0: 1.11
+	release-1-5-4: 1.11
+	release-1-5-3: 1.11
+	release-1-5-2: 1.11
+	release-1-5-1: 1.11
+	release-1-5: 1.11
+	release-1-4-1: 1.8
+	release-1-4-0: 1.4
+	release-1-4: 1.4
+	release-1-3: 1.4
+	release-1-2-4: 1.4
+	release-1-2-3: 1.4
+	release-1-2-2: 1.3
+	revision-1-2-1: 1.3
+	start: 1.1.1.1
+	ole: 1.1.1
+keyword substitution: kv
+total revisions: 13;	selected revisions: 13
+description:
+----------------------------
+revision 1.12
+date: 2004-01-07 11:36:17 +0000;  author: ole;  state: Exp;  lines: +2 -2
+Changed naming conventions to be more consistent
+----------------------------
+revision 1.11
+date: 2002-04-08 05:23:48 +0000;  author: ole;  state: Exp;  lines: +1 -1
+x
+----------------------------
+revision 1.10
+date: 2002-04-08 05:22:32 +0000;  author: ole;  state: Exp;  lines: +3 -2
+x
+----------------------------
+revision 1.9
+date: 2002-04-08 05:19:36 +0000;  author: ole;  state: Exp;  lines: +10 -4
+Added more reporting and pypar.Finalize()
+----------------------------
+revision 1.8
+date: 2002-03-22 05:40:05 +0000;  author: ole;  state: Exp;  lines: +4 -2
+Finished
+----------------------------
+revision 1.7
+date: 2002-03-22 02:36:08 +0000;  author: ole;  state: Exp;  lines: +21 -13
+Finalised demo2
+----------------------------
+revision 1.6
+date: 2002-03-22 00:52:51 +0000;  author: ole;  state: Exp;  lines: +9 -1
+x
+----------------------------
+revision 1.5
+date: 2002-03-22 00:50:11 +0000;  author: ole;  state: Exp;  lines: +71 -114
+Added simple demo for work distribution (demo2)
+Ole demo2 moved to dem3
+----------------------------
+revision 1.4
+date: 2002-02-17 04:58:37 +0000;  author: ole;  state: Exp;  lines: +42 -26
+minor
+----------------------------
+revision 1.3
+date: 2002-02-16 00:21:24 +0000;  author: ole;  state: Exp;  lines: +107 -55
+Status block
+----------------------------
+revision 1.2
+date: 2002-02-07 00:49:05 +0000;  author: ole;  state: dead;  lines: +0 -0
+x
+----------------------------
+revision 1.1
+date: 2002-01-22 03:28:17 +0000;  author: ole;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002-01-22 03:28:17 +0000;  author: ole;  state: Exp;  lines: +0 -0
+Initial CVS import
+=============================================================================
+
+RCS file: /home/cvs/pypar/demo3.py,v
+Working file: demo3.py
+head: 1.3
+branch:
+locks: strict
+access list:
+symbolic names:
+	release-1-9-2: 1.3
+	release-1-9-1: 1.3
+	release-1-9: 1.3
+	release-1-8-2: 1.3
+	release-1-8-1: 1.3
+	release-1-8: 1.3
+	release-1-7: 1.2
+	release-1-6-5: 1.2
+	release-1-6-4: 1.2
+	release-1-6-3-1: 1.2
+	release-1-6-3: 1.2
+	SG-release-1-1: 1.2
+	SG-release-1-0: 1.1
+	release-1-1: 1.1
+	release-0-1: 1.1
+	release-1-6-2: 1.1
+	release-1-6-1: 1.1
+	release-1-6-0: 1.1
+	release-1-5-4: 1.1
+	release-1-5-3: 1.1
+	release-1-5-2: 1.1
+	release-1-5-1: 1.1
+	release-1-5: 1.1
+	release-1-4-1: 1.1
+keyword substitution: kv
+total revisions: 3;	selected revisions: 3
+description:
+----------------------------
+revision 1.3
+date: 2003-11-11 10:57:37 +0000;  author: ole;  state: Exp;  lines: +9 -9
+Status object optionally returned from receive. Reserved control_tag, trimmed string buffers to actual length. Minor clean up
+----------------------------
+revision 1.2
+date: 2002-11-12 03:44:31 +0000;  author: ole;  state: Exp;  lines: +2 -2
+Added status.bytes() to get number of bytes transmitted
+----------------------------
+revision 1.1
+date: 2002-03-22 00:50:11 +0000;  author: ole;  state: Exp;
+Added simple demo for work distribution (demo2)
+Ole demo2 moved to dem3
+=============================================================================
+
+RCS file: /home/cvs/pypar/demo4.py,v
+Working file: demo4.py
+head: 1.3
+branch:
+locks: strict
+access list:
+symbolic names:
+	release-1-9-2: 1.3
+	release-1-9-1: 1.3
+	release-1-9: 1.3
+	release-1-8-2: 1.3
+	release-1-8-1: 1.3
+	release-1-8: 1.3
+	release-1-7: 1.2
+	release-1-6-5: 1.2
+	release-1-6-4: 1.2
+	release-1-6-3-1: 1.2
+	release-1-6-3: 1.2
+	SG-release-1-1: 1.2
+	SG-release-1-0: 1.2
+keyword substitution: kv
+total revisions: 3;	selected revisions: 3
+description:
+----------------------------
+revision 1.3
+date: 2003-11-11 10:57:37 +0000;  author: ole;  state: Exp;  lines: +4 -4
+Status object optionally returned from receive. Reserved control_tag, trimmed string buffers to actual length. Minor clean up
+----------------------------
+revision 1.2
+date: 2002-11-12 04:20:40 +0000;  author: ole;  state: Exp;  lines: +2 -2
+Nothing
+----------------------------
+revision 1.1
+date: 2002-11-12 03:44:31 +0000;  author: ole;  state: Exp;
+Added status.bytes() to get number of bytes transmitted
+=============================================================================
+
+RCS file: /home/cvs/pypar/distribute_files,v
+Working file: distribute_files
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	release-1-9-2: 1.1
+	release-1-9-1: 1.1
+	release-1-9: 1.1
+	release-1-8-2: 1.1
+	release-1-8-1: 1.1
+	release-1-8: 1.1
+	release-1-7: 1.1
+	release-1-6-5: 1.1
+	release-1-6-4: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2003-02-11 04:19:40 +0000;  author: ole;  state: Exp;
+Addede script for distributing files and publishing on the web.
+=============================================================================
+
+RCS file: /home/cvs/pypar/install.py,v
+Working file: install.py
+head: 1.8
+branch:
+locks: strict
+access list:
+symbolic names:
+	release-1-9-2: 1.8
+	release-1-9-1: 1.8
+	release-1-9: 1.8
+	release-1-8-2: 1.8
+	release-1-8-1: 1.8
+	release-1-8: 1.8
+	release-1-7: 1.8
+	release-1-6-5: 1.8
+	release-1-6-4: 1.8
+	release-1-6-3-1: 1.8
+	release-1-6-3: 1.8
+	SG-release-1-1: 1.7
+	SG-release-1-0: 1.7
+	release-0-1: 1.7
+	release-1-6-2: 1.7
+	release-1-6-1: 1.7
+	release-1-6-0: 1.7
+	release-1-5-4: 1.7
+	release-1-5-3: 1.7
+	release-1-5-2: 1.7
+	release-1-5-1: 1.6
+	release-1-5: 1.6
+	release-1-4-1: 1.5
+	release-1-4-0: 1.5
+	release-1-4: 1.5
+	release-1-3: 1.5
+	release-1-2-4: 1.5
+	release-1-2-3: 1.5
+	release-1-2-2: 1.5
+	revision-1-2-1: 1.5
+	release-1-2: 1.5
+	release-1-1: 1.5
+	release-1-0-2: 1.5
+	release-1-0-1: 1.5
+	release-1-0: 1.4
+	start: 1.1.1.1
+	ole: 1.1.1
+keyword substitution: kv
+total revisions: 9;	selected revisions: 9
+description:
+----------------------------
+revision 1.8
+date: 2002-12-18 03:10:35 +0000;  author: ole;  state: Exp;  lines: +1 -1
+Fixed reintroduced problem about hanging under LAM linux.
+It is not possible to call init in a separate shell and then later within
+the python script.
+----------------------------
+revision 1.7
+date: 2002-06-18 07:13:56 +0000;  author: ole;  state: Exp;  lines: +7 -1
+Fixed new problem on Alphaserver. It no longer supports mpicc, so
+cc -lmpi must be used instead (grrr)
+----------------------------
+revision 1.6
+date: 2002-04-30 04:33:47 +0000;  author: ole;  state: Exp;  lines: +6 -6
+Changed extension module from mpi.c to mpiext.c
+(import mpi caused Alphaserver to crash if not present).
+----------------------------
+revision 1.5
+date: 2002-02-08 03:58:58 +0000;  author: ole;  state: Exp;  lines: +2 -2
+Got it to run on a Sun Enterprise server under Mpich.
+Only small changes.
+----------------------------
+revision 1.4
+date: 2002-01-23 06:48:20 +0000;  author: ole;  state: Exp;  lines: +13 -26
+*** empty log message ***
+----------------------------
+revision 1.3
+date: 2002-01-23 04:29:28 +0000;  author: ole;  state: Exp;  lines: +1 -5
+
+Brought back sequential stub
+----------------------------
+revision 1.2
+date: 2002-01-23 00:29:57 +0000;  author: ole;  state: Exp;  lines: +3 -34
+Simplified
+----------------------------
+revision 1.1
+date: 2002-01-22 03:28:17 +0000;  author: ole;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002-01-22 03:28:17 +0000;  author: ole;  state: Exp;  lines: +0 -0
+Initial CVS import
+=============================================================================
+
+RCS file: /home/cvs/pypar/Attic/mpi.c,v
+Working file: mpi.c
+head: 1.22
+branch:
+locks: strict
+access list:
+symbolic names:
+	release-1-4-1: 1.20
+	release-1-4-0: 1.20
+	release-1-4: 1.19
+	release-1-3: 1.18
+	release-1-2-4: 1.15
+	release-1-2-3: 1.14
+	release-1-2-2: 1.13
+	revision-1-2-1: 1.13
+	release-1-2: 1.11
+	release-1-1: 1.10
+	release-1-0-2: 1.9
+	release-1-0-1: 1.8
+	release-1-0: 1.7
+	start: 1.1.1.1
+	ole: 1.1.1
+keyword substitution: kv
+total revisions: 23;	selected revisions: 23
+description:
+----------------------------
+revision 1.22
+date: 2002-04-30 04:15:58 +0000;  author: ole;  state: dead;  lines: +0 -0
+*** empty log message ***
+----------------------------
+revision 1.21
+date: 2002-04-30 03:56:49 +0000;  author: ole;  state: Exp;  lines: +36 -11
+Modified init so that python command line gets passed onto MPI_init.
+This is necessary for MPICH/Linux.
+----------------------------
+revision 1.20
+date: 2002-03-04 02:41:06 +0000;  author: ole;  state: Exp;  lines: +1 -1
+x
+----------------------------
+revision 1.19
+date: 2002-02-27 00:57:12 +0000;  author: ole;  state: Exp;  lines: +4 -0
+Fixed test and ran with 22 procs on SUN
+----------------------------
+revision 1.18
+date: 2002-02-21 04:24:40 +0000;  author: ole;  state: Exp;  lines: +1 -1
+ver 1.3
+----------------------------
+revision 1.17
+date: 2002-02-21 03:53:09 +0000;  author: ole;  state: Exp;  lines: +4 -4
+Removed REPLACE
+----------------------------
+revision 1.16
+date: 2002-02-21 03:48:22 +0000;  author: ole;  state: Exp;  lines: +162 -0
+added gather and reduce
+----------------------------
+revision 1.15
+date: 2002-02-19 07:45:44 +0000;  author: ole;  state: Exp;  lines: +4 -2
+Fixed crash on Sun Enterprise (alloc **argv)
+----------------------------
+revision 1.14
+date: 2002-02-17 22:40:10 +0000;  author: ole;  state: Exp;  lines: +1 -12
+x
+----------------------------
+revision 1.13
+date: 2002-02-16 00:40:55 +0000;  author: ole;  state: Exp;  lines: +13 -4
+Fixed st_length
+----------------------------
+revision 1.12
+date: 2002-02-16 00:21:24 +0000;  author: ole;  state: Exp;  lines: +21 -3
+Status block
+----------------------------
+revision 1.11
+date: 2002-02-15 22:46:55 +0000;  author: ole;  state: Exp;  lines: +51 -0
+Scatter
+----------------------------
+revision 1.10
+date: 2002-02-14 07:20:40 +0000;  author: ole;  state: Exp;  lines: +108 -99
+Added bcast - thanks to Gian Paolo Ciceri
+----------------------------
+revision 1.9
+date: 2002-02-10 23:05:31 +0000;  author: ole;  state: Exp;  lines: +1 -1
+Version 1.0.2
+Bugfix from Gian Paulo Ciceri preventing pypar from running under Python 2.2
+----------------------------
+revision 1.8
+date: 2002-02-08 03:58:58 +0000;  author: ole;  state: Exp;  lines: +1 -1
+Got it to run on a Sun Enterprise server under Mpich.
+Only small changes.
+----------------------------
+revision 1.7
+date: 2002-02-07 01:49:42 +0000;  author: ole;  state: Exp;  lines: +26 -8
+*** empty log message ***
+----------------------------
+revision 1.6
+date: 2002-02-06 04:55:04 +0000;  author: ole;  state: Exp;  lines: +1 -0
+Fixed differences between Alphaserver and LAM/Linux
+----------------------------
+revision 1.5
+date: 2002-02-06 04:18:07 +0000;  author: ole;  state: Exp;  lines: +1 -1
+x
+----------------------------
+revision 1.4
+date: 2002-02-06 04:14:50 +0000;  author: ole;  state: Exp;  lines: +38 -36
+Moved type_map to beginning of file to avaoid irritating warning about
+implicit declaration.
+----------------------------
+revision 1.3
+date: 2002-02-06 04:10:57 +0000;  author: ole;  state: Exp;  lines: +5 -5
+*** empty log message ***
+----------------------------
+revision 1.2
+date: 2002-02-06 03:23:51 +0000;  author: ole;  state: Exp;  lines: +5 -5
+Test program to figure out MPI types
+----------------------------
+revision 1.1
+date: 2002-01-22 03:28:17 +0000;  author: ole;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002-01-22 03:28:17 +0000;  author: ole;  state: Exp;  lines: +0 -0
+Initial CVS import
+=============================================================================
+
+RCS file: /home/cvs/pypar/mpiext.c,v
+Working file: mpiext.c
+head: 1.18
+branch:
+locks: strict
+access list:
+symbolic names:
+	release-1-9-2: 1.18
+	release-1-9-1: 1.18
+	release-1-9: 1.17
+	release-1-8-2: 1.15
+	release-1-8-1: 1.14
+	release-1-8: 1.13
+	release-1-7: 1.11
+	release-1-6-5: 1.10
+	release-1-6-4: 1.9
+	release-1-6-3-1: 1.7
+	release-1-6-3: 1.6
+	SG-release-1-1: 1.5
+	SG-release-1-0: 1.4
+	release-1-1: 1.4
+	release-0-1: 1.4
+	release-1-6-2: 1.4
+	release-1-6-1: 1.4
+	release-1-6-0: 1.4
+	release-1-5-4: 1.4
+	release-1-5-3: 1.4
+	release-1-5-2: 1.3
+	release-1-5-1: 1.3
+	release-1-5: 1.3
+keyword substitution: kv
+total revisions: 18;	selected revisions: 18
+description:
+----------------------------
+revision 1.18
+date: 2004-01-07 11:36:17 +0000;  author: ole;  state: Exp;  lines: +27 -21
+Changed naming conventions to be more consistent
+----------------------------
+revision 1.17
+date: 2003-11-20 10:08:12 +0000;  author: ole;  state: Exp;  lines: +10 -4
+Introduced bypass argument for efficiency
+----------------------------
+revision 1.16
+date: 2003-11-17 12:03:18 +0000;  author: ole;  state: Exp;  lines: +200 -65
+Work towards ver 2.0: Exceptions moved to c-extension, revamping of control_info, lots of clean-up
+----------------------------
+revision 1.15
+date: 2003-11-16 10:04:48 +0000;  author: ole;  state: Exp;  lines: +23 -22
+Fixed up gather, scatter and reduce to automatically calculate buffer size. Also cleaned up control_info. Updated web site and release script
+----------------------------
+revision 1.14
+date: 2003-11-13 11:36:04 +0000;  author: ole;  state: Exp;  lines: +71 -44
+Added support for the complex datatype
+----------------------------
+revision 1.13
+date: 2003-11-11 11:05:12 +0000;  author: ole;  state: Exp;  lines: +0 -5
+Dates and cleaned up old comment
+----------------------------
+revision 1.12
+date: 2003-11-11 10:57:37 +0000;  author: ole;  state: Exp;  lines: +21 -11
+Status object optionally returned from receive. Reserved control_tag, trimmed string buffers to actual length. Minor clean up
+----------------------------
+revision 1.11
+date: 2003-11-07 03:29:04 +0000;  author: ole;  state: Exp;  lines: +25 -8
+Added support for arrays of arbitray dimension
+----------------------------
+revision 1.10
+date: 2003-08-30 10:17:02 +0000;  author: ole;  state: Exp;  lines: +3 -1
+Work towards version 1.6.5 -
+Fixed Null argument needed in commandline by LAM 7.0
+----------------------------
+revision 1.9
+date: 2003-01-10 04:32:21 +0000;  author: ole;  state: Exp;  lines: +1 -1
+Added __version__ etc
+----------------------------
+revision 1.8
+date: 2003-01-09 23:27:42 +0000;  author: ole;  state: Exp;  lines: +1 -1
+Nothing
+----------------------------
+revision 1.7
+date: 2003-01-09 23:24:51 +0000;  author: ole;  state: Exp;  lines: +3 -3
+x
+----------------------------
+revision 1.6
+date: 2002-12-20 02:06:49 +0000;  author: ole;  state: Exp;  lines: +11 -0
+Studied problems with auto detetction of lam runtime
+----------------------------
+revision 1.5
+date: 2002-11-12 03:44:31 +0000;  author: ole;  state: Exp;  lines: +11 -5
+Added status.bytes() to get number of bytes transmitted
+----------------------------
+revision 1.4
+date: 2002-10-18 03:24:05 +0000;  author: ole;  state: Exp;  lines: +5 -80
+
+Removed auto compile from pypar
+Removed obsolte stuff from extension
+----------------------------
+revision 1.3
+date: 2002-04-30 05:02:08 +0000;  author: ole;  state: Exp;  lines: +1 -1
+Rev 1.5
+----------------------------
+revision 1.2
+date: 2002-04-30 04:33:47 +0000;  author: ole;  state: Exp;  lines: +2 -2
+Changed extension module from mpi.c to mpiext.c
+(import mpi caused Alphaserver to crash if not present).
+----------------------------
+revision 1.1
+date: 2002-04-30 04:15:58 +0000;  author: ole;  state: Exp;
+*** empty log message ***
+=============================================================================
+
+RCS file: /home/cvs/pypar/Attic/mpitypetest.c,v
+Working file: mpitypetest.c
+head: 1.3
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 3;	selected revisions: 3
+description:
+----------------------------
+revision 1.3
+date: 2002-02-06 06:58:58 +0000;  author: ole;  state: dead;  lines: +0 -0
+*** empty log message ***
+----------------------------
+revision 1.2
+date: 2002-02-06 04:14:50 +0000;  author: ole;  state: Exp;  lines: +1 -1
+Moved type_map to beginning of file to avaoid irritating warning about
+implicit declaration.
+----------------------------
+revision 1.1
+date: 2002-02-06 03:23:51 +0000;  author: ole;  state: Exp;
+Test program to figure out MPI types
+=============================================================================
+
+RCS file: /home/cvs/pypar/pypar.py,v
+Working file: pypar.py
+head: 1.69
+branch:
+locks: strict
+access list:
+symbolic names:
+	release-1-9-2: 1.69
+	release-1-9-1: 1.67
+	release-1-9: 1.65
+	release-1-8-2: 1.61
+	release-1-8-1: 1.60
+	release-1-8: 1.59
+	release-1-7: 1.58
+	release-1-6-5: 1.56
+	release-1-6-4: 1.55
+	release-1-6-3-1: 1.51
+	release-1-6-3: 1.50
+	SG-release-1-1: 1.46
+	SG-release-1-0: 1.43
+	release-0-1: 1.43
+	release-1-6-2: 1.43
+	release-1-6-1: 1.38
+	release-1-6-0: 1.37
+	release-1-5-4: 1.37
+	release-1-5-3: 1.37
+	release-1-5-2: 1.33
+	release-1-5-1: 1.32
+	release-1-5: 1.32
+	release-1-4-1: 1.24
+	release-1-4-0: 1.24
+	release-1-4: 1.23
+	release-1-3: 1.22
+	release-1-2-4: 1.19
+	release-1-2-3: 1.18
+	release-1-2-2: 1.17
+	revision-1-2-1: 1.17
+	release-1-2: 1.16
+	release-1-1: 1.15
+	release-1-0-2: 1.14
+	release-1-0-1: 1.12
+	release-1-0: 1.11
+	start: 1.1.1.1
+	ole: 1.1.1
+keyword substitution: kv
+total revisions: 70;	selected revisions: 70
+description:
+----------------------------
+revision 1.69
+date: 2004-12-27 03:29:24 +0000;  author: ole;  state: Exp;  lines: +40 -0
+Doc for function balance
+----------------------------
+revision 1.68
+date: 2004-11-10 07:09:46 +0000;  author: ole;  state: Exp;  lines: +1 -1
+Fixed spelling error in init for alpha server
+----------------------------
+revision 1.67
+date: 2004-01-07 11:42:07 +0000;  author: ole;  state: Exp;  lines: +2 -2
+Nothing
+----------------------------
+revision 1.66
+date: 2004-01-07 11:36:17 +0000;  author: ole;  state: Exp;  lines: +105 -51
+Changed naming conventions to be more consistent
+----------------------------
+revision 1.65
+date: 2003-12-03 10:13:58 +0000;  author: ole;  state: Exp;  lines: +16 -23
+Updated doc for obsoletion of raw forms
+----------------------------
+revision 1.64
+date: 2003-11-20 10:08:12 +0000;  author: ole;  state: Exp;  lines: +65 -43
+Introduced bypass argument for efficiency
+----------------------------
+revision 1.63
+date: 2003-11-19 04:18:15 +0000;  author: ole;  state: Exp;  lines: +1 -1
+Finalised obsoletion of raw forms
+----------------------------
+revision 1.62
+date: 2003-11-17 12:03:18 +0000;  author: ole;  state: Exp;  lines: +490 -566
+Work towards ver 2.0: Exceptions moved to c-extension, revamping of control_info, lots of clean-up
+----------------------------
+revision 1.61
+date: 2003-11-16 10:04:48 +0000;  author: ole;  state: Exp;  lines: +41 -25
+Fixed up gather, scatter and reduce to automatically calculate buffer size. Also cleaned up control_info. Updated web site and release script
+----------------------------
+revision 1.60
+date: 2003-11-13 11:36:04 +0000;  author: ole;  state: Exp;  lines: +13 -10
+Added support for the complex datatype
+----------------------------
+revision 1.59
+date: 2003-11-11 10:57:37 +0000;  author: ole;  state: Exp;  lines: +79 -57
+Status object optionally returned from receive. Reserved control_tag, trimmed string buffers to actual length. Minor clean up
+----------------------------
+revision 1.58
+date: 2003-11-07 03:29:04 +0000;  author: ole;  state: Exp;  lines: +36 -22
+Added support for arrays of arbitray dimension
+----------------------------
+revision 1.57
+date: 2003-10-09 02:03:53 +0000;  author: ole;  state: Exp;  lines: +4 -4
+darwin fix, error msg fix
+----------------------------
+revision 1.56
+date: 2003-08-30 10:17:02 +0000;  author: ole;  state: Exp;  lines: +2 -2
+Work towards version 1.6.5 -
+Fixed Null argument needed in commandline by LAM 7.0
+----------------------------
+revision 1.55
+date: 2003-02-04 01:54:18 +0000;  author: ole;  state: Exp;  lines: +46 -41
+Changed argument names in gather, reduce, ... and updated doc
+----------------------------
+revision 1.54
+date: 2003-01-13 03:04:49 +0000;  author: ole;  state: Exp;  lines: +3 -2
+Added Ben's comments
+----------------------------
+revision 1.53
+date: 2003-01-10 04:32:21 +0000;  author: ole;  state: Exp;  lines: +7 -4
+Added __version__ etc
+----------------------------
+revision 1.52
+date: 2003-01-09 23:27:42 +0000;  author: ole;  state: Exp;  lines: +1 -1
+Nothing
+----------------------------
+revision 1.51
+date: 2003-01-09 23:24:51 +0000;  author: ole;  state: Exp;  lines: +1 -1
+x
+----------------------------
+revision 1.50
+date: 2002-12-20 02:06:49 +0000;  author: ole;  state: Exp;  lines: +30 -10
+Studied problems with auto detetction of lam runtime
+----------------------------
+revision 1.49
+date: 2002-12-18 04:46:38 +0000;  author: ole;  state: Exp;  lines: +1 -0
+*** empty log message ***
+----------------------------
+revision 1.48
+date: 2002-12-18 03:10:35 +0000;  author: ole;  state: Exp;  lines: +20 -12
+Fixed reintroduced problem about hanging under LAM linux.
+It is not possible to call init in a separate shell and then later within
+the python script.
+----------------------------
+revision 1.47
+date: 2002-12-13 04:26:32 +0000;  author: ole;  state: Exp;  lines: +6 -2
+Fast algorithm for evalf (not so fast yet)
+----------------------------
+revision 1.46
+date: 2002-11-12 04:33:06 +0000;  author: ole;  state: Exp;  lines: +1 -3
+Nothing
+----------------------------
+revision 1.45
+date: 2002-11-12 03:44:31 +0000;  author: ole;  state: Exp;  lines: +12 -6
+Added status.bytes() to get number of bytes transmitted
+----------------------------
+revision 1.44
+date: 2002-11-12 02:29:39 +0000;  author: ole;  state: Exp;  lines: +8 -3
+dirname = '.'
+----------------------------
+revision 1.43
+date: 2002-10-29 03:40:51 +0000;  author: ole;  state: Exp;  lines: +1 -1
+*** empty log message ***
+----------------------------
+revision 1.42
+date: 2002-10-29 03:38:12 +0000;  author: ole;  state: Exp;  lines: +5 -4
+Added Windows installation from Simon Frost
+----------------------------
+revision 1.41
+date: 2002-10-23 07:24:43 +0000;  author: ole;  state: Exp;  lines: +11 -3
+*** empty log message ***
+----------------------------
+revision 1.40
+date: 2002-10-23 06:50:37 +0000;  author: ole;  state: Exp;  lines: +6 -2
+*** empty log message ***
+----------------------------
+revision 1.39
+date: 2002-10-22 07:12:38 +0000;  author: ole;  state: Exp;  lines: +6 -12
+Fixed use as a package (I think)
+----------------------------
+revision 1.38
+date: 2002-10-18 04:43:04 +0000;  author: ole;  state: Exp;  lines: +4 -9
+*** empty log message ***
+----------------------------
+revision 1.37
+date: 2002-10-18 03:24:05 +0000;  author: ole;  state: Exp;  lines: +8 -18
+
+Removed auto compile from pypar
+Removed obsolte stuff from extension
+----------------------------
+revision 1.36
+date: 2002-09-17 06:46:55 +0000;  author: howard;  state: Exp;  lines: +2 -1
+*** empty log message ***
+----------------------------
+revision 1.35
+date: 2002-09-17 06:33:33 +0000;  author: ole;  state: Exp;  lines: +8 -9
+Auto compilation in packages
+----------------------------
+revision 1.34
+date: 2002-07-23 04:43:37 +0000;  author: ole;  state: Exp;  lines: +13 -1
+Entered code for handling situation where pypar is a package
+(Commented out)
+----------------------------
+revision 1.33
+date: 2002-06-18 07:13:56 +0000;  author: ole;  state: Exp;  lines: +10 -5
+Fixed new problem on Alphaserver. It no longer supports mpicc, so
+cc -lmpi must be used instead (grrr)
+----------------------------
+revision 1.32
+date: 2002-04-30 05:19:38 +0000;  author: ole;  state: Exp;  lines: +46 -46
+Fixed problem where init MPI crashes on Alpha Server
+----------------------------
+revision 1.31
+date: 2002-04-30 05:02:08 +0000;  author: ole;  state: Exp;  lines: +1 -1
+Rev 1.5
+----------------------------
+revision 1.30
+date: 2002-04-30 04:57:21 +0000;  author: ole;  state: Exp;  lines: +4 -4
+Doc
+----------------------------
+revision 1.29
+date: 2002-04-30 04:33:47 +0000;  author: ole;  state: Exp;  lines: +29 -36
+Changed extension module from mpi.c to mpiext.c
+(import mpi caused Alphaserver to crash if not present).
+----------------------------
+revision 1.28
+date: 2002-04-30 04:15:58 +0000;  author: ole;  state: Exp;  lines: +8 -35
+*** empty log message ***
+----------------------------
+revision 1.27
+date: 2002-04-30 03:56:49 +0000;  author: ole;  state: Exp;  lines: +7 -3
+Modified init so that python command line gets passed onto MPI_init.
+This is necessary for MPICH/Linux.
+----------------------------
+revision 1.26
+date: 2002-04-10 04:16:54 +0000;  author: ole;  state: Exp;  lines: +3 -1
+Added afiliation
+----------------------------
+revision 1.25
+date: 2002-04-04 06:48:16 +0000;  author: ole;  state: Exp;  lines: +3 -1
+Enabled pypar to find mpi.so in whatever dir pypar.py lives in
+----------------------------
+revision 1.24
+date: 2002-03-04 02:44:36 +0000;  author: ole;  state: Exp;  lines: +1 -1
+x
+----------------------------
+revision 1.23
+date: 2002-02-27 00:57:12 +0000;  author: ole;  state: Exp;  lines: +6 -3
+Fixed test and ran with 22 procs on SUN
+----------------------------
+revision 1.22
+date: 2002-02-21 04:24:40 +0000;  author: ole;  state: Exp;  lines: +1 -1
+ver 1.3
+----------------------------
+revision 1.21
+date: 2002-02-21 03:53:09 +0000;  author: ole;  state: Exp;  lines: +1 -1
+Removed REPLACE
+----------------------------
+revision 1.20
+date: 2002-02-21 03:48:22 +0000;  author: ole;  state: Exp;  lines: +106 -1
+added gather and reduce
+----------------------------
+revision 1.19
+date: 2002-02-19 07:45:44 +0000;  author: ole;  state: Exp;  lines: +9 -17
+Fixed crash on Sun Enterprise (alloc **argv)
+----------------------------
+revision 1.18
+date: 2002-02-17 22:40:10 +0000;  author: ole;  state: Exp;  lines: +1 -12
+x
+----------------------------
+revision 1.17
+date: 2002-02-16 00:21:24 +0000;  author: ole;  state: Exp;  lines: +57 -14
+Status block
+----------------------------
+revision 1.16
+date: 2002-02-15 22:46:55 +0000;  author: ole;  state: Exp;  lines: +59 -1
+Scatter
+----------------------------
+revision 1.15
+date: 2002-02-14 07:20:40 +0000;  author: ole;  state: Exp;  lines: +42 -7
+Added bcast - thanks to Gian Paolo Ciceri
+----------------------------
+revision 1.14
+date: 2002-02-10 23:05:31 +0000;  author: ole;  state: Exp;  lines: +3 -2
+Version 1.0.2
+Bugfix from Gian Paulo Ciceri preventing pypar from running under Python 2.2
+----------------------------
+revision 1.13
+date: 2002-02-08 04:10:17 +0000;  author: ole;  state: Exp;  lines: +2 -2
+release 1-0-1
+----------------------------
+revision 1.12
+date: 2002-02-08 03:58:58 +0000;  author: ole;  state: Exp;  lines: +24 -5
+Got it to run on a Sun Enterprise server under Mpich.
+Only small changes.
+----------------------------
+revision 1.11
+date: 2002-02-07 01:51:07 +0000;  author: ole;  state: Exp;  lines: +7 -5
+*** empty log message ***
+----------------------------
+revision 1.10
+date: 2002-02-07 01:33:16 +0000;  author: ole;  state: Exp;  lines: +4 -3
+*** empty log message ***
+----------------------------
+revision 1.9
+date: 2002-02-06 06:49:31 +0000;  author: ole;  state: Exp;  lines: +4 -2
+Added test of pypar
+----------------------------
+revision 1.8
+date: 2002-02-06 04:55:04 +0000;  author: ole;  state: Exp;  lines: +37 -17
+Fixed differences between Alphaserver and LAM/Linux
+----------------------------
+revision 1.7
+date: 2002-01-24 05:31:29 +0000;  author: ole;  state: Exp;  lines: +2 -1
+Got subdir-structure to work on Alpha Server
+----------------------------
+revision 1.6
+date: 2002-01-23 23:41:01 +0000;  author: ole;  state: Exp;  lines: +13 -6
+*** empty log message ***
+----------------------------
+revision 1.5
+date: 2002-01-23 06:49:20 +0000;  author: ole;  state: Exp;  lines: +1 -1
+*** empty log message ***
+----------------------------
+revision 1.4
+date: 2002-01-23 06:48:20 +0000;  author: ole;  state: Exp;  lines: +15 -16
+*** empty log message ***
+----------------------------
+revision 1.3
+date: 2002-01-23 05:54:13 +0000;  author: ole;  state: Exp;  lines: +21 -13
+Modified codes to work with Python packages
+----------------------------
+revision 1.2
+date: 2002-01-23 04:29:28 +0000;  author: ole;  state: Exp;  lines: +47 -8
+
+Brought back sequential stub
+----------------------------
+revision 1.1
+date: 2002-01-22 03:28:17 +0000;  author: ole;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002-01-22 03:28:17 +0000;  author: ole;  state: Exp;  lines: +0 -0
+Initial CVS import
+=============================================================================
+
+RCS file: /home/cvs/pypar/Attic/pypartest.py,v
+Working file: pypartest.py
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.2
+date: 2002-02-06 06:53:26 +0000;  author: ole;  state: dead;  lines: +0 -0
+x
+----------------------------
+revision 1.1
+date: 2002-02-06 06:49:31 +0000;  author: ole;  state: Exp;
+Added test of pypar
+=============================================================================
+
+RCS file: /home/cvs/pypar/pytiming,v
+Working file: pytiming
+head: 1.8
+branch:
+locks: strict
+access list:
+symbolic names:
+	release-1-9-2: 1.8
+	release-1-9-1: 1.8
+	release-1-9: 1.8
+	release-1-8-2: 1.5
+	release-1-8-1: 1.5
+	release-1-8: 1.5
+	release-1-7: 1.4
+	release-1-6-5: 1.4
+	release-1-6-4: 1.4
+	release-1-6-3-1: 1.4
+	release-1-6-3: 1.4
+	SG-release-1-1: 1.4
+	SG-release-1-0: 1.4
+	release-0-1: 1.4
+	release-1-6-2: 1.4
+	release-1-6-1: 1.4
+	release-1-6-0: 1.4
+	release-1-5-4: 1.4
+	release-1-5-3: 1.4
+	release-1-5-2: 1.4
+	release-1-5-1: 1.4
+	release-1-5: 1.4
+	release-1-4-1: 1.4
+	release-1-4-0: 1.4
+	release-1-4: 1.4
+	release-1-3: 1.4
+	release-1-2-4: 1.4
+	release-1-2-3: 1.4
+	release-1-2-2: 1.4
+	revision-1-2-1: 1.4
+	release-1-2: 1.4
+	release-1-1: 1.4
+	release-1-0-2: 1.4
+	release-1-0-1: 1.4
+	release-1-0: 1.4
+	start: 1.1.1.1
+	ole: 1.1.1
+keyword substitution: kv
+total revisions: 9;	selected revisions: 9
+description:
+----------------------------
+revision 1.8
+date: 2003-12-03 10:20:48 +0000;  author: ole;  state: Exp;  lines: +10 -7
+disabled mpiext direct functions
+----------------------------
+revision 1.7
+date: 2003-11-20 10:08:12 +0000;  author: ole;  state: Exp;  lines: +39 -11
+Introduced bypass argument for efficiency
+----------------------------
+revision 1.6
+date: 2003-11-17 12:03:18 +0000;  author: ole;  state: Exp;  lines: +17 -19
+Work towards ver 2.0: Exceptions moved to c-extension, revamping of control_info, lots of clean-up
+----------------------------
+revision 1.5
+date: 2003-11-11 10:57:37 +0000;  author: ole;  state: Exp;  lines: +2 -2
+Status object optionally returned from receive. Reserved control_tag, trimmed string buffers to actual length. Minor clean up
+----------------------------
+revision 1.4
+date: 2002-02-06 23:54:55 +0000;  author: ole;  state: Exp;  lines: +5 -4
+Streamlined interface
+----------------------------
+revision 1.3
+date: 2002-02-06 05:40:28 +0000;  author: ole;  state: Exp;  lines: +0 -1
+x
+----------------------------
+revision 1.2
+date: 2002-02-06 05:28:51 +0000;  author: ole;  state: Exp;  lines: +8 -7
+Made output from pytimimng and ctiming more userfriendly
+----------------------------
+revision 1.1
+date: 2002-01-22 03:28:17 +0000;  author: ole;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002-01-22 03:28:17 +0000;  author: ole;  state: Exp;  lines: +0 -0
+Initial CVS import
+=============================================================================
+
+RCS file: /home/cvs/pypar/release,v
+Working file: release
+head: 1.6
+branch:
+locks: strict
+access list:
+symbolic names:
+	release-1-9-2: 1.6
+	release-1-9-1: 1.5
+	release-1-9: 1.4
+	release-1-8-2: 1.4
+	release-1-8-1: 1.2
+	release-1-8: 1.2
+	release-1-7: 1.2
+	release-1-6-5: 1.2
+	release-1-6-4: 1.2
+keyword substitution: kv
+total revisions: 6;	selected revisions: 6
+description:
+----------------------------
+revision 1.6
+date: 2004-09-19 01:04:12 +0000;  author: ole;  state: Exp;  lines: +9 -4
+*** empty log message ***
+----------------------------
+revision 1.5
+date: 2004-01-07 11:51:06 +0000;  author: ole;  state: Exp;  lines: +8 -0
+Nothing
+----------------------------
+revision 1.4
+date: 2003-11-16 10:24:58 +0000;  author: ole;  state: Exp;  lines: +10 -2
+*** empty log message ***
+----------------------------
+revision 1.3
+date: 2003-11-16 10:04:48 +0000;  author: ole;  state: Exp;  lines: +19 -0
+Fixed up gather, scatter and reduce to automatically calculate buffer size. Also cleaned up control_info. Updated web site and release script
+----------------------------
+revision 1.2
+date: 2003-02-11 04:25:39 +0000;  author: ole;  state: Exp;  lines: +9 -12
+Changed to use /tmp
+----------------------------
+revision 1.1
+date: 2003-02-11 04:19:40 +0000;  author: ole;  state: Exp;
+Addede script for distributing files and publishing on the web.
+=============================================================================
+
+RCS file: /home/cvs/pypar/ring_example.py,v
+Working file: ring_example.py
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	release-1-9-2: 1.1
+	release-1-9-1: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004-01-07 11:51:06 +0000;  author: ole;  state: Exp;
+Nothing
+=============================================================================
+
+RCS file: /home/cvs/pypar/runpytiming,v
+Working file: runpytiming
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+	release-1-9-2: 1.2
+	release-1-9-1: 1.2
+	release-1-9: 1.2
+	release-1-8-2: 1.2
+	release-1-8-1: 1.2
+	release-1-8: 1.2
+	release-1-7: 1.2
+	release-1-6-5: 1.2
+	release-1-6-4: 1.2
+	release-1-6-3-1: 1.2
+	release-1-6-3: 1.2
+	SG-release-1-1: 1.2
+	SG-release-1-0: 1.2
+	release-0-1: 1.2
+	release-1-6-2: 1.2
+	release-1-6-1: 1.2
+	release-1-6-0: 1.2
+	release-1-5-4: 1.2
+	release-1-5-3: 1.2
+	release-1-5-2: 1.2
+	release-1-5-1: 1.2
+	release-1-5: 1.2
+	release-1-4-1: 1.2
+	release-1-4-0: 1.2
+	release-1-4: 1.2
+	release-1-3: 1.2
+	release-1-2-4: 1.2
+	release-1-2-3: 1.2
+	release-1-2-2: 1.2
+	revision-1-2-1: 1.2
+	release-1-2: 1.2
+	release-1-1: 1.2
+	release-1-0-2: 1.2
+	release-1-0-1: 1.2
+	release-1-0: 1.2
+	start: 1.1.1.1
+	ole: 1.1.1
+keyword substitution: kv
+total revisions: 3;	selected revisions: 3
+description:
+----------------------------
+revision 1.2
+date: 2002-02-07 01:52:05 +0000;  author: ole;  state: Exp;  lines: +1 -3
+*** empty log message ***
+----------------------------
+revision 1.1
+date: 2002-01-22 03:28:17 +0000;  author: ole;  state: Exp;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.1
+date: 2002-01-22 03:28:17 +0000;  author: ole;  state: Exp;  lines: +0 -0
+Initial CVS import
+=============================================================================
+
+RCS file: /home/cvs/pypar/setup.py,v
+Working file: setup.py
+head: 1.3
+branch:
+locks: strict
+access list:
+symbolic names:
+	release-1-9-2: 1.3
+	release-1-9-1: 1.3
+	release-1-9: 1.3
+	release-1-8-2: 1.3
+	release-1-8-1: 1.3
+	release-1-8: 1.3
+	release-1-7: 1.3
+	release-1-6-5: 1.3
+	release-1-6-4: 1.3
+	release-1-6-3-1: 1.2
+	release-1-6-3: 1.2
+	SG-release-1-1: 1.2
+	SG-release-1-0: 1.2
+	release-1-1: 1.2
+	release-0-1: 1.2
+	release-1-6-2: 1.2
+	release-1-6-1: 1.1
+	release-1-6-0: 1.1
+	release-1-5-4: 1.1
+	release-1-5-3: 1.1
+keyword substitution: kv
+total revisions: 3;	selected revisions: 3
+description:
+----------------------------
+revision 1.3
+date: 2003-01-13 03:04:49 +0000;  author: ole;  state: Exp;  lines: +12 -1
+Added Ben's comments
+----------------------------
+revision 1.2
+date: 2002-10-29 03:38:12 +0000;  author: ole;  state: Exp;  lines: +5 -1
+Added Windows installation from Simon Frost
+----------------------------
+revision 1.1
+date: 2002-10-18 03:46:29 +0000;  author: ole;  state: Exp;
+Distutils setup from Prabhu Ramachandran
+=============================================================================
+
+RCS file: /home/cvs/pypar/test_init.py,v
+Working file: test_init.py
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+	release-1-9-2: 1.2
+	release-1-9-1: 1.2
+	release-1-9: 1.2
+	release-1-8-2: 1.2
+	release-1-8-1: 1.2
+	release-1-8: 1.2
+	release-1-7: 1.1
+	release-1-6-5: 1.1
+	release-1-6-4: 1.1
+	release-1-6-3-1: 1.1
+	release-1-6-3: 1.1
+	SG-release-1-1: 1.1
+	SG-release-1-0: 1.1
+	release-1-1: 1.1
+	release-0-1: 1.1
+	release-1-6-2: 1.1
+	release-1-6-1: 1.1
+	release-1-6-0: 1.1
+	release-1-5-4: 1.1
+	release-1-5-3: 1.1
+	release-1-5-2: 1.1
+	release-1-5-1: 1.1
+	release-1-5: 1.1
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.2
+date: 2003-11-11 10:57:37 +0000;  author: ole;  state: Exp;  lines: +2 -1
+Status object optionally returned from receive. Reserved control_tag, trimmed string buffers to actual length. Minor clean up
+----------------------------
+revision 1.1
+date: 2002-04-30 04:57:21 +0000;  author: ole;  state: Exp;
+Doc
+=============================================================================
+
+RCS file: /home/cvs/pypar/testpypar.py,v
+Working file: testpypar.py
+head: 1.21
+branch:
+locks: strict
+access list:
+symbolic names:
+	release-1-9-2: 1.21
+	release-1-9-1: 1.21
+	release-1-9: 1.20
+	release-1-8-2: 1.20
+	release-1-8-1: 1.18
+	release-1-8: 1.17
+	release-1-7: 1.16
+	release-1-6-5: 1.15
+	release-1-6-4: 1.15
+	release-1-6-3-1: 1.14
+	release-1-6-3: 1.14
+	SG-release-1-1: 1.14
+	SG-release-1-0: 1.14
+	release-0-1: 1.14
+	release-1-6-2: 1.14
+	release-1-6-1: 1.14
+	release-1-6-0: 1.14
+	release-1-5-4: 1.14
+	release-1-5-3: 1.14
+	release-1-5-2: 1.14
+	release-1-5-1: 1.14
+	release-1-5: 1.14
+	release-1-4-1: 1.13
+	release-1-4-0: 1.13
+	release-1-4: 1.13
+	release-1-3: 1.11
+	release-1-2-4: 1.6
+	release-1-2-3: 1.6
+	release-1-2-2: 1.6
+	revision-1-2-1: 1.6
+	release-1-2: 1.6
+	release-1-1: 1.4
+	release-1-0-2: 1.2
+	release-1-0-1: 1.2
+	release-1-0: 1.2
+keyword substitution: kv
+total revisions: 21;	selected revisions: 21
+description:
+----------------------------
+revision 1.21
+date: 2004-01-07 11:36:17 +0000;  author: ole;  state: Exp;  lines: +62 -41
+Changed naming conventions to be more consistent
+----------------------------
+revision 1.20
+date: 2003-11-16 10:38:44 +0000;  author: ole;  state: Exp;  lines: +7 -0
+Added test for complex multidim bcast
+----------------------------
+revision 1.19
+date: 2003-11-16 10:04:48 +0000;  author: ole;  state: Exp;  lines: +91 -50
+Fixed up gather, scatter and reduce to automatically calculate buffer size. Also cleaned up control_info. Updated web site and release script
+----------------------------
+revision 1.18
+date: 2003-11-13 11:36:04 +0000;  author: ole;  state: Exp;  lines: +161 -3
+Added support for the complex datatype
+----------------------------
+revision 1.17
+date: 2003-11-11 10:57:37 +0000;  author: ole;  state: Exp;  lines: +246 -4
+Status object optionally returned from receive. Reserved control_tag, trimmed string buffers to actual length. Minor clean up
+----------------------------
+revision 1.16
+date: 2003-11-07 03:29:04 +0000;  author: ole;  state: Exp;  lines: +192 -3
+Added support for arrays of arbitray dimension
+----------------------------
+revision 1.15
+date: 2003-02-04 01:54:18 +0000;  author: ole;  state: Exp;  lines: +4 -0
+Changed argument names in gather, reduce, ... and updated doc
+----------------------------
+revision 1.14
+date: 2002-04-30 03:56:49 +0000;  author: ole;  state: Exp;  lines: +3 -3
+Modified init so that python command line gets passed onto MPI_init.
+This is necessary for MPICH/Linux.
+----------------------------
+revision 1.13
+date: 2002-02-27 03:13:56 +0000;  author: ole;  state: Exp;  lines: +15 -12
+Fixed up test and ran on 32 procs
+----------------------------
+revision 1.12
+date: 2002-02-27 00:57:12 +0000;  author: ole;  state: Exp;  lines: +23 -15
+Fixed test and ran with 22 procs on SUN
+----------------------------
+revision 1.11
+date: 2002-02-21 04:17:33 +0000;  author: ole;  state: Exp;  lines: +2 -1
+x
+----------------------------
+revision 1.10
+date: 2002-02-21 04:15:43 +0000;  author: ole;  state: Exp;  lines: +2 -1
+x
+----------------------------
+revision 1.9
+date: 2002-02-21 04:08:38 +0000;  author: ole;  state: Exp;  lines: +2 -1
+x
+----------------------------
+revision 1.8
+date: 2002-02-21 03:53:09 +0000;  author: ole;  state: Exp;  lines: +1 -1
+Removed REPLACE
+----------------------------
+revision 1.7
+date: 2002-02-21 03:48:22 +0000;  author: ole;  state: Exp;  lines: +152 -1
+added gather and reduce
+----------------------------
+revision 1.6
+date: 2002-02-15 22:46:55 +0000;  author: ole;  state: Exp;  lines: +44 -0
+Scatter
+----------------------------
+revision 1.5
+date: 2002-02-15 04:06:34 +0000;  author: ole;  state: Exp;  lines: +5 -4
+Fixed comparison of numeric arrays
+----------------------------
+revision 1.4
+date: 2002-02-14 07:49:54 +0000;  author: ole;  state: Exp;  lines: +8 -0
+*** empty log message ***
+----------------------------
+revision 1.3
+date: 2002-02-14 07:20:40 +0000;  author: ole;  state: Exp;  lines: +42 -2
+Added bcast - thanks to Gian Paolo Ciceri
+----------------------------
+revision 1.2
+date: 2002-02-06 23:54:20 +0000;  author: ole;  state: Exp;  lines: +2 -0
+x
+----------------------------
+revision 1.1
+date: 2002-02-06 06:52:42 +0000;  author: ole;  state: Exp;
+Test of pypar
+=============================================================================
+
+RCS file: /home/cvs/pypar/documentation/pypar_installation.tex,v
+Working file: documentation/pypar_installation.tex
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	release-1-9-2: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004-02-08 16:58:56 +0000;  author: ole;  state: Exp;
+Added beginnings of documentation
+=============================================================================
+
+RCS file: /home/cvs/pypar/documentation/pypar_tutorial.tex,v
+Working file: documentation/pypar_tutorial.tex
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+	release-1-9-2: 1.1
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2004-02-08 16:58:56 +0000;  author: ole;  state: Exp;
+Added beginnings of documentation
+=============================================================================

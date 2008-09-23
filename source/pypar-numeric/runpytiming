@@ -1,0 +1,20 @@
+#!/bin/csh
+#PBS -wd  
+#PBS -q normal
+#PBS -l ncpus=4
+#PBS -l walltime=00:10:00,vmem=100Mb
+#PBS -l software=python
+
+#########################################################
+#   
+#  Run pytiming in parallel using Batch Queue on Alpha Server
+#   
+#  Author:  Ole Nielsen,  SMS, ANU, Jan. 2002. 
+#
+#  To execute:
+#    qsub runpytiming
+#########################################################
+
+prun pytiming
+
+

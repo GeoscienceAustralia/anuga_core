@@ -1,0 +1,61 @@
+
+Hej Jakob
+
+(I assume you understand  danish)
+
+> I saw your announcement of Pypar on comp.lang.python.announce.  In our
+> programs, we are using Konrad Hinsen's Scientific Python module.  I
+> have a small technical question.  You write that one advantage of your
+> approach is, that one does not need a special version of the Python
+> executable, just the pypar module.  In Scientific Python it is
+> necessary to modify Python because MPI requires that MPI_Init is
+> called before the program looks at its command line arguments, and
+> Python needs to look at its command line arguments to figure out which
+> script to run.  
+
+Jeg har aldrig rigtigt forstaaet hvorfor det skulle vaere noedvendigt.
+Derfor gik jeg igang med at implementere et interface hvor 
+Python oversetteren forbliver uaendret. 
+MPI_init har selvfoelgelig ikke adgang til commandline parametre 
+- saa det er prisen for min tilgang.
+
+> How do you bypass this problem?  I know there are MPI
+> implementations where this is not a problem as MPI only adds extra
+> stuff to the command-line on the non-master nodes, but there are some
+> implementation (MPICH, for example) where the whole command line is
+> replaced with MPI stuff and the command line is only restored when
+> MPI_Init is called.
+
+Det er muligt at pypar vil have problemer med det.
+Jeg har imidlertid testet pypar under LAM/Mpi (linux), 
+Native MPI for DEC Alpha og MPICH for Sun enterprise.
+Jeg kunne ikke umiddelbart faa ideen til at virke under MPICH/Linux - maaske
+pga det problem du beskriver. 
+
+> I am very interested to hear if you have found an elegant way to solve
+> this, 
+
+Jeg har ikke fundet en elegant loesning - maaske snarere en vej udenom:
+Problemet er rent teoretisk for de implementationer jeg bruger 
+og kan ignoreres.
+
+
+> as it is slightly annoying to have to have an extra version of
+> the Python executable.
+
+Ja - det var det jeg taenkte.
+
+Hvis du har lyst kan du hjaelpe med at udvikle pypar ideen ?
+
+Mvh
+Ole
+
+-------------------------------------------------------------------  
+Ole Nielsen                    | Email: Ole.Nielsen@anu.edu.au
+-------------------------------------------------------------------  
+School of Mathematical Sciences| Phone: +61 2 6125 3873 (Direct)
+Australian National University | Fax:   +61 2 6125 5549
+Canberra ACT 0200              | 
+Australia                      | 
+-------------------------------------------------------------------  
+

@@ -1,0 +1,330 @@
+------------------------------------------------
+PyPAR - Parallel Python, no-frills MPI interface
+
+Author:  Ole Nielsen (2001, 2002, 2003)
+Email:   Ole.Nielsen@anu.edu.au
+Version: See pypar.__version__
+Date:    See pypar.__date__
+------------------------------------------------
+
+CONTENTS:
+  TESTING THE INSTALLATION
+  GETTING STARTED  
+  FIRST PARALLEL PROGRAM     
+  PROGRAMMING FOR EFFICIENCY
+  PYPAR REFERENCE
+  DATA TYPES
+  STATUS OBJECT	  
+  EXTENSIONS
+  PROBLEMS
+  REFERENCES
+
+TESTING THE INSTALLATION
+
+  After having installed pypar run
+  
+    mpirun -np 2 testpypar.py
+    
+  to verify that everything works.
+  If it doesn't try to run a C/MPI program 
+  (for example ctiming.c) to see if the problem lies with
+  the local MPI installation or with pypar.
+   
+    
+GETTING STARTED
+  Assuming that the pypar C-extension compiled you should be able to
+  write 
+  >> import pypar
+  from the Python prompt. 
+  (This may not work under MPICH under Sunos - this doesn't matter, 
+  just skip this interactive bit and go to FIRST PARALLEL PROGRAM.)
+  
+  Then you can write
+  >> pypar.size()  
+  to get the number of parallel processors in play.
+  (When using pypar from the command line this number will be 1).
+  
+  Processors are numbered from 0 to pypar.size()-1.
+  Try
+  >> pypar.rank()
+  to get the processor number of the current processor.
+  (When using pypar from the command line this number will be 0).  
+  
+  Finally, try
+  >> pypar.Get_processor_name()
+  to return host name of current node 
+  
+FIRST PARALLEL PROGRAM   
+  Take a look at the file demo.py supplied with this distribution.
+  To execute it in parallel on four processors, say, run
+  
+    mpirun -np 4 demo.py
+    
+  
+  from the UNIX command line.
+  This will start four copies of the program each on its own processor. 
+    
+  The program demo.py makes a message on processor 0 and 
+  sends it around in a ring
+  - each processor adding a bit to it - until it arrives back at 
+  processor 0.
+  
+  All parallel programs must find out what processor they are running on.
+  This is accomplished by the call
+  
+    myid = pypar.rank()
+  
+  The total number of processors is obtained from
+  
+    proc = pypar.size()
+    
+  One can then have different codes for different processors by branching
+  as in
+  
+    if myid == 0
+      ...  
+  
+  To send a general Python structure A to processor p, write
+    pypar.send(A, p)
+  and to receive something from processor q, write
+    X = pypar.receive(q)  
+  
+  This will cater for any (picklable Python structure) and make parallel 
+  programs very simple and readable. While reasonably fast, it does not 
+  achieve the full bandwidth obtainable by MPI.
+
+
+PROGRAMMING FOR EFFICIENCY    
+  Really low latency communication can be achieved by sticking 
+  to Numeric arrays and specifying receive buffers whenever possible.
+
+  To send a Numeric array A to processor p, write
+    pypar.raw_send(A, p, use_buffer=True)
+  and to receive the array from processor q, write
+    X = pypar.receive(q, buffer=X)    
+  Note that X acts as a buffer and must be pre-allocated prior to the 
+  receive statement as in Fortran and C programs using MPI.
+  
+  These forms have superseded the raw forms present in pypar
+  prior to version 1.9. The raw forms have been recast in terms of the 
+  above and have been retained for backwars compatibility.
+  See the script pytiming for an example of communication of Numeric arrays.
+      
+
+MORE PARALLEL PROGRAMMING WITH PYPAR
+
+  When you are ready to move on, have a look at the supplied 
+  demos and the script testpypar.py which all give examples
+  of parallel programming with pypar.
+  You can also look at a standard MPI reference (C or Fortran)
+  to get some ideas. The principles are the same in pypar except
+  that many calls have been simplified.
+  
+
+      
+PYPAR REFERENCE
+  Here is a list of functions provided by pypar:
+  (See section on Data types for explanation of 'vanilla').  
+  
+  Identification:
+  ---------------
+    
+  size() -- Number of processors
+  rank() -- Id of current processor
+  get_processor_name() -- Return host name of current node  
+  
+  Basic send forms:
+  --------------------
+  send(x, destination)
+    Sends data x of any type to destination with default tag. 
+        
+  send(x, destination, tag=t)
+    Sends data x of any type to destination with tag t. 
+    
+  send(x, destination, use_buffer=True)
+    Sends data x of any type to destination 
+    assuming that recipient will specify a suitable buffer.
+    
+  send(x, destination, bypass=True)
+    Send Numeric array of any type to recipient assuming 
+    that a suitable buffer has been specified and that 
+    recipient also specifies bypass=True
+        
+	
+  Basic receive forms:	
+  --------------------
+  y=receive(source)
+    receives data y of any type from source with default tag.
+      
+  y=receive(source, tag=t)
+    receives data y of any type from source with tag t.
+  
+  y,status=receive(source, return_status=True)
+    receives data y and status object from source 
+    
+  y=receive(source, buffer=x)    
+    receives data y from source and puts
+    it in x (which must be of compatible size and type).
+    It also returns a reference to x.
+    (Although it will accept all types this form is thought to be used 
+    mainly for Numeric arrays).    
+
+  Collective Communication:
+  -------------------------  
+    
+  broadcast(x, root):
+    Broadcasts x from root to all other processors.
+    All processors must issue the same bcast.
+
+  gather(x, root):
+     Gather all elements in x to buffer of 
+     size len(x) * numprocs 
+     created by this function.
+     If x is multidimensional buffer will have
+     the size of zero'th dimension multiplied by numprocs.
+     A reference to the created buffer is returned.
+
+  gather(x, root, buffer=y):
+     Gather all elements in x to specified buffer y
+     from source.
+     Buffer must have size len(x) * numprocs and 
+     shape[0] == x.shape[0]*numprocs.
+     A reference to the buffer y is returned.     
+
+  scatter(x, root):
+     Scatter all elements in x from root to all other processors
+     in a buffer created by this function.
+     A reference to the created buffer is returned.
+
+  scatter(x, root, buffer=y):
+     Scatter all elements in x from root to all other processors
+     using specified buffer y.
+     A reference to the buffer y is returned.     
+
+  reduce(x, op, root):
+     Reduce all elements in x at root
+     applying operation op elementwise and return result in 
+     buffer created by this function.  
+     A reference to the created buffer is returned.          
+
+  reduce(x, op, root, buffer=y):
+     Reduce all elements in x to specified buffer y
+     (of the same size as x)
+     at source applying operation op elementwise.
+     A reference to the buffer y is returned.               
+
+     
+  Other functions:
+  ----------------     
+		      		         
+  time() -- MPI wall time
+  barrier() -- Synchronisation point. Makes processors wait until all 
+               processors have reached this point.
+  abort() -- Terminate all processes. 
+  finalize() -- Cleanup MPI. No parallelism can take place after this point. 
+  initialized() -- True if MPI has been initialised
+
+  
+  See pypar.py for doc strings on individual functions.   
+
+
+    
+DATA TYPES
+  Pypar automatically handles different data types differently
+  There are three protocols:
+    'array': Numeric arrays of type Int ('i', 'l'), Float ('f', 'd'),
+             or Complex ('F', 'D') can be communicated
+             with the underlying mpiext.send_array and mpiext.receive_array. 
+	     This is the fastest mode.
+	     Note that even though the underlying C implementation does not
+	     support Complex as a native datatype, pypar handles them 
+	     efficiently and seemlessly by transmitting them as arrays of 
+	     floats of twice the size.  
+    'string': Text strings can be communicated with mpiext.send_string and
+              mpiext.receive_string.
+    'vanilla': All other types can be communicated using the scripts 
+               send_vanilla and receive_vanilla provided that the objects 
+	       can be serialised using
+               pickle (or cPickle). The latter mode is less efficient than the
+               first two but it can handle general structures.
+
+     Rules:
+     If keyword argument vanilla == 1, vanilla is chosen regardless of 
+     x's type.
+     Otherwise if x is a string, the string protocol is chosen
+     If x is an array, the 'array' protocol is chosen provided that x has one
+     of the admissible typecodes.
+     
+  Function that take vanilla as a keyword argument can force vanilla mode
+  on any datatype.     
+  
+STATUS OBJECT
+  A status object can be optionally returned from receive and raw_receive by
+  specifying return_status=True in the call.
+  The status object can subsequently be queried for information about the communication.
+  The fields are:	
+    status.source: The origin of the received message (use e.g. with pypar.any_source)
+    status.tag: The tag of the received message (use e.g. with pypar.any_tag)    
+    status.error: Error code generated by underlying C function
+    status.length: Number of elements received
+    status.size: Size (in bytes) of one element
+    status.bytes(): Number of payload bytes received (excl control info)
+
+  The status object is essential when use together with any_source or any_tag.  	
+  
+
+EXTENSIONS
+  At this stage only a subset of MPI is implemented. However,
+  most real-world MPI programs use only these simple functions.
+  If you find that you need other MPI calls, please feel free to
+  add them to the C-extension. Alternatively, drop me note and I'll
+  use that as an excuse to update pypar.
+  
+  
+PERFORMANCE
+  If you are passing simple Numeric arrays around you can reduce 
+  the communication time by using the 'buffer' keyword arguments 
+  (see REFERENCE above). These version are closer to the underlying MPI 
+  implementation in that one must provide receive buffers of the right size.
+  However, you will find that these version have lower latency and 
+  can be somewhat faster as they bypass 
+  pypar's mechanism for automatically transferring the needed buffer size.
+  Also, using simple numeric arrays will bypass pypar's pickling of general 
+  structures.
+
+  This will mainly be of interest if you are using a 'fine grained' 
+  parallelism, i.e. if you have frequent communications.	
+  
+  Try both versions and see for yourself if there is any noticable difference.
+  
+
+PROBLEMS
+  If you encounter any problems with this package please drop me a line.
+  I cannot guarantee that I can help you, but I will try.
+  
+  Ole Nielsen
+  Australian National University
+  Email: Ole.Nielsen@anu.edu.au
+   
+  
+REFERENCES   
+  To learn more about MPI in general, see WEB sites
+    http://www-unix.mcs.anl.gov/mpi/
+    http://www.redbooks.ibm.com/pubs/pdfs/redbooks/sg245380.pdf
+
+  or books  
+    "Using MPI, 2nd Edition", by Gropp, Lusk, and Skjellum, 
+    "The LAM companion to 'Using MPI...'" by Zdzislaw Meglicki
+    "Parallel Programming With MPI", by Peter S. Pacheco
+    "RS/6000 SP: Practical MPI Programming", by Yukiya Aoyama and Jun Nakano 
+     
+  To learn more about Python, see the WEB site
+    http://www.python.org
+    
+         
+
+
+
+
+
+

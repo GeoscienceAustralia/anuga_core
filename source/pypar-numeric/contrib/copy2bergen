@@ -1,0 +1,13 @@
+#!/usr/bin/env python
+#
+# Copy all files in this dir to bergen
+
+import sys, os
+
+dir = os.getcwd()
+user = os.environ['USERNAME']
+host = 'bergen'
+
+s = 'scp * %s@%s:%s' %(user,host,dir)
+print s
+os.system(s)
