@@ -367,8 +367,10 @@ class Fit(FitInterpolate):
             point_coordinates =  point_coordinates_or_filename
             
         if point_coordinates is None:
-            assert self.AtA <> None
+            print 'Warning: no data points in fit'
+            assert self.AtA <> None, 'no interpolation matrix'
             assert self.Atz <> None
+            
             #FIXME (DSG) - do  a message
         else:
             point_coordinates = ensure_absolute(point_coordinates,
