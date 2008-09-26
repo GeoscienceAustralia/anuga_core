@@ -375,11 +375,14 @@ class Interpolate (FitInterpolate):
         # Convert lists to Numeric arrays if necessary
         point_coordinates = ensure_numeric(point_coordinates, Float)
         f = ensure_numeric(f, Float)        
+
+        import sys
+        if use_cache is True and sys.platform != 'win32':
+            # FIXME (Ole): (Why doesn't this work on windoze?)
             
-        if use_cache is True:
             X = cache(self._build_interpolation_matrix_A,
-                      (point_coordinates),
-                      {'verbose': verbose},                        
+                      args=(point_coordinates,),
+                      kwargs={'verbose': verbose},                        
                       verbose=verbose)        
         else:
             X = self._build_interpolation_matrix_A(point_coordinates,

@@ -1028,7 +1028,7 @@ def DeleteOldFiles(CD,verbose=None):
 
 # -----------------------------------------------------------------------------
 
-def save_args_to_cache(CD,FN,args,kwargs,compression):
+def save_args_to_cache(CD, FN, args, kwargs, compression):
   """Save arguments to cache
 
   USAGE:
@@ -1039,10 +1039,9 @@ def save_args_to_cache(CD,FN,args,kwargs,compression):
 
   (argsfile, compressed) = myopen(CD+FN+'_'+file_types[1], 'wb', compression)
 
-  if not argsfile:
-    if verbose:
-      print 'ERROR (caching): Could not open %s' %argsfile.name
-    raise IOError
+  if argsfile is None:
+    msg = 'ERROR (caching): Could not open argsfile for writing: %s' %FN
+    raise IOError, msg
 
   mysave((args,kwargs),argsfile,compression)  # Save args and kwargs to cache
   argsfile.close()
