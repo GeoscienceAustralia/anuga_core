@@ -112,7 +112,7 @@ if myid == 0:
 
 
 # Turn on the visualisation
-visualise = True
+visualise = False
 if visualise:
     from anuga.visualiser import RealtimeVisualiser
     vis = RealtimeVisualiser(domain)
