@@ -5,7 +5,7 @@ the Message Passing Interface (MPI) standard.
 """
 
 from pypar import *
-from pypar import __version__, __date__, __author__
+from __metadata__ import __version__, __date__, __author__
 
 #Add path of package to PYTHONPATH to allow C-extension to be loaded
 #import sys

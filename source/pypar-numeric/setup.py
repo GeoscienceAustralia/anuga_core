@@ -148,7 +148,7 @@ if __name__ == "__main__":
     
     mpi_flags = get_mpi_flags()
     mpi_flags['inc_dirs'].append(numpy.get_include())
-
+    mpi_flags['libs'].append('g2c')
 
     # setting some extra compile flags for AMD64, utilizing
     # distutils.sysconfig to check which compiler to use
