@@ -46,9 +46,7 @@ See doc strings of individual functions for detailed documentation.
 """
 
 # Meta data
-__version__ = '1.9.3'
-__date__ = '24 April 2007'
-__author__ = 'Ole M. Nielsen'
+from __metadata__ import __version__, __date__, __author__
 
 
 # Constants

@@ -8,25 +8,46 @@
 #
 # Some times you'll have to add a file called pypar.pth
 # containing the word pypar to site-packages
+#
+# See http://docs.python.org/dist/pure-pkg.html for more on distutils
 
-
+# FIXME: Now mpiext.c and pypar.py are assumed to be in this directory.
+# Maybe, we should put them in the default package directory, pypar.
+# The repository structure would then be
+# 
+# pypar
+#     demos
+#     documentation
+#     source
+#          pypar
 
 from distutils.core import setup, Extension
+
+# FIXME (Ole): This works, but I don't know how to use it
+# Generate Python EGG if possible.
+#try:
+#   from setuptools import setup, Extension
+#except ImportError:
+#   pass
+
 import distutils.sysconfig
 import distutils.debug
 import os, sys
 import popen2
 import string
 import tempfile
+import numpy
+from __metadata__ import __version__, __date__, __author__
+
 
 def setup_compiler():
     distutils.sysconfig.get_config_vars()
     config_vars = distutils.sysconfig._config_vars
-
+    
     if sys.platform == 'sunos5':
         config_vars['LDSHARED'] = "gcc -G"
         config_vars['CCSHARED'] = ""
-
+        
 
 def uniq_arr(arr):
     """Remove repeated values from an array and return new array."""
@@ -90,9 +111,7 @@ def get_mpi_flags():
     print output
     if not output:
         if sys.platform=='win32': #From Simon Frost
-            #output = "gcc -L$MPICH_DIR\SDK.gcc\lib -lmpich -I$MPICH_DIR\SDK.gcc\include"
-            output = "gcc -LC:\MPICH2\lib -lmpi -IC:\MPICH2\include"
-
+            output = "gcc -L$MPICH_DIR\SDK.gcc\lib -lmpich -I$MPICH_DIR\SDK.gcc\include"
         else:
             output = "cc -L/usr/opt/mpi -lmpi -lelan"
 
@@ -126,39 +145,43 @@ def get_mpi_flags():
 
 if __name__ == "__main__":
     setup_compiler()
-
+    
     mpi_flags = get_mpi_flags()
+    mpi_flags['inc_dirs'].append(numpy.get_include())
 
 
-    # FIXME: It would be good to set specific compiler flags, e.g.
-    # for our AMD opteron cluster which is using the portland group
-    # compiler pgcc, but I can't get this to work let alone get distutils
-    # to give some diagnostics on what flags it is actually using.
+    # setting some extra compile flags for AMD64, utilizing
+    # distutils.sysconfig to check which compiler to use
     if os.name == 'posix' and os.uname()[4] == 'x86_64':
         #Extra flags for 64 bit architectures
-        #extra_compile_args = ' -fPIC -m64' #Valid for gcc        
-        extra_compile_args = ' -fPIC -tp amd64' #Valid for pgcc
+        if 'pgcc' in distutils.sysconfig.get_config_var('CC'):
+            extra_compile_args = [' -fPIC -tp amd64'] #Valid for pgcc
+        elif 'gcc' in distutils.sysconfig.get_config_var('CC'):
+            extra_compile_args = [' -fPIC -m64'] #Valid for gcc
+        elif 'icc' in distutils.sysconfig.get_config_var('CC'):
+            extra_compile_args = [' -fPIC'] #Valid for icc
+        else:
+            extra_compile_args = None
     else:
         extra_compile_args = None
 
 
-    
 
-    setup(name="Pypar",
-          version="1.9.2",
-          description="Pypar - Parallel Python",
-          long_description="Pypar - Parallel Python, no-frills MPI interface",
-          author="Ole Nielsen",
-          author_email="Ole.Nielsen@anu.edu.au",
-          url="http://datamining.anu.edu.au/pypar",
-          package_dir = {'': 'lib'},
+    setup(name='Pypar',
+          version=__version__,
+          description='Pypar - Parallel Python',
+          long_description='Pypar - Parallel Python, no-frills MPI interface',
+          author=__author__,
+          author_email='ole.moller.nielsen@gmail.com',
+          url='http://sourceforge.net/projects/pypar',
+          package_dir = {'pypar': ''}, # Use files in this dirctory 
           packages  = ['pypar'],
           ext_modules = [Extension('pypar.mpiext',
-                                   ['mpiext.c'],
+                                   ['mpiext.c'], 
                                    include_dirs=mpi_flags['inc_dirs'],
                                    library_dirs=mpi_flags['lib_dirs'],
                                    libraries=mpi_flags['libs'],
                                    define_macros=mpi_flags['def_macros'],
                                    undef_macros=mpi_flags['undef_macros'],
                                    extra_compile_args=extra_compile_args)]
-          )
+         )
