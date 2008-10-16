@@ -137,7 +137,7 @@ class General_mesh:
         assert len(self.nodes.shape) == 2, msg
 
         msg = 'Vertex indices reference non-existing coordinate sets'
-        assert max(max(self.triangles)) <= self.nodes.shape[0], msg
+        assert max(self.triangles.flat) < self.nodes.shape[0], msg
 
 
         # FIXME: Maybe move to statistics?
