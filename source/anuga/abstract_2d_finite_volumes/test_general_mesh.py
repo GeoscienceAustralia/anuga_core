@@ -291,6 +291,43 @@ class Test_General_Mesh(unittest.TestCase):
         self.assertEqual(nodes_absolute[2], node)
         
 
+    def test_assert_index_in_nodes(self):
+        """test_assert_index_in_nodes -
+
+        Test that node indices in triangles are within nodes array.
+
+        """
+        
+        x0 = 314036.58727982
+        y0 = 6224951.2960092
+        geo = Geo_reference(56, x0, y0)
+        
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        nodes = array([a, b, c, d, e, f])
+
+        nodes_absolute = geo.get_absolute(nodes)
+        
+        # max index is 5, use 5, expect success
+        triangles = array([[1,5,2], [1,2,4], [4,2,5], [3,1,4]])
+        General_mesh(nodes, triangles, geo_reference=geo)
+        
+        # max index is 5, use 6, expect assert failure
+        triangles = array([[1,6,2], [1,2,4], [4,2,5], [3,1,4]])
+        self.failUnlessRaises(AssertionError, General_mesh,
+                              nodes, triangles, geo_reference=geo)
+        
+        # max index is 5, use 10, expect assert failure
+        triangles = array([[1,10,2], [1,2,4], [4,2,5], [3,1,4]])
+        self.failUnlessRaises(AssertionError, General_mesh,
+                              nodes, triangles, geo_reference=geo)
+        
+
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
