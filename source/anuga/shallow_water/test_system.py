@@ -149,13 +149,14 @@ class Test_system(unittest.TestCase):
         domain.set_boundary({'exterior': Bf})
         for t in domain.evolve(yieldstep = 5, finaltime = 9.0):
             pass
-            #print domain.write_time()
+            #domain.write_time()
             #print "domain.time", domain.time
 
         # do an assertion on the time of the produced sww file
         fid = NetCDFFile(filename, 'r')    #Open existing file for read
         times = fid.variables['time'][:]
         stage = fid.variables['stage'][:]
+        #print stage
         #print "times", times
         #print "fid.starttime", fid.starttime
         assert allclose(fid.starttime, new_starttime)

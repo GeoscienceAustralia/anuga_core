@@ -148,8 +148,8 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
     s = "%s -c %s -I%s -o %s.o" %(compiler, FN, include, root)
     if os.name == 'posix' and os.uname()[4] == 'x86_64':
       #Extra flags for 64 bit architectures
-      #s += ' -fPIC -m64' #gcc
-      s += ' -fPIC -tp amd64' #pgcc
+      s += ' -fPIC -m64' #gcc
+      #s += ' -fPIC -tp amd64' #pgcc
       
     
     if verbose:

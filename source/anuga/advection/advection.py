@@ -72,8 +72,9 @@ class Domain(Generic_domain):
             self.velocity = Numeric.array(velocity,'d')
 
         #Only first is implemented for advection
-        self.default_order = self.order = 1
-
+        self.set_default_order(1)
+        self.set_beta(1.0)
+        
         self.smooth = True
 
     def check_integrity(self):
@@ -81,6 +82,29 @@ class Domain(Generic_domain):
 
         msg = 'Conserved quantity must be "stage"'
         assert self.conserved_quantities[0] == 'stage', msg
+
+
+    def distribute_to_vertices_and_edges(self):
+        """Extrapolate conserved quantities from centroid to
+        vertices and edge-midpoints for each volume
+
+        Default implementation is straight first order,
+        i.e. constant values throughout each element and
+        no reference to non-conserved quantities.
+        """
+
+        for name in self.conserved_quantities:
+            Q = self.quantities[name]
+            if self._order_ == 1:
+                Q.extrapolate_first_order()
+            elif self._order_ == 2:
+                Q.extrapolate_second_order_and_limit_by_edge()
+                #Q.limit()
+            else:
+                raise 'Unknown order'
+            #Q.interpolate_from_vertices_to_edges()
+
+
 
 
     def flux_function(self, normal, ql, qr, zl=None, zr=None):
@@ -160,24 +184,24 @@ class Domain(Generic_domain):
 
 
 
-    def evolve(self,
-               yieldstep = None,
-               finaltime = None,
-               duration = None,
-               skip_initial_step = False):
+##     def evolve(self,
+##                yieldstep = None,
+##                finaltime = None,
+##                duration = None,
+##                skip_initial_step = False):
 
-        """Specialisation of basic evolve method from parent class
-        """
+##         """Specialisation of basic evolve method from parent class
+##         """
 
-        #Call basic machinery from parent class
-        for t in Generic_domain.evolve(self,
-                                       yieldstep=yieldstep,
-                                       finaltime=finaltime,
-                                       duration=duration,
-                                       skip_initial_step=skip_initial_step):
+##         #Call basic machinery from parent class
+##         for t in Generic_domain.evolve(self,
+##                                        yieldstep=yieldstep,
+##                                        finaltime=finaltime,
+##                                        duration=duration,
+##                                        skip_initial_step=skip_initial_step):
 
-            #Pass control on to outer loop for more specific actions
-            yield(t)
+##             #Pass control on to outer loop for more specific actions
+##             yield(t)
 
 
 

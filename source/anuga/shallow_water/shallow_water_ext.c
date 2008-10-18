@@ -1876,7 +1876,7 @@ PyObject *compute_fluxes_ext_central_new(PyObject *self, PyObject *args) {
     edgelengths       = get_consecutive_array(domain, "edge_lengths");    
     radii             = get_consecutive_array(domain, "radii");    
     areas             = get_consecutive_array(domain, "areas");    
-    tri_full_flag     = get_consecutive_array(domain, "normals");
+    tri_full_flag     = get_consecutive_array(domain, "tri_full_flag");
     already_computed_flux  = get_consecutive_array(domain, "already_computed_flux");
     max_speed_array   = get_consecutive_array(domain, "max_speed");
     

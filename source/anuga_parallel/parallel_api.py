@@ -42,12 +42,13 @@ def distribute(domain, verbose=False):
 
     # FIXME: Dummy assignment (until boundaries are refactored to
     # be independent of domains until they are applied)
-    bdmap = {}
-    for tag in domain.get_boundary_tags():
-        bdmap[tag] = None
+    if myid == 0:
+        bdmap = {}
+        for tag in domain.get_boundary_tags():
+            bdmap[tag] = None
     
     
-    domain.set_boundary(bdmap)
+        domain.set_boundary(bdmap)
 
 
 

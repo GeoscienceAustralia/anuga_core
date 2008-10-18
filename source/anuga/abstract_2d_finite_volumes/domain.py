@@ -198,7 +198,7 @@ class Domain(Mesh):
         self.number_of_first_order_steps = 0
         self.CFL = CFL
         self.set_timestepping_method(timestepping_method)
-        
+        self.set_beta(beta_w)
         self.boundary_map = None  # Will be populated by set_boundary        
         
 
@@ -296,6 +296,22 @@ class Domain(Mesh):
         """Get the absolute model time (seconds)"""
 
         return self.time + self.starttime
+
+    def set_beta(self,beta):
+        """Set default beta for limiting
+        """
+
+        self.beta = beta
+        for name in self.quantities:
+            #print 'setting beta for quantity ',name
+            Q = self.quantities[name]
+            Q.set_beta(beta)
+
+    def get_beta(self):
+        """Get default beta for limiting
+        """
+
+        return self.beta
 
     def set_default_order(self, n):
         """Set default (spatial) order to either 1 or 2
@@ -1205,14 +1221,16 @@ class Domain(Mesh):
         # Update ghosts
         self.update_ghosts()
 
+
+        # Update time
+        self.time += self.timestep
+
         # Update vertex and edge values
         self.distribute_to_vertices_and_edges()
 
         # Update boundary values
         self.update_boundary()
 
-        # Update time
-        self.time += self.timestep
 
         
 
@@ -1242,14 +1260,14 @@ class Domain(Mesh):
         # Update ghosts
         self.update_ghosts()
 
+        # Update time
+        self.time += self.timestep
+
         # Update vertex and edge values
         self.distribute_to_vertices_and_edges()
 
         # Update boundary values
         self.update_boundary()
-
-        # Update time
-        self.time += self.timestep
 
         #------------------------------------
         # Second Euler step
@@ -1308,14 +1326,15 @@ class Domain(Mesh):
         # Update ghosts
         self.update_ghosts()
 
+        # Update time
+        self.time += self.timestep
+
         # Update vertex and edge values
         self.distribute_to_vertices_and_edges()
 
         # Update boundary values
         self.update_boundary()
 
-        # Update time
-        self.time += self.timestep
 
         #------------------------------------
         # Second Euler step
@@ -1338,14 +1357,16 @@ class Domain(Mesh):
         # Update ghosts
         self.update_ghosts()
 
+
+        # Set substep time
+        self.time = initial_time + self.timestep*0.5
+
         # Update vertex and edge values
         self.distribute_to_vertices_and_edges()
 
         # Update boundary values
         self.update_boundary()
 
-        # Set substep time
-        self.time = initial_time + self.timestep*0.5
 
         #------------------------------------
         # Third Euler step
@@ -1368,19 +1389,18 @@ class Domain(Mesh):
         # Update ghosts
         self.update_ghosts()
 
+        # Set new time
+        self.time = initial_time + self.timestep       
+
         # Update vertex and edge values
         self.distribute_to_vertices_and_edges()
 
         # Update boundary values
         self.update_boundary()
 
-        # Set new time
-        self.time = initial_time + self.timestep       
         
-
     def evolve_to_end(self, finaltime = 1.0):
-        """Iterate evolve all the way to the end
-        """
+        """Iterate evolve all the way to the end      """
 
         for _ in self.evolve(yieldstep=None, finaltime=finaltime):
             pass

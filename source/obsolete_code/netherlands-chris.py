@@ -96,7 +96,7 @@ N = 20
 N = 110
 N = 60
 
-N = 4
+N = 40
 #N = 140
 #N = 15
 
@@ -164,6 +164,20 @@ domain.set_boundary({'left': Bd, 'right': Br, 'bottom': Br, 'top': Br})
 print 'Initial condition'
 domain.set_quantity('stage', Constant_height(Z, 0.))
 
+
+visualize = True
+if visualize:
+    from anuga.visualiser import RealtimeVisualiser
+    vis = RealtimeVisualiser(domain)
+    vis.render_quantity_height("elevation", zScale=100, offset = 5.0, dynamic=False)
+    vis.render_quantity_height("stage", zScale =100, dynamic=True, opacity = 0.3)
+    vis.colour_height_quantity('stage', (lambda q:q['stage'], -0.5, 0.5))
+    vis.start()
+
+time.sleep(2.0)
+
+
+
 #Evolve
 import time
 t0 = time.time()
@@ -171,7 +185,9 @@ t0 = time.time()
 for t in domain.evolve(yieldstep = 0.5, finaltime = 1.0):
     domain.write_time()
 
-
+    if visualize: vis.update()
+    
+if visualize: vis.evolveFinished()
 
     
 print 'That took %.2f seconds' %(time.time()-t0)

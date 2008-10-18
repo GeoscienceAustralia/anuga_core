@@ -17,17 +17,18 @@ def plot(A, kmax = None):
        Ole Nielsen, SUT 2003
     """
     
-    from Tkinter import Frame, Canvas, TOP, NW, PhotoImage
+    #from Tkinter import Frame, Canvas, TOP, NW, PhotoImage
+    from pylab import imshow, show
     from Numeric import transpose, Float
-    from Image import new             # PIL    
+    #from Image import new             # PIL    
     import time
 
     t0 = time.time()
 
     # User definable parameters
 
-    imtype = 'ppm'      # Image format (e.g 'ppm', 'bmp', 'tiff')
-    filename ='mandel'  # Base filename
+    #imtype = 'ppm'      # Image format (e.g 'ppm', 'bmp', 'tiff')
+    #filename ='mandel'  # Base filename
     
     exponent = 0.998    # Exponent for morphing colors, good with kmax = 2**15
     rgbmax = 2**24      # Normalisation constant for RGB
@@ -46,7 +47,7 @@ def plot(A, kmax = None):
     N = A.shape[0]
     A = transpose(A).astype(Float)          
 
-    im = new("RGB", A.shape)
+    #im = new("RGB", A.shape)
 
     
     L = []        
@@ -77,8 +78,10 @@ def plot(A, kmax = None):
             
     
     # Save image to file        
-    im.putdata(L)
-    im.save(filename + '.' + imtype, imtype)
+    imshow(A)
+    show()
+    
+    #im.save(filename + '.' + imtype, imtype)
     print 'Computed plot in %.2f seconds: ' %(time.time()-t0)
 
     # Display image on screen
@@ -87,7 +90,7 @@ def plot(A, kmax = None):
     #	import sys
     #	sys.exit()
 	
-    import os
-    os.system('xv %s' %(filename + '.' + imtype))
+    #import os
+    #os.system('xv %s' %(filename + '.' + imtype))
 
 

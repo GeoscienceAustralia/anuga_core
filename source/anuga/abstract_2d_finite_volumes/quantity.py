@@ -81,7 +81,7 @@ class Quantity:
         self.semi_implicit_update = zeros(N, Float )
         self.centroid_backup_values = zeros(N, Float)
 
-        self.beta = 1.0
+        self.set_beta(1.0)
 
 
 
@@ -222,7 +222,23 @@ class Quantity:
     #    """Define in terms of x**0.5
     #    """
     #    pass
-        
+
+    def set_beta(self,beta):
+        """Set default beta value for limiting
+        """
+
+        if beta < 0.0:
+            print 'WARNING: setting beta < 0.0'
+        if beta > 2.0:
+            print 'WARNING: setting beta > 2.0'
+            
+        self.beta = beta
+
+    def get_beta(self):
+        """Get default beta value for limiting
+        """
+
+        return self.beta
 
     def interpolate(self):
         """Compute interpolated values at edges and centroid

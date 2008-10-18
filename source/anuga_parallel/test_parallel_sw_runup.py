@@ -31,15 +31,17 @@ from parallel_api import distribute, myid, numprocs
 
 
 #--------------------------------------------------------------------------
-# Setup computational domain
+# Setup computational domain on processor 0
 #--------------------------------------------------------------------------
-points, vertices, boundary = rectangular_cross(10, 10) # Basic mesh
+if myid == 0 :
+    points, vertices, boundary = rectangular_cross(10, 10) # Basic mesh
 
-#if myid == 0:
-#    print 'points', points
-#    print 'vertices', vertices
+    #print 'points', points
+    #print 'vertices', vertices
     
-domain = Domain(points, vertices, boundary) # Create domain
+    domain = Domain(points, vertices, boundary) # Create domain
+else:
+    domain = None
 
 #--------------------------------------------------------------------------
 # Setup initial conditions
@@ -48,9 +50,11 @@ domain = Domain(points, vertices, boundary) # Create domain
 def topography(x,y): 
     return -x/2                              # linear bed slope
 
-domain.set_quantity('elevation', topography) # Use function for elevation
-domain.set_quantity('friction', 0.0)         # Constant friction 
-domain.set_quantity('stage', expression='elevation') # Dry initial stage
+
+if myid == 0:
+    domain.set_quantity('elevation', topography) # Use function for elevation
+    domain.set_quantity('friction', 0.0)         # Constant friction 
+    domain.set_quantity('stage', expression='elevation') # Dry initial stage
 
 
 #--------------------------------------------------------------------------
@@ -128,30 +132,32 @@ for t in domain.evolve(yieldstep = 0.1, finaltime = 5.0):
     
     stage = domain.get_quantity('stage')
     w = stage.get_values(interpolation_points=interpolation_points)
+
+    print 'P%d:w(%f) = '%(myid,domain.get_time()),w
     
     for i, _ in enumerate(interpolation_points):
         gauge_values[i].append(w[i])
 
-if myid == 0:
-    for i, (x,y) in enumerate(interpolation_points):
+## if myid == 0:
+##     for i, (x,y) in enumerate(interpolation_points):
 
-        try:
-            from pylab import *
-        except:
-            pass
-        else:
-            ion()
-            hold(False)
-            plot(time, gauge_values[i], 'r.-')
-            #time, predicted_gauge_values[i], 'k-')
+##         try:
+##             from pylab import *
+##         except:
+##             pass
+##         else:
+##             ion()
+##             hold(False)
+##             plot(time, gauge_values[i], 'r.-')
+##             #time, predicted_gauge_values[i], 'k-')
 
-            title('Gauge %d (%f,%f)' %(i,x,y))
-            xlabel('time(s)')
-            ylabel('stage (m)')    
-            #legend(('Observed', 'Modelled'), shadow=True, loc='upper left')
-            #savefig('Gauge_%d.png' %i, dpi = 300)
+##             title('Gauge %d (%f,%f)' %(i,x,y))
+##             xlabel('time(s)')
+##             ylabel('stage (m)')    
+##             #legend(('Observed', 'Modelled'), shadow=True, loc='upper left')
+##             #savefig('Gauge_%d.png' %i, dpi = 300)
 
-        raw_input('Next')
+##         raw_input('Next')
         
 
 
