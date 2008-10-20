@@ -1,6 +1,8 @@
 
 import unittest
-from caching import *
+from Numeric import arange, array
+
+from anuga.caching import *
 
 
 
@@ -18,16 +20,30 @@ def f(a,b,c,N,x=0,y='abcdefg'):
     s = str(n+2.0/(n + 4.0))+'.a'*10
     B.append((a,b,c,s,n,x,y))
   return(B)
-
+  
+def f_numeric(A, B):
+  """Operation on Numeric arrays
+  """
+  
+  return 3.1*A + B + 1
+  
+  
+def f_object(A, B):
+  """Operation of objecs of class Dummy
+  """
+  
+  return A.value+B.value, A.another+B.another 
+  
+  
+  
 class Dummy:
   def __init__(self, value, another):
     self.value = value
-
-
-#class Dummy_memorytest:
-#  def __init__(self, value, another):
-#    self.value = value
-
+    self.another = another
+    
+  def copy(self):
+    return Dummy(self.value, self.another)
+    
 
 def clear_and_create_cache(Dummy, verbose=False):
   a = cache(Dummy, 'clear', verbose=verbose)
@@ -101,6 +117,100 @@ class Test_Caching(unittest.TestCase):
             assert T2 == T3, 'Cached result does not match computed result'
             
 
+    def test_caching_of_numeric_arrays(self):
+        """test_caching_of_numeric_arrays
+        
+        Test that Numeric arrays can be recognised by caching even if their id's are different
+        """
+        
+        verbose = False
+        
+        # Make some test input arguments
+        A0 = arange(5)
+        B0 = array([1.1, 2.2, 0.0, -5, -5])
+        
+        A1 = A0.copy()
+        B1 = B0.copy()
+        
+        # Check that their ids are different
+        assert id(A0) != id(A1)
+        assert id(B0) != id(B1)        
+        
+        
+        # Test caching
+        comprange = 2
+        for comp in range(comprange):
+  
+            # Evaluate and store
+            T1 = cache(f_numeric, (A0, B0), evaluate=1,
+                       compression=comp, verbose=verbose)
+
+            # Retrieve
+            T2 = cache(f_numeric, (A1, B1), 
+                       compression=comp, test=1, verbose=verbose) 
+                       
+            # Check for presence of cached result 
+            msg = 'Different array objects with same contents were not recognised'            
+            assert T2 is not None, msg
+
+            # Reference result
+            T3 = f_numeric(A0, B0) # Compute without caching
+
+
+            assert T1 == T2, 'Cached result does not match computed result'
+            assert T2 == T3, 'Cached result does not match computed result'
+            
+
+
+    def test_caching_of_objects(self):
+        """test_caching_of_objects
+        
+        Test that Objecs can be recognised as input variabelse 
+        by caching even if their id's are different
+        """
+    
+
+        verbose = False
+        
+        # Make some test input arguments
+        A0 = Dummy(5, 7)
+        B0 = Dummy(2.2, -5)
+        
+        A1 = A0.copy()
+        B1 = B0.copy()
+        
+        # Check that their ids are different
+        assert id(A0) != id(A1)
+        assert id(B0) != id(B1)        
+        
+        
+        # Test caching
+        comprange = 2
+        for comp in range(comprange):
+  
+            # Evaluate and store
+            T1 = cache(f_object, (A0, B0), evaluate=1,
+                       compression=comp, verbose=verbose)
+
+            # Retrieve
+            T2 = cache(f_object, (A1, B1), 
+                       compression=comp, test=1, verbose=verbose) 
+                       
+            # Check for presence of cached result 
+            msg = 'Different objects with same attributes were not recognised'
+            assert T2 is not None, msg
+
+            # Reference result
+            T3 = f_object(A0, B0) # Compute without caching
+
+
+            assert T1 == T2, 'Cached result does not match computed result'
+            assert T2 == T3, 'Cached result does not match computed result'
+            
+
+                        
+            
+            
     def test_cachefiles(self):
         """Test existence of cachefiles
         """        
@@ -342,9 +452,12 @@ class Test_Caching(unittest.TestCase):
         assert hash_value == myhash(a)
 
 
-    # This test works in the caching dir and in anuga_core, but no in the
+    # This test works in the caching dir and in anuga_core, but not in the
     # anuga_core/source/anuga dir
-    def no_test_objects_are_created(self):
+    # This has to do with pickle (see e.g. http://telin.ugent.be/~slippens/drupal/pickleproblem)
+    # The error message is 
+    # PicklingError: Can't pickle test_caching.Dummy: it's not the same object as test_caching.Dummy
+    def Xtest_objects_are_created(self):
       """
       This test shows how instances can be created from cache
       as long as input arguments are unchanged.
@@ -376,19 +489,18 @@ class Test_Caching(unittest.TestCase):
 
 
 
-# NOTE (Ole): This test has been commented out because, although the test will pass
-#             inside the caching dir and also at the anuga_core level,
-#             it won't pass at the anuga_core/source/anuga level.
-
-    def no_test_objects_are_created_memory(self):
+    # NOTE (Ole): This test has been commented out because, although the test will pass
+    #             inside the caching dir and also at the anuga_core level,
+    #             it won't pass at the anuga_core/source/anuga level.
+    # See  message above.
+    def Xtest_objects_are_created_memory(self):
       """
       
       This test shows how instances can be created from cache
       as long as input arguments are unchanged - even if the class
       lives in different memory locations.
 
-      This is using cache created in the main program
-
+      This is using cache created in the main program below
       """
 
       verbose = False
@@ -414,7 +526,6 @@ class Test_Caching(unittest.TestCase):
 # Define class Dummy_memorytest before any tests are run
 # to make sure it has a different memory address
 # to the one defined in test 'test_objects_are_created_memory'
-
 #class Dummy_memorytest:
 #  def __init__(self, value, another):
 #    self.value = value      
