@@ -9,6 +9,9 @@ class Dummy:
     
     def copy(self):
         return Dummy(self.value, self.another)
+        
+    def __repr__(self):
+        return str(self.value) + ', ' + str(self.another)
     
 
 # Define class Dummy_memorytest before any tests are run

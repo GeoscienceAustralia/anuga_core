@@ -42,6 +42,7 @@ See doc strings of individual functions for detailed documentation.
 # Determine platform
 #
 from os import getenv
+import types
 
 import os
 if os.name in ['nt', 'dos', 'win32', 'what else?']:
@@ -257,54 +258,44 @@ def cache(func, args=(), kwargs = {}, dependencies=None , cachedir=None,
     compression = options['compression']
 
   # Create cache directory if needed
-  #
   CD = checkdir(cachedir,verbose)
 
   # Handle the case cache('clear')
-  #
   if type(func) == types.StringType:
     if string.lower(func) == 'clear':
       clear_cache(CD,verbose=verbose)
       return
 
   # Handle the case cache(func, 'clear')
-  #
   if type(args) == types.StringType:
     if string.lower(args) == 'clear':
       clear_cache(CD,func,verbose=verbose)
       return
 
   # Force singleton arg into a tuple
-  #
   if type(args) != types.TupleType:
     args = tuple([args])
   
   # Check that kwargs is a dictionary
-  #
   if type(kwargs) != types.DictType:
     raise TypeError    
     
   #print 'hashing' #FIXME: make faster hashing function
    
   # Hash arguments (and keyword args) to integer
-  #
   arghash = myhash((args,kwargs))
-
+  
   # Get sizes and timestamps for files listed in dependencies.
   # Force singletons into a tuple.
-  #
-
   if dependencies and type(dependencies) != types.TupleType \
                   and type(dependencies) != types.ListType:
     dependencies = tuple([dependencies])
   deps = get_depstats(dependencies)
 
   # Extract function name from func object
-  #
   funcname = get_funcname(func)
 
   # Create cache filename
-  #
   FN = funcname+'['+`arghash`+']'  # The symbol '(' does not work under unix
 
   if return_filename:
@@ -330,10 +321,9 @@ def cache(func, args=(), kwargs = {}, dependencies=None , cachedir=None,
   #-------------------------------------------------------------------        
   
   # Check if previous computation has been cached
-  #
   if evaluate:
     Retrieved = None  # Force evaluation of func regardless of caching status.
-    reason = 4
+    reason = 5
   else:
     (T, FN, Retrieved, reason, comptime, loadtime, compressed) = \
       CacheLookup(CD, FN, func, args, kwargs, deps, verbose, compression, \
@@ -348,17 +338,14 @@ def cache(func, args=(), kwargs = {}, dependencies=None , cachedir=None,
         msg1(funcname, args, kwargs,reason)
 
       # Remove expired files automatically
-      #
       if options['expire']:
         DeleteOldFiles(CD,verbose)
         
       # Save args before function is evaluated in case
       # they are modified by function
-      #
       save_args_to_cache(CD,FN,args,kwargs,compression)
 
       # Execute and time function with supplied arguments
-      #
       t0 = time.time()
       T = apply(func,args,kwargs)
       #comptime = round(time.time()-t0)
@@ -368,7 +355,6 @@ def cache(func, args=(), kwargs = {}, dependencies=None , cachedir=None,
         msg2(funcname,args,kwargs,comptime,reason)
 
       # Save results and estimated loading time to cache
-      #
       loadtime = save_results_to_cache(T, CD, FN, func, deps, comptime, \
                                        funcname, dependencies, compression)
       if verbose:
@@ -769,7 +755,8 @@ file_types = ['Result',     # File name extension for cached function results.
 Reason_msg = ['OK',         # Verbose reasons for recomputation
               'No cached result', 
               'Dependencies have changed', 
-              'Byte code or arguments have changed',
+              'Arguments have changed',
+              'Bytecode has changed',
               'Recomputation was requested by caller',
 	      'Cached file was unreadable']              
               
@@ -802,8 +789,10 @@ def CacheLookup(CD, FN, func, args, kwargs, deps, verbose, compression,
     reason --        0: OK (if Retrieved), 
                      1: No cached result, 
                      2: Dependencies have changed, 
-                     3: Arguments or Bytecode have changed
-                     4: Recomputation was forced
+                     3: Arguments have changed
+                     4: Bytecode has changed
+                     5: Recomputation was forced
+                     6: Unreadable file
     comptime --      Number of seconds it took to computed cachged result
     loadtime --      Number of seconds it took to load cached result
     compressed --    Flag (0,1) if cached results were compressed or not 
@@ -888,16 +877,13 @@ def CacheLookup(CD, FN, func, args, kwargs, deps, verbose, compression,
   #print compare(bytecode,coderef)
 
   # Check if arguments or bytecode have changed
-  #
   if compare(argsref,args) and compare(kwargsref,kwargs) and \
      (not options['bytecode'] or compare(bytecode,coderef)):
 
     # Arguments and dependencies match. Get cached results
-    #
     T, loadtime, compressed, reason = load_from_cache(CD,FN,compressed)
-    ###if T == None and reason > 0:  #This doesn't work if T is a numeric array
     if reason > 0:
-      return(None,FN,None,reason,None,None,None) #Recompute using same FN 
+      return(None,FN,None,reason,None,None,None) # Recompute using same FN 
 
     Retrieved = 1
     reason = 0
@@ -924,9 +910,15 @@ def CacheLookup(CD, FN, func, args, kwargs, deps, verbose, compression,
     #   print 'Arguments did not match'
     # else:
     #   print 'Match found !'
+    
+    # The real reason is that args or bytecodes have changed.
+    # Not that the recursive seach has found an unused filename
     if not Retrieved:
-      reason = 3     #The real reason is that args or bytecodes have changed.
-                     #Not that the recursive seach has found an unused filename
+      if not compare(bytecode,coderef):
+        reason = 4 # Bytecode has changed
+      else:   
+        reason = 3 # Arguments have changed 
+        
     
   return((T, FN, Retrieved, reason, comptime, loadtime, compressed))
 
@@ -1124,7 +1116,7 @@ def load_from_cache(CD,FN,compression):
   (datafile, compressed) = myopen(CD+FN+'_'+file_types[0],"rb",compression)
   t0 = time.time()
   T, reason = myload(datafile,compressed)
-  #loadtime = round(time.time()-t0,2)
+
   loadtime = time.time()-t0
   datafile.close() 
 
@@ -1227,7 +1219,7 @@ def myload(file, compressed):
         #  zlib.error: Error -5 while decompressing data
         #print 'ERROR (caching): Could not decompress ', file.name
         #raise Exception
-        reason = 5  #(Unreadable file)
+        reason = 6  # Unreadable file
 	return None, reason  
       
       
@@ -1239,7 +1231,7 @@ def myload(file, compressed):
       #except EOFError, e:
       except:
         #Catch e.g., file with 0 length or corrupted
-        reason = 5  #(Unreadable file)
+        reason = 6  # Unreadable file
 	return None, reason
       
   except MemoryError:
@@ -1284,11 +1276,11 @@ def mysave(T,file,compression):
       msg += ' Try using compression = False'
       raise MemoryError, msg
     else:  
-      #Compressed pickling      
+      # Compressed pickling      
       TsC = zlib.compress(Ts, comp_level)
       file.write(TsC)
   else:
-      #Uncompressed pickling
+      # Uncompressed pickling
       pickler.dump(T, file, bin)
 
       # FIXME: This may not work on Windoze network drives.
@@ -1327,102 +1319,154 @@ def mysave(T,file,compression):
 
 # -----------------------------------------------------------------------------
 
-def myhash(T):
-  """Compute hashed integer from hashable values of tuple T
+def myhash(T, ids=None):
+  """Compute hashed integer from a range of inputs.
+  If T is not hashable being e.g. a tuple T, myhash will recursively 
+  hash the values individually
 
   USAGE:
     myhash(T)
 
   ARGUMENTS:
-    T -- Tuple
+    T -- Anything
   """
 
-  import types
+  from types import TupleType, ListType, DictType, InstanceType  
+  from Numeric import ArrayType
+  
+  if type(T) in [TupleType, ListType, DictType, InstanceType]:  
+  
+      # Keep track of unique id's to protect against infinite recursion
+      if ids is None: ids = []
 
+      # Check if T has already been encountered
+      i = id(T) 
+  
+      if i in ids:
+          # FIXME (Ole): It seems that different objects get the same id
+          # T has been hashed already
+        
+          #print 'T has already been hashed:', T, id(T)
+          return 0
+      else:
+          #print 'Appending', T, id(T)
+          ids.append(i)
+    
+
+  # Start hashing  
+  
+  
   # On some architectures None, False and True gets different hash values
   if T is None:
-    return(-1)
+      return(-1)
   if T is False:
-    return(0)
+      return(0)
   if T is True:
-    return(1)
+      return(1)
 
-  # Get hash vals for hashable entries
-  #
-  if type(T) == types.TupleType or type(T) == types.ListType:
-    hvals = []
-    for k in range(len(T)):
-      h = myhash(T[k])
-      hvals.append(h)
-    val = hash(tuple(hvals))
-  elif type(T) == types.DictType:
-    val = dicthash(T)
+  # Get hash values for hashable entries
+  if type(T) in [TupleType, ListType]:
+      hvals = []
+      for t in T:
+          h = myhash(t, ids)
+          hvals.append(h)
+      val = hash(tuple(hvals))
+  elif type(T) == DictType:
+      val = myhash(T.items(), ids)
+  elif type(T) == ArrayType:
+      val = myhash(tuple(T), ids)
+  elif type(T) == InstanceType:
+      val = myhash(T.__dict__, ids)
   else:
-    try:
-      val = hash(T)
-    except:
-      val = 1
       try:
-        import Numeric
-        if type(T) == Numeric.ArrayType:
-          hvals = []        
-          for e in T:
-            h = myhash(e)
-            hvals.append(h)          
-          val = hash(tuple(hvals))
-        else:
-          val = 1  #Could implement other Numeric types here 
-      except:    
-        pass
+          val = hash(T)
+      except:
+          val = 1
 
   return(val)
 
 # -----------------------------------------------------------------------------
 
-def dicthash(D):
-  """Compute hashed integer from hashable values of dictionary D
+def compare(A, B, ids=None):
+    """Safe comparison of general objects
 
-  USAGE:
-    dicthash(D)
-  """
+    USAGE:
+      compare(A,B)
 
-  keys = D.keys()
+    DESCRIPTION:
+      Return 1 if A and B they are identical, 0 otherwise
+    """
 
-  # Get hash values for hashable entries
-  #
-  hvals = []
-  for k in range(len(keys)):
-    try:
-      h = myhash(D[keys[k]])
-      hvals.append(h)
-    except:
-      pass
+    from types import TupleType, ListType, DictType, InstanceType
+    
+    
+    # Keep track of unique id's to protect against infinite recursion
+    if ids is None: ids = {}
 
-  # Hash obtained values into one value
-  #
-  return(hash(tuple(hvals)))
 
-# -----------------------------------------------------------------------------
+    # Check if T has already been encountered
+    iA = id(A) 
+    iB = id(B)     
+    
+    if ids.has_key((iA, iB)):
+        # A and B have been compared already
+        #print 'Found', (iA, iB), A, B
+        return ids[(iA, iB)]
+    else:
+        ids[(iA, iB)] = True
+    
+    
+    #print 'Comparing', A, B, (iA, iB)
+    #print ids
+    #raw_input()
+    
+    if type(A) in [TupleType, ListType] and type(B) in [TupleType, ListType]:
+        N = len(A)
+        if len(B) != N: 
+            identical = False
+        else:
+            identical = True
+            for i in range(N):
+                if not compare(A[i], B[i], ids): 
+                    identical = False; break
+                
+    elif type(A) == DictType and type(B) == DictType:
+        if len(A) != len(B):
+            identical = False
+        else:    
+            identical = True
+            for key in A.keys():
+                if not B.has_key(key):
+                    identical = False; break
+          
+                if not compare(A[key], B[key], ids): 
+                    identical = False; break      
+    
+    elif type(A) == type(B) == types.InstanceType:    
+        # Take care of special case where elements are instances            
+        # Base comparison on attributes 
+                
+        a = A.__dict__                 
+        b = B.__dict__                             
+                
+        identical = compare(a, b, ids)                
 
-def compare(A,B):
-  """Safe comparison of general objects
+    
+        
+    else:       
+        # Fall back to general code
+        try:
+            identical = (A == B)
+        except:
+            try:
+                identical = (pickler.dumps(A) == pickler.dumps(B))
+            except:
+                identical = 0
 
-  USAGE:
-    compare(A,B)
-
-  DESCRIPTION:
-    Return 1 if A and B they are identical, 0 otherwise
-  """
-
-  try:
-    identical = (A == B)
-  except:
-    try:
-      identical = (pickler.dumps(A) == pickler.dumps(B))
-    except:
-      identical = 0
-
-  return(identical)
+    # Record result of comparison and return            
+    ids[(iA, iB)] = identical
+    
+    return(identical)
 
 # -----------------------------------------------------------------------------
 
@@ -2338,7 +2382,7 @@ def mkargstr(args, textwidth, argstr = ''):
     if type(args) == types.StringType:
       argstr = argstr + "'"+str(args)+"'"
     else:
-      #Truncate large Numeric arrays before using str()
+      # Truncate large Numeric arrays before using str()
       import Numeric
       if type(args) == Numeric.ArrayType:
 #        if len(args.flat) > textwidth:  

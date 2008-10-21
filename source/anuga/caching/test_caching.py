@@ -34,7 +34,9 @@ def f_object(A, B):
   
   return A.value+B.value, A.another+B.another 
   
-  
+
+def f_generic(A):
+  return A 
   
 def clear_and_create_cache(Dummy, verbose=False):
 
@@ -113,6 +115,7 @@ class Test_Caching(unittest.TestCase):
             assert T2 == T3, 'Cached result does not match computed result'
             
 
+            
     def test_caching_of_numeric_arrays(self):
         """test_caching_of_numeric_arrays
         
@@ -189,6 +192,10 @@ class Test_Caching(unittest.TestCase):
                        compression=comp, verbose=verbose)
 
             # Retrieve
+            #T2 = cache(f_object, (A1, B1), 
+            #           compression=comp, verbose=verbose)                        
+                       
+            # Retrieve
             T2 = cache(f_object, (A1, B1), 
                        compression=comp, test=1, verbose=verbose) 
                        
@@ -204,7 +211,98 @@ class Test_Caching(unittest.TestCase):
             assert T2 == T3, 'Cached result does not match computed result'
             
 
-                        
+    def test_caching_of_circular_structures(self):
+        """test_caching_of_circular_structures
+        
+        Test that Caching doesn't recurse infinitely in case of
+        circular or self-referencing structures
+        """
+        
+        verbose = False
+        
+        # Create input argument
+        A = Dummy(5, 7)
+        B = {'x': 10, 'A': A}
+        C = [B, 15]
+        A.value = C # Make it circular
+        
+
+        # Test caching
+        comprange = 2
+        for comp in range(comprange):
+  
+            # Evaluate and store
+            T1 = cache(f_generic, A, evaluate=1,
+                       compression=comp, verbose=verbose)
+
+            # Retrieve
+            T2 = cache(f_generic, A, 
+                       compression=comp, test=1, verbose=verbose) 
+                       
+            # Check for presence of cached result 
+            msg = 'Cached object was not found'            
+            assert T2 is not None, msg
+
+            # Reference result
+            T3 = f_generic(A) # Compute without caching
+
+            
+            msg = 'Cached result does not match computed result' 
+            assert str(T1) == str(T2), msg
+            assert str(T2) == str(T3), msg
+            
+                                    
+            
+            
+            
+
+    def XXtest_caching_of_simple_circular_structures(self):
+    
+        # FIXME (Ole): This one recurses infinitly on
+        # arg strings. 
+        
+        """test_caching_of_circular_structures
+        
+        Test that Caching doesn't recurse infinitely in case of
+        circular or self-referencing structures
+        """
+        
+        verbose = True
+        
+        # Create input argument
+        A = {'x': 10, 'B': None}
+        B = [A, 15]
+        A['B'] = B # Make it circular
+        
+        print A
+
+        # Test caching
+        comprange = 2
+        for comp in range(comprange):
+  
+            # Evaluate and store
+            T1 = cache(f_generic, A, evaluate=1,
+                       compression=comp, verbose=verbose)
+                       
+            import sys; sys.exit() 
+                       
+
+            # Retrieve
+            T2 = cache(f_generic, A, 
+                       compression=comp, test=1, verbose=verbose) 
+                       
+            # Check for presence of cached result 
+            msg = 'Cached object was not found'            
+            assert T2 is not None, msg
+
+            # Reference result
+            T3 = f_generic(A) # Compute without caching
+
+
+            assert T1 == T2, 'Cached result does not match computed result'
+            assert T2 == T3, 'Cached result does not match computed result'
+            
+                                    
             
             
     def test_cachefiles(self):
@@ -428,7 +526,15 @@ class Test_Caching(unittest.TestCase):
       """
       This test shows how instances can't be effectively cached.
       myhash uses hash which uses id which uses the memory address. 
+      
+      This will be a NIL problem once caching can handle instances with different id's and 
+      identical content.
+      
+      The test is disabled.
       """
+      
+
+      
       verbose = True
       #verbose = False
 
@@ -525,19 +631,13 @@ class Test_Caching(unittest.TestCase):
       retrieve_cache(Dummy_memorytest, verbose=verbose)      
           
 # Cache created for use with 'test_objects_are_created_memory'
-initial_addr = `Dummy_memorytest`
-clear_and_create_cache(Dummy_memorytest, verbose=False)
+#initial_addr = `Dummy_memorytest`
+#clear_and_create_cache(Dummy_memorytest, verbose=False)
   
-      
-
-
-
-     
-        
 
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Caching,'test')
+    suite = unittest.makeSuite(Test_Caching, 'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
