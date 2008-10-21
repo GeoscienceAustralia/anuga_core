@@ -3,7 +3,7 @@ import unittest
 from Numeric import arange, array
 
 from anuga.caching import *
-
+from anuga.caching.dummy_classes_for_testing import Dummy, Dummy_memorytest
 
 
 # Define a test function to be cached
@@ -36,26 +36,22 @@ def f_object(A, B):
   
   
   
-class Dummy:
-  def __init__(self, value, another):
-    self.value = value
-    self.another = another
-    
-  def copy(self):
-    return Dummy(self.value, self.another)
-    
-
 def clear_and_create_cache(Dummy, verbose=False):
+
   a = cache(Dummy, 'clear', verbose=verbose)
-        
   a = cache(Dummy, args=(9,10),
             verbose=verbose)
       
 
 def retrieve_cache(Dummy, verbose=False):
   if verbose: print 'Check that cache is there'
-  assert cache(Dummy, args=(9,10), test=1,
-               verbose=verbose)      
+  
+  X = cache(Dummy, args=(9,10), test=1,
+            verbose=verbose)      
+            
+  msg = 'Cached value was not found'
+  assert X is not None, msg
+
       
 
     
@@ -457,12 +453,15 @@ class Test_Caching(unittest.TestCase):
     # This has to do with pickle (see e.g. http://telin.ugent.be/~slippens/drupal/pickleproblem)
     # The error message is 
     # PicklingError: Can't pickle test_caching.Dummy: it's not the same object as test_caching.Dummy
-    def Xtest_objects_are_created(self):
+    #
+    # This problem was fixed by moving the class into the separate module
+    
+    def test_objects_are_created(self):
       """
       This test shows how instances can be created from cache
       as long as input arguments are unchanged.
 
-      Such instances will have different id's and cannot be used as input
+      Such instances will have different id's and cannot be currently be used as input
       arguments in subsequent caches. However, this is still useful.
 
       Do it for all combinations of compression
@@ -492,7 +491,9 @@ class Test_Caching(unittest.TestCase):
     # NOTE (Ole): This test has been commented out because, although the test will pass
     #             inside the caching dir and also at the anuga_core level,
     #             it won't pass at the anuga_core/source/anuga level.
-    # See  message above.
+    # It may have to do with the comments above.
+    #
+    # But this is probably not so important, really
     def Xtest_objects_are_created_memory(self):
       """
       
@@ -511,9 +512,9 @@ class Test_Caching(unittest.TestCase):
           self.value = value      
 
       # Make sure that class has been redefined to another address
-      #print
-      #print 'Initial_addr  ', initial_addr
-      #print 'Redefined addr', `Dummy_memorytest`
+      print
+      print 'Initial_addr  ', initial_addr
+      print 'Redefined addr', `Dummy_memorytest`
       msg = 'Redefined class ended up at same memory location as '
       msg += 'original class making this test irrelevant. Try to run '
       msg += 'it again and see if this error goes away.'
@@ -523,16 +524,9 @@ class Test_Caching(unittest.TestCase):
       
       retrieve_cache(Dummy_memorytest, verbose=verbose)      
           
-# Define class Dummy_memorytest before any tests are run
-# to make sure it has a different memory address
-# to the one defined in test 'test_objects_are_created_memory'
-#class Dummy_memorytest:
-#  def __init__(self, value, another):
-#    self.value = value      
-
 # Cache created for use with 'test_objects_are_created_memory'
-#initial_addr = `Dummy_memorytest`
-#clear_and_create_cache(Dummy_memorytest, verbose=False)
+initial_addr = `Dummy_memorytest`
+clear_and_create_cache(Dummy_memorytest, verbose=False)
   
       
 
