@@ -381,26 +381,20 @@ class Test_Caching(unittest.TestCase):
             
            
 
-    def XXtest_caching_of_simple_circular_structures(self):
-    
-        # FIXME (Ole): This one recurses infinitly on
-        # arg strings. 
-        
+    def test_caching_of_simple_circular_dictionaries(self):
         """test_caching_of_circular_structures
         
         Test that Caching doesn't recurse infinitely in case of
         circular or self-referencing structures
         """
         
-        verbose = True
+        verbose = False #True
         
         # Create input argument
         A = {'x': 10, 'B': None}
         B = [A, 15]
         A['B'] = B # Make it circular
         
-        print A
-
         # Test caching
         comprange = 2
         for comp in range(comprange):
@@ -408,8 +402,6 @@ class Test_Caching(unittest.TestCase):
             # Evaluate and store
             T1 = cache(f_generic, A, evaluate=1,
                        compression=comp, verbose=verbose)
-                       
-            import sys; sys.exit() 
                        
 
             # Retrieve
@@ -424,10 +416,10 @@ class Test_Caching(unittest.TestCase):
             T3 = f_generic(A) # Compute without caching
 
 
-            assert T1 == T2, 'Cached result does not match computed result'
-            assert T2 == T3, 'Cached result does not match computed result'
-            
-                                    
+            msg = 'Cached result does not match computed result'
+            assert str(T1) == str(T2), msg
+            assert str(T2) == str(T3), msg
+
             
             
     def test_cachefiles(self):

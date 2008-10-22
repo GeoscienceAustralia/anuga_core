@@ -874,11 +874,7 @@ def CacheLookup(CD, FN, func, args, kwargs, deps, verbose, compression,
   #
   bytecode = get_bytecode(func)
 
-  #print 'Diags'
-  #print argsref
-  #print args
   #print compare(argsref,args),   
-  
   #print compare(kwargsref,kwargs),
   #print compare(bytecode,coderef)
 
@@ -1326,11 +1322,6 @@ def mysave(T,file,compression):
 
 # -----------------------------------------------------------------------------
 
-
-def Xmyhash(T, ids=None):
-    import pickle as pickler # Use non-C version here
-    return hash(pickler.dumps(T,0))
-
     
 def myhash(T, ids=None):
   """Compute hashed integer from a range of inputs.
@@ -1346,11 +1337,9 @@ def myhash(T, ids=None):
 
   from types import TupleType, ListType, DictType, InstanceType  
   from Numeric import ArrayType, average
-  
-  #if type(T) in [TupleType, ListType, DictType, InstanceType]:  
-  #if type(T) in [ListType, DictType, InstanceType]:  
-  if type(T) == InstanceType:  
-  #if False:
+
+    
+  if type(T) in [TupleType, ListType, DictType, InstanceType]:  
       # Keep track of unique id's to protect against infinite recursion
       if ids is None: ids = []
 
@@ -1358,20 +1347,13 @@ def myhash(T, ids=None):
       i = id(T) 
   
       if i in ids:
-          # T has been hashed already      
-      
-          # FIXME (Ole): It seems that different objects get the same id
-          # For example id(D.items()) is the same as id(D.values()).
-
-          #print 'T has already been hashed:', mkargstr(T, 132), id(T), type(T)
-          return 0
+          return 0 # T has been hashed already      
       else:
-          #print 'Appending', T, id(T)
           ids.append(i)
     
 
+    
   # Start hashing  
-  
   
   # On some architectures None, False and True gets different hash values
   if T is None:
@@ -1394,16 +1376,10 @@ def myhash(T, ids=None):
       I.sort()    
       val = myhash(I, ids)
   elif type(T) == ArrayType:
-      val = hash(average(T.flat))  # Use mean value for efficiency
-      #val = myhash(tuple(T), ids)
+      # Use mean value for efficiency  
+      val = hash(average(T.flat))
   elif type(T) == InstanceType:
       val = myhash(T.__dict__, ids)
-      
-      #print 'Hashed instance:'
-      #print T.__dict__.keys()
-      #print mkargstr(T.__dict__, 132)
-      #print 'with value', val
-
   else:
       try:
           val = hash(T)
@@ -1425,21 +1401,27 @@ def compare(A, B, ids=None):
       Return 1 if A and B they are identical, 0 otherwise
     """
 
-    if A == B:
-        identical = True
-    else: 
+    try:
+        identical = (A == B)
+    except:
+        # E.g. if A and B are circular or otherwise can't be compared.
+        identical = False
+        
+        
+    if identical is False:    
         # Use pickle to compare data
         # The native pickler must be used
         # since the faster cPickle does not 
         # guarantee a unique translation
         
         import pickle as pickler # Use non-C version here
+        #import cPickle as pickler 
         identical = (pickler.dumps(A,0) == pickler.dumps(B,0))
 
     return(identical)
 
 
-def Xcompare(A, B, ids=None):
+def old_compare(A, B, ids=None):
     """Safe comparison of general objects
 
     USAGE:
@@ -1449,6 +1431,8 @@ def Xcompare(A, B, ids=None):
       Return 1 if A and B they are identical, 0 otherwise
     """
 
+    # FIXME (Ole): This is probably obsolete now
+    
     from types import TupleType, ListType, DictType, InstanceType
     
     
@@ -2160,7 +2144,7 @@ def msg1(funcname,args,kwargs,reason):
 
   print_header_box('Evaluating function %s' %funcname)
   
-  msg7(args,kwargs)
+  msg7(args, kwargs)
   msg8(reason)  
   
   print_footer()
@@ -2327,15 +2311,15 @@ def msg6(funcname,args,kwargs):
   import string
   print string.ljust('| Function:', textwidth1) + funcname
 
-  msg7(args,kwargs)
+  msg7(args, kwargs)
   
 # -----------------------------------------------------------------------------    
 
-def msg7(args,kwargs):
+def msg7(args, kwargs):
   """Message 7
   
   USAGE:
-    msg7(args,kwargs):
+    msg7(args, kwargs):
   """
   
   import string
@@ -2416,11 +2400,11 @@ def print_footer():
       
 # -----------------------------------------------------------------------------
 
-def mkargstr(args, textwidth, argstr = ''):
+def mkargstr(args, textwidth, argstr = '', level=0):
   """ Generate a string containing first textwidth characters of arguments.
 
   USAGE:
-    mkargstr(args, textwidth, argstr = '')
+    mkargstr(args, textwidth, argstr = '', level=0)
 
   DESCRIPTION:
     Exactly the same as str(args) possibly followed by truncation,
@@ -2429,6 +2413,10 @@ def mkargstr(args, textwidth, argstr = ''):
 
   import types
 
+  if level > 10:
+      # Protect against circular structures
+      return '...'
+  
   WasTruncated = 0
 
   if not type(args) in [types.TupleType, types.ListType, types.DictType]:
@@ -2450,8 +2438,8 @@ def mkargstr(args, textwidth, argstr = ''):
     if type(args) == types.DictType:
       argstr = argstr + "{"
       for key in args.keys():
-        argstr = argstr + mkargstr(key, textwidth) + ": " + \
-                 mkargstr(args[key], textwidth) + ", "
+        argstr = argstr + mkargstr(key, textwidth, level=level+1) + ": " + \
+                 mkargstr(args[key], textwidth, level=level+1) + ", "
         if len(argstr) > textwidth:
           WasTruncated = 1
           break
@@ -2467,7 +2455,7 @@ def mkargstr(args, textwidth, argstr = ''):
         rc = ']'
       argstr = argstr + lc
       for arg in args:
-        argstr = argstr + mkargstr(arg, textwidth) + ', '
+        argstr = argstr + mkargstr(arg, textwidth, level=level+1) + ', '
         if len(argstr) > textwidth:
           WasTruncated = 1
           break
