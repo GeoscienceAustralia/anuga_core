@@ -126,7 +126,7 @@ time = []
 
 for t in domain.evolve(yieldstep = 0.1, finaltime = 5.0):
     domain.write_time()
-    
+
     # Record time series at known points
     time.append(domain.get_time())
     

@@ -39,7 +39,7 @@ weave?
 
 INSTALLATION
 
-In directory pyvolution:
+In directory anuga:
 
   python test_all.py
   
@@ -47,10 +47,11 @@ In directory pyvolution:
 PATH
 
 
-PATH=C:\Python24;C:\MinGW\bin;C:\Program Files\swollen
+PATH=C:\Python24;C:\MinGW\bin;C:\Program Files\anuga_viewer
 
-It is assumed that the root directory for all anuga/inundation modules is on the pythonpath, e.g.
-PYTHONPATH=V:\1\cit\risk_assessment_methods_project\inundation\sandpits\onielsen\anuga\inundation
+It is assumed that the root directory for all anugu modules is on the pythonpath, e.g.
+PYTHONPATH=V:\home\onielsen\anuga_core\source
+Alternatively this directory should be copied to the python site_packages directory 
   
 
   
