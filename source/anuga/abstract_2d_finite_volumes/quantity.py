@@ -855,7 +855,13 @@ class Quantity:
                   'location=\'vertices\''
             raise msg
 
-        if True:  
+        if False:  
+            # FIXME (Ole)
+            # Use mesh as defined by domain
+            # This causes problems for caching 
+            # due to quantities changing, but
+            # it would work if we only passed in
+            # the appropriate Mesh object.
             vertex_attributes = fit_to_mesh(filename,
                                             mesh=self.domain,  
                                             alpha=alpha,
@@ -864,11 +870,13 @@ class Quantity:
                                             verbose=verbose,
                                             max_read_lines=max_read_lines)
         else:
-        
+            # This variant will cause Mesh object to be recreated
+            # in fit_to_mesh thus doubling up on the neighbour structure 
             coordinates = self.domain.get_nodes(absolute=True)
             triangles = self.domain.triangles      #FIXME 
             vertex_attributes = fit_to_mesh(filename,
                                             coordinates, triangles, 
+                                            mesh=None,                                           
                                             alpha=alpha,
                                             attribute_name=attribute_name,
                                             use_cache=use_cache,

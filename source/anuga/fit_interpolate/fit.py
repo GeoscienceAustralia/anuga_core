@@ -489,6 +489,29 @@ def fit_to_mesh(point_coordinates, # this can also be a points file name
         else:
             dep = None
 
+            
+        #from caching import myhash
+        #import copy
+        #print kwargs
+        #print 'hashing:'
+        #print 'args', myhash( (args, kwargs) )
+        #print 'again', myhash( copy.deepcopy( (args, kwargs)) )        
+        
+        #print 'mesh hash', myhash( kwargs['mesh'] )        
+        
+        #print '-------------------------'
+        #print 'vertices hash', myhash( kwargs['mesh'].nodes )
+        #print 'triangles hash', myhash( kwargs['mesh'].triangles )
+        #print '-------------------------'        
+        
+        #for key in mesh.__dict__:
+        #    print key, myhash(mesh.__dict__[key])
+        
+        #for key in mesh.quantities.keys():
+        #    print key, myhash(mesh.quantities[key])
+        
+        #import sys; sys.exit() 
+            
         return cache(_fit_to_mesh,
                      args, kwargs,
                      verbose=verbose,

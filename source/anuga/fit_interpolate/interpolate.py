@@ -108,9 +108,11 @@ def interpolate(vertex_coordinates,
     """
     
     from anuga.caching import cache
+    
 
     # Create interpolation object with matrix
-    args = (vertex_coordinates, triangles)
+    args = (ensure_numeric(vertex_coordinates, Float), 
+            ensure_numeric(triangles))
     kwargs = {'mesh_origin': mesh_origin,
               'max_vertices_per_cell': max_vertices_per_cell,
               'verbose': verbose}

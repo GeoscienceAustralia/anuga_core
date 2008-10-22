@@ -2,6 +2,8 @@
 import unittest
 from Numeric import arange, array
 
+from copy import deepcopy
+        
 from anuga.caching import *
 from anuga.caching.dummy_classes_for_testing import Dummy, Dummy_memorytest
 
@@ -160,6 +162,63 @@ class Test_Caching(unittest.TestCase):
             assert T2 == T3, 'Cached result does not match computed result'
             
 
+    def test_caching_of_dictionaries(self):
+        """test_caching_of_dictionaries
+        
+        Real example from ANUGA that caused some
+        hashing problems
+        """
+    
+
+        verbose = False #True
+        
+        D = {'point_attributes': None, 
+             'use_cache': True, 
+             'vertex_coordinates': None, 
+             'verbose': True, 
+             'max_read_lines': 500, 
+             'acceptable_overshoot': 1.01, 
+             'mesh': None, 
+             'data_origin': None, 
+             'alpha': 0.02, 
+             'mesh_origin': None, 
+             'attribute_name': None, 
+             'triangles': None}         
+        
+        DD = deepcopy(D) # Mangles the dictionary ordering 
+        
+        assert myhash(DD) == myhash(D)
+
+        # Also test caching now that we are at it
+        comprange = 2
+        for comp in range(comprange):
+  
+            # Evaluate and store using D
+            T1 = cache(f_generic, D, evaluate=1,
+                       compression=comp, verbose=verbose)
+
+            # Retrieve using copy (DD)
+            T2 = cache(f_generic, DD, 
+                       compression=comp, test=1, verbose=verbose) 
+                       
+            # Check for presence of cached result 
+            msg = 'Cached object was not found'            
+            assert T2 is not None, msg
+
+            # Reference result
+            T3 = f_generic(D) # Compute without caching
+
+            
+            msg = 'Cached result does not match computed result' 
+            
+            # Compare dictionaries
+            for key in T1:
+                assert T1[key] == T2[key]
+                assert T2[key] == T3[key]                
+                
+            
+           
+            
 
     def test_caching_of_objects(self):
         """test_caching_of_objects
@@ -175,8 +234,11 @@ class Test_Caching(unittest.TestCase):
         A0 = Dummy(5, 7)
         B0 = Dummy(2.2, -5)
         
-        A1 = A0.copy()
-        B1 = B0.copy()
+        A0.new_attribute = 'x'  
+        B0.new_attribute = 'x'        
+        
+        A1 = deepcopy(A0)
+        B1 = deepcopy(B0)        
         
         # Check that their ids are different
         assert id(A0) != id(A1)
@@ -192,12 +254,10 @@ class Test_Caching(unittest.TestCase):
                        compression=comp, verbose=verbose)
 
             # Retrieve
-            #T2 = cache(f_object, (A1, B1), 
-            #           compression=comp, verbose=verbose)                        
-                       
-            # Retrieve
             T2 = cache(f_object, (A1, B1), 
-                       compression=comp, test=1, verbose=verbose) 
+                       compression=comp, 
+                       test=1, 
+                       verbose=verbose) 
                        
             # Check for presence of cached result 
             msg = 'Different objects with same attributes were not recognised'
@@ -225,18 +285,86 @@ class Test_Caching(unittest.TestCase):
         B = {'x': 10, 'A': A}
         C = [B, 15]
         A.value = C # Make it circular
+        A.x = [1,2,C,5,A] # More circular and self referential
         
+        AA = deepcopy(A)
 
         # Test caching
         comprange = 2
         for comp in range(comprange):
   
             # Evaluate and store
-            T1 = cache(f_generic, A, evaluate=1,
+            T1 = cache(f_generic, A, 
+                       evaluate=1,
                        compression=comp, verbose=verbose)
 
             # Retrieve
-            T2 = cache(f_generic, A, 
+            T2 = cache(f_generic, AA, 
+                       compression=comp, 
+                       test=1, verbose=verbose) 
+                       
+            # Check for presence of cached result 
+            msg = 'Cached object was not found'            
+            assert T2 is not None, msg
+
+            # Reference result
+            T3 = f_generic(A) # Compute without caching
+
+            
+            msg = 'Cached result does not match computed result' 
+            assert str(T1) == str(T2), msg
+            assert str(T2) == str(T3), msg
+                                    
+            
+    def Xtest_caching_of_complex_circular_structure(self):
+        """test_caching_of_complex_circular_structure
+        
+        Test that Caching can handle a realistic 
+        complex structure. This one is inspired by
+        ANUGA's Okushiri example, although reduced in size.
+        """
+        
+        pass
+
+        
+    def test_uniqueness_of_hash_values(self):
+        """test_uniqueness_of_hash_values(self):
+        
+        Test that Caching can handle a realistic 
+        complex structure by hashing it consistently and
+        uniquely.
+        """
+        
+        verbose = False
+        
+        # Create input argument
+        A = Dummy(5, 7)
+        B = {'x': 10, 'A': A}
+        C = [B, array([1.2, 3, 5, 0.1])]
+        A.value = C # Make it circular
+
+        # Create identical but separate object    
+        AA = Dummy(None, None)
+        BB = {'A': AA, 'x': 10}
+        CC = [BB, array([1.200, 3.000, 5.00, 1.0/10])]
+        AA.value = CC # Make it circular
+        AA.another = 3+4        
+        
+        
+        assert myhash(A) == myhash(AA)     
+           
+           
+        
+        # Also test caching now that we are at it
+        comprange = 2
+        for comp in range(comprange):
+  
+            # Evaluate and store using A
+            T1 = cache(f_generic, A, evaluate=1,
+                       compression=comp, verbose=verbose)
+
+            # Retrieve using copy (AA)
+            T2 = cache(f_generic, AA, 
                        compression=comp, test=1, verbose=verbose) 
                        
             # Check for presence of cached result 
@@ -251,10 +379,7 @@ class Test_Caching(unittest.TestCase):
             assert str(T1) == str(T2), msg
             assert str(T2) == str(T3), msg
             
-                                    
-            
-            
-            
+           
 
     def XXtest_caching_of_simple_circular_structures(self):
     
@@ -337,7 +462,10 @@ class Test_Caching(unittest.TestCase):
     def test_test(self):        
         """Test 'test' function when cache is present
         """
-        N = 5000  #Make N fairly small here
+        
+        verbose = False
+        
+        N = 5  
 
         a = [1,2]
         b = ('Thou shalt count the number three',4)
@@ -346,10 +474,20 @@ class Test_Caching(unittest.TestCase):
         y = 'holy hand granate'
         
 
-        T1 = cache(f,(a,b,c,N), {'x':x, 'y':y}, evaluate=1)
+        T1 = cache(f, (a,b,c,N), {'x':x, 'y':y}, 
+                   evaluate=1, 
+                   verbose=verbose)
         
-        T4 = cache(f,(a,b,c,N), {'x':x, 'y':y}, test=1)
-        assert T1 == T4, "Option 'test' when cache file present failed"      
+        T2 = cache(f, (a,b,c,N), {'x':x, 'y':y}, 
+                   test=1,
+                   verbose=verbose)
+                   
+                   
+        # Check for presence of cached result 
+        msg = 'Different objects with same attributes were not recognised'
+        assert T2 is not None, msg                   
+                   
+        assert T1 == T2, "Option 'test' when cache file present failed"      
 
 
     def test_clear(self):        
@@ -594,12 +732,14 @@ class Test_Caching(unittest.TestCase):
 
 
 
-    # NOTE (Ole): This test has been commented out because, although the test will pass
+    # NOTE (Ole): This test has been commented out because, 
+    #             although the test will pass (not anymore!)
     #             inside the caching dir and also at the anuga_core level,
     #             it won't pass at the anuga_core/source/anuga level.
     # It may have to do with the comments above.
     #
-    # But this is probably not so important, really
+    # But this is a very nice test to run occasionally within the caching
+    # area
     def Xtest_objects_are_created_memory(self):
       """
       
@@ -610,7 +750,7 @@ class Test_Caching(unittest.TestCase):
       This is using cache created in the main program below
       """
 
-      verbose = False
+      verbose = True #False
 
       # Redefine class Dummy_memorytest
       class Dummy_memorytest:

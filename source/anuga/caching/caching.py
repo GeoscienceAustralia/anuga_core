@@ -280,10 +280,8 @@ def cache(func, args=(), kwargs = {}, dependencies=None , cachedir=None,
   if type(kwargs) != types.DictType:
     raise TypeError    
     
-  #print 'hashing' #FIXME: make faster hashing function
-   
   # Hash arguments (and keyword args) to integer
-  arghash = myhash((args,kwargs))
+  arghash = myhash((args, kwargs))
   
   # Get sizes and timestamps for files listed in dependencies.
   # Force singletons into a tuple.
@@ -325,9 +323,13 @@ def cache(func, args=(), kwargs = {}, dependencies=None , cachedir=None,
     Retrieved = None  # Force evaluation of func regardless of caching status.
     reason = 5
   else:
-    (T, FN, Retrieved, reason, comptime, loadtime, compressed) = \
-      CacheLookup(CD, FN, func, args, kwargs, deps, verbose, compression, \
-                  dependencies)
+    T, FN, Retrieved, reason, comptime, loadtime, compressed = \
+        CacheLookup(CD, FN, func, 
+                    args, kwargs, 
+                    deps, 
+                    verbose, 
+                    compression,
+                    dependencies)
 
   if not Retrieved:
     if test:  # Do not attempt to evaluate function
@@ -837,18 +839,18 @@ def CacheLookup(CD, FN, func, args, kwargs, deps, verbose, compression,
 
   # Retrieve arguments and adm. info
   #
-  R, reason = myload(argsfile,compressed)  # The original arguments
+  R, reason = myload(argsfile, compressed)  # The original arguments
   argsfile.close()
     
-  ##if R == None and reason > 0:
   if reason > 0:
-    return(None,FN,None,reason,None,None,None) #Recompute using same filename 
+      # Recompute using same filename   
+      return(None, FN, None, reason, None, None, None)
   else:   
-    (argsref, kwargsref) = R
+      (argsref, kwargsref) = R
 
-  R, reason = myload(admfile,compressed)
+  R, reason = myload(admfile, compressed)
   admfile.close()  
-  ##if R == None and reason > 0:
+
   if reason > 0:
     return(None,FN,None,reason,None,None,None) #Recompute using same filename 
 
@@ -860,30 +862,35 @@ def CacheLookup(CD, FN, func, args, kwargs, deps, verbose, compression,
 
   # Check if dependencies have changed
   #
-  if dependencies and not compare(depsref,deps):
+  if dependencies and not compare(depsref, deps):
     if verbose:
       print 'MESSAGE (caching.py): Dependencies', dependencies, \
             'have changed - recomputing'
     # Don't use cached file - recompute
     reason = 2
-    return(None,FN,None,reason,None,None,None)
+    return(None, FN, None, reason, None, None, None)
 
   # Get bytecode from func
   #
   bytecode = get_bytecode(func)
 
-  #print compare(argsref,args), 
+  #print 'Diags'
+  #print argsref
+  #print args
+  #print compare(argsref,args),   
+  
   #print compare(kwargsref,kwargs),
   #print compare(bytecode,coderef)
 
   # Check if arguments or bytecode have changed
-  if compare(argsref,args) and compare(kwargsref,kwargs) and \
-     (not options['bytecode'] or compare(bytecode,coderef)):
+  if compare(argsref, args) and compare(kwargsref, kwargs) and \
+     (not options['bytecode'] or compare(bytecode, coderef)):
 
     # Arguments and dependencies match. Get cached results
-    T, loadtime, compressed, reason = load_from_cache(CD,FN,compressed)
+    T, loadtime, compressed, reason = load_from_cache(CD, FN, compressed)
     if reason > 0:
-      return(None,FN,None,reason,None,None,None) # Recompute using same FN 
+        # Recompute using same FN     
+        return(None, FN, None, reason, None, None, None)
 
     Retrieved = 1
     reason = 0
@@ -901,9 +908,9 @@ def CacheLookup(CD, FN, func, args, kwargs, deps, verbose, compression,
     # This is resolved by recursive search of cache filenames
     # until either a matching or an unused filename is found.
     #
-    (T,FN,Retrieved,reason,comptime,loadtime,compressed) = \
-       CacheLookup(CD,FN+'x',func,args,kwargs,deps,verbose,compression, \
-                   dependencies)
+    (T, FN, Retrieved, reason, comptime, loadtime, compressed) = \
+        CacheLookup(CD, FN+'x', func, args, kwargs, deps, 
+                    verbose, compression, dependencies)
 
     # DEBUGGING
     # if not Retrieved:
@@ -914,7 +921,7 @@ def CacheLookup(CD, FN, func, args, kwargs, deps, verbose, compression,
     # The real reason is that args or bytecodes have changed.
     # Not that the recursive seach has found an unused filename
     if not Retrieved:
-      if not compare(bytecode,coderef):
+      if not compare(bytecode, coderef):
         reason = 4 # Bytecode has changed
       else:   
         reason = 3 # Arguments have changed 
@@ -1224,7 +1231,7 @@ def myload(file, compressed):
       
       
       del RsC  # Free up some space
-      R   = pickler.loads(Rs)
+      R = pickler.loads(Rs)
     else:
       try:
         R = pickler.load(file)
@@ -1319,6 +1326,12 @@ def mysave(T,file,compression):
 
 # -----------------------------------------------------------------------------
 
+
+def Xmyhash(T, ids=None):
+    import pickle as pickler # Use non-C version here
+    return hash(pickler.dumps(T,0))
+
+    
 def myhash(T, ids=None):
   """Compute hashed integer from a range of inputs.
   If T is not hashable being e.g. a tuple T, myhash will recursively 
@@ -1332,10 +1345,12 @@ def myhash(T, ids=None):
   """
 
   from types import TupleType, ListType, DictType, InstanceType  
-  from Numeric import ArrayType
+  from Numeric import ArrayType, average
   
-  if type(T) in [TupleType, ListType, DictType, InstanceType]:  
-  
+  #if type(T) in [TupleType, ListType, DictType, InstanceType]:  
+  #if type(T) in [ListType, DictType, InstanceType]:  
+  if type(T) == InstanceType:  
+  #if False:
       # Keep track of unique id's to protect against infinite recursion
       if ids is None: ids = []
 
@@ -1343,10 +1358,12 @@ def myhash(T, ids=None):
       i = id(T) 
   
       if i in ids:
+          # T has been hashed already      
+      
           # FIXME (Ole): It seems that different objects get the same id
-          # T has been hashed already
-        
-          #print 'T has already been hashed:', T, id(T)
+          # For example id(D.items()) is the same as id(D.values()).
+
+          #print 'T has already been hashed:', mkargstr(T, 132), id(T), type(T)
           return 0
       else:
           #print 'Appending', T, id(T)
@@ -1372,11 +1389,21 @@ def myhash(T, ids=None):
           hvals.append(h)
       val = hash(tuple(hvals))
   elif type(T) == DictType:
-      val = myhash(T.items(), ids)
+      # Make dictionary ordering unique  
+      I = T.items()
+      I.sort()    
+      val = myhash(I, ids)
   elif type(T) == ArrayType:
-      val = myhash(tuple(T), ids)
+      val = hash(average(T.flat))  # Use mean value for efficiency
+      #val = myhash(tuple(T), ids)
   elif type(T) == InstanceType:
       val = myhash(T.__dict__, ids)
+      
+      #print 'Hashed instance:'
+      #print T.__dict__.keys()
+      #print mkargstr(T.__dict__, 132)
+      #print 'with value', val
+
   else:
       try:
           val = hash(T)
@@ -1387,7 +1414,32 @@ def myhash(T, ids=None):
 
 # -----------------------------------------------------------------------------
 
+
 def compare(A, B, ids=None):
+    """Safe comparison of general objects
+
+    USAGE:
+      compare(A,B)
+
+    DESCRIPTION:
+      Return 1 if A and B they are identical, 0 otherwise
+    """
+
+    if A == B:
+        identical = True
+    else: 
+        # Use pickle to compare data
+        # The native pickler must be used
+        # since the faster cPickle does not 
+        # guarantee a unique translation
+        
+        import pickle as pickler # Use non-C version here
+        identical = (pickler.dumps(A,0) == pickler.dumps(B,0))
+
+    return(identical)
+
+
+def Xcompare(A, B, ids=None):
     """Safe comparison of general objects
 
     USAGE:
@@ -1458,8 +1510,9 @@ def compare(A, B, ids=None):
         try:
             identical = (A == B)
         except:
+            import pickle # Use non-C version here
             try:
-                identical = (pickler.dumps(A) == pickler.dumps(B))
+                identical = (pickle.dumps(A,0) == pickle.dumps(B,0))
             except:
                 identical = 0
 

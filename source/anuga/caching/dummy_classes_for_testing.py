@@ -7,9 +7,6 @@ class Dummy:
         self.value = value
         self.another = another
     
-    def copy(self):
-        return Dummy(self.value, self.another)
-        
     def __repr__(self):
         return str(self.value) + ', ' + str(self.another)
     
