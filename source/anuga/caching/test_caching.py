@@ -162,6 +162,54 @@ class Test_Caching(unittest.TestCase):
             assert T2 == T3, 'Cached result does not match computed result'
             
 
+    def test_hash_collision(self):
+        """test_hash_collision(self):
+        
+        Test that hash collisons are dealt with correctly
+        """
+        
+        verbose = False
+        
+        # Make test input arguments
+        A0 = arange(5)*1.0
+        B = ('x', 15)
+        
+        # Create different A that hashes to the same address (having the same average)
+        A1 = array([2.0, 2.0, 2.0, 2.0, 2.0])        
+        
+        assert myhash(A0) == myhash(A1)
+            
+            
+        # Test caching
+        comprange = 2
+        for comp in range(comprange):
+        
+            # Clear
+            cache(f_numeric, (A0, A0), clear=1,
+                  compression=comp, verbose=verbose)        
+            cache(f_numeric, (A1, A1), clear=1,
+                  compression=comp, verbose=verbose)                          
+  
+  
+            # Evaluate and store
+            T1 = cache(f_numeric, (A0, A0), evaluate=1,
+                       compression=comp, verbose=verbose)
+
+            
+            # Check that A1 doesn't trigger retrieval of the previous result 
+            # even though it hashes to the same address
+            T2 = cache(f_numeric, (A1, A1), 
+                       compression=comp, verbose=verbose) 
+            
+
+            #print T1
+            #print T2
+            assert T2 != T1
+
+            
+
+            
+            
     def test_caching_of_dictionaries(self):
         """test_caching_of_dictionaries
         
@@ -770,6 +818,7 @@ class Test_Caching(unittest.TestCase):
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
+    #suite = unittest.makeSuite(Test_Caching, 'test_hash_collision')
     suite = unittest.makeSuite(Test_Caching, 'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)

@@ -220,6 +220,8 @@ def cache(func, args=(), kwargs = {}, dependencies=None , cachedir=None,
     retrieves cached result if it exists, otherwise None. The function will not
     be evaluated. If both evaluate and test are switched on, evaluate takes
     precedence.
+    ??NOTE: In case of hash collisions, this may return the wrong result as
+    ??it only checks if *a* cached result is present. 
     
   Obtain cache filenames:
     The call    
@@ -1388,7 +1390,6 @@ def myhash(T, ids=None):
 
   return(val)
 
-# -----------------------------------------------------------------------------
 
 
 def compare(A, B, ids=None):
@@ -1401,44 +1402,11 @@ def compare(A, B, ids=None):
       Return 1 if A and B they are identical, 0 otherwise
     """
 
-    try:
-        identical = (A == B)
-    except:
-        # E.g. if A and B are circular or otherwise can't be compared.
-        identical = False
-        
-        
-    if identical is False:    
-        # Use pickle to compare data
-        # The native pickler must be used
-        # since the faster cPickle does not 
-        # guarantee a unique translation
-        
-        import pickle as pickler # Use non-C version here
-        #import cPickle as pickler 
-        identical = (pickler.dumps(A,0) == pickler.dumps(B,0))
-
-    return(identical)
-
-
-def old_compare(A, B, ids=None):
-    """Safe comparison of general objects
-
-    USAGE:
-      compare(A,B)
-
-    DESCRIPTION:
-      Return 1 if A and B they are identical, 0 otherwise
-    """
-
-    # FIXME (Ole): This is probably obsolete now
-    
     from types import TupleType, ListType, DictType, InstanceType
-    
+    from Numeric import ArrayType, alltrue    
     
     # Keep track of unique id's to protect against infinite recursion
     if ids is None: ids = {}
-
 
     # Check if T has already been encountered
     iA = id(A) 
@@ -1452,11 +1420,13 @@ def old_compare(A, B, ids=None):
         ids[(iA, iB)] = True
     
     
-    #print 'Comparing', A, B, (iA, iB)
-    #print ids
-    #raw_input()
-    
-    if type(A) in [TupleType, ListType] and type(B) in [TupleType, ListType]:
+    # Check if arguments are of same type
+    if type(A) != type(B):
+        return False
+        
+  
+    # Compare recursively based on argument type
+    if type(A) in [TupleType, ListType]:
         N = len(A)
         if len(B) != N: 
             identical = False
@@ -1465,46 +1435,48 @@ def old_compare(A, B, ids=None):
             for i in range(N):
                 if not compare(A[i], B[i], ids): 
                     identical = False; break
-                
-    elif type(A) == DictType and type(B) == DictType:
+                    
+    elif type(A) == DictType:
         if len(A) != len(B):
             identical = False
-        else:    
-            identical = True
-            for key in A.keys():
-                if not B.has_key(key):
-                    identical = False; break
-          
-                if not compare(A[key], B[key], ids): 
-                    identical = False; break      
-    
-    elif type(A) == type(B) == types.InstanceType:    
-        # Take care of special case where elements are instances            
-        # Base comparison on attributes 
-                
-        a = A.__dict__                 
-        b = B.__dict__                             
-                
-        identical = compare(a, b, ids)                
+        else:                        
+            # Make dictionary ordering unique 
+            a = A.items(); a.sort()    
+            b = B.items(); b.sort()
+            
+            identical = compare(a, b, ids)
+            
+    elif type(A) == ArrayType:
+        # Use element by element comparison
+        identical = alltrue(A==B)
 
-    
-        
+    elif type(A) == InstanceType:
+        # Take care of special case where elements are instances            
+        # Base comparison on attributes     
+        identical = compare(A.__dict__, 
+                            B.__dict__, 
+                            ids)
     else:       
         # Fall back to general code
         try:
             identical = (A == B)
         except:
-            import pickle # Use non-C version here
+            import pickle
+            # Use pickle to compare data
+            # The native pickler must be used
+            # since the faster cPickle does not 
+            # guarantee a unique translation            
             try:
                 identical = (pickle.dumps(A,0) == pickle.dumps(B,0))
             except:
-                identical = 0
+                identical = False
 
     # Record result of comparison and return            
     ids[(iA, iB)] = identical
     
     return(identical)
 
+    
 # -----------------------------------------------------------------------------
 
 def nospace(s):
