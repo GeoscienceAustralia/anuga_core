@@ -157,11 +157,14 @@ domain.set_boundary({'left': Btus, 'right': Btds, 'top': Br, 'bottom': Br})
 # Evolve system through time
 #------------------------------------------------------------------------------
 
-#for t in domain.evolve(yieldstep = 0.01, finaltime = 45):
-#     if int(domain.time*100) % 100 == 0:
-#	     domain.write_time()
+for t in domain.evolve(yieldstep = 0.01, finaltime = 45):
+     if int(domain.time*100) % 100 == 0:
+	     domain.write_time()
     
 
+    
+    
+import sys; sys.exit() 
 # Profiling code
 import time
 t0 = time.time()

@@ -372,7 +372,7 @@ class Interpolate (FitInterpolate):
         
         See interpolate for doc info.
         """
-        if isinstance(point_coordinates,Geospatial_data):
+        if isinstance(point_coordinates, Geospatial_data):
             point_coordinates = point_coordinates.get_data_points(\
                 absolute=True)
 
