@@ -102,8 +102,10 @@ def interpolate(vertex_coordinates,
     Interpolated values at specified point_coordinates                           
     
     
-    Note: This function is a simple shortcut for case where interpolation matrix is unnecessary
-    Note: This function does not take blocking into account, but allows caching.
+    Note: This function is a simple shortcut for case where 
+    interpolation matrix is unnecessary
+    Note: This function does not take blocking into account, 
+    but allows caching.
     
     """
     

@@ -1074,7 +1074,11 @@ class Quantity:
 
         # Use caching to reuse interpolation information
         from anuga.fit_interpolate.interpolate import interpolate
-        return interpolate(vertex_coordinates, triangles, vertex_values, interpolation_points,
+        
+        return interpolate(vertex_coordinates, 
+                           triangles, 
+                           vertex_values, 
+                           interpolation_points,
                            use_cache=True, 
                            verbose=verbose)
                            
