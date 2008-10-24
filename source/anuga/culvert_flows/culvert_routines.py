@@ -60,7 +60,7 @@ def boyd_generalised_culvert_model(culvert, inlet, outlet, delta_Et, g):
 
     if inlet.depth_trigger >= 0.01 and inlet.depth >= 0.01:
         # Calculate driving energy
-        E = inlet.specific_energy
+        E = inlet.total_energy
 
         s = 'Driving energy  = %f m' %E
         log_to_file(log_filename, s)

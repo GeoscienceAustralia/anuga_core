@@ -872,11 +872,11 @@ class Quantity:
         else:
             # This variant will cause Mesh object to be recreated
             # in fit_to_mesh thus doubling up on the neighbour structure 
-            coordinates = self.domain.get_nodes(absolute=True)
-            triangles = self.domain.triangles      #FIXME 
+            nodes = self.domain.get_nodes(absolute=True)
+            triangles = self.domain.triangles      
             vertex_attributes = fit_to_mesh(filename,
-                                            coordinates, triangles, 
-                                            mesh=None,                                           
+                                            nodes, triangles, 
+                                            mesh=None,
                                             alpha=alpha,
                                             attribute_name=attribute_name,
                                             use_cache=use_cache,
@@ -1053,6 +1053,7 @@ class Quantity:
         #
         # Speed is also a consideration here.
         
+        
         if isinstance(interpolation_points, Geospatial_data):        
             # Ensure interpolation points are in absolute UTM coordinates
             interpolation_points = interpolation_points.get_data_points(absolute=True)
@@ -1076,6 +1077,7 @@ class Quantity:
         return interpolate(vertex_coordinates, triangles, vertex_values, interpolation_points,
                            use_cache=True, 
                            verbose=verbose)
+                           
 
 
     def get_values(self, 

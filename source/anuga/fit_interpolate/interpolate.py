@@ -462,7 +462,7 @@ class Interpolate (FitInterpolate):
                                    closed = True, verbose = verbose)
         
         # Build n x m interpolation matrix
-        if verbose and len(self.outside_poly_indices) > 0:
+        if verbose and len(outside_poly_indices) > 0:
             print '\n WARNING: Points outside mesh boundary. \n'
             
         # Since you can block, throw a warning, not an error.

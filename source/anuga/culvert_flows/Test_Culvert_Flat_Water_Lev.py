@@ -30,9 +30,6 @@ from Numeric import choose, greater, ones, sin, exp, cosh
 #------------------------------------------------------------------------------
 print 'Setting up domain'
 
-# Open file for storing some specific results...
-fid = open('Culvert_Headwall', 'w')
-
 length = 40.
 width = 5.
 
@@ -148,7 +145,6 @@ domain.forcing_terms.append(culvert)
 # Setup boundary conditions
 #------------------------------------------------------------------------------
 print 'Setting Boundary Conditions'
-#Bi = Dirichlet_boundary([0.5, 0.0, 0.0])          # Inflow based on Flow Depth (0.5m) and Approaching Momentum !!!
 Bi = Dirichlet_boundary([0.0, 0.0, 0.0])          # Inflow based on Flow Depth and Approaching Momentum !!!
 Br = Reflective_boundary(domain)              # Solid reflective wall
 Bo = Dirichlet_boundary([-5, 0, 0])           # Outflow
@@ -156,40 +152,31 @@ Btus = Time_boundary(domain, lambda t: [0.0+ 1.25*(1+sin(2*pi*(t-4)/10)), 0.0, 0
 Btds = Time_boundary(domain, lambda t: [0.0+ 0.75*(1+sin(2*pi*(t-4)/20)), 0.0, 0.0])
 domain.set_boundary({'left': Btus, 'right': Btds, 'top': Br, 'bottom': Br})
 
-#------------------------------------------------------------------------------
-# Setup Application of  specialised forcing terms
-#------------------------------------------------------------------------------
-print 'Setting up Forcing Terms if Required'
-# This is the new element implemented by Ole to allow direct input of Inflow in m^3/s
-#fixed_flow = Inflow(domain, center=(2.1, 2.1), radius=1.261566, flow=1.00)   #   Fixed Flow Value Over Area of 5m2 at 1m/s = 5m^3/s
-
-#	     flow=file_function('Q/QPMF_Rot_Sub13.tms'))        # Read Time Series in  from File
-#             flow=lambda t: min(0.01*t, 0.01942))                             # Time Varying Function   Tap turning up  	
-
-#domain.forcing_terms.append(fixed_flow)
-
-
-
-
 
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
-print 'STARTING EVOLVE ======>'
 
-
-for t in domain.evolve(yieldstep = 0.01, finaltime = 45):
-     if int(domain.time*100) % 100 == 0:
-	     domain.write_time()
+#for t in domain.evolve(yieldstep = 0.01, finaltime = 45):
+#     if int(domain.time*100) % 100 == 0:
+#	     domain.write_time()
     
-    #if domain.get_time() >= 4 and tap.flow != 0.0:
-    #    print 'Turning tap off'
-    #    tap.flow = 0.0
-	
-    #if domain.get_time() >= 3 and sink.flow < 0.0:
-    #    print 'Turning drain on'
-    #    sink.flow = -0.8	
-    # Close
 
-fid.close()
+# Profiling code
+import time
+t0 = time.time()
+    
+s = 'for t in domain.evolve(yieldstep = 0.5, finaltime = 2): domain.write_time()'
 
+import profile, pstats
+FN = 'profile.dat'
+
+profile.run(s, FN)
+    
+print 'That took %.2f seconds' %(time.time()-t0)
+
+S = pstats.Stats(FN)
+#S.sort_stats('time').print_stats(20)
+s = S.sort_stats('cumulative').print_stats(30)
+
+print s

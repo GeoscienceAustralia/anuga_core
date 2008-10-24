@@ -6008,7 +6008,7 @@ if __name__ == "__main__":
 
     suite = unittest.makeSuite(Test_Shallow_Water,'test')
 
-    #suite = unittest.makeSuite(Test_Shallow_Water,'test_get_flow_through_cross_section_with_geo')    
+    #suite = unittest.makeSuite(Test_Shallow_Water,'test_get_energy_through_cross_section_with_g')    
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_fitting_using_shallow_water_domain')    
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_tight_slope_limiters')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_get_maximum_inundation_from_sww')

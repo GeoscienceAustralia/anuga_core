@@ -6376,10 +6376,6 @@ def get_interpolated_quantities_at_polyline_midpoints(filename,
                                           verbose=verbose)
     mesh, quantities, time = X
 
-
-    # Adjust polyline to mesh spatial origin
-    polyline = mesh.geo_reference.get_relative(polyline)
-    
     # Find all intersections and associated triangles.
     segments = mesh.get_intersecting_segments(polyline, verbose=verbose)
     

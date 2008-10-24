@@ -398,15 +398,11 @@ class Domain(Generic_Domain):
          
         """       
         
-        # Adjust polyline to mesh spatial origin
-        polyline = self.geo_reference.get_relative(polyline)
-        
         # Find all intersections and associated triangles.
-        segments = self.get_intersecting_segments(polyline, verbose=verbose)
+        segments = self.get_intersecting_segments(polyline, 
+                                                  use_cache=True,
+                                                  verbose=verbose)
 
-        msg = 'No segments found'
-        assert len(segments) > 0, msg
-        
         # Get midpoints
         midpoints = segment_midpoints(segments)       
         
@@ -471,15 +467,11 @@ class Domain(Generic_Domain):
         from anuga.config import g, epsilon, velocity_protection as h0        
                                          
         
-        # Adjust polyline to mesh spatial origin
-        polyline = self.geo_reference.get_relative(polyline)
-        
         # Find all intersections and associated triangles.
-        segments = self.get_intersecting_segments(polyline, verbose=verbose)
+        segments = self.get_intersecting_segments(polyline, 
+                                                  use_cache=True,
+                                                  verbose=verbose)
 
-        msg = 'No segments found'
-        assert len(segments) > 0, msg
-        
         # Get midpoints
         midpoints = segment_midpoints(segments)       
         
