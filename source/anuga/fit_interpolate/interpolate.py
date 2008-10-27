@@ -108,7 +108,9 @@ def interpolate(vertex_coordinates,
     but allows caching.
     
     """
-    
+
+    # FIXME(Ole): Probably obsolete since I is precomputed and interpolate_block caches
+        
     from anuga.caching import cache
     
 
@@ -174,8 +176,9 @@ class Interpolate (FitInterpolate):
         # FIXME (Ole): Need an input check
         
         # Initialise variabels
-        self._A_can_be_reused = False
-        self._point_coordinates = None
+        self._A_can_be_reused = False  # FIXME (Ole): Probably obsolete
+        self._point_coordinates = None # FIXME (Ole): Probably obsolete
+        self.interpolation_matrices = {} # Store precomputed matrices
         
         FitInterpolate.__init__(self,
                                 vertex_coordinates=vertex_coordinates,
@@ -300,6 +303,8 @@ class Interpolate (FitInterpolate):
         # method is called even if interpolation points are unchanged.
         # This really should use some kind of caching in cases where
         # interpolation points are reused.
+        #
+        # This has now been addressed through an attempt in interpolate_block
 
         #print "point_coordinates interpolate.interpolate", point_coordinates
         if verbose: print 'Build intepolation object' 
@@ -372,25 +377,39 @@ class Interpolate (FitInterpolate):
         
         See interpolate for doc info.
         """
+        
+        # FIXME (Ole): I reckon we should change the interface so that
+        # the user can specify the interpolation matrix instead of the 
+        # interpolation points to save time.
+        
+        
         if isinstance(point_coordinates, Geospatial_data):
             point_coordinates = point_coordinates.get_data_points(\
                 absolute=True)
 
         # Convert lists to Numeric arrays if necessary
         point_coordinates = ensure_numeric(point_coordinates, Float)
-        f = ensure_numeric(f, Float)        
+        f = ensure_numeric(f, Float)                
 
-        import sys
-        if use_cache is True and sys.platform != 'win32':
-            # FIXME (Ole): (Why doesn't this work on windoze?)
-            
-            X = cache(self._build_interpolation_matrix_A,
-                      args=(point_coordinates,),
-                      kwargs={'verbose': verbose},                        
-                      verbose=verbose)        
-        else:
+        
+        # Hash point_coordinates to memory location and reuse if possible
+        from anuga.caching import myhash
+        from Numeric import alltrue
+        
+
+        key = myhash(point_coordinates)
+        
+        reuse_A = False        
+        if self.interpolation_matrices.has_key(key):
+            X, stored_points = self.interpolation_matrices[key] 
+            if alltrue(stored_points == point_coordinates):
+                reuse_A = True # Reuse interpolation matrix
+                
+        if reuse_A is False:
             X = self._build_interpolation_matrix_A(point_coordinates,
-                                                   verbose=verbose)    
+                                                   verbose=verbose)
+            self.interpolation_matrices[key] = (X, point_coordinates)
+                                                       
         
         # Unpack result                                       
         self._A, self.inside_poly_indices, self.outside_poly_indices = X
@@ -411,6 +430,7 @@ class Interpolate (FitInterpolate):
                %(f.shape[0], self._A.shape[1])        
         assert self._A.shape[1] == f.shape[0], msg
 
+        
         # Compute Matrix vector product and return
         return self._get_point_data_z(f)
     

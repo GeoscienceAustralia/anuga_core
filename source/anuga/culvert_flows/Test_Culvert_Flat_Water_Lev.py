@@ -164,7 +164,7 @@ for t in domain.evolve(yieldstep = 0.01, finaltime = 45):
 
     
     
-import sys; sys.exit() 
+#import sys; sys.exit() 
 # Profiling code
 import time
 t0 = time.time()
