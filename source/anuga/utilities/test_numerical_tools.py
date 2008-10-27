@@ -3,6 +3,8 @@
 
 import unittest
 from Numeric import zeros, array, allclose
+from Numeric import ArrayType, Float, Int, array, alltrue
+
 from math import sqrt, pi
 from anuga.config import epsilon
 from numerical_tools import *
@@ -63,8 +65,6 @@ class Test_Numerical_Tools(unittest.TestCase):
 
 	
     def test_ensure_numeric(self):
-        from Numeric import ArrayType, Float, Int, array
-
         A = [1,2,3,4]
         B = ensure_numeric(A)
         assert type(B) == ArrayType
@@ -93,14 +93,14 @@ class Test_Numerical_Tools(unittest.TestCase):
         B = ensure_numeric(A)
         assert type(B) == ArrayType
         assert B.typecode() == 'l'        
-        assert A == B    
+        assert alltrue(A == B)    
         assert A is B   #Same object
 
         A = array([1,2,3,4])
         B = ensure_numeric(A, Float)
         assert type(B) == ArrayType
         assert B.typecode() == 'd'        
-        assert A == B    
+        assert alltrue(A == B)    
         assert A is not B   #Not the same object
 
         # Check scalars
@@ -108,12 +108,12 @@ class Test_Numerical_Tools(unittest.TestCase):
         B = ensure_numeric(A, Float)
         #print A, B[0], len(B), type(B) 
         #print B.shape
-        assert A == B
+        assert alltrue(A == B)
 
         B = ensure_numeric(A, Int)        
         #print A, B
         #print B.shape
-        assert A == B
+        assert alltrue(A == B)
 
         # Error situation
 
