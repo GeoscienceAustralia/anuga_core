@@ -391,24 +391,36 @@ class Interpolate (FitInterpolate):
         point_coordinates = ensure_numeric(point_coordinates, Float)
         f = ensure_numeric(f, Float)                
 
-        
-        # Hash point_coordinates to memory location and reuse if possible
         from anuga.caching import myhash
         from Numeric import alltrue
+        import sys
+        if use_cache is True:
+            if sys.platform != 'win32':
+                # FIXME (Ole): (Why doesn't this work on windoze?)
+                # Still absolutele fails on Win 24 Oct 2008
+            
+                X = cache(self._build_interpolation_matrix_A,
+                          args=(point_coordinates,),
+                          kwargs={'verbose': verbose},                        
+                          verbose=verbose)        
+            else:
+                # Hash point_coordinates to memory location and reuse if possible
+                # This will work on Linux as well if we want to use it there. (FIXME)
+                key = myhash(point_coordinates)
         
-
-        key = myhash(point_coordinates)
-        
-        reuse_A = False        
-        if self.interpolation_matrices.has_key(key):
-            X, stored_points = self.interpolation_matrices[key] 
-            if alltrue(stored_points == point_coordinates):
-                reuse_A = True # Reuse interpolation matrix
+                reuse_A = False        
+                if self.interpolation_matrices.has_key(key):
+                    X, stored_points = self.interpolation_matrices[key] 
+                    if alltrue(stored_points == point_coordinates):
+                        reuse_A = True # Reuse interpolation matrix
                 
-        if reuse_A is False:
+                if reuse_A is False:
+                    X = self._build_interpolation_matrix_A(point_coordinates,
+                                                           verbose=verbose)
+                    self.interpolation_matrices[key] = (X, point_coordinates)
+        else:
             X = self._build_interpolation_matrix_A(point_coordinates,
-                                                   verbose=verbose)
-            self.interpolation_matrices[key] = (X, point_coordinates)
+                                                   verbose=verbose)            
                                                        
         
         # Unpack result                                       
