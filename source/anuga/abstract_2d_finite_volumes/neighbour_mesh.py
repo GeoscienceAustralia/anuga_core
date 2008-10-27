@@ -967,6 +967,34 @@ class Mesh(General_mesh):
             return []
         
 
+    def get_interpolation_object(self):
+        """Get object I that will allow linear interpolation using this mesh
+        
+        This is a time consuming process but it needs only to be 
+        once for the mesh.
+        
+        Interpolation can then be done using 
+        
+        result = I.interpolate_block(vertex_values, interpolation_points)        
+        
+        where vertex values have been obtained from a quantity using
+        vertex_values, triangles = self.get_vertex_values()
+        """
+
+        if hasattr(self, 'interpolation_object'):
+            I = self.interpolation_object
+        else:
+            from anuga.fit_interpolate.interpolate import Interpolate
+                        
+            # Get discontinuous mesh - this will match internal 
+            # representation of vertex values
+            triangles = self.get_disconnected_triangles()
+            vertex_coordinates = self.get_vertex_coordinates()
+
+            I = Interpolate(vertex_coordinates, triangles)
+            self.interpolation_object = I
+        
+        return I               
         
 
 class Triangle_intersection:

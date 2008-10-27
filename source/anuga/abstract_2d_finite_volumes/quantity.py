@@ -1028,99 +1028,27 @@ class Quantity:
 
 
 
-    def obsolete_get_interpolated_values(self, interpolation_points,
-                                verbose=False):
-        """ Get values at interpolation points
-        
-        If interpolation points have been given previously, the 
-        associated matrices will be reused to save time.
-        
-        The argument interpolation points must be given as either a 
-        list of absolute UTM coordinates or a geospatial data object.
-        """
-
-        # FIXME (Ole): Could do with an input check (should be generalised 
-        # and used widely)
-        # That will check that interpolation points is either a list of 
-        # points, Nx2 array, or geospatial
-        
-        # Ensure points are converted to coordinates relative to mesh origin
-        # FIXME (Ole): This could all be refactored using the 
-        # 'change_points_geo_ref' method of Class geo_reference. 
-        # The purpose is to make interpolation points relative
-        # to the mesh origin.
-        #
-        # Speed is also a consideration here.
-        
-        
-        if isinstance(interpolation_points, Geospatial_data):        
-            # Ensure interpolation points are in absolute UTM coordinates
-            interpolation_points = interpolation_points.get_data_points(absolute=True)
-            
-        # Reconcile interpolation points with georeference of domain
-        interpolation_points = self.domain.geo_reference.get_relative(interpolation_points) 
-        interpolation_points = ensure_numeric(interpolation_points)
-        
-        
-        
-        # Get internal (discontinuous) triangles for use with the 
-        # interpolation object.
-        x, y, vertex_values, triangles = self.get_vertex_values(xy=True,
-                                                                smooth=False)
-        # FIXME (Ole): This concat should roll into get_vertex_values
-        vertex_coordinates = concatenate((x[:, NewAxis], y[:, NewAxis]),
-                                         axis=1)
-
-        # Use caching to reuse interpolation information
-        from anuga.fit_interpolate.interpolate import interpolate
-        
-        return interpolate(vertex_coordinates, 
-                           triangles, 
-                           vertex_values, 
-                           interpolation_points,
-                           use_cache=True, 
-                           verbose=verbose)
-        
-        
-
     def get_interpolated_values(self, interpolation_points,
+                                use_cache=False,
                                 verbose=False):
         """ Get values at interpolation points
-        
-        If interpolation points have been given previously, the 
-        associated matrices will be reused to save time.
         
         The argument interpolation points must be given as either a 
         list of absolute UTM coordinates or a geospatial data object.
         """
-
-        # FIXME (Ole): Could do with an input check (should be generalised 
-        # and used widely)
-        # That will check that interpolation points is either a list of 
-        # points, Nx2 array, or geospatial
         
-        # Ensure points are converted to coordinates relative to mesh origin
-        # FIXME (Ole): This could all be refactored using the 
+
+        # FIXME (Ole): Points might be converted to coordinates relative to mesh origin
+        # This could all be refactored using the 
         # 'change_points_geo_ref' method of Class geo_reference. 
         # The purpose is to make interpolation points relative
         # to the mesh origin.
         #
         # Speed is also a consideration here.
         
-        # FIXME (Ole): The reuse of I is a little rough, but it sure does speed up
-        # frequent interpolations such as those found in culvert_class.
         
-        use_cache = True
-        
-        # Get internal (discontinuous) triangles for use with the 
-        # interpolation object.
-        x, y, vertex_values, triangles = self.get_vertex_values(xy=True,
-                                                                smooth=False)
-        # FIXME (Ole): This concat should roll into get_vertex_values
-        vertex_coordinates = concatenate((x[:, NewAxis], y[:, NewAxis]),
-                                         axis=1)                                                                
-            
-            
+        # Ensure that interpolation points is either a list of 
+        # points, Nx2 array, or geospatial and convert to Numeric array
         if isinstance(interpolation_points, Geospatial_data):        
             # Ensure interpolation points are in absolute UTM coordinates
             interpolation_points = interpolation_points.get_data_points(absolute=True)
@@ -1128,34 +1056,16 @@ class Quantity:
         # Reconcile interpolation points with georeference of domain
         interpolation_points = self.domain.geo_reference.get_relative(interpolation_points) 
         interpolation_points = ensure_numeric(interpolation_points)
-        
-        # Check if same interpolation points have been used before
-        if hasattr(self, 'stored_I') and\
-                alltrue(interpolation_points == self.stored_interpolation_points):
-            I = self.stored_I
-        else:    
-        
-            # Use caching to reuse interpolation information
-            from anuga.fit_interpolate.interpolate import Interpolate
-            from anuga.caching import cache
-    
 
-            # Create interpolation object with matrix
-            args = (ensure_numeric(vertex_coordinates, Float), 
-                    ensure_numeric(triangles))
-                      
-            if use_cache is True:
-                I = cache(Interpolate, args,
-                          verbose=verbose)
-            else:
-                I = apply(Interpolate, args)
-                          
-            self.stored_I = I    
-            self.stored_interpolation_points = interpolation_points
-            
-            
+        
+        # Get internal representation (disconnected) of vertex values
+        vertex_values, triangles = self.get_vertex_values(xy=False,
+                                                          smooth=False)                
     
-        # Call interpolate method with interpolation points
+        # Get possibly precomputed interpolation object
+        I = self.domain.get_interpolation_object()
+
+        # Call interpolate method with interpolation points                
         result = I.interpolate_block(vertex_values, interpolation_points,
                                      use_cache=use_cache,
                                      verbose=verbose)
@@ -1163,19 +1073,13 @@ class Quantity:
         return result
         
         
-        return interpolate(vertex_coordinates, 
-                           triangles, 
-                           vertex_values, 
-                           interpolation_points,
-                           use_cache=True, 
-                           verbose=verbose)
-                           
 
 
     def get_values(self, 
                    interpolation_points=None,
                    location='vertices',
                    indices=None,
+                   use_cache=False,
                    verbose=False):
         """get values for quantity
 
@@ -1224,6 +1128,7 @@ class Quantity:
 
         if interpolation_points is not None:
             return self.get_interpolated_values(interpolation_points,
+                                                use_cache=use_cache,
                                                 verbose=verbose)
         
         
@@ -1434,7 +1339,7 @@ class Quantity:
 
 
         else:
-            # Allow discontinuous vertex values 
+            # Return disconnected internal vertex values 
             V = self.domain.get_disconnected_triangles()
             points = self.domain.get_vertex_coordinates()
             A = self.vertex_values.flat.astype(precision)

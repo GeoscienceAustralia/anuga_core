@@ -416,8 +416,8 @@ class Domain(Generic_Domain):
         xmomentum = self.get_quantity('xmomentum')
         ymomentum = self.get_quantity('ymomentum')        
         
-        uh = xmomentum.get_values(interpolation_points=midpoints)
-        vh = ymomentum.get_values(interpolation_points=midpoints)        
+        uh = xmomentum.get_values(interpolation_points=midpoints, use_cache=True)
+        vh = ymomentum.get_values(interpolation_points=midpoints, use_cache=True)
         
         # Compute and sum flows across each segment
         total_flow=0
@@ -487,10 +487,10 @@ class Domain(Generic_Domain):
         xmomentum = self.get_quantity('xmomentum')
         ymomentum = self.get_quantity('ymomentum')        
 
-        w = stage.get_values(interpolation_points=midpoints)
-        z = elevation.get_values(interpolation_points=midpoints)        
-        uh = xmomentum.get_values(interpolation_points=midpoints)
-        vh = ymomentum.get_values(interpolation_points=midpoints)        
+        w = stage.get_values(interpolation_points=midpoints, use_cache=True)
+        z = elevation.get_values(interpolation_points=midpoints, use_cache=True)        
+        uh = xmomentum.get_values(interpolation_points=midpoints, use_cache=True)
+        vh = ymomentum.get_values(interpolation_points=midpoints, use_cache=True)
         h = w-z # Depth
         
         # Compute total length of polyline for use with weighted averages
