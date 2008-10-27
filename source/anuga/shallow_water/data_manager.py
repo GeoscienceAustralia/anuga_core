@@ -5237,8 +5237,13 @@ def urs2sts(basename_in, basename_out=None,
     y = zeros(number_of_points, Float)  # Northing
 
     # Check zone boundaries
-    refzone, _, _ = redfearn(latitudes[0],longitudes[0])  
+    if zone is None:
+        refzone, _, _ = redfearn(latitudes[0],longitudes[0])
+    else:
+        refzone = zone
 
+    old_zone = refzone
+    
     for i in range(number_of_points):
         zone, easting, northing = redfearn(latitudes[i],longitudes[i], zone=zone)
         x[i] = easting
