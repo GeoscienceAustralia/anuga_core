@@ -113,6 +113,7 @@ from anuga.fit_interpolate.interpolate import Modeltime_too_late, Modeltime_too_
 from anuga.utilities.polygon import inside_polygon, polygon_area, is_inside_polygon
 
 from types import IntType, FloatType
+from warnings import warn
 
 
 #---------------------
@@ -1795,6 +1796,7 @@ class General_forcing:
                 raise Exception, msg
 
         self.default_rate = default_rate
+        self.default_rate_invoked = False    # Flag        
         
 
     def __call__(self, domain):
@@ -1806,12 +1808,30 @@ class General_forcing:
         t = domain.get_time()
         try:
             rate = self.update_rate(t)
-        except (Modeltime_too_late, Modeltime_too_early), e: 
-            if self.default_rate is None: 
+        except Modeltime_too_early, e:
+            raise Modeltime_too_early, e
+        except Modeltime_too_late, e:
+            if self.default_rate is None:
                 raise Exception, e # Reraise exception
             else:
-                # FIXME: Issue a warning first time this happens (See changeset:5657)
+                # Pass control to default rate function
                 rate = self.default_rate(t)
+                
+                if self.default_rate_invoked is False:
+                    # Issue warning the first time
+                    msg = '%s' %str(e)
+                    msg += 'Instead I will use the default rate: %s\n'\
+                        %str(self.default_rate) 
+                    msg += 'Note: Further warnings will be supressed'
+                    warn(msg)
+                    
+                    # FIXME (Ole): Replace this crude flag with
+                    # Python's ability to print warnings only once.
+                    # See http://docs.python.org/lib/warning-filter.html
+                    self.default_rate_invoked = True
+                    
+
+            
                 
 
         if rate is None:
@@ -1943,7 +1963,7 @@ class Rainfall(General_forcing):
                                  rate=rain,
                                  center=center, radius=radius,
                                  polygon=polygon,
-                                 default_rate=default_rain,                                 
+                                 default_rate=default_rain,
                                  verbose=verbose)
 
         
@@ -2006,7 +2026,7 @@ class Inflow(General_forcing):
 		 rate=0.0,
 		 center=None, radius=None,
                  polygon=None,
-                 default_rate=None,                                                  
+                 default_rate=None,
                  verbose=False):                 
 
 
