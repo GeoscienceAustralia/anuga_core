@@ -2400,9 +2400,6 @@ class Test_Shallow_Water(unittest.TestCase):
         assert allclose(domain.quantities['stage'].explicit_update, 2.0/1000)
 
 
-        # FIXME: Do Time dependent rainfall
-
-
 
     def test_rainfall_restricted_by_polygon(self):
         from math import pi, cos, sin
@@ -2444,7 +2441,116 @@ class Test_Shallow_Water(unittest.TestCase):
         assert allclose(domain.quantities['stage'].explicit_update[0], 0)
         assert allclose(domain.quantities['stage'].explicit_update[2:], 0)        
         
-        # FIXME: Do Time dependent rainfall with poly
+
+
+    def test_time_dependent_rainfall_restricted_by_polygon(self):
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe
+        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+
+        domain = Domain(points, vertices)
+
+        #Flat surface with 1m of water
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('stage', 1.0)
+        domain.set_quantity('friction', 0)
+
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'exterior': Br})
+
+        # Setup only one forcing term, time dependent rainfall restricted to a polygon enclosing triangle #1 (bce)
+        domain.forcing_terms = []
+        R = Rainfall(domain, rate=lambda t: 3*t + 7, polygon = [[1,1], [2,1], [2,2], [1,2]])
+
+        assert allclose(R.exchange_area, 1)
+        
+        domain.forcing_terms.append(R)
+
+
+        domain.time = 10.
+
+        domain.compute_forcing_terms()
+        #print domain.quantities['stage'].explicit_update
+        
+        assert allclose(domain.quantities['stage'].explicit_update[1], (3*domain.time+7)/1000)
+        assert allclose(domain.quantities['stage'].explicit_update[0], 0)
+        assert allclose(domain.quantities['stage'].explicit_update[2:], 0)        
+        
+
+
+    def test_time_dependent_rainfall_restricted_by_polygon_with_default(self):
+        """test_time_dependent_rainfall_restricted_by_polygon_with_default
+
+        Test that default rainfall can be used when given rate runs out of data.
+        """
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe
+        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+
+        domain = Domain(points, vertices)
+
+        #Flat surface with 1m of water
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('stage', 1.0)
+        domain.set_quantity('friction', 0)
+
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'exterior': Br})
+
+        # Setup only one forcing term, time dependent rainfall that expires at t==20
+        from anuga.fit_interpolate.interpolate import Modeltime_too_late
+        def main_rate(t):
+            if t > 20:
+                msg = 'Model time exceeded.'
+                raise Modeltime_too_late, msg
+            else:
+                return 3*t + 7
+        
+        domain.forcing_terms = []
+        R = Rainfall(domain, rate=main_rate, polygon = [[1,1], [2,1], [2,2], [1,2]],
+                     default_rate=5.0)
+
+        assert allclose(R.exchange_area, 1)
+        
+        domain.forcing_terms.append(R)
+
+
+        domain.time = 10.
+
+        domain.compute_forcing_terms()
+        #print domain.quantities['stage'].explicit_update
+        
+        assert allclose(domain.quantities['stage'].explicit_update[1], (3*domain.time+7)/1000)
+        assert allclose(domain.quantities['stage'].explicit_update[0], 0)
+        assert allclose(domain.quantities['stage'].explicit_update[2:], 0)        
+
+
+        domain.time = 100.
+        domain.quantities['stage'].explicit_update[:] = 0.0  # Reset
+        domain.compute_forcing_terms()
+        #print domain.quantities['stage'].explicit_update
+        
+        assert allclose(domain.quantities['stage'].explicit_update[1], 5.0/1000) # Default value
+        assert allclose(domain.quantities['stage'].explicit_update[0], 0)
+        assert allclose(domain.quantities['stage'].explicit_update[2:], 0)        
+        
 
 
 
@@ -6012,7 +6118,7 @@ if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_fitting_using_shallow_water_domain')    
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_tight_slope_limiters')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_get_maximum_inundation_from_sww')
-    #suite = unittest.makeSuite(Test_Shallow_Water,'test_temp')    
+    #suite = unittest.makeSuite(Test_Shallow_Water,'test_time_dependent_rainfall_restricted_by_polygon')    
     
 
     

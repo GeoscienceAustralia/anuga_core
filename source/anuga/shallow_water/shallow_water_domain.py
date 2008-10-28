@@ -108,9 +108,11 @@ from anuga.config import optimised_gradient_limiter
 from anuga.config import use_edge_limiter
 from anuga.config import use_centroid_velocities
 
+from anuga.fit_interpolate.interpolate import Modeltime_too_late, Modeltime_too_early
 
 from anuga.utilities.polygon import inside_polygon, polygon_area, is_inside_polygon
 
+from types import IntType, FloatType
 
 
 #---------------------
@@ -1642,6 +1644,8 @@ class General_forcing:
     center [m]: Coordinates at center of flow point
     radius [m]: Size of circular area
     polygon:    Arbitrary polygon.
+    default_rate: Rate to be used if rate fails (e.g. if model time exceeds its data)
+                  Admissible types: None, constant number or function of t
 
 
     Either center, radius or polygon can be specified but not both.
@@ -1659,6 +1663,7 @@ class General_forcing:
                  rate=0.0,
 		 center=None, radius=None,
                  polygon=None,
+                 default_rate=None,
                  verbose=False):
                      
         if center is None:
@@ -1767,14 +1772,48 @@ class General_forcing:
                 msg = 'No triangles have been identified in '
                 msg += 'specified region: %s' %inlet_region
                 raise Exception, msg
+            
+        # Check and store default_rate
+ 	msg = 'Keyword argument default_rate must be either None ' 
+ 	msg += 'or a function of time.\n I got %s' %(str(default_rate)) 
+        assert default_rate is None or \
+               type(default_rate) in [IntType, FloatType] or \
+               callable(default_rate), msg
+        
+        if default_rate is not None:
 
+            # If it is a constant, make it a function
+            if not callable(default_rate):
+                tmp = default_rate
+                default_rate = lambda t: tmp
+
+            
+            # Check that default_rate is a function of one argument
+            try:
+                default_rate(0.0)
+            except:
+                raise Exception, msg
+
+        self.default_rate = default_rate
+        
 
     def __call__(self, domain):
         """Apply inflow function at time specified in domain and update stage
         """
 
         # Call virtual method allowing local modifications
-        rate = self.update_rate(domain.get_time())
+
+        t = domain.get_time()
+        try:
+            rate = self.update_rate(t)
+        except (Modeltime_too_late, Modeltime_too_early), e: 
+            if self.default_rate is None: 
+                raise Exception, e # Reraise exception
+            else:
+                # FIXME: Issue a warning first time this happens (See changeset:5657)
+                rate = self.default_rate(t)
+                
+
         if rate is None:
             msg = 'Attribute rate must be specified in General_forcing'
             msg += ' or its descendants before attempting to call it'
@@ -1878,13 +1917,25 @@ class Rainfall(General_forcing):
 		 rate=0.0,
 		 center=None, radius=None,
                  polygon=None,
+                 default_rate=None,                 
                  verbose=False):
 
         # Converting mm/s to m/s to apply in ANUGA)
         if callable(rate):
             rain = lambda t: rate(t)/1000.0
         else:
-            rain = rate/1000.0            
+            rain = rate/1000.0
+
+        if default_rate is not None:    
+            if callable(default_rate):
+                default_rain = lambda t: default_rate(t)/1000.0
+            else:
+                default_rain = default_rate/1000.0
+        else:
+            default_rain = None
+
+
+            
             
         General_forcing.__init__(self,
                                  domain,
@@ -1892,6 +1943,7 @@ class Rainfall(General_forcing):
                                  rate=rain,
                                  center=center, radius=radius,
                                  polygon=polygon,
+                                 default_rate=default_rain,                                 
                                  verbose=verbose)
 
         
@@ -1954,6 +2006,7 @@ class Inflow(General_forcing):
 		 rate=0.0,
 		 center=None, radius=None,
                  polygon=None,
+                 default_rate=None,                                                  
                  verbose=False):                 
 
 
@@ -1964,6 +2017,7 @@ class Inflow(General_forcing):
                                  rate=rate,
                                  center=center, radius=radius,
                                  polygon=polygon,
+                                 default_rate=default_rate,
                                  verbose=verbose)
 
     def update_rate(self, t):
@@ -1974,8 +2028,6 @@ class Inflow(General_forcing):
         to 'stage' in ANUGA
         """
 
-        
-        
 	if callable(self.rate):
 	    _rate = self.rate(t)/self.exchange_area
 	else:
