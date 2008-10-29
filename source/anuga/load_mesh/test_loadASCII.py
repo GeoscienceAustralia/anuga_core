@@ -9,7 +9,7 @@ import tempfile
 
 from os.path import splitext
 
-from Numeric import array, allclose 
+from Numeric import array, allclose, alltrue 
     
 from anuga.load_mesh.loadASCII import *
 from anuga.coordinate_transforms.geo_reference import Geo_reference
@@ -178,33 +178,33 @@ class loadASCIITestCase(unittest.TestCase):
         #print loadedDict
         #print "*(*("
         
-        self.failUnless(array(meshDict['vertices'])  ==
-                        array(loadedDict['vertices']),
+        self.failUnless(alltrue(array(meshDict['vertices'])  ==
+                        array(loadedDict['vertices'])),
                          'test_export_mesh_file failed. Test 1')
-        self.failUnless(array(meshDict['triangles'])  ==
-                        array(loadedDict['triangles']),
+        self.failUnless(alltrue(array(meshDict['triangles'])  ==
+                        array(loadedDict['triangles'])),
                          'test_export_mesh_file failed. Test 2')
-        self.failUnless(array(meshDict['segments'])  ==
-                        array(loadedDict['segments']),
+        self.failUnless(alltrue(array(meshDict['segments'])  ==
+                        array(loadedDict['segments'])),
                          'test_export_mesh_file failed. Test 3')
-        self.failUnless(array(meshDict['triangle_tags'])  ==
-                        array(loadedDict['triangle_tags']),
+        self.failUnless(alltrue(array(meshDict['triangle_tags'])  ==
+                        array(loadedDict['triangle_tags'])),
                          'test_export_mesh_file failed. Test 4')
-        
+
         self.failUnless(meshDict['vertex_attributes']  ==
                         loadedDict['vertex_attributes'],
                          'test_export_mesh_file failed. Test 5')
-        self.failUnless(array(meshDict['triangle_neighbors'])  ==
-                        array(loadedDict['triangle_neighbors']),
+        self.failUnless(alltrue(array(meshDict['triangle_neighbors'])  ==
+                        array(loadedDict['triangle_neighbors'])),
                          'test_export_mesh_file failed. Test 6')
-        self.failUnless(array(meshDict['segment_tags'])  ==
-                        array(loadedDict['segment_tags']),
+        self.failUnless(alltrue(array(meshDict['segment_tags'])  ==
+                        array(loadedDict['segment_tags'])),
                          'test_export_mesh_file failed. Test 7')
-        self.failUnless(array(meshDict['vertex_attribute_titles'])  ==
-                        array(loadedDict['vertex_attribute_titles']),
+        self.failUnless(alltrue(array(meshDict['vertex_attribute_titles'])  ==
+                        array(loadedDict['vertex_attribute_titles'])),
                          'test_export_mesh_file failed. Test 8')
-        self.failUnless(array(meshDict['geo_reference'])  ==
-                        array(loadedDict['geo_reference']),
+        self.failUnless(alltrue(array(meshDict['geo_reference'])  ==
+                        array(loadedDict['geo_reference'])),
                          'test_export_mesh_file failed. Test 9')
             
         os.remove(fileName)
@@ -453,6 +453,7 @@ showme1.0 0.0 10.0 \n\
             
         assert allclose(array(loaded_dict['regions']),
                         array(dict['regions']))
+                        
         self.failUnless(loaded_dict['region_tags']  ==
                         dict['region_tags'],
                         fail_string + ' failed!! Test 5')
@@ -473,7 +474,7 @@ showme1.0 0.0 10.0 \n\
                         array(loaded_dict['segments']))
         for ob, ldob in map(None,dict['triangle_tags'],
                               loaded_dict['triangle_tags']):
-            self.failUnless(ob  == ldob,
+            self.failUnless(ob == ldob,
                         fail_string + ' failed!! Test triangle_tags')
         # A bit hacky
         self.failUnless((loaded_dict['vertex_attributes']  ==
@@ -493,8 +494,7 @@ showme1.0 0.0 10.0 \n\
             assert allclose(array(dict['vertex_attribute_titles']),
                             array(loaded_dict['vertex_attribute_titles']))
         except TypeError:
-            self.failUnless(array(loaded_dict['vertex_attribute_titles'])  ==
-                        array(dict['vertex_attribute_titles']),
+            self.failUnless(alltrue(array(loaded_dict['vertex_attribute_titles']) == array(dict['vertex_attribute_titles'])),
                         fail_string + ' failed!! Test 8')
         try:    
             self.failUnless(loaded_dict['geo_reference']  ==

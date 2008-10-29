@@ -4,6 +4,13 @@
 I removed lone test vert's, since I'm working on removing lone verts at a lower
 level of the code, using the -j flag in triangle.
 """
+
+
+#FIXME (Ole): Go through this file and check that array's 
+#             aren't compared using ==. Need to use either alltrue 
+#             (on 1D integer arrays) or allclose.
+ 
+
 import sys
 
 import unittest
