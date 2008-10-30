@@ -556,6 +556,55 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.update_boundary()
         domain.check_integrity()
 
+        
+        
+        
+    def test_boundary_condition_time(self):
+        """test_boundary_condition_time
+        
+        This tests that boundary conditions are evaluated
+        using the right time from domain.
+
+        """
+        
+        # Setup computational domain
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
+
+
+        #--------------------------------------------------------------
+        # Setup computational domain
+        #--------------------------------------------------------------
+        N = 5
+        points, vertices, boundary = rectangular_cross(N, N) 
+        domain = Domain(points, vertices, boundary)
+
+        #--------------------------------------------------------------
+        # Setup initial conditions
+        #--------------------------------------------------------------
+        domain.set_quantity('elevation', 0.0)
+        domain.set_quantity('friction', 0.0)
+        domain.set_quantity('stage', 0.0)
+
+
+        #--------------------------------------------------------------
+        # Setup boundary conditions
+        #--------------------------------------------------------------
+        Bt = Time_boundary(domain=domain,             # Time dependent boundary  
+                           f=lambda t: [t, 0.0, 0.0])
+        
+        Br = Reflective_boundary(domain)              # Reflective wall
+
+        domain.set_boundary({'left': Bt, 'right': Br, 'top': Br, 'bottom': Br})
+        
+        for t in domain.evolve(yieldstep = 10, finaltime = 20.0):
+            q = Bt.evaluate()
+    
+            # FIXME (Ole): This test would not have passed in 
+            # changeset:5846.
+            msg = 'Time boundary not evaluated correctly'
+            assert allclose(t, q[0]), msg
+            
+        
 
     def test_compute_fluxes0(self):
         # Do a full triangle and check that fluxes cancel out for
