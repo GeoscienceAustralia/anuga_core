@@ -59,8 +59,18 @@ class Test_system(unittest.TestCase):
         domain.set_boundary({'exterior': Bd})
         for t in domain.evolve(yieldstep = 10, finaltime = 20.0):
             pass
+            #print domain.boundary_statistics('stage')
+            q = Bd.evaluate()
+    
+            # FIXME (Ole): This test would not have passed in 
+            # changeset:5846.
+            msg = 'Time boundary not evaluated correctly'
+            assert allclose(t, q[0]), msg
+            
+            #print domain.get_quantity('stage').get_values()
             #domain.write_time()
             #print "domain.time", domain.time
+            
         return boundary_filename
     
     def test_boundary_time(self):
@@ -149,6 +159,7 @@ class Test_system(unittest.TestCase):
         domain.set_boundary({'exterior': Bf})
         for t in domain.evolve(yieldstep = 5, finaltime = 9.0):
             pass
+            #print domain.boundary_statistics()
             #domain.write_time()
             #print "domain.time", domain.time
 
@@ -161,11 +172,12 @@ class Test_system(unittest.TestCase):
         #print "fid.starttime", fid.starttime
         assert allclose(fid.starttime, new_starttime)
         fid.close()
+        
         #print "stage[2,0]", stage[2,0]
         msg = "This test is a bit hand crafted, based on the output file. "
         msg += "Not logic. "
         msg += "It's testing that starttime is working"
-        assert allclose(stage[2,0], 5.959411),msg
+        assert allclose(stage[2,0], 11.9867153168),msg
         
         
 
