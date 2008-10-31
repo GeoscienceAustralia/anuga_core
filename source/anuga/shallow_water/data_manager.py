@@ -4906,7 +4906,7 @@ def read_mux2_py(filenames,
     from urs_ext import read_mux2
 
     numSrc=len(filenames)
-
+    
     file_params=-1*ones(3,Float) #[nsta,dt,nt]
     
     # Convert verbose to int C flag
@@ -4918,6 +4918,9 @@ def read_mux2_py(filenames,
     if permutation is None:
         permutation = ensure_numeric([], Float)    
 
+    #print 'filenames', filenames
+    #print 'weights', weights
+                
     # Call underlying C implementation urs2sts_ext.c    
     data = read_mux2(numSrc, filenames, weights, file_params, permutation, verbose)
 
@@ -4971,10 +4974,14 @@ def read_mux2_py(filenames,
     elevation=zeros(number_of_selected_stations, Float)
     quantity=zeros((number_of_selected_stations, parameters_index), Float)
     
-    
+
+    #print 'number_of_selected_stations', number_of_selected_stations
     starttime=1e16
     for i in range(number_of_selected_stations):
         quantity[i][:]=data[i][:parameters_index]
+        
+        #print i, parameters_index
+        #print quantity[i][:]
     
         latitudes[i]=data[i][parameters_index]
         longitudes[i]=data[i][parameters_index+1]
@@ -5149,6 +5156,9 @@ def urs2sts(basename_in, basename_out=None,
     if (verbose): print 'reading mux2 file'
     mux={}
     for i, quantity in enumerate(quantities):
+    
+        #print
+        #print quantity
     
         # For each quantity read the associated list of source mux2 file with 
         # extention associated with that quantity
