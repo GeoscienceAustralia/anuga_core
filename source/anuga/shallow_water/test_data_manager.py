@@ -5532,18 +5532,19 @@ friction  \n \
             f.close()
         return base_name, files
     
-    def write_mux(self,lat_long_points, time_step_count, time_step,
-                  depth=None, ha=None, ua=None, va=None
-                  ):
+    def write_mux(self, lat_long_points, time_step_count, time_step,
+                  depth=None, ha=None, ua=None, va=None):
         """
         This will write 3 non-gridded mux files, for testing.
         If no quantities are passed in,
         na and va quantities will be the Easting values.
         Depth and ua will be the Northing value.
         """
+
         #print "lat_long_points", lat_long_points
         #print "time_step_count",time_step_count
         #print "time_step",
+
         
         points_num = len(lat_long_points)
         lonlatdeps = []
@@ -5582,9 +5583,9 @@ friction  \n \
         file_handle, base_name = tempfile.mkstemp("")
         os.close(file_handle)
         os.remove(base_name)
-        
+
         files = []        
-        for i,q in enumerate(quantities): 
+        for i, q in enumerate(quantities): 
             quantities_init[i] = ensure_numeric(quantities_init[i])
             #print "HA_init", HA_init
             q_time = zeros((time_step_count, points_num), Float)
@@ -6062,16 +6063,19 @@ friction  \n \
         os.remove(base_name)
 
         files = []        
-        for i,q in enumerate(quantities):
+        for i, q in enumerate(quantities):
             q_time = zeros((time_step_count, points_num), Float)
             quantities_init[i] = ensure_numeric(quantities_init[i])
             for time in range(time_step_count):
-                q_time[time,:]=quantities_init[i][:,time]
+                #print i, q, time, quantities_init[i][:,time]
+                q_time[time,:] = quantities_init[i][:,time]
+                #print i, q, time, q_time[time, :]                
 
             #Write C files
             columns = 3 # long, lat , depth
             file = base_name + mux_names[i]
-            #print "base_name file",file 
+            
+            #print "base_name file", file 
             f = open(file, 'wb')
             files.append(file)
 
@@ -6105,7 +6109,7 @@ friction  \n \
 
             # Find when first station starts recording
             min_tstep = min(first_tstep)
-            # Find when all stations have stoped recording
+            # Find when all stations have stopped recording
             max_tstep = max(last_tstep)
 
             #for time in  range(time_step_count):
@@ -6113,7 +6117,10 @@ friction  \n \
                     f.write(pack('f',time*time_step))                
                     for point_i in range(points_num):
                         if time+1>=first_tstep[point_i] and time+1<=last_tstep[point_i]:
-                            f.write(pack('f',q_time[time,point_i]))
+                            #print 'writing', time, point_i, q_time[time, point_i]
+                            f.write(pack('f', q_time[time, point_i]))
+
+            f.close()
 
         return base_name, files
 
@@ -6303,12 +6310,15 @@ friction  \n \
         msg='incorrect gauge va time series returned'
         assert allclose(yvelocity,va)
         
+
         
-    def test_read_mux_platform_problem(self):
-        """test_read_mux_platform_problem
+    def test_read_mux_platform_problem1(self):
+        """test_read_mux_platform_problem1
         
         This is to test a situation where read_mux returned 
         wrong values Win32
+
+        This test passes but test_read_mux_platform_problem2 does not
         """
         
         from Numeric import sin, cos
@@ -6319,16 +6329,13 @@ friction  \n \
         tide = 1.5
         time_step_count = 10
         time_step = 0.2
-        
         times_ref = arange(0, time_step_count*time_step, time_step)
-        #print 'time vector', times_ref
-        
+
         lat_long_points = [(-21.5,114.5), (-21,114.5), (-21.5,115), (-21.,115.), (-22., 117.)]
         n = len(lat_long_points)
         
-        
         # Create different timeseries starting and ending at different times 
-        first_tstep=ones(n,Int)
+        first_tstep=ones(n, Int)
         first_tstep[0]+=2   # Point 0 starts at 2
         first_tstep[1]+=4   # Point 1 starts at 4        
         first_tstep[2]+=3   # Point 2 starts at 3
@@ -6338,15 +6345,11 @@ friction  \n \
         last_tstep[1]-=2    # Point 1 ends 2 steps early                
         last_tstep[4]-=3    # Point 4 ends 3 steps early        
         
-        
-        
         # Create varying elevation data (positive values for seafloor)
         gauge_depth=20*ones(n,Float)
         for i in range(n):
             gauge_depth[i] += i**2
             
-        #print 'gauge_depth', gauge_depth
-        
         # Create data to be written to first mux file        
         ha0=2*ones((n,time_step_count),Float)
         ha0[0]=arange(0,time_step_count)
@@ -6360,12 +6363,9 @@ friction  \n \
         # not recording
         for i in range(n):
              # For each point
-             
              for j in range(0, first_tstep[i]-1) + range(last_tstep[i], time_step_count):
                  # For timesteps before and after recording range
                  ha0[i][j] = ua0[i][j] = va0[i][j] = 0.0                                  
-
-
         
         # Write first mux file to be combined by urs2sts
         base_nameI, filesI = self.write_mux2(lat_long_points,
@@ -6376,8 +6376,85 @@ friction  \n \
                                              ua=ua0,
                                              va=va0)
 
-                                             
-                                             
+        # Create ordering file
+        permutation = ensure_numeric([4,0,2])
+
+        _, ordering_filename = tempfile.mkstemp('')
+        order_fid = open(ordering_filename, 'w')  
+        order_fid.write('index, longitude, latitude\n')
+        for index in permutation:
+            order_fid.write('%d, %f, %f\n' %(index, 
+                                             lat_long_points[index][1], 
+                                             lat_long_points[index][0]))
+        order_fid.close()
+        
+        
+
+        # -------------------------------------
+        # Now read files back and check values
+        weights = ensure_numeric([1.0])
+
+        # For each quantity read the associated list of source mux2 file with 
+        # extention associated with that quantity
+        file_params=-1*ones(3,Float) #[nsta,dt,nt]
+        OFFSET = 5
+
+        for j, file in enumerate(filesI):
+            data = read_mux2(1, [file], weights, file_params, permutation, verbose)
+
+            number_of_selected_stations = data.shape[0]
+
+            # Index where data ends and parameters begin
+            parameters_index = data.shape[1]-OFFSET          
+          
+            for i in range(number_of_selected_stations):
+                if j == 0: assert allclose(data[i][:parameters_index], ha0[permutation[i], :])
+                if j == 1: assert allclose(data[i][:parameters_index], ua0[permutation[i], :])
+                if j == 2: assert allclose(data[i][:parameters_index], va0[permutation[i], :])
+        
+
+
+        
+        
+    def test_read_mux_platform_problem2(self):
+        """test_read_mux_platform_problem2
+        
+        This is to test a situation where read_mux returned 
+        wrong values Win32
+
+        This test does not pass but test_read_mux_platform_problem1 does
+        """
+        
+        from Numeric import sin, cos
+        from urs_ext import read_mux2 
+        
+        verbose = False
+                
+        tide = 1.5
+        time_step_count = 10
+        time_step = 0.2
+        
+        times_ref = arange(0, time_step_count*time_step, time_step)
+        
+        lat_long_points = [(-21.5,114.5), (-21,114.5), (-21.5,115), (-21.,115.), (-22., 117.)]
+        n = len(lat_long_points)
+        
+        # Create different timeseries starting and ending at different times 
+        first_tstep=ones(n,Int)
+        first_tstep[0]+=2   # Point 0 starts at 2
+        first_tstep[1]+=4   # Point 1 starts at 4        
+        first_tstep[2]+=3   # Point 2 starts at 3
+        
+        last_tstep=(time_step_count)*ones(n,Int)
+        last_tstep[0]-=1    # Point 0 ends 1 step early
+        last_tstep[1]-=2    # Point 1 ends 2 steps early                
+        last_tstep[4]-=3    # Point 4 ends 3 steps early        
+        
+        # Create varying elevation data (positive values for seafloor)
+        gauge_depth=20*ones(n,Float)
+        for i in range(n):
+            gauge_depth[i] += i**2
+            
         # Create data to be written to second mux file        
         ha1=ones((n,time_step_count),Float)
         ha1[0]=sin(times_ref)
@@ -6397,18 +6474,20 @@ friction  \n \
         va1[1]=3*ones(time_step_count)
         va1[3]=2*sin(times_ref-0.71)        
         
-        
         # Ensure data used to write mux file to be zero when gauges are
         # not recording
         for i in range(n):
              # For each point
-             
              for j in range(0, first_tstep[i]-1) + range(last_tstep[i], time_step_count):
                  # For timesteps before and after recording range
                  ha1[i][j] = ua1[i][j] = va1[i][j] = 0.0                                  
 
 
-                                             
+        #print 'Second station to be written to MUX'
+        #print 'ha', ha1[2,:]
+        #print 'ua', ua1[2,:]
+        #print 'va', va1[2,:]
+        
         # Write second mux file to be combined by urs2sts                                             
         base_nameII, filesII = self.write_mux2(lat_long_points,
                                                time_step_count, time_step,
@@ -6439,143 +6518,50 @@ friction  \n \
 
         # For each quantity read the associated list of source mux2 file with 
         # extention associated with that quantity
-        file_params=-1*ones(3,Float) #[nsta,dt,nt]
+        file_params=-1*ones(3,Float) # [nsta,dt,nt]
         OFFSET = 5
 
-        # FILE I
-        for j, file in enumerate(filesI):
-            data = read_mux2(1, [file], weights, file_params, permutation, verbose)
-
-            nsta=int(file_params[0])
-            dt=file_params[1]        
-        
-            number_of_selected_stations = data.shape[0]
-
-            # Index where data ends and parameters begin
-            parameters_index = data.shape[1]-OFFSET          
-                 
-            times=dt*arange(parameters_index)    
-            latitudes=zeros(number_of_selected_stations, Float)
-            longitudes=zeros(number_of_selected_stations, Float)
-            elevation=zeros(number_of_selected_stations, Float)
-            quantity=zeros((number_of_selected_stations, parameters_index), Float)
-            
-            starttime=1e16
-            
-            for i in range(number_of_selected_stations):
-                quantity[i][:]=data[i][:parameters_index]
-        
-                #print i, j, parameters_index
-                #print quantity[i][:]
-
-                if j == 0:
-                    # HA
-                    if i == 0:
-                        assert allclose(quantity[i][:],
-                                        [2., 2., 2., 2., 2., 2., 2., 0., 0., 0.])
-                    if i == 1:
-                        assert allclose(quantity[i][:],                                        
-                                        [0., 0., 2., 3., 4., 5., 6., 7., 8., 0.])
-                    if i == 2:
-                        assert allclose(quantity[i][:],
-                                        [0., 0., 0., 23., 24., 25., 26., 27., 28., 29.])
-                                        
-                if j == 1:
-                    # UA
-                    if i == 0:
-                        assert allclose(quantity[i][:],
-                                        [5., 5., 5., 5., 5., 5., 5., 0., 0., 0.])
-                    if i == 1:
-                        assert allclose(quantity[i][:],                                        
-                                        [0., 0., 5., 5., 5., 5., 5., 5., 5., 0.])
-                    if i == 2:
-                        assert allclose(quantity[i][:],
-                                        [0., 0., 0., 5., 5., 5., 5., 5., 5., 5.])
-                if j == 2:
-                    # VA
-                    if i == 0:
-                        assert allclose(quantity[i][:],                                        
-                                        [-10., -10., -10., -10., -10., -10., -10., 0., 0., 0.])
-                    if i == 1:
-                        assert allclose(quantity[i][:],
-                                        [0., 0., -10., -10., -10., -10., -10., -10., -10., 0.])
-                    if i == 2:
-                        assert allclose(quantity[i][:],                        
-                                        [0., 0., 0., -10., -10., -10., -10., -10., -10., -10.])
-                                                                                
-        
-        # FILE II
         for j, file in enumerate(filesII):
             data = read_mux2(1, [file], weights, file_params, permutation, verbose)
 
-            nsta=int(file_params[0])
-            dt=file_params[1]        
-        
+            #print 
+            #print 'j:', j
+            #print data[2][:]
+            #print file_params
+            #print
+
             number_of_selected_stations = data.shape[0]
 
             # Index where data ends and parameters begin
             parameters_index = data.shape[1]-OFFSET          
                  
-            times=dt*arange(parameters_index)    
-            latitudes=zeros(number_of_selected_stations, Float)
-            longitudes=zeros(number_of_selected_stations, Float)
-            elevation=zeros(number_of_selected_stations, Float)
             quantity=zeros((number_of_selected_stations, parameters_index), Float)
             
-            starttime=1e16
             
             for i in range(number_of_selected_stations):
                 quantity[i][:]=data[i][:parameters_index]
         
                 #print i, parameters_index
                 #print quantity[i][:]
-                
-                
-                if j == 0:
-                    # HA
-                    if i == 0:
-                        assert allclose(quantity[i][:],
-                                        [-0.64421767, -0.29552022,  0.09983341,  0.47942555,
-                                          0.78332692,  0.9635582, 0.99166483,  0., 0., 0.])
-                    if i == 1:
-                        assert allclose(quantity[i][:],
-                                        [0., 0., 0.38941833, 0.56464249, 0.71735609, 0.84147096,
-                                         0.93203908, 0.98544973, 0.99957359, 0.])
-                    if i == 2:
-                        assert allclose(quantity[i][:],
-                                        [0., 0., 0., 3.377316, -0.29187071, -3.78401256,
-                                         -4.98082304, -3.15633321, 0.58274603, 3.9683392])                        
 
-                                        
-                if j == 1:
-                    # UA
-                    if i == 0:
-                        assert allclose(quantity[i][:],
-                                        [2., 2., 2., 2., 2., 2., 2., 0., 0., 0.])                        
-                    if i == 1:
-                        assert allclose(quantity[i][:],                                        
-                                        [0., 0., 2.76318288, 2.47600675, 2.09012008, 1.62090695,
-                                         1.08707321, 0.5099014, -0.08759857, 0.])
-                    if i == 2:
-                        assert allclose(quantity[i][:],
-                                        [0., 0., 0., 33., 34., 35., 36., 37., 38., 39.])                        
 
+                if j == 0: assert allclose(data[i][:parameters_index], ha1[permutation[i], :])
+                if j == 1: assert allclose(data[i][:parameters_index], ua1[permutation[i], :])
                 if j == 2:
-                    # VA
-                    if i == 0:
-                        assert allclose(quantity[i][:],                                       
-                                        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.])                         
-                    if i == 1:
-                        assert allclose(quantity[i][:],
-                                        [0., 0., 1.78313661, 1.92754185, 1.99510205, 1.98312378,
-                                         1.89208472, 1.72561419, 1.49034882, 0.])
-                    if i == 2:
-                        assert allclose(quantity[i][:],
-                                        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.])
-            
-        
-        
+                    # FIXME (Ole): This is where the output is wrong on Win32
+                    
+                    #print
+                    #print j, i
+                    #print data[i][:parameters_index]
+                    #print va1[permutation[i], :]
 
+                    if j == 2 and i == 1:
+                        pass
+                        # Skip assert for this combination for now as the second error is more obvious
+                    else:
+                        assert allclose(data[i][:parameters_index], va1[permutation[i], :])
+                    
+        
     def test_urs2sts0(self):
         """
         Test single source
@@ -8030,13 +8016,7 @@ friction  \n \
         #print transpose(va_ref*depth_ref)
         #print ymomentum
 
-        from sys import platform
-        if platform == 'win32':
-            # FIXME (Ole) - one array element differs on windoze. Why?
-            pass
-        else:
-            # It works fine on Linux 32 and 64 bit platforms.
-            assert allclose(transpose(va_ref*depth_ref), ymomentum)
+        assert allclose(transpose(va_ref*depth_ref), ymomentum)
 
         # check the elevation values.
         # -ve since urs measures depth, sww meshers height,
@@ -10932,7 +10912,7 @@ if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager,'covered_')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_individual_sources')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_ordering_different_sources')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_read_mux_platform_prob')	
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_read_mux_platform_problem')	
 
     
     if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':
