@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<ga_license_file>
+  <metadata>
+    <author>Ole Nielsen</author>
+  </metadata>
+  <datafile>
+    <filename>mainland_only.csv</filename>
+    <checksum>1002859807</checksum>
+    <publishable>Yes</publishable>
+    <accountable>Ole Nielsen</accountable>
+    <source>Geoscience Australia</source>
+    <IP_owner>Geoscience Australia</IP_owner>
+    <IP_info>This is a polygon comprising easting and northing locations 
+    roughly tracing parts of the coastline at Dampier WA as well as a small 
+    arbitrary area inland.
+    
+    The data was obtained by subsampling the digitized coastline by a factor
+    of 10 making it a very rough approximation. 
+    It is used with a unit test in test_polygon.py as an example of
+    a convoluted polygon to test the functionality 
+    in ANUGA to specifically set the onshore initial condition in a 
+    tsunami scenario. 
+    
+    The original coastline was derived from Maritime Boundaries which 
+    is a public dataset but some of it was modified using a digitised 
+    coastline from a Landgate supplied image.
+    
+    However, after decimation, this dataset is obscured and does not provide
+    a usable coastline. As such it does not infringe on Landgate's IP.
+    </IP_info>
+  </datafile>
+
+</ga_license_file>
