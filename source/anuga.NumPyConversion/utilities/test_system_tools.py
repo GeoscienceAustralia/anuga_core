@@ -2,7 +2,7 @@
 
 
 import unittest
-from Numeric import zeros, array, allclose, Float
+from numpy import zeros, array, allclose, float, dtype
 import zlib
 from os.path import join, split, sep
 
@@ -86,8 +86,7 @@ class Test_system_tools(unittest.TestCase):
             filename1 = mktemp(suffix='.nc', dir='.')
             fid = NetCDFFile(filename1, 'w')
             fid.createDimension('two', 2)
-            fid.createVariable('test_array', Float,
-                               ('two', 'two'))
+            fid.createVariable('test_array', dtype(float).char, ('two', 'two'))
             fid.variables['test_array'][:] = test_array
             fid.close()
             
@@ -95,8 +94,7 @@ class Test_system_tools(unittest.TestCase):
             filename2 = mktemp(suffix='.nc', dir='.')
             fid = NetCDFFile(filename2, 'w')
             fid.createDimension('two', 2)
-            fid.createVariable('test_array', Float,
-                               ('two', 'two'))
+            fid.createVariable('test_array', dtype(float).char, ('two', 'two'))
             fid.variables['test_array'][:] = test_array
             fid.close()
             

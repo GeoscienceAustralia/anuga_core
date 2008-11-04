@@ -2,8 +2,8 @@
 
 
 import unittest
-from Numeric import zeros, array, allclose
-from Numeric import ArrayType, Float, Int, array, alltrue
+from numpy import zeros, array, allclose
+from numpy import ndarray, float, int, array, alltrue
 
 from math import sqrt, pi
 from anuga.config import epsilon
@@ -67,57 +67,58 @@ class Test_Numerical_Tools(unittest.TestCase):
     def test_ensure_numeric(self):
         A = [1,2,3,4]
         B = ensure_numeric(A)
-        assert type(B) == ArrayType
-        assert B.typecode() == 'l'
+        assert isinstance(B, ndarray)
+        assert B.dtype.char == 'l'
         assert B[0] == 1 and B[1] == 2 and B[2] == 3 and B[3] == 4
 
         A = [1,2,3.14,4]
         B = ensure_numeric(A)
-        assert type(B) == ArrayType
-        assert B.typecode() == 'd'
+        assert isinstance(B, ndarray)
+        assert B.dtype.char == 'd'
         assert B[0] == 1 and B[1] == 2 and B[2] == 3.14 and B[3] == 4
 
         A = [1,2,3,4]
-        B = ensure_numeric(A, Float)
-        assert type(B) == ArrayType
-        assert B.typecode() == 'd'
+        B = ensure_numeric(A, float)
+        assert isinstance(B, ndarray)
+        assert B.dtype.char == 'd'
         assert B[0] == 1.0 and B[1] == 2.0 and B[2] == 3.0 and B[3] == 4.0
 
         A = [1,2,3,4]
-        B = ensure_numeric(A, Float)
-        assert type(B) == ArrayType
-        assert B.typecode() == 'd'
+        B = ensure_numeric(A, float)
+        assert isinstance(B, ndarray)
+        assert B.dtype.char == 'd'
         assert B[0] == 1.0 and B[1] == 2.0 and B[2] == 3.0 and B[3] == 4.0
 
         A = array([1,2,3,4])
         B = ensure_numeric(A)
-        assert type(B) == ArrayType
-        assert B.typecode() == 'l'        
+        assert isinstance(B, ndarray)
+        assert B.dtype.char == 'l'        
         assert alltrue(A == B)    
         assert A is B   #Same object
 
         A = array([1,2,3,4])
-        B = ensure_numeric(A, Float)
-        assert type(B) == ArrayType
-        assert B.typecode() == 'd'        
+        B = ensure_numeric(A, float)
+        assert isinstance(B, ndarray)
+        assert B.dtype.char == 'd'        
         assert alltrue(A == B)    
         assert A is not B   #Not the same object
 
         # Check scalars
         A = 1
-        B = ensure_numeric(A, Float)
+        B = ensure_numeric(A, float)
         #print A, B[0], len(B), type(B) 
         #print B.shape
         assert alltrue(A == B)
 
-        B = ensure_numeric(A, Int)        
+        B = ensure_numeric(A, int)        
         #print A, B
         #print B.shape
         assert alltrue(A == B)
 
+    def NO_test_ensure_numeric_char(self):
         # Error situation
-
-        B = ensure_numeric('hello', Int)                
+        B = ensure_numeric('hello', int)
+        print 'B=%s %s' % (str(B), type(B))
         assert allclose(B, [104, 101, 108, 108, 111])
 
 
@@ -159,7 +160,7 @@ class Test_Numerical_Tools(unittest.TestCase):
         #Reference
         zx, zy = gradient(x0, y0, x1, y1, x2, y2, z0, z1, z2)
         a, b = gradient2(x0, y0, x1, y1, z0, z1)
-
+        
         assert zx == a
         assert zy == b
 
@@ -280,8 +281,8 @@ class Test_Numerical_Tools(unittest.TestCase):
     def test_gradient_C_extension3(self):
         from util_ext import gradient as gradient_c
 
-        from RandomArray import uniform, seed
-        seed(17, 53)
+        from numpy.random import uniform, seed
+        seed(53)    # numeric was seed(17, 53)
 
         x0, x1, x2, y0, y1, y2 = uniform(0.0,3.0,6)
 
@@ -311,6 +312,7 @@ class Test_Numerical_Tools(unittest.TestCase):
         # If there is x and y, n=2 and relative=False, this will calc;
         # sqrt(sum_over_x&y((xi - yi)^2))
         err__1 = err(x,y,2,False)
+        
         assert err__1 == sqrt(20)
         #print "err_", err_
         #rmsd_1 = err__1*sqrt(1./len(x))

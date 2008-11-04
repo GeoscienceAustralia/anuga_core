@@ -10,6 +10,17 @@
    Ole Nielsen, Duncan Gray Oct 2001      
 """     
 
+#NumPy ------------------------------------
+# these lines recommended in "Converting from NUMARRAY to NUMPY"
+import numpy
+import numpy.numarray as nn
+numpyincludedirs = numpy.get_include()
+numarrayincludedirs = nn.get_numarray_include_dirs()
+I_dirs = '-I"%s" ' % numpyincludedirs
+for d in numarrayincludedirs:
+    I_dirs += '-I"%s" ' % d
+#NumPy ------------------------------------
+
 # FIXME (Ole): Although this script says it works with a range of compilers,
 # it has only really been used with gcc.
 
@@ -254,11 +265,13 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
           %(compiler, FN, python_include, root)
     else:
       if FN == "triangle.c" or FN == "mesh_engine_c_layer.c":
-        s = '%s -c %s -I"%s" -I"%s" -o "%s.o" -O3 -DTRILIBRARY=1 -DNO_TIMER=1'\
-            %(compiler, FN, python_include, utilities_include_dir, root)
+#NumPy        s = '%s -c %s -I"%s" -I"%s" -o "%s.o" -O3 -DTRILIBRARY=1 -DNO_TIMER=1'\
+        s = '%s -c %s %s -I"%s" -I"%s" -o "%s.o" -O3 -DTRILIBRARY=1 -DNO_TIMER=1'\
+            %(compiler, FN, I_dirs, python_include, utilities_include_dir, root)
       else:
-        s = '%s -c %s -I"%s" -I"%s" -o "%s.o" -Wall -O3'\
-            %(compiler, FN, python_include, utilities_include_dir, root)
+#NumPy        s = '%s -c %s -I"%s" -I"%s" -o "%s.o" -Wall -O3'\
+        s = '%s -c %s %s -I"%s" -I"%s" -o "%s.o" -Wall -O3'\
+            %(compiler, FN, I_dirs, python_include, utilities_include_dir, root)
 
     if os.name == 'posix' and os.uname()[4] == 'x86_64':
       #Extra flags for 64 bit architectures

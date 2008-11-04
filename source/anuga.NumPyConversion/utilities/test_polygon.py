@@ -2,7 +2,7 @@
 
 
 import unittest
-from Numeric import zeros, array, allclose
+from numpy import zeros, array, allclose, alltrue
 from math import sqrt, pi
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.utilities.system_tools import get_pathname_from_package
@@ -42,7 +42,7 @@ class Test_Polygon(unittest.TestCase):
         p1 = [[0,0], [10,0], [10,10], [0,10]]
         p2 = [[0,0], [10,10], [15,5], [20, 10], [25,0], [30,10], [40,-10]]
 
-	f = Polygon_function( [(p1, 1.0)] )
+	f = Polygon_function( [(p1, 1.0)], verbose=False )
 	z = f([5, 5, 27, 35], [5, 9, 8, -5]) #Two first inside p1
 	assert allclose(z, [1,1,0,0])
 
@@ -56,6 +56,13 @@ class Test_Polygon(unittest.TestCase):
 	f = Polygon_function( [(p1, 1.0), (p2, 2.0)] )
 	z = f([5, 5, 27, 35], [5, 9, 8, -5])
 	assert allclose(z, [2,1,0,2])
+
+
+    def test_polygon_function_constants_tuple(self):
+        polygon = [[0,0], [10,0], [10,10], [0,10]]
+        points = ((5, 5), (5, 9), (27, 8), (35, -5))
+
+        (indices, count) = separate_points_by_polygon(points, polygon, verbose=False)
 
     def test_polygon_function_csvfile(self):
         from os import sep, getenv
@@ -209,7 +216,7 @@ class Test_Polygon(unittest.TestCase):
         points = [ [25, 25], [30, 20], [40, 50], [90, 20], [40, 90] ]
 	res = inside_polygon(points, polygon)
 	assert len(res) == 2
-	assert allclose(res, [0,1])
+	assert allclose(res, [0,1])     ## alltrue?
 
 
 
@@ -989,7 +996,7 @@ class Test_Polygon(unittest.TestCase):
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Polygon,'test')
-    #suite = unittest.makeSuite(Test_Polygon,'test_inside_polygon_geo_ref')
+##    suite = unittest.makeSuite(Test_Polygon,'test_polygon_function_constantsX')
     runner = unittest.TextTestRunner()
     runner.run(suite)
 

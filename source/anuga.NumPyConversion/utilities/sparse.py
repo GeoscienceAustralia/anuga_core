@@ -1,3 +1,4 @@
+
 """Proof of concept sparse matrix code
 """
 
@@ -16,7 +17,7 @@ class Sparse:
         self.Data = {}
             
         if len(args) == 1:
-            from Numeric import array
+            from numpy import array
             try:
                 A = array(args[0])
             except:
@@ -91,9 +92,9 @@ class Sparse:
 
 
     def todense(self):
-        from Numeric import zeros, Float
+        from numpy import zeros, float
 
-        D = zeros( (self.M, self.N), Float)
+        D = zeros( (self.M, self.N), float)
         
         for i in range(self.M):
             for j in range(self.N):
@@ -108,7 +109,7 @@ class Sparse:
         a Numeric vector, a Numeric matrix or another sparse matrix.
         """
 
-        from Numeric import array, zeros, Float
+        from numpy import array, zeros, float
         
         try:
             B = array(other)
@@ -129,7 +130,7 @@ class Sparse:
                   %(self.M, self.N, B.shape[0])
             assert B.shape[0] == self.N, msg
 
-            R = zeros(self.M, Float) #Result
+            R = zeros(self.M, float) #Result
 	    
             # Multiply nonzero elements
             for key in self.Data.keys():
@@ -139,7 +140,7 @@ class Sparse:
         elif len(B.shape) == 2:
 	
             
-            R = zeros((self.M, B.shape[1]), Float) #Result matrix
+            R = zeros((self.M, B.shape[1]), float) #Result matrix
 
             # Multiply nonzero elements
 	    for col in range(R.shape[1]):
@@ -161,8 +162,6 @@ class Sparse:
         """Add this matrix onto 'other' 
         """
 
-        from Numeric import array, zeros, Float
-        
         new = other.copy()
         for key in self.Data.keys():
             i, j = key
@@ -176,8 +175,6 @@ class Sparse:
         """Right multiply this matrix with scalar
         """
 
-        from Numeric import array, zeros, Float
-        
         try:
             other = float(other)
         except:
@@ -199,7 +196,7 @@ class Sparse:
         a Numeric vector.
         """
 
-        from Numeric import array, zeros, Float
+        from numpy import array, zeros, float
         
         try:
             B = array(other)
@@ -213,7 +210,7 @@ class Sparse:
 
             assert B.shape[0] == self.M, 'Mismatching dimensions'
 
-            R = zeros((self.N,), Float) #Result
+            R = zeros((self.N,), float) #Result
 
             #Multiply nonzero elements
             for key in self.Data.keys():
@@ -250,17 +247,16 @@ class Sparse_CSR:
                  
         """
 
-        from Numeric import array, Float, Int
+        from numpy import zeros, float, int
 
         if isinstance(A,Sparse):
 
-            from Numeric import zeros
             keys = A.Data.keys()
             keys.sort()
             nnz = len(keys)
-            data    = zeros ( (nnz,), Float)
-            colind  = zeros ( (nnz,), Int)
-            row_ptr = zeros ( (A.M+1,), Int)
+            data    = zeros ( (nnz,), float)
+            colind  = zeros ( (nnz,), int)
+            row_ptr = zeros ( (A.M+1,), int)
             current_row = -1
             k = 0
             for key in keys:
@@ -298,7 +294,7 @@ class Sparse_CSR:
         return len(self)
 
     def todense(self):
-        from Numeric import zeros, Float
+        from numpy.oldnumeric import zeros, Float
 
         D = zeros( (self.M, self.N), Float)
         
@@ -313,7 +309,7 @@ class Sparse_CSR:
         a Numeric vector, a Numeric matrix or another sparse matrix.
         """
 
-        from Numeric import array, zeros, Float
+        from numpy.oldnumeric import array, zeros, Float
         
         try:
             B = array(other)
@@ -333,7 +329,7 @@ if compile.can_use_C_extension('sparse_ext.c'):
 if __name__ == '__main__':
     # A little selftest
     
-    from Numeric import allclose, array, Float 
+    from numpy.oldnumeric import allclose, array, Float 
     
     A = Sparse(3,3)
 

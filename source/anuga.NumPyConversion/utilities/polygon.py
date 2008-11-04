@@ -9,7 +9,7 @@
 #except:
 #    #print 'Could not find scipy - using Numeric'
 
-from Numeric import Float, Int, zeros, ones, array, concatenate, reshape, dot, allclose
+from numpy import float, int, zeros, ones, array, concatenate, reshape, dot, allclose, newaxis, ascontiguousarray
 
 
 from math import sqrt
@@ -75,8 +75,8 @@ def intersection(line0, line1):
 
     # FIXME (Ole): Write this in C
 
-    line0 = ensure_numeric(line0, Float)
-    line1 = ensure_numeric(line1, Float)    
+    line0 = ensure_numeric(line0, float)
+    line1 = ensure_numeric(line1, float)    
 
     x0 = line0[0,0]; y0 = line0[0,1]
     x1 = line0[1,0]; y1 = line0[1,1]
@@ -202,8 +202,8 @@ def NEW_C_intersection(line0, line1):
     """
 
 
-    line0 = ensure_numeric(line0, Float)
-    line1 = ensure_numeric(line1, Float)    
+    line0 = ensure_numeric(line0, float)
+    line1 = ensure_numeric(line1, float)    
 
     status, value = _intersection(line0[0,0], line0[0,1],
                                   line0[1,0], line0[1,1],
@@ -255,7 +255,7 @@ def inside_polygon(points, polygon, closed=True, verbose=False):
         # If this fails it is going to be because the points can't be
         # converted to a numeric array.
         msg = 'Points could not be converted to Numeric array' 
-	raise msg
+	raise TypeError, msg
 
     try:
         polygon = ensure_absolute(polygon)
@@ -264,8 +264,8 @@ def inside_polygon(points, polygon, closed=True, verbose=False):
     except:
         # If this fails it is going to be because the points can't be
         # converted to a numeric array.
-        msg = 'Polygon %s could not be converted to Numeric array' %(str(polygon))
-	raise msg
+        msg = 'Polygon %s could not be converted to Numeric array' % (str(polygon))
+	raise TypeError, msg
 
     if len(points.shape) == 1:
         # Only one point was passed in. Convert to array of points
@@ -311,7 +311,7 @@ def outside_polygon(points, polygon, closed = True, verbose = False):
 
     #if verbose: print 'Checking input to outside_polygon'
     try:
-        points = ensure_numeric(points, Float)
+        points = ensure_numeric(points, float)
     except NameError, e:
         raise NameError, e
     except:
@@ -319,7 +319,7 @@ def outside_polygon(points, polygon, closed = True, verbose = False):
 	raise msg
 
     try:
-        polygon = ensure_numeric(polygon, Float)
+        polygon = ensure_numeric(polygon, float)
     except NameError, e:
         raise NameError, e
     except:
@@ -353,7 +353,7 @@ def in_and_outside_polygon(points, polygon, closed = True, verbose = False):
 
     #if verbose: print 'Checking input to outside_polygon'
     try:
-        points = ensure_numeric(points, Float)
+        points = ensure_numeric(points, float)
     except NameError, e:
         raise NameError, e
     except:
@@ -361,7 +361,7 @@ def in_and_outside_polygon(points, polygon, closed = True, verbose = False):
 	raise msg
 
     try:
-        polygon = ensure_numeric(polygon, Float)
+        polygon = ensure_numeric(polygon, float)
     except NameError, e:
         raise NameError, e
     except:
@@ -438,23 +438,26 @@ def separate_points_by_polygon(points, polygon,
     assert isinstance(closed, bool), 'Keyword argument "closed" must be boolean'
     assert isinstance(verbose, bool), 'Keyword argument "verbose" must be boolean'
 
-
+##    print 'Before: points=%s, flags=%s' % (type(points), str(points.flags))
     try:
-        points = ensure_numeric(points, Float)
+##        points = ascontiguousarray(ensure_numeric(points, float))
+        points = ensure_numeric(points, float)
     except NameError, e:
         raise NameError, e
     except:
         msg = 'Points could not be converted to Numeric array'
-	raise msg
+	raise TypeError, msg
+##    print 'After: points=%s, flags=%s' % (type(points), str(points.flags))
 
     #if verbose: print 'Checking input to separate_points_by_polygon 2'
     try:
-        polygon = ensure_numeric(polygon, Float)
+##        polygon = ascontiguousarray(ensure_numeric(polygon, float))
+        polygon = ensure_numeric(polygon, float)
     except NameError, e:
         raise NameError, e
     except:
         msg = 'Polygon could not be converted to Numeric array'
-	raise msg
+	raise TypeError, msg
 
     msg = 'Polygon array must be a 2d array of vertices'
     assert len(polygon.shape) == 2, msg
@@ -475,7 +478,7 @@ def separate_points_by_polygon(points, polygon,
 
     
     msg = 'Point array must have two columns (x,y), '
-    msg += 'I got points.shape[1] == %d' %points.shape[0]
+    msg += 'I got points.shape[1] == %d' % points.shape[1]
     assert points.shape[1] == 2, msg
 
        
@@ -490,7 +493,7 @@ def separate_points_by_polygon(points, polygon,
     M = points.shape[0]  #Number of points
 
 
-    indices = zeros( M, Int )
+    indices = zeros( M, int )
 
     count = _separate_points_by_polygon(points, polygon, indices,
                                         int(closed), int(verbose))
@@ -617,7 +620,7 @@ def poly_xy(polygon, verbose=False):
     #if verbose: print 'Checking input to poly_xy'
 
     try:
-        polygon = ensure_numeric(polygon, Float)
+        polygon = ensure_numeric(polygon, float)
     except NameError, e:
         raise NameError, e
     except:
@@ -679,7 +682,7 @@ class Polygon_function:
     FIXME: This should really work with geo_spatial point sets.
     """
 
-    def __init__(self, regions, default=0.0, geo_reference=None):
+    def __init__(self, regions, default=0.0, geo_reference=None, verbose=False):
 
 	try:
 	    len(regions)
@@ -722,26 +725,29 @@ class Polygon_function:
             P = geo_reference.change_points_geo_ref(polygon)
             self.regions.append( (P, value) )
 
+        self.verbose = verbose
+
 
 
 
     def __call__(self, x, y):
-	x = array(x).astype(Float)
-	y = array(y).astype(Float)
+	x = array(x).astype(float)
+	y = array(y).astype(float)
 
-	N = len(x)
-	assert len(y) == N
+        assert len(x.shape) == 1 and len(y.shape) == 1
+        
+	N = x.shape[0]
+	assert y.shape[0] == N
 
-	points = concatenate( (reshape(x, (N, 1)),
-	                       reshape(y, (N, 1))), axis=1 )
-
+	points = ascontiguousarray(concatenate( (x[:,newaxis], y[:,newaxis]), axis=1 ))
+	
 	if callable(self.default):
-	    z = self.default(x,y)
+	    z = self.default(x, y)
 	else:
-	    z = ones(N, Float) * self.default
+	    z = ones(N, float) * self.default
 
 	for polygon, value in self.regions:
-	    indices = inside_polygon(points, polygon)
+	    indices = inside_polygon(points, polygon, verbose=self.verbose)
 
 	    # FIXME: This needs to be vectorised
 	    if callable(value):

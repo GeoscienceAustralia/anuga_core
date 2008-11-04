@@ -2,7 +2,7 @@
 
 
 import unittest
-from Numeric import zeros, array, allclose, Float
+from numpy.oldnumeric import zeros, array, allclose
 from tempfile import mkstemp
 import os
 

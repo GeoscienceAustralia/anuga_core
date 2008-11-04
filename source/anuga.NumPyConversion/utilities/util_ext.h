@@ -10,7 +10,7 @@
 // Ole Nielsen, GA 2004
 	
 #include "Python.h"	
-#include "Numeric/arrayobject.h"
+#include "numpy/arrayobject.h"
 #include "math.h"
 
 

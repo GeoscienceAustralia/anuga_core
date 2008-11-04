@@ -4,7 +4,7 @@ import unittest
 from math import sqrt
 
 from sparse import *
-from Numeric import allclose, array, transpose, Float
+from numpy.oldnumeric import allclose, array, transpose
 
 class Test_Sparse(unittest.TestCase):
 

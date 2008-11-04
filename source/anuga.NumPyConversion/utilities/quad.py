@@ -1,3 +1,4 @@
+
 """quad.py - quad tree data structure for fast indexing of points in the plane
 
 
@@ -221,14 +222,14 @@ class Cell(TreeNode):
             # use a dictionary to remove duplicates
             triangles = {}
             verts = self.retrieve_vertices()
-            # print "verts", verts
+            print "verts", verts
             for vert in verts:
                 triangle_list = self.mesh.get_triangles_and_vertices_per_node(vert)
+                print 'triangle_list=%s' % str(triangle_list)
                 for k, _ in triangle_list:
                     if not triangles.has_key(k):
                         # print 'k',k
-                        tri = self.mesh.get_vertex_coordinates(k,
-                                                               absolute=True)
+                        tri = self.mesh.get_vertex_coordinates(k, absolute=True)
                         n0 = self.mesh.get_normal(k, 0)
                         n1 = self.mesh.get_normal(k, 1)
                         n2 = self.mesh.get_normal(k, 2) 
@@ -434,7 +435,7 @@ def build_quadtree(mesh, max_points_per_cell = 4):
     to the root is returned.
     """
 
-    from Numeric import minimum, maximum
+    from numpy import minimum, maximum
 
 
     #Make root cell

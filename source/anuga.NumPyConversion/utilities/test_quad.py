@@ -1,5 +1,5 @@
 import unittest
-from Numeric import array, allclose
+from numpy import array, allclose
 
 from quad import Cell, build_quadtree
 from anuga.abstract_2d_finite_volumes.general_mesh import General_mesh as Mesh

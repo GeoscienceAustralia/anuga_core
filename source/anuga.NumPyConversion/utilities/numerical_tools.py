@@ -13,11 +13,12 @@ from warnings import warn
 # searchsorted, sort, concatenate, Float, arange    
 #except:
 #    #print 'Could not find scipy - using Numeric'
-#    from Numeric import ArrayType, array, sum, innerproduct, ravel, sqrt,
+#    from numpy.oldnumeric import ArrayType, array, sum, innerproduct, ravel, sqrt,
 #searchsorted, sort, concatenate, Float, arange
 
-from Numeric import ArrayType, array, sum, innerproduct, ravel, sqrt,\
-     searchsorted, sort, concatenate, Float, arange    
+##from numpy.oldnumeric import ArrayType, array, sum, innerproduct, ravel, sqrt,\
+##     searchsorted, sort, concatenate, Float, arange    
+from numpy import ndarray, array, sum, inner, ravel, sqrt, searchsorted, sort, concatenate, float, arange    
 
 # Getting an infinite number to use when using Numeric
 #INF = (array([1])/0.)[0]
@@ -88,16 +89,16 @@ def angle(v1, v2=None):
     if v2 is None:
         v2 = [1.0, 0.0] # Unit vector along the x-axis
 	
-    v1 = ensure_numeric(v1, Float)
-    v2 = ensure_numeric(v2, Float)    
+    v1 = ensure_numeric(v1, float)
+    v2 = ensure_numeric(v2, float)    
     
     # Normalise
     v1 = v1/sqrt(sum(v1**2))
     v2 = v2/sqrt(sum(v2**2))
 
     # Compute angle
-    p = innerproduct(v1, v2)
-    c = innerproduct(v1, normal_vector(v2)) # Projection onto normal
+    p = inner(v1, v2)
+    c = inner(v1, normal_vector(v2)) # Projection onto normal
                                             # (negative cross product)
         
     theta = safe_acos(p)
@@ -139,7 +140,7 @@ def normal_vector(v):
     Returns vector 90 degrees counter clockwise to and of same length as v
     """
     
-    return array([-v[1], v[0]], Float)
+    return array([-v[1], v[0]], float)
 
     
 #def crossproduct_length(v1, v2):
@@ -170,7 +171,7 @@ def cov(x, y=None):
     cx = x - mean(x)  
     cy = y - mean(y)  
 
-    p = innerproduct(cx,cy)/N
+    p = inner(cx,cy)/N
     return(p)
 
 
@@ -220,7 +221,7 @@ def norm(x):
     """
   
     y = ravel(x)
-    p = sqrt(innerproduct(y,y))
+    p = sqrt(inner(y,y))
     return p
     
   
@@ -261,19 +262,25 @@ def ensure_numeric(A, typecode = None):
     """
 
     if typecode is None:
-        if type(A) == ArrayType:
+##NumPy        if isinstance(A, ArrayType):
+        if type(A) == ndarray:
             return A
         else:
             return array(A)
     else:
-        if type(A) == ArrayType:
-            if A.typecode == typecode:
+##NumPy        if isinstance(A, ArrayType):
+        if type(A) == ndarray:
+##NumPy            if A.typecode == typecode:
+            if A.dtype == typecode:
                 return array(A)  #FIXME: Shouldn't this just return A?
             else:
-                return array(A,typecode)
+                return array(A, typecode)
         else:
-            return array(A,typecode)
-
+            import types                            ##
+            from numpy import str                   ##
+            if isinstance(A, types.StringType):     ##
+                return array(A, dtype=int)          ##
+            return array(A, typecode)
 
 
 
