@@ -50,6 +50,9 @@ if os.name in ['nt', 'dos', 'win32', 'what else?']:
 else:
   unix = 1
 
+import numpy
+
+
 cache_dir = '.python_cache'
 # Make default caching directory name
 #
@@ -1338,7 +1341,7 @@ def myhash(T, ids=None):
   """
 
   from types import TupleType, ListType, DictType, InstanceType  
-  from Numeric import ArrayType, average
+##  from numpy.oldnumeric import ArrayType, average
 
     
   if type(T) in [TupleType, ListType, DictType, InstanceType]:  
@@ -1377,9 +1380,9 @@ def myhash(T, ids=None):
       I = T.items()
       I.sort()    
       val = myhash(I, ids)
-  elif type(T) == ArrayType:
+  elif isinstance(T, numpy.ndarray):
       # Use mean value for efficiency  
-      val = hash(average(T.flat))
+      val = hash(numpy.average(T.ravel()))
   elif type(T) == InstanceType:
       val = myhash(T.__dict__, ids)
   else:
@@ -1403,7 +1406,7 @@ def compare(A, B, ids=None):
     """
 
     from types import TupleType, ListType, DictType, InstanceType
-    from Numeric import ArrayType, alltrue    
+##    from numpy.oldnumeric import ArrayType, alltrue    
     
     # Keep track of unique id's to protect against infinite recursion
     if ids is None: ids = {}
@@ -1446,9 +1449,9 @@ def compare(A, B, ids=None):
             
             identical = compare(a, b, ids)
             
-    elif type(A) == ArrayType:
+    elif isinstance(A, numpy.ndarray):
         # Use element by element comparison
-        identical = alltrue(A==B)
+        identical = numpy.alltrue(A==B)
 
     elif type(A) == InstanceType:
         # Take care of special case where elements are instances            
@@ -2395,14 +2398,13 @@ def mkargstr(args, textwidth, argstr = '', level=0):
     if type(args) == types.StringType:
       argstr = argstr + "'"+str(args)+"'"
     else:
-      # Truncate large Numeric arrays before using str()
-      import Numeric
-      if type(args) == Numeric.ArrayType:
-#        if len(args.flat) > textwidth:  
-#        Changed by Duncan and Nick 21/2/07 .flat has problems with 
-#        non-contigous arrays and ravel is equal to .flat except it 
+      # Truncate large arrays before using str()
+      if isinstance(args, numpy.ndarray):
+#        if len(args.ravel()) > textwidth:  
+#        Changed by Duncan and Nick 21/2/07 .ravel() has problems with 
+#        non-contigous arrays and ravel is equal to .ravel() except it 
 #        can work with non-contiguous  arrays
-        if len(Numeric.ravel(args)) > textwidth:
+        if len(numpy.ravel(args)) > textwidth:
           args = 'Array: ' + str(args.shape)
 
       argstr = argstr + str(args)
