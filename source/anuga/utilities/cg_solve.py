@@ -1,8 +1,9 @@
+
 import exceptions
 class VectorShapeError(exceptions.Exception): pass
 class ConvergenceError(exceptions.Exception): pass
 
-from Numeric import dot, array, Float, zeros
+import numpy
    
 import logging, logging.config
 logger = logging.getLogger('cg_solve')
@@ -23,11 +24,11 @@ def conjugate_gradient(A,b,x0=None,imax=10000,tol=1.0e-8,iprint=0):
     """
     
     if x0 is None:
-        x0 = zeros(b.shape, typecode=Float)
+        x0 = numpy.zeros(b.shape, dtype=numpy.float)
     else:
-        x0 = array(x0, typecode=Float)
+        x0 = numpy.array(x0, dtype=numpy.float)
 
-    b  = array(b, typecode=Float)
+    b  = numpy.array(b, dtype=numpy.float)
     if len(b.shape) != 1 :
        
         for i in range(b.shape[1]):
@@ -56,14 +57,14 @@ def _conjugate_gradient(A,b,x0=None,imax=10000,tol=1.0e-8,iprint=0):
    """
 
 
-   b  = array(b, typecode=Float)
+   b  = numpy.array(b, dtype=numpy.float)
    if len(b.shape) != 1 :
       raise VectorShapeError, 'input vector should consist of only one column'
 
    if x0 is None:
-      x0 = zeros(b.shape, typecode=Float)
+      x0 = numpy.zeros(b.shape, dtype=numpy.float)
    else:
-      x0 = array(x0, typecode=Float)
+      x0 = numpy.array(x0, dtype=numpy.float)
 
 
    #FIXME: Should test using None
@@ -74,19 +75,19 @@ def _conjugate_gradient(A,b,x0=None,imax=10000,tol=1.0e-8,iprint=0):
    x = x0
    r = b - A*x
    d = r
-   rTr = dot(r,r)
+   rTr = numpy.dot(r,r)
    rTr0 = rTr
 
    while (i<imax and rTr>tol**2*rTr0):
        q = A*d
-       alpha = rTr/dot(d,q)
+       alpha = rTr/numpy.dot(d,q)
        x = x + alpha*d
        if i%50 :
            r = b - A*x
        else:
            r = r - alpha*q
        rTrOld = rTr
-       rTr = dot(r,r)
+       rTr = numpy.dot(r,r)
        bt = rTr/rTrOld
 
        d = r + bt*d

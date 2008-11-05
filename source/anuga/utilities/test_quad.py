@@ -1,5 +1,5 @@
 import unittest
-from Numeric import array, allclose
+##import numpy
 
 from quad import Cell, build_quadtree
 from anuga.abstract_2d_finite_volumes.general_mesh import General_mesh as Mesh
@@ -235,7 +235,7 @@ class Test_Quad(unittest.TestCase):
                      [-0.83205029,  0.5547002],
                      [ 0.,  -1.]]
                      
-        # assert allclose(array(results),[[[ 2.,  1.],
+        # assert numpy.allclose(numpy.array(results),[[[ 2.,  1.],
         #[ 4.,  1.], [ 4.,  4.]], [[ 4.,  1.],[ 5.,  4.],[ 4.,  4.]]] )
         results = Q.search(5,4.)
         ### print "results",results 
@@ -252,7 +252,7 @@ class Test_Quad(unittest.TestCase):
         assert results[2][1],[[ 4.,  1.],
                      [ 5.,  4.],
                      [ 4.,  4.]]
-        #assert allclose(array(results),[[[ 2.,  1.],[ 4.,  1.], [ 4.,  4.]]
+        #assert numpy.allclose(numpy.array(results),[[[ 2.,  1.],[ 4.,  1.], [ 4.,  4.]]
          #                               ,[[ 2.,  1.],[ 4.,  4.], [ 2.,  4.]],
         #[[ 4.,  1.],  [ 5.,  4.], [ 4.,  4.]],
          #                               [[ 4.,  1.], [ 5.,  4.], [ 4.,  4.]]])

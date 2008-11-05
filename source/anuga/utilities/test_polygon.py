@@ -2,7 +2,7 @@
 
 
 import unittest
-from Numeric import zeros, array, allclose
+import numpy
 from math import sqrt, pi
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.utilities.system_tools import get_pathname_from_package
@@ -42,20 +42,27 @@ class Test_Polygon(unittest.TestCase):
         p1 = [[0,0], [10,0], [10,10], [0,10]]
         p2 = [[0,0], [10,10], [15,5], [20, 10], [25,0], [30,10], [40,-10]]
 
-	f = Polygon_function( [(p1, 1.0)] )
+	f = Polygon_function( [(p1, 1.0)], verbose=False )
 	z = f([5, 5, 27, 35], [5, 9, 8, -5]) #Two first inside p1
-	assert allclose(z, [1,1,0,0])
+	assert numpy.allclose(z, [1,1,0,0])
 
 
 	f = Polygon_function( [(p2, 2.0)] )
 	z = f([5, 5, 27, 35], [5, 9, 8, -5]) # First and last inside p2
-	assert allclose(z, [2,0,0,2])
+	assert numpy.allclose(z, [2,0,0,2])
 
 
 	#Combined
 	f = Polygon_function( [(p1, 1.0), (p2, 2.0)] )
 	z = f([5, 5, 27, 35], [5, 9, 8, -5])
-	assert allclose(z, [2,1,0,2])
+	assert numpy.allclose(z, [2,1,0,2])
+
+
+    def test_polygon_function_constants_tuple(self):
+        polygon = [[0,0], [10,0], [10,10], [0,10]]
+        points = ((5, 5), (5, 9), (27, 8), (35, -5))
+
+        (indices, count) = separate_points_by_polygon(points, polygon, verbose=False)
 
     def test_polygon_function_csvfile(self):
         from os import sep, getenv
@@ -71,7 +78,7 @@ class Test_Polygon(unittest.TestCase):
         f = Polygon_function( [(p1, 10.0)] )
         z = f([430000,480000], [490000,7720000]) # first outside, second inside
         
-        assert allclose(z, [0,10])
+        assert numpy.allclose(z, [0,10])
 
     def test_polygon_function_georef(self):
         """Check that georeferencing works
@@ -89,24 +96,24 @@ class Test_Polygon(unittest.TestCase):
 	f = Polygon_function( [(p1, 1.0)], geo_reference=geo)
 	z = f([5, 5, 27, 35], [5, 9, 8, -5]) #Two first inside p1
 
-	assert allclose(z, [1,1,0,0])
+	assert numpy.allclose(z, [1,1,0,0])
 
 
 	f = Polygon_function( [(p2, 2.0)], geo_reference=geo)
 	z = f([5, 5, 27, 35], [5, 9, 8, -5]) #First and last inside p2
-	assert allclose(z, [2,0,0,2])
+	assert numpy.allclose(z, [2,0,0,2])
 
 
 	# Combined
 	f = Polygon_function( [(p1, 1.0), (p2, 2.0)], geo_reference=geo)
 	z = f([5, 5, 27, 35], [5, 9, 8, -5])
-	assert allclose(z, [2,1,0,2])
+	assert numpy.allclose(z, [2,1,0,2])
 
 
 	# Check that it would fail without geo
 	f = Polygon_function( [(p1, 1.0), (p2, 2.0)])
 	z = f([5, 5, 27, 35], [5, 9, 8, -5])
-	assert not allclose(z, [2,1,0,2])        
+	assert not numpy.allclose(z, [2,1,0,2])        
 
 
 
@@ -119,25 +126,25 @@ class Test_Polygon(unittest.TestCase):
 
 	f = Polygon_function( [(p1, test_function)] )
 	z = f([5, 5, 27, 35], [5, 9, 8, -5]) #Two first inside p1
-	assert allclose(z, [10,14,0,0])
+	assert numpy.allclose(z, [10,14,0,0])
 
 	# Combined
 	f = Polygon_function( [(p1, test_function), (p2, 2.0)] )
 	z = f([5, 5, 27, 35], [5, 9, 8, -5])
-	assert allclose(z, [2,14,0,2])
+	assert numpy.allclose(z, [2,14,0,2])
 
 
 	# Combined w default
 	f = Polygon_function( [(p1, test_function), (p2, 2.0)], default = 3.14)
 	z = f([5, 5, 27, 35], [5, 9, 8, -5])
-	assert allclose(z, [2,14,3.14,2])
+	assert numpy.allclose(z, [2,14,3.14,2])
 
 
 	# Combined w default func
 	f = Polygon_function( [(p1, test_function), (p2, 2.0)],
 			      default = test_function)
 	z = f([5, 5, 27, 35], [5, 9, 8, -5])
-	assert allclose(z, [2,14,35,2])
+	assert numpy.allclose(z, [2,14,35,2])
 
 
 
@@ -209,7 +216,7 @@ class Test_Polygon(unittest.TestCase):
         points = [ [25, 25], [30, 20], [40, 50], [90, 20], [40, 90] ]
 	res = inside_polygon(points, polygon)
 	assert len(res) == 2
-	assert allclose(res, [0,1])
+	assert numpy.allclose(res, [0,1])     ## alltrue?
 
 
 
@@ -304,7 +311,7 @@ class Test_Polygon(unittest.TestCase):
 	points = [ [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
 	res = inside_polygon( points, polygon, verbose=False )
 
-	assert allclose( res, [0,1,2] )
+	assert numpy.allclose( res, [0,1,2] )
 
     def test_outside_polygon(self):
         U = [[0,0], [1,0], [1,1], [0,1]] #Unit square    
@@ -316,14 +323,14 @@ class Test_Polygon(unittest.TestCase):
         # evaluate to True as the point 1.5, 0.5 is outside the unit square
         
         indices = outside_polygon( [[0.5, 0.5], [1, -0.5], [0.3, 0.2]], U )
-        assert allclose( indices, [1] )
+        assert numpy.allclose( indices, [1] )
         
         # One more test of vector formulation returning indices
         polygon = [[0,0], [1,0], [0.5,-1], [2, -1], [2,1], [0,1]]
 	points = [ [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
 	res = outside_polygon( points, polygon )
 
-	assert allclose( res, [3, 4] )
+	assert numpy.allclose( res, [3, 4] )
 
 
 
@@ -331,7 +338,7 @@ class Test_Polygon(unittest.TestCase):
 	points = [ [0.5, 1.4], [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
 	res = outside_polygon( points, polygon )
 
-	assert allclose( res, [0, 4, 5] )        
+	assert numpy.allclose( res, [0, 4, 5] )        
      
     def test_outside_polygon2(self):
         U = [[0,0], [1,0], [1,1], [0,1]] #Unit square    
@@ -354,13 +361,13 @@ class Test_Polygon(unittest.TestCase):
         indices, count = separate_points_by_polygon(points, U)
         #print indices, count
         assert count == 0 #None inside
-        assert allclose(indices, [3,2,1,0])
+        assert numpy.allclose(indices, [3,2,1,0])
 
         indices = outside_polygon(points, U, closed = True)
-        assert allclose(indices, [0,1,2,3])
+        assert numpy.allclose(indices, [0,1,2,3])
 
         indices = inside_polygon(points, U, closed = True)
-        assert allclose(indices, [])                
+        assert numpy.allclose(indices, [])                
 
 
     def test_all_inside_polygon(self):
@@ -374,20 +381,20 @@ class Test_Polygon(unittest.TestCase):
 
         indices, count = separate_points_by_polygon(points, U)
         assert count == 3 #All inside
-        assert allclose(indices, [0,1,2])
+        assert numpy.allclose(indices, [0,1,2])
 
         indices = outside_polygon(points, U, closed = True)
-        assert allclose(indices, [])
+        assert numpy.allclose(indices, [])
 
         indices = inside_polygon(points, U, closed = True)
-        assert allclose(indices, [0,1,2])
+        assert numpy.allclose(indices, [0,1,2])
         
 
     def test_separate_points_by_polygon(self):
         U = [[0,0], [1,0], [1,1], [0,1]] #Unit square    
 
         indices, count = separate_points_by_polygon( [[0.5, 0.5], [1, -0.5], [0.3, 0.2]], U )
-        assert allclose( indices, [0,2,1] )
+        assert numpy.allclose( indices, [0,2,1] )
         assert count == 2
         
         #One more test of vector formulation returning indices
@@ -395,7 +402,7 @@ class Test_Polygon(unittest.TestCase):
 	points = [ [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
 	res, count = separate_points_by_polygon( points, polygon )
 
-	assert allclose( res, [0,1,2,4,3] )
+	assert numpy.allclose( res, [0,1,2,4,3] )
 	assert count == 3
 
 
@@ -403,7 +410,7 @@ class Test_Polygon(unittest.TestCase):
 	points = [ [0.5, 1.4], [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
 	res, count = separate_points_by_polygon( points, polygon )
 
-	assert allclose( res, [1,2,3,5,4,0] )        
+	assert numpy.allclose( res, [1,2,3,5,4,0] )        
      	assert count == 3
 	
 
@@ -587,7 +594,7 @@ class Test_Polygon(unittest.TestCase):
 
         status, value = intersection(line0, line1)
         assert status == 1
-        assert allclose(value, [0.0, 0.0])
+        assert numpy.allclose(value, [0.0, 0.0])
 
     def test_intersection2(self):
         line0 = [[0,0], [24,12]]
@@ -595,19 +602,19 @@ class Test_Polygon(unittest.TestCase):
 
         status, value = intersection(line0, line1)
         assert status == 1
-        assert allclose(value, [12.0, 6.0])
+        assert numpy.allclose(value, [12.0, 6.0])
 
         # Swap direction of one line
         line1 = [[24,0], [0,12]]
 
         status, value = intersection(line0, line1)
         assert status == 1
-        assert allclose(value, [12.0, 6.0])
+        assert numpy.allclose(value, [12.0, 6.0])
 
         # Swap order of lines
         status, value = intersection(line1, line0)
         assert status == 1
-        assert allclose(value, [12.0, 6.0])        
+        assert numpy.allclose(value, [12.0, 6.0])        
         
     def test_intersection3(self):
         line0 = [[0,0], [24,12]]
@@ -615,19 +622,19 @@ class Test_Polygon(unittest.TestCase):
 
         status, value = intersection(line0, line1)
         assert status == 1
-        assert allclose(value, [14.068965517, 7.0344827586])
+        assert numpy.allclose(value, [14.068965517, 7.0344827586])
 
         # Swap direction of one line
         line1 = [[24,0], [0,17]]
 
         status, value = intersection(line0, line1)
         assert status == 1
-        assert allclose(value, [14.068965517, 7.0344827586])        
+        assert numpy.allclose(value, [14.068965517, 7.0344827586])        
 
         # Swap order of lines
         status, value = intersection(line1, line0)
         assert status == 1        
-        assert allclose(value, [14.068965517, 7.0344827586])        
+        assert numpy.allclose(value, [14.068965517, 7.0344827586])        
 
 
     def test_intersection_endpoints(self):
@@ -640,7 +647,7 @@ class Test_Polygon(unittest.TestCase):
 
         status, value = intersection(line0, line1)
         assert status == 1
-        assert allclose(value, [1.0, 1.0])
+        assert numpy.allclose(value, [1.0, 1.0])
 
 
         line0 = [[1,1], [2,0]]
@@ -648,7 +655,7 @@ class Test_Polygon(unittest.TestCase):
 
         status, value = intersection(line0, line1)
         assert status == 1
-        assert allclose(value, [1.0, 1.0])        
+        assert numpy.allclose(value, [1.0, 1.0])        
         
 
     def test_intersection_direction_invariance(self):
@@ -678,13 +685,13 @@ class Test_Polygon(unittest.TestCase):
                                                           common_end_point[0],
                                                           common_end_point[1])
             msg += ' gave %s, \nbut when reversed we got %s' %(p1, p2)
-            assert allclose(p1, p2), msg
+            assert numpy.allclose(p1, p2), msg
 
             # Swap order of lines
             status, p3 = intersection(line1, line0)
             assert status == 1                        
             msg = 'Order of lines gave different results'
-            assert allclose(p1, p3), msg
+            assert numpy.allclose(p1, p3), msg
             
 
     def test_no_intersection(self):
@@ -724,7 +731,7 @@ class Test_Polygon(unittest.TestCase):
 
         status, value = intersection(line0, line1)
         assert status == 2
-        assert allclose(value, [[0,0], [3,0]])
+        assert numpy.allclose(value, [[0,0], [3,0]])
 
         # Overlap 2
         line0 = [[-10,0], [5,0]]
@@ -732,7 +739,7 @@ class Test_Polygon(unittest.TestCase):
 
         status, value = intersection(line0, line1)
         assert status == 2
-        assert allclose(value, [[-3, 0], [5,0]])        
+        assert numpy.allclose(value, [[-3, 0], [5,0]])        
 
         # Inclusion 1
         line0 = [[0,0], [5,0]]
@@ -740,7 +747,7 @@ class Test_Polygon(unittest.TestCase):
 
         status, value = intersection(line0, line1)
         assert status == 2        
-        assert allclose(value, line1)
+        assert numpy.allclose(value, line1)
 
         # Inclusion 2
         line0 = [[1,0], [5,0]]
@@ -748,7 +755,7 @@ class Test_Polygon(unittest.TestCase):
 
         status, value = intersection(line0, line1)
         assert status == 2        
-        assert allclose(value, line0)                                        
+        assert numpy.allclose(value, line0)                                        
 
 
         # Exclusion (no intersection)
@@ -767,24 +774,24 @@ class Test_Polygon(unittest.TestCase):
         line1 = [[1,7], [10,25]]
         status, value = intersection(line0, line1)
         assert status == 2                
-        assert allclose(value, [[1, 7], [7, 19]])
+        assert numpy.allclose(value, [[1, 7], [7, 19]])
 
         status, value = intersection(line1, line0)
         assert status == 2
-        assert allclose(value, [[1, 7], [7, 19]])
+        assert numpy.allclose(value, [[1, 7], [7, 19]])
 
         # Swap direction
         line0 = [[7,19], [0,5]]
         line1 = [[1,7], [10,25]]
         status, value = intersection(line0, line1)
         assert status == 2
-        assert allclose(value, [[7, 19], [1, 7]])
+        assert numpy.allclose(value, [[7, 19], [1, 7]])
 
         line0 = [[0,5], [7,19]]
         line1 = [[10,25], [1,7]]
         status, value = intersection(line0, line1)
         assert status == 2
-        assert allclose(value, [[1, 7], [7, 19]])        
+        assert numpy.allclose(value, [[1, 7], [7, 19]])        
         
 
         # Inclusion
@@ -792,20 +799,20 @@ class Test_Polygon(unittest.TestCase):
         line1 = [[0,5], [10,25]]
         status, value = intersection(line0, line1)
         assert status == 2                        
-        assert allclose(value, [[1,7], [7, 19]])                
+        assert numpy.allclose(value, [[1,7], [7, 19]])                
 
         line0 = [[0,5], [10,25]]
         line1 = [[1,7], [7,19]]
         status, value = intersection(line0, line1)
         assert status == 2                        
-        assert allclose(value, [[1,7], [7, 19]])
+        assert numpy.allclose(value, [[1,7], [7, 19]])
 
 
         line0 = [[0,5], [10,25]]
         line1 = [[7,19], [1,7]]
         status, value = intersection(line0, line1)
         assert status == 2                        
-        assert allclose(value, [[7, 19], [1, 7]])                       
+        assert numpy.allclose(value, [[7, 19], [1, 7]])                       
         
         
     def zzztest_inside_polygon_main(self):  \
@@ -842,7 +849,7 @@ class Test_Polygon(unittest.TestCase):
         points = [ [25, 25], [30, 20], [40, 50], [90, 20], [40, 90] ]
 	res = inside_polygon(points, polygon)
 	assert len(res) == 2
-	assert allclose(res, [0,1])
+	assert numpy.allclose(res, [0,1])
 
     def test_polygon_area(self):
 
@@ -989,7 +996,7 @@ class Test_Polygon(unittest.TestCase):
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Polygon,'test')
-    #suite = unittest.makeSuite(Test_Polygon,'test_inside_polygon_geo_ref')
+##    suite = unittest.makeSuite(Test_Polygon,'test_polygon_function_constantsX')
     runner = unittest.TextTestRunner()
     runner.run(suite)
 

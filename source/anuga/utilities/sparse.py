@@ -1,6 +1,8 @@
+
 """Proof of concept sparse matrix code
 """
 
+import numpy
 
 class Sparse:
 
@@ -16,9 +18,8 @@ class Sparse:
         self.Data = {}
             
         if len(args) == 1:
-            from Numeric import array
             try:
-                A = array(args[0])
+                A = numpy.array(args[0])
             except:
                 raise 'Input must be convertable to a Numeric array'
 
@@ -91,9 +92,7 @@ class Sparse:
 
 
     def todense(self):
-        from Numeric import zeros, Float
-
-        D = zeros( (self.M, self.N), Float)
+        D = numpy.zeros( (self.M, self.N), numpy.float)
         
         for i in range(self.M):
             for j in range(self.N):
@@ -108,10 +107,8 @@ class Sparse:
         a Numeric vector, a Numeric matrix or another sparse matrix.
         """
 
-        from Numeric import array, zeros, Float
-        
         try:
-            B = array(other)
+            B = numpy.array(other)
         except:
             msg = 'FIXME: Only Numeric types implemented so far'
             raise msg
@@ -129,7 +126,7 @@ class Sparse:
                   %(self.M, self.N, B.shape[0])
             assert B.shape[0] == self.N, msg
 
-            R = zeros(self.M, Float) #Result
+            R = numpy.zeros(self.M, numpy.float) #Result
 	    
             # Multiply nonzero elements
             for key in self.Data.keys():
@@ -139,7 +136,7 @@ class Sparse:
         elif len(B.shape) == 2:
 	
             
-            R = zeros((self.M, B.shape[1]), Float) #Result matrix
+            R = numpy.zeros((self.M, B.shape[1]), numpy.float) #Result matrix
 
             # Multiply nonzero elements
 	    for col in range(R.shape[1]):
@@ -161,8 +158,6 @@ class Sparse:
         """Add this matrix onto 'other' 
         """
 
-        from Numeric import array, zeros, Float
-        
         new = other.copy()
         for key in self.Data.keys():
             i, j = key
@@ -176,8 +171,6 @@ class Sparse:
         """Right multiply this matrix with scalar
         """
 
-        from Numeric import array, zeros, Float
-        
         try:
             other = float(other)
         except:
@@ -199,10 +192,8 @@ class Sparse:
         a Numeric vector.
         """
 
-        from Numeric import array, zeros, Float
-        
         try:
-            B = array(other)
+            B = numpy.array(other)
         except:
             print 'FIXME: Only Numeric types implemented so far'
 
@@ -213,7 +204,7 @@ class Sparse:
 
             assert B.shape[0] == self.M, 'Mismatching dimensions'
 
-            R = zeros((self.N,), Float) #Result
+            R = numpy.zeros((self.N,), numpy.float) #Result
 
             #Multiply nonzero elements
             for key in self.Data.keys():
@@ -250,17 +241,14 @@ class Sparse_CSR:
                  
         """
 
-        from Numeric import array, Float, Int
-
         if isinstance(A,Sparse):
 
-            from Numeric import zeros
             keys = A.Data.keys()
             keys.sort()
             nnz = len(keys)
-            data    = zeros ( (nnz,), Float)
-            colind  = zeros ( (nnz,), Int)
-            row_ptr = zeros ( (A.M+1,), Int)
+            data    = numpy.zeros ( (nnz,), numpy.float)
+            colind  = numpy.zeros ( (nnz,), numpy.int)
+            row_ptr = numpy.zeros ( (A.M+1,), numpy.int)
             current_row = -1
             k = 0
             for key in keys:
@@ -298,9 +286,8 @@ class Sparse_CSR:
         return len(self)
 
     def todense(self):
-        from Numeric import zeros, Float
 
-        D = zeros( (self.M, self.N), Float)
+        D = numpy.zeros( (self.M, self.N), numpy.float)
         
         for i in range(self.M):
             for ckey in range(self.row_ptr[i],self.row_ptr[i+1]):
@@ -313,10 +300,8 @@ class Sparse_CSR:
         a Numeric vector, a Numeric matrix or another sparse matrix.
         """
 
-        from Numeric import array, zeros, Float
-        
         try:
-            B = array(other)
+            B = numpy.array(other)
         except:
             print 'FIXME: Only Numeric types implemented so far'
 
@@ -332,9 +317,6 @@ if compile.can_use_C_extension('sparse_ext.c'):
 
 if __name__ == '__main__':
     # A little selftest
-    
-    from Numeric import allclose, array, Float 
-    
     A = Sparse(3,3)
 
     A[1,1] = 4
@@ -365,17 +347,17 @@ if __name__ == '__main__':
 
     u = A*v
     print u
-    assert allclose(u, [6,14,4])
+    assert numpy.allclose(u, [6,14,4])
 
     u = A.trans_mult(v)
     print u
-    assert allclose(u, [6,6,10])
+    assert numpy.allclose(u, [6,6,10])
 
     #Right hand side column
-    v = array([[2,4],[3,4],[4,4]])
+    v = numpy.array([[2,4],[3,4],[4,4]])
 
     u = A*v[:,0]
-    assert allclose(u, [6,14,4])
+    assert numpy.allclose(u, [6,14,4])
 
     #u = A*v[:,1]
     #print u
