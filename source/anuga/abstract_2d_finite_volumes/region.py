@@ -7,7 +7,9 @@ operate.
 """
 # FIXME (DSG-DSG) add better comments
 
-from Numeric import average
+import numpy
+
+
 class Region:
     """Base class for modifying quantities based on a region.
     """   
@@ -100,9 +102,9 @@ class Add_value_to_region(Region):
                 # Average the points, and then the verts in the averaged point.  
                 values = Q.get_values(indices=self.build_indices(elements, domain),
                                       location=self.location)
-                av = average(values)
+                av = numpy.average(values)
                 if self.location == "vertices":
-                    av = average(av)
+                    av = numpy.average(av)
                 new_values = av + self.X    
             else:
                 new_values = Q.get_values(indices=self.build_indices(elements, domain),

@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-
-
 #FIXME: Seperate the tests for mesh and general_mesh
 
 #FIXME (Ole): Maxe this test independent of anything that inherits from General_mesh (namely shallow_water)
@@ -12,14 +10,14 @@ from math import sqrt
 from neighbour_mesh import *
 from mesh_factory import rectangular
 from anuga.config import epsilon
-from Numeric import allclose, array, Int
+import numpy
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.utilities.polygon import is_inside_polygon
 from anuga.utilities.numerical_tools import ensure_numeric
 
 def distance(x, y):
-    return sqrt( sum( (array(x)-array(y))**2 ))
+    return sqrt( sum( (numpy.array(x)-numpy.array(y))**2 ))
 
 class Test_Mesh(unittest.TestCase):
     def setUp(self):
@@ -62,16 +60,16 @@ class Test_Mesh(unittest.TestCase):
 
         #Normals
         normals = mesh.get_normals()
-        assert allclose(normals[0, 0:2], [3.0/5, 4.0/5])
-        assert allclose(normals[0, 2:4], [-1.0, 0.0])
-        assert allclose(normals[0, 4:6], [0.0, -1.0])
+        assert numpy.allclose(normals[0, 0:2], [3.0/5, 4.0/5])
+        assert numpy.allclose(normals[0, 2:4], [-1.0, 0.0])
+        assert numpy.allclose(normals[0, 4:6], [0.0, -1.0])
 
-        assert allclose(mesh.get_normal(0,0), [3.0/5, 4.0/5])
-        assert allclose(mesh.get_normal(0,1), [-1.0, 0.0])
-        assert allclose(mesh.get_normal(0,2), [0.0, -1.0])
+        assert numpy.allclose(mesh.get_normal(0,0), [3.0/5, 4.0/5])
+        assert numpy.allclose(mesh.get_normal(0,1), [-1.0, 0.0])
+        assert numpy.allclose(mesh.get_normal(0,2), [0.0, -1.0])
 
         #Edge lengths
-        assert allclose(mesh.edgelengths[0], [5.0, 3.0, 4.0])
+        assert numpy.allclose(mesh.edgelengths[0], [5.0, 3.0, 4.0])
 
 
         #Vertex coordinates
@@ -80,18 +78,18 @@ class Test_Mesh(unittest.TestCase):
         
 
         V = mesh.get_vertex_coordinates()
-        assert allclose(V, [ [0.0, 0.0],
-                             [4.0, 0.0],
-                             [0.0, 3.0] ])
+        assert numpy.allclose(V, [ [0.0, 0.0],
+                                   [4.0, 0.0],
+                                   [0.0, 3.0] ])
 
         V0 = mesh.get_vertex_coordinate(0, 0)
-        assert allclose(V0, [0.0, 0.0])
+        assert numpy.allclose(V0, [0.0, 0.0])
 
         V1 = mesh.get_vertex_coordinate(0, 1)
-        assert allclose(V1, [4.0, 0.0])
+        assert numpy.allclose(V1, [4.0, 0.0])
 
         V2 = mesh.get_vertex_coordinate(0, 2)
-        assert allclose(V2, [0.0, 3.0])
+        assert numpy.allclose(V2, [0.0, 3.0])
 
 
         #General tests:
@@ -236,10 +234,10 @@ class Test_Mesh(unittest.TestCase):
         vertices = [[0,1,2]]
 
         mesh = Mesh(points, vertices,use_inscribed_circle=False)
-        assert allclose(mesh.radii[0],sqrt(3.0)/3),'Steve''s doesn''t work'
+        assert numpy.allclose(mesh.radii[0],sqrt(3.0)/3),'Steve''s doesn''t work'
 
         mesh = Mesh(points, vertices,use_inscribed_circle=True)
-        assert allclose(mesh.radii[0],sqrt(3.0)/3),'inscribed circle doesn''t work'
+        assert numpy.allclose(mesh.radii[0],sqrt(3.0)/3),'inscribed circle doesn''t work'
 
     def test_inscribed_circle_rightangle_triangle(self):
         """test that the radius is calculated correctly by mesh in the case of a right-angled triangle"""
@@ -251,10 +249,10 @@ class Test_Mesh(unittest.TestCase):
         vertices = [[0,1,2]]
 
         mesh = Mesh(points, vertices,use_inscribed_circle=False)
-        assert allclose(mesh.radii[0],5.0/6),'Steve''s doesn''t work'
+        assert numpy.allclose(mesh.radii[0],5.0/6),'Steve''s doesn''t work'
 
         mesh = Mesh(points, vertices,use_inscribed_circle=True)
-        assert allclose(mesh.radii[0],1.0),'inscribed circle doesn''t work'
+        assert numpy.allclose(mesh.radii[0],1.0),'inscribed circle doesn''t work'
 
 
     def test_two_triangles(self):
@@ -268,7 +266,7 @@ class Test_Mesh(unittest.TestCase):
 
         assert mesh.areas[0] == 2.0
 
-        assert allclose(mesh.centroid_coordinates[0], [2.0/3, 2.0/3])
+        assert numpy.allclose(mesh.centroid_coordinates[0], [2.0/3, 2.0/3])
 
 
         #Test that points are arranged in a counter clock wise order
@@ -302,10 +300,10 @@ class Test_Mesh(unittest.TestCase):
         assert mesh.edgelengths[1,1] == 2.0
         assert mesh.edgelengths[1,2] == sqrt(8.0)
 
-        assert allclose(mesh.centroid_coordinates[0], [2.0/3, 2.0/3])
-        assert allclose(mesh.centroid_coordinates[1], [4.0/3, 4.0/3])
-        assert allclose(mesh.centroid_coordinates[2], [8.0/3, 2.0/3])
-        assert allclose(mesh.centroid_coordinates[3], [2.0/3, 8.0/3])
+        assert numpy.allclose(mesh.centroid_coordinates[0], [2.0/3, 2.0/3])
+        assert numpy.allclose(mesh.centroid_coordinates[1], [4.0/3, 4.0/3])
+        assert numpy.allclose(mesh.centroid_coordinates[2], [8.0/3, 2.0/3])
+        assert numpy.allclose(mesh.centroid_coordinates[3], [2.0/3, 8.0/3])
 
     def test_mesh_and_neighbours(self):
         a = [0.0, 0.0]
@@ -696,8 +694,8 @@ class Test_Mesh(unittest.TestCase):
         """
         get values based on triangle lists.
         """
+
         from mesh_factory import rectangular
-        from Numeric import zeros, Float
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
@@ -715,8 +713,6 @@ class Test_Mesh(unittest.TestCase):
 
     def test_boundary_polygon(self):
         from mesh_factory import rectangular
-        #from mesh import Mesh
-        from Numeric import zeros, Float
 
         #Create basic mesh
         points, vertices, boundary = rectangular(2, 2)
@@ -726,18 +722,15 @@ class Test_Mesh(unittest.TestCase):
         P = mesh.get_boundary_polygon()
 
         assert len(P) == 8
-        assert allclose(P, [[0.0, 0.0], [0.5, 0.0], [1.0, 0.0],
-                            [1.0, 0.5], [1.0, 1.0], [0.5, 1.0],
-                            [0.0, 1.0], [0.0, 0.5]])
+        assert numpy.allclose(P, [[0.0, 0.0], [0.5, 0.0], [1.0, 0.0],
+                                  [1.0, 0.5], [1.0, 1.0], [0.5, 1.0],
+                                  [0.0, 1.0], [0.0, 0.5]])
         for p in points:
             #print p, P
             assert is_inside_polygon(p, P)
 
 
     def test_boundary_polygon_II(self):
-        from Numeric import zeros, Float
-        
-
         #Points
         a = [0.0, 0.0] #0
         b = [0.0, 0.5] #1
@@ -763,7 +756,7 @@ class Test_Mesh(unittest.TestCase):
         P = mesh.get_boundary_polygon()
 
         assert len(P) == 8
-        assert allclose(P, [a, d, f, i, h, e, c, b])
+        assert numpy.allclose(P, [a, d, f, i, h, e, c, b])
 
         for p in points:
             #print p, P
@@ -773,9 +766,6 @@ class Test_Mesh(unittest.TestCase):
     def test_boundary_polygon_III(self):
         """Same as II but vertices ordered differently
         """
-
-        from Numeric import zeros, Float
-
 
         #Points
         a = [0.0, 0.0] #0
@@ -803,7 +793,7 @@ class Test_Mesh(unittest.TestCase):
         P = mesh.get_boundary_polygon()
 
         assert len(P) == 8
-        assert allclose(P, [a, d, f, i, h, e, c, b])
+        assert numpy.allclose(P, [a, d, f, i, h, e, c, b])
 
         for p in points:
             assert is_inside_polygon(p, P)
@@ -814,9 +804,6 @@ class Test_Mesh(unittest.TestCase):
 	one triangle has no neighbours. This may be the case if a mesh
 	is partitioned using pymetis.
         """
-
-        from Numeric import zeros, Float
-
 
         #Points
         a = [0.0, 0.0] #0
@@ -846,7 +833,7 @@ class Test_Mesh(unittest.TestCase):
         assert len(P) == 9
 	
 	# Note that point e appears twice!
-        assert allclose(P, [a, d, f, e, g, h, e, c, b])
+        assert numpy.allclose(P, [a, d, f, e, g, h, e, c, b])
 
         for p in points:
 	    msg = 'Point %s is not inside polygon %s'\
@@ -863,7 +850,6 @@ class Test_Mesh(unittest.TestCase):
         from test_util.py that looked as if it produced the wrong boundary
         """
 
-        from Numeric import zeros, Float
         from mesh_factory import rectangular        
 
         #Create a domain to hold test grid
@@ -906,8 +892,6 @@ class Test_Mesh(unittest.TestCase):
         and check that boundary is as expected
         
         """
-        from Numeric import zeros, Float
-        
 
         #Points
         a = [0.0, 0.0] #0
@@ -954,8 +938,8 @@ class Test_Mesh(unittest.TestCase):
         #print P
         
         assert len(P) == 8
-        assert allclose(P, [a, d, f, i, h, e, c, b])
-        assert allclose(P, [(0.0, 0.0), (0.5, 0.0), (1.0, 0.0), (1.5, 0.5), (1.0, 1.0), (0.5, 0.5), (0.0, 1.0), (0.0, 0.5)])
+        assert numpy.allclose(P, [a, d, f, i, h, e, c, b])
+        assert numpy.allclose(P, [(0.0, 0.0), (0.5, 0.0), (1.0, 0.0), (1.5, 0.5), (1.0, 1.0), (0.5, 0.5), (0.0, 1.0), (0.0, 0.5)])
         
 
         for p in points:
@@ -997,7 +981,7 @@ class Test_Mesh(unittest.TestCase):
                   [  75735.4765625 ,  23762.00585938],
                   [  52341.70703125,  38563.39453125]]
 
-        ##points = ensure_numeric(points, Int)/1000  # Simplify for ease of interpretation        
+        ##points = ensure_numeric(points, int)/1000  # Simplify for ease of interpretation        
 
         triangles = [[19, 0,15],
                      [ 2, 4, 3],
@@ -1100,7 +1084,7 @@ class Test_Mesh(unittest.TestCase):
                   [  31998.23828125,  88799.84375   ],
                   [  35406.3359375 ,  79332.9140625 ]]
 
-        scaled_points = ensure_numeric(points, Int)/1000  # Simplify for ease of interpretation
+        scaled_points = ensure_numeric(points, int)/1000  # Simplify for ease of interpretation
 
         triangles = [[ 0, 1, 2],
                      [ 3, 4, 5],
@@ -1141,7 +1125,7 @@ class Test_Mesh(unittest.TestCase):
         for p in points:
             assert is_inside_polygon(p, P)            
 
-        assert allclose(P, Pref)    
+        assert numpy.allclose(P, Pref)    
 
     def test_lone_vertices(self):
         a = [2.0, 1.0]
@@ -1193,7 +1177,7 @@ class Test_Mesh(unittest.TestCase):
         mesh = Mesh(relative_points, vertices, geo_reference=geo)
         boundary_polygon = mesh.get_boundary_polygon()
 
-        assert allclose(absolute_points, boundary_polygon)
+        assert numpy.allclose(absolute_points, boundary_polygon)
 
     def test_get_triangle_containing_point(self):
 
@@ -1240,7 +1224,7 @@ class Test_Mesh(unittest.TestCase):
         mesh = Mesh(points, vertices)
 
         neighbours = mesh.get_triangle_neighbours(0)
-        assert allclose(neighbours, [-1,1,-1])
+        assert numpy.allclose(neighbours, [-1,1,-1])
         neighbours = mesh.get_triangle_neighbours(-10)
         assert neighbours == []
         neighbours = mesh.get_triangle_neighbours(2)
@@ -1289,23 +1273,23 @@ class Test_Mesh(unittest.TestCase):
             total_length = 0
             for x in L:
                 if x.triangle_id % 2 == 0:
-                    assert allclose(x.length, ceiling-y_line)
+                    assert numpy.allclose(x.length, ceiling-y_line)
                 else:
-                    assert allclose(x.length, y_line-floor)                
+                    assert numpy.allclose(x.length, y_line-floor)                
 
                 
-                assert allclose(x.normal, [0,-1])
+                assert numpy.allclose(x.normal, [0,-1])
 
-                assert allclose(x.segment[1][0], x.segment[0][0] + x.length)
-                assert allclose(x.segment[0][1], y_line)
-                assert allclose(x.segment[1][1], y_line)                
+                assert numpy.allclose(x.segment[1][0], x.segment[0][0] + x.length)
+                assert numpy.allclose(x.segment[0][1], y_line)
+                assert numpy.allclose(x.segment[1][1], y_line)                
 
                 assert x.triangle_id in intersected_triangles
 
                 total_length += x.length
 
             msg = 'Segments do not add up'
-            assert allclose(total_length, 2), msg
+            assert numpy.allclose(total_length, 2), msg
             
 
     def test_get_intersecting_segments_coinciding(self):
@@ -1340,12 +1324,12 @@ class Test_Mesh(unittest.TestCase):
         # Check all 
         total_length = 0
         for x in L:
-            assert allclose(x.length, 1.0)
-            assert allclose(x.normal, [0,-1])
+            assert numpy.allclose(x.length, 1.0)
+            assert numpy.allclose(x.normal, [0,-1])
 
-            assert allclose(x.segment[1][0], x.segment[0][0] + x.length)
-            assert allclose(x.segment[0][1], y_line)
-            assert allclose(x.segment[1][1], y_line)                            
+            assert numpy.allclose(x.segment[1][0], x.segment[0][0] + x.length)
+            assert numpy.allclose(x.segment[0][1], y_line)
+            assert numpy.allclose(x.segment[1][1], y_line)                            
 
 
 
@@ -1354,7 +1338,7 @@ class Test_Mesh(unittest.TestCase):
             total_length += x.length
 
         msg = 'Segments do not add up'
-        assert allclose(total_length, 2), msg
+        assert numpy.allclose(total_length, 2), msg
         
 
     def test_get_intersecting_segments_partially_coinciding(self):
@@ -1394,12 +1378,12 @@ class Test_Mesh(unittest.TestCase):
         total_length = 0
         for x in L:
             if x.triangle_id == 1:
-                assert allclose(x.length, 1)        
-                assert allclose(x.normal, [0, -1])
+                assert numpy.allclose(x.length, 1)        
+                assert numpy.allclose(x.normal, [0, -1])
                 
             if x.triangle_id == 5:
-                assert allclose(x.length, 0.5)
-                assert allclose(x.normal, [0, -1])
+                assert numpy.allclose(x.length, 0.5)
+                assert numpy.allclose(x.normal, [0, -1])
 
 
             assert x.triangle_id in intersected_triangles
@@ -1407,7 +1391,7 @@ class Test_Mesh(unittest.TestCase):
             total_length += x.length
 
         msg = 'Segments do not add up'
-        assert allclose(total_length, 1.5), msg            
+        assert numpy.allclose(total_length, 1.5), msg            
 
 
 
@@ -1441,16 +1425,16 @@ class Test_Mesh(unittest.TestCase):
         # Check all segments
         total_length = 0
         for i, x in enumerate(L): 
-            assert allclose(x.length, s2)
-            assert allclose(x.normal, [-s2, -s2])
-            assert allclose(sum(x.normal**2), 1)
+            assert numpy.allclose(x.length, s2)
+            assert numpy.allclose(x.normal, [-s2, -s2])
+            assert numpy.allclose(sum(x.normal**2), 1)
             
             assert x.triangle_id in intersected_triangles
 
             total_length += x.length
 
         msg = 'Segments do not add up'
-        assert allclose(total_length, 4*s2), msg
+        assert numpy.allclose(total_length, 4*s2), msg
 
 
         # Diagonal cutting through a vertex and hypothenuses (reversed)
@@ -1465,16 +1449,16 @@ class Test_Mesh(unittest.TestCase):
         # Check all segments
         total_length = 0
         for i, x in enumerate(L): 
-            assert allclose(x.length, s2)
-            assert allclose(x.normal, [s2, s2])
-            assert allclose(sum(x.normal**2), 1)
+            assert numpy.allclose(x.length, s2)
+            assert numpy.allclose(x.normal, [s2, s2])
+            assert numpy.allclose(sum(x.normal**2), 1)
             
             assert x.triangle_id in intersected_triangles
 
             total_length += x.length
 
         msg = 'Segments do not add up'
-        assert allclose(total_length, 4*s2), msg                    
+        assert numpy.allclose(total_length, 4*s2), msg                    
 
 
 
@@ -1490,16 +1474,16 @@ class Test_Mesh(unittest.TestCase):
         # Check all segments
         total_length = 0
         for i, x in enumerate(L): 
-            assert allclose(x.length, 2*s2)
-            assert allclose(x.normal, [-s2, s2])
-            assert allclose(sum(x.normal**2), 1)
+            assert numpy.allclose(x.length, 2*s2)
+            assert numpy.allclose(x.normal, [-s2, s2])
+            assert numpy.allclose(sum(x.normal**2), 1)
             
             assert x.triangle_id in intersected_triangles
 
             total_length += x.length
 
         msg = 'Segments do not add up'
-        assert allclose(total_length, 4*s2), msg                        
+        assert numpy.allclose(total_length, 4*s2), msg                        
 
 
         # Diagonal coinciding with hypothenuses (reversed)
@@ -1514,16 +1498,16 @@ class Test_Mesh(unittest.TestCase):
         # Check all segments
         total_length = 0
         for i, x in enumerate(L): 
-            assert allclose(x.length, 2*s2)
-            assert allclose(x.normal, [s2, -s2])
-            assert allclose(sum(x.normal**2), 1)
+            assert numpy.allclose(x.length, 2*s2)
+            assert numpy.allclose(x.normal, [s2, -s2])
+            assert numpy.allclose(sum(x.normal**2), 1)
             
             assert x.triangle_id in intersected_triangles
 
             total_length += x.length
 
         msg = 'Segments do not add up'
-        assert allclose(total_length, 4*s2), msg                        
+        assert numpy.allclose(total_length, 4*s2), msg                        
 
 
 
@@ -1539,16 +1523,16 @@ class Test_Mesh(unittest.TestCase):
         # Check all segments
         total_length = 0
         for i, x in enumerate(L): 
-            assert allclose(x.length, s2)
-            assert allclose(x.normal, [-s2, -s2])
-            assert allclose(sum(x.normal**2), 1)
+            assert numpy.allclose(x.length, s2)
+            assert numpy.allclose(x.normal, [-s2, -s2])
+            assert numpy.allclose(sum(x.normal**2), 1)
             
             assert x.triangle_id in intersected_triangles
 
             total_length += x.length
 
         msg = 'Segments do not add up'
-        assert allclose(total_length, 2*s2), msg
+        assert numpy.allclose(total_length, 2*s2), msg
 
 
         # Arbitrary line with slope [1, -1] cutting through tri 7 and 6
@@ -1561,8 +1545,8 @@ class Test_Mesh(unittest.TestCase):
         # Check all segments
         total_length = 0
         for i, x in enumerate(L): 
-            assert allclose(x.normal, [-s2, -s2])
-            assert allclose(sum(x.normal**2), 1)
+            assert numpy.allclose(x.normal, [-s2, -s2])
+            assert numpy.allclose(sum(x.normal**2), 1)
 
             msg = 'Triangle %d' %x.triangle_id + ' is not in %s' %(intersected_triangles)
             assert x.triangle_id in intersected_triangles, msg
@@ -1597,8 +1581,8 @@ class Test_Mesh(unittest.TestCase):
         L = mesh.get_intersecting_segments(line)
         assert len(L) == 1
         assert L[0].triangle_id == 3
-        assert allclose(L[0].length, 0.5)        
-        assert allclose(L[0].normal, [-1,0])                
+        assert numpy.allclose(L[0].length, 0.5)        
+        assert numpy.allclose(L[0].normal, [-1,0])                
 
 
 
@@ -1609,8 +1593,8 @@ class Test_Mesh(unittest.TestCase):
         L = mesh.get_intersecting_segments(line)
         assert len(L) == 1
         assert L[0].triangle_id == 3
-        assert allclose(L[0].length, 0.4)
-        assert allclose(L[0].normal, [-1,0])
+        assert numpy.allclose(L[0].length, 0.4)
+        assert numpy.allclose(L[0].normal, [-1,0])
 
         intersected_triangles = [3]
 
@@ -1622,8 +1606,8 @@ class Test_Mesh(unittest.TestCase):
         L = mesh.get_intersecting_segments(line)
         assert len(L) == 1
         assert L[0].triangle_id == 3
-        assert allclose(L[0].length, 0.4)
-        assert allclose(L[0].normal, [1,0])                
+        assert numpy.allclose(L[0].length, 0.4)
+        assert numpy.allclose(L[0].normal, [1,0])                
         
 
             
@@ -1657,12 +1641,12 @@ class Test_Mesh(unittest.TestCase):
 
         for x in L:
             if x.triangle_id == 3:
-                assert allclose(x.length, 0.5)        
-                assert allclose(x.normal, [-1,0])
+                assert numpy.allclose(x.length, 0.5)        
+                assert numpy.allclose(x.normal, [-1,0])
                 
             if x.triangle_id == 2:
-                assert allclose(x.length, s2)
-                assert allclose(x.normal, [-s2,-s2])
+                assert numpy.allclose(x.length, s2)
+                assert numpy.allclose(x.normal, [-s2,-s2])
 
 
 
@@ -1695,20 +1679,20 @@ class Test_Mesh(unittest.TestCase):
 
         for x in L:
             if x.triangle_id == 3:
-                assert allclose(x.length, 0.5)        
-                assert allclose(x.normal, [-1,0])
+                assert numpy.allclose(x.length, 0.5)        
+                assert numpy.allclose(x.normal, [-1,0])
                 
             if x.triangle_id == 2:
                 msg = str(x.length)
-                assert allclose(x.length, s2), msg
-                assert allclose(x.normal, [-s2,-s2])
+                assert numpy.allclose(x.length, s2), msg
+                assert numpy.allclose(x.normal, [-s2,-s2])
 
             if x.triangle_id == 5:
-                segvec = array([line[2][0]-1,
-                                line[2][1]-1])
+                segvec = numpy.array([line[2][0]-1,
+                                      line[2][1]-1])
                 msg = str(x.length)
-                assert allclose(x.length, sqrt(sum(segvec**2))), msg
-                assert allclose(x.normal, [-s2,-s2])                                                
+                assert numpy.allclose(x.length, sqrt(sum(segvec**2))), msg
+                assert numpy.allclose(x.normal, [-s2,-s2])                                                
 
 
     def test_get_intersecting_segments6(self):
@@ -1746,27 +1730,27 @@ class Test_Mesh(unittest.TestCase):
 
         for x in L:
             if x.triangle_id == 3:
-                assert allclose(x.length, 0.5)        
-                assert allclose(x.normal, [-1,0])
+                assert numpy.allclose(x.length, 0.5)        
+                assert numpy.allclose(x.normal, [-1,0])
                 
             if x.triangle_id == 2:
                 msg = str(x.length)
-                assert allclose(x.length, s2), msg
-                assert allclose(x.normal, [-s2,-s2])
+                assert numpy.allclose(x.length, s2), msg
+                assert numpy.allclose(x.normal, [-s2,-s2])
 
             if x.triangle_id == 5:
                 if x.segment == ((1.0, 1.0), (1.25, 0.75)):                    
-                    segvec = array([line[2][0]-1,
-                                    line[2][1]-1])
+                    segvec = numpy.array([line[2][0]-1,
+                                          line[2][1]-1])
                     msg = str(x.length)
-                    assert allclose(x.length, sqrt(sum(segvec**2))), msg
-                    assert allclose(x.normal, [-s2,-s2])
+                    assert numpy.allclose(x.length, sqrt(sum(segvec**2))), msg
+                    assert numpy.allclose(x.normal, [-s2,-s2])
                 elif x.segment == ((1.25, 0.75), (1.5, 1.0)):
-                    segvec = array([1.5-line[2][0],
-                                    1.0-line[2][1]])
+                    segvec = numpy.array([1.5-line[2][0],
+                                          1.0-line[2][1]])
                     
-                    assert allclose(x.length, sqrt(sum(segvec**2))), msg
-                    assert allclose(x.normal, [s2,-s2])
+                    assert numpy.allclose(x.length, sqrt(sum(segvec**2))), msg
+                    assert numpy.allclose(x.normal, [s2,-s2])
                 else:
                     msg = 'Unknow segment: %s' %x.segment
                     raise Exception, msg
@@ -1774,8 +1758,8 @@ class Test_Mesh(unittest.TestCase):
 
                     
             if x.triangle_id == 6:
-                assert allclose(x.normal, [s2,-s2])
-                assert allclose(x.segment, ((1.5, 1.0), (2, 1.5)))
+                assert numpy.allclose(x.normal, [s2,-s2])
+                assert numpy.allclose(x.segment, ((1.5, 1.0), (2, 1.5)))
 
 
       # Internal test that sum of line segments add up
@@ -1841,7 +1825,7 @@ class Test_Mesh(unittest.TestCase):
 
             ref_length = line[1][1] - line[0][1]
             #print ref_length, total_length
-            assert allclose(total_length, ref_length)
+            assert numpy.allclose(total_length, ref_length)
 
 
 

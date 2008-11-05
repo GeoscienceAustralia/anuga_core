@@ -1,27 +1,28 @@
 #!/usr/bin/env python
 
 # from os import open, write, read
-import Numeric
+##import numpy.oldnumeric as Numeric
+import numpy
 
-celltype_map = {'IEEE4ByteReal': Numeric.Float32, 'IEEE8ByteReal': Numeric.Float64}
+celltype_map = {'IEEE4ByteReal': numpy.float32, 'IEEE8ByteReal': numpy.float64}
 
 
 def write_ermapper_grid(ofile, data, header = {}):
     """
     write_ermapper_grid(ofile, data, header = {}):
     
-    Function to write a 2D Numeric array to an ERMapper grid.  There are a series of conventions adopted within
+    Function to write a 2D NumPy array to an ERMapper grid.  There are a series of conventions adopted within
     this code, specifically:
     1)  The registration coordinate for the data is the SW (or lower-left) corner of the data
     2)  The registration coordinates refer to cell centres
-    3)  The data is a 2D Numeric array with the NW-most data in element (0,0) and the SE-most data in element (N,M)
+    3)  The data is a 2D NumPy array with the NW-most data in element (0,0) and the SE-most data in element (N,M)
         where N is the last line and M is the last column
     4)  There has been no testng of the use of a rotated grid.  Best to keep data in an NS orientation
     
     Input Parameters:
     ofile:      string - filename for output (note the output will consist of two files
                 ofile and ofile.ers.  Either of these can be entered into this function
-    data:       Numeric.array - 2D array containing the data to be output to the grid
+    data:       NumPy.array - 2D array containing the data to be output to the grid
     header:     dictionary - contains spatial information about the grid, in particular:
                     header['datum'] datum for the data ('"GDA94"')
                     header['projection'] - either '"GEOGRAPHIC"' or '"PROJECTED"' 
@@ -56,7 +57,7 @@ def write_ermapper_grid(ofile, data, header = {}):
 
 
     # Check that the data is a 2 dimensional array
-    data_size = Numeric.shape(data)
+    data_size = numpy.shape(data)
     assert len(data_size) == 2
     
     header['nroflines'] = str(data_size[0])
@@ -82,7 +83,7 @@ def read_ermapper_grid(ifile):
     nroflines = int(header['nroflines'])
     nrofcellsperlines = int(header['nrofcellsperline'])
     data = read_ermapper_data(data_file)
-    data = Numeric.reshape(data,(nroflines,nrofcellsperlines))
+    data = numpy.reshape(data,(nroflines,nrofcellsperlines))
     return data
     
 
@@ -162,7 +163,7 @@ def read_ermapper_header(ifile):
 
     return header                      
 
-def write_ermapper_data(grid, ofile, data_format = Numeric.Float32):
+def write_ermapper_data(grid, ofile, data_format = numpy.float32):
 
 
     try:
@@ -180,7 +181,7 @@ def write_ermapper_data(grid, ofile, data_format = Numeric.Float32):
     #        raise msg
         
     
-    # Convert the array to data_format (default format is Float32)
+    # Convert the array to data_format (default format is float32)
     grid_as_float = grid.astype(data_format)
 
     # Convert array to a string for writing to output file
@@ -192,14 +193,14 @@ def write_ermapper_data(grid, ofile, data_format = Numeric.Float32):
     fid.close()
 
 
-def read_ermapper_data(ifile, data_format = Numeric.Float32):
+def read_ermapper_data(ifile, data_format = numpy.float32):
     # open input file in a binary format and read the input string
     fid = open(ifile,'rb')
     input_string = fid.read()
     fid.close()
 
-    # convert input string to required format (Note default format is Numeric.Float32)
-    grid_as_float = Numeric.fromstring(input_string,data_format)
+    # convert input string to required format (Note default format is numpy.float32)
+    grid_as_float = numpy.fromstring(input_string,data_format)
     return grid_as_float
 
 def create_default_header(header = {}):

@@ -7,6 +7,8 @@ from anuga.utilities.numerical_tools import NAN
 from anuga.fit_interpolate.interpolate import Modeltime_too_late
 from anuga.fit_interpolate.interpolate import Modeltime_too_early
 
+import numpy
+
 
 class Boundary:
     """Base class for boundary conditions.
@@ -66,8 +68,7 @@ class Dirichlet_boundary(Boundary):
             msg = 'Must specify one value for each conserved quantity'
             raise Exception, msg
 
-        from Numeric import array, Float
-        self.conserved_quantities=array(conserved_quantities).astype(Float)
+        self.conserved_quantities=numpy.array(conserved_quantities).astype(numpy.float)
 
     def __repr__(self):
         return 'Dirichlet boundary (%s)' %self.conserved_quantities
@@ -95,10 +96,8 @@ class Time_boundary(Boundary):
             msg = 'Function for time boundary could not be executed:\n%s' %e
             raise msg
 
-
-        from Numeric import array, Float
         try:
-            q = array(q).astype(Float)
+            q = numpy.array(q).astype(numpy.float)
         except:
             msg = 'Return value from time boundary function could '
             msg += 'not be converted into a Numeric array of floats.\n'
@@ -135,7 +134,6 @@ class File_boundary_time(Boundary):
 
     def __init__(self, filename, domain):
         import time
-        from Numeric import array
         from anuga.config import time_format
         from anuga.abstract_2d_finite_volumes.util import File_function
 
@@ -205,7 +203,6 @@ class File_boundary(Boundary):
                  verbose=False): 
 
         import time
-        from Numeric import array, zeros, Float
         from anuga.config import time_format
         from anuga.abstract_2d_finite_volumes.util import file_function
 
@@ -221,7 +218,7 @@ class File_boundary(Boundary):
         # any tagged boundary later on.
 
         if verbose: print 'Find midpoint coordinates of entire boundary'
-        self.midpoint_coordinates = zeros( (len(domain.boundary), 2), Float)
+        self.midpoint_coordinates = numpy.zeros( (len(domain.boundary), 2), numpy.float)
         boundary_keys = domain.boundary.keys()
 
         xllcorner = domain.geo_reference.get_xllcorner()
@@ -241,9 +238,9 @@ class File_boundary(Boundary):
             x2, y2 = V[base_index+2, :]
             
             # Compute midpoints
-            if edge_id == 0: m = array([(x1 + x2)/2, (y1 + y2)/2])
-            if edge_id == 1: m = array([(x0 + x2)/2, (y0 + y2)/2])
-            if edge_id == 2: m = array([(x1 + x0)/2, (y1 + y0)/2])
+            if edge_id == 0: m = numpy.array([(x1 + x2)/2, (y1 + y2)/2])
+            if edge_id == 1: m = numpy.array([(x0 + x2)/2, (y0 + y2)/2])
+            if edge_id == 2: m = numpy.array([(x1 + x0)/2, (y1 + y0)/2])
 
             # Convert to absolute UTM coordinates
             m[0] += xllcorner

@@ -5,7 +5,7 @@ from math import sqrt, pi
 
 from generic_boundary_conditions import *
 from anuga.config import epsilon
-from Numeric import allclose, array
+import numpy
 
 
 class Test_Generic_Boundary_Conditions(unittest.TestCase):
@@ -43,7 +43,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         Bd = Dirichlet_boundary(x)
 
         q = Bd.evaluate()
-        assert allclose(q, x)
+        assert numpy.allclose(q, x)
 
 
     def test_transmissive(self):
@@ -97,7 +97,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
 
         q = T.evaluate(0, 2)  #Vol=0, edge=2
 
-        assert allclose(q, [1.5, 2.5])
+        assert numpy.allclose(q, [1.5, 2.5])
 
 
     def NOtest_fileboundary_time_only(self):
@@ -174,16 +174,16 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         
 
         #Check that midpoint coordinates at boundary are correctly computed
-        assert allclose( F.midpoint_coordinates,
-                         [[1.0, 0.0], [0.0, 1.0], [3.0, 0.0],
-                          [3.0, 1.0], [1.0, 3.0], [0.0, 3.0]])
+        assert numpy.allclose( F.midpoint_coordinates,
+                               [[1.0, 0.0], [0.0, 1.0], [3.0, 0.0],
+                                [3.0, 1.0], [1.0, 3.0], [0.0, 3.0]])
 
-        #assert allclose(F.midpoint_coordinates[(3,2)], [0.0, 3.0])
-        #assert allclose(F.midpoint_coordinates[(3,1)], [1.0, 3.0])
-        #assert allclose(F.midpoint_coordinates[(0,2)], [0.0, 1.0])
-        #assert allclose(F.midpoint_coordinates[(0,0)], [1.0, 0.0])
-        #assert allclose(F.midpoint_coordinates[(2,0)], [3.0, 0.0])
-        #assert allclose(F.midpoint_coordinates[(2,1)], [3.0, 1.0])
+        #assert numpy.allclose(F.midpoint_coordinates[(3,2)], [0.0, 3.0])
+        #assert numpy.allclose(F.midpoint_coordinates[(3,1)], [1.0, 3.0])
+        #assert numpy.allclose(F.midpoint_coordinates[(0,2)], [0.0, 1.0])
+        #assert numpy.allclose(F.midpoint_coordinates[(0,0)], [1.0, 0.0])
+        #assert numpy.allclose(F.midpoint_coordinates[(2,0)], [3.0, 0.0])
+        #assert numpy.allclose(F.midpoint_coordinates[(2,1)], [3.0, 1.0])
 
 
         #Check time interpolation
@@ -192,12 +192,12 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
 
         domain.time = 5*30/2  #A quarter way through first step
         q = F.evaluate()
-        assert allclose(q, [1.0/4, sin(2*pi/10)/4])
+        assert numpy.allclose(q, [1.0/4, sin(2*pi/10)/4])
 
 
         domain.time = 2.5*5*60  #Half way between steps 2 and 3
         q = F.evaluate()
-        assert allclose(q, [2.5, (sin(2*2*pi/10) + sin(3*2*pi/10))/2])
+        assert numpy.allclose(q, [2.5, (sin(2*2*pi/10) + sin(3*2*pi/10))/2])
 
 
 

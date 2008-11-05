@@ -6,7 +6,7 @@ import tempfile
 
 from quantity import *
 from anuga.config import epsilon
-from Numeric import allclose, array, ones, Float
+import numpy
 
 from anuga.fit_interpolate.fit import fit_to_mesh
 #from anuga.pyvolution.least_squares import fit_to_mesh         
@@ -17,7 +17,7 @@ from anuga.utilities.polygon import *
 
 #Aux for fit_interpolate.fit example
 def linear_function(point):
-    point = array(point)
+    point = numpy.array(point)
     return point[:,0]+point[:,1]
 
 
@@ -62,7 +62,7 @@ class Test_Quantity(unittest.TestCase):
     def test_creation(self):
 
         quantity = Quantity(self.mesh1, [[1,2,3]])
-        assert allclose(quantity.vertex_values, [[1.,2.,3.]])
+        assert numpy.allclose(quantity.vertex_values, [[1.,2.,3.]])
 
         try:
             quantity = Quantity()
@@ -83,51 +83,51 @@ class Test_Quantity(unittest.TestCase):
     def test_creation_zeros(self):
 
         quantity = Quantity(self.mesh1)
-        assert allclose(quantity.vertex_values, [[0.,0.,0.]])
+        assert numpy.allclose(quantity.vertex_values, [[0.,0.,0.]])
 
 
         quantity = Quantity(self.mesh4)
-        assert allclose(quantity.vertex_values, [[0.,0.,0.], [0.,0.,0.],
+        assert numpy.allclose(quantity.vertex_values, [[0.,0.,0.], [0.,0.,0.],
                                                  [0.,0.,0.], [0.,0.,0.]])
 
 
     def test_interpolation(self):
         quantity = Quantity(self.mesh1, [[1,2,3]])
-        assert allclose(quantity.centroid_values, [2.0]) #Centroid
+        assert numpy.allclose(quantity.centroid_values, [2.0]) #Centroid
 
-        assert allclose(quantity.edge_values, [[2.5, 2.0, 1.5]])
+        assert numpy.allclose(quantity.edge_values, [[2.5, 2.0, 1.5]])
 
 
     def test_interpolation2(self):
         quantity = Quantity(self.mesh4,
                             [[1,2,3], [5,5,5], [0,0,9], [-6, 3, 3]])
-        assert allclose(quantity.centroid_values, [2., 5., 3., 0.]) #Centroid
+        assert numpy.allclose(quantity.centroid_values, [2., 5., 3., 0.]) #Centroid
 
 
         quantity.extrapolate_second_order()
 
         #print quantity.vertex_values
-        assert allclose(quantity.vertex_values, [[3.5, -1.0, 3.5],
-                                                 [3.+2./3, 6.+2./3, 4.+2./3],
-                                                 [4.6, 3.4, 1.],
-                                                 [-5.0, 1.0, 4.0]])
+        assert numpy.allclose(quantity.vertex_values, [[3.5, -1.0, 3.5],
+                                                       [3.+2./3, 6.+2./3, 4.+2./3],
+                                                       [4.6, 3.4, 1.],
+                                                       [-5.0, 1.0, 4.0]])
 
         #print quantity.edge_values
-        assert allclose(quantity.edge_values, [[1.25, 3.5, 1.25],
-                                               [5. + 2/3.0, 4.0 + 1.0/6, 5.0 + 1.0/6],
-                                               [2.2, 2.8, 4.0],
-                                               [2.5, -0.5, -2.0]])
+        assert numpy.allclose(quantity.edge_values, [[1.25, 3.5, 1.25],
+                                                     [5. + 2/3.0, 4.0 + 1.0/6, 5.0 + 1.0/6],
+                                                     [2.2, 2.8, 4.0],
+                                                     [2.5, -0.5, -2.0]])
 
 
-        #assert allclose(quantity.edge_values, [[2.5, 2.0, 1.5],
-        #                                       [5., 5., 5.],
-        #                                       [4.5, 4.5, 0.],
-        #                                       [3.0, -1.5, -1.5]])
+        #assert numpy.allclose(quantity.edge_values, [[2.5, 2.0, 1.5],
+        #                                             [5., 5., 5.],
+        #                                             [4.5, 4.5, 0.],
+        #                                             [3.0, -1.5, -1.5]])
 
     def test_get_extrema_1(self):
         quantity = Quantity(self.mesh4,
                                       [[1,2,3], [5,5,5], [0,0,9], [-6, 3, 3]])
-        assert allclose(quantity.centroid_values, [2., 5., 3., 0.]) #Centroids
+        assert numpy.allclose(quantity.centroid_values, [2., 5., 3., 0.]) #Centroids
 
         v = quantity.get_maximum_value()
         assert v == 5
@@ -147,12 +147,12 @@ class Test_Quantity(unittest.TestCase):
         assert y == yref
 
         v = quantity.get_values(interpolation_points = [[x,y]])
-        assert allclose(v, 5)
+        assert numpy.allclose(v, 5)
 
 
         x,y = quantity.get_minimum_location()
         v = quantity.get_values(interpolation_points = [[x,y]])
-        assert allclose(v, 0)
+        assert numpy.allclose(v, 0)
 
 
     def test_get_maximum_2(self):
@@ -191,16 +191,16 @@ class Test_Quantity(unittest.TestCase):
         assert y == yref
 
         v = quantity.get_values(interpolation_points = [[x,y]])
-        assert allclose(v, 6)
+        assert numpy.allclose(v, 6)
 
         x,y = quantity.get_minimum_location()        
         v = quantity.get_values(interpolation_points = [[x,y]])
-        assert allclose(v, 2)
+        assert numpy.allclose(v, 2)
 
         #Multiple locations for maximum -
         #Test that the algorithm picks the first occurrence        
         v = quantity.get_maximum_value(indices=[0,1,2])
-        assert allclose(v, 4)
+        assert numpy.allclose(v, 4)
 
         i = quantity.get_maximum_index(indices=[0,1,2])
         assert i == 1
@@ -211,11 +211,11 @@ class Test_Quantity(unittest.TestCase):
         assert y == yref
 
         v = quantity.get_values(interpolation_points = [[x,y]])
-        assert allclose(v, 4)        
+        assert numpy.allclose(v, 4)        
 
         # More test of indices......
         v = quantity.get_maximum_value(indices=[2,3])
-        assert allclose(v, 6)
+        assert numpy.allclose(v, 6)
 
         i = quantity.get_maximum_index(indices=[2,3])
         assert i == 3
@@ -226,7 +226,7 @@ class Test_Quantity(unittest.TestCase):
         assert y == yref
 
         v = quantity.get_values(interpolation_points = [[x,y]])
-        assert allclose(v, 6)        
+        assert numpy.allclose(v, 6)        
 
         
 
@@ -243,28 +243,28 @@ class Test_Quantity(unittest.TestCase):
 
         quantity.set_values([[1,2,3], [5,5,5], [0,0,9], [-6, 3, 3]],
                             location = 'vertices')
-        assert allclose(quantity.vertex_values,
-                        [[1,2,3], [5,5,5], [0,0,9], [-6, 3, 3]])
-        assert allclose(quantity.centroid_values, [2., 5., 3., 0.]) #Centroid
-        assert allclose(quantity.edge_values, [[2.5, 2.0, 1.5],
-                                               [5., 5., 5.],
-                                               [4.5, 4.5, 0.],
-                                               [3.0, -1.5, -1.5]])
+        assert numpy.allclose(quantity.vertex_values,
+                              [[1,2,3], [5,5,5], [0,0,9], [-6, 3, 3]])
+        assert numpy.allclose(quantity.centroid_values, [2., 5., 3., 0.]) #Centroid
+        assert numpy.allclose(quantity.edge_values, [[2.5, 2.0, 1.5],
+                                                     [5., 5., 5.],
+                                                     [4.5, 4.5, 0.],
+                                                     [3.0, -1.5, -1.5]])
 
 
         # Test default
         quantity.set_values([[1,2,3], [5,5,5], [0,0,9], [-6, 3, 3]])
-        assert allclose(quantity.vertex_values,
-                        [[1,2,3], [5,5,5], [0,0,9], [-6, 3, 3]])
-        assert allclose(quantity.centroid_values, [2., 5., 3., 0.]) #Centroid
-        assert allclose(quantity.edge_values, [[2.5, 2.0, 1.5],
-                                               [5., 5., 5.],
-                                               [4.5, 4.5, 0.],
-                                               [3.0, -1.5, -1.5]])
+        assert numpy.allclose(quantity.vertex_values,
+                              [[1,2,3], [5,5,5], [0,0,9], [-6, 3, 3]])
+        assert numpy.allclose(quantity.centroid_values, [2., 5., 3., 0.]) #Centroid
+        assert numpy.allclose(quantity.edge_values, [[2.5, 2.0, 1.5],
+                                                     [5., 5., 5.],
+                                                     [4.5, 4.5, 0.],
+                                                     [3.0, -1.5, -1.5]])
 
         # Test centroids
         quantity.set_values([1,2,3,4], location = 'centroids')
-        assert allclose(quantity.centroid_values, [1., 2., 3., 4.]) #Centroid
+        assert numpy.allclose(quantity.centroid_values, [1., 2., 3., 4.]) #Centroid
 
         # Test exceptions
         try:
@@ -287,18 +287,18 @@ class Test_Quantity(unittest.TestCase):
         quantity = Quantity(self.mesh4)
 
         quantity.set_values(1.0, location = 'vertices')
-        assert allclose(quantity.vertex_values,
-                        [[1,1,1], [1,1,1], [1,1,1], [1, 1, 1]])
+        assert numpy.allclose(quantity.vertex_values,
+                              [[1,1,1], [1,1,1], [1,1,1], [1, 1, 1]])
 
-        assert allclose(quantity.centroid_values, [1, 1, 1, 1]) #Centroid
-        assert allclose(quantity.edge_values, [[1, 1, 1],
-                                               [1, 1, 1],
-                                               [1, 1, 1],
-                                               [1, 1, 1]])
+        assert numpy.allclose(quantity.centroid_values, [1, 1, 1, 1]) #Centroid
+        assert numpy.allclose(quantity.edge_values, [[1, 1, 1],
+                                                     [1, 1, 1],
+                                                     [1, 1, 1],
+                                                     [1, 1, 1]])
 
 
         quantity.set_values(2.0, location = 'centroids')
-        assert allclose(quantity.centroid_values, [2, 2, 2, 2])
+        assert numpy.allclose(quantity.centroid_values, [2, 2, 2, 2])
 
 
     def test_set_values_func(self):
@@ -309,17 +309,17 @@ class Test_Quantity(unittest.TestCase):
 
         quantity.set_values(f, location = 'vertices')
         #print "quantity.vertex_values",quantity.vertex_values
-        assert allclose(quantity.vertex_values,
-                        [[2,0,2], [2,2,4], [4,2,4], [4,2,4]])
-        assert allclose(quantity.centroid_values,
-                        [4.0/3, 8.0/3, 10.0/3, 10.0/3])
-        assert allclose(quantity.edge_values,
-                        [[1,2,1], [3,3,2], [3,4,3], [3,4,3]])
+        assert numpy.allclose(quantity.vertex_values,
+                              [[2,0,2], [2,2,4], [4,2,4], [4,2,4]])
+        assert numpy.allclose(quantity.centroid_values,
+                              [4.0/3, 8.0/3, 10.0/3, 10.0/3])
+        assert numpy.allclose(quantity.edge_values,
+                              [[1,2,1], [3,3,2], [3,4,3], [3,4,3]])
 
 
         quantity.set_values(f, location = 'centroids')
-        assert allclose(quantity.centroid_values,
-                        [4.0/3, 8.0/3, 10.0/3, 10.0/3])
+        assert numpy.allclose(quantity.centroid_values,
+                              [4.0/3, 8.0/3, 10.0/3, 10.0/3])
 
 
     def test_integral(self):
@@ -330,7 +330,7 @@ class Test_Quantity(unittest.TestCase):
         quantity.set_values(const, location = 'vertices')
         #print 'Q', quantity.get_integral()
 
-        assert allclose(quantity.get_integral(), self.mesh4.get_area() * const)
+        assert numpy.allclose(quantity.get_integral(), self.mesh4.get_area() * const)
 
         #Try with a linear function
         def f(x, y):
@@ -341,7 +341,7 @@ class Test_Quantity(unittest.TestCase):
 
         ref_integral = (4.0/3 + 8.0/3 + 10.0/3 + 10.0/3) * 2
 
-        assert allclose (quantity.get_integral(), ref_integral)
+        assert numpy.allclose (quantity.get_integral(), ref_integral)
 
 
 
@@ -349,14 +349,14 @@ class Test_Quantity(unittest.TestCase):
         quantity = Quantity(self.mesh4)
         quantity.set_vertex_values([0,1,2,3,4,5])
 
-        assert allclose(quantity.vertex_values,
-                        [[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
-        assert allclose(quantity.centroid_values,
-                        [1., 7./3, 11./3, 8./3]) #Centroid
-        assert allclose(quantity.edge_values, [[1., 1.5, 0.5],
-                                               [3., 2.5, 1.5],
-                                               [3.5, 4.5, 3.],
-                                               [2.5, 3.5, 2]])
+        assert numpy.allclose(quantity.vertex_values,
+                              [[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
+        assert numpy.allclose(quantity.centroid_values,
+                              [1., 7./3, 11./3, 8./3]) #Centroid
+        assert numpy.allclose(quantity.edge_values, [[1., 1.5, 0.5],
+                                                     [3., 2.5, 1.5],
+                                                     [3.5, 4.5, 3.],
+                                                     [2.5, 3.5, 2]])
 
 
     def test_set_vertex_values_subset(self):
@@ -364,8 +364,8 @@ class Test_Quantity(unittest.TestCase):
         quantity.set_vertex_values([0,1,2,3,4,5])
         quantity.set_vertex_values([0,20,30,50], indices = [0,2,3,5])
 
-        assert allclose(quantity.vertex_values,
-                        [[1,0,20], [1,20,4], [4,20,50], [30,1,4]])
+        assert numpy.allclose(quantity.vertex_values,
+                              [[1,0,20], [1,20,4], [4,20,50], [30,1,4]])
 
 
     def test_set_vertex_values_using_general_interface(self):
@@ -375,16 +375,16 @@ class Test_Quantity(unittest.TestCase):
         quantity.set_values([0,1,2,3,4,5])
 
 
-        assert allclose(quantity.vertex_values,
-                        [[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
+        assert numpy.allclose(quantity.vertex_values,
+                              [[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
 
         #Centroid
-        assert allclose(quantity.centroid_values, [1., 7./3, 11./3, 8./3])
+        assert numpy.allclose(quantity.centroid_values, [1., 7./3, 11./3, 8./3])
 
-        assert allclose(quantity.edge_values, [[1., 1.5, 0.5],
-                                               [3., 2.5, 1.5],
-                                               [3.5, 4.5, 3.],
-                                               [2.5, 3.5, 2]])
+        assert numpy.allclose(quantity.edge_values, [[1., 1.5, 0.5],
+                                                     [3., 2.5, 1.5],
+                                                     [3.5, 4.5, 3.],
+                                                     [2.5, 3.5, 2]])
 
 
 
@@ -398,8 +398,8 @@ class Test_Quantity(unittest.TestCase):
 
 
         quantity.set_values([0,2,3,5], indices=[0,2,3,5])
-        assert allclose(quantity.vertex_values,
-                        [[0,0,2], [0,2,0], [0,2,5], [3,0,0]])
+        assert numpy.allclose(quantity.vertex_values,
+                              [[0,0,2], [0,2,0], [0,2,5], [3,0,0]])
 
 
         # Constant
@@ -407,9 +407,9 @@ class Test_Quantity(unittest.TestCase):
         quantity.set_values(3.14, indices=[0,2], location='vertices')
 
         # Indices refer to triangle numbers
-        assert allclose(quantity.vertex_values,
-                        [[3.14,3.14,3.14], [0,0,0],
-                         [3.14,3.14,3.14], [0,0,0]])        
+        assert numpy.allclose(quantity.vertex_values,
+                              [[3.14,3.14,3.14], [0,0,0],
+                               [3.14,3.14,3.14], [0,0,0]])        
         
 
 
@@ -418,9 +418,9 @@ class Test_Quantity(unittest.TestCase):
         quantity.set_values(0.0)
         quantity.set_values(3.14, polygon=polygon)
         
-        assert allclose(quantity.vertex_values,
-                        [[0,0,0], [0,0,0], [0,0,0],
-                         [3.14,3.14,3.14]])                
+        assert numpy.allclose(quantity.vertex_values,
+                              [[0,0,0], [0,0,0], [0,0,0],
+                               [3.14,3.14,3.14]])                
 
 
         # Another polygon (pick triangle 1 and 2 (rightmost triangles) 
@@ -428,11 +428,11 @@ class Test_Quantity(unittest.TestCase):
         polygon = [[2.1, 0.0], [3.5,0.1], [2,2.2], [0.2,2]]
         quantity.set_values(0.0)
         quantity.set_values(3.14, location='centroids', polygon=polygon)
-        assert allclose(quantity.vertex_values,
-                        [[0,0,0],
-                         [3.14,3.14,3.14],
-                         [3.14,3.14,3.14],                         
-                         [0,0,0]])                
+        assert numpy.allclose(quantity.vertex_values,
+                              [[0,0,0],
+                               [3.14,3.14,3.14],
+                               [3.14,3.14,3.14],                         
+                               [0,0,0]])                
 
 
         # Same polygon now use vertices (default)
@@ -440,11 +440,11 @@ class Test_Quantity(unittest.TestCase):
         quantity.set_values(0.0)
         #print 'Here 2'
         quantity.set_values(3.14, polygon=polygon)
-        assert allclose(quantity.vertex_values,
-                        [[0,0,0],
-                         [3.14,3.14,3.14],
-                         [3.14,3.14,3.14],                         
-                         [0,0,0]])                
+        assert numpy.allclose(quantity.vertex_values,
+                              [[0,0,0],
+                               [3.14,3.14,3.14],
+                               [3.14,3.14,3.14],                         
+                               [0,0,0]])                
         
 
         # Test input checking
@@ -477,36 +477,36 @@ class Test_Quantity(unittest.TestCase):
         quantity.set_values(3.14, indices=[0,2], location='vertices')
 
         # Indices refer to triangle numbers here - not vertices (why?)
-        assert allclose(quantity.vertex_values,
-                        [[3.14,3.14,3.14], [0,0,0],
-                         [3.14,3.14,3.14], [0,0,0]])        
+        assert numpy.allclose(quantity.vertex_values,
+                              [[3.14,3.14,3.14], [0,0,0],
+                               [3.14,3.14,3.14], [0,0,0]])        
         
 
 
         # Now try with polygon (pick points where y>2)
-        polygon = array([[0,2.1], [4,2.1], [4,7], [0,7]])
+        polygon = numpy.array([[0,2.1], [4,2.1], [4,7], [0,7]])
         polygon += [G.xllcorner, G.yllcorner]
         
         quantity.set_values(0.0)
         quantity.set_values(3.14, polygon=polygon, location='centroids')
         
-        assert allclose(quantity.vertex_values,
-                        [[0,0,0], [0,0,0], [0,0,0],
-                         [3.14,3.14,3.14]])                
+        assert numpy.allclose(quantity.vertex_values,
+                              [[0,0,0], [0,0,0], [0,0,0],
+                               [3.14,3.14,3.14]])                
 
 
         # Another polygon (pick triangle 1 and 2 (rightmost triangles)
-        polygon = array([[2.1, 0.0], [3.5,0.1], [2,2.2], [0.2,2]])
+        polygon = numpy.array([[2.1, 0.0], [3.5,0.1], [2,2.2], [0.2,2]])
         polygon += [G.xllcorner, G.yllcorner]
         
         quantity.set_values(0.0)
         quantity.set_values(3.14, polygon=polygon)
 
-        assert allclose(quantity.vertex_values,
-                        [[0,0,0],
-                         [3.14,3.14,3.14],
-                         [3.14,3.14,3.14],                         
-                         [0,0,0]])                
+        assert numpy.allclose(quantity.vertex_values,
+                              [[0,0,0],
+                               [3.14,3.14,3.14],
+                               [3.14,3.14,3.14],                         
+                               [0,0,0]])                
 
 
 
@@ -539,7 +539,7 @@ class Test_Quantity(unittest.TestCase):
 
         answer = linear_function(quantity.domain.get_vertex_coordinates())
         #print quantity.vertex_values, answer
-        assert allclose(quantity.vertex_values.flat, answer)
+        assert numpy.allclose(quantity.vertex_values.ravel(), answer)
 
 
         #Now try by setting the same values directly
@@ -552,7 +552,7 @@ class Test_Quantity(unittest.TestCase):
 
         #print vertex_attributes
         quantity.set_values(vertex_attributes)
-        assert allclose(quantity.vertex_values.flat, answer)
+        assert numpy.allclose(quantity.vertex_values.ravel(), answer)
 
 
 
@@ -592,7 +592,7 @@ class Test_Quantity(unittest.TestCase):
                           mesh_origin = mesh_georef.get_origin(),
                           alpha = 0)
 
-        assert allclose( ref, [0,5,5] )
+        assert numpy.allclose( ref, [0,5,5] )
 
 
         #Test set_values
@@ -609,7 +609,7 @@ class Test_Quantity(unittest.TestCase):
         #                    values = z,
         #                    data_georef = data_georef,
         #                    alpha = 0)
-        assert allclose(quantity.vertex_values.flat, ref)
+        assert numpy.allclose(quantity.vertex_values.ravel(), ref)
 
 
 
@@ -620,7 +620,7 @@ class Test_Quantity(unittest.TestCase):
 
 
         quantity.set_values(geospatial_data = geo, alpha = 0)
-        assert allclose(quantity.vertex_values.flat, ref)
+        assert numpy.allclose(quantity.vertex_values.ravel(), ref)
 
 
 
@@ -665,16 +665,16 @@ class Test_Quantity(unittest.TestCase):
                             attribute_name = att, alpha = 0)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
 
-        #print quantity.vertex_values.flat
+        #print quantity.vertex_values.ravel()
         #print answer
 
 
-        assert allclose(quantity.vertex_values.flat, answer)
+        assert numpy.allclose(quantity.vertex_values.ravel(), answer)
 
 
         #Check that values can be set from file using default attribute
         quantity.set_values(filename = ptsfile, alpha = 0)
-        assert allclose(quantity.vertex_values.flat, answer)
+        assert numpy.allclose(quantity.vertex_values.ravel(), answer)
 
         #Cleanup
         import os
@@ -729,7 +729,7 @@ class Test_Quantity(unittest.TestCase):
 
         #print self.mesh4.nodes
         #print inside_polygon(self.mesh4.nodes, polygon)
-        assert allclose(inside_polygon(self.mesh4.nodes, polygon), 4)
+        assert numpy.allclose(inside_polygon(self.mesh4.nodes, polygon), 4)
 
         #print quantity.domain.get_vertex_coordinates()
         #print quantity.domain.get_nodes()        
@@ -747,18 +747,18 @@ class Test_Quantity(unittest.TestCase):
         
         answer = linear_function(points)
 
-        #print quantity.vertex_values.flat
+        #print quantity.vertex_values.ravel()
         #print answer
 
         # Check vertices in polygon have been set
-        assert allclose(take(quantity.vertex_values.flat, indices),
-                             answer)
+        assert numpy.allclose(take(quantity.vertex_values.ravel(), indices),
+                                   answer)
 
         # Check vertices outside polygon are zero
         indices = outside_polygon(quantity.domain.get_vertex_coordinates(), 
                                   polygon)        
-        assert allclose(take(quantity.vertex_values.flat, indices),
-                             0.0)        
+        assert numpy.allclose(take(quantity.vertex_values.ravel(), indices),
+                                   0.0)        
 
         #Cleanup
         import os
@@ -814,13 +814,13 @@ class Test_Quantity(unittest.TestCase):
                             use_cache=True,
                             verbose=False)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
-        assert allclose(quantity.vertex_values.flat, answer)
+        assert numpy.allclose(quantity.vertex_values.ravel(), answer)
 
 
         # Check that values can be set from file using default attribute
         quantity.set_values(filename=ptsfile, 
                             alpha=0)
-        assert allclose(quantity.vertex_values.flat, answer)
+        assert numpy.allclose(quantity.vertex_values.ravel(), answer)
 
         # Check cache
         quantity.set_values(filename=ptsfile,
@@ -865,15 +865,15 @@ class Test_Quantity(unittest.TestCase):
                             alpha=0)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
 
-        #print "quantity.vertex_values.flat", quantity.vertex_values.flat
+        #print "quantity.vertex_values.ravel()", quantity.vertex_values.ravel()
         #print "answer",answer
 
-        assert allclose(quantity.vertex_values.flat, answer)
+        assert numpy.allclose(quantity.vertex_values.ravel(), answer)
 
 
         #Check that values can be set from file using default attribute
         quantity.set_values(filename=txt_file, alpha=0)
-        assert allclose(quantity.vertex_values.flat, answer)
+        assert numpy.allclose(quantity.vertex_values.ravel(), answer)
 
         #Cleanup
         import os
@@ -909,15 +909,15 @@ class Test_Quantity(unittest.TestCase):
                             attribute_name=att, alpha=0)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
 
-        #print "quantity.vertex_values.flat", quantity.vertex_values.flat
+        #print "quantity.vertex_values.ravel()", quantity.vertex_values.ravel()
         #print "answer",answer
 
-        assert allclose(quantity.vertex_values.flat, answer)
+        assert numpy.allclose(quantity.vertex_values.ravel(), answer)
 
 
         #Check that values can be set from file using default attribute
         quantity.set_values(filename=txt_file, alpha=0)
-        assert allclose(quantity.vertex_values.flat, answer)
+        assert numpy.allclose(quantity.vertex_values.ravel(), answer)
 
         #Cleanup
         import os
@@ -956,22 +956,22 @@ class Test_Quantity(unittest.TestCase):
         quantity.set_values_from_file(pts_file, att, 0,
                                       'vertices', None)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
-        #print "quantity.vertex_values.flat", quantity.vertex_values.flat
+        #print "quantity.vertex_values.ravel()", quantity.vertex_values.ravel()
         #print "answer",answer
-        assert allclose(quantity.vertex_values.flat, answer)
+        assert numpy.allclose(quantity.vertex_values.ravel(), answer)
 
         #Check that values can be set from file
         quantity.set_values(filename=pts_file,
                             attribute_name=att, alpha=0)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
-        #print "quantity.vertex_values.flat", quantity.vertex_values.flat
+        #print "quantity.vertex_values.ravel()", quantity.vertex_values.ravel()
         #print "answer",answer
-        assert allclose(quantity.vertex_values.flat, answer)
+        assert numpy.allclose(quantity.vertex_values.ravel(), answer)
 
 
         #Check that values can be set from file using default attribute
         quantity.set_values(filename=txt_file, alpha=0)
-        assert allclose(quantity.vertex_values.flat, answer)
+        assert numpy.allclose(quantity.vertex_values.ravel(), answer)
 
         #Cleanup
         import os
@@ -1038,22 +1038,22 @@ class Test_Quantity(unittest.TestCase):
                                       'vertices', None, verbose = True,
                                       max_read_lines=2)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
-        #print "quantity.vertex_values.flat", quantity.vertex_values.flat
+        #print "quantity.vertex_values.ravel()", quantity.vertex_values.ravel()
         #print "answer",answer
-        assert allclose(quantity.vertex_values.flat, answer)
+        assert numpy.allclose(quantity.vertex_values.ravel(), answer)
 
         #Check that values can be set from file
         quantity.set_values(filename=pts_file,
                             attribute_name=att, alpha=0)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
-        #print "quantity.vertex_values.flat", quantity.vertex_values.flat
+        #print "quantity.vertex_values.ravel()", quantity.vertex_values.ravel()
         #print "answer",answer
-        assert allclose(quantity.vertex_values.flat, answer)
+        assert numpy.allclose(quantity.vertex_values.ravel(), answer)
 
 
         #Check that values can be set from file using default attribute
         quantity.set_values(filename=txt_file, alpha=0)
-        assert allclose(quantity.vertex_values.flat, answer)
+        assert numpy.allclose(quantity.vertex_values.ravel(), answer)
 
         #Cleanup
         import os
@@ -1127,12 +1127,12 @@ class Test_Quantity(unittest.TestCase):
                             attribute_name=att, alpha=0)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
 
-        assert allclose(quantity.vertex_values.flat, answer)
+        assert numpy.allclose(quantity.vertex_values.ravel(), answer)
 
 
         #Check that values can be set from file using default attribute
         quantity.set_values(filename=ptsfile, alpha=0)
-        assert allclose(quantity.vertex_values.flat, answer)
+        assert numpy.allclose(quantity.vertex_values.ravel(), answer)
 
         #Cleanup
         import os
@@ -1206,12 +1206,12 @@ class Test_Quantity(unittest.TestCase):
                                  get_vertex_coordinates(absolute=True))
 
 
-        assert allclose(quantity.vertex_values.flat, answer)
+        assert numpy.allclose(quantity.vertex_values.ravel(), answer)
 
 
         #Check that values can be set from file using default attribute
         quantity.set_values(filename=ptsfile, alpha=0)
-        assert allclose(quantity.vertex_values.flat, answer)
+        assert numpy.allclose(quantity.vertex_values.ravel(), answer)
 
         #Cleanup
         import os
@@ -1225,28 +1225,28 @@ class Test_Quantity(unittest.TestCase):
         quantity1 = Quantity(self.mesh4)
         quantity1.set_vertex_values([0,1,2,3,4,5])
 
-        assert allclose(quantity1.vertex_values,
-                        [[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
+        assert numpy.allclose(quantity1.vertex_values,
+                              [[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
 
 
         quantity2 = Quantity(self.mesh4)
         quantity2.set_values(quantity=quantity1)
-        assert allclose(quantity2.vertex_values,
-                        [[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
+        assert numpy.allclose(quantity2.vertex_values,
+                              [[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
 
         quantity2.set_values(quantity = 2*quantity1)
-        assert allclose(quantity2.vertex_values,
-                        [[2,0,4], [2,4,8], [8,4,10], [6,2,8]])
+        assert numpy.allclose(quantity2.vertex_values,
+                              [[2,0,4], [2,4,8], [8,4,10], [6,2,8]])
 
         quantity2.set_values(quantity = 2*quantity1 + 3)
-        assert allclose(quantity2.vertex_values,
-                        [[5,3,7], [5,7,11], [11,7,13], [9,5,11]])
+        assert numpy.allclose(quantity2.vertex_values,
+                              [[5,3,7], [5,7,11], [11,7,13], [9,5,11]])
 
 
         #Check detection of quantity as first orgument
         quantity2.set_values(2*quantity1 + 3)
-        assert allclose(quantity2.vertex_values,
-                        [[5,3,7], [5,7,11], [11,7,13], [9,5,11]])
+        assert numpy.allclose(quantity2.vertex_values,
+                              [[5,3,7], [5,7,11], [11,7,13], [9,5,11]])
 
 
 
@@ -1261,13 +1261,13 @@ class Test_Quantity(unittest.TestCase):
         # centroid of triangle #1 (bce)
         polygon = [[1.0, 1.0], [4.0, 1.0],
                    [4.0, 4.0], [1.0, 4.0]]
-        assert allclose(inside_polygon(self.mesh4.nodes, polygon), 4)                   
+        assert numpy.allclose(inside_polygon(self.mesh4.nodes, polygon), 4)                   
         
         quantity1 = Quantity(self.mesh4)
         quantity1.set_vertex_values([0,1,2,3,4,5])
 
-        assert allclose(quantity1.vertex_values,
-                        [[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
+        assert numpy.allclose(quantity1.vertex_values,
+                              [[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
 
 
         quantity2 = Quantity(self.mesh4)
@@ -1275,9 +1275,9 @@ class Test_Quantity(unittest.TestCase):
                              polygon=polygon)
                              
         msg = 'Only node #4(e) at (2,2) should have values applied '
-        assert allclose(quantity2.vertex_values,
-                        [[0,0,0], [0,0,4], [4,0,0], [0,0,4]]), msg        
-                        #bac,     bce,     ecf,     dbe
+        assert numpy.allclose(quantity2.vertex_values,
+                              [[0,0,0], [0,0,4], [4,0,0], [0,0,4]]), msg        
+                              #bac,     bce,     ecf,     dbe
                         
 
 
@@ -1286,8 +1286,8 @@ class Test_Quantity(unittest.TestCase):
         quantity1 = Quantity(self.mesh4)
         quantity1.set_vertex_values([0,1,2,3,4,5])
 
-        assert allclose(quantity1.vertex_values,
-                        [[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
+        assert numpy.allclose(quantity1.vertex_values,
+                              [[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
 
 
         quantity2 = Quantity(self.mesh4)
@@ -1303,45 +1303,45 @@ class Test_Quantity(unittest.TestCase):
 
         # Negation
         Q = -quantity1
-        assert allclose(Q.vertex_values, -quantity1.vertex_values)
-        assert allclose(Q.centroid_values, -quantity1.centroid_values)
-        assert allclose(Q.edge_values, -quantity1.edge_values)
+        assert numpy.allclose(Q.vertex_values, -quantity1.vertex_values)
+        assert numpy.allclose(Q.centroid_values, -quantity1.centroid_values)
+        assert numpy.allclose(Q.edge_values, -quantity1.edge_values)
 
         # Addition
         Q = quantity1 + 7
-        assert allclose(Q.vertex_values, quantity1.vertex_values + 7)
-        assert allclose(Q.centroid_values, quantity1.centroid_values + 7)
-        assert allclose(Q.edge_values, quantity1.edge_values + 7)
+        assert numpy.allclose(Q.vertex_values, quantity1.vertex_values + 7)
+        assert numpy.allclose(Q.centroid_values, quantity1.centroid_values + 7)
+        assert numpy.allclose(Q.edge_values, quantity1.edge_values + 7)
 
         Q = 7 + quantity1
-        assert allclose(Q.vertex_values, quantity1.vertex_values + 7)
-        assert allclose(Q.centroid_values, quantity1.centroid_values + 7)
-        assert allclose(Q.edge_values, quantity1.edge_values + 7)
+        assert numpy.allclose(Q.vertex_values, quantity1.vertex_values + 7)
+        assert numpy.allclose(Q.centroid_values, quantity1.centroid_values + 7)
+        assert numpy.allclose(Q.edge_values, quantity1.edge_values + 7)
 
         Q = quantity1 + quantity2
-        assert allclose(Q.vertex_values,
-                        quantity1.vertex_values + quantity2.vertex_values)
-        assert allclose(Q.centroid_values,
-                        quantity1.centroid_values + quantity2.centroid_values)
-        assert allclose(Q.edge_values,
-                        quantity1.edge_values + quantity2.edge_values)
+        assert numpy.allclose(Q.vertex_values,
+                              quantity1.vertex_values + quantity2.vertex_values)
+        assert numpy.allclose(Q.centroid_values,
+                              quantity1.centroid_values + quantity2.centroid_values)
+        assert numpy.allclose(Q.edge_values,
+                              quantity1.edge_values + quantity2.edge_values)
 
 
         Q = quantity1 + quantity2 - 3
-        assert allclose(Q.vertex_values,
-                        quantity1.vertex_values + quantity2.vertex_values - 3)
+        assert numpy.allclose(Q.vertex_values,
+                              quantity1.vertex_values + quantity2.vertex_values - 3)
 
         Q = quantity1 - quantity2
-        assert allclose(Q.vertex_values,
-                        quantity1.vertex_values - quantity2.vertex_values)
+        assert numpy.allclose(Q.vertex_values,
+                              quantity1.vertex_values - quantity2.vertex_values)
 
         #Scaling
         Q = quantity1*3
-        assert allclose(Q.vertex_values, quantity1.vertex_values*3)
-        assert allclose(Q.centroid_values, quantity1.centroid_values*3)
-        assert allclose(Q.edge_values, quantity1.edge_values*3)
+        assert numpy.allclose(Q.vertex_values, quantity1.vertex_values*3)
+        assert numpy.allclose(Q.centroid_values, quantity1.centroid_values*3)
+        assert numpy.allclose(Q.edge_values, quantity1.edge_values*3)
         Q = 3*quantity1
-        assert allclose(Q.vertex_values, quantity1.vertex_values*3)
+        assert numpy.allclose(Q.vertex_values, quantity1.vertex_values*3)
 
         #Multiplication
         Q = quantity1 * quantity2
@@ -1350,61 +1350,61 @@ class Test_Quantity(unittest.TestCase):
         #print quantity1.centroid_values
         #print quantity2.centroid_values
 
-        assert allclose(Q.vertex_values,
-                        quantity1.vertex_values * quantity2.vertex_values)
+        assert numpy.allclose(Q.vertex_values,
+                              quantity1.vertex_values * quantity2.vertex_values)
 
         #Linear combinations
         Q = 4*quantity1 + 2
-        assert allclose(Q.vertex_values,
-                        4*quantity1.vertex_values + 2)
+        assert numpy.allclose(Q.vertex_values,
+                              4*quantity1.vertex_values + 2)
 
         Q = quantity1*quantity2 + 2
-        assert allclose(Q.vertex_values,
-                        quantity1.vertex_values * quantity2.vertex_values + 2)
+        assert numpy.allclose(Q.vertex_values,
+                              quantity1.vertex_values * quantity2.vertex_values + 2)
 
         Q = quantity1*quantity2 + quantity3
-        assert allclose(Q.vertex_values,
-                        quantity1.vertex_values * quantity2.vertex_values +
-                        quantity3.vertex_values)
+        assert numpy.allclose(Q.vertex_values,
+                              quantity1.vertex_values * quantity2.vertex_values +
+                              quantity3.vertex_values)
         Q = quantity1*quantity2 + 3*quantity3
-        assert allclose(Q.vertex_values,
-                        quantity1.vertex_values * quantity2.vertex_values +
-                        3*quantity3.vertex_values)
+        assert numpy.allclose(Q.vertex_values,
+                              quantity1.vertex_values * quantity2.vertex_values +
+                             3*quantity3.vertex_values)
         Q = quantity1*quantity2 + 3*quantity3 + 5.0
-        assert allclose(Q.vertex_values,
-                        quantity1.vertex_values * quantity2.vertex_values +
-                        3*quantity3.vertex_values + 5)
+        assert numpy.allclose(Q.vertex_values,
+                              quantity1.vertex_values * quantity2.vertex_values +
+                              3*quantity3.vertex_values + 5)
 
         Q = quantity1*quantity2 - quantity3
-        assert allclose(Q.vertex_values,
-                        quantity1.vertex_values * quantity2.vertex_values -
-                        quantity3.vertex_values)
+        assert numpy.allclose(Q.vertex_values,
+                              quantity1.vertex_values * quantity2.vertex_values -
+                              quantity3.vertex_values)
         Q = 1.5*quantity1*quantity2 - 3*quantity3 + 5.0
-        assert allclose(Q.vertex_values,
-                        1.5*quantity1.vertex_values * quantity2.vertex_values -
-                        3*quantity3.vertex_values + 5)
+        assert numpy.allclose(Q.vertex_values,
+                              1.5*quantity1.vertex_values * quantity2.vertex_values -
+                              3*quantity3.vertex_values + 5)
 
         #Try combining quantities and arrays and scalars
-        Q = 1.5*quantity1*quantity2.vertex_values -\
+        Q = 1.5*quantity1*quantity2.vertex_values - \
             3*quantity3.vertex_values + 5.0
-        assert allclose(Q.vertex_values,
-                        1.5*quantity1.vertex_values * quantity2.vertex_values -
-                        3*quantity3.vertex_values + 5)
+        assert numpy.allclose(Q.vertex_values,
+                              1.5*quantity1.vertex_values * quantity2.vertex_values -
+                              3*quantity3.vertex_values + 5)
 
 
         #Powers
         Q = quantity1**2
-        assert allclose(Q.vertex_values, quantity1.vertex_values**2)
+        assert numpy.allclose(Q.vertex_values, quantity1.vertex_values**2)
 
         Q = quantity1**2 +quantity2**2
-        assert allclose(Q.vertex_values,
-                        quantity1.vertex_values**2 + \
-                        quantity2.vertex_values**2)
+        assert numpy.allclose(Q.vertex_values,
+                              quantity1.vertex_values**2 +
+                              quantity2.vertex_values**2)
 
         Q = (quantity1**2 +quantity2**2)**0.5
-        assert allclose(Q.vertex_values,
-                        (quantity1.vertex_values**2 + \
-                        quantity2.vertex_values**2)**0.5)
+        assert numpy.allclose(Q.vertex_values,
+                              (quantity1.vertex_values**2 + 
+                               quantity2.vertex_values**2)**0.5)
 
 
 
@@ -1430,32 +1430,32 @@ class Test_Quantity(unittest.TestCase):
 
         #The central triangle (1)
         #(using standard gradient based on neigbours controid values)
-        assert allclose(a[1], 2.0)
-        assert allclose(b[1], 0.0)
+        assert numpy.allclose(a[1], 2.0)
+        assert numpy.allclose(b[1], 0.0)
 
 
         #Left triangle (0) using two point gradient
         #q0 = q1 + a*(x0-x1) + b*(y0-y1)  <=>
         #2  = 4  + a*(-2/3)  + b*(-2/3)
-        assert allclose(a[0] + b[0], 3)
+        assert numpy.allclose(a[0] + b[0], 3)
         #From orthogonality (a*(y0-y1) + b*(x0-x1) == 0)
-        assert allclose(a[0] - b[0], 0)
+        assert numpy.allclose(a[0] - b[0], 0)
 
 
         #Right triangle (2) using two point gradient
         #q2 = q1 + a*(x2-x1) + b*(y2-y1)  <=>
         #6  = 4  + a*(4/3)  + b*(-2/3)
-        assert allclose(2*a[2] - b[2], 3)
+        assert numpy.allclose(2*a[2] - b[2], 3)
         #From orthogonality (a*(y1-y2) + b*(x2-x1) == 0)
-        assert allclose(a[2] + 2*b[2], 0)
+        assert numpy.allclose(a[2] + 2*b[2], 0)
 
 
         #Top triangle (3) using two point gradient
         #q3 = q1 + a*(x3-x1) + b*(y3-y1)  <=>
         #2  = 4  + a*(-2/3)  + b*(4/3)
-        assert allclose(a[3] - 2*b[3], 3)
+        assert numpy.allclose(a[3] - 2*b[3], 3)
         #From orthogonality (a*(y1-y3) + b*(x3-x1) == 0)
-        assert allclose(2*a[3] + b[3], 0)
+        assert numpy.allclose(2*a[3] + b[3], 0)
 
 
 
@@ -1463,13 +1463,13 @@ class Test_Quantity(unittest.TestCase):
         quantity.extrapolate_second_order()
 
         #Apply q(x,y) = qc + a*(x-xc) + b*(y-yc)
-        assert allclose(quantity.vertex_values[0,:], [3., 0.,  3.])
-        assert allclose(quantity.vertex_values[1,:], [4./3, 16./3,  16./3])
+        assert numpy.allclose(quantity.vertex_values[0,:], [3., 0.,  3.])
+        assert numpy.allclose(quantity.vertex_values[1,:], [4./3, 16./3,  16./3])
 
 
         #a = 1.2, b=-0.6
         #q(4,0) = 6 + a*(4 - 8/3) + b*(-2/3)
-        assert allclose(quantity.vertex_values[2,2], 8)
+        assert numpy.allclose(quantity.vertex_values[2,2], 8)
 
     def test_get_gradients(self):
         quantity = Quantity(self.mesh4)
@@ -1488,32 +1488,32 @@ class Test_Quantity(unittest.TestCase):
 
         #The central triangle (1)
         #(using standard gradient based on neigbours controid values)
-        assert allclose(a[1], 2.0)
-        assert allclose(b[1], 0.0)
+        assert numpy.allclose(a[1], 2.0)
+        assert numpy.allclose(b[1], 0.0)
 
 
         #Left triangle (0) using two point gradient
         #q0 = q1 + a*(x0-x1) + b*(y0-y1)  <=>
         #2  = 4  + a*(-2/3)  + b*(-2/3)
-        assert allclose(a[0] + b[0], 3)
+        assert numpy.allclose(a[0] + b[0], 3)
         #From orthogonality (a*(y0-y1) + b*(x0-x1) == 0)
-        assert allclose(a[0] - b[0], 0)
+        assert numpy.allclose(a[0] - b[0], 0)
 
 
         #Right triangle (2) using two point gradient
         #q2 = q1 + a*(x2-x1) + b*(y2-y1)  <=>
         #6  = 4  + a*(4/3)  + b*(-2/3)
-        assert allclose(2*a[2] - b[2], 3)
+        assert numpy.allclose(2*a[2] - b[2], 3)
         #From orthogonality (a*(y1-y2) + b*(x2-x1) == 0)
-        assert allclose(a[2] + 2*b[2], 0)
+        assert numpy.allclose(a[2] + 2*b[2], 0)
 
 
         #Top triangle (3) using two point gradient
         #q3 = q1 + a*(x3-x1) + b*(y3-y1)  <=>
         #2  = 4  + a*(-2/3)  + b*(4/3)
-        assert allclose(a[3] - 2*b[3], 3)
+        assert numpy.allclose(a[3] - 2*b[3], 3)
         #From orthogonality (a*(y1-y3) + b*(x3-x1) == 0)
-        assert allclose(2*a[3] + b[3], 0)
+        assert numpy.allclose(2*a[3] + b[3], 0)
 
 
     def test_second_order_extrapolation2(self):
@@ -1531,17 +1531,17 @@ class Test_Quantity(unittest.TestCase):
         
         #print a, b
 
-        assert allclose(a[1], 3.0)
-        assert allclose(b[1], 1.0)
+        assert numpy.allclose(a[1], 3.0)
+        assert numpy.allclose(b[1], 1.0)
 
         #Work out the others
 
         quantity.extrapolate_second_order()
 
         #print quantity.vertex_values
-        assert allclose(quantity.vertex_values[1,0], 2.0)
-        assert allclose(quantity.vertex_values[1,1], 6.0)
-        assert allclose(quantity.vertex_values[1,2], 8.0)
+        assert numpy.allclose(quantity.vertex_values[1,0], 2.0)
+        assert numpy.allclose(quantity.vertex_values[1,1], 6.0)
+        assert numpy.allclose(quantity.vertex_values[1,2], 8.0)
 
 
 
@@ -1549,15 +1549,15 @@ class Test_Quantity(unittest.TestCase):
         quantity = Quantity(self.mesh4)
 
         #Set up for a gradient of (3,1), f(x) = 3x+y
-        c_values = array([2.0+2.0/3, 4.0+4.0/3, 8.0+2.0/3, 2.0+8.0/3])
-        d_values = array([1.0, 2.0, 3.0, 4.0])
+        c_values = numpy.array([2.0+2.0/3, 4.0+4.0/3, 8.0+2.0/3, 2.0+8.0/3])
+        d_values = numpy.array([1.0, 2.0, 3.0, 4.0])
         quantity.set_values(c_values, location = 'centroids')
 
         #Backup
         quantity.backup_centroid_values()
 
         #print quantity.vertex_values
-        assert allclose(quantity.centroid_values, quantity.centroid_backup_values)
+        assert numpy.allclose(quantity.centroid_values, quantity.centroid_backup_values)
 
 
         quantity.set_values(d_values, location = 'centroids')
@@ -1573,19 +1573,19 @@ class Test_Quantity(unittest.TestCase):
 
         #Test centroids
         quantity.set_values([1.,2.,3.,4.], location = 'centroids')
-        assert allclose(quantity.centroid_values, [1, 2, 3, 4]) #Centroid
+        assert numpy.allclose(quantity.centroid_values, [1, 2, 3, 4]) #Centroid
 
         #Extrapolate
         quantity.extrapolate_first_order()
 
         #Check that gradient is zero
         a,b = quantity.get_gradients()
-        assert allclose(a, [0,0,0,0])
-        assert allclose(b, [0,0,0,0])
+        assert numpy.allclose(a, [0,0,0,0])
+        assert numpy.allclose(b, [0,0,0,0])
 
         #Check vertices but not edge values
-        assert allclose(quantity.vertex_values,
-                        [[1,1,1], [2,2,2], [3,3,3], [4, 4, 4]])
+        assert numpy.allclose(quantity.vertex_values,
+                              [[1,1,1], [2,2,2], [3,3,3], [4, 4, 4]])
 
 
     def test_second_order_extrapolator(self):
@@ -1613,10 +1613,9 @@ class Test_Quantity(unittest.TestCase):
 
 
         #Assert that quantities are conserved
-        from Numeric import sum
         for k in range(quantity.centroid_values.shape[0]):
-            assert allclose (quantity.centroid_values[k],
-                             sum(quantity.vertex_values[k,:])/3)
+            assert numpy.allclose (quantity.centroid_values[k],
+                                   numpy.sum(quantity.vertex_values[k,:])/3)
 
 
 
@@ -1645,10 +1644,9 @@ class Test_Quantity(unittest.TestCase):
 
 
         #Assert that quantities are conserved
-        from Numeric import sum
         for k in range(quantity.centroid_values.shape[0]):
-            assert allclose (quantity.centroid_values[k],
-                             sum(quantity.vertex_values[k,:])/3)
+            assert numpy.allclose (quantity.centroid_values[k],
+                                   numpy.sum(quantity.vertex_values[k,:])/3)
 
 
 
@@ -1675,10 +1673,9 @@ class Test_Quantity(unittest.TestCase):
 
 
         #Assert that quantities are conserved
-        from Numeric import sum
         for k in range(quantity.centroid_values.shape[0]):
-            assert allclose (quantity.centroid_values[k],
-                             sum(quantity.vertex_values[k,:])/3)
+            assert numpy.allclose (quantity.centroid_values[k],
+                                   numpy.sum(quantity.vertex_values[k,:])/3)
 
 
     def test_limit_edges_by_neighbour(self):
@@ -1704,10 +1701,9 @@ class Test_Quantity(unittest.TestCase):
 
 
         #Assert that quantities are conserved
-        from Numeric import sum
         for k in range(quantity.centroid_values.shape[0]):
-            assert allclose (quantity.centroid_values[k],
-                             sum(quantity.vertex_values[k,:])/3)
+            assert numpy.allclose (quantity.centroid_values[k],
+                                   numpy.sum(quantity.vertex_values[k,:])/3)
 
     def test_limiter2(self):
         """Taken from test_shallow_water
@@ -1717,29 +1713,28 @@ class Test_Quantity(unittest.TestCase):
         
         #Test centroids
         quantity.set_values([2.,4.,8.,2.], location = 'centroids')
-        assert allclose(quantity.centroid_values, [2, 4, 8, 2]) #Centroid
+        assert numpy.allclose(quantity.centroid_values, [2, 4, 8, 2]) #Centroid
 
 
         #Extrapolate
         quantity.extrapolate_second_order()
 
-        assert allclose(quantity.vertex_values[1,:], [0.0, 6, 6])
+        assert numpy.allclose(quantity.vertex_values[1,:], [0.0, 6, 6])
 
         #Limit
         quantity.limit()
 
         # limited value for beta_w = 0.9
         
-        assert allclose(quantity.vertex_values[1,:], [2.2, 4.9, 4.9])
+        assert numpy.allclose(quantity.vertex_values[1,:], [2.2, 4.9, 4.9])
         # limited values for beta_w = 0.5
-        #assert allclose(quantity.vertex_values[1,:], [3.0, 4.5, 4.5])
+        #assert numpy.allclose(quantity.vertex_values[1,:], [3.0, 4.5, 4.5])
 
 
         #Assert that quantities are conserved
-        from Numeric import sum
         for k in range(quantity.centroid_values.shape[0]):
-            assert allclose (quantity.centroid_values[k],
-                             sum(quantity.vertex_values[k,:])/3)
+            assert numpy.allclose (quantity.centroid_values[k],
+                                   numpy.sum(quantity.vertex_values[k,:])/3)
 
 
 
@@ -1750,7 +1745,7 @@ class Test_Quantity(unittest.TestCase):
 
         #Test centroids
         quantity.set_values([1.,2.,3.,4.], location = 'centroids')
-        assert allclose(quantity.centroid_values, [1, 2, 3, 4]) #Centroid
+        assert numpy.allclose(quantity.centroid_values, [1, 2, 3, 4]) #Centroid
 
 
         #Extrapolate from centroid to vertices and edges
@@ -1759,37 +1754,37 @@ class Test_Quantity(unittest.TestCase):
         #Interpolate
         #quantity.interpolate_from_vertices_to_edges()
 
-        assert allclose(quantity.vertex_values,
-                        [[1,1,1], [2,2,2], [3,3,3], [4, 4, 4]])
-        assert allclose(quantity.edge_values, [[1,1,1], [2,2,2],
-                                               [3,3,3], [4, 4, 4]])
+        assert numpy.allclose(quantity.vertex_values,
+                              [[1,1,1], [2,2,2], [3,3,3], [4, 4, 4]])
+        assert numpy.allclose(quantity.edge_values, [[1,1,1], [2,2,2],
+                                                     [3,3,3], [4, 4, 4]])
 
 
     def test_interpolate_from_vertices_to_edges(self):
         quantity = Quantity(self.mesh4)
 
-        quantity.vertex_values = array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]],Float)
+        quantity.vertex_values = numpy.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]], numpy.float)
 
         quantity.interpolate_from_vertices_to_edges()
 
-        assert allclose(quantity.edge_values, [[1., 1.5, 0.5],
-                                               [3., 2.5, 1.5],
-                                               [3.5, 4.5, 3.],
-                                               [2.5, 3.5, 2]])
+        assert numpy.allclose(quantity.edge_values, [[1., 1.5, 0.5],
+                                                     [3., 2.5, 1.5],
+                                                     [3.5, 4.5, 3.],
+                                                     [2.5, 3.5, 2]])
 
 
     def test_interpolate_from_edges_to_vertices(self):
         quantity = Quantity(self.mesh4)
 
-        quantity.edge_values = array([[1., 1.5, 0.5],
-                                [3., 2.5, 1.5],
-                                [3.5, 4.5, 3.],
-                                [2.5, 3.5, 2]],Float)
+        quantity.edge_values = numpy.array([[1., 1.5, 0.5],
+                                            [3., 2.5, 1.5],
+                                            [3.5, 4.5, 3.],
+                                            [2.5, 3.5, 2]], numpy.float)
 
         quantity.interpolate_from_edges_to_vertices()
 
-        assert allclose(quantity.vertex_values,
-                        [[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
+        assert numpy.allclose(quantity.vertex_values,
+                              [[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
 
 
 
@@ -1798,13 +1793,13 @@ class Test_Quantity(unittest.TestCase):
 
         #Test centroids
         quantity.set_values([2.,4.,8.,2.], location = 'centroids')
-        assert allclose(quantity.centroid_values, [2, 4, 8, 2]) #Centroid
+        assert numpy.allclose(quantity.centroid_values, [2, 4, 8, 2]) #Centroid
 
 
         #Extrapolate
         quantity.extrapolate_second_order()
 
-        assert allclose(quantity.vertex_values[1,:], [0.0, 6, 6])
+        assert numpy.allclose(quantity.vertex_values[1,:], [0.0, 6, 6])
 
 
     def test_update_explicit(self):
@@ -1812,36 +1807,36 @@ class Test_Quantity(unittest.TestCase):
 
         #Test centroids
         quantity.set_values([1.,2.,3.,4.], location = 'centroids')
-        assert allclose(quantity.centroid_values, [1, 2, 3, 4]) #Centroid
+        assert numpy.allclose(quantity.centroid_values, [1, 2, 3, 4]) #Centroid
 
         #Set explicit_update
-        quantity.explicit_update = array( [1.,1.,1.,1.] )
+        quantity.explicit_update = numpy.array( [1.,1.,1.,1.] )
 
         #Update with given timestep
         quantity.update(0.1)
 
-        x = array([1, 2, 3, 4]) + array( [.1,.1,.1,.1] )
-        assert allclose( quantity.centroid_values, x)
+        x = numpy.array([1, 2, 3, 4]) + numpy.array( [.1,.1,.1,.1] )
+        assert numpy.allclose( quantity.centroid_values, x)
 
     def test_update_semi_implicit(self):
         quantity = Quantity(self.mesh4)
 
         #Test centroids
         quantity.set_values([1.,2.,3.,4.], location = 'centroids')
-        assert allclose(quantity.centroid_values, [1, 2, 3, 4]) #Centroid
+        assert numpy.allclose(quantity.centroid_values, [1, 2, 3, 4]) #Centroid
 
         #Set semi implicit update
-        quantity.semi_implicit_update = array([1.,1.,1.,1.])
+        quantity.semi_implicit_update = numpy.array([1.,1.,1.,1.])
 
         #Update with given timestep
         timestep = 0.1
         quantity.update(timestep)
 
-        sem = array([1.,1.,1.,1.])/array([1, 2, 3, 4])
-        denom = ones(4, Float)-timestep*sem
+        sem = numpy.array([1.,1.,1.,1.])/numpy.array([1, 2, 3, 4])
+        denom = numpy.ones(4, numpy.float)-timestep*sem
 
-        x = array([1, 2, 3, 4])/denom
-        assert allclose( quantity.centroid_values, x)
+        x = numpy.array([1, 2, 3, 4])/denom
+        assert numpy.allclose( quantity.centroid_values, x)
 
 
     def test_both_updates(self):
@@ -1849,26 +1844,26 @@ class Test_Quantity(unittest.TestCase):
 
         #Test centroids
         quantity.set_values([1.,2.,3.,4.], location = 'centroids')
-        assert allclose(quantity.centroid_values, [1, 2, 3, 4]) #Centroid
+        assert numpy.allclose(quantity.centroid_values, [1, 2, 3, 4]) #Centroid
 
         #Set explicit_update
-        quantity.explicit_update = array( [4.,3.,2.,1.] )
+        quantity.explicit_update = numpy.array( [4.,3.,2.,1.] )
 
         #Set semi implicit update
-        quantity.semi_implicit_update = array( [1.,1.,1.,1.] )
+        quantity.semi_implicit_update = numpy.array( [1.,1.,1.,1.] )
 
         #Update with given timestep
         timestep = 0.1
         quantity.update(0.1)
 
-        sem = array([1.,1.,1.,1.])/array([1, 2, 3, 4])
-        denom = ones(4, Float)-timestep*sem
+        sem = numpy.array([1.,1.,1.,1.])/numpy.array([1, 2, 3, 4])
+        denom = numpy.ones(4, numpy.float)-timestep*sem
 
-        x = array([1., 2., 3., 4.])
+        x = numpy.array([1., 2., 3., 4.])
         x /= denom
-        x += timestep*array( [4.0, 3.0, 2.0, 1.0] )
+        x += timestep*numpy.array( [4.0, 3.0, 2.0, 1.0] )
 
-        assert allclose( quantity.centroid_values, x)
+        assert numpy.allclose( quantity.centroid_values, x)
 
 
 
@@ -1878,7 +1873,6 @@ class Test_Quantity(unittest.TestCase):
 
         from mesh_factory import rectangular
         from shallow_water import Domain, Transmissive_boundary
-        from Numeric import zeros, Float
         from anuga.utilities.numerical_tools import mean
 
         #Create basic mesh
@@ -1905,7 +1899,7 @@ class Test_Quantity(unittest.TestCase):
         #Initial condition - with jumps
 
         bed = domain.quantities['elevation'].vertex_values
-        stage = zeros(bed.shape, Float)
+        stage = numpy.zeros(bed.shape, numpy.float)
 
         h = 0.03
         for i in range(stage.shape[0]):
@@ -1928,38 +1922,38 @@ class Test_Quantity(unittest.TestCase):
         assert V.shape[1] == 3
 
         #First four points
-        assert allclose(A[0], (Q[0,2] + Q[1,1])/2)
-        assert allclose(A[1], (Q[1,0] + Q[3,1] + Q[2,2])/3)
-        assert allclose(A[2], Q[3,0])
-        assert allclose(A[3], (Q[0,0] + Q[5,1] + Q[4,2])/3)
+        assert numpy.allclose(A[0], (Q[0,2] + Q[1,1])/2)
+        assert numpy.allclose(A[1], (Q[1,0] + Q[3,1] + Q[2,2])/3)
+        assert numpy.allclose(A[2], Q[3,0])
+        assert numpy.allclose(A[3], (Q[0,0] + Q[5,1] + Q[4,2])/3)
 
         #Center point
-        assert allclose(A[4], (Q[0,1] + Q[1,2] + Q[2,0] +\
-                               Q[5,0] + Q[6,2] + Q[7,1])/6)
+        assert numpy.allclose(A[4], (Q[0,1] + Q[1,2] + Q[2,0] +\
+                                     Q[5,0] + Q[6,2] + Q[7,1])/6)
 
 
         #Check V
-        assert allclose(V[0,:], [3,4,0])
-        assert allclose(V[1,:], [1,0,4])
-        assert allclose(V[2,:], [4,5,1])
-        assert allclose(V[3,:], [2,1,5])
-        assert allclose(V[4,:], [6,7,3])
-        assert allclose(V[5,:], [4,3,7])
-        assert allclose(V[6,:], [7,8,4])
-        assert allclose(V[7,:], [5,4,8])
+        assert numpy.allclose(V[0,:], [3,4,0])
+        assert numpy.allclose(V[1,:], [1,0,4])
+        assert numpy.allclose(V[2,:], [4,5,1])
+        assert numpy.allclose(V[3,:], [2,1,5])
+        assert numpy.allclose(V[4,:], [6,7,3])
+        assert numpy.allclose(V[5,:], [4,3,7])
+        assert numpy.allclose(V[6,:], [7,8,4])
+        assert numpy.allclose(V[7,:], [5,4,8])
 
         #Get smoothed stage with XY
         X, Y, A1, V1 = stage.get_vertex_values(xy=True, smooth=True)
 
-        assert allclose(A, A1)
-        assert allclose(V, V1)
+        assert numpy.allclose(A, A1)
+        assert numpy.allclose(V, V1)
 
         #Check XY
-        assert allclose(X[4], 0.5)
-        assert allclose(Y[4], 0.5)
+        assert numpy.allclose(X[4], 0.5)
+        assert numpy.allclose(Y[4], 0.5)
 
-        assert allclose(X[7], 1.0)
-        assert allclose(Y[7], 0.5)
+        assert numpy.allclose(X[7], 1.0)
+        assert numpy.allclose(Y[7], 0.5)
 
 
 
@@ -1968,7 +1962,6 @@ class Test_Quantity(unittest.TestCase):
 
         from mesh_factory import rectangular
         from shallow_water import Domain, Transmissive_boundary
-        from Numeric import zeros, Float
         from anuga.utilities.numerical_tools import mean
 
 
@@ -1990,7 +1983,7 @@ class Test_Quantity(unittest.TestCase):
         #Initial condition - with jumps
 
         bed = domain.quantities['elevation'].vertex_values
-        stage = zeros(bed.shape, Float)
+        stage = numpy.zeros(bed.shape, numpy.float)
 
         h = 0.03
         for i in range(stage.shape[0]):
@@ -2004,10 +1997,10 @@ class Test_Quantity(unittest.TestCase):
         #Get stage
         stage = domain.quantities['stage']
         A, V = stage.get_vertex_values(xy=False, smooth=False)
-        Q = stage.vertex_values.flat
+        Q = stage.vertex_values.ravel()
 
         for k in range(8):
-            assert allclose(A[k], Q[k])
+            assert numpy.allclose(A[k], Q[k])
 
 
         for k in range(8):
@@ -2020,16 +2013,16 @@ class Test_Quantity(unittest.TestCase):
         X, Y, A1, V1 = stage.get_vertex_values(xy=True, smooth=False)
 
 
-        assert allclose(A, A1)
-        assert allclose(V, V1)
+        assert numpy.allclose(A, A1)
+        assert numpy.allclose(V, V1)
 
         #Check XY
-        assert allclose(X[1], 0.5)
-        assert allclose(Y[1], 0.5)
-        assert allclose(X[4], 0.0)
-        assert allclose(Y[4], 0.0)
-        assert allclose(X[12], 1.0)
-        assert allclose(Y[12], 0.0)
+        assert numpy.allclose(X[1], 0.5)
+        assert numpy.allclose(Y[1], 0.5)
+        assert numpy.allclose(X[4], 0.0)
+        assert numpy.allclose(Y[4], 0.0)
+        assert numpy.allclose(X[12], 1.0)
+        assert numpy.allclose(Y[12], 0.0)
 
 
 
@@ -2037,7 +2030,6 @@ class Test_Quantity(unittest.TestCase):
 
         from mesh_factory import rectangular
         from shallow_water import Domain
-        from Numeric import zeros, Float
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 1)
@@ -2053,13 +2045,13 @@ class Test_Quantity(unittest.TestCase):
                                            indices = indices)
         #print "quantity.centroid_values",quantity.centroid_values
 
-        assert allclose(quantity.centroid_values, [1,7])
+        assert numpy.allclose(quantity.centroid_values, [1,7])
 
         quantity.set_array_values([15,20,25], indices = indices)
-        assert allclose(quantity.centroid_values, [1,20])
+        assert numpy.allclose(quantity.centroid_values, [1,20])
 
         quantity.set_array_values([15,20,25], indices = indices)
-        assert allclose(quantity.centroid_values, [1,20])
+        assert numpy.allclose(quantity.centroid_values, [1,20])
 
     def test_setting_some_vertex_values(self):
         """
@@ -2067,7 +2059,6 @@ class Test_Quantity(unittest.TestCase):
         """
         from mesh_factory import rectangular
         from shallow_water import Domain
-        from Numeric import zeros, Float
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
@@ -2086,7 +2077,7 @@ class Test_Quantity(unittest.TestCase):
                             location = 'centroids',
                             indices = indices)
         #print "quantity.centroid_values",quantity.centroid_values
-        assert allclose(quantity.centroid_values, [1,7,3,4,5,6])
+        assert numpy.allclose(quantity.centroid_values, [1,7,3,4,5,6])
         
         value = [7]
         indices = [1]
@@ -2094,23 +2085,23 @@ class Test_Quantity(unittest.TestCase):
                             location = 'centroids',
                             indices = indices)
         #print "quantity.centroid_values",quantity.centroid_values
-        assert allclose(quantity.centroid_values, [1,7,3,4,5,6])
+        assert numpy.allclose(quantity.centroid_values, [1,7,3,4,5,6])
 
         value = [[15,20,25]]
         quantity.set_values(value, indices = indices)
         #print "1 quantity.vertex_values",quantity.vertex_values
-        assert allclose(quantity.vertex_values[1], value[0])
+        assert numpy.allclose(quantity.vertex_values[1], value[0])
 
 
         #print "quantity",quantity.vertex_values
         values = [10,100,50]
         quantity.set_values(values, indices = [0,1,5], location = 'centroids')
         #print "2 quantity.vertex_values",quantity.vertex_values
-        assert allclose(quantity.vertex_values[0], [10,10,10])
-        assert allclose(quantity.vertex_values[5], [50,50,50])
+        assert numpy.allclose(quantity.vertex_values[0], [10,10,10])
+        assert numpy.allclose(quantity.vertex_values[5], [50,50,50])
         #quantity.interpolate()
         #print "quantity.centroid_values",quantity.centroid_values
-        assert allclose(quantity.centroid_values, [10,100,3,4,5,50])
+        assert numpy.allclose(quantity.centroid_values, [10,100,3,4,5,50])
 
 
         quantity = Quantity(domain,[[1,1,1],[2,2,2],[3,3,3],
@@ -2120,16 +2111,16 @@ class Test_Quantity(unittest.TestCase):
         #print "quantity.vertex_values",quantity.vertex_values
         quantity.set_values(values, indices = [0,1,5])
         #print "quantity.vertex_values",quantity.vertex_values
-        assert allclose(quantity.vertex_values[0], [1,50,10])
-        assert allclose(quantity.vertex_values[5], [6,6,6])
-        assert allclose(quantity.vertex_values[1], [100,10,50])
+        assert numpy.allclose(quantity.vertex_values[0], [1,50,10])
+        assert numpy.allclose(quantity.vertex_values[5], [6,6,6])
+        assert numpy.allclose(quantity.vertex_values[1], [100,10,50])
 
         quantity = Quantity(domain,[[1,1,1],[2,2,2],[3,3,3],
                                     [4,4,4],[5,5,5],[6,6,6]])
         values = [[31,30,29],[400,400,400],[1000,999,998]]
         quantity.set_values(values, indices = [3,3,5])
         quantity.interpolate()
-        assert allclose(quantity.centroid_values, [1,2,3,400,5,999])
+        assert numpy.allclose(quantity.centroid_values, [1,2,3,400,5,999])
 
         values = [[1,1,1],[2,2,2],[3,3,3],
                                     [4,4,4],[5,5,5],[6,6,6]]
@@ -2141,12 +2132,12 @@ class Test_Quantity(unittest.TestCase):
 
         quantity.set_values(values)
         #print "1 quantity.vertex_values",quantity.vertex_values
-        assert allclose(quantity.vertex_values,[[ 4.,  5.,  0.],
-                                                [ 1.,  0.,  5.],
-                                                [ 5.,  6.,  1.],
-                                                [ 2.,  1.,  6.],
-                                                [ 6.,  7.,  2.],
-                                                [ 3.,  2.,  7.]])
+        assert numpy.allclose(quantity.vertex_values,[[ 4.,  5.,  0.],
+                                                      [ 1.,  0.,  5.],
+                                                      [ 5.,  6.,  1.],
+                                                      [ 2.,  1.,  6.],
+                                                      [ 6.,  7.,  2.],
+                                                      [ 3.,  2.,  7.]])
 
     def test_setting_unique_vertex_values(self):
         """
@@ -2154,7 +2145,6 @@ class Test_Quantity(unittest.TestCase):
         """
         from mesh_factory import rectangular
         from shallow_water import Domain
-        from Numeric import zeros, Float
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
@@ -2170,9 +2160,9 @@ class Test_Quantity(unittest.TestCase):
                             location = 'unique vertices',
                             indices = indices)
         #print "quantity.centroid_values",quantity.centroid_values
-        assert allclose(quantity.vertex_values[0], [0,7,0])
-        assert allclose(quantity.vertex_values[1], [7,1,7])
-        assert allclose(quantity.vertex_values[2], [7,2,7])
+        assert numpy.allclose(quantity.vertex_values[0], [0,7,0])
+        assert numpy.allclose(quantity.vertex_values[1], [7,1,7])
+        assert numpy.allclose(quantity.vertex_values[2], [7,2,7])
 
 
     def test_get_values(self):
@@ -2181,7 +2171,6 @@ class Test_Quantity(unittest.TestCase):
         """
         from mesh_factory import rectangular
         from shallow_water import Domain
-        from Numeric import zeros, Float
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
@@ -2204,14 +2193,14 @@ class Test_Quantity(unittest.TestCase):
         #                          location = 'unique vertices')
 
         answer = [0.5,2,4,5,0,1,3,4.5]
-        assert allclose(answer,
-                        quantity.get_values(location = 'unique vertices'))
+        assert numpy.allclose(answer,
+                              quantity.get_values(location = 'unique vertices'))
 
         indices = [0,5,3]
         answer = [0.5,1,5]
-        assert allclose(answer,
-                        quantity.get_values(indices=indices, \
-                                            location = 'unique vertices'))
+        assert numpy.allclose(answer,
+                              quantity.get_values(indices=indices, 
+                                                  location = 'unique vertices'))
         #print "quantity.centroid_values",quantity.centroid_values
         #print "quantity.get_values(location = 'centroids') ",\
         #      quantity.get_values(location = 'centroids')
@@ -2240,26 +2229,26 @@ class Test_Quantity(unittest.TestCase):
         quantity = Quantity(domain)
         quantity.set_values(lambda x, y: x+2*y) #2 4 4 6
         
-        assert allclose(quantity.get_values(location='centroids'), [2,4,4,6])
-        assert allclose(quantity.get_values(location='centroids', indices=[1,3]), [4,6])
+        assert numpy.allclose(quantity.get_values(location='centroids'), [2,4,4,6])
+        assert numpy.allclose(quantity.get_values(location='centroids', indices=[1,3]), [4,6])
 
 
-        assert allclose(quantity.get_values(location='vertices'), [[4,0,2],
-                                                                   [4,2,6],
-                                                                   [6,2,4],
-                                                                   [8,4,6]])
+        assert numpy.allclose(quantity.get_values(location='vertices'), [[4,0,2],
+                                                                         [4,2,6],
+                                                                         [6,2,4],
+                                                                         [8,4,6]])
         
-        assert allclose(quantity.get_values(location='vertices', indices=[1,3]), [[4,2,6],
-                                                                                  [8,4,6]])
+        assert numpy.allclose(quantity.get_values(location='vertices', indices=[1,3]), [[4,2,6],
+                                                                                        [8,4,6]])
 
 
-        assert allclose(quantity.get_values(location='edges'), [[1,3,2],
-                                                                [4,5,3],
-                                                                [3,5,4],
-                                                                [5,7,6]])
-        assert allclose(quantity.get_values(location='edges', indices=[1,3]),
-                        [[4,5,3],
-                         [5,7,6]])        
+        assert numpy.allclose(quantity.get_values(location='edges'), [[1,3,2],
+                                                                      [4,5,3],
+                                                                      [3,5,4],
+                                                                      [5,7,6]])
+        assert numpy.allclose(quantity.get_values(location='edges', indices=[1,3]),
+                              [[4,5,3],
+                               [5,7,6]])        
 
         # Check averaging over vertices
         #a: 0
@@ -2279,7 +2268,6 @@ class Test_Quantity(unittest.TestCase):
 
         from mesh_factory import rectangular
         from shallow_water import Domain
-        from Numeric import zeros, Float
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
@@ -2297,7 +2285,7 @@ class Test_Quantity(unittest.TestCase):
 
         
         #print quantity.get_values(points=interpolation_points)
-        assert allclose(answer, quantity.get_values(interpolation_points=interpolation_points))
+        assert numpy.allclose(answer, quantity.get_values(interpolation_points=interpolation_points))
 
 
         #Arbitrary values
@@ -2310,16 +2298,16 @@ class Test_Quantity(unittest.TestCase):
         answer = quantity.get_values(location='centroids')
         #print answer
         #print quantity.get_values(interpolation_points=interpolation_points)
-        assert allclose(answer, quantity.get_values(interpolation_points=interpolation_points,
-                                                    verbose=False))        
+        assert numpy.allclose(answer, quantity.get_values(interpolation_points=interpolation_points,
+                                                          verbose=False))        
                         
 
         #FIXME TODO
         #indices = [0,5,3]
         #answer = [0.5,1,5]
-        #assert allclose(answer,
-        #                quantity.get_values(indices=indices, \
-        #                                    location = 'unique vertices'))
+        #assert numpy.allclose(answer,
+        #                      quantity.get_values(indices=indices,
+        #                                          location = 'unique vertices'))
 
 
 
@@ -2344,13 +2332,13 @@ class Test_Quantity(unittest.TestCase):
         #First pick one point
         x, y = 2.0/3, 8.0/3
         v = quantity.get_values(interpolation_points = [[x,y]])
-        assert allclose(v, 6)        
+        assert numpy.allclose(v, 6)        
 
         # Then another to test that algorithm won't blindly
         # reuse interpolation matrix
         x, y = 4.0/3, 4.0/3
         v = quantity.get_values(interpolation_points = [[x,y]])
-        assert allclose(v, 4)        
+        assert numpy.allclose(v, 4)        
 
 
 
@@ -2379,32 +2367,32 @@ class Test_Quantity(unittest.TestCase):
         #First pick one point (and turn it into absolute coordinates)
         x, y = 2.0/3, 8.0/3
         v = quantity.get_values(interpolation_points = [[x+xllcorner,y+yllcorner]])
-        assert allclose(v, 6)
+        assert numpy.allclose(v, 6)
         
 
         # Then another to test that algorithm won't blindly
         # reuse interpolation matrix 
         x, y = 4.0/3, 4.0/3
         v = quantity.get_values(interpolation_points = [[x+xllcorner,y+yllcorner]])
-        assert allclose(v, 4)        
+        assert numpy.allclose(v, 4)        
         
         # Try two points
         pts = [[2.0/3 + xllcorner, 8.0/3 + yllcorner], 
                [4.0/3 + xllcorner, 4.0/3 + yllcorner]]         
         v = quantity.get_values(interpolation_points=pts)
-        assert allclose(v, [6, 4])               
+        assert numpy.allclose(v, [6, 4])               
         
         # Test it using the geospatial data format with absolute input points and default georef
         pts = Geospatial_data(data_points=pts)
         v = quantity.get_values(interpolation_points=pts)
-        assert allclose(v, [6, 4])                                
+        assert numpy.allclose(v, [6, 4])                                
         
         
         # Test it using the geospatial data format with relative input points
         pts = Geospatial_data(data_points=[[2.0/3, 8.0/3], [4.0/3, 4.0/3]], 
                               geo_reference=Geo_reference(zone,xllcorner,yllcorner))
         v = quantity.get_values(interpolation_points=pts)
-        assert allclose(v, [6, 4])                        
+        assert numpy.allclose(v, [6, 4])                        
         
         
         
@@ -2415,7 +2403,6 @@ class Test_Quantity(unittest.TestCase):
         """
         from mesh_factory import rectangular
         from shallow_water import Domain
-        from Numeric import zeros, Float
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
@@ -2437,35 +2424,35 @@ class Test_Quantity(unittest.TestCase):
         #print "quantity.centroid_values",quantity.centroid_values
         #print "quantity.get_values(location = 'centroids') ",\
         #      quantity.get_values(location = 'centroids')
-        assert allclose(quantity.centroid_values,
-                        quantity.get_values(location = 'centroids'))
+        assert numpy.allclose(quantity.centroid_values,
+                              quantity.get_values(location = 'centroids'))
 
 
         value = [[15,20,25]]
         quantity.set_values(value, indices = indices)
         #print "1 quantity.vertex_values",quantity.vertex_values
-        assert allclose(quantity.vertex_values, quantity.get_values())
+        assert numpy.allclose(quantity.vertex_values, quantity.get_values())
 
-        assert allclose(quantity.edge_values,
-                        quantity.get_values(location = 'edges'))
+        assert numpy.allclose(quantity.edge_values,
+                              quantity.get_values(location = 'edges'))
 
         # get a subset of elements
         subset = quantity.get_values(location='centroids', indices=[0,5])
         answer = [quantity.centroid_values[0],quantity.centroid_values[5]]
-        assert allclose(subset, answer)
+        assert numpy.allclose(subset, answer)
 
 
         subset = quantity.get_values(location='edges', indices=[0,5])
         answer = [quantity.edge_values[0],quantity.edge_values[5]]
         #print "subset",subset
         #print "answer",answer
-        assert allclose(subset, answer)
+        assert numpy.allclose(subset, answer)
 
         subset = quantity.get_values( indices=[1,5])
         answer = [quantity.vertex_values[1],quantity.vertex_values[5]]
         #print "subset",subset
         #print "answer",answer
-        assert allclose(subset, answer)
+        assert numpy.allclose(subset, answer)
 
     def test_smooth_vertex_values(self):
         """
@@ -2473,7 +2460,6 @@ class Test_Quantity(unittest.TestCase):
         """
         from mesh_factory import rectangular
         from shallow_water import Domain
-        from Numeric import zeros, Float
 
         #Create basic mesh
         points, vertices, boundary = rectangular(2, 2)
@@ -2500,8 +2486,8 @@ class Test_Quantity(unittest.TestCase):
         #print quantity.vertex_values
         
         #answer = [0.5, 2, 3, 3, 3.5, 4, 4, 5, 6.5]
-        #assert allclose(answer,
-        #                quantity.get_values(location = 'unique vertices'))
+        #assert numpy.allclose(answer,
+        #                      quantity.get_values(location = 'unique vertices'))
 
         quantity.smooth_vertex_values()
 
@@ -2511,8 +2497,8 @@ class Test_Quantity(unittest.TestCase):
         answer_vertex_values = [[3,3.5,0.5],[2,0.5,3.5],[3.5,4,2],[3,2,4],
                                 [4,5,3],[3.5,3,5],[5,6.5,3.5],[4,3.5,6.5]]
         
-        assert allclose(answer_vertex_values,
-                        quantity.vertex_values)
+        assert numpy.allclose(answer_vertex_values,
+                              quantity.vertex_values)
         #print "quantity.centroid_values",quantity.centroid_values
         #print "quantity.get_values(location = 'centroids') ",\
         #      quantity.get_values(location = 'centroids')
@@ -2521,11 +2507,7 @@ class Test_Quantity(unittest.TestCase):
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Quantity, 'test')    
-    #suite = unittest.makeSuite(Test_Quantity, 'test_set_values_from_file_using_polygon')
-
-    #suite = unittest.makeSuite(Test_Quantity, 'test_set_vertex_values_using_general_interface_with_subset')
-    #print "restricted test"
-    #suite = unittest.makeSuite(Test_Quantity,'verbose_test_set_values_from_UTM_pts')
+#    suite = unittest.makeSuite(Test_Quantity, 'test')    
+    suite = unittest.makeSuite(Test_Quantity, 'test_get_extrema_1')
     runner = unittest.TextTestRunner()
     runner.run(suite)
