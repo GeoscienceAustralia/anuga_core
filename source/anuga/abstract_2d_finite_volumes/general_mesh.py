@@ -314,7 +314,6 @@ class General_mesh:
         else:
             i = triangle_id
             msg = 'triangle_id must be an integer'
-            print 'type(triangle_id)=%s. triangle_id=%s' % (type(triangle_id), str(triangle_id))
             assert int(i) == i, msg
             assert 0 <= i < self.number_of_triangles
             
@@ -542,7 +541,7 @@ class General_mesh:
 
         # Allocate space for inverted structure
         number_of_entries = numpy.sum(number_of_triangles_per_node)
-        vertex_value_indices = numpy.zeros(number_of_entries)
+        vertex_value_indices = numpy.zeros(number_of_entries, numpy.int)
 
         # Register (triangle, vertex) indices for each node
         vertexlist = [None]*self.number_of_full_nodes

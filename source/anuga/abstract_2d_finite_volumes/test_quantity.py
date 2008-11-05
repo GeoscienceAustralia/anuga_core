@@ -2507,7 +2507,7 @@ class Test_Quantity(unittest.TestCase):
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
-#    suite = unittest.makeSuite(Test_Quantity, 'test')    
-    suite = unittest.makeSuite(Test_Quantity, 'test_get_extrema_1')
+    suite = unittest.makeSuite(Test_Quantity, 'test')    
+#    suite = unittest.makeSuite(Test_Quantity, 'test_get_extrema_1')
     runner = unittest.TextTestRunner()
     runner.run(suite)
