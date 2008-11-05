@@ -222,10 +222,8 @@ class Cell(TreeNode):
             # use a dictionary to remove duplicates
             triangles = {}
             verts = self.retrieve_vertices()
-            print "verts", verts
             for vert in verts:
                 triangle_list = self.mesh.get_triangles_and_vertices_per_node(vert)
-                print 'triangle_list=%s' % str(triangle_list)
                 for k, _ in triangle_list:
                     if not triangles.has_key(k):
                         # print 'k',k
