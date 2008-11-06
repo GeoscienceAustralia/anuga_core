@@ -191,7 +191,7 @@ def safe_crc(string):
 
     x = crc32(string)
         
-    if os.name == 'posix' and os.uname()[4] == 'x86_64':
+    if os.name == 'posix' and os.uname()[4] in ['x86_64', 'ia64']:
         crcval = x - ((x & 0x80000000) << 1)
     else:
         crcval = x
