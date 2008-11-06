@@ -2082,8 +2082,12 @@ END CROSS-SECTIONS:
         #Check grid values (FIXME: Use same strategy for other sww2dem tests)
         for i, line in enumerate(lines[6:]):
             for j, value in enumerate( line.split() ):
-                #assert allclose(float(value), -(10-i+j)*cellsize)
-                assert float(value) == -(10-i+j)*cellsize
+                assert allclose(float(value), -(10-i+j)*cellsize,
+                                atol=1.0e-12, rtol=1.0e-12)
+
+                # Note: Equality can be obtained in this case,
+                # but it is better to use allclose.
+                #assert float(value) == -(10-i+j)*cellsize
 
 
         fid.close()

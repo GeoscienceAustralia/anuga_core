@@ -2082,7 +2082,7 @@ if use_psyco:
         import psyco
     except:
         import os
-        if os.name == 'posix' and os.uname()[4] == 'x86_64':
+        if os.name == 'posix' and os.uname()[4] in ['x86_64', 'ia64']:
             pass
             #Psyco isn't supported on 64 bit systems, but it doesn't matter
         else:
