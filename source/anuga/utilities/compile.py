@@ -260,14 +260,16 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
         s = '%s -c %s -I"%s" -I"%s" -o "%s.o" -Wall -O3'\
             %(compiler, FN, python_include, utilities_include_dir, root)
 
-    if os.name == 'posix' and os.uname()[4] == 'x86_64':
-      #Extra flags for 64 bit architectures
-      #Second clause will always fail on Win32 because uname is UNIX specific
-      #but won't get past first clause
+    if os.name == 'posix' and os.uname()[4] in ['x86_64', 'ia64']:
+      # Extra flags for 64 bit architectures.
+      #   AMD Opteron will give x86_64
+      #   Itanium will give ia64
+      #
+      # Second clause will always fail on Win32 because uname is UNIX specific
+      # but won't get past first clause
 
-      #FIXME: Which one?
-      #s += ' -fPIC'
-      s += ' -fPIC -m64' 
+      s += ' -fPIC' # Use position independent code for 64 bit archs
+      #s += ' -m64' # Used to be necessary for AMD Opteron
       
       
     if verbose:
