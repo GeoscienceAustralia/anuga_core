@@ -14,7 +14,7 @@ from warnings import warn
 from shutil import copy
 
 from anuga.utilities.numerical_tools import ensure_numeric
-import numpy
+from Numeric import arange, choose, zeros, Float, array, allclose, take, compress
     
 from anuga.geospatial_data.geospatial_data import ensure_absolute
 from math import sqrt, atan, degrees
@@ -236,7 +236,7 @@ def get_netcdf_file_function(filename,
     import time, calendar, types
     from anuga.config import time_format
     from Scientific.IO.NetCDF import NetCDFFile
-##    from numpy.oldnumeric import array, zeros, Float, alltrue, concatenate, reshape
+    from Numeric import array, zeros, Float, alltrue, concatenate, reshape
 
     # Open NetCDF file
     if verbose: print 'Reading', filename
@@ -302,7 +302,7 @@ def get_netcdf_file_function(filename,
 
     # Get variables
     # if verbose: print 'Get variables'    
-    time = numpy.array(fid.variables['time'][:]    )
+    time = fid.variables['time'][:]    
 
     # Get time independent stuff
     if spatial:
@@ -316,9 +316,9 @@ def get_netcdf_file_function(filename,
         if filename[-3:] == 'sww':
             triangles = fid.variables['volumes'][:]
 
-        x = numpy.reshape(x, (len(x),1))
-        y = numpy.reshape(y, (len(y),1))
-        vertex_coordinates = numpy.concatenate((x,y), axis=1) #m x 2 array
+        x = reshape(x, (len(x),1))
+        y = reshape(y, (len(y),1))
+        vertex_coordinates = concatenate((x,y), axis=1) #m x 2 array
 
         if boundary_polygon is not None:
             #removes sts points that do not lie on boundary
@@ -330,7 +330,7 @@ def get_netcdf_file_function(filename,
             gauge_id=[]
             for i in range(len(boundary_polygon)):
                 for j in range(len(x)):
-                    if numpy.allclose(vertex_coordinates[j],boundary_polygon[i],1e-4):
+                    if allclose(vertex_coordinates[j],boundary_polygon[i],1e-4):
                         #FIX ME:
                         #currently gauges lat and long is stored as float and
                         #then cast to double. This cuases slight repositioning
@@ -350,7 +350,7 @@ def get_netcdf_file_function(filename,
             else:
                 gauge_neighbour_id.append(-1)
             gauge_neighbour_id=ensure_numeric(gauge_neighbour_id)
-            if len(numpy.compress(gauge_neighbour_id>=0,gauge_neighbour_id))!=len(temp)-1:
+            if len(compress(gauge_neighbour_id>=0,gauge_neighbour_id))!=len(temp)-1:
                 msg='incorrect number of segments'
                 raise msg
             vertex_coordinates=ensure_numeric(temp)
@@ -372,10 +372,6 @@ def get_netcdf_file_function(filename,
         # If domain_startime is *later* than starttime,
         # move time back - relative to domain's time
         if domain_starttime > starttime:
-##            print 'type(time)=%s' % type(time)
-##            print 'type(domain_starttime)=%s' % type(domain_starttime)
-##            print 'type(starttime)=%s' % type(starttime)
-##            a = time - domain_starttime
             time = time - domain_starttime + starttime
 
         # FIXME Use method in geo to reconcile
@@ -401,7 +397,7 @@ def get_netcdf_file_function(filename,
         quantities[name] = fid.variables[name][:]
         if boundary_polygon is not None:
             #removes sts points that do not lie on boundary
-            quantities[name] = numpy.take(quantities[name], gauge_id, 1)
+            quantities[name] = take(quantities[name],gauge_id,1)
             
     # Close sww, tms or sts netcdf file         
     fid.close()
@@ -523,7 +519,7 @@ def get_textual_float(value, format = '%.2f'):
             else:
                 raise 'Illegal input to get_textual_float:', value
         else:
-            return format % float(value)
+            return format %float(value)
 
 
 
@@ -1039,7 +1035,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
     each sww file
     """
 #    from math import sqrt, atan, degrees
-##    from numpy.oldnumeric import ones, allclose, zeros, Float, ravel
+    from Numeric import ones, allclose, zeros, Float, ravel
     from os import sep, altsep, getcwd, mkdir, access, F_OK, environ
 
     if generate_fig is True:
@@ -1080,18 +1076,18 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
         if n[i] > n0: n0 = n[i]  
     n0 = int(n0)
     m = len(locations)
-    model_time = numpy.zeros((n0,m,p), numpy.float) 
-    stages = numpy.zeros((n0,m,p), numpy.float)
-    elevations = numpy.zeros((n0,m,p), numpy.float) 
-    momenta = numpy.zeros((n0,m,p), numpy.float)
-    xmom = numpy.zeros((n0,m,p), numpy.float)
-    ymom = numpy.zeros((n0,m,p), numpy.float)
-    speed = numpy.zeros((n0,m,p), numpy.float)
-    bearings = numpy.zeros((n0,m,p), numpy.float)
-    due_east = 90.0*numpy.ones((n0,1), numpy.float)
-    due_west = 270.0*numpy.ones((n0,1), numpy.float)
-    depths = numpy.zeros((n0,m,p), numpy.float)
-    eastings = numpy.zeros((n0,m,p), numpy.float)
+    model_time = zeros((n0,m,p), Float) 
+    stages = zeros((n0,m,p), Float)
+    elevations = zeros((n0,m,p), Float) 
+    momenta = zeros((n0,m,p), Float)
+    xmom = zeros((n0,m,p), Float)
+    ymom = zeros((n0,m,p), Float)
+    speed = zeros((n0,m,p), Float)
+    bearings = zeros((n0,m,p), Float)
+    due_east = 90.0*ones((n0,1), Float)
+    due_west = 270.0*ones((n0,1), Float)
+    depths = zeros((n0,m,p), Float)
+    eastings = zeros((n0,m,p), Float)
     min_stages = []
     max_stages = []
     min_momentums = []    
@@ -1103,9 +1099,9 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
     max_speeds = []
     min_speeds = []    
     max_depths = []
-    model_time_plot3d = numpy.zeros((n0,m), numpy.float)
-    stages_plot3d = numpy.zeros((n0,m), numpy.float)
-    eastings_plot3d = numpy.zeros((n0,m),numpy.float)
+    model_time_plot3d = zeros((n0,m), Float)
+    stages_plot3d = zeros((n0,m), Float)
+    eastings_plot3d = zeros((n0,m),Float)
     if time_unit is 'mins': scale = 60.0
     if time_unit is 'hours': scale = 3600.0
     ##### loop over each swwfile #####
@@ -1205,7 +1201,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     ax.plot_surface(model_time[:,:,j],eastings[:,:,j],stages[:,:,j])
                 else:
                     #ax.plot_wireframe(model_time[:,:,j],eastings[:,:,j],stages[:,:,j])
-                    ax.plot3D(numpy.ravel(eastings[:,:,j]),numpy.ravel(model_time[:,:,j]),numpy.ravel(stages[:,:,j]))
+                    ax.plot3D(ravel(eastings[:,:,j]),ravel(model_time[:,:,j]),ravel(stages[:,:,j]))
                 ax.set_xlabel('time')
                 ax.set_ylabel('x')
                 ax.set_zlabel('stage')
@@ -1504,7 +1500,7 @@ def remove_lone_verts(verts, triangles, number_of_full_nodes=None):
     N = len(verts)
     
     # initialise the array to easily find the index of the first loner
-    loners=numpy.arange(2*N, N, -1) # if N=3 [6,5,4]
+    loners=arange(2*N, N, -1) # if N=3 [6,5,4]
     for t in triangles:
         for vert in t:
             loners[vert]= vert # all non-loners will have loners[i]=i 
@@ -1538,7 +1534,7 @@ def remove_lone_verts(verts, triangles, number_of_full_nodes=None):
         # Modify the triangles
         #print "loners", loners
         #print "triangles before", triangles
-        triangles = numpy.choose(triangles,loners)
+        triangles = choose(triangles,loners)
         #print "triangles after", triangles
     return verts, triangles
 
@@ -1553,7 +1549,7 @@ def get_centroid_values(x, triangles):
     """
 
         
-    xc = numpy.zeros(triangles.shape[0], numpy.float) # Space for centroid info
+    xc = zeros(triangles.shape[0], Float) # Space for centroid info
     
     for k in range(triangles.shape[0]):
         # Indices of vertices
@@ -1835,7 +1831,7 @@ def csv2timeseries_graphs(directories_dic={},
 
                 #add tide to stage if provided
                 if quantity == 'stage':
-                     quantity_value[quantity]=numpy.array(quantity_value[quantity])+directory_add_tide
+                     quantity_value[quantity]=array(quantity_value[quantity])+directory_add_tide
 
                 #condition to find max and mins for all the plots
                 # populate the list with something when i=0 and j=0 and
@@ -1946,7 +1942,7 @@ def csv2timeseries_graphs(directories_dic={},
             attribute_dic, title_index_dic = csv2dict(directory+sep+filename+'.csv')
             #get data from dict in to list
             #do maths to list by changing to array
-            t=(numpy.array(directory_quantity_value[directory][filename]['time'])+directory_start_time)/seconds_in_minutes
+            t=(array(directory_quantity_value[directory][filename]['time'])+directory_start_time)/seconds_in_minutes
 
             #finds the maximum elevation, used only as a test
             # and as info in the graphs
@@ -2127,7 +2123,7 @@ def sww2csv_gauges(sww_file,
     
     from csv import reader,writer
     from anuga.utilities.numerical_tools import ensure_numeric, mean, NAN
-##    from numpy.oldnumeric import array, resize, shape, Float, zeros, take, argsort, argmin
+    from Numeric import array, resize, shape, Float, zeros, take, argsort, argmin
     import string
     from anuga.shallow_water.data_manager import get_all_swwfiles
 #    quantities =  ['stage', 'elevation', 'xmomentum', 'ymomentum']
@@ -2168,7 +2164,7 @@ def sww2csv_gauges(sww_file,
             point_name.append(row[name])
         
     #convert to array for file_function
-    points_array = numpy.array(points, numpy.float)
+    points_array = array(points,Float)
         
     points_array = ensure_absolute(points_array)
 

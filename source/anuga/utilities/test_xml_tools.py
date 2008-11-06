@@ -2,6 +2,7 @@
 
 
 import unittest
+from Numeric import zeros, array, allclose, Float
 from tempfile import mkstemp, mktemp
 
 import os

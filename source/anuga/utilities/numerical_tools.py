@@ -6,13 +6,23 @@
 from math import acos, pi, sqrt
 from warnings import warn
 
-##from numpy import ndarray, array, sum, inner, ravel, sqrt, searchsorted, sort, concatenate, float, arange
-import numpy
+#Establish which Numeric package to use
+#(this should move to somewhere central)
+#try:
+#    from scipy import ArrayType, array, sum, innerproduct, ravel, sqrt,
+# searchsorted, sort, concatenate, Float, arange    
+#except:
+#    #print 'Could not find scipy - using Numeric'
+#    from Numeric import ArrayType, array, sum, innerproduct, ravel, sqrt,
+#searchsorted, sort, concatenate, Float, arange
+
+from Numeric import ArrayType, array, sum, innerproduct, ravel, sqrt,\
+     searchsorted, sort, concatenate, Float, arange    
 
 # Getting an infinite number to use when using Numeric
 #INF = (array([1])/0.)[0]
 
-NAN = (numpy.array([1])/0.)[0]
+NAN = (array([1])/0.)[0]
 # Note, INF is used instead of NAN (Not a number), since Numeric has no NAN
 # if we use a package that has NAN, this should be updated to use NAN.
 
@@ -78,16 +88,16 @@ def angle(v1, v2=None):
     if v2 is None:
         v2 = [1.0, 0.0] # Unit vector along the x-axis
 	
-    v1 = ensure_numeric(v1, numpy.float)
-    v2 = ensure_numeric(v2, numpy.float)    
+    v1 = ensure_numeric(v1, Float)
+    v2 = ensure_numeric(v2, Float)    
     
     # Normalise
-    v1 = v1/numpy.sqrt(numpy.sum(v1**2))
-    v2 = v2/numpy.sqrt(numpy.sum(v2**2))
+    v1 = v1/sqrt(sum(v1**2))
+    v2 = v2/sqrt(sum(v2**2))
 
     # Compute angle
-    p = numpy.inner(v1, v2)
-    c = numpy.inner(v1, normal_vector(v2)) # Projection onto normal
+    p = innerproduct(v1, v2)
+    c = innerproduct(v1, normal_vector(v2)) # Projection onto normal
                                             # (negative cross product)
         
     theta = safe_acos(p)
@@ -129,7 +139,7 @@ def normal_vector(v):
     Returns vector 90 degrees counter clockwise to and of same length as v
     """
     
-    return numpy.array([-v[1], v[0]], numpy.float)
+    return array([-v[1], v[0]], Float)
 
     
 #def crossproduct_length(v1, v2):
@@ -139,7 +149,7 @@ def normal_vector(v):
 def mean(x):
     """Mean value of a vector
     """
-    return(float(numpy.sum(x))/len(x))
+    return(float(sum(x))/len(x))
 
 
 def cov(x, y=None):
@@ -160,7 +170,7 @@ def cov(x, y=None):
     cx = x - mean(x)  
     cy = y - mean(y)  
 
-    p = numpy.inner(cx,cy)/N
+    p = innerproduct(cx,cy)/N
     return(p)
 
 
@@ -209,8 +219,8 @@ def norm(x):
     """2-norm of x
     """
   
-    y = numpy.ravel(x)
-    p = numpy.sqrt(numpy.inner(y,y))
+    y = ravel(x)
+    p = sqrt(innerproduct(y,y))
     return p
     
   
@@ -251,25 +261,19 @@ def ensure_numeric(A, typecode = None):
     """
 
     if typecode is None:
-##NumPy        if isinstance(A, ArrayType):
-        if type(A) == numpy.ndarray:
+        if type(A) == ArrayType:
             return A
         else:
-            return numpy.array(A)
+            return array(A)
     else:
-##NumPy        if isinstance(A, ArrayType):
-        if type(A) == numpy.ndarray:
-##NumPy            if A.typecode == typecode:
-            if A.dtype == typecode:
-                return numpy.array(A)  #FIXME: Shouldn't this just return A?
+        if type(A) == ArrayType:
+            if A.typecode == typecode:
+                return array(A)  #FIXME: Shouldn't this just return A?
             else:
-                return numpy.array(A, typecode)
+                return array(A,typecode)
         else:
-            import types                            ##
-            from numpy import str                   ##
-            if isinstance(A, types.StringType):     ##
-                return numpy.array(A, dtype=int)          ##
-            return numpy.array(A, typecode)
+            return array(A,typecode)
+
 
 
 
@@ -280,13 +284,13 @@ def histogram(a, bins, relative=False):
     thus represent frequencies rather than counts.
     """
 
-    n = numpy.searchsorted(numpy.sort(a), bins)
-    n = numpy.concatenate( [n, [len(a)]] )
+    n = searchsorted(sort(a), bins)
+    n = concatenate( [n, [len(a)]] )
 
     hist = n[1:]-n[:-1]
 
     if relative is True:
-        hist = hist/float(numpy.sum(hist))
+        hist = hist/float(sum(hist))
         
     return hist 
 
@@ -296,16 +300,16 @@ def create_bins(data, number_of_bins = None):
     If number_of_bins in omitted 10 bins will be created
     """
 
-    mx = numpy.max(data)
-    mn = numpy.min(data)
+    mx = max(data)
+    mn = min(data)
 
     if mx == mn:
-        bins = numpy.array([mn])
+        bins = array([mn])
     else:
         if number_of_bins is None:
             number_of_bins = 10
             
-        bins = numpy.arange(mn, mx, (mx-mn)/number_of_bins)
+        bins = arange(mn, mx, (mx-mn)/number_of_bins)
 
     return bins
     

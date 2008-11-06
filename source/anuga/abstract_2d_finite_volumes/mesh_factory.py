@@ -2,8 +2,6 @@
 mesh file formats
 """
 
-import numpy
-
 
 def rectangular_old(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
 
@@ -74,6 +72,7 @@ def rectangular(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
     """
 
     from anuga.config import epsilon
+    from Numeric import zeros, Float, Int
 
     delta1 = float(len1)/m
     delta2 = float(len2)/n
@@ -93,7 +92,7 @@ def rectangular(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
 
     index = Index(n,m)
 
-    points = numpy.zeros( (Np,2), numpy.float)
+    points = zeros( (Np,2), Float)
 
     for i in range(m+1):
         for j in range(n+1):
@@ -105,7 +104,7 @@ def rectangular(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
     Nt = 2*m*n
 
 
-    elements = numpy.zeros( (Nt,3), numpy.int)
+    elements = zeros( (Nt,3), Int)
     boundary = {}
     nt = -1
     for i in range(m):
@@ -149,6 +148,7 @@ def rectangular_cross(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
     """
 
     from anuga.config import epsilon
+    from Numeric import zeros, Float, Int
 
     delta1 = float(len1)/m
     delta2 = float(len2)/n
@@ -207,6 +207,7 @@ def oblique(m, n, lenx = 1.0, leny = 1.0, theta = 8.95, origin = (0.0, 0.0)):
 
     """
 
+    from Numeric import array
     import math
 
     from anuga.config import epsilon
@@ -508,7 +509,7 @@ def contracting_channel(m, n, W_upstream = 1., W_downstream = 0.75,
 
     """
 
-#    from numpy.oldnumeric import array
+    from Numeric import array
     import math
 
     from anuga.config import epsilon
@@ -590,6 +591,7 @@ def contracting_channel_cross(m, n, W_upstream = 1., W_downstream = 0.75,
 
     """
 
+    from Numeric import array
     import math
 
     from anuga.config import epsilon
@@ -683,8 +685,11 @@ def oblique_cross(m, n, lenx = 1.0, leny = 1.0, theta = 8.95, origin = (0.0, 0.0
 
     """
 
+    from Numeric import array
     import math
+
     from anuga.config import epsilon
+
 
     deltax = lenx/float(m)
     deltay = leny/float(n)

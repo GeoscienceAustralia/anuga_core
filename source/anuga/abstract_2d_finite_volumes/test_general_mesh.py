@@ -6,7 +6,7 @@ from math import sqrt, pi
 
 
 from anuga.config import epsilon
-import numpy
+from Numeric import allclose, array, ones, Float
 from general_mesh import General_mesh
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 
@@ -22,13 +22,14 @@ class Test_General_Mesh(unittest.TestCase):
 
     def test_get_vertex_coordinates(self):
         from mesh_factory import rectangular
+        from Numeric import zeros, Float
 
         #Create basic mesh
         nodes, triangles, _ = rectangular(1, 3)
         domain = General_mesh(nodes, triangles)
 
 
-        assert numpy.allclose(domain.get_nodes(), nodes)
+        assert allclose(domain.get_nodes(), nodes)
 
 
         M = domain.number_of_triangles        
@@ -39,7 +40,7 @@ class Test_General_Mesh(unittest.TestCase):
         for i in range(M):
             for j in range(3):
                 k = triangles[i,j]  #Index of vertex j in triangle i
-                assert numpy.allclose(V[3*i+j,:], nodes[k])
+                assert allclose(V[3*i+j,:], nodes[k])
 
     def test_get_vertex_coordinates_with_geo_ref(self):
         x0 = 314036.58727982
@@ -53,29 +54,29 @@ class Test_General_Mesh(unittest.TestCase):
         e = [2.0, 2.0]
         f = [4.0, 0.0]
 
-        nodes = numpy.array([a, b, c, d, e, f])
+        nodes = array([a, b, c, d, e, f])
 
         nodes_absolute = geo.get_absolute(nodes)
         
         #bac, bce, ecf, dbe, daf, dae
-        triangles = numpy.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
+        triangles = array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
 
         domain = General_mesh(nodes, triangles,
                        geo_reference = geo)
         verts = domain.get_vertex_coordinates(triangle_id=0)        
-        self.assert_(numpy.allclose(numpy.array([b,a,c]), verts)) 
+        self.assert_(allclose(array([b,a,c]), verts)) 
         verts = domain.get_vertex_coordinates(triangle_id=0)       
-        self.assert_(numpy.allclose(numpy.array([b,a,c]), verts))
+        self.assert_(allclose(array([b,a,c]), verts))
         verts = domain.get_vertex_coordinates(triangle_id=0,
                                               absolute=True)       
-        self.assert_(numpy.allclose(numpy.array([nodes_absolute[1],
-                                                 nodes_absolute[0],
-                                                 nodes_absolute[2]]), verts))
+        self.assert_(allclose(array([nodes_absolute[1],
+                                     nodes_absolute[0],
+                                     nodes_absolute[2]]), verts))
         verts = domain.get_vertex_coordinates(triangle_id=0,
                                               absolute=True)       
-        self.assert_(numpy.allclose(numpy.array([nodes_absolute[1],
-                                                 nodes_absolute[0],
-                                                 nodes_absolute[2]]), verts))
+        self.assert_(allclose(array([nodes_absolute[1],
+                                     nodes_absolute[0],
+                                     nodes_absolute[2]]), verts))
         
         
 
@@ -84,13 +85,14 @@ class Test_General_Mesh(unittest.TestCase):
         Test that vertices for one triangle can be returned.
         """
         from mesh_factory import rectangular
+        from Numeric import zeros, Float
 
         #Create basic mesh
         nodes, triangles, _ = rectangular(1, 3)
         domain = General_mesh(nodes, triangles)
 
 
-        assert numpy.allclose(domain.get_nodes(), nodes)
+        assert allclose(domain.get_nodes(), nodes)
 
 
         M = domain.number_of_triangles        
@@ -101,7 +103,7 @@ class Test_General_Mesh(unittest.TestCase):
 
             for j in range(3):
                 k = triangles[i,j]  #Index of vertex j in triangle i
-                assert numpy.allclose(V[j,:], nodes[k])
+                assert allclose(V[j,:], nodes[k])
 
 
         
@@ -111,21 +113,23 @@ class Test_General_Mesh(unittest.TestCase):
         """Get connectivity based on triangle lists.
         """
         from mesh_factory import rectangular
+        from Numeric import zeros, Float
 
         #Create basic mesh
         nodes, triangles, _ = rectangular(1, 3)
         domain = General_mesh(nodes, triangles)
 
         value = [7]
-        assert numpy.allclose(domain.get_triangles(), triangles)
-        assert numpy.allclose(domain.get_triangles([0,4]),
-                              [triangles[0], triangles[4]])
+        assert allclose(domain.get_triangles(), triangles)
+        assert allclose(domain.get_triangles([0,4]),
+                        [triangles[0], triangles[4]])
         
 
     def test_vertex_value_indices(self):
         """Check that structures are correct.
         """
         from mesh_factory import rectangular
+        from Numeric import zeros, Float, array
 
         a = [0.0, 0.0]
         b = [0.0, 2.0]
@@ -134,9 +138,9 @@ class Test_General_Mesh(unittest.TestCase):
         e = [2.0, 2.0]
         f = [4.0, 0.0]
 
-        nodes = numpy.array([a, b, c, d, e, f])
+        nodes = array([a, b, c, d, e, f])
         #bac, bce, ecf, dbe, daf, dae
-        triangles = numpy.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
+        triangles = array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
 
         domain1 = General_mesh(nodes, triangles)
         
@@ -157,7 +161,7 @@ class Test_General_Mesh(unittest.TestCase):
 
             #print count
             #
-            assert numpy.allclose(count, domain.number_of_triangles_per_node)
+            assert allclose(count, domain.number_of_triangles_per_node)
             
             # Check indices
             current_node = 0
@@ -191,25 +195,24 @@ class Test_General_Mesh(unittest.TestCase):
         e = [2.0, 2.0]
         f = [4.0, 0.0]
 
-        nodes = numpy.array([a, b, c, d, e, f])
+        nodes = array([a, b, c, d, e, f])
         #bac, bce, ecf, dbe, daf, dae
-        triangles = numpy.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
+        triangles = array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
 
         domain = General_mesh(nodes, triangles)
 
         # One node
         L = domain.get_triangles_and_vertices_per_node(node=2)
-        print 'L=%s' % str(L)
-        assert numpy.allclose(L[0], [0, 2])
-        assert numpy.allclose(L[1], [1, 1])
-        assert numpy.allclose(L[2], [2, 1])
+        assert allclose(L[0], [0, 2])
+        assert allclose(L[1], [1, 1])
+        assert allclose(L[2], [2, 1])
 
         # All nodes
         ALL = domain.get_triangles_and_vertices_per_node()
         assert len(ALL) == 6
         for i, Lref in enumerate(ALL):
             L = domain.get_triangles_and_vertices_per_node(node=i)
-            assert numpy.allclose(L, Lref)
+            assert allclose(L, Lref)
             
 
         
@@ -220,6 +223,7 @@ class Test_General_Mesh(unittest.TestCase):
     def test_areas(self):
         from mesh_factory import rectangular
         from shallow_water import Domain
+        from Numeric import zeros, Float
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
@@ -234,6 +238,7 @@ class Test_General_Mesh(unittest.TestCase):
         """
         from mesh_factory import rectangular
         from shallow_water import Domain
+        from Numeric import zeros, Float
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
@@ -267,23 +272,23 @@ class Test_General_Mesh(unittest.TestCase):
         e = [2.0, 2.0]
         f = [4.0, 0.0]
 
-        nodes = numpy.array([a, b, c, d, e, f])
+        nodes = array([a, b, c, d, e, f])
 
         nodes_absolute = geo.get_absolute(nodes)
         
         #bac, bce, ecf, dbe, daf, dae
-        triangles = numpy.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
+        triangles = array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
 
         domain = General_mesh(nodes, triangles,
                        geo_reference = geo)
         node = domain.get_node(2)        
-        self.assertTrue(numpy.alltrue(c == node))
+        self.assertEqual(c, node)
         
         node = domain.get_node(2, absolute=True)     
-        self.assertTrue(numpy.alltrue(nodes_absolute[2] == node))
+        self.assertEqual(nodes_absolute[2], node)
         
         node = domain.get_node(2, absolute=True)     
-        self.assertTrue(numpy.alltrue(nodes_absolute[2] == node))
+        self.assertEqual(nodes_absolute[2], node)
         
 
     def test_assert_index_in_nodes(self):
@@ -304,21 +309,21 @@ class Test_General_Mesh(unittest.TestCase):
         e = [2.0, 2.0]
         f = [4.0, 0.0]
 
-        nodes = numpy.array([a, b, c, d, e, f])
+        nodes = array([a, b, c, d, e, f])
 
         nodes_absolute = geo.get_absolute(nodes)
         
         # max index is 5, use 5, expect success
-        triangles = numpy.array([[1,5,2], [1,2,4], [4,2,5], [3,1,4]])
+        triangles = array([[1,5,2], [1,2,4], [4,2,5], [3,1,4]])
         General_mesh(nodes, triangles, geo_reference=geo)
         
         # max index is 5, use 6, expect assert failure
-        triangles = numpy.array([[1,6,2], [1,2,4], [4,2,5], [3,1,4]])
+        triangles = array([[1,6,2], [1,2,4], [4,2,5], [3,1,4]])
         self.failUnlessRaises(AssertionError, General_mesh,
                               nodes, triangles, geo_reference=geo)
         
         # max index is 5, use 10, expect assert failure
-        triangles = numpy.array([[1,10,2], [1,2,4], [4,2,5], [3,1,4]])
+        triangles = array([[1,10,2], [1,2,4], [4,2,5], [3,1,4]])
         self.failUnlessRaises(AssertionError, General_mesh,
                               nodes, triangles, geo_reference=geo)
         
@@ -327,6 +332,7 @@ class Test_General_Mesh(unittest.TestCase):
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_General_Mesh,'test') 
+    #suite = unittest.makeSuite(Test_General_Mesh,'test_get_node')    
     runner = unittest.TextTestRunner()
     runner.run(suite)
 

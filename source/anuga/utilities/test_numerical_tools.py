@@ -2,7 +2,8 @@
 
 
 import unittest
-import numpy
+from Numeric import zeros, array, allclose
+from Numeric import ArrayType, Float, Int, array, alltrue
 
 from math import sqrt, pi
 from anuga.config import epsilon
@@ -21,104 +22,103 @@ class Test_Numerical_Tools(unittest.TestCase):
     def test_angle1(self):
         """Test angles between one vector and the x-axis
 	"""
-        assert numpy.allclose(angle([1.0, 0.0])/pi*180, 0.0)	    
-        assert numpy.allclose(angle([1.0, 1.0])/pi*180, 45.0)
-        assert numpy.allclose(angle([0.0, 1.0])/pi*180, 90.0)		
-        assert numpy.allclose(angle([-1.0, 1.0])/pi*180, 135.0)		
-        assert numpy.allclose(angle([-1.0, 0.0])/pi*180, 180.0)
-        assert numpy.allclose(angle([-1.0, -1.0])/pi*180, 225.0)
-        assert numpy.allclose(angle([0.0, -1.0])/pi*180, 270.0)
-        assert numpy.allclose(angle([1.0, -1.0])/pi*180, 315.0)
+        assert allclose(angle([1.0, 0.0])/pi*180, 0.0)	    
+        assert allclose(angle([1.0, 1.0])/pi*180, 45.0)
+        assert allclose(angle([0.0, 1.0])/pi*180, 90.0)		
+        assert allclose(angle([-1.0, 1.0])/pi*180, 135.0)		
+        assert allclose(angle([-1.0, 0.0])/pi*180, 180.0)
+        assert allclose(angle([-1.0, -1.0])/pi*180, 225.0)
+        assert allclose(angle([0.0, -1.0])/pi*180, 270.0)
+        assert allclose(angle([1.0, -1.0])/pi*180, 315.0)
 		
 							  
     def test_angle2(self):
         """Test angles between two arbitrary vectors
 	"""    
 	
-        assert numpy.allclose(angle([1.0, 0.0], [1.0, 1.0])/pi*180, 315.0)
-        assert numpy.allclose(angle([1.0, 1.0], [1.0, 0.0])/pi*180, 45.0)
+        assert allclose(angle([1.0, 0.0], [1.0, 1.0])/pi*180, 315.0)
+        assert allclose(angle([1.0, 1.0], [1.0, 0.0])/pi*180, 45.0)
 		
-        assert numpy.allclose(angle([-1.0, -1.0], [1.0, 1.0])/pi*180, 180)	
-        assert numpy.allclose(angle([-1.0, -1.0], [-1.0, 1.0])/pi*180, 90.0)	
+        assert allclose(angle([-1.0, -1.0], [1.0, 1.0])/pi*180, 180)	
+        assert allclose(angle([-1.0, -1.0], [-1.0, 1.0])/pi*180, 90.0)	
 	
-        assert numpy.allclose(angle([-1.0, 0.0], [1.0, 1.0])/pi*180, 135.0)
-        assert numpy.allclose(angle([0.0, -1.0], [1.0, 1.0])/pi*180, 225.0)	
+        assert allclose(angle([-1.0, 0.0], [1.0, 1.0])/pi*180, 135.0)
+        assert allclose(angle([0.0, -1.0], [1.0, 1.0])/pi*180, 225.0)	
 	
-        assert numpy.allclose(angle([1.0, -1.0], [1.0, 1.0])/pi*180, 270.0)	
-        assert numpy.allclose(angle([1.0, 0.0], [0.0, 1.0])/pi*180, 270.0)
+        assert allclose(angle([1.0, -1.0], [1.0, 1.0])/pi*180, 270.0)	
+        assert allclose(angle([1.0, 0.0], [0.0, 1.0])/pi*180, 270.0)
 
         #From test_get_boundary_polygon_V
         v_prev = [-0.5, -0.5]
         vc = [ 0.0,  -0.5]
-        assert numpy.allclose(angle(vc, v_prev)/pi*180, 45.0)
+        assert allclose(angle(vc, v_prev)/pi*180, 45.0)
 
         vc = [ 0.5,  0.0]
-        assert numpy.allclose(angle(vc, v_prev)/pi*180, 135.0)
+        assert allclose(angle(vc, v_prev)/pi*180, 135.0)
 
         vc = [ -0.5,  0.5]
-        assert numpy.allclose(angle(vc, v_prev)/pi*180, 270.0)                
+        assert allclose(angle(vc, v_prev)/pi*180, 270.0)                
 
 
     def test_anglediff(self):
-        assert numpy.allclose(anglediff([0.0, 1.], [1.0, 1.0])/pi*180, 45.0)
+        assert allclose(anglediff([0.0, 1.], [1.0, 1.0])/pi*180, 45.0)
 
 	
     def test_ensure_numeric(self):
         A = [1,2,3,4]
         B = ensure_numeric(A)
-        assert isinstance(B, numpy.ndarray)
-        assert B.dtype.char == 'l'
+        assert type(B) == ArrayType
+        assert B.typecode() == 'l'
         assert B[0] == 1 and B[1] == 2 and B[2] == 3 and B[3] == 4
 
         A = [1,2,3.14,4]
         B = ensure_numeric(A)
-        assert isinstance(B, numpy.ndarray)
-        assert B.dtype.char == 'd'
+        assert type(B) == ArrayType
+        assert B.typecode() == 'd'
         assert B[0] == 1 and B[1] == 2 and B[2] == 3.14 and B[3] == 4
 
         A = [1,2,3,4]
-        B = ensure_numeric(A, numpy.float)
-        assert isinstance(B, numpy.ndarray)
-        assert B.dtype.char == 'd'
+        B = ensure_numeric(A, Float)
+        assert type(B) == ArrayType
+        assert B.typecode() == 'd'
         assert B[0] == 1.0 and B[1] == 2.0 and B[2] == 3.0 and B[3] == 4.0
 
         A = [1,2,3,4]
-        B = ensure_numeric(A, numpy.float)
-        assert isinstance(B, numpy.ndarray)
-        assert B.dtype.char == 'd'
+        B = ensure_numeric(A, Float)
+        assert type(B) == ArrayType
+        assert B.typecode() == 'd'
         assert B[0] == 1.0 and B[1] == 2.0 and B[2] == 3.0 and B[3] == 4.0
 
-        A = numpy.array([1,2,3,4])
+        A = array([1,2,3,4])
         B = ensure_numeric(A)
-        assert isinstance(B, numpy.ndarray)
-        assert B.dtype.char == 'l'        
-        assert numpy.alltrue(A == B)    
+        assert type(B) == ArrayType
+        assert B.typecode() == 'l'        
+        assert alltrue(A == B)    
         assert A is B   #Same object
 
-        A = numpy.array([1,2,3,4])
-        B = ensure_numeric(A, numpy.float)
-        assert isinstance(B, numpy.ndarray)
-        assert B.dtype.char == 'd'        
-        assert numpy.alltrue(A == B)    
+        A = array([1,2,3,4])
+        B = ensure_numeric(A, Float)
+        assert type(B) == ArrayType
+        assert B.typecode() == 'd'        
+        assert alltrue(A == B)    
         assert A is not B   #Not the same object
 
         # Check scalars
         A = 1
-        B = ensure_numeric(A, numpy.float)
+        B = ensure_numeric(A, Float)
         #print A, B[0], len(B), type(B) 
         #print B.shape
-        assert numpy.alltrue(A == B)
+        assert alltrue(A == B)
 
-        B = ensure_numeric(A, numpy.int)        
+        B = ensure_numeric(A, Int)        
         #print A, B
         #print B.shape
-        assert numpy.alltrue(A == B)
+        assert alltrue(A == B)
 
-    def NO_test_ensure_numeric_char(self):
         # Error situation
-        B = ensure_numeric('hello', numpy.int)
-        print 'B=%s %s' % (str(B), type(B))
-        assert numpy.allclose(B, [104, 101, 108, 108, 111])
+
+        B = ensure_numeric('hello', Int)                
+        assert allclose(B, [104, 101, 108, 108, 111])
 
 
     def test_gradient(self):
@@ -159,7 +159,7 @@ class Test_Numerical_Tools(unittest.TestCase):
         #Reference
         zx, zy = gradient(x0, y0, x1, y1, x2, y2, z0, z1, z2)
         a, b = gradient2(x0, y0, x1, y1, z0, z1)
-        
+
         assert zx == a
         assert zy == b
 
@@ -207,41 +207,41 @@ class Test_Numerical_Tools(unittest.TestCase):
 
         #There are four elements greater than or equal to 3
         bins = [3]
-        assert numpy.allclose(histogram(a, bins), [4])
+        assert allclose(histogram(a, bins), [4])
 
         bins = [ min(a) ]
-        assert numpy.allclose(histogram(a, bins), [len(a)])
+        assert allclose(histogram(a, bins), [len(a)])
 
         bins = [ max(a)+0.00001 ]
-        assert numpy.allclose(histogram(a, bins), [0])        
+        assert allclose(histogram(a, bins), [0])        
         
         bins = [1,2,3,4]
-        assert numpy.allclose(histogram(a, bins), [8,3,3,1])
+        assert allclose(histogram(a, bins), [8,3,3,1])
 
         bins = [1.1,2,3.1,4]
         #print histogram(a, bins)
-        assert numpy.allclose(histogram(a, bins), [0,6,0,1])
+        assert allclose(histogram(a, bins), [0,6,0,1])
 
         bins = [0,1.5,2,3]
-        assert numpy.allclose(histogram(a, bins), [8,0,3,4])
-        assert numpy.allclose(histogram(a, [0,3]), histogram(a, [-0.5,3]))
+        assert allclose(histogram(a, bins), [8,0,3,4])
+        assert allclose(histogram(a, [0,3]), histogram(a, [-0.5,3]))
 
         # Check situation with #bins >= #datapoints
         a = [1.7]
         bins = [0,1.5,2,3]
-        assert numpy.allclose(histogram(a, bins), [0,1,0,0])
+        assert allclose(histogram(a, bins), [0,1,0,0])
 
         a = [1.7]
         bins = [0]
-        assert numpy.allclose(histogram(a, bins), [1])
+        assert allclose(histogram(a, bins), [1])
 
         a = [-1.7]
         bins = [0]
-        assert numpy.allclose(histogram(a, bins), [0])
+        assert allclose(histogram(a, bins), [0])
 
         a = [-1.7]
         bins = [-1.7]
-        assert numpy.allclose(histogram(a, bins), [1])        
+        assert allclose(histogram(a, bins), [1])        
         
 
     def test_that_C_extension_compiles(self):
@@ -280,8 +280,8 @@ class Test_Numerical_Tools(unittest.TestCase):
     def test_gradient_C_extension3(self):
         from util_ext import gradient as gradient_c
 
-        from numpy.random import uniform, seed
-        seed(53)    # numeric was seed(17, 53)
+        from RandomArray import uniform, seed
+        seed(17, 53)
 
         x0, x1, x2, y0, y1, y2 = uniform(0.0,3.0,6)
 
@@ -311,7 +311,6 @@ class Test_Numerical_Tools(unittest.TestCase):
         # If there is x and y, n=2 and relative=False, this will calc;
         # sqrt(sum_over_x&y((xi - yi)^2))
         err__1 = err(x,y,2,False)
-        
         assert err__1 == sqrt(20)
         #print "err_", err_
         #rmsd_1 = err__1*sqrt(1./len(x))

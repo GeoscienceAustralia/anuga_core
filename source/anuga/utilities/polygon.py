@@ -9,8 +9,7 @@
 #except:
 #    #print 'Could not find scipy - using Numeric'
 
-##from numpy import float, int, zeros, ones, array, concatenate, reshape, dot, allclose, newaxis, ascontiguousarray
-import numpy
+from Numeric import Float, Int, zeros, ones, array, concatenate, reshape, dot, allclose
 
 
 from math import sqrt
@@ -76,8 +75,8 @@ def intersection(line0, line1):
 
     # FIXME (Ole): Write this in C
 
-    line0 = ensure_numeric(line0, numpy.float)
-    line1 = ensure_numeric(line1, numpy.float)    
+    line0 = ensure_numeric(line0, Float)
+    line1 = ensure_numeric(line1, Float)    
 
     x0 = line0[0,0]; y0 = line0[0,1]
     x1 = line0[1,0]; y1 = line0[1,1]
@@ -89,10 +88,10 @@ def intersection(line0, line1):
     u0 = (x3-x2)*(y0-y2) - (y3-y2)*(x0-x2)
     u1 = (x2-x0)*(y1-y0) - (y2-y0)*(x1-x0)
         
-    if numpy.allclose(denom, 0.0):
+    if allclose(denom, 0.0):
         # Lines are parallel - check if they coincide on a shared a segment
 
-        if numpy.allclose( [u0, u1], 0.0 ):
+        if allclose( [u0, u1], 0.0 ):
             # We now know that the lines if continued coincide
             # The remaining check will establish if the finite lines share a segment
 
@@ -120,31 +119,31 @@ def intersection(line0, line1):
             # One line fully included in the other. Use direction of included line
             if line0_starts_on_line1 and line0_ends_on_line1:
                 # Shared segment is line0 fully included in line1
-                segment = numpy.array([[x0, y0], [x1, y1]])                
+                segment = array([[x0, y0], [x1, y1]])                
 
             if line1_starts_on_line0 and line1_ends_on_line0:
                 # Shared segment is line1 fully included in line0
-                segment = numpy.array([[x2, y2], [x3, y3]])
+                segment = array([[x2, y2], [x3, y3]])
             
 
             # Overlap with lines are oriented the same way
             if line0_starts_on_line1 and line1_ends_on_line0:
                 # Shared segment from line0 start to line 1 end
-                segment = numpy.array([[x0, y0], [x3, y3]])
+                segment = array([[x0, y0], [x3, y3]])
 
             if line1_starts_on_line0 and line0_ends_on_line1:
                 # Shared segment from line1 start to line 0 end
-                segment = numpy.array([[x2, y2], [x1, y1]])                                
+                segment = array([[x2, y2], [x1, y1]])                                
 
 
             # Overlap in opposite directions - use direction of line0
             if line0_starts_on_line1 and line1_starts_on_line0:
                 # Shared segment from line0 start to line 1 end
-                segment = numpy.array([[x0, y0], [x2, y2]])
+                segment = array([[x0, y0], [x2, y2]])
 
             if line0_ends_on_line1 and line1_ends_on_line0:
                 # Shared segment from line0 start to line 1 end
-                segment = numpy.array([[x3, y3], [x1, y1]])                
+                segment = array([[x3, y3], [x1, y1]])                
 
                 
             return 2, segment
@@ -161,14 +160,14 @@ def intersection(line0, line1):
         y = y0 + u0*(y1-y0)
 
         # Sanity check - can be removed to speed up if needed
-        assert numpy.allclose(x, x2 + u1*(x3-x2))
-        assert numpy.allclose(y, y2 + u1*(y3-y2))        
+        assert allclose(x, x2 + u1*(x3-x2))
+        assert allclose(y, y2 + u1*(y3-y2))        
 
         # Check if point found lies within given line segments
         if 0.0 <= u0 <= 1.0 and 0.0 <= u1 <= 1.0: 
             # We have intersection
 
-            return 1, numpy.array([x, y])
+            return 1, array([x, y])
         else:
             # No intersection
             return 0, None
@@ -203,8 +202,8 @@ def NEW_C_intersection(line0, line1):
     """
 
 
-    line0 = ensure_numeric(line0, numpy.float)
-    line1 = ensure_numeric(line1, numpy.float)    
+    line0 = ensure_numeric(line0, Float)
+    line1 = ensure_numeric(line1, Float)    
 
     status, value = _intersection(line0[0,0], line0[0,1],
                                   line0[1,0], line0[1,1],
@@ -256,7 +255,7 @@ def inside_polygon(points, polygon, closed=True, verbose=False):
         # If this fails it is going to be because the points can't be
         # converted to a numeric array.
         msg = 'Points could not be converted to Numeric array' 
-	raise TypeError, msg
+	raise msg
 
     try:
         polygon = ensure_absolute(polygon)
@@ -265,12 +264,12 @@ def inside_polygon(points, polygon, closed=True, verbose=False):
     except:
         # If this fails it is going to be because the points can't be
         # converted to a numeric array.
-        msg = 'Polygon %s could not be converted to Numeric array' % (str(polygon))
-	raise TypeError, msg
+        msg = 'Polygon %s could not be converted to Numeric array' %(str(polygon))
+	raise msg
 
     if len(points.shape) == 1:
         # Only one point was passed in. Convert to array of points
-    	points = numpy.reshape(points, (1,2))
+    	points = reshape(points, (1,2))
 
     indices, count = separate_points_by_polygon(points, polygon,
                                                 closed=closed,
@@ -312,7 +311,7 @@ def outside_polygon(points, polygon, closed = True, verbose = False):
 
     #if verbose: print 'Checking input to outside_polygon'
     try:
-        points = ensure_numeric(points, numpy.float)
+        points = ensure_numeric(points, Float)
     except NameError, e:
         raise NameError, e
     except:
@@ -320,7 +319,7 @@ def outside_polygon(points, polygon, closed = True, verbose = False):
 	raise msg
 
     try:
-        polygon = ensure_numeric(polygon, numpy.float)
+        polygon = ensure_numeric(polygon, Float)
     except NameError, e:
         raise NameError, e
     except:
@@ -330,7 +329,7 @@ def outside_polygon(points, polygon, closed = True, verbose = False):
 
     if len(points.shape) == 1:
         # Only one point was passed in. Convert to array of points
-    	points = numpy.reshape(points, (1,2))
+    	points = reshape(points, (1,2))
 
     indices, count = separate_points_by_polygon(points, polygon,
                                                 closed=closed,
@@ -339,7 +338,7 @@ def outside_polygon(points, polygon, closed = True, verbose = False):
     # Return indices of points outside polygon
     if count == len(indices):
         # No points are outside
-        return numpy.array([])
+        return array([])
     else:
         return indices[count:][::-1]  #return reversed
        
@@ -354,7 +353,7 @@ def in_and_outside_polygon(points, polygon, closed = True, verbose = False):
 
     #if verbose: print 'Checking input to outside_polygon'
     try:
-        points = ensure_numeric(points, numpy.float)
+        points = ensure_numeric(points, Float)
     except NameError, e:
         raise NameError, e
     except:
@@ -362,7 +361,7 @@ def in_and_outside_polygon(points, polygon, closed = True, verbose = False):
 	raise msg
 
     try:
-        polygon = ensure_numeric(polygon, numpy.float)
+        polygon = ensure_numeric(polygon, Float)
     except NameError, e:
         raise NameError, e
     except:
@@ -371,7 +370,7 @@ def in_and_outside_polygon(points, polygon, closed = True, verbose = False):
 
     if len(points.shape) == 1:
         # Only one point was passed in. Convert to array of points
-    	points = numpy.reshape(points, (1,2))
+    	points = reshape(points, (1,2))
 
 
     indices, count = separate_points_by_polygon(points, polygon,
@@ -439,26 +438,23 @@ def separate_points_by_polygon(points, polygon,
     assert isinstance(closed, bool), 'Keyword argument "closed" must be boolean'
     assert isinstance(verbose, bool), 'Keyword argument "verbose" must be boolean'
 
-##    print 'Before: points=%s, flags=%s' % (type(points), str(points.flags))
+
     try:
-##        points = numpy.ascontiguousarray(ensure_numeric(points, numpy.float))
-        points = ensure_numeric(points, numpy.float)
+        points = ensure_numeric(points, Float)
     except NameError, e:
         raise NameError, e
     except:
         msg = 'Points could not be converted to Numeric array'
-	raise TypeError, msg
-##    print 'After: points=%s, flags=%s' % (type(points), str(points.flags))
+	raise msg
 
     #if verbose: print 'Checking input to separate_points_by_polygon 2'
     try:
-##        polygon = numpy.ascontiguousarray(ensure_numeric(polygon, numpy.float))
-        polygon = ensure_numeric(polygon, numpy.float)
+        polygon = ensure_numeric(polygon, Float)
     except NameError, e:
         raise NameError, e
     except:
         msg = 'Polygon could not be converted to Numeric array'
-	raise TypeError, msg
+	raise msg
 
     msg = 'Polygon array must be a 2d array of vertices'
     assert len(polygon.shape) == 2, msg
@@ -475,11 +471,11 @@ def separate_points_by_polygon(points, polygon,
     if len(points.shape) == 1:
         # Only one point was passed in.
         # Convert to array of points
-        points = numpy.reshape(points, (1,2))
+        points = reshape(points, (1,2))
 
     
     msg = 'Point array must have two columns (x,y), '
-    msg += 'I got points.shape[1] == %d' % points.shape[1]
+    msg += 'I got points.shape[1] == %d' %points.shape[0]
     assert points.shape[1] == 2, msg
 
        
@@ -494,7 +490,7 @@ def separate_points_by_polygon(points, polygon,
     M = points.shape[0]  #Number of points
 
 
-    indices = numpy.zeros( M, numpy.int )
+    indices = zeros( M, Int )
 
     count = _separate_points_by_polygon(points, polygon, indices,
                                         int(closed), int(verbose))
@@ -621,7 +617,7 @@ def poly_xy(polygon, verbose=False):
     #if verbose: print 'Checking input to poly_xy'
 
     try:
-        polygon = ensure_numeric(polygon, numpy.float)
+        polygon = ensure_numeric(polygon, Float)
     except NameError, e:
         raise NameError, e
     except:
@@ -630,8 +626,8 @@ def poly_xy(polygon, verbose=False):
 
     x = polygon[:,0]
     y = polygon[:,1]
-    x = numpy.concatenate((x, [polygon[0,0]]), axis = 0)
-    y = numpy.concatenate((y, [polygon[0,1]]), axis = 0)
+    x = concatenate((x, [polygon[0,0]]), axis = 0)
+    y = concatenate((y, [polygon[0,1]]), axis = 0)
     
     return x, y
     
@@ -683,7 +679,7 @@ class Polygon_function:
     FIXME: This should really work with geo_spatial point sets.
     """
 
-    def __init__(self, regions, default=0.0, geo_reference=None, verbose=False):
+    def __init__(self, regions, default=0.0, geo_reference=None):
 
 	try:
 	    len(regions)
@@ -726,35 +722,32 @@ class Polygon_function:
             P = geo_reference.change_points_geo_ref(polygon)
             self.regions.append( (P, value) )
 
-        self.verbose = verbose
-
 
 
 
     def __call__(self, x, y):
-	x = numpy.array(x).astype(numpy.float)
-	y = numpy.array(y).astype(numpy.float)
+	x = array(x).astype(Float)
+	y = array(y).astype(Float)
 
-        assert len(x.shape) == 1 and len(y.shape) == 1
-        
-	N = x.shape[0]
-	assert y.shape[0] == N
+	N = len(x)
+	assert len(y) == N
 
-	points = numpy.ascontiguousarray(numpy.concatenate( (x[:,numpy.newaxis], y[:,numpy.newaxis]), axis=1 ))
-	
+	points = concatenate( (reshape(x, (N, 1)),
+	                       reshape(y, (N, 1))), axis=1 )
+
 	if callable(self.default):
-	    z = self.default(x, y)
+	    z = self.default(x,y)
 	else:
-	    z = numpy.ones(N, numpy.float) * self.default
+	    z = ones(N, Float) * self.default
 
 	for polygon, value in self.regions:
-	    indices = inside_polygon(points, polygon, verbose=self.verbose)
+	    indices = inside_polygon(points, polygon)
 
 	    # FIXME: This needs to be vectorised
 	    if callable(value):
 	        for i in indices:
-		    xx = numpy.array([x[i]])
-		    yy = numpy.array([y[i]])
+		    xx = array([x[i]])
+		    yy = array([y[i]])
                     z[i] = value(xx, yy)[0]
 	    else:
 	        for i in indices:

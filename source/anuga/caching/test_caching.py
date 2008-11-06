@@ -1,5 +1,6 @@
+
 import unittest
-import numpy
+from Numeric import arange, array
 
 from copy import deepcopy
         
@@ -126,8 +127,8 @@ class Test_Caching(unittest.TestCase):
         verbose = False
         
         # Make some test input arguments
-        A0 = numpy.arange(5)
-        B0 = numpy.array([1.1, 2.2, 0.0, -5, -5])
+        A0 = arange(5)
+        B0 = array([1.1, 2.2, 0.0, -5, -5])
         
         A1 = A0.copy()
         B1 = B0.copy()
@@ -157,8 +158,8 @@ class Test_Caching(unittest.TestCase):
             T3 = f_numeric(A0, B0) # Compute without caching
 
 
-            assert numpy.alltrue(T1 == T2), 'Cached result does not match computed result'
-            assert numpy.alltrue(T2 == T3), 'Cached result does not match computed result'
+            assert T1 == T2, 'Cached result does not match computed result'
+            assert T2 == T3, 'Cached result does not match computed result'
             
 
     def test_hash_collision(self):
@@ -170,11 +171,11 @@ class Test_Caching(unittest.TestCase):
         verbose = False
         
         # Make test input arguments
-        A0 = numpy.arange(5)*1.0
+        A0 = arange(5)*1.0
         B = ('x', 15)
         
         # Create different A that hashes to the same address (having the same average)
-        A1 = numpy.array([2.0, 2.0, 2.0, 2.0, 2.0])        
+        A1 = array([2.0, 2.0, 2.0, 2.0, 2.0])        
         
         assert myhash(A0) == myhash(A1)
             
@@ -201,9 +202,9 @@ class Test_Caching(unittest.TestCase):
                        compression=comp, verbose=verbose) 
             
 
-            print 'T1=%s' % str(T1)
-            print 'T2=%s' % str(T2)
-            assert numpy.alltrue(T2 != T1)
+            #print T1
+            #print T2
+            assert T2 != T1
 
             
 
@@ -387,13 +388,13 @@ class Test_Caching(unittest.TestCase):
         # Create input argument
         A = Dummy(5, 7)
         B = {'x': 10, 'A': A}
-        C = [B, numpy.array([1.2, 3, 5, 0.1])]
+        C = [B, array([1.2, 3, 5, 0.1])]
         A.value = C # Make it circular
 
         # Create identical but separate object    
         AA = Dummy(None, None)
         BB = {'A': AA, 'x': 10}
-        CC = [BB, numpy.array([1.200, 3.000, 5.00, 1.0/10])]
+        CC = [BB, array([1.200, 3.000, 5.00, 1.0/10])]
         AA.value = CC # Make it circular
         AA.another = 3+4        
         

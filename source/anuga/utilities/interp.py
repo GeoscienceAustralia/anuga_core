@@ -110,7 +110,7 @@ def interp(y, x, xinterp, missing=1e+20):
     arrayfns.interp):
 
     >>> from interp import interp
-    >>> import numpy.oldnumeric as N
+    >>> import Numeric as N
     >>> x = N.array([1., 2., 3., 4., 5.])
     >>> y = N.array([3., 6., 2.,-5.,-3.])
     >>> xint = N.array([3.4, 2.3])
@@ -137,8 +137,8 @@ def interp(y, x, xinterp, missing=1e+20):
     ['-0.8', '1e+20', '1e+20']
     """
     import arrayfns
-    import numpy.ma as MA
-    import numpy as N
+    import MA
+    import Numeric as N
     from where_close import where_close
 
 
@@ -215,7 +215,7 @@ __test__ = {'Additional Examples':
     (1) General error catching:
 
     >>> from interp import interp
-    >>> import numpy.oldnumeric as N
+    >>> import Numeric as N
     >>> x = N.array([1.,    2., 3.,  4.,  5.,  6.])
     >>> y = N.array([3., 1e+20, 2., -5., -3., -4.])
     >>> x = N.reshape(x, (2,3))
@@ -283,7 +283,7 @@ __test__ = {'Additional Examples':
     >>> yint = interp(y, x, xint, missing=-9999999)
     >>> ['%.7g' % yint[i] for i in range(len(yint))]
     ['3.4', '2.3']
-    >>> yint.dtype.char
+    >>> yint.typecode()
     'd'
     >>> x = N.arange(6)
     >>> y = N.arange(6)
@@ -291,7 +291,7 @@ __test__ = {'Additional Examples':
     >>> yint = interp(y, x, xint, missing=-9999999)
     >>> ['%.7g' % yint[i] for i in range(len(yint))]
     ['3', '2']
-    >>> yint.dtype.char
+    >>> yint.typecode()
     'd'
     """}
 

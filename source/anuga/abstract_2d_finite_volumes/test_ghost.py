@@ -5,7 +5,9 @@ from math import sqrt
 
 from domain import *
 from anuga.config import epsilon
-import numpy
+from Numeric import allclose, array, ones, Float
+
+
 
 
 class Test_Domain(unittest.TestCase):
@@ -40,7 +42,7 @@ class Test_Domain(unittest.TestCase):
             assert domain.quantities.has_key(name)
 
 
-        assert numpy.alltrue(domain.get_conserved_quantities(0, edge=1) == 0.)
+        assert domain.get_conserved_quantities(0, edge=1) == 0.
 
 
 

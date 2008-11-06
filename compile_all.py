@@ -2,7 +2,7 @@ import os
 
 buildroot = os.getcwd()
 
-os.chdir('source')
+os.chdir('source_numpy_conversion')
 
 os.chdir('anuga')
 

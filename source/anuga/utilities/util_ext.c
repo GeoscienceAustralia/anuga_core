@@ -15,7 +15,7 @@
 #include <float.h>
 
 #include "Python.h"
-#include "numpy/arrayobject.h"
+#include "Numeric/arrayobject.h"
 #include "math.h"
 
 //Shared snippets

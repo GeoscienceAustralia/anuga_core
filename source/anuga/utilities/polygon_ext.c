@@ -14,7 +14,7 @@
 
 
 #include "Python.h"
-#include "numpy/arrayobject.h"
+#include "Numeric/arrayobject.h"
 #include "math.h"
 
 
@@ -221,13 +221,13 @@ int __separate_points_by_polygon(int M,     // Number of points
      printf("Separating %d points\n", M);
   }  
   for (k=0; k<M; k++) {
+    if (verbose){
+      if (k %((M+10)/10)==0) printf("Doing %d of %d\n", k, M);
+    }
+    
     x = points[2*k];
     y = points[2*k + 1];
 
-    if (verbose){
-      if (k %((M+10)/10)==0) printf("Doing %d of %d, x=%f, y=%f\n", k, M, x, y);
-    }
-    
     inside = 0;
 
     //Optimisation
@@ -375,7 +375,6 @@ PyObject *_separate_points_by_polygon(PyObject *self, PyObject *args) {
     *points,
     *polygon,
     *indices;
-//  PyObject *xxxx;
 
   int closed, verbose; //Flags
   int count, M, N;
@@ -393,8 +392,6 @@ PyObject *_separate_points_by_polygon(PyObject *self, PyObject *args) {
 		    "separate_points_by_polygon could not parse input");
     return NULL;
   }
-  
-//  points = (PyArrayObject *) PyArray_ContiguousFromObject(xxxx, PyArray_DOUBLE, 1, 1);
 
   M = points -> dimensions[0];   //Number of points
   N = polygon -> dimensions[0];  //Number of vertices in polygon

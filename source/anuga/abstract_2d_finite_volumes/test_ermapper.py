@@ -4,7 +4,7 @@ import unittest
 
 
 import ermapper_grids
-import numpy
+import Numeric
 from os import remove
 
 class Test_ERMapper(unittest.TestCase):
@@ -18,19 +18,19 @@ class Test_ERMapper(unittest.TestCase):
         header_filename = 'test_write_ermapper_grid.ers'
         data_filename = 'test_write_ermapper_grid'
         
-        original_grid = numpy.array([[0.0, 0.1, 1.0], [2.0, 3.0, 4.0]])
+        original_grid = Numeric.array([[0.0, 0.1, 1.0], [2.0, 3.0, 4.0]])
 
         # Check that the function works when passing the filename without
         # a '.ers' extension
         ermapper_grids.write_ermapper_grid(data_filename, original_grid)
         new_grid = ermapper_grids.read_ermapper_grid(data_filename)
-        assert numpy.allclose(original_grid, new_grid)
+        assert Numeric.allclose(original_grid, new_grid)
 
         # Check that the function works when passing the filename with
         # a '.ers' extension
         ermapper_grids.write_ermapper_grid(header_filename, original_grid)
         new_grid = ermapper_grids.read_ermapper_grid(header_filename)
-        assert numpy.allclose(original_grid, new_grid)
+        assert Numeric.allclose(original_grid, new_grid)
 
         # Clean up created files
         remove(data_filename)
@@ -39,16 +39,16 @@ class Test_ERMapper(unittest.TestCase):
     def test_basic_single_line_grid(self):
         # Setup test data
         filename = 'test_write_ermapper_grid'
-        original_grid = numpy.array([0.0, 0.1, 1.0, 2.0, 3.0, 4.0])
+        original_grid = Numeric.array([0.0, 0.1, 1.0, 2.0, 3.0, 4.0])
 
         # Write test data
-        ermapper_grids.write_ermapper_data(original_grid, filename, numpy.float64)
+        ermapper_grids.write_ermapper_data(original_grid, filename, Numeric.Float64)
 
         # Read in the test data
-        new_grid = ermapper_grids.read_ermapper_data(filename, numpy.float64)
+        new_grid = ermapper_grids.read_ermapper_data(filename, Numeric.Float64)
 
         # Check that the test data that has been read in matches the original data
-        assert numpy.allclose(original_grid, new_grid)
+        assert Numeric.allclose(original_grid, new_grid)
 
         # Clean up created files
         remove(filename)
@@ -56,7 +56,7 @@ class Test_ERMapper(unittest.TestCase):
     def test_basic_single_line_grid_default_format(self):
         # Setup test data
         filename = 'test_write_ermapper_grid'
-        original_grid = numpy.array([0.0, 0.1, 1.0, 2.0, 3.0, 4.0])
+        original_grid = Numeric.array([0.0, 0.1, 1.0, 2.0, 3.0, 4.0])
 
         # Write test data
         ermapper_grids.write_ermapper_data(original_grid, filename)
@@ -65,7 +65,7 @@ class Test_ERMapper(unittest.TestCase):
         new_grid = ermapper_grids.read_ermapper_data(filename)
 
         # Check that the test data that has been read in matches the original data
-        assert numpy.allclose(original_grid, new_grid)
+        assert Numeric.allclose(original_grid, new_grid)
 
         # Clean up created files
         remove(filename)
@@ -74,7 +74,7 @@ class Test_ERMapper(unittest.TestCase):
         data_filename = 'test_write_ermapper_grid'
 
         # setup test data
-        original_grid = numpy.array([[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11]])
+        original_grid = Numeric.array([[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11]])
         # Write test data
         ermapper_grids.write_ermapper_data(original_grid, data_filename)
         # Write test header using all default values

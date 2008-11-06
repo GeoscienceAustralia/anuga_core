@@ -2,7 +2,9 @@
 #
 
 import unittest
-import numpy
+
+from Numeric import allclose, array
+
 
 #from anuga.pyvolution.pmesh2domain import *
 from pmesh2domain import *
@@ -63,9 +65,9 @@ friction  \n \
          file.close()
 
          tags = {}
-         b1 =  Dirichlet_boundary(conserved_quantities = numpy.array([0.0]))
-         b2 =  Dirichlet_boundary(conserved_quantities = numpy.array([1.0]))
-         b3 =  Dirichlet_boundary(conserved_quantities = numpy.array([2.0]))
+         b1 =  Dirichlet_boundary(conserved_quantities = array([0.0]))
+         b2 =  Dirichlet_boundary(conserved_quantities = array([1.0]))
+         b3 =  Dirichlet_boundary(conserved_quantities = array([2.0]))
          tags["1"] = b1
          tags["2"] = b2
          tags["3"] = b3
@@ -77,24 +79,24 @@ friction  \n \
          #print domain.quantities['elevation'].vertex_values
          answer = [[0., 8., 0.],
                    [0., 10., 8.]]
-         assert numpy.allclose(domain.quantities['elevation'].vertex_values,
-                               answer)
+         assert allclose(domain.quantities['elevation'].vertex_values,
+                        answer)
 
          #print domain.quantities['stage'].vertex_values
          answer = [[0., 12., 10.],
                    [0., 10., 12.]]
-         assert numpy.allclose(domain.quantities['stage'].vertex_values,
-                               answer)
+         assert allclose(domain.quantities['stage'].vertex_values,
+                        answer)
 
          #print domain.quantities['friction'].vertex_values
          answer = [[0.01, 0.04, 0.03],
                    [0.01, 0.02, 0.04]]
-         assert numpy.allclose(domain.quantities['friction'].vertex_values,
-                               answer)
+         assert allclose(domain.quantities['friction'].vertex_values,
+                        answer)
 
          #print domain.quantities['friction'].vertex_values
-         assert numpy.allclose(domain.tagged_elements['dsg'][0],0)
-         assert numpy.allclose(domain.tagged_elements['ole nielsen'][0],1)
+         assert allclose(domain.tagged_elements['dsg'][0],0)
+         assert allclose(domain.tagged_elements['ole nielsen'][0],1)
 
          self.failUnless( domain.boundary[(1, 0)]  == '1',
                           "test_tags_to_boundaries  failed. Single boundary wasn't added.")
@@ -156,9 +158,9 @@ friction  \n \
          mesh_instance = importMeshFromFile(fileName)
         
          tags = {}
-         b1 =  Dirichlet_boundary(conserved_quantities = numpy.array([0.0]))
-         b2 =  Dirichlet_boundary(conserved_quantities = numpy.array([1.0]))
-         b3 =  Dirichlet_boundary(conserved_quantities = numpy.array([2.0]))
+         b1 =  Dirichlet_boundary(conserved_quantities = array([0.0]))
+         b2 =  Dirichlet_boundary(conserved_quantities = array([1.0]))
+         b3 =  Dirichlet_boundary(conserved_quantities = array([2.0]))
          tags["1"] = b1
          tags["2"] = b2
          tags["3"] = b3
@@ -171,24 +173,24 @@ friction  \n \
          #print domain.quantities['elevation'].vertex_values
          answer = [[0., 8., 0.],
                    [0., 10., 8.]]
-         assert numpy.allclose(domain.quantities['elevation'].vertex_values,
-                               answer)
+         assert allclose(domain.quantities['elevation'].vertex_values,
+                        answer)
 
          #print domain.quantities['stage'].vertex_values
          answer = [[0., 12., 10.],
                    [0., 10., 12.]]
-         assert numpy.allclose(domain.quantities['stage'].vertex_values,
-                               answer)
+         assert allclose(domain.quantities['stage'].vertex_values,
+                        answer)
 
          #print domain.quantities['friction'].vertex_values
          answer = [[0.01, 0.04, 0.03],
                    [0.01, 0.02, 0.04]]
-         assert numpy.allclose(domain.quantities['friction'].vertex_values,
-                               answer)
+         assert allclose(domain.quantities['friction'].vertex_values,
+                        answer)
 
          #print domain.quantities['friction'].vertex_values
-         assert numpy.allclose(domain.tagged_elements['dsg'][0],0)
-         assert numpy.allclose(domain.tagged_elements['ole nielsen'][0],1)
+         assert allclose(domain.tagged_elements['dsg'][0],0)
+         assert allclose(domain.tagged_elements['ole nielsen'][0],1)
 
          self.failUnless( domain.boundary[(1, 0)]  == '1',
                           "test_tags_to_boundaries  failed. Single boundary wasn't added.")
@@ -225,9 +227,9 @@ friction  \n \
 
          #domain.set_tag_dict(tag_dict)
          #Boundary tests
-         b1 =  Dirichlet_boundary(conserved_quantities = numpy.array([0.0]))
-         b2 =  Dirichlet_boundary(conserved_quantities = numpy.array([1.0]))
-         b3 =  Dirichlet_boundary(conserved_quantities = numpy.array([1.0]))
+         b1 =  Dirichlet_boundary(conserved_quantities = array([0.0]))
+         b2 =  Dirichlet_boundary(conserved_quantities = array([1.0]))
+         b3 =  Dirichlet_boundary(conserved_quantities = array([1.0]))
          #test adding a boundary
          tags = {}
          tags[1] = b1

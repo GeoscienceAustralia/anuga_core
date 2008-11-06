@@ -7,9 +7,7 @@
    Geoscience Australia
 """
 
-##from numpy.oldnumeric import allclose, argmax, zeros, Float
-import numpy
-
+from Numeric import allclose, argmax, zeros, Float
 from anuga.config import epsilon
 from anuga.config import beta_euler, beta_rk2
 
@@ -106,6 +104,7 @@ class Domain(Mesh):
                       verbose=verbose)
 
         if verbose: print 'Initialising Domain'
+        from Numeric import zeros, Float, Int, ones
         from quantity import Quantity
 
         # List of quantity names entering
@@ -155,12 +154,12 @@ class Domain(Mesh):
         self.nsys = len(self.conserved_quantities)
         for key in self.full_send_dict:
             buffer_shape = self.full_send_dict[key][0].shape[0]
-            self.full_send_dict[key].append(numpy.zeros( (buffer_shape,self.nsys), numpy.float))
+            self.full_send_dict[key].append(zeros( (buffer_shape,self.nsys) ,Float))
 
 
         for key in self.ghost_recv_dict:
             buffer_shape = self.ghost_recv_dict[key][0].shape[0]
-            self.ghost_recv_dict[key].append(numpy.zeros( (buffer_shape,self.nsys), numpy.float))
+            self.ghost_recv_dict[key].append(zeros( (buffer_shape,self.nsys) ,Float))
 
 
         # Setup cell full flag
@@ -168,14 +167,14 @@ class Domain(Mesh):
         # =0 for ghost
         N = len(self) #number_of_elements
         self.number_of_elements = N
-        self.tri_full_flag = numpy.ones(N, numpy.int)
+        self.tri_full_flag = ones(N, Int)
         for i in self.ghost_recv_dict.keys():
             for id in self.ghost_recv_dict[i][0]:
                 self.tri_full_flag[id] = 0
 
         # Test the assumption that all full triangles are store before
         # the ghost triangles.
-        if not numpy.allclose(self.tri_full_flag[:self.number_of_full_nodes],1):
+        if not allclose(self.tri_full_flag[:self.number_of_full_nodes],1):
             print 'WARNING:  Not all full triangles are store before ghost triangles'
                         
 
@@ -230,12 +229,12 @@ class Domain(Mesh):
         # keep an integer (boolean) array, to be used during the flux
         # calculation
         N = len(self) # Number_of_triangles
-        self.already_computed_flux = numpy.zeros((N, 3), numpy.int)
+        self.already_computed_flux = zeros((N, 3), Int)
 
         # Storage for maximal speeds computed for each triangle by
         # compute_fluxes
         # This is used for diagnostics only (reset at every yieldstep)
-        self.max_speed = numpy.zeros(N, numpy.float)
+        self.max_speed = zeros(N, Float)
 
         if mesh_filename is not None:
             # If the mesh file passed any quantity values
@@ -266,12 +265,14 @@ class Domain(Mesh):
 
         """
 
+        from Numeric import zeros, Float
+
         if not (vertex is None or edge is None):
             msg = 'Values for both vertex and edge was specified.'
             msg += 'Only one (or none) is allowed.'
             raise msg
 
-        q = numpy.zeros( len(self.conserved_quantities), numpy.float)
+        q = zeros( len(self.conserved_quantities), Float)
 
         for i, name in enumerate(self.conserved_quantities):
             Q = self.quantities[name]
@@ -767,7 +768,7 @@ class Domain(Mesh):
             
             # Find index of largest computed flux speed
             if triangle_id is None:
-                k = self.k = numpy.argmax(self.max_speed)
+                k = self.k = argmax(self.max_speed)
             else:
                 errmsg = 'Triangle_id %d does not exist in mesh: %s' %(triangle_id,
                                                                     str(self))
@@ -1084,7 +1085,6 @@ class Domain(Mesh):
         All times are given in seconds
 
         """
-        print '.evolve: 0'
 
         from anuga.config import min_timestep, max_timestep, epsilon
 
@@ -1095,7 +1095,6 @@ class Domain(Mesh):
         msg += 'This system has the boundary tags %s '\
                %self.get_boundary_tags()
         assert hasattr(self, 'boundary_objects'), msg
-        print '.evolve: 1'
 
 
         if yieldstep is None:
@@ -1104,7 +1103,6 @@ class Domain(Mesh):
             yieldstep = float(yieldstep)
 
         self._order_ = self.default_order
-        print '.evolve: 2'
 
 
         if finaltime is not None and duration is not None:
@@ -1128,27 +1126,22 @@ class Domain(Mesh):
         self.number_of_steps = 0
         self.number_of_first_order_steps = 0
 
-        print '.evolve: 3'
+
         # Update ghosts
         self.update_ghosts()
 
-        print '.evolve: 4'
         # Initial update of vertex and edge values
         self.distribute_to_vertices_and_edges()
 
-        print '.evolve: 5'
         # Update extrema if necessary (for reporting)
         self.update_extrema()
         
-        print '.evolve: 6'
         # Initial update boundary values
         self.update_boundary()
 
-        print '.evolve: 7'
         # Or maybe restore from latest checkpoint
         if self.checkpoint is True:
             self.goto_latest_checkpoint()
-        print '.evolve: 8'
 
         if skip_initial_step is False:
             yield(self.time)  # Yield initial values
@@ -1208,7 +1201,7 @@ class Domain(Mesh):
                 self.max_timestep = min_timestep
                 self.number_of_steps = 0
                 self.number_of_first_order_steps = 0
-                self.max_speed = numpy.zeros(N, numpy.float)
+                self.max_speed = zeros(N, Float)
 
     def evolve_one_euler_step(self, yieldstep, finaltime):
         """
@@ -1573,6 +1566,8 @@ class Domain(Mesh):
         """Update vectors of conserved quantities using previously
         computed fluxes specified forcing functions.
         """
+
+        from Numeric import ones, sum, equal, Float
 
         N = len(self) # Number_of_triangles
         d = len(self.conserved_quantities)
