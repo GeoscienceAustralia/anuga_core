@@ -17,7 +17,7 @@ from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.geospatial_data.geospatial_data import ensure_absolute
 
 
-def point_on_line(point, line, rtol=0.0, atol=0.0):
+def point_on_line(point, line, rtol=1.0e-5, atol=1.0e-8):
     """Determine whether a point is on a line segment
 
     Input: 
@@ -29,8 +29,6 @@ def point_on_line(point, line, rtol=0.0, atol=0.0):
 
     Note: Line can be degenerate and function still works to discern coinciding points from non-coinciding.
     """
-
-    # FIXME(Ole): Perhaps make defaults as in allclose: rtol=1.0e-5, atol=1.0e-8
 
     point = ensure_numeric(point)
     line = ensure_numeric(line)
@@ -46,7 +44,7 @@ def point_on_line(point, line, rtol=0.0, atol=0.0):
 
 
 
-def intersection(line0, line1):
+def intersection(line0, line1, rtol=1.0e-5, atol=1.0e-8):
     """Returns intersecting point between two line segments or None
     (if parallel or no intersection is found).
 
@@ -88,26 +86,26 @@ def intersection(line0, line1):
     u0 = (x3-x2)*(y0-y2) - (y3-y2)*(x0-x2)
     u1 = (x2-x0)*(y1-y0) - (y2-y0)*(x1-x0)
         
-    if allclose(denom, 0.0):
+    if allclose(denom, 0.0, rtol=rtol, atol=atol):
         # Lines are parallel - check if they coincide on a shared a segment
 
-        if allclose( [u0, u1], 0.0 ):
+        if allclose( [u0, u1], 0.0, rtol=rtol, atol=atol ):
             # We now know that the lines if continued coincide
             # The remaining check will establish if the finite lines share a segment
 
             line0_starts_on_line1 = line0_ends_on_line1 =\
             line1_starts_on_line0 = line1_ends_on_line0 = False
                 
-            if point_on_line([x0, y0], line1):
+            if point_on_line([x0, y0], line1, rtol=rtol, atol=atol):
                 line0_starts_on_line1 = True
 
-            if point_on_line([x1, y1], line1):
+            if point_on_line([x1, y1], line1, rtol=rtol, atol=atol):
                 line0_ends_on_line1 = True
  
-            if point_on_line([x2, y2], line0):
+            if point_on_line([x2, y2], line0, rtol=rtol, atol=atol):
                 line1_starts_on_line0 = True
 
-            if point_on_line([x3, y3], line0):
+            if point_on_line([x3, y3], line0, rtol=rtol, atol=atol):
                 line1_ends_on_line0 = True                               
 
             if not(line0_starts_on_line1 or line0_ends_on_line1\
@@ -160,8 +158,8 @@ def intersection(line0, line1):
         y = y0 + u0*(y1-y0)
 
         # Sanity check - can be removed to speed up if needed
-        assert allclose(x, x2 + u1*(x3-x2))
-        assert allclose(y, y2 + u1*(y3-y2))        
+        assert allclose(x, x2 + u1*(x3-x2), rtol=rtol, atol=atol)
+        assert allclose(y, y2 + u1*(y3-y2), rtol=rtol, atol=atol)        
 
         # Check if point found lies within given line segments
         if 0.0 <= u0 <= 1.0 and 0.0 <= u1 <= 1.0: 
