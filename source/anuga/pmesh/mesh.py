@@ -883,7 +883,8 @@ class Mesh:
            eg. {'wall':[0,3],'ocean':[2]}
            
         """
-        #make sure the points are absolute
+        # make sure the points are absolute
+        # Since addVertsSegs will deal with georeferencing.
         points = ensure_absolute(points)
 
         if segments is None:
