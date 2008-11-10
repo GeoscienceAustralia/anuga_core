@@ -337,7 +337,9 @@ float** _read_mux2(int numSrc,
     // Shorthands pointing to memory blocks for each source
     int *fros_per_source=NULL;     
     int *lros_per_source=NULL;         
+
     
+    printf("Getting into the c code\n");    
     _read_mux2_headers(numSrc, 
                        muxFileNameArray, 
                        &total_number_of_stations,
@@ -704,6 +706,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args)
     // Each gauge begins and ends recording at different times. When a gauge is
     // not recording but at least one other gauge is. 
     // Pad the non-recording gauge array with zeros.
+    printf("Data put into the cdata array from C code\n");
     for (i = 0; i < number_of_selected_stations; i++)
     {
         time = 0;
@@ -731,6 +734,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args)
         // Pass back lat,lon,elevation
         for (j = 0; j < POFFSET; j++)
         {
+	  printf("cdata[%d][%d] = %f\n", i, nt+j, cdata[i][nt + j]);
             *(double*)(pydata->data + i*pydata->strides[0] 
                                 + (num_ts + j)*pydata->strides[1]) = 
                     cdata[i][nt + j];

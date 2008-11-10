@@ -6526,14 +6526,21 @@ friction  \n \
         OFFSET = 5
 
         for j, file in enumerate(filesII):
+            # Read stage, u, v enumerated as j
+
+            if j < 2:
+                continue
+            
             data = read_mux2(1, [file], weights, file_params, permutation, verbose)
 
-            #print 
-            #print 'j:', j
-            #print data[2][:]
+            print
+            print 'Data received by Python'
+            print data
             #print file_params
-            #print
+            print
 
+            import sys; sys.exit()
+            
             number_of_selected_stations = data.shape[0]
 
             # Index where data ends and parameters begin
@@ -6548,21 +6555,27 @@ friction  \n \
                 #print i, parameters_index
                 #print quantity[i][:]
 
-
+                
                 if j == 0: assert allclose(data[i][:parameters_index], ha1[permutation[i], :])
                 if j == 1: assert allclose(data[i][:parameters_index], ua1[permutation[i], :])
                 if j == 2:
                     # FIXME (Ole): This is where the output is wrong on Win32
                     
-                    #print
-                    #print j, i
-                    #print data[i][:parameters_index]
-                    #print va1[permutation[i], :]
+                    print
+                    print j, i
+
+                    print 'Input'
+                    print 'u', ua1[permutation[i], :]                                        
+                    print 'v', va1[permutation[i], :]
+
+                    print 'Output'
+                    print 'v ', data[i][:parameters_index]                    
 
                     if j == 2 and i == 1:
                         pass
                         # Skip assert for this combination for now as the second error is more obvious
                     else:
+                        
                         assert allclose(data[i][:parameters_index], va1[permutation[i], :])
                     
         
@@ -10909,14 +10922,14 @@ friction  \n \
 #-------------------------------------------------------------
 if __name__ == "__main__":
 
-    suite = unittest.makeSuite(Test_Data_Manager,'test')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_stsI_beyond_model_time')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_stsIV_sinewave_ordering')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_get_flow_through_cross_section_with_geo')
     #suite = unittest.makeSuite(Test_Data_Manager,'covered_')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_individual_sources')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_ordering_different_sources')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_read_mux_platform_problem')	
+    suite = unittest.makeSuite(Test_Data_Manager,'test_read_mux_platform_problem2')	
 
     
     if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':
