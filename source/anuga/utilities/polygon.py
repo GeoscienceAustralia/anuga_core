@@ -41,8 +41,41 @@ def point_on_line(point, line, rtol=1.0e-5, atol=1.0e-8):
     return bool(res)
 
 
+######
+# Result functions used in intersection() below for collinear lines.
+# (p0,p1) defines line 0, (p2,p3) defines line 1.
+######
 
+# result functions for possible states
+def lines_dont_coincide(p0,p1,p2,p3):               return (3, None)
+def lines_0_fully_included_in_1(p0,p1,p2,p3):       return (2, array([p0,p1]))
+def lines_1_fully_included_in_0(p0,p1,p2,p3):       return (2, array([p2,p3]))
+def lines_overlap_same_direction(p0,p1,p2,p3):      return (2, array([p0,p3]))
+def lines_overlap_same_direction2(p0,p1,p2,p3):     return (2, array([p2,p1]))
+def lines_overlap_opposite_direction(p0,p1,p2,p3):  return (2, array([p0,p2]))
+def lines_overlap_opposite_direction2(p0,p1,p2,p3): return (2, array([p3,p1]))
 
+# this function called when an impossible state is found
+def lines_error(p1, p2, p3, p4): raise RuntimeError, "INTERNAL ERROR"
+
+#                     0s1    0e1    1s0    1e0   # line 0 starts on 1, 0 ends 1, 1 starts 0, 1 ends 0
+collinear_result = { (False, False, False, False): lines_dont_coincide,
+                     (False, False, False, True ): lines_error,
+                     (False, False, True,  False): lines_error,
+                     (False, False, True,  True ): lines_1_fully_included_in_0,
+                     (False, True,  False, False): lines_error,
+                     (False, True,  False, True ): lines_overlap_opposite_direction2,
+                     (False, True,  True,  False): lines_overlap_same_direction2,
+                     (False, True,  True,  True ): lines_1_fully_included_in_0,
+                     (True,  False, False, False): lines_error,
+                     (True,  False, False, True ): lines_overlap_same_direction,
+                     (True,  False, True,  False): lines_overlap_opposite_direction,
+                     (True,  False, True,  True ): lines_1_fully_included_in_0,
+                     (True,  True,  False, False): lines_0_fully_included_in_1,
+                     (True,  True,  False, True ): lines_0_fully_included_in_1,
+                     (True,  True,  True,  False): lines_0_fully_included_in_1,
+                     (True,  True,  True,  True ): lines_0_fully_included_in_1
+                   }
 
 def intersection(line0, line1, rtol=1.0e-5, atol=1.0e-8):
     """Returns intersecting point between two line segments or None
@@ -54,19 +87,19 @@ def intersection(line0, line1, rtol=1.0e-5, atol=1.0e-8):
 
     Inputs:
         line0, line1: Each defined by two end points as in: [[x0, y0], [x1, y1]]
-                      A line can also be a 2x2 numeric array with each row
+                      A line can also be a 2x2 numpy array with each row
                       corresponding to a point.
 
 
     Output:
         status, value
 
-        where status is interpreted as follows
+        where status and value is interpreted as follows
         
-        status == 0: no intersection with value set to None
-        status == 1: One intersection point found and returned in value as [x,y]
-        status == 2: Coinciding line segment found. Value taks the form [[x0,y0], [x1,y1]]
-        status == 3: Lines would coincide but only if extended. Value set to None
+        status == 0: no intersection, value set to None.
+        status == 1: intersection point found and returned in value as [x,y].
+        status == 2: Collinear overlapping lines found. Value takes the form [[x0,y0], [x1,y1]].
+        status == 3: Collinear non-overlapping lines. Value set to None.
         status == 4: Lines are parallel with a fixed distance apart. Value set to None.
     
     """
@@ -87,70 +120,20 @@ def intersection(line0, line1, rtol=1.0e-5, atol=1.0e-8):
     u1 = (x2-x0)*(y1-y0) - (y2-y0)*(x1-x0)
         
     if allclose(denom, 0.0, rtol=rtol, atol=atol):
-        # Lines are parallel - check if they coincide on a shared a segment
+        # Lines are parallel - check if they are collinear
+        if allclose([u0, u1], 0.0, rtol=rtol, atol=atol):
+            # We now know that the lines are collinear
+            state_tuple = (point_on_line([x0, y0], line1, rtol=rtol, atol=atol),
+                           point_on_line([x1, y1], line1, rtol=rtol, atol=atol),
+                           point_on_line([x2, y2], line0, rtol=rtol, atol=atol),
+                           point_on_line([x3, y3], line0, rtol=rtol, atol=atol))
 
-        if allclose( [u0, u1], 0.0, rtol=rtol, atol=atol ):
-            # We now know that the lines if continued coincide
-            # The remaining check will establish if the finite lines share a segment
-
-            line0_starts_on_line1 = line0_ends_on_line1 =\
-            line1_starts_on_line0 = line1_ends_on_line0 = False
-                
-            if point_on_line([x0, y0], line1, rtol=rtol, atol=atol):
-                line0_starts_on_line1 = True
-
-            if point_on_line([x1, y1], line1, rtol=rtol, atol=atol):
-                line0_ends_on_line1 = True
- 
-            if point_on_line([x2, y2], line0, rtol=rtol, atol=atol):
-                line1_starts_on_line0 = True
-
-            if point_on_line([x3, y3], line0, rtol=rtol, atol=atol):
-                line1_ends_on_line0 = True                               
-
-            if not(line0_starts_on_line1 or line0_ends_on_line1\
-               or line1_starts_on_line0 or line1_ends_on_line0):
-                # Lines are parallel and would coincide if extended, but not as they are.
-                return 3, None
-
-
-            # One line fully included in the other. Use direction of included line
-            if line0_starts_on_line1 and line0_ends_on_line1:
-                # Shared segment is line0 fully included in line1
-                segment = array([[x0, y0], [x1, y1]])                
-
-            if line1_starts_on_line0 and line1_ends_on_line0:
-                # Shared segment is line1 fully included in line0
-                segment = array([[x2, y2], [x3, y3]])
-            
-
-            # Overlap with lines are oriented the same way
-            if line0_starts_on_line1 and line1_ends_on_line0:
-                # Shared segment from line0 start to line 1 end
-                segment = array([[x0, y0], [x3, y3]])
-
-            if line1_starts_on_line0 and line0_ends_on_line1:
-                # Shared segment from line1 start to line 0 end
-                segment = array([[x2, y2], [x1, y1]])                                
-
-
-            # Overlap in opposite directions - use direction of line0
-            if line0_starts_on_line1 and line1_starts_on_line0:
-                # Shared segment from line0 start to line 1 end
-                segment = array([[x0, y0], [x2, y2]])
-
-            if line0_ends_on_line1 and line1_ends_on_line0:
-                # Shared segment from line0 start to line 1 end
-                segment = array([[x3, y3], [x1, y1]])                
-
-                
-            return 2, segment
+            return collinear_result[state_tuple]([x0,y0],[x1,y1],[x2,y2],[x3,y3])
         else:
-            # Lines are parallel but they don't coincide
+            # Lines are parallel but aren't collinear
             return 4, None #FIXME (Ole): Add distance here instead of None 
-            
     else:
-        # Lines are not parallel or coinciding
+        # Lines are not parallel, check if they intersect
         u0 = u0/denom
         u1 = u1/denom        
 
@@ -164,7 +147,6 @@ def intersection(line0, line1, rtol=1.0e-5, atol=1.0e-8):
         # Check if point found lies within given line segments
         if 0.0 <= u0 <= 1.0 and 0.0 <= u1 <= 1.0: 
             # We have intersection
-
             return 1, array([x, y])
         else:
             # No intersection

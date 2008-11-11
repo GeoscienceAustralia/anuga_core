@@ -649,10 +649,11 @@ class Test_Polygon(unittest.TestCase):
         status, value = intersection(line0, line1)
         assert status == 1
         assert allclose(value, [1.0, 1.0])        
-        
 
-    # This function is a helper function for the test_intersection_bug_20081110_?()
-    # set of tests.
+
+    # This function is a helper function for
+    # the test_intersection_bug_20081110_?() set of tests.
+    # This function tests all parallel line cases for 4 collinear points.
     # This function should never be run directly by the unittest code.
     def helper_test_parallel_intersection_code(self, P1, P2, P3, P4):
         # lines in same direction, no overlap
@@ -699,6 +700,8 @@ class Test_Polygon(unittest.TestCase):
         self.failUnless(value is None, 'Expected value of None, got %s' %
                                        str(value))
 
+        #----------------------------------------------------------------------
+
         # line0 fully within line1, same direction
         # 0:         ---->----
         # 1:    --------->-----------
@@ -747,6 +750,8 @@ class Test_Polygon(unittest.TestCase):
                                (str(status), str(value)))
         self.failUnless(allclose(value, line0))
 
+        #----------------------------------------------------------------------
+
         # line1 fully within line0, same direction
         # 0:    --------->-----------
         # 1:         ---->----
@@ -794,6 +799,8 @@ class Test_Polygon(unittest.TestCase):
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.failUnless(allclose(value, line1))
+
+        #----------------------------------------------------------------------
 
         # line in same direction, partial overlap
         # 0:    ----->-----
@@ -842,6 +849,8 @@ class Test_Polygon(unittest.TestCase):
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
         self.failUnless(allclose(value, [line1[1],line0[1]]))
+
+        #----------------------------------------------------------------------
 
         # line in same direction, partial overlap
         # 0:       ------>------
@@ -891,118 +900,450 @@ class Test_Polygon(unittest.TestCase):
                                (str(status), str(value)))
         self.failUnless(allclose(value, [line0[0],line1[0]]))
 
-        
-    def test_intersection_bug_20081110_1(self):
-        """test_intersection_bug_20081110(self)
+        #----------------------------------------------------------------------
 
-        Run through all possible cases of parallel lines.
-        """
-
-        # define 4 collinear points
-        #    P1---P2---P3---P4
-        P1 = [1.0, 0.0]
-        P2 = [2.0, 0.0]
-        P3 = [3.0, 0.0]
-        P4 = [4.0, 0.0]
-        
-        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)        
-
-
-    def test_intersection_bug_20081110_2(self):
-        """test_intersection_bug_20081110(self)
-
-        Run through all possible cases of parallel lines.
-        """
-
-        # define 4 *almost* collinear points
-        #    P1---P2---P3---P4
-        P1 = [1.0, 1.0e-9]
-        P2 = [2.0, 0.0]
-        P3 = [3.0, 0.0]
-        P4 = [4.0, 0.0]
-
-        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)        
-
-
-    def test_intersection_bug_20081110_3(self):
-        """test_intersection_bug_20081110(self)
-
-        Run through all possible cases of parallel lines.
-        """
-
-        # define 4 *almost* collinear points
-        #    P1---P2---P3---P4
-        P1 = [1.0, 0.0]
-        P2 = [2.0, 1.0e-9]
-        P3 = [3.0, 0.0]
-        P4 = [4.0, 0.0]
-
-        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)        
-
-
-    def test_intersection_bug_20081110_4(self):
-        """test_intersection_bug_20081110(self)
-
-        Run through all possible cases of parallel lines.
-        """
-
-        # define 4 *almost* collinear points
-        #    P1---P2---P3---P4
-        P1 = [1.0, 0.0]
-        P2 = [2.0, 0.0]
-        P3 = [3.0, 1.0e-9]
-        P4 = [4.0, 0.0]
-
-        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)        
-
-
-    def test_intersection_bug_20081110_5(self):
-        """test_intersection_bug_20081110(self)
-
-        Run through all possible cases of parallel lines.
-        """
-
-        # define 4 *almost* collinear points
-        #    P1---P2---P3---P4
-        P1 = [1.0, 0.0]
-        P2 = [2.0, 0.0]
-        P3 = [3.0, 0.0]
-        P4 = [4.0, 1.0e-9]
-
-        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)        
-
-
-    def test_intersection_bug_20081111(self):
-        """test_intersection_bug_20081111(self)
-
-        Case from Rajaraman that is failing still.
-        """
-
-        # define 4  collinear points
-        #
-        #   Y
-        #   ^
-        #   |         x (2,2)
-        #   |        /
-        #   |       /
-        #   |      /
-        #   |     /
-        #   |    x (1,1)
-        #   |   /
-        #   |  /
-        #   | /
-        #   |/
-        #   x------------>X
-
-        line0 = [[2.0, 2.0],[0.0,0.0]]
-        line1 = [[1.0, 1.0],[0.0,0.0]]
-
+        # line in same direction, same left point, line1 longer
+        # 0:    ----->------
+        # 1:    ------->--------
+        # value should be line0:
+        #       ----->------
+        line0 = [P1,P3]
+        line1 = [P1,P4]
         status, value = intersection(line0, line1)
-        print 'status=%s, value=%s' % (str(status), str(value))
-        
         self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
                                (str(status), str(value)))
-        self.failUnless(allclose(value, [line0[0],line1[1]]))
+        self.failUnless(allclose(value, line0))
+
+        # line in same direction, same left point, line1 longer
+        # 0:    -----<------
+        # 1:    -------<--------
+        # value should be line0:
+        #       -----<------
+        line0 = [P3,P1]
+        line1 = [P4,P1]
+        status, value = intersection(line0, line1)
+        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+                               (str(status), str(value)))
+        self.failUnless(allclose(value, line0))
+
+        # line in opposite direction, same left point, line1 longer
+        # 0:    ----->------
+        # 1:    -------<--------
+        # value should be line0:
+        #       ----->------
+        line0 = [P1,P3]
+        line1 = [P4,P1]
+        status, value = intersection(line0, line1)
+        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+                               (str(status), str(value)))
+        self.failUnless(allclose(value, line0))
+
+        # line in opposite direction, same start point, line1 longer
+        # 0:    -----<------
+        # 1:    ------->--------
+        # value should be line0:
+        #       -----<------
+        line0 = [P3,P1]
+        line1 = [P1,P4]
+        status, value = intersection(line0, line1)
+        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+                               (str(status), str(value)))
+        self.failUnless(allclose(value, line0))
+
+        #----------------------------------------------------------------------
+
+        # line in same direction, same left point, same right point
+        # 0:    ------->--------
+        # 1:    ------->--------
+        # value should be line0 or line1:
+        #       ------->--------
+        line0 = [P1,P3]
+        line1 = [P1,P3]
+        status, value = intersection(line0, line1)
+        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+                               (str(status), str(value)))
+        self.failUnless(allclose(value, line0))
+
+        # line in same direction, same left point, same right point
+        # 0:    -------<--------
+        # 1:    -------<--------
+        # value should be line0 (or line1):
+        #       -------<--------
+        line0 = [P3,P1]
+        line1 = [P3,P1]
+        status, value = intersection(line0, line1)
+        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+                               (str(status), str(value)))
+        self.failUnless(allclose(value, line0))
+
+        # line in opposite direction, same left point, same right point
+        # 0:    ------->--------
+        # 1:    -------<--------
+        # value should be line0:
+        #       ------->--------
+        line0 = [P1,P3]
+        line1 = [P3,P1]
+        status, value = intersection(line0, line1)
+        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+                               (str(status), str(value)))
+        self.failUnless(allclose(value, line0))
+
+        # line in opposite direction, same left point, same right point
+        # 0:    -------<--------
+        # 1:    ------->--------
+        # value should be line0:
+        #       -------<--------
+        line0 = [P3,P1]
+        line1 = [P1,P3]
+        status, value = intersection(line0, line1)
+        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+                               (str(status), str(value)))
+        self.failUnless(allclose(value, line0))
+
+        #----------------------------------------------------------------------
+
+        # line in same direction, same right point, line1 longer
+        # 0:        ----->------
+        # 1:    ------->--------
+        # value should be line0:
+        #           ----->------
+        line0 = [P2,P4]
+        line1 = [P1,P4]
+        status, value = intersection(line0, line1)
+        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+                               (str(status), str(value)))
+        self.failUnless(allclose(value, line0))
+
+        # line in same direction, same right point, line1 longer
+        # 0:        -----<------
+        # 1:    -------<--------
+        # value should be line0:
+        #           -----<------
+        line0 = [P4,P2]
+        line1 = [P4,P1]
+        status, value = intersection(line0, line1)
+        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+                               (str(status), str(value)))
+        self.failUnless(allclose(value, line0))
+
+        # line in opposite direction, same right point, line1 longer
+        # 0:        ----->------
+        # 1:    -------<--------
+        # value should be line0:
+        #           ----->------
+        line0 = [P2,P4]
+        line1 = [P4,P1]
+        status, value = intersection(line0, line1)
+        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+                               (str(status), str(value)))
+        self.failUnless(allclose(value, line0))
+
+        # line in opposite direction, same right point, line1 longer
+        # 0:        -----<------
+        # 1:    ------->--------
+        # value should be line0:
+        #           -----<------
+        line0 = [P4,P2]
+        line1 = [P1,P4]
+        status, value = intersection(line0, line1)
+        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+                               (str(status), str(value)))
+        self.failUnless(allclose(value, line0))
+
+        #----------------------------------------------------------------------
+
+        # line in same direction, same left point, line0 longer
+        # 0:    ------->--------
+        # 1:    ----->------
+        # value should be line1:
+        #       ----->------
+        line0 = [P1,P4]
+        line1 = [P1,P3]
+        status, value = intersection(line0, line1)
+        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+                               (str(status), str(value)))
+        self.failUnless(allclose(value, line1))
+
+        # line in same direction, same left point, line0 longer
+        # 0:    -------<--------
+        # 1:    -----<------
+        # value should be line1:
+        #       -----<------
+        line0 = [P4,P1]
+        line1 = [P3,P1]
+        status, value = intersection(line0, line1)
+        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+                               (str(status), str(value)))
+        self.failUnless(allclose(value, line1))
+
+        # line in opposite direction, same left point, line0 longer
+        # 0:    ------->--------
+        # 1:    -----<------
+        # value should be line1:
+        #       -----<------
+        line0 = [P1,P4]
+        line1 = [P3,P1]
+        status, value = intersection(line0, line1)
+        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+                               (str(status), str(value)))
+        self.failUnless(allclose(value, line1))
+
+        # line in opposite direction, same left point, line0 longer
+        # 0:    -------<--------
+        # 1:    ----->------
+        # value should be line1:
+        #       ----->------
+        line0 = [P4,P1]
+        line1 = [P1,P3]
+        status, value = intersection(line0, line1)
+        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+                               (str(status), str(value)))
+        self.failUnless(allclose(value, line1))
+
+        #----------------------------------------------------------------------
+
+        # line in same direction, same right point, line0 longer
+        # 0:    ------->--------
+        # 1:        ----->------
+        # value should be line1:
+        #           ----->------
+        line0 = [P1,P4]
+        line1 = [P2,P4]
+        status, value = intersection(line0, line1)
+        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+                               (str(status), str(value)))
+        self.failUnless(allclose(value, line1))
+
+        # line in same direction, same right point, line0 longer
+        # 0:    -------<--------
+        # 1:        -----<------
+        # value should be line1:
+        #           -----<------
+        line0 = [P4,P1]
+        line1 = [P4,P2]
+        status, value = intersection(line0, line1)
+        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+                               (str(status), str(value)))
+        self.failUnless(allclose(value, line1))
+
+        # line in opposite direction, same right point, line0 longer
+        # 0:    ------->--------
+        # 1:        -----<------
+        # value should be line1:
+        #           -----<------
+        line0 = [P1,P4]
+        line1 = [P4,P2]
+        status, value = intersection(line0, line1)
+        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+                               (str(status), str(value)))
+        self.failUnless(allclose(value, line1))
+
+        # line in opposite direction, same right point, line0 longer
+        # 0:    -------<--------
+        # 1:        ----->------
+        # value should be line1:
+        #           ----->------
+        line0 = [P4,P1]
+        line1 = [P2,P4]
+        status, value = intersection(line0, line1)
+        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+                               (str(status), str(value)))
+        self.failUnless(allclose(value, line1))
+
+        
+    def test_intersection_bug_20081110_TR(self):
+        """test_intersection_bug_20081110(self)
+
+        Test all cases in top-right quadrant
+        """
+
+        # define 4 collinear points in top-right quadrant
+        #    P1---P2---P3---P4
+        P1 = [1.0, 1.0]
+        P2 = [2.0, 2.0]
+        P3 = [3.0, 3.0]
+        P4 = [4.0, 4.0]
+        
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)
+        P1 = [1.0, 1.0+1.0e-9]
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)        
+        P1 = [1.0, 1.0]
+        P2 = [2.0, 2.0+1.0e-9]
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)        
+        P2 = [2.0, 2.0]
+        P3 = [3.0, 3.0+1.0e-9]
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)        
+        P3 = [3.0, 3.0]
+        P4 = [4.0, 4.0+1.0e-9]
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)        
+
+    def test_intersection_bug_20081110_TL(self):
+        """test_intersection_bug_20081110(self)
+
+        Test all cases in top-left quadrant
+        """
+
+        # define 4 collinear points in top-left quadrant
+        #    P1---P2---P3---P4
+        P1 = [-1.0, 1.0]
+        P2 = [-2.0, 2.0]
+        P3 = [-3.0, 3.0]
+        P4 = [-4.0, 4.0]
+        
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)
+        P1 = [-1.0, 1.0+1.0e-9]
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)        
+        P1 = [-1.0, 1.0]
+        P2 = [-2.0, 2.0+1.0e-9]
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)        
+        P2 = [-2.0, 2.0]
+        P3 = [-3.0, 3.0+1.0e-9]
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)        
+        P3 = [-3.0, 3.0]
+        P4 = [-4.0, 4.0+1.0e-9]
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)        
+
+    def test_intersection_bug_20081110_BL(self):
+        """test_intersection_bug_20081110(self)
+
+        Test all cases in bottom-left quadrant
+        """
+
+        # define 4 collinear points in bottom-left quadrant
+        #    P1---P2---P3---P4
+        P1 = [-1.0, -1.0]
+        P2 = [-2.0, -2.0]
+        P3 = [-3.0, -3.0]
+        P4 = [-4.0, -4.0]
+        
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)
+        P1 = [-1.0, -1.0+1.0e-9]
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)        
+        P1 = [-1.0, -1.0]
+        P2 = [-2.0, -2.0+1.0e-9]
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)        
+        P2 = [-2.0, -2.0]
+        P3 = [-3.0, -3.0+1.0e-9]
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)        
+        P3 = [-3.0, -3.0]
+        P4 = [-4.0, -4.0+1.0e-9]
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)        
+
+    def test_intersection_bug_20081110_BR(self):
+        """test_intersection_bug_20081110(self)
+
+        Test all cases in bottom-right quadrant
+        """
+
+        # define 4 collinear points in bottom-right quadrant
+        #    P1---P2---P3---P4
+        P1 = [1.0, -1.0]
+        P2 = [2.0, -2.0]
+        P3 = [3.0, -3.0]
+        P4 = [4.0, -4.0]
+        
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)
+        P1 = [1.0, -1.0+1.0e-9]
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)        
+        P1 = [1.0, -1.0]
+        P2 = [2.0, -2.0+1.0e-9]
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)        
+        P2 = [2.0, -2.0]
+        P3 = [3.0, -3.0+1.0e-9]
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)        
+        P3 = [3.0, -3.0]
+        P4 = [4.0, -4.0+1.0e-9]
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)        
+
+    def test_intersection_bug_20081110_TR_TL(self):
+        """test_intersection_bug_20081110(self)
+
+        Test all cases in top-right & top-left quadrant
+        """
+
+        # define 4 collinear points, 1 in TL, 3 in TR
+        #    P1---P2---P3---P4
+        P1 = [-3.0, 1.0]
+        P2 = [ 1.0, 5.0]
+        P3 = [ 2.0, 6.0]
+        P4 = [ 3.0, 7.0]
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)
+
+        # define 4 collinear points, 2 in TL, 2 in TR
+        #    P1---P2---P3---P4
+        P1 = [-3.0, 1.0]
+        P2 = [-2.0, 2.0]
+        P3 = [ 2.0, 6.0]
+        P4 = [ 3.0, 7.0]
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)
+
+        # define 4 collinear points, 2 in TL, 1 in TR
+        #    P1---P2---P3---P4
+        P1 = [-3.0, 1.0]
+        P2 = [-2.0, 2.0]
+        P3 = [-1.0, 3.0]
+        P4 = [ 3.0, 7.0]
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)
+
+    def test_intersection_bug_20081110_TR_BL(self):
+        """test_intersection_bug_20081110(self)
+
+        Test all cases in top-right & bottom-left quadrant
+        """
+
+        # define 4 collinear points, 1 in BL, 3 in TR
+        #    P1---P2---P3---P4
+        P1 = [-4.0, -3.0]
+        P2 = [ 1.0,  2.0]
+        P3 = [ 2.0,  3.0]
+        P4 = [ 3.0,  4.0]
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)
+
+        # define 4 collinear points, 2 in TL, 2 in TR
+        #    P1---P2---P3---P4
+        P1 = [-4.0, -3.0]
+        P2 = [-3.0, -2.0]
+        P3 = [ 2.0,  3.0]
+        P4 = [ 3.0,  4.0]
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)
+
+        # define 4 collinear points, 3 in TL, 1 in TR
+        #    P1---P2---P3---P4
+        P1 = [-4.0, -3.0]
+        P2 = [-3.0, -2.0]
+        P3 = [-2.0, -1.0]
+        P4 = [ 3.0,  4.0]
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)
+
+    def test_intersection_bug_20081110_TR_BR(self):
+        """test_intersection_bug_20081110(self)
+
+        Test all cases in top-right & bottom-right quadrant
+        """
+
+        # define 4 collinear points, 1 in BR, 3 in TR
+        #    P1---P2---P3---P4
+        P1 = [ 1.0, -3.0]
+        P2 = [ 5.0,  1.0]
+        P3 = [ 6.0,  2.0]
+        P4 = [ 7.0,  3.0]
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)
+
+        # define 4 collinear points, 2 in BR, 2 in TR
+        #    P1---P2---P3---P4
+        P1 = [ 1.0, -3.0]
+        P2 = [ 2.0, -2.0]
+        P3 = [ 6.0,  2.0]
+        P4 = [ 7.0,  3.0]
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)
+
+        # define 4 collinear points, 3 in BR, 1 in TR
+        #    P1---P2---P3---P4
+        P1 = [ 1.0, -3.0]
+        P2 = [ 2.0, -2.0]
+        P3 = [ 3.0, -1.0]
+        P4 = [ 7.0,  3.0]
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)
 
 
     def test_intersection_direction_invariance(self):
@@ -1343,7 +1684,7 @@ class Test_Polygon(unittest.TestCase):
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Polygon,'test')
-    #suite = unittest.makeSuite(Test_Polygon,'test_inside_polygon_geo_ref')
+#    suite = unittest.makeSuite(Test_Polygon,'test_intersection_bug_20081111')
     runner = unittest.TextTestRunner()
     runner.run(suite)
 
