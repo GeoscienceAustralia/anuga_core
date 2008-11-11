@@ -6322,7 +6322,8 @@ friction  \n \
         This is to test a situation where read_mux returned 
         wrong values Win32
 
-        This test passes but test_read_mux_platform_problem2 does not
+        This test passes on Windows but test_read_mux_platform_problem2
+        does not
         """
         
         from Numeric import sin, cos
@@ -6426,7 +6427,7 @@ friction  \n \
         This is to test a situation where read_mux returned 
         wrong values Win32
 
-        This test does not pass but test_read_mux_platform_problem1 does
+        This test does not pass on Windows but test_read_mux_platform_problem1 does
         """
         
         from Numeric import sin, cos
