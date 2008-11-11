@@ -2178,7 +2178,7 @@ def sww2csv_gauges(sww_file,
     if access(sww_file,R_OK):
         if verbose: print 'File %s exists' %(sww_file)
     else:
-        msg = 'File "%s" could not be opened: Error=line2181'\
+        msg = 'File "%s" could not be opened: no read permission'\
                %(sww_file)
         raise msg
 
