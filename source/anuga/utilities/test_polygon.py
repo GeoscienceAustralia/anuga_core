@@ -978,14 +978,31 @@ class Test_Polygon(unittest.TestCase):
         Case from Rajaraman that is failing still.
         """
 
-        # define 4 *almost* collinear points
-        #    P1---P2---P3---P4
-        P1 = [2.0, 2.0]
-        P2 = [0.0, 0.0]
-        P3 = [1.0, 1.0]
-        P4 = [0.0, 0.0]
+        # define 4  collinear points
+        #
+        #   Y
+        #   ^
+        #   |         x (2,2)
+        #   |        /
+        #   |       /
+        #   |      /
+        #   |     /
+        #   |    x (1,1)
+        #   |   /
+        #   |  /
+        #   | /
+        #   |/
+        #   x------------>X
 
-        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)        
+        line0 = [[2.0, 2.0],[0.0,0.0]]
+        line1 = [[1.0, 1.0],[0.0,0.0]]
+
+        status, value = intersection(line0, line1)
+        print 'status=%s, value=%s' % (str(status), str(value))
+        
+        self.failIf(status!=2, 'Expected status 2, got status=%s, value=%s' %
+                               (str(status), str(value)))
+        self.failUnless(allclose(value, [line0[0],line1[1]]))
 
 
     def test_intersection_direction_invariance(self):
