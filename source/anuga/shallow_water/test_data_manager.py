@@ -6488,9 +6488,9 @@ friction  \n \
 
 
         #print 'Second station to be written to MUX'
-        #print 'ha', ha1[2,:]
-        #print 'ua', ua1[2,:]
-        #print 'va', va1[2,:]
+        #print 'ha', ha1[0,:]
+        #print 'ua', ua1[0,:]
+        #print 'va', va1[0,:]
         
         # Write second mux file to be combined by urs2sts                                             
         base_nameII, filesII = self.write_mux2(lat_long_points,
@@ -6501,6 +6501,27 @@ friction  \n \
                                                ua=ua1,
                                                va=va1)
 
+
+
+
+        # Read mux file back and verify it's correcness
+
+        ####################################################
+        # FIXME (Ole): This is where the test should
+        # verify that the MUX files are correct.
+        ####################################################
+
+        #print filesII
+        #print 'MUX FILE'
+        #fid = open(filesII[2], 'rb')
+        #blop = fid.read()
+
+
+
+
+
+
+        
                                                
         # Create ordering file
         permutation = ensure_numeric([4,0,2])
@@ -6528,18 +6549,13 @@ friction  \n \
         for j, file in enumerate(filesII):
             # Read stage, u, v enumerated as j
 
-            if j < 2:
-                continue
             
+            #print 'Reading', j, file
             data = read_mux2(1, [file], weights, file_params, permutation, verbose)
 
-            print
-            print 'Data received by Python'
-            print data
-            #print file_params
-            print
+            #print 'Data received by Python'
+            #print data[1][8]
 
-            import sys; sys.exit()
             
             number_of_selected_stations = data.shape[0]
 
@@ -6550,7 +6566,6 @@ friction  \n \
             
             
             for i in range(number_of_selected_stations):
-                quantity[i][:]=data[i][:parameters_index]
         
                 #print i, parameters_index
                 #print quantity[i][:]
@@ -6561,22 +6576,16 @@ friction  \n \
                 if j == 2:
                     # FIXME (Ole): This is where the output is wrong on Win32
                     
-                    print
-                    print j, i
-
-                    print 'Input'
-                    print 'u', ua1[permutation[i], :]                                        
-                    print 'v', va1[permutation[i], :]
-
-                    print 'Output'
-                    print 'v ', data[i][:parameters_index]                    
-
-                    if j == 2 and i == 1:
-                        pass
-                        # Skip assert for this combination for now as the second error is more obvious
-                    else:
-                        
-                        assert allclose(data[i][:parameters_index], va1[permutation[i], :])
+                    #print
+                    #print j, i
+                    #print 'Input'
+                    #print 'u', ua1[permutation[i], 8]                                        
+                    #print 'v', va1[permutation[i], 8]
+                
+                    #print 'Output'
+                    #print 'v ', data[i][:parameters_index][8]                    
+                
+                    assert allclose(data[i][:parameters_index], va1[permutation[i], :])
                     
         
     def test_urs2sts0(self):
@@ -10929,6 +10938,8 @@ if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager,'covered_')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_individual_sources')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_ordering_different_sources')
+
+    # FIXME (Ole): This is the test that fails under Windows
     suite = unittest.makeSuite(Test_Data_Manager,'test_read_mux_platform_problem2')	
 
     

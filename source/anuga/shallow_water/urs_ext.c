@@ -19,8 +19,8 @@ gcc -shared urs_ext.o  -o urs_ext.so
 
 #define POFFSET 5 //Number of site_params
 
-static int *fros=NULL; 
-static int *lros=NULL;
+static int *fros=NULL;  // First recorded output step 
+static int *lros=NULL;  // Last recorded output step 
 static struct tgsrwg* mytgs0=NULL;
 
 static long numDataMax=0;
@@ -98,6 +98,9 @@ void fillDataArray(int ista, int total_number_of_stations, int nt, int ig, int *
             {
                 /* gauge is recording at this time */
                 memcpy(data + it, muxData + offset, sizeof(float));
+		
+		//printf("%d: muxdata=%f\n", it, muxData[offset]);	    		
+		//printf("data[%d]=%f, offset=%d\n", it, data[it], offset);	    
                 offset++;
             }
             else if (it + 1 < nst[ista])
@@ -339,7 +342,6 @@ float** _read_mux2(int numSrc,
     int *lros_per_source=NULL;         
 
     
-    printf("Getting into the c code\n");    
     _read_mux2_headers(numSrc, 
                        muxFileNameArray, 
                        &total_number_of_stations,
@@ -427,9 +429,22 @@ float** _read_mux2(int numSrc,
 			     lros_per_source, 
 			     total_number_of_stations);
 			     
-        fread(muxData, numData*sizeof(float), 1, fp); 
+        fread(muxData, ((int) numData)*sizeof(float), 1, fp); 
         fclose(fp);
 
+	// FIXME (Ole): This is where Nariman and Ole traced the platform dependent 
+	// difference on 11 November 2008. We don't think the problem lies in the 
+	// C code. Maybe it is a problem with the MUX files written by the unit test
+	// that fails on Windows but works OK on Linux.
+	 
+	//printf("\nRead %d elements, ", (int) numData);
+	//printf("muxdata[%d]=%f\n", 39, muxData[39]);		
+        //for(i = 0; i < (int) numData; i++)
+	//{	
+	//    printf("muxdata[%d]=%f\n", i, muxData[i]);	
+        //}
+	
+	
         // loop over stations present in the permutation array 
         //     use ista with mux data
         //     use i with the processed data to be returned         
@@ -461,7 +476,10 @@ float** _read_mux2(int numSrc,
                 {
                     sts_data[i][k] = NODATA;
                 }
+		//printf("%d: temp_sts_data[%d]=%f\n", i, k, temp_sts_data[k]);	    
+	    
             }
+	    
 	    
 	    // Update metadata (e.g. start time and end time)
 	    N = number_of_time_steps;
@@ -500,6 +518,8 @@ float** _read_mux2(int numSrc,
         }
     }
 
+    //printf("sts_data[1,8]=%f\n", sts_data[1][8]);
+    
     free(muxData);
     free(temp_sts_data);
     free(fros);
@@ -706,7 +726,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args)
     // Each gauge begins and ends recording at different times. When a gauge is
     // not recording but at least one other gauge is. 
     // Pad the non-recording gauge array with zeros.
-    printf("Data put into the cdata array from C code\n");
+    //printf("\nData put into the cdata array from C code\n");
     for (i = 0; i < number_of_selected_stations; i++)
     {
         time = 0;
@@ -724,6 +744,8 @@ PyObject *read_mux2(PyObject *self, PyObject *args)
                 }
                 else
                 {
+		  //printf("cdata[%d][%d] = %f\n", i, it, cdata[i][it]);
+		
                     *(double*)(pydata->data + i*pydata->strides[0] 
                                     + time*pydata->strides[1]) = 
                         cdata[i][it];
@@ -733,11 +755,10 @@ PyObject *read_mux2(PyObject *self, PyObject *args)
         }
         // Pass back lat,lon,elevation
         for (j = 0; j < POFFSET; j++)
-        {
-	  printf("cdata[%d][%d] = %f\n", i, nt+j, cdata[i][nt + j]);
-            *(double*)(pydata->data + i*pydata->strides[0] 
-                                + (num_ts + j)*pydata->strides[1]) = 
-                    cdata[i][nt + j];
+	{
+	  *(double*)(pydata->data + i*pydata->strides[0] 
+		     + (num_ts + j)*pydata->strides[1]) = 
+	    cdata[i][nt + j];
         }
     }
 
