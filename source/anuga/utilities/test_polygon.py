@@ -972,6 +972,22 @@ class Test_Polygon(unittest.TestCase):
         self.helper_test_parallel_intersection_code(P1, P2, P3, P4)        
 
 
+    def test_intersection_bug_20081111(self):
+        """test_intersection_bug_20081111(self)
+
+        Case from Rajaraman that is failing still.
+        """
+
+        # define 4 *almost* collinear points
+        #    P1---P2---P3---P4
+        P1 = [2.0, 2.0]
+        P2 = [0.0, 0.0]
+        P3 = [1.0, 1.0]
+        P4 = [0.0, 0.0]
+
+        self.helper_test_parallel_intersection_code(P1, P2, P3, P4)        
+
+
     def test_intersection_direction_invariance(self):
         """This runs through a number of examples and checks that direction of lines don't matter.
         """
