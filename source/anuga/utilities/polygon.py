@@ -56,7 +56,8 @@ def lines_overlap_opposite_direction(p0,p1,p2,p3):  return (2, array([p0,p2]))
 def lines_overlap_opposite_direction2(p0,p1,p2,p3): return (2, array([p3,p1]))
 
 # this function called when an impossible state is found
-def lines_error(p1, p2, p3, p4): raise RuntimeError, "INTERNAL ERROR"
+def lines_error(p1, p2, p3, p4): raise RuntimeError, ("INTERNAL ERROR: p1=%s, p2=%s, p3=%s, p4=%s" %
+                                                      (str(p1), str(p2), str(p3), str(p4)))
 
 #                     0s1    0e1    1s0    1e0   # line 0 starts on 1, 0 ends 1, 1 starts 0, 1 ends 0
 collinear_result = { (False, False, False, False): lines_dont_coincide,
