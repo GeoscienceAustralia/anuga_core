@@ -183,14 +183,12 @@ class Domain(Mesh):
         from anuga.config import CFL
         from anuga.config import timestepping_method
         from anuga.config import protect_against_isolated_degenerate_timesteps
+        from anuga.config import default_order        
         self.beta_w = beta_w
         self.epsilon = epsilon
         self.protect_against_isolated_degenerate_timesteps = protect_against_isolated_degenerate_timesteps
         
-        
-        # Maybe get rid of order altogether and use beta_w
-        # FIXME (Ole): In any case, this should appear in the config file - not here
-        self.set_default_order(1)
+        self.set_default_order(default_order)
 
         self.smallsteps = 0
         self.max_smallsteps = max_smallsteps

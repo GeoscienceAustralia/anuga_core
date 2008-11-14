@@ -84,6 +84,11 @@ tight_slope_limiters = True
 # This option is good with tight_slope_limiters, especially for large domains.
 use_centroid_velocities = True
 
+        
+# FIXME (Ole) Maybe get rid of order altogether and use beta_w
+# ... and isn't it about time we make the default 2?
+default_order = 1
+
 
 #-------------
 # Timestepping
