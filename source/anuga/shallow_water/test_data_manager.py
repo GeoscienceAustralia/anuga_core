@@ -8768,7 +8768,7 @@ friction  \n \
         
 
         
-    def Xtest_file_boundary_stsIV_sinewave_ordering(self):
+    def test_file_boundary_stsIV_sinewave_ordering(self):
         """test_file_boundary_stsIV_sinewave_ordering(self):
         Read correct points from ordering file and apply sts to boundary
         This one uses a sine wave and compares to time boundary
@@ -8781,29 +8781,35 @@ friction  \n \
         from anuga.shallow_water import File_boundary
         from anuga.pmesh.mesh_interface import create_mesh_from_regions
 
+        from numpy import sin,cos
+
         lat_long_points=[[6.01,97.0],[6.02,97.0],[6.05,96.9],[6.0,97.0]]
         bounding_polygon=[[6.0,97.0],[6.01,97.0],[6.02,97.0],[6.02,97.02],[6.00,97.02]]
         tide = 0.35
         time_step_count = 50
-        time_step = 2
+        time_step = 0.1
+        times_ref = arange(0, time_step_count*time_step, time_step)
         
         n=len(lat_long_points)
         first_tstep=ones(n,Int)
         last_tstep=(time_step_count)*ones(n,Int)
         
         gauge_depth=20*ones(n,Float)
-        ha1[1]=2*sin(times_ref - 3)
-        ua=0.0*ones((n,time_step_count),Float)
-        va=0.0*ones((n,time_step_count),Float)
+        
+        ha1=ones((n,time_step_count),Float)
+        ua1=3.*ones((n,time_step_count),Float)
+        va1=2.*ones((n,time_step_count),Float)
+        for i in range(n):
+            ha1[i]=sin(times_ref)
         
         
         base_name, files = self.write_mux2(lat_long_points,
                                            time_step_count, time_step,
                                            first_tstep, last_tstep,
                                            depth=gauge_depth,
-                                           ha=ha,
-                                           ua=ua,
-                                           va=va)
+                                           ha=ha1,
+                                           ua=ua1,
+                                           va=va1)
 
         # Write order file
         file_handle, order_base_name = tempfile.mkstemp("")
@@ -8915,37 +8921,36 @@ friction  \n \
             temp_fbound[i]=domain_fbound.quantities['stage'].centroid_values[2]
     
         
-        domain_drchlt = Domain(meshname)
-        domain_drchlt.set_quantity('stage', tide)
-        Br = Reflective_boundary(domain_drchlt)
-        w = 2.0+tide
-        h = 20+w
-        Bd = Dirichlet_boundary([w, 10*h,-10*h])
-        domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
+        domain_time = Domain(meshname)
+        domain_time.set_quantity('stage', tide)
+        Br = Reflective_boundary(domain_time)
+        Bw=Time_boundary(domain=domain_time,
+                         f=lambda t: [sin(t)+tide,3.*(20.+sin(t)+tide),2.*(20.+sin(t)+tide)])
+        domain_time.set_boundary({'ocean': Bw,'otherocean': Br})
         
-        temp_drchlt=zeros(int(finaltime/yieldstep)+1,Float)
-        
-        for i, t in enumerate(domain_drchlt.evolve(yieldstep=yieldstep,finaltime=finaltime, 
+        temp_time=zeros(int(finaltime/yieldstep)+1,Float)
+        for i, t in enumerate(domain_time.evolve(yieldstep=yieldstep,
+                                                   finaltime=finaltime, 
                                                    skip_initial_step=False)):
-            temp_drchlt[i]=domain_drchlt.quantities['stage'].centroid_values[2]
+            temp_time[i]=domain_time.quantities['stage'].centroid_values[2]
 
 
 
-        print temp_fbound
-        print temp_drchlt
+        #print temp_fbound
+        #print temp_time
 
-        print domain_fbound.quantities['stage'].vertex_values
-        print domain_drchlt.quantities['stage'].vertex_values
+        #print domain_fbound.quantities['stage'].vertex_values
+        #print domain_time.quantities['stage'].vertex_values
         
-        assert allclose(temp_fbound, temp_drchlt)                
+        assert allclose(temp_fbound, temp_time)                
         assert allclose(domain_fbound.quantities['stage'].vertex_values,
-                        domain_drchlt.quantities['stage'].vertex_values)
+                        domain_time.quantities['stage'].vertex_values)
                         
         assert allclose(domain_fbound.quantities['xmomentum'].vertex_values,
-                        domain_drchlt.quantities['xmomentum'].vertex_values)                        
+                        domain_time.quantities['xmomentum'].vertex_values)                        
                         
         assert allclose(domain_fbound.quantities['ymomentum'].vertex_values,
-                        domain_drchlt.quantities['ymomentum'].vertex_values)                                                
+                        domain_time.quantities['ymomentum'].vertex_values)                                                
         
 
         try:
@@ -10932,7 +10937,7 @@ friction  \n \
 #-------------------------------------------------------------
 if __name__ == "__main__":
 
-    #suite = unittest.makeSuite(Test_Data_Manager,'test')
+    suite = unittest.makeSuite(Test_Data_Manager,'test')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_stsI_beyond_model_time')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_stsIV_sinewave_ordering')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_get_flow_through_cross_section_with_geo')
@@ -10941,7 +10946,8 @@ if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_ordering_different_sources')
 
     # FIXME (Ole): This is the test that fails under Windows
-    suite = unittest.makeSuite(Test_Data_Manager,'test_read_mux_platform_problem2')	
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_read_mux_platform_problem2')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_stsIV')
 
     
     if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':
