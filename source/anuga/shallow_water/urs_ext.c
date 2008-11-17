@@ -438,18 +438,32 @@ float** _read_mux2(int numSrc,
 	// that fails on Windows but works OK on Linux. JJ's test on 17th November shows
 	// that as far as Python is concerned this file should be OK on both platforms.
 	
-	// These printouts are enough to show the problem when compared on the two platforms 
-	printf("\nRead %d elements, ", (int) numData);
-	printf("muxdata[%d]=%f\n", 39, muxData[39]);		
+	
+	
+	// These printouts are enough to show the problem when compared 
+	// on the two platforms 
+	//printf("\nRead %d elements, ", (int) numData);
+	//printf("muxdata[%d]=%f\n", 39, muxData[39]);		
+	
 	
 	/*
         In Windows we get
+	
 	Read 85 elements, muxdata[39]=0.999574
 	Read 85 elements, muxdata[39]=-0.087599
 	Read 85 elements, muxdata[39]=-0.087599
 	
-	I Linux we get (the correct)
+	
+	In Linux we get (the correct)
+	
+	Read 85 elements, muxdata[39]=0.999574
+	Read 85 elements, muxdata[39]=-0.087599
+	Read 85 elements, muxdata[39]=1.490349
 	*/
+	
+	
+	
+	
 	
         // loop over stations present in the permutation array 
         //     use ista with mux data
