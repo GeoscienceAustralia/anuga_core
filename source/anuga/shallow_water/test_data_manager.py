@@ -6930,6 +6930,8 @@ friction  \n \
             zone, e, n = redfearn(lat_long_points[i][0], lat_long_points[i][1], zone=50) 
             assert allclose([x[i],y[i]], [e,n])
             assert zone==geo_reference.zone
+
+            
     def test_urs2stsII(self):
         """
         Test multiple sources
@@ -11040,7 +11042,7 @@ friction  \n \
 #-------------------------------------------------------------
 if __name__ == "__main__":
 
-    #suite = unittest.makeSuite(Test_Data_Manager,'test')
+    suite = unittest.makeSuite(Test_Data_Manager,'test')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_stsI_beyond_model_time')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_stsIV_sinewave_ordering')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_get_flow_through_cross_section_with_geo')
@@ -11049,7 +11051,7 @@ if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_ordering_different_sources')
 
     # FIXME (Ole): This is the test that fails under Windows
-    suite = unittest.makeSuite(Test_Data_Manager,'test_read_mux_platform_problem2')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_read_mux_platform_problem2')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_stsIV')
 
     
