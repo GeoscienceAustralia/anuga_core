@@ -3025,7 +3025,6 @@ END CROSS-SECTIONS:
 
 
         from anuga.coordinate_transforms.redfearn import redfearn
-
         #fid = NetCDFFile('small_ha.nc')
         fid = NetCDFFile(self.test_MOST_file + '_ha.nc')
 
@@ -6421,7 +6420,7 @@ friction  \n \
 
         
         
-    def Xtest_read_mux_platform_problem2(self):
+    def test_read_mux_platform_problem2(self):
         """test_read_mux_platform_problem2
         
         This is to test a situation where read_mux returned 
@@ -6432,6 +6431,8 @@ friction  \n \
         
         from Numeric import sin, cos
         from urs_ext import read_mux2 
+        
+        from anuga.config import single_precision as epsilon        
         
         verbose = False
                 
@@ -6589,7 +6590,11 @@ friction  \n \
                 assert abs(offset-unpack('f',f.read(4))[0])<epsilon
                 assert abs(az-unpack('f',f.read(4))[0])<epsilon
                 assert abs(baz-unpack('f',f.read(4))[0])<epsilon
-                assert abs(time_step-unpack('f',f.read(4))[0])<epsilon#*1e5
+                
+                x = unpack('f', f.read(4))[0]
+                #print time_step
+                #print x
+                assert abs(time_step-x)<epsilon
                 assert abs(time_step_count-unpack('i',f.read(4))[0])<epsilon
                 for j in range(4): # identifier
                     assert abs(id-unpack('i',f.read(4))[0])<epsilon 
@@ -6608,10 +6613,10 @@ friction  \n \
 
             #for time in  range(time_step_count):
             for time in range(min_tstep-1,max_tstep):
-                assert abs(time*time_step-unpack('f',f.read(4))[0])<epsilon#*1.e5
+                assert abs(time*time_step-unpack('f',f.read(4))[0])<epsilon
                 for point_i in range(points_num):
                     if time+1>=first_tstep[point_i] and time+1<=last_tstep[point_i]:
-                        assert abs(q_time[time, point_i]-unpack('f',f.read(4))[0])<epsilon#*2.e5
+                        assert abs(q_time[time, point_i]-unpack('f',f.read(4))[0])<epsilon
 
             f.close()
 
@@ -11035,7 +11040,7 @@ friction  \n \
 #-------------------------------------------------------------
 if __name__ == "__main__":
 
-    suite = unittest.makeSuite(Test_Data_Manager,'test')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_stsI_beyond_model_time')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_stsIV_sinewave_ordering')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_get_flow_through_cross_section_with_geo')
@@ -11044,7 +11049,7 @@ if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_ordering_different_sources')
 
     # FIXME (Ole): This is the test that fails under Windows
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_read_mux_platform_problem2')
+    suite = unittest.makeSuite(Test_Data_Manager,'test_read_mux_platform_problem2')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_stsIV')
 
     

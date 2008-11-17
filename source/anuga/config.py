@@ -8,7 +8,8 @@ epsilon = 1.0e-12 # Smallest number - used for safe division
 max_float = 1.0e36 # Largest number - used to initialise (max, min) ranges
 default_smoothing_parameter = 0.001 # Default alpha for penalised
                                     # least squares fitting
-
+                                    
+single_precision = 1.0e-6           # Smallest single precision number
 velocity_protection = 1.0e-6                                     
 
 #-------------------------------------------

@@ -908,7 +908,7 @@ class Domain(Mesh):
         """
 
         # Define a tolerance for extremum computations
-        epsilon = 1.0e-6 # Import 'single_precision' from config
+        from anuga.config import single_precision as epsilon
         
         if self.quantities_to_be_monitored is None:
             return
