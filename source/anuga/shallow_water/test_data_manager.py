@@ -6078,7 +6078,7 @@ friction  \n \
             columns = 3 # long, lat , depth
             file = base_name + mux_names[i]
             
-            #print "base_name file", file 
+            #print 'base_name file', file 
             f = open(file, 'wb')
             files.append(file)
 
@@ -6563,6 +6563,9 @@ friction  \n \
                 quantities_init[2].append(va[i])
 
         for i, q in enumerate(quantities):
+            #print
+            #print i, q
+            
             q_time = zeros((time_step_count, points_num), Float)
             quantities_init[i] = ensure_numeric(quantities_init[i])
             for time in range(time_step_count):
@@ -6616,7 +6619,9 @@ friction  \n \
                 assert abs(time*time_step-unpack('f',f.read(4))[0])<epsilon
                 for point_i in range(points_num):
                     if time+1>=first_tstep[point_i] and time+1<=last_tstep[point_i]:
-                        assert abs(q_time[time, point_i]-unpack('f',f.read(4))[0])<epsilon
+                        x = unpack('f',f.read(4))[0]
+                        #print time, x, q_time[time, point_i]
+                        assert abs(q_time[time, point_i]-x)<epsilon
 
             f.close()
 
@@ -11042,7 +11047,7 @@ friction  \n \
 #-------------------------------------------------------------
 if __name__ == "__main__":
 
-    suite = unittest.makeSuite(Test_Data_Manager,'test')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_stsI_beyond_model_time')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_stsIV_sinewave_ordering')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_get_flow_through_cross_section_with_geo')
@@ -11051,7 +11056,7 @@ if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_ordering_different_sources')
 
     # FIXME (Ole): This is the test that fails under Windows
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_read_mux_platform_problem2')
+    suite = unittest.makeSuite(Test_Data_Manager,'test_read_mux_platform_problem2')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_stsIV')
 
     
