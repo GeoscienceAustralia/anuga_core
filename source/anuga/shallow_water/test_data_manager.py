@@ -8891,7 +8891,7 @@ friction  \n \
         from anuga.shallow_water import File_boundary
         from anuga.pmesh.mesh_interface import create_mesh_from_regions
 
-        from numpy import sin,cos
+        from Numeric import sin, cos
 
         lat_long_points=[[6.01,97.0],[6.02,97.0],[6.05,96.9],[6.0,97.0]]
         bounding_polygon=[[6.0,97.0],[6.01,97.0],[6.02,97.0],[6.02,97.02],[6.00,97.02]]
