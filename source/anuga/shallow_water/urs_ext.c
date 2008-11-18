@@ -225,9 +225,8 @@ int _read_mux2_headers(int numSrc,
         if (!i)
         {
             elements_read = fread(total_number_of_stations, sizeof(int), 1, fp);
-	    if ((int) elements_read != 1){
-	      fprintf(stderr, "(1) Read %d number of elements, should have been 1\n",
-		      elements_read);
+	    if ((int) elements_read == 0 && ferror(fp)){
+	      fprintf(stderr, "Error reading total number of stations\n");
 	      return -2;
 	    }
         
@@ -239,9 +238,8 @@ int _read_mux2_headers(int numSrc,
 
 	    block_size = *total_number_of_stations*sizeof(struct tgsrwg);
             elements_read = fread(mytgs0, block_size , 1, fp);
-	    if ((int) elements_read != 1){
-	      fprintf(stderr, "(2) Read %d number of elements, should have been 1\n",
-		      elements_read);
+	    if ((int) elements_read == 0 && ferror(fp)){
+	      fprintf(stderr, "Error reading mytgs0\n");
 	      return -2;
 	    }
         }
@@ -249,9 +247,8 @@ int _read_mux2_headers(int numSrc,
         {
 	    // Check that the mux files are compatible
             elements_read = fread(&numsta, sizeof(int), 1, fp);
-	    if ((int) elements_read != 1){
-	      fprintf(stderr, "(3) Read %d number of elements, should have been 1\n",
-		      elements_read);
+	    if ((int) elements_read == 0 && ferror(fp)){
+	      fprintf(stderr, "Error reading numsta\n");
 	      return -2;
 	    }
 	    
@@ -266,9 +263,8 @@ int _read_mux2_headers(int numSrc,
 
 	    block_size = numsta*sizeof(struct tgsrwg);
             elements_read = fread(mytgs, block_size, 1, fp); 
-	    if ((int) elements_read != 1){
-	      fprintf(stderr, "(4) Read %d number of elements, should have been 1\n",
-		      elements_read);
+	    if ((int) elements_read == 0 && ferror(fp)){
+	      fprintf(stderr, "Error reading mgtgs\n");
 	      return -2;
 	    }	    
 	    
@@ -301,19 +297,17 @@ int _read_mux2_headers(int numSrc,
 
         /* Read the start and stop times for this source */
         elements_read = fread(fros + i*(*total_number_of_stations), 
-			   *total_number_of_stations*sizeof(int), 1, fp);
-	if ((int) elements_read != 1){
-	  fprintf(stderr, "(4) Read %d number of elements, should have been 1\n",
-		  elements_read);
+			      *total_number_of_stations*sizeof(int), 1, fp);
+	if ((int) elements_read == 0 && ferror(fp)){
+	  fprintf(stderr, "Error reading start times\n");
 	  return -3;
 	}	    
 			   
 			   
         elements_read = fread(lros + i*(*total_number_of_stations), 
-			   *total_number_of_stations*sizeof(int), 1, fp);
-	if ((int) elements_read != 1){
-	  fprintf(stderr, "(5) Read %d number of elements, should have been 1\n",
-		  elements_read);
+			      *total_number_of_stations*sizeof(int), 1, fp);
+	if ((int) elements_read == 0 && ferror(fp)){
+	  fprintf(stderr, "Error reading stop times\n");	
 	  return -3;
 	}	    	      
 
@@ -479,11 +473,8 @@ float** _read_mux2(int numSrc,
 			     
         			     
         elements_read = fread(muxData, ((int) numData)*sizeof(float), 1, fp); 
-	
 	if ((int) elements_read == 0 && ferror(fp)) {
-	  //fprintf(stderr, "Numdata = %d\n", (int) numData);
-	  fprintf(stderr, "(6) Read %d number of elements, should have been 1\n",
-		  elements_read);
+	  fprintf(stderr, "Error reading mux data\n");
 	  return NULL;
 	}
 	 	
