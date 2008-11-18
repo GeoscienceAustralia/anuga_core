@@ -843,7 +843,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args)
     }
     free(cdata);
 
-    return  PyArray_Return(pydata);
+    return PyArray_Return(pydata);
 }
 
 //-------------------------------
