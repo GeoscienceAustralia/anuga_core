@@ -178,6 +178,8 @@ int _read_mux2_headers(int numSrc,
     char *muxFileName;                                                                  
     char susMuxFileName;
     long numData;
+    size_t elements_read; // fread return value
+    int block_size;
 
     /* Allocate space for the names and the weights and pointers to the data*/
 
@@ -217,12 +219,17 @@ int _read_mux2_headers(int numSrc,
         if((fp = fopen(muxFileName, "r")) == NULL)
         {
             fprintf(stderr, "cannot open file %s\n", muxFileName);
-            return 0;  
+            return -1;  
         }
         
         if (!i)
         {
-            fread(total_number_of_stations, sizeof(int), 1, fp);
+            elements_read = fread(total_number_of_stations, sizeof(int), 1, fp);
+	    if ((int) elements_read != 1){
+	      fprintf(stderr, "(1) Read %d number of elements, should have been 1\n",
+		      elements_read);
+	      return -2;
+	    }
         
             fros = (int*) malloc(*total_number_of_stations*numSrc*sizeof(int)); 
             lros = (int*) malloc(*total_number_of_stations*numSrc*sizeof(int));
@@ -230,23 +237,42 @@ int _read_mux2_headers(int numSrc,
             mytgs0 = (struct tgsrwg*) malloc(*total_number_of_stations*sizeof(struct tgsrwg));
             mytgs = (struct tgsrwg*) malloc(*total_number_of_stations*sizeof(struct tgsrwg));
 
-            fread(mytgs0, *total_number_of_stations*sizeof(struct tgsrwg), 1, fp);
+	    block_size = *total_number_of_stations*sizeof(struct tgsrwg);
+            elements_read = fread(mytgs0, block_size , 1, fp);
+	    if ((int) elements_read != 1){
+	      fprintf(stderr, "(2) Read %d number of elements, should have been 1\n",
+		      elements_read);
+	      return -2;
+	    }
         }
         else
         {
 	    // Check that the mux files are compatible
-            fread(&numsta, sizeof(int), 1, fp);
+            elements_read = fread(&numsta, sizeof(int), 1, fp);
+	    if ((int) elements_read != 1){
+	      fprintf(stderr, "(3) Read %d number of elements, should have been 1\n",
+		      elements_read);
+	      return -2;
+	    }
+	    
             if(numsta != *total_number_of_stations)
             {
                 fprintf(stderr,"%s has different number of stations to %s\n", 
                 muxFileName, 
                 muxFileNameArray[0]);
                 fclose(fp);
-                return 0;   
+                return -1;   
             }
 
-            fread(mytgs, numsta*sizeof(struct tgsrwg), 1, fp); 
-            
+	    block_size = numsta*sizeof(struct tgsrwg);
+            elements_read = fread(mytgs, block_size, 1, fp); 
+	    if ((int) elements_read != 1){
+	      fprintf(stderr, "(4) Read %d number of elements, should have been 1\n",
+		      elements_read);
+	      return -2;
+	    }	    
+	    
+	    
             for (j = 0; j < numsta; j++)
             {
                 if (mytgs[j].dt != mytgs0[j].dt)
@@ -255,7 +281,7 @@ int _read_mux2_headers(int numSrc,
                     muxFileName, 
                     muxFileNameArray[0]);
                     fclose(fp);
-                    return 0;            
+                    return -1;            
                 }   
                 if (mytgs[j].nt != mytgs0[j].nt)
                 {
@@ -263,7 +289,7 @@ int _read_mux2_headers(int numSrc,
                     muxFileName, 
                     muxFileNameArray[0]);
                     fclose(fp);
-                    return 0;            
+                    return -1;            
                 }
 
                 if (mytgs[j].nt != mytgs0[0].nt)
@@ -274,10 +300,22 @@ int _read_mux2_headers(int numSrc,
         }
 
         /* Read the start and stop times for this source */
-        fread(fros + i*(*total_number_of_stations), 
-	      *total_number_of_stations*sizeof(int), 1, fp);
-        fread(lros + i*(*total_number_of_stations), 
-	      *total_number_of_stations*sizeof(int), 1, fp);
+        elements_read = fread(fros + i*(*total_number_of_stations), 
+			   *total_number_of_stations*sizeof(int), 1, fp);
+	if ((int) elements_read != 1){
+	  fprintf(stderr, "(4) Read %d number of elements, should have been 1\n",
+		  elements_read);
+	  return -3;
+	}	    
+			   
+			   
+        elements_read = fread(lros + i*(*total_number_of_stations), 
+			   *total_number_of_stations*sizeof(int), 1, fp);
+	if ((int) elements_read != 1){
+	  fprintf(stderr, "(5) Read %d number of elements, should have been 1\n",
+		  elements_read);
+	  return -3;
+	}	    	      
 
         /* Compute the size of the data block for this source */
         numData = getNumData(fros + i*(*total_number_of_stations), 
@@ -288,7 +326,7 @@ int _read_mux2_headers(int numSrc,
         if (numData < 0)
         {
             fprintf(stderr,"Size of data block appears to be negative!\n");
-            return 0;        
+            return -1;        
         }
 
         if (numDataMax < numData)
@@ -308,7 +346,7 @@ int _read_mux2_headers(int numSrc,
 
     free(mytgs);
 
-    return 1;
+    return 0; // Succesful execution
 }
 
 
@@ -328,7 +366,7 @@ float** _read_mux2(int numSrc,
     float *muxData=NULL; // Suppress warning
     long numData;
 
-    int len_sts_data;
+    int len_sts_data, error_code;
     float **sts_data;
     float *temp_sts_data;
 
@@ -337,17 +375,26 @@ float** _read_mux2(int numSrc,
     int number_of_time_steps, N;
     double delta_t;
     
+    size_t elements_read;
+    
     // Shorthands pointing to memory blocks for each source
     int *fros_per_source=NULL;     
     int *lros_per_source=NULL;         
 
     
-    _read_mux2_headers(numSrc, 
-                       muxFileNameArray, 
-                       &total_number_of_stations,
-                       &number_of_time_steps,
-                       &delta_t,
-                       verbose);
+    error_code = _read_mux2_headers(numSrc, 
+				    muxFileNameArray, 
+				    &total_number_of_stations,
+				    &number_of_time_steps,
+				    &delta_t,
+				    verbose);
+    if (error_code != 0) {
+      printf("urs_ext.c: Internal function _read_mux2_headers failed: Error code = %d\n", 
+	     error_code);
+      
+      return NULL;
+    }
+    
 
     // Apply rule that an empty permutation file means 'take all stations'
     // We could change this later by passing in None instead of the empty 
@@ -429,8 +476,19 @@ float** _read_mux2(int numSrc,
 			     lros_per_source, 
 			     total_number_of_stations);
 			     
-        fread(muxData, ((int) numData)*sizeof(float), 1, fp); 
+			     
+        			     
+        elements_read = fread(muxData, ((int) numData)*sizeof(float), 1, fp); 
+	
+	if ((int) elements_read == 0 && ferror(fp)) {
+	  //fprintf(stderr, "Numdata = %d\n", (int) numData);
+	  fprintf(stderr, "(6) Read %d number of elements, should have been 1\n",
+		  elements_read);
+	  return NULL;
+	}
+	 	
         fclose(fp);
+	
 
 	// FIXME (Ole): This is where Nariman and Ole traced the platform dependent 
 	// difference on 11 November 2008. We don't think the problem lies in the 

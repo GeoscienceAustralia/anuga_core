@@ -6242,7 +6242,7 @@ friction  \n \
         assert allclose(yvelocity,va)
 
     def test_urs2sts_read_mux2_pyIII(self):
-        """Varying start and finsh times
+        """Varying start and finish times
         """
         tide = 1
         time_step_count = 3
@@ -11047,7 +11047,7 @@ friction  \n \
 #-------------------------------------------------------------
 if __name__ == "__main__":
 
-    #suite = unittest.makeSuite(Test_Data_Manager,'test')
+    suite = unittest.makeSuite(Test_Data_Manager,'test')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_stsI_beyond_model_time')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_stsIV_sinewave_ordering')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_get_flow_through_cross_section_with_geo')
@@ -11056,7 +11056,7 @@ if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_ordering_different_sources')
 
     # FIXME (Ole): This is the test that fails under Windows
-    suite = unittest.makeSuite(Test_Data_Manager,'test_read_mux_platform_problem2')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_read_mux_platform_problem2')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_stsIV')
 
     

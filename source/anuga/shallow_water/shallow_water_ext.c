@@ -847,7 +847,7 @@ PyObject *flux_function_central(PyObject *self, PyObject *args) {
 			 (double*) qr -> data, 
 			 zl, 
 			 zr, 			 			 
-			 ((double*) normal -> data)[0], 			 			 			 
+			 ((double*) normal -> data)[0],
 			 ((double*) normal -> data)[1],			 
 			 epsilon, H0, g,
 			 (double*) edgeflux -> data, 
