@@ -1,4 +1,5 @@
 import os
+import time
 
 buildroot = os.getcwd()
 
@@ -18,6 +19,7 @@ print 'Changing to', os.getcwd()
 
 #entries = listdir('.')
 
+t0 = time.time()
 
 #Attempt to compile all extensions
 
@@ -44,3 +46,4 @@ execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 os.chdir(buildroot)    
 #execfile('test_all.py')
     
+print 'That took %.3fs' %(time.time() - t0)
