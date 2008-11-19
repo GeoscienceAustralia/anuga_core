@@ -4886,7 +4886,7 @@ EAST_VELOCITY_MUX2_LABEL =  '-e-mux2'
 NORTH_VELOCITY_MUX2_LABEL =  '-n-mux2'    
 
 def read_mux2_py(filenames,
-                 weights,
+                 weights=None,
                  permutation=None,
                  verbose=False):
     """Access the mux files specified in the filenames list. Combine the 
@@ -4897,7 +4897,7 @@ def read_mux2_py(filenames,
        Input: 
            filenames:   List of filenames specifiying the file containing the 
                         timeseries data (mux2 format) for each source 
-           weights:     Weights associated with each source 
+           weights:     Weighs associated with each source (defaults to 1 for each source)
            permutation: Specifies the gauge numbers that for which data is to be 
                         extracted 
     """ 
@@ -4914,6 +4914,9 @@ def read_mux2_py(filenames,
         verbose=1
     else:
         verbose=0
+
+    if weights is None:
+        weights = ones(numSrc)
         
     if permutation is None:
         permutation = ensure_numeric([], Float)    
