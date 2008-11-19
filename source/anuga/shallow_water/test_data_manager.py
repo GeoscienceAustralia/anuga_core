@@ -6153,7 +6153,7 @@ friction  \n \
 
         weights=ones(1, Float)
         #ensure that files are indeed mux2 files
-        times, latitudes, longitudes, elevation, stage, starttime =read_mux2_py([files[0]],weights)
+        times, latitudes, longitudes, elevation, stage, starttime = read_mux2_py([files[0]],weights)
         ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity,starttime_ua=read_mux2_py([files[1]],weights)
         msg='ha and ua have different gauge meta data'
         assert allclose(times,ua_times) and allclose(latitudes,ua_latitudes) and allclose(longitudes,ua_longitudes) and allclose(elevation,ua_elevation) and allclose(starttime,starttime_ua), msg
