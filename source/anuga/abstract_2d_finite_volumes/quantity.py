@@ -1083,7 +1083,7 @@ class Quantity:
                    verbose=False):
         """get values for quantity
 
-        return X, Compatible list, Numeric array (see below)
+        Extract values for quantity as a Numeric array.        
         
         Inputs:
            interpolation_points: List of x, y coordinates where value is
@@ -1097,8 +1097,8 @@ class Quantity:
                      and unique vertices. Default is 'vertices'
 
 
-        The returned values with be a list the length of indices
-        (N if indices = None).
+        The returned values will have the leading dimension equal to length of the indices list or
+        N (all values) if indices is None.
 
         In case of location == 'centroids' the dimension of returned
         values will be a list or a Numerical array of length N, N being
