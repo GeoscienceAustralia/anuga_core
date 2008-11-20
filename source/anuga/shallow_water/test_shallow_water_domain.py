@@ -2477,7 +2477,9 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Setup only one forcing term, constant rainfall restricted to a polygon enclosing triangle #1 (bce)
         domain.forcing_terms = []
-        R = Rainfall(domain, rate=2.0, polygon = [[1,1], [2,1], [2,2], [1,2]])
+        R = Rainfall(domain,
+                     rate=2.0,
+                     polygon = [[1,1], [2,1], [2,2], [1,2]])
 
         assert allclose(R.exchange_area, 1)
         
@@ -2486,7 +2488,8 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.compute_forcing_terms()
         #print domain.quantities['stage'].explicit_update
         
-        assert allclose(domain.quantities['stage'].explicit_update[1], 2.0/1000)
+        assert allclose(domain.quantities['stage'].explicit_update[1],
+                        2.0/1000)
         assert allclose(domain.quantities['stage'].explicit_update[0], 0)
         assert allclose(domain.quantities['stage'].explicit_update[2:], 0)        
         
@@ -2518,7 +2521,9 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Setup only one forcing term, time dependent rainfall restricted to a polygon enclosing triangle #1 (bce)
         domain.forcing_terms = []
-        R = Rainfall(domain, rate=lambda t: 3*t + 7, polygon = [[1,1], [2,1], [2,2], [1,2]])
+        R = Rainfall(domain,
+                     rate=lambda t: 3*t + 7,
+                     polygon = [[1,1], [2,1], [2,2], [1,2]])
 
         assert allclose(R.exchange_area, 1)
         
@@ -2530,10 +2535,72 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.compute_forcing_terms()
         #print domain.quantities['stage'].explicit_update
         
-        assert allclose(domain.quantities['stage'].explicit_update[1], (3*domain.time+7)/1000)
+        assert allclose(domain.quantities['stage'].explicit_update[1],
+                        (3*domain.time+7)/1000)
         assert allclose(domain.quantities['stage'].explicit_update[0], 0)
         assert allclose(domain.quantities['stage'].explicit_update[2:], 0)        
         
+
+
+
+    def test_time_dependent_rainfall_using_starttime(self):
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe
+        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+
+        domain = Domain(points, vertices)
+
+        #Flat surface with 1m of water
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('stage', 1.0)
+        domain.set_quantity('friction', 0)
+
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'exterior': Br})
+
+        # Setup only one forcing term, time dependent rainfall restricted to a polygon enclosing triangle #1 (bce)
+        domain.forcing_terms = []
+        R = Rainfall(domain,
+                     rate=lambda t: 3*t + 7,
+                     polygon = [[1,1], [2,1], [2,2], [1,2]])
+
+        assert allclose(R.exchange_area, 1)
+        
+        domain.forcing_terms.append(R)
+
+        # This will test that time used in the forcing function takes
+        # startime into account.
+        domain.starttime = 5.0
+
+        domain.time = 7.
+
+        domain.compute_forcing_terms()
+        #print domain.quantities['stage'].explicit_update
+
+        #print domain.get_time()
+        assert allclose(domain.quantities['stage'].explicit_update[1],
+                        (3*domain.get_time()+7)/1000)
+        assert allclose(domain.quantities['stage'].explicit_update[1],
+                        (3*(domain.time + domain.starttime)+7)/1000)
+
+        # Using internal time her should fail
+        assert not allclose(domain.quantities['stage'].explicit_update[1],
+                        (3*domain.time+7)/1000)                
+
+        assert allclose(domain.quantities['stage'].explicit_update[0], 0)
+        assert allclose(domain.quantities['stage'].explicit_update[2:], 0)        
+        
+
+
 
 
     def test_time_dependent_rainfall_restricted_by_polygon_with_default(self):
@@ -2573,7 +2640,9 @@ class Test_Shallow_Water(unittest.TestCase):
                 return 3*t + 7
         
         domain.forcing_terms = []
-        R = Rainfall(domain, rate=main_rate, polygon = [[1,1], [2,1], [2,2], [1,2]],
+        R = Rainfall(domain,
+                     rate=main_rate,
+                     polygon = [[1,1], [2,1], [2,2], [1,2]],
                      default_rate=5.0)
 
         assert allclose(R.exchange_area, 1)
@@ -6167,7 +6236,7 @@ if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_fitting_using_shallow_water_domain')    
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_tight_slope_limiters')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_get_maximum_inundation_from_sww')
-    #suite = unittest.makeSuite(Test_Shallow_Water,'test_time_dependent_rainfall_restricted_by_polygon')    
+    #suite = unittest.makeSuite(Test_Shallow_Water,'test_time_dependent_rainfall_using_starttime')    
     
 
     
