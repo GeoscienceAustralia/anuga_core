@@ -388,8 +388,10 @@ class Quantity:
         # FIXME (Ole): This needs to be generalised and
         # perhaps the notion of location and indices simplified
 
-        # FIXME (Ole): Need to compute indices based on polygon (and location) and
-        # use existing code after that.
+        # FIXME (Ole): Need to compute indices based on polygon 
+        # (and location) and use existing code after that.
+        
+        # See ticket:275, ticket:250, ticeket:254 for refactoring plan
         
         if polygon is not None:
             if indices is not None:
