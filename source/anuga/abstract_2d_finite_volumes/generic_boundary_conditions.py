@@ -119,6 +119,7 @@ class Time_boundary(Boundary):
         return 'Time boundary'
 
     def evaluate(self, vol_id=None, edge_id=None):
+        # FIXME (Ole): I think this should be get_time(), see ticket:306
         return self.f(self.domain.time)
 
 
@@ -161,6 +162,7 @@ class File_boundary_time(Boundary):
         vol_id and edge_id are ignored
         """
 
+        # FIXME (Ole): I think this should be get_time(), see ticket:306        
         t = self.domain.time
         return self.F(t)
 
@@ -316,6 +318,7 @@ class File_boundary(Boundary):
 	at midpoint of segment defined by vol_id and edge_id.
         """
 
+        # FIXME (Ole): I think this should be get_time(), see ticket:306
         t = self.domain.time
         
         if vol_id is not None and edge_id is not None:
@@ -477,6 +480,8 @@ class General_boundary(Boundary):
 
 
     def get_conserved_quantities(self, volume=None, face=0):
+    
+        # FIXME (Ole): I think this should be get_time(), see ticket:306    
         return self.f(self.conserved_quantities,
                       neighbour.conserved_quantities,
                       self.domain.time)

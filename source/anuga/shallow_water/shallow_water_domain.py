@@ -1149,7 +1149,7 @@ class Transmissive_Momentum_Set_Stage_boundary(Boundary):
         q = self.domain.get_conserved_quantities(vol_id, edge = edge_id)
 
 
-        t = self.domain.time
+        t = self.domain.get_time()
 
         if hasattr(self.function, 'time'):
             # Roll boundary over if time exceeds            
