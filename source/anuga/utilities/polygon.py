@@ -487,6 +487,13 @@ def polygon_area(polygon):
     http://mathworld.wolfram.com/PolygonArea.html
     """
     
+    # Move polygon to origin (0,0) to avoid rounding errors
+    polygon = ensure_numeric(polygon)
+    min_x = min(polygon[:,0])
+    min_y = min(polygon[:,1])    
+    polygon -= [min_x, min_y]
+
+    # Compute area    
     n = len(polygon)
     poly_area = 0.0
 

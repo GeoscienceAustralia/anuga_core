@@ -1556,6 +1556,14 @@ class Test_Polygon(unittest.TestCase):
 	#Simple case: Polygon is a diamond
         polygon = [[0,0], [1,1], [2,0], [1, -1]]
 	assert polygon_area(polygon) == 2.0
+        
+        # Complex case where numerical errors might occur
+        polygon = [[314037.58727982, 6224952.2960092],
+                   [314038.58727982, 6224952.2960092], 
+                   [314038.58727982, 6224953.2960092],
+                   [314037.58727982, 6224953.2960092]]
+	assert polygon_area(polygon) == 1.0                   
+
 
     def test_poly_xy(self):
  
