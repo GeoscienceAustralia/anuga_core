@@ -1174,7 +1174,12 @@ class Test_Mesh(unittest.TestCase):
                         'FAILED!') 
 
     def test_mesh_get_boundary_polygon_with_georeferencing(self):
-     
+        """test_mesh_get_boundary_polygon_with_georeferencing
+        
+        Test that get_boundary_polygon returns absolute coordinates
+        """
+        
+        
         # test
         a = [0.0, 0.0]
         b = [4.0, 0.0]
