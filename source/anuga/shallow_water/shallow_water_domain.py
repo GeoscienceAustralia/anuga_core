@@ -1690,7 +1690,8 @@ class General_forcing:
         self.value = 0.0 # Can be used to remember value at
                          # previous timestep in order to obtain rate
 
-        bounding_polygon = domain.get_boundary_polygon() # Returns absolute coordinates
+        # Get boundary (in absolute coordinates)
+        bounding_polygon = domain.get_boundary_polygon()
 
 
         # Update area if applicable
@@ -1727,14 +1728,22 @@ class General_forcing:
 
 	
         if polygon is not None:
-            self.exchange_area = polygon_area(self.polygon)
 
             # Check that polygon lies within the mesh.
             for point in self.polygon:
-                msg = 'Point %s in polygon for forcing term' %(str(point))
+                msg = 'Point %s in polygon for forcing term' %(point)
                 msg += ' did not fall within the domain boundary.'
                 assert is_inside_polygon(point, bounding_polygon), msg
-
+                
+            # Compute area and check that it is greater than 0    
+            self.exchange_area = polygon_area(self.polygon)
+            
+            msg = 'Polygon %s in forcing term' %(self.polygon)
+            msg += ' has area = %f' %self.exchange_area
+            assert self.exchange_area > 0.0            
+            
+                
+                
 
         # Pointer to update vector
         self.update = domain.quantities[self.quantity_name].explicit_update
@@ -1761,9 +1770,11 @@ class General_forcing:
         if self.polygon is not None:                    
             # Inlet is polygon
             
-            inlet_region = 'polygon=%s' %(self.polygon) 
+            inlet_region = 'polygon=%s, area=%f m^2' %(self.polygon, 
+                                                       self.exchange_area) 
                         
             self.exchange_indices = inside_polygon(points, self.polygon)
+            
             
             
         if self.exchange_indices is not None:
