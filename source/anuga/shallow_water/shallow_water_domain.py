@@ -1644,15 +1644,16 @@ class General_forcing:
 
     center [m]: Coordinates at center of flow point
     radius [m]: Size of circular area
-    polygon:    Arbitrary polygon.
+    polygon:    Arbitrary polygon
     default_rate: Rate to be used if rate fails (e.g. if model time exceeds its data)
                   Admissible types: None, constant number or function of t
 
 
     Either center, radius or polygon can be specified but not both.
     If neither are specified the entire domain gets updated.
+    All coordinates to be specified in absolute UTM coordinates (x, y) assuming the zone of domain.    
     
-    See Inflow or Rainfall for examples of use
+    Inflow or Rainfall for examples of use
     """
 
 
@@ -1689,8 +1690,7 @@ class General_forcing:
         self.value = 0.0 # Can be used to remember value at
                          # previous timestep in order to obtain rate
 
-                         
-        bounding_polygon = domain.get_boundary_polygon()
+        bounding_polygon = domain.get_boundary_polygon() # Returns absolute coordinates
 
 
         # Update area if applicable

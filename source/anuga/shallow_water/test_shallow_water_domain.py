@@ -2544,6 +2544,8 @@ class Test_Shallow_Water(unittest.TestCase):
 
 
     def test_time_dependent_rainfall_using_starttime(self):
+    
+        rainfall_poly = ensure_numeric([[1,1], [2,1], [2,2], [1,2]], Float)    
 
         a = [0.0, 0.0]
         b = [0.0, 2.0]
@@ -2571,7 +2573,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.forcing_terms = []
         R = Rainfall(domain,
                      rate=lambda t: 3*t + 7,
-                     polygon = [[1,1], [2,1], [2,2], [1,2]])
+                     polygon=rainfall_poly)                     
 
         assert allclose(R.exchange_area, 1)
         
@@ -2601,6 +2603,80 @@ class Test_Shallow_Water(unittest.TestCase):
         
 
 
+        
+    def test_time_dependent_rainfall_using_georef(self):
+        """test_time_dependent_rainfall_using_georef
+        
+        This will also test the General forcing term using georef
+        """
+        
+        #Mesh in zone 56 (absolute coords)
+
+        x0 = 314036.58727982
+        y0 = 6224951.2960092
+
+        
+        rainfall_poly = ensure_numeric([[1,1], [2,1], [2,2], [1,2]], Float)
+        rainfall_poly += [x0, y0]
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe
+        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+
+        domain = Domain(points, vertices,
+                        geo_reference = Geo_reference(56, x0, y0))
+
+        #Flat surface with 1m of water
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('stage', 1.0)
+        domain.set_quantity('friction', 0)
+
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'exterior': Br})
+
+        # Setup only one forcing term, time dependent rainfall restricted to a polygon enclosing triangle #1 (bce)
+        domain.forcing_terms = []
+        R = Rainfall(domain,
+                     rate=lambda t: 3*t + 7,
+                     polygon=rainfall_poly)
+
+        assert allclose(R.exchange_area, 1)
+        
+        domain.forcing_terms.append(R)
+
+        # This will test that time used in the forcing function takes
+        # startime into account.
+        domain.starttime = 5.0
+
+        domain.time = 7.
+
+        domain.compute_forcing_terms()
+        #print domain.quantities['stage'].explicit_update
+
+        #print domain.get_time()
+        assert allclose(domain.quantities['stage'].explicit_update[1],
+                        (3*domain.get_time()+7)/1000)
+        assert allclose(domain.quantities['stage'].explicit_update[1],
+                        (3*(domain.time + domain.starttime)+7)/1000)
+
+        # Using internal time her should fail
+        assert not allclose(domain.quantities['stage'].explicit_update[1],
+                        (3*domain.time+7)/1000)                
+
+        assert allclose(domain.quantities['stage'].explicit_update[0], 0)
+        assert allclose(domain.quantities['stage'].explicit_update[2:], 0)        
+        
+
+        
+        
 
 
     def test_time_dependent_rainfall_restricted_by_polygon_with_default(self):
@@ -6189,7 +6265,7 @@ friction  \n \
                        [ 3.0, 1.0]]
 
         data_geo_spatial = Geospatial_data(data_points_rel,
-                         geo_reference = Geo_reference(56, x0, y0))
+                                           geo_reference = Geo_reference(56, x0, y0))
         data_points_absolute = data_geo_spatial.get_data_points(absolute=True)
         attributes = linear_function(data_points_absolute)
         att = 'spam_and_eggs'
@@ -6231,12 +6307,11 @@ friction  \n \
 if __name__ == "__main__":
 
     suite = unittest.makeSuite(Test_Shallow_Water,'test')
-
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_get_energy_through_cross_section_with_g')    
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_fitting_using_shallow_water_domain')    
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_tight_slope_limiters')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_get_maximum_inundation_from_sww')
-    #suite = unittest.makeSuite(Test_Shallow_Water,'test_time_dependent_rainfall_using_starttime')    
+    #suite = unittest.makeSuite(Test_Shallow_Water,'test_time_dependent_rainfall')    
     
 
     
