@@ -3206,7 +3206,7 @@ END CROSS-SECTIONS:
             fid.variables[time_name].point_spacing='uneven'
             fid.variables[time_name].units='seconds'
             fid.variables[time_name].assignValue([0.,1.])
-            if fid == fid3: break
+            #if fid == fid3: break
 
 
         for fid in [fid4]:
@@ -3246,7 +3246,7 @@ END CROSS-SECTIONS:
           fid.variables[name[fid]].units=units[fid]
           fid.variables[name[fid]].assignValue(values[fid])
           fid.variables[name[fid]].missing_value = -99999999.
-          if fid == fid3: break
+          #if fid == fid3: break
 
         for fid in [fid4]:
             fid.createVariable(name[fid],'d',(lat_name,long_name))
@@ -3370,7 +3370,7 @@ END CROSS-SECTIONS:
             fid.variables[time_name].point_spacing='uneven'
             fid.variables[time_name].units='seconds'
             fid.variables[time_name].assignValue([0.,1.])
-            if fid == fid3: break
+            #if fid == fid3: break
 
 
         for fid in [fid4]:
@@ -3410,7 +3410,7 @@ END CROSS-SECTIONS:
           fid.variables[name[fid]].units=units[fid]
           fid.variables[name[fid]].assignValue(values[fid])
           fid.variables[name[fid]].missing_value = -99999999.
-          if fid == fid3: break
+          #if fid == fid3: break
 
         for fid in [fid4]:
             fid.createVariable(name[fid],'d',(lat_name,long_name))
