@@ -102,7 +102,8 @@ class Time_boundary(Boundary):
         except:
             msg = 'Return value from time boundary function could '
             msg += 'not be converted into a Numeric array of floats.\n'
-            msg += 'Specified function should return either list or array.'
+            msg += 'Specified function should return either list or array.\n'
+            msg += 'I got %s' %str(q)
             raise msg
 
         msg = 'ERROR: Time boundary function must return a 1d list or array '
