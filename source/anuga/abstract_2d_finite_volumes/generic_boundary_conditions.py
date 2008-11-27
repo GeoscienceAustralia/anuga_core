@@ -124,51 +124,6 @@ class Time_boundary(Boundary):
         return self.f(self.domain.time)
 
 
-class File_boundary_time(Boundary):
-    """Boundary values obtained from file and interpolated.
-    conserved quantities as a function of time.
-
-    Assumes that file contains a time series.
-
-    No spatial info assumed.
-    """
-
-    #FIXME: Is this still necessary
-
-    def __init__(self, filename, domain):
-        import time
-        from Numeric import array
-        from anuga.config import time_format
-        from anuga.abstract_2d_finite_volumes.util import File_function
-
-        Boundary.__init__(self)
-
-        self.F = File_function(filename, domain)
-        self.domain = domain
-
-        #Test
-        q = self.F(0)
-
-        d = len(domain.conserved_quantities)
-        msg = 'Values specified in file must be a list or an array of length %d' %d
-        assert len(q) == d, msg
-
-
-    def __repr__(self):
-        return 'File boundary'
-
-    def evaluate(self, vol_id=None, edge_id=None):
-        """Return linearly interpolated values based on domain.time
-
-        vol_id and edge_id are ignored
-        """
-
-        # FIXME (Ole): I think this should be get_time(), see ticket:306        
-        t = self.domain.time
-        return self.F(t)
-
-
-
 
 class File_boundary(Boundary):
     """The File_boundary reads values for the conserved
@@ -276,12 +231,10 @@ class File_boundary(Boundary):
         self.default_boundary = default_boundary
         self.default_boundary_invoked = False    # Flag
 
-        # Store pointer to domain
+        # Store pointer to domain and verbosity
         self.domain = domain
-        
         self.verbose = verbose
 
-        # Test
 
         # Here we'll flag indices outside the mesh as a warning
         # as suggested by Joaquim Luis in sourceforge posting
@@ -384,109 +337,3 @@ class File_boundary(Boundary):
             msg = 'Boundary call without point_id not implemented.\n'
             msg += 'vol_id=%s, edge_id=%s' %(str(vol_id), str(edge_id))
             raise Exception, msg
-            # FIXME: What should the semantics be?
-            #return self.F(t)
-
-
-
-
-
-
-
-
-#THIS FAR (10/8/4)
-class Connective_boundary(Boundary):
-    """Connective boundary returns values for the
-    conserved quantities from a volume as defined by a connection table
-    mapping between tuples of (volume id, face id) for volumes that
-    have their boundaries connected.
-
-    FIXME: Perhaps include possibility of mapping between
-    different domains as well
-
-    FIXME: In case of shallow water we may want to have a
-    special version that casts this in terms of height rather than stage
-    """
-
-
-    def __init__(self, table):
-        from domain import Volume
-
-        Boundary.__init__(self)
-
-        self.connection_table = table
-        self.Volume = Volume
-
-    def __repr__(self):
-        return 'Connective boundary'
-
-    #FIXME: IF we ever need to get field_values from connected volume,
-    #that method could be overridden here (using same idea as in
-    #get_conserved_quantities
-    #def get_field_values()
-
-    def get_conserved_quantities(self, volume, face=0):
-
-        id = volume.id
-        if self.connection_table.has_key((id, face)):
-            other_id, other_face = self.connection_table[(id, face)]
-
-            other_volume = self.Volume.instances[other_id]
-            cmd = 'q = other_volume.conserved_quantities_face%d' %face;
-            exec(cmd)
-            return q
-        else:
-            msg = 'Volume, face tuple ($d, %d) has not been mapped'\
-                  %(id, face)
-            raise msg
-
-
-
-
-
-#FIXME: Add a boundary with a general function of x,y, and t
-
-#FIXME: Add periodic boundaries e.g.:
-# Attempt at periodic conditions from advection_spik. Remember this
-#
-#first = 2*(N-1)*N
-#for i in range(1,2*N+1,2):
-#    k = first + i-1#
-#
-#    print i,k
-#
-#    domain[i].faces[2].neighbour = domain[k].faces[1]
-#    domain[k].faces[1].neighbour = domain[i].faces[2]
-
-
-
-class General_boundary(Boundary):
-    """General boundary which can compute conserved quantities based on
-    their previous value, conserved quantities of its neighbour and model time.
-
-    Must specify initial conserved quantities,
-    neighbour,
-    domain to get access to model time
-    a function f(q_old, neighbours_q, t) which must return
-    new conserved quantities q as a function time
-
-    FIXME: COMPLETE UNTESTED - JUST AN IDEA
-    """
-
-    def __init__(self, neighbour=None, conserved_quantities=None, domain=None, f=None):
-        Boundary.__init__(self, neighbour=neighbour, conserved_quantities=conserved_quantities)
-
-        self.f = f
-        self.domain = domain
-
-
-    def get_conserved_quantities(self, volume=None, face=0):
-    
-        # FIXME (Ole): I think this should be get_time(), see ticket:306    
-        return self.f(self.conserved_quantities,
-                      neighbour.conserved_quantities,
-                      self.domain.time)
-
-
-
-

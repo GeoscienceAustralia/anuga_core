@@ -367,6 +367,7 @@ def get_netcdf_file_function(filename,
     
     else:
         gauge_neighbour_id=None
+        
     if domain_starttime is not None:
 
         # If domain_startime is *later* than starttime,
