@@ -194,14 +194,14 @@ class EventDamageModel:
     Object for working out the damage and cost
 
     """
-    STRUCT_LOSS_TITLE = "Structure Loss ($)"
-    CONTENTS_LOSS_TITLE = "Contents Loss ($)"
-    CONTENTS_DAMAGE_TITLE = "Contents damaged (fraction)"
-    STRUCT_DAMAGE_TITLE = "Structure damaged (fraction)"
-    COLLAPSE_CSV_INFO_TITLE = "Calculation notes"
-    MAX_DEPTH_TITLE = "Inundation height above ground floor (m)"
-    STRUCT_COLLAPSED_TITLE = "collapsed structure if 1"
-    STRUCT_INUNDATED_TITLE = "inundated structure if 1"
+    STRUCT_LOSS_TITLE = "STRUCT_LOSS_$"#"Structure Loss ($)"
+    CONTENTS_LOSS_TITLE = "CONTENTS_LOSS_$"#"Contents Loss ($)"
+    CONTENTS_DAMAGE_TITLE = "CONTENTS_DAMAGE_fraction"#"Contents damaged (fraction)"
+    STRUCT_DAMAGE_TITLE = "STRUCT_DAMAGE_fraction" #"Structure damaged (fraction)"
+    COLLAPSE_CSV_INFO_TITLE = "COLLAPSE_CSV_INFO"#"Calculation notes"
+    MAX_DEPTH_TITLE = "MAX_DEPTH_m" #"Inundation height above ground floor (m)"
+    STRUCT_COLLAPSED_TITLE = "STRUCT_COLLAPSED"#"collapsed structure if 1"
+    STRUCT_INUNDATED_TITLE = "STRUCT_INUNDATED"#"inundated structure if 1"
     double_brick_damage_array = array([[-kinds.default_float_kind.MAX, 0.0],
                                        [0.0-depth_epsilon, 0.0],
                                        [0.0,0.016],
