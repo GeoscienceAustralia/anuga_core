@@ -2073,6 +2073,7 @@ def get_runup_data_for_locations_from_file(gauge_filename,
 
 def sww2csv_gauges(sww_file,
                    gauge_file,
+                   out_name=None,
                    quantities = ['stage', 'depth', 'elevation',
                                  'xmomentum', 'ymomentum'],
                    verbose=False,
@@ -2095,11 +2096,16 @@ def sww2csv_gauges(sww_file,
         
         NOTE: order of column can change but names eg 'easting', 'elevation' 
         must be the same! ALL lowercaps!
+
+        out_name: prefix for output file name (default is 'gauge_')
         
     Outputs: 
         one file for each gauge/point location in the points file. They
         will be named with this format in the same directory as the 'sww_file'
-            gauge_<name>.csv    eg gauge_point1.csv
+            <out_name><name>.csv
+        eg gauge_point1.csv if <out_name> not supplied
+           myfile_2_point1.csv if <out_name> ='myfile_2_'
+            
             
         They will all have a header
     
@@ -2132,6 +2138,8 @@ def sww2csv_gauges(sww_file,
 
     assert type(gauge_file) == type(''),\
            'Gauge filename must be a string'
+    assert type(out_name) == type(''),\
+           'Output filename prefix must be a string'
     
     try:
     #    fid = open(gauge_file)
@@ -2207,7 +2215,10 @@ def sww2csv_gauges(sww_file,
                                  verbose=verbose,
                                  use_cache=use_cache)
 
-    gauge_file='gauge_'
+    if out_name is None:
+        gauge_file='gauge_'
+    else:
+        gauge_file = out_name
 
     heading = [quantity for quantity in quantities]
     heading.insert(0,'time')
@@ -2218,7 +2229,7 @@ def sww2csv_gauges(sww_file,
     points_writer = []
     for i,point in enumerate(points):
         #print 'gauge file:',dir_name+sep+'gauge_'+point_name[i]+'.csv'
-        points_writer.append(writer(file(dir_name+sep+'gauge_'+point_name[i]+'.csv', "wb")))
+        points_writer.append(writer(file(dir_name+sep+gauge_file+point_name[i]+'.csv', "wb")))
         points_writer[i].writerow(heading)
     
     if verbose: print 'Writing csv files'
