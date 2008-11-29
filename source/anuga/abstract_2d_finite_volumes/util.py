@@ -2073,7 +2073,7 @@ def get_runup_data_for_locations_from_file(gauge_filename,
 
 def sww2csv_gauges(sww_file,
                    gauge_file,
-                   out_name=None,
+                   out_name='gauge_',
                    quantities = ['stage', 'depth', 'elevation',
                                  'xmomentum', 'ymomentum'],
                    verbose=False,
@@ -2089,7 +2089,7 @@ def sww2csv_gauges(sww_file,
         
         sww_file: path to any sww file
         
-        points_file: Assumes that it follows this format
+        gauge_file: Assumes that it follows this format
             name, easting, northing, elevation
             point1, 100.3, 50.2, 10.0
             point2, 10.3, 70.3, 78.0
@@ -2109,7 +2109,7 @@ def sww2csv_gauges(sww_file,
             
         They will all have a header
     
-    Usage: gauges_sww2csv(sww_file='test1.sww',
+    Usage: sww2csv_gauges(sww_file='test1.sww',
                           quantities = ['stage', 'elevation','depth','bearing'],
                           gauge_file='gauge.txt')    
     
@@ -2121,7 +2121,7 @@ def sww2csv_gauges(sww_file,
     And the user choose the quantities.
 
     This is currently quite specific.
-    If it need to be more general, chagne things.
+    If it needs to be more general, change things.
 
     This is really returning speed, not velocity.
      
@@ -2138,6 +2138,7 @@ def sww2csv_gauges(sww_file,
 
     assert type(gauge_file) == type(''),\
            'Gauge filename must be a string'
+           
     assert type(out_name) == type(''),\
            'Output filename prefix must be a string'
     
@@ -2214,11 +2215,8 @@ def sww2csv_gauges(sww_file,
                                  interpolation_points=points_array,
                                  verbose=verbose,
                                  use_cache=use_cache)
-
-    if out_name is None:
-        gauge_file='gauge_'
-    else:
-        gauge_file = out_name
+        
+    gauge_file = out_name
 
     heading = [quantity for quantity in quantities]
     heading.insert(0,'time')

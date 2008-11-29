@@ -120,12 +120,8 @@ def interpolate(vertex_coordinates,
     kwargs = {'mesh_origin': mesh_origin,
               'max_vertices_per_cell': max_vertices_per_cell,
               'verbose': verbose}
-              
-    if use_cache is True:
-        I = cache(Interpolate, args, kwargs,
-                  verbose=verbose)
-    else:
-        I = apply(Interpolate, args, kwargs)
+                      
+    I = apply(Interpolate, args, kwargs)
                   
     
     # Call interpolate method with interpolation points
@@ -175,10 +171,6 @@ class Interpolate (FitInterpolate):
 
         # FIXME (Ole): Need an input check
         
-        # Initialise variabels
-        self._A_can_be_reused = False  # FIXME (Ole): Probably obsolete
-        self._point_coordinates = None # FIXME (Ole): Probably obsolete
-        self.interpolation_matrices = {} # Store precomputed matrices
         
         FitInterpolate.__init__(self,
                                 vertex_coordinates=vertex_coordinates,
@@ -187,6 +179,10 @@ class Interpolate (FitInterpolate):
                                 verbose=verbose,
                                 max_vertices_per_cell=max_vertices_per_cell)
                                 
+        # Initialise variabels
+        self._A_can_be_reused = False  # FIXME (Ole): Probably obsolete
+        self._point_coordinates = None # FIXME (Ole): Probably obsolete
+        self.interpolation_matrices = {} # Store precomputed matrices
                                 
 
     def interpolate_polyline(self,
@@ -393,11 +389,12 @@ class Interpolate (FitInterpolate):
 
         from anuga.caching import myhash
         from Numeric import alltrue
-        import sys
+        import sys 
+          
         if use_cache is True:
             if sys.platform != 'win32':
                 # FIXME (Ole): (Why doesn't this work on windoze?)
-                # Still absolutele fails on Win 24 Oct 2008
+                # Still absolutely fails on Win 24 Oct 2008
             
                 X = cache(self._build_interpolation_matrix_A,
                           args=(point_coordinates,),
@@ -408,7 +405,8 @@ class Interpolate (FitInterpolate):
                 # This will work on Linux as well if we want to use it there. (FIXME)
                 key = myhash(point_coordinates)
         
-                reuse_A = False        
+                reuse_A = False 
+            
                 if self.interpolation_matrices.has_key(key):
                     X, stored_points = self.interpolation_matrices[key] 
                     if alltrue(stored_points == point_coordinates):
