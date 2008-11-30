@@ -120,8 +120,21 @@ def interpolate(vertex_coordinates,
     kwargs = {'mesh_origin': mesh_origin,
               'max_vertices_per_cell': max_vertices_per_cell,
               'verbose': verbose}
-                      
-    I = apply(Interpolate, args, kwargs)
+             
+
+    
+    if use_cache is True:
+        # Messy wrapping of Interpolate to deal with win32 error
+        # I = cache(Interpolate, args, kwargs, verbose=verbose)
+        # work on linux
+        def wrap_Interpolate(args,kwargs):
+            I = apply(Interpolate, args, kwargs)
+            return I
+        I = cache(wrap_Interpolate, (args, kwargs),{},
+                  verbose=verbose)
+    else:
+        I = apply(Interpolate, args, kwargs)
+
                   
     
     # Call interpolate method with interpolation points
@@ -170,7 +183,6 @@ class Interpolate (FitInterpolate):
         """
 
         # FIXME (Ole): Need an input check
-        
         
         FitInterpolate.__init__(self,
                                 vertex_coordinates=vertex_coordinates,
