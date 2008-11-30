@@ -19,6 +19,7 @@ interpolate_block
 
 import time
 import os
+import sys
 from warnings import warn
 from math import sqrt
 from csv import writer, DictWriter
@@ -112,7 +113,6 @@ def interpolate(vertex_coordinates,
     # FIXME(Ole): Probably obsolete since I is precomputed and interpolate_block caches
         
     from anuga.caching import cache
-    
 
     # Create interpolation object with matrix
     args = (ensure_numeric(vertex_coordinates, Float), 
@@ -124,14 +124,15 @@ def interpolate(vertex_coordinates,
 
     
     if use_cache is True:
-        # Messy wrapping of Interpolate to deal with win32 error
-        # I = cache(Interpolate, args, kwargs, verbose=verbose)
-        # work on linux
-        def wrap_Interpolate(args,kwargs):
-            I = apply(Interpolate, args, kwargs)
-            return I
-        I = cache(wrap_Interpolate, (args, kwargs),{},
-                  verbose=verbose)
+        if sys.platform != 'win32':
+            I = cache(Interpolate, args, kwargs, verbose=verbose)
+        else:
+            # Messy wrapping of Interpolate to deal with win32 error
+            def wrap_Interpolate(args,kwargs):
+                I = apply(Interpolate, args, kwargs)
+                return I
+            I = cache(wrap_Interpolate, (args, kwargs),{},
+                      verbose=verbose)
     else:
         I = apply(Interpolate, args, kwargs)
 
