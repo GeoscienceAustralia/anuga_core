@@ -1107,7 +1107,8 @@ class Reflective_boundary(Boundary):
 
 
 
-class Transmissive_Momentum_Set_Stage_boundary(Boundary):
+
+class Transmissive_momentum_set_stage_boundary(Boundary):
     """Returns same momentum conserved quantities as
     those present in its neighbour volume.
     Sets stage by specifying a function f of time which may either be a
@@ -1118,7 +1119,7 @@ class Transmissive_Momentum_Set_Stage_boundary(Boundary):
     def waveform(t): 
         return sea_level + normalized_amplitude/cosh(t-25)**2
 
-    Bts = Transmissive_Momentum_Set_Stage_boundary(domain, waveform)
+    Bts = Transmissive_momentum_set_stage_boundary(domain, waveform)
     
 
     Underlying domain must be specified when boundary is instantiated
@@ -1139,10 +1140,10 @@ class Transmissive_Momentum_Set_Stage_boundary(Boundary):
         self.function = function
 
     def __repr__(self):
-        return 'Transmissive_Momentum_Set_Stage_boundary(%s)' %self.domain
+        return 'Transmissive_momentum_set_stage_boundary(%s)' %self.domain
 
     def evaluate(self, vol_id, edge_id):
-        """Transmissive Momentum Set Stage boundaries return the edge momentum
+        """Transmissive momentum set stage boundaries return the edge momentum
         values of the volume they serve.
         """
 
@@ -1181,8 +1182,45 @@ class Transmissive_Momentum_Set_Stage_boundary(Boundary):
         #     return self.F(t)
 
 
+# Backward compatibility        
+# FIXME(Ole): Deprecate
+class Transmissive_Momentum_Set_Stage_boundary(Transmissive_momentum_set_stage_boundary):
+    pass
 
-class Dirichlet_Discharge_boundary(Boundary):
+     
+
+class Transmissive_stage_zero_momentum_boundary(Boundary):
+    """Return same stage as those present in its neighbour volume. Set momentum to zero.
+
+    Underlying domain must be specified when boundary is instantiated
+    """
+
+    def __init__(self, domain=None):
+        Boundary.__init__(self)
+
+        if domain is None:
+            msg = 'Domain must be specified for '
+            msg += 'Transmissive_stage_zero_momentum boundary'
+            raise Exception, msg
+
+        self.domain = domain
+
+    def __repr__(self):
+        return 'Transmissive_stage_zero_momentum_boundary(%s)' %self.domain
+
+    def evaluate(self, vol_id, edge_id):
+        """Transmissive boundaries return the edge values
+        of the volume they serve.
+        """
+
+        q = self.domain.get_conserved_quantities(vol_id, edge=edge_id)
+        
+        q[1] = q[2] = 0.0
+        return q
+
+
+        
+class Dirichlet_discharge_boundary(Boundary):
     """
     Sets stage (stage0)
     Sets momentum (wh0) in the inward normal direction.
@@ -1190,7 +1228,7 @@ class Dirichlet_Discharge_boundary(Boundary):
     Underlying domain must be specified when boundary is instantiated
     """
 
-    def __init__(self, domain = None, stage0=None, wh0=None):
+    def __init__(self, domain=None, stage0=None, wh0=None):
         Boundary.__init__(self)
 
         if domain is None:
@@ -1228,6 +1266,16 @@ class Dirichlet_Discharge_boundary(Boundary):
         #     return self.F(t)
 
 
+        
+# Backward compatibility        
+# FIXME(Ole): Deprecate
+class Dirichlet_Discharge_boundary(Dirichlet_discharge_boundary):
+    pass
+                                                   
+    
+
+        
+        
 class Field_boundary(Boundary):
     """Set boundary from given field represented in an sww file containing values
     for stage, xmomentum and ymomentum.

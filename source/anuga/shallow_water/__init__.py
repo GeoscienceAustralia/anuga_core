@@ -9,8 +9,12 @@ sys.path += __path__
 from shallow_water_domain import Domain,\
     Transmissive_boundary, Reflective_boundary,\
     Dirichlet_boundary, Time_boundary, File_boundary,\
-    Transmissive_Momentum_Set_Stage_boundary,\
-    Dirichlet_Discharge_boundary,\
+    Transmissive_momentum_set_stage_boundary,\
+    Dirichlet_discharge_boundary,\
     Field_boundary
 
 
+# FIXME (Ole): Deprecate
+from shallow_water_domain import Transmissive_Momentum_Set_Stage_boundary
+from shallow_water_domain import Dirichlet_Discharge_boundary
+ 

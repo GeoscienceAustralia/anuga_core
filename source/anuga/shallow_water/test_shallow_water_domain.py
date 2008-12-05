@@ -557,7 +557,85 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.check_integrity()
 
         
+
         
+    def test_boundary_conditionsIII(self):
+        """test_boundary_conditionsIII
+        
+        Test Transmissive_stage_zero_momentum_boundary
+        """
+        
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0,0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0,0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe
+        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4] ]
+        boundary = { (0, 0): 'Third',
+                     (0, 2): 'First',
+                     (2, 0): 'Second',
+                     (2, 1): 'Second',
+                     (3, 1): 'Second',
+                     (3, 2): 'Third'}
+
+
+        domain = Domain(points, vertices, boundary)
+        domain.check_integrity()
+
+
+        domain.set_quantity('stage', [[1,2,3], [5,5,5],
+                                      [0,0,9], [-6, 3, 3]])
+
+        domain.set_quantity('xmomentum', [[1,1,1], [2,2,2],
+                                          [3,3,3], [4, 4, 4]])
+
+        domain.set_quantity('ymomentum', [[10,10,10], [20,20,20],
+                                          [30,30,30], [40, 40, 40]])
+
+
+        D = Dirichlet_boundary([5,2,1])
+        T = Transmissive_stage_zero_momentum_boundary(domain)
+        R = Reflective_boundary(domain)
+        domain.set_boundary( {'First': D, 'Second': T, 'Third': R})
+
+        domain.update_boundary()
+
+        # Stage
+        assert domain.quantities['stage'].boundary_values[0] == 2.5
+        assert domain.quantities['stage'].boundary_values[0] ==\
+               domain.get_conserved_quantities(0, edge=0)[0] #Reflective (2.5)
+        assert domain.quantities['stage'].boundary_values[1] == 5. #Dirichlet
+        assert domain.quantities['stage'].boundary_values[2] ==\
+               domain.get_conserved_quantities(2, edge=0)[0] #Transmissive (4.5)
+        assert domain.quantities['stage'].boundary_values[3] ==\
+               domain.get_conserved_quantities(2, edge=1)[0] #Transmissive (4.5)
+        assert domain.quantities['stage'].boundary_values[4] ==\
+               domain.get_conserved_quantities(3, edge=1)[0] #Transmissive (-1.5)
+        assert domain.quantities['stage'].boundary_values[5] ==\
+               domain.get_conserved_quantities(3, edge=2)[0] #Reflective (-1.5)
+
+        # Xmomentum
+        assert domain.quantities['xmomentum'].boundary_values[0] == 1.0 #Reflective
+        assert domain.quantities['xmomentum'].boundary_values[1] == 2. #Dirichlet
+        assert domain.quantities['xmomentum'].boundary_values[2] == 0.0 
+        assert domain.quantities['xmomentum'].boundary_values[3] == 0.0 
+        assert domain.quantities['xmomentum'].boundary_values[4] == 0.0 
+        assert domain.quantities['xmomentum'].boundary_values[5] == -4.0  #Reflective
+
+        # Ymomentum
+        assert domain.quantities['ymomentum'].boundary_values[0] == -10.0 #Reflective
+        assert domain.quantities['ymomentum'].boundary_values[1] == 1.  #Dirichlet
+        assert domain.quantities['ymomentum'].boundary_values[2] == 0.0 
+        assert domain.quantities['ymomentum'].boundary_values[3] == 0.0 
+        assert domain.quantities['ymomentum'].boundary_values[4] == 0.0 
+        assert domain.quantities['ymomentum'].boundary_values[5] == 40. #Reflective
+
+                
+                
         
     def test_boundary_condition_time(self):
         """test_boundary_condition_time
