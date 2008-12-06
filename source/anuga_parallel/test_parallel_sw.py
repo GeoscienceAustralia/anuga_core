@@ -46,7 +46,7 @@ mesh_filename = "merimbula_10785_1.tsh"
 yieldstep = 1
 finaltime = 20
 quantity = 'stage'
-nprocs = 2
+nprocs = 4
 
 #--------------------------------------------------------------------------
 # Setup procedures
