@@ -14,17 +14,18 @@ Tested with MPICH and LAM (Ole)
 import unittest
 import os
 import sys
-import print_stats
+import pypar
 
 from Numeric import allclose, array, zeros, Float, take, nonzero
 
 from anuga.pmesh.mesh_interface import create_mesh_from_regions
+
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
-from anuga.utilities.numerical_tools import ensure_numeric
-from anuga.utilities.polygon import is_inside_polygon
 from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_to_domain_instance
-from anuga.utilities.util_ext import double_precision
-from anuga.utilities.norms import l1_norm, l2_norm, linf_norm
+
+from anuga.utilities.numerical_tools import ensure_numeric
+from anuga.utilities.util_ext        import double_precision
+from anuga.utilities.norms           import l1_norm, l2_norm, linf_norm
 
 from anuga.shallow_water import Domain
 from anuga.shallow_water import Reflective_boundary
@@ -32,9 +33,8 @@ from anuga.shallow_water import Dirichlet_boundary
 from anuga.shallow_water import Time_boundary
 from anuga.shallow_water import Transmissive_boundary
 
-import pypar
 
-from parallel_api import distribute, myid, numprocs
+from anuga_parallel.parallel_api import distribute, myid, numprocs
 
 
 #--------------------------------------------------------------------------
@@ -163,7 +163,6 @@ class Test_Parallel_Sw(unittest.TestCase):
     def testParallelSw(self):
         print "Expect this test to fail if not run from the parallel directory."
         result = os.system("mpirun -np %d python test_parallel_sw.py" % nprocs)
-        print 'result ',result
         assert_(result == 0)
 
 # Because we are doing assertions outside of the TestCase class
