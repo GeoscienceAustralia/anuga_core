@@ -121,19 +121,19 @@ class Domain(Mesh):
             self.other_quantities = other_quantities
 
 
-        #Build dictionary of Quantity instances keyed by quantity names
+        # Build dictionary of Quantity instances keyed by quantity names
         self.quantities = {}
 
-        #FIXME: remove later - maybe OK, though....
+        # FIXME: remove later - maybe OK, though....
         for name in self.conserved_quantities:
             self.quantities[name] = Quantity(self)
         for name in self.other_quantities:
             self.quantities[name] = Quantity(self)
 
-        #Create an empty list for explicit forcing terms
+        # Create an empty list for explicit forcing terms
         self.forcing_terms = []
 
-        #Setup the ghost cell communication
+        # Setup the ghost cell communication
         if full_send_dict is None:
             self.full_send_dict = {}
         else:
@@ -1219,7 +1219,6 @@ class Domain(Mesh):
         # Update ghosts
         self.update_ghosts()
 
-
         # Update time
         self.time += self.timestep
 
@@ -1559,7 +1558,6 @@ class Domain(Mesh):
             f(self)
 
 
-
     def update_conserved_quantities(self):
         """Update vectors of conserved quantities using previously
         computed fluxes specified forcing functions.
@@ -1581,7 +1579,8 @@ class Domain(Mesh):
             Q.update(timestep)
 
             # Note that Q.explicit_update is reset by compute_fluxes
-            # Where is Q.semi_implicit_update reset?
+            # Where is Q.semi_implicit_update reset? 
+            # It is reset in quantity_ext.c
             
 
     def update_ghosts(self):

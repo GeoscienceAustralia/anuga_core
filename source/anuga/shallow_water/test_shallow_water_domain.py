@@ -2826,6 +2826,68 @@ class Test_Shallow_Water(unittest.TestCase):
 
 
 
+        
+
+
+    def test_rainfall_forcing_with_evolve(self):
+        """test_rainfall_forcing_with_evolve
+
+        Test how forcing terms are called within evolve
+        """
+        
+        # FIXME(Ole): This test is just to experiment
+        
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe
+        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+
+        domain = Domain(points, vertices)
+
+        #Flat surface with 1m of water
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('stage', 1.0)
+        domain.set_quantity('friction', 0)
+
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'exterior': Br})
+
+        # Setup only one forcing term, time dependent rainfall that expires at t==20
+        from anuga.fit_interpolate.interpolate import Modeltime_too_late
+        def main_rate(t):
+            if t > 20:
+                msg = 'Model time exceeded.'
+                raise Modeltime_too_late, msg
+            else:
+                return 3*t + 7
+        
+        domain.forcing_terms = []
+        R = Rainfall(domain,
+                     rate=main_rate,
+                     polygon=[[1,1], [2,1], [2,2], [1,2]],
+                     default_rate=5.0)
+
+        assert allclose(R.exchange_area, 1)
+        
+        domain.forcing_terms.append(R)
+
+        for t in domain.evolve(yieldstep=1, finaltime=25):
+            pass
+            
+            #print t, domain.quantities['stage'].explicit_update, (3*t+7)/1000
+            
+            #FIXME(Ole):  A test here is hard because explicit_update also
+            # receives updates from the flux calculation.
+
+        
+        
 
     def test_inflow_using_circle(self):
         from math import pi, cos, sin
@@ -6384,7 +6446,8 @@ friction  \n \
         
 if __name__ == "__main__":
 
-    suite = unittest.makeSuite(Test_Shallow_Water,'test')
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test')
+    #suite = unittest.makeSuite(Test_Shallow_Water, 'test_rainfall_forcing_with_evolve')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_get_energy_through_cross_section_with_g')    
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_fitting_using_shallow_water_domain')    
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_tight_slope_limiters')

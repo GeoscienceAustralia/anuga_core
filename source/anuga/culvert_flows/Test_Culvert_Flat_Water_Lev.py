@@ -137,6 +137,7 @@ culvert = Culvert_flow(domain,
                        width=1.20,height=0.75,
                        culvert_routine=boyd_generalised_culvert_model,        
                        number_of_barrels=1,
+                       update_interval=2,
                        verbose=True)
 
 domain.forcing_terms.append(culvert)
@@ -157,9 +158,8 @@ domain.set_boundary({'left': Btus, 'right': Btds, 'top': Br, 'bottom': Br})
 # Evolve system through time
 #------------------------------------------------------------------------------
 
-for t in domain.evolve(yieldstep = 0.01, finaltime = 45):
-     if int(domain.time*100) % 100 == 0:
-	     domain.write_time()
+#for t in domain.evolve(yieldstep = 1, finaltime = 25):
+#    print domain.timestepping_statistics()
     
 
     
@@ -169,7 +169,7 @@ for t in domain.evolve(yieldstep = 0.01, finaltime = 45):
 import time
 t0 = time.time()
     
-s = 'for t in domain.evolve(yieldstep = 0.5, finaltime = 2): domain.write_time()'
+s = 'for t in domain.evolve(yieldstep = 1, finaltime = 25): domain.write_time()'
 
 import profile, pstats
 FN = 'profile.dat'

@@ -63,6 +63,7 @@ class Culvert_flow:
                  blockage_bottup=None,
                  culvert_routine=None,
                  number_of_barrels=1,
+                 update_interval=None,
                  verbose=False):
         
         from Numeric import sqrt, sum
@@ -190,6 +191,8 @@ class Culvert_flow:
         self.length = P['length']; assert self.length > 0.0
         self.verbose = verbose
         self.last_time = 0.0        
+        self.last_update = 0.0 # For use with update_interval        
+        self.update_interval = update_interval
         
 
         # Store hydraulic parameters 
@@ -231,6 +234,7 @@ class Culvert_flow:
         s = 'Culvert Direction is %s\n' %str(self.vector)
         log_to_file(self.log_filename, s)        
         
+        
     def __call__(self, domain):
         from anuga.utilities.numerical_tools import mean
         
@@ -243,175 +247,196 @@ class Culvert_flow:
          
         # Time stuff
         time = domain.get_time()
-        delta_t = time-self.last_time
-        s = '\nTime = %.2f, delta_t = %f' %(time, delta_t)
-        log_to_file(log_filename, s)
         
-        msg = 'Time did not advance'
-        if time > 0.0: assert delta_t > 0.0, msg
-
-
-        # Get average water depths at each opening        
-        openings = self.openings   # There are two Opening [0] and [1]
-        for i, opening in enumerate(openings):
-            dq = domain.quantities
-            
-            # Compute mean values of selected quantitites in the exchange area in front of the culvert
-            # Stage and velocity comes from enquiry area and elevation from exchange area
-            
-            stage = dq['stage'].get_values(location='centroids',
-                                           indices=opening.exchange_indices)            
-            w = mean(stage) # Average stage
-
-            # Use invert level instead of elevation if specified
-            invert_level = self.invert_levels[i]
-            if invert_level is not None:
-                z = invert_level
-            else:
-                elevation = dq['elevation'].get_values(location='centroids', indices=opening.exchange_indices)
-                z = mean(elevation) # Average elevation
-
-            # Estimated depth above the culvert inlet
-            d = w - z  # Used for calculations involving depth
-            if d < 0.0:
-                # This is possible since w and z are taken at different locations
-                #msg = 'D < 0.0: %f' %d
-                #raise msg
-                d = 0.0
-            
-
-            # Ratio of depth to culvert height.
-            # If ratio > 1 then culvert is running full
-            if self.culvert_type == 'circle':
-                ratio = d/self.diameter
-            else:    
-                ratio = d/self.height  
-            opening.ratio = ratio
-                
-                
-            # Average measures of energy in front of this opening
-            polyline = self.enquiry_polylines[i]
-            #print 't = %.4f, opening=%d,' %(domain.time, i),
-            opening.total_energy = domain.get_energy_through_cross_section(polyline,
-                                                                           kind='total')            
-            #print 'Et = %.3f m' %opening.total_energy
-
-            # Store current average stage and depth with each opening object
-            opening.depth = d
-            opening.depth_trigger = d # Use this for now
-            opening.stage = w
-            opening.elevation = z
-            
-
-        #################  End of the FOR loop ################################################
-
-            
-        # We now need to deal with each opening individually
-
-        # Determine flow direction based on total energy difference
-        delta_Et = openings[0].total_energy - openings[1].total_energy
-
-        if delta_Et > 0:
-            #print 'Flow U/S ---> D/S'
-            inlet = openings[0]
-            outlet = openings[1]
-
-            inlet.momentum = self.opening_momentum[0]
-            outlet.momentum = self.opening_momentum[1]
-
-        else:
-            #print 'Flow D/S ---> U/S'
-            inlet = openings[1]
-            outlet = openings[0]
-
-            inlet.momentum = self.opening_momentum[1]
-            outlet.momentum = self.opening_momentum[0]
-            
-            delta_Et = -delta_Et
-
-        msg = 'Total energy difference is negative'
-        assert delta_Et > 0.0, msg
-
-        delta_h = inlet.stage - outlet.stage
-        delta_z = inlet.elevation - outlet.elevation
-        culvert_slope = (delta_z/self.length)
-
-        if culvert_slope < 0.0:
-            # Adverse gradient - flow is running uphill
-            # Flow will be purely controlled by uphill outlet face
-            print 'WARNING: Flow is running uphill. Watch Out!', inlet.elevation, outlet.elevation
-
-
-        s = 'Delta total energy = %.3f' %(delta_Et)
-        log_to_file(log_filename, s)
-
-
-        # Calculate discharge for one barrel
-        Q, barrel_velocity, culvert_outlet_depth = self.culvert_routine(self, inlet, outlet, delta_Et, g)
         
-        # Adjust discharge for multiple barrels
-        Q *= self.number_of_barrels
+        update = False
+        if self.update_interval is None:
+            update = True
+        else:    
+            if time - self.last_update > self.update_interval or time == 0.0:
+                update = True
 
-        # Compute barrel momentum
-        barrel_momentum = barrel_velocity*culvert_outlet_depth
+        #print 'call', time, time - self.last_update
                 
-        s = 'Barrel velocity = %f' %barrel_velocity
-        log_to_file(log_filename, s)
-
-        # Compute momentum vector at outlet
-        outlet_mom_x, outlet_mom_y = self.vector * barrel_momentum
-            
-        s = 'Directional momentum = (%f, %f)' %(outlet_mom_x, outlet_mom_y)
-        log_to_file(log_filename, s)
-
-        # Log timeseries to file
-        fid = open(self.timeseries_filename, 'a')        
-        fid.write('%f, %f, %f, %f, %f\n'\
-                      %(time, 
-                        openings[0].total_energy,
-                        openings[1].total_energy,
-                        barrel_velocity,
-                        Q))
-        fid.close()
-
-        # Update momentum        
-        delta_t = time - self.last_time
-        if delta_t > 0.0:
-            xmomentum_rate = outlet_mom_x - outlet.momentum[0].value
-            xmomentum_rate /= delta_t
-                
-            ymomentum_rate = outlet_mom_y - outlet.momentum[1].value
-            ymomentum_rate /= delta_t
-                    
-            s = 'X Y MOM_RATE = (%f, %f) ' %(xmomentum_rate, ymomentum_rate)
-            log_to_file(log_filename, s)                    
-        else:
-            xmomentum_rate = ymomentum_rate = 0.0
-
-
-        # Set momentum rates for outlet jet
-        outlet.momentum[0].rate = xmomentum_rate
-        outlet.momentum[1].rate = ymomentum_rate
-
-        # Remember this value for next step (IMPORTANT)
-        outlet.momentum[0].value = outlet_mom_x
-        outlet.momentum[1].value = outlet_mom_y                    
-
-        if int(domain.time*100) % 100 == 0:
-            s = 'T=%.5f, Culvert Discharge = %.3f f'\
-                %(time, Q)
-            s += ' Depth= %0.3f  Momentum = (%0.3f, %0.3f)'\
-                 %(culvert_outlet_depth, outlet_mom_x,outlet_mom_y)
-            s += ' Momentum rate: (%.4f, %.4f)'\
-                 %(xmomentum_rate, ymomentum_rate)                    
-            s+='Outlet Vel= %.3f'\
-                %(barrel_velocity)
+                                
+        if update is True:
+            #print 'Updating', time, time - self.last_update
+            self.last_update = time
+        
+            delta_t = time-self.last_time
+            s = '\nTime = %.2f, delta_t = %f' %(time, delta_t)
             log_to_file(log_filename, s)
+        
+            msg = 'Time did not advance'
+            if time > 0.0: assert delta_t > 0.0, msg
+
+
+            # Get average water depths at each opening        
+            openings = self.openings   # There are two Opening [0] and [1]
+            for i, opening in enumerate(openings):
+                dq = domain.quantities
+                
+                # Compute mean values of selected quantitites in the 
+                # exchange area in front of the culvert
+                # Stage and velocity comes from enquiry area 
+                # and elevation from exchange area
+                
+                stage = dq['stage'].get_values(location='centroids',
+                                               indices=opening.exchange_indices)            
+                w = mean(stage) # Average stage
+
+                # Use invert level instead of elevation if specified
+                invert_level = self.invert_levels[i]
+                if invert_level is not None:
+                    z = invert_level
+                else:
+                    elevation = dq['elevation'].get_values(location='centroids', 
+                                                           indices=opening.exchange_indices)
+                    z = mean(elevation) # Average elevation
+
+                # Estimated depth above the culvert inlet
+                d = w - z  # Used for calculations involving depth
+                if d < 0.0:
+                    # This is possible since w and z are taken at different locations
+                    #msg = 'D < 0.0: %f' %d
+                    #raise msg
+                    d = 0.0
+                
+
+                # Ratio of depth to culvert height.
+                # If ratio > 1 then culvert is running full
+                if self.culvert_type == 'circle':
+                    ratio = d/self.diameter
+                else:    
+                    ratio = d/self.height  
+                opening.ratio = ratio
+                    
+                    
+                # Average measures of energy in front of this opening
+                polyline = self.enquiry_polylines[i]
+                #print 't = %.4f, opening=%d,' %(domain.time, i),
+                opening.total_energy = domain.get_energy_through_cross_section(polyline,
+                                                                               kind='total')            
+                #print 'Et = %.3f m' %opening.total_energy
+
+                # Store current average stage and depth with each opening object
+                opening.depth = d
+                opening.depth_trigger = d # Use this for now
+                opening.stage = w
+                opening.elevation = z
+                
+
+            #################  End of the FOR loop ################################################
+
+            # We now need to deal with each opening individually
+                
+            # Determine flow direction based on total energy difference
+            delta_Et = openings[0].total_energy - openings[1].total_energy
+
+            if delta_Et > 0:
+                #print 'Flow U/S ---> D/S'
+                inlet = openings[0]
+                outlet = openings[1]
+
+                inlet.momentum = self.opening_momentum[0]
+                outlet.momentum = self.opening_momentum[1]
+
+            else:
+                #print 'Flow D/S ---> U/S'
+                inlet = openings[1]
+                outlet = openings[0]
+
+                inlet.momentum = self.opening_momentum[1]
+                outlet.momentum = self.opening_momentum[0]
+                
+                delta_Et = -delta_Et
+
+            self.inlet = inlet
+            self.outlet = outlet
+                
+            msg = 'Total energy difference is negative'
+            assert delta_Et > 0.0, msg
+
+            delta_h = inlet.stage - outlet.stage
+            delta_z = inlet.elevation - outlet.elevation
+            culvert_slope = (delta_z/self.length)
+
+            if culvert_slope < 0.0:
+                # Adverse gradient - flow is running uphill
+                # Flow will be purely controlled by uphill outlet face
+                if self.verbose is True:
+                    print 'WARNING: Flow is running uphill. Watch Out!', inlet.elevation, outlet.elevation
+
+
+            s = 'Delta total energy = %.3f' %(delta_Et)
+            log_to_file(log_filename, s)
+
+
+            # Calculate discharge for one barrel and set inlet.rate and outlet.rate
+            Q, barrel_velocity, culvert_outlet_depth = self.culvert_routine(self, inlet, outlet, delta_Et, g)
+        
+            # Adjust discharge for multiple barrels
+            Q *= self.number_of_barrels
+
+            # Compute barrel momentum
+            barrel_momentum = barrel_velocity*culvert_outlet_depth
+                    
+            s = 'Barrel velocity = %f' %barrel_velocity
+            log_to_file(log_filename, s)
+
+            # Compute momentum vector at outlet
+            outlet_mom_x, outlet_mom_y = self.vector * barrel_momentum
+                
+            s = 'Directional momentum = (%f, %f)' %(outlet_mom_x, outlet_mom_y)
+            log_to_file(log_filename, s)
+
+            # Log timeseries to file
+            fid = open(self.timeseries_filename, 'a')        
+            fid.write('%f, %f, %f, %f, %f\n'\
+                          %(time, 
+                            openings[0].total_energy,
+                            openings[1].total_energy,
+                            barrel_velocity,
+                            Q))
+            fid.close()
+
+            # Update momentum        
+            delta_t = time - self.last_time
+            if delta_t > 0.0:
+                xmomentum_rate = outlet_mom_x - outlet.momentum[0].value
+                xmomentum_rate /= delta_t
+                    
+                ymomentum_rate = outlet_mom_y - outlet.momentum[1].value
+                ymomentum_rate /= delta_t
+                        
+                s = 'X Y MOM_RATE = (%f, %f) ' %(xmomentum_rate, ymomentum_rate)
+                log_to_file(log_filename, s)                    
+            else:
+                xmomentum_rate = ymomentum_rate = 0.0
+
+
+            # Set momentum rates for outlet jet
+            outlet.momentum[0].rate = xmomentum_rate
+            outlet.momentum[1].rate = ymomentum_rate
+
+            # Remember this value for next step (IMPORTANT)
+            outlet.momentum[0].value = outlet_mom_x
+            outlet.momentum[1].value = outlet_mom_y                    
+
+            if int(domain.time*100) % 100 == 0:
+                s = 'T=%.5f, Culvert Discharge = %.3f f'\
+                    %(time, Q)
+                s += ' Depth= %0.3f  Momentum = (%0.3f, %0.3f)'\
+                     %(culvert_outlet_depth, outlet_mom_x,outlet_mom_y)
+                s += ' Momentum rate: (%.4f, %.4f)'\
+                     %(xmomentum_rate, ymomentum_rate)                    
+                s+='Outlet Vel= %.3f'\
+                    %(barrel_velocity)
+                log_to_file(log_filename, s)
             
                 
 
 
-       
         # Execute flow term for each opening
         # This is where Inflow objects are evaluated and update the domain
         for opening in self.openings:
@@ -419,10 +444,10 @@ class Culvert_flow:
 
         # Execute momentum terms
         # This is where Inflow objects are evaluated and update the domain
-        outlet.momentum[0](domain)
-        outlet.momentum[1](domain)        
+        self.outlet.momentum[0](domain)
+        self.outlet.momentum[1](domain)        
             
-        # Store value of time    
+        # Store value of time #FIXME(Ole): Maybe only every time we update   
         self.last_time = time
 
 
