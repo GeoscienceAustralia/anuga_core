@@ -1,9 +1,8 @@
-Name, type, width or diameter, height, length, losses, description 	
-Test Culvert, box, 3, 1.8, 5, 1, 50% blocked test case
+Name, type, width or diameter, height, length, number of barrels, losses, description 	
+Test Culvert, box, 3, 1.8, 4, 1, 1, 50% blocked single barrel test case
 
 
-Rating Curve
-Delta W (m), Q (m3/s), Velocity (m/s)
+Rating Curve: Delta W (m), Q (m3/s), Velocity (m/s)
 0,0,0
 0.1,0.720243203,0.800270226
 0.2,1.018577706,1.131753007

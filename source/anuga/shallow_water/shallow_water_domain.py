@@ -1981,7 +1981,7 @@ class Rainfall(General_forcing):
     # Setup specialised forcing terms
     #------------------------------------------------------------------------
     # This is the new element implemented by Ole and Rudy to allow direct
-    # input of Inflow in mm/s
+    # input of Rainfall in mm/s
 
     catchmentrainfall = Rainfall(rain=file_function('Q100_2hr_Rain.tms'))  
                         # Note need path to File in String.

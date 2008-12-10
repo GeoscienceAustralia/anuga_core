@@ -60,17 +60,6 @@ def topography(x, y):
     # General Slope of Topography
     z=-x/1000
     
-	# Changing Slopes in the X- Direction
-    # N = len(x)
-    # for i in range(N):
-    #     if 0 <x[i] < 5.1:
-    #         z[i] -= -x[i]/10
-    #     if 5 <x[i] < 10.1:
-    #         z[i] -= -x[i]/100                              
-    #     if 10 <x[i]: 
-    #         z[i] -= -x[i]/20                            
-    # return z
-
     #       NOW Add bits and Pieces to topography
     N = len(x)
     for i in range(N):
@@ -90,21 +79,6 @@ def topography(x, y):
                z[i] +=  2.5-1.0*(x[i] -12.0)       # Sloping D/S Face
         		   
         
-        # Constriction
-        #if 27 < x[i] < 29 and y[i] > 3:
-        #    z[i] += 2        
-        
-        # Pole
-        #if (x[i] - 34)**2 + (y[i] - 2)**2 < 0.4**2:
-        #    z[i] += 2
-
-        # HOLE For Pit at Opening[0]
-        #if (x[i]-4)**2 + (y[i]-1.5)**2<0.75**2:
-         #  z[i]-=1		
-
-	   # HOLE For Pit at Opening[1]
-        #if (x[i]-20)**2 + (y[i]-3.5)**2<0.5**2:
-         #  z[i]-=1		
 		
     return z
 
@@ -130,15 +104,22 @@ print 'DEFINING any Structures if Required'
 
 
 culvert = Culvert_flow(domain,
-                       label='Culvert No. 1',
-                       description='This culvert is a test unit 1.2m Wide by 0.75m High',   
+                       culvert_description_filename='example_rating_curve.csv',
                        end_point0=[9.0, 2.5], 
                        end_point1=[13.0, 2.5],
-                       width=1.20,height=0.75,
-                       culvert_routine=boyd_generalised_culvert_model,        
-                       number_of_barrels=1,
-                       update_interval=2,
                        verbose=True)
+
+
+#culvert = Culvert_flow(domain,
+#                       label='Culvert No. 1',
+#                       description='This culvert is a test unit 1.2m Wide by 0.75m High',   
+#                       end_point0=[9.0, 2.5], 
+#                       end_point1=[13.0, 2.5],
+#                       width=1.20,height=0.75,
+#                       culvert_routine=boyd_generalised_culvert_model,        
+#                       number_of_barrels=1,
+#                       update_interval=2,
+#                       verbose=True)
 
 domain.forcing_terms.append(culvert)
 
