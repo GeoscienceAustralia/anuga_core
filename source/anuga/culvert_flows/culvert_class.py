@@ -88,7 +88,7 @@ def read_culvert_description(culvert_description_filename):
     return label, type, width, height, length, number_of_barrels, description, rating_curve
     
 
-class Culvert_flow:
+class Culvert_flow_rating:
     """Culvert flow - transfer water from one hole to another
     
 
@@ -527,6 +527,45 @@ class Culvert_flow_energy:
             #              figname='culvert_polygon_output')
             #import sys; sys.exit()                           
 
+            
+        # Compute the average point for enquiry
+        enquiry_point0 = sum(P['enquiry_polygon0'][:2])/2 
+        enquiry_point1 = sum(P['enquiry_polygon1'][:2])/2         
+        
+        self.enquiry_points = [enquiry_point0, enquiry_point1]                           
+        self.enquiry_indices = []                  
+        for point in self.enquiry_points:
+            # Find nearest centroid 
+            N = len(domain)    
+            points = domain.get_centroid_coordinates(absolute=True)
+
+            # Calculate indices in exchange area for this forcing term
+            
+            triangle_id = min_dist = sys.maxint
+            for k in range(N):
+                x, y = points[k,:] # Centroid
+
+                c = point                                
+                distance = (x-c[0])**2+(y-c[1])**2
+                if distance < min_dist:
+                    min_dist = distance
+                    triangle_id = k
+
+                    
+            if triangle_id < sys.maxint:
+                msg = 'found triangle with centroid (%f, %f)'\
+                    %tuple(points[triangle_id, :])
+                msg += ' for point (%f, %f)' %tuple(point)
+                
+                self.enquiry_indices.append(triangle_id)
+            else:
+                msg = 'Triangle not found for point (%f, %f)' %point
+                raise Exception, msg
+        
+                          
+
+            
+            
 
         # Check that all polygons lie within the mesh.
         bounding_polygon = domain.get_boundary_polygon()
@@ -687,10 +726,28 @@ class Culvert_flow_energy:
                     
                     
                 # Average measures of energy in front of this opening
-                polyline = self.enquiry_polylines[i]
-                #print 't = %.4f, opening=%d,' %(domain.time, i),
-                opening.total_energy = domain.get_energy_through_cross_section(polyline,
-                                                                               kind='total')            
+                #polyline = self.enquiry_polylines[i]
+                #opening.total_energy = domain.get_energy_through_cross_section(polyline,
+                #                                                               kind='total')            
+                
+                id = [self.enquiry_indices[i]]
+                stage = dq['stage'].get_values(location='centroids',
+                                               indices=id)
+                elevation = dq['elevation'].get_values(location='centroids',
+                                               indices=id)                                               
+                xmomentum = dq['xmomentum'].get_values(location='centroids',
+                                               indices=id)                                               
+                ymomentum = dq['xmomentum'].get_values(location='centroids',
+                                                       indices=id)                                                                                              
+                depth = stage-elevation
+                if depth > 0.0:
+                    u = xmomentum/(depth + velocity_protection/depth)
+                    v = ymomentum/(depth + velocity_protection/depth)
+                else:
+                    u = v = 0.0
+
+                    
+                opening.total_energy = 0.5*(u*u + v*v)/g + stage
                 #print 'Et = %.3f m' %opening.total_energy
 
                 # Store current average stage and depth with each opening object
@@ -825,4 +882,4 @@ class Culvert_flow_energy:
         self.last_time = time
 
 
-        
+Culvert_flow = Culvert_flow_rating        
