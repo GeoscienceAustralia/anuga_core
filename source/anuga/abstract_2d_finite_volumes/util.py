@@ -1,3 +1,4 @@
+#12345678901234567890123456789012345678901234567890123456789012345678901234567890
 """This module contains various auxiliary function used by pyvolution.
 
 It is also a clearing house for functions that may later earn a module
@@ -14,18 +15,31 @@ from warnings import warn
 from shutil import copy
 
 from anuga.utilities.numerical_tools import ensure_numeric
+from Scientific.IO.NetCDF import NetCDFFile
 from Numeric import arange, choose, zeros, Float, array, allclose, take, compress
     
 from anuga.geospatial_data.geospatial_data import ensure_absolute
 from math import sqrt, atan, degrees
 
-
-
-# FIXME (Ole): Temporary short cuts - remove and update scripts where they are used
+# FIXME (Ole): Temporary short cuts -
+# FIXME (Ole): remove and update scripts where they are used
 from anuga.utilities.system_tools import get_revision_number
 from anuga.utilities.system_tools import store_version_info
 
 
+##
+# @brief Read time history of data from NetCDF file, return callable object.
+# @param filename  Name of .sww or .tms file.
+# @param domain Associated domain object.
+# @param quantities Name of quantity to be interpolated or a list of names.
+# @param interpolation_points List of absolute UTM coordinates for points
+#                             (N x 2) or geospatial object or
+#                             points file name at which values are sought.
+# @param time_thinning 
+# @param verbose True if this function is to be verbose.
+# @param use_cache True means that caching of intermediate result is attempted.
+# @param boundary_polygon 
+# @return A callable object.
 def file_function(filename,
                   domain=None,
                   quantities=None,
@@ -68,14 +82,20 @@ def file_function(filename,
 
     interpolation_points - list of absolute UTM coordinates for points (N x 2)
     or geospatial object or points file name at which values are sought
-    
+
+    time_thinning - 
+
+    verbose - 
+
     use_cache: True means that caching of intermediate result of
                Interpolation_function is attempted
 
-    
-    See Interpolation function in anuga.fit_interpolate.interpolation for further documentation
-    """
+    boundary_polygon - 
 
+    
+    See Interpolation function in anuga.fit_interpolate.interpolation for
+    further documentation
+    """
 
     # FIXME (OLE): Should check origin of domain against that of file
     # In fact, this is where origin should be converted to that of domain
@@ -89,11 +109,9 @@ def file_function(filename,
     if quantities is None:
         if verbose:
             msg = 'Quantities specified in file_function are None,'
-            msg += ' so I will use stage, xmomentum, and ymomentum in that order.'
+            msg += ' so I will use stage, xmomentum, and ymomentum in that order'
             print msg
-
         quantities = ['stage', 'xmomentum', 'ymomentum']
-            
 
     # Use domain's startime if available
     if domain is not None:    
@@ -101,10 +119,8 @@ def file_function(filename,
     else:
         domain_starttime = None
 
-
     # Build arguments and keyword arguments for use with caching or apply.
     args = (filename,)
-
 
     # FIXME (Ole): Caching this function will not work well
     # if domain is passed in as instances change hash code.
@@ -116,7 +132,6 @@ def file_function(filename,
               'time_thinning': time_thinning,                   
               'verbose': verbose,
               'boundary_polygon': boundary_polygon}
-
 
     # Call underlying engine with or without caching
     if use_cache is True:
@@ -132,11 +147,9 @@ def file_function(filename,
                              dependencies=[filename],
                              compression=False,                  
                              verbose=verbose)
-
     else:
         f, starttime = apply(_file_function,
                              args, kwargs)
-
 
     #FIXME (Ole): Pass cache arguments, such as compression, in some sort of
     #structure
@@ -154,14 +167,26 @@ def file_function(filename,
             msg += ' Modifying domain starttime accordingly.'
             
             if verbose: print msg
+
             domain.set_starttime(starttime) #Modifying model time
+
             if verbose: print 'Domain starttime is now set to %f'\
                %domain.starttime
-
     return f
 
 
-
+##
+# @brief ??
+# @param filename  Name of .sww or .tms file.
+# @param domain Associated domain object.
+# @param quantities Name of quantity to be interpolated or a list of names.
+# @param interpolation_points List of absolute UTM coordinates for points
+#                             (N x 2) or geospatial object or
+#                             points file name at which values are sought.
+# @param time_thinning 
+# @param verbose True if this function is to be verbose.
+# @param use_cache True means that caching of intermediate result is attempted.
+# @param boundary_polygon 
 def _file_function(filename,
                    quantities=None,
                    interpolation_points=None,
@@ -173,7 +198,6 @@ def _file_function(filename,
     
     See file_function for documentatiton
     """
-    
 
     assert type(filename) == type(''),\
                'First argument to File_function must be a string'
@@ -181,13 +205,12 @@ def _file_function(filename,
     try:
         fid = open(filename)
     except Exception, e:
-        msg = 'File "%s" could not be opened: Error="%s"'\
-                  %(filename, e)
+        msg = 'File "%s" could not be opened: Error="%s"' % (filename, e)
         raise msg
 
+    # read first line of file, guess file type
     line = fid.readline()
     fid.close()
-
 
     if line[:3] == 'CDF':
         return get_netcdf_file_function(filename,
@@ -198,12 +221,24 @@ def _file_function(filename,
                                         verbose=verbose,
                                         boundary_polygon=boundary_polygon)
     else:
-        # FIXME (Ole): Could add csv file here to address Ted Rigby's suggestion about reading hydrographs.
+        # FIXME (Ole): Could add csv file here to address Ted Rigby's
+        # suggestion about reading hydrographs.
         # This may also deal with the gist of ticket:289 
         raise 'Must be a NetCDF File'
 
 
-
+##
+# @brief ??
+# @param filename  Name of .sww or .tms file.
+# @param quantity_names Name of quantity to be interpolated or a list of names.
+# @param interpolation_points List of absolute UTM coordinates for points
+#                             (N x 2) or geospatial object or
+#                             points file name at which values are sought.
+# @param domain_starttime Start time from domain object.
+# @param time_thinning ??
+# @param verbose True if this function is to be verbose.
+# @param boundary_polygon ??
+# @return A callable object.
 def get_netcdf_file_function(filename,
                              quantity_names=None,
                              interpolation_points=None,
@@ -221,25 +256,22 @@ def get_netcdf_file_function(filename,
     All times are assumed to be in UTC
 
     See Interpolation function for further documetation
-    
     """
-    
-    
+
     # FIXME: Check that model origin is the same as file's origin
     # (both in UTM coordinates)
     # If not - modify those from file to match domain
     # (origin should be passed in)
     # Take this code from e.g. dem2pts in data_manager.py
     # FIXME: Use geo_reference to read and write xllcorner...
-        
 
     import time, calendar, types
     from anuga.config import time_format
-    from Scientific.IO.NetCDF import NetCDFFile
     from Numeric import array, zeros, Float, alltrue, concatenate, reshape
 
     # Open NetCDF file
     if verbose: print 'Reading', filename
+
     fid = NetCDFFile(filename, 'r')
 
     if type(quantity_names) == types.StringType:
@@ -248,13 +280,11 @@ def get_netcdf_file_function(filename,
     if quantity_names is None or len(quantity_names) < 1:
         msg = 'No quantities are specified in file_function'
         raise Exception, msg
-
  
     if interpolation_points is not None:
         interpolation_points = ensure_absolute(interpolation_points)
-        msg = 'Points must by N x 2. I got %d' %interpolation_points.shape[1]
+        msg = 'Points must by N x 2. I got %d' % interpolation_points.shape[1]
         assert interpolation_points.shape[1] == 2, msg
-
 
     # Now assert that requested quantitites (and the independent ones)
     # are present in file 
@@ -265,7 +295,7 @@ def get_netcdf_file_function(filename,
 
     if len(missing) > 0:
         msg = 'Quantities %s could not be found in file %s'\
-              %(str(missing), filename)
+              % (str(missing), filename)
         fid.close()
         raise Exception, msg
 
@@ -345,12 +375,15 @@ def get_netcdf_file_function(filename,
                     gauge_neighbour_id.append(i+1)
                 else:
                     gauge_neighbour_id.append(-1)
-            if boundary_id[len(boundary_id)-1]==len(boundary_polygon)-1 and boundary_id[0]==0:
+            if boundary_id[len(boundary_id)-1]==len(boundary_polygon)-1 \
+               and boundary_id[0]==0:
                 gauge_neighbour_id.append(0)
             else:
                 gauge_neighbour_id.append(-1)
             gauge_neighbour_id=ensure_numeric(gauge_neighbour_id)
-            if len(compress(gauge_neighbour_id>=0,gauge_neighbour_id))!=len(temp)-1:
+
+            if len(compress(gauge_neighbour_id>=0,gauge_neighbour_id)) \
+               != len(temp)-1:
                 msg='incorrect number of segments'
                 raise msg
             vertex_coordinates=ensure_numeric(temp)
@@ -364,12 +397,10 @@ def get_netcdf_file_function(filename,
             # Adjust for georef
             interpolation_points[:,0] -= xllcorner
             interpolation_points[:,1] -= yllcorner        
-    
     else:
         gauge_neighbour_id=None
         
     if domain_starttime is not None:
-
         # If domain_startime is *later* than starttime,
         # move time back - relative to domain's time
         if domain_starttime > starttime:
@@ -413,21 +444,26 @@ def get_netcdf_file_function(filename,
 
     # Return Interpolation_function instance as well as
     # starttime for use to possible modify that of domain
-    return Interpolation_function(time,
-                                  quantities,
-                                  quantity_names,
-                                  vertex_coordinates,
-                                  triangles,
-                                  interpolation_points,
-                                  time_thinning=time_thinning,
-                                  verbose=verbose,gauge_neighbour_id=gauge_neighbour_id), starttime
+    return (Interpolation_function(time,
+                                   quantities,
+                                   quantity_names,
+                                   vertex_coordinates,
+                                   triangles,
+                                   interpolation_points,
+                                   time_thinning=time_thinning,
+                                   verbose=verbose,
+                                   gauge_neighbour_id=gauge_neighbour_id),
+            starttime)
 
     # NOTE (Ole): Caching Interpolation function is too slow as
     # the very long parameters need to be hashed.
 
 
-
-
+##
+# @brief Replace multiple substrings in a string.
+# @param text The string to operate on.
+# @param dictionary A dict containing replacements, key->value.
+# @return The new string.
 def multiple_replace(text, dictionary):
     """Multiple replace of words in text
 
@@ -435,6 +471,7 @@ def multiple_replace(text, dictionary):
     dictionary: Mapping of words that are to be substituted
 
     Python Cookbook 3.14 page 88 and page 90
+    http://code.activestate.com/recipes/81330/
     """
 
     import re
@@ -449,14 +486,15 @@ def multiple_replace(text, dictionary):
     return regex.sub(lambda match: dictionary[match.group(0)], text)
 
 
-
-
-def apply_expression_to_dictionary(expression, dictionary):#dictionary):
+##
+# @brief Apply arbitrary expressions to the values of a dict.
+# @param expression A string expression to apply.
+# @param dictionary The dictionary to apply the expression to.
+def apply_expression_to_dictionary(expression, dictionary):
     """Apply arbitrary expression to values of dictionary
 
     Given an expression in terms of the keys, replace key by the
     corresponding values and evaluate.
-   
 
     expression: Arbitrary, e.g. arithmetric, expression relating keys
                 from dictionary. 
@@ -466,7 +504,7 @@ def apply_expression_to_dictionary(expression, dictionary):#dictionary):
                 Values in dictionary must support operators given in
                 expression e.g. by overloading
 
-    due to a limitation with Numeric, this can not evaluate 0/0
+    Due to a limitation with Numeric, this can not evaluate 0/0
     In general, the user can fix by adding 1e-30 to the numerator.
     SciPy core can handle this situation.
     """
@@ -480,7 +518,7 @@ def apply_expression_to_dictionary(expression, dictionary):#dictionary):
     #Convert dictionary values to textual representations suitable for eval
     D = {}
     for key in dictionary:
-        D[key] = 'dictionary["%s"]' %key
+        D[key] = 'dictionary["%s"]' % key
 
     #Perform substitution of variables    
     expression = multiple_replace(expression, D)
@@ -489,13 +527,18 @@ def apply_expression_to_dictionary(expression, dictionary):#dictionary):
     try:
         return eval(expression)
     except NameError, e:
-        msg = 'Expression "%s" could not be evaluated: %s' %(expression, e)
+        msg = 'Expression "%s" could not be evaluated: %s' % (expression, e)
         raise NameError, msg
     except ValueError, e:
-        msg = 'Expression "%s" could not be evaluated: %s' %(expression, e)
+        msg = 'Expression "%s" could not be evaluated: %s' % (expression, e)
         raise ValueError, msg
-    
 
+
+##
+# @brief Format a float into a string.
+# @param value Float value to format.
+# @param format The format to use (%.2f is default).
+# @return The formatted float as a string.
 def get_textual_float(value, format = '%.2f'):
     """Get textual representation of floating point numbers
     and accept None as valid entry
@@ -520,14 +563,14 @@ def get_textual_float(value, format = '%.2f'):
             else:
                 raise 'Illegal input to get_textual_float:', value
         else:
-            return format %float(value)
+            return format % float(value)
 
 
+#################################################################################
+# OBSOLETE STUFF
+#################################################################################
 
-####################################
-####OBSOLETE STUFF
-
-
+# @note TEMP
 def angle(v1, v2):
     """Temporary Interface to new location"""
 
@@ -538,7 +581,9 @@ def angle(v1, v2):
     warn(msg, DeprecationWarning) 
 
     return NT.angle(v1, v2)
+
     
+# @note TEMP
 def anglediff(v0, v1):
     """Temporary Interface to new location"""
 
@@ -551,6 +596,7 @@ def anglediff(v0, v1):
     return NT.anglediff(v0, v1)    
 
     
+# @note TEMP
 def mean(x):
     """Temporary Interface to new location"""
 
@@ -562,6 +608,8 @@ def mean(x):
 
     return NT.mean(x)    
 
+
+# @note TEMP
 def point_on_line(*args, **kwargs):
     """Temporary Interface to new location"""
 
@@ -570,7 +618,9 @@ def point_on_line(*args, **kwargs):
     warn(msg, DeprecationWarning) 
 
     return utilities.polygon.point_on_line(*args, **kwargs)	
+
     
+# @note TEMP
 def inside_polygon(*args, **kwargs):
     """Temporary Interface to new location"""
 
@@ -578,7 +628,9 @@ def inside_polygon(*args, **kwargs):
     print 'Please use "from anuga.utilities.polygon import inside_polygon"'
 
     return utilities.polygon.inside_polygon(*args, **kwargs)    
+
     
+# @note TEMP
 def outside_polygon(*args, **kwargs):
     """Temporary Interface to new location"""
 
@@ -588,16 +640,18 @@ def outside_polygon(*args, **kwargs):
     return utilities.polygon.outside_polygon(*args, **kwargs)    
 
 
+# @note TEMP
 def separate_points_by_polygon(*args, **kwargs):
     """Temporary Interface to new location"""
 
     print 'separate_points_by_polygon has moved from util.py.  ',
-    print 'Please use "from anuga.utilities.polygon import separate_points_by_polygon"'
+    print 'Please use "from anuga.utilities.polygon import ' \
+          'separate_points_by_polygon"'
 
     return utilities.polygon.separate_points_by_polygon(*args, **kwargs)    
 
 
-
+# @note TEMP
 def read_polygon(*args, **kwargs):
     """Temporary Interface to new location"""
 
@@ -607,6 +661,7 @@ def read_polygon(*args, **kwargs):
     return utilities.polygon.read_polygon(*args, **kwargs)    
 
 
+# @note TEMP
 def populate_polygon(*args, **kwargs):
     """Temporary Interface to new location"""
 
@@ -615,36 +670,58 @@ def populate_polygon(*args, **kwargs):
 
     return utilities.polygon.populate_polygon(*args, **kwargs)    
 
-##################### end of obsolete stuff ? ############
 
+#################################################################################
+# End of obsolete stuff ?
+#################################################################################
+
+# @note TEMP
 def start_screen_catcher(dir_name, myid='', numprocs='', extra_info='',
                          verbose=False):
     """Temporary Interface to new location"""
-    from anuga.shallow_water.data_manager import start_screen_catcher as dm_start_screen_catcher
+    from anuga.shallow_water.data_manager import start_screen_catcher \
+         as dm_start_screen_catcher
 
     print 'start_screen_catcher has moved from util.py.  ',
-    print 'Please use "from anuga.shallow_water.data_manager import start_screen_catcher"'
+    print 'Please use "from anuga.shallow_water.data_manager import ' \
+          'start_screen_catcher"'
     
-    return dm_start_screen_catcher(dir_name, myid='', numprocs='', extra_info='',
-                         verbose=False)
+    return dm_start_screen_catcher(dir_name, myid='', numprocs='',
+                                   extra_info='', verbose=False)
 
 
+##
+# @brief Read a .sww file and plot the time series.
+# @param swwfiles Dictionary of .sww files.
+# @param gauge_filename Name of gauge file.
+# @param production_dirs ??
+# @param report If True, write figures to report directory.
+# @param reportname Name of generated report (if any).
+# @param plot_quantity List containing quantities to plot.
+# @param generate_fig If True, generate figures as well as CSV files.
+# @param surface If True, then generate solution surface with 3d plot.
+# @param time_min Beginning of user defined time range for plotting purposes.
+# @param time_max End of user defined time range for plotting purposes.
+# @param time_thinning ??
+# @param time_unit ??
+# @param title_on If True, export standard graphics with title.
+# @param use_cache If True, use caching.
+# @param verbose If True, this function is verbose.
 def sww2timeseries(swwfiles,
                    gauge_filename,
                    production_dirs,
-                   report = None,
-                   reportname = None,
-                   plot_quantity = None,
-                   generate_fig = False,
-                   surface = None,
-                   time_min = None,
-                   time_max = None,
-                   time_thinning = 1,                   
-                   time_unit = None,
-                   title_on = None,
-                   use_cache = False,
-                   verbose = False):
-    
+                   report=None,
+                   reportname=None,
+                   plot_quantity=None,
+                   generate_fig=False,
+                   surface=None,
+                   time_min=None,
+                   time_max=None,
+                   time_thinning=1,                   
+                   time_unit=None,
+                   title_on=None,
+                   use_cache=False,
+                   verbose=False):
     """ Read sww file and plot the time series for the
     prescribed quantities at defined gauge locations and
     prescribed time range.
@@ -654,8 +731,8 @@ def sww2timeseries(swwfiles,
     swwfiles        - dictionary of sww files with label_ids (used in
                       generating latex output. It will be part of
                       the directory name of file_loc (typically the timestamp).
-                      Helps to differentiate latex files for different simulations
-                      for a particular scenario.  
+                      Helps to differentiate latex files for different
+                      simulations for a particular scenario.  
                     - assume that all conserved quantities have been stored
                     - assume each sww file has been simulated with same timestep
     
@@ -667,8 +744,8 @@ def sww2timeseries(swwfiles,
                       
     production_dirs -  A list of list, example {20061101_121212: '1 in 10000', 
                                                 'boundaries': 'urs boundary'}
-                      this will use the second part as the label and the first part 
-                      as the ?
+                      this will use the second part as the label and the
+                      first part as the ?
                       #FIXME: Is it a list or a dictionary
                       # This is probably obsolete by now
                      
@@ -695,7 +772,7 @@ def sww2timeseries(swwfiles,
                         - y momentum; 'ymomentum'
                     - default will be ['stage', 'speed', 'bearing']
 
-    generate_fig     - if True, generate figures as well as csv files of quantities
+    generate_fig     - if True, generate figures as well as csv file
                      - if False, csv files created only
                      
     surface          - if True, then generate solution surface with 3d plot
@@ -712,7 +789,6 @@ def sww2timeseries(swwfiles,
                     - if False, export standard graphics without title
 
 
-                      
     Output:
     
     - time series data stored in .csv for later use if required.
@@ -742,9 +818,9 @@ def sww2timeseries(swwfiles,
     
     """
 
-    msg = 'NOTE: A new function is available to create csv files from sww files called'
-    msg += 'sww2csv_gauges in anuga.abstract_2d_finite_volumes.util'
-    msg += 'PLUS another new function to create graphs from csv files called'   
+    msg = 'NOTE: A new function is available to create csv files from sww '
+    msg += 'files called sww2csv_gauges in anuga.abstract_2d_finite_volumes.util'
+    msg += ' PLUS another new function to create graphs from csv files called '
     msg += 'csv2timeseries_graphs in anuga.abstract_2d_finite_volumes.util'
     print msg
     
@@ -763,9 +839,26 @@ def sww2timeseries(swwfiles,
                         title_on,
                         use_cache,
                         verbose)
-
     return k
 
+
+##
+# @brief Read a .sww file and plot the time series.
+# @param swwfiles Dictionary of .sww files.
+# @param gauge_filename Name of gauge file.
+# @param production_dirs ??
+# @param report If True, write figures to report directory.
+# @param reportname Name of generated report (if any).
+# @param plot_quantity List containing quantities to plot.
+# @param generate_fig If True, generate figures as well as CSV files.
+# @param surface If True, then generate solution surface with 3d plot.
+# @param time_min Beginning of user defined time range for plotting purposes.
+# @param time_max End of user defined time range for plotting purposes.
+# @param time_thinning ??
+# @param time_unit ??
+# @param title_on If True, export standard graphics with title.
+# @param use_cache If True, use caching.
+# @param verbose If True, this function is verbose.
 def _sww2timeseries(swwfiles,
                     gauge_filename,
                     production_dirs,
@@ -782,14 +875,12 @@ def _sww2timeseries(swwfiles,
                     use_cache = False,
                     verbose = False):   
         
-    assert type(gauge_filename) == type(''),\
-           'Gauge filename must be a string'
+    assert type(gauge_filename) == type(''), 'Gauge filename must be a string'
     
     try:
         fid = open(gauge_filename)
     except Exception, e:
-        msg = 'File "%s" could not be opened: Error="%s"'\
-                  %(gauge_filename, e)
+        msg = 'File "%s" could not be opened: Error="%s"' % (gauge_filename, e)
         raise msg
 
     if report is None:
@@ -798,8 +889,7 @@ def _sww2timeseries(swwfiles,
     if plot_quantity is None:
         plot_quantity = ['depth', 'speed']
     else:
-        assert type(plot_quantity) == list,\
-               'plot_quantity must be a list'
+        assert type(plot_quantity) == list, 'plot_quantity must be a list'
         check_list(plot_quantity)
 
     if surface is None:
@@ -812,6 +902,7 @@ def _sww2timeseries(swwfiles,
         title_on = True
     
     if verbose: print '\n Gauges obtained from: %s \n' %gauge_filename
+
     gauges, locations, elev = get_gauges_from_file(gauge_filename)
 
     sww_quantity = ['stage', 'elevation', 'xmomentum', 'ymomentum']
@@ -824,12 +915,10 @@ def _sww2timeseries(swwfiles,
     theminT = 0.0
 
     for swwfile in swwfiles.keys():
-
         try:
             fid = open(swwfile)
         except Exception, e:
-            msg = 'File "%s" could not be opened: Error="%s"'\
-                  %(swwfile, e)
+            msg = 'File "%s" could not be opened: Error="%s"' % (swwfile, e)
             raise msg
 
         print 'swwfile', swwfile
@@ -840,8 +929,6 @@ def _sww2timeseries(swwfiles,
         
         #print 'label', label
         leg_label.append(label)
-
-        
 
         f = file_function(swwfile,
                           quantities = sww_quantity,
@@ -871,7 +958,6 @@ def _sww2timeseries(swwfiles,
         index = swwfile.rfind(sep)
         file_loc.append(swwfile[:index+1])
         label_id.append(swwfiles[swwfile])
-
         
         f_list.append(f)
         maxT = max(f.get_time())
@@ -893,23 +979,34 @@ def _sww2timeseries(swwfiles,
             msg = 'Maximum time entered not correct - please try again'
             raise Exception, msg
 
-    if verbose and len(gauge_index) > 0: print 'Inputs OK - going to generate figures'
+    if verbose and len(gauge_index) > 0:
+         print 'Inputs OK - going to generate figures'
 
     if len(gauge_index) <> 0:
-        texfile, elev_output = generate_figures(plot_quantity, file_loc, report, reportname, surface,
-                                                leg_label, f_list, gauges, locations, elev, gauge_index,
-                                                production_dirs, time_min, time_max, time_unit,
-                                                title_on, label_id, generate_fig, verbose)
+        texfile, elev_output = \
+            generate_figures(plot_quantity, file_loc, report, reportname,
+                             surface, leg_label, f_list, gauges, locations,
+                             elev, gauge_index, production_dirs, time_min,
+                             time_max, time_unit, title_on, label_id,
+                             generate_fig, verbose)
     else:
         texfile = ''
         elev_output = []
 
     return texfile, elev_output
-               
+
+
+##
+# @brief Read gauge info from a file.
+# @param filename The name of the file to read.
+# @return A (gauges, gaugelocation, elev) tuple.
 def get_gauges_from_file(filename):
     """ Read in gauge information from file
     """
+
     from os import sep, getcwd, access, F_OK, mkdir
+
+    # Get data from the gauge file
     fid = open(filename)
     lines = fid.readlines()
     fid.close()
@@ -922,22 +1019,24 @@ def get_gauges_from_file(filename):
     line1 = lines[0]
     line11 = line1.split(',')
 
-    if isinstance(line11[0],str) is True:
+    if isinstance(line11[0], str) is True:
         # We have found text in the first line
         east_index = None
         north_index = None
         name_index = None
         elev_index = None
+
         for i in range(len(line11)):
-            if line11[i].strip('\n').strip('\r').strip(' ').lower() == 'easting': east_index = i
-            if line11[i].strip('\n').strip('\r').strip(' ').lower() == 'northing': north_index = i
-            if line11[i].strip('\n').strip('\r').strip(' ').lower() == 'name': name_index = i
-            if line11[i].strip('\n').strip('\r').strip(' ').lower() == 'elevation': elev_index = i
+            if line11[i].strip().lower() == 'easting':   east_index = i
+            if line11[i].strip().lower() == 'northing':  north_index = i
+            if line11[i].strip().lower() == 'name':      name_index = i
+            if line11[i].strip().lower() == 'elevation': elev_index = i
 
         if east_index < len(line11) and north_index < len(line11):
             pass
         else:
-            msg = 'WARNING: %s does not contain correct header information' %(filename)
+            msg = 'WARNING: %s does not contain correct header information' \
+                  % filename
             msg += 'The header must be: easting, northing, name, elevation'
             raise Exception, msg
 
@@ -951,8 +1050,9 @@ def get_gauges_from_file(filename):
     else:
         # No header, assume that this is a simple easting, northing file
 
-        msg = 'There was no header in file %s and the number of columns is %d' %(filename, len(line11))
-        msg += '- I was assuming two columns corresponding to Easting and Northing'
+        msg = 'There was no header in file %s and the number of columns is %d' \
+              % (filename, len(line11))
+        msg += '- was assuming two columns corresponding to Easting and Northing'
         assert len(line11) == 2, msg
 
         east_index = 0
@@ -976,31 +1076,35 @@ def get_gauges_from_file(filename):
     return gauges, gaugelocation, elev
 
 
-
+##
+# @brief Check that input quantities in quantity list are legal.
+# @param quantity Quantity list to check.
+# @note Raises an exception of list is not legal.
 def check_list(quantity):
     """ Check that input quantities in quantity list are possible
     """
+    import sys
+    from sets import Set as set
+
     all_quantity = ['stage', 'depth', 'momentum', 'xmomentum',
                     'ymomentum', 'speed', 'bearing', 'elevation']
 
-	
-		    
-    import sys
-    #if not sys.version.startswith('2.4'):
-        # Backwards compatibility
-    #   from sets import Set as set
-
-    from sets import Set as set
-            
+    # convert all quanitiy names to lowercase
     for i,j in enumerate(quantity):
         quantity[i] = quantity[i].lower()
+
+    # check that all names in 'quantity' appear in 'all_quantity'
     p = list(set(quantity).difference(set(all_quantity)))
-    if len(p) <> 0:
+    if len(p) != 0:
         msg = 'Quantities %s do not exist - please try again' %p
         raise Exception, msg
-        
-    return 
 
+
+##
+# @brief Calculate velocity bearing from North.
+# @param uh ??
+# @param vh ??
+# @return The calculated bearing.
 def calc_bearing(uh, vh):
     """ Calculate velocity bearing from North
     """
@@ -1013,6 +1117,7 @@ def calc_bearing(uh, vh):
     # * changing from counter clockwise to clocwise.
         
     angle = degrees(atan(vh/(uh+1.e-15)))
+
     if (0 < angle < 90.0):
         if vh > 0:
             bearing = 90.0 - abs(angle)
@@ -1028,6 +1133,29 @@ def calc_bearing(uh, vh):
 
     return bearing
 
+
+##
+# @brief Generate figures from quantities and gauges for each sww file.
+# @param plot_quantity  ??
+# @param file_loc ??
+# @param report ??
+# @param reportname ??
+# @param surface ??
+# @param leg_label ??
+# @param f_list ??
+# @param gauges ??
+# @param locations ??
+# @param elev ??
+# @param gauge_index ??
+# @param production_dirs ??
+# @param time_min ??
+# @param time_max ??
+# @param time_unit ??
+# @param title_on ??
+# @param label_id ??
+# @param generate_fig ??
+# @param verbose??
+# @return (texfile2, elev_output)
 def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                      leg_label, f_list, gauges, locations, elev, gauge_index,
                      production_dirs, time_min, time_max, time_unit,
@@ -1035,7 +1163,6 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
     """ Generate figures based on required quantities and gauges for
     each sww file
     """
-#    from math import sqrt, atan, degrees
     from Numeric import ones, allclose, zeros, Float, ravel
     from os import sep, altsep, getcwd, mkdir, access, F_OK, environ
 
@@ -1054,17 +1181,19 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
         if len(label_id) == 1:
             label_id1 = label_id[0].replace(sep,'')
             label_id2 = label_id1.replace('_','')
-            texfile = texdir+reportname+'%s' %(label_id2)
-            texfile2 = reportname+'%s' %(label_id2)
+            texfile = texdir + reportname + '%s' % label_id2
+            texfile2 = reportname + '%s' % label_id2
             texfilename = texfile + '.tex'
-            if verbose: print '\n Latex output printed to %s \n' %texfilename
             fid = open(texfilename, 'w')
+
+            if verbose: print '\n Latex output printed to %s \n' %texfilename
         else:
             texfile = texdir+reportname 
             texfile2 = reportname
             texfilename = texfile + '.tex' 
-            if verbose: print '\n Latex output printed to %s \n' %texfilename
             fid = open(texfilename, 'w')
+
+            if verbose: print '\n Latex output printed to %s \n' %texfilename
     else:
         texfile = ''
         texfile2 = ''
@@ -1077,18 +1206,18 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
         if n[i] > n0: n0 = n[i]  
     n0 = int(n0)
     m = len(locations)
-    model_time = zeros((n0,m,p), Float) 
-    stages = zeros((n0,m,p), Float)
-    elevations = zeros((n0,m,p), Float) 
-    momenta = zeros((n0,m,p), Float)
-    xmom = zeros((n0,m,p), Float)
-    ymom = zeros((n0,m,p), Float)
-    speed = zeros((n0,m,p), Float)
-    bearings = zeros((n0,m,p), Float)
-    due_east = 90.0*ones((n0,1), Float)
-    due_west = 270.0*ones((n0,1), Float)
-    depths = zeros((n0,m,p), Float)
-    eastings = zeros((n0,m,p), Float)
+    model_time = zeros((n0, m, p), Float) 
+    stages = zeros((n0, m, p), Float)
+    elevations = zeros((n0, m, p), Float) 
+    momenta = zeros((n0, m, p), Float)
+    xmom = zeros((n0, m, p), Float)
+    ymom = zeros((n0, m, p), Float)
+    speed = zeros((n0, m, p), Float)
+    bearings = zeros((n0, m, p), Float)
+    due_east = 90.0*ones((n0, 1), Float)
+    due_west = 270.0*ones((n0, 1), Float)
+    depths = zeros((n0, m, p), Float)
+    eastings = zeros((n0, m, p), Float)
     min_stages = []
     max_stages = []
     min_momentums = []    
@@ -1100,23 +1229,27 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
     max_speeds = []
     min_speeds = []    
     max_depths = []
-    model_time_plot3d = zeros((n0,m), Float)
-    stages_plot3d = zeros((n0,m), Float)
-    eastings_plot3d = zeros((n0,m),Float)
+    model_time_plot3d = zeros((n0, m), Float)
+    stages_plot3d = zeros((n0, m), Float)
+    eastings_plot3d = zeros((n0, m),Float)
     if time_unit is 'mins': scale = 60.0
     if time_unit is 'hours': scale = 3600.0
+
     ##### loop over each swwfile #####
     for j, f in enumerate(f_list):
+        if verbose: print 'swwfile %d of %d' % (j, len(f_list))
+
         starttime = f.starttime
-        if verbose: print 'swwfile %d of %d' %(j, len(f_list))
-        comparefile = file_loc[j]+sep+'gauges_maxmins'+'.csv'
+        comparefile = file_loc[j] + sep + 'gauges_maxmins' + '.csv'
         fid_compare = open(comparefile, 'w')
-        file0 = file_loc[j]+'gauges_t0.csv'
+        file0 = file_loc[j] + 'gauges_t0.csv'
         fid_0 = open(file0, 'w')
+
         ##### loop over each gauge #####
         for k in gauge_index:
+            if verbose: print 'Gauge %d of %d' % (k, len(gauges))
+
             g = gauges[k]
-            if verbose: print 'Gauge %d of %d' %(k, len(gauges))
             min_stage = 10
             max_stage = 0
             max_momentum = max_xmomentum = max_ymomentum = 0
@@ -1125,11 +1258,12 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
             min_speed = 0            
             max_depth = 0            
             gaugeloc = str(locations[k])
-            thisfile = file_loc[j]+sep+'gauges_time_series'+'_'\
-                       +gaugeloc+'.csv'
+            thisfile = file_loc[j] + sep + 'gauges_time_series' + '_' \
+                       + gaugeloc + '.csv'
             fid_out = open(thisfile, 'w')
             s = 'Time, Stage, Momentum, Speed, Elevation, xmom, ymom, Bearing \n'
             fid_out.write(s)
+
             #### generate quantities #######
             for i, t in enumerate(f.get_time()):
                 if time_min <= t <= time_max:
@@ -1155,10 +1289,11 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     depths[i,k,j] = depth
                     thisgauge = gauges[k]
                     eastings[i,k,j] = thisgauge[0]
-                    s = '%.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f,\n' %(t, w, m, vel, z, uh, vh, bearing)
+                    s = '%.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f,\n' \
+                            % (t, w, m, vel, z, uh, vh, bearing)
                     fid_out.write(s)
                     if t == 0:
-                        s = '%.2f, %.2f, %.2f\n' %(g[0], g[1], w)
+                        s = '%.2f, %.2f, %.2f\n' % (g[0], g[1], w)
                         fid_0.write(s)
                     if t/60.0 <= 13920: tindex = i
                     if w > max_stage: max_stage = w
@@ -1174,7 +1309,8 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     if z > 0 and depth > max_depth: max_depth = depth
                     
                     
-            s = '%.2f, %.2f, %.2f, %.2f, %s\n' %(max_stage, min_stage, z, thisgauge[0], leg_label[j])
+            s = '%.2f, %.2f, %.2f, %.2f, %s\n' \
+                    % (max_stage, min_stage, z, thisgauge[0], leg_label[j])
             fid_compare.write(s)
             max_stages.append(max_stage)
             min_stages.append(min_stage)
@@ -1193,22 +1329,25 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
         stages_plot3d[:,:] = stages[:,:,j]
         eastings_plot3d[:,] = eastings[:,:,j]
             
-        if surface is  True:
+        if surface is True:
             print 'Printing surface figure'
             for i in range(2):
                 fig = p1.figure(10)
                 ax = p3.Axes3D(fig)
                 if len(gauges) > 80:
-                    ax.plot_surface(model_time[:,:,j],eastings[:,:,j],stages[:,:,j])
+                    ax.plot_surface(model_time[:,:,j],
+                                    eastings[:,:,j],
+                                    stages[:,:,j])
                 else:
-                    #ax.plot_wireframe(model_time[:,:,j],eastings[:,:,j],stages[:,:,j])
-                    ax.plot3D(ravel(eastings[:,:,j]),ravel(model_time[:,:,j]),ravel(stages[:,:,j]))
+                    ax.plot3D(ravel(eastings[:,:,j]),
+                              ravel(model_time[:,:,j]),
+                              ravel(stages[:,:,j]))
                 ax.set_xlabel('time')
                 ax.set_ylabel('x')
                 ax.set_zlabel('stage')
                 fig.add_axes(ax)
                 p1.show()
-                surfacefig = 'solution_surface%s' %leg_label[j]
+                surfacefig = 'solution_surface%s' % leg_label[j]
                 p1.savefig(surfacefig)
                 p1.close()
             
@@ -1217,7 +1356,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
     # x profile for given time
     if surface is True:
         figure(11)
-        plot(eastings[tindex,:,j],stages[tindex,:,j])
+        plot(eastings[tindex,:,j], stages[tindex,:,j])
         xlabel('x')
         ylabel('stage')
         profilefig = 'solution_xprofile' 
@@ -1225,12 +1364,18 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
 
     elev_output = []
     if generate_fig is True:
-        depth_axis = axis([starttime/scale, time_max/scale, -0.1, max(max_depths)*1.1])
-        stage_axis = axis([starttime/scale, time_max/scale, min(min_stages), max(max_stages)*1.1])
-        vel_axis = axis([starttime/scale, time_max/scale, min(min_speeds), max(max_speeds)*1.1])
-        mom_axis = axis([starttime/scale, time_max/scale, min(min_momentums), max(max_momentums)*1.1])
-        xmom_axis = axis([starttime/scale, time_max/scale, min(min_xmomentums), max(max_xmomentums)*1.1])
-        ymom_axis = axis([starttime/scale, time_max/scale, min(min_ymomentums), max(max_ymomentums)*1.1])
+        depth_axis = axis([starttime/scale, time_max/scale, -0.1,
+                           max(max_depths)*1.1])
+        stage_axis = axis([starttime/scale, time_max/scale,
+                           min(min_stages), max(max_stages)*1.1])
+        vel_axis = axis([starttime/scale, time_max/scale,
+                         min(min_speeds), max(max_speeds)*1.1])
+        mom_axis = axis([starttime/scale, time_max/scale,
+                         min(min_momentums), max(max_momentums)*1.1])
+        xmom_axis = axis([starttime/scale, time_max/scale,
+                          min(min_xmomentums), max(max_xmomentums)*1.1])
+        ymom_axis = axis([starttime/scale, time_max/scale,
+                          min(min_ymomentums), max(max_ymomentums)*1.1])
         cstr = ['g', 'r', 'b', 'c', 'm', 'y', 'k']
         nn = len(plot_quantity)
         no_cols = 2
@@ -1243,9 +1388,12 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
             g = gauges[k]
             count1 = 0
             if report == True and len(label_id) > 1:
-                s = '\\begin{figure}[ht] \n \\centering \n \\begin{tabular}{cc} \n'
+                s = '\\begin{figure}[ht] \n' \
+                    '\\centering \n' \
+                    '\\begin{tabular}{cc} \n'
                 fid.write(s)
             if len(label_id) > 1: graphname_report = []
+
             #### generate figures for each gauge ####
             for j, f in enumerate(f_list):
                 ion()
@@ -1255,7 +1403,9 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                 where2 = 0
                 word_quantity = ''
                 if report == True and len(label_id) == 1:
-                    s = '\\begin{figure}[hbt] \n \\centering \n \\begin{tabular}{cc} \n'
+                    s = '\\begin{figure}[hbt] \n' \
+                        '\\centering \n' \
+                        '\\begin{tabular}{cc} \n'
                     fid.write(s)
                     
                 for which_quantity in plot_quantity:
@@ -1263,35 +1413,42 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     where1 += 1
                     figure(count, frameon = False)
                     if which_quantity == 'depth':
-                        plot(model_time[0:n[j]-1,k,j], depths[0:n[j]-1,k,j], '-', c = cstr[j])
+                        plot(model_time[0:n[j]-1,k,j],
+                             depths[0:n[j]-1,k,j], '-', c = cstr[j])
                         units = 'm'
                         axis(depth_axis)
                     if which_quantity == 'stage':
                         if elevations[0,k,j] <= 0:
-                            plot(model_time[0:n[j]-1,k,j], stages[0:n[j]-1,k,j], '-', c = cstr[j])
+                            plot(model_time[0:n[j]-1,k,j],
+                                 stages[0:n[j]-1,k,j], '-', c = cstr[j])
                             axis(stage_axis)
                         else:
-                            plot(model_time[0:n[j]-1,k,j], depths[0:n[j]-1,k,j], '-', c = cstr[j])
+                            plot(model_time[0:n[j]-1,k,j],
+                                 depths[0:n[j]-1,k,j], '-', c = cstr[j])
                             #axis(depth_axis)                 
                         units = 'm'
                     if which_quantity == 'momentum':
-                        plot(model_time[0:n[j]-1,k,j], momenta[0:n[j]-1,k,j], '-', c = cstr[j])
+                        plot(model_time[0:n[j]-1,k,j],
+                             momenta[0:n[j]-1,k,j], '-', c = cstr[j])
                         axis(mom_axis)
                         units = 'm^2 / sec'
                     if which_quantity == 'xmomentum':
-                        plot(model_time[0:n[j]-1,k,j], xmom[0:n[j]-1,k,j], '-', c = cstr[j])
+                        plot(model_time[0:n[j]-1,k,j],
+                             xmom[0:n[j]-1,k,j], '-', c = cstr[j])
                         axis(xmom_axis)
                         units = 'm^2 / sec'
                     if which_quantity == 'ymomentum':
-                        plot(model_time[0:n[j]-1,k,j], ymom[0:n[j]-1,k,j], '-', c = cstr[j])
+                        plot(model_time[0:n[j]-1,k,j],
+                             ymom[0:n[j]-1,k,j], '-', c = cstr[j])
                         axis(ymom_axis)
                         units = 'm^2 / sec'
                     if which_quantity == 'speed':
-                        plot(model_time[0:n[j]-1,k,j], speed[0:n[j]-1,k,j], '-', c = cstr[j])
+                        plot(model_time[0:n[j]-1,k,j],
+                             speed[0:n[j]-1,k,j], '-', c = cstr[j])
                         axis(vel_axis)
                         units = 'm / sec'
                     if which_quantity == 'bearing':
-                        plot(model_time[0:n[j]-1,k,j], bearings[0:n[j]-1,k,j], '-', 
+                        plot(model_time[0:n[j]-1,k,j],bearings[0:n[j]-1,k,j],'-',
                              model_time[0:n[j]-1,k,j], due_west[0:n[j]-1], '-.', 
                              model_time[0:n[j]-1,k,j], due_east[0:n[j]-1], '-.')
                         units = 'degrees from North'
@@ -1300,7 +1457,8 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
 
                     if time_unit is 'mins': xlabel('time (mins)')
                     if time_unit is 'hours': xlabel('time (hours)')
-                    #if which_quantity == 'stage' and elevations[0:n[j]-1,k,j] > 0:
+                    #if which_quantity == 'stage' \
+                    #   and elevations[0:n[j]-1,k,j] > 0:
                     #    ylabel('%s (%s)' %('depth', units))
                     #else:
                     #    ylabel('%s (%s)' %(which_quantity, units))
@@ -1320,23 +1478,40 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                         if access(figdir,F_OK) == 0 :
                             mkdir (figdir)
                         latex_file_loc = figdir.replace(sep,altsep) 
-                        graphname_latex = '%sgauge%s%s' %(latex_file_loc, gaugeloc2, which_quantity) # storing files in production directory    
-                        graphname_report_input = '%sgauge%s%s' %('..'+altsep+'report_figures'+altsep, gaugeloc2, which_quantity) # giving location in latex output file
+                        # storing files in production directory    
+                        graphname_latex = '%sgauge%s%s' \
+                                          % (latex_file_loc, gaugeloc2,
+                                             which_quantity)
+                        # giving location in latex output file
+                        graphname_report_input = '%sgauge%s%s' % \
+                                                 ('..' + altsep + 
+                                                      'report_figures' + altsep,
+                                                  gaugeloc2, which_quantity)
                         graphname_report.append(graphname_report_input)
                         
-                        savefig(graphname_latex) # save figures in production directory for report generation
+                        # save figures in production directory for report
+                        savefig(graphname_latex)
 
                     if report == True:
-
-                        figdir = getcwd()+sep+'report_figures'+sep
-                        if access(figdir,F_OK) == 0 :
-                            mkdir (figdir)
+                        figdir = getcwd() + sep + 'report_figures' + sep
+                        if access(figdir,F_OK) == 0:
+                            mkdir(figdir)
                         latex_file_loc = figdir.replace(sep,altsep)    
 
                         if len(label_id) == 1: 
-                            graphname_latex = '%sgauge%s%s%s' %(latex_file_loc, gaugeloc2, which_quantity, label_id2) # storing files in production directory  
-                            graphname_report = '%sgauge%s%s%s' %('..'+altsep+'report_figures'+altsep, gaugeloc2, which_quantity, label_id2) # giving location in latex output file
-                            s = '\includegraphics[width=0.49\linewidth, height=50mm]{%s%s}' %(graphname_report, '.png')
+                            # storing files in production directory  
+                            graphname_latex = '%sgauge%s%s%s' % \
+                                              (latex_file_loc, gaugeloc2,
+                                               which_quantity, label_id2)
+                            # giving location in latex output file
+                            graphname_report = '%sgauge%s%s%s' % \
+                                               ('..' + altsep +
+                                                    'report_figures' + altsep,
+                                                gaugeloc2, which_quantity,
+                                                label_id2)
+                            s = '\includegraphics' \
+                                '[width=0.49\linewidth, height=50mm]{%s%s}' % \
+                                (graphname_report, '.png')
                             fid.write(s)
                             if where1 % 2 == 0:
                                 s = '\\\\ \n'
@@ -1347,20 +1522,26 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                             savefig(graphname_latex)
                     
                     if title_on == True:
-                        title('%s scenario: %s at %s gauge' %(label_id, which_quantity, gaugeloc2))
-                        #title('Gauge %s (MOST elevation %.2f, ANUGA elevation %.2f)' %(gaugeloc2, elevations[10,k,0], elevations[10,k,1] ))
+                        title('%s scenario: %s at %s gauge' % \
+                              (label_id, which_quantity, gaugeloc2))
+                        #title('Gauge %s (MOST elevation %.2f, ' \
+                        #      'ANUGA elevation %.2f)' % \
+                        #      (gaugeloc2, elevations[10,k,0],
+                        #       elevations[10,k,1]))
 
                     savefig(graphname) # save figures with sww file
 
                 if report == True and len(label_id) == 1:
                     for i in range(nn-1):
                         if nn > 2:
-                            if plot_quantity[i] == 'stage' and elevations[0,k,j] > 0:
+                            if plot_quantity[i] == 'stage' \
+                               and elevations[0,k,j] > 0:
                                 word_quantity += 'depth' + ', '
                             else:
                                 word_quantity += plot_quantity[i] + ', '
                         else:
-                            if plot_quantity[i] == 'stage' and elevations[0,k,j] > 0:
+                            if plot_quantity[i] == 'stage' \
+                               and elevations[0,k,j] > 0:
                                 word_quantity += 'depth' + ', '
                             else:
                                 word_quantity += plot_quantity[i]
@@ -1369,14 +1550,23 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                         word_quantity += ' and ' + 'depth'
                     else:
                         word_quantity += ' and ' + plot_quantity[nn-1]
-                    caption = 'Time series for %s at %s location (elevation %.2fm)' %(word_quantity, locations[k], elev[k]) #gaugeloc.replace('_',' '))
+                    caption = 'Time series for %s at %s location ' \
+                              '(elevation %.2fm)' % \
+                              (word_quantity, locations[k], elev[k])
                     if elev[k] == 0.0:
-                        caption = 'Time series for %s at %s location (elevation %.2fm)' %(word_quantity, locations[k], elevations[0,k,j])
+                        caption = 'Time series for %s at %s location ' \
+                                  '(elevation %.2fm)' % \
+                                  (word_quantity, locations[k],
+                                   elevations[0,k,j])
                         east = gauges[0]
                         north = gauges[1]
-                        elev_output.append([locations[k],east,north,elevations[0,k,j]])
-                    label = '%sgauge%s' %(label_id2, gaugeloc2)
-                    s = '\end{tabular} \n \\caption{%s} \n \label{fig:%s} \n \end{figure} \n \n' %(caption, label)
+                        elev_output.append([locations[k], east, north,
+                                            elevations[0,k,j]])
+                    label = '%sgauge%s' % (label_id2, gaugeloc2)
+                    s = '\end{tabular} \n' \
+                        '\\caption{%s} \n' \
+                        '\label{fig:%s} \n' \
+                        '\end{figure} \n \n' % (caption, label)
                     fid.write(s)
                     cc += 1
                     if cc % 6 == 0: fid.write('\\clearpage \n')
@@ -1399,7 +1589,9 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     index = j*len(plot_quantity)
                     for which_quantity in plot_quantity:
                         where1 += 1
-                        s = '\includegraphics[width=0.49\linewidth, height=50mm]{%s%s}' %(graphname_report[index], '.png')
+                        s = '\includegraphics' \
+                            '[width=0.49\linewidth, height=50mm]{%s%s}' % \
+                            (graphname_report[index], '.png')
                         index += 1
                         fid.write(s)
                         if where1 % 2 == 0:
@@ -1410,28 +1602,44 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                         fid.write(s)
                 word_quantity += ' and ' + plot_quantity[nn-1]            
                 label = 'gauge%s' %(gaugeloc2) 
-                caption = 'Time series for %s at %s location (elevation %.2fm)' %(word_quantity, locations[k], elev[k])
+                caption = 'Time series for %s at %s location ' \
+                          '(elevation %.2fm)' % \
+                          (word_quantity, locations[k], elev[k])
                 if elev[k] == 0.0:
-                        caption = 'Time series for %s at %s location (elevation %.2fm)' %(word_quantity, locations[k], elevations[0,k,j])
+                        caption = 'Time series for %s at %s location ' \
+                                  '(elevation %.2fm)' % \
+                                  (word_quantity, locations[k],
+                                   elevations[0,k,j])
                         thisgauge = gauges[k]
                         east = thisgauge[0]
                         north = thisgauge[1]
-                        elev_output.append([locations[k],east,north,elevations[0,k,j]])
+                        elev_output.append([locations[k], east, north,
+                                            elevations[0,k,j]])
                         
-                s = '\end{tabular} \n \\caption{%s} \n \label{fig:%s} \n \end{figure} \n \n' %(caption, label)
+                s = '\end{tabular} \n' \
+                    '\\caption{%s} \n' \
+                    '\label{fig:%s} \n' \
+                    '\end{figure} \n \n' % (caption, label)
                 fid.write(s)
                 if float((k+1)/div - pp) == 0.:
                     fid.write('\\clearpage \n')
                     pp += 1
-                
                 #### finished generating figures ###
 
             close('all')
         
     return texfile2, elev_output
 
+
 # FIXME (DSG): Add unit test, make general, not just 2 files,
 # but any number of files.
+##
+# @brief ??
+# @param dir_name ??
+# @param filename1 ??
+# @param filename2 ??
+# @return ??
+# @note TEMP
 def copy_code_files(dir_name, filename1, filename2):
     """Temporary Interface to new location"""
 
@@ -1444,25 +1652,36 @@ def copy_code_files(dir_name, filename1, filename2):
     return dm_copy_code_files(dir_name, filename1, filename2)
 
 
+##
+# @brief Create a nested sub-directory path.
+# @param root_directory The base diretory path.
+# @param directories An iterable of sub-directory names.
+# @return The final joined directory path.
+# @note If each sub-directory doesn't exist, it will be created.
 def add_directories(root_directory, directories):
     """
-    Add the first directory in directories to root_directory.
-    Then add the second
-    directory to the first directory and so on.
+    Add the first sub-directory in 'directories' to root_directory.
+    Then add the second sub-directory to the accumulating path and so on.
 
     Return the path of the final directory.
 
-    This is handy for specifying and creating a directory 
-    where data will go.
+    This is handy for specifying and creating a directory where data will go.
     """
     dir = root_directory
     for new_dir in directories:
         dir = os.path.join(dir, new_dir)
         if not access(dir,F_OK):
-            mkdir (dir)
+            mkdir(dir)
     return dir
 
-def get_data_from_file(filename,separator_value = ','):
+
+##
+# @brief 
+# @param filename 
+# @param separator_value 
+# @return 
+# @note TEMP
+def get_data_from_file(filename, separator_value=','):
     """Temporary Interface to new location"""
     from anuga.shallow_water.data_manager import \
                         get_data_from_file as dm_get_data_from_file
@@ -1472,6 +1691,13 @@ def get_data_from_file(filename,separator_value = ','):
     
     return dm_get_data_from_file(filename,separator_value = ',')
 
+
+##
+# @brief 
+# @param verbose 
+# @param kwargs 
+# @return 
+# @note TEMP
 def store_parameters(verbose=False,**kwargs):
     """Temporary Interface to new location"""
     
@@ -1483,29 +1709,33 @@ def store_parameters(verbose=False,**kwargs):
     
     return dm_store_parameters(verbose=False,**kwargs)
 
+
+##
+# @brief Remove vertices that are not associated with any triangle.
+# @param verts An iterable (or array) of points.
+# @param triangles An iterable of 3 element tuples.
+# @param number_of_full_nodes ??
+# @return (verts, triangles) where 'verts' has been updated.
 def remove_lone_verts(verts, triangles, number_of_full_nodes=None):
-    """
-    Removes vertices that are not associated with any triangles.
+    """Removes vertices that are not associated with any triangles.
 
-    verts is a list/array of points
-    triangles is a list of 3 element tuples.  
-    Each tuple represents a triangle.
-
+    verts is a list/array of points.
+    triangles is a list of 3 element tuples.  Each tuple represents a triangle.
     number_of_full_nodes relate to parallelism when a mesh has an
         extra layer of ghost points.
-        
     """
+
     verts = ensure_numeric(verts)
     triangles = ensure_numeric(triangles)
     
     N = len(verts)
     
     # initialise the array to easily find the index of the first loner
-    loners=arange(2*N, N, -1) # if N=3 [6,5,4]
+    # ie, if N=3 -> [6,5,4]
+    loners=arange(2*N, N, -1)
     for t in triangles:
         for vert in t:
             loners[vert]= vert # all non-loners will have loners[i]=i 
-    #print loners
 
     lone_start = 2*N - max(loners) # The index of the first loner
 
@@ -1521,12 +1751,11 @@ def remove_lone_verts(verts, triangles, number_of_full_nodes=None):
         # Could've used X=compress(less(loners,N),loners)
         # verts=take(verts,X)  to Remove the loners from verts
         # but I think it would use more memory
-        new_i = 0
+        new_i = lone_start	# point at first loner - first 'shuffle down' target
         for i in range(lone_start, N):
-            if loners[i] >= N:
-                # Loner!
+            if loners[i] >= N:	# [i] is a loner, leave alone
                 pass
-            else:
+            else:		# a non-loner, move down
                 loners[i] = new_i
                 verts[new_i] = verts[i]
                 new_i += 1
@@ -1563,6 +1792,7 @@ def get_centroid_values(x, triangles):
 
     return xc
 
+# @note TEMP
 def make_plots_from_csv_file(directories_dic={dir:['gauge', 0, 0]},
                                 output_dir='',
                                 base_name='',

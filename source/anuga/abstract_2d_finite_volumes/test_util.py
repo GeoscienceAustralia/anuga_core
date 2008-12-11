@@ -1262,52 +1262,56 @@ class Test_Util(unittest.TestCase):
     def test_check_list(self):
 
         check_list(['stage','xmomentum'])
+
+######
+# Test the remove_lone_verts() function
+######
         
-    def test_remove_lone_verts_d(self):
+    def test_remove_lone_verts_a(self):
         verts = [[0,0],[1,0],[0,1]]
         tris = [[0,1,2]]
         new_verts, new_tris = remove_lone_verts(verts, tris)
-        assert new_verts == verts
-        assert new_tris == tris
-     
+        self.failUnless(new_verts.tolist() == verts)
+        self.failUnless(new_tris.tolist() == tris)
 
-    def test_remove_lone_verts_e(self):
+    def test_remove_lone_verts_b(self):
         verts = [[0,0],[1,0],[0,1],[99,99]]
         tris = [[0,1,2]]
         new_verts, new_tris = remove_lone_verts(verts, tris)
-        assert new_verts == verts[0:3]
-        assert new_tris == tris
+        self.failUnless(new_verts.tolist() == verts[0:3])
+        self.failUnless(new_tris.tolist() == tris)
         
-    def test_remove_lone_verts_a(self):
+    def test_remove_lone_verts_c(self):
         verts = [[99,99],[0,0],[1,0],[99,99],[0,1],[99,99]]
         tris = [[1,2,4]]
         new_verts, new_tris = remove_lone_verts(verts, tris)
-        #print "new_verts", new_verts
-        assert new_verts == [[0,0],[1,0],[0,1]]
-        assert new_tris == [[0,1,2]]
+        self.failUnless(new_verts.tolist() == [[0,0],[1,0],[0,1]])
+        self.failUnless(new_tris.tolist() == [[0,1,2]])
      
-    def test_remove_lone_verts_c(self):
+    def test_remove_lone_verts_d(self):
         verts = [[0,0],[1,0],[99,99],[0,1]]
         tris = [[0,1,3]]
         new_verts, new_tris = remove_lone_verts(verts, tris)
-        #print "new_verts", new_verts
-        assert new_verts == [[0,0],[1,0],[0,1]]
-        assert new_tris == [[0,1,2]]
+        self.failUnless(new_verts.tolist() == [[0,0],[1,0],[0,1]])
+        self.failUnless(new_tris.tolist() == [[0,1,2]])
         
-    def test_remove_lone_verts_b(self):
+    def test_remove_lone_verts_e(self):
         verts = [[0,0],[1,0],[0,1],[99,99],[99,99],[99,99]]
         tris = [[0,1,2]]
         new_verts, new_tris = remove_lone_verts(verts, tris)
-        assert new_verts == verts[0:3]
-        assert new_tris == tris
+        self.failUnless(new_verts.tolist() == verts[0:3])
+        self.failUnless(new_tris.tolist() == tris)
      
-
-    def test_remove_lone_verts_e(self):
-        verts = [[0,0],[1,0],[0,1],[99,99]]
-        tris = [[0,1,2]]
+    def test_remove_lone_verts_f(self):
+        verts = [[0,0],[1,0],[99,99],[0,1],[99,99],[1,1],[99,99]]
+        tris = [[0,1,3],[0,1,5]]
         new_verts, new_tris = remove_lone_verts(verts, tris)
-        assert new_verts == verts[0:3]
-        assert new_tris == tris
+        self.failUnless(new_verts.tolist() == [[0,0],[1,0],[0,1],[1,1]])
+        self.failUnless(new_tris.tolist() == [[0,1,2],[0,1,3]])
+        
+######
+# 
+######
         
     def test_get_min_max_values(self):
         
@@ -1828,8 +1832,8 @@ point2, 0.5, 2.0, 9.0\n")
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Util,'test')
-#    suite = unittest.makeSuite(Test_Util,'test_sww2csv')
+#    suite = unittest.makeSuite(Test_Util,'test')
+    suite = unittest.makeSuite(Test_Util,'test_remove_lone_verts')
 #    runner = unittest.TextTestRunner(verbosity=2)
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
