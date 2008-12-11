@@ -1697,7 +1697,7 @@ def get_lsline(FN):
 
 # -----------------------------------------------------------------------------
 
-def checkdir(CD,verbose=None):
+def checkdir(CD,verbose=None, warn=False):
   """Check or create caching directory
 
   USAGE:
@@ -1730,14 +1730,18 @@ def checkdir(CD,verbose=None):
         pass  # FIXME: What about acces rights under Windows?
       if verbose: print 'MESSAGE: Directory', CD, 'created.'
     except:
-      print 'WARNING: Directory', CD, 'could not be created.'
+      if warn is True:
+        print 'WARNING: Directory', CD, 'could not be created.'
       if unix:
         CD = '/tmp/'
       else:
         CD = 'C:'  
-      print 'Using directory %s instead' %CD
+      if warn is True:
+        print 'Using directory %s instead' %CD
 
   return(CD)
+
+checkdir(cachedir, warn=True)
 
 #==============================================================================
 # Statistics
