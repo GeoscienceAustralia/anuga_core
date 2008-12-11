@@ -1,4 +1,3 @@
-#12345678901234567890123456789012345678901234567890123456789012345678901234567890
 """This module contains various auxiliary function used by pyvolution.
 
 It is also a clearing house for functions that may later earn a module
@@ -1751,7 +1750,7 @@ def remove_lone_verts(verts, triangles, number_of_full_nodes=None):
         # Could've used X=compress(less(loners,N),loners)
         # verts=take(verts,X)  to Remove the loners from verts
         # but I think it would use more memory
-        new_i = lone_start	# point at first loner - first 'shuffle down' target
+        new_i = lone_start	# point at first loner - 'shuffle down' target
         for i in range(lone_start, N):
             if loners[i] >= N:	# [i] is a loner, leave alone
                 pass
@@ -1768,7 +1767,12 @@ def remove_lone_verts(verts, triangles, number_of_full_nodes=None):
         #print "triangles after", triangles
     return verts, triangles
 
- 
+
+##
+# @brief Compute centroid values from vertex values
+# @param x Values at vertices of triangular mesh.
+# @param triangles Nx3 integer array pointing to vertex information.
+# @return [N] array of centroid values.
 def get_centroid_values(x, triangles):
     """Compute centroid values from vertex values
     
@@ -1777,7 +1781,6 @@ def get_centroid_values(x, triangles):
     for each of the N triangels. Elements of triangles are
     indices into x
     """
-
         
     xc = zeros(triangles.shape[0], Float) # Space for centroid info
     
@@ -1789,8 +1792,8 @@ def get_centroid_values(x, triangles):
         
         xc[k] = (x[i0] + x[i1] + x[i2])/3
 
-
     return xc
+
 
 # @note TEMP
 def make_plots_from_csv_file(directories_dic={dir:['gauge', 0, 0]},
@@ -1801,10 +1804,11 @@ def make_plots_from_csv_file(directories_dic={dir:['gauge', 0, 0]},
                                 assess_all_csv_files=True,
                                 extra_plot_name='test' ):
 
-    msg = 'make_plots_from_csv_file has been replaced by csv2timeseries_graphs ',
-    msg += 'Please use "from anuga.abstract_2d_finite_volumes.util import csv2timeseries_graphs"'
-
+    msg = 'make_plots_from_csv_file has been replaced by csv2timeseries_graphs '
+    msg += 'Please use "from anuga.abstract_2d_finite_volumes.util import ' \
+           'csv2timeseries_graphs"'
     raise Exception, msg
+
     return csv2timeseries_graphs(directories_dic,
                                  output_dir,
                                  base_name,
@@ -1813,16 +1817,29 @@ def make_plots_from_csv_file(directories_dic={dir:['gauge', 0, 0]},
                                  extra_plot_name,
                                  assess_all_csv_files
                                  )
-    
+
+
+##
+# @brief Plot time series from CSV files.
+# @param directories_dic 
+# @param output_dir 
+# @param base_name 
+# @param plot_numbers 
+# @param quantities 
+# @param extra_plot_name 
+# @param assess_all_csv_files 
+# @param create_latex 
+# @param verbose 
+# @note Assumes that 'elevation' is in the CSV file(s).
 def csv2timeseries_graphs(directories_dic={},
-                            output_dir='',
-                            base_name=None,
-                            plot_numbers='',
-                            quantities=['stage'],
-                            extra_plot_name='',
-                            assess_all_csv_files=True,                            
-                            create_latex=False,
-                            verbose=False):
+                          output_dir='',
+                          base_name=None,
+                          plot_numbers='',
+                          quantities=['stage'],
+                          extra_plot_name='',
+                          assess_all_csv_files=True,
+                          create_latex=False,
+                          verbose=False):
                                 
     """
     Read in csv files that have the right header information and
@@ -1887,44 +1904,50 @@ def csv2timeseries_graphs(directories_dic={},
                                    assess_all_csv_files=True,
                                   verbose=True)    
         
-            This will produce one plot for each quantity (therefore 3) in the current directory, 
-            each plot will have 2 lines on them. The first plot named 'new' will have the time 
-            offseted by 20secs and the stage height adjusted by -0.1m
+            This will produce one plot for each quantity (therefore 3) in the
+            current directory, each plot will have 2 lines on them. The first
+            plot named 'new' will have the time offseted by 20secs and the stage
+            height adjusted by -0.1m
         
     Inputs:
         directories_dic: dictionary of directory with values (plot 
                          legend name for directory), (start time of 
                          the time series) and the (value to add to 
                          stage if needed). For example
-                        {dir1:['Anuga_ons',5000, 0],
-                         dir2:['b_emoth',5000,1.5],
-                         dir3:['b_ons',5000,1.5]}
+                         {dir1:['Anuga_ons',5000, 0],
+                          dir2:['b_emoth',5000,1.5],
+                          dir3:['b_ons',5000,1.5]}
                          Having multiple directories defined will plot them on 
-                         one plot, therefore there will be 3 lines on each of these
-                         plot. If you only want one line per plot call csv2timeseries_graph
-                         separately for each directory, eg only have one directory in the 
-                         'directories_dic' in each call. 
+                         one plot, therefore there will be 3 lines on each of
+                         these plot. If you only want one line per plot call
+                         csv2timeseries_graph separately for each directory,
+                         eg only have one directory in the 'directories_dic' in
+                         each call. 
                          
-        output_dir: directory for the plot outputs. Only important to define
-                    when you have more than one directory in your directories_dic,
-                    if you have not defined it and you have multiple directories in
-                    'directories_dic' there will be plots in each directory however only
-                    one directory will contain the complete plot/graphs.
+        output_dir: directory for the plot outputs. Only important to define when
+                    you have more than one directory in your directories_dic, if
+                    you have not defined it and you have multiple directories in
+                    'directories_dic' there will be plots in each directory,
+                    however only one directory will contain the complete
+                    plot/graphs.
         
-        base_name: Is used a couple of times. 1) to find the csv files to be plotted
-                   if there is no 'plot_numbers' then csv files with 'base_name' are
-                   plotted and 2) in the title of the plots, the lenght of base_name is 
-                   removed from the front of the filename to be used in the title. 
+        base_name: Is used a couple of times.
+                   1) to find the csv files to be plotted if there is no
+                      'plot_numbers' then csv files with 'base_name' are plotted
+                   2) in the title of the plots, the length of base_name is 
+                      removed from the front of the filename to be used in the
+                      title. 
                    This could be changed if needed. 
                    Note is ignored if assess_all_csv_files=True
         
         plot_numbers: a String list of numbers to plot. For example 
                       [0-4,10,15-17] will read and attempt to plot
-                       the follow 0,1,2,3,4,10,15,16,17
-                       NOTE: if no plot numbers this will create
-                       one plot per quantity, per gauge
-        quantities: Will get available quantities from the header in the csv file.
-                    quantities must be one of these.
+                      the follow 0,1,2,3,4,10,15,16,17
+                      NOTE: if no plot numbers this will create one plot per
+                            quantity, per gauge
+
+        quantities: Will get available quantities from the header in the csv
+                    file.  Quantities must be one of these.
                     NOTE: ALL QUANTITY NAMES MUST BE lower case!
                     
         extra_plot_name: A string that is appended to the end of the 
@@ -1941,9 +1964,8 @@ def csv2timeseries_graphs(directories_dic={},
         
     OUTPUTS: saves the plots to 
               <output_dir><base_name><plot_number><extra_plot_name>.png
-              
-      
     """
+
     try: 
         import pylab
     except ImportError:
@@ -1971,10 +1993,9 @@ def csv2timeseries_graphs(directories_dic={},
     quantities_label['ymomentum'] = 'momentum (m^2/sec)'
     quantities_label['bearing'] = 'degrees (o)'
     quantities_label['elevation'] = 'elevation (m)'
-
     
     if extra_plot_name != '':
-        extra_plot_name='_'+extra_plot_name
+        extra_plot_name = '_' + extra_plot_name
 
     new_plot_numbers=[]
     #change plot_numbers to list, eg ['0-4','10'] 
@@ -1982,7 +2003,7 @@ def csv2timeseries_graphs(directories_dic={},
     for i, num_string in enumerate(plot_numbers):
         if '-' in num_string: 
             start = int(num_string[:num_string.rfind('-')])
-            end = int(num_string[num_string.rfind('-')+1:])+1
+            end = int(num_string[num_string.rfind('-') + 1:]) + 1
             for x in range(start, end):
                 new_plot_numbers.append(str(x))
         else:
@@ -1994,33 +2015,25 @@ def csv2timeseries_graphs(directories_dic={},
     all_csv_filenames=[]
     if verbose: print 'Determining files to access for axes ranges \n'
     
-    #print directories_dic.keys(), base_name
- 
     for i,directory in enumerate(directories_dic.keys()):
         all_csv_filenames.append(get_all_files_with_extension(directory,
-                                  base_name,'.csv'))
+                                                              base_name, '.csv'))
 
         filenames=[]
         if plot_numbers == '': 
             list_filenames.append(get_all_files_with_extension(directory,
-                                  base_name,'.csv'))
+                                                               base_name,'.csv'))
         else:
             for number in new_plot_numbers:
-#                print 'number!!!', base_name, number
-                filenames.append(base_name+number)
-#                print filenames
+                filenames.append(base_name + number)
             list_filenames.append(filenames)
-
-
-
-    #print "list_filenames", list_filenames
 
     #use all the files to get the values for the plot axis
     max_start_time= -1000.
     min_start_time = 100000 
     
-    
     if verbose: print 'Determining uniform axes \n' 
+
     #this entire loop is to determine the min and max range for the 
     #axes of the plots
 
@@ -2032,94 +2045,81 @@ def csv2timeseries_graphs(directories_dic={},
     min_quantity_value={}
     max_quantity_value={}
 
-    
     for i, directory in enumerate(directories_dic.keys()):
-        filename_quantity_value={}
-        if assess_all_csv_files==False:
+        filename_quantity_value = {}
+        if assess_all_csv_files == False:
             which_csv_to_assess = list_filenames[i]
         else:
             #gets list of filenames for directory "i"
             which_csv_to_assess = all_csv_filenames[i]
-#        print'IN DIR', list_filenames[i]
-        
-
-
         
         for j, filename in enumerate(which_csv_to_assess):
-            quantity_value={}
+            quantity_value = {}
 
-            dir_filename=join(directory,filename)
-            attribute_dic, title_index_dic = csv2dict(dir_filename+
-                                                       '.csv')
+            dir_filename = join(directory,filename)
+            attribute_dic, title_index_dic = csv2dict(dir_filename + '.csv')
             directory_start_time = directories_dic[directory][1]
             directory_add_tide = directories_dic[directory][2]
 
             if verbose: print 'reading: %s.csv' %dir_filename
-#            print 'keys',attribute_dic.keys()
+
             #add time to get values
             for k, quantity in enumerate(quantities):
-                quantity_value[quantity] = [float(x) for x in attribute_dic[quantity]]
+                quantity_value[quantity] = [float(x) for
+                                                x in attribute_dic[quantity]]
 
                 #add tide to stage if provided
                 if quantity == 'stage':
-                     quantity_value[quantity]=array(quantity_value[quantity])+directory_add_tide
+                     quantity_value[quantity] = array(quantity_value[quantity]) \
+                                                      + directory_add_tide
 
                 #condition to find max and mins for all the plots
                 # populate the list with something when i=0 and j=0 and
                 # then compare to the other values to determine abs max and min
                 if i==0 and j==0:
-
                     min_quantity_value[quantity], \
-                    max_quantity_value[quantity] = get_min_max_values(quantity_value[quantity])
+                        max_quantity_value[quantity] = \
+                            get_min_max_values(quantity_value[quantity])
 
                     if quantity != 'time':
-                        min_quantity_value[quantity] = min_quantity_value[quantity] *1.1
-                        max_quantity_value[quantity] = max_quantity_value[quantity] *1.1
-
-                    
-#                    print '1 min,max',i,j,k,quantity, min_quantity_value[quantity],max_quantity_value[quantity],directory, filename
+                        min_quantity_value[quantity] = \
+                            min_quantity_value[quantity] *1.1
+                        max_quantity_value[quantity] = \
+                            max_quantity_value[quantity] *1.1
                 else:
-#                    print 'min,max',i,j,k,quantity, min_quantity_value[quantity],max_quantity_value[quantity],directory, filename
                     min, max = get_min_max_values(quantity_value[quantity])
-#                    print "MIN",min, max
                 
-                    #min and max are multipled by "1+increase_axis" to get axes that are slighty bigger
-                    # than the max and mins so the plots look good.
+                    # min and max are multipled by "1+increase_axis" to get axes
+                    # that are slighty bigger than the max and mins
+                    # so the plots look good.
 
                     increase_axis = (max-min)*0.05
-#                    print quantity, "MIN MAX", max, min
-                    if min<=min_quantity_value[quantity]:
+                    if min <= min_quantity_value[quantity]:
                         if quantity == 'time': 
-                            min_quantity_value[quantity]=min
+                            min_quantity_value[quantity] = min
                         else:
                             if round(min,2) == 0.00:
-                                min_quantity_value[quantity]=-increase_axis
-#                                min_quantity_value[quantity]=-2.
-                                #min_quantity_value[quantity]= -max_quantity_value[quantity]*increase_axis
+                                min_quantity_value[quantity] = -increase_axis
+#                                min_quantity_value[quantity] = -2.
+                                #min_quantity_value[quantity] = \
+                                #    -max_quantity_value[quantity]*increase_axis
                             else:
-#                                min_quantity_value[quantity]=min*(1+increase_axis)
+#                                min_quantity_value[quantity] = \
+#                                    min*(1+increase_axis)
                                 min_quantity_value[quantity]=min-increase_axis
-#                        print quantity, min_quantity_value[quantity]
                     
-                    if max>max_quantity_value[quantity]: 
+                    if max > max_quantity_value[quantity]: 
                         if quantity == 'time': 
-                            max_quantity_value[quantity]=max
+                            max_quantity_value[quantity] = max
                         else:
-                            max_quantity_value[quantity]=max+increase_axis
+                            max_quantity_value[quantity] = max + increase_axis
 #                            max_quantity_value[quantity]=max*(1+increase_axis)
-#                        print quantity, max_quantity_value[quantity],increase_axis
-                
-#                print 'min,maj',quantity, min_quantity_value[quantity],max_quantity_value[quantity]
 
-            
-            
-            
             #set the time... ???
             if min_start_time > directory_start_time: 
                 min_start_time = directory_start_time
             if max_start_time < directory_start_time: 
                 max_start_time = directory_start_time
-            #print 'start_time' , max_start_time, min_start_time
             
             filename_quantity_value[filename]=quantity_value
             
@@ -2129,51 +2129,52 @@ def csv2timeseries_graphs(directories_dic={},
     quantities_axis={}
     
     for i, quantity in enumerate(quantities):
-        quantities_axis[quantity] = (float(min_start_time)/float(seconds_in_minutes),
-                                        (float(max_quantity_value['time'])+float(max_start_time))\
-                                              /float(seconds_in_minutes),
-                                         min_quantity_value[quantity], 
-                                         max_quantity_value[quantity])
+        quantities_axis[quantity] = (float(min_start_time) \
+                                         / float(seconds_in_minutes),
+                                     (float(max_quantity_value['time']) \
+                                          + float(max_start_time)) \
+                                              / float(seconds_in_minutes),
+                                     min_quantity_value[quantity],
+                                     max_quantity_value[quantity])
+
         if verbose and (quantity != 'time' and quantity != 'elevation'): 
-            print 'axis for quantity %s are x:(%s to %s)%s and y:(%s to %s)%s' %(quantity, 
-                               quantities_axis[quantity][0],
-                               quantities_axis[quantity][1],
-                               quantities_label['time'],
-                               quantities_axis[quantity][2],
-                               quantities_axis[quantity][3],
-                               quantities_label[quantity])
-    
-        #print  quantities_axis[quantity]
+            print 'axis for quantity %s are x:(%s to %s)%s and y:(%s to %s)%s' \
+                  % (quantity, 
+                     quantities_axis[quantity][0],
+                     quantities_axis[quantity][1],
+                     quantities_label['time'],
+                     quantities_axis[quantity][2],
+                     quantities_axis[quantity][3],
+                     quantities_label[quantity])
 
     cstr = ['b', 'r', 'g', 'c', 'm', 'y', 'k']
 
     if verbose: print 'Now start to plot \n'
     
     i_max = len(directories_dic.keys())
-    legend_list_dic={}
-    legend_list =[]
+    legend_list_dic = {}
+    legend_list = []
     for i, directory in enumerate(directories_dic.keys()):
-        
-        if verbose: print'Plotting in %s %s' %(directory, new_plot_numbers)
-#        print 'LIST',list_filenames
-        #FIXME THIS SORT IS VERY IMPORTANT, without it the assigned plot numbers may not work correctly
-        #there must be a better way
+        if verbose: print 'Plotting in %s %s' % (directory, new_plot_numbers)
+
+        # FIXME THIS SORT IS VERY IMPORTANT
+        # Without it the assigned plot numbers may not work correctly
+        # there must be a better way
         list_filenames[i].sort()
         for j, filename in enumerate(list_filenames[i]):
-#            print'IN plot', list_filenames[i]
-            
-            if verbose: print'Starting %s' %filename  
+            if verbose: print 'Starting %s' % filename  
+
             directory_name = directories_dic[directory][0]
             directory_start_time = directories_dic[directory][1]
             directory_add_tide = directories_dic[directory][2]
             
-            #create an if about the start time and tide hieght 
-            #if they don't exist
-            #print 'i %s,j %s, number %s, file %s' %(i,j,number,file)
-            attribute_dic, title_index_dic = csv2dict(directory+sep+filename+'.csv')
+            # create an if about the start time and tide height if don't exist
+            attribute_dic, title_index_dic = csv2dict(directory + sep
+                                                      + filename + '.csv')
             #get data from dict in to list
             #do maths to list by changing to array
-            t=(array(directory_quantity_value[directory][filename]['time'])+directory_start_time)/seconds_in_minutes
+            t = (array(directory_quantity_value[directory][filename]['time'])
+                     + directory_start_time) / seconds_in_minutes
 
             #finds the maximum elevation, used only as a test
             # and as info in the graphs
@@ -2186,77 +2187,96 @@ def csv2timeseries_graphs(directories_dic={},
             if min_ele != max_ele:
                 print "Note! Elevation changes in %s" %dir_filename
 
-            # creates a dictionary with keys that is the filename and attributes are a list of 
-            # lists containing 'directory_name' and 'elevation'. This is used to make the contents
-            # for the legends in the graphs, this is the name of the model and the elevation.
-            # All in this great one liner from DG. If the key 'filename' doesn't exist it creates the 
-            # entry if the entry exist it appends to the key.
-            
-            legend_list_dic.setdefault(filename,[]).append([directory_name,round(max_ele,3)])
+            # creates a dictionary with keys that is the filename and attributes
+            # are a list of lists containing 'directory_name' and 'elevation'.
+            # This is used to make the contents for the legends in the graphs,
+            # this is the name of the model and the elevation.  All in this
+            # great one liner from DG. If the key 'filename' doesn't exist it
+            # creates the entry if the entry exist it appends to the key.
 
-            # creates a LIST for the legend on the last iteration of the directories
-            # which is when "legend_list_dic" has been fully populated. Creates a list of strings 
-            # which is used in the legend
+            legend_list_dic.setdefault(filename,[]) \
+                .append([directory_name, round(max_ele, 3)])
+
+            # creates a LIST for the legend on the last iteration of the
+            # directories which is when "legend_list_dic" has been fully
+            # populated. Creates a list of strings which is used in the legend
             # only runs on the last iteration for all the gauges(csv) files
             # empties the list before creating it 
-            if i==i_max-1:
-                legend_list=[]
+
+            if i == i_max - 1:
+                legend_list = []
     
-                #print 'DIC',legend_list_dic
                 for name_and_elevation in legend_list_dic[filename]:
-                    legend_list.append('%s (elevation = %sm)'%(name_and_elevation[0],name_and_elevation[1]))
+                    legend_list.append('%s (elevation = %sm)'\
+                                       % (name_and_elevation[0],
+                                          name_and_elevation[1]))
             
-            #print 'filename',filename, quantities
             #skip time and elevation so it is not plotted!
             for k, quantity in enumerate(quantities):
                 if quantity != 'time' and quantity != 'elevation':
-                    
-                    num=int(k*100+j)
+                    num = int(k*100+j)
                     pylab.figure(num)
                     pylab.ylabel(quantities_label[quantity])
-                    pylab.plot(t, directory_quantity_value[directory][filename][quantity], c = cstr[i], linewidth=1)
+                    pylab.plot(t,
+                               directory_quantity_value[directory]\
+                                                       [filename][quantity],
+                               c = cstr[i], linewidth=1)
                     pylab.xlabel(quantities_label['time'])
                     pylab.axis(quantities_axis[quantity])
                     pylab.legend(legend_list,loc='upper right')
                     
-                    pylab.title('%s at %s gauge' %(quantity,filename[len(base_name):]))
+                    pylab.title('%s at %s gauge'
+                                % (quantity, filename[len(base_name):]))
+
                     if output_dir == '':
-                        figname = '%s%s%s_%s%s.png' %(directory,sep,
-                                            filename,
-                                            quantity,
-                                            extra_plot_name)
+                        figname = '%s%s%s_%s%s.png' \
+                                  % (directory, sep, filename, quantity,
+                                     extra_plot_name)
                     else:
-                        figname = '%s%s%s_%s%s.png' %(output_dir,sep,
-                                            filename,
-                                            quantity,
-                                            extra_plot_name)
+                        figname = '%s%s%s_%s%s.png' \
+                                  % (output_dir, sep, filename, quantity,
+                                     extra_plot_name)
+
                     if verbose: print 'saving figure here %s' %figname
+
                     pylab.savefig(figname)
            
     if verbose: print 'Closing all plots'
+
     pylab.close('all')
     del pylab
+
     if verbose: print 'Finished closing plots'
 
+##
+# @brief Return min and max of an iterable.
+# @param list The iterable to return min & max of.
+# @return (min, max) of 'list'.
 def get_min_max_values(list=None):
     """ 
     Returns the min and max of the list it was provided.
     """
+
     if list == None: print 'List must be provided'
         
     return min(list), max(list)
 
 
-
+##
+# @brief Get runup around a point in a CSV file.
+# @param gauge_filename gauge file name.
+# @param sww_filename SWW file name.
+# @param runup_filename Name of file to report into.
+# @param size ??
+# @param verbose ??
 def get_runup_data_for_locations_from_file(gauge_filename,
                                            sww_filename,
                                            runup_filename,
                                            size=10,
                                            verbose=False):
-
     """this will read a csv file with the header x,y. Then look in a square
     'size'x2 around this position for the 'max_inundaiton_height' in the
-    'sww_filename' and report the findings in the 'runup_filename
+    'sww_filename' and report the findings in the 'runup_filename'.
     
     WARNING: NO TESTS! 
     """
@@ -2265,7 +2285,7 @@ def get_runup_data_for_locations_from_file(gauge_filename,
                                                  get_maximum_inundation_data,\
                                                  csv2dict
                                                  
-    file = open(runup_filename,"w")
+    file = open(runup_filename, "w")
     file.write("easting,northing,runup \n ")
     file.close()
     
@@ -2278,15 +2298,15 @@ def get_runup_data_for_locations_from_file(gauge_filename,
 
     runup_locations=[]
     for i, x in enumerate(northing):
-#        print 'easting,northing',i,easting[i],northing[i]
         poly = [[int(easting[i]+size),int(northing[i]+size)],
                 [int(easting[i]+size),int(northing[i]-size)],
                 [int(easting[i]-size),int(northing[i]-size)],
                 [int(easting[i]-size),int(northing[i]+size)]]
         
         run_up, x_y = get_maximum_inundation_data(filename=sww_filename,
-                                              polygon=poly,
-                                              verbose=False) 
+                                                  polygon=poly,
+                                                  verbose=False) 
+
         #if no runup will return 0 instead of NONE
         if run_up==None: run_up=0
         if x_y==None: x_y=[0,0]
@@ -2295,17 +2315,25 @@ def get_runup_data_for_locations_from_file(gauge_filename,
             print 'maximum inundation runup near %s is %s meters' %(x_y,run_up)
         
         #writes to file
-        file = open(runup_filename,"a")
-        temp = '%s,%s,%s \n' %(x_y[0], x_y[1], run_up)
+        file = open(runup_filename, "a")
+        temp = '%s,%s,%s \n' % (x_y[0], x_y[1], run_up)
         file.write(temp)
         file.close()
-        
 
+
+##
+# @brief ??
+# @param sww_file ??
+# @param gauge_file ??
+# @param out_name ??
+# @param quantities ??
+# @param verbose ??
+# @param use_cache ??
 def sww2csv_gauges(sww_file,
                    gauge_file,
                    out_name='gauge_',
-                   quantities = ['stage', 'depth', 'elevation',
-                                 'xmomentum', 'ymomentum'],
+                   quantities=['stage', 'depth', 'elevation',
+                               'xmomentum', 'ymomentum'],
                    verbose=False,
                    use_cache = True):
     """
@@ -2354,8 +2382,6 @@ def sww2csv_gauges(sww_file,
     If it needs to be more general, change things.
 
     This is really returning speed, not velocity.
-     
-    
     """
     
     from csv import reader,writer
@@ -2363,25 +2389,20 @@ def sww2csv_gauges(sww_file,
     from Numeric import array, resize, shape, Float, zeros, take, argsort, argmin
     import string
     from anuga.shallow_water.data_manager import get_all_swwfiles
+
 #    quantities =  ['stage', 'elevation', 'xmomentum', 'ymomentum']
     #print "points",points 
 
-    assert type(gauge_file) == type(''),\
-           'Gauge filename must be a string'
-           
-    assert type(out_name) == type(''),\
-           'Output filename prefix must be a string'
+    assert type(gauge_file) == type(''), 'Gauge filename must be a string'
+    assert type(out_name) == type(''), 'Output filename prefix must be a string'
     
     try:
-    #    fid = open(gauge_file)
         point_reader = reader(file(gauge_file))
-
     except Exception, e:
-        msg = 'File "%s" could not be opened: Error="%s"'\
-                  %(gauge_file, e)
+        msg = 'File "%s" could not be opened: Error="%s"' % (gauge_file, e)
         raise msg
+
     if verbose: print '\n Gauges obtained from: %s \n' %gauge_file
-    
     
     point_reader = reader(file(gauge_file))
     points = []
@@ -2389,17 +2410,14 @@ def sww2csv_gauges(sww_file,
     
     #read point info from file
     for i,row in enumerate(point_reader):
-#        print 'i',i,'row',row
         #read header and determine the column numbers to read correcty.
         if i==0:
             for j,value in enumerate(row):
-#                print 'j',j,value, row
                 if value.strip()=='easting':easting=j
                 if value.strip()=='northing':northing=j
                 if value.strip()=='name':name=j
                 if value.strip()=='elevation':elevation=j
         else:
-#            print i,'easting',easting,'northing',northing, row[easting]
             points.append([float(row[easting]),float(row[northing])])
             point_name.append(row[name])
         
@@ -2409,7 +2427,7 @@ def sww2csv_gauges(sww_file,
     points_array = ensure_absolute(points_array)
 
     dir_name, base = os.path.split(sww_file)    
-    #print 'dirname',dir_name, base
+
     #need to get current directory so when path and file
     #are "joined" below the directory is correct
     if dir_name == '':
@@ -2418,8 +2436,7 @@ def sww2csv_gauges(sww_file,
     if access(sww_file,R_OK):
         if verbose: print 'File %s exists' %(sww_file)
     else:
-        msg = 'File "%s" could not be opened: no read permission'\
-               %(sww_file)
+        msg = 'File "%s" could not be opened: no read permission' % sww_file
         raise msg
 
     sww_files = get_all_swwfiles(look_in_dir=dir_name,
@@ -2435,45 +2452,35 @@ def sww2csv_gauges(sww_file,
     core_quantities = ['stage', 'elevation', 'xmomentum', 'ymomentum']
     
     for sww_file in sww_files:
-    
-#        print 'sww_file',sww_file
         sww_file = join(dir_name, sww_file+'.sww')
-#        print 'sww_file',sww_file, core_quantities
-        
         callable_sww = file_function(sww_file,
-                                 quantities=core_quantities,
-                                 interpolation_points=points_array,
-                                 verbose=verbose,
-                                 use_cache=use_cache)
-        
+                                     quantities=core_quantities,
+                                     interpolation_points=points_array,
+                                     verbose=verbose,
+                                     use_cache=use_cache)
     gauge_file = out_name
 
     heading = [quantity for quantity in quantities]
     heading.insert(0,'time')
 
-#    print 'start time', callable_sww.starttime, heading, quantities
-
     #create a list of csv writers for all the points and write header
     points_writer = []
     for i,point in enumerate(points):
-        #print 'gauge file:',dir_name+sep+'gauge_'+point_name[i]+'.csv'
-        points_writer.append(writer(file(dir_name+sep+gauge_file+point_name[i]+'.csv', "wb")))
+        points_writer.append(writer(file(dir_name + sep + gauge_file
+                                         + point_name[i] + '.csv', "wb")))
         points_writer[i].writerow(heading)
     
     if verbose: print 'Writing csv files'
 
     for time in callable_sww.get_time():
-
         for point_i, point in enumerate(points_array):
             #add domain starttime to relative time.
-            points_list = [time+callable_sww.starttime]
-#            print'time',time,'point_i',point_i,point, points_array
+            points_list = [time + callable_sww.starttime]
             point_quantities = callable_sww(time,point_i)
-#            print "quantities", point_quantities
             
             for quantity in quantities:
-                if quantity==NAN:
-                    print 'quantity does not exist in' %callable_sww.get_name
+                if quantity == NAN:
+                    print 'quantity does not exist in' % callable_sww.get_name
                 else:
                     if quantity == 'stage':
                         points_list.append(point_quantities[0])
@@ -2488,12 +2495,12 @@ def sww2csv_gauges(sww_file,
                         points_list.append(point_quantities[3])
                         
                     if quantity == 'depth':
-                        points_list.append(point_quantities[0] - point_quantities[1])
-                        
-                        
+                        points_list.append(point_quantities[0] 
+                                           - point_quantities[1])
+
                     if quantity == 'momentum':
-                        momentum = sqrt(point_quantities[2]**2 +\
-                                        point_quantities[3]**2)
+                        momentum = sqrt(point_quantities[2]**2 
+                                        + point_quantities[3]**2)
                         points_list.append(momentum)
                         
                     if quantity == 'speed':
@@ -2502,10 +2509,11 @@ def sww2csv_gauges(sww_file,
                             vel = 0.0
                         else:
                             if point_quantities[2] < 1.0e6:
-                                momentum = sqrt(point_quantities[2]**2 +\
-                                                point_quantities[3]**2)
+                                momentum = sqrt(point_quantities[2]**2
+                                                + point_quantities[3]**2)
     #                            vel = momentum/depth              
-                                vel = momentum/(point_quantities[0] - point_quantities[1])
+                                vel = momentum / (point_quantities[0] 
+                                                  - point_quantities[1])
     #                            vel = momentum/(depth + 1.e-6/depth)
                             else:
                                 momentum = 0
@@ -2516,14 +2524,19 @@ def sww2csv_gauges(sww_file,
                     if quantity == 'bearing':
                         points_list.append(calc_bearing(point_quantities[2],
                                                         point_quantities[3]))
-                        
-                #print 'list',points_list
-                
+
             points_writer[point_i].writerow(points_list)
         
 
-def greens_law(d1,d2,h1,verbose=False):
-    """
+##
+# @brief Get a wave height at a certain depth given wave height at another depth.
+# @param d1 The first depth.
+# @param d2 The second depth.
+# @param h1 Wave ampitude at d1
+# @param verbose True if this function is to be verbose.
+# @return The wave height at d2.
+def greens_law(d1, d2, h1, verbose=False):
+    """Green's Law
 
     Green's Law allows an approximation of wave amplitude at
     a given depth based on the fourh root of the ratio of two depths
@@ -2546,15 +2559,15 @@ def greens_law(d1,d2,h1,verbose=False):
     h1 = ensure_numeric(h1)
 
     if d1 <= 0.0:
-        msg = 'the first depth, d1 (%f), must be strictly positive' %(d1)
+        msg = 'the first depth, d1 (%f), must be strictly positive' % (d1)
         raise Exception(msg)
 
     if d2 <= 0.0:
-        msg = 'the second depth, d2 (%f), must be strictly positive' %(d2)
+        msg = 'the second depth, d2 (%f), must be strictly positive' % (d2)
         raise Exception(msg)
     
     if h1 <= 0.0:
-        msg = 'the wave amplitude, h1 (%f), must be strictly positive' %(h1)
+        msg = 'the wave amplitude, h1 (%f), must be strictly positive' % (h1)
         raise Exception(msg)
     
     h2 = h1*(d1/d2)**0.25
@@ -2564,5 +2577,11 @@ def greens_law(d1,d2,h1,verbose=False):
     return h2
         
 
+##
+# @brief Get the square-root of a value.
+# @param s The value to get the square-root of.
+# @return The square-root of 's'.
 def square_root(s):
     return sqrt(s)
+
+

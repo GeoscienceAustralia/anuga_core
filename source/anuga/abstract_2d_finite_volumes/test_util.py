@@ -1832,8 +1832,8 @@ point2, 0.5, 2.0, 9.0\n")
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
-#    suite = unittest.makeSuite(Test_Util,'test')
-    suite = unittest.makeSuite(Test_Util,'test_remove_lone_verts')
+    suite = unittest.makeSuite(Test_Util,'test')
+#    suite = unittest.makeSuite(Test_Util,'test_remove_lone_verts')
 #    runner = unittest.TextTestRunner(verbosity=2)
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
