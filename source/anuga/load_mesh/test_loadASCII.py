@@ -542,6 +542,25 @@ showme1.0 0.0 10.0 \n\
             self.failUnless(0 ==1,
                         'bad msh file did not raise error!')        
         os.remove(fileName)         
+
+######
+# Test the clean_line() utility function.
+######
+
+    def test_clean_line_01(self):
+        test_line = 'abc, ,,xyz,123'
+        result = clean_line(test_line, ',')
+        self.failUnless(result == ['abc', '', 'xyz', '123'])
+              
+    def test_clean_line_02(self):
+        test_line = ' abc , ,, xyz  , 123  '
+        result = clean_line(test_line, ',')
+        self.failUnless(result == ['abc', '', 'xyz', '123'])
+              
+    def test_clean_line_03(self):
+        test_line = '1||||2'
+        result = clean_line(test_line, '|')
+        self.failUnless(result == ['1', '2'])
               
 #-------------------------------------------------------------
 if __name__ == "__main__":
