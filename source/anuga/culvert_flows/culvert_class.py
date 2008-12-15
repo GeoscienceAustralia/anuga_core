@@ -307,6 +307,7 @@ class Culvert_flow_rating:
 
                     
                 # Store current average stage and depth with each opening object
+                opening.depth = stage - opening.elevation
                 opening.stage = stage
 
                 
@@ -326,25 +327,28 @@ class Culvert_flow_rating:
                 log_to_file(self.log_filename, s)
 
 
-            # Calculate discharge for one barrel and set inlet.rate and outlet.rate
-            try:
-                Q = interpolate_linearly(delta_w, self.rating_curve[:,0], self.rating_curve[:,1]) 
-            except Below_interval, e:
-                Q = self.rating_curve[0,1]             
-                msg = '%.2fs: Delta head smaller than rating curve minimum: ' %time
-                msg += str(e)
-                msg += '\n        I will use minimum discharge %.2f m^3/s for culvert "%s"'\
-                    %(Q, self.label)
-                if hasattr(self, 'log_filename'):                    
-                    log_to_file(self.log_filename, msg)
-            except Above_interval, e:
-                Q = self.rating_curve[-1,1]             
-                msg = '%.2fs: Delta head greater than rating curve maximum: ' %time
-                msg += str(e)
-                msg += '\n        I will use maximum discharge %.2f m^3/s for culvert "%s"'\
-                    %(Q, self.label)
-                if hasattr(self, 'log_filename'):                    
-                    log_to_file(self.log_filename, msg)                    
+            if self.inlet.depth <= 0.01:
+                Q = 0.0
+            else:
+                # Calculate discharge for one barrel and set inlet.rate and outlet.rate
+                try:
+                    Q = interpolate_linearly(delta_w, self.rating_curve[:,0], self.rating_curve[:,1]) 
+                except Below_interval, e:
+                    Q = self.rating_curve[0,1]             
+                    msg = '%.2fs: Delta head smaller than rating curve minimum: ' %time
+                    msg += str(e)
+                    msg += '\n        I will use minimum discharge %.2f m^3/s for culvert "%s"'\
+                        %(Q, self.label)
+                    if hasattr(self, 'log_filename'):                    
+                        log_to_file(self.log_filename, msg)
+                except Above_interval, e:
+                    Q = self.rating_curve[-1,1]             
+                    msg = '%.2fs: Delta head greater than rating curve maximum: ' %time
+                    msg += str(e)
+                    msg += '\n        I will use maximum discharge %.2f m^3/s for culvert "%s"'\
+                        %(Q, self.label)
+                    if hasattr(self, 'log_filename'):                    
+                        log_to_file(self.log_filename, msg)                    
 
                 
                 
