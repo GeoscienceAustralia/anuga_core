@@ -5,6 +5,7 @@ from math import sqrt, pi
 import tempfile
 
 from anuga.config import g, epsilon
+from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from Numeric import allclose, alltrue, array, zeros, ones, Float, take
 from anuga.utilities.numerical_tools import mean
 from anuga.utilities.polygon import is_inside_polygon
@@ -6187,7 +6188,7 @@ class Test_Shallow_Water(unittest.TestCase):
             stage = domain.quantities['stage'].vertex_values
 
             #Get NetCDF
-            fid = NetCDFFile(domain.writer.filename, 'r')
+            fid = NetCDFFile(domain.writer.filename, netcdf_mode_r)
             stage_file = fid.variables['stage']
             
             fid.close()

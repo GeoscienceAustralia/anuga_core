@@ -8,6 +8,7 @@ MOSTs output.
 
 import sys
 from Scientific.IO.NetCDF import NetCDFFile
+from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 
 
 ##
@@ -74,7 +75,7 @@ def most2nc(input_file, output_file, inverted_bathymetry=False, verbose=True):
     # write the NetCDF file
     if verbose: print 'writing results'
 
-    out_file = NetCDFFile(output_file,'w')
+    out_file = NetCDFFile(output_file, netcdf_mode_w)
 
     out_file.createDimension(long_name,nx)
 

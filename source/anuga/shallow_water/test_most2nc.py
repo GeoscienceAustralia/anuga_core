@@ -1,7 +1,7 @@
 import unittest
 from Numeric import allclose, asarray
-import most2nc
 from Scientific.IO.NetCDF import NetCDFFile
+import most2nc
 import os
 
 FN = 'small___.txt'

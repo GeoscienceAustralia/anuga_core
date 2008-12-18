@@ -25,6 +25,8 @@ from math import sqrt, atan, degrees
 from anuga.utilities.system_tools import get_revision_number
 from anuga.utilities.system_tools import store_version_info
 
+from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
+
 
 ##
 # @brief Read time history of data from NetCDF file, return callable object.
@@ -271,7 +273,7 @@ def get_netcdf_file_function(filename,
     # Open NetCDF file
     if verbose: print 'Reading', filename
 
-    fid = NetCDFFile(filename, 'r')
+    fid = NetCDFFile(filename, netcdf_mode_r)
 
     if type(quantity_names) == types.StringType:
         quantity_names = [quantity_names]        

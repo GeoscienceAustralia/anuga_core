@@ -107,6 +107,7 @@ from anuga.config import optimise_dry_cells
 from anuga.config import optimised_gradient_limiter
 from anuga.config import use_edge_limiter
 from anuga.config import use_centroid_velocities
+from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 
 from anuga.fit_interpolate.interpolate import Modeltime_too_late, Modeltime_too_early
 
@@ -624,7 +625,7 @@ class Domain(Generic_Domain):
         from anuga.shallow_water.data_manager import get_dataobject
 
         # Initialise writer
-        self.writer = get_dataobject(self, mode = 'w')
+        self.writer = get_dataobject(self, mode=netcdf_mode_w)
 
         # Store vertices and connectivity
         self.writer.store_connectivity()

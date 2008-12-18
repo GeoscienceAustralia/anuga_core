@@ -15,7 +15,7 @@ from anuga.shallow_water import Dirichlet_boundary, Time_boundary
 from anuga.shallow_water import File_boundary
 from anuga.pmesh.mesh import Mesh
 from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_instance_to_domain_instance
-
+from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 
 
 class Test_system(unittest.TestCase):
@@ -113,7 +113,7 @@ class Test_system(unittest.TestCase):
             #print "domain.time", domain.time
 
         # do an assertion on the time of the produced sww file
-        fid = NetCDFFile(filename, 'r')    #Open existing file for read
+        fid = NetCDFFile(filename, netcdf_mode_r)    #Open existing file for read
         times = fid.variables['time'][:]
         #print "times", times
         #print "fid.starttime", fid.starttime
@@ -164,7 +164,7 @@ class Test_system(unittest.TestCase):
             #print "domain.time", domain.time
 
         # do an assertion on the time of the produced sww file
-        fid = NetCDFFile(filename, 'r')    #Open existing file for read
+        fid = NetCDFFile(filename, netcdf_mode_r)    #Open existing file for read
         times = fid.variables['time'][:]
         stage = fid.variables['stage'][:]
         #print stage

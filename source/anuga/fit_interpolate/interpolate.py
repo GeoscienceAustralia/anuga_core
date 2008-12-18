@@ -39,6 +39,7 @@ from anuga.geospatial_data.geospatial_data import ensure_absolute
 from anuga.fit_interpolate.search_functions import search_tree_of_vertices
 from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
 from anuga.abstract_2d_finite_volumes.util import file_function
+from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 
 # Interpolation specific exceptions
 
@@ -1310,7 +1311,7 @@ def read_sww(file_name):
     fd = open(junk,'w')
     stdout = sys.stdout
     sys.stdout = fd
-    fid = NetCDFFile(file_name, 'r') 
+    fid = NetCDFFile(file_name, netcdf_mode_r) 
     sys.stdout = stdout
     fd.close()
     #clean up

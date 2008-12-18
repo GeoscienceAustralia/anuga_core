@@ -20,7 +20,7 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference, \
 from anuga.coordinate_transforms.redfearn import convert_from_latlon_to_utm
 from anuga.utilities.anuga_exceptions import ANUGAError
 from anuga.config import points_file_block_line_size as MAX_READ_LINES
-
+from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 
 DEFAULT_ATTRIBUTE = 'elevation'
 
@@ -792,7 +792,7 @@ class Geospatial_data:
             fd.close()
 
             # Throws prints to screen if file not present
-            self.fid = NetCDFFile(self.file_name, 'r')
+            self.fid = NetCDFFile(self.file_name, netcdf_mode_r)
 
             (self.blocking_georef,
              self.blocking_keys,
@@ -1001,7 +1001,7 @@ def _read_pts_file(file_name, verbose=False):
     fd.close()
 
     # Throws prints to screen if file not present
-    fid = NetCDFFile(file_name, 'r')
+    fid = NetCDFFile(file_name, netcdf_mode_r)
 
     pointlist = array(fid.variables['points'])
     keys = fid.variables.keys()
@@ -1252,7 +1252,7 @@ def _write_pts_file(file_name,
     from Scientific.IO.NetCDF import NetCDFFile
 
     # NetCDF file definition
-    outfile = NetCDFFile(file_name, 'w')
+    outfile = NetCDFFile(file_name, netcdf_mode_w)
 
     # Create new file
     outfile.institution = 'Geoscience Australia'

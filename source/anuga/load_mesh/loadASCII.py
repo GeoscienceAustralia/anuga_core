@@ -65,6 +65,8 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference, TITLE, \
                                                       TitleError
 
 from Scientific.IO.NetCDF import NetCDFFile
+from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
+
 
 import exceptions
 class TitleAmountError(exceptions.Exception): pass
@@ -681,7 +683,7 @@ def _write_msh_file(file_name, mesh):
 
     # NetCDF file definition
     try:
-        outfile = NetCDFFile(file_name, 'w')
+        outfile = NetCDFFile(file_name, netcdf_mode_w)
     except IOError:
         msg = 'File %s could not be created' % file_name
         raise msg
@@ -843,7 +845,7 @@ def _read_msh_file(file_name):
     fd.close()
 
     #throws prints to screen if file not present
-    fid = NetCDFFile(file_name, 'r')
+    fid = NetCDFFile(file_name, netcdf_mode_r)
     mesh = {}
 
     # Get the variables

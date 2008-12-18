@@ -33,6 +33,8 @@ from anuga.shallow_water import Domain
 from anuga.fit_interpolate.fit import Fit, fit_to_mesh
 from anuga.fit_interpolate.interpolate import benchmark_interpolate
 from anuga.shallow_water.data_manager import Write_sww, export_grid
+from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
+
 
 def mem_usage():
     '''
@@ -104,7 +106,7 @@ def build_sww(vert_rows, vert_columns, save):
     xmomentum = elevation
         
     # NetCDF file definition
-    fid = NetCDFFile(sww_fileName, 'w')
+    fid = NetCDFFile(sww_fileName, netcdf_mode_w)
     sww = Write_sww()
     sww.store_header(fid, 0,
                len(mesh_dict['triangles']),

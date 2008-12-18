@@ -13,6 +13,7 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference, TitleError
 from anuga.coordinate_transforms.redfearn import degminsec2decimal_degrees
 from anuga.utilities.anuga_exceptions import ANUGAError
 from anuga.utilities.system_tools import get_host_name
+from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 
 class Test_Geospatial_data(unittest.TestCase):
     def setUp(self):
@@ -1130,7 +1131,7 @@ class Test_Geospatial_data(unittest.TestCase):
 
         fileName = tempfile.mktemp(".pts")
         # NetCDF file definition
-        outfile = NetCDFFile(fileName, 'w')
+        outfile = NetCDFFile(fileName, netcdf_mode_w)
         
         # dimension definitions
         outfile.createDimension('number_of_points', 3)    
@@ -1287,7 +1288,7 @@ class Test_Geospatial_data(unittest.TestCase):
 #        fileName = tempfile.mktemp(".pts")
         FN = 'test_points.pts'
         # NetCDF file definition
-        outfile = NetCDFFile(FN, 'w')
+        outfile = NetCDFFile(FN, netcdf_mode_w)
         
         # dimension definitions
         outfile.createDimension('number_of_points', 3)    
@@ -1328,7 +1329,7 @@ class Test_Geospatial_data(unittest.TestCase):
 
         FN = 'test_points.pts'
         # NetCDF file definition
-        outfile = NetCDFFile(FN, 'w')
+        outfile = NetCDFFile(FN, netcdf_mode_w)
 
         # Make up an arbitrary georef
         xll = 0.1

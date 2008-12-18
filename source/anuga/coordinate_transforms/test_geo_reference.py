@@ -7,6 +7,7 @@ import os
 
 from geo_reference import *
 from Numeric import allclose,array
+from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 
 
 class geo_referenceTestCase(unittest.TestCase):
@@ -31,11 +32,11 @@ class geo_referenceTestCase(unittest.TestCase):
         g = Geo_reference(56,1.9,1.9)
         file_name = tempfile.mktemp(".geo_referenceTest")
         
-        out_file = NetCDFFile(file_name, 'w')
+        out_file = NetCDFFile(file_name, netcdf_mode_w)
         g.write_NetCDF(out_file)
         out_file.close()
         
-        in_file = NetCDFFile(file_name, 'r')
+        in_file = NetCDFFile(file_name, netcdf_mode_r)
         new_g = Geo_reference(NetCDFObject=in_file)
         in_file.close()
         os.remove(file_name)
@@ -48,13 +49,13 @@ class geo_referenceTestCase(unittest.TestCase):
         g = Geo_reference(56,1.9,1.9)
         file_name = tempfile.mktemp(".geo_referenceTest")
         
-        outfile = NetCDFFile(file_name, 'w')
+        outfile = NetCDFFile(file_name, netcdf_mode_w)
         outfile.xllcorner = g.get_xllcorner() 
         outfile.yllcorner =  g.get_yllcorner() 
         outfile.zone = g.get_zone()
         outfile.close()
         
-        in_file = NetCDFFile(file_name, 'r')
+        in_file = NetCDFFile(file_name, netcdf_mode_r)
         new_g = Geo_reference(NetCDFObject=in_file)
         in_file.close()
         os.remove(file_name)

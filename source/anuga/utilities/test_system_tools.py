@@ -5,6 +5,7 @@ import unittest
 from Numeric import zeros, array, allclose, Float
 import zlib
 from os.path import join, split, sep
+from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 
 
 # Please, don't add anuga.utilities to these imports.
@@ -84,7 +85,7 @@ class Test_system_tools(unittest.TestCase):
 
             # First file
             filename1 = mktemp(suffix='.nc', dir='.')
-            fid = NetCDFFile(filename1, 'w')
+            fid = NetCDFFile(filename1, netcdf_mode_w)
             fid.createDimension('two', 2)
             fid.createVariable('test_array', Float,
                                ('two', 'two'))
@@ -93,7 +94,7 @@ class Test_system_tools(unittest.TestCase):
             
             # Second file
             filename2 = mktemp(suffix='.nc', dir='.')
-            fid = NetCDFFile(filename2, 'w')
+            fid = NetCDFFile(filename2, netcdf_mode_w)
             fid.createDimension('two', 2)
             fid.createVariable('test_array', Float,
                                ('two', 'two'))

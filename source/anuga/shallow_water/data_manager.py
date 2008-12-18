@@ -77,6 +77,7 @@ from anuga.geospatial_data.geospatial_data import Geospatial_data,\
      ensure_absolute
 from anuga.config import minimum_storable_height as \
      default_minimum_storable_height
+from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.config import max_float
 from anuga.utilities.numerical_tools import ensure_numeric,  mean
 from anuga.caching.caching import myhash
@@ -299,8 +300,8 @@ class Data_format:
     # @param domain 
     # @param extension 
     # @param mode The mode of the underlying file.
-    def __init__(self, domain, extension, mode='w'):
-        assert mode in ['r', 'w', 'a'], \
+    def __init__(self, domain, extension, mode=netcdf_mode_w):
+        assert mode[0] in ['r', 'w', 'a'], \
                "Mode %s must be either:\n" % mode + \
                "   'w' (write)\n" + \
                "   'r' (read)\n" + \
@@ -340,8 +341,8 @@ class Data_format_sww(Data_format):
     # @param mode Mode of the underlying data file.
     # @param max_size ??
     # @param recursion ??
-    # @note Prepare the undelying data file if mode is 'w'.
-    def __init__(self, domain, mode='w', max_size=2000000000, recursion=False):
+    # @note Prepare the underlying data file if mode starts with 'w'.
+    def __init__(self, domain, mode=netcdf_mode_w, max_size=2000000000, recursion=False):
         from Scientific.IO.NetCDF import NetCDFFile
         from Numeric import Int, Float, Float32
 
@@ -362,7 +363,7 @@ class Data_format_sww(Data_format):
 
         # NetCDF file definition
         fid = NetCDFFile(self.filename, mode)
-        if mode == 'w':
+        if mode[0] == 'w':
             description = 'Output from anuga.abstract_2d_finite_volumes ' \
                           'suitable for plotting'
             self.writer = Write_sww()
@@ -428,13 +429,13 @@ class Data_format_sww(Data_format):
         domain = self.domain
 
         # append to the NetCDF file
-        fid = NetCDFFile(self.filename, 'a')
+        fid = NetCDFFile(self.filename, netcdf_mode_a)
 
-        # Get the variables
-        x = fid.variables['x']
-        y = fid.variables['y']
-        z = fid.variables['elevation']
-        volumes = fid.variables['volumes']
+#        # Get the variables
+#        x = fid.variables['x']
+#        y = fid.variables['y']
+#        z = fid.variables['elevation']
+#        volumes = fid.variables['volumes']
 
         # Get X, Y and bed elevation Z
         Q = domain.quantities['elevation']
@@ -444,7 +445,8 @@ class Data_format_sww(Data_format):
         points = concatenate( (X[:,NewAxis],Y[:,NewAxis]), axis=1 )
         self.writer.store_triangulation(fid,
                                         points,
-                                        V.astype(volumes.typecode()),
+#                                        V.astype(volumes.typecode()),
+                                        V.astype(Float32),
                                         Z,
                                         points_georeference=\
                                             domain.geo_reference)
@@ -474,7 +476,7 @@ class Data_format_sww(Data_format):
         file_open = False
         while not file_open and retries < 10:
             try:
-                fid = NetCDFFile(self.filename, 'a') # Open existing file
+                fid = NetCDFFile(self.filename, netcdf_mode_a) # Open existing file
             except IOError:
                 # This could happen if someone was reading the file.
                 # In that case, wait a while and try again
@@ -622,7 +624,7 @@ class Data_format_cpt(Data_format):
     # @brief Initialize this instantiation.
     # @param domain ??
     # @param mode Mode of underlying data file (default WRITE).
-    def __init__(self, domain, mode='w'):
+    def __init__(self, domain, mode=netcdf_mode_w):
         from Scientific.IO.NetCDF import NetCDFFile
         from Numeric import Int, Float, Float
 
@@ -632,7 +634,7 @@ class Data_format_cpt(Data_format):
 
         # NetCDF file definition
         fid = NetCDFFile(self.filename, mode)
-        if mode == 'w':
+        if mode[0] == 'w':
             #Create new file
             fid.institution = 'Geoscience Australia'
             fid.description = 'Checkpoint data'
@@ -682,7 +684,7 @@ class Data_format_cpt(Data_format):
         domain = self.domain
 
         #Get NetCDF
-        fid = NetCDFFile(self.filename, 'a')
+        fid = NetCDFFile(self.filename, netcdf_mode_a)
 
         # Get the variables
         x = fid.variables['x']
@@ -717,7 +719,7 @@ class Data_format_cpt(Data_format):
         file_open = False
         while not file_open and retries < 10:
             try:
-                fid = NetCDFFile(self.filename, 'a')
+                fid = NetCDFFile(self.filename, netcdf_mode_a)
             except IOError:
                 #This could happen if someone was reading the file.
                 #In that case, wait a while and try again
@@ -1133,7 +1135,7 @@ def sww2obj(basefilename, size):
     # Get NetCDF
     FN = create_filename('.', basefilename, 'sww', size)
     print 'Reading from ', FN
-    fid = NetCDFFile(FN, 'r')  #Open existing file for read
+    fid = NetCDFFile(FN, netcdf_mode_r)  #Open existing file for read
 
     # Get the variables
     x = fid.variables['x']
@@ -1256,8 +1258,8 @@ def filter_netcdf(filename1, filename2, first=0, last=None, step=1):
     from Scientific.IO.NetCDF import NetCDFFile
 
     # Get NetCDF
-    infile = NetCDFFile(filename1, 'r')  #Open existing file for read
-    outfile = NetCDFFile(filename2, 'w')  #Open new file
+    infile = NetCDFFile(filename1, netcdf_mode_r)  #Open existing file for read
+    outfile = NetCDFFile(filename2, netcdf_mode_w)  #Open new file
 
     # Copy dimensions
     for d in infile.dimensions:
@@ -1302,7 +1304,7 @@ def filter_netcdf(filename1, filename2, first=0, last=None, step=1):
 # @param mode The mode to open domain in.
 # @return A class instance of required domain and mode.
 #Get data objects
-def get_dataobject(domain, mode='w'):
+def get_dataobject(domain, mode=netcdf_mode_w):
     """Return instance of class of given format using filename
     """
 
@@ -1388,7 +1390,7 @@ def _dem2pts(basename_in, basename_out=None, verbose=False,
     root = basename_in
 
     # Get NetCDF
-    infile = NetCDFFile(root + '.dem', 'r') 
+    infile = NetCDFFile(root + '.dem', netcdf_mode_r) 
 
     if verbose: print 'Reading DEM from %s' %(root + '.dem')
 
@@ -1418,7 +1420,7 @@ def _dem2pts(basename_in, basename_out=None, verbose=False,
     if verbose: print 'Store to NetCDF file %s' %ptsname
 
     # NetCDF file definition
-    outfile = NetCDFFile(ptsname, 'w')
+    outfile = NetCDFFile(ptsname, netcdf_mode_w)
 
     # Create new file
     outfile.institution = 'Geoscience Australia'
@@ -2699,7 +2701,7 @@ def _convert_dem_from_ascii2netcdf(basename_in, basename_out = None,
     if verbose: print 'Store to NetCDF file %s' % netcdfname
 
     # NetCDF file definition
-    fid = NetCDFFile(netcdfname, 'w')
+    fid = NetCDFFile(netcdfname, netcdf_mode_w)
 
     #Create new file
     fid.institution = 'Geoscience Australia'
@@ -2828,10 +2830,10 @@ def ferret2sww(basename_in, basename_out=None,
     # Get NetCDF data
     if verbose: print 'Reading files %s_*.nc' % basename_in
 
-    file_h = NetCDFFile(basename_in + '_ha.nc', 'r') # Wave amplitude (cm)
-    file_u = NetCDFFile(basename_in + '_ua.nc', 'r') # Velocity (x) (cm/s)
-    file_v = NetCDFFile(basename_in + '_va.nc', 'r') # Velocity (y) (cm/s)
-    file_e = NetCDFFile(basename_in + '_e.nc', 'r')  # Elevation (z) (m)
+    file_h = NetCDFFile(basename_in + '_ha.nc', netcdf_mode_r) # Wave amplitude (cm)
+    file_u = NetCDFFile(basename_in + '_ua.nc', netcdf_mode_r) # Velocity (x) (cm/s)
+    file_v = NetCDFFile(basename_in + '_va.nc', netcdf_mode_r) # Velocity (y) (cm/s)
+    file_e = NetCDFFile(basename_in + '_e.nc', netcdf_mode_r)  # Elevation (z) (m)
 
     if basename_out is None:
         swwname = basename_in + '.sww'
@@ -3032,7 +3034,7 @@ def ferret2sww(basename_in, basename_out=None,
     file_e.close()
 
     # NetCDF file definition
-    outfile = NetCDFFile(swwname, 'w')
+    outfile = NetCDFFile(swwname, netcdf_mode_w)
 
     description = 'Converted from Ferret files: %s, %s, %s, %s' \
                   % (basename_in + '_ha.nc',
@@ -3262,7 +3264,7 @@ def timefile2netcdf(filename, quantity_names=None, time_as_seconds=False):
     #Create NetCDF file
     from Scientific.IO.NetCDF import NetCDFFile
 
-    fid = NetCDFFile(filename + '.tms', 'w')
+    fid = NetCDFFile(filename + '.tms', netcdf_mode_w)
 
     fid.institution = 'Geoscience Australia'
     fid.description = 'Time series'
@@ -3311,7 +3313,7 @@ def extent_sww(file_name):
     from Scientific.IO.NetCDF import NetCDFFile
 
     #Get NetCDF
-    fid = NetCDFFile(file_name, 'r')
+    fid = NetCDFFile(file_name, netcdf_mode_r)
 
     # Get the variables
     x = fid.variables['x'][:]
@@ -3354,7 +3356,7 @@ def sww2domain(filename, boundary=None, t=None,
 
     if verbose: print 'Reading from ', filename
 
-    fid = NetCDFFile(filename, 'r')    # Open existing file for read
+    fid = NetCDFFile(filename, netcdf_mode_r)    # Open existing file for read
     time = fid.variables['time']       # Timesteps
     if t is None:
         t = time[-1]
@@ -3646,7 +3648,7 @@ def decimate_dem(basename_in, stencil, cellsize_new, basename_out=None,
     inname = root + '.dem'
 
     #Open existing netcdf file to read
-    infile = NetCDFFile(inname, 'r')
+    infile = NetCDFFile(inname, netcdf_mode_r)
 
     if verbose: print 'Reading DEM from %s' % inname
 
@@ -3683,7 +3685,7 @@ def decimate_dem(basename_in, stencil, cellsize_new, basename_out=None,
     nrows_new = 1 + (nrows - nrows_stencil) / cellsize_ratio
 
     #Open netcdf file for output
-    outfile = NetCDFFile(outname, 'w')
+    outfile = NetCDFFile(outname, netcdf_mode_w)
 
     #Create new file
     outfile.institution = 'Geoscience Australia'
@@ -3924,7 +3926,7 @@ def asc_csiro2sww(bath_dir,
     ######### WRITE THE SWW FILE #############
 
     # NetCDF file definition
-    outfile = NetCDFFile(sww_file, 'w')
+    outfile = NetCDFFile(sww_file, netcdf_mode_w)
 
     #Create new file
     outfile.institution = 'Geoscience Australia'
@@ -4275,7 +4277,7 @@ class Write_nc:
         self.time_step = time_step
 
         # NetCDF file definition
-        self.outfile = NetCDFFile(file_name, 'w')
+        self.outfile = NetCDFFile(file_name, netcdf_mode_w)
         outfile = self.outfile
 
         #Create new file
@@ -4556,7 +4558,7 @@ def write_elevation_nc(file_out, lon, lat, depth_vector):
     """Write an nc elevation file."""
 
     # NetCDF file definition
-    outfile = NetCDFFile(file_out, 'w')
+    outfile = NetCDFFile(file_out, netcdf_mode_w)
 
     #Create new file
     nc_lon_lat_header(outfile, lon, lat)
@@ -5135,7 +5137,7 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
 
     if verbose: print 'Output to ', swwname
 
-    outfile = NetCDFFile(swwname, 'w')
+    outfile = NetCDFFile(swwname, netcdf_mode_w)
 
     # For a different way of doing this, check out tsh2sww
     # work out sww_times and the index range this covers
@@ -5527,7 +5529,7 @@ def urs2sts(basename_in, basename_out=None,
         permutation = arange(number_of_points, typecode=Int)
 
     # NetCDF file definition
-    outfile = NetCDFFile(stsname, 'w')
+    outfile = NetCDFFile(stsname, netcdf_mode_w)
 
     description = 'Converted from URS mux2 files: %s' % basename_in
 
@@ -5627,7 +5629,7 @@ def create_sts_boundary(stsname):
     """
 
     try:
-        fid = NetCDFFile(stsname + '.sts', 'r')
+        fid = NetCDFFile(stsname + '.sts', netcdf_mode_r)
     except:
         msg = 'Cannot open %s' % stsname + '.sts'
         raise msg
@@ -6717,7 +6719,7 @@ def get_mesh_and_quantities_from_file(filename,
 
     if verbose: print 'Reading from ', filename
 
-    fid = NetCDFFile(filename, 'r')    # Open existing file for read
+    fid = NetCDFFile(filename, netcdf_mode_r)    # Open existing file for read
     time = fid.variables['time'][:]    # Time vector
     time += fid.starttime[0]
 

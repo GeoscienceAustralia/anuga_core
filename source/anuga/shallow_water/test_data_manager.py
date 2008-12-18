@@ -21,8 +21,8 @@ from anuga.utilities.anuga_exceptions import ANUGAError
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.coordinate_transforms.redfearn import degminsec2decimal_degrees
 from anuga.abstract_2d_finite_volumes.util import file_function
-
 from anuga.utilities.system_tools import get_pathname_from_package
+from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 
 # This is needed to run the tests of local functions
 import data_manager 
@@ -30,6 +30,7 @@ from anuga.coordinate_transforms.redfearn import redfearn
 from anuga.coordinate_transforms.geo_reference import Geo_reference, \
      DEFAULT_ZONE
 from anuga.geospatial_data.geospatial_data import Geospatial_data
+
 
 class Test_Data_Manager(unittest.TestCase):
     # Class variable
@@ -41,7 +42,6 @@ class Test_Data_Manager(unittest.TestCase):
     def setUp(self):
         import time
         from mesh_factory import rectangular
-
         
         self.verbose = Test_Data_Manager.verbose
         #Create basic mesh
@@ -104,7 +104,7 @@ class Test_Data_Manager(unittest.TestCase):
 
 
         for ext in ['_ha.nc', '_ua.nc', '_va.nc', '_e.nc']:
-            fid = NetCDFFile(self.test_MOST_file + ext, 'w')
+            fid = NetCDFFile(self.test_MOST_file + ext, netcdf_mode_w)
 
             fid.createDimension(long_name,nx)
             fid.createVariable(long_name,'d',(long_name,))
@@ -179,7 +179,7 @@ class Test_Data_Manager(unittest.TestCase):
         sww = get_dataobject(self.domain)
         sww.store_connectivity()
 
-        fid = NetCDFFile(sww.filename, 'r')  #Open existing file for append
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)  #Open existing file for append
 
         # Get the variables
         x = fid.variables['x']
@@ -213,7 +213,7 @@ class Test_Data_Manager(unittest.TestCase):
 
         #Check contents
         #Get NetCDF
-        fid = NetCDFFile(sww.filename, 'r')  #Open existing file for append
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)  #Open existing file for append
 
         # Get the variables
         sww_revision = fid.revision_number
@@ -246,7 +246,7 @@ class Test_Data_Manager(unittest.TestCase):
             pass
             
         # Get NetCDF
-        fid = NetCDFFile(sww.filename, 'r') # Open existing file for append
+        fid = NetCDFFile(sww.filename, netcdf_mode_r) # Open existing file for append
 
         # Get the variables
         range = fid.variables['stage_range'][:]
@@ -325,7 +325,7 @@ class Test_Data_Manager(unittest.TestCase):
 
             
         # Get NetCDF
-        fid = NetCDFFile(sww.filename, 'r') # Open existing file for append
+        fid = NetCDFFile(sww.filename, netcdf_mode_r) # Open existing file for append
 
         # Get the variables
         extrema = fid.variables['stage-elevation.extrema'][:]
@@ -371,7 +371,7 @@ class Test_Data_Manager(unittest.TestCase):
 
         #Check contents
         #Get NetCDF
-        fid = NetCDFFile(sww.filename, 'r')  #Open existing file for append
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)  #Open existing file for append
 
         # Get the variables
         X = fid.variables['x'][:]
@@ -412,7 +412,7 @@ class Test_Data_Manager(unittest.TestCase):
 
         #Check contents
         #Get NetCDF
-        fid = NetCDFFile(sww.filename, 'r')  #Open existing file for append
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)  #Open existing file for append
 
 
         # Get the variables
@@ -464,7 +464,7 @@ class Test_Data_Manager(unittest.TestCase):
 
         #Check contents
         #Get NetCDF
-        fid = NetCDFFile(sww.filename, 'r')  #Open existing file for append
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)  #Open existing file for append
 
         # Get the variables
         x = fid.variables['x']
@@ -521,7 +521,7 @@ class Test_Data_Manager(unittest.TestCase):
 
         #Check contents
         #Get NetCDF
-        fid = NetCDFFile(sww.filename, 'r')
+        fid = NetCDFFile(sww.filename, inetcdf_mode_r)
 
         # Get the variables
         x = fid.variables['x']
@@ -585,7 +585,7 @@ class Test_Data_Manager(unittest.TestCase):
             stage = self.domain.quantities['stage'].vertex_values
 
             #Get NetCDF
-            fid = NetCDFFile(self.domain.writer.filename, 'r')
+            fid = NetCDFFile(self.domain.writer.filename, netcdf_mode_r)
             stage_file = fid.variables['stage']
             
             if t == 0.0:
@@ -626,7 +626,7 @@ class Test_Data_Manager(unittest.TestCase):
 
         #Check contents
         #Get NetCDF
-        fid = NetCDFFile(sww.filename, 'r')
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)
 
 
         # Get the variables
@@ -676,7 +676,7 @@ class Test_Data_Manager(unittest.TestCase):
 
         #Check contents
         #Get NetCDF
-        fid = NetCDFFile(sww.filename, 'r')
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)
 
         # Get the variables
         x = fid.variables['x']
@@ -786,7 +786,7 @@ Parameters
 
         #Check contents
         #Get NetCDF
-        fid = NetCDFFile(root+'.pts', 'r')
+        fid = NetCDFFile(root+'.pts', netcdf_mode_r)
 
         # Get the variables
         #print fid.variables.keys()
@@ -907,7 +907,7 @@ Parameters
 
         #Check contents
         #Get NetCDF
-        fid = NetCDFFile(root+'.pts', 'r')
+        fid = NetCDFFile(root+'.pts', netcdf_mode_r)
 
         # Get the variables
         #print fid.variables.keys()
@@ -1038,7 +1038,7 @@ Parameters
 
         #Check contents
         #Get NetCDF
-        fid = NetCDFFile(root+'.pts', 'r')
+        fid = NetCDFFile(root+'.pts', netcdf_mode_r)
 
         # Get the variables
         #print fid.variables.keys()
@@ -1179,7 +1179,7 @@ END CROSS-SECTIONS:
 
         #Check contents
         #Get NetCDF
-        fid = NetCDFFile(root+'.pts', 'r')
+        fid = NetCDFFile(root+'.pts', netcdf_mode_r)
 
         # Get the variables
         #print fid.variables.keys()
@@ -1265,7 +1265,7 @@ END CROSS-SECTIONS:
         #Check contents
         #Get NetCDF
 
-        fid = NetCDFFile(sww.filename, 'r')
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)
 
         # Get the variables
         x = fid.variables['x'][:]
@@ -1459,7 +1459,7 @@ END CROSS-SECTIONS:
         #Check contents
         #Get NetCDF
 
-        fid = NetCDFFile(sww.filename, 'r')
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)
 
         # Get the variables
         x = fid.variables['x'][:]
@@ -1541,7 +1541,7 @@ END CROSS-SECTIONS:
         #Check contents
         #Get NetCDF
 
-        fid = NetCDFFile(sww.filename, 'r')
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)
 
         # Get the variables
         x = fid.variables['x'][:]
@@ -1680,7 +1680,7 @@ END CROSS-SECTIONS:
         #Check contents
         #Get NetCDF
 
-        fid = NetCDFFile(sww.filename, 'r')
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)
 
         # Get the variables
         x = fid.variables['x'][:]
@@ -1827,7 +1827,7 @@ END CROSS-SECTIONS:
         #Check contents
         #Get NetCDF
 
-        fid = NetCDFFile(sww.filename, 'r')
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)
 
         # Get the variables
         x = fid.variables['x'][:]
@@ -1990,7 +1990,7 @@ END CROSS-SECTIONS:
         #Check contents
         #Get NetCDF
 
-        fid = NetCDFFile(sww.filename, 'r')
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)
 
         # Get the variables
         x = fid.variables['x'][:]
@@ -2181,7 +2181,7 @@ END CROSS-SECTIONS:
         #Check contents
         #Get NetCDF
 
-        fid = NetCDFFile(sww.filename, 'r')
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)
 
         # Get the variables
         x = fid.variables['x'][:]
@@ -2329,7 +2329,7 @@ END CROSS-SECTIONS:
         #Check contents
         #Get NetCDF
 
-        fid = NetCDFFile(sww.filename, 'r')
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)
 
         # Get the variables
         x = fid.variables['x'][:]
@@ -2442,7 +2442,7 @@ END CROSS-SECTIONS:
         #Check contents
         #Get NetCDF
 
-        fid = NetCDFFile(sww.filename, 'r')
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)
 
         # Get the variables
         x = fid.variables['x'][:]
@@ -2592,7 +2592,7 @@ END CROSS-SECTIONS:
         #Check contents
         #Get NetCDF
 
-        fid = NetCDFFile(swwfile, 'r')
+        fid = NetCDFFile(swwfile, netcdf_mode_r)
 
         # Get the variables
         x = fid.variables['x'][:]
@@ -2703,7 +2703,7 @@ END CROSS-SECTIONS:
         #Check contents
         #Get NetCDF
 
-        fid = NetCDFFile(sww.filename, 'r')
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)
 
         # Get the variables
         x = fid.variables['x'][:]
@@ -2799,7 +2799,7 @@ END CROSS-SECTIONS:
         sww.store_timestep()
 
         # Check contents in NetCDF
-        fid = NetCDFFile(sww.filename, 'r')
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)
 
         # Get the variables
         x = fid.variables['x'][:]
@@ -3173,10 +3173,10 @@ END CROSS-SECTIONS:
 
         from anuga.coordinate_transforms.redfearn import redfearn
         import os
-        fid1 = NetCDFFile('test_ha.nc','w')
-        fid2 = NetCDFFile('test_ua.nc','w')
-        fid3 = NetCDFFile('test_va.nc','w')
-        fid4 = NetCDFFile('test_e.nc','w')
+        fid1 = NetCDFFile('test_ha.nc',netcdf_mode_w)
+        fid2 = NetCDFFile('test_ua.nc',netcdf_mode_w)
+        fid3 = NetCDFFile('test_va.nc',netcdf_mode_w)
+        fid4 = NetCDFFile('test_e.nc',netcdf_mode_w)
 
         h1_list = [150.66667,150.83334,151.]
         h2_list = [-34.5,-34.33333]
@@ -3261,9 +3261,9 @@ END CROSS-SECTIONS:
         fid3.sync(); fid3.close()
         fid4.sync(); fid4.close()
 
-        fid1 = NetCDFFile('test_ha.nc','r')
-        fid2 = NetCDFFile('test_e.nc','r')
-        fid3 = NetCDFFile('test_va.nc','r')
+        fid1 = NetCDFFile('test_ha.nc',netcdf_mode_r)
+        fid2 = NetCDFFile('test_e.nc',netcdf_mode_r)
+        fid3 = NetCDFFile('test_va.nc',netcdf_mode_r)
 
 
         first_amp = fid1.variables['HA'][:][0,0,0]
@@ -3333,10 +3333,10 @@ END CROSS-SECTIONS:
 
         from anuga.coordinate_transforms.redfearn import redfearn
         import os
-        fid1 = NetCDFFile('test_ha.nc','w')
-        fid2 = NetCDFFile('test_ua.nc','w')
-        fid3 = NetCDFFile('test_va.nc','w')
-        fid4 = NetCDFFile('test_e.nc','w')
+        fid1 = NetCDFFile('test_ha.nc',netcdf_mode_w)
+        fid2 = NetCDFFile('test_ua.nc',netcdf_mode_w)
+        fid3 = NetCDFFile('test_va.nc',netcdf_mode_w)
+        fid4 = NetCDFFile('test_e.nc',netcdf_mode_w)
 
         h1_list = [150.66667,150.83334,151.]
         h2_list = [-34.5,-34.33333]
@@ -3425,9 +3425,9 @@ END CROSS-SECTIONS:
         fid3.sync(); fid3.close()
         fid4.sync(); fid4.close()
 
-        fid1 = NetCDFFile('test_ha.nc','r')
-        fid2 = NetCDFFile('test_e.nc','r')
-        fid3 = NetCDFFile('test_va.nc','r')
+        fid1 = NetCDFFile('test_ha.nc',netcdf_mode_r)
+        fid2 = NetCDFFile('test_e.nc',netcdf_mode_r)
+        fid3 = NetCDFFile('test_va.nc',netcdf_mode_r)
 
 
         first_amp = fid1.variables['HA'][:][0,0,0]
@@ -3490,7 +3490,7 @@ END CROSS-SECTIONS:
         zone, e, n = redfearn(-34.5, 150.66667)
 
         #Read output file 'small.sww'
-        #fid = NetCDFFile('small.sww', 'r')
+        #fid = NetCDFFile('small.sww', netcdf_mode_r)
         fid = NetCDFFile(self.test_MOST_file + '.sww')
 
         x = fid.variables['x'][:]
@@ -3968,7 +3968,7 @@ END CROSS-SECTIONS:
         root = 'decdemtest'
 
         filename = root + '.dem'
-        fid = NetCDFFile(filename, 'w')
+        fid = NetCDFFile(filename, netcdf_mode_w)
 
         fid.institution = 'Geoscience Australia'
         fid.description = 'NetCDF DEM format for compact and portable ' +\
@@ -4025,7 +4025,7 @@ END CROSS-SECTIONS:
         decimate_dem(root, stencil=stencil, cellsize_new=100)
 
         #Open decimated NetCDF file
-        fid = NetCDFFile(root + '_100.dem', 'r')
+        fid = NetCDFFile(root + '_100.dem', netcdf_mode_r)
 
         # Get decimated elevation
         elevation = fid.variables['elevation']
@@ -4051,7 +4051,7 @@ END CROSS-SECTIONS:
         root = 'decdemtest'
 
         filename = root + '.dem'
-        fid = NetCDFFile(filename, 'w')
+        fid = NetCDFFile(filename, netcdf_mode_w)
 
         fid.institution = 'Geoscience Australia'
         fid.description = 'NetCDF DEM format for compact and portable ' +\
@@ -4120,7 +4120,7 @@ END CROSS-SECTIONS:
         decimate_dem(root, stencil=stencil, cellsize_new=100)
 
         #Open decimated NetCDF file
-        fid = NetCDFFile(root + '_100.dem', 'r')
+        fid = NetCDFFile(root + '_100.dem', netcdf_mode_r)
 
         # Get decimated elevation
         elevation = fid.variables['elevation']
@@ -4303,7 +4303,7 @@ NODATA_value  -9999
 
         # check the sww file
 
-        fid = NetCDFFile(sww_file, 'r')    #Open existing file for read
+        fid = NetCDFFile(sww_file, netcdf_mode_r)    #Open existing file for read
         x = fid.variables['x'][:]
         y = fid.variables['y'][:]
         z = fid.variables['z'][:]
@@ -4613,7 +4613,7 @@ NODATA_value  -9999
 
         # check the sww file
 
-        fid = NetCDFFile(sww_file, 'r')    #Open existing file for read
+        fid = NetCDFFile(sww_file, netcdf_mode_r)    #Open existing file for read
         x = fid.variables['x'][:]
         y = fid.variables['y'][:]
         z = fid.variables['z'][:]
@@ -4807,7 +4807,7 @@ NODATA_value  -9999
 
         # check the sww file
 
-        fid = NetCDFFile(sww_file, 'r')    #Open existing file for read
+        fid = NetCDFFile(sww_file, netcdf_mode_r)    #Open existing file for read
         x = fid.variables['x'][:]
         y = fid.variables['y'][:]
         z = fid.variables['z'][:]
@@ -7117,7 +7117,7 @@ friction  \n \
                     verbose=False)
 
             # Read in sts file for this source file
-            fid = NetCDFFile(sts_name_out+'.sts', 'r') # Open existing file for read
+            fid = NetCDFFile(sts_name_out+'.sts', netcdf_mode_r) # Open existing file for read
             x = fid.variables['x'][:]+fid.xllcorner    # x-coordinates of vertices
             y = fid.variables['y'][:]+fid.yllcorner    # y-coordinates of vertices
 	    elevation = fid.variables['elevation'][:]
@@ -7273,7 +7273,7 @@ friction  \n \
                 verbose=False)
         
         # read in sts file for combined source
-        fid = NetCDFFile(sts_name_out+'.sts', 'r')    #Open existing file for read
+        fid = NetCDFFile(sts_name_out+'.sts', netcdf_mode_r)    #Open existing file for read
         x = fid.variables['x'][:]+fid.xllcorner   #x-coordinates of vertices
         y = fid.variables['y'][:]+fid.yllcorner   #y-coordinates of vertices
 	elevation = fid.variables['elevation'][:]
@@ -10006,7 +10006,7 @@ friction  \n \
         #  
         
         filename = tempfile.mktemp("_data_manager.sww")
-        outfile = NetCDFFile(filename, "w")
+        outfile = NetCDFFile(filename, netcdf_mode_w)
         points_utm = array([[0.,0.],[1.,1.], [0.,1.]])
         volumes = (0,1,2)
         elevation = [0,1,2]
@@ -10038,7 +10038,7 @@ friction  \n \
         #  
         
         filename = tempfile.mktemp("_data_manager.sww")
-        outfile = NetCDFFile(filename, "w")
+        outfile = NetCDFFile(filename, netcdf_mode_w)
         points_utm = array([[0.,0.],[1.,1.], [0.,1.]])
         volumes = (0,1,2)
         elevation = [0,1,2]
@@ -10073,7 +10073,7 @@ friction  \n \
         #  
         
         filename = tempfile.mktemp("_data_manager.sww")
-        outfile = NetCDFFile(filename, "w")
+        outfile = NetCDFFile(filename, netcdf_mode_w)
         points_utm = array([[0.,0.],[1.,1.], [0.,1.]])
         volumes = (0,1,2)
         elevation = [0,1,2]
@@ -10112,7 +10112,7 @@ friction  \n \
         #  
         
         filename = tempfile.mktemp("_data_manager.sww")
-        outfile = NetCDFFile(filename, "w")
+        outfile = NetCDFFile(filename, netcdf_mode_w)
         points_utm = array([[0.,0.],[1.,1.], [0.,1.]])
         volumes = (0,1,2)
         elevation = [0,1,2]
@@ -10148,7 +10148,7 @@ friction  \n \
         #  
         
         filename = tempfile.mktemp("_data_manager.sww")
-        outfile = NetCDFFile(filename, "w")
+        outfile = NetCDFFile(filename, netcdf_mode_w)
         points_utm = array([[0.,0.],[1.,1.], [0.,1.]])
         volumes = (0,1,2)
         elevation = [0,1,2]
@@ -10471,7 +10471,7 @@ friction  \n \
         assert allclose(location[0], 50)                
 
         # Check that mimimum_storable_height works
-        fid = NetCDFFile(swwfile, 'r') # Open existing file
+        fid = NetCDFFile(swwfile, netcdf_mode_r) # Open existing file
         
         stage = fid.variables['stage'][:]
         z = fid.variables['elevation'][:]
@@ -11048,7 +11048,7 @@ friction  \n \
 if __name__ == "__main__":
 
     suite = unittest.makeSuite(Test_Data_Manager,'test')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_stsI_beyond_model_time')
+#    suite = unittest.makeSuite(Test_Data_Manager,'test_export_gridIII')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_stsIV_sinewave_ordering')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_get_flow_through_cross_section_with_geo')
     #suite = unittest.makeSuite(Test_Data_Manager,'covered_')
