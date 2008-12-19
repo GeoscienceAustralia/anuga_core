@@ -186,15 +186,15 @@ netcdf_mode_w = 'w'
 netcdf_mode_a = 'a'
 netcdf_mode_r = 'r'
 
-try:
-    import tempfile
-    from Scientific.IO.NetCDF import NetCDFFile
-
-    fname = tempfile.mktemp()
-    fid = NetCDFFile(fname, netcdf_mode_w)
-    fid.close()
-    netcdf_mode_w = 'wl'
-#    log('Using NetCDF large file mode')
-except IOError:
-    pass
+#try:
+#    import tempfile
+#    from Scientific.IO.NetCDF import NetCDFFile
+#
+#    fname = tempfile.mktemp()
+#    fid = NetCDFFile(fname, 'wl')
+#    fid.close()
+#    netcdf_mode_w = 'wl'
+##    log('Using NetCDF large file mode')
+#except IOError:
+#    pass
 
