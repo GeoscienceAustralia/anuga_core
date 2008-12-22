@@ -66,7 +66,7 @@ def create_culvert_polygons(end_point0,
     
 
     # Short hands
-    w = width/2*normal # Perpendicular vector of 1/2 width 
+    w = 0.5*width*normal # Perpendicular vector of 1/2 width 
     h = height*vector  # Vector of length=height in the
                        # direction of the culvert
 
@@ -77,7 +77,6 @@ def create_culvert_polygons(end_point0,
     p3 = p0 - h
     culvert_polygons['exchange_polygon0'] = array([p0,p1,p2,p3])
 
-    
     # Build exchange polygon 1
     p0 = end_point1 + w
     p1 = end_point1 - w
