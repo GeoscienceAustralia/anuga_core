@@ -4,8 +4,11 @@
 import unittest
 import os.path
 
-from anuga.utilities.system_tools import get_pathname_from_package        
+from anuga.utilities.system_tools import get_pathname_from_package
+from anuga.utilities.polygon import Polygon_function
+        
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
+from anuga.abstract_2d_finite_volumes.quantity import Quantity
 
 from anuga.shallow_water import Domain, Reflective_boundary,\
     Dirichlet_boundary,\
@@ -332,9 +335,98 @@ class Test_Culvert(unittest.TestCase):
     
 
     
+    
+
+    def test_predicted_flow(self):
+        """test_predicted_flow
+        
+        Test that flows predicted are consistent with what what
+        is calculated in engineering codes.
+        The data was supplied by Petar Milevski
+        """
+
+        path = get_pathname_from_package('anuga.culvert_flows')    
+        
+        length = 12.
+        width = 5.
+
+        dx = dy = 0.5           # Resolution: Length of subdivisions on both axes
+
+        points, vertices, boundary = rectangular_cross(int(length/dx),
+                                                       int(width/dy),
+                                                       len1=length, 
+                                                       len2=width)
+        domain = Domain(points, vertices, boundary)   
+        
+        domain.set_name('test_culvert')                 # Output name
+        domain.set_default_order(2)
+
+
+        #----------------------------------------------------------------------
+        # Setup initial conditions
+        #----------------------------------------------------------------------
+
+        def topography(x, y):
+            # General Slope of Topography
+            z=-x/10
+            
+            return z
+
+
+        domain.set_quantity('elevation', topography) 
+        domain.set_quantity('friction', 0.01)         # Constant friction 
+        domain.set_quantity('stage', expression='elevation')
+
+
+        Q0 = domain.get_quantity('stage')
+        Q1 = Quantity(domain)
+        
+        # Add depths to stage        
+        head_water_depth = 0.169
+        tail_water_depth = 0.089
+        
+        inlet_poly = [[0,0], [6,0], [6,5], [0,5]]
+        outlet_poly = [[6,0], [12,0], [12,5], [6,5]]        
+        
+        Q1.set_values(Polygon_function([(inlet_poly, head_water_depth),
+                                        (outlet_poly, tail_water_depth)]))
+        
+        domain.set_quantity('stage', Q0 + Q1)
+
+
+        if True:        
+            filename=os.path.join(path, 'example_rating_curve2.csv')
+            culvert = Culvert_flow_rating(domain,
+                                          culvert_description_filename=filename,        
+                                          end_point0=[4.0, 2.5], 
+                                          end_point1=[8.0, 2.5],
+                                          verbose=True)
+        else:
+            culvert = Culvert_flow_energy(domain,
+                                          label='Test culvert',
+                                          description='4 m test culvert',   
+                                          end_point0=[4.0, 2.5], 
+                                          end_point1=[8.0, 2.5],
+                                          width=1.20, 
+                                          height=0.75,
+                                          culvert_routine=boyd_generalised_culvert_model,        
+                                          number_of_barrels=1,
+                                          verbose=True)
+                               
+
+        domain.forcing_terms.append(culvert)
+        
+        # Call
+        culvert(domain)
+    
+        #print 'Inlet flow', culvert.inlet.rate
+        #print 'Outlet flow', culvert.outlet.rate        
+        
+    
                
 #-------------------------------------------------------------
 if __name__ == "__main__":
+    #suite = unittest.makeSuite(Test_Culvert, 'test_predicted_flow')
     suite = unittest.makeSuite(Test_Culvert, 'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
