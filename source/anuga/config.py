@@ -1,6 +1,9 @@
 """Module where global ANUGA model parameters and default values are set
 """
 
+import os
+import sys
+
 ################################################################################
 # Numerical constants
 ################################################################################
@@ -186,15 +189,37 @@ netcdf_mode_w = 'w'
 netcdf_mode_a = 'a'
 netcdf_mode_r = 'r'
 
-#try:
-#    import tempfile
-#    from Scientific.IO.NetCDF import NetCDFFile
-#
-#    fname = tempfile.mktemp()
-#    fid = NetCDFFile(fname, 'wl')
-#    fid.close()
-#    netcdf_mode_w = 'wl'
-##    log('Using NetCDF large file mode')
-#except IOError:
-#    pass
+# Code to set the write mode depending on
+# whether Scientific.IO supports large NetCDF files
+s = """
+import tempfile
+from Scientific.IO.NetCDF import NetCDFFile
+
+fname = tempfile.mktemp()
+fid = NetCDFFile(fname, 'wl')
+fid.close()
+netcdf_mode_w = 'wl'
+log('Using NetCDF large file mode')
+"""
+
+# Need to run in a separate process due an
+# error with older versions of Scientific.IO
+if sys.platform == 'win32':
+    null = 'NUL'
+else:
+    null = '/dev/null'
+err = os.system('python -c "%s" 2> %s' % (s, null))
+
+if err > 0:
+    # The Python script s failed e.g. with a segfault
+    # which means that large file support is
+    # definitely not supported
+    pass
+else:    
+    # Try the import within this process
+    try:
+        exec(s)
+    except IOError:
+        # Large file support is not supported    
+        pass
 
