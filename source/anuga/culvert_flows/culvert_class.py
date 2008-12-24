@@ -230,6 +230,7 @@ class Culvert_flow_rating:
             elevation = dq['elevation'].get_values(location='centroids',
                                                    indices=[self.enquiry_indices[i]])            
             opening.elevation = elevation
+            opening.stage = elevation # Simple assumption that culvert is dry initially
 
         # Assume two openings for now: Referred to as 0 and 1
         assert len(self.openings) == 2

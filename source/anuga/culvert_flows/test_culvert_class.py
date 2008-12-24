@@ -3,6 +3,7 @@
 
 import unittest
 import os.path
+import sys
 
 from anuga.utilities.system_tools import get_pathname_from_package
 from anuga.utilities.polygon import Polygon_function
@@ -124,11 +125,22 @@ class Test_Culvert(unittest.TestCase):
         # Evolve system through time
         #-----------------------------------------------------------------------
 
+        min_delta_w = sys.maxint 
+        max_delta_w = -min_delta_w
         for t in domain.evolve(yieldstep = 1, finaltime = 25):
+            delta_w = culvert.inlet.stage - culvert.outlet.stage
+            
+            if delta_w > max_delta_w: max_delta_w = delta_w
+            if delta_w < min_delta_w: min_delta_w = delta_w            
+            
             #print domain.timestepping_statistics()
             pass
-    
 
+        # Check that extreme values in rating curve have been exceeded
+        # so that we know that condition has been exercised
+        assert min_delta_w < 0
+        assert max_delta_w > 10        
+        
 
     def test_that_culvert_dry_bed_rating(self):
         """test_that_culvert_in_dry_bed_does_not_produce_flow(self):
