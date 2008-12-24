@@ -17,19 +17,21 @@ class Above_interval(Exception): pass
 
 # FIXME(Ole): Write in C and reuse this function by similar code in interpolate.py
 def interpolate_linearly(x, xvec, yvec):
-         
-    # Find appropriate slot            
-    i = 0
-    while x > xvec[i]: i += 1
 
-    if i == 0: 
+    # Check bounds
+    if x < xvec[0]: 
         msg = 'Value provided = %.2f, interpolation minimum = %.2f.' %(x, xvec[0])
         raise Below_interval, msg
         
-    if i == len(xvec): 
+    if x > xvec[-1]: 
         msg = 'Value provided = %.2f, interpolation maximum = %.2f.' %(x, xvec[-1])
         raise Above_interval, msg        
         
+        
+    # Find appropriate slot within bounds            
+    i = 0
+    while x > xvec[i]: i += 1
+
     
     x0 = xvec[i-1]
     x1 = xvec[i]            
@@ -304,8 +306,7 @@ class Culvert_flow_rating:
                 
                 stage = dq['stage'].get_values(location='centroids',
                                                indices=[self.enquiry_indices[i]])
-
-                    
+                
                 # Store current average stage and depth with each opening object
                 opening.depth = stage - opening.elevation
                 opening.stage = stage
@@ -331,6 +332,7 @@ class Culvert_flow_rating:
                 Q = 0.0
             else:
                 # Calculate discharge for one barrel and set inlet.rate and outlet.rate
+                
                 try:
                     Q = interpolate_linearly(delta_w, self.rating_curve[:,0], self.rating_curve[:,1]) 
                 except Below_interval, e:

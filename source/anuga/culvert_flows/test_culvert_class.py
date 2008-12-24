@@ -18,7 +18,7 @@ from anuga.culvert_flows.culvert_class import Culvert_flow_rating, Culvert_flow_
 from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
      
 from math import pi,pow,sqrt
-from Numeric import choose, greater, ones, sin, exp, cosh, allclose
+from Numeric import choose, greater, ones, sin, cos, exp, cosh, allclose
 
 
 
@@ -30,11 +30,11 @@ class Test_Culvert(unittest.TestCase):
         pass
 
 
-    def test_that_culvert_runs(self):
-        """test_that_culvert_runs
+    def test_that_culvert_runs_rating(self):
+        """test_that_culvert_runs_rating
         
-        This test only exercises the culvert - there is no quantitative 
-        diagnostics yet
+        This test exercises the culvert and checks values outside rating curve
+        are dealt with       
         """
 
         path = get_pathname_from_package('anuga.culvert_flows')    
@@ -111,8 +111,12 @@ class Test_Culvert(unittest.TestCase):
         Bi = Dirichlet_boundary([0.0, 0.0, 0.0])
         Br = Reflective_boundary(domain)              # Solid reflective wall
         Bo = Dirichlet_boundary([-5, 0, 0])           # Outflow
-        Btus = Time_boundary(domain, lambda t: [0.0+ 1.25*(1+sin(2*pi*(t-4)/10)), 0.0, 0.0])
-        Btds = Time_boundary(domain, lambda t: [0.0+ 0.75*(1+sin(2*pi*(t-4)/20)), 0.0, 0.0])
+        
+        # Upstream and downstream conditions that will exceed the rating curve
+        # I.e produce delta_h outside the range [0, 10] specified in the the 
+        # file example_rating_curve.csv
+        Btus = Time_boundary(domain, lambda t: [100*sin(2*pi*(t-4)/10), 0.0, 0.0])
+        Btds = Time_boundary(domain, lambda t: [-5*(cos(2*pi*(t-4)/20)), 0.0, 0.0])
         domain.set_boundary({'left': Btus, 'right': Btds, 'top': Br, 'bottom': Br})
 
 
@@ -426,7 +430,7 @@ class Test_Culvert(unittest.TestCase):
                
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Culvert, 'test_predicted_flow')
+    #suite = unittest.makeSuite(Test_Culvert, 'test_that_culvert_runs_rating')
     suite = unittest.makeSuite(Test_Culvert, 'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
