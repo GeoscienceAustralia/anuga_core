@@ -184,7 +184,6 @@ points_file_block_line_size = 500 # Number of lines read in from a points file
 ################################################################################
 
 # Determine if we can read/write large NetCDF files
-
 netcdf_mode_w = 'w'
 netcdf_mode_a = 'a'
 netcdf_mode_r = 'r'
@@ -201,7 +200,6 @@ else:
     null = '/dev/null'
 cmd = 'python -c "%s" 2> %s' % (s, null)
 err = os.system(cmd)
-#print 'OK, err =', err
 
 if err != 0:
     # The Python script s failed e.g. with a segfault
@@ -213,7 +211,8 @@ else:
     try:
         exec(s)
     except IOError:
-        # Large file support is not supported    
+        # NetCDFFile does not segfault but it does not
+        # support large file support    
         pass
     else:
         # Set the default mode to large file support
