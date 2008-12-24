@@ -353,10 +353,10 @@ class Test_Culvert(unittest.TestCase):
     
     
 
-    def test_predicted_flow(self):
-        """test_predicted_flow
+    def Xtest_predicted_boyd_flow(self):
+        """test_predicted_boyd_flow
         
-        Test that flows predicted are consistent with what what
+        Test that flows predicted by the boyd method are consistent with what what
         is calculated in engineering codes.
         The data was supplied by Petar Milevski
         """
@@ -410,24 +410,17 @@ class Test_Culvert(unittest.TestCase):
         domain.set_quantity('stage', Q0 + Q1)
 
 
-        if True:        
-            filename=os.path.join(path, 'example_rating_curve2.csv')
-            culvert = Culvert_flow_rating(domain,
-                                          culvert_description_filename=filename,        
-                                          end_point0=[4.0, 2.5], 
-                                          end_point1=[8.0, 2.5],
-                                          verbose=True)
-        else:
-            culvert = Culvert_flow_energy(domain,
-                                          label='Test culvert',
-                                          description='4 m test culvert',   
-                                          end_point0=[4.0, 2.5], 
-                                          end_point1=[8.0, 2.5],
-                                          width=1.20, 
-                                          height=0.75,
-                                          culvert_routine=boyd_generalised_culvert_model,        
-                                          number_of_barrels=1,
-                                          verbose=True)
+
+        culvert = Culvert_flow_energy(domain,
+                                      label='Test culvert',
+                                      description='4 m test culvert',   
+                                      end_point0=[4.0, 2.5], 
+                                      end_point1=[8.0, 2.5],
+                                      width=1.20, 
+                                      height=0.75,
+                                      culvert_routine=boyd_generalised_culvert_model,        
+                                      number_of_barrels=1,
+                                      verbose=True)
                                
 
         domain.forcing_terms.append(culvert)
@@ -442,7 +435,7 @@ class Test_Culvert(unittest.TestCase):
                
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Culvert, 'test_that_culvert_runs_rating')
+    #suite = unittest.makeSuite(Test_Culvert, 'test_predicted_boyd_flow')
     suite = unittest.makeSuite(Test_Culvert, 'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)

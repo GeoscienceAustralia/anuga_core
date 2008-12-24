@@ -755,7 +755,6 @@ class Culvert_flow_energy:
 
                     
                 opening.total_energy = 0.5*(u*u + v*v)/g + stage
-                # FIXME(Ole): What happens if this is negative?
                 #print 'Et = %.3f m' %opening.total_energy
 
                 # Store current average stage and depth with each opening object
