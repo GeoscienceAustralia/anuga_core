@@ -191,16 +191,7 @@ netcdf_mode_r = 'r'
 
 # Code to set the write mode depending on
 # whether Scientific.IO supports large NetCDF files
-s = """
-import tempfile
-from Scientific.IO.NetCDF import NetCDFFile
-
-fname = tempfile.mktemp()
-fid = NetCDFFile(fname, 'wl')
-fid.close()
-netcdf_mode_w = 'wl'
-log('Using NetCDF large file mode')
-"""
+s = """from Scientific.IO.NetCDF import NetCDFFile; fid = NetCDFFile('tmpfilenamexx', 'wl')"""
 
 # Need to run in a separate process due an
 # error with older versions of Scientific.IO
@@ -208,9 +199,11 @@ if sys.platform == 'win32':
     null = 'NUL'
 else:
     null = '/dev/null'
-err = os.system('python -c "%s" 2> %s' % (s, null))
+cmd = 'python -c "%s" 2> %s' % (s, null)
+err = os.system(cmd)
+#print 'OK, err =', err
 
-if err > 0:
+if err != 0:
     # The Python script s failed e.g. with a segfault
     # which means that large file support is
     # definitely not supported
@@ -222,4 +215,6 @@ else:
     except IOError:
         # Large file support is not supported    
         pass
-
+    else:
+        # Set the default mode to large file support
+        netcdf_mode_w = 'wl'
