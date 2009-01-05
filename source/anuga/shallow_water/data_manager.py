@@ -1030,8 +1030,8 @@ def csv2array(file_name):
 # @note WARNING: Values are returned as strings.
 def csv2dict(file_name, title_check_list=None):
     """
-    Load in the csv as a dic, title as key and column info as value.
-    Also, create a dic, title as key and column index as value,
+    Load in the csv as a dictionary, title as key and column info as value.
+    Also, create a dictionary, title as key and column index as value,
     to keep track of the column order.
 
     Two dictionaries are returned.
@@ -1041,33 +1041,38 @@ def csv2dict(file_name, title_check_list=None):
                  time = [float(x) for x in time]
     """
 
+    # FIXME(Ole): Consider dealing with files without headers
+    # FIXME(Ole): Consider a wrapper automatically converting text fields
+    #             to the right type by trying for: int, float, string
+    
     attribute_dic = {}
     title_index_dic = {}
-    titles_stripped = [] # list of titles
+    titles_stripped = [] # List of titles
 
     reader = csv.reader(file(file_name))
 
     # Read in and manipulate the title info
     titles = reader.next()
-    for i,title in enumerate(titles):
-        titles_stripped.append(title.strip())
-        title_index_dic[title.strip()] = i
+    for i, title in enumerate(titles):
+        header = title.strip()
+        titles_stripped.append(header)
+        title_index_dic[header] = i
     title_count = len(titles_stripped)
 
-    # check required columns
+    # Check required columns
     if title_check_list is not None:
         for title_check in title_check_list:
-            #msg = "Reading error. This row is not present ", title_check
-            #assert title_index_dic.has_key(title_check), msg
             if not title_index_dic.has_key(title_check):
-                #reader.close()
-                msg = "Reading error. This row is not present ", title_check
+                msg = 'Reading error. This row is not present %s' % title_check
                 raise IOError, msg
 
-    #create a dic of column values, indexed by column title
+    # Create a dictionary of column values, indexed by column title
     for line in reader:
-        if len(line) <> title_count:
-            raise IOError #FIXME make this nicer
+        n = len(line) # Number of entries
+        if n != title_count:
+            msg = 'Entry in file %s had %d columns ' % (file_name, n)
+            msg += 'although there were %d headers' % title_count
+            raise IOError, msg
         for i, value in enumerate(line):
             attribute_dic.setdefault(titles_stripped[i], []).append(value)
 
