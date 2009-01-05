@@ -141,7 +141,7 @@ class RealtimeVisualiser(Visualiser):
                 self.sync_idle.clear()
                 self.sync_unpaused.wait()
             
-
+        return self.running
 
     def evolveFinished(self):
         """Stop the visualiser from waiting on signals from the evolve loop.
