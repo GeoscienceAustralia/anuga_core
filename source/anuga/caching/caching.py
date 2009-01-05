@@ -406,7 +406,9 @@ def cachestat(sortidx=4, period=-1, showuser=None, cachedir=None):
 
 # -----------------------------------------------------------------------------
 
-#Has mostly been moved to proper unit test
+# Has mostly been moved to proper unit test.
+# What remains here includes example of the 
+# cache statistics form.
 def test(cachedir=None,verbose=0,compression=None):
   """Test the functionality of caching.
 
@@ -423,8 +425,8 @@ def test(cachedir=None,verbose=0,compression=None):
 
   # Initialise
   #
-  import caching
-  reload(caching)
+  #import caching
+  #reload(caching)
 
   if not cachedir:
     cachedir = options['cachedir']
@@ -519,8 +521,8 @@ def test(cachedir=None,verbose=0,compression=None):
     # Evaluate and store
     #
     try:
-      T1 = caching.cache(f,(a,b,c,N), {'x':x, 'y':y}, evaluate=1, \
-                         verbose=verbose, compression=comp)
+      T1 = cache(f,(a,b,c,N), {'x':x, 'y':y}, evaluate=1, \
+                   verbose=verbose, compression=comp)
       if comp:                   
         test_OK('Caching evaluation with compression')
       else:     
@@ -534,8 +536,8 @@ def test(cachedir=None,verbose=0,compression=None):
     # Retrieve
     #                           
     try:                         
-      T2 = caching.cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, \
-                         compression=comp) 
+      T2 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, \
+                   compression=comp) 
 
       if comp:                   
         test_OK('Caching retrieval with compression')
@@ -563,8 +565,8 @@ def test(cachedir=None,verbose=0,compression=None):
   # Test return_filename
   #    
   try:
-    FN = caching.cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, \
-                       return_filename=1)    
+    FN = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, \
+                 return_filename=1)    
     assert(FN[:2] == 'f[')
     test_OK('Return of cache filename')
   except:
@@ -586,9 +588,9 @@ def test(cachedir=None,verbose=0,compression=None):
   # Test 'test' function when cache is present
   #      
   try:
-    #T1 = caching.cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, \
+    #T1 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, \
     #                   evaluate=1)  
-    T4 = caching.cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, test=1)
+    T4 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, test=1)
     assert(T1 == T4)
 
     test_OK("Option 'test' when cache file present")
@@ -598,12 +600,12 @@ def test(cachedir=None,verbose=0,compression=None):
   # Test that 'clear' works
   #
   #try:
-  #  caching.cache(f,'clear',verbose=verbose)
+  #  cache(f,'clear',verbose=verbose)
   #  test_OK('Clearing of cache files')
   #except:
   #  test_error('Clear does not work')
   try:
-    caching.cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, clear=1)    
+    cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, clear=1)    
     test_OK('Clearing of cache files')
   except:
     test_error('Clear does not work')  
@@ -613,7 +615,7 @@ def test(cachedir=None,verbose=0,compression=None):
   # Test 'test' function when cache is absent
   #      
   try:
-    T4 = caching.cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, test=1)
+    T4 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, test=1)
     assert(T4 is None)
     test_OK("Option 'test' when cache absent")
   except:
@@ -621,10 +623,10 @@ def test(cachedir=None,verbose=0,compression=None):
           
   # Test dependencies
   #
-  T1 = caching.cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, \
-                       dependencies=DepFN)  
-  T2 = caching.cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, \
-                       dependencies=DepFN)                     
+  T1 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, \
+               dependencies=DepFN)  
+  T2 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, \
+               dependencies=DepFN)                     
                        
   if T1 == T2:
     test_OK('Basic dependencies functionality')
@@ -633,8 +635,8 @@ def test(cachedir=None,verbose=0,compression=None):
 
   # Test basic wildcard dependency
   #
-  T3 = caching.cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, \
-                       dependencies=DepFN_wildcard)                     
+  T3 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, \
+               dependencies=DepFN_wildcard)                     
     
   if T1 == T3:
     test_OK('Basic dependencies with wildcard functionality')
@@ -649,8 +651,8 @@ def test(cachedir=None,verbose=0,compression=None):
   Depfile.write('You must cut down the mightiest tree in the forest with a Herring')
   Depfile.close()
   
-  T3 = caching.cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, \
-                       dependencies=DepFN, test = 1)                     
+  T3 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, \
+               dependencies=DepFN, test = 1)                     
   
   if T3 is None:
     test_OK('Changed dependencies recognised')
@@ -659,8 +661,8 @@ def test(cachedir=None,verbose=0,compression=None):
   
   # Test recomputation when dependencies have changed
   #
-  T3 = caching.cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, \
-                       dependencies=DepFN)                       
+  T3 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, \
+               dependencies=DepFN)                       
   if T1 == T3:
     test_OK('Recomputed value with changed dependencies')
   else:
@@ -674,11 +676,11 @@ def test(cachedir=None,verbose=0,compression=None):
 
   N = 20*N   #Should be large on fast computers...
   tt = time.time()
-  T1 = caching.cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose)
+  T1 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose)
   t1 = time.time() - tt
   
   tt = time.time()
-  T2 = caching.cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose)
+  T2 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose)
   t2 = time.time() - tt
   
   if T1 == T2:
@@ -705,9 +707,9 @@ def test(cachedir=None,verbose=0,compression=None):
       
   print_header_box('Show sample output of the caching function:')
   
-  T2 = caching.cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=0)
-  T2 = caching.cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=0)
-  T2 = caching.cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=1)
+  T2 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=0)
+  T2 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=0)
+  T2 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=1)
   
   print_header_box('Show sample output of cachestat():')
   if unix:
@@ -718,7 +720,7 @@ def test(cachedir=None,verbose=0,compression=None):
       t = time.strptime('2030','%Y')
       cachestat()
     except:  
-      print 'caching.cachestat() does not work here, because it'
+      print 'cachestat() does not work here, because it'
       print 'relies on time.strptime() which is unavailable in Windows'
       
   print
@@ -762,7 +764,7 @@ Reason_msg = ['OK',         # Verbose reasons for recomputation
               'Arguments have changed',
               'Bytecode has changed',
               'Recomputation was requested by caller',
-	      'Cached file was unreadable']              
+              'Cached file was unreadable']              
               
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -981,8 +983,8 @@ def clear_cache(CD,func=None, verbose=None):
 
         A = raw_input('Delete (Y/N)[N] ?')
       else:
-        A = 'Y'	
-	
+        A = 'Y' 
+        
       if A == 'Y' or A == 'y':
         for file_name in file_names:
           if unix:
@@ -1225,7 +1227,7 @@ def myload(file, compressed):
         #print 'ERROR (caching): Could not decompress ', file.name
         #raise Exception
         reason = 6  # Unreadable file
-	return None, reason  
+        return None, reason  
       
       
       del RsC  # Free up some space
@@ -1237,7 +1239,7 @@ def myload(file, compressed):
       except:
         #Catch e.g., file with 0 length or corrupted
         reason = 6  # Unreadable file
-	return None, reason
+        return None, reason
       
   except MemoryError:
     import sys
@@ -1815,7 +1817,7 @@ def addstatsline(CD,funcname,FN,Retrieved,reason,comptime,loadtime,
             str(round(comptime,4)) + ',' +\
             str(round(loadtime,4)) +\
             CR
-	    
+            
     statfile.write(entry)
     statfile.close()
   except:
@@ -1898,13 +1900,13 @@ def __cachestat(sortidx=4,period=-1,showuser=None,cachedir=None):
 
         if len(record) == 9:
           timestamp = record[0]
-	
-	  try:
+        
+          try:
             t = mktime(strptime(timestamp))
-	  except:
-            total_discarded = total_discarded + 1	  
-	    continue    
-	     
+          except:
+            total_discarded = total_discarded + 1         
+            continue    
+             
           if t > lastday:
             lastday = t
           if t < firstday:
