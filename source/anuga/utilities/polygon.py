@@ -745,13 +745,14 @@ class Polygon_function:
         return z
 
 
+        
+# Functions to read and write polygon information        
 def read_polygon(filename, split=','):
     """Read points assumed to form a polygon.
        There must be exactly two numbers in each line separated by a comma.
        No header.
     """
 
-    #Get polygon
     fid = open(filename)
     lines = fid.readlines()
     fid.close()
@@ -777,6 +778,11 @@ def write_polygon(polygon, filename=None):
     fid.close()
     
 
+def read_tagged_polygons(filename):
+    """
+    """
+    pass
+    
 def populate_polygon(polygon, number_of_points, seed=None, exclude=None):
     """Populate given polygon with uniformly distributed points.
 
