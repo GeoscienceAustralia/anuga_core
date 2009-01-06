@@ -968,8 +968,8 @@ def decimate_polygon(polygon, factor=10):
 ##############################################
 #Initialise module
 
-from anuga.utilities.compile import can_use_C_extension
-if can_use_C_extension('polygon_ext.c'):
+from anuga.utilities import compile
+if compile.can_use_C_extension('polygon_ext.c'):
     # Underlying C implementations can be accessed
     from polygon_ext import _point_on_line
     from polygon_ext import _separate_points_by_polygon
