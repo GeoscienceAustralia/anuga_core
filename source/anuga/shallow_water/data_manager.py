@@ -995,6 +995,124 @@ class Exposure_csv:
             writer.writerow(line)
 
 
+def csv2building_polygons(file_name, floor_height=3):
+    """
+    Convert CSV files of the form:
+
+    easting,northing,id,floors
+    422664.22,870785.46,2,0
+    422672.48,870780.14,2,0
+    422668.17,870772.62,2,0
+    422660.35,870777.17,2,0
+    422664.22,870785.46,2,0
+    422661.30,871215.06,3,1
+    422667.50,871215.70,3,1
+    422668.30,871204.86,3,1
+    422662.21,871204.33,3,1
+    422661.30,871215.06,3,1
+
+    to a dictionary of polygons with id as key.
+    The associated number of floors are converted to m above MSL and 
+    returned as a separate dictionary also keyed by id.
+    
+    Optional parameter floor_height is the height of each building story.
+    
+    See csv2polygons for more details
+    """
+
+    polygons, values = csv2polygons(file_name, value_name='floors')    
+
+    
+    heights = {}
+    for key in values.keys():
+        v = float(values[key])
+        heights[key] = v*floor_height
+        
+    return polygons, heights                
+            
+
+##
+# @brief Convert CSV file into a dictionary of polygons and associated values.
+# @param filename The path to the file to read, value_name name for the 4th column
+def csv2polygons(file_name, value_name='value'):
+    """
+    Convert CSV files of the form:
+
+    easting,northing,id,value
+    422664.22,870785.46,2,0
+    422672.48,870780.14,2,0
+    422668.17,870772.62,2,0
+    422660.35,870777.17,2,0
+    422664.22,870785.46,2,0
+    422661.30,871215.06,3,1
+    422667.50,871215.70,3,1
+    422668.30,871204.86,3,1
+    422662.21,871204.33,3,1
+    422661.30,871215.06,3,1
+
+    to a dictionary of polygons with id as key.
+    The associated values are returned as a separate dictionary also keyed by id.
+
+
+    easting: x coordinate relative to zone implied by the model
+    northing: y coordinate relative to zone implied by the model    
+    id: tag for polygon comprising points with this tag
+    value: numeral associated with each polygon. These must be the same for all points in each polygon.
+   
+    The last header, value, can take on other names such as roughness, floors, etc - or it can be omitted 
+    in which case the returned values will be None
+    
+    Eastings and Northings will be returned as floating point values while
+    id and values will be returned as strings.
+    
+    See underlying function csv2dict for more details.
+    """
+
+    X, _ = csv2dict(file_name)
+
+    msg = 'Polygon csv file must have 3 or 4 columns'
+    assert len(X.keys()) in [3, 4], msg
+    
+    msg = 'Did not find expected column header: easting'
+    assert 'easting' in X.keys(), msg
+    
+    msg = 'Did not find expected column header: northing'    
+    assert 'northing' in X.keys(), northing
+    
+    msg = 'Did not find expected column header: northing'        
+    assert 'id' in X.keys(), msg
+    
+    if value_name is not None:
+        msg = 'Did not find expected column header: %s' % value_name        
+        assert value_name in X.keys(), msg    
+    
+    polygons = {}
+    if len(X.keys()) == 4:
+        values = {}
+    else:
+        values = None
+
+    # Loop through entries and compose polygons
+    for i, id in enumerate(X['id']):
+        
+        if id not in polygons:
+            # Start new polygon
+            polygons[id] = []
+            if values is not None:
+                values[id] = X[value_name][i]
+            
+        # Append this point to current polygon
+        point = [float(X['easting'][i]), float(X['northing'][i])]
+        polygons[id].append(point)    
+            
+        # Check that value is the same across each polygon
+        assert values[id] == X[value_name][i]
+        
+    return polygons, values
+
+
+            
+            
 ##
 # @brief Convert CSV file to a dictionary of arrays.
 # @param file_name The path to the file to read.
