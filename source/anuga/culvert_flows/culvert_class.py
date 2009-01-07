@@ -5,8 +5,20 @@ from anuga.utilities.polygon import inside_polygon
 from anuga.utilities.polygon import is_inside_polygon
 from anuga.utilities.polygon import plot_polygons
 
+from anuga.utilities.numerical_tools import mean
 from anuga.utilities.numerical_tools import ensure_numeric
+        
+from anuga.config import g, epsilon
+from Numeric import take, sqrt
+from anuga.config import velocity_protection        
+
+        
+
+
 from Numeric import allclose
+from Numeric import sqrt, sum
+
+
 
 import sys
 
@@ -15,16 +27,27 @@ class Above_interval(Exception): pass
 
 
 
-# FIXME(Ole): Write in C and reuse this function by similar code in interpolate.py
+# FIXME(Ole): Write in C and reuse this function by similar code 
+# in interpolate.py
 def interpolate_linearly(x, xvec, yvec):
+
+    msg = 'Input to function interpolate_linearly could not be converted '
+    msg += 'to numerical scalar: x = %s' % str(x)
+    try:
+        x = float(x)
+    except:
+        raise Exception, msg
+
 
     # Check bounds
     if x < xvec[0]: 
-        msg = 'Value provided = %.2f, interpolation minimum = %.2f.' %(x, xvec[0])
+        msg = 'Value provided = %.2f, interpolation minimum = %.2f.'\
+            % (x, xvec[0])
         raise Below_interval, msg
         
     if x > xvec[-1]: 
-        msg = 'Value provided = %.2f, interpolation maximum = %.2f.' %(x, xvec[-1])
+        msg = 'Value provided = %.2f, interpolation maximum = %.2f.'\
+            %(x, xvec[-1])
         raise Above_interval, msg        
         
         
@@ -60,7 +83,7 @@ def read_culvert_description(culvert_description_filename):
             flow_rate = float(fields[1].strip())                
             barrel_velocity = float(fields[2].strip())
             
-            rating_curve.append( [head_difference, flow_rate, barrel_velocity] ) 
+            rating_curve.append([head_difference, flow_rate, barrel_velocity]) 
         
         if i == 0:
             # Header
@@ -106,12 +129,13 @@ class Culvert_flow_rating:
                  culvert_description_filename=None,
                  end_point0=None, 
                  end_point1=None,
+                 enquiry_point0=None, 
+                 enquiry_point1=None,                                            
                  update_interval=None,
                  log_file=False,
                  discharge_hydrograph=False,
                  verbose=False):
         
-        from Numeric import sqrt, sum
 
         
         label, type, width, height, length, number_of_barrels, description, rating_curve = read_culvert_description(culvert_description_filename)
@@ -154,21 +178,26 @@ class Culvert_flow_rating:
                                     height=height,
                                     number_of_barrels=number_of_barrels)
         
+        # Select enquiry points
+        if enquiry_point0 is None:
+            enquiry_point0 = P['enquiry_point0']
+            
+        if enquiry_point1 is None:
+            enquiry_point1 = P['enquiry_point1']            
+            
         if verbose is True:
             pass
             #plot_polygons([[end_point0, end_point1],
             #               P['exchange_polygon0'],
             #               P['exchange_polygon1'],
-            #               P['enquiry_polygon0'],
-            #               P['enquiry_polygon1']],
+            #               [enquiry_point0, 1.005*enquiry_point0],
+            #               [enquiry_point1, 1.005*enquiry_point1]],                           
             #              figname='culvert_polygon_output')
 
-                          
-        # Compute the average point for enquiry
-        enquiry_point0 = sum(P['enquiry_polygon0'][:2])/2 
-        enquiry_point1 = sum(P['enquiry_polygon1'][:2])/2         
-        
+            
+            
         self.enquiry_points = [enquiry_point0, enquiry_point1]                           
+
         self.enquiry_indices = []                  
         for point in self.enquiry_points:
             # Find nearest centroid 
@@ -224,9 +253,6 @@ class Culvert_flow_rating:
 
         dq = domain.quantities                                            
         for i, opening in enumerate(self.openings):                            
-            #elevation = dq['elevation'].get_values(location='centroids',
-            #                                      interpolation_points=[self.enquiry_points[i]])
-            
             elevation = dq['elevation'].get_values(location='centroids',
                                                    indices=[self.enquiry_indices[i]])            
             opening.elevation = elevation
@@ -257,6 +283,7 @@ class Culvert_flow_rating:
         
         self.verbose = verbose
         self.last_update = 0.0 # For use with update_interval        
+        self.last_time = 0.0                
         self.update_interval = update_interval
         
 
@@ -273,12 +300,6 @@ class Culvert_flow_rating:
         
         
     def __call__(self, domain):
-        from anuga.utilities.numerical_tools import mean
-        
-        from anuga.config import g, epsilon
-        from Numeric import take, sqrt
-        from anuga.config import velocity_protection        
-
 
         # Time stuff
         time = domain.get_time()
@@ -287,13 +308,20 @@ class Culvert_flow_rating:
         update = False
         if self.update_interval is None:
             update = True
+            delta_t = domain.timestep # Next timestep has been computed in domain.py
         else:    
             if time - self.last_update > self.update_interval or time == 0.0:
                 update = True
-
+            delta_t = self.update_interval
+            
+        s = '\nTime = %.2f, delta_t = %f' %(time, delta_t)
+        if hasattr(self, 'log_filename'):            
+            log_to_file(self.log_filename, s)
+                
                                 
         if update is True:
             self.last_update = time
+       
             dq = domain.quantities
                         
             # Get average water depths at each opening        
@@ -302,8 +330,6 @@ class Culvert_flow_rating:
                 
                 # Compute mean values of selected quantitites in the 
                 # enquiry area in front of the culvert
-                # Stage and velocity comes from enquiry area 
-                # and elevation from exchange area
                 
                 stage = dq['stage'].get_values(location='centroids',
                                                indices=[self.enquiry_indices[i]])
@@ -345,7 +371,7 @@ class Culvert_flow_rating:
                     if hasattr(self, 'log_filename'):                    
                         log_to_file(self.log_filename, msg)
                 except Above_interval, e:
-                    Q = self.rating_curve[-1,1]             
+                    Q = self.rating_curve[-1,1]          
                     msg = '%.2fs: Delta head greater than rating curve maximum: ' %time
                     msg += str(e)
                     msg += '\n        I will use maximum discharge %.2f m^3/s for culvert "%s"'\
@@ -359,7 +385,38 @@ class Culvert_flow_rating:
             # Adjust discharge for multiple barrels
             Q *= self.number_of_barrels
             
+
+            # Adjust Q downwards depending on available water at inlet
+            stage = self.inlet.get_quantity_values(quantity_name='stage')
+            elevation = self.inlet.get_quantity_values(quantity_name='elevation')
+            depth = stage-elevation
             
+            
+            V = 0
+            for i, d in enumerate(depth):
+                V += d * domain.areas[i]
+            
+            #Vsimple = mean(depth)*self.inlet.exchange_area # Current volume in exchange area  
+            #print 'Q', Q, 'dt', delta_t, 'Q*dt', Q*delta_t, 'V', V, 'Vsimple', Vsimple
+
+            dt = delta_t            
+            if Q*dt > V:
+            
+                Q_reduced = 0.9*V/dt # Reduce with safety factor
+                
+                msg = '%.2fs: Computed extraction for this time interval (Q*dt) is ' % time
+                msg += 'greater than current volume (V) at inlet.\n'
+                msg += ' Q will be reduced from %.2f m^3/s to %.2f m^3/s.' % (Q, Q_reduced)
+                
+                #print msg
+                
+                if self.verbose is True:
+                    print msg
+                if hasattr(self, 'log_filename'):                    
+                    log_to_file(self.log_filename, msg)                                        
+                
+                Q = Q_reduced
+        
             self.inlet.rate = -Q
             self.outlet.rate = Q
 
@@ -372,7 +429,8 @@ class Culvert_flow_rating:
                 fid.write('%.2f, %.2f\n' %(time, Q))
                 fid.close()
 
-
+            # Store value of time
+            self.last_time = time
 
             
     
@@ -444,6 +502,8 @@ class Culvert_flow_energy:
                  blockage_bottup=None,
                  culvert_routine=None,
                  number_of_barrels=1,
+                 enquiry_point0=None, 
+                 enquiry_point1=None,                                            
                  update_interval=None,
                  verbose=False):
         
@@ -524,22 +584,26 @@ class Culvert_flow_energy:
                                     height=height,
                                     number_of_barrels=number_of_barrels)
         
+        # Select enquiry points
+        if enquiry_point0 is None:
+            enquiry_point0 = P['enquiry_point0']
+            
+        if enquiry_point1 is None:
+            enquiry_point1 = P['enquiry_point1']            
+            
         if verbose is True:
             pass
             #plot_polygons([[end_point0, end_point1],
             #               P['exchange_polygon0'],
             #               P['exchange_polygon1'],
-            #               P['enquiry_polygon0'],
-            #               P['enquiry_polygon1']],
+            #               [enquiry_point0, 1.005*enquiry_point0],
+            #               [enquiry_point1, 1.005*enquiry_point1]],
             #              figname='culvert_polygon_output')
-            #import sys; sys.exit()                           
 
-            
-        # Compute the average point for enquiry
-        enquiry_point0 = sum(P['enquiry_polygon0'][:2])/2 
-        enquiry_point1 = sum(P['enquiry_polygon1'][:2])/2         
-        
+
         self.enquiry_points = [enquiry_point0, enquiry_point1]                           
+        
+        
         self.enquiry_indices = []                  
         for point in self.enquiry_points:
             # Find nearest centroid 
@@ -578,9 +642,7 @@ class Culvert_flow_energy:
         bounding_polygon = domain.get_boundary_polygon()
         for key in P.keys():
             if key in ['exchange_polygon0', 
-                       'exchange_polygon1',
-                       'enquiry_polygon0',
-                       'enquiry_polygon1']:
+                       'exchange_polygon1']:
                 for point in P[key]:
                 
                     msg = 'Point %s in polygon %s for culvert %s did not'\
@@ -605,8 +667,8 @@ class Culvert_flow_energy:
         self.end_points = [end_point0, end_point1]
         self.invert_levels = [invert_level0, invert_level1]                
         #self.enquiry_polygons = [P['enquiry_polygon0'], P['enquiry_polygon1']]
-        self.enquiry_polylines = [P['enquiry_polygon0'][:2], 
-                                  P['enquiry_polygon1'][:2]]
+        #self.enquiry_polylines = [P['enquiry_polygon0'][:2], 
+        #                          P['enquiry_polygon1'][:2]]
         self.vector = P['vector']
         self.length = P['length']; assert self.length > 0.0
         self.verbose = verbose
@@ -656,37 +718,33 @@ class Culvert_flow_energy:
         
         
     def __call__(self, domain):
-        from anuga.utilities.numerical_tools import mean
-        
-        from anuga.config import g, epsilon
-        from Numeric import take, sqrt
-        from anuga.config import velocity_protection        
-
 
         log_filename = self.log_filename
          
         # Time stuff
         time = domain.get_time()
         
-        
+        # Short hand
+        dq = domain.quantities
+                
+
         update = False
         if self.update_interval is None:
             update = True
+            delta_t = domain.timestep # Next timestep has been computed in domain.py
         else:    
             if time - self.last_update > self.update_interval or time == 0.0:
                 update = True
-
-        #print 'call', time, time - self.last_update
+            delta_t = self.update_interval
+            
+        s = '\nTime = %.2f, delta_t = %f' %(time, delta_t)
+        if hasattr(self, 'log_filename'):            
+            log_to_file(log_filename, s)
                 
                                 
         if update is True:
-            #print 'Updating', time, time - self.last_update
             self.last_update = time
-        
-            delta_t = time-self.last_time
-            s = '\nTime = %.2f, delta_t = %f' %(time, delta_t)
-            log_to_file(log_filename, s)
-        
+                        
             msg = 'Time did not advance'
             if time > 0.0: assert delta_t > 0.0, msg
 
@@ -694,15 +752,11 @@ class Culvert_flow_energy:
             # Get average water depths at each opening        
             openings = self.openings   # There are two Opening [0] and [1]
             for i, opening in enumerate(openings):
-                dq = domain.quantities
                 
                 # Compute mean values of selected quantitites in the 
                 # exchange area in front of the culvert
-                # Stage and velocity comes from enquiry area 
-                # and elevation from exchange area
-                
-                stage = dq['stage'].get_values(location='centroids',
-                                               indices=opening.exchange_indices)            
+                     
+                stage = opening.get_quantity_values(quantity_name='stage')
                 w = mean(stage) # Average stage
 
                 # Use invert level instead of elevation if specified
@@ -710,8 +764,7 @@ class Culvert_flow_energy:
                 if invert_level is not None:
                     z = invert_level
                 else:
-                    elevation = dq['elevation'].get_values(location='centroids', 
-                                                           indices=opening.exchange_indices)
+                    elevation = opening.get_quantity_values(quantity_name='elevation')
                     z = mean(elevation) # Average elevation
 
                 # Estimated depth above the culvert inlet
@@ -733,17 +786,14 @@ class Culvert_flow_energy:
                     
                     
                 # Average measures of energy in front of this opening
-                #polyline = self.enquiry_polylines[i]
-                #opening.total_energy = domain.get_energy_through_cross_section(polyline,
-                #                                                               kind='total')            
                 
                 id = [self.enquiry_indices[i]]
                 stage = dq['stage'].get_values(location='centroids',
                                                indices=id)
                 elevation = dq['elevation'].get_values(location='centroids',
-                                               indices=id)                                               
+                                                       indices=id)                                               
                 xmomentum = dq['xmomentum'].get_values(location='centroids',
-                                               indices=id)                                               
+                                                       indices=id)                                               
                 ymomentum = dq['xmomentum'].get_values(location='centroids',
                                                        indices=id)                                                                                              
                 depth = stage-elevation
@@ -839,7 +889,7 @@ class Culvert_flow_energy:
             fid.close()
 
             # Update momentum        
-            delta_t = time - self.last_time
+
             if delta_t > 0.0:
                 xmomentum_rate = outlet_mom_x - outlet.momentum[0].value
                 xmomentum_rate /= delta_t
@@ -872,6 +922,8 @@ class Culvert_flow_energy:
                     %(barrel_velocity)
                 log_to_file(log_filename, s)
             
+            # Store value of time
+            self.last_time = time
                 
 
 
@@ -885,8 +937,6 @@ class Culvert_flow_energy:
         self.outlet.momentum[0](domain)
         self.outlet.momentum[1](domain)        
             
-        # Store value of time #FIXME(Ole): Maybe only every time we update   
-        self.last_time = time
 
 
 Culvert_flow = Culvert_flow_rating        

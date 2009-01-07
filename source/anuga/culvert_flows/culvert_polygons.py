@@ -4,12 +4,12 @@
 # Import necessary modules
 from math import sqrt
 from Numeric import array, sum
+from anuga.utilities.polygon import inside_polygon, polygon_area
 
 def create_culvert_polygons(end_point0,
                             end_point1, 
                             width, height=None,
-                            enquiry_gap_factor=1.0,
-                            enquiry_shape_factor=2.0,
+                            enquiry_gap_factor=0.2,
                             number_of_barrels=1):
     """Create polygons at the end of a culvert inlet and outlet.
     At either end two polygons will be created; one for the actual flow to pass through and one a little further away
@@ -22,10 +22,7 @@ def create_culvert_polygons(end_point0,
 
     Input (optional):        
         height - culvert height, defaults to width making a square culvert
-        enquiry_gap_factor - sets the distance to the enquiry polygon
-        enquiry_shape_factor - sets the shape of the enquiry polygon
-                               (large value widens polygon but reduces height
-                               to preserve same area as exchange polygon)
+        enquiry_gap_factor - sets the distance to the enquiry point as fraction of the height
         number_of_barrels - number of identical pipes.
         
     Output:
@@ -33,8 +30,11 @@ def create_culvert_polygons(end_point0,
         Dictionary of four polygons. The dictionary keys are:
             'exchange_polygon0' - polygon defining the flow area at end_point0
             'exchange_polygon1' - polygon defining the flow area at end_point1
-            'enquiry_polygon0' - polygon defining the enquiry field near end_point0
-            'enquiry_polygon1' - polygon defining the enquiry field near end_point1           
+            'enquiry_point0' - point beyond exchange_polygon0
+            'enquiry_point1' - point beyond exchange_polygon1            
+            'vector'
+            'length'
+            'normal'
     """    
 
 
@@ -61,52 +61,52 @@ def create_culvert_polygons(end_point0,
     
     
     # Unit direction vector and normal 
-    vector /= length
-    normal = array([-dy, dx])/length
+    vector /= length                 # Unit vector in culvert direction
+    normal = array([-dy, dx])/length # Normal vector
     
+    culvert_polygons['vector'] = vector
+    culvert_polygons['length'] = length
+    culvert_polygons['normal'] = normal    
 
     # Short hands
     w = 0.5*width*normal # Perpendicular vector of 1/2 width 
-    h = height*vector  # Vector of length=height in the
-                       # direction of the culvert
+    h = height*vector    # Vector of length=height in the
+                         # direction of the culvert
+    gap = (1 + enquiry_gap_factor)*h 
+                         
 
-    # Build exchange polygon 0
+    # Build exchange polygon and enquiry point for opening 0
     p0 = end_point0 + w
     p1 = end_point0 - w
     p2 = p1 - h
     p3 = p0 - h
     culvert_polygons['exchange_polygon0'] = array([p0,p1,p2,p3])
+    culvert_polygons['enquiry_point0'] = end_point0 - gap
+    
 
-    # Build exchange polygon 1
+    # Build exchange polygon and enquiry point for opening 1
     p0 = end_point1 + w
     p1 = end_point1 - w
     p2 = p1 + h
     p3 = p0 + h
     culvert_polygons['exchange_polygon1'] = array([p0,p1,p2,p3])
+    culvert_polygons['enquiry_point1'] = end_point1 + gap  
 
+    # Check that enquiry polygons are outside exchange polygons
+    for key1 in ['exchange_polygon0',
+                 'exchange_polygon1']:
+        polygon = culvert_polygons[key1]
+        area = polygon_area(polygon)
+        
+        msg = 'Polygon %s ' %(polygon)
+        msg += ' has area = %f' % area
+        assert area > 0.0, msg
 
-
-    # Redefine shorthands for enquiry polygons
-    w = w*enquiry_shape_factor
-    h = h/enquiry_shape_factor
-    gap = (enquiry_gap_factor + h)*vector
-    
-    # Build enquiry polygon 0
-    p0 = end_point0 + w - gap 
-    p1 = end_point0 - w - gap
-    p2 = p1 - h
-    p3 = p0 - h
-    culvert_polygons['enquiry_polygon0'] = array([p0,p1,p2,p3])
-
-    # Build enquiry polygon 1
-    p0 = end_point1 + w + gap 
-    p1 = end_point1 - w + gap
-    p2 = p1 + h
-    p3 = p0 + h
-    culvert_polygons['enquiry_polygon1'] = array([p0,p1,p2,p3])    
+        for key2 in ['enquiry_point0', 'enquiry_point1']:
+            point = culvert_polygons[key2]
+            msg = 'Enquiry point falls inside an enquiry point.'
+            msg += 'Email Ole.Nielsen@ga.gov.au'
+            assert not inside_polygon(point, polygon), msg
 
     # Return results
-    culvert_polygons['vector'] = vector
-    culvert_polygons['length'] = length
-    culvert_polygons['normal'] = normal    
     return culvert_polygons

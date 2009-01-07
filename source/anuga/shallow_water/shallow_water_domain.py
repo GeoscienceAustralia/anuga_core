@@ -1928,20 +1928,35 @@ class General_forcing:
         return rate
 
 
-    def get_quantity_values(self):
+    def get_quantity_values(self, quantity_name=None):
         """Return values for specified quantity restricted to opening 
+        
+        Optionally a quantity name can be specified if values from another
+        quantity is sought
         """
         
-        q = self.domain.quantities[self.quantity_name]
-        return q.get_values(indices=self.exchange_indices)
+        if quantity_name is None:
+            quantity_name = self.quantity_name
+            
+        q = self.domain.quantities[quantity_name]
+        return q.get_values(location='centroids', 
+                            indices=self.exchange_indices)
     
 
-    def set_quantity_values(self, val):
+    def set_quantity_values(self, val, quantity_name=None):
         """Set values for specified quantity restricted to opening 
+        
+        Optionally a quantity name can be specified if values from another
+        quantity is sought        
         """
 
+        if quantity_name is None:
+            quantity_name = self.quantity_name
+                    
         q = self.domain.quantities[self.quantity_name]                
-        q.set_values(val, indices=self.exchange_indices)    
+        q.set_values(val, 
+                     location='centroids', 
+                     indices=self.exchange_indices)    
 
 
 

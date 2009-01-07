@@ -26,23 +26,25 @@ class Test_poly(unittest.TestCase):
         number_of_barrels=1
 
         P = create_culvert_polygons(end_point0,
-                                end_point1,
-                                width=width,   
-                                height=height,
-                                number_of_barrels=number_of_barrels)
+                                    end_point1,
+                                    width=width,   
+                                    height=height,
+                                    number_of_barrels=number_of_barrels)
         
         # Compute area and check that it is greater than 0
-        for key in ['exchange_polygon0',
-                    'exchange_polygon1',
-                    'enquiry_polygon0',
-                    'enquiry_polygon1']:
-            polygon = P[key]
+        for key1 in ['exchange_polygon0',
+                     'exchange_polygon1']:
+            polygon = P[key1]
             area = polygon_area(polygon)
             
             msg = 'Polygon %s ' %(polygon)
             msg += ' has area = %f' % area
             assert area > 0.0, msg
 
+            for key2 in ['enquiry_point0', 'enquiry_point1']:
+                point = P[key2]
+                assert not inside_polygon(point, polygon)
+        
 
     def test_2(self):
         #end_point0=[307138.813,6193474]
@@ -54,23 +56,24 @@ class Test_poly(unittest.TestCase):
         number_of_barrels=1
 
         P = create_culvert_polygons(end_point0,
-                                end_point1,
-                                width=width,   
-                                height=height,
-                                number_of_barrels=number_of_barrels)
+                                    end_point1,
+                                    width=width,   
+                                    height=height,
+                                    number_of_barrels=number_of_barrels)
         
         # Compute area and check that it is greater than 0
-        for key in ['exchange_polygon0',
-                    'exchange_polygon1',
-                    'enquiry_polygon0',
-                    'enquiry_polygon1']:
-            polygon = P[key]
+        for key1 in ['exchange_polygon0',
+                    'exchange_polygon1']:
+            polygon = P[key1]
             area = polygon_area(polygon)
             
             msg = 'Polygon %s ' % (polygon)
             msg += ' has area = %f' % area
             assert area > 0.0, msg
-            
+
+            for key2 in ['enquiry_point0', 'enquiry_point1']:
+                point = P[key2]
+                assert not inside_polygon(point, polygon)                        
 
     
                

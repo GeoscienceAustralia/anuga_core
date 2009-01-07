@@ -6,6 +6,14 @@ Usage:
 
 """
 
+#NOTE:
+# Inlet control:  Delta_Et > Es at the inlet
+# Outlet control: Delta_Et < Es at the inlet
+# where Et is total energy (w + 0.5*v^2/g) and
+# Es is the specific energy (h + 0.5*v^2/g)
+
+
+
 #   NEW DEFINED CULVERT FLOW---- Flow from INLET 1 ------> INLET 2 (Outlet)
 # 
 # The First Attempt has a Simple Horizontal Circle as a Hole on the Bed
@@ -60,6 +68,7 @@ def boyd_generalised_culvert_model(culvert, inlet, outlet, delta_Et, g):
 
     if inlet.depth_trigger >= 0.01 and inlet.depth >= 0.01:
         # Calculate driving energy
+        # FIXME(Ole): Should this be specific energy?
         E = inlet.total_energy
 
         s = 'Driving energy  = %f m' %E
