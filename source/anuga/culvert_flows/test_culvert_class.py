@@ -15,7 +15,7 @@ from anuga.shallow_water import Domain, Reflective_boundary,\
     Dirichlet_boundary,\
     Transmissive_boundary, Time_boundary
 
-from anuga.culvert_flows.culvert_class import Culvert_flow_rating, Culvert_flow_energy
+from anuga.culvert_flows.culvert_class import Culvert_flow, Culvert_flow_rating, Culvert_flow_energy
 from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
      
 from math import pi,pow,sqrt
@@ -95,7 +95,7 @@ class Test_Culvert(unittest.TestCase):
                             expression='elevation')   # Dry initial condition
 
         filename=os.path.join(path, 'example_rating_curve.csv')
-        culvert = Culvert_flow_rating(domain,
+        culvert = Culvert_flow(domain,
                                culvert_description_filename=filename,        
                                end_point0=[9.0, 2.5], 
                                end_point1=[13.0, 2.5],
@@ -209,7 +209,7 @@ class Test_Culvert(unittest.TestCase):
 
 
         filename = os.path.join(path, 'example_rating_curve.csv')
-        culvert = Culvert_flow_rating(domain,
+        culvert = Culvert_flow(domain,
                                culvert_description_filename=filename,
                                end_point0=[9.0, 2.5], 
                                end_point1=[13.0, 2.5],
@@ -313,11 +313,11 @@ class Test_Culvert(unittest.TestCase):
 
 
         filename = os.path.join(path, 'example_rating_curve.csv')
-        culvert = Culvert_flow_rating(domain,
-                                      culvert_description_filename=filename,
-                                      end_point0=[9.0, 2.5], 
-                                      end_point1=[13.0, 2.5],
-                                      verbose=False)
+        culvert = Culvert_flow(domain,
+                               culvert_description_filename=filename,
+                               end_point0=[9.0, 2.5], 
+                               end_point1=[13.0, 2.5],
+                               verbose=False)
 
         domain.forcing_terms.append(culvert)
         
@@ -416,16 +416,16 @@ class Test_Culvert(unittest.TestCase):
         filename = os.path.join(path, 'example_rating_curve.csv')
 
 
-        culvert = Culvert_flow_energy(domain,
-                                      label='Culvert No. 1',
-                                      description='This culvert is a test unit 1.2m Wide by 0.75m High',   
-                                      end_point0=[9.0, 2.5], 
-                                      end_point1=[13.0, 2.5],
-                                      width=1.20,height=0.75,
-                                      culvert_routine=boyd_generalised_culvert_model,        
-                                      number_of_barrels=1,
-                                      update_interval=2,
-                                      verbose=True)
+        culvert = Culvert_flow(domain,
+                               label='Culvert No. 1',
+                               description='This culvert is a test unit 1.2m Wide by 0.75m High',   
+                               end_point0=[9.0, 2.5], 
+                               end_point1=[13.0, 2.5],
+                               width=1.20,height=0.75,
+                               culvert_routine=boyd_generalised_culvert_model,
+                               number_of_barrels=1,
+                               update_interval=2,
+                               verbose=True)
         
         domain.forcing_terms.append(culvert)
         
@@ -515,18 +515,18 @@ class Test_Culvert(unittest.TestCase):
 
 
 
-        culvert = Culvert_flow_energy(domain,
-                                      label='Test culvert',
-                                      description='4 m test culvert',   
-                                      end_point0=[4.0, 2.5], 
-                                      end_point1=[8.0, 2.5],
-                                      width=1.20, 
-                                      height=0.75,
-                                      culvert_routine=boyd_generalised_culvert_model,        
-                                      number_of_barrels=1,
-                                      verbose=True)
+        culvert = Culvert_flow(domain,
+                               label='Test culvert',
+                               description='4 m test culvert',   
+                               end_point0=[4.0, 2.5], 
+                               end_point1=[8.0, 2.5],
+                               width=1.20, 
+                               height=0.75,
+                               culvert_routine=boyd_generalised_culvert_model,        
+                               number_of_barrels=1,
+                               verbose=True)
                                
-
+        
         domain.forcing_terms.append(culvert)
         
         # Call
@@ -539,8 +539,8 @@ class Test_Culvert(unittest.TestCase):
                
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Culvert, 'test_that_culvert_rating_limits_flow_in_shallow_inlet_condition')
-    #suite = unittest.makeSuite(Test_Culvert, 'test')
+    #suite = unittest.makeSuite(Test_Culvert, 'test_that_culvert_rating_limits_flow_in_shallow_inlet_condition')
+    suite = unittest.makeSuite(Test_Culvert, 'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
         

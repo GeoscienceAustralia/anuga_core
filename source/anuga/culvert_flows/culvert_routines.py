@@ -39,7 +39,7 @@ Usage:
 from math import pi, sqrt, sin, cos
 
 
-def boyd_generalised_culvert_model(culvert, inlet, outlet, delta_Et, g):
+def boyd_generalised_culvert_model(culvert, delta_Et, g):
 
     """Boyd's generalisation of the US department of transportation culvert model
         # == The quantity of flow passing through a culvert is controlled by many factors
@@ -52,7 +52,8 @@ def boyd_generalised_culvert_model(culvert, inlet, outlet, delta_Et, g):
     from anuga.config import velocity_protection
     from anuga.utilities.numerical_tools import safe_acos as acos
 
-        
+    inlet = culvert.inlet
+    outlet = culvert.outlet        
     Q_outlet_tailwater = 0.0
     inlet.rate = 0.0
     outlet.rate = 0.0

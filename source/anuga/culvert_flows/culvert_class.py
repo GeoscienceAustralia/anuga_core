@@ -10,7 +10,7 @@ from anuga.utilities.numerical_tools import ensure_numeric
         
 from anuga.config import g, epsilon
 from Numeric import take, sqrt
-from anuga.config import velocity_protection        
+from anuga.config import minimum_allowed_height, velocity_protection        
 
         
 
@@ -113,6 +113,458 @@ def read_culvert_description(culvert_description_filename):
     return label, type, width, height, length, number_of_barrels, description, rating_curve
     
 
+    
+
+class Culvert_flow_general:
+    """Culvert flow - transfer water from one hole to another
+    
+    This version will work with either rating curve file or with culvert
+    routine.
+    
+    Input: Two points, pipe_size (either diameter or width, height), 
+    mannings_rougness,
+    """	
+
+    def __init__(self,
+                 domain,
+                 culvert_description_filename=None,
+                 culvert_routine=None,
+                 end_point0=None, 
+                 end_point1=None,
+                 enquiry_point0=None, 
+                 enquiry_point1=None,
+                 type='box',
+                 width=None,
+                 height=None,
+                 length=None,
+                 number_of_barrels=None,
+                 trigger_depth=0.01, # Depth below which no flow happens
+                 manning=None,          # Mannings Roughness for Culvert 
+                 sum_loss=None,
+                 label=None,
+                 description=None,
+                 update_interval=None,
+                 log_file=False,
+                 discharge_hydrograph=False,
+                 verbose=False):
+        
+
+        self.culvert_routine = culvert_routine        
+        self.culvert_description_filename = culvert_description_filename
+        if culvert_description_filename is not None:
+            label, type, width, height, length, number_of_barrels, description, rating_curve = read_culvert_description(culvert_description_filename)
+            self.rating_curve = ensure_numeric(rating_curve)            
+        
+        self.domain = domain
+        self.trigger_depth = trigger_depth        
+                
+        if manning is None: 
+            self.manning = 0.012   # Default roughness for pipe
+        
+        if sum_loss is None:
+            self.sum_loss = 0.0
+            
+                        
+        # Store culvert information
+        self.label = label
+        self.description = description
+        self.culvert_type = type
+        self.number_of_barrels = number_of_barrels
+
+        if label is None: label = 'culvert_flow'
+        label += '_' + str(id(self)) 
+        self.label = label
+        
+        # File for storing discharge_hydrograph
+        if discharge_hydrograph is True:
+            self.timeseries_filename = label + '_timeseries.csv'
+            fid = open(self.timeseries_filename, 'w')
+            fid.write('time, discharge\n')
+            fid.close()
+
+        # Log file for storing general textual output
+        if log_file is True:        
+            self.log_filename = label + '.log'         
+            log_to_file(self.log_filename, self.label)        
+            log_to_file(self.log_filename, description)
+            log_to_file(self.log_filename, self.culvert_type)        
+
+
+        # Create the fundamental culvert polygons from polygon
+        P = create_culvert_polygons(end_point0,
+                                    end_point1,
+                                    width=width,   
+                                    height=height,
+                                    number_of_barrels=number_of_barrels)
+        self.culvert_polygons = P
+        
+        # Select enquiry points
+        if enquiry_point0 is None:
+            enquiry_point0 = P['enquiry_point0']
+            
+        if enquiry_point1 is None:
+            enquiry_point1 = P['enquiry_point1']            
+            
+        if verbose is True:
+            pass
+            #plot_polygons([[end_point0, end_point1],
+            #               P['exchange_polygon0'],
+            #               P['exchange_polygon1'],
+            #               [enquiry_point0, 1.005*enquiry_point0],
+            #               [enquiry_point1, 1.005*enquiry_point1]],
+            #              figname='culvert_polygon_output')
+
+            
+            
+        self.enquiry_points = [enquiry_point0, enquiry_point1]
+        self.enquiry_indices = self.get_enquiry_indices()                  
+        self.check_culvert_inside_domain()
+        
+                    
+        # Create inflow object at each end of the culvert. 
+        self.openings = []
+        self.openings.append(Inflow(domain,
+                                    polygon=P['exchange_polygon0']))
+        self.openings.append(Inflow(domain,
+                                    polygon=P['exchange_polygon1']))
+                                    
+        # Assume two openings for now: Referred to as 0 and 1
+        assert len(self.openings) == 2
+
+        # Establish initial values at each enquiry point
+        dq = domain.quantities 
+        for i, opening in enumerate(self.openings):
+            idx = self.enquiry_indices[i]
+            elevation = dq['elevation'].get_values(location='centroids',
+                                                   indices=[idx])[0]
+            stage = dq['stage'].get_values(location='centroids',
+                                           indices=[idx])[0]
+            opening.elevation = elevation
+            opening.stage = stage
+            opening.depth = stage-elevation
+
+            
+                            
+        # Determine initial pipe direction.
+        # This may change dynamically based on the total energy difference     
+        # Consequently, this may be superfluous
+        delta_z = self.openings[0].elevation - self.openings[1].elevation
+        if delta_z > 0.0:
+            self.inlet = self.openings[0]
+            self.outlet = self.openings[1]
+        else:                
+            self.outlet = self.openings[0]
+            self.inlet = self.openings[1]        
+        
+        
+        # Store basic geometry 
+        self.end_points = [end_point0, end_point1]
+        self.vector = P['vector']
+        self.length = P['length']; assert self.length > 0.0
+        if culvert_description_filename is not None:
+            if not allclose(self.length, length, rtol=1.0e-2, atol=1.0e-2):
+                msg = 'WARNING: barrel length specified in "%s" (%.2f m)'\
+                    % (culvert_description_filename, 
+                       length)
+                msg += ' does not match distance between specified'
+                msg += ' end points (%.2f m)' %self.length
+                print msg
+        
+        self.verbose = verbose
+
+
+        
+        # For use with update_interval                        
+        self.last_update = 0.0
+        self.update_interval = update_interval
+        
+
+        # Print some diagnostics to log if requested
+        if hasattr(self, 'log_filename'):
+            s = 'Culvert Effective Length = %.2f m' %(self.length)
+            log_to_file(self.log_filename, s)
+   
+            s = 'Culvert Direction is %s\n' %str(self.vector)
+            log_to_file(self.log_filename, s)        
+        
+        
+        
+        
+        
+    def __call__(self, domain):
+
+        # Time stuff
+        time = domain.get_time()
+        
+        
+        update = False
+        if self.update_interval is None:
+            # Use next timestep as has been computed in domain.py        
+            delta_t = domain.timestep            
+            update = True
+        else:    
+            # Use update interval 
+            delta_t = self.update_interval            
+            if time - self.last_update > self.update_interval or time == 0.0:
+                update = True
+
+        if hasattr(self, 'log_filename'):            
+            s = '\nTime = %.2f, delta_t = %f' %(time, delta_t)
+            log_to_file(self.log_filename, s)
+                
+                                
+        if update is True:
+            self.compute_rates(delta_t)
+            
+    
+        # Execute flow term for each opening
+        # This is where Inflow objects are evaluated using the last rate 
+        # that has been calculated
+        # 
+        # This will take place at every internal timestep and update the domain
+        for opening in self.openings:
+            opening(domain)
+            
+
+
+    def get_enquiry_indices(self):
+        """Get indices for nearest centroids to self.enquiry_points
+        """
+        
+        domain = self.domain
+        
+        enquiry_indices = []                  
+        for point in self.enquiry_points:
+            # Find nearest centroid 
+            N = len(domain)    
+            points = domain.get_centroid_coordinates(absolute=True)
+
+            # Calculate indices in exchange area for this forcing term
+            
+            triangle_id = min_dist = sys.maxint
+            for k in range(N):
+                x, y = points[k,:] # Centroid
+
+                c = point                                
+                distance = (x-c[0])**2+(y-c[1])**2
+                if distance < min_dist:
+                    min_dist = distance
+                    triangle_id = k
+
+                    
+            if triangle_id < sys.maxint:
+                msg = 'found triangle with centroid (%f, %f)'\
+                    %tuple(points[triangle_id, :])
+                msg += ' for point (%f, %f)' %tuple(point)
+                
+                enquiry_indices.append(triangle_id)
+            else:
+                msg = 'Triangle not found for point (%f, %f)' %point
+                raise Exception, msg
+        
+        return enquiry_indices
+
+        
+    def check_culvert_inside_domain(self):
+        """Check that all polygons and enquiry points lie within the mesh.
+        """
+        bounding_polygon = self.domain.get_boundary_polygon()
+        P = self.culvert_polygons
+        for key in P.keys():
+            if key in ['exchange_polygon0', 
+                       'exchange_polygon1']:
+                for point in list(P[key]) + self.enquiry_points:
+                    msg = 'Point %s in polygon %s for culvert %s did not'\
+                        %(str(point), key, self.label)
+                    msg += 'fall within the domain boundary.'
+                    assert is_inside_polygon(point, bounding_polygon), msg
+            
+
+            
+            
+    def compute_rates(self, delta_t):
+        """Compute new rates for inlet and outlet
+        """
+
+        # Short hands
+        domain = self.domain        
+        dq = domain.quantities                
+        
+        # Time stuff
+        time = domain.get_time()
+        self.last_update = time
+
+            
+        # Compute stage and energy at the 
+        # enquiry points at each end of the culvert
+        openings = self.openings
+        for i, opening in enumerate(openings):
+            idx = self.enquiry_indices[i]                
+            
+            stage = dq['stage'].get_values(location='centroids',
+                                               indices=[idx])[0]
+            xmomentum = dq['xmomentum'].get_values(location='centroids',
+                                                   indices=[idx])[0]
+            ymomentum = dq['xmomentum'].get_values(location='centroids',
+                                                   indices=[idx])[0]
+            
+            depth = h = stage-opening.elevation
+            if h > minimum_allowed_height:
+                u = xmomentum/(h + velocity_protection/h)
+                v = ymomentum/(h + velocity_protection/h)
+            else:
+                u = v = 0.0
+                
+            energy_head = 0.5*(u*u + v*v)/g    
+            opening.total_energy = energy_head + stage
+            opening.specific_energy = energy_head + depth
+            opening.stage = stage
+            opening.depth = depth
+            
+
+        # We now need to deal with each opening individually
+        # Determine flow direction based on total energy difference
+        delta_total_energy = openings[0].total_energy - openings[1].total_energy
+        if delta_total_energy > 0:
+            #print 'Flow U/S ---> D/S'
+            inlet = openings[0]
+            outlet = openings[1]
+        else:
+            #print 'Flow D/S ---> U/S'
+            inlet = openings[1]
+            outlet = openings[0]
+            
+            delta_total_energy = -delta_total_energy
+
+        self.inlet = inlet
+        self.outlet = outlet
+            
+        msg = 'Total energy difference is negative'
+        assert delta_total_energy > 0.0, msg
+
+        # Recompute slope and issue warning if flow is uphill
+        # These values do not enter the computation
+        delta_z = inlet.elevation - outlet.elevation
+        culvert_slope = (delta_z/self.length)
+        if culvert_slope < 0.0:
+            # Adverse gradient - flow is running uphill
+            # Flow will be purely controlled by uphill outlet face
+            if self.verbose is True:
+                print 'WARNING: Flow is running uphill. Watch Out!'
+            
+        if hasattr(self, 'log_filename'):
+            s = 'Time=%.2f, inlet stage = %.2f, outlet stage = %.2f'\
+                %(time, self.inlet.stage, self.outlet.stage)
+            log_to_file(self.log_filename, s)
+            s = 'Delta total energy = %.3f' %(delta_total_energy)
+            log_to_file(log_filename, s)
+
+            
+        # Determine controlling energy (driving head) for culvert
+        if inlet.specific_energy > delta_total_energy:
+            # Outlet control
+            driving_head = delta_total_energy
+        else:
+            # Inlet control
+            driving_head = inlet.specific_energy
+            
+
+
+        if self.inlet.depth <= self.trigger_depth:
+            Q = 0.0
+        else:
+            # Calculate discharge for one barrel and 
+            # set inlet.rate and outlet.rate
+            
+            Q = self.compute_flow(driving_head)            
+            
+        
+        # Adjust discharge for multiple barrels
+        Q *= self.number_of_barrels
+        
+
+        # Adjust Q downwards depending on available water at inlet
+        stage = self.inlet.get_quantity_values(quantity_name='stage')
+        elevation = self.inlet.get_quantity_values(quantity_name='elevation')
+        depth = stage-elevation
+        
+        
+        V = 0
+        for i, d in enumerate(depth):
+            V += d * domain.areas[i]
+        
+        #Vsimple = mean(depth)*self.inlet.exchange_area # Current volume in exchange area  
+        #print 'Q', Q, 'dt', delta_t, 'Q*dt', Q*delta_t, 'V', V, 'Vsimple', Vsimple
+
+        dt = delta_t            
+        if Q*dt > V:
+        
+            Q_reduced = 0.9*V/dt # Reduce with safety factor
+            
+            msg = '%.2fs: Computed extraction for this time interval (Q*dt) is ' % time
+            msg += 'greater than current volume (V) at inlet.\n'
+            msg += ' Q will be reduced from %.2f m^3/s to %.2f m^3/s.' % (Q, Q_reduced)
+            
+            #print msg
+            
+            if self.verbose is True:
+                print msg
+            if hasattr(self, 'log_filename'):                    
+                log_to_file(self.log_filename, msg)                                        
+            
+            Q = Q_reduced
+        
+        self.inlet.rate = -Q
+        self.outlet.rate = Q
+
+        # Log timeseries to file
+        try:
+            fid = open(self.timeseries_filename, 'a')        
+        except:
+            pass
+        else:    
+            fid.write('%.2f, %.2f\n' %(time, Q))
+            fid.close()
+
+
+    def compute_flow(self, driving_head):
+        
+        time = self.domain.get_time()    
+        if self.culvert_description_filename is not None:
+            try:
+                Q = interpolate_linearly(driving_head, 
+                                         self.rating_curve[:,0], 
+                                         self.rating_curve[:,1]) 
+            except Below_interval, e:
+                Q = self.rating_curve[0,1]             
+                msg = '%.2fs: ' % time 
+                msg += 'Delta head smaller than rating curve minimum: '
+                msg += str(e)
+                msg += '\n        '
+                msg += 'I will use minimum discharge %.2f m^3/s ' % Q
+                msg += 'for culvert "%s"' % self.label
+                
+                if hasattr(self, 'log_filename'):                    
+                    log_to_file(self.log_filename, msg)
+            except Above_interval, e:
+                Q = self.rating_curve[-1,1]          
+                msg = '%.2fs: ' % time                 
+                msg += 'Delta head greater than rating curve maximum: '
+                msg += str(e)
+                msg += '\n        '
+                msg += 'I will use maximum discharge %.2f m^3/s ' % Q
+                msg += 'for culvert "%s"' % self.label 
+                
+                if hasattr(self, 'log_filename'):                    
+                    log_to_file(self.log_filename, msg)
+        else:
+            # User culvert routine
+            Q, barrel_velocity, culvert_outlet_depth =\
+                self.culvert_routine(self, driving_head, g)
+            
+        return Q
+                            
+    
 class Culvert_flow_rating:
     """Culvert flow - transfer water from one hole to another
     
@@ -130,7 +582,7 @@ class Culvert_flow_rating:
                  end_point0=None, 
                  end_point1=None,
                  enquiry_point0=None, 
-                 enquiry_point1=None,                                            
+                 enquiry_point1=None,
                  update_interval=None,
                  log_file=False,
                  discharge_hydrograph=False,
@@ -503,7 +955,7 @@ class Culvert_flow_energy:
                  culvert_routine=None,
                  number_of_barrels=1,
                  enquiry_point0=None, 
-                 enquiry_point1=None,                                            
+                 enquiry_point1=None,
                  update_interval=None,
                  verbose=False):
         
@@ -939,4 +1391,4 @@ class Culvert_flow_energy:
             
 
 
-Culvert_flow = Culvert_flow_rating        
+Culvert_flow = Culvert_flow_general        
