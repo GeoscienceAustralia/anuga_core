@@ -12,7 +12,7 @@ from anuga.utilities.polygon import is_inside_polygon
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.abstract_2d_finite_volumes.quantity import Quantity
 from anuga.geospatial_data.geospatial_data import Geospatial_data
-
+from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
 from shallow_water_domain import *
 
 # Get gateway to C implementation of flux function for direct testing
@@ -3006,8 +3006,121 @@ class Test_Shallow_Water(unittest.TestCase):
 
 
 
+
+    def Xtest_inflow_outflow_conservation(self):
+        """test_inflow_outflow_conservation
         
+        Test what happens if water is abstracted from one area and 
+        injected into another - especially if there is not enough
+        water to match the abstraction. 
+        This tests that the total volume is kept constant under a range of
+        scenarios.
+        """
         
+        from math import pi, cos, sin
+        
+        length = 20.
+        width = 10.
+
+        dx = dy = 2  # 1 or 2 OK
+        points, vertices, boundary = rectangular_cross(int(length/dx),
+                                                       int(width/dy),
+                                                       len1=length, 
+                                                       len2=width)
+        domain = Domain(points, vertices, boundary)   
+        domain.set_name('test_inflow_conservation')  # Output name
+        domain.set_default_order(2)
+        
+
+        # Flat surface with 1m of water
+        stage = 1.0
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('stage', stage)
+        domain.set_quantity('friction', 0)
+
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'left': Br, 'right': Br, 'bottom': Br, 'top': Br})
+
+        # Setup one forcing term, constant inflow of 2 m^3/s on a circle 
+        domain.forcing_terms = []
+        domain.forcing_terms.append(Inflow(domain, rate=2.0, center=(5,5), radius=1))
+
+        domain.compute_forcing_terms()
+        #print domain.quantities['stage'].explicit_update
+        
+        # Check that update values are correct
+        for x in domain.quantities['stage'].explicit_update:
+            assert allclose(x, 2.0/pi) or allclose(x, 0.0)
+
+        
+        # Check volumes without inflow
+        domain.forcing_terms = []        
+        initial_volume = domain.quantities['stage'].get_integral()
+        
+        assert allclose(initial_volume, width*length*stage)
+        
+        for t in domain.evolve(yieldstep = 0.05, finaltime = 5.0):
+            volume =  domain.quantities['stage'].get_integral()
+            assert allclose (volume, initial_volume)
+            
+            
+        # Now apply the inflow and check volumes for a range of stage values
+        for stage in [2.0, 1.0, 0.5, 0.25, 0.1, 0.0]:
+            domain.time = 0.0
+            domain.set_quantity('stage', stage)        
+                    
+            domain.forcing_terms = []        
+            domain.forcing_terms.append(Inflow(domain, rate=2.0, center=(5,5), radius=1))        
+            initial_volume = domain.quantities['stage'].get_integral()
+            predicted_volume = initial_volume
+            dt = 0.05
+            for t in domain.evolve(yieldstep = dt, finaltime = 5.0):
+                volume = domain.quantities['stage'].get_integral()
+                
+                assert allclose (volume, predicted_volume)            
+                predicted_volume = predicted_volume + 2.0/pi/100/dt # Why 100?
+            
+            
+        # Apply equivalent outflow only and check volumes for a range of stage values
+        for stage in [2.0, 1.0, 0.5, 0.25, 0.1, 0.0]:
+            print stage
+            
+            domain.time = 0.0
+            domain.set_quantity('stage', stage)        
+            domain.forcing_terms = []        
+            domain.forcing_terms.append(Inflow(domain, rate=-2.0, center=(15,5), radius=1))        
+            initial_volume = domain.quantities['stage'].get_integral()
+            predicted_volume = initial_volume
+            dt = 0.05
+            for t in domain.evolve(yieldstep = dt, finaltime = 5.0):
+                volume = domain.quantities['stage'].get_integral()
+                
+                print t, volume, predicted_volume
+                assert allclose (volume, predicted_volume)            
+                predicted_volume = predicted_volume - 2.0/pi/100/dt # Why 100?            
+            
+            
+        # Apply both inflow and outflow and check volumes being constant for a 
+        # range of stage values 
+        for stage in [2.0, 1.0, 0.5, 0.25, 0.1, 0.0]:        
+            print stage
+            
+            domain.time = 0.0
+            domain.set_quantity('stage', stage)        
+            domain.forcing_terms = []        
+            domain.forcing_terms.append(Inflow(domain, rate=2.0, center=(5,5), radius=1))        
+            domain.forcing_terms.append(Inflow(domain, rate=-2.0, center=(15,5), radius=1))                
+            initial_volume = domain.quantities['stage'].get_integral()
+
+            dt = 0.05
+            for t in domain.evolve(yieldstep = dt, finaltime = 5.0):
+                volume = domain.quantities['stage'].get_integral()
+                
+                print t, volume
+                assert allclose (volume, initial_volume)            
+
+            
+            
 
     #####################################################
     def test_first_order_extrapolator_const_z(self):
@@ -6447,13 +6560,13 @@ friction  \n \
         
 if __name__ == "__main__":
 
-    suite = unittest.makeSuite(Test_Shallow_Water, 'test')
+    #suite = unittest.makeSuite(Test_Shallow_Water, 'test')
     #suite = unittest.makeSuite(Test_Shallow_Water, 'test_rainfall_forcing_with_evolve')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_get_energy_through_cross_section_with_g')    
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_fitting_using_shallow_water_domain')    
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_tight_slope_limiters')
-    #suite = unittest.makeSuite(Test_Shallow_Water,'test_get_maximum_inundation_from_sww')
-    #suite = unittest.makeSuite(Test_Shallow_Water,'test_time_dependent_rainfall')    
+    suite = unittest.makeSuite(Test_Shallow_Water,'test_inflow_outflow_conservation')
+    #suite = unittest.makeSuite(Test_Shallow_Water,'test_outflow_conservation_problem_temp')    
     
 
     
