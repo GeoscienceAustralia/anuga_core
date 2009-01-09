@@ -6759,26 +6759,26 @@ def store_parameters(verbose=False, **kwargs):
     # checks the header info, if the same, then write, if not create a new file
     # try to open!
     try:
-        fid = open(file, "r")
+        fid = open(file, 'r')
         file_header = fid.readline()
         fid.close()
         if verbose: print 'read file header %s' % file_header
     except:
-        msg = 'try to create new file', file
+        msg = 'try to create new file: %s' % file
         if verbose: print msg
         #tries to open file, maybe directory is bad
         try:
-            fid = open(file, "w")
+            fid = open(file, 'w')
             fid.write(header)
             fid.close()
             file_header=header
         except:
-            msg = 'cannot create new file', file
-            raise msg
+            msg = 'cannot create new file: %s' % file
+            raise Exception, msg
 
     # if header is same or this is a new file
     if file_header == str(header):
-        fid = open(file, "a")
+        fid = open(file, 'a')
         fid.write(line)
         fid.close()
     else:
@@ -6786,7 +6786,7 @@ def store_parameters(verbose=False, **kwargs):
         # if header is different and has completed will append info to
         # end of details_temp.cvs file in output directory
         file = str(kwargs['output_dir']) + 'detail_temp.csv'
-        fid = open(file, "a")
+        fid = open(file, 'a')
         fid.write(header)
         fid.write(line)
         fid.close()
