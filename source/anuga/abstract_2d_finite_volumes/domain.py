@@ -873,7 +873,7 @@ class Domain(Mesh):
                 maxwidth = w
 
         # Output statistics
-        msg = 'Boundary values at time %.4f:\n' %self.time
+        msg = 'Boundary values at time %.4f:\n' %self.get_time()
         for tag in tags:
             msg += '    %s:\n' %tag
 
@@ -966,7 +966,7 @@ class Domain(Mesh):
         maxlen = 128 # Max length of polygon string representation
 
         # Output statistics
-        msg = 'Monitored quantities at time %.4f:\n' %self.time
+        msg = 'Monitored quantities at time %.4f:\n' %self.get_time()
         if self.monitor_polygon is not None:
             p_str = str(self.monitor_polygon)
             msg += '- Restricted by polygon: %s' %p_str[:maxlen]
