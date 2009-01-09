@@ -1093,20 +1093,35 @@ def csv2polygons(file_name, value_name='value'):
         values = None
 
     # Loop through entries and compose polygons
+    past_ids = {}
+    last_id = None
     for i, id in enumerate(X['id']):
+
+        # Check for duplicate polygons
+        if id in past_ids:
+            msg = 'Polygon %s was duplicated in line %d' % (id, i)
+            raise Exception, msg
         
         if id not in polygons:
             # Start new polygon
             polygons[id] = []
             if values is not None:
                 values[id] = X[value_name][i]
+
+            # Keep track of previous polygon ids
+            if last_id is not None:
+                past_ids[last_id] = i
             
         # Append this point to current polygon
         point = [float(X['easting'][i]), float(X['northing'][i])]
         polygons[id].append(point)    
             
         # Check that value is the same across each polygon
-        assert values[id] == X[value_name][i]
+        msg = 'Values must be the same across each polygon.'
+        msg += 'I got %s in line %d but it should have been %s' % (X[value_name][i], i, values[id])
+        assert values[id] == X[value_name][i], msg
+
+        last_id = id
         
     return polygons, values
 
