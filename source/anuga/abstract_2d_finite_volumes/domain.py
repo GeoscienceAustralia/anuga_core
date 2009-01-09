@@ -30,6 +30,9 @@ from anuga.abstract_2d_finite_volumes.region\
 from anuga.utilities.polygon import inside_polygon
 from anuga.abstract_2d_finite_volumes.util import get_textual_float
 
+from Numeric import zeros, Float, Int, ones
+from quantity import Quantity
+
 import types
 from time import time as walltime
 
@@ -104,8 +107,6 @@ class Domain(Mesh):
                       verbose=verbose)
 
         if verbose: print 'Initialising Domain'
-        from Numeric import zeros, Float, Int, ones
-        from quantity import Quantity
 
         # List of quantity names entering
         # the conservation equations
@@ -373,7 +374,30 @@ class Domain(Mesh):
 
         # Assign values
         self.quantities[name].set_values(*args, **kwargs)
-
+        
+    def add_quantity(self, name, *args, **kwargs):
+        """Add values to a named quantity
+        
+        E.g add_quantity('elevation', X)
+        
+        Option are the same as in set_quantity.
+        """
+            
+        # Do the expression stuff
+        if kwargs.has_key('expression'):
+            expression = kwargs['expression']
+            Q2 = self.create_quantity_from_expression(expression)
+        else:    
+            # Create new temporary quantity
+            Q2 = Quantity(self)
+        
+            # Assign specified values to temporary quantity
+            Q2.set_values(*args, **kwargs)
+            
+        # Add temporary quantity to named quantity
+        Q1 = self.get_quantity(name)
+        self.set_quantity(name, Q1 + Q2)
+        
 
     def get_quantity_names(self):
         """Get a list of all the quantity names that this domain is aware of.

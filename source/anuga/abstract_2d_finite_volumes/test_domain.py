@@ -318,6 +318,82 @@ class Test_Domain(unittest.TestCase):
 
 
 
+                                      
+    def test_add_quantity(self):
+        """Test that quantities already set can be added to using
+        add_quantity
+
+        """
+
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0,0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0,0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe, daf, dae
+        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices, boundary=None,
+                        conserved_quantities =\
+                        ['stage', 'xmomentum', 'ymomentum'],
+                        other_quantities = ['elevation', 'friction', 'depth'])
+
+
+        A = array([[1,2,3], [5,5,-5], [0,0,9], [-6,3,3]], 'f')
+        B = array([[2,4,4], [3,2,1], [6,-3,4], [4,5,-1]], 'f')
+        
+        #print A
+        #print B
+        #print A+B
+        
+        # Shorthands
+        stage = domain.quantities['stage']
+        elevation = domain.quantities['elevation']
+        depth = domain.quantities['depth']
+        
+        # Go testing
+        domain.set_quantity('elevation', A)
+        domain.add_quantity('elevation', B)
+        assert allclose(elevation.vertex_values, A+B)
+        
+        domain.add_quantity('elevation', 4)
+        assert allclose(elevation.vertex_values, A+B+4)        
+        
+        
+        # Test using expression
+        domain.set_quantity('stage', [[1,2,3], [5,5,5],
+                                      [0,0,9], [-6, 3, 3]])        
+        domain.set_quantity('depth', 1.0)                                     
+        domain.add_quantity('depth', expression = 'stage - elevation')        
+        assert allclose(depth.vertex_values, stage.vertex_values-elevation.vertex_values+1)
+                
+        
+        # Check self referential expression
+        reference = 2*stage.vertex_values - depth.vertex_values 
+        domain.add_quantity('stage', expression = 'stage - depth')                
+        assert allclose(stage.vertex_values, reference)        
+                                      
+
+        # Test using a function
+        def f(x, y):
+            return x+y
+            
+        domain.set_quantity('elevation', f)            
+        domain.set_quantity('stage', 5.0)
+        domain.set_quantity('depth', expression = 'stage - elevation')
+        
+        domain.add_quantity('depth', f)
+        assert allclose(stage.vertex_values, depth.vertex_values)                
+         
+            
+        
+        
+                                      
+                                      
     def test_setting_timestepping_method(self):
         """test_set_quanitities_to_be_monitored
         """
