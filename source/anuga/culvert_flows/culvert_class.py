@@ -415,6 +415,9 @@ class Culvert_flow_general:
         self.last_update = time
 
             
+        if hasattr(self, 'log_filename'):
+            log_filename = self.log_filename
+            
         # Compute stage and energy at the 
         # enquiry points at each end of the culvert
         openings = self.openings

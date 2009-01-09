@@ -325,14 +325,14 @@ class Test_Quantity(unittest.TestCase):
     def test_integral(self):
         quantity = Quantity(self.mesh4)
 
-        #Try constants first
+        # Try constants first
         const = 5
         quantity.set_values(const, location = 'vertices')
         #print 'Q', quantity.get_integral()
 
         assert allclose(quantity.get_integral(), self.mesh4.get_area() * const)
 
-        #Try with a linear function
+        # Try with a linear function
         def f(x, y):
             return x+y
 
