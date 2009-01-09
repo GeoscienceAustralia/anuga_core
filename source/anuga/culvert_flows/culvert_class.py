@@ -137,10 +137,12 @@ class Culvert_flow_general:
                  width=None,
                  height=None,
                  length=None,
-                 number_of_barrels=None,
+                 number_of_barrels=1,
                  trigger_depth=0.01, # Depth below which no flow happens
                  manning=None,          # Mannings Roughness for Culvert 
                  sum_loss=None,
+                 use_velocity_head=False, 
+                 use_momentum_jet=False, # FIXME(Ole): Not yet implemented
                  label=None,
                  description=None,
                  update_interval=None,
@@ -149,6 +151,20 @@ class Culvert_flow_general:
                  verbose=False):
         
 
+        
+        # Input check
+        
+        if height is None: height = width        
+        self.height = height
+        self.width = width
+
+        
+        assert number_of_barrels >= 1
+        assert use_velocity_head is True or use_velocity_head is False
+        
+        msg = 'Momentum jet not yet moved to general culvert'
+        assert use_momentum_jet is False, msg
+        
         self.culvert_routine = culvert_routine        
         self.culvert_description_filename = culvert_description_filename
         if culvert_description_filename is not None:
@@ -164,12 +180,16 @@ class Culvert_flow_general:
         if sum_loss is None:
             self.sum_loss = 0.0
             
+        
                         
         # Store culvert information
         self.label = label
         self.description = description
         self.culvert_type = type
         self.number_of_barrels = number_of_barrels
+        
+        # Store options        
+        self.use_velocity_head = use_velocity_head
 
         if label is None: label = 'culvert_flow'
         label += '_' + str(id(self)) 
@@ -403,21 +423,27 @@ class Culvert_flow_general:
             
             stage = dq['stage'].get_values(location='centroids',
                                                indices=[idx])[0]
-            xmomentum = dq['xmomentum'].get_values(location='centroids',
-                                                   indices=[idx])[0]
-            ymomentum = dq['xmomentum'].get_values(location='centroids',
-                                                   indices=[idx])[0]
-            
             depth = h = stage-opening.elevation
-            if h > minimum_allowed_height:
-                u = xmomentum/(h + velocity_protection/h)
-                v = ymomentum/(h + velocity_protection/h)
-            else:
-                u = v = 0.0
+                                                           
+                                               
+            if self.use_velocity_head is True:
+                xmomentum = dq['xmomentum'].get_values(location='centroids',
+                                                       indices=[idx])[0]
+                ymomentum = dq['xmomentum'].get_values(location='centroids',
+                                                       indices=[idx])[0]
+            
+                if h > minimum_allowed_height:
+                    u = xmomentum/(h + velocity_protection/h)
+                    v = ymomentum/(h + velocity_protection/h)
+                else:
+                    u = v = 0.0
                 
-            energy_head = 0.5*(u*u + v*v)/g    
-            opening.total_energy = energy_head + stage
-            opening.specific_energy = energy_head + depth
+                velocity_head = 0.5*(u*u + v*v)/g    
+            else:
+                velocity_head = 0.0
+            
+            opening.total_energy = velocity_head + stage
+            opening.specific_energy = velocity_head + depth
             opening.stage = stage
             opening.depth = depth
             
@@ -450,7 +476,7 @@ class Culvert_flow_general:
             # Adverse gradient - flow is running uphill
             # Flow will be purely controlled by uphill outlet face
             if self.verbose is True:
-                print 'WARNING: Flow is running uphill. Watch Out!'
+                print '%.2f - WARNING: Flow is running uphill.' % time
             
         if hasattr(self, 'log_filename'):
             s = 'Time=%.2f, inlet stage = %.2f, outlet stage = %.2f'\
@@ -476,7 +502,38 @@ class Culvert_flow_general:
             # Calculate discharge for one barrel and 
             # set inlet.rate and outlet.rate
             
-            Q = self.compute_flow(driving_head)            
+            if self.culvert_description_filename is not None:
+                try:
+                    Q = interpolate_linearly(driving_head, 
+                                             self.rating_curve[:,0], 
+                                             self.rating_curve[:,1]) 
+                except Below_interval, e:
+                    Q = self.rating_curve[0,1]             
+                    msg = '%.2fs: ' % time 
+                    msg += 'Delta head smaller than rating curve minimum: '
+                    msg += str(e)
+                    msg += '\n        '
+                    msg += 'I will use minimum discharge %.2f m^3/s ' % Q
+                    msg += 'for culvert "%s"' % self.label
+                    
+                    if hasattr(self, 'log_filename'):                    
+                        log_to_file(self.log_filename, msg)
+                except Above_interval, e:
+                    Q = self.rating_curve[-1,1]          
+                    msg = '%.2fs: ' % time                 
+                    msg += 'Delta head greater than rating curve maximum: '
+                    msg += str(e)
+                    msg += '\n        '
+                    msg += 'I will use maximum discharge %.2f m^3/s ' % Q
+                    msg += 'for culvert "%s"' % self.label 
+                    
+                    if hasattr(self, 'log_filename'):                    
+                        log_to_file(self.log_filename, msg)
+            else:
+                # User culvert routine
+                Q, barrel_velocity, culvert_outlet_depth =\
+                    self.culvert_routine(self, delta_total_energy, g)
+            
             
         
         # Adjust discharge for multiple barrels
@@ -484,6 +541,7 @@ class Culvert_flow_general:
         
 
         # Adjust Q downwards depending on available water at inlet
+        # Experimental
         stage = self.inlet.get_quantity_values(quantity_name='stage')
         elevation = self.inlet.get_quantity_values(quantity_name='elevation')
         depth = stage-elevation
@@ -526,43 +584,6 @@ class Culvert_flow_general:
             fid.write('%.2f, %.2f\n' %(time, Q))
             fid.close()
 
-
-    def compute_flow(self, driving_head):
-        
-        time = self.domain.get_time()    
-        if self.culvert_description_filename is not None:
-            try:
-                Q = interpolate_linearly(driving_head, 
-                                         self.rating_curve[:,0], 
-                                         self.rating_curve[:,1]) 
-            except Below_interval, e:
-                Q = self.rating_curve[0,1]             
-                msg = '%.2fs: ' % time 
-                msg += 'Delta head smaller than rating curve minimum: '
-                msg += str(e)
-                msg += '\n        '
-                msg += 'I will use minimum discharge %.2f m^3/s ' % Q
-                msg += 'for culvert "%s"' % self.label
-                
-                if hasattr(self, 'log_filename'):                    
-                    log_to_file(self.log_filename, msg)
-            except Above_interval, e:
-                Q = self.rating_curve[-1,1]          
-                msg = '%.2fs: ' % time                 
-                msg += 'Delta head greater than rating curve maximum: '
-                msg += str(e)
-                msg += '\n        '
-                msg += 'I will use maximum discharge %.2f m^3/s ' % Q
-                msg += 'for culvert "%s"' % self.label 
-                
-                if hasattr(self, 'log_filename'):                    
-                    log_to_file(self.log_filename, msg)
-        else:
-            # User culvert routine
-            Q, barrel_velocity, culvert_outlet_depth =\
-                self.culvert_routine(self, driving_head, g)
-            
-        return Q
                             
     
 class Culvert_flow_rating:

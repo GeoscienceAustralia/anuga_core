@@ -39,7 +39,7 @@ Usage:
 from math import pi, sqrt, sin, cos
 
 
-def boyd_generalised_culvert_model(culvert, delta_Et, g):
+def boyd_generalised_culvert_model(culvert, delta_total_energy, g):
 
     """Boyd's generalisation of the US department of transportation culvert model
         # == The quantity of flow passing through a culvert is controlled by many factors
@@ -61,21 +61,22 @@ def boyd_generalised_culvert_model(culvert, delta_Et, g):
     Q_inlet_submerged = 0.0
     Q_outlet_critical_depth = 0.0
 
-    log_filename = culvert.log_filename
+    if hasattr(culvert, 'log_filename'):                                
+        log_filename = culvert.log_filename
 
     manning = culvert.manning
     sum_loss = culvert.sum_loss
     length = culvert.length
 
-    if inlet.depth_trigger >= 0.01 and inlet.depth >= 0.01:
-        # Calculate driving energy
-        # FIXME(Ole): Should this be specific energy?
-        E = inlet.total_energy
+    if inlet.depth > 0.01:
 
-        s = 'Driving energy  = %f m' %E
-        log_to_file(log_filename, s)
+        E = inlet.specific_energy
+
+        if hasattr(culvert, 'log_filename'):                            
+            s = 'Specific energy  = %f m' %E
+            log_to_file(log_filename, s)
         
-        msg = 'Driving energy is negative'
+        msg = 'Specific energy is negative'
         assert E >= 0.0, msg
                       
         
@@ -89,8 +90,9 @@ def boyd_generalised_culvert_model(culvert, delta_Et, g):
             Q_inlet_unsubmerged = 0.421*g**0.5*diameter**0.87*E**1.63    # Inlet Ctrl Inlet Unsubmerged 
             Q_inlet_submerged = 0.530*g**0.5*diameter**1.87*E**0.63      # Inlet Ctrl Inlet Submerged
 
-            s = 'Q_inlet_unsubmerged = %.6f, Q_inlet_submerged = %.6f' %(Q_inlet_unsubmerged, Q_inlet_submerged)
-            log_to_file(log_filename, s)
+            if hasattr(culvert, 'log_filename'):
+                s = 'Q_inlet_unsubmerged = %.6f, Q_inlet_submerged = %.6f' %(Q_inlet_unsubmerged, Q_inlet_submerged)
+                log_to_file(log_filename, s)
 
             case = ''
             if Q_inlet_unsubmerged < Q_inlet_submerged:
@@ -112,7 +114,7 @@ def boyd_generalised_culvert_model(culvert, delta_Et, g):
 
 
 
-            if delta_Et < E:
+            if delta_total_energy < E:
                 # Calculate flows for outlet control
                 # Determine the depth at the outlet relative to the depth of flow in the Culvert
 
@@ -139,17 +141,23 @@ def boyd_generalised_culvert_model(culvert, delta_Et, g):
                     case = 'Outlet is open channel flow'
 
                 hyd_rad = flow_area/perimeter
-                s = 'hydraulic radius at outlet = %f' %hyd_rad
-                log_to_file(log_filename, s)
+                
+                if hasattr(culvert, 'log_filename'):
+                    s = 'hydraulic radius at outlet = %f' %hyd_rad
+                    log_to_file(log_filename, s)
 
                 # Outlet control velocity using tail water
-                culvert_velocity = sqrt(delta_Et/((sum_loss/2*g)+(manning**2*length)/hyd_rad**1.33333)) 
+                culvert_velocity = sqrt(delta_total_energy/((sum_loss/2*g)+(manning**2*length)/hyd_rad**1.33333)) 
                 Q_outlet_tailwater = flow_area * culvert_velocity
-
-                s = 'Q_outlet_tailwater = %.6f' %Q_outlet_tailwater
-                log_to_file(log_filename, s)
-                Q = min(Q, Q_outlet_tailwater)
+                
+                if hasattr(culvert, 'log_filename'):
+                    s = 'Q_outlet_tailwater = %.6f' %Q_outlet_tailwater
+                    log_to_file(log_filename, s)
                     
+                Q = min(Q, Q_outlet_tailwater)
+            else:
+                pass
+                #FIXME(Ole): What about inlet control?
 
 
         else:
@@ -162,8 +170,9 @@ def boyd_generalised_culvert_model(culvert, delta_Et, g):
             Q_inlet_unsubmerged = 0.540*g**0.5*width*E**1.50 # Flow based on Inlet Ctrl Inlet Unsubmerged
             Q_inlet_submerged = 0.702*g**0.5*width*height**0.89*E**0.61  # Flow based on Inlet Ctrl Inlet Submerged
 
-            s = 'Q_inlet_unsubmerged = %.6f, Q_inlet_submerged = %.6f' %(Q_inlet_unsubmerged, Q_inlet_submerged)
-            log_to_file(log_filename, s)
+            if hasattr(culvert, 'log_filename'):
+                s = 'Q_inlet_unsubmerged = %.6f, Q_inlet_submerged = %.6f' %(Q_inlet_unsubmerged, Q_inlet_submerged)
+                log_to_file(log_filename, s)
 
             case = ''
             if Q_inlet_unsubmerged < Q_inlet_submerged:
@@ -179,7 +188,7 @@ def boyd_generalised_culvert_model(culvert, delta_Et, g):
                 #perimeter=2.0*(width+height)                
                 case = 'Inlet submerged'                    
 
-            if delta_Et < E:
+            if delta_total_energy < E:
                 # Calculate flows for outlet control
                 # Determine the depth at the outlet relative to the depth of flow in the Culvert
 
@@ -200,31 +209,41 @@ def boyd_generalised_culvert_model(culvert, delta_Et, g):
                     case = 'Outlet is open channel flow'
 
                 hyd_rad = flow_area/perimeter
-                s = 'hydraulic radius at outlet = %f' %hyd_rad
-                log_to_file(log_filename, s)
+                
+                if hasattr(culvert, 'log_filename'):                
+                    s = 'hydraulic radius at outlet = %f' %hyd_rad
+                    log_to_file(log_filename, s)
 
                 # Outlet control velocity using tail water
-                culvert_velocity = sqrt(delta_Et/((sum_loss/2*g)+(manning**2*length)/hyd_rad**1.33333)) 
+                culvert_velocity = sqrt(delta_total_energy/((sum_loss/2*g)+(manning**2*length)/hyd_rad**1.33333)) 
                 Q_outlet_tailwater = flow_area * culvert_velocity
 
-                s = 'Q_outlet_tailwater = %.6f' %Q_outlet_tailwater
-                log_to_file(log_filename, s)
+                if hasattr(culvert, 'log_filename'):                            
+                    s = 'Q_outlet_tailwater = %.6f' %Q_outlet_tailwater
+                    log_to_file(log_filename, s)
                 Q = min(Q, Q_outlet_tailwater)
-
+            else:
+                pass
+                #FIXME(Ole): What about inlet control?
 
         # Common code for circle and square geometries
-        log_to_file(log_filename, 'Case: "%s"' %case)
+        if hasattr(culvert, 'log_filename'):                                    
+            log_to_file(log_filename, 'Case: "%s"' %case)
+            
         flow_rate_control=Q
 
-        s = 'Flow Rate Control = %f' %flow_rate_control
-        log_to_file(log_filename, s)
+        if hasattr(culvert, 'log_filename'):                                    
+            s = 'Flow Rate Control = %f' %flow_rate_control
+            log_to_file(log_filename, s)
 
         inlet.rate = -flow_rate_control
         outlet.rate = flow_rate_control                
             
         culv_froude=sqrt(flow_rate_control**2*width/(g*flow_area**3))
-        s = 'Froude in Culvert = %f' %culv_froude
-        log_to_file(log_filename, s)
+        
+        if hasattr(culvert, 'log_filename'):                            
+            s = 'Froude in Culvert = %f' %culv_froude
+            log_to_file(log_filename, s)
 
         # Determine momentum at the outlet 
         barrel_velocity = Q/(flow_area + velocity_protection/flow_area)
