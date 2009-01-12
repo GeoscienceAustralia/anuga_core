@@ -318,7 +318,7 @@ class Test_Culvert(unittest.TestCase):
                                culvert_description_filename=filename,
                                end_point0=[9.0, 2.5], 
                                end_point1=[13.0, 2.5],
-                               trigger_depth=0.6, #FIXME: This causes test to pass, but smaller values do not
+                               trigger_depth=0.01,
                                verbose=False)
 
         domain.forcing_terms.append(culvert)
@@ -345,6 +345,8 @@ class Test_Culvert(unittest.TestCase):
             
             msg = 'Total volume has changed: Is %.2f m^3 should have been %.2f m^3'\
                 % (new_volume, ref_volume)
+            if not allclose(new_volume, ref_volume):
+                print msg
             assert allclose(new_volume, ref_volume), msg
     
     

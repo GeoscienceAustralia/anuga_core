@@ -6,7 +6,7 @@ from anuga.utilities.polygon import is_inside_polygon
 from anuga.utilities.polygon import plot_polygons
 
 from anuga.utilities.numerical_tools import mean
-from anuga.utilities.numerical_tools import ensure_numeric
+from anuga.utilities.numerical_tools import ensure_numeric, sign
         
 from anuga.config import g, epsilon
 from Numeric import take, sqrt
@@ -400,7 +400,48 @@ class Culvert_flow_general:
                     assert is_inside_polygon(point, bounding_polygon), msg
             
 
+    def adjust_flow_for_available_water_at_inlet(self, Q, delta_t):
+        """Adjust Q downwards depending on available water at inlet
+        """
+        
+        # Short hands
+        domain = self.domain        
+        dq = domain.quantities                
+        time = domain.get_time()
+        I = self.inlet
+
+        
+        # Find triangle with the smallest available flow
+        max_Q = sys.maxint
+        if delta_t > 0:
+            for i in I.exchange_indices:
+                stage = dq['stage'].get_values(location='centroids', 
+                                               indices=[i])[0]
+                elevation = dq['elevation'].get_values(location='centroids', 
+                                                       indices=[i])[0]        
+                depth = stage-elevation
+                area = domain.areas[i]
+
+                # Possible rate based on this triangle
+                Q_possible = depth*I.exchange_area/delta_t
+                                
+                # Use triangle with least depth to determine total flow
+                max_Q = min(max_Q, Q_possible)
+
             
+        Q_reduced = sign(Q)*min(abs(Q), abs(max_Q))
+        
+        if abs(Q_reduced) < abs(Q): 
+            msg = '%.2fs: Computed extraction for this time interval (Q*dt) is ' % time
+            msg += 'greater than current volume (V) at inlet.\n'
+            msg += ' Q will be reduced from %.2f m^3/s to %.2f m^3/s.' % (Q, Q_reduced)
+            if self.verbose is True:
+                print msg
+            if hasattr(self, 'log_filename'):                    
+                log_to_file(self.log_filename, msg)
+        
+        return Q_reduced    
+                        
             
     def compute_rates(self, delta_t):
         """Compute new rates for inlet and outlet
@@ -543,37 +584,7 @@ class Culvert_flow_general:
         Q *= self.number_of_barrels
         
 
-        # Adjust Q downwards depending on available water at inlet
-        # Experimental
-        stage = self.inlet.get_quantity_values(quantity_name='stage')
-        elevation = self.inlet.get_quantity_values(quantity_name='elevation')
-        depth = stage-elevation
-        
-        
-        V = 0
-        for i, d in enumerate(depth):
-            V += d * domain.areas[i]
-        
-        #Vsimple = mean(depth)*self.inlet.exchange_area # Current volume in exchange area  
-        #print 'Q', Q, 'dt', delta_t, 'Q*dt', Q*delta_t, 'V', V, 'Vsimple', Vsimple
-
-        dt = delta_t            
-        if Q*dt > V:
-        
-            Q_reduced = 0.9*V/dt # Reduce with safety factor
-            
-            msg = '%.2fs: Computed extraction for this time interval (Q*dt) is ' % time
-            msg += 'greater than current volume (V) at inlet.\n'
-            msg += ' Q will be reduced from %.2f m^3/s to %.2f m^3/s.' % (Q, Q_reduced)
-            
-            #print msg
-            
-            if self.verbose is True:
-                print msg
-            if hasattr(self, 'log_filename'):                    
-                log_to_file(self.log_filename, msg)                                        
-            
-            Q = Q_reduced
+        Q = self.adjust_flow_for_available_water_at_inlet(Q, delta_t)
         
         self.inlet.rate = -Q
         self.outlet.rate = Q
