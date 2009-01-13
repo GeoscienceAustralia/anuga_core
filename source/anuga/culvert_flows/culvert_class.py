@@ -25,6 +25,7 @@ import sys
 class Below_interval(Exception): pass 
 class Above_interval(Exception): pass
 
+# FIXME(Ole): Take a good hard look at logging here
 
 
 # FIXME(Ole): Write in C and reuse this function by similar code 
@@ -403,38 +404,44 @@ class Culvert_flow_general:
     def adjust_flow_for_available_water_at_inlet(self, Q, delta_t):
         """Adjust Q downwards depending on available water at inlet
         """
+    
+        if delta_t < epsilon:
+            # No need to adjust if time step is very small or zero
+            # In this case the possible flow will be very large
+            # anyway.
+            return Q
         
         # Short hands
         domain = self.domain        
         dq = domain.quantities                
         time = domain.get_time()
         I = self.inlet
+        idx = I.exchange_indices    
 
+        # Find triangle with the smallest depth
+        stage = dq['stage'].get_values(location='centroids', 
+                                               indices=[idx])
+        elevation = dq['elevation'].get_values(location='centroids', 
+                                               indices=[idx])        
+        depth = stage-elevation
+        min_depth = min(depth.flat)
+
+        # Compute possible flow for exchange region based on
+        # triangle with smallest depth
+        max_Q = min_depth*I.exchange_area/delta_t        
         
-        # Find triangle with the smallest available flow
-        max_Q = sys.maxint
-        if delta_t > 0:
-            for i in I.exchange_indices:
-                stage = dq['stage'].get_values(location='centroids', 
-                                               indices=[i])[0]
-                elevation = dq['elevation'].get_values(location='centroids', 
-                                                       indices=[i])[0]        
-                depth = stage-elevation
-                area = domain.areas[i]
-
-                # Possible rate based on this triangle
-                Q_possible = depth*I.exchange_area/delta_t
-                                
-                # Use triangle with least depth to determine total flow
-                max_Q = min(max_Q, Q_possible)
-
-            
+        # Calculate the minimum in absolute terms of
+        # the requsted flow and the possible flow
         Q_reduced = sign(Q)*min(abs(Q), abs(max_Q))
         
         if abs(Q_reduced) < abs(Q): 
-            msg = '%.2fs: Computed extraction for this time interval (Q*dt) is ' % time
-            msg += 'greater than current volume (V) at inlet.\n'
-            msg += ' Q will be reduced from %.2f m^3/s to %.2f m^3/s.' % (Q, Q_reduced)
+            msg = '%.2fs: Requested flow is ' % time
+            msg += 'greater than what is supported by the smallest '
+            msg += 'depth at inlet exchange area:\n        '
+            msg += 'h_min*inlet_area/delta_t = %.2f*%.2f/%.2f '\
+                % (min_depth, I.exchange_area, delta_t)
+            msg += ' = %.2f m^3/s\n        ' % Q_reduced
+            msg += 'Q will be reduced from %.2f m^3/s to %.2f m^3/s.' % (Q, Q_reduced)
             if self.verbose is True:
                 print msg
             if hasattr(self, 'log_filename'):                    
@@ -520,7 +527,7 @@ class Culvert_flow_general:
             # Adverse gradient - flow is running uphill
             # Flow will be purely controlled by uphill outlet face
             if self.verbose is True:
-                print '%.2f - WARNING: Flow is running uphill.' % time
+                print '%.2fs - WARNING: Flow is running uphill.' % time
             
         if hasattr(self, 'log_filename'):
             s = 'Time=%.2f, inlet stage = %.2f, outlet stage = %.2f'\
