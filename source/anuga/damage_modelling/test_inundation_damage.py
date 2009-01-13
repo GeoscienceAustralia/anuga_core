@@ -16,7 +16,7 @@ from anuga.shallow_water import Domain, Transmissive_boundary
 from anuga.utilities.numerical_tools import mean
 from anuga.shallow_water.data_manager import get_dataobject
 
-from Numeric import zeros, Float, allclose
+import Numeric as num
 
 
 def elevation_function(x, y):
@@ -82,7 +82,7 @@ class Test_inundation_damage(unittest.TestCase):
         ######################
         #Initial condition - with jumps
         bed = domain.quantities['elevation'].vertex_values
-        stage = zeros(bed.shape, Float)
+        stage = num.zeros(bed.shape, num.Float)
 
         h = 0.3
         for i in range(stage.shape[0]):
@@ -152,7 +152,7 @@ class Test_inundation_damage(unittest.TestCase):
         ######################
         #Initial condition - with jumps
         bed = domain.quantities['elevation'].vertex_values
-        stage = zeros(bed.shape, Float)
+        stage = num.zeros(bed.shape, num.Float)
 
         h = 30.
         for i in range(stage.shape[0]):
@@ -307,11 +307,11 @@ class Test_inundation_damage(unittest.TestCase):
         struct_loss = csv_handle.get_column(EventDamageModel.STRUCT_LOSS_TITLE)
         #print "struct_loss",struct_loss
         struct_loss = [float(x) for x in struct_loss]
-        assert allclose(struct_loss,[10,150,16.9,0])
+        assert num.allclose(struct_loss,[10,150,16.9,0])
         depth = csv_handle.get_column(EventDamageModel.MAX_DEPTH_TITLE)
         #print "depth",depth
         depth = [float(x) for x in depth]
-        assert allclose(depth,[5.5,4.5,0.1,-0.3])
+        assert num.allclose(depth,[5.5,4.5,0.1,-0.3])
         os.remove(sww.filename)
         os.remove(csv_file)
          
@@ -394,22 +394,22 @@ class Test_inundation_damage(unittest.TestCase):
         struct_loss = csv_handle.get_column(EventDamageModel.STRUCT_LOSS_TITLE)
         #print "struct_loss",struct_loss
         struct_loss = [float(x) for x in struct_loss]
-        assert allclose(struct_loss,[10,150,16.9,0])       
+        assert num.allclose(struct_loss,[10,150,16.9,0])       
         depth = csv_handle.get_column(EventDamageModel.MAX_DEPTH_TITLE)
         #print "depth",depth
         depth = [float(x) for x in depth]
-        assert allclose(depth,[5.5,4.5,0.1,-0.3])
+        assert num.allclose(depth,[5.5,4.5,0.1,-0.3])
        
         # Test another file
         csv_handle = Exposure_csv(csv_fileII[:-4]+marker+extension)
         struct_loss = csv_handle.get_column(EventDamageModel.STRUCT_LOSS_TITLE)
         #print "struct_loss",struct_loss
         struct_loss = [float(x) for x in struct_loss]
-        assert allclose(struct_loss,[10,150,16.9,0])       
+        assert num.allclose(struct_loss,[10,150,16.9,0])       
         depth = csv_handle.get_column(EventDamageModel.MAX_DEPTH_TITLE)
         #print "depth",depth
         depth = [float(x) for x in depth]
-        assert allclose(depth,[5.5,4.5,0.1,-0.3]) 
+        assert num.allclose(depth,[5.5,4.5,0.1,-0.3]) 
         os.remove(sww.filename)
         os.remove(csv_file)
         os.remove(csv_fileII)
@@ -457,26 +457,26 @@ class Test_inundation_damage(unittest.TestCase):
         edm = EventDamageModel(max_depths, shore_distances, walls,
                                struct_costs, content_costs)
         edm.calc_damage_percentages()
-        assert allclose(edm.struct_damage,[0.0,0.016,0.572,
-                                            0.0,0.016,0.618,
-                                            0.0,0.016,0.618])
-        assert allclose(edm.contents_damage,[0.0,0.013,0.970,
-                                             0.0,0.013,0.970,
-                                             0.0,0.013,0.970])
+        assert num.allclose(edm.struct_damage,[0.0,0.016,0.572,
+                                               0.0,0.016,0.618,
+                                               0.0,0.016,0.618])
+        assert num.allclose(edm.contents_damage,[0.0,0.013,0.970,
+                                                 0.0,0.013,0.970,
+                                                 0.0,0.013,0.970])
         edm.calc_cost()
-        assert allclose(edm.struct_loss,[0.0,.16,5.72,
-                                            0.0,.16,6.18,
-                                            0.0,0.016,0.618])
-        assert allclose(edm.contents_loss,[0.0,1.3,97,
-                                             0.0,1.3,97,
-                                             0.0,0.13,9.7])
+        assert num.allclose(edm.struct_loss,[0.0,.16,5.72,
+                                             0.0,.16,6.18,
+                                             0.0,0.016,0.618])
+        assert num.allclose(edm.contents_loss,[0.0,1.3,97,
+                                               0.0,1.3,97,
+                                               0.0,0.13,9.7])
         
         
     def test_calc_collapse_structures(self):
         edm = EventDamageModel([0.0]*17, [0.0]*17, [0.0]*17,
                                [0.0]*17, [0.0]*17)
-        edm.struct_damage = zeros(17,Float) 
-        edm.contents_damage = zeros(17,Float) 
+        edm.struct_damage = num.zeros(17,num.Float) 
+        edm.contents_damage = num.zeros(17,num.Float) 
         collapse_probability = {0.4:[0], #0
                                 0.6:[1], #1
                                 0.5:[2], #1
@@ -581,9 +581,9 @@ class Test_inundation_damage(unittest.TestCase):
 
         # Test values based on returned results, so not an excellent test
         
-        assert allclose(deps[0],0.113204555211)
-        assert allclose(deps[1],11.3215)
-        assert allclose(deps[2],0.0) # this value is outside both sww files
+        assert num.allclose(deps[0],0.113204555211)
+        assert num.allclose(deps[1],11.3215)
+        assert num.allclose(deps[2],0.0) # this value is outside both sww files
         
 #-------------------------------------------------------------
 if __name__ == "__main__":
