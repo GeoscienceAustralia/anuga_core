@@ -14,7 +14,7 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.utilities.polygon import  is_inside_polygon ### inside_polygon
 
-from Numeric import alltrue, allclose
+import Numeric as num
 
 class meshTestCase(unittest.TestCase):
     def setUp(self):
@@ -1657,20 +1657,20 @@ END\n")
         self.failUnless( dict['vertices'] == answer,
                          'test_Mesh2IOTriangulationDict failed. test 2')
 
-        self.failUnless( alltrue(dict['vertices'].flat == verts.flat),
+        self.failUnless(num.alltrue(dict['vertices'].flat == verts.flat),
                          'test_Mesh2IOTriangulationDict failed. test vert')
-        self.failUnless( alltrue(dict['vertex_attributes'].flat == vert_as.flat),
+        self.failUnless(num.alltrue(dict['vertex_attributes'].flat == vert_as.flat),
                          'test_Mesh2IOTriangulationDict failed. test vert ats')
 
-        self.failUnless( alltrue(dict['segments'][0] == [0,1]),
+        self.failUnless(num.alltrue(dict['segments'][0] == [0,1]),
                         'test_Mesh2IODict failed. test 3')
         
         self.failUnless( dict['segment_tags'] == seg_tags,
                         'test_Mesh2IODict failed. test 3')
         #print " dict['triangles'][0]", dict['triangles'][0] 
-        self.failUnless( alltrue(dict['triangles'][0] == [3,2,4]),
+        self.failUnless(num.alltrue(dict['triangles'][0] == [3,2,4]),
                         'test_Mesh2IODict failed. test 5')
-        self.failUnless( alltrue(dict['triangle_neighbors'][0] == [-1,2,3]),
+        self.failUnless(num.alltrue(dict['triangle_neighbors'][0] == [-1,2,3]),
                         'test_Mesh2IODict failed. test 6')
         #print "dict['triangle_tags'][0]", dict['triangle_tags'][0]
         self.failUnless( dict['triangle_tags'][0] == "1.3",
@@ -2180,7 +2180,7 @@ END\n")
                         'FAILED!')
         vert= m.get_user_vertices(absolute=True)
         
-        self.failUnless(allclose(vert, points_ab),
+        self.failUnless(num.allclose(vert, points_ab),
                         'FAILED!')        
 
     
@@ -2197,7 +2197,7 @@ END\n")
                         'FAILED!')
         vert = m.get_user_vertices(absolute=True)
         
-        self.failUnless(alltrue(vert.flat == array(points).flat),
+        self.failUnless(num.alltrue(vert.flat == num.array(points).flat),
                         'FAILED!')
     
     def test_add_verticesII(self):
@@ -2215,7 +2215,7 @@ END\n")
                         'FAILED!')
         vert= m.get_user_vertices(absolute=True)
         
-        self.failUnless(allclose(vert, points_ab),
+        self.failUnless(num.allclose(vert, points_ab),
                         'FAILED!')
 
         spat = Geospatial_data(data_points=points_lat_long,
@@ -2232,7 +2232,7 @@ END\n")
                         'FAILED!')
         vert= m.get_user_vertices(absolute=True)
         
-        self.failUnless(allclose(vert, points_ab),
+        self.failUnless(num.allclose(vert, points_ab),
                         'FAILED!')
 
         #geo =  Geo_reference(56,23,21)
@@ -2253,12 +2253,12 @@ END\n")
         self.failUnless(4==len(vert),
                         'FAILED!')
         vert= m.get_user_vertices(absolute=True)
-        self.failUnless(allclose(vert, points_ab),
+        self.failUnless(num.allclose(vert, points_ab),
                         'FAILED!')
         vert= m.get_user_vertices(absolute=False)
         points_new = m.geo_reference.get_absolute(vert)
         
-        self.failUnless(allclose(points_ab, points_new),
+        self.failUnless(num.allclose(points_ab, points_new),
                         'FAILED!')
 
     def mode_string_float_problems(self):

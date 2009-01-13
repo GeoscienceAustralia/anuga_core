@@ -21,7 +21,6 @@ import pickle
 
 import types
 import exceptions
-from Numeric import array, Float, Int
 
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference, \
