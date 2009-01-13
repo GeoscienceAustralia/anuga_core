@@ -5,7 +5,6 @@ from culvert_polygons import *
 import unittest
 import os.path
 
-from Numeric import choose, greater, ones, sin, exp, cosh, allclose
 from anuga.utilities.polygon import inside_polygon, polygon_area
 
 

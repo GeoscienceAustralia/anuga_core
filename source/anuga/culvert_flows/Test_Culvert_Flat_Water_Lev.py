@@ -24,7 +24,10 @@ from anuga.culvert_flows.culvert_class import Culvert_flow
 from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
      
 from math import pi,pow,sqrt
-from Numeric import choose, greater, ones, sin, exp, cosh
+
+import Numeric as num
+
+
 #------------------------------------------------------------------------------
 # Setup computational domain
 #------------------------------------------------------------------------------
@@ -130,8 +133,8 @@ print 'Setting Boundary Conditions'
 Bi = Dirichlet_boundary([0.0, 0.0, 0.0])          # Inflow based on Flow Depth and Approaching Momentum !!!
 Br = Reflective_boundary(domain)              # Solid reflective wall
 Bo = Dirichlet_boundary([-5, 0, 0])           # Outflow
-Btus = Time_boundary(domain, lambda t: [0.0+ 1.25*(1+sin(2*pi*(t-4)/10)), 0.0, 0.0])
-Btds = Time_boundary(domain, lambda t: [0.0+ 0.75*(1+sin(2*pi*(t-4)/20)), 0.0, 0.0])
+Btus = Time_boundary(domain, lambda t: [0.0+ 1.25*(1+num.sin(2*pi*(t-4)/10)), 0.0, 0.0])
+Btds = Time_boundary(domain, lambda t: [0.0+ 0.75*(1+num.sin(2*pi*(t-4)/20)), 0.0, 0.0])
 domain.set_boundary({'left': Btus, 'right': Btds, 'top': Br, 'bottom': Br})
 
 

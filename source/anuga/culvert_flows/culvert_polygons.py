@@ -3,8 +3,10 @@
 
 # Import necessary modules
 from math import sqrt
-from Numeric import array, sum
 from anuga.utilities.polygon import inside_polygon, polygon_area
+
+import Numeric as num
+
 
 def create_culvert_polygons(end_point0,
                             end_point1, 
@@ -53,8 +55,8 @@ def create_culvert_polygons(end_point0,
     dx = x1-x0
     dy = y1-y0
 
-    vector = array([dx, dy])
-    length = sqrt(sum(vector**2))
+    vector = num.array([dx, dy])
+    length = sqrt(num.sum(vector**2))
 
     # Adjust polygon width to number of barrels in this culvert
     width *= number_of_barrels
@@ -62,7 +64,7 @@ def create_culvert_polygons(end_point0,
     
     # Unit direction vector and normal 
     vector /= length                 # Unit vector in culvert direction
-    normal = array([-dy, dx])/length # Normal vector
+    normal = num.array([-dy, dx])/length # Normal vector
     
     culvert_polygons['vector'] = vector
     culvert_polygons['length'] = length
@@ -80,7 +82,7 @@ def create_culvert_polygons(end_point0,
     p1 = end_point0 - w
     p2 = p1 - h
     p3 = p0 - h
-    culvert_polygons['exchange_polygon0'] = array([p0,p1,p2,p3])
+    culvert_polygons['exchange_polygon0'] = num.array([p0,p1,p2,p3])
     culvert_polygons['enquiry_point0'] = end_point0 - gap
     
 
@@ -89,7 +91,7 @@ def create_culvert_polygons(end_point0,
     p1 = end_point1 - w
     p2 = p1 + h
     p3 = p0 + h
-    culvert_polygons['exchange_polygon1'] = array([p0,p1,p2,p3])
+    culvert_polygons['exchange_polygon1'] = num.array([p0,p1,p2,p3])
     culvert_polygons['enquiry_point1'] = end_point1 + gap  
 
     # Check that enquiry polygons are outside exchange polygons

@@ -19,8 +19,8 @@ from anuga.culvert_flows.culvert_class import Culvert_flow, Culvert_flow_rating,
 from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
      
 from math import pi,pow,sqrt
-from Numeric import choose, greater, ones, sin, cos, exp, cosh, allclose
 
+import Numeric as num
 
 
 class Test_Culvert(unittest.TestCase):
@@ -117,8 +117,8 @@ class Test_Culvert(unittest.TestCase):
         # Upstream and downstream conditions that will exceed the rating curve
         # I.e produce delta_h outside the range [0, 10] specified in the the 
         # file example_rating_curve.csv
-        Btus = Time_boundary(domain, lambda t: [100*sin(2*pi*(t-4)/10), 0.0, 0.0])
-        Btds = Time_boundary(domain, lambda t: [-5*(cos(2*pi*(t-4)/20)), 0.0, 0.0])
+        Btus = Time_boundary(domain, lambda t: [100*num.sin(2*pi*(t-4)/10), 0.0, 0.0])
+        Btds = Time_boundary(domain, lambda t: [-5*(num.cos(2*pi*(t-4)/20)), 0.0, 0.0])
         domain.set_boundary({'left': Btus, 'right': Btds, 'top': Br, 'bottom': Br})
 
 
@@ -239,7 +239,7 @@ class Test_Culvert(unittest.TestCase):
             new_volume = domain.get_quantity('stage').get_integral()
             
             msg = 'Total volume has changed'
-            assert allclose(new_volume, ref_volume), msg
+            assert num.allclose(new_volume, ref_volume), msg
             pass
     
 
@@ -343,9 +343,9 @@ class Test_Culvert(unittest.TestCase):
             
             msg = 'Total volume has changed: Is %.2f m^3 should have been %.2f m^3'\
                 % (new_volume, ref_volume)
-            if not allclose(new_volume, ref_volume):
+            if not num.allclose(new_volume, ref_volume):
                 print msg
-            assert allclose(new_volume, ref_volume), msg        
+            assert num.allclose(new_volume, ref_volume), msg        
         
         
         
@@ -366,7 +366,7 @@ class Test_Culvert(unittest.TestCase):
                 msg = 'Total volume has changed: Is %.2f m^3 should have been %.2f m^3'\
                     % (new_volume, ref_volume)
 
-                assert allclose(new_volume, ref_volume), msg
+                assert num.allclose(new_volume, ref_volume), msg
     
     
     
@@ -473,7 +473,7 @@ class Test_Culvert(unittest.TestCase):
             new_volume = domain.get_quantity('stage').get_integral()
             
             msg = 'Total volume has changed'
-            assert allclose(new_volume, ref_volume), msg
+            assert num.allclose(new_volume, ref_volume), msg
             pass
     
 

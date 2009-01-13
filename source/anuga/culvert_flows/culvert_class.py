@@ -1,3 +1,5 @@
+import sys
+
 from anuga.shallow_water.shallow_water_domain import Inflow, General_forcing
 from anuga.culvert_flows.culvert_polygons import create_culvert_polygons
 from anuga.utilities.system_tools import log_to_file
@@ -9,18 +11,10 @@ from anuga.utilities.numerical_tools import mean
 from anuga.utilities.numerical_tools import ensure_numeric, sign
         
 from anuga.config import g, epsilon
-from Numeric import take, sqrt
 from anuga.config import minimum_allowed_height, velocity_protection        
 
-        
+import Numeric as num
 
-
-from Numeric import allclose
-from Numeric import sqrt, sum
-
-
-
-import sys
 
 class Below_interval(Exception): pass 
 class Above_interval(Exception): pass
@@ -283,7 +277,7 @@ class Culvert_flow_general:
         self.vector = P['vector']
         self.length = P['length']; assert self.length > 0.0
         if culvert_description_filename is not None:
-            if not allclose(self.length, length, rtol=1.0e-2, atol=1.0e-2):
+            if not num.allclose(self.length, length, rtol=1.0e-2, atol=1.0e-2):
                 msg = 'WARNING: barrel length specified in "%s" (%.2f m)'\
                     % (culvert_description_filename, 
                        length)
@@ -769,7 +763,7 @@ class Culvert_flow_rating:
         self.end_points = [end_point0, end_point1]
         self.vector = P['vector']
         self.length = P['length']; assert self.length > 0.0
-        if not allclose(self.length, length, rtol=1.0e-2, atol=1.0e-2):
+        if not num.allclose(self.length, length, rtol=1.0e-2, atol=1.0e-2):
             msg = 'WARNING: barrel length specified in "%s" (%.2f m)' %(culvert_description_filename, length)
             msg += ' does not match distance between specified'
             msg += ' end points (%.2f m)' %self.length
@@ -1001,8 +995,6 @@ class Culvert_flow_energy:
                  update_interval=None,
                  verbose=False):
         
-        from Numeric import sqrt, sum
-
         # Input check
         if diameter is not None:
             self.culvert_type = 'circle'
