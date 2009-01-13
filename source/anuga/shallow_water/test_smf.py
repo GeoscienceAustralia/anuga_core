@@ -1,5 +1,5 @@
 import unittest
-from Numeric import allclose
+import Numeric as num
 from smf import slide_tsunami, slump_tsunami, Double_gaussian
 
 class Test_smf(unittest.TestCase):
@@ -27,15 +27,15 @@ class Test_smf(unittest.TestCase):
                              x0, y0, alpha, \
                              kappa, kappad, zsmall, dx, scale)
 
-        assert allclose(dg.a3D, a3D)
-        assert allclose(dg.wavelength, wavelength)
-        assert allclose(dg.width, width)
-        assert allclose(dg.x0, x0)
-        assert allclose(dg.y0, y0)
-        assert allclose(dg.alpha, alpha)
-        assert allclose(dg.kappa, kappa)
-        assert allclose(dg.kappad, kappad)
-        assert allclose(dg.dx, dx)
+        assert num.allclose(dg.a3D, a3D)
+        assert num.allclose(dg.wavelength, wavelength)
+        assert num.allclose(dg.width, width)
+        assert num.allclose(dg.x0, x0)
+        assert num.allclose(dg.y0, y0)
+        assert num.allclose(dg.alpha, alpha)
+        assert num.allclose(dg.kappa, kappa)
+        assert num.allclose(dg.kappad, kappad)
+        assert num.allclose(dg.dx, dx)
 
     
     def test_slide_tsunami(self):
@@ -53,11 +53,11 @@ class Test_smf(unittest.TestCase):
                               width = wid, thickness=thk, kappa=kappa, kappad=kappad, \
 			      verbose=False)
 
-        assert allclose(slide.a3D, 0.07775819)
-        assert allclose(slide.wavelength, 2938.66695708)
-        assert allclose(slide.width, 340.0)
-        assert allclose(slide.y0, 0.0)
-        assert allclose(slide.alpha, 0.0)
+        assert num.allclose(slide.a3D, 0.07775819)
+        assert num.allclose(slide.wavelength, 2938.66695708)
+        assert num.allclose(slide.width, 340.0)
+        assert num.allclose(slide.y0, 0.0)
+        assert num.allclose(slide.alpha, 0.0)
 
 
     def test_slump_tsunami(self):
@@ -76,14 +76,14 @@ class Test_smf(unittest.TestCase):
 
         slump = slump_tsunami(length, dep, th, wid, thk, rad, dp, x0, y0, alpha, gamma, scale=1.0)
 
-        assert allclose(slump.a3D, 9.82538623)
-        assert allclose(slump.wavelength, 3660.37606554)
-        assert allclose(slump.width, 4500.0)
-        assert allclose(slump.x0, 0.0)
-        assert allclose(slump.y0, 0.0)
-        assert allclose(slump.alpha, 0.0)
-        assert allclose(slump.kappa, 3.0)
-        assert allclose(slump.kappad, 1.0)
+        assert num.allclose(slump.a3D, 9.82538623)
+        assert num.allclose(slump.wavelength, 3660.37606554)
+        assert num.allclose(slump.width, 4500.0)
+        assert num.allclose(slump.x0, 0.0)
+        assert num.allclose(slump.y0, 0.0)
+        assert num.allclose(slump.alpha, 0.0)
+        assert num.allclose(slump.kappa, 3.0)
+        assert num.allclose(slump.kappad, 1.0)
 
     def test_slide_tsunami_domain(self):
 
@@ -125,9 +125,9 @@ class Test_smf(unittest.TestCase):
 ##                 [-0.0 -0.0 -0.0],
 ##                 [-0.0 -0.0 -0.0]]
 
-        assert allclose(min(min(w)), -517.877771593)
-        assert allclose(max(max(w)), 0.0)
-        assert allclose(slide.a3D, 518.38797486)
+        assert num.allclose(min(min(w)), -517.877771593)
+        assert num.allclose(max(max(w)), 0.0)
+        assert num.allclose(slide.a3D, 518.38797486)
 
 
 #-------------------------------------------------------------

@@ -79,8 +79,7 @@ ModifiedBy:
 # $LastChangedRevision$
 # $LastChangedBy$
 
-from Numeric import zeros, ones, Float, array, sum, size
-from Numeric import compress, arange
+import Numeric as num
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import segment_midpoints
 from anuga.abstract_2d_finite_volumes.domain import Domain as Generic_Domain
@@ -342,8 +341,8 @@ class Domain(Generic_Domain):
         depth = stage - elevation
 
         # Select indices for which depth > 0
-        wet_indices = compress(depth > minimum_allowed_height,
-                               arange(len(depth)))
+        wet_indices = num.compress(depth > minimum_allowed_height,
+                                   num.arange(len(depth)))
         return wet_indices 
 
 
@@ -650,7 +649,6 @@ class Domain(Generic_Domain):
         report.
         """
 
-        from Numeric import sqrt
         from anuga.config import epsilon, g                
 
 
@@ -743,9 +741,9 @@ class Domain(Generic_Domain):
 
             # Froude number in each direction
             name = 'Froude (x)'
-            Vfx = Vu/(sqrt(g*Vh) + epsilon)
-            Efx = Eu/(sqrt(g*Eh) + epsilon)
-            Cfx = Cu/(sqrt(g*Ch) + epsilon)
+            Vfx = Vu/(num.sqrt(g*Vh) + epsilon)
+            Efx = Eu/(num.sqrt(g*Eh) + epsilon)
+            Cfx = Cu/(num.sqrt(g*Ch) + epsilon)
             
             s  = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n'\
                  %(name.ljust(qwidth), Vfx[0], Vfx[1], Vfx[2])
@@ -760,9 +758,9 @@ class Domain(Generic_Domain):
 
 
             name = 'Froude (y)'
-            Vfy = Vv/(sqrt(g*Vh) + epsilon)
-            Efy = Ev/(sqrt(g*Eh) + epsilon)
-            Cfy = Cv/(sqrt(g*Ch) + epsilon)
+            Vfy = Vv/(num.sqrt(g*Vh) + epsilon)
+            Efy = Ev/(num.sqrt(g*Eh) + epsilon)
+            Cfy = Cv/(num.sqrt(g*Ch) + epsilon)
             
             s  = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n'\
                  %(name.ljust(qwidth), Vfy[0], Vfy[1], Vfy[2])
@@ -1081,7 +1079,7 @@ class Reflective_boundary(Boundary):
         self.ymom    = domain.quantities['ymomentum'].edge_values
         self.normals = domain.normals
 
-        self.conserved_quantities = zeros(3, Float)
+        self.conserved_quantities = num.zeros(3, num.Float)
 
     def __repr__(self):
         return 'Reflective_boundary'
@@ -1499,8 +1497,8 @@ def check_forcefield(f):
 
     if callable(f):
         N = 3
-        x = ones(3, Float)
-        y = ones(3, Float)
+        x = num.ones(3, num.Float)
+        y = num.ones(3, num.Float)
         try:
             q = f(1.0, x=x, y=y)
         except Exception, e:
@@ -1509,7 +1507,7 @@ def check_forcefield(f):
             raise msg
 
         try:
-            q = array(q).astype(Float)
+            q = num.array(q).astype(num.Float)
         except:
             msg = 'Return value from vector function %s could ' %f
             msg += 'not be converted into a Numeric array of floats.\n'
@@ -1577,7 +1575,6 @@ class Wind_stress:
         """
 
         from anuga.config import rho_a, rho_w, eta_w
-        from Numeric import array, Float
 
         if len(args) == 2:
             s = args[0]
@@ -1607,7 +1604,6 @@ class Wind_stress:
         """
 
         from math import pi, cos, sin, sqrt
-        from Numeric import Float, ones, ArrayType
 
         xmom_update = domain.quantities['xmomentum'].explicit_update
         ymom_update = domain.quantities['ymomentum'].explicit_update
@@ -1622,7 +1618,7 @@ class Wind_stress:
             # Assume s is a scalar
 
             try:
-                s_vec = self.speed * ones(N, Float)
+                s_vec = self.speed * num.ones(N, num.Float)
             except:
                 msg = 'Speed must be either callable or a scalar: %s' %self.s
                 raise msg
@@ -1635,7 +1631,7 @@ class Wind_stress:
             # Assume phi is a scalar
 
             try:
-                phi_vec = self.phi * ones(N, Float)
+                phi_vec = self.phi * num.ones(N, num.Float)
             except:
                 msg = 'Angle must be either callable or a scalar: %s' %self.phi
                 raise msg

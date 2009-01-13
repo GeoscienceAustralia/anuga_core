@@ -1,6 +1,7 @@
 import unittest
-from Numeric import allclose
+import Numeric as num
 from eqf import earthquake_tsunami, Okada_func
+
 
 class Test_eq(unittest.TestCase):
     def setUp(self):
@@ -27,18 +28,18 @@ class Test_eq(unittest.TestCase):
                        x0=x0, y0=y0, strike=strike, depth=depth, \
                        slip=slip, rake=rake, test=test)
 
-        assert allclose(z.length, length)
-        assert allclose(z.width, width)
-        assert allclose(z.x0, x0)
-        assert allclose(z.y0, y0)
-        assert allclose(z.strike, strike)
-        assert allclose(z.depth, depth)
-        assert allclose(z.slip, slip)
-        assert allclose(z.dip, dip)
-        assert allclose(z.rake, rake)
+        assert num.allclose(z.length, length)
+        assert num.allclose(z.width, width)
+        assert num.allclose(z.x0, x0)
+        assert num.allclose(z.y0, y0)
+        assert num.allclose(z.strike, strike)
+        assert num.allclose(z.depth, depth)
+        assert num.allclose(z.slip, slip)
+        assert num.allclose(z.dip, dip)
+        assert num.allclose(z.rake, rake)
 
         #print 'in test', z.test
-        assert allclose(z.test, -2205.904774487)
+        assert num.allclose(z.test, -2205.904774487)
         
         #print 'hello finished okada'
 

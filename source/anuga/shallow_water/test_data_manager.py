@@ -6,7 +6,8 @@
 
 import unittest
 import copy
-from Numeric import zeros, array, allclose, Float, Int, ones,transpose
+import Numeric as num
+                
 from anuga.utilities.numerical_tools import mean
 import tempfile
 import os
@@ -65,7 +66,7 @@ class Test_Data_Manager(unittest.TestCase):
         ######################
         #Initial condition - with jumps
         bed = domain.quantities['elevation'].vertex_values
-        stage = zeros(bed.shape, Float)
+        stage = num.zeros(bed.shape, num.Float)
 
         h = 0.3
         for i in range(stage.shape[0]):
@@ -187,9 +188,9 @@ class Test_Data_Manager(unittest.TestCase):
         z = fid.variables['elevation']
         V = fid.variables['volumes']
 
-        assert allclose (x[:], self.X.flat)
-        assert allclose (y[:], self.Y.flat)
-        assert allclose (z[:], self.F.flat)
+        assert num.allclose (x[:], self.X.flat)
+        assert num.allclose (y[:], self.Y.flat)
+        assert num.allclose (z[:], self.F.flat)
 
         P = len(self.domain)
         for k in range(P):
@@ -251,25 +252,25 @@ class Test_Data_Manager(unittest.TestCase):
         # Get the variables
         range = fid.variables['stage_range'][:]
         #print range
-        assert allclose(range,[-0.93519, 0.15]) or\
-               allclose(range,[-0.9352743, 0.15]) or\
-               allclose(range,[-0.93522203, 0.15000001]) # Old slope limiters
+        assert num.allclose(range,[-0.93519, 0.15]) or\
+               num.allclose(range,[-0.9352743, 0.15]) or\
+               num.allclose(range,[-0.93522203, 0.15000001]) # Old slope limiters
         
         range = fid.variables['xmomentum_range'][:]
         #print range
-        assert allclose(range,[0,0.4695096]) or \
-               allclose(range,[0,0.47790655]) or\
-               allclose(range,[0,0.46941957]) or\
-               allclose(range,[0,0.47769409])
+        assert num.allclose(range,[0,0.4695096]) or \
+               num.allclose(range,[0,0.47790655]) or\
+               num.allclose(range,[0,0.46941957]) or\
+               num.allclose(range,[0,0.47769409])
 
         
         range = fid.variables['ymomentum_range'][:]
         #print range
-        assert allclose(range,[0,0.02174380]) or\
-               allclose(range,[0,0.02174439]) or\
-               allclose(range,[0,0.02283983]) or\
-               allclose(range,[0,0.0217342]) or\
-               allclose(range,[0,0.0227564]) # Old slope limiters 
+        assert num.allclose(range,[0,0.02174380]) or\
+               num.allclose(range,[0,0.02174439]) or\
+               num.allclose(range,[0,0.02283983]) or\
+               num.allclose(range,[0,0.0217342]) or\
+               num.allclose(range,[0,0.0227564]) # Old slope limiters 
         
         fid.close()
         os.remove(sww.filename)
@@ -329,28 +330,28 @@ class Test_Data_Manager(unittest.TestCase):
 
         # Get the variables
         extrema = fid.variables['stage-elevation.extrema'][:]
-        assert allclose(extrema, [0.00, 0.30])
+        assert num.allclose(extrema, [0.00, 0.30])
 
         loc = fid.variables['stage-elevation.min_location'][:]
-        assert allclose(loc, [0.16666667, 0.33333333])
+        assert num.allclose(loc, [0.16666667, 0.33333333])
 
         loc = fid.variables['stage-elevation.max_location'][:]        
-        assert allclose(loc, [0.8333333, 0.16666667])        
+        assert num.allclose(loc, [0.8333333, 0.16666667])        
 
         time = fid.variables['stage-elevation.max_time'][:]
-        assert allclose(time, 0.0)                
+        assert num.allclose(time, 0.0)                
 
         extrema = fid.variables['xmomentum.extrema'][:]
-        assert allclose(extrema,[-0.06062178, 0.47873023]) or allclose(extrema, [-0.06062178, 0.47847986])
+        assert num.allclose(extrema,[-0.06062178, 0.47873023]) or num.allclose(extrema, [-0.06062178, 0.47847986])
         
         extrema = fid.variables['ymomentum.extrema'][:]
-        assert allclose(extrema,[0.00, 0.0625786]) or allclose(extrema,[0.00, 0.06062178])
+        assert num.allclose(extrema,[0.00, 0.0625786]) or num.allclose(extrema,[0.00, 0.06062178])
 
         time_interval = fid.variables['extrema.time_interval'][:]
-        assert allclose(time_interval, [0,1])
+        assert num.allclose(time_interval, [0,1])
         
         polygon = fid.variables['extrema.polygon'][:]        
-        assert allclose(polygon, domain.get_boundary_polygon())
+        assert num.allclose(polygon, domain.get_boundary_polygon())
         
         fid.close()
         #print "sww.filename", sww.filename
@@ -379,11 +380,11 @@ class Test_Data_Manager(unittest.TestCase):
         Z = fid.variables['elevation'][:]
         V = fid.variables['volumes']
 
-        assert allclose([X[0], Y[0]], array([0.0, 0.0]))
-        assert allclose([X[1], Y[1]], array([0.0, 0.5]))
-        assert allclose([X[2], Y[2]], array([0.0, 1.0]))
-        assert allclose([X[4], Y[4]], array([0.5, 0.5]))
-        assert allclose([X[7], Y[7]], array([1.0, 0.5]))
+        assert num.allclose([X[0], Y[0]], num.array([0.0, 0.0]))
+        assert num.allclose([X[1], Y[1]], num.array([0.0, 0.5]))
+        assert num.allclose([X[2], Y[2]], num.array([0.0, 1.0]))
+        assert num.allclose([X[4], Y[4]], num.array([0.5, 0.5]))
+        assert num.allclose([X[7], Y[7]], num.array([1.0, 0.5]))
 
         assert Z[4] == -0.5
 
@@ -426,14 +427,14 @@ class Test_Data_Manager(unittest.TestCase):
 
         A = stage[0,:]
         #print A[0], (Q2[0,0] + Q1[1,0])/2
-        assert allclose(A[0], (Q2[0] + Q1[1])/2)
-        assert allclose(A[1], (Q0[1] + Q1[3] + Q2[2])/3)
-        assert allclose(A[2], Q0[3])
-        assert allclose(A[3], (Q0[0] + Q1[5] + Q2[4])/3)
+        assert num.allclose(A[0], (Q2[0] + Q1[1])/2)
+        assert num.allclose(A[1], (Q0[1] + Q1[3] + Q2[2])/3)
+        assert num.allclose(A[2], Q0[3])
+        assert num.allclose(A[3], (Q0[0] + Q1[5] + Q2[4])/3)
 
         #Center point
-        assert allclose(A[4], (Q1[0] + Q2[1] + Q0[2] +\
-                                 Q0[5] + Q2[6] + Q1[7])/6)
+        assert num.allclose(A[4], (Q1[0] + Q2[1] + Q0[2] +\
+                                   Q0[5] + Q2[6] + Q1[7])/6)
         
         fid.close()
         os.remove(sww.filename)
@@ -445,7 +446,6 @@ class Test_Data_Manager(unittest.TestCase):
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
         self.domain.set_name('datatest' + str(id(self)))
@@ -480,14 +480,14 @@ class Test_Data_Manager(unittest.TestCase):
         Q2 = Q.vertex_values[:,2]
 
         A = stage[1,:]
-        assert allclose(A[0], (Q2[0] + Q1[1])/2)
-        assert allclose(A[1], (Q0[1] + Q1[3] + Q2[2])/3)
-        assert allclose(A[2], Q0[3])
-        assert allclose(A[3], (Q0[0] + Q1[5] + Q2[4])/3)
+        assert num.allclose(A[0], (Q2[0] + Q1[1])/2)
+        assert num.allclose(A[1], (Q0[1] + Q1[3] + Q2[2])/3)
+        assert num.allclose(A[2], Q0[3])
+        assert num.allclose(A[3], (Q0[0] + Q1[5] + Q2[4])/3)
 
         #Center point
-        assert allclose(A[4], (Q1[0] + Q2[1] + Q0[2] +\
-                                 Q0[5] + Q2[6] + Q1[7])/6)
+        assert num.allclose(A[4], (Q1[0] + Q2[1] + Q0[2] +\
+                                   Q0[5] + Q2[6] + Q1[7])/6)
 
 
         fid.close()
@@ -503,7 +503,6 @@ class Test_Data_Manager(unittest.TestCase):
         # Different reduction in sww files has been made obsolete.
         
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
         self.domain.set_name('datatest' + str(id(self)))
@@ -537,14 +536,14 @@ class Test_Data_Manager(unittest.TestCase):
         Q2 = Q.vertex_values[:,2]
 
         A = stage[1,:]
-        assert allclose(A[0], min(Q2[0], Q1[1]))
-        assert allclose(A[1], min(Q0[1], Q1[3], Q2[2]))
-        assert allclose(A[2], Q0[3])
-        assert allclose(A[3], min(Q0[0], Q1[5], Q2[4]))
+        assert num.allclose(A[0], min(Q2[0], Q1[1]))
+        assert num.allclose(A[1], min(Q0[1], Q1[3], Q2[2]))
+        assert num.allclose(A[2], Q0[3])
+        assert num.allclose(A[3], min(Q0[0], Q1[5], Q2[4]))
 
         #Center point
-        assert allclose(A[4], min(Q1[0], Q2[1], Q0[2],\
-                                  Q0[5], Q2[6], Q1[7]))
+        assert num.allclose(A[4], min(Q1[0], Q2[1], Q0[2],
+                                      Q0[5], Q2[6], Q1[7]))
 
 
         fid.close()
@@ -558,7 +557,6 @@ class Test_Data_Manager(unittest.TestCase):
         """
 
         import time, os, config
-        from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
         self.domain.set_name('synctest')
@@ -589,11 +587,11 @@ class Test_Data_Manager(unittest.TestCase):
             stage_file = fid.variables['stage']
             
             if t == 0.0:
-                assert allclose(stage, self.initial_stage)
-                assert allclose(stage_file[:], stage.flat)
+                assert num.allclose(stage, self.initial_stage)
+                assert num.allclose(stage_file[:], stage.flat)
             else:
-                assert not allclose(stage, self.initial_stage)
-                assert not allclose(stage_file[:], stage.flat)
+                assert not num.allclose(stage, self.initial_stage)
+                assert not num.allclose(stage_file[:], stage.flat)
 
             fid.close()
 
@@ -606,7 +604,6 @@ class Test_Data_Manager(unittest.TestCase):
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
         self.domain.set_name('datatest' + str(id(self)))
@@ -645,11 +642,11 @@ class Test_Data_Manager(unittest.TestCase):
         Q2 = Q.vertex_values[:,2]
 
         A = stage[1,:]
-        assert allclose(stage[1,:], z[:])
+        assert num.allclose(stage[1,:], z[:])
 
 
-        assert allclose(xmomentum, 0.0)
-        assert allclose(ymomentum, 0.0)        
+        assert num.allclose(xmomentum, 0.0)
+        assert num.allclose(ymomentum, 0.0)        
         
         fid.close()
 
@@ -662,7 +659,6 @@ class Test_Data_Manager(unittest.TestCase):
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
         self.domain.set_name('datatest' + str(id(self)))
@@ -723,7 +719,6 @@ class Test_Data_Manager(unittest.TestCase):
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate, ones
         from Scientific.IO.NetCDF import NetCDFFile
 
         #Write test asc file
@@ -818,9 +813,9 @@ Parameters
                 xnew = x - 2002.0
                 ref_points.append ([xnew,ynew]) #Relative point values
 
-        assert allclose(points, ref_points)
+        assert num.allclose(points, ref_points)
 
-        assert allclose(elevation, ref_elevation)
+        assert num.allclose(elevation, ref_elevation)
 
         #Cleanup
         fid.close()
@@ -837,7 +832,6 @@ Parameters
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate, ones
         from Scientific.IO.NetCDF import NetCDFFile
 
         #Write test asc file
@@ -860,7 +854,7 @@ NODATA_value  -9999
         yvec = range(10)
         xvec = range(10)
         #z = range(100)
-        z = zeros(100)
+        z = num.zeros(100)
         NODATA_value = -9999
         count = -1
         for i in range(10):
@@ -919,7 +913,7 @@ Parameters
         assert fid.yllcorner[0] == 3003.0
 
         #create new reference points
-        newz = zeros(19)
+        newz = num.zeros(19)
         newz[0:2] = ref_elevation[32:34]
         newz[2:5] = ref_elevation[35:38]
         newz[5:7] = ref_elevation[42:44]
@@ -949,8 +943,8 @@ Parameters
                     new_ref_points.append ([xnew,ynew])
 
 
-        assert allclose(points, new_ref_points)
-        assert allclose(elevation, ref_elevation)
+        assert num.allclose(points, new_ref_points)
+        assert num.allclose(elevation, ref_elevation)
 
         #Cleanup
         fid.close()
@@ -968,7 +962,6 @@ Parameters
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate, ones
         from Scientific.IO.NetCDF import NetCDFFile
 
         #Write test asc file
@@ -991,7 +984,7 @@ NODATA_value  -9999
         yvec = range(10)
         xvec = range(10)
         #z = range(100)
-        z = zeros(100)
+        z = num.zeros(100)
         NODATA_value = -9999
         count = -1
         for i in range(10):
@@ -1050,7 +1043,7 @@ Parameters
         assert fid.yllcorner[0] == 3003.0
 
         #create new reference points
-        newz = zeros(14)
+        newz = num.zeros(14)
         newz[0:2] = ref_elevation[32:34]
         newz[2:5] = ref_elevation[35:38]
         newz[5:7] = ref_elevation[42:44]
@@ -1082,8 +1075,8 @@ Parameters
         #print points[:],points[:].shape
         #print new_ref_points, len(new_ref_points)
 
-        assert allclose(elevation, ref_elevation)
-        assert allclose(points, new_ref_points)
+        assert num.allclose(elevation, ref_elevation)
+        assert num.allclose(points, new_ref_points)
 
 
         #Cleanup
@@ -1102,7 +1095,6 @@ Parameters
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
         #Write test asc file
@@ -1212,11 +1204,11 @@ END CROSS-SECTIONS:
 
         #print points[:]
         #print ref_points
-        assert allclose(points, ref_points)
+        assert num.allclose(points, ref_points)
 
         #print attributes[:]
         #print ref_elevation
-        assert allclose(elevation, ref_elevation)
+        assert num.allclose(elevation, ref_elevation)
 
         #Cleanup
         fid.close()
@@ -1234,7 +1226,6 @@ END CROSS-SECTIONS:
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
         #Setup
@@ -1340,15 +1331,15 @@ END CROSS-SECTIONS:
 
         L = lines[2].strip().split()
         assert L[0].strip().lower() == 'xllcorner'
-        assert allclose(float(L[1].strip().lower()), 308500)
+        assert num.allclose(float(L[1].strip().lower()), 308500)
 
         L = lines[3].strip().split()
         assert L[0].strip().lower() == 'yllcorner'
-        assert allclose(float(L[1].strip().lower()), 6189000)
+        assert num.allclose(float(L[1].strip().lower()), 6189000)
 
         L = lines[4].strip().split()
         assert L[0].strip().lower() == 'cellsize'
-        assert allclose(float(L[1].strip().lower()), cellsize)
+        assert num.allclose(float(L[1].strip().lower()), cellsize)
 
         L = lines[5].strip().split()
         assert L[0].strip() == 'NODATA_value'
@@ -1359,7 +1350,7 @@ END CROSS-SECTIONS:
             L = lines[6+j].strip().split()
             y = (4-j) * cellsize
             for i in range(5):
-                assert allclose(float(L[i]), -i*cellsize - y)
+                assert num.allclose(float(L[i]), -i*cellsize - y)
                 
         #Cleanup
         os.remove(prjfile)
@@ -1390,15 +1381,15 @@ END CROSS-SECTIONS:
 
         L = lines[2].strip().split()
         assert L[0].strip().lower() == 'xllcorner'
-        assert allclose(float(L[1].strip().lower()), 308500)
+        assert num.allclose(float(L[1].strip().lower()), 308500)
 
         L = lines[3].strip().split()
         assert L[0].strip().lower() == 'yllcorner'
-        assert allclose(float(L[1].strip().lower()), 6189000)
+        assert num.allclose(float(L[1].strip().lower()), 6189000)
 
         L = lines[4].strip().split()
         assert L[0].strip().lower() == 'cellsize'
-        assert allclose(float(L[1].strip().lower()), cellsize)
+        assert num.allclose(float(L[1].strip().lower()), cellsize)
 
         L = lines[5].strip().split()
         assert L[0].strip() == 'NODATA_value'
@@ -1409,7 +1400,7 @@ END CROSS-SECTIONS:
             L = lines[6+j].strip().split()
             y = (4-j) * cellsize
             for i in range(5):
-                assert allclose(float(L[i]), 1 - (-i*cellsize - y))
+                assert num.allclose(float(L[i]), 1 - (-i*cellsize - y))
 
 
         #Cleanup
@@ -1426,7 +1417,6 @@ END CROSS-SECTIONS:
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
         try:
@@ -1484,18 +1474,18 @@ END CROSS-SECTIONS:
 
         L = lines[2].strip().split()
         assert L[0].strip().lower() == 'xllcorner'
-        assert allclose(float(L[1].strip().lower()), 308500)
+        assert num.allclose(float(L[1].strip().lower()), 308500)
 
         L = lines[3].strip().split()
         assert L[0].strip().lower() == 'yllcorner'
-        assert allclose(float(L[1].strip().lower()), 6189000)
+        assert num.allclose(float(L[1].strip().lower()), 6189000)
 
         #Check grid values
         for j in range(5):
             L = lines[6+j].strip().split()
             y = (4-j) * cellsize
             for i in range(5):
-                assert allclose(float(L[i]), -i*cellsize - y)
+                assert num.allclose(float(L[i]), -i*cellsize - y)
                 
         #Cleanup
         os.remove(prjfile)
@@ -1510,7 +1500,6 @@ END CROSS-SECTIONS:
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
         try:
@@ -1590,11 +1579,11 @@ END CROSS-SECTIONS:
 
         L = lines[2].strip().split()
         assert L[0].strip().lower() == 'xllcorner'
-        assert allclose(float(L[1].strip().lower()), 308500)
+        assert num.allclose(float(L[1].strip().lower()), 308500)
 
         L = lines[3].strip().split()
         assert L[0].strip().lower() == 'yllcorner'
-        assert allclose(float(L[1].strip().lower()), 6189000)
+        assert num.allclose(float(L[1].strip().lower()), 6189000)
 
         #print "ascfile", ascfile
         #Check grid values
@@ -1604,7 +1593,7 @@ END CROSS-SECTIONS:
             for i in range(5):
                 #print " -i*cellsize - y",  -i*cellsize - y
                 #print "float(L[i])", float(L[i])
-                assert allclose(float(L[i]), -i*cellsize - y)
+                assert num.allclose(float(L[i]), -i*cellsize - y)
 
         #Cleanup
         os.remove(prjfile)
@@ -1619,11 +1608,11 @@ END CROSS-SECTIONS:
 
         L = lines[2].strip().split()
         assert L[0].strip().lower() == 'xllcorner'
-        assert allclose(float(L[1].strip().lower()), 308500)
+        assert num.allclose(float(L[1].strip().lower()), 308500)
 
         L = lines[3].strip().split()
         assert L[0].strip().lower() == 'yllcorner'
-        assert allclose(float(L[1].strip().lower()), 6189000)
+        assert num.allclose(float(L[1].strip().lower()), 6189000)
 
         #Check grid values
         for j in range(5):
@@ -1632,7 +1621,7 @@ END CROSS-SECTIONS:
             for i in range(5):
                 #print " -i*cellsize - y",  -i*cellsize - y
                 #print "float(L[i])", float(L[i])                
-                assert allclose(float(L[i]), 1 - (-i*cellsize - y))
+                assert num.allclose(float(L[i]), 1 - (-i*cellsize - y))
 
         #Cleanup
         os.remove(prjfile)
@@ -1648,7 +1637,6 @@ END CROSS-SECTIONS:
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
         try:
@@ -1725,11 +1713,11 @@ END CROSS-SECTIONS:
 
         L = lines[2].strip().split()
         assert L[0].strip().lower() == 'xllcorner'
-        assert allclose(float(L[1].strip().lower()), 308500)
+        assert num.allclose(float(L[1].strip().lower()), 308500)
 
         L = lines[3].strip().split()
         assert L[0].strip().lower() == 'yllcorner'
-        assert allclose(float(L[1].strip().lower()), 6189000)
+        assert num.allclose(float(L[1].strip().lower()), 6189000)
 
         #print "ascfile", ascfile
         #Check grid values
@@ -1739,7 +1727,7 @@ END CROSS-SECTIONS:
             for i in range(5):
                 #print " -i*cellsize - y",  -i*cellsize - y
                 #print "float(L[i])", float(L[i])
-                assert allclose(float(L[i]), -i*cellsize - y)
+                assert num.allclose(float(L[i]), -i*cellsize - y)
                 
         #Cleanup
         os.remove(prjfile)
@@ -1754,18 +1742,18 @@ END CROSS-SECTIONS:
 
         L = lines[2].strip().split()
         assert L[0].strip().lower() == 'xllcorner'
-        assert allclose(float(L[1].strip().lower()), 308500)
+        assert num.allclose(float(L[1].strip().lower()), 308500)
 
         L = lines[3].strip().split()
         assert L[0].strip().lower() == 'yllcorner'
-        assert allclose(float(L[1].strip().lower()), 6189000)
+        assert num.allclose(float(L[1].strip().lower()), 6189000)
 
         #Check grid values
         for j in range(5):
             L = lines[6+j].strip().split()
             y = (4-j) * cellsize
             for i in range(5):
-                assert allclose(float(L[i]), 1 - (-i*cellsize - y))
+                assert num.allclose(float(L[i]), 1 - (-i*cellsize - y))
 
         #Cleanup
         os.remove(prjfile)
@@ -1794,7 +1782,6 @@ END CROSS-SECTIONS:
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
         base_name = 'tegp'
@@ -1860,7 +1847,7 @@ END CROSS-SECTIONS:
             for i in range(5):
                 #print " -i*cellsize - y",  -i*cellsize - y
                 #print "float(L[i])", float(L[i])
-                assert allclose(float(L[i]), -i*cellsize - y)               
+                assert num.allclose(float(L[i]), -i*cellsize - y)               
         #Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
@@ -1878,7 +1865,7 @@ END CROSS-SECTIONS:
             for i in range(5):
                 #print " -i*cellsize - y",  -i*cellsize - y
                 #print "float(L[i])", float(L[i])
-                assert allclose(float(L[i]), -i*cellsize - y)               
+                assert num.allclose(float(L[i]), -i*cellsize - y)               
         #Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
@@ -1895,7 +1882,7 @@ END CROSS-SECTIONS:
             L = lines[6+j].strip().split()
             y = (4-j) * cellsize
             for i in range(5):
-                assert allclose(float(L[i]), 1 - (-i*cellsize - y))
+                assert num.allclose(float(L[i]), 1 - (-i*cellsize - y))
         #Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
@@ -1911,7 +1898,7 @@ END CROSS-SECTIONS:
             L = lines[6+j].strip().split()
             y = (4-j) * cellsize
             for i in range(5):
-                assert allclose(float(L[i]), 1 - (-i*cellsize - y))
+                assert num.allclose(float(L[i]), 1 - (-i*cellsize - y))
         #Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
@@ -1942,7 +1929,6 @@ END CROSS-SECTIONS:
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
         #Setup
@@ -2065,15 +2051,15 @@ END CROSS-SECTIONS:
 
         L = lines[2].strip().split()
         assert L[0].strip().lower() == 'xllcorner'
-        assert allclose(float(L[1].strip().lower()), 308500)
+        assert num.allclose(float(L[1].strip().lower()), 308500)
 
         L = lines[3].strip().split()
         assert L[0].strip().lower() == 'yllcorner'
-        assert allclose(float(L[1].strip().lower()), 6189000)
+        assert num.allclose(float(L[1].strip().lower()), 6189000)
 
         L = lines[4].strip().split()
         assert L[0].strip().lower() == 'cellsize'
-        assert allclose(float(L[1].strip().lower()), cellsize)
+        assert num.allclose(float(L[1].strip().lower()), cellsize)
 
         L = lines[5].strip().split()
         assert L[0].strip() == 'NODATA_value'
@@ -2082,8 +2068,8 @@ END CROSS-SECTIONS:
         #Check grid values (FIXME: Use same strategy for other sww2dem tests)
         for i, line in enumerate(lines[6:]):
             for j, value in enumerate( line.split() ):
-                assert allclose(float(value), -(10-i+j)*cellsize,
-                                atol=1.0e-12, rtol=1.0e-12)
+                assert num.allclose(float(value), -(10-i+j)*cellsize,
+                                    atol=1.0e-12, rtol=1.0e-12)
 
                 # Note: Equality can be obtained in this case,
                 # but it is better to use allclose.
@@ -2133,7 +2119,6 @@ END CROSS-SECTIONS:
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
         #Setup
@@ -2262,15 +2247,15 @@ END CROSS-SECTIONS:
 
         L = lines[2].strip().split()
         assert L[0].strip().lower() == 'xllcorner'
-        assert allclose(float(L[1].strip().lower()), 308530)
+        assert num.allclose(float(L[1].strip().lower()), 308530)
 
         L = lines[3].strip().split()
         assert L[0].strip().lower() == 'yllcorner'
-        assert allclose(float(L[1].strip().lower()), 6189050)
+        assert num.allclose(float(L[1].strip().lower()), 6189050)
 
         L = lines[4].strip().split()
         assert L[0].strip().lower() == 'cellsize'
-        assert allclose(float(L[1].strip().lower()), cellsize)
+        assert num.allclose(float(L[1].strip().lower()), cellsize)
 
         L = lines[5].strip().split()
         assert L[0].strip() == 'NODATA_value'
@@ -2299,7 +2284,6 @@ END CROSS-SECTIONS:
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
         #Setup
@@ -2364,15 +2348,15 @@ END CROSS-SECTIONS:
 
         L = lines[2].strip().split()
         assert L[0].strip().lower() == 'xllcorner'
-        assert allclose(float(L[1].strip().lower()), 308500)
+        assert num.allclose(float(L[1].strip().lower()), 308500)
 
         L = lines[3].strip().split()
         assert L[0].strip().lower() == 'yllcorner'
-        assert allclose(float(L[1].strip().lower()), 6189000)
+        assert num.allclose(float(L[1].strip().lower()), 6189000)
 
         L = lines[4].strip().split()
         assert L[0].strip().lower() == 'cellsize'
-        assert allclose(float(L[1].strip().lower()), cellsize)
+        assert num.allclose(float(L[1].strip().lower()), cellsize)
 
         L = lines[5].strip().split()
         assert L[0].strip() == 'NODATA_value'
@@ -2391,7 +2375,7 @@ END CROSS-SECTIONS:
                         val1 = stage[1,index]
 
                         #print i, j, index, ':', L[i], val0, val1
-                        assert allclose(float(L[i]), min(val0, val1))
+                        assert num.allclose(float(L[i]), min(val0, val1))
 
 
         fid.close()
@@ -2411,7 +2395,6 @@ END CROSS-SECTIONS:
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
         #Setup
@@ -2478,15 +2461,15 @@ END CROSS-SECTIONS:
 
         L = lines[2].strip().split()
         assert L[0].strip().lower() == 'xllcorner'
-        assert allclose(float(L[1].strip().lower()), 308500)
+        assert num.allclose(float(L[1].strip().lower()), 308500)
 
         L = lines[3].strip().split()
         assert L[0].strip().lower() == 'yllcorner'
-        assert allclose(float(L[1].strip().lower()), 6189000)
+        assert num.allclose(float(L[1].strip().lower()), 6189000)
 
         L = lines[4].strip().split()
         assert L[0].strip().lower() == 'cellsize'
-        assert allclose(float(L[1].strip().lower()), cellsize)
+        assert num.allclose(float(L[1].strip().lower()), cellsize)
 
         L = lines[5].strip().split()
         assert L[0].strip() == 'NODATA_value'
@@ -2505,7 +2488,7 @@ END CROSS-SECTIONS:
                         val1 = stage[1,index] - z[index]
 
                         #print i, j, index, ':', L[i], val0, val1
-                        assert allclose(float(L[i]), min(val0, val1))
+                        assert num.allclose(float(L[i]), min(val0, val1))
 
 
         fid.close()
@@ -2527,7 +2510,6 @@ END CROSS-SECTIONS:
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
         #Setup mesh not coinciding with rectangle.
@@ -2560,7 +2542,7 @@ END CROSS-SECTIONS:
         #Initial condition - with jumps
 
         bed = domain.quantities['elevation'].vertex_values
-        stage = zeros(bed.shape, Float)
+        stage = num.zeros(bed.shape, num.Float)
 
         h = 0.3
         for i in range(stage.shape[0]):
@@ -2629,15 +2611,15 @@ END CROSS-SECTIONS:
 
         L = lines[2].strip().split()
         assert L[0].strip().lower() == 'xllcorner'
-        assert allclose(float(L[1].strip().lower()), 308500)
+        assert num.allclose(float(L[1].strip().lower()), 308500)
 
         L = lines[3].strip().split()
         assert L[0].strip().lower() == 'yllcorner'
-        assert allclose(float(L[1].strip().lower()), 6189000)
+        assert num.allclose(float(L[1].strip().lower()), 6189000)
 
         L = lines[4].strip().split()
         assert L[0].strip().lower() == 'cellsize'
-        assert allclose(float(L[1].strip().lower()), cellsize)
+        assert num.allclose(float(L[1].strip().lower()), cellsize)
 
         L = lines[5].strip().split()
         assert L[0].strip() == 'NODATA_value'
@@ -2652,10 +2634,10 @@ END CROSS-SECTIONS:
             for i in range(5):
                 #print i
                 if i+j >= 4:
-                    assert allclose(float(L[i]), -i*cellsize - y)
+                    assert num.allclose(float(L[i]), -i*cellsize - y)
                 else:
                     #Missing values
-                    assert allclose(float(L[i]), -9999)
+                    assert num.allclose(float(L[i]), -9999)
 
 
 
@@ -2672,7 +2654,6 @@ END CROSS-SECTIONS:
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
 
@@ -2753,7 +2734,7 @@ END CROSS-SECTIONS:
 
 
         #print grid
-        assert allclose(grid, ref_grid)
+        assert num.allclose(grid, ref_grid)
 
         fid.close()
 
@@ -2772,7 +2753,6 @@ END CROSS-SECTIONS:
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate, NewAxis
         from Scientific.IO.NetCDF import NetCDFFile
         # Used for points that lie outside mesh
         NODATA_value = 1758323
@@ -2812,7 +2792,7 @@ END CROSS-SECTIONS:
 
 
         # Invoke interpolation for vertex points       
-        points = concatenate( (x[:,NewAxis],y[:,NewAxis]), axis=1 )
+        points = num.concatenate( (x[:,num.NewAxis],y[:,num.NewAxis]), axis=1 )
         sww2pts(self.domain.get_name(),
                 quantity = 'elevation',
                 data_points = points,
@@ -2822,7 +2802,7 @@ END CROSS-SECTIONS:
         point_values = Geospatial_data(ptsfile).get_attributes()
         #print 'P', point_values
         #print 'Ref', ref_point_values        
-        assert allclose(point_values, ref_point_values)        
+        assert num.allclose(point_values, ref_point_values)        
 
 
 
@@ -2840,7 +2820,7 @@ END CROSS-SECTIONS:
         point_values = Geospatial_data(ptsfile).get_attributes()
         #print 'P', point_values
         #print 'Ref', ref_point_values        
-        assert allclose(point_values, ref_point_values)        
+        assert num.allclose(point_values, ref_point_values)        
 
 
 
@@ -2897,8 +2877,8 @@ END CROSS-SECTIONS:
         y = fid.variables['y'][:]
 
         #Check that first coordinate is correctly represented
-        assert allclose(x[0], e)
-        assert allclose(y[0], n)
+        assert num.allclose(x[0], e)
+        assert num.allclose(y[0], n)
 
         #Check first value
         stage = fid.variables['stage'][:]
@@ -2907,10 +2887,10 @@ END CROSS-SECTIONS:
 
         #print ymomentum
 
-        assert allclose(stage[0,0], first_value/100)  #Meters
+        assert num.allclose(stage[0,0], first_value/100)  #Meters
 
         #Check fourth value
-        assert allclose(stage[0,3], fourth_value/100)  #Meters
+        assert num.allclose(stage[0,3], fourth_value/100)  #Meters
 
         fid.close()
 
@@ -2954,8 +2934,8 @@ END CROSS-SECTIONS:
         xmomentum_1 = fid.variables['xmomentum'][:]
         ymomentum_1 = fid.variables['ymomentum'][:]
 
-        assert allclose(stage_1[0,0], first_value/100)  #Meters
-        assert allclose(stage_1[0,3], fourth_value/100)  #Meters
+        assert num.allclose(stage_1[0,0], first_value/100)  #Meters
+        assert num.allclose(stage_1[0,3], fourth_value/100)  #Meters
 
         fid.close()
 
@@ -2974,10 +2954,10 @@ END CROSS-SECTIONS:
         ymomentum_5 = fid.variables['ymomentum'][:]
         elevation = fid.variables['elevation'][:]
 
-        assert allclose(stage_5[0,0], 5*first_value/100)  #Meters
-        assert allclose(stage_5[0,3], 5*fourth_value/100)  #Meters
+        assert num.allclose(stage_5[0,0], 5*first_value/100)  #Meters
+        assert num.allclose(stage_5[0,3], 5*fourth_value/100)  #Meters
 
-        assert allclose(5*stage_1, stage_5)
+        assert num.allclose(5*stage_1, stage_5)
 
         # Momentum will also be changed due to new depth
 
@@ -2995,8 +2975,8 @@ END CROSS-SECTIONS:
                     
                     #print i, scale, xmomentum_1[i,j], xmomentum_5[i,j]
                     
-                    assert allclose(xmomentum_5[i,j], ref_xmomentum)
-                    assert allclose(ymomentum_5[i,j], ref_ymomentum)
+                    assert num.allclose(xmomentum_5[i,j], ref_xmomentum)
+                    assert num.allclose(ymomentum_5[i,j], ref_ymomentum)
                     
         
 
@@ -3057,13 +3037,13 @@ END CROSS-SECTIONS:
         y = fid.variables['y'][:]
 
         #Check that test coordinate is correctly represented
-        assert allclose(x[linear_point_index], e)
-        assert allclose(y[linear_point_index], n)
+        assert num.allclose(x[linear_point_index], e)
+        assert num.allclose(y[linear_point_index], n)
 
         #Check test value
         stage = fid.variables['stage'][:]
 
-        assert allclose(stage[time_index, linear_point_index], test_value/100)
+        assert num.allclose(stage[time_index, linear_point_index], test_value/100)
 
         fid.close()
 
@@ -3302,8 +3282,8 @@ END CROSS-SECTIONS:
         first_momentum=first_speed*first_height/100
         third_momentum=third_speed*third_height/100
 
-        assert allclose(ymomentum[0][0],first_momentum)  #Meters
-        assert allclose(ymomentum[0][2],third_momentum)  #Meters
+        assert num.allclose(ymomentum[0][0],first_momentum)  #Meters
+        assert num.allclose(ymomentum[0][2],third_momentum)  #Meters
 
         fid.close()
 
@@ -3466,8 +3446,8 @@ END CROSS-SECTIONS:
         first_momentum=first_speed*first_height/100
         third_momentum=third_speed*third_height/100
 
-        assert allclose(ymomentum[0][0],first_momentum)  #Meters
-        assert allclose(ymomentum[0][2],third_momentum)  #Meters
+        assert num.allclose(ymomentum[0][0],first_momentum)  #Meters
+        assert num.allclose(ymomentum[0][2],third_momentum)  #Meters
 
         fid.close()
 
@@ -3497,8 +3477,8 @@ END CROSS-SECTIONS:
         y = fid.variables['y'][:]
 
         #Check that first coordinate is correctly represented
-        assert allclose(x[0], e-100000)
-        assert allclose(y[0], n-200000)
+        assert num.allclose(x[0], e-100000)
+        assert num.allclose(y[0], n-200000)
 
         fid.close()
 
@@ -3537,7 +3517,6 @@ END CROSS-SECTIONS:
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
         self.domain.set_name('datatest' + str(id(self)))
@@ -3564,14 +3543,14 @@ END CROSS-SECTIONS:
         [xmin, xmax, ymin, ymax, stagemin, stagemax] = \
                extent_sww(file_and_extension_name )
 
-        assert allclose(xmin, 0.0)
-        assert allclose(xmax, 1.0)
-        assert allclose(ymin, 0.0)
-        assert allclose(ymax, 1.0)
+        assert num.allclose(xmin, 0.0)
+        assert num.allclose(xmax, 1.0)
+        assert num.allclose(ymin, 0.0)
+        assert num.allclose(ymax, 1.0)
 
         # FIXME (Ole): Revisit these numbers
-        #assert allclose(stagemin, -0.85), 'stagemin=%.4f' %stagemin
-        #assert allclose(stagemax, 0.15), 'stagemax=%.4f' %stagemax
+        #assert num.allclose(stagemin, -0.85), 'stagemin=%.4f' %stagemin
+        #assert num.allclose(stagemax, 0.15), 'stagemax=%.4f' %stagemax
 
 
         #Cleanup
@@ -3584,7 +3563,6 @@ END CROSS-SECTIONS:
         #Create a test domain, and evolve and save it.
         ################################################
         from mesh_factory import rectangular
-        from Numeric import array
 
         #Create basic mesh
 
@@ -3629,7 +3607,6 @@ END CROSS-SECTIONS:
         #Import the example's file as a new domain
         ##########################################
         from data_manager import sww2domain
-        from Numeric import allclose
         import os
 
         filename = domain.datadir + os.sep + domain.get_name() + '.sww'
@@ -3651,7 +3628,7 @@ END CROSS-SECTIONS:
             #print 'testing that domain.'+bit+' has been restored'
             #print bit
             #print 'done'
-            assert allclose(eval('domain.'+bit),eval('domain2.'+bit))
+            assert num.allclose(eval('domain.'+bit),eval('domain2.'+bit))
 
         ######################################
         #Now evolve them both, just to be sure
@@ -3710,8 +3687,8 @@ END CROSS-SECTIONS:
             
             #print eval('domain.'+bit+'-domain2.'+bit)
             msg = 'Values in the two domains are different for ' + bit
-            assert allclose(eval('domain.'+bit),eval('domain2.'+bit),
-                            rtol=1.e-5, atol=3.e-8), msg
+            assert num.allclose(eval('domain.'+bit),eval('domain2.'+bit),
+                                rtol=1.e-5, atol=3.e-8), msg
 
 
     def DISABLEDtest_sww2domain2(self):
@@ -3721,7 +3698,6 @@ END CROSS-SECTIONS:
 
 
         from mesh_factory import rectangular
-        from Numeric import array
 
         #Create basic mesh
         points, vertices, boundary = rectangular(2,2)
@@ -3763,7 +3739,6 @@ END CROSS-SECTIONS:
         #Import the file as a new domain
         ##################################
         from data_manager import sww2domain
-        from Numeric import allclose
         import os
 
         filename = domain.datadir + os.sep + domain.get_name() + '.sww'
@@ -3790,7 +3765,7 @@ END CROSS-SECTIONS:
 
         for bit in bits:
         #    print 'testing that domain.'+bit+' has been restored'
-            assert allclose(eval('domain.'+bit),eval('domain2.'+bit))
+            assert num.allclose(eval('domain.'+bit),eval('domain2.'+bit))
 
         #print filler
         #print max(max(domain2.get_quantity('xmomentum').get_values()))
@@ -3830,7 +3805,6 @@ END CROSS-SECTIONS:
         #DOMAIN.SMOOTH = TRUE !!!!!!!!!!!!!!!!!!!!!!!!!!
         ################################################
         from mesh_factory import rectangular
-        from Numeric import array
         #Create basic mesh
 
         yiel=0.01
@@ -3874,7 +3848,6 @@ END CROSS-SECTIONS:
         #Import the example's file as a new domain
         ##########################################
         from data_manager import sww2domain
-        from Numeric import allclose
         import os
 
         filename = domain.datadir + os.sep + domain.get_name() + '.sww'
@@ -3901,7 +3874,7 @@ END CROSS-SECTIONS:
             #print 'done'
             #print ('domain.'+bit), eval('domain.'+bit)
             #print ('domain2.'+bit), eval('domain2.'+bit)
-            assert allclose(eval('domain.'+bit),eval('domain2.'+bit),rtol=1.0e-1,atol=1.e-3)
+            assert num.allclose(eval('domain.'+bit),eval('domain2.'+bit),rtol=1.0e-1,atol=1.e-3)
             pass
 
         ######################################
@@ -3953,7 +3926,7 @@ END CROSS-SECTIONS:
 
         for bit in bits:
             print bit
-            assert allclose(eval('domain.'+bit),eval('domain2.'+bit))
+            assert num.allclose(eval('domain.'+bit),eval('domain2.'+bit))
 
 
     def test_decimate_dem(self):
@@ -3961,7 +3934,6 @@ END CROSS-SECTIONS:
         """
 
         import os
-        from Numeric import ones, allclose, Float, arange
         from Scientific.IO.NetCDF import NetCDFFile
 
         #Write test dem file
@@ -3993,11 +3965,11 @@ END CROSS-SECTIONS:
 
         fid.createDimension('number_of_points', nrows*ncols)
 
-        fid.createVariable('elevation', Float, ('number_of_points',))
+        fid.createVariable('elevation', num.Float, ('number_of_points',))
 
         elevation = fid.variables['elevation']
 
-        elevation[:] = (arange(nrows*ncols))
+        elevation[:] = (num.arange(nrows*ncols))
 
         fid.close()
 
@@ -4020,7 +3992,7 @@ END CROSS-SECTIONS:
                          (228+229+230+246+247+248+264+265+266) / 9.0]
 
         #generate a stencil for computing the decimated values
-        stencil = ones((3,3), Float) / 9.0
+        stencil = num.ones((3,3), num.Float) / 9.0
 
         decimate_dem(root, stencil=stencil, cellsize_new=100)
 
@@ -4031,7 +4003,7 @@ END CROSS-SECTIONS:
         elevation = fid.variables['elevation']
 
         #Check values
-        assert allclose(elevation, ref_elevation)
+        assert num.allclose(elevation, ref_elevation)
 
         #Cleanup
         fid.close()
@@ -4044,7 +4016,6 @@ END CROSS-SECTIONS:
         """
 
         import os
-        from Numeric import ones, allclose, Float, arange, reshape
         from Scientific.IO.NetCDF import NetCDFFile
 
         #Write test dem file
@@ -4077,12 +4048,12 @@ END CROSS-SECTIONS:
 
         fid.createDimension('number_of_points', nrows*ncols)
 
-        fid.createVariable('elevation', Float, ('number_of_points',))
+        fid.createVariable('elevation', num.Float, ('number_of_points',))
 
         elevation = fid.variables['elevation']
 
         #generate initial elevation values
-        elevation_tmp = (arange(nrows*ncols))
+        elevation_tmp = (num.arange(nrows*ncols))
         #add some NODATA values
         elevation_tmp[0]   = NODATA_value
         elevation_tmp[95]  = NODATA_value
@@ -4115,7 +4086,7 @@ END CROSS-SECTIONS:
                          (228+229+230+246+247+248+264+265+266) / 9.0]
 
         #generate a stencil for computing the decimated values
-        stencil = ones((3,3), Float) / 9.0
+        stencil = num.ones((3,3), num.Float) / 9.0
 
         decimate_dem(root, stencil=stencil, cellsize_new=100)
 
@@ -4126,7 +4097,7 @@ END CROSS-SECTIONS:
         elevation = fid.variables['elevation']
 
         #Check values
-        assert allclose(elevation, ref_elevation)
+        assert num.allclose(elevation, ref_elevation)
 
         #Cleanup
         fid.close()
@@ -4140,7 +4111,6 @@ END CROSS-SECTIONS:
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
         # the memory optimised least squares
@@ -4166,7 +4136,6 @@ END CROSS-SECTIONS:
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
         from data_manager import _read_asc
@@ -4314,29 +4283,29 @@ NODATA_value  -9999
         x_ref = geo_ref.get_xllcorner()
         y_ref = geo_ref.get_yllcorner()
         self.failUnless(geo_ref.get_zone() == 55,  'Failed')
-        assert allclose(x_ref, 587798.418) # (-38, 148)
-        assert allclose(y_ref, 5793123.477)# (-38, 148.5)
+        assert num.allclose(x_ref, 587798.418) # (-38, 148)
+        assert num.allclose(y_ref, 5793123.477)# (-38, 148.5)
 
         #Zone:   55
         #Easting:  588095.674  Northing: 5821451.722
         #Latitude:   -37  45 ' 0.00000 ''  Longitude: 148 0 ' 0.00000 ''
-        assert allclose((x[0],y[0]), (588095.674 - x_ref, 5821451.722 - y_ref))
+        assert num.allclose((x[0],y[0]), (588095.674 - x_ref, 5821451.722 - y_ref))
 
         #Zone:   55
         #Easting:  632145.632  Northing: 5820863.269
         #Latitude:   -37  45 ' 0.00000 ''  Longitude: 148  30 ' 0.00000 ''
-        assert allclose((x[2],y[2]), (632145.632 - x_ref, 5820863.269 - y_ref))
+        assert num.allclose((x[2],y[2]), (632145.632 - x_ref, 5820863.269 - y_ref))
 
         #Zone:   55
         #Easting:  609748.788  Northing: 5793447.860
         #Latitude:   -38  0 ' 0.00000 ''  Longitude: 148  15 ' 0.00000 ''
-        assert allclose((x[4],y[4]), (609748.788  - x_ref, 5793447.86 - y_ref))
+        assert num.allclose((x[4],y[4]), (609748.788  - x_ref, 5793447.86 - y_ref))
 
-        assert allclose(z[0],9000.0 )
-        assert allclose(stage[0][1],0.0 )
+        assert num.allclose(z[0],9000.0 )
+        assert num.allclose(stage[0][1],0.0 )
 
         #(4000+1000)*60
-        assert allclose(xmomentum[1][1],300000.0 )
+        assert num.allclose(xmomentum[1][1],300000.0 )
 
 
         fid.close()
@@ -4624,33 +4593,33 @@ NODATA_value  -9999
         x_ref = geo_ref.get_xllcorner()
         y_ref = geo_ref.get_yllcorner()
         self.failUnless(geo_ref.get_zone() == 55,  'Failed')
-        assert allclose(x_ref, 587798.418) # (-38, 148)
-        assert allclose(y_ref, 5793123.477)# (-38, 148.5)
+        assert num.allclose(x_ref, 587798.418) # (-38, 148)
+        assert num.allclose(y_ref, 5793123.477)# (-38, 148.5)
 
         #Zone:   55
         #Easting:  588095.674  Northing: 5821451.722
         #Latitude:   -37  45 ' 0.00000 ''  Longitude: 148 0 ' 0.00000 ''
-        assert allclose((x[0],y[0]), (588095.674 - x_ref, 5821451.722 - y_ref))
+        assert num.allclose((x[0],y[0]), (588095.674 - x_ref, 5821451.722 - y_ref))
 
         #Zone:   55
         #Easting:  632145.632  Northing: 5820863.269
         #Latitude:   -37  45 ' 0.00000 ''  Longitude: 148  30 ' 0.00000 ''
-        assert allclose((x[2],y[2]), (632145.632 - x_ref, 5820863.269 - y_ref))
+        assert num.allclose((x[2],y[2]), (632145.632 - x_ref, 5820863.269 - y_ref))
 
         #Zone:   55
         #Easting:  609748.788  Northing: 5793447.860
         #Latitude:   -38  0 ' 0.00000 ''  Longitude: 148  15 ' 0.00000 ''
-        assert allclose((x[4],y[4]), (609748.788  - x_ref, 5793447.86 - y_ref))
+        assert num.allclose((x[4],y[4]), (609748.788  - x_ref, 5793447.86 - y_ref))
 
-        assert allclose(z[0],9000.0 )
-        assert allclose(stage[0][4],100.0 )
-        assert allclose(stage[0][5],100.0 )
+        assert num.allclose(z[0],9000.0 )
+        assert num.allclose(stage[0][4],100.0 )
+        assert num.allclose(stage[0][5],100.0 )
 
         #(100.0 - 9000)*10
-        assert allclose(xmomentum[0][4], -89000.0 )
+        assert num.allclose(xmomentum[0][4], -89000.0 )
 
         #(100.0 - -1000.000)*10
-        assert allclose(xmomentum[0][5], 11000.0 )
+        assert num.allclose(xmomentum[0][5], 11000.0 )
 
         fid.close()
 
@@ -4820,9 +4789,9 @@ NODATA_value  -9999
         y_ref = geo_ref.get_yllcorner()
         self.failUnless(geo_ref.get_zone() == 55,  'Failed')
 
-        assert allclose(fid.starttime, 0.0) # (-37.45, 148.25)
-        assert allclose(x_ref, 610120.388) # (-37.45, 148.25)
-        assert allclose(y_ref,  5820863.269 )# (-37.45, 148.5)
+        assert num.allclose(fid.starttime, 0.0) # (-37.45, 148.25)
+        assert num.allclose(x_ref, 610120.388) # (-37.45, 148.25)
+        assert num.allclose(y_ref,  5820863.269 )# (-37.45, 148.5)
 
         #Easting:  632145.632  Northing: 5820863.269
         #Latitude:   -37 45 ' 0.00000 ''  Longitude: 148  30 ' 0.00000 ''
@@ -4836,17 +4805,17 @@ NODATA_value  -9999
         #Easting:  632145.632  Northing: 5820863.269
         #Latitude:   -37 45 ' 0.00000 ''  Longitude: 148  30 ' 0.00000 ''
         # magic number - y is close enough for me.
-        assert allclose(x[3], 632145.63 - x_ref)
-        assert allclose(y[3], 5820863.269  - y_ref + 5.22155314684e-005)
+        assert num.allclose(x[3], 632145.63 - x_ref)
+        assert num.allclose(y[3], 5820863.269  - y_ref + 5.22155314684e-005)
 
-        assert allclose(z[0],9000.0 ) #z is elevation info
+        assert num.allclose(z[0],9000.0 ) #z is elevation info
         #print "z",z
         # 2 time steps, 4 points
         self.failUnless(xmomentum.shape == (2,4), 'failed')
         self.failUnless(ymomentum.shape == (2,4), 'failed')
 
         #(100.0 - -1000.000)*10
-        #assert allclose(xmomentum[0][5], 11000.0 )
+        #assert num.allclose(xmomentum[0][5], 11000.0 )
 
         fid.close()
 
@@ -4980,7 +4949,7 @@ NODATA_value  -9999
 
 
         ## 7th test
-        m2d = array([[0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15]])
+        m2d = num.array([[0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15]])
         kmin, kmax, lmin, lmax = data_manager._get_min_max_indexes(
             latitudes,longitudes,
             1.5,1.5,15,15)
@@ -5040,7 +5009,7 @@ NODATA_value  -9999
         latitudes = [-30,-35,-40,-45]
         longitudes = [148,149,150,151]
 
-        m2d = array([[0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15]])
+        m2d = num.array([[0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15]])
 
         # k - lat
         # l - lon
@@ -5326,10 +5295,10 @@ friction  \n \
         
         points = gsd.get_data_points(absolute=True)
         
-        assert allclose(points[0][0], 308728.009)
-        assert allclose(points[0][1], 6180432.601)
-        assert allclose(points[1][0],  222908.705)
-        assert allclose(points[1][1], 6233785.284)
+        assert num.allclose(points[0][0], 308728.009)
+        assert num.allclose(points[0][1], 6180432.601)
+        assert num.allclose(points[1][0],  222908.705)
+        assert num.allclose(points[1][1], 6233785.284)
         self.failUnless(gsd.get_geo_reference().get_zone() == 56,
                         'Bad zone error!')
 
@@ -5432,12 +5401,12 @@ friction  \n \
         
         points = gsd.get_data_points(absolute=True)
         
-        assert allclose(points[0][0], 115)
-        assert allclose(points[0][1], 7)
-        assert allclose(points[1][0], 114)
-        assert allclose(points[1][1], 8)
-        assert allclose(points[2][0], 114.5)
-        assert allclose(points[2][1], 9)
+        assert num.allclose(points[0][0], 115)
+        assert num.allclose(points[0][1], 7)
+        assert num.allclose(points[1][0], 114)
+        assert num.allclose(points[1][1], 8)
+        assert num.allclose(points[2][0], 114.5)
+        assert num.allclose(points[2][1], 9)
         self.failUnless(gsd.get_geo_reference().get_zone() == -1,
                         'Bad zone error!')
 
@@ -5459,12 +5428,12 @@ friction  \n \
         gsd = e1.get_location()
         
         points = gsd.get_data_points(absolute=True)
-        assert allclose(points[0][0], 5.5)
-        assert allclose(points[0][1], 0.5)
-        assert allclose(points[1][0], 4.5)
-        assert allclose(points[1][1], 1.0)
-        assert allclose(points[2][0], 4.5)
-        assert allclose(points[2][1], 1.5)
+        assert num.allclose(points[0][0], 5.5)
+        assert num.allclose(points[0][1], 0.5)
+        assert num.allclose(points[1][0], 4.5)
+        assert num.allclose(points[1][1], 1.0)
+        assert num.allclose(points[2][0], 4.5)
+        assert num.allclose(points[2][1], 1.5)
         self.failUnless(gsd.get_geo_reference().get_zone() == -1,
                         'Bad zone error!')
 
@@ -5507,7 +5476,7 @@ friction  \n \
         for i,q in enumerate(quantities): 
             quantities_init[i] = ensure_numeric(quantities_init[i])
             #print "HA_init", HA_init
-            q_time = zeros((time_step_count, points_num), Float)
+            q_time = num.zeros((time_step_count, points_num), num.Float)
             for time in range(time_step_count):
                 q_time[time,:] = quantities_init[i] #* time * 4
             
@@ -5591,7 +5560,7 @@ friction  \n \
         for i, q in enumerate(quantities): 
             quantities_init[i] = ensure_numeric(quantities_init[i])
             #print "HA_init", HA_init
-            q_time = zeros((time_step_count, points_num), Float)
+            q_time = num.zeros((time_step_count, points_num), num.Float)
             for time in range(time_step_count):
                 q_time[time,:] = quantities_init[i] #* time * 4
             
@@ -5697,7 +5666,7 @@ friction  \n \
         #Work out the UTM coordinates for first point
         zone, e, n = redfearn(-34.5, 150.66667)
        
-        assert allclose(geo_reference.get_absolute([[x[0],y[0]]]), [e,n])
+        assert num.allclose(geo_reference.get_absolute([[x[0],y[0]]]), [e,n])
 
         # Make x and y absolute
         points = geo_reference.get_absolute(map(None, x, y))
@@ -5710,7 +5679,7 @@ friction  \n \
         xmomentum = fid.variables['xmomentum'][:]
         ymomentum = fid.variables['ymomentum'][:]
         elevation = fid.variables['elevation'][:]
-        assert allclose(stage[0,0], e +tide)  #Meters
+        assert num.allclose(stage[0,0], e +tide)  #Meters
 
         #Check the momentums - ua
         #momentum = velocity*(stage-elevation)
@@ -5722,7 +5691,7 @@ friction  \n \
         actual_x = xmomentum[0,0]
         #print "answer_x",answer_x
         #print "actual_x",actual_x 
-        assert allclose(answer_x, actual_x)  #Meters
+        assert num.allclose(answer_x, actual_x)  #Meters
 
         #Check the momentums - va
         #momentum = velocity*(stage-elevation)
@@ -5733,20 +5702,20 @@ friction  \n \
         actual_y = ymomentum[0,0]
         #print "answer_y",answer_y
         #print "actual_y",actual_y 
-        assert allclose(answer_y, actual_y)  #Meters
+        assert num.allclose(answer_y, actual_y)  #Meters
         
-        assert allclose(answer_x, actual_x)  #Meters
+        assert num.allclose(answer_x, actual_x)  #Meters
         
         # check the stage values, first time step.
         # These arrays are equal since the Easting values were used as
         # the stage
-        assert allclose(stage[0], x +tide)  #Meters
+        assert num.allclose(stage[0], x +tide)  #Meters
 
         # check the elevation values.
         # -ve since urs measures depth, sww meshers height,
         # these arrays are equal since the northing values were used as
         # the elevation
-        assert allclose(-elevation, y)  #Meters
+        assert num.allclose(-elevation, y)  #Meters
         
         fid.close()
         self.delete_mux(files)
@@ -5805,12 +5774,12 @@ friction  \n \
         
         answer = 115
         actual = xmomentum[0,0]
-        assert allclose(answer, actual)  #Meters^2/ sec
+        assert num.allclose(answer, actual)  #Meters^2/ sec
         answer = 230
         actual = ymomentum[0,0]
         #print "answer",answer
         #print "actual",actual 
-        assert allclose(answer, actual)  #Meters^2/ sec
+        assert num.allclose(answer, actual)  #Meters^2/ sec
 
         # check the stage values, first time step.
         # These arrays are equal since the Easting values were used as
@@ -5852,13 +5821,13 @@ friction  \n \
         
         time = fid.variables['time'][:]
         #print "time", time
-        assert allclose([0.,0.5,1.], time)
+        assert num.allclose([0.,0.5,1.], time)
         assert fid.starttime == 0.0
         #Check that first coordinate is correctly represented       
         #Work out the UTM coordinates for first point
         zone, e, n = redfearn(-34.5, 150.66667)       
        
-        assert allclose([x[0],y[0]], [e,n])
+        assert num.allclose([x[0],y[0]], [e,n])
 
         
         #Check first value
@@ -5866,7 +5835,7 @@ friction  \n \
         xmomentum = fid.variables['xmomentum'][:]
         ymomentum = fid.variables['ymomentum'][:]
         elevation = fid.variables['elevation'][:]
-        assert allclose(stage[0,0], e +tide)  #Meters
+        assert num.allclose(stage[0,0], e +tide)  #Meters
 
         #Check the momentums - ua
         #momentum = velocity*(stage-elevation)
@@ -5875,18 +5844,18 @@ friction  \n \
         # = n*(e+tide+n) based on how I'm writing these files
         answer = n*(e+tide+n)
         actual = xmomentum[0,0]
-        assert allclose(answer, actual)  #Meters
+        assert num.allclose(answer, actual)  #Meters
 
         # check the stage values, first time step.
         # These arrays are equal since the Easting values were used as
         # the stage
-        assert allclose(stage[0], x +tide)  #Meters
+        assert num.allclose(stage[0], x +tide)  #Meters
 
         # check the elevation values.
         # -ve since urs measures depth, sww meshers height,
         # these arrays are equal since the northing values were used as
         # the elevation
-        assert allclose(-elevation, y)  #Meters
+        assert num.allclose(-elevation, y)  #Meters
         
         fid.close()
         self.delete_mux(files)
@@ -5927,7 +5896,7 @@ friction  \n \
         #Check that first coordinate is correctly represented       
         #Work out the UTM coordinates for first point
         zone, e, n = redfearn(-34.5, 150.66667) 
-        assert allclose([x[0],y[0]], [e,n])
+        assert num.allclose([x[0],y[0]], [e,n])
 
         
         #Check first value
@@ -5935,7 +5904,7 @@ friction  \n \
         xmomentum = fid.variables['xmomentum'][:]
         ymomentum = fid.variables['ymomentum'][:]
         elevation = fid.variables['elevation'][:]
-        assert allclose(stage[0,0], e +tide)  #Meters
+        assert num.allclose(stage[0,0], e +tide)  #Meters
 
         #Check the momentums - ua
         #momentum = velocity*(stage-elevation)
@@ -5944,18 +5913,18 @@ friction  \n \
         # = n*(e+tide+n) based on how I'm writing these files
         answer = n*(e+tide+n)
         actual = xmomentum[0,0]
-        assert allclose(answer, actual)  #Meters
+        assert num.allclose(answer, actual)  #Meters
 
         # check the stage values, first time step.
         # These arrays are equal since the Easting values were used as
         # the stage
-        assert allclose(stage[0], x +tide)  #Meters
+        assert num.allclose(stage[0], x +tide)  #Meters
 
         # check the elevation values.
         # -ve since urs measures depth, sww meshers height,
         # these arrays are equal since the northing values were used as
         # the elevation
-        assert allclose(-elevation, y)  #Meters
+        assert num.allclose(-elevation, y)  #Meters
         
         fid.close()
         self.delete_mux(files)
@@ -5983,7 +5952,7 @@ friction  \n \
 
         
         time = fid.variables['time'][:]
-        assert allclose(time, [0.0]) # the time is relative
+        assert num.allclose(time, [0.0]) # the time is relative
         assert fid.starttime == 0.5
         
         fid.close()
@@ -6047,17 +6016,17 @@ friction  \n \
 
             if ha is None:
                 this_ha = e
-                quantities_init[0].append(ones(time_step_count,Float)*this_ha) # HA
+                quantities_init[0].append(num.ones(time_step_count,num.Float)*this_ha) # HA
             else:
                 quantities_init[0].append(ha[i])
             if ua is None:
                 this_ua = n
-                quantities_init[1].append(ones(time_step_count,Float)*this_ua) # UA
+                quantities_init[1].append(num.ones(time_step_count,num.Float)*this_ua) # UA
             else:
                 quantities_init[1].append(ua[i])
             if va is None:
                 this_va = e
-                quantities_init[2].append(ones(time_step_count,Float)*this_va) #
+                quantities_init[2].append(num.ones(time_step_count,num.Float)*this_va) #
             else:
                 quantities_init[2].append(va[i])            
 
@@ -6067,7 +6036,7 @@ friction  \n \
 
         files = []        
         for i, q in enumerate(quantities):
-            q_time = zeros((time_step_count, points_num), Float)
+            q_time = num.zeros((time_step_count, points_num), num.Float)
             quantities_init[i] = ensure_numeric(quantities_init[i])
             for time in range(time_step_count):
                 #print i, q, time, quantities_init[i][:,time]
@@ -6136,12 +6105,12 @@ friction  \n \
         time_step = 2
         lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=ones(n,Int)
-        last_tstep=time_step_count*ones(n,Int)
-        depth=20*ones(n,Float)
-        ha=2*ones((n,time_step_count),Float)
-        ua=5*ones((n,time_step_count),Float)
-        va=-10*ones((n,time_step_count),Float)
+        first_tstep=num.ones(n,num.Int)
+        last_tstep=time_step_count*num.ones(n,num.Int)
+        depth=20*num.ones(n,num.Float)
+        ha=2*num.ones((n,time_step_count),num.Float)
+        ua=5*num.ones((n,time_step_count),num.Float)
+        va=-10*num.ones((n,time_step_count),num.Float)
         #-ve added to take into account mux file format where south is positive.
         base_name, files = self.write_mux2(lat_long_points,
                                       time_step_count, time_step,
@@ -6151,15 +6120,15 @@ friction  \n \
                                       ua=ua,
                                       va=va)
 
-        weights=ones(1, Float)
+        weights=num.ones(1, num.Float)
         #ensure that files are indeed mux2 files
         times, latitudes, longitudes, elevation, stage, starttime = read_mux2_py([files[0]],weights)
         ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity,starttime_ua=read_mux2_py([files[1]],weights)
         msg='ha and ua have different gauge meta data'
-        assert allclose(times,ua_times) and allclose(latitudes,ua_latitudes) and allclose(longitudes,ua_longitudes) and allclose(elevation,ua_elevation) and allclose(starttime,starttime_ua), msg
+        assert num.allclose(times,ua_times) and num.allclose(latitudes,ua_latitudes) and num.allclose(longitudes,ua_longitudes) and num.allclose(elevation,ua_elevation) and num.allclose(starttime,starttime_ua), msg
         va_times, va_latitudes, va_longitudes, va_elevation, yvelocity, starttime_va=read_mux2_py([files[2]],weights)
         msg='ha and va have different gauge meta data'
-        assert allclose(times,va_times) and allclose(latitudes,va_latitudes) and allclose(longitudes,va_longitudes) and allclose(elevation,va_elevation) and allclose(starttime,starttime_va), msg
+        assert num.allclose(times,va_times) and num.allclose(latitudes,va_latitudes) and num.allclose(longitudes,va_longitudes) and num.allclose(elevation,va_elevation) and num.allclose(starttime,starttime_va), msg
 
         self.delete_mux(files)
 
@@ -6167,21 +6136,21 @@ friction  \n \
         assert times.shape[0]==time_step_count,msg
         
         msg = 'time array is incorrect'
-        #assert allclose(times,time_step*arange(1,time_step_count+1)),msg
-        assert allclose(times,time_step*arange(time_step_count)), msg
+        #assert allclose(times,time_step*num.arange(1,time_step_count+1)),msg
+        assert num.allclose(times,time_step*num.arange(time_step_count)), msg
         
         msg='Incorrect gauge positions returned'
         for i,point in enumerate(lat_long_points):
-            assert allclose(latitudes[i],point[0]) and allclose(longitudes[i],point[1]),msg
+            assert num.allclose(latitudes[i],point[0]) and num.allclose(longitudes[i],point[1]),msg
 
         msg='Incorrect gauge depths returned'
-        assert allclose(elevation,-depth),msg
+        assert num.allclose(elevation,-depth),msg
         msg='incorrect gauge height time series returned'
-        assert allclose(stage,ha)
+        assert num.allclose(stage,ha)
         msg='incorrect gauge ua time series returned'
-        assert allclose(xvelocity,ua)
+        assert num.allclose(xvelocity,ua)
         msg='incorrect gauge va time series returned'
-        assert allclose(yvelocity,va)
+        assert num.allclose(yvelocity,va)
 
     def test_urs2sts_read_mux2_pyII(self):
         """Spatially varing stage
@@ -6191,17 +6160,17 @@ friction  \n \
         time_step = 2
         lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=ones(n,Int)
-        last_tstep=(time_step_count)*ones(n,Int)
-        depth=20*ones(n,Float)
-        ha=2*ones((n,time_step_count),Float)
-        ha[0]=arange(0,time_step_count)+1
-        ha[1]=time_step_count-arange(1,time_step_count+1)
-        ha[1]=arange(time_step_count,2*time_step_count)
-        ha[2]=arange(2*time_step_count,3*time_step_count)
-        ha[3]=arange(3*time_step_count,4*time_step_count)
-        ua=5*ones((n,time_step_count),Float)
-        va=-10*ones((n,time_step_count),Float)
+        first_tstep=num.ones(n,num.Int)
+        last_tstep=(time_step_count)*num.ones(n,num.Int)
+        depth=20*num.ones(n,num.Float)
+        ha=2*num.ones((n,time_step_count),num.Float)
+        ha[0]=num.arange(0,time_step_count)+1
+        ha[1]=time_step_count-num.arange(1,time_step_count+1)
+        ha[1]=num.arange(time_step_count,2*time_step_count)
+        ha[2]=num.arange(2*time_step_count,3*time_step_count)
+        ha[3]=num.arange(3*time_step_count,4*time_step_count)
+        ua=5*num.ones((n,time_step_count),num.Float)
+        va=-10*num.ones((n,time_step_count),num.Float)
         #-ve added to take into account mux file format where south is positive.
         base_name, files = self.write_mux2(lat_long_points,
                                       time_step_count, time_step,
@@ -6211,15 +6180,15 @@ friction  \n \
                                       ua=ua,
                                       va=va)
 
-        weights=ones(1, Float)
+        weights=num.ones(1, num.Float)
         #ensure that files are indeed mux2 files
         times, latitudes, longitudes, elevation, stage,starttime=read_mux2_py([files[0]],weights)
         ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity,starttime_ua=read_mux2_py([files[1]],weights)
         msg='ha and ua have different gauge meta data'
-        assert allclose(times,ua_times) and allclose(latitudes,ua_latitudes) and allclose(longitudes,ua_longitudes) and allclose(elevation,ua_elevation) and allclose(starttime,starttime_ua), msg
+        assert num.allclose(times,ua_times) and num.allclose(latitudes,ua_latitudes) and num.allclose(longitudes,ua_longitudes) and num.allclose(elevation,ua_elevation) and num.allclose(starttime,starttime_ua), msg
         va_times, va_latitudes, va_longitudes, va_elevation, yvelocity,starttime_va=read_mux2_py([files[2]],weights)
         msg='ha and va have different gauge meta data'
-        assert allclose(times,va_times) and allclose(latitudes,va_latitudes) and allclose(longitudes,va_longitudes) and allclose(elevation,va_elevation) and allclose(starttime,starttime_va), msg
+        assert num.allclose(times,va_times) and num.allclose(latitudes,va_latitudes) and num.allclose(longitudes,va_longitudes) and num.allclose(elevation,va_elevation) and num.allclose(starttime,starttime_va), msg
 
 
         self.delete_mux(files)
@@ -6227,19 +6196,19 @@ friction  \n \
         msg='time array has incorrect length'
         #assert times.shape[0]==time_step_count,msg
         msg = 'time array is incorrect'
-        #assert allclose(times,time_step*arange(1,time_step_count+1)),msg
+        #assert allclose(times,time_step*num.arange(1,time_step_count+1)),msg
         msg='Incorrect gauge positions returned'
         for i,point in enumerate(lat_long_points):
-            assert allclose(latitudes[i],point[0]) and allclose(longitudes[i],point[1]),msg
+            assert num.allclose(latitudes[i],point[0]) and num.allclose(longitudes[i],point[1]),msg
 
         msg='Incorrect gauge depths returned'
-        assert allclose(elevation,-depth),msg
+        assert num.allclose(elevation,-depth),msg
         msg='incorrect gauge height time series returned'
-        assert allclose(stage,ha)
+        assert num.allclose(stage,ha)
         msg='incorrect gauge ua time series returned'
-        assert allclose(xvelocity,ua)
+        assert num.allclose(xvelocity,ua)
         msg='incorrect gauge va time series returned'
-        assert allclose(yvelocity,va)
+        assert num.allclose(yvelocity,va)
 
     def test_urs2sts_read_mux2_pyIII(self):
         """Varying start and finish times
@@ -6249,20 +6218,20 @@ friction  \n \
         time_step = 2
         lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=ones(n,Int)
+        first_tstep=num.ones(n,num.Int)
         first_tstep[0]+=1
         first_tstep[2]+=1
-        last_tstep=(time_step_count)*ones(n,Int)
+        last_tstep=(time_step_count)*num.ones(n,num.Int)
         last_tstep[0]-=1
 
-        depth=20*ones(n,Float)
-        ha=2*ones((n,time_step_count),Float)
-        ha[0]=arange(0,time_step_count)
-        ha[1]=arange(time_step_count,2*time_step_count)
-        ha[2]=arange(2*time_step_count,3*time_step_count)
-        ha[3]=arange(3*time_step_count,4*time_step_count)
-        ua=5*ones((n,time_step_count),Float)
-        va=-10*ones((n,time_step_count),Float)
+        depth=20*num.ones(n,num.Float)
+        ha=2*num.ones((n,time_step_count),num.Float)
+        ha[0]=num.arange(0,time_step_count)
+        ha[1]=num.arange(time_step_count,2*time_step_count)
+        ha[2]=num.arange(2*time_step_count,3*time_step_count)
+        ha[3]=num.arange(3*time_step_count,4*time_step_count)
+        ua=5*num.ones((n,time_step_count),num.Float)
+        va=-10*num.ones((n,time_step_count),num.Float)
         #-ve added to take into account mux file format where south is positive.
         base_name, files = self.write_mux2(lat_long_points,
                                       time_step_count, time_step,
@@ -6272,25 +6241,25 @@ friction  \n \
                                       ua=ua,
                                       va=va)
 
-        weights=ones(1, Float)
+        weights=num.ones(1, num.Float)
         #ensure that files are indeed mux2 files
         times, latitudes, longitudes, elevation, stage, starttime=read_mux2_py([files[0]],weights)
         ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity, starttime_ua=read_mux2_py([files[1]],weights)
         msg='ha and ua have different gauge meta data'
-        assert allclose(times,ua_times) and allclose(latitudes,ua_latitudes) and allclose(longitudes,ua_longitudes) and allclose(elevation,ua_elevation) and allclose(starttime,starttime_ua), msg
+        assert num.allclose(times,ua_times) and num.allclose(latitudes,ua_latitudes) and num.allclose(longitudes,ua_longitudes) and num.allclose(elevation,ua_elevation) and num.allclose(starttime,starttime_ua), msg
         va_times, va_latitudes, va_longitudes, va_elevation, yvelocity,starttime_va=read_mux2_py([files[2]],weights)
         msg='ha and va have different gauge meta data'
-        assert allclose(times,va_times) and allclose(latitudes,va_latitudes) and allclose(longitudes,va_longitudes) and allclose(elevation,va_elevation) and allclose(starttime,starttime_va), msg
+        assert num.allclose(times,va_times) and num.allclose(latitudes,va_latitudes) and num.allclose(longitudes,va_longitudes) and num.allclose(elevation,va_elevation) and num.allclose(starttime,starttime_va), msg
 
         self.delete_mux(files)
 
         msg='time array has incorrect length'
         #assert times.shape[0]==time_step_count,msg
         msg = 'time array is incorrect'
-        #assert allclose(times,time_step*arange(1,time_step_count+1)),msg
+        #assert allclose(times,time_step*num.arange(1,time_step_count+1)),msg
         msg='Incorrect gauge positions returned'
         for i,point in enumerate(lat_long_points):
-            assert allclose(latitudes[i],point[0]) and allclose(longitudes[i],point[1]),msg
+            assert num.allclose(latitudes[i],point[0]) and num.allclose(longitudes[i],point[1]),msg
 
 
         # Set original data used to write mux file to be zero when gauges are 
@@ -6305,13 +6274,13 @@ friction  \n \
         va[0][time_step_count-1]=0.0;
         va[2][0]=0.0;
         msg='Incorrect gauge depths returned'
-        assert allclose(elevation,-depth),msg
+        assert num.allclose(elevation,-depth),msg
         msg='incorrect gauge height time series returned'
-        assert allclose(stage,ha)
+        assert num.allclose(stage,ha)
         msg='incorrect gauge ua time series returned'
-        assert allclose(xvelocity,ua)
+        assert num.allclose(xvelocity,ua)
         msg='incorrect gauge va time series returned'
-        assert allclose(yvelocity,va)
+        assert num.allclose(yvelocity,va)
         
 
         
@@ -6325,7 +6294,6 @@ friction  \n \
         does not
         """
         
-        from Numeric import sin, cos
         from urs_ext import read_mux2 
         
         verbose = False
@@ -6333,35 +6301,35 @@ friction  \n \
         tide = 1.5
         time_step_count = 10
         time_step = 0.2
-        times_ref = arange(0, time_step_count*time_step, time_step)
+        times_ref = num.arange(0, time_step_count*time_step, time_step)
 
         lat_long_points = [(-21.5,114.5), (-21,114.5), (-21.5,115), (-21.,115.), (-22., 117.)]
         n = len(lat_long_points)
         
         # Create different timeseries starting and ending at different times 
-        first_tstep=ones(n, Int)
+        first_tstep=num.ones(n, num.Int)
         first_tstep[0]+=2   # Point 0 starts at 2
         first_tstep[1]+=4   # Point 1 starts at 4        
         first_tstep[2]+=3   # Point 2 starts at 3
         
-        last_tstep=(time_step_count)*ones(n,Int)
+        last_tstep=(time_step_count)*num.ones(n,num.Int)
         last_tstep[0]-=1    # Point 0 ends 1 step early
         last_tstep[1]-=2    # Point 1 ends 2 steps early                
         last_tstep[4]-=3    # Point 4 ends 3 steps early        
         
         # Create varying elevation data (positive values for seafloor)
-        gauge_depth=20*ones(n,Float)
+        gauge_depth=20*num.ones(n,num.Float)
         for i in range(n):
             gauge_depth[i] += i**2
             
         # Create data to be written to first mux file        
-        ha0=2*ones((n,time_step_count),Float)
-        ha0[0]=arange(0,time_step_count)
-        ha0[1]=arange(time_step_count,2*time_step_count)
-        ha0[2]=arange(2*time_step_count,3*time_step_count)
-        ha0[3]=arange(3*time_step_count,4*time_step_count)
-        ua0=5*ones((n,time_step_count),Float)
-        va0=-10*ones((n,time_step_count),Float)
+        ha0=2*num.ones((n,time_step_count),num.Float)
+        ha0[0]=num.arange(0,time_step_count)
+        ha0[1]=num.arange(time_step_count,2*time_step_count)
+        ha0[2]=num.arange(2*time_step_count,3*time_step_count)
+        ha0[3]=num.arange(3*time_step_count,4*time_step_count)
+        ua0=5*num.ones((n,time_step_count),num.Float)
+        va0=-10*num.ones((n,time_step_count),num.Float)
 
         # Ensure data used to write mux file to be zero when gauges are
         # not recording
@@ -6400,7 +6368,7 @@ friction  \n \
 
         # For each quantity read the associated list of source mux2 file with 
         # extention associated with that quantity
-        file_params=-1*ones(3,Float) #[nsta,dt,nt]
+        file_params=-1*num.ones(3,num.Float) #[nsta,dt,nt]
         OFFSET = 5
 
         for j, file in enumerate(filesI):
@@ -6412,9 +6380,9 @@ friction  \n \
             parameters_index = data.shape[1]-OFFSET          
           
             for i in range(number_of_selected_stations):
-                if j == 0: assert allclose(data[i][:parameters_index], ha0[permutation[i], :])
-                if j == 1: assert allclose(data[i][:parameters_index], ua0[permutation[i], :])
-                if j == 2: assert allclose(data[i][:parameters_index], va0[permutation[i], :])
+                if j == 0: assert num.allclose(data[i][:parameters_index], ha0[permutation[i], :])
+                if j == 1: assert num.allclose(data[i][:parameters_index], ua0[permutation[i], :])
+                if j == 2: assert num.allclose(data[i][:parameters_index], va0[permutation[i], :])
         
 
 
@@ -6429,7 +6397,6 @@ friction  \n \
         This test does not pass on Windows but test_read_mux_platform_problem1 does
         """
         
-        from Numeric import sin, cos
         from urs_ext import read_mux2 
         
         from anuga.config import single_precision as epsilon        
@@ -6440,45 +6407,45 @@ friction  \n \
         time_step_count = 10
         time_step = 0.2
         
-        times_ref = arange(0, time_step_count*time_step, time_step)
+        times_ref = num.arange(0, time_step_count*time_step, time_step)
         
         lat_long_points = [(-21.5,114.5), (-21,114.5), (-21.5,115), (-21.,115.), (-22., 117.)]
         n = len(lat_long_points)
         
         # Create different timeseries starting and ending at different times 
-        first_tstep=ones(n,Int)
+        first_tstep=num.ones(n,num.Int)
         first_tstep[0]+=2   # Point 0 starts at 2
         first_tstep[1]+=4   # Point 1 starts at 4        
         first_tstep[2]+=3   # Point 2 starts at 3
         
-        last_tstep=(time_step_count)*ones(n,Int)
+        last_tstep=(time_step_count)*num.ones(n,num.Int)
         last_tstep[0]-=1    # Point 0 ends 1 step early
         last_tstep[1]-=2    # Point 1 ends 2 steps early                
         last_tstep[4]-=3    # Point 4 ends 3 steps early        
         
         # Create varying elevation data (positive values for seafloor)
-        gauge_depth=20*ones(n,Float)
+        gauge_depth=20*num.ones(n,num.Float)
         for i in range(n):
             gauge_depth[i] += i**2
             
         # Create data to be written to second mux file        
-        ha1=ones((n,time_step_count),Float)
-        ha1[0]=sin(times_ref)
-        ha1[1]=2*sin(times_ref - 3)
-        ha1[2]=5*sin(4*times_ref)
-        ha1[3]=sin(times_ref)
-        ha1[4]=sin(2*times_ref-0.7)
+        ha1=num.ones((n,time_step_count),num.Float)
+        ha1[0]=num.sin(times_ref)
+        ha1[1]=2*num.sin(times_ref - 3)
+        ha1[2]=5*num.sin(4*times_ref)
+        ha1[3]=num.sin(times_ref)
+        ha1[4]=num.sin(2*times_ref-0.7)
                 
-        ua1=zeros((n,time_step_count),Float)
-        ua1[0]=3*cos(times_ref)        
-        ua1[1]=2*sin(times_ref-0.7)   
-        ua1[2]=arange(3*time_step_count,4*time_step_count)
-        ua1[4]=2*ones(time_step_count)
+        ua1=num.zeros((n,time_step_count),num.Float)
+        ua1[0]=3*num.cos(times_ref)        
+        ua1[1]=2*num.sin(times_ref-0.7)   
+        ua1[2]=num.arange(3*time_step_count,4*time_step_count)
+        ua1[4]=2*num.ones(time_step_count)
         
-        va1=zeros((n,time_step_count),Float)
-        va1[0]=2*cos(times_ref-0.87)        
-        va1[1]=3*ones(time_step_count)
-        va1[3]=2*sin(times_ref-0.71)        
+        va1=num.zeros((n,time_step_count),num.Float)
+        va1[0]=2*num.cos(times_ref-0.87)        
+        va1[1]=3*num.ones(time_step_count)
+        va1[3]=2*num.sin(times_ref-0.71)        
         
         # Ensure data used to write mux file to be zero when gauges are
         # not recording
@@ -6548,17 +6515,17 @@ friction  \n \
 
             if ha is None:
                 this_ha = e
-                quantities_init[0].append(ones(time_step_count,Float)*this_ha) # HA
+                quantities_init[0].append(num.ones(time_step_count,num.Float)*this_ha) # HA
             else:
                 quantities_init[0].append(ha[i])
             if ua is None:
                 this_ua = n
-                quantities_init[1].append(ones(time_step_count,Float)*this_ua) # UA
+                quantities_init[1].append(num.ones(time_step_count,num.Float)*this_ua) # UA
             else:
                 quantities_init[1].append(ua[i])
             if va is None:
                 this_va = e
-                quantities_init[2].append(ones(time_step_count,Float)*this_va) #
+                quantities_init[2].append(num.ones(time_step_count,num.Float)*this_va) #
             else:
                 quantities_init[2].append(va[i])
 
@@ -6566,7 +6533,7 @@ friction  \n \
             #print
             #print i, q
             
-            q_time = zeros((time_step_count, points_num), Float)
+            q_time = num.zeros((time_step_count, points_num), num.Float)
             quantities_init[i] = ensure_numeric(quantities_init[i])
             for time in range(time_step_count):
                 #print i, q, time, quantities_init[i][:,time]
@@ -6652,7 +6619,7 @@ friction  \n \
 
         # For each quantity read the associated list of source mux2 file with 
         # extention associated with that quantity
-        file_params=-1*ones(3,Float) # [nsta,dt,nt]
+        file_params=-1*num.ones(3,num.Float) # [nsta,dt,nt]
         OFFSET = 5
 
         for j, file in enumerate(filesII):
@@ -6671,7 +6638,7 @@ friction  \n \
             # Index where data ends and parameters begin
             parameters_index = data.shape[1]-OFFSET          
                  
-            quantity=zeros((number_of_selected_stations, parameters_index), Float)
+            quantity=num.zeros((number_of_selected_stations, parameters_index), num.Float)
             
             
             for i in range(number_of_selected_stations):
@@ -6680,8 +6647,8 @@ friction  \n \
                 #print quantity[i][:]
 
                 
-                if j == 0: assert allclose(data[i][:parameters_index], ha1[permutation[i], :])
-                if j == 1: assert allclose(data[i][:parameters_index], ua1[permutation[i], :])
+                if j == 0: assert num.allclose(data[i][:parameters_index], ha1[permutation[i], :])
+                if j == 1: assert num.allclose(data[i][:parameters_index], ua1[permutation[i], :])
                 if j == 2:
                     # FIXME (Ole): This is where the output is wrong on Win32
                     
@@ -6694,7 +6661,7 @@ friction  \n \
                     #print 'Output'
                     #print 'v ', data[i][:parameters_index][8]                    
                 
-                    assert allclose(data[i][:parameters_index], va1[permutation[i], :])
+                    assert num.allclose(data[i][:parameters_index], va1[permutation[i], :])
                     
         
     def test_urs2sts0(self):
@@ -6706,20 +6673,20 @@ friction  \n \
         time_step = 2
         lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=ones(n,Int)
+        first_tstep=num.ones(n,num.Int)
         first_tstep[0]+=1
         first_tstep[2]+=1
-        last_tstep=(time_step_count)*ones(n,Int)
+        last_tstep=(time_step_count)*num.ones(n,num.Int)
         last_tstep[0]-=1
 
-        gauge_depth=20*ones(n,Float)
-        ha=2*ones((n,time_step_count),Float)
-        ha[0]=arange(0,time_step_count)
-        ha[1]=arange(time_step_count,2*time_step_count)
-        ha[2]=arange(2*time_step_count,3*time_step_count)
-        ha[3]=arange(3*time_step_count,4*time_step_count)
-        ua=5*ones((n,time_step_count),Float)
-        va=-10*ones((n,time_step_count),Float)
+        gauge_depth=20*num.ones(n,num.Float)
+        ha=2*num.ones((n,time_step_count),num.Float)
+        ha[0]=num.arange(0,time_step_count)
+        ha[1]=num.arange(time_step_count,2*time_step_count)
+        ha[2]=num.arange(2*time_step_count,3*time_step_count)
+        ha[3]=num.arange(3*time_step_count,4*time_step_count)
+        ua=5*num.ones((n,time_step_count),num.Float)
+        va=-10*num.ones((n,time_step_count),num.Float)
 
         base_name, files = self.write_mux2(lat_long_points,
                                       time_step_count, time_step,
@@ -6755,7 +6722,7 @@ friction  \n \
         #Work out the UTM coordinates for first point
         for i in range(4):
             zone, e, n = redfearn(lat_long_points[i][0], lat_long_points[i][1]) 
-            assert allclose([x[i],y[i]], [e,n])
+            assert num.allclose([x[i],y[i]], [e,n])
 
         #Check the time vector
         times = fid.variables['time'][:]
@@ -6764,8 +6731,8 @@ friction  \n \
         for i in range(time_step_count):
             times_actual.append(time_step * i)
 
-        assert allclose(ensure_numeric(times),
-                        ensure_numeric(times_actual))
+        assert num.allclose(ensure_numeric(times),
+                            ensure_numeric(times_actual))
 
         #Check first value
         stage = fid.variables['stage'][:]
@@ -6785,28 +6752,28 @@ friction  \n \
         va[0][time_step_count-1]=0.0;
         va[2][0]=0.0;
 
-        assert allclose(transpose(ha),stage)  #Meters
+        assert num.allclose(num.transpose(ha),stage)  #Meters
 
         #Check the momentums - ua
         #momentum = velocity*(stage-elevation)
         # elevation = - depth
         #momentum = velocity_ua *(stage+depth)
 
-        depth=zeros((len(lat_long_points),time_step_count),Float)
+        depth=num.zeros((len(lat_long_points),time_step_count),num.Float)
         for i in range(len(lat_long_points)):
             depth[i]=gauge_depth[i]+tide+ha[i]
-        assert allclose(transpose(ua*depth),xmomentum) 
+        assert num.allclose(num.transpose(ua*depth),xmomentum) 
 
         #Check the momentums - va
         #momentum = velocity*(stage-elevation)
         # elevation = - depth
         #momentum = velocity_va *(stage+depth)
 
-        assert allclose(transpose(va*depth),ymomentum)
+        assert num.allclose(num.transpose(va*depth),ymomentum)
 
         # check the elevation values.
         # -ve since urs measures depth, sww meshers height,
-        assert allclose(-elevation, gauge_depth)  #Meters
+        assert num.allclose(-elevation, gauge_depth)  #Meters
 
         fid.close()
         self.delete_mux(files)
@@ -6821,20 +6788,20 @@ friction  \n \
         time_step = 2
         lat_long_points =[(-21.,114.5),(-21.,113.5),(-21.,114.), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=ones(n,Int)
+        first_tstep=num.ones(n,num.Int)
         first_tstep[0]+=1
         first_tstep[2]+=1
-        last_tstep=(time_step_count)*ones(n,Int)
+        last_tstep=(time_step_count)*num.ones(n,num.Int)
         last_tstep[0]-=1
 
-        gauge_depth=20*ones(n,Float)
-        ha=2*ones((n,time_step_count),Float)
-        ha[0]=arange(0,time_step_count)
-        ha[1]=arange(time_step_count,2*time_step_count)
-        ha[2]=arange(2*time_step_count,3*time_step_count)
-        ha[3]=arange(3*time_step_count,4*time_step_count)
-        ua=5*ones((n,time_step_count),Float)
-        va=-10*ones((n,time_step_count),Float)
+        gauge_depth=20*num.ones(n,num.Float)
+        ha=2*num.ones((n,time_step_count),num.Float)
+        ha[0]=num.arange(0,time_step_count)
+        ha[1]=num.arange(time_step_count,2*time_step_count)
+        ha[2]=num.arange(2*time_step_count,3*time_step_count)
+        ha[3]=num.arange(3*time_step_count,4*time_step_count)
+        ua=5*num.ones((n,time_step_count),num.Float)
+        va=-10*num.ones((n,time_step_count),num.Float)
 
         base_name, files = self.write_mux2(lat_long_points,
                                       time_step_count, time_step,
@@ -6871,7 +6838,7 @@ friction  \n \
         #Using the non standard projection (50) 
         for i in range(4):
             zone, e, n = redfearn(lat_long_points[i][0], lat_long_points[i][1], zone=50) 
-            assert allclose([x[i],y[i]], [e,n])
+            assert num.allclose([x[i],y[i]], [e,n])
             assert zone==geo_reference.zone
 
     def test_urs2sts_nonstandard_projection_reverse(self):
@@ -6883,20 +6850,20 @@ friction  \n \
         time_step = 2
         lat_long_points =[(-21.,113.5),(-21.,114.5),(-21.,114.), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=ones(n,Int)
+        first_tstep=num.ones(n,num.Int)
         first_tstep[0]+=1
         first_tstep[2]+=1
-        last_tstep=(time_step_count)*ones(n,Int)
+        last_tstep=(time_step_count)*num.ones(n,num.Int)
         last_tstep[0]-=1
 
-        gauge_depth=20*ones(n,Float)
-        ha=2*ones((n,time_step_count),Float)
-        ha[0]=arange(0,time_step_count)
-        ha[1]=arange(time_step_count,2*time_step_count)
-        ha[2]=arange(2*time_step_count,3*time_step_count)
-        ha[3]=arange(3*time_step_count,4*time_step_count)
-        ua=5*ones((n,time_step_count),Float)
-        va=-10*ones((n,time_step_count),Float)
+        gauge_depth=20*num.ones(n,num.Float)
+        ha=2*num.ones((n,time_step_count),num.Float)
+        ha[0]=num.arange(0,time_step_count)
+        ha[1]=num.arange(time_step_count,2*time_step_count)
+        ha[2]=num.arange(2*time_step_count,3*time_step_count)
+        ha[3]=num.arange(3*time_step_count,4*time_step_count)
+        ua=5*num.ones((n,time_step_count),num.Float)
+        va=-10*num.ones((n,time_step_count),num.Float)
 
         base_name, files = self.write_mux2(lat_long_points,
                                       time_step_count, time_step,
@@ -6933,7 +6900,7 @@ friction  \n \
         #Using the non standard projection (50) 
         for i in range(4):
             zone, e, n = redfearn(lat_long_points[i][0], lat_long_points[i][1], zone=50) 
-            assert allclose([x[i],y[i]], [e,n])
+            assert num.allclose([x[i],y[i]], [e,n])
             assert zone==geo_reference.zone
 
             
@@ -6946,20 +6913,20 @@ friction  \n \
         time_step = 2
         lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=ones(n,Int)
+        first_tstep=num.ones(n,num.Int)
         first_tstep[0]+=1
         first_tstep[2]+=1
-        last_tstep=(time_step_count)*ones(n,Int)
+        last_tstep=(time_step_count)*num.ones(n,num.Int)
         last_tstep[0]-=1
 
-        gauge_depth=20*ones(n,Float)
-        ha=2*ones((n,time_step_count),Float)
-        ha[0]=arange(0,time_step_count)
-        ha[1]=arange(time_step_count,2*time_step_count)
-        ha[2]=arange(2*time_step_count,3*time_step_count)
-        ha[3]=arange(3*time_step_count,4*time_step_count)
-        ua=5*ones((n,time_step_count),Float)
-        va=-10*ones((n,time_step_count),Float)
+        gauge_depth=20*num.ones(n,num.Float)
+        ha=2*num.ones((n,time_step_count),num.Float)
+        ha[0]=num.arange(0,time_step_count)
+        ha[1]=num.arange(time_step_count,2*time_step_count)
+        ha[2]=num.arange(2*time_step_count,3*time_step_count)
+        ha[3]=num.arange(3*time_step_count,4*time_step_count)
+        ua=5*num.ones((n,time_step_count),num.Float)
+        va=-10*num.ones((n,time_step_count),num.Float)
 
         # Create two identical mux files to be combined by urs2sts
         base_nameI, filesI = self.write_mux2(lat_long_points,
@@ -7006,7 +6973,7 @@ friction  \n \
         #Check that first coordinate is correctly represented       
         #Work out the UTM coordinates for first point
         zone, e, n = redfearn(lat_long_points[0][0], lat_long_points[0][1]) 
-        assert allclose([x[0],y[0]], [e,n])
+        assert num.allclose([x[0],y[0]], [e,n])
 
         #Check the time vector
         times = fid.variables['time'][:]
@@ -7015,8 +6982,8 @@ friction  \n \
         for i in range(time_step_count):
             times_actual.append(time_step * i)
 
-        assert allclose(ensure_numeric(times),
-                        ensure_numeric(times_actual))
+        assert num.allclose(ensure_numeric(times),
+                            ensure_numeric(times_actual))
 
         #Check first value
         stage = fid.variables['stage'][:]
@@ -7040,22 +7007,22 @@ friction  \n \
         # The stage stored in the .sts file should be the sum of the stage
         # in the two mux2 files because both have weights = 1. In this case
         # the mux2 files are the same so stage == 2.0 * ha
-        #print 2.0*transpose(ha) - stage 
-        assert allclose(2.0*transpose(ha), stage)  #Meters
+        #print 2.0*num.transpose(ha) - stage 
+        assert num.allclose(2.0*num.transpose(ha), stage)  #Meters
 
         #Check the momentums - ua
         #momentum = velocity*(stage-elevation)
         # elevation = - depth
         #momentum = velocity_ua *(stage+depth)
 
-        depth=zeros((len(lat_long_points),time_step_count),Float)
+        depth=num.zeros((len(lat_long_points),time_step_count),num.Float)
         for i in range(len(lat_long_points)):
             depth[i]=gauge_depth[i]+tide+2.0*ha[i]
             #2.0*ha necessary because using two files with weights=1 are used
 
         # The xmomentum stored in the .sts file should be the sum of the ua
         # in the two mux2 files multiplied by the depth.
-        assert allclose(2.0*transpose(ua*depth), xmomentum) 
+        assert num.allclose(2.0*num.transpose(ua*depth), xmomentum) 
 
         #Check the momentums - va
         #momentum = velocity*(stage-elevation)
@@ -7064,11 +7031,11 @@ friction  \n \
 
         # The ymomentum stored in the .sts file should be the sum of the va
         # in the two mux2 files multiplied by the depth.
-        assert allclose(2.0*transpose(va*depth), ymomentum)
+        assert num.allclose(2.0*num.transpose(va*depth), ymomentum)
 
         # check the elevation values.
         # -ve since urs measures depth, sww meshers height,
-        assert allclose(-elevation, gauge_depth)  #Meters
+        assert num.allclose(-elevation, gauge_depth)  #Meters
 
         fid.close()
         self.delete_mux(filesI)
@@ -7080,8 +7047,6 @@ friction  \n \
            Test that the first recording time is the smallest
            over waveheight, easting and northing velocity
         """
-        from Numeric import asarray,transpose,sqrt,argmax,argmin,arange,Float,\
-            compress,zeros,fabs,take,size
         
         # Get path where this test is run
         path = get_pathname_from_package('anuga.shallow_water')        
@@ -7092,9 +7057,9 @@ friction  \n \
         sources = ['1-z.grd','2-z.grd','3-z.grd']
         
         # Start times by source and station taken manually from urs header files
-        time_start_z = array([[10.0,11.5,13,14.5,17.7],
-                              [9.8,11.2,12.7,14.2,17.4],
-                              [9.5,10.9,12.4,13.9,17.1]])
+        time_start_z = num.array([[10.0,11.5,13,14.5,17.7],
+                                  [9.8,11.2,12.7,14.2,17.4],
+                                  [9.5,10.9,12.4,13.9,17.1]])
 
         time_start_e = time_start_n = time_start_z
 
@@ -7136,7 +7101,7 @@ friction  \n \
             sts_starttime = fid.starttime[0]
             msg = 'sts starttime for source %d was %f. Should have been %f'\
                 %(source_number, sts_starttime, starttime)
-            assert allclose(sts_starttime, starttime), msg             
+            assert num.allclose(sts_starttime, starttime), msg             
 
             # For each station, compare urs2sts output to known urs output
             for j in range(len(x)):
@@ -7182,15 +7147,15 @@ friction  \n \
                 # Check that actual start time matches header information for stage
                 msg = 'stage start time from urs file is not the same as the '
                 msg += 'header file for source %i and station %i' %(source_number,j)
-                assert allclose(index_start_urs_z,start_times_z[j]/delta_t), msg
+                assert num.allclose(index_start_urs_z,start_times_z[j]/delta_t), msg
 
 		msg = 'e velocity start time from urs file is not the same as the '
                 msg += 'header file for source %i and station %i' %(source_number,j)
-		assert allclose(index_start_urs_e,start_times_e[j]/delta_t), msg
+		assert num.allclose(index_start_urs_e,start_times_e[j]/delta_t), msg
 
 		msg = 'n velocity start time from urs file is not the same as the '
                 msg += 'header file for source %i and station %i' %(source_number,j)
-		assert allclose(index_start_urs_n,start_times_n[j]/delta_t), msg
+		assert num.allclose(index_start_urs_n,start_times_n[j]/delta_t), msg
 		
 		# get index for start and end time for sts quantities
                 index_start_stage = 0
@@ -7217,13 +7182,13 @@ friction  \n \
 
                 # check that urs stage and sts stage are the same
                 msg = 'urs stage is not equal to sts stage for for source %i and station %i' %(source_number,j)
-                assert allclose(urs_stage[index_start_urs_z:index_end_urs_z],
+                assert num.allclose(urs_stage[index_start_urs_z:index_end_urs_z],
                                 sts_stage[index_start_stage:index_end_stage], 
                                 rtol=1.0e-6, atol=1.0e-5 ), msg                                
 				
                 # check that urs e velocity and sts xmomentum are the same
 		msg = 'urs e velocity is not equivalent to sts x momentum for for source %i and station %i' %(source_number,j)
-                assert allclose(urs_e[index_start_urs_e:index_end_urs_e]*(urs_stage[index_start_urs_e:index_end_urs_e]-elevation[j]),
+                assert num.allclose(urs_e[index_start_urs_e:index_end_urs_e]*(urs_stage[index_start_urs_e:index_end_urs_e]-elevation[j]),
                                 sts_xmom[index_start_x:index_end_x], 
                                 rtol=1.0e-5, atol=1.0e-4 ), msg
 		
@@ -7231,7 +7196,7 @@ friction  \n \
                 #print 'urs n velocity', urs_n[index_start_urs_n:index_end_urs_n]*(urs_stage[index_start_urs_n:index_end_urs_n]-elevation[j])
                 #print 'sts momentum', sts_ymom[index_start_y:index_end_y]                                                             
                 msg = 'urs n velocity is not equivalent to sts y momentum for source %i and station %i' %(source_number,j)
-                assert allclose(urs_n[index_start_urs_n:index_end_urs_n]*(urs_stage[index_start_urs_n:index_end_urs_n]-elevation[j]),
+                assert num.allclose(urs_n[index_start_urs_n:index_end_urs_n]*(urs_stage[index_start_urs_n:index_end_urs_n]-elevation[j]),
                                 sts_ymom[index_start_y:index_end_y], 
                                 rtol=1.0e-5, atol=1.0e-4 ), msg
                                                 
@@ -7245,11 +7210,9 @@ friction  \n \
            Test that the first recording time is the smallest
            over waveheight, easting and northing velocity
         """
-        from Numeric import asarray,transpose,sqrt,argmax,argmin,arange,Float,\
-            compress,zeros,fabs,take,size
 
         # combined
-        time_start_z = array([9.5,10.9,12.4,13.9,17.1])
+        time_start_z = num.array([9.5,10.9,12.4,13.9,17.1])
         time_start_e = time_start_n = time_start_z
          
         # make sts file for combined sources
@@ -7285,7 +7248,7 @@ friction  \n \
         stored_permutation = fid.variables['permutation'][:]
         msg = 'Permutation was not stored correctly. I got '
         msg += str(stored_permutation)
-        assert allclose(stored_permutation, permutation), msg        
+        assert num.allclose(stored_permutation, permutation), msg        
 
         # get quantity data from sts file
         quantity_names=['stage','xmomentum','ymomentum']
@@ -7302,7 +7265,7 @@ friction  \n \
         sts_starttime = fid.starttime[0]
         msg = 'sts starttime was %f. Should have been %f'\
             %(sts_starttime, starttime)
-        assert allclose(sts_starttime, starttime), msg
+        assert num.allclose(sts_starttime, starttime), msg
     
 	#stations = [1,2,3]
         #for j in stations: 
@@ -7347,15 +7310,15 @@ friction  \n \
             # Check that actual start time matches header information for stage
             msg = 'stage start time from urs file is not the same as the '
             msg += 'header file at station %i' %(j)
-            assert allclose(index_start_urs_z,start_times_z/delta_t), msg
+            assert num.allclose(index_start_urs_z,start_times_z/delta_t), msg
 
 	    msg = 'e velocity start time from urs file is not the same as the '
             msg += 'header file at station %i' %(j)
-	    assert allclose(index_start_urs_e,start_times_e/delta_t), msg
+	    assert num.allclose(index_start_urs_e,start_times_e/delta_t), msg
 
 	    msg = 'n velocity start time from urs file is not the same as the '
             msg += 'header file at station %i' %(j)
-	    assert allclose(index_start_urs_n,start_times_n/delta_t), msg
+	    assert num.allclose(index_start_urs_n,start_times_n/delta_t), msg
 		
 	    # get index for start and end time for sts quantities
             index_start_stage = 0
@@ -7391,19 +7354,19 @@ friction  \n \
             #print 'sts stage', sts_stage[index_start_stage:index_end_stage]
             #print 'diff', max(urs_stage[index_start_urs_z:index_end_urs_z]-sts_stage[index_start_stage:index_end_stage])
             #print 'index', index_start_stage, index_end_stage, len(sts_stage)
-            assert allclose(urs_stage[index_start_urs_z:index_end_urs_z],
+            assert num.allclose(urs_stage[index_start_urs_z:index_end_urs_z],
                             sts_stage[index_start_stage:index_end_stage], 
                                 rtol=1.0e-5, atol=1.0e-4 ), msg                                
 				
             # check that urs e velocity and sts xmomentum are the same          
             msg = 'urs e velocity is not equivalent to sts xmomentum for station %i' %j
-            assert allclose(urs_e[index_start_urs_e:index_end_urs_e]*(urs_stage[index_start_urs_e:index_end_urs_e]-elevation[j]),
+            assert num.allclose(urs_e[index_start_urs_e:index_end_urs_e]*(urs_stage[index_start_urs_e:index_end_urs_e]-elevation[j]),
                             sts_xmom[index_start_x:index_end_x], 
                             rtol=1.0e-5, atol=1.0e-4 ), msg
 		
             # check that urs n velocity and sts ymomentum are the same                            
             msg = 'urs n velocity is not equivalent to sts ymomentum for station %i' %j
-            assert allclose(urs_n[index_start_urs_n:index_end_urs_n]*(urs_stage[index_start_urs_n:index_end_urs_n]-elevation[j]),
+            assert num.allclose(urs_n[index_start_urs_n:index_end_urs_n]*(urs_stage[index_start_urs_n:index_end_urs_n]-elevation[j]),
                             sts_ymom[index_start_y:index_end_y], 
                             rtol=1.0e-5, atol=1.0e-4 ), msg
 
@@ -7422,20 +7385,20 @@ friction  \n \
         time_step = 2
         lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=ones(n,Int)
+        first_tstep=num.ones(n,num.Int)
         first_tstep[0]+=1
         first_tstep[2]+=1
-        last_tstep=(time_step_count)*ones(n,Int)
+        last_tstep=(time_step_count)*num.ones(n,num.Int)
         last_tstep[0]-=1
 
-        gauge_depth=20*ones(n,Float)
-        ha=2*ones((n,time_step_count),Float)
-        ha[0]=arange(0,time_step_count)
-        ha[1]=arange(time_step_count,2*time_step_count)
-        ha[2]=arange(2*time_step_count,3*time_step_count)
-        ha[3]=arange(3*time_step_count,4*time_step_count)
-        ua=5*ones((n,time_step_count),Float)
-        va=-10*ones((n,time_step_count),Float)
+        gauge_depth=20*num.ones(n,num.Float)
+        ha=2*num.ones((n,time_step_count),num.Float)
+        ha[0]=num.arange(0,time_step_count)
+        ha[1]=num.arange(time_step_count,2*time_step_count)
+        ha[2]=num.arange(2*time_step_count,3*time_step_count)
+        ha[3]=num.arange(3*time_step_count,4*time_step_count)
+        ua=5*num.ones((n,time_step_count),num.Float)
+        va=-10*num.ones((n,time_step_count),num.Float)
 
         # Create two identical mux files to be combined by urs2sts
         base_nameI, filesI = self.write_mux2(lat_long_points,
@@ -7489,7 +7452,7 @@ friction  \n \
         stored_permutation = fid.variables['permutation'][:]
         msg = 'Permutation was not stored correctly. I got '
         msg += str(stored_permutation)
-        assert allclose(stored_permutation, permutation), msg
+        assert num.allclose(stored_permutation, permutation), msg
         
 
         # Make x and y absolute
@@ -7514,7 +7477,7 @@ friction  \n \
                                   lat_long_points[index][1])             
 
             #print i, [x[i],y[i]], [e,n]
-            assert allclose([x[i],y[i]], [e,n])
+            assert num.allclose([x[i],y[i]], [e,n])
             
                         
         # Check the time vector
@@ -7524,8 +7487,8 @@ friction  \n \
         for i in range(time_step_count):
             times_actual.append(time_step * i)
 
-        assert allclose(ensure_numeric(times),
-                        ensure_numeric(times_actual))
+        assert num.allclose(ensure_numeric(times),
+                            ensure_numeric(times_actual))
                         
 
         # Check sts values
@@ -7551,32 +7514,32 @@ friction  \n \
         # The stage stored in the .sts file should be the sum of the stage
         # in the two mux2 files because both have weights = 1. In this case
         # the mux2 files are the same so stage == 2.0 * ha
-        #print 2.0*transpose(ha) - stage 
+        #print 2.0*num.transpose(ha) - stage 
         
-        ha_permutation = take(ha, permutation) 
-        ua_permutation = take(ua, permutation)         
-        va_permutation = take(va, permutation)                 
-        gauge_depth_permutation = take(gauge_depth, permutation)                         
+        ha_permutation = num.take(ha, permutation) 
+        ua_permutation = num.take(ua, permutation)         
+        va_permutation = num.take(va, permutation)                 
+        gauge_depth_permutation = num.take(gauge_depth, permutation)                         
 
         
-        assert allclose(2.0*transpose(ha_permutation)+tide, stage)  # Meters
+        assert num.allclose(2.0*num.transpose(ha_permutation)+tide, stage)  # Meters
 
         #Check the momentums - ua
         #momentum = velocity*(stage-elevation)
         # elevation = - depth
         #momentum = velocity_ua *(stage+depth)
 
-        depth=zeros((len(lat_long_points),time_step_count),Float)
+        depth=num.zeros((len(lat_long_points),time_step_count),num.Float)
         for i in range(len(lat_long_points)):
             depth[i]=gauge_depth[i]+tide+2.0*ha[i]
             #2.0*ha necessary because using two files with weights=1 are used
             
-        depth_permutation = take(depth, permutation)                     
+        depth_permutation = num.take(depth, permutation)                     
         
 
         # The xmomentum stored in the .sts file should be the sum of the ua
         # in the two mux2 files multiplied by the depth.
-        assert allclose(2.0*transpose(ua_permutation*depth_permutation), xmomentum) 
+        assert num.allclose(2.0*num.transpose(ua_permutation*depth_permutation), xmomentum) 
 
         #Check the momentums - va
         #momentum = velocity*(stage-elevation)
@@ -7585,11 +7548,11 @@ friction  \n \
 
         # The ymomentum stored in the .sts file should be the sum of the va
         # in the two mux2 files multiplied by the depth.
-        assert allclose(2.0*transpose(va_permutation*depth_permutation), ymomentum)
+        assert num.allclose(2.0*num.transpose(va_permutation*depth_permutation), ymomentum)
 
         # check the elevation values.
         # -ve since urs measures depth, sww meshers height,
-        assert allclose(-gauge_depth_permutation, elevation)  #Meters
+        assert num.allclose(-gauge_depth_permutation, elevation)  #Meters
 
         fid.close()
         self.delete_mux(filesI)
@@ -7609,20 +7572,20 @@ friction  \n \
         time_step = 2
         lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=ones(n,Int)
+        first_tstep=num.ones(n,num.Int)
         first_tstep[0]+=1
         first_tstep[2]+=1
-        last_tstep=(time_step_count)*ones(n,Int)
+        last_tstep=(time_step_count)*num.ones(n,num.Int)
         last_tstep[0]-=1
 
-        gauge_depth=20*ones(n,Float)
-        ha=2*ones((n,time_step_count),Float)
-        ha[0]=arange(0,time_step_count)
-        ha[1]=arange(time_step_count,2*time_step_count)
-        ha[2]=arange(2*time_step_count,3*time_step_count)
-        ha[3]=arange(3*time_step_count,4*time_step_count)
-        ua=5*ones((n,time_step_count),Float)
-        va=-10*ones((n,time_step_count),Float)
+        gauge_depth=20*num.ones(n,num.Float)
+        ha=2*num.ones((n,time_step_count),num.Float)
+        ha[0]=num.arange(0,time_step_count)
+        ha[1]=num.arange(time_step_count,2*time_step_count)
+        ha[2]=num.arange(2*time_step_count,3*time_step_count)
+        ha[3]=num.arange(3*time_step_count,4*time_step_count)
+        ua=5*num.ones((n,time_step_count),num.Float)
+        va=-10*num.ones((n,time_step_count),num.Float)
 
         # Create two identical mux files to be combined by urs2sts
         base_nameI, filesI = self.write_mux2(lat_long_points,
@@ -7678,13 +7641,11 @@ friction  \n \
            This test also has more variable values than the previous ones
         """
         
-        from Numeric import sin, cos
-                
         tide = 1.5
         time_step_count = 10
         time_step = 0.2
         
-        times_ref = arange(0, time_step_count*time_step, time_step)
+        times_ref = num.arange(0, time_step_count*time_step, time_step)
         #print 'time vector', times_ref
         
         lat_long_points = [(-21.5,114.5), (-21,114.5), (-21.5,115), (-21.,115.), (-22., 117.)]
@@ -7707,12 +7668,12 @@ friction  \n \
         
         
         # Create different timeseries starting and ending at different times 
-        first_tstep=ones(n,Int)
+        first_tstep=num.ones(n,num.Int)
         first_tstep[0]+=2   # Point 0 starts at 2
         first_tstep[1]+=4   # Point 1 starts at 4        
         first_tstep[2]+=3   # Point 2 starts at 3
         
-        last_tstep=(time_step_count)*ones(n,Int)
+        last_tstep=(time_step_count)*num.ones(n,num.Int)
         last_tstep[0]-=1    # Point 0 ends 1 step early
         last_tstep[1]-=2    # Point 1 ends 2 steps early                
         last_tstep[4]-=3    # Point 4 ends 3 steps early        
@@ -7725,20 +7686,20 @@ friction  \n \
         
         
         # Create varying elevation data (positive values for seafloor)
-        gauge_depth=20*ones(n,Float)
+        gauge_depth=20*num.ones(n,num.Float)
         for i in range(n):
             gauge_depth[i] += i**2
             
         #print 'gauge_depth', gauge_depth
         
         # Create data to be written to first mux file        
-        ha0=2*ones((n,time_step_count),Float)
-        ha0[0]=arange(0,time_step_count)
-        ha0[1]=arange(time_step_count,2*time_step_count)
-        ha0[2]=arange(2*time_step_count,3*time_step_count)
-        ha0[3]=arange(3*time_step_count,4*time_step_count)
-        ua0=5*ones((n,time_step_count),Float)
-        va0=-10*ones((n,time_step_count),Float)
+        ha0=2*num.ones((n,time_step_count),num.Float)
+        ha0[0]=num.arange(0,time_step_count)
+        ha0[1]=num.arange(time_step_count,2*time_step_count)
+        ha0[2]=num.arange(2*time_step_count,3*time_step_count)
+        ha0[3]=num.arange(3*time_step_count,4*time_step_count)
+        ua0=5*num.ones((n,time_step_count),num.Float)
+        va0=-10*num.ones((n,time_step_count),num.Float)
 
         # Ensure data used to write mux file to be zero when gauges are
         # not recording
@@ -7769,23 +7730,23 @@ friction  \n \
                                              
                                              
         # Create data to be written to second mux file        
-        ha1=ones((n,time_step_count),Float)
-        ha1[0]=sin(times_ref)
-        ha1[1]=2*sin(times_ref - 3)
-        ha1[2]=5*sin(4*times_ref)
-        ha1[3]=sin(times_ref)
-        ha1[4]=sin(2*times_ref-0.7)
+        ha1=num.ones((n,time_step_count),num.Float)
+        ha1[0]=num.sin(times_ref)
+        ha1[1]=2*num.sin(times_ref - 3)
+        ha1[2]=5*num.sin(4*times_ref)
+        ha1[3]=num.sin(times_ref)
+        ha1[4]=num.sin(2*times_ref-0.7)
                 
-        ua1=zeros((n,time_step_count),Float)
-        ua1[0]=3*cos(times_ref)        
-        ua1[1]=2*sin(times_ref-0.7)   
-        ua1[2]=arange(3*time_step_count,4*time_step_count)
-        ua1[4]=2*ones(time_step_count)
+        ua1=num.zeros((n,time_step_count),num.Float)
+        ua1[0]=3*num.cos(times_ref)        
+        ua1[1]=2*num.sin(times_ref-0.7)   
+        ua1[2]=num.arange(3*time_step_count,4*time_step_count)
+        ua1[4]=2*num.ones(time_step_count)
         
-        va1=zeros((n,time_step_count),Float)
-        va1[0]=2*cos(times_ref-0.87)        
-        va1[1]=3*ones(time_step_count)
-        va1[3]=2*sin(times_ref-0.71)        
+        va1=num.zeros((n,time_step_count),num.Float)
+        va1[0]=2*num.cos(times_ref-0.87)        
+        va1[1]=3*num.ones(time_step_count)
+        va1[3]=2*num.sin(times_ref-0.71)        
         
         
         # Ensure data used to write mux file to be zero when gauges are
@@ -7848,7 +7809,7 @@ friction  \n \
         stored_permutation = fid.variables['permutation'][:]
         msg = 'Permutation was not stored correctly. I got '
         msg += str(stored_permutation)
-        assert allclose(stored_permutation, permutation), msg
+        assert num.allclose(stored_permutation, permutation), msg
         
 
         
@@ -7872,13 +7833,13 @@ friction  \n \
                                   lat_long_points[index][1])             
 
             #print i, [x[i],y[i]], [e,n]
-            assert allclose([x[i],y[i]], [e,n])
+            assert num.allclose([x[i],y[i]], [e,n])
             
                         
         # Check the time vector
         times = fid.variables['time'][:]
-        assert allclose(ensure_numeric(times),
-                        ensure_numeric(times_ref))
+        assert num.allclose(ensure_numeric(times),
+                            ensure_numeric(times_ref))
                         
 
         # Check sts values for mux #0
@@ -7896,13 +7857,13 @@ friction  \n \
         # The quantities stored in the .sts file should be the weighted sum of the 
         # quantities written to the mux2 files subject to the permutation vector.
         
-        ha_ref = take(ha0, permutation)
-        ua_ref = take(ua0, permutation)        
-        va_ref = take(va0, permutation)                
+        ha_ref = num.take(ha0, permutation)
+        ua_ref = num.take(ua0, permutation)        
+        va_ref = num.take(va0, permutation)                
 
-        gauge_depth_ref = take(gauge_depth, permutation)                      
+        gauge_depth_ref = num.take(gauge_depth, permutation)                      
         
-        assert allclose(transpose(ha_ref)+tide, stage0)  # Meters
+        assert num.allclose(num.transpose(ha_ref)+tide, stage0)  # Meters
         
         
         
@@ -7911,14 +7872,14 @@ friction  \n \
         # elevation = - depth
         #momentum = velocity_ua *(stage+depth)
 
-        depth_ref = zeros((len(permutation), time_step_count), Float)
+        depth_ref = num.zeros((len(permutation), time_step_count), num.Float)
         for i in range(len(permutation)):
             depth_ref[i]=gauge_depth_ref[i]+tide+ha_ref[i]
 
 
         # The xmomentum stored in the .sts file should be the sum of the ua
         # in the two mux2 files multiplied by the depth.
-        assert allclose(transpose(ua_ref*depth_ref), xmomentum0) 
+        assert num.allclose(num.transpose(ua_ref*depth_ref), xmomentum0) 
 
         #Check the momentums - va
         #momentum = velocity*(stage-elevation)
@@ -7931,11 +7892,11 @@ friction  \n \
         
         #print transpose(va_ref*depth_ref)
         #print ymomentum
-        assert allclose(transpose(va_ref*depth_ref), ymomentum0)        
+        assert num.allclose(num.transpose(va_ref*depth_ref), ymomentum0)        
 
         # check the elevation values.
         # -ve since urs measures depth, sww meshers height,
-        assert allclose(-gauge_depth_ref, elevation0) 
+        assert num.allclose(-gauge_depth_ref, elevation0) 
 
         fid.close()
         os.remove(sts_file)
@@ -7959,7 +7920,7 @@ friction  \n \
         stored_permutation = fid.variables['permutation'][:]
         msg = 'Permutation was not stored correctly. I got '
         msg += str(stored_permutation)
-        assert allclose(stored_permutation, permutation), msg
+        assert num.allclose(stored_permutation, permutation), msg
         
         # Make x and y absolute
         x = fid.variables['x'][:]
@@ -7980,13 +7941,13 @@ friction  \n \
                                   lat_long_points[index][1])             
 
             #print i, [x[i],y[i]], [e,n]
-            assert allclose([x[i],y[i]], [e,n])
+            assert num.allclose([x[i],y[i]], [e,n])
             
                         
         # Check the time vector
         times = fid.variables['time'][:]
-        assert allclose(ensure_numeric(times),
-                        ensure_numeric(times_ref))
+        assert num.allclose(ensure_numeric(times),
+                            ensure_numeric(times_ref))
                         
 
         # Check sts values for mux #1 
@@ -8004,11 +7965,11 @@ friction  \n \
         # The quantities stored in the .sts file should be the weighted sum of the 
         # quantities written to the mux2 files subject to the permutation vector.
         
-        ha_ref = take(ha1, permutation)
-        ua_ref = take(ua1, permutation)        
-        va_ref = take(va1, permutation)                
+        ha_ref = num.take(ha1, permutation)
+        ua_ref = num.take(ua1, permutation)        
+        va_ref = num.take(va1, permutation)                
 
-        gauge_depth_ref = take(gauge_depth, permutation)                         
+        gauge_depth_ref = num.take(gauge_depth, permutation)                         
 
 
         #print 
@@ -8016,7 +7977,7 @@ friction  \n \
         #print transpose(ha_ref)+tide - stage1
         
 
-        assert allclose(transpose(ha_ref)+tide, stage1)  # Meters
+        assert num.allclose(num.transpose(ha_ref)+tide, stage1)  # Meters
         #import sys; sys.exit()
 
         #Check the momentums - ua
@@ -8024,14 +7985,14 @@ friction  \n \
         # elevation = - depth
         #momentum = velocity_ua *(stage+depth)
 
-        depth_ref = zeros((len(permutation), time_step_count), Float)
+        depth_ref = num.zeros((len(permutation), time_step_count), num.Float)
         for i in range(len(permutation)):
             depth_ref[i]=gauge_depth_ref[i]+tide+ha_ref[i]
 
 
         # The xmomentum stored in the .sts file should be the sum of the ua
         # in the two mux2 files multiplied by the depth.
-        assert allclose(transpose(ua_ref*depth_ref), xmomentum1) 
+        assert num.allclose(num.transpose(ua_ref*depth_ref), xmomentum1) 
 
         #Check the momentums - va
         #momentum = velocity*(stage-elevation)
@@ -8044,11 +8005,11 @@ friction  \n \
         
         #print transpose(va_ref*depth_ref)
         #print ymomentum
-        assert allclose(transpose(va_ref*depth_ref), ymomentum1)        
+        assert num.allclose(num.transpose(va_ref*depth_ref), ymomentum1)        
 
         # check the elevation values.
         # -ve since urs measures depth, sww meshers height,
-        assert allclose(-gauge_depth_ref, elevation1) 
+        assert num.allclose(-gauge_depth_ref, elevation1) 
 
         fid.close()
         os.remove(sts_file)
@@ -8090,13 +8051,13 @@ friction  \n \
                                   lat_long_points[index][1])             
 
             #print i, [x[i],y[i]], [e,n]
-            assert allclose([x[i],y[i]], [e,n])
+            assert num.allclose([x[i],y[i]], [e,n])
             
                         
         # Check the time vector
         times = fid.variables['time'][:]
-        assert allclose(ensure_numeric(times),
-                        ensure_numeric(times_ref))
+        assert num.allclose(ensure_numeric(times),
+                            ensure_numeric(times_ref))
                         
 
         # Check sts values
@@ -8112,25 +8073,25 @@ friction  \n \
         # The quantities stored in the .sts file should be the weighted sum of the 
         # quantities written to the mux2 files subject to the permutation vector.
         
-        ha_ref = weights[0]*take(ha0, permutation) + weights[1]*take(ha1, permutation)
-        ua_ref = weights[0]*take(ua0, permutation) + weights[1]*take(ua1, permutation)        
-        va_ref = weights[0]*take(va0, permutation) + weights[1]*take(va1, permutation)                
+        ha_ref = weights[0]*num.take(ha0, permutation) + weights[1]*num.take(ha1, permutation)
+        ua_ref = weights[0]*num.take(ua0, permutation) + weights[1]*num.take(ua1, permutation)        
+        va_ref = weights[0]*num.take(va0, permutation) + weights[1]*num.take(va1, permutation)                
 
-        gauge_depth_ref = take(gauge_depth, permutation)                         
+        gauge_depth_ref = num.take(gauge_depth, permutation)                         
 
 
         #print 
         #print stage
         #print transpose(ha_ref)+tide - stage
 
-        assert allclose(transpose(ha_ref)+tide, stage)  # Meters
+        assert num.allclose(num.transpose(ha_ref)+tide, stage)  # Meters
 
         #Check the momentums - ua
         #momentum = velocity*(stage-elevation)
         # elevation = - depth
         #momentum = velocity_ua *(stage+depth)
 
-        depth_ref = zeros((len(permutation), time_step_count), Float)
+        depth_ref = num.zeros((len(permutation), time_step_count), num.Float)
         for i in range(len(permutation)):
             depth_ref[i]=gauge_depth_ref[i]+tide+ha_ref[i]
 
@@ -8139,7 +8100,7 @@ friction  \n \
 
         # The xmomentum stored in the .sts file should be the sum of the ua
         # in the two mux2 files multiplied by the depth.
-        assert allclose(transpose(ua_ref*depth_ref), xmomentum) 
+        assert num.allclose(num.transpose(ua_ref*depth_ref), xmomentum) 
 
         #Check the momentums - va
         #momentum = velocity*(stage-elevation)
@@ -8153,11 +8114,11 @@ friction  \n \
         #print transpose(va_ref*depth_ref)
         #print ymomentum
 
-        assert allclose(transpose(va_ref*depth_ref), ymomentum)
+        assert num.allclose(num.transpose(va_ref*depth_ref), ymomentum)
 
         # check the elevation values.
         # -ve since urs measures depth, sww meshers height,
-        assert allclose(-gauge_depth_ref, elevation)  #Meters
+        assert num.allclose(-gauge_depth_ref, elevation)  #Meters
 
         fid.close()
         self.delete_mux(filesI)
@@ -8172,7 +8133,7 @@ friction  \n \
         #
 
         stage_man = weights[0]*(stage0-tide) + weights[1]*(stage1-tide) + tide
-        assert allclose(stage_man, stage)
+        assert num.allclose(stage_man, stage)
         
         
         
@@ -8199,17 +8160,17 @@ friction  \n \
         time_step = 2
         lat_long_points =bounding_polygon[0:3]
         n=len(lat_long_points)
-        first_tstep=ones(n,Int)
-        last_tstep=(time_step_count)*ones(n,Int)
+        first_tstep=num.ones(n,num.Int)
+        last_tstep=(time_step_count)*num.ones(n,num.Int)
 
         h = 20        
         w = 2
         u = 10
         v = -10
-        gauge_depth=h*ones(n,Float)
-        ha=w*ones((n,time_step_count),Float)
-        ua=u*ones((n,time_step_count),Float)
-        va=v*ones((n,time_step_count),Float)
+        gauge_depth=h*num.ones(n,num.Float)
+        ha=w*num.ones((n,time_step_count),num.Float)
+        ua=u*num.ones((n,time_step_count),num.Float)
+        va=v*num.ones((n,time_step_count),num.Float)
         base_name, files = self.write_mux2(lat_long_points,
                                            time_step_count, time_step,
                                            first_tstep, last_tstep,
@@ -8256,13 +8217,13 @@ friction  \n \
                 qf = B.evaluate(vol_id, edge_id)  # File boundary
                 qd = Bd.evaluate(vol_id, edge_id) # Dirichlet boundary
 
-                assert allclose(qf, qd) 
+                assert num.allclose(qf, qd) 
                 
         
         # Evolve
         finaltime=time_step*(time_step_count-1)
         yieldstep=time_step
-        temp_fbound=zeros(int(finaltime/yieldstep)+1,Float)
+        temp_fbound=num.zeros(int(finaltime/yieldstep)+1,num.Float)
 
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -8279,7 +8240,7 @@ friction  \n \
                 (vol_id, edge_id), B = D.boundary_objects[j]
                 if isinstance(B, File_boundary):
                     #print j, val
-                    assert allclose(val, w + tide)
+                    assert num.allclose(val, w + tide)
 
 
 
@@ -8294,7 +8255,7 @@ friction  \n \
         Br = Reflective_boundary(domain_drchlt)
 
         domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
-        temp_drchlt=zeros(int(finaltime/yieldstep)+1,Float)
+        temp_drchlt=num.zeros(int(finaltime/yieldstep)+1,num.Float)
 
         for i, t in enumerate(domain_drchlt.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -8304,16 +8265,16 @@ friction  \n \
         #print domain_fbound.quantities['stage'].vertex_values
         #print domain_drchlt.quantities['stage'].vertex_values
                     
-        assert allclose(temp_fbound,temp_drchlt)
+        assert num.allclose(temp_fbound,temp_drchlt)
         
-        assert allclose(domain_fbound.quantities['stage'].vertex_values,
-                        domain_drchlt.quantities['stage'].vertex_values)
+        assert num.allclose(domain_fbound.quantities['stage'].vertex_values,
+                            domain_drchlt.quantities['stage'].vertex_values)
                         
-        assert allclose(domain_fbound.quantities['xmomentum'].vertex_values,
-                        domain_drchlt.quantities['xmomentum'].vertex_values)                        
+        assert num.allclose(domain_fbound.quantities['xmomentum'].vertex_values,
+                            domain_drchlt.quantities['xmomentum'].vertex_values)                        
                         
-        assert allclose(domain_fbound.quantities['ymomentum'].vertex_values,
-                        domain_drchlt.quantities['ymomentum'].vertex_values)                                                
+        assert num.allclose(domain_fbound.quantities['ymomentum'].vertex_values,
+                            domain_drchlt.quantities['ymomentum'].vertex_values)                                                
         
         
         os.remove(sts_file+'.sts')
@@ -8349,17 +8310,17 @@ friction  \n \
         time_step = 2
         lat_long_points = bounding_polygon[0:3]
         n=len(lat_long_points)
-        first_tstep=ones(n,Int)
-        last_tstep=(time_step_count)*ones(n,Int)
+        first_tstep=num.ones(n,num.Int)
+        last_tstep=(time_step_count)*num.ones(n,num.Int)
 
         h = 20        
         w = 2
         u = 10
         v = -10
-        gauge_depth=h*ones(n,Float)
-        ha=w*ones((n,time_step_count),Float)
-        ua=u*ones((n,time_step_count),Float)
-        va=v*ones((n,time_step_count),Float)
+        gauge_depth=h*num.ones(n,num.Float)
+        ha=w*num.ones((n,time_step_count),num.Float)
+        ua=u*num.ones((n,time_step_count),num.Float)
+        va=v*num.ones((n,time_step_count),num.Float)
         base_name, files = self.write_mux2(lat_long_points,
                                            time_step_count, time_step,
                                            first_tstep, last_tstep,
@@ -8414,14 +8375,14 @@ friction  \n \
                 qf = B.evaluate(vol_id, edge_id)  # File boundary
                 qd = Bd.evaluate(vol_id, edge_id) # Dirichlet boundary
 
-                assert allclose(qf, qd) 
+                assert num.allclose(qf, qd) 
                 
         
         # Evolve
         data_finaltime = time_step*(time_step_count-1)
         finaltime = data_finaltime + 10 # Let model time exceed available data
         yieldstep = time_step
-        temp_fbound=zeros(int(finaltime/yieldstep)+1, Float)
+        temp_fbound=num.zeros(int(finaltime/yieldstep)+1, num.Float)
 
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -8438,7 +8399,7 @@ friction  \n \
                 (vol_id, edge_id), B = D.boundary_objects[j]
                 if isinstance(B, File_boundary):
                     #print j, val
-                    assert allclose(val, w + tide)
+                    assert num.allclose(val, w + tide)
 
 
 
@@ -8453,7 +8414,7 @@ friction  \n \
         Br = Reflective_boundary(domain_drchlt)
 
         domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
-        temp_drchlt=zeros(int(finaltime/yieldstep)+1,Float)
+        temp_drchlt=num.zeros(int(finaltime/yieldstep)+1,num.Float)
 
         for i, t in enumerate(domain_drchlt.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -8463,16 +8424,16 @@ friction  \n \
         #print domain_fbound.quantities['stage'].vertex_values
         #print domain_drchlt.quantities['stage'].vertex_values
                     
-        assert allclose(temp_fbound,temp_drchlt)
+        assert num.allclose(temp_fbound,temp_drchlt)
         
-        assert allclose(domain_fbound.quantities['stage'].vertex_values,
-                        domain_drchlt.quantities['stage'].vertex_values)
+        assert num.allclose(domain_fbound.quantities['stage'].vertex_values,
+                            domain_drchlt.quantities['stage'].vertex_values)
                         
-        assert allclose(domain_fbound.quantities['xmomentum'].vertex_values,
-                        domain_drchlt.quantities['xmomentum'].vertex_values)                        
+        assert num.allclose(domain_fbound.quantities['xmomentum'].vertex_values,
+                            domain_drchlt.quantities['xmomentum'].vertex_values)                        
                         
-        assert allclose(domain_fbound.quantities['ymomentum'].vertex_values,
-                        domain_drchlt.quantities['ymomentum'].vertex_values)                                                
+        assert num.allclose(domain_fbound.quantities['ymomentum'].vertex_values,
+                            domain_drchlt.quantities['ymomentum'].vertex_values)                                                
         
         
         os.remove(sts_file+'.sts')
@@ -8507,17 +8468,17 @@ friction  \n \
         time_step = 2
         lat_long_points = bounding_polygon[0:3]
         n=len(lat_long_points)
-        first_tstep=ones(n,Int)
-        last_tstep=(time_step_count)*ones(n,Int)
+        first_tstep=num.ones(n,num.Int)
+        last_tstep=(time_step_count)*num.ones(n,num.Int)
 
         h = 20        
         w = 2
         u = 10
         v = -10
-        gauge_depth=h*ones(n,Float)
-        ha=w*ones((n,time_step_count),Float)
-        ua=u*ones((n,time_step_count),Float)
-        va=v*ones((n,time_step_count),Float)
+        gauge_depth=h*num.ones(n,num.Float)
+        ha=w*num.ones((n,time_step_count),num.Float)
+        ua=u*num.ones((n,time_step_count),num.Float)
+        va=v*num.ones((n,time_step_count),num.Float)
         base_name, files = self.write_mux2(lat_long_points,
                                            time_step_count, time_step,
                                            first_tstep, last_tstep,
@@ -8576,13 +8537,13 @@ friction  \n \
                 qd = Bd.evaluate(vol_id, edge_id) # Dirichlet boundary
                 
                 msg = 'Got %s, should have been %s' %(qf, qd)
-                assert allclose(qf, qd), msg 
+                assert num.allclose(qf, qd), msg 
                 
         # Evolve
         data_finaltime = time_step*(time_step_count-1)
         finaltime = data_finaltime + 10 # Let model time exceed available data
         yieldstep = time_step
-        temp_fbound=zeros(int(finaltime/yieldstep)+1, Float)
+        temp_fbound=num.zeros(int(finaltime/yieldstep)+1, num.Float)
 
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -8599,7 +8560,7 @@ friction  \n \
                 (vol_id, edge_id), B = D.boundary_objects[j]
                 if isinstance(B, Field_boundary):
                     msg = 'Got %f should have been %f' %(val, w+tide)
-                    assert allclose(val, w + tide), msg
+                    assert num.allclose(val, w + tide), msg
 
 
     def test_file_boundary_stsII(self):
@@ -8626,12 +8587,12 @@ friction  \n \
         lat_long_points.insert(0,bounding_polygon[len(bounding_polygon)-1])
         lat_long_points.insert(0,[6.0,97.01])
         n=len(lat_long_points)
-        first_tstep=ones(n,Int)
-        last_tstep=(time_step_count)*ones(n,Int)
-        gauge_depth=20*ones(n,Float)
-        ha=2*ones((n,time_step_count),Float)
-        ua=10*ones((n,time_step_count),Float)
-        va=-10*ones((n,time_step_count),Float)
+        first_tstep=num.ones(n,num.Int)
+        last_tstep=(time_step_count)*num.ones(n,num.Int)
+        gauge_depth=20*num.ones(n,num.Float)
+        ha=2*num.ones((n,time_step_count),num.Float)
+        ua=10*num.ones((n,time_step_count),num.Float)
+        va=-10*num.ones((n,time_step_count),num.Float)
         base_name, files = self.write_mux2(lat_long_points,
                                            time_step_count,
                                            time_step,
@@ -8673,7 +8634,7 @@ friction  \n \
         domain_fbound.set_boundary({'ocean': Bf,'otherocean': Br})
         finaltime=time_step*(time_step_count-1)
         yieldstep=time_step
-        temp_fbound=zeros(int(finaltime/yieldstep)+1,Float)
+        temp_fbound=num.zeros(int(finaltime/yieldstep)+1,num.Float)
         
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -8685,7 +8646,7 @@ friction  \n \
         Br = Reflective_boundary(domain_drchlt)
         Bd = Dirichlet_boundary([2.0+tide,220+10*tide,-220-10*tide])
         domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
-        temp_drchlt=zeros(int(finaltime/yieldstep)+1,Float)
+        temp_drchlt=num.zeros(int(finaltime/yieldstep)+1,num.Float)
 
         for i, t in enumerate(domain_drchlt.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -8693,20 +8654,20 @@ friction  \n \
             temp_drchlt[i]=domain_drchlt.quantities['stage'].centroid_values[2]
 
 
-        assert allclose(temp_fbound,temp_drchlt)            
+        assert num.allclose(temp_fbound,temp_drchlt)            
             
         #print domain_fbound.quantities['stage'].vertex_values
         #print domain_drchlt.quantities['stage'].vertex_values
                     
             
-        assert allclose(domain_fbound.quantities['stage'].vertex_values,
-                        domain_drchlt.quantities['stage'].vertex_values)
+        assert num.allclose(domain_fbound.quantities['stage'].vertex_values,
+                            domain_drchlt.quantities['stage'].vertex_values)
                         
-        assert allclose(domain_fbound.quantities['xmomentum'].vertex_values,
-                        domain_drchlt.quantities['xmomentum'].vertex_values)
+        assert num.allclose(domain_fbound.quantities['xmomentum'].vertex_values,
+                            domain_drchlt.quantities['xmomentum'].vertex_values)
                         
-        assert allclose(domain_fbound.quantities['ymomentum'].vertex_values,
-                        domain_drchlt.quantities['ymomentum'].vertex_values)
+        assert num.allclose(domain_fbound.quantities['ymomentum'].vertex_values,
+                            domain_drchlt.quantities['ymomentum'].vertex_values)
             
             
 
@@ -8732,12 +8693,12 @@ friction  \n \
         time_step_count = 50
         time_step = 2
         n=len(lat_long_points)
-        first_tstep=ones(n,Int)
-        last_tstep=(time_step_count)*ones(n,Int)
-        gauge_depth=20*ones(n,Float)
-        ha=2*ones((n,time_step_count),Float)
-        ua=10*ones((n,time_step_count),Float)
-        va=-10*ones((n,time_step_count),Float)
+        first_tstep=num.ones(n,num.Int)
+        last_tstep=(time_step_count)*num.ones(n,num.Int)
+        gauge_depth=20*num.ones(n,num.Float)
+        ha=2*num.ones((n,time_step_count),num.Float)
+        ua=10*num.ones((n,time_step_count),num.Float)
+        va=-10*num.ones((n,time_step_count),num.Float)
         base_name, files = self.write_mux2(lat_long_points,
                                            time_step_count,
                                            time_step,
@@ -8799,7 +8760,7 @@ friction  \n \
             plot(bounding_polygon_utm[:,0],bounding_polygon_utm[:,1],'o')
             show()
 
-        assert allclose(bounding_polygon_utm,boundary_polygon)
+        assert num.allclose(bounding_polygon_utm,boundary_polygon)
 
 
         extent_res=1000000
@@ -8823,7 +8784,7 @@ friction  \n \
         domain_fbound.set_boundary({'ocean': Bf,'otherocean': Br})
         finaltime=time_step*(time_step_count-1)
         yieldstep=time_step
-        temp_fbound=zeros(int(finaltime/yieldstep)+1,Float)
+        temp_fbound=num.zeros(int(finaltime/yieldstep)+1,num.Float)
     
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -8836,7 +8797,7 @@ friction  \n \
         Br = Reflective_boundary(domain_drchlt)
         Bd = Dirichlet_boundary([2.0+tide,220+10*tide,-220-10*tide])
         domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
-        temp_drchlt=zeros(int(finaltime/yieldstep)+1,Float)
+        temp_drchlt=num.zeros(int(finaltime/yieldstep)+1,num.Float)
         
         for i, t in enumerate(domain_drchlt.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -8847,17 +8808,17 @@ friction  \n \
         #print domain_fbound.quantities['stage'].vertex_values
         #print domain_drchlt.quantities['stage'].vertex_values
                     
-        assert allclose(temp_fbound,temp_drchlt)
+        assert num.allclose(temp_fbound,temp_drchlt)
 
         
-        assert allclose(domain_fbound.quantities['stage'].vertex_values,
-                        domain_drchlt.quantities['stage'].vertex_values)
+        assert num.allclose(domain_fbound.quantities['stage'].vertex_values,
+                            domain_drchlt.quantities['stage'].vertex_values)
                         
-        assert allclose(domain_fbound.quantities['xmomentum'].vertex_values,
-                        domain_drchlt.quantities['xmomentum'].vertex_values)                        
+        assert num.allclose(domain_fbound.quantities['xmomentum'].vertex_values,
+                            domain_drchlt.quantities['xmomentum'].vertex_values)                        
                         
-        assert allclose(domain_fbound.quantities['ymomentum'].vertex_values,
-                        domain_drchlt.quantities['ymomentum'].vertex_values)
+        assert num.allclose(domain_fbound.quantities['ymomentum'].vertex_values,
+                            domain_drchlt.quantities['ymomentum'].vertex_values)
         
         # Use known Dirichlet condition (if sufficient timesteps have been taken)
 
@@ -8891,26 +8852,24 @@ friction  \n \
         from anuga.shallow_water import File_boundary
         from anuga.pmesh.mesh_interface import create_mesh_from_regions
 
-        from Numeric import sin, cos
-
         lat_long_points=[[6.01,97.0],[6.02,97.0],[6.05,96.9],[6.0,97.0]]
         bounding_polygon=[[6.0,97.0],[6.01,97.0],[6.02,97.0],[6.02,97.02],[6.00,97.02]]
         tide = 0.35
         time_step_count = 50
         time_step = 0.1
-        times_ref = arange(0, time_step_count*time_step, time_step)
+        times_ref = num.arange(0, time_step_count*time_step, time_step)
         
         n=len(lat_long_points)
-        first_tstep=ones(n,Int)
-        last_tstep=(time_step_count)*ones(n,Int)
+        first_tstep=num.ones(n,num.Int)
+        last_tstep=(time_step_count)*num.ones(n,num.Int)
         
-        gauge_depth=20*ones(n,Float)
+        gauge_depth=20*num.ones(n,num.Float)
         
-        ha1=ones((n,time_step_count),Float)
-        ua1=3.*ones((n,time_step_count),Float)
-        va1=2.*ones((n,time_step_count),Float)
+        ha1=num.ones((n,time_step_count),num.Float)
+        ua1=3.*num.ones((n,time_step_count),num.Float)
+        va1=2.*num.ones((n,time_step_count),num.Float)
         for i in range(n):
-            ha1[i]=sin(times_ref)
+            ha1[i]=num.sin(times_ref)
         
         
         base_name, files = self.write_mux2(lat_long_points,
@@ -8996,7 +8955,7 @@ friction  \n \
             plot(bounding_polygon_utm[:,0],bounding_polygon_utm[:,1])
             show()
 
-        assert allclose(bounding_polygon_utm,boundary_polygon)
+        assert num.allclose(bounding_polygon_utm,boundary_polygon)
 
 
         extent_res=1000000
@@ -9023,7 +8982,7 @@ friction  \n \
         domain_fbound.set_boundary({'ocean': Bf,'otherocean': Br})
         finaltime=time_step*(time_step_count-1)
         yieldstep=time_step
-        temp_fbound=zeros(int(finaltime/yieldstep)+1,Float)
+        temp_fbound=num.zeros(int(finaltime/yieldstep)+1,num.Float)
     
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -9035,10 +8994,10 @@ friction  \n \
         domain_time.set_quantity('stage', tide)
         Br = Reflective_boundary(domain_time)
         Bw=Time_boundary(domain=domain_time,
-                         f=lambda t: [sin(t)+tide,3.*(20.+sin(t)+tide),2.*(20.+sin(t)+tide)])
+                         f=lambda t: [num.sin(t)+tide,3.*(20.+num.sin(t)+tide),2.*(20.+num.sin(t)+tide)])
         domain_time.set_boundary({'ocean': Bw,'otherocean': Br})
         
-        temp_time=zeros(int(finaltime/yieldstep)+1,Float)
+        temp_time=num.zeros(int(finaltime/yieldstep)+1,num.Float)
         for i, t in enumerate(domain_time.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
                                                    skip_initial_step=False)):
@@ -9052,15 +9011,15 @@ friction  \n \
         #print domain_fbound.quantities['stage'].vertex_values
         #print domain_time.quantities['stage'].vertex_values
         
-        assert allclose(temp_fbound, temp_time)                
-        assert allclose(domain_fbound.quantities['stage'].vertex_values,
-                        domain_time.quantities['stage'].vertex_values)
+        assert num.allclose(temp_fbound, temp_time)                
+        assert num.allclose(domain_fbound.quantities['stage'].vertex_values,
+                            domain_time.quantities['stage'].vertex_values)
                         
-        assert allclose(domain_fbound.quantities['xmomentum'].vertex_values,
-                        domain_time.quantities['xmomentum'].vertex_values)                        
+        assert num.allclose(domain_fbound.quantities['xmomentum'].vertex_values,
+                            domain_time.quantities['xmomentum'].vertex_values)                        
                         
-        assert allclose(domain_fbound.quantities['ymomentum'].vertex_values,
-                        domain_time.quantities['ymomentum'].vertex_values)                                                
+        assert num.allclose(domain_fbound.quantities['ymomentum'].vertex_values,
+                            domain_time.quantities['ymomentum'].vertex_values)                                                
         
 
         try:
@@ -9185,7 +9144,7 @@ friction  \n \
         for point in points:
             found = False
             for result in results:
-                if allclose(point, result):
+                if num.allclose(point, result):
                     found = True
                     break
             if not found:
@@ -9277,7 +9236,7 @@ friction  \n \
         for point in points:
             found = False
             for result in results:
-                if allclose(point, result):
+                if num.allclose(point, result):
                     found = True
                     break
             if not found:
@@ -9353,7 +9312,7 @@ friction  \n \
 
             for lat_lon, dep in map(None, lat_long_points, urs.lonlatdep):
                     _ , e, n = redfearn(lat_lon[0], lat_lon[1])
-                    assert allclose(n, dep[2])
+                    assert num.allclose(n, dep[2])
                         
             count = 0
             for slice in urs:
@@ -9366,9 +9325,9 @@ friction  \n \
                     #print "n", n
                     if file[-5:] == WAVEHEIGHT_MUX_LABEL[-5:] or \
                            file[-5:] == NORTH_VELOCITY_LABEL[-5:] :
-                        assert allclose(e, quantity)
+                        assert num.allclose(e, quantity)
                     if file[-5:] == EAST_VELOCITY_LABEL[-5:]:
-                        assert allclose(n, quantity)
+                        assert num.allclose(n, quantity)
             assert count == time_step_count
                      
         self.delete_mux(files)
@@ -9406,7 +9365,7 @@ friction  \n \
         #Check that first coordinate is correctly represented       
         #Work out the UTM coordinates for first point
         zone, e, n = redfearn(lat_long[0][0], lat_long[0][1]) 
-        assert allclose([x[0],y[0]], [e,n])
+        assert num.allclose([x[0],y[0]], [e,n])
 
         #Check the time vector
         times = fid.variables['time'][:]
@@ -9415,15 +9374,15 @@ friction  \n \
         for i in range(time_step_count):
             times_actual.append(time_step * i)
         
-        assert allclose(ensure_numeric(times),
-                        ensure_numeric(times_actual))
+        assert num.allclose(ensure_numeric(times),
+                            ensure_numeric(times_actual))
         
         #Check first value
         stage = fid.variables['stage'][:]
         xmomentum = fid.variables['xmomentum'][:]
         ymomentum = fid.variables['ymomentum'][:]
         elevation = fid.variables['elevation'][:]
-        assert allclose(stage[0,0], e +tide)  #Meters
+        assert num.allclose(stage[0,0], e +tide)  #Meters
 
 
         #Check the momentums - ua
@@ -9436,7 +9395,7 @@ friction  \n \
         actual_x = xmomentum[0,0]
         #print "answer_x",answer_x
         #print "actual_x",actual_x 
-        assert allclose(answer_x, actual_x)  #Meters
+        assert num.allclose(answer_x, actual_x)  #Meters
         
         #Check the momentums - va
         #momentum = velocity*(stage-elevation)
@@ -9448,17 +9407,17 @@ friction  \n \
         actual_y = ymomentum[0,0]
         #print "answer_y",answer_y
         #print "actual_y",actual_y 
-        assert allclose(answer_y, actual_y)  #Meters
+        assert num.allclose(answer_y, actual_y)  #Meters
 
         # check the stage values, first time step.
         # These arrays are equal since the Easting values were used as
         # the stage
-        assert allclose(stage[0], x +tide)  #Meters
+        assert num.allclose(stage[0], x +tide)  #Meters
         # check the elevation values.
         # -ve since urs measures depth, sww meshers height,
         # these arrays are equal since the northing values were used as
         # the elevation
-        assert allclose(-elevation, y)  #Meters
+        assert num.allclose(-elevation, y)  #Meters
         
         fid.close()
         self.delete_mux(files)
@@ -9498,7 +9457,7 @@ friction  \n \
         #Check that first coordinate is correctly represented       
         #Work out the UTM coordinates for first point
         zone, e, n = redfearn(lat_long[0][0], lat_long[0][1]) 
-        assert allclose([x[0],y[0]], [e,n])
+        assert num.allclose([x[0],y[0]], [e,n])
 
         #Check the time vector
         times = fid.variables['time'][:]
@@ -9507,15 +9466,15 @@ friction  \n \
         for i in range(time_step_count):
             times_actual.append(time_step * i)
         
-        assert allclose(ensure_numeric(times),
-                        ensure_numeric(times_actual))
+        assert num.allclose(ensure_numeric(times),
+                            ensure_numeric(times_actual))
         
         #Check first value
         stage = fid.variables['stage'][:]
         xmomentum = fid.variables['xmomentum'][:]
         ymomentum = fid.variables['ymomentum'][:]
         elevation = fid.variables['elevation'][:]
-        assert allclose(stage[0,0], e +tide)  #Meters
+        assert num.allclose(stage[0,0], e +tide)  #Meters
 
         #Check the momentums - ua
         #momentum = velocity*(stage-elevation)
@@ -9527,7 +9486,7 @@ friction  \n \
         actual_x = xmomentum[0,0]
         #print "answer_x",answer_x
         #print "actual_x",actual_x 
-        assert allclose(answer_x, actual_x)  #Meters
+        assert num.allclose(answer_x, actual_x)  #Meters
         
         #Check the momentums - va
         #momentum = velocity*(stage-elevation)
@@ -9539,17 +9498,17 @@ friction  \n \
         actual_y = ymomentum[0,0]
         #print "answer_y",answer_y
         #print "actual_y",actual_y 
-        assert allclose(answer_y, actual_y)  #Meters
+        assert num.allclose(answer_y, actual_y)  #Meters
 
         # check the stage values, first time step.
         # These arrays are equal since the Easting values were used as
         # the stage
-        assert allclose(stage[0], x +tide)  #Meters
+        assert num.allclose(stage[0], x +tide)  #Meters
         # check the elevation values.
         # -ve since urs measures depth, sww meshers height,
         # these arrays are equal since the northing values were used as
         # the elevation
-        assert allclose(-elevation, y)  #Meters
+        assert num.allclose(-elevation, y)  #Meters
         
         fid.close()
         self.delete_mux(files)
@@ -9588,7 +9547,7 @@ friction  \n \
         #Check that first coordinate is correctly represented       
         #Work out the UTM coordinates for first point
         zone, e, n = redfearn(lat_long[0][0], lat_long[0][1]) 
-        assert allclose([x[0],y[0]], [e,n])
+        assert num.allclose([x[0],y[0]], [e,n])
 
         #Check the time vector
         times = fid.variables['time'][:]
@@ -9597,15 +9556,15 @@ friction  \n \
         for i in range(time_step_count):
             times_actual.append(time_step * i)
         
-        assert allclose(ensure_numeric(times),
-                        ensure_numeric(times_actual))
+        assert num.allclose(ensure_numeric(times),
+                            ensure_numeric(times_actual))
         
         #Check first value
         stage = fid.variables['stage'][:]
         xmomentum = fid.variables['xmomentum'][:]
         ymomentum = fid.variables['ymomentum'][:]
         elevation = fid.variables['elevation'][:]
-        assert allclose(stage[0,0], e +tide)  #Meters
+        assert num.allclose(stage[0,0], e +tide)  #Meters
 
         #Check the momentums - ua
         #momentum = velocity*(stage-elevation)
@@ -9617,7 +9576,7 @@ friction  \n \
         actual_x = xmomentum[0,0]
         #print "answer_x",answer_x
         #print "actual_x",actual_x 
-        assert allclose(answer_x, actual_x)  #Meters
+        assert num.allclose(answer_x, actual_x)  #Meters
         
         #Check the momentums - va
         #momentum = velocity*(stage-elevation)
@@ -9629,17 +9588,17 @@ friction  \n \
         actual_y = ymomentum[0,0]
         #print "answer_y",answer_y
         #print "actual_y",actual_y 
-        assert allclose(answer_y, actual_y)  #Meters
+        assert num.allclose(answer_y, actual_y)  #Meters
 
         # check the stage values, first time step.
         # These arrays are equal since the Easting values were used as
         # the stage
-        assert allclose(stage[0], x +tide)  #Meters
+        assert num.allclose(stage[0], x +tide)  #Meters
         # check the elevation values.
         # -ve since urs measures depth, sww meshers height,
         # these arrays are equal since the northing values were used as
         # the elevation
-        assert allclose(-elevation, y)  #Meters
+        assert num.allclose(-elevation, y)  #Meters
         
         fid.close()
         self.delete_mux(files)
@@ -9691,7 +9650,7 @@ friction  \n \
         
         number_of_volumes = fid.variables['volumes']
         #print "number_of_volumes",len(number_of_volumes) 
-        assert allclose(16, len(number_of_volumes))
+        assert num.allclose(16, len(number_of_volumes))
         
         fid.close()
         self.delete_mux(files)
@@ -9744,8 +9703,8 @@ friction  \n \
         
         volumes_again = fid.variables['volumes']
         #print "number_of_volumes",len(volumes_again) 
-        assert allclose(len(volumes_again),
-                        len(volumes))
+        assert num.allclose(len(volumes_again),
+                            len(volumes))
         fid.close()
         os.remove(sww_file)
         self.delete_mux(files) 
@@ -9784,22 +9743,22 @@ friction  \n \
         #Check that first coordinate is correctly represented       
         #Work out the UTM coordinates for first point
         zone, e, n = redfearn(lat_long[0][0], lat_long[0][1]) 
-        assert allclose([x[0],y[0]], [e,n])
+        assert num.allclose([x[0],y[0]], [e,n])
 
         #Check the time vector
         times = fid.variables['time'][:]
         
         times_actual = [0,100,200,300]
        
-        assert allclose(ensure_numeric(times),
-                        ensure_numeric(times_actual))
+        assert num.allclose(ensure_numeric(times),
+                            ensure_numeric(times_actual))
         
                #Check first value
         stage = fid.variables['stage'][:]
         xmomentum = fid.variables['xmomentum'][:]
         ymomentum = fid.variables['ymomentum'][:]
         elevation = fid.variables['elevation'][:]
-        assert allclose(stage[0,0], e +tide)  #Meters
+        assert num.allclose(stage[0,0], e +tide)  #Meters
 
         #Check the momentums - ua
         #momentum = velocity*(stage-elevation)
@@ -9811,7 +9770,7 @@ friction  \n \
         actual_x = xmomentum[0,0]
         #print "answer_x",answer_x
         #print "actual_x",actual_x 
-        assert allclose(answer_x, actual_x)  #Meters
+        assert num.allclose(answer_x, actual_x)  #Meters
         
         #Check the momentums - va
         #momentum = velocity*(stage-elevation)
@@ -9823,17 +9782,17 @@ friction  \n \
         actual_y = ymomentum[0,0]
         #print "answer_y",answer_y
         #print "actual_y",actual_y 
-        assert allclose(answer_y, actual_y)  #Meters
+        assert num.allclose(answer_y, actual_y)  #Meters
 
         # check the stage values, first time step.
         # These arrays are equal since the Easting values were used as
         # the stage
-        assert allclose(stage[0], x +tide)  #Meters
+        assert num.allclose(stage[0], x +tide)  #Meters
         # check the elevation values.
         # -ve since urs measures depth, sww meshers height,
         # these arrays are equal since the northing values were used as
         # the elevation
-        assert allclose(-elevation, y)  #Meters
+        assert num.allclose(-elevation, y)  #Meters
         
         fid.close()
         self.delete_mux(files)
@@ -9872,12 +9831,12 @@ friction  \n \
         times = fid.variables['time'][:]
         
         times_actual = [0,100,200,300,400,500]
-        assert allclose(ensure_numeric(times),
-                        ensure_numeric(times_actual))
+        assert num.allclose(ensure_numeric(times),
+                            ensure_numeric(times_actual))
         
         #Check first value
         stage = fid.variables['stage'][:]
-        assert allclose(stage[0], x +tide)
+        assert num.allclose(stage[0], x +tide)
         
         fid.close()
         self.delete_mux(files)
@@ -10007,7 +9966,7 @@ friction  \n \
         
         filename = tempfile.mktemp("_data_manager.sww")
         outfile = NetCDFFile(filename, netcdf_mode_w)
-        points_utm = array([[0.,0.],[1.,1.], [0.,1.]])
+        points_utm = num.array([[0.,0.],[1.,1.], [0.,1.]])
         volumes = (0,1,2)
         elevation = [0,1,2]
         new_origin = None
@@ -10018,7 +9977,7 @@ friction  \n \
         sww = Write_sww()
         sww.store_header(outfile, times, number_of_volumes,
                          number_of_points, description='fully sick testing',
-                         verbose=self.verbose,sww_precision=Float)
+                         verbose=self.verbose,sww_precision=num.Float)
         sww.store_triangulation(outfile, points_utm, volumes,
                                 elevation,  new_origin=new_origin,
                                 verbose=self.verbose)       
@@ -10029,7 +9988,7 @@ friction  \n \
         y = fid.variables['y'][:]
         fid.close()
 
-        assert allclose(array(map(None, x,y)), points_utm)
+        assert num.allclose(num.array(map(None, x,y)), points_utm)
         os.remove(filename)
 
         
@@ -10039,7 +9998,7 @@ friction  \n \
         
         filename = tempfile.mktemp("_data_manager.sww")
         outfile = NetCDFFile(filename, netcdf_mode_w)
-        points_utm = array([[0.,0.],[1.,1.], [0.,1.]])
+        points_utm = num.array([[0.,0.],[1.,1.], [0.,1.]])
         volumes = (0,1,2)
         elevation = [0,1,2]
         new_origin = None
@@ -10050,7 +10009,7 @@ friction  \n \
         sww = Write_sww()
         sww.store_header(outfile, times, number_of_volumes,
                          number_of_points, description='fully sick testing',
-                         verbose=self.verbose,sww_precision=Float)
+                         verbose=self.verbose,sww_precision=num.Float)
         sww.store_triangulation(outfile, points_utm, volumes,
                                 elevation,  new_origin=new_origin,
                                 verbose=self.verbose)
@@ -10064,7 +10023,7 @@ friction  \n \
         assert results_georef == Geo_reference(DEFAULT_ZONE, 0, 0)
         fid.close()
 
-        assert allclose(array(map(None, x,y)), points_utm)
+        assert num.allclose(num.array(map(None, x,y)), points_utm)
         os.remove(filename)
 
         
@@ -10074,7 +10033,7 @@ friction  \n \
         
         filename = tempfile.mktemp("_data_manager.sww")
         outfile = NetCDFFile(filename, netcdf_mode_w)
-        points_utm = array([[0.,0.],[1.,1.], [0.,1.]])
+        points_utm = num.array([[0.,0.],[1.,1.], [0.,1.]])
         volumes = (0,1,2)
         elevation = [0,1,2]
         new_origin = None
@@ -10086,7 +10045,7 @@ friction  \n \
         sww = Write_sww()
         sww.store_header(outfile, times, number_of_volumes,
                          number_of_points, description='fully sick testing',
-                         verbose=self.verbose,sww_precision=Float)
+                         verbose=self.verbose,sww_precision=num.Float)
         sww.store_triangulation(outfile, points_utm, volumes,
                                 elevation,  new_origin=new_origin,
                                 verbose=self.verbose)
@@ -10101,7 +10060,7 @@ friction  \n \
         fid.close()
 
         absolute = Geo_reference(56, 0,0)
-        assert allclose(array( \
+        assert num.allclose(num.array(
             absolute.change_points_geo_ref(map(None, x,y),
                                            new_origin)),points_utm)
         
@@ -10113,7 +10072,7 @@ friction  \n \
         
         filename = tempfile.mktemp("_data_manager.sww")
         outfile = NetCDFFile(filename, netcdf_mode_w)
-        points_utm = array([[0.,0.],[1.,1.], [0.,1.]])
+        points_utm = num.array([[0.,0.],[1.,1.], [0.,1.]])
         volumes = (0,1,2)
         elevation = [0,1,2]
         new_origin = None
@@ -10125,7 +10084,7 @@ friction  \n \
         sww = Write_sww()
         sww.store_header(outfile, times, number_of_volumes,
                          number_of_points, description='fully sick testing',
-                         verbose=self.verbose,sww_precision=Float)
+                         verbose=self.verbose,sww_precision=num.Float)
         sww.store_triangulation(outfile, points_utm, volumes,
                                 elevation,  new_origin=new_origin,
                                 points_georeference=points_georeference,
@@ -10140,7 +10099,7 @@ friction  \n \
         assert results_georef == points_georeference
         fid.close()
 
-        assert allclose(array(map(None, x,y)), points_utm)
+        assert num.allclose(num.array(map(None, x,y)), points_utm)
         os.remove(filename)
         
     def test_triangulation_2_geo_refs(self):
@@ -10149,7 +10108,7 @@ friction  \n \
         
         filename = tempfile.mktemp("_data_manager.sww")
         outfile = NetCDFFile(filename, netcdf_mode_w)
-        points_utm = array([[0.,0.],[1.,1.], [0.,1.]])
+        points_utm = num.array([[0.,0.],[1.,1.], [0.,1.]])
         volumes = (0,1,2)
         elevation = [0,1,2]
         new_origin = Geo_reference(56, 1, 1)
@@ -10161,7 +10120,7 @@ friction  \n \
         sww = Write_sww()
         sww.store_header(outfile, times, number_of_volumes,
                          number_of_points, description='fully sick testing',
-                         verbose=self.verbose,sww_precision=Float)
+                         verbose=self.verbose,sww_precision=num.Float)
         sww.store_triangulation(outfile, points_utm, volumes,
                                 elevation,  new_origin=new_origin,
                                 points_georeference=points_georeference,
@@ -10178,7 +10137,7 @@ friction  \n \
 
 
         absolute = Geo_reference(56, 0,0)
-        assert allclose(array( \
+        assert num.allclose(num.array(
             absolute.change_points_geo_ref(map(None, x,y),
                                            new_origin)),points_utm)
         os.remove(filename)
@@ -10202,7 +10161,7 @@ friction  \n \
 #        print 'x',x
         os.remove(fileName)
         
-        assert allclose(x[:,0], [1.0, 0.0,4.0, 1.0])
+        assert num.allclose(x[:,0], [1.0, 0.0,4.0, 1.0])
         
     def test_get_data_from_file1(self):
 #    from anuga.abstract_2d_finite_volumes.util import get_data_from_file
@@ -10224,7 +10183,7 @@ friction  \n \
 #        x = get_data_from_file(fileName)
 #        print '1x',x[:,0]
         
-        assert allclose(x[:,0], [1.3, 0.0,4.5, 1.0])
+        assert num.allclose(x[:,0], [1.3, 0.0,4.5, 1.0])
         
     def test_store_parameters(self):
         """tests store temporary file
@@ -10406,7 +10365,6 @@ friction  \n \
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
         #Setup
@@ -10452,23 +10410,23 @@ friction  \n \
         runup = get_maximum_inundation_elevation(swwfile)
         location = get_maximum_inundation_location(swwfile)
         #print 'Runup, location', runup, location
-        assert allclose(runup, 11) or allclose(runup, 12) # old limiters
-        assert allclose(location[0], 15) or allclose(location[0], 10)
+        assert num.allclose(runup, 11) or num.allclose(runup, 12) # old limiters
+        assert num.allclose(location[0], 15) or num.allclose(location[0], 10)
 
         # Check final runup
         runup = get_maximum_inundation_elevation(swwfile, time_interval=[45,50])
         location = get_maximum_inundation_location(swwfile, time_interval=[45,50])
         # print 'Runup, location:',runup, location        
-        assert allclose(runup, 1)
-        assert allclose(location[0], 65)
+        assert num.allclose(runup, 1)
+        assert num.allclose(location[0], 65)
 
         # Check runup restricted to a polygon
         p = [[50,1], [99,1], [99,49], [50,49]]
         runup = get_maximum_inundation_elevation(swwfile, polygon=p)
         location = get_maximum_inundation_location(swwfile, polygon=p)
         #print runup, location        
-        assert allclose(runup, 4)
-        assert allclose(location[0], 50)                
+        assert num.allclose(runup, 4)
+        assert num.allclose(location[0], 50)                
 
         # Check that mimimum_storable_height works
         fid = NetCDFFile(swwfile, netcdf_mode_r) # Open existing file
@@ -10511,22 +10469,22 @@ friction  \n \
         # Check maximal runup
         runup = get_maximum_inundation_elevation(swwfile)
         location = get_maximum_inundation_location(swwfile)
-        assert allclose(runup, 11) or allclose(runup, 12) # old limiters
-        assert allclose(location[0], 15+E) or allclose(location[0], 10+E)
+        assert num.allclose(runup, 11) or num.allclose(runup, 12) # old limiters
+        assert num.allclose(location[0], 15+E) or num.allclose(location[0], 10+E)
 
         # Check final runup
         runup = get_maximum_inundation_elevation(swwfile, time_interval=[45,50])
         location = get_maximum_inundation_location(swwfile, time_interval=[45,50])
-        assert allclose(runup, 1)
-        assert allclose(location[0], 65+E)
+        assert num.allclose(runup, 1)
+        assert num.allclose(location[0], 65+E)
 
         # Check runup restricted to a polygon
-        p = array([[50,1], [99,1], [99,49], [50,49]]) + array([E, N])
+        p = num.array([[50,1], [99,1], [99,49], [50,49]]) + num.array([E, N])
 
         runup = get_maximum_inundation_elevation(swwfile, polygon=p)
         location = get_maximum_inundation_location(swwfile, polygon=p)
-        assert allclose(runup, 4)
-        assert allclose(location[0], 50+E)                
+        assert num.allclose(runup, 4)
+        assert num.allclose(location[0], 50+E)                
 
 
         # Cleanup
@@ -10540,7 +10498,6 @@ friction  \n \
         # Generate a test sww file with non trivial georeference
         
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
         # Setup
@@ -10582,16 +10539,16 @@ friction  \n \
         
 
         # Check that mesh has been recovered
-        assert alltrue(mesh.triangles == domain.triangles)
-        assert allclose(mesh.nodes, domain.nodes)
+        assert num.alltrue(mesh.triangles == domain.triangles)
+        assert num.allclose(mesh.nodes, domain.nodes)
 
         # Check that time has been recovered
-        assert allclose(time, range(t_end+1))
+        assert num.allclose(time, range(t_end+1))
 
         # Check that quantities have been recovered
         # (sww files use single precision)
         z=domain.get_quantity('elevation').get_values(location='unique vertices')
-        assert allclose(quantities['elevation'], z)
+        assert num.allclose(quantities['elevation'], z)
 
         for q in ['stage', 'xmomentum', 'ymomentum']:
             # Get quantity at last timestep
@@ -10601,7 +10558,7 @@ friction  \n \
             q_sww=quantities[q][-1,:]
 
             msg = 'Quantity %s failed to be recovered' %q
-            assert allclose(q_ref, q_sww, atol=1.0e-6), msg
+            assert num.allclose(q_ref, q_sww, atol=1.0e-6), msg
             
         # Cleanup
         os.remove(swwfile)
@@ -10628,7 +10585,6 @@ friction  \n \
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
         # Setup
@@ -10682,7 +10638,7 @@ friction  \n \
                           verbose=False)
         for t in range(t_end+1):
             for i in range(3):
-                assert allclose(f(t, i), [1, 2, 0])
+                assert num.allclose(f(t, i), [1, 2, 0])
             
 
         # Check flows through the middle
@@ -10693,7 +10649,7 @@ friction  \n \
                                                      cross_section,
                                                      verbose=False)
 
-            assert allclose(Q, uh*width)
+            assert num.allclose(Q, uh*width)
 
 
        
@@ -10709,7 +10665,7 @@ friction  \n \
                                                      verbose=False)
 
             #print i, Q, (width-start_point[1])
-            assert allclose(Q, uh*(width-start_point[1]))
+            assert num.allclose(Q, uh*(width-start_point[1]))
 
 
         # Verify no flow when line is parallel to flow
@@ -10719,7 +10675,7 @@ friction  \n \
                                                  verbose=False)
 
         #print i, Q
-        assert allclose(Q, 0)        
+        assert num.allclose(Q, 0)        
 
 
         # Try with lines on an angle (all flow still runs through here)
@@ -10728,7 +10684,7 @@ friction  \n \
                                                  cross_section,
                                                  verbose=False)
 
-        assert allclose(Q, uh*width)        
+        assert num.allclose(Q, uh*width)        
         
 
 
@@ -10755,7 +10711,6 @@ friction  \n \
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
         # Setup
@@ -10817,7 +10772,7 @@ friction  \n \
         for t in range(t_end+1):
             for i in range(3):
                 #print i, t, f(t, i)            
-                assert allclose(f(t, i), [w, uh, 0])
+                assert num.allclose(f(t, i), [w, uh, 0])
             
 
         # Check flows through the middle
@@ -10830,7 +10785,7 @@ friction  \n \
                                                      cross_section,
                                                      verbose=False)
 
-            assert allclose(Q, uh*width)
+            assert num.allclose(Q, uh*width)
 
 
             
@@ -10858,7 +10813,6 @@ friction  \n \
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
         # Setup
@@ -10918,7 +10872,7 @@ friction  \n \
         for t in range(t_end+1):
             for i in range(3):
                 #print i, t, f(t, i)
-                assert allclose(f(t, i), [w, uh, 0])
+                assert num.allclose(f(t, i), [w, uh, 0])
             
 
         # Check energies through the middle
@@ -10932,13 +10886,13 @@ friction  \n \
                                                        cross_section,
                                                        kind='specific',
                                                        verbose=False)
-            assert allclose(Es, h + 0.5*u*u/g)
+            assert num.allclose(Es, h + 0.5*u*u/g)
             
             time, Et = get_energy_through_cross_section(swwfile,
                                                         cross_section,
                                                         kind='total',
                                                         verbose=False)
-            assert allclose(Et, w + 0.5*u*u/g)            
+            assert num.allclose(Et, w + 0.5*u*u/g)            
 
             
         
@@ -11026,9 +10980,9 @@ friction  \n \
  
     def test_points2polygon(self):  
         att_dict = {}
-        pointlist = array([[1.0, 0.0],[0.0, 1.0],[0.0, 0.0]])
-        att_dict['elevation'] = array([10.1, 0.0, 10.4])
-        att_dict['brightness'] = array([10.0, 1.0, 10.4])
+        pointlist = num.array([[1.0, 0.0],[0.0, 1.0],[0.0, 0.0]])
+        att_dict['elevation'] = num.array([10.1, 0.0, 10.4])
+        att_dict['brightness'] = num.array([10.0, 1.0, 10.4])
         
         fileName = tempfile.mktemp(".csv")
         
@@ -11115,7 +11069,7 @@ friction  \n \
 
             assert int(values[id]) == int(floors[id])
             assert len(polygons[id]) == len(known_polys[id])
-            assert allclose(polygons[id], known_polys[id])
+            assert num.allclose(polygons[id], known_polys[id])
 
 
     

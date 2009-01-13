@@ -1,5 +1,5 @@
 import unittest
-from Numeric import allclose, asarray
+import Numeric as num
 from Scientific.IO.NetCDF import NetCDFFile
 import most2nc
 import os
@@ -40,9 +40,9 @@ class Test_most2nc(unittest.TestCase):
            ,[-9., -10., -11., -12.]\
            ,[-5.,  -6.,  -7.,  -8.]\
            ,[-1.,  -2.,  -3.,  -4.]]
-        z = asarray(z)
+        z = num.asarray(z)
 
-        assert allclose(z,elevation)
+        assert num.allclose(z,elevation)
         import os
         os.remove('test.nc')
         

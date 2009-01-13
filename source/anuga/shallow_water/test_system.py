@@ -8,7 +8,7 @@ import unittest
 import os
 
 from Scientific.IO.NetCDF import NetCDFFile
-from Numeric import allclose
+import Numeric as num
 
 from anuga.shallow_water import Domain
 from anuga.shallow_water import Dirichlet_boundary, Time_boundary
@@ -65,7 +65,7 @@ class Test_system(unittest.TestCase):
             # FIXME (Ole): This test would not have passed in 
             # changeset:5846.
             msg = 'Time boundary not evaluated correctly'
-            assert allclose(t, q[0]), msg
+            assert num.allclose(t, q[0]), msg
             
             #print domain.get_quantity('stage').get_values()
             #domain.write_time()
@@ -117,7 +117,7 @@ class Test_system(unittest.TestCase):
         times = fid.variables['time'][:]
         #print "times", times
         #print "fid.starttime", fid.starttime
-        assert allclose(fid.starttime, boundary_starttime)
+        assert num.allclose(fid.starttime, boundary_starttime)
         fid.close()
 
         # clean up
@@ -170,14 +170,14 @@ class Test_system(unittest.TestCase):
         #print stage
         #print "times", times
         #print "fid.starttime", fid.starttime
-        assert allclose(fid.starttime, new_starttime)
+        assert num.allclose(fid.starttime, new_starttime)
         fid.close()
         
         #print "stage[2,0]", stage[2,0]
         msg = "This test is a bit hand crafted, based on the output file. "
         msg += "Not logic. "
         msg += "It's testing that starttime is working"
-        assert allclose(stage[2,0], 11.9867153168),msg
+        assert num.allclose(stage[2,0], 11.9867153168),msg
         
         
 

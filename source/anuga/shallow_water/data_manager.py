@@ -60,10 +60,7 @@ from struct import unpack
 import array as p_array
 from os import sep, path, remove, mkdir, access, F_OK, W_OK, getcwd
 
-from Numeric import concatenate, array, Float, Int, Int32, resize, \
-     sometrue, searchsorted, zeros, allclose, around, reshape, \
-     transpose, sort, NewAxis, ArrayType, compress, take, arange, \
-     argmax, alltrue, shape, Float32, size
+import Numeric as num
 
 from Scientific.IO.NetCDF import NetCDFFile
 from os.path import exists, basename, join
@@ -344,9 +341,8 @@ class Data_format_sww(Data_format):
     # @note Prepare the underlying data file if mode starts with 'w'.
     def __init__(self, domain, mode=netcdf_mode_w, max_size=2000000000, recursion=False):
         from Scientific.IO.NetCDF import NetCDFFile
-        from Numeric import Int, Float, Float32
 
-        self.precision = Float32 #Use single precision for quantities
+        self.precision = num.Float32 #Use single precision for quantities
         self.recursion = recursion
         self.mode = mode
         if hasattr(domain, 'max_size'):
@@ -424,7 +420,6 @@ class Data_format_sww(Data_format):
         """
 
         from Scientific.IO.NetCDF import NetCDFFile
-        from Numeric import concatenate, Int
 
         domain = self.domain
 
@@ -442,11 +437,11 @@ class Data_format_sww(Data_format):
         X,Y,Z,V = Q.get_vertex_values(xy=True, precision=self.precision)
 
         # store the connectivity data
-        points = concatenate( (X[:,NewAxis],Y[:,NewAxis]), axis=1 )
+        points = num.concatenate( (X[:,num.NewAxis],Y[:,num.NewAxis]), axis=1 )
         self.writer.store_triangulation(fid,
                                         points,
 #                                        V.astype(volumes.typecode()),
-                                        V.astype(Float32),
+                                        V.astype(num.Float32),
                                         Z,
                                         points_georeference=\
                                             domain.geo_reference)
@@ -465,7 +460,6 @@ class Data_format_sww(Data_format):
         import types
         from time import sleep
         from os import stat
-        from Numeric import choose
 
         if names is None:
             # Standard shallow water wave equation quantitites in ANUGA
@@ -562,24 +556,24 @@ class Data_format_sww(Data_format):
                 z = fid.variables['elevation']
 
                 storable_indices = (A-z[:] >= self.minimum_storable_height)
-                stage = choose(storable_indices, (z[:], A))
+                stage = num.choose(storable_indices, (z[:], A))
 
                 # Define a zero vector of same size and type as A
                 # for use with momenta
-                null = zeros(size(A), A.typecode())
+                null = num.zeros(num.size(A), A.typecode())
 
                 # Get xmomentum where depth exceeds minimum_storable_height
                 Q = domain.quantities['xmomentum']
                 xmom, _ = Q.get_vertex_values(xy=False,
                                               precision=self.precision)
-                xmomentum = choose(storable_indices, (null, xmom))
+                xmomentum = num.choose(storable_indices, (null, xmom))
 
 
                 # Get ymomentum where depth exceeds minimum_storable_height
                 Q = domain.quantities['ymomentum']
                 ymom, _ = Q.get_vertex_values(xy=False,
                                               precision=self.precision)
-                ymomentum = choose(storable_indices, (null, ymom))
+                ymomentum = num.choose(storable_indices, (null, ymom))
 
                 # Write quantities to underlying data  file
                 self.writer.store_quantities(fid,
@@ -626,9 +620,8 @@ class Data_format_cpt(Data_format):
     # @param mode Mode of underlying data file (default WRITE).
     def __init__(self, domain, mode=netcdf_mode_w):
         from Scientific.IO.NetCDF import NetCDFFile
-        from Numeric import Int, Float, Float
 
-        self.precision = Float #Use full precision
+        self.precision = num.Float #Use full precision
 
         Data_format.__init__(self, domain, 'sww', mode)
 
@@ -656,8 +649,8 @@ class Data_format_cpt(Data_format):
             fid.createVariable('y', self.precision, ('number_of_points',))
 
 
-            fid.createVariable('volumes', Int, ('number_of_volumes',
-                                                'number_of_vertices'))
+            fid.createVariable('volumes', num.Int, ('number_of_volumes',
+                                                    'number_of_vertices'))
 
             fid.createVariable('time', self.precision, ('number_of_timesteps',))
 
@@ -679,7 +672,6 @@ class Data_format_cpt(Data_format):
         """
 
         from Scientific.IO.NetCDF import NetCDFFile
-        from Numeric import concatenate
 
         domain = self.domain
 
@@ -1150,7 +1142,7 @@ def csv2array(file_name):
 
     Y = {}
     for key in X.keys():
-        Y[key] = array([float(x) for x in X[key]])
+        Y[key] = num.array([float(x) for x in X[key]])
 
     return Y
 
@@ -1268,7 +1260,6 @@ def sww2obj(basefilename, size):
     """
 
     from Scientific.IO.NetCDF import NetCDFFile
-    from Numeric import Float, zeros
 
     # Get NetCDF
     FN = create_filename('.', basefilename, 'sww', size)
@@ -1283,9 +1274,9 @@ def sww2obj(basefilename, size):
     stage = fid.variables['stage']
 
     M = size  #Number of lines
-    xx = zeros((M,3), Float)
-    yy = zeros((M,3), Float)
-    zz = zeros((M,3), Float)
+    xx = num.zeros((M,3), num.Float)
+    yy = num.zeros((M,3), num.Float)
+    zz = num.zeros((M,3), num.Float)
 
     for i in range(M):
         for j in range(3):
@@ -1323,15 +1314,14 @@ def dat2obj(basefilename):
 
     import glob, os
     from anuga.config import data_dir
-    from Numeric import zeros, Float
 
     # Get bathymetry and x,y's
     lines = open(data_dir+os.sep+basefilename+'_geometry.dat', 'r').readlines()
 
     M = len(lines)  #Number of lines
-    x = zeros((M,3), Float)
-    y = zeros((M,3), Float)
-    z = zeros((M,3), Float)
+    x = num.zeros((M,3), num.Float)
+    y = num.zeros((M,3), num.Float)
+    z = num.zeros((M,3), num.Float)
 
     for i, line in enumerate(lines):
         tokens = line.split()
@@ -1523,7 +1513,6 @@ def _dem2pts(basename_in, basename_out=None, verbose=False,
 
     import os
     from Scientific.IO.NetCDF import NetCDFFile
-    from Numeric import Float, zeros, reshape, sum
 
     root = basename_in
 
@@ -1590,7 +1579,7 @@ def _dem2pts(basename_in, basename_out=None, verbose=False,
     outfile.ncols = ncols
     outfile.nrows = nrows
 
-    dem_elevation_r = reshape(dem_elevation, (nrows, ncols))
+    dem_elevation_r = num.reshape(dem_elevation, (nrows, ncols))
     totalnopoints = nrows*ncols
 
     # Calculating number of NODATA_values for each row in clipped region
@@ -1639,9 +1628,9 @@ def _dem2pts(basename_in, basename_out=None, verbose=False,
     outfile.createDimension('number_of_dimensions', 2) #This is 2d data
 
     # Variable definitions
-    outfile.createVariable('points', Float, ('number_of_points',
-                                             'number_of_dimensions'))
-    outfile.createVariable('elevation', Float, ('number_of_points',))
+    outfile.createVariable('points', num.Float, ('number_of_points',
+                                                 'number_of_dimensions'))
+    outfile.createVariable('elevation', num.Float, ('number_of_points',))
 
     # Get handles to the variables
     points = outfile.variables['points']
@@ -1659,14 +1648,14 @@ def _dem2pts(basename_in, basename_out=None, verbose=False,
         lower_index = global_index
 
         v = dem_elevation_r[i,index1:index2+1]
-        no_NODATA = sum(v == NODATA_value)
+        no_NODATA = num.sum(v == NODATA_value)
         if no_NODATA > 0:
             newcols = lenv - no_NODATA  # ncols_in_bounding_box - no_NODATA
         else:
             newcols = lenv              # ncols_in_bounding_box
 
-        telev = zeros(newcols, Float)
-        tpoints = zeros((newcols, 2), Float)
+        telev = num.zeros(newcols, num.Float)
+        tpoints = num.zeros((newcols, 2), num.Float)
 
         local_index = 0
 
@@ -1788,7 +1777,6 @@ Only the SURFACE LINE data of the following form will be utilised
 
     import os
     from Scientific.IO.NetCDF import NetCDFFile
-    from Numeric import Float, zeros, reshape
 
     root = basename_in
 
@@ -2132,8 +2120,6 @@ def sww2dem(basename_in, basename_out=None,
     """
 
     import sys
-    from Numeric import array, Float, concatenate, NewAxis, zeros, reshape
-    from Numeric import array2string, sometrue
 
     from anuga.utilities.polygon import inside_polygon, outside_polygon, \
          separate_points_by_polygon
@@ -2253,7 +2239,7 @@ def sww2dem(basename_in, basename_out=None,
     if len(q.shape) == 2:
         #q has a time component, must be reduced alongthe temporal dimension
         if verbose: print 'Reducing quantity %s' %quantity
-        q_reduced = zeros(number_of_points, Float)
+        q_reduced = num.zeros(number_of_points, num.Float)
 
         if timestep is not None:
             for k in range(number_of_points):
@@ -2313,10 +2299,10 @@ def sww2dem(basename_in, basename_out=None,
     x = x + xllcorner - newxllcorner
     y = y + yllcorner - newyllcorner
 
-    vertex_points = concatenate ((x[:,NewAxis], y[:,NewAxis]), axis=1)
+    vertex_points = num.concatenate ((x[:,num.NewAxis], y[:,num.NewAxis]), axis=1)
     assert len(vertex_points.shape) == 2
 
-    grid_points = zeros ((ncols*nrows, 2), Float)
+    grid_points = num.zeros ((ncols*nrows, 2), num.Float)
 
     for i in xrange(nrows):
         if format.lower() == 'asc':
@@ -2358,7 +2344,7 @@ def sww2dem(basename_in, basename_out=None,
 
     if format.lower() == 'ers':
         # setup ERS header information
-        grid_values = reshape(grid_values, (nrows, ncols))
+        grid_values = num.reshape(grid_values, (nrows, ncols))
         header = {}
         header['datum'] = '"' + datum + '"'
         # FIXME The use of hardwired UTM and zone number needs to be made optional
@@ -2425,8 +2411,8 @@ def sww2dem(basename_in, basename_out=None,
 
             slice = grid_values[base_index:base_index+ncols]
             #s = array2string(slice, max_line_width=sys.maxint)
-            s = array2string(slice, max_line_width=sys.maxint,
-                             precision=number_of_decimal_places)
+            s = num.array2string(slice, max_line_width=sys.maxint,
+                                 precision=number_of_decimal_places)
             ascid.write(s[1:-1] + '\n')
 
         #Close
@@ -2542,8 +2528,6 @@ def sww2pts(basename_in, basename_out=None,
     """
 
     import sys
-    from Numeric import array, Float, concatenate, NewAxis, zeros, reshape
-    from Numeric import array2string, sometrue
     from anuga.utilities.polygon import inside_polygon, outside_polygon, \
              separate_points_by_polygon
     from anuga.abstract_2d_finite_volumes.util import \
@@ -2630,7 +2614,7 @@ def sww2pts(basename_in, basename_out=None,
         # the temporal dimension
         if verbose: print 'Reducing quantity %s' % quantity
 
-        q_reduced = zeros(number_of_points, Float)
+        q_reduced = num.zeros(number_of_points, num.Float)
         for k in range(number_of_points):
             q_reduced[k] = reduction(q[:,k])
         q = q_reduced
@@ -2644,7 +2628,7 @@ def sww2pts(basename_in, basename_out=None,
               % (quantity, min(q), max(q))
 
     # Create grid and update xll/yll corner and x,y
-    vertex_points = concatenate((x[:, NewAxis], y[:, NewAxis]), axis=1)
+    vertex_points = num.concatenate((x[:, num.NewAxis], y[:, num.NewAxis]), axis=1)
     assert len(vertex_points.shape) == 2
 
     # Interpolate
@@ -2747,7 +2731,6 @@ def _convert_dem_from_ascii2netcdf(basename_in, basename_out = None,
 
     import os
     from Scientific.IO.NetCDF import NetCDFFile
-    from Numeric import Float, array
 
     root = basename_in
 
@@ -2865,8 +2848,8 @@ def _convert_dem_from_ascii2netcdf(basename_in, basename_out = None,
     fid.createDimension('number_of_columns', ncols)
 
     # variable definitions
-    fid.createVariable('elevation', Float, ('number_of_rows',
-                                            'number_of_columns'))
+    fid.createVariable('elevation', num.Float, ('number_of_rows',
+                                                'number_of_columns'))
 
     # Get handles to the variables
     elevation = fid.variables['elevation']
@@ -2877,7 +2860,7 @@ def _convert_dem_from_ascii2netcdf(basename_in, basename_out = None,
         fields = line.split()
         if verbose and i % ((n+10)/10) == 0:
             print 'Processing row %d of %d' % (i, nrows)
-        elevation[i, :] = array([float(x) for x in fields])
+        elevation[i, :] = num.array([float(x) for x in fields])
 
     fid.close()
 
@@ -2945,10 +2928,8 @@ def ferret2sww(basename_in, basename_out=None,
 
     import os
     from Scientific.IO.NetCDF import NetCDFFile
-    from Numeric import Float, Int, Int32, searchsorted, zeros, array
-    from Numeric import allclose, around
 
-    precision = Float
+    precision = num.Float
 
     msg = 'Must use latitudes and longitudes for minlat, maxlon etc'
 
@@ -3021,29 +3002,29 @@ def ferret2sww(basename_in, basename_out=None,
             dim_v_time = dimension
 
     # Precision used by most for lat/lon is 4 or 5 decimals
-    e_lat = around(file_e.variables[dim_e_latitude][:], 5)
-    e_lon = around(file_e.variables[dim_e_longitude][:], 5)
+    e_lat = num.around(file_e.variables[dim_e_latitude][:], 5)
+    e_lon = num.around(file_e.variables[dim_e_longitude][:], 5)
 
     # Check that files are compatible
-    assert allclose(latitudes, file_u.variables[dim_u_latitude])
-    assert allclose(latitudes, file_v.variables[dim_v_latitude])
-    assert allclose(latitudes, e_lat)
+    assert num.allclose(latitudes, file_u.variables[dim_u_latitude])
+    assert num.allclose(latitudes, file_v.variables[dim_v_latitude])
+    assert num.allclose(latitudes, e_lat)
 
-    assert allclose(longitudes, file_u.variables[dim_u_longitude])
-    assert allclose(longitudes, file_v.variables[dim_v_longitude])
-    assert allclose(longitudes, e_lon)
+    assert num.allclose(longitudes, file_u.variables[dim_u_longitude])
+    assert num.allclose(longitudes, file_v.variables[dim_v_longitude])
+    assert num.allclose(longitudes, e_lon)
 
     if mint is None:
         jmin = 0
         mint = times[0]
     else:
-        jmin = searchsorted(times, mint)
+        jmin = num.searchsorted(times, mint)
 
     if maxt is None:
         jmax = len(times)
         maxt = times[-1]
     else:
-        jmax = searchsorted(times, maxt)
+        jmax = num.searchsorted(times, maxt)
 
     kmin, kmax, lmin, lmax = _get_min_max_indexes(latitudes[:],
                                                   longitudes[:],
@@ -3088,10 +3069,8 @@ def ferret2sww(basename_in, basename_out=None,
         nan_e = None
 
     #Cleanup
-    from Numeric import sometrue
-
     missing = (amplitudes == nan_ha)
-    if sometrue (missing):
+    if num.sometrue (missing):
         if fail_on_NaN:
             msg = 'NetCDFFile %s contains missing values' \
                   % basename_in + '_ha.nc'
@@ -3100,7 +3079,7 @@ def ferret2sww(basename_in, basename_out=None,
             amplitudes = amplitudes*(missing==0) + missing*NaN_filler
 
     missing = (uspeed == nan_ua)
-    if sometrue (missing):
+    if num.sometrue (missing):
         if fail_on_NaN:
             msg = 'NetCDFFile %s contains missing values' \
                   % basename_in + '_ua.nc'
@@ -3109,7 +3088,7 @@ def ferret2sww(basename_in, basename_out=None,
             uspeed = uspeed*(missing==0) + missing*NaN_filler
 
     missing = (vspeed == nan_va)
-    if sometrue (missing):
+    if num.sometrue (missing):
         if fail_on_NaN:
             msg = 'NetCDFFile %s contains missing values' \
                   % basename_in + '_va.nc'
@@ -3118,7 +3097,7 @@ def ferret2sww(basename_in, basename_out=None,
             vspeed = vspeed*(missing==0) + missing*NaN_filler
 
     missing = (elevations == nan_e)
-    if sometrue (missing):
+    if num.sometrue (missing):
         if fail_on_NaN:
             msg = 'NetCDFFile %s contains missing values' \
                   % basename_in + '_e.nc'
@@ -3186,12 +3165,12 @@ def ferret2sww(basename_in, basename_out=None,
     sww = Write_sww()
     sww.store_header(outfile, times, number_of_volumes,
                      number_of_points, description=description,
-                     verbose=verbose, sww_precision=Float)
+                     verbose=verbose, sww_precision=num.Float)
 
     # Store
     from anuga.coordinate_transforms.redfearn import redfearn
-    x = zeros(number_of_points, Float)  #Easting
-    y = zeros(number_of_points, Float)  #Northing
+    x = num.zeros(number_of_points, num.Float)  #Easting
+    y = num.zeros(number_of_points, num.Float)  #Northing
 
     if verbose: print 'Making triangular grid'
 
@@ -3225,7 +3204,7 @@ def ferret2sww(basename_in, basename_out=None,
             volumes.append([v1,v2,v3]) #Upper element
             volumes.append([v4,v3,v2]) #Lower element
 
-    volumes = array(volumes)
+    volumes = num.array(volumes)
 
     if origin is None:
         origin = Geo_reference(refzone, min(x), min(y))
@@ -3241,13 +3220,12 @@ def ferret2sww(basename_in, basename_out=None,
     #FIXME: z should be obtained from MOST and passed in here
 
     #FIXME use the Write_sww instance(sww) to write this info
-    from Numeric import resize
-    z = resize(z, outfile.variables['z'][:].shape)
+    z = num.resize(z, outfile.variables['z'][:].shape)
     outfile.variables['x'][:] = x - geo_ref.get_xllcorner()
     outfile.variables['y'][:] = y - geo_ref.get_yllcorner()
     outfile.variables['z'][:] = z             #FIXME HACK for bacwards compat.
     outfile.variables['elevation'][:] = z
-    outfile.variables['volumes'][:] = volumes.astype(Int32) #For Opteron 64
+    outfile.variables['volumes'][:] = volumes.astype(num.Int32) #For Opteron 64
 
     #Time stepping
     stage = outfile.variables['stage']
@@ -3330,7 +3308,6 @@ def timefile2netcdf(filename, quantity_names=None, time_as_seconds=False):
     """
 
     import time, calendar
-    from Numeric import array
     from anuga.config import time_format
     from anuga.utilities.numerical_tools import ensure_numeric
 
@@ -3370,7 +3347,6 @@ def timefile2netcdf(filename, quantity_names=None, time_as_seconds=False):
     assert len(q.shape) == 1, msg
 
     # Read times proper
-    from Numeric import zeros, Float, alltrue
     from anuga.config import time_format
     import time, calendar
 
@@ -3381,8 +3357,8 @@ def timefile2netcdf(filename, quantity_names=None, time_as_seconds=False):
     N = len(lines)
     d = len(q)
 
-    T = zeros(N, Float)       # Time
-    Q = zeros((N, d), Float)  # Values
+    T = num.zeros(N, num.Float)       # Time
+    Q = num.zeros((N, d), num.Float)  # Values
 
     for i, line in enumerate(lines):
         fields = line.split(',')
@@ -3397,7 +3373,7 @@ def timefile2netcdf(filename, quantity_names=None, time_as_seconds=False):
 
     msg = 'File %s must list time as a monotonuosly ' % filename
     msg += 'increasing sequence'
-    assert alltrue(T[1:] - T[:-1] > 0), msg
+    assert num.alltrue(T[1:] - T[:-1] > 0), msg
 
     #Create NetCDF file
     from Scientific.IO.NetCDF import NetCDFFile
@@ -3418,7 +3394,7 @@ def timefile2netcdf(filename, quantity_names=None, time_as_seconds=False):
 
     fid.createDimension('number_of_timesteps', len(T))
 
-    fid.createVariable('time', Float, ('number_of_timesteps',))
+    fid.createVariable('time', num.Float, ('number_of_timesteps',))
 
     fid.variables['time'][:] = T
 
@@ -3428,7 +3404,7 @@ def timefile2netcdf(filename, quantity_names=None, time_as_seconds=False):
         except:
             name = 'Attribute%d' % i
 
-        fid.createVariable(name, Float, ('number_of_timesteps',))
+        fid.createVariable(name, num.Float, ('number_of_timesteps',))
         fid.variables[name][:] = Q[:,i]
 
     fid.close()
@@ -3487,7 +3463,6 @@ def sww2domain(filename, boundary=None, t=None,
 
     from Scientific.IO.NetCDF import NetCDFFile
     from shallow_water import Domain
-    from Numeric import asarray, transpose, resize
 
     # initialise NaN.
     NaN = 9.969209968386869e+036
@@ -3510,10 +3485,10 @@ def sww2domain(filename, boundary=None, t=None,
 
     starttime = fid.starttime[0]
     volumes = fid.variables['volumes'][:]       # Connectivity
-    coordinates = transpose(asarray([x.tolist(), y.tolist()]))
+    coordinates = num.transpose(num.asarray([x.tolist(), y.tolist()]))
     # FIXME (Ole): Something like this might be better:
     #                 concatenate((x, y), axis=1)
-    # or              concatenate((x[:,NewAxis], x[:,NewAxis]), axis=1)
+    # or              concatenate((x[:,num.NewAxis], x[:,num.NewAxis]), axis=1)
 
     conserved_quantities = []
     interpolated_quantities = {}
@@ -3607,7 +3582,7 @@ def sww2domain(filename, boundary=None, t=None,
                 data = (X != NaN)
                 X = (X*data) + (data==0)*NaN_filler
         if unique:
-            X = resize(X, (len(X)/3, 3))
+            X = num.resize(X, (len(X)/3, 3))
         domain.set_quantity(quantity, X)
     #
     for quantity in conserved_quantities:
@@ -3632,7 +3607,7 @@ def sww2domain(filename, boundary=None, t=None,
                 data = (X != NaN)
                 X = (X*data) + (data==0)*NaN_filler
         if unique:
-            X = resize(X, (X.shape[0]/3, 3))
+            X = num.resize(X, (X.shape[0]/3, 3))
         domain.set_quantity(quantity, X)
 
     fid.close()
@@ -3701,9 +3676,9 @@ def get_time_interp(time, t=None):
 # @param volumes 
 # @param boundary 
 def weed(coordinates, volumes, boundary=None):
-    if type(coordinates) == ArrayType:
+    if type(coordinates) == num.ArrayType:
         coordinates = coordinates.tolist()
-    if type(volumes) == ArrayType:
+    if type(volumes) == num.ArrayType:
         volumes = volumes.tolist()
 
     unique = False
@@ -3780,7 +3755,6 @@ def decimate_dem(basename_in, stencil, cellsize_new, basename_out=None,
 
     import os
     from Scientific.IO.NetCDF import NetCDFFile
-    from Numeric import Float, zeros, sum, reshape, equal
 
     root = basename_in
     inname = root + '.dem'
@@ -3850,12 +3824,12 @@ def decimate_dem(basename_in, stencil, cellsize_new, basename_out=None,
     outfile.createDimension('number_of_points', nrows_new*ncols_new)
 
     # variable definition
-    outfile.createVariable('elevation', Float, ('number_of_points',))
+    outfile.createVariable('elevation', num.Float, ('number_of_points',))
 
     # Get handle to the variable
     elevation = outfile.variables['elevation']
 
-    dem_elevation_r = reshape(dem_elevation, (nrows, ncols))
+    dem_elevation_r = num.reshape(dem_elevation, (nrows, ncols))
 
     #Store data
     global_index = 0
@@ -3863,7 +3837,7 @@ def decimate_dem(basename_in, stencil, cellsize_new, basename_out=None,
         if verbose: print 'Processing row %d of %d' %(i, nrows_new)
 
         lower_index = global_index
-        telev = zeros(ncols_new, Float)
+        telev = num.zeros(ncols_new, num.Float)
         local_index = 0
         trow = i * cellsize_ratio
 
@@ -3875,10 +3849,10 @@ def decimate_dem(basename_in, stencil, cellsize_new, basename_out=None,
             #if dem contains 1 or more NODATA_values set value in
             #decimated dem to NODATA_value, else compute decimated
             #value using stencil
-            if sum(sum(equal(tmp, NODATA_value))) > 0:
+            if num.sum(num.sum(num.equal(tmp, NODATA_value))) > 0:
                 telev[local_index] = NODATA_value
             else:
-                telev[local_index] = sum(sum(tmp * stencil))
+                telev[local_index] = num.sum(num.sum(tmp * stencil))
 
             global_index += 1
             local_index += 1
@@ -3991,7 +3965,7 @@ def asc_csiro2sww(bath_dir,
 
     from anuga.coordinate_transforms.redfearn import redfearn
 
-    precision = Float # So if we want to change the precision its done here
+    precision = num.Float # So if we want to change the precision its done here
 
     # go in to the bath dir and load the only file,
     bath_files = os.listdir(bath_dir)
@@ -4092,8 +4066,8 @@ def asc_csiro2sww(bath_dir,
     outfile.createVariable('z', precision, ('number_of_points',))
     #################################
 
-    outfile.createVariable('volumes', Int, ('number_of_volumes',
-                                            'number_of_vertices'))
+    outfile.createVariable('volumes', num.Int, ('number_of_volumes',
+                                                'number_of_vertices'))
 
     outfile.createVariable('time', precision, ('number_of_timesteps',))
 
@@ -4109,8 +4083,8 @@ def asc_csiro2sww(bath_dir,
     #Store
     from anuga.coordinate_transforms.redfearn import redfearn
 
-    x = zeros(number_of_points, Float)  #Easting
-    y = zeros(number_of_points, Float)  #Northing
+    x = num.zeros(number_of_points, num.Float)  #Easting
+    y = num.zeros(number_of_points, num.Float)  #Northing
 
     if verbose: print 'Making triangular grid'
 
@@ -4146,7 +4120,7 @@ def asc_csiro2sww(bath_dir,
             volumes.append([v1,v3,v2]) #Upper element
             volumes.append([v4,v2,v3]) #Lower element
 
-    volumes = array(volumes)
+    volumes = num.array(volumes)
 
     geo_ref = Geo_reference(refzone, min(x), min(y))
     geo_ref.write_NetCDF(outfile)
@@ -4164,14 +4138,14 @@ def asc_csiro2sww(bath_dir,
               % (min(y), max(y), len(y))
         print 'geo_ref: ', geo_ref
 
-    z = resize(bath_grid,outfile.variables['z'][:].shape)
+    z = num.resize(bath_grid,outfile.variables['z'][:].shape)
     outfile.variables['x'][:] = x - geo_ref.get_xllcorner()
     outfile.variables['y'][:] = y - geo_ref.get_yllcorner()
 # FIXME (Ole): Remove once viewer has been recompiled and changed
 #              to use elevation instead of z
     outfile.variables['z'][:] = z
     outfile.variables['elevation'][:] = z
-    outfile.variables['volumes'][:] = volumes.astype(Int32) # On Opteron 64
+    outfile.variables['volumes'][:] = volumes.astype(num.Int32) # On Opteron 64
 
     stage = outfile.variables['stage']
     xmomentum = outfile.variables['xmomentum']
@@ -4197,7 +4171,7 @@ def asc_csiro2sww(bath_dir,
 
         # handle missing values
         missing = (elevation_grid == elevation_meta['NODATA_value'])
-        if sometrue (missing):
+        if num.sometrue (missing):
             if fail_on_NaN:
                 msg = 'File %s contains missing values' \
                       % (elevation_files[j])
@@ -4253,18 +4227,18 @@ def _get_min_max_indexes(latitudes_ref,longitudes_ref,
     latitudes = ensure_numeric(latitudes)
     longitudes = ensure_numeric(longitudes)
 
-    assert allclose(sort(longitudes), longitudes)
+    assert num.allclose(num.sort(longitudes), longitudes)
 
     #print latitudes[0],longitudes[0]
     #print len(latitudes),len(longitudes)
     #print latitudes[len(latitudes)-1],longitudes[len(longitudes)-1]
 
     lat_ascending = True
-    if not allclose(sort(latitudes), latitudes):
+    if not num.allclose(num.sort(latitudes), latitudes):
         lat_ascending = False
         # reverse order of lat, so it's in ascending order
         latitudes = latitudes[::-1]
-        assert allclose(sort(latitudes), latitudes)
+        assert num.allclose(num.sort(latitudes), latitudes)
 
     largest_lat_index = len(latitudes)-1
 
@@ -4272,28 +4246,28 @@ def _get_min_max_indexes(latitudes_ref,longitudes_ref,
     if minlat == None:
         lat_min_index = 0
     else:
-        lat_min_index = searchsorted(latitudes, minlat)-1
+        lat_min_index = num.searchsorted(latitudes, minlat)-1
         if lat_min_index <0:
             lat_min_index = 0
 
     if maxlat == None:
         lat_max_index = largest_lat_index #len(latitudes)
     else:
-        lat_max_index = searchsorted(latitudes, maxlat)
+        lat_max_index = num.searchsorted(latitudes, maxlat)
         if lat_max_index > largest_lat_index:
             lat_max_index = largest_lat_index
 
     if minlon == None:
         lon_min_index = 0
     else:
-        lon_min_index = searchsorted(longitudes, minlon)-1
+        lon_min_index = num.searchsorted(longitudes, minlon)-1
         if lon_min_index <0:
             lon_min_index = 0
 
     if maxlon == None:
         lon_max_index = len(longitudes)
     else:
-        lon_max_index = searchsorted(longitudes, maxlon)
+        lon_max_index = num.searchsorted(longitudes, maxlon)
 
     # Reversing the indexes, if the lat array is decending
     if lat_ascending is False:
@@ -4348,8 +4322,8 @@ def _read_asc(filename, verbose=False):
     for i, line in enumerate(lines):
         cells = line.split()
         assert len(cells) == ncols
-        grid.append(array([float(x) for x in cells]))
-    grid = array(grid)
+        grid.append(num.array([float(x) for x in cells]))
+    grid = num.array(grid)
 
     return {'xllcorner':xllcorner,
             'yllcorner':yllcorner,
@@ -4363,7 +4337,7 @@ def _read_asc(filename, verbose=False):
 lon_name = 'LON'
 lat_name = 'LAT'
 time_name = 'TIME'
-precision = Float # So if we want to change the precision its done here
+precision = num.Float # So if we want to change the precision its done here
 
 ##
 # @brief Clas for a NetCDF data file writer.
@@ -4644,8 +4618,8 @@ def _binary_c2nc(file_in, file_out, quantity):
 
     lonlatdep = p_array.array('f')
     lonlatdep.read(mux_file, columns * points_num)
-    lonlatdep = array(lonlatdep, typecode=Float)
-    lonlatdep = reshape(lonlatdep, (points_num, columns))
+    lonlatdep = num.array(lonlatdep, typecode=num.Float)
+    lonlatdep = num.reshape(lonlatdep, (points_num, columns))
 
     lon, lat, depth = lon_lat2grid(lonlatdep)
     lon_sorted = list(lon)
@@ -4673,9 +4647,9 @@ def _binary_c2nc(file_in, file_out, quantity):
         #Read in a time slice from mux file
         hz_p_array = p_array.array('f')
         hz_p_array.read(mux_file, points_num)
-        hz_p = array(hz_p_array, typecode=Float)
-        hz_p = reshape(hz_p, (len(lon), len(lat)))
-        hz_p = transpose(hz_p)  # mux has lat varying fastest, nc has long v.f.
+        hz_p = num.array(hz_p_array, typecode=num.Float)
+        hz_p = num.reshape(hz_p, (len(lon), len(lat)))
+        hz_p = num.transpose(hz_p)  # mux has lat varying fastest, nc has long v.f.
 
         #write time slice to nc file
         nc_file.store_timestep(hz_p)
@@ -4710,7 +4684,7 @@ def write_elevation_nc(file_out, lon, lat, depth_vector):
     outfile.variables[lon_name][:] = ensure_numeric(lon)
     outfile.variables[lat_name][:] = ensure_numeric(lat)
 
-    depth = reshape(depth_vector, (len(lat), len(lon)))
+    depth = num.reshape(depth_vector, (len(lat), len(lon)))
     outfile.variables[zname][:] = depth
 
     outfile.close()
@@ -4771,7 +4745,7 @@ def lon_lat2grid(long_lat_dep):
     LAT = 1
     QUANTITY = 2
 
-    long_lat_dep = ensure_numeric(long_lat_dep, Float)
+    long_lat_dep = ensure_numeric(long_lat_dep, num.Float)
 
     num_points = long_lat_dep.shape[0]
     this_rows_long = long_lat_dep[0,LONG]
@@ -4798,8 +4772,8 @@ def lon_lat2grid(long_lat_dep):
         first = i * lenlat
         last = first + lenlat
 
-        assert allclose(long_lat_dep[first:last,LAT], lat), msg
-        assert allclose(long_lat_dep[first:last,LONG], long[i]), msg
+        assert num.allclose(long_lat_dep[first:last,LAT], lat), msg
+        assert num.allclose(long_lat_dep[first:last,LONG], long[i]), msg
 
     msg = 'Out of range latitudes/longitudes'
     for l in lat:assert -90 < l < 90 , msg
@@ -4809,7 +4783,7 @@ def lon_lat2grid(long_lat_dep):
     # long being the fastest varying dimension
     # FIXME - make this faster/do this a better way
     # use numeric transpose, after reshaping the quantity vector
-    quantity = zeros(num_points, Float)
+    quantity = num.zeros(num_points, num.Float)
 
     for lat_i, _ in enumerate(lat):
         for long_i, _ in enumerate(long):
@@ -5281,7 +5255,7 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
     # work out sww_times and the index range this covers
     sww = Write_sww()
     sww.store_header(outfile, times, len(volumes), len(points_utm),
-                     verbose=verbose, sww_precision=Float)
+                     verbose=verbose, sww_precision=num.Float)
     outfile.mean_stage = mean_stage
     outfile.zscale = zscale
 
@@ -5305,7 +5279,7 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
                                  stage=stage,
                                  xmomentum=xmomentum,
                                  ymomentum=ymomentum,
-                                 sww_precision=Float)
+                                 sww_precision=num.Float)
         j += 1
 
     if verbose: sww.verbose_quantities(outfile)
@@ -5348,12 +5322,11 @@ def read_mux2_py(filenames,
                         extracted
     """
 
-    from Numeric import ones,Float,compress,zeros,arange
     from urs_ext import read_mux2
 
     numSrc = len(filenames)
 
-    file_params = -1 * ones(3, Float)                    # [nsta,dt,nt]
+    file_params = -1 * num.ones(3, num.Float)                    # [nsta,dt,nt]
 
     # Convert verbose to int C flag
     if verbose:
@@ -5362,17 +5335,17 @@ def read_mux2_py(filenames,
         verbose=0
 
     if weights is None:
-        weights = ones(numSrc)
+        weights = num.ones(numSrc)
 
     if permutation is None:
-        permutation = ensure_numeric([], Float)
+        permutation = ensure_numeric([], num.Float)
 
     # Call underlying C implementation urs2sts_ext.c
     data = read_mux2(numSrc, filenames, weights, file_params,
                      permutation, verbose)
 
     msg = 'File parameter values were not read in correctly from c file'
-    assert len(compress(file_params > 0, file_params)) != 0, msg
+    assert len(num.compress(file_params > 0, file_params)) != 0, msg
 
     msg = 'The number of stations specifed in the c array and in the file ' \
           'are inconsistent'
@@ -5412,11 +5385,11 @@ def read_mux2_py(filenames,
     # Index where data ends and parameters begin
     parameters_index = data.shape[1] - OFFSET
 
-    times = dt * arange(parameters_index)
-    latitudes = zeros(number_of_selected_stations, Float)
-    longitudes = zeros(number_of_selected_stations, Float)
-    elevation = zeros(number_of_selected_stations, Float)
-    quantity = zeros((number_of_selected_stations, parameters_index), Float)
+    times = dt * num.arange(parameters_index)
+    latitudes = num.zeros(number_of_selected_stations, num.Float)
+    longitudes = num.zeros(number_of_selected_stations, num.Float)
+    elevation = num.zeros(number_of_selected_stations, num.Float)
+    quantity = num.zeros((number_of_selected_stations, parameters_index), num.Float)
 
     starttime = 1e16
     for i in range(number_of_selected_stations):
@@ -5443,14 +5416,14 @@ def mux2sww_time(mux_times, mint, maxt):
     if mint == None:
         mux_times_start_i = 0
     else:
-        mux_times_start_i = searchsorted(mux_times, mint)
+        mux_times_start_i = num.searchsorted(mux_times, mint)
 
     if maxt == None:
         mux_times_fin_i = len(mux_times)
     else:
         maxt += 0.5 # so if you specify a time where there is
                     # data that time will be included
-        mux_times_fin_i = searchsorted(mux_times, maxt)
+        mux_times_fin_i = num.searchsorted(mux_times, maxt)
 
     return mux_times_start_i, mux_times_fin_i
 
@@ -5517,8 +5490,6 @@ def urs2sts(basename_in, basename_out=None,
 
     import os
     from Scientific.IO.NetCDF import NetCDFFile
-    from Numeric import Float, Int, Int32, searchsorted, zeros, array
-    from Numeric import allclose, around,ones,Float
     from types import ListType,StringType
     from operator import __and__
 
@@ -5542,7 +5513,7 @@ def urs2sts(basename_in, basename_out=None,
     # A weight must be specified for each source
     if weights is None:
         # Default is equal weighting
-        weights = ones(numSrc, Float) / numSrc
+        weights = num.ones(numSrc, num.Float) / numSrc
     else:
         weights = ensure_numeric(weights)
         msg = 'When combining multiple sources must specify a weight for ' \
@@ -5621,11 +5592,11 @@ def urs2sts(basename_in, basename_out=None,
         if quantity != quantities[0]:
             msg = '%s, %s and %s have inconsistent gauge data' \
                   % (files_in[0], files_in[1], files_in[2])
-            assert allclose(times, times_old), msg
-            assert allclose(latitudes, latitudes_old), msg
-            assert allclose(longitudes, longitudes_old), msg
-            assert allclose(elevation, elevation_old), msg
-            assert allclose(starttime, starttime_old), msg
+            assert num.allclose(times, times_old), msg
+            assert num.allclose(latitudes, latitudes_old), msg
+            assert num.allclose(longitudes, longitudes_old), msg
+            assert num.allclose(elevation, elevation_old), msg
+            assert num.allclose(starttime, starttime_old), msg
         times_old = times
         latitudes_old = latitudes
         longitudes_old = longitudes
@@ -5664,7 +5635,7 @@ def urs2sts(basename_in, basename_out=None,
     # are assigned the trivial indices enumerating them from
     # 0 to number_of_points-1
     if permutation is None:
-        permutation = arange(number_of_points, typecode=Int)
+        permutation = num.arange(number_of_points, typecode=num.Int)
 
     # NetCDF file definition
     outfile = NetCDFFile(stsname, netcdf_mode_w)
@@ -5678,13 +5649,13 @@ def urs2sts(basename_in, basename_out=None,
                      number_of_points,
                      description=description,
                      verbose=verbose,
-                     sts_precision=Float)
+                     sts_precision=num.Float)
 
     # Store
     from anuga.coordinate_transforms.redfearn import redfearn
 
-    x = zeros(number_of_points, Float)  # Easting
-    y = zeros(number_of_points, Float)  # Northing
+    x = num.zeros(number_of_points, num.Float)  # Easting
+    y = num.zeros(number_of_points, num.Float)  # Northing
 
     # Check zone boundaries
     if zone is None:
@@ -5714,8 +5685,8 @@ def urs2sts(basename_in, basename_out=None,
         origin = Geo_reference(refzone, min(x), min(y))
     geo_ref = write_NetCDF_georeference(origin, outfile)
 
-    elevation = resize(elevation, outfile.variables['elevation'][:].shape)
-    outfile.variables['permutation'][:] = permutation.astype(Int32) # Opteron 64
+    elevation = num.resize(elevation, outfile.variables['elevation'][:].shape)
+    outfile.variables['permutation'][:] = permutation.astype(num.Int32) # Opteron 64
     outfile.variables['x'][:] = x - geo_ref.get_xllcorner()
     outfile.variables['y'][:] = y - geo_ref.get_yllcorner()
     outfile.variables['elevation'][:] = elevation
@@ -5781,9 +5752,9 @@ def create_sts_boundary(stsname):
     x = fid.variables['x'][:] + xllcorner
     y = fid.variables['y'][:] + yllcorner
 
-    x = reshape(x, (len(x),1))
-    y = reshape(y, (len(y),1))
-    sts_points = concatenate((x,y), axis=1)
+    x = num.reshape(x, (len(x),1))
+    y = num.reshape(y, (len(y),1))
+    sts_points = num.concatenate((x,y), axis=1)
 
     return sts_points.tolist()
 
@@ -5831,7 +5802,7 @@ class Write_sww:
                      description='Converted from XXX',
                      smoothing=True,
                      order=1,
-                     sww_precision=Float32,
+                     sww_precision=num.Float32,
                      verbose=False):
         """Write an SWW file header.
 
@@ -5864,7 +5835,7 @@ class Write_sww:
 
         # This is being used to seperate one number from a list.
         # what it is actually doing is sorting lists from numeric arrays.
-        if type(times) is list or type(times) is ArrayType:
+        if type(times) is list or type(times) is num.ArrayType:
             number_of_times = len(times)
             times = ensure_numeric(times)
             if number_of_times == 0:
@@ -5913,11 +5884,11 @@ class Write_sww:
         # FIXME: Backwards compatibility
         outfile.createVariable('z', sww_precision, ('number_of_points',))
 
-        outfile.createVariable('volumes', Int, ('number_of_volumes',
-                                                'number_of_vertices'))
+        outfile.createVariable('volumes', num.Int, ('number_of_volumes',
+                                                    'number_of_vertices'))
 
         # Doing sww_precision instead of Float gives cast errors.
-        outfile.createVariable('time', Float,
+        outfile.createVariable('time', num.Float,
                                ('number_of_timesteps',))
 
         for q in Write_sww.sww_quantities:
@@ -5931,7 +5902,7 @@ class Write_sww:
             outfile.variables[q+Write_sww.RANGE][0] = max_float  # Min
             outfile.variables[q+Write_sww.RANGE][1] = -max_float # Max
 
-        if type(times) is list or type(times) is ArrayType:
+        if type(times) is list or type(times) is num.ArrayType:
             outfile.variables['time'][:] = times    #Store time relative
 
         if verbose:
@@ -5986,8 +5957,8 @@ class Write_sww:
         """
 
         number_of_points = len(points_utm)
-        volumes = array(volumes)
-        points_utm = array(points_utm)
+        volumes = num.array(volumes)
+        points_utm = num.array(points_utm)
 
         # given the two geo_refs and the points, do the stuff
         # described in the method header
@@ -6034,7 +6005,7 @@ class Write_sww:
         outfile.variables['y'][:] = points[:,1] #- geo_ref.get_yllcorner()
         outfile.variables['z'][:] = elevation
         outfile.variables['elevation'][:] = elevation  #FIXME HACK
-        outfile.variables['volumes'][:] = volumes.astype(Int32) #On Opteron 64
+        outfile.variables['volumes'][:] = volumes.astype(num.Int32) #On Opteron 64
 
         q = 'elevation'
         # This updates the _range values
@@ -6050,7 +6021,7 @@ class Write_sww:
     # @param time
     # @param verbose True if this function is to be verbose.
     # @param **quant
-    def store_quantities(self, outfile, sww_precision=Float32,
+    def store_quantities(self, outfile, sww_precision=num.Float32,
                          slice_index=None, time=None,
                          verbose=False, **quant):
         """
@@ -6243,7 +6214,7 @@ class Write_sts:
                      times,
                      number_of_points,
                      description='Converted from URS mux2 format',
-                     sts_precision=Float32,
+                     sts_precision=num.Float32,
                      verbose=False):
         """
         outfile - the name of the file that will be written
@@ -6266,7 +6237,7 @@ class Write_sts:
         # Start time in seconds since the epoch (midnight 1/1/1970)
         # This is being used to seperate one number from a list.
         # what it is actually doing is sorting lists from numeric arrays.
-        if type(times) is list or type(times) is ArrayType:
+        if type(times) is list or type(times) is num.ArrayType:
             number_of_times = len(times)
             times = ensure_numeric(times)
             if number_of_times == 0:
@@ -6286,7 +6257,7 @@ class Write_sts:
         outfile.createDimension('numbers_in_range', 2)
 
         # Variable definitions
-        outfile.createVariable('permutation', Int, ('number_of_points',))
+        outfile.createVariable('permutation', num.Int, ('number_of_points',))
         outfile.createVariable('x', sts_precision, ('number_of_points',))
         outfile.createVariable('y', sts_precision, ('number_of_points',))
         outfile.createVariable('elevation',sts_precision, ('number_of_points',))
@@ -6301,7 +6272,7 @@ class Write_sts:
         outfile.variables[q + Write_sts.RANGE][1] = -max_float # Max
 
         # Doing sts_precision instead of Float gives cast errors.
-        outfile.createVariable('time', Float, ('number_of_timesteps',))
+        outfile.createVariable('time', num.Float, ('number_of_timesteps',))
 
         for q in Write_sts.sts_quantities:
             outfile.createVariable(q, sts_precision, ('number_of_timesteps',
@@ -6313,7 +6284,7 @@ class Write_sts:
             outfile.variables[q + Write_sts.RANGE][0] = max_float  # Min
             outfile.variables[q + Write_sts.RANGE][1] = -max_float # Max
 
-        if type(times) is list or type(times) is ArrayType:
+        if type(times) is list or type(times) is num.ArrayType:
             outfile.variables['time'][:] = times    #Store time relative
 
         if verbose:
@@ -6364,7 +6335,7 @@ class Write_sts:
         """
 
         number_of_points = len(points_utm)
-        points_utm = array(points_utm)
+        points_utm = num.array(points_utm)
 
         # given the two geo_refs and the points, do the stuff
         # described in the method header
@@ -6422,7 +6393,7 @@ class Write_sts:
     # @param time
     # @param verboseTrue if this function is to be verbose.
     # @param **quant Extra keyword args.
-    def store_quantities(self, outfile, sts_precision=Float32,
+    def store_quantities(self, outfile, sts_precision=num.Float32,
                          slice_index=None, time=None,
                          verbose=False, **quant):
         """Write the quantity info.
@@ -6513,8 +6484,8 @@ class Urs_points:
         # to the sea bottom.
         lonlatdep = p_array.array('f')
         lonlatdep.read(mux_file, columns * self.points_num)
-        lonlatdep = array(lonlatdep, typecode=Float)
-        lonlatdep = reshape(lonlatdep, (self.points_num, columns))
+        lonlatdep = num.array(lonlatdep, typecode=num.Float)
+        lonlatdep = num.reshape(lonlatdep, (self.points_num, columns))
         self.lonlatdep = lonlatdep
 
         self.mux_file = mux_file
@@ -6549,7 +6520,7 @@ class Urs_points:
         #Read in a time slice from mux file
         hz_p_array = p_array.array('f')
         hz_p_array.read(self.mux_file, self.points_num)
-        hz_p = array(hz_p_array, typecode=Float)
+        hz_p = num.array(hz_p_array, typecode=num.Float)
         self.iter_time_step += 1
 
         return hz_p
@@ -6694,8 +6665,8 @@ def get_data_from_file(filename, separator_value=','):
 
     # array to store data, number in there is to allow float...
     # i'm sure there is a better way!
-    data = array([], typecode=Float)
-    data = resize(data, ((len(lines)-1), len(header_fields)))
+    data = num.array([], typecode=num.Float)
+    data = num.resize(data, ((len(lines)-1), len(header_fields)))
 
     array_number = 0
     line_number = 1
@@ -6852,7 +6823,6 @@ def get_mesh_and_quantities_from_file(filename,
     import types
     from Scientific.IO.NetCDF import NetCDFFile
     from shallow_water import Domain
-    from Numeric import asarray, transpose, resize
     from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 
     if verbose: print 'Reading from ', filename
@@ -6870,7 +6840,7 @@ def get_mesh_and_quantities_from_file(filename,
     ymomentum = fid.variables['ymomentum'][:]   # Momentum in the y-direction
 
     # Mesh (nodes (Mx2), triangles (Nx3))
-    nodes = concatenate((x[:,NewAxis], y[:,NewAxis]), axis=1)
+    nodes = num.concatenate((x[:,num.NewAxis], y[:,num.NewAxis]), axis=1)
     triangles = fid.variables['volumes'][:]
 
     # Get geo_reference
@@ -7293,8 +7263,8 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
         y = fid.variables['y'][:] + yllcorner
 
         # Get the relevant quantities (Convert from single precison)
-        elevation = array(fid.variables['elevation'][:], Float)
-        stage = array(fid.variables['stage'][:], Float)
+        elevation = num.array(fid.variables['elevation'][:], num.Float)
+        stage = num.array(fid.variables['stage'][:], num.Float)
 
         # Here's where one could convert nodal information to centroid
         # information but is probably something we need to write in C.
@@ -7311,25 +7281,25 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
             # FIXME (Ole): Make a generic polygon input check in polygon.py
             # and call it here
 
-            points = concatenate((x[:,NewAxis], y[:,NewAxis]), axis=1)
+            points = num.concatenate((x[:,num.NewAxis], y[:,num.NewAxis]), axis=1)
 
             point_indices = inside_polygon(points, polygon)
 
             # Restrict quantities to polygon
-            elevation = take(elevation, point_indices)
-            stage = take(stage, point_indices, axis=1)
+            elevation = num.take(elevation, point_indices)
+            stage = num.take(stage, point_indices, axis=1)
 
             # Get info for location of maximal runup
-            points_in_polygon = take(points, point_indices)
+            points_in_polygon = num.take(points, point_indices)
             x = points_in_polygon[:,0]
             y = points_in_polygon[:,1]
         else:
             # Take all points
-            point_indices = arange(len(x))
+            point_indices = num.arange(len(x))
 
         # Temporal restriction
         time = fid.variables['time'][:]
-        all_timeindices = arange(len(time))
+        all_timeindices = num.arange(len(time))
         if time_interval is not None:
             msg = 'time_interval must be a sequence of length 2.'
             assert len(time_interval) == 2, msg
@@ -7342,13 +7312,13 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
             if time_interval[0] > time[-1]: raise ValueError(msg)
 
             # Take time indices corresponding to interval (& is bitwise AND)
-            timesteps = compress((time_interval[0] <= time) \
+            timesteps = num.compress((time_interval[0] <= time) \
                                      & (time <= time_interval[1]),
-                                 all_timeindices)
+                                     all_timeindices)
 
             msg = 'time_interval %s did not include any model timesteps.' \
                   % time_interval
-            assert not alltrue(timesteps == 0), msg
+            assert not num.alltrue(timesteps == 0), msg
         else:
             # Take them all
             timesteps = all_timeindices
@@ -7371,15 +7341,15 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
 
             # Get wet nodes i.e. nodes with depth>0 within given region
             # and timesteps
-            wet_nodes = compress(depth > minimum_allowed_height,
-                                 arange(len(depth)))
+            wet_nodes = num.compress(depth > minimum_allowed_height,
+                                     num.arange(len(depth)))
 
-            if alltrue(wet_nodes == 0):
+            if num.alltrue(wet_nodes == 0):
                 runup = None
             else:
                 # Find maximum elevation among wet nodes
-                wet_elevation = take(elevation, wet_nodes)
-                runup_index = argmax(wet_elevation)
+                wet_elevation = num.take(elevation, wet_nodes)
+                runup_index = num.argmax(wet_elevation)
                 runup = max(wet_elevation)
                 assert wet_elevation[runup_index] == runup       # Must be True
 
@@ -7387,8 +7357,8 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
                 maximal_runup = runup      # works even if maximal_runup is None
 
                 # Record location
-                wet_x = take(x, wet_nodes)
-                wet_y = take(y, wet_nodes)
+                wet_x = num.take(x, wet_nodes)
+                wet_y = num.take(y, wet_nodes)
                 maximal_runup_location = [wet_x[runup_index],wet_y[runup_index]]
 
     return maximal_runup, maximal_runup_location

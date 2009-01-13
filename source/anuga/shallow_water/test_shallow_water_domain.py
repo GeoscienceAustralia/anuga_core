@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
 import unittest, os
-from math import sqrt, pi
+from math import pi
 import tempfile
 
 from anuga.config import g, epsilon
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
-from Numeric import allclose, alltrue, array, zeros, ones, Float, take
+import Numeric as num
 from anuga.utilities.numerical_tools import mean
 from anuga.utilities.polygon import is_inside_polygon
 from anuga.coordinate_transforms.geo_reference import Geo_reference
@@ -20,7 +20,7 @@ from shallow_water_ext import flux_function_central as flux_function
 
 # For test_fitting_using_shallow_water_domain example
 def linear_function(point):
-    point = array(point)
+    point = num.array(point)
     return point[:,0]+point[:,1]
 
 class Weir:
@@ -32,12 +32,11 @@ class Weir:
         self.inflow_stage = stage
 
     def __call__(self, x, y):
-        from Numeric import zeros, Float
 
         N = len(x)
         assert N == len(y)
 
-        z = zeros(N, Float)
+        z = num.zeros(N, num.Float)
         for i in range(N):
             z[i] = -x[i]/2  #General slope
 
@@ -99,8 +98,8 @@ class Weir:
             #Hole to the east
             x0 = 1.1; y0 = 0.35
             #if x[i] < -0.2 and y < 0.5:
-            if sqrt((2*(x[i]-x0))**2 + (2*(y[i]-y0))**2) < 0.2:
-                z[i] = sqrt(((x[i]-x0))**2 + ((y[i]-y0))**2)-1.0
+            if num.sqrt((2*(x[i]-x0))**2 + (2*(y[i]-y0))**2) < 0.2:
+                z[i] = num.sqrt(((x[i]-x0))**2 + ((y[i]-y0))**2)-1.0
 
             #Tiny channel draining hole
             if x[i] >= 1.14 and x[i] < 1.2 and y[i] >= 0.4 and y[i] < 0.6:
@@ -138,12 +137,11 @@ class Weir_simple:
         self.inflow_stage = stage
 
     def __call__(self, x, y):
-        from Numeric import zeros, Float
 
         N = len(x)
         assert N == len(y)
 
-        z = zeros(N, Float)
+        z = num.zeros(N, num.Float)
         for i in range(N):
             z[i] = -x[i]  #General slope
 
@@ -177,15 +175,15 @@ def speed(t,x,y):
 
     from math import exp, cos, pi
 
-    x = array(x)
-    y = array(y)
+    x = num.array(x)
+    y = num.array(y)
 
     N = len(x)
     s = 0*x  #New array
 
     for k in range(N):
 
-        r = sqrt(x[k]**2 + y[k]**2)
+        r = num.sqrt(x[k]**2 + y[k]**2)
 
         factor = exp( -(r-0.15)**2 )
 
@@ -207,14 +205,14 @@ def angle(t,x,y):
     """
     from math import atan, pi
 
-    x = array(x)
-    y = array(y)
+    x = num.array(x)
+    y = num.array(y)
 
     N = len(x)
     a = 0*x  #New array
 
     for k in range(N):
-        r = sqrt(x[k]**2 + y[k]**2)
+        r = num.sqrt(x[k]**2 + y[k]**2)
 
         angle = atan(y[k]/x[k])
 
@@ -241,9 +239,9 @@ class Test_Shallow_Water(unittest.TestCase):
         pass
 
     def test_rotate(self):
-        normal = array([0.0,-1.0])
+        normal = num.array([0.0,-1.0])
 
-        q = array([1.0,2.0,3.0])
+        q = num.array([1.0,2.0,3.0])
 
         r = rotate(q, normal, direction = 1)
         assert r[0] == 1
@@ -251,11 +249,11 @@ class Test_Shallow_Water(unittest.TestCase):
         assert r[2] == 2
 
         w = rotate(r, normal, direction = -1)
-        assert allclose(w, q)
+        assert num.allclose(w, q)
 
         #Check error check
         try:
-            rotate(r, array([1,1,1]) )
+            rotate(r, num.array([1,1,1]) )
         except:
             pass
         else:
@@ -264,32 +262,32 @@ class Test_Shallow_Water(unittest.TestCase):
 
     # Individual flux tests
     def test_flux_zero_case(self):
-        ql = zeros( 3, Float )
-        qr = zeros( 3, Float )
-        normal = zeros( 2, Float )
-        edgeflux = zeros( 3, Float )
+        ql = num.zeros( 3, num.Float )
+        qr = num.zeros( 3, num.Float )
+        normal = num.zeros( 2, num.Float )
+        edgeflux = num.zeros( 3, num.Float )
         zl = zr = 0.
         H0 = 0.0
         
         max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux, epsilon, g, H0)
 
-        assert allclose(edgeflux, [0,0,0])
+        assert num.allclose(edgeflux, [0,0,0])
         assert max_speed == 0.
 
     def test_flux_constants(self):
         w = 2.0
 
-        normal = array([1.,0])
-        ql = array([w, 0, 0])
-        qr = array([w, 0, 0])
-        edgeflux = zeros(3, Float)        
+        normal = num.array([1.,0])
+        ql = num.array([w, 0, 0])
+        qr = num.array([w, 0, 0])
+        edgeflux = num.zeros(3, num.Float)        
         zl = zr = 0.
         h = w - (zl+zr)/2
         H0 = 0.0
 
         max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux, epsilon, g, H0)        
-        assert allclose(edgeflux, [0., 0.5*g*h**2, 0.])
-        assert max_speed == sqrt(g*h)
+        assert num.allclose(edgeflux, [0., 0.5*g*h**2, 0.])
+        assert max_speed == num.sqrt(g*h)
 
     #def test_flux_slope(self):
     #    #FIXME: TODO
@@ -309,61 +307,61 @@ class Test_Shallow_Water(unittest.TestCase):
 
     def test_flux1(self):
         #Use data from previous version of abstract_2d_finite_volumes
-        normal = array([1.,0])
-        ql = array([-0.2, 2, 3])
-        qr = array([-0.2, 2, 3])
+        normal = num.array([1.,0])
+        ql = num.array([-0.2, 2, 3])
+        qr = num.array([-0.2, 2, 3])
         zl = zr = -0.5
-        edgeflux = zeros(3, Float)                
+        edgeflux = num.zeros(3, num.Float)                
 
         H0 = 0.0
 
         max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux, epsilon, g, H0)        
 
-        assert allclose(edgeflux, [2.,13.77433333, 20.])
-        assert allclose(max_speed, 8.38130948661)
+        assert num.allclose(edgeflux, [2.,13.77433333, 20.])
+        assert num.allclose(max_speed, 8.38130948661)
 
 
     def test_flux2(self):
         #Use data from previous version of abstract_2d_finite_volumes
-        normal = array([0., -1.])
-        ql = array([-0.075, 2, 3])
-        qr = array([-0.075, 2, 3])
+        normal = num.array([0., -1.])
+        ql = num.array([-0.075, 2, 3])
+        qr = num.array([-0.075, 2, 3])
         zl = zr = -0.375
 
-        edgeflux = zeros(3, Float)                
+        edgeflux = num.zeros(3, num.Float)                
         H0 = 0.0
         max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux, epsilon, g, H0)        
 
-        assert allclose(edgeflux, [-3.,-20.0, -30.441])
-        assert allclose(max_speed, 11.7146428199)
+        assert num.allclose(edgeflux, [-3.,-20.0, -30.441])
+        assert num.allclose(max_speed, 11.7146428199)
 
     def test_flux3(self):
         #Use data from previous version of abstract_2d_finite_volumes
-        normal = array([-sqrt(2)/2, sqrt(2)/2])
-        ql = array([-0.075, 2, 3])
-        qr = array([-0.075, 2, 3])
+        normal = num.array([-num.sqrt(2)/2, num.sqrt(2)/2])
+        ql = num.array([-0.075, 2, 3])
+        qr = num.array([-0.075, 2, 3])
         zl = zr = -0.375
 
-        edgeflux = zeros(3, Float)                
+        edgeflux = num.zeros(3, num.Float)                
         H0 = 0.0
         max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux, epsilon, g, H0)        
 
-        assert allclose(edgeflux, [sqrt(2)/2, 4.40221112, 7.3829019])
-        assert allclose(max_speed, 4.0716654239)
+        assert num.allclose(edgeflux, [num.sqrt(2)/2, 4.40221112, 7.3829019])
+        assert num.allclose(max_speed, 4.0716654239)
 
     def test_flux4(self):
         #Use data from previous version of abstract_2d_finite_volumes
-        normal = array([-sqrt(2)/2, sqrt(2)/2])
-        ql = array([-0.34319278, 0.10254161, 0.07273855])
-        qr = array([-0.30683287, 0.1071986, 0.05930515])
+        normal = num.array([-num.sqrt(2)/2, num.sqrt(2)/2])
+        ql = num.array([-0.34319278, 0.10254161, 0.07273855])
+        qr = num.array([-0.30683287, 0.1071986, 0.05930515])
         zl = zr = -0.375
 
-        edgeflux = zeros(3, Float)                
+        edgeflux = num.zeros(3, num.Float)                
         H0 = 0.0
         max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux, epsilon, g, H0)                
 
-        assert allclose(edgeflux, [-0.04072676, -0.07096636, -0.01604364])
-        assert allclose(max_speed, 1.31414103233)
+        assert num.allclose(edgeflux, [-0.04072676, -0.07096636, -0.01604364])
+        assert num.allclose(max_speed, 1.31414103233)
 
     def test_flux_computation(self):    
         """test_flux_computation - test flux calculation (actual C implementation)
@@ -390,7 +388,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.set_quantity('stage', 1) 
         
         domain.compute_fluxes()
-        assert allclose(domain.get_quantity('stage').explicit_update[1], 0) # Central triangle
+        assert num.allclose(domain.get_quantity('stage').explicit_update[1], 0) # Central triangle
         
 
         # The more general case                 
@@ -681,7 +679,7 @@ class Test_Shallow_Water(unittest.TestCase):
             # FIXME (Ole): This test would not have passed in 
             # changeset:5846.
             msg = 'Time boundary not evaluated correctly'
-            assert allclose(t, q[0]), msg
+            assert num.allclose(t, q[0]), msg
             
         
 
@@ -705,15 +703,15 @@ class Test_Shallow_Water(unittest.TestCase):
                                       [2,2,2], [2,2,2]])
         domain.check_integrity()
 
-        assert allclose(domain.neighbours, [[-1,1,-1], [2,3,0], [-1,-1,1],[1,-1,-1]])
-        assert allclose(domain.neighbour_edges, [[-1,2,-1], [2,0,1], [-1,-1,0],[1,-1,-1]])
+        assert num.allclose(domain.neighbours, [[-1,1,-1], [2,3,0], [-1,-1,1],[1,-1,-1]])
+        assert num.allclose(domain.neighbour_edges, [[-1,2,-1], [2,0,1], [-1,-1,0],[1,-1,-1]])
 
         zl=zr=0. # Assume flat bed
 
-        edgeflux = zeros(3, Float)        
-        edgeflux0 = zeros(3, Float)
-        edgeflux1 = zeros(3, Float)
-        edgeflux2 = zeros(3, Float)                                
+        edgeflux = num.zeros(3, num.Float)        
+        edgeflux0 = num.zeros(3, num.Float)
+        edgeflux1 = num.zeros(3, num.Float)
+        edgeflux2 = num.zeros(3, num.Float)                                
         H0 = 0.0        
 
         # Flux across right edge of volume 1
@@ -727,7 +725,7 @@ class Test_Shallow_Water(unittest.TestCase):
         normal = domain.get_normal(2,2)
         max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux, epsilon, g, H0)                                
 
-        assert allclose(edgeflux0 + edgeflux, 0.)
+        assert num.allclose(edgeflux0 + edgeflux, 0.)
 
         # Flux across upper edge of volume 1
         normal = domain.get_normal(1,1)
@@ -740,7 +738,7 @@ class Test_Shallow_Water(unittest.TestCase):
         normal = domain.get_normal(3,0)
         max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux, epsilon, g, H0)                                               
 
-        assert allclose(edgeflux1 + edgeflux, 0.)        
+        assert num.allclose(edgeflux1 + edgeflux, 0.)        
         
 
         # Flux across lower left hypotenuse of volume 1
@@ -753,7 +751,7 @@ class Test_Shallow_Water(unittest.TestCase):
         tmp = qr; qr=ql; ql=tmp
         normal = domain.get_normal(0,1)
         max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux, epsilon, g, H0)                                                       
-        assert allclose(edgeflux2 + edgeflux, 0.)
+        assert num.allclose(edgeflux2 + edgeflux, 0.)
 
 
         # Scale by edgelengths, add up anc check that total flux is zero
@@ -761,14 +759,14 @@ class Test_Shallow_Water(unittest.TestCase):
         e1 = domain.edgelengths[1, 1]
         e2 = domain.edgelengths[1, 2]
 
-        assert allclose(e0*edgeflux0+e1*edgeflux1+e2*edgeflux2, 0.)
+        assert num.allclose(e0*edgeflux0+e1*edgeflux1+e2*edgeflux2, 0.)
 
         # Now check that compute_flux yields zeros as well
         domain.compute_fluxes()
 
         for name in ['stage', 'xmomentum', 'ymomentum']:
             #print name, domain.quantities[name].explicit_update
-            assert allclose(domain.quantities[name].explicit_update[1], 0)
+            assert num.allclose(domain.quantities[name].explicit_update[1], 0)
 
 
 
@@ -798,37 +796,37 @@ class Test_Shallow_Water(unittest.TestCase):
 
         zl=zr=0. #Assume flat bed
 
-        edgeflux = zeros(3, Float)        
-        edgeflux0 = zeros(3, Float)
-        edgeflux1 = zeros(3, Float)
-        edgeflux2 = zeros(3, Float)                                
+        edgeflux = num.zeros(3, num.Float)        
+        edgeflux0 = num.zeros(3, num.Float)
+        edgeflux1 = num.zeros(3, num.Float)
+        edgeflux2 = num.zeros(3, num.Float)                                
         H0 = 0.0        
         
 
         # Flux across right edge of volume 1
         normal = domain.get_normal(1,0) #Get normal 0 of triangle 1
-        assert allclose(normal, [1, 0])
+        assert num.allclose(normal, [1, 0])
         
         ql = domain.get_conserved_quantities(vol_id=1, edge=0)
-        assert allclose(ql, [val1, 0, 0])
+        assert num.allclose(ql, [val1, 0, 0])
         
         qr = domain.get_conserved_quantities(vol_id=2, edge=2)
-        assert allclose(qr, [val2, 0, 0])
+        assert num.allclose(qr, [val2, 0, 0])
 
         max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux0, epsilon, g, H0)                                                       
 
         # Flux across edge in the east direction (as per normal vector)
-        assert allclose(edgeflux0, [-15.3598804, 253.71111111, 0.])
-        assert allclose(max_speed, 9.21592824046)
+        assert num.allclose(edgeflux0, [-15.3598804, 253.71111111, 0.])
+        assert num.allclose(max_speed, 9.21592824046)
 
 
         #Flux across edge in the west direction (opposite sign for xmomentum)
         normal_opposite = domain.get_normal(2,2) #Get normal 2 of triangle 2
-        assert allclose(normal_opposite, [-1, 0])
+        assert num.allclose(normal_opposite, [-1, 0])
 
         max_speed = flux_function(normal_opposite, ql, qr, zl, zr, edgeflux, epsilon, g, H0)                                             
         #flux_opposite, max_speed = flux_function([-1, 0], ql, qr, zl, zr)
-        assert allclose(edgeflux, [-15.3598804, -253.71111111, 0.])
+        assert num.allclose(edgeflux, [-15.3598804, -253.71111111, 0.])
         
 
         #Flux across upper edge of volume 1
@@ -837,8 +835,8 @@ class Test_Shallow_Water(unittest.TestCase):
         qr = domain.get_conserved_quantities(vol_id=3, edge=0)
         max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux1, epsilon, g, H0)                                                               
 
-        assert allclose(edgeflux1, [2.4098563, 0., 123.04444444])
-        assert allclose(max_speed, 7.22956891292)
+        assert num.allclose(edgeflux1, [2.4098563, 0., 123.04444444])
+        assert num.allclose(max_speed, 7.22956891292)
 
         #Flux across lower left hypotenuse of volume 1
         normal = domain.get_normal(1,2)
@@ -846,8 +844,8 @@ class Test_Shallow_Water(unittest.TestCase):
         qr = domain.get_conserved_quantities(vol_id=0, edge=1)
         max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux2, epsilon, g, H0)        
 
-        assert allclose(edgeflux2, [9.63942522, -61.59685738, -61.59685738])
-        assert allclose(max_speed, 7.22956891292)
+        assert num.allclose(edgeflux2, [9.63942522, -61.59685738, -61.59685738])
+        assert num.allclose(max_speed, 7.22956891292)
 
         #Scale, add up and check that compute_fluxes is correct for vol 1
         e0 = domain.edgelengths[1, 0]
@@ -855,15 +853,15 @@ class Test_Shallow_Water(unittest.TestCase):
         e2 = domain.edgelengths[1, 2]
 
         total_flux = -(e0*edgeflux0+e1*edgeflux1+e2*edgeflux2)/domain.areas[1]
-        assert allclose(total_flux, [-0.68218178, -166.6, -35.93333333])
+        assert num.allclose(total_flux, [-0.68218178, -166.6, -35.93333333])
 
 
         domain.compute_fluxes()
 
-        #assert allclose(total_flux, domain.explicit_update[1,:])
+        #assert num.allclose(total_flux, domain.explicit_update[1,:])
         for i, name in enumerate(['stage', 'xmomentum', 'ymomentum']):
-            assert allclose(total_flux[i],
-                            domain.quantities[name].explicit_update[1])
+            assert num.allclose(total_flux[i],
+                                domain.quantities[name].explicit_update[1])
 
         #assert allclose(domain.explicit_update, [
         #    [0., -69.68888889, -69.68888889],
@@ -871,12 +869,12 @@ class Test_Shallow_Water(unittest.TestCase):
         #    [-111.77316251, 69.68888889, 0.],
         #    [-35.68522449, 0., 69.68888889]])
 
-        assert allclose(domain.quantities['stage'].explicit_update,
-                        [0., -0.68218178, -111.77316251, -35.68522449])
-        assert allclose(domain.quantities['xmomentum'].explicit_update,
-                        [-69.68888889, -166.6, 69.68888889, 0])
-        assert allclose(domain.quantities['ymomentum'].explicit_update,
-                        [-69.68888889, -35.93333333, 0., 69.68888889])
+        assert num.allclose(domain.quantities['stage'].explicit_update,
+                            [0., -0.68218178, -111.77316251, -35.68522449])
+        assert num.allclose(domain.quantities['xmomentum'].explicit_update,
+                            [-69.68888889, -166.6, 69.68888889, 0])
+        assert num.allclose(domain.quantities['ymomentum'].explicit_update,
+                            [-69.68888889, -35.93333333, 0., 69.68888889])
 
 
         #assert allclose(domain.quantities[name].explicit_update
@@ -906,14 +904,14 @@ class Test_Shallow_Water(unittest.TestCase):
         val3 = 2.+8.0/3
 
         zl=zr=0 #Assume flat zero bed
-        edgeflux = zeros(3, Float)        
-        edgeflux0 = zeros(3, Float)
-        edgeflux1 = zeros(3, Float)
-        edgeflux2 = zeros(3, Float)                                
+        edgeflux = num.zeros(3, num.Float)        
+        edgeflux0 = num.zeros(3, num.Float)
+        edgeflux1 = num.zeros(3, num.Float)
+        edgeflux2 = num.zeros(3, num.Float)                                
         H0 = 0.0        
         
 
-        domain.set_quantity('elevation', zl*ones( (4,3) ))
+        domain.set_quantity('elevation', zl*num.ones( (4,3) ))
 
 
         domain.set_quantity('stage', [[val0, val0-1, val0-2],
@@ -962,8 +960,8 @@ class Test_Shallow_Water(unittest.TestCase):
 
         domain.compute_fluxes()
         for i, name in enumerate(['stage', 'xmomentum', 'ymomentum']):
-            assert allclose(total_flux[i],
-                            domain.quantities[name].explicit_update[1])
+            assert num.allclose(total_flux[i],
+                                domain.quantities[name].explicit_update[1])
         #assert allclose(total_flux, domain.explicit_update[1,:])
 
 
@@ -989,13 +987,13 @@ class Test_Shallow_Water(unittest.TestCase):
         val3 = 2.+8.0/3
 
         zl=zr=-3.75 #Assume constant bed (must be less than stage)
-        domain.set_quantity('elevation', zl*ones( (4,3) ))
+        domain.set_quantity('elevation', zl*num.ones( (4,3) ))
 
 
-        edgeflux = zeros(3, Float)        
-        edgeflux0 = zeros(3, Float)
-        edgeflux1 = zeros(3, Float)
-        edgeflux2 = zeros(3, Float)                                
+        edgeflux = num.zeros(3, num.Float)        
+        edgeflux0 = num.zeros(3, num.Float)
+        edgeflux1 = num.zeros(3, num.Float)
+        edgeflux2 = num.zeros(3, num.Float)                                
         H0 = 0.0        
         
 
@@ -1045,8 +1043,8 @@ class Test_Shallow_Water(unittest.TestCase):
 
         domain.compute_fluxes()
         for i, name in enumerate(['stage', 'xmomentum', 'ymomentum']):
-            assert allclose(total_flux[i],
-                            domain.quantities[name].explicit_update[1])
+            assert num.allclose(total_flux[i],
+                                domain.quantities[name].explicit_update[1])
 
 
 
@@ -1072,7 +1070,7 @@ class Test_Shallow_Water(unittest.TestCase):
         val3 = 2.+8.0/3
 
         zl=zr=4  #Too large
-        domain.set_quantity('elevation', zl*ones( (4,3) ))
+        domain.set_quantity('elevation', zl*num.ones( (4,3) ))
         domain.set_quantity('stage', [[val0, val0-1, val0-2],
                                       [val1, val1+1, val1],
                                       [val2, val2-2, val2],
@@ -1106,7 +1104,7 @@ class Test_Shallow_Water(unittest.TestCase):
         val3 = 2.+8.0/3
 
         zl=zr=5
-        domain.set_quantity('elevation', zl*ones( (4,3) ))
+        domain.set_quantity('elevation', zl*num.ones( (4,3) ))
         domain.set_quantity('stage', [[val0, val0-1, val0-2],
                                       [val1, val1+1, val1],
                                       [val2, val2-2, val2],
@@ -1119,10 +1117,10 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.check_integrity()
 
         indices = domain.get_wet_elements()
-        assert allclose(indices, [1,2])
+        assert num.allclose(indices, [1,2])
 
         indices = domain.get_wet_elements(indices=[0,1,3])
-        assert allclose(indices, [1])
+        assert num.allclose(indices, [1])
         
 
 
@@ -1147,13 +1145,13 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.check_integrity()
 
         indices = domain.get_wet_elements()
-        assert allclose(indices, [0])
+        assert num.allclose(indices, [0])
 
         q = domain.get_maximum_inundation_elevation()
-        assert allclose(q, domain.get_quantity('elevation').get_values(location='centroids')[0])
+        assert num.allclose(q, domain.get_quantity('elevation').get_values(location='centroids')[0])
 
         x, y = domain.get_maximum_inundation_location()
-        assert allclose([x, y], domain.get_centroid_coordinates()[0])
+        assert num.allclose([x, y], domain.get_centroid_coordinates()[0])
 
 
     def test_get_maximum_inundation_2(self):
@@ -1181,13 +1179,13 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.check_integrity()
 
         indices = domain.get_wet_elements()
-        assert allclose(indices, [0,1,2])
+        assert num.allclose(indices, [0,1,2])
 
         q = domain.get_maximum_inundation_elevation()
-        assert allclose(q, 4)        
+        assert num.allclose(q, 4)        
 
         x, y = domain.get_maximum_inundation_location()
-        assert allclose([x, y], domain.get_centroid_coordinates()[1])        
+        assert num.allclose([x, y], domain.get_centroid_coordinates()[1])        
         
 
     def test_get_maximum_inundation_3(self):
@@ -1241,22 +1239,22 @@ class Test_Shallow_Water(unittest.TestCase):
         indices = domain.get_wet_elements()
         z = domain.get_quantity('elevation').\
             get_values(location='centroids', indices=indices)
-        assert alltrue(z<initial_runup_height)
+        assert num.alltrue(z<initial_runup_height)
 
         q = domain.get_maximum_inundation_elevation()
-        assert allclose(q, initial_runup_height, rtol = 1.0/N) # First order accuracy 
+        assert num.allclose(q, initial_runup_height, rtol = 1.0/N) # First order accuracy 
 
         x, y = domain.get_maximum_inundation_location()
 
         qref = domain.get_quantity('elevation').get_values(interpolation_points = [[x, y]])
-        assert allclose(q, qref)
+        assert num.allclose(q, qref)
 
 
         wet_elements = domain.get_wet_elements()
         wet_elevations = domain.get_quantity('elevation').get_values(location='centroids',
                                                                      indices=wet_elements)
-        assert alltrue(wet_elevations<initial_runup_height)
-        assert allclose(wet_elevations, z)        
+        assert num.alltrue(wet_elevations<initial_runup_height)
+        assert num.allclose(wet_elevations, z)        
 
 
         #print domain.get_quantity('elevation').get_maximum_value(indices=wet_elements)
@@ -1279,14 +1277,14 @@ class Test_Shallow_Water(unittest.TestCase):
         z = domain.get_quantity('elevation').\
             get_values(location='centroids', indices=indices)
 
-        assert alltrue(z<initial_runup_height)
+        assert num.alltrue(z<initial_runup_height)
 
         q = domain.get_maximum_inundation_elevation()
-        assert allclose(q, initial_runup_height, rtol = 1.0/N) # First order accuracy
+        assert num.allclose(q, initial_runup_height, rtol = 1.0/N) # First order accuracy
         
         x, y = domain.get_maximum_inundation_location()
         qref = domain.get_quantity('elevation').get_values(interpolation_points = [[x, y]])
-        assert allclose(q, qref)        
+        assert num.allclose(q, qref)        
 
 
         #--------------------------------------------------------------
@@ -1311,21 +1309,21 @@ class Test_Shallow_Water(unittest.TestCase):
         z = domain.get_quantity('elevation').\
             get_values(location='centroids', indices=indices)
 
-        assert alltrue(z<final_runup_height)
+        assert num.alltrue(z<final_runup_height)
 
         q = domain.get_maximum_inundation_elevation()
-        assert allclose(q, final_runup_height, rtol = 1.0/N) # First order accuracy 
+        assert num.allclose(q, final_runup_height, rtol = 1.0/N) # First order accuracy 
 
         x, y = domain.get_maximum_inundation_location()
         qref = domain.get_quantity('elevation').get_values(interpolation_points = [[x, y]])
-        assert allclose(q, qref)        
+        assert num.allclose(q, qref)        
 
 
         wet_elements = domain.get_wet_elements()
         wet_elevations = domain.get_quantity('elevation').get_values(location='centroids',
                                                                      indices=wet_elements)
-        assert alltrue(wet_elevations<final_runup_height)
-        assert allclose(wet_elevations, z)        
+        assert num.alltrue(wet_elevations<final_runup_height)
+        assert num.allclose(wet_elevations, z)        
         
 
 
@@ -1393,10 +1391,10 @@ class Test_Shallow_Water(unittest.TestCase):
         indices = domain.get_wet_elements()
         z = domain.get_quantity('elevation').\
             get_values(location='centroids', indices=indices)
-        assert alltrue(z<initial_runup_height)
+        assert num.alltrue(z<initial_runup_height)
 
         q_ref = domain.get_maximum_inundation_elevation()
-        assert allclose(q_ref, initial_runup_height, rtol = 1.0/N) # First order accuracy 
+        assert num.allclose(q_ref, initial_runup_height, rtol = 1.0/N) # First order accuracy 
 
         
         #--------------------------------------------------------------
@@ -1413,12 +1411,12 @@ class Test_Shallow_Water(unittest.TestCase):
         q_ref = domain.get_maximum_inundation_elevation()
         q = get_maximum_inundation_elevation('runup_test.sww')
         msg = 'We got %f, should have been %f' %(q, q_ref)
-        assert allclose(q, q_ref, rtol=1.0/N), msg
+        assert num.allclose(q, q_ref, rtol=1.0/N), msg
 
 
         q = get_maximum_inundation_elevation('runup_test.sww')
         msg = 'We got %f, should have been %f' %(q, initial_runup_height)
-        assert allclose(q, initial_runup_height, rtol = 1.0/N), msg 
+        assert num.allclose(q, initial_runup_height, rtol = 1.0/N), msg 
 
 
         # Test error condition if time interval is out
@@ -1435,8 +1433,8 @@ class Test_Shallow_Water(unittest.TestCase):
         q, loc = get_maximum_inundation_data('runup_test.sww',
                                              time_interval=[0.0, 3.0])        
         msg = 'We got %f, should have been %f' %(q, initial_runup_height)
-        assert allclose(q, initial_runup_height, rtol = 1.0/N), msg
-        assert allclose(-loc[0]/2, q) # From topography formula         
+        assert num.allclose(q, initial_runup_height, rtol = 1.0/N), msg
+        assert num.allclose(-loc[0]/2, q) # From topography formula         
         
 
         #--------------------------------------------------------------
@@ -1463,29 +1461,29 @@ class Test_Shallow_Water(unittest.TestCase):
         z = domain.get_quantity('elevation').\
             get_values(location='centroids', indices=indices)
 
-        assert alltrue(z<final_runup_height)
+        assert num.alltrue(z<final_runup_height)
 
         q = domain.get_maximum_inundation_elevation()
-        assert allclose(q, final_runup_height, rtol = 1.0/N) # First order accuracy
+        assert num.allclose(q, final_runup_height, rtol = 1.0/N) # First order accuracy
 
         q, loc = get_maximum_inundation_data('runup_test.sww', time_interval=[3.0, 3.0])
         msg = 'We got %f, should have been %f' %(q, final_runup_height)
-        assert allclose(q, final_runup_height, rtol=1.0/N), msg
+        assert num.allclose(q, final_runup_height, rtol=1.0/N), msg
         #print 'loc', loc, q        
-        assert allclose(-loc[0]/2, q) # From topography formula         
+        assert num.allclose(-loc[0]/2, q) # From topography formula         
 
         q = get_maximum_inundation_elevation('runup_test.sww')
         loc = get_maximum_inundation_location('runup_test.sww')        
         msg = 'We got %f, should have been %f' %(q, q_max)
-        assert allclose(q, q_max, rtol=1.0/N), msg
+        assert num.allclose(q, q_max, rtol=1.0/N), msg
         #print 'loc', loc, q
-        assert allclose(-loc[0]/2, q) # From topography formula 
+        assert num.allclose(-loc[0]/2, q) # From topography formula 
 
         
 
         q = get_maximum_inundation_elevation('runup_test.sww', time_interval=[0, 3])
         msg = 'We got %f, should have been %f' %(q, q_max)
-        assert allclose(q, q_max, rtol=1.0/N), msg
+        assert num.allclose(q, q_max, rtol=1.0/N), msg
 
 
         # Check polygon mode
@@ -1494,7 +1492,7 @@ class Test_Shallow_Water(unittest.TestCase):
                                              polygon = polygon,
                                              time_interval=[0, 3])
         msg = 'We got %f, should have been %f' %(q, q_max)
-        assert allclose(q, q_max, rtol=1.0/N), msg
+        assert num.allclose(q, q_max, rtol=1.0/N), msg
 
         
         polygon = [[0.9, 0.0], [1.0, 0.0], [1.0, 1.0], [0.9, 1.0]] # Offshore region
@@ -1502,9 +1500,9 @@ class Test_Shallow_Water(unittest.TestCase):
                                              polygon = polygon,
                                              time_interval=[0, 3])
         msg = 'We got %f, should have been %f' %(q, -0.475)
-        assert allclose(q, -0.475, rtol=1.0/N), msg
+        assert num.allclose(q, -0.475, rtol=1.0/N), msg
         assert is_inside_polygon(loc, polygon)
-        assert allclose(-loc[0]/2, q) # From topography formula         
+        assert num.allclose(-loc[0]/2, q) # From topography formula         
 
 
         polygon = [[0.0, 0.0], [0.4, 0.0], [0.4, 1.0], [0.0, 1.0]] # Dry region
@@ -1557,7 +1555,6 @@ class Test_Shallow_Water(unittest.TestCase):
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
         # Setup
@@ -1613,9 +1610,9 @@ class Test_Shallow_Water(unittest.TestCase):
             uh_t = xmomentum.get_values(interpolation_points)
             vh_t = ymomentum.get_values(interpolation_points)            
             
-            assert allclose(w_t, w)
-            assert allclose(uh_t, uh)            
-            assert allclose(vh_t, 0.0)                        
+            assert num.allclose(w_t, w)
+            assert num.allclose(uh_t, uh)            
+            assert num.allclose(vh_t, 0.0)                        
             
             
             # Check flows through the middle
@@ -1627,7 +1624,7 @@ class Test_Shallow_Water(unittest.TestCase):
                 Q = domain.get_flow_through_cross_section(cross_section,
                                                           verbose=False)
 
-                assert allclose(Q, uh*width)
+                assert num.allclose(Q, uh*width)
 
 
         
@@ -1654,7 +1651,6 @@ class Test_Shallow_Water(unittest.TestCase):
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
 
         # Setup
@@ -1710,9 +1706,9 @@ class Test_Shallow_Water(unittest.TestCase):
             uh_t = xmomentum.get_values(interpolation_points)
             vh_t = ymomentum.get_values(interpolation_points)            
             
-            assert allclose(w_t, w)
-            assert allclose(uh_t, uh)            
-            assert allclose(vh_t, 0.0)                        
+            assert num.allclose(w_t, w)
+            assert num.allclose(uh_t, uh)            
+            assert num.allclose(vh_t, 0.0)                        
             
             
             # Check energies through the middle
@@ -1725,12 +1721,12 @@ class Test_Shallow_Water(unittest.TestCase):
                                                              kind='specific',
                                                              verbose=False)
                                                       
-                assert allclose(Es, h + 0.5*u*u/g)
+                assert num.allclose(Es, h + 0.5*u*u/g)
             
                 Et = domain.get_energy_through_cross_section(cross_section,
                                                              kind='total',
                                                              verbose=False)
-                assert allclose(Et, w + 0.5*u*u/g)            
+                assert num.allclose(Et, w + 0.5*u*u/g)            
 
             
         
@@ -1845,10 +1841,10 @@ class Test_Shallow_Water(unittest.TestCase):
         #print array(gauge_values[0])-array(G0)
         
         
-        assert allclose(gauge_values[0], G0)
-        assert allclose(gauge_values[1], G1)
-        assert allclose(gauge_values[2], G2)
-        assert allclose(gauge_values[3], G3)        
+        assert num.allclose(gauge_values[0], G0)
+        assert num.allclose(gauge_values[1], G1)
+        assert num.allclose(gauge_values[2], G2)
+        assert num.allclose(gauge_values[3], G3)        
 
 
 
@@ -1900,9 +1896,9 @@ class Test_Shallow_Water(unittest.TestCase):
 
 
         #  Check that update arrays are initialised to zero 
-        assert allclose(domain.get_quantity('stage').explicit_update, 0)
-        assert allclose(domain.get_quantity('xmomentum').explicit_update, 0)
-        assert allclose(domain.get_quantity('ymomentum').explicit_update, 0)               
+        assert num.allclose(domain.get_quantity('stage').explicit_update, 0)
+        assert num.allclose(domain.get_quantity('xmomentum').explicit_update, 0)
+        assert num.allclose(domain.get_quantity('ymomentum').explicit_update, 0)               
 
 
         # Get true values
@@ -1916,9 +1912,9 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.optimise_dry_cells = True
         domain.compute_fluxes()
 
-        assert allclose(stage_ref, domain.get_quantity('stage').explicit_update)
-        assert allclose(xmom_ref, domain.get_quantity('xmomentum').explicit_update)
-        assert allclose(ymom_ref, domain.get_quantity('ymomentum').explicit_update)
+        assert num.allclose(stage_ref, domain.get_quantity('stage').explicit_update)
+        assert num.allclose(xmom_ref, domain.get_quantity('xmomentum').explicit_update)
+        assert num.allclose(ymom_ref, domain.get_quantity('ymomentum').explicit_update)
         
    
         
@@ -1968,9 +1964,9 @@ class Test_Shallow_Water(unittest.TestCase):
             stage = domain.quantities['stage'].vertex_values
 
             if t == 0.0:
-                assert allclose(stage, initial_stage)
+                assert num.allclose(stage, initial_stage)
             else:
-                assert not allclose(stage, initial_stage)
+                assert not num.allclose(stage, initial_stage)
 
 
         os.remove(domain.get_name() + '.sww')
@@ -2008,14 +2004,14 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.set_quantity('stage', stage)
 
         for name in domain.conserved_quantities:
-            assert allclose(domain.quantities[name].explicit_update, 0)
-            assert allclose(domain.quantities[name].semi_implicit_update, 0)
+            assert num.allclose(domain.quantities[name].explicit_update, 0)
+            assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
 
         domain.compute_forcing_terms()
 
-        assert allclose(domain.quantities['stage'].explicit_update, 0)
-        assert allclose(domain.quantities['xmomentum'].explicit_update, -g*h*3)
-        assert allclose(domain.quantities['ymomentum'].explicit_update, 0)
+        assert num.allclose(domain.quantities['stage'].explicit_update, 0)
+        assert num.allclose(domain.quantities['xmomentum'].explicit_update, -g*h*3)
+        assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
 
 
     def test_manning_friction(self):
@@ -2048,27 +2044,27 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.set_quantity('friction', eta)
 
         for name in domain.conserved_quantities:
-            assert allclose(domain.quantities[name].explicit_update, 0)
-            assert allclose(domain.quantities[name].semi_implicit_update, 0)
+            assert num.allclose(domain.quantities[name].explicit_update, 0)
+            assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
 
         domain.compute_forcing_terms()
 
-        assert allclose(domain.quantities['stage'].explicit_update, 0)
-        assert allclose(domain.quantities['xmomentum'].explicit_update, -g*h*3)
-        assert allclose(domain.quantities['ymomentum'].explicit_update, 0)
+        assert num.allclose(domain.quantities['stage'].explicit_update, 0)
+        assert num.allclose(domain.quantities['xmomentum'].explicit_update, -g*h*3)
+        assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
 
-        assert allclose(domain.quantities['stage'].semi_implicit_update, 0)
-        assert allclose(domain.quantities['xmomentum'].semi_implicit_update, 0)
-        assert allclose(domain.quantities['ymomentum'].semi_implicit_update, 0)
+        assert num.allclose(domain.quantities['stage'].semi_implicit_update, 0)
+        assert num.allclose(domain.quantities['xmomentum'].semi_implicit_update, 0)
+        assert num.allclose(domain.quantities['ymomentum'].semi_implicit_update, 0)
 
         #Create some momentum for friction to work with
         domain.set_quantity('xmomentum', 1)
         S = -g * eta**2 / h**(7.0/3)
 
         domain.compute_forcing_terms()
-        assert allclose(domain.quantities['stage'].semi_implicit_update, 0)
-        assert allclose(domain.quantities['xmomentum'].semi_implicit_update, S)
-        assert allclose(domain.quantities['ymomentum'].semi_implicit_update, 0)
+        assert num.allclose(domain.quantities['stage'].semi_implicit_update, 0)
+        assert num.allclose(domain.quantities['xmomentum'].semi_implicit_update, S)
+        assert num.allclose(domain.quantities['ymomentum'].semi_implicit_update, 0)
 
         #A more complex example
         domain.quantities['stage'].semi_implicit_update[:] = 0.0
@@ -2083,9 +2079,9 @@ class Test_Shallow_Water(unittest.TestCase):
 
         domain.compute_forcing_terms()
 
-        assert allclose(domain.quantities['stage'].semi_implicit_update, 0)
-        assert allclose(domain.quantities['xmomentum'].semi_implicit_update, 3*S)
-        assert allclose(domain.quantities['ymomentum'].semi_implicit_update, 4*S)
+        assert num.allclose(domain.quantities['stage'].semi_implicit_update, 0)
+        assert num.allclose(domain.quantities['xmomentum'].semi_implicit_update, 3*S)
+        assert num.allclose(domain.quantities['ymomentum'].semi_implicit_update, 4*S)
 
     def test_constant_wind_stress(self):
         from anuga.config import rho_a, rho_w, eta_w
@@ -2132,11 +2128,11 @@ class Test_Shallow_Water(unittest.TestCase):
         v = s*sin(phi)
 
         #Compute wind stress
-        S = const * sqrt(u**2 + v**2)
+        S = const * num.sqrt(u**2 + v**2)
 
-        assert allclose(domain.quantities['stage'].explicit_update, 0)
-        assert allclose(domain.quantities['xmomentum'].explicit_update, S*u)
-        assert allclose(domain.quantities['ymomentum'].explicit_update, S*v)
+        assert num.allclose(domain.quantities['stage'].explicit_update, 0)
+        assert num.allclose(domain.quantities['xmomentum'].explicit_update, S*u)
+        assert num.allclose(domain.quantities['ymomentum'].explicit_update, S*v)
 
 
     def test_variable_wind_stress(self):
@@ -2199,11 +2195,11 @@ class Test_Shallow_Water(unittest.TestCase):
             v = s*sin(phi)
 
             #Compute wind stress
-            S = const * sqrt(u**2 + v**2)
+            S = const * num.sqrt(u**2 + v**2)
 
-            assert allclose(domain.quantities['stage'].explicit_update[k], 0)
-            assert allclose(domain.quantities['xmomentum'].explicit_update[k], S*u)
-            assert allclose(domain.quantities['ymomentum'].explicit_update[k], S*v)
+            assert num.allclose(domain.quantities['stage'].explicit_update[k], 0)
+            assert num.allclose(domain.quantities['xmomentum'].explicit_update[k], S*u)
+            assert num.allclose(domain.quantities['ymomentum'].explicit_update[k], S*v)
 
 
 
@@ -2312,12 +2308,12 @@ class Test_Shallow_Water(unittest.TestCase):
         v = s*sin(phi)
 
         #Compute wind stress
-        S = const * sqrt(u**2 + v**2)
+        S = const * num.sqrt(u**2 + v**2)
 
         for k in range(N):
-            assert allclose(domain.quantities['stage'].explicit_update[k], 0)
-            assert allclose(domain.quantities['xmomentum'].explicit_update[k], S*u)
-            assert allclose(domain.quantities['ymomentum'].explicit_update[k], S*v)
+            assert num.allclose(domain.quantities['stage'].explicit_update[k], 0)
+            assert num.allclose(domain.quantities['xmomentum'].explicit_update[k], S*u)
+            assert num.allclose(domain.quantities['ymomentum'].explicit_update[k], S*v)
 
 
     def test_windfield_from_file_seconds(self):
@@ -2420,12 +2416,12 @@ class Test_Shallow_Water(unittest.TestCase):
         v = s*sin(phi)
 
         #Compute wind stress
-        S = const * sqrt(u**2 + v**2)
+        S = const * num.sqrt(u**2 + v**2)
 
         for k in range(N):
-            assert allclose(domain.quantities['stage'].explicit_update[k], 0)
-            assert allclose(domain.quantities['xmomentum'].explicit_update[k], S*u)
-            assert allclose(domain.quantities['ymomentum'].explicit_update[k], S*v)
+            assert num.allclose(domain.quantities['stage'].explicit_update[k], 0)
+            assert num.allclose(domain.quantities['xmomentum'].explicit_update[k], S*u)
+            assert num.allclose(domain.quantities['ymomentum'].explicit_update[k], S*v)
 
 
         
@@ -2525,7 +2521,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.forcing_terms.append( Rainfall(domain, rate=2.0) )
 
         domain.compute_forcing_terms()
-        assert allclose(domain.quantities['stage'].explicit_update, 2.0/1000)
+        assert num.allclose(domain.quantities['stage'].explicit_update, 2.0/1000)
 
 
 
@@ -2560,17 +2556,17 @@ class Test_Shallow_Water(unittest.TestCase):
                      rate=2.0,
                      polygon = [[1,1], [2,1], [2,2], [1,2]])
 
-        assert allclose(R.exchange_area, 1)
+        assert num.allclose(R.exchange_area, 1)
         
         domain.forcing_terms.append(R)
 
         domain.compute_forcing_terms()
         #print domain.quantities['stage'].explicit_update
         
-        assert allclose(domain.quantities['stage'].explicit_update[1],
-                        2.0/1000)
-        assert allclose(domain.quantities['stage'].explicit_update[0], 0)
-        assert allclose(domain.quantities['stage'].explicit_update[2:], 0)        
+        assert num.allclose(domain.quantities['stage'].explicit_update[1],
+                            2.0/1000)
+        assert num.allclose(domain.quantities['stage'].explicit_update[0], 0)
+        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)        
         
 
 
@@ -2604,7 +2600,7 @@ class Test_Shallow_Water(unittest.TestCase):
                      rate=lambda t: 3*t + 7,
                      polygon = [[1,1], [2,1], [2,2], [1,2]])
 
-        assert allclose(R.exchange_area, 1)
+        assert num.allclose(R.exchange_area, 1)
         
         domain.forcing_terms.append(R)
 
@@ -2614,17 +2610,17 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.compute_forcing_terms()
         #print domain.quantities['stage'].explicit_update
         
-        assert allclose(domain.quantities['stage'].explicit_update[1],
-                        (3*domain.time+7)/1000)
-        assert allclose(domain.quantities['stage'].explicit_update[0], 0)
-        assert allclose(domain.quantities['stage'].explicit_update[2:], 0)        
+        assert num.allclose(domain.quantities['stage'].explicit_update[1],
+                            (3*domain.time+7)/1000)
+        assert num.allclose(domain.quantities['stage'].explicit_update[0], 0)
+        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)        
         
 
 
 
     def test_time_dependent_rainfall_using_starttime(self):
     
-        rainfall_poly = ensure_numeric([[1,1], [2,1], [2,2], [1,2]], Float)    
+        rainfall_poly = ensure_numeric([[1,1], [2,1], [2,2], [1,2]], num.Float)    
 
         a = [0.0, 0.0]
         b = [0.0, 2.0]
@@ -2654,7 +2650,7 @@ class Test_Shallow_Water(unittest.TestCase):
                      rate=lambda t: 3*t + 7,
                      polygon=rainfall_poly)                     
 
-        assert allclose(R.exchange_area, 1)
+        assert num.allclose(R.exchange_area, 1)
         
         domain.forcing_terms.append(R)
 
@@ -2668,17 +2664,17 @@ class Test_Shallow_Water(unittest.TestCase):
         #print domain.quantities['stage'].explicit_update
 
         #print domain.get_time()
-        assert allclose(domain.quantities['stage'].explicit_update[1],
-                        (3*domain.get_time()+7)/1000)
-        assert allclose(domain.quantities['stage'].explicit_update[1],
-                        (3*(domain.time + domain.starttime)+7)/1000)
+        assert num.allclose(domain.quantities['stage'].explicit_update[1],
+                            (3*domain.get_time()+7)/1000)
+        assert num.allclose(domain.quantities['stage'].explicit_update[1],
+                            (3*(domain.time + domain.starttime)+7)/1000)
 
         # Using internal time her should fail
-        assert not allclose(domain.quantities['stage'].explicit_update[1],
-                        (3*domain.time+7)/1000)                
+        assert not num.allclose(domain.quantities['stage'].explicit_update[1],
+                                (3*domain.time+7)/1000)                
 
-        assert allclose(domain.quantities['stage'].explicit_update[0], 0)
-        assert allclose(domain.quantities['stage'].explicit_update[2:], 0)        
+        assert num.allclose(domain.quantities['stage'].explicit_update[0], 0)
+        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)        
         
 
 
@@ -2695,7 +2691,7 @@ class Test_Shallow_Water(unittest.TestCase):
         y0 = 6224951.2960092
 
         
-        rainfall_poly = ensure_numeric([[1,1], [2,1], [2,2], [1,2]], Float)
+        rainfall_poly = ensure_numeric([[1,1], [2,1], [2,2], [1,2]], num.Float)
         rainfall_poly += [x0, y0]
 
         a = [0.0, 0.0]
@@ -2727,7 +2723,7 @@ class Test_Shallow_Water(unittest.TestCase):
                      rate=lambda t: 3*t + 7,
                      polygon=rainfall_poly)
 
-        assert allclose(R.exchange_area, 1)
+        assert num.allclose(R.exchange_area, 1)
         
         domain.forcing_terms.append(R)
 
@@ -2741,17 +2737,17 @@ class Test_Shallow_Water(unittest.TestCase):
         #print domain.quantities['stage'].explicit_update
 
         #print domain.get_time()
-        assert allclose(domain.quantities['stage'].explicit_update[1],
-                        (3*domain.get_time()+7)/1000)
-        assert allclose(domain.quantities['stage'].explicit_update[1],
-                        (3*(domain.time + domain.starttime)+7)/1000)
+        assert num.allclose(domain.quantities['stage'].explicit_update[1],
+                            (3*domain.get_time()+7)/1000)
+        assert num.allclose(domain.quantities['stage'].explicit_update[1],
+                            (3*(domain.time + domain.starttime)+7)/1000)
 
         # Using internal time her should fail
-        assert not allclose(domain.quantities['stage'].explicit_update[1],
-                        (3*domain.time+7)/1000)                
+        assert not num.allclose(domain.quantities['stage'].explicit_update[1],
+                                (3*domain.time+7)/1000)                
 
-        assert allclose(domain.quantities['stage'].explicit_update[0], 0)
-        assert allclose(domain.quantities['stage'].explicit_update[2:], 0)        
+        assert num.allclose(domain.quantities['stage'].explicit_update[0], 0)
+        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)        
         
 
         
@@ -2800,7 +2796,7 @@ class Test_Shallow_Water(unittest.TestCase):
                      polygon = [[1,1], [2,1], [2,2], [1,2]],
                      default_rate=5.0)
 
-        assert allclose(R.exchange_area, 1)
+        assert num.allclose(R.exchange_area, 1)
         
         domain.forcing_terms.append(R)
 
@@ -2810,9 +2806,9 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.compute_forcing_terms()
         #print domain.quantities['stage'].explicit_update
         
-        assert allclose(domain.quantities['stage'].explicit_update[1], (3*domain.time+7)/1000)
-        assert allclose(domain.quantities['stage'].explicit_update[0], 0)
-        assert allclose(domain.quantities['stage'].explicit_update[2:], 0)        
+        assert num.allclose(domain.quantities['stage'].explicit_update[1], (3*domain.time+7)/1000)
+        assert num.allclose(domain.quantities['stage'].explicit_update[0], 0)
+        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)        
 
 
         domain.time = 100.
@@ -2820,9 +2816,9 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.compute_forcing_terms()
         #print domain.quantities['stage'].explicit_update
         
-        assert allclose(domain.quantities['stage'].explicit_update[1], 5.0/1000) # Default value
-        assert allclose(domain.quantities['stage'].explicit_update[0], 0)
-        assert allclose(domain.quantities['stage'].explicit_update[2:], 0)        
+        assert num.allclose(domain.quantities['stage'].explicit_update[1], 5.0/1000) # Default value
+        assert num.allclose(domain.quantities['stage'].explicit_update[0], 0)
+        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)        
         
 
 
@@ -2875,7 +2871,7 @@ class Test_Shallow_Water(unittest.TestCase):
                      polygon=[[1,1], [2,1], [2,2], [1,2]],
                      default_rate=5.0)
 
-        assert allclose(R.exchange_area, 1)
+        assert num.allclose(R.exchange_area, 1)
         
         domain.forcing_terms.append(R)
 
@@ -2922,9 +2918,9 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.compute_forcing_terms()
         #print domain.quantities['stage'].explicit_update
         
-        assert allclose(domain.quantities['stage'].explicit_update[1], 2.0/pi)
-        assert allclose(domain.quantities['stage'].explicit_update[0], 2.0/pi)
-        assert allclose(domain.quantities['stage'].explicit_update[2:], 0)        
+        assert num.allclose(domain.quantities['stage'].explicit_update[1], 2.0/pi)
+        assert num.allclose(domain.quantities['stage'].explicit_update[0], 2.0/pi)
+        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)        
 
 
     def test_inflow_using_circle_function(self):
@@ -2958,9 +2954,9 @@ class Test_Shallow_Water(unittest.TestCase):
 
         domain.compute_forcing_terms()
         
-        assert allclose(domain.quantities['stage'].explicit_update[1], 2.0/pi)
-        assert allclose(domain.quantities['stage'].explicit_update[0], 2.0/pi)
-        assert allclose(domain.quantities['stage'].explicit_update[2:], 0)        
+        assert num.allclose(domain.quantities['stage'].explicit_update[1], 2.0/pi)
+        assert num.allclose(domain.quantities['stage'].explicit_update[0], 2.0/pi)
+        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)        
         
 
 
@@ -3050,18 +3046,18 @@ class Test_Shallow_Water(unittest.TestCase):
         
         # Check that update values are correct
         for x in domain.quantities['stage'].explicit_update:
-            assert allclose(x, 2.0/pi) or allclose(x, 0.0)
+            assert num.allclose(x, 2.0/pi) or num.allclose(x, 0.0)
 
         
         # Check volumes without inflow
         domain.forcing_terms = []        
         initial_volume = domain.quantities['stage'].get_integral()
         
-        assert allclose(initial_volume, width*length*stage)
+        assert num.allclose(initial_volume, width*length*stage)
         
         for t in domain.evolve(yieldstep = 0.05, finaltime = 5.0):
             volume =  domain.quantities['stage'].get_integral()
-            assert allclose (volume, initial_volume)
+            assert num.allclose (volume, initial_volume)
             
             
         # Now apply the inflow and check volumes for a range of stage values
@@ -3077,7 +3073,7 @@ class Test_Shallow_Water(unittest.TestCase):
             for t in domain.evolve(yieldstep = dt, finaltime = 5.0):
                 volume = domain.quantities['stage'].get_integral()
                 
-                assert allclose (volume, predicted_volume)            
+                assert num.allclose (volume, predicted_volume)            
                 predicted_volume = predicted_volume + 2.0/pi/100/dt # Why 100?
             
             
@@ -3096,7 +3092,7 @@ class Test_Shallow_Water(unittest.TestCase):
                 volume = domain.quantities['stage'].get_integral()
                 
                 print t, volume, predicted_volume
-                assert allclose (volume, predicted_volume)            
+                assert num.allclose (volume, predicted_volume)            
                 predicted_volume = predicted_volume - 2.0/pi/100/dt # Why 100?            
             
             
@@ -3117,7 +3113,7 @@ class Test_Shallow_Water(unittest.TestCase):
                 volume = domain.quantities['stage'].get_integral()
                 
                 print t, volume
-                assert allclose (volume, initial_volume)            
+                assert num.allclose (volume, initial_volume)            
 
             
             
@@ -3143,7 +3139,7 @@ class Test_Shallow_Water(unittest.TestCase):
         val3 = 2.+8.0/3
 
         zl=zr=-3.75 #Assume constant bed (must be less than stage)
-        domain.set_quantity('elevation', zl*ones( (4,3) ))
+        domain.set_quantity('elevation', zl*num.ones( (4,3) ))
         domain.set_quantity('stage', [[val0, val0-1, val0-2],
                                       [val1, val1+1, val1],
                                       [val2, val2-2, val2],
@@ -3157,12 +3153,11 @@ class Test_Shallow_Water(unittest.TestCase):
         #Check that centroid values were distributed to vertices
         C = domain.quantities['stage'].centroid_values
         for i in range(3):
-            assert allclose( domain.quantities['stage'].vertex_values[:,i], C)
+            assert num.allclose( domain.quantities['stage'].vertex_values[:,i], C)
 
 
     def test_first_order_limiter_variable_z(self):
         #Check that first order limiter follows bed_slope
-        from Numeric import alltrue, greater_equal
         from anuga.config import epsilon
 
         a = [0.0, 0.0]
@@ -3195,13 +3190,13 @@ class Test_Shallow_Water(unittest.TestCase):
 
         #Check that some stages are not above elevation (within eps)
         #- so that the limiter has something to work with
-        assert not alltrue(alltrue(greater_equal(L,E-epsilon)))
+        assert not num.alltrue(num.alltrue(num.greater_equal(L,E-epsilon)))
 
         domain._order_ = 1
         domain.distribute_to_vertices_and_edges()
 
         #Check that all stages are above elevation (within eps)
-        assert alltrue(alltrue(greater_equal(L,E-epsilon)))
+        assert num.alltrue(num.alltrue(num.greater_equal(L,E-epsilon)))
 
 
     #####################################################
@@ -3234,7 +3229,7 @@ class Test_Shallow_Water(unittest.TestCase):
         #First order
         domain._order_ = 1
         domain.distribute_to_vertices_and_edges()
-        assert allclose(L[1], val1)
+        assert num.allclose(L[1], val1)
 
         #Second order
         domain._order_ = 2
@@ -3245,7 +3240,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_vh     = 0.9
         domain.beta_vh_dry = 0.9
         domain.distribute_to_vertices_and_edges()
-        assert allclose(L[1], [2.2, 4.9, 4.9])
+        assert num.allclose(L[1], [2.2, 4.9, 4.9])
 
 
 
@@ -3276,12 +3271,12 @@ class Test_Shallow_Water(unittest.TestCase):
 
         a, b = domain.quantities['stage'].get_gradients()
                 
-        assert allclose(a[1], 3.33333334)
-        assert allclose(b[1], 0.0)
+        assert num.allclose(a[1], 3.33333334)
+        assert num.allclose(b[1], 0.0)
 
         domain._order_ = 1
         domain.distribute_to_vertices_and_edges()
-        assert allclose(L[1], 1.77777778)
+        assert num.allclose(L[1], 1.77777778)
 
         domain._order_ = 2
         domain.beta_w      = 0.9
@@ -3291,7 +3286,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_vh     = 0.9
         domain.beta_vh_dry = 0.9
         domain.distribute_to_vertices_and_edges()
-        assert allclose(L[1], [0.57777777, 2.37777778, 2.37777778])
+        assert num.allclose(L[1], [0.57777777, 2.37777778, 2.37777778])
 
 
 
@@ -3321,12 +3316,12 @@ class Test_Shallow_Water(unittest.TestCase):
 
         domain.quantities['stage'].compute_gradients()
         a, b = domain.quantities['stage'].get_gradients()
-        assert allclose(a[1], 25.18518519)
-        assert allclose(b[1], 3.33333333)
+        assert num.allclose(a[1], 25.18518519)
+        assert num.allclose(b[1], 3.33333333)
 
         domain._order_ = 1
         domain.distribute_to_vertices_and_edges()
-        assert allclose(L[1], 4.9382716)
+        assert num.allclose(L[1], 4.9382716)
 
         domain._order_ = 2
         domain.beta_w      = 0.9
@@ -3336,7 +3331,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.beta_vh     = 0.9
         domain.beta_vh_dry = 0.9
         domain.distribute_to_vertices_and_edges()
-        assert allclose(L[1], [1.07160494, 6.46058131, 7.28262855])
+        assert num.allclose(L[1], [1.07160494, 6.46058131, 7.28262855])
 
 
 
@@ -3376,37 +3371,37 @@ class Test_Shallow_Water(unittest.TestCase):
         # Get reference values
         volumes = []
         for i in range(len(L)):
-            volumes.append(sum(L[i])/3)
-            assert allclose(volumes[i], domain.quantities['stage'].centroid_values[i])  
+            volumes.append(num.sum(L[i])/3)
+            assert num.allclose(volumes[i], domain.quantities['stage'].centroid_values[i])  
         
         
         domain._order_ = 1
         
         domain.tight_slope_limiters = 0
         domain.distribute_to_vertices_and_edges()
-        assert allclose(L[1], [0.1, 20.1, 20.1])
+        assert num.allclose(L[1], [0.1, 20.1, 20.1])
         for i in range(len(L)):
-            assert allclose(volumes[i], sum(L[i])/3)                    
+            assert num.allclose(volumes[i], num.sum(L[i])/3)                    
         
         domain.tight_slope_limiters = 1 # Allow triangle to be flatter (closer to bed)
         domain.distribute_to_vertices_and_edges()
-        assert allclose(L[1], [0.298, 20.001, 20.001])
+        assert num.allclose(L[1], [0.298, 20.001, 20.001])
         for i in range(len(L)):
-            assert allclose(volumes[i], sum(L[i])/3)    
+            assert num.allclose(volumes[i], num.sum(L[i])/3)    
 
         domain._order_ = 2
         
         domain.tight_slope_limiters = 0
         domain.distribute_to_vertices_and_edges()
-        assert allclose(L[1], [0.1, 20.1, 20.1])        
+        assert num.allclose(L[1], [0.1, 20.1, 20.1])        
         for i in range(len(L)):
-            assert allclose(volumes[i], sum(L[i])/3)            
+            assert num.allclose(volumes[i], num.sum(L[i])/3)            
         
         domain.tight_slope_limiters = 1 # Allow triangle to be flatter (closer to bed)
         domain.distribute_to_vertices_and_edges()
-        assert allclose(L[1], [0.298, 20.001, 20.001])
+        assert num.allclose(L[1], [0.298, 20.001, 20.001])
         for i in range(len(L)):
-            assert allclose(volumes[i], sum(L[i])/3)    
+            assert num.allclose(volumes[i], num.sum(L[i])/3)    
         
 
 
@@ -3446,43 +3441,43 @@ class Test_Shallow_Water(unittest.TestCase):
         # Get reference values
         volumes = []
         for i in range(len(L)):
-            volumes.append(sum(L[i])/3)
-            assert allclose(volumes[i], domain.quantities['stage'].centroid_values[i])  
+            volumes.append(num.sum(L[i])/3)
+            assert num.allclose(volumes[i], domain.quantities['stage'].centroid_values[i])  
         
         #print E
         domain._order_ = 1
         
         domain.tight_slope_limiters = 0
         domain.distribute_to_vertices_and_edges()
-        assert allclose(L[1], [4.1, 16.1, 20.1])        
+        assert num.allclose(L[1], [4.1, 16.1, 20.1])        
         for i in range(len(L)):
-            assert allclose(volumes[i], sum(L[i])/3)
+            assert num.allclose(volumes[i], num.sum(L[i])/3)
         
                 
         domain.tight_slope_limiters = 1 # Allow triangle to be flatter (closer to bed)
         domain.distribute_to_vertices_and_edges()
-        assert allclose(L[1], [4.2386, 16.0604, 20.001])
+        assert num.allclose(L[1], [4.2386, 16.0604, 20.001])
         for i in range(len(L)):
-            assert allclose(volumes[i], sum(L[i])/3)    
+            assert num.allclose(volumes[i], num.sum(L[i])/3)    
         
 
         domain._order_ = 2
         
         domain.tight_slope_limiters = 0    
         domain.distribute_to_vertices_and_edges()
-        assert allclose(L[1], [4.1, 16.1, 20.1])
+        assert num.allclose(L[1], [4.1, 16.1, 20.1])
         for i in range(len(L)):
-            assert allclose(volumes[i], sum(L[i])/3)    
+            assert num.allclose(volumes[i], num.sum(L[i])/3)    
         
         domain.tight_slope_limiters = 1 # Allow triangle to be flatter (closer to bed)
         domain.distribute_to_vertices_and_edges()
         #print L[1]
-        assert allclose(L[1], [4.23370103, 16.06529897, 20.001]) or\
-               allclose(L[1], [4.18944138, 16.10955862, 20.001]) or\
-               allclose(L[1], [4.19351461, 16.10548539, 20.001]) # old limiters
+        assert num.allclose(L[1], [4.23370103, 16.06529897, 20.001]) or\
+               num.allclose(L[1], [4.18944138, 16.10955862, 20.001]) or\
+               num.allclose(L[1], [4.19351461, 16.10548539, 20.001]) # old limiters
         
         for i in range(len(L)):
-            assert allclose(volumes[i], sum(L[i])/3)
+            assert num.allclose(volumes[i], num.sum(L[i])/3)
 
 
     def test_second_order_distribute_real_data(self):
@@ -3545,15 +3540,15 @@ class Test_Shallow_Water(unittest.TestCase):
         #print X[1,:]
         #print Y[1,:]
 
-        assert allclose(L[1,:], [-0.00825735775384,
-                                 -0.00801881482869,
-                                 0.0272445025825])
-        assert allclose(X[1,:], [0.0143507718962,
-                                 0.0142502147066,
-                                 0.00931268339717])
-        assert allclose(Y[1,:], [-0.000117062180693,
-                                 7.94434448109e-005,
-                                 -0.000151505429018])
+        assert num.allclose(L[1,:], [-0.00825735775384,
+                                     -0.00801881482869,
+                                     0.0272445025825])
+        assert num.allclose(X[1,:], [0.0143507718962,
+                                     0.0142502147066,
+                                     0.00931268339717])
+        assert num.allclose(Y[1,:], [-0.000117062180693,
+                                     7.94434448109e-005,
+                                     -0.000151505429018])
 
 
 
@@ -3590,10 +3585,9 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.distribute_to_vertices_and_edges()
 
         #Assert that quantities are conserved
-        from Numeric import sum
         for k in range(len(domain)):
-            assert allclose (ref_centroid_values[k],
-                             sum(stage.vertex_values[k,:])/3)
+            assert num.allclose (ref_centroid_values[k],
+                                 num.sum(stage.vertex_values[k,:])/3)
 
 
         #Now try with a non-flat bed - closely hugging initial stage in places
@@ -3616,20 +3610,19 @@ class Test_Shallow_Water(unittest.TestCase):
         #Assert that all vertex quantities have changed
         for k in range(len(domain)):
             #print ref_vertex_values[k,:], stage.vertex_values[k,:]
-            assert not allclose (ref_vertex_values[k,:], stage.vertex_values[k,:])
+            assert not num.allclose (ref_vertex_values[k,:], stage.vertex_values[k,:])
         #and assert that quantities are still conserved
-        from Numeric import sum
         for k in range(len(domain)):
-            assert allclose (ref_centroid_values[k],
-                             sum(stage.vertex_values[k,:])/3)
+            assert num.allclose (ref_centroid_values[k],
+                                 num.sum(stage.vertex_values[k,:])/3)
 
 
         # Check actual results
-        assert allclose (stage.vertex_values,
-                         [[2,2,2],
-                          [1.93333333, 2.03333333, 6.03333333],
-                          [6.93333333, 4.53333333, 4.53333333],
-                          [5.33333333, 5.33333333, 5.33333333]])
+        assert num.allclose (stage.vertex_values,
+                             [[2,2,2],
+                              [1.93333333, 2.03333333, 6.03333333],
+                              [6.93333333, 4.53333333, 4.53333333],
+                              [5.33333333, 5.33333333, 5.33333333]])
 
 
     def test_balance_deep_and_shallow_tight_SL(self):
@@ -3665,10 +3658,9 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.distribute_to_vertices_and_edges()
 
         #Assert that quantities are conserved
-        from Numeric import sum
         for k in range(len(domain)):
-            assert allclose (ref_centroid_values[k],
-                             sum(stage.vertex_values[k,:])/3)
+            assert num.allclose (ref_centroid_values[k],
+                                 num.sum(stage.vertex_values[k,:])/3)
 
 
         #Now try with a non-flat bed - closely hugging initial stage in places
@@ -3691,12 +3683,11 @@ class Test_Shallow_Water(unittest.TestCase):
         #Assert that all vertex quantities have changed
         for k in range(len(domain)):
             #print ref_vertex_values[k,:], stage.vertex_values[k,:]
-            assert not allclose (ref_vertex_values[k,:], stage.vertex_values[k,:])
+            assert not num.allclose (ref_vertex_values[k,:], stage.vertex_values[k,:])
         #and assert that quantities are still conserved
-        from Numeric import sum
         for k in range(len(domain)):
-            assert allclose (ref_centroid_values[k],
-                             sum(stage.vertex_values[k,:])/3)
+            assert num.allclose (ref_centroid_values[k],
+                                 num.sum(stage.vertex_values[k,:])/3)
 
 
         #Also check that Python and C version produce the same
@@ -3716,7 +3707,6 @@ class Test_Shallow_Water(unittest.TestCase):
         This test is using tight slope limiters.
         """
         import copy
-        from Numeric import sqrt, absolute
 
         a = [0.0, 0.0]
         b = [0.0, 2.0]
@@ -3770,10 +3760,10 @@ class Test_Shallow_Water(unittest.TestCase):
         elevation.interpolate()
 
         # Verify interpolation
-        assert allclose(stage.centroid_values[1], 1.5233)
-        assert allclose(elevation.centroid_values[1], 1.2452667)
-        assert allclose(xmomentum.centroid_values[1], -0.0058)
-        assert allclose(ymomentum.centroid_values[1], 0.089)
+        assert num.allclose(stage.centroid_values[1], 1.5233)
+        assert num.allclose(elevation.centroid_values[1], 1.2452667)
+        assert num.allclose(xmomentum.centroid_values[1], -0.0058)
+        assert num.allclose(ymomentum.centroid_values[1], 0.089)
 
         # Derived quantities
         depth = stage-elevation
@@ -3786,39 +3776,39 @@ class Test_Shallow_Water(unittest.TestCase):
         
    
         # Verify against Onslow example (14 Nov 2007)
-        assert allclose(depth.centroid_values[1], 0.278033)
-        assert allclose(u.centroid_values[1], -0.0208608)
-        assert allclose(v.centroid_values[1], 0.3201055)
+        assert num.allclose(depth.centroid_values[1], 0.278033)
+        assert num.allclose(u.centroid_values[1], -0.0208608)
+        assert num.allclose(v.centroid_values[1], 0.3201055)
 
-        assert allclose(denom.centroid_values[1],
-                        sqrt(depth.centroid_values[1]*g))
+        assert num.allclose(denom.centroid_values[1],
+                            num.sqrt(depth.centroid_values[1]*g))
 
-        assert allclose(u.centroid_values[1]/denom.centroid_values[1],
-                        -0.012637746977)
-        assert allclose(Fx.centroid_values[1],
-                        u.centroid_values[1]/denom.centroid_values[1])
+        assert num.allclose(u.centroid_values[1]/denom.centroid_values[1],
+                            -0.012637746977)
+        assert num.allclose(Fx.centroid_values[1],
+                            u.centroid_values[1]/denom.centroid_values[1])
 
         # Check that Froude numbers are small at centroids.
-        assert allclose(Fx.centroid_values[1], -0.012637746977)
-        assert allclose(Fy.centroid_values[1], 0.193924048435)
+        assert num.allclose(Fx.centroid_values[1], -0.012637746977)
+        assert num.allclose(Fy.centroid_values[1], 0.193924048435)
 
 
         # But Froude numbers are huge at some vertices and edges
-        assert allclose(Fx.vertex_values[1,:], [-5.85888475e+01,
-                                                -1.27775313e+01,
-                                                -2.78511420e-03])
+        assert num.allclose(Fx.vertex_values[1,:], [-5.85888475e+01,
+                                                    -1.27775313e+01,
+                                                    -2.78511420e-03])
 
-        assert allclose(Fx.edge_values[1,:], [-6.89150773e-03,
-                                              -7.38672488e-03,
-                                              -2.35626238e+01])
+        assert num.allclose(Fx.edge_values[1,:], [-6.89150773e-03,
+                                                  -7.38672488e-03,
+                                                  -2.35626238e+01])
 
-        assert allclose(Fy.vertex_values[1,:], [8.99035764e+02,
-                                                2.27440057e+02,
-                                                3.75568430e-02])
+        assert num.allclose(Fy.vertex_values[1,:], [8.99035764e+02,
+                                                    2.27440057e+02,
+                                                    3.75568430e-02])
 
-        assert allclose(Fy.edge_values[1,:], [1.05748998e-01,
-                                              1.06035244e-01,
-                                              3.88346947e+02])
+        assert num.allclose(Fy.edge_values[1,:], [1.05748998e-01,
+                                                  1.06035244e-01,
+                                                  3.88346947e+02])
         
         
         # The task is now to arrange the limiters such that Froude numbers
@@ -3843,8 +3833,8 @@ class Test_Shallow_Water(unittest.TestCase):
         #print u.vertex_values[1,:]
         #print u.centroid_values[1]
         
-        assert alltrue(absolute(u.vertex_values[1,:]) <= absolute(u.centroid_values[1])*10)
-        assert alltrue(absolute(v.vertex_values[1,:]) <= absolute(v.centroid_values[1])*10) 
+        assert num.alltrue(num.absolute(u.vertex_values[1,:]) <= num.absolute(u.centroid_values[1])*10)
+        assert num.alltrue(num.absolute(v.vertex_values[1,:]) <= num.absolute(v.centroid_values[1])*10) 
 
         denom = (depth*g)**0.5 
         Fx = u/denom
@@ -3854,21 +3844,20 @@ class Test_Shallow_Water(unittest.TestCase):
         # Assert that Froude numbers are less than max value (TBA)
         # at vertices, edges and centroids.
         from anuga.config import maximum_froude_number
-        assert alltrue(absolute(Fx.vertex_values[1,:]) < maximum_froude_number)
-        assert alltrue(absolute(Fy.vertex_values[1,:]) < maximum_froude_number)
+        assert num.alltrue(num.absolute(Fx.vertex_values[1,:]) < maximum_froude_number)
+        assert num.alltrue(num.absolute(Fy.vertex_values[1,:]) < maximum_froude_number)
 
 
         # Assert that all vertex quantities have changed
         for k in range(len(domain)):
             #print ref_vertex_values[k,:], stage.vertex_values[k,:]
-            assert not allclose (ref_vertex_values[k,:],
-                                 stage.vertex_values[k,:])
+            assert not num.allclose (ref_vertex_values[k,:],
+                                     stage.vertex_values[k,:])
             
         # Assert that quantities are still conserved
-        from Numeric import sum
         for k in range(len(domain)):
-            assert allclose (ref_centroid_values[k],
-                             sum(stage.vertex_values[k,:])/3)
+            assert num.allclose (ref_centroid_values[k],
+                                 num.sum(stage.vertex_values[k,:])/3)
 
 
         
@@ -3909,7 +3898,6 @@ class Test_Shallow_Water(unittest.TestCase):
         initial condition
         """
         from mesh_factory import rectangular
-        from Numeric import array
 
         #Create basic mesh
         points, vertices, boundary = rectangular(6, 6)
@@ -3941,7 +3929,7 @@ class Test_Shallow_Water(unittest.TestCase):
         #Evolution
         for t in domain.evolve(yieldstep = 0.05, finaltime = 5.0):
             volume =  domain.quantities['stage'].get_integral()
-            assert allclose (volume, initial_volume)
+            assert num.allclose (volume, initial_volume)
 
             #I don't believe that the total momentum should be the same
             #It starts with zero and ends with zero though
@@ -3959,7 +3947,6 @@ class Test_Shallow_Water(unittest.TestCase):
         initial condition
         """
         from mesh_factory import rectangular
-        from Numeric import array
 
         #Create basic mesh
         points, vertices, boundary = rectangular(6, 6)
@@ -3991,7 +3978,7 @@ class Test_Shallow_Water(unittest.TestCase):
         #Evolution
         for t in domain.evolve(yieldstep = 0.05, finaltime = 5.0):
             volume =  domain.quantities['stage'].get_integral()
-            assert allclose (volume, initial_volume)
+            assert num.allclose (volume, initial_volume)
 
             #FIXME: What would we expect from momentum
             #xmom = domain.quantities['xmomentum'].get_integral()
@@ -4007,7 +3994,6 @@ class Test_Shallow_Water(unittest.TestCase):
         initial condition
         """
         from mesh_factory import rectangular
-        from Numeric import array
 
         #Create basic mesh
         points, vertices, boundary = rectangular(2, 1)
@@ -4056,19 +4042,19 @@ class Test_Shallow_Water(unittest.TestCase):
 
 
         #print domain.quantities['stage'].centroid_values
-        assert allclose(domain.quantities['stage'].centroid_values,
-                        ref_centroid_values)
+        assert num.allclose(domain.quantities['stage'].centroid_values,
+                            ref_centroid_values)
 
 
         #Check that initial limiter doesn't violate cons quan
-        assert allclose(domain.quantities['stage'].get_integral(),
-                        initial_volume)
+        assert num.allclose(domain.quantities['stage'].get_integral(),
+                            initial_volume)
 
         #Evolution
         for t in domain.evolve(yieldstep = 0.05, finaltime = 10):
             volume =  domain.quantities['stage'].get_integral()
             #print t, volume, initial_volume
-            assert allclose (volume, initial_volume)
+            assert num.allclose (volume, initial_volume)
 
         os.remove(domain.get_name() + '.sww')
 
@@ -4079,7 +4065,6 @@ class Test_Shallow_Water(unittest.TestCase):
         initial condition
         """
         from mesh_factory import rectangular
-        from Numeric import array
 
         #Create basic mesh
         points, vertices, boundary = rectangular(6, 6)
@@ -4129,8 +4114,8 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.distribute_to_vertices_and_edges()
 
         #Check that initial limiter doesn't violate cons quan
-        assert allclose (domain.quantities['stage'].get_integral(),
-                         initial_volume)
+        assert num.allclose (domain.quantities['stage'].get_integral(),
+                             initial_volume)
         #NOTE: This would fail if any initial stage was less than the
         #corresponding bed elevation - but that is reasonable.
 
@@ -4141,7 +4126,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
             #print t, volume, initial_volume
 
-            assert allclose (volume, initial_volume)
+            assert num.allclose (volume, initial_volume)
 
 
         os.remove(domain.get_name() + '.sww')
@@ -4154,7 +4139,6 @@ class Test_Shallow_Water(unittest.TestCase):
         This one uses a slopy bed, dirichlet and reflective bdries
         """
         from mesh_factory import rectangular
-        from Numeric import array
 
         # Create basic mesh
         points, vertices, boundary = rectangular(6, 6)
@@ -4191,7 +4175,7 @@ class Test_Shallow_Water(unittest.TestCase):
             xmom = domain.quantities['xmomentum'].get_integral()
             ymom = domain.quantities['ymomentum'].get_integral()
 
-            if allclose(t, 6):  # Steady state reached
+            if num.allclose(t, 6):  # Steady state reached
                 steady_xmom = domain.quantities['xmomentum'].get_integral()
                 steady_ymom = domain.quantities['ymomentum'].get_integral()
                 steady_stage = domain.quantities['stage'].get_integral()
@@ -4199,9 +4183,9 @@ class Test_Shallow_Water(unittest.TestCase):
             if t > 6:
                 #print '%.2f %14.8f %14.8f' %(t, ymom, steady_ymom)
                 msg = 'xmom=%.2f, steady_xmom=%.2f' %(xmom, steady_xmom)
-                assert allclose(xmom, steady_xmom), msg
-                assert allclose(ymom, steady_ymom)
-                assert allclose(stage, steady_stage)
+                assert num.allclose(xmom, steady_xmom), msg
+                assert num.allclose(ymom, steady_ymom)
+                assert num.allclose(stage, steady_stage)
 
 
         os.remove(domain.get_name() + '.sww')
@@ -4268,14 +4252,13 @@ class Test_Shallow_Water(unittest.TestCase):
         now = domain.quantities['stage'].get_integral()
 
         msg = 'Stage not conserved: was %f, now %f' %(ref, now)
-        assert allclose(ref, now), msg 
+        assert num.allclose(ref, now), msg 
 
         os.remove(domain.get_name() + '.sww')
 
     def test_second_order_flat_bed_onestep(self):
 
         from mesh_factory import rectangular
-        from Numeric import array
 
         #Create basic mesh
         points, vertices, boundary = rectangular(6, 6)
@@ -4304,46 +4287,46 @@ class Test_Shallow_Water(unittest.TestCase):
             pass# domain.write_time()
 
         # Data from earlier version of abstract_2d_finite_volumes
-        assert allclose(domain.min_timestep, 0.0396825396825)
-        assert allclose(domain.max_timestep, 0.0396825396825)
+        assert num.allclose(domain.min_timestep, 0.0396825396825)
+        assert num.allclose(domain.max_timestep, 0.0396825396825)
 
-        assert allclose(domain.quantities['stage'].centroid_values[:12],
-                        [0.00171396, 0.02656103, 0.00241523, 0.02656103,
-                        0.00241523, 0.02656103, 0.00241523, 0.02656103,
-                        0.00241523, 0.02656103, 0.00241523, 0.0272623])
+        assert num.allclose(domain.quantities['stage'].centroid_values[:12],
+                            [0.00171396, 0.02656103, 0.00241523, 0.02656103,
+                             0.00241523, 0.02656103, 0.00241523, 0.02656103,
+                             0.00241523, 0.02656103, 0.00241523, 0.0272623])
 
         domain.distribute_to_vertices_and_edges()
 
-        assert allclose(domain.quantities['stage'].vertex_values[:12,0],
-                        [0.0001714, 0.02656103, 0.00024152,
-                        0.02656103, 0.00024152, 0.02656103,
-                        0.00024152, 0.02656103, 0.00024152,
-                        0.02656103, 0.00024152, 0.0272623])
+        assert num.allclose(domain.quantities['stage'].vertex_values[:12,0],
+                            [0.0001714, 0.02656103, 0.00024152,
+                             0.02656103, 0.00024152, 0.02656103,
+                             0.00024152, 0.02656103, 0.00024152,
+                             0.02656103, 0.00024152, 0.0272623])
 
-        assert allclose(domain.quantities['stage'].vertex_values[:12,1],
-                        [0.00315012, 0.02656103, 0.00024152, 0.02656103,
-                         0.00024152, 0.02656103, 0.00024152, 0.02656103,
-                         0.00024152, 0.02656103, 0.00040506, 0.0272623])
+        assert num.allclose(domain.quantities['stage'].vertex_values[:12,1],
+                            [0.00315012, 0.02656103, 0.00024152, 0.02656103,
+                             0.00024152, 0.02656103, 0.00024152, 0.02656103,
+                             0.00024152, 0.02656103, 0.00040506, 0.0272623])
 
-        assert allclose(domain.quantities['stage'].vertex_values[:12,2],
-                        [0.00182037, 0.02656103, 0.00676264,
-                         0.02656103, 0.00676264, 0.02656103,
-                         0.00676264, 0.02656103, 0.00676264,
-                         0.02656103, 0.0065991, 0.0272623])
+        assert num.allclose(domain.quantities['stage'].vertex_values[:12,2],
+                            [0.00182037, 0.02656103, 0.00676264,
+                             0.02656103, 0.00676264, 0.02656103,
+                             0.00676264, 0.02656103, 0.00676264,
+                             0.02656103, 0.0065991, 0.0272623])
 
-        assert allclose(domain.quantities['xmomentum'].centroid_values[:12],
-                        [0.00113961, 0.01302432, 0.00148672,
-                         0.01302432, 0.00148672, 0.01302432,
-                         0.00148672, 0.01302432, 0.00148672 ,
-                         0.01302432, 0.00148672, 0.01337143])
+        assert num.allclose(domain.quantities['xmomentum'].centroid_values[:12],
+                            [0.00113961, 0.01302432, 0.00148672,
+                             0.01302432, 0.00148672, 0.01302432,
+                             0.00148672, 0.01302432, 0.00148672 ,
+                             0.01302432, 0.00148672, 0.01337143])
 
-        assert allclose(domain.quantities['ymomentum'].centroid_values[:12],
-                        [-2.91240050e-004 , 1.22721531e-004,
-                         -1.22721531e-004, 1.22721531e-004 ,
-                         -1.22721531e-004, 1.22721531e-004,
-                         -1.22721531e-004 , 1.22721531e-004,
-                         -1.22721531e-004, 1.22721531e-004,
-                         -1.22721531e-004, -4.57969873e-005])
+        assert num.allclose(domain.quantities['ymomentum'].centroid_values[:12],
+                            [-2.91240050e-004 , 1.22721531e-004,
+                             -1.22721531e-004, 1.22721531e-004 ,
+                             -1.22721531e-004, 1.22721531e-004,
+                             -1.22721531e-004 , 1.22721531e-004,
+                             -1.22721531e-004, 1.22721531e-004,
+                             -1.22721531e-004, -4.57969873e-005])
 
         os.remove(domain.get_name() + '.sww')
 
@@ -4351,7 +4334,6 @@ class Test_Shallow_Water(unittest.TestCase):
     def test_second_order_flat_bed_moresteps(self):
 
         from mesh_factory import rectangular
-        from Numeric import array
 
         #Create basic mesh
         points, vertices, boundary = rectangular(6, 6)
@@ -4382,7 +4364,6 @@ class Test_Shallow_Water(unittest.TestCase):
 
     def test_flatbed_first_order(self):
         from mesh_factory import rectangular
-        from Numeric import array
 
         #Create basic mesh
         N = 8
@@ -4415,8 +4396,8 @@ class Test_Shallow_Water(unittest.TestCase):
             #assert allclose(domain.quantities['stage'].edge_values[:4,i],
             #                [0.10730244,0.12337617,0.11200126,0.12605666])
 
-            assert allclose(domain.quantities['xmomentum'].edge_values[:4,i],
-                            [0.07610894,0.06901572,0.07284461,0.06819712])
+            assert num.allclose(domain.quantities['xmomentum'].edge_values[:4,i],
+                                [0.07610894,0.06901572,0.07284461,0.06819712])
 
             #assert allclose(domain.quantities['ymomentum'].edge_values[:4,i],
             #                [-0.0060238, -0.00157404, -0.00309633, -0.0001637])
@@ -4426,7 +4407,6 @@ class Test_Shallow_Water(unittest.TestCase):
 
     def test_flatbed_second_order(self):
         from mesh_factory import rectangular
-        from Numeric import array
 
         #Create basic mesh
         N = 8
@@ -4461,8 +4441,8 @@ class Test_Shallow_Water(unittest.TestCase):
         msg = 'min step was %f instead of %f' %(domain.min_timestep,
                                                 0.0210448446782) 
 
-        assert allclose(domain.min_timestep, 0.0210448446782), msg
-        assert allclose(domain.max_timestep, 0.0210448446782)
+        assert num.allclose(domain.min_timestep, 0.0210448446782), msg
+        assert num.allclose(domain.max_timestep, 0.0210448446782)
 
         #print domain.quantities['stage'].vertex_values[:4,0]
         #print domain.quantities['xmomentum'].vertex_values[:4,0]
@@ -4477,16 +4457,16 @@ class Test_Shallow_Water(unittest.TestCase):
         #assert allclose(domain.quantities['xmomentum'].vertex_values[:4,0],
         #                [ 0.00064835, 0.03685719, 0.00085073, 0.03687313]) 
         
-        assert allclose(domain.quantities['xmomentum'].vertex_values[:4,0],
-                        [ 0.00090581, 0.03685719, 0.00088303, 0.03687313])
+        assert num.allclose(domain.quantities['xmomentum'].vertex_values[:4,0],
+                            [ 0.00090581, 0.03685719, 0.00088303, 0.03687313])
                         
                         
 
         #assert allclose(domain.quantities['xmomentum'].vertex_values[:4,0],
         #                [0.00090581,0.03685719,0.00088303,0.03687313])
 
-        assert allclose(domain.quantities['ymomentum'].vertex_values[:4,0],
-                        [-0.00139463,0.0006156,-0.00060364,0.00061827])
+        assert num.allclose(domain.quantities['ymomentum'].vertex_values[:4,0],
+                            [-0.00139463,0.0006156,-0.00060364,0.00061827])
 
 
         os.remove(domain.get_name() + '.sww')
@@ -4494,7 +4474,6 @@ class Test_Shallow_Water(unittest.TestCase):
         
     def test_flatbed_second_order_vmax_0(self):
         from mesh_factory import rectangular
-        from Numeric import array
 
         #Create basic mesh
         N = 8
@@ -4526,17 +4505,17 @@ class Test_Shallow_Water(unittest.TestCase):
             pass
 
 
-        assert allclose(domain.min_timestep, 0.0210448446782)
-        assert allclose(domain.max_timestep, 0.0210448446782)
+        assert num.allclose(domain.min_timestep, 0.0210448446782)
+        assert num.allclose(domain.max_timestep, 0.0210448446782)
 
         #FIXME: These numbers were from version before 21/3/6 - 
         #could be recreated by setting maximum_allowed_speed to 0 maybe 
-        assert allclose(domain.quantities['xmomentum'].vertex_values[:4,0],
-                        [ 0.00064835, 0.03685719, 0.00085073, 0.03687313]) 
+        assert num.allclose(domain.quantities['xmomentum'].vertex_values[:4,0],
+                            [ 0.00064835, 0.03685719, 0.00085073, 0.03687313]) 
         
 
-        assert allclose(domain.quantities['ymomentum'].vertex_values[:4,0],
-                        [-0.00139463,0.0006156,-0.00060364,0.00061827])
+        assert num.allclose(domain.quantities['ymomentum'].vertex_values[:4,0],
+                            [-0.00139463,0.0006156,-0.00060364,0.00061827])
 
 
         os.remove(domain.get_name() + '.sww')
@@ -4547,7 +4526,6 @@ class Test_Shallow_Water(unittest.TestCase):
         #Use real data from anuga.abstract_2d_finite_volumes 2
         #painfully setup and extracted.
         from mesh_factory import rectangular
-        from Numeric import array
 
         #Create basic mesh
         N = 8
@@ -4579,7 +4557,7 @@ class Test_Shallow_Water(unittest.TestCase):
         for V in [False, True]:
             if V:
                 #Set centroids as if system had been evolved
-                L = zeros(2*N*N, Float)
+                L = num.zeros(2*N*N, num.Float)
                 L[:32] = [7.21205592e-003, 5.35214298e-002, 1.00910824e-002,
                           5.35439433e-002, 1.00910824e-002, 5.35439433e-002,
                           1.00910824e-002, 5.35439433e-002, 1.00910824e-002,
@@ -4592,7 +4570,7 @@ class Test_Shallow_Water(unittest.TestCase):
                           4.37962142e-005, 0.00000000e+000, 4.37962142e-005,
                           0.00000000e+000, 5.57305948e-005]
 
-                X = zeros(2*N*N, Float)
+                X = num.zeros(2*N*N, num.Float)
                 X[:32] = [6.48351607e-003, 3.68571894e-002, 8.50733285e-003,
                           3.68731327e-002, 8.50733285e-003, 3.68731327e-002,
                           8.50733285e-003, 3.68731327e-002, 8.50733285e-003,
@@ -4605,7 +4583,7 @@ class Test_Shallow_Water(unittest.TestCase):
                           3.58905503e-005, 0.00000000e+000, 3.58905503e-005,
                           0.00000000e+000, 4.57662812e-005]
 
-                Y = zeros(2*N*N, Float)
+                Y = num.zeros(2*N*N, num.Float)
                 Y[:32]=[-1.39463104e-003, 6.15600298e-004, -6.03637382e-004,
                         6.18272251e-004, -6.03637382e-004, 6.18272251e-004,
                         -6.03637382e-004, 6.18272251e-004, -6.03637382e-004,
@@ -4628,20 +4606,20 @@ class Test_Shallow_Water(unittest.TestCase):
                 #Evolution
                 for t in domain.evolve(yieldstep = 0.01, finaltime = 0.03):
                     pass
-                assert allclose(domain.min_timestep, 0.0210448446782)
-                assert allclose(domain.max_timestep, 0.0210448446782)
+                assert num.allclose(domain.min_timestep, 0.0210448446782)
+                assert num.allclose(domain.max_timestep, 0.0210448446782)
 
 
             #Centroids were correct but not vertices.
             #Hence the check of distribute below.
-            assert allclose(domain.quantities['stage'].centroid_values[:4],
-                            [0.00721206,0.05352143,0.01009108,0.05354394])
+            assert num.allclose(domain.quantities['stage'].centroid_values[:4],
+                                [0.00721206,0.05352143,0.01009108,0.05354394])
 
-            assert allclose(domain.quantities['xmomentum'].centroid_values[:4],
-                            [0.00648352,0.03685719,0.00850733,0.03687313])
+            assert num.allclose(domain.quantities['xmomentum'].centroid_values[:4],
+                                [0.00648352,0.03685719,0.00850733,0.03687313])
 
-            assert allclose(domain.quantities['ymomentum'].centroid_values[:4],
-                            [-0.00139463,0.0006156,-0.00060364,0.00061827])
+            assert num.allclose(domain.quantities['ymomentum'].centroid_values[:4],
+                                [-0.00139463,0.0006156,-0.00060364,0.00061827])
 
             #print 'C17=', domain.quantities['xmomentum'].centroid_values[17]
             #print 'C19=', domain.quantities['xmomentum'].centroid_values[19]
@@ -4654,14 +4632,14 @@ class Test_Shallow_Water(unittest.TestCase):
                 #could be recreated by setting maximum_allowed_speed to 0 maybe           
                 
                 #assert allclose(domain.quantities['xmomentum'].centroid_values[17], 0.0)                
-                assert allclose(domain.quantities['xmomentum'].centroid_values[17], 0.000286060839592)                          
+                assert num.allclose(domain.quantities['xmomentum'].centroid_values[17], 0.000286060839592)                          
 
             else:
-                assert allclose(domain.quantities['xmomentum'].centroid_values[17], 0.00028606084)
+                assert num.allclose(domain.quantities['xmomentum'].centroid_values[17], 0.00028606084)
 
             import copy
             XX = copy.copy(domain.quantities['xmomentum'].centroid_values)
-            assert allclose(domain.quantities['xmomentum'].centroid_values, XX)
+            assert num.allclose(domain.quantities['xmomentum'].centroid_values, XX)
 
             domain.distribute_to_vertices_and_edges()
 
@@ -4669,19 +4647,19 @@ class Test_Shallow_Water(unittest.TestCase):
 
             #assert allclose(domain.quantities['xmomentum'].centroid_values[17],
             #                0.0)
-            assert allclose(domain.quantities['xmomentum'].centroid_values[17], 0.000286060839592)                                                  
+            assert num.allclose(domain.quantities['xmomentum'].centroid_values[17], 0.000286060839592)                                                  
 
 
             #FIXME: These numbers were from version before 25/10
             #assert allclose(domain.quantities['stage'].vertex_values[:4,0],
             #                [0.00101913,0.05352143,0.00104852,0.05354394])
 
-            assert allclose(domain.quantities['ymomentum'].vertex_values[:4,0],
-                            [-0.00139463,0.0006156,-0.00060364,0.00061827])
+            assert num.allclose(domain.quantities['ymomentum'].vertex_values[:4,0],
+                                [-0.00139463,0.0006156,-0.00060364,0.00061827])
 
 
-            assert allclose(domain.quantities['xmomentum'].vertex_values[:4,0],
-                            [0.00090581,0.03685719,0.00088303,0.03687313])
+            assert num.allclose(domain.quantities['xmomentum'].vertex_values[:4,0],
+                                [0.00090581,0.03685719,0.00088303,0.03687313])
 
 
             #NB NO longer relvant:
@@ -4702,7 +4680,6 @@ class Test_Shallow_Water(unittest.TestCase):
     def test_bedslope_problem_first_order(self):
 
         from mesh_factory import rectangular
-        from Numeric import array
 
         #Create basic mesh
         points, vertices, boundary = rectangular(6, 6)
@@ -4742,7 +4719,6 @@ class Test_Shallow_Water(unittest.TestCase):
     def test_bedslope_problem_first_order_moresteps(self):
 
         from mesh_factory import rectangular
-        from Numeric import array
 
         #Create basic mesh
         points, vertices, boundary = rectangular(6, 6)
@@ -4778,38 +4754,37 @@ class Test_Shallow_Water(unittest.TestCase):
         #Data from earlier version of abstract_2d_finite_volumes
         #print domain.quantities['stage'].centroid_values
 
-        assert allclose(domain.quantities['stage'].centroid_values,
-                        [-0.02998628, -0.01520652, -0.03043492,
-                        -0.0149132, -0.03004706, -0.01476251,
-                        -0.0298215, -0.01467976, -0.02988158,
-                        -0.01474662, -0.03036161, -0.01442995,
-                        -0.07624583, -0.06297061, -0.07733792,
-                        -0.06342237, -0.07695439, -0.06289595,
-                        -0.07635559, -0.0626065, -0.07633628,
-                        -0.06280072, -0.07739632, -0.06386738,
-                        -0.12161738, -0.11028239, -0.1223796,
-                        -0.11095953, -0.12189744, -0.11048616,
-                        -0.12074535, -0.10987605, -0.12014311,
-                        -0.10976691, -0.12096859, -0.11087692,
-                        -0.16868259, -0.15868061, -0.16801135,
-                        -0.1588003, -0.16674343, -0.15813323,
-                        -0.16457595, -0.15693826, -0.16281096,
-                        -0.15585154, -0.16283873, -0.15540068,
-                        -0.17450362, -0.19919913, -0.18062882,
-                        -0.19764131, -0.17783111, -0.19407213,
-                        -0.1736915, -0.19053624, -0.17228678,
-                        -0.19105634, -0.17920133, -0.1968828,
-                        -0.14244395, -0.14604641, -0.14473537,
-                        -0.1506107, -0.14510055, -0.14919522,
-                        -0.14175896, -0.14560798, -0.13911658,
-                        -0.14439383, -0.13924047, -0.14829043])
+        assert num.allclose(domain.quantities['stage'].centroid_values,
+                            [-0.02998628, -0.01520652, -0.03043492,
+                             -0.0149132, -0.03004706, -0.01476251,
+                             -0.0298215, -0.01467976, -0.02988158,
+                             -0.01474662, -0.03036161, -0.01442995,
+                             -0.07624583, -0.06297061, -0.07733792,
+                             -0.06342237, -0.07695439, -0.06289595,
+                             -0.07635559, -0.0626065, -0.07633628,
+                             -0.06280072, -0.07739632, -0.06386738,
+                             -0.12161738, -0.11028239, -0.1223796,
+                             -0.11095953, -0.12189744, -0.11048616,
+                             -0.12074535, -0.10987605, -0.12014311,
+                             -0.10976691, -0.12096859, -0.11087692,
+                             -0.16868259, -0.15868061, -0.16801135,
+                             -0.1588003, -0.16674343, -0.15813323,
+                             -0.16457595, -0.15693826, -0.16281096,
+                             -0.15585154, -0.16283873, -0.15540068,
+                             -0.17450362, -0.19919913, -0.18062882,
+                             -0.19764131, -0.17783111, -0.19407213,
+                             -0.1736915, -0.19053624, -0.17228678,
+                             -0.19105634, -0.17920133, -0.1968828,
+                             -0.14244395, -0.14604641, -0.14473537,
+                             -0.1506107, -0.14510055, -0.14919522,
+                             -0.14175896, -0.14560798, -0.13911658,
+                             -0.14439383, -0.13924047, -0.14829043])
 
         os.remove(domain.get_name() + '.sww')
         
     def test_bedslope_problem_second_order_one_step(self):
 
         from mesh_factory import rectangular
-        from Numeric import array
 
         #Create basic mesh
         points, vertices, boundary = rectangular(6, 6)
@@ -4844,31 +4819,31 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.set_quantity('stage', expression='elevation+0.05')
         domain.check_integrity()
 
-        assert allclose(domain.quantities['stage'].centroid_values,
-                        [0.01296296, 0.03148148, 0.01296296,
-                        0.03148148, 0.01296296, 0.03148148,
-                        0.01296296, 0.03148148, 0.01296296,
-                        0.03148148, 0.01296296, 0.03148148,
-                        -0.04259259, -0.02407407, -0.04259259,
-                        -0.02407407, -0.04259259, -0.02407407,
-                        -0.04259259, -0.02407407, -0.04259259,
-                        -0.02407407, -0.04259259, -0.02407407,
-                        -0.09814815, -0.07962963, -0.09814815,
-                        -0.07962963, -0.09814815, -0.07962963,
-                        -0.09814815, -0.07962963, -0.09814815,
-                        -0.07962963, -0.09814815, -0.07962963,
-                        -0.1537037 , -0.13518519, -0.1537037,
-                        -0.13518519, -0.1537037, -0.13518519,
-                        -0.1537037 , -0.13518519, -0.1537037,
-                        -0.13518519, -0.1537037, -0.13518519,
-                        -0.20925926, -0.19074074, -0.20925926,
-                        -0.19074074, -0.20925926, -0.19074074,
-                        -0.20925926, -0.19074074, -0.20925926,
-                        -0.19074074, -0.20925926, -0.19074074,
-                        -0.26481481, -0.2462963, -0.26481481,
-                        -0.2462963, -0.26481481, -0.2462963,
-                        -0.26481481, -0.2462963, -0.26481481,
-                        -0.2462963, -0.26481481, -0.2462963])
+        assert num.allclose(domain.quantities['stage'].centroid_values,
+                            [ 0.01296296,  0.03148148,  0.01296296,
+                              0.03148148,  0.01296296,  0.03148148,
+                              0.01296296,  0.03148148,  0.01296296,
+                              0.03148148,  0.01296296,  0.03148148,
+                             -0.04259259, -0.02407407, -0.04259259,
+                             -0.02407407, -0.04259259, -0.02407407,
+                             -0.04259259, -0.02407407, -0.04259259,
+                             -0.02407407, -0.04259259, -0.02407407,
+                             -0.09814815, -0.07962963, -0.09814815,
+                             -0.07962963, -0.09814815, -0.07962963,
+                             -0.09814815, -0.07962963, -0.09814815,
+                             -0.07962963, -0.09814815, -0.07962963,
+                             -0.1537037,  -0.13518519, -0.1537037,
+                             -0.13518519, -0.1537037,  -0.13518519,
+                             -0.1537037 , -0.13518519, -0.1537037,
+                             -0.13518519, -0.1537037,  -0.13518519,
+                             -0.20925926, -0.19074074, -0.20925926,
+                             -0.19074074, -0.20925926, -0.19074074,
+                             -0.20925926, -0.19074074, -0.20925926,
+                             -0.19074074, -0.20925926, -0.19074074,
+                             -0.26481481, -0.2462963,  -0.26481481,
+                             -0.2462963,  -0.26481481, -0.2462963,
+                             -0.26481481, -0.2462963,  -0.26481481,
+                             -0.2462963,  -0.26481481, -0.2462963])
 
 
         #print domain.quantities['stage'].extrapolate_second_order()
@@ -4882,31 +4857,30 @@ class Test_Shallow_Water(unittest.TestCase):
 
 
         #print domain.quantities['stage'].centroid_values
-        assert allclose(domain.quantities['stage'].centroid_values,
-                 [0.01290985, 0.02356019, 0.01619096, 0.02356019, 0.01619096,
-                  0.02356019, 0.01619096, 0.02356019, 0.01619096, 0.02356019,
-                  0.01619096, 0.0268413, -0.04411074, -0.0248011, -0.04186556,
-                  -0.0248011, -0.04186556, -0.0248011, -0.04186556, -0.0248011,
-                  -0.04186556, -0.0248011, -0.04186556, -0.02255593,
-                  -0.09966629, -0.08035666, -0.09742112, -0.08035666,
-                  -0.09742112, -0.08035666, -0.09742112, -0.08035666,
-                  -0.09742112, -0.08035666, -0.09742112, -0.07811149,
-                  -0.15522185, -0.13591222, -0.15297667, -0.13591222,
-                  -0.15297667, -0.13591222, -0.15297667, -0.13591222,
-                  -0.15297667, -0.13591222, -0.15297667, -0.13366704,
-                  -0.2107774, -0.19146777, -0.20853223, -0.19146777,
-                  -0.20853223, -0.19146777, -0.20853223, -0.19146777,
-                  -0.20853223, -0.19146777, -0.20853223, -0.1892226,
-                  -0.26120669, -0.24776246, -0.25865535, -0.24776246,
-                  -0.25865535, -0.24776246, -0.25865535, -0.24776246,
-                  -0.25865535, -0.24776246, -0.25865535, -0.24521113])
+        assert num.allclose(domain.quantities['stage'].centroid_values,
+                            [ 0.01290985,  0.02356019,  0.01619096,  0.02356019,  0.01619096,
+                              0.02356019,  0.01619096,  0.02356019,  0.01619096,  0.02356019,
+                              0.01619096,  0.0268413,  -0.04411074, -0.0248011,  -0.04186556,
+                             -0.0248011,  -0.04186556, -0.0248011,  -0.04186556, -0.0248011,
+                             -0.04186556, -0.0248011,  -0.04186556, -0.02255593,
+                             -0.09966629, -0.08035666, -0.09742112, -0.08035666,
+                             -0.09742112, -0.08035666, -0.09742112, -0.08035666,
+                             -0.09742112, -0.08035666, -0.09742112, -0.07811149,
+                             -0.15522185, -0.13591222, -0.15297667, -0.13591222,
+                             -0.15297667, -0.13591222, -0.15297667, -0.13591222,
+                             -0.15297667, -0.13591222, -0.15297667, -0.13366704,
+                             -0.2107774,  -0.19146777, -0.20853223, -0.19146777,
+                             -0.20853223, -0.19146777, -0.20853223, -0.19146777,
+                             -0.20853223, -0.19146777, -0.20853223, -0.1892226,
+                             -0.26120669, -0.24776246, -0.25865535, -0.24776246,
+                             -0.25865535, -0.24776246, -0.25865535, -0.24776246,
+                             -0.25865535, -0.24776246, -0.25865535, -0.24521113])
 
         os.remove(domain.get_name() + '.sww')
 
     def test_bedslope_problem_second_order_two_steps(self):
 
         from mesh_factory import rectangular
-        from Numeric import array
 
         #Create basic mesh
         points, vertices, boundary = rectangular(6, 6)
@@ -4942,31 +4916,31 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.set_quantity('stage', expression='elevation+0.05')
         domain.check_integrity()
 
-        assert allclose(domain.quantities['stage'].centroid_values,
-                        [0.01296296, 0.03148148, 0.01296296,
-                        0.03148148, 0.01296296, 0.03148148,
-                        0.01296296, 0.03148148, 0.01296296,
-                        0.03148148, 0.01296296, 0.03148148,
-                        -0.04259259, -0.02407407, -0.04259259,
-                        -0.02407407, -0.04259259, -0.02407407,
-                        -0.04259259, -0.02407407, -0.04259259,
-                        -0.02407407, -0.04259259, -0.02407407,
-                        -0.09814815, -0.07962963, -0.09814815,
-                        -0.07962963, -0.09814815, -0.07962963,
-                        -0.09814815, -0.07962963, -0.09814815,
-                        -0.07962963, -0.09814815, -0.07962963,
-                        -0.1537037 , -0.13518519, -0.1537037,
-                        -0.13518519, -0.1537037, -0.13518519,
-                        -0.1537037 , -0.13518519, -0.1537037,
-                        -0.13518519, -0.1537037, -0.13518519,
-                        -0.20925926, -0.19074074, -0.20925926,
-                        -0.19074074, -0.20925926, -0.19074074,
-                        -0.20925926, -0.19074074, -0.20925926,
-                        -0.19074074, -0.20925926, -0.19074074,
-                        -0.26481481, -0.2462963, -0.26481481,
-                        -0.2462963, -0.26481481, -0.2462963,
-                        -0.26481481, -0.2462963, -0.26481481,
-                        -0.2462963, -0.26481481, -0.2462963])
+        assert num.allclose(domain.quantities['stage'].centroid_values,
+                            [ 0.01296296,  0.03148148,  0.01296296,
+                              0.03148148,  0.01296296,  0.03148148,
+                              0.01296296,  0.03148148,  0.01296296,
+                              0.03148148,  0.01296296,  0.03148148,
+                             -0.04259259, -0.02407407, -0.04259259,
+                             -0.02407407, -0.04259259, -0.02407407,
+                             -0.04259259, -0.02407407, -0.04259259,
+                             -0.02407407, -0.04259259, -0.02407407,
+                             -0.09814815, -0.07962963, -0.09814815,
+                             -0.07962963, -0.09814815, -0.07962963,
+                             -0.09814815, -0.07962963, -0.09814815,
+                             -0.07962963, -0.09814815, -0.07962963,
+                             -0.1537037 , -0.13518519, -0.1537037,
+                             -0.13518519, -0.1537037,  -0.13518519,
+                             -0.1537037 , -0.13518519, -0.1537037,
+                             -0.13518519, -0.1537037,  -0.13518519,
+                             -0.20925926, -0.19074074, -0.20925926,
+                             -0.19074074, -0.20925926, -0.19074074,
+                             -0.20925926, -0.19074074, -0.20925926,
+                             -0.19074074, -0.20925926, -0.19074074,
+                             -0.26481481, -0.2462963,  -0.26481481,
+                             -0.2462963,  -0.26481481, -0.2462963,
+                             -0.26481481, -0.2462963,  -0.26481481,
+                             -0.2462963,  -0.26481481, -0.2462963])
 
 
         #print domain.quantities['stage'].extrapolate_second_order()
@@ -4979,29 +4953,29 @@ class Test_Shallow_Water(unittest.TestCase):
 
 
         #Data from earlier version of abstract_2d_finite_volumes ft=0.1
-        assert allclose(domain.min_timestep, 0.0376895634803)
-        assert allclose(domain.max_timestep, 0.0415635655309)
+        assert num.allclose(domain.min_timestep, 0.0376895634803)
+        assert num.allclose(domain.max_timestep, 0.0415635655309)
 
 
-        assert allclose(domain.quantities['stage'].centroid_values,
-                        [0.00855788, 0.01575204, 0.00994606, 0.01717072,
-                         0.01005985, 0.01716362, 0.01005985, 0.01716299,
-                         0.01007098, 0.01736248, 0.01216452, 0.02026776,
-                         -0.04462374, -0.02479045, -0.04199789, -0.0229465,
-                         -0.04184033, -0.02295693, -0.04184013, -0.02295675,
-                         -0.04184486, -0.0228168, -0.04028876, -0.02036486,
-                         -0.10029444, -0.08170809, -0.09772846, -0.08021704,
-                         -0.09760006, -0.08022143, -0.09759984, -0.08022124,
-                         -0.09760261, -0.08008893, -0.09603914, -0.07758209,
-                         -0.15584152, -0.13723138, -0.15327266, -0.13572906,
-                         -0.15314427, -0.13573349, -0.15314405, -0.13573331,
-                         -0.15314679, -0.13560104, -0.15158523, -0.13310701,
-                         -0.21208605, -0.19283913, -0.20955631, -0.19134189,
-                         -0.20942821, -0.19134598, -0.20942799, -0.1913458,
-                         -0.20943005, -0.19120952, -0.20781177, -0.18869401,
-                         -0.25384082, -0.2463294, -0.25047649, -0.24464654,
-                         -0.25031159, -0.24464253, -0.25031112, -0.24464253,
-                         -0.25031463, -0.24454764, -0.24885323, -0.24286438])
+        assert num.allclose(domain.quantities['stage'].centroid_values,
+                            [ 0.00855788,  0.01575204,  0.00994606,  0.01717072,
+                              0.01005985,  0.01716362,  0.01005985,  0.01716299,
+                              0.01007098,  0.01736248,  0.01216452,  0.02026776,
+                             -0.04462374, -0.02479045, -0.04199789, -0.0229465,
+                             -0.04184033, -0.02295693, -0.04184013, -0.02295675,
+                             -0.04184486, -0.0228168,  -0.04028876, -0.02036486,
+                             -0.10029444, -0.08170809, -0.09772846, -0.08021704,
+                             -0.09760006, -0.08022143, -0.09759984, -0.08022124,
+                             -0.09760261, -0.08008893, -0.09603914, -0.07758209,
+                             -0.15584152, -0.13723138, -0.15327266, -0.13572906,
+                             -0.15314427, -0.13573349, -0.15314405, -0.13573331,
+                             -0.15314679, -0.13560104, -0.15158523, -0.13310701,
+                             -0.21208605, -0.19283913, -0.20955631, -0.19134189,
+                             -0.20942821, -0.19134598, -0.20942799, -0.1913458,
+                             -0.20943005, -0.19120952, -0.20781177, -0.18869401,
+                             -0.25384082, -0.2463294,  -0.25047649, -0.24464654,
+                             -0.25031159, -0.24464253, -0.25031112, -0.24464253,
+                             -0.25031463, -0.24454764, -0.24885323, -0.24286438])
 
 
         os.remove(domain.get_name() + '.sww')
@@ -5009,7 +4983,6 @@ class Test_Shallow_Water(unittest.TestCase):
     def test_bedslope_problem_second_order_two_yieldsteps(self):
 
         from mesh_factory import rectangular
-        from Numeric import array
 
         #Create basic mesh
         points, vertices, boundary = rectangular(6, 6)
@@ -5045,31 +5018,31 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.set_quantity('stage', expression='elevation+0.05')
         domain.check_integrity()
 
-        assert allclose(domain.quantities['stage'].centroid_values,
-                        [0.01296296, 0.03148148, 0.01296296,
-                        0.03148148, 0.01296296, 0.03148148,
-                        0.01296296, 0.03148148, 0.01296296,
-                        0.03148148, 0.01296296, 0.03148148,
-                        -0.04259259, -0.02407407, -0.04259259,
-                        -0.02407407, -0.04259259, -0.02407407,
-                        -0.04259259, -0.02407407, -0.04259259,
-                        -0.02407407, -0.04259259, -0.02407407,
-                        -0.09814815, -0.07962963, -0.09814815,
-                        -0.07962963, -0.09814815, -0.07962963,
-                        -0.09814815, -0.07962963, -0.09814815,
-                        -0.07962963, -0.09814815, -0.07962963,
-                        -0.1537037 , -0.13518519, -0.1537037,
-                        -0.13518519, -0.1537037, -0.13518519,
-                        -0.1537037 , -0.13518519, -0.1537037,
-                        -0.13518519, -0.1537037, -0.13518519,
-                        -0.20925926, -0.19074074, -0.20925926,
-                        -0.19074074, -0.20925926, -0.19074074,
-                        -0.20925926, -0.19074074, -0.20925926,
-                        -0.19074074, -0.20925926, -0.19074074,
-                        -0.26481481, -0.2462963, -0.26481481,
-                        -0.2462963, -0.26481481, -0.2462963,
-                        -0.26481481, -0.2462963, -0.26481481,
-                        -0.2462963, -0.26481481, -0.2462963])
+        assert num.allclose(domain.quantities['stage'].centroid_values,
+                            [ 0.01296296,  0.03148148,  0.01296296,
+                              0.03148148,  0.01296296,  0.03148148,
+                              0.01296296,  0.03148148,  0.01296296,
+                              0.03148148,  0.01296296,  0.03148148,
+                             -0.04259259, -0.02407407, -0.04259259,
+                             -0.02407407, -0.04259259, -0.02407407,
+                             -0.04259259, -0.02407407, -0.04259259,
+                             -0.02407407, -0.04259259, -0.02407407,
+                             -0.09814815, -0.07962963, -0.09814815,
+                             -0.07962963, -0.09814815, -0.07962963,
+                             -0.09814815, -0.07962963, -0.09814815,
+                             -0.07962963, -0.09814815, -0.07962963,
+                             -0.1537037 , -0.13518519, -0.1537037,
+                             -0.13518519, -0.1537037,  -0.13518519,
+                             -0.1537037 , -0.13518519, -0.1537037,
+                             -0.13518519, -0.1537037,  -0.13518519,
+                             -0.20925926, -0.19074074, -0.20925926,
+                             -0.19074074, -0.20925926, -0.19074074,
+                             -0.20925926, -0.19074074, -0.20925926,
+                             -0.19074074, -0.20925926, -0.19074074,
+                             -0.26481481, -0.2462963,  -0.26481481,
+                             -0.2462963,  -0.26481481, -0.2462963,
+                             -0.26481481, -0.2462963,  -0.26481481,
+                             -0.2462963,  -0.26481481, -0.2462963])
 
 
         #print domain.quantities['stage'].extrapolate_second_order()
@@ -5083,32 +5056,31 @@ class Test_Shallow_Water(unittest.TestCase):
 
 
 
-        assert allclose(domain.quantities['stage'].centroid_values,
-                 [0.00855788, 0.01575204, 0.00994606, 0.01717072, 0.01005985,
-                  0.01716362, 0.01005985, 0.01716299, 0.01007098, 0.01736248,
-                  0.01216452, 0.02026776, -0.04462374, -0.02479045, -0.04199789,
-                  -0.0229465, -0.04184033, -0.02295693, -0.04184013,
-                  -0.02295675, -0.04184486, -0.0228168, -0.04028876,
-                  -0.02036486, -0.10029444, -0.08170809, -0.09772846,
-                  -0.08021704, -0.09760006, -0.08022143, -0.09759984,
-                  -0.08022124, -0.09760261, -0.08008893, -0.09603914,
-                  -0.07758209, -0.15584152, -0.13723138, -0.15327266,
-                  -0.13572906, -0.15314427, -0.13573349, -0.15314405,
-                  -0.13573331, -0.15314679, -0.13560104, -0.15158523,
-                  -0.13310701, -0.21208605, -0.19283913, -0.20955631,
-                  -0.19134189, -0.20942821, -0.19134598, -0.20942799,
-                  -0.1913458, -0.20943005, -0.19120952, -0.20781177,
-                  -0.18869401, -0.25384082, -0.2463294, -0.25047649,
-                  -0.24464654, -0.25031159, -0.24464253, -0.25031112,
-                  -0.24464253, -0.25031463, -0.24454764, -0.24885323,
-                  -0.24286438])
+        assert num.allclose(domain.quantities['stage'].centroid_values,
+                            [ 0.00855788,  0.01575204,  0.00994606,  0.01717072,  0.01005985,
+                              0.01716362,  0.01005985,  0.01716299,  0.01007098,  0.01736248,
+                              0.01216452,  0.02026776, -0.04462374, -0.02479045, -0.04199789,
+                             -0.0229465,  -0.04184033, -0.02295693, -0.04184013,
+                             -0.02295675, -0.04184486, -0.0228168,  -0.04028876,
+                             -0.02036486, -0.10029444, -0.08170809, -0.09772846,
+                             -0.08021704, -0.09760006, -0.08022143, -0.09759984,
+                             -0.08022124, -0.09760261, -0.08008893, -0.09603914,
+                             -0.07758209, -0.15584152, -0.13723138, -0.15327266,
+                             -0.13572906, -0.15314427, -0.13573349, -0.15314405,
+                             -0.13573331, -0.15314679, -0.13560104, -0.15158523,
+                             -0.13310701, -0.21208605, -0.19283913, -0.20955631,
+                             -0.19134189, -0.20942821, -0.19134598, -0.20942799,
+                             -0.1913458,  -0.20943005, -0.19120952, -0.20781177,
+                             -0.18869401, -0.25384082, -0.2463294,  -0.25047649,
+                             -0.24464654, -0.25031159, -0.24464253, -0.25031112,
+                             -0.24464253, -0.25031463, -0.24454764, -0.24885323,
+                             -0.24286438])
 
         os.remove(domain.get_name() + '.sww')
 
     def test_bedslope_problem_second_order_more_steps(self):
 
         from mesh_factory import rectangular
-        from Numeric import array
 
         #Create basic mesh
         points, vertices, boundary = rectangular(6, 6)
@@ -5146,31 +5118,31 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.set_quantity('stage', expression = 'elevation + 0.05')
         domain.check_integrity()
 
-        assert allclose(domain.quantities['stage'].centroid_values,
-                        [0.01296296, 0.03148148, 0.01296296,
-                        0.03148148, 0.01296296, 0.03148148,
-                        0.01296296, 0.03148148, 0.01296296,
-                        0.03148148, 0.01296296, 0.03148148,
-                        -0.04259259, -0.02407407, -0.04259259,
-                        -0.02407407, -0.04259259, -0.02407407,
-                        -0.04259259, -0.02407407, -0.04259259,
-                        -0.02407407, -0.04259259, -0.02407407,
-                        -0.09814815, -0.07962963, -0.09814815,
-                        -0.07962963, -0.09814815, -0.07962963,
-                        -0.09814815, -0.07962963, -0.09814815,
-                        -0.07962963, -0.09814815, -0.07962963,
-                        -0.1537037 , -0.13518519, -0.1537037,
-                        -0.13518519, -0.1537037, -0.13518519,
-                        -0.1537037 , -0.13518519, -0.1537037,
-                        -0.13518519, -0.1537037, -0.13518519,
-                        -0.20925926, -0.19074074, -0.20925926,
-                        -0.19074074, -0.20925926, -0.19074074,
-                        -0.20925926, -0.19074074, -0.20925926,
-                        -0.19074074, -0.20925926, -0.19074074,
-                        -0.26481481, -0.2462963, -0.26481481,
-                        -0.2462963, -0.26481481, -0.2462963,
-                        -0.26481481, -0.2462963, -0.26481481,
-                        -0.2462963, -0.26481481, -0.2462963])
+        assert num.allclose(domain.quantities['stage'].centroid_values,
+                            [ 0.01296296,  0.03148148,  0.01296296,
+                              0.03148148,  0.01296296,  0.03148148,
+                              0.01296296,  0.03148148,  0.01296296,
+                              0.03148148,  0.01296296,  0.03148148,
+                             -0.04259259, -0.02407407, -0.04259259,
+                             -0.02407407, -0.04259259, -0.02407407,
+                             -0.04259259, -0.02407407, -0.04259259,
+                             -0.02407407, -0.04259259, -0.02407407,
+                             -0.09814815, -0.07962963, -0.09814815,
+                             -0.07962963, -0.09814815, -0.07962963,
+                             -0.09814815, -0.07962963, -0.09814815,
+                             -0.07962963, -0.09814815, -0.07962963,
+                             -0.1537037 , -0.13518519, -0.1537037,
+                             -0.13518519, -0.1537037,  -0.13518519,
+                             -0.1537037 , -0.13518519, -0.1537037,
+                             -0.13518519, -0.1537037,  -0.13518519,
+                             -0.20925926, -0.19074074, -0.20925926,
+                             -0.19074074, -0.20925926, -0.19074074,
+                             -0.20925926, -0.19074074, -0.20925926,
+                             -0.19074074, -0.20925926, -0.19074074,
+                             -0.26481481, -0.2462963,  -0.26481481,
+                             -0.2462963,  -0.26481481, -0.2462963,
+                             -0.26481481, -0.2462963,  -0.26481481,
+                             -0.2462963,  -0.26481481, -0.2462963])
 
 
         #print domain.quantities['stage'].extrapolate_second_order()
@@ -5186,7 +5158,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
 
 
-        assert allclose(domain.quantities['stage'].centroid_values,
+        assert num.allclose(domain.quantities['stage'].centroid_values,
      [-0.02907028, -0.01475478, -0.02973417, -0.01447186, -0.02932665, -0.01428285,
       -0.02901975, -0.0141361,  -0.02898816, -0.01418135, -0.02961409, -0.01403487,
       -0.07597998, -0.06252591, -0.07664854, -0.06312532, -0.07638287, -0.06265139,
@@ -5200,7 +5172,7 @@ class Test_Shallow_Water(unittest.TestCase):
       -0.13986873, -0.14170053, -0.14132188, -0.14560674, -0.14095617, -0.14373292,
       -0.13785933, -0.14033364, -0.13592955, -0.13936356, -0.13596008, -0.14216296])
 
-        assert allclose(domain.quantities['xmomentum'].centroid_values,
+        assert num.allclose(domain.quantities['xmomentum'].centroid_values,
      [ 0.00831121,  0.00317948,  0.00731797,  0.00334939,  0.00764717,  0.00348053,
        0.00788729,  0.00356522,  0.00780649,  0.00341919,  0.00693525,  0.00310375,
        0.02166196,  0.01421475,  0.02017737,  0.01316839,  0.02037015,  0.01368659,
@@ -5215,7 +5187,7 @@ class Test_Shallow_Water(unittest.TestCase):
        0.02160608,  0.04663725,  0.02174734,  0.04795559,  0.02281427,  0.05667111])
 
 
-        assert allclose(domain.quantities['ymomentum'].centroid_values,
+        assert num.allclose(domain.quantities['ymomentum'].centroid_values,
      [ 1.45876601e-004, -3.24627393e-004, -1.57572719e-004, -2.92790187e-004,
       -9.90988382e-005, -3.06677335e-004, -1.62493106e-004, -3.71310004e-004,
       -1.99445058e-004, -3.28493467e-004,  6.68217349e-005, -8.42042805e-006,
@@ -5247,7 +5219,6 @@ class Test_Shallow_Water(unittest.TestCase):
         
         """
         from mesh_factory import rectangular
-        from Numeric import array
 
         #Create basic mesh
         points, vertices, boundary = rectangular(6, 6)
@@ -5279,31 +5250,31 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.set_quantity('stage', expression = 'elevation + 0.05')
         domain.check_integrity()
 
-        assert allclose(domain.quantities['stage'].centroid_values,
-                        [0.01296296, 0.03148148, 0.01296296,
-                        0.03148148, 0.01296296, 0.03148148,
-                        0.01296296, 0.03148148, 0.01296296,
-                        0.03148148, 0.01296296, 0.03148148,
-                        -0.04259259, -0.02407407, -0.04259259,
-                        -0.02407407, -0.04259259, -0.02407407,
-                        -0.04259259, -0.02407407, -0.04259259,
-                        -0.02407407, -0.04259259, -0.02407407,
-                        -0.09814815, -0.07962963, -0.09814815,
-                        -0.07962963, -0.09814815, -0.07962963,
-                        -0.09814815, -0.07962963, -0.09814815,
-                        -0.07962963, -0.09814815, -0.07962963,
-                        -0.1537037 , -0.13518519, -0.1537037,
-                        -0.13518519, -0.1537037, -0.13518519,
-                        -0.1537037 , -0.13518519, -0.1537037,
-                        -0.13518519, -0.1537037, -0.13518519,
-                        -0.20925926, -0.19074074, -0.20925926,
-                        -0.19074074, -0.20925926, -0.19074074,
-                        -0.20925926, -0.19074074, -0.20925926,
-                        -0.19074074, -0.20925926, -0.19074074,
-                        -0.26481481, -0.2462963, -0.26481481,
-                        -0.2462963, -0.26481481, -0.2462963,
-                        -0.26481481, -0.2462963, -0.26481481,
-                        -0.2462963, -0.26481481, -0.2462963])
+        assert num.allclose(domain.quantities['stage'].centroid_values,
+                            [ 0.01296296,  0.03148148,  0.01296296,
+                              0.03148148,  0.01296296,  0.03148148,
+                              0.01296296,  0.03148148,  0.01296296,
+                              0.03148148,  0.01296296,  0.03148148,
+                             -0.04259259, -0.02407407, -0.04259259,
+                             -0.02407407, -0.04259259, -0.02407407,
+                             -0.04259259, -0.02407407, -0.04259259,
+                             -0.02407407, -0.04259259, -0.02407407,
+                             -0.09814815, -0.07962963, -0.09814815,
+                             -0.07962963, -0.09814815, -0.07962963,
+                             -0.09814815, -0.07962963, -0.09814815,
+                             -0.07962963, -0.09814815, -0.07962963,
+                             -0.1537037 , -0.13518519, -0.1537037,
+                             -0.13518519, -0.1537037,  -0.13518519,
+                             -0.1537037 , -0.13518519, -0.1537037,
+                             -0.13518519, -0.1537037,  -0.13518519,
+                             -0.20925926, -0.19074074, -0.20925926,
+                             -0.19074074, -0.20925926, -0.19074074,
+                             -0.20925926, -0.19074074, -0.20925926,
+                             -0.19074074, -0.20925926, -0.19074074,
+                             -0.26481481, -0.2462963,  -0.26481481,
+                             -0.2462963,  -0.26481481, -0.2462963,
+                             -0.26481481, -0.2462963,  -0.26481481,
+                             -0.2462963,  -0.26481481, -0.2462963])
 
 
         #print domain.quantities['stage'].extrapolate_second_order()
@@ -5317,7 +5288,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         #print domain.quantities['stage'].centroid_values
             
-        assert allclose(domain.quantities['stage'].centroid_values,
+        assert num.allclose(domain.quantities['stage'].centroid_values,
          [-0.03348416, -0.01749303, -0.03299091, -0.01739241, -0.03246447, -0.01732016,
           -0.03205390, -0.01717833, -0.03146383, -0.01699831, -0.03076577, -0.01671795,
           -0.07952656, -0.06684763, -0.07721455, -0.06668388, -0.07632976, -0.06600113,
@@ -5332,7 +5303,7 @@ class Test_Shallow_Water(unittest.TestCase):
           -0.13800356, -0.14027920, -0.13613538, -0.13936795, -0.13621902, -0.14204982])
 
                       
-        assert allclose(domain.quantities['xmomentum'].centroid_values,
+        assert num.allclose(domain.quantities['xmomentum'].centroid_values,
       [0.00600290,  0.00175780,  0.00591905,  0.00190903,  0.00644462,  0.00203095,
        0.00684561,  0.00225089,  0.00708208,  0.00236235,  0.00649095,  0.00222343,
        0.02068693,  0.01164034,  0.01983343,  0.01159526,  0.02044611,  0.01233252,
@@ -5347,7 +5318,7 @@ class Test_Shallow_Water(unittest.TestCase):
        0.02117439,  0.04573358,  0.02129473,  0.04694267,  0.02220398,  0.05533458])
 
        
-        assert allclose(domain.quantities['ymomentum'].centroid_values,
+        assert num.allclose(domain.quantities['ymomentum'].centroid_values,
      [-7.65882069e-005, -1.46087080e-004, -1.09630102e-004, -7.80950424e-005,
       -1.15922807e-005, -9.09134899e-005, -1.35994542e-004, -1.95673476e-004,
       -4.25779199e-004, -2.95890312e-004, -4.00060341e-004, -9.42021290e-005,
@@ -5373,7 +5344,6 @@ class Test_Shallow_Water(unittest.TestCase):
     def test_temp_play(self):
 
         from mesh_factory import rectangular
-        from Numeric import array
 
         #Create basic mesh
         points, vertices, boundary = rectangular(5, 5)
@@ -5414,14 +5384,14 @@ class Test_Shallow_Water(unittest.TestCase):
         for t in domain.evolve(yieldstep = 0.05, finaltime = 0.1):
             pass
 
-        assert allclose(domain.quantities['stage'].centroid_values[:4],
-                        [0.00206836, 0.01296714, 0.00363415, 0.01438924])
+        assert num.allclose(domain.quantities['stage'].centroid_values[:4],
+                            [0.00206836, 0.01296714, 0.00363415, 0.01438924])
         #print domain.quantities['xmomentum'].centroid_values[:4]
-        assert allclose(domain.quantities['xmomentum'].centroid_values[:4],
-                        [0.01360154, 0.00671133, 0.01264578, 0.00648503])
-        assert allclose(domain.quantities['ymomentum'].centroid_values[:4],
-                        [-1.19201077e-003, -7.23647546e-004,
-                        -6.39083123e-005, 6.29815168e-005])
+        assert num.allclose(domain.quantities['xmomentum'].centroid_values[:4],
+                            [0.01360154, 0.00671133, 0.01264578, 0.00648503])
+        assert num.allclose(domain.quantities['ymomentum'].centroid_values[:4],
+                            [-1.19201077e-003, -7.23647546e-004,
+                            -6.39083123e-005, 6.29815168e-005])
 
         os.remove(domain.get_name() + '.sww')
 
@@ -5429,7 +5399,6 @@ class Test_Shallow_Water(unittest.TestCase):
         #No friction is tested here
 
         from mesh_factory import rectangular
-        from Numeric import array
 
         N = 12
         points, vertices, boundary = rectangular(N, N/2, len1=1.2,len2=0.6,
@@ -5611,9 +5580,9 @@ class Test_Shallow_Water(unittest.TestCase):
         #print take(cv1, (0,8,16))  #Diag
         #print take(cv2, (0,3,8))
 
-        assert allclose( take(cv1, (0,8,16)), take(cv2, (0,3,8))) #Diag
-        assert allclose( take(cv1, (0,6,12)), take(cv2, (0,1,4))) #Bottom
-        assert allclose( take(cv1, (12,14,16)), take(cv2, (4,6,8))) #RHS
+        assert num.allclose( num.take(cv1, (0,8,16)), num.take(cv2, (0,3,8))) #Diag
+        assert num.allclose( num.take(cv1, (0,6,12)), num.take(cv2, (0,1,4))) #Bottom
+        assert num.allclose( num.take(cv1, (12,14,16)), num.take(cv2, (4,6,8))) #RHS
 
         #Cleanup
         os.remove(domain1.get_name() + '.' + domain1.format)
@@ -5714,14 +5683,13 @@ class Test_Shallow_Water(unittest.TestCase):
         s2 = fid.variables['stage'][2,:]
         fid.close()
 
-        from Numeric import take, reshape, concatenate
         shp = (len(x), 1)
-        points = concatenate( (reshape(x, shp), reshape(y, shp)), axis=1)
+        points = num.concatenate( (num.reshape(x, shp), num.reshape(y, shp)), axis=1)
         #The diagonal points of domain 1 are 0, 5, 10, 15
 
         #print points[0], points[5], points[10], points[15]
-        assert allclose( take(points, [0,5,10,15]),
-                         [[0,0], [1.0/3, 1.0/3], [2.0/3, 2.0/3], [1,1]])
+        assert num.allclose( num.take(points, [0,5,10,15]),
+                             [[0,0], [1.0/3, 1.0/3], [2.0/3, 2.0/3], [1,1]])
 
 
         # Boundary conditions
@@ -5743,37 +5711,37 @@ class Test_Shallow_Water(unittest.TestCase):
         boundary_midpoints.sort()
         R = Bf.F.interpolation_points.tolist()
         R.sort()
-        assert allclose(boundary_midpoints, R)
+        assert num.allclose(boundary_midpoints, R)
 
         #Check spatially interpolated output at time == 1
         domain2.time = 1
 
         #First diagonal midpoint
         R0 = Bf.evaluate(0,0)
-        assert allclose(R0[0], (s1[0] + s1[5])/2)
+        assert num.allclose(R0[0], (s1[0] + s1[5])/2)
 
         #Second diagonal midpoint
         R0 = Bf.evaluate(3,0)
-        assert allclose(R0[0], (s1[5] + s1[10])/2)
+        assert num.allclose(R0[0], (s1[5] + s1[10])/2)
 
         #First diagonal midpoint
         R0 = Bf.evaluate(8,0)
-        assert allclose(R0[0], (s1[10] + s1[15])/2)
+        assert num.allclose(R0[0], (s1[10] + s1[15])/2)
 
         #Check spatially interpolated output at time == 2
         domain2.time = 2
 
         #First diagonal midpoint
         R0 = Bf.evaluate(0,0)
-        assert allclose(R0[0], (s2[0] + s2[5])/2)
+        assert num.allclose(R0[0], (s2[0] + s2[5])/2)
 
         #Second diagonal midpoint
         R0 = Bf.evaluate(3,0)
-        assert allclose(R0[0], (s2[5] + s2[10])/2)
+        assert num.allclose(R0[0], (s2[5] + s2[10])/2)
 
         #First diagonal midpoint
         R0 = Bf.evaluate(8,0)
-        assert allclose(R0[0], (s2[10] + s2[15])/2)
+        assert num.allclose(R0[0], (s2[10] + s2[15])/2)
 
 
         #Now check temporal interpolation
@@ -5782,15 +5750,15 @@ class Test_Shallow_Water(unittest.TestCase):
 
         #First diagonal midpoint
         R0 = Bf.evaluate(0,0)
-        assert allclose(R0[0], ((s1[0] + s1[5])/2 + 2.0*(s2[0] + s2[5])/2)/3)
+        assert num.allclose(R0[0], ((s1[0] + s1[5])/2 + 2.0*(s2[0] + s2[5])/2)/3)
 
         #Second diagonal midpoint
         R0 = Bf.evaluate(3,0)
-        assert allclose(R0[0], ((s1[5] + s1[10])/2 + 2.0*(s2[5] + s2[10])/2)/3)
+        assert num.allclose(R0[0], ((s1[5] + s1[10])/2 + 2.0*(s2[5] + s2[10])/2)/3)
 
         #First diagonal midpoint
         R0 = Bf.evaluate(8,0)
-        assert allclose(R0[0], ((s1[10] + s1[15])/2 + 2.0*(s2[10] + s2[15])/2)/3)
+        assert num.allclose(R0[0], ((s1[10] + s1[15])/2 + 2.0*(s2[10] + s2[15])/2)/3)
 
 
 
@@ -5896,14 +5864,13 @@ class Test_Shallow_Water(unittest.TestCase):
         s2 = fid.variables['stage'][2,:]
         fid.close()
 
-        from Numeric import take, reshape, concatenate
         shp = (len(x), 1)
-        points = concatenate( (reshape(x, shp), reshape(y, shp)), axis=1)
+        points = num.concatenate( (num.reshape(x, shp), num.reshape(y, shp)), axis=1)
         #The diagonal points of domain 1 are 0, 5, 10, 15
 
         #print points[0], points[5], points[10], points[15]
-        assert allclose( take(points, [0,5,10,15]),
-                         [[0,0], [1.0/3, 1.0/3], [2.0/3, 2.0/3], [1,1]])
+        assert num.allclose( num.take(points, [0,5,10,15]),
+                             [[0,0], [1.0/3, 1.0/3], [2.0/3, 2.0/3], [1,1]])
 
 
         # Boundary conditions
@@ -5926,37 +5893,37 @@ class Test_Shallow_Water(unittest.TestCase):
         boundary_midpoints.sort()
         R = Bf.F.interpolation_points.tolist()
         R.sort()
-        assert allclose(boundary_midpoints, R)
+        assert num.allclose(boundary_midpoints, R)
 
         #Check spatially interpolated output at time == 1
         domain2.time = 1
 
         #First diagonal midpoint
         R0 = Bf.evaluate(0,0)
-        assert allclose(R0[0], (s1[0] + s1[5])/2 + mean_stage)
+        assert num.allclose(R0[0], (s1[0] + s1[5])/2 + mean_stage)
 
         #Second diagonal midpoint
         R0 = Bf.evaluate(3,0)
-        assert allclose(R0[0], (s1[5] + s1[10])/2 + mean_stage)
+        assert num.allclose(R0[0], (s1[5] + s1[10])/2 + mean_stage)
 
         #First diagonal midpoint
         R0 = Bf.evaluate(8,0)
-        assert allclose(R0[0], (s1[10] + s1[15])/2 + mean_stage)
+        assert num.allclose(R0[0], (s1[10] + s1[15])/2 + mean_stage)
 
         #Check spatially interpolated output at time == 2
         domain2.time = 2
 
         #First diagonal midpoint
         R0 = Bf.evaluate(0,0)
-        assert allclose(R0[0], (s2[0] + s2[5])/2 + mean_stage)
+        assert num.allclose(R0[0], (s2[0] + s2[5])/2 + mean_stage)
 
         #Second diagonal midpoint
         R0 = Bf.evaluate(3,0)
-        assert allclose(R0[0], (s2[5] + s2[10])/2 + mean_stage)
+        assert num.allclose(R0[0], (s2[5] + s2[10])/2 + mean_stage)
 
         #First diagonal midpoint
         R0 = Bf.evaluate(8,0)
-        assert allclose(R0[0], (s2[10] + s2[15])/2 + mean_stage)
+        assert num.allclose(R0[0], (s2[10] + s2[15])/2 + mean_stage)
 
 
         #Now check temporal interpolation
@@ -5965,15 +5932,15 @@ class Test_Shallow_Water(unittest.TestCase):
 
         #First diagonal midpoint
         R0 = Bf.evaluate(0,0)
-        assert allclose(R0[0], ((s1[0] + s1[5])/2 + 2.0*(s2[0] + s2[5])/2)/3 + mean_stage)
+        assert num.allclose(R0[0], ((s1[0] + s1[5])/2 + 2.0*(s2[0] + s2[5])/2)/3 + mean_stage)
 
         #Second diagonal midpoint
         R0 = Bf.evaluate(3,0)
-        assert allclose(R0[0], ((s1[5] + s1[10])/2 + 2.0*(s2[5] + s2[10])/2)/3 + mean_stage)
+        assert num.allclose(R0[0], ((s1[5] + s1[10])/2 + 2.0*(s2[5] + s2[10])/2)/3 + mean_stage)
 
         #First diagonal midpoint
         R0 = Bf.evaluate(8,0)
-        assert allclose(R0[0], ((s1[10] + s1[15])/2 + 2.0*(s2[10] + s2[15])/2)/3 + mean_stage)
+        assert num.allclose(R0[0], ((s1[10] + s1[15])/2 + 2.0*(s2[10] + s2[15])/2)/3 + mean_stage)
 
 
         #Cleanup
@@ -6070,14 +6037,13 @@ class Test_Shallow_Water(unittest.TestCase):
         s2 = fid.variables['stage'][2,:]
         fid.close()
 
-        from Numeric import take, reshape, concatenate
         shp = (len(x), 1)
-        points = concatenate( (reshape(x, shp), reshape(y, shp)), axis=1)
+        points = num.concatenate( (num.reshape(x, shp), num.reshape(y, shp)), axis=1)
         #The diagonal points of domain 1 are 0, 5, 10, 15
 
         #print points[0], points[5], points[10], points[15]
-        assert allclose( take(points, [0,5,10,15]),
-                         [[0,0], [1.0/3, 1.0/3], [2.0/3, 2.0/3], [1,1]])
+        assert num.allclose( num.take(points, [0,5,10,15]),
+                             [[0,0], [1.0/3, 1.0/3], [2.0/3, 2.0/3], [1,1]])
 
 
         # Boundary conditions
@@ -6174,8 +6140,8 @@ class Test_Shallow_Water(unittest.TestCase):
         assert stage['min'] <= stage['max']
 
         #print stage['min'], stage['max'] 
-        assert allclose(stage['min'], initial_runup_height,
-                        rtol = 1.0/N) # First order accuracy
+        assert num.allclose(stage['min'], initial_runup_height,
+                            rtol = 1.0/N) # First order accuracy
 
 
         depth = domain.quantities_to_be_monitored['stage-elevation']
@@ -6206,8 +6172,8 @@ class Test_Shallow_Water(unittest.TestCase):
         stage = domain.quantities_to_be_monitored['stage']
         assert stage['min'] <= stage['max']
 
-        assert allclose(stage['min'], initial_runup_height,
-                        rtol = 1.0/N) # First order accuracy        
+        assert num.allclose(stage['min'], initial_runup_height,
+                            rtol = 1.0/N) # First order accuracy        
 
         depth = domain.quantities_to_be_monitored['stage-elevation']
         assert depth['min'] <= depth['max'] 
@@ -6226,7 +6192,6 @@ class Test_Shallow_Water(unittest.TestCase):
         """
 
         import time, os
-        from Numeric import array, zeros, allclose, Float, concatenate
         from Scientific.IO.NetCDF import NetCDFFile
         from data_manager import get_dataobject, extent_sww
         from mesh_factory import rectangular
@@ -6269,7 +6234,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
 
         bed = domain.quantities['elevation'].vertex_values
-        stage = zeros(bed.shape, Float)
+        stage = num.zeros(bed.shape, num.Float)
 
         h = 0.3
         for i in range(stage.shape[0]):
@@ -6350,9 +6315,9 @@ friction  \n \
          file.close()
 
          tags = {}
-         b1 =  Dirichlet_boundary(conserved_quantities = array([0.0]))
-         b2 =  Dirichlet_boundary(conserved_quantities = array([1.0]))
-         b3 =  Dirichlet_boundary(conserved_quantities = array([2.0]))
+         b1 =  Dirichlet_boundary(conserved_quantities = num.array([0.0]))
+         b2 =  Dirichlet_boundary(conserved_quantities = num.array([1.0]))
+         b3 =  Dirichlet_boundary(conserved_quantities = num.array([2.0]))
          tags["1"] = b1
          tags["2"] = b2
          tags["3"] = b3
@@ -6368,24 +6333,24 @@ friction  \n \
          #print domain.quantities['elevation'].vertex_values
          answer = [[0., 8., 0.],
                    [0., 10., 8.]]
-         assert allclose(domain.quantities['elevation'].vertex_values,
-                        answer)
+         assert num.allclose(domain.quantities['elevation'].vertex_values,
+                             answer)
 
          #print domain.quantities['stage'].vertex_values
          answer = [[0., 12., 10.],
                    [0., 10., 12.]]
-         assert allclose(domain.quantities['stage'].vertex_values,
-                        answer)
+         assert num.allclose(domain.quantities['stage'].vertex_values,
+                             answer)
 
          #print domain.quantities['friction'].vertex_values
          answer = [[0.01, 0.04, 0.03],
                    [0.01, 0.02, 0.04]]
-         assert allclose(domain.quantities['friction'].vertex_values,
-                        answer)
+         assert num.allclose(domain.quantities['friction'].vertex_values,
+                             answer)
 
          #print domain.quantities['friction'].vertex_values
-         assert allclose(domain.tagged_elements['dsg'][0],0)
-         assert allclose(domain.tagged_elements['ole nielsen'][0],1)
+         assert num.allclose(domain.tagged_elements['dsg'][0],0)
+         assert num.allclose(domain.tagged_elements['ole nielsen'][0],1)
 
          self.failUnless( domain.boundary[(1, 0)]  == '1',
                           "test_tags_to_boundaries  failed. Single boundary wasn't added.")
@@ -6414,24 +6379,24 @@ friction  \n \
          #print domain.quantities['elevation'].vertex_values
          answer = [[0., 8., 0.],
                    [0., 10., 8.]]
-         assert allclose(domain.quantities['elevation'].vertex_values,
-                        answer)
+         assert num.allclose(domain.quantities['elevation'].vertex_values,
+                             answer)
 
          #print domain.quantities['stage'].vertex_values
          answer = [[0., 12., 10.],
                    [0., 10., 12.]]
-         assert allclose(domain.quantities['stage'].vertex_values,
-                        answer)
+         assert num.allclose(domain.quantities['stage'].vertex_values,
+                             answer)
 
          #print domain.quantities['friction'].vertex_values
          answer = [[0.01, 0.04, 0.03],
                    [0.01, 0.02, 0.04]]
-         assert allclose(domain.quantities['friction'].vertex_values,
-                        answer)
+         assert num.allclose(domain.quantities['friction'].vertex_values,
+                             answer)
 
          #print domain.quantities['friction'].vertex_values
-         assert allclose(domain.tagged_elements['dsg'][0],0)
-         assert allclose(domain.tagged_elements['ole nielsen'][0],1)
+         assert num.allclose(domain.tagged_elements['dsg'][0],0)
+         assert num.allclose(domain.tagged_elements['ole nielsen'][0],1)
 
          self.failUnless( domain.boundary[(1, 0)]  == '1',
                           "test_tags_to_boundaries  failed. Single boundary wasn't added.")
@@ -6545,12 +6510,12 @@ friction  \n \
                             attribute_name = att, alpha = 0)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
 
-        assert allclose(quantity.vertex_values.flat, answer)
+        assert num.allclose(quantity.vertex_values.flat, answer)
 
 
         #Check that values can be set from file using default attribute
         quantity.set_values(filename = ptsfile, alpha = 0)
-        assert allclose(quantity.vertex_values.flat, answer)
+        assert num.allclose(quantity.vertex_values.flat, answer)
 
         #Cleanup
         import os

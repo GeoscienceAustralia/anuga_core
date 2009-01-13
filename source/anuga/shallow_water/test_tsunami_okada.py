@@ -1,5 +1,5 @@
 import unittest
-from Numeric import allclose
+import Numeric as num
 from tsunami_okada import earthquake_tsunami,Okada_func
 
 class Test_eq(unittest.TestCase):
@@ -12,7 +12,6 @@ class Test_eq(unittest.TestCase):
 
     def test_Okada_func(self):
         from os import sep, getenv
-        from Numeric import zeros, Float,allclose
         import sys
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
         from anuga.shallow_water import Domain
@@ -145,11 +144,10 @@ class Test_eq(unittest.TestCase):
                    # Displacement in fortran code is looking downward
         #print tmp
         #print 'hello',stage
-        assert allclose(stage,tmp,atol=1.e-3)
+        assert num.allclose(stage,tmp,atol=1.e-3)
         
     def test_earthquake_tsunami(self):
         from os import sep, getenv
-        from Numeric import zeros, Float,allclose
         import sys
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
         from anuga.shallow_water import Domain
@@ -289,7 +287,7 @@ class Test_eq(unittest.TestCase):
         #print 'c est fini'
         #print tmp
         #print 'hello',stage   
-        assert allclose(stage,tmp,atol=1.e-3)
+        assert num.allclose(stage,tmp,atol=1.e-3)
 
 #-------------------------------------------------------------
 if __name__ == "__main__":

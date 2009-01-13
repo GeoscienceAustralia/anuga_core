@@ -65,7 +65,7 @@ for t in domain.evolve(yieldstep = 1, finaltime = 1):
     domain.write_boundary_statistics(tags = 'e2')
     
 from anuga.abstract_2d_finite_volumes.util import file_function
-from Numeric import array, Float
+import Numeric as num
 from pylab import plot, ion, hold,savefig
 
 '''
@@ -74,7 +74,7 @@ max = 100
 skip = 1000
 
 y = 10000
-points=array([[0]*2]*max)
+points=num.array([[0]*2]*max)
 print points
 half_max_skip=(max*skip)/2
 for i in range(max):
@@ -86,7 +86,7 @@ interval=500
 profile_lenght= 20000
 number_points = profile_lenght/interval
 y = 10000
-points=array([[0]*2]*number_points)
+points=num.array([[0]*2]*number_points)
 print points
 half_profile=profile_lenght/2
 for i in range(number_points):
