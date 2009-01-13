@@ -31,6 +31,10 @@ Geoscience Australia, 2004
 
 
 from anuga.abstract_2d_finite_volumes.domain import *
+
+import Numeric as num
+
+
 Generic_domain = Domain # Rename
 
 class Domain(Generic_domain):
@@ -65,11 +69,10 @@ class Domain(Generic_domain):
                                 processor=processor,
                                 numproc=numproc)
 
-        import Numeric
         if velocity is None:
-            self.velocity = Numeric.array([1,0],'d')
+            self.velocity = num.array([1,0],'d')
         else:
-            self.velocity = Numeric.array(velocity,'d')
+            self.velocity = num.array(velocity,'d')
 
         #Only first is implemented for advection
         self.set_default_order(1)
@@ -154,7 +157,6 @@ class Domain(Generic_domain):
         """
 
         import sys
-        from Numeric import zeros, Float
         from anuga.config import max_timestep
 
 
@@ -227,7 +229,6 @@ class Domain(Generic_domain):
         """
 
         import sys
-        from Numeric import zeros, Float
         from anuga.config import max_timestep
 
         N = len(self)
@@ -250,7 +251,7 @@ class Domain(Generic_domain):
 
         stage_bdry = Stage.boundary_values
 
-        flux = zeros(1, Float) #Work array for summing up fluxes
+        flux = num.zeros(1, num.Float) #Work array for summing up fluxes
 
         #Loop
         for k in range(N):

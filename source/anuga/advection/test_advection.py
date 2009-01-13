@@ -5,8 +5,10 @@ import unittest
 from math import sqrt, pi
 
 from anuga.config import g, epsilon
-from Numeric import allclose, array, zeros, ones, Float
 from anuga.advection.advection import Domain, Transmissive_boundary, Dirichlet_boundary
+
+import Numeric as num
+
 
 class Test_Advection(unittest.TestCase):
     def setUp(self):
@@ -47,7 +49,7 @@ class Test_Advection(unittest.TestCase):
 
 
         #Populate boundary array with dirichlet conditions.
- 	domain.neighbours = array([[-1,-2,-3]])
+ 	domain.neighbours = num.array([[-1,-2,-3]])
         domain.quantities['stage'].boundary_values[:] = 1.0
 
 	domain.order = 1
@@ -101,7 +103,7 @@ class Test_Advection(unittest.TestCase):
 
 
         #Populate boundary array with dirichlet conditions.
-        domain.neighbours = array([[-1,-2,-3]])
+        domain.neighbours = num.array([[-1,-2,-3]])
         domain.quantities['stage'].boundary_values[0] = 1.0
 
         domain.distribute_to_vertices_and_edges() #Use first order default
@@ -110,7 +112,7 @@ class Test_Advection(unittest.TestCase):
 
         domain.compute_fluxes()
         U = domain.quantities['stage'].explicit_update
-        assert allclose(U, 0)
+        assert num.allclose(U, 0)
 
 
 
@@ -132,7 +134,7 @@ class Test_Advection(unittest.TestCase):
 
 
         #Populate boundary array with dirichlet conditions.
-        domain.neighbours = array([[1,-1,-2], [0,-3,-4]])
+        domain.neighbours = num.array([[1,-1,-2], [0,-3,-4]])
         domain.set_quantity('stage', [1.0, 0.0], location='centroids')
         domain.distribute_to_vertices_and_edges()
 
@@ -156,17 +158,17 @@ class Test_Advection(unittest.TestCase):
 
         #Boundaries
         T = Transmissive_boundary(domain)
-        D = Dirichlet_boundary(array([3.1415]))
+        D = Dirichlet_boundary(num.array([3.1415]))
 
         domain.set_boundary( {'left': D, 'right': T, 'bottom': T, 'top': T} )
         domain.check_integrity()
 
         #Check that the boundary value gets propagated to all elements
         for t in domain.evolve(yieldstep = 0.05, finaltime = 10):
-            if allclose(domain.quantities['stage'].centroid_values, 3.1415):
+            if num.allclose(domain.quantities['stage'].centroid_values, 3.1415):
                 break
 
-        assert allclose(domain.quantities['stage'].centroid_values, 3.1415)
+        assert num.allclose(domain.quantities['stage'].centroid_values, 3.1415)
 
 
 #-------------------------------------------------------------
