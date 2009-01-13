@@ -3,10 +3,11 @@
 
 import unittest
 import os
-from Numeric import zeros, array, allclose, concatenate,sort
 from math import sqrt, pi
 import tempfile
 from sets import ImmutableSet
+
+import Numeric as num
 
 from anuga.geospatial_data.geospatial_data import *
 from anuga.coordinate_transforms.geo_reference import Geo_reference, TitleError
@@ -30,7 +31,7 @@ class Test_Geospatial_data(unittest.TestCase):
         points = [[1.0, 2.1], [3.0, 5.3]]
         G = Geospatial_data(points)
 
-        assert allclose(G.data_points, [[1.0, 2.1], [3.0, 5.3]])
+        assert num.allclose(G.data_points, [[1.0, 2.1], [3.0, 5.3]])
 
         # Check __repr__
         # FIXME (Ole): Is this really machine independent?
@@ -41,7 +42,7 @@ class Test_Geospatial_data(unittest.TestCase):
         assert rep == ref, msg
 
         #Check getter
-        assert allclose(G.get_data_points(), [[1.0, 2.1], [3.0, 5.3]])
+        assert num.allclose(G.get_data_points(), [[1.0, 2.1], [3.0, 5.3]])
         
         #Check defaults
         assert G.attributes is None
@@ -56,7 +57,7 @@ class Test_Geospatial_data(unittest.TestCase):
         attributes = [2, 4]
         G = Geospatial_data(points, attributes)       
         assert G.attributes.keys()[0] == DEFAULT_ATTRIBUTE
-        assert allclose(G.attributes.values()[0], [2, 4])
+        assert num.allclose(G.attributes.values()[0], [2, 4])
         
 
     def test_2(self):
@@ -80,16 +81,16 @@ class Test_Geospatial_data(unittest.TestCase):
 
 
         P = G.get_data_points(absolute=False)
-        assert allclose(P, [[1.0, 2.1], [3.0, 5.3]])        
+        assert num.allclose(P, [[1.0, 2.1], [3.0, 5.3]])        
 
         P = G.get_data_points(absolute=True)
-        assert allclose(P, [[101.0, 202.1], [103.0, 205.3]])        
+        assert num.allclose(P, [[101.0, 202.1], [103.0, 205.3]])        
 
         V = G.get_attributes() #Simply get them
-        assert allclose(V, [2, 4])
+        assert num.allclose(V, [2, 4])
 
         V = G.get_attributes(DEFAULT_ATTRIBUTE) #Get by name
-        assert allclose(V, [2, 4])
+        assert num.allclose(V, [2, 4])
 
     def test_get_attributes_2(self):
         #Multiple attributes
@@ -104,19 +105,19 @@ class Test_Geospatial_data(unittest.TestCase):
 
 
         P = G.get_data_points(absolute=False)
-        assert allclose(P, [[1.0, 2.1], [3.0, 5.3]])        
+        assert num.allclose(P, [[1.0, 2.1], [3.0, 5.3]])        
         
         V = G.get_attributes() #Get default attribute
-        assert allclose(V, [2, 4])
+        assert num.allclose(V, [2, 4])
 
         V = G.get_attributes('a0') #Get by name
-        assert allclose(V, [0, 0])
+        assert num.allclose(V, [0, 0])
 
         V = G.get_attributes('a1') #Get by name
-        assert allclose(V, [2, 4])
+        assert num.allclose(V, [2, 4])
 
         V = G.get_attributes('a2') #Get by name
-        assert allclose(V, [79.4, -7])
+        assert num.allclose(V, [79.4, -7])
 
         try:
             V = G.get_attributes('hdnoatedu') #Invalid
@@ -136,7 +137,7 @@ class Test_Geospatial_data(unittest.TestCase):
 
         results = spatial.get_data_points(absolute=False)
         
-        assert allclose(results, points_rel)
+        assert num.allclose(results, points_rel)
         
         x_p = -1770
         y_p = 4.01
@@ -145,7 +146,7 @@ class Test_Geospatial_data(unittest.TestCase):
         results = spatial.get_data_points \
                   ( geo_reference=geo_ref)
         
-        assert allclose(results, points_rel)
+        assert num.allclose(results, points_rel)
 
   
     def test_get_data_points_lat_long(self):
@@ -164,7 +165,7 @@ class Test_Geospatial_data(unittest.TestCase):
         results = spatial.get_data_points(as_lat_long=True)
         #print "test_get_data_points_lat_long - results", results
         #print "points_Lat_long",points_Lat_long 
-        assert allclose(results, points_Lat_long)
+        assert num.allclose(results, points_Lat_long)
       
     def test_get_data_points_lat_longII(self):
         # x,y  North,east long,lat
@@ -178,8 +179,8 @@ class Test_Geospatial_data(unittest.TestCase):
         long_result = degminsec2decimal_degrees(114,35,17.89)
         #print "seg_lat_long", seg_lat_long [0][0]
         #print "lat_result",lat_result 
-        assert allclose(seg_lat_long[0][0], lat_result)#lat
-        assert allclose(seg_lat_long[0][1], long_result)#long
+        assert num.allclose(seg_lat_long[0][0], lat_result)#lat
+        assert num.allclose(seg_lat_long[0][1], long_result)#long
 
 
     def test_get_data_points_lat_longIII(self):
@@ -199,8 +200,8 @@ class Test_Geospatial_data(unittest.TestCase):
         long_result = degminsec2decimal_degrees(98.273,0,0)
         #print "seg_lat_long", seg_lat_long [0]
         #print "lat_result",lat_result 
-        assert allclose(seg_lat_long[0][0], lat_result)#lat
-        assert allclose(seg_lat_long[0][1], long_result)#long
+        assert num.allclose(seg_lat_long[0][0], lat_result)#lat
+        assert num.allclose(seg_lat_long[0][1], long_result)#long
 
 
               
@@ -219,18 +220,18 @@ class Test_Geospatial_data(unittest.TestCase):
         
         # Create without geo_ref properly set
         G = Geospatial_data(points_rel)        
-        assert not allclose(points_ab, G.get_data_points(absolute=True))
+        assert not num.allclose(points_ab, G.get_data_points(absolute=True))
         
         # Create the way it should be
         G = Geospatial_data(points_rel, geo_reference=geo_ref)
-        assert allclose(points_ab, G.get_data_points(absolute=True))
+        assert num.allclose(points_ab, G.get_data_points(absolute=True))
         
         # Change georeference and check that absolute values are unchanged.
         x_p = 10
         y_p = 400
         new_geo_ref = Geo_reference(56, x_p, y_p)
         G.set_geo_reference(new_geo_ref)
-        assert allclose(points_ab, G.get_data_points(absolute=True))
+        assert num.allclose(points_ab, G.get_data_points(absolute=True))
         
 
                 
@@ -253,16 +254,16 @@ class Test_Geospatial_data(unittest.TestCase):
         assert points_dict.has_key('attributelist')        
         assert points_dict.has_key('geo_reference')
 
-        assert allclose( points_dict['pointlist'], points )
+        assert num.allclose( points_dict['pointlist'], points )
 
         A = points_dict['attributelist']
         assert A.has_key('a0')
         assert A.has_key('a1')
         assert A.has_key('a2')        
 
-        assert allclose( A['a0'], [0, 0] )
-        assert allclose( A['a1'], [2, 4] )        
-        assert allclose( A['a2'], [79.4, -7] )
+        assert num.allclose( A['a0'], [0, 0] )
+        assert num.allclose( A['a1'], [2, 4] )        
+        assert num.allclose( A['a2'], [79.4, -7] )
 
 
         geo = points_dict['geo_reference']
@@ -287,19 +288,19 @@ class Test_Geospatial_data(unittest.TestCase):
         G = points_dictionary2geospatial_data(points_dict)
 
         P = G.get_data_points(absolute=False)
-        assert allclose(P, [[1.0, 2.1], [3.0, 5.3]])        
+        assert num.allclose(P, [[1.0, 2.1], [3.0, 5.3]])        
         
         #V = G.get_attribute_values() #Get default attribute
         #assert allclose(V, [2, 4])
 
         V = G.get_attributes('a0') #Get by name
-        assert allclose(V, [0, 0])
+        assert num.allclose(V, [0, 0])
 
         V = G.get_attributes('a1') #Get by name
-        assert allclose(V, [2, 4])
+        assert num.allclose(V, [2, 4])
 
         V = G.get_attributes('a2') #Get by name
-        assert allclose(V, [79.4, -7])
+        assert num.allclose(V, [79.4, -7])
 
     def test_add(self):
         """ test the addition of two geospatical objects
@@ -318,11 +319,11 @@ class Test_Geospatial_data(unittest.TestCase):
 
         assert G.attributes.has_key('depth')
         assert G.attributes.has_key('elevation')
-        assert allclose(G.attributes['depth'], [2, 4, 2, 4])
-        assert allclose(G.attributes['elevation'], [6.1, 5, 2.5, 1])
-        assert allclose(G.get_data_points(), [[1.0, 2.1], [3.0, 5.3],
-                                              [1.0, 2.1], [3.0, 5.3]])
-        
+        assert num.allclose(G.attributes['depth'], [2, 4, 2, 4])
+        assert num.allclose(G.attributes['elevation'], [6.1, 5, 2.5, 1])
+        assert num.allclose(G.get_data_points(), [[1.0, 2.1], [3.0, 5.3],
+                                                  [1.0, 2.1], [3.0, 5.3]])
+
     def test_addII(self):
         """ test the addition of two geospatical objects
             no geo_reference see next test
@@ -342,9 +343,9 @@ class Test_Geospatial_data(unittest.TestCase):
 
         assert G.attributes.has_key('depth') 
         assert G.attributes.keys(), ['depth']
-        assert allclose(G.attributes['depth'], [2, 4, 200, 400])
-        assert allclose(G.get_data_points(), [[1.0, 2.1], [3.0, 5.3],
-                                              [5.0, 2.1], [3.0, 50.3]])
+        assert num.allclose(G.attributes['depth'], [2, 4, 200, 400])
+        assert num.allclose(G.get_data_points(), [[1.0, 2.1], [3.0, 5.3],
+                                                  [5.0, 2.1], [3.0, 50.3]])
     def test_add_with_geo (self):
         """
         Difference in Geo_reference resolved
@@ -366,16 +367,16 @@ class Test_Geospatial_data(unittest.TestCase):
 
         #Check that absolute values are as expected
         P1 = G1.get_data_points(absolute=True)
-        assert allclose(P1, [[2.0, 4.1], [4.0, 7.3]])
+        assert num.allclose(P1, [[2.0, 4.1], [4.0, 7.3]])
 
         P2 = G2.get_data_points(absolute=True)
-        assert allclose(P2, [[5.1, 9.1], [6.1, 6.3]])        
+        assert num.allclose(P2, [[5.1, 9.1], [6.1, 6.3]])        
         
         G = G1 + G2
 
         # Check absoluteness
-        assert allclose(G.get_geo_reference().get_xllcorner(), 0.0)
-        assert allclose(G.get_geo_reference().get_yllcorner(), 0.0)
+        assert num.allclose(G.get_geo_reference().get_xllcorner(), 0.0)
+        assert num.allclose(G.get_geo_reference().get_yllcorner(), 0.0)
 
         P = G.get_data_points(absolute=True)
 
@@ -383,9 +384,9 @@ class Test_Geospatial_data(unittest.TestCase):
         #
         #assert allclose(P_relative, P - [0.1, 2.0])
 
-        assert allclose(P, concatenate( (P1,P2) ))
-        assert allclose(P, [[2.0, 4.1], [4.0, 7.3],
-                            [5.1, 9.1], [6.1, 6.3]])
+        assert num.allclose(P, num.concatenate( (P1,P2) ))
+        assert num.allclose(P, [[2.0, 4.1], [4.0, 7.3],
+                                [5.1, 9.1], [6.1, 6.3]])
         
 
 
@@ -395,8 +396,8 @@ class Test_Geospatial_data(unittest.TestCase):
         """
         Difference in Geo_reference resolved
         """
-        points1 = array([[2.0, 4.1], [4.0, 7.3]])
-        points2 = array([[5.1, 9.1], [6.1, 6.3]])        
+        points1 = num.array([[2.0, 4.1], [4.0, 7.3]])
+        points2 = num.array([[5.1, 9.1], [6.1, 6.3]])        
         attributes1 = [2, 4]
         attributes2 = [5, 76]
         geo_ref1= Geo_reference(55, 1.0, 2.0)
@@ -412,16 +413,16 @@ class Test_Geospatial_data(unittest.TestCase):
 
         #Check that absolute values are as expected
         P1 = G1.get_data_points(absolute=True)
-        assert allclose(P1, points1)
+        assert num.allclose(P1, points1)
 
         P1 = G1.get_data_points(absolute=False)
-        assert allclose(P1, points1 - [geo_ref1.get_xllcorner(), geo_ref1.get_yllcorner()])        
+        assert num.allclose(P1, points1 - [geo_ref1.get_xllcorner(), geo_ref1.get_yllcorner()])        
 
         P2 = G2.get_data_points(absolute=True)
-        assert allclose(P2, points2)
+        assert num.allclose(P2, points2)
 
         P2 = G2.get_data_points(absolute=False)
-        assert allclose(P2, points2 - [geo_ref2.get_xllcorner(), geo_ref2.get_yllcorner()])                
+        assert num.allclose(P2, points2 - [geo_ref2.get_xllcorner(), geo_ref2.get_yllcorner()])                
         
         G = G1 + G2
         
@@ -434,15 +435,15 @@ class Test_Geospatial_data(unittest.TestCase):
         #
         #assert allclose(P_relative, [[1.0, 2.1], [3.0, 5.3], [4.1, 7.1], [5.1, 4.3]])
 
-        assert allclose(P, concatenate( (points1,points2) ))
+        assert num.allclose(P, num.concatenate( (points1,points2) ))
 
 
     def test_add_with_None(self):
         """ test that None can be added to a geospatical objects
         """
         
-        points1 = array([[2.0, 4.1], [4.0, 7.3]])
-        points2 = array([[5.1, 9.1], [6.1, 6.3]])        
+        points1 = num.array([[2.0, 4.1], [4.0, 7.3]])
+        points2 = num.array([[5.1, 9.1], [6.1, 6.3]])        
 
         geo_ref1= Geo_reference(55, 1.0, 2.0)
         geo_ref2 = Geo_reference(zone=55,
@@ -458,53 +459,53 @@ class Test_Geospatial_data(unittest.TestCase):
 
 
         G1 = Geospatial_data(points1, attributes1, geo_ref1)
-        assert allclose(G1.get_geo_reference().get_xllcorner(), 1.0)
-        assert allclose(G1.get_geo_reference().get_yllcorner(), 2.0)
+        assert num.allclose(G1.get_geo_reference().get_xllcorner(), 1.0)
+        assert num.allclose(G1.get_geo_reference().get_yllcorner(), 2.0)
         assert G1.attributes.has_key('depth')
         assert G1.attributes.has_key('elevation')
-        assert allclose(G1.attributes['depth'], [2, 4.7])
-        assert allclose(G1.attributes['elevation'], [6.1, 5])        
+        assert num.allclose(G1.attributes['depth'], [2, 4.7])
+        assert num.allclose(G1.attributes['elevation'], [6.1, 5])        
         
         G2 = Geospatial_data(points2, attributes2, geo_ref2)
-        assert allclose(G2.get_geo_reference().get_xllcorner(), 0.1)
-        assert allclose(G2.get_geo_reference().get_yllcorner(), 3.0)
+        assert num.allclose(G2.get_geo_reference().get_xllcorner(), 0.1)
+        assert num.allclose(G2.get_geo_reference().get_yllcorner(), 3.0)
         assert G2.attributes.has_key('depth')
         assert G2.attributes.has_key('elevation')
-        assert allclose(G2.attributes['depth'], [-2.3, 4])
-        assert allclose(G2.attributes['elevation'], [2.5, 1])        
+        assert num.allclose(G2.attributes['depth'], [-2.3, 4])
+        assert num.allclose(G2.attributes['elevation'], [2.5, 1])        
 
         #Check that absolute values are as expected
         P1 = G1.get_data_points(absolute=True)
-        assert allclose(P1, [[3.0, 6.1], [5.0, 9.3]])
+        assert num.allclose(P1, [[3.0, 6.1], [5.0, 9.3]])
 
         P2 = G2.get_data_points(absolute=True)
-        assert allclose(P2, [[5.2, 12.1], [6.2, 9.3]])        
+        assert num.allclose(P2, [[5.2, 12.1], [6.2, 9.3]])        
 
         # Normal add
         G = G1 + None
 
         assert G.attributes.has_key('depth')
         assert G.attributes.has_key('elevation')
-        assert allclose(G.attributes['depth'], [2, 4.7])
-        assert allclose(G.attributes['elevation'], [6.1, 5])        
+        assert num.allclose(G.attributes['depth'], [2, 4.7])
+        assert num.allclose(G.attributes['elevation'], [6.1, 5])        
 
         # Points are now absolute.
-        assert allclose(G.get_geo_reference().get_xllcorner(), 0.0)
-        assert allclose(G.get_geo_reference().get_yllcorner(), 0.0)
+        assert num.allclose(G.get_geo_reference().get_xllcorner(), 0.0)
+        assert num.allclose(G.get_geo_reference().get_yllcorner(), 0.0)
         P = G.get_data_points(absolute=True)        
-        assert allclose(P, [[3.0, 6.1], [5.0, 9.3]])
+        assert num.allclose(P, [[3.0, 6.1], [5.0, 9.3]])
 
 
         G = G2 + None
         assert G.attributes.has_key('depth')
         assert G.attributes.has_key('elevation')
-        assert allclose(G.attributes['depth'], [-2.3, 4])
-        assert allclose(G.attributes['elevation'], [2.5, 1])        
+        assert num.allclose(G.attributes['depth'], [-2.3, 4])
+        assert num.allclose(G.attributes['elevation'], [2.5, 1])        
 
-        assert allclose(G.get_geo_reference().get_xllcorner(), 0.0)
-        assert allclose(G.get_geo_reference().get_yllcorner(), 0.0)
+        assert num.allclose(G.get_geo_reference().get_xllcorner(), 0.0)
+        assert num.allclose(G.get_geo_reference().get_yllcorner(), 0.0)
         P = G.get_data_points(absolute=True)        
-        assert allclose(P, [[5.2, 12.1], [6.2, 9.3]])
+        assert num.allclose(P, [[5.2, 12.1], [6.2, 9.3]])
         
 
 
@@ -513,26 +514,26 @@ class Test_Geospatial_data(unittest.TestCase):
 
         assert G.attributes.has_key('depth')
         assert G.attributes.has_key('elevation')
-        assert allclose(G.attributes['depth'], [2, 4.7])
-        assert allclose(G.attributes['elevation'], [6.1, 5])        
+        assert num.allclose(G.attributes['depth'], [2, 4.7])
+        assert num.allclose(G.attributes['elevation'], [6.1, 5])        
 
         # Points are now absolute.
-        assert allclose(G.get_geo_reference().get_xllcorner(), 0.0)
-        assert allclose(G.get_geo_reference().get_yllcorner(), 0.0)
+        assert num.allclose(G.get_geo_reference().get_xllcorner(), 0.0)
+        assert num.allclose(G.get_geo_reference().get_yllcorner(), 0.0)
         P = G.get_data_points(absolute=True)        
-        assert allclose(P, [[3.0, 6.1], [5.0, 9.3]])        
+        assert num.allclose(P, [[3.0, 6.1], [5.0, 9.3]])        
 
 
         G = None + G2
         assert G.attributes.has_key('depth')
         assert G.attributes.has_key('elevation')
-        assert allclose(G.attributes['depth'], [-2.3, 4])
-        assert allclose(G.attributes['elevation'], [2.5, 1])        
+        assert num.allclose(G.attributes['depth'], [-2.3, 4])
+        assert num.allclose(G.attributes['elevation'], [2.5, 1])        
 
-        assert allclose(G.get_geo_reference().get_xllcorner(), 0.0)
-        assert allclose(G.get_geo_reference().get_yllcorner(), 0.0)
+        assert num.allclose(G.get_geo_reference().get_xllcorner(), 0.0)
+        assert num.allclose(G.get_geo_reference().get_yllcorner(), 0.0)
         P = G.get_data_points(absolute=True)        
-        assert allclose(P, [[5.2, 12.1], [6.2, 9.3]])
+        assert num.allclose(P, [[5.2, 12.1], [6.2, 9.3]])
 
         
 
@@ -553,14 +554,14 @@ class Test_Geospatial_data(unittest.TestCase):
 
         # First try the unit square    
         U = [[0,0], [1,0], [1,1], [0,1]] 
-        assert allclose(G.clip(U).get_data_points(), [[0.2, 0.5], [0.4, 0.3], [0, 0]])
+        assert num.allclose(G.clip(U).get_data_points(), [[0.2, 0.5], [0.4, 0.3], [0, 0]])
 
         # Then a more complex polygon
         polygon = [[0,0], [1,0], [0.5,-1], [2, -1], [2,1], [0,1]]
         points = [ [0.5, 1.4], [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
         G = Geospatial_data(points)
 
-        assert allclose(G.clip(polygon).get_data_points(),
+        assert num.allclose(G.clip(polygon).get_data_points(),
                         [[0.5, 0.5], [1, -0.5], [1.5, 0]])
 
     def test_clip0_with_attributes(self):
@@ -576,15 +577,15 @@ class Test_Geospatial_data(unittest.TestCase):
 
         attributes = [2, -4, 5, 76, -2, 0.1, 3]
         att_dict = {'att1': attributes,
-                    'att2': array(attributes)+1}
+                    'att2': num.array(attributes)+1}
         
         G = Geospatial_data(points, att_dict)
 
         # First try the unit square    
         U = [[0,0], [1,0], [1,1], [0,1]] 
-        assert allclose(G.clip(U).get_data_points(), [[0.2, 0.5], [0.4, 0.3], [0, 0]])
-        assert allclose(G.clip(U).get_attributes('att1'), [-4, 76, 0.1])
-        assert allclose(G.clip(U).get_attributes('att2'), [-3, 77, 1.1])                
+        assert num.allclose(G.clip(U).get_data_points(), [[0.2, 0.5], [0.4, 0.3], [0, 0]])
+        assert num.allclose(G.clip(U).get_attributes('att1'), [-4, 76, 0.1])
+        assert num.allclose(G.clip(U).get_attributes('att2'), [-3, 77, 1.1])                
 
         # Then a more complex polygon
         polygon = [[0,0], [1,0], [0.5,-1], [2, -1], [2,1], [0,1]]
@@ -594,9 +595,9 @@ class Test_Geospatial_data(unittest.TestCase):
         attributes = [2, -4, 5, 76, -2, 0.1]
         G = Geospatial_data(points, attributes)
 
-        assert allclose(G.clip(polygon).get_data_points(),
+        assert num.allclose(G.clip(polygon).get_data_points(),
                         [[0.5, 0.5], [1, -0.5], [1.5, 0]])
-        assert allclose(G.clip(polygon).get_attributes(), [-4, 5, 76])
+        assert num.allclose(G.clip(polygon).get_attributes(), [-4, 5, 76])
         
 
     def test_clip1(self):
@@ -612,16 +613,16 @@ class Test_Geospatial_data(unittest.TestCase):
                   [0, 0], [2.4, 3.3]]
         attributes = [2, -4, 5, 76, -2, 0.1, 3]
         att_dict = {'att1': attributes,
-                    'att2': array(attributes)+1}
+                    'att2': num.array(attributes)+1}
         G = Geospatial_data(points, att_dict)
         
         # First try the unit square    
         U = Geospatial_data([[0,0], [1,0], [1,1], [0,1]]) 
-        assert allclose(G.clip(U).get_data_points(),
+        assert num.allclose(G.clip(U).get_data_points(),
                         [[0.2, 0.5], [0.4, 0.3], [0, 0]])
 
-        assert allclose(G.clip(U).get_attributes('att1'), [-4, 76, 0.1])
-        assert allclose(G.clip(U).get_attributes('att2'), [-3, 77, 1.1])                        
+        assert num.allclose(G.clip(U).get_attributes('att1'), [-4, 76, 0.1])
+        assert num.allclose(G.clip(U).get_attributes('att2'), [-3, 77, 1.1])                        
         
         # Then a more complex polygon
         points = [ [0.5, 1.4], [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
@@ -630,9 +631,9 @@ class Test_Geospatial_data(unittest.TestCase):
         polygon = Geospatial_data([[0,0], [1,0], [0.5,-1], [2, -1], [2,1], [0,1]])
         
 
-        assert allclose(G.clip(polygon).get_data_points(),
-                        [[0.5, 0.5], [1, -0.5], [1.5, 0]])
-        assert allclose(G.clip(polygon).get_attributes(), [-4, 5, 76])
+        assert num.allclose(G.clip(polygon).get_data_points(),
+                            [[0.5, 0.5], [1, -0.5], [1.5, 0]])
+        assert num.allclose(G.clip(polygon).get_attributes(), [-4, 5, 76])
         
 
     def test_clip0_outside(self):
@@ -650,10 +651,10 @@ class Test_Geospatial_data(unittest.TestCase):
 
         # First try the unit square    
         U = [[0,0], [1,0], [1,1], [0,1]]
-        assert allclose(G.clip_outside(U).get_data_points(),
-                        [[-1, 4], [1.0, 2.1], [3.0, 5.3], [2.4, 3.3]])
+        assert num.allclose(G.clip_outside(U).get_data_points(),
+                            [[-1, 4], [1.0, 2.1], [3.0, 5.3], [2.4, 3.3]])
         #print G.clip_outside(U).get_attributes()
-        assert allclose(G.clip_outside(U).get_attributes(), [2, 5, -2, 3])        
+        assert num.allclose(G.clip_outside(U).get_attributes(), [2, 5, -2, 3])        
         
 
         # Then a more complex polygon
@@ -662,9 +663,9 @@ class Test_Geospatial_data(unittest.TestCase):
         attributes = [2, -4, 5, 76, -2, 0.1]        
         G = Geospatial_data(points, attributes)
 
-        assert allclose(G.clip_outside(polygon).get_data_points(),
-                        [[0.5, 1.4], [0.5, 1.5], [0.5, -0.5]])
-        assert allclose(G.clip_outside(polygon).get_attributes(), [2, -2, 0.1])                
+        assert num.allclose(G.clip_outside(polygon).get_data_points(),
+                            [[0.5, 1.4], [0.5, 1.5], [0.5, -0.5]])
+        assert num.allclose(G.clip_outside(polygon).get_attributes(), [2, -2, 0.1])                
 
 
     def test_clip1_outside(self):
@@ -683,9 +684,9 @@ class Test_Geospatial_data(unittest.TestCase):
 
         # First try the unit square    
         U = Geospatial_data([[0,0], [1,0], [1,1], [0,1]]) 
-        assert allclose(G.clip_outside(U).get_data_points(),
-                        [[-1, 4], [1.0, 2.1], [3.0, 5.3], [2.4, 3.3]])
-        assert allclose(G.clip(U).get_attributes(), [-4, 76, 0.1])        
+        assert num.allclose(G.clip_outside(U).get_data_points(),
+                            [[-1, 4], [1.0, 2.1], [3.0, 5.3], [2.4, 3.3]])
+        assert num.allclose(G.clip(U).get_attributes(), [-4, 76, 0.1])        
 
         # Then a more complex polygon
         points = [ [0.5, 1.4], [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
@@ -695,9 +696,9 @@ class Test_Geospatial_data(unittest.TestCase):
         polygon = Geospatial_data([[0,0], [1,0], [0.5,-1], [2, -1], [2,1], [0,1]])
         
 
-        assert allclose(G.clip_outside(polygon).get_data_points(),
-                        [[0.5, 1.4], [0.5, 1.5], [0.5, -0.5]])
-        assert allclose(G.clip_outside(polygon).get_attributes(), [2, -2, 0.1])
+        assert num.allclose(G.clip_outside(polygon).get_data_points(),
+                            [[0.5, 1.4], [0.5, 1.5], [0.5, -0.5]])
+        assert num.allclose(G.clip_outside(polygon).get_attributes(), [2, -2, 0.1])
         
 
 
@@ -718,13 +719,13 @@ class Test_Geospatial_data(unittest.TestCase):
         # First try the unit square    
         U = Geospatial_data([[0,0], [1,0], [1,1], [0,1]]) 
         G1 = G.clip(U)
-        assert allclose(G1.get_data_points(),[[0.2, 0.5], [0.4, 0.3], [0, 0]])
-        assert allclose(G.clip(U).get_attributes(), [-4, 76, 0.1])
+        assert num.allclose(G1.get_data_points(),[[0.2, 0.5], [0.4, 0.3], [0, 0]])
+        assert num.allclose(G.clip(U).get_attributes(), [-4, 76, 0.1])
         
         G2 = G.clip_outside(U)
-        assert allclose(G2.get_data_points(),[[-1, 4], [1.0, 2.1],
-                                              [3.0, 5.3], [2.4, 3.3]])
-        assert allclose(G.clip_outside(U).get_attributes(), [2, 5, -2, 3])                
+        assert num.allclose(G2.get_data_points(),[[-1, 4], [1.0, 2.1],
+                                                  [3.0, 5.3], [2.4, 3.3]])
+        assert num.allclose(G.clip_outside(U).get_attributes(), [2, 5, -2, 3])                
 
         
         # New ordering
@@ -733,8 +734,8 @@ class Test_Geospatial_data(unittest.TestCase):
 
         new_attributes = [-4, 76, 0.1, 2, 5, -2, 3]                 
         
-        assert allclose((G1+G2).get_data_points(), new_points)
-        assert allclose((G1+G2).get_attributes(), new_attributes)
+        assert num.allclose((G1+G2).get_data_points(), new_points)
+        assert num.allclose((G1+G2).get_attributes(), new_attributes)
 
         G = G1+G2
         FN = 'test_combine.pts'
@@ -746,8 +747,8 @@ class Test_Geospatial_data(unittest.TestCase):
 
 
         # Check result
-        assert allclose(G3.get_data_points(), new_points)        
-        assert allclose(G3.get_attributes(), new_attributes)        
+        assert num.allclose(G3.get_data_points(), new_points)        
+        assert num.allclose(G3.get_attributes(), new_attributes)        
         
         os.remove(FN)
 
@@ -768,12 +769,12 @@ class Test_Geospatial_data(unittest.TestCase):
         results = Geospatial_data(fileName)
         os.remove(fileName)
 #        print 'data', results.get_data_points()
-        assert allclose(results.get_data_points(), [[1.0, 0.0],[0.0, 1.0],
-                                                    [1.0, 0.0]])
-        assert allclose(results.get_attributes(attribute_name='elevation'),
-                        [10.0, 0.0, 10.4])
-        assert allclose(results.get_attributes(attribute_name='speed'),
-                        [0.0, 10.0, 40.0])
+        assert num.allclose(results.get_data_points(), [[1.0, 0.0],[0.0, 1.0],
+                                                        [1.0, 0.0]])
+        assert num.allclose(results.get_attributes(attribute_name='elevation'),
+                            [10.0, 0.0, 10.4])
+        assert num.allclose(results.get_attributes(attribute_name='speed'),
+                            [0.0, 10.0, 40.0])
 
 
   ###################### .CSV ##############################
@@ -819,24 +820,24 @@ class Test_Geospatial_data(unittest.TestCase):
         results = Geospatial_data(fileName, max_read_lines=2)
 
 
-        assert allclose(results.get_data_points(), [[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
-        assert allclose(results.get_attributes(attribute_name='elevation'), [10.0, 0.0, 10.4])
-        assert allclose(results.get_attributes(attribute_name='speed'), [0.0, 10.0, 40.0])
+        assert num.allclose(results.get_data_points(), [[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
+        assert num.allclose(results.get_attributes(attribute_name='elevation'), [10.0, 0.0, 10.4])
+        assert num.allclose(results.get_attributes(attribute_name='speed'), [0.0, 10.0, 40.0])
 
         # Blocking
         geo_list = []
         for i in results:
             geo_list.append(i)
             
-        assert allclose(geo_list[0].get_data_points(),
-                        [[1.0, 0.0],[0.0, 1.0]])
+        assert num.allclose(geo_list[0].get_data_points(),
+                            [[1.0, 0.0],[0.0, 1.0]])
 
-        assert allclose(geo_list[0].get_attributes(attribute_name='elevation'),
-                        [10.0, 0.0])
-        assert allclose(geo_list[1].get_data_points(),
-                        [[1.0, 0.0]])        
-        assert allclose(geo_list[1].get_attributes(attribute_name='elevation'),
-                        [10.4])
+        assert num.allclose(geo_list[0].get_attributes(attribute_name='elevation'),
+                            [10.0, 0.0])
+        assert num.allclose(geo_list[1].get_data_points(),
+                            [[1.0, 0.0]])        
+        assert num.allclose(geo_list[1].get_attributes(attribute_name='elevation'),
+                            [10.4])
            
         os.remove(fileName)         
         
@@ -979,25 +980,25 @@ class Test_Geospatial_data(unittest.TestCase):
         convert.export_points_file(pts_file)
         results = Geospatial_data(pts_file, max_read_lines=2)
 
-        assert allclose(results.get_data_points(), [[1.0, 0.0],[0.0, 1.0],
-                                                    [1.0, 0.0]])
-        assert allclose(results.get_attributes(attribute_name='elevation'),
-                        [10.0, 0.0, 10.4])
-        assert allclose(results.get_attributes(attribute_name='speed'),
-                        [0.0, 10.0, 40.0])
+        assert num.allclose(results.get_data_points(), [[1.0, 0.0],[0.0, 1.0],
+                                                        [1.0, 0.0]])
+        assert num.allclose(results.get_attributes(attribute_name='elevation'),
+                            [10.0, 0.0, 10.4])
+        assert num.allclose(results.get_attributes(attribute_name='speed'),
+                            [0.0, 10.0, 40.0])
 
         # Blocking
         geo_list = []
         for i in results:
             geo_list.append(i) 
-        assert allclose(geo_list[0].get_data_points(),
-                        [[1.0, 0.0],[0.0, 1.0]])
-        assert allclose(geo_list[0].get_attributes(attribute_name='elevation'),
-                        [10.0, 0.0])
-        assert allclose(geo_list[1].get_data_points(),
-                        [[1.0, 0.0]])        
-        assert allclose(geo_list[1].get_attributes(attribute_name='elevation'),
-                        [10.4])
+        assert num.allclose(geo_list[0].get_data_points(),
+                            [[1.0, 0.0],[0.0, 1.0]])
+        assert num.allclose(geo_list[0].get_attributes(attribute_name='elevation'),
+                            [10.0, 0.0])
+        assert num.allclose(geo_list[1].get_data_points(),
+                            [[1.0, 0.0]])        
+        assert num.allclose(geo_list[1].get_attributes(attribute_name='elevation'),
+                            [10.4])
            
         os.remove(fileName)  
         os.remove(pts_file)               
@@ -1068,14 +1069,14 @@ class Test_Geospatial_data(unittest.TestCase):
         geo_list = []
         for i in results:
             geo_list.append(i) 
-        assert allclose(geo_list[0].get_data_points(),
-                        [[1.0, 0.0],[0.0, 1.0]])
-        assert allclose(geo_list[0].get_attributes(attribute_name='elevation'),
-                        [10.0, 0.0])
-        assert allclose(geo_list[1].get_data_points(),
-                        [[1.0, 0.0],[0.0, 1.0] ])        
-        assert allclose(geo_list[1].get_attributes(attribute_name='elevation'),
-                        [10.0, 0.0])
+        assert num.allclose(geo_list[0].get_data_points(),
+                            [[1.0, 0.0],[0.0, 1.0]])
+        assert num.allclose(geo_list[0].get_attributes(attribute_name='elevation'),
+                            [10.0, 0.0])
+        assert num.allclose(geo_list[1].get_data_points(),
+                            [[1.0, 0.0],[0.0, 1.0] ])        
+        assert num.allclose(geo_list[1].get_attributes(attribute_name='elevation'),
+                            [10.0, 0.0])
            
         os.remove(fileName)  
         os.remove(pts_file)
@@ -1084,9 +1085,9 @@ class Test_Geospatial_data(unittest.TestCase):
 
     def test_new_export_pts_file(self):
         att_dict = {}
-        pointlist = array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
-        att_dict['elevation'] = array([10.1, 0.0, 10.4])
-        att_dict['brightness'] = array([10.0, 1.0, 10.4])
+        pointlist = num.array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
+        att_dict['elevation'] = num.array([10.1, 0.0, 10.4])
+        att_dict['brightness'] = num.array([10.0, 1.0, 10.4])
         
         fileName = tempfile.mktemp(".pts")
         
@@ -1098,16 +1099,16 @@ class Test_Geospatial_data(unittest.TestCase):
 
         os.remove(fileName)
         
-        assert allclose(results.get_data_points(),[[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
-        assert allclose(results.get_attributes(attribute_name='elevation'), [10.1, 0.0, 10.4])
+        assert num.allclose(results.get_data_points(),[[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
+        assert num.allclose(results.get_attributes(attribute_name='elevation'), [10.1, 0.0, 10.4])
         answer = [10.0, 1.0, 10.4]
-        assert allclose(results.get_attributes(attribute_name='brightness'), answer)
+        assert num.allclose(results.get_attributes(attribute_name='brightness'), answer)
 
     def test_new_export_absolute_pts_file(self):
         att_dict = {}
-        pointlist = array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
-        att_dict['elevation'] = array([10.1, 0.0, 10.4])
-        att_dict['brightness'] = array([10.0, 1.0, 10.4])
+        pointlist = num.array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
+        att_dict['elevation'] = num.array([10.1, 0.0, 10.4])
+        att_dict['brightness'] = num.array([10.0, 1.0, 10.4])
         geo_ref = Geo_reference(50, 25, 55)
         
         fileName = tempfile.mktemp(".pts")
@@ -1120,10 +1121,10 @@ class Test_Geospatial_data(unittest.TestCase):
 
         os.remove(fileName)
         
-        assert allclose(results.get_data_points(), G.get_data_points(True))
-        assert allclose(results.get_attributes(attribute_name='elevation'), [10.1, 0.0, 10.4])
+        assert num.allclose(results.get_data_points(), G.get_data_points(True))
+        assert num.allclose(results.get_attributes(attribute_name='elevation'), [10.1, 0.0, 10.4])
         answer = [10.0, 1.0, 10.4]
-        assert allclose(results.get_attributes(attribute_name='brightness'), answer)
+        assert num.allclose(results.get_attributes(attribute_name='brightness'), answer)
 
     def test_loadpts(self):
         
@@ -1138,9 +1139,9 @@ class Test_Geospatial_data(unittest.TestCase):
         outfile.createDimension('number_of_dimensions', 2) #This is 2d data
     
         # variable definitions
-        outfile.createVariable('points', Float, ('number_of_points',
-                                                 'number_of_dimensions'))
-        outfile.createVariable('elevation', Float, ('number_of_points',))
+        outfile.createVariable('points', num.Float, ('number_of_points',
+                                                     'number_of_dimensions'))
+        outfile.createVariable('elevation', num.Float, ('number_of_points',))
     
         # Get handles to the variables
         points = outfile.variables['points']
@@ -1158,16 +1159,16 @@ class Test_Geospatial_data(unittest.TestCase):
         results = Geospatial_data(file_name = fileName)
         os.remove(fileName)
         answer =  [[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]]
-        assert allclose(results.get_data_points(), [[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
-        assert allclose(results.get_attributes(attribute_name='elevation'), [10.0, 0.0, 10.4])
+        assert num.allclose(results.get_data_points(), [[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
+        assert num.allclose(results.get_attributes(attribute_name='elevation'), [10.0, 0.0, 10.4])
         
     def test_writepts(self):
         #test_writepts: Test that storage of x,y,attributes works
         
         att_dict = {}
-        pointlist = array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
-        att_dict['elevation'] = array([10.0, 0.0, 10.4])
-        att_dict['brightness'] = array([10.0, 0.0, 10.4])
+        pointlist = num.array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
+        att_dict['elevation'] = num.array([10.0, 0.0, 10.4])
+        att_dict['brightness'] = num.array([10.0, 0.0, 10.4])
         geo_reference=Geo_reference(56,1.9,1.9)
 
         # Test pts format
@@ -1177,10 +1178,10 @@ class Test_Geospatial_data(unittest.TestCase):
         results = Geospatial_data(file_name=fileName)
         os.remove(fileName)
 
-        assert allclose(results.get_data_points(False),[[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
-        assert allclose(results.get_attributes('elevation'), [10.0, 0.0, 10.4])
+        assert num.allclose(results.get_data_points(False),[[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
+        assert num.allclose(results.get_attributes('elevation'), [10.0, 0.0, 10.4])
         answer = [10.0, 0.0, 10.4]
-        assert allclose(results.get_attributes('brightness'), answer)
+        assert num.allclose(results.get_attributes('brightness'), answer)
         self.failUnless(geo_reference == geo_reference,
                          'test_writepts failed. Test geo_reference')
 
@@ -1188,9 +1189,9 @@ class Test_Geospatial_data(unittest.TestCase):
         #test_write : Test that storage of x,y,attributes works
         
         att_dict = {}
-        pointlist = array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
-        att_dict['elevation'] = array([10.0, 0.0, 10.4])
-        att_dict['brightness'] = array([10.0, 0.0, 10.4])
+        pointlist = num.array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
+        att_dict['elevation'] = num.array([10.0, 0.0, 10.4])
+        att_dict['brightness'] = num.array([10.0, 0.0, 10.4])
         geo_reference=Geo_reference(56,0,0)
         # Test txt format
         fileName = tempfile.mktemp(".txt")
@@ -1199,19 +1200,19 @@ class Test_Geospatial_data(unittest.TestCase):
         #print "fileName", fileName 
         results = Geospatial_data(file_name=fileName)
         os.remove(fileName)
-        assert allclose(results.get_data_points(False),[[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
-        assert allclose(results.get_attributes('elevation'), [10.0, 0.0, 10.4])
+        assert num.allclose(results.get_data_points(False),[[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
+        assert num.allclose(results.get_attributes('elevation'), [10.0, 0.0, 10.4])
         answer = [10.0, 0.0, 10.4]
-        assert allclose(results.get_attributes('brightness'), answer)
+        assert num.allclose(results.get_attributes('brightness'), answer)
         
  
     def test_write_csv_attributes_lat_long(self):
         #test_write : Test that storage of x,y,attributes works
         
         att_dict = {}
-        pointlist = array([[-21.5,114.5],[-21.6,114.5],[-21.7,114.5]])
-        att_dict['elevation'] = array([10.0, 0.0, 10.4])
-        att_dict['brightness'] = array([10.0, 0.0, 10.4])
+        pointlist = num.array([[-21.5,114.5],[-21.6,114.5],[-21.7,114.5]])
+        att_dict['elevation'] = num.array([10.0, 0.0, 10.4])
+        att_dict['brightness'] = num.array([10.0, 0.0, 10.4])
         # Test txt format
         fileName = tempfile.mktemp(".txt")
         G = Geospatial_data(pointlist, att_dict, points_are_lats_longs=True)
@@ -1219,18 +1220,18 @@ class Test_Geospatial_data(unittest.TestCase):
         #print "fileName", fileName 
         results = Geospatial_data(file_name=fileName)
         os.remove(fileName)
-        assert allclose(results.get_data_points(False, as_lat_long=True),
+        assert num.allclose(results.get_data_points(False, as_lat_long=True),
                         pointlist)
-        assert allclose(results.get_attributes('elevation'), [10.0, 0.0, 10.4])
+        assert num.allclose(results.get_attributes('elevation'), [10.0, 0.0, 10.4])
         answer = [10.0, 0.0, 10.4]
-        assert allclose(results.get_attributes('brightness'), answer)
+        assert num.allclose(results.get_attributes('brightness'), answer)
         
     def test_writepts_no_attributes(self):
 
         #test_writepts_no_attributes: Test that storage of x,y alone works
         
         att_dict = {}
-        pointlist = array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
+        pointlist = num.array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
         geo_reference=Geo_reference(56,1.9,1.9)
 
         # Test pts format
@@ -1240,7 +1241,7 @@ class Test_Geospatial_data(unittest.TestCase):
         results = Geospatial_data(file_name=fileName)
         os.remove(fileName)
 
-        assert allclose(results.get_data_points(False),[[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
+        assert num.allclose(results.get_data_points(False),[[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
         self.failUnless(geo_reference == geo_reference,
                          'test_writepts failed. Test geo_reference')
         
@@ -1249,7 +1250,7 @@ class Test_Geospatial_data(unittest.TestCase):
         #test_write txt _no_attributes: Test that storage of x,y alone works
         
         att_dict = {}
-        pointlist = array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
+        pointlist = num.array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
         geo_reference=Geo_reference(56,0,0)
         # Test format
         fileName = tempfile.mktemp(".txt")
@@ -1257,7 +1258,7 @@ class Test_Geospatial_data(unittest.TestCase):
         G.export_points_file(fileName)
         results = Geospatial_data(file_name=fileName)
         os.remove(fileName)
-        assert allclose(results.get_data_points(False),[[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
+        assert num.allclose(results.get_data_points(False),[[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
 
          
         
@@ -1295,9 +1296,9 @@ class Test_Geospatial_data(unittest.TestCase):
         outfile.createDimension('number_of_dimensions', 2) #This is 2d data
     
         # variable definitions
-        outfile.createVariable('points', Float, ('number_of_points',
-                                                 'number_of_dimensions'))
-        outfile.createVariable('elevation', Float, ('number_of_points',))
+        outfile.createVariable('points', num.Float, ('number_of_points',
+                                                     'number_of_dimensions'))
+        outfile.createVariable('elevation', num.Float, ('number_of_points',))
     
         # Get handles to the variables
         points = outfile.variables['points']
@@ -1314,11 +1315,11 @@ class Test_Geospatial_data(unittest.TestCase):
 
         G = Geospatial_data(file_name = FN)
 
-        assert allclose(G.get_geo_reference().get_xllcorner(), 0.0)
-        assert allclose(G.get_geo_reference().get_yllcorner(), 0.0)
+        assert num.allclose(G.get_geo_reference().get_xllcorner(), 0.0)
+        assert num.allclose(G.get_geo_reference().get_yllcorner(), 0.0)
 
-        assert allclose(G.get_data_points(), [[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
-        assert allclose(G.get_attributes(), [10.0, 0.0, 10.4])
+        assert num.allclose(G.get_data_points(), [[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
+        assert num.allclose(G.get_attributes(), [10.0, 0.0, 10.4])
         os.remove(FN)
 
     def test_create_from_pts_file_with_geo(self):
@@ -1342,9 +1343,9 @@ class Test_Geospatial_data(unittest.TestCase):
         outfile.createDimension('number_of_dimensions', 2) #This is 2d data
     
         # variable definitions
-        outfile.createVariable('points', Float, ('number_of_points',
-                                                 'number_of_dimensions'))
-        outfile.createVariable('elevation', Float, ('number_of_points',))
+        outfile.createVariable('points', num.Float, ('number_of_points',
+                                                     'number_of_dimensions'))
+        outfile.createVariable('elevation', num.Float, ('number_of_points',))
     
         # Get handles to the variables
         points = outfile.variables['points']
@@ -1361,14 +1362,14 @@ class Test_Geospatial_data(unittest.TestCase):
 
         G = Geospatial_data(file_name = FN)
 
-        assert allclose(G.get_geo_reference().get_xllcorner(), xll)
-        assert allclose(G.get_geo_reference().get_yllcorner(), yll)
+        assert num.allclose(G.get_geo_reference().get_xllcorner(), xll)
+        assert num.allclose(G.get_geo_reference().get_yllcorner(), yll)
 
-        assert allclose(G.get_data_points(), [[1.0+xll, 0.0+yll],
-                                              [0.0+xll, 1.0+yll],
-                                              [1.0+xll, 0.0+yll]])
+        assert num.allclose(G.get_data_points(), [[1.0+xll, 0.0+yll],
+                                                  [0.0+xll, 1.0+yll],
+                                                  [1.0+xll, 0.0+yll]])
         
-        assert allclose(G.get_attributes(), [10.0, 0.0, 10.4])
+        assert num.allclose(G.get_attributes(), [10.0, 0.0, 10.4])
         os.remove(FN)
 
         
@@ -1379,15 +1380,15 @@ class Test_Geospatial_data(unittest.TestCase):
         '''
         # create files
         att_dict1 = {}
-        pointlist1 = array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
-        att_dict1['elevation'] = array([-10.0, 0.0, 10.4])
-        att_dict1['brightness'] = array([10.0, 0.0, 10.4])
+        pointlist1 = num.array([[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
+        att_dict1['elevation'] = num.array([-10.0, 0.0, 10.4])
+        att_dict1['brightness'] = num.array([10.0, 0.0, 10.4])
         geo_reference1 = Geo_reference(56, 2.0, 1.0)
         
         att_dict2 = {}
-        pointlist2 = array([[2.0, 1.0],[1.0, 2.0],[2.0, 1.0]])
-        att_dict2['elevation'] = array([1.0, 15.0, 1.4])
-        att_dict2['brightness'] = array([14.0, 1.0, -12.4])
+        pointlist2 = num.array([[2.0, 1.0],[1.0, 2.0],[2.0, 1.0]])
+        att_dict2['elevation'] = num.array([1.0, 15.0, 1.4])
+        att_dict2['brightness'] = num.array([14.0, 1.0, -12.4])
         geo_reference2 = Geo_reference(56, 1.0, 2.0) 
 
         G1 = Geospatial_data(pointlist1, att_dict1, geo_reference1)
@@ -1411,16 +1412,16 @@ class Test_Geospatial_data(unittest.TestCase):
         #read results
 #        print'res', G.get_data_points()
 #        print'res1', G.get_data_points(False)
-        assert allclose(G.get_data_points(),
-                        [[ 3.0, 1.0], [ 2.0, 2.0],
-                         [ 3.0, 1.0], [ 3.0, 3.0],
-                         [ 2.0, 4.0], [ 3.0, 3.0]])
+        assert num.allclose(G.get_data_points(),
+                            [[ 3.0, 1.0], [ 2.0, 2.0],
+                             [ 3.0, 1.0], [ 3.0, 3.0],
+                             [ 2.0, 4.0], [ 3.0, 3.0]])
                          
-        assert allclose(G.get_attributes(attribute_name='elevation'),
-                        [-10.0, 0.0, 10.4, 1.0, 15.0, 1.4])
+        assert num.allclose(G.get_attributes(attribute_name='elevation'),
+                            [-10.0, 0.0, 10.4, 1.0, 15.0, 1.4])
         
         answer = [10.0, 0.0, 10.4, 14.0, 1.0, -12.4]
-        assert allclose(G.get_attributes(attribute_name='brightness'), answer)
+        assert num.allclose(G.get_attributes(attribute_name='brightness'), answer)
         
         self.failUnless(G.get_geo_reference() == geo_reference1,
                          'test_writepts failed. Test geo_reference')
@@ -1434,22 +1435,22 @@ class Test_Geospatial_data(unittest.TestCase):
                          [1.0, 3.0],[2.0, 2.0]]
         new_points = ensure_absolute(points)
         
-        assert allclose(new_points, points)
+        assert num.allclose(new_points, points)
 
-        points = array([[2.0, 0.0],[1.0, 1.0],
-                         [2.0, 0.0],[2.0, 2.0],
-                         [1.0, 3.0],[2.0, 2.0]])
+        points = num.array([[2.0, 0.0],[1.0, 1.0],
+                            [2.0, 0.0],[2.0, 2.0],
+                            [1.0, 3.0],[2.0, 2.0]])
         new_points = ensure_absolute(points)
         
-        assert allclose(new_points, points)
+        assert num.allclose(new_points, points)
         
-        ab_points = array([[2.0, 0.0],[1.0, 1.0],
-                         [2.0, 0.0],[2.0, 2.0],
-                         [1.0, 3.0],[2.0, 2.0]])
+        ab_points = num.array([[2.0, 0.0],[1.0, 1.0],
+                               [2.0, 0.0],[2.0, 2.0],
+                               [1.0, 3.0],[2.0, 2.0]])
         
         mesh_origin = (56, 290000, 618000) #zone, easting, northing
 
-        data_points = zeros((ab_points.shape), Float)
+        data_points = num.zeros((ab_points.shape), num.Float)
         #Shift datapoints according to new origins
         for k in range(len(ab_points)):
             data_points[k][0] = ab_points[k][0] - mesh_origin[1]
@@ -1460,7 +1461,7 @@ class Test_Geospatial_data(unittest.TestCase):
         #print "new_points",new_points
         #print "ab_points",ab_points
            
-        assert allclose(new_points, ab_points)
+        assert num.allclose(new_points, ab_points)
 
         geo = Geo_reference(56,67,-56)
 
@@ -1470,7 +1471,7 @@ class Test_Geospatial_data(unittest.TestCase):
         #print "new_points",new_points
         #print "ab_points",ab_points
            
-        assert allclose(new_points, ab_points)
+        assert num.allclose(new_points, ab_points)
 
 
         geo_reference = Geo_reference(56, 100, 200)
@@ -1485,7 +1486,7 @@ class Test_Geospatial_data(unittest.TestCase):
         #print "new_points",new_points
         #print "ab_points",ab_points
            
-        assert allclose(new_points, ab_points)
+        assert num.allclose(new_points, ab_points)
 
 
         
@@ -1495,22 +1496,22 @@ class Test_Geospatial_data(unittest.TestCase):
                          [1.0, 3.0],[2.0, 2.0]]
         new_points = ensure_geospatial(points)
         
-        assert allclose(new_points.get_data_points(absolute = True), points)
+        assert num.allclose(new_points.get_data_points(absolute = True), points)
 
-        points = array([[2.0, 0.0],[1.0, 1.0],
-                         [2.0, 0.0],[2.0, 2.0],
-                         [1.0, 3.0],[2.0, 2.0]])
+        points = num.array([[2.0, 0.0],[1.0, 1.0],
+                            [2.0, 0.0],[2.0, 2.0],
+                            [1.0, 3.0],[2.0, 2.0]])
         new_points = ensure_geospatial(points)
         
-        assert allclose(new_points.get_data_points(absolute = True), points)
+        assert num.allclose(new_points.get_data_points(absolute = True), points)
         
-        ab_points = array([[2.0, 0.0],[1.0, 1.0],
-                         [2.0, 0.0],[2.0, 2.0],
-                         [1.0, 3.0],[2.0, 2.0]])
+        ab_points = num.array([[2.0, 0.0],[1.0, 1.0],
+                               [2.0, 0.0],[2.0, 2.0],
+                               [1.0, 3.0],[2.0, 2.0]])
         
         mesh_origin = (56, 290000, 618000) #zone, easting, northing
 
-        data_points = zeros((ab_points.shape), Float)
+        data_points = num.zeros((ab_points.shape), num.Float)
         #Shift datapoints according to new origins
         for k in range(len(ab_points)):
             data_points[k][0] = ab_points[k][0] - mesh_origin[1]
@@ -1522,7 +1523,7 @@ class Test_Geospatial_data(unittest.TestCase):
         #print "new_points",new_points
         #print "ab_points",ab_points
            
-        assert allclose(new_points, ab_points)
+        assert num.allclose(new_points, ab_points)
 
         geo = Geo_reference(56,67,-56)
 
@@ -1533,7 +1534,7 @@ class Test_Geospatial_data(unittest.TestCase):
         #print "new_points",new_points
         #print "ab_points",ab_points
            
-        assert allclose(new_points, ab_points)
+        assert num.allclose(new_points, ab_points)
 
 
         geo_reference = Geo_reference(56, 100, 200)
@@ -1549,7 +1550,7 @@ class Test_Geospatial_data(unittest.TestCase):
         #print "new_points",new_points
         #print "ab_points",ab_points
            
-        assert allclose(new_points, ab_points)
+        assert num.allclose(new_points, ab_points)
         
     def test_isinstance(self):
 
@@ -1564,12 +1565,12 @@ class Test_Geospatial_data(unittest.TestCase):
         file.close()
 
         results = Geospatial_data(fileName)
-        assert allclose(results.get_data_points(absolute=True), \
-                        [[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
-        assert allclose(results.get_attributes(attribute_name='elevation'), \
-                        [10.0, 0.0, 10.4])
-        assert allclose(results.get_attributes(attribute_name='speed'), \
-                        [0.0, 10.0, 40.0])
+        assert num.allclose(results.get_data_points(absolute=True),
+                            [[1.0, 0.0],[0.0, 1.0],[1.0, 0.0]])
+        assert num.allclose(results.get_attributes(attribute_name='elevation'),
+                            [10.0, 0.0, 10.4])
+        assert num.allclose(results.get_attributes(attribute_name='speed'),
+                            [0.0, 10.0, 40.0])
 
         os.remove(fileName)
         
@@ -1601,10 +1602,10 @@ class Test_Geospatial_data(unittest.TestCase):
         os.remove(fileName)
         points = results.get_data_points()
         
-        assert allclose(points[0][0], 308728.009)
-        assert allclose(points[0][1], 6180432.601)
-        assert allclose(points[1][0],  222908.705)
-        assert allclose(points[1][1], 6233785.284)
+        assert num.allclose(points[0][0], 308728.009)
+        assert num.allclose(points[0][1], 6180432.601)
+        assert num.allclose(points[1][0],  222908.705)
+        assert num.allclose(points[1][1], 6233785.284)
         
       
     def test_load_csv_lat_longII(self):
@@ -1622,10 +1623,10 @@ class Test_Geospatial_data(unittest.TestCase):
         os.remove(fileName)
         points = results.get_data_points()
         
-        assert allclose(points[0][0], 308728.009)
-        assert allclose(points[0][1], 6180432.601)
-        assert allclose(points[1][0],  222908.705)
-        assert allclose(points[1][1], 6233785.284)
+        assert num.allclose(points[0][0], 308728.009)
+        assert num.allclose(points[0][1], 6180432.601)
+        assert num.allclose(points[1][0],  222908.705)
+        assert num.allclose(points[1][1], 6233785.284)
 
           
     def test_load_csv_lat_long_bad(self):
@@ -1662,10 +1663,10 @@ class Test_Geospatial_data(unittest.TestCase):
 
         points = gsd.get_data_points(absolute=True)
         
-        assert allclose(points[0][0], 308728.009)
-        assert allclose(points[0][1], 6180432.601)
-        assert allclose(points[1][0],  222908.705)
-        assert allclose(points[1][1], 6233785.284)
+        assert num.allclose(points[0][0], 308728.009)
+        assert num.allclose(points[0][1], 6180432.601)
+        assert num.allclose(points[1][0],  222908.705)
+        assert num.allclose(points[1][1], 6233785.284)
         self.failUnless(gsd.get_geo_reference().get_zone() == 56,
                         'Bad zone error!')
         
@@ -1715,10 +1716,10 @@ class Test_Geospatial_data(unittest.TestCase):
 
         points = gsd.get_data_points(absolute=True)
         
-        assert allclose(points[0][0], 308728.009)
-        assert allclose(points[0][1], 6180432.601)
-        assert allclose(points[1][0],  222908.705)
-        assert allclose(points[1][1], 6233785.284)
+        assert num.allclose(points[0][0], 308728.009)
+        assert num.allclose(points[0][1], 6180432.601)
+        assert num.allclose(points[1][0],  222908.705)
+        assert num.allclose(points[1][1], 6233785.284)
         self.failUnless(gsd.get_geo_reference().get_zone() == 56,
                         'Bad zone error!')
 
@@ -1770,26 +1771,26 @@ class Test_Geospatial_data(unittest.TestCase):
         #Note the order is unknown, due to using sets
         # and it changes from windows to linux
         try:
-            assert allclose(points[1][0], 308728.009)
-            assert allclose(points[1][1], 6180432.601)
-            assert allclose(points[0][0],  222908.705)
-            assert allclose(points[0][1], 6233785.284)
+            assert num.allclose(points[1][0], 308728.009)
+            assert num.allclose(points[1][1], 6180432.601)
+            assert num.allclose(points[0][0],  222908.705)
+            assert num.allclose(points[0][1], 6233785.284)
         except AssertionError:
-            assert allclose(points[0][0], 308728.009)
-            assert allclose(points[0][1], 6180432.601)
-            assert allclose(points[1][0],  222908.705)
-            assert allclose(points[1][1], 6233785.284)
+            assert num.allclose(points[0][0], 308728.009)
+            assert num.allclose(points[0][1], 6180432.601)
+            assert num.allclose(points[1][0],  222908.705)
+            assert num.allclose(points[1][1], 6233785.284)
             
         self.failUnless(gsd.get_geo_reference().get_zone() == 56,
                         'Bad zone error!')
         points = gsd.get_data_points(as_lat_long=True)
         #print "test_lat_long_set points", points
         try:
-            assert allclose(points[0][0], -34)
-            assert allclose(points[0][1], 150)
+            assert num.allclose(points[0][0], -34)
+            assert num.allclose(points[0][1], 150)
         except AssertionError:
-            assert allclose(points[1][0], -34)
-            assert allclose(points[1][1], 150)
+            assert num.allclose(points[1][0], -34)
+            assert num.allclose(points[1][1], 150)
 
     def test_len(self):
         
@@ -1828,14 +1829,14 @@ class Test_Geospatial_data(unittest.TestCase):
             #will return G1 with 10% of points and G2 with 90%
             G1, G2  = G.split(factor,100) 
             
-            assert allclose(len(G), len(G1)+len(G2))
-            assert allclose(round(len(G)*factor), len(G1))
+            assert num.allclose(len(G), len(G1)+len(G2))
+            assert num.allclose(round(len(G)*factor), len(G1))
     
             P = G1.get_data_points(absolute=False)
-            assert allclose(P, [[5.0,4.0],[4.0,3.0],[4.0,2.0],[3.0,1.0],[2.0,3.0]])
+            assert num.allclose(P, [[5.0,4.0],[4.0,3.0],[4.0,2.0],[3.0,1.0],[2.0,3.0]])
     
             A = G1.get_attributes()
-            assert allclose(A,[24, 18, 17, 11, 8])
+            assert num.allclose(A,[24, 18, 17, 11, 8])
         
     def test_split1(self):
         """test if the results from spilt are disjoin sets"""
@@ -1856,11 +1857,11 @@ class Test_Geospatial_data(unittest.TestCase):
             G1, G2  = G.split(factor,100) 
             
     #        print 'G1',G1
-            assert allclose(len(G), len(G1)+len(G2))
-            assert allclose(round(len(G)*factor), len(G1))
+            assert num.allclose(len(G), len(G1)+len(G2))
+            assert num.allclose(round(len(G)*factor), len(G1))
     
             P = G1.get_data_points(absolute=False)
-            assert allclose(P, [[982420.,28233.]])
+            assert num.allclose(P, [[982420.,28233.]])
 
  
     def test_find_optimal_smoothing_parameter(self):

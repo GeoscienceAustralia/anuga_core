@@ -8,11 +8,12 @@ from os import access, F_OK, R_OK,remove
 from types import DictType
 from warnings import warn
 from string import lower
-from Numeric import concatenate, array, Float, shape, reshape, ravel, take, \
-                    size, shape
 from RandomArray import randint, seed, get_seed
 from copy import deepcopy
 from Scientific.IO.NetCDF import NetCDFFile
+
+import Numeric as num
+
 from anuga.coordinate_transforms.lat_long_UTM_conversion import UTMtoLL
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.coordinate_transforms.geo_reference import Geo_reference, \
@@ -485,9 +486,9 @@ class Geospatial_data:
             geo_ref2 = other.get_geo_reference()
             zone2 = geo_ref2.get_zone()
             geo_ref1.reconcile_zones(geo_ref2)
-            new_points = concatenate((self.get_data_points(absolute=True),
-                                      other.get_data_points(absolute=True)),
-                                     axis = 0)
+            new_points = num.concatenate((self.get_data_points(absolute=True),
+                                          other.get_data_points(absolute=True)),
+                                         axis = 0)
 
             # Concatenate attributes if any
             if self.attributes is None:
@@ -503,7 +504,7 @@ class Geospatial_data:
                     if other.attributes.has_key(x):
                         attrib1 = self.attributes[x]
                         attrib2 = other.attributes[x]
-                        new_attributes[x] = concatenate((attrib1, attrib2))
+                        new_attributes[x] = num.concatenate((attrib1, attrib2))
                     else:
                         msg = 'Geospatial data must have the same \n'
                         msg += 'attributes to allow addition.'
@@ -659,14 +660,14 @@ class Geospatial_data:
 
         #FIXME: add the geo_reference to this
         points = self.get_data_points()
-        sampled_points = take(points, indices)
+        sampled_points = num.take(points, indices)
 
         attributes = self.get_all_attributes()
 
         sampled_attributes = {}
         if attributes is not None:
             for key, att in attributes.items():
-                sampled_attributes[key] = take(att, indices)
+                sampled_attributes[key] = num.take(att, indices)
 
         return Geospatial_data(sampled_points, sampled_attributes)
 
@@ -705,7 +706,7 @@ class Geospatial_data:
         # Find unique random numbers
         if verbose: print "make unique random number list and get indices"
 
-        total=array(range(self_size))
+        total=num.array(range(self_size))
         total_list = total.tolist()
 
         if verbose: print "total list len", len(total_list)
@@ -958,8 +959,8 @@ def _set_using_lat_long(latitudes,
             msg = "Data points are not specified."
             raise ValueError, msg
         lats_longs = ensure_numeric(data_points)
-        latitudes = ravel(lats_longs[:,0:1])
-        longitudes = ravel(lats_longs[:,1:])
+        latitudes = num.ravel(lats_longs[:,0:1])
+        longitudes = num.ravel(lats_longs[:,1:])
 
     if latitudes is None and longitudes is None:
         msg = "Latitudes and Longitudes are not specified."
@@ -1003,7 +1004,7 @@ def _read_pts_file(file_name, verbose=False):
     # Throws prints to screen if file not present
     fid = NetCDFFile(file_name, netcdf_mode_r)
 
-    pointlist = array(fid.variables['points'])
+    pointlist = num.array(fid.variables['points'])
     keys = fid.variables.keys()
 
     if verbose: print 'Got %d variables: %s' % (len(keys), keys)
@@ -1019,7 +1020,7 @@ def _read_pts_file(file_name, verbose=False):
     for key in keys:
         if verbose: print "reading attribute '%s'" % key
 
-        attributes[key] = array(fid.variables[key])
+        attributes[key] = num.array(fid.variables[key])
 
     try:
         geo_reference = Geo_reference(NetCDFObject=fid)
@@ -1137,20 +1138,20 @@ def _read_csv_file_blocking(file_pointer, header,
                 msg = "File load error. " \
                       "There might be a problem with the file header."
                 raise SyntaxError, msg
-            for i,num in enumerate(numbers):
-                num.strip()
-                if num != '\n' and num != '':
-                    #attributes.append(float(num))
-                    att_dict.setdefault(header[i],[]).append(float(num))
+            for i,n in enumerate(numbers):
+                n.strip()
+                if n != '\n' and n != '':
+                    #attributes.append(float(n))
+                    att_dict.setdefault(header[i],[]).append(float(n))
         except ValueError:
             raise SyntaxError
 
     if points == []:
         raise StopIteration
 
-    pointlist = array(points).astype(Float)
+    pointlist = num.array(points).astype(num.Float)
     for key in att_dict.keys():
-        att_dict[key] = array(att_dict[key]).astype(Float)
+        att_dict[key] = num.array(att_dict[key]).astype(num.Float)
 
     # Do stuff here so the info is in lat's and longs
     geo_ref = None
@@ -1159,11 +1160,11 @@ def _read_csv_file_blocking(file_pointer, header,
     if (x_header == 'lon' or  x_header == 'lat') \
        and (y_header == 'lon' or  y_header == 'lat'):
         if x_header == 'lon':
-            longitudes = ravel(pointlist[:,0:1])
-            latitudes = ravel(pointlist[:,1:])
+            longitudes = num.ravel(pointlist[:,0:1])
+            latitudes = num.ravel(pointlist[:,1:])
         else:
-            latitudes = ravel(pointlist[:,0:1])
-            longitudes = ravel(pointlist[:,1:])
+            latitudes = num.ravel(pointlist[:,0:1])
+            longitudes = num.ravel(pointlist[:,1:])
 
         pointlist, geo_ref = _set_using_lat_long(latitudes,
                                                  longitudes,
@@ -1213,11 +1214,11 @@ def _read_pts_file_blocking(fid, start_row, fin_row, keys):
     """Read the body of a .csv file.
     """
 
-    pointlist = array(fid.variables['points'][start_row:fin_row])
+    pointlist = num.array(fid.variables['points'][start_row:fin_row])
 
     attributes = {}
     for key in keys:
-        attributes[key] = array(fid.variables[key][start_row:fin_row])
+        attributes[key] = num.array(fid.variables[key][start_row:fin_row])
 
     return pointlist, attributes
 
@@ -1265,15 +1266,15 @@ def _write_pts_file(file_name,
     outfile.createDimension('number_of_dimensions', 2) #This is 2d data
 
     # Variable definition
-    outfile.createVariable('points', Float, ('number_of_points',
-                                             'number_of_dimensions'))
+    outfile.createVariable('points', num.Float, ('number_of_points',
+                                                 'number_of_dimensions'))
 
     #create variables
     outfile.variables['points'][:] = write_data_points #.astype(Float32)
 
     if write_attributes is not None:
         for key in write_attributes.keys():
-            outfile.createVariable(key, Float, ('number_of_points',))
+            outfile.createVariable(key, num.Float, ('number_of_points',))
             outfile.variables[key][:] = write_attributes[key] #.astype(Float32)
 
     if write_geo_reference is not None:
@@ -1359,11 +1360,11 @@ def _write_urs_file(file_name, points, delimiter=' '):
 # @param point_atts ??
 # @return ??
 def _point_atts2array(point_atts):
-    point_atts['pointlist'] = array(point_atts['pointlist']).astype(Float)
+    point_atts['pointlist'] = num.array(point_atts['pointlist']).astype(num.Float)
 
     for key in point_atts['attributelist'].keys():
         point_atts['attributelist'][key] = \
-                array(point_atts['attributelist'][key]).astype(Float)
+                num.array(point_atts['attributelist'][key]).astype(num.Float)
 
     return point_atts
 
@@ -1468,7 +1469,7 @@ def ensure_absolute(points, geo_reference=None):
         msg = 'Use a Geospatial_data object or a mesh origin, not both.'
         assert geo_reference == None, msg
     else:
-        points = ensure_numeric(points, Float)
+        points = ensure_numeric(points, num.Float)
 
     # Sort of geo_reference and convert points
     if geo_reference is None:
@@ -1512,7 +1513,7 @@ def ensure_geospatial(points, geo_reference=None):
         return points
     else:
         # List or numeric array of absolute points
-        points = ensure_numeric(points, Float)
+        points = ensure_numeric(points, num.Float)
 
     # Sort out geo reference
     if geo_reference is None:
@@ -1608,7 +1609,6 @@ def find_optimal_smoothing_parameter(data_file,
     from anuga.geospatial_data.geospatial_data import Geospatial_data
     from anuga.pmesh.mesh_interface import create_mesh_from_regions
     from anuga.utilities.numerical_tools import cov
-    from Numeric import array, resize,shape,Float,zeros,take,argsort,argmin
     from anuga.utilities.polygon import is_inside_polygon
     from anuga.fit_interpolate.benchmark_least_squares import mem_usage
 
@@ -1670,9 +1670,9 @@ def find_optimal_smoothing_parameter(data_file,
     #creates array with columns 1 and 2 are x, y. column 3 is elevation
     #4 onwards is the elevation_predicted using the alpha, which will
     #be compared later against the real removed data
-    data = array([], typecode=Float)
+    data = num.array([], typecode=num.Float)
 
-    data=resize(data, (len(points), 3+len(alphas)))
+    data=num.resize(data, (len(points), 3+len(alphas)))
 
     #gets relative point from sample
     data[:,0] = points[:,0]
@@ -1680,7 +1680,7 @@ def find_optimal_smoothing_parameter(data_file,
     elevation_sample = G_small.get_attributes(attribute_name=attribute_smoothed)
     data[:,2] = elevation_sample
 
-    normal_cov=array(zeros([len(alphas), 2]), typecode=Float)
+    normal_cov=num.array(num.zeros([len(alphas), 2]), typecode=num.Float)
 
     if verbose: print 'Setup computational domains with different alphas'
 
@@ -1719,7 +1719,7 @@ def find_optimal_smoothing_parameter(data_file,
             print '-------------------------------------------- \n'
 
     normal_cov0 = normal_cov[:,0]
-    normal_cov_new = take(normal_cov, argsort(normal_cov0))
+    normal_cov_new = num.take(normal_cov, num.argsort(normal_cov0))
 
     if plot_name is not None:
         from pylab import savefig, semilogx, loglog
@@ -1737,11 +1737,11 @@ def find_optimal_smoothing_parameter(data_file,
             print 'covariance for alpha %s = %s ' \
                   % (normal_cov[i][0], normal_cov[i][1])
         print '\n Optimal alpha is: %s ' \
-              % normal_cov_new[(argmin(normal_cov_new, axis=0))[1], 0]
+              % normal_cov_new[(num.argmin(normal_cov_new, axis=0))[1], 0]
 
     # covariance and optimal alpha
     return (min(normal_cov_new[:,1]),
-            normal_cov_new[(argmin(normal_cov_new,axis=0))[1],0])
+            normal_cov_new[(num.argmin(normal_cov_new,axis=0))[1],0])
 
 
 ##
@@ -1816,7 +1816,6 @@ def old_find_optimal_smoothing_parameter(data_file,
     from anuga.geospatial_data.geospatial_data import Geospatial_data
     from anuga.pmesh.mesh_interface import create_mesh_from_regions
     from anuga.utilities.numerical_tools import cov
-    from Numeric import array, resize,shape,Float,zeros,take,argsort,argmin
     from anuga.utilities.polygon import is_inside_polygon
     from anuga.fit_interpolate.benchmark_least_squares import mem_usage
 
@@ -1905,9 +1904,9 @@ def old_find_optimal_smoothing_parameter(data_file,
     #creates array with columns 1 and 2 are x, y. column 3 is elevation
     #4 onwards is the elevation_predicted using the alpha, which will
     #be compared later against the real removed data
-    data = array([], typecode=Float)
+    data = num.array([], typecode=num.Float)
 
-    data = resize(data, (len(points), 3+len(alphas)))
+    data = num.resize(data, (len(points), 3+len(alphas)))
 
     #gets relative point from sample
     data[:,0] = points[:,0]
@@ -1915,7 +1914,7 @@ def old_find_optimal_smoothing_parameter(data_file,
     elevation_sample = G_small.get_attributes(attribute_name=attribute_smoothed)
     data[:,2] = elevation_sample
 
-    normal_cov = array(zeros([len(alphas), 2]), typecode=Float)
+    normal_cov = num.array(num.zeros([len(alphas), 2]), typecode=num.Float)
 
     if verbose:
         print 'Determine difference between predicted results and actual data'
@@ -1939,7 +1938,7 @@ def old_find_optimal_smoothing_parameter(data_file,
         if verbose: print 'cov', normal_cov[i][0], '= ', normal_cov[i][1]
 
     normal_cov0 = normal_cov[:,0]
-    normal_cov_new = take(normal_cov, argsort(normal_cov0))
+    normal_cov_new = num.take(normal_cov, num.argsort(normal_cov0))
 
     if plot_name is not None:
         from pylab import savefig,semilogx,loglog
@@ -1951,7 +1950,7 @@ def old_find_optimal_smoothing_parameter(data_file,
         remove(mesh_file)
 
     return (min(normal_cov_new[:,1]),
-            normal_cov_new[(argmin(normal_cov_new, axis=0))[1],0])
+            normal_cov_new[(num.argmin(normal_cov_new, axis=0))[1],0])
 
 
 if __name__ == "__main__":
