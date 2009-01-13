@@ -71,7 +71,7 @@ class Test_Culvert(unittest.TestCase):
 
                # Sloping Embankment Across Channel
                 if 5.0 < x[i] < 10.1:
-                    # Cut Out Segment for Culvert FACE                
+                    # Cut Out Segment for Culvert face                
                     if  1.0+(x[i]-5.0)/5.0 <  y[i]  < 4.0 - (x[i]-5.0)/5.0: 
                        z[i]=z[i]
                     else:
@@ -79,7 +79,7 @@ class Test_Culvert(unittest.TestCase):
                 if 10.0 < x[i] < 12.1:
                    z[i] +=  2.5                    # Flat Crest of Embankment
                 if 12.0 < x[i] < 14.5:
-                    # Cut Out Segment for Culvert FACE                
+                    # Cut Out Segment for Culvert face                
                     if  2.0-(x[i]-12.0)/2.5 <  y[i]  < 3.0 + (x[i]-12.0)/2.5:
                        z[i]=z[i]
                     else:
@@ -185,7 +185,7 @@ class Test_Culvert(unittest.TestCase):
 
                # Sloping Embankment Across Channel
                 if 5.0 < x[i] < 10.1:
-                    # Cut Out Segment for Culvert FACE                
+                    # Cut Out Segment for Culvert face                
                     if  1.0+(x[i]-5.0)/5.0 <  y[i]  < 4.0 - (x[i]-5.0)/5.0: 
                        z[i]=z[i]
                     else:
@@ -193,7 +193,7 @@ class Test_Culvert(unittest.TestCase):
                 if 10.0 < x[i] < 12.1:
                    z[i] +=  2.5                    # Flat Crest of Embankment
                 if 12.0 < x[i] < 14.5:
-                    # Cut Out Segment for Culvert FACE                
+                    # Cut Out Segment for Culvert face                
                     if  2.0-(x[i]-12.0)/2.5 <  y[i]  < 3.0 + (x[i]-12.0)/2.5:
                        z[i]=z[i]
                     else:
@@ -286,7 +286,7 @@ class Test_Culvert(unittest.TestCase):
 
                # Sloping Embankment Across Channel
                 if 5.0 < x[i] < 10.1:
-                    # Cut Out Segment for Culvert FACE                
+                    # Cut Out Segment for Culvert face                
                     if  1.0+(x[i]-5.0)/5.0 <  y[i]  < 4.0 - (x[i]-5.0)/5.0: 
                        z[i]=z[i]
                     else:
@@ -294,7 +294,7 @@ class Test_Culvert(unittest.TestCase):
                 if 10.0 < x[i] < 12.1:
                    z[i] +=  2.5                    # Flat Crest of Embankment
                 if 12.0 < x[i] < 14.5:
-                    # Cut Out Segment for Culvert FACE                
+                    # Cut Out Segment for Culvert face                
                     if  2.0-(x[i]-12.0)/2.5 <  y[i]  < 3.0 + (x[i]-12.0)/2.5:
                        z[i]=z[i]
                     else:
@@ -307,11 +307,8 @@ class Test_Culvert(unittest.TestCase):
         domain.set_quantity('elevation', topography) 
         domain.set_quantity('friction', 0.01)         # Constant friction 
         domain.set_quantity('stage',
-                            expression='elevation + 0.2') # Shallow initial condition
+                            expression='elevation + 0.1') # Shallow initial condition
                             
-        # NOTE: Shallow values may cause this test to fail regardless of the
-        # culvert due to initial adjustments. A good value is 0.2
-
 
         filename = os.path.join(path, 'example_rating_curve.csv')
         culvert = Culvert_flow(domain,
@@ -334,6 +331,7 @@ class Test_Culvert(unittest.TestCase):
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
 
+        
         #-----------------------------------------------------------------------
         # Evolve system through time
         #-----------------------------------------------------------------------
@@ -347,7 +345,28 @@ class Test_Culvert(unittest.TestCase):
                 % (new_volume, ref_volume)
             if not allclose(new_volume, ref_volume):
                 print msg
-            assert allclose(new_volume, ref_volume), msg
+            assert allclose(new_volume, ref_volume), msg        
+        
+        
+        
+        # Now try this for a range of other depths
+        for depth in [1.0, 0.5, 0.2, 0.1, 0.05]:
+            domain.set_time(0.0)
+            
+            domain.set_quantity('stage',
+                                expression='elevation + %f' % depth)
+            
+        
+            ref_volume = domain.get_quantity('stage').get_integral()
+            for t in domain.evolve(yieldstep = 0.1, finaltime = 25):
+                #print domain.timestepping_statistics()
+                new_volume = domain.get_quantity('stage').get_integral()
+            
+                #print new_volume, ref_volume, new_volume-ref_volume
+                msg = 'Total volume has changed: Is %.2f m^3 should have been %.2f m^3'\
+                    % (new_volume, ref_volume)
+
+                assert allclose(new_volume, ref_volume), msg
     
     
     
@@ -393,7 +412,7 @@ class Test_Culvert(unittest.TestCase):
 
                # Sloping Embankment Across Channel
                 if 5.0 < x[i] < 10.1:
-                    # Cut Out Segment for Culvert FACE                
+                    # Cut Out Segment for Culvert face                
                     if  1.0+(x[i]-5.0)/5.0 <  y[i]  < 4.0 - (x[i]-5.0)/5.0: 
                        z[i]=z[i]
                     else:
@@ -401,7 +420,7 @@ class Test_Culvert(unittest.TestCase):
                 if 10.0 < x[i] < 12.1:
                    z[i] +=  2.5                    # Flat Crest of Embankment
                 if 12.0 < x[i] < 14.5:
-                    # Cut Out Segment for Culvert FACE                
+                    # Cut Out Segment for Culvert face                
                     if  2.0-(x[i]-12.0)/2.5 <  y[i]  < 3.0 + (x[i]-12.0)/2.5:
                        z[i]=z[i]
                     else:
