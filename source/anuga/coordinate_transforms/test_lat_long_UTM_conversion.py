@@ -6,11 +6,13 @@
 
 
 import unittest
-from Numeric import allclose
 
 from lat_long_UTM_conversion import *
 from redfearn import degminsec2decimal_degrees, decimal_degrees2degminsec
 from anuga.utilities.anuga_exceptions import ANUGAError
+
+import Numeric as num
+
 
 #-------------------------------------------------------------
 
@@ -27,19 +29,19 @@ class TestCase(unittest.TestCase):
 
         lat = degminsec2decimal_degrees(-37,39,10.15610)
         lon = degminsec2decimal_degrees(143,55,35.38390) 
-        assert allclose(lat, -37.65282114)
-        assert allclose(lon, 143.9264955)
+        assert num.allclose(lat, -37.65282114)
+        assert num.allclose(lon, 143.9264955)
 
 
         zone, easting, northing = LLtoUTM(lat,lon)
 
         assert zone == 54
-        assert allclose(easting, 758173.797)
-        assert allclose(northing, 5828674.340)
+        assert num.allclose(easting, 758173.797)
+        assert num.allclose(northing, 5828674.340)
 
         lat_calced, long_calced = UTMtoLL(northing, easting, zone) 
-        assert allclose(lat,  lat_calced)
-        assert allclose(lon, long_calced)
+        assert num.allclose(lat,  lat_calced)
+        assert num.allclose(lon, long_calced)
 
 
     def test_UTM_2(self):
@@ -60,12 +62,12 @@ class TestCase(unittest.TestCase):
 
         
         assert zone == 55
-        assert allclose(easting, 273741.297)
-        assert allclose(northing, 5796489.777)
+        assert num.allclose(easting, 273741.297)
+        assert num.allclose(northing, 5796489.777)
 
         lat_calced, long_calced = UTMtoLL(northing, easting, zone) 
-        assert allclose(lat,  lat_calced)
-        assert allclose(lon, long_calced)
+        assert num.allclose(lat,  lat_calced)
+        assert num.allclose(lon, long_calced)
         
         
     def test_UTM_3(self):
@@ -77,8 +79,8 @@ class TestCase(unittest.TestCase):
         #print zone, easting, northing
 
         assert zone == 52
-        assert allclose(easting, 555776.267)
-        assert allclose(northing, 3348167.264)
+        assert num.allclose(easting, 555776.267)
+        assert num.allclose(northing, 3348167.264)
 
         Lat, Long = UTMtoLL(northing, easting, zone)
 
@@ -93,13 +95,13 @@ class TestCase(unittest.TestCase):
         zone, easting, northing = LLtoUTM(lat,lon)
         
         assert zone == 33
-        assert allclose(easting, 348157.631)
-        assert allclose(northing, 6175612.993) 
+        assert num.allclose(easting, 348157.631)
+        assert num.allclose(northing, 6175612.993) 
 
         lat_calced, long_calced = UTMtoLL(northing, easting, zone,
                                           isSouthernHemisphere=False) 
-        assert allclose(lat,  lat_calced)
-        assert allclose(lon, long_calced)
+        assert num.allclose(lat,  lat_calced)
+        assert num.allclose(lon, long_calced)
 
     def test_UTM_5(self):
         #Test 5 (Wollongong)
@@ -112,12 +114,12 @@ class TestCase(unittest.TestCase):
         #print zone, easting, northing
 
         assert zone == 56
-        assert allclose(easting, 308728.009)
-        assert allclose(northing, 6180432.601)
+        assert num.allclose(easting, 308728.009)
+        assert num.allclose(northing, 6180432.601)
 
         lat_calced, long_calced = UTMtoLL(northing, easting, zone) 
-        assert allclose(lat,  lat_calced)
-        assert allclose(lon, long_calced)
+        assert num.allclose(lat,  lat_calced)
+        assert num.allclose(lon, long_calced)
 #-------------------------------------------------------------
 if __name__ == "__main__":
 

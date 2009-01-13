@@ -6,10 +6,12 @@
 
 
 import unittest
-from Numeric import allclose
 
 from redfearn import *
 from anuga.utilities.anuga_exceptions import ANUGAError
+
+import Numeric as num
+
 
 #-------------------------------------------------------------
 
@@ -18,18 +20,18 @@ class TestCase(unittest.TestCase):
     def test_decimal_degrees_conversion(Self):
         lat = degminsec2decimal_degrees(-37,39,10.15610)
         lon = degminsec2decimal_degrees(143,55,35.38390) 
-        assert allclose(lat, -37.65282114)
-        assert allclose(lon, 143.9264955)
+        assert num.allclose(lat, -37.65282114)
+        assert num.allclose(lon, 143.9264955)
 
         dd,mm,ss = decimal_degrees2degminsec(-37.65282114)
         assert dd==-37
         assert mm==39
-        assert allclose(ss, 10.15610)
+        assert num.allclose(ss, 10.15610)
 
         dd,mm,ss = decimal_degrees2degminsec(143.9264955)
         assert dd==143
         assert mm==55
-        assert allclose(ss, 35.38390) 
+        assert num.allclose(ss, 35.38390) 
 
 
     def test_UTM_1(self):
@@ -43,15 +45,15 @@ class TestCase(unittest.TestCase):
 
         lat = degminsec2decimal_degrees(-37,39,10.15610)
         lon = degminsec2decimal_degrees(143,55,35.38390) 
-        assert allclose(lat, -37.65282114)
-        assert allclose(lon, 143.9264955)
+        assert num.allclose(lat, -37.65282114)
+        assert num.allclose(lon, 143.9264955)
 
 
         zone, easting, northing = redfearn(lat,lon)
 
         assert zone == 54
-        assert allclose(easting, 758173.797)
-        assert allclose(northing, 5828674.340)
+        assert num.allclose(easting, 758173.797)
+        assert num.allclose(northing, 5828674.340)
 
 
     def test_UTM_2(self):
@@ -71,8 +73,8 @@ class TestCase(unittest.TestCase):
         zone, easting, northing = redfearn(lat,lon)
 
         assert zone == 55
-        assert allclose(easting, 273741.297)
-        assert allclose(northing, 5796489.777)
+        assert num.allclose(easting, 273741.297)
+        assert num.allclose(northing, 5796489.777)
 
         
     def test_UTM_3(self):
@@ -84,8 +86,8 @@ class TestCase(unittest.TestCase):
         #print zone, easting, northing
 
         assert zone == 52
-        assert allclose(easting, 555776.267)
-        assert allclose(northing, 3348167.264)
+        assert num.allclose(easting, 555776.267)
+        assert num.allclose(northing, 3348167.264)
 
 
     def test_UTM_4(self):
@@ -100,8 +102,8 @@ class TestCase(unittest.TestCase):
 
 
         assert zone == 33
-        assert allclose(easting, 348157.631)
-        assert allclose(northing, 6175612.993) 
+        assert num.allclose(easting, 348157.631)
+        assert num.allclose(northing, 6175612.993) 
 
 
     def test_UTM_5(self):
@@ -115,8 +117,8 @@ class TestCase(unittest.TestCase):
         #print zone, easting, northing
 
         assert zone == 56
-        assert allclose(easting, 308728.009)
-        assert allclose(northing, 6180432.601)
+        assert num.allclose(easting, 308728.009)
+        assert num.allclose(northing, 6180432.601)
 
     def test_UTM_6_nonstandard_projection(self):
         #Test 6 (Geraldton, WA)
@@ -125,22 +127,22 @@ class TestCase(unittest.TestCase):
         zone, easting, northing = redfearn(-29.233299999,114.05)
 
         assert zone == 50
-        assert allclose(easting, 213251.040253)
-        assert allclose(northing, 6762559.15978)
+        assert num.allclose(easting, 213251.040253)
+        assert num.allclose(northing, 6762559.15978)
 
         #Testing using the native zone
         zone, easting, northing = redfearn(-29.233299999,114.05, zone=50)
 
         assert zone == 50
-        assert allclose(easting, 213251.040253)
-        assert allclose(northing, 6762559.15978)
+        assert num.allclose(easting, 213251.040253)
+        assert num.allclose(northing, 6762559.15978)
 
         #Then project to zone 49
         zone, easting, northing = redfearn(-29.233299999,114.05,zone=49)
 
         assert zone == 49
-        assert allclose(easting, 796474.020057)
-        assert allclose(northing, 6762310.25162)
+        assert num.allclose(easting, 796474.020057)
+        assert num.allclose(northing, 6762310.25162)
 
        
 
@@ -150,67 +152,67 @@ class TestCase(unittest.TestCase):
         zone, easting, northing = redfearn(-29.1333,113.9667)
 
         assert zone == 49
-        assert allclose(easting, 788653.192779)
-        assert allclose(northing, 6773605.46384)
+        assert num.allclose(easting, 788653.192779)
+        assert num.allclose(northing, 6773605.46384)
 
         #Then project to zone 50
         zone, easting, northing = redfearn(-29.1333,113.9667,zone=50)
 
         assert zone == 50
-        assert allclose(easting, 204863.606467)
-        assert allclose(northing, 6773440.04726)
+        assert num.allclose(easting, 204863.606467)
+        assert num.allclose(northing, 6773440.04726)
 
         #Testing point on zone boundary
         #First test native projection (zone 50)
         zone, easting, northing = redfearn(-29.1667,114)
 
         assert zone == 50
-        assert allclose(easting, 208199.768268)
-        assert allclose(northing, 6769820.01453)
+        assert num.allclose(easting, 208199.768268)
+        assert num.allclose(northing, 6769820.01453)
 
         #Then project to zone 49
         zone, easting, northing = redfearn(-29.1667,114,zone=49)
 
         assert zone == 49
-        assert allclose(easting, 791800.231817)
-        assert allclose(northing, 6769820.01453)
+        assert num.allclose(easting, 791800.231817)
+        assert num.allclose(northing, 6769820.01453)
 
         #Testing furthest point in Geraldton scenario)
         #First test native projection (zone 49)
         zone, easting, northing = redfearn(-28.2167,113.4167)
 
         assert zone == 49
-        assert allclose(easting, 737178.16131)
-        assert allclose(northing, 6876426.38578)
+        assert num.allclose(easting, 737178.16131)
+        assert num.allclose(northing, 6876426.38578)
 
         #Then project to zone 50
         zone, easting, northing = redfearn(-28.2167,113.4167,zone=50)
 
         assert zone == 50
-        assert allclose(easting, 148260.567427)
-        assert allclose(northing, 6873587.50926)
+        assert num.allclose(easting, 148260.567427)
+        assert num.allclose(northing, 6873587.50926)
 
         #Testing outside GDA zone (New Zeland)
         #First test native projection (zone 60)
         zone, easting, northing = redfearn(-44,178)
 
         assert zone == 60
-        assert allclose(easting, 580174.259843)
-        assert allclose(northing, 5127641.114461)
+        assert num.allclose(easting, 580174.259843)
+        assert num.allclose(northing, 5127641.114461)
 
         #Then project to zone 59
         zone, easting, northing = redfearn(-44,178,zone=59)
 
         assert zone == 59
-        assert allclose(easting, 1061266.922118)
-        assert allclose(northing, 5104249.395469)
+        assert num.allclose(easting, 1061266.922118)
+        assert num.allclose(northing, 5104249.395469)
 
         #Then skip three zones 57 (native 60)
         zone, easting, northing = redfearn(-44,178,zone=57)
 
         assert zone == 57
-        assert allclose(easting, 2023865.527497)
-        assert allclose(northing, 4949253.934967)
+        assert num.allclose(easting, 2023865.527497)
+        assert num.allclose(northing, 4949253.934967)
 
         # Note Projecting into the Northern Hemisphere Does not coincide
         # redfearn or ArcMap conversions. The difference lies in
@@ -226,20 +228,20 @@ class TestCase(unittest.TestCase):
 
         # Google Earth interpretation
         assert zone == 57
-        assert allclose(easting, 259473.69)
-        assert allclose(northing, 4876249.13)
+        assert num.allclose(easting, 259473.69)
+        assert num.allclose(northing, 4876249.13)
 
         # ArcMap's interpretation
         #assert zone == 57        
-        #assert allclose(easting, 259473.678944)
-        #assert allclose(northing, 14876249.1268)
+        #assert num.allclose(easting, 259473.678944)
+        #assert num.allclose(northing, 14876249.1268)
         
         #Then project to zone 56
         zone, easting, northing = redfearn(44,156,zone=56)
 
         assert zone == 56
-        assert allclose(easting, 740526.321055)
-        assert allclose(northing, 4876249.13)
+        assert num.allclose(easting, 740526.321055)
+        assert num.allclose(northing, 4876249.13)
 
         
 
@@ -282,10 +284,10 @@ class TestCase(unittest.TestCase):
         longs = [lon_gong, lon_2]
         points, zone = convert_from_latlon_to_utm(latitudes=lats, longitudes=longs)
 
-        assert allclose(points[0][0], 308728.009)
-        assert allclose(points[0][1], 6180432.601)
-        assert allclose(points[1][0],  222908.705)
-        assert allclose(points[1][1], 6233785.284)
+        assert num.allclose(points[0][0], 308728.009)
+        assert num.allclose(points[0][1], 6180432.601)
+        assert num.allclose(points[1][0],  222908.705)
+        assert num.allclose(points[1][1], 6233785.284)
         self.failUnless(zone == 56,
                         'Bad zone error!')
         
@@ -354,10 +356,10 @@ class TestCase(unittest.TestCase):
         points = [[lat_gong, lon_gong], [lat_2, lon_2]]
         points, zone = convert_from_latlon_to_utm(points=points)
         #print "points",points 
-        assert allclose(points[0][0], 308728.009)
-        assert allclose(points[0][1], 6180432.601)
-        assert allclose(points[1][0],  222908.705)
-        assert allclose(points[1][1], 6233785.284)
+        assert num.allclose(points[0][0], 308728.009)
+        assert num.allclose(points[0][1], 6180432.601)
+        assert num.allclose(points[1][0],  222908.705)
+        assert num.allclose(points[1][1], 6233785.284)
         self.failUnless(zone == 56,
                         'Bad zone error!')
 

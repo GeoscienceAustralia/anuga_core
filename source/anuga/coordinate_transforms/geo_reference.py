@@ -7,10 +7,11 @@
 #and unit test
 
 import types, sys
-from Numeric import array, Float, ArrayType, reshape, allclose
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.utilities.anuga_exceptions import ANUGAError, TitleError, ParsingError, \
      ShapeError
+
+import Numeric as num
 
 
 DEFAULT_ZONE = -1
@@ -97,11 +98,11 @@ class Geo_reference:
 
         
         # Fix some assertion failures
-        if type(self.zone) == ArrayType and self.zone.shape == ():
+        if type(self.zone) == num.ArrayType and self.zone.shape == ():
             self.zone = self.zone[0]
-        if type(self.xllcorner) == ArrayType and self.xllcorner.shape == ():
+        if type(self.xllcorner) == num.ArrayType and self.xllcorner.shape == ():
             self.xllcorner = self.xllcorner[0]
-        if type(self.yllcorner) == ArrayType and self.yllcorner.shape == ():
+        if type(self.yllcorner) == num.ArrayType and self.yllcorner.shape == ():
             self.yllcorner = self.yllcorner[0]
 
         assert (type(self.xllcorner) == types.FloatType or\
@@ -171,11 +172,11 @@ class Geo_reference:
                 raise ParsingError, msg
             
         # Fix some assertion failures
-        if(type(self.zone) == ArrayType and self.zone.shape == ()):
+        if(type(self.zone) == num.ArrayType and self.zone.shape == ()):
             self.zone = self.zone[0]
-        if type(self.xllcorner) == ArrayType and self.xllcorner.shape == ():
+        if type(self.xllcorner) == num.ArrayType and self.xllcorner.shape == ():
             self.xllcorner = self.xllcorner[0]
-        if type(self.yllcorner) == ArrayType and self.yllcorner.shape == ():
+        if type(self.yllcorner) == num.ArrayType and self.yllcorner.shape == ():
             self.yllcorner = self.yllcorner[0]
     
         assert (type(self.xllcorner) == types.FloatType)
@@ -195,13 +196,13 @@ class Geo_reference:
         if type(points) == types.ListType:
             is_list = True
 
-        points = ensure_numeric(points, Float)
+        points = ensure_numeric(points, num.Float)
 	
         if len(points.shape) == 1:
             #One point has been passed
             msg = 'Single point must have two elements'
             assert len(points) == 2, msg
-            points = reshape(points, (1,2))
+            points = num.reshape(points, (1,2))
 
         msg = 'Points array must be two dimensional.\n'
         msg += 'I got %d dimensions' %len(points.shape)
@@ -238,7 +239,7 @@ class Geo_reference:
         in question are absolute.
         """
 
-        return allclose([self.xllcorner, self.yllcorner], 0) 
+        return num.allclose([self.xllcorner, self.yllcorner], 0) 
 
         
     
@@ -254,7 +255,7 @@ class Geo_reference:
         if type(points) == types.ListType:
             is_list = True
 
-        points = ensure_numeric(points, Float)
+        points = ensure_numeric(points, num.Float)
         if len(points.shape) == 1:
             #One point has been passed
             msg = 'Single point must have two elements'
@@ -294,7 +295,7 @@ class Geo_reference:
         if type(points) == types.ListType:
             is_list = True
 
-        points = ensure_numeric(points, Float)
+        points = ensure_numeric(points, num.Float)
         if len(points.shape) == 1:
             #One point has been passed
             msg = 'Single point must have two elements'

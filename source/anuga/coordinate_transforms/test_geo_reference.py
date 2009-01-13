@@ -6,8 +6,9 @@ import tempfile
 import os
 
 from geo_reference import *
-from Numeric import allclose,array
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
+
+import Numeric as num
 
 
 class geo_referenceTestCase(unittest.TestCase):
@@ -164,22 +165,22 @@ class geo_referenceTestCase(unittest.TestCase):
         x = 3.0
         y = 443.0
         g = Geo_reference(56,x,y)
-        lofl = array([[3.0,323.0], [6.0,645.0]])
+        lofl = num.array([[3.0,323.0], [6.0,645.0]])
         new_lofl = g.change_points_geo_ref(lofl)
         #print "4 lofl",lofl 
         #print "4 new_lofl",new_lofl
 
-        self.failUnless(type(new_lofl) == ArrayType, ' failed')
+        self.failUnless(type(new_lofl) == num.ArrayType, ' failed')
         self.failUnless(type(new_lofl) == type(lofl), ' failed')
         lofl[:,0] -= x
         lofl[:,1] -= y
-        assert allclose(lofl,new_lofl)
+        assert num.allclose(lofl,new_lofl)
         
     def test_change_points_geo_ref5(self):
         x = 103.0
         y = 3.0
         g = Geo_reference(56,x,y)
-        lofl = array([[3.0,323.0]])
+        lofl = num.array([[3.0,323.0]])
 
         
         #print "5 lofl before",lofl         
@@ -187,7 +188,7 @@ class geo_referenceTestCase(unittest.TestCase):
         #print "5 lofl",lofl 
         #print "5 new_lofl",new_lofl
 
-        self.failUnless(type(new_lofl) == ArrayType, ' failed')
+        self.failUnless(type(new_lofl) == num.ArrayType, ' failed')
         self.failUnless(type(new_lofl) == type(lofl), ' failed')
 
 
@@ -199,12 +200,12 @@ class geo_referenceTestCase(unittest.TestCase):
         x = 53.0
         y = 3.0
         g = Geo_reference(56,x,y)
-        lofl = array([355.0,3.0])
+        lofl = num.array([355.0,3.0])
         new_lofl = g.change_points_geo_ref(lofl.copy())        
         #print "lofl",lofl 
         #print "new_lofl",new_lofl
 
-        self.failUnless(type(new_lofl) == ArrayType, ' failed')
+        self.failUnless(type(new_lofl) == num.ArrayType, ' failed')
         self.failUnless(type(new_lofl) == type(lofl), ' failed')
         for point,new_point in map(None,[lofl],new_lofl):
             self.failUnless(point[0]-x==new_point[0], ' failed')
