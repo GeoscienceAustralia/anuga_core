@@ -57,8 +57,7 @@ The format for a Points dictionary is:
 
 
 from string import  find, rfind
-from Numeric import array, Float, Int16, Int32, Character,reshape, \
-                    concatenate, take
+import Numeric as num
 from os.path import splitext
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference, TITLE, \
@@ -649,33 +648,33 @@ def _write_msh_file(file_name, mesh):
     # created with the type Int64. Need to look at the NetCDF library
     # in more detail.
 
-    IntType = Int32
+    IntType = num.Int32
     #IntType = Int
 
     #the triangulation
-    mesh['vertices'] = array(mesh['vertices']).astype(Float)
+    mesh['vertices'] = num.array(mesh['vertices']).astype(num.Float)
     if mesh['vertex_attributes'] != None:
         mesh['vertex_attributes'] = \
-            array(mesh['vertex_attributes']).astype(Float)
+            num.array(mesh['vertex_attributes']).astype(num.Float)
     mesh['vertex_attribute_titles'] = \
-        array(mesh['vertex_attribute_titles']).astype(Character)
-    mesh['segments'] = array(mesh['segments']).astype(IntType)
-    mesh['segment_tags'] = array(mesh['segment_tags']).astype(Character)
-    mesh['triangles'] = array(mesh['triangles']).astype(IntType)
-    mesh['triangle_tags'] = array(mesh['triangle_tags']) #.astype(Character)
+        num.array(mesh['vertex_attribute_titles']).astype(num.Character)
+    mesh['segments'] = num.array(mesh['segments']).astype(IntType)
+    mesh['segment_tags'] = num.array(mesh['segment_tags']).astype(num.Character)
+    mesh['triangles'] = num.array(mesh['triangles']).astype(IntType)
+    mesh['triangle_tags'] = num.array(mesh['triangle_tags']) #.astype(Character)
     mesh['triangle_neighbors'] = \
-        array(mesh['triangle_neighbors']).astype(IntType)
+        num.array(mesh['triangle_neighbors']).astype(IntType)
 
     #the outline
-    mesh['points'] = array(mesh['points']).astype(Float)
-    mesh['point_attributes'] = array(mesh['point_attributes']).astype(Float)
-    mesh['outline_segments'] = array(mesh['outline_segments']).astype(IntType)
+    mesh['points'] = num.array(mesh['points']).astype(num.Float)
+    mesh['point_attributes'] = num.array(mesh['point_attributes']).astype(num.Float)
+    mesh['outline_segments'] = num.array(mesh['outline_segments']).astype(IntType)
     mesh['outline_segment_tags'] = \
-        array(mesh['outline_segment_tags']).astype(Character)
-    mesh['holes'] = array(mesh['holes']).astype(Float)
-    mesh['regions'] = array(mesh['regions']).astype(Float)
-    mesh['region_tags'] = array(mesh['region_tags']).astype(Character)
-    mesh['region_max_areas'] = array(mesh['region_max_areas']).astype(Float)
+        num.array(mesh['outline_segment_tags']).astype(num.Character)
+    mesh['holes'] = num.array(mesh['holes']).astype(num.Float)
+    mesh['regions'] = num.array(mesh['regions']).astype(num.Float)
+    mesh['region_tags'] = num.array(mesh['region_tags']).astype(num.Character)
+    mesh['region_max_areas'] = num.array(mesh['region_max_areas']).astype(num.Float)
 
     #mesh = mesh_dict2array(mesh)
     #print "new_mesh",new_mesh
@@ -706,8 +705,8 @@ def _write_msh_file(file_name, mesh):
     # vertices
     if (mesh['vertices'].shape[0] > 0):
         outfile.createDimension('num_of_vertices', mesh['vertices'].shape[0])
-        outfile.createVariable('vertices', Float, ('num_of_vertices',
-                                                   'num_of_dimensions'))
+        outfile.createVariable('vertices', num.Float, ('num_of_vertices',
+                                                       'num_of_dimensions'))
         outfile.variables['vertices'][:] = mesh['vertices']
         if mesh['vertex_attributes']  != None \
            and (mesh['vertex_attributes'].shape[0] > 0 \
@@ -717,11 +716,11 @@ def _write_msh_file(file_name, mesh):
             outfile.createDimension('num_of_vertex_attribute_title_chars',
                                     mesh['vertex_attribute_titles'].shape[1])
             outfile.createVariable('vertex_attributes',
-                                   Float,
+                                   num.Float,
                                    ('num_of_vertices',
                                     'num_of_vertex_attributes'))
             outfile.createVariable('vertex_attribute_titles',
-                                   Character,
+                                   num.Character,
                                    ('num_of_vertex_attributes',
                                     'num_of_vertex_attribute_title_chars'))
             outfile.variables['vertex_attributes'][:] = \
@@ -739,7 +738,7 @@ def _write_msh_file(file_name, mesh):
             outfile.createDimension('num_of_segment_tag_chars',
                                     mesh['segment_tags'].shape[1])
             outfile.createVariable('segment_tags',
-                                   Character,
+                                   num.Character,
                                    ('num_of_segments',
                                     'num_of_segment_tag_chars'))
             outfile.variables['segment_tags'][:] = mesh['segment_tags']
@@ -760,7 +759,7 @@ def _write_msh_file(file_name, mesh):
             outfile.createDimension('num_of_triangle_tag_chars',
                                     mesh['triangle_tags'].shape[1])
             outfile.createVariable('triangle_tags',
-                                   Character,
+                                   num.Character,
                                    ('num_of_triangles',
                                     'num_of_triangle_tag_chars'))
             outfile.variables['triangle_tags'][:] = mesh['triangle_tags']
@@ -769,15 +768,15 @@ def _write_msh_file(file_name, mesh):
     # points
     if (mesh['points'].shape[0] > 0):
         outfile.createDimension('num_of_points', mesh['points'].shape[0])
-        outfile.createVariable('points', Float, ('num_of_points',
-                                                 'num_of_dimensions'))
+        outfile.createVariable('points', num.Float, ('num_of_points',
+                                                     'num_of_dimensions'))
         outfile.variables['points'][:] = mesh['points']
         if mesh['point_attributes'].shape[0] > 0  \
            and mesh['point_attributes'].shape[1] > 0:
             outfile.createDimension('num_of_point_attributes',
                                     mesh['point_attributes'].shape[1])
             outfile.createVariable('point_attributes',
-                                   Float,
+                                   num.Float,
                                    ('num_of_points', 'num_of_point_attributes'))
             outfile.variables['point_attributes'][:] = mesh['point_attributes']
 
@@ -794,7 +793,7 @@ def _write_msh_file(file_name, mesh):
             outfile.createDimension('num_of_outline_segment_tag_chars',
                                     mesh['outline_segment_tags'].shape[1])
             outfile.createVariable('outline_segment_tags',
-                                   Character,
+                                   num.Character,
                                    ('num_of_outline_segments',
                                     'num_of_outline_segment_tag_chars'))
             outfile.variables['outline_segment_tags'][:] = \
@@ -803,22 +802,22 @@ def _write_msh_file(file_name, mesh):
     # holes
     if (mesh['holes'].shape[0] > 0):
         outfile.createDimension('num_of_holes', mesh['holes'].shape[0])
-        outfile.createVariable('holes', Float, ('num_of_holes',
-                                                'num_of_dimensions'))
+        outfile.createVariable('holes', num.Float, ('num_of_holes',
+                                                    'num_of_dimensions'))
         outfile.variables['holes'][:] = mesh['holes']
 
     # regions
     if (mesh['regions'].shape[0] > 0):
         outfile.createDimension('num_of_regions', mesh['regions'].shape[0])
-        outfile.createVariable('regions', Float, ('num_of_regions',
-                                                  'num_of_dimensions'))
-        outfile.createVariable('region_max_areas', Float, ('num_of_regions',))
+        outfile.createVariable('regions', num.Float, ('num_of_regions',
+                                                      'num_of_dimensions'))
+        outfile.createVariable('region_max_areas', num.Float, ('num_of_regions',))
         outfile.variables['regions'][:] = mesh['regions']
         outfile.variables['region_max_areas'][:] = mesh['region_max_areas']
         if (mesh['region_tags'].shape[1] > 0):
             outfile.createDimension('num_of_region_tag_chars',
                                     mesh['region_tags'].shape[1])
-            outfile.createVariable('region_tags', Character,
+            outfile.createVariable('region_tags', num.Character,
                                    ('num_of_regions',
                                     'num_of_region_tag_chars'))
             outfile.variables['region_tags'][:] = mesh['region_tags']
@@ -853,7 +852,7 @@ def _read_msh_file(file_name):
     try:
         mesh['vertices'] = fid.variables['vertices'][:]
     except KeyError:
-        mesh['vertices'] = array([])
+        mesh['vertices'] = num.array([])
 
     try:
         mesh['vertex_attributes'] = fid.variables['vertex_attributes'][:]
@@ -873,7 +872,7 @@ def _read_msh_file(file_name):
     try:
         mesh['segments'] = fid.variables['segments'][:]
     except KeyError:
-        mesh['segments'] = array([])
+        mesh['segments'] = num.array([])
 
     mesh['segment_tags'] =[]
     try:
@@ -888,8 +887,8 @@ def _read_msh_file(file_name):
         mesh['triangles'] = fid.variables['triangles'][:]
         mesh['triangle_neighbors'] = fid.variables['triangle_neighbors'][:]
     except KeyError:
-        mesh['triangles'] = array([])
-        mesh['triangle_neighbors'] = array([])
+        mesh['triangles'] = num.array([])
+        mesh['triangle_neighbors'] = num.array([])
 
     mesh['triangle_tags'] =[]
     try:
@@ -916,7 +915,7 @@ def _read_msh_file(file_name):
     try:
         mesh['outline_segments'] = fid.variables['outline_segments'][:]
     except KeyError:
-        mesh['outline_segments'] = array([])
+        mesh['outline_segments'] = num.array([])
 
     mesh['outline_segment_tags'] =[]
     try:
@@ -930,12 +929,12 @@ def _read_msh_file(file_name):
     try:
         mesh['holes'] = fid.variables['holes'][:]
     except KeyError:
-        mesh['holes'] = array([])
+        mesh['holes'] = num.array([])
 
     try:
         mesh['regions'] = fid.variables['regions'][:]
     except KeyError:
-        mesh['regions'] = array([])
+        mesh['regions'] = num.array([])
 
     mesh['region_tags'] =[]
     try:
@@ -949,7 +948,7 @@ def _read_msh_file(file_name):
     try:
         mesh['region_max_areas'] = fid.variables['region_max_areas'][:]
     except KeyError:
-        mesh['region_max_areas'] = array([])
+        mesh['region_max_areas'] = num.array([])
     #mesh[''] = fid.variables[''][:]
 
     try:
@@ -1018,7 +1017,7 @@ def extent_point_atts(point_atts):
 # @return An extent array of form [[min_x, min_y], [max_x, min_y],
 #                                  [max_x, max_y], [min_x, max_y]]
 def extent(points):
-    points = array(points).astype(Float)
+    points = num.array(points).astype(num.Float)
 
     max_x = min_x = points[0][0]
     max_y = min_y = points[0][1]
@@ -1032,10 +1031,10 @@ def extent(points):
         if y > max_y: max_y = y
         if y < min_y: min_y = y
 
-    extent = array([[min_x, min_y],
-                    [max_x, min_y],
-                    [max_x, max_y],
-                    [min_x, max_y]])
+    extent = num.array([[min_x, min_y],
+                        [max_x, min_y],
+                        [max_x, max_y],
+                        [min_x, max_y]])
 
     return extent
 
@@ -1095,11 +1094,11 @@ def produce_half_point_files(infile, max_points, delimiter, verbose=False):
 # @return 
 def point_atts2array(point_atts):
     # convert attribute list to array of floats
-    point_atts['pointlist'] = array(point_atts['pointlist']).astype(Float)
+    point_atts['pointlist'] = num.array(point_atts['pointlist']).astype(num.Float)
 
     for key in point_atts['attributelist'].keys():
         point_atts['attributelist'][key] = \
-            array(point_atts['attributelist'][key]).astype(Float)
+            num.array(point_atts['attributelist'][key]).astype(num.Float)
 
     return point_atts
 
@@ -1127,14 +1126,14 @@ def concatinate_attributelist(dic):
     return list of attribute titles, array of attributes
     """
 
-    point_attributes = array([]).astype(Float)
+    point_attributes = num.array([]).astype(num.Float)
     keys = dic.keys()
     key = keys.pop(0)
-    point_attributes = reshape(dic[key],(dic[key].shape[0],1))
+    point_attributes = num.reshape(dic[key],(dic[key].shape[0],1))
     for key in keys:
         #point_attributes = concatenate([point_attributes, dic[key]], axis=1)
-        reshaped = reshape(dic[key],(dic[key].shape[0],1))
-        point_attributes = concatenate([point_attributes, reshaped], axis=1)
+        reshaped = num.reshape(dic[key],(dic[key].shape[0],1))
+        point_attributes = num.concatenate([point_attributes, reshaped], axis=1)
 
     return dic.keys(), point_attributes
 
@@ -1148,11 +1147,11 @@ def concatinate_attributelist(dic):
 def take_points(dict, indices_to_keep):
     dict = point_atts2array(dict)
     #FIXME maybe the points data structure should become a class?
-    dict['pointlist'] = take(dict['pointlist'],indices_to_keep)
+    dict['pointlist'] = num.take(dict['pointlist'],indices_to_keep)
 
     for key in dict['attributelist'].keys():
-        dict['attributelist'][key]= take(dict['attributelist'][key],
-                                         indices_to_keep)
+        dict['attributelist'][key]= num.take(dict['attributelist'][key],
+                                             indices_to_keep)
 
     return dict
 
@@ -1169,13 +1168,13 @@ def add_point_dictionaries (dict1, dict2):
     dict2 = point_atts2array(dict2)
 
     combined = {}
-    combined['pointlist'] = concatenate((dict2['pointlist'],
-                                         dict1['pointlist']),axis=0)
+    combined['pointlist'] = num.concatenate((dict2['pointlist'],
+                                             dict1['pointlist']),axis=0)
 
     atts = {}
     for key in dict2['attributelist'].keys():
-        atts[key]= concatenate((dict2['attributelist'][key],
-                                dict1['attributelist'][key]), axis=0)
+        atts[key]= num.concatenate((dict2['attributelist'][key],
+                                    dict1['attributelist'][key]), axis=0)
     combined['attributelist']=atts
     combined['geo_reference'] = dict1['geo_reference']
 
