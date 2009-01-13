@@ -19,11 +19,13 @@ Author: Vanessa Robins, ANU
 """
 
 import exceptions
-from Numeric import array, Float, divide_safe, sqrt, product
 import random
 
 from load_mesh.loadASCII import export_boundary_file
 from anuga.geospatial_data.geospatial_data import Geospatial_data
+
+import Numeric as num
+
 
 class AlphaError(exceptions.Exception):pass
 class PointError(AlphaError): pass
@@ -86,7 +88,7 @@ class Alpha_Shape:
                 raise PointError, "Three points on a straight line"
         
         #Convert input to Numeric arrays
-        self.points = array(points).astype(Float)
+        self.points = num.array(points).astype(num.Float)
 
     
     def write_boundary(self,file_name):
@@ -239,12 +241,12 @@ class Alpha_Shape:
         ind2 = [self.deltri[j][1] for j in range(len(self.deltri))]
         ind3 = [self.deltri[j][2] for j in range(len(self.deltri))]
 
-        x1 = array([ x[j] for j in ind1 ])
-        y1 = array([ y[j] for j in ind1 ])
-        x2 = array([ x[j] for j in ind2 ])
-        y2 = array([ y[j] for j in ind2 ])
-        x3 = array([ x[j] for j in ind3 ])
-        y3 = array([ y[j] for j in ind3 ])
+        x1 = num.array([ x[j] for j in ind1 ])
+        y1 = num.array([ y[j] for j in ind1 ])
+        x2 = num.array([ x[j] for j in ind2 ])
+        y2 = num.array([ y[j] for j in ind2 ])
+        x3 = num.array([ x[j] for j in ind3 ])
+        y3 = num.array([ y[j] for j in ind3 ])
 
         x21 = x2-x1
         x31 = x3-x1
@@ -286,12 +288,12 @@ class Alpha_Shape:
             zeroind = [k for k in range(len(denom)) if \
                        (denom[k]< EPSILON and  denom[k] > -EPSILON)]
         try:
-            dx = divide_safe(y31*dist21 - y21*dist31,denom)
-            dy = divide_safe(x21*dist31 - x31*dist21,denom)
+            dx = num.divide_safe(y31*dist21 - y21*dist31,denom)
+            dy = num.divide_safe(x21*dist31 - x31*dist21,denom)
         except ZeroDivisionError:
             raise  AlphaError
             
-        self.triradius = 0.5*sqrt(dx*dx + dy*dy)
+        self.triradius = 0.5*num.sqrt(dx*dx + dy*dy)
         #print "triangle radii", self.triradius
 
     def _edge_intervals(self):
@@ -312,14 +314,14 @@ class Alpha_Shape:
         for t in range(len(self.deltri)):
             tri = self.deltri[t]
             trinbr = self.deltrinbr[t]
-            dx = array([self.points[tri[(i+1)%3],0] -
-                        self.points[tri[(i+2)%3],0] for i in [0,1,2]])
-            dy = array([self.points[tri[(i+1)%3],1] -
-                        self.points[tri[(i+2)%3],1] for i in [0,1,2]])
-            elen = sqrt(dx*dx+dy*dy)
+            dx = num.array([self.points[tri[(i+1)%3],0] -
+                            self.points[tri[(i+2)%3],0] for i in [0,1,2]])
+            dy = num.array([self.points[tri[(i+1)%3],1] -
+                            self.points[tri[(i+2)%3],1] for i in [0,1,2]])
+            elen = num.sqrt(dx*dx+dy*dy)
             # really only need sign - not angle value:
-            anglesign = array([(-dx[(i+1)%3]*dx[(i+2)%3]-
-                                dy[(i+1)%3]*dy[(i+2)%3]) for i in [0,1,2]])
+            anglesign = num.array([(-dx[(i+1)%3]*dx[(i+2)%3]-
+                                    dy[(i+1)%3]*dy[(i+2)%3]) for i in [0,1,2]])
             
             #print "dx ",dx,"\n"
             #print "dy ",dy,"\n"
@@ -593,12 +595,12 @@ class Alpha_Shape:
         for tind in b2etri:
             tri = self.deltri[tind[0]]
             
-            dx = array([self.points[tri[(i+1)%3],0] - \
-                        self.points[tri[(i+2)%3],0] for i in [0,1,2]])
-            dy = array([self.points[tri[(i+1)%3],1] - \
-                        self.points[tri[(i+2)%3],1] for i in [0,1,2]])
-            anglesign = array([(-dx[(i+1)%3]*dx[(i+2)%3]-\
-                                dy[(i+1)%3]*dy[(i+2)%3]) for i in [0,1,2]])
+            dx = num.array([self.points[tri[(i+1)%3],0] - \
+                           self.points[tri[(i+2)%3],0] for i in [0,1,2]])
+            dy = num.array([self.points[tri[(i+1)%3],1] - \
+                           self.points[tri[(i+2)%3],1] for i in [0,1,2]])
+            anglesign = num.array([(-dx[(i+1)%3]*dx[(i+2)%3]-\
+                                   dy[(i+1)%3]*dy[(i+2)%3]) for i in [0,1,2]])
             # record any triangle that has an acute angle spanned by
             #two edges along the boundary..
             if anglesign[tind[1]] > 0:

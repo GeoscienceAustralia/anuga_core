@@ -3,7 +3,8 @@
 #TEST
 import sys
 import unittest
-from Numeric import allclose
+
+import Numeric as num
 
 try:
     from anuga.alpha_shape.alpha_shape import *
@@ -31,7 +32,7 @@ class TestCase(unittest.TestCase):
         alpha = Alpha_Shape([a,b,c,d,e,f])
         result = alpha.get_delaunay()
         answer = [(0, 1, 5), (5, 1, 4), (4, 2, 3), (2, 4, 1)]
-        assert allclose(answer, result) 
+        assert num.allclose(answer, result) 
 
     def test_3_points_on_line(self):
         #print "test_delaunay"
@@ -62,7 +63,7 @@ class TestCase(unittest.TestCase):
         result = alpha.get_boundary()
         #print "result",result
         answer = [(5, 0), (0, 1), (4, 5), (2, 3), (3, 4), (1, 2)]
-        assert allclose(answer, result) 
+        assert num.allclose(answer, result) 
 
 
     def test_alpha_2(self):
@@ -79,7 +80,7 @@ class TestCase(unittest.TestCase):
         result = alpha.get_boundary()
         #print "result",result
         answer = [(0, 3), (3, 6), (0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6)]
-        assert allclose(answer, result) 
+        assert num.allclose(answer, result) 
 
 
     def test_alpha_3(self):
@@ -96,7 +97,7 @@ class TestCase(unittest.TestCase):
         result = alpha.get_boundary()
         #print "result",result
         answer = [(5, 0), (0, 1), (4, 5), (2, 3), (3, 4), (1, 2)]
-        assert allclose(answer, result) 
+        assert num.allclose(answer, result) 
 
 
     def test_boundary_1(self):
@@ -113,7 +114,7 @@ class TestCase(unittest.TestCase):
         result = alpha.get_boundary()
         #print "result",result
         answer = [(0, 3), (3, 6), (0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6)]
-        assert allclose(answer, result) 
+        assert num.allclose(answer, result) 
    
 
 
@@ -131,7 +132,7 @@ class TestCase(unittest.TestCase):
         result = alpha.get_boundary()
         #print "result",result
         answer = [(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6), (6, 0)]
-        assert allclose(answer, result) 
+        assert num.allclose(answer, result) 
 
 
     def test_boundary_3(self):
@@ -147,7 +148,7 @@ class TestCase(unittest.TestCase):
         alpha.set_boundary_type(0,0,0,1)
         result = alpha.get_boundary()
         answer = [(1, 0), (0, 5), (3, 2), (4, 3), (2, 6), (6, 1), (5, 4)]
-        assert allclose(answer, result)
+        assert num.allclose(answer, result)
 
 
         
@@ -221,7 +222,7 @@ class TestCase(unittest.TestCase):
         result = alpha.get_boundary()
         #print "result",result
         answer = [(1, 0), (4, 3), (0, 4), (3, 1)]
-        assert allclose(answer, result)
+        assert num.allclose(answer, result)
   
     def test_sharp_indents(self):
         a = [3.0, 1.0]
@@ -238,7 +239,7 @@ class TestCase(unittest.TestCase):
         result = alpha.get_boundary()
         #print "result",result
         answer = [(3, 4), (2, 3), (0, 1), (1, 2), (4, 0)]
-        assert allclose(answer, result)
+        assert num.allclose(answer, result)
 
         
     def test_small_islands(self):
@@ -391,7 +392,7 @@ class TestCase(unittest.TestCase):
                   (69, 114), (57, 56), (56, 55), (58, 57), (64, 63), \
                   (61, 62), (62, 63), (59, 60), (58, 59), (60, 61), \
                   (46, 45)]
-        assert allclose(answer, result)    
+        assert num.allclose(answer, result)    
 #-------------------------------------------------------------
 if __name__ == "__main__":
     #print "starting tests \n"
