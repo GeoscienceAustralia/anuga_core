@@ -10,7 +10,8 @@
 from general_mesh import General_mesh
 from anuga.caching import cache
 from math import pi, sqrt
-from Numeric import array, allclose
+
+import Numeric as num
         
 
 class Mesh(General_mesh):
@@ -80,7 +81,6 @@ class Mesh(General_mesh):
 
 
 
-        from Numeric import array, zeros, Int, Float, maximum, sqrt, sum
 
         General_mesh.__init__(self, coordinates, triangles,
                               number_of_full_nodes=\
@@ -97,14 +97,14 @@ class Mesh(General_mesh):
         self.use_inscribed_circle = use_inscribed_circle
 
         #Allocate space for geometric quantities
-        self.centroid_coordinates = zeros((N, 2), Float)
+        self.centroid_coordinates = num.zeros((N, 2), num.Float)
 
-        self.radii = zeros(N, Float)
+        self.radii = num.zeros(N, num.Float)
 
-        self.neighbours = zeros((N, 3), Int)
-        self.neighbour_edges = zeros((N, 3), Int)
-        self.number_of_boundaries = zeros(N, Int)
-        self.surrogate_neighbours = zeros((N, 3), Int)
+        self.neighbours = num.zeros((N, 3), num.Int)
+        self.neighbour_edges = num.zeros((N, 3), num.Int)
+        self.number_of_boundaries = num.zeros(N, num.Int)
+        self.surrogate_neighbours = num.zeros((N, 3), num.Int)
 
         #Get x,y coordinates for all triangles and store
         V = self.vertex_coordinates # Relative coordinates
@@ -123,7 +123,7 @@ class Mesh(General_mesh):
             #x2 = V[i, 4]; y2 = V[i, 5]
 
             #Compute centroid
-            centroid = array([(x0 + x1 + x2)/3, (y0 + y1 + y2)/3])
+            centroid = num.array([(x0 + x1 + x2)/3, (y0 + y1 + y2)/3])
             self.centroid_coordinates[i] = centroid
 
 
@@ -132,16 +132,16 @@ class Mesh(General_mesh):
                 #inscribed circle
 
                 #Midpoints
-                m0 = array([(x1 + x2)/2, (y1 + y2)/2])
-                m1 = array([(x0 + x2)/2, (y0 + y2)/2])
-                m2 = array([(x1 + x0)/2, (y1 + y0)/2])
+                m0 = num.array([(x1 + x2)/2, (y1 + y2)/2])
+                m1 = num.array([(x0 + x2)/2, (y0 + y2)/2])
+                m2 = num.array([(x1 + x0)/2, (y1 + y0)/2])
 
                 #The radius is the distance from the centroid of
                 #a triangle to the midpoint of the side of the triangle
                 #closest to the centroid
-                d0 = sqrt(sum( (centroid-m0)**2 ))
-                d1 = sqrt(sum( (centroid-m1)**2 ))
-                d2 = sqrt(sum( (centroid-m2)**2 ))
+                d0 = num.sqrt(num.sum( (centroid-m0)**2 ))
+                d1 = num.sqrt(num.sum( (centroid-m1)**2 ))
+                d2 = num.sqrt(num.sum( (centroid-m2)**2 ))
 
                 self.radii[i] = min(d0, d1, d2)
 
@@ -149,9 +149,9 @@ class Mesh(General_mesh):
                 #NEW code added by Peter Row. True radius
                 #of inscribed circle is computed
 
-                a = sqrt((x0-x1)**2+(y0-y1)**2)
-                b = sqrt((x1-x2)**2+(y1-y2)**2)
-                c = sqrt((x2-x0)**2+(y2-y0)**2)
+                a = num.sqrt((x0-x1)**2+(y0-y1)**2)
+                b = num.sqrt((x1-x2)**2+(y1-y2)**2)
+                c = num.sqrt((x2-x0)**2+(y2-y0)**2)
 
                 self.radii[i]=2.0*self.areas[i]/(a+b+c)
 
@@ -211,9 +211,9 @@ class Mesh(General_mesh):
         x0 = V[i, 0]; y0 = V[i, 1]
         x1 = V[i, 2]; y1 = V[i, 3]
         x2 = V[i, 4]; y2 = V[i, 5]
-        a = sqrt((x0-x1)**2+(y0-y1)**2)
-        b = sqrt((x1-x2)**2+(y1-y2)**2)
-        c = sqrt((x2-x0)**2+(y2-y0)**2)
+        a = num.sqrt((x0-x1)**2+(y0-y1)**2)
+        b = num.sqrt((x1-x2)**2+(y1-y2)**2)
+        c = num.sqrt((x2-x0)**2+(y2-y0)**2)
         ratio = old_rad/self.radii[i]
         max_ratio = ratio
         min_ratio = ratio
@@ -223,9 +223,9 @@ class Mesh(General_mesh):
             x0 = V[i, 0]; y0 = V[i, 1]
             x1 = V[i, 2]; y1 = V[i, 3]
             x2 = V[i, 4]; y2 = V[i, 5]
-            a = sqrt((x0-x1)**2+(y0-y1)**2)
-            b = sqrt((x1-x2)**2+(y1-y2)**2)
-            c = sqrt((x2-x0)**2+(y2-y0)**2)
+            a = num.sqrt((x0-x1)**2+(y0-y1)**2)
+            b = num.sqrt((x1-x2)**2+(y1-y2)**2)
+            c = num.sqrt((x2-x0)**2+(y2-y0)**2)
             self.radii[i]=self.areas[i]/(2*(a+b+c))*safety_factor
             ratio = old_rad/self.radii[i]
             if ratio >= max_ratio: max_ratio = ratio
@@ -387,14 +387,13 @@ class Mesh(General_mesh):
          Postconditions:
             self.element_tag is defined
         """
-        from Numeric import array, Int
 
         if tagged_elements is None:
             tagged_elements = {}
         else:
             #Check that all keys in given boundary exist
             for tag in tagged_elements.keys():
-                tagged_elements[tag] = array(tagged_elements[tag]).astype(Int)
+                tagged_elements[tag] = num.array(tagged_elements[tag]).astype(num.Int)
 
                 msg = 'Not all elements exist. '
                 assert max(tagged_elements[tag]) < len(self), msg
@@ -462,7 +461,6 @@ class Mesh(General_mesh):
         All points are in absolute UTM coordinates
         """
         
-        from Numeric import allclose, sqrt, array, minimum, maximum
         from anuga.utilities.numerical_tools import angle, ensure_numeric     
 
 
@@ -476,7 +474,7 @@ class Mesh(General_mesh):
         segments = {}
         inverse_segments = {}
         p0 = None
-        mindist = sqrt(sum((pmax-pmin)**2)) # Start value across entire mesh
+        mindist = num.sqrt(num.sum((pmax-pmin)**2)) # Start value across entire mesh
         for i, edge_id in self.boundary.keys():
             # Find vertex ids for boundary segment
             if edge_id == 0: a = 1; b = 2
@@ -490,8 +488,8 @@ class Mesh(General_mesh):
             # Take the point closest to pmin as starting point
             # Note: Could be arbitrary, but nice to have
             # a unique way of selecting
-            dist_A = sqrt(sum((A-pmin)**2))
-            dist_B = sqrt(sum((B-pmin)**2))
+            dist_A = num.sqrt(num.sum((A-pmin)**2))
+            dist_B = num.sqrt(num.sum((B-pmin)**2))
 
             # Find lower leftmost point
             if dist_A < mindist:
@@ -592,7 +590,7 @@ class Mesh(General_mesh):
             if point_registry.has_key(tuple(p1)):
                 # We have reached a point already visited. 
 		
-		if allclose(p1, polygon[0]):
+		if num.allclose(p1, polygon[0]):
 		    # If it is the initial point, the polygon is complete. 
 		    
                     if verbose is True:
@@ -627,8 +625,6 @@ class Mesh(General_mesh):
 
         from anuga.config import epsilon
         from anuga.utilities.numerical_tools import anglediff
-
-        from Numeric import sort, allclose
 
         N = len(self)
 
@@ -671,11 +667,11 @@ class Mesh(General_mesh):
             for u, v in [ (v0, normal2), (v1, normal0), (v2, normal1) ]:
 
                 # Normalise
-                l_u = sqrt(u[0]*u[0] + u[1]*u[1])
-                l_v = sqrt(v[0]*v[0] + v[1]*v[1])
+                l_u = num.sqrt(u[0]*u[0] + u[1]*u[1])
+                l_v = num.sqrt(v[0]*v[0] + v[1]*v[1])
 
                 msg = 'Normal vector in triangle %d does not have unit length' %i
-                assert allclose(l_v, 1), msg
+                assert num.allclose(l_v, 1), msg
 
                 x = (u[0]*v[0] + u[1]*v[1])/l_u # Inner product
                 
@@ -729,11 +725,11 @@ class Mesh(General_mesh):
         #Check integrity of inverted triangle structure
 
         V = self.vertex_value_indices[:] #Take a copy
-        V = sort(V)
-        assert allclose(V, range(3*N))
+        V = num.sort(V)
+        assert num.allclose(V, range(3*N))
 
-        assert sum(self.number_of_triangles_per_node) ==\
-               len(self.vertex_value_indices)
+        assert num.sum(self.number_of_triangles_per_node) ==\
+                       len(self.vertex_value_indices)
 
         # Check number of triangles per node
         count = [0]*self.number_of_nodes
@@ -741,7 +737,7 @@ class Mesh(General_mesh):
             for i in triangle:
                 count[i] += 1
 
-        assert allclose(count, self.number_of_triangles_per_node)
+        assert num.allclose(count, self.number_of_triangles_per_node)
 
 
         # Check integrity of vertex_value_indices
@@ -804,7 +800,6 @@ class Mesh(General_mesh):
         """Output statistics about mesh
         """
 
-        from Numeric import arange
         from anuga.utilities.numerical_tools import histogram, create_bins
 
         vertex_coordinates = self.vertex_coordinates # Relative coordinates
@@ -1140,10 +1135,10 @@ def _get_intersecting_segments(V, N, line,
             # the line and the normals
 
             # Distances from line origin to the two intersections
-            z0 = array([x0 - xi0, y0 - eta0])
-            z1 = array([x1 - xi0, y1 - eta0])              
-            d0 = sqrt(sum(z0**2)) 
-            d1 = sqrt(sum(z1**2))
+            z0 = num.array([x0 - xi0, y0 - eta0])
+            z1 = num.array([x1 - xi0, y1 - eta0])              
+            d0 = num.sqrt(num.sum(z0**2)) 
+            d1 = num.sqrt(num.sum(z1**2))
                
             if d1 < d0:
                 # Swap
@@ -1156,9 +1151,9 @@ def _get_intersecting_segments(V, N, line,
 
             # Normal direction:
             # Right hand side relative to line direction
-            vector = array([x1 - x0, y1 - y0]) # Segment vector
-            length = sqrt(sum(vector**2))      # Segment length
-            normal = array([vector[1], -vector[0]])/length
+            vector = num.array([x1 - x0, y1 - y0]) # Segment vector
+            length = num.sqrt(num.sum(vector**2))      # Segment length
+            normal = num.array([vector[1], -vector[0]])/length
 
 
             segment = ((x0,y0), (x1, y1))    
@@ -1238,7 +1233,7 @@ def segment_midpoints(segments):
     for segment in segments:
         assert isinstance(segment, Triangle_intersection), msg
         
-        midpoint = sum(array(segment.segment))/2
+        midpoint = num.sum(num.array(segment.segment))/2
         midpoints.append(midpoint)
 
     return midpoints

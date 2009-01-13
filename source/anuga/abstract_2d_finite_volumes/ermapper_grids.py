@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 # from os import open, write, read
-import Numeric
+import Numeric as num
 
-celltype_map = {'IEEE4ByteReal': Numeric.Float32, 'IEEE8ByteReal': Numeric.Float64}
+celltype_map = {'IEEE4ByteReal': num.Float32, 'IEEE8ByteReal': num.Float64}
 
 
 def write_ermapper_grid(ofile, data, header = {}):
@@ -21,7 +21,7 @@ def write_ermapper_grid(ofile, data, header = {}):
     Input Parameters:
     ofile:      string - filename for output (note the output will consist of two files
                 ofile and ofile.ers.  Either of these can be entered into this function
-    data:       Numeric.array - 2D array containing the data to be output to the grid
+    data:       num.array - 2D array containing the data to be output to the grid
     header:     dictionary - contains spatial information about the grid, in particular:
                     header['datum'] datum for the data ('"GDA94"')
                     header['projection'] - either '"GEOGRAPHIC"' or '"PROJECTED"' 
@@ -56,7 +56,7 @@ def write_ermapper_grid(ofile, data, header = {}):
 
 
     # Check that the data is a 2 dimensional array
-    data_size = Numeric.shape(data)
+    data_size = num.shape(data)
     assert len(data_size) == 2
     
     header['nroflines'] = str(data_size[0])
@@ -82,7 +82,7 @@ def read_ermapper_grid(ifile):
     nroflines = int(header['nroflines'])
     nrofcellsperlines = int(header['nrofcellsperline'])
     data = read_ermapper_data(data_file)
-    data = Numeric.reshape(data,(nroflines,nrofcellsperlines))
+    data = num.reshape(data,(nroflines,nrofcellsperlines))
     return data
     
 
@@ -162,7 +162,7 @@ def read_ermapper_header(ifile):
 
     return header                      
 
-def write_ermapper_data(grid, ofile, data_format = Numeric.Float32):
+def write_ermapper_data(grid, ofile, data_format = num.Float32):
 
 
     try:
@@ -192,14 +192,14 @@ def write_ermapper_data(grid, ofile, data_format = Numeric.Float32):
     fid.close()
 
 
-def read_ermapper_data(ifile, data_format = Numeric.Float32):
+def read_ermapper_data(ifile, data_format = num.Float32):
     # open input file in a binary format and read the input string
     fid = open(ifile,'rb')
     input_string = fid.read()
     fid.close()
 
-    # convert input string to required format (Note default format is Numeric.Float32)
-    grid_as_float = Numeric.fromstring(input_string,data_format)
+    # convert input string to required format (Note default format is num.Float32)
+    grid_as_float = num.fromstring(input_string,data_format)
     return grid_as_float
 
 def create_default_header(header = {}):

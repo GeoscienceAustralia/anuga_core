@@ -15,7 +15,6 @@ from shutil import copy
 
 from anuga.utilities.numerical_tools import ensure_numeric
 from Scientific.IO.NetCDF import NetCDFFile
-from Numeric import arange, choose, zeros, Float, array, allclose, take, compress
     
 from anuga.geospatial_data.geospatial_data import ensure_absolute
 from math import sqrt, atan, degrees
@@ -26,6 +25,8 @@ from anuga.utilities.system_tools import get_revision_number
 from anuga.utilities.system_tools import store_version_info
 
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
+
+import Numeric as num
 
 
 ##
@@ -268,7 +269,6 @@ def get_netcdf_file_function(filename,
 
     import time, calendar, types
     from anuga.config import time_format
-    from Numeric import array, zeros, Float, alltrue, concatenate, reshape
 
     # Open NetCDF file
     if verbose: print 'Reading', filename
@@ -347,9 +347,9 @@ def get_netcdf_file_function(filename,
         if filename[-3:] == 'sww':
             triangles = fid.variables['volumes'][:]
 
-        x = reshape(x, (len(x),1))
-        y = reshape(y, (len(y),1))
-        vertex_coordinates = concatenate((x,y), axis=1) #m x 2 array
+        x = num.reshape(x, (len(x),1))
+        y = num.reshape(y, (len(y),1))
+        vertex_coordinates = num.concatenate((x,y), axis=1) #m x 2 array
 
         if boundary_polygon is not None:
             #removes sts points that do not lie on boundary
@@ -361,7 +361,7 @@ def get_netcdf_file_function(filename,
             gauge_id=[]
             for i in range(len(boundary_polygon)):
                 for j in range(len(x)):
-                    if allclose(vertex_coordinates[j],boundary_polygon[i],1e-4):
+                    if num.allclose(vertex_coordinates[j],boundary_polygon[i],1e-4):
                         #FIX ME:
                         #currently gauges lat and long is stored as float and
                         #then cast to double. This cuases slight repositioning
@@ -383,7 +383,7 @@ def get_netcdf_file_function(filename,
                 gauge_neighbour_id.append(-1)
             gauge_neighbour_id=ensure_numeric(gauge_neighbour_id)
 
-            if len(compress(gauge_neighbour_id>=0,gauge_neighbour_id)) \
+            if len(num.compress(gauge_neighbour_id>=0,gauge_neighbour_id)) \
                != len(temp)-1:
                 msg='incorrect number of segments'
                 raise msg
@@ -430,7 +430,7 @@ def get_netcdf_file_function(filename,
         quantities[name] = fid.variables[name][:]
         if boundary_polygon is not None:
             #removes sts points that do not lie on boundary
-            quantities[name] = take(quantities[name],gauge_id,1)
+            quantities[name] = num.take(quantities[name],gauge_id,1)
             
     # Close sww, tms or sts netcdf file         
     fid.close()
@@ -1164,7 +1164,6 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
     """ Generate figures based on required quantities and gauges for
     each sww file
     """
-    from Numeric import ones, allclose, zeros, Float, ravel
     from os import sep, altsep, getcwd, mkdir, access, F_OK, environ
 
     if generate_fig is True:
@@ -1207,18 +1206,18 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
         if n[i] > n0: n0 = n[i]  
     n0 = int(n0)
     m = len(locations)
-    model_time = zeros((n0, m, p), Float) 
-    stages = zeros((n0, m, p), Float)
-    elevations = zeros((n0, m, p), Float) 
-    momenta = zeros((n0, m, p), Float)
-    xmom = zeros((n0, m, p), Float)
-    ymom = zeros((n0, m, p), Float)
-    speed = zeros((n0, m, p), Float)
-    bearings = zeros((n0, m, p), Float)
-    due_east = 90.0*ones((n0, 1), Float)
-    due_west = 270.0*ones((n0, 1), Float)
-    depths = zeros((n0, m, p), Float)
-    eastings = zeros((n0, m, p), Float)
+    model_time = num.zeros((n0, m, p), num.Float) 
+    stages = num.zeros((n0, m, p), num.Float)
+    elevations = num.zeros((n0, m, p), num.Float) 
+    momenta = num.zeros((n0, m, p), num.Float)
+    xmom = num.zeros((n0, m, p), num.Float)
+    ymom = num.zeros((n0, m, p), num.Float)
+    speed = num.zeros((n0, m, p), num.Float)
+    bearings = num.zeros((n0, m, p), num.Float)
+    due_east = 90.0*num.ones((n0, 1), num.Float)
+    due_west = 270.0*num.ones((n0, 1), num.Float)
+    depths = num.zeros((n0, m, p), num.Float)
+    eastings = num.zeros((n0, m, p), num.Float)
     min_stages = []
     max_stages = []
     min_momentums = []    
@@ -1230,9 +1229,9 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
     max_speeds = []
     min_speeds = []    
     max_depths = []
-    model_time_plot3d = zeros((n0, m), Float)
-    stages_plot3d = zeros((n0, m), Float)
-    eastings_plot3d = zeros((n0, m),Float)
+    model_time_plot3d = num.zeros((n0, m), num.Float)
+    stages_plot3d = num.zeros((n0, m), num.Float)
+    eastings_plot3d = num.zeros((n0, m),num.Float)
     if time_unit is 'mins': scale = 60.0
     if time_unit is 'hours': scale = 3600.0
 
@@ -1340,9 +1339,9 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
                                     eastings[:,:,j],
                                     stages[:,:,j])
                 else:
-                    ax.plot3D(ravel(eastings[:,:,j]),
-                              ravel(model_time[:,:,j]),
-                              ravel(stages[:,:,j]))
+                    ax.plot3D(num.ravel(eastings[:,:,j]),
+                              num.ravel(model_time[:,:,j]),
+                              num.ravel(stages[:,:,j]))
                 ax.set_xlabel('time')
                 ax.set_ylabel('x')
                 ax.set_zlabel('stage')
@@ -1733,7 +1732,7 @@ def remove_lone_verts(verts, triangles, number_of_full_nodes=None):
     
     # initialise the array to easily find the index of the first loner
     # ie, if N=3 -> [6,5,4]
-    loners=arange(2*N, N, -1)
+    loners=num.arange(2*N, N, -1)
     for t in triangles:
         for vert in t:
             loners[vert]= vert # all non-loners will have loners[i]=i 
@@ -1750,7 +1749,7 @@ def remove_lone_verts(verts, triangles, number_of_full_nodes=None):
         # change the loners list so it can be used to modify triangles
         # Remove the loners from verts
         # Could've used X=compress(less(loners,N),loners)
-        # verts=take(verts,X)  to Remove the loners from verts
+        # verts=num.take(verts,X)  to Remove the loners from verts
         # but I think it would use more memory
         new_i = lone_start	# point at first loner - 'shuffle down' target
         for i in range(lone_start, N):
@@ -1765,7 +1764,7 @@ def remove_lone_verts(verts, triangles, number_of_full_nodes=None):
         # Modify the triangles
         #print "loners", loners
         #print "triangles before", triangles
-        triangles = choose(triangles,loners)
+        triangles = num.choose(triangles,loners)
         #print "triangles after", triangles
     return verts, triangles
 
@@ -1784,7 +1783,7 @@ def get_centroid_values(x, triangles):
     indices into x
     """
         
-    xc = zeros(triangles.shape[0], Float) # Space for centroid info
+    xc = num.zeros(triangles.shape[0], num.Float) # Space for centroid info
     
     for k in range(triangles.shape[0]):
         # Indices of vertices
@@ -2072,8 +2071,8 @@ def csv2timeseries_graphs(directories_dic={},
 
                 #add tide to stage if provided
                 if quantity == 'stage':
-                     quantity_value[quantity] = array(quantity_value[quantity]) \
-                                                      + directory_add_tide
+                     quantity_value[quantity] = num.array(quantity_value[quantity]) \
+                                                          + directory_add_tide
 
                 #condition to find max and mins for all the plots
                 # populate the list with something when i=0 and j=0 and
@@ -2175,7 +2174,7 @@ def csv2timeseries_graphs(directories_dic={},
                                                       + filename + '.csv')
             #get data from dict in to list
             #do maths to list by changing to array
-            t = (array(directory_quantity_value[directory][filename]['time'])
+            t = (num.array(directory_quantity_value[directory][filename]['time'])
                      + directory_start_time) / seconds_in_minutes
 
             #finds the maximum elevation, used only as a test
@@ -2388,7 +2387,6 @@ def sww2csv_gauges(sww_file,
     
     from csv import reader,writer
     from anuga.utilities.numerical_tools import ensure_numeric, mean, NAN
-    from Numeric import array, resize, shape, Float, zeros, take, argsort, argmin
     import string
     from anuga.shallow_water.data_manager import get_all_swwfiles
 
@@ -2424,7 +2422,7 @@ def sww2csv_gauges(sww_file,
             point_name.append(row[name])
         
     #convert to array for file_function
-    points_array = array(points,Float)
+    points_array = num.array(points,num.Float)
         
     points_array = ensure_absolute(points_array)
 

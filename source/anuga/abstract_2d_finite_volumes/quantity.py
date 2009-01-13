@@ -14,9 +14,6 @@ To create:
    Otherwise raise an exception
 """
 
-from Numeric import array, zeros, Float, less, concatenate, NewAxis,\
-     argmax, argmin, allclose, take, reshape, alltrue
-
 from anuga.utilities.numerical_tools import ensure_numeric, is_scalar
 from anuga.utilities.polygon import inside_polygon
 
@@ -24,6 +21,9 @@ from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.fit_interpolate.fit import fit_to_mesh
 from anuga.config import points_file_block_line_size as default_block_line_size
 from anuga.config import epsilon
+
+import Numeric as num
+
 
 class Quantity:
 
@@ -37,9 +37,9 @@ class Quantity:
 
         if vertex_values is None:
             N = len(domain) # number_of_elements
-            self.vertex_values = zeros((N, 3), Float)
+            self.vertex_values = num.zeros((N, 3), num.Float)
         else:
-            self.vertex_values = array(vertex_values).astype(Float)
+            self.vertex_values = num.array(vertex_values).astype(num.Float)
 
             N, V = self.vertex_values.shape
             assert V == 3,\
@@ -56,30 +56,30 @@ class Quantity:
         self.domain = domain
 
         # Allocate space for other quantities
-        self.centroid_values = zeros(N, Float)
-        self.edge_values = zeros((N, 3), Float)
+        self.centroid_values = num.zeros(N, num.Float)
+        self.edge_values = num.zeros((N, 3), num.Float)
 
         # Allocate space for Gradient
-        self.x_gradient = zeros(N, Float)
-        self.y_gradient = zeros(N, Float)
+        self.x_gradient = num.zeros(N, num.Float)
+        self.y_gradient = num.zeros(N, num.Float)
 
         # Allocate space for Limiter Phi
-        self.phi = zeros(N, Float)        
+        self.phi = num.zeros(N, num.Float)        
 
         # Intialise centroid and edge_values
         self.interpolate()
 
         # Allocate space for boundary values
         L = len(domain.boundary)
-        self.boundary_values = zeros(L, Float)
+        self.boundary_values = num.zeros(L, num.Float)
 
         # Allocate space for updates of conserved quantities by
         # flux calculations and forcing functions
 
         # Allocate space for update fields
-        self.explicit_update = zeros(N, Float )
-        self.semi_implicit_update = zeros(N, Float )
-        self.centroid_backup_values = zeros(N, Float)
+        self.explicit_update = num.zeros(N, num.Float )
+        self.semi_implicit_update = num.zeros(N, num.Float )
+        self.centroid_backup_values = num.zeros(N, num.Float)
 
         self.set_beta(1.0)
 
@@ -381,7 +381,6 @@ class Quantity:
 
         from anuga.geospatial_data.geospatial_data import Geospatial_data
         from types import FloatType, IntType, LongType, ListType, NoneType
-        from Numeric import ArrayType
 
         # Treat special case: Polygon situation
         # Location will be ignored and set to 'centroids'
@@ -449,7 +448,7 @@ class Quantity:
 
 
         msg = 'Indices must be a list or None'
-        assert type(indices) in [ListType, NoneType, ArrayType], msg
+        assert type(indices) in [ListType, NoneType, num.ArrayType], msg
 
 
 
@@ -459,7 +458,7 @@ class Quantity:
             if type(numeric) in [FloatType, IntType, LongType]:
                 self.set_values_from_constant(numeric,
                                               location, indices, verbose)
-            elif type(numeric) in [ArrayType, ListType]:
+            elif type(numeric) in [num.ArrayType, ListType]:
                 self.set_values_from_array(numeric,
                                            location, indices, verbose)
             elif callable(numeric):
@@ -611,12 +610,10 @@ class Quantity:
         will be assigned and the others will be left undefined.
         """
 
-        from Numeric import array, Float, Int, allclose
-
-        values = array(values).astype(Float)
+        values = num.array(values).astype(num.Float)
 
         if indices is not None:
-            indices = array(indices).astype(Int)
+            indices = num.array(indices).astype(num.Int)
             msg = 'Number of values must match number of indices:'
             msg += ' You specified %d values and %d indices'\
                    %(values.shape[0], indices.shape[0])
@@ -641,7 +638,7 @@ class Quantity:
                     self.centroid_values[indices[i]] = values[i]
 
         elif location == 'unique vertices':
-            assert len(values.shape) == 1 or allclose(values.shape[1:], 1),\
+            assert len(values.shape) == 1 or num.allclose(values.shape[1:], 1),\
                    'Values array must be 1d'
 
             self.set_vertex_values(values.flat, indices=indices)
@@ -677,11 +674,10 @@ class Quantity:
 
         A = q.vertex_values
 
-        from Numeric import allclose
         msg = 'Quantities are defined on different meshes. '+\
               'This might be a case for implementing interpolation '+\
               'between different meshes.'
-        assert allclose(A.shape, self.vertex_values.shape), msg
+        assert num.allclose(A.shape, self.vertex_values.shape), msg
 
         self.set_values(A, location='vertices',
                         indices=indices,
@@ -717,7 +713,7 @@ class Quantity:
             if indices is None:
                 indices = range(len(self))
                 
-            V = take(self.domain.get_centroid_coordinates(), indices)
+            V = num.take(self.domain.get_centroid_coordinates(), indices)
             self.set_values(f(V[:,0], V[:,1]),
                             location=location,
                             indices=indices)
@@ -737,7 +733,7 @@ class Quantity:
             # If that could be resolved this one will be
             # more robust and simple.
             
-            #values = reshape(values, (M,3))
+            #values = num.reshape(values, (M,3))
             #self.set_values(values,
             #                location='vertices',
             #                indices=indices)
@@ -781,8 +777,8 @@ class Quantity:
         from anuga.coordinate_transforms.geo_reference import Geo_reference
 
 
-        points = ensure_numeric(points, Float)
-        values = ensure_numeric(values, Float)
+        points = ensure_numeric(points, num.Float)
+        values = ensure_numeric(values, num.Float)
 
         if location != 'vertices':
             msg = 'set_values_from_points is only defined for '+\
@@ -914,9 +910,9 @@ class Quantity:
 
         # Always return absolute indices
         if mode is None or mode == 'max':
-            i = argmax(V)
+            i = num.argmax(V)
         elif mode == 'min':    
-            i = argmin(V)
+            i = num.argmin(V)
 
             
         if indices is None:
@@ -1119,7 +1115,6 @@ class Quantity:
         internal ordering.
         """
         
-        from Numeric import take
 
         # FIXME (Ole): I reckon we should have the option of passing a
         #              polygon into get_values. The question becomes how
@@ -1144,19 +1139,19 @@ class Quantity:
             msg = 'Invalid location: %s' %location
             raise msg
 
-        import types, Numeric
+        import types
         assert type(indices) in [types.ListType, types.NoneType,
-                                 Numeric.ArrayType],\
+                                 num.ArrayType],\
                                  'Indices must be a list or None'
 
         if location == 'centroids':
             if (indices ==  None):
                 indices = range(len(self))
-            return take(self.centroid_values,indices)
+            return num.take(self.centroid_values,indices)
         elif location == 'edges':
             if (indices ==  None):
                 indices = range(len(self))
-            return take(self.edge_values,indices)
+            return num.take(self.edge_values,indices)
         elif location == 'unique vertices':
             if (indices ==  None):
                 indices=range(self.domain.number_of_nodes)
@@ -1179,11 +1174,11 @@ class Quantity:
                 for triangle_id, vertex_id in triangles:
                     sum += self.vertex_values[triangle_id, vertex_id]
                 vert_values.append(sum/len(triangles))
-            return Numeric.array(vert_values)
+            return num.array(vert_values)
         else:
             if (indices is None):
                 indices = range(len(self))
-            return take(self.vertex_values, indices)
+            return num.take(self.vertex_values, indices)
 
 
 
@@ -1197,10 +1192,9 @@ class Quantity:
         This function is used by set_values_from_array
         """
 
-        from Numeric import array, Float
 
         # Assert that A can be converted to a Numeric array of appropriate dim
-        A = ensure_numeric(A, Float)
+        A = ensure_numeric(A, num.Float)
 
         # print 'SHAPE A', A.shape
         assert len(A.shape) == 1
@@ -1274,8 +1268,6 @@ class Quantity:
 
         """
 
-        from Numeric import concatenate, zeros, Float, Int, array, reshape
-
 
         if smooth is None:
             # Take default from domain
@@ -1285,7 +1277,7 @@ class Quantity:
                 smooth = False
 
         if precision is None:
-            precision = Float
+            precision = num.Float
             
 
         if smooth is True:
@@ -1294,7 +1286,7 @@ class Quantity:
             
             V = self.domain.get_triangles()
             N = self.domain.number_of_full_nodes # Ignore ghost nodes if any
-            A = zeros(N, Float)
+            A = num.zeros(N, num.Float)
             points = self.domain.get_nodes()            
             
             if 1:

@@ -17,8 +17,7 @@ from anuga.shallow_water import Domain,\
 from anuga.shallow_water.shallow_water_domain import Weir_simple as Weir
 
 from mesh_factory import rectangular
-from Numeric import array
-    
+
 
 ######################
 # Domain
@@ -76,8 +75,6 @@ domain.set_boundary({'left': Bd, 'right': Br, 'bottom': Br, 'top': Br})
 #
 print 'Initial condition'
 domain.set_quantity('stage', Z)
-
-from Numeric import allclose
 
 #Evolve
 for t in domain.evolve(yieldstep = 0.1, finaltime = 30):

@@ -5,7 +5,8 @@ from math import sqrt
 
 from domain import *
 from anuga.config import epsilon
-from Numeric import allclose, array, ones, Float
+
+import Numeric as num
 
 
 def add_to_verts(tag, elements, domain):
@@ -94,45 +95,45 @@ class Test_Domain(unittest.TestCase):
 
         #Centroids
         q = domain.get_conserved_quantities(0)
-        assert allclose(q, [2., 2., 0.])
+        assert num.allclose(q, [2., 2., 0.])
 
         q = domain.get_conserved_quantities(1)
-        assert allclose(q, [5., 5., 0.])
+        assert num.allclose(q, [5., 5., 0.])
 
         q = domain.get_conserved_quantities(2)
-        assert allclose(q, [3., 3., 0.])
+        assert num.allclose(q, [3., 3., 0.])
 
         q = domain.get_conserved_quantities(3)
-        assert allclose(q, [0., 0., 0.])
+        assert num.allclose(q, [0., 0., 0.])
 
 
         #Edges
         q = domain.get_conserved_quantities(0, edge=0)
-        assert allclose(q, [2.5, 2.5, 0.])
+        assert num.allclose(q, [2.5, 2.5, 0.])
         q = domain.get_conserved_quantities(0, edge=1)
-        assert allclose(q, [2., 2., 0.])
+        assert num.allclose(q, [2., 2., 0.])
         q = domain.get_conserved_quantities(0, edge=2)
-        assert allclose(q, [1.5, 1.5, 0.])
+        assert num.allclose(q, [1.5, 1.5, 0.])
 
         for i in range(3):
             q = domain.get_conserved_quantities(1, edge=i)
-            assert allclose(q, [5, 5, 0.])
+            assert num.allclose(q, [5, 5, 0.])
 
 
         q = domain.get_conserved_quantities(2, edge=0)
-        assert allclose(q, [4.5, 4.5, 0.])
+        assert num.allclose(q, [4.5, 4.5, 0.])
         q = domain.get_conserved_quantities(2, edge=1)
-        assert allclose(q, [4.5, 4.5, 0.])
+        assert num.allclose(q, [4.5, 4.5, 0.])
         q = domain.get_conserved_quantities(2, edge=2)
-        assert allclose(q, [0., 0., 0.])
+        assert num.allclose(q, [0., 0., 0.])
 
 
         q = domain.get_conserved_quantities(3, edge=0)
-        assert allclose(q, [3., 3., 0.])
+        assert num.allclose(q, [3., 3., 0.])
         q = domain.get_conserved_quantities(3, edge=1)
-        assert allclose(q, [-1.5, -1.5, 0.])
+        assert num.allclose(q, [-1.5, -1.5, 0.])
         q = domain.get_conserved_quantities(3, edge=2)
-        assert allclose(q, [-1.5, -1.5, 0.])
+        assert num.allclose(q, [-1.5, -1.5, 0.])
 
 
 
@@ -178,8 +179,8 @@ class Test_Domain(unittest.TestCase):
         expression = 'stage - elevation'
         Q = domain.create_quantity_from_expression(expression)
 
-        assert allclose(Q.vertex_values, [[2,3,4], [6,6,6],
-                                      [1,1,10], [-5, 4, 4]])
+        assert num.allclose(Q.vertex_values, [[2,3,4], [6,6,6],
+                                              [1,1,10], [-5, 4, 4]])
 
         expression = '(xmomentum*xmomentum + ymomentum*ymomentum)**0.5'
         Q = domain.create_quantity_from_expression(expression)
@@ -187,7 +188,7 @@ class Test_Domain(unittest.TestCase):
         X = domain.quantities['xmomentum'].vertex_values
         Y = domain.quantities['ymomentum'].vertex_values
 
-        assert allclose(Q.vertex_values, (X**2 + Y**2)**0.5)
+        assert num.allclose(Q.vertex_values, (X**2 + Y**2)**0.5)
 
 
 
@@ -313,8 +314,8 @@ class Test_Domain(unittest.TestCase):
 
         Q = domain.quantities['depth']
 
-        assert allclose(Q.vertex_values, [[2,3,4], [6,6,6],
-                                      [1,1,10], [-5, 4, 4]])
+        assert num.allclose(Q.vertex_values, [[2,3,4], [6,6,6],
+                                              [1,1,10], [-5, 4, 4]])
 
 
 
@@ -343,8 +344,8 @@ class Test_Domain(unittest.TestCase):
                         other_quantities = ['elevation', 'friction', 'depth'])
 
 
-        A = array([[1,2,3], [5,5,-5], [0,0,9], [-6,3,3]], 'f')
-        B = array([[2,4,4], [3,2,1], [6,-3,4], [4,5,-1]], 'f')
+        A = num.array([[1,2,3], [5,5,-5], [0,0,9], [-6,3,3]], 'f')
+        B = num.array([[2,4,4], [3,2,1], [6,-3,4], [4,5,-1]], 'f')
         
         #print A
         #print B
@@ -358,10 +359,10 @@ class Test_Domain(unittest.TestCase):
         # Go testing
         domain.set_quantity('elevation', A)
         domain.add_quantity('elevation', B)
-        assert allclose(elevation.vertex_values, A+B)
+        assert num.allclose(elevation.vertex_values, A+B)
         
         domain.add_quantity('elevation', 4)
-        assert allclose(elevation.vertex_values, A+B+4)        
+        assert num.allclose(elevation.vertex_values, A+B+4)        
         
         
         # Test using expression
@@ -369,13 +370,13 @@ class Test_Domain(unittest.TestCase):
                                       [0,0,9], [-6, 3, 3]])        
         domain.set_quantity('depth', 1.0)                                     
         domain.add_quantity('depth', expression = 'stage - elevation')        
-        assert allclose(depth.vertex_values, stage.vertex_values-elevation.vertex_values+1)
+        assert num.allclose(depth.vertex_values, stage.vertex_values-elevation.vertex_values+1)
                 
         
         # Check self referential expression
         reference = 2*stage.vertex_values - depth.vertex_values 
         domain.add_quantity('stage', expression = 'stage - depth')                
-        assert allclose(stage.vertex_values, reference)        
+        assert num.allclose(stage.vertex_values, reference)        
                                       
 
         # Test using a function
@@ -387,7 +388,7 @@ class Test_Domain(unittest.TestCase):
         domain.set_quantity('depth', expression = 'stage - elevation')
         
         domain.add_quantity('depth', f)
-        assert allclose(stage.vertex_values, depth.vertex_values)                
+        assert num.allclose(stage.vertex_values, depth.vertex_values)                
          
             
         
@@ -457,7 +458,7 @@ class Test_Domain(unittest.TestCase):
 
         domain.check_integrity()
 
-        assert allclose(domain.neighbours, [[-1,-2,-3]])
+        assert num.allclose(domain.neighbours, [[-1,-2,-3]])
 
 
 
@@ -546,8 +547,8 @@ class Test_Domain(unittest.TestCase):
         domain.set_quantity('stage', [[1,2,3], [5,5,5],
                                       [0,0,9], [-6, 3, 3]])
 
-        assert allclose( domain.quantities['stage'].centroid_values,
-                         [2,5,3,0] )
+        assert num.allclose( domain.quantities['stage'].centroid_values,
+                             [2,5,3,0] )
 
         domain.set_quantity('xmomentum', [[1,1,1], [2,2,2],
                                           [3,3,3], [4, 4, 4]])
@@ -559,11 +560,11 @@ class Test_Domain(unittest.TestCase):
         domain.distribute_to_vertices_and_edges()
 
         #First order extrapolation
-        assert allclose( domain.quantities['stage'].vertex_values,
-                         [[ 2.,  2.,  2.],
-                          [ 5.,  5.,  5.],
-                          [ 3.,  3.,  3.],
-                          [ 0.,  0.,  0.]])
+        assert num.allclose( domain.quantities['stage'].vertex_values,
+                             [[ 2.,  2.,  2.],
+                              [ 5.,  5.,  5.],
+                              [ 3.,  3.,  3.],
+                              [ 0.,  0.,  0.]])
 
 
 
@@ -602,26 +603,26 @@ class Test_Domain(unittest.TestCase):
         #Set explicit_update
 
         for name in domain.conserved_quantities:
-            domain.quantities[name].explicit_update = array([4.,3.,2.,1.])
-            domain.quantities[name].semi_implicit_update = array([1.,1.,1.,1.])
+            domain.quantities[name].explicit_update = num.array([4.,3.,2.,1.])
+            domain.quantities[name].semi_implicit_update = num.array([1.,1.,1.,1.])
 
 
         #Update with given timestep (assuming no other forcing terms)
         domain.timestep = 0.1
         domain.update_conserved_quantities()
 
-        sem = array([1.,1.,1.,1.])/array([1, 2, 3, 4])
-        denom = ones(4, Float)-domain.timestep*sem
+        sem = num.array([1.,1.,1.,1.])/num.array([1, 2, 3, 4])
+        denom = num.ones(4, num.Float)-domain.timestep*sem
 
 #        x = array([1, 2, 3, 4]) + array( [.4,.3,.2,.1] )
 #        x /= denom
 
-        x = array([1., 2., 3., 4.])
+        x = num.array([1., 2., 3., 4.])
         x /= denom
-        x += domain.timestep*array( [4,3,2,1] )
+        x += domain.timestep*num.array( [4,3,2,1] )
 
         for name in domain.conserved_quantities:
-            assert allclose(domain.quantities[name].centroid_values, x)
+            assert num.allclose(domain.quantities[name].centroid_values, x)
 
 
     def test_set_region(self):
@@ -653,8 +654,8 @@ class Test_Domain(unittest.TestCase):
         domain.set_quantity('stage', [[1,2,3], [5,5,5],
                                       [0,0,9], [-6, 3, 3]])
 
-        assert allclose( domain.quantities['stage'].centroid_values,
-                         [2,5,3,0] )
+        assert num.allclose( domain.quantities['stage'].centroid_values,
+                             [2,5,3,0] )
 
         domain.set_quantity('xmomentum', [[1,1,1], [2,2,2],
                                           [3,3,3], [4, 4, 4]])
@@ -666,11 +667,11 @@ class Test_Domain(unittest.TestCase):
         domain.distribute_to_vertices_and_edges()
 
         #First order extrapolation
-        assert allclose( domain.quantities['stage'].vertex_values,
-                         [[ 2.,  2.,  2.],
-                          [ 5.,  5.,  5.],
-                          [ 3.,  3.,  3.],
-                          [ 0.,  0.,  0.]])
+        assert num.allclose( domain.quantities['stage'].vertex_values,
+                             [[ 2.,  2.,  2.],
+                              [ 5.,  5.,  5.],
+                              [ 3.,  3.,  3.],
+                              [ 0.,  0.,  0.]])
 
         domain.build_tagged_elements_dictionary({'mound':[0,1]})
         domain.set_region([add_to_verts])
@@ -685,7 +686,6 @@ class Test_Domain(unittest.TestCase):
         """
         from mesh_factory import rectangular
         from shallow_water import Domain
-        from Numeric import zeros, Float
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
@@ -702,7 +702,6 @@ class Test_Domain(unittest.TestCase):
         """
         from mesh_factory import rectangular
         from shallow_water import Domain
-        from Numeric import zeros, Float
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
@@ -720,23 +719,23 @@ class Test_Domain(unittest.TestCase):
 
         domain.set_region([set_bottom_friction, set_top_friction])
         #print domain.quantities['friction'].get_values()
-        assert allclose(domain.quantities['friction'].get_values(),\
-                        [[ 0.09,  0.09,  0.09],
-                         [ 0.09,  0.09,  0.09],
-                         [ 0.07,  0.07,  0.07],
-                         [ 0.07,  0.07,  0.07],
-                         [ 1.0,  1.0,  1.0],
-                         [ 1.0,  1.0,  1.0]])
+        assert num.allclose(domain.quantities['friction'].get_values(),\
+                            [[ 0.09,  0.09,  0.09],
+                             [ 0.09,  0.09,  0.09],
+                             [ 0.07,  0.07,  0.07],
+                             [ 0.07,  0.07,  0.07],
+                             [ 1.0,  1.0,  1.0],
+                             [ 1.0,  1.0,  1.0]])
 
         domain.set_region([set_all_friction])
         #print domain.quantities['friction'].get_values()
-        assert allclose(domain.quantities['friction'].get_values(),
-                        [[ 10.09, 10.09, 10.09],
-                         [ 10.09, 10.09, 10.09],
-                         [ 10.07, 10.07, 10.07],
-                         [ 10.07, 10.07, 10.07],
-                         [ 11.0,  11.0,  11.0],
-                         [ 11.0,  11.0,  11.0]])
+        assert num.allclose(domain.quantities['friction'].get_values(),
+                            [[ 10.09, 10.09, 10.09],
+                             [ 10.09, 10.09, 10.09],
+                             [ 10.07, 10.07, 10.07],
+                             [ 10.07, 10.07, 10.07],
+                             [ 11.0,  11.0,  11.0],
+                             [ 11.0,  11.0,  11.0]])
 
 
     def test_region_tags2(self):
@@ -745,7 +744,6 @@ class Test_Domain(unittest.TestCase):
         """
         from mesh_factory import rectangular
         from shallow_water import Domain
-        from Numeric import zeros, Float
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
@@ -765,33 +763,33 @@ class Test_Domain(unittest.TestCase):
         domain.set_region('bottom', 'friction', 0.09)
         
         #print domain.quantities['friction'].get_values()
-        assert allclose(domain.quantities['friction'].get_values(),\
-                        [[ 0.09,  0.09,  0.09],
-                         [ 0.09,  0.09,  0.09],
-                         [ 0.07,  0.07,  0.07],
-                         [ 0.07,  0.07,  0.07],
-                         [ 1.0,  1.0,  1.0],
-                         [ 1.0,  1.0,  1.0]])
+        assert num.allclose(domain.quantities['friction'].get_values(),
+                            [[ 0.09,  0.09,  0.09],
+                             [ 0.09,  0.09,  0.09],
+                             [ 0.07,  0.07,  0.07],
+                             [ 0.07,  0.07,  0.07],
+                             [ 1.0,  1.0,  1.0],
+                             [ 1.0,  1.0,  1.0]])
         
         domain.set_region([set_bottom_friction, set_top_friction])
         #print domain.quantities['friction'].get_values()
-        assert allclose(domain.quantities['friction'].get_values(),\
-                        [[ 0.09,  0.09,  0.09],
-                         [ 0.09,  0.09,  0.09],
-                         [ 0.07,  0.07,  0.07],
-                         [ 0.07,  0.07,  0.07],
-                         [ 1.0,  1.0,  1.0],
-                         [ 1.0,  1.0,  1.0]])
+        assert num.allclose(domain.quantities['friction'].get_values(),
+                            [[ 0.09,  0.09,  0.09],
+                             [ 0.09,  0.09,  0.09],
+                             [ 0.07,  0.07,  0.07],
+                             [ 0.07,  0.07,  0.07],
+                             [ 1.0,  1.0,  1.0],
+                             [ 1.0,  1.0,  1.0]])
 
         domain.set_region([set_all_friction])
         #print domain.quantities['friction'].get_values()
-        assert allclose(domain.quantities['friction'].get_values(),
-                        [[ 10.09, 10.09, 10.09],
-                         [ 10.09, 10.09, 10.09],
-                         [ 10.07, 10.07, 10.07],
-                         [ 10.07, 10.07, 10.07],
-                         [ 11.0,  11.0,  11.0],
-                         [ 11.0,  11.0,  11.0]])
+        assert num.allclose(domain.quantities['friction'].get_values(),
+                            [[ 10.09, 10.09, 10.09],
+                             [ 10.09, 10.09, 10.09],
+                             [ 10.07, 10.07, 10.07],
+                             [ 10.07, 10.07, 10.07],
+                             [ 11.0,  11.0,  11.0],
+                             [ 11.0,  11.0,  11.0]])
 
 #-------------------------------------------------------------
 if __name__ == "__main__":

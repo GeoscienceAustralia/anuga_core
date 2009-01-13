@@ -1,6 +1,4 @@
-
-from Numeric import concatenate, reshape, take, allclose
-from Numeric import array, zeros, Int, Float, sqrt, sum, arange
+import Numeric as num
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 
@@ -89,8 +87,8 @@ class General_mesh:
 
         if verbose: print 'General_mesh: Building basic mesh structure in ANUGA domain' 
 
-        self.triangles = array(triangles, Int)
-        self.nodes = array(nodes, Float)
+        self.triangles = num.array(triangles, num.Int)
+        self.nodes = num.array(nodes, num.Float)
 
 
         # Register number of elements and nodes 
@@ -145,13 +143,13 @@ class General_mesh:
         xy_extent = [ min(self.nodes[:,0]), min(self.nodes[:,1]) ,
                       max(self.nodes[:,0]), max(self.nodes[:,1]) ]
 
-        self.xy_extent = array(xy_extent, Float)
+        self.xy_extent = num.array(xy_extent, num.Float)
 
 
         # Allocate space for geometric quantities
-        self.normals = zeros((N, 6), Float)
-        self.areas = zeros(N, Float)
-        self.edgelengths = zeros((N, 3), Float)
+        self.normals = num.zeros((N, 6), num.Float)
+        self.areas = num.zeros(N, num.Float)
+        self.edgelengths = num.zeros((N, 3), num.Float)
 
         # Get x,y coordinates for all triangles and store
         self.vertex_coordinates = V = self.compute_vertex_coordinates()
@@ -186,14 +184,14 @@ class General_mesh:
             #     the first vertex, etc)
             #   - Stored as six floats n0x,n0y,n1x,n1y,n2x,n2y per triangle
 
-            n0 = array([x2 - x1, y2 - y1])
-            l0 = sqrt(sum(n0**2))
+            n0 = num.array([x2 - x1, y2 - y1])
+            l0 = num.sqrt(num.sum(n0**2))
 
-            n1 = array([x0 - x2, y0 - y2])
-            l1 = sqrt(sum(n1**2))
+            n1 = num.array([x0 - x2, y0 - y2])
+            l1 = num.sqrt(num.sum(n1**2))
 
-            n2 = array([x1 - x0, y1 - y0])
-            l2 = sqrt(sum(n2**2))
+            n2 = num.array([x1 - x0, y1 - y0])
+            l2 = num.sqrt(num.sum(n2**2))
 
             # Normalise
             n0 /= l0
@@ -273,8 +271,8 @@ class General_mesh:
         V = self.nodes[i,:]
         if absolute is True:
             if not self.geo_reference.is_absolute():
-                return V + array([self.geo_reference.get_xllcorner(),
-                                  self.geo_reference.get_yllcorner()])
+                return V + num.array([self.geo_reference.get_xllcorner(),
+                                      self.geo_reference.get_yllcorner()])
             else:
                 return V
         else:
@@ -315,13 +313,13 @@ class General_mesh:
             
             i3 = 3*i  
             if absolute is True and not self.geo_reference.is_absolute():
-                offset=array([self.geo_reference.get_xllcorner(),
+                offset=num.array([self.geo_reference.get_xllcorner(),
                                   self.geo_reference.get_yllcorner()])
-                return array([V[i3,:]+offset,
-                              V[i3+1,:]+offset,
-                              V[i3+2,:]+offset])
+                return num.array([V[i3,:]+offset,
+                                  V[i3+1,:]+offset,
+                                  V[i3+2,:]+offset])
             else:
-                return array([V[i3,:], V[i3+1,:], V[i3+2,:]])
+                return num.array([V[i3,:], V[i3+1,:], V[i3+2,:]])
                 
 
 
@@ -348,7 +346,7 @@ class General_mesh:
         """
 
         M = self.number_of_triangles
-        vertex_coordinates = zeros((3*M, 2), Float)
+        vertex_coordinates = num.zeros((3*M, 2), num.Float)
 
         for i in range(M):
             for j in range(3):
@@ -375,7 +373,7 @@ class General_mesh:
         if indices is None:
             indices = range(M)
 
-        return take(self.triangles, indices)
+        return num.take(self.triangles, indices)
     
 
 
@@ -407,8 +405,7 @@ class General_mesh:
         M = len(self) # Number of triangles
         K = 3*M       # Total number of unique vertices
         
-        #T = reshape(array(range(K)).astype(Int), (M,3))
-        T = reshape(arange(K).astype(Int), (M,3))  # Faster
+        T = num.reshape(num.arange(K).astype(num.Int), (M,3))
         
         return T     
 
@@ -438,7 +435,7 @@ class General_mesh:
         triangle_list = []
         if node is not None:
             # Get index for this node
-            first = sum(self.number_of_triangles_per_node[:node])
+            first = num.sum(self.number_of_triangles_per_node[:node])
             
             # Get number of triangles for this node
             count = self.number_of_triangles_per_node[node]
@@ -451,7 +448,7 @@ class General_mesh:
 
                 triangle_list.append( (volume_id, vertex_id) )
 
-            triangle_list = array(triangle_list)    
+            triangle_list = num.array(triangle_list)    
         else:
             # Get info for all nodes recursively.
             # If need be, we can speed this up by
@@ -528,14 +525,14 @@ class General_mesh:
         """
 
         # Count number of triangles per node
-        number_of_triangles_per_node = zeros(self.number_of_full_nodes)
+        number_of_triangles_per_node = num.zeros(self.number_of_full_nodes)
         for volume_id, triangle in enumerate(self.get_triangles()):
             for vertex_id in triangle:
                 number_of_triangles_per_node[vertex_id] += 1
 
         # Allocate space for inverted structure
-        number_of_entries = sum(number_of_triangles_per_node)
-        vertex_value_indices = zeros(number_of_entries)
+        number_of_entries = num.sum(number_of_triangles_per_node)
+        vertex_value_indices = num.zeros(number_of_entries)
 
         # Register (triangle, vertex) indices for each node
         vertexlist = [None]*self.number_of_full_nodes
@@ -597,7 +594,7 @@ class General_mesh:
     	"""Return total area of mesh
         """
 
-        return sum(self.areas)
+        return num.sum(self.areas)
 
         
         

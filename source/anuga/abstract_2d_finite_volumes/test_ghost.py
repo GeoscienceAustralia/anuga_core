@@ -5,9 +5,6 @@ from math import sqrt
 
 from domain import *
 from anuga.config import epsilon
-from Numeric import allclose, array, ones, Float
-
-
 
 
 class Test_Domain(unittest.TestCase):

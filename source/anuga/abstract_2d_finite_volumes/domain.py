@@ -7,7 +7,6 @@
    Geoscience Australia
 """
 
-from Numeric import allclose, argmax, zeros, Float
 from anuga.config import epsilon
 from anuga.config import beta_euler, beta_rk2
 
@@ -30,12 +29,12 @@ from anuga.abstract_2d_finite_volumes.region\
 from anuga.utilities.polygon import inside_polygon
 from anuga.abstract_2d_finite_volumes.util import get_textual_float
 
-from Numeric import zeros, Float, Int, ones
 from quantity import Quantity
 
 import types
 from time import time as walltime
 
+import Numeric as num
 
 
 class Domain(Mesh):
@@ -155,27 +154,25 @@ class Domain(Mesh):
         self.nsys = len(self.conserved_quantities)
         for key in self.full_send_dict:
             buffer_shape = self.full_send_dict[key][0].shape[0]
-            self.full_send_dict[key].append(zeros( (buffer_shape,self.nsys) ,Float))
-
+            self.full_send_dict[key].append(num.zeros((buffer_shape, self.nsys), num.Float))
 
         for key in self.ghost_recv_dict:
             buffer_shape = self.ghost_recv_dict[key][0].shape[0]
-            self.ghost_recv_dict[key].append(zeros( (buffer_shape,self.nsys) ,Float))
-
+            self.ghost_recv_dict[key].append(num.zeros((buffer_shape, self.nsys), num.Float))
 
         # Setup cell full flag
         # =1 for full
         # =0 for ghost
         N = len(self) #number_of_elements
         self.number_of_elements = N
-        self.tri_full_flag = ones(N, Int)
+        self.tri_full_flag = num.ones(N, num.Int)
         for i in self.ghost_recv_dict.keys():
             for id in self.ghost_recv_dict[i][0]:
                 self.tri_full_flag[id] = 0
 
         # Test the assumption that all full triangles are store before
         # the ghost triangles.
-        if not allclose(self.tri_full_flag[:self.number_of_full_nodes],1):
+        if not num.allclose(self.tri_full_flag[:self.number_of_full_nodes],1):
             print 'WARNING:  Not all full triangles are store before ghost triangles'
                         
 
@@ -228,12 +225,12 @@ class Domain(Mesh):
         # keep an integer (boolean) array, to be used during the flux
         # calculation
         N = len(self) # Number_of_triangles
-        self.already_computed_flux = zeros((N, 3), Int)
+        self.already_computed_flux = num.zeros((N, 3), num.Int)
 
         # Storage for maximal speeds computed for each triangle by
         # compute_fluxes
         # This is used for diagnostics only (reset at every yieldstep)
-        self.max_speed = zeros(N, Float)
+        self.max_speed = num.zeros(N, num.Float)
 
         if mesh_filename is not None:
             # If the mesh file passed any quantity values
@@ -264,14 +261,12 @@ class Domain(Mesh):
 
         """
 
-        from Numeric import zeros, Float
-
         if not (vertex is None or edge is None):
             msg = 'Values for both vertex and edge was specified.'
             msg += 'Only one (or none) is allowed.'
             raise msg
 
-        q = zeros( len(self.conserved_quantities), Float)
+        q = num.zeros(len(self.conserved_quantities), num.Float)
 
         for i, name in enumerate(self.conserved_quantities):
             Q = self.quantities[name]
@@ -790,7 +785,7 @@ class Domain(Mesh):
             
             # Find index of largest computed flux speed
             if triangle_id is None:
-                k = self.k = argmax(self.max_speed)
+                k = self.k = num.argmax(self.max_speed)
             else:
                 errmsg = 'Triangle_id %d does not exist in mesh: %s' %(triangle_id,
                                                                     str(self))
@@ -1223,7 +1218,7 @@ class Domain(Mesh):
                 self.max_timestep = min_timestep
                 self.number_of_steps = 0
                 self.number_of_first_order_steps = 0
-                self.max_speed = zeros(N, Float)
+                self.max_speed = num.zeros(N, num.Float)
 
     def evolve_one_euler_step(self, yieldstep, finaltime):
         """
@@ -1586,8 +1581,6 @@ class Domain(Mesh):
         """Update vectors of conserved quantities using previously
         computed fluxes specified forcing functions.
         """
-
-        from Numeric import ones, sum, equal, Float
 
         N = len(self) # Number_of_triangles
         d = len(self.conserved_quantities)

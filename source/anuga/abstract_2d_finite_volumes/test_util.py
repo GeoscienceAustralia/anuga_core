@@ -2,7 +2,6 @@
 
 
 import unittest
-from Numeric import zeros, array, allclose, Float
 from math import sqrt, pi
 import tempfile, os
 from os import access, F_OK,sep, removedirs,remove,mkdir,getcwd
@@ -21,6 +20,9 @@ from anuga.shallow_water.data_manager import get_dataobject
 from csv import reader,writer
 import time
 import string
+
+import Numeric as num
+
 
 def test_function(x, y):
     return x+y
@@ -90,23 +92,23 @@ class Test_Util(unittest.TestCase):
             q = F(t)
 
             #Exact linear intpolation
-            assert allclose(q[0], 2*t)
+            assert num.allclose(q[0], 2*t)
             if i%6 == 0:
-                assert allclose(q[1], t**2)
-                assert allclose(q[2], sin(t*pi/600))
+                assert num.allclose(q[1], t**2)
+                assert num.allclose(q[2], sin(t*pi/600))
 
         #Check non-exact
 
         t = 90 #Halfway between 60 and 120
         q = F(t)
-        assert allclose( (120**2 + 60**2)/2, q[1] )
-        assert allclose( (sin(120*pi/600) + sin(60*pi/600))/2, q[2] )
+        assert num.allclose( (120**2 + 60**2)/2, q[1] )
+        assert num.allclose( (sin(120*pi/600) + sin(60*pi/600))/2, q[2] )
 
 
         t = 100 #Two thirds of the way between between 60 and 120
         q = F(t)
-        assert allclose( 2*120**2/3 + 60**2/3, q[1] )
-        assert allclose( 2*sin(120*pi/600)/3 + sin(60*pi/600)/3, q[2] )
+        assert num.allclose( 2*120**2/3 + 60**2/3, q[1] )
+        assert num.allclose( 2*sin(120*pi/600)/3 + sin(60*pi/600)/3, q[2] )
 
         os.remove(filename + '.txt')
         os.remove(filename + '.tms')        
@@ -124,7 +126,6 @@ class Test_Util(unittest.TestCase):
         #through rectangular domain
         from shallow_water import Domain, Dirichlet_boundary
         from mesh_factory import rectangular
-        from Numeric import take, concatenate, reshape
 
         #Create basic mesh and shallow water domain
         points, vertices, boundary = rectangular(3, 3)
@@ -181,10 +182,10 @@ class Test_Util(unittest.TestCase):
         #Diagonal is identified by vertices: 0, 5, 10, 15
 
         last_time_index = len(time)-1 #Last last_time_index
-        d_stage = reshape(take(stage[last_time_index, :], [0,5,10,15]), (4,1))
-        d_uh = reshape(take(xmomentum[last_time_index, :], [0,5,10,15]), (4,1))
-        d_vh = reshape(take(ymomentum[last_time_index, :], [0,5,10,15]), (4,1))
-        D = concatenate( (d_stage, d_uh, d_vh), axis=1)
+        d_stage = num.reshape(num.take(stage[last_time_index, :], [0,5,10,15]), (4,1))
+        d_uh = num.reshape(num.take(xmomentum[last_time_index, :], [0,5,10,15]), (4,1))
+        d_vh = num.reshape(num.take(ymomentum[last_time_index, :], [0,5,10,15]), (4,1))
+        D = num.concatenate( (d_stage, d_uh, d_vh), axis=1)
 
         #Reference interpolated values at midpoints on diagonal at
         #this timestep are
@@ -193,10 +194,10 @@ class Test_Util(unittest.TestCase):
         r2 = (D[2] + D[3])/2
 
         #And the midpoints are found now
-        Dx = take(reshape(x, (16,1)), [0,5,10,15])
-        Dy = take(reshape(y, (16,1)), [0,5,10,15])
+        Dx = num.take(num.reshape(x, (16,1)), [0,5,10,15])
+        Dy = num.take(num.reshape(y, (16,1)), [0,5,10,15])
 
-        diag = concatenate( (Dx, Dy), axis=1)
+        diag = num.concatenate( (Dx, Dy), axis=1)
         d_midpoints = (diag[1:] + diag[:-1])/2
 
         #Let us see if the file function can find the correct
@@ -208,19 +209,19 @@ class Test_Util(unittest.TestCase):
         msg = 'duplicate timesteps: %.16f and %.16f' %(T[-1], T[-2])
         assert not T[-1] == T[-2], msg
         t = time[last_time_index]
-        q = f(t, point_id=0); assert allclose(r0, q)
-        q = f(t, point_id=1); assert allclose(r1, q)
-        q = f(t, point_id=2); assert allclose(r2, q)
+        q = f(t, point_id=0); assert num.allclose(r0, q)
+        q = f(t, point_id=1); assert num.allclose(r1, q)
+        q = f(t, point_id=2); assert num.allclose(r2, q)
 
 
         ##################
         #Now do the same for the first timestep
 
         timestep = 0 #First timestep
-        d_stage = reshape(take(stage[timestep, :], [0,5,10,15]), (4,1))
-        d_uh = reshape(take(xmomentum[timestep, :], [0,5,10,15]), (4,1))
-        d_vh = reshape(take(ymomentum[timestep, :], [0,5,10,15]), (4,1))
-        D = concatenate( (d_stage, d_uh, d_vh), axis=1)
+        d_stage = num.reshape(num.take(stage[timestep, :], [0,5,10,15]), (4,1))
+        d_uh = num.reshape(num.take(xmomentum[timestep, :], [0,5,10,15]), (4,1))
+        d_vh = num.reshape(num.take(ymomentum[timestep, :], [0,5,10,15]), (4,1))
+        D = num.concatenate( (d_stage, d_uh, d_vh), axis=1)
 
         #Reference interpolated values at midpoints on diagonal at
         #this timestep are
@@ -230,19 +231,19 @@ class Test_Util(unittest.TestCase):
 
         #Let us see if the file function can find the correct
         #values
-        q = f(0, point_id=0); assert allclose(r0, q)
-        q = f(0, point_id=1); assert allclose(r1, q)
-        q = f(0, point_id=2); assert allclose(r2, q)
+        q = f(0, point_id=0); assert num.allclose(r0, q)
+        q = f(0, point_id=1); assert num.allclose(r1, q)
+        q = f(0, point_id=2); assert num.allclose(r2, q)
 
 
         ##################
         #Now do it again for a timestep in the middle
 
         timestep = 33
-        d_stage = reshape(take(stage[timestep, :], [0,5,10,15]), (4,1))
-        d_uh = reshape(take(xmomentum[timestep, :], [0,5,10,15]), (4,1))
-        d_vh = reshape(take(ymomentum[timestep, :], [0,5,10,15]), (4,1))
-        D = concatenate( (d_stage, d_uh, d_vh), axis=1)
+        d_stage = num.reshape(num.take(stage[timestep, :], [0,5,10,15]), (4,1))
+        d_uh = num.reshape(num.take(xmomentum[timestep, :], [0,5,10,15]), (4,1))
+        d_vh = num.reshape(num.take(ymomentum[timestep, :], [0,5,10,15]), (4,1))
+        D = num.concatenate( (d_stage, d_uh, d_vh), axis=1)
 
         #Reference interpolated values at midpoints on diagonal at
         #this timestep are
@@ -250,9 +251,9 @@ class Test_Util(unittest.TestCase):
         r1 = (D[1] + D[2])/2
         r2 = (D[2] + D[3])/2
 
-        q = f(timestep/10., point_id=0); assert allclose(r0, q)
-        q = f(timestep/10., point_id=1); assert allclose(r1, q)
-        q = f(timestep/10., point_id=2); assert allclose(r2, q)
+        q = f(timestep/10., point_id=0); assert num.allclose(r0, q)
+        q = f(timestep/10., point_id=1); assert num.allclose(r1, q)
+        q = f(timestep/10., point_id=2); assert num.allclose(r2, q)
 
 
         ##################
@@ -260,10 +261,10 @@ class Test_Util(unittest.TestCase):
         #Halfway between timestep 15 and 16
 
         timestep = 15
-        d_stage = reshape(take(stage[timestep, :], [0,5,10,15]), (4,1))
-        d_uh = reshape(take(xmomentum[timestep, :], [0,5,10,15]), (4,1))
-        d_vh = reshape(take(ymomentum[timestep, :], [0,5,10,15]), (4,1))
-        D = concatenate( (d_stage, d_uh, d_vh), axis=1)
+        d_stage = num.reshape(num.take(stage[timestep, :], [0,5,10,15]), (4,1))
+        d_uh = num.reshape(num.take(xmomentum[timestep, :], [0,5,10,15]), (4,1))
+        d_vh = num.reshape(num.take(ymomentum[timestep, :], [0,5,10,15]), (4,1))
+        D = num.concatenate( (d_stage, d_uh, d_vh), axis=1)
 
         #Reference interpolated values at midpoints on diagonal at
         #this timestep are
@@ -273,10 +274,10 @@ class Test_Util(unittest.TestCase):
 
         #
         timestep = 16
-        d_stage = reshape(take(stage[timestep, :], [0,5,10,15]), (4,1))
-        d_uh = reshape(take(xmomentum[timestep, :], [0,5,10,15]), (4,1))
-        d_vh = reshape(take(ymomentum[timestep, :], [0,5,10,15]), (4,1))
-        D = concatenate( (d_stage, d_uh, d_vh), axis=1)
+        d_stage = num.reshape(num.take(stage[timestep, :], [0,5,10,15]), (4,1))
+        d_uh = num.reshape(num.take(xmomentum[timestep, :], [0,5,10,15]), (4,1))
+        d_vh = num.reshape(num.take(ymomentum[timestep, :], [0,5,10,15]), (4,1))
+        D = num.concatenate( (d_stage, d_uh, d_vh), axis=1)
 
         #Reference interpolated values at midpoints on diagonal at
         #this timestep are
@@ -289,9 +290,9 @@ class Test_Util(unittest.TestCase):
         r1 = (r1_0 + r1_1)/2
         r2 = (r2_0 + r2_1)/2
 
-        q = f((timestep - 0.5)/10., point_id=0); assert allclose(r0, q)
-        q = f((timestep - 0.5)/10., point_id=1); assert allclose(r1, q)
-        q = f((timestep - 0.5)/10., point_id=2); assert allclose(r2, q)
+        q = f((timestep - 0.5)/10., point_id=0); assert num.allclose(r0, q)
+        q = f((timestep - 0.5)/10., point_id=1); assert num.allclose(r1, q)
+        q = f((timestep - 0.5)/10., point_id=2); assert num.allclose(r2, q)
 
         ##################
         #Finally check interpolation 2 thirds of the way
@@ -303,9 +304,9 @@ class Test_Util(unittest.TestCase):
         r2 = (r2_0 + 2*r2_1)/3
 
         #And the file function gives
-        q = f((timestep - 1.0/3)/10., point_id=0); assert allclose(r0, q)
-        q = f((timestep - 1.0/3)/10., point_id=1); assert allclose(r1, q)
-        q = f((timestep - 1.0/3)/10., point_id=2); assert allclose(r2, q)
+        q = f((timestep - 1.0/3)/10., point_id=0); assert num.allclose(r0, q)
+        q = f((timestep - 1.0/3)/10., point_id=1); assert num.allclose(r1, q)
+        q = f((timestep - 1.0/3)/10., point_id=2); assert num.allclose(r2, q)
 
         fid.close()
         import os
@@ -325,7 +326,6 @@ class Test_Util(unittest.TestCase):
         #through rectangular domain
         from shallow_water import Domain, Dirichlet_boundary
         from mesh_factory import rectangular
-        from Numeric import take, concatenate, reshape
 
 
         from anuga.coordinate_transforms.geo_reference import Geo_reference
@@ -385,10 +385,10 @@ class Test_Util(unittest.TestCase):
         #Diagonal is identified by vertices: 0, 5, 10, 15
 
         last_time_index = len(time)-1 #Last last_time_index     
-        d_stage = reshape(take(stage[last_time_index, :], [0,5,10,15]), (4,1))
-        d_uh = reshape(take(xmomentum[last_time_index, :], [0,5,10,15]), (4,1))
-        d_vh = reshape(take(ymomentum[last_time_index, :], [0,5,10,15]), (4,1))
-        D = concatenate( (d_stage, d_uh, d_vh), axis=1)
+        d_stage = num.reshape(num.take(stage[last_time_index, :], [0,5,10,15]), (4,1))
+        d_uh = num.reshape(num.take(xmomentum[last_time_index, :], [0,5,10,15]), (4,1))
+        d_vh = num.reshape(num.take(ymomentum[last_time_index, :], [0,5,10,15]), (4,1))
+        D = num.concatenate( (d_stage, d_uh, d_vh), axis=1)
 
         #Reference interpolated values at midpoints on diagonal at
         #this timestep are
@@ -397,10 +397,10 @@ class Test_Util(unittest.TestCase):
         r2 = (D[2] + D[3])/2
 
         #And the midpoints are found now
-        Dx = take(reshape(x, (16,1)), [0,5,10,15])
-        Dy = take(reshape(y, (16,1)), [0,5,10,15])
+        Dx = num.take(num.reshape(x, (16,1)), [0,5,10,15])
+        Dy = num.take(num.reshape(y, (16,1)), [0,5,10,15])
 
-        diag = concatenate( (Dx, Dy), axis=1)
+        diag = num.concatenate( (Dx, Dy), axis=1)
         d_midpoints = (diag[1:] + diag[:-1])/2
 
 
@@ -414,19 +414,19 @@ class Test_Util(unittest.TestCase):
                           interpolation_points = d_midpoints)
 
         t = time[last_time_index]                         
-        q = f(t, point_id=0); assert allclose(r0, q)
-        q = f(t, point_id=1); assert allclose(r1, q)
-        q = f(t, point_id=2); assert allclose(r2, q)
+        q = f(t, point_id=0); assert num.allclose(r0, q)
+        q = f(t, point_id=1); assert num.allclose(r1, q)
+        q = f(t, point_id=2); assert num.allclose(r2, q)
 
 
         ##################
         #Now do the same for the first timestep
 
         timestep = 0 #First timestep
-        d_stage = reshape(take(stage[timestep, :], [0,5,10,15]), (4,1))
-        d_uh = reshape(take(xmomentum[timestep, :], [0,5,10,15]), (4,1))
-        d_vh = reshape(take(ymomentum[timestep, :], [0,5,10,15]), (4,1))
-        D = concatenate( (d_stage, d_uh, d_vh), axis=1)
+        d_stage = num.reshape(num.take(stage[timestep, :], [0,5,10,15]), (4,1))
+        d_uh = num.reshape(num.take(xmomentum[timestep, :], [0,5,10,15]), (4,1))
+        d_vh = num.reshape(num.take(ymomentum[timestep, :], [0,5,10,15]), (4,1))
+        D = num.concatenate( (d_stage, d_uh, d_vh), axis=1)
 
         #Reference interpolated values at midpoints on diagonal at
         #this timestep are
@@ -436,19 +436,19 @@ class Test_Util(unittest.TestCase):
 
         #Let us see if the file function can find the correct
         #values
-        q = f(0, point_id=0); assert allclose(r0, q)
-        q = f(0, point_id=1); assert allclose(r1, q)
-        q = f(0, point_id=2); assert allclose(r2, q)
+        q = f(0, point_id=0); assert num.allclose(r0, q)
+        q = f(0, point_id=1); assert num.allclose(r1, q)
+        q = f(0, point_id=2); assert num.allclose(r2, q)
 
 
         ##################
         #Now do it again for a timestep in the middle
 
         timestep = 33
-        d_stage = reshape(take(stage[timestep, :], [0,5,10,15]), (4,1))
-        d_uh = reshape(take(xmomentum[timestep, :], [0,5,10,15]), (4,1))
-        d_vh = reshape(take(ymomentum[timestep, :], [0,5,10,15]), (4,1))
-        D = concatenate( (d_stage, d_uh, d_vh), axis=1)
+        d_stage = num.reshape(num.take(stage[timestep, :], [0,5,10,15]), (4,1))
+        d_uh = num.reshape(num.take(xmomentum[timestep, :], [0,5,10,15]), (4,1))
+        d_vh = num.reshape(num.take(ymomentum[timestep, :], [0,5,10,15]), (4,1))
+        D = num.concatenate( (d_stage, d_uh, d_vh), axis=1)
 
         #Reference interpolated values at midpoints on diagonal at
         #this timestep are
@@ -456,9 +456,9 @@ class Test_Util(unittest.TestCase):
         r1 = (D[1] + D[2])/2
         r2 = (D[2] + D[3])/2
 
-        q = f(timestep/10., point_id=0); assert allclose(r0, q)
-        q = f(timestep/10., point_id=1); assert allclose(r1, q)
-        q = f(timestep/10., point_id=2); assert allclose(r2, q)
+        q = f(timestep/10., point_id=0); assert num.allclose(r0, q)
+        q = f(timestep/10., point_id=1); assert num.allclose(r1, q)
+        q = f(timestep/10., point_id=2); assert num.allclose(r2, q)
 
 
         ##################
@@ -466,10 +466,10 @@ class Test_Util(unittest.TestCase):
         #Halfway between timestep 15 and 16
 
         timestep = 15
-        d_stage = reshape(take(stage[timestep, :], [0,5,10,15]), (4,1))
-        d_uh = reshape(take(xmomentum[timestep, :], [0,5,10,15]), (4,1))
-        d_vh = reshape(take(ymomentum[timestep, :], [0,5,10,15]), (4,1))
-        D = concatenate( (d_stage, d_uh, d_vh), axis=1)
+        d_stage = num.reshape(num.take(stage[timestep, :], [0,5,10,15]), (4,1))
+        d_uh = num.reshape(num.take(xmomentum[timestep, :], [0,5,10,15]), (4,1))
+        d_vh = num.reshape(num.take(ymomentum[timestep, :], [0,5,10,15]), (4,1))
+        D = num.concatenate( (d_stage, d_uh, d_vh), axis=1)
 
         #Reference interpolated values at midpoints on diagonal at
         #this timestep are
@@ -479,10 +479,10 @@ class Test_Util(unittest.TestCase):
 
         #
         timestep = 16
-        d_stage = reshape(take(stage[timestep, :], [0,5,10,15]), (4,1))
-        d_uh = reshape(take(xmomentum[timestep, :], [0,5,10,15]), (4,1))
-        d_vh = reshape(take(ymomentum[timestep, :], [0,5,10,15]), (4,1))
-        D = concatenate( (d_stage, d_uh, d_vh), axis=1)
+        d_stage = num.reshape(num.take(stage[timestep, :], [0,5,10,15]), (4,1))
+        d_uh = num.reshape(num.take(xmomentum[timestep, :], [0,5,10,15]), (4,1))
+        d_vh = num.reshape(num.take(ymomentum[timestep, :], [0,5,10,15]), (4,1))
+        D = num.concatenate( (d_stage, d_uh, d_vh), axis=1)
 
         #Reference interpolated values at midpoints on diagonal at
         #this timestep are
@@ -495,9 +495,9 @@ class Test_Util(unittest.TestCase):
         r1 = (r1_0 + r1_1)/2
         r2 = (r2_0 + r2_1)/2
 
-        q = f((timestep - 0.5)/10., point_id=0); assert allclose(r0, q)
-        q = f((timestep - 0.5)/10., point_id=1); assert allclose(r1, q)
-        q = f((timestep - 0.5)/10., point_id=2); assert allclose(r2, q)
+        q = f((timestep - 0.5)/10., point_id=0); assert num.allclose(r0, q)
+        q = f((timestep - 0.5)/10., point_id=1); assert num.allclose(r1, q)
+        q = f((timestep - 0.5)/10., point_id=2); assert num.allclose(r2, q)
 
         ##################
         #Finally check interpolation 2 thirds of the way
@@ -509,9 +509,9 @@ class Test_Util(unittest.TestCase):
         r2 = (r2_0 + 2*r2_1)/3
 
         #And the file function gives
-        q = f((timestep - 1.0/3)/10., point_id=0); assert allclose(r0, q)
-        q = f((timestep - 1.0/3)/10., point_id=1); assert allclose(r1, q)
-        q = f((timestep - 1.0/3)/10., point_id=2); assert allclose(r2, q)
+        q = f((timestep - 1.0/3)/10., point_id=0); assert num.allclose(r0, q)
+        q = f((timestep - 1.0/3)/10., point_id=1); assert num.allclose(r1, q)
+        q = f((timestep - 1.0/3)/10., point_id=2); assert num.allclose(r2, q)
 
         fid.close()
         import os
@@ -541,7 +541,6 @@ class Test_Util(unittest.TestCase):
 
         import os, time
         from anuga.config import time_format
-        from Numeric import sin, pi, exp
         from mesh_factory import rectangular
         from shallow_water import Domain
         import anuga.shallow_water.data_manager
@@ -583,7 +582,7 @@ class Test_Util(unittest.TestCase):
             f2 = lambda x,y: x+y+t**2
             domain.set_quantity('xmomentum', f2)
 
-            f3 = lambda x,y: x**2 + y**2 * sin(t*pi/600)
+            f3 = lambda x,y: x**2 + y**2 * num.sin(t*num.pi/600)
             domain.set_quantity('ymomentum', f3)
 
             #Store and advance time
@@ -603,14 +602,14 @@ class Test_Util(unittest.TestCase):
                           interpolation_points = interpolation_points)
 
         #Check that FF updates fixes domain starttime
-        assert allclose(domain.starttime, start)
+        assert num.allclose(domain.starttime, start)
 
         #Check that domain.starttime isn't updated if later
         domain.starttime = start + 1
         F = file_function(filename + '.sww', domain,
                           quantities = domain.conserved_quantities,
                           interpolation_points = interpolation_points)
-        assert allclose(domain.starttime, start+1)
+        assert num.allclose(domain.starttime, start+1)
         domain.starttime = start
 
 
@@ -644,7 +643,7 @@ class Test_Util(unittest.TestCase):
                 if q0 == NAN:
                      self.failUnless( q == actual, 'Fail!')
                 else:
-                    assert allclose(q, actual)
+                    assert num.allclose(q, actual)
 
 
         #Another check of linear interpolation in time
@@ -654,11 +653,11 @@ class Test_Util(unittest.TestCase):
 
             t = 90 #Halfway between 60 and 120
             q = F(t, point_id=id)
-            assert allclose( (q120+q60)/2, q )
+            assert num.allclose( (q120+q60)/2, q )
 
             t = 100 #Two thirds of the way between between 60 and 120
             q = F(t, point_id=id)
-            assert allclose(q60/3 + 2*q120/3, q)
+            assert num.allclose(q60/3 + 2*q120/3, q)
 
 
 
@@ -669,7 +668,7 @@ class Test_Util(unittest.TestCase):
         F = file_function(filename + '.sww', domain,
                           quantities = domain.conserved_quantities,
                           interpolation_points = interpolation_points)
-        assert allclose(domain.starttime, start+delta)
+        assert num.allclose(domain.starttime, start+delta)
 
 
 
@@ -688,7 +687,7 @@ class Test_Util(unittest.TestCase):
                     q1 = F(t+60-delta, point_id=id)
 
                 q = F(t-delta, point_id=id)
-                assert allclose(q, (k*q1 + (6-k)*q0)/6)
+                assert num.allclose(q, (k*q1 + (6-k)*q0)/6)
 
 
         os.remove(filename + '.sww')
@@ -702,7 +701,6 @@ class Test_Util(unittest.TestCase):
 
         import os, time
         from anuga.config import time_format
-        from Numeric import sin, pi, exp
         from mesh_factory import rectangular
         from shallow_water import Domain
         import anuga.shallow_water.data_manager 
@@ -750,7 +748,7 @@ class Test_Util(unittest.TestCase):
             f2 = lambda x,y: x+y+t**2
             domain.set_quantity('xmomentum', f2)
 
-            f3 = lambda x,y: x**2 + y**2 * sin(t*pi/600)
+            f3 = lambda x,y: x**2 + y**2 * num.sin(t*num.pi/600)
             domain.set_quantity('ymomentum', f3)
 
             #Store and advance time
@@ -773,14 +771,14 @@ class Test_Util(unittest.TestCase):
                           interpolation_points = interpolation_points)
 
         #Check that FF updates fixes domain starttime
-        assert allclose(domain.starttime, start)
+        assert num.allclose(domain.starttime, start)
 
         #Check that domain.starttime isn't updated if later
         domain.starttime = start + 1
         F = file_function(filename + '.sww', domain,
                           quantities = domain.conserved_quantities,
                           interpolation_points = interpolation_points)
-        assert allclose(domain.starttime, start+1)
+        assert num.allclose(domain.starttime, start+1)
         domain.starttime = start
 
 
@@ -816,7 +814,7 @@ class Test_Util(unittest.TestCase):
                 if q0 == NAN:
                      self.failUnless( q == actual, 'Fail!')
                 else:
-                    assert allclose(q, actual)
+                    assert num.allclose(q, actual)
 
         # now lets check points inside the mesh
         interpolation_points = [[0,-20], [1,0], [0,1], [1.1, 3.14]] #, [10,-12.5]] - this point doesn't work WHY?
@@ -862,7 +860,7 @@ class Test_Util(unittest.TestCase):
                 if q0 == NAN:
                      self.failUnless( q == actual, 'Fail!')
                 else:
-                    assert allclose(q, actual)
+                    assert num.allclose(q, actual)
 
 
         #Another check of linear interpolation in time
@@ -872,11 +870,11 @@ class Test_Util(unittest.TestCase):
 
             t = 90 #Halfway between 60 and 120
             q = F(t, point_id=id)
-            assert allclose( (q120+q60)/2, q )
+            assert num.allclose( (q120+q60)/2, q )
 
             t = 100 #Two thirds of the way between between 60 and 120
             q = F(t, point_id=id)
-            assert allclose(q60/3 + 2*q120/3, q)
+            assert num.allclose(q60/3 + 2*q120/3, q)
 
 
 
@@ -887,7 +885,7 @@ class Test_Util(unittest.TestCase):
         F = file_function(filename + '.sww', domain,
                           quantities = domain.conserved_quantities,
                           interpolation_points = interpolation_points)
-        assert allclose(domain.starttime, start+delta)
+        assert num.allclose(domain.starttime, start+delta)
 
 
 
@@ -906,7 +904,7 @@ class Test_Util(unittest.TestCase):
                     q1 = F(t+60-delta, point_id=id)
 
                 q = F(t-delta, point_id=id)
-                assert allclose(q, (k*q1 + (6-k)*q0)/6)
+                assert num.allclose(q, (k*q1 + (6-k)*q0)/6)
 
 
         os.remove(filename + '.sww')
@@ -954,21 +952,21 @@ class Test_Util(unittest.TestCase):
         F = file_function(filename + '.tms',
                           domain,
                           quantities = ['Attribute0', 'Attribute1', 'Attribute2'])  
-        assert allclose(domain.starttime, start)
+        assert num.allclose(domain.starttime, start)
 
         # Check that domain.starttime is updated if too early
         domain.starttime = start - 1
         F = file_function(filename + '.tms',
                           domain,
                           quantities = ['Attribute0', 'Attribute1', 'Attribute2'])
-        assert allclose(domain.starttime, start)
+        assert num.allclose(domain.starttime, start)
 
         # Check that domain.starttime isn't updated if later
         domain.starttime = start + 1
         F = file_function(filename + '.tms',
                           domain,
                           quantities = ['Attribute0', 'Attribute1', 'Attribute2'])
-        assert allclose(domain.starttime, start+1)
+        assert num.allclose(domain.starttime, start+1)
 
         domain.starttime = start
         F = file_function(filename + '.tms',
@@ -986,23 +984,23 @@ class Test_Util(unittest.TestCase):
             q = F(t)
 
             #Exact linear intpolation
-            assert allclose(q[0], 2*t)
+            assert num.allclose(q[0], 2*t)
             if i%6 == 0:
-                assert allclose(q[1], t**2)
-                assert allclose(q[2], sin(t*pi/600))
+                assert num.allclose(q[1], t**2)
+                assert num.allclose(q[2], sin(t*pi/600))
 
         #Check non-exact
 
         t = 90 #Halfway between 60 and 120
         q = F(t)
-        assert allclose( (120**2 + 60**2)/2, q[1] )
-        assert allclose( (sin(120*pi/600) + sin(60*pi/600))/2, q[2] )
+        assert num.allclose( (120**2 + 60**2)/2, q[1] )
+        assert num.allclose( (sin(120*pi/600) + sin(60*pi/600))/2, q[2] )
 
 
         t = 100 #Two thirds of the way between between 60 and 120
         q = F(t)
-        assert allclose( 2*120**2/3 + 60**2/3, q[1] )
-        assert allclose( 2*sin(120*pi/600)/3 + sin(60*pi/600)/3, q[2] )
+        assert num.allclose( 2*120**2/3 + 60**2/3, q[1] )
+        assert num.allclose( 2*sin(120*pi/600)/3 + sin(60*pi/600)/3, q[2] )
 
         os.remove(filename + '.tms')
         os.remove(filename + '.txt')        
@@ -1051,7 +1049,7 @@ class Test_Util(unittest.TestCase):
         domain.starttime = start + delta
         F = file_function(filename + '.tms', domain,
                           quantities = ['Attribute0', 'Attribute1', 'Attribute2'])        
-        assert allclose(domain.starttime, start+delta)
+        assert num.allclose(domain.starttime, start+delta)
 
 
 
@@ -1062,23 +1060,23 @@ class Test_Util(unittest.TestCase):
             q = F(t-delta)
 
             #Exact linear intpolation
-            assert allclose(q[0], 2*t)
+            assert num.allclose(q[0], 2*t)
             if i%6 == 0:
-                assert allclose(q[1], t**2)
-                assert allclose(q[2], sin(t*pi/600))
+                assert num.allclose(q[1], t**2)
+                assert num.allclose(q[2], sin(t*pi/600))
 
         #Check non-exact
 
         t = 90 #Halfway between 60 and 120
         q = F(t-delta)
-        assert allclose( (120**2 + 60**2)/2, q[1] )
-        assert allclose( (sin(120*pi/600) + sin(60*pi/600))/2, q[2] )
+        assert num.allclose( (120**2 + 60**2)/2, q[1] )
+        assert num.allclose( (sin(120*pi/600) + sin(60*pi/600))/2, q[2] )
 
 
         t = 100 #Two thirds of the way between between 60 and 120
         q = F(t-delta)
-        assert allclose( 2*120**2/3 + 60**2/3, q[1] )
-        assert allclose( 2*sin(120*pi/600)/3 + sin(60*pi/600)/3, q[2] )
+        assert num.allclose( 2*120**2/3 + 60**2/3, q[1] )
+        assert num.allclose( 2*sin(120*pi/600)/3 + sin(60*pi/600)/3, q[2] )
 
 
         os.remove(filename + '.tms')
@@ -1090,26 +1088,24 @@ class Test_Util(unittest.TestCase):
 
         #FIXME: Division is not expected to work for integers.
         #This must be caught.
-        foo = array([[1,2,3],
-                     [4,5,6]], Float)
+        foo = num.array([[1,2,3], [4,5,6]], num.Float)
 
-        bar = array([[-1,0,5],
-                     [6,1,1]], Float)                  
+        bar = num.array([[-1,0,5], [6,1,1]], num.Float)                  
 
         D = {'X': foo, 'Y': bar}
 
         Z = apply_expression_to_dictionary('X+Y', D)        
-        assert allclose(Z, foo+bar)
+        assert num.allclose(Z, foo+bar)
 
         Z = apply_expression_to_dictionary('X*Y', D)        
-        assert allclose(Z, foo*bar)        
+        assert num.allclose(Z, foo*bar)        
 
         Z = apply_expression_to_dictionary('4*X+Y', D)        
-        assert allclose(Z, 4*foo+bar)        
+        assert num.allclose(Z, 4*foo+bar)        
 
         # test zero division is OK
         Z = apply_expression_to_dictionary('X/Y', D)
-        assert allclose(1/Z, 1/(foo/bar)) # can't compare inf to inf
+        assert num.allclose(1/Z, 1/(foo/bar)) # can't compare inf to inf
 
         # make an error for zero on zero
         # this is really an error in Numeric, SciPy core can handle it
@@ -1499,7 +1495,7 @@ point2, 0.5, 2.0, 9.0\n")
             #print 'i',i,'row',row
             line.append([float(row[0]),float(row[1]),float(row[2]),float(row[3]),float(row[4]),float(row[5])])
             #print 'assert line',line[i],'point1',point1_answers_array[i]
-            assert allclose(line[i], point1_answers_array[i])
+            assert num.allclose(line[i], point1_answers_array[i])
 
         point2_answers_array = [[0.0,1.0,1.5,-0.5,3.0,4.0], [2.0,10.0,10.5,-0.5,3.0,4.0]]
         point2_filename = 'gauge_point2.csv' 
@@ -1512,7 +1508,7 @@ point2, 0.5, 2.0, 9.0\n")
             #print 'i',i,'row',row
             line.append([float(row[0]),float(row[1]),float(row[2]),float(row[3]),float(row[4]),float(row[5])])
             #print 'assert line',line[i],'point1',point1_answers_array[i]
-            assert allclose(line[i], point2_answers_array[i])
+            assert num.allclose(line[i], point2_answers_array[i])
                          
         # clean up
         point1_handle.close()
@@ -1618,7 +1614,7 @@ point2, 0.5, 2.0\n")
 #            print 'i',i,'row',row
             line.append([float(row[0]),float(row[1]),float(row[2])])
             #print 'line',line[i],'point1',point1_answers_array[i]
-            assert allclose(line[i], point1_answers_array[i])
+            assert num.allclose(line[i], point1_answers_array[i])
 
         point2_answers_array = [[0.0,1.0,-0.5], [2.0,10.0,-0.5]]
         point2_filename = 'gauge_point2.csv' 
@@ -1631,7 +1627,7 @@ point2, 0.5, 2.0\n")
 #            print 'i',i,'row',row
             line.append([float(row[0]),float(row[1]),float(row[2])])
 #            print 'line',line[i],'point1',point1_answers_array[i]
-            assert allclose(line[i], point2_answers_array[i])
+            assert num.allclose(line[i], point2_answers_array[i])
                          
         # clean up
         point1_handle.close()
@@ -1737,7 +1733,7 @@ point2, 0.5, 2.0, 9.0\n")
             #print 'i',i,'row',row
             line.append([float(row[0]),float(row[1]),float(row[2]),float(row[3]),float(row[4]),float(row[5])])
             #print 'assert line',line[i],'point1',point1_answers_array[i]
-            assert allclose(line[i], point1_answers_array[i])
+            assert num.allclose(line[i], point1_answers_array[i])
 
         point2_answers_array = [[5.0,1.0,1.5,-0.5,3.0,4.0], [7.0,10.0,10.5,-0.5,3.0,4.0]]
         point2_filename = 'gauge_point2.csv' 
@@ -1750,7 +1746,7 @@ point2, 0.5, 2.0, 9.0\n")
             #print 'i',i,'row',row
             line.append([float(row[0]),float(row[1]),float(row[2]),float(row[3]),float(row[4]),float(row[5])])
             #print 'assert line',line[i],'point1',point1_answers_array[i]
-            assert allclose(line[i], point2_answers_array[i])
+            assert num.allclose(line[i], point2_answers_array[i])
                          
         # clean up
         point1_handle.close()

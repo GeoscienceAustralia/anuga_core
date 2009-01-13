@@ -8,6 +8,7 @@
 
 import sys
 
+import Numeric as num
 
 
 def pmesh_instance_to_domain_instance(mesh,
@@ -160,7 +161,6 @@ def _pmesh_to_domain(file_name=None,
     that can be used to instanciate a domain object.
     """
 
-    from Numeric import transpose
     from load_mesh.loadASCII import import_mesh_file
 
     if file_name is None:
@@ -171,7 +171,7 @@ def _pmesh_to_domain(file_name=None,
     vertex_coordinates = mesh_dict['vertices']
     volumes = mesh_dict['triangles']
     vertex_quantity_dict = {}
-    point_atts = transpose(mesh_dict['vertex_attributes'])
+    point_atts = num.transpose(mesh_dict['vertex_attributes'])
     point_titles  = mesh_dict['vertex_attribute_titles']
     geo_reference  = mesh_dict['geo_reference']
     if point_atts != None:
