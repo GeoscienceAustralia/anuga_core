@@ -6,24 +6,9 @@
 from math import acos, pi, sqrt
 from warnings import warn
 
-#Establish which Numeric package to use
-#(this should move to somewhere central)
-#try:
-#    from scipy import ArrayType, array, sum, innerproduct, ravel, sqrt,
-# searchsorted, sort, concatenate, Float, arange    
-#except:
-#    #print 'Could not find scipy - using Numeric'
-#    from Numeric import ArrayType, array, sum, innerproduct, ravel, sqrt,
-#searchsorted, sort, concatenate, Float, arange
+import Numeric as num
 
-from Numeric import ArrayType, array, sum, innerproduct, ravel, sqrt,\
-     searchsorted, sort, concatenate, Float, arange    
-
-# Getting an infinite number to use when using Numeric
-#INF = (array([1])/0.)[0]
-
-NAN = (array([1])/0.)[0]
-# Note, INF is used instead of NAN (Not a number), since Numeric has no NAN
+NAN = (num.array([1])/0.)[0]
 # if we use a package that has NAN, this should be updated to use NAN.
 
 # Static variable used by get_machine_precision
@@ -88,16 +73,16 @@ def angle(v1, v2=None):
     if v2 is None:
         v2 = [1.0, 0.0] # Unit vector along the x-axis
 	
-    v1 = ensure_numeric(v1, Float)
-    v2 = ensure_numeric(v2, Float)    
+    v1 = ensure_numeric(v1, num.Float)
+    v2 = ensure_numeric(v2, num.Float)    
     
     # Normalise
-    v1 = v1/sqrt(sum(v1**2))
-    v2 = v2/sqrt(sum(v2**2))
+    v1 = v1/num.sqrt(num.sum(v1**2))
+    v2 = v2/num.sqrt(num.sum(v2**2))
 
     # Compute angle
-    p = innerproduct(v1, v2)
-    c = innerproduct(v1, normal_vector(v2)) # Projection onto normal
+    p = num.innerproduct(v1, v2)
+    c = num.innerproduct(v1, normal_vector(v2)) # Projection onto normal
                                             # (negative cross product)
         
     theta = safe_acos(p)
@@ -139,7 +124,7 @@ def normal_vector(v):
     Returns vector 90 degrees counter clockwise to and of same length as v
     """
     
-    return array([-v[1], v[0]], Float)
+    return num.array([-v[1], v[0]], num.Float)
 
     
 #def crossproduct_length(v1, v2):
@@ -149,7 +134,7 @@ def normal_vector(v):
 def mean(x):
     """Mean value of a vector
     """
-    return(float(sum(x))/len(x))
+    return(float(num.sum(x))/len(x))
 
 
 def cov(x, y=None):
@@ -170,7 +155,7 @@ def cov(x, y=None):
     cx = x - mean(x)  
     cy = y - mean(y)  
 
-    p = innerproduct(cx,cy)/N
+    p = num.innerproduct(cx,cy)/N
     return(p)
 
 
@@ -219,8 +204,8 @@ def norm(x):
     """2-norm of x
     """
   
-    y = ravel(x)
-    p = sqrt(innerproduct(y,y))
+    y = num.ravel(x)
+    p = num.sqrt(num.innerproduct(y,y))
     return p
     
   
@@ -261,18 +246,18 @@ def ensure_numeric(A, typecode = None):
     """
 
     if typecode is None:
-        if type(A) == ArrayType:
+        if type(A) == num.ArrayType:
             return A
         else:
-            return array(A)
+            return num.array(A)
     else:
-        if type(A) == ArrayType:
+        if type(A) == num.ArrayType:
             if A.typecode == typecode:
-                return array(A)  #FIXME: Shouldn't this just return A?
+                return num.array(A)  #FIXME: Shouldn't this just return A?
             else:
-                return array(A,typecode)
+                return num.array(A,typecode)
         else:
-            return array(A,typecode)
+            return num.array(A,typecode)
 
 
 
@@ -284,13 +269,13 @@ def histogram(a, bins, relative=False):
     thus represent frequencies rather than counts.
     """
 
-    n = searchsorted(sort(a), bins)
-    n = concatenate( [n, [len(a)]] )
+    n = num.searchsorted(num.sort(a), bins)
+    n = num.concatenate( [n, [len(a)]] )
 
     hist = n[1:]-n[:-1]
 
     if relative is True:
-        hist = hist/float(sum(hist))
+        hist = hist/float(num.sum(hist))
         
     return hist 
 
@@ -304,12 +289,12 @@ def create_bins(data, number_of_bins = None):
     mn = min(data)
 
     if mx == mn:
-        bins = array([mn])
+        bins = num.array([mn])
     else:
         if number_of_bins is None:
             number_of_bins = 10
             
-        bins = arange(mn, mx, (mx-mn)/number_of_bins)
+        bins = num.arange(mn, mx, (mx-mn)/number_of_bins)
 
     return bins
     

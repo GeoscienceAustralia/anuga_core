@@ -2,7 +2,7 @@
 
 
 import unittest
-from Numeric import zeros, array, allclose, Float
+import Numeric as num
 import zlib
 from os.path import join, split, sep
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
@@ -81,13 +81,13 @@ class Test_system_tools(unittest.TestCase):
             # This code is also used by EQRM which does not require NetCDF
             pass
         else:
-            test_array = array([[7.0, 3.14], [-31.333, 0.0]])
+            test_array = num.array([[7.0, 3.14], [-31.333, 0.0]])
 
             # First file
             filename1 = mktemp(suffix='.nc', dir='.')
             fid = NetCDFFile(filename1, netcdf_mode_w)
             fid.createDimension('two', 2)
-            fid.createVariable('test_array', Float,
+            fid.createVariable('test_array', num.Float,
                                ('two', 'two'))
             fid.variables['test_array'][:] = test_array
             fid.close()
@@ -96,7 +96,7 @@ class Test_system_tools(unittest.TestCase):
             filename2 = mktemp(suffix='.nc', dir='.')
             fid = NetCDFFile(filename2, netcdf_mode_w)
             fid.createDimension('two', 2)
-            fid.createVariable('test_array', Float,
+            fid.createVariable('test_array', num.Float,
                                ('two', 'two'))
             fid.variables['test_array'][:] = test_array
             fid.close()

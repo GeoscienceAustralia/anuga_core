@@ -6,6 +6,7 @@
 from treenode import TreeNode
 import string, types, sys
 
+
 #FIXME verts are added one at a time. 
 #FIXME add max min x y in general_mesh
 
@@ -433,8 +434,6 @@ def build_quadtree(mesh, max_points_per_cell = 4):
     All vertices in mesh are stored in quadtree and a reference
     to the root is returned.
     """
-
-    from Numeric import minimum, maximum
 
 
     #Make root cell

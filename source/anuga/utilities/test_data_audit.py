@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 
-
 import unittest
-from Numeric import zeros, array, allclose, Float
 from tempfile import mkstemp
 import os
 
 from data_audit import *
+
 
 class Test_data_audit(unittest.TestCase):
     def setUp(self):

@@ -4,7 +4,8 @@ import unittest
 from math import sqrt
 
 from sparse import *
-from Numeric import allclose, array, transpose, Float
+import Numeric as num
+
 
 class Test_Sparse(unittest.TestCase):
 
@@ -42,14 +43,14 @@ class Test_Sparse(unittest.TestCase):
 
         C = Sparse(B)
 
-        assert allclose(C.todense(), B)
+        assert num.allclose(C.todense(), B)
 
 
     def test_dense(self):
         A = Sparse(4,3)
         A[1,1] = 4
 
-        assert allclose(A.todense(), [[0,0,0], [0,4,0], [0,0,0], [0,0,0]])
+        assert num.allclose(A.todense(), [[0,0,0], [0,4,0], [0,0,0], [0,0,0]])
 
 
     def test_reset_to_zero_possible(self):
@@ -62,12 +63,12 @@ class Test_Sparse(unittest.TestCase):
         A[1,1] = 0
 
         assert len(A) == 0
-        assert allclose(A.todense(), [[0,0,0], [0,0,0], [0,0,0]])
+        assert num.allclose(A.todense(), [[0,0,0], [0,0,0], [0,0,0]])
 
         #Set an existing zero element to zero
         A[1,2] = 0
         assert len(A) == 0
-        assert allclose(A.todense(), [[0,0,0], [0,0,0], [0,0,0]])
+        assert num.allclose(A.todense(), [[0,0,0], [0,0,0], [0,0,0]])
 
     def test_sparse_multiplication_vector(self):
         A = Sparse(3,3)
@@ -81,16 +82,16 @@ class Test_Sparse(unittest.TestCase):
         v = [2,3,4]
 
         u = A*v
-        assert allclose(u, [6,14,4])
+        assert num.allclose(u, [6,14,4])
 
         #Right hand side column
-        v = array([[2,4],[3,4],[4,4]])
+        v = num.array([[2,4],[3,4],[4,4]])
 
         u = A*v[:,0]
-        assert allclose(u, [6,14,4])
+        assert num.allclose(u, [6,14,4])
 
         u = A*v[:,1]
-        assert allclose(u, [12,16,4])
+        assert num.allclose(u, [12,16,4])
 
 
     def test_sparse_multiplication_matrix(self):
@@ -102,10 +103,10 @@ class Test_Sparse(unittest.TestCase):
         A[2,2] = 1
 
         #Right hand side matrix
-        v = array([[2,4],[3,4],[4,4]])
+        v = num.array([[2,4],[3,4],[4,4]])
 
         u = A*v
-        assert allclose(u, [[6,12], [14,16], [4,4]])
+        assert num.allclose(u, [[6,12], [14,16], [4,4]])
 
 
 
@@ -121,7 +122,7 @@ class Test_Sparse(unittest.TestCase):
         v = [2,3,4]
 
         u = A.trans_mult(v)
-        assert allclose(u, [6,6,10])
+        assert num.allclose(u, [6,6,10])
 
 
     def test_scalar_multiplication(self):
@@ -136,10 +137,10 @@ class Test_Sparse(unittest.TestCase):
         A[2,2] = 1
 
         B = 3*A
-        assert allclose(B.todense(), 3*A.todense())
+        assert num.allclose(B.todense(), 3*A.todense())
 
         B = A*3
-        assert allclose(B.todense(), 3*A.todense())
+        assert num.allclose(B.todense(), 3*A.todense())
 
         try:
             B = 'a'*A
@@ -165,7 +166,7 @@ class Test_Sparse(unittest.TestCase):
 
         C = A+B
 
-        assert allclose(C.todense(), [[12,0,0], [2,8,8], [0,0,4]])
+        assert num.allclose(C.todense(), [[12,0,0], [2,8,8], [0,0,4]])
 
     def test_sparse_tocsr(self):
         """ Test conversion to csr format
@@ -189,13 +190,13 @@ class Test_Sparse(unittest.TestCase):
 
         C = [1, 2, 3]
 
-        assert allclose(B*C, [15.0, 10.0 ,8.0, 0.0])
+        assert num.allclose(B*C, [15.0, 10.0 ,8.0, 0.0])
 
         C2 = [[1,2],[2,4],[3,6]]
 
         #print B*C2
 
-        assert allclose(B*C2, [[15.0, 30.0],[10.0, 20.0],[8.0, 16.0],[0.0, 0.0]])
+        assert num.allclose(B*C2, [[15.0, 30.0],[10.0, 20.0],[8.0, 16.0],[0.0, 0.0]])
 
 
 
