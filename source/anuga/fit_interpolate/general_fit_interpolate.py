@@ -20,9 +20,6 @@ import time
 import os
 from warnings import warn
 
-from Numeric import zeros, array, Float, Int, dot, transpose, concatenate, \
-     ArrayType, allclose, take, NewAxis, arange
-
 from anuga.caching.caching import cache
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 
@@ -36,6 +33,9 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.geospatial_data.geospatial_data import Geospatial_data, \
      ensure_absolute
 from anuga.fit_interpolate.search_functions import set_last_triangle
+
+import Numeric as num
+
 
 # tests fail if 2 is used
 MAX_VERTICES_PER_CELL = 13 # A value of 8 or lower can cause problems,
@@ -96,7 +96,7 @@ class FitInterpolate:
                 # are None
             
                 #Convert input to Numeric arrays
-                triangles = ensure_numeric(triangles, Int)
+                triangles = ensure_numeric(triangles, num.Int)
                 vertex_coordinates = ensure_absolute(vertex_coordinates,
                                                  geo_reference = mesh_origin)
 

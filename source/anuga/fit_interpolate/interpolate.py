@@ -24,9 +24,6 @@ from warnings import warn
 from math import sqrt
 from csv import writer, DictWriter
 
-from Numeric import zeros, array, Float, Int, dot, transpose, concatenate, \
-     ArrayType, allclose, take, NewAxis, arange
-
 from anuga.caching.caching import cache
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.utilities.sparse import Sparse, Sparse_CSR
@@ -40,6 +37,9 @@ from anuga.fit_interpolate.search_functions import search_tree_of_vertices
 from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
 from anuga.abstract_2d_finite_volumes.util import file_function
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
+
+import Numeric as num
+
 
 # Interpolation specific exceptions
 
@@ -129,7 +129,7 @@ def interpolate(vertex_coordinates,
     from anuga.caching import cache
 
     # Create interpolation object with matrix
-    args = (ensure_numeric(vertex_coordinates, Float), 
+    args = (ensure_numeric(vertex_coordinates, num.Float), 
             ensure_numeric(triangles))
     kwargs = {'mesh_origin': mesh_origin,
               'max_vertices_per_cell': max_vertices_per_cell,
@@ -252,9 +252,8 @@ class Interpolate (FitInterpolate):
             point_coordinates = point_coordinates.get_data_points(absolute=True)
  
         from utilities.polygon import point_on_line
-        from Numeric import ones
 
-        z = ones(len(point_coordinates), Float)
+        z = num.ones(len(point_coordinates), num.Float)
 
         # input sanity check
         msg = 'point coordinates are not given (interpolate.py)'
@@ -378,24 +377,24 @@ class Interpolate (FitInterpolate):
                 start = 0
                 # creating a dummy array to concatenate to.
                 
-                f = ensure_numeric(f, Float)
+                f = ensure_numeric(f, num.Float)
                 if len(f.shape) > 1:
-                    z = zeros((0, f.shape[1]))
+                    z = num.zeros((0, f.shape[1]))
                 else:
-                    z = zeros((0,))
+                    z = num.zeros((0,))
                     
                 for end in range(start_blocking_len,
                                  len(point_coordinates),
                                  start_blocking_len):
                     t = self.interpolate_block(f, point_coordinates[start:end],
                                                verbose=verbose)
-                    z = concatenate((z, t))
+                    z = num.concatenate((z, t))
                     start = end
 
                 end = len(point_coordinates)
                 t = self.interpolate_block(f, point_coordinates[start:end],
                                            verbose=verbose)
-                z = concatenate((z, t))
+                z = num.concatenate((z, t))
         return z
     
 
@@ -425,11 +424,10 @@ class Interpolate (FitInterpolate):
             point_coordinates = point_coordinates.get_data_points(absolute=True)
 
         # Convert lists to Numeric arrays if necessary
-        point_coordinates = ensure_numeric(point_coordinates, Float)
-        f = ensure_numeric(f, Float)                
+        point_coordinates = ensure_numeric(point_coordinates, num.Float)
+        f = ensure_numeric(f, num.Float)                
 
         from anuga.caching import myhash
-        from Numeric import alltrue
         import sys 
           
         if use_cache is True:
@@ -451,7 +449,7 @@ class Interpolate (FitInterpolate):
             
                 if self.interpolation_matrices.has_key(key):
                     X, stored_points = self.interpolation_matrices[key] 
-                    if alltrue(stored_points == point_coordinates):
+                    if num.alltrue(stored_points == point_coordinates):
                         reuse_A = True		# Reuse interpolation matrix
                 
                 if reuse_A is False:
@@ -533,7 +531,7 @@ class Interpolate (FitInterpolate):
         if verbose: print 'Building interpolation matrix'
 
         # Convert point_coordinates to Numeric arrays, in case it was a list.
-        point_coordinates = ensure_numeric(point_coordinates, Float)
+        point_coordinates = ensure_numeric(point_coordinates, num.Float)
 
         if verbose: print 'Getting indices inside mesh boundary'
 
@@ -837,16 +835,13 @@ class Interpolation_function:
         value of 3, say, will cause the algorithm to use every third time step.
         """
 
-        from Numeric import array, zeros, Float, alltrue, concatenate,\
-             reshape, ArrayType
-
         from anuga.config import time_format
         import types
 
 	# Check temporal info
         time = ensure_numeric(time)        
         msg = 'Time must be a monotonuosly increasing sequence %s' % time
-        assert alltrue(time[1:] - time[:-1] >= 0), msg
+        assert num.alltrue(time[1:] - time[:-1] >= 0), msg
 
         # Check if quantities is a single array only
         if type(quantities) != types.DictType:
@@ -874,10 +869,10 @@ class Interpolation_function:
 
         # Thin timesteps if needed
         # Note array() is used to make the thinned arrays contiguous in memory
-        self.time = array(time[::time_thinning])          
+        self.time = num.array(time[::time_thinning])          
         for name in quantity_names:
             if len(quantities[name].shape) == 2:
-                quantities[name] = array(quantities[name][::time_thinning,:])
+                quantities[name] = num.array(quantities[name][::time_thinning,:])
              
         # Save for use with statistics
         self.quantities_range = {}
@@ -940,7 +935,7 @@ class Interpolation_function:
                         if sys.platform == 'win32':
                             # FIXME (Ole): Why only Windoze?
                             from anuga.utilities.polygon import plot_polygons
-                            #out_interp_pts = take(interpolation_points,[indices])
+                            #out_interp_pts = num.take(interpolation_points,[indices])
                             title = ('Interpolation points fall '
                                      'outside specified mesh')
                             plot_polygons([mesh_boundary_polygon,
@@ -985,7 +980,7 @@ class Interpolation_function:
             p = len(self.time)
             
 	    for name in quantity_names:
-                self.precomputed_values[name] = zeros((p, m), Float)
+                self.precomputed_values[name] = num.zeros((p, m), num.Float)
 
             # Build interpolator
             if verbose:
@@ -1085,7 +1080,6 @@ class Interpolation_function:
         """
 
         from math import pi, cos, sin, sqrt
-        from Numeric import zeros, Float
         from anuga.abstract_2d_finite_volumes.util import mean        
 
         if self.spatial is True:
@@ -1121,7 +1115,7 @@ class Interpolation_function:
                          (self.time[self.index+1] - self.time[self.index]))
 
         # Compute interpolated values
-        q = zeros(len(self.quantity_names), Float)
+        q = num.zeros(len(self.quantity_names), num.Float)
 	for i, name in enumerate(self.quantity_names):
             Q = self.precomputed_values[name]
 
@@ -1165,13 +1159,12 @@ class Interpolation_function:
                 except:
                     return q
                 else:
-                    from Numeric import ones, Float
                     # x is a vector - Create one constant column for each value
                     N = len(x)
                     assert len(y) == N, 'x and y must have same length'
                     res = []
                     for col in q:
-                        res.append(col*ones(N, Float))
+                        res.append(col*num.ones(N, num.Float))
                         
                 return res
 
@@ -1256,7 +1249,7 @@ def interpolate_sww(sww_file, time, interpolation_points,
     print "quantities", quantities
 
     #Add the x and y together
-    vertex_coordinates = concatenate((x[:,NewAxis], y[:,NewAxis]),axis=1)
+    vertex_coordinates = num.concatenate((x[:,num.NewAxis], y[:,num.NewAxis]),axis=1)
 
     #Will return the quantity values at the specified times and locations
     interp = Interpolation_interface(time,

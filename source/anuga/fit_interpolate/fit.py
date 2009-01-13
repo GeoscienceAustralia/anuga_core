@@ -27,8 +27,6 @@
 """
 import types
 
-from Numeric import zeros, Float, ArrayType,take, Int
-
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.caching import cache            
 from anuga.geospatial_data.geospatial_data import Geospatial_data, \
@@ -45,6 +43,9 @@ from anuga.config import default_smoothing_parameter as DEFAULT_ALPHA
 import exceptions
 class TooFewPointsError(exceptions.Exception): pass
 class VertsWithNoTrianglesError(exceptions.Exception): pass
+
+import Numeric as num
+
 
 #DEFAULT_ALPHA = 0.001
 
@@ -251,10 +252,10 @@ class Fit(FitInterpolate):
             m = self.mesh.number_of_nodes
             if len(z.shape) > 1:
                 att_num = z.shape[1]
-                self.Atz = zeros((m,att_num), Float)
+                self.Atz = num.zeros((m,att_num), num.Float)
             else:
                 att_num = 1
-                self.Atz = zeros((m,), Float)
+                self.Atz = num.zeros((m,), num.Float)
             assert z.shape[0] == point_coordinates.shape[0] 
 
             AtA = Sparse(m,m)
@@ -436,13 +437,13 @@ class Fit(FitInterpolate):
         
         # Convert input to Numeric arrays
         if z is not None:
-            z = ensure_numeric(z, Float)
+            z = ensure_numeric(z, num.Float)
         else:
             msg = 'z not specified'
             assert isinstance(point_coordinates,Geospatial_data), msg
             z = point_coordinates.get_attributes(attribute_name)
 
-        point_coordinates = ensure_numeric(point_coordinates, Float)
+        point_coordinates = ensure_numeric(point_coordinates, num.Float)
         self._build_matrix_AtA_Atz(point_coordinates, z, verbose)
 
 
@@ -583,7 +584,7 @@ def _fit_to_mesh(point_coordinates, # this can also be a points file name
         # are None
             
         #Convert input to Numeric arrays
-        triangles = ensure_numeric(triangles, Int)
+        triangles = ensure_numeric(triangles, num.Int)
         vertex_coordinates = ensure_absolute(vertex_coordinates,
                                              geo_reference = mesh_origin)
 
@@ -650,12 +651,12 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
     
     vertex_coordinates = mesh_dict['vertices']
     triangles = mesh_dict['triangles']
-    if type(mesh_dict['vertex_attributes']) == ArrayType:
+    if type(mesh_dict['vertex_attributes']) == num.ArrayType:
         old_point_attributes = mesh_dict['vertex_attributes'].tolist()
     else:
         old_point_attributes = mesh_dict['vertex_attributes']
 
-    if type(mesh_dict['vertex_attribute_titles']) == ArrayType:
+    if type(mesh_dict['vertex_attribute_titles']) == num.ArrayType:
         old_title_list = mesh_dict['vertex_attribute_titles'].tolist()
     else:
         old_title_list = mesh_dict['vertex_attribute_titles']

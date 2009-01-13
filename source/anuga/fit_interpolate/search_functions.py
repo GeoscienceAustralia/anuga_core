@@ -5,23 +5,23 @@ General functions used in fit and interpolate.
    Geoscience Australia, 2006.
 
 """
-from Numeric import dot
 import time
-
-from Numeric import array
 
 from anuga.utilities.numerical_tools import get_machine_precision
 from anuga.config import max_float
+
+import Numeric as num
+
 
 initial_search_value = 'uncomment search_functions code first'#0
 search_one_cell_time = initial_search_value
 search_more_cells_time = initial_search_value
 
 #FIXME test what happens if a 
-LAST_TRIANGLE = [[-10,[(array([max_float,max_float]),
-                        array([max_float,max_float]),
-                        array([max_float,max_float])),
-                       (array([1,1]),array([0,0]),array([-1.1,-1.1]))]]]
+LAST_TRIANGLE = [[-10,[(num.array([max_float,max_float]),
+                        num.array([max_float,max_float]),
+                        num.array([max_float,max_float])),
+                       (num.array([1,1]),num.array([0,0]),num.array([-1.1,-1.1]))]]]
 
 def search_tree_of_vertices(root, mesh, x):
     """
@@ -188,13 +188,13 @@ def find_triangle_compute_interpolation(triangle, n0, n1, n2, x):
     # print "n0", n0
     # print "dot((xi0-xi1), n0)", dot((xi0-xi1), n0)
     
-    sigma0 = dot((x-xi1), n0)/dot((xi0-xi1), n0)
+    sigma0 = num.dot((x-xi1), n0)/num.dot((xi0-xi1), n0)
     if sigma0 < -epsilon:
         return False,0,0,0
-    sigma1 = dot((x-xi2), n1)/dot((xi1-xi2), n1)
+    sigma1 = num.dot((x-xi2), n1)/num.dot((xi1-xi2), n1)
     if sigma1 < -epsilon:
         return False,0,0,0
-    sigma2 = dot((x-xi0), n2)/dot((xi2-xi0), n2)
+    sigma2 = num.dot((x-xi0), n2)/num.dot((xi2-xi0), n2)
     if sigma2 < -epsilon:
         return False,0,0,0
     

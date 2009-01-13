@@ -11,8 +11,6 @@ import unittest
 from math import sqrt
 import tempfile
 import os
-from Numeric import zeros, take, compress, Float, Int, dot, concatenate, \
-     ArrayType, allclose, array
 
 from fit import *
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
@@ -22,11 +20,14 @@ from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.shallow_water import Domain
 
+import Numeric as num
+
+
 def distance(x, y):
-    return sqrt( sum( (array(x)-array(y))**2 ))
+    return sqrt( sum( (num.array(x)-num.array(y))**2 ))
 
 def linear_function(point):
-    point = array(point)
+    point = num.array(point)
     return point[:,0]+point[:,1]
 
 
@@ -63,7 +64,7 @@ class Test_Fit(unittest.TestCase):
         #print "AtA - from fit", fit.AtA.todense()
         #print "z",z 
 
-        assert allclose(fit.Atz, [2.8, 3.6, 3.6], atol=1e-7)
+        assert num.allclose(fit.Atz, [2.8, 3.6, 3.6], atol=1e-7)
 
         f = fit.fit()
         
@@ -72,7 +73,7 @@ class Test_Fit(unittest.TestCase):
         #print "f\n",f
         #print "answer\n",answer
 
-        assert allclose(f, answer, atol=1e-7)
+        assert num.allclose(f, answer, atol=1e-7)
 
     def test_smooth_att_to_meshII(self):
 
@@ -95,7 +96,7 @@ class Test_Fit(unittest.TestCase):
         #print "f\n",f
         #print "answer\n",answer
 
-        assert allclose(f, answer)
+        assert num.allclose(f, answer)
 
     def test_smooth_attributes_to_meshIII(self):
 
@@ -131,7 +132,7 @@ class Test_Fit(unittest.TestCase):
         answer = linear_function(vertices)
         #print "f\n",f
         #print "answer\n",answer
-        assert allclose(f, answer)
+        assert num.allclose(f, answer)
 
    
     def test_smooth_attributes_to_meshIV(self):
@@ -157,7 +158,7 @@ class Test_Fit(unittest.TestCase):
         
         f =  fit.fit(data_coords,z)
         answer = [[0,0], [5., 10.], [5., 10.]]
-        assert allclose(f, answer)
+        assert num.allclose(f, answer)
 
     def test_smooth_attributes_to_mesh_build_fit_subset(self):
 
@@ -203,7 +204,7 @@ class Test_Fit(unittest.TestCase):
         answer = linear_function(vertices)
         #print "f\n",f
         #print "answer\n",answer
-        assert allclose(f, answer)
+        assert num.allclose(f, answer)
 
         # test fit 2 mesh as well.
     def test_fit_file_blocking(self):
@@ -243,7 +244,7 @@ class Test_Fit(unittest.TestCase):
         answer = linear_function(vertices)
         #print "f\n",f
         #print "answer\n",answer
-        assert allclose(f, answer)
+        assert num.allclose(f, answer)
         os.remove(fileName)
 
     def test_fit_to_mesh_UTM_file(self):
@@ -279,7 +280,7 @@ class Test_Fit(unittest.TestCase):
         answer = linear_function(points)
         #print "f",f
         #print "answer",answer 
-        assert allclose(f, answer)
+        assert num.allclose(f, answer)
 
         # Delete file!
         os.remove(txt_file)
@@ -322,7 +323,7 @@ class Test_Fit(unittest.TestCase):
         answer = linear_function(vertices)
         #print "f\n",f
         #print "answer\n",answer
-        assert allclose(f, answer)
+        assert num.allclose(f, answer)
         os.remove(fileName)
        
     def test_fit_to_mesh_pts(self):
@@ -361,7 +362,7 @@ class Test_Fit(unittest.TestCase):
         answer = linear_function(vertices)
         #print "f\n",f
         #print "answer\n",answer
-        assert allclose(f, answer)
+        assert num.allclose(f, answer)
         os.remove(fileName)
         os.remove(fileName_pts)
         
@@ -401,7 +402,7 @@ class Test_Fit(unittest.TestCase):
         answer = linear_function(vertices)
         #print "f\n",f
         #print "answer\n",answer
-        assert allclose(f, answer)
+        assert num.allclose(f, answer)
         os.remove(fileName)
         os.remove(fileName_pts)
         
@@ -441,7 +442,7 @@ class Test_Fit(unittest.TestCase):
         answer = linear_function(vertices)
         #print "f\n",f
         #print "answer\n",answer
-        assert allclose(f, answer)
+        assert num.allclose(f, answer)
     
         os.remove(fileName)
         
@@ -482,7 +483,7 @@ class Test_Fit(unittest.TestCase):
         answer = linear_function(vertices)
         #print "f\n",f
         #print "answer\n",answer
-        assert allclose(f, answer)
+        assert num.allclose(f, answer)
         os.remove(fileName)
         
     def test_fit_and_interpolation(self):
@@ -523,7 +524,7 @@ class Test_Fit(unittest.TestCase):
 
         #print "f",f
         #print "answer",answer
-        assert allclose(f, answer)
+        assert num.allclose(f, answer)
 
         
     def test_smoothing_and_interpolation(self):
@@ -561,12 +562,11 @@ class Test_Fit(unittest.TestCase):
 
         f = interp.fit(data_points,z)
         #f will be different from answer due to smoothing
-        assert allclose(f, answer,atol=5)
+        assert num.allclose(f, answer,atol=5)
 
 
     #Tests of smoothing matrix
     def test_smoothing_matrix_one_triangle(self):
-        from Numeric import dot
         a = [0.0, 0.0]
         b = [0.0, 2.0]
         c = [2.0,0.0]
@@ -576,35 +576,33 @@ class Test_Fit(unittest.TestCase):
 
         interp = Fit(points, vertices)
 
-        assert allclose(interp.get_D(), [[1, -0.5, -0.5],
-                                   [-0.5, 0.5, 0],
-                                   [-0.5, 0, 0.5]])
+        assert num.allclose(interp.get_D(), [[1, -0.5, -0.5],
+                                             [-0.5, 0.5, 0],
+                                             [-0.5, 0, 0.5]])
 
         #Define f(x,y) = x
-        f = array([0,0,2]) #Value at global vertex 2
+        f = num.array([0,0,2]) #Value at global vertex 2
 
         #Check that int (df/dx)**2 + (df/dy)**2 dx dy =
         #           int 1 dx dy = area = 2
-        assert dot(dot(f, interp.get_D()), f) == 2
+        assert num.dot(num.dot(f, interp.get_D()), f) == 2
 
         #Define f(x,y) = y
-        f = array([0,2,0])  #Value at global vertex 1
+        f = num.array([0,2,0])  #Value at global vertex 1
 
         #Check that int (df/dx)**2 + (df/dy)**2 dx dy =
         #           int 1 dx dy = area = 2
-        assert dot(dot(f, interp.get_D()), f) == 2
+        assert num.dot(num.dot(f, interp.get_D()), f) == 2
 
         #Define f(x,y) = x+y
-        f = array([0,2,2])  #Values at global vertex 1 and 2
+        f = num.array([0,2,2])  #Values at global vertex 1 and 2
 
         #Check that int (df/dx)**2 + (df/dy)**2 dx dy =
         #           int 2 dx dy = 2*area = 4
-        assert dot(dot(f, interp.get_D()), f) == 4
+        assert num.dot(num.dot(f, interp.get_D()), f) == 4
 
 
     def test_smoothing_matrix_more_triangles(self):
-        from Numeric import dot
-
         a = [0.0, 0.0]
         b = [0.0, 2.0]
         c = [2.0,0.0]
@@ -624,25 +622,25 @@ class Test_Fit(unittest.TestCase):
         #                           [-0.5, 0, 0.5]])
 
         #Define f(x,y) = x
-        f = array([0,0,2,0,2,4]) #f evaluated at points a-f
+        f = num.array([0,0,2,0,2,4]) #f evaluated at points a-f
 
         #Check that int (df/dx)**2 + (df/dy)**2 dx dy =
         #           int 1 dx dy = total area = 8
-        assert dot(dot(f, interp.get_D()), f) == 8
+        assert num.dot(num.dot(f, interp.get_D()), f) == 8
 
         #Define f(x,y) = y
-        f = array([0,2,0,4,2,0]) #f evaluated at points a-f
+        f = num.array([0,2,0,4,2,0]) #f evaluated at points a-f
 
         #Check that int (df/dx)**2 + (df/dy)**2 dx dy =
         #           int 1 dx dy = area = 8
-        assert dot(dot(f, interp.get_D()), f) == 8
+        assert num.dot(num.dot(f, interp.get_D()), f) == 8
 
         #Define f(x,y) = x+y
-        f = array([0,2,2,4,4,4])  #f evaluated at points a-f
+        f = num.array([0,2,2,4,4,4])  #f evaluated at points a-f
 
         #Check that int (df/dx)**2 + (df/dy)**2 dx dy =
         #           int 2 dx dy = 2*area = 16
-        assert dot(dot(f, interp.get_D()), f) == 16
+        assert num.dot(num.dot(f, interp.get_D()), f) == 16
 
 
 
@@ -708,7 +706,7 @@ class Test_Fit(unittest.TestCase):
         #Fitted values at vertices (using same z as before)
         f1 = interp.fit(data_points1,z) 
 
-        assert allclose(f,f1), 'Fit should have been unaltered'
+        assert num.allclose(f,f1), 'Fit should have been unaltered'
 
 
     def test_smooth_attributes_to_mesh_function(self):
@@ -735,7 +733,7 @@ class Test_Fit(unittest.TestCase):
                         point_attributes=z, alpha=0.0)
         answer = [[0, 0], [5., 10.], [5., 10.]]
 
-        assert allclose(f, answer)
+        assert num.allclose(f, answer)
 
     def test_fit_to_mesh_w_georef(self):
         """Simple check that georef works at the fit_to_mesh level
@@ -772,7 +770,7 @@ class Test_Fit(unittest.TestCase):
                          data_origin = data_geo.get_origin(),
                          mesh_origin = mesh_geo.get_origin(),
                          alpha = 0)
-        assert allclose( zz, [0,5,5] )
+        assert num.allclose( zz, [0,5,5] )
 
 
     def test_fit_to_mesh_file2domain(self):
@@ -818,7 +816,7 @@ class Test_Fit(unittest.TestCase):
         ans =[[0.0, 0.0],
               [5.0, 10.0],
               [5.0,10.0]]
-        assert allclose(mesh_dic['vertex_attributes'],ans)
+        assert num.allclose(mesh_dic['vertex_attributes'],ans)
 
         self.failUnless(mesh_dic['vertex_attribute_titles']  ==
                         ['elevation','stage'],
@@ -826,8 +824,8 @@ class Test_Fit(unittest.TestCase):
         domain = Domain(mesh_output_file, use_cache=True, verbose=False)
         
         answer = [0., 5., 5.]
-        assert allclose(domain.quantities['elevation'].vertex_values,
-                        answer)
+        assert num.allclose(domain.quantities['elevation'].vertex_values,
+                            answer)
         #clean up
         os.remove(mesh_file)
         os.remove(point_file)
@@ -877,7 +875,7 @@ class Test_Fit(unittest.TestCase):
         ans =[[0.0, 0.0],
               [5.0, 10.0],
               [5.0,10.0]]
-        assert allclose(mesh_dic['vertex_attributes'],ans)
+        assert num.allclose(mesh_dic['vertex_attributes'],ans)
 
         self.failUnless(mesh_dic['vertex_attribute_titles']  ==
                         ['elevation','stage'],
@@ -928,10 +926,10 @@ class Test_Fit(unittest.TestCase):
         # load in the .tsh file we just wrote
         mesh_dic = import_mesh_file(mesh_output_file)
 
-        assert allclose(mesh_dic['vertex_attributes'],
-                        [[1.0, 2.0,0.0, 0.0],
-                         [1.0, 2.0,5.0, 10.0],
-                         [1.0, 2.0,5.0,10.0]])
+        assert num.allclose(mesh_dic['vertex_attributes'],
+                            [[1.0, 2.0,0.0, 0.0],
+                             [1.0, 2.0,5.0, 10.0],
+                             [1.0, 2.0,5.0,10.0]])
 
         self.failUnless(mesh_dic['vertex_attribute_titles']  ==
                         ['density', 'temp','elevation','stage'],

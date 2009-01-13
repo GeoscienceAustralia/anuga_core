@@ -5,9 +5,6 @@ import unittest
 from search_functions import search_tree_of_vertices, set_last_triangle
 from search_functions import _search_triangles_of_vertices
 
-
-from Numeric import zeros, array, allclose
-
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 from anuga.utilities.polygon import is_inside_polygon

@@ -22,7 +22,6 @@ from random import seed, random
 import tempfile
 import profile , pstats
 from math import sqrt
-from Numeric import array
 
 from anuga.fit_interpolate.search_functions import search_times, \
      reset_search_times
@@ -37,6 +36,7 @@ from anuga.fit_interpolate.interpolate import benchmark_interpolate
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.fit_interpolate.general_fit_interpolate import \
      get_build_quadtree_time
+
 
 """
 
