@@ -21,7 +21,7 @@ def write_ermapper_grid(ofile, data, header = {}):
     Input Parameters:
     ofile:      string - filename for output (note the output will consist of two files
                 ofile and ofile.ers.  Either of these can be entered into this function
-    data:       num.array - 2D array containing the data to be output to the grid
+    data:       array - 2D array containing the data to be output to the grid
     header:     dictionary - contains spatial information about the grid, in particular:
                     header['datum'] datum for the data ('"GDA94"')
                     header['projection'] - either '"GEOGRAPHIC"' or '"PROJECTED"' 

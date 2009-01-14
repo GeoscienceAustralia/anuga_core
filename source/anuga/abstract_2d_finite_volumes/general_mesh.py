@@ -448,7 +448,7 @@ class General_mesh:
 
                 triangle_list.append( (volume_id, vertex_id) )
 
-            triangle_list = num.array(triangle_list)    
+            triangle_list = num.array(triangle_list, num.Int)    #array default#
         else:
             # Get info for all nodes recursively.
             # If need be, we can speed this up by
