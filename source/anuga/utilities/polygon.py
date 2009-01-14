@@ -707,8 +707,8 @@ class Polygon_function:
 
 
     def __call__(self, x, y):
-	x = num.array(x).astype(num.Float)
-	y = num.array(y).astype(num.Float)
+	x = num.array(x, num.Float)
+	y = num.array(y, num.Float)
 
 	N = len(x)
 	assert len(y) == N

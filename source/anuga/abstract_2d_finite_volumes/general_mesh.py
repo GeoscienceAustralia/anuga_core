@@ -405,7 +405,7 @@ class General_mesh:
         M = len(self) # Number of triangles
         K = 3*M       # Total number of unique vertices
         
-        T = num.reshape(num.arange(K).astype(num.Int), (M,3))
+        T = num.reshape(num.arange(K, typecode=num.Int), (M,3))
         
         return T     
 

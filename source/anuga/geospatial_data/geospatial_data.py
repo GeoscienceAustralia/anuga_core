@@ -1149,9 +1149,9 @@ def _read_csv_file_blocking(file_pointer, header,
     if points == []:
         raise StopIteration
 
-    pointlist = num.array(points).astype(num.Float)
+    pointlist = num.array(points, num.Float)
     for key in att_dict.keys():
-        att_dict[key] = num.array(att_dict[key]).astype(num.Float)
+        att_dict[key] = num.array(att_dict[key], num.Float)
 
     # Do stuff here so the info is in lat's and longs
     geo_ref = None
@@ -1360,11 +1360,11 @@ def _write_urs_file(file_name, points, delimiter=' '):
 # @param point_atts ??
 # @return ??
 def _point_atts2array(point_atts):
-    point_atts['pointlist'] = num.array(point_atts['pointlist']).astype(num.Float)
+    point_atts['pointlist'] = num.array(point_atts['pointlist'], num.Float)
 
     for key in point_atts['attributelist'].keys():
         point_atts['attributelist'][key] = \
-                num.array(point_atts['attributelist'][key]).astype(num.Float)
+                num.array(point_atts['attributelist'][key], num.Float)
 
     return point_atts
 

@@ -393,7 +393,7 @@ class Mesh(General_mesh):
         else:
             #Check that all keys in given boundary exist
             for tag in tagged_elements.keys():
-                tagged_elements[tag] = num.array(tagged_elements[tag]).astype(num.Int)
+                tagged_elements[tag] = num.array(tagged_elements[tag], num.Int)
 
                 msg = 'Not all elements exist. '
                 assert max(tagged_elements[tag]) < len(self), msg

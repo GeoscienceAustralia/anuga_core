@@ -68,7 +68,7 @@ class Dirichlet_boundary(Boundary):
             msg = 'Must specify one value for each conserved quantity'
             raise Exception, msg
 
-        self.conserved_quantities=num.array(conserved_quantities).astype(num.Float)
+        self.conserved_quantities=num.array(conserved_quantities, num.Float)
 
     def __repr__(self):
         return 'Dirichlet boundary (%s)' %self.conserved_quantities
@@ -98,7 +98,7 @@ class Time_boundary(Boundary):
 
 
         try:
-            q = num.array(q).astype(num.Float)
+            q = num.array(q, num.Float)
         except:
             msg = 'Return value from time boundary function could '
             msg += 'not be converted into a Numeric array of floats.\n'

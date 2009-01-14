@@ -1507,7 +1507,7 @@ def check_forcefield(f):
             raise msg
 
         try:
-            q = num.array(q).astype(num.Float)
+            q = num.array(q, num.Float)
         except:
             msg = 'Return value from vector function %s could ' %f
             msg += 'not be converted into a Numeric array of floats.\n'

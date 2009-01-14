@@ -39,7 +39,7 @@ class Quantity:
             N = len(domain) # number_of_elements
             self.vertex_values = num.zeros((N, 3), num.Float)
         else:
-            self.vertex_values = num.array(vertex_values).astype(num.Float)
+            self.vertex_values = num.array(vertex_values, num.Float)
 
             N, V = self.vertex_values.shape
             assert V == 3,\
@@ -610,10 +610,10 @@ class Quantity:
         will be assigned and the others will be left undefined.
         """
 
-        values = num.array(values).astype(num.Float)
+        values = num.array(values, num.Float)
 
         if indices is not None:
-            indices = num.array(indices).astype(num.Int)
+            indices = num.array(indices, num.Int)
             msg = 'Number of values must match number of indices:'
             msg += ' You specified %d values and %d indices'\
                    %(values.shape[0], indices.shape[0])

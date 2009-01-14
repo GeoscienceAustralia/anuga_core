@@ -652,29 +652,29 @@ def _write_msh_file(file_name, mesh):
     #IntType = Int
 
     #the triangulation
-    mesh['vertices'] = num.array(mesh['vertices']).astype(num.Float)
+    mesh['vertices'] = num.array(mesh['vertices'], num.Float)
     if mesh['vertex_attributes'] != None:
         mesh['vertex_attributes'] = \
-            num.array(mesh['vertex_attributes']).astype(num.Float)
+            num.array(mesh['vertex_attributes'], num.Float)
     mesh['vertex_attribute_titles'] = \
-        num.array(mesh['vertex_attribute_titles']).astype(num.Character)
-    mesh['segments'] = num.array(mesh['segments']).astype(IntType)
-    mesh['segment_tags'] = num.array(mesh['segment_tags']).astype(num.Character)
-    mesh['triangles'] = num.array(mesh['triangles']).astype(IntType)
+        num.array(mesh['vertex_attribute_titles'], num.Character)
+    mesh['segments'] = num.array(mesh['segments'], IntType)
+    mesh['segment_tags'] = num.array(mesh['segment_tags'], num.Character)
+    mesh['triangles'] = num.array(mesh['triangles'], IntType)
     mesh['triangle_tags'] = num.array(mesh['triangle_tags']) #.astype(Character)
     mesh['triangle_neighbors'] = \
-        num.array(mesh['triangle_neighbors']).astype(IntType)
+        num.array(mesh['triangle_neighbors'], IntType)
 
     #the outline
-    mesh['points'] = num.array(mesh['points']).astype(num.Float)
-    mesh['point_attributes'] = num.array(mesh['point_attributes']).astype(num.Float)
-    mesh['outline_segments'] = num.array(mesh['outline_segments']).astype(IntType)
+    mesh['points'] = num.array(mesh['points'], num.Float)
+    mesh['point_attributes'] = num.array(mesh['point_attributes'], num.Float)
+    mesh['outline_segments'] = num.array(mesh['outline_segments'], IntType)
     mesh['outline_segment_tags'] = \
-        num.array(mesh['outline_segment_tags']).astype(num.Character)
-    mesh['holes'] = num.array(mesh['holes']).astype(num.Float)
-    mesh['regions'] = num.array(mesh['regions']).astype(num.Float)
-    mesh['region_tags'] = num.array(mesh['region_tags']).astype(num.Character)
-    mesh['region_max_areas'] = num.array(mesh['region_max_areas']).astype(num.Float)
+        num.array(mesh['outline_segment_tags'], num.Character)
+    mesh['holes'] = num.array(mesh['holes'], num.Float)
+    mesh['regions'] = num.array(mesh['regions'], num.Float)
+    mesh['region_tags'] = num.array(mesh['region_tags'], num.Character)
+    mesh['region_max_areas'] = num.array(mesh['region_max_areas'], num.Float)
 
     #mesh = mesh_dict2array(mesh)
     #print "new_mesh",new_mesh
@@ -1017,7 +1017,7 @@ def extent_point_atts(point_atts):
 # @return An extent array of form [[min_x, min_y], [max_x, min_y],
 #                                  [max_x, max_y], [min_x, max_y]]
 def extent(points):
-    points = num.array(points).astype(num.Float)
+    points = num.array(points, num.Float)
 
     max_x = min_x = points[0][0]
     max_y = min_y = points[0][1]
@@ -1094,11 +1094,11 @@ def produce_half_point_files(infile, max_points, delimiter, verbose=False):
 # @return 
 def point_atts2array(point_atts):
     # convert attribute list to array of floats
-    point_atts['pointlist'] = num.array(point_atts['pointlist']).astype(num.Float)
+    point_atts['pointlist'] = num.array(point_atts['pointlist'], num.Float)
 
     for key in point_atts['attributelist'].keys():
         point_atts['attributelist'][key] = \
-            num.array(point_atts['attributelist'][key]).astype(num.Float)
+            num.array(point_atts['attributelist'][key], num.Float)
 
     return point_atts
 
@@ -1126,7 +1126,7 @@ def concatinate_attributelist(dic):
     return list of attribute titles, array of attributes
     """
 
-    point_attributes = num.array([]).astype(num.Float)
+    point_attributes = num.array([], num.Float)
     keys = dic.keys()
     key = keys.pop(0)
     point_attributes = num.reshape(dic[key],(dic[key].shape[0],1))
