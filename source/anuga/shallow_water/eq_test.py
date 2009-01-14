@@ -74,7 +74,7 @@ max = 100
 skip = 1000
 
 y = 10000
-points=num.array([[0]*2]*max)
+points=num.array([[0]*2]*max, num.Int)      #array default#
 print points
 half_max_skip=(max*skip)/2
 for i in range(max):
@@ -86,7 +86,7 @@ interval=500
 profile_lenght= 20000
 number_points = profile_lenght/interval
 y = 10000
-points=num.array([[0]*2]*number_points)
+points=num.array([[0]*2]*number_points, num.Int)      #array default#
 print points
 half_profile=profile_lenght/2
 for i in range(number_points):

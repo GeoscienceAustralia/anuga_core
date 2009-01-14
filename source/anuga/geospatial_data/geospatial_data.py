@@ -706,7 +706,7 @@ class Geospatial_data:
         # Find unique random numbers
         if verbose: print "make unique random number list and get indices"
 
-        total=num.array(range(self_size))
+        total=num.array(range(self_size), num.Int)     #array default#
         total_list = total.tolist()
 
         if verbose: print "total list len", len(total_list)

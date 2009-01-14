@@ -354,7 +354,7 @@ if __name__ == '__main__':
     assert num.allclose(u, [6,6,10])
 
     #Right hand side column
-    v = num.array([[2,4],[3,4],[4,4]])
+    v = num.array([[2,4],[3,4],[4,4]], num.Int)      #array default#
 
     u = A*v[:,0]
     assert num.allclose(u, [6,14,4])

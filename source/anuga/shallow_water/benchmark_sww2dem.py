@@ -100,7 +100,7 @@ def build_sww(vert_rows, vert_columns, save):
     
     sww_fileName = tempfile.mktemp(".sww" )
     # sww_fileName = "aa.sww" 
-    elevation = num.array(range(len(mesh_dict["vertices"])))
+    elevation = num.array(range(len(mesh_dict["vertices"])), num.Int)      #array default#
     stage = elevation
     ymomentum = elevation
     xmomentum = elevation

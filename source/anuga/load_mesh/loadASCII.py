@@ -852,7 +852,7 @@ def _read_msh_file(file_name):
     try:
         mesh['vertices'] = fid.variables['vertices'][:]
     except KeyError:
-        mesh['vertices'] = num.array([])
+        mesh['vertices'] = num.array([], num.Int)      #array default#
 
     try:
         mesh['vertex_attributes'] = fid.variables['vertex_attributes'][:]
@@ -872,7 +872,7 @@ def _read_msh_file(file_name):
     try:
         mesh['segments'] = fid.variables['segments'][:]
     except KeyError:
-        mesh['segments'] = num.array([])
+        mesh['segments'] = num.array([], num.Int)      #array default#
 
     mesh['segment_tags'] =[]
     try:
@@ -887,8 +887,8 @@ def _read_msh_file(file_name):
         mesh['triangles'] = fid.variables['triangles'][:]
         mesh['triangle_neighbors'] = fid.variables['triangle_neighbors'][:]
     except KeyError:
-        mesh['triangles'] = num.array([])
-        mesh['triangle_neighbors'] = num.array([])
+        mesh['triangles'] = num.array([], num.Int)      #array default#
+        mesh['triangle_neighbors'] = num.array([], num.Int)      #array default#
 
     mesh['triangle_tags'] =[]
     try:
@@ -915,7 +915,7 @@ def _read_msh_file(file_name):
     try:
         mesh['outline_segments'] = fid.variables['outline_segments'][:]
     except KeyError:
-        mesh['outline_segments'] = num.array([])
+        mesh['outline_segments'] = num.array([], num.Int)      #array default#
 
     mesh['outline_segment_tags'] =[]
     try:
@@ -929,12 +929,12 @@ def _read_msh_file(file_name):
     try:
         mesh['holes'] = fid.variables['holes'][:]
     except KeyError:
-        mesh['holes'] = num.array([])
+        mesh['holes'] = num.array([], num.Int)      #array default#
 
     try:
         mesh['regions'] = fid.variables['regions'][:]
     except KeyError:
-        mesh['regions'] = num.array([])
+        mesh['regions'] = num.array([], num.Int)      #array default#
 
     mesh['region_tags'] =[]
     try:
@@ -948,7 +948,7 @@ def _read_msh_file(file_name):
     try:
         mesh['region_max_areas'] = fid.variables['region_max_areas'][:]
     except KeyError:
-        mesh['region_max_areas'] = num.array([])
+        mesh['region_max_areas'] = num.array([], num.Int)      #array default#
     #mesh[''] = fid.variables[''][:]
 
     try:

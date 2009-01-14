@@ -3204,7 +3204,7 @@ def ferret2sww(basename_in, basename_out=None,
             volumes.append([v1,v2,v3]) #Upper element
             volumes.append([v4,v3,v2]) #Lower element
 
-    volumes = num.array(volumes)
+    volumes = num.array(volumes, num.Int)      #array default#
 
     if origin is None:
         origin = Geo_reference(refzone, min(x), min(y))
@@ -4120,7 +4120,7 @@ def asc_csiro2sww(bath_dir,
             volumes.append([v1,v3,v2]) #Upper element
             volumes.append([v4,v2,v3]) #Lower element
 
-    volumes = num.array(volumes)
+    volumes = num.array(volumes, num.Int)      #array default#
 
     geo_ref = Geo_reference(refzone, min(x), min(y))
     geo_ref.write_NetCDF(outfile)
