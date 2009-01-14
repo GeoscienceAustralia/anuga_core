@@ -1365,7 +1365,7 @@ class Test_Interpolate(unittest.TestCase):
                                 [ 2.8, 1.2]]
 
         # One quantity
-        Q = zeros((8,6), num.Float)
+        Q = num.zeros((8,6), num.Float)
 
         # Linear in time and space
         for i, t in enumerate(time):
@@ -1385,7 +1385,7 @@ class Test_Interpolate(unittest.TestCase):
         t = time[0]
         for j in range(90): #t in [1, 10]            
             for id in range(len(interpolation_points)):
-                assert allclose(I(t, id), t*answer[id])
+                assert num.allclose(I(t, id), t*answer[id])
             t += 0.1    
 
 
@@ -1399,14 +1399,14 @@ class Test_Interpolate(unittest.TestCase):
 
 
         assert len(I.time) == 4
-        assert( allclose(I.time, [1.0, 4.0, 7.0, 9.0] ))    
+        assert num.allclose(I.time, [1.0, 4.0, 7.0, 9.0])
 
         answer = linear_function(interpolation_points)
 
         t = time[0]
         for j in range(80): #t in [1, 9]                        
             for id in range(len(interpolation_points)):
-                assert allclose(I(t, id), t*answer[id])
+                assert num.allclose(I(t, id), t*answer[id])
             t += 0.1    
 
 
