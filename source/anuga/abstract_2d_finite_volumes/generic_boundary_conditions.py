@@ -157,6 +157,7 @@ class File_boundary(Boundary):
 
     def __init__(self, filename, domain, 
                  time_thinning=1, 
+                 time_limit=None,
                  boundary_polygon=None,    
                  default_boundary=None,
                  use_cache=False, 
@@ -218,6 +219,7 @@ class File_boundary(Boundary):
                                quantities=domain.conserved_quantities,
 	                       interpolation_points=self.midpoint_coordinates,
                                time_thinning=time_thinning,
+                               time_limit=time_limit,
                                use_cache=use_cache, 
                                verbose=verbose,
                                boundary_polygon=boundary_polygon)

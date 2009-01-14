@@ -1296,6 +1296,7 @@ class Field_boundary(Boundary):
     def __init__(self, filename, domain,
                  mean_stage=0.0,
                  time_thinning=1,
+                 time_limit=None,
                  boundary_polygon=None,    
                  default_boundary=None,                  
                  use_cache=False,
@@ -1329,6 +1330,7 @@ class Field_boundary(Boundary):
         # Create generic file_boundary object
         self.file_boundary = File_boundary(filename, domain,
                                            time_thinning=time_thinning,
+                                           time_limit=time_limit,
                                            boundary_polygon=boundary_polygon,
                                            default_boundary=default_boundary,
                                            use_cache=use_cache,

@@ -1027,7 +1027,7 @@ class Interpolation_function:
                         result = interpol.interpolate(Q,
                                                       point_coordinates=\
                                                       self.interpolation_points,
-                                                      verbose=False) #No clutter
+                                                      verbose=False) # No clutter
                     elif triangles is None and vertex_coordinates is not None:
                         result = \
                             interpol.interpolate_polyline(Q,

@@ -47,6 +47,7 @@ def file_function(filename,
                   quantities=None,
                   interpolation_points=None,
                   time_thinning=1,
+                  time_limit=None,
                   verbose=False,
                   use_cache=False,
                   boundary_polygon=None):
@@ -131,7 +132,8 @@ def file_function(filename,
     kwargs = {'quantities': quantities,
               'interpolation_points': interpolation_points,
               'domain_starttime': domain_starttime,
-              'time_thinning': time_thinning,                   
+              'time_thinning': time_thinning,      
+              'time_limit': time_limit,                                 
               'verbose': verbose,
               'boundary_polygon': boundary_polygon}
 
@@ -194,6 +196,7 @@ def _file_function(filename,
                    interpolation_points=None,
                    domain_starttime=None,
                    time_thinning=1,
+                   time_limit=None,
                    verbose=False,
                    boundary_polygon=None):
     """Internal function
@@ -220,6 +223,7 @@ def _file_function(filename,
                                         interpolation_points,
                                         domain_starttime,
                                         time_thinning=time_thinning,
+                                        time_limit=time_limit,
                                         verbose=verbose,
                                         boundary_polygon=boundary_polygon)
     else:
@@ -245,7 +249,8 @@ def get_netcdf_file_function(filename,
                              quantity_names=None,
                              interpolation_points=None,
                              domain_starttime=None,                            
-                             time_thinning=1,                             
+                             time_thinning=1,                 
+                             time_limit=None,            
                              verbose=False,
                              boundary_polygon=None):
     """Read time history of spatial data from NetCDF sww file and
@@ -328,13 +333,34 @@ def get_netcdf_file_function(filename,
     try:
         starttime = fid.starttime[0]
     except ValueError:
-        msg = 'Could not read starttime from file %s' %filename
+        msg = 'Could not read starttime from file %s' % filename
         raise msg
 
     # Get variables
     # if verbose: print 'Get variables'    
     time = fid.variables['time'][:]    
 
+    # FIXME(Ole): Is time monotoneous?
+    
+    # Apply time limit if requested
+    upper_time_index = len(time)    
+    msg = 'Time vector obtained from file %s has length 0' % filename
+    assert upper_time_index > 0, msg
+    
+    if time_limit is not None:
+        for i, t in enumerate(time):
+            if t > time_limit:
+                upper_time_index = i
+                break
+                
+        msg = 'Time vector is zero. Requested time limit is %f' % time_limit
+        assert upper_time_index > 0, msg                
+
+    time = time[:upper_time_index]
+
+
+    
+    
     # Get time independent stuff
     if spatial:
         # Get origin
@@ -344,7 +370,7 @@ def get_netcdf_file_function(filename,
 
         x = fid.variables['x'][:]
         y = fid.variables['y'][:]
-        if filename[-3:] == 'sww':
+        if filename.endswith('sww'):
             triangles = fid.variables['volumes'][:]
 
         x = num.reshape(x, (len(x),1))
@@ -362,7 +388,7 @@ def get_netcdf_file_function(filename,
             for i in range(len(boundary_polygon)):
                 for j in range(len(x)):
                     if num.allclose(vertex_coordinates[j],boundary_polygon[i],1e-4):
-                        #FIX ME:
+                        #FIXME:
                         #currently gauges lat and long is stored as float and
                         #then cast to double. This cuases slight repositioning
                         #of vertex_coordinates.

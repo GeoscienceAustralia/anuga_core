@@ -1051,7 +1051,11 @@ class Test_Util(unittest.TestCase):
                           quantities = ['Attribute0', 'Attribute1', 'Attribute2'])        
         assert num.allclose(domain.starttime, start+delta)
 
-
+        assert num.allclose(F.get_time(), [-23., 37., 97., 157., 217.,
+                                            277., 337., 397., 457., 517.,
+                                            577., 637., 697., 757., 817.,
+                                            877., 937., 997., 1057., 1117.,
+                                            1177.])
 
 
         #Now try interpolation with delta offset
@@ -1082,6 +1086,93 @@ class Test_Util(unittest.TestCase):
         os.remove(filename + '.tms')
         os.remove(filename + '.txt')                
 
+        
+
+    def test_file_function_time_with_domain_different_start_and_time_limit(self):
+        """Test that File function interpolates correctly
+        between given times. No x,y dependency here.
+        Use domain with a starttime later than that of file
+
+        ASCII version
+        
+        This test also tests that time can be truncated.
+        """
+
+        # Write file
+        import os, time, calendar
+        from anuga.config import time_format
+        from math import sin, pi
+        from domain import Domain
+
+        finaltime = 1200
+        filename = 'test_file_function'
+        fid = open(filename + '.txt', 'w')
+        start = time.mktime(time.strptime('2000', '%Y'))
+        dt = 60  #One minute intervals
+        t = 0.0
+        while t <= finaltime:
+            t_string = time.strftime(time_format, time.gmtime(t+start))
+            fid.write('%s, %f %f %f\n' %(t_string, 2*t, t**2, sin(t*pi/600)))
+            t += dt
+
+        fid.close()
+
+        # Convert ASCII file to NetCDF (Which is what we really like!)
+        timefile2netcdf(filename)        
+
+        a = [0.0, 0.0]
+        b = [4.0, 0.0]
+        c = [0.0, 3.0]
+
+        points = [a, b, c]
+        vertices = [[0,1,2]]
+        domain = Domain(points, vertices)
+
+        # Check that domain.starttime isn't updated if later than file starttime but earlier
+        # than file end time
+        delta = 23
+        domain.starttime = start + delta
+        F = file_function(filename + '.tms', domain,
+                          time_limit=600,
+                          quantities=['Attribute0', 'Attribute1', 'Attribute2'])        
+        assert num.allclose(domain.starttime, start+delta)
+
+        assert num.allclose(F.get_time(), [-23., 37., 97., 157., 217.,
+                                            277., 337., 397., 457., 517.,
+                                            577.])        
+
+
+
+        # Now try interpolation with delta offset
+        for i in range(20):
+            t = i*10
+            q = F(t-delta)
+
+            #Exact linear intpolation
+            assert num.allclose(q[0], 2*t)
+            if i%6 == 0:
+                assert num.allclose(q[1], t**2)
+                assert num.allclose(q[2], sin(t*pi/600))
+
+        # Check non-exact
+        t = 90 #Halfway between 60 and 120
+        q = F(t-delta)
+        assert num.allclose( (120**2 + 60**2)/2, q[1] )
+        assert num.allclose( (sin(120*pi/600) + sin(60*pi/600))/2, q[2] )
+
+
+        t = 100 # Two thirds of the way between between 60 and 120
+        q = F(t-delta)
+        assert num.allclose( 2*120**2/3 + 60**2/3, q[1] )
+        assert num.allclose( 2*sin(120*pi/600)/3 + sin(60*pi/600)/3, q[2] )
+
+
+        os.remove(filename + '.tms')
+        os.remove(filename + '.txt')                
+
+        
+        
+        
 
 
     def test_apply_expression_to_dictionary(self):
