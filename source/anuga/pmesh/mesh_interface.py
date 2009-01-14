@@ -135,11 +135,12 @@ def _create_mesh_from_regions(bounding_polygon,
     
     # check the segment indexes - throw an error if they are out of bounds
     if boundary_tags is not None:
-        max_segs = len(bounding_polygon)
+        max_points = len(bounding_polygon)
         for key in boundary_tags.keys():
-            if len([x for x in boundary_tags[key] if x > max_segs-1]) >= 1:
-                msg = 'Boundary tag %s has segment out of bounds.'\
+            if len([x for x in boundary_tags[key] if x > max_points-1]) >= 1:
+                msg = 'Boundary tag %s has segment out of bounds. '\
                       %(str(key))
+                msg += 'Number of points in bounding polygon = %d' % max_points
                 raise SegmentError, msg
 
         
