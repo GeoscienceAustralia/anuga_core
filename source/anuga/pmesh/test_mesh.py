@@ -2265,16 +2265,16 @@ END\n")
         numbers = [0.0000000001,1000000000000.0, 1e-19,1e19, 1e-25,1e30,1e40,
                    1e41,'0.00001','0.000000000000000000000000000000000001']
         numbers = [1e-21,1e-20,1e30,1e35,1e40]
-        for num in numbers:
-            mode = 'a' + str(num)
-            #print " mode += 'a' + str(num)", mode
+        for n in numbers:
+            mode = 'a' + str(n)
+            #print " mode += 'a' + str(n)", mode
             print "====================="
             
             try:
-                mode = 'a' + '%20.20f' %num
+                mode = 'a' + '%20.20f' %n
             except TypeError:
-                mode = 'a' + str(num)
-            print "mode += 'a' + '%20.20f' %num", mode
+                mode = 'a' + str(n)
+            print "mode += 'a' + '%20.20f' %n", mode
         #print "", mode
         
   
