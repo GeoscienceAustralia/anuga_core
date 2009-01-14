@@ -2214,8 +2214,7 @@ def csv2timeseries_graphs(directories_dic={},
             #skip time and elevation so it is not plotted!
             for k, quantity in enumerate(quantities):
                 if quantity != 'time' and quantity != 'elevation':
-                    num = int(k*100+j)
-                    pylab.figure(num)
+                    pylab.figure(int(k*100+j))
                     pylab.ylabel(quantities_label[quantity])
                     pylab.plot(t,
                                directory_quantity_value[directory]\

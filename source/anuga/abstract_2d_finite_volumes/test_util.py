@@ -185,7 +185,7 @@ class Test_Util(unittest.TestCase):
         d_stage = num.reshape(num.take(stage[last_time_index, :], [0,5,10,15]), (4,1))
         d_uh = num.reshape(num.take(xmomentum[last_time_index, :], [0,5,10,15]), (4,1))
         d_vh = num.reshape(num.take(ymomentum[last_time_index, :], [0,5,10,15]), (4,1))
-        D = num.concatenate( (d_stage, d_uh, d_vh), axis=1)
+        D = num.concatenate((d_stage, d_uh, d_vh), axis=1)
 
         #Reference interpolated values at midpoints on diagonal at
         #this timestep are
@@ -221,7 +221,7 @@ class Test_Util(unittest.TestCase):
         d_stage = num.reshape(num.take(stage[timestep, :], [0,5,10,15]), (4,1))
         d_uh = num.reshape(num.take(xmomentum[timestep, :], [0,5,10,15]), (4,1))
         d_vh = num.reshape(num.take(ymomentum[timestep, :], [0,5,10,15]), (4,1))
-        D = num.concatenate( (d_stage, d_uh, d_vh), axis=1)
+        D = num.concatenate((d_stage, d_uh, d_vh), axis=1)
 
         #Reference interpolated values at midpoints on diagonal at
         #this timestep are
@@ -243,7 +243,7 @@ class Test_Util(unittest.TestCase):
         d_stage = num.reshape(num.take(stage[timestep, :], [0,5,10,15]), (4,1))
         d_uh = num.reshape(num.take(xmomentum[timestep, :], [0,5,10,15]), (4,1))
         d_vh = num.reshape(num.take(ymomentum[timestep, :], [0,5,10,15]), (4,1))
-        D = num.concatenate( (d_stage, d_uh, d_vh), axis=1)
+        D = num.concatenate((d_stage, d_uh, d_vh), axis=1)
 
         #Reference interpolated values at midpoints on diagonal at
         #this timestep are
@@ -264,7 +264,7 @@ class Test_Util(unittest.TestCase):
         d_stage = num.reshape(num.take(stage[timestep, :], [0,5,10,15]), (4,1))
         d_uh = num.reshape(num.take(xmomentum[timestep, :], [0,5,10,15]), (4,1))
         d_vh = num.reshape(num.take(ymomentum[timestep, :], [0,5,10,15]), (4,1))
-        D = num.concatenate( (d_stage, d_uh, d_vh), axis=1)
+        D = num.concatenate((d_stage, d_uh, d_vh), axis=1)
 
         #Reference interpolated values at midpoints on diagonal at
         #this timestep are
@@ -277,7 +277,7 @@ class Test_Util(unittest.TestCase):
         d_stage = num.reshape(num.take(stage[timestep, :], [0,5,10,15]), (4,1))
         d_uh = num.reshape(num.take(xmomentum[timestep, :], [0,5,10,15]), (4,1))
         d_vh = num.reshape(num.take(ymomentum[timestep, :], [0,5,10,15]), (4,1))
-        D = num.concatenate( (d_stage, d_uh, d_vh), axis=1)
+        D = num.concatenate((d_stage, d_uh, d_vh), axis=1)
 
         #Reference interpolated values at midpoints on diagonal at
         #this timestep are
@@ -388,7 +388,7 @@ class Test_Util(unittest.TestCase):
         d_stage = num.reshape(num.take(stage[last_time_index, :], [0,5,10,15]), (4,1))
         d_uh = num.reshape(num.take(xmomentum[last_time_index, :], [0,5,10,15]), (4,1))
         d_vh = num.reshape(num.take(ymomentum[last_time_index, :], [0,5,10,15]), (4,1))
-        D = num.concatenate( (d_stage, d_uh, d_vh), axis=1)
+        D = num.concatenate((d_stage, d_uh, d_vh), axis=1)
 
         #Reference interpolated values at midpoints on diagonal at
         #this timestep are
