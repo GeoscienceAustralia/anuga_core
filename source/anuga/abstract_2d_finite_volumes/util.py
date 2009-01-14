@@ -1803,7 +1803,7 @@ def make_plots_from_csv_file(directories_dic={dir:['gauge', 0, 0]},
                                 plot_numbers=['3-5'],
                                 quantities=['speed','stage','momentum'],
                                 assess_all_csv_files=True,
-                                extra_plot_name='test' ):
+                                extra_plot_name='test'):
 
     msg = 'make_plots_from_csv_file has been replaced by csv2timeseries_graphs '
     msg += 'Please use "from anuga.abstract_2d_finite_volumes.util import ' \
@@ -1816,8 +1816,7 @@ def make_plots_from_csv_file(directories_dic={dir:['gauge', 0, 0]},
                                  plot_numbers,
                                  quantities,
                                  extra_plot_name,
-                                 assess_all_csv_files
-                                 )
+                                 assess_all_csv_files)
 
 
 ##
@@ -2014,7 +2013,7 @@ def csv2timeseries_graphs(directories_dic={},
     #so to help find a uniform max and min for the plots... 
     list_filenames=[]
     all_csv_filenames=[]
-    if verbose: print 'Determining files to access for axes ranges \n'
+    if verbose: print 'Determining files to access for axes ranges.'
     
     for i,directory in enumerate(directories_dic.keys()):
         all_csv_filenames.append(get_all_files_with_extension(directory,
@@ -2033,7 +2032,7 @@ def csv2timeseries_graphs(directories_dic={},
     max_start_time= -1000.
     min_start_time = 100000 
     
-    if verbose: print 'Determining uniform axes \n' 
+    if verbose: print 'Determining uniform axes' 
 
     #this entire loop is to determine the min and max range for the 
     #axes of the plots
