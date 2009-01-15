@@ -32,7 +32,7 @@ class TestCase(unittest.TestCase):
         geo_ref_poly = Geo_reference(56, x_p, y_p)
         polygon = geo_ref_poly.change_points_geo_ref(polygon_absolute)
 
-        boundary_tags = {'walls':[0,1],'bom':[2]}
+        boundary_tags = {'walls':[0,1],'bom':[2,3]}
         
         inner1_polygon_absolute = [[10,10],[20,10],[20,20],[10,20]]
         inner1_polygon = geo_ref_poly. \
@@ -43,6 +43,10 @@ class TestCase(unittest.TestCase):
                          change_points_geo_ref(inner2_polygon_absolute)
         
         interior_regions = [(inner1_polygon, 5),(inner2_polygon, 10)]
+        
+        #print polygon
+        #print boundary_tags
+        
         m = create_mesh_from_regions(polygon,
                                      boundary_tags,
                                      10000000,
@@ -65,7 +69,7 @@ class TestCase(unittest.TestCase):
          
         self.failUnless(segs[2].tag=='bom',
                         'FAILED!') 
-        self.failUnless(segs[3].tag=='',
+        self.failUnless(segs[3].tag=='bom',
                         'FAILED!')
 
         # Assuming the order of the region points is known.
@@ -254,7 +258,7 @@ class TestCase(unittest.TestCase):
         geo_ref_poly = Geo_reference(zone, x_p, y_p)
         polygon = geo_ref_poly.change_points_geo_ref(polygon_absolute)
 
-        boundary_tags = {'walls':[0,1],'bom':[2]}
+        boundary_tags = {'walls':[0,1],'bom':[2,3]}
         
         inner1_polygon_absolute = [[10,10],[20,10],[20,20],[10,20]]
         inner1_polygon = geo_ref_poly. \
@@ -287,7 +291,7 @@ class TestCase(unittest.TestCase):
          
         self.failUnless(segs[2].tag=='bom',
                         'FAILED!') 
-        self.failUnless(segs[3].tag=='',
+        self.failUnless(segs[3].tag=='bom',
                         'FAILED!')
         
         self.failUnless(m.geo_reference.get_zone()==zone,
@@ -310,7 +314,7 @@ class TestCase(unittest.TestCase):
         y_p = -40
         geo_ref_poly = Geo_reference(56, x_p, y_p)
         
-        boundary_tags = {'walls':[0,1],'bom':[2]}
+        boundary_tags = {'walls':[0,1],'bom':[2,3]}
         
         inner1_polygon_absolute = [[10,10],[20,10],[20,20],[10,20]]
         inner1_polygon = geo_ref_poly. \
@@ -342,7 +346,7 @@ class TestCase(unittest.TestCase):
          
         self.failUnless(segs[2].tag=='bom',
                         'FAILED!') 
-        self.failUnless(segs[3].tag=='',
+        self.failUnless(segs[3].tag=='bom',
                         'FAILED!')
         
         self.failUnless(m.geo_reference.get_zone()==DEFAULT_ZONE,
@@ -371,7 +375,7 @@ class TestCase(unittest.TestCase):
                    [max_inner1,max_inner1],[min_inner1,max_inner1]]
       
         
-        boundary_tags = {'walls':[0,1],'bom':[2]}
+        boundary_tags = {'walls':[0,1],'bom':[2,3]}
         
         interior_regions = [(inner1_polygon, density_inner1)]
         create_mesh_from_regions(polygon_outer
@@ -426,7 +430,7 @@ class TestCase(unittest.TestCase):
                    [max_inner1,max_inner1],[min_inner1,max_inner1]]
       
         
-        boundary_tags = {'walls':[0,1],'bom':[2]}
+        boundary_tags = {'walls':[0,1],'bom':[2,3]}
         
         interior_regions = [(inner1_polygon, density_inner1)]
         create_mesh_from_regions(polygon_outer
@@ -474,7 +478,7 @@ class TestCase(unittest.TestCase):
         inner2_polygon = [[min_inner2,min_inner2],[max_inner2,min_inner2],
                           [max_inner2,max_inner2],[min_inner2,max_inner2]]
         
-        boundary_tags = {'walls':[0,1],'bom':[2]}
+        boundary_tags = {'walls':[0,1],'bom':[2,3]}
         
         interior_regions = [(inner1_polygon, density_inner1),
                             (inner2_polygon, density_inner2)]
@@ -521,7 +525,7 @@ class TestCase(unittest.TestCase):
         inner2_polygon = [[min_inner2,min_inner2],[max_inner2,min_inner2],
                    [max_inner2,max_inner2],[min_inner2,max_inner2]]
         
-        boundary_tags = {'walls':[0,1],'bom':[2]}
+        boundary_tags = {'walls':[0,1],'bom':[2,3]}
 
         #Note the list order is important
         # The last region added will be the region triangle uses,
@@ -556,7 +560,7 @@ class TestCase(unittest.TestCase):
         min_y = 88
         polygon = [[min_x,min_y],[1000,100],[1000,1000],[100,1000]]
         
-        boundary_tags = {'walls':[0,1],'bom':[2]}
+        boundary_tags = {'walls':[0,1],'bom':[2,3]}
 #        boundary_tags = {'walls':[0,1]}
         # This one is inside bounding polygon - should pass
         inner_polygon = [[800,400],[900,500],[800,600]]
