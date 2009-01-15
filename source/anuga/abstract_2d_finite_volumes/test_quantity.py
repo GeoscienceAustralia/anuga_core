@@ -1765,7 +1765,7 @@ class Test_Quantity(unittest.TestCase):
     def test_interpolate_from_vertices_to_edges(self):
         quantity = Quantity(self.mesh4)
 
-        quantity.vertex_values = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]],num.Float)
+        quantity.vertex_values = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]], num.Float)
 
         quantity.interpolate_from_vertices_to_edges()
 
@@ -1781,7 +1781,7 @@ class Test_Quantity(unittest.TestCase):
         quantity.edge_values = num.array([[1., 1.5, 0.5],
                                           [3., 2.5, 1.5],
                                           [3.5, 4.5, 3.],
-                                          [2.5, 3.5, 2]],num.Float)
+                                          [2.5, 3.5, 2]], num.Float)
 
         quantity.interpolate_from_edges_to_vertices()
 

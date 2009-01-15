@@ -21,7 +21,9 @@ search_more_cells_time = initial_search_value
 LAST_TRIANGLE = [[-10,[(num.array([max_float,max_float]),
                         num.array([max_float,max_float]),
                         num.array([max_float,max_float])),
-                       (num.array([1,1]),num.array([0,0]),num.array([-1.1,-1.1]))]]]
+                       (num.array([1,1], num.Int),      #array default#
+                        num.array([0,0], num.Int),      #array default#
+                        num.array([-1.1,-1.1]))]]]
 
 def search_tree_of_vertices(root, mesh, x):
     """

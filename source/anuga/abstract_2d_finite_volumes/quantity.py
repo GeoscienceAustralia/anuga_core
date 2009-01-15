@@ -1174,7 +1174,7 @@ class Quantity:
                 for triangle_id, vertex_id in triangles:
                     sum += self.vertex_values[triangle_id, vertex_id]
                 vert_values.append(sum/len(triangles))
-            return num.array(vert_values)
+            return num.array(vert_values, num.Float)
         else:
             if (indices is None):
                 indices = range(len(self))

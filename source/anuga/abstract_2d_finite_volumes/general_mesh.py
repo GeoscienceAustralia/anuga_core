@@ -184,13 +184,13 @@ class General_mesh:
             #     the first vertex, etc)
             #   - Stored as six floats n0x,n0y,n1x,n1y,n2x,n2y per triangle
 
-            n0 = num.array([x2 - x1, y2 - y1])
+            n0 = num.array([x2 - x1, y2 - y1], num.Float)
             l0 = num.sqrt(num.sum(n0**2))
 
-            n1 = num.array([x0 - x2, y0 - y2])
+            n1 = num.array([x0 - x2, y0 - y2], num.Float)
             l1 = num.sqrt(num.sum(n1**2))
 
-            n2 = num.array([x1 - x0, y1 - y0])
+            n2 = num.array([x1 - x0, y1 - y0], num.Float)
             l2 = num.sqrt(num.sum(n2**2))
 
             # Normalise
@@ -272,7 +272,7 @@ class General_mesh:
         if absolute is True:
             if not self.geo_reference.is_absolute():
                 return V + num.array([self.geo_reference.get_xllcorner(),
-                                      self.geo_reference.get_yllcorner()])
+                                      self.geo_reference.get_yllcorner()], num.Float)
             else:
                 return V
         else:
@@ -314,12 +314,12 @@ class General_mesh:
             i3 = 3*i  
             if absolute is True and not self.geo_reference.is_absolute():
                 offset=num.array([self.geo_reference.get_xllcorner(),
-                                  self.geo_reference.get_yllcorner()])
+                                  self.geo_reference.get_yllcorner()], num.Float)
                 return num.array([V[i3,:]+offset,
                                   V[i3+1,:]+offset,
-                                  V[i3+2,:]+offset])
+                                  V[i3+2,:]+offset], num.Float)
             else:
-                return num.array([V[i3,:], V[i3+1,:], V[i3+2,:]])
+                return num.array([V[i3,:], V[i3+1,:], V[i3+2,:]], num.Float)
                 
 
 

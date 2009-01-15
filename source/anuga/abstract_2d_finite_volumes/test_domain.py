@@ -344,8 +344,8 @@ class Test_Domain(unittest.TestCase):
                         other_quantities = ['elevation', 'friction', 'depth'])
 
 
-        A = num.array([[1,2,3], [5,5,-5], [0,0,9], [-6,3,3]], 'f')
-        B = num.array([[2,4,4], [3,2,1], [6,-3,4], [4,5,-1]], 'f')
+        A = num.array([[1,2,3], [5,5,-5], [0,0,9], [-6,3,3]], num.Float)
+        B = num.array([[2,4,4], [3,2,1], [6,-3,4], [4,5,-1]], num.Float)
         
         #print A
         #print B

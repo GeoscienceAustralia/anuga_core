@@ -89,14 +89,14 @@ class Test_Numerical_Tools(unittest.TestCase):
         assert B.typecode() == 'd'
         assert B[0] == 1.0 and B[1] == 2.0 and B[2] == 3.0 and B[3] == 4.0
 
-        A = num.array([1,2,3,4])
+        A = num.array([1,2,3,4], num.Int)      #array default#
         B = ensure_numeric(A)
         assert type(B) == num.ArrayType
         assert B.typecode() == 'l'        
         assert num.alltrue(A == B)    
         assert A is B   #Same object
 
-        A = num.array([1,2,3,4])
+        A = num.array([1,2,3,4], num.Int)      #array default#
         B = ensure_numeric(A, num.Float)
         assert type(B) == num.ArrayType
         assert B.typecode() == 'd'        

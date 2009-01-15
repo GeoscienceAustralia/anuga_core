@@ -28,7 +28,7 @@ from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.pmesh.mesh import Mesh
 
 def distance(x, y):
-    return sqrt( num.sum( (num.array(x)-num.array(y))**2 ))
+    return sqrt(num.sum((num.array(x)-num.array(y))**2))
 
 def linear_function(point):
     point = num.array(point)
@@ -759,7 +759,7 @@ class Test_Interpolate(unittest.TestCase):
                         [3.0, 1.0]]
 
         interp = Interpolate(vertices, triangles)
-        f = num.array([linear_function(vertices),2*linear_function(vertices) ])
+        f = num.array([linear_function(vertices),2*linear_function(vertices)])
         f = num.transpose(f)
         #print "f",f
         z = interp.interpolate(f, point_coords)
@@ -802,7 +802,7 @@ class Test_Interpolate(unittest.TestCase):
                         [3.0, 1.0]]
 
         interp = Interpolate(vertices, triangles)
-        f = num.array([linear_function(vertices),2*linear_function(vertices) ])
+        f = num.array([linear_function(vertices),2*linear_function(vertices)])
         f = num.transpose(f)
         #print "f",f
         for blocking_max in range(len(point_coords)+2):
@@ -818,7 +818,7 @@ class Test_Interpolate(unittest.TestCase):
             assert num.allclose(z, answer)
             
         f = num.array([linear_function(vertices),2*linear_function(vertices),
-                       2*linear_function(vertices) - 100  ])
+                       2*linear_function(vertices) - 100])
         f = num.transpose(f)
         #print "f",f
         for blocking_max in range(len(point_coords)+2):
@@ -828,7 +828,7 @@ class Test_Interpolate(unittest.TestCase):
                                    start_blocking_len=blocking_max)
             answer = num.array([linear_function(point_coords),
                                 2*linear_function(point_coords) ,
-                                2*linear_function(point_coords)-100 ])
+                                2*linear_function(point_coords)-100])
             z = num.transpose(z)
             #print "z",z
             #print "answer",answer
@@ -864,7 +864,7 @@ class Test_Interpolate(unittest.TestCase):
         point_coords = Geospatial_data(point_coords,geo_reference = geo)
         
         interp = Interpolate(vertices, triangles)
-        f = num.array([linear_function(vertices),2*linear_function(vertices) ])
+        f = num.array([linear_function(vertices),2*linear_function(vertices)])
         f = num.transpose(f)
         #print "f",f
         for blocking_max in range(14):
@@ -882,7 +882,7 @@ class Test_Interpolate(unittest.TestCase):
             assert num.allclose(z, answer)
             
         f = num.array([linear_function(vertices),2*linear_function(vertices),
-                       2*linear_function(vertices) - 100  ])
+                       2*linear_function(vertices) - 100])
         f = num.transpose(f)
         #print "f",f
         for blocking_max in range(14):
@@ -895,7 +895,7 @@ class Test_Interpolate(unittest.TestCase):
                                                               2*linear_function(point_coords.get_data_points( \
                                                               absolute = True)) ,
                                                               2*linear_function(point_coords.get_data_points( \
-                                                              absolute = True))-100 ])
+                                                              absolute = True))-100])
             z = num.transpose(z)
             #print "z",z
             #print "answer",answer
@@ -937,7 +937,7 @@ class Test_Interpolate(unittest.TestCase):
         point_coords = Geospatial_data(point_coords,geo_reference = geo)
         
         interp = Interpolate(vertices, triangles)
-        f = num.array([linear_function(vertices),2*linear_function(vertices) ])
+        f = num.array([linear_function(vertices),2*linear_function(vertices)])
         f = num.transpose(f)
         #print "f",f
         z = interp.interpolate_block(f, point_coords)
@@ -983,7 +983,7 @@ class Test_Interpolate(unittest.TestCase):
                         [3.0, 1.0]]
 
         interp = Interpolate(vertices, triangles)
-        f = num.array([linear_function(vertices),2*linear_function(vertices) ])
+        f = num.array([linear_function(vertices),2*linear_function(vertices)])
         f = num.transpose(f)
         z = interp.interpolate(f, point_coords,
                                start_blocking_len=20)
@@ -1046,7 +1046,7 @@ class Test_Interpolate(unittest.TestCase):
                         [3.0, 1.0]]
 
         interp = Interpolate(vertices, triangles)
-        f = num.array([linear_function(vertices),2*linear_function(vertices) ])
+        f = num.array([linear_function(vertices), 2*linear_function(vertices)])
         f = num.transpose(f)
         z = interp.interpolate(f, point_coords)
         answer = [linear_function(point_coords),
@@ -1362,7 +1362,7 @@ class Test_Interpolate(unittest.TestCase):
 
         
         interp = Interpolate(points, triangles)
-        f = num.array([linear_function(points),2*linear_function(points) ])
+        f = num.array([linear_function(points),2*linear_function(points)])
         f = num.transpose(f)
         #print "f",f
         z = interp.interpolate(f, interpolation_points)
@@ -1652,7 +1652,7 @@ class Test_Interpolate(unittest.TestCase):
         geo_data = Geospatial_data(data_points = point_coords)
 
         interp = Interpolate(vertices, triangles)
-        f = num.array([linear_function(vertices),2*linear_function(vertices) ])
+        f = num.array([linear_function(vertices),2*linear_function(vertices)])
         f = num.transpose(f)
         #print "f",f
         z = interp.interpolate(f, geo_data)

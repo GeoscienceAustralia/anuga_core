@@ -4949,7 +4949,7 @@ NODATA_value  -9999
 
 
         ## 7th test
-        m2d = num.array([[0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15]])
+        m2d = num.array([[0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15]], num.Int)      #array default#
         kmin, kmax, lmin, lmax = data_manager._get_min_max_indexes(
             latitudes,longitudes,
             1.5,1.5,15,15)
@@ -5009,7 +5009,7 @@ NODATA_value  -9999
         latitudes = [-30,-35,-40,-45]
         longitudes = [148,149,150,151]
 
-        m2d = num.array([[0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15]])
+        m2d = num.array([[0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15]], num.Int)      #array default#
 
         # k - lat
         # l - lon
@@ -10625,7 +10625,7 @@ friction  \n \
         assert num.allclose(location[0], 65+E)
 
         # Check runup restricted to a polygon
-        p = num.array([[50,1], [99,1], [99,49], [50,49]]) + num.array([E, N])
+        p = num.array([[50,1], [99,1], [99,49], [50,49]], num.Int) + num.array([E, N], num.Int)      #array default#
 
         runup = get_maximum_inundation_elevation(swwfile, polygon=p)
         location = get_maximum_inundation_location(swwfile, polygon=p)

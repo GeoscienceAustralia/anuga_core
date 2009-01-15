@@ -21,7 +21,7 @@ import Numeric as num
 
 
 def distance(x, y):
-    return sqrt( sum( (num.array(x)-num.array(y))**2 ))
+    return sqrt(num.sum((num.array(x)-num.array(y))**2))
 
 class Test_Mesh(unittest.TestCase):
     def setUp(self):

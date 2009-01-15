@@ -241,12 +241,12 @@ class Alpha_Shape:
         ind2 = [self.deltri[j][1] for j in range(len(self.deltri))]
         ind3 = [self.deltri[j][2] for j in range(len(self.deltri))]
 
-        x1 = num.array([ x[j] for j in ind1 ])
-        y1 = num.array([ y[j] for j in ind1 ])
-        x2 = num.array([ x[j] for j in ind2 ])
-        y2 = num.array([ y[j] for j in ind2 ])
-        x3 = num.array([ x[j] for j in ind3 ])
-        y3 = num.array([ y[j] for j in ind3 ])
+        x1 = num.array([x[j] for j in ind1])
+        y1 = num.array([y[j] for j in ind1])
+        x2 = num.array([x[j] for j in ind2])
+        y2 = num.array([y[j] for j in ind2])
+        x3 = num.array([x[j] for j in ind3])
+        y3 = num.array([y[j] for j in ind3])
 
         x21 = x2-x1
         x31 = x3-x1

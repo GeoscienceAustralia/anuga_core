@@ -2096,7 +2096,7 @@ def csv2timeseries_graphs(directories_dic={},
 
                 #add tide to stage if provided
                 if quantity == 'stage':
-                     quantity_value[quantity] = num.array(quantity_value[quantity]) \
+                     quantity_value[quantity] = num.array(quantity_value[quantity], num.Float) \
                                                           + directory_add_tide
 
                 #condition to find max and mins for all the plots

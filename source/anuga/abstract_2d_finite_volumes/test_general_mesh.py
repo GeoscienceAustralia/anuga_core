@@ -58,7 +58,7 @@ class Test_General_Mesh(unittest.TestCase):
         nodes_absolute = geo.get_absolute(nodes)
         
         #bac, bce, ecf, dbe, daf, dae
-        triangles = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
+        triangles = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]], num.Int)
 
         domain = General_mesh(nodes, triangles,
                        geo_reference = geo)

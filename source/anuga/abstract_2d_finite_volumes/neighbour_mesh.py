@@ -123,7 +123,7 @@ class Mesh(General_mesh):
             #x2 = V[i, 4]; y2 = V[i, 5]
 
             #Compute centroid
-            centroid = num.array([(x0 + x1 + x2)/3, (y0 + y1 + y2)/3])
+            centroid = num.array([(x0 + x1 + x2)/3, (y0 + y1 + y2)/3], num.Float)
             self.centroid_coordinates[i] = centroid
 
 
@@ -132,9 +132,9 @@ class Mesh(General_mesh):
                 #inscribed circle
 
                 #Midpoints
-                m0 = num.array([(x1 + x2)/2, (y1 + y2)/2])
-                m1 = num.array([(x0 + x2)/2, (y0 + y2)/2])
-                m2 = num.array([(x1 + x0)/2, (y1 + y0)/2])
+                m0 = num.array([(x1 + x2)/2, (y1 + y2)/2], num.Float)
+                m1 = num.array([(x0 + x2)/2, (y0 + y2)/2], num.Float)
+                m2 = num.array([(x1 + x0)/2, (y1 + y0)/2], num.Float)
 
                 #The radius is the distance from the centroid of
                 #a triangle to the midpoint of the side of the triangle
@@ -1135,8 +1135,8 @@ def _get_intersecting_segments(V, N, line,
             # the line and the normals
 
             # Distances from line origin to the two intersections
-            z0 = num.array([x0 - xi0, y0 - eta0])
-            z1 = num.array([x1 - xi0, y1 - eta0])              
+            z0 = num.array([x0 - xi0, y0 - eta0], num.Float)
+            z1 = num.array([x1 - xi0, y1 - eta0], num.Float)
             d0 = num.sqrt(num.sum(z0**2)) 
             d1 = num.sqrt(num.sum(z1**2))
                
@@ -1151,9 +1151,9 @@ def _get_intersecting_segments(V, N, line,
 
             # Normal direction:
             # Right hand side relative to line direction
-            vector = num.array([x1 - x0, y1 - y0]) # Segment vector
+            vector = num.array([x1 - x0, y1 - y0], num.Float) # Segment vector
             length = num.sqrt(num.sum(vector**2))      # Segment length
-            normal = num.array([vector[1], -vector[0]])/length
+            normal = num.array([vector[1], -vector[0]], num.Float)/length
 
 
             segment = ((x0,y0), (x1, y1))    
@@ -1233,7 +1233,7 @@ def segment_midpoints(segments):
     for segment in segments:
         assert isinstance(segment, Triangle_intersection), msg
         
-        midpoint = num.sum(num.array(segment.segment))/2
+        midpoint = num.sum(num.array(segment.segment, num.Float))/2
         midpoints.append(midpoint)
 
     return midpoints

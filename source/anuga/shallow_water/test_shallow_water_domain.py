@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import unittest, os
-from math import pi
+from math import pi, sqrt
 import tempfile
 
 from anuga.config import g, epsilon
@@ -253,7 +253,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         #Check error check
         try:
-            rotate(r, num.array([1,1,1]) )
+            rotate(r, num.array([1,1,1], num.Int))      #array default#
         except:
             pass
         else:
@@ -337,7 +337,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
     def test_flux3(self):
         #Use data from previous version of abstract_2d_finite_volumes
-        normal = num.array([-num.sqrt(2)/2, num.sqrt(2)/2])
+        normal = num.array([-sqrt(2)/2, sqrt(2)/2])
         ql = num.array([-0.075, 2, 3])
         qr = num.array([-0.075, 2, 3])
         zl = zr = -0.375
@@ -346,12 +346,12 @@ class Test_Shallow_Water(unittest.TestCase):
         H0 = 0.0
         max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux, epsilon, g, H0)        
 
-        assert num.allclose(edgeflux, [num.sqrt(2)/2, 4.40221112, 7.3829019])
+        assert num.allclose(edgeflux, [sqrt(2)/2, 4.40221112, 7.3829019])
         assert num.allclose(max_speed, 4.0716654239)
 
     def test_flux4(self):
         #Use data from previous version of abstract_2d_finite_volumes
-        normal = num.array([-num.sqrt(2)/2, num.sqrt(2)/2])
+        normal = num.array([-sqrt(2)/2, sqrt(2)/2])
         ql = num.array([-0.34319278, 0.10254161, 0.07273855])
         qr = num.array([-0.30683287, 0.1071986, 0.05930515])
         zl = zr = -0.375

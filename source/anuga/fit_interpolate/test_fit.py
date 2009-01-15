@@ -24,7 +24,7 @@ import Numeric as num
 
 
 def distance(x, y):
-    return sqrt( sum( (num.array(x)-num.array(y))**2 ))
+    return sqrt(num.sum((num.array(x)-num.array(y))**2))
 
 def linear_function(point):
     point = num.array(point)
@@ -581,21 +581,21 @@ class Test_Fit(unittest.TestCase):
                                              [-0.5, 0, 0.5]])
 
         #Define f(x,y) = x
-        f = num.array([0,0,2]) #Value at global vertex 2
+        f = num.array([0,0,2], num.Int) #Value at global vertex 2      #array default#
 
         #Check that int (df/dx)**2 + (df/dy)**2 dx dy =
         #           int 1 dx dy = area = 2
         assert num.dot(num.dot(f, interp.get_D()), f) == 2
 
         #Define f(x,y) = y
-        f = num.array([0,2,0])  #Value at global vertex 1
+        f = num.array([0,2,0], num.Int)  #Value at global vertex 1      #array default#
 
         #Check that int (df/dx)**2 + (df/dy)**2 dx dy =
         #           int 1 dx dy = area = 2
         assert num.dot(num.dot(f, interp.get_D()), f) == 2
 
         #Define f(x,y) = x+y
-        f = num.array([0,2,2])  #Values at global vertex 1 and 2
+        f = num.array([0,2,2], num.Int)  #Values at global vertex 1 and 2      #array default#
 
         #Check that int (df/dx)**2 + (df/dy)**2 dx dy =
         #           int 2 dx dy = 2*area = 4
@@ -622,21 +622,21 @@ class Test_Fit(unittest.TestCase):
         #                           [-0.5, 0, 0.5]])
 
         #Define f(x,y) = x
-        f = num.array([0,0,2,0,2,4]) #f evaluated at points a-f
+        f = num.array([0,0,2,0,2,4], num.Int) #f evaluated at points a-f      #array default#
 
         #Check that int (df/dx)**2 + (df/dy)**2 dx dy =
         #           int 1 dx dy = total area = 8
         assert num.dot(num.dot(f, interp.get_D()), f) == 8
 
         #Define f(x,y) = y
-        f = num.array([0,2,0,4,2,0]) #f evaluated at points a-f
+        f = num.array([0,2,0,4,2,0], num.Int) #f evaluated at points a-f      #array default#
 
         #Check that int (df/dx)**2 + (df/dy)**2 dx dy =
         #           int 1 dx dy = area = 8
         assert num.dot(num.dot(f, interp.get_D()), f) == 8
 
         #Define f(x,y) = x+y
-        f = num.array([0,2,2,4,4,4])  #f evaluated at points a-f
+        f = num.array([0,2,2,4,4,4], num.Int)  #f evaluated at points a-f     #array default#
 
         #Check that int (df/dx)**2 + (df/dy)**2 dx dy =
         #           int 2 dx dy = 2*area = 16
