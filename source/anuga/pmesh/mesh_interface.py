@@ -143,7 +143,15 @@ def _create_mesh_from_regions(bounding_polygon,
                 msg += 'Number of points in bounding polygon = %d' % max_points
                 raise SegmentError, msg
 
-        
+        for i in range(max_points):
+            found = False
+            for tag in boundary_tags:
+                if i in boundary_tags[tag]:
+                    found = True
+            if found is False:
+                msg = 'Segment %d was not asigned a boundary_tag' %i
+                raise Exception, msg
+                
 
     
     #In addition I reckon the polygons could be of class Geospatial_data 
