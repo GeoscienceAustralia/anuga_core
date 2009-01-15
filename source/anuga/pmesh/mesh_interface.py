@@ -37,7 +37,7 @@ def create_mesh_from_regions(bounding_polygon,
 
     Boundary tags is a dictionary of symbolic tags. For every tag there
     is a list of indices referring to segments associated with that tag.
-    If a segment is omitted it will be assigned the default tag ''.
+    If a segment is omitted an Exception will be raised.
 
     maximum_triangle_area is the maximal area per triangle
     for the bounding polygon, excluding the  interior regions.
