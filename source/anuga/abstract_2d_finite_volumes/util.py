@@ -347,8 +347,14 @@ def get_netcdf_file_function(filename,
     assert upper_time_index > 0, msg
     
     if time_limit is not None:
+        #if verbose is True:
+        #    print '****** Time limit', time_limit
+        #    print '****** Start time', starttime
+        #    print '****** Time in ', time[0], time[-1]
+        
         # Adjust given time limit to given start time
         time_limit = time_limit - starttime
+
 
         # Find limit point
         for i, t in enumerate(time):

@@ -89,10 +89,7 @@ def create_mesh_from_regions(bounding_polygon,
               'mesh_geo_reference': mesh_geo_reference,
               'minimum_triangle_angle': minimum_triangle_angle,
               'fail_if_polygons_outside': fail_if_polygons_outside,
-              'verbose': verbose}   # FIXME (Ole): Should be bypassed one day
-                                    # What should be bypassed? Verbose?
-    
-    #print 'kwargs', kwargs
+              'verbose': verbose}   # FIXME (Ole): Should be bypassed one day. See ticket:14
 
     # Call underlying engine with or without caching
     if use_cache is True:
