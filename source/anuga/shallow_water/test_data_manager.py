@@ -9101,8 +9101,9 @@ friction  \n \
 
         # Check the time vector
         times = fid.variables['time'][:]
-        
+        starttime = fid.starttime[0]
         #print times
+        #print starttime
 
         # Check sts quantities
         stage = fid.variables['stage'][:]
@@ -9155,22 +9156,24 @@ friction  \n \
                            domain_fbound, 
                            boundary_polygon=boundary_polygon)
         time_vec = Bf.F.get_time()
+        assert num.allclose(Bf.F.starttime, starttime)
         assert num.allclose(time_vec, times_ref)                                   
         
         for time_limit in [0.1, 0.2, 0.5, 1.0, 2.2, 3.0, 4.3, 6.0, 10.0]:
             Bf = File_boundary(sts_file+'.sts', 
                                domain_fbound, 
-                               time_limit=time_limit,
+                               time_limit=time_limit+starttime,
                                boundary_polygon=boundary_polygon)
         
             time_vec = Bf.F.get_time()
+            assert num.allclose(Bf.F.starttime, starttime)            
             assert num.alltrue(time_vec < time_limit)
             
             
         try:    
             Bf = File_boundary(sts_file+'.sts', 
                                domain_fbound, 
-                               time_limit=-1,
+                               time_limit=-1+starttime,
                                boundary_polygon=boundary_polygon)            
             time_vec = Bf.F.get_time()    
             print time_vec    

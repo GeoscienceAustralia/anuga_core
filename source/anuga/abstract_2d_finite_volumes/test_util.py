@@ -1132,8 +1132,9 @@ class Test_Util(unittest.TestCase):
         # than file end time
         delta = 23
         domain.starttime = start + delta
+        time_limit = domain.starttime + 600
         F = file_function(filename + '.tms', domain,
-                          time_limit=600,
+                          time_limit=time_limit,
                           quantities=['Attribute0', 'Attribute1', 'Attribute2'])        
         assert num.allclose(domain.starttime, start+delta)
 

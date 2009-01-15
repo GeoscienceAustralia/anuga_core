@@ -339,22 +339,29 @@ def get_netcdf_file_function(filename,
     # Get variables
     # if verbose: print 'Get variables'    
     time = fid.variables['time'][:]    
-
     # FIXME(Ole): Is time monotoneous?
-    
+
     # Apply time limit if requested
     upper_time_index = len(time)    
     msg = 'Time vector obtained from file %s has length 0' % filename
     assert upper_time_index > 0, msg
     
     if time_limit is not None:
+        # Adjust given time limit to given start time
+        time_limit = time_limit - starttime
+
+        # Find limit point
         for i, t in enumerate(time):
             if t > time_limit:
                 upper_time_index = i
                 break
                 
         msg = 'Time vector is zero. Requested time limit is %f' % time_limit
-        assert upper_time_index > 0, msg                
+        assert upper_time_index > 0, msg
+
+        if time_limit < time[-1] and verbose is True:
+            print 'Limited time vector from %.2fs to %.2fs'\
+                  % (time[-1], time_limit)
 
     time = time[:upper_time_index]
 
