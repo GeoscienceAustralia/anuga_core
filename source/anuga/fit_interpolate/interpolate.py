@@ -578,31 +578,32 @@ def _interpolate_polyline_aux(point_coordinates, number_of_points,
                               f, gauge_neighbour_id, z):
     """Auxiliary function used by interpolate_polyline
     """
-    
-    for i in range(number_of_points):
 
-        x2, y2 = point_coordinates[i,:]
-        found = False
-    
-        for j in range(number_of_nodes):            
+    for j in range(number_of_nodes):                
+        neighbour_id = gauge_neighbour_id[j]
+        
+        
+        if neighbour_id >= 0:
+            x0, y0 = polyline_nodes[j,:]
+            x1, y1 = polyline_nodes[neighbour_id,:]
             
-            neighbour_id = gauge_neighbour_id[j]
-            if neighbour_id >= 0:
-                x0, y0 = polyline_nodes[j,:]
-                x1, y1 = polyline_nodes[neighbour_id,:]
+            segment_len = sqrt((x1-x0)**2 + (y1-y0)**2)
+            segment_delta = f[neighbour_id] - f[j]            
+            slope = segment_delta/segment_len
             
+                
+            for i in range(number_of_points):                
+                
+                x2, y2 = point_coordinates[i,:]
                 if point_on_line([x2, y2], 
                                  [[x0, y0], [x1, y1]], 
                                  rtol=1.0e-6):
                                  
-                    found = True
-                    segment_len = sqrt((x1-x0)**2 + (y1-y0)**2)
+
                     dist = sqrt((x2-x0)**2 + (y2-y0)**2)
-                    z[i] = (f[neighbour_id] - f[j])*dist/segment_len + f[j]
-                    break
-                                  
-        if not found:
-            z[i] = 0.0                
+                    z[i] = slope*dist + f[j]
+      
+
         
         
 ##
