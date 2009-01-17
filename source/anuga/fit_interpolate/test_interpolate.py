@@ -1845,66 +1845,6 @@ class Test_Interpolate(unittest.TestCase):
         #print "answer",answer 
         assert num.allclose(z, answer)
         
-        
-    def test_interpolate_polyline(self):
-        """test_interpolate_polyline(self):
-        
-        This test is added under the assumption that the function interpolate_polyline implemented by
-        John Jakeman works. It has been exercised somewhat by tests of sts boundary, but never before separately.
-        """
-        
-        f = num.array([58.06150614, 58.06150614, 58.06150614])
-        vertex_coordinates = num.array([[0., 0., ],
-                                        [4.04092634, 1106.11074699],
-                                        [8.08836552, 2212.16910609]])
-        gauge_neighbour_id = [1, 2, -1]
-        point_coordinates = num.array([[2.21870766e+03, 1.09802864e+03],
-                                       [1.62739645e+03, 2.20626983e+03],
-                                       [5.20084967e+02, 2.21030386e+03],
-                                       [6.06464546e+00, 1.65913993e+03],
-                                       [1.61934862e+03, -5.88143836e+00],
-                                       [5.11996623e+02, -1.85956061e+00],
-                                       [2.02046270e+00, 5.53055373e+02]])
-                             
-        z_ref = [0., 0., 0., 58.06150614, 0., 0., 58.06150614]
-        
-        z = interpolate_polyline(f, vertex_coordinates, gauge_neighbour_id, point_coordinates)
-        assert num.allclose(z, z_ref)
-        
-        # Another f
-        f = num.array([58.06150614, 158.06150614, 258.06150614])
-        z_ref = [0., 0., 0., 208.06150645, 0., 0., 108.0615061]        
-        z = interpolate_polyline(f, vertex_coordinates, gauge_neighbour_id, point_coordinates)
-        assert num.allclose(z, z_ref)        
-                       
-
-        # Other and simpler numbers
-        f = num.array([1, 5, 13])        
-        vertex_coordinates = num.array([[0., 0., ],
-                                        [4., 4.],
-                                        [8., 8.]])        
-        point_coordinates = num.array([[0.1, 0.1],
-                                       [3.5, 3.5],
-                                       [4.0, 4.0],
-                                       [5.2, 5.2],
-                                       [7.0, 7.0],
-                                       [8.3, 8.3]])
-        gauge_neighbour_id = [1, 2, -1]
-                                               
-        z = interpolate_polyline(f, vertex_coordinates, gauge_neighbour_id, point_coordinates)
-        z_ref = [1.1, 4.5, 5., 7.4, 11., 0.]
-        #print z
-        assert num.allclose(z, z_ref)                
-        
-        # Test exception thrown for one point
-        f = num.array([5])                
-        vertex_coordinates = num.array([[4., 4.]])              
-        try:  
-            z = interpolate_polyline(f, vertex_coordinates, gauge_neighbour_id, point_coordinates)
-        except Exception:
-            pass
-        else:
-            raise Exception, 'One point should have raised exception'
                        
 #-------------------------------------------------------------
 if __name__ == "__main__":

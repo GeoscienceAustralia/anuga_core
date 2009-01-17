@@ -17,6 +17,12 @@
 #include "Numeric/arrayobject.h"
 #include "math.h"
 
+double dist(double x,
+	    double y) {
+  
+  return sqrt(x*x + y*y);
+}
+
 
 int __point_on_line(double x, double y,
 		    double x0, double y0,
@@ -65,8 +71,8 @@ int __point_on_line(double x, double y,
     // Point is somewhere on the infinite extension of the line
     // subject to specified absolute tolerance
 
-    len_a = sqrt(a0*a0 + a1*a1);
-    len_b = sqrt(b0*b0 + b1*b1);
+    len_a = dist(a0, a1); //sqrt(a0*a0 + a1*a1);
+    len_b = dist(b0, b1); //sqrt(b0*b0 + b1*b1);
 
     if (a0*b0 + a1*b1 >= 0 && len_a <= len_b) {
       return 1;
@@ -185,6 +191,58 @@ int __intersection(double x0, double y0,
 */
 
 
+
+int __interpolate_polyline(int number_of_nodes,
+			   int number_of_points,
+			   double* data,
+			   double* polyline_nodes,
+			   long* gauge_neighbour_id,
+			   double* interpolation_points,			       
+			   double* interpolated_values,
+			   double rtol,
+			   double atol) {
+			   
+  int j, i, neighbour_id;
+  double x0, y0, x1, y1, x, y;
+  double segment_len, segment_delta, slope, alpha;
+
+  for (j=0; j<number_of_nodes; j++) {  
+
+    neighbour_id = gauge_neighbour_id[j];
+        
+    // FIXME(Ole): I am convinced that gauge_neighbour_id can be discarded, but need to check with John J.
+    // Keep it for now (17 Jan 2009)
+    // When gone, we can simply interpolate between neighbouring nodes, i.e. neighbour_id = j+1.
+    // and the test below becomes something like: if j < number_of_nodes...  
+        
+    if (neighbour_id >= 0) {
+      x0 = polyline_nodes[2*j];
+      y0 = polyline_nodes[2*j+1];
+      
+      x1 = polyline_nodes[2*neighbour_id];
+      y1 = polyline_nodes[2*neighbour_id+1];      
+      
+            
+      segment_len = dist(x1-x0, y1-y0);
+      segment_delta = data[neighbour_id] - data[j];            
+      slope = segment_delta/segment_len;
+            
+      for (i=0; i<number_of_points; i++) {                
+	x = interpolation_points[2*i];
+	y = interpolation_points[2*i+1];	
+	
+	if (__point_on_line(x, y, x0, y0, x1, y1, rtol, atol)) {
+	  alpha = dist(x-x0, y-y0);
+	  interpolated_values[i] = slope*alpha + data[j];
+	}
+      }
+    }
+  }
+			   
+  return 0;			     
+}			       			       
+
+
 int __separate_points_by_polygon(int M,     // Number of points
 				int N,     // Number of polygon vertices
 				double* points,
@@ -301,6 +359,61 @@ PyObject *_point_on_line(PyObject *self, PyObject *args) {
   result = Py_BuildValue("i", res);
   return result;
 }
+
+
+
+// Gateways to Python
+PyObject *_interpolate_polyline(PyObject *self, PyObject *args) {
+  //
+  // _interpolate_polyline(data, polyline_nodes, gauge_neighbour_id, interpolation_points
+  //                       interpolated_values):
+  //
+
+  
+  PyArrayObject
+    *data,
+    *polyline_nodes,
+    *gauge_neighbour_id,
+    *interpolation_points,
+    *interpolated_values;
+
+  double rtol, atol;  
+  int number_of_nodes, number_of_points, res;
+  
+  // Convert Python arguments to C
+  if (!PyArg_ParseTuple(args, "OOOOOdd",
+			&data,
+			&polyline_nodes,
+			&gauge_neighbour_id,
+			&interpolation_points,
+			&interpolated_values,
+			&rtol,
+			&atol)) {
+    
+    PyErr_SetString(PyExc_RuntimeError, 
+		    "_interpolate_polyline could not parse input");
+    return NULL;
+  }
+
+  number_of_nodes = polyline_nodes -> dimensions[0];  // Number of nodes in polyline
+  number_of_points = interpolation_points -> dimensions[0];   //Number of points
+  
+
+  // Call underlying routine
+  res = __interpolate_polyline(number_of_nodes,
+			       number_of_points,
+			       (double*) data -> data,
+			       (double*) polyline_nodes -> data,
+			       (long*) gauge_neighbour_id -> data,
+			       (double*) interpolation_points -> data,			       
+			       (double*) interpolated_values -> data,
+			       rtol,
+			       atol);			       			       
+
+  // Return
+  return Py_BuildValue("");  
+}
+
 
 
 /*
@@ -423,6 +536,8 @@ static struct PyMethodDef MethodTable[] = {
   //{"_intersection", _intersection, METH_VARARGS, "Print out"},  
   {"_separate_points_by_polygon", _separate_points_by_polygon, 
                                  METH_VARARGS, "Print out"},
+  {"_interpolate_polyline", _interpolate_polyline, 
+                                 METH_VARARGS, "Print out"},				 
   {NULL, NULL, 0, NULL}   /* sentinel */
 };
 

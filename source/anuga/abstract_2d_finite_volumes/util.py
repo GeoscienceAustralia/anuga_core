@@ -392,6 +392,9 @@ def get_netcdf_file_function(filename,
 
         if boundary_polygon is not None:
             #removes sts points that do not lie on boundary
+            # FIXME(Ole): Why don't we just remove such points from the list of points and associated data?
+            # I am actually convinced we can get rid of neighbour_gauge_id altogether as the sts file is produced using the ordering file.
+            # All sts points are therefore always present in the boundary. In fact, they *define* parts of the boundary.
             boundary_polygon=ensure_numeric(boundary_polygon)
             boundary_polygon[:,0] -= xllcorner
             boundary_polygon[:,1] -= yllcorner
@@ -433,6 +436,8 @@ def get_netcdf_file_function(filename,
         else:
             gauge_neighbour_id=None
 
+        #print gauge_neighbour_id
+        
         if interpolation_points is not None:
             # Adjust for georef
             interpolation_points[:,0] -= xllcorner

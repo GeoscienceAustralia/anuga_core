@@ -37,7 +37,7 @@ from anuga.fit_interpolate.search_functions import search_tree_of_vertices
 from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
 from anuga.abstract_2d_finite_volumes.util import file_function
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
-from utilities.polygon import point_on_line
+from utilities.polygon import interpolate_polyline
 
 
 import Numeric as num
@@ -506,105 +506,6 @@ class Interpolate (FitInterpolate):
         
         
         
-
-##
-# @brief Interpolate linearly from polyline nodes to midpoints of triangles.
-# @param f The data on the polyline nodes.
-# @param vertex_coordinates ??
-# @param gauge_neighbour_id ??
-# @param point_coordinates ??
-# @param verbose True if this function is to be verbose.
-def interpolate_polyline(f,
-                         polyline_nodes,
-                         gauge_neighbour_id,
-                         point_coordinates=None,
-                         verbose=False):
-    """Interpolate linearly between values f on polyline nodes
-    of a polyline to midpoints of triangles of boundary.
-
-    f is the data on the polyline nodes.
-
-    The mesh values representing a smooth surface are
-    assumed to be specified in f.
-
-    Inputs:
-      f: Vector or array of data at the polyline nodes.
-          If f is an array, interpolation will be done for each column as
-          per underlying matrix-matrix multiplication
-      point_coordinates: Interpolate polyline data to these positions.
-          List of coordinate pairs [x, y] of
-          data points or an nx2 Numeric array or a Geospatial_data object
-          
-    Output:
-      Interpolated values at inputted points (z).
-    """
-    # FIXME: There is an option of passing a tolerance into this
-    
-    if isinstance(point_coordinates, Geospatial_data):
-        point_coordinates = point_coordinates.get_data_points(absolute=True)
-
-    z = num.zeros(len(point_coordinates), num.Float)
-
-    f = ensure_numeric(f, num.Float)
-    polyline_nodes = ensure_numeric(polyline_nodes, num.Float)
-    point_coordinates = ensure_numeric(point_coordinates, num.Float)
-    gauge_neighbour_id = ensure_numeric(gauge_neighbour_id, num.Int)
-
-    n = polyline_nodes.shape[0] # Number of nodes in polyline        
-    # Input sanity check
-    msg = 'point coordinates are not given (interpolate.py)'
-    assert point_coordinates is not None, msg
-    msg = 'function value must be specified at every interpolation node'
-    assert f.shape[0]==polyline_nodes.shape[0], msg
-    msg = 'Must define function value at one or more nodes'
-    assert f.shape[0]>0, msg
-
-
-    if n == 1:
-        msg = 'Polyline contained only one point. I need more. ' + str(f)
-        raise Exception, msg
-    elif n > 1:
-        _interpolate_polyline_aux(point_coordinates, len(point_coordinates), 
-                                  polyline_nodes, len(polyline_nodes),
-                                  f,
-                                  gauge_neighbour_id,
-                                  z)
-        
-    return z
-
-        
-def _interpolate_polyline_aux(point_coordinates, number_of_points, 
-                              polyline_nodes, number_of_nodes, 
-                              f, gauge_neighbour_id, z):
-    """Auxiliary function used by interpolate_polyline
-    """
-
-    for j in range(number_of_nodes):                
-        neighbour_id = gauge_neighbour_id[j]
-        
-        
-        if neighbour_id >= 0:
-            x0, y0 = polyline_nodes[j,:]
-            x1, y1 = polyline_nodes[neighbour_id,:]
-            
-            segment_len = sqrt((x1-x0)**2 + (y1-y0)**2)
-            segment_delta = f[neighbour_id] - f[j]            
-            slope = segment_delta/segment_len
-            
-                
-            for i in range(number_of_points):                
-                
-                x2, y2 = point_coordinates[i,:]
-                if point_on_line([x2, y2], 
-                                 [[x0, y0], [x1, y1]], 
-                                 rtol=1.0e-6):
-                                 
-
-                    dist = sqrt((x2-x0)**2 + (y2-y0)**2)
-                    z[i] = slope*dist + f[j]
-      
-
-        
         
 ##
 # @brief ??
@@ -1051,7 +952,7 @@ class Interpolation_function:
                         result = interpolate_polyline(Q,
                                                       vertex_coordinates,
                                                       gauge_neighbour_id,
-                                                      point_coordinates=\
+                                                      interpolation_points=\
                                                           self.interpolation_points)
                         
                     #assert len(result), len(interpolation_points)

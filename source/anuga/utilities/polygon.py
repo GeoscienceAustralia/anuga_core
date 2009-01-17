@@ -6,7 +6,7 @@ import Numeric as num
 
 from math import sqrt
 from anuga.utilities.numerical_tools import ensure_numeric
-from anuga.geospatial_data.geospatial_data import ensure_absolute
+from anuga.geospatial_data.geospatial_data import ensure_absolute, Geospatial_data
 
 
 def point_on_line(point, line, rtol=1.0e-5, atol=1.0e-8):
@@ -956,6 +956,123 @@ def decimate_polygon(polygon, factor=10):
                 reduced_polygon.append(point)                
 
     return reduced_polygon
+    
+    
+        
+
+##
+# @brief Interpolate linearly from polyline nodes to midpoints of triangles.
+# @param data The data on the polyline nodes.
+# @param polyline_nodes ??
+# @param gauge_neighbour_id ??  FIXME(Ole): I want to get rid of this
+# @param point_coordinates ??
+# @param verbose True if this function is to be verbose.
+def interpolate_polyline(data,
+                         polyline_nodes,
+                         gauge_neighbour_id,
+                         interpolation_points=None,
+                         rtol=1.0e-6,
+                         atol=1.0e-8,
+                         verbose=False):
+    """Interpolate linearly between values data on polyline nodes
+    of a polyline to list of interpolation points. 
+
+    data is the data on the polyline nodes.
+
+
+    Inputs:
+      data: Vector or array of data at the polyline nodes.
+      polyline_nodes: Location of nodes where data is available.      
+      gauge_neighbour_id: ?
+      interpolation_points: Interpolate polyline data to these positions.
+          List of coordinate pairs [x, y] of
+          data points or an nx2 Numeric array or a Geospatial_data object
+      rtol, atol: Used to determine whether a point is on the polyline or not. See point_on_line.
+
+    Output:
+      Interpolated values at interpolation points
+    """
+    
+    if isinstance(interpolation_points, Geospatial_data):
+        interpolation_points = interpolation_points.get_data_points(absolute=True)
+
+    interpolated_values = num.zeros(len(interpolation_points), num.Float)
+
+    data = ensure_numeric(data, num.Float)
+    polyline_nodes = ensure_numeric(polyline_nodes, num.Float)
+    interpolation_points = ensure_numeric(interpolation_points, num.Float)
+    gauge_neighbour_id = ensure_numeric(gauge_neighbour_id, num.Int)
+
+    n = polyline_nodes.shape[0] # Number of nodes in polyline        
+    # Input sanity check
+    msg = 'interpolation_points are not given (interpolate.py)'
+    assert interpolation_points is not None, msg
+    msg = 'function value must be specified at every interpolation node'
+    assert data.shape[0]==polyline_nodes.shape[0], msg
+    msg = 'Must define function value at one or more nodes'
+    assert data.shape[0]>0, msg
+
+    if n == 1:
+        msg = 'Polyline contained only one point. I need more. ' + str(data)
+        raise Exception, msg
+    elif n > 1:
+        _interpolate_polyline(data,
+                              polyline_nodes,
+                              gauge_neighbour_id,
+                              interpolation_points,                               
+                              interpolated_values,
+                              rtol,
+                              atol)
+        
+    return interpolated_values
+
+        
+def _interpolate_polyline(data,
+                          polyline_nodes, 
+                          gauge_neighbour_id, 
+                          interpolation_points, 
+                          interpolated_values,
+                          rtol=1.0e-6,
+                          atol=1.0e-8):
+    """Auxiliary function used by interpolate_polyline
+    
+    NOTE: OBSOLETED BY C-EXTENSION
+    """
+    
+    number_of_nodes = len(polyline_nodes)                
+    number_of_points = len(interpolation_points)
+    
+    for j in range(number_of_nodes):                
+        neighbour_id = gauge_neighbour_id[j]
+        
+        # FIXME(Ole): I am convinced that gauge_neighbour_id can be discarded, but need to check with John J.
+        # Keep it for now (17 Jan 2009)
+        # When gone, we can simply interpolate between neighbouring nodes, i.e. neighbour_id = j+1.
+        # and the test below becomes something like: if j < number_of_nodes...  
+        
+        if neighbour_id >= 0:
+            x0, y0 = polyline_nodes[j,:]
+            x1, y1 = polyline_nodes[neighbour_id,:]
+            
+            segment_len = sqrt((x1-x0)**2 + (y1-y0)**2)
+            segment_delta = data[neighbour_id] - data[j]            
+            slope = segment_delta/segment_len
+            
+                
+            for i in range(number_of_points):                
+                
+                x, y = interpolation_points[i,:]
+                if point_on_line([x, y], 
+                                 [[x0, y0], [x1, y1]], 
+                                 rtol=rtol,
+                                 atol=atol):
+                                 
+
+                    dist = sqrt((x-x0)**2 + (y-y0)**2)
+                    interpolated_values[i] = slope*dist + data[j]
+      
+
+    
 
 ##############################################
 #Initialise module
@@ -965,6 +1082,7 @@ if compile.can_use_C_extension('polygon_ext.c'):
     # Underlying C implementations can be accessed
     from polygon_ext import _point_on_line
     from polygon_ext import _separate_points_by_polygon
+    from polygon_ext import _interpolate_polyline    
     #from polygon_ext import _intersection
 
 else:
