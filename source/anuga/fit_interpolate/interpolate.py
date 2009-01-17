@@ -37,6 +37,8 @@ from anuga.fit_interpolate.search_functions import search_tree_of_vertices
 from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
 from anuga.abstract_2d_finite_volumes.util import file_function
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
+from utilities.polygon import point_on_line
+
 
 import Numeric as num
 
@@ -245,14 +247,18 @@ class Interpolate (FitInterpolate):
 	Output:
 	  Interpolated values at inputted points (z).
         """
+        
+        #print f
+        #print vertex_coordinates
+        #print gauge_neighbour_id
+        #print point_coordinates
+
 
         # FIXME: There is an option of passing a tolerance into this
         
         if isinstance(point_coordinates, Geospatial_data):
             point_coordinates = point_coordinates.get_data_points(absolute=True)
  
-        from utilities.polygon import point_on_line
-
         z = num.ones(len(point_coordinates), num.Float)
 
         # input sanity check
@@ -273,32 +279,11 @@ class Interpolate (FitInterpolate):
         #               Exception should be thrown.
         
         elif n > 1:
-            for i in range(len(point_coordinates)):
-                found = False
-                for j in range(n):
-                    if gauge_neighbour_id[j] >= 0:
-                        if point_on_line(point_coordinates[i],
-                                         [vertex_coordinates[j],
-                                          vertex_coordinates[gauge_neighbour_id[j]]],
-                                         rtol=1.0e-6):
-                            found = True
-                            x0 = vertex_coordinates[j][0]
-                            y0 = vertex_coordinates[j][1]
-                            x1 = vertex_coordinates[gauge_neighbour_id[j]][0]
-                            y1 = vertex_coordinates[gauge_neighbour_id[j]][1]
-                            x2 = point_coordinates[i][0]
-                            y2 = point_coordinates[i][1]
-
-                            segment_len = sqrt((x1-x0)**2 + (y1-y0)**2)
-                            dist = sqrt((x2-x0)**2 + (y2-y0)**2)
-                            z[i] = (f[gauge_neighbour_id[j]] - f[j]) \
-                                   / segment_len*dist + f[j]
-                            break
-                                  
-                if not found:
-                    z[i] = 0.0
+            _interpolate_polyline_aux(n, z, f, point_coordinates, vertex_coordinates, gauge_neighbour_id)
+            
         return z
 
+    
 
     ##
     # @brief Interpolate mesh data f to determine values, z, at points.
@@ -360,7 +345,7 @@ class Interpolate (FitInterpolate):
                     print 'WARNING: Recalculating A matrix, due to blocking.'
                 point_coordinates = self._point_coordinates
             else:
-                #There are no good point_coordinates. import sys; sys.exit()
+                # There are no good point_coordinates. import sys; sys.exit()
                 msg = 'ERROR (interpolate.py): No point_coordinates inputted'
                 raise Exception(msg)
             
@@ -372,7 +357,7 @@ class Interpolate (FitInterpolate):
                 z = self.interpolate_block(f, point_coordinates,
                                            verbose=verbose)
             else:
-                #Handle blocking
+                # Handle blocking
                 self._A_can_be_reused = False
                 start = 0
                 # creating a dummy array to concatenate to.
@@ -587,6 +572,42 @@ class Interpolate (FitInterpolate):
         return A, inside_poly_indices, outside_poly_indices
 
 
+        
+        
+        
+        
+def _interpolate_polyline_aux(n, z, f, point_coordinates, vertex_coordinates, gauge_neighbour_id):
+    """Auxiliary function
+    """
+    for i in range(len(point_coordinates)):
+    
+        x2 = point_coordinates[i][0]
+        y2 = point_coordinates[i][1]
+    
+        found = False
+        for j in range(n):
+            
+            neighbour_id = gauge_neighbour_id[j]
+            if neighbour_id >= 0:
+                x0 = vertex_coordinates[j][0]
+                y0 = vertex_coordinates[j][1]
+                x1 = vertex_coordinates[neighbour_id][0]
+                y1 = vertex_coordinates[neighbour_id][1]
+            
+                if point_on_line([x2,y2], 
+                                 [[x0, y0], [x1, y1]], 
+                                 rtol=1.0e-6):
+                                 
+                    found = True
+                    segment_len = sqrt((x1-x0)**2 + (y1-y0)**2)
+                    dist = sqrt((x2-x0)**2 + (y2-y0)**2)
+                    z[i] = (f[neighbour_id] - f[j])*dist/segment_len + f[j]
+                    break
+                                  
+        if not found:
+            z[i] = 0.0                
+        
+        
 ##
 # @brief ??
 # @param vertices ??
