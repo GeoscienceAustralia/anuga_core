@@ -1517,7 +1517,6 @@ class Domain(Mesh):
             if B is None:
                 print 'WARNING: Ignored boundary segment (None)'
             else:
-                print 'XXXX'
                 q = B.evaluate(vol_id, edge_id)
 
                 for j, name in enumerate(self.conserved_quantities):

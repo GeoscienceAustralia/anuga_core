@@ -1844,6 +1844,66 @@ class Test_Interpolate(unittest.TestCase):
         #print "z",z 
         #print "answer",answer 
         assert num.allclose(z, answer)
+        
+        
+    def test_interpolate_polyline(self):
+        """test_interpolate_polyline(self):
+        
+        This test is added under the assumption that the function interpolate_polyline implemented by
+        John Jakeman works. It has been exercised somewhat by tests of sts boundary, but never before separately.
+        """
+
+        a = [-1.0, 0.0]
+        b = [3.0, 4.0]
+        c = [4.0, 1.0]
+        d = [-3.0, 2.0] #3
+        e = [-1.0, -2.0]
+        f = [1.0, -2.0] #5
+
+        vertices = [a, b, c, d,e,f]
+        triangles = [[0,1,3], [1,0,2], [0,4,5], [0,5,2]] #abd bac aef afc
+
+
+        point_coords = [[-2.0, 2.0],
+                        [-1.0, 1.0],
+                        [0.0, 2.0],
+                        [1.0, 1.0],
+                        [2.0, 1.0],
+                        [0.0, 0.0],
+                        [1.0, 0.0],
+                        [0.0, -1.0],
+                        [-0.2, -0.5],
+                        [-0.9, -1.5],
+                        [0.5, -1.9],
+                        [3.0, 1.0]]
+
+        interp = Interpolate(vertices, triangles)
+                
+        
+        f = num.array([58.06150614, 58.06150614, 58.06150614])
+        vertex_coordinates = num.array([[0., 0., ],
+                                        [4.04092634, 1106.11074699],
+                                        [8.08836552, 2212.16910609]])
+        gauge_neighbour_id = [1, 2, -1]
+        point_coordinates = num.array([[2.21870766e+03, 1.09802864e+03],
+                                       [1.62739645e+03, 2.20626983e+03],
+                                       [5.20084967e+02, 2.21030386e+03],
+                                       [6.06464546e+00, 1.65913993e+03],
+                                       [1.61934862e+03, -5.88143836e+00],
+                                       [5.11996623e+02, -1.85956061e+00],
+                                       [2.02046270e+00, 5.53055373e+02]])
+                             
+        z_ref = [0., 0., 0., 58.06150614, 0., 0., 58.06150614]
+        
+        z = interp.interpolate_polyline(f, vertex_coordinates, gauge_neighbour_id, point_coordinates)
+        assert num.allclose(z, z_ref)
+        
+        # Another f
+        f = num.array([58.06150614, 158.06150614, 258.06150614])
+        z_ref = [0., 0., 0., 208.06150645, 0., 0., 108.0615061]        
+        z = interp.interpolate_polyline(f, vertex_coordinates, gauge_neighbour_id, point_coordinates)
+        assert num.allclose(z, z_ref)        
+                       
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
