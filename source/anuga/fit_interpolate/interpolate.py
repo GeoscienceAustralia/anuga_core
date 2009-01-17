@@ -214,75 +214,6 @@ class Interpolate (FitInterpolate):
         self._point_coordinates = None # FIXME (Ole): Probably obsolete
         self.interpolation_matrices = {} # Store precomputed matrices
 
-
-    ##
-    # @brief Interpolate linearly from polyline nodes to midpoints of triangles.
-    # @param f The data on the polyline nodes.
-    # @param vertex_coordinates ??
-    # @param gauge_neighbour_id ??
-    # @param point_coordinates ??
-    # @param verbose True if this function is to be verbose.
-    def interpolate_polyline(self,
-                             f,
-                             vertex_coordinates,
-                             gauge_neighbour_id,
-                             point_coordinates=None,
-                             verbose=False):
-        """Interpolate linearly between values f on nodes (vertex coordinates)
-        of a polyline to midpoints of triangles of boundary.
-
-        f is the data on the polyline nodes.
-
-        The mesh values representing a smooth surface are
-        assumed to be specified in f.
-
-        Inputs:
-          f: Vector or array of data at the polyline nodes.
-              If f is an array, interpolation will be done for each column as
-              per underlying matrix-matrix multiplication
-          point_coordinates: Interpolate polyline data to these positions.
-              List of coordinate pairs [x, y] of
-	      data points or an nx2 Numeric array or a Geospatial_data object
-              
-	Output:
-	  Interpolated values at inputted points (z).
-        """
-        
-        #print f
-        #print vertex_coordinates
-        #print gauge_neighbour_id
-        #print point_coordinates
-
-
-        # FIXME: There is an option of passing a tolerance into this
-        
-        if isinstance(point_coordinates, Geospatial_data):
-            point_coordinates = point_coordinates.get_data_points(absolute=True)
- 
-        z = num.ones(len(point_coordinates), num.Float)
-
-        # input sanity check
-        msg = 'point coordinates are not given (interpolate.py)'
-        assert point_coordinates is not None, msg
-        msg = 'function value must be specified at every interpolation node'
-        assert f.shape[0]==vertex_coordinates.shape[0], msg
-        msg = 'Must define function value at one or more nodes'
-        assert f.shape[0]>0, msg
-
-        n = f.shape[0]
-        if n == 1:
-            z = f*z
-            msg = 'Polyline contained only one point. I need more. ', str(f)
-            raise Exception, msg
-            
-        # FIXME (John): add unit test for only One vertex point.
-        #               Exception should be thrown.
-        
-        elif n > 1:
-            _interpolate_polyline_aux(n, z, f, point_coordinates, vertex_coordinates, gauge_neighbour_id)
-            
-        return z
-
     
 
     ##
@@ -575,6 +506,74 @@ class Interpolate (FitInterpolate):
         
         
         
+
+##
+# @brief Interpolate linearly from polyline nodes to midpoints of triangles.
+# @param f The data on the polyline nodes.
+# @param vertex_coordinates ??
+# @param gauge_neighbour_id ??
+# @param point_coordinates ??
+# @param verbose True if this function is to be verbose.
+def interpolate_polyline(f,
+                         vertex_coordinates,
+                         gauge_neighbour_id,
+                         point_coordinates=None,
+                         verbose=False):
+    """Interpolate linearly between values f on nodes (vertex coordinates)
+    of a polyline to midpoints of triangles of boundary.
+
+    f is the data on the polyline nodes.
+
+    The mesh values representing a smooth surface are
+    assumed to be specified in f.
+
+    Inputs:
+      f: Vector or array of data at the polyline nodes.
+          If f is an array, interpolation will be done for each column as
+          per underlying matrix-matrix multiplication
+      point_coordinates: Interpolate polyline data to these positions.
+          List of coordinate pairs [x, y] of
+          data points or an nx2 Numeric array or a Geospatial_data object
+          
+    Output:
+      Interpolated values at inputted points (z).
+    """
+    
+    #print f
+    #print vertex_coordinates
+    #print gauge_neighbour_id
+    #print point_coordinates
+
+
+    # FIXME: There is an option of passing a tolerance into this
+    
+    if isinstance(point_coordinates, Geospatial_data):
+        point_coordinates = point_coordinates.get_data_points(absolute=True)
+
+    z = num.ones(len(point_coordinates), num.Float)
+
+    # input sanity check
+    msg = 'point coordinates are not given (interpolate.py)'
+    assert point_coordinates is not None, msg
+    msg = 'function value must be specified at every interpolation node'
+    assert f.shape[0]==vertex_coordinates.shape[0], msg
+    msg = 'Must define function value at one or more nodes'
+    assert f.shape[0]>0, msg
+
+    n = f.shape[0]
+    if n == 1:
+        z = f*z
+        msg = 'Polyline contained only one point. I need more. ', str(f)
+        raise Exception, msg
+        
+    # FIXME (John): add unit test for only One vertex point.
+    #               Exception should be thrown.
+    
+    elif n > 1:
+        _interpolate_polyline_aux(n, z, f, point_coordinates, vertex_coordinates, gauge_neighbour_id)
+        
+    return z
+
         
 def _interpolate_polyline_aux(n, z, f, point_coordinates, vertex_coordinates, gauge_neighbour_id):
     """Auxiliary function
@@ -1050,13 +1049,12 @@ class Interpolation_function:
                                                       self.interpolation_points,
                                                       verbose=False) # No clutter
                     elif triangles is None and vertex_coordinates is not None:
-                        result = \
-                            interpol.interpolate_polyline(Q,
-                                                          vertex_coordinates,
-                                                          gauge_neighbour_id,
-                                                          point_coordinates=\
+                        result = interpolate_polyline(Q,
+                                                      vertex_coordinates,
+                                                      gauge_neighbour_id,
+                                                      point_coordinates=\
                                                           self.interpolation_points)
-
+                        
                     #assert len(result), len(interpolation_points)
                     self.precomputed_values[name][i, :] = result
 
