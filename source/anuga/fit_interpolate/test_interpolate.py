@@ -1905,6 +1905,24 @@ class Test_Interpolate(unittest.TestCase):
         assert num.allclose(z, z_ref)        
                        
 
+        # Other and simpler numbers
+        f = num.array([1, 5, 13])        
+        vertex_coordinates = num.array([[0., 0., ],
+                                        [4., 4.],
+                                        [8., 8.]])        
+        point_coordinates = num.array([[0.1, 0.1],
+                                       [3.5, 3.5],
+                                       [4.0, 4.0],
+                                       [5.2, 5.2],
+                                       [7.0, 7.0],
+                                       [8.3, 8.3]])
+        gauge_neighbour_id = [1, 2, -1]
+                                               
+        z = interp.interpolate_polyline(f, vertex_coordinates, gauge_neighbour_id, point_coordinates)
+        z_ref = [1.1, 4.5, 5., 7.4, 11., 0.]
+        #print z
+        assert num.allclose(z, z_ref)                
+                       
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Interpolate,'test')
