@@ -515,11 +515,11 @@ class Interpolate (FitInterpolate):
 # @param point_coordinates ??
 # @param verbose True if this function is to be verbose.
 def interpolate_polyline(f,
-                         vertex_coordinates,
+                         polyline_nodes,
                          gauge_neighbour_id,
                          point_coordinates=None,
                          verbose=False):
-    """Interpolate linearly between values f on nodes (vertex coordinates)
+    """Interpolate linearly between values f on polyline nodes
     of a polyline to midpoints of triangles of boundary.
 
     f is the data on the polyline nodes.
@@ -538,62 +538,60 @@ def interpolate_polyline(f,
     Output:
       Interpolated values at inputted points (z).
     """
-    
-    #print f
-    #print vertex_coordinates
-    #print gauge_neighbour_id
-    #print point_coordinates
-
-
     # FIXME: There is an option of passing a tolerance into this
     
     if isinstance(point_coordinates, Geospatial_data):
         point_coordinates = point_coordinates.get_data_points(absolute=True)
 
-    z = num.ones(len(point_coordinates), num.Float)
+    z = num.zeros(len(point_coordinates), num.Float)
 
-    # input sanity check
+    f = ensure_numeric(f, num.Float)
+    polyline_nodes = ensure_numeric(polyline_nodes, num.Float)
+    point_coordinates = ensure_numeric(point_coordinates, num.Float)
+    gauge_neighbour_id = ensure_numeric(gauge_neighbour_id, num.Int)
+
+    n = polyline_nodes.shape[0] # Number of nodes in polyline        
+    # Input sanity check
     msg = 'point coordinates are not given (interpolate.py)'
     assert point_coordinates is not None, msg
     msg = 'function value must be specified at every interpolation node'
-    assert f.shape[0]==vertex_coordinates.shape[0], msg
+    assert f.shape[0]==polyline_nodes.shape[0], msg
     msg = 'Must define function value at one or more nodes'
     assert f.shape[0]>0, msg
 
-    n = f.shape[0]
+
     if n == 1:
-        z = f*z
-        msg = 'Polyline contained only one point. I need more. ', str(f)
+        msg = 'Polyline contained only one point. I need more. ' + str(f)
         raise Exception, msg
-        
-    # FIXME (John): add unit test for only One vertex point.
-    #               Exception should be thrown.
-    
     elif n > 1:
-        _interpolate_polyline_aux(n, z, f, point_coordinates, vertex_coordinates, gauge_neighbour_id)
+        _interpolate_polyline_aux(point_coordinates, len(point_coordinates), 
+                                  polyline_nodes, len(polyline_nodes),
+                                  f,
+                                  gauge_neighbour_id,
+                                  z)
         
     return z
 
         
-def _interpolate_polyline_aux(n, z, f, point_coordinates, vertex_coordinates, gauge_neighbour_id):
-    """Auxiliary function
+def _interpolate_polyline_aux(point_coordinates, number_of_points, 
+                              polyline_nodes, number_of_nodes, 
+                              f, gauge_neighbour_id, z):
+    """Auxiliary function used by interpolate_polyline
     """
-    for i in range(len(point_coordinates)):
     
-        x2 = point_coordinates[i][0]
-        y2 = point_coordinates[i][1]
-    
+    for i in range(number_of_points):
+
+        x2, y2 = point_coordinates[i,:]
         found = False
-        for j in range(n):
+    
+        for j in range(number_of_nodes):            
             
             neighbour_id = gauge_neighbour_id[j]
             if neighbour_id >= 0:
-                x0 = vertex_coordinates[j][0]
-                y0 = vertex_coordinates[j][1]
-                x1 = vertex_coordinates[neighbour_id][0]
-                y1 = vertex_coordinates[neighbour_id][1]
+                x0, y0 = polyline_nodes[j,:]
+                x1, y1 = polyline_nodes[neighbour_id,:]
             
-                if point_on_line([x2,y2], 
+                if point_on_line([x2, y2], 
                                  [[x0, y0], [x1, y1]], 
                                  rtol=1.0e-6):
                                  

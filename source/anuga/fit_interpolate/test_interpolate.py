@@ -1895,6 +1895,16 @@ class Test_Interpolate(unittest.TestCase):
         z_ref = [1.1, 4.5, 5., 7.4, 11., 0.]
         #print z
         assert num.allclose(z, z_ref)                
+        
+        # Test exception thrown for one point
+        f = num.array([5])                
+        vertex_coordinates = num.array([[4., 4.]])              
+        try:  
+            z = interpolate_polyline(f, vertex_coordinates, gauge_neighbour_id, point_coordinates)
+        except Exception:
+            pass
+        else:
+            raise Exception, 'One point should have raised exception'
                        
 #-------------------------------------------------------------
 if __name__ == "__main__":
