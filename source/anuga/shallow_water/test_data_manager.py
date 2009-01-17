@@ -11251,7 +11251,7 @@ friction  \n \
 if __name__ == "__main__":
 
     #suite = unittest.makeSuite(Test_Data_Manager,'test')
-    suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_stsIV_sinewave_ordering')
+    suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_sts')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_get_flow_through_cross_section_with_geo')
     #suite = unittest.makeSuite(Test_Data_Manager,'covered_')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_individual_sources')
