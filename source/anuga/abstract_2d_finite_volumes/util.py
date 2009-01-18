@@ -391,7 +391,7 @@ def get_netcdf_file_function(filename,
         vertex_coordinates = num.concatenate((x,y), axis=1) #m x 2 array
 
         if boundary_polygon is not None:
-            #removes sts points that do not lie on boundary
+            # Remove sts points that do not lie on boundary
             # FIXME(Ole): Why don't we just remove such points from the list of points and associated data?
             # I am actually convinced we can get rid of neighbour_gauge_id altogether as the sts file is produced using the ordering file.
             # All sts points are therefore always present in the boundary. In fact, they *define* parts of the boundary.
@@ -403,7 +403,8 @@ def get_netcdf_file_function(filename,
             gauge_id=[]
             for i in range(len(boundary_polygon)):
                 for j in range(len(x)):
-                    if num.allclose(vertex_coordinates[j],boundary_polygon[i],1e-4):
+                    if num.allclose(vertex_coordinates[j],
+                                    boundary_polygon[i], 1e-4):
                         #FIXME:
                         #currently gauges lat and long is stored as float and
                         #then cast to double. This cuases slight repositioning
@@ -474,7 +475,7 @@ def get_netcdf_file_function(filename,
         quantities[name] = fid.variables[name][:]
         if boundary_polygon is not None:
             #removes sts points that do not lie on boundary
-            quantities[name] = num.take(quantities[name],gauge_id,1)
+            quantities[name] = num.take(quantities[name], gauge_id, 1)
             
     # Close sww, tms or sts netcdf file         
     fid.close()
@@ -487,6 +488,8 @@ def get_netcdf_file_function(filename,
         triangles = None
         #vertex coordinates is position of urs gauges
 
+    if verbose:
+        print 'Call interpolation function'
     # Return Interpolation_function instance as well as
     # starttime for use to possible modify that of domain
     return (Interpolation_function(time,
