@@ -4,6 +4,7 @@ import unittest
 from math import sqrt, pi
 
 from generic_boundary_conditions import *
+from anuga.abstract_2d_finite_volumes.domain import Domain
 from anuga.config import epsilon
 
 import Numeric as num
@@ -48,7 +49,6 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
 
 
     def test_transmissive(self):
-        from domain import Domain
         from quantity import Quantity
 
         a = [0.0, 0.0]
@@ -113,7 +113,6 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         # need for this was found. Rather I implemented an Exception
         # to catch possible errors in the model setup
         
-        from domain import Domain
         from quantity import Quantity
         import time, os
         from math import sin, pi
@@ -207,7 +206,6 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         conserved quantities are wrong
         """
 
-        from domain import Domain
         from quantity import Quantity
         import time, os
         from math import sin, pi

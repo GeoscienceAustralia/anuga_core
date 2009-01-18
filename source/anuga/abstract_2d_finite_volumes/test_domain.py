@@ -3,7 +3,7 @@
 import unittest
 from math import sqrt
 
-from domain import *
+from anuga.abstract_2d_finite_volumes.domain import *
 from anuga.config import epsilon
 
 import Numeric as num
@@ -794,6 +794,5 @@ class Test_Domain(unittest.TestCase):
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Domain,'test')
-    #suite = unittest.makeSuite(Test_Domain,'test_track_speeds')
     runner = unittest.TextTestRunner()
     runner.run(suite)

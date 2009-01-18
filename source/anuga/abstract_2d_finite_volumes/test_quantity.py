@@ -9,7 +9,7 @@ from anuga.config import epsilon
 
 from anuga.fit_interpolate.fit import fit_to_mesh
 #from anuga.pyvolution.least_squares import fit_to_mesh         
-from domain import Domain
+from anuga.abstract_2d_finite_volumes.domain import Domain
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.utilities.polygon import *
@@ -25,7 +25,6 @@ def linear_function(point):
 
 class Test_Quantity(unittest.TestCase):
     def setUp(self):
-        from domain import Domain
 
         a = [0.0, 0.0]
         b = [0.0, 2.0]
@@ -41,6 +40,9 @@ class Test_Quantity(unittest.TestCase):
 
         self.mesh1 = Domain(points[:3], [elements[0]])
         self.mesh1.check_integrity()
+        
+        #print self.mesh1.__class__
+        #print isinstance(self.mesh1, Domain)
 
         self.mesh4 = Domain(points, elements)
         self.mesh4.check_integrity()

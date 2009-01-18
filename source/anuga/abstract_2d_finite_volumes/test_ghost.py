@@ -3,7 +3,7 @@
 import unittest
 from math import sqrt
 
-from domain import *
+from anuga.abstract_2d_finite_volumes.domain import *
 from anuga.config import epsilon
 
 

@@ -36,8 +36,7 @@ class Quantity:
         msg = 'First argument in Quantity.__init__ '
         msg += 'must be of class Domain (or a subclass thereof). '
         msg += 'I got %s.' %str(domain.__class__)
-        # FIXME(Ole): Why doesn't this work now?
-        #assert isinstance(domain, Domain), msg
+        assert isinstance(domain, Domain), msg
 
         if vertex_values is None:
             N = len(domain) # number_of_elements
