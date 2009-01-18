@@ -489,7 +489,8 @@ def get_netcdf_file_function(filename,
         #vertex coordinates is position of urs gauges
 
     if verbose:
-        print 'Call interpolation function'
+        print 'Calling interpolation function'
+        
     # Return Interpolation_function instance as well as
     # starttime for use to possible modify that of domain
     return (Interpolation_function(time,

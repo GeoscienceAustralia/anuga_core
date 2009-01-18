@@ -758,10 +758,15 @@ class Interpolation_function:
         from anuga.config import time_format
         import types
 
+        if verbose is True:
+            print 'Interpolation_function: input checks'
+
 	# Check temporal info
-        time = ensure_numeric(time)        
-        msg = 'Time must be a monotonuosly increasing sequence %s' % time
-        assert num.alltrue(time[1:] - time[:-1] >= 0), msg
+        time = ensure_numeric(time)
+        if not num.alltrue(time[1:] - time[:-1] >= 0):
+            # This message is time consuming to form due to the conversion of
+            msg = 'Time must be a monotonuosly increasing sequence %s' % time
+            raise Exception, msg
 
         # Check if quantities is a single array only
         if type(quantities) != types.DictType:
@@ -787,13 +792,20 @@ class Interpolation_function:
                 triangles = ensure_numeric(triangles)
             self.spatial = True          
 
+        if verbose is True:
+            print 'Interpolation_function: thinning'
+
+            
         # Thin timesteps if needed
         # Note array() is used to make the thinned arrays contiguous in memory
         self.time = num.array(time[::time_thinning])          
         for name in quantity_names:
             if len(quantities[name].shape) == 2:
                 quantities[name] = num.array(quantities[name][::time_thinning,:])
-             
+
+        if verbose is True:
+            print 'Interpolation_function: precomputing'
+            
         # Save for use with statistics
         self.quantities_range = {}
         for name in quantity_names:
@@ -914,6 +926,7 @@ class Interpolation_function:
                 
                 print msg
 
+            # FIXME(Ole): This one is no longer needed for STS files
             interpol = Interpolate(vertex_coordinates,
                                    triangles,
                                    verbose=verbose)
