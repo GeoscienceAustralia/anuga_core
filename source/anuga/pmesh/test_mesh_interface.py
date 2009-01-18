@@ -130,7 +130,7 @@ class TestCase(unittest.TestCase):
         geo_ref_poly = Geo_reference(56, x_p, y_p)
         polygon = geo_ref_poly.change_points_geo_ref(polygon_absolute)
 
-        boundary_tags = {'walls':[0,1],'bom':[2]}
+        boundary_tags = {'walls':[0,1],'bom':[2,3]}
         
         inner1_polygon_absolute = [[10,10],[20,10],[20,20],[10,20]]
         inner1_polygon = geo_ref_poly. \
@@ -158,6 +158,8 @@ class TestCase(unittest.TestCase):
               verbose=False,
               clear=1)
 
+        #print polygon
+        #print boundary_tags
         
         m = create_mesh_from_regions(polygon,
                                      boundary_tags,
@@ -184,7 +186,7 @@ class TestCase(unittest.TestCase):
          
         self.failUnless(segs[2].tag=='bom',
                         'FAILED!') 
-        self.failUnless(segs[3].tag=='',
+        self.failUnless(segs[3].tag=='bom',
                         'FAILED!')
 
         # Assuming the order of the region points is known.
