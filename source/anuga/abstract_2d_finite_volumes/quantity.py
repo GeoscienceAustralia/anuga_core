@@ -788,8 +788,8 @@ class Quantity:
                   'location=\'vertices\''
             raise ms
 
-        coordinates = self.domain.get_nodes()
-        triangles = self.domain.get_triangles()
+        #coordinates = self.domain.get_nodes()
+        #triangles = self.domain.get_triangles()
 
 
         # Take care of georeferencing
@@ -803,9 +803,9 @@ class Quantity:
         # Call fit_interpolate.fit function
         # args = (coordinates, triangles, points, values)
         args = (points, )
-        kwargs = {'vertex_coordinates': coordinates,
-                  'triangles': triangles,
-                  'mesh': None,
+        kwargs = {'vertex_coordinates': None,
+                  'triangles': None,
+                  'mesh': self.domain.mesh,
                   'point_attributes': values,
                   'data_origin': data_georef.get_origin(),
                   'mesh_origin': mesh_georef.get_origin(),
