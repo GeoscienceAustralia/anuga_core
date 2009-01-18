@@ -3011,6 +3011,8 @@ class Test_Shallow_Water(unittest.TestCase):
         water to match the abstraction. 
         This tests that the total volume is kept constant under a range of
         scenarios.
+        
+        This test will fail as the problem was only fixed for culverts.
         """
         
         from math import pi, cos, sin
@@ -6349,8 +6351,9 @@ friction  \n \
                              answer)
 
          #print domain.quantities['friction'].vertex_values
-         assert num.allclose(domain.tagged_elements['dsg'][0],0)
-         assert num.allclose(domain.tagged_elements['ole nielsen'][0],1)
+         tagged_elements = domain.get_tagged_elements()
+         assert num.allclose(tagged_elements['dsg'][0],0)
+         assert num.allclose(tagged_elements['ole nielsen'][0],1)
 
          self.failUnless( domain.boundary[(1, 0)]  == '1',
                           "test_tags_to_boundaries  failed. Single boundary wasn't added.")
@@ -6395,8 +6398,9 @@ friction  \n \
                              answer)
 
          #print domain.quantities['friction'].vertex_values
-         assert num.allclose(domain.tagged_elements['dsg'][0],0)
-         assert num.allclose(domain.tagged_elements['ole nielsen'][0],1)
+         tagged_elements = domain.get_tagged_elements()         
+         assert num.allclose(tagged_elements['dsg'][0],0)
+         assert num.allclose(tagged_elements['ole nielsen'][0],1)
 
          self.failUnless( domain.boundary[(1, 0)]  == '1',
                           "test_tags_to_boundaries  failed. Single boundary wasn't added.")
@@ -6525,12 +6529,12 @@ friction  \n \
         
 if __name__ == "__main__":
 
-    #suite = unittest.makeSuite(Test_Shallow_Water, 'test')
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test')
     #suite = unittest.makeSuite(Test_Shallow_Water, 'test_rainfall_forcing_with_evolve')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_get_energy_through_cross_section_with_g')    
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_fitting_using_shallow_water_domain')    
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_tight_slope_limiters')
-    suite = unittest.makeSuite(Test_Shallow_Water,'test_inflow_outflow_conservation')
+    #suite = unittest.makeSuite(Test_Shallow_Water,'test_inflow_outflow_conservation')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_outflow_conservation_problem_temp')    
     
 

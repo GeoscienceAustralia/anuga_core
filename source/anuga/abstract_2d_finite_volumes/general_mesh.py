@@ -235,7 +235,9 @@ class General_mesh:
         """
         return self.normals[i, 2*j:2*j+2]
 
-
+    def get_number_of_nodes(self):
+        return self.number_of_nodes
+        
     def get_nodes(self, absolute=False):
         """Return all nodes in mesh.
 
@@ -371,7 +373,8 @@ class General_mesh:
         M = self.number_of_full_triangles
 
         if indices is None:
-            indices = range(M)
+            return self.triangles
+            #indices = range(M)
 
         return num.take(self.triangles, indices)
     
@@ -596,5 +599,11 @@ class General_mesh:
 
         return num.sum(self.areas)
 
+    def set_georeference(self, g):
+        self.geo_reference = g
+        
+    def get_georeference(self):
+        return self.geo_reference
         
         
+                

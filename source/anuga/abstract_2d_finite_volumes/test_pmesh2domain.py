@@ -95,8 +95,9 @@ friction  \n \
                              answer)
 
          #print domain.quantities['friction'].vertex_values
-         assert num.allclose(domain.tagged_elements['dsg'][0],0)
-         assert num.allclose(domain.tagged_elements['ole nielsen'][0],1)
+         tagged_elements = domain.get_tagged_elements()
+         assert num.allclose(tagged_elements['dsg'][0],0)
+         assert num.allclose(tagged_elements['ole nielsen'][0],1)
 
          self.failUnless( domain.boundary[(1, 0)]  == '1',
                           "test_tags_to_boundaries  failed. Single boundary wasn't added.")
@@ -189,8 +190,9 @@ friction  \n \
                              answer)
 
          #print domain.quantities['friction'].vertex_values
-         assert num.allclose(domain.tagged_elements['dsg'][0],0)
-         assert num.allclose(domain.tagged_elements['ole nielsen'][0],1)
+         tagged_elements = domain.get_tagged_elements()         
+         assert num.allclose(tagged_elements['dsg'][0],0)
+         assert num.allclose(tagged_elements['ole nielsen'][0],1)
 
          self.failUnless( domain.boundary[(1, 0)]  == '1',
                           "test_tags_to_boundaries  failed. Single boundary wasn't added.")

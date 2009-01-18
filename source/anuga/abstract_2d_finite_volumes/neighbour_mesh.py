@@ -399,6 +399,9 @@ class Mesh(General_mesh):
                 assert max(tagged_elements[tag]) < len(self), msg
         #print "tagged_elements", tagged_elements
         self.tagged_elements = tagged_elements
+        
+    def get_tagged_elements(self):
+        return self.tagged_elements
 
     def build_boundary_structure(self):
         """Traverse boundary and

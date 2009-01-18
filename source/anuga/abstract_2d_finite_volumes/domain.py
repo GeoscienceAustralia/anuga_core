@@ -39,8 +39,7 @@ import Numeric as num
 
 ##
 # @brief Basic Domain class
-# @note Subclasses Mesh.
-class Domain(Mesh):
+class Domain:
 
     ##
     # @brief Generic computational Domain constructor.
@@ -111,15 +110,37 @@ class Domain(Mesh):
                                          verbose=verbose)
 
         # Initialise underlying mesh structure
-        Mesh.__init__(self, coordinates, triangles,
-                      boundary=boundary,
-                      tagged_elements=tagged_elements,
-                      geo_reference=geo_reference,
-                      use_inscribed_circle=use_inscribed_circle,
-                      number_of_full_nodes=number_of_full_nodes,
-                      number_of_full_triangles=number_of_full_triangles,
-                      verbose=verbose)
+        self.mesh = Mesh(coordinates, triangles,
+                         boundary=boundary,
+                         tagged_elements=tagged_elements,
+                         geo_reference=geo_reference,
+                         use_inscribed_circle=use_inscribed_circle,
+                         number_of_full_nodes=number_of_full_nodes,
+                         number_of_full_triangles=number_of_full_triangles,
+                         verbose=verbose)
+                         
+        # Expose Mesh attributes (FIXME: Maybe turn into methods)
+        self.centroid_coordinates = self.mesh.centroid_coordinates
+        self.vertex_coordinates = self.mesh.vertex_coordinates        
+        self.boundary = self.mesh.boundary
+        self.neighbours = self.mesh.neighbours
+        self.surrogate_neighbours = self.mesh.surrogate_neighbours        
+        self.neighbour_edges = self.mesh.neighbour_edges
+        self.normals = self.mesh.normals
+        self.edgelengths = self.mesh.edgelengths        
+        self.radii = self.mesh.radii                
+        self.areas = self.mesh.areas                        
+                
+        self.number_of_boundaries = self.mesh.number_of_boundaries        
+        self.number_of_full_nodes = self.mesh.number_of_full_nodes
+        self.number_of_full_triangles = self.mesh.number_of_full_triangles        
+        self.number_of_triangles_per_node = self.mesh.number_of_triangles_per_node
 
+        self.vertex_value_indices = self.mesh.vertex_value_indices
+        self.number_of_triangles = self.mesh.number_of_triangles        
+
+        self.geo_reference = self.mesh.geo_reference
+        
         if verbose: print 'Initialising Domain'
 
         # List of quantity names entering the conservation equations
@@ -254,7 +275,84 @@ class Domain(Mesh):
             self.set_quantity_vertices_dict(vertex_quantity_dict)
 
         if verbose: print 'Domain: Done'
+        
+     
 
+    # Expose underlying Mesh functionality
+    def __len__(self):
+        return len(self.mesh)
+
+    def get_centroid_coordinates(self, *args, **kwargs):
+        return self.mesh.get_centroid_coordinates(*args, **kwargs)
+        
+    def get_radii(self, *args, **kwargs):
+        return self.mesh.get_radii(*args, **kwargs)        
+        
+    def get_areas(self, *args, **kwargs):
+        return self.mesh.get_areas(*args, **kwargs)                
+
+    def get_area(self, *args, **kwargs):
+        return self.mesh.get_area(*args, **kwargs)
+
+    def get_vertex_coordinates(self, *args, **kwargs):
+        return self.mesh.get_vertex_coordinates(*args, **kwargs)                
+
+    def get_triangles(self, *args, **kwargs):
+        return self.mesh.get_triangles(*args, **kwargs)                
+        
+    def get_nodes(self, *args, **kwargs):
+        return self.mesh.get_nodes(*args, **kwargs)
+        
+    def get_number_of_nodes(self, *args, **kwargs):
+        return self.mesh.get_number_of_nodes(*args, **kwargs)
+        
+    def get_normal(self, *args, **kwargs):
+        return self.mesh.get_normal(*args, **kwargs)        
+        
+    def get_intersecting_segments(self, *args, **kwargs):
+        return self.mesh.get_intersecting_segments(*args, **kwargs)
+        
+    def get_disconnected_triangles(self, *args, **kwargs):
+        return self.mesh.get_disconnected_triangles(*args, **kwargs)
+        
+    def get_boundary_tags(self, *args, **kwargs):
+        return self.mesh.get_boundary_tags(*args, **kwargs)
+
+    def get_boundary_polygon(self, *args, **kwargs):
+        return self.mesh.get_boundary_polygon(*args, **kwargs)
+                
+    def get_number_of_triangles_per_node(self, *args, **kwargs):
+        return self.mesh.get_number_of_triangles_per_node(*args, **kwargs)
+        
+    def get_triangles_and_vertices_per_node(self, *args, **kwargs):
+        return self.mesh.get_triangles_and_vertices_per_node(*args, **kwargs)
+        
+    def get_interpolation_object(self, *args, **kwargs):
+        return self.mesh.get_interpolation_object(*args, **kwargs)        
+        
+    def get_tagged_elements(self, *args, **kwargs):
+        return self.mesh.get_tagged_elements(*args, **kwargs)                
+        
+    def get_lone_vertices(self, *args, **kwargs):
+        return self.mesh.get_lone_vertices(*args, **kwargs)        
+        
+    def get_unique_vertices(self, *args, **kwargs):
+        return self.mesh.get_unique_vertices(*args, **kwargs)                
+
+    def get_georeference(self, *args, **kwargs):
+        return self.mesh.get_georeference(*args, **kwargs)
+        
+    def set_georeference(self, *args, **kwargs):
+        self.mesh.set_georeference(*args, **kwargs)                    
+        
+    def build_tagged_elements_dictionary(self, *args, **kwargs):
+        self.mesh.build_tagged_elements_dictionary(*args, **kwargs)
+        
+    def statistics(self, *args, **kwargs):
+        return self.mesh.statistics(*args, **kwargs)        
+                
+        
+        
     ##
     # @brief Get conserved quantities for a volume.
     # @param vol_id ID of the volume we want the conserved quantities for.
@@ -615,9 +713,10 @@ class Domain(Mesh):
             functions = [functions]
 
         # The order of functions in the list is used.
+        tagged_elements = self.get_tagged_elements()
         for function in functions:
-            for tag in self.tagged_elements.keys():
-                function(tag, self.tagged_elements[tag], self)
+            for tag in tagged_elements.keys():
+                function(tag, tagged_elements[tag], self)
 
     ##
     # @brief Specify the quantities which will be monitored for extrema.
@@ -720,7 +819,7 @@ class Domain(Mesh):
     # @brief Check Domain integrity.
     # @note Raises an exception if integrity breached.
     def check_integrity(self):
-        Mesh.check_integrity(self)
+        self.mesh.check_integrity()
 
         for quantity in self.conserved_quantities:
             msg = 'Conserved quantities must be a subset of all quantities'

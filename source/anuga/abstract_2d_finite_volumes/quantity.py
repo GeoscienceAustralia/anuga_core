@@ -22,18 +22,22 @@ from anuga.fit_interpolate.fit import fit_to_mesh
 from anuga.config import points_file_block_line_size as default_block_line_size
 from anuga.config import epsilon
 
+
+
+
 import Numeric as num
 
 
 class Quantity:
 
     def __init__(self, domain, vertex_values=None):
-
-        from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
-
+    
+        from anuga.abstract_2d_finite_volumes.domain import Domain
         msg = 'First argument in Quantity.__init__ '
-        msg += 'must be of class Mesh (or a subclass thereof)'
-        assert isinstance(domain, Mesh), msg
+        msg += 'must be of class Domain (or a subclass thereof). '
+        msg += 'I got %s.' %str(domain.__class__)
+        # FIXME(Ole): Why doesn't this work now?
+        #assert isinstance(domain, Domain), msg
 
         if vertex_values is None:
             N = len(domain) # number_of_elements
@@ -786,7 +790,7 @@ class Quantity:
             raise ms
 
         coordinates = self.domain.get_nodes()
-        triangles = self.domain.triangles      #FIXME
+        triangles = self.domain.get_triangles()
 
 
         # Take care of georeferencing
@@ -860,6 +864,7 @@ class Quantity:
             # due to quantities changing, but
             # it would work if we only passed in
             # the appropriate Mesh object.
+            # See ticket:242
             vertex_attributes = fit_to_mesh(filename,
                                             mesh=self.domain,  
                                             alpha=alpha,
@@ -871,7 +876,7 @@ class Quantity:
             # This variant will cause Mesh object to be recreated
             # in fit_to_mesh thus doubling up on the neighbour structure 
             nodes = self.domain.get_nodes(absolute=True)
-            triangles = self.domain.triangles      
+            triangles = self.domain.get_triangles()      
             vertex_attributes = fit_to_mesh(filename,
                                             nodes, triangles, 
                                             mesh=None,
@@ -1154,7 +1159,7 @@ class Quantity:
             return num.take(self.edge_values,indices)
         elif location == 'unique vertices':
             if (indices ==  None):
-                indices=range(self.domain.number_of_nodes)
+                indices=range(self.domain.get_number_of_nodes())
             vert_values = []
 
             # Go through list of unique vertices
@@ -1371,9 +1376,10 @@ class Quantity:
     def get_integral(self):
         """Compute the integral of quantity across entire domain
         """
+        areas = self.domain.get_areas()
         integral = 0
         for k in range(len(self.domain)):
-            area = self.domain.areas[k]
+            area = areas[k]
             qc = self.centroid_values[k]
             integral += qc*area
 

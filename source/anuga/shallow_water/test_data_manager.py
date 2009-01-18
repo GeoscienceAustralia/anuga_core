@@ -10688,8 +10688,8 @@ friction  \n \
         
 
         # Check that mesh has been recovered
-        assert num.alltrue(mesh.triangles == domain.triangles)
-        assert num.allclose(mesh.nodes, domain.nodes)
+        assert num.alltrue(mesh.triangles == domain.get_triangles())
+        assert num.allclose(mesh.nodes, domain.get_nodes())
 
         # Check that time has been recovered
         assert num.allclose(time, range(t_end+1))

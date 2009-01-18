@@ -461,7 +461,7 @@ def fit_to_mesh(point_coordinates, # this can also be a points file name
                 data_origin=None,
                 max_read_lines=None,
                 attribute_name=None,
-                use_cache = False):
+                use_cache=False):
     """Wrapper around internal function _fit_to_mesh for use with caching.
     
     """
@@ -478,7 +478,7 @@ def fit_to_mesh(point_coordinates, # this can also be a points file name
               'data_origin': data_origin,
               'max_read_lines': max_read_lines,
               'attribute_name': attribute_name,
-              'use_cache':use_cache 
+              'use_cache': use_cache 
               }
 
     if use_cache is True:
