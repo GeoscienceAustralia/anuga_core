@@ -1782,7 +1782,6 @@ class Test_Polygon(unittest.TestCase):
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Polygon,'test')
-#    suite = unittest.makeSuite(Test_Polygon,'test_intersection_bug_20081111')
     runner = unittest.TextTestRunner()
     runner.run(suite)
 

@@ -28,7 +28,7 @@ exclude_files = []
 
 exclude_dirs = ['pypar_dist',                        #Special requirements
                 'props', 'wcprops', 'prop-base', 'text-base', '.svn', #Svn
-                'tmp']
+                'tmp', 'lib']
 
 print "The following directories will be skipped over;"
 for dir in exclude_dirs:
@@ -83,11 +83,18 @@ def regressionTest(test_verbose=False):
     print
     print 'Testing path %s:' %('...'+path[-50:])
     print
+    print 'Paths searched:'
+    for path_file in path_files:
+        print path_file + ',', 
+    print
+    print    
     print 'Files tested;'
     for file in files:
         print file + ',',
     print
     print
+    print
+
     if globals().has_key('exclude_files'):
         for file in exclude_files:
             print 'WARNING: File '+ file + ' to be excluded from testing'
@@ -102,6 +109,7 @@ def regressionTest(test_verbose=False):
     filenameToModuleName = lambda f: os.path.splitext(f)[0]
     moduleNames = map(filenameToModuleName, files)
     modules = map(__import__, moduleNames)
+    
 
     # Fix up the system path
     for file in path_files:

@@ -3515,13 +3515,13 @@ def sww2domain(filename, boundary=None, t=None,
     other_quantities.remove('y')
     other_quantities.remove('z')
     other_quantities.remove('volumes')
-    try:
-        other_quantities.remove('stage_range')
-        other_quantities.remove('xmomentum_range')
-        other_quantities.remove('ymomentum_range')
-        other_quantities.remove('elevation_range')
-    except:
-        pass
+    #try:
+    #    other_quantities.remove('stage_range')
+    #    other_quantities.remove('xmomentum_range')
+    #    other_quantities.remove('ymomentum_range')
+    #    other_quantities.remove('elevation_range')
+    #except:
+    #    pass
 
     conserved_quantities.remove('time')
 
@@ -5282,7 +5282,7 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
                                  sww_precision=num.Float)
         j += 1
 
-    if verbose: sww.verbose_quantities(outfile)
+    #if verbose: sww.verbose_quantities(outfile)
 
     outfile.close()
 
@@ -5872,14 +5872,14 @@ class Write_sww:
         outfile.createVariable('elevation', sww_precision,
                                ('number_of_points',))
         q = 'elevation'
-        outfile.createVariable(q + Write_sww.RANGE, sww_precision,
-                               ('numbers_in_range',))
+        #outfile.createVariable(q + Write_sww.RANGE, sww_precision,
+        #                       ('numbers_in_range',))
 
 
-        # Initialise ranges with small and large sentinels.
-        # If this was in pure Python we could have used None sensibly
-        outfile.variables[q+Write_sww.RANGE][0] = max_float  # Min
-        outfile.variables[q+Write_sww.RANGE][1] = -max_float # Max
+        ## Initialise ranges with small and large sentinels.
+        ## If this was in pure Python we could have used None sensibly
+        #outfile.variables[q+Write_sww.RANGE][0] = max_float  # Min
+        #outfile.variables[q+Write_sww.RANGE][1] = -max_float # Max
 
         # FIXME: Backwards compatibility
         outfile.createVariable('z', sww_precision, ('number_of_points',))
@@ -5894,13 +5894,13 @@ class Write_sww:
         for q in Write_sww.sww_quantities:
             outfile.createVariable(q, sww_precision, ('number_of_timesteps',
                                                       'number_of_points'))
-            outfile.createVariable(q + Write_sww.RANGE, sww_precision,
-                                   ('numbers_in_range',))
+            #outfile.createVariable(q + Write_sww.RANGE, sww_precision,
+            #                       ('numbers_in_range',))
 
             # Initialise ranges with small and large sentinels.
             # If this was in pure Python we could have used None sensibly
-            outfile.variables[q+Write_sww.RANGE][0] = max_float  # Min
-            outfile.variables[q+Write_sww.RANGE][1] = -max_float # Max
+            #outfile.variables[q+Write_sww.RANGE][0] = max_float  # Min
+            #outfile.variables[q+Write_sww.RANGE][1] = -max_float # Max
 
         if type(times) is list or type(times) is num.ArrayType:
             outfile.variables['time'][:] = times    #Store time relative
@@ -6009,8 +6009,8 @@ class Write_sww:
 
         q = 'elevation'
         # This updates the _range values
-        outfile.variables[q + Write_sww.RANGE][0] = min(elevation)
-        outfile.variables[q + Write_sww.RANGE][1] = max(elevation)
+        #outfile.variables[q + Write_sww.RANGE][0] = min(elevation)
+        #outfile.variables[q + Write_sww.RANGE][1] = max(elevation)
 
 
     ##
@@ -6061,27 +6061,27 @@ class Write_sww:
                 q_values = quant[q]
                 outfile.variables[q][slice_index] = \
                                 q_values.astype(sww_precision)
-
-                # This updates the _range values
-                q_range = outfile.variables[q + Write_sww.RANGE][:]
-                q_values_min = min(q_values)
-                if q_values_min < q_range[0]:
-                    outfile.variables[q + Write_sww.RANGE][0] = q_values_min
-                q_values_max = max(q_values)
-                if q_values_max > q_range[1]:
-                    outfile.variables[q + Write_sww.RANGE][1] = q_values_max
+        
+        #        # This updates the _range values
+        #        q_range = outfile.variables[q + Write_sww.RANGE][:]
+        #        q_values_min = min(q_values)
+        #        if q_values_min < q_range[0]:
+        #            outfile.variables[q + Write_sww.RANGE][0] = q_values_min
+        #        q_values_max = max(q_values)
+        #        if q_values_max > q_range[1]:
+        #            outfile.variables[q + Write_sww.RANGE][1] = q_values_max
 
     ##
     # @brief Print the quantities in the underlying file.
     # @param outfile UNUSED.
-    def verbose_quantities(self, outfile):
-        print '------------------------------------------------'
-        print 'More Statistics:'
-        for q in Write_sww.sww_quantities:
-            print '  %s in [%f, %f]' % (q,
-                                        outfile.variables[q+Write_sww.RANGE][0],
-                                        outfile.variables[q+Write_sww.RANGE][1])
-        print '------------------------------------------------'
+    #def verbose_quantities(self, outfile):
+    #    print '------------------------------------------------'
+    #    print 'More Statistics:'
+    #    for q in Write_sww.sww_quantities:
+    #        print '  %s in [%f, %f]' % (q,
+    #                                    outfile.variables[q+Write_sww.RANGE][0],
+    #                                    outfile.variables[q+Write_sww.RANGE][1])
+    #    print '------------------------------------------------'
 
 
 ##
@@ -6432,13 +6432,13 @@ class Write_sts:
                                 q_values.astype(sts_precision)
 
                 # This updates the _range values
-                q_range = outfile.variables[q + Write_sts.RANGE][:]
-                q_values_min = min(q_values)
-                if q_values_min < q_range[0]:
-                    outfile.variables[q + Write_sts.RANGE][0] = q_values_min
-                q_values_max = max(q_values)
-                if q_values_max > q_range[1]:
-                    outfile.variables[q + Write_sts.RANGE][1] = q_values_max
+                #q_range = outfile.variables[q + Write_sts.RANGE][:]
+                #q_values_min = min(q_values)
+                #if q_values_min < q_range[0]:
+                #    outfile.variables[q + Write_sts.RANGE][0] = q_values_min
+                #q_values_max = max(q_values)
+                #if q_values_max > q_range[1]:
+                #    outfile.variables[q + Write_sts.RANGE][1] = q_values_max
 
 
 ##
