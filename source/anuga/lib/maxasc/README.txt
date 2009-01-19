@@ -1,5 +1,8 @@
-The module here (maxasc.py) contains a function that takes one or more
-ASC filenames in a list and produces an output ASC file that is the 
-element-wise max() of each of the input ASC files.
+The module here (order_boundary.py) contains a function that takes a CSV
+file of boundary points and orders the points into an output CSV file.
 
-Of course, the input files must all have the same shape.
+The first point in the file is assumed to be the start point.  All other
+points in the file are the points that are closest to each succeeding point.
+
+Note that in pathological cases the ordering may be wrong.  Always check!
+CAVEAT EMPTOR.
