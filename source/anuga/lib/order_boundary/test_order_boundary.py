@@ -2,7 +2,7 @@ import unittest
 import os
 import csv
 
-import anuga.lib.order_boundary.order_boundary as ob
+import order_boundary as ob
 
 
 class Test_order_boundary(unittest.TestCase):
@@ -374,7 +374,7 @@ class Test_order_boundary(unittest.TestCase):
             data_list.append(tuple(data))
         fd.close()
 
-        # check same as Expected
+        # check same as expected
         self.failUnless(data_list == expected)
 
         # clean up
