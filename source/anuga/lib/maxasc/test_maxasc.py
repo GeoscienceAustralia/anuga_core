@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 
 from maxasc import *
+import anuga.utilities.system_tools as aust
 
 import exceptions
 class TestError(exceptions.Exception): pass
 import unittest
 
 import sys
+import os
 import re
+import glob
 
 HEADER_SIZE = 6
 
@@ -81,57 +84,90 @@ def FilesEqual(file1, file2):
 
 
 class Test_MaxAsc(unittest.TestCase):
+    def tearDown(self):
+        # delete all output files
+        files = glob.glob('*.out.asc')
+        for file in files:
+            os.remove(file)
+
     def test_unequal_lines(self):
+        test_path = aust.get_pathname_from_package('anuga.lib.maxasc')
+        in_file = os.path.join(test_path, 'test1.asc')
+        expected_file = os.path.join(test_path, 'test1_bad_num_lines.asc')
         self.failUnlessRaises(RuntimeError, MaxAsc,
                               'test.out.asc',
-                              ['test1.asc', 'test1_bad_num_lines.asc'])
+                              [in_file, expected_file])
 
     def test_headers_differ(self):
+        test_path = aust.get_pathname_from_package('anuga.lib.maxasc')
+        in_file = os.path.join(test_path, 'test1.asc')
+        expected_file = os.path.join(test_path, 'test1_bad_num_lines.asc')
         self.failUnlessRaises(RuntimeError, MaxAsc,
                               'test.out.asc',
-                              ['test1.asc', 'test1_bad_num_lines.asc'])
+                              [in_file, expected_file])
 
     def test_wrong_num_columns(self):
+        test_path = aust.get_pathname_from_package('anuga.lib.maxasc')
+        in_file = os.path.join(test_path, 'test1.asc')
+        expected_file = os.path.join(test_path, 'test1_wrong_num_columns.asc')
         self.failUnlessRaises(RuntimeError, MaxAsc,
                               'test.out.asc',
-                              ['test1.asc', 'test1_wrong_num_columns.asc'])
+                              [in_file, expected_file])
 
     def test_same_input_equals_output1(self):
-        MaxAsc('test1.out.asc', ['test1.asc'])
-        self.failUnless(FilesEqual('test1.out.asc', 'test1.asc'))
+        test_path = aust.get_pathname_from_package('anuga.lib.maxasc')
+        in_file = os.path.join(test_path, 'test1.asc')
+        MaxAsc('test1.out.asc', [in_file])
+        self.failUnless(FilesEqual('test1.out.asc', in_file))
 
     def test_same_input_equals_bigA(self):
-        MaxAsc('perth.out.asc', ['perthAll_stage_250m.asc'])
-        self.failUnless(FilesEqual('perth.out.asc', 'perthAll_stage_250m.asc'))
+        test_path = aust.get_pathname_from_package('anuga.lib.maxasc')
+        in_file = os.path.join(test_path, 'perthAll_stage_250m.asc')
+        MaxAsc('perth.out.asc', [in_file])
+        self.failUnless(FilesEqual('perth.out.asc', in_file))
 
     def test_same_input_equals_bigB(self):
-        MaxAsc('perth.out.asc', ['perthAll_stage_250m_all.asc'])
-        self.failUnless(FilesEqual('perth.out.asc', 'perthAll_stage_250m_all.asc'))
+        test_path = aust.get_pathname_from_package('anuga.lib.maxasc')
+        in_file = os.path.join(test_path, 'perthAll_stage_250m_all.asc')
+        MaxAsc('perth.out.asc', [in_file])
+        self.failUnless(FilesEqual('perth.out.asc', in_file))
 
     def test_same_input_equals_bigC(self):
-        MaxAsc('perth.out.asc', ['perthAll_stage_original.asc'])
-        self.failUnless(FilesEqual('perth.out.asc', 'perthAll_stage_original.asc'))
+        test_path = aust.get_pathname_from_package('anuga.lib.maxasc')
+        in_file = os.path.join(test_path, 'perthAll_stage_original.asc')
+        MaxAsc('perth.out.asc', [in_file])
+        self.failUnless(FilesEqual('perth.out.asc', in_file))
 
     def test_same_input_equals_big3(self):
-        MaxAsc('perth.out.asc', ['perthAll_stage_250m.asc',
-                                 'perthAll_stage_250m.asc',
-                                 'perthAll_stage_250m.asc'])
-        self.failUnless(FilesEqual('perth.out.asc', 'perthAll_stage_250m.asc'))
+        test_path = aust.get_pathname_from_package('anuga.lib.maxasc')
+        in_file = os.path.join(test_path, 'perthAll_stage_250m.asc')
+        MaxAsc('perth.out.asc', [in_file, in_file, in_file])
+        self.failUnless(FilesEqual('perth.out.asc', in_file))
 
     def test_same_input_equals_outputN(self):
-        MaxAsc('test1.out.asc', ['test1.asc'] * 30)
-        self.failUnless(FilesEqual('test1.out.asc', 'test1.asc'))
+        test_path = aust.get_pathname_from_package('anuga.lib.maxasc')
+        in_file = os.path.join(test_path, 'test1.asc')
+        MaxAsc('test1.out.asc', [in_file] * 30)
+        self.failUnless(FilesEqual('test1.out.asc', in_file))
 
     def test_different_input2(self):
-        MaxAsc('test2.out.asc', ['test1.asc', 'test2.asc'])
-        self.failUnless(FilesEqual('test2.out.asc', 'test2.expected.asc'))
+        test_path = aust.get_pathname_from_package('anuga.lib.maxasc')
+        in_file = os.path.join(test_path, 'test1.asc')
+        in_file2 = os.path.join(test_path, 'test2.asc')
+        expected_file = os.path.join(test_path, 'test2.expected.asc')
+        MaxAsc('test2.out.asc', [in_file, in_file2])
+        self.failUnless(FilesEqual('test2.out.asc', expected_file))
 
     def test_different_input3(self):
-        MaxAsc('test3.out.asc', ['test1.asc', 'test2.asc', 'test3.asc'])
-        self.failUnless(FilesEqual('test3.out.asc', 'test3.expected.asc'))
+        test_path = aust.get_pathname_from_package('anuga.lib.maxasc')
+        in_file = os.path.join(test_path, 'test1.asc')
+        in_file2 = os.path.join(test_path, 'test2.asc')
+        in_file3 = os.path.join(test_path, 'test3.asc')
+        expected_file = os.path.join(test_path, 'test3.expected.asc')
+        MaxAsc('test3.out.asc', [in_file, in_file2, in_file3])
+        self.failUnless(FilesEqual('test3.out.asc', expected_file))
 
-
-suite = unittest.makeSuite(Test_MaxAsc,'test')
-#suite = unittest.makeSuite(Test_MaxAsc,'test_same_input_equals_output1')
-runner = unittest.TextTestRunner(verbosity=1)
-runner.run(suite)
+if __name__ == '__main__':
+    suite = unittest.makeSuite(Test_MaxAsc,'test')
+    runner = unittest.TextTestRunner(verbosity=1)
+    runner.run(suite)
