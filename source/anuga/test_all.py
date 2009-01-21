@@ -12,6 +12,8 @@ import unittest
 import os
 import sys
 import tempfile
+import time
+import anuga.utilities.system_tools as aust
 
 
 #List files that should be excluded from the testing process.
@@ -118,6 +120,7 @@ def regressionTest(test_verbose=False):
     print    
     print 'Files tested:'
     list_names(files)
+    print
 
     # update system path with found paths
     for path in path_files:
@@ -194,6 +197,12 @@ if __name__ == '__main__':
     suite = regressionTest(test_verbose)
     runner = unittest.TextTestRunner() #verbosity=2
     runner.run(suite)
+
+    # timestamp at the end
+    timestamp = time.asctime()
+    version = aust.get_revision_number()
+    print
+    print 'Finished at %s, version %s' % (timestamp, version)
 
     # Cleaning up
     if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':
