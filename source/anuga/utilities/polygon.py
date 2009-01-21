@@ -660,7 +660,10 @@ class Polygon_function:
     FIXME: This should really work with geo_spatial point sets.
     """
 
-    def __init__(self, regions, default=0.0, geo_reference=None):
+    def __init__(self,
+                 regions,
+                 default=0.0,
+                 geo_reference=None):
 
 	try:
 	    len(regions)
@@ -701,7 +704,7 @@ class Polygon_function:
         self.regions = []
         for polygon, value in regions:
             P = geo_reference.change_points_geo_ref(polygon)
-            self.regions.append( (P, value) )
+            self.regions.append((P, value))
 
 
 
@@ -713,8 +716,8 @@ class Polygon_function:
 	N = len(x)
 	assert len(y) == N
 
-	points = num.concatenate( (num.reshape(x, (N, 1)),
-	                           num.reshape(y, (N, 1))), axis=1 )
+        points = num.concatenate((num.reshape(x, (N, 1)),
+                                  num.reshape(y, (N, 1))), axis=1)
 
 	if callable(self.default):
 	    z = self.default(x,y)
@@ -734,6 +737,14 @@ class Polygon_function:
 	        for i in indices:
             	    z[i] = value
 
+        if len(z) == 0:
+            msg = 'Warning: points provided to Polygon function did not fall within'
+            msg += 'its regions'
+            msg += 'x in [%.2f, %.2f], y in [%.2f, %.2f]' % (min(x), max(x),
+                                                             min(y), max(y))
+            print msg
+
+            
         return z
 
 

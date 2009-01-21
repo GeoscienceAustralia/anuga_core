@@ -793,7 +793,7 @@ class Interpolation_function:
             self.spatial = True          
 
         if verbose is True:
-            print 'Interpolation_function: thinning'
+            print 'Interpolation_function: thinning by %d' % time_thinning
 
             
         # Thin timesteps if needed
@@ -914,22 +914,30 @@ class Interpolation_function:
 	    for name in quantity_names:
                 self.precomputed_values[name] = num.zeros((p, m), num.Float)
 
+            if verbose is True:
+                print 'Build interpolator'
+
+                
             # Build interpolator
-            if verbose:
-                if triangles is not None and vertex_coordinates is not None:
+            if triangles is not None and vertex_coordinates is not None:
+                if verbose:                
                     msg = 'Building interpolation matrix from source mesh '
                     msg += '(%d vertices, %d triangles)' \
                            % (vertex_coordinates.shape[0],
                               triangles.shape[0])
-                elif triangles is None and vertex_coordinates is not None:
-                    msg = 'Building interpolation matrix from source points'
+                    print msg
                 
-                print msg
+                # This one is no longer needed for STS files
+                interpol = Interpolate(vertex_coordinates,
+                                       triangles,
+                                       verbose=verbose)                
+                
+            elif triangles is None and vertex_coordinates is not None:
+                if verbose:
+                    msg = 'Interpolation from STS file'
+                    print msg
 
-            # FIXME(Ole): This one is no longer needed for STS files
-            interpol = Interpolate(vertex_coordinates,
-                                   triangles,
-                                   verbose=verbose)
+
 
             if verbose:
                 print 'Interpolating (%d interpolation points, %d timesteps).' \
