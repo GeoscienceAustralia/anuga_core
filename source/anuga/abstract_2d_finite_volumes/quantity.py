@@ -20,6 +20,7 @@ from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.fit_interpolate.fit import fit_to_mesh
 from anuga.config import points_file_block_line_size as default_block_line_size
 from anuga.config import epsilon
+from anuga.caching import cache
 
 import Numeric as num
 
@@ -32,13 +33,11 @@ class Quantity:
     # @brief Construct values art each triangular element.
     # @param domain ??
     # @param vertex_values ??
-    def __init__(self, domain,
-                       vertex_values=None):
+    def __init__(self, domain, vertex_values=None):
         from anuga.abstract_2d_finite_volumes.domain import Domain
 
-        msg = 'First argument in Quantity.__init__ '
-        msg += 'must be of class Domain (or a subclass thereof). '
-        msg += 'I got %s.' % str(domain.__class__)
+        msg = ('First argument in Quantity.__init__() must be of class Domain '
+               '(or a subclass thereof). I got %s.' % str(domain.__class__))
         assert isinstance(domain, Domain), msg
 
         if vertex_values is None:
@@ -84,18 +83,13 @@ class Quantity:
 
         self.set_beta(1.0)
 
-    #
+    ############################################################################
     # Methods for operator overloading
-    #
+    ############################################################################
 
-    ##
-    # @brief Get length of object.
-    # @return Return axis length of array.
     def __len__(self):
         return self.centroid_values.shape[0]
 
-    ##
-    # @brief Negate all values in this quantity.
     def __neg__(self):
         """Negate all values in this quantity giving meaning to the
         expression -Q where Q is an instance of class Quantity
@@ -105,9 +99,6 @@ class Quantity:
         Q.set_values(-self.vertex_values)
         return Q
 
-    ##
-    # @brief Add two quantities.
-    # @param other The other quantity (to the right).
     def __add__(self, other):
         """Add to self anything that could populate a quantity
 
@@ -123,24 +114,15 @@ class Quantity:
         result.set_values(self.vertex_values + Q.vertex_values)
         return result
 
-    ##
-    # @brief Add two quantities.
-    # @param other The other quantity (to the left).
     def __radd__(self, other):
         """Handle cases like 7+Q, where Q is an instance of class Quantity
         """
 
         return self + other
 
-    ##
-    # @brief Subtract two quantities.
-    # @param other The other quantity (to the right).
     def __sub__(self, other):
         return self + -other            # Invoke self.__neg__()
 
-    ##
-    # @brief Multiply two quantities.
-    # @param other The other quantity (to the right).
     def __mul__(self, other):
         """Multiply self with anything that could populate a quantity
 
@@ -167,18 +149,12 @@ class Quantity:
 
         return result
 
-    ##
-    # @brief Multiply two quantities.
-    # @param other The other quantity (to the left).
     def __rmul__(self, other):
         """Handle cases like 3*Q, where Q is an instance of class Quantity
         """
 
         return self * other
 
-    ##
-    # @brief Divide two quantities.
-    # @param other The other quantity (to the right).
     def __div__(self, other):
         """Divide self with anything that could populate a quantity
 
@@ -208,18 +184,12 @@ class Quantity:
 
         return result
 
-    ##
-    # @brief Divide two quantities.
-    # @param other The other quantity (to the left).
     def __rdiv__(self, other):
         """Handle cases like 3/Q, where Q is an instance of class Quantity
         """
 
         return self / other
 
-    ##
-    # @brief Raise a quaintity to some power.
-    # @param other The power to raise quantity.
     def __pow__(self, other):
         """Raise quantity to (numerical) power
 
@@ -247,6 +217,10 @@ class Quantity:
         result.centroid_values = self.centroid_values ** other
 
         return result
+
+    ############################################################################
+    # Setters/Getters
+    ############################################################################
 
     ##
     # @brief Set default beta value for limiting.
@@ -463,7 +437,8 @@ class Quantity:
             self.extrapolate_first_order()
 
             if smooth:
-                self.smooth_vertex_values()
+                self.smooth_vertex_values(use_cache=use_cache,
+                                          verbose=verbose)
 
             return
 
@@ -490,13 +465,15 @@ class Quantity:
                 self.set_values_from_constant(numeric, location,
                                               indices, verbose)
             elif type(numeric) in [num.ArrayType, ListType]:
-                self.set_values_from_array(numeric, location, indices, verbose)
+                self.set_values_from_array(numeric, location, indices,
+                                           use_cache=use_cache, verbose=verbose)
             elif callable(numeric):
-                self.set_values_from_function(numeric, location,
-                                              indices, verbose)
+                self.set_values_from_function(numeric, location, indices,
+                                              use_cache=use_cache,
+                                              verbose=verbose)
             elif isinstance(numeric, Quantity):
-                self.set_values_from_quantity(numeric, location,
-                                              indices, verbose)
+                self.set_values_from_quantity(numeric, location, indices,
+                                              verbose=verbose)
             elif isinstance(numeric, Geospatial_data):
                 self.set_values_from_geospatial_data(numeric, alpha, location,
                                                      indices, verbose=verbose,
@@ -509,7 +486,8 @@ class Quantity:
         elif function is not None:
             msg = 'Argument function must be callable'
             assert callable(function), msg
-            self.set_values_from_function(function, location, indices, verbose)
+            self.set_values_from_function(function, location, indices,
+                                          use_cache=use_cache, verbose=verbose)
         elif geospatial_data is not None:
                 self.set_values_from_geospatial_data(geospatial_data, alpha,
                                                      location, indices,
@@ -538,9 +516,9 @@ class Quantity:
 
 
 
-    #---------------------------------------------------------------------------
+    ############################################################################
     # Specific internal functions for setting values based on type
-    #---------------------------------------------------------------------------
+    ############################################################################
 
     ##
     # @brief Set quantity values from specified constant.
@@ -595,10 +573,12 @@ class Quantity:
     # @param values Array of values.
     # @param location Where values are to be stored.
     # @param indices Limit update to these indices.
+    # @param use_cache ??
     # @param verbose True if this method is to be verbose.
     def set_values_from_array(self, values,
                                     location='vertices',
                                     indices=None,
+                                    use_cache=False,
                                     verbose=False):
         """Set values for quantity
 
@@ -656,11 +636,15 @@ class Quantity:
             assert (len(values.shape) == 1 or num.allclose(values.shape[1:], 1),
                     'Values array must be 1d')
 
-            self.set_vertex_values(values.flat, indices=indices)
+            self.set_vertex_values(values.flat, indices=indices,
+                                   use_cache=use_cache, verbose=verbose)
         else:
             # Location vertices
             if len(values.shape) == 1:
-                self.set_vertex_values(values, indices=indices)
+                # This is the common case arising from fitted
+                # values (e.g. from pts file).
+                self.set_vertex_values(values, indices=indices,
+                                       use_cache=use_cache, verbose=verbose)
             elif len(values.shape) == 2:
                 # Vertex values are given as a triplet for each triangle
                 msg = 'Array must be N x 3'
@@ -703,10 +687,12 @@ class Quantity:
     # @param f Callable that takes two 1d array -> 1d array.
     # @param location Where values are to be stored.
     # @param indices ??
+    # @param use_cache ??
     # @param verbose True if this method is to be verbose.
     def set_values_from_function(self, f,
                                        location='vertices',
                                        indices=None,
+                                       use_cache=False,
                                        verbose=False):
         """Set values for quantity using specified function
 
@@ -730,15 +716,27 @@ class Quantity:
                 indices = range(len(self))
 
             V = num.take(self.domain.get_centroid_coordinates(), indices)
-            self.set_values(f(V[:,0], V[:,1]),
-                            location=location, indices=indices)
+            x = V[:,0]; y = V[:,1]
+            if use_cache is True:
+                res = cache(f, (x, y), verbose=verbose)
+            else:
+                res = f(x, y)
+
+            self.set_values(res, location=location, indices=indices)
         elif location == 'vertices':
+            # This is the default branch taken by set_quantity
             M = self.domain.number_of_triangles
             V = self.domain.get_vertex_coordinates()
 
             x = V[:,0];
-            y = V[:,1];
-            values = f(x, y)
+            y = V[:,1]
+            if use_cache is True:
+                #print 'Caching function'
+                values = cache(f, (x, y), verbose=verbose)                
+            else:
+                if verbose is True:
+                    print 'Evaluating function in set_values'
+                values = f(x, y)
 
             # FIXME (Ole): This code should replace all the
             # rest of this function and it would work, except
@@ -787,6 +785,8 @@ class Quantity:
         values = geospatial_data.get_attributes()
         data_georef = geospatial_data.get_geo_reference()
 
+        from anuga.coordinate_transforms.geo_reference import Geo_reference
+
         points = ensure_numeric(points, num.Float)
         values = ensure_numeric(values, num.Float)
 
@@ -815,8 +815,8 @@ class Quantity:
         vertex_attributes = apply(fit_to_mesh, args, kwargs)
 
         # Call underlying method using array values
-        self.set_values_from_array(vertex_attributes, location,
-                                   indices, verbose)
+        self.set_values_from_array(vertex_attributes, location, indices,
+                                   use_cache=use_cache, verbose=verbose)
 
     ##
     # @brief Set quantity values from arbitray data points.
@@ -901,8 +901,11 @@ class Quantity:
                                             max_read_lines=max_read_lines)
 
         # Call underlying method using array values
+        if verbose:
+            print 'Applying fitted data to domain'
         self.set_values_from_array(vertex_attributes, location,
-                                   indices, verbose)
+                                   indices, use_cache=use_cache,
+                                   verbose=verbose)
 
     ##
     # @brief Get index for maximum or minimum value of quantity.
@@ -1212,7 +1215,12 @@ class Quantity:
     # @brief Set vertex values for all unique vertices based on array.
     # @param A Array to set values with.
     # @param indices Set of IDs of elements to work on.
-    def set_vertex_values(self, A, indices=None):
+    # @param use_cache ??
+    # @param verbose??
+    def set_vertex_values(self, A,
+                                indices=None,
+                                use_cache=False,
+                                verbose=False):
         """Set vertex values for all unique vertices based on input array A
         which has one entry per unique vertex, i.e. one value for each row in
         array self.domain.nodes.
@@ -1233,6 +1241,26 @@ class Quantity:
             assert A.shape[0] == len(indices)
             vertex_list = indices
 
+        #FIXME(Ole): This function ought to be faster.
+        # We need to get the triangles_and_vertices list
+        # from domain in one hit, then cache the computation of the
+        # Nx3 array of vertex values that can then be assigned using
+        # set_values_from_array.
+        #
+        # Alternatively, some C code would be handy
+        #
+        self._set_vertex_values(vertex_list, A)
+            
+    ##
+    # @brief Go through list of unique vertices.
+    # @param vertex_list ??
+    # @param A ??
+    def _set_vertex_values(self, vertex_list, A):
+        """Go through list of unique vertices
+        This is the common case e.g. when values
+        are obtained from a pts file through fitting
+        """
+
         # Go through list of unique vertices
         for i_index, unique_vert_id in enumerate(vertex_list):
             triangles = self.domain.get_triangles_and_vertices_per_node(node=unique_vert_id)
@@ -1251,11 +1279,11 @@ class Quantity:
 
     ##
     # @brief Smooth vertex values.
-    def smooth_vertex_values(self):
+    def smooth_vertex_values(self, use_cache=False, verbose=False):
         """Smooths vertex values."""
 
         A, V = self.get_vertex_values(xy=False, smooth=True)
-        self.set_vertex_values(A)
+        self.set_vertex_values(A, use_cache=use_cache, verbose=verbose)
 
     ############################################################################
     # Methods for outputting model results
@@ -1266,9 +1294,7 @@ class Quantity:
     # @param xy True if we return X and Y as well as A and V.
     # @param smooth True if vertex values are to be smoothed.
     # @param precision The type of the result values (default float).
-    def get_vertex_values(self, xy=True,
-                                smooth=None,
-                                precision=None):
+    def get_vertex_values(self, xy=True, smooth=None, precision=None):
         """Return vertex values like an OBJ format i.e. one value per node.
 
         The vertex values are returned as one sequence in the 1D float array A.
