@@ -987,7 +987,9 @@ class Exposure_csv:
             writer.writerow(line)
 
 
-def csv2building_polygons(file_name, floor_height=3):
+def csv2building_polygons(file_name,
+                          floor_height=3,
+                          clipping_polygons=None):
     """
     Convert CSV files of the form:
 
@@ -1008,11 +1010,15 @@ def csv2building_polygons(file_name, floor_height=3):
     returned as a separate dictionary also keyed by id.
     
     Optional parameter floor_height is the height of each building story.
+    Optional parameter clipping_olygons is a list of polygons selecting
+    buildings. Any building not in these polygons will be omitted.
     
     See csv2polygons for more details
     """
 
-    polygons, values = csv2polygons(file_name, value_name='floors')    
+    polygons, values = csv2polygons(file_name,
+                                    value_name='floors',
+                                    clipping_polygons=None)    
 
     
     heights = {}
@@ -1026,7 +1032,9 @@ def csv2building_polygons(file_name, floor_height=3):
 ##
 # @brief Convert CSV file into a dictionary of polygons and associated values.
 # @param filename The path to the file to read, value_name name for the 4th column
-def csv2polygons(file_name, value_name='value'):
+def csv2polygons(file_name,
+                 value_name='value',
+                 clipping_polygons=None):
     """
     Convert CSV files of the form:
 
@@ -1056,6 +1064,11 @@ def csv2polygons(file_name, value_name='value'):
     
     Eastings and Northings will be returned as floating point values while
     id and values will be returned as strings.
+
+    Optional argument: clipping_polygons will select only those polygons that are
+    fully within one or more of the clipping_polygons. In other words any polygon from
+    the csv file which has at least one point not inside one of the clipping polygons
+    will be excluded 
     
     See underlying function csv2dict for more details.
     """
@@ -1085,6 +1098,7 @@ def csv2polygons(file_name, value_name='value'):
         values = None
 
     # Loop through entries and compose polygons
+    excluded_polygons={}
     past_ids = {}
     last_id = None
     for i, id in enumerate(X['id']):
@@ -1106,6 +1120,17 @@ def csv2polygons(file_name, value_name='value'):
             
         # Append this point to current polygon
         point = [float(X['easting'][i]), float(X['northing'][i])]
+
+        if clipping_polygons is not None:
+            exclude=True
+            for clipping_polygon in clipping_polygons:
+                if inside_polygon(point, clipping_polygon):
+                    exclude=False
+                    break
+                
+            if exclude is True:
+                excluded_polygons[id]=True
+
         polygons[id].append(point)    
             
         # Check that value is the same across each polygon
@@ -1114,6 +1139,10 @@ def csv2polygons(file_name, value_name='value'):
         assert values[id] == X[value_name][i], msg
 
         last_id = id
+
+    # Weed out polygons that were not wholly inside clipping polygons
+    for id in excluded_polygons:
+        del polygons[id]
         
     return polygons, values
 

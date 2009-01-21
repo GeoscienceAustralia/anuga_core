@@ -11221,6 +11221,86 @@ friction  \n \
             assert num.allclose(polygons[id], known_polys[id])
 
 
+    def test_csv2polygons_with_clipping(self):
+        """test_csv2polygons with optional clipping
+        """
+        #FIXME(Ole): Not Done!!
+        
+        path = get_pathname_from_package('anuga.shallow_water')                
+        testfile = os.path.join(path, 'polygon_values_example.csv')                
+
+        polygons, values = csv2polygons(testfile, 
+                                        value_name='floors',
+                                        clipping_polygons=None)
+
+        assert len(polygons) == 7, 'Must have seven polygons'
+        assert len(values) == 7, 'Must have seven values'
+            
+        # Known floor values
+        floors = {'1': 2, '2': 0, '3': 1, '4': 2, '5': 0, '8': 1, '9': 1}
+        
+        # Known polygon values
+        known_polys = {'1': [[422681.61,871117.55],
+                             [422691.02,871117.60],
+                             [422690.87,871084.23],
+                             [422649.36,871081.85],
+                             [422649.36,871080.39],
+                             [422631.86,871079.50],
+                             [422631.72,871086.75],
+                             [422636.75,871087.20],
+                             [422636.75,871091.50],
+                             [422649.66,871092.09],
+                             [422649.83,871084.91],
+                             [422652.94,871084.90],
+                             [422652.84,871092.39],
+                             [422681.83,871093.73],
+                             [422681.61,871117.55]],
+                       '2': [[422664.22,870785.46],
+                             [422672.48,870780.14],
+                             [422668.17,870772.62],
+                             [422660.35,870777.17],
+                             [422664.22,870785.46]],
+                       '3': [[422661.30,871215.06],
+                             [422667.50,871215.70],
+                             [422668.30,871204.86],
+                             [422662.21,871204.33],
+                             [422661.30,871215.06]],
+                       '4': [[422473.44,871191.22],
+                             [422478.33,871192.26],
+                             [422479.52,871186.03],
+                             [422474.78,871185.14],
+                             [422473.44,871191.22]],
+                       '5': [[422369.69,871049.29],
+                             [422378.63,871053.58],
+                             [422383.91,871044.51],
+                             [422374.97,871040.32],
+                             [422369.69,871049.29]],
+                       '8': [[422730.56,871203.13],
+                             [422734.10,871204.90],
+                             [422735.26,871202.18],
+                             [422731.87,871200.58],
+                             [422730.56,871203.13]],
+                       '9': [[422659.85,871213.80],
+                             [422660.91,871210.97],
+                             [422655.42,871208.85],
+                             [422654.36,871211.68],
+                             [422659.85,871213.80]]
+                       }        
+        
+
+        
+                
+        for id in ['1', '2', '3', '4', '5' ,'8' ,'9']:
+            assert id in polygons.keys()
+            assert id in values.keys()            
+
+            assert int(values[id]) == int(floors[id])
+            assert len(polygons[id]) == len(known_polys[id])
+            assert num.allclose(polygons[id], known_polys[id])
+
+
+
+
     
     def test_csv2building_polygons(self):
         """test_csv2building_polygons
