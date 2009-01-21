@@ -1381,7 +1381,9 @@ def myhash(T, ids=None):
       I.sort()    
       val = myhash(I, ids)
   elif type(T) == num.ArrayType:
-      # Use mean value for efficiency  
+      T = num.array(T) # Ensure contiguous
+
+      # Use mean value for efficiency
       val = hash(num.average(T.flat))
   elif type(T) == InstanceType:
       val = myhash(T.__dict__, ids)
