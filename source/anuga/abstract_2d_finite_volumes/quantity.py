@@ -21,7 +21,7 @@ from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.fit_interpolate.fit import fit_to_mesh
 from anuga.config import points_file_block_line_size as default_block_line_size
 from anuga.config import epsilon
-
+from anuga.caching import cache
 
 
 
@@ -423,7 +423,8 @@ class Quantity:
             self.extrapolate_first_order()
 
             if smooth:
-                self.smooth_vertex_values()
+                self.smooth_vertex_values(use_cache=use_cache,
+                                          verbose=verbose)
 
                 
             return
@@ -463,13 +464,18 @@ class Quantity:
                                               location, indices, verbose)
             elif type(numeric) in [num.ArrayType, ListType]:
                 self.set_values_from_array(numeric,
-                                           location, indices, verbose)
+                                           location, indices,
+                                           use_cache=use_cache,
+                                           verbose=verbose)
             elif callable(numeric):
                 self.set_values_from_function(numeric,
-                                              location, indices, verbose)
+                                              location, indices,
+                                              use_cache=use_cache,
+                                              verbose=verbose)
             elif isinstance(numeric, Quantity):
                 self.set_values_from_quantity(numeric,
-                                              location, indices, verbose)
+                                              location, indices,
+                                              verbose=verbose)
             elif isinstance(numeric, Geospatial_data):
                 self.set_values_from_geospatial_data(numeric,
                                                      alpha,
@@ -487,7 +493,10 @@ class Quantity:
             msg = 'Argument function must be callable'
             assert callable(function), msg
             self.set_values_from_function(function,
-                                          location, indices, verbose)
+                                          location,
+                                          indices,
+                                          use_cache=use_cache,
+                                          verbose=verbose)
         elif geospatial_data is not None:
                 self.set_values_from_geospatial_data(geospatial_data,
                                                      alpha,
@@ -586,6 +595,7 @@ class Quantity:
     def set_values_from_array(self, values,
                               location='vertices',
                               indices=None,
+                              use_cache=False,
                               verbose=False):
         """Set values for quantity
 
@@ -644,12 +654,20 @@ class Quantity:
             assert len(values.shape) == 1 or num.allclose(values.shape[1:], 1),\
                    'Values array must be 1d'
 
-            self.set_vertex_values(values.flat, indices=indices)
+            self.set_vertex_values(values.flat,
+                                   indices=indices,
+                                   use_cache=use_cache,
+                                   verbose=verbose)
             
         else:
             # Location vertices
             if len(values.shape) == 1:
-                self.set_vertex_values(values, indices=indices)
+                # This is the common case arising from fitted
+                # values (e.g. from pts file).
+                self.set_vertex_values(values,
+                                       indices=indices,
+                                       use_cache=use_cache,
+                                       verbose=verbose)
 
             elif len(values.shape) == 2:
                 # Vertex values are given as a triplet for each triangle
@@ -690,6 +708,7 @@ class Quantity:
     def set_values_from_function(self, f,
                                  location='vertices',
                                  indices=None,
+                                 use_cache=False,
                                  verbose=False):
         """Set values for quantity using specified function
 
@@ -717,18 +736,36 @@ class Quantity:
                 indices = range(len(self))
                 
             V = num.take(self.domain.get_centroid_coordinates(), indices)
-            self.set_values(f(V[:,0], V[:,1]),
+
+            x = V[:,0]; y = V[:,1]
+            if use_cache is True:
+                res = cache(f, (x, y),
+                            verbose=verbose)
+            else:
+                res = f(x, y)
+
+            self.set_values(res,
                             location=location,
                             indices=indices)
             
         elif location == 'vertices':
-
+            # This is the default branch taken by set_quantity
+            
             M = self.domain.number_of_triangles
             V = self.domain.get_vertex_coordinates()
 
-            x = V[:,0]; y = V[:,1];                     
-            values = f(x, y)
+            x = V[:,0]; y = V[:,1]
+            if use_cache is True:
+                #print 'Caching function'
+                values = cache(f, (x, y),
+                               verbose=verbose)                
+            else:
+                if verbose is True:
+                    print 'Evaluating function in set_values'
+                values = f(x, y)
 
+            #print 'value', min(x), max(x), min(y), max(y), max(values), len(values)
+                
 
             # FIXME (Ole): This code should replace all the
             # rest of this function and it would work, except
@@ -817,7 +854,9 @@ class Quantity:
 
         # Call underlying method using array values
         self.set_values_from_array(vertex_attributes,
-                                   location, indices, verbose)
+                                   location, indices,
+                                   use_cache=use_cache,
+                                   verbose=verbose)
 
 
 
@@ -885,8 +924,12 @@ class Quantity:
                                             max_read_lines=max_read_lines)
                                             
         # Call underlying method using array values
+        if verbose:
+            print 'Applying fitted data to domain'
         self.set_values_from_array(vertex_attributes,
-                                   location, indices, verbose)
+                                   location, indices,
+                                   use_cache=use_cache,
+                                   verbose=verbose)
 
     
     
@@ -1185,7 +1228,10 @@ class Quantity:
 
 
 
-    def set_vertex_values(self, A, indices = None):
+    def set_vertex_values(self, A,
+                          indices=None,
+                          use_cache=False,
+                          verbose=False):
         """Set vertex values for all unique vertices based on input array A
         which has one entry per unique vertex, i.e.
         one value for each row in array self.domain.nodes.
@@ -1209,9 +1255,25 @@ class Quantity:
             assert A.shape[0] == len(indices)
             vertex_list = indices
 
-        # Go through list of unique vertices
-        for i_index, unique_vert_id in enumerate(vertex_list):
 
+        #FIXME(Ole): This function ought to be faster.
+        # We need to get the triangles_and_vertices list
+        # from domain in one hit, then cache the computation of the
+        # Nx3 array of vertex values that can then be assigned using
+        # set_values_from_array.
+        #
+        # Alternatively, some C code would be handy
+        #
+        self._set_vertex_values(vertex_list, A)
+            
+
+    def _set_vertex_values(self, vertex_list, A):
+        """Go through list of unique vertices
+        This is the common case e.g. when values
+        are obtained from a pts file through fitting
+        """
+        
+        for i_index, unique_vert_id in enumerate(vertex_list):
 
             triangles = self.domain.get_triangles_and_vertices_per_node(node=unique_vert_id)
                     
@@ -1227,12 +1289,17 @@ class Quantity:
         self.interpolate()
 
 
-    def smooth_vertex_values(self):
+    def smooth_vertex_values(self,
+                             use_cache=False,
+                             verbose=False):
         """ Smooths vertex values.
         """
 
         A,V = self.get_vertex_values(xy=False, smooth=True)
-        self.set_vertex_values(A)
+        self.set_vertex_values(A,
+                               use_cache=use_cache,
+                               verbose=verbose)                               
+                               
 
 
     # Methods for outputting model results
