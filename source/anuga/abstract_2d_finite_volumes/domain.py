@@ -7,9 +7,11 @@
    Geoscience Australia
 """
 
+import types
+from time import time as walltime
+
 from anuga.config import epsilon
 from anuga.config import beta_euler, beta_rk2
-
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
      import Boundary
@@ -21,24 +23,18 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
      import Time_boundary
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
      import Transmissive_boundary
-
 from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_to_domain
 from anuga.abstract_2d_finite_volumes.region\
      import Set_region as region_set_region
-
 from anuga.utilities.polygon import inside_polygon
 from anuga.abstract_2d_finite_volumes.util import get_textual_float
-
 from quantity import Quantity
-
-import types
-from time import time as walltime
 
 import Numeric as num
 
 
 ##
-# @brief Basic Domain class
+# @brief Generic Domain class
 class Domain:
 
     ##
@@ -48,18 +44,18 @@ class Domain:
     # @param boundary (see mesh.py for more information)
     # @param conserved_quantities List of names of quantities to be conserved.
     # @param other_quantities List of names of other quantities.
-    # @param tagged_elements
-    # @param geo_reference
-    # @param use_inscribed_circle
-    # @param mesh_filename
-    # @param use_cache
-    # @param verbose
-    # @param full_send_dict
-    # @param ghost_recv_dict
-    # @param processor
-    # @param numproc
-    # @param number_of_full_nodes
-    # @param number_of_full_triangles
+    # @param tagged_elements ??
+    # @param geo_reference ??
+    # @param use_inscribed_circle ??
+    # @param mesh_filename ??
+    # @param use_cache ??
+    # @param verbose True if this method is to be verbose.
+    # @param full_send_dict ??
+    # @param ghost_recv_dict ??
+    # @param processor ??
+    # @param numproc ??
+    # @param number_of_full_nodes ??
+    # @param number_of_full_triangles ??
     def __init__(self, source=None,
                        triangles=None,
                        boundary=None,
@@ -118,29 +114,29 @@ class Domain:
                          number_of_full_nodes=number_of_full_nodes,
                          number_of_full_triangles=number_of_full_triangles,
                          verbose=verbose)
-                         
+
         # Expose Mesh attributes (FIXME: Maybe turn into methods)
         self.centroid_coordinates = self.mesh.centroid_coordinates
-        self.vertex_coordinates = self.mesh.vertex_coordinates        
+        self.vertex_coordinates = self.mesh.vertex_coordinates
         self.boundary = self.mesh.boundary
         self.neighbours = self.mesh.neighbours
-        self.surrogate_neighbours = self.mesh.surrogate_neighbours        
+        self.surrogate_neighbours = self.mesh.surrogate_neighbours
         self.neighbour_edges = self.mesh.neighbour_edges
         self.normals = self.mesh.normals
-        self.edgelengths = self.mesh.edgelengths        
-        self.radii = self.mesh.radii                
-        self.areas = self.mesh.areas                        
-                
-        self.number_of_boundaries = self.mesh.number_of_boundaries        
+        self.edgelengths = self.mesh.edgelengths
+        self.radii = self.mesh.radii
+        self.areas = self.mesh.areas
+
+        self.number_of_boundaries = self.mesh.number_of_boundaries
         self.number_of_full_nodes = self.mesh.number_of_full_nodes
-        self.number_of_full_triangles = self.mesh.number_of_full_triangles        
+        self.number_of_full_triangles = self.mesh.number_of_full_triangles
         self.number_of_triangles_per_node = self.mesh.number_of_triangles_per_node
 
         self.vertex_value_indices = self.mesh.vertex_value_indices
-        self.number_of_triangles = self.mesh.number_of_triangles        
+        self.number_of_triangles = self.mesh.number_of_triangles
 
         self.geo_reference = self.mesh.geo_reference
-        
+
         if verbose: print 'Initialising Domain'
 
         # List of quantity names entering the conservation equations
@@ -275,84 +271,83 @@ class Domain:
             self.set_quantity_vertices_dict(vertex_quantity_dict)
 
         if verbose: print 'Domain: Done'
-        
-     
 
+    ######
     # Expose underlying Mesh functionality
+    ######
+
     def __len__(self):
         return len(self.mesh)
 
     def get_centroid_coordinates(self, *args, **kwargs):
         return self.mesh.get_centroid_coordinates(*args, **kwargs)
-        
+
     def get_radii(self, *args, **kwargs):
-        return self.mesh.get_radii(*args, **kwargs)        
-        
+        return self.mesh.get_radii(*args, **kwargs)
+
     def get_areas(self, *args, **kwargs):
-        return self.mesh.get_areas(*args, **kwargs)                
+        return self.mesh.get_areas(*args, **kwargs)
 
     def get_area(self, *args, **kwargs):
         return self.mesh.get_area(*args, **kwargs)
 
     def get_vertex_coordinates(self, *args, **kwargs):
-        return self.mesh.get_vertex_coordinates(*args, **kwargs)                
+        return self.mesh.get_vertex_coordinates(*args, **kwargs)
 
     def get_triangles(self, *args, **kwargs):
-        return self.mesh.get_triangles(*args, **kwargs)                
-        
+        return self.mesh.get_triangles(*args, **kwargs)
+
     def get_nodes(self, *args, **kwargs):
         return self.mesh.get_nodes(*args, **kwargs)
-        
+
     def get_number_of_nodes(self, *args, **kwargs):
         return self.mesh.get_number_of_nodes(*args, **kwargs)
-        
+
     def get_normal(self, *args, **kwargs):
-        return self.mesh.get_normal(*args, **kwargs)        
-        
+        return self.mesh.get_normal(*args, **kwargs)
+
     def get_intersecting_segments(self, *args, **kwargs):
         return self.mesh.get_intersecting_segments(*args, **kwargs)
-        
+
     def get_disconnected_triangles(self, *args, **kwargs):
         return self.mesh.get_disconnected_triangles(*args, **kwargs)
-        
+
     def get_boundary_tags(self, *args, **kwargs):
         return self.mesh.get_boundary_tags(*args, **kwargs)
 
     def get_boundary_polygon(self, *args, **kwargs):
         return self.mesh.get_boundary_polygon(*args, **kwargs)
-                
+
     def get_number_of_triangles_per_node(self, *args, **kwargs):
         return self.mesh.get_number_of_triangles_per_node(*args, **kwargs)
-        
+
     def get_triangles_and_vertices_per_node(self, *args, **kwargs):
         return self.mesh.get_triangles_and_vertices_per_node(*args, **kwargs)
-        
+
     def get_interpolation_object(self, *args, **kwargs):
-        return self.mesh.get_interpolation_object(*args, **kwargs)        
-        
+        return self.mesh.get_interpolation_object(*args, **kwargs)
+
     def get_tagged_elements(self, *args, **kwargs):
-        return self.mesh.get_tagged_elements(*args, **kwargs)                
-        
+        return self.mesh.get_tagged_elements(*args, **kwargs)
+
     def get_lone_vertices(self, *args, **kwargs):
-        return self.mesh.get_lone_vertices(*args, **kwargs)        
-        
+        return self.mesh.get_lone_vertices(*args, **kwargs)
+
     def get_unique_vertices(self, *args, **kwargs):
-        return self.mesh.get_unique_vertices(*args, **kwargs)                
+        return self.mesh.get_unique_vertices(*args, **kwargs)
 
     def get_georeference(self, *args, **kwargs):
         return self.mesh.get_georeference(*args, **kwargs)
-        
+
     def set_georeference(self, *args, **kwargs):
-        self.mesh.set_georeference(*args, **kwargs)                    
-        
+        self.mesh.set_georeference(*args, **kwargs)
+
     def build_tagged_elements_dictionary(self, *args, **kwargs):
         self.mesh.build_tagged_elements_dictionary(*args, **kwargs)
-        
+
     def statistics(self, *args, **kwargs):
-        return self.mesh.statistics(*args, **kwargs)        
-                
-        
-        
+        return self.mesh.statistics(*args, **kwargs)
+
     ##
     # @brief Get conserved quantities for a volume.
     # @param vol_id ID of the volume we want the conserved quantities for.
@@ -364,7 +359,7 @@ class Domain:
     def get_conserved_quantities(self, vol_id,
                                        vertex=None,
                                        edge=None):
-        """Get conserved quantities at volume vol_id
+        """Get conserved quantities at volume vol_id.
 
         If vertex is specified use it as index for vertex values
         If edge is specified use it as index for edge values
@@ -396,7 +391,8 @@ class Domain:
     # @brief Set the relative model time.
     # @param time The new model time (seconds).
     def set_time(self, time=0.0):
-        """Set the model time (seconds)"""
+        """Set the model time (seconds)."""
+
         # FIXME: this is setting the relative time
         # Note that get_time and set_time are now not symmetric
 
@@ -406,7 +402,7 @@ class Domain:
     # @brief Get the model time.
     # @return The absolute model time (seconds).
     def get_time(self):
-        """Get the absolute model time (seconds)"""
+        """Get the absolute model time (seconds)."""
 
         return self.time + self.starttime
 
@@ -414,11 +410,10 @@ class Domain:
     # @brief Set the default beta for limiting.
     # @param beta The new beta value.
     def set_beta(self, beta):
-        """Set default beta for limiting"""
+        """Set default beta for limiting."""
 
         self.beta = beta
         for name in self.quantities:
-            #print 'setting beta for quantity ',name
             Q = self.quantities[name]
             Q.set_beta(beta)
 
@@ -426,7 +421,7 @@ class Domain:
     # @brief Get the beta value used for limiting.
     # @return The beta value used for limiting.
     def get_beta(self):
-        """Get default beta for limiting"""
+        """Get default beta for limiting."""
 
         return self.beta
 
@@ -435,23 +430,13 @@ class Domain:
     # @param n The new spatial order value.
     # @note If 'n' is not 1 or 2, raise exception.
     def set_default_order(self, n):
-        """Set default (spatial) order to either 1 or 2"""
+        """Set default (spatial) order to either 1 or 2."""
 
         msg = 'Default order must be either 1 or 2. I got %s' % n
         assert n in [1,2], msg
 
         self.default_order = n
         self._order_ = self.default_order
-
-        if self.default_order == 1:
-            pass
-            #self.set_timestepping_method('euler')
-            #self.set_all_limiters(beta_euler)
-
-        if self.default_order == 2:
-            pass
-            #self.set_timestepping_method('rk2')
-            #self.set_all_limiters(beta_rk2)
 
     ##
     # @brief Set values of named quantities.
@@ -680,8 +665,8 @@ class Domain:
 
     ##
     # @brief Set quantities based on a regional tag.
-    # @param args 
-    # @param kwargs 
+    # @param args
+    # @param kwargs
     def set_region(self, *args, **kwargs):
         """Set quantities based on a regional tag.
 
@@ -1227,9 +1212,9 @@ class Domain:
     def set_starttime(self, time):
         self.starttime = float(time)
 
-#--------------------------
+################################################################################
 # Main components of evolve
-#--------------------------
+################################################################################
 
     ##
     # @brief Evolve the model through time.
@@ -1274,8 +1259,8 @@ class Domain:
         msg = ('Boundary tags must be bound to boundary objects before '
                'evolving system, '
                'e.g. using the method set_boundary.\n'
-               'This system has the boundary tags %s ') \
-                   % self.get_boundary_tags()
+               'This system has the boundary tags %s '
+                   % self.get_boundary_tags())
         assert hasattr(self, 'boundary_objects'), msg
 
         if yieldstep is None:
@@ -1286,7 +1271,6 @@ class Domain:
         self._order_ = self.default_order
 
         if finaltime is not None and duration is not None:
-            # print 'F', finaltime, duration
             msg = 'Only one of finaltime and duration may be specified'
             raise Exception, msg
         else:
@@ -1295,8 +1279,8 @@ class Domain:
             if duration is not None:
                 self.finaltime = self.starttime + float(duration)
 
-        N = len(self) # Number of triangles
-        self.yieldtime = 0.0 # Track time between 'yields'
+        N = len(self)            # Number of triangles
+        self.yieldtime = 0.0     # Track time between 'yields'
 
         # Initialise interval of timestep sizes (for reporting only)
         self.min_timestep = max_timestep
@@ -1321,7 +1305,7 @@ class Domain:
             self.goto_latest_checkpoint()
 
         if skip_initial_step is False:
-            yield(self.time)  # Yield initial values
+            yield(self.time)      # Yield initial values
 
         while True:
             # Evolve One Step, using appropriate timestepping method
@@ -1346,8 +1330,8 @@ class Domain:
             if finaltime is not None and self.time >= finaltime-epsilon:
                 if self.time > finaltime:
                     # FIXME (Ole, 30 April 2006): Do we need this check?
-                    # Probably not (Ole, 18 September 2008). Now changed to
-                    # Exception
+                    # Probably not (Ole, 18 September 2008).
+                    # Now changed to Exception.
                     msg = ('WARNING (domain.py): time overshot finaltime. '
                            'Contact Ole.Nielsen@ga.gov.au')
                     raise Exception, msg
@@ -1416,9 +1400,9 @@ class Domain:
         # Save initial initial conserved quantities values
         self.backup_conserved_quantities()
 
-        #--------------------------------------
+        ######
         # First euler step
-        #--------------------------------------
+        ######
 
         # Compute fluxes across each element edge
         self.compute_fluxes()
@@ -1441,9 +1425,9 @@ class Domain:
         # Update boundary values
         self.update_boundary()
 
-        #------------------------------------
+        ######
         # Second Euler step
-        #------------------------------------
+        ######
 
         # Compute fluxes across each element edge
         self.compute_fluxes()
@@ -1451,10 +1435,10 @@ class Domain:
         # Update conserved quantities
         self.update_conserved_quantities()
 
-        #------------------------------------
+        ######
         # Combine initial and final values
         # of conserved quantities and cleanup
-        #------------------------------------
+        ######
 
         # Combine steps
         self.saxpy_conserved_quantities(0.5, 0.5)
@@ -1483,9 +1467,9 @@ class Domain:
 
         initial_time = self.time
 
-        #--------------------------------------
+        ######
         # First euler step
-        #--------------------------------------
+        ######
 
         # Compute fluxes across each element edge
         self.compute_fluxes()
@@ -1508,9 +1492,9 @@ class Domain:
         # Update boundary values
         self.update_boundary()
 
-        #------------------------------------
+        ######
         # Second Euler step
-        #------------------------------------
+        ######
 
         # Compute fluxes across each element edge
         self.compute_fluxes()
@@ -1518,10 +1502,10 @@ class Domain:
         # Update conserved quantities
         self.update_conserved_quantities()
 
-        #------------------------------------
-        #Combine steps to obtain intermediate
-        #solution at time t^n + 0.5 h
-        #------------------------------------
+        ######
+        # Combine steps to obtain intermediate
+        # solution at time t^n + 0.5 h
+        ######
 
         # Combine steps
         self.saxpy_conserved_quantities(0.25, 0.75)
@@ -1538,9 +1522,9 @@ class Domain:
         # Update boundary values
         self.update_boundary()
 
-        #------------------------------------
+        ######
         # Third Euler step
-        #------------------------------------
+        ######
 
         # Compute fluxes across each element edge
         self.compute_fluxes()
@@ -1548,10 +1532,10 @@ class Domain:
         # Update conserved quantities
         self.update_conserved_quantities()
 
-        #------------------------------------
+        ######
         # Combine final and initial values
         # and cleanup
-        #------------------------------------
+        ######
 
         # Combine steps
         self.saxpy_conserved_quantities(2.0/3.0, 1.0/3.0)
@@ -1630,9 +1614,9 @@ class Domain:
         raise Exception, msg
 
     ##
-    # @brief 
-    # @param yieldstep 
-    # @param finaltime 
+    # @brief
+    # @param yieldstep
+    # @param finaltime
     def update_timestep(self, yieldstep, finaltime):
         from anuga.config import min_timestep, max_timestep
 
@@ -1778,19 +1762,17 @@ class Domain:
                 Q.extrapolate_first_order()
             elif self._order_ == 2:
                 Q.extrapolate_second_order()
-                #Q.limit()
             else:
                 raise Exception, 'Unknown order'
-            #Q.interpolate_from_vertices_to_edges()
 
     ##
     # @brief Calculate the norm of the centroid values of a specific quantity,
     #        using normfunc.
-    # @param quantity 
-    # @param normfunc 
+    # @param quantity
+    # @param normfunc
     def centroid_norm(self, quantity, normfunc):
-        """Calculate the norm of the centroid values
-        of a specific quantity, using normfunc.
+        """Calculate the norm of the centroid values of a specific quantity,
+        using normfunc.
 
         normfunc should take a list to a float.
 
@@ -1800,12 +1782,13 @@ class Domain:
         return normfunc(self.quantities[quantity].centroid_values)
 
 
-#------------------
+######
 # Initialise module
-#------------------
+######
 
 # Optimisation with psyco
 from anuga.config import use_psyco
+
 if use_psyco:
     try:
         import psyco
