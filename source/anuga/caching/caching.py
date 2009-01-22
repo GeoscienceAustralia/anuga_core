@@ -85,7 +85,7 @@ options = {
   'verbose': 1,          # Write messages to standard output
   'bin': 1,              # Use binary format (more efficient)
   'compression': 1,      # Use zlib compression
-  'bytecode': 0,         # Recompute if bytecode has changed
+  'bytecode': 1,         # Recompute if bytecode has changed
   'expire': 0            # Automatically remove files that have been accessed
                          # least recently
 }
@@ -161,7 +161,7 @@ def cache(func, args=(), kwargs = {}, dependencies=None , cachedir=None,
 
   If the function definition changes after a result has been cached it will be
   detected by examining the functions bytecode (co_code, co_consts,
-  func_defualts, co_argcount) and it will be recomputed.
+  func_defaults, co_argcount) and it will be recomputed.
 
   LIMITATIONS:
     1 Caching uses the apply function and will work with anything that can be
@@ -1381,11 +1381,12 @@ def myhash(T, ids=None):
       I.sort()    
       val = myhash(I, ids)
   elif type(T) == num.ArrayType:
-      T = num.array(T) # Ensure contiguous
+      T = num.array(T) # Ensure array is contiguous
 
       # Use mean value for efficiency
       val = hash(num.average(T.flat))
   elif type(T) == InstanceType:
+      # Use the attribute values 
       val = myhash(T.__dict__, ids)
   else:
       try:
@@ -1546,23 +1547,44 @@ def get_bytecode(func):
   import types
 
   if type(func) == types.FunctionType:
-    bytecode = func.func_code.co_code
-    consts = func.func_code.co_consts
-    argcount = func.func_code.co_argcount    
-    defaults = func.func_defaults     
+    return get_func_code_details(func)
   elif type(func) == types.MethodType:
-    bytecode = func.im_func.func_code.co_code
-    consts =  func.im_func.func_code.co_consts
-    argcount =  func.im_func.func_code.co_argcount    
-    defaults = func.im_func.func_defaults         
+    return get_func_code_details(func.im_func)
+  elif type(func) == types.InstanceType:    
+    if callable(func):
+      # Get bytecode from __call__ method
+      bytecode = get_func_code_details(func.__call__.im_func)
+      
+      # Add hash value of object to detect attribute changes
+      return bytecode + (myhash(func),) 
+    else:
+      msg = 'Instance %s was passed into caching in the role of a function ' % str(func)
+      msg = ' but it was not callable.'
+      raise Exception, msg
+  elif type(func) in [types.BuiltinFunctionType, types.BuiltinMethodType]:      
+    # Built-in functions are assumed not to change  
+    return None, 0, 0, 0
+  elif type(func) == types.ClassType:
+      # Get bytecode from __init__ method
+      bytecode = get_func_code_details(func.__init__.im_func)    
+      return bytecode      
   else:
-    #raise Exception  #Test only
-    bytecode = None   #Built-in functions are assumed not to change
-    consts = 0
-    argcount = 0
-    defaults = 0
+    msg = 'Unknown function type: %s' % type(func)
+    raise Exception, msg
 
-  return (bytecode, consts, argcount, defaults)
+
+  
+  
+def get_func_code_details(func):
+  """Extract co_code, co_consts, co_argcount, func_defaults
+  """
+  
+  bytecode = func.func_code.co_code
+  consts = func.func_code.co_consts
+  argcount = func.func_code.co_argcount    
+  defaults = func.func_defaults       
+  
+  return bytecode, consts, argcount, defaults  
 
 # -----------------------------------------------------------------------------
 

@@ -365,7 +365,7 @@ class Test_Caching(unittest.TestCase):
             assert str(T2) == str(T3), msg
                                     
             
-    def Xtest_caching_of_callable_objects(self):
+    def test_caching_of_callable_objects(self):
         """test_caching_of_callable_objects(self)
         
         Test that caching will discern between calls of
@@ -385,9 +385,23 @@ class Test_Caching(unittest.TestCase):
             return self.a*x + self.b
 
             
-            
         f1 = call(2, 3)
         f2 = call(5, 7)
+        
+        
+        # Check that hash value of callable objects don't change
+        assert myhash(f1) == -758136387
+        assert myhash(f2) == -11221564     
+        
+        bc1 = get_bytecode(f1)
+        bc2 = get_bytecode(f2)
+        
+        #print 'bc1', bc1
+        #print 'bc2', bc2
+        
+        msg = 'Byte code should be different'
+        assert bc1 != bc2, msg
+
         
         x = num.arange(10).astype(num.Float)
         
@@ -411,11 +425,6 @@ class Test_Caching(unittest.TestCase):
         res1 = cache(f1, x, test=True, verbose=False)                
         assert num.allclose(res1, ref1)                
         
-        # Test that f2(x) is still clear
-        flag = cache(f2, x, test=True, verbose=False)        
-        msg = 'Function f2(x) should not be cached here'
-        assert flag is None, msg                
-       
         # Run f2(x) and test result
         res2 = cache(f2, x, verbose=False)
         msg = 'Wrong result for f2(x)'
@@ -802,7 +811,7 @@ class Test_Caching(unittest.TestCase):
       """
 
       verbose = False
-
+     
       for compression_store in [False, True]:
         for compression_retrieve in [False, True]:        
         
@@ -810,14 +819,20 @@ class Test_Caching(unittest.TestCase):
           a = cache(Dummy, 'clear')
         
           if verbose: print 'cache for first time'
-          a = cache(Dummy, args=(9,10),
-                    compression=compression_store,
-                    verbose=verbose)
+          a_ref = cache(Dummy, args=(9,10),
+                        compression=compression_store,
+                        verbose=verbose)
           
           if verbose: print 'Check that cache is there'
           assert cache(Dummy, args=(9,10), test=1,
                        compression=compression_retrieve,
                        verbose=verbose)
+                       
+          if verbose: print 'Check cached result'
+          a = cache(Dummy, args=(9,10),
+                    compression=compression_store,
+                    verbose=verbose)                       
+          assert a.__dict__ == a_ref.__dict__
 
 
 
@@ -867,7 +882,7 @@ class Test_Caching(unittest.TestCase):
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Caching, 'test_hash_collision')
+    #suite = unittest.makeSuite(Test_Caching, 'test_caching_of_callable_objects')
     suite = unittest.makeSuite(Test_Caching, 'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
