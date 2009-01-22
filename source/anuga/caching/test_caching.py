@@ -365,16 +365,64 @@ class Test_Caching(unittest.TestCase):
             assert str(T2) == str(T3), msg
                                     
             
-    def Xtest_caching_of_complex_circular_structure(self):
-        """test_caching_of_complex_circular_structure
+    def Xtest_caching_of_callable_objects(self):
+        """test_caching_of_callable_objects(self)
         
-        Test that Caching can handle a realistic 
-        complex structure. This one is inspired by
-        ANUGA's Okushiri example, although reduced in size.
+        Test that caching will discern between calls of
+        two different instances of a callable object with the same input.
+        
+        This cause problems with add_quantity in ANUGA in changeset:6225
+        where a previous instance of Polygon_function was picked up.
         """
-        
-        pass
 
+        class call:
+        
+          def __init__(self, a, b):
+            self.a = a
+            self.b = b
+            
+          def __call__(self, x):
+            return self.a*x + self.b
+
+            
+            
+        f1 = call(2, 3)
+        f2 = call(5, 7)
+        
+        x = num.arange(10).astype(num.Float)
+        
+        ref1 = f1(x)
+        ref2 = f2(x)
+
+        # Clear cache for f1(x) and f2(x) and verify that all is clear
+        cache(f1, x, clear=True, verbose=False)
+        flag = cache(f1, x, test=True, verbose=False)        
+        assert flag is None
+        
+        cache(f2, x, clear=True, verbose=False)
+        flag = cache(f2, x, test=True, verbose=False)        
+        assert flag is None        
+        
+        # Run f1(x) and cache
+        res1 = cache(f1, x, verbose=False)
+        assert num.allclose(res1, ref1)        
+        
+        # Test that f1(x) has been cached correctly
+        res1 = cache(f1, x, test=True, verbose=False)                
+        assert num.allclose(res1, ref1)                
+        
+        # Test that f2(x) is still clear
+        flag = cache(f2, x, test=True, verbose=False)        
+        msg = 'Function f2(x) should not be cached here'
+        assert flag is None, msg                
+       
+        # Run f2(x) and test result
+        res2 = cache(f2, x, verbose=False)
+        msg = 'Wrong result for f2(x)'
+        assert num.allclose(res2, ref2), msg
+        
+
+        
         
     def test_uniqueness_of_hash_values(self):
         """test_uniqueness_of_hash_values(self):
