@@ -456,7 +456,7 @@ def fit_to_mesh(point_coordinates, # this can also be a points file name
                 point_attributes=None,
                 alpha=DEFAULT_ALPHA,
                 verbose=False,
-                acceptable_overshoot=1.01,
+                acceptable_overshoot=1.01, # FIXME: Move to config - this value is assumed in caching test
                 mesh_origin=None,
                 data_origin=None,
                 max_read_lines=None,
@@ -477,8 +477,7 @@ def fit_to_mesh(point_coordinates, # this can also be a points file name
               'mesh_origin': mesh_origin,
               'data_origin': data_origin,
               'max_read_lines': max_read_lines,
-              'attribute_name': attribute_name,
-              'use_cache': use_cache 
+              'attribute_name': attribute_name 
               }
 
     if use_cache is True:
@@ -493,6 +492,7 @@ def fit_to_mesh(point_coordinates, # this can also be a points file name
             
         #from caching import myhash
         #import copy
+        #print args
         #print kwargs
         #print 'hashing:'
         #print 'args', myhash( (args, kwargs) )
@@ -533,8 +533,7 @@ def _fit_to_mesh(point_coordinates, # this can also be a points file name
                  mesh_origin=None,
                  data_origin=None,
                  max_read_lines=None,
-                 attribute_name=None,
-                 use_cache = False):
+                 attribute_name=None):
     """
     Fit a smooth surface to a triangulation,
     given data points with attributes.

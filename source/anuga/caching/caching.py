@@ -46,9 +46,9 @@ import types
 
 import os
 if os.name in ['nt', 'dos', 'win32', 'what else?']:
-  unix = 0
+  unix = False
 else:
-  unix = 1
+  unix = True
 
 import Numeric as num
 
@@ -81,12 +81,12 @@ cachedir = homedir + os.sep + cache_dir + os.sep
 options = { 
   'cachedir': cachedir,  # Default cache directory 
   'maxfiles': 1000000,   # Maximum number of cached files
-  'savestat': 1,         # Log caching info to stats file
-  'verbose': 1,          # Write messages to standard output
-  'bin': 1,              # Use binary format (more efficient)
-  'compression': 1,      # Use zlib compression
-  'bytecode': 1,         # Recompute if bytecode has changed
-  'expire': 0            # Automatically remove files that have been accessed
+  'savestat': True,      # Log caching info to stats file
+  'verbose': True,       # Write messages to standard output
+  'bin': True,           # Use binary format (more efficient)
+  'compression': True,   # Use zlib compression
+  'bytecode': True,      # Recompute if bytecode has changed
+  'expire': False        # Automatically remove files that have been accessed
                          # least recently
 }
 
@@ -115,10 +115,18 @@ def set_option(key, value):
 # -----------------------------------------------------------------------------
 # Function cache - the main routine
 
-def cache(func, args=(), kwargs = {}, dependencies=None , cachedir=None,
-          verbose=None, compression=None, evaluate=0, test=0, clear=0,
-          return_filename=0):
-  """Supervised caching of function results.
+def cache(func, 
+          args=(), 
+          kwargs={}, 
+          dependencies=None, 
+          cachedir=None,
+          verbose=None, 
+          compression=None, 
+          evaluate=False, 
+          test=False, 
+          clear=False,
+          return_filename=False):
+  """Supervised caching of function results. Also known as memoization.
 
   USAGE:
     result = cache(func, args, kwargs, dependencies, cachedir, verbose,
@@ -133,10 +141,10 @@ def cache(func, args=(), kwargs = {}, dependencies=None , cachedir=None,
     verbose --         Flag verbose output to stdout
                        (Default: options['verbose'])
     compression --     Flag zlib compression (Default: options['compression'])
-    evaluate --        Flag forced evaluation of func (Default: 0)
-    test --            Flag test for cached results (Default: 0)
-    clear --           Flag delete cached results (Default: 0)    
-    return_filename -- Flag return of cache filename (Default: 0)    
+    evaluate --        Flag forced evaluation of func (Default: False)
+    test --            Flag test for cached results (Default: False)
+    clear --           Flag delete cached results (Default: False)    
+    return_filename -- Flag return of cache filename (Default: False)    
 
   DESCRIPTION:
     A Python function call of the form
@@ -189,7 +197,7 @@ def cache(func, args=(), kwargs = {}, dependencies=None , cachedir=None,
 
   Explicit dependencies:
     The call
-      cache(func,(arg1,...,argn),dependencies = <list of filenames>)
+      cache(func,(arg1,...,argn), dependencies = <list of filenames>)
     Checks the size, creation time and modification time of each listed file.
     If any file has changed the function is recomputed and the results stored
     again.
@@ -203,32 +211,33 @@ def cache(func, args=(), kwargs = {}, dependencies=None , cachedir=None,
 
   Silent operation:
     The call
-      cache(func,(arg1,...,argn),verbose=0)
+      cache(func,(arg1,...,argn), verbose=False)
     suppresses messages to standard output.
 
   Compression:
     The call
-      cache(func,(arg1,...,argn),compression=0)
-    disables compression. (Default: compression=1). If the requested compressed
+      cache(func,(arg1,...,argn), compression=False)
+    disables compression. (Default: compression=True). If the requested compressed
     or uncompressed file is not there, it'll try the other version.
 
   Forced evaluation:
     The call
-      cache(func,(arg1,...,argn),evaluate=1)
+      cache(func,(arg1,...,argn), evaluate=True)
     forces the function to evaluate even though cached data may exist.
 
   Testing for presence of cached result:
     The call
-      cache(func,(arg1,...,argn),test=1)
+      cache(func,(arg1,...,argn), test=True)
     retrieves cached result if it exists, otherwise None. The function will not
     be evaluated. If both evaluate and test are switched on, evaluate takes
     precedence.
     ??NOTE: In case of hash collisions, this may return the wrong result as
     ??it only checks if *a* cached result is present. 
+    # I think this was due to the bytecode option being False for some reason. (23/1/2009).
     
   Obtain cache filenames:
     The call    
-      cache(func,(arg1,...,argn),return_filename=1)
+      cache(func,(arg1,...,argn), return_filename=True)
     returns the hashed base filename under which this function and its
     arguments would be cached
 
@@ -243,7 +252,7 @@ def cache(func, args=(), kwargs = {}, dependencies=None , cachedir=None,
       cache(func,('clear',)) or cache(func,tuple(['clear'])).
 
     New form of clear:
-      cache(func,(arg1,...,argn),clear=1)
+      cache(func,(arg1,...,argn), clear=True)
     clears cached data for particular combination func and args 
       
   """
@@ -324,7 +333,7 @@ def cache(func, args=(), kwargs = {}, dependencies=None , cachedir=None,
   #-------------------------------------------------------------------        
   
   # Check if previous computation has been cached
-  if evaluate:
+  if evaluate is True:
     Retrieved = None  # Force evaluation of func regardless of caching status.
     reason = 5
   else:
@@ -340,7 +349,7 @@ def cache(func, args=(), kwargs = {}, dependencies=None , cachedir=None,
     if test:  # Do not attempt to evaluate function
       T = None
     else:  # Evaluate function and save to cache
-      if verbose:
+      if verbose is True:
         
         msg1(funcname, args, kwargs,reason)
 
@@ -358,13 +367,13 @@ def cache(func, args=(), kwargs = {}, dependencies=None , cachedir=None,
       #comptime = round(time.time()-t0)
       comptime = time.time()-t0
 
-      if verbose:
+      if verbose is True:
         msg2(funcname,args,kwargs,comptime,reason)
 
       # Save results and estimated loading time to cache
       loadtime = save_results_to_cache(T, CD, FN, func, deps, comptime, \
                                        funcname, dependencies, compression)
-      if verbose:
+      if verbose is True:
         msg3(loadtime, CD, FN, deps, compression)
       compressed = compression
 
@@ -412,14 +421,14 @@ def cachestat(sortidx=4, period=-1, showuser=None, cachedir=None):
 # Has mostly been moved to proper unit test.
 # What remains here includes example of the 
 # cache statistics form.
-def test(cachedir=None,verbose=0,compression=None):
+def test(cachedir=None, verbose=False, compression=None):
   """Test the functionality of caching.
 
   USAGE:
     test(verbose)
 
   ARGUMENTS:
-    verbose --     Flag whether caching will output its statistics (default=0)
+    verbose --     Flag whether caching will output its statistics (default=False)
     cachedir --    Directory for cache files (Default: options['cachedir'])
     compression -- Flag zlib compression (Default: options['compression'])
   """
@@ -1114,7 +1123,7 @@ def save_results_to_cache(T, CD, FN, func, deps, comptime, funcname,
 
 # -----------------------------------------------------------------------------
 
-def load_from_cache(CD,FN,compression):
+def load_from_cache(CD, FN, compression):
   """Load previously cached data from file FN
 
   USAGE:
@@ -1134,11 +1143,11 @@ def load_from_cache(CD,FN,compression):
 
 # -----------------------------------------------------------------------------
 
-def myopen(FN,mode,compression=1):
+def myopen(FN, mode, compression=True):
   """Open file FN using given mode
 
   USAGE:
-    myopen(FN,mode,compression=1)
+    myopen(FN, mode, compression=True)
 
   ARGUMENTS:
     FN --           File name to be opened
@@ -1258,11 +1267,11 @@ def myload(file, compressed):
 
 # -----------------------------------------------------------------------------
 
-def mysave(T,file,compression):
+def mysave(T, file, compression):
   """Save data T to file
 
   USAGE:
-    mysave(T,file,compression)
+    mysave(T, file, compression)
 
   """
 
@@ -1723,7 +1732,7 @@ def get_lsline(FN):
 
 # -----------------------------------------------------------------------------
 
-def checkdir(CD,verbose=None, warn=False):
+def checkdir(CD, verbose=None, warn=False):
   """Check or create caching directory
 
   USAGE:
@@ -1773,7 +1782,7 @@ checkdir(cachedir, warn=True)
 # Statistics
 #==============================================================================
 
-def addstatsline(CD,funcname,FN,Retrieved,reason,comptime,loadtime,
+def addstatsline(CD, funcname, FN, Retrieved, reason, comptime, loadtime,
                  compression):
   """Add stats entry
 
@@ -1851,7 +1860,7 @@ def addstatsline(CD,funcname,FN,Retrieved,reason,comptime,loadtime,
 
 # FIXME: should take cachedir as an optional arg
 #
-def __cachestat(sortidx=4,period=-1,showuser=None,cachedir=None):
+def __cachestat(sortidx=4, period=-1, showuser=None, cachedir=None):
   """  List caching statistics.
 
   USAGE:
@@ -1914,7 +1923,7 @@ def __cachestat(sortidx=4,period=-1,showuser=None,cachedir=None):
     input = open(SD+FN,'r')
     print 'Reading file ', SD+FN
 
-    while 1:
+    while True:
       A = input.readlines(blocksize)
       if len(A) == 0: break
       total_read = total_read + len(A)
@@ -2061,7 +2070,7 @@ def __cachestat(sortidx=4,period=-1,showuser=None,cachedir=None):
 # Auxiliary stats functions
 #==============================================================================
 
-def UpdateDict(Dict,key,info):
+def UpdateDict(Dict, key, info):
   """Update dictionary by adding new values to existing.
 
   USAGE:
@@ -2080,7 +2089,7 @@ def UpdateDict(Dict,key,info):
 
 # -----------------------------------------------------------------------------
 
-def SortDict(Dict,sortidx=0):
+def SortDict(Dict, sortidx=0):
   """Sort dictionary
 
   USAGE:
@@ -2134,11 +2143,11 @@ def printline(Widths,char):
 # Messages
 #==============================================================================
 
-def msg1(funcname,args,kwargs,reason):
+def msg1(funcname, args, kwargs, reason):
   """Message 1
 
   USAGE:
-    msg1(funcname,args,kwargs,reason):
+    msg1(funcname, args, kwargs, reason):
   """
 
   import string
@@ -2183,11 +2192,11 @@ def msg1(funcname,args,kwargs,reason):
 
 # -----------------------------------------------------------------------------
 
-def msg2(funcname,args,kwargs,comptime,reason):
+def msg2(funcname, args, kwargs, comptime, reason):
   """Message 2
 
   USAGE:
-    msg2(funcname,args,kwargs,comptime,reason)
+    msg2(funcname, args, kwargs, comptime, reason)
   """
 
   import string
@@ -2207,11 +2216,11 @@ def msg2(funcname,args,kwargs,comptime,reason):
 
 # -----------------------------------------------------------------------------
 
-def msg3(savetime, CD, FN, deps,compression):
+def msg3(savetime, CD, FN, deps, compression):
   """Message 3
 
   USAGE:
-    msg3(savetime, CD, FN, deps,compression)
+    msg3(savetime, CD, FN, deps, compression)
   """
 
   import string
@@ -2221,11 +2230,11 @@ def msg3(savetime, CD, FN, deps,compression):
 
 # -----------------------------------------------------------------------------
 
-def msg4(funcname,args,kwargs,deps,comptime,loadtime,CD,FN,compression):
+def msg4(funcname, args, kwargs, deps, comptime, loadtime, CD, FN, compression):
   """Message 4
 
   USAGE:
-    msg4(funcname,args,kwargs,deps,comptime,loadtime,CD,FN,compression)
+    msg4(funcname, args, kwargs, deps, comptime, loadtime, CD, FN, compression)
   """
 
   import string
@@ -2241,11 +2250,11 @@ def msg4(funcname,args,kwargs,deps,comptime,loadtime,CD,FN,compression):
 
 # -----------------------------------------------------------------------------
 
-def msg5(CD,FN,deps,compression):
+def msg5(CD, FN, deps, compression):
   """Message 5
 
   USAGE:
-    msg5(CD,FN,deps,compression)
+    msg5(CD, FN, deps, compression)
 
   DESCRIPTION:
    Print dependency stats. Used by msg3 and msg4
@@ -2303,11 +2312,11 @@ def msg5(CD,FN,deps,compression):
 
 # -----------------------------------------------------------------------------
 
-def msg6(funcname,args,kwargs):
+def msg6(funcname, args, kwargs):
   """Message 6
 
   USAGE:
-    msg6(funcname,args,kwargs)
+    msg6(funcname, args, kwargs)
   """
 
   import string
@@ -2506,8 +2515,6 @@ def test_error(msg):
   print
   print
   
-  #import sys
-  #sys.exit()
   raise StandardError
 
 #-------------------------------------------------------------

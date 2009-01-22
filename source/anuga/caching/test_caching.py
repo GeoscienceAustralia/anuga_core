@@ -433,6 +433,11 @@ class Test_Caching(unittest.TestCase):
         res1 = cache(f1, x, test=True, verbose=False)                
         assert num.allclose(res1, ref1)                
         
+        # Test that f2(x) is still clear
+        cache(f2, x, clear=True, verbose=False)
+        flag = cache(f2, x, test=True, verbose=False)        
+        assert flag is None                
+        
         # Run f2(x) and test result
         res2 = cache(f2, x, verbose=False)
         msg = 'Wrong result for f2(x)'
