@@ -387,11 +387,19 @@ class Test_Caching(unittest.TestCase):
             
         f1 = call(2, 3)
         f2 = call(5, 7)
-        
-        
+
+
         # Check that hash value of callable objects don't change
-        assert myhash(f1) == -758136387
-        assert myhash(f2) == -11221564     
+        if os.name == 'posix' and os.uname()[4] in ['x86_64', 'ia64']:
+          # 64 bit hash values
+          f1hash = 1914027059797211698
+          f2hash = 1914027059807087171
+        else:
+          f1hash = -758136387
+          f2hash = -11221564     
+          
+        assert myhash(f1) == f1hash
+        assert myhash(f2) == f2hash
         
         bc1 = get_bytecode(f1)
         bc2 = get_bytecode(f2)
