@@ -873,7 +873,10 @@ class Quantity:
             msg = "set_values_from_file is only defined for location='vertices'"
             raise Exception, msg
 
-        if True:
+        # FIXME(Ole): I noticed a couple of examplse where this caused
+        # a crash in fittng, so disabled it until I can investigate further
+        # Sorry. 23 Jan 2009
+        if False:
             # Use mesh as defined by domain
             # This used to cause problems for caching due to quantities
             # changing, but it now works using the appropriate Mesh object.
