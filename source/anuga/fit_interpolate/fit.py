@@ -298,6 +298,7 @@ class Fit(FitInterpolate):
                     for k in js:
                         AtA[j,k] += sigmas[j]*sigmas[k]
             else:
+                # FIXME(Ole): This is the message referred to in ticket:314
                 msg = 'Could not find triangle for point %s. ' % str(x) 
                 msg += 'Mesh boundary is %s' % str(self.mesh_boundary_polygon)
                 raise Exception(msg)

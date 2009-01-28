@@ -875,7 +875,7 @@ class Quantity:
 
         # FIXME(Ole): I noticed a couple of examplse where this caused
         # a crash in fittng, so disabled it until I can investigate further
-        # Sorry. 23 Jan 2009
+        # Sorry. 23 Jan 2009. Logged as ticket:314
         if False:
             # Use mesh as defined by domain
             # This used to cause problems for caching due to quantities
