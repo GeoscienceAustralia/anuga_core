@@ -33,7 +33,7 @@ from anuga.geospatial_data.geospatial_data import Geospatial_data, \
      ensure_absolute
 from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
 from anuga.utilities.sparse import Sparse, Sparse_CSR
-from anuga.utilities.polygon import in_and_outside_polygon
+from anuga.utilities.polygon import inside_polygon
 from anuga.fit_interpolate.search_functions import search_tree_of_vertices
 
 from anuga.utilities.cg_solve import conjugate_gradient
@@ -45,9 +45,6 @@ class TooFewPointsError(exceptions.Exception): pass
 class VertsWithNoTrianglesError(exceptions.Exception): pass
 
 import Numeric as num
-
-
-#DEFAULT_ALPHA = 0.001
 
 
 class Fit(FitInterpolate):
@@ -136,7 +133,7 @@ class Fit(FitInterpolate):
         else:
             self.B = self.AtA
 
-        #Convert self.B matrix to CSR format for faster matrix vector
+        # Convert self.B matrix to CSR format for faster matrix vector
         self.B = Sparse_CSR(self.B)
 
     def _build_smoothing_matrix_D(self):
@@ -165,30 +162,30 @@ class Fit(FitInterpolate):
         are obtained by computing the gradient a_k, b_k for basis function k
         """
         
-        #FIXME: algorithm might be optimised by computing local 9x9
-        #"element stiffness matrices:
+        # FIXME: algorithm might be optimised by computing local 9x9
+        # "element stiffness matrices:
 
         m = self.mesh.number_of_nodes # Nbr of basis functions (1/vertex)
 
         self.D = Sparse(m,m)
 
-        #For each triangle compute contributions to D = D1+D2
+        # For each triangle compute contributions to D = D1+D2
         for i in range(len(self.mesh)):
 
-            #Get area
+            # Get area
             area = self.mesh.areas[i]
 
-            #Get global vertex indices
+            # Get global vertex indices
             v0 = self.mesh.triangles[i,0]
             v1 = self.mesh.triangles[i,1]
             v2 = self.mesh.triangles[i,2]
 
-            #Get the three vertex_points
+            # Get the three vertex_points
             xi0 = self.mesh.get_vertex_coordinate(i, 0)
             xi1 = self.mesh.get_vertex_coordinate(i, 1)
             xi2 = self.mesh.get_vertex_coordinate(i, 2)
 
-            #Compute gradients for each vertex
+            # Compute gradients for each vertex
             a0, b0 = gradient(xi0[0], xi0[1], xi1[0], xi1[1], xi2[0], xi2[1],
                               1, 0, 0)
 
@@ -198,12 +195,12 @@ class Fit(FitInterpolate):
             a2, b2 = gradient(xi0[0], xi0[1], xi1[0], xi1[1], xi2[0], xi2[1],
                               0, 0, 1)
 
-            #Compute diagonal contributions
+            # Compute diagonal contributions
             self.D[v0,v0] += (a0*a0 + b0*b0)*area
             self.D[v1,v1] += (a1*a1 + b1*b1)*area
             self.D[v2,v2] += (a2*a2 + b2*b2)*area
 
-            #Compute contributions for basis functions sharing edges
+            # Compute contributions for basis functions sharing edges
             e01 = (a0*a1 + b0*b1)*area
             self.D[v0,v1] += e01
             self.D[v1,v0] += e01
@@ -245,8 +242,8 @@ class Fit(FitInterpolate):
 
         The number of attributes of the data points does not change
         """
-        #Build n x m interpolation matrix
-
+        
+        # Build n x m interpolation matrix
         if self.AtA == None:
             # AtA and Atz need to be initialised.
             m = self.mesh.number_of_nodes
@@ -264,23 +261,18 @@ class Fit(FitInterpolate):
              AtA = self.AtA #Did this for speed, did ~nothing
         self.point_count += point_coordinates.shape[0]
 
-        #if verbose: print 'Getting indices inside mesh boundary'
 
-        inside_poly_indices, outside_poly_indices  = \
-                     in_and_outside_polygon(point_coordinates,
-                                            self.mesh_boundary_polygon,
-                                            closed = True,
-                                            verbose = False) # There's too much output if True
-        #print "self.inside_poly_indices",self.inside_poly_indices
-        #print "self.outside_poly_indices",self.outside_poly_indices
+        inside_indices = inside_polygon(point_coordinates,
+                                        self.mesh_boundary_polygon,
+                                        closed=True,
+                                        verbose=False) # Too much output if True
 
         
-        n = len(inside_poly_indices)
-        #if verbose: print 'Building fitting matrix from %d points' %n        
+        n = len(inside_indices)
 
-        #Compute matrix elements for points inside the mesh
-        triangles = self.mesh.triangles #Did this for speed, did ~nothing
-        for d, i in enumerate(inside_poly_indices):
+        # Compute matrix elements for points inside the mesh
+        triangles = self.mesh.triangles # Shorthand
+        for d, i in enumerate(inside_indices):
             # For each data_coordinate point
             # if verbose and d%((n+10)/10)==0: print 'Doing %d of %d' %(d, n)
             x = point_coordinates[i]
@@ -306,9 +298,11 @@ class Fit(FitInterpolate):
                     for k in js:
                         AtA[j,k] += sigmas[j]*sigmas[k]
             else:
-                msg = 'Could not find triangle for point', x 
+                msg = 'Could not find triangle for point %s. ' % str(x) 
+                msg += 'Mesh boundary is %s' % str(self.mesh_boundary_polygon)
                 raise Exception(msg)
             self.AtA = AtA
+
         
     def fit(self, point_coordinates_or_filename=None, z=None,
             verbose=False,
@@ -328,7 +322,8 @@ class Fit(FitInterpolate):
           z: Single 1d vector or array of data at the point_coordinates.
           
         """
-        # use blocking to load in the point info
+        
+        # Use blocking to load in the point info
         if type(point_coordinates_or_filename) == types.StringType:
             msg = "Don't set a point origin when reading from a file"
             assert point_origin is None, msg
@@ -358,7 +353,6 @@ class Fit(FitInterpolate):
                 # Build the array
 
                 points = geo_block.get_data_points(absolute=True)
-                #print "fit points", points
                 z = geo_block.get_attributes(attribute_name=attribute_name)
                 self.build_fit_subset(points, z, verbose=verbose)
 
@@ -372,15 +366,15 @@ class Fit(FitInterpolate):
             assert self.AtA <> None, 'no interpolation matrix'
             assert self.Atz <> None
             
-            #FIXME (DSG) - do  a message
+            # FIXME (DSG) - do  a message
         else:
             point_coordinates = ensure_absolute(point_coordinates,
                                                 geo_reference=point_origin)
-            #if isinstance(point_coordinates,Geospatial_data) and z is None:
+            # if isinstance(point_coordinates,Geospatial_data) and z is None:
             # z will come from the geo-ref
             self.build_fit_subset(point_coordinates, z, verbose)
 
-        #Check sanity
+        # Check sanity
         m = self.mesh.number_of_nodes # Nbr of basis functions (1/vertex)
         n = self.point_count
         if n<m and self.alpha == 0.0:
@@ -456,7 +450,9 @@ def fit_to_mesh(point_coordinates, # this can also be a points file name
                 point_attributes=None,
                 alpha=DEFAULT_ALPHA,
                 verbose=False,
-                acceptable_overshoot=1.01, # FIXME: Move to config - this value is assumed in caching test
+                acceptable_overshoot=1.01, 
+                # FIXME: Move to config - this value is assumed in caching test
+                # FIXME(Ole): Just realised that this was never implemented (29 Jan 2009). I suggest removing it altogether.
                 mesh_origin=None,
                 data_origin=None,
                 max_read_lines=None,
