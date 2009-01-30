@@ -877,7 +877,8 @@ class Quantity:
         # FIXME(Ole): I noticed a couple of examples where this caused
         # a crash in fittng, so disabled it until I can investigate further
         # Sorry. 23 Jan 2009. Logged as ticket:314
-        if False:
+        #if True: # Test will fail (31 Jan 2009) 
+        if False: # Test will pass (31 Jan 2009)
             # Use mesh as defined by domain
             # This used to cause problems for caching due to quantities
             # changing, but it now works using the appropriate Mesh object.

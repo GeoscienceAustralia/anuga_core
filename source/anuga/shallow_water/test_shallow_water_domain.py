@@ -6543,9 +6543,9 @@ friction  \n \
         from anuga.geospatial_data.geospatial_data import Geospatial_data
 
 
-        #------------------------------------------------------------------------------
+        #----------------------------------------------------------------------
         # Create domain
-        #------------------------------------------------------------------------------
+        #----------------------------------------------------------------------
 
         W=303400
         N=6195800
@@ -6599,31 +6599,39 @@ friction  \n \
         domain = Domain(meshname, use_cache=False, verbose=verbose)
 
 
-        #------------------------------------------------------------------------------
+        #----------------------------------------------------------------------
         # Fit data point to mesh
-        #------------------------------------------------------------------------------
+        #----------------------------------------------------------------------
 
         points_file = 'offending_point.pts'
 
-        G=Geospatial_data(data_points=[[306953.344, 6194461.5]], # Offending point
+        # Offending point
+        G=Geospatial_data(data_points=[[306953.344, 6194461.5]],
                           attributes=[1])
         G.export_points_file(points_file)
 
-        domain.set_quantity('elevation', 
-                            filename=points_file,
-                            use_cache=False,
-                            verbose=verbose,
-                            alpha=0.01)
-
         
+        try:
+            domain.set_quantity('elevation', 
+                                filename=points_file,
+                                use_cache=False,
+                                verbose=verbose,
+                                alpha=0.01)
+        except RuntimeError, e:
+            msg = 'Test failed: %s' % str(e)
+            raise Exception, msg
+        finally:
+            # Cleanup regardless
+            os.remove(meshname)
+            os.remove(points_file)
 
         
 if __name__ == "__main__":
 
-    suite = unittest.makeSuite(Test_Shallow_Water, 'test')
+    #suite = unittest.makeSuite(Test_Shallow_Water, 'test')
     #suite = unittest.makeSuite(Test_Shallow_Water, 'test_rainfall_forcing_with_evolve')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_get_energy_through_cross_section_with_g')    
-    #suite = unittest.makeSuite(Test_Shallow_Water,'test_fitting_using_shallow_water_domain')    
+    suite = unittest.makeSuite(Test_Shallow_Water,'test_fitting_example_that_crashed')    
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_tight_slope_limiters')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_inflow_outflow_conservation')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_outflow_conservation_problem_temp')    

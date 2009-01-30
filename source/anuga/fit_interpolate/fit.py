@@ -266,8 +266,7 @@ class Fit(FitInterpolate):
         inside_indices = inside_polygon(point_coordinates,
                                         self.mesh_boundary_polygon,
                                         closed=True,
-                                        verbose=False) # Too much output if True
-
+                                        verbose=False) # Suppress output
         
         n = len(inside_indices)
 
@@ -300,15 +299,14 @@ class Fit(FitInterpolate):
                     for k in js:
                         AtA[j,k] += sigmas[j]*sigmas[k]
             else:
-                # FIXME(Ole): This is the message referred to in ticket:314
-                
                 flag = is_inside_polygon(x,
                                          self.mesh_boundary_polygon,
                                          closed=True,
-                                         verbose=False) # Too much output if True                
+                                         verbose=False) # Suppress output
                 msg = 'Point (%f, %f) is not inside mesh boundary' % tuple(x)
                 assert flag is True, msg                
                 
+                # FIXME(Ole): This is the message referred to in ticket:314
                 minx = min(self.mesh_boundary_polygon[:,0])
                 maxx = max(self.mesh_boundary_polygon[:,0])                
                 miny = min(self.mesh_boundary_polygon[:,1])
@@ -316,9 +314,8 @@ class Fit(FitInterpolate):
                 msg = 'Could not find triangle for point %s. ' % str(x) 
                 msg += 'Mesh boundary extent is (%.f, %.f), (%.f, %.f)'\
                     % (minx, maxx, miny, maxy)
+                raise RuntimeError, msg
                 
-
-                raise Exception(msg)
             self.AtA = AtA
 
         
