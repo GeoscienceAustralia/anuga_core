@@ -33,7 +33,7 @@ from anuga.geospatial_data.geospatial_data import Geospatial_data, \
      ensure_absolute
 from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
 from anuga.utilities.sparse import Sparse, Sparse_CSR
-from anuga.utilities.polygon import inside_polygon
+from anuga.utilities.polygon import inside_polygon, is_inside_polygon
 from anuga.fit_interpolate.search_functions import search_tree_of_vertices
 
 from anuga.utilities.cg_solve import conjugate_gradient
@@ -114,7 +114,8 @@ class Fit(FitInterpolate):
             if verbose: print 'Building smoothing matrix'
             self._build_smoothing_matrix_D()
             
-        self.mesh_boundary_polygon = self.mesh.get_boundary_polygon()    
+        bd_poly = self.mesh.get_boundary_polygon()    
+        self.mesh_boundary_polygon = ensure_numeric(bd_poly)
             
     def _build_coefficient_matrix_B(self,
                                   verbose = False):
@@ -276,6 +277,7 @@ class Fit(FitInterpolate):
             # For each data_coordinate point
             # if verbose and d%((n+10)/10)==0: print 'Doing %d of %d' %(d, n)
             x = point_coordinates[i]
+            
             element_found, sigma0, sigma1, sigma2, k = \
                            search_tree_of_vertices(self.root, self.mesh, x)
             
@@ -299,8 +301,23 @@ class Fit(FitInterpolate):
                         AtA[j,k] += sigmas[j]*sigmas[k]
             else:
                 # FIXME(Ole): This is the message referred to in ticket:314
+                
+                flag = is_inside_polygon(x,
+                                         self.mesh_boundary_polygon,
+                                         closed=True,
+                                         verbose=False) # Too much output if True                
+                msg = 'Point (%f, %f) is not inside mesh boundary' % tuple(x)
+                assert flag is True, msg                
+                
+                minx = min(self.mesh_boundary_polygon[:,0])
+                maxx = max(self.mesh_boundary_polygon[:,0])                
+                miny = min(self.mesh_boundary_polygon[:,1])
+                maxy = max(self.mesh_boundary_polygon[:,1])
                 msg = 'Could not find triangle for point %s. ' % str(x) 
-                msg += 'Mesh boundary is %s' % str(self.mesh_boundary_polygon)
+                msg += 'Mesh boundary extent is (%.f, %.f), (%.f, %.f)'\
+                    % (minx, maxx, miny, maxy)
+                
+
                 raise Exception(msg)
             self.AtA = AtA
 
@@ -571,10 +588,6 @@ def _fit_to_mesh(point_coordinates, # this can also be a points file name
 
     """
 
-    # Duncan and Ole think that this isn't worth caching.
-    # Caching happens at the higher level anyway.
-    
-
     if mesh is None:
         # FIXME(DSG): Throw errors if triangles or vertex_coordinates
         # are None
@@ -587,6 +600,7 @@ def _fit_to_mesh(point_coordinates, # this can also be a points file name
         if verbose: print 'FitInterpolate: Building mesh'        
         mesh = Mesh(vertex_coordinates, triangles)
         mesh.check_integrity()
+    
     
     interp = Fit(mesh=mesh,
                  verbose=verbose,

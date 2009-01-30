@@ -873,7 +873,8 @@ class Quantity:
             msg = "set_values_from_file is only defined for location='vertices'"
             raise Exception, msg
 
-        # FIXME(Ole): I noticed a couple of examplse where this caused
+            
+        # FIXME(Ole): I noticed a couple of examples where this caused
         # a crash in fittng, so disabled it until I can investigate further
         # Sorry. 23 Jan 2009. Logged as ticket:314
         if False:

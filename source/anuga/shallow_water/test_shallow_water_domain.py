@@ -6525,6 +6525,97 @@ friction  \n \
         import os
         os.remove(ptsfile)
 
+    def test_fitting_example_that_crashed(self):
+        """test_fitting_example_that_crashed
+        
+        This unit test has been derived from a real world example (the Towradgi '98 rainstorm simulation).
+        
+        It shows a condition where fitting as called from set_quantity crashes when ANUGA mesh
+        is reused. The test passes in the case where a new mesh is created.
+        
+        See ticket:314
+        """
+
+        verbose = False        
+
+        from anuga.shallow_water import Domain
+        from anuga.pmesh.mesh_interface import create_mesh_from_regions
+        from anuga.geospatial_data.geospatial_data import Geospatial_data
+
+
+        #------------------------------------------------------------------------------
+        # Create domain
+        #------------------------------------------------------------------------------
+
+        W=303400
+        N=6195800
+        E=308640
+        S=6193120
+        bounding_polygon = [[W, S], [E, S], [E, N], [W, N]]
+
+
+        offending_regions = []
+        # From culvert 8
+        offending_regions.append([[307611.43896231, 6193631.6894806],
+                                 [307600.11394969, 6193608.2855474],
+                                 [307597.41349586, 6193609.59227963],
+                                 [307608.73850848, 6193632.99621282]])
+        offending_regions.append([[307633.69143231, 6193620.9216536],
+                                 [307622.36641969, 6193597.5177204],
+                                 [307625.06687352, 6193596.21098818],
+                                 [307636.39188614, 6193619.61492137]])
+        # From culvert 9
+        offending_regions.append([[306326.69660524, 6194818.62900522],
+                                 [306324.67939476, 6194804.37099478],
+                                 [306323.75856492, 6194804.50127295],
+                                 [306325.7757754, 6194818.7592834]])
+        offending_regions.append([[306365.57160524, 6194813.12900522],
+                                 [306363.55439476, 6194798.87099478],
+                                 [306364.4752246, 6194798.7407166],
+                                 [306366.49243508, 6194812.99872705]])
+        # From culvert 10                         
+        offending_regions.append([[306955.071019428608, 6194465.704096679576],
+                                 [306951.616980571358, 6194457.295903320424],
+                                 [306950.044491164153, 6194457.941873183474],
+                                 [306953.498530021403, 6194466.350066542625]])
+        offending_regions.append([[307002.540019428649, 6194446.204096679576],
+                                 [306999.085980571399, 6194437.795903320424],
+                                 [307000.658469978604, 6194437.149933457375],
+                                 [307004.112508835853, 6194445.558126816526]])
+
+        interior_regions = []
+        for polygon in offending_regions:
+            interior_regions.append( [polygon, 100] ) 
+
+        meshname = 'offending_mesh.msh'
+        create_mesh_from_regions(bounding_polygon,
+                                 boundary_tags={'south': [0], 'east': [1], 'north': [2], 'west': [3]},
+                                 maximum_triangle_area=1000000,
+                                 interior_regions=interior_regions,
+                                 filename=meshname,
+                                 use_cache=False,
+                                 verbose=verbose)
+
+        domain = Domain(meshname, use_cache=False, verbose=verbose)
+
+
+        #------------------------------------------------------------------------------
+        # Fit data point to mesh
+        #------------------------------------------------------------------------------
+
+        points_file = 'offending_point.pts'
+
+        G=Geospatial_data(data_points=[[306953.344, 6194461.5]], # Offending point
+                          attributes=[1])
+        G.export_points_file(points_file)
+
+        domain.set_quantity('elevation', 
+                            filename=points_file,
+                            use_cache=False,
+                            verbose=verbose,
+                            alpha=0.01)
+
+        
 
         
 if __name__ == "__main__":
