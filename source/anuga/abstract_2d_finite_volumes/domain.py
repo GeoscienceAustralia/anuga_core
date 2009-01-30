@@ -1279,8 +1279,8 @@ class Domain:
             if duration is not None:
                 self.finaltime = self.starttime + float(duration)
 
-        N = len(self)            # Number of triangles
-        self.yieldtime = 0.0     # Track time between 'yields'
+        N = len(self)                             # Number of triangles
+        self.yieldtime = self.time + yieldstep    # set next yield time
 
         # Initialise interval of timestep sizes (for reporting only)
         self.min_timestep = max_timestep
@@ -1319,9 +1319,8 @@ class Domain:
                 self.evolve_one_rk3_step(yieldstep, finaltime)
 
             # Update extrema if necessary (for reporting)
-            self.update_extrema()
+            self.update_extrema()            
 
-            self.yieldtime += self.timestep
             self.number_of_steps += 1
             if self._order_ == 1:
                 self.number_of_first_order_steps += 1
@@ -1341,7 +1340,8 @@ class Domain:
                 yield(self.time)
                 break
 
-            if self.yieldtime >= yieldstep:
+            # if we are at the next yield point
+            if self.time >= self.yieldtime:
                 # Yield (intermediate) time and allow inspection of domain
                 if self.checkpoint is True:
                     self.store_checkpoint()
@@ -1351,7 +1351,7 @@ class Domain:
                 yield(self.time)
 
                 # Reinitialise
-                self.yieldtime = 0.0
+                self.yieldtime += yieldstep                 # move to next yield
                 self.min_timestep = max_timestep
                 self.max_timestep = min_timestep
                 self.number_of_steps = 0
@@ -1699,8 +1699,8 @@ class Domain:
             timestep = finaltime-self.time
 
         # Ensure that model time is aligned with yieldsteps
-        if self.yieldtime + timestep > yieldstep:
-            timestep = yieldstep-self.yieldtime
+        if self.time + timestep > self.yieldtime:
+            timestep = self.yieldtime - self.time
 
         self.timestep = timestep
 
