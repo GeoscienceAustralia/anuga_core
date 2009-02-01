@@ -6611,6 +6611,7 @@ friction  \n \
         G.export_points_file(points_file)
 
         
+        
         try:
             domain.set_quantity('elevation', 
                                 filename=points_file,
@@ -6620,10 +6621,23 @@ friction  \n \
         except RuntimeError, e:
             msg = 'Test failed: %s' % str(e)
             raise Exception, msg
-        finally:
-            # Cleanup regardless
+            # Cleanup
             os.remove(meshname)
-            os.remove(points_file)
+            os.remove(points_file)            
+        else:
+            # Cleanup        
+            os.remove(meshname)
+            os.remove(points_file)                    
+            
+            
+            
+        #FIXME(Ole): Finally does not work like this in python2.3 
+        #FIXME(Ole): Reinstate this when Python2.3 is out of the way
+        #FIXME(Ole): Python 2.6 apparently introduces something called 'with'
+        #finally:
+        #    # Cleanup regardless
+        #    os.remove(meshname)
+        #    os.remove(points_file)
 
         
 if __name__ == "__main__":
