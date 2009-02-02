@@ -202,15 +202,13 @@ class Test_Caching(unittest.TestCase):
             T2 = cache(f_numeric, (A1, A1), 
                        compression=comp, verbose=verbose) 
             
+            T1_ref = f_numeric(A0, A0)
+            T2_ref = f_numeric(A1, A1)
 
-            #print T1
-            #print T2
-            assert T2 != T1
+            assert num.alltrue(T1 == T1_ref)
+            assert num.alltrue(T2 == T2_ref)
 
-            
 
-            
-            
     def test_caching_of_dictionaries(self):
         """test_caching_of_dictionaries
         
