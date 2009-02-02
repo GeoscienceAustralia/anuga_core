@@ -88,8 +88,7 @@ tight_slope_limiters = True
 use_centroid_velocities = True
         
 # FIXME (Ole) Maybe get rid of order altogether and use beta_w
-# ... and isn't it about time we make the default 2?
-default_order = 1
+default_order = 2
 
 ################################################################################
 # Timestepping

@@ -541,14 +541,15 @@ class Test_Domain(unittest.TestCase):
         domain = Domain(points, vertices, boundary,
                         conserved_quantities =\
                         ['stage', 'xmomentum', 'ymomentum'])
+        domain.set_default_order(1)
         domain.check_integrity()
 
 
         domain.set_quantity('stage', [[1,2,3], [5,5,5],
                                       [0,0,9], [-6, 3, 3]])
 
-        assert num.allclose( domain.quantities['stage'].centroid_values,
-                             [2,5,3,0] )
+        assert num.allclose(domain.quantities['stage'].centroid_values,
+                            [2,5,3,0])
 
         domain.set_quantity('xmomentum', [[1,1,1], [2,2,2],
                                           [3,3,3], [4, 4, 4]])
@@ -559,7 +560,7 @@ class Test_Domain(unittest.TestCase):
 
         domain.distribute_to_vertices_and_edges()
 
-        #First order extrapolation
+        # First order extrapolation
         assert num.allclose( domain.quantities['stage'].vertex_values,
                              [[ 2.,  2.,  2.],
                               [ 5.,  5.,  5.],
@@ -649,6 +650,7 @@ class Test_Domain(unittest.TestCase):
         domain = Domain(points, vertices, boundary,
                         conserved_quantities =\
                         ['stage', 'xmomentum', 'ymomentum'])
+        domain.set_default_order(1)                        
         domain.check_integrity()
 
         domain.set_quantity('stage', [[1,2,3], [5,5,5],
@@ -666,7 +668,7 @@ class Test_Domain(unittest.TestCase):
 
         domain.distribute_to_vertices_and_edges()
 
-        #First order extrapolation
+        # First order extrapolation
         assert num.allclose( domain.quantities['stage'].vertex_values,
                              [[ 2.,  2.,  2.],
                               [ 5.,  5.,  5.],
