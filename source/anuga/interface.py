@@ -12,6 +12,8 @@ from anuga.shallow_water import Dirichlet_boundary
 from anuga.shallow_water import File_boundary
 from anuga.shallow_water import Reflective_boundary
 from anuga.shallow_water import Field_boundary
+from anuga.shallow_water import Transmissive_stage_zero_momentum_boundary
+
 
 from anuga.shallow_water.data_manager import export_grid, create_sts_boundary
 from anuga.shallow_water.data_manager import csv2building_polygons
