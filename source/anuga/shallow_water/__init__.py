@@ -11,7 +11,8 @@ from shallow_water_domain import Domain,\
      Dirichlet_boundary, Time_boundary, File_boundary,\
      Transmissive_momentum_set_stage_boundary,\
      Dirichlet_discharge_boundary,\
-     Field_boundary
+     Field_boundary,\
+     Transmissive_stage_zero_momentum_boundary
 
 
 # FIXME (Ole): Deprecate
