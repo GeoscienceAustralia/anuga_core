@@ -924,6 +924,7 @@ def _sww2timeseries(swwfiles,
                     use_cache = False,
                     verbose = False):   
         
+    # FIXME(Ole): Shouldn't print statements here be governed by verbose?
     assert type(gauge_filename) == type(''), 'Gauge filename must be a string'
     
     try:
@@ -970,7 +971,8 @@ def _sww2timeseries(swwfiles,
             msg = 'File "%s" could not be opened: Error="%s"' % (swwfile, e)
             raise msg
 
-        print 'swwfile', swwfile
+        if verbose:
+            print 'swwfile', swwfile
 
         # Extract parent dir name and use as label
         path, _ = os.path.split(swwfile)
@@ -2382,7 +2384,7 @@ def sww2csv_gauges(sww_file,
                    quantities=['stage', 'depth', 'elevation',
                                'xmomentum', 'ymomentum'],
                    verbose=False,
-                   use_cache = True):
+                   use_cache=True):
     """
     
     Inputs: 
@@ -2489,7 +2491,8 @@ def sww2csv_gauges(sww_file,
                                  base_name=base,
                                  verbose=verbose)
 
-    print 'sww files', sww_files
+    if verbose:
+        print 'sww files', sww_files
     
     #to make all the quantities lower case for file_function
     quantities = [quantity.lower() for quantity in quantities]
