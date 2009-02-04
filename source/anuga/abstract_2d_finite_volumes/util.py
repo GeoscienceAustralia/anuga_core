@@ -2488,6 +2488,8 @@ def sww2csv_gauges(sww_file,
     sww_files = get_all_swwfiles(look_in_dir=dir_name,
                                  base_name=base,
                                  verbose=verbose)
+
+    print 'sww files', sww_files
     
     #to make all the quantities lower case for file_function
     quantities = [quantity.lower() for quantity in quantities]
@@ -2496,14 +2498,7 @@ def sww2csv_gauges(sww_file,
     # also 
 
     core_quantities = ['stage', 'elevation', 'xmomentum', 'ymomentum']
-    
-    for sww_file in sww_files:
-        sww_file = join(dir_name, sww_file+'.sww')
-        callable_sww = file_function(sww_file,
-                                     quantities=core_quantities,
-                                     interpolation_points=points_array,
-                                     verbose=verbose,
-                                     use_cache=use_cache)
+
     gauge_file = out_name
 
     heading = [quantity for quantity in quantities]
@@ -2518,61 +2513,70 @@ def sww2csv_gauges(sww_file,
     
     if verbose: print 'Writing csv files'
 
-    for time in callable_sww.get_time():
-        for point_i, point in enumerate(points_array):
-            #add domain starttime to relative time.
-            points_list = [time + callable_sww.starttime]
-            point_quantities = callable_sww(time,point_i)
-            
-            for quantity in quantities:
-                if quantity == NAN:
-                    print 'quantity does not exist in' % callable_sww.get_name
-                else:
-                    if quantity == 'stage':
-                        points_list.append(point_quantities[0])
-                        
-                    if quantity == 'elevation':
-                        points_list.append(point_quantities[1])
-                        
-                    if quantity == 'xmomentum':
-                        points_list.append(point_quantities[2])
-                        
-                    if quantity == 'ymomentum':
-                        points_list.append(point_quantities[3])
-                        
-                    if quantity == 'depth':
-                        points_list.append(point_quantities[0] 
-                                           - point_quantities[1])
-
-                    if quantity == 'momentum':
-                        momentum = sqrt(point_quantities[2]**2 
-                                        + point_quantities[3]**2)
-                        points_list.append(momentum)
-                        
-                    if quantity == 'speed':
-                        #if depth is less than 0.001 then speed = 0.0
-                        if point_quantities[0] - point_quantities[1] < 0.001:
-                            vel = 0.0
-                        else:
-                            if point_quantities[2] < 1.0e6:
-                                momentum = sqrt(point_quantities[2]**2
-                                                + point_quantities[3]**2)
-    #                            vel = momentum/depth              
-                                vel = momentum / (point_quantities[0] 
-                                                  - point_quantities[1])
-    #                            vel = momentum/(depth + 1.e-6/depth)
-                            else:
-                                momentum = 0
-                                vel = 0
+    for sww_file in sww_files:
+        sww_file = join(dir_name, sww_file+'.sww')
+        callable_sww = file_function(sww_file,
+                                     quantities=core_quantities,
+                                     interpolation_points=points_array,
+                                     verbose=verbose,
+                                     use_cache=use_cache)
+    
+    
+        for time in callable_sww.get_time():
+            for point_i, point in enumerate(points_array):
+                #add domain starttime to relative time.
+                points_list = [time + callable_sww.starttime]
+                point_quantities = callable_sww(time,point_i)
+                
+                for quantity in quantities:
+                    if quantity == NAN:
+                        print 'quantity does not exist in' % callable_sww.get_name
+                    else:
+                        if quantity == 'stage':
+                            points_list.append(point_quantities[0])
                             
-                        points_list.append(vel)
-                        
-                    if quantity == 'bearing':
-                        points_list.append(calc_bearing(point_quantities[2],
-                                                        point_quantities[3]))
+                        if quantity == 'elevation':
+                            points_list.append(point_quantities[1])
+                            
+                        if quantity == 'xmomentum':
+                            points_list.append(point_quantities[2])
+                            
+                        if quantity == 'ymomentum':
+                            points_list.append(point_quantities[3])
+                            
+                        if quantity == 'depth':
+                            points_list.append(point_quantities[0] 
+                                               - point_quantities[1])
+
+                        if quantity == 'momentum':
+                            momentum = sqrt(point_quantities[2]**2 
+                                            + point_quantities[3]**2)
+                            points_list.append(momentum)
+                            
+                        if quantity == 'speed':
+                            #if depth is less than 0.001 then speed = 0.0
+                            if point_quantities[0] - point_quantities[1] < 0.001:
+                                vel = 0.0
+                            else:
+                                if point_quantities[2] < 1.0e6:
+                                    momentum = sqrt(point_quantities[2]**2
+                                                    + point_quantities[3]**2)
+        #                            vel = momentum/depth              
+                                    vel = momentum / (point_quantities[0] 
+                                                      - point_quantities[1])
+        #                            vel = momentum/(depth + 1.e-6/depth)
+                                else:
+                                    momentum = 0
+                                    vel = 0
+                                
+                            points_list.append(vel)
+                            
+                        if quantity == 'bearing':
+                            points_list.append(calc_bearing(point_quantities[2],
+                                                            point_quantities[3]))
 
             points_writer[point_i].writerow(points_list)
-        
+            
 
 ##
 # @brief Get a wave height at a certain depth given wave height at another depth.
