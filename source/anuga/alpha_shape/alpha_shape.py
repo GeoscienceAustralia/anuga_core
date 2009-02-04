@@ -287,10 +287,11 @@ class Alpha_Shape:
             denom = x21*y31 - x31*y21
             zeroind = [k for k in range(len(denom)) if \
                        (denom[k]< EPSILON and  denom[k] > -EPSILON)]
-        try:
+
+        if num.alltrue(denom != 0.0):               
             dx = num.divide_safe(y31*dist21 - y21*dist31,denom)
             dy = num.divide_safe(x21*dist31 - x31*dist21,denom)
-        except ZeroDivisionError:
+        else:
             raise  AlphaError
             
         self.triradius = 0.5*num.sqrt(dx*dx + dy*dy)
