@@ -203,6 +203,8 @@ class Culvert_flow_general:
             log_to_file(self.log_filename, self.label)        
             log_to_file(self.log_filename, description)
             log_to_file(self.log_filename, self.culvert_type)        
+        else:
+            self.log_filename = None
 
 
         # Create the fundamental culvert polygons from polygon
@@ -295,7 +297,7 @@ class Culvert_flow_general:
         
 
         # Print some diagnostics to log if requested
-        if hasattr(self, 'log_filename'):
+        if self.log_filename is not None:
             s = 'Culvert Effective Length = %.2f m' %(self.length)
             log_to_file(self.log_filename, s)
    
@@ -322,8 +324,8 @@ class Culvert_flow_general:
             delta_t = self.update_interval            
             if time - self.last_update > self.update_interval or time == 0.0:
                 update = True
-
-        if hasattr(self, 'log_filename'):            
+            
+        if self.log_filename is not None:        
             s = '\nTime = %.2f, delta_t = %f' %(time, delta_t)
             log_to_file(self.log_filename, s)
                 
@@ -438,7 +440,8 @@ class Culvert_flow_general:
             msg += 'Q will be reduced from %.2f m^3/s to %.2f m^3/s.' % (Q, Q_reduced)
             if self.verbose is True:
                 print msg
-            if hasattr(self, 'log_filename'):                    
+                
+            if self.log_filename is not None:                
                 log_to_file(self.log_filename, msg)
         
         return Q_reduced    
@@ -523,7 +526,7 @@ class Culvert_flow_general:
             if self.verbose is True:
                 print '%.2fs - WARNING: Flow is running uphill.' % time
             
-        if hasattr(self, 'log_filename'):
+        if self.log_filename is not None:
             s = 'Time=%.2f, inlet stage = %.2f, outlet stage = %.2f'\
                 %(time, self.inlet.stage, self.outlet.stage)
             log_to_file(self.log_filename, s)
@@ -572,12 +575,23 @@ class Culvert_flow_general:
                     msg += 'I will use maximum discharge %.2f m^3/s ' % Q
                     msg += 'for culvert "%s"' % self.label 
                     
-                    if hasattr(self, 'log_filename'):                    
+                    if self.log_filename is not None:                    
                         log_to_file(self.log_filename, msg)
             else:
                 # User culvert routine
                 Q, barrel_velocity, culvert_outlet_depth =\
-                    self.culvert_routine(self, delta_total_energy, g)
+                    self.culvert_routine(inlet.depth,
+                                         outlet.depth,
+                                         inlet.specific_energy, 
+                                         delta_total_energy, 
+                                         g,
+                                         culvert_length=self.length,
+                                         culvert_width=self.width,
+                                         culvert_height=self.height,
+                                         culvert_type=self.culvert_type,
+                                         manning=self.manning,
+                                         sum_loss=self.sum_loss,
+                                         log_filename=self.log_filename)
             
             
         
@@ -600,7 +614,7 @@ class Culvert_flow_general:
             fid.close()
 
                             
-    
+# OBSOLETE (Except for momentum jet in Culvert_flow_energy)    
 class Culvert_flow_rating:
     """Culvert flow - transfer water from one hole to another
     
