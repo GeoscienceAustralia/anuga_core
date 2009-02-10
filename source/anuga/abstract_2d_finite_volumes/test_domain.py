@@ -792,6 +792,50 @@ class Test_Domain(unittest.TestCase):
                              [ 10.07, 10.07, 10.07],
                              [ 11.0,  11.0,  11.0],
                              [ 11.0,  11.0,  11.0]])
+                             
+    def test_that_mesh_methods_exist(self):
+        """test_that_mesh_methods_exist
+        
+        Test that relavent mesh methods are made available in 
+        domain through composition
+        """
+        from mesh_factory import rectangular
+        from shallow_water import Domain
+
+        # Create basic mesh
+        points, vertices, boundary = rectangular(1, 3)
+
+        # Create shallow water domain
+        domain = Domain(points, vertices, boundary)                             
+        
+        
+        domain.get_centroid_coordinates()
+        domain.get_radii()
+        domain.get_areas()
+        domain.get_area()
+        domain.get_vertex_coordinates()
+        domain.get_triangles()
+        domain.get_nodes()
+        domain.get_number_of_nodes()
+        domain.get_normal(0,0)
+        domain.get_intersecting_segments([[0.0, 0.0], [0.0, 1.0]])
+        domain.get_disconnected_triangles()
+        domain.get_boundary_tags()
+        domain.get_boundary_polygon()
+        #domain.get_number_of_triangles_per_node()
+        domain.get_triangles_and_vertices_per_node()
+        domain.get_interpolation_object()
+        domain.get_tagged_elements()
+        domain.get_lone_vertices()
+        domain.get_unique_vertices()
+        g = domain.get_georeference()
+        domain.set_georeference(g)
+        domain.build_tagged_elements_dictionary()
+        domain.statistics()
+        domain.get_extent()
+
+        
+        
 
 #-------------------------------------------------------------
 if __name__ == "__main__":

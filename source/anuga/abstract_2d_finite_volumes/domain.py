@@ -318,6 +318,7 @@ class Domain:
     def get_boundary_polygon(self, *args, **kwargs):
         return self.mesh.get_boundary_polygon(*args, **kwargs)
 
+    # FIXME(Ole): This doesn't seem to be required
     def get_number_of_triangles_per_node(self, *args, **kwargs):
         return self.mesh.get_number_of_triangles_per_node(*args, **kwargs)
 
@@ -347,6 +348,9 @@ class Domain:
 
     def statistics(self, *args, **kwargs):
         return self.mesh.statistics(*args, **kwargs)
+        
+    def get_extent(self, *args, **kwargs):
+        return self.mesh.get_extent(*args, **kwargs)    
 
     ##
     # @brief Get conserved quantities for a volume.
