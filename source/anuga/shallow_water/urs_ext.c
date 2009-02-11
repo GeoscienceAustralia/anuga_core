@@ -8,6 +8,8 @@ gcc -shared urs_ext.o  -o urs_ext.so
 #include "structure.h"
 #include "math.h"
 #include <stdio.h>
+#include <string.h>
+#include <errno.h>
 #include <float.h>
 #include <time.h>
 
@@ -218,7 +220,9 @@ int _read_mux2_headers(int numSrc,
         // Open the mux file
         if((fp = fopen(muxFileName, "r")) == NULL)
         {
-            fprintf(stderr, "cannot open file %s\n", muxFileName);
+            char *err_msg = strerror(errno);
+
+            fprintf(stderr, "cannot open file '%s': %s\n", muxFileName, err_msg);
             return -1;  
         }
         
