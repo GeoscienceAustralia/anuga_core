@@ -1310,9 +1310,10 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
             gaugeloc = str(locations[k])
             thisfile = file_loc[j] + sep + 'gauges_time_series' + '_' \
                        + gaugeloc + '.csv'
-            fid_out = open(thisfile, 'w')
-            s = 'Time, Stage, Momentum, Speed, Elevation, xmom, ymom, Bearing \n'
-            fid_out.write(s)
+            if j == 0:
+                fid_out = open(thisfile, 'w')
+                s = 'Time, Stage, Momentum, Speed, Elevation, xmom, ymom, Bearing \n'
+                fid_out.write(s)            
 
             #### generate quantities #######
             for i, t in enumerate(f.get_time()):
@@ -2372,7 +2373,7 @@ def get_runup_data_for_locations_from_file(gauge_filename,
 
 ##
 # @brief ??
-# @param sww_file ??
+# @param  ??
 # @param gauge_file ??
 # @param out_name ??
 # @param quantities ??
@@ -2490,6 +2491,9 @@ def sww2csv_gauges(sww_file,
     sww_files = get_all_swwfiles(look_in_dir=dir_name,
                                  base_name=base,
                                  verbose=verbose)
+    print 'sww files just after get_all_swwfiles()', sww_files
+    # fudge to get SWW files in 'correct' order, oldest on the left
+    sww_files.sort()
 
     if verbose:
         print 'sww files', sww_files
@@ -2506,30 +2510,42 @@ def sww2csv_gauges(sww_file,
 
     heading = [quantity for quantity in quantities]
     heading.insert(0,'time')
+    heading.insert(1,'hours')
 
     #create a list of csv writers for all the points and write header
     points_writer = []
-    for i,point in enumerate(points):
+    for point_i,point in enumerate(points):
         points_writer.append(writer(file(dir_name + sep + gauge_file
-                                         + point_name[i] + '.csv', "wb")))
-        points_writer[i].writerow(heading)
+                                         + point_name[point_i] + '.csv', "wb")))
+        points_writer[point_i].writerow(heading)
     
     if verbose: print 'Writing csv files'
 
+    quake_offset_time = None
+
     for sww_file in sww_files:
         sww_file = join(dir_name, sww_file+'.sww')
+        print 'sww file = ',sww_file
         callable_sww = file_function(sww_file,
                                      quantities=core_quantities,
                                      interpolation_points=points_array,
                                      verbose=verbose,
                                      use_cache=use_cache)
-    
-    
+
+        if quake_offset_time is None:
+            quake_offset_time = callable_sww.starttime
+
         for time in callable_sww.get_time():
+            print 'time = ', str(time)
             for point_i, point in enumerate(points_array):
+                print 'gauge_file = ', str(point_name[point_i])
+                print 'point_i = ', str(point_i), ' point is = ', str(point) 
                 #add domain starttime to relative time.
-                points_list = [time + callable_sww.starttime]
+                quake_time = time + quake_offset_time
+                points_list = [quake_time, quake_time/3600.]# fudge around SWW time bug
+                print 'point list = ', str(points_list)
                 point_quantities = callable_sww(time,point_i)
+                print 'point quantities = ', str(point_quantities)
                 
                 for quantity in quantities:
                     if quantity == NAN:
@@ -2578,7 +2594,8 @@ def sww2csv_gauges(sww_file,
                             points_list.append(calc_bearing(point_quantities[2],
                                                             point_quantities[3]))
 
-            points_writer[point_i].writerow(points_list)
+                print 'point list before write (writer %s) = %s' % (str(point_name[point_i]), str(points_list))
+                points_writer[point_i].writerow(points_list)
             
 
 ##
