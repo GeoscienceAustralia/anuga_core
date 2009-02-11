@@ -5572,7 +5572,7 @@ def urs2sts(basename_in, basename_out=None,
     quantities = ['HA','UA','VA'] # Quantity names used in the MUX2 format
     for i in range(len(quantities)):
         for file_in in files_in[i]:
-            if (os.access(file_in, os.F_OK) == 0):
+            if (os.access(file_in, os.R_OK) == 0):
                 msg = 'File %s does not exist or is not accessible' % file_in
                 raise IOError, msg
 
