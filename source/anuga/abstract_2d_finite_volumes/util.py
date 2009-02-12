@@ -2491,7 +2491,7 @@ def sww2csv_gauges(sww_file,
     sww_files = get_all_swwfiles(look_in_dir=dir_name,
                                  base_name=base,
                                  verbose=verbose)
-    print 'sww files just after get_all_swwfiles()', sww_files
+    #print 'sww files just after get_all_swwfiles()', sww_files
     # fudge to get SWW files in 'correct' order, oldest on the left
     sww_files.sort()
 
@@ -2536,7 +2536,6 @@ def sww2csv_gauges(sww_file,
             quake_offset_time = callable_sww.starttime
 
         for time in callable_sww.get_time():
-            print 'time = ', str(time)
             for point_i, point in enumerate(points_array):
                # print 'gauge_file = ', str(point_name[point_i])
                 #print 'point_i = ', str(point_i), ' point is = ', str(point) 
