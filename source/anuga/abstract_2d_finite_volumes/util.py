@@ -2525,7 +2525,7 @@ def sww2csv_gauges(sww_file,
 
     for sww_file in sww_files:
         sww_file = join(dir_name, sww_file+'.sww')
-        print 'sww file = ',sww_file
+        #print 'sww file = ',sww_file
         callable_sww = file_function(sww_file,
                                      quantities=core_quantities,
                                      interpolation_points=points_array,
@@ -2538,14 +2538,14 @@ def sww2csv_gauges(sww_file,
         for time in callable_sww.get_time():
             print 'time = ', str(time)
             for point_i, point in enumerate(points_array):
-                print 'gauge_file = ', str(point_name[point_i])
-                print 'point_i = ', str(point_i), ' point is = ', str(point) 
+               # print 'gauge_file = ', str(point_name[point_i])
+                #print 'point_i = ', str(point_i), ' point is = ', str(point) 
                 #add domain starttime to relative time.
                 quake_time = time + quake_offset_time
                 points_list = [quake_time, quake_time/3600.]# fudge around SWW time bug
-                print 'point list = ', str(points_list)
+                #print 'point list = ', str(points_list)
                 point_quantities = callable_sww(time,point_i)
-                print 'point quantities = ', str(point_quantities)
+                #print 'point quantities = ', str(point_quantities)
                 
                 for quantity in quantities:
                     if quantity == NAN:
