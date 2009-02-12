@@ -2594,7 +2594,7 @@ def sww2csv_gauges(sww_file,
                             points_list.append(calc_bearing(point_quantities[2],
                                                             point_quantities[3]))
 
-                print 'point list before write (writer %s) = %s' % (str(point_name[point_i]), str(points_list))
+                #print 'point list before write (writer %s) = %s' % (str(point_name[point_i]), str(points_list))
                 points_writer[point_i].writerow(points_list)
             
 
