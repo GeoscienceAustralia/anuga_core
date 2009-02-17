@@ -29,8 +29,10 @@ def add_csv_header(file, header_list, be_green=False):
         msg = "Can't open file '%s'" % file
         raise Exception, msg
 
-    # get a temporary file
-    (tmp_f, tmp_filename) = tempfile.mkstemp()
+    # get a temporary file.
+    # must create in same directory as input file, as we rename it.
+    input_dir = os.path.dirname(file)
+    (tmp_f, tmp_filename) = tempfile.mkstemp(dir=input_dir)
     tmp_fd = os.fdopen(tmp_f, 'w')
 
     # check the header, create header _string.
