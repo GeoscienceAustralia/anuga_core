@@ -44,16 +44,29 @@ def add_csv_header(file, header_list, be_green=False):
 
     # copy header to output file, then input file
     tmp_fd.write(header_string)
-    data = fd.readlines()
-    columns = data[0].strip().split(',')
 
-    if len(columns) != len(header_list):
-        msg = ("add_csv_header: File %s has %d columns but header "
-               "has %d columns" % (file, len(columns), len(header_list)))
-        raise Exception, msg
+    if be_green:
+        first_line = True
+        for line in fd:
+            if first_line:
+                first_line = False
+                columns = line.strip().split(',')
+                if len(columns) != len(header_list):
+                    msg = ("add_csv_header: File %s has %d columns but header "
+                           "has %d columns" % (file, len(columns), len(header_list)))
+                    raise Exception, msg
+            tmp_fd.write(line)
+    else:
+        data = fd.readlines()
+        columns = data[0].strip().split(',')
 
-    data = ''.join(data)
-    tmp_fd.write(data)
+        if len(columns) != len(header_list):
+            msg = ("add_csv_header: File %s has %d columns but header "
+                   "has %d columns" % (file, len(columns), len(header_list)))
+            raise Exception, msg
+
+        data = ''.join(data)
+        tmp_fd.write(data)
 
     # close and rename all files
     tmp_fd.close()
@@ -63,10 +76,16 @@ def add_csv_header(file, header_list, be_green=False):
 
 if __name__ == '__main__':
     import sys
+    import os
 
     file_data = '1,2,3\n4,5,6\n7,8,9'
     header = ['alpha', 'bravo', 'charlie']
     filename = '/tmp/add_csv_header.csv'
+    filename2 = '/tmp/add_csv_header2.csv'
+
+######
+# Create file and test function.
+######
 
     # create test file
     fd = open(filename, 'w')
@@ -88,3 +107,29 @@ if __name__ == '__main__':
     msg = 'Expected data:\n%s\ngot:\n%s' % (expected, data)
     assert expected == data, msg
 
+######
+# Test the 'be_green' option.
+######
+
+    # create test file
+    fd = open(filename2, 'w')
+    fd.write(file_data)
+    fd.close()
+
+    add_csv_header(filename2, header, be_green=True)
+
+    # read test file
+    fd = open(filename2, 'r')
+    data = fd.readlines()
+    fd.close
+
+    # check if data as expected
+    data = ''.join(data)
+    header_string = ','.join(header) + '\n'
+    expected = header_string + file_data
+
+    msg = 'Expected data:\n%s\ngot:\n%s' % (expected, data)
+    assert expected == data, msg
+
+    os.remove(filename)
+    os.remove(filename2)
