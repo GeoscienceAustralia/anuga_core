@@ -386,13 +386,22 @@ class Test_Caching(unittest.TestCase):
         f1 = call(2, 3)
         f2 = call(5, 7)
 
+        #print myhash(f1) 
+        #print myhash(f2)      
 
         # Check that hash value of callable objects don't change
+        # FIXME (Ole): The hash values do appear to change when OS
+        # and/or dependencies are upgraded
         if os.name == 'posix' and os.uname()[4] in ['x86_64', 'ia64']:
           # 64 bit hash values
-          f1hash = 1914027059797211698
-          f2hash = 1914027059807087171
+          f1hash = 7079146893884768701
+          f2hash = -6995306676314913340
+
+          # Prior to cluster upgrades Feb 2009
+          #f1hash = 1914027059797211698 
+          #f2hash = 1914027059807087171
         else:
+          # 32 bit hash values
           f1hash = -758136387
           f2hash = -11221564     
           
