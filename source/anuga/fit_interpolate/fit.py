@@ -371,6 +371,11 @@ class Fit(FitInterpolate):
                 z = geo_block.get_attributes(attribute_name=attribute_name)
                 self.build_fit_subset(points, z, verbose=verbose)
 
+                msg = 'Matrix AtA was not built'
+                assert self.AtA is not None, msg
+                
+                #print 'Matrix was built OK'
+
                 
             point_coordinates = None
         else:
@@ -378,8 +383,9 @@ class Fit(FitInterpolate):
             
         if point_coordinates is None:
             if verbose: print 'Warning: no data points in fit'
-            assert self.AtA <> None, 'no interpolation matrix'
-            assert self.Atz <> None
+            msg = 'No interpolation matrix'
+            assert self.AtA is not None, msg
+            assert self.Atz is not None
             
             # FIXME (DSG) - do  a message
         else:
