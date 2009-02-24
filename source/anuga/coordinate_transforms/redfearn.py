@@ -36,7 +36,8 @@ def decimal_degrees2degminsec(dec):
     
     return sign*dd, mm, ss
 
-def redfearn(lat, lon, false_easting=None, false_northing=None, zone=None):
+def redfearn(lat, lon, false_easting=None, false_northing=None,
+             zone=None, central_meridian=None):
     """Compute UTM projection using Redfearn's formula
 
     lat, lon is latitude and longitude in decimal degrees
@@ -46,6 +47,11 @@ def redfearn(lat, lon, false_easting=None, false_northing=None, zone=None):
 
     If zone is specified reproject lat and long to specified zone instead of
     standard zone
+
+    If meridian is specified, reproject lat and lon to that instead of zone. In this case
+    zone will be set to -1 to indicate non-UTM projection
+
+    Note that zone and meridian cannot both be specifed
     """
 
 
@@ -53,7 +59,7 @@ def redfearn(lat, lon, false_easting=None, false_northing=None, zone=None):
     
 
 
-    #GDA Specifications
+    # GDA Specifications
     a = 6378137.0                       #Semi major axis
     inverse_flattening = 298.257222101  #1/f
     K0 = 0.9996                         #Central scale factor    
@@ -72,7 +78,7 @@ def redfearn(lat, lon, false_easting=None, false_northing=None, zone=None):
             false_northing = 0         #Northern hemisphere)
         
     
-    #Derived constants
+    # Derived constants
     f = 1.0/inverse_flattening
     b = a*(1-f)       #Semi minor axis
 
@@ -83,7 +89,7 @@ def redfearn(lat, lon, false_easting=None, false_northing=None, zone=None):
     e4 = e2*e2
     e6 = e2*e4
 
-    #Foot point latitude
+    # Foot point latitude
     n = (a-b)/(a+b) #Same as e2 - why ?
     n2 = n*n
     n3 = n*n2
@@ -113,7 +119,7 @@ def redfearn(lat, lon, false_easting=None, false_northing=None, zone=None):
     t4 = t2*t2
     t6 = t2*t4
     
-    #Radius of Curvature
+    # Radius of Curvature
     rho = a*(1-e2)/(1-e2*sinphi*sinphi)**1.5
     nu = a/(1-e2*sinphi*sinphi)**0.5
     psi = nu/rho
@@ -121,10 +127,7 @@ def redfearn(lat, lon, false_easting=None, false_northing=None, zone=None):
     psi3 = psi*psi2
     psi4 = psi2*psi2
 
-
-
-    #Meridian distance
-
+    # Meridian distance
     A0 = 1 - e2/4 - 3*e4/64 - 5*e6/256
     A2 = 3.0/8*(e2+e4/4+15*e6/128)
     A4 = 15.0/256*(e4+3*e6/4)
@@ -137,11 +140,19 @@ def redfearn(lat, lon, false_easting=None, false_northing=None, zone=None):
 
     m = term1 + term2 + term3 + term4 #OK
 
-    #Zone
+    if zone is not None and central_meridian is not None:
+        msg = 'You specified both zone and central_meridian. Provide only one of them'
+        raise Exception, msg
+    
+    # Zone
     if zone is None:
         zone = int((lon - longitude_of_western_edge_zone0)/zone_width)
 
-    central_meridian = zone*zone_width+longitude_of_central_meridian_zone0
+    # Central meridian
+    if central_meridian is None:
+        central_meridian = zone*zone_width+longitude_of_central_meridian_zone0
+    else:
+        zone = -1
 
     omega = (lon-central_meridian)*pi/180 #Relative longitude (radians)
     omega2 = omega*omega
@@ -152,7 +163,7 @@ def redfearn(lat, lon, false_easting=None, false_northing=None, zone=None):
     omega7 = omega*omega6
     omega8 = omega4*omega4
      
-    #Northing
+    # Northing
     term1 = nu*sinphi*cosphi*omega2/2  
     term2 = nu*sinphi*cosphi3*(4*psi2+psi-t2)*omega4/24
     term3 = nu*sinphi*cosphi5*\
@@ -161,7 +172,7 @@ def redfearn(lat, lon, false_easting=None, false_northing=None, zone=None):
     term4 = nu*sinphi*cosphi7*(1385-3111*t2+543*t4-t6)*omega8/40320
     northing = false_northing + K0*(m + term1 + term2 + term3 + term4)
 
-    #Easting
+    # Easting
     term1 = nu*omega*cosphi
     term2 = nu*cosphi3*(psi-t2)*omega3/6
     term3 = nu*cosphi5*(4*psi3*(1-6*t2)+psi2*(1+8*t2)-2*psi*t2+t4)*omega5/120

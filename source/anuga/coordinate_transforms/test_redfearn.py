@@ -9,7 +9,8 @@ import unittest
 
 from redfearn import *
 from anuga.utilities.anuga_exceptions import ANUGAError
-
+from anuga.utilities.system_tools import get_pathname_from_package
+from os.path import join
 import Numeric as num
 
 
@@ -272,17 +273,12 @@ class TestCase(unittest.TestCase):
     #    #assert allclose(northing, 6181725.1724276)
 
 
-    def test_nonstandard_meridian(self):
+    def Xtest_nonstandard_meridian(self):
         """test_nonstandard_meridian
 
         This test will verify that redfearn can be used to project
         points using an arbitrary central meridian.
         """
-
-
-        # FIXME: To do using csv file
-        pass
-
 
         # The file projection_test_points.csv contains 10 points
         # which straddle the boundary between UTM zones 53 and 54.
@@ -290,9 +286,43 @@ class TestCase(unittest.TestCase):
         # degrees (the boundary is 138 so it is pretty much right
         # in the middle of zones 53 and 54).
 
-        
-    
-    
+        path = get_pathname_from_package('anuga.coordinate_transforms')
+        datafile = join(path, 'projection_test_points.csv')
+        fid = open(datafile)
+
+        for line in fid.readlines()[1:]:
+            fields = line.strip().split(',')
+
+            lon = float(fields[1])
+            lat = float(fields[2])
+            x = float(fields[3])
+            y = float(fields[4])            
+
+            zone, easting, northing = redfearn(lat, lon,
+                                               central_meridian=137.5)
+
+            print
+            print 'Lat', lat
+            print 'Lon', lon
+            print 'Zone', zone
+            print 'Ref x', x, 'Computed x', easting, 'Close enough:', num.allclose(x, easting)
+            print 'Ref y', y, 'Computed y', northing, 'Close enough:', num.allclose(y, northing)
+
+            # Check calculation
+            assert zone == -1 # Indicates non UTM projection
+            print 
+            #assert num.allclose(x, easting)
+            #assert num.allclose(y, northing)
+
+        # Test that zone and meridian can't both be specified
+        try:
+            zone, easting, northing = redfearn(lat, lon,
+                                               zone=50, central_meridian=137.5)
+        except:
+            pass
+        else:
+            msg = 'Should have raised exception'
+            raise Exception, msg
 
     def test_convert_lats_longs(self):
 
