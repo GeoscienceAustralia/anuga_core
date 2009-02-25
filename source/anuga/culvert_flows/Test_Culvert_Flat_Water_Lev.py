@@ -122,6 +122,8 @@ culvert_energy = Culvert_flow(domain,
                        culvert_routine=boyd_generalised_culvert_model,        
                        number_of_barrels=1,
                        update_interval=2,
+                       log_file=True,
+                       discharge_hydrograph=True,
                        verbose=True)
 
 domain.forcing_terms.append(culvert_energy)
