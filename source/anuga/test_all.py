@@ -210,3 +210,7 @@ if __name__ == '__main__':
         #fid.close() # This was causing an error in windows
         #os.remove(filename)
 
+
+    
+    if sys.platform == 'win32':
+        raw_input('Press any key')

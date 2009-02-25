@@ -47,3 +47,6 @@ os.chdir(buildroot)
 #execfile('test_all.py')
     
 print 'That took %.3fs' %(time.time() - t0)
+
+if sys.platform == 'win32':
+    raw_input('Press any key')
