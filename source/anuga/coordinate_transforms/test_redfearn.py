@@ -299,7 +299,8 @@ class TestCase(unittest.TestCase):
             y = float(fields[4])            
 
             zone, easting, northing = redfearn(lat, lon,
-                                               central_meridian=137.5)
+                                               central_meridian=137.5,
+                                               scale_factor=0.9998154)
 
             print
             print 'Lat', lat
@@ -317,7 +318,9 @@ class TestCase(unittest.TestCase):
         # Test that zone and meridian can't both be specified
         try:
             zone, easting, northing = redfearn(lat, lon,
-                                               zone=50, central_meridian=137.5)
+                                               zone=50, 
+                                               central_meridian=137.5,
+                                               scale_factor=0.968)
         except:
             pass
         else:

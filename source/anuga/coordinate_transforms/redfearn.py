@@ -37,7 +37,7 @@ def decimal_degrees2degminsec(dec):
     return sign*dd, mm, ss
 
 def redfearn(lat, lon, false_easting=None, false_northing=None,
-             zone=None, central_meridian=None):
+             zone=None, central_meridian=None, scale_factor=None):
     """Compute UTM projection using Redfearn's formula
 
     lat, lon is latitude and longitude in decimal degrees
@@ -62,7 +62,11 @@ def redfearn(lat, lon, false_easting=None, false_northing=None,
     # GDA Specifications
     a = 6378137.0                       #Semi major axis
     inverse_flattening = 298.257222101  #1/f
-    K0 = 0.9996                         #Central scale factor    
+    if scale_factor is None:
+        K0 = 0.9996                         #Central scale factor    
+    else:
+        K0 = scale_factor
+    #print 'scale', K0
     zone_width = 6                      #Degrees
 
     longitude_of_central_meridian_zone0 = -183    
