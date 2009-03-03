@@ -230,8 +230,9 @@ def corr(x, y=None):
 
 
 	
-def ensure_numeric(A, typecode = None):
-    """Ensure that sequence is a Numeric array.
+def ensure_numeric(A, typecode=None):
+    """Ensure that sequence is a numeric array.
+    
     Inputs:
         A: Sequence. If A is already a Numeric array it will be returned
                      unaltered
@@ -253,12 +254,11 @@ def ensure_numeric(A, typecode = None):
     else:
         if type(A) == num.ArrayType:
             if A.typecode == typecode:
-#                return num.array(A)  #FIXME: Shouldn't this just return A?
                 return A
             else:
-                return num.array(A,typecode)
-        else:
-            return num.array(A,typecode)
+                return num.array(A, typecode)
+        else: 
+            return num.array(A, typecode)
 
 
 
