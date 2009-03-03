@@ -273,6 +273,56 @@ class TestCase(unittest.TestCase):
     #    #assert allclose(northing, 6181725.1724276)
 
 
+    
+    def Xtest_nonstandard_meridian_coinciding_with_native(self):
+        """test_nonstandard_meridian_coinciding_with_native
+
+        This test will verify that redfearn can be used to project
+        points using an arbitrary central meridian that happens to 
+        coincide with the standard meridian at the center of a UTM zone.
+        This is a preliminary test before testing this functionality
+        with a truly arbitrary non-standard meridian.
+        """
+
+        # The file projection_test_points_z53.csv contains 10 points
+        # which straddle the boundary between UTM zones 53 and 54.
+        # They have been projected to zone 53 irrespective of where they
+        # belong.
+
+        path = get_pathname_from_package('anuga.coordinate_transforms')
+        
+        for forced_zone in [53, 54]:
+        
+            datafile = join(path, 'projection_test_points_z%d.csv' % forced_zone)
+            fid = open(datafile)
+
+            for line in fid.readlines()[1:]:
+                fields = line.strip().split(',')
+                
+                lon = float(fields[1])
+                lat = float(fields[2])
+                x = float(fields[3])
+                y = float(fields[4])            
+
+                zone, easting, northing = redfearn(lat, lon,
+                                                   zone=forced_zone)
+                
+                print
+                print 'Lat', lat
+                print 'Lon', lon
+                print 'Zone', zone
+                print 'Ref x', x, 'Computed x', easting, 'Close enough:', num.allclose(x, easting)
+                print 'Ref y', y, 'Computed y', northing, 'Close enough:', num.allclose(y, northing)
+                
+                # Check calculation
+                assert zone == forced_zone
+                print 
+                #assert num.allclose(x, easting)
+                #assert num.allclose(y, northing)
+
+    
+    
+    
     def Xtest_nonstandard_meridian(self):
         """test_nonstandard_meridian
 
@@ -300,7 +350,7 @@ class TestCase(unittest.TestCase):
 
             zone, easting, northing = redfearn(lat, lon,
                                                central_meridian=137.5,
-                                               scale_factor=0.9998154)
+                                               scale_factor=0.9996)
 
             print
             print 'Lat', lat
@@ -319,14 +369,14 @@ class TestCase(unittest.TestCase):
         try:
             zone, easting, northing = redfearn(lat, lon,
                                                zone=50, 
-                                               central_meridian=137.5,
-                                               scale_factor=0.968)
+                                               central_meridian=137.5)
         except:
             pass
         else:
             msg = 'Should have raised exception'
             raise Exception, msg
 
+            
     def test_convert_lats_longs(self):
 
         #Site Name:    GDA-MGA: (UTM with GRS80 ellipsoid) 
@@ -474,7 +524,7 @@ class TestCase(unittest.TestCase):
 if __name__ == "__main__":
 
     #mysuite = unittest.makeSuite(TestCase,'test_convert_latlon_to_UTM1')
-    #mysuite = unittest.makeSuite(TestCase,'test_UTM_6_nonstandard_projection')
-    mysuite = unittest.makeSuite(TestCase,'test')
+    mysuite = unittest.makeSuite(TestCase,'test_nonstandard_meridian_coinciding_with_native')
+    #mysuite = unittest.makeSuite(TestCase,'test')
     runner = unittest.TextTestRunner()
     runner.run(mysuite)
