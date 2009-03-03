@@ -1459,6 +1459,7 @@ def ensure_absolute(points, geo_reference=None):
                  relative to their respective origins.
     """
 
+    import copy
     # Input check
     if isinstance(points, basestring):
         #It's a string - assume it is a point file
@@ -1469,7 +1470,7 @@ def ensure_absolute(points, geo_reference=None):
         msg = 'Use a Geospatial_data object or a mesh origin, not both.'
         assert geo_reference == None, msg
     else:
-        points = ensure_numeric(points, num.Float)
+        points = ensure_numeric(copy.copy(points), num.Float)
 
     # Sort of geo_reference and convert points
     if geo_reference is None:
@@ -1506,6 +1507,7 @@ def ensure_geospatial(points, geo_reference=None):
                  relative to their respective origins.
     """
 
+    import copy
     # Input check
     if isinstance(points, Geospatial_data):
         msg = "Use a Geospatial_data object or a mesh origin, not both."

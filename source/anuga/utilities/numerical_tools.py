@@ -253,7 +253,7 @@ def ensure_numeric(A, typecode=None):
             return num.array(A)
     else:
         if type(A) == num.ArrayType:
-            if A.typecode == typecode:
+            if A.typecode() == typecode:
                 return A
             else:
                 return num.array(A, typecode)

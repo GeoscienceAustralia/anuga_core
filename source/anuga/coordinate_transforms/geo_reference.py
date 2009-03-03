@@ -6,7 +6,9 @@
 #FIXME: Ensure that all attributes of a georef are treated everywhere
 #and unit test
 
+
 import types, sys
+import copy
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.utilities.anuga_exceptions import ANUGAError, TitleError, ParsingError, \
      ShapeError
@@ -191,12 +193,13 @@ class Geo_reference:
         be this reference.(The reference used for this object)
         If the points do not have a geo ref, assume 'absolute' values
         """
-
+        import copy
+        
         is_list = False
         if type(points) == types.ListType:
             is_list = True
 
-        points = ensure_numeric(points, num.Float)
+        points = ensure_numeric(copy.copy(points), num.Float)
 	
         if len(points.shape) == 1:
             #One point has been passed
@@ -255,7 +258,7 @@ class Geo_reference:
         if type(points) == types.ListType:
             is_list = True
 
-        points = ensure_numeric(points, num.Float)
+        points = ensure_numeric(copy.copy(points), num.Float)
         if len(points.shape) == 1:
             #One point has been passed
             msg = 'Single point must have two elements'
