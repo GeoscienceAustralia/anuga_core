@@ -87,8 +87,13 @@ class Time_boundary(Boundary):
 
     # FIXME (Ole): We should rename f to function to be consistent with
     # Transmissive_Momentum_Set_Stage_Boundary (cf posting by rrraman)
-    def __init__(self, domain = None, f = None, default_boundary = None):
+    def __init__(self, domain=None,
+                 f=None,
+                 default_boundary=None):
         Boundary.__init__(self)
+
+        self.default_boundary = default_boundary
+        self.default_boundary_invoked = False    # Flag
 
         try:
             q = f(0.0)
@@ -144,7 +149,7 @@ class Time_boundary(Boundary):
                     msg += 'Instead I will use the default boundary: %s\n'\
                         %str(self.default_boundary) 
                     msg += 'Note: Further warnings will be supressed'
-                    warn(msg)
+                    print msg
                
                     # FIXME (Ole): Replace this crude flag with
                     # Python's ability to print warnings only once.
