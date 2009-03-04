@@ -87,7 +87,7 @@ class Time_boundary(Boundary):
 
     # FIXME (Ole): We should rename f to function to be consistent with
     # Transmissive_Momentum_Set_Stage_Boundary (cf posting by rrraman)
-    def __init__(self, domain = None, f = None):
+    def __init__(self, domain = None, f = None, default_boundary = None):
         Boundary.__init__(self)
 
         try:
@@ -121,7 +121,37 @@ class Time_boundary(Boundary):
 
     def evaluate(self, vol_id=None, edge_id=None):
         # FIXME (Ole): I think this should be get_time(), see ticket:306
-        return self.f(self.domain.time)
+        try:
+            res = self.f(self.domain.time)
+        except Modeltime_too_early, e:
+            raise Modeltime_too_early, e
+        except Modeltime_too_late, e:
+            if self.default_boundary is None:
+                raise Exception, e # Reraise exception
+            else:
+                # Pass control to default boundary
+                res = self.default_boundary.evaluate(vol_id, edge_id)
+                
+                # Ensure that result cannot be manipulated
+                # This is a real danger in case the 
+                # default_boundary is a Dirichlet type 
+                # for instance. 
+                res = res.copy() 
+                
+                if self.default_boundary_invoked is False:
+                    # Issue warning the first time
+                    msg = '%s' %str(e)
+                    msg += 'Instead I will use the default boundary: %s\n'\
+                        %str(self.default_boundary) 
+                    msg += 'Note: Further warnings will be supressed'
+                    warn(msg)
+               
+                    # FIXME (Ole): Replace this crude flag with
+                    # Python's ability to print warnings only once.
+                    # See http://docs.python.org/lib/warning-filter.html
+                    self.default_boundary_invoked = True
+
+        return res
 
 
 
