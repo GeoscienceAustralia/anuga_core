@@ -10585,13 +10585,22 @@ friction  \n \
         xmomentum = fid.variables['xmomentum'][:]
         ymomentum = fid.variables['ymomentum'][:]        
 
-        h = stage-z
-        for i in range(len(stage)):
-            if h[i] == 0.0:
-                assert xmomentum[i] == 0.0
-                assert ymomentum[i] == 0.0                
-            else:
-                assert h[i] >= domain.minimum_storable_height
+        
+        
+        for i in range(stage.shape[0]):
+            h = stage[i]-z # depth vector at time step i
+            
+            # Check every node location
+            for j in range(stage.shape[1]):
+                # Depth being either exactly zero implies
+                # momentum being zero.
+                # Or else depth must be greater than or equal to
+                # the minimal storable height
+                if h[j] == 0.0:
+                    assert xmomentum[i,j] == 0.0
+                    assert ymomentum[i,j] == 0.0                
+                else:
+                    assert h[j] >= domain.minimum_storable_height
         
         fid.close()
 
