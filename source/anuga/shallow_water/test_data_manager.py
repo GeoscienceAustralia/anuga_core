@@ -520,7 +520,7 @@ class Test_Data_Manager(unittest.TestCase):
 
         #Check contents
         #Get NetCDF
-        fid = NetCDFFile(sww.filename, inetcdf_mode_r)
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)
 
         # Get the variables
         x = fid.variables['x']
