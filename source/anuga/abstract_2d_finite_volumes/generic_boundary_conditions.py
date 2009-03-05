@@ -144,12 +144,13 @@ class Time_boundary(Boundary):
                 res = res.copy() 
                 
                 if self.default_boundary_invoked is False:
-                    # Issue warning the first time
-                    msg = '%s' %str(e)
-                    msg += 'Instead I will use the default boundary: %s\n'\
-                        %str(self.default_boundary) 
-                    msg += 'Note: Further warnings will be supressed'
-                    print msg
+                    if self.verbose:                
+                        # Issue warning the first time
+                        msg = '%s' %str(e)
+                        msg += 'Instead I will use the default boundary: %s\n'\
+                            %str(self.default_boundary) 
+                        msg += 'Note: Further warnings will be supressed'
+                        print msg
                
                     # FIXME (Ole): Replace this crude flag with
                     # Python's ability to print warnings only once.
@@ -333,11 +334,12 @@ class File_boundary(Boundary):
                     
                     if self.default_boundary_invoked is False:
                         # Issue warning the first time
-                        msg = '%s' %str(e)
-                        msg += 'Instead I will use the default boundary: %s\n'\
-                            %str(self.default_boundary) 
-                        msg += 'Note: Further warnings will be supressed'
-                        warn(msg)
+                        if self.verbose:
+                            msg = '%s' %str(e)
+                            msg += 'Instead I will use the default boundary: %s\n'\
+                                %str(self.default_boundary) 
+                            msg += 'Note: Further warnings will be supressed'
+                            print msg
                    
                         # FIXME (Ole): Replace this crude flag with
                         # Python's ability to print warnings only once.
