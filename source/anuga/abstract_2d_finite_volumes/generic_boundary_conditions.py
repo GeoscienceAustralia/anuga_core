@@ -89,11 +89,14 @@ class Time_boundary(Boundary):
     # Transmissive_Momentum_Set_Stage_Boundary (cf posting by rrraman)
     def __init__(self, domain=None,
                  f=None,
-                 default_boundary=None):
+                 default_boundary=None,
+                 verbose=False):
         Boundary.__init__(self)
 
         self.default_boundary = default_boundary
         self.default_boundary_invoked = False    # Flag
+        self.domain = domain
+        self.verbose = verbose
 
         try:
             q = f(0.0)
