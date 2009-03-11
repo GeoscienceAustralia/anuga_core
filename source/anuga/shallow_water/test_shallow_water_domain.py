@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import unittest, os
+from os.path import join
+
 from math import pi, sqrt
 import tempfile
 
@@ -13,6 +15,7 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.abstract_2d_finite_volumes.quantity import Quantity
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
+from anuga.utilities.system_tools import get_pathname_from_package
 from shallow_water_domain import *
 
 # Get gateway to C implementation of flux function for direct testing
@@ -6543,7 +6546,11 @@ friction  \n \
         from anuga.pmesh.mesh_interface import create_mesh_from_regions
         from anuga.geospatial_data.geospatial_data import Geospatial_data
 
-
+        
+        # Get path where this test is run
+        path = get_pathname_from_package('anuga.shallow_water')        
+        
+        
         #----------------------------------------------------------------------
         # Create domain
         #----------------------------------------------------------------------
@@ -6588,7 +6595,7 @@ friction  \n \
         for polygon in offending_regions:
             interior_regions.append( [polygon, 100] ) 
 
-        meshname = 'offending_mesh.msh'
+        meshname = join(path, 'offending_mesh.msh')
         create_mesh_from_regions(bounding_polygon,
                                  boundary_tags={'south': [0], 'east': [1], 'north': [2], 'west': [3]},
                                  maximum_triangle_area=1000000,
@@ -6604,7 +6611,7 @@ friction  \n \
         # Fit data point to mesh
         #----------------------------------------------------------------------
 
-        points_file = 'offending_point.pts'
+        points_file = join(path, 'offending_point.pts')
 
         # Offending point
         G=Geospatial_data(data_points=[[306953.344, 6194461.5]],
@@ -6640,7 +6647,7 @@ friction  \n \
 
         
         
-    def Xtest_fitting_example_that_crashed_2(self):
+    def test_fitting_example_that_crashed_2(self):
         """test_fitting_example_that_crashed_2
         
         This unit test has been derived from a real world example 
@@ -6654,12 +6661,15 @@ friction  \n \
 
         verbose = False        
 
-        from os.path import join
         from anuga.shallow_water import Domain
         from anuga.pmesh.mesh_interface import create_mesh_from_regions
         from anuga.geospatial_data import Geospatial_data
+        
+        # Get path where this test is run
+        path = get_pathname_from_package('anuga.shallow_water')        
+        
 
-        meshname = 'test_mesh.msh'
+        meshname = join(path, 'test_mesh.msh')
         W=304180
         S=6185270
         E=307650
@@ -6682,7 +6692,7 @@ friction  \n \
         domain = Domain(meshname, use_cache=True, verbose=verbose)
         
         # Large test set revealed one problem
-        points_file = 'test_points_large.csv'
+        points_file = join(path, 'test_points_large.csv')
         try:
             domain.set_quantity('elevation', 
                                 filename=points_file,
@@ -6698,7 +6708,7 @@ friction  \n \
                             
                             
         # Small test set revealed another problem
-        points_file = 'test_points_small.csv'    
+        points_file = join(path, 'test_points_small.csv')
         try:    
             domain.set_quantity('elevation', 
                                 filename=points_file,
