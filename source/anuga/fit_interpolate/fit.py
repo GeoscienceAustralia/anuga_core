@@ -316,7 +316,7 @@ class Fit(FitInterpolate):
                     % (minx, maxx, miny, maxy)
                 raise RuntimeError, msg
                 
-            self.AtA = AtA
+        self.AtA = AtA
 
         
     def fit(self, point_coordinates_or_filename=None, z=None,
@@ -337,13 +337,11 @@ class Fit(FitInterpolate):
           z: Single 1d vector or array of data at the point_coordinates.
           
         """
-        
         # Use blocking to load in the point info
         if type(point_coordinates_or_filename) == types.StringType:
             msg = "Don't set a point origin when reading from a file"
             assert point_origin is None, msg
             filename = point_coordinates_or_filename
-
             G_data = Geospatial_data(filename,
                                      max_read_lines=max_read_lines,
                                      load_file_now=False,
@@ -386,7 +384,7 @@ class Fit(FitInterpolate):
             
         if point_coordinates is None:
             if verbose: print 'Warning: no data points in fit'
-            msg = 'No interpolation matrix'
+            msg = 'No interpolation matrix.'
             assert self.AtA is not None, msg
             assert self.Atz is not None
             
@@ -463,7 +461,7 @@ class Fit(FitInterpolate):
 
         point_coordinates = ensure_numeric(point_coordinates, num.Float)
         self._build_matrix_AtA_Atz(point_coordinates, z, verbose)
-
+        
 
 ############################################################################
 
