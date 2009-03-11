@@ -6622,23 +6622,15 @@ friction  \n \
         except RuntimeError, e:
             msg = 'Test failed: %s' % str(e)
             raise Exception, msg
-            # Cleanup
+        finally:
+            # Cleanup regardless
             os.remove(meshname)
-            os.remove(points_file)            
-        else:
-            # Cleanup        
-            os.remove(meshname)
-            os.remove(points_file)                    
-            
+            os.remove(points_file)
             
             
         #FIXME(Ole): Finally does not work like this in python2.3 
         #FIXME(Ole): Reinstate this when Python2.3 is out of the way
         #FIXME(Ole): Python 2.6 apparently introduces something called 'with'
-        #finally:
-        #    # Cleanup regardless
-        #    os.remove(meshname)
-        #    os.remove(points_file)
         
         
     def Xtest_fitting_example_that_crashed_2(self):
@@ -6678,37 +6670,46 @@ friction  \n \
                                  maximum_triangle_area=maximum_triangle_area,
                                  filename=meshname,
                                  use_cache=False,
-                                 verbose=True)
+                                 verbose=verbose)
 
-        domain = Domain(meshname, use_cache=True, verbose=True)
+        domain = Domain(meshname, use_cache=True, verbose=verbose)
         
         # Large test set revealed one problem
-        domain.set_quantity('elevation', 
-                            filename='test_points_large.csv',  
-                            use_cache=False,
-                            verbose=True)
+        points_file = 'test_points_large.csv'
+        try:
+            domain.set_quantity('elevation', 
+                                filename=points_file,
+                                use_cache=False,
+                                verbose=verbose)
+        except AssertionError, e:
+            msg = 'Test failed: %s' % str(e)
+            raise Exception, msg
+            # Cleanup in case this failed
+            os.remove(meshname)
+
+                                
                             
                             
         # Small test set revealed another problem
-        domain.set_quantity('elevation', 
-                            filename='test_points_small.csv',
-                            use_cache=False,
-                            verbose=True)                            
+        points_file = 'test_points_small.csv'    
+        try:    
+            domain.set_quantity('elevation', 
+                                filename=points_file,
+                                use_cache=False,
+                                verbose=verbose)                            
+        except AssertionError, e:
+            msg = 'Test failed: %s' % str(e)
+            raise Exception, msg
+        finally:
+            # Cleanup regardless
+            os.remove(meshname)
+
                     
         
 
         
 if __name__ == "__main__":
-
-    #suite = unittest.makeSuite(Test_Shallow_Water, 'test')
-    #suite = unittest.makeSuite(Test_Shallow_Water, 'test_rainfall_forcing_with_evolve')
-    #suite = unittest.makeSuite(Test_Shallow_Water,'test_get_energy_through_cross_section_with_g')    
-    suite = unittest.makeSuite(Test_Shallow_Water,'test_fitting_example_that_crashed_2')    
-    #suite = unittest.makeSuite(Test_Shallow_Water,'test_tight_slope_limiters')
-    #suite = unittest.makeSuite(Test_Shallow_Water,'test_inflow_outflow_conservation')
-    #suite = unittest.makeSuite(Test_Shallow_Water,'test_outflow_conservation_problem_temp')    
-    
-
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test')
     
     runner = unittest.TextTestRunner(verbosity=1)    
     runner.run(suite)
