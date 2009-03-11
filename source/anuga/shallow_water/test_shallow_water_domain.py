@@ -6622,15 +6622,22 @@ friction  \n \
         except RuntimeError, e:
             msg = 'Test failed: %s' % str(e)
             raise Exception, msg
-        finally:
-            # Cleanup regardless
             os.remove(meshname)
             os.remove(points_file)
+        else:
+            os.remove(meshname)
+            os.remove(points_file)            
+        
+        #finally:
+            # Cleanup regardless
+            #FIXME(Ole): Finally does not work like this in python2.4 
+            #FIXME(Ole): Reinstate this when Python2.4 is out of the way
+            #FIXME(Ole): Python 2.6 apparently introduces something called 'with'            
+            #os.remove(meshname)
+            #os.remove(points_file)
             
             
-        #FIXME(Ole): Finally does not work like this in python2.3 
-        #FIXME(Ole): Reinstate this when Python2.3 is out of the way
-        #FIXME(Ole): Python 2.6 apparently introduces something called 'with'
+
         
         
     def Xtest_fitting_example_that_crashed_2(self):
@@ -6700,10 +6707,9 @@ friction  \n \
         except AssertionError, e:
             msg = 'Test failed: %s' % str(e)
             raise Exception, msg
-        finally:
-            # Cleanup regardless
             os.remove(meshname)
-
+        else:
+            os.remove(meshname)
                     
         
 
