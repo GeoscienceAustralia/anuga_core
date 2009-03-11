@@ -1457,7 +1457,7 @@ class Test_Geospatial_data(unittest.TestCase):
             data_points[k][1] = ab_points[k][1] - mesh_origin[2]
         #print "data_points",data_points     
         new_points = ensure_absolute(data_points,
-                                             geo_reference=mesh_origin)
+                                     geo_reference=mesh_origin)
         #print "new_points",new_points
         #print "ab_points",ab_points
            
@@ -1467,7 +1467,7 @@ class Test_Geospatial_data(unittest.TestCase):
 
         data_points = geo.change_points_geo_ref(ab_points)   
         new_points = ensure_absolute(data_points,
-                                             geo_reference=geo)
+                                     geo_reference=geo)
         #print "new_points",new_points
         #print "ab_points",ab_points
            

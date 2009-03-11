@@ -6526,8 +6526,8 @@ friction  \n \
         import os
         os.remove(ptsfile)
 
-    def test_fitting_example_that_crashed(self):
-        """test_fitting_example_that_crashed
+    def test_fitting_example_that_crashed_1(self):
+        """test_fitting_example_that_crashed_1
         
         This unit test has been derived from a real world example (the Towradgi '98 rainstorm simulation).
         
@@ -6639,6 +6639,63 @@ friction  \n \
         #    # Cleanup regardless
         #    os.remove(meshname)
         #    os.remove(points_file)
+        
+        
+    def Xtest_fitting_example_that_crashed_2(self):
+        """test_fitting_example_that_crashed_2
+        
+        This unit test has been derived from a real world example 
+        (the JJKelly study, by Petar Milevski).
+        
+        It shows a condition where set_quantity crashes due to AtA
+        not being built properly
+        
+        See ticket:314
+        """
+
+        verbose = False        
+
+        from os.path import join
+        from anuga.shallow_water import Domain
+        from anuga.pmesh.mesh_interface import create_mesh_from_regions
+        from anuga.geospatial_data import Geospatial_data
+
+        meshname = 'test_mesh.msh'
+        W=304180
+        S=6185270
+        E=307650
+        N=6189040
+        maximum_triangle_area = 1000000
+
+
+        bounding_polygon = [[W, S], [E, S], [E, N], [W, N]]
+
+        create_mesh_from_regions(bounding_polygon,
+                                 boundary_tags={'south': [0], 
+                                                'east': [1], 
+                                                'north': [2], 
+                                                'west': [3]},
+                                 maximum_triangle_area=maximum_triangle_area,
+                                 filename=meshname,
+                                 use_cache=False,
+                                 verbose=True)
+
+        domain = Domain(meshname, use_cache=True, verbose=True)
+        
+        # Large test set revealed one problem
+        domain.set_quantity('elevation', 
+                            filename='test_points_large.csv',  
+                            use_cache=False,
+                            verbose=True)
+                            
+                            
+        # Small test set revealed another problem
+        domain.set_quantity('elevation', 
+                            filename='test_points_small.csv',
+                            use_cache=False,
+                            verbose=True)                            
+                    
+        
 
         
 if __name__ == "__main__":
@@ -6646,7 +6703,7 @@ if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Shallow_Water, 'test')
     #suite = unittest.makeSuite(Test_Shallow_Water, 'test_rainfall_forcing_with_evolve')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_get_energy_through_cross_section_with_g')    
-    suite = unittest.makeSuite(Test_Shallow_Water,'test_fitting_example_that_crashed')    
+    suite = unittest.makeSuite(Test_Shallow_Water,'test_fitting_example_that_crashed_2')    
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_tight_slope_limiters')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_inflow_outflow_conservation')
     #suite = unittest.makeSuite(Test_Shallow_Water,'test_outflow_conservation_problem_temp')    
