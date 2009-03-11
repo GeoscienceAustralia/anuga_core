@@ -372,8 +372,8 @@ class Fit(FitInterpolate):
                 # FIXME(Ole): I thought this test would make sense here
                 # See test_fitting_example_that_crashed_2 in test_shallow_water_domain.py
                 # Committed 11 March 2009
-                #msg = 'Matrix AtA was not built'
-                #assert self.AtA is not None, msg
+                msg = 'Matrix AtA was not built'
+                assert self.AtA is not None, msg
                 
                 #print 'Matrix was built OK'
 
