@@ -1307,7 +1307,7 @@ class Field_boundary(Boundary):
         filename: Name of sww file
         domain: pointer to shallow water domain for which the boundary applies
         mean_stage: The mean water level which will be added to stage derived
-                    from the sww file
+                    from the boundary condition
         time_thinning: Will set how many time steps from the sww file read in
                        will be interpolated to the boundary. For example if 
                        the sww file has 1 second time steps and is 24 hours
@@ -1322,6 +1322,7 @@ class Field_boundary(Boundary):
                           class descending from class Boundary.
                           This will be used in case model time exceeds 
                           that available in the underlying data.
+                          Note that mean_stage will also be added to this.
                                                 
         use_cache:
         verbose:
