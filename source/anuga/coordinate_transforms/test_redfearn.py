@@ -307,18 +307,10 @@ class TestCase(unittest.TestCase):
                 zone, easting, northing = redfearn(lat, lon,
                                                    zone=forced_zone)
                 
-                print
-                print 'Lat', lat
-                print 'Lon', lon
-                print 'Zone', zone
-                print 'Ref x', x, 'Computed x', easting, 'Close enough:', num.allclose(x, easting)
-                print 'Ref y', y, 'Computed y', northing, 'Close enough:', num.allclose(y, northing)
-                
                 # Check calculation
                 assert zone == forced_zone
-                print 
-                #assert num.allclose(x, easting)
-                #assert num.allclose(y, northing)
+                assert num.allclose(x, easting)
+                assert num.allclose(y, northing)
 
     
     
@@ -352,18 +344,9 @@ class TestCase(unittest.TestCase):
                                                central_meridian=137.5,
                                                scale_factor=0.9996)
 
-            print
-            print 'Lat', lat
-            print 'Lon', lon
-            print 'Zone', zone
-            print 'Ref x', x, 'Computed x', easting, 'Close enough:', num.allclose(x, easting)
-            print 'Ref y', y, 'Computed y', northing, 'Close enough:', num.allclose(y, northing)
-
-            # Check calculation
             assert zone == -1 # Indicates non UTM projection
-            print 
-            #assert num.allclose(x, easting)
-            #assert num.allclose(y, northing)
+            assert num.allclose(x, easting)
+            assert num.allclose(y, northing)
 
         # Test that zone and meridian can't both be specified
         try:
@@ -523,8 +506,6 @@ class TestCase(unittest.TestCase):
 #-------------------------------------------------------------
 if __name__ == "__main__":
 
-    #mysuite = unittest.makeSuite(TestCase,'test_convert_latlon_to_UTM1')
-    mysuite = unittest.makeSuite(TestCase,'test_nonstandard_meridian_coinciding_with_native')
-    #mysuite = unittest.makeSuite(TestCase,'test')
+    mysuite = unittest.makeSuite(TestCase,'test')
     runner = unittest.TextTestRunner()
     runner.run(mysuite)
