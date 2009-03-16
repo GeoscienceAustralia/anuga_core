@@ -274,7 +274,7 @@ class TestCase(unittest.TestCase):
 
 
     
-    def Xtest_nonstandard_meridian_coinciding_with_native(self):
+    def test_nonstandard_meridian_coinciding_with_native(self):
         """test_nonstandard_meridian_coinciding_with_native
 
         This test will verify that redfearn can be used to project
@@ -323,7 +323,7 @@ class TestCase(unittest.TestCase):
     
     
     
-    def Xtest_nonstandard_meridian(self):
+    def test_nonstandard_meridian(self):
         """test_nonstandard_meridian
 
         This test will verify that redfearn can be used to project
