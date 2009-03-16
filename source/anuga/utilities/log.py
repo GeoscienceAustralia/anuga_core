@@ -113,8 +113,8 @@ def info(msg):
 
 ##
 # @brief Shortcut for log(WARNING, msg).
-def warning(msg):
 # @param msg Message string to log at logging.WARNING level.
+def warning(msg):
     log(logging.WARNING, msg)
 
 ##
