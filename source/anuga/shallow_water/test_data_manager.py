@@ -45,14 +45,14 @@ class Test_Data_Manager(unittest.TestCase):
         from mesh_factory import rectangular
         
         self.verbose = Test_Data_Manager.verbose
-        #Create basic mesh
+        # Create basic mesh
         points, vertices, boundary = rectangular(2, 2)
 
-        #Create shallow water domain
+        # Create shallow water domain
         domain = Domain(points, vertices, boundary)
         domain.default_order = 2
 
-        #Set some field values
+        # Set some field values
         domain.set_quantity('elevation', lambda x,y: -x)
         domain.set_quantity('friction', 0.03)
 
@@ -1219,16 +1219,18 @@ END CROSS-SECTIONS:
 
 
     def test_sww2dem_asc_elevation_depth(self):
-        """
-        test_sww2dem_asc_elevation_depth(self):
+        """test_sww2dem_asc_elevation_depth
+        
         Test that sww information can be converted correctly to asc/prj
         format readable by e.g. ArcView
+        
+        Also check geo_reference is correct
         """
 
         import time, os
         from Scientific.IO.NetCDF import NetCDFFile
 
-        #Setup
+        # Setup
         self.domain.set_name('datatest')
 
         prjfile = self.domain.get_name() + '_elevation.prj'
@@ -1241,13 +1243,12 @@ END CROSS-SECTIONS:
         self.domain.set_quantity('elevation', lambda x,y: -x-y)
         self.domain.set_quantity('stage', 1.0)
 
-        self.domain.geo_reference = Geo_reference(56,308500,6189000)
+        self.domain.geo_reference = Geo_reference(56, 308500, 6189000)
 
         sww = get_dataobject(self.domain)
         sww.store_connectivity()
         sww.store_timestep()
 
-        #self.domain.tight_slope_limiters = 1
 
         self.domain.evolve_to_end(finaltime = 0.01)
         sww.store_timestep()
@@ -1264,6 +1265,12 @@ END CROSS-SECTIONS:
         z = fid.variables['elevation'][:]
         time = fid.variables['time'][:]
         stage = fid.variables['stage'][:]
+        
+        # Check georeferencig: zone, xllcorner and yllcorner
+        assert fid.zone[0] == 56
+        assert fid.xllcorner[0] == 308500
+        assert fid.yllcorner[0] == 6189000
+                
 
         fid.close()
 
