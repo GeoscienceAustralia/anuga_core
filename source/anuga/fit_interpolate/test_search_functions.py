@@ -238,6 +238,11 @@ class Test_search_functions(unittest.TestCase):
             
         msg = 'Point which is clearly inside triangle was not found'
         assert element_found is True, msg
+        
+        #print sigma0, sigma1, sigma2
+        #print sigma0 + sigma1 + sigma2
+                
+        assert abs(sigma0 + sigma1 + sigma2 - 1) < 1.0e-6
 
 #-------------------------------------------------------------
 if __name__ == "__main__":

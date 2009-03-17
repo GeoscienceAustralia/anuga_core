@@ -177,17 +177,16 @@ def find_triangle_compute_interpolation(triangle, n0, n1, n2, x):
       
     # Integrity check - machine precision is too hard
     # so we use hardwired single precision 
-    epsilon = 1.0e-6
+    #epsilon = 1.0e-6
     
-    if  x[0] > max(xi0[0], xi1[0], xi2[0]) + epsilon:
-        # print "max(xi0[0], xi1[0], xi2[0])", max(xi0[0], xi1[0], xi2[0])
-        return False,0,0,0
-    if  x[0] < min(xi0[0], xi1[0], xi2[0]) - epsilon:
-        return False,0,0,0
-    if  x[1] > max(xi0[1], xi1[1], xi2[1]) + epsilon:
-        return False,0,0,0
-    if  x[1] < min(xi0[1], xi1[1], xi2[1]) - epsilon:
-        return False,0,0,0
+    #if  x[0] > max(xi0[0], xi1[0], xi2[0]) + epsilon:
+    #    return False,0,0,0
+    #if  x[0] < min(xi0[0], xi1[0], xi2[0]) - epsilon:
+    #    return False,0,0,0
+    #if  x[1] > max(xi0[1], xi1[1], xi2[1]) + epsilon:
+    #    return False,0,0,0
+    #if  x[1] < min(xi0[1], xi1[1], xi2[1]) - epsilon:
+    #    return False,0,0,0
     
     # machine precision on some machines (e.g. nautilus)
     epsilon = get_machine_precision() * 2
@@ -198,14 +197,20 @@ def find_triangle_compute_interpolation(triangle, n0, n1, n2, x):
     # print "dot((xi0-xi1), n0)", dot((xi0-xi1), n0)
     
     sigma0 = num.dot((x-xi1), n0)/num.dot((xi0-xi1), n0)
-    if sigma0 < -epsilon:
-        return False,0,0,0
+    #if sigma0 < -epsilon:
+        #print 'sigma0', sigma0
+        #sigma0 = 0.0
+        #return False,0,0,0
     sigma1 = num.dot((x-xi2), n1)/num.dot((xi1-xi2), n1)
-    if sigma1 < -epsilon:
-        return False,0,0,0
+    #if sigma1 < -epsilon:
+        #print 'sigma1', sigma1    
+        #sigma1 = 0.0        
+        #return False,0,0,0
     sigma2 = num.dot((x-xi0), n2)/num.dot((xi2-xi0), n2)
-    if sigma2 < -epsilon:
-        return False,0,0,0
+    #if sigma2 < -epsilon:
+        #print 'sigma2', sigma2    
+        #sigma2 = 0.0        
+        #return False,0,0,0
     
     # epsilon = 1.0e-6
     # we want to speed this up, so don't do assertions

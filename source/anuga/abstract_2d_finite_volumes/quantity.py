@@ -874,15 +874,12 @@ class Quantity:
             raise Exception, msg
 
             
-        # FIXME(Ole): I noticed a couple of examples where this caused
-        # a crash in fittng, so disabled it until I can investigate further
-        # Sorry. 23 Jan 2009. Logged as ticket:314
-        #if True: # Test will fail (31 Jan 2009) 
-        if False: # Test will pass (31 Jan 2009)
+        if True:
             # Use mesh as defined by domain
             # This used to cause problems for caching due to quantities
             # changing, but it now works using the appropriate Mesh object.
-            # This should close ticket:242
+            # This addressed ticket:242 and was made to work when bug
+            # in ticket:314 was fixed 18 March 2009.
             vertex_attributes = fit_to_mesh(filename,
                                             mesh=self.domain.mesh,
                                             alpha=alpha,
@@ -893,7 +890,8 @@ class Quantity:
         else:
             # This variant will cause Mesh object to be recreated
             # in fit_to_mesh thus doubling up on the neighbour structure
-            # FIXME(Ole): This is now obsolete 19 Jan 2009.
+            # FIXME(Ole): This is now obsolete 19 Jan 2009 except for bug 
+            # (ticket:314) which was fixed 18 March 2009.
             nodes = self.domain.get_nodes(absolute=True)
             triangles = self.domain.get_triangles()
             vertex_attributes = fit_to_mesh(filename,

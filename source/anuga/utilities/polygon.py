@@ -245,12 +245,13 @@ def is_inside_triangle(point, triangle,
     if point[1] < min(triangle[:,1]): return False
     if point[1] > max(triangle[:,1]): return False        
 
+    # Use C-implementation
     return bool(_is_inside_triangle(point, triangle, int(closed), rtol, atol))
     
     
 
     # FIXME (Ole): The rest of this function has been made 
-    # obsolete by the C extension
+    # obsolete by the C extension.
         
     # Start search    
     A = triangle[0, :]
