@@ -209,8 +209,7 @@ class Test_search_functions(unittest.TestCase):
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_search_functions,'test')
-    #suite = unittest.makeSuite(Test_search_functions,'expanding_search')
+    suite = unittest.makeSuite(Test_search_functions, 'test')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
     

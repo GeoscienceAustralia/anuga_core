@@ -7,6 +7,7 @@ General functions used in fit and interpolate.
 """
 import time
 
+from anuga.utilities.polygon import is_inside_triangle
 from anuga.utilities.numerical_tools import get_machine_precision
 from anuga.config import max_float
 
@@ -144,12 +145,18 @@ def _search_triangles_of_vertices(mesh, triangles, x):
     #For all vertices in same cell as point x
     for k, tri_verts_norms in triangles:
         tri = tri_verts_norms[0]
-        n0, n1, n2 = tri_verts_norms[1]
+
         # k is the triangle index
         # tri is a list of verts (x, y), representing a tringle
         # Find triangle that contains x (if any) and interpolate
-        element_found, sigma0, sigma1, sigma2 =\
-                       find_triangle_compute_interpolation(tri, n0, n1, n2, x)
+        if is_inside_triangle(x, tri, closed=True):
+            n0, n1, n2 = tri_verts_norms[1]        
+            element_found, sigma0, sigma1, sigma2 =\
+                find_triangle_compute_interpolation(tri, n0, n1, n2, x)
+        else:
+            element_found = False
+
+            
         if element_found is True:
             # Don't look for any other triangles in the triangle list
             last_triangle = [[k,tri_verts_norms]]
