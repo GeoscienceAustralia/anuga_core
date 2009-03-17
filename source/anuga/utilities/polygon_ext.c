@@ -243,6 +243,66 @@ int __interpolate_polyline(int number_of_nodes,
 }			       			       
 
 
+
+int __is_inside_triangle(double* point,
+			 double* triangle,
+			 int closed,
+			 double rtol,
+			 double atol) {
+			 
+  double vx, vy, v0x, v0y, v1x, v1y;
+  double a00, a10, a01, a11, b0, b1;
+  double denom, alpha, beta;
+  int i, j, res;
+
+  // v0 = C-A 
+  v0x = triangle[4]-triangle[0]; 
+  v0y = triangle[5]-triangle[1];
+  
+  // v1 = B-A   
+  v1x = triangle[2]-triangle[0]; 
+  v1y = triangle[3]-triangle[1];
+
+  // First check if point lies wholly inside triangle
+  a00 = v0x*v0x + v0y*v0y; // innerproduct(v0, v0)
+  a01 = v0x*v1x + v0y*v1y; // innerproduct(v0, v1)
+  a10 = a01;               // innerproduct(v1, v0)
+  a11 = v1x*v1x + v1y*v1y; // innerproduct(v1, v1)
+    
+  denom = a11*a00 - a01*a10;
+
+  if (fabs(denom) > 0.0) {
+    // v = point-A  
+    vx = point[0] - triangle[0]; 
+    vy = point[1] - triangle[1];     
+    
+    b0 = v0x*vx + v0y*vy; // innerproduct(v0, v)        
+    b1 = v1x*vx + v1y*vy; // innerproduct(v1, v)            
+    
+    alpha = (b0*a11 - b1*a01)/denom;
+    beta = (b1*a00 - b0*a10)/denom;        
+    
+    if ((alpha > 0.0) && (beta > 0.0) && (alpha+beta < 1.0)) return 1;
+  }
+
+  if (closed) {
+    // Check if point lies on one of the edges
+        
+    for (i=0; i<3; i++) {
+      j = (i+1) % 3; // Circular index into triangle array
+      res = __point_on_line(point[0], point[1],
+                            triangle[2*i], triangle[2*i+1], 
+                            triangle[2*j], triangle[2*j+1], 			    
+			    rtol, atol);
+      if (res) return 1;
+    }
+  }
+                
+  // Default return if point is outside triangle			 
+  return 0;			 			 
+}			  			       			       
+
+
 int __separate_points_by_polygon(int M,     // Number of points
 				 int N,     // Number of polygon vertices
 				 double* points,
@@ -254,10 +314,10 @@ int __separate_points_by_polygon(int M,     // Number of points
   double minpx, maxpx, minpy, maxpy, x, y, px_i, py_i, px_j, py_j, rtol=0.0, atol=0.0;
   int i, j, k, outside_index, inside_index, inside;
 
-  //Find min and max of poly used for optimisation when points
-  //are far away from polygon
+  // Find min and max of poly used for optimisation when points
+  // are far away from polygon
   
-  //FIXME(Ole): Pass in rtol and atol from Python
+  // FIXME(Ole): Pass in rtol and atol from Python
 
   minpx = polygon[0]; maxpx = minpx;
   minpy = polygon[1]; maxpy = minpy;
@@ -272,9 +332,9 @@ int __separate_points_by_polygon(int M,     // Number of points
     if (py_i > maxpy) maxpy = py_i;
   }
 
-  //Begin main loop (for each point)
-  inside_index = 0;    //Keep track of points inside
-  outside_index = M-1; //Keep track of points outside (starting from end)   
+  // Begin main loop (for each point)
+  inside_index = 0;    // Keep track of points inside
+  outside_index = M-1; // Keep track of points outside (starting from end)   
   if (verbose){
      printf("Separating %d points\n", M);
   }  
@@ -288,13 +348,12 @@ int __separate_points_by_polygon(int M,     // Number of points
 
     inside = 0;
 
-    //Optimisation
+    // Optimisation
     if ((x > maxpx) || (x < minpx) || (y > maxpy) || (y < minpy)) {
-      //Nothing
+      // Nothing
     } else {   
-      //Check polygon
+      // Check polygon
       for (i=0; i<N; i++) {
-        //printf("k,i=%d,%d\n", k, i);
         j = (i+1)%N;
 
         px_i = polygon[2*i];
@@ -302,7 +361,7 @@ int __separate_points_by_polygon(int M,     // Number of points
         px_j = polygon[2*j];
         py_j = polygon[2*j+1];
 
-        //Check for case where point is contained in line segment
+        // Check for case where point is contained in line segment
         if (__point_on_line(x, y, px_i, py_i, px_j, py_j, rtol, atol)) {
 	  if (closed == 1) {
 	    inside = 1;
@@ -311,7 +370,7 @@ int __separate_points_by_polygon(int M,     // Number of points
 	  }
 	  break;
         } else {
-          //Check if truly inside polygon
+          // Check if truly inside polygon
 	  if ( ((py_i < y) && (py_j >= y)) ||
 	       ((py_j < y) && (py_i >= y)) ) {
 	    if (px_i + (y-py_i)/(py_j-py_i)*(px_j-px_i) < x)
@@ -355,7 +414,7 @@ PyObject *_point_on_line(PyObject *self, PyObject *args) {
   // Call underlying routine
   res = __point_on_line(x, y, x0, y0, x1, y1, rtol, atol);
 
-  // Return values a and b
+  // Return result
   result = Py_BuildValue("i", res);
   return result;
 }
@@ -414,6 +473,51 @@ PyObject *_interpolate_polyline(PyObject *self, PyObject *args) {
   return Py_BuildValue("");  
 }
 
+
+
+
+     
+PyObject *_is_inside_triangle(PyObject *self, PyObject *args) {
+  //
+  // _is_inside_triangle(point, triangle, int(closed), rtol, atol)
+  //
+
+  
+  PyArrayObject
+    *point,
+    *triangle;
+
+  double rtol, atol;  
+  int closed, res;
+
+  PyObject *result;
+      
+  // Convert Python arguments to C
+  if (!PyArg_ParseTuple(args, "OOidd",
+			&point,
+			&triangle,
+			&closed,
+			&rtol,
+			&atol)) {
+    
+    PyErr_SetString(PyExc_RuntimeError, 
+		    "_is_inside_triangle could not parse input");
+    return NULL;
+  }
+
+  // Call underlying routine
+  res = __is_inside_triangle((double*) point -> data,
+			     (double*) triangle -> data,
+			     closed,
+			     rtol,
+			     atol);			       			       
+
+
+  // Return result
+  result = Py_BuildValue("i", res);
+  return result;  
+}
+     
 
 
 /*
@@ -538,6 +642,8 @@ static struct PyMethodDef MethodTable[] = {
                                  METH_VARARGS, "Print out"},
   {"_interpolate_polyline", _interpolate_polyline, 
                                  METH_VARARGS, "Print out"},				 
+  {"_is_inside_triangle", _is_inside_triangle, 
+                                 METH_VARARGS, "Print out"},
   {NULL, NULL, 0, NULL}   /* sentinel */
 };
 

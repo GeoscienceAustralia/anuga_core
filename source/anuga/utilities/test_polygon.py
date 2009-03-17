@@ -1856,6 +1856,45 @@ class Test_Polygon(unittest.TestCase):
         z_ref = [1.1, 4.5, 5., 7.4, 11., 12.85, 12., 10.8, 8.52, 9.22, 24.4]
         assert num.allclose(z, z_ref)                
         
+
+    def test_is_inside_triangle_more(self):        
+        
+        res = is_inside_triangle([0.5, 0.5], [[ 0.5,  0. ],
+                                              [ 0.5,  0.5],
+                                              [ 0.,   0. ]])
+        assert res is True
+
+        res = is_inside_triangle([0.59999999999999998, 0.29999999999999999],
+                                 [[ 0.5,  0. ], [ 0.5, 0.5], [0., 0.]])
+        assert res is False
+        
+        res = is_inside_triangle([0.59999999999999998, 0.29999999999999999],
+                                 [[1., 0.], [1., 0.5], [0.5, 0.]])
+        assert res is False                                 
+                                 
+        
+        res = is_inside_triangle([0.59999999999999998, 0.29999999999999999],
+                                 [[0.5, 0.5], [0.5, 0.], [1., 0.5]])
+        assert res is True                                 
+
+                
+        res = is_inside_triangle([0.10000000000000001, 0.20000000000000001],
+                                 [[0.5, 0.], [0.5, 0.5], [0., 0.]])
+        assert res is False
+
+        
+        res = is_inside_triangle([0.10000000000000001, 0.20000000000000001],
+                                 [[0., 0.5], [0., 0.], [0.5, 0.5]])
+        assert res is True                                                                  
+                                 
+        res = is_inside_triangle([0.69999999999999996, 0.69999999999999996],
+                                 [[0.5, 0.], [0.5, 0.5], [0., 0.]])
+        assert res is False                                 
+
+        res = is_inside_triangle([0.59999999999999998, 0.29999999999999999],
+                                 [[0.25, 0.5], [0.25, 0.25], [0.5, 0.5]])
+        assert res is False
+        
         
                 
 #-------------------------------------------------------------

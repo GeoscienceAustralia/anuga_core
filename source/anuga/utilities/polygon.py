@@ -187,8 +187,8 @@ def NEW_C_intersection(line0, line1):
 
 def is_inside_triangle(point, triangle, 
                        closed=True, 
-                       rtol=1.0e-6,
-                       atol=1.0e-8,                      
+                       rtol=1.0e-12,
+                       atol=1.0e-12,                      
                        check_inputs=True, 
                        verbose=False):
     """Determine if one point is inside a triangle
@@ -227,7 +227,7 @@ def is_inside_triangle(point, triangle,
     alpha and beta and their sums are in the unit interval.
     
     rtol and atol will determine how close the point has to be to the edge
-    before it is deemed on the edge.
+    before it is deemed to be on the edge.
     
     """
 
@@ -245,7 +245,13 @@ def is_inside_triangle(point, triangle,
     if point[1] < min(triangle[:,1]): return False
     if point[1] > max(triangle[:,1]): return False        
 
+    return bool(_is_inside_triangle(point, triangle, int(closed), rtol, atol))
     
+    
+
+    # FIXME (Ole): The rest of this function has been made 
+    # obsolete by the C extension
+        
     # Start search    
     A = triangle[0, :]
     B = triangle[1, :]
@@ -281,10 +287,11 @@ def is_inside_triangle(point, triangle,
                                  X[0], X[1],
                                  Y[0], Y[1],
                                  rtol, atol)
+            
             if res:
                 return True
                 
-                
+    return False
 
 
     
@@ -1232,6 +1239,7 @@ if compile.can_use_C_extension('polygon_ext.c'):
     from polygon_ext import _point_on_line
     from polygon_ext import _separate_points_by_polygon
     from polygon_ext import _interpolate_polyline    
+    from polygon_ext import _is_inside_triangle        
     #from polygon_ext import _intersection
 
 else:
