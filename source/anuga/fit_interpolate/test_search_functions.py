@@ -4,12 +4,15 @@
 import unittest
 from search_functions import search_tree_of_vertices, set_last_triangle
 from search_functions import _search_triangles_of_vertices
+from search_functions import find_triangle_compute_interpolation
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 from anuga.utilities.polygon import is_inside_polygon
 from anuga.utilities.quad import build_quadtree, Cell
+from anuga.utilities.polygon import is_inside_polygon, is_inside_triangle    
 
+import Numeric as num
 
 class Test_search_functions(unittest.TestCase):
     def setUp(self):
@@ -206,6 +209,35 @@ class Test_search_functions(unittest.TestCase):
         assert element_found is True
         assert k == 1
         
+        
+    def test_triangle_compute_interpolation(self):
+        """test_triangle_compute_interpolation
+        
+        Test that triangle can be found if point is inside it
+        """
+        
+        triangle = num.array([[306951.77151059, 6194462.14596986],
+                              [306952.58403545, 6194459.65001246],
+                              [306953.55109034, 6194462.0041216]])
+
+
+        n0 = [0.92499377, -0.37998227]
+        n1 = [0.07945684,  0.99683831]
+        n2 = [-0.95088404, -0.30954732]
+        
+        x = [306953.344, 6194461.5]
+        
+        # Test that point is indeed inside triangle
+        assert is_inside_polygon(x, triangle, 
+                                 closed=True, verbose=False)
+        assert is_inside_triangle(x, triangle, 
+                                  closed=True, verbose=False)                                 
+        
+        element_found, sigma0, sigma1, sigma2 = \
+            find_triangle_compute_interpolation(triangle, n0, n1, n2, x)
+            
+        msg = 'Point which is clearly inside triangle was not found'
+        assert element_found is True, msg
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
