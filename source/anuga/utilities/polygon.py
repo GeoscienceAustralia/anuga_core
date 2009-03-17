@@ -185,9 +185,147 @@ def NEW_C_intersection(line0, line1):
 
     return status, value
 
+def is_inside_triangle(point, triangle, 
+                       closed=True, 
+                       rtol=1.0e-6,
+                       atol=1.0e-8,                      
+                       check_inputs=True, 
+                       verbose=False):
+    """Determine if one point is inside a triangle
+    
+    This uses the barycentric method:
+    
+    Triangle is A, B, C
+    Point P can then be written as
+    
+    P = A + alpha * (C-A) + beta * (B-A)
+    or if we let 
+    v=P-A, v0=C-A, v1=B-A    
+    
+    v = alpha*v0 + beta*v1 
+
+    Dot this equation by v0 and v1 to get two:
+    
+    dot(v0, v) = alpha*dot(v0, v0) + beta*dot(v0, v1)
+    dot(v1, v) = alpha*dot(v1, v0) + beta*dot(v1, v1)    
+    
+    or if a_ij = dot(v_i, v_j) and b_i = dot(v_i, v)
+    the matrix equation:
+    
+    a_00 a_01   alpha     b_0
+                       = 
+    a_10 a_11   beta      b_1
+    
+    Solving for alpha and beta yields:
+    
+    alpha = (b_0*a_11 - b_1*a_01)/denom
+    beta =  (b_1*a_00 - b_0*a_10)/denom
+    
+    with denom = a_11*a_00 - a_10*a_01
+    
+    The point is in the triangle whenever
+    alpha and beta and their sums are in the unit interval.
+    
+    rtol and atol will determine how close the point has to be to the edge
+    before it is deemed on the edge.
+    
+    """
+
+    if check_inputs is True:
+        triangle = ensure_numeric(triangle)    
+
+        point = ensure_numeric(point, num.Float) # Convert point to array of points
+        msg = 'is_inside_triangle must be invoked with one point only'
+        assert num.allclose(point.shape, [2]), msg
+    
+        
+    # Quickly reject points that are clearly outside
+    if point[0] < min(triangle[:,0]): return False 
+    if point[0] > max(triangle[:,0]): return False    
+    if point[1] < min(triangle[:,1]): return False
+    if point[1] > max(triangle[:,1]): return False        
+
+    
+    # Start search    
+    A = triangle[0, :]
+    B = triangle[1, :]
+    C = triangle[2, :]
+    
+    # Now check if point lies wholly inside triangle
+    v0 = C-A 
+    v1 = B-A        
+        
+    a00 = num.innerproduct(v0, v0)
+    a10 = a01 = num.innerproduct(v0, v1)
+    a11 = num.innerproduct(v1, v1)
+    
+    denom = a11*a00 - a01*a10
+    
+    if abs(denom) > 0.0:
+        v = point-A
+        b0 = num.innerproduct(v0, v)        
+        b1 = num.innerproduct(v1, v)            
+    
+        alpha = (b0*a11 - b1*a01)/denom
+        beta = (b1*a00 - b0*a10)/denom        
+
+        if (alpha > 0.0) and (beta > 0.0) and (alpha+beta < 1.0):
+            return True 
 
 
+    if closed is True:
+        # Check if point lies on one of the edges
+        
+        for X, Y in [[A,B], [B,C], [C,A]]:
+            res = _point_on_line(point[0], point[1],
+                                 X[0], X[1],
+                                 Y[0], Y[1],
+                                 rtol, atol)
+            if res:
+                return True
+                
+                
 
+
+    
+
+    
+    
+    
+def is_inside_polygon_quick(point, polygon, closed=True, verbose=False):
+    """Determine if one point is inside a polygon
+    Both point and polygon are assumed to be numeric arrays or lists and
+    no georeferencing etc or other checks will take place.
+    
+    As such it is faster than is_inside_polygon 
+    """
+
+    # FIXME(Ole): This function isn't being used
+    polygon = ensure_numeric(polygon, num.Float)
+    points = ensure_numeric(point, num.Float) # Convert point to array of points
+    points = points[num.NewAxis, :]
+    msg = 'is_inside_polygon must be invoked with one point only'
+    msg += '\nI got %s and converted to %s' % (str(point), str(points.shape))
+    assert points.shape[0] == 1 and points.shape[1] == 2, msg
+
+    
+    indices = num.zeros(1, num.Int)
+
+    count = _separate_points_by_polygon(points, polygon, indices,
+                                        int(closed), int(verbose))
+
+    
+    #indices, count = separate_points_by_polygon(points, polygon,
+    #                                            closed=closed,
+    #                                            input_checks=False,
+    #                                            verbose=verbose)
+
+    if count > 0:
+        return True
+                                                
+        
+        
+    
 def is_inside_polygon(point, polygon, closed=True, verbose=False):
     """Determine if one point is inside a polygon
 
@@ -230,6 +368,7 @@ def inside_polygon(points, polygon, closed=True, verbose=False):
         msg = 'Points could not be converted to Numeric array' 
 	raise msg
 
+    polygon = ensure_absolute(polygon)        
     try:
         polygon = ensure_absolute(polygon)
     except NameError, e:
@@ -316,7 +455,7 @@ def outside_polygon(points, polygon, closed = True, verbose = False):
         return indices[count:][::-1]  #return reversed
        
 
-def in_and_outside_polygon(points, polygon, closed = True, verbose = False):
+def in_and_outside_polygon(points, polygon, closed=True, verbose=False):
     """Determine points inside and outside a polygon
 
        See separate_points_by_polygon for documentation
@@ -361,7 +500,9 @@ def in_and_outside_polygon(points, polygon, closed = True, verbose = False):
 
 
 def separate_points_by_polygon(points, polygon,
-                               closed = True, verbose = False):
+                               closed=True, 
+                               check_input=True,
+                               verbose=False):
     """Determine whether points are inside or outside a polygon
 
     Input:
@@ -370,6 +511,7 @@ def separate_points_by_polygon(points, polygon,
        closed - (optional) determine whether points on boundary should be
        regarded as belonging to the polygon (closed = True)
        or not (closed = False)
+       check_input: Allows faster execution if set to False
 
     Outputs:
        indices: array of same length as points with indices of points falling
@@ -402,68 +544,63 @@ def separate_points_by_polygon(points, polygon,
     Uses underlying C-implementation in polygon_ext.c
     """
 
+    if check_input:
+        #Input checks
 
-    #if verbose: print 'Checking input to separate_points_by_polygon'
-
-
-    #Input checks
-
-    assert isinstance(closed, bool), 'Keyword argument "closed" must be boolean'
-    assert isinstance(verbose, bool), 'Keyword argument "verbose" must be boolean'
+        assert isinstance(closed, bool), 'Keyword argument "closed" must be boolean'
+        assert isinstance(verbose, bool), 'Keyword argument "verbose" must be boolean'
 
 
-    try:
-        points = ensure_numeric(points, num.Float)
-    except NameError, e:
-        raise NameError, e
-    except:
-        msg = 'Points could not be converted to Numeric array'
-	raise msg
+        try:
+            points = ensure_numeric(points, num.Float)
+        except NameError, e:
+            raise NameError, e
+        except:
+            msg = 'Points could not be converted to Numeric array'
+            raise msg
 
-    #if verbose: print 'Checking input to separate_points_by_polygon 2'
-    try:
-        polygon = ensure_numeric(polygon, num.Float)
-    except NameError, e:
-        raise NameError, e
-    except:
-        msg = 'Polygon could not be converted to Numeric array'
-	raise msg
+        try:
+            polygon = ensure_numeric(polygon, num.Float)
+        except NameError, e:
+            raise NameError, e
+        except:
+            msg = 'Polygon could not be converted to Numeric array'
+            raise msg
 
-    msg = 'Polygon array must be a 2d array of vertices'
-    assert len(polygon.shape) == 2, msg
+        msg = 'Polygon array must be a 2d array of vertices'
+        assert len(polygon.shape) == 2, msg
 
-    msg = 'Polygon array must have two columns' 
-    assert polygon.shape[1] == 2, msg
-
-
-    msg = 'Points array must be 1 or 2 dimensional.'
-    msg += ' I got %d dimensions' %len(points.shape)
-    assert 0 < len(points.shape) < 3, msg
+        msg = 'Polygon array must have two columns' 
+        assert polygon.shape[1] == 2, msg
 
 
-    if len(points.shape) == 1:
-        # Only one point was passed in.
-        # Convert to array of points
-        points = num.reshape(points, (1,2))
+        msg = 'Points array must be 1 or 2 dimensional.'
+        msg += ' I got %d dimensions' %len(points.shape)
+        assert 0 < len(points.shape) < 3, msg
+
+        
+        if len(points.shape) == 1:
+            # Only one point was passed in.
+            # Convert to array of points
+            points = num.reshape(points, (1,2))
 
     
-    msg = 'Point array must have two columns (x,y), '
-    msg += 'I got points.shape[1] == %d' %points.shape[0]
-    assert points.shape[1] == 2, msg
+            msg = 'Point array must have two columns (x,y), '
+            msg += 'I got points.shape[1] == %d' %points.shape[0]
+            assert points.shape[1] == 2, msg
 
        
-    msg = 'Points array must be a 2d array. I got %s' %str(points[:30])
-    assert len(points.shape) == 2, msg
+            msg = 'Points array must be a 2d array. I got %s' %str(points[:30])
+            assert len(points.shape) == 2, msg
 
-    msg = 'Points array must have two columns'
-    assert points.shape[1] == 2, msg
-
-
-    N = polygon.shape[0] #Number of vertices in polygon
-    M = points.shape[0]  #Number of points
+            msg = 'Points array must have two columns'
+            assert points.shape[1] == 2, msg
 
 
-    indices = num.zeros( M, num.Int )
+    N = polygon.shape[0] # Number of vertices in polygon
+    M = points.shape[0]  # Number of points
+
+    indices = num.zeros(M, num.Int)
 
     count = _separate_points_by_polygon(points, polygon, indices,
                                         int(closed), int(verbose))
@@ -859,6 +996,8 @@ def point_in_polygon(polygon, delta=1e-8):
     import exceptions
     class Found(exceptions.Exception): pass
 
+    polygon = ensure_numeric(polygon)
+    
     point_in = False
     while not point_in:
         try:
@@ -878,7 +1017,6 @@ def point_in_polygon(polygon, delta=1e-8):
                             y_delta = y+y_mult*y*delta
 
                         point = [x_delta, y_delta]
-                        #print "point",point
                         if is_inside_polygon(point, polygon, closed=False):
                             raise Found
         except Found:

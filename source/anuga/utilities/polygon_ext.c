@@ -244,12 +244,12 @@ int __interpolate_polyline(int number_of_nodes,
 
 
 int __separate_points_by_polygon(int M,     // Number of points
-				int N,     // Number of polygon vertices
-				double* points,
-				double* polygon,
-				long* indices,  // M-Array for storage indices
-				int closed,
-				int verbose) {
+				 int N,     // Number of polygon vertices
+				 double* points,
+				 double* polygon,
+				 long* indices,  // M-Array for storage indices
+				 int closed,
+				 int verbose) {
 
   double minpx, maxpx, minpy, maxpy, x, y, px_i, py_i, px_j, py_j, rtol=0.0, atol=0.0;
   int i, j, k, outside_index, inside_index, inside;

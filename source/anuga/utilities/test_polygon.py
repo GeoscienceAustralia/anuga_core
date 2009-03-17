@@ -194,6 +194,35 @@ class Test_Polygon(unittest.TestCase):
 	assert not is_inside_polygon( (1., 0.5), polygon, closed=False)
 
 
+    def test_is_inside_polygon_quick(self):
+        """test_is_inside_polygon_quick
+        
+        Test fast version of of is_inside_polygon
+        """
+
+        # Simplest case: Polygon is the unit square
+        polygon = [[0,0], [1,0], [1,1], [0,1]]
+
+	assert is_inside_polygon_quick( (0.5, 0.5), polygon )
+	assert not is_inside_polygon_quick( (0.5, 1.5), polygon )
+	assert not is_inside_polygon_quick( (0.5, -0.5), polygon )
+	assert not is_inside_polygon_quick( (-0.5, 0.5), polygon )
+	assert not is_inside_polygon_quick( (1.5, 0.5), polygon )
+
+	# Try point on borders
+	assert is_inside_polygon_quick( (1., 0.5), polygon, closed=True)
+	assert is_inside_polygon_quick( (0.5, 1), polygon, closed=True)
+	assert is_inside_polygon_quick( (0., 0.5), polygon, closed=True)
+	assert is_inside_polygon_quick( (0.5, 0.), polygon, closed=True)
+
+	assert not is_inside_polygon_quick( (0.5, 1), polygon, closed=False)
+	assert not is_inside_polygon_quick( (0., 0.5), polygon, closed=False)
+	assert not is_inside_polygon_quick( (0.5, 0.), polygon, closed=False)
+	assert not is_inside_polygon_quick( (1., 0.5), polygon, closed=False)
+
+
+        
+        
     def test_inside_polygon_main(self):
 
         # Simplest case: Polygon is the unit square
@@ -222,6 +251,13 @@ class Test_Polygon(unittest.TestCase):
 	assert not is_inside_polygon( (0.5, 1.5), polygon )
 	assert not is_inside_polygon( (0.5, -0.5), polygon )
 
+        
+	assert is_inside_polygon_quick( (0.5, 0.5), polygon )
+	assert is_inside_polygon_quick( (1, -0.5), polygon )
+	assert is_inside_polygon_quick( (1.5, 0), polygon ) 
+        
+	assert not is_inside_polygon_quick( (0.5, 1.5), polygon )
+	assert not is_inside_polygon_quick( (0.5, -0.5), polygon )               
 
 	# Very convoluted polygon
         polygon = [[0,0], [10,10], [15,5], [20, 10], [25,0], [30,10], [40,-10]]
@@ -405,7 +441,48 @@ class Test_Polygon(unittest.TestCase):
 
 	assert num.allclose( res, [1,2,3,5,4,0] )        
      	assert count == 3
-	
+
+        
+        
+    def test_is_inside_triangle(self):
+
+
+        # Simplest case:
+        triangle = [[0, 0], [1, 0], [0.5, 1]]        
+
+	assert is_inside_triangle((0.5, 0.5), triangle)
+	assert is_inside_triangle((0.9, 0.1), triangle)        
+	assert not is_inside_triangle((0.5, 1.5), triangle)
+	assert not is_inside_triangle((0.5, -0.5), triangle)
+	assert not is_inside_triangle((-0.5, 0.5), triangle)
+	assert not is_inside_triangle((1.5, 0.5), triangle)
+
+	# Try point on borders
+	assert is_inside_triangle((0.5, 0), triangle, closed=True)
+	assert is_inside_triangle((1, 0), triangle, closed=True)
+
+	assert not is_inside_triangle((0.5, 0), triangle, closed=False)
+	assert not is_inside_triangle((1, 0), triangle, closed=False)        
+
+        # Try vertices
+        for P in triangle:
+            assert is_inside_triangle(P, triangle, closed=True)            
+            assert not is_inside_triangle(P, triangle, closed=False)                        
+        
+        
+        # Slightly different
+        triangle = [[0, 0.1], [1, -0.2], [0.5, 1]]        
+	assert is_inside_triangle((0.5, 0.5), triangle)                        
+	assert is_inside_triangle((0.4, 0.1), triangle)                                
+	assert not is_inside_triangle((1, 1), triangle)                                
+        
+        # Try vertices
+        for P in triangle:
+            assert is_inside_triangle(P, triangle, closed=True)            
+            assert not is_inside_triangle(P, triangle, closed=False)                                
+            
+            
+            
 
     def test_populate_polygon(self):
 
@@ -415,9 +492,10 @@ class Test_Polygon(unittest.TestCase):
         assert len(points) == 5
         for point in points:
             assert is_inside_polygon(point, polygon)
+            assert is_inside_polygon_quick(point, polygon)            
 
 
-	#Very convoluted polygon
+	# Very convoluted polygon
         polygon = [[0,0], [10,10], [15,5], [20, 10], [25,0], [30,10], [40,-10]]
 
         points = populate_polygon(polygon, 5)
@@ -425,6 +503,7 @@ class Test_Polygon(unittest.TestCase):
         assert len(points) == 5
         for point in points:
             assert is_inside_polygon(point, polygon)
+            assert is_inside_polygon_quick(point, polygon)                        
 
 
     def test_populate_polygon_with_exclude(self):
@@ -1781,7 +1860,7 @@ class Test_Polygon(unittest.TestCase):
                 
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Polygon,'test')
+    suite = unittest.makeSuite(Test_Polygon, 'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
 

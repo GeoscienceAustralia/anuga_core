@@ -83,7 +83,7 @@ def angle(v1, v2=None):
     # Compute angle
     p = num.innerproduct(v1, v2)
     c = num.innerproduct(v1, normal_vector(v2)) # Projection onto normal
-                                            # (negative cross product)
+                                                # (negative cross product)
         
     theta = safe_acos(p)
             
