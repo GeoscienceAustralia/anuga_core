@@ -259,7 +259,7 @@ class Fit(FitInterpolate):
             AtA = Sparse(m,m)
             # The memory damage has been done by now.
         else:
-             AtA = self.AtA #Did this for speed, did ~nothing
+             AtA = self.AtA # Did this for speed, did ~nothing
         self.point_count += point_coordinates.shape[0]
 
 
@@ -281,9 +281,9 @@ class Fit(FitInterpolate):
                            search_tree_of_vertices(self.root, self.mesh, x)
             
             if element_found is True:
-                j0 = triangles[k,0] #Global vertex id for sigma0
-                j1 = triangles[k,1] #Global vertex id for sigma1
-                j2 = triangles[k,2] #Global vertex id for sigma2
+                j0 = triangles[k,0] # Global vertex id for sigma0
+                j1 = triangles[k,1] # Global vertex id for sigma1
+                j2 = triangles[k,2] # Global vertex id for sigma2
 
                 sigmas = {j0:sigma0, j1:sigma1, j2:sigma2}
                 js     = [j0,j1,j2]
@@ -314,6 +314,7 @@ class Fit(FitInterpolate):
                 msg = 'Could not find triangle for point %s. ' % str(x) 
                 msg += 'Mesh boundary extent is (%.f, %.f), (%.f, %.f)'\
                     % (minx, maxx, miny, maxy)
+                #msg += '\nBoundary polygon = %s' %str(self.mesh_boundary_polygon)
                 raise RuntimeError, msg
                 
         self.AtA = AtA
