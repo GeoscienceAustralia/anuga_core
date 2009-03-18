@@ -4,12 +4,13 @@
 import unittest
 from search_functions import search_tree_of_vertices, set_last_triangle
 from search_functions import _search_triangles_of_vertices
-from search_functions import find_triangle_compute_interpolation
+from search_functions import compute_interpolation_values
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 from anuga.utilities.polygon import is_inside_polygon
 from anuga.utilities.quad import build_quadtree, Cell
+from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.utilities.polygon import is_inside_polygon, is_inside_triangle    
 
 import Numeric as num
@@ -51,12 +52,16 @@ class Test_search_functions(unittest.TestCase):
         set_last_triangle()
 
         x = [0.2, 0.7]
-        found, s0, s1, s2, k = search_tree_of_vertices(root, mesh, x)
+        found, s0, s1, s2, k = search_tree_of_vertices(root, 
+                                                       mesh, 
+                                                       ensure_numeric(x))
         assert k == 1 # Triangle one
         assert found is True
 
     def test_bigger(self):
-        """test_larger mesh
+        """test_bigger
+        
+        test larger mesh
         """
 
         points, vertices, boundary = rectangular(4, 4, 1, 1)
@@ -71,8 +76,11 @@ class Test_search_functions(unittest.TestCase):
         for x in [[0.6, 0.3], [0.1, 0.2], [0.7,0.7],
                   [0.1,0.9], [0.4,0.6], [0.9,0.1],
                   [10, 3]]:
-                
-            found, s0, s1, s2, k = search_tree_of_vertices(root, mesh, x)
+
+            
+            found, s0, s1, s2, k = search_tree_of_vertices(root, 
+                                                           mesh, 
+                                                           ensure_numeric(x))
 
             if k >= 0:
                 V = mesh.get_vertex_coordinates(k) # nodes for triangle k
@@ -94,7 +102,6 @@ class Test_search_functions(unittest.TestCase):
         #Test that points are arranged in a counter clock wise order
         mesh.check_integrity()
 
-        
         for m in range(8):
             root = build_quadtree(mesh, max_points_per_cell = m)
             set_last_triangle()
@@ -104,16 +111,22 @@ class Test_search_functions(unittest.TestCase):
                       [0.1,0.9], [0.4,0.6], [0.9,0.1],
                       [10, 3]]:
                 
-                found, s0, s1, s2, k = search_tree_of_vertices(root, mesh, x)
+                found, s0, s1, s2, k = search_tree_of_vertices(root, 
+                                                               mesh, 
+                                                               x)
 
                 if k >= 0:
                     V = mesh.get_vertex_coordinates(k) # nodes for triangle k
+
+                    assert is_inside_triangle(x, V, closed=True)
                     assert is_inside_polygon(x, V)
+                    
                     assert found is True
                 else:
                     assert found is False                
 
-                
+            
+                if m == k == 0: return    
 
     def test_underlying_function(self):
         """test_larger mesh and different quad trees
@@ -126,10 +139,10 @@ class Test_search_functions(unittest.TestCase):
         set_last_triangle()
 
         # One point
-        x = [0.5, 0.5]
+        x = ensure_numeric([0.5, 0.5])
         candidate_vertices = root.search(x[0], x[1])
 
-        #print x, candidate_vertices
+        # print x, candidate_vertices
         found, sigma0, sigma1, sigma2, k = \
                _search_triangles_of_vertices(mesh,
                                              candidate_vertices,
@@ -155,7 +168,7 @@ class Test_search_functions(unittest.TestCase):
             found, sigma0, sigma1, sigma2, k = \
                    _search_triangles_of_vertices(mesh,
                                                  candidate_vertices,
-                                                 x)
+                                                 ensure_numeric(x))
             if k >= 0:
                 V = mesh.get_vertex_coordinates(k) # nodes for triangle k
                 assert is_inside_polygon(x, V)
@@ -210,10 +223,18 @@ class Test_search_functions(unittest.TestCase):
         assert k == 1
         
         
-    def test_triangle_compute_interpolation(self):
-        """test_triangle_compute_interpolation
+    def test_compute_interpolation_values(self):
+        """test_compute_interpolation_values
         
-        Test that triangle can be found if point is inside it
+        Test that interpolation values are correc
+        
+        This test used to check element_found as output from 
+        find_triangle_compute_interpolation(triangle, n0, n1, n2, x)
+        and that failed before 18th March 2009.
+        
+        Now this function no longer returns this flag, so the test
+        is merely checknig the sigmas.
+        
         """
         
         triangle = num.array([[306951.77151059, 6194462.14596986],
@@ -231,18 +252,13 @@ class Test_search_functions(unittest.TestCase):
         assert is_inside_polygon(x, triangle, 
                                  closed=True, verbose=False)
         assert is_inside_triangle(x, triangle, 
-                                  closed=True, verbose=False)                                 
+                                  closed=True, verbose=False)
         
-        element_found, sigma0, sigma1, sigma2 = \
-            find_triangle_compute_interpolation(triangle, n0, n1, n2, x)
+        sigma0, sigma1, sigma2 = \
+            compute_interpolation_values(triangle, n0, n1, n2, x)
             
         msg = 'Point which is clearly inside triangle was not found'
-        assert element_found is True, msg
-        
-        #print sigma0, sigma1, sigma2
-        #print sigma0 + sigma1 + sigma2
-                
-        assert abs(sigma0 + sigma1 + sigma2 - 1) < 1.0e-6
+        assert abs(sigma0 + sigma1 + sigma2 - 1) < 1.0e-6, msg
 
 #-------------------------------------------------------------
 if __name__ == "__main__":

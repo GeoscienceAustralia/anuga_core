@@ -1895,7 +1895,13 @@ class Test_Polygon(unittest.TestCase):
                                  [[0.25, 0.5], [0.25, 0.25], [0.5, 0.5]])
         assert res is False
         
-        
+
+        res = is_inside_triangle([10, 3], 
+                                 [[0.1, 0.],
+                                  [0.1, 0.08333333],
+                                  [0., 0.]])
+        assert res is False
+                
                 
 #-------------------------------------------------------------
 if __name__ == "__main__":

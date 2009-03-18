@@ -231,20 +231,14 @@ def is_inside_triangle(point, triangle,
     
     """
 
+    triangle = ensure_numeric(triangle)        
+    point = ensure_numeric(point, num.Float)    
+    
     if check_inputs is True:
-        triangle = ensure_numeric(triangle)    
-
-        point = ensure_numeric(point, num.Float) # Convert point to array of points
         msg = 'is_inside_triangle must be invoked with one point only'
         assert num.allclose(point.shape, [2]), msg
     
-        
-    # Quickly reject points that are clearly outside
-    if point[0] < min(triangle[:,0]): return False 
-    if point[0] > max(triangle[:,0]): return False    
-    if point[1] < min(triangle[:,1]): return False
-    if point[1] > max(triangle[:,1]): return False        
-
+    
     # Use C-implementation
     return bool(_is_inside_triangle(point, triangle, int(closed), rtol, atol))
     
@@ -252,6 +246,12 @@ def is_inside_triangle(point, triangle,
 
     # FIXME (Ole): The rest of this function has been made 
     # obsolete by the C extension.
+    
+    # Quickly reject points that are clearly outside
+    if point[0] < min(triangle[:,0]): return False 
+    if point[0] > max(triangle[:,0]): return False    
+    if point[1] < min(triangle[:,1]): return False
+    if point[1] > max(triangle[:,1]): return False        
         
     # Start search    
     A = triangle[0, :]

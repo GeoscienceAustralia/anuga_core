@@ -253,8 +253,31 @@ int __is_inside_triangle(double* point,
   double vx, vy, v0x, v0y, v1x, v1y;
   double a00, a10, a01, a11, b0, b1;
   double denom, alpha, beta;
+  
+  double x, y; // Point coordinates
   int i, j, res;
 
+  x = point[0];
+  y = point[1];
+  
+  // Quickly reject points that are clearly outside
+  if ((x < triangle[0]) && 
+      (x < triangle[2]) && 
+      (x < triangle[4])) return 0;       
+      
+  if ((x > triangle[0]) && 
+      (x > triangle[2]) && 
+      (x > triangle[4])) return 0;             
+  
+  if ((y < triangle[1]) && 
+      (y < triangle[3]) && 
+      (y < triangle[5])) return 0;       
+      
+  if ((y > triangle[1]) && 
+      (y > triangle[3]) && 
+      (y > triangle[5])) return 0;             
+  
+  
   // v0 = C-A 
   v0x = triangle[4]-triangle[0]; 
   v0y = triangle[5]-triangle[1];
@@ -273,8 +296,8 @@ int __is_inside_triangle(double* point,
 
   if (fabs(denom) > 0.0) {
     // v = point-A  
-    vx = point[0] - triangle[0]; 
-    vy = point[1] - triangle[1];     
+    vx = x - triangle[0]; 
+    vy = y - triangle[1];     
     
     b0 = v0x*vx + v0y*vy; // innerproduct(v0, v)        
     b1 = v1x*vx + v1y*vy; // innerproduct(v1, v)            
@@ -290,7 +313,7 @@ int __is_inside_triangle(double* point,
         
     for (i=0; i<3; i++) {
       j = (i+1) % 3; // Circular index into triangle array
-      res = __point_on_line(point[0], point[1],
+      res = __point_on_line(x, y,
                             triangle[2*i], triangle[2*i+1], 
                             triangle[2*j], triangle[2*j+1], 			    
 			    rtol, atol);
