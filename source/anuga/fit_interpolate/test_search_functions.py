@@ -52,9 +52,7 @@ class Test_search_functions(unittest.TestCase):
         set_last_triangle()
 
         x = [0.2, 0.7]
-        found, s0, s1, s2, k = search_tree_of_vertices(root, 
-                                                       mesh, 
-                                                       ensure_numeric(x))
+        found, s0, s1, s2, k = search_tree_of_vertices(root, x)
         assert k == 1 # Triangle one
         assert found is True
 
@@ -79,7 +77,6 @@ class Test_search_functions(unittest.TestCase):
 
             
             found, s0, s1, s2, k = search_tree_of_vertices(root, 
-                                                           mesh, 
                                                            ensure_numeric(x))
 
             if k >= 0:
@@ -111,9 +108,7 @@ class Test_search_functions(unittest.TestCase):
                       [0.1,0.9], [0.4,0.6], [0.9,0.1],
                       [10, 3]]:
                 
-                found, s0, s1, s2, k = search_tree_of_vertices(root, 
-                                                               mesh, 
-                                                               x)
+                found, s0, s1, s2, k = search_tree_of_vertices(root, x)
 
                 if k >= 0:
                     V = mesh.get_vertex_coordinates(k) # nodes for triangle k
@@ -144,8 +139,7 @@ class Test_search_functions(unittest.TestCase):
 
         # print x, candidate_vertices
         found, sigma0, sigma1, sigma2, k = \
-               _search_triangles_of_vertices(mesh,
-                                             candidate_vertices,
+               _search_triangles_of_vertices(candidate_vertices,
                                              x)
 
         if k >= 0:
@@ -166,8 +160,7 @@ class Test_search_functions(unittest.TestCase):
 
             #print x, candidate_vertices
             found, sigma0, sigma1, sigma2, k = \
-                   _search_triangles_of_vertices(mesh,
-                                                 candidate_vertices,
+                   _search_triangles_of_vertices(candidate_vertices,
                                                  ensure_numeric(x))
             if k >= 0:
                 V = mesh.get_vertex_coordinates(k) # nodes for triangle k
@@ -214,11 +207,11 @@ class Test_search_functions(unittest.TestCase):
         #x = [3.5, 1.5]
         x = [2.5, 1.5]
         element_found, sigma0, sigma1, sigma2, k = \
-                       search_tree_of_vertices(root, mesh, x)
+                       search_tree_of_vertices(root, x)
         # One point
         x = [3.00005, 2.999994]
         element_found, sigma0, sigma1, sigma2, k = \
-                       search_tree_of_vertices(root, mesh, x)
+                       search_tree_of_vertices(root, x)
         assert element_found is True
         assert k == 1
         

@@ -483,7 +483,7 @@ class Interpolate (FitInterpolate):
 
             x = point_coordinates[i]
             element_found, sigma0, sigma1, sigma2, k = \
-                           search_tree_of_vertices(self.root, self.mesh, x)
+                           search_tree_of_vertices(self.root, x)
             
 	    # Update interpolation matrix A if necessary
             if element_found is True:
