@@ -1987,9 +1987,9 @@ class Test_Geospatial_data(unittest.TestCase):
 if __name__ == "__main__":
 
     #suite = unittest.makeSuite(Test_Geospatial_data, 'test_write_csv_attributes_lat_long')
-    #suite = unittest.makeSuite(Test_Geospatial_data, 'test_find_optimal_smoothing_parameter')
+    suite = unittest.makeSuite(Test_Geospatial_data, 'test_find_optimal_smoothing_parameter')
     #suite = unittest.makeSuite(Test_Geospatial_data, 'test_split1')
-    suite = unittest.makeSuite(Test_Geospatial_data, 'test')
+    #suite = unittest.makeSuite(Test_Geospatial_data, 'test')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
 

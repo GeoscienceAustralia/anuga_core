@@ -71,6 +71,10 @@ class Geo_reference:
   
         if ASCIIFile is not None:
             self.read_ASCII(ASCIIFile, read_title=read_title)
+            
+        # Set flag for absolute points (used by get_absolute)    
+        self.absolute = num.allclose([self.xllcorner, self.yllcorner], 0)
+            
 
     def get_xllcorner(self):
         return self.xllcorner
@@ -199,7 +203,7 @@ class Geo_reference:
         if type(points) == types.ListType:
             is_list = True
 
-        points = ensure_numeric(copy.copy(points), num.Float)
+        points = ensure_numeric(points, num.Float)
 	
         if len(points.shape) == 1:
             #One point has been passed
@@ -221,6 +225,7 @@ class Geo_reference:
         if points_geo_ref is not self:
             # If georeferences are different
         
+            points = copy.copy(points) # Don't destroy input                    
             if not points_geo_ref is None:
                 # Convert points to absolute coordinates
                 points[:,0] += points_geo_ref.xllcorner 
@@ -241,9 +246,23 @@ class Geo_reference:
         """Return True if xllcorner==yllcorner==0 indicating that points
         in question are absolute.
         """
+        
+        # FIXME(Ole): It is unfortunate that decision about whether points
+        # are absolute or not lies with the georeference object. Ross pointed this out.
+        # Moreover, this little function is responsible for a large fraction of the time
+        # using in data fitting (something in like 40 - 50%.
+        # This was due to the repeated calls to allclose.
+        # With the flag method fitting is much faster (18 Mar 2009).
 
-        return num.allclose([self.xllcorner, self.yllcorner], 0) 
+        
+        # FIXME(Ole): HACK to be able to reuse data already cached (18 Mar 2009). 
+        # Remove at some point
+        if not hasattr(self, 'absolute'):
+            self.absolute = num.allclose([self.xllcorner, self.yllcorner], 0)
 
+            
+        # Return absolute flag    
+        return self.absolute
         
     
     def get_absolute(self, points):
@@ -252,19 +271,16 @@ class Geo_reference:
         return the points as absolute values.
         """
 
-        #if self.is_absolute():
-        #    return points
         is_list = False
         if type(points) == types.ListType:
             is_list = True
 
-        points = ensure_numeric(copy.copy(points), num.Float)
+        points = ensure_numeric(points, num.Float)
         if len(points.shape) == 1:
-            #One point has been passed
+            # One point has been passed
             msg = 'Single point must have two elements'
             if not len(points) == 2:
                 raise ShapeError, msg    
-                #points = reshape(points, (1,2))
 
 
         msg = 'Input must be an N x 2 array or list of (x,y) values. '
@@ -275,6 +291,7 @@ class Geo_reference:
         
         # Add geo ref to points
         if not self.is_absolute():
+            points = copy.copy(points) # Don't destroy input                    
             points[:,0] += self.xllcorner 
             points[:,1] += self.yllcorner
 
@@ -315,6 +332,7 @@ class Geo_reference:
         
         # Subtract geo ref from points
         if not self.is_absolute():
+            points = copy.copy(points) # Don't destroy input                            
             points[:,0] -= self.xllcorner 
             points[:,1] -= self.yllcorner
 
