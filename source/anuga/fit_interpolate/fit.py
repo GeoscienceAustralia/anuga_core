@@ -473,9 +473,6 @@ def fit_to_mesh(point_coordinates, # this can also be a points file name
                 point_attributes=None,
                 alpha=DEFAULT_ALPHA,
                 verbose=False,
-                acceptable_overshoot=1.01, 
-                # FIXME: Move to config - this value is assumed in caching test
-                # FIXME(Ole): Just realised that this was never implemented (29 Jan 2009). I suggest removing it altogether.
                 mesh_origin=None,
                 data_origin=None,
                 max_read_lines=None,
@@ -492,7 +489,6 @@ def fit_to_mesh(point_coordinates, # this can also be a points file name
               'point_attributes': point_attributes,
               'alpha': alpha,
               'verbose': verbose,
-              'acceptable_overshoot': acceptable_overshoot,
               'mesh_origin': mesh_origin,
               'data_origin': data_origin,
               'max_read_lines': max_read_lines,
@@ -548,7 +544,6 @@ def _fit_to_mesh(point_coordinates, # this can also be a points file name
                  point_attributes=None,
                  alpha=DEFAULT_ALPHA,
                  verbose=False,
-                 acceptable_overshoot=1.01,
                  mesh_origin=None,
                  data_origin=None,
                  max_read_lines=None,
@@ -574,13 +569,6 @@ def _fit_to_mesh(point_coordinates, # this can also be a points file name
 
           alpha: Smoothing parameter.
 
-          acceptable overshoot: NOT IMPLEMENTED
-          controls the allowed factor by which
-          fitted values
-          may exceed the value of input data. The lower limit is defined
-          as min(z) - acceptable_overshoot*delta z and upper limit
-          as max(z) + acceptable_overshoot*delta z
-          
 
           mesh_origin: A geo_reference object or 3-tuples consisting of
               UTM zone, easting and northing.
