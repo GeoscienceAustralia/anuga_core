@@ -1999,7 +1999,8 @@ END CROSS-SECTIONS:
                 cellsize = cellsize,
                 number_of_decimal_places = 9,
                 verbose = self.verbose,
-                format = 'asc')
+                format = 'asc',
+                block_size=2)
 
 
         #Check prj (meta data)

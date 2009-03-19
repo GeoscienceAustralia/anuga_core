@@ -246,5 +246,32 @@ def get_pathname_from_package(package):
     #    p1 = read_polygon(path)
         
             
+##
+# @brief Get list of variable names in an expression string.
+# @param source A string containing a python expression.
+# @return A list of variable name strings.
+# @note Throws SyntaxError exception if not a valid expression.
+def get_vars_in_expression(source):
+    '''Get list of variable names in a python expression.'''
 
+    import compiler
+    from compiler.ast import Node
 
+    ##
+    # @brief Internal recursive function.
+    # @param node An AST parse Node.
+    # @param var_list Input list of variables.
+    # @return An updated list of variables.
+    def get_vars_body(node, var_list=[]):
+        if isinstance(node, Node):
+            if node.__class__.__name__ == 'Name':
+                for child in node.getChildren():
+                    if child not in var_list:
+                        var_list.append(child)
+            if any(isinstance(child, Node) for child in node.getChildren()):
+                for child in node.getChildren():
+                    var_list = get_vars_body(child, var_list)
+
+        return var_list
+
+    return get_vars_body(compiler.parse(source))

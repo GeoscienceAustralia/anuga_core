@@ -88,7 +88,11 @@ from anuga.abstract_2d_finite_volumes.util import get_revision_number, \
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import segment_midpoints
 from anuga.load_mesh.loadASCII import export_mesh_file
 from anuga.utilities.polygon import intersection
+from anuga.utilities.system_tools import get_vars_in_expression
 
+
+# Default block size for sww2dem()
+DEFAULT_BLOCK_SIZE = 10000
 
 ######
 # Exception classes
@@ -2103,7 +2107,8 @@ def sww2dem(basename_in, basename_out=None,
             verbose=False,
             origin=None,
             datum='WGS84',
-            format='ers'):
+            format='ers',
+            block_size=None):
     """Read SWW file and convert to Digitial Elevation model format
     (.asc or .ers)
 
@@ -2146,6 +2151,9 @@ def sww2dem(basename_in, basename_out=None,
     datum
 
     format can be either 'asc' or 'ers'
+
+    block_size - sets the number of slices along the non-time axis to
+                 process in one block.
     """
 
     import sys
@@ -2176,10 +2184,12 @@ def sww2dem(basename_in, basename_out=None,
     if number_of_decimal_places is None:
         number_of_decimal_places = 3
 
+    if block_size is None:
+        block_size = DEFAULT_BLOCK_SIZE
+
+    # Read SWW file
     swwfile = basename_in + '.sww'
     demfile = basename_out + '.' + format
-    # Note the use of a .ers extension is optional (write_ermapper_grid will
-    # deal with either option
 
     # Read sww file
     if verbose:
@@ -2252,40 +2262,56 @@ def sww2dem(basename_in, basename_out=None,
             q = fid.variables[name][:].flat
             if verbose: print '    %s in [%f, %f]' %(name, min(q), max(q))
 
-    # Get quantity and reduce if applicable
-    if verbose: print 'Processing quantity %s' %quantity
+    # Get the variables in the supplied expression.
+    # This may throw a SyntaxError exception.
+    var_list = get_vars_in_expression(quantity)
 
-    # Turn NetCDF objects into Numeric arrays
-    try:
-        q = fid.variables[quantity][:]
-    except:
-        quantity_dict = {}
-        for name in fid.variables.keys():
-            quantity_dict[name] = fid.variables[name][:]
-        #Convert quantity expression to quantities found in sww file
-        q = apply_expression_to_dictionary(quantity, quantity_dict)
+    # Check that we have the required variables in the SWW file.
+    missing_vars = []
+    for name in var_list:
+        try:
+            _ = fid.variables[name]
+        except:
+            missing_vars.append(name)
+    if missing_vars:
+        msg = ("In expression '%s', variables %s are not in the SWW file '%s'"
+               % (quantity, swwfile))
+        raise Exception, msg
 
-    if len(q.shape) == 2:
-        #q has a time component, must be reduced alongthe temporal dimension
-        if verbose: print 'Reducing quantity %s' %quantity
-        q_reduced = num.zeros(number_of_points, num.Float)
+    # Create result array and start filling, block by block.
+    result = num.zeros(number_of_points, num.Float)
 
-        if timestep is not None:
-            for k in range(number_of_points):
-                q_reduced[k] = q[timestep,k]
-        else:
-            for k in range(number_of_points):
-                q_reduced[k] = reduction( q[:,k] )
+    for start_slice in xrange(0, number_of_points, block_size):
+        # limit slice size to array end if at last block
+        end_slice = min(start_slice + block_size, number_of_points)
+        
+        # get slices of all required variables
+        q_dict = {}
+        for name in var_list:
+            # check if variable has time axis
+            if len(fid.variables[name].shape) == 2:
+                q_dict[name] = fid.variables[name][:,start_slice:end_slice]
+            else:       # no time axis
+                q_dict[name] = fid.variables[name][start_slice:end_slice]
 
-        q = q_reduced
+        # Evaluate expression with quantities found in SWW file
+        res = apply_expression_to_dictionary(quantity, q_dict)
 
+        if len(res.shape) == 2:
+            new_res = num.zeros(res.shape[1], num.Float)
+            for k in xrange(res.shape[1]):
+                new_res[k] = reduction(res[:,k])
+            res = new_res
+
+        result[start_slice:end_slice] = res
+                                    
     #Post condition: Now q has dimension: number_of_points
-    assert len(q.shape) == 1
-    assert q.shape[0] == number_of_points
+    assert len(result.shape) == 1
+    assert result.shape[0] == number_of_points
 
     if verbose:
         print 'Processed values for %s are in [%f, %f]' % \
-              (quantity, min(q), max(q))
+              (quantity, min(result), max(result))
 
     #Create grid and update xll/yll corner and x,y
     #Relative extent
@@ -2358,7 +2384,7 @@ def sww2dem(basename_in, basename_out=None,
 
     #Interpolate using quantity values
     if verbose: print 'Interpolating'
-    grid_values = interp.interpolate(q, grid_points).flat
+    grid_values = interp.interpolate(result, grid_points).flat
 
     if verbose:
         print 'Interpolated values are in [%f, %f]' %(min(grid_values),

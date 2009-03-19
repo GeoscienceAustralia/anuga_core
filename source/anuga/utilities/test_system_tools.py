@@ -133,7 +133,34 @@ class Test_system_tools(unittest.TestCase):
         assert checksum == ref_crc, msg
         #print checksum
         
-        
+
+    def test_get_vars_in_expression(self):
+        '''Test the 'get vars from expression' code.'''
+
+        def test_it(source, expected):
+            result = get_vars_in_expression(source)
+            result.sort()
+            expected.sort()
+            msg = ("Source: '%s'\nResult: %s\nExpected: %s"
+                   % (source, str(result), str(expected)))
+            self.failUnlessEqual(result, expected, msg)
+                
+        source = 'fred'
+        expected = ['fred']
+        test_it(source, expected)
+
+        source = 'tom + dick'
+        expected = ['tom', 'dick']
+        test_it(source, expected)
+
+        source = 'tom * (dick + harry)'
+        expected = ['tom', 'dick', 'harry']
+        test_it(source, expected)
+
+        source = 'tom + dick**0.5 / (harry - tom)'
+        expected = ['tom', 'dick', 'harry']
+        test_it(source, expected)
+
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_system_tools, 'test')
