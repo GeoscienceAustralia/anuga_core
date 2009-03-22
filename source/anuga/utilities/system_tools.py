@@ -268,9 +268,14 @@ def get_vars_in_expression(source):
                 for child in node.getChildren():
                     if child not in var_list:
                         var_list.append(child)
-            if any(isinstance(child, Node) for child in node.getChildren()):
-                for child in node.getChildren():
-                    var_list = get_vars_body(child, var_list)
+            for child in node.getChildren():
+                if isinstance(child, Node):
+                    for child in node.getChildren():
+                        var_list = get_vars_body(child, var_list)
+                    break
+##            if any(isinstance(child, Node) for child in node.getChildren()):
+##                for child in node.getChildren():
+##                    var_list = get_vars_body(child, var_list)
 
         return var_list
 
