@@ -5519,6 +5519,9 @@ friction  \n \
         If no quantities are passed in,
         na and va quantities will be the Easting values.
         Depth and ua will be the Northing value.
+        
+        The mux file format has south as positive so
+        this function will swap the sign for va.  
         """
 
         #print "lat_long_points", lat_long_points
@@ -5558,7 +5561,7 @@ friction  \n \
             lonlatdeps.append([lon, lat, this_depth])
             quantities_init[0].append(this_ha) # HA
             quantities_init[1].append(this_ua) # UA
-            quantities_init[2].append(this_va) # VA
+            quantities_init[2].append(this_va) # VA 
                 
         file_handle, base_name = tempfile.mkstemp("")
         os.close(file_handle)
@@ -6036,7 +6039,7 @@ friction  \n \
                 this_va = e
                 quantities_init[2].append(num.ones(time_step_count,num.Float)*this_va) #
             else:
-                quantities_init[2].append(va[i])            
+                quantities_init[2].append(-va[i]) # South is negative in MUX
 
         file_handle, base_name = tempfile.mkstemp("")
         os.close(file_handle)
@@ -6158,7 +6161,7 @@ friction  \n \
         msg='incorrect gauge ua time series returned'
         assert num.allclose(xvelocity,ua)
         msg='incorrect gauge va time series returned'
-        assert num.allclose(yvelocity,va)
+        assert num.allclose(yvelocity, -va)
 
     def test_urs2sts_read_mux2_pyII(self):
         """Spatially varing stage
@@ -6210,13 +6213,13 @@ friction  \n \
             assert num.allclose(latitudes[i],point[0]) and num.allclose(longitudes[i],point[1]),msg
 
         msg='Incorrect gauge depths returned'
-        assert num.allclose(elevation,-depth),msg
+        assert num.allclose(elevation, -depth),msg
         msg='incorrect gauge height time series returned'
-        assert num.allclose(stage,ha)
+        assert num.allclose(stage, ha)
         msg='incorrect gauge ua time series returned'
-        assert num.allclose(xvelocity,ua)
+        assert num.allclose(xvelocity, ua)
         msg='incorrect gauge va time series returned'
-        assert num.allclose(yvelocity,va)
+        assert num.allclose(yvelocity, -va) # South is positive in MUX
 
     def test_urs2sts_read_mux2_pyIII(self):
         """Varying start and finish times
@@ -6288,7 +6291,7 @@ friction  \n \
         msg='incorrect gauge ua time series returned'
         assert num.allclose(xvelocity,ua)
         msg='incorrect gauge va time series returned'
-        assert num.allclose(yvelocity,va)
+        assert num.allclose(yvelocity, -va) # South is positive in mux
         
 
         
@@ -6390,7 +6393,7 @@ friction  \n \
             for i in range(number_of_selected_stations):
                 if j == 0: assert num.allclose(data[i][:parameters_index], ha0[permutation[i], :])
                 if j == 1: assert num.allclose(data[i][:parameters_index], ua0[permutation[i], :])
-                if j == 2: assert num.allclose(data[i][:parameters_index], va0[permutation[i], :])
+                if j == 2: assert num.allclose(data[i][:parameters_index], -va0[permutation[i], :])
         
 
 
@@ -6596,6 +6599,7 @@ friction  \n \
                     if time+1>=first_tstep[point_i] and time+1<=last_tstep[point_i]:
                         x = unpack('f',f.read(4))[0]
                         #print time, x, q_time[time, point_i]
+                        if q == 'VA': x = -x # South is positive in MUX
                         assert abs(q_time[time, point_i]-x)<epsilon
 
             f.close()
@@ -6669,7 +6673,8 @@ friction  \n \
                     #print 'Output'
                     #print 'v ', data[i][:parameters_index][8]                    
                 
-                    assert num.allclose(data[i][:parameters_index], va1[permutation[i], :])
+                    # South is positive in MUX
+                    assert num.allclose(data[i][:parameters_index], -va1[permutation[i], :])
                     
         
     def test_urs2sts0(self):
@@ -7191,8 +7196,8 @@ friction  \n \
                 # check that urs stage and sts stage are the same
                 msg = 'urs stage is not equal to sts stage for for source %i and station %i' %(source_number,j)
                 assert num.allclose(urs_stage[index_start_urs_z:index_end_urs_z],
-                                sts_stage[index_start_stage:index_end_stage], 
-                                rtol=1.0e-6, atol=1.0e-5 ), msg                                
+                                    sts_stage[index_start_stage:index_end_stage], 
+                                    rtol=1.0e-6, atol=1.0e-5 ), msg                                
 				
                 # check that urs e velocity and sts xmomentum are the same
 		msg = 'urs e velocity is not equivalent to sts x momentum for for source %i and station %i' %(source_number,j)
@@ -7205,7 +7210,7 @@ friction  \n \
                 #print 'sts momentum', sts_ymom[index_start_y:index_end_y]                                                             
                 msg = 'urs n velocity is not equivalent to sts y momentum for source %i and station %i' %(source_number,j)
                 assert num.allclose(urs_n[index_start_urs_n:index_end_urs_n]*(urs_stage[index_start_urs_n:index_end_urs_n]-elevation[j]),
-                                sts_ymom[index_start_y:index_end_y], 
+                                -sts_ymom[index_start_y:index_end_y], 
                                 rtol=1.0e-5, atol=1.0e-4 ), msg
                                                 
                                 

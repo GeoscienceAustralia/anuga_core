@@ -5541,6 +5541,10 @@ def urs2sts(basename_in, basename_out=None,
 
     output:
       basename_out: name of sts file in which mux2 data is stored.
+      
+      
+      
+    NOTE: South is positive in mux files so sign of y-component of velocity is reverted
     """
 
     import os
@@ -5771,7 +5775,8 @@ def urs2sts(basename_in, basename_out=None,
             stage[j,i] = w
 
             xmomentum[j,i] = ua * h
-            ymomentum[j,i] = va * h
+            ymomentum[j,i] = -va * h # South is positive in mux files
+
 
     outfile.close()
 
