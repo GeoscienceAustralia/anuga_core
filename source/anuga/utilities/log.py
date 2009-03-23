@@ -19,7 +19,9 @@ to configure the logging.
 '''
 
 import sys
-import os.path
+import os
+#import os.path
+import sys
 import traceback
 import logging
 
@@ -129,3 +131,52 @@ def error(msg):
 def critical(msg):
     log(logging.CRITICAL, msg)
 
+def resource_usage(level=logging.CRITICAL):
+    '''Log resource usage at given log level.'''
+
+    if sys.platform != 'win32':
+        _proc_status = '/proc/%d/status' % os.getpid()
+        _scale = {'KB': 1024.0, 'MB': 1024.0*1024.0, 'GB': 1024.0*1024.0*1024.0,
+                  'kB': 1024.0, 'mB': 1024.0*1024.0, 'gB': 1024.0*1024.0*1024.0}
+
+        def _VmB(VmKey):
+            '''Get number of virtual bytes used.'''
+
+            # get pseudo file /proc/<pid>/status
+            try:
+                t = open(_proc_status)
+                v = t.read()
+                t.close()
+            except IOError:
+                return 0.0
+
+            # get VmKey line, eg: 'VmRSS: 999 kB\n ...
+            i = v.index(VmKey)
+            v = v[i:].split(None, 3)
+            if len(v) < 3:
+                return 0.0
+
+            # convert Vm value to bytes
+            return float(v[1]) * _scale[v[2]]
+
+        def memory(since=0.0):
+            '''Get virtual memory usage in bytes.'''
+
+            return _VmB('VmSize:') - since
+
+        def resident(since=0.0):
+            '''Get resident memory usage in bytes.'''
+
+            return _VmB('VmRSS:') - since
+
+        def stacksize(since=0.0):
+            '''Get stack size in bytes.'''
+
+            return _VmB('VmStk:') - since
+
+        msg = ('Resource usage: memory=%.1f resident=%.1f stacksize=%.1f'
+               % (memory()/_scale['GB'], resident()/_scale['GB'],
+                  stacksize()/_scale['GB']))
+        log(level, msg)
+    else:
+        pass
