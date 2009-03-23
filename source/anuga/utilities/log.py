@@ -39,7 +39,7 @@ console_logging_level = logging.INFO
 # logging level for the logfile
 log_logging_level = logging.DEBUG
 
-# The name of the file to log to.
+# The nat_log.pye of the file to log to.
 log_filename = './anuga.log'
 
 
@@ -59,10 +59,14 @@ def log(level, msg):
     then logs the message.  Subsequent calls just log the message.
     '''
 
-    global _setup
+    global _setup, log_logging_level
 
     # have we been setup?
     if not _setup:
+        # sanity check the logging levels, require console >= file
+        if console_logging_level < log_logging_level:
+            log_logging_level = console_logging_level
+
         # setup the file logging system
         fmt = '%(asctime)s %(levelname)-8s %(mname)25s:%(lnum)-4d|%(message)s'
         logging.basicConfig(level=log_logging_level, format=fmt,
