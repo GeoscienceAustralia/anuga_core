@@ -20,7 +20,6 @@ to configure the logging.
 
 import sys
 import os
-#import os.path
 import sys
 import traceback
 import logging
@@ -28,18 +27,23 @@ import logging
 
 ################################################################################
 # Module variables - only one copy of these, ever.
+#
+# The console logging level is set to a high level, like CRITICAL.  The logfile
+# logging is set lower, between DEBUG and CRITICAL.  The idea is to log least to
+# the console, but ensure that everything that goes to the console *will* also
+# appear in the log file.  There is code to ensure log <= console levels.
 ################################################################################
 
 # flag variable to determine if logging set up or not
 _setup = False
 
 # logging level for the console
-console_logging_level = logging.INFO
+console_logging_level = logging.CRITICAL
 
 # logging level for the logfile
-log_logging_level = logging.DEBUG
+log_logging_level = logging.INFO
 
-# The nat_log.pye of the file to log to.
+# The default name of the file to log to.
 log_filename = './anuga.log'
 
 

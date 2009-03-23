@@ -21,6 +21,10 @@ class Test_Log(unittest.TestCase):
         # set log module logfile name
         log.log_filename = LOGFILE_NAME
 
+        # set logging levels for this test
+        log.console_logging_level = logging.INFO
+        log.log_logging_level = logging.DEBUG
+
     def tearDown(self):
         if os.path.exists(LOGFILE_NAME):
             os.remove(LOGFILE_NAME)
@@ -30,7 +34,8 @@ class Test_Log(unittest.TestCase):
 
     ##
     # @brief Test the logging routines.
-    # @note HAVE ONE TEST CASE ONLY!
+    # @note HAVE ONE TEST CASE ONLY! Multiple tests would concatenate
+    #       multiple test output in one log file.
     def test_simple(self):
         '''Check that logging works in simple case.'''
 
