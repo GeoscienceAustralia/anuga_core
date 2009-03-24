@@ -5502,6 +5502,7 @@ def urs2sts(basename_in, basename_out=None,
             verbose=False,
             origin=None,
             zone=None,
+            central_meridian=None,            
             mean_stage=0.0,
             zscale=1.0,
             ordering_filename=None):
@@ -5718,25 +5719,29 @@ def urs2sts(basename_in, basename_out=None,
 
     # Check zone boundaries
     if zone is None:
-        refzone, _, _ = redfearn(latitudes[0], longitudes[0])
+        refzone, _, _ = redfearn(latitudes[0], longitudes[0],
+                                 central_meridian=central_meridian)
     else:
         refzone = zone
+
+        
 
     old_zone = refzone
 
     for i in range(number_of_points):
-        zone, easting, northing = redfearn(latitudes[i], longitudes[i],
-                                           zone=zone)
+        computed_zone, easting, northing = redfearn(latitudes[i], longitudes[i],
+                                                    zone=zone,
+                                                    central_meridian=central_meridian)
         x[i] = easting
         y[i] = northing
-        if zone != refzone:
+        if computed_zone != refzone:
             msg = 'All sts gauges need to be in the same zone. \n'
             msg += 'offending gauge:Zone %d,%.4f, %4f\n' \
-                   % (zone, easting, northing)
+                   % (computed_zone, easting, northing)
             msg += 'previous gauge:Zone %d,%.4f, %4f' \
                    % (old_zone, old_easting, old_northing)
             raise Exception, msg
-        old_zone = zone
+        old_zone = computed_zone
         old_easting = easting
         old_northing = northing
 

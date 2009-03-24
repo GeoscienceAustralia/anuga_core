@@ -6792,9 +6792,9 @@ friction  \n \
         self.delete_mux(files)
         os.remove(sts_file)
 
-    def test_urs2sts_nonstandard_projection(self):
+    def test_urs2sts_nonstandard_meridian(self):
         """
-        Test single source
+        Test single source using the meridian from zone 50 as a nonstandard meridian
         """
         tide=0
         time_step_count = 3
@@ -6817,17 +6817,18 @@ friction  \n \
         va=-10*num.ones((n,time_step_count),num.Float)
 
         base_name, files = self.write_mux2(lat_long_points,
-                                      time_step_count, time_step,
-                                      first_tstep, last_tstep,
-                                      depth=gauge_depth,
-                                      ha=ha,
-                                      ua=ua,
-                                      va=va)
+                                           time_step_count, time_step,
+                                           first_tstep, last_tstep,
+                                           depth=gauge_depth,
+                                           ha=ha,
+                                           ua=ua,
+                                           va=va)
 
         urs2sts(base_name,
                 basename_out=base_name, 
-                zone=50,
-                mean_stage=tide,verbose=False)
+                central_meridian=123,
+                mean_stage=tide,
+                verbose=False)
 
         # now I want to check the sts file ...
         sts_file = base_name + '.sts'
@@ -6847,13 +6848,16 @@ friction  \n \
         x = points[:,0]
         y = points[:,1]
 
-        #Check that all coordinate are correctly represented       
-        #Using the non standard projection (50) 
+        # Check that all coordinate are correctly represented       
+        # Using the non standard projection (50) 
         for i in range(4):
-            zone, e, n = redfearn(lat_long_points[i][0], lat_long_points[i][1], zone=50) 
+            zone, e, n = redfearn(lat_long_points[i][0],
+                                  lat_long_points[i][1],
+                                  central_meridian=123)
             assert num.allclose([x[i],y[i]], [e,n])
-            assert zone==geo_reference.zone
+            assert zone==-1
 
+            
     def test_urs2sts_nonstandard_projection_reverse(self):
         """
         Test that a point not in the specified zone can occur first
@@ -6909,10 +6913,11 @@ friction  \n \
         x = points[:,0]
         y = points[:,1]
 
-        #Check that all coordinate are correctly represented       
-        #Using the non standard projection (50) 
+        # Check that all coordinate are correctly represented       
+        # Using the non standard projection (50) 
         for i in range(4):
-            zone, e, n = redfearn(lat_long_points[i][0], lat_long_points[i][1], zone=50) 
+            zone, e, n = redfearn(lat_long_points[i][0], lat_long_points[i][1],
+                                  zone=50) 
             assert num.allclose([x[i],y[i]], [e,n])
             assert zone==geo_reference.zone
 

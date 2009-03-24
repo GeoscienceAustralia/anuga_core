@@ -146,7 +146,7 @@ class TestCase(unittest.TestCase):
         assert num.allclose(northing, 6762559.15978)
 
         # Then project to zone 49
-        zone, easting, northing = redfearn(-29.233299999,114.05,zone=49)
+        zone, easting, northing = redfearn(-29.233299999,114.05, zone=49)
 
         assert zone == 49
         assert num.allclose(easting, 796474.020057)
@@ -162,7 +162,7 @@ class TestCase(unittest.TestCase):
         assert num.allclose(northing, 6773605.46384)
 
         # Then project to zone 50
-        zone, easting, northing = redfearn(-29.1333,113.9667,zone=50)
+        zone, easting, northing = redfearn(-29.1333,113.9667, zone=50)
 
         assert zone == 50
         assert num.allclose(easting, 204863.606467)
@@ -177,7 +177,7 @@ class TestCase(unittest.TestCase):
         assert num.allclose(northing, 6769820.01453)
 
         # Then project to zone 49
-        zone, easting, northing = redfearn(-29.1667,114,zone=49)
+        zone, easting, northing = redfearn(-29.1667,114, zone=49)
 
         assert zone == 49
         assert num.allclose(easting, 791800.231817)
