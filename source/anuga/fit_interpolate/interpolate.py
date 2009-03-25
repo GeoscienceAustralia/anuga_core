@@ -834,6 +834,9 @@ class Interpolation_function:
 		msg += 'Got: %s.' %(str(self.interpolation_points)[:60] + '...')
                 raise msg
 
+            # Ensure 'mesh_boundary_polygon' is defined
+            mesh_boundary_polygon = None
+            
             if triangles is not None and vertex_coordinates is not None:
                 # Check that all interpolation points fall within
                 # mesh boundary as defined by triangles and vertex_coordinates.
@@ -894,8 +897,9 @@ class Interpolation_function:
                                 'vertex_coordinates. sts file file function '
                                 'requires the latter.')
 
-            # Plot boundary and interpolation points
-            if verbose is True:
+            # Plot boundary and interpolation points,
+            # but only if if 'mesh_boundary_polygon' has data.
+            if verbose is True and mesh_boundary_polygon is not None:
                 import sys
                 if sys.platform == 'win32':
                     from anuga.utilities.polygon import plot_polygons
