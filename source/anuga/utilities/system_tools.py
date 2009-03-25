@@ -8,6 +8,7 @@ import os
 import urllib
 import urllib2
 import getpass
+import tarfile
 
 
 def log_to_file(filename, s, verbose=False):
@@ -358,3 +359,28 @@ def get_web_file(file_url, file_name, blocksize=1024*1024, auth=None):
     return (httpproxy, proxyuser, proxypass)
 
 
+##
+# @brief Tar a file (or directory) into a tarfile.
+# @param files A list of files (or directories) to tar.
+# @param tarfile The created tarfile name.
+def tar_file(files, tarname):
+    '''Compress a file or directory into a tar file.'''
+
+    o = tarfile.open(tarname, 'w:gz')
+    for file in files:
+        o.add(file)
+    o.close()
+
+
+##
+# @brief Untar a file into an optional target directory.
+# @param tarname Name of the file to untar.
+# @param target_dir Directory to untar into.
+def untar_file(tarname, target_dir='.'):
+    '''Uncompress a tar file.'''
+
+    o = tarfile.open(tarname, 'r:gz')
+    members = o.getmembers()
+    for member in members:
+        o.extract(member, target_dir)
+    o.close()

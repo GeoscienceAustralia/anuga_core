@@ -2,6 +2,7 @@
 
 
 import unittest
+import tempfile
 import Numeric as num
 import zlib
 from os.path import join, split, sep
@@ -161,12 +162,37 @@ class Test_system_tools(unittest.TestCase):
         expected = ['tom', 'dick', 'harry']
         test_it(source, expected)
 
+    def test_tar_untar_files(self):
+        '''Test that tarring & untarring files is OK.'''
+
+        # these test files must exist in the current directory
+        files = ('test_system_tools.py', 'system_tools.py')
+
+        # name of tar file and test (temp) directory
+        tar_filename = 'test.tgz'
+        tmp_dir = tempfile.mkdtemp()
+
+        # tar and untar the test files into a temporary directory
+        tar_file(files, tar_filename)
+        untar_file(tar_filename, tmp_dir)
+
+        # see if original files and untarred ones are the same
+        for file in files:
+            fd = open(file, 'r')
+            orig = fd.readlines()
+            fd.close()
+
+            fd = open(os.path.join(tmp_dir, file), 'r')
+            copy = fd.readlines()
+            fd.close()
+
+            msg = "Original file %s isn't the same as untarred copy?" % file
+            self.failUnless(orig == copy, msg)
+
+
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_system_tools, 'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
-
-
-
 
