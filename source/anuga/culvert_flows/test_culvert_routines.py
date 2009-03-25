@@ -59,7 +59,7 @@ class Test_culvert_routines(unittest.TestCase):
                                                  sum_loss)
         
         #print Q, v, d
-        #assert num.allclose(Q, 3.118, rtol=1.0e-3)
+        assert num.allclose(Q, 3.118, rtol=1.0e-3)
         
 
         #assert num.allclose(v, 0.93)
