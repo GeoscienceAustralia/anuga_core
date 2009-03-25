@@ -189,6 +189,7 @@ class Test_system_tools(unittest.TestCase):
             msg = "Original file %s isn't the same as untarred copy?" % file
             self.failUnless(orig == copy, msg)
 
+        os.remove(tar_filename)
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
