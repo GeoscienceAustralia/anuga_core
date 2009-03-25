@@ -27,6 +27,7 @@ def boyd_generalised_culvert_model(inlet_depth,
                                    culvert_type='box',
                                    manning=0.0,
                                    sum_loss=0.0,
+                                   max_velocity=10.0,
                                    log_filename=None):
 
     """Boyd's generalisation of the US department of transportation culvert 
@@ -46,7 +47,7 @@ def boyd_generalised_culvert_model(inlet_depth,
     from anuga.utilities.numerical_tools import safe_acos as acos
 
 
-    if inlet_depth > 0.01:
+    if inlet_depth > 0.1: #this value was 0.01:
         # Water has risen above inlet
         
         if log_filename is not None:                            
@@ -115,7 +116,7 @@ def boyd_generalised_culvert_model(inlet_depth,
                     log_to_file(log_filename, s)
 
                 # Outlet control velocity using tail water
-                culvert_velocity = sqrt(delta_total_energy/((sum_loss/2*g)+(manning**2*culvert_length)/hyd_rad**1.33333)) 
+                culvert_velocity = sqrt(delta_total_energy/((sum_loss/2/g)+(manning**2*culvert_length)/hyd_rad**1.33333)) 
                 Q_outlet_tailwater = flow_area * culvert_velocity
                 
                 if log_filename is not None:                
@@ -182,7 +183,7 @@ def boyd_generalised_culvert_model(inlet_depth,
                     log_to_file(log_filename, s)
 
                 # Outlet control velocity using tail water
-                culvert_velocity = sqrt(delta_total_energy/((sum_loss/2*g)+(manning**2*culvert_length)/hyd_rad**1.33333)) 
+                culvert_velocity = sqrt(delta_total_energy/((sum_loss/2/g)+(manning**2*culvert_length)/hyd_rad**1.33333)) 
                 Q_outlet_tailwater = flow_area * culvert_velocity
 
                 if log_filename is not None:                            
@@ -215,6 +216,18 @@ def boyd_generalised_culvert_model(inlet_depth,
 
     else: # inlet_depth < 0.01:
         Q = barrel_velocity = outlet_culvert_depth = 0.0
+
+    # Temporary flow limit
+    if barrel_velocity > max_velocity:
+        if log_filename is not None:                            
+            s = 'Barrel velocity was reduced from = %f m/s to %f m/s' % (barrel_velocity, max_velocity)
+            log_to_file(log_filename, s)
+        
+        barrel_velocity = max_velocity
+        Q = flow_area * barrel_velocity
+        
+        
+
         
     return Q, barrel_velocity, outlet_culvert_depth 
 
