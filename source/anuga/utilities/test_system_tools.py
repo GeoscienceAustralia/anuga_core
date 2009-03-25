@@ -3,6 +3,7 @@
 
 import unittest
 import tempfile
+import random
 import Numeric as num
 import zlib
 from os.path import join, split, sep
@@ -165,8 +166,21 @@ class Test_system_tools(unittest.TestCase):
     def test_tar_untar_files(self):
         '''Test that tarring & untarring files is OK.'''
 
+        num_lines = 100
+        line_size = 100
+
         # these test files must exist in the current directory
-        files = ('test_system_tools.py', 'system_tools.py')
+        # create them with random data
+        files = ('alpha', 'beta', 'gamma')
+        for file in files:
+            fd = open(file, 'w')
+            line = ''
+            for i in range(num_lines):
+                for j in range(line_size):
+                    line += chr(random.randint(ord('A'), ord('Z')))
+                line += '\n'
+                fd.write(line)
+            fd.close()
 
         # name of tar file and test (temp) directory
         tar_filename = 'test.tgz'
@@ -189,6 +203,9 @@ class Test_system_tools(unittest.TestCase):
             msg = "Original file %s isn't the same as untarred copy?" % file
             self.failUnless(orig == copy, msg)
 
+        # clean up
+        for file in files:
+            os.remove(file)
         os.remove(tar_filename)
 
 #-------------------------------------------------------------
