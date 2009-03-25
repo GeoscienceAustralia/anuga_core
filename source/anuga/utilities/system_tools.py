@@ -5,6 +5,10 @@
 
 import sys
 import os
+import urllib
+import urllib2
+import getpass
+
 
 def log_to_file(filename, s, verbose=False):
     """Log string to file name
@@ -273,10 +277,84 @@ def get_vars_in_expression(source):
                     for child in node.getChildren():
                         var_list = get_vars_body(child, var_list)
                     break
-##            if any(isinstance(child, Node) for child in node.getChildren()):
-##                for child in node.getChildren():
-##                    var_list = get_vars_body(child, var_list)
 
         return var_list
 
     return get_vars_body(compiler.parse(source))
+
+
+##
+# @brief Get a file from the web.
+# @param file_url URL of the file to fetch.
+# @param file_name Path to file to create in the filesystem.
+# @param blocksize Read file in this block size.
+# @param auth Auth tuple (httpproxy, proxyuser, proxypass).
+# @return 'auth' tuple for subsequent calls, if successful.
+# @note If 'auth' not supplied, will prompt user.
+# @note Will try using environment variable HTTP_PROXY for proxy server.
+# @note Will try using environment variable PROXY_USERNAME for proxy username.
+# @note Will try using environment variable PROXY_PASSWORD for proxy password.
+def get_web_file(file_url, file_name, blocksize=1024*1024, auth=None):
+    '''Get a file from the web.'''
+
+    # Simple fetch, if fails, check for proxy error
+    try:
+        urllib.urlretrieve(file_url, file_name)
+        return None     # no proxy, no auth required
+    except IOError, e:
+        print str(e)
+        if e[1] != 407:
+            raise       # raise error if *not* proxy auth error
+
+    # We get here if there was a proxy error, get file through the proxy
+
+    # unpack auth info
+    try:
+        (httpproxy, proxyuser, proxypass) = auth
+    except:
+        (httpproxy, proxyuser, proxypass) = (None, None, None)
+
+    # fill in any gaps from the environment
+    if httpproxy is None:
+        httpproxy = os.getenv('HTTP_PROXY')
+    if proxyuser is None:
+        proxyuser = os.getenv('PROXY_USERNAME')
+    if proxypass is None:
+        proxypass = os.getenv('PROXY_PASSWORD')
+
+    # Get auth info from user if still not supplied
+    if httpproxy is None or proxyuser is None or proxypass is None:
+        print 'You need to supply proxy authentication information:'
+        if httpproxy is None:
+            httpproxy = raw_input('  proxy server: ')
+        if proxyuser is None:
+            proxyuser = raw_input('proxy username: ') 
+        if proxypass is None:
+            proxypass = getpass.getpass('proxy password: ')
+
+    # the proxy URL cannot start with 'http://'
+    httpproxy = httpproxy.lower()
+    if httpproxy.startswith('http://'):
+        httpproxy = httpproxy.replace('http://', '', 1)
+
+    # open 'net file
+    proxy = urllib2.ProxyHandler({'http': 'http://'+proxyuser+':'+proxypass+'@'+httpproxy})
+    authinfo = urllib2.HTTPBasicAuthHandler()
+    opener = urllib2.build_opener(proxy, authinfo, urllib2.HTTPHandler)
+    urllib2.install_opener(opener)
+    webget = urllib2.urlopen(file_url)
+
+    # transfer file to local filesystem
+    fd = open(file_name, 'w')
+    while True:
+        data = webget.read(blocksize)
+        if len(data) == 0:
+            break
+        fd.write(data)
+    fd.close
+    webget.close()
+
+    # return successful auth info
+    return (httpproxy, proxyuser, proxypass)
+
+
