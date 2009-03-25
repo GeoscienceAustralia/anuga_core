@@ -339,7 +339,8 @@ def get_web_file(file_url, file_name, blocksize=1024*1024, auth=None):
         httpproxy = httpproxy.replace('http://', '', 1)
 
     # open 'net file
-    proxy = urllib2.ProxyHandler({'http': 'http://'+proxyuser+':'+proxypass+'@'+httpproxy})
+    proxy = urllib2.ProxyHandler({'http': 'http://'+proxyuser+':'+proxypass
+                                               +'@'+httpproxy})
     authinfo = urllib2.HTTPBasicAuthHandler()
     opener = urllib2.build_opener(proxy, authinfo, urllib2.HTTPHandler)
     urllib2.install_opener(opener)
@@ -363,6 +364,7 @@ def get_web_file(file_url, file_name, blocksize=1024*1024, auth=None):
 # @brief Tar a file (or directory) into a tarfile.
 # @param files A list of files (or directories) to tar.
 # @param tarfile The created tarfile name.
+# @note We use gzip compression.
 def tar_file(files, tarname):
     '''Compress a file or directory into a tar file.'''
 
