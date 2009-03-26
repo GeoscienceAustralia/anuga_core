@@ -1750,7 +1750,6 @@ class General_forcing:
             msg = 'Polygon cannot be specified when center and radius are'
             assert polygon is None, msg
 
-            self.exchange_area = radius**2*pi
 
             # Check that circle center lies within the mesh.
             msg = 'Center %s specified for forcing term did not' %(str(center))
@@ -1784,15 +1783,7 @@ class General_forcing:
                 msg += ' did not fall within the domain boundary.'
                 assert is_inside_polygon(point, bounding_polygon), msg
                 
-            # Compute area and check that it is greater than 0    
-            self.exchange_area = polygon_area(self.polygon)
-            
-            msg = 'Polygon %s in forcing term' %(self.polygon)
-            msg += ' has area = %f' %self.exchange_area
-            assert self.exchange_area > 0.0            
-            
-                
-                
+                                 
 
         # Pointer to update vector
         self.update = domain.quantities[self.quantity_name].explicit_update
@@ -1819,9 +1810,7 @@ class General_forcing:
         if self.polygon is not None:                    
             # Inlet is polygon
             
-            inlet_region = 'polygon=%s, area=%f m^2' %(self.polygon, 
-                                                       self.exchange_area) 
-                        
+            inlet_region = 'polygon=%s' % (self.polygon) 
             self.exchange_indices = inside_polygon(points, self.polygon)
             
             
@@ -1833,6 +1822,22 @@ class General_forcing:
                 msg = 'No triangles have been identified in '
                 msg += 'specified region: %s' %inlet_region
                 raise Exception, msg
+
+
+
+        # Compute exchange area as the sum of areas of triangles identified
+        # by circle or polygon
+        self.exchange_area = 0.0
+        for i in self.exchange_indices:
+            self.exchange_area += domain.areas[i]
+            
+
+        msg = 'Exchange area in forcing term'
+        msg += ' has area = %f' %self.exchange_area
+        assert self.exchange_area > 0.0            
+            
+                
+
             
         # Check and store default_rate
  	msg = 'Keyword argument default_rate must be either None ' 

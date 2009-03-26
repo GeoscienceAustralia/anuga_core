@@ -6728,9 +6728,122 @@ friction  \n \
             os.remove(meshname)
                     
         
+    def test_inflow_using_flowline(self):
+        """test_inflow_using_flowline
+        Test the ability of a flowline to match inflow above the flowline by
+        creating constant inflow onto a circle at the head of a 20m
+        wide by 300m long plane dipping at 1:300 with a perpendicular flowline and gauge 
+        downstream of the inflow and a 45 degree flowlines at 60m downstream
+        """
 
+        verbose = False
+        
+
+        #------------------------------------------------------------------------------
+        # Import necessary modules
+        #------------------------------------------------------------------------------
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
+        from anuga.shallow_water import Domain
+        from anuga.shallow_water.shallow_water_domain import Reflective_boundary
+        from anuga.shallow_water.shallow_water_domain import Dirichlet_boundary
+        from anuga.shallow_water.shallow_water_domain import Inflow
+        from anuga.shallow_water.data_manager import get_flow_through_cross_section
+        from anuga.abstract_2d_finite_volumes.util import sww2csv_gauges, csv2timeseries_graphs
+
+
+        #------------------------------------------------------------------------------
+        # Setup computational domain
+        #------------------------------------------------------------------------------
+        number_of_inflows = 2 # Number of inflows on top of each other
+
+        length = 300.
+        width  = 20.
+        dx = dy = 2           # Resolution: of grid on both axes
+
+        points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
+                                                       len1=length, len2=width)
+
+
+        for slope in [1.0/300, 1.0/200, 1.0/100, 1.0/50]:
+            # Loop over a range of bedslopes representing sub to super critical flows 
+
+            #print slope
+            domain = Domain(points, vertices, boundary)   
+            domain.set_name('Inflow_flowline_test')              # Output name
+            
+
+            #------------------------------------------------------------------------------
+            # Setup initial conditions
+            #------------------------------------------------------------------------------
+
+            def topography(x, y):
+                z=-x * slope
+                return z
+
+
+            domain.set_quantity('elevation', topography)  # Use function for elevation
+            domain.set_quantity('friction', 0.012)        # Constant friction of conc surface   
+            domain.set_quantity('stage',
+                                expression='elevation')   # Dry initial condition
+
+
+            #------------------------------------------------------------------------------
+            # Setup boundary conditions
+            #------------------------------------------------------------------------------
+
+            Br = Reflective_boundary(domain)              # Solid reflective wall
+            Bo = Dirichlet_boundary([-100, 0, 0])           # Outflow stsge at -0.9m d=0.1m
+
+            domain.set_boundary({'left': Br, 'right': Bo, 'top': Br, 'bottom': Br})
+
+            #------------------------------------------------------------------------------
+            # Seup Inflow
+            #------------------------------------------------------------------------------
+
+            # Fixed Flowrate onto Area 
+            fixed_inflow = Inflow(domain,
+                                  center=(10.0, 10.0),
+                                  radius=5.00,
+                                  rate=1.00)   
+
+            # Stack this flow
+            for i in range(number_of_inflows):
+                domain.forcing_terms.append(fixed_inflow)
+            
+            ref_flow = fixed_inflow.rate*number_of_inflows
+
+            #------------------------------------------------------------------------------
+            # Evolve system through time
+            #------------------------------------------------------------------------------
+
+            for t in domain.evolve(yieldstep = 10.0, finaltime = 300):
+                pass
+                #print t
+
+            #------------------------------------------------------------------------------
+            # Compute flow thru flowlines ds of inflow
+            #------------------------------------------------------------------------------
+                
+            # Square on flowline at 30m
+            q=domain.get_flow_through_cross_section([[200.0,0.0],[200.0,20.0]])
+            msg = 'Predicted flow was %f, should have been %f' % (q, ref_flow)
+            #print q, ref_flow
+            assert num.allclose(q, ref_flow, rtol=1.0e-2), msg         
+
+                       
+            # 45 degree flowline at 60m
+            q=domain.get_flow_through_cross_section([[200.0,0.0],[220.0,20.0]])
+            msg = 'Predicted flow was %f, should have been %f' % (q, ref_flow)
+            #print q, ref_flow
+            assert num.allclose(q, ref_flow, rtol=1.0e-2), msg         
+            
+            
+        
+        
+
+    
         
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Shallow_Water, 'test')
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test_inflow_using_flowline')
     runner = unittest.TextTestRunner(verbosity=1)    
     runner.run(suite)
