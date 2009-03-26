@@ -163,6 +163,7 @@ class Test_system_tools(unittest.TestCase):
         expected = ['tom', 'dick', 'harry']
         test_it(source, expected)
 
+
     def test_tar_untar_files(self):
         '''Test that tarring & untarring files is OK.'''
 
@@ -207,6 +208,49 @@ class Test_system_tools(unittest.TestCase):
         for file in files:
             os.remove(file)
         os.remove(tar_filename)
+
+
+    def test_file_digest(self):
+        '''Test that file digest functions give 'correct' answer.
+        
+        Not a good test as we get 'expected_digest' from a digest file,
+        but *does* alert us if the digest algorithm gives us a different string.
+        '''
+
+        # we expect this digest string from the data file
+        expected_digest = '831a1dde6edd365ec4163a47871fa21b'
+
+        # prepare test directory and filenames
+        tmp_dir = tempfile.mkdtemp()
+        data_file = os.path.join(tmp_dir, 'test.data')
+        digest_file = os.path.join(tmp_dir, 'test.digest')
+
+        # create the data file
+        data_line = 'The quick brown fox jumps over the lazy dog. 0123456789\n'
+        fd = open(data_file, 'w')
+        for line in range(100):
+            fd.write(data_line)
+        fd.close()
+
+        # create the digest file
+        make_digest_file(data_file, digest_file)
+
+        # get digest string for the data file
+        digest = get_file_hexdigest(data_file)
+
+        # check that digest is as expected, string
+        msg = ("Digest string wrong, got '%s', expected '%s'"
+               % (digest, expected_digest))
+        self.failUnless(expected_digest == digest, msg)
+
+        # check that digest is as expected, file
+        msg = ("Digest file wrong, got '%s', expected '%s'"
+               % (digest, expected_digest))
+        fd = open(digest_file, 'r')
+        digest = fd.readline()
+        fd.close()
+        self.failUnless(expected_digest == digest, msg)
+
 
 #-------------------------------------------------------------
 if __name__ == "__main__":

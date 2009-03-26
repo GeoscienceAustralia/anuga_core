@@ -9,6 +9,7 @@ import urllib
 import urllib2
 import getpass
 import tarfile
+import md5
 
 
 def log_to_file(filename, s, verbose=False):
@@ -386,3 +387,42 @@ def untar_file(tarname, target_dir='.'):
     for member in members:
         o.extract(member, target_dir)
     o.close()
+
+
+##
+# @brief Return a hex digest (MD5) of a given file.
+# @param filename Path to the file of interest.
+# @return A hex digest string (16 bytes).
+# @note Uses MD5 digest.
+def get_file_hexdigest(filename):
+    '''Get a hex digest of a file.'''
+    
+    BLOCKSIZE = 1024*1024*10
+
+    m = md5.new()
+    fd = open(filename, 'r')
+    
+    while True:
+        data = fd.read(BLOCKSIZE)
+        if len(data) == 0:
+            break
+        m.update(data)
+        
+    fd.close()
+    return m.hexdigest()
+
+
+##
+# @brief Create a file containing a hexdigest string of a data file.
+# @param data_file Path to the file to get the hexdigest from.
+# @param digest_file Path to hexdigest file to create.
+# @note Uses MD5 digest.
+def make_digest_file(data_file, digest_file):
+    '''Create a file containing the hex digest string of a data file.'''
+    
+    hexdigest = get_file_hexdigest(data_file)
+    fd = open(digest_file, 'w')
+    fd.write(hexdigest)
+    fd.close()
+
+
