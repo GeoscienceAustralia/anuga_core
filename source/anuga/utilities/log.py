@@ -84,7 +84,7 @@ def log(level, msg):
         logging.getLogger('').addHandler(console)
 
         # tell the world how we are set up
-        start_msg = ("Logfile is '%s' with logging level of %s, "
+        start_msg = ("\nLogfile is '%s' with logging level of %s, "
                      "console logging level is %s"
                      % (log_filename,
                         logging.getLevelName(log_logging_level),

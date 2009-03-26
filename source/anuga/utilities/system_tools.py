@@ -293,14 +293,14 @@ def get_vars_in_expression(source):
 # @brief Get a file from the web.
 # @param file_url URL of the file to fetch.
 # @param file_name Path to file to create in the filesystem.
-# @param blocksize Read file in this block size.
 # @param auth Auth tuple (httpproxy, proxyuser, proxypass).
+# @param blocksize Read file in this block size.
 # @return 'auth' tuple for subsequent calls, if successful.
 # @note If 'auth' not supplied, will prompt user.
 # @note Will try using environment variable HTTP_PROXY for proxy server.
 # @note Will try using environment variable PROXY_USERNAME for proxy username.
 # @note Will try using environment variable PROXY_PASSWORD for proxy password.
-def get_web_file(file_url, file_name, blocksize=1024*1024, auth=None):
+def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
     '''Get a file from the web.'''
 
     # Simple fetch, if fails, check for proxy error
@@ -308,7 +308,6 @@ def get_web_file(file_url, file_name, blocksize=1024*1024, auth=None):
         urllib.urlretrieve(file_url, file_name)
         return None     # no proxy, no auth required
     except IOError, e:
-        print str(e)
         if e[1] != 407:
             raise       # raise error if *not* proxy auth error
 
@@ -344,8 +343,9 @@ def get_web_file(file_url, file_name, blocksize=1024*1024, auth=None):
         httpproxy = httpproxy.replace('http://', '', 1)
 
     # open 'net file
-    proxy = urllib2.ProxyHandler({'http': 'http://'+proxyuser+':'+proxypass
-                                               +'@'+httpproxy})
+    proxy = urllib2.ProxyHandler({'http': 'http://' + proxyuser
+                                              + ':' + proxypass
+                                              + '@' + httpproxy})
     authinfo = urllib2.HTTPBasicAuthHandler()
     opener = urllib2.build_opener(proxy, authinfo, urllib2.HTTPHandler)
     urllib2.install_opener(opener)
