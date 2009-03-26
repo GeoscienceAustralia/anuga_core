@@ -81,8 +81,12 @@ def get_revision_number():
 	msg += 'If run from a Subversion sandpit, '
 	msg += 'ANUGA will try to obtain the version info '
 	msg += 'by using the command: "svn info".\n'
-	msg += 'In this case, make sure svn is accessible on the system path. '
+	msg += 'In this case, make sure the command line client '
+        msg += 'svn is accessible on the system path. '
 	msg += 'Simply aliasing svn to the binary will not work. '
+        msg += 'If you are using Windows, you have to install the file svn.exe '
+        msg += 'which can be obtained from e.g '
+        msg += 'http://www.collab.net/downloads/subversion'
 	msg += 'Good luck!'
 
         # No file available - try using Subversion
