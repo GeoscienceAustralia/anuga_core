@@ -1744,7 +1744,6 @@ class General_forcing:
 
 
         # Update area if applicable
-        self.exchange_area = None        
         if center is not None and radius is not None:
             assert len(center) == 2
             msg = 'Polygon cannot be specified when center and radius are'
@@ -1815,21 +1814,19 @@ class General_forcing:
             
             
             
-        if self.exchange_indices is not None:
-            #print inlet_region
-        
+        if self.exchange_indices is None:
+            self.exchange_area = polygon_area(bounding_polygon)
+        else:    
             if len(self.exchange_indices) == 0:
                 msg = 'No triangles have been identified in '
                 msg += 'specified region: %s' %inlet_region
                 raise Exception, msg
 
-
-
-        # Compute exchange area as the sum of areas of triangles identified
-        # by circle or polygon
-        self.exchange_area = 0.0
-        for i in self.exchange_indices:
-            self.exchange_area += domain.areas[i]
+            # Compute exchange area as the sum of areas of triangles identified
+            # by circle or polygon
+            self.exchange_area = 0.0
+            for i in self.exchange_indices:
+                self.exchange_area += domain.areas[i]
             
 
         msg = 'Exchange area in forcing term'
