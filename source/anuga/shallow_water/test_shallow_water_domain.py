@@ -2610,7 +2610,7 @@ class Test_Shallow_Water(unittest.TestCase):
                      rate=lambda t: 3*t + 7,
                      polygon = [[1,1], [2,1], [2,2], [1,2]])
 
-        assert num.allclose(R.exchange_area, 1)
+        assert num.allclose(R.exchange_area, 2)
         
         domain.forcing_terms.append(R)
 
@@ -2660,7 +2660,7 @@ class Test_Shallow_Water(unittest.TestCase):
                      rate=lambda t: 3*t + 7,
                      polygon=rainfall_poly)                     
 
-        assert num.allclose(R.exchange_area, 1)
+        assert num.allclose(R.exchange_area, 2)
         
         domain.forcing_terms.append(R)
 
@@ -6850,6 +6850,6 @@ friction  \n \
     
         
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Shallow_Water, 'test_time')
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test')
     runner = unittest.TextTestRunner(verbosity=1)    
     runner.run(suite)

@@ -150,7 +150,7 @@ def _create_mesh_from_regions(bounding_polygon,
                 msg +=  'Default tag "exterior" will be assigned to missing segment'
                 #raise Exception, msg
                 # Fixme: Use proper Python warning
-                print 'WARNING: ', msg
+                if verbose: print 'WARNING: ', msg
                 
 
     
