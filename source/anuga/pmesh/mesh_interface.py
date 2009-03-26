@@ -146,8 +146,11 @@ def _create_mesh_from_regions(bounding_polygon,
                 if i in boundary_tags[tag]:
                     found = True
             if found is False:
-                msg = 'Segment %d was not asigned a boundary_tag' %i
-                raise Exception, msg
+                msg = 'Segment %d was not assigned a boundary_tag.' % i
+                msg +=  'Default tag "exterior" will be assigned to missing segment'
+                #raise Exception, msg
+                # Fixme: Use proper Python warning
+                print 'WARNING: ', msg
                 
 
     
