@@ -447,4 +447,19 @@ def make_digest_file(data_file, digest_file):
     fd.write(hexdigest)
     fd.close()
 
+##
+# @brief Function to return the length of a file.
+# @param in_file Path to file to get length of.
+# @return Number of lines in file.
+# @note Doesn't count '\n' characters.
+# @note Zero byte file, returns 0.
+# @note No \n in file at all, but >0 chars, returns 1.
+def file_length(in_file):
+    '''Function to return the length of a file.'''
+
+    fid = open(in_file)
+    data = fid.readlines()
+    fid.close()
+    return len(data)
+
 

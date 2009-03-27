@@ -251,7 +251,46 @@ class Test_system_tools(unittest.TestCase):
         fd.close()
         self.failUnless(expected_digest == digest, msg)
 
+    def test_file_length_function(self):
+        '''Test that file_length() give 'correct' answer.'''
 
+        # prepare test directory and filenames
+        tmp_dir = tempfile.mkdtemp()
+        test_file1 = os.path.join(tmp_dir, 'test.file1')
+        test_file2 = os.path.join(tmp_dir, 'test.file2')
+        test_file3 = os.path.join(tmp_dir, 'test.file3')
+        test_file4 = os.path.join(tmp_dir, 'test.file4')
+
+        # create files of known length
+        fd = open(test_file1, 'w')      # 0 lines
+        fd.close
+        fd = open(test_file2, 'w')      # 5 lines, all '\n'
+        for i in range(5):
+            fd.write('\n')
+        fd.close()
+        fd = open(test_file3, 'w')      # 25 chars, no \n, 1 lines
+        fd.write('no newline at end of line')
+        fd.close()
+        fd = open(test_file4, 'w')      # 1000 lines
+        for i in range(1000):
+            fd.write('The quick brown fox jumps over the lazy dog.\n')
+        fd.close()
+
+        # use file_length() to get and check lengths
+        size1 = file_length(test_file1)
+        msg = 'Expected file_length() to return 0, but got %d' % size1
+        self.failUnless(size1 == 0, msg)
+        size2 = file_length(test_file2)
+        msg = 'Expected file_length() to return 5, but got %d' % size2
+        self.failUnless(size2 == 5, msg)
+        size3 = file_length(test_file3)
+        msg = 'Expected file_length() to return 1, but got %d' % size3
+        self.failUnless(size3 == 1, msg)
+        size4 = file_length(test_file4)
+        msg = 'Expected file_length() to return 1000, but got %d' % size4
+        self.failUnless(size4 == 1000, msg)
+
+        
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_system_tools, 'test')
