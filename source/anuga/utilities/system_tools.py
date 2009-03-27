@@ -352,7 +352,7 @@ def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
     webget = urllib2.urlopen(file_url)
 
     # transfer file to local filesystem
-    fd = open(file_name, 'w')
+    fd = open(file_name, 'wb')
     while True:
         data = webget.read(blocksize)
         if len(data) == 0:
