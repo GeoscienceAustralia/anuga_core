@@ -780,29 +780,29 @@ class Domain(Generic_Domain):
         
         
 
-		def compute_volumetric_balance(self):
-			"""Compute volumetric balance at current timestep.
+    def compute_volumetric_balance(self):
+        """Compute volumetric balance at current timestep.
 			
-			Quantities computed are:
-				Total inflow across boundary
-				Total outflow across boundary
-				Total inflow through forcing terms
-				Total outflow through forcing terms
-				Current total volume in domain
-								
+        Quantities computed are:
+           Total inflow across boundary
+           Total outflow across boundary
+           Total inflow through forcing terms
+           Total outflow through forcing terms
+           Current total volume in domain
+        
 			
-			"""
+        """
 		
-			# Run through boundary array and compute for each segment
-			# the normal momentum ((uh, vh) dot normal) times segment length.
-			# Based on sign accumulate this into total_boundary_inflow and total_boundary_outflow.
-			# The go through explicit forcing update and record the rate of change for stage and 
-			# record into total_forcing_inflow and total_forcing_outflow. Finally compute integral 
-			# of depth to obtain total volume of domain.
+        # Run through boundary array and compute for each segment
+        # the normal momentum ((uh, vh) dot normal) times segment length.
+        # Based on sign accumulate this into total_boundary_inflow and total_boundary_outflow.
+        # The go through explicit forcing update and record the rate of change for stage and 
+        # record into total_forcing_inflow and total_forcing_outflow. Finally compute integral 
+        # of depth to obtain total volume of domain.
 			
 			
 			
-			pass
+        pass
 		
 		
 #=============== End of class Shallow Water Domain ===============================
