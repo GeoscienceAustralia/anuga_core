@@ -6,6 +6,7 @@ configurable threshold loglevel for each of console and logfile output.
 
 Use it this way:
     import anuga.utilities.log as log
+    log.console_logging_level = log.DEBUG
     log.debug('A message at DEBUG level')
     log.info('Another message, INFO level')
 
@@ -46,6 +47,14 @@ log_logging_level = logging.INFO
 # The default name of the file to log to.
 log_filename = './anuga.log'
 
+# set module variables so users don't have to do 'import logging'.
+CRITICAL = logging.CRITICAL
+ERROR = logging.ERROR
+WARNING = logging.WARNING
+INFO = logging.INFO
+DEBUG = logging.DEBUG
+NOTSET = logging.NOTSET
+
 
 ################################################################################
 # Module code.
@@ -84,7 +93,7 @@ def log(level, msg):
         logging.getLogger('').addHandler(console)
 
         # tell the world how we are set up
-        start_msg = ("\nLogfile is '%s' with logging level of %s, "
+        start_msg = ("Logfile is '%s' with logging level of %s, "
                      "console logging level is %s"
                      % (log_filename,
                         logging.getLevelName(log_logging_level),
