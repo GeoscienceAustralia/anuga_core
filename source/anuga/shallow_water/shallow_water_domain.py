@@ -1488,6 +1488,88 @@ def linear_friction(domain):
 
 
 
+
+def depth_dependent_friction(domain, default_friction,
+                             surface_roughness_data,
+                             verbose=False):
+    """Returns an array of friction values for each wet element adjusted for depth.
+
+    Inputs:
+        domain - computational domain object
+        default_friction - depth independent bottom friction
+        surface_roughness_data - N x 5 array of n0, d1, n1, d2, n2 values for each
+        friction region.
+
+    Outputs:
+        wet_friction - Array that can be used directly to update friction as follows:
+                       domain.set_quantity('friction', wet_friction)
+
+        
+        
+    """
+
+    import Numeric as num
+    
+    # Create a temp array to store updated depth dependent friction for wet elements
+    # EHR this is outwardly inneficient but not obvious how to avoid recreating each call??????
+    N=len(domain)
+    wet_friction    = num.zeros(N, num.Float)
+    wet_friction[:] = default_n0   # Initially assign default_n0 to all array so sure have no zeros values
+    
+    
+    depth = domain.create_quantity_from_expression('stage - elevation')  # create depth instance for this timestep
+    # Recompute depth as vector  
+    d = depth.get_values(location='centroids')
+ 
+    # rebuild the 'friction' values adjusted for depth at this instant
+    for i in domain.get_wet_elements():                                  # loop for each wet element in domain
+        
+        # Get roughness data for each element
+        n0 = float(surface_roughness_data[i,0])
+        d1 = float(surface_roughness_data[i,1])
+        n1 = float(surface_roughness_data[i,2])
+        d2 = float(surface_roughness_data[i,3])
+        n2 = float(surface_roughness_data[i,4])
+        
+        
+        # Recompute friction values from depth for this element 
+               
+        if d[i]   <= d1: 
+            depth_dependent_friction = n1
+        elif d[i] >= d2:
+            depth_dependent_friction = n2
+        else:
+            depth_dependent_friction = n1+((n2-n1)/(d2-d1))*(d[i]-d1)
+            
+        # check sanity of result
+        if (depth_dependent_friction  < 0.010 or depth_dependent_friction > 9999.0) :
+            print model_data.basename+' >>>> WARNING: computed depth_dependent friction out of range ddf,n1,n2 ', depth_dependent_friction, n1,n2
+        
+        # update depth dependent friction  for that wet element
+        wet_friction[i] = depth_dependent_friction
+        
+    # EHR add code to show range of 'friction across domain at this instant as sanity check?????????
+    
+    if verbose :
+        nvals=domain.get_quantity('friction').get_values(location='centroids')        # return array of domain nvals
+        n_min=min(nvals)
+        n_max=max(nvals)
+        
+        print "         ++++ calculate_depth_dependent_friction  - Updated friction - range  %7.3f to %7.3f" %(n_min,n_max)
+    
+    return wet_friction
+
+
+
+
+
+
+
+
+
+
+
+
 #---------------------------------
 # Experimental auxiliary functions
 #---------------------------------
