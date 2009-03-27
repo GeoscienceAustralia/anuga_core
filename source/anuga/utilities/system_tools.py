@@ -396,24 +396,25 @@ def untar_file(tarname, target_dir='.'):
 ##
 # @brief Return a hex digest (MD5) of a given file.
 # @param filename Path to the file of interest.
+# @param blocksize Size of data blocks to read.
 # @return A hex digest string (16 bytes).
 # @note Uses MD5 digest.
-def get_file_hexdigest(filename):
+def get_file_hexdigest(filename, blocksize=1024*1024*10):
     '''Get a hex digest of a file.'''
     
-    BLOCKSIZE = 1024*1024*10
-
     m = md5.new()
     fd = open(filename, 'r')
-    
+            
     while True:
-        data = fd.read(BLOCKSIZE)
+        data = fd.read(blocksize)
         if len(data) == 0:
             break
         m.update(data)
-        
+                                                                
     fd.close()
     return m.hexdigest()
+
+    fd = open(filename, 'r')
 
 
 ##
