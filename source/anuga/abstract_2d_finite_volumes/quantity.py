@@ -1110,11 +1110,12 @@ class Quantity:
     # @param indices Set of IDs of elements to work on.
     # @param use_cache 
     # @param verbose True if this method is to be verbose.
-    def get_values(self, interpolation_points=None,
-                         location='vertices',
-                         indices=None,
-                         use_cache=False,
-                         verbose=False):
+    def get_values(self, 
+                   interpolation_points=None,
+                   location='vertices',
+                   indices=None,
+                   use_cache=False,
+                   verbose=False):
         """Get values for quantity
 
         Extract values for quantity as a Numeric array.
@@ -1167,6 +1168,7 @@ class Quantity:
         # elsewhere in ANUGA.
         # Edges have already been deprecated in set_values, see changeset:5521,
         # but *might* be useful in get_values. Any thoughts anyone?
+        # YES (Ole): Edge values are necessary for volumetric balance check
 
         if location not in ['vertices', 'centroids',
                             'edges', 'unique vertices']:

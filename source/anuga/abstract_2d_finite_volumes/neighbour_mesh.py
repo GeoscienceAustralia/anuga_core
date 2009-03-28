@@ -686,7 +686,7 @@ class Mesh(General_mesh):
 
 
 
-        #Check neighbour structure
+        # Check neighbour structure
         for i in range(N):
             # For each triangle
             
@@ -868,7 +868,7 @@ class Mesh(General_mesh):
     
 
     def get_triangle_containing_point(self, point):
-        """Return triangle id for triangle containing specifiend point (x,y)
+        """Return triangle id for triangle containing specified point (x,y)
 
         If point isn't within mesh, raise exception
 

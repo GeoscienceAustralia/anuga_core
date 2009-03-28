@@ -780,46 +780,126 @@ class Domain(Generic_Domain):
         
         
 
-    def compute_volumetric_balance(self):
-        """Compute volumetric balance at current timestep.
+    def compute_boundary_flows(self):
+        """Compute boundary flows at current timestep.
 			
         Quantities computed are:
            Total inflow across boundary
            Total outflow across boundary
-           Total inflow through forcing terms
-           Total outflow through forcing terms
-           Current total volume in domain
-        
-			
+           Flow across each tagged boundary segment
         """
 		
         # Run through boundary array and compute for each segment
         # the normal momentum ((uh, vh) dot normal) times segment length.
         # Based on sign accumulate this into boundary_inflow and boundary_outflow.
-        # The go through explicit forcing update and record the rate of change for stage and 
-        # record into forcing_inflow and forcing_outflow. Finally compute integral 
-        # of depth to obtain total volume of domain.
-			
 			
         # Compute flows along boundary
         
-        uh = self.get_quantity('xmomentum').get_values()
-        vh = self.get_quantity('ymomentum').get_values()        
+        uh = self.get_quantity('xmomentum').get_values(location='edges')
+        vh = self.get_quantity('ymomentum').get_values(location='edges')        
         
         # Loop through edges that lie on the boundary and calculate 
         # flows
-        inflow = 0.0
-        outflow = 0.0
+        boundary_flows = {}
+        total_boundary_inflow = 0.0
+        total_boundary_outflow = 0.0
         for vol_id, edge_id in self.boundary:
-            print vol_id, edge_id, self.boundary[(vol_id, edge_id)]
+            # Compute normal flow across edge. Since normal vector points
+            # away from triangle, a positive sign means that water 
+            # flows *out* from this triangle.
+             
+            momentum = [uh[vol_id, edge_id], vh[vol_id, edge_id]]
+            normal = self.mesh.get_normal(vol_id, edge_id)
+            length = self.mesh.get_edgelength(vol_id, edge_id)            
+            normal_flow = num.dot(momentum, normal)*length
+            
+            # Reverse sign so that + is taken to mean inflow
+            # and - means outflow. This is more intuitive.
+            edge_flow = -normal_flow
+            
+            # Tally up inflows and outflows separately
+            if edge_flow > 0:
+                # Flow is inflow      
+                total_boundary_inflow += edge_flow                                  
+            else:
+                # Flow is outflow
+                total_boundary_outflow += edge_flow    
 
-            # Pick edge and compute normal flow
-            print uh[vol_id, :]
-            print vh[vol_id, :]            
-         
+            # Tally up flows by boundary tag
+            tag = self.boundary[(vol_id, edge_id)]
+            
+            if tag not in boundary_flows:
+                boundary_flows[tag] = 0.0
+            boundary_flows[tag] += edge_flow
+            
+                
+        return boundary_flows, total_boundary_inflow, total_boundary_outflow
         
-        
+
+    def compute_forcing_flows(self):
+        """Compute flows in and out of domain due to forcing terms.
+			
+        Quantities computed are:
 		
+        
+           Total inflow through forcing terms
+           Total outflow through forcing terms
+           Current total volume in domain        
+
+        """
+
+        #FIXME(Ole): We need to separate what part of explicit_update was 
+        # due to the normal flux calculations and what is due to forcing terms.
+        
+        pass
+			
+        
+    def compute_total_volume(self):
+        """Compute total volume (m^3) of water in entire domain
+        """
+        
+        area = self.mesh.get_areas()
+        volume = 0.0
+        
+        stage = self.get_quantity('stage').get_values(location='centroids')
+        elevation = self.get_quantity('elevation').get_values(location='centroids')        
+        depth = stage-elevation
+        
+        #print 'z', elevation
+        #print 'w', stage
+        #print 'h', depth
+        return num.sum(depth*area)
+        
+        
+    def volumetric_balance_statistics(self):                
+        """Create volumetric balance report suitable for printing or logging.
+        """
+        
+        boundary_flows, total_boundary_inflow, total_boundary_outflow = self.compute_boundary_flows() 
+        
+        s = '---------------------------\n'        
+        s += 'Volumetric balance report:\n'
+        s += '--------------------------\n'
+        s += 'Total boundary inflow [m^3/s]: %.2f\n' % total_boundary_inflow
+        s += 'Total boundary outflow [m^3/s]: %.2f\n' % total_boundary_outflow        
+        s += 'Net boundary flow by tags [m^3/s]\n'
+        for tag in boundary_flows:
+            s += '    %s [m^3/s]: %.2f\n' % (tag, boundary_flows[tag])
+        
+        s += 'Total net boundary flow [m^3/s]: %.2f\n' % (total_boundary_inflow + total_boundary_outflow) 
+        s += 'Total volume in domain [m^3]: %.2f\n' % self.compute_total_volume()
+        
+        # The go through explicit forcing update and record the rate of change for stage and 
+        # record into forcing_inflow and forcing_outflow. Finally compute integral 
+        # of depth to obtain total volume of domain.
+	
+        # FIXME(Ole): This part is not yet done.		
+        
+        return s        
+           
+           
+            
+            
 		
 #=============== End of class Shallow Water Domain ===============================
 

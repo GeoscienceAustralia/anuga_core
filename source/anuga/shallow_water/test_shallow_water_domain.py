@@ -6735,15 +6735,79 @@ friction  \n \
             os.remove(meshname)
 
             
+    def test_total_volume(self):        
+        """test_total_volume
+        
+        Test that total volume can be computed correctly
+        """            
+
+        
+
+        #------------------------------------------------------------------------------
+        # Import necessary modules
+        #------------------------------------------------------------------------------
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
+        from anuga.shallow_water import Domain
+
+
+        #------------------------------------------------------------------------------
+        # Setup computational domain
+        #------------------------------------------------------------------------------
+
+        length = 100.
+        width  = 20.
+        dx = dy = 5       # Resolution: of grid on both axes
+        
+        points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
+                                                       len1=length, len2=width)
+        domain = Domain(points, vertices, boundary)   
+                
+
+        #------------------------------------------------------------------------------
+        # Simple flat bottom bathtub
+        #------------------------------------------------------------------------------
+
+        d = 1.0
+        domain.set_quantity('elevation', 0.0)
+        domain.set_quantity('stage', d)
+        
+        assert num.allclose(domain.compute_total_volume(), length*width*d)
+
+
+        #------------------------------------------------------------------------------
+        # Slope
+        #------------------------------------------------------------------------------
+                
+        slope = 1.0/10  # RHS drops to -10m
+        def topography(x, y):
+            return -x * slope
+
+        domain.set_quantity('elevation', topography)
+        domain.set_quantity('stage', 0.0) # Domain full
+        
+        V = domain.compute_total_volume()
+        assert num.allclose(V, length*width*10/2)
+
+        
+        domain.set_quantity('stage', -5.0) # Domain 'half' full
+        
+        # IMPORTANT: Adjust stage to match elevation
+        domain.distribute_to_vertices_and_edges()
+        
+        V = domain.compute_total_volume()
+        assert num.allclose(V, width*(length/2)*5.0/2)
+        
+                
+        
             
-            
-    def Xtest_volumetric_balance_computation(self):
+    def test_volumetric_balance_computation(self):
         """test_volumetric_balance_computation
         
         Test that total in and out flows are computed correctly
+        FIXME(Ole): This test is more about looking at the printed report
         """
 
-        verbose = True
+        verbose = False
         
 
         #------------------------------------------------------------------------------
@@ -6813,10 +6877,11 @@ friction  \n \
         # Evolve system through time
         #------------------------------------------------------------------------------
         for t in domain.evolve(yieldstep=100.0, finaltime=finaltime):
+        
+            S = domain.volumetric_balance_statistics()
             if verbose :
                 print domain.timestepping_statistics()
-                                    
-            print domain.compute_volumetric_balance()
+                print S
             
             
                                 
@@ -6961,7 +7026,7 @@ friction  \n \
                     #assert num.allclose(domain_depth,normal_depth, rtol=1.0e-2), msg
         
         
-    def test_friction_dependent_flow_using_flowline(self):
+    def Xtest_friction_dependent_flow_using_flowline(self):
         """test_friction_dependent_flow_using_flowline
         
         Test the internal flow (using flowline) as a function of
@@ -7062,6 +7127,7 @@ friction  \n \
                 for t in domain.evolve(yieldstep=100.0, finaltime=finaltime):
                     if verbose :
                         print domain.timestepping_statistics()
+                        print domain.volumetric_balance_statistics()                        
                                     
                 # 90 degree flowline at 200m                                    
                 q=domain.get_flow_through_cross_section([[200.0,0.0],[200.0,20.0]])
@@ -7101,9 +7167,10 @@ friction  \n \
                         
                                 
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Shallow_Water, 'test_friction_dependent_flow_using_flowline')
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test_friction_dependent_flow_using_flowline')
     #suite = unittest.makeSuite(Test_Shallow_Water, 'test_volumetric_balance_computation') 
-    suite = unittest.makeSuite(Test_Shallow_Water, 'test')        
+    #suite = unittest.makeSuite(Test_Shallow_Water, 'test_total_volume')            
+    #suite = unittest.makeSuite(Test_Shallow_Water, 'test')        
 
     runner = unittest.TextTestRunner(verbosity=1)    
     runner.run(suite)

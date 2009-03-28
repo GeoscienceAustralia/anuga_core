@@ -606,8 +606,8 @@ int _bound_vertices_below_by_quantity(int N,
 }
 
 int _interpolate_from_vertices_to_edges(int N,
-		 double* vertex_values,
-		 double* edge_values) {
+					double* vertex_values,
+					double* edge_values) {
 
 	int k, k3;
 	double q0, q1, q2;
@@ -629,8 +629,8 @@ int _interpolate_from_vertices_to_edges(int N,
 
 
 int _interpolate_from_edges_to_vertices(int N,
-		 double* vertex_values,
-		 double* edge_values) {
+					double* vertex_values,
+					double* edge_values) {
 
 	int k, k3;
 	double e0, e1, e2;

@@ -234,6 +234,13 @@ class General_mesh:
         Return value is the numeric array slice [x, y]
         """
         return self.normals[i, 2*j:2*j+2]
+        
+    def get_edgelength(self, i, j):
+        """Return length of j'th edge of the i'th triangle.
+        Return value is the numeric array slice [x, y]
+        """
+        return self.edgelengths[i, j]
+                
 
     def get_number_of_nodes(self):
         return self.number_of_nodes
