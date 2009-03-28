@@ -2566,7 +2566,7 @@ class Test_Shallow_Water(unittest.TestCase):
                      rate=2.0,
                      polygon = [[1,1], [2,1], [2,2], [1,2]])
 
-        assert num.allclose(R.exchange_area, 1)
+        assert num.allclose(R.exchange_area, 2)
         
         domain.forcing_terms.append(R)
 
@@ -2733,7 +2733,7 @@ class Test_Shallow_Water(unittest.TestCase):
                      rate=lambda t: 3*t + 7,
                      polygon=rainfall_poly)
 
-        assert num.allclose(R.exchange_area, 1)
+        assert num.allclose(R.exchange_area, 2)
         
         domain.forcing_terms.append(R)
 
@@ -2806,7 +2806,7 @@ class Test_Shallow_Water(unittest.TestCase):
                      polygon = [[1,1], [2,1], [2,2], [1,2]],
                      default_rate=5.0)
 
-        assert num.allclose(R.exchange_area, 1)
+        assert num.allclose(R.exchange_area, 2)
         
         domain.forcing_terms.append(R)
 
@@ -2881,7 +2881,7 @@ class Test_Shallow_Water(unittest.TestCase):
                      polygon=[[1,1], [2,1], [2,2], [1,2]],
                      default_rate=5.0)
 
-        assert num.allclose(R.exchange_area, 1)
+        assert num.allclose(R.exchange_area, 2)
         
         domain.forcing_terms.append(R)
 
@@ -2923,13 +2923,16 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Setup only one forcing term, constant inflow of 2 m^3/s on a circle affecting triangles #0 and #1 (bac and bce)
         domain.forcing_terms = []
-        domain.forcing_terms.append( Inflow(domain, rate=2.0, center=(1,1), radius=1) )
-
-        domain.compute_forcing_terms()
-        #print domain.quantities['stage'].explicit_update
         
-        assert num.allclose(domain.quantities['stage'].explicit_update[1], 2.0/pi)
-        assert num.allclose(domain.quantities['stage'].explicit_update[0], 2.0/pi)
+        I = Inflow(domain, rate=2.0, center=(1,1), radius=1)
+        domain.forcing_terms.append(I)        
+        domain.compute_forcing_terms()
+        
+        A = I.exchange_area
+        assert num.allclose(A, 4) # Two triangles        
+        
+        assert num.allclose(domain.quantities['stage'].explicit_update[1], 2.0/A)
+        assert num.allclose(domain.quantities['stage'].explicit_update[0], 2.0/A)
         assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)        
 
 
@@ -2960,12 +2963,16 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Setup only one forcing term, time dependent inflow of 2 m^3/s on a circle affecting triangles #0 and #1 (bac and bce)
         domain.forcing_terms = []
-        domain.forcing_terms.append( Inflow(domain, rate=lambda t: 2., center=(1,1), radius=1) )
-
-        domain.compute_forcing_terms()
+        I = Inflow(domain, rate=lambda t: 2., center=(1,1), radius=1)
+        domain.forcing_terms.append(I)
         
-        assert num.allclose(domain.quantities['stage'].explicit_update[1], 2.0/pi)
-        assert num.allclose(domain.quantities['stage'].explicit_update[0], 2.0/pi)
+        domain.compute_forcing_terms()        
+
+        A = I.exchange_area
+        assert num.allclose(A, 4) # Two triangles
+        
+        assert num.allclose(domain.quantities['stage'].explicit_update[1], 2.0/A)
+        assert num.allclose(domain.quantities['stage'].explicit_update[0], 2.0/A)
         assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)        
         
 
@@ -6875,6 +6882,7 @@ friction  \n \
     
         
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Shallow_Water, 'test_inflow_using_flowline')
+    #suite = unittest.makeSuite(Test_Shallow_Water, 'test_inflow_using_flowline')
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test')    
     runner = unittest.TextTestRunner(verbosity=1)    
     runner.run(suite)
