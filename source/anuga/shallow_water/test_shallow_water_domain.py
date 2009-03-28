@@ -6733,7 +6733,93 @@ friction  \n \
             os.remove(meshname)
         else:
             os.remove(meshname)
-                    
+
+            
+            
+            
+    def Xtest_volumetric_balance_computation(self):
+        """test_volumetric_balance_computation
+        
+        Test that total in and out flows are computed correctly
+        """
+
+        verbose = True
+        
+
+        #------------------------------------------------------------------------------
+        # Import necessary modules
+        #------------------------------------------------------------------------------
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
+        from anuga.shallow_water import Domain
+        from anuga.shallow_water.shallow_water_domain import Reflective_boundary
+        from anuga.shallow_water.shallow_water_domain import Dirichlet_boundary
+        from anuga.shallow_water.shallow_water_domain import Inflow
+        from anuga.shallow_water.data_manager import get_flow_through_cross_section
+
+        #------------------------------------------------------------------------------
+        # Setup computational domain
+        #------------------------------------------------------------------------------
+        finaltime = 300.0
+
+        length = 300.
+        width  = 20.
+        dx = dy = 5       # Resolution: of grid on both axes
+        
+        # Input parameters
+        uh = 1.0
+        vh = 0.0
+        d = 1.0
+        
+        ref_flow = uh*d*width # 20 m^3/s in the x direction across entire domain
+
+        points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
+                                                       len1=length, len2=width)
+
+
+        domain = Domain(points, vertices, boundary)   
+        domain.set_name('Inflow_flowline_test')              # Output name
+                
+
+        #------------------------------------------------------------------------------
+        # Setup initial conditions
+        #------------------------------------------------------------------------------
+        slope = 0.0
+        def topography(x, y):
+            z=-x * slope
+            return z
+
+        domain.set_quantity('elevation', topography)  # Use function for elevation
+        domain.set_quantity('friction', 0.0)   # Constant friction
+                
+        domain.set_quantity('stage',
+                            expression='elevation')
+
+        #------------------------------------------------------------------------------
+        # Setup boundary conditions
+        #------------------------------------------------------------------------------
+
+        Br = Reflective_boundary(domain)      # Solid reflective wall
+                
+        # Constant flow into domain
+        # Depth = 1m, uh=1 m/s, i.e. a flow of 20 m^3/s 
+        
+        Bi = Dirichlet_boundary([d, uh, vh]) 
+        Bo = Dirichlet_boundary([0, 0, 0])
+
+        domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
+
+        
+        #------------------------------------------------------------------------------
+        # Evolve system through time
+        #------------------------------------------------------------------------------
+        for t in domain.evolve(yieldstep=100.0, finaltime=finaltime):
+            if verbose :
+                print domain.timestepping_statistics()
+                                    
+            print domain.compute_volumetric_balance()
+            
+            
+                                
         
     def Xtest_inflow_using_flowline(self):
         """test_inflow_using_flowline
@@ -6875,7 +6961,7 @@ friction  \n \
                     #assert num.allclose(domain_depth,normal_depth, rtol=1.0e-2), msg
         
         
-    def Xtest_friction_dependent_flow_using_flowline(self):
+    def test_friction_dependent_flow_using_flowline(self):
         """test_friction_dependent_flow_using_flowline
         
         Test the internal flow (using flowline) as a function of
@@ -7010,9 +7096,14 @@ friction  \n \
                     normal_depth=(ref_flow*mannings_n/(slope**0.5*width))**0.6
                     if verbose:
                         print 'Depth: ANUGA = %f, Mannings = %f' % (domain_depth, normal_depth)                    
-        
+
+                        
+                        
+                                
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Shallow_Water, 'test_friction_dependent_flow_using_flowline')
-    suite = unittest.makeSuite(Test_Shallow_Water, 'test')    
+    #suite = unittest.makeSuite(Test_Shallow_Water, 'test_volumetric_balance_computation') 
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test')        
+
     runner = unittest.TextTestRunner(verbosity=1)    
     runner.run(suite)

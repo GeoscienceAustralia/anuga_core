@@ -795,14 +795,30 @@ class Domain(Generic_Domain):
 		
         # Run through boundary array and compute for each segment
         # the normal momentum ((uh, vh) dot normal) times segment length.
-        # Based on sign accumulate this into total_boundary_inflow and total_boundary_outflow.
+        # Based on sign accumulate this into boundary_inflow and boundary_outflow.
         # The go through explicit forcing update and record the rate of change for stage and 
-        # record into total_forcing_inflow and total_forcing_outflow. Finally compute integral 
+        # record into forcing_inflow and forcing_outflow. Finally compute integral 
         # of depth to obtain total volume of domain.
 			
 			
-			
-        pass
+        # Compute flows along boundary
+        
+        uh = self.get_quantity('xmomentum').get_values()
+        vh = self.get_quantity('ymomentum').get_values()        
+        
+        # Loop through edges that lie on the boundary and calculate 
+        # flows
+        inflow = 0.0
+        outflow = 0.0
+        for vol_id, edge_id in self.boundary:
+            print vol_id, edge_id, self.boundary[(vol_id, edge_id)]
+
+            # Pick edge and compute normal flow
+            print uh[vol_id, :]
+            print vh[vol_id, :]            
+         
+        
+        
 		
 		
 #=============== End of class Shallow Water Domain ===============================
