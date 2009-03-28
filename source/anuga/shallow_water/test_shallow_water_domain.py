@@ -6831,11 +6831,6 @@ friction  \n \
                         print domain.timestepping_statistics()
 
 
-                x=200.0
-                y=10.00
-                
-                
-
                 #------------------------------------------------------------------------------
                 # Compute flow thru flowlines ds of inflow
                 #------------------------------------------------------------------------------
@@ -6857,6 +6852,8 @@ friction  \n \
                 #assert num.allclose(q, ref_flow, rtol=1.0e-2), msg         
 
                 # Stage recorder (gauge) in middle of plane at 200m
+                x=200.0
+                y=10.00
                 w = domain.get_quantity('stage').get_values(interpolation_points=[[x, y]])[0]
                 z = domain.get_quantity('elevation').get_values(interpolation_points=[[x, y]])[0]
                 domain_depth = w-z
@@ -6865,7 +6862,7 @@ friction  \n \
                 # Compute normal depth at gauge location using Manning equation
                 # v=1/n*(r^2/3)*(s^0.5) or r=(Q*n/(s^0.5*W))^0.6
                 normal_depth=(ref_flow*mannings_n/(slope**0.5*width))**0.6
-                msg = 'Predicted depth of flow was %f, should have been %f' % (normal_depth, domain_depth)
+                msg = 'Predicted depth of flow was %f, should have been %f' % (domain_depth, normal_depth)                
                 if verbose:
                     print 'Depth: ANUGA = %f, Mannings = %f' % (domain_depth, normal_depth)
 
@@ -6878,11 +6875,144 @@ friction  \n \
                     #assert num.allclose(domain_depth,normal_depth, rtol=1.0e-2), msg
         
         
+    def Xtest_friction_dependent_flow_using_flowline(self):
+        """test_friction_dependent_flow_using_flowline
+        
+        Test the internal flow (using flowline) as a function of
+        different values of Mannings n and different slopes.
+        
+        Flow is applied in the form of boundary conditions with fixed momentum.
+        """
 
-    
+        verbose = True
+        
+
+        #------------------------------------------------------------------------------
+        # Import necessary modules
+        #------------------------------------------------------------------------------
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
+        from anuga.shallow_water import Domain
+        from anuga.shallow_water.shallow_water_domain import Reflective_boundary
+        from anuga.shallow_water.shallow_water_domain import Dirichlet_boundary
+        from anuga.shallow_water.shallow_water_domain import Inflow
+        from anuga.shallow_water.data_manager import get_flow_through_cross_section
+        from anuga.abstract_2d_finite_volumes.util import sww2csv_gauges, csv2timeseries_graphs
+
+
+        #------------------------------------------------------------------------------
+        # Setup computational domain
+        #------------------------------------------------------------------------------
+        finaltime = 300.0
+
+        length = 300.
+        width  = 20.
+        dx = dy = 5       # Resolution: of grid on both axes
+        
+        # Input parameters
+        uh = 1.0
+        vh = 0.0
+        d = 1.0
+        
+        ref_flow = uh*d*width # 20 m^3/s in the x direction across entire domain
+
+        points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
+                                                       len1=length, len2=width)
+
+        for mannings_n in [0.0, 0.012, 0.035]:
+            for slope in [0.0, 1.0/300, 1.0/150]:
+                # Loop over a range of bedslopes representing sub to super critical flows 
+
+                if verbose:
+                    print
+                    print 'Slope:', slope, 'Mannings n:', mannings_n
+                domain = Domain(points, vertices, boundary)   
+                domain.set_name('Inflow_flowline_test')              # Output name
+                
+
+                #------------------------------------------------------------------------------
+                # Setup initial conditions
+                #------------------------------------------------------------------------------
+
+                def topography(x, y):
+                    z=-x * slope
+                    return z
+
+                domain.set_quantity('elevation', topography)  # Use function for elevation
+                domain.set_quantity('friction', mannings_n)   # Constant friction
+                
+                #domain.set_quantity('stage',
+                #                    expression='elevation')
+                                                    
+                
+                # Set initial flow as depth=1m, uh=1.0 m/s, vh = 0.0
+                # making it 20 m^3/s across entire domain 
+                domain.set_quantity('stage',
+                                    expression='elevation + %f' % d)
+                domain.set_quantity('xmomentum', uh)
+                domain.set_quantity('ymomentum', vh)                
+
+
+                #------------------------------------------------------------------------------
+                # Setup boundary conditions
+                #------------------------------------------------------------------------------
+
+                Br = Reflective_boundary(domain)      # Solid reflective wall
+                
+                # Constant flow in and out of domain
+                # Depth = 1m, uh=1 m/s, i.e. a flow of 20 m^3/s 
+                # across boundaries
+                Bi = Dirichlet_boundary([d, uh, vh]) 
+                Bo = Dirichlet_boundary([-length*slope+d, uh, vh])
+                #Bo = Dirichlet_boundary([-100, 0, 0])
+
+                domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
+
+
+                
+                
+                #------------------------------------------------------------------------------
+                # Evolve system through time
+                #------------------------------------------------------------------------------
+                for t in domain.evolve(yieldstep=100.0, finaltime=finaltime):
+                    if verbose :
+                        print domain.timestepping_statistics()
+                                    
+                # 90 degree flowline at 200m                                    
+                q=domain.get_flow_through_cross_section([[200.0,0.0],[200.0,20.0]])
+                msg = 'Predicted flow was %f, should have been %f' % (q, ref_flow)
+                if verbose:
+                    print '90 degree flowline: ANUGA = %f, Ref = %f' % (q, ref_flow)
+                     
+                     
+                # 45 degree flowline at 200m
+                q=domain.get_flow_through_cross_section([[200.0,0.0],[220.0,20.0]])
+                msg = 'Predicted flow was %f, should have been %f' % (q, ref_flow)
+                if verbose:
+                    print '45 degree flowline: ANUGA = %f, Ref = %f' % (q, ref_flow)
+                    
+
+                # Stage recorder (gauge) in middle of plane at 200m
+                x=200.0
+                y=10.00                
+                w = domain.get_quantity('stage').get_values(interpolation_points=[[x, y]])[0]
+                z = domain.get_quantity('elevation').get_values(interpolation_points=[[x, y]])[0]
+                domain_depth = w-z
+                
+                xmom = domain.get_quantity('xmomentum').get_values(interpolation_points=[[x, y]])[0]                
+                ymom = domain.get_quantity('ymomentum').get_values(interpolation_points=[[x, y]])[0]            
+                if verbose:                    
+                    print 'At interpolation point (h, uh, vh): ', domain_depth, xmom, ymom
+                    print 'uh * d * width = ', xmom*domain_depth*width
+                                
+                if slope > 0.0:
+                    # Compute normal depth at gauge location using Manning equation
+                    # v=1/n*(r^2/3)*(s^0.5) or r=(Q*n/(s^0.5*W))^0.6
+                    normal_depth=(ref_flow*mannings_n/(slope**0.5*width))**0.6
+                    if verbose:
+                        print 'Depth: ANUGA = %f, Mannings = %f' % (domain_depth, normal_depth)                    
         
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Shallow_Water, 'test_inflow_using_flowline')
+    #suite = unittest.makeSuite(Test_Shallow_Water, 'test_friction_dependent_flow_using_flowline')
     suite = unittest.makeSuite(Test_Shallow_Water, 'test')    
     runner = unittest.TextTestRunner(verbosity=1)    
     runner.run(suite)
