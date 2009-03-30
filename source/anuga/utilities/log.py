@@ -107,12 +107,12 @@ def log(level, msg):
     # get caller information - look back for first module != <this module name>
     frames = traceback.extract_stack()
     frames.reverse()
-    for (mname, lnum, _, _) in frames:
-        mname = os.path.basename(mname).rsplit('.', 1)[0]
+    for (fpath, lnum, mname, _) in frames:
+        fname = os.path.basename(mname).rsplit('.', 1)[0]
         if mname != __name__:
             break
 
-    logging.log(level, msg, extra={'mname': mname, 'lnum': lnum})
+    logging.log(level, msg, extra={'mname': fname, 'lnum': lnum})
 
 ################################################################################
 # Shortcut routines to make for simpler user code.
