@@ -345,7 +345,9 @@ def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
     # Get auth info from user if still not supplied
     if httpproxy is None or proxyuser is None or proxypass is None:
         print '----------------------------------------------------'
-        print 'You need to supply proxy authentication information:'
+        print 'You need to supply proxy authentication information.'
+        print 'Use environment variables HTTP_PROXY, PROXY_USERNAME'
+        print 'and PROXY_PASSWORD to bypass entry here:'
         if httpproxy is None:
             httpproxy = raw_input('  proxy server: ')
         if proxyuser is None:
