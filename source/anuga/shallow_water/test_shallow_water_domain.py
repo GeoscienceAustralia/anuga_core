@@ -6894,6 +6894,9 @@ friction  \n \
         downstream of the inflow and a 45 degree flowlines at 200m downstream
         """
 
+        # FIXME(Ole): Move this and the following test to validate_all.py as they are
+        # rather time consuming
+        
         verbose = True
         
 
@@ -6913,16 +6916,16 @@ friction  \n \
         # Setup computational domain
         #------------------------------------------------------------------------------
         number_of_inflows = 2 # Number of inflows on top of each other
-        finaltime = 300.0
+        finaltime = 1000.0 #6000.0
 
         length = 300.
         width  = 20.
-        dx = dy = 2          # Resolution: of grid on both axes
+        dx = dy = 5          # Resolution: of grid on both axes
 
         points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
                                                        len1=length, len2=width)
 
-        for mannings_n in [0.0, 0.012, 0.035, 0.070, 0.150]:
+        for mannings_n in [0.150, 0.07, 0.035]: #[0.012, 0.035, 0.070, 0.150]:
             for slope in [1.0/300, 1.0/150, 1.0/75]:
                 # Loop over a range of bedslopes representing sub to super critical flows 
 
@@ -6978,8 +6981,13 @@ friction  \n \
 
 
                 for t in domain.evolve(yieldstep=100.0, finaltime=finaltime):
-                    if verbose :
-                        print domain.timestepping_statistics()
+                    pass
+                    #if verbose :
+                    #    print domain.timestepping_statistics()
+
+                if verbose:
+                    print domain.volumetric_balance_statistics()                                                            
+
 
 
                 #------------------------------------------------------------------------------
@@ -6991,7 +6999,7 @@ friction  \n \
                 msg = 'Predicted flow was %f, should have been %f' % (q, ref_flow)
                 if verbose:
                     print '90 degree flowline: ANUGA = %f, Ref = %f' % (q, ref_flow)
-                #assert num.allclose(q, ref_flow, rtol=1.0e-2), msg         
+                assert num.allclose(q, ref_flow, rtol=1.0e-2), msg         
 
                            
                 # 45 degree flowline at 200m
@@ -7000,7 +7008,7 @@ friction  \n \
                 if verbose:
                     print '45 degree flowline: ANUGA = %f, Ref = %f' % (q, ref_flow)
                     
-                #assert num.allclose(q, ref_flow, rtol=1.0e-2), msg         
+                assert num.allclose(q, ref_flow, rtol=1.0e-2), msg         
 
                 # Stage recorder (gauge) in middle of plane at 200m
                 x=200.0
@@ -7015,8 +7023,13 @@ friction  \n \
                 normal_depth=(ref_flow*mannings_n/(slope**0.5*width))**0.6
                 msg = 'Predicted depth of flow was %f, should have been %f' % (domain_depth, normal_depth)                
                 if verbose:
-                    print 'Depth: ANUGA = %f, Mannings = %f' % (domain_depth, normal_depth)
-
+                    diff = abs(domain_depth-normal_depth)
+                    print 'Depth: ANUGA = %f, Mannings = %f, E=%f' % (domain_depth, 
+                                                                      normal_depth,
+                                                                      diff/domain_depth)
+                    
+                    assert diff < 0.1
+                    
                 if slope >= 1.0/100:
                     # Really super critical flow is not as stable.
                     #assert num.allclose(domain_depth,normal_depth, rtol=1.0e-1), msg
@@ -7053,7 +7066,7 @@ friction  \n \
         #------------------------------------------------------------------------------
         # Setup computational domain
         #------------------------------------------------------------------------------
-        finaltime = 300.0
+        finaltime = 1000.0
 
         length = 300.
         width  = 20.
@@ -7069,8 +7082,8 @@ friction  \n \
         points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
                                                        len1=length, len2=width)
 
-        for mannings_n in [0.0, 0.012, 0.035]:
-            for slope in [0.0, 1.0/300, 1.0/150]:
+        for mannings_n in [0.035]: #[0.0, 0.012, 0.035]:
+            for slope in [1.0/300]: #[0.0, 1.0/300, 1.0/150]:
                 # Loop over a range of bedslopes representing sub to super critical flows 
 
                 if verbose:
@@ -7129,6 +7142,8 @@ friction  \n \
                         print domain.timestepping_statistics()
                         print domain.volumetric_balance_statistics()                        
                                     
+                                    
+                    
                 # 90 degree flowline at 200m                                    
                 q=domain.get_flow_through_cross_section([[200.0,0.0],[200.0,20.0]])
                 msg = 'Predicted flow was %f, should have been %f' % (q, ref_flow)
@@ -7167,8 +7182,8 @@ friction  \n \
                         
                                 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Shallow_Water, 'test_friction_dependent_flow_using_flowline')
-    #suite = unittest.makeSuite(Test_Shallow_Water, 'test_volumetric_balance_computation') 
+    #suite = unittest.makeSuite(Test_Shallow_Water, 'test_friction_dependent_flow_using_flowline')
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test_inflow') 
     #suite = unittest.makeSuite(Test_Shallow_Water, 'test_total_volume')            
     #suite = unittest.makeSuite(Test_Shallow_Water, 'test')        
 
