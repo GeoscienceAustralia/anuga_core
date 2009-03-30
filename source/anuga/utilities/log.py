@@ -45,7 +45,7 @@ console_logging_level = logging.CRITICAL
 log_logging_level = logging.INFO
 
 # The default name of the file to log to.
-log_filename = './anuga.log'
+log_filename = os.path.join('.', 'anuga.log')
 
 # set module variables so users don't have to do 'import logging'.
 CRITICAL = logging.CRITICAL
