@@ -88,7 +88,10 @@ def log(level, msg):
             log_logging_level = console_logging_level
 
         # setup the file logging system
-        fmt = '%(asctime)s %(levelname)-8s %(mname)25s:%(lnum)-4d|%(message)s'
+        if version_major >= 2 and version_minor >= 5:
+            fmt = '%(asctime)s %(levelname)-8s %(mname)25s:%(lnum)-4d|%(message)s'
+        else:
+            fmt = '%(asctime)s %(levelname)-8s|%(message)s'
         logging.basicConfig(level=log_logging_level, format=fmt,
                             filename=log_filename, filemode='w')
 
