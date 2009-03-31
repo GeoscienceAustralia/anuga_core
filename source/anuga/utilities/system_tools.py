@@ -344,8 +344,8 @@ def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
     if httpproxy is None or proxyuser is None or proxypass is None:
         print '-'*80
         print ('You need to supply proxy authentication information.  '
-               'Use environment variables')
-        print ('HTTP_PROXY, PROXY_USERNAME and PROXY_PASSWORD to bypass '
+               'Use environment variables\n'
+               'HTTP_PROXY, PROXY_USERNAME and PROXY_PASSWORD to bypass '
                'entry here:')
         if httpproxy is None:
             httpproxy = raw_input('  proxy server: ')
@@ -355,7 +355,7 @@ def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
             proxypass = getpass.getpass('proxy password: ')
         print '-'*80
 
-    # the proxy URL cannot start with 'http://'
+    # the proxy URL cannot start with 'http://', we add that later
     httpproxy = httpproxy.lower()
     if httpproxy.startswith('http://'):
         httpproxy = httpproxy.replace('http://', '', 1)
@@ -406,7 +406,7 @@ def untar_file(tarname, target_dir='.'):
 
     o = tarfile.open(tarname, 'r:gz')
     members = o.getmembers()
-    for member in members:
+    for member in members:Compute normal depth at gauge location usin
         o.extract(member, target_dir)
     o.close()
 
