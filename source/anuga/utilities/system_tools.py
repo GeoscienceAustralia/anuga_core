@@ -303,19 +303,17 @@ def get_vars_in_expression(source):
 def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
     '''Get a file from the web.
 
-    Note the tortuous path to the code below:
-    Q. How do we get a file on a server into patong validation?
-    A. wget!
-    Q. On Windows?
-    A. Damn! wget is UNIX only.  Use python module urllib!  One line of code!
-    Q. Through a proxy?
-    A. Damn! urllib fails.  Use urllib2!
-    Q. How do we make it easy for the user to supply auth info?
-    A. Pass in and return an 'auth' tuple!  And use environment variables!
-    Q. How do we stop a caching proxy from defeating updates?
-    A. Append a unique, ignored, string on each fetched URL!
+    file_url:  The URL of the file to get
+    file_name: Local path to save loaded file in
+    auth:      A tuple (httpproxy, proxyuser, proxypass)
+    blocksize: Block size of file reads
+    
+    Will try simple load through urllib first.  Drop down to urllib2
+    if there is a proxy and it requires authentication.
 
-    Furtive look over the shoulder to see what other problems are approaching!
+    Environment variable HTTP_PROXY can be used to supply proxy information.
+    PROXY_USERNAME is used to supply the authentication username.
+    PROXY_PASSWORD supplies the password, if you dare!
     '''
 
     # Simple fetch, if fails, check for proxy error
@@ -344,17 +342,18 @@ def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
 
     # Get auth info from user if still not supplied
     if httpproxy is None or proxyuser is None or proxypass is None:
-        print '----------------------------------------------------'
-        print 'You need to supply proxy authentication information.'
-        print 'Use environment variables HTTP_PROXY, PROXY_USERNAME'
-        print 'and PROXY_PASSWORD to bypass entry here:'
+        print '-'*80
+        print ('You need to supply proxy authentication information.  '
+               'Use environment variables')
+        print ('HTTP_PROXY, PROXY_USERNAME and PROXY_PASSWORD to bypass '
+               'entry here:')
         if httpproxy is None:
             httpproxy = raw_input('  proxy server: ')
         if proxyuser is None:
             proxyuser = raw_input('proxy username: ') 
         if proxypass is None:
             proxypass = getpass.getpass('proxy password: ')
-        print '----------------------------------------------------'
+        print '-'*80
 
     # the proxy URL cannot start with 'http://'
     httpproxy = httpproxy.lower()
