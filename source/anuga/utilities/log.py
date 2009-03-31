@@ -17,6 +17,10 @@ for the basic idea used here: modules *are* singletons!
 
 Until the first call to log() the user is free to play with the module data
 to configure the logging.
+
+Note that this module uses features of the logging package that were introduced
+in python2.5.  If running on earlier versions, these features are disables:
+    . Module name + line number
 '''
 
 import sys
@@ -74,6 +78,9 @@ def log(level, msg):
 
     global _setup, log_logging_level
 
+    # get running python version for later
+    (version_major, version_minor, _, _, _) = sys.version_info
+
     # have we been setup?
     if not _setup:
         # sanity check the logging levels, require console >= file
@@ -98,8 +105,11 @@ def log(level, msg):
                      % (log_filename,
                         logging.getLevelName(log_logging_level),
                         logging.getLevelName(console_logging_level)))
-        logging.log(logging.CRITICAL, start_msg,
-                    extra={'mname': __name__, 'lnum': 0})
+        if version_major >= 2 and version_minor >= 5:
+            logging.log(logging.CRITICAL, start_msg,
+                        extra={'mname': __name__, 'lnum': 0})
+        else:
+            logging.log(logging.CRITICAL, start_msg)
 
         # mark module as *setup*
         _setup = True
@@ -112,7 +122,10 @@ def log(level, msg):
         if mname != __name__:
             break
 
-    logging.log(level, msg, extra={'mname': fname, 'lnum': lnum})
+    if version_major >= 2 and version_minor >= 5:
+        logging.log(level, msg, extra={'mname': fname, 'lnum': lnum})
+    else:
+        logging.log(level, msg)
 
 ################################################################################
 # Shortcut routines to make for simpler user code.
