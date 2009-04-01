@@ -406,7 +406,7 @@ def untar_file(tarname, target_dir='.'):
 
     o = tarfile.open(tarname, 'r:gz')
     members = o.getmembers()
-    for member in members:Compute normal depth at gauge location usin
+    for member in members:
         o.extract(member, target_dir)
     o.close()
 
