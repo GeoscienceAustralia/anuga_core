@@ -171,10 +171,11 @@ def _pmesh_to_domain(file_name=None,
     vertex_coordinates = mesh_dict['vertices']
     volumes = mesh_dict['triangles']
     vertex_quantity_dict = {}
-    point_atts = num.transpose(mesh_dict['vertex_attributes'])
+    point_atts = mesh_dict['vertex_attributes']
     point_titles  = mesh_dict['vertex_attribute_titles']
     geo_reference  = mesh_dict['geo_reference']
-    if point_atts != None:
+    if point_atts is not None:
+        point_atts = num.transpose(point_atts)    
         for quantity, value_vector in map (None, point_titles, point_atts):
             vertex_quantity_dict[quantity] = value_vector
     tag_dict = pmesh_dict_to_tag_dict(mesh_dict)
