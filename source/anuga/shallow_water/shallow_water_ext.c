@@ -17,6 +17,7 @@
 #include "Numeric/arrayobject.h"
 #include "math.h"
 #include <stdio.h>
+#include <string.h>
 
 // Shared code snippets
 #include "util_ext.h"
@@ -25,6 +26,7 @@
 const double pi = 3.14159265358979;
 
 // Computational function for rotation
+// FIXME: Perhaps inline this and profile
 int _rotate(double *q, double n1, double n2) {
   /*Rotate the momentum component q (q[1], q[2])
     from x,y coordinates to coordinates based on normal vector (n1, n2).
@@ -163,6 +165,8 @@ double compute_froude_number(double uh,
 // Function to obtain speed from momentum and depth.
 // This is used by flux functions
 // Input parameters uh and h may be modified by this function.
+
+// FIXME: Perhaps inline this and profile
 double _compute_speed(double *uh, 
 		      double *h, 
 		      double epsilon, 
@@ -209,7 +213,7 @@ int _flux_function_central(double *q_left, double *q_right,
   double w_right, h_right, uh_right, vh_right, u_right;
   double v_left, v_right;  
   double s_min, s_max, soundspeed_left, soundspeed_right;
-  double denom, z;
+  double denom, inverse_denominator, z;
 
   // Workspace (allocate once, use many)
   static double q_left_rotated[3], q_right_rotated[3], flux_right[3], flux_left[3];
@@ -228,10 +232,10 @@ int _flux_function_central(double *q_left, double *q_right,
   _rotate(q_left_rotated, n1, n2);
   _rotate(q_right_rotated, n1, n2);
 
-  z = (z_left+z_right)/2; // Average elevation values. 
-                          // Even though this will nominally allow for discontinuities 
-			  // in the elevation data, there is currently no numerical 
-			  // support for this so results may be strange near jumps in the bed.
+  z = 0.5*(z_left+z_right); // Average elevation values. 
+                            // Even though this will nominally allow for discontinuities 
+			    // in the elevation data, there is currently no numerical 
+			    // support for this so results may be strange near jumps in the bed.
 
   // Compute speeds in x-direction
   w_left = q_left_rotated[0];          
@@ -279,10 +283,11 @@ int _flux_function_central(double *q_left, double *q_right,
     for (i=0; i<3; i++) edgeflux[i] = 0.0;
     *max_speed = 0.0;
   } else {
+    inverse_denominator = 1.0/denom;
     for (i=0; i<3; i++) {
       edgeflux[i] = s_max*flux_left[i] - s_min*flux_right[i];
       edgeflux[i] += s_max*s_min*(q_right_rotated[i]-q_left_rotated[i]);
-      edgeflux[i] /= denom;
+      edgeflux[i] *= inverse_denominator;
     }
 
     // Maximal wavespeed
@@ -1651,33 +1656,34 @@ double _compute_fluxes_central(int number_of_elements,
 	
   // Start computation
   call++; // Flag 'id' of flux calculation for this timestep 
-  
+
+    
   // Set explicit_update to zero for all conserved_quantities.
   // This assumes compute_fluxes called before forcing terms
-  for (k=0; k<number_of_elements; k++) {
-    stage_explicit_update[k]=0.0;
-    xmom_explicit_update[k]=0.0;
-    ymom_explicit_update[k]=0.0;  
-  }
+  memset((char*) stage_explicit_update, 0, number_of_elements*sizeof(double));
+  memset((char*) xmom_explicit_update, 0, number_of_elements*sizeof(double));
+  memset((char*) ymom_explicit_update, 0, number_of_elements*sizeof(double));    
+  
 
   // For all triangles
   for (k=0; k<number_of_elements; k++) {
     
     // Loop through neighbours and compute edge flux for each  
     for (i=0; i<3; i++) {
-      ki = k*3+i; // Linear index (triangle k, edge i)
+      ki = k*3+i; // Linear index to edge i of triangle k
       
       if (already_computed_flux[ki] == call)
         // We've already computed the flux across this edge
 	continue;
 	
-	
+      // Get left hand side values from triangle k, edge i 
       ql[0] = stage_edge_values[ki];
       ql[1] = xmom_edge_values[ki];
       ql[2] = ymom_edge_values[ki];
       zl = bed_edge_values[ki];
 
-      // Quantities at neighbour on nearest face
+      // Get right hand side values either from neighbouring triangle
+      // or from boundary array (Quantities at neighbour on nearest face).
       n = neighbours[ki];
       if (n < 0) {
         // Neighbour is a boundary condition
@@ -1688,7 +1694,7 @@ double _compute_fluxes_central(int number_of_elements,
 	qr[2] = ymom_boundary_values[m];
 	zr = zl; // Extend bed elevation to boundary
       } else {
-        // Neighbour is a real element
+        // Neighbour is a real triangle
 	m = neighbour_edges[ki];
 	nm = n*3+m; // Linear index (triangle n, edge m)
 	
@@ -1698,6 +1704,7 @@ double _compute_fluxes_central(int number_of_elements,
 	zr = bed_edge_values[nm];
       }
       
+      // Now we have values for this edge - both from left and right side.
       
       if (optimise_dry_cells) {      
 	// Check if flux calculation is necessary across this edge
