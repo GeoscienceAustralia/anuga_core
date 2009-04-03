@@ -49,4 +49,4 @@ os.chdir(buildroot)
 print 'That took %.3fs' %(time.time() - t0)
 
 if sys.platform == 'win32':
-    raw_input('Press any key')
+    raw_input('Press the RETURN key')

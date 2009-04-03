@@ -27,4 +27,4 @@ os.chdir(buildroot)
 #execfile('test_all.py')
     
 if sys.platform == 'win32':
-    raw_input('Press any key')
+    raw_input('Press the RETURN key')
