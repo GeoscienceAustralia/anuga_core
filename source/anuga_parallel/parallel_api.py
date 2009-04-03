@@ -116,6 +116,9 @@ def distribute(domain, verbose=False):
     # Build the domain for this processor using partion structures
     #------------------------------------------------------------------------
 
+    if verbose: print 'myid ',myid, number_of_full_nodes, number_of_full_triangles
+
+    
     domain = Parallel_Domain(points, vertices, boundary,
                              full_send_dict=full_send_dict,
                              ghost_recv_dict=ghost_recv_dict,

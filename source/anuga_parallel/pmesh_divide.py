@@ -118,7 +118,7 @@ def pmesh_divide_metis(domain, n_procs):
     
     n_tri = len(domain.triangles)
     if n_procs != 1: #Because metis chokes on it...
-        n_vert = domain.number_of_nodes
+        n_vert = domain.get_number_of_nodes()
         t_list = domain.triangles.copy()
         t_list = reshape(t_list, (-1,))
     

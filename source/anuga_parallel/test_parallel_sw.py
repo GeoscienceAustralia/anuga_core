@@ -169,7 +169,7 @@ class Test_Parallel_Sw(unittest.TestCase):
 # the PyUnit defined assert_ function can't be used.
 def assert_(condition, msg="Assertion Failed"):
     if condition == False:
-        pypar.finalize()
+        #pypar.finalize()
         raise AssertionError, msg
 
 if __name__=="__main__":
@@ -214,8 +214,7 @@ if __name__=="__main__":
                         assert_(abs(l1norm_par[x][y] - l1norm_par[x-1][y]) < tol)
                         assert_(abs(l2norm_par[x][y] - l2norm_par[x-1][y]) < tol)
                         assert_(abs(linfnorm_par[x][y] - linfnorm_par[x-1][y]) < tol)
-
-        if myid == 0:
+                
             print 'Parallel test OK'
 
 

@@ -49,8 +49,8 @@ numprocs = pypar.size()
 myid = pypar.rank()
 processor_name = pypar.Get_processor_name()
 
-N = 100
-M = 100
+N = 5
+M = 2
 
 #######################
 # Partition the mesh
@@ -61,6 +61,11 @@ M = 100
 
 points, vertices, boundary, full_send_dict, ghost_recv_dict =  \
     parallel_rectangle(N, M, len1_g=1.0)
+
+#print 'ghost ',ghost_recv_dict
+#print 'full  ',full_send_dict
+
+
 
 print "Myid = ", myid, "no points = ", len(points), \
       "no vertices = ", len(vertices), "no boundaries = ", len(boundary)
@@ -74,6 +79,10 @@ print "Myid = ", myid, "no points = ", len(points), \
 
 domain = Parallel_Domain(points, vertices, boundary,
                          full_send_dict, ghost_recv_dict, velocity=[1.0, 0.0])
+
+#print 'ghost ',ghost_recv_dict
+#print 'full  ',full_send_dict
+
 
 # Boundaries
 
@@ -115,8 +124,7 @@ visualise = True
 if visualise:
     from anuga.visualiser import RealtimeVisualiser
     vis = RealtimeVisualiser(domain)
-    #vis.render_quantity_height("elevation", offset=0.01, dynamic=False)
-    vis.render_quantity_height("stage", dynamic=True)
+    vis.render_quantity_height("stage", zScale = 5.0, dynamic=True)
     vis.colour_height_quantity('stage', (0.2, 0.2, 0.8))
     vis.start()
     import time
