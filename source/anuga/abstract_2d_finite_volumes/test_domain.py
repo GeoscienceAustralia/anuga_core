@@ -396,7 +396,7 @@ class Test_Domain(unittest.TestCase):
                                       
                                       
     def test_setting_timestepping_method(self):
-        """test_set_quanitities_to_be_monitored
+        """test_setting_timestepping_method
         """
 
         a = [0.0, 0.0]
