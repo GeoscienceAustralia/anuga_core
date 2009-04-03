@@ -11,6 +11,7 @@ from math import sqrt
 
 from neighbour_mesh import *
 from mesh_factory import rectangular
+from mesh_factory import rectangular_periodic
 from anuga.config import epsilon
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference
@@ -396,6 +397,7 @@ class Test_Mesh(unittest.TestCase):
         else:
             raise "triangle edge duplicates not caught"
 
+
     def test_rectangular_mesh_basic(self):
         M=1
         N=1
@@ -417,6 +419,10 @@ class Test_Mesh(unittest.TestCase):
         #assert mesh.boundary[(7,1)] == 2 # top
         assert mesh.boundary[(7,1)] == 'top' # top
         assert mesh.boundary[(3,1)] == 'top' # top
+
+
+
+
 
 
     def test_boundary_tags(self):
@@ -474,7 +480,6 @@ class Test_Mesh(unittest.TestCase):
 
         points, vertices, boundary = rectangular(2*N, N, len1=10, len2=10)
         mesh = Mesh(points, vertices, boundary)
-
 
 
     def test_surrogate_neighbours(self):

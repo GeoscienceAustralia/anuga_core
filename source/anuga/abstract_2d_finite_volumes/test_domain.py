@@ -793,6 +793,75 @@ class Test_Domain(unittest.TestCase):
                              [ 11.0,  11.0,  11.0],
                              [ 11.0,  11.0,  11.0]])
                              
+
+    def test_rectangular_periodic_and_ghosts(self):
+
+        from mesh_factory import rectangular_periodic
+        
+
+        M=5
+        N=2
+        points, vertices, boundary, full_send_dict, ghost_recv_dict = rectangular_periodic(M, N)
+
+        assert num.allclose(ghost_recv_dict[0][0], [24, 25, 26, 27,  0,  1,  2,  3])
+        assert num.allclose(full_send_dict[0][0] , [ 4,  5,  6,  7, 20, 21, 22, 23])
+
+        #print 'HERE'
+        
+        conserved_quantities = ['quant1', 'quant2']
+        domain = Domain(points, vertices, boundary, conserved_quantities,
+                        full_send_dict=full_send_dict,
+                        ghost_recv_dict=ghost_recv_dict)
+
+
+
+
+        assert num.allclose(ghost_recv_dict[0][0], [24, 25, 26, 27,  0,  1,  2,  3])
+        assert num.allclose(full_send_dict[0][0] , [ 4,  5,  6,  7, 20, 21, 22, 23])
+
+        def xylocation(x,y):
+            return 15*x + 9*y
+
+        
+        domain.set_quantity('quant1',xylocation,location='centroids')
+        domain.set_quantity('quant2',xylocation,location='centroids')
+
+
+        assert num.allclose(domain.quantities['quant1'].centroid_values,
+                            [  0.5,   1.,   5.,    5.5,   3.5,   4.,    8.,    8.5,   6.5,  7.,   11.,   11.5,   9.5,
+                               10.,   14.,   14.5,  12.5,  13.,   17.,   17.5,  15.5,  16.,   20.,   20.5,
+                               18.5,  19.,   23.,   23.5])
+
+
+
+        assert num.allclose(domain.quantities['quant2'].centroid_values,
+                            [  0.5,   1.,   5.,    5.5,   3.5,   4.,    8.,    8.5,   6.5,  7.,   11.,   11.5,   9.5,
+                               10.,   14.,   14.5,  12.5,  13.,   17.,   17.5,  15.5,  16.,   20.,   20.5,
+                               18.5,  19.,   23.,   23.5])
+
+        domain.update_ghosts()
+
+
+        assert num.allclose(domain.quantities['quant1'].centroid_values,
+                            [  15.5,  16.,   20.,   20.5,   3.5,   4.,    8.,    8.5,   6.5,  7.,   11.,   11.5,   9.5,
+                               10.,   14.,   14.5,  12.5,  13.,   17.,   17.5,  15.5,  16.,   20.,   20.5,
+                                3.5,   4.,    8.,    8.5])
+
+
+
+        assert num.allclose(domain.quantities['quant2'].centroid_values,
+                            [  15.5,  16.,   20.,   20.5,   3.5,   4.,    8.,    8.5,   6.5,  7.,   11.,   11.5,   9.5,
+                               10.,   14.,   14.5,  12.5,  13.,   17.,   17.5,  15.5,  16.,   20.,   20.5,
+                                3.5,   4.,    8.,    8.5])
+
+        
+        assert num.allclose(domain.tri_full_flag, [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                                   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0])
+
+        #Test that points are arranged in a counter clock wise order
+        domain.check_integrity()
+
+
     def test_that_mesh_methods_exist(self):
         """test_that_mesh_methods_exist
         
@@ -818,6 +887,7 @@ class Test_Domain(unittest.TestCase):
         domain.get_nodes()
         domain.get_number_of_nodes()
         domain.get_normal(0,0)
+        domain.get_triangle_containing_point([0.4,0.5])
         domain.get_intersecting_segments([[0.0, 0.0], [0.0, 1.0]])
         domain.get_disconnected_triangles()
         domain.get_boundary_tags()

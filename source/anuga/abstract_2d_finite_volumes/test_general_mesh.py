@@ -321,7 +321,7 @@ class Test_General_Mesh(unittest.TestCase):
         self.failUnlessRaises(AssertionError, General_mesh,
                               nodes, triangles, geo_reference=geo)
         
-
+ 
 
 #-------------------------------------------------------------
 if __name__ == "__main__":

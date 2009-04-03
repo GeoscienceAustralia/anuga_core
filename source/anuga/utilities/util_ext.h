@@ -260,8 +260,13 @@ PyArrayObject *get_consecutive_array(PyObject *O, char *name) {
   */
     
   B = (PyArrayObject*) PyObject_GetAttrString(O, name);
+
+  //printf("B = %p\n",(void*)B);
   if (!B) {
-    PyErr_SetString(PyExc_RuntimeError, "util_ext.h: get_consecutive_array could not obtain array");
+    printf("util_ext.h: get_consecutive_array could not obtain python object");
+    printf(" %s\n",name);
+    fflush(stdout);
+    PyErr_SetString(PyExc_RuntimeError, "util_ext.h: get_consecutive_array could not obtain python object");
     return NULL;
   }     
   
@@ -272,9 +277,14 @@ PyArrayObject *get_consecutive_array(PyObject *O, char *name) {
   Py_DECREF(B); //FIXME: Is this really needed??
   
   if (!A) {
+    printf("util_ext.h: get_consecutive_array could not obtain array object");
+    printf(" %s \n",name);
+    fflush(stdout);
     PyErr_SetString(PyExc_RuntimeError, "util_ext.h: get_consecutive_array could not obtain array");
     return NULL;
   }
+
+
   return A;
 }
 

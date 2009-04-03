@@ -91,6 +91,10 @@ class Domain:
           ...
         """
 
+
+        number_of_full_nodes=None
+        number_of_full_triangles=None
+        
         # Determine whether source is a mesh filename or coordinates
         if type(source) == types.StringType:
             mesh_filename = source
@@ -116,6 +120,7 @@ class Domain:
                          verbose=verbose)
 
         # Expose Mesh attributes (FIXME: Maybe turn into methods)
+        self.triangles = self.mesh.triangles        
         self.centroid_coordinates = self.mesh.centroid_coordinates
         self.vertex_coordinates = self.mesh.vertex_coordinates
         self.boundary = self.mesh.boundary
@@ -204,8 +209,9 @@ class Domain:
         # Test the assumption that all full triangles are store before
         # the ghost triangles.
         if not num.allclose(self.tri_full_flag[:self.number_of_full_nodes], 1):
-            print ('WARNING:  '
-                   'Not all full triangles are store before ghost triangles')
+            if self.numproc>1:
+                print ('WARNING:  '
+                       'Not all full triangles are store before ghost triangles')
 
         # Defaults
         from anuga.config import max_smallsteps, beta_w, epsilon
@@ -305,6 +311,9 @@ class Domain:
 
     def get_normal(self, *args, **kwargs):
         return self.mesh.get_normal(*args, **kwargs)
+
+    def get_triangle_containing_point(self, *args, **kwargs):
+        return self.mesh.get_triangle_containing_point(*args, **kwargs)
 
     def get_intersecting_segments(self, *args, **kwargs):
         return self.mesh.get_intersecting_segments(*args, **kwargs)
@@ -1744,10 +1753,31 @@ class Domain:
             # It is reset in quantity_ext.c
 
     ##
-    # @brief ??
+    # @brief Sequential update of ghost cells 
     def update_ghosts(self):
-        pass
+        # We must send the information from the full cells and
+        # receive the information for the ghost cells
+        # We have a list with ghosts expecting updates
 
+
+        from Numeric import take,put
+
+
+        #Update of ghost cells
+        iproc = self.processor
+        if self.full_send_dict.has_key(iproc):
+
+            # now store full as local id, global id, value
+            Idf  = self.full_send_dict[iproc][0]
+
+            # now store ghost as local id, global id, value
+            Idg = self.ghost_recv_dict[iproc][0]
+
+            for i, q in enumerate(self.conserved_quantities):
+                Q_cv =  self.quantities[q].centroid_values
+                put(Q_cv,     Idg, take(Q_cv,     Idf))
+
+ 
     ##
     # @brief Extrapolate conserved quantities from centroid to vertices
     #        and edge-midpoints for each volume.

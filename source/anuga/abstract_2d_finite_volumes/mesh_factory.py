@@ -201,6 +201,154 @@ def rectangular_cross(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
 
     return points, elements, boundary
 
+
+
+def rectangular_periodic(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)):
+
+
+    """Setup a rectangular grid of triangles
+    with m+1 by n+1 grid points
+    and side lengths len1, len2. If side lengths are omitted
+    the mesh defaults to the unit square, divided between all the
+    processors
+
+    len1: x direction (left to right)
+    len2: y direction (bottom to top)
+
+    """
+
+    processor = 0
+    numproc   = 1
+
+    
+    n = n_g
+    m_low  = -1
+    m_high = m_g +1
+
+    m = m_high - m_low
+
+    delta1 = float(len1_g)/m_g
+    delta2 = float(len2_g)/n_g
+
+    len1 = len1_g*float(m)/float(m_g)
+    len2 = len2_g
+    origin = ( origin_g[0]+float(m_low)/float(m_g)*len1_g, origin_g[1] )
+
+    #Calculate number of points
+    Np = (m+1)*(n+1)
+
+    class VIndex:
+
+        def __init__(self, n,m):
+            self.n = n
+            self.m = m
+
+        def __call__(self, i,j):
+            return j+i*(self.n+1)
+
+    class EIndex:
+
+        def __init__(self, n,m):
+            self.n = n
+            self.m = m
+
+        def __call__(self, i,j):
+            return 2*(j+i*self.n)
+
+
+    I = VIndex(n,m)
+    E = EIndex(n,m)
+
+    points = num.zeros( (Np,2), num.Float)
+
+    for i in range(m+1):
+        for j in range(n+1):
+
+            points[I(i,j),:] = [i*delta1 + origin[0], j*delta2 + origin[1]]
+
+    #Construct 2 triangles per rectangular element and assign tags to boundary
+    #Calculate number of triangles
+    Nt = 2*m*n
+
+
+    elements = num.zeros( (Nt,3), num.Int)
+    boundary = {}
+    Idgl = []
+    Idfl = []
+    Idgr = []
+    Idfr = []
+
+    full_send_dict = {}
+    ghost_recv_dict = {}
+    nt = -1
+    for i in range(m):
+        for j in range(n):
+
+            i1 = I(i,j+1)
+            i2 = I(i,j)
+            i3 = I(i+1,j+1)
+            i4 = I(i+1,j)
+
+            #Lower Element
+            nt = E(i,j)
+            if i == 0:
+                Idgl.append(nt)
+
+            if i == 1:
+                Idfl.append(nt)
+
+            if i == m-2:
+                Idfr.append(nt)
+
+            if i == m-1:
+                Idgr.append(nt)
+
+            if i == m-1:
+                if processor == numproc-1:
+                    boundary[nt, 2] = 'right'
+                else:
+                    boundary[nt, 2] = 'ghost'
+        
+            if j == 0:
+                boundary[nt, 1] = 'bottom'
+            elements[nt,:] = [i4,i3,i2]
+
+            #Upper Element
+            nt = E(i,j)+1
+            if i == 0:
+                Idgl.append(nt)
+
+            if i == 1:
+                Idfl.append(nt)
+
+            if i == m-2:
+                Idfr.append(nt)
+
+            if i == m-1:
+                Idgr.append(nt)
+
+            if i == 0:
+                if processor == 0:
+                    boundary[nt, 2] = 'left'
+                else:
+                    boundary[nt, 2] = 'ghost'
+            if j == n-1:
+                boundary[nt, 1] = 'top'
+            elements[nt,:] = [i1,i2,i3]
+
+    Idfl.extend(Idfr)
+    Idgr.extend(Idgl)
+
+    Idfl = num.array(Idfl, num.Int)
+    Idgr = num.array(Idgr, num.Int)
+    
+    full_send_dict[processor]  = [Idfl, Idfl]
+    ghost_recv_dict[processor] = [Idgr, Idgr]
+
+
+    return  points, elements, boundary, full_send_dict, ghost_recv_dict
+
+
 def oblique(m, n, lenx = 1.0, leny = 1.0, theta = 8.95, origin = (0.0, 0.0)):
     """Setup a oblique grid of triangles
     with m segments in the x-direction and n segments in the y-direction
