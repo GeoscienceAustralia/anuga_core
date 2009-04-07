@@ -101,8 +101,8 @@ void fillDataArray(int ista, int total_number_of_stations, int nt, int ig, int *
                 /* gauge is recording at this time */
                 memcpy(data + it, muxData + offset, sizeof(float));
 		
-		//printf("%d: muxdata=%f\n", it, muxData[offset]);	    		
-		//printf("data[%d]=%f, offset=%d\n", it, data[it], offset);	    
+		//printf("%d: muxdata=%f\n", it, muxData[offset]); 
+		//printf("data[%d]=%f, offset=%d\n", it, data[it], offset); 
                 offset++;
             }
             else if (it + 1 < nst[ista])
@@ -218,7 +218,7 @@ int _read_mux2_headers(int numSrc,
         muxFileName = muxFileNameArray[i];
 
         // Open the mux file
-        if((fp = fopen(muxFileName, "r")) == NULL)
+        if((fp = fopen(muxFileName, "rb")) == NULL)
         {
             char *err_msg = strerror(errno);
 
@@ -234,7 +234,7 @@ int _read_mux2_headers(int numSrc,
 	      return -2;
 	    }
         
-            fros = (int*) malloc(*total_number_of_stations*numSrc*sizeof(int)); 
+            fros = (int*) malloc(*total_number_of_stations*numSrc*sizeof(int));
             lros = (int*) malloc(*total_number_of_stations*numSrc*sizeof(int));
       
             mytgs0 = (struct tgsrwg*) malloc(*total_number_of_stations*sizeof(struct tgsrwg));
@@ -444,7 +444,7 @@ float** _read_mux2(int numSrc,
 
     temp_sts_data = (float*) calloc(len_sts_data, sizeof(float));
 
-    muxData = (float*) malloc(numDataMax*sizeof(float));
+    muxData = (float*) calloc(numDataMax, sizeof(float));
     
     // Loop over all sources
     for (isrc = 0; isrc < numSrc; isrc++)
@@ -457,7 +457,7 @@ float** _read_mux2(int numSrc,
     
         // Read in data block from mux2 file
         muxFileName = muxFileNameArray[isrc];
-        if((fp = fopen(muxFileName, "r")) == NULL)
+        if((fp = fopen(muxFileName, "rb")) == NULL)
         {
             fprintf(stderr, "cannot open file %s\n", muxFileName);
             return NULL;                    
@@ -467,56 +467,24 @@ float** _read_mux2(int numSrc,
             printf("Reading mux file %s\n", muxFileName);
         }
 
-        offset = sizeof(int) + total_number_of_stations*(sizeof(struct tgsrwg) + 2*sizeof(int));
-        fseek(fp, offset, 0);
+        offset = (long int)sizeof(int) + total_number_of_stations*(sizeof(struct tgsrwg) + 2*sizeof(int));
+        //printf("\n offset %i ", (long int)offset);
+	fseek(fp, offset, 0);
 
         numData = getNumData(fros_per_source, 
 			     lros_per_source, 
 			     total_number_of_stations);
-			     
-			     
-        			     
-        elements_read = fread(muxData, ((int) numData)*sizeof(float), 1, fp); 
+	// Note numData is larger than what it has to be.		     
+        //elements_read = fread(muxData, ((int) numData)*sizeof(float), 1, fp); 
+        elements_read = fread(muxData, (size_t) sizeof(float), (size_t) numData, fp); 
+	//printf("\n elements_read  %d, ", (int)elements_read);
+	//printf("\n ferror(fp)  %d, ", (int)ferror(fp));
 	if ((int) elements_read == 0 && ferror(fp)) {
 	  fprintf(stderr, "Error reading mux data\n");
 	  return NULL;
-	}
-	 	
-        fclose(fp);
+	}	
 	
-
-	// FIXME (Ole): This is where Nariman and Ole traced the platform dependent 
-	// difference on 11 November 2008. We don't think the problem lies in the 
-	// C code. Maybe it is a problem with the MUX files written by the unit test
-	// that fails on Windows but works OK on Linux. JJ's test on 17th November shows
-	// that as far as Python is concerned this file should be OK on both platforms.
-	
-	
-	
-	// These printouts are enough to show the problem when compared 
-	// on the two platforms 
-	//printf("\nRead %d elements, ", (int) numData);
-	//printf("muxdata[%d]=%f\n", 39, muxData[39]);		
-	
-	
-	/*
-        In Windows we get
-	
-	Read 85 elements, muxdata[39]=0.999574
-	Read 85 elements, muxdata[39]=-0.087599
-	Read 85 elements, muxdata[39]=-0.087599
-	
-	
-	In Linux we get (the correct)
-	
-	Read 85 elements, muxdata[39]=0.999574
-	Read 85 elements, muxdata[39]=-0.087599
-	Read 85 elements, muxdata[39]=1.490349
-	*/
-	
-	
-	
-	
+        fclose(fp);  
 	
         // loop over stations present in the permutation array 
         //     use ista with mux data

@@ -6041,7 +6041,7 @@ friction  \n \
             else:
                 quantities_init[2].append(-va[i]) # South is negative in MUX
 
-        file_handle, base_name = tempfile.mkstemp("")
+        file_handle, base_name = tempfile.mkstemp("write_mux2")
         os.close(file_handle)
         os.remove(base_name)
 
@@ -6102,7 +6102,6 @@ friction  \n \
                     if time+1>=first_tstep[point_i] and time+1<=last_tstep[point_i]:
                         #print 'writing', time, point_i, q_time[time, point_i]
                         f.write(pack('f', q_time[time, point_i]))
-
             f.close()
 
         return base_name, files
@@ -6162,6 +6161,8 @@ friction  \n \
         assert num.allclose(xvelocity,ua)
         msg='incorrect gauge va time series returned'
         assert num.allclose(yvelocity, -va)
+        
+        
 
     def test_urs2sts_read_mux2_pyII(self):
         """Spatially varing stage
@@ -6395,6 +6396,7 @@ friction  \n \
                 if j == 1: assert num.allclose(data[i][:parameters_index], ua0[permutation[i], :])
                 if j == 2: assert num.allclose(data[i][:parameters_index], -va0[permutation[i], :])
         
+        self.delete_mux(filesI)
 
 
         
@@ -6405,7 +6407,8 @@ friction  \n \
         This is to test a situation where read_mux returned 
         wrong values Win32
 
-        This test does not pass on Windows but test_read_mux_platform_problem1 does
+        This test does not pass on Windows but test_read_mux_platform_problem1
+        does
         """
         
         from urs_ext import read_mux2 
@@ -6420,7 +6423,8 @@ friction  \n \
         
         times_ref = num.arange(0, time_step_count*time_step, time_step)
         
-        lat_long_points = [(-21.5,114.5), (-21,114.5), (-21.5,115), (-21.,115.), (-22., 117.)]
+        lat_long_points = [(-21.5,114.5), (-21,114.5), (-21.5,115),
+                           (-21.,115.), (-22., 117.)]
         n = len(lat_long_points)
         
         # Create different timeseries starting and ending at different times 
@@ -6457,14 +6461,15 @@ friction  \n \
         va1[0]=2*num.cos(times_ref-0.87)        
         va1[1]=3*num.ones(time_step_count)
         va1[3]=2*num.sin(times_ref-0.71)        
-        
+        #print "va1[0]", va1[0]  # The 8th element is what will go bad.
         # Ensure data used to write mux file to be zero when gauges are
         # not recording
         for i in range(n):
              # For each point
-             for j in range(0, first_tstep[i]-1) + range(last_tstep[i], time_step_count):
+             for j in range(0, first_tstep[i]-1) + range(last_tstep[i],
+                                                         time_step_count):
                  # For timesteps before and after recording range
-                 ha1[i][j] = ua1[i][j] = va1[i][j] = 0.0                                  
+                 ha1[i][j] = ua1[i][j] = va1[i][j] = 0.0 
 
 
         #print 'Second station to be written to MUX'
@@ -6472,7 +6477,7 @@ friction  \n \
         #print 'ua', ua1[0,:]
         #print 'va', va1[0,:]
         
-        # Write second mux file to be combined by urs2sts                                             
+        # Write second mux file to be combined by urs2sts 
         base_nameII, filesII = self.write_mux2(lat_long_points,
                                                time_step_count, time_step,
                                                first_tstep, last_tstep,
@@ -6526,17 +6531,20 @@ friction  \n \
 
             if ha is None:
                 this_ha = e
-                quantities_init[0].append(num.ones(time_step_count,num.Float)*this_ha) # HA
+                quantities_init[0].append(num.ones(time_step_count,
+                                                   num.Float)*this_ha) # HA
             else:
                 quantities_init[0].append(ha[i])
             if ua is None:
                 this_ua = n
-                quantities_init[1].append(num.ones(time_step_count,num.Float)*this_ua) # UA
+                quantities_init[1].append(num.ones(time_step_count,
+                                                   num.Float)*this_ua) # UA
             else:
                 quantities_init[1].append(ua[i])
             if va is None:
                 this_va = e
-                quantities_init[2].append(num.ones(time_step_count,num.Float)*this_va) #
+                quantities_init[2].append(num.ones(time_step_count,
+                                                   num.Float)*this_va) #
             else:
                 quantities_init[2].append(va[i])
 
@@ -6600,31 +6608,26 @@ friction  \n \
                         x = unpack('f',f.read(4))[0]
                         #print time, x, q_time[time, point_i]
                         if q == 'VA': x = -x # South is positive in MUX
+                        #if q == 'VA':
+                        #print q+" q_time[%d, %d] = %f" %(time, point_i, 
+                         #                             q_time[time, point_i])
+                             #     q_time[time, point_i]
                         assert abs(q_time[time, point_i]-x)<epsilon
 
             f.close()
-
-
-
-
-
-
-        
                                                
         # Create ordering file
         permutation = ensure_numeric([4,0,2])
 
-        _, ordering_filename = tempfile.mkstemp('')
-        order_fid = open(ordering_filename, 'w')  
-        order_fid.write('index, longitude, latitude\n')
-        for index in permutation:
-            order_fid.write('%d, %f, %f\n' %(index, 
-                                             lat_long_points[index][1], 
-                                             lat_long_points[index][0]))
-        order_fid.close()
+       #  _, ordering_filename = tempfile.mkstemp('')
+#         order_fid = open(ordering_filename, 'w')  
+#         order_fid.write('index, longitude, latitude\n')
+#         for index in permutation:
+#             order_fid.write('%d, %f, %f\n' %(index, 
+#                                              lat_long_points[index][1], 
+#                                              lat_long_points[index][0]))
+#         order_fid.close()
         
-        
-
         # -------------------------------------
         # Now read files back and check values
         weights = ensure_numeric([1.0])
@@ -6636,29 +6639,25 @@ friction  \n \
 
         for j, file in enumerate(filesII):
             # Read stage, u, v enumerated as j
-
-            
             #print 'Reading', j, file
-            data = read_mux2(1, [file], weights, file_params, permutation, verbose)
+            data = read_mux2(1, [file], weights, file_params,
+                             permutation, verbose)
 
             #print 'Data received by Python'
             #print data[1][8]
-
-            
             number_of_selected_stations = data.shape[0]
 
             # Index where data ends and parameters begin
             parameters_index = data.shape[1]-OFFSET          
                  
-            quantity=num.zeros((number_of_selected_stations, parameters_index), num.Float)
+            quantity=num.zeros((number_of_selected_stations,
+                                parameters_index), num.Float)
             
             
             for i in range(number_of_selected_stations):
         
                 #print i, parameters_index
                 #print quantity[i][:]
-
-                
                 if j == 0: assert num.allclose(data[i][:parameters_index], ha1[permutation[i], :])
                 if j == 1: assert num.allclose(data[i][:parameters_index], ua1[permutation[i], :])
                 if j == 2:
@@ -6667,15 +6666,307 @@ friction  \n \
                     #print
                     #print j, i
                     #print 'Input'
-                    #print 'u', ua1[permutation[i], 8]                                        
+                    #print 'u', ua1[permutation[i], 8]       
                     #print 'v', va1[permutation[i], 8]
                 
                     #print 'Output'
-                    #print 'v ', data[i][:parameters_index][8]                    
-                
+                    #print 'v ', data[i][:parameters_index][8]  
+
                     # South is positive in MUX
+                    #print "data[i][:parameters_index]", data[i][:parameters_index]
+                    #print "-va1[permutation[i], :]", -va1[permutation[i], :]
                     assert num.allclose(data[i][:parameters_index], -va1[permutation[i], :])
+        
+        self.delete_mux(filesII)
+           
+    def test_read_mux_platform_problem3(self):
+        
+        # This is to test a situation where read_mux returned 
+        # wrong values Win32
+
+        
+        from urs_ext import read_mux2 
+        
+        from anuga.config import single_precision as epsilon        
+        
+        verbose = False
+                
+        tide = 1.5
+        time_step_count = 10
+        time_step = 0.02
+
+        '''
+        Win results
+        time_step = 0.2000001
+        This is OK        
+        '''
+        
+        '''
+        Win results
+        time_step = 0.20000001
+
+        ======================================================================
+ERROR: test_read_mux_platform_problem3 (__main__.Test_Data_Manager)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "test_data_manager.py", line 6718, in test_read_mux_platform_problem3
+    ha1[0]=num.sin(times_ref)
+ValueError: matrices are not aligned for copy
+
+        '''
+
+        '''
+        Win results
+        time_step = 0.200000001
+        FAIL
+         assert num.allclose(data[i][:parameters_index],
+         -va1[permutation[i], :])
+        '''
+        times_ref = num.arange(0, time_step_count*time_step, time_step)
+        #print "times_ref", times_ref
+        
+        lat_long_points = [(-21.5,114.5), (-21,114.5), (-21.5,115),
+                           (-21.,115.), (-22., 117.)]
+        stations = len(lat_long_points)
+        
+        # Create different timeseries starting and ending at different times 
+        first_tstep=num.ones(stations,num.Int)
+        first_tstep[0]+=2   # Point 0 starts at 2
+        first_tstep[1]+=4   # Point 1 starts at 4        
+        first_tstep[2]+=3   # Point 2 starts at 3
+        
+        last_tstep=(time_step_count)*num.ones(stations,num.Int)
+        last_tstep[0]-=1    # Point 0 ends 1 step early
+        last_tstep[1]-=2    # Point 1 ends 2 steps early                
+        last_tstep[4]-=3    # Point 4 ends 3 steps early        
+        
+        # Create varying elevation data (positive values for seafloor)
+        gauge_depth=20*num.ones(stations,num.Float)
+        for i in range(stations):
+            gauge_depth[i] += i**2
+            
+        # Create data to be written to second mux file        
+        ha1=num.ones((stations,time_step_count),num.Float)
+        ha1[0]=num.sin(times_ref)
+        ha1[1]=2*num.sin(times_ref - 3)
+        ha1[2]=5*num.sin(4*times_ref)
+        ha1[3]=num.sin(times_ref)
+        ha1[4]=num.sin(2*times_ref-0.7)
+                
+        ua1=num.zeros((stations,time_step_count),num.Float)
+        ua1[0]=3*num.cos(times_ref)        
+        ua1[1]=2*num.sin(times_ref-0.7)   
+        ua1[2]=num.arange(3*time_step_count,4*time_step_count)
+        ua1[4]=2*num.ones(time_step_count)
+        
+        va1=num.zeros((stations,time_step_count),num.Float)
+        va1[0]=2*num.cos(times_ref-0.87)        
+        va1[1]=3*num.ones(time_step_count)
+        va1[3]=2*num.sin(times_ref-0.71)        
+        #print "va1[0]", va1[0]  # The 8th element is what will go bad.
+        # Ensure data used to write mux file to be zero when gauges are
+        # not recording
+        for i in range(stations):
+             # For each point
+             for j in range(0, first_tstep[i]-1) + range(last_tstep[i],
+                                                         time_step_count):
+                 # For timesteps before and after recording range
+                 ha1[i][j] = ua1[i][j] = va1[i][j] = 0.0 
+
+
+        #print 'Second station to be written to MUX'
+        #print 'ha', ha1[0,:]
+        #print 'ua', ua1[0,:]
+        #print 'va', va1[0,:]
+        
+        # Write second mux file to be combined by urs2sts 
+        base_nameII, filesII = self.write_mux2(lat_long_points,
+                                               time_step_count, time_step,
+                                               first_tstep, last_tstep,
+                                               depth=gauge_depth,
+                                               ha=ha1,
+                                               ua=ua1,
+                                               va=va1)
+        #print "filesII", filesII
+
+
+
+
+        # Read mux file back and verify it's correcness
+
+        ####################################################
+        # FIXME (Ole): This is where the test should
+        # verify that the MUX files are correct.
+
+        #JJ: It appears as though
+        #that certain quantities are not being stored with enough precision
+        #inn muxfile or more likely that they are being cast into a
+        #lower precision when read in using read_mux2 Time step and q_time
+        # are equal but only to approx 1e-7
+        ####################################################
+
+        #define information as it should be stored in mus2 files
+        points_num=len(lat_long_points)
+        depth=gauge_depth
+        ha=ha1
+        ua=ua1
+        va=va1
+        
+        quantities = ['HA','UA','VA']
+        mux_names = [WAVEHEIGHT_MUX2_LABEL,
+                     EAST_VELOCITY_MUX2_LABEL,
+                     NORTH_VELOCITY_MUX2_LABEL]
+        quantities_init = [[],[],[]]
+        latlondeps = []
+        #irrelevant header information
+        ig=ilon=ilat=0
+        mcolat=mcolon=centerlat=centerlon=offset=az=baz=id=0.0
+        # urs binary is latitude fastest
+        for i,point in enumerate(lat_long_points):
+            lat = point[0]
+            lon = point[1]
+            _ , e, n = redfearn(lat, lon)
+            if depth is None:
+                this_depth = n
+            else:
+                this_depth = depth[i]
+            latlondeps.append([lat, lon, this_depth])
+
+            if ha is None:
+                this_ha = e
+                quantities_init[0].append(num.ones(time_step_count,
+                                                   num.Float)*this_ha) # HA
+            else:
+                quantities_init[0].append(ha[i])
+            if ua is None:
+                this_ua = n
+                quantities_init[1].append(num.ones(time_step_count,
+                                                   num.Float)*this_ua) # UA
+            else:
+                quantities_init[1].append(ua[i])
+            if va is None:
+                this_va = e
+                quantities_init[2].append(num.ones(time_step_count,
+                                                   num.Float)*this_va) #
+            else:
+                quantities_init[2].append(va[i])
+
+        for i, q in enumerate(quantities):
+            #print
+            #print i, q
+            
+            q_time = num.zeros((time_step_count, points_num), num.Float)
+            quantities_init[i] = ensure_numeric(quantities_init[i])
+            for time in range(time_step_count):
+                #print i, q, time, quantities_init[i][:,time]
+                q_time[time,:] = quantities_init[i][:,time]
+                #print i, q, time, q_time[time, :]
+
+            
+            filename = base_nameII + mux_names[i]
+            f = open(filename, 'rb')
+            if self.verbose: print 'Reading' + filename
+            assert abs(points_num-unpack('i',f.read(4))[0])<epsilon
+            #write mux 2 header
+            for latlondep in latlondeps:
+                assert abs(latlondep[0]-unpack('f',f.read(4))[0])<epsilon
+                assert abs(latlondep[1]-unpack('f',f.read(4))[0])<epsilon
+                assert abs(mcolat-unpack('f',f.read(4))[0])<epsilon
+                assert abs(mcolon-unpack('f',f.read(4))[0])<epsilon
+                assert abs(ig-unpack('i',f.read(4))[0])<epsilon
+                assert abs(ilon-unpack('i',f.read(4))[0])<epsilon
+                assert abs(ilat-unpack('i',f.read(4))[0])<epsilon
+                assert abs(latlondep[2]-unpack('f',f.read(4))[0])<epsilon
+                assert abs(centerlat-unpack('f',f.read(4))[0])<epsilon
+                assert abs(centerlon-unpack('f',f.read(4))[0])<epsilon
+                assert abs(offset-unpack('f',f.read(4))[0])<epsilon
+                assert abs(az-unpack('f',f.read(4))[0])<epsilon
+                assert abs(baz-unpack('f',f.read(4))[0])<epsilon
+                
+                x = unpack('f', f.read(4))[0]
+                #print time_step
+                #print x
+                assert abs(time_step-x)<epsilon
+                assert abs(time_step_count-unpack('i',f.read(4))[0])<epsilon
+                for j in range(4): # identifier
+                    assert abs(id-unpack('i',f.read(4))[0])<epsilon 
+
+            #first_tstep=1
+            #last_tstep=time_step_count
+            for i,latlondep in enumerate(latlondeps):
+                assert abs(first_tstep[i]-unpack('i',f.read(4))[0])<epsilon
+            for i,latlondep in enumerate(latlondeps):
+                assert abs(last_tstep[i]-unpack('i',f.read(4))[0])<epsilon
+
+            # Find when first station starts recording
+            min_tstep = min(first_tstep)
+            # Find when all stations have stopped recording
+            max_tstep = max(last_tstep)
+
+            #for time in  range(time_step_count):
+            for time in range(min_tstep-1,max_tstep):
+                assert abs(time*time_step-unpack('f',f.read(4))[0])<epsilon
+                for point_i in range(points_num):
+                    if time+1>=first_tstep[point_i] and time+1<=last_tstep[point_i]:
+                        x = unpack('f',f.read(4))[0]
+                        #print time, x, q_time[time, point_i]
+                        if q == 'VA': x = -x # South is positive in MUX
+                        #print q+" q_time[%d, %d] = %f" %(time, point_i, 
+                                                      #q_time[time, point_i])
+                        assert abs(q_time[time, point_i]-x)<epsilon
+
+            f.close()
+                            
+        permutation = ensure_numeric([4,0,2])
+                   
+        # Create ordering file
+#         _, ordering_filename = tempfile.mkstemp('')
+#         order_fid = open(ordering_filename, 'w')  
+#         order_fid.write('index, longitude, latitude\n')
+#         for index in permutation:
+#             order_fid.write('%d, %f, %f\n' %(index, 
+#                                              lat_long_points[index][1], 
+#                                              lat_long_points[index][0]))
+#         order_fid.close()
+        
+        # -------------------------------------
+        # Now read files back and check values
+        weights = ensure_numeric([1.0])
+
+        # For each quantity read the associated list of source mux2 file with 
+        # extention associated with that quantity
+        file_params=-1*num.ones(3,num.Float) # [nsta,dt,nt]
+        OFFSET = 5
+
+        for j, file in enumerate(filesII):
+            # Read stage, u, v enumerated as j
+            #print 'Reading', j, file
+            #print "file", file
+            data = read_mux2(1, [file], weights, file_params,
+                             permutation, verbose)
+            #print str(j) + "data", data
+
+            #print 'Data received by Python'
+            #print data[1][8]
+            number_of_selected_stations = data.shape[0]
+            #print "number_of_selected_stations", number_of_selected_stations
+            #print "stations", stations
+
+            # Index where data ends and parameters begin
+            parameters_index = data.shape[1]-OFFSET          
+                 
+            for i in range(number_of_selected_stations):
+        
+                #print i, parameters_index
+                if j == 0:
+                    assert num.allclose(data[i][:parameters_index],
+                                        ha1[permutation[i], :])
                     
+                if j == 1: assert num.allclose(data[i][:parameters_index], ua1[permutation[i], :])
+                if j == 2:
+                    assert num.allclose(data[i][:parameters_index], -va1[permutation[i], :])
+        
+        self.delete_mux(filesII)            
         
     def test_urs2sts0(self):
         """
@@ -6856,6 +7147,8 @@ friction  \n \
                                   central_meridian=123)
             assert num.allclose([x[i],y[i]], [e,n])
             assert zone==-1
+        
+        self.delete_mux(files)
 
             
     def test_urs2sts_nonstandard_projection_reverse(self):
@@ -6920,6 +7213,8 @@ friction  \n \
                                   zone=50) 
             assert num.allclose([x[i],y[i]], [e,n])
             assert zone==geo_reference.zone
+        
+        self.delete_mux(files)
 
             
     def test_urs2stsII(self):
@@ -7650,6 +7945,9 @@ friction  \n \
             msg = 'Should have caught wrong lat longs'
             raise Exception, msg
 
+        
+        self.delete_mux(filesI)
+        self.delete_mux(filesII)
 
         
 
@@ -7784,7 +8082,7 @@ friction  \n \
         #print 'va1', va1        
                                              
                                              
-        # Write second mux file to be combined by urs2sts                                             
+        # Write second mux file to be combined by urs2sts     
         base_nameII, filesII = self.write_mux2(lat_long_points,
                                                time_step_count, time_step,
                                                first_tstep, last_tstep,
@@ -8032,8 +8330,6 @@ friction  \n \
         fid.close()
         os.remove(sts_file)
         
-        
-        
         #----------------------
         # Then read the mux files together and test
         
@@ -8139,11 +8435,7 @@ friction  \n \
         assert num.allclose(-gauge_depth_ref, elevation)  #Meters
 
         fid.close()
-        self.delete_mux(filesI)
-        self.delete_mux(filesII)
         os.remove(sts_file)
-        
-
         
         #---------------
         # "Manually" add the timeseries up with weights and test
@@ -8152,11 +8444,6 @@ friction  \n \
 
         stage_man = weights[0]*(stage0-tide) + weights[1]*(stage1-tide) + tide
         assert num.allclose(stage_man, stage)
-        
-        
-        
-        
-        
                 
         
     def test_file_boundary_stsI(self):
@@ -8283,17 +8570,14 @@ friction  \n \
                             domain_drchlt.quantities['stage'].vertex_values)
                         
         assert num.allclose(domain_fbound.quantities['xmomentum'].vertex_values,
-                            domain_drchlt.quantities['xmomentum'].vertex_values)                        
+                            domain_drchlt.quantities['xmomentum'].vertex_values) 
                         
         assert num.allclose(domain_fbound.quantities['ymomentum'].vertex_values,
-                            domain_drchlt.quantities['ymomentum'].vertex_values)                                                
+                            domain_drchlt.quantities['ymomentum'].vertex_values)
         
         
         os.remove(sts_file+'.sts')
         os.remove(meshname)
-        
-        
-        
                 
         
     def test_file_boundary_stsI_beyond_model_time(self):
@@ -8414,13 +8698,6 @@ friction  \n \
                     assert num.allclose(val, w + tide)
 
 
-
-        
-        
-        
-            
-
-        
         domain_drchlt = Domain(meshname)
         domain_drchlt.set_quantity('stage', tide)
         Br = Reflective_boundary(domain_drchlt)
@@ -8442,17 +8719,13 @@ friction  \n \
                             domain_drchlt.quantities['stage'].vertex_values)
                         
         assert num.allclose(domain_fbound.quantities['xmomentum'].vertex_values,
-                            domain_drchlt.quantities['xmomentum'].vertex_values)                        
+                            domain_drchlt.quantities['xmomentum'].vertex_values) 
                         
         assert num.allclose(domain_fbound.quantities['ymomentum'].vertex_values,
-                            domain_drchlt.quantities['ymomentum'].vertex_values)                                                
-        
+                            domain_drchlt.quantities['ymomentum'].vertex_values) 
         
         os.remove(sts_file+'.sts')
         os.remove(meshname)
-
-
-        
                 
         
     def test_field_boundary_stsI_beyond_model_time(self):
@@ -11364,8 +11637,7 @@ if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_individual_sources')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_ordering_different_sources')
 
-    # FIXME (Ole): This is the test that fails under Windows
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_read_mux_platform_problem2')
+    #suite = unittest.makeSuite(Test_Data_Manager,'test_read_mux_platform_problem3')
     #suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_stsIV')
 
     
