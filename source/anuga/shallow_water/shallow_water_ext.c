@@ -189,6 +189,62 @@ double _compute_speed(double *uh,
   return u;
 }
 
+
+// Optimised squareroot computation
+//
+//See 
+//http://www.lomont.org/Math/Papers/2003/InvSqrt.pdf
+//and http://mail.opensolaris.org/pipermail/tools-gcc/2005-August/000047.html
+float fast_squareroot_approximation(float number) {
+  float x; 
+  const float f = 1.5;
+
+  // Allow i and y to occupy the same memory
+  union
+  {
+    long i;
+    float y;
+  } u;
+  
+  // Good initial guess  
+  x = number * 0.5;  
+  u.y  = number;
+  u.i  = 0x5f3759df - ( u.i >> 1 );
+  
+  // Take a few iterations
+  u.y  = u.y * ( f - ( x * u.y * u.y ) );
+  u.y  = u.y * ( f - ( x * u.y * u.y ) );
+    
+  return number * u.y;
+}
+
+
+
+// Optimised squareroot computation (double version, slower)
+double Xfast_squareroot_approximation(double number) {
+  double x;
+  const double f = 1.5;
+    
+  // Allow i and y to occupy the same memory    
+  union
+  {
+    long long i;
+    double y;
+  } u;
+
+  // Good initial guess
+  x = number * 0.5;
+  u.y  = number;
+  u.i  = 0x5fe6ec85e7de30daLL - ( u.i >> 1 );
+  
+  // Take a few iterations  
+  u.y  = u.y * ( f - ( x * u.y * u.y ) );
+  u.y  = u.y * ( f - ( x * u.y * u.y ) );
+
+  return number * u.y;
+}
+
+
 // Innermost flux function (using stage w=z+h)
 int _flux_function_central(double *q_left, double *q_right,
                            double z_left, double z_right,
@@ -261,7 +317,11 @@ int _flux_function_central(double *q_left, double *q_right,
 
   // Maximal and minimal wave speeds
   soundspeed_left  = sqrt(g*h_left);
-  soundspeed_right = sqrt(g*h_right);
+  soundspeed_right = sqrt(g*h_right);  
+  
+  // Code to use fast square root optimisation if desired.
+  //soundspeed_left  = fast_squareroot_approximation(g*h_left);
+  //soundspeed_right = fast_squareroot_approximation(g*h_right);
 
   s_max = max(u_left + soundspeed_left, u_right + soundspeed_right);
   if (s_max < 0.0) 

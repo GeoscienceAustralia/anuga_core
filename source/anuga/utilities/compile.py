@@ -257,7 +257,7 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
         s = '%s -c %s -I"%s" -I"%s" -o "%s.o" -O3 -DTRILIBRARY=1 -DNO_TIMER=1'\
             %(compiler, FN, python_include, utilities_include_dir, root)
       elif FN == "polygon_ext.c":
-        # gcc 4.3.x screws up in this file if '-O3' is used
+        # gcc 4.3.x is problematic with this file if '-O3' is used
         s = '%s -c %s -I"%s" -I"%s" -o "%s.o" -Wall'\
             %(compiler, FN, python_include, utilities_include_dir, root)
       else:
