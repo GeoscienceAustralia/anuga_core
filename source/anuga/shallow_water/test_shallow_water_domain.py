@@ -6886,23 +6886,27 @@ friction  \n \
             
                                 
         
-    def Xtest_inflow_using_flowline(self):
+    def test_inflow_using_flowline(self):
         """test_inflow_using_flowline
         Test the ability of a flowline to match inflow above the flowline by
         creating constant inflow onto a circle at the head of a 20m
-        wide by 300m long plane dipping at various slopes with a perpendicular flowline and gauge 
-        downstream of the inflow and a 45 degree flowlines at 200m downstream
+        wide by 300m long plane dipping at various slopes with a
+        perpendicular flowline and gauge downstream of the inflow and
+        a 45 degree flowlines at 200m downstream
+
+        A more substantial version of this test with finer resolution and
+        including the depth calculation using Manning's equation is
+        available under the validate_all suite in the directory
+        anuga_validation/automated_validation_tests/flow_tests
         """
 
-        # FIXME(Ole): Move this and the following test to validate_all.py as they are
-        # rather time consuming
         
-        verbose = True
+        verbose = False
         
 
-        #------------------------------------------------------------------------------
+        #----------------------------------------------------------------------
         # Import necessary modules
-        #------------------------------------------------------------------------------
+        #----------------------------------------------------------------------
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
         from anuga.shallow_water import Domain
         from anuga.shallow_water.shallow_water_domain import Reflective_boundary
@@ -6912,56 +6916,47 @@ friction  \n \
         from anuga.abstract_2d_finite_volumes.util import sww2csv_gauges, csv2timeseries_graphs
 
 
-        #------------------------------------------------------------------------------
+        #----------------------------------------------------------------------
         # Setup computational domain
-        #------------------------------------------------------------------------------
+        #----------------------------------------------------------------------
         number_of_inflows = 2 # Number of inflows on top of each other
-        finaltime = 1000.0 #6000.0
+        finaltime = 500 #700.0 # If this is too short, steady state will not be achieved
 
-        length = 300.
+        length = 250.
         width  = 20.
         dx = dy = 5          # Resolution: of grid on both axes
 
         points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
                                                        len1=length, len2=width)
 
-        for mannings_n in [0.150, 0.07, 0.035]: #[0.012, 0.035, 0.070, 0.150]:
-            for slope in [1.0/300, 1.0/150, 1.0/75]:
+        for mannings_n in [0.1, 0.01]:
+            # Loop over a range of roughnesses              
+            
+            for slope in [1.0/300, 1.0/100]:
                 # Loop over a range of bedslopes representing sub to super critical flows 
 
-                if verbose:
-                    print
-                    print 'Slope:', slope, 'Mannings n:', mannings_n
+
                 domain = Domain(points, vertices, boundary)   
-                domain.set_name('Inflow_flowline_test')              # Output name
+                domain.set_name('inflow_flowline_test')
                 
 
-                #------------------------------------------------------------------------------
+                #-------------------------------------------------------------
                 # Setup initial conditions
-                #------------------------------------------------------------------------------
+                #-------------------------------------------------------------
 
                 def topography(x, y):
                     z=-x * slope
                     return z
 
-                domain.set_quantity('elevation', topography)  # Use function for elevation
-                domain.set_quantity('friction', mannings_n)   # Constant friction of conc surface   
+                domain.set_quantity('elevation', topography)
+                domain.set_quantity('friction', mannings_n)
                 domain.set_quantity('stage',
-                                    expression='elevation')   # Dry initial condition
+                                    expression='elevation')
 
 
-                #------------------------------------------------------------------------------
-                # Setup boundary conditions
-                #------------------------------------------------------------------------------
-
-                Br = Reflective_boundary(domain)              # Solid reflective wall
-                Bo = Dirichlet_boundary([-100, 0, 0])           # Outflow stsge at -0.9m d=0.1m
-
-                domain.set_boundary({'left': Br, 'right': Bo, 'top': Br, 'bottom': Br})
-
-                #------------------------------------------------------------------------------
+                #--------------------------------------------------------------
                 # Seup Inflow
-                #------------------------------------------------------------------------------
+                #--------------------------------------------------------------
 
                 # Fixed Flowrate onto Area 
                 fixed_inflow = Inflow(domain,
@@ -6975,24 +6970,52 @@ friction  \n \
                 
                 ref_flow = fixed_inflow.rate*number_of_inflows
 
-                #------------------------------------------------------------------------------
+                # Compute normal depth on plane using Mannings equation
+                # v=1/n*(r^2/3)*(s^0.5) or r=(Q*n/(s^0.5*W))^0.6
+                normal_depth=(ref_flow*mannings_n/(slope**0.5*width))**0.6
+                if verbose:
+                    print
+                    print 'Slope:', slope, 'Mannings n:', mannings_n
+                    
+                    
+                #--------------------------------------------------------------
+                # Setup boundary conditions
+                #--------------------------------------------------------------
+
+                Br = Reflective_boundary(domain)
+                
+                # Define downstream boundary based on predicted depth
+                def normal_depth_stage_downstream(t):
+                    return (-slope*length) + normal_depth
+                
+                Bt = Transmissive_momentum_set_stage_boundary(domain=domain,
+                                                              function=normal_depth_stage_downstream)
+                
+
+                
+
+                domain.set_boundary({'left': Br,
+                                     'right': Bt,
+                                     'top': Br,
+                                     'bottom': Br})
+
+
+
+                #--------------------------------------------------------------
                 # Evolve system through time
-                #------------------------------------------------------------------------------
+                #--------------------------------------------------------------
 
 
                 for t in domain.evolve(yieldstep=100.0, finaltime=finaltime):
                     pass
                     #if verbose :
                     #    print domain.timestepping_statistics()
-
-                if verbose:
-                    print domain.volumetric_balance_statistics()                                                            
+                    #    print domain.volumetric_balance_statistics()                                    
 
 
-
-                #------------------------------------------------------------------------------
+                #--------------------------------------------------------------
                 # Compute flow thru flowlines ds of inflow
-                #------------------------------------------------------------------------------
+                #--------------------------------------------------------------
                     
                 # Square on flowline at 200m
                 q=domain.get_flow_through_cross_section([[200.0,0.0],[200.0,20.0]])
@@ -7010,33 +7033,6 @@ friction  \n \
                     
                 assert num.allclose(q, ref_flow, rtol=1.0e-2), msg         
 
-                # Stage recorder (gauge) in middle of plane at 200m
-                x=200.0
-                y=10.00
-                w = domain.get_quantity('stage').get_values(interpolation_points=[[x, y]])[0]
-                z = domain.get_quantity('elevation').get_values(interpolation_points=[[x, y]])[0]
-                domain_depth = w-z
-                
-                
-                # Compute normal depth at gauge location using Manning equation
-                # v=1/n*(r^2/3)*(s^0.5) or r=(Q*n/(s^0.5*W))^0.6
-                normal_depth=(ref_flow*mannings_n/(slope**0.5*width))**0.6
-                msg = 'Predicted depth of flow was %f, should have been %f' % (domain_depth, normal_depth)                
-                if verbose:
-                    diff = abs(domain_depth-normal_depth)
-                    print 'Depth: ANUGA = %f, Mannings = %f, E=%f' % (domain_depth, 
-                                                                      normal_depth,
-                                                                      diff/domain_depth)
-                    
-                    assert diff < 0.1
-                    
-                if slope >= 1.0/100:
-                    # Really super critical flow is not as stable.
-                    #assert num.allclose(domain_depth,normal_depth, rtol=1.0e-1), msg
-                    pass
-                else:
-                    pass
-                    #assert num.allclose(domain_depth,normal_depth, rtol=1.0e-2), msg
         
         
     def Xtest_friction_dependent_flow_using_flowline(self):
@@ -7047,6 +7043,9 @@ friction  \n \
         
         Flow is applied in the form of boundary conditions with fixed momentum.
         """
+
+        # FIXME(Ole): This is not finished and maybe not necessary
+        # anymore (see test_inflow_using_flowline)
 
         verbose = True
         
@@ -7182,10 +7181,6 @@ friction  \n \
                         
                                 
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Shallow_Water, 'test_friction_dependent_flow_using_flowline')
-    suite = unittest.makeSuite(Test_Shallow_Water, 'test_inflow') 
-    #suite = unittest.makeSuite(Test_Shallow_Water, 'test_total_volume')            
-    #suite = unittest.makeSuite(Test_Shallow_Water, 'test')        
-
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test')
     runner = unittest.TextTestRunner(verbosity=1)    
     runner.run(suite)
