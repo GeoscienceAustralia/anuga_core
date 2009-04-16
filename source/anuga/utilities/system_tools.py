@@ -295,13 +295,13 @@ def get_vars_in_expression(source):
 # @param file_name Path to file to create in the filesystem.
 # @param auth Auth tuple (httpproxy, proxyuser, proxypass).
 # @param blocksize Read file in this block size.
-# @return 'auth' tuple for subsequent calls, if successful.
+# @return 'auth' tuple for subsequent calls, if successful, else False.
 # @note If 'auth' not supplied, will prompt user.
 # @note Will try using environment variable HTTP_PROXY for proxy server.
 # @note Will try using environment variable PROXY_USERNAME for proxy username.
 # @note Will try using environment variable PROXY_PASSWORD for proxy password.
 def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
-    '''Get a file from the web.
+    '''Get a file from the web (HTTP).
 
     file_url:  The URL of the file to get
     file_name: Local path to save loaded file in
@@ -318,11 +318,17 @@ def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
 
     # Simple fetch, if fails, check for proxy error
     try:
-        urllib.urlretrieve(file_url, file_name)     # original 'line of code'
+        urllib.urlretrieve(file_url, file_name)
         return None     # no proxy, no auth required
     except IOError, e:
-        if e[1] != 407:
-            raise       # raise error if *not* proxy auth error
+        if e[1] == 407:     # proxy error
+            pass
+        elif e[1][0] == 113:  # no route to host
+            print 'No route to host for %s' % file_url
+            return False    # return False
+        else:
+            print 'Unknown connection error to %s' % file_url
+            return False
 
     # We get here if there was a proxy error, get file through the proxy
 
@@ -342,18 +348,21 @@ def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
 
     # Get auth info from user if still not supplied
     if httpproxy is None or proxyuser is None or proxypass is None:
-        print '-'*80
-        print ('You need to supply proxy authentication information.  '
-               'Use environment variables\n'
-               'HTTP_PROXY, PROXY_USERNAME and PROXY_PASSWORD to bypass '
-               'entry here:')
+        print '-'*52
+        print ('You need to supply proxy authentication information.')
         if httpproxy is None:
-            httpproxy = raw_input('  proxy server: ')
+            httpproxy = raw_input('                    proxy server: ')
+        else:
+            print '         HTTP proxy was supplied: %s' % httpproxy
         if proxyuser is None:
-            proxyuser = raw_input('proxy username: ') 
+            proxyuser = raw_input('                  proxy username: ') 
+        else:
+            print 'HTTP proxy username was supplied: %s' % proxyuser
         if proxypass is None:
-            proxypass = getpass.getpass('proxy password: ')
-        print '-'*80
+            proxypass = getpass.getpass('                  proxy password: ')
+        else:
+            print 'HTTP proxy password was supplied: %s' % '*'*len(proxyuser)
+        print '-'*52
 
     # the proxy URL cannot start with 'http://', we add that later
     httpproxy = httpproxy.lower()
