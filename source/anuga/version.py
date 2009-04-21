@@ -1,4 +1,4 @@
-# Subversion keywords:
+## Subversion keywords:
         
 author_string = '$Author$'
 date_string = '$Date$'
