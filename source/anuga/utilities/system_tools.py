@@ -331,22 +331,6 @@ def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
             return False
 
     # We get here if there was a proxy error, get file through the proxy
-
-## This code is how we might handle a proxy which doesn't use authentication
-## CAN'T TEST THIS, SO NOT IMPLEMENTED
-##    proxy = {'http': 'http://%s' % httpproxy}
-##    try:
-##        webget = urllib.urlopen(file_url, proxies=proxy)
-##    else:
-##        fd = open(file_name, 'wb')
-##        while True:
-##            data = webget.read(blocksize)
-##            if len(data) == 0:
-##                break
-##            fd.write(data)
-##        fd.close
-##        webget.close()
-
     # unpack auth info
     try:
         (httpproxy, proxyuser, proxypass) = auth
@@ -391,7 +375,10 @@ def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
     authinfo = urllib2.HTTPBasicAuthHandler()
     opener = urllib2.build_opener(proxy, authinfo, urllib2.HTTPHandler)
     urllib2.install_opener(opener)
-    webget = urllib2.urlopen(file_url)
+    try:
+        webget = urllib2.urlopen(file_url)
+    except urllib2.HTTPError:
+        return False
 
     # transfer file to local filesystem
     fd = open(file_name, 'wb')
