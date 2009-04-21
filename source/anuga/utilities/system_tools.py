@@ -125,7 +125,7 @@ Good luck!
                 raise Exception, msg
         else:                   # assume Linux
             try:
-                fid = os.popen('svn info 2>/dev/null')
+                fid = os.popen('svnversion -n . 2>/dev/null')
             except:
                 return get_revision_from_svn_entries()
             else:
@@ -134,19 +134,18 @@ Good luck!
                     return get_revision_from_svn_entries()
 
             # split revision number from data
-            for line in version_info.split('\n'):
-                if line.startswith('Revision:'):
-                    break
-
-            fields = line.split(':')
-            msg = 'Keyword "Revision" was not found anywhere in text: %s' % version_info
-            assert fields[0].startswith('Revision'), msg
+            if ':' in version_info:
+                (_, revision_number) =  version_info.split(':')
+            elif version_info.endswith('M'):
+                revision_number = version_info[:-1]
+            else:
+                revision_number = version_info
 
             try:
-                revision_number = int(fields[1])
+                revision_number = int(revision_number)
             except:
                 msg = ("Revision number must be an integer. I got '%s' from "
-                       "'svn'." % fields[1])
+                       "'svn'." % version_info)
                 raise Exception, msg
 
         return revision_number
