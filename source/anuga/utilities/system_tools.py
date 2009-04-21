@@ -48,86 +48,132 @@ def get_host_name():
     return host    
 
 def get_revision_number():
-    """Get the version number of the SVN
+    """Get the version number of this repository copy.
+
+    Try getting data from stored_version_info.py first, otherwise
+    try using SubWCRev.exe (Windows) or svnversion (linux), otherwise
+    try reading file .svn/entries for version information, otherwise
+    throw an exception.
+
     NOTE: This requires that the command svn is on the system PATH
     (simply aliasing svn to the binary will not work)
     """
 
-    # Create dummy info 
-    #info = 'Revision: Version info could not be obtained.'
-    #info += 'A command line version of svn must be availbable '
-    #info += 'on the system PATH, access to the subversion '
-    #info += 'repository is necessary and the output must '
-    #info += 'contain a line starting with "Revision:"'
-    
+    def get_revision_from_svn_entries():
+        '''Get a subversion revision number from the .svn/entires file.'''
 
-    #FIXME (Ole): Change this so that svn info is attempted first.
-    # If that fails, try to read a stored file with that same info (this would be created by e.g. the release script). Failing that, throw an exception.
+        msg = '''
+No version info stored and command 'svn' is not recognised on the system PATH.
 
-    #FIXME (Ole): Move this and store_version_info to utilities
+If ANUGA has been installed from a distribution e.g. as obtained from SourceForge,
+the version info should be available in the automatically generated file
+'stored_version_info.py' in the anuga root directory.
 
+If run from a Subversion sandpit, ANUGA will try to obtain the version info by
+using the command 'svn info'.  In this case, make sure the command line client
+'svn' is accessible on the system path.  Simply aliasing 'svn' to the binary will
+not work.
 
+If you are using Windows, you have to install the file svn.exe which can be
+obtained from http://www.collab.net/downloads/subversion.
+
+Good luck!
+'''
+
+        try:
+            fd = open(os.path.join('.svn', 'entries'))
+        except:
+            raise Exception, msg
+
+        line = fd.readlines()[3]
+        fd.close()
+        try:
+            revision_number = int(line)
+        except:
+            msg = ".svn/entries, line 4 was '%s'?" % line.strip()
+            raise Exception, msg
+
+        return revision_number
+
+    def get_revision_from_svn_client():
+        '''Get a subversion revision number from an svn client.'''
+
+        if sys.platform[0:3] == 'win':
+            try:
+                fid = os.popen(r'C:\Program Files\TortoiseSVN\bin\SubWCRev.exe')
+            except:
+                return get_revision_from_svn_entries()
+            else:
+                version_info = fid.read()
+                if version_info == '':
+                    return get_revision_from_svn_entries()
+
+            # split revision number from data
+            for line in version_info.split('\n'):
+                if line.startswith('Updated to revision '):
+                    break
+
+            fields = line.split(' ')
+            msg = 'Keyword "Revision" was not found anywhere in text: %s' % version_info
+            assert fields[0].startswith('Updated'), msg
+
+            try:
+                revision_number = int(fields[3])
+            except:
+                msg = ("Revision number must be an integer. I got '%s' from "
+                       "'SubWCRev.exe'." % fields[3])
+                raise Exception, msg
+        else:                   # assume Linux
+            try:
+                fid = os.popen('svn info 2>/dev/null')
+            except:
+                return get_revision_from_svn_entries()
+            else:
+                version_info = fid.read()
+                if version_info == '':
+                    return get_revision_from_svn_entries()
+
+            # split revision number from data
+            for line in version_info.split('\n'):
+                if line.startswith('Revision:'):
+                    break
+
+            fields = line.split(':')
+            msg = 'Keyword "Revision" was not found anywhere in text: %s' % version_info
+            assert fields[0].startswith('Revision'), msg
+
+            try:
+                revision_number = int(fields[1])
+            except:
+                msg = ("Revision number must be an integer. I got '%s' from "
+                       "'svn'." % fields[1])
+                raise Exception, msg
+
+        return revision_number
+
+    # try to get revision information from stored_version_info.py
     try:
         from anuga.stored_version_info import version_info
     except:
-	msg = 'No version info stored and command "svn" is not '
-	msg += 'recognised on the system PATH.\n\n'
-	msg += 'If ANUGA has been installed from a distribution e.g. as '
-	msg += 'obtained from SourceForge,\n'
-	msg += 'the version info should be '
-	msg += 'available in the automatically generated file '
-	msg += 'stored_version_info.py\n'
-	msg += 'in the anuga root directory.\n'
-	msg += 'If run from a Subversion sandpit, '
-	msg += 'ANUGA will try to obtain the version info '
-	msg += 'by using the command: "svn info".\n'
-	msg += 'In this case, make sure the command line client '
-        msg += 'svn is accessible on the system path. '
-	msg += 'Simply aliasing svn to the binary will not work. '
-        msg += 'If you are using Windows, you have to install the file svn.exe '
-        msg += 'which can be obtained from e.g '
-        msg += 'http://www.collab.net/downloads/subversion'
-	msg += 'Good luck!'
+        return get_revision_from_svn_client()
 
-        # No file available - try using Subversion
-        try:
-            # The null stuff is so this section fails quitly.
-            # This could cause the svn info command to fail due to
-            # the redirection being bad on some platforms.
-            # If that occurs then change this code.
-            if sys.platform[0:3] == 'win':
-                fid = os.popen('svn info 2> null')
-            else:
-                fid = os.popen('svn info 2>/dev/null')
-	
-        except:
-            raise Exception(msg)
-        else:
-            #print 'Got version from svn'            
-            version_info = fid.read()
-	    
-	    if version_info == '':
-	        raise Exception(msg)    
-    else:
-        pass
-        #print 'Got version from file'
-
-            
+    # split revision number from data
     for line in version_info.split('\n'):
         if line.startswith('Revision:'):
             break
 
     fields = line.split(':')
-    msg = 'Keyword "Revision" was not found anywhere in text: %s' %version_info
-    assert fields[0].startswith('Revision'), msg            
+    msg = 'Keyword "Revision" was not found anywhere in text: %s' % version_info
+    assert fields[0].startswith('Revision'), msg
 
     try:
         revision_number = int(fields[1])
     except:
-        msg = 'Revision number must be an integer. I got %s' %fields[1]
-        msg += 'Check that the command svn is on the system path' 
-        raise Exception(msg)                
-        
+        msg = ("Revision number must be an integer. I got '%s'.\n"
+               'Check that the command svn is on the system path.'
+               % fields[1])
+        raise Exception, msg
+
     return revision_number
 
 
