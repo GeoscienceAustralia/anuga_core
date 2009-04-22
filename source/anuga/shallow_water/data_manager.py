@@ -6706,6 +6706,8 @@ def copy_code_files(dir_name, filename1, filename2=None, verbose=False):
 
     # check we have a destination directory, create if necessary
     if access(dir_name, F_OK) == 0:
+        if verbose:
+            print 'Make directory %s' % dir_name
         mkdir(dir_name, 0777)
 
     copy_file_or_sequence(dir_name, filename1)
