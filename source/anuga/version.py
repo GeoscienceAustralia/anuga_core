@@ -2,7 +2,7 @@
         
 author_string = '$Author$'
 date_string = '$Date$'
-revision_string = '#$LastChangedRevision$'
+revision_string = '$LastChangedRevision$'
 
 #$LastChangedDate$
 #$LastChangedRevision$
