@@ -14,6 +14,7 @@ import os
 from Scientific.IO.NetCDF import NetCDFFile
 from struct import pack, unpack
 from sets import ImmutableSet
+import shutil
 
 from anuga.shallow_water import *
 from anuga.shallow_water.data_manager import *
@@ -11626,20 +11627,54 @@ ValueError: matrices are not aligned for copy
             assert float(values[id]) == float(floors[id])
 
             
+    def test_copy_code_files(self):
+        '''test that the copy_code_files() function is sane.'''
+
+        def create_file(f):
+            fd = open(f, 'w')
+            fd.write('%s\n' % f)
+            fd.close()
+
+        # create working directories and test files
+        work_dir = tempfile.mkdtemp()
+        dst_dir = tempfile.mkdtemp(dir=work_dir)
+        src_dir = tempfile.mkdtemp(dir=work_dir)
+
+        f1 = 'file1'        
+        filename1 = os.path.join(src_dir, f1)
+        create_file(filename1)
+        f2 = 'file2'        
+        filename2 = os.path.join(src_dir, f2)
+        create_file(filename2)
+        f3 = 'file3'        
+        filename3 = os.path.join(src_dir, f3)
+        create_file(filename3)
+        f4 = 'file4'        
+        filename4 = os.path.join(src_dir, f4)
+        create_file(filename4)
+        f5 = 'file5'        
+        filename5 = os.path.join(src_dir, f5)
+        create_file(filename5)
+
+        # exercise the copy function
+        copy_code_files(dst_dir, filename1)
+        copy_code_files(dst_dir, filename1, filename2)
+        copy_code_files(dst_dir, (filename4, filename5, filename3))
+
+        # test that files were actually copied
+        self.failUnless(access(os.path.join(dst_dir, f1), F_OK))
+        self.failUnless(access(os.path.join(dst_dir, f2), F_OK))
+        self.failUnless(access(os.path.join(dst_dir, f3), F_OK))
+        self.failUnless(access(os.path.join(dst_dir, f4), F_OK))
+        self.failUnless(access(os.path.join(dst_dir, f5), F_OK))
+
+        # clean up
+        shutil.rmtree(work_dir)
             
 #-------------------------------------------------------------
 if __name__ == "__main__":
 
     suite = unittest.makeSuite(Test_Data_Manager,'test')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_sts')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_get_flow_through_cross_section_with_geo')
-    #suite = unittest.makeSuite(Test_Data_Manager,'covered_')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_individual_sources')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_urs2sts_ordering_different_sources')
-
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_read_mux_platform_problem3')
-    #suite = unittest.makeSuite(Test_Data_Manager,'test_file_boundary_stsIV')
-
     
     if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':
         Test_Data_Manager.verbose=True

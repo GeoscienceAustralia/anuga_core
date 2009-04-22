@@ -6674,30 +6674,44 @@ class Screen_Catcher:
         fid.close()
 
 
-# FIXME (DSG): Add unit test, make general, not just 2 files,
-# but any number of files.
 ##
 # @brief Copy a file to a directory, and optionally append another file to it.
 # @param dir_name Target directory.
 # @param filename Path to file to copy to directory 'dir_name'.
 # @param filename2 Optional path to file to append to copied file.
-def copy_code_files(dir_name, filename1, filename2=None):
+# @param verbose True if this function is to be verbose.
+# @note Allow filenames to be either a string or sequence of strings.
+def copy_code_files(dir_name, filename1, filename2=None, verbose=False):
     """Copies "filename1" and "filename2" to "dir_name".
-    Very useful for information management
-    filename1 and filename2 are both absolute pathnames
+
+    Each 'filename' may be a string or list of filename strings.
+
+    Filenames must be absolute pathnames
     """
 
+    ##
+    # @brief copies a file or sequence to destination directory.
+    # @param dest The destination directory to copy to.
+    # @param file A filename string or sequence of filename strings.
+    def copy_file_or_sequence(dest, file):
+        if hasattr(file, '__iter__'):
+            for f in file:
+                shutil.copy(f, dir_name)
+                if verbose:
+                    print 'File %s copied' % (f)
+        else:
+            shutil.copy(file, dir_name)
+            if verbose:
+                print 'File %s copied' % (file)
+
+    # check we have a destination directory, create if necessary
     if access(dir_name, F_OK) == 0:
-        print 'Make directory %s' % dir_name
-        mkdir (dir_name,0777)
+        mkdir(dir_name, 0777)
 
-    shutil.copy(filename1, dir_name + sep + basename(filename1))
+    copy_file_or_sequence(dir_name, filename1)
 
-    if filename2 != None:
-        shutil.copy(filename2, dir_name + sep + basename(filename2))
-        print 'Files %s and %s copied' %(filename1, filename2)
-    else:
-        print 'File %s copied' %(filename1)
+    if not filename2 is None:
+        copy_file_or_sequence(dir_name, filename2)
 
 
 ##
