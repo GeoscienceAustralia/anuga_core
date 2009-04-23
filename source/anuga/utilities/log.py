@@ -19,8 +19,8 @@ Until the first call to log() the user is free to play with the module data
 to configure the logging.
 
 Note that this module uses features of the logging package that were introduced
-in python2.5.  If running on earlier versions, these features are disables:
-    . Module name + line number
+in python2.5.  If running on earlier versions, these features are disabled:
+    . Calling module name + line number
 '''
 
 import sys
@@ -84,7 +84,7 @@ def log(level, msg):
     # have we been setup?
     if not _setup:
         # sanity check the logging levels, require console >= file
-        if console_logging_level < log_logging_level:
+        if log_logging_level > console_logging_level:
             log_logging_level = console_logging_level
 
         # setup the file logging system
@@ -120,9 +120,10 @@ def log(level, msg):
     # get caller information - look back for first module != <this module name>
     frames = traceback.extract_stack()
     frames.reverse()
+    (_, mod_name) = __name__.rsplit('.', 1)
     for (fpath, lnum, mname, _) in frames:
-        fname = os.path.basename(mname).rsplit('.', 1)[0]
-        if mname != __name__:
+        (fname, _) = os.path.basename(fpath).rsplit('.', 1)
+        if fname != mod_name:
             break
 
     if version_major >= 2 and version_minor >= 5:
@@ -164,8 +165,12 @@ def error(msg):
 def critical(msg):
     log(logging.CRITICAL, msg)
 
-def resource_usage(level=logging.CRITICAL):
-    '''Log resource usage at given log level.'''
+##
+# @brief Log memory usage at time of call.
+# @param level Override the default INFO logging level.
+# @note From http://code.activestate.com/recipes/286222/.
+def resource_usage(level=logging.INFO):
+    '''Log memory usage at given log level.'''
 
     if sys.platform != 'win32':
         _proc_status = '/proc/%d/status' % os.getpid()
