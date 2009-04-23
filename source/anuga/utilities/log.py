@@ -59,6 +59,10 @@ INFO = logging.INFO
 DEBUG = logging.DEBUG
 NOTSET = logging.NOTSET
 
+# get True if python version 2.5 or later
+(version_major, version_minor, _, _, _) = sys.version_info
+new_python = ((version_major == 2 and version_minor >= 5) or version_major > 2)
+
 
 ################################################################################
 # Module code.
@@ -78,9 +82,6 @@ def log(level, msg):
 
     global _setup, log_logging_level
 
-    # get running python version for later
-    (version_major, version_minor, _, _, _) = sys.version_info
-
     # have we been setup?
     if not _setup:
         # sanity check the logging levels, require console >= file
@@ -88,7 +89,7 @@ def log(level, msg):
             log_logging_level = console_logging_level
 
         # setup the file logging system
-        if version_major >= 2 and version_minor >= 5:
+        if new_python:
             fmt = '%(asctime)s %(levelname)-8s %(mname)25s:%(lnum)-4d|%(message)s'
         else:
             fmt = '%(asctime)s %(levelname)-8s|%(message)s'
@@ -108,7 +109,7 @@ def log(level, msg):
                      % (log_filename,
                         logging.getLevelName(log_logging_level),
                         logging.getLevelName(console_logging_level)))
-        if version_major >= 2 and version_minor >= 5:
+        if new_python:
             logging.log(logging.CRITICAL, start_msg,
                         extra={'mname': __name__, 'lnum': 0})
         else:
@@ -126,7 +127,7 @@ def log(level, msg):
         if fname != mod_name:
             break
 
-    if version_major >= 2 and version_minor >= 5:
+    if new_python:
         logging.log(level, msg, extra={'mname': fname, 'lnum': lnum})
     else:
         logging.log(level, msg)
@@ -138,31 +139,31 @@ def log(level, msg):
 ##
 # @brief Shortcut for log(DEBUG, msg).
 # @param msg Message string to log at logging.DEBUG level.
-def debug(msg):
+def debug(msg=''):
     log(logging.DEBUG, msg)
 
 ##
 # @brief Shortcut for log(INFO, msg).
 # @param msg Message string to log at logging.INFO level.
-def info(msg):
+def info(msg=''):
     log(logging.INFO, msg)
 
 ##
 # @brief Shortcut for log(WARNING, msg).
 # @param msg Message string to log at logging.WARNING level.
-def warning(msg):
+def warning(msg=''):
     log(logging.WARNING, msg)
 
 ##
 # @brief Shortcut for log(ERROR, msg).
 # @param msg Message string to log at logging.ERROR level.
-def error(msg):
+def error(msg=''):
     log(logging.ERROR, msg)
 
 ##
 # @brief Shortcut for log(CRITICAL, msg).
 # @param msg Message string to log at logging.CRITICAL level.
-def critical(msg):
+def critical(msg=''):
     log(logging.CRITICAL, msg)
 
 ##

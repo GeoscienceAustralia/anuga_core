@@ -17,7 +17,7 @@ def log_to_file(filename, s, verbose=False):
     """
 
     fid = open(filename, 'a')
-    if verbose: print s
+    if verbose: s
     fid.write(s + '\n')
     fid.close()
 
@@ -425,7 +425,7 @@ def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
     except urllib2.HTTPError, e:
         print 'Error received from proxy:\n%s' % str(e)
         print 'Possibly the user/password is wrong.'
-        return (False, auth)
+        return (False, (httpproxy, proxyuser, proxypass))
 
     # transfer file to local filesystem
     fd = open(file_name, 'wb')
