@@ -81,14 +81,24 @@ class Dirichlet_boundary(Boundary):
 class Time_boundary(Boundary):
     """Time dependent boundary returns values for the
     conserved quantities as a function of time.
-    Must specify domain to get access to model time and a function f(t)
-    which must return conserved quantities as a function time
+    Must specify domain to get access to model time and a function of t
+    which must return conserved quantities as a function time.
+    
+    Example:
+      B = Time_boundary(domain, 
+                        function=lambda t: [(60<t<3660)*2, 0, 0])
+      
+      This will produce a boundary condition with is a 2m high square wave
+      starting 60 seconds into the simulation and lasting one hour.
+      Momentum applied will be 0 at all times.
+                        
     """
 
     # FIXME (Ole): We should rename f to function to be consistent with
     # Transmissive_Momentum_Set_Stage_Boundary (cf posting by rrraman)
     def __init__(self, domain=None,
-                 f=None,
+                 f=None, # Should be removed and replaced by function below
+                 function=None,
                  default_boundary=None,
                  verbose=False):
         Boundary.__init__(self)
@@ -98,6 +108,18 @@ class Time_boundary(Boundary):
         self.domain = domain
         self.verbose = verbose
 
+        
+        # FIXME: Temporary code to deal with both f and function
+        if function is not None and f is not None:
+            raise Exception, 'Specify either function or f to Time_boundary'
+            
+        if function is None and f is None:
+            raise Exception, 'You must specify a function to Time_boundary'
+            
+        if f is None:
+            f = function
+        #####
+        
         try:
             q = f(0.0)
         except Exception, e:
