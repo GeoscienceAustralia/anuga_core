@@ -340,7 +340,7 @@ def get_vars_in_expression(source):
 # @param file_name Path to file to create in the filesystem.
 # @param auth Auth tuple (httpproxy, proxyuser, proxypass).
 # @param blocksize Read file in this block size.
-# @return 'auth' tuple for subsequent calls, if successful, else False.
+# @return (True, auth) if successful, else (False, auth).
 # @note If 'auth' not supplied, will prompt user.
 # @note Will try using environment variable HTTP_PROXY for proxy server.
 # @note Will try using environment variable PROXY_USERNAME for proxy username.
@@ -364,16 +364,16 @@ def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
     # Simple fetch, if fails, check for proxy error
     try:
         urllib.urlretrieve(file_url, file_name)
-        return None     # no proxy, no auth required
+        return (True, auth)     # no proxy, no auth required
     except IOError, e:
         if e[1] == 407:     # proxy error
             pass
         elif e[1][0] == 113:  # no route to host
             print 'No route to host for %s' % file_url
-            return False    # return False
+            return (False, auth)    # return False
         else:
             print 'Unknown connection error to %s' % file_url
-            return False
+            return (False, auth)
 
     # We get here if there was a proxy error, get file through the proxy
     # unpack auth info
@@ -422,8 +422,10 @@ def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
     urllib2.install_opener(opener)
     try:
         webget = urllib2.urlopen(file_url)
-    except urllib2.HTTPError:
-        return False
+    except urllib2.HTTPError, e:
+        print 'Error received from proxy:\n%s' % str(e)
+        print 'Possibly the user/password is wrong.'
+        return (False, auth)
 
     # transfer file to local filesystem
     fd = open(file_name, 'wb')
@@ -436,7 +438,7 @@ def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
     webget.close()
 
     # return successful auth info
-    return (httpproxy, proxyuser, proxypass)
+    return (True, (httpproxy, proxyuser, proxypass))
 
 
 ##
