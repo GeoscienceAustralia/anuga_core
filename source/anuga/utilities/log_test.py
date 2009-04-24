@@ -30,7 +30,6 @@ class Test_Log(unittest.TestCase):
             os.remove(LOGFILE_NAME)
         if os.path.exists(STDOUT_LOG_NAME):
             os.remove(STDOUT_LOG_NAME)
-        pass
 
     ##
     # @brief Test the logging routines.
