@@ -34,7 +34,7 @@ exclude_dirs = ['pypar_dist',                        # Special requirements
 # @param page_width Set displayable page width to this (default 132).
 def list_names(names, func=None, col_width=None, page_width=None):
     # set defaults
-    p_width = page_width                # set page width
+    p_width = page_width - 1            # set page width
     if p_width is None:
         p_width = 132                   # default page width
 
@@ -45,7 +45,7 @@ def list_names(names, func=None, col_width=None, page_width=None):
             if func:
                 name = func(name)
             c_width = max(c_width, len(name))
-        c_width += 2                    # padding between columns
+    c_width += 2                        # 2 column padding
 
     # calculate number of columns allowed
     max_columns = int(p_width / c_width)
@@ -55,7 +55,7 @@ def list_names(names, func=None, col_width=None, page_width=None):
     for name in names:
         if func:
             name = func(name)
-        print '%-*s' % (c_width, name),
+        print '%-*s' % (c_width-1, name),
         column += 1
         if column >= max_columns:
             column = 0
@@ -101,11 +101,14 @@ def regressionTest(test_verbose=False):
     print
     print 'Testing path: %s' % path
 
+    # get the terminal width
+    term_width = terminal_width()
+
     # explain what we are doing
     print
     print "The following directories will be skipped over:"
     exclude_dirs.sort()
-    list_names(exclude_dirs)
+    list_names(exclude_dirs, page_width=term_width)
 
     # get all test_*.py and enclosing directories
     test_files, path_files = get_test_files(path)
@@ -115,11 +118,11 @@ def regressionTest(test_verbose=False):
 
     print
     print 'Paths searched:'
-    list_names(path_files, os.path.basename)
+    list_names(path_files, os.path.basename, page_width=term_width)
 
     print    
     print 'Files tested:'
-    list_names(files)
+    list_names(files, page_width=term_width)
     print
 
     # update system path with found paths

@@ -302,7 +302,7 @@ def get_pathname_from_package(package):
         
             
 ##
-# @brief Get list of variable names in an expression string.
+# @brief Get list of variable names in a python expression string.
 # @param source A string containing a python expression.
 # @return A list of variable name strings.
 # @note Throws SyntaxError exception if not a valid expression.
