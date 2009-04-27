@@ -14,6 +14,7 @@ import sys
 import tempfile
 import time
 import anuga.utilities.system_tools as aust
+from anuga.utilities.terminal_width import terminal_width
 
 
 #List files that should be excluded from the testing process.
