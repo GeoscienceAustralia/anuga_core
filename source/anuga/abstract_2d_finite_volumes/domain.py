@@ -18,11 +18,14 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
      import File_boundary
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
+     import AWI_boundary
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
      import Dirichlet_boundary
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
      import Time_boundary
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
      import Transmissive_boundary
+
 from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_to_domain
 from anuga.abstract_2d_finite_volumes.region\
      import Set_region as region_set_region

@@ -93,6 +93,11 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
      import Time_boundary
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
      import Transmissive_boundary
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
+     import AWI_boundary
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
+     import AWI_boundary
+
 from anuga.pmesh.mesh_interface import create_mesh_from_regions
 from anuga.utilities.numerical_tools import gradient, mean, ensure_numeric
 from anuga.geospatial_data.geospatial_data import ensure_geospatial
