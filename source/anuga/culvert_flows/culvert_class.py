@@ -14,7 +14,7 @@ from anuga.config import g, epsilon
 from anuga.config import minimum_allowed_height, velocity_protection        
 
 import Numeric as num
-
+from math import sqrt
 
 class Below_interval(Exception): pass 
 class Above_interval(Exception): pass
@@ -136,7 +136,7 @@ class Culvert_flow_general:
                  trigger_depth=0.01, # Depth below which no flow happens
                  manning=None,          # Mannings Roughness for Culvert 
                  sum_loss=None,
-                 use_velocity_head=False, 
+                 use_velocity_head=False, # FIXME(Ole): Get rid of - always True
                  use_momentum_jet=False, # FIXME(Ole): Not yet implemented
                  label=None,
                  description=None,
@@ -463,7 +463,7 @@ class Culvert_flow_general:
         if hasattr(self, 'log_filename'):
             log_filename = self.log_filename
             
-        # Compute stage and energy at the 
+        # Compute stage, energy and velocity at the 
         # enquiry points at each end of the culvert
         openings = self.openings
         for i, opening in enumerate(openings):
@@ -473,20 +473,23 @@ class Culvert_flow_general:
                                                indices=[idx])[0]
             depth = h = stage-opening.elevation
                                                            
-                                               
-            if self.use_velocity_head is True:
-                xmomentum = dq['xmomentum'].get_values(location='centroids',
-                                                       indices=[idx])[0]
-                ymomentum = dq['xmomentum'].get_values(location='centroids',
-                                                       indices=[idx])[0]
             
-                if h > minimum_allowed_height:
-                    u = xmomentum/(h + velocity_protection/h)
-                    v = ymomentum/(h + velocity_protection/h)
-                else:
-                    u = v = 0.0
+            # Get velocity                                 
+            xmomentum = dq['xmomentum'].get_values(location='centroids',
+                                                   indices=[idx])[0]
+            ymomentum = dq['xmomentum'].get_values(location='centroids',
+                                                   indices=[idx])[0]
+            
+            if h > minimum_allowed_height:
+                u = xmomentum/(h + velocity_protection/h)
+                v = ymomentum/(h + velocity_protection/h)
+            else:
+                u = v = 0.0
                 
-                velocity_head = 0.5*(u*u + v*v)/g    
+            v_squared = u*u + v*v
+            
+            if self.use_velocity_head is True:
+                velocity_head = 0.5*v_squared/g    
             else:
                 velocity_head = 0.0
             
@@ -494,6 +497,7 @@ class Culvert_flow_general:
             opening.specific_energy = velocity_head + depth
             opening.stage = stage
             opening.depth = depth
+            opening.velocity = sqrt(v_squared)
             
 
         # We now need to deal with each opening individually
@@ -582,6 +586,8 @@ class Culvert_flow_general:
                 Q, barrel_velocity, culvert_outlet_depth =\
                     self.culvert_routine(inlet.depth,
                                          outlet.depth,
+                                         inlet.velocity,
+                                         outlet.velocity,
                                          inlet.specific_energy, 
                                          delta_total_energy, 
                                          g,

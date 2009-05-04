@@ -30,6 +30,9 @@ class Test_culvert_routines(unittest.TestCase):
 
         inlet_depth=2.0
         outlet_depth=0.0
+        
+        inlet_velocity=0.0,
+        outlet_velocity=0.0,        
 
         culvert_length=4.0
         culvert_width=1.2
@@ -48,6 +51,8 @@ class Test_culvert_routines(unittest.TestCase):
 
         Q, v, d = boyd_generalised_culvert_model(inlet_depth, 
                                                  outlet_depth,
+                                                 inlet_velocity,
+                                                 outlet_velocity,
                                                  inlet_specific_energy, 
                                                  delta_total_energy, 
                                                  g,
@@ -79,6 +84,9 @@ class Test_culvert_routines(unittest.TestCase):
         inlet_depth=0.2
         outlet_depth=0.0
 
+        inlet_velocity=0.0,
+        outlet_velocity=0.0,                
+        
         culvert_length=4.0
         culvert_width=1.2
         culvert_height=0.75
@@ -96,6 +104,8 @@ class Test_culvert_routines(unittest.TestCase):
 
         Q, v, d = boyd_generalised_culvert_model(inlet_depth, 
                                                  outlet_depth,
+                                                 inlet_velocity,
+                                                 outlet_velocity,
                                                  inlet_specific_energy, 
                                                  delta_total_energy, 
                                                  g,
@@ -188,6 +198,8 @@ class Test_culvert_routines(unittest.TestCase):
 
         Q, v, d = boyd_generalised_culvert_model(inlet_depth, 
                                                  outlet_depth,
+                                                 inlet_velocity,
+                                                 outlet_velocity,
                                                  inlet_specific_energy, 
                                                  delta_total_energy, 
                                                  g,

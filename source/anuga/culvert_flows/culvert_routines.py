@@ -18,6 +18,8 @@ from math import pi, sqrt, sin, cos
 
 def boyd_generalised_culvert_model(inlet_depth, 
                                    outlet_depth,
+                                   inlet_velocity,
+                                   outlet_velocity,
                                    inlet_specific_energy, 
                                    delta_total_energy, 
                                    g,
