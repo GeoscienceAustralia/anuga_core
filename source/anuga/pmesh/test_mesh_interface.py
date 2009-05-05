@@ -670,13 +670,12 @@ class TestCase(unittest.TestCase):
 
 
     def FIXME_test_create_mesh_with_multiply_tagged_segments(self):
-        """Test that create_mesh_from_regions fails when
-        segments are listed repeatedly in boundary_tags.
+        """Test that create_mesh_from_regions fails when segments are listed repeatedly in boundary_tags.
         """
         
+        # FIXME(Ole): Who wrote this and why doesn't it pass?
         
         
-
         # These are the absolute values
         min_x = 10 
         min_y = 88
@@ -700,6 +699,41 @@ class TestCase(unittest.TestCase):
         interior_regions = [(inner_polygon, 5)]
 
 
+        m = create_mesh_from_regions(polygon,
+                                     boundary_tags,
+                                     10000000,
+                                     interior_regions=interior_regions)
+        try:
+            m = create_mesh_from_regions(polygon,
+                                         boundary_tags,
+                                         10000000,
+                                         interior_regions=interior_regions)
+        except:
+            pass
+        else:
+            msg = 'Tags are listed repeatedly, but create mesh from regions '
+            msg += 'does not cause an Exception to be raised'
+            raise Exception, msg
+
+
+            
+    def test_create_mesh_with_segments_out_of_bounds(self):
+        """Test that create_mesh_from_regions fails when a segment is out of bounds.
+        """
+        
+        # These are the absolute values
+        min_x = 10 
+        min_y = 88
+        polygon = [[min_x,min_y],[1000,100],[1000,1000],[100,1000]]
+
+        
+        boundary_tags = {'walls': [0,1], 'bom':[2,3], 'out': [5]}
+
+        # This one is inside bounding polygon - should pass
+        inner_polygon = [[800,400],[900,500],[800,600]]
+        
+        interior_regions = [(inner_polygon, 5)]
+
 
         try:
             m = create_mesh_from_regions(polygon,
@@ -711,9 +745,9 @@ class TestCase(unittest.TestCase):
         else:
             msg = 'Tags are listed repeatedly, but create mesh from regions '
             msg += 'does not cause an Exception to be raised'
-            raise msg
-
-        
+            raise Exception, msg
+            
+                    
 
 
     def test_create_mesh_from_regions_with_duplicate_verts(self):
@@ -975,7 +1009,7 @@ END\n")
         
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    suite = unittest.makeSuite(TestCase,'test')
+    suite = unittest.makeSuite(TestCase, 'test')
     #suite = unittest.makeSuite(TestCase,'test_create_mesh_from_regions_check_segs')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
