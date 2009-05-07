@@ -906,8 +906,16 @@ def read_polygon(filename, split=','):
     fid.close()
     polygon = []
     for line in lines:
+        if line.strip() == '': continue # Skip blank lines
         fields = line.split(split)
-        polygon.append( [float(fields[0]), float(fields[1])] )
+
+        try:
+            x, y = float(fields[0]), float(fields[1])
+        except:
+            msg = 'Could not read line %s in file %s' %(line, filename)
+            raise Exception, msg
+            
+        polygon.append([x, y])
 
     return polygon
 
