@@ -2777,7 +2777,7 @@ def convert_dem_from_ascii2netcdf(basename_in, basename_out=None,
 # @param basename_out Stem of output filename.
 # @param verbose True if this function is to be verbose.
 def _convert_dem_from_ascii2netcdf(basename_in, basename_out = None,
-                                  verbose = False):
+                                   verbose = False):
     """Read Digital Elevation model from the following ASCII format (.asc)
 
     Internal function. See public function convert_dem_from_ascii2netcdf
@@ -2909,12 +2909,19 @@ def _convert_dem_from_ascii2netcdf(basename_in, basename_out = None,
     # Get handles to the variables
     elevation = fid.variables['elevation']
 
-    #Store data
+    # Store data
     n = len(lines[6:])
     for i, line in enumerate(lines[6:]):
         fields = line.split()
         if verbose and i % ((n+10)/10) == 0:
             print 'Processing row %d of %d' % (i, nrows)
+
+           
+        if len(fields) != ncols:
+            msg = 'Wrong number of columns in file "%s" line %d\n' % (basename_in + '.asc', i)
+            msg += 'I got %d elements, but there should have been %d\n' % (len(fields), ncols)
+            raise Exception, msg
+
         elevation[i, :] = num.array([float(x) for x in fields])
 
     fid.close()
