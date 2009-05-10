@@ -23,7 +23,6 @@ in python2.5.  If running on earlier versions, these features are disabled:
     . Calling module name + line number
 '''
 
-import sys
 import os
 import sys
 import traceback
@@ -59,7 +58,7 @@ INFO = logging.INFO
 DEBUG = logging.DEBUG
 NOTSET = logging.NOTSET
 
-# get True if python version 2.5 or later
+# set True if python version 2.5 or later
 (version_major, version_minor, _, _, _) = sys.version_info
 new_python = ((version_major == 2 and version_minor >= 5) or version_major > 2)
 
@@ -103,6 +102,9 @@ def log(level, msg):
         console.setFormatter(formatter)
         logging.getLogger('').addHandler(console)
 
+        # catch exceptions
+        sys.excepthook = log_exception_hook
+
         # tell the world how we are set up
         start_msg = ("Logfile is '%s' with logging level of %s, "
                      "console logging level is %s"
@@ -121,7 +123,10 @@ def log(level, msg):
     # get caller information - look back for first module != <this module name>
     frames = traceback.extract_stack()
     frames.reverse()
-    (_, mod_name) = __name__.rsplit('.', 1)
+    try:
+        (_, mod_name) = __name__.rsplit('.', 1)
+    except ValueError:
+        mod_name = __name__
     for (fpath, lnum, mname, _) in frames:
         (fname, _) = os.path.basename(fpath).rsplit('.', 1)
         if fname != mod_name:
@@ -132,6 +137,17 @@ def log(level, msg):
     else:
         logging.log(level, msg)
 
+##
+# @brief Hook function to process uncaught exceptions.
+# @param type
+# @param value
+# @param traceback
+# @note Same interface as sys.excepthook()
+def log_exception_hook(type, value, tb):
+    msg = ''.join(traceback.format_exception(type, value, tb))
+    critical(msg)
+
+    
 ################################################################################
 # Shortcut routines to make for simpler user code.
 ################################################################################
@@ -218,4 +234,10 @@ def resource_usage(level=logging.INFO):
                   stacksize()/_scale['GB']))
         log(level, msg)
     else:
-        pass
+        msg = ('Sorry, no memory statistics for Windows (yet).')
+        log(level, msg)
+
+
+if __name__ == '__main__':
+##    critical('Testing exception capturing')
+    resource_usage()
