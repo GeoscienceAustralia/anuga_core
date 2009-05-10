@@ -191,8 +191,8 @@ def resource_usage(level=logging.INFO):
 
     if sys.platform != 'win32':
         _proc_status = '/proc/%d/status' % os.getpid()
-        _scale = {'KB': 1024.0, 'MB': 1024.0*1024.0, 'GB': 1024.0*1024.0*1024.0,
-                  'kB': 1024.0, 'mB': 1024.0*1024.0, 'gB': 1024.0*1024.0*1024.0}
+        _scale = {'KB': 1024, 'MB': 1024*1024, 'GB': 1024*1024*1024,
+                  'kB': 1024, 'mB': 1024*1024, 'gB': 1024*1024*1024}
 
         def _VmB(VmKey):
             '''Get number of virtual bytes used.'''
@@ -229,9 +229,9 @@ def resource_usage(level=logging.INFO):
 
             return _VmB('VmStk:') - since
 
-        msg = ('Resource usage: memory=%.1f resident=%.1f stacksize=%.1f'
-               % (memory()/_scale['GB'], resident()/_scale['GB'],
-                  stacksize()/_scale['GB']))
+        msg = ('Resource usage: memory=%.1fMB resident=%.1fMB stacksize=%.1fMB'
+               % (memory()/_scale['MB'], resident()/_scale['MB'],
+                  stacksize()/_scale['MB']))
         log(level, msg)
     else:
         msg = ('Sorry, no memory statistics for Windows (yet).')
@@ -240,4 +240,14 @@ def resource_usage(level=logging.INFO):
 
 if __name__ == '__main__':
 ##    critical('Testing exception capturing')
-    resource_usage()
+    def test_it(num=100):
+        if num > 0:
+            test_it(num-1)
+        else:
+            resource_usage()
+
+    import numpy as num
+    
+    a = num.zeros((1000,1000), num.float)
+
+    test_it()
