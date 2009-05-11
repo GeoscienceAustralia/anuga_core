@@ -9,7 +9,10 @@ import urllib
 import urllib2
 import getpass
 import tarfile
-import md5
+try:
+    import hashlib
+except ImportError:
+    import md5 as hashlib
 
 
 def log_to_file(filename, s, verbose=False):
@@ -477,8 +480,11 @@ def untar_file(tarname, target_dir='.'):
 # @note Uses MD5 digest.
 def get_file_hexdigest(filename, blocksize=1024*1024*10):
     '''Get a hex digest of a file.'''
-    
-    m = md5.new()
+
+    if hashlib.__name__ == 'hashlib':
+        m = hashlib.md5()       # new - 'hashlib' module
+    else:
+        m = hashlib.new()       # old - 'md5' module - remove once py2.4 gone
     fd = open(filename, 'r')
             
     while True:
