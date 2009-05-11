@@ -5,7 +5,6 @@ import unittest
 import os
 from math import sqrt, pi
 import tempfile
-from sets import ImmutableSet
 
 import Numeric as num
 
@@ -1739,7 +1738,7 @@ class Test_Geospatial_data(unittest.TestCase):
         lon_2 = degminsec2decimal_degrees(150,00,0.)
         p1 = (lat_gong, lon_gong)
         p2 = (lat_2, lon_2)
-        points = ImmutableSet([p1, p2, p1])
+        points = frozenset([p1, p2, p1])
         gsd = Geospatial_data(data_points=list(points),
                               points_are_lats_longs=True)
         
@@ -1762,7 +1761,7 @@ class Test_Geospatial_data(unittest.TestCase):
         lon_2 = degminsec2decimal_degrees(150,00,0.)
         p1 = (lat_gong, lon_gong)
         p2 = (lat_2, lon_2)
-        points = ImmutableSet([p1, p2, p1])
+        points = frozenset([p1, p2, p1])
         gsd = Geospatial_data(data_points=list(points),
                               points_are_lats_longs=True)
 

@@ -13,7 +13,6 @@ import tempfile
 import os
 from Scientific.IO.NetCDF import NetCDFFile
 from struct import pack, unpack
-from sets import ImmutableSet
 import shutil
 
 from anuga.shallow_water import *
@@ -9557,7 +9556,7 @@ ValueError: matrices are not aligned for copy
         #Maybe see if I can fit the data to the polygon - have to represent
         # the poly as points though.
         #geo.export_points_file("results.txt", as_lat_long=True)
-        results = ImmutableSet(geo.get_data_points(as_lat_long=True))
+        results = frozenset(geo.get_data_points(as_lat_long=True))
         #print 'results',results
 
         # These are a set of points that have to be in results
@@ -9571,7 +9570,7 @@ ValueError: matrices are not aligned for copy
         geo_answer = Geospatial_data(data_points=points,
                                      points_are_lats_longs=True) 
         #geo_answer.export_points_file("answer.txt", as_lat_long=True)  
-        answer = ImmutableSet(points)
+        answer = frozenset(points)
         
         outs = answer.difference(results)
         #print "outs", outs
@@ -9661,8 +9660,8 @@ ValueError: matrices are not aligned for copy
                                   isSouthHemisphere=False,
                                   verbose=self.verbose)
         
-        results = ImmutableSet(geo.get_data_points(as_lat_long=True,
-                                  isSouthHemisphere=False))
+        results = frozenset(geo.get_data_points(as_lat_long=True,
+                                                isSouthHemisphere=False))
         #print 'results',results
 
         # These are a set of points that have to be in results
@@ -9672,7 +9671,7 @@ ValueError: matrices are not aligned for copy
                 points.append((degminsec2decimal_degrees(8,i*2,0),
                                degminsec2decimal_degrees(97,i*2,0)))
         #print "answer points", points
-        answer = ImmutableSet(points)
+        answer = frozenset(points)
         
         for point in points:
             found = False

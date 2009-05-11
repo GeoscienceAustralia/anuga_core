@@ -1135,7 +1135,6 @@ def check_list(quantity):
     """ Check that input quantities in quantity list are possible
     """
     import sys
-    from sets import Set as set
 
     all_quantity = ['stage', 'depth', 'momentum', 'xmomentum',
                     'ymomentum', 'speed', 'bearing', 'elevation']

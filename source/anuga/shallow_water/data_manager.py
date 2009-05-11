@@ -5009,8 +5009,6 @@ def _URS_points_needed(boundary_polygon,
 
     """
 
-    from sets import ImmutableSet
-
     msg = "grid_spacing can not be zero"
     assert not grid_spacing == 0, msg
 
@@ -5022,14 +5020,14 @@ def _URS_points_needed(boundary_polygon,
     # convert the segs to Lat's and longs.
     # Don't assume the zone of the segments is the same as the lower left
     # corner of the lat long data!!  They can easily be in different zones
-    lat_long_set = ImmutableSet()
+    lat_long_set = frozenset()
     for seg in segs:
         points_lat_long = points_needed(seg, ll_lat, ll_long, grid_spacing,
                                         lat_amount, long_amount, zone,
                                         isSouthHemisphere)
-        lat_long_set |= ImmutableSet(points_lat_long)
+        lat_long_set |= frozenset(points_lat_long)
 
-    if lat_long_set == ImmutableSet([]):
+    if lat_long_set == frozenset([]):
         msg = "URS region specified and polygon does not overlap."
         raise ValueError, msg
 
