@@ -448,9 +448,13 @@ def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
 # @brief Tar a file (or directory) into a tarfile.
 # @param files A list of files (or directories) to tar.
 # @param tarfile The created tarfile name.
+# @note 'files' may be a string (single file) or a list of strings.
 # @note We use gzip compression.
 def tar_file(files, tarname):
     '''Compress a file or directory into a tar file.'''
+
+    if isinstance(files, basestring):
+        files = [files]
 
     o = tarfile.open(tarname, 'w:gz')
     for file in files:

@@ -58,7 +58,7 @@ INFO = logging.INFO
 DEBUG = logging.DEBUG
 NOTSET = logging.NOTSET
 
-# set True if python version 2.5 or later
+# set new_python to True if python version 2.5 or later
 (version_major, version_minor, _, _, _) = sys.version_info
 new_python = ((version_major == 2 and version_minor >= 5) or version_major > 2)
 
