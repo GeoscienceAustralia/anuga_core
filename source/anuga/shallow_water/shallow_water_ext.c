@@ -222,7 +222,7 @@ float fast_squareroot_approximation(float number) {
 
 
 
-// Optimised squareroot computation (double version, slower)
+// Optimised squareroot computation (double version)
 double Xfast_squareroot_approximation(double number) {
   double x;
   const double f = 1.5;
@@ -322,6 +322,18 @@ int _flux_function_central(double *q_left, double *q_right,
   soundspeed_right = sqrt(g*h_right);  
   
   // Code to use fast square root optimisation if desired.
+  // Timings on AMD 64 for the Okushiri profile gave the following timings
+  //
+  // SQRT           Total    Flux
+  //=============================
+  //
+  // Ref            405s     152s
+  // Fast (dbl)     453s     173s
+  // Fast (sng)     437s     171s
+  //
+  // Consequently, there is currently (14/5/2009) no reason to use this 
+  // approximation.
+  
   //soundspeed_left  = fast_squareroot_approximation(g*h_left);
   //soundspeed_right = fast_squareroot_approximation(g*h_right);
 
