@@ -3030,6 +3030,7 @@ class Test_Shallow_Water(unittest.TestCase):
         scenarios.
         
         This test will fail as the problem was only fixed for culverts.
+        FIXME(Ole): It'd be nice to turn it into a volume conservation test
         """
         
         from math import pi, cos, sin
@@ -6884,7 +6885,8 @@ friction  \n \
                 print S
             
             
-                                
+        
+        
         
     def test_inflow_using_flowline(self):
         """test_inflow_using_flowline
@@ -6955,7 +6957,7 @@ friction  \n \
 
 
                 #--------------------------------------------------------------
-                # Seup Inflow
+                # Setup Inflow
                 #--------------------------------------------------------------
 
                 # Fixed Flowrate onto Area 
@@ -7034,7 +7036,153 @@ friction  \n \
                 assert num.allclose(q, ref_flow, rtol=1.0e-2), msg         
 
         
+
         
+                                
+        
+    def Xtest_inflow_boundary_using_flowline(self):
+        """test_inflow_boundary_using_flowline
+        Test the ability of a flowline to match inflow above the flowline by
+        creating constant inflow into the boundary at the head of a 20m
+        wide by 300m long plane dipping at various slopes with a
+        perpendicular flowline and gauge downstream of the inflow and
+        a 45 degree flowlines at 200m downstream
+        
+        
+        """
+
+        # FIXME (Ole): Work in progress
+        
+        verbose = False
+        
+
+        #----------------------------------------------------------------------
+        # Import necessary modules
+        #----------------------------------------------------------------------
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
+        from anuga.shallow_water import Domain
+        from anuga.shallow_water.shallow_water_domain import Reflective_boundary
+        from anuga.shallow_water.shallow_water_domain import Dirichlet_boundary
+        from anuga.shallow_water.shallow_water_domain import Inflow_boundary
+        from anuga.shallow_water.data_manager import get_flow_through_cross_section
+        from anuga.abstract_2d_finite_volumes.util import sww2csv_gauges, csv2timeseries_graphs
+
+
+        #----------------------------------------------------------------------
+        # Setup computational domain
+        #----------------------------------------------------------------------
+
+        finaltime = 500 #700.0 # If this is too short, steady state will not be achieved
+
+        length = 250.
+        width  = 20.
+        dx = dy = 5          # Resolution: of grid on both axes
+
+        points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
+                                                       len1=length, len2=width)
+
+        for mannings_n in [0.1, 0.01]:
+            # Loop over a range of roughnesses              
+            
+            for slope in [1.0/300, 1.0/100]:
+                # Loop over a range of bedslopes representing sub to super critical flows 
+
+
+                domain = Domain(points, vertices, boundary)   
+                domain.set_name('inflow_boundary_flowline_test')
+                
+
+                #-------------------------------------------------------------
+                # Setup initial conditions
+                #-------------------------------------------------------------
+
+                def topography(x, y):
+                    z=-x * slope
+                    return z
+
+                domain.set_quantity('elevation', topography)
+                domain.set_quantity('friction', mannings_n)
+                domain.set_quantity('stage',
+                                    expression='elevation')
+
+
+                    
+                #--------------------------------------------------------------
+                # Setup boundary conditions
+                #--------------------------------------------------------------
+                
+
+
+                ref_flow = 10.00
+
+                # Compute normal depth on plane using Mannings equation
+                # v=1/n*(r^2/3)*(s^0.5) or r=(Q*n/(s^0.5*W))^0.6
+                normal_depth=(ref_flow*mannings_n/(slope**0.5*width))**0.6
+                if verbose:
+                    print
+                    print 'Slope:', slope, 'Mannings n:', mannings_n
+                    
+                
+                
+                Bi = Inflow_boundary(domain, rate=ref_flow)
+
+                Br = Reflective_boundary(domain)
+                
+                # Define downstream boundary based on predicted depth
+                def normal_depth_stage_downstream(t):
+                    return (-slope*length) + normal_depth
+                
+                Bt = Transmissive_momentum_set_stage_boundary(domain=domain,
+                                                              function=normal_depth_stage_downstream)
+                
+
+                
+
+                domain.set_boundary({'left': Bi,
+                                     'right': Bt,
+                                     'top': Br,
+                                     'bottom': Br})
+
+
+
+                #--------------------------------------------------------------
+                # Evolve system through time
+                #--------------------------------------------------------------
+
+
+                for t in domain.evolve(yieldstep=100.0, finaltime=finaltime):
+                    pass
+                    #if verbose :
+                    #    print domain.timestepping_statistics()
+                    #    print domain.volumetric_balance_statistics()                                    
+
+
+                #--------------------------------------------------------------
+                # Compute flow thru flowlines ds of inflow
+                #--------------------------------------------------------------
+                    
+                # Square on flowline at 200m
+                q=domain.get_flow_through_cross_section([[200.0,0.0],[200.0,20.0]])
+                msg = 'Predicted flow was %f, should have been %f' % (q, ref_flow)
+                if verbose:
+                    print '90 degree flowline: ANUGA = %f, Ref = %f' % (q, ref_flow)
+                assert num.allclose(q, ref_flow, rtol=1.0e-2), msg         
+
+                           
+                # 45 degree flowline at 200m
+                q=domain.get_flow_through_cross_section([[200.0,0.0],[220.0,20.0]])
+                msg = 'Predicted flow was %f, should have been %f' % (q, ref_flow)
+                if verbose:
+                    print '45 degree flowline: ANUGA = %f, Ref = %f' % (q, ref_flow)
+                    
+                assert num.allclose(q, ref_flow, rtol=1.0e-2), msg         
+
+        
+
+        
+                
+        
+                
     def Xtest_friction_dependent_flow_using_flowline(self):
         """test_friction_dependent_flow_using_flowline
         

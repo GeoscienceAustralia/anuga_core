@@ -120,7 +120,7 @@ from anuga.utilities.polygon import inside_polygon, polygon_area, is_inside_poly
 from types import IntType, FloatType
 from warnings import warn
 
-
+import math
 
 #
 # Shallow water domain
@@ -1400,7 +1400,93 @@ class Dirichlet_Discharge_boundary(Dirichlet_discharge_boundary):
                                                    
     
 
+
+    
+class Inflow_boundary(Boundary):
+    """Apply given flow in m^3/s to boundary segment.
+    Depth and momentum is derived using Manning's formula.
+
+    Underlying domain must be specified when boundary is instantiated
+    """
+    
+    # FIXME (Ole): This is work in progress and definitely not finished.
+    # The associated test has been disabled
+
+    def __init__(self, domain=None, rate=0.0):
+        Boundary.__init__(self)
+
+        if domain is None:
+            msg = 'Domain must be specified for '
+            msg += 'Inflow boundary'
+            raise Exception, msg
+
+        self.domain = domain
         
+        # FIXME(Ole): Allow rate to be time dependent as well
+        self.rate = rate
+        self.tag = None # Placeholder for tag associated with this object.
+
+    def __repr__(self):
+        return 'Inflow_boundary(%s)' %self.domain
+
+    def evaluate(self, vol_id, edge_id):
+        """Apply inflow rate at each edge of this boundary
+        """
+        
+        # First find all segments having the same tag is vol_id, edge_id
+        # This will be done the first time evaluate is called.
+        if self.tag is None:
+            boundary = self.domain.boundary
+            self.tag = boundary[(vol_id, edge_id)]        
+            
+            # Find total length of boundary with this tag
+            length = 0.0
+            for v_id, e_id in boundary:
+                if self.tag == boundary[(v_id, e_id)]:
+                    length += self.domain.mesh.get_edgelength(v_id, e_id)            
+
+            self.length = length
+            self.average_momentum = self.rate/length
+            
+            
+        # Average momentum has now been established across this boundary
+        # Compute momentum in the inward normal direction 
+        
+        inward_normal = -self.domain.mesh.get_normal(vol_id, edge_id)       
+        xmomentum, ymomentum = self.average_momentum * inward_normal
+            
+        # Compute depth based on Manning's formula v = 1/n h^{2/3} sqrt(S)
+        # Where v is velocity, n is manning's coefficient, h is depth and S is the slope into the domain. 
+        # Let mu be the momentum (vh), then this equation becomes: mu = 1/n h^{5/3} sqrt(S) 
+        # from which we can isolate depth to get
+        # h = (mu n/sqrt(S) )^{3/5} 
+        
+        slope = 0 # get gradient for this triangle dot normal
+        
+        # get manning coef from this triangle
+        friction = self.domain.get_quantity('friction').get_values(location='edges', 
+                                                                   indices=[vol_id])[0]
+        mannings_n = friction[edge_id]
+
+        if slope > epsilon and mannings_n > epsilon:
+            depth = pow(self.average_momentum * mannings_n/math.sqrt(slope), 3.0/5) 
+        else:
+            depth = 1.0
+            
+        # Elevation on this edge    
+        
+        z = self.domain.get_quantity('elevation').get_values(location='edges', 
+                                                             indices=[vol_id])[0]
+        elevation = z[edge_id]
+            
+        # Assign conserved quantities and return
+        q = num.array([elevation + depth, xmomentum, ymomentum], num.Float)
+        return q
+
+
+        
+    
+            
         
 class Field_boundary(Boundary):
     """Set boundary from given field represented in an sww file containing values
