@@ -1168,7 +1168,7 @@ class Quantity:
         # elsewhere in ANUGA.
         # Edges have already been deprecated in set_values, see changeset:5521,
         # but *might* be useful in get_values. Any thoughts anyone?
-        # YES (Ole): Edge values are necessary for volumetric balance check
+        # YES (Ole): Edge values are necessary for volumetric balance check and inflow boundary. Keep them.
 
         if location not in ['vertices', 'centroids',
                             'edges', 'unique vertices']:
