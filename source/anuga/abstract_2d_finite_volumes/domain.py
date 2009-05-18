@@ -937,7 +937,7 @@ class Domain:
                 assert 0 <= triangle_id < len(self), errmsg
                 k = self.k = triangle_id
 
-            x, y = self.get_centroid_coordinates()[k]
+            x, y = self.get_centroid_coordinates(absolute=True)[k]
             radius = self.get_radii()[k]
             area = self.get_areas()[k]
             max_speed = self.max_speed[k]
