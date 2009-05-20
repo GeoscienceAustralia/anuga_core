@@ -57,14 +57,14 @@ class Geo_reference:
          """
         if zone is None:
             zone = DEFAULT_ZONE
-        self.false_easting = false_easting
-        self.false_northing = false_northing        
+        self.false_easting = int(false_easting)
+        self.false_northing = int(false_northing)
         self.datum = datum
         self.projection = projection
-        self.zone = zone        
+        self.zone = int(zone)
         self.units = units
-        self.xllcorner = xllcorner
-        self.yllcorner = yllcorner        
+        self.xllcorner = float(xllcorner)
+        self.yllcorner = float(yllcorner)
             
         if NetCDFObject is not None:
             self.read_NetCDF(NetCDFObject)
@@ -98,34 +98,20 @@ class Geo_reference:
         outfile.units = self.units
 
     def read_NetCDF(self, infile):
-        self.xllcorner = infile.xllcorner[0]
-        self.yllcorner = infile.yllcorner[0] 
-        self.zone = infile.zone[0]
+        self.xllcorner = float(infile.xllcorner[0])
+        self.yllcorner = float(infile.yllcorner[0])
+        self.zone = int(infile.zone[0])
 
-        
-        # Fix some assertion failures
-        if type(self.zone) == num.ArrayType and self.zone.shape == ():
-            self.zone = self.zone[0]
-        if type(self.xllcorner) == num.ArrayType and self.xllcorner.shape == ():
-            self.xllcorner = self.xllcorner[0]
-        if type(self.yllcorner) == num.ArrayType and self.yllcorner.shape == ():
-            self.yllcorner = self.yllcorner[0]
-
-        assert (type(self.xllcorner) == types.FloatType or\
-                type(self.xllcorner) == types.IntType)
-        assert (type(self.yllcorner) == types.FloatType or\
-                type(self.yllcorner) == types.IntType)
-        assert (type(self.zone) == types.IntType)
-        
         try:
-            self.false_easting = infile.false_easting[0]
-            self.false_northing = infile.false_northing[0]
-        
-            self.datum = infile.datum        
+            self.false_easting = int(infile.false_easting[0])
+            self.false_northing = int(infile.false_northing[0])
+
+            self.datum = infile.datum
             self.projection = infile.projection
             self.units = infile.units
         except:
             pass
+
         if (self.false_easting != DEFAULT_FALSE_EASTING):
             print "WARNING: False easting of %f specified." %self.false_easting
             print "Default false easting is %f." %DEFAULT_FALSE_EASTING

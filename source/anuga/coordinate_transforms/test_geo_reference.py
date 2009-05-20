@@ -422,6 +422,118 @@ class geo_referenceTestCase(unittest.TestCase):
             self.failUnless(0 ==1,
                         'bad shape did not raise error!')
             os.remove(point_file)
+
+    def test_functionality_get_absolute(self):
+        x0 = 1000.0
+        y0 = 2000.0
+        geo = Geo_reference(56, x0, y0)
+
+        # iterable points (*not* num.array())
+        points = ((2,3), (3,1), (5,2))
+        abs_points = geo.get_absolute(points)
+        # check we haven't changed 'points' itself
+        self.failIf(num.alltrue(abs_points == points))
+        new_points = abs_points.copy()
+        new_points[:,0] -= x0
+        new_points[:,1] -= y0
+        self.failUnless(num.alltrue(new_points == points))
+
+        # points in num.array()
+        points = num.array(((2,3), (3,1), (5,2)), num.float)
+        abs_points = geo.get_absolute(points)
+        # check we haven't changed 'points' itself
+        self.failIf(num.alltrue(abs_points == points))
+        new_points = abs_points.copy()
+        new_points[:,0] -= x0
+        new_points[:,1] -= y0
+        self.failUnless(num.alltrue(new_points == points))
+
+    def test_georef_types(self):
+        '''Ensure that attributes of a georeference are of correct type.
+        
+        zone            int
+        false_easting   int
+        false_northing  int
+        xllcorner       float
+        yllcorner       float
+        '''
+
+        from Scientific.IO.NetCDF import NetCDFFile
+
+        # ensure that basic instance attributes are correct
+        g = Geo_reference(56, 1.8, 1.8)
+        self.failUnless(isinstance(g.zone, int),
+                        "geo_ref .zone should be 'int' type, "
+                        "was '%s' type" % type(g.zone))  
+        self.failUnless(isinstance(g.false_easting, int),
+                        "geo_ref .false_easting should be int type, "
+                        "was '%s' type" % type(g.false_easting))  
+        self.failUnless(isinstance(g.false_northing, int),
+                        "geo_ref .false_northing should be int type, "
+                        "was '%s' type" % type(g.false_northing))
+        self.failUnless(isinstance(g.xllcorner, float),
+                        "geo_ref .xllcorner should be float type, "
+                        "was '%s' type" % type(g.xllcorner))
+        self.failUnless(isinstance(g.yllcorner, float),
+                        "geo_ref .yllcorner should be float type, "
+                        "was '%s' type" % type(g.yllcorner))
+
+        # now write fikle, read back and check types again
+        file_name = tempfile.mktemp(".geo_referenceTest")
+        
+        out_file = NetCDFFile(file_name, 'w')
+        g.write_NetCDF(out_file)
+        out_file.close()
+        
+        in_file = NetCDFFile(file_name, 'r')
+        new_g = Geo_reference(NetCDFObject=in_file)
+        in_file.close()
+        os.remove(file_name)
+
+        self.failUnless(isinstance(new_g.zone, int),
+                        "geo_ref .zone should be 'int' type, "
+                        "was '%s' type" % type(new_g.zone))  
+        self.failUnless(isinstance(new_g.false_easting, int),
+                        "geo_ref .false_easting should be int type, "
+                        "was '%s' type" % type(new_g.false_easting))  
+        self.failUnless(isinstance(new_g.false_northing, int),
+                        "geo_ref .false_northing should be int type, "
+                        "was '%s' type" % type(new_g.false_northing))
+        self.failUnless(isinstance(new_g.xllcorner, float),
+                        "geo_ref .xllcorner should be float type, "
+                        "was '%s' type" % type(new_g.xllcorner))
+        self.failUnless(isinstance(new_g.yllcorner, float),
+                        "geo_ref .yllcorner should be float type, "
+                        "was '%s' type" % type(new_g.yllcorner))
+        
+    def test_georef_types_coerceable(self):
+        '''Ensure that attributes of a georeference are of correct type.
+        
+        zone            int
+        false_easting   int
+        false_northing  int
+        xllcorner       float
+        yllcorner       float
+        '''
+
+        # now provide wrong types but coerceable
+        g = Geo_reference(56.0, '1.8', '1.8')
+        self.failUnless(isinstance(g.zone, int),
+                        "geo_ref .zone should be 'int' type, "
+                        "was '%s' type" % type(g.zone))  
+        self.failUnless(isinstance(g.false_easting, int),
+                        "geo_ref .false_easting should be int type, "
+                        "was '%s' type" % type(g.false_easting))  
+        self.failUnless(isinstance(g.false_northing, int),
+                        "geo_ref .false_northing should be int type, "
+                        "was '%s' type" % type(g.false_northing))
+        self.failUnless(isinstance(g.xllcorner, float),
+                        "geo_ref .xllcorner should be float type, "
+                        "was '%s' type" % type(g.xllcorner))
+        self.failUnless(isinstance(g.yllcorner, float),
+                        "geo_ref .yllcorner should be float type, "
+                        "was '%s' type" % type(g.yllcorner))
+
         
 #-------------------------------------------------------------
 if __name__ == "__main__":
