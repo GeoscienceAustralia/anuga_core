@@ -439,7 +439,7 @@ class geo_referenceTestCase(unittest.TestCase):
         self.failUnless(num.alltrue(new_points == points))
 
         # points in num.array()
-        points = num.array(((2,3), (3,1), (5,2)), num.float)
+        points = num.array(((2,3), (3,1), (5,2)), num.Float)
         abs_points = geo.get_absolute(points)
         # check we haven't changed 'points' itself
         self.failIf(num.alltrue(abs_points == points))
