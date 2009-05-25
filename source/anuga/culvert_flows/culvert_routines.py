@@ -81,7 +81,7 @@ def boyd_generalised_culvert_model(inlet_depth,
     from anuga.utilities.system_tools import log_to_file
     from anuga.config import velocity_protection
     from anuga.utilities.numerical_tools import safe_acos as acos
-    print "STARTING..BOYD................."
+
     local_debug ='false'
     if inlet_depth > 0.1: #this value was 0.01:
         if local_debug =='true':

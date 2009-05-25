@@ -68,8 +68,8 @@ class Test_culvert_routines_box_10pct(unittest.TestCase):
                                                  manning,
                                                  sum_loss)
         
-        print ('%s,%.2f,%.2f,%.2f' %('ANUGAcalcsTEST01 Q-v-d',Q,v,d))
-        print('%s,%.2f,%.2f,%.2f' %('Spreadsheet_Boydcalcs', 0.5526, 1.146, 0.1339))
+        #print ('%s,%.2f,%.2f,%.2f' %('ANUGAcalcsTEST01 Q-v-d',Q,v,d))
+        #print('%s,%.2f,%.2f,%.2f' %('Spreadsheet_Boydcalcs', 0.5526, 1.146, 0.1339))
         assert num.allclose(Q, 0.5526, rtol=1.0e-1) #inflow
         assert num.allclose(v, 1.146, rtol=1.0e-1) #outflow velocity
         assert num.allclose(d, 0.1339, rtol=1.0e-1) #depth at outlet used to calc v 
@@ -118,8 +118,8 @@ class Test_culvert_routines_box_10pct(unittest.TestCase):
                                                  manning,
                                                  sum_loss)
         
-        print ('%s,%.2f,%.2f,%.2f' %('ANUGAcalcsTEST02 Q-v-d',Q,v,d))
-        print ('%s,%.2f,%.2f,%.2f' %('Spreadsheet_Boydcalcs', 2.508, 1.897, 0.367))
+        #print ('%s,%.2f,%.2f,%.2f' %('ANUGAcalcsTEST02 Q-v-d',Q,v,d))
+        #print ('%s,%.2f,%.2f,%.2f' %('Spreadsheet_Boydcalcs', 2.508, 1.897, 0.367))
         assert num.allclose(Q, 2.508, rtol=1.0e-1) #inflow
         assert num.allclose(v, 1.897, rtol=1.0e-1) #outflow velocity
         assert num.allclose(d, 0.367, rtol=1.0e-1) #depth at outlet used to calc v  
@@ -167,10 +167,10 @@ class Test_culvert_routines_box_10pct(unittest.TestCase):
                                                  culvert_type,
                                                  manning,
                                                  sum_loss)
-        print ('%s,%.2f'%('SPEC_E = ',inlet_specific_energy))
-        print ('%s,%.2f'%('Delta E = ',delta_total_energy))
-        print ('%s,%.2f,%.2f,%.2f' %('ANUGAcalcsTEST03 Q-v-d',Q,v,d))
-        print ('%s,%.2f,%.2f,%.2f' %('Spreadsheet_Boydcalcs', 13.554, 3.329, 1.131))
+        #print ('%s,%.2f'%('SPEC_E = ',inlet_specific_energy))
+        #print ('%s,%.2f'%('Delta E = ',delta_total_energy))
+        #print ('%s,%.2f,%.2f,%.2f' %('ANUGAcalcsTEST03 Q-v-d',Q,v,d))
+        #print ('%s,%.2f,%.2f,%.2f' %('Spreadsheet_Boydcalcs', 13.554, 3.329, 1.131))
         assert num.allclose(Q, 13.554, rtol=1.0e-2) #inflow
         assert num.allclose(v, 3.329, rtol=1.0e-2) #outflow velocity
         assert num.allclose(d, 1.131, rtol=1.0e-2) #depth at outlet used to calc v
@@ -220,10 +220,10 @@ class Test_culvert_routines_box_10pct(unittest.TestCase):
                                                  culvert_type,
                                                  manning,
                                                  sum_loss)        
-        print ('%s,%.2f'%('SPEC_E = ',inlet_specific_energy))
-        print ('%s,%.2f'%('Delta E = ',delta_total_energy))
-        print ('%s,%.2f,%.2f,%.2f' %('ANUGAcalcsTEST04 Q-v-d',Q,v,d))
-        print ('%s,%.2f,%.2f,%.2f' %('Spreadsheet_Boydcalcs', 6.609, 2.621, 0.70))
+        #print ('%s,%.2f'%('SPEC_E = ',inlet_specific_energy))
+        #print ('%s,%.2f'%('Delta E = ',delta_total_energy))
+        #print ('%s,%.2f,%.2f,%.2f' %('ANUGAcalcsTEST04 Q-v-d',Q,v,d))
+        #print ('%s,%.2f,%.2f,%.2f' %('Spreadsheet_Boydcalcs', 6.609, 2.621, 0.70))
         assert num.allclose(Q, 6.609, rtol=1.0e-2) #inflow
         assert num.allclose(v, 2.621, rtol=1.0e-2) #outflow velocity
         assert num.allclose(d, 0.70, rtol=1.0e-2) #depth at outlet used to calc v
@@ -272,11 +272,11 @@ class Test_culvert_routines_box_10pct(unittest.TestCase):
                                                  culvert_type,
                                                  manning,
                                                  sum_loss)        
-        print ('%s,%.3f'%('SPEC_E = ',inlet_specific_energy))
-        print ('%s,%.3f'%('Delta E = ',delta_total_energy))
+        #print ('%s,%.3f'%('SPEC_E = ',inlet_specific_energy))
+        #print ('%s,%.3f'%('Delta E = ',delta_total_energy))
         
-        print ('%s,%.3f,%.3f,%.3f' %('ANUGAcalcsTEST05 Q-v-d',Q,v,d))
-        print ('%s,%.3f,%.3f,%.3f' %('Spreadsheet_Boydcalcs',2.961, 0.685, 1.20))
+        #print ('%s,%.3f,%.3f,%.3f' %('ANUGAcalcsTEST05 Q-v-d',Q,v,d))
+        #print ('%s,%.3f,%.3f,%.3f' %('Spreadsheet_Boydcalcs',2.961, 0.685, 1.20))
         assert num.allclose(Q, 2.961, rtol=1.0e-2) #inflow
         assert num.allclose(v, 0.685, rtol=1.0e-2) #outflow velocity
         assert num.allclose(d, 1.20, rtol=1.0e-2) #depth at outlet used to calc v
@@ -325,11 +325,11 @@ class Test_culvert_routines_box_10pct(unittest.TestCase):
                                                  culvert_type,
                                                  manning,
                                                  sum_loss)        
-        print ('%s,%.3f'%('SPEC_E = ',inlet_specific_energy))
-        print ('%s,%.3f'%('Delta E = ',delta_total_energy))
+        #print ('%s,%.3f'%('SPEC_E = ',inlet_specific_energy))
+        #print ('%s,%.3f'%('Delta E = ',delta_total_energy))
         
-        print ('%s,%.3f,%.3f,%.3f' %('ANUGAcalcsTEST06 Q-v-d',Q,v,d))
-        print ('%s,%.3f,%.3f,%.3f' %('Spreadsheet_Boydcalcs',15.537, 3.597, 1.20))
+        #print ('%s,%.3f,%.3f,%.3f' %('ANUGAcalcsTEST06 Q-v-d',Q,v,d))
+        #print ('%s,%.3f,%.3f,%.3f' %('Spreadsheet_Boydcalcs',15.537, 3.597, 1.20))
         assert num.allclose(Q, 15.537, rtol=1.0e-2) #inflow
         assert num.allclose(v, 3.597, rtol=1.0e-2) #outflow velocity
         assert num.allclose(d, 1.20, rtol=1.0e-2) #depth at outlet used to calc v
