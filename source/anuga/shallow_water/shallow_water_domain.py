@@ -879,20 +879,21 @@ class Domain(Generic_Domain):
     def volumetric_balance_statistics(self):                
         """Create volumetric balance report suitable for printing or logging.
         """
-        
-        boundary_flows, total_boundary_inflow, total_boundary_outflow = self.compute_boundary_flows() 
+
+        X = self.compute_boundary_flows() 
+        boundary_flows, total_boundary_inflow, total_boundary_outflow = X
         
         s = '---------------------------\n'        
         s += 'Volumetric balance report:\n'
         s += '--------------------------\n'
-        s += 'Total boundary inflow [m^3/s]: %.2f\n' % total_boundary_inflow
-        s += 'Total boundary outflow [m^3/s]: %.2f\n' % total_boundary_outflow        
+        s += 'Total boundary inflow [m^3/s]: %.2e\n' % total_boundary_inflow
+        s += 'Total boundary outflow [m^3/s]: %.2e\n' % total_boundary_outflow        
         s += 'Net boundary flow by tags [m^3/s]\n'
         for tag in boundary_flows:
-            s += '    %s [m^3/s]: %.2f\n' % (tag, boundary_flows[tag])
+            s += '    %s [m^3/s]: %.2e\n' % (tag, boundary_flows[tag])
         
-        s += 'Total net boundary flow [m^3/s]: %.2f\n' % (total_boundary_inflow + total_boundary_outflow) 
-        s += 'Total volume in domain [m^3]: %.2f\n' % self.compute_total_volume()
+        s += 'Total net boundary flow [m^3/s]: %.2e\n' % (total_boundary_inflow + total_boundary_outflow) 
+        s += 'Total volume in domain [m^3]: %.2e\n' % self.compute_total_volume()
         
         # The go through explicit forcing update and record the rate of change for stage and 
         # record into forcing_inflow and forcing_outflow. Finally compute integral 
@@ -2277,6 +2278,9 @@ class Rainfall(General_forcing):
                   The specified flow will be divided by the area of
                   the inflow region and then applied to update the
                   stage quantity.
+                  
+                  Note also that any reference to the internal attribute 'rate'
+                  later will use the one converted to m/s.
 
     polygon: Specifies a polygon to restrict the rainfall.
     

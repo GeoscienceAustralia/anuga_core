@@ -6744,16 +6744,16 @@ friction  \n \
 
         
 
-        #------------------------------------------------------------------------------
+        #----------------------------------------------------------------------
         # Import necessary modules
-        #------------------------------------------------------------------------------
+        #----------------------------------------------------------------------
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
         from anuga.shallow_water import Domain
 
 
-        #------------------------------------------------------------------------------
+        #----------------------------------------------------------------------
         # Setup computational domain
-        #------------------------------------------------------------------------------
+        #----------------------------------------------------------------------
 
         length = 100.
         width  = 20.
@@ -6764,9 +6764,9 @@ friction  \n \
         domain = Domain(points, vertices, boundary)   
                 
 
-        #------------------------------------------------------------------------------
+        #----------------------------------------------------------------------
         # Simple flat bottom bathtub
-        #------------------------------------------------------------------------------
+        #----------------------------------------------------------------------
 
         d = 1.0
         domain.set_quantity('elevation', 0.0)
@@ -6775,9 +6775,9 @@ friction  \n \
         assert num.allclose(domain.compute_total_volume(), length*width*d)
 
 
-        #------------------------------------------------------------------------------
+        #----------------------------------------------------------------------
         # Slope
-        #------------------------------------------------------------------------------
+        #----------------------------------------------------------------------
                 
         slope = 1.0/10  # RHS drops to -10m
         def topography(x, y):
@@ -6811,9 +6811,9 @@ friction  \n \
         verbose = False
         
 
-        #------------------------------------------------------------------------------
+        #---------------------------------------------------------------------
         # Import necessary modules
-        #------------------------------------------------------------------------------
+        #---------------------------------------------------------------------
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
         from anuga.shallow_water import Domain
         from anuga.shallow_water.shallow_water_domain import Reflective_boundary
@@ -6821,9 +6821,9 @@ friction  \n \
         from anuga.shallow_water.shallow_water_domain import Inflow
         from anuga.shallow_water.data_manager import get_flow_through_cross_section
 
-        #------------------------------------------------------------------------------
+        #----------------------------------------------------------------------
         # Setup computational domain
-        #------------------------------------------------------------------------------
+        #----------------------------------------------------------------------
         finaltime = 300.0
 
         length = 300.
@@ -6845,9 +6845,9 @@ friction  \n \
         domain.set_name('Inflow_flowline_test')              # Output name
                 
 
-        #------------------------------------------------------------------------------
+        #----------------------------------------------------------------------
         # Setup initial conditions
-        #------------------------------------------------------------------------------
+        #----------------------------------------------------------------------
         slope = 0.0
         def topography(x, y):
             z=-x * slope
@@ -6859,9 +6859,9 @@ friction  \n \
         domain.set_quantity('stage',
                             expression='elevation')
 
-        #------------------------------------------------------------------------------
+        #----------------------------------------------------------------------
         # Setup boundary conditions
-        #------------------------------------------------------------------------------
+        #----------------------------------------------------------------------
 
         Br = Reflective_boundary(domain)      # Solid reflective wall
                 
@@ -6874,9 +6874,9 @@ friction  \n \
         domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
 
         
-        #------------------------------------------------------------------------------
+        #----------------------------------------------------------------------
         # Evolve system through time
-        #------------------------------------------------------------------------------
+        #----------------------------------------------------------------------
         for t in domain.evolve(yieldstep=100.0, finaltime=finaltime):
         
             S = domain.volumetric_balance_statistics()
@@ -6886,7 +6886,339 @@ friction  \n \
             
             
         
+            
+    def test_volume_conservation_inflow(self):
+        """test_volume_conservation
         
+        Test that total volume in domain is as expected, based on questions
+        raised by Petar Milevski in May 2009.
+        
+        This test adds inflow at a known rate and verifies that the total 
+        terminal volume is as expected.
+        
+        """
+
+        verbose = False
+        
+
+        #---------------------------------------------------------------------
+        # Import necessary modules
+        #---------------------------------------------------------------------
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
+        from anuga.shallow_water import Domain
+        from anuga.shallow_water.shallow_water_domain import Reflective_boundary
+        from anuga.shallow_water.shallow_water_domain import Dirichlet_boundary
+        from anuga.shallow_water.shallow_water_domain import Inflow
+        from anuga.shallow_water.data_manager import get_flow_through_cross_section
+
+        #----------------------------------------------------------------------
+        # Setup computational domain
+        #----------------------------------------------------------------------
+        finaltime = 200.0
+
+        length = 300.
+        width  = 20.
+        dx = dy = 5       # Resolution: of grid on both axes
+        
+
+        points, vertices, boundary = rectangular_cross(int(length/dx), 
+                                                       int(width/dy),
+                                                       len1=length, len2=width)
+
+
+        domain = Domain(points, vertices, boundary)   
+        domain.set_name('Inflow_volume_test')              # Output name
+                
+
+        #----------------------------------------------------------------------
+        # Setup initial conditions
+        #----------------------------------------------------------------------
+        slope = 0.0
+        def topography(x, y):
+            z=-x * slope
+            return z
+
+        domain.set_quantity('elevation', topography) # Use function for elevation
+        domain.set_quantity('friction', 0.0)         # Constant friction
+                
+        domain.set_quantity('stage',
+                            expression='elevation')  # Dry initially
+                            
+
+        #--------------------------------------------------------------
+        # Setup Inflow
+        #--------------------------------------------------------------
+
+        # Fixed Flowrate onto Area 
+        fixed_inflow = Inflow(domain,
+                              center=(10.0, 10.0),
+                              radius=5.00,
+                              rate=10.00)                               
+                            
+        domain.forcing_terms.append(fixed_inflow)                            
+        
+        #----------------------------------------------------------------------
+        # Setup boundary conditions
+        #----------------------------------------------------------------------
+
+        Br = Reflective_boundary(domain) # Solid reflective wall
+        domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
+
+        
+        #----------------------------------------------------------------------
+        # Evolve system through time
+        #----------------------------------------------------------------------
+        ref_volume = 0.0
+        ys = 10.0  # Yieldstep
+        for t in domain.evolve(yieldstep=ys, finaltime=finaltime):
+        
+            # Check volume
+            assert num.allclose(domain.compute_total_volume(), ref_volume)
+        
+            if verbose :
+                print domain.timestepping_statistics()
+                print domain.volumetric_balance_statistics()
+                print 'reference volume', ref_volume
+            
+            
+            # Update reference volume
+            ref_volume += ys * fixed_inflow.rate
+        
+            
+            
+
+            
+    def test_volume_conservation_rain(self):
+        """test_volume_conservation
+        
+        Test that total volume in domain is as expected, based on questions
+        raised by Petar Milevski in May 2009.
+        
+        This test adds rain at a known rate and verifies that the total 
+        terminal volume is as expected.
+        
+        """
+
+        verbose = False
+        
+
+        #---------------------------------------------------------------------
+        # Import necessary modules
+        #---------------------------------------------------------------------
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
+        from anuga.shallow_water import Domain
+        from anuga.shallow_water.shallow_water_domain import Reflective_boundary
+        from anuga.shallow_water.shallow_water_domain import Dirichlet_boundary
+        from anuga.shallow_water.shallow_water_domain import Rainfall
+        from anuga.shallow_water.data_manager import get_flow_through_cross_section
+
+        #----------------------------------------------------------------------
+        # Setup computational domain
+        #----------------------------------------------------------------------
+        finaltime = 200.0
+
+        length = 300.
+        width  = 20.
+        dx = dy = 5       # Resolution: of grid on both axes
+        
+
+        points, vertices, boundary = rectangular_cross(int(length/dx), 
+                                                       int(width/dy),
+                                                       len1=length, len2=width)
+
+
+        domain = Domain(points, vertices, boundary)   
+        domain.set_name('Rain_volume_test')              # Output name
+                
+
+        #----------------------------------------------------------------------
+        # Setup initial conditions
+        #----------------------------------------------------------------------
+        slope = 0.0
+        def topography(x, y):
+            z=-x * slope
+            return z
+
+        domain.set_quantity('elevation', topography) # Use function for elevation
+        domain.set_quantity('friction', 0.0)         # Constant friction
+                
+        domain.set_quantity('stage',
+                            expression='elevation')  # Dry initially
+                            
+
+        #--------------------------------------------------------------
+        # Setup rain
+        #--------------------------------------------------------------
+
+        # Fixed rain onto small circular area 
+        fixed_rain = Rainfall(domain,
+                              center=(10.0, 10.0),
+                              radius=5.00,
+                              rate=10.00)   # 10 mm/s                            
+                            
+        domain.forcing_terms.append(fixed_rain)                            
+        
+        #----------------------------------------------------------------------
+        # Setup boundary conditions
+        #----------------------------------------------------------------------
+
+        Br = Reflective_boundary(domain) # Solid reflective wall
+        domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
+
+        
+        #----------------------------------------------------------------------
+        # Evolve system through time
+        #----------------------------------------------------------------------
+        ref_volume = 0.0
+        ys = 10.0  # Yieldstep
+        for t in domain.evolve(yieldstep=ys, finaltime=finaltime):
+        
+            # Check volume
+            V = domain.compute_total_volume()
+            msg = 'V = %e, Ref = %e' % (V, ref_volume)
+            assert num.allclose(V, ref_volume), msg
+        
+            if verbose :
+                print domain.timestepping_statistics()
+                print domain.volumetric_balance_statistics()
+                print 'reference volume', ref_volume
+                print V
+            
+            
+            # Update reference volume.
+            # FIXME: Note that rate has now been redefined
+            # as m/s internally. This is a little confusing
+            # when it was specfied as mm/s.
+            
+            delta_V = fixed_rain.rate*fixed_rain.exchange_area
+            ref_volume += ys * delta_V
+        
+            
+            
+            
+    def Xtest_rain_conservation_and_runoff(self):
+        """test_rain_conservation_and_runoff
+        
+        Test that total volume in domain is as expected, based on questions
+        raised by Petar Milevski in May 2009.
+        
+        This test adds rain at a known rate and verifies that the total 
+        volume and outflows are as expected.
+        
+        """
+
+        # FIXME (Ole): Does not work yet. Investigate boundary flows
+        
+        verbose = True #False
+        
+
+        #---------------------------------------------------------------------
+        # Import necessary modules
+        #---------------------------------------------------------------------
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
+        from anuga.shallow_water import Domain
+        from anuga.shallow_water.shallow_water_domain import Reflective_boundary
+        from anuga.shallow_water.shallow_water_domain import Dirichlet_boundary
+        from anuga.shallow_water.shallow_water_domain import Rainfall
+        from anuga.shallow_water.data_manager import get_flow_through_cross_section
+
+        #----------------------------------------------------------------------
+        # Setup computational domain
+        #----------------------------------------------------------------------
+        finaltime = 500.0
+
+        length = 300.
+        width  = 20.
+        dx = dy = 5       # Resolution: of grid on both axes
+        
+
+        points, vertices, boundary = rectangular_cross(int(length/dx), 
+                                                       int(width/dy),
+                                                       len1=length, len2=width)
+
+
+        domain = Domain(points, vertices, boundary)   
+        domain.set_name('Rain_volume_runoff_test')         # Output name
+                
+
+        #----------------------------------------------------------------------
+        # Setup initial conditions
+        #----------------------------------------------------------------------
+        slope = 0.0
+        def topography(x, y):
+            z=-x * slope
+            return z
+
+        domain.set_quantity('elevation', topography) # Use function for elevation
+        domain.set_quantity('friction', 0.0)         # Constant friction
+                
+        domain.set_quantity('stage',
+                            expression='elevation')  # Dry initially
+                            
+
+        #--------------------------------------------------------------
+        # Setup rain
+        #--------------------------------------------------------------
+
+        # Fixed rain onto small circular area 
+        fixed_rain = Rainfall(domain,
+                              center=(10.0, 10.0),
+                              radius=5.00,
+                              rate=10.00)   # 10 mm/s                            
+                            
+        domain.forcing_terms.append(fixed_rain)                            
+        
+        #----------------------------------------------------------------------
+        # Setup boundary conditions
+        #----------------------------------------------------------------------
+
+        Br = Reflective_boundary(domain) # Solid reflective wall
+        Bt = Transmissive_stage_zero_momentum_boundary(domain)
+        Bd = Dirichlet_boundary([-10, 0, 0])
+        domain.set_boundary({'left': Bt, 'right': Bd, 'top': Bt, 'bottom': Bt})
+
+        
+        #----------------------------------------------------------------------
+        # Evolve system through time
+        #----------------------------------------------------------------------
+        ref_volume = 0.0
+        ys = 10.0  # Yieldstep
+        for t in domain.evolve(yieldstep=ys, finaltime=finaltime):
+        
+            # Check volume
+            V = domain.compute_total_volume()
+            msg = 'V = %e, Ref = %e' % (V, ref_volume)
+            #assert num.allclose(V, ref_volume) or V < ref_volume, msg
+        
+            if verbose:
+                print domain.timestepping_statistics()
+                print domain.volumetric_balance_statistics()
+                print 'reference volume', ref_volume
+                print V
+            
+            
+            # Update reference volume.
+            # FIXME: Note that rate has now been redefined
+            # as m/s internally. This is a little confusing
+            # when it was specfied as mm/s.
+            
+            delta_V = fixed_rain.rate*fixed_rain.exchange_area
+            ref_volume += ys * delta_V
+        
+            # Compute outflow at right hand downstream boundary
+            boundary_flows, inflow , outflow = domain.compute_boundary_flows()
+            net_outflow = outflow - inflow
+        
+            outflow = boundary_flows['right']
+            if verbose:
+                print 'Outflow', outflow
+                print 'Net outflow', net_outflow
+        
+            # Update reference volume
+            ref_volume += ys * outflow            
+
+        
+                
         
     def test_inflow_using_flowline(self):
         """test_inflow_using_flowline
@@ -6928,7 +7260,8 @@ friction  \n \
         width  = 20.
         dx = dy = 5          # Resolution: of grid on both axes
 
-        points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
+        points, vertices, boundary = rectangular_cross(int(length/dx), 
+                                                       int(width/dy),
                                                        len1=length, len2=width)
 
         for mannings_n in [0.1, 0.01]:
@@ -7012,26 +7345,31 @@ friction  \n \
                     pass
                     #if verbose :
                     #    print domain.timestepping_statistics()
-                    #    print domain.volumetric_balance_statistics()                                    
-
+                    #    print domain.volumetric_balance_statistics()
 
                 #--------------------------------------------------------------
                 # Compute flow thru flowlines ds of inflow
                 #--------------------------------------------------------------
                     
                 # Square on flowline at 200m
-                q=domain.get_flow_through_cross_section([[200.0,0.0],[200.0,20.0]])
-                msg = 'Predicted flow was %f, should have been %f' % (q, ref_flow)
+                q=domain.get_flow_through_cross_section([[200.0,0.0],
+                                                         [200.0,20.0]])
+                msg = 'Predicted flow was %f, should have been %f' %\
+                    (q, ref_flow)
                 if verbose:
-                    print '90 degree flowline: ANUGA = %f, Ref = %f' % (q, ref_flow)
+                    print '90 degree flowline: ANUGA = %f, Ref = %f' %\
+                        (q, ref_flow)
                 assert num.allclose(q, ref_flow, rtol=1.0e-2), msg         
 
                            
                 # 45 degree flowline at 200m
-                q=domain.get_flow_through_cross_section([[200.0,0.0],[220.0,20.0]])
-                msg = 'Predicted flow was %f, should have been %f' % (q, ref_flow)
+                q=domain.get_flow_through_cross_section([[200.0,0.0],
+                                                         [220.0,20.0]])
+                msg = 'Predicted flow was %f, should have been %f' %\
+                    (q, ref_flow)
                 if verbose:
-                    print '45 degree flowline: ANUGA = %f, Ref = %f' % (q, ref_flow)
+                    print '45 degree flowline: ANUGA = %f, Ref = %f' %\
+                        (q, ref_flow)
                     
                 assert num.allclose(q, ref_flow, rtol=1.0e-2), msg         
 
@@ -7154,7 +7492,8 @@ friction  \n \
                     pass
                     #if verbose :
                     #    print domain.timestepping_statistics()
-                    #    print domain.volumetric_balance_statistics()                                    
+                    #    print domain.volumetric_balance_statistics()
+                                                        
 
 
                 #--------------------------------------------------------------
