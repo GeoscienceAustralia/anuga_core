@@ -7317,7 +7317,7 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
     iterate_over = get_all_swwfiles(dir, base)
 
     # Read sww file
-    if verbose: print 'Reading from %s' % filename
+    if verbose: print 'Reading sww file'
     # FIXME: Use general swwstats (when done)
 
     maximal_runup = None
@@ -7326,8 +7326,8 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
     for file, swwfile in enumerate (iterate_over):
         # Read sww file
         filename = join(dir, swwfile+'.sww')
-
-        if verbose: print 'Reading from %s' % filename
+        
+        if verbose: print 'Reading from %s.sww' % swwfile
         # FIXME: Use general swwstats (when done)
 
         fid = NetCDFFile(filename)
