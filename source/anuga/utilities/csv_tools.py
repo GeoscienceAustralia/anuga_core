@@ -12,18 +12,18 @@ def merge_csv_key_values(file_title_list, output_file,
                          key_col='hours', data_col='stage'):
     '''Select key and value columns from 'N' CSV files, write one CSV file.
 
-    file_title_list: a list of (filename, new_value_column_title) values, one
-                     for each file
+    file_title_list: a list of (filename, new_data_column_title) values, one
+                     for each input file
     output_file:     the output CSV file path
     key_col:         column header string of key column
-    data_col:        column header string of value column
+    data_col:        column header string of data column
 
     The output file will look like:
-        <key_col>,   <new_value_column_title1>, <new_value_column_title2>, ...
-        <key_value>, <data1>,                   <data2>,                   ...
-        <key_value>, <data1>,                   <data2>,                   ...
-        <key_value>, <data1>,                   <data2>,                   ...
-        <key_value>, <data1>,                   <data2>,                   ...
+        <key_col>,   <new_data_column_title1>, <new_data_column_title2>, ...
+        <key_value>, <data1>,                  <data2>,                  ...
+        <key_value>, <data1>,                  <data2>,                  ...
+        <key_value>, <data1>,                  <data2>,                  ...
+        <key_value>, <data1>,                  <data2>,                  ...
 
     There is an assumption that the <key_value> values are the same across
     all files for the same row.  This is tested in the code below.
@@ -75,7 +75,7 @@ def merge_csv_key_values(file_title_list, output_file,
         data = read_csv_file(filename, key_col, data_col)
         file_data.append((filename, title, data))
 
-    # now, file_data -> [(filename, title, [(k,v), (k,v), ...]]
+    # now, file_data -> [(filename, title, [(k,v), (k,v), ...], ...]
     # sanity check, check num rows same in all files
     num_rows = None
     for (fn, t, d) in file_data:
@@ -102,7 +102,6 @@ def merge_csv_key_values(file_title_list, output_file,
     out_csv = csv.writer(out_fd)
 
     # write column rows to output file
-    # at this point, file_data=[(<filename>, <col_title>, [(k,v), ...]), ...]
     header = [key_col]
     for (fn, col, d) in file_data:
         header.append(col)
