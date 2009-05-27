@@ -26,7 +26,8 @@
 const double pi = 3.14159265358979;
 
 // Computational function for rotation
-// FIXME: Perhaps inline this and profile
+// Tried to inline, but no speedup was achieved 27th May 2009 (Ole)
+// static inline int _rotate(double *q, double n1, double n2) {
 int _rotate(double *q, double n1, double n2) {
   /*Rotate the momentum component q (q[1], q[2])
     from x,y coordinates to coordinates based on normal vector (n1, n2).
@@ -167,12 +168,12 @@ double compute_froude_number(double uh,
 // Function to obtain speed from momentum and depth.
 // This is used by flux functions
 // Input parameters uh and h may be modified by this function.
-
-// FIXME: Perhaps inline this and profile
+// Tried to inline, but no speedup was achieved 27th May 2009 (Ole)
+//static inline double _compute_speed(double *uh, 
 double _compute_speed(double *uh, 
-              double *h, 
-              double epsilon, 
-              double h0) {
+		      double *h, 
+		      double epsilon, 
+		      double h0) {
   
   double u;
 
@@ -279,7 +280,7 @@ int _flux_function_central(double *q_left, double *q_right,
 
   double h0 = H0*H0; // This ensures a good balance when h approaches H0.
                      // But evidence suggests that h0 can be as little as
-             // epsilon!
+                     // epsilon!
   
   // Copy conserved quantities to protect from modification
   q_left_rotated[0] = q_left[0];
@@ -294,9 +295,11 @@ int _flux_function_central(double *q_left, double *q_right,
   _rotate(q_right_rotated, n1, n2);
 
   z = 0.5*(z_left + z_right); // Average elevation values. 
-                            // Even though this will nominally allow for discontinuities 
-                            // in the elevation data, there is currently no numerical 
-                            // support for this so results may be strange near jumps in the bed.
+                              // Even though this will nominally allow 
+			      // for discontinuities in the elevation data, 
+			      // there is currently no numerical support for
+			      // this so results may be strange near 
+			      // jumps in the bed.
 
   // Compute speeds in x-direction
   w_left = q_left_rotated[0];          
