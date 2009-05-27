@@ -113,6 +113,7 @@ def regressionTest(test_verbose=False):
 
     # get all test_*.py and enclosing directories
     test_files, path_files = get_test_files(path)
+    path_files.sort()
 
     files = [x for x in test_files if not x == 'test_all.py']
     files.sort()        # Ensure same order on all platforms
