@@ -336,6 +336,65 @@ class Test_CSV_utils(unittest.TestCase):
             pass
 
 
+    def test_latex_example(self):
+        """Test merging two CSV files - example from latex doc."""
+
+        fd = open('alpha.csv', 'w')
+        csv_fd = csv.writer(fd)
+        csv_fd.writerow(['time', 'hours', 'stage', 'depth'])
+        csv_fd.writerow(['3600', '1.00', '100.3', '10.2'])
+        csv_fd.writerow(['3636', '1.01', '100.3', '10.0'])
+        csv_fd.writerow(['3672', '1.02', '100.3', '9.7'])
+        csv_fd.writerow(['3708', '1.03', '100.3', '8.9'])
+        csv_fd.writerow(['3744', '1.04', '100.3', '7.1'])
+        fd.close()
+
+        fd = open('beta.csv', 'w')
+        csv_fd = csv.writer(fd)
+        csv_fd.writerow(['time', 'hours', 'stage', 'depth'])
+        csv_fd.writerow(['3600', '1.00', '100.3', '11.3'])
+        csv_fd.writerow(['3636', '1.01', '100.3', '10.5'])
+        csv_fd.writerow(['3672', '1.02', '100.3', '10.0'])
+        csv_fd.writerow(['3708', '1.03', '100.3', '9.7'])
+        csv_fd.writerow(['3744', '1.04', '100.3', '8.2'])
+        fd.close()
+
+        file_title_list = [('alpha.csv', 'alpha'),
+                           ('beta.csv',  'beta')]
+        csv_tools.merge_csv_key_values(file_title_list,
+                                       'gamma.csv',
+                                       key_col='hours',
+                                       data_col='depth')
+
+        expected = '''hours,alpha,beta
+1.00,10.2,11.3
+1.01,10.0,10.5
+1.02,9.7,10.0
+1.03,8.9,9.7
+1.04,7.1,8.2
+'''
+
+        got = self.get_file_contents('gamma.csv')
+        msg = ('Merging two files,\n'
+               'expected file=\n'
+               '--------------------\n'
+               '%s'
+               '--------------------\n'
+               'got file=\n'
+               '--------------------\n'
+               '%s'
+               '--------------------\n'
+               % (expected, got))
+        self.failUnless(self.str_cmp(got, expected), msg)
+
+        try:
+            os.remove('alpha.csv')
+            os.remove('beta.csv')
+            os.remove('gamma.csv')
+        except:
+            pass
+
+
     def str_cmp(self, str1, str2):
         '''Compare 2 strings, removing end-of-line stuff first.'''
 
