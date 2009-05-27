@@ -1615,7 +1615,7 @@ class Test_Shallow_Water(unittest.TestCase):
             
             assert num.allclose(w_t, w)
             assert num.allclose(uh_t, uh)            
-            assert num.allclose(vh_t, 0.0)                        
+            assert num.allclose(vh_t, 0.0, atol=1.0e-6)                        
             
             
             # Check flows through the middle
@@ -1711,7 +1711,7 @@ class Test_Shallow_Water(unittest.TestCase):
             
             assert num.allclose(w_t, w)
             assert num.allclose(uh_t, uh)            
-            assert num.allclose(vh_t, 0.0)                        
+            assert num.allclose(vh_t, 0.0, atol=1.0e-6)                        
             
             
             # Check energies through the middle

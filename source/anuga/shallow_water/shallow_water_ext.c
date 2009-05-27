@@ -179,7 +179,7 @@ double _compute_speed(double *uh,
 
   
   if (*h < epsilon) {
-    *h = 0.0;  //Could have been negative
+    *h = 0.0;  // Could have been negative
     u = 0.0;
   } else {
     u = *uh/(*h + h0/ *h);    
@@ -271,7 +271,7 @@ int _flux_function_central(double *q_left, double *q_right,
 
   double w_left, h_left, uh_left, vh_left, u_left;
   double w_right, h_right, uh_right, vh_right, u_right;
-  double v_left, v_right;  
+  //double v_left, v_right;  
   double s_min, s_max, soundspeed_left, soundspeed_right;
   double denom, inverse_denominator, z;
 
@@ -316,9 +316,11 @@ int _flux_function_central(double *q_left, double *q_right,
   vh_left  = q_left_rotated[2];
   vh_right = q_right_rotated[2];
 
-  // Limit y-momentum if necessary  
-  v_left = _compute_speed(&vh_left, &h_left, epsilon, h0);
-  v_right = _compute_speed(&vh_right, &h_right, epsilon, h0);
+  // Limit y-momentum if necessary 
+  // Leaving this out, improves speed significantly (Ole 27/5/2009)
+  // All validation tests pass, so do we really need it anymore? 
+  //v_left = _compute_speed(&vh_left, &h_left, epsilon, h0);
+  //v_right = _compute_speed(&vh_right, &h_right, epsilon, h0);
 
   // Maximal and minimal wave speeds
   soundspeed_left  = sqrt(g*h_left);
