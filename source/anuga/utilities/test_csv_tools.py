@@ -5,7 +5,7 @@ import unittest
 import tempfile
 import csv
 
-import csv_utils
+import csv_tools
 
 
 # this dictionary sets the column header string for
@@ -67,7 +67,7 @@ class Test_CSV_utils(unittest.TestCase):
         """
 
         file_title_list = [(self.filenames[0], 'test')]
-        csv_utils.merge_csv_key_values(file_title_list, self.OUTPUT_FILE,
+        csv_tools.merge_csv_key_values(file_title_list, self.OUTPUT_FILE,
                                        key_col='col_0', data_col='col_3')
 
         expected = '''col_0,test
@@ -102,7 +102,7 @@ class Test_CSV_utils(unittest.TestCase):
 
         file_title_list = [(self.filenames[0], 'test0'),
                            (self.filenames[1], 'test1')]
-        csv_utils.merge_csv_key_values(file_title_list, self.OUTPUT_FILE,
+        csv_tools.merge_csv_key_values(file_title_list, self.OUTPUT_FILE,
                                        key_col='col_0', data_col='col_3')
 
         expected = '''col_0,test0,test1
@@ -137,7 +137,7 @@ class Test_CSV_utils(unittest.TestCase):
 
         file_title_list = [(self.filenames[0], 'test0'),
                            (self.filenames[1], 'test1')]
-        csv_utils.merge_csv_key_values(file_title_list, self.OUTPUT_FILE,
+        csv_tools.merge_csv_key_values(file_title_list, self.OUTPUT_FILE,
                                        key_col='col_0', data_col='col_2')
 
         expected = '''col_0,test0,test1
@@ -174,7 +174,7 @@ class Test_CSV_utils(unittest.TestCase):
                            (self.filenames[1], 'test1'),
                            (self.filenames[2], 'test2'),
                            (self.filenames[3], 'test3')]
-        csv_utils.merge_csv_key_values(file_title_list, self.OUTPUT_FILE,
+        csv_tools.merge_csv_key_values(file_title_list, self.OUTPUT_FILE,
                                        key_col='col_0', data_col='col_2')
 
         expected = '''col_0,test0,test1,test2,test3
@@ -217,7 +217,7 @@ class Test_CSV_utils(unittest.TestCase):
                            (self.filenames[7], 'test7'),
                            (self.filenames[8], 'test8'),
                            (self.filenames[9], 'test9')]
-        csv_utils.merge_csv_key_values(file_title_list, self.OUTPUT_FILE,
+        csv_tools.merge_csv_key_values(file_title_list, self.OUTPUT_FILE,
                                        key_col='col_1', data_col='col_2')
 
         expected = '''col_1,test0,test1,test2,test3,test4,test5,test6,test7,test8,test9
@@ -253,7 +253,7 @@ class Test_CSV_utils(unittest.TestCase):
         file_title_list = [(self.filenames[0], 'test0'),
                            (self.filenames[2], 'test2')]
         self.failUnlessRaises(Exception,
-                              csv_utils.merge_csv_key_values,
+                              csv_tools.merge_csv_key_values,
                               file_title_list,
                               self.OUTPUT_FILE,
                               key_col='col_A',
@@ -267,7 +267,7 @@ class Test_CSV_utils(unittest.TestCase):
         file_title_list = [(self.filenames[0], 'test0'),
                            (self.filenames[2], 'test2')]
         self.failUnlessRaises(Exception,
-                              csv_utils.merge_csv_key_values,
+                              csv_tools.merge_csv_key_values,
                               file_title_list,
                               self.OUTPUT_FILE,
                               key_col='col_1',
@@ -292,7 +292,7 @@ class Test_CSV_utils(unittest.TestCase):
         file_title_list = [(self.filenames[0], 'test0'),
                            (test_filename, 'test2')]
         self.failUnlessRaises(Exception,
-                              csv_utils.merge_csv_key_values,
+                              csv_tools.merge_csv_key_values,
                               file_title_list,
                               self.OUTPUT_FILE,
                               key_col='col_1',
@@ -323,7 +323,7 @@ class Test_CSV_utils(unittest.TestCase):
         file_title_list = [(self.filenames[0], 'test0'),
                            (test_filename, 'test2')]
         self.failUnlessRaises(Exception,
-                              csv_utils.merge_csv_key_values,
+                              csv_tools.merge_csv_key_values,
                               file_title_list,
                               self.OUTPUT_FILE,
                               key_col='col_1',
