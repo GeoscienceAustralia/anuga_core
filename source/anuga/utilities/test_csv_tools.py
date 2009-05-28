@@ -261,6 +261,19 @@ class Test_CSV_utils(unittest.TestCase):
                              )
 
 
+    def test_no_input_files(self):
+        """Test merging *zero* CSV files!"""
+
+        file_title_list = []
+        self.failUnlessRaises(Exception,
+                              csv_tools.merge_csv_key_values,
+                              file_title_list,
+                              self.OUTPUT_FILE,
+                              key_col='col_1',
+                              data_col='col_A'
+                             )
+
+
     def test_no_data_column(self):
         """Test merging two CSV files with expected missing data column."""
 
