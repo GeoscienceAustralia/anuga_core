@@ -66,8 +66,11 @@ def merge_csv_key_values(file_title_list, output_file,
 
         return result
 
-    # get number of input files
+    # get number of input files, check we have 1 or more
     num_files = len(file_title_list)
+    if num_files == 0:
+        msg = "List 'file_title_list' is empty!?"
+        raise Exception, msg
 
     # read data from all files
     file_data = []
