@@ -231,48 +231,53 @@ class Test_Data_Manager(unittest.TestCase):
 
     def test_sww_range(self):
         """Test that constant sww information can be written correctly
-        (non smooth)
+        Use non-smooth to be able to compare to quantity values.
         """
         self.domain.set_name('datatest' + str(id(self)))
         self.domain.format = 'sww'
-        self.domain.smooth = True
-
-        self.domain.tight_slope_limiters = 0 # Backwards compatibility
-        self.domain.use_centroid_velocities = 0 # Backwards compatibility (7/5/8)
-        
+        self.domain.set_store_vertices_uniquely(True)
         
         sww = get_dataobject(self.domain)        
 
+        dqs = self.domain.get_quantity('stage')
+        dqx = self.domain.get_quantity('xmomentum')
+        dqy = self.domain.get_quantity('ymomentum')        
+        xmom_min = ymom_min = stage_min = sys.maxint 
+        xmom_max = ymom_max = stage_max = -stage_min        
         for t in self.domain.evolve(yieldstep = 1, finaltime = 1):
-            pass
+            wmax = max(dqs.get_values().flat)
+            if wmax > stage_max: stage_max = wmax
+            wmin = min(dqs.get_values().flat)
+            if wmin < stage_min: stage_min = wmin            
+            
+            uhmax = max(dqx.get_values().flat)
+            if uhmax > xmom_max: xmom_max = uhmax
+            uhmin = min(dqx.get_values().flat)
+            if uhmin < xmom_min: xmom_min = uhmin                        
+            
+            vhmax = max(dqy.get_values().flat)
+            if vhmax > ymom_max: ymom_max = vhmax
+            vhmin = min(dqy.get_values().flat)
+            if vhmin < ymom_min: ymom_min = vhmin                                    
+            
+            
             
         # Get NetCDF
         fid = NetCDFFile(sww.filename, netcdf_mode_r) # Open existing file for append
 
         # Get the variables
         range = fid.variables['stage_range'][:]
-        #print range
-        assert num.allclose(range,[-0.93519, 0.15]) or\
-               num.allclose(range,[-0.9352743, 0.15]) or\
-               num.allclose(range,[-0.93522203, 0.15000001]) # Old slope limiters
-        
+        assert num.allclose(range,[stage_min, stage_max])
+
         range = fid.variables['xmomentum_range'][:]
         #print range
-        assert num.allclose(range,[0,0.4695096]) or \
-               num.allclose(range,[0,0.47790655]) or\
-               num.allclose(range,[0,0.46941957]) or\
-               num.allclose(range,[0,0.47769409]) or\
-               num.allclose(range,[0,0.47738948])
-
+        assert num.allclose(range, [xmom_min, xmom_max])
+        
         
         range = fid.variables['ymomentum_range'][:]
         #print range
-        assert num.allclose(range,[0,0.02174380]) or\
-               num.allclose(range,[0,0.02174439]) or\
-               num.allclose(range,[0,0.02283983]) or\
-               num.allclose(range,[0,0.0217342]) or\
-               num.allclose(range,[0,0.02258024]) or\
-               num.allclose(range,[0,0.0227564]) # Old slope limiters
+        assert num.allclose(range, [ymom_min, ymom_max])        
+
 
         
         fid.close()

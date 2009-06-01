@@ -173,21 +173,27 @@ double compute_froude_number(double uh,
 double _compute_speed(double *uh, 
 		      double *h, 
 		      double epsilon, 
-		      double h0) {
+		      double h0,
+		      double limiting_threshold) {
   
   double u;
 
-  
-  if (*h < epsilon) {
-    *h = 0.0;  // Could have been negative
-    u = 0.0;
-  } else {
-    u = *uh/(*h + h0/ *h);    
-  }
+  if (*h < limiting_threshold) {   
+    // Apply limiting of speeds according to the ANUGA manual
+    if (*h < epsilon) {
+      *h = 0.0;  // Could have been negative
+      u = 0.0;
+    } else {
+      u = *uh/(*h + h0/ *h);    
+    }
   
 
-  // Adjust momentum to be consistent with speed
-  *uh = u * *h;
+    // Adjust momentum to be consistent with speed
+    *uh = u * *h;
+  } else {
+    // We are in deep water - no need for limiting
+    u = *uh/ *h;
+  }
   
   return u;
 }
@@ -252,7 +258,10 @@ double Xfast_squareroot_approximation(double number) {
 int _flux_function_central(double *q_left, double *q_right,
                            double z_left, double z_right,
                            double n1, double n2,
-                           double epsilon, double H0, double g,
+                           double epsilon, 
+			   double h0,
+			   double limiting_threshold, 
+			   double g,
                            double *edgeflux, double *max_speed) 
 {
 
@@ -271,17 +280,12 @@ int _flux_function_central(double *q_left, double *q_right,
 
   double w_left, h_left, uh_left, vh_left, u_left;
   double w_right, h_right, uh_right, vh_right, u_right;
-  //double v_left, v_right;  
   double s_min, s_max, soundspeed_left, soundspeed_right;
   double denom, inverse_denominator, z;
 
   // Workspace (allocate once, use many)
   static double q_left_rotated[3], q_right_rotated[3], flux_right[3], flux_left[3];
 
-  double h0 = H0*H0; // This ensures a good balance when h approaches H0.
-                     // But evidence suggests that h0 can be as little as
-                     // epsilon!
-  
   // Copy conserved quantities to protect from modification
   q_left_rotated[0] = q_left[0];
   q_right_rotated[0] = q_right[0];
@@ -305,12 +309,14 @@ int _flux_function_central(double *q_left, double *q_right,
   w_left = q_left_rotated[0];          
   h_left = w_left - z;
   uh_left = q_left_rotated[1];
-  u_left = _compute_speed(&uh_left, &h_left, epsilon, h0);
+  u_left = _compute_speed(&uh_left, &h_left, 
+			  epsilon, h0, limiting_threshold);
 
   w_right = q_right_rotated[0];
   h_right = w_right - z;
   uh_right = q_right_rotated[1];
-  u_right = _compute_speed(&uh_right, &h_right, epsilon, h0);  
+  u_right = _compute_speed(&uh_right, &h_right, 
+			   epsilon, h0, limiting_threshold);
 
   // Momentum in y-direction
   vh_left  = q_left_rotated[2];
@@ -319,8 +325,10 @@ int _flux_function_central(double *q_left, double *q_right,
   // Limit y-momentum if necessary 
   // Leaving this out, improves speed significantly (Ole 27/5/2009)
   // All validation tests pass, so do we really need it anymore? 
-  //v_left = _compute_speed(&vh_left, &h_left, epsilon, h0);
-  //v_right = _compute_speed(&vh_right, &h_right, epsilon, h0);
+  _compute_speed(&vh_left, &h_left, 
+		 epsilon, h0, limiting_threshold);
+  _compute_speed(&vh_right, &h_right, 
+		 epsilon, h0, limiting_threshold);
 
   // Maximal and minimal wave speeds
   soundspeed_left  = sqrt(g*h_left);
@@ -366,7 +374,7 @@ int _flux_function_central(double *q_left, double *q_right,
   // Flux computation
   denom = s_max - s_min;
   if (denom < epsilon) 
-  { // FIXME (Ole): Try using H0 here
+  { // FIXME (Ole): Try using h0 here
     memset(edgeflux, 0, 3*sizeof(double));
     *max_speed = 0.0;
   } 
@@ -428,7 +436,8 @@ int flux_function_kinetic(double *q_left, double *q_right,
   double q_left_rotated[3], q_right_rotated[3];
 
   double h0 = H0*H0; //This ensures a good balance when h approaches H0.
-
+  double limiting_threshold = 10*H0; // Avoid applying limiter below this  
+  
   //Copy conserved quantities to protect from modification
   for (i=0; i<3; i++) {
     q_left_rotated[i] = q_left[i];
@@ -445,12 +454,14 @@ int flux_function_kinetic(double *q_left, double *q_right,
   w_left = q_left_rotated[0];          
   h_left = w_left-z;
   uh_left = q_left_rotated[1];
-  u_left =_compute_speed(&uh_left, &h_left, epsilon, h0);
+  u_left =_compute_speed(&uh_left, &h_left, 
+			 epsilon, h0, limiting_threshold);
 
   w_right = q_right_rotated[0];
   h_right = w_right-z;
   uh_right = q_right_rotated[1];
-  u_right =_compute_speed(&uh_right, &h_right, epsilon, h0);  
+  u_right =_compute_speed(&uh_right, &h_right,
+			  epsilon, h0, limiting_threshold);
 
 
   //Momentum in y-direction
@@ -929,6 +940,7 @@ PyObject *flux_function_central(PyObject *self, PyObject *args) {
 
   PyArrayObject *normal, *ql, *qr,  *edgeflux;
   double g, epsilon, max_speed, H0, zl, zr;
+  double h0, limiting_threshold;
 
   if (!PyArg_ParseTuple(args, "OOOddOddd",
             &normal, &ql, &qr, &zl, &zr, &edgeflux,
@@ -938,15 +950,24 @@ PyObject *flux_function_central(PyObject *self, PyObject *args) {
   }
 
   
+  h0 = H0*H0; // This ensures a good balance when h approaches H0.
+              // But evidence suggests that h0 can be as little as
+              // epsilon!
+	      
+  limiting_threshold = 10*H0; // Avoid applying limiter below this
+                              // threshold for performance reasons.
+                              // See ANUGA manual under flux limiting  
+  
   _flux_function_central((double*) ql -> data, 
-             (double*) qr -> data, 
-             zl, 
-             zr,                         
-             ((double*) normal -> data)[0],
-             ((double*) normal -> data)[1],          
-             epsilon, H0, g,
-             (double*) edgeflux -> data, 
-             &max_speed);
+			 (double*) qr -> data, 
+			 zl, 
+			 zr,                         
+			 ((double*) normal -> data)[0],
+			 ((double*) normal -> data)[1],          
+			 epsilon, h0, limiting_threshold,
+			 g,
+			 (double*) edgeflux -> data, 
+			 &max_speed);
   
   return Py_BuildValue("d", max_speed);  
 }
@@ -1785,14 +1806,20 @@ double _compute_fluxes_central(int number_of_elements,
 {                   
   // Local variables
   double max_speed, length, inv_area, zl, zr;
+  double h0 = H0*H0; // This ensures a good balance when h approaches H0.
+
+  double limiting_threshold = 10*H0; // Avoid applying limiter below this
+                                     // threshold for performance reasons.
+                                     // See ANUGA manual under flux limiting 
   int k, i, m, n;
   int ki, nm=0, ki2; // Index shorthands
+ 
   
   // Workspace (making them static actually made function slightly slower (Ole))  
   double ql[3], qr[3], edgeflux[3]; // Work array for summing up fluxes
 
   static long call = 1; // Static local variable flagging already computed flux
-                   
+ 
   // Start computation
   call++; // Flag 'id' of flux calculation for this timestep 
 
@@ -1878,7 +1905,7 @@ double _compute_fluxes_central(int number_of_elements,
       // Edge flux computation (triangle k, edge i)
       _flux_function_central(ql, qr, zl, zr,
                              normals[ki2], normals[ki2+1],
-                             epsilon, H0, g,
+                             epsilon, h0, limiting_threshold, g,
                              edgeflux, &max_speed);
       
       
