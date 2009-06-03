@@ -24,6 +24,7 @@ exclude_files = []
 # Directories that should not be searched for test files.
 exclude_dirs = ['pypar_dist',                        # Special requirements
                 '.svn',                              # subversion
+                'anuga_validation', # The release puts this dir under anuga
                 'props', 'wcprops', 'prop-base', 'text-base', 'tmp']
 
 
