@@ -29,111 +29,111 @@ int _compute_gradients(int N,
 			double* a,
 			double* b){
 
-	int i, k, k0, k1, k2, index3;
-	double x0, x1, x2, y0, y1, y2, q0, q1, q2; //, det;
+  int i, k, k0, k1, k2, index3;
+  double x0, x1, x2, y0, y1, y2, q0, q1, q2; //, det;
 
 
-	for (k=0; k<N; k++) {
-		index3 = 3*k;
+  for (k=0; k<N; k++) {
+    index3 = 3*k;
+    
+    if (number_of_boundaries[k] < 2) {
+      // Two or three true neighbours
+      
+      // Get indices of neighbours (or self when used as surrogate)
+      // k0, k1, k2 = surrogate_neighbours[k,:]
+      
+      k0 = surrogate_neighbours[index3 + 0];
+      k1 = surrogate_neighbours[index3 + 1];
+      k2 = surrogate_neighbours[index3 + 2];
 
-		if (number_of_boundaries[k] < 2) {
-			// Two or three true neighbours
+      
+      if (k0 == k1 || k1 == k2) return -1;
+      
+      // Get data
+      q0 = centroid_values[k0];
+      q1 = centroid_values[k1];
+      q2 = centroid_values[k2];
 
-			// Get indices of neighbours (or self when used as surrogate)
-			// k0, k1, k2 = surrogate_neighbours[k,:]
+      x0 = centroids[k0*2]; y0 = centroids[k0*2+1];
+      x1 = centroids[k1*2]; y1 = centroids[k1*2+1];
+      x2 = centroids[k2*2]; y2 = centroids[k2*2+1];
 
-			k0 = surrogate_neighbours[index3 + 0];
-			k1 = surrogate_neighbours[index3 + 1];
-			k2 = surrogate_neighbours[index3 + 2];
+      // Gradient
+      _gradient(x0, y0, x1, y1, x2, y2, q0, q1, q2, &a[k], &b[k]);
 
+    } else if (number_of_boundaries[k] == 2) {
+      // One true neighbour
 
-			if (k0 == k1 || k1 == k2) return -1;
+      // Get index of the one neighbour
+      i=0; k0 = k;
+      while (i<3 && k0==k) {
+	k0 = surrogate_neighbours[index3 + i];
+	i++;
+      }
+      if (k0 == k) return -1;
+      
+      k1 = k; //self
 
-			// Get data
-			q0 = centroid_values[k0];
-			q1 = centroid_values[k1];
-			q2 = centroid_values[k2];
-
-			x0 = centroids[k0*2]; y0 = centroids[k0*2+1];
-			x1 = centroids[k1*2]; y1 = centroids[k1*2+1];
-			x2 = centroids[k2*2]; y2 = centroids[k2*2+1];
-
-			// Gradient
-			_gradient(x0, y0, x1, y1, x2, y2, q0, q1, q2, &a[k], &b[k]);
-
-		} else if (number_of_boundaries[k] == 2) {
-			// One true neighbour
-
-			// Get index of the one neighbour
-			i=0; k0 = k;
-			while (i<3 && k0==k) {
-				k0 = surrogate_neighbours[index3 + i];
-				i++;
-			}
-			if (k0 == k) return -1;
-
-			k1 = k; //self
-
-			// Get data
-			q0 = centroid_values[k0];
-			q1 = centroid_values[k1];
-
-			x0 = centroids[k0*2]; y0 = centroids[k0*2+1];
-			x1 = centroids[k1*2]; y1 = centroids[k1*2+1];
-
-			// Two point gradient
-			_gradient2(x0, y0, x1, y1, q0, q1, &a[k], &b[k]);
-
-		}
-		//    else:
-		//        #No true neighbours -
-		//        #Fall back to first order scheme
-	}
-	return 0;
+      // Get data
+      q0 = centroid_values[k0];
+      q1 = centroid_values[k1];
+      
+      x0 = centroids[k0*2]; y0 = centroids[k0*2+1];
+      x1 = centroids[k1*2]; y1 = centroids[k1*2+1];
+      
+      // Two point gradient
+      _gradient2(x0, y0, x1, y1, q0, q1, &a[k], &b[k]);
+      
+    }
+    //    else:
+    //        #No true neighbours -
+    //        #Fall back to first order scheme
+  }
+  return 0;
 }
 
 
 int _extrapolate_from_gradient(int N,
-		 double* centroids,
-		 double* centroid_values,
-		 double* vertex_coordinates,
-		 double* vertex_values,
-		 double* edge_values,
-		 double* a,
-		 double* b) {
+			       double* centroids,
+			       double* centroid_values,
+			       double* vertex_coordinates,
+			       double* vertex_values,
+			       double* edge_values,
+			       double* a,
+			       double* b) {
 
-	int k, k2, k3, k6;
-	double x, y, x0, y0, x1, y1, x2, y2;
-
-	for (k=0; k<N; k++){
-		k6 = 6*k;
-		k3 = 3*k;
-		k2 = 2*k;
-
-		// Centroid coordinates
-		x = centroids[k2]; y = centroids[k2+1];
-
-		// vertex coordinates
-		// x0, y0, x1, y1, x2, y2 = X[k,:]
-		x0 = vertex_coordinates[k6 + 0];
-		y0 = vertex_coordinates[k6 + 1];
-		x1 = vertex_coordinates[k6 + 2];
-		y1 = vertex_coordinates[k6 + 3];
-		x2 = vertex_coordinates[k6 + 4];
-		y2 = vertex_coordinates[k6 + 5];
-
-		// Extrapolate to Vertices
-		vertex_values[k3+0] = centroid_values[k] + a[k]*(x0-x) + b[k]*(y0-y);
-		vertex_values[k3+1] = centroid_values[k] + a[k]*(x1-x) + b[k]*(y1-y);
-		vertex_values[k3+2] = centroid_values[k] + a[k]*(x2-x) + b[k]*(y2-y);
-
-		// Extrapolate to Edges (midpoints)
-		edge_values[k3+0] = 0.5*(vertex_values[k3 + 1]+vertex_values[k3 + 2]);
-		edge_values[k3+1] = 0.5*(vertex_values[k3 + 2]+vertex_values[k3 + 0]);
-		edge_values[k3+2] = 0.5*(vertex_values[k3 + 0]+vertex_values[k3 + 1]);
-
-	}
-	return 0;
+  int k, k2, k3, k6;
+  double x, y, x0, y0, x1, y1, x2, y2;
+  
+  for (k=0; k<N; k++){
+    k6 = 6*k;
+    k3 = 3*k;
+    k2 = 2*k;
+    
+    // Centroid coordinates
+    x = centroids[k2]; y = centroids[k2+1];
+    
+    // vertex coordinates
+    // x0, y0, x1, y1, x2, y2 = X[k,:]
+    x0 = vertex_coordinates[k6 + 0];
+    y0 = vertex_coordinates[k6 + 1];
+    x1 = vertex_coordinates[k6 + 2];
+    y1 = vertex_coordinates[k6 + 3];
+    x2 = vertex_coordinates[k6 + 4];
+    y2 = vertex_coordinates[k6 + 5];
+    
+    // Extrapolate to Vertices
+    vertex_values[k3+0] = centroid_values[k] + a[k]*(x0-x) + b[k]*(y0-y);
+    vertex_values[k3+1] = centroid_values[k] + a[k]*(x1-x) + b[k]*(y1-y);
+    vertex_values[k3+2] = centroid_values[k] + a[k]*(x2-x) + b[k]*(y2-y);
+    
+    // Extrapolate to Edges (midpoints)
+    edge_values[k3+0] = 0.5*(vertex_values[k3 + 1]+vertex_values[k3 + 2]);
+    edge_values[k3+1] = 0.5*(vertex_values[k3 + 2]+vertex_values[k3 + 0]);
+    edge_values[k3+2] = 0.5*(vertex_values[k3 + 0]+vertex_values[k3 + 1]);
+    
+  }
+  return 0;
 }
 
 
@@ -148,181 +148,181 @@ int _extrapolate_and_limit_from_gradient(int N,double beta,
 					 double* x_gradient,
 					 double* y_gradient) {
 
-	int i, k, k2, k3, k6;
-	double x, y, x0, y0, x1, y1, x2, y2;
-	long n;
-	double qmin, qmax, qc;
-	double qn[3];
-	double dq, dqa[3], r;
+  int i, k, k2, k3, k6;
+  double x, y, x0, y0, x1, y1, x2, y2;
+  long n;
+  double qmin, qmax, qc;
+  double qn[3];
+  double dq, dqa[3], r;
 
-	for (k=0; k<N; k++){
-		k6 = 6*k;
-		k3 = 3*k;
-		k2 = 2*k;
+  for (k=0; k<N; k++){
+    k6 = 6*k;
+    k3 = 3*k;
+    k2 = 2*k;
 
-		// Centroid coordinates
-		x = centroids[k2+0]; 
-		y = centroids[k2+1];
+    // Centroid coordinates
+    x = centroids[k2+0]; 
+    y = centroids[k2+1];
 
-		// vertex coordinates
-		// x0, y0, x1, y1, x2, y2 = X[k,:]
-	        x0 = vertex_coordinates[k6 + 0];
-		y0 = vertex_coordinates[k6 + 1];
-		x1 = vertex_coordinates[k6 + 2];
-		y1 = vertex_coordinates[k6 + 3];
-		x2 = vertex_coordinates[k6 + 4];
-		y2 = vertex_coordinates[k6 + 5];
-
-		// Extrapolate to Vertices
-		vertex_values[k3+0] = centroid_values[k] + x_gradient[k]*(x0-x) + y_gradient[k]*(y0-y);
-		vertex_values[k3+1] = centroid_values[k] + x_gradient[k]*(x1-x) + y_gradient[k]*(y1-y);
-		vertex_values[k3+2] = centroid_values[k] + x_gradient[k]*(x2-x) + y_gradient[k]*(y2-y);
-
-		// Extrapolate to Edges (midpoints)
-		edge_values[k3+0] = 0.5*(vertex_values[k3 + 1]+vertex_values[k3 + 2]);
-		edge_values[k3+1] = 0.5*(vertex_values[k3 + 2]+vertex_values[k3 + 0]);
-		edge_values[k3+2] = 0.5*(vertex_values[k3 + 0]+vertex_values[k3 + 1]);
-	}
-
-
-
-	for (k=0; k<N; k++){
-		k6 = 6*k;
-		k3 = 3*k;
-		k2 = 2*k;
-
-
-		qc = centroid_values[k];
-		
-		qmin = qc;
-		qmax = qc;
-		
-		for (i=0; i<3; i++) {
-		    n = neighbours[k3+i];
-		    if (n < 0) {
-			qn[i] = qc;
-		    } else {
-			qn[i] = centroid_values[n];
-		    }
-
-		    qmin = min(qmin, qn[i]);
-		    qmax = max(qmax, qn[i]);
-		}
-
-		//qtmin = min(min(min(qn[0],qn[1]),qn[2]),qc);
-		//qtmax = max(max(max(qn[0],qn[1]),qn[2]),qc);
-
-/* 		for (i=0; i<3; i++) { */
-/* 		    n = neighbours[k3+i]; */
-/* 		    if (n < 0) { */
-/* 			qn[i] = qc; */
-/* 			qmin[i] = qtmin; */
-/* 			qmax[i] = qtmax; */
-/* 		    }  */
-/* 		} */
-			
-		phi[k] = 1.0;
-
-		for (i=0; i<3; i++) {
-		    dq = edge_values[k3+i] - qc;      //Delta between edge and centroid values
-		    dqa[i] = dq;                      //Save dq for use in updating vertex values
-
-		    r = 1.0;
+    // vertex coordinates
+    // x0, y0, x1, y1, x2, y2 = X[k,:]
+    x0 = vertex_coordinates[k6 + 0];
+    y0 = vertex_coordinates[k6 + 1];
+    x1 = vertex_coordinates[k6 + 2];
+    y1 = vertex_coordinates[k6 + 3];
+    x2 = vertex_coordinates[k6 + 4];
+    y2 = vertex_coordinates[k6 + 5];
+    
+    // Extrapolate to Vertices
+    vertex_values[k3+0] = centroid_values[k] + x_gradient[k]*(x0-x) + y_gradient[k]*(y0-y);
+    vertex_values[k3+1] = centroid_values[k] + x_gradient[k]*(x1-x) + y_gradient[k]*(y1-y);
+    vertex_values[k3+2] = centroid_values[k] + x_gradient[k]*(x2-x) + y_gradient[k]*(y2-y);
+    
+    // Extrapolate to Edges (midpoints)
+    edge_values[k3+0] = 0.5*(vertex_values[k3 + 1]+vertex_values[k3 + 2]);
+    edge_values[k3+1] = 0.5*(vertex_values[k3 + 2]+vertex_values[k3 + 0]);
+    edge_values[k3+2] = 0.5*(vertex_values[k3 + 0]+vertex_values[k3 + 1]);
+  }
+  
+  
+  
+  for (k=0; k<N; k++){
+    k6 = 6*k;
+    k3 = 3*k;
+    k2 = 2*k;
+    
+    
+    qc = centroid_values[k];
+    
+    qmin = qc;
+    qmax = qc;
+    
+    for (i=0; i<3; i++) {
+      n = neighbours[k3+i];
+      if (n < 0) {
+	qn[i] = qc;
+      } else {
+	qn[i] = centroid_values[n];
+      }
       
-		    if (dq > 0.0) r = (qmax - qc)/dq;
-		    if (dq < 0.0) r = (qmin - qc)/dq;
-		    
-		    phi[k] = min( min(r*beta, 1.0), phi[k]);
-		    
-		}
-
-
-
-		//Update gradient, edge and vertex values using phi limiter
-		x_gradient[k] = x_gradient[k]*phi[k];
-		y_gradient[k] = y_gradient[k]*phi[k];
-
-		edge_values[k3+0] = qc + phi[k]*dqa[0];
-		edge_values[k3+1] = qc + phi[k]*dqa[1];
-		edge_values[k3+2] = qc + phi[k]*dqa[2];
-
-
-		vertex_values[k3+0] = edge_values[k3+1] + edge_values[k3+2] - edge_values[k3+0];
-		vertex_values[k3+1] = edge_values[k3+2] + edge_values[k3+0] - edge_values[k3+1];
-		vertex_values[k3+2] = edge_values[k3+0] + edge_values[k3+1] - edge_values[k3+2];
-		
-
-	}
-
-	return 0;
-
+      qmin = min(qmin, qn[i]);
+      qmax = max(qmax, qn[i]);
+    }
+    
+    //qtmin = min(min(min(qn[0],qn[1]),qn[2]),qc);
+    //qtmax = max(max(max(qn[0],qn[1]),qn[2]),qc);
+    
+    /* 		for (i=0; i<3; i++) { */
+    /* 		    n = neighbours[k3+i]; */
+    /* 		    if (n < 0) { */
+    /* 			qn[i] = qc; */
+    /* 			qmin[i] = qtmin; */
+    /* 			qmax[i] = qtmax; */
+    /* 		    }  */
+    /* 		} */
+    
+    phi[k] = 1.0;
+    
+    for (i=0; i<3; i++) {
+      dq = edge_values[k3+i] - qc;      //Delta between edge and centroid values
+      dqa[i] = dq;                      //Save dq for use in updating vertex values
+      
+      r = 1.0;
+      
+      if (dq > 0.0) r = (qmax - qc)/dq;
+      if (dq < 0.0) r = (qmin - qc)/dq;
+      
+      phi[k] = min( min(r*beta, 1.0), phi[k]);
+      
+    }
+    
+    
+    
+    //Update gradient, edge and vertex values using phi limiter
+    x_gradient[k] = x_gradient[k]*phi[k];
+    y_gradient[k] = y_gradient[k]*phi[k];
+    
+    edge_values[k3+0] = qc + phi[k]*dqa[0];
+    edge_values[k3+1] = qc + phi[k]*dqa[1];
+    edge_values[k3+2] = qc + phi[k]*dqa[2];
+    
+    
+    vertex_values[k3+0] = edge_values[k3+1] + edge_values[k3+2] - edge_values[k3+0];
+    vertex_values[k3+1] = edge_values[k3+2] + edge_values[k3+0] - edge_values[k3+1];
+    vertex_values[k3+2] = edge_values[k3+0] + edge_values[k3+1] - edge_values[k3+2];
+    
+    
+  }
+  
+  return 0;
+  
 }
 
 
 
 
 int _limit_vertices_by_all_neighbours(int N, double beta,
-		     double* centroid_values,
-		     double* vertex_values,
-		     double* edge_values,
-		     long*   neighbours,
-		     double* x_gradient,
-		     double* y_gradient) {
-
-
-	int i, k, k2, k3, k6;
-	long n;
-	double qmin, qmax, qn, qc;
-	double dq, dqa[3], phi, r;
-
-	for (k=0; k<N; k++){
-		k6 = 6*k;
-		k3 = 3*k;
-		k2 = 2*k;
-
-		qc = centroid_values[k];
-		qmin = qc;
-		qmax = qc;
-
-		for (i=0; i<3; i++) {
-		    n = neighbours[k3+i];
-		    if (n >= 0) {
-			qn = centroid_values[n]; //Neighbour's centroid value
-
-			qmin = min(qmin, qn);
-			qmax = max(qmax, qn);
-		    }
-		}
-
-		phi = 1.0;
-		for (i=0; i<3; i++) {    
-		    r = 1.0;
-      
-		    dq = vertex_values[k3+i] - qc;    //Delta between vertex and centroid values
-		    dqa[i] = dq;                      //Save dq for use in updating vertex values
-      
-		    if (dq > 0.0) r = (qmax - qc)/dq;
-		    if (dq < 0.0) r = (qmin - qc)/dq;      
+				      double* centroid_values,
+				      double* vertex_values,
+				      double* edge_values,
+				      long*   neighbours,
+				      double* x_gradient,
+				      double* y_gradient) {
   
-		    
-		    phi = min( min(r*beta, 1.0), phi);    
-		}
-
-		//Update gradient, vertex and edge values using phi limiter
-		x_gradient[k] = x_gradient[k]*phi;
-		y_gradient[k] = y_gradient[k]*phi;
+  
+  int i, k, k2, k3, k6;
+  long n;
+  double qmin, qmax, qn, qc;
+  double dq, dqa[3], phi, r;
+  
+  for (k=0; k<N; k++){
+    k6 = 6*k;
+    k3 = 3*k;
+    k2 = 2*k;
     
-		vertex_values[k3+0] = qc + phi*dqa[0];
-		vertex_values[k3+1] = qc + phi*dqa[1];
-		vertex_values[k3+2] = qc + phi*dqa[2];
-		
-		edge_values[k3+0] = 0.5*(vertex_values[k3+1] + vertex_values[k3+2]);
-		edge_values[k3+1] = 0.5*(vertex_values[k3+2] + vertex_values[k3+0]);
-		edge_values[k3+2] = 0.5*(vertex_values[k3+0] + vertex_values[k3+1]);
-
-	}
-
-	return 0;
+    qc = centroid_values[k];
+    qmin = qc;
+    qmax = qc;
+    
+    for (i=0; i<3; i++) {
+      n = neighbours[k3+i];
+      if (n >= 0) {
+	qn = centroid_values[n]; //Neighbour's centroid value
+	
+	qmin = min(qmin, qn);
+	qmax = max(qmax, qn);
+      }
+    }
+    
+    phi = 1.0;
+    for (i=0; i<3; i++) {    
+      r = 1.0;
+      
+      dq = vertex_values[k3+i] - qc;    //Delta between vertex and centroid values
+      dqa[i] = dq;                      //Save dq for use in updating vertex values
+      
+      if (dq > 0.0) r = (qmax - qc)/dq;
+      if (dq < 0.0) r = (qmin - qc)/dq;      
+      
+      
+      phi = min( min(r*beta, 1.0), phi);    
+    }
+    
+    //Update gradient, vertex and edge values using phi limiter
+    x_gradient[k] = x_gradient[k]*phi;
+    y_gradient[k] = y_gradient[k]*phi;
+    
+    vertex_values[k3+0] = qc + phi*dqa[0];
+    vertex_values[k3+1] = qc + phi*dqa[1];
+    vertex_values[k3+2] = qc + phi*dqa[2];
+    
+    edge_values[k3+0] = 0.5*(vertex_values[k3+1] + vertex_values[k3+2]);
+    edge_values[k3+1] = 0.5*(vertex_values[k3+2] + vertex_values[k3+0]);
+    edge_values[k3+2] = 0.5*(vertex_values[k3+0] + vertex_values[k3+1]);
+    
+  }
+  
+  return 0;
 }
 
 
@@ -336,59 +336,59 @@ int _limit_edges_by_all_neighbours(int N, double beta,
 				   double* x_gradient,
 				   double* y_gradient) {
 
-	int i, k, k2, k3, k6;
-	long n;
-	double qmin, qmax, qn, qc;
-	double dq, dqa[3], phi, r;
-
-	for (k=0; k<N; k++){
-		k6 = 6*k;
-		k3 = 3*k;
-		k2 = 2*k;
-
-		qc = centroid_values[k];
-		qmin = qc;
-		qmax = qc;
-
-		for (i=0; i<3; i++) {
-		    n = neighbours[k3+i];
-		    if (n >= 0) {
-			qn = centroid_values[n]; //Neighbour's centroid value
-
-			qmin = min(qmin, qn);
-			qmax = max(qmax, qn);
-		    }
-		}
-
-		phi = 1.0;
-		for (i=0; i<3; i++) {    
-		    r = 1.0;
-      
-		    dq = edge_values[k3+i] - qc;     //Delta between edge and centroid values
-		    dqa[i] = dq;                      //Save dq for use in updating vertex values
-      
-		    if (dq > 0.0) r = (qmax - qc)/dq;
-		    if (dq < 0.0) r = (qmin - qc)/dq;      
+  int i, k, k2, k3, k6;
+  long n;
+  double qmin, qmax, qn, qc;
+  double dq, dqa[3], phi, r;
   
-		    
-		    phi = min( min(r*beta, 1.0), phi);    
-		}
+  for (k=0; k<N; k++){
+    k6 = 6*k;
+    k3 = 3*k;
+    k2 = 2*k;
     
-		//Update gradient, vertex and edge values using phi limiter
-		x_gradient[k] = x_gradient[k]*phi;
-		y_gradient[k] = y_gradient[k]*phi;
-
-		edge_values[k3+0] = qc + phi*dqa[0];
-		edge_values[k3+1] = qc + phi*dqa[1];
-		edge_values[k3+2] = qc + phi*dqa[2];
-		
-		vertex_values[k3+0] = edge_values[k3+1] + edge_values[k3+2] - edge_values[k3+0];
-		vertex_values[k3+1] = edge_values[k3+2] + edge_values[k3+0] - edge_values[k3+1];
-		vertex_values[k3+2] = edge_values[k3+0] + edge_values[k3+1] - edge_values[k3+2];
-
-	}
-
-	return 0;
+    qc = centroid_values[k];
+    qmin = qc;
+    qmax = qc;
+    
+    for (i=0; i<3; i++) {
+      n = neighbours[k3+i];
+      if (n >= 0) {
+	qn = centroid_values[n]; //Neighbour's centroid value
+	
+	qmin = min(qmin, qn);
+	qmax = max(qmax, qn);
+      }
+    }
+    
+    phi = 1.0;
+    for (i=0; i<3; i++) {    
+      r = 1.0;
+      
+      dq = edge_values[k3+i] - qc;     //Delta between edge and centroid values
+      dqa[i] = dq;                      //Save dq for use in updating vertex values
+      
+      if (dq > 0.0) r = (qmax - qc)/dq;
+      if (dq < 0.0) r = (qmin - qc)/dq;      
+      
+      
+      phi = min( min(r*beta, 1.0), phi);    
+    }
+    
+    //Update gradient, vertex and edge values using phi limiter
+    x_gradient[k] = x_gradient[k]*phi;
+    y_gradient[k] = y_gradient[k]*phi;
+    
+    edge_values[k3+0] = qc + phi*dqa[0];
+    edge_values[k3+1] = qc + phi*dqa[1];
+    edge_values[k3+2] = qc + phi*dqa[2];
+    
+    vertex_values[k3+0] = edge_values[k3+1] + edge_values[k3+2] - edge_values[k3+0];
+    vertex_values[k3+1] = edge_values[k3+2] + edge_values[k3+0] - edge_values[k3+1];
+    vertex_values[k3+2] = edge_values[k3+0] + edge_values[k3+1] - edge_values[k3+2];
+    
+  }
+  
+  return 0;
 }
 
 
@@ -729,10 +729,8 @@ int _update(int N,
 	}
 
 
-	// MH080605 set semi_implicit_update[k] to 0.0 here, rather than in update_conserved_quantities.py
-	for (k=0;k<N;k++){
-		semi_implicit_update[k]=0.0;
-	}
+	// Reset semi_implicit_update here ready for next time step
+	memset(semi_implicit_update, 0, N*sizeof(double));
 
 	return 0;
 }

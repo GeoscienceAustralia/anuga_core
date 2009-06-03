@@ -67,19 +67,19 @@ int find_qmin_and_qmax(double dq0, double dq1, double dq2,
   if (dq0>=0.0){
     if (dq1>=dq2){
       if (dq1>=0.0)
-    *qmax=dq0+dq1;
+	*qmax=dq0+dq1;
       else
-    *qmax=dq0;
-    
+	*qmax=dq0;
+      
       *qmin=dq0+dq2;
       if (*qmin>=0.0) *qmin = 0.0;
     }
     else{// dq1<dq2
       if (dq2>0)
-    *qmax=dq0+dq2;
+	*qmax=dq0+dq2;
       else
-    *qmax=dq0;
-    
+	*qmax=dq0;
+      
       *qmin=dq0+dq1;    
       if (*qmin>=0.0) *qmin=0.0;
     }
@@ -87,19 +87,19 @@ int find_qmin_and_qmax(double dq0, double dq1, double dq2,
   else{//dq0<0
     if (dq1<=dq2){
       if (dq1<0.0)
-    *qmin=dq0+dq1;
+	*qmin=dq0+dq1;
       else
-    *qmin=dq0;
-    
+	*qmin=dq0;
+      
       *qmax=dq0+dq2;    
       if (*qmax<=0.0) *qmax=0.0;
     }
     else{// dq1>dq2
       if (dq2<0.0)
-    *qmin=dq0+dq2;
+	*qmin=dq0+dq2;
       else
-    *qmin=dq0;
-    
+	*qmin=dq0;
+      
       *qmax=dq0+dq1;
       if (*qmax<=0.0) *qmax=0.0;
     }
@@ -682,7 +682,7 @@ int _balance_deep_and_shallow(int N,
     if (tight_slope_limiters == 0) {     
       // FIXME: Try with this one precomputed
       for (i=0; i<3; i++) {
-    dz = max(dz, fabs(zv[k3+i]-zc[k]));
+	dz = max(dz, fabs(zv[k3+i]-zc[k]));
       }
     }
 
@@ -710,9 +710,9 @@ int _balance_deep_and_shallow(int N,
 
       
       if (dz > 0.0) {
-    alpha = max( min( alpha_balance*hmin/dz, 1.0), 0.0 );      
+	alpha = max( min( alpha_balance*hmin/dz, 1.0), 0.0 );      
       } else {
-    alpha = 1.0;  // Flat bed
+	alpha = 1.0;  // Flat bed
       }
       //printf("Using old style limiter\n");
       
@@ -725,33 +725,33 @@ int _balance_deep_and_shallow(int N,
       // are controlled
     
       if (hmin < H0) {
-    alpha = 1.0;
-    for (i=0; i<3; i++) {
+	alpha = 1.0;
+	for (i=0; i<3; i++) {
+	  
+	  h_diff = hc_k - hv[i];      
+	  if (h_diff <= 0) {
+	    // Deep water triangle is further away from bed than 
+	    // shallow water (hbar < h). Any alpha will do
       
-      h_diff = hc_k - hv[i];      
-      if (h_diff <= 0) {
-        // Deep water triangle is further away from bed than 
-        // shallow water (hbar < h). Any alpha will do
-      
-      } else {  
-        // Denominator is positive which means that we need some of the 
-        // h-limited stage.
-        
-        alpha = min(alpha, (hc_k - H0)/h_diff);     
-      }
-    }
+	  } else {  
+	    // Denominator is positive which means that we need some of the 
+	    // h-limited stage.
+	    
+	    alpha = min(alpha, (hc_k - H0)/h_diff);     
+	  }
+	}
 
-    // Ensure alpha in [0,1]
-    if (alpha>1.0) alpha=1.0;
-    if (alpha<0.0) alpha=0.0;
-    
+	// Ensure alpha in [0,1]
+	if (alpha>1.0) alpha=1.0;
+	if (alpha<0.0) alpha=0.0;
+	
       } else {
-    // Use w-limited stage exclusively in deeper water.
-    alpha = 1.0;       
+	// Use w-limited stage exclusively in deeper water.
+	alpha = 1.0;       
       }
     }
-
-
+    
+    
     //  Let
     //
     //    wvi be the w-limited stage (wvi = zvi + hvi)
@@ -769,49 +769,49 @@ int _balance_deep_and_shallow(int N,
     //
     //   Momentum is balanced between constant and limited
 
-
+    
     if (alpha < 1) {      
       for (i=0; i<3; i++) {
-      
-    wv[k3+i] = zv[k3+i] + (1-alpha)*hc_k + alpha*hv[i]; 
+	
+	wv[k3+i] = zv[k3+i] + (1-alpha)*hc_k + alpha*hv[i]; 
 
-    // Update momentum at vertices
-    if (use_centroid_velocities == 1) {
-      // This is a simple, efficient and robust option
-      // It uses first order approximation of velocities, but retains
-      // the order used by stage.
+	// Update momentum at vertices
+	if (use_centroid_velocities == 1) {
+	  // This is a simple, efficient and robust option
+	  // It uses first order approximation of velocities, but retains
+	  // the order used by stage.
     
-      // Speeds at centroids
-      if (hc_k > epsilon) {
-        uc = xmomc[k]/hc_k;
-        vc = ymomc[k]/hc_k;
-      } else {
-        uc = 0.0;
-        vc = 0.0;
-      }
+	  // Speeds at centroids
+	  if (hc_k > epsilon) {
+	    uc = xmomc[k]/hc_k;
+	    vc = ymomc[k]/hc_k;
+	  } else {
+	    uc = 0.0;
+	    vc = 0.0;
+	  }
+	  
+	  // Vertex momenta guaranteed to be consistent with depth guaranteeing
+	  // controlled speed
+	  hv[i] = wv[k3+i] - zv[k3+i]; // Recompute (balanced) vertex depth
+	  xmomv[k3+i] = uc*hv[i];
+	  ymomv[k3+i] = vc*hv[i];
       
-      // Vertex momenta guaranteed to be consistent with depth guaranteeing
-      // controlled speed
-      hv[i] = wv[k3+i] - zv[k3+i]; // Recompute (balanced) vertex depth
-      xmomv[k3+i] = uc*hv[i];
-      ymomv[k3+i] = vc*hv[i];
-      
-    } else {
-      // Update momentum as a linear combination of
-      // xmomc and ymomc (shallow) and momentum
-      // from extrapolator xmomv and ymomv (deep).
-      // This assumes that values from xmomv and ymomv have
-      // been established e.g. by the gradient limiter.
-
-      // FIXME (Ole): I think this should be used with vertex momenta
-      // computed above using centroid_velocities instead of xmomc 
-      // and ymomc as they'll be more representative first order
-      // values.
-      
-      xmomv[k3+i] = (1-alpha)*xmomc[k] + alpha*xmomv[k3+i];
-      ymomv[k3+i] = (1-alpha)*ymomc[k] + alpha*ymomv[k3+i];
-    
-    }
+	} else {
+	  // Update momentum as a linear combination of
+	  // xmomc and ymomc (shallow) and momentum
+	  // from extrapolator xmomv and ymomv (deep).
+	  // This assumes that values from xmomv and ymomv have
+	  // been established e.g. by the gradient limiter.
+	  
+	  // FIXME (Ole): I think this should be used with vertex momenta
+	  // computed above using centroid_velocities instead of xmomc 
+	  // and ymomc as they'll be more representative first order
+	  // values.
+	  
+	  xmomv[k3+i] = (1-alpha)*xmomc[k] + alpha*xmomv[k3+i];
+	  ymomv[k3+i] = (1-alpha)*ymomc[k] + alpha*ymomv[k3+i];
+	  
+	}
       }
     }
   }
@@ -842,10 +842,10 @@ int _protect(int N,
 
       if (hc < minimum_allowed_height) {
         
-    // Set momentum to zero and ensure h is non negative
-    xmomc[k] = 0.0;
-    ymomc[k] = 0.0;
-    if (hc <= 0.0) wc[k] = zc[k];
+	// Set momentum to zero and ensure h is non negative
+	xmomc[k] = 0.0;
+	ymomc[k] = 0.0;
+	if (hc <= 0.0) wc[k] = zc[k];
       }
     }
   } else {
@@ -853,7 +853,7 @@ int _protect(int N,
     // Protect against initesimal and negative heights
     for (k=0; k<N; k++) {
       hc = wc[k] - zc[k];
-
+      
       if (hc < minimum_allowed_height) {
 
         //New code: Adjust momentum to guarantee speeds are physical
@@ -865,24 +865,24 @@ int _protect(int N,
         ymomc[k] = 0.0;
         } else {
           //Reduce excessive speeds derived from division by small hc
-        //FIXME (Ole): This may be unnecessary with new slope limiters 
-        //in effect.
+	  //FIXME (Ole): This may be unnecessary with new slope limiters 
+	  //in effect.
           
           u = xmomc[k]/hc;
-      if (fabs(u) > maximum_allowed_speed) {
-        reduced_speed = maximum_allowed_speed * u/fabs(u);
-        //printf("Speed (u) has been reduced from %.3f to %.3f\n",
-        //   u, reduced_speed);
-        xmomc[k] = reduced_speed * hc;
-      }
-
+	  if (fabs(u) > maximum_allowed_speed) {
+	    reduced_speed = maximum_allowed_speed * u/fabs(u);
+	    //printf("Speed (u) has been reduced from %.3f to %.3f\n",
+	    //   u, reduced_speed);
+	    xmomc[k] = reduced_speed * hc;
+	  }
+	  
           v = ymomc[k]/hc;
-      if (fabs(v) > maximum_allowed_speed) {
-        reduced_speed = maximum_allowed_speed * v/fabs(v);
-        //printf("Speed (v) has been reduced from %.3f to %.3f\n",
-        //   v, reduced_speed);
-        ymomc[k] = reduced_speed * hc;
-      }
+	  if (fabs(v) > maximum_allowed_speed) {
+	    reduced_speed = maximum_allowed_speed * v/fabs(v);
+	    //printf("Speed (v) has been reduced from %.3f to %.3f\n",
+	    //   v, reduced_speed);
+	    ymomc[k] = reduced_speed * hc;
+	  }
         }
       }
     }
