@@ -54,25 +54,29 @@ import Numeric as num
 
 
 cache_dir = '.python_cache'
+
 # Make default caching directory name
-#
+# We are changing the 'data directory' environment variable from
+# INUNDATIONHOME to ANUGADATA - this gives a changeover.
 if unix:
-  homedir = getenv('INUNDATIONHOME')
-  if homedir is None:
-    homedir = '~'
-  else:
-    homedir = homedir + os.sep + '.cache'
-    # Since homedir will be a group area, individually label the caches
-    user = getenv('LOGNAME')
-    if user is not None:
-      cache_dir += '_' + user
+    homedir = getenv('ANUGADATA')
+    if not homedir:
+        homedir = getenv('INUNDATIONHOME')
+
+    if not homedir:
+        homedir = '~'
+    else:
+        # Since homedir will be a group area, individually label the caches
+        user = getenv('LOGNAME')
+        if not user:
+            cache_dir += '_' + user
     
-  CR = '\n'
+    CR = '\n'
 else:
-  homedir = 'c:'
-  CR = '\r\n'  #FIXME: Not tested under windows
+    homedir = 'c:'
+    CR = '\r\n'  #FIXME: Not tested under windows
   
-cachedir = homedir + os.sep + cache_dir + os.sep
+cachedir = os.path.join(homedir, cache_dir)
 
 # -----------------------------------------------------------------------------
 # Options directory with default values - to be set by user
