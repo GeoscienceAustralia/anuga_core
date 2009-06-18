@@ -109,10 +109,7 @@ def mem_usage():
     return int(string.split(lines[1])[4]) 
 
 
-
-
 class BenchmarkLeastSquares:
-
     """
 
     Note(DSG-DSG): If you are interested in benchmarking fitting, before
