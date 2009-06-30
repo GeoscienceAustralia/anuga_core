@@ -24,7 +24,7 @@ import tempfile
 import gc
 
 from Scientific.IO.NetCDF import NetCDFFile
-import Numeric as num
+import numpy as num
 
 from anuga.fit_interpolate.interpolate import Interpolate
 from anuga.fit_interpolate.fit import Fit
@@ -100,7 +100,7 @@ def build_sww(vert_rows, vert_columns, save):
     
     sww_fileName = tempfile.mktemp(".sww" )
     # sww_fileName = "aa.sww" 
-    elevation = num.array(range(len(mesh_dict["vertices"])), num.Int)      #array default#
+    elevation = num.array(range(len(mesh_dict["vertices"])), num.int)      #array default#
     stage = elevation
     ymomentum = elevation
     xmomentum = elevation
@@ -110,7 +110,7 @@ def build_sww(vert_rows, vert_columns, save):
     sww = Write_sww()
     sww.store_header(fid, 0,
                len(mesh_dict['triangles']),
-               len(mesh_dict["vertices"]),sww_precision=num.Float)
+               len(mesh_dict["vertices"]),sww_precision=num.float)
     sww.store_triangulation(fid,
                       mesh_dict["vertices"], mesh_dict['triangles'],
                       elevation)

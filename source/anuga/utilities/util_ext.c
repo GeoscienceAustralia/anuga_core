@@ -9,13 +9,13 @@
 //
 // Ole Nielsen, GA 2004
 //
-//NOTE: On 64 bit systems use long* instead of int* for Numeric arrays
+//NOTE: On 64 bit systems use long* instead of int* for numeric arrays
 //this will also work on 32 bit systems
 
 #include <float.h>
 
 #include "Python.h"
-#include "Numeric/arrayobject.h"
+#include "numpy/arrayobject.h"
 #include "math.h"
 
 //Shared snippets

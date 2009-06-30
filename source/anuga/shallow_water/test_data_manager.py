@@ -6,7 +6,7 @@
 
 import unittest
 import copy
-import Numeric as num
+import numpy as num
                 
 from anuga.utilities.numerical_tools import mean
 import tempfile
@@ -24,6 +24,7 @@ from anuga.coordinate_transforms.redfearn import degminsec2decimal_degrees
 from anuga.abstract_2d_finite_volumes.util import file_function
 from anuga.utilities.system_tools import get_pathname_from_package
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
+from anuga.config import netcdf_float
 
 # This is needed to run the tests of local functions
 import data_manager 
@@ -66,7 +67,7 @@ class Test_Data_Manager(unittest.TestCase):
         ######################
         #Initial condition - with jumps
         bed = domain.quantities['elevation'].vertex_values
-        stage = num.zeros(bed.shape, num.Float)
+        stage = num.zeros(bed.shape, num.float)
 
         h = 0.3
         for i in range(stage.shape[0]):
@@ -108,19 +109,19 @@ class Test_Data_Manager(unittest.TestCase):
             fid = NetCDFFile(self.test_MOST_file + ext, netcdf_mode_w)
 
             fid.createDimension(long_name,nx)
-            fid.createVariable(long_name,'d',(long_name,))
+            fid.createVariable(long_name,netcdf_float,(long_name,))
             fid.variables[long_name].point_spacing='uneven'
             fid.variables[long_name].units='degrees_east'
             fid.variables[long_name].assignValue(longitudes)
 
             fid.createDimension(lat_name,ny)
-            fid.createVariable(lat_name,'d',(lat_name,))
+            fid.createVariable(lat_name,netcdf_float,(lat_name,))
             fid.variables[lat_name].point_spacing='uneven'
             fid.variables[lat_name].units='degrees_north'
             fid.variables[lat_name].assignValue(latitudes)
 
             fid.createDimension('TIME',six)
-            fid.createVariable('TIME','d',('TIME',))
+            fid.createVariable('TIME',netcdf_float,('TIME',))
             fid.variables['TIME'].point_spacing='uneven'
             fid.variables['TIME'].units='seconds'
             fid.variables['TIME'].assignValue([0.0, 0.1, 0.6, 1.1, 1.6, 2.1])
@@ -128,7 +129,7 @@ class Test_Data_Manager(unittest.TestCase):
 
             name = ext[1:3].upper()
             if name == 'E.': name = 'ELEVATION'
-            fid.createVariable(name,'d',('TIME', lat_name, long_name))
+            fid.createVariable(name,netcdf_float,('TIME', lat_name, long_name))
             fid.variables[name].units='CENTIMETERS'
             fid.variables[name].missing_value=-1.e+034
 
@@ -188,9 +189,9 @@ class Test_Data_Manager(unittest.TestCase):
         z = fid.variables['elevation']
         V = fid.variables['volumes']
 
-        assert num.allclose (x[:], self.X.flat)
-        assert num.allclose (y[:], self.Y.flat)
-        assert num.allclose (z[:], self.F.flat)
+        assert num.allclose (x[:], self.X.flatten())
+        assert num.allclose (y[:], self.Y.flatten())
+        assert num.allclose (z[:], self.F.flatten())
 
         P = len(self.domain)
         for k in range(P):
@@ -233,6 +234,7 @@ class Test_Data_Manager(unittest.TestCase):
         """Test that constant sww information can be written correctly
         Use non-smooth to be able to compare to quantity values.
         """
+
         self.domain.set_name('datatest' + str(id(self)))
         self.domain.format = 'sww'
         self.domain.set_store_vertices_uniquely(True)
@@ -245,19 +247,19 @@ class Test_Data_Manager(unittest.TestCase):
         xmom_min = ymom_min = stage_min = sys.maxint 
         xmom_max = ymom_max = stage_max = -stage_min        
         for t in self.domain.evolve(yieldstep = 1, finaltime = 1):
-            wmax = max(dqs.get_values().flat)
+            wmax = max(dqs.get_values().flatten())
             if wmax > stage_max: stage_max = wmax
-            wmin = min(dqs.get_values().flat)
+            wmin = min(dqs.get_values().flatten())
             if wmin < stage_min: stage_min = wmin            
             
-            uhmax = max(dqx.get_values().flat)
+            uhmax = max(dqx.get_values().flatten())
             if uhmax > xmom_max: xmom_max = uhmax
-            uhmin = min(dqx.get_values().flat)
+            uhmin = min(dqx.get_values().flatten())
             if uhmin < xmom_min: xmom_min = uhmin                        
             
-            vhmax = max(dqy.get_values().flat)
+            vhmax = max(dqy.get_values().flatten())
             if vhmax > ymom_max: ymom_max = vhmax
-            vhmin = min(dqy.get_values().flat)
+            vhmin = min(dqy.get_values().flatten())
             if vhmin < ymom_min: ymom_min = vhmin                                    
             
             
@@ -272,7 +274,6 @@ class Test_Data_Manager(unittest.TestCase):
         range = fid.variables['xmomentum_range'][:]
         #print range
         assert num.allclose(range, [xmom_min, xmom_max])
-        
         
         range = fid.variables['ymomentum_range'][:]
         #print range
@@ -598,10 +599,10 @@ class Test_Data_Manager(unittest.TestCase):
             
             if t == 0.0:
                 assert num.allclose(stage, self.initial_stage)
-                assert num.allclose(stage_file[:], stage.flat)
+                assert num.allclose(stage_file[:], stage.flatten())
             else:
                 assert not num.allclose(stage, self.initial_stage)
-                assert not num.allclose(stage_file[:], stage.flat)
+                assert not num.allclose(stage_file[:], stage.flatten())
 
             fid.close()
 
@@ -864,7 +865,7 @@ NODATA_value  -9999
         yvec = range(10)
         xvec = range(10)
         #z = range(100)
-        z = num.zeros(100)
+        z = num.zeros(100, num.int)     #array default#
         NODATA_value = -9999
         count = -1
         for i in range(10):
@@ -923,7 +924,7 @@ Parameters
         assert fid.yllcorner[0] == 3003.0
 
         #create new reference points
-        newz = num.zeros(19)
+        newz = num.zeros(19, num.int)       #array default#
         newz[0:2] = ref_elevation[32:34]
         newz[2:5] = ref_elevation[35:38]
         newz[5:7] = ref_elevation[42:44]
@@ -994,7 +995,7 @@ NODATA_value  -9999
         yvec = range(10)
         xvec = range(10)
         #z = range(100)
-        z = num.zeros(100)
+        z = num.zeros(100, num.int)     #array default#
         NODATA_value = -9999
         count = -1
         for i in range(10):
@@ -1053,7 +1054,7 @@ Parameters
         assert fid.yllcorner[0] == 3003.0
 
         #create new reference points
-        newz = num.zeros(14)
+        newz = num.zeros(14, num.int)       #array default#
         newz[0:2] = ref_elevation[32:34]
         newz[2:5] = ref_elevation[35:38]
         newz[5:7] = ref_elevation[42:44]
@@ -2560,7 +2561,7 @@ END CROSS-SECTIONS:
         #Initial condition - with jumps
 
         bed = domain.quantities['elevation'].vertex_values
-        stage = num.zeros(bed.shape, num.Float)
+        stage = num.zeros(bed.shape, num.float)
 
         h = 0.3
         for i in range(stage.shape[0]):
@@ -2810,7 +2811,8 @@ END CROSS-SECTIONS:
 
 
         # Invoke interpolation for vertex points       
-        points = num.concatenate( (x[:,num.NewAxis],y[:,num.NewAxis]), axis=1 )
+        points = num.concatenate( (x[:,num.newaxis],y[:,num.newaxis]), axis=1 )
+        points = num.ascontiguousarray(points)
         sww2pts(self.domain.get_name(),
                 quantity = 'elevation',
                 data_points = points,
@@ -3188,19 +3190,19 @@ END CROSS-SECTIONS:
 
         for fid in [fid1,fid2,fid3]:
             fid.createDimension(long_name,nx)
-            fid.createVariable(long_name,'d',(long_name,))
+            fid.createVariable(long_name,netcdf_float,(long_name,))
             fid.variables[long_name].point_spacing='uneven'
             fid.variables[long_name].units='degrees_east'
             fid.variables[long_name].assignValue(h1_list)
 
             fid.createDimension(lat_name,ny)
-            fid.createVariable(lat_name,'d',(lat_name,))
+            fid.createVariable(lat_name,netcdf_float,(lat_name,))
             fid.variables[lat_name].point_spacing='uneven'
             fid.variables[lat_name].units='degrees_north'
             fid.variables[lat_name].assignValue(h2_list)
 
             fid.createDimension(time_name,2)
-            fid.createVariable(time_name,'d',(time_name,))
+            fid.createVariable(time_name,netcdf_float,(time_name,))
             fid.variables[time_name].point_spacing='uneven'
             fid.variables[time_name].units='seconds'
             fid.variables[time_name].assignValue([0.,1.])
@@ -3209,13 +3211,13 @@ END CROSS-SECTIONS:
 
         for fid in [fid4]:
             fid.createDimension(long_name,nx)
-            fid.createVariable(long_name,'d',(long_name,))
+            fid.createVariable(long_name,netcdf_float,(long_name,))
             fid.variables[long_name].point_spacing='uneven'
             fid.variables[long_name].units='degrees_east'
             fid.variables[long_name].assignValue(h1_list)
 
             fid.createDimension(lat_name,ny)
-            fid.createVariable(lat_name,'d',(lat_name,))
+            fid.createVariable(lat_name,netcdf_float,(lat_name,))
             fid.variables[lat_name].point_spacing='uneven'
             fid.variables[lat_name].units='degrees_north'
             fid.variables[lat_name].assignValue(h2_list)
@@ -3239,7 +3241,7 @@ END CROSS-SECTIONS:
         values[fid4]=[[-3000,-3100,-3200],[-4000,-5000,-6000]]
 
         for fid in [fid1,fid2,fid3]:
-          fid.createVariable(name[fid],'d',(time_name,lat_name,long_name))
+          fid.createVariable(name[fid],netcdf_float,(time_name,lat_name,long_name))
           fid.variables[name[fid]].point_spacing='uneven'
           fid.variables[name[fid]].units=units[fid]
           fid.variables[name[fid]].assignValue(values[fid])
@@ -3247,7 +3249,7 @@ END CROSS-SECTIONS:
           #if fid == fid3: break
 
         for fid in [fid4]:
-            fid.createVariable(name[fid],'d',(lat_name,long_name))
+            fid.createVariable(name[fid],netcdf_float,(lat_name,long_name))
             fid.variables[name[fid]].point_spacing='uneven'
             fid.variables[name[fid]].units=units[fid]
             fid.variables[name[fid]].assignValue(values[fid])
@@ -3352,19 +3354,19 @@ END CROSS-SECTIONS:
 
         for fid in [fid1,fid2,fid3]:
             fid.createDimension(long_name,nx)
-            fid.createVariable(long_name,'d',(long_name,))
+            fid.createVariable(long_name,netcdf_float,(long_name,))
             fid.variables[long_name].point_spacing='uneven'
             fid.variables[long_name].units='degrees_east'
             fid.variables[long_name].assignValue(h1_list)
 
             fid.createDimension(lat_name,ny)
-            fid.createVariable(lat_name,'d',(lat_name,))
+            fid.createVariable(lat_name,netcdf_float,(lat_name,))
             fid.variables[lat_name].point_spacing='uneven'
             fid.variables[lat_name].units='degrees_north'
             fid.variables[lat_name].assignValue(h2_list)
 
             fid.createDimension(time_name,2)
-            fid.createVariable(time_name,'d',(time_name,))
+            fid.createVariable(time_name,netcdf_float,(time_name,))
             fid.variables[time_name].point_spacing='uneven'
             fid.variables[time_name].units='seconds'
             fid.variables[time_name].assignValue([0.,1.])
@@ -3373,13 +3375,13 @@ END CROSS-SECTIONS:
 
         for fid in [fid4]:
             fid.createDimension(long_name,nx)
-            fid.createVariable(long_name,'d',(long_name,))
+            fid.createVariable(long_name,netcdf_float,(long_name,))
             fid.variables[long_name].point_spacing='uneven'
             fid.variables[long_name].units='degrees_east'
             fid.variables[long_name].assignValue(h1_list)
 
             fid.createDimension(lat_name,ny)
-            fid.createVariable(lat_name,'d',(lat_name,))
+            fid.createVariable(lat_name,netcdf_float,(lat_name,))
             fid.variables[lat_name].point_spacing='uneven'
             fid.variables[lat_name].units='degrees_north'
             fid.variables[lat_name].assignValue(h2_list)
@@ -3403,7 +3405,7 @@ END CROSS-SECTIONS:
         values[fid4]=[[-3000,-3100,-3200],[-4000,-5000,-6000]]
 
         for fid in [fid1,fid2,fid3]:
-          fid.createVariable(name[fid],'d',(time_name,lat_name,long_name))
+          fid.createVariable(name[fid],netcdf_float,(time_name,lat_name,long_name))
           fid.variables[name[fid]].point_spacing='uneven'
           fid.variables[name[fid]].units=units[fid]
           fid.variables[name[fid]].assignValue(values[fid])
@@ -3411,7 +3413,7 @@ END CROSS-SECTIONS:
           #if fid == fid3: break
 
         for fid in [fid4]:
-            fid.createVariable(name[fid],'d',(lat_name,long_name))
+            fid.createVariable(name[fid],netcdf_float,(lat_name,long_name))
             fid.variables[name[fid]].point_spacing='uneven'
             fid.variables[name[fid]].units=units[fid]
             fid.variables[name[fid]].assignValue(values[fid])
@@ -3983,7 +3985,7 @@ END CROSS-SECTIONS:
 
         fid.createDimension('number_of_points', nrows*ncols)
 
-        fid.createVariable('elevation', num.Float, ('number_of_points',))
+        fid.createVariable('elevation', netcdf_float, ('number_of_points',))
 
         elevation = fid.variables['elevation']
 
@@ -4010,7 +4012,7 @@ END CROSS-SECTIONS:
                          (228+229+230+246+247+248+264+265+266) / 9.0]
 
         #generate a stencil for computing the decimated values
-        stencil = num.ones((3,3), num.Float) / 9.0
+        stencil = num.ones((3,3), num.float) / 9.0
 
         decimate_dem(root, stencil=stencil, cellsize_new=100)
 
@@ -4066,7 +4068,7 @@ END CROSS-SECTIONS:
 
         fid.createDimension('number_of_points', nrows*ncols)
 
-        fid.createVariable('elevation', num.Float, ('number_of_points',))
+        fid.createVariable('elevation', netcdf_float, ('number_of_points',))
 
         elevation = fid.variables['elevation']
 
@@ -4104,7 +4106,7 @@ END CROSS-SECTIONS:
                          (228+229+230+246+247+248+264+265+266) / 9.0]
 
         #generate a stencil for computing the decimated values
-        stencil = num.ones((3,3), num.Float) / 9.0
+        stencil = num.ones((3,3), num.float) / 9.0
 
         decimate_dem(root, stencil=stencil, cellsize_new=100)
 
@@ -4967,7 +4969,7 @@ NODATA_value  -9999
 
 
         ## 7th test
-        m2d = num.array([[0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15]], num.Int)      #array default#
+        m2d = num.array([[0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15]], num.int)    #array default#
         kmin, kmax, lmin, lmax = data_manager._get_min_max_indexes(
             latitudes,longitudes,
             1.5,1.5,15,15)
@@ -4980,12 +4982,11 @@ NODATA_value  -9999
         #print "latitudes_new", latitudes_new
         #print "longitudes_news",longitudes_news
 
-        self.failUnless(latitudes_new == [2, 1] and \
-                        longitudes_news == [10, 20],
-                         'failed')
+        self.failUnless(num.alltrue(latitudes_new == [2, 1]) and 
+                        num.alltrue(longitudes_news == [10, 20]),
+                        'failed')
 
-        self.failUnless(m2d == [[5,6],[9,10]],
-                         'failed')
+        self.failUnless(num.alltrue(m2d == [[5,6],[9,10]]), 'failed')
 
     def test_get_min_max_indexes_lat_ascending(self):
         latitudes = [0,1,2,3]
@@ -5027,7 +5028,7 @@ NODATA_value  -9999
         latitudes = [-30,-35,-40,-45]
         longitudes = [148,149,150,151]
 
-        m2d = num.array([[0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15]], num.Int)      #array default#
+        m2d = num.array([[0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15]], num.int)    #array default#
 
         # k - lat
         # l - lon
@@ -5048,11 +5049,11 @@ NODATA_value  -9999
         #print "latitudes_new", latitudes_new
         #print "longitudes_new",longitudes_new
 
-        self.failUnless(latitudes_new == [-30, -35, -40] and \
+        self.failUnless(latitudes_new == [-30, -35, -40] and
                         longitudes_new == [148, 149,150],
-                         'failed')
-        self.failUnless(m2d == [[0,1,2],[4,5,6],[8,9,10]],
-                         'failed')
+                        'failed')
+        self.failUnless(num.alltrue(m2d == [[0,1,2],[4,5,6],[8,9,10]]),
+                        'failed')
 
     def test_get_min_max_indexes3(self):
         latitudes = [-30,-35,-40,-45,-50,-55,-60]
@@ -5074,7 +5075,7 @@ NODATA_value  -9999
         #print "latitudes_new", latitudes_new
         #print "longitudes_news",longitudes_news
 
-        self.failUnless(latitudes_new == [-35, -40, -45] and \
+        self.failUnless(latitudes_new == [-35, -40, -45] and
                         longitudes_news == [148, 149,150],
                          'failed')
 
@@ -5494,7 +5495,7 @@ friction  \n \
         for i,q in enumerate(quantities): 
             quantities_init[i] = ensure_numeric(quantities_init[i])
             #print "HA_init", HA_init
-            q_time = num.zeros((time_step_count, points_num), num.Float)
+            q_time = num.zeros((time_step_count, points_num), num.float)
             for time in range(time_step_count):
                 q_time[time,:] = quantities_init[i] #* time * 4
             
@@ -5581,7 +5582,7 @@ friction  \n \
         for i, q in enumerate(quantities): 
             quantities_init[i] = ensure_numeric(quantities_init[i])
             #print "HA_init", HA_init
-            q_time = num.zeros((time_step_count, points_num), num.Float)
+            q_time = num.zeros((time_step_count, points_num), num.float)
             for time in range(time_step_count):
                 q_time[time,:] = quantities_init[i] #* time * 4
             
@@ -6037,17 +6038,17 @@ friction  \n \
 
             if ha is None:
                 this_ha = e
-                quantities_init[0].append(num.ones(time_step_count,num.Float)*this_ha) # HA
+                quantities_init[0].append(num.ones(time_step_count,num.float)*this_ha) # HA
             else:
                 quantities_init[0].append(ha[i])
             if ua is None:
                 this_ua = n
-                quantities_init[1].append(num.ones(time_step_count,num.Float)*this_ua) # UA
+                quantities_init[1].append(num.ones(time_step_count,num.float)*this_ua) # UA
             else:
                 quantities_init[1].append(ua[i])
             if va is None:
                 this_va = e
-                quantities_init[2].append(num.ones(time_step_count,num.Float)*this_va) #
+                quantities_init[2].append(num.ones(time_step_count,num.float)*this_va) #
             else:
                 quantities_init[2].append(-va[i]) # South is negative in MUX
 
@@ -6057,7 +6058,7 @@ friction  \n \
 
         files = []        
         for i, q in enumerate(quantities):
-            q_time = num.zeros((time_step_count, points_num), num.Float)
+            q_time = num.zeros((time_step_count, points_num), num.float)
             quantities_init[i] = ensure_numeric(quantities_init[i])
             for time in range(time_step_count):
                 #print i, q, time, quantities_init[i][:,time]
@@ -6125,12 +6126,12 @@ friction  \n \
         time_step = 2
         lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.Int)
-        last_tstep=time_step_count*num.ones(n,num.Int)
-        depth=20*num.ones(n,num.Float)
-        ha=2*num.ones((n,time_step_count),num.Float)
-        ua=5*num.ones((n,time_step_count),num.Float)
-        va=-10*num.ones((n,time_step_count),num.Float)
+        first_tstep=num.ones(n,num.int)
+        last_tstep=time_step_count*num.ones(n,num.int)
+        depth=20*num.ones(n,num.float)
+        ha=2*num.ones((n,time_step_count),num.float)
+        ua=5*num.ones((n,time_step_count),num.float)
+        va=-10*num.ones((n,time_step_count),num.float)
         #-ve added to take into account mux file format where south is positive.
         base_name, files = self.write_mux2(lat_long_points,
                                       time_step_count, time_step,
@@ -6140,7 +6141,7 @@ friction  \n \
                                       ua=ua,
                                       va=va)
 
-        weights=num.ones(1, num.Float)
+        weights=num.ones(1, num.float)
         #ensure that files are indeed mux2 files
         times, latitudes, longitudes, elevation, stage, starttime = read_mux2_py([files[0]],weights)
         ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity,starttime_ua=read_mux2_py([files[1]],weights)
@@ -6171,8 +6172,6 @@ friction  \n \
         assert num.allclose(xvelocity,ua)
         msg='incorrect gauge va time series returned'
         assert num.allclose(yvelocity, -va)
-        
-        
 
     def test_urs2sts_read_mux2_pyII(self):
         """Spatially varing stage
@@ -6182,17 +6181,17 @@ friction  \n \
         time_step = 2
         lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.Int)
-        last_tstep=(time_step_count)*num.ones(n,num.Int)
-        depth=20*num.ones(n,num.Float)
-        ha=2*num.ones((n,time_step_count),num.Float)
+        first_tstep=num.ones(n,num.int)
+        last_tstep=(time_step_count)*num.ones(n,num.int)
+        depth=20*num.ones(n,num.float)
+        ha=2*num.ones((n,time_step_count),num.float)
         ha[0]=num.arange(0,time_step_count)+1
         ha[1]=time_step_count-num.arange(1,time_step_count+1)
         ha[1]=num.arange(time_step_count,2*time_step_count)
         ha[2]=num.arange(2*time_step_count,3*time_step_count)
         ha[3]=num.arange(3*time_step_count,4*time_step_count)
-        ua=5*num.ones((n,time_step_count),num.Float)
-        va=-10*num.ones((n,time_step_count),num.Float)
+        ua=5*num.ones((n,time_step_count),num.float)
+        va=-10*num.ones((n,time_step_count),num.float)
         #-ve added to take into account mux file format where south is positive.
         base_name, files = self.write_mux2(lat_long_points,
                                       time_step_count, time_step,
@@ -6202,7 +6201,7 @@ friction  \n \
                                       ua=ua,
                                       va=va)
 
-        weights=num.ones(1, num.Float)
+        weights=num.ones(1, num.float)
         #ensure that files are indeed mux2 files
         times, latitudes, longitudes, elevation, stage,starttime=read_mux2_py([files[0]],weights)
         ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity,starttime_ua=read_mux2_py([files[1]],weights)
@@ -6240,20 +6239,20 @@ friction  \n \
         time_step = 2
         lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.Int)
+        first_tstep=num.ones(n,num.int)
         first_tstep[0]+=1
         first_tstep[2]+=1
-        last_tstep=(time_step_count)*num.ones(n,num.Int)
+        last_tstep=(time_step_count)*num.ones(n,num.int)
         last_tstep[0]-=1
 
-        depth=20*num.ones(n,num.Float)
-        ha=2*num.ones((n,time_step_count),num.Float)
+        depth=20*num.ones(n,num.float)
+        ha=2*num.ones((n,time_step_count),num.float)
         ha[0]=num.arange(0,time_step_count)
         ha[1]=num.arange(time_step_count,2*time_step_count)
         ha[2]=num.arange(2*time_step_count,3*time_step_count)
         ha[3]=num.arange(3*time_step_count,4*time_step_count)
-        ua=5*num.ones((n,time_step_count),num.Float)
-        va=-10*num.ones((n,time_step_count),num.Float)
+        ua=5*num.ones((n,time_step_count),num.float)
+        va=-10*num.ones((n,time_step_count),num.float)
         #-ve added to take into account mux file format where south is positive.
         base_name, files = self.write_mux2(lat_long_points,
                                       time_step_count, time_step,
@@ -6263,7 +6262,7 @@ friction  \n \
                                       ua=ua,
                                       va=va)
 
-        weights=num.ones(1, num.Float)
+        weights=num.ones(1, num.float)
         #ensure that files are indeed mux2 files
         times, latitudes, longitudes, elevation, stage, starttime=read_mux2_py([files[0]],weights)
         ua_times, ua_latitudes, ua_longitudes, ua_elevation, xvelocity, starttime_ua=read_mux2_py([files[1]],weights)
@@ -6329,29 +6328,29 @@ friction  \n \
         n = len(lat_long_points)
         
         # Create different timeseries starting and ending at different times 
-        first_tstep=num.ones(n, num.Int)
+        first_tstep=num.ones(n, num.int)
         first_tstep[0]+=2   # Point 0 starts at 2
         first_tstep[1]+=4   # Point 1 starts at 4        
         first_tstep[2]+=3   # Point 2 starts at 3
         
-        last_tstep=(time_step_count)*num.ones(n,num.Int)
+        last_tstep=(time_step_count)*num.ones(n,num.int)
         last_tstep[0]-=1    # Point 0 ends 1 step early
         last_tstep[1]-=2    # Point 1 ends 2 steps early                
         last_tstep[4]-=3    # Point 4 ends 3 steps early        
         
         # Create varying elevation data (positive values for seafloor)
-        gauge_depth=20*num.ones(n,num.Float)
+        gauge_depth=20*num.ones(n,num.float)
         for i in range(n):
             gauge_depth[i] += i**2
             
         # Create data to be written to first mux file        
-        ha0=2*num.ones((n,time_step_count),num.Float)
+        ha0=2*num.ones((n,time_step_count),num.float)
         ha0[0]=num.arange(0,time_step_count)
         ha0[1]=num.arange(time_step_count,2*time_step_count)
         ha0[2]=num.arange(2*time_step_count,3*time_step_count)
         ha0[3]=num.arange(3*time_step_count,4*time_step_count)
-        ua0=5*num.ones((n,time_step_count),num.Float)
-        va0=-10*num.ones((n,time_step_count),num.Float)
+        ua0=5*num.ones((n,time_step_count),num.float)
+        va0=-10*num.ones((n,time_step_count),num.float)
 
         # Ensure data used to write mux file to be zero when gauges are
         # not recording
@@ -6390,7 +6389,7 @@ friction  \n \
 
         # For each quantity read the associated list of source mux2 file with 
         # extention associated with that quantity
-        file_params=-1*num.ones(3,num.Float) #[nsta,dt,nt]
+        file_params=-1*num.ones(3,num.float) #[nsta,dt,nt]
         OFFSET = 5
 
         for j, file in enumerate(filesI):
@@ -6438,46 +6437,45 @@ friction  \n \
         n = len(lat_long_points)
         
         # Create different timeseries starting and ending at different times 
-        first_tstep=num.ones(n,num.Int)
+        first_tstep=num.ones(n,num.int)
         first_tstep[0]+=2   # Point 0 starts at 2
         first_tstep[1]+=4   # Point 1 starts at 4        
         first_tstep[2]+=3   # Point 2 starts at 3
         
-        last_tstep=(time_step_count)*num.ones(n,num.Int)
+        last_tstep=(time_step_count)*num.ones(n,num.int)
         last_tstep[0]-=1    # Point 0 ends 1 step early
         last_tstep[1]-=2    # Point 1 ends 2 steps early                
         last_tstep[4]-=3    # Point 4 ends 3 steps early        
         
         # Create varying elevation data (positive values for seafloor)
-        gauge_depth=20*num.ones(n,num.Float)
+        gauge_depth=20*num.ones(n,num.float)
         for i in range(n):
             gauge_depth[i] += i**2
             
         # Create data to be written to second mux file        
-        ha1=num.ones((n,time_step_count),num.Float)
+        ha1=num.ones((n,time_step_count),num.float)
         ha1[0]=num.sin(times_ref)
         ha1[1]=2*num.sin(times_ref - 3)
         ha1[2]=5*num.sin(4*times_ref)
         ha1[3]=num.sin(times_ref)
         ha1[4]=num.sin(2*times_ref-0.7)
                 
-        ua1=num.zeros((n,time_step_count),num.Float)
+        ua1=num.zeros((n,time_step_count),num.float)
         ua1[0]=3*num.cos(times_ref)        
         ua1[1]=2*num.sin(times_ref-0.7)   
         ua1[2]=num.arange(3*time_step_count,4*time_step_count)
         ua1[4]=2*num.ones(time_step_count)
         
-        va1=num.zeros((n,time_step_count),num.Float)
+        va1=num.zeros((n,time_step_count),num.float)
         va1[0]=2*num.cos(times_ref-0.87)        
         va1[1]=3*num.ones(time_step_count)
         va1[3]=2*num.sin(times_ref-0.71)        
-        #print "va1[0]", va1[0]  # The 8th element is what will go bad.
+        
         # Ensure data used to write mux file to be zero when gauges are
         # not recording
         for i in range(n):
              # For each point
-             for j in range(0, first_tstep[i]-1) + range(last_tstep[i],
-                                                         time_step_count):
+             for j in range(0, first_tstep[i]-1) + range(last_tstep[i], time_step_count):
                  # For timesteps before and after recording range
                  ha1[i][j] = ua1[i][j] = va1[i][j] = 0.0 
 
@@ -6541,20 +6539,17 @@ friction  \n \
 
             if ha is None:
                 this_ha = e
-                quantities_init[0].append(num.ones(time_step_count,
-                                                   num.Float)*this_ha) # HA
+                quantities_init[0].append(num.ones(time_step_count,num.float)*this_ha) # HA
             else:
                 quantities_init[0].append(ha[i])
             if ua is None:
                 this_ua = n
-                quantities_init[1].append(num.ones(time_step_count,
-                                                   num.Float)*this_ua) # UA
+                quantities_init[1].append(num.ones(time_step_count,num.float)*this_ua) # UA
             else:
                 quantities_init[1].append(ua[i])
             if va is None:
                 this_va = e
-                quantities_init[2].append(num.ones(time_step_count,
-                                                   num.Float)*this_va) #
+                quantities_init[2].append(num.ones(time_step_count,num.float)*this_va) #
             else:
                 quantities_init[2].append(va[i])
 
@@ -6562,7 +6557,7 @@ friction  \n \
             #print
             #print i, q
             
-            q_time = num.zeros((time_step_count, points_num), num.Float)
+            q_time = num.zeros((time_step_count, points_num), num.float)
             quantities_init[i] = ensure_numeric(quantities_init[i])
             for time in range(time_step_count):
                 #print i, q, time, quantities_init[i][:,time]
@@ -6618,10 +6613,6 @@ friction  \n \
                         x = unpack('f',f.read(4))[0]
                         #print time, x, q_time[time, point_i]
                         if q == 'VA': x = -x # South is positive in MUX
-                        #if q == 'VA':
-                        #print q+" q_time[%d, %d] = %f" %(time, point_i, 
-                         #                             q_time[time, point_i])
-                             #     q_time[time, point_i]
                         assert abs(q_time[time, point_i]-x)<epsilon
 
             f.close()
@@ -6644,14 +6635,13 @@ friction  \n \
 
         # For each quantity read the associated list of source mux2 file with 
         # extention associated with that quantity
-        file_params=-1*num.ones(3,num.Float) # [nsta,dt,nt]
+        file_params=-1*num.ones(3,num.float) # [nsta,dt,nt]
         OFFSET = 5
 
         for j, file in enumerate(filesII):
             # Read stage, u, v enumerated as j
             #print 'Reading', j, file
-            data = read_mux2(1, [file], weights, file_params,
-                             permutation, verbose)
+            data = read_mux2(1, [file], weights, file_params, permutation, verbose)
 
             #print 'Data received by Python'
             #print data[1][8]
@@ -6660,8 +6650,7 @@ friction  \n \
             # Index where data ends and parameters begin
             parameters_index = data.shape[1]-OFFSET          
                  
-            quantity=num.zeros((number_of_selected_stations,
-                                parameters_index), num.Float)
+            quantity=num.zeros((number_of_selected_stations, parameters_index), num.float)
             
             
             for i in range(number_of_selected_stations):
@@ -6740,36 +6729,36 @@ ValueError: matrices are not aligned for copy
         stations = len(lat_long_points)
         
         # Create different timeseries starting and ending at different times 
-        first_tstep=num.ones(stations,num.Int)
+        first_tstep=num.ones(stations, num.int)
         first_tstep[0]+=2   # Point 0 starts at 2
         first_tstep[1]+=4   # Point 1 starts at 4        
         first_tstep[2]+=3   # Point 2 starts at 3
         
-        last_tstep=(time_step_count)*num.ones(stations,num.Int)
+        last_tstep=(time_step_count)*num.ones(stations, num.int)
         last_tstep[0]-=1    # Point 0 ends 1 step early
         last_tstep[1]-=2    # Point 1 ends 2 steps early                
         last_tstep[4]-=3    # Point 4 ends 3 steps early        
         
         # Create varying elevation data (positive values for seafloor)
-        gauge_depth=20*num.ones(stations,num.Float)
+        gauge_depth=20*num.ones(stations, num.float)
         for i in range(stations):
             gauge_depth[i] += i**2
             
         # Create data to be written to second mux file        
-        ha1=num.ones((stations,time_step_count),num.Float)
+        ha1=num.ones((stations,time_step_count), num.float)
         ha1[0]=num.sin(times_ref)
         ha1[1]=2*num.sin(times_ref - 3)
         ha1[2]=5*num.sin(4*times_ref)
         ha1[3]=num.sin(times_ref)
         ha1[4]=num.sin(2*times_ref-0.7)
                 
-        ua1=num.zeros((stations,time_step_count),num.Float)
+        ua1=num.zeros((stations,time_step_count),num.float)
         ua1[0]=3*num.cos(times_ref)        
         ua1[1]=2*num.sin(times_ref-0.7)   
         ua1[2]=num.arange(3*time_step_count,4*time_step_count)
         ua1[4]=2*num.ones(time_step_count)
         
-        va1=num.zeros((stations,time_step_count),num.Float)
+        va1=num.zeros((stations,time_step_count),num.float)
         va1[0]=2*num.cos(times_ref-0.87)        
         va1[1]=3*num.ones(time_step_count)
         va1[3]=2*num.sin(times_ref-0.71)        
@@ -6845,19 +6834,19 @@ ValueError: matrices are not aligned for copy
             if ha is None:
                 this_ha = e
                 quantities_init[0].append(num.ones(time_step_count,
-                                                   num.Float)*this_ha) # HA
+                                                   num.float)*this_ha) # HA
             else:
                 quantities_init[0].append(ha[i])
             if ua is None:
                 this_ua = n
                 quantities_init[1].append(num.ones(time_step_count,
-                                                   num.Float)*this_ua) # UA
+                                                   num.float)*this_ua) # UA
             else:
                 quantities_init[1].append(ua[i])
             if va is None:
                 this_va = e
                 quantities_init[2].append(num.ones(time_step_count,
-                                                   num.Float)*this_va) #
+                                                   num.float)*this_va) #
             else:
                 quantities_init[2].append(va[i])
 
@@ -6865,7 +6854,7 @@ ValueError: matrices are not aligned for copy
             #print
             #print i, q
             
-            q_time = num.zeros((time_step_count, points_num), num.Float)
+            q_time = num.zeros((time_step_count, points_num), num.float)
             quantities_init[i] = ensure_numeric(quantities_init[i])
             for time in range(time_step_count):
                 #print i, q, time, quantities_init[i][:,time]
@@ -6945,7 +6934,7 @@ ValueError: matrices are not aligned for copy
 
         # For each quantity read the associated list of source mux2 file with 
         # extention associated with that quantity
-        file_params=-1*num.ones(3,num.Float) # [nsta,dt,nt]
+        file_params=-1*num.ones(3,num.float) # [nsta,dt,nt]
         OFFSET = 5
 
         for j, file in enumerate(filesII):
@@ -6987,20 +6976,20 @@ ValueError: matrices are not aligned for copy
         time_step = 2
         lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.Int)
+        first_tstep=num.ones(n,num.int)
         first_tstep[0]+=1
         first_tstep[2]+=1
-        last_tstep=(time_step_count)*num.ones(n,num.Int)
+        last_tstep=(time_step_count)*num.ones(n,num.int)
         last_tstep[0]-=1
 
-        gauge_depth=20*num.ones(n,num.Float)
-        ha=2*num.ones((n,time_step_count),num.Float)
+        gauge_depth=20*num.ones(n,num.float)
+        ha=2*num.ones((n,time_step_count),num.float)
         ha[0]=num.arange(0,time_step_count)
         ha[1]=num.arange(time_step_count,2*time_step_count)
         ha[2]=num.arange(2*time_step_count,3*time_step_count)
         ha[3]=num.arange(3*time_step_count,4*time_step_count)
-        ua=5*num.ones((n,time_step_count),num.Float)
-        va=-10*num.ones((n,time_step_count),num.Float)
+        ua=5*num.ones((n,time_step_count),num.float)
+        va=-10*num.ones((n,time_step_count),num.float)
 
         base_name, files = self.write_mux2(lat_long_points,
                                       time_step_count, time_step,
@@ -7073,7 +7062,7 @@ ValueError: matrices are not aligned for copy
         # elevation = - depth
         #momentum = velocity_ua *(stage+depth)
 
-        depth=num.zeros((len(lat_long_points),time_step_count),num.Float)
+        depth=num.zeros((len(lat_long_points),time_step_count),num.float)
         for i in range(len(lat_long_points)):
             depth[i]=gauge_depth[i]+tide+ha[i]
         assert num.allclose(num.transpose(ua*depth),xmomentum) 
@@ -7102,20 +7091,20 @@ ValueError: matrices are not aligned for copy
         time_step = 2
         lat_long_points =[(-21.,114.5),(-21.,113.5),(-21.,114.), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.Int)
+        first_tstep=num.ones(n,num.int)
         first_tstep[0]+=1
         first_tstep[2]+=1
-        last_tstep=(time_step_count)*num.ones(n,num.Int)
+        last_tstep=(time_step_count)*num.ones(n,num.int)
         last_tstep[0]-=1
 
-        gauge_depth=20*num.ones(n,num.Float)
-        ha=2*num.ones((n,time_step_count),num.Float)
+        gauge_depth=20*num.ones(n,num.float)
+        ha=2*num.ones((n,time_step_count),num.float)
         ha[0]=num.arange(0,time_step_count)
         ha[1]=num.arange(time_step_count,2*time_step_count)
         ha[2]=num.arange(2*time_step_count,3*time_step_count)
         ha[3]=num.arange(3*time_step_count,4*time_step_count)
-        ua=5*num.ones((n,time_step_count),num.Float)
-        va=-10*num.ones((n,time_step_count),num.Float)
+        ua=5*num.ones((n,time_step_count),num.float)
+        va=-10*num.ones((n,time_step_count),num.float)
 
         base_name, files = self.write_mux2(lat_long_points,
                                            time_step_count, time_step,
@@ -7170,20 +7159,20 @@ ValueError: matrices are not aligned for copy
         time_step = 2
         lat_long_points =[(-21.,113.5),(-21.,114.5),(-21.,114.), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.Int)
+        first_tstep=num.ones(n,num.int)
         first_tstep[0]+=1
         first_tstep[2]+=1
-        last_tstep=(time_step_count)*num.ones(n,num.Int)
+        last_tstep=(time_step_count)*num.ones(n,num.int)
         last_tstep[0]-=1
 
-        gauge_depth=20*num.ones(n,num.Float)
-        ha=2*num.ones((n,time_step_count),num.Float)
+        gauge_depth=20*num.ones(n,num.float)
+        ha=2*num.ones((n,time_step_count),num.float)
         ha[0]=num.arange(0,time_step_count)
         ha[1]=num.arange(time_step_count,2*time_step_count)
         ha[2]=num.arange(2*time_step_count,3*time_step_count)
         ha[3]=num.arange(3*time_step_count,4*time_step_count)
-        ua=5*num.ones((n,time_step_count),num.Float)
-        va=-10*num.ones((n,time_step_count),num.Float)
+        ua=5*num.ones((n,time_step_count),num.float)
+        va=-10*num.ones((n,time_step_count),num.float)
 
         base_name, files = self.write_mux2(lat_long_points,
                                       time_step_count, time_step,
@@ -7236,20 +7225,20 @@ ValueError: matrices are not aligned for copy
         time_step = 2
         lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.Int)
+        first_tstep=num.ones(n,num.int)
         first_tstep[0]+=1
         first_tstep[2]+=1
-        last_tstep=(time_step_count)*num.ones(n,num.Int)
+        last_tstep=(time_step_count)*num.ones(n,num.int)
         last_tstep[0]-=1
 
-        gauge_depth=20*num.ones(n,num.Float)
-        ha=2*num.ones((n,time_step_count),num.Float)
+        gauge_depth=20*num.ones(n,num.float)
+        ha=2*num.ones((n,time_step_count),num.float)
         ha[0]=num.arange(0,time_step_count)
         ha[1]=num.arange(time_step_count,2*time_step_count)
         ha[2]=num.arange(2*time_step_count,3*time_step_count)
         ha[3]=num.arange(3*time_step_count,4*time_step_count)
-        ua=5*num.ones((n,time_step_count),num.Float)
-        va=-10*num.ones((n,time_step_count),num.Float)
+        ua=5*num.ones((n,time_step_count),num.float)
+        va=-10*num.ones((n,time_step_count),num.float)
 
         # Create two identical mux files to be combined by urs2sts
         base_nameI, filesI = self.write_mux2(lat_long_points,
@@ -7338,7 +7327,7 @@ ValueError: matrices are not aligned for copy
         # elevation = - depth
         #momentum = velocity_ua *(stage+depth)
 
-        depth=num.zeros((len(lat_long_points),time_step_count),num.Float)
+        depth=num.zeros((len(lat_long_points),time_step_count),num.float)
         for i in range(len(lat_long_points)):
             depth[i]=gauge_depth[i]+tide+2.0*ha[i]
             #2.0*ha necessary because using two files with weights=1 are used
@@ -7708,20 +7697,20 @@ ValueError: matrices are not aligned for copy
         time_step = 2
         lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.Int)
+        first_tstep=num.ones(n,num.int)
         first_tstep[0]+=1
         first_tstep[2]+=1
-        last_tstep=(time_step_count)*num.ones(n,num.Int)
+        last_tstep=(time_step_count)*num.ones(n,num.int)
         last_tstep[0]-=1
 
-        gauge_depth=20*num.ones(n,num.Float)
-        ha=2*num.ones((n,time_step_count),num.Float)
+        gauge_depth=20*num.ones(n,num.float)
+        ha=2*num.ones((n,time_step_count),num.float)
         ha[0]=num.arange(0,time_step_count)
         ha[1]=num.arange(time_step_count,2*time_step_count)
         ha[2]=num.arange(2*time_step_count,3*time_step_count)
         ha[3]=num.arange(3*time_step_count,4*time_step_count)
-        ua=5*num.ones((n,time_step_count),num.Float)
-        va=-10*num.ones((n,time_step_count),num.Float)
+        ua=5*num.ones((n,time_step_count),num.float)
+        va=-10*num.ones((n,time_step_count),num.float)
 
         # Create two identical mux files to be combined by urs2sts
         base_nameI, filesI = self.write_mux2(lat_long_points,
@@ -7839,10 +7828,10 @@ ValueError: matrices are not aligned for copy
         # the mux2 files are the same so stage == 2.0 * ha
         #print 2.0*num.transpose(ha) - stage 
         
-        ha_permutation = num.take(ha, permutation) 
-        ua_permutation = num.take(ua, permutation)         
-        va_permutation = num.take(va, permutation)                 
-        gauge_depth_permutation = num.take(gauge_depth, permutation)                         
+        ha_permutation = num.take(ha, permutation, axis=0) 
+        ua_permutation = num.take(ua, permutation, axis=0)
+        va_permutation = num.take(va, permutation, axis=0)
+        gauge_depth_permutation = num.take(gauge_depth, permutation, axis=0)
 
         
         assert num.allclose(2.0*num.transpose(ha_permutation)+tide, stage)  # Meters
@@ -7852,12 +7841,12 @@ ValueError: matrices are not aligned for copy
         # elevation = - depth
         #momentum = velocity_ua *(stage+depth)
 
-        depth=num.zeros((len(lat_long_points),time_step_count),num.Float)
+        depth=num.zeros((len(lat_long_points),time_step_count),num.float)
         for i in range(len(lat_long_points)):
             depth[i]=gauge_depth[i]+tide+2.0*ha[i]
             #2.0*ha necessary because using two files with weights=1 are used
             
-        depth_permutation = num.take(depth, permutation)                     
+        depth_permutation = num.take(depth, permutation, axis=0)                     
         
 
         # The xmomentum stored in the .sts file should be the sum of the ua
@@ -7895,20 +7884,20 @@ ValueError: matrices are not aligned for copy
         time_step = 2
         lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.Int)
+        first_tstep=num.ones(n,num.int)
         first_tstep[0]+=1
         first_tstep[2]+=1
-        last_tstep=(time_step_count)*num.ones(n,num.Int)
+        last_tstep=(time_step_count)*num.ones(n,num.int)
         last_tstep[0]-=1
 
-        gauge_depth=20*num.ones(n,num.Float)
-        ha=2*num.ones((n,time_step_count),num.Float)
+        gauge_depth=20*num.ones(n,num.float)
+        ha=2*num.ones((n,time_step_count),num.float)
         ha[0]=num.arange(0,time_step_count)
         ha[1]=num.arange(time_step_count,2*time_step_count)
         ha[2]=num.arange(2*time_step_count,3*time_step_count)
         ha[3]=num.arange(3*time_step_count,4*time_step_count)
-        ua=5*num.ones((n,time_step_count),num.Float)
-        va=-10*num.ones((n,time_step_count),num.Float)
+        ua=5*num.ones((n,time_step_count),num.float)
+        va=-10*num.ones((n,time_step_count),num.float)
 
         # Create two identical mux files to be combined by urs2sts
         base_nameI, filesI = self.write_mux2(lat_long_points,
@@ -7994,12 +7983,12 @@ ValueError: matrices are not aligned for copy
         
         
         # Create different timeseries starting and ending at different times 
-        first_tstep=num.ones(n,num.Int)
+        first_tstep=num.ones(n,num.int)
         first_tstep[0]+=2   # Point 0 starts at 2
         first_tstep[1]+=4   # Point 1 starts at 4        
         first_tstep[2]+=3   # Point 2 starts at 3
         
-        last_tstep=(time_step_count)*num.ones(n,num.Int)
+        last_tstep=(time_step_count)*num.ones(n,num.int)
         last_tstep[0]-=1    # Point 0 ends 1 step early
         last_tstep[1]-=2    # Point 1 ends 2 steps early                
         last_tstep[4]-=3    # Point 4 ends 3 steps early        
@@ -8012,20 +8001,20 @@ ValueError: matrices are not aligned for copy
         
         
         # Create varying elevation data (positive values for seafloor)
-        gauge_depth=20*num.ones(n,num.Float)
+        gauge_depth=20*num.ones(n,num.float)
         for i in range(n):
             gauge_depth[i] += i**2
             
         #print 'gauge_depth', gauge_depth
         
         # Create data to be written to first mux file        
-        ha0=2*num.ones((n,time_step_count),num.Float)
+        ha0=2*num.ones((n,time_step_count),num.float)
         ha0[0]=num.arange(0,time_step_count)
         ha0[1]=num.arange(time_step_count,2*time_step_count)
         ha0[2]=num.arange(2*time_step_count,3*time_step_count)
         ha0[3]=num.arange(3*time_step_count,4*time_step_count)
-        ua0=5*num.ones((n,time_step_count),num.Float)
-        va0=-10*num.ones((n,time_step_count),num.Float)
+        ua0=5*num.ones((n,time_step_count),num.float)
+        va0=-10*num.ones((n,time_step_count),num.float)
 
         # Ensure data used to write mux file to be zero when gauges are
         # not recording
@@ -8056,22 +8045,22 @@ ValueError: matrices are not aligned for copy
                                              
                                              
         # Create data to be written to second mux file        
-        ha1=num.ones((n,time_step_count),num.Float)
+        ha1=num.ones((n,time_step_count),num.float)
         ha1[0]=num.sin(times_ref)
         ha1[1]=2*num.sin(times_ref - 3)
         ha1[2]=5*num.sin(4*times_ref)
         ha1[3]=num.sin(times_ref)
         ha1[4]=num.sin(2*times_ref-0.7)
                 
-        ua1=num.zeros((n,time_step_count),num.Float)
+        ua1=num.zeros((n,time_step_count),num.float)
         ua1[0]=3*num.cos(times_ref)        
         ua1[1]=2*num.sin(times_ref-0.7)   
         ua1[2]=num.arange(3*time_step_count,4*time_step_count)
         ua1[4]=2*num.ones(time_step_count)
         
-        va1=num.zeros((n,time_step_count),num.Float)
+        va1=num.zeros((n,time_step_count),num.float)
         va1[0]=2*num.cos(times_ref-0.87)        
-        va1[1]=3*num.ones(time_step_count)
+        va1[1]=3*num.ones(time_step_count, num.int)       #array default#
         va1[3]=2*num.sin(times_ref-0.71)        
         
         
@@ -8092,7 +8081,7 @@ ValueError: matrices are not aligned for copy
         #print 'va1', va1        
                                              
                                              
-        # Write second mux file to be combined by urs2sts     
+        # Write second mux file to be combined by urs2sts                                             
         base_nameII, filesII = self.write_mux2(lat_long_points,
                                                time_step_count, time_step,
                                                first_tstep, last_tstep,
@@ -8183,11 +8172,11 @@ ValueError: matrices are not aligned for copy
         # The quantities stored in the .sts file should be the weighted sum of the 
         # quantities written to the mux2 files subject to the permutation vector.
         
-        ha_ref = num.take(ha0, permutation)
-        ua_ref = num.take(ua0, permutation)        
-        va_ref = num.take(va0, permutation)                
+        ha_ref = num.take(ha0, permutation, axis=0)
+        ua_ref = num.take(ua0, permutation, axis=0)        
+        va_ref = num.take(va0, permutation, axis=0)                
 
-        gauge_depth_ref = num.take(gauge_depth, permutation)                      
+        gauge_depth_ref = num.take(gauge_depth, permutation, axis=0)                      
         
         assert num.allclose(num.transpose(ha_ref)+tide, stage0)  # Meters
         
@@ -8198,7 +8187,7 @@ ValueError: matrices are not aligned for copy
         # elevation = - depth
         #momentum = velocity_ua *(stage+depth)
 
-        depth_ref = num.zeros((len(permutation), time_step_count), num.Float)
+        depth_ref = num.zeros((len(permutation), time_step_count), num.float)
         for i in range(len(permutation)):
             depth_ref[i]=gauge_depth_ref[i]+tide+ha_ref[i]
 
@@ -8291,11 +8280,11 @@ ValueError: matrices are not aligned for copy
         # The quantities stored in the .sts file should be the weighted sum of the 
         # quantities written to the mux2 files subject to the permutation vector.
         
-        ha_ref = num.take(ha1, permutation)
-        ua_ref = num.take(ua1, permutation)        
-        va_ref = num.take(va1, permutation)                
+        ha_ref = num.take(ha1, permutation, axis=0)
+        ua_ref = num.take(ua1, permutation, axis=0)        
+        va_ref = num.take(va1, permutation, axis=0)                
 
-        gauge_depth_ref = num.take(gauge_depth, permutation)                         
+        gauge_depth_ref = num.take(gauge_depth, permutation, axis=0)                         
 
 
         #print 
@@ -8311,7 +8300,7 @@ ValueError: matrices are not aligned for copy
         # elevation = - depth
         #momentum = velocity_ua *(stage+depth)
 
-        depth_ref = num.zeros((len(permutation), time_step_count), num.Float)
+        depth_ref = num.zeros((len(permutation), time_step_count), num.float)
         for i in range(len(permutation)):
             depth_ref[i]=gauge_depth_ref[i]+tide+ha_ref[i]
 
@@ -8397,11 +8386,14 @@ ValueError: matrices are not aligned for copy
         # The quantities stored in the .sts file should be the weighted sum of the 
         # quantities written to the mux2 files subject to the permutation vector.
         
-        ha_ref = weights[0]*num.take(ha0, permutation) + weights[1]*num.take(ha1, permutation)
-        ua_ref = weights[0]*num.take(ua0, permutation) + weights[1]*num.take(ua1, permutation)        
-        va_ref = weights[0]*num.take(va0, permutation) + weights[1]*num.take(va1, permutation)                
+        ha_ref = (weights[0]*num.take(ha0, permutation, axis=0)
+                  + weights[1]*num.take(ha1, permutation, axis=0))
+        ua_ref = (weights[0]*num.take(ua0, permutation, axis=0)
+                  + weights[1]*num.take(ua1, permutation, axis=0))
+        va_ref = (weights[0]*num.take(va0, permutation, axis=0)
+                  + weights[1]*num.take(va1, permutation, axis=0))
 
-        gauge_depth_ref = num.take(gauge_depth, permutation)                         
+        gauge_depth_ref = num.take(gauge_depth, permutation, axis=0)                         
 
 
         #print 
@@ -8415,7 +8407,7 @@ ValueError: matrices are not aligned for copy
         # elevation = - depth
         #momentum = velocity_ua *(stage+depth)
 
-        depth_ref = num.zeros((len(permutation), time_step_count), num.Float)
+        depth_ref = num.zeros((len(permutation), time_step_count), num.float)
         for i in range(len(permutation)):
             depth_ref[i]=gauge_depth_ref[i]+tide+ha_ref[i]
 
@@ -8445,6 +8437,8 @@ ValueError: matrices are not aligned for copy
         assert num.allclose(-gauge_depth_ref, elevation)  #Meters
 
         fid.close()
+        self.delete_mux(filesI)
+        self.delete_mux(filesII)
         os.remove(sts_file)
         
         #---------------
@@ -8475,17 +8469,17 @@ ValueError: matrices are not aligned for copy
         time_step = 2
         lat_long_points =bounding_polygon[0:3]
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.Int)
-        last_tstep=(time_step_count)*num.ones(n,num.Int)
+        first_tstep=num.ones(n,num.int)
+        last_tstep=(time_step_count)*num.ones(n,num.int)
 
         h = 20        
         w = 2
         u = 10
         v = -10
-        gauge_depth=h*num.ones(n,num.Float)
-        ha=w*num.ones((n,time_step_count),num.Float)
-        ua=u*num.ones((n,time_step_count),num.Float)
-        va=v*num.ones((n,time_step_count),num.Float)
+        gauge_depth=h*num.ones(n,num.float)
+        ha=w*num.ones((n,time_step_count),num.float)
+        ua=u*num.ones((n,time_step_count),num.float)
+        va=v*num.ones((n,time_step_count),num.float)
         base_name, files = self.write_mux2(lat_long_points,
                                            time_step_count, time_step,
                                            first_tstep, last_tstep,
@@ -8538,7 +8532,7 @@ ValueError: matrices are not aligned for copy
         # Evolve
         finaltime=time_step*(time_step_count-1)
         yieldstep=time_step
-        temp_fbound=num.zeros(int(finaltime/yieldstep)+1,num.Float)
+        temp_fbound=num.zeros(int(finaltime/yieldstep)+1,num.float)
 
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -8564,7 +8558,7 @@ ValueError: matrices are not aligned for copy
         Br = Reflective_boundary(domain_drchlt)
 
         domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
-        temp_drchlt=num.zeros(int(finaltime/yieldstep)+1,num.Float)
+        temp_drchlt=num.zeros(int(finaltime/yieldstep)+1,num.float)
 
         for i, t in enumerate(domain_drchlt.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -8616,17 +8610,17 @@ ValueError: matrices are not aligned for copy
         time_step = 2
         lat_long_points = bounding_polygon[0:3]
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.Int)
-        last_tstep=(time_step_count)*num.ones(n,num.Int)
+        first_tstep=num.ones(n,num.int)
+        last_tstep=(time_step_count)*num.ones(n,num.int)
 
         h = 20        
         w = 2
         u = 10
         v = -10
-        gauge_depth=h*num.ones(n,num.Float)
-        ha=w*num.ones((n,time_step_count),num.Float)
-        ua=u*num.ones((n,time_step_count),num.Float)
-        va=v*num.ones((n,time_step_count),num.Float)
+        gauge_depth=h*num.ones(n,num.float)
+        ha=w*num.ones((n,time_step_count),num.float)
+        ua=u*num.ones((n,time_step_count),num.float)
+        va=v*num.ones((n,time_step_count),num.float)
         base_name, files = self.write_mux2(lat_long_points,
                                            time_step_count, time_step,
                                            first_tstep, last_tstep,
@@ -8688,7 +8682,7 @@ ValueError: matrices are not aligned for copy
         data_finaltime = time_step*(time_step_count-1)
         finaltime = data_finaltime + 10 # Let model time exceed available data
         yieldstep = time_step
-        temp_fbound=num.zeros(int(finaltime/yieldstep)+1, num.Float)
+        temp_fbound=num.zeros(int(finaltime/yieldstep)+1, num.float)
 
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -8713,7 +8707,7 @@ ValueError: matrices are not aligned for copy
         Br = Reflective_boundary(domain_drchlt)
 
         domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
-        temp_drchlt=num.zeros(int(finaltime/yieldstep)+1,num.Float)
+        temp_drchlt=num.zeros(int(finaltime/yieldstep)+1,num.float)
 
         for i, t in enumerate(domain_drchlt.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -8763,17 +8757,17 @@ ValueError: matrices are not aligned for copy
         time_step = 2
         lat_long_points = bounding_polygon[0:3]
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.Int)
-        last_tstep=(time_step_count)*num.ones(n,num.Int)
+        first_tstep=num.ones(n,num.int)
+        last_tstep=(time_step_count)*num.ones(n,num.int)
 
         h = 20        
         w = 2
         u = 10
         v = -10
-        gauge_depth=h*num.ones(n,num.Float)
-        ha=w*num.ones((n,time_step_count),num.Float)
-        ua=u*num.ones((n,time_step_count),num.Float)
-        va=v*num.ones((n,time_step_count),num.Float)
+        gauge_depth=h*num.ones(n,num.float)
+        ha=w*num.ones((n,time_step_count),num.float)
+        ua=u*num.ones((n,time_step_count),num.float)
+        va=v*num.ones((n,time_step_count),num.float)
         base_name, files = self.write_mux2(lat_long_points,
                                            time_step_count, time_step,
                                            first_tstep, last_tstep,
@@ -8838,7 +8832,7 @@ ValueError: matrices are not aligned for copy
         data_finaltime = time_step*(time_step_count-1)
         finaltime = data_finaltime + 10 # Let model time exceed available data
         yieldstep = time_step
-        temp_fbound=num.zeros(int(finaltime/yieldstep)+1, num.Float)
+        temp_fbound=num.zeros(int(finaltime/yieldstep)+1, num.float)
 
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -8882,12 +8876,12 @@ ValueError: matrices are not aligned for copy
         lat_long_points.insert(0,bounding_polygon[len(bounding_polygon)-1])
         lat_long_points.insert(0,[6.0,97.01])
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.Int)
-        last_tstep=(time_step_count)*num.ones(n,num.Int)
-        gauge_depth=20*num.ones(n,num.Float)
-        ha=2*num.ones((n,time_step_count),num.Float)
-        ua=10*num.ones((n,time_step_count),num.Float)
-        va=-10*num.ones((n,time_step_count),num.Float)
+        first_tstep=num.ones(n,num.int)
+        last_tstep=(time_step_count)*num.ones(n,num.int)
+        gauge_depth=20*num.ones(n,num.float)
+        ha=2*num.ones((n,time_step_count),num.float)
+        ua=10*num.ones((n,time_step_count),num.float)
+        va=-10*num.ones((n,time_step_count),num.float)
         base_name, files = self.write_mux2(lat_long_points,
                                            time_step_count,
                                            time_step,
@@ -8929,7 +8923,7 @@ ValueError: matrices are not aligned for copy
         domain_fbound.set_boundary({'ocean': Bf,'otherocean': Br})
         finaltime=time_step*(time_step_count-1)
         yieldstep=time_step
-        temp_fbound=num.zeros(int(finaltime/yieldstep)+1,num.Float)
+        temp_fbound=num.zeros(int(finaltime/yieldstep)+1,num.float)
         
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -8941,7 +8935,7 @@ ValueError: matrices are not aligned for copy
         Br = Reflective_boundary(domain_drchlt)
         Bd = Dirichlet_boundary([2.0+tide,220+10*tide,-220-10*tide])
         domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
-        temp_drchlt=num.zeros(int(finaltime/yieldstep)+1,num.Float)
+        temp_drchlt=num.zeros(int(finaltime/yieldstep)+1,num.float)
 
         for i, t in enumerate(domain_drchlt.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -8988,12 +8982,12 @@ ValueError: matrices are not aligned for copy
         time_step_count = 50
         time_step = 2
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.Int)
-        last_tstep=(time_step_count)*num.ones(n,num.Int)
-        gauge_depth=20*num.ones(n,num.Float)
-        ha=2*num.ones((n,time_step_count),num.Float)
-        ua=10*num.ones((n,time_step_count),num.Float)
-        va=-10*num.ones((n,time_step_count),num.Float)
+        first_tstep=num.ones(n,num.int)
+        last_tstep=(time_step_count)*num.ones(n,num.int)
+        gauge_depth=20*num.ones(n,num.float)
+        ha=2*num.ones((n,time_step_count),num.float)
+        ua=10*num.ones((n,time_step_count),num.float)
+        va=-10*num.ones((n,time_step_count),num.float)
         base_name, files = self.write_mux2(lat_long_points,
                                            time_step_count,
                                            time_step,
@@ -9079,7 +9073,7 @@ ValueError: matrices are not aligned for copy
         domain_fbound.set_boundary({'ocean': Bf,'otherocean': Br})
         finaltime=time_step*(time_step_count-1)
         yieldstep=time_step
-        temp_fbound=num.zeros(int(finaltime/yieldstep)+1,num.Float)
+        temp_fbound=num.zeros(int(finaltime/yieldstep)+1,num.float)
     
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -9092,7 +9086,7 @@ ValueError: matrices are not aligned for copy
         Br = Reflective_boundary(domain_drchlt)
         Bd = Dirichlet_boundary([2.0+tide,220+10*tide,-220-10*tide])
         domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
-        temp_drchlt=num.zeros(int(finaltime/yieldstep)+1,num.Float)
+        temp_drchlt=num.zeros(int(finaltime/yieldstep)+1,num.float)
         
         for i, t in enumerate(domain_drchlt.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -9154,14 +9148,14 @@ ValueError: matrices are not aligned for copy
         times_ref = num.arange(0, time_step_count*time_step, time_step)
         
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.Int)
-        last_tstep=(time_step_count)*num.ones(n,num.Int)
+        first_tstep=num.ones(n,num.int)
+        last_tstep=(time_step_count)*num.ones(n,num.int)
         
-        gauge_depth=20*num.ones(n,num.Float)
+        gauge_depth=20*num.ones(n,num.float)
         
-        ha1=num.ones((n,time_step_count),num.Float)
-        ua1=3.*num.ones((n,time_step_count),num.Float)
-        va1=2.*num.ones((n,time_step_count),num.Float)
+        ha1=num.ones((n,time_step_count),num.float)
+        ua1=3.*num.ones((n,time_step_count),num.float)
+        va1=2.*num.ones((n,time_step_count),num.float)
         for i in range(n):
             ha1[i]=num.sin(times_ref)
         
@@ -9276,7 +9270,7 @@ ValueError: matrices are not aligned for copy
         domain_fbound.set_boundary({'ocean': Bf,'otherocean': Br})
         finaltime=time_step*(time_step_count-1)
         yieldstep=time_step
-        temp_fbound=num.zeros(int(finaltime/yieldstep)+1,num.Float)
+        temp_fbound=num.zeros(int(finaltime/yieldstep)+1,num.float)
     
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -9291,7 +9285,7 @@ ValueError: matrices are not aligned for copy
                          f=lambda t: [num.sin(t)+tide,3.*(20.+num.sin(t)+tide),2.*(20.+num.sin(t)+tide)])
         domain_time.set_boundary({'ocean': Bw,'otherocean': Br})
         
-        temp_time=num.zeros(int(finaltime/yieldstep)+1,num.Float)
+        temp_time=num.zeros(int(finaltime/yieldstep)+1,num.float)
         for i, t in enumerate(domain_time.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
                                                    skip_initial_step=False)):
@@ -9350,14 +9344,14 @@ ValueError: matrices are not aligned for copy
         times_ref = num.arange(0, time_step_count*time_step, time_step)
         
         n=len(lat_long_points)
-        first_tstep=num.ones(n,num.Int)
-        last_tstep=(time_step_count)*num.ones(n,num.Int)
+        first_tstep=num.ones(n,num.int)
+        last_tstep=(time_step_count)*num.ones(n,num.int)
         
-        gauge_depth=20*num.ones(n,num.Float)
+        gauge_depth=20*num.ones(n,num.float)
         
-        ha1=num.ones((n,time_step_count),num.Float)
-        ua1=3.*num.ones((n,time_step_count),num.Float)
-        va1=2.*num.ones((n,time_step_count),num.Float)
+        ha1=num.ones((n,time_step_count),num.float)
+        ua1=3.*num.ones((n,time_step_count),num.float)
+        va1=2.*num.ones((n,time_step_count),num.float)
         for i in range(n):
             ha1[i]=num.sin(times_ref)
         
@@ -10427,7 +10421,7 @@ ValueError: matrices are not aligned for copy
         sww = Write_sww()
         sww.store_header(outfile, times, number_of_volumes,
                          number_of_points, description='fully sick testing',
-                         verbose=self.verbose,sww_precision=num.Float)
+                         verbose=self.verbose,sww_precision=netcdf_float)
         sww.store_triangulation(outfile, points_utm, volumes,
                                 elevation,  new_origin=new_origin,
                                 verbose=self.verbose)       
@@ -10459,7 +10453,7 @@ ValueError: matrices are not aligned for copy
         sww = Write_sww()
         sww.store_header(outfile, times, number_of_volumes,
                          number_of_points, description='fully sick testing',
-                         verbose=self.verbose,sww_precision=num.Float)
+                         verbose=self.verbose,sww_precision=netcdf_float)
         sww.store_triangulation(outfile, points_utm, volumes,
                                 elevation,  new_origin=new_origin,
                                 verbose=self.verbose)
@@ -10495,7 +10489,7 @@ ValueError: matrices are not aligned for copy
         sww = Write_sww()
         sww.store_header(outfile, times, number_of_volumes,
                          number_of_points, description='fully sick testing',
-                         verbose=self.verbose,sww_precision=num.Float)
+                         verbose=self.verbose,sww_precision=netcdf_float)
         sww.store_triangulation(outfile, points_utm, volumes,
                                 elevation,  new_origin=new_origin,
                                 verbose=self.verbose)
@@ -10534,7 +10528,7 @@ ValueError: matrices are not aligned for copy
         sww = Write_sww()
         sww.store_header(outfile, times, number_of_volumes,
                          number_of_points, description='fully sick testing',
-                         verbose=self.verbose,sww_precision=num.Float)
+                         verbose=self.verbose,sww_precision=netcdf_float)
         sww.store_triangulation(outfile, points_utm, volumes,
                                 elevation,  new_origin=new_origin,
                                 points_georeference=points_georeference,
@@ -10570,7 +10564,7 @@ ValueError: matrices are not aligned for copy
         sww = Write_sww()
         sww.store_header(outfile, times, number_of_volumes,
                          number_of_points, description='fully sick testing',
-                         verbose=self.verbose,sww_precision=num.Float)
+                         verbose=self.verbose,sww_precision=netcdf_float)
         sww.store_triangulation(outfile, points_utm, volumes,
                                 elevation,  new_origin=new_origin,
                                 points_georeference=points_georeference,
@@ -10938,7 +10932,7 @@ ValueError: matrices are not aligned for copy
         assert num.allclose(location[0], 65+E)
 
         # Check runup restricted to a polygon
-        p = num.array([[50,1], [99,1], [99,49], [50,49]], num.Int) + num.array([E, N], num.Int)      #array default#
+        p = num.array([[50,1], [99,1], [99,49], [50,49]], num.int) + num.array([E, N], num.int)      #array default#
 
         runup = get_maximum_inundation_elevation(swwfile, polygon=p)
         location = get_maximum_inundation_location(swwfile, polygon=p)
@@ -11681,8 +11675,8 @@ ValueError: matrices are not aligned for copy
         shutil.rmtree(work_dir)
             
 #-------------------------------------------------------------
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Data_Manager,'test')
     
     if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':

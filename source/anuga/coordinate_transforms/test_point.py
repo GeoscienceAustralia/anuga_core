@@ -116,19 +116,10 @@ class TestCase(unittest.TestCase):
                         'Computed Bearing to Kobenhavn: %d, Should have been: %d' \
                         %(self.RSISE.BearingTo(self.Kobenhavn), B))
 
-
-
 #-------------------------------------------------------------
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     mysuite = unittest.makeSuite(TestCase,'test')
     runner = unittest.TextTestRunner()
     runner.run(mysuite)
-
-
-
-
-
-
-
 

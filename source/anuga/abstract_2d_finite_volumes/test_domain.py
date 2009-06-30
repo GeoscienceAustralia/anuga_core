@@ -6,7 +6,7 @@ from math import sqrt
 from anuga.abstract_2d_finite_volumes.domain import *
 from anuga.config import epsilon
 
-import Numeric as num
+import numpy as num
 
 
 def add_to_verts(tag, elements, domain):
@@ -64,7 +64,7 @@ class Test_Domain(unittest.TestCase):
             assert domain.quantities.has_key(name)
 
 
-        assert domain.get_conserved_quantities(0, edge=1) == 0.
+        assert num.alltrue(domain.get_conserved_quantities(0, edge=1) == 0.)
 
 
     def test_conserved_quantities(self):
@@ -344,8 +344,8 @@ class Test_Domain(unittest.TestCase):
                         other_quantities = ['elevation', 'friction', 'depth'])
 
 
-        A = num.array([[1,2,3], [5,5,-5], [0,0,9], [-6,3,3]], num.Float)
-        B = num.array([[2,4,4], [3,2,1], [6,-3,4], [4,5,-1]], num.Float)
+        A = num.array([[1,2,3], [5,5,-5], [0,0,9], [-6,3,3]], num.float)
+        B = num.array([[2,4,4], [3,2,1], [6,-3,4], [4,5,-1]], num.float)
         
         #print A
         #print B
@@ -548,8 +548,8 @@ class Test_Domain(unittest.TestCase):
         domain.set_quantity('stage', [[1,2,3], [5,5,5],
                                       [0,0,9], [-6, 3, 3]])
 
-        assert num.allclose(domain.quantities['stage'].centroid_values,
-                            [2,5,3,0])
+        assert num.allclose( domain.quantities['stage'].centroid_values,
+                             [2,5,3,0] )
 
         domain.set_quantity('xmomentum', [[1,1,1], [2,2,2],
                                           [3,3,3], [4, 4, 4]])
@@ -560,7 +560,7 @@ class Test_Domain(unittest.TestCase):
 
         domain.distribute_to_vertices_and_edges()
 
-        # First order extrapolation
+        #First order extrapolation
         assert num.allclose( domain.quantities['stage'].vertex_values,
                              [[ 2.,  2.,  2.],
                               [ 5.,  5.,  5.],
@@ -613,7 +613,7 @@ class Test_Domain(unittest.TestCase):
         domain.update_conserved_quantities()
 
         sem = num.array([1.,1.,1.,1.])/num.array([1, 2, 3, 4])
-        denom = num.ones(4, num.Float)-domain.timestep*sem
+        denom = num.ones(4, num.float) - domain.timestep*sem
 
 #        x = array([1, 2, 3, 4]) + array( [.4,.3,.2,.1] )
 #        x /= denom
@@ -668,7 +668,7 @@ class Test_Domain(unittest.TestCase):
 
         domain.distribute_to_vertices_and_edges()
 
-        # First order extrapolation
+        #First order extrapolation
         assert num.allclose( domain.quantities['stage'].vertex_values,
                              [[ 2.,  2.,  2.],
                               [ 5.,  5.,  5.],
@@ -765,13 +765,22 @@ class Test_Domain(unittest.TestCase):
         domain.set_region('bottom', 'friction', 0.09)
         
         #print domain.quantities['friction'].get_values()
+        msg = ("domain.quantities['friction'].get_values()=\n%s\n"
+               'should equal\n'
+               '[[ 0.09,  0.09,  0.09],\n'
+               ' [ 0.09,  0.09,  0.09],\n'
+               ' [ 0.07,  0.07,  0.07],\n'
+               ' [ 0.07,  0.07,  0.07],\n'
+               ' [ 1.0,  1.0,  1.0],\n'
+               ' [ 1.0,  1.0,  1.0]]'
+               % str(domain.quantities['friction'].get_values()))
         assert num.allclose(domain.quantities['friction'].get_values(),
                             [[ 0.09,  0.09,  0.09],
                              [ 0.09,  0.09,  0.09],
                              [ 0.07,  0.07,  0.07],
                              [ 0.07,  0.07,  0.07],
                              [ 1.0,  1.0,  1.0],
-                             [ 1.0,  1.0,  1.0]])
+                             [ 1.0,  1.0,  1.0]]), msg
         
         domain.set_region([set_bottom_friction, set_top_friction])
         #print domain.quantities['friction'].get_values()
@@ -793,7 +802,6 @@ class Test_Domain(unittest.TestCase):
                              [ 11.0,  11.0,  11.0],
                              [ 11.0,  11.0,  11.0]])
                              
-
     def test_rectangular_periodic_and_ghosts(self):
 
         from mesh_factory import rectangular_periodic
@@ -908,6 +916,7 @@ class Test_Domain(unittest.TestCase):
         
 
 #-------------------------------------------------------------
+
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Domain,'test')
     runner = unittest.TextTestRunner()

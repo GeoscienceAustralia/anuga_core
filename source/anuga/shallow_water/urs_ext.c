@@ -4,7 +4,7 @@ gcc -shared urs_ext.o  -o urs_ext.so
 */
 
 #include "Python.h"
-#include "Numeric/arrayobject.h"
+#include "numpy/arrayobject.h"
 #include "structure.h"
 #include "math.h"
 #include <stdio.h>
@@ -12,6 +12,8 @@ gcc -shared urs_ext.o  -o urs_ext.so
 #include <errno.h>
 #include <float.h>
 #include <time.h>
+
+#include "numpy_shim.h"
 
 #define MAX_FILE_NAME_LENGTH 128
 #define NODATA 99.0
@@ -755,7 +757,7 @@ PyObject *read_mux2(PyObject *self, PyObject *args)
     dimensions[0] = number_of_selected_stations;
     dimensions[1] = num_ts + POFFSET;
     
-    pydata = (PyArrayObject*) PyArray_FromDims(2, dimensions, PyArray_DOUBLE);
+    pydata = (PyArrayObject*) anuga_FromDims(2, dimensions, PyArray_DOUBLE);
     if(pydata == NULL)
     {
         PyErr_SetString(PyExc_ValueError, 

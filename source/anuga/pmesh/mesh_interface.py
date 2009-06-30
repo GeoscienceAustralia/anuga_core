@@ -2,7 +2,7 @@
 from anuga.coordinate_transforms.geo_reference import Geo_reference,DEFAULT_ZONE
 from anuga.utilities.polygon import  point_in_polygon ,populate_polygon
 from anuga.utilities.numerical_tools import ensure_numeric
-import Numeric as num
+import numpy as num
 from anuga.utilities.polygon import inside_polygon
 
 
@@ -158,7 +158,7 @@ def _create_mesh_from_regions(bounding_polygon,
     #(DSG) If polygons were classes caching would break in places.
 
     # Simple check
-    bounding_polygon = ensure_numeric(bounding_polygon, num.Float)
+    bounding_polygon = ensure_numeric(bounding_polygon, num.float)
     msg = 'Bounding polygon must be a list of points or an Nx2 array'
     assert len(bounding_polygon.shape) == 2, msg
     assert bounding_polygon.shape[1] == 2, msg    

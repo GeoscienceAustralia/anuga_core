@@ -4,7 +4,7 @@ import unittest
 from math import sqrt
 
 from sparse import *
-import Numeric as num
+import numpy as num
 
 
 class Test_Sparse(unittest.TestCase):
@@ -85,7 +85,7 @@ class Test_Sparse(unittest.TestCase):
         assert num.allclose(u, [6,14,4])
 
         #Right hand side column
-        v = num.array([[2,4],[3,4],[4,4]], num.Int)      #array default#
+        v = num.array([[2,4],[3,4],[4,4]])
 
         u = A*v[:,0]
         assert num.allclose(u, [6,14,4])
@@ -103,7 +103,7 @@ class Test_Sparse(unittest.TestCase):
         A[2,2] = 1
 
         #Right hand side matrix
-        v = num.array([[2,4],[3,4],[4,4]], num.Int)      #array default#
+        v = num.array([[2,4],[3,4],[4,4]])
 
         u = A*v
         assert num.allclose(u, [[6,12], [14,16], [4,4]])
@@ -198,9 +198,8 @@ class Test_Sparse(unittest.TestCase):
 
         assert num.allclose(B*C2, [[15.0, 30.0],[10.0, 20.0],[8.0, 16.0],[0.0, 0.0]])
 
+################################################################################
 
-
-#-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Sparse, 'test')
     runner = unittest.TextTestRunner()

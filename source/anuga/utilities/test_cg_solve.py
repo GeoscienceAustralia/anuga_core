@@ -5,7 +5,7 @@ class TestError(exceptions.Exception): pass
 import unittest
 
 
-import Numeric as num
+import numpy as num
 from anuga.utilities.cg_solve import *
 from anuga.utilities.cg_solve import _conjugate_gradient
 from anuga.utilities.sparse import Sparse, Sparse_CSR
@@ -67,7 +67,7 @@ class Test_CG_Solve(unittest.TestCase):
             if i < n-1 :
                 A[i,i+1] = -0.5
 
-        xe = num.ones( (n,), num.Float)
+        xe = num.ones( (n,), num.float)
 
         b  = A*xe
         x = conjugate_gradient(A,b,b,tol=1.0e-5,iprint=1)
@@ -95,7 +95,7 @@ class Test_CG_Solve(unittest.TestCase):
                 if j < m-1 :
                     A[I,I+1] = -1.0
 
-        xe = num.ones( (n*m,), num.Float)
+        xe = num.ones( (n*m,), num.float)
 
         b  = A*xe
         x = conjugate_gradient(A,b,b,iprint=0)
@@ -124,7 +124,7 @@ class Test_CG_Solve(unittest.TestCase):
                 if j < m-1 :
                     A[I,I+1] = -1.0
 
-        xe = num.ones( (n*m,), num.Float)
+        xe = num.ones( (n*m,), num.float)
 
         # Convert to csr format
         #print 'start covert'
@@ -157,7 +157,7 @@ class Test_CG_Solve(unittest.TestCase):
                 if j < m-1 :
                     A[I,I+1] = -1.0
 
-        xe = num.ones( (n*m,), num.Float)
+        xe = num.ones( (n*m,), num.float)
 
         b  = A*xe
         x = conjugate_gradient(A,b)
@@ -203,9 +203,10 @@ class Test_CG_Solve(unittest.TestCase):
 
         assert num.allclose(x,xe)
 
-#-------------------------------------------------------------
+################################################################################
+
 if __name__ == "__main__":
-     suite = unittest.makeSuite(Test_CG_Solve,'test')
+     suite = unittest.makeSuite(Test_CG_Solve, 'test')
      #runner = unittest.TextTestRunner(verbosity=2)
      runner = unittest.TextTestRunner(verbosity=1)
      runner.run(suite)

@@ -34,7 +34,7 @@ from anuga.geospatial_data.geospatial_data import Geospatial_data, \
      ensure_absolute
 from anuga.fit_interpolate.search_functions import set_last_triangle
 
-import Numeric as num
+import numpy as num
 
 
 # tests fail if 2 is used
@@ -66,12 +66,12 @@ class FitInterpolate:
         Inputs:
 
           vertex_coordinates: List of coordinate pairs [xi, eta] of
-	      points constituting a mesh (or an m x 2 Numeric array or
+	      points constituting a mesh (or an m x 2 numeric array or
               a geospatial object)
               Points may appear multiple times
               (e.g. if vertices have discontinuities)
 
-          triangles: List of 3-tuples (or a Numeric array) of
+          triangles: List of 3-tuples (or a numeric array) of
               integers representing indices of all vertices in the mesh.
 
         mesh: A mesh instance describing the mesh.
@@ -95,8 +95,8 @@ class FitInterpolate:
                 # Fixme (DSG) Throw errors if triangles or vertex_coordinates
                 # are None
             
-                #Convert input to Numeric arrays
-                triangles = ensure_numeric(triangles, num.Int)
+                #Convert input to numeric arrays
+                triangles = ensure_numeric(triangles, num.int)
                 vertex_coordinates = ensure_absolute(vertex_coordinates,
                                                  geo_reference = mesh_origin)
 

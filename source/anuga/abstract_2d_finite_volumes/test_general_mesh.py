@@ -9,7 +9,7 @@ from anuga.config import epsilon
 from general_mesh import General_mesh
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 
-import Numeric as num
+import numpy as num
 
 
 class Test_General_Mesh(unittest.TestCase):
@@ -52,32 +52,47 @@ class Test_General_Mesh(unittest.TestCase):
         d = [0.0, 4.0]
         e = [2.0, 2.0]
         f = [4.0, 0.0]
-
         nodes = num.array([a, b, c, d, e, f])
 
         nodes_absolute = geo.get_absolute(nodes)
         
-        #bac, bce, ecf, dbe, daf, dae
-        triangles = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]], num.Int)
+        #                        bac,     bce,     ecf,     dbe
+        triangles = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]], num.int)
 
-        domain = General_mesh(nodes, triangles,
-                       geo_reference = geo)
-        verts = domain.get_vertex_coordinates(triangle_id=0)        
-        self.assert_(num.allclose(num.array([b,a,c]), verts)) 
+        domain = General_mesh(nodes, triangles, geo_reference=geo)
+
+        verts = domain.get_vertex_coordinates(triangle_id=0)    # bac
+        msg = ("num.array([b,a,c])=\n%s\nshould be close to 'verts'=\n%s"
+               % (str(num.array([b,a,c])), str(verts)))
+        self.failUnless(num.allclose(num.array([b,a,c]), verts), msg)
+
         verts = domain.get_vertex_coordinates(triangle_id=0)       
-        self.assert_(num.allclose(num.array([b,a,c]), verts))
+        msg = ("num.array([b,a,c])=\n%s\nshould be close to 'verts'=\n%s"
+               % (str(num.array([b,a,c])), str(verts)))
+        self.assert_(num.allclose(num.array([b,a,c]), verts), msg)
+
+        verts = domain.get_vertex_coordinates(triangle_id=0, absolute=True)
+        msg = ("num.array([...])=\n%s\nshould be close to 'verts'=\n%s"
+               % (str(num.array([nodes_absolute[1],
+                                 nodes_absolute[0],
+                                 nodes_absolute[2]])),
+                  str(verts)))
+        self.assert_(num.allclose(num.array([nodes_absolute[1],
+                                             nodes_absolute[0],
+                                             nodes_absolute[2]]),
+                                  verts), msg)
+
         verts = domain.get_vertex_coordinates(triangle_id=0,
                                               absolute=True)       
+        msg = ("num.array([...])=\n%s\nshould be close to 'verts'=\n%s"
+               % (str(num.array([nodes_absolute[1],
+                                 nodes_absolute[0],
+                                 nodes_absolute[2]])),
+                  str(verts)))
         self.assert_(num.allclose(num.array([nodes_absolute[1],
-                                     nodes_absolute[0],
-                                     nodes_absolute[2]]), verts))
-        verts = domain.get_vertex_coordinates(triangle_id=0,
-                                              absolute=True)       
-        self.assert_(num.allclose(num.array([nodes_absolute[1],
-                                     nodes_absolute[0],
-                                     nodes_absolute[2]]), verts))
-        
-        
+                                             nodes_absolute[0],
+                                             nodes_absolute[2]]),
+                                  verts), msg)
 
     def test_get_vertex_coordinates_triangle_id(self):
         """test_get_vertex_coordinates_triangle_id
@@ -116,10 +131,16 @@ class Test_General_Mesh(unittest.TestCase):
         nodes, triangles, _ = rectangular(1, 3)
         domain = General_mesh(nodes, triangles)
 
-        value = [7]
-        assert num.allclose(domain.get_triangles(), triangles)
+        msg = ("domain.get_triangles()=\n%s\nshould be the same as "
+               "'triangles'=\n%s"
+               % (str(domain.get_triangles()), str(triangles)))
+        assert num.allclose(domain.get_triangles(), triangles), msg
+        msg = ("domain.get_triangles([0,4])=\n%s\nshould be the same as "
+               "'[triangles[0], triangles[4]]' which is\n%s"
+               % (str(domain.get_triangles([0,4])),
+                  str([triangles[0], triangles[4]])))
         assert num.allclose(domain.get_triangles([0,4]),
-                        [triangles[0], triangles[4]])
+                            [triangles[0], triangles[4]]), msg
         
 
     def test_vertex_value_indices(self):
@@ -270,19 +291,29 @@ class Test_General_Mesh(unittest.TestCase):
 
         nodes_absolute = geo.get_absolute(nodes)
         
-        #bac, bce, ecf, dbe, daf, dae
+        #                        bac,     bce,     ecf,     dbe
         triangles = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
 
-        domain = General_mesh(nodes, triangles,
-                       geo_reference = geo)
+        domain = General_mesh(nodes, triangles, geo_reference = geo)
         node = domain.get_node(2)        
-        self.assertEqual(c, node)
+        msg = ('\nc=%s\nnode=%s' % (str(c), str(node)))
+        self.failUnless(num.alltrue(c == node), msg)
+
+        # repeat get_node(), see if result same
+        node = domain.get_node(2)        
+        msg = ('\nc=%s\nnode=%s' % (str(c), str(node)))
+        self.failUnless(num.alltrue(c == node), msg)
         
         node = domain.get_node(2, absolute=True)     
-        self.assertEqual(nodes_absolute[2], node)
-        
+        msg = ('\nnodes_absolute[2]=%s\nnode=%s'
+               % (str(nodes_absolute[2]), str(node)))
+        self.failUnless(num.alltrue(nodes_absolute[2] == node), msg)
+       
+        # repeat get_node(2, absolute=True), see if result same
         node = domain.get_node(2, absolute=True)     
-        self.assertEqual(nodes_absolute[2], node)
+        msg = ('\nnodes_absolute[2]=%s\nnode=%s'
+               % (str(nodes_absolute[2]), str(node)))
+        self.failUnless(num.alltrue(nodes_absolute[2] == node), msg)
         
 
     def test_assert_index_in_nodes(self):
@@ -320,13 +351,11 @@ class Test_General_Mesh(unittest.TestCase):
         triangles = num.array([[1,10,2], [1,2,4], [4,2,5], [3,1,4]])
         self.failUnlessRaises(AssertionError, General_mesh,
                               nodes, triangles, geo_reference=geo)
-        
- 
 
-#-------------------------------------------------------------
+################################################################################
+
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_General_Mesh,'test') 
-    #suite = unittest.makeSuite(Test_General_Mesh,'test_get_node')    
+    suite = unittest.makeSuite(Test_General_Mesh, 'test') 
     runner = unittest.TextTestRunner()
     runner.run(suite)
 

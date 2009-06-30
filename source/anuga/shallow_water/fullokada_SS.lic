@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
-
+<?xml version='1.0' encoding='iso-8859-1'?>
 <ga_license_file>
   <metadata>
     <author>Herve Damlamian</author>
@@ -7,7 +6,7 @@
   
   <datafile>
     <filename>fullokada_SS.txt</filename>
-    <checksum>-979673029</checksum>
+    <checksum>3315294267</checksum>
     <publishable>Yes</publishable>
     <accountable>Jane Sexton</accountable>
     <source>Output from fortran code (okada.f) supplied through the publication:

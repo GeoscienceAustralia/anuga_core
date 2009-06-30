@@ -10,9 +10,10 @@
 // Steve Roberts, ANU 2004
 	
 #include "Python.h"
-#include "Numeric/arrayobject.h"
+#include "numpy/arrayobject.h"
 #include "math.h"
 #include "stdio.h"
+#include "numpy_shim.h"
 
 //Matrix-vector routine
 int _csr_mv(int M,
@@ -135,7 +136,7 @@ PyObject *csr_mv(PyObject *self, PyObject *args) {
   
     //Allocate space for return vectors y (don't DECREF) 
     dimensions[0] = M;
-    y = (PyArrayObject *) PyArray_FromDims(1, dimensions, PyArray_DOUBLE);
+    y = (PyArrayObject *) anuga_FromDims(1, dimensions, PyArray_DOUBLE);
   
     err = _csr_mv(M,
 		  (double*) data -> data, 
@@ -158,7 +159,7 @@ PyObject *csr_mv(PyObject *self, PyObject *args) {
     //Allocate space for return matrix y (don't DECREF) 
     dimensions[0] = M;                   //Number of rows in sparse matrix  
     dimensions[1] = columns;
-    y = (PyArrayObject *) PyArray_FromDims(2, dimensions, PyArray_DOUBLE);
+    y = (PyArrayObject *) anuga_FromDims(2, dimensions, PyArray_DOUBLE);
     
     err = _csr_mm(M, columns,
 		  (double*) data -> data, 

@@ -6,7 +6,7 @@ import unittest
 import ermapper_grids
 from os import remove
 
-import Numeric as num
+import numpy as num
 
 
 class Test_ERMapper(unittest.TestCase):
@@ -44,10 +44,10 @@ class Test_ERMapper(unittest.TestCase):
         original_grid = num.array([0.0, 0.1, 1.0, 2.0, 3.0, 4.0])
 
         # Write test data
-        ermapper_grids.write_ermapper_data(original_grid, filename, num.Float64)
+        ermapper_grids.write_ermapper_data(original_grid, filename, num.float64)
 
         # Read in the test data
-        new_grid = ermapper_grids.read_ermapper_data(filename, num.Float64)
+        new_grid = ermapper_grids.read_ermapper_data(filename, num.float64)
 
         # Check that the test data that has been read in matches the original data
         assert num.allclose(original_grid, new_grid)
@@ -182,11 +182,8 @@ class Test_ERMapper(unittest.TestCase):
 
        
 #-------------------------------------------------------------
+
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_ERMapper,'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
-
-
-
-

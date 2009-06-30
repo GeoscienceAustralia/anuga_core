@@ -50,7 +50,7 @@ if os.name in ['nt', 'dos', 'win32', 'what else?']:
 else:
   unix = True
 
-import Numeric as num
+import numpy as num
 
 
 cache_dir = '.python_cache'
@@ -1393,7 +1393,7 @@ def myhash(T, ids=None):
       I = T.items()
       I.sort()    
       val = myhash(I, ids)
-  elif type(T) == num.ArrayType:
+  elif isinstance(T, num.ndarray):
       T = num.array(T) # Ensure array is contiguous
 
       # Use mean value for efficiency
@@ -1464,7 +1464,7 @@ def compare(A, B, ids=None):
             
             identical = compare(a, b, ids)
             
-    elif type(A) == num.ArrayType:
+    elif isinstance(A, num.ndarray):
         # Use element by element comparison
         identical = num.alltrue(A==B)
 
@@ -2438,8 +2438,8 @@ def mkargstr(args, textwidth, argstr = '', level=0):
     if type(args) == types.StringType:
       argstr = argstr + "'"+str(args)+"'"
     else:
-      # Truncate large Numeric arrays before using str()
-      if type(args) == num.ArrayType:
+      # Truncate large numeric arrays before using str()
+      if isinstance(args, num.ndarray):
 #        if len(args.flat) > textwidth:  
 #        Changed by Duncan and Nick 21/2/07 .flat has problems with 
 #        non-contigous arrays and ravel is equal to .flat except it 

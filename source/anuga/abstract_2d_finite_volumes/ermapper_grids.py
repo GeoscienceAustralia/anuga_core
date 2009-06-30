@@ -1,20 +1,20 @@
 #!/usr/bin/env python
 
 # from os import open, write, read
-import Numeric as num
+import numpy as num
 
-celltype_map = {'IEEE4ByteReal': num.Float32, 'IEEE8ByteReal': num.Float64}
+celltype_map = {'IEEE4ByteReal': num.float32, 'IEEE8ByteReal': num.float64}
 
 
 def write_ermapper_grid(ofile, data, header = {}):
     """
     write_ermapper_grid(ofile, data, header = {}):
     
-    Function to write a 2D Numeric array to an ERMapper grid.  There are a series of conventions adopted within
+    Function to write a 2D numeric array to an ERMapper grid.  There are a series of conventions adopted within
     this code, specifically:
     1)  The registration coordinate for the data is the SW (or lower-left) corner of the data
     2)  The registration coordinates refer to cell centres
-    3)  The data is a 2D Numeric array with the NW-most data in element (0,0) and the SE-most data in element (N,M)
+    3)  The data is a 2D numeric array with the NW-most data in element (0,0) and the SE-most data in element (N,M)
         where N is the last line and M is the last column
     4)  There has been no testng of the use of a rotated grid.  Best to keep data in an NS orientation
     
@@ -162,7 +162,7 @@ def read_ermapper_header(ifile):
 
     return header                      
 
-def write_ermapper_data(grid, ofile, data_format = num.Float32):
+def write_ermapper_data(grid, ofile, data_format=num.float32):
 
 
     try:
@@ -192,13 +192,13 @@ def write_ermapper_data(grid, ofile, data_format = num.Float32):
     fid.close()
 
 
-def read_ermapper_data(ifile, data_format = num.Float32):
+def read_ermapper_data(ifile, data_format = num.float32):
     # open input file in a binary format and read the input string
     fid = open(ifile,'rb')
     input_string = fid.read()
     fid.close()
 
-    # convert input string to required format (Note default format is num.Float32)
+    # convert input string to required format (Note default format is num.float32)
     grid_as_float = num.fromstring(input_string,data_format)
     return grid_as_float
 

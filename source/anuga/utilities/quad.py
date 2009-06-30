@@ -183,9 +183,9 @@ class Cell(TreeNode):
                     #x = self.mesh.coordinates[point][0]
                     #y = self.mesh.coordinates[point][1]
                     node = self.mesh.get_node(point, absolute=True)
-                    print "node", node
-                    print "(" + str(node[0]) + "," + str(node[1]) + ")"
-                    raise 'point not in region: %s' %str(point)
+                    msg = ('point not in region: %s\nnode=%s'
+                           % (str(point), str(node)))
+                    raise Exception, msg
 		
 		
         #Split datastructure if requested        

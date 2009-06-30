@@ -1,5 +1,5 @@
 import unittest
-import Numeric as num
+import numpy as num
 from tsunami_okada import earthquake_tsunami,Okada_func
 
 class Test_eq(unittest.TestCase):
@@ -290,6 +290,7 @@ class Test_eq(unittest.TestCase):
         assert num.allclose(stage,tmp,atol=1.e-3)
 
 #-------------------------------------------------------------
+
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_eq,'test')
     runner = unittest.TextTestRunner()

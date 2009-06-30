@@ -7,7 +7,7 @@ import sys
 
 from anuga.utilities.system_tools import get_pathname_from_package
 from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
-import Numeric as num
+import numpy as num
 
 
 class Test_culvert_routines_pipe_1pct(unittest.TestCase):

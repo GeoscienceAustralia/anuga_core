@@ -8,7 +8,7 @@ import os
 from geo_reference import *
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 
-import Numeric as num
+import numpy as num
 
 
 class geo_referenceTestCase(unittest.TestCase):
@@ -170,7 +170,7 @@ class geo_referenceTestCase(unittest.TestCase):
         #print "4 lofl",lofl 
         #print "4 new_lofl",new_lofl
 
-        self.failUnless(type(new_lofl) == num.ArrayType, ' failed')
+        self.failUnless(isinstance(new_lofl, num.ndarray), ' failed')
         self.failUnless(type(new_lofl) == type(lofl), ' failed')
         lofl[:,0] -= x
         lofl[:,1] -= y
@@ -188,7 +188,7 @@ class geo_referenceTestCase(unittest.TestCase):
         #print "5 lofl",lofl 
         #print "5 new_lofl",new_lofl
 
-        self.failUnless(type(new_lofl) == num.ArrayType, ' failed')
+        self.failUnless(isinstance(new_lofl, num.ndarray), ' failed')
         self.failUnless(type(new_lofl) == type(lofl), ' failed')
 
 
@@ -205,7 +205,7 @@ class geo_referenceTestCase(unittest.TestCase):
         #print "lofl",lofl 
         #print "new_lofl",new_lofl
 
-        self.failUnless(type(new_lofl) == num.ArrayType, ' failed')
+        self.failUnless(isinstance(new_lofl, num.ndarray), ' failed')
         self.failUnless(type(new_lofl) == type(lofl), ' failed')
         for point,new_point in map(None,[lofl],new_lofl):
             self.failUnless(point[0]-x==new_point[0], ' failed')
@@ -228,37 +228,225 @@ class geo_referenceTestCase(unittest.TestCase):
         for point,new_point in map(None,lofl,new_lofl):
             self.failUnless(point[0]+point_x-x==new_point[0], ' failed')
             self.failUnless(point[1]+point_y-y==new_point[1], ' failed')
-      
 
-    def test_get_absolute(self):
+    def test_get_absolute_list(self):
+        # test with supplied offsets
         x = 7.0
         y = 3.0
         
-        g = Geo_reference(56,x,y)
-        lofl = [[3.0,34.0], [64.0,6.0]]
-        new_lofl = g.get_absolute(lofl)
-        #print "lofl",lofl 
-        #print "new_lofl",new_lofl
+        g = Geo_reference(56, x, y)
+        points = [[3.0,34.0], [64.0,6.0]]
+        new_points = g.get_absolute(points)
 
-        self.failUnless(type(new_lofl) == types.ListType, ' failed')
-        self.failUnless(type(new_lofl) == type(lofl), ' failed')
-        for point,new_point in map(None,lofl,new_lofl):
-            self.failUnless(point[0]+x==new_point[0], ' failed')
-            self.failUnless(point[1]+y==new_point[1], ' failed')
+        self.failUnless(isinstance(new_points, list), 'failed')
+        self.failUnless(type(new_points) == type(points), 'failed')
+        for point, new_point in map(None, points, new_points):
+            self.failUnless(point[0]+x == new_point[0], 'failed')
+            self.failUnless(point[1]+y == new_point[1], 'failed')
 
-            
+        # test with no supplied offsets
         g = Geo_reference()
-        lofl = [[3.0,34.0], [64.0,6.0]]
-        new_lofl = g.get_absolute(lofl)
-        #print "lofl",lofl 
-        #print "new_lofl",new_lofl
+        points = [[3.0,34.0], [64.0,6.0]]
+        new_points = g.get_absolute(points)
 
-        self.failUnless(type(new_lofl) == types.ListType, ' failed')
-        self.failUnless(type(new_lofl) == type(lofl), ' failed')
-        for point,new_point in map(None,lofl,new_lofl):
-            self.failUnless(point[0]==new_point[0], ' failed')
-            self.failUnless(point[1]==new_point[1], ' failed')
+        self.failUnless(isinstance(new_points, list), 'failed')
+        self.failUnless(type(new_points) == type(points), 'failed')
+        for point, new_point in map(None, points, new_points):
+            self.failUnless(point[0] == new_point[0], 'failed')
+            self.failUnless(point[1] == new_point[1], 'failed')
             
+        # test that calling get_absolute twice does the right thing
+        # first call
+        dx = 10.0
+        dy = 12.0
+        g = Geo_reference(56, dx, dy)
+        points = [[3.0,34.0], [64.0,6.0]]
+        expected_new_points = [[3.0+dx,34.0+dy], [64.0+dx,6.0+dy]]
+        new_points = g.get_absolute(points)
+
+        self.failUnless(isinstance(new_points, list), 'failed')
+        self.failUnless(type(new_points) == type(points), 'failed')
+        self.failUnless(new_points == expected_new_points, 'failed')
+
+        # and repeat from 'new_points = g.get_absolute(points)' above
+        # to see if second call with same input gives same results.
+        new_points = g.get_absolute(points)
+
+        self.failUnless(isinstance(new_points, list), 'failed')
+        self.failUnless(type(new_points) == type(points), 'failed')
+        self.failUnless(new_points == expected_new_points, 'failed')
+
+    def test_get_absolute_array(self):
+        '''Same test as test_get_absolute_list(), but with numeric arrays.'''
+
+        # test with supplied offsets
+        x = 7.0
+        y = 3.0
+        
+        g = Geo_reference(56, x, y)
+        points = num.array([[3.0,34.0], [64.0,6.0]])
+        new_points = g.get_absolute(points)
+
+        self.failUnless(isinstance(new_points, num.ndarray), 'failed')
+        self.failUnless(type(new_points) == type(points), 'failed')
+        msg = 'points=\n%s\nnew_points=\n%s' % (str(points), str(new_points))
+        for point, new_point in map(None, points, new_points):
+            self.failUnless(point[0]+x == new_point[0], msg)
+            self.failUnless(point[1]+y == new_point[1], msg)
+
+        # test with no supplied offsets
+        g = Geo_reference()
+        points = num.array([[3.0,34.0], [64.0,6.0]])
+        new_points = g.get_absolute(points)
+
+        self.failUnless(isinstance(new_points, num.ndarray), 'failed')
+        self.failUnless(type(new_points) == type(points), 'failed')
+        self.failUnless(num.alltrue(points == new_points), 'failed')
+
+        # test that calling get_absolute twice does the right thing
+        # first call
+        dx = 11.0
+        dy = 13.0
+        g = Geo_reference(56, dx, dy)
+        points = num.array([[3.0,34.0], [64.0,6.0]])
+        expected_new_points = num.array([[3.0+dx,34.0+dy], [64.0+dx,6.0+dy]])
+        new_points = g.get_absolute(points)
+
+        self.failUnless(isinstance(new_points, num.ndarray), 'failed')
+        self.failUnless(type(new_points) == type(points), 'failed')
+        msg = ('First call of .get_absolute() returned %s\nexpected %s'
+               % (str(new_points), str(expected_new_points)))
+        self.failUnless(num.alltrue(expected_new_points == new_points), msg)
+
+        # and repeat from 'new_points = g.get_absolute(points)' above
+        # to see if second call with same input gives same results.
+        new_points = g.get_absolute(points)
+
+        self.failUnless(isinstance(new_points, num.ndarray), 'failed')
+        self.failUnless(type(new_points) == type(points), 'failed')
+        msg = ('Second call of .get_absolute() returned\n%s\nexpected\n%s'
+               % (str(new_points), str(expected_new_points)))
+        self.failUnless(num.alltrue(expected_new_points == new_points), msg)
+
+        # and repeat again to see if *third* call with same input
+        # gives same results.
+        new_points = g.get_absolute(points)
+
+        self.failUnless(isinstance(new_points, num.ndarray), 'failed')
+        self.failUnless(type(new_points) == type(points), 'failed')
+        msg = ('Third call of .get_absolute() returned %s\nexpected %s'
+               % (str(new_points), str(expected_new_points)))
+        self.failUnless(num.alltrue(expected_new_points == new_points), msg)
+
+    def test_get_relative_list(self):
+        # test with supplied offsets
+        x = 7.0
+        y = 3.0
+        
+        g = Geo_reference(56, x, y)
+        points = [[3.0,34.0], [64.0,6.0]]
+        new_points = g.get_relative(points)
+
+        self.failUnless(isinstance(new_points, list), 'failed')
+        self.failUnless(type(new_points) == type(points), 'failed')
+        for point, new_point in map(None, points, new_points):
+            self.failUnless(point[0]-x == new_point[0], 'failed')
+            self.failUnless(point[1]-y == new_point[1], 'failed')
+
+        # test with no supplied offsets
+        g = Geo_reference()
+        points = [[3.0,34.0], [64.0,6.0]]
+        new_points = g.get_relative(points)
+
+        self.failUnless(isinstance(new_points, list), 'failed')
+        self.failUnless(type(new_points) == type(points), 'failed')
+        for point, new_point in map(None, points, new_points):
+            self.failUnless(point[0] == new_point[0], 'failed')
+            self.failUnless(point[1] == new_point[1], 'failed')
+            
+        # test that calling get_absolute twice does the right thing
+        # first call
+        dx = 10.0
+        dy = 12.0
+        g = Geo_reference(56, dx, dy)
+        points = [[3.0,34.0], [64.0,6.0]]
+        expected_new_points = [[3.0-dx,34.0-dy], [64.0-dx,6.0-dy]]
+        new_points = g.get_relative(points)
+
+        self.failUnless(isinstance(new_points, list), 'failed')
+        self.failUnless(type(new_points) == type(points), 'failed')
+        self.failUnless(new_points == expected_new_points, 'failed')
+
+        # and repeat from 'new_points = g.get_absolute(points)' above
+        # to see if second call with same input gives same results.
+        new_points = g.get_relative(points)
+
+        self.failUnless(isinstance(new_points, list), 'failed')
+        self.failUnless(type(new_points) == type(points), 'failed')
+        self.failUnless(new_points == expected_new_points, 'failed')
+
+    def test_get_relative_array(self):
+        '''Same test as test_get_relative_list(), but with numeric arrays.'''
+
+        # test with supplied offsets
+        x = 7.0
+        y = 3.0
+        
+        g = Geo_reference(56, x, y)
+        points = num.array([[3.0,34.0], [64.0,6.0]])
+        new_points = g.get_relative(points)
+
+        self.failUnless(isinstance(new_points, num.ndarray), 'failed')
+        self.failUnless(type(new_points) == type(points), 'failed')
+        msg = 'points=\n%s\nnew_points=\n%s' % (str(points), str(new_points))
+        for point, new_point in map(None, points, new_points):
+            self.failUnless(point[0]-x == new_point[0], msg)
+            self.failUnless(point[1]-y == new_point[1], msg)
+
+        # test with no supplied offsets
+        g = Geo_reference()
+        points = num.array([[3.0,34.0], [64.0,6.0]])
+        new_points = g.get_relative(points)
+
+        self.failUnless(isinstance(new_points, num.ndarray), 'failed')
+        self.failUnless(type(new_points) == type(points), 'failed')
+        self.failUnless(num.alltrue(points == new_points), 'failed')
+
+        # test that calling get_relative twice does the right thing
+        # first call
+        dx = 11.0
+        dy = 13.0
+        g = Geo_reference(56, dx, dy)
+        points = num.array([[3.0,34.0], [64.0,6.0]])
+        expected_new_points = num.array([[3.0-dx,34.0-dy], [64.0-dx,6.0-dy]])
+        new_points = g.get_relative(points)
+
+        self.failUnless(isinstance(new_points, num.ndarray), 'failed')
+        self.failUnless(type(new_points) == type(points), 'failed')
+        msg = ('First call of .get_relative() returned %s\nexpected %s'
+               % (str(new_points), str(expected_new_points)))
+        self.failUnless(num.alltrue(expected_new_points == new_points), msg)
+
+        # and repeat from 'new_points = g.get_relative(points)' above
+        # to see if second call with same input gives same results.
+        new_points = g.get_relative(points)
+
+        self.failUnless(isinstance(new_points, num.ndarray), 'failed')
+        self.failUnless(type(new_points) == type(points), 'failed')
+        msg = ('Second call of .get_relative() returned\n%s\nexpected\n%s'
+               % (str(new_points), str(expected_new_points)))
+        self.failUnless(num.alltrue(expected_new_points == new_points), msg)
+
+        # and repeat again to see if *third* call with same input
+        # gives same results.
+        new_points = g.get_relative(points)
+
+        self.failUnless(isinstance(new_points, num.ndarray), 'failed')
+        self.failUnless(type(new_points) == type(points), 'failed')
+        msg = ('Third call of .get_relative() returned %s\nexpected %s'
+               % (str(new_points), str(expected_new_points)))
+        self.failUnless(num.alltrue(expected_new_points == new_points), msg)
+
     def test_is_absolute(self):
         
         g = Geo_reference(34,0,0)
@@ -439,7 +627,7 @@ class geo_referenceTestCase(unittest.TestCase):
         self.failUnless(num.alltrue(new_points == points))
 
         # points in num.array()
-        points = num.array(((2,3), (3,1), (5,2)), num.Float)
+        points = num.array(((2,3), (3,1), (5,2)), num.float)
         abs_points = geo.get_absolute(points)
         # check we haven't changed 'points' itself
         self.failIf(num.alltrue(abs_points == points))
@@ -481,11 +669,11 @@ class geo_referenceTestCase(unittest.TestCase):
         # now write fikle, read back and check types again
         file_name = tempfile.mktemp(".geo_referenceTest")
         
-        out_file = NetCDFFile(file_name, 'w')
+        out_file = NetCDFFile(file_name, netcdf_mode_w)
         g.write_NetCDF(out_file)
         out_file.close()
         
-        in_file = NetCDFFile(file_name, 'r')
+        in_file = NetCDFFile(file_name, netcdf_mode_r)
         new_g = Geo_reference(NetCDFObject=in_file)
         in_file.close()
         os.remove(file_name)
@@ -536,9 +724,9 @@ class geo_referenceTestCase(unittest.TestCase):
 
         
 #-------------------------------------------------------------
-if __name__ == "__main__":
 
-    suite = unittest.makeSuite(geo_referenceTestCase,'test')
+if __name__ == "__main__":
+    suite = unittest.makeSuite(geo_referenceTestCase, 'test')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
     

@@ -10,7 +10,7 @@
 // Ole Nielsen, GA 2004
 
 #include "Python.h"
-#include "Numeric/arrayobject.h"
+#include "numpy/arrayobject.h"
 #include "math.h"
 
 //Shared code snippets
@@ -1027,6 +1027,12 @@ PyObject *average_vertex_values(PyObject *self, PyObject *args) {
 	  return NULL;
 	}
 	
+	// check that numpy array objects arrays are C contiguous memory
+	CHECK_C_CONTIG(vertex_value_indices);
+	CHECK_C_CONTIG(number_of_triangles_per_node);
+	CHECK_C_CONTIG(vertex_values);
+	CHECK_C_CONTIG(A);
+
 	N = vertex_value_indices -> dimensions[0];
 	// printf("Got parameters, N=%d\n", N);
 	err = _average_vertex_values(N,

@@ -46,7 +46,7 @@ Adrian Hitchman
 Geoscience Australia, June 2005
 """
 
-import Numeric as num
+import numpy as num
 
 
 def find_min(x0, wa, kappad, dx):
@@ -387,7 +387,6 @@ class Double_gaussian:
         """
 
         from math import sin, cos, radians, exp, cosh
-#        from Numeric import zeros, Float
 
         #ensure vectors x and y have the same length
         N = len(x)
@@ -415,7 +414,7 @@ class Double_gaussian:
         xr = ((x-x0) * cosa - (y-y0) * sina) + x0
         yr = ((x-x0) * sina + (y-y0) * cosa) + y0
 
-        z = num.zeros(N, num.Float)
+        z = num.zeros(N, num.float)
         maxz = 0.0
         minz = 0.0
         for i in range(N):

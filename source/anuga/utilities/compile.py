@@ -10,6 +10,12 @@
    Ole Nielsen, Duncan Gray Oct 2001      
 """     
 
+#NumPy ------------------------------------
+# Something like these lines recommended in "Converting from NUMARRAY to NUMPY"
+import numpy
+I_dirs = '-I"%s" ' % numpy.get_include()
+#NumPy ------------------------------------
+
 # FIXME (Ole): Although this script says it works with a range of compilers,
 # it has only really been used with gcc.
 
@@ -254,15 +260,15 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
           %(compiler, FN, python_include, root)
     else:
       if FN == "triangle.c" or FN == "mesh_engine_c_layer.c":
-        s = '%s -c %s -I"%s" -I"%s" -o "%s.o" -O3 -DTRILIBRARY=1 -DNO_TIMER=1'\
-            %(compiler, FN, python_include, utilities_include_dir, root)
+        s = '%s -c %s %s -I"%s" -I"%s" -o "%s.o" -O3 -DTRILIBRARY=1 -DNO_TIMER=1'\
+            % (compiler, FN, I_dirs, python_include, utilities_include_dir, root)
       elif FN == "polygon_ext.c":
         # gcc 4.3.x is problematic with this file if '-O3' is used
-        s = '%s -c %s -I"%s" -I"%s" -o "%s.o" -Wall'\
-            %(compiler, FN, python_include, utilities_include_dir, root)
+        s = '%s -c %s %s -I"%s" -I"%s" -o "%s.o" -Wall'\
+            %(compiler, FN, I_dirs, python_include, utilities_include_dir, root)
       else:
-        s = '%s -c %s -I"%s" -I"%s" -o "%s.o" -Wall -O3'\
-            %(compiler, FN, python_include, utilities_include_dir, root)
+        s = '%s -c %s %s -I"%s" -I"%s" -o "%s.o" -Wall -O3'\
+            %(compiler, FN, I_dirs, python_include, utilities_include_dir, root)
 
     if os.name == 'posix' and os.uname()[4] in ['x86_64', 'ia64']:
       # Extra flags for 64 bit architectures.

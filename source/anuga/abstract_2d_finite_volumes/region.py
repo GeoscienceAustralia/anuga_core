@@ -7,7 +7,7 @@ operate.
 """
 # FIXME (DSG-DSG) add better comments
 
-import Numeric as num
+import numpy as num
 
 
 class Region:

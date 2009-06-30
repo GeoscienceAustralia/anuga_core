@@ -134,7 +134,7 @@ class Test_data_audit(unittest.TestCase):
     </metadata>
     <datafile>
       <filename>%s</filename>
-      <checksum>-1484449438</checksum>
+      <checksum>2810517858</checksum>
       <publishable>no</publishable>
       <accountable>Jane Sexton</accountable>
       <source>Unknown</source>
@@ -213,7 +213,7 @@ class Test_data_audit(unittest.TestCase):
     </metadata>
     <datafile>
       <filename>%s</filename>
-      <checksum>-1484449438</checksum>
+      <checksum>2810517858</checksum>
       <publishable>Yes</publishable>
       <accountable>Jane Sexton</accountable>
       <source>Unknown</source>
@@ -295,7 +295,7 @@ class Test_data_audit(unittest.TestCase):
     </datafile>
 
   </ga_license_file>
-""" %(data_filename, '-1484449438')
+""" %(data_filename, '2810517858')
 
 	licfid.write(xml_string)
 	licfid.close()
@@ -369,7 +369,7 @@ class Test_data_audit(unittest.TestCase):
       <IP_info>This is another test</IP_info>
     </datafile>    
   </ga_license_file>
-""" %(data_filename1, '-1484449438', data_filename2, '-1322430740')
+""" %(data_filename1, '2810517858', data_filename2, '2972536556')
 
 	licfid.write(xml_string)
 	licfid.close()
@@ -384,16 +384,10 @@ class Test_data_audit(unittest.TestCase):
         os.remove(data_filename1)
         os.remove(data_filename2)
 
-	
+################################################################################
 
-		
-	
-#-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_data_audit, 'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
-
-
-
 

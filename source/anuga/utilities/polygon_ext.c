@@ -9,13 +9,16 @@
 //
 // Ole Nielsen, GA 2004
 //
-// NOTE: We use long* instead of int* for Numeric arrays as this will work both 
+// NOTE: We use long* instead of int* for numeric arrays as this will work both 
 //       for 64 as well as 32 bit systems
 
 
 #include "Python.h"
-#include "Numeric/arrayobject.h"
+#include "numpy/arrayobject.h"
 #include "math.h"
+
+#include "util_ext.h"
+
 
 double dist(double x,
 	    double y) {
@@ -243,7 +246,6 @@ int __interpolate_polyline(int number_of_nodes,
 }			       			       
 
 
-
 int __is_inside_triangle(double* point,
 			 double* triangle,
 			 int closed,
@@ -393,7 +395,7 @@ int __separate_points_by_polygon(int M,     // Number of points
 	  }
 	  break;
         } else {
-          // Check if truly inside polygon
+          //Check if truly inside polygon
 	  if ( ((py_i < y) && (py_j >= y)) ||
 	       ((py_j < y) && (py_i >= y)) ) {
 	    if (px_i + (y-py_i)/(py_j-py_i)*(px_j-px_i) < x)
@@ -437,7 +439,7 @@ PyObject *_point_on_line(PyObject *self, PyObject *args) {
   // Call underlying routine
   res = __point_on_line(x, y, x0, y0, x1, y1, rtol, atol);
 
-  // Return result
+  // Return values a and b
   result = Py_BuildValue("i", res);
   return result;
 }
@@ -477,6 +479,13 @@ PyObject *_interpolate_polyline(PyObject *self, PyObject *args) {
     return NULL;
   }
 
+  // check that numpy array objects arrays are C contiguous memory
+  CHECK_C_CONTIG(data);
+  CHECK_C_CONTIG(polyline_nodes);
+  CHECK_C_CONTIG(gauge_neighbour_id);
+  CHECK_C_CONTIG(interpolation_points);
+  CHECK_C_CONTIG(interpolated_values);
+
   number_of_nodes = polyline_nodes -> dimensions[0];  // Number of nodes in polyline
   number_of_points = interpolation_points -> dimensions[0];   //Number of points
   
@@ -495,7 +504,6 @@ PyObject *_interpolate_polyline(PyObject *self, PyObject *args) {
   // Return
   return Py_BuildValue("");  
 }
-
 
 
 
@@ -632,6 +640,11 @@ PyObject *_separate_points_by_polygon(PyObject *self, PyObject *args) {
 		    "separate_points_by_polygon could not parse input");
     return NULL;
   }
+
+  // check that points, polygon and indices arrays are C contiguous
+  CHECK_C_CONTIG(points);
+  CHECK_C_CONTIG(polygon);
+  CHECK_C_CONTIG(indices);
 
   M = points -> dimensions[0];   //Number of points
   N = polygon -> dimensions[0];  //Number of vertices in polygon

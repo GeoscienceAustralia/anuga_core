@@ -5,7 +5,7 @@
 from math import sqrt
 from anuga.utilities.polygon import inside_polygon, polygon_area
 
-import Numeric as num
+import numpy as num
 
 
 def create_culvert_polygons(end_point0,

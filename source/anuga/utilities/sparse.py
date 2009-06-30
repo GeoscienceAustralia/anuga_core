@@ -1,7 +1,7 @@
 """Proof of concept sparse matrix code
 """
 
-import Numeric as num
+import numpy as num
 
 
 class Sparse:
@@ -21,7 +21,7 @@ class Sparse:
             try:
                 A = num.array(args[0])
             except:
-                raise 'Input must be convertable to a Numeric array'
+                raise 'Input must be convertable to a numeric array'
 
             assert len(A.shape) == 2, 'Input must be a 2d matrix'
             
@@ -92,7 +92,7 @@ class Sparse:
 
 
     def todense(self):
-        D = num.zeros( (self.M, self.N), num.Float)
+        D = num.zeros( (self.M, self.N), num.float)
         
         for i in range(self.M):
             for j in range(self.N):
@@ -104,13 +104,13 @@ class Sparse:
     
     def __mul__(self, other):
         """Multiply this matrix onto 'other' which can either be
-        a Numeric vector, a Numeric matrix or another sparse matrix.
+        a numeric vector, a numeric matrix or another sparse matrix.
         """
 
         try:
             B = num.array(other)
         except:
-            msg = 'FIXME: Only Numeric types implemented so far'
+            msg = 'FIXME: Only numeric types implemented so far'
             raise msg
             
 
@@ -126,7 +126,7 @@ class Sparse:
                   %(self.M, self.N, B.shape[0])
             assert B.shape[0] == self.N, msg
 
-            R = num.zeros(self.M, num.Float) #Result
+            R = num.zeros(self.M, num.float) #Result
 	    
             # Multiply nonzero elements
             for key in self.Data.keys():
@@ -136,7 +136,7 @@ class Sparse:
         elif len(B.shape) == 2:
 	
             
-            R = num.zeros((self.M, B.shape[1]), num.Float) #Result matrix
+            R = num.zeros((self.M, B.shape[1]), num.float) #Result matrix
 
             # Multiply nonzero elements
 	    for col in range(R.shape[1]):
@@ -189,13 +189,13 @@ class Sparse:
 
     def trans_mult(self, other):
         """Multiply the transpose of matrix with 'other' which can be
-        a Numeric vector.
+        a numeric vector.
         """
 
         try:
             B = num.array(other)
         except:
-            print 'FIXME: Only Numeric types implemented so far'
+            print 'FIXME: Only numeric types implemented so far'
 
 
         #Assume numeric types from now on
@@ -204,7 +204,7 @@ class Sparse:
 
             assert B.shape[0] == self.M, 'Mismatching dimensions'
 
-            R = num.zeros((self.N,), num.Float) #Result
+            R = num.zeros((self.N,), num.float) #Result
 
             #Multiply nonzero elements
             for key in self.Data.keys():
@@ -246,9 +246,9 @@ class Sparse_CSR:
             keys = A.Data.keys()
             keys.sort()
             nnz = len(keys)
-            data    = num.zeros ( (nnz,), num.Float)
-            colind  = num.zeros ( (nnz,), num.Int)
-            row_ptr = num.zeros ( (A.M+1,), num.Int)
+            data    = num.zeros ( (nnz,), num.float)
+            colind  = num.zeros ( (nnz,), num.int)
+            row_ptr = num.zeros ( (A.M+1,), num.int)
             current_row = -1
             k = 0
             for key in keys:
@@ -286,7 +286,7 @@ class Sparse_CSR:
         return len(self)
 
     def todense(self):
-        D = num.zeros( (self.M, self.N), num.Float)
+        D = num.zeros( (self.M, self.N), num.float)
         
         for i in range(self.M):
             for ckey in range(self.row_ptr[i],self.row_ptr[i+1]):
@@ -296,13 +296,13 @@ class Sparse_CSR:
 
     def __mul__(self, other):
         """Multiply this matrix onto 'other' which can either be
-        a Numeric vector, a Numeric matrix or another sparse matrix.
+        a numeric vector, a numeric matrix or another sparse matrix.
         """
 
         try:
             B = num.array(other)
         except:
-            print 'FIXME: Only Numeric types implemented so far'
+            print 'FIXME: Only numeric types implemented so far'
 
         return csr_mv(self,B) 
 
@@ -354,7 +354,7 @@ if __name__ == '__main__':
     assert num.allclose(u, [6,6,10])
 
     #Right hand side column
-    v = num.array([[2,4],[3,4],[4,4]], num.Int)      #array default#
+    v = num.array([[2,4],[3,4],[4,4]])
 
     u = A*v[:,0]
     assert num.allclose(u, [6,14,4])

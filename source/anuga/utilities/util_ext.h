@@ -10,7 +10,7 @@
 // Ole Nielsen, GA 2004
 	
 #include "Python.h"	
-#include "Numeric/arrayobject.h"
+#include "numpy/arrayobject.h"
 #include "math.h"
 
 
@@ -355,4 +355,13 @@ PyObject *get_python_object(PyObject *O, char *name) {
 }
 
 
-
+// check that numpy array objects are C contiguous memory
+#define CHECK_C_CONTIG(varname)	if (!PyArray_ISCONTIGUOUS(varname)) { \
+				    char msg[1024]; \
+				    sprintf(msg, \
+					    "%s(): file %s, line %d: " \
+				            "'%s' object is not C contiguous memory", \
+				             __func__, __FILE__, __LINE__, #varname); \
+				    PyErr_SetString(PyExc_RuntimeError, msg); \
+				    return NULL; \
+				}

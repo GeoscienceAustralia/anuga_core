@@ -16,7 +16,7 @@ from anuga.shallow_water import Domain, Transmissive_boundary
 from anuga.utilities.numerical_tools import mean
 from anuga.shallow_water.data_manager import get_dataobject
 
-import Numeric as num
+import numpy as num
 
 
 def elevation_function(x, y):
@@ -82,7 +82,7 @@ class Test_inundation_damage(unittest.TestCase):
         ######################
         #Initial condition - with jumps
         bed = domain.quantities['elevation'].vertex_values
-        stage = num.zeros(bed.shape, num.Float)
+        stage = num.zeros(bed.shape, num.float)
 
         h = 0.3
         for i in range(stage.shape[0]):
@@ -152,7 +152,7 @@ class Test_inundation_damage(unittest.TestCase):
         ######################
         #Initial condition - with jumps
         bed = domain.quantities['elevation'].vertex_values
-        stage = num.zeros(bed.shape, num.Float)
+        stage = num.zeros(bed.shape, num.float)
 
         h = 30.
         for i in range(stage.shape[0]):
@@ -475,8 +475,8 @@ class Test_inundation_damage(unittest.TestCase):
     def test_calc_collapse_structures(self):
         edm = EventDamageModel([0.0]*17, [0.0]*17, [0.0]*17,
                                [0.0]*17, [0.0]*17)
-        edm.struct_damage = num.zeros(17,num.Float) 
-        edm.contents_damage = num.zeros(17,num.Float) 
+        edm.struct_damage = num.zeros(17,num.float) 
+        edm.contents_damage = num.zeros(17,num.float) 
         collapse_probability = {0.4:[0], #0
                                 0.6:[1], #1
                                 0.5:[2], #1
@@ -596,7 +596,6 @@ if __name__ == "__main__":
     else:
         pass
     suite = unittest.makeSuite(Test_inundation_damage,'test')
-    #suite = unittest.makeSuite(Test_inundation_damage,'test_inundation_damage_list_as_input')
     runner = unittest.TextTestRunner()
     runner.run(suite)
 

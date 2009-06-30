@@ -7,7 +7,7 @@ from domain import *
 from region import *
 #from anuga.config import epsilon
 
-import Numeric as num
+import numpy as num
 
 
 """
@@ -41,9 +41,8 @@ class Test_Region(unittest.TestCase):
 
 
     def test_region_tags(self):
-        """
-        get values based on triangle lists.
-        """
+        """get values based on triangle lists."""
+
         from mesh_factory import rectangular
         from shallow_water import Domain
 
@@ -52,10 +51,9 @@ class Test_Region(unittest.TestCase):
 
         #Create shallow water domain
         domain = Domain(points, vertices, boundary)
-        domain.build_tagged_elements_dictionary({'bottom':[0,1],
-                                                 'top':[4,5],
-                                                 'all':[0,1,2,3,4,5]})
-
+        domain.build_tagged_elements_dictionary({'bottom': [0,1],
+                                                 'top': [4,5],
+                                                 'all': [0,1,2,3,4,5]})
 
         #Set friction
         manning = 0.07
@@ -64,14 +62,18 @@ class Test_Region(unittest.TestCase):
         a = Set_region('bottom', 'friction', 0.09)
         b = Set_region('top', 'friction', 1.0)
         domain.set_region([a, b])
-        #print domain.quantities['friction'].get_values()
-        assert num.allclose(domain.quantities['friction'].get_values(),\
-                            [[ 0.09,  0.09,  0.09],
-                             [ 0.09,  0.09,  0.09],
-                             [ 0.07,  0.07,  0.07],
-                             [ 0.07,  0.07,  0.07],
-                             [ 1.0,  1.0,  1.0],
-                             [ 1.0,  1.0,  1.0]])
+
+        expected = [[ 0.09,  0.09,  0.09],
+                    [ 0.09,  0.09,  0.09],
+                    [ 0.07,  0.07,  0.07],
+                    [ 0.07,  0.07,  0.07],
+                    [ 1.0,   1.0,   1.0],
+                    [ 1.0,   1.0,   1.0]]
+        msg = ("\ndomain.quantities['friction']=%s\nexpected value=%s"
+               % (str(domain.quantities['friction'].get_values()),
+                  str(expected)))
+        assert num.allclose(domain.quantities['friction'].get_values(),
+                            expected), msg
 
         #c = Add_Value_To_region('all', 'friction', 10.0)
         domain.set_region(Add_value_to_region('all', 'friction', 10.0))
@@ -125,9 +127,8 @@ class Test_Region(unittest.TestCase):
                              [ 33.0,  33.,  33.]])
         
     def test_unique_vertices(self):
-        """
-        get values based on triangle lists.
-        """
+        """get values based on triangle lists."""
+
         from mesh_factory import rectangular
         from shallow_water import Domain
 
@@ -146,8 +147,7 @@ class Test_Region(unittest.TestCase):
 
         a = Set_region('bottom', 'friction', 0.09, location = 'unique vertices')
         domain.set_region(a)
-        #print domain.quantities['friction'].get_values()
-        assert num.allclose(domain.quantities['friction'].get_values(),\
+        assert num.allclose(domain.quantities['friction'].get_values(),
                             [[ 0.09,  0.09,  0.09],
                              [ 0.09,  0.09,  0.09],
                              [ 0.09,  0.07,  0.09],
@@ -188,38 +188,40 @@ class Test_Region(unittest.TestCase):
                              [ 0.07,  0.07,  0.07]])
                          
     def test_unique_vertices_average_loc_vert(self):
-        """
-        get values based on triangle lists.
-        """
+        """Get values based on triangle lists."""
+
         from mesh_factory import rectangular
         from shallow_water import Domain
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
+
         #Create shallow water domain
         domain = Domain(points, vertices, boundary)
-        domain.build_tagged_elements_dictionary({'bottom':[0,1],
-                                                 'top':[4,5],
-                                                 'not_bottom':[2,3,4,5]})
+        domain.build_tagged_elements_dictionary({'bottom': [0, 1],
+                                                 'top': [4, 5],
+                                                 'not_bottom': [2, 3, 4, 5]})
 
         #Set friction
         domain.set_quantity('friction', add_x_y)
-        av_bottom = 2.0/3.0
+        av_bottom = 2.0 / 3.0
         add = 60.0
         calc_frict = av_bottom + add
         domain.set_region(Add_value_to_region('bottom', 'friction', add,
-                          initial_quantity='friction',
-                           #location='unique vertices',
-                           location='vertices',
-                           average=True
-                          ))
+                                              initial_quantity='friction',
+                                              location='vertices',
+                                              average=True))
 
-        #print domain.quantities['friction'].get_values()
         frict_points = domain.quantities['friction'].get_values()
-        assert num.allclose(frict_points[0],\
-                            [ calc_frict, calc_frict, calc_frict])
-        assert num.allclose(frict_points[1],\
-                            [ calc_frict, calc_frict, calc_frict])
+
+        expected = [calc_frict, calc_frict, calc_frict]
+        msg = ('frict_points[0]=%s\nexpected=%s'
+               % (str(frict_points[0]), str(expected)))
+        assert num.allclose(frict_points[0], expected), msg
+
+        msg = ('frict_points[1]=%s\nexpected=%s'
+               % (str(frict_points[1]), str(expected)))
+        assert num.allclose(frict_points[1], expected), msg
   
     def test_unique_vertices_average_loc_unique_vert(self):
         """
@@ -260,7 +262,8 @@ class Test_Region(unittest.TestCase):
                                                 
                          
 #-------------------------------------------------------------
+
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Region,'test')
+    suite = unittest.makeSuite(Test_Region, 'test')    
     runner = unittest.TextTestRunner()
     runner.run(suite)

@@ -8,7 +8,7 @@ import unittest
 import os
 
 from Scientific.IO.NetCDF import NetCDFFile
-import Numeric as num
+import numpy as num
 
 from anuga.shallow_water import Domain
 from anuga.shallow_water import Dirichlet_boundary, Time_boundary
@@ -33,6 +33,7 @@ class Test_system(unittest.TestCase):
         10       2.15268
         20       13.9773
         """
+
         tide = 5
         boundary_filename = tempfile.mktemp(".sww")
         dir, base = os.path.split(boundary_filename)
@@ -84,7 +85,6 @@ class Test_system(unittest.TestCase):
         boundary_starttime = 500
         boundary_filename = self.create_sww_boundary(boundary_starttime)
         filename = tempfile.mktemp(".sww")
-        #print "filename",filename 
         dir, base = os.path.split(filename)
         senario_name = base[:-4]
  
@@ -186,8 +186,8 @@ class Test_system(unittest.TestCase):
         os.remove(filename)
         
 #-------------------------------------------------------------
+
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_system,'test')
-    #suite = unittest.makeSuite(Test_system,'test_boundary_timeII')
     runner = unittest.TextTestRunner()
     runner.run(suite)

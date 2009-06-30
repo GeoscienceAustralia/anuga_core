@@ -14,7 +14,7 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.utilities.polygon import  is_inside_polygon ### inside_polygon
 
-import Numeric as num
+import numpy as num
 
 class meshTestCase(unittest.TestCase):
     def setUp(self):
@@ -427,11 +427,12 @@ class meshTestCase(unittest.TestCase):
 
         vert = m.getMeshVerticeAttributes()
         
-        self.failUnless(vert[0] == [12.0, 2.0] and
-                        vert[1] == [9.0, 7.0] and
-                        vert[2] == [14.0,3.0] and
-                        vert[3] == [12.232233047033631, 4.4142135623730949] and
-                        vert[4] == [13.0, 2.5] ,
+        self.failUnless(num.all(vert[0] == [12.0, 2.0]) and
+                        num.all(vert[1] == [9.0, 7.0]) and
+                        num.all(vert[2] == [14.0,3.0]) and
+                        num.all(vert[3] == [12.232233047033631,
+                                            4.4142135623730949]) and
+                        num.all(vert[4] == [13.0, 2.5]) ,
                         'vertex attributes are wrong!')
 
         
@@ -1654,12 +1655,14 @@ END\n")
         #print "answer",answer
         #print "dict['vertices']",dict['vertices']
         
-        self.failUnless( dict['vertices'] == answer,
-                         'test_Mesh2IOTriangulationDict failed. test 2')
+        self.failUnless(num.alltrue(dict['vertices'] == answer),
+                        'test_Mesh2IOTriangulationDict failed. test 2')
 
-        self.failUnless(num.alltrue(dict['vertices'].flat == verts.flat),
+        self.failUnless(num.alltrue(dict['vertices'].flatten() ==
+                                    verts.flatten()),
                          'test_Mesh2IOTriangulationDict failed. test vert')
-        self.failUnless(num.alltrue(dict['vertex_attributes'].flat == vert_as.flat),
+        self.failUnless(num.alltrue(dict['vertex_attributes'].flatten() ==
+                                    vert_as.flatten()),
                          'test_Mesh2IOTriangulationDict failed. test vert ats')
 
         self.failUnless(num.alltrue(dict['segments'][0] == [0,1]),
@@ -1715,27 +1718,27 @@ END\n")
         #print "answer",answer
         #print "dict['vertices']",dict['vertices']
         
-        self.failUnless( dict['vertices'] == answer,
-                         'test_Mesh2IOTriangulationDict failed. test 2')
+        self.failUnless(num.alltrue(dict['vertices'] == answer),
+                        'test_Mesh2IOTriangulationDict failed. test 2')
 
-        self.failUnless( dict['vertices'] == verts,
-                         'test_Mesh2IOTriangulationDict failed. test vert')
-        self.failUnless( dict['vertex_attributes'] == vert_as,
-                         'test_Mesh2IOTriangulationDict failed. test vert ats')
+        self.failUnless(num.alltrue(dict['vertices'] == verts),
+                        'test_Mesh2IOTriangulationDict failed. test vert')
+        self.failUnless(num.alltrue(dict['vertex_attributes'] == vert_as),
+                        'test_Mesh2IOTriangulationDict failed. test vert ats')
 
-        self.failUnless( dict['segments'][0] == [0,1],
+        self.failUnless(num.alltrue(dict['segments'][0] == [0,1]),
                         'test_Mesh2IODict failed. test 3')
         
-        self.failUnless( dict['segment_tags'] == seg_tags,
+        self.failUnless(dict['segment_tags'] == seg_tags,
                         'test_Mesh2IODict failed. test 3')
         #print " dict['triangles'][0]", dict['triangles'][0] 
-        self.failUnless( dict['triangles'][0] == [3,2,4],
+        self.failUnless(num.alltrue(dict['triangles'][0] == [3,2,4]),
                         'test_Mesh2IODict failed. test 5')
-        self.failUnless( dict['triangle_neighbors'][0] == [-1,2,3],
+        self.failUnless(num.alltrue(dict['triangle_neighbors'][0] == [-1,2,3]),
                         'test_Mesh2IODict failed. test 6')
         #print "dict['triangle_tags'][0]", dict['triangle_tags'][0]
-        self.failUnless( dict['triangle_tags'][0] == "1.3",
-                         'test_Mesh2IODict failed. test 7')
+        self.failUnless(dict['triangle_tags'][0] == "1.3",
+                        'test_Mesh2IODict failed. test 7')
 
         seg = m.getUserSegments()
         points = m.getUserVertices()
@@ -2197,7 +2200,8 @@ END\n")
                         'FAILED!')
         vert = m.get_user_vertices(absolute=True)
         
-        self.failUnless(num.alltrue(vert.flat == num.array(points).flat),
+        self.failUnless(num.alltrue(vert.flatten() ==
+                                    num.array(points).flatten()),
                         'FAILED!')
     
     def test_add_verticesII(self):
@@ -2306,15 +2310,11 @@ def list_comp(A,B):
         if not item in B:
             yes = False
     return yes
-            
-#-------------------------------------------------------------
+   
+################################################################################
+
 if __name__ == "__main__":
     suite = unittest.makeSuite(meshTestCase,'test')
-    #suite = unittest.makeSuite(meshTestCase,'mode_string_float_problems')
-    #suite = unittest.makeSuite(meshTestCase,'test_import_mesh')
-    #suite = unittest.makeSuite(meshTestCase,'test_asciiFile')
-    #suite = unittest.makeSuite(meshTestCase,'test_mesh2IO')
-    #suite = unittest.makeSuite(meshTestCase,'test_add_points_and_segmentsII')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
     

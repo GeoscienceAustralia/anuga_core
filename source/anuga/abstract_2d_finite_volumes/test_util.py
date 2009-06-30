@@ -21,7 +21,7 @@ from csv import reader,writer
 import time
 import string
 
-import Numeric as num
+import numpy as num
 
 
 def test_function(x, y):
@@ -182,9 +182,18 @@ class Test_Util(unittest.TestCase):
         #Diagonal is identified by vertices: 0, 5, 10, 15
 
         last_time_index = len(time)-1 #Last last_time_index
-        d_stage = num.reshape(num.take(stage[last_time_index, :], [0,5,10,15]), (4,1))
-        d_uh = num.reshape(num.take(xmomentum[last_time_index, :], [0,5,10,15]), (4,1))
-        d_vh = num.reshape(num.take(ymomentum[last_time_index, :], [0,5,10,15]), (4,1))
+        d_stage = num.reshape(num.take(stage[last_time_index, :],
+                                       [0,5,10,15],
+                                       axis=0),
+                              (4,1))
+        d_uh = num.reshape(num.take(xmomentum[last_time_index, :],
+                                    [0,5,10,15],
+                                   axis=0),
+                           (4,1))
+        d_vh = num.reshape(num.take(ymomentum[last_time_index, :],
+                                    [0,5,10,15],
+                                   axis=0),
+                           (4,1))
         D = num.concatenate((d_stage, d_uh, d_vh), axis=1)
 
         #Reference interpolated values at midpoints on diagonal at
@@ -194,8 +203,8 @@ class Test_Util(unittest.TestCase):
         r2 = (D[2] + D[3])/2
 
         #And the midpoints are found now
-        Dx = num.take(num.reshape(x, (16,1)), [0,5,10,15])
-        Dy = num.take(num.reshape(y, (16,1)), [0,5,10,15])
+        Dx = num.take(num.reshape(x, (16,1)), [0,5,10,15], axis=0)
+        Dy = num.take(num.reshape(y, (16,1)), [0,5,10,15], axis=0)
 
         diag = num.concatenate( (Dx, Dy), axis=1)
         d_midpoints = (diag[1:] + diag[:-1])/2
@@ -218,9 +227,9 @@ class Test_Util(unittest.TestCase):
         #Now do the same for the first timestep
 
         timestep = 0 #First timestep
-        d_stage = num.reshape(num.take(stage[timestep, :], [0,5,10,15]), (4,1))
-        d_uh = num.reshape(num.take(xmomentum[timestep, :], [0,5,10,15]), (4,1))
-        d_vh = num.reshape(num.take(ymomentum[timestep, :], [0,5,10,15]), (4,1))
+        d_stage = num.reshape(num.take(stage[timestep, :], [0,5,10,15], axis=0), (4,1))
+        d_uh = num.reshape(num.take(xmomentum[timestep, :], [0,5,10,15], axis=0), (4,1))
+        d_vh = num.reshape(num.take(ymomentum[timestep, :], [0,5,10,15], axis=0), (4,1))
         D = num.concatenate((d_stage, d_uh, d_vh), axis=1)
 
         #Reference interpolated values at midpoints on diagonal at
@@ -240,9 +249,9 @@ class Test_Util(unittest.TestCase):
         #Now do it again for a timestep in the middle
 
         timestep = 33
-        d_stage = num.reshape(num.take(stage[timestep, :], [0,5,10,15]), (4,1))
-        d_uh = num.reshape(num.take(xmomentum[timestep, :], [0,5,10,15]), (4,1))
-        d_vh = num.reshape(num.take(ymomentum[timestep, :], [0,5,10,15]), (4,1))
+        d_stage = num.reshape(num.take(stage[timestep, :], [0,5,10,15], axis=0), (4,1))
+        d_uh = num.reshape(num.take(xmomentum[timestep, :], [0,5,10,15], axis=0), (4,1))
+        d_vh = num.reshape(num.take(ymomentum[timestep, :], [0,5,10,15], axis=0), (4,1))
         D = num.concatenate((d_stage, d_uh, d_vh), axis=1)
 
         #Reference interpolated values at midpoints on diagonal at
@@ -261,9 +270,9 @@ class Test_Util(unittest.TestCase):
         #Halfway between timestep 15 and 16
 
         timestep = 15
-        d_stage = num.reshape(num.take(stage[timestep, :], [0,5,10,15]), (4,1))
-        d_uh = num.reshape(num.take(xmomentum[timestep, :], [0,5,10,15]), (4,1))
-        d_vh = num.reshape(num.take(ymomentum[timestep, :], [0,5,10,15]), (4,1))
+        d_stage = num.reshape(num.take(stage[timestep, :], [0,5,10,15], axis=0), (4,1))
+        d_uh = num.reshape(num.take(xmomentum[timestep, :], [0,5,10,15], axis=0), (4,1))
+        d_vh = num.reshape(num.take(ymomentum[timestep, :], [0,5,10,15], axis=0), (4,1))
         D = num.concatenate((d_stage, d_uh, d_vh), axis=1)
 
         #Reference interpolated values at midpoints on diagonal at
@@ -274,9 +283,9 @@ class Test_Util(unittest.TestCase):
 
         #
         timestep = 16
-        d_stage = num.reshape(num.take(stage[timestep, :], [0,5,10,15]), (4,1))
-        d_uh = num.reshape(num.take(xmomentum[timestep, :], [0,5,10,15]), (4,1))
-        d_vh = num.reshape(num.take(ymomentum[timestep, :], [0,5,10,15]), (4,1))
+        d_stage = num.reshape(num.take(stage[timestep, :], [0,5,10,15], axis=0), (4,1))
+        d_uh = num.reshape(num.take(xmomentum[timestep, :], [0,5,10,15], axis=0), (4,1))
+        d_vh = num.reshape(num.take(ymomentum[timestep, :], [0,5,10,15], axis=0), (4,1))
         D = num.concatenate((d_stage, d_uh, d_vh), axis=1)
 
         #Reference interpolated values at midpoints on diagonal at
@@ -376,6 +385,11 @@ class Test_Util(unittest.TestCase):
 
         x = fid.variables['x'][:]
         y = fid.variables['y'][:]
+        # we 'cast' to 64 bit floats to pass this test
+        # SWW file quantities are stored as 32 bits
+        x = num.array(x, num.float)
+        y = num.array(y, num.float)
+
         stage = fid.variables['stage'][:]
         xmomentum = fid.variables['xmomentum'][:]
         ymomentum = fid.variables['ymomentum'][:]
@@ -385,9 +399,18 @@ class Test_Util(unittest.TestCase):
         #Diagonal is identified by vertices: 0, 5, 10, 15
 
         last_time_index = len(time)-1 #Last last_time_index     
-        d_stage = num.reshape(num.take(stage[last_time_index, :], [0,5,10,15]), (4,1))
-        d_uh = num.reshape(num.take(xmomentum[last_time_index, :], [0,5,10,15]), (4,1))
-        d_vh = num.reshape(num.take(ymomentum[last_time_index, :], [0,5,10,15]), (4,1))
+        d_stage = num.reshape(num.take(stage[last_time_index, :],
+                                       [0,5,10,15],
+                                       axis=0),
+                              (4,1))
+        d_uh = num.reshape(num.take(xmomentum[last_time_index, :],
+                                    [0,5,10,15],
+                                   axis=0),
+                           (4,1))
+        d_vh = num.reshape(num.take(ymomentum[last_time_index, :],
+                                    [0,5,10,15],
+                                    axis=0),
+                           (4,1))
         D = num.concatenate((d_stage, d_uh, d_vh), axis=1)
 
         #Reference interpolated values at midpoints on diagonal at
@@ -397,10 +420,10 @@ class Test_Util(unittest.TestCase):
         r2 = (D[2] + D[3])/2
 
         #And the midpoints are found now
-        Dx = num.take(num.reshape(x, (16,1)), [0,5,10,15])
-        Dy = num.take(num.reshape(y, (16,1)), [0,5,10,15])
+        Dx = num.take(num.reshape(x, (16,1)), [0,5,10,15], axis=0)
+        Dy = num.take(num.reshape(y, (16,1)), [0,5,10,15], axis=0)
 
-        diag = num.concatenate( (Dx, Dy), axis=1)
+        diag = num.concatenate((Dx, Dy), axis=1)
         d_midpoints = (diag[1:] + diag[:-1])/2
 
 
@@ -414,18 +437,36 @@ class Test_Util(unittest.TestCase):
                           interpolation_points = d_midpoints)
 
         t = time[last_time_index]                         
-        q = f(t, point_id=0); assert num.allclose(r0, q)
-        q = f(t, point_id=1); assert num.allclose(r1, q)
-        q = f(t, point_id=2); assert num.allclose(r2, q)
+
+        q = f(t, point_id=0)
+        msg = '\nr0=%s\nq=%s' % (str(r0), str(q))
+        assert num.allclose(r0, q), msg
+
+        q = f(t, point_id=1)
+        msg = '\nr1=%s\nq=%s' % (str(r1), str(q))
+        assert num.allclose(r1, q), msg
+
+        q = f(t, point_id=2)
+        msg = '\nr2=%s\nq=%s' % (str(r2), str(q))
+        assert num.allclose(r2, q), msg
 
 
         ##################
         #Now do the same for the first timestep
 
         timestep = 0 #First timestep
-        d_stage = num.reshape(num.take(stage[timestep, :], [0,5,10,15]), (4,1))
-        d_uh = num.reshape(num.take(xmomentum[timestep, :], [0,5,10,15]), (4,1))
-        d_vh = num.reshape(num.take(ymomentum[timestep, :], [0,5,10,15]), (4,1))
+        d_stage = num.reshape(num.take(stage[timestep, :],
+                                       [0,5,10,15],
+                                       axis=0),
+                              (4,1))
+        d_uh = num.reshape(num.take(xmomentum[timestep, :],
+                                    [0,5,10,15],
+                                    axis=0),
+                           (4,1))
+        d_vh = num.reshape(num.take(ymomentum[timestep, :],
+                                    [0,5,10,15],
+                                    axis=0),
+                           (4,1))
         D = num.concatenate( (d_stage, d_uh, d_vh), axis=1)
 
         #Reference interpolated values at midpoints on diagonal at
@@ -445,9 +486,18 @@ class Test_Util(unittest.TestCase):
         #Now do it again for a timestep in the middle
 
         timestep = 33
-        d_stage = num.reshape(num.take(stage[timestep, :], [0,5,10,15]), (4,1))
-        d_uh = num.reshape(num.take(xmomentum[timestep, :], [0,5,10,15]), (4,1))
-        d_vh = num.reshape(num.take(ymomentum[timestep, :], [0,5,10,15]), (4,1))
+        d_stage = num.reshape(num.take(stage[timestep, :],
+                                       [0,5,10,15],
+                                       axis=0),
+                              (4,1))
+        d_uh = num.reshape(num.take(xmomentum[timestep, :],
+                                    [0,5,10,15],
+                                    axis=0),
+                           (4,1))
+        d_vh = num.reshape(num.take(ymomentum[timestep, :],
+                                    [0,5,10,15],
+                                    axis=0),
+                           (4,1))
         D = num.concatenate( (d_stage, d_uh, d_vh), axis=1)
 
         #Reference interpolated values at midpoints on diagonal at
@@ -466,9 +516,18 @@ class Test_Util(unittest.TestCase):
         #Halfway between timestep 15 and 16
 
         timestep = 15
-        d_stage = num.reshape(num.take(stage[timestep, :], [0,5,10,15]), (4,1))
-        d_uh = num.reshape(num.take(xmomentum[timestep, :], [0,5,10,15]), (4,1))
-        d_vh = num.reshape(num.take(ymomentum[timestep, :], [0,5,10,15]), (4,1))
+        d_stage = num.reshape(num.take(stage[timestep, :],
+                                       [0,5,10,15],
+                                       axis=0),
+                              (4,1))
+        d_uh = num.reshape(num.take(xmomentum[timestep, :],
+                                    [0,5,10,15],
+                                    axis=0),
+                           (4,1))
+        d_vh = num.reshape(num.take(ymomentum[timestep, :],
+                                    [0,5,10,15],
+                                    axis=0),
+                           (4,1))
         D = num.concatenate( (d_stage, d_uh, d_vh), axis=1)
 
         #Reference interpolated values at midpoints on diagonal at
@@ -479,9 +538,18 @@ class Test_Util(unittest.TestCase):
 
         #
         timestep = 16
-        d_stage = num.reshape(num.take(stage[timestep, :], [0,5,10,15]), (4,1))
-        d_uh = num.reshape(num.take(xmomentum[timestep, :], [0,5,10,15]), (4,1))
-        d_vh = num.reshape(num.take(ymomentum[timestep, :], [0,5,10,15]), (4,1))
+        d_stage = num.reshape(num.take(stage[timestep, :],
+                                       [0,5,10,15],
+                                       axis=0),
+                              (4,1))
+        d_uh = num.reshape(num.take(xmomentum[timestep, :],
+                                    [0,5,10,15],
+                                    axis=0),
+                           (4,1))
+        d_vh = num.reshape(num.take(ymomentum[timestep, :],
+                                    [0,5,10,15],
+                                    axis=0),
+                           (4,1))
         D = num.concatenate( (d_stage, d_uh, d_vh), axis=1)
 
         #Reference interpolated values at midpoints on diagonal at
@@ -629,7 +697,7 @@ class Test_Util(unittest.TestCase):
                     q0 = F(t, point_id=id)
                     q1 = F(t+60, point_id=id)
 
-                if q0 == NAN:
+                if num.alltrue(q0 == NAN):
                     actual = q0
                 else:
                     actual = (k*q1 + (6-k)*q0)/6
@@ -640,8 +708,8 @@ class Test_Util(unittest.TestCase):
                 #print "q",q
                 #print "actual", actual
                 #print
-                if q0 == NAN:
-                     self.failUnless( q == actual, 'Fail!')
+                if num.alltrue(q0 == NAN):
+                     self.failUnless(num.alltrue(q == actual), 'Fail!')
                 else:
                     assert num.allclose(q, actual)
 
@@ -1180,9 +1248,9 @@ class Test_Util(unittest.TestCase):
 
         #FIXME: Division is not expected to work for integers.
         #This must be caught.
-        foo = num.array([[1,2,3], [4,5,6]], num.Float)
+        foo = num.array([[1,2,3], [4,5,6]], num.float)
 
-        bar = num.array([[-1,0,5], [6,1,1]], num.Float)                  
+        bar = num.array([[-1,0,5], [6,1,1]], num.float)                  
 
         D = {'X': foo, 'Y': bar}
 
@@ -1200,7 +1268,7 @@ class Test_Util(unittest.TestCase):
         assert num.allclose(1/Z, 1/(foo/bar)) # can't compare inf to inf
 
         # make an error for zero on zero
-        # this is really an error in Numeric, SciPy core can handle it
+        # this is really an error in numeric, SciPy core can handle it
         # Z = apply_expression_to_dictionary('0/Y', D)
 
         #Check exceptions
@@ -1918,20 +1986,12 @@ point2, 0.5, 2.0, 9.0\n")
         angle = calc_bearing(uh, vh)
         if 314 < angle < 316: v=1
         assert v==1
-
- 
-
-
        
 
 #-------------------------------------------------------------
+
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Util,'test')
-#    suite = unittest.makeSuite(Test_Util,'test_sww2csv_gauges')
+    suite = unittest.makeSuite(Test_Util, 'test')
 #    runner = unittest.TextTestRunner(verbosity=2)
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
-
-
-
-

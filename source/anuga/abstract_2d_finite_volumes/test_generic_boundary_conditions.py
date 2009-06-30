@@ -7,7 +7,7 @@ from generic_boundary_conditions import *
 from anuga.abstract_2d_finite_volumes.domain import Domain
 from anuga.config import epsilon
 
-import Numeric as num
+import numpy as num
 
 
 class Test_Generic_Boundary_Conditions(unittest.TestCase):
@@ -269,14 +269,9 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         os.remove(filename + '.tms')        
 
 
-
-
-
 #-------------------------------------------------------------
+
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Generic_Boundary_Conditions, 'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
-
-
-

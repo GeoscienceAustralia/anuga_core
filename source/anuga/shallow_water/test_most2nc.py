@@ -1,5 +1,5 @@
 import unittest
-import Numeric as num
+import numpy as num
 from Scientific.IO.NetCDF import NetCDFFile
 import most2nc
 import os

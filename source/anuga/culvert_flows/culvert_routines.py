@@ -1,6 +1,6 @@
 """Collection of culvert routines for use with Culvert_flow in culvert_class
 
-This module holds various riutines to determine FLOW through CULVERTS and SIMPLE BRIDGES
+This module holds various routines to determine FLOW through CULVERTS and SIMPLE BRIDGES
 
 
 
@@ -288,7 +288,7 @@ def boyd_generalised_culvert_model(inlet_depth,
                         case = 'Outlet is open channel flow'
 
                 hyd_rad = flow_area/perimeter
-           
+
                 if log_filename is not None:                                
                     s = 'hydraulic radius at outlet = %f' % hyd_rad
                     log_to_file(log_filename, s)
@@ -314,6 +314,7 @@ def boyd_generalised_culvert_model(inlet_depth,
         if log_filename is not None:                        
             s = 'Flow Rate Control = %f' % Q
             log_to_file(log_filename, s)
+
         culv_froude=sqrt(Q**2*flow_width/(g*flow_area**3))
         if local_debug =='true':
             print 'FLOW AREA = ',flow_area
@@ -326,6 +327,7 @@ def boyd_generalised_culvert_model(inlet_depth,
 
         # Determine momentum at the outlet 
         barrel_velocity = Q/(flow_area + velocity_protection/flow_area)
+
     # END CODE BLOCK for DEPTH  > Required depth for CULVERT Flow  
 
     else: # inlet_depth < 0.01:

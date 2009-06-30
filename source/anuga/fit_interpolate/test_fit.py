@@ -20,7 +20,7 @@ from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.shallow_water import Domain
 
-import Numeric as num
+import numpy as num
 
 
 def distance(x, y):
@@ -581,21 +581,21 @@ class Test_Fit(unittest.TestCase):
                                              [-0.5, 0, 0.5]])
 
         #Define f(x,y) = x
-        f = num.array([0,0,2], num.Int) #Value at global vertex 2      #array default#
+        f = num.array([0,0,2]) #Value at global vertex 2
 
         #Check that int (df/dx)**2 + (df/dy)**2 dx dy =
         #           int 1 dx dy = area = 2
         assert num.dot(num.dot(f, interp.get_D()), f) == 2
 
         #Define f(x,y) = y
-        f = num.array([0,2,0], num.Int)  #Value at global vertex 1      #array default#
+        f = num.array([0,2,0])  #Value at global vertex 1
 
         #Check that int (df/dx)**2 + (df/dy)**2 dx dy =
         #           int 1 dx dy = area = 2
         assert num.dot(num.dot(f, interp.get_D()), f) == 2
 
         #Define f(x,y) = x+y
-        f = num.array([0,2,2], num.Int)  #Values at global vertex 1 and 2      #array default#
+        f = num.array([0,2,2])  #Values at global vertex 1 and 2
 
         #Check that int (df/dx)**2 + (df/dy)**2 dx dy =
         #           int 2 dx dy = 2*area = 4
@@ -622,21 +622,21 @@ class Test_Fit(unittest.TestCase):
         #                           [-0.5, 0, 0.5]])
 
         #Define f(x,y) = x
-        f = num.array([0,0,2,0,2,4], num.Int) #f evaluated at points a-f      #array default#
+        f = num.array([0,0,2,0,2,4]) #f evaluated at points a-f
 
         #Check that int (df/dx)**2 + (df/dy)**2 dx dy =
         #           int 1 dx dy = total area = 8
         assert num.dot(num.dot(f, interp.get_D()), f) == 8
 
         #Define f(x,y) = y
-        f = num.array([0,2,0,4,2,0], num.Int) #f evaluated at points a-f      #array default#
+        f = num.array([0,2,0,4,2,0]) #f evaluated at points a-f
 
         #Check that int (df/dx)**2 + (df/dy)**2 dx dy =
         #           int 1 dx dy = area = 8
         assert num.dot(num.dot(f, interp.get_D()), f) == 8
 
         #Define f(x,y) = x+y
-        f = num.array([0,2,2,4,4,4], num.Int)  #f evaluated at points a-f     #array default#
+        f = num.array([0,2,2,4,4,4])  #f evaluated at points a-f
 
         #Check that int (df/dx)**2 + (df/dy)**2 dx dy =
         #           int 2 dx dy = 2*area = 16
@@ -1098,12 +1098,6 @@ class Test_Fit(unittest.TestCase):
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Fit,'test')
-    #suite = unittest.makeSuite(Test_Fit,'test_smooth_attributes_to_mesh_function')
-    #suite = unittest.makeSuite(Test_Fit,'')
-    runner = unittest.TextTestRunner(verbosity=1)
+    runner = unittest.TextTestRunner() #verbosity=1)
     runner.run(suite)
-
-
-
-
 

@@ -25,7 +25,6 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
      import Time_boundary
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
      import Transmissive_boundary
-
 from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_to_domain
 from anuga.abstract_2d_finite_volumes.region\
      import Set_region as region_set_region
@@ -33,7 +32,7 @@ from anuga.utilities.polygon import inside_polygon
 from anuga.abstract_2d_finite_volumes.util import get_textual_float
 from quantity import Quantity
 
-import Numeric as num
+import numpy as num
 
 
 ##
@@ -93,7 +92,6 @@ class Domain:
           tagged_elements:
           ...
         """
-
 
         number_of_full_nodes=None
         number_of_full_triangles=None
@@ -192,19 +190,19 @@ class Domain:
         for key in self.full_send_dict:
             buffer_shape = self.full_send_dict[key][0].shape[0]
             self.full_send_dict[key].append(num.zeros((buffer_shape, self.nsys),
-                                                      num.Float))
+                                                      num.float))
 
         for key in self.ghost_recv_dict:
             buffer_shape = self.ghost_recv_dict[key][0].shape[0]
             self.ghost_recv_dict[key].append(num.zeros((buffer_shape, self.nsys),
-                                             num.Float))
+                                             num.float))
 
         # Setup cell full flag
         # =1 for full
         # =0 for ghost
         N = len(self) #number_of_elements
         self.number_of_elements = N
-        self.tri_full_flag = num.ones(N, num.Int)
+        self.tri_full_flag = num.ones(N, num.int)
         for i in self.ghost_recv_dict.keys():
             for id in self.ghost_recv_dict[i][0]:
                 self.tri_full_flag[id] = 0
@@ -266,12 +264,12 @@ class Domain:
         # To avoid calculating the flux across each edge twice, keep an integer
         # (boolean) array, to be used during the flux calculation.
         N = len(self) # Number_of_triangles
-        self.already_computed_flux = num.zeros((N, 3), num.Int)
+        self.already_computed_flux = num.zeros((N, 3), num.int)
 
         # Storage for maximal speeds computed for each triangle by
         # compute_fluxes.
         # This is used for diagnostics only (reset at every yieldstep)
-        self.max_speed = num.zeros(N, num.Float)
+        self.max_speed = num.zeros(N, num.float)
 
         if mesh_filename is not None:
             # If the mesh file passed any quantity values,
@@ -390,7 +388,7 @@ class Domain:
             msg += 'Only one (or none) is allowed.'
             raise Exception, msg
 
-        q = num.zeros(len(self.conserved_quantities), num.Float)
+        q = num.zeros(len(self.conserved_quantities), num.float)
 
         for i, name in enumerate(self.conserved_quantities):
             Q = self.quantities[name]
@@ -462,7 +460,7 @@ class Domain:
         Supplied dictionary contains name/value pairs:
 
         name:  Name of quantity
-        value: Compatible list, Numeric array, const or function (see below)
+        value: Compatible list, numeric array, const or function (see below)
 
         The values will be stored in elements following their internal ordering.
         """
@@ -894,8 +892,8 @@ class Domain:
             hist = histogram(self.max_speed, bins)
 
             msg += '------------------------------------------------\n'
-            msg += '  Speeds in [%f, %f]\n' % (min(self.max_speed),
-                                               max(self.max_speed))
+            msg += '  Speeds in [%f, %f]\n' % (num.min(self.max_speed),
+                                               num.max(self.max_speed))
             msg += '  Histogram:\n'
 
             hi = bins[0]
@@ -907,10 +905,10 @@ class Domain:
                     msg += '    [%f, %f[: %d\n' % (lo, hi, count)
                 else:
                     # Closed upper interval
-                    hi = max(self.max_speed)
+                    hi = num.max(self.max_speed)
                     msg += '    [%f, %f]: %d\n' % (lo, hi, count)
 
-            N = len(self.max_speed)
+            N = len(self.max_speed.flat)
             if N > 10:
                 msg += '  Percentiles (10%):\n'
                 speed = self.max_speed.tolist()
@@ -1372,7 +1370,7 @@ class Domain:
                 self.max_timestep = min_timestep
                 self.number_of_steps = 0
                 self.number_of_first_order_steps = 0
-                self.max_speed = num.zeros(N, num.Float)
+                self.max_speed = num.zeros(N, num.float)
 
     ##
     # @brief 'Euler' time step method.
@@ -1641,7 +1639,7 @@ class Domain:
         # FIXME (Steve): This should be in shallow_water as it assumes x and y
         # momentum
         if self.protect_against_isolated_degenerate_timesteps is True and \
-               self.max_speed > 10.0: # FIXME (Ole): Make this configurable
+               num.max(self.max_speed) > 10.0: # FIXME (Ole): Make this configurable
 
             # Setup 10 bins for speed histogram
             from anuga.utilities.numerical_tools import histogram, create_bins
@@ -1656,7 +1654,7 @@ class Domain:
                     # print self.timestepping_statistics(track_speeds=True)
 
                     # Find triangles in last bin
-                    # FIXME - speed up using Numeric
+                    # FIXME - speed up using numeric package
                     d = 0
                     for i in range(self.number_of_full_triangles):
                         if self.max_speed[i] > bins[-1]:
@@ -1762,10 +1760,6 @@ class Domain:
         # receive the information for the ghost cells
         # We have a list with ghosts expecting updates
 
-
-        from Numeric import take,put
-
-
         #Update of ghost cells
         iproc = self.processor
         if self.full_send_dict.has_key(iproc):
@@ -1778,7 +1772,7 @@ class Domain:
 
             for i, q in enumerate(self.conserved_quantities):
                 Q_cv =  self.quantities[q].centroid_values
-                put(Q_cv,     Idg, take(Q_cv,     Idf))
+                num.put(Q_cv, Idg, num.take(Q_cv, Idf, axis=0))
 
  
     ##

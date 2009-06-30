@@ -1,5 +1,5 @@
 import unittest
-import Numeric as num
+import numpy as num
 from eqf import earthquake_tsunami, Okada_func
 
 
@@ -59,9 +59,9 @@ class Test_eq(unittest.TestCase):
                                 x0 = x0, y0 = y0)
 
 #-------------------------------------------------------------
+
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_eq,'test_Okada_func')
-    #suite = unittest.makeSuite(Test_eq,'test_earthquake_tsunami')
     runner = unittest.TextTestRunner()
     runner.run(suite)
 

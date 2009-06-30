@@ -9,9 +9,10 @@ import unittest
 
 from redfearn import *
 from anuga.utilities.anuga_exceptions import ANUGAError
+
 from anuga.utilities.system_tools import get_pathname_from_package
 from os.path import join
-import Numeric as num
+import numpy as num
 
 
 #-------------------------------------------------------------
@@ -138,15 +139,15 @@ class TestCase(unittest.TestCase):
         assert num.allclose(easting, 213251.040253)
         assert num.allclose(northing, 6762559.15978)
 
-        # Testing using the native zone
+        #Testing using the native zone
         zone, easting, northing = redfearn(-29.233299999,114.05, zone=50)
 
         assert zone == 50
         assert num.allclose(easting, 213251.040253)
         assert num.allclose(northing, 6762559.15978)
 
-        # Then project to zone 49
-        zone, easting, northing = redfearn(-29.233299999,114.05, zone=49)
+        #Then project to zone 49
+        zone, easting, northing = redfearn(-29.233299999,114.05,zone=49)
 
         assert zone == 49
         assert num.allclose(easting, 796474.020057)
@@ -154,66 +155,68 @@ class TestCase(unittest.TestCase):
 
        
 
-        # First test native projection (zone 49)
+        
+
+        #First test native projection (zone 49)
         zone, easting, northing = redfearn(-29.1333,113.9667)
 
         assert zone == 49
         assert num.allclose(easting, 788653.192779)
         assert num.allclose(northing, 6773605.46384)
 
-        # Then project to zone 50
-        zone, easting, northing = redfearn(-29.1333,113.9667, zone=50)
+        #Then project to zone 50
+        zone, easting, northing = redfearn(-29.1333,113.9667,zone=50)
 
         assert zone == 50
         assert num.allclose(easting, 204863.606467)
         assert num.allclose(northing, 6773440.04726)
 
-        # Testing point on zone boundary
-        # First test native projection (zone 50)
+        #Testing point on zone boundary
+        #First test native projection (zone 50)
         zone, easting, northing = redfearn(-29.1667,114)
 
         assert zone == 50
         assert num.allclose(easting, 208199.768268)
         assert num.allclose(northing, 6769820.01453)
 
-        # Then project to zone 49
-        zone, easting, northing = redfearn(-29.1667,114, zone=49)
+        #Then project to zone 49
+        zone, easting, northing = redfearn(-29.1667,114,zone=49)
 
         assert zone == 49
         assert num.allclose(easting, 791800.231817)
         assert num.allclose(northing, 6769820.01453)
 
-        # Testing furthest point in Geraldton scenario)
-        # First test native projection (zone 49)
+        #Testing furthest point in Geraldton scenario)
+        #First test native projection (zone 49)
         zone, easting, northing = redfearn(-28.2167,113.4167)
 
         assert zone == 49
         assert num.allclose(easting, 737178.16131)
         assert num.allclose(northing, 6876426.38578)
 
-        # Then project to zone 50
+        #Then project to zone 50
         zone, easting, northing = redfearn(-28.2167,113.4167,zone=50)
 
         assert zone == 50
         assert num.allclose(easting, 148260.567427)
         assert num.allclose(northing, 6873587.50926)
 
-        # Testing outside GDA zone (New Zeland)
-        # First test native projection (zone 60)
+        #Testing outside GDA zone (New Zeland)
+        #First test native projection (zone 60)
         zone, easting, northing = redfearn(-44,178)
 
         assert zone == 60
         assert num.allclose(easting, 580174.259843)
         assert num.allclose(northing, 5127641.114461)
 
-        # Then project to zone 59
+        #Then project to zone 59
         zone, easting, northing = redfearn(-44,178,zone=59)
 
         assert zone == 59
         assert num.allclose(easting, 1061266.922118)
         assert num.allclose(northing, 5104249.395469)
 
-        # Then skip three zones 57 (native 60)
+        #Then skip three zones 57 (native 60)
         zone, easting, northing = redfearn(-44,178,zone=57)
 
         assert zone == 57
@@ -228,8 +231,8 @@ class TestCase(unittest.TestCase):
         # But the redfearn implementation does coincide with
         # Google Earth (he he)
         
-        # Testing outside GDA zone (Northern Hemisphere)
-        # First test native projection (zone 57)
+        #Testing outside GDA zone (Northern Hemisphere)
+        #First test native projection (zone 57)
         zone, easting, northing = redfearn(44,156)
 
         # Google Earth interpretation
@@ -242,7 +245,7 @@ class TestCase(unittest.TestCase):
         #assert num.allclose(easting, 259473.678944)
         #assert num.allclose(northing, 14876249.1268)
         
-        # Then project to zone 56
+        #Then project to zone 56
         zone, easting, northing = redfearn(44,156,zone=56)
 
         assert zone == 56
@@ -271,7 +274,6 @@ class TestCase(unittest.TestCase):
     #    assert zone == 56
     #    #assert allclose(easting, 297717.36468927) #out by 10m
     #    #assert allclose(northing, 6181725.1724276)
-
 
     
     def test_nonstandard_meridian_coinciding_with_native(self):
@@ -504,8 +506,8 @@ class TestCase(unittest.TestCase):
 
             
 #-------------------------------------------------------------
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     mysuite = unittest.makeSuite(TestCase,'test')
     runner = unittest.TextTestRunner()
     runner.run(mysuite)

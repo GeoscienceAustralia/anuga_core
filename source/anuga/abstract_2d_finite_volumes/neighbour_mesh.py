@@ -11,8 +11,8 @@ from general_mesh import General_mesh
 from anuga.caching import cache
 from math import pi, sqrt
 
-import Numeric as num
-        
+import numpy as num
+
 
 class Mesh(General_mesh):
     """Collection of triangular elements (purely geometric)
@@ -23,7 +23,7 @@ class Mesh(General_mesh):
     Vertices from different elements can point to the same
     coordinate set.
 
-    Coordinate sets are implemented as an N x 2 Numeric array containing
+    Coordinate sets are implemented as an N x 2 numeric array containing
     x and y coordinates.
 
 
@@ -32,10 +32,10 @@ class Mesh(General_mesh):
 
     where
 
-      coordinates is either a list of 2-tuples or an Mx2 Numeric array of
+      coordinates is either a list of 2-tuples or an Mx2 numeric array of
       floats representing all x, y coordinates in the mesh.
 
-      triangles is either a list of 3-tuples or an Nx3 Numeric array of
+      triangles is either a list of 3-tuples or an Nx3 numeric array of
       integers representing indices of all vertices in the mesh.
       Each vertex is identified by its index i in [0, M-1].
 
@@ -75,8 +75,8 @@ class Mesh(General_mesh):
                  verbose=False):
         """
         Build triangles from x,y coordinates (sequence of 2-tuples or
-        Mx2 Numeric array of floats) and triangles (sequence of 3-tuples
-        or Nx3 Numeric array of non-negative integers).
+        Mx2 numeric array of floats) and triangles (sequence of 3-tuples
+        or Nx3 numeric array of non-negative integers).
         """
 
 
@@ -90,40 +90,40 @@ class Mesh(General_mesh):
                               geo_reference=geo_reference,
                               verbose=verbose)
 
-        if verbose: print 'Initialising mesh'         
+        if verbose: print 'Initialising mesh'
 
         N = len(self) #Number_of_triangles
 
         self.use_inscribed_circle = use_inscribed_circle
 
         #Allocate space for geometric quantities
-        self.centroid_coordinates = num.zeros((N, 2), num.Float)
+        self.centroid_coordinates = num.zeros((N, 2), num.float)
 
-        self.radii = num.zeros(N, num.Float)
+        self.radii = num.zeros(N, num.float)
 
-        self.neighbours = num.zeros((N, 3), num.Int)
-        self.neighbour_edges = num.zeros((N, 3), num.Int)
-        self.number_of_boundaries = num.zeros(N, num.Int)
-        self.surrogate_neighbours = num.zeros((N, 3), num.Int)
+        self.neighbours = num.zeros((N, 3), num.int)
+        self.neighbour_edges = num.zeros((N, 3), num.int)
+        self.number_of_boundaries = num.zeros(N, num.int)
+        self.surrogate_neighbours = num.zeros((N, 3), num.int)
 
         #Get x,y coordinates for all triangles and store
         V = self.vertex_coordinates # Relative coordinates
 
         #Initialise each triangle
-        if verbose: print 'Mesh: Computing centroids and radii'        
+        if verbose: print 'Mesh: Computing centroids and radii'
         for i in range(N):
             if verbose and i % ((N+10)/10) == 0: print '(%d/%d)' %(i, N)
 
             x0, y0 = V[3*i, :]
             x1, y1 = V[3*i+1, :]
-            x2, y2 = V[3*i+2, :]                        
+            x2, y2 = V[3*i+2, :]
 
             #x0 = V[i, 0]; y0 = V[i, 1]
             #x1 = V[i, 2]; y1 = V[i, 3]
             #x2 = V[i, 4]; y2 = V[i, 5]
 
             #Compute centroid
-            centroid = num.array([(x0 + x1 + x2)/3, (y0 + y1 + y2)/3], num.Float)
+            centroid = num.array([(x0 + x1 + x2)/3, (y0 + y1 + y2)/3], num.float)
             self.centroid_coordinates[i] = centroid
 
 
@@ -132,9 +132,9 @@ class Mesh(General_mesh):
                 #inscribed circle
 
                 #Midpoints
-                m0 = num.array([(x1 + x2)/2, (y1 + y2)/2], num.Float)
-                m1 = num.array([(x0 + x2)/2, (y0 + y2)/2], num.Float)
-                m2 = num.array([(x1 + x0)/2, (y1 + y0)/2], num.Float)
+                m0 = num.array([(x1 + x2)/2, (y1 + y2)/2], num.float)
+                m1 = num.array([(x0 + x2)/2, (y0 + y2)/2], num.float)
+                m2 = num.array([(x1 + x0)/2, (y1 + y0)/2], num.float)
 
                 #The radius is the distance from the centroid of
                 #a triangle to the midpoint of the side of the triangle
@@ -165,7 +165,7 @@ class Mesh(General_mesh):
 
 
         #Build neighbour structure
-        if verbose: print 'Mesh: Building neigbour structure'                
+        if verbose: print 'Mesh: Building neigbour structure'
         self.build_neighbour_structure()
 
         #Build surrogate neighbour structure
@@ -177,23 +177,23 @@ class Mesh(General_mesh):
         self.build_boundary_dictionary(boundary)
 
         #Build tagged element  dictionary mapping (tag) to array of elements
-        if verbose: print 'Mesh: Building tagged elements dictionary'        
+        if verbose: print 'Mesh: Building tagged elements dictionary'
         self.build_tagged_elements_dictionary(tagged_elements)
 
         # Build a list of vertices that are not connected to any triangles
         self.lone_vertices = []
         #Check that all vertices have been registered
-        for node, count in enumerate(self.number_of_triangles_per_node):    
+        for node, count in enumerate(self.number_of_triangles_per_node):
             #msg = 'Node %d does not belong to an element.' %node
             #assert count > 0, msg
             if count == 0:
                 self.lone_vertices.append(node)
-                
+
         #Update boundary indices FIXME: OBSOLETE
         #self.build_boundary_structure()
 
         #FIXME check integrity?
-        if verbose: print 'Mesh: Done'                
+        if verbose: print 'Mesh: Done'
 
     def __repr__(self):
         return General_mesh.__repr__(self) + ', %d boundary segments'\
@@ -393,13 +393,13 @@ class Mesh(General_mesh):
         else:
             #Check that all keys in given boundary exist
             for tag in tagged_elements.keys():
-                tagged_elements[tag] = num.array(tagged_elements[tag], num.Int)
+                tagged_elements[tag] = num.array(tagged_elements[tag], num.int)
 
                 msg = 'Not all elements exist. '
                 assert max(tagged_elements[tag]) < len(self), msg
         #print "tagged_elements", tagged_elements
         self.tagged_elements = tagged_elements
-        
+
     def get_tagged_elements(self):
         return self.tagged_elements
 
@@ -458,35 +458,34 @@ class Mesh(General_mesh):
         """Return bounding polygon for mesh (counter clockwise)
 
         Using the mesh boundary, derive a bounding polygon for this mesh.
-        If multiple vertex values are present (vertices stored uniquely), 
-	the algorithm will select the path that contains the entire mesh.
+        If multiple vertex values are present (vertices stored uniquely),
+        the algorithm will select the path that contains the entire mesh.
 
         All points are in absolute UTM coordinates
         """
-        
-        from anuga.utilities.numerical_tools import angle, ensure_numeric     
 
+        from anuga.utilities.numerical_tools import angle, ensure_numeric
 
         # Get mesh extent
         xmin, xmax, ymin, ymax = self.get_extent(absolute=True)
         pmin = ensure_numeric([xmin, ymin])
-        pmax = ensure_numeric([xmax, ymax])        
-
+        pmax = ensure_numeric([xmax, ymax])
 
         # Assemble dictionary of boundary segments and choose starting point
         segments = {}
         inverse_segments = {}
         p0 = None
-        mindist = num.sqrt(num.sum((pmax-pmin)**2)) # Start value across entire mesh
+
+        # Start value across entire mesh
+        mindist = num.sqrt(num.sum((pmax-pmin)**2))
         for i, edge_id in self.boundary.keys():
             # Find vertex ids for boundary segment
             if edge_id == 0: a = 1; b = 2
             if edge_id == 1: a = 2; b = 0
             if edge_id == 2: a = 0; b = 1
 
-            A = self.get_vertex_coordinate(i, a, absolute=True) # Start
-            B = self.get_vertex_coordinate(i, b, absolute=True) # End
-
+            A = self.get_vertex_coordinate(i, a, absolute=True)    # Start
+            B = self.get_vertex_coordinate(i, b, absolute=True)    # End
 
             # Take the point closest to pmin as starting point
             # Note: Could be arbitrary, but nice to have
@@ -502,122 +501,110 @@ class Mesh(General_mesh):
                 mindist = dist_B
                 p0 = B
 
-
             # Sanity check
             if p0 is None:
-                raise Exception('Impossible')
-
+                msg = 'Impossible: p0 is None!?'
+                raise Exception, msg
 
             # Register potential paths from A to B
             if not segments.has_key(tuple(A)):
-                segments[tuple(A)] = [] # Empty list for candidate points
+                segments[tuple(A)] = []    # Empty list for candidate points
 
-            segments[tuple(A)].append(B)                
-
+            segments[tuple(A)].append(B)
 
         # Start with smallest point and follow boundary (counter clock wise)
         polygon = [list(p0)]# Storage for final boundary polygon
-        point_registry = {} # Keep track of storage to avoid multiple runs 
-	                    # around boundary. This will only be the case if 
-			    # there are more than one candidate.
+        point_registry = {} # Keep track of storage to avoid multiple runs
+                            # around boundary. This will only be the case if
+                            # there are more than one candidate.
                             # FIXME (Ole): Perhaps we can do away with polygon
                             # and use only point_registry to save space.
 
-        point_registry[tuple(p0)] = 0                            
-                            
-        while len(point_registry) < len(self.boundary):
+        point_registry[tuple(p0)] = 0
 
+        while len(point_registry) < len(self.boundary):
             candidate_list = segments[tuple(p0)]
             if len(candidate_list) > 1:
-                # Multiple points detected (this will be the case for meshes 
-		# with duplicate points as those used for discontinuous 
-		# triangles with vertices stored uniquely).
-                # Take the candidate that is furthest to the clockwise 
-		# direction, as that will follow the boundary.
-		#
-		# This will also be the case for pathological triangles
-		# that have no neighbours.
+                # Multiple points detected (this will be the case for meshes
+                # with duplicate points as those used for discontinuous
+                # triangles with vertices stored uniquely).
+                # Take the candidate that is furthest to the clockwise
+                # direction, as that will follow the boundary.
+                #
+                # This will also be the case for pathological triangles
+                # that have no neighbours.
 
                 if verbose:
-                    print 'Point %s has multiple candidates: %s'\
-                          %(str(p0), candidate_list)
+                    print ('Point %s has multiple candidates: %s'
+                           % (str(p0), candidate_list))
 
                 # Check that previous are not in candidate list
                 #for p in candidate_list:
                 #    assert not allclose(p0, p)
 
                 # Choose vector against which all angles will be measured
-                if len(polygon) > 1:    
-                    v_prev = p0 - polygon[-2] # Vector that leads to p0 
-		                              # from previous point
+                if len(polygon) > 1:
+                    v_prev = p0 - polygon[-2]    # Vector that leads to p0
+                                                 # from previous point
                 else:
-                    # FIXME (Ole): What do we do if the first point has 
-		    # multiple candidates?
+                    # FIXME (Ole): What do we do if the first point has
+                    # multiple candidates?
                     # Being the lower left corner, perhaps we can use the
-                    # vector [1, 0], but I really don't know if this is 
-		    # completely watertight.
+                    # vector [1, 0], but I really don't know if this is
+                    # completely watertight.
                     v_prev = [1.0, 0.0]
-                    
 
-                # Choose candidate with minimum angle    
+                # Choose candidate with minimum angle
                 minimum_angle = 2*pi
                 for pc in candidate_list:
+                    vc = pc-p0    # Candidate vector (from p0 to candidate pt)
 
-                    vc = pc-p0  # Candidate vector (from p0 to candidate pt)
-                   
                     # Angle between each candidate and the previous vector
                     # in [-pi, pi]
                     ac = angle(vc, v_prev)
                     if ac > pi:
-                        # Give preference to angles on the right hand side 
-			# of v_prev 
+                        # Give preference to angles on the right hand side
+                        # of v_prev
                         # print 'pc = %s, changing angle from %f to %f'\
-			# %(pc, ac*180/pi, (ac-2*pi)*180/pi)
+                        # %(pc, ac*180/pi, (ac-2*pi)*180/pi)
                         ac = ac-2*pi
 
-                    # Take the minimal angle corresponding to the 
-		    # rightmost vector
+                    # Take the minimal angle corresponding to the
+                    # rightmost vector
                     if ac < minimum_angle:
                         minimum_angle = ac
-                        p1 = pc             # Best candidate 
-                        
+                        p1 = pc             # Best candidate
 
                 if verbose is True:
                     print '  Best candidate %s, angle %f'\
                           %(p1, minimum_angle*180/pi)
-                    
             else:
                 p1 = candidate_list[0]
 
-		
             if point_registry.has_key(tuple(p1)):
-                # We have reached a point already visited. 
-		
-		if num.allclose(p1, polygon[0]):
-		    # If it is the initial point, the polygon is complete. 
-		    
+                # We have reached a point already visited.
+                if num.allclose(p1, polygon[0]):
+                    # If it is the initial point, the polygon is complete.
                     if verbose is True:
-		        print '  Stop criterion fulfilled at point %s' %p1
-		        print polygon		    
-			
+                        print '  Stop criterion fulfilled at point %s' %p1
+                        print polygon
+
                     # We have completed the boundary polygon - yeehaa
-		    break
-		else:    
-		    # The point already visited is not the initial point
-		    # This would be a pathological triangle, but the 
-		    # algorithm must be able to deal with this
-		    pass
-   
+                    break
+                else:
+                    # The point already visited is not the initial point
+                    # This would be a pathological triangle, but the
+                    # algorithm must be able to deal with this
+                    pass
+
             else:
-	        # We are still finding new points on the boundary
+                # We are still finding new points on the boundary
                 point_registry[tuple(p1)] = len(point_registry)
-            
-            polygon.append(list(p1)) # De-Numeric each point :-)
+
+            polygon.append(list(p1))    # De-numeric each point :-)
             p0 = p1
 
-
         return polygon
-
 
     def check_integrity(self):
         """Check that triangles are internally consistent e.g.
@@ -640,7 +627,7 @@ class Mesh(General_mesh):
             x0, y0 = V[3*i, :]
             x1, y1 = V[3*i+1, :]
             x2, y2 = V[3*i+2, :]
-            
+
             # Check that area hasn't been compromised
             area = self.areas[i]
             ref = abs((x1*y0-x0*y1)+(x2*y1-x1*y2)+(x0*y2-x2*y0))/2
@@ -677,10 +664,10 @@ class Mesh(General_mesh):
                 assert num.allclose(l_v, 1), msg
 
                 x = (u[0]*v[0] + u[1]*v[1])/l_u # Inner product
-                
+
                 msg = 'Normal vector (%f,%f) is not perpendicular to' %tuple(v)
                 msg += ' edge (%f,%f) in triangle %d.' %(tuple(u) + (i,))
-                msg += ' Inner product is %e.' %x                
+                msg += ' Inner product is %e.' %x
                 assert x < epsilon, msg
 
 
@@ -689,7 +676,7 @@ class Mesh(General_mesh):
         # Check neighbour structure
         for i in range(N):
             # For each triangle
-            
+
             for k, neighbour_id in enumerate(self.neighbours[i,:]):
 
                 #Assert that my neighbour's neighbour is me
@@ -751,16 +738,16 @@ class Mesh(General_mesh):
             if self.number_of_triangles_per_node[current_node] == 0:
                 # Node is lone - i.e. not part of the mesh
                 continue
-            
+
             k += 1
-            
+
             volume_id = index / 3
             vertex_id = index % 3
-            
+
             msg = 'Triangle %d, vertex %d points to %d. Should have been %d'\
                   %(volume_id, vertex_id, self.triangles[volume_id, vertex_id], current_node)
             assert self.triangles[volume_id, vertex_id] == current_node, msg
-                        
+
             if self.number_of_triangles_per_node[current_node] == k:
                 # Move on to next node
                 k = 0
@@ -787,15 +774,15 @@ class Mesh(General_mesh):
         if absolute is True:
             if not self.geo_reference.is_absolute():
                 V = self.geo_reference.get_absolute(V)
-            
+
         return V
 
-        
+
     def get_radii(self):
         """Return all radii.
         Return radius of inscribed cirle for all triangles
         """
-        return self.radii	
+        return self.radii
 
 
 
@@ -825,16 +812,16 @@ class Mesh(General_mesh):
         str += '    y in [%f, %f]\n' %(min(y), max(y))
         str += '  Areas [m^2]:\n'
         str += '    A in [%f, %f]\n' %(min(areas), max(areas))
-        str += '    number of distinct areas: %d\n' %(len(areas))        
+        str += '    number of distinct areas: %d\n' %(len(areas))
         str += '    Histogram:\n'
 
         hi = bins[0]
         for i, count in enumerate(hist):
             lo = hi
             if i+1 < len(bins):
-                #Open upper interval                
+                #Open upper interval
                 hi = bins[i+1]
-                str += '      [%f, %f[: %d\n' %(lo, hi, count)                
+                str += '      [%f, %f[: %d\n' %(lo, hi, count)
             else:
                 #Closed upper interval
                 hi = max(areas)
@@ -848,24 +835,24 @@ class Mesh(General_mesh):
 
             k = 0
             lower = min(areas)
-            for i, a in enumerate(areas):        
-                if i % (N/10) == 0 and i != 0: #For every 10% of the sorted areas                
+            for i, a in enumerate(areas):
+                if i % (N/10) == 0 and i != 0: #For every 10% of the sorted areas
                     str += '      %d triangles in [%f, %f]\n' %(i-k, lower, a)
                     lower = a
                     k = i
-                    
+
             str += '      %d triangles in [%f, %f]\n'\
-                   %(N-k, lower, max(areas))                    
-                
-                      
+                   %(N-k, lower, max(areas))
+
+
         str += '  Boundary:\n'
         str += '    Number of boundary segments == %d\n' %(len(self.boundary))
-        str += '    Boundary tags == %s\n' %self.get_boundary_tags()  
+        str += '    Boundary tags == %s\n' %self.get_boundary_tags()
         str += '------------------------------------------------\n'
-        
+
 
         return str
-    
+
 
     def get_triangle_containing_point(self, point):
         """Return triangle id for triangle containing specified point (x,y)
@@ -873,7 +860,7 @@ class Mesh(General_mesh):
         If point isn't within mesh, raise exception
 
         """
-        
+
         # FIXME(Ole): This function is currently brute force
         # because I needed it for diagnostics.
         # We should make it fast - probably based on the
@@ -883,7 +870,7 @@ class Mesh(General_mesh):
 
         polygon = self.get_boundary_polygon()
         #print polygon, point
-        
+
         if is_outside_polygon(point, polygon):
             msg = 'Point %s is outside mesh' %str(point)
             raise Exception, msg
@@ -898,7 +885,7 @@ class Mesh(General_mesh):
 
             if is_inside_polygon(point, poly, closed=True):
                 return i
-                
+
         return
 
 
@@ -929,33 +916,33 @@ class Mesh(General_mesh):
 
         Resulting segments are unsorted
         """
-        
+
         V = self.get_vertex_coordinates()
         N = len(self)
-        
+
         # Adjust polyline to mesh spatial origin
         polyline = self.geo_reference.get_relative(polyline)
 
         if use_cache is True:
             segments = cache(get_intersecting_segments,
-                             (V, N, polyline), 
+                             (V, N, polyline),
                              {'verbose': verbose},
                              verbose=verbose)
-        else:                  
+        else:
             segments = get_intersecting_segments(V, N, polyline,
                                                  verbose=verbose)
-        
+
 
         return segments
-        
-  
+
+
 
     def get_triangle_neighbours(self, tri_id):
         """ Given a triangle id, Return an array of the
         3 neighbour triangle id's.
 
         Negative returned triangle id's represent a boundary as a neighbour.
-        
+
         If the given triangle id is bad, return an empty list.
         """
 
@@ -963,18 +950,18 @@ class Mesh(General_mesh):
             return self.neighbours[tri_id,:]
         except IndexError:
             return []
-        
+
 
     def get_interpolation_object(self):
         """Get object I that will allow linear interpolation using this mesh
-        
-        This is a time consuming process but it needs only to be 
+
+        This is a time consuming process but it needs only to be
         once for the mesh.
-        
-        Interpolation can then be done using 
-        
-        result = I.interpolate_block(vertex_values, interpolation_points)        
-        
+
+        Interpolation can then be done using
+
+        result = I.interpolate_block(vertex_values, interpolation_points)
+
         where vertex values have been obtained from a quantity using
         vertex_values, triangles = self.get_vertex_values()
         """
@@ -983,21 +970,21 @@ class Mesh(General_mesh):
             I = self.interpolation_object
         else:
             from anuga.fit_interpolate.interpolate import Interpolate
-                        
-            # Get discontinuous mesh - this will match internal 
+
+            # Get discontinuous mesh - this will match internal
             # representation of vertex values
             triangles = self.get_disconnected_triangles()
             vertex_coordinates = self.get_vertex_coordinates()
 
             I = Interpolate(vertex_coordinates, triangles)
             self.interpolation_object = I
-        
-        return I               
-        
+
+        return I
+
 
 class Triangle_intersection:
     """Store information about line segments intersecting a triangle
-    
+
     Attributes are
 
         segment: Line segment intersecting triangle [[x0,y0], [x1, y1]]
@@ -1013,11 +1000,11 @@ class Triangle_intersection:
                  normal=None,
                  length=None,
                  triangle_id=None):
-        self.segment = segment              
+        self.segment = segment
         self.normal = normal
         self.length = length
         self.triangle_id = triangle_id
-        
+
 
     def __repr__(self):
         s = 'Triangle_intersection('
@@ -1026,10 +1013,10 @@ class Triangle_intersection:
                self.normal,
                self.length,
                self.triangle_id)
-    
+
         return s
 
-        
+
 
 def _get_intersecting_segments(V, N, line,
                                verbose=False):
@@ -1050,7 +1037,7 @@ def _get_intersecting_segments(V, N, line,
 
     from anuga.utilities.polygon import intersection
     from anuga.utilities.polygon import is_inside_polygon
-  
+
     msg = 'Line segment must contain exactly two points'
     assert len(line) == 2, msg
 
@@ -1059,7 +1046,7 @@ def _get_intersecting_segments(V, N, line,
     xi0 = line[0][0]
     eta0 = line[0][1]
 
-  
+
     # Check intersection with edge segments for all triangles
     # FIXME (Ole): This should be implemented in C
     triangle_intersections={} # Keep track of segments already done
@@ -1068,23 +1055,23 @@ def _get_intersecting_segments(V, N, line,
         x0, y0 = V[3*i, :]
         x1, y1 = V[3*i+1, :]
         x2, y2 = V[3*i+2, :]
-          
+
 
         edge_segments = [[[x0,y0], [x1, y1]],
                           [[x1,y1], [x2, y2]],
                           [[x2,y2], [x0, y0]]]
 
         # Find segments that are intersected by line
-        
+
         intersections = {} # Use dictionary to record points only once
         for edge in edge_segments:
 
             status, value = intersection(line, edge)
             #if value is not None: print 'Triangle %d, Got' %i, status, value
-                
+
             if status == 1:
                 # Normal intersection of one edge or vertex
-                intersections[tuple(value)] = i                  
+                intersections[tuple(value)] = i
 
                 # Exclude singular intersections with vertices
                 #if not(allclose(value, edge[0]) or\
@@ -1100,9 +1087,9 @@ def _get_intersecting_segments(V, N, line,
                 # However, if coinciding line stops partway
                 # along this edge, it will be recorded here.
                 intersections[tuple(value[0,:])] = i
-                intersections[tuple(value[1,:])] = i                                    
+                intersections[tuple(value[1,:])] = i
 
-                
+
         if len(intersections) == 1:
             # Check if either line end point lies fully within this triangle
             # If this is the case accept that as one end of the intersecting
@@ -1112,9 +1099,9 @@ def _get_intersecting_segments(V, N, line,
             if is_inside_polygon(line[1], poly, closed=False):
                 intersections[tuple(line[1])] = i
             elif is_inside_polygon(line[0], poly, closed=False):
-                intersections[tuple(line[0])] = i         
+                intersections[tuple(line[0])] = i
             else:
-                # Ignore situations where one vertex is touch, for instance                   
+                # Ignore situations where one vertex is touch, for instance
                 continue
 
 
@@ -1138,11 +1125,11 @@ def _get_intersecting_segments(V, N, line,
             # the line and the normals
 
             # Distances from line origin to the two intersections
-            z0 = num.array([x0 - xi0, y0 - eta0], num.Float)
-            z1 = num.array([x1 - xi0, y1 - eta0], num.Float)
-            d0 = num.sqrt(num.sum(z0**2)) 
+            z0 = num.array([x0 - xi0, y0 - eta0], num.float)
+            z1 = num.array([x1 - xi0, y1 - eta0], num.float)
+            d0 = num.sqrt(num.sum(z0**2))
             d1 = num.sqrt(num.sum(z1**2))
-               
+
             if d1 < d0:
                 # Swap
                 xi, eta = x0, y0
@@ -1150,16 +1137,16 @@ def _get_intersecting_segments(V, N, line,
                 x1, y1 = xi, eta
 
             # (x0,y0) is now the origin of the intersecting segment
-                
+
 
             # Normal direction:
             # Right hand side relative to line direction
-            vector = num.array([x1 - x0, y1 - y0], num.Float) # Segment vector
+            vector = num.array([x1 - x0, y1 - y0], num.float) # Segment vector
             length = num.sqrt(num.sum(vector**2))      # Segment length
-            normal = num.array([vector[1], -vector[0]], num.Float)/length
+            normal = num.array([vector[1], -vector[0]], num.float)/length
 
 
-            segment = ((x0,y0), (x1, y1))    
+            segment = ((x0,y0), (x1, y1))
             T = Triangle_intersection(segment=segment,
                                       normal=normal,
                                       length=length,
@@ -1167,35 +1154,35 @@ def _get_intersecting_segments(V, N, line,
 
 
             # Add segment unless it was done earlier
-            if not triangle_intersections.has_key(segment):    
+            if not triangle_intersections.has_key(segment):
                 triangle_intersections[segment] = T
 
 
-    # Return segments as a list            
+    # Return segments as a list
     return triangle_intersections.values()
 
 
 def get_intersecting_segments(V, N, polyline,
-                              verbose=False):        
+                              verbose=False):
     """Internal function to find edges intersected by Polyline
-    
+
     Input:
         V: Vertex coordinates as obtained by mesh.get_vertex_coordinates()
         N: Number of triangles in mesh
-        polyline - list of points forming a segmented line        
+        polyline - list of points forming a segmented line
         verbose
     Output:
         list of instances of class Triangle_intersection
 
     This method is used by the public method
     get_intersecting_segments(self, polyline) which also contains
-    more documentation.    
+    more documentation.
     """
 
     msg = 'Polyline must contain at least two points'
     assert len(polyline) >= 2, msg
-      
-      
+
+
     # For all segments in polyline
     triangle_intersections = []
     for i, point0 in enumerate(polyline[:-1]):
@@ -1205,7 +1192,7 @@ def get_intersecting_segments(V, N, polyline,
             print 'Extracting mesh intersections from line:',
             print '(%.2f, %.2f) - (%.2f, %.2f)' %(point0[0], point0[1],
                                                   point1[0], point1[1])
-           
+
         line = [point0, point1]
         triangle_intersections += _get_intersecting_segments(V, N, line,
                                                              verbose=verbose)
@@ -1213,33 +1200,33 @@ def get_intersecting_segments(V, N, polyline,
 
     msg = 'No segments found'
     assert len(triangle_intersections) > 0, msg
-      
-        
-    return triangle_intersections
-  
 
-    
-            
-        
+
+    return triangle_intersections
+
+
+
+
+
 def segment_midpoints(segments):
     """Calculate midpoints of all segments
-    
+
     Inputs:
        segments: List of instances of class Segment
-       
+
     Ouputs:
        midpoints: List of points
     """
-    
+
     midpoints = []
     msg = 'Elements of input list to segment_midpoints must be of class Triangle_intersection'
     for segment in segments:
         assert isinstance(segment, Triangle_intersection), msg
-        
-        midpoint = num.sum(num.array(segment.segment, num.Float))/2
+
+        midpoint = num.sum(num.array(segment.segment, num.float), axis=0)/2
         midpoints.append(midpoint)
 
     return midpoints
-    
-    
-    
+
+
+

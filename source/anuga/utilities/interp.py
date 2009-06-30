@@ -74,15 +74,15 @@ def interp(y, x, xinterp, missing=1e+20):
 
 
     Positional Input Arguments:
-    * y:  Ordinate values of data.  Rank 1 Numeric vector.  Required.
+    * y:  Ordinate values of data.  Rank 1 numeric vector.  Required.
       Can have missing values.  Floating or integer type.
 
-    * x:  Abscissa values of data.  Rank 1 Numeric vector.  Required.
+    * x:  Abscissa values of data.  Rank 1 numeric vector.  Required.
       Can have no missing values.  Must be monotonically ascending.  
       Floating or integer type.
 
     * xinterp:  Abscissa values to calculate interpolated ordinate 
-      values at.  Rank 1 Numeric vector or Numeric scalar.  Required.  
+      values at.  Rank 1 numeric vector or numeric scalar.  Required.  
       Can have no missing values.  Can be in any order.  Floating or 
       integer type.
 
@@ -93,9 +93,9 @@ def interp(y, x, xinterp, missing=1e+20):
 
 
     Output Result:
-    * Interpolated ordinate values at xinterp.  Rank 1 Numeric vector 
-      of same length as xinterp (if xinterp is a Numeric scalar, 
-      output is also a Numeric scalar).  Missing values are set to the 
+    * Interpolated ordinate values at xinterp.  Rank 1 numeric vector 
+      of same length as xinterp (if xinterp is a numeric scalar, 
+      output is also a numeric scalar).  Missing values are set to the 
       value of argument missing.  Type is Float, even if argument 
       missing and inputs are all integer.
 
@@ -110,7 +110,7 @@ def interp(y, x, xinterp, missing=1e+20):
     arrayfns.interp):
 
     >>> from interp import interp
-    >>> import Numeric as N
+    >>> import numpy as N
     >>> x = N.array([1., 2., 3., 4., 5.])
     >>> y = N.array([3., 6., 2.,-5.,-3.])
     >>> xint = N.array([3.4, 2.3])
@@ -137,8 +137,8 @@ def interp(y, x, xinterp, missing=1e+20):
     ['-0.8', '1e+20', '1e+20']
     """
     import arrayfns
-    import MA
-    import Numeric as N
+    import numpy.ma MA
+    import numpy as N
     from where_close import where_close
 
 
@@ -215,7 +215,7 @@ __test__ = {'Additional Examples':
     (1) General error catching:
 
     >>> from interp import interp
-    >>> import Numeric as N
+    >>> import numpy as N
     >>> x = N.array([1.,    2., 3.,  4.,  5.,  6.])
     >>> y = N.array([3., 1e+20, 2., -5., -3., -4.])
     >>> x = N.reshape(x, (2,3))
@@ -283,7 +283,7 @@ __test__ = {'Additional Examples':
     >>> yint = interp(y, x, xint, missing=-9999999)
     >>> ['%.7g' % yint[i] for i in range(len(yint))]
     ['3.4', '2.3']
-    >>> yint.typecode()
+    >>> yint.dtype.char
     'd'
     >>> x = N.arange(6)
     >>> y = N.arange(6)
@@ -291,7 +291,7 @@ __test__ = {'Additional Examples':
     >>> yint = interp(y, x, xint, missing=-9999999)
     >>> ['%.7g' % yint[i] for i in range(len(yint))]
     ['3', '2']
-    >>> yint.typecode()
+    >>> yint.dtype.char
     'd'
     """}
 

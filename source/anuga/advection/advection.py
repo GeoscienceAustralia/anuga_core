@@ -32,7 +32,7 @@ Geoscience Australia, 2004
 
 from anuga.abstract_2d_finite_volumes.domain import *
 
-import Numeric as num
+import numpy as num
 
 
 Generic_domain = Domain # Rename
@@ -251,7 +251,7 @@ class Domain(Generic_domain):
 
         stage_bdry = Stage.boundary_values
 
-        flux = num.zeros(1, num.Float) #Work array for summing up fluxes
+        flux = num.zeros(1, num.float) #Work array for summing up fluxes
 
         #Loop
         for k in range(N):

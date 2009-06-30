@@ -75,8 +75,9 @@ def regressionTest():
     load = unittest.defaultTestLoader.loadTestsFromModule
     return unittest.TestSuite(map(load, modules))
 
-if __name__ == '__main__':
+################################################################################
 
+if __name__ == '__main__':
     from os import sep
 
     #Attempt to compile all extensions

@@ -61,17 +61,17 @@ def where_close(x, y, rtol=1.e-5, atol=1.e-8):
     Returns a long integer array with elements equal to 1 where x and 
     y are "equal", and 0 otherwise.  If x or y are floating point, 
     "equal" means where abs(x-y) <= atol + rtol * abs(y).  This is 
-    essentially the same algorithm used in the Numeric function 
+    essentially the same algorithm used in the numeric function 
     allclose.  If x and y are integer, "equal" means strict equality.  
     Shape and size of output is the same as x and y; if one is an 
     array and the other is scalar, shape and size of the output is the 
-    same as the array.  Output is a Numeric array, unless both inputs 
+    same as the array.  Output is a numeric array, unless both inputs 
     are scalar in which the output is a Python integer scalar.
 
     Positional Input Arguments:
-    * x:  Scalar or Numeric array, Python list/tuple of any size and 
+    * x:  Scalar or numeric array, Python list/tuple of any size and 
       shape.  Floating or integer type.
-    * y:  Scalar or Numeric array, Python list/tuple of any size and 
+    * y:  Scalar or numeric array, Python list/tuple of any size and 
       shape.  Floating or integer type.
 
     Keyword Input Arguments:
@@ -83,7 +83,7 @@ def where_close(x, y, rtol=1.e-5, atol=1.e-8):
               point.
 
     Examples:
-    >>> import Numeric as N
+    >>> import numpy as N
     >>> from where_close import where_close
     >>> x = [20.,  -32., -1., 2.            , 5., 29.]
     >>> y = [20.1, -31., -1., 2.000000000001, 3., 28.99]
@@ -97,11 +97,11 @@ def where_close(x, y, rtol=1.e-5, atol=1.e-8):
     >>> ['%.1g' % ind[i] for i in range(len(ind))]
     ['1', '0', '0', '1', '0']
     """
-    import Numeric as N
+    import numpy as N
     abs = N.absolute
 
 
-    #- Make sure input is Numeric type:
+    #- Make sure input is numeric type:
 
     xN = N.array(x)
     yN = N.array(y)
@@ -110,12 +110,12 @@ def where_close(x, y, rtol=1.e-5, atol=1.e-8):
     #- Safe compare if floating.  Strict compare if integer.  Any other
     #  type returns an error:
 
-    if (xN.typecode() in N.typecodes['Float']) or \
-       (yN.typecode() in N.typecodes['Float']):
+    if (xN.dtype.char in N.typecodes['Float']) or \
+       (yN.dtype.char in N.typecodes['Float']):
         return N.less_equal(abs(xN-yN), atol+rtol*abs(yN))
 
-    elif (xN.typecode() in N.typecodes['Integer']) and \
-         (yN.typecode() in N.typecodes['Integer']):
+    elif (xN.dtype.char in N.typecodes['Integer']) and \
+         (yN.dtype.char in N.typecodes['Integer']):
         return N.equal(xN, yN)
 
     else:
@@ -131,7 +131,7 @@ def where_close(x, y, rtol=1.e-5, atol=1.e-8):
 __test__ = { 'Additional Examples':
     """
     >>> from where_close import where_close
-    >>> import Numeric as N
+    >>> import numpy as N
     >>> x = [20.,  -32., -1., 2.            , 5., 29.]
     >>> y = [20.1, -31., -1., 2.000000000001, 3., 28.99]
     >>> x = N.reshape(x, (2,3))
@@ -143,10 +143,10 @@ __test__ = { 'Additional Examples':
     ['1', '0', '0']
     >>> ind.shape
     (2, 3)
-    >>> ind.typecode()
-    'l'
+    >>> ind.dtype.char
+    '?'
     >>> type(ind)
-    <type 'array'>
+    <type 'numpy.ndarray'>
 
     >>> x = [20.,  -32., -1., 2.            , 5., 29.]
     >>> y = [20.1, -31., -1., 2.000000000001, 3.]
@@ -178,7 +178,7 @@ __test__ = { 'Additional Examples':
     >>> print ind
     0
     >>> type(ind)
-    <type 'int'>
+    <type 'numpy.bool_'>
     >>> x = -33
     >>> y = -33.
     >>> ind = where_close(x, y)

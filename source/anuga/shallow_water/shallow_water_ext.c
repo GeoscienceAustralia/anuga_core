@@ -14,10 +14,10 @@
 
 
 #include "Python.h"
-#include "Numeric/arrayobject.h"
+#include "numpy/arrayobject.h"
 #include "math.h"
 #include <stdio.h>
-#include <string.h>
+#include "numpy_shim.h"
 
 // Shared code snippets
 #include "util_ext.h"
@@ -994,6 +994,13 @@ PyObject *gravity(PyObject *self, PyObject *args) {
     return NULL;
   }
 
+  // check that numpy array objects arrays are C contiguous memory
+  CHECK_C_CONTIG(h);
+  CHECK_C_CONTIG(v);
+  CHECK_C_CONTIG(x);
+  CHECK_C_CONTIG(xmom);
+  CHECK_C_CONTIG(ymom);
+
   N = h -> dimensions[0];
   for (k=0; k<N; k++) {
     k3 = 3*k;  // base index
@@ -1052,6 +1059,14 @@ PyObject *manning_friction(PyObject *self, PyObject *args) {
     return NULL;
   }
 
+  // check that numpy array objects arrays are C contiguous memory
+  CHECK_C_CONTIG(w);
+  CHECK_C_CONTIG(z);
+  CHECK_C_CONTIG(uh);
+  CHECK_C_CONTIG(vh);
+  CHECK_C_CONTIG(eta);
+  CHECK_C_CONTIG(xmom);
+  CHECK_C_CONTIG(ymom);
 
   N = w -> dimensions[0];
   _manning_friction(g, eps, N,
@@ -1082,6 +1097,15 @@ PyObject *manning_friction_explicit(PyObject *self, PyObject *args) {
             &g, &eps, &w, &z, &uh, &vh, &eta,
             &xmom, &ymom))
     return NULL;
+
+  // check that numpy array objects arrays are C contiguous memory
+  CHECK_C_CONTIG(w);
+  CHECK_C_CONTIG(z);
+  CHECK_C_CONTIG(uh);
+  CHECK_C_CONTIG(vh);
+  CHECK_C_CONTIG(eta);
+  CHECK_C_CONTIG(xmom);
+  CHECK_C_CONTIG(ymom);
 
   N = w -> dimensions[0];
   _manning_friction_explicit(g, eps, N,
@@ -1664,6 +1688,20 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
     return NULL;
   }
 
+  // check that numpy array objects arrays are C contiguous memory
+  CHECK_C_CONTIG(surrogate_neighbours);
+  CHECK_C_CONTIG(number_of_boundaries);
+  CHECK_C_CONTIG(centroid_coordinates);
+  CHECK_C_CONTIG(stage_centroid_values);
+  CHECK_C_CONTIG(xmom_centroid_values);
+  CHECK_C_CONTIG(ymom_centroid_values);
+  CHECK_C_CONTIG(elevation_centroid_values);
+  CHECK_C_CONTIG(vertex_coordinates);
+  CHECK_C_CONTIG(stage_vertex_values);
+  CHECK_C_CONTIG(xmom_vertex_values);
+  CHECK_C_CONTIG(ymom_vertex_values);
+  CHECK_C_CONTIG(elevation_vertex_values);
+  
   // Get the safety factor beta_w, set in the config.py file. 
   // This is used in the limiting process
   
@@ -1753,7 +1791,7 @@ PyObject *rotate(PyObject *self, PyObject *args, PyObject *kwargs) {
 
   // Allocate space for return vector r (don't DECREF)
   dimensions[0] = 3;
-  r = (PyArrayObject *) PyArray_FromDims(1, dimensions, PyArray_DOUBLE);
+  r = (PyArrayObject *) anuga_FromDims(1, dimensions, PyArray_DOUBLE);
 
   // Copy
   for (i=0; i<3; i++) {
@@ -2232,7 +2270,27 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
     return NULL;
   }
 
- 
+  // check that numpy array objects arrays are C contiguous memory
+  CHECK_C_CONTIG(neighbours);
+  CHECK_C_CONTIG(neighbour_edges);
+  CHECK_C_CONTIG(normals);
+  CHECK_C_CONTIG(edgelengths);
+  CHECK_C_CONTIG(radii);
+  CHECK_C_CONTIG(areas);
+  CHECK_C_CONTIG(tri_full_flag);
+  CHECK_C_CONTIG(stage_edge_values);
+  CHECK_C_CONTIG(xmom_edge_values);
+  CHECK_C_CONTIG(ymom_edge_values);
+  CHECK_C_CONTIG(bed_edge_values);
+  CHECK_C_CONTIG(stage_boundary_values);
+  CHECK_C_CONTIG(xmom_boundary_values);
+  CHECK_C_CONTIG(ymom_boundary_values);
+  CHECK_C_CONTIG(stage_explicit_update);
+  CHECK_C_CONTIG(xmom_explicit_update);
+  CHECK_C_CONTIG(ymom_explicit_update);
+  CHECK_C_CONTIG(already_computed_flux);
+  CHECK_C_CONTIG(max_speed_array);
+
   int number_of_elements = stage_edge_values -> dimensions[0];
 
   // Call underlying flux computation routine and update 

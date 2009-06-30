@@ -22,6 +22,8 @@ import pickle
 import types
 import exceptions
 
+import numpy as num
+
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference, \
      DEFAULT_ZONE
@@ -36,7 +38,7 @@ try:
     import kinds  
 except ImportError:  
     # Hand-built mockup of the things we need from the kinds package, since it
-    # was recently removed from the standard Numeric distro.  Some users may  
+    # was recently removed from the standard numeric distro.  Some users may  
     # not have it by default.  
     class _bunch:  
         pass  
@@ -116,32 +118,28 @@ class Point(MeshObject):
             
 
 class Vertex(Point):
-    """
-    A point on the mesh.
+    """A point on the mesh.
     Object attributes based on the Triangle program
     """
-    def __init__(self,X,Y, attributes = None):
-        __slots__ = ['x','y','attributes']
-        
-        assert (type(X) == types.FloatType or type(X) == types.IntType)
-        assert (type(Y) == types.FloatType or type(Y) == types.IntType)
-        self.x=X
-        self.y=Y        
-        self.attributes=[] 
-        
-        if attributes is None:
-            self.attributes=[]
-        else:
-            self.attributes=attributes
-    
 
+    VERTEXSQUARESIDELENGTH = 6
+
+    def __init__(self, X, Y, attributes=None):
+        __slots__ = ['x','y','attributes']
+
+        # we don't care what we get, as long as we can get float *value*
+        self.x = float(X)
+        self.y = float(Y)
+
+        self.attributes = [] 
+        if not attributes is None:
+            self.attributes = attributes
+    
     def setAttributes(self,attributes):
-        """
-        attributes is a list.
-        """
+        """attributes is a list. """
+
         self.attributes = attributes
         
-    VERTEXSQUARESIDELENGTH = 6
     def draw(self, canvas, tags, colour = 'black',scale = 1, xoffset = 0,
              yoffset =0, ):
         x =  scale*(self.x + xoffset)
@@ -175,10 +173,10 @@ class Vertex(Point):
      
     def __repr__(self):
         return "[(%f,%f),%r]" % (self.x,self.y,self.attributes)
-    
+
+
 class Hole(Point):
-    """
-    A region of the mesh were no triangles are generated.
+    """A region of the mesh were no triangles are generated.
     Defined by a point in the hole enclosed by segments.
     """
 
@@ -200,25 +198,23 @@ class Hole(Point):
                                        fill = 'white')
     
 class Region(Point):
-    """ 
-    A region of the mesh, defined by a point in the region
-    enclosed by segments. Used to tag areas.
+    """A region of the mesh.
+    Defined by a point in the region enclosed by segments. Used to tag areas.
     """
+
     CROSSLENGTH = 6
     TAG = 0
     MAXAREA = 1
     
-    def __init__(self,X,Y, tag = None, maxArea = None):
-        """Precondition: tag is a string and maxArea is a real
-        """
-        # This didn't work.  
-        #super(Region,self)._init_(self,X,Y)
+    def __init__(self, X, Y, tag=None, maxArea=None):
+        """Precondition: tag is a string and maxArea is a real"""
+
         self.x=X
         self.y=Y    
-        self.attributes =[] # index 0 is the tag string
-                            #optoinal index 1 is the max triangle area
-                            #NOTE the size of this attribute is assumed
-                            # to be 1 or 2 in regionstrings2int
+        self.attributes = [] # index 0 is the tag string
+                             # optional index 1 is the max triangle area
+                             # NOTE the size of this attribute is assumed
+                             # to be 1 or 2 in regionstrings2int
         if tag is None:
             self.attributes.append("")
         else:

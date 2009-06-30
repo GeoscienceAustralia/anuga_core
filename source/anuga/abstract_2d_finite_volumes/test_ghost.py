@@ -6,6 +6,8 @@ from math import sqrt
 from anuga.abstract_2d_finite_volumes.domain import *
 from anuga.config import epsilon
 
+import numpy as num
+
 
 class Test_Domain(unittest.TestCase):
     def setUp(self):
@@ -39,12 +41,11 @@ class Test_Domain(unittest.TestCase):
             assert domain.quantities.has_key(name)
 
 
-        assert domain.get_conserved_quantities(0, edge=1) == 0.
-
-
+        assert num.alltrue(domain.get_conserved_quantities(0, edge=1) == 0.)
 
 
 #-------------------------------------------------------------
+
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Domain,'test')
     runner = unittest.TextTestRunner()

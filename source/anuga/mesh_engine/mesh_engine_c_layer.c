@@ -7,7 +7,7 @@
 /*
 
     This code interfaces pmesh directly with "triangle", a general        
-    purpose triangulation code. In doing so, Python Numeric data structures
+    purpose triangulation code. In doing so, Python numeric data structures
      are passed to C for  use by "triangle" and the results are then          
     converted back. This was accomplished using the Python/C API.            
                                                                            
@@ -59,11 +59,15 @@ extern "C" void free();
 
 #include "Python.h" 
 
+#include "util_ext.h"
+#include "numpy_shim.h"
+
+
 //#define PY_ARRAY_UNIQUE_SYMBOL API_YEAH 
 
 #define PY_ARRAY_UNIQUE_SYMBOL API_YEAH
 //#define NO_IMPORT_ARRAY
-#include "Numeric/arrayobject.h"
+#include "numpy/arrayobject.h"
 #include <sys/types.h>
 
  static PyObject *triang_genMesh(PyObject *self, PyObject *args){
@@ -118,6 +122,14 @@ extern "C" void free();
   if(!PyArg_ParseTuple(args,(char *)"OOOOOOO",&pointlist,&seglist,&holelist,&regionlist,&pointattributelist,&segmarkerlist,&mode)){
     return NULL;
   }
+
+  // check that numpy array objects arrays are C contiguous memory
+  CHECK_C_CONTIG(pointlist);
+  CHECK_C_CONTIG(seglist);
+  CHECK_C_CONTIG(holelist);
+  CHECK_C_CONTIG(regionlist);
+  CHECK_C_CONTIG(pointattributelist);
+  CHECK_C_CONTIG(segmarkerlist);
   
   /* Initialize  points */
   in.numberofpoints =  pointlist-> dimensions[0]; 
@@ -244,7 +256,7 @@ extern "C" void free();
      to return numeric arrays, check how it is done in 
      abs quantity_ext.c compute_gradients
      
-  PyArray_FromDims allolws you to create a Numeric array with unitialized data.
+  PyArray_FromDims allolws you to create a numeric array with unitialized data.
    The first argument is the size of the second argument (
    the dimensions array).
     The dimension array argument is just a 1D C array where each element of
@@ -257,7 +269,7 @@ extern "C" void free();
   /* Add triangle list */
   dimensions[0] = out.numberoftriangles;
   dimensions[1] = 3;   
-  gentrianglelist = (PyArrayObject *) PyArray_FromDimsAndData(2,
+  gentrianglelist = (PyArrayObject *) anuga_FromDimsAndData(2,
 					    dimensions,
 					    PyArray_INT, 
   					    (char*) out.trianglelist); 
@@ -265,7 +277,7 @@ extern "C" void free();
   /* Add pointlist */
   dimensions[0] = out.numberofpoints;
   dimensions[1] = 2;   
-  genpointlist = (PyArrayObject *) PyArray_FromDimsAndData(2,
+  genpointlist = (PyArrayObject *) anuga_FromDimsAndData(2,
 					 dimensions,
 					 PyArray_DOUBLE, 
 					 (char*) out.pointlist);
@@ -273,7 +285,7 @@ extern "C" void free();
  
   /* Add point marker list */
   dimensions[0] = out.numberofpoints;
-  genpointmarkerlist = (PyArrayObject *) PyArray_FromDimsAndData(1, 
+  genpointmarkerlist = (PyArrayObject *) anuga_FromDimsAndData(1, 
 				  	 dimensions, 
 				         PyArray_INT,
 				        (char*) out.pointmarkerlist);
@@ -281,7 +293,7 @@ extern "C" void free();
   /* Add point attribute list */
   dimensions[0] = out.numberofpoints;
   dimensions[1] = out.numberofpointattributes;   
-  genpointattributelist = (PyArrayObject *) PyArray_FromDimsAndData(2, 
+  genpointattributelist = (PyArrayObject *) anuga_FromDimsAndData(2, 
 					  dimensions, 
 					  PyArray_DOUBLE,
 					  (char*) out.pointattributelist);
@@ -291,7 +303,7 @@ extern "C" void free();
   /* Add triangle attribute list */
   dimensions[0] = out.numberoftriangles;
   dimensions[1] = out.numberoftriangleattributes;   
-  gentriangleattributelist = (PyArrayObject *) PyArray_FromDimsAndData(2, 
+  gentriangleattributelist = (PyArrayObject *) anuga_FromDimsAndData(2, 
 					   dimensions, 
 					   PyArray_DOUBLE,
 					  (char*)out.triangleattributelist);
@@ -299,7 +311,7 @@ extern "C" void free();
   /* Add segment list */
   dimensions[0] = out.numberofsegments;
   dimensions[1] = 2;   
-  gensegmentlist = (PyArrayObject *) PyArray_FromDimsAndData(2, 
+  gensegmentlist = (PyArrayObject *) anuga_FromDimsAndData(2, 
 						    dimensions, 
 						    PyArray_INT,
 						    (char*)out.segmentlist);
@@ -307,7 +319,7 @@ extern "C" void free();
   
   /* Add segment marker list */
   dimensions[0] = out.numberofsegments;
-  gensegmentmarkerlist = (PyArrayObject *) PyArray_FromDimsAndData(1, 
+  gensegmentmarkerlist = (PyArrayObject *) anuga_FromDimsAndData(1, 
 					    dimensions, 
 					    PyArray_INT,
 					   (char*)out.segmentmarkerlist);
@@ -316,16 +328,16 @@ extern "C" void free();
   if (out.neighborlist != NULL) {
     dimensions[0] = out.numberoftriangles;
     dimensions[1] = 3;   
-    genneighborlist = (PyArrayObject *) PyArray_FromDimsAndData(2, 
+    genneighborlist = (PyArrayObject *) anuga_FromDimsAndData(2, 
 					 	 dimensions, 
 					      	 PyArray_INT,
 					       	 (char*)out.neighborlist);
   }else{ 
     dimensions[0] = 0;
     dimensions[1] = 0;   
-    genneighborlist = (PyArrayObject *) PyArray_FromDims(2, 
-							 dimensions, 
-							 PyArray_INT);
+    genneighborlist = (PyArrayObject *) anuga_FromDims(2, 
+						       dimensions, 
+						       PyArray_INT);
   }
   
   
@@ -350,7 +362,7 @@ extern "C" void free();
   Py_DECREF(genneighborlist);
   
   
-  /* These memory blocks are passed into Numeric arrays 
+  /* These memory blocks are passed into numeric arrays 
    so don't free them  */
   /*
   if(!out.trianglelist){    

@@ -5,6 +5,7 @@
 
 import sys
 import os
+import string
 import urllib
 import urllib2
 import getpass
@@ -20,7 +21,7 @@ def log_to_file(filename, s, verbose=False):
     """
 
     fid = open(filename, 'a')
-    if verbose: s
+    if verbose: print s
     fid.write(s + '\n')
     fid.close()
 
@@ -238,23 +239,19 @@ def store_version_info(destination_path='.', verbose=False):
         if verbose is True:
             print 'Version info stored to %s' %filename
 
+
 def safe_crc(string):
     """64 bit safe crc computation.
 
-       See Guido's 64 bit fix at http://bugs.python.org/issue1202            
+    See http://docs.python.org/library/zlib.html#zlib.crc32:
+
+        To generate the same numeric value across all Python versions 
+        and platforms use crc32(data) & 0xffffffff.
     """
 
     from zlib import crc32
-    import os
 
-    x = crc32(string)
-        
-    if os.name == 'posix' and os.uname()[4] in ['x86_64', 'ia64']:
-        crcval = x - ((x & 0x80000000) << 1)
-    else:
-        crcval = x
-        
-    return crcval
+    return crc32(string) & 0xffffffff
 
 
 def compute_checksum(filename, max_length=2**20):
@@ -303,7 +300,79 @@ def get_pathname_from_package(package):
     #    path = join(dir, 'mainland_only.csv')
     #    p1 = read_polygon(path)
         
-            
+    
+##
+# @brief Split a string into 'clean' fields.
+# @param str The string to process.
+# @param delimiter The delimiter string to split 'line' with.
+# @return A list of 'cleaned' field strings.
+# @note Any fields that were initially zero length will be removed.
+# @note If a field contains '\n' it isn't zero length.
+def clean_line(str, delimiter):
+    """Split string on given delimiter, remove whitespace from each field."""
+
+    return [x.strip() for x in str.strip().split(delimiter) if x != '']
+
+
+################################################################################
+# The following two functions are used to get around a problem with numpy and
+# NetCDF files.  Previously, using Numeric, we could take a list of strings and
+# convert to a Numeric array resulting in this:
+#     Numeric.array(['abc', 'xy']) -> [['a', 'b', 'c'],
+#                                      ['x', 'y', ' ']]
+#
+# However, under numpy we get:
+#     numpy.array(['abc', 'xy']) -> ['abc',
+#                                    'xy']
+#
+# And writing *strings* to a NetCDF file is problematic.
+#
+# The solution is to use these two routines to convert a 1-D list of strings
+# to the 2-D list of chars form and back.  The 2-D form can be written to a 
+# NetCDF file as before.
+#
+# The other option, of inverting a list of tag strings into a dictionary with
+# keys being the unique tag strings and the key value a list of indices of where
+# the tag string was in the original list was rejected because:
+#    1. It's a lot of work
+#    2. We'd have to rewite the I/O code a bit (extra variables instead of one)
+#    3. The code below is fast enough in an I/O scenario
+################################################################################
+
+##
+# @brief Convert 1-D list of strings to 2-D list of chars.
+# @param l 1-dimensional list of strings.
+# @return A 2-D list of 'characters' (1 char strings).
+# @note No checking that we supply a 1-D list.
+def string_to_char(l):
+    '''Convert 1-D list of strings to 2-D list of chars.'''
+
+    if not l:
+        return []
+
+    if l == ['']:
+        l = [' ']
+
+    maxlen = reduce(max, map(len, l))
+    ll = [x.ljust(maxlen) for x in l]
+    result = []
+    for s in ll:
+        result.append([x for x in s])
+    return result
+
+
+##
+# @brief Convert 2-D list of chars to 1-D list of strings.
+# @param ll 2-dimensional list of 'characters' (1 char strings).
+# @return A 1-dimensional list of strings.
+# @note Each string has had right-end spaces removed.
+def char_to_string(ll):
+    '''Convert 2-D list of chars to 1-D list of strings.'''
+
+    return map(string.rstrip, [''.join(x) for x in ll])
+
+################################################################################
+
 ##
 # @brief Get list of variable names in a python expression string.
 # @param source A string containing a python expression.
@@ -395,7 +464,7 @@ def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
 
     # Get auth info from user if still not supplied
     if httpproxy is None or proxyuser is None or proxypass is None:
-        print '-'*52
+        print '-'*72
         print ('You need to supply proxy authentication information.')
         if httpproxy is None:
             httpproxy = raw_input('                    proxy server: ')
@@ -409,7 +478,7 @@ def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
             proxypass = getpass.getpass('                  proxy password: ')
         else:
             print 'HTTP proxy password was supplied: %s' % '*'*len(proxyuser)
-        print '-'*52
+        print '-'*72
 
     # the proxy URL cannot start with 'http://', we add that later
     httpproxy = httpproxy.lower()
@@ -481,7 +550,7 @@ def untar_file(tarname, target_dir='.'):
 # @param filename Path to the file of interest.
 # @param blocksize Size of data blocks to read.
 # @return A hex digest string (16 bytes).
-# @note Uses MD5 digest.
+# @note Uses MD5 digest if hashlib not available.
 def get_file_hexdigest(filename, blocksize=1024*1024*10):
     '''Get a hex digest of a file.'''
 
@@ -500,8 +569,6 @@ def get_file_hexdigest(filename, blocksize=1024*1024*10):
     fd.close()
     return m.hexdigest()
 
-    fd = open(filename, 'r')
-
 
 ##
 # @brief Create a file containing a hexdigest string of a data file.
@@ -515,6 +582,7 @@ def make_digest_file(data_file, digest_file):
     fd = open(digest_file, 'w')
     fd.write(hexdigest)
     fd.close()
+
 
 ##
 # @brief Function to return the length of a file.

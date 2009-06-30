@@ -11,7 +11,7 @@ import sys
 import unittest
 from anuga.mesh_engine.mesh_engine import generate_mesh
 
-import Numeric as num
+import numpy as num
 
 from anuga.utilities.numerical_tools import ensure_numeric
 
@@ -42,11 +42,11 @@ class triangTestCase(unittest.TestCase):
         data = generate_mesh(points,seglist,holelist,regionlist,
                               pointattlist,segattlist, mode, points)
 
-        correct = num.array([(1, 0, 2), (2, 3, 1)], num.Int)      #array default#
+        correct = num.array([(1, 0, 2), (2, 3, 1)])
         self.failUnless(num.alltrue(data['generatedtrianglelist'].flat == \
                                     correct.flat),
                         'trianglelist is wrong!')
-        correct = num.array([(0, 1), (1, 3), (3, 2), (2, 0)], num.Int)      #array default#
+        correct = num.array([(0, 1), (1, 3), (3, 2), (2, 0)])
         self.failUnless(num.alltrue(data['generatedsegmentlist'].flat == \
                                     correct.flat),
                         'segmentlist is wrong!')
@@ -73,11 +73,11 @@ class triangTestCase(unittest.TestCase):
         
         data = generate_mesh(points,seglist,holelist,regionlist,
                               pointattlist,segattlist, mode, points)
-        correct = num.array([(1, 0, 2), (2, 3, 1)], num.Int)      #array default#
+        correct = num.array([(1, 0, 2), (2, 3, 1)])
         self.failUnless(num.alltrue(data['generatedtrianglelist'].flat == \
                                     correct.flat),
                         'trianglelist is wrong!')
-        correct = num.array([(0, 1), (1, 3), (3, 2), (2, 0)], num.Int)      #array default#
+        correct = num.array([(0, 1), (1, 3), (3, 2), (2, 0)])
         self.failUnless(num.alltrue(data['generatedsegmentlist'].flat == \
                                     correct.flat),
                         'segmentlist is wrong!')
@@ -153,11 +153,11 @@ class triangTestCase(unittest.TestCase):
         data = generate_mesh(points,seglist,holelist,regionlist,
                               pointattlist,segattlist, mode, points)
 
-        correct = num.array([(1, 0, 2), (2, 3, 1)], num.Int)      #array default#
+        correct = num.array([(1, 0, 2), (2, 3, 1)])
         self.failUnless(num.alltrue(data['generatedtrianglelist'].flat == \
                                     correct.flat),
                         'trianglelist is wrong!')
-        correct = num.array([(0, 1), (1, 3), (3, 2), (2, 0)], num.Int)      #array default#
+        correct = num.array([(0, 1), (1, 3), (3, 2), (2, 0)])
         self.failUnless(num.alltrue(data['generatedsegmentlist'].flat == \
                                     correct.flat),
                         'segmentlist is wrong!')
@@ -169,7 +169,7 @@ class triangTestCase(unittest.TestCase):
                         'Failed')
         
         self.failUnless(num.alltrue(data['generatedsegmentmarkerlist'] == \
-                                    num.array([1,2,3,4], num.Int)),      #array default#
+                                    num.array([1,2,3,4])),
                         'Failed!')
         
     def testbad_region(self):
@@ -387,11 +387,11 @@ class triangTestCase(unittest.TestCase):
         #print "data", data
 
      
-        correct = num.array([(1, 0, 2), (2, 3, 1)], num.Int)      #array default#
+        correct = num.array([(1, 0, 2), (2, 3, 1)])
         self.failUnless(num.alltrue(data['generatedtrianglelist'].flat == \
                                     correct.flat),
                         'trianglelist is wrong!')
-        correct = num.array([(0, 1), (1, 3), (3, 2), (2, 0)], num.Int)      #array default#
+        correct = num.array([(0, 1), (1, 3), (3, 2), (2, 0)])
         self.failUnless(num.alltrue(data['generatedsegmentlist'].flat == \
                                     correct.flat),
                         'segmentlist is wrong!')
@@ -406,18 +406,18 @@ class triangTestCase(unittest.TestCase):
         self.failUnless(num.allclose(data['generatedtriangleattributelist'].flat, \
                                      correct.flat),
                         'Failed')
-        correct = num.array([(0, 1), (1, 3), (3, 2), (2, 0)], num.Int)      #array default#
+        correct = num.array([(0, 1), (1, 3), (3, 2), (2, 0)])
         self.failUnless(num.alltrue(data['generatedsegmentlist'].flat == \
                                     correct.flat),
                         'Failed!')
         
-        correct = num.array(segattlist, num.Int)      #array default#
+        correct = num.array(segattlist, num.int)
         self.failUnless(num.allclose(data['generatedsegmentmarkerlist'].flat, 
                                      correct.flat),
                         'Failed')
         
         # I copied these answers from the output, so bad test..
-        correct = num.array([(-1, 1, -1), (-1, 0, -1)], num.Int)      #array default#
+        correct = num.array([(-1, 1, -1), (-1, 0, -1)])
         self.failUnless(num.alltrue(data['generatedtriangleneighborlist'].flat == \
                                     correct.flat),
                         'Failed!')
@@ -462,12 +462,9 @@ class triangTestCase(unittest.TestCase):
         self.failUnless(num.allclose(data['generatedpointattributelist'].flat, \
                                      correct.flat),
                         'Failed')
-     
-if __name__ == "__main__":
+    
 
+if __name__ == "__main__":
     suite = unittest.makeSuite(triangTestCase,'test')
-    #suite = unittest.makeSuite(triangTestCase,'testrectangleIIb')
-    #suite = unittest.makeSuite(triangTestCase,'testsegmarker')
-    #suite = unittest.makeSuite(triangTestCase,'testrectangle_regionsII')
     runner = unittest.TextTestRunner()  #verbosity=2)
     runner.run(suite)

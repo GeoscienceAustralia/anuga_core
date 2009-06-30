@@ -40,7 +40,7 @@ from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from utilities.polygon import interpolate_polyline
 
 
-import Numeric as num
+import numpy as num
 
 
 # Interpolation specific exceptions
@@ -67,35 +67,35 @@ def interpolate(vertex_coordinates,
                 mesh_origin=None,
                 max_vertices_per_cell=None,
                 start_blocking_len=500000,
-                use_cache=False,             
-                verbose=False):                 
+                use_cache=False,
+                verbose=False):
     """Interpolate vertex_values to interpolation points.
-    
+
     Inputs (mandatory):
 
-   
+
     vertex_coordinates: List of coordinate pairs [xi, eta] of
-                        points constituting a mesh 
-                        (or an m x 2 Numeric array or
+                        points constituting a mesh
+                        (or an m x 2 numeric array or
                         a geospatial object)
                         Points may appear multiple times
                         (e.g. if vertices have discontinuities)
 
-    triangles: List of 3-tuples (or a Numeric array) of
-               integers representing indices of all vertices 
+    triangles: List of 3-tuples (or a numeric array) of
+               integers representing indices of all vertices
                in the mesh.
-               
+
     vertex_values: Vector or array of data at the mesh vertices.
                    If array, interpolation will be done for each column as
                    per underlying matrix-matrix multiplication
-              
+
     interpolation_points: Interpolate mesh data to these positions.
                           List of coordinate pairs [x, y] of
-	                  data points or an nx2 Numeric array or a
+                          data points or an nx2 numeric array or a
                           Geospatial_data object
-               
+
     Inputs (optional)
-               
+
     mesh_origin: A geo_reference object or 3-tuples consisting of
                  UTM zone, easting and northing.
                  If specified vertex coordinates are assumed to be
@@ -107,36 +107,36 @@ def interpolate(vertex_coordinates,
                            Note: Don't supply a vertex coords as a geospatial
                            object and a mesh origin, since geospatial has its
                            own mesh origin.
-                           
+
     start_blocking_len: If the # of points is more or greater than this,
-                        start blocking 
-                        
+                        start blocking
+
     use_cache: True or False
-                            
+
 
     Output:
-    
+
     Interpolated values at specified point_coordinates
 
-    Note: This function is a simple shortcut for case where 
+    Note: This function is a simple shortcut for case where
     interpolation matrix is unnecessary
-    Note: This function does not take blocking into account, 
+    Note: This function does not take blocking into account,
     but allows caching.
-    
+
     """
 
     # FIXME(Ole): Probably obsolete since I is precomputed and
     #             interpolate_block caches
-        
+
     from anuga.caching import cache
 
     # Create interpolation object with matrix
-    args = (ensure_numeric(vertex_coordinates, num.Float), 
+    args = (ensure_numeric(vertex_coordinates, num.float),
             ensure_numeric(triangles))
     kwargs = {'mesh_origin': mesh_origin,
               'max_vertices_per_cell': max_vertices_per_cell,
               'verbose': verbose}
-    
+
     if use_cache is True:
         if sys.platform != 'win32':
             I = cache(Interpolate, args, kwargs, verbose=verbose)
@@ -148,17 +148,17 @@ def interpolate(vertex_coordinates,
             I = cache(wrap_Interpolate, (args, kwargs), {}, verbose=verbose)
     else:
         I = apply(Interpolate, args, kwargs)
-    
+
     # Call interpolate method with interpolation points
     result = I.interpolate_block(vertex_values, interpolation_points,
                                  use_cache=use_cache,
                                  verbose=verbose)
-                           
+
     return result
 
 
 ##
-# @brief 
+# @brief
 class Interpolate (FitInterpolate):
 
     ##
@@ -180,12 +180,12 @@ class Interpolate (FitInterpolate):
 
         Inputs:
           vertex_coordinates: List of coordinate pairs [xi, eta] of
-	      points constituting a mesh (or an m x 2 Numeric array or
+              points constituting a mesh (or an m x 2 numeric array or
               a geospatial object)
               Points may appear multiple times
               (e.g. if vertices have discontinuities)
 
-          triangles: List of 3-tuples (or a Numeric array) of
+          triangles: List of 3-tuples (or a numeric array) of
               integers representing indices of all vertices in the mesh.
 
           mesh_origin: A geo_reference object or 3-tuples consisting of
@@ -201,20 +201,20 @@ class Interpolate (FitInterpolate):
         """
 
         # FIXME (Ole): Need an input check
-        
+
         FitInterpolate.__init__(self,
                                 vertex_coordinates=vertex_coordinates,
                                 triangles=triangles,
                                 mesh_origin=mesh_origin,
                                 verbose=verbose,
                                 max_vertices_per_cell=max_vertices_per_cell)
-                                
+
         # Initialise variables
         self._A_can_be_reused = False  # FIXME (Ole): Probably obsolete
         self._point_coordinates = None # FIXME (Ole): Probably obsolete
         self.interpolation_matrices = {} # Store precomputed matrices
 
-    
+
 
     ##
     # @brief Interpolate mesh data f to determine values, z, at points.
@@ -242,16 +242,16 @@ class Interpolate (FitInterpolate):
 
           point_coordinates: Interpolate mesh data to these positions.
               List of coordinate pairs [x, y] of
-	      data points or an nx2 Numeric array or a Geospatial_data object
-              
-	      If point_coordinates is absent, the points inputted last time
+              data points or an nx2 numeric array or a Geospatial_data object
+
+              If point_coordinates is absent, the points inputted last time
               this method was called are used, if possible.
 
           start_blocking_len: If the # of points is more or greater than this,
-              start blocking 
+              start blocking
 
-	Output:
-	  Interpolated values at inputted points (z).
+        Output:
+          Interpolated values at inputted points (z).
         """
 
         # FIXME (Ole): Why is the interpolation matrix rebuilt everytime the
@@ -261,7 +261,7 @@ class Interpolate (FitInterpolate):
         #
         # This has now been addressed through an attempt in interpolate_block
 
-        if verbose: print 'Build intepolation object' 
+        if verbose: print 'Build intepolation object'
         if isinstance(point_coordinates, Geospatial_data):
             point_coordinates = point_coordinates.get_data_points(absolute=True)
 
@@ -279,7 +279,7 @@ class Interpolate (FitInterpolate):
                 # There are no good point_coordinates. import sys; sys.exit()
                 msg = 'ERROR (interpolate.py): No point_coordinates inputted'
                 raise Exception(msg)
-            
+
         if point_coordinates is not None:
             self._point_coordinates = point_coordinates
             if len(point_coordinates) < start_blocking_len \
@@ -292,27 +292,27 @@ class Interpolate (FitInterpolate):
                 self._A_can_be_reused = False
                 start = 0
                 # creating a dummy array to concatenate to.
-                
-                f = ensure_numeric(f, num.Float)
+
+                f = ensure_numeric(f, num.float)
                 if len(f.shape) > 1:
-                    z = num.zeros((0, f.shape[1]))
+                    z = num.zeros((0, f.shape[1]), num.int)     #array default#
                 else:
-                    z = num.zeros((0,))
-                    
+                    z = num.zeros((0,), num.int)        #array default#
+
                 for end in range(start_blocking_len,
                                  len(point_coordinates),
                                  start_blocking_len):
                     t = self.interpolate_block(f, point_coordinates[start:end],
                                                verbose=verbose)
-                    z = num.concatenate((z, t))
+                    z = num.concatenate((z, t), axis=0)    #??default#
                     start = end
 
                 end = len(point_coordinates)
                 t = self.interpolate_block(f, point_coordinates[start:end],
                                            verbose=verbose)
-                z = num.concatenate((z, t))
+                z = num.concatenate((z, t), axis=0)    #??default#
         return z
-    
+
 
     ##
     # @brief Control whether blocking occurs or not.
@@ -321,62 +321,62 @@ class Interpolate (FitInterpolate):
     # @param use_cache ??
     # @param verbose True if this function is verbose.
     # @return ??
-    def interpolate_block(self, f, point_coordinates, 
+    def interpolate_block(self, f, point_coordinates,
                           use_cache=False, verbose=False):
         """
         Call this if you want to control the blocking or make sure blocking
         doesn't occur.
 
         Return the point data, z.
-        
+
         See interpolate for doc info.
         """
-        
+
         # FIXME (Ole): I reckon we should change the interface so that
-        # the user can specify the interpolation matrix instead of the 
+        # the user can specify the interpolation matrix instead of the
         # interpolation points to save time.
 
         if isinstance(point_coordinates, Geospatial_data):
             point_coordinates = point_coordinates.get_data_points(absolute=True)
 
-        # Convert lists to Numeric arrays if necessary
-        point_coordinates = ensure_numeric(point_coordinates, num.Float)
-        f = ensure_numeric(f, num.Float)                
+        # Convert lists to numeric arrays if necessary
+        point_coordinates = ensure_numeric(point_coordinates, num.float)
+        f = ensure_numeric(f, num.float)
 
         from anuga.caching import myhash
-        import sys 
-          
+        import sys
+
         if use_cache is True:
             if sys.platform != 'win32':
                 # FIXME (Ole): (Why doesn't this work on windoze?)
                 # Still absolutely fails on Win 24 Oct 2008
-            
+
                 X = cache(self._build_interpolation_matrix_A,
                           args=(point_coordinates,),
-                          kwargs={'verbose': verbose},                        
-                          verbose=verbose)        
+                          kwargs={'verbose': verbose},
+                          verbose=verbose)
             else:
                 # FIXME
                 # Hash point_coordinates to memory location, reuse if possible
                 # This will work on Linux as well if we want to use it there.
                 key = myhash(point_coordinates)
-        
-                reuse_A = False 
-            
+
+                reuse_A = False
+
                 if self.interpolation_matrices.has_key(key):
-                    X, stored_points = self.interpolation_matrices[key] 
+                    X, stored_points = self.interpolation_matrices[key]
                     if num.alltrue(stored_points == point_coordinates):
-                        reuse_A = True		# Reuse interpolation matrix
-                
+                        reuse_A = True                # Reuse interpolation matrix
+
                 if reuse_A is False:
                     X = self._build_interpolation_matrix_A(point_coordinates,
                                                            verbose=verbose)
                     self.interpolation_matrices[key] = (X, point_coordinates)
         else:
             X = self._build_interpolation_matrix_A(point_coordinates,
-                                                   verbose=verbose)            
+                                                   verbose=verbose)
 
-        # Unpack result                                       
+        # Unpack result
         self._A, self.inside_poly_indices, self.outside_poly_indices = X
 
         # Check that input dimensions are compatible
@@ -388,12 +388,12 @@ class Interpolate (FitInterpolate):
         msg += 'number of points supplied.'
         msg += ' I got %d points and %d matrix rows.' \
                % (point_coordinates.shape[0], self._A.shape[0])
-        assert point_coordinates.shape[0] == self._A.shape[0], msg        
+        assert point_coordinates.shape[0] == self._A.shape[0], msg
 
         msg = 'The number of columns in matrix A must be the same as the '
         msg += 'number of mesh vertices.'
         msg += ' I got %d vertices and %d matrix columns.' \
-               % (f.shape[0], self._A.shape[1])        
+               % (f.shape[0], self._A.shape[1])
         assert self._A.shape[1] == f.shape[0], msg
 
         # Compute Matrix vector product and return
@@ -408,14 +408,14 @@ class Interpolate (FitInterpolate):
     def _get_point_data_z(self, f, verbose=False):
         """
         Return the point data, z.
-        
+
         Precondition: The _A matrix has been created
         """
 
         z = self._A * f
 
         # Taking into account points outside the mesh.
-        for i in self.outside_poly_indices: 
+        for i in self.outside_poly_indices:
             z[i] = NAN
         return z
 
@@ -446,8 +446,8 @@ class Interpolate (FitInterpolate):
 
         if verbose: print 'Building interpolation matrix'
 
-        # Convert point_coordinates to Numeric arrays, in case it was a list.
-        point_coordinates = ensure_numeric(point_coordinates, num.Float)
+        # Convert point_coordinates to numeric arrays, in case it was a list.
+        point_coordinates = ensure_numeric(point_coordinates, num.float)
 
         if verbose: print 'Getting indices inside mesh boundary'
 
@@ -455,15 +455,15 @@ class Interpolate (FitInterpolate):
             in_and_outside_polygon(point_coordinates,
                                    self.mesh.get_boundary_polygon(),
                                    closed=True, verbose=verbose)
-        
+
         # Build n x m interpolation matrix
         if verbose and len(outside_poly_indices) > 0:
             print '\n WARNING: Points outside mesh boundary. \n'
-            
+
         # Since you can block, throw a warning, not an error.
         if verbose and 0 == len(inside_poly_indices):
             print '\n WARNING: No points within the mesh! \n'
-            
+
         m = self.mesh.number_of_nodes  # Nbr of basis functions (1/vertex)
         n = point_coordinates.shape[0] # Nbr of data points
 
@@ -473,7 +473,7 @@ class Interpolate (FitInterpolate):
         A = Sparse(n,m)
 
         n = len(inside_poly_indices)
-        
+
         # Compute matrix elements for points inside the mesh
         if verbose: print 'Building interpolation matrix from %d points' %n
 
@@ -498,15 +498,15 @@ class Interpolate (FitInterpolate):
                 for j in js:
                     A[i, j] = sigmas[j]
             else:
-                msg = 'Could not find triangle for point', x 
+                msg = 'Could not find triangle for point', x
                 raise Exception(msg)
         return A, inside_poly_indices, outside_poly_indices
 
 
-        
-        
-        
-        
+
+
+
+
 ##
 # @brief ??
 # @param vertices ??
@@ -525,21 +525,21 @@ def benchmark_interpolate(vertices,
     """
     points: Interpolate mesh data to these positions.
             List of coordinate pairs [x, y] of
-            data points or an nx2 Numeric array or a Geospatial_data object
-              
+            data points or an nx2 numeric array or a Geospatial_data object
+
     No test for this yet.
     Note, this has no time the input data has no time dimension.  Which is
     different from most of the data we interpolate, eg sww info.
- 
+
     Output:
         Interpolated values at inputted points.
     """
 
     interp = Interpolate(vertices,
-                         triangles, 
+                         triangles,
                          max_vertices_per_cell=max_points_per_cell,
                          mesh_origin=mesh_origin)
-            
+
     calc = interp.interpolate(vertex_attributes,
                               points,
                               start_blocking_len=start_blocking_len)
@@ -553,7 +553,7 @@ def benchmark_interpolate(vertices,
 # @param velocity_x_file Name of the output x velocity  file.
 # @param velocity_y_file Name of the output y velocity  file.
 # @param stage_file Name of the output stage file.
-# @param froude_file 
+# @param froude_file
 # @param time_thinning Time thinning step to use.
 # @param verbose True if this function is to be verbose.
 # @param use_cache True if we are caching.
@@ -603,7 +603,7 @@ def interpolate_sww2csv(sww_file,
                                  verbose=verbose,
                                  time_thinning=time_thinning,
                                  use_cache=use_cache)
-    
+
     depth_writer = writer(file(depth_file, "wb"))
     velocity_x_writer = writer(file(velocity_x_file, "wb"))
     velocity_y_writer = writer(file(velocity_y_file, "wb"))
@@ -619,27 +619,27 @@ def interpolate_sww2csv(sww_file,
     velocity_x_writer.writerow(heading)
     velocity_y_writer.writerow(heading)
     if stage_file is not None:
-        stage_writer.writerow(heading) 
+        stage_writer.writerow(heading)
     if froude_file is not None:
-        froude_writer.writerow(heading)     
-    
+        froude_writer.writerow(heading)
+
     for time in callable_sww.get_time():
         depths = [time]
         velocity_xs = [time]
         velocity_ys = [time]
-        if stage_file is not None:  
-            stages = [time]  
-        if froude_file is not None:  
-            froudes = [time]  
+        if stage_file is not None:
+            stages = [time]
+        if froude_file is not None:
+            froudes = [time]
         for point_i, point in enumerate(points):
             quantities = callable_sww(time,point_i)
-            
+
             w = quantities[0]
             z = quantities[1]
             momentum_x = quantities[2]
             momentum_y = quantities[3]
-            depth = w - z 
-              
+            depth = w - z
+
             if w == NAN or z == NAN or momentum_x == NAN:
                 velocity_x = NAN
             else:
@@ -676,13 +676,13 @@ def interpolate_sww2csv(sww_file,
         velocity_y_writer.writerow(velocity_ys)
 
         if stage_file is not None:
-            stage_writer.writerow(stages)   
+            stage_writer.writerow(stages)
         if froude_file is not None:
-            froude_writer.writerow(froudes)            
+            froude_writer.writerow(froudes)
 
 
 ##
-# @brief 
+# @brief
 class Interpolation_function:
     """Interpolation_interface - creates callable object f(t, id) or f(t,x,y)
     which is interpolated from time series defined at vertices of
@@ -693,19 +693,19 @@ class Interpolation_function:
     Also, let N be the number of interpolation points.
 
     Mandatory input
-        time:                 px1 array of monotonously increasing times (Float)
-        quantities:           Dictionary of arrays or 1 array (Float) 
+        time:                 px1 array of monotonously increasing times (float)
+        quantities:           Dictionary of arrays or 1 array (float)
                               The arrays must either have dimensions pxm or mx1.
                               The resulting function will be time dependent in
                               the former case while it will be constant with
                               respect to time in the latter case.
-        
+
     Optional input:
         quantity_names:       List of keys into the quantities dictionary for
                               imposing a particular order on the output vector.
-        vertex_coordinates:   mx2 array of coordinates (Float)
-        triangles:            nx3 array of indices into vertex_coordinates (Int)
-        interpolation_points: Nx2 array of coordinates to be interpolated to 
+        vertex_coordinates:   mx2 array of coordinates (float)
+        triangles:            nx3 array of indices into vertex_coordinates (int)
+        interpolation_points: Nx2 array of coordinates to be interpolated to
         verbose:              Level of reporting
 
     The quantities returned by the callable object are specified by
@@ -741,7 +741,7 @@ class Interpolation_function:
     def __init__(self,
                  time,
                  quantities,
-                 quantity_names=None,  
+                 quantity_names=None,
                  vertex_coordinates=None,
                  triangles=None,
                  interpolation_points=None,
@@ -761,7 +761,7 @@ class Interpolation_function:
         if verbose is True:
             print 'Interpolation_function: input checks'
 
-	# Check temporal info
+        # Check temporal info
         time = ensure_numeric(time)
         if not num.alltrue(time[1:] - time[:-1] >= 0):
             # This message is time consuming to form due to the conversion of
@@ -790,30 +790,30 @@ class Interpolation_function:
 
             if triangles is not None:
                 triangles = ensure_numeric(triangles)
-            self.spatial = True          
+            self.spatial = True
 
         if verbose is True:
             print 'Interpolation_function: thinning by %d' % time_thinning
 
-            
+
         # Thin timesteps if needed
         # Note array() is used to make the thinned arrays contiguous in memory
-        self.time = num.array(time[::time_thinning])          
+        self.time = num.array(time[::time_thinning])
         for name in quantity_names:
             if len(quantities[name].shape) == 2:
                 quantities[name] = num.array(quantities[name][::time_thinning,:])
 
         if verbose is True:
             print 'Interpolation_function: precomputing'
-            
+
         # Save for use with statistics
         self.quantities_range = {}
         for name in quantity_names:
-            q = quantities[name][:].flat
+            q = quantities[name][:].flatten()
             self.quantities_range[name] = [min(q), max(q)]
-        
-        self.quantity_names = quantity_names        
-        self.vertex_coordinates = vertex_coordinates 
+
+        self.quantity_names = quantity_names
+        self.vertex_coordinates = vertex_coordinates
         self.interpolation_points = interpolation_points
 
         self.index = 0    # Initial time index
@@ -824,14 +824,14 @@ class Interpolation_function:
             #no longer true. sts files have spatial = True but
             #if self.spatial is False:
             #    raise 'Triangles and vertex_coordinates must be specified'
-            # 
+            #
             try:
-	        self.interpolation_points = \
+                self.interpolation_points = \
                     interpolation_points = ensure_numeric(interpolation_points)
             except:
-	        msg = 'Interpolation points must be an N x 2 Numeric array ' \
+                msg = 'Interpolation points must be an N x 2 numeric array ' \
                       'or a list of points\n'
-		msg += 'Got: %s.' %(str(self.interpolation_points)[:60] + '...')
+                msg += 'Got: %s.' %(str(self.interpolation_points)[:60] + '...')
                 raise msg
 
             # Ensure 'mesh_boundary_polygon' is defined
@@ -841,10 +841,10 @@ class Interpolation_function:
                 # Check that all interpolation points fall within
                 # mesh boundary as defined by triangles and vertex_coordinates.
                 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
-                from anuga.utilities.polygon import outside_polygon            
+                from anuga.utilities.polygon import outside_polygon
 
                 # Create temporary mesh object from mesh info passed
-                # into this function. 
+                # into this function.
                 mesh = Mesh(vertex_coordinates, triangles)
                 mesh_boundary_polygon = mesh.get_boundary_polygon()
 
@@ -870,7 +870,6 @@ class Interpolation_function:
                         if sys.platform == 'win32':
                             # FIXME (Ole): Why only Windoze?
                             from anuga.utilities.polygon import plot_polygons
-                            #out_interp_pts = num.take(interpolation_points,[indices])
                             title = ('Interpolation points fall '
                                      'outside specified mesh')
                             plot_polygons([mesh_boundary_polygon,
@@ -888,7 +887,7 @@ class Interpolation_function:
                     if verbose:
                         print msg
                     #raise Exception(msg)
-                    
+
             elif triangles is None and vertex_coordinates is not None:    #jj
                 #Dealing with sts file
                 pass
@@ -914,28 +913,28 @@ class Interpolation_function:
 
             m = len(self.interpolation_points)
             p = len(self.time)
-            
-	    for name in quantity_names:
-                self.precomputed_values[name] = num.zeros((p, m), num.Float)
+
+            for name in quantity_names:
+                self.precomputed_values[name] = num.zeros((p, m), num.float)
 
             if verbose is True:
                 print 'Build interpolator'
 
-                
+
             # Build interpolator
             if triangles is not None and vertex_coordinates is not None:
-                if verbose:                
+                if verbose:
                     msg = 'Building interpolation matrix from source mesh '
                     msg += '(%d vertices, %d triangles)' \
                            % (vertex_coordinates.shape[0],
                               triangles.shape[0])
                     print msg
-                
+
                 # This one is no longer needed for STS files
                 interpol = Interpolate(vertex_coordinates,
                                        triangles,
-                                       verbose=verbose)                
-                
+                                       verbose=verbose)
+
             elif triangles is None and vertex_coordinates is not None:
                 if verbose:
                     msg = 'Interpolation from STS file'
@@ -946,18 +945,18 @@ class Interpolation_function:
             if verbose:
                 print 'Interpolating (%d interpolation points, %d timesteps).' \
                       %(self.interpolation_points.shape[0], self.time.shape[0]),
-            
+
                 if time_thinning > 1:
                     print 'Timesteps were thinned by a factor of %d' \
                           % time_thinning
                 else:
                     print
 
-	    for i, t in enumerate(self.time):
+            for i, t in enumerate(self.time):
                 # Interpolate quantities at this timestep
                 if verbose and i%((p+10)/10) == 0:
                     print '  time step %d of %d' %(i, p)
-                    
+
                 for name in quantity_names:
                     if len(quantities[name].shape) == 2:
                         Q = quantities[name][i,:] # Quantities at timestep i
@@ -966,8 +965,8 @@ class Interpolation_function:
 
                     if verbose and i%((p+10)/10) == 0:
                         print '    quantity %s, size=%d' %(name, len(Q))
-                        
-                    # Interpolate 
+
+                    # Interpolate
                     if triangles is not None and vertex_coordinates is not None:
                         result = interpol.interpolate(Q,
                                                       point_coordinates=\
@@ -979,7 +978,7 @@ class Interpolation_function:
                                                       gauge_neighbour_id,
                                                       interpolation_points=\
                                                           self.interpolation_points)
-                        
+
                     #assert len(result), len(interpolation_points)
                     self.precomputed_values[name][i, :] = result
 
@@ -1006,25 +1005,25 @@ class Interpolation_function:
     # @return ??
     def __call__(self, t, point_id=None, x=None, y=None):
         """Evaluate f(t) or f(t, point_id)
-        
-	Inputs:
-	  t:        time - Model time. Must lie within existing timesteps
-	  point_id: index of one of the preprocessed points.
 
-	  If spatial info is present and all of point_id
-          are None an exception is raised 
-                    
+        Inputs:
+          t:        time - Model time. Must lie within existing timesteps
+          point_id: index of one of the preprocessed points.
+
+          If spatial info is present and all of point_id
+          are None an exception is raised
+
           If no spatial info is present, point_id arguments are ignored
           making f a function of time only.
 
-          FIXME: f(t, x, y) x, y could overrided location, point_id ignored  
-	  FIXME: point_id could also be a slice
-	  FIXME: What if x and y are vectors?
+          FIXME: f(t, x, y) x, y could overrided location, point_id ignored
+          FIXME: point_id could also be a slice
+          FIXME: What if x and y are vectors?
           FIXME: What about f(x,y) without t?
         """
 
         from math import pi, cos, sin, sqrt
-        from anuga.abstract_2d_finite_volumes.util import mean        
+        from anuga.abstract_2d_finite_volumes.util import mean
 
         if self.spatial is True:
             if point_id is None:
@@ -1059,12 +1058,12 @@ class Interpolation_function:
                          (self.time[self.index+1] - self.time[self.index]))
 
         # Compute interpolated values
-        q = num.zeros(len(self.quantity_names), num.Float)
-	for i, name in enumerate(self.quantity_names):
+        q = num.zeros(len(self.quantity_names), num.float)
+        for i, name in enumerate(self.quantity_names):
             Q = self.precomputed_values[name]
 
             if self.spatial is False:
-                # If there is no spatial info                
+                # If there is no spatial info
                 assert len(Q.shape) == 1
 
                 Q0 = Q[self.index]
@@ -1079,7 +1078,7 @@ class Interpolation_function:
                     if ratio > 0:
                         Q1 = Q[self.index+1, point_id]
 
-            # Linear temporal interpolation    
+            # Linear temporal interpolation
             if ratio > 0:
                 if Q0 == NAN and Q1 == NAN:
                     q[i] = Q0
@@ -1095,7 +1094,7 @@ class Interpolation_function:
         else:
             # Replicate q according to x and y
             # This is e.g used for Wind_stress
-            if x is None or y is None: 
+            if x is None or y is None:
                 return q
             else:
                 try:
@@ -1108,8 +1107,8 @@ class Interpolation_function:
                     assert len(y) == N, 'x and y must have same length'
                     res = []
                     for col in q:
-                        res.append(col*num.ones(N, num.Float))
-                        
+                        res.append(col*num.ones(N, num.float))
+
                 return res
 
     ##
@@ -1125,15 +1124,15 @@ class Interpolation_function:
     def statistics(self):
         """Output statistics about interpolation_function
         """
-        
+
         vertex_coordinates = self.vertex_coordinates
-        interpolation_points = self.interpolation_points               
+        interpolation_points = self.interpolation_points
         quantity_names = self.quantity_names
         #quantities = self.quantities
-        precomputed_values = self.precomputed_values                 
-                
+        precomputed_values = self.precomputed_values
+
         x = vertex_coordinates[:,0]
-        y = vertex_coordinates[:,1]                
+        y = vertex_coordinates[:,1]
 
         str =  '------------------------------------------------\n'
         str += 'Interpolation_function (spatio-temporal) statistics:\n'
@@ -1147,11 +1146,11 @@ class Interpolation_function:
         str += '  Quantities:\n'
         for name in quantity_names:
             minq, maxq = self.quantities_range[name]
-            str += '    %s in [%f, %f]\n' %(name, minq, maxq)            
-            #q = quantities[name][:].flat
+            str += '    %s in [%f, %f]\n' %(name, minq, maxq)
+            #q = quantities[name][:].flatten()
             #str += '    %s in [%f, %f]\n' %(name, min(q), max(q))
 
-        if interpolation_points is not None:    
+        if interpolation_points is not None:
             str += '  Interpolation points (xi, eta):'\
                    ' number of points == %d\n' %interpolation_points.shape[0]
             str += '    xi in [%f, %f]\n' %(min(interpolation_points[:,0]),
@@ -1159,9 +1158,9 @@ class Interpolation_function:
             str += '    eta in [%f, %f]\n' %(min(interpolation_points[:,1]),
                                              max(interpolation_points[:,1]))
             str += '  Interpolated quantities (over all timesteps):\n'
-        
+
             for name in quantity_names:
-                q = precomputed_values[name][:].flat
+                q = precomputed_values[name][:].flatten()
                 str += '    %s at interpolation points in [%f, %f]\n'\
                        %(name, min(q), max(q))
         str += '------------------------------------------------\n'
@@ -1188,17 +1187,18 @@ def interpolate_sww(sww_file, time, interpolation_points,
     x, y, volumes, time, quantities = read_sww(sww_file)
     print "x",x
     print "y",y
-    
+
     print "time", time
     print "quantities", quantities
 
     #Add the x and y together
-    vertex_coordinates = num.concatenate((x[:,num.NewAxis], y[:,num.NewAxis]),axis=1)
+    vertex_coordinates = num.concatenate((x[:,num.newaxis], y[:,num.newaxis]),
+                                         axis=1)
 
     #Will return the quantity values at the specified times and locations
     interp = Interpolation_interface(time,
                                      quantities,
-                                     quantity_names=quantity_names,  
+                                     quantity_names=quantity_names,
                                      vertex_coordinates=vertex_coordinates,
                                      triangles=volumes,
                                      interpolation_points=interpolation_points,
@@ -1211,12 +1211,12 @@ def interpolate_sww(sww_file, time, interpolation_points,
 def read_sww(file_name):
     """
     obsolete - Nothing should be calling this
-    
+
     Read in an sww file.
-    
+
     Input;
     file_name - the sww file
-    
+
     Output;
     x - Vector of x values
     y - Vector of y values
@@ -1229,35 +1229,35 @@ def read_sww(file_name):
 
     msg = 'Function read_sww in interpolat.py is obsolete'
     raise Exception, msg
-    
+
     #FIXME Have this reader as part of data_manager?
-    
-    from Scientific.IO.NetCDF import NetCDFFile     
+
+    from Scientific.IO.NetCDF import NetCDFFile
     import tempfile
     import sys
     import os
-    
+
     #Check contents
     #Get NetCDF
-    
+
     # see if the file is there.  Throw a QUIET IO error if it isn't
     # I don't think I could implement the above
-    
+
     #throws prints to screen if file not present
     junk = tempfile.mktemp(".txt")
     fd = open(junk,'w')
     stdout = sys.stdout
     sys.stdout = fd
-    fid = NetCDFFile(file_name, netcdf_mode_r) 
+    fid = NetCDFFile(file_name, netcdf_mode_r)
     sys.stdout = stdout
     fd.close()
     #clean up
-    os.remove(junk)    	
-      
+    os.remove(junk)
+
     # Get the variables
     x = fid.variables['x'][:]
     y = fid.variables['y'][:]
-    volumes = fid.variables['volumes'][:] 
+    volumes = fid.variables['volumes'][:]
     time = fid.variables['time'][:]
 
     keys = fid.variables.keys()
@@ -1265,11 +1265,11 @@ def read_sww(file_name):
     keys.remove("y")
     keys.remove("volumes")
     keys.remove("time")
-     #Turn NetCDF objects into Numeric arrays
+     #Turn NetCDF objects into numeric arrays
     quantities = {}
     for name in keys:
         quantities[name] = fid.variables[name][:]
-            
+
     fid.close()
     return x, y, volumes, time, quantities
 

@@ -10,7 +10,7 @@ class NoTrianglesError(exceptions.Exception): pass
 import anuga.mesh_engine.mesh_engine_c_layer as triang
 #import anuga.mesh_engine.list_dic as triang
 
-import Numeric as num
+import numpy as num
 
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.utilities.anuga_exceptions import ANUGAError
@@ -45,7 +45,7 @@ def generate_mesh(points=None,
         dummy_test  = []
         
     try:
-        points =  ensure_numeric(points, num.Float)
+        points =  ensure_numeric(points, num.float)
     except ValueError:
         msg = 'ERROR: Inconsistent points array.'
         raise ANUGAError, msg
@@ -59,8 +59,8 @@ def generate_mesh(points=None,
         pointatts = [[] for x in range(points.shape[0])]
         
     try:
-        # If Int is used, instead of Int32, it fails in Linux
-        segments = ensure_numeric(segments, num.Int32)
+        # If num.int is used, instead of num.int32, it fails in Linux
+        segments = ensure_numeric(segments, num.int32)
         
     except ValueError:
         msg = 'ERROR: Inconsistent segments array.'
@@ -71,7 +71,7 @@ def generate_mesh(points=None,
         segatts = [0 for x in range(segments.shape[0])]
         
     try:
-        holes = ensure_numeric(holes, num.Float)
+        holes = ensure_numeric(holes, num.float)
     except ValueError:
         msg = 'ERROR: Inconsistent holess array.'
         raise ANUGAError, msg
@@ -79,7 +79,7 @@ def generate_mesh(points=None,
    
     regions = add_area_tag(regions)
     try:
-        regions = ensure_numeric(regions, num.Float)
+        regions = ensure_numeric(regions, num.float)
     except  (ValueError, TypeError):
         msg = 'ERROR: Inconsistent regions array.'
         raise ANUGAError, msg
@@ -89,7 +89,7 @@ def generate_mesh(points=None,
         raise ANUGAError, msg
     
     try:
-        pointatts = ensure_numeric(pointatts, num.Float)
+        pointatts = ensure_numeric(pointatts, num.float)
     except (ValueError, TypeError):
         msg = 'ERROR: Inconsistent point attributes array.'
         raise ANUGAError, msg
@@ -102,7 +102,7 @@ def generate_mesh(points=None,
         pointatts = num.reshape(pointatts,(pointatts.shape[0],1))
     
     try:
-        segatts = ensure_numeric(segatts, num.Int32)
+        segatts = ensure_numeric(segatts, num.int32)
     except ValueError:
         msg = 'ERROR: Inconsistent point attributes array.'
         raise ANUGAError, msg

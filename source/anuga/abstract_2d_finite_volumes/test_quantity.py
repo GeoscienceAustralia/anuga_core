@@ -14,7 +14,7 @@ from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.utilities.polygon import *
 
-import Numeric as num
+import numpy as num
 
 
 #Aux for fit_interpolate.fit example
@@ -503,11 +503,16 @@ class Test_Quantity(unittest.TestCase):
         
         quantity.set_values(0.0)
         quantity.set_values(3.14, polygon=polygon)
+        msg = ('quantity.vertex_values=\n%s\nshould be close to\n'
+               '[[0,0,0],\n'
+               ' [3.14,3.14,3.14],\n'
+               ' [3.14,3.14,3.14],\n'
+               ' [0,0,0]]' % str(quantity.vertex_values))
         assert num.allclose(quantity.vertex_values,
                             [[0,0,0],
                              [3.14,3.14,3.14],
                              [3.14,3.14,3.14],                         
-                             [0,0,0]])                
+                             [0,0,0]]), msg
 
 
 
@@ -1764,7 +1769,7 @@ class Test_Quantity(unittest.TestCase):
     def test_interpolate_from_vertices_to_edges(self):
         quantity = Quantity(self.mesh4)
 
-        quantity.vertex_values = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]], num.Float)
+        quantity.vertex_values = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]], num.float)
 
         quantity.interpolate_from_vertices_to_edges()
 
@@ -1780,7 +1785,7 @@ class Test_Quantity(unittest.TestCase):
         quantity.edge_values = num.array([[1., 1.5, 0.5],
                                           [3., 2.5, 1.5],
                                           [3.5, 4.5, 3.],
-                                          [2.5, 3.5, 2]], num.Float)
+                                          [2.5, 3.5, 2]], num.float)
 
         quantity.interpolate_from_edges_to_vertices()
 
@@ -1834,7 +1839,7 @@ class Test_Quantity(unittest.TestCase):
         quantity.update(timestep)
 
         sem = num.array([1.,1.,1.,1.])/num.array([1, 2, 3, 4])
-        denom = num.ones(4, num.Float)-timestep*sem
+        denom = num.ones(4, num.float)-timestep*sem
 
         x = num.array([1, 2, 3, 4])/denom
         assert num.allclose( quantity.centroid_values, x)
@@ -1858,7 +1863,7 @@ class Test_Quantity(unittest.TestCase):
         quantity.update(0.1)
 
         sem = num.array([1.,1.,1.,1.])/num.array([1, 2, 3, 4])
-        denom = num.ones(4, num.Float)-timestep*sem
+        denom = num.ones(4, num.float)-timestep*sem
 
         x = num.array([1., 2., 3., 4.])
         x /= denom
@@ -1900,7 +1905,7 @@ class Test_Quantity(unittest.TestCase):
         #Initial condition - with jumps
 
         bed = domain.quantities['elevation'].vertex_values
-        stage = num.zeros(bed.shape, num.Float)
+        stage = num.zeros(bed.shape, num.float)
 
         h = 0.03
         for i in range(stage.shape[0]):
@@ -1984,7 +1989,7 @@ class Test_Quantity(unittest.TestCase):
         #Initial condition - with jumps
 
         bed = domain.quantities['elevation'].vertex_values
-        stage = num.zeros(bed.shape, num.Float)
+        stage = num.zeros(bed.shape, num.float)
 
         h = 0.03
         for i in range(stage.shape[0]):
@@ -1998,7 +2003,7 @@ class Test_Quantity(unittest.TestCase):
         #Get stage
         stage = domain.quantities['stage']
         A, V = stage.get_vertex_values(xy=False, smooth=False)
-        Q = stage.vertex_values.flat
+        Q = stage.vertex_values.flatten()
 
         for k in range(8):
             assert num.allclose(A[k], Q[k])
@@ -2507,12 +2512,8 @@ class Test_Quantity(unittest.TestCase):
 
 
 #-------------------------------------------------------------
+
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Quantity, 'test')    
-    #suite = unittest.makeSuite(Test_Quantity, 'test_set_values_from_file_using_polygon')
-
-    #suite = unittest.makeSuite(Test_Quantity, 'test_set_vertex_values_using_general_interface_subset_and_geo')
-    #print "restricted test"
-    #suite = unittest.makeSuite(Test_Quantity,'verbose_test_set_values_from_UTM_pts')
     runner = unittest.TextTestRunner()
     runner.run(suite)

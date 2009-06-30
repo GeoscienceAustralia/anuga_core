@@ -99,10 +99,16 @@ def mem_usage():
             
     Only works on nix systems.
     '''
+
+    # GC stuff should be uncommented when debugging memory 'shift' problems,
+    # when (if?) the amount of memory used takes a sudden leap upwards.
+    #import gc
     import string
+
+    #gc.collect()
+    #print('Ran a garbage collection')
     p=os.popen('ps uwp %s'%os.getpid()) 
     lines=p.readlines()
-    #print "lines", lines
     status=p.close() 
     if status or len(lines)!=2 or sys.platform == 'win32': 
         return None 

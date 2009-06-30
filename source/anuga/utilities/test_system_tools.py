@@ -2,12 +2,15 @@
 
 
 import unittest
-import tempfile
+import numpy as num
 import random
-import Numeric as num
+import tempfile
 import zlib
+import os
 from os.path import join, split, sep
+from Scientific.IO.NetCDF import NetCDFFile
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
+from anuga.config import netcdf_float, netcdf_char, netcdf_int
 
 
 # Please, don't add anuga.utilities to these imports.
@@ -57,7 +60,7 @@ class Test_system_tools(unittest.TestCase):
         assert checksum == ref_crc
 
         os.remove(tmp_name)
-        
+
 
 
         # Binary file
@@ -74,7 +77,7 @@ class Test_system_tools(unittest.TestCase):
         assert checksum == ref_crc
 
         os.remove(tmp_name)        
-        
+
         # Binary NetCDF File X 2 (use mktemp's name)
 
         try:
@@ -89,21 +92,21 @@ class Test_system_tools(unittest.TestCase):
             filename1 = mktemp(suffix='.nc', dir='.')
             fid = NetCDFFile(filename1, netcdf_mode_w)
             fid.createDimension('two', 2)
-            fid.createVariable('test_array', num.Float,
+            fid.createVariable('test_array', netcdf_float,
                                ('two', 'two'))
             fid.variables['test_array'][:] = test_array
             fid.close()
-            
+
             # Second file
             filename2 = mktemp(suffix='.nc', dir='.')
             fid = NetCDFFile(filename2, netcdf_mode_w)
             fid.createDimension('two', 2)
-            fid.createVariable('test_array', num.Float,
+            fid.createVariable('test_array', netcdf_float,
                                ('two', 'two'))
             fid.variables['test_array'][:] = test_array
             fid.close()
-            
-            
+
+
             checksum1 = compute_checksum(filename1)
             checksum2 = compute_checksum(filename2)        
             assert checksum1 == checksum2
@@ -124,7 +127,7 @@ class Test_system_tools(unittest.TestCase):
         path, tail = split(__file__)
         if path == '':
             path = '.' + sep
-        
+
         filename = path + sep +  'crc_test_file.png'
 
         ref_crc = 1203293305 # Computed on Windows box
@@ -134,7 +137,174 @@ class Test_system_tools(unittest.TestCase):
               %(checksum, ref_crc)
         assert checksum == ref_crc, msg
         #print checksum
-        
+
+################################################################################
+# Test the clean_line() utility function.
+################################################################################
+
+    # helper routine to test clean_line()
+    def clean_line_test(self, instr, delim, expected):
+        result = clean_line(instr, delim)
+        self.failUnless(result == expected,
+                        "clean_line('%s', '%s'), expected %s, got %s"
+                        % (str(instr), str(delim), str(expected), str(result)))
+
+    def test_clean_line_01(self):
+        self.clean_line_test('abc, ,,xyz,123', ',', ['abc', '', 'xyz', '123'])
+
+    def test_clean_line_02(self):
+        self.clean_line_test(' abc , ,, xyz  , 123  ', ',',
+                             ['abc', '', 'xyz', '123'])
+
+    def test_clean_line_03(self):
+        self.clean_line_test('1||||2', '|', ['1', '2'])
+
+    def test_clean_line_04(self):
+        self.clean_line_test('abc, ,,xyz,123, ', ',',
+                             ['abc', '', 'xyz', '123']) 
+
+    def test_clean_line_05(self):
+        self.clean_line_test('abc, ,,xyz,123, ,    ', ',',
+                             ['abc', '', 'xyz', '123', ''])
+
+    def test_clean_line_06(self):
+        self.clean_line_test(',,abc, ,,xyz,123, ,    ', ',',
+                             ['abc', '', 'xyz', '123', ''])
+
+    def test_clean_line_07(self):
+        self.clean_line_test('|1||||2', '|', ['1', '2'])
+
+    def test_clean_line_08(self):
+        self.clean_line_test(' ,a,, , ,b,c , ,, , ', ',',
+                             ['a', '', '', 'b', 'c', '', ''])
+
+    def test_clean_line_09(self):
+        self.clean_line_test('a:b:c', ':', ['a', 'b', 'c'])
+
+    def test_clean_line_10(self):
+        self.clean_line_test('a:b:c:', ':', ['a', 'b', 'c'])
+
+################################################################################
+# Test the string_to_char() and char_to_string() utility functions.
+################################################################################
+
+    def test_string_to_char(self):
+        import random
+
+        MAX_CHARS = 10
+        MAX_ENTRIES = 10000
+        A_INT = ord('a')
+        Z_INT = ord('z')
+
+        # generate some random strings in a list, with guaranteed lengths
+        str_list = ['x' * MAX_CHARS]        # make first maximum length
+        for entry in xrange(MAX_ENTRIES):
+            length = random.randint(1, MAX_CHARS)
+            s = ''
+            for c in range(length):
+                s += chr(random.randint(A_INT, Z_INT))
+            str_list.append(s)
+
+        x = string_to_char(str_list)
+        new_str_list = char_to_string(x)
+
+        self.failUnlessEqual(new_str_list, str_list)
+
+    # special test - input list is ['']
+    def test_string_to_char2(self):
+        # generate a special list shown bad in load_mesh testing
+        str_list = ['']
+
+        x = string_to_char(str_list)
+        new_str_list = char_to_string(x)
+
+        self.failUnlessEqual(new_str_list, str_list)
+
+
+################################################################################
+# Test the raw I/O to NetCDF files of string data encoded/decoded with 
+# string_to_char() and char_to_string().
+################################################################################
+
+    ##
+    # @brief Helper function to write a list of strings to a NetCDF file.
+    # @param filename Path to the file to write.
+    # @param l The list of strings to write.
+    def helper_write_msh_file(self, filename, l):
+        # open the NetCDF file
+        fd = NetCDFFile(filename, netcdf_mode_w)
+        fd.description = 'Test file - string arrays'
+
+        # convert list of strings to num.array
+        al = num.array(string_to_char(l), num.character)
+
+        # write the list
+        fd.createDimension('num_of_strings', al.shape[0])
+        fd.createDimension('size_of_strings', al.shape[1])
+
+        var = fd.createVariable('strings', netcdf_char,
+                                ('num_of_strings', 'size_of_strings'))
+        var[:] = al
+
+        fd.close()
+
+
+    ##
+    # @brief Helper function to read a NetCDF file and return a list of strings.
+    # @param filename Path to the file to read.
+    # @return A list of strings from the file.
+    def helper_read_msh_file(self, filename):
+        fid = NetCDFFile(filename, netcdf_mode_r)
+        mesh = {}
+
+        # Get the 'strings' variable
+        strings = fid.variables['strings'][:]
+
+        fid.close()
+
+        return char_to_string(strings)
+
+
+    # test random strings to a NetCDF file
+    def test_string_to_netcdf(self):
+        import random
+
+        MAX_CHARS = 10
+        MAX_ENTRIES = 10000
+
+        A_INT = ord('a')
+        Z_INT = ord('z')
+
+        FILENAME = 'test.msh'
+
+        # generate some random strings in a list, with guaranteed lengths
+        str_list = ['x' * MAX_CHARS]        # make first maximum length
+        for entry in xrange(MAX_ENTRIES):
+            length = random.randint(1, MAX_CHARS)
+            s = ''
+            for c in range(length):
+                s += chr(random.randint(A_INT, Z_INT))
+            str_list.append(s)
+
+        self.helper_write_msh_file(FILENAME, str_list)
+        new_str_list = self.helper_read_msh_file(FILENAME)
+
+        self.failUnlessEqual(new_str_list, str_list)
+        os.remove(FILENAME)
+
+    # special test - list [''] to a NetCDF file
+    def test_string_to_netcdf2(self):
+        FILENAME = 'test.msh'
+
+        # generate some random strings in a list, with guaranteed lengths
+        str_list = ['']
+
+        self.helper_write_msh_file(FILENAME, str_list)
+        new_str_list = self.helper_read_msh_file(FILENAME)
+
+        self.failUnlessEqual(new_str_list, str_list)
+        os.remove(FILENAME)
+
 
     def test_get_vars_in_expression(self):
         '''Test the 'get vars from expression' code.'''
@@ -214,7 +384,7 @@ class Test_system_tools(unittest.TestCase):
         '''Test that file digest functions give 'correct' answer.
         
         Not a good test as we get 'expected_digest' from a digest file,
-        but *does* alert us if the digest algorithm gives us a different string.
+        but *does* alert us if the digest algorithm ever changes.
         '''
 
         # we expect this digest string from the data file
@@ -250,6 +420,7 @@ class Test_system_tools(unittest.TestCase):
         digest = fd.readline()
         fd.close()
         self.failUnless(expected_digest == digest, msg)
+
 
     def test_file_length_function(self):
         '''Test that file_length() give 'correct' answer.'''
@@ -290,8 +461,8 @@ class Test_system_tools(unittest.TestCase):
         msg = 'Expected file_length() to return 1000, but got %d' % size4
         self.failUnless(size4 == 1000, msg)
 
-        
-#-------------------------------------------------------------
+################################################################################
+
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_system_tools, 'test')
     runner = unittest.TextTestRunner()

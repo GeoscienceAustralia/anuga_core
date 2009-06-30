@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
-
+<?xml version='1.0' encoding='iso-8859-1'?>
 <ga_license_file>
   <metadata>
     <author>Jane Sexton</author>
@@ -19,7 +18,7 @@
     This file provides the velocity in easting direction timeseries 
     for the combined sources of 1, 2 and 3 at station 0.</source>
     <IP_owner>Geoscience Australia.</IP_owner>
-    <IP_info></IP_info>
+    <IP_info />
   </datafile>
 
 

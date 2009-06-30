@@ -2,7 +2,7 @@ import exceptions
 class VectorShapeError(exceptions.Exception): pass
 class ConvergenceError(exceptions.Exception): pass
 
-import Numeric as num
+import numpy as num
    
 import logging, logging.config
 logger = logging.getLogger('cg_solve')
@@ -23,11 +23,11 @@ def conjugate_gradient(A,b,x0=None,imax=10000,tol=1.0e-8,iprint=0):
     """
     
     if x0 is None:
-        x0 = num.zeros(b.shape, typecode=num.Float)
+        x0 = num.zeros(b.shape, dtype=num.float)
     else:
-        x0 = num.array(x0, typecode=num.Float)
+        x0 = num.array(x0, dtype=num.float)
 
-    b  = num.array(b, typecode=num.Float)
+    b  = num.array(b, dtype=num.float)
     if len(b.shape) != 1 :
        
         for i in range(b.shape[1]):
@@ -56,14 +56,14 @@ def _conjugate_gradient(A,b,x0=None,imax=10000,tol=1.0e-8,iprint=0):
    """
 
 
-   b  = num.array(b, typecode=num.Float)
+   b  = num.array(b, dtype=num.float)
    if len(b.shape) != 1 :
       raise VectorShapeError, 'input vector should consist of only one column'
 
    if x0 is None:
-      x0 = num.zeros(b.shape, typecode=num.Float)
+      x0 = num.zeros(b.shape, dtype=num.float)
    else:
-      x0 = num.array(x0, typecode=num.Float)
+      x0 = num.array(x0, dtype=num.float)
 
 
    #FIXME: Should test using None

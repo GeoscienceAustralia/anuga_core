@@ -13,7 +13,7 @@ from anuga.shallow_water import Domain,\
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.pmesh.mesh import importMeshFromFile
 
-import Numeric as num
+import numpy as num
 
 
 class Test_pmesh2domain(unittest.TestCase):
@@ -254,11 +254,8 @@ friction  \n \
                           "test_tags_to_boundaries  failed. Single boundary wasn't added.")
 
 #-------------------------------------------------------------
+
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_pmesh2domain, 'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
-
-
-
-

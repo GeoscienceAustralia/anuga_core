@@ -9,14 +9,14 @@ from Scientific.Functions.Interpolation import InterpolatingFunction
 from random import choice
 from types import StringType
 
-import Numeric as num
+import numpy as num
 
 
 try:  
     import kinds  
 except ImportError:  
     # Hand-built mockup of the things we need from the kinds package, since it
-    # was recently removed from the standard Numeric distro.  Some users may  
+    # was recently removed from the standard numeric distro.  Some users may  
     # not have it by default.  
     class _bunch:  
         pass  
@@ -313,8 +313,8 @@ class EventDamageModel:
         """
 
         # the data being created
-        struct_damage = num.zeros(self.structure_count, num.Float)
-        contents_damage = num.zeros(self.structure_count, num.Float)
+        struct_damage = num.zeros(self.structure_count, num.float)
+        contents_damage = num.zeros(self.structure_count, num.float)
         self.struct_inundated = ['']* self.structure_count
 
         for i,max_depth,shore_distance,wall in map(None,

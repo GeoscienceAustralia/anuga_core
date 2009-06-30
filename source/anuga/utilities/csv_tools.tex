@@ -1,0 +1,109 @@
+\documentclass{manual}
+
+\title{Module csv\_tools}
+
+\author{ANUGA Developer}
+
+\begin{document}
+\maketitle
+
+\chapter{Module \code{csv_tools} functions}
+
+This document describes the functions within the \code{csv_tools.py} module.
+The \LaTeX is here as a placeholder while it is decided where this sort of things goes.
+
+\section{\code{merge_csv_key_values()}}
+
+\begin{methoddesc}{merge_csv_key_values}{file_title_list,
+                                         output_file,
+                                         key_col='hours',
+                                         data_col='stage'}
+Module: \module{csv_tools}
+
+Merge one or more CSV files into a single output CSV file.  The output file contains a \emph{key}
+column that is common between all input files and one \emph{data} column from each input file.
+
+\code{file_title_list} is a list of 2-tuples, each containing the path to an input file and a
+new column header string for the \emph{data} column from the file.
+
+\code{output_file} is the path to the output file.
+
+\code{key_col} is the column header string that identifies the \emph{key} column in each
+input file.  If not provided, the \emph{key} column has the string 'hours'.
+
+\code{data_col} is the column header string that identifies the \emph{data} column in each
+input file.  If not provided, the \emph{data} column has the header string 'stage'.
+
+As an example, suppose we have two CSV files \code{alpha.csv}:
+
+\begin{table}[htp]
+  \begin{center}
+    \begin{tabular}{|cccc|}
+      \hline
+      time & hours & stage & depth \\
+      \hline
+      3600 & 1.00 & 100.3 & 10.2 \\
+      3636 & 1.01 & 100.3 & 10.0 \\
+      3672 & 1.02 & 100.3 &  9.7 \\
+      3708 & 1.03 & 100.3 &  8.9 \\
+      3744 & 1.04 & 100.3 &  7.1 \\
+      \hline
+    \end{tabular}
+  \end{center}
+\end{table}
+
+and \code{beta.csv}:
+
+\begin{table}[htp]
+  \begin{center}
+    \begin{tabular}{|cccc|}
+      \hline
+      time & hours & stage & depth \\
+      \hline
+      3600 & 1.00 & 100.3 & 11.3 \\
+      3636 & 1.01 & 100.3 & 10.5 \\
+      3672 & 1.02 & 100.3 & 10.0 \\
+      3708 & 1.03 & 100.3 &  9.7 \\
+      3744 & 1.04 & 100.3 &  8.2 \\
+      \hline
+    \end{tabular}
+  \end{center}
+\end{table}
+
+and we wish to merge these two files, using the \code{hours} column as the \emph{key} and
+the \code{depth} column as \emph{data} in both input files.
+
+We would do this with the code fragment:
+
+\begin{verbatim}
+title_list = [('alpha.csv', 'alpha'), ('beta.csv', 'beta')}
+output_file = 'gamma.csv'
+merge_csv_key_values(title_list, output_file, key_col='hours', data_col='depth')
+\end{verbatim}
+
+The output file \code{gamma.csv} would contain:
+
+\begin{table}[htp]
+  \begin{center}
+    \begin{tabular}{|ccc|}
+      \hline
+      hours & alpha & beta \\
+      \hline
+      1.00 & 10.2 & 11.3 \\
+      1.01 & 10.0 & 10.5 \\
+      1.02 &  9.7 & 10.0 \\
+      1.03 &  8.9 &  9.7 \\
+      1.04 &  7.1 &  8.2 \\
+      \hline
+    \end{tabular}
+  \end{center}
+\end{table}
+
+The function looks for the \emph{key} column in all input files and ensures it is the same in all input files.
+
+The \emph{data} column must exist in all input files, and the column for each file is copied to the 
+output file.  The column header string is changed to be the string entered against each input filename 
+in the \code{title_list} 2-tuple for the input file.
+\end{methoddesc}
+
+\end{document}

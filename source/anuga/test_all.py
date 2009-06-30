@@ -24,7 +24,6 @@ exclude_files = []
 # Directories that should not be searched for test files.
 exclude_dirs = ['pypar_dist',                        # Special requirements
                 '.svn',                              # subversion
-                'anuga_validation', # The release puts this dir under anuga
                 'props', 'wcprops', 'prop-base', 'text-base', 'tmp']
 
 
@@ -215,7 +214,6 @@ if __name__ == '__main__':
         sys.stdout = saveout
         #fid.close() # This was causing an error in windows
         #os.remove(filename)
-
 
     
     if sys.platform == 'win32':

@@ -7,7 +7,7 @@ from anuga.utilities.numerical_tools import NAN
 from anuga.fit_interpolate.interpolate import Modeltime_too_late
 from anuga.fit_interpolate.interpolate import Modeltime_too_early
 
-import Numeric as num
+import numpy as num
 
 
 class Boundary:
@@ -68,7 +68,7 @@ class Dirichlet_boundary(Boundary):
             msg = 'Must specify one value for each conserved quantity'
             raise Exception, msg
 
-        self.conserved_quantities=num.array(conserved_quantities, num.Float)
+        self.conserved_quantities=num.array(conserved_quantities, num.float)
 
     def __repr__(self):
         return 'Dirichlet boundary (%s)' %self.conserved_quantities
@@ -128,10 +128,10 @@ class Time_boundary(Boundary):
 
 
         try:
-            q = num.array(q, num.Float)
+            q = num.array(q, num.float)
         except:
             msg = 'Return value from time boundary function could '
-            msg += 'not be converted into a Numeric array of floats.\n'
+            msg += 'not be converted into a numeric array of floats.\n'
             msg += 'Specified function should return either list or array.\n'
             msg += 'I got %s' %str(q)
             raise msg
@@ -240,7 +240,7 @@ class File_boundary(Boundary):
         # any tagged boundary later on.
 
         if verbose: print 'Find midpoint coordinates of entire boundary'
-        self.midpoint_coordinates = num.zeros((len(domain.boundary), 2), num.Float)
+        self.midpoint_coordinates = num.zeros((len(domain.boundary), 2), num.float)
         boundary_keys = domain.boundary.keys()
 
         xllcorner = domain.geo_reference.get_xllcorner()
@@ -260,9 +260,9 @@ class File_boundary(Boundary):
             x2, y2 = V[base_index+2, :]
             
             # Compute midpoints
-            if edge_id == 0: m = num.array([(x1 + x2)/2, (y1 + y2)/2], num.Float)
-            if edge_id == 1: m = num.array([(x0 + x2)/2, (y0 + y2)/2], num.Float)
-            if edge_id == 2: m = num.array([(x1 + x0)/2, (y1 + y0)/2], num.Float)
+            if edge_id == 0: m = num.array([(x1 + x2)/2, (y1 + y2)/2], num.float)
+            if edge_id == 1: m = num.array([(x0 + x2)/2, (y0 + y2)/2], num.float)
+            if edge_id == 2: m = num.array([(x1 + x0)/2, (y1 + y0)/2], num.float)
 
             # Convert to absolute UTM coordinates
             m[0] += xllcorner
@@ -370,9 +370,8 @@ class File_boundary(Boundary):
                         # Python's ability to print warnings only once.
                         # See http://docs.python.org/lib/warning-filter.html
                         self.default_boundary_invoked = True
-                    
-
-            if res == NAN:
+            
+            if num.any(res == NAN):
                 x,y=self.midpoint_coordinates[i,:]
                 msg = 'NAN value found in file_boundary at '
                 msg += 'point id #%d: (%.2f, %.2f).\n' %(i, x, y)
@@ -422,13 +421,11 @@ class AWI_boundary(Boundary):
     the models were coupled as there is no feedback into the source model.
 
     This was added by Nils Goseberg et al in April 2009
-       
     """
 
     def __init__(self, filename, domain, time_thinning=1, 
                  use_cache=False, verbose=False):
         import time
-        from Numeric import array, zeros, Float
         from anuga.config import time_format
         from anuga.abstract_2d_finite_volumes.util import file_function
 
@@ -444,13 +441,11 @@ class AWI_boundary(Boundary):
         # any tagged boundary later on.
 
         if verbose: print 'Find midpoint coordinates of entire boundary'
-        self.midpoint_coordinates = zeros( (len(domain.boundary), 2), Float)
+        self.midpoint_coordinates = num.zeros((len(domain.boundary), 2), num.float)
         boundary_keys = domain.boundary.keys()
-
 
         xllcorner = domain.geo_reference.get_xllcorner()
         yllcorner = domain.geo_reference.get_yllcorner()        
-        
 
         # Make ordering unique #FIXME: should this happen in domain.py?
         boundary_keys.sort()
@@ -458,16 +453,15 @@ class AWI_boundary(Boundary):
         # Record ordering #FIXME: should this also happen in domain.py?
         self.boundary_indices = {}
         for i, (vol_id, edge_id) in enumerate(boundary_keys):
-
             base_index = 3*vol_id
             x0, y0 = V[base_index, :]
             x1, y1 = V[base_index+1, :]
             x2, y2 = V[base_index+2, :]
             
             # Compute midpoints
-            if edge_id == 0: m = array([(x1 + x2)/2, (y1 + y2)/2])
-            if edge_id == 1: m = array([(x0 + x2)/2, (y0 + y2)/2])
-            if edge_id == 2: m = array([(x1 + x0)/2, (y1 + y0)/2])
+            if edge_id == 0: m = num.array([(x1 + x2)/2, (y1 + y2)/2])
+            if edge_id == 1: m = num.array([(x0 + x2)/2, (y0 + y2)/2])
+            if edge_id == 2: m = num.array([(x1 + x0)/2, (y1 + y0)/2])
 
             # Convert to absolute UTM coordinates
             m[0] += xllcorner
@@ -482,7 +476,7 @@ class AWI_boundary(Boundary):
 
         if verbose: print 'Initialise file_function'
         self.F = file_function(filename, domain,
-	                       interpolation_points=self.midpoint_coordinates,
+	                           interpolation_points=self.midpoint_coordinates,
                                time_thinning=time_thinning,
                                use_cache=use_cache, 
                                verbose=verbose)
@@ -496,10 +490,10 @@ class AWI_boundary(Boundary):
         # We won't make it an error as it is conceivable that
         # only part of mesh boundary is actually used with a given
         # file boundary sww file. 
-        if hasattr(self.F, 'indices_outside_mesh') and\
-               len(self.F.indices_outside_mesh) > 0:
+        if (hasattr(self.F, 'indices_outside_mesh') and
+               len(self.F.indices_outside_mesh)) > 0:
             msg = 'WARNING: File_boundary has points outside the mesh '
-            msg += 'given in %s. ' %filename
+            msg += 'given in %s. ' % filename
             msg += 'See warning message issued by Interpolation_function '
             msg += 'for details (should appear above somewhere if '
             msg += 'verbose is True).\n'
@@ -509,12 +503,11 @@ class AWI_boundary(Boundary):
                 print msg
             #raise Exception(msg)
 
-        
         q = self.F(0, point_id=0)
 
         d = len(domain.conserved_quantities)
-        msg = 'Values specified in file %s must be ' %filename
-        msg += ' a list or an array of length %d' %d
+        msg = 'Values specified in file %s must be ' % filename
+        msg += 'a list or an array of length %d' % d
         assert len(q) == d, msg
 
 
@@ -524,35 +517,35 @@ class AWI_boundary(Boundary):
 
     def evaluate(self, vol_id=None, edge_id=None):
         """Return linearly interpolated values based on domain.time
-	at midpoint of segment defined by vol_id and edge_id.
+	       at midpoint of segment defined by vol_id and edge_id.
         """
-        q = self.domain.get_conserved_quantities(vol_id, edge = edge_id)
+
+        q = self.domain.get_conserved_quantities(vol_id, edge=edge_id)
         t = self.domain.time
 
         if vol_id is not None and edge_id is not None:
-            i = self.boundary_indices[ vol_id, edge_id ]
-            res = self.F(t, point_id = i)
+            i = self.boundary_indices[vol_id, edge_id]
+            res = self.F(t, point_id=i)
 
             if res == NAN:
-                x,y=self.midpoint_coordinates[i,:]
+                x,y = self.midpoint_coordinates[i,:]
                 msg = 'NAN value found in file_boundary at '
-                msg += 'point id #%d: (%.2f, %.2f).\n' %(i, x, y)
+                msg += 'point id #%d: (%.2f, %.2f).\n' % (i, x, y)
 
-                if hasattr(self.F, 'indices_outside_mesh') and\
-                       len(self.F.indices_outside_mesh) > 0:
+                if (hasattr(self.F, 'indices_outside_mesh') and
+                       len(self.F.indices_outside_mesh) > 0):
                     # Check if NAN point is due it being outside
                     # boundary defined in sww file.
 
                     if i in self.F.indices_outside_mesh:
                         msg += 'This point refers to one outside the '
-                        msg += 'mesh defined by the file %s.\n'\
-                               %self.F.filename
+                        msg += 'mesh defined by the file %s.\n' % self.F.filename
                         msg += 'Make sure that the file covers '
                         msg += 'the boundary segment it is assigned to '
                         msg += 'in set_boundary.'
                     else:
                         msg += 'This point is inside the mesh defined '
-                        msg += 'the file %s.\n' %self.F.filename
+                        msg += 'the file %s.\n' % self.F.filename
                         msg += 'Check this file for NANs.'
                 raise Exception, msg
             

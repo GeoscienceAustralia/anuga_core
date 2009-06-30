@@ -1,4 +1,4 @@
-"""Class pmesh2domain - Converting .tsh files to doamains
+"""Class pmesh2domain - Converting .tsh files to domains
 
 
    Copyright 2004
@@ -7,53 +7,58 @@
 """
 
 import sys
+import numpy as num
 
-import Numeric as num
 
+##
+# @brief Convert a pmesh instance to a domain instance.
+# @param mesh The pmesh instance to convert.
+# @param DomainClass The class to instantiate and return.
+# @return The converted pmesh instance (as a 'DomainClass' instance).
+def pmesh_instance_to_domain_instance(mesh, DomainClass):
+    """Convert a pmesh instance/object into a domain instance.
 
-def pmesh_instance_to_domain_instance(mesh,
-                                      DomainClass):
+    Uses pmesh_to_domain_instance to convert a mesh file to a domain instance.
     """
-    Convert a pmesh instance/object into a domain instance.
 
-    Use pmesh_to_domain_instance to convert a mesh file to a domain instance.
-    """
+    (vertex_coordinates, vertices, tag_dict, vertex_quantity_dict,
+     tagged_elements_dict, geo_reference) = pmesh_to_domain(mesh_instance=mesh)
 
-    vertex_coordinates, vertices, tag_dict, vertex_quantity_dict \
-                        ,tagged_elements_dict, geo_reference = \
-                        pmesh_to_domain(mesh_instance=mesh)
-
-    # NOTE(Ole): This import cannot be at the module level due to mutual
-    # dependency with domain.py
+    # NOTE(Ole): This import cannot be at the module level
+    #            due to mutual dependency with domain.py
     from anuga.abstract_2d_finite_volumes.domain import Domain
 
-  
-
-
-    msg = 'The class %s is not a subclass of the generic domain class %s'\
-          %(DomainClass, Domain)
+    # ensure that the required 'DomainClass' actually is an instance of Domain
+    msg = ('The class %s is not a subclass of the generic domain class %s'
+           % (DomainClass, Domain))
     assert issubclass(DomainClass, Domain), msg
 
-
-    domain = DomainClass(coordinates = vertex_coordinates,
-                         vertices = vertices,
-                         boundary = tag_dict,
-                         tagged_elements = tagged_elements_dict,
-                         geo_reference = geo_reference )
+    # instantiate the result class
+    result = DomainClass(coordinates=vertex_coordinates,
+                         vertices=vertices,
+                         boundary=tag_dict,
+                         tagged_elements=tagged_elements_dict,
+                         geo_reference=geo_reference)
 
     # set the water stage to be the elevation
-    if vertex_quantity_dict.has_key('elevation') and not vertex_quantity_dict.has_key('stage'):
+    if (vertex_quantity_dict.has_key('elevation') and
+        not vertex_quantity_dict.has_key('stage')):
         vertex_quantity_dict['stage'] = vertex_quantity_dict['elevation']
+    result.set_quantity_vertices_dict(vertex_quantity_dict)
 
-    domain.set_quantity_vertices_dict(vertex_quantity_dict)
-    #print "vertex_quantity_dict",vertex_quantity_dict
-    return domain
-
+    return result
 
 
-def pmesh_to_domain_instance(file_name, DomainClass, use_cache = False, verbose = False):
-    """
-    Converts a mesh file(.tsh or .msh), to a Domain instance.
+##
+# @brief Convert a mesh file to a Domain instance.
+# @param file_name Name of the file to convert (TSH or MSH).
+# @param DomainClass Class of return instance.
+# @param use_cache True if caching is to be used.
+# @param verbose True if this function is to be verbose.
+# @return An instance of 'DomainClass' containing the file data.
+def pmesh_to_domain_instance(file_name, DomainClass, use_cache=False,
+                             verbose=False):
+    """Converts a mesh file(.tsh or .msh), to a Domain instance.
 
     file_name is the name of the mesh file to convert, including the extension
 
@@ -66,39 +71,35 @@ def pmesh_to_domain_instance(file_name, DomainClass, use_cache = False, verbose 
     if use_cache is True:
         from caching import cache
         result = cache(_pmesh_to_domain_instance, (file_name, DomainClass),
-                       dependencies = [file_name],                     
-                       verbose = verbose)
-
+                       dependencies=[file_name], verbose=verbose)
     else:
         result = apply(_pmesh_to_domain_instance, (file_name, DomainClass))        
         
     return result
 
 
-
-
+##
+# @brief Convert a mesh file to a Domain instance.
+# @param file_name Name of the file to convert (TSH or MSH).
+# @param DomainClass Class of return instance.
+# @return The DomainClass instance containing the file data.
 def _pmesh_to_domain_instance(file_name, DomainClass):
-    """
-    Converts a mesh file(.tsh or .msh), to a Domain instance.
+    """Converts a mesh file(.tsh or .msh), to a Domain instance.
 
     Internal function. See public interface pmesh_to_domain_instance for details
     """
     
-    vertex_coordinates, vertices, tag_dict, vertex_quantity_dict, \
-                        tagged_elements_dict, geo_reference = \
-                        pmesh_to_domain(file_name=file_name)
-
+    (vertex_coordinates, vertices, tag_dict, vertex_quantity_dict,
+     tagged_elements_dict, geo_reference) = pmesh_to_domain(file_name=file_name)
 
     # NOTE(Ole): This import cannot be at the module level due to mutual
     # dependency with domain.py
     from anuga.abstract_2d_finite_volumes.domain import Domain
 
-
-    msg = 'The class %s is not a subclass of the generic domain class %s'\
-          %(DomainClass, Domain)
+    # ensure the required class is a subclass of Domain
+    msg = ('The class %s is not a subclass of the generic domain class %s'
+           % (DomainClass, Domain))
     assert issubclass(DomainClass, Domain), msg
-
-
 
     domain = DomainClass(coordinates = vertex_coordinates,
                          vertices = vertices,
@@ -106,35 +107,37 @@ def _pmesh_to_domain_instance(file_name, DomainClass):
                          tagged_elements = tagged_elements_dict,
                          geo_reference = geo_reference )
 
-
-
-    #FIXME (Ole): Is this really the right place to apply the a default
-    #value specific to the shallow water wave equation?
-    #The 'assert' above indicates that any subclass of Domain is acceptable.
-    #Suggestion - module shallow_water.py will eventually take care of this
-    #(when I get around to it) so it should be removed from here.
+    # FIXME (Ole): Is this really the right place to apply a default
+    # value specific to the shallow water wave equation?
+    # The 'assert' above indicates that any subclass of Domain is acceptable.
+    # Suggestion - module shallow_water.py will eventually take care of this
+    # (when I get around to it) so it should be removed from here.
 
     # This doesn't work on the domain instance.
     # This is still needed so -ve elevations don't cuase 'lakes'
     # The fixme we discussed was to only create a quantity when its values
-    #are set.
+    # are set.
     # I think that's the way to go still
 
     # set the water stage to be the elevation
-    if vertex_quantity_dict.has_key('elevation') and not vertex_quantity_dict.has_key('stage'):
+    if (vertex_quantity_dict.has_key('elevation') and
+        not vertex_quantity_dict.has_key('stage')):
         vertex_quantity_dict['stage'] = vertex_quantity_dict['elevation']
-
     domain.set_quantity_vertices_dict(vertex_quantity_dict)
-    #print "vertex_quantity_dict",vertex_quantity_dict
+
     return domain
 
 
-def pmesh_to_domain(file_name=None,
-                    mesh_instance=None,
-                    use_cache=False,
+##
+# @brief Convert pmesh file/instance to list(s) that can instantiate a Domain.
+# @param file_name Path to file to convert.
+# @param mesh_instance Instance to convert.
+# @param use_cache True if we are to cache.
+# @param verbose True if this function is to be verbose.
+# @return ??
+def pmesh_to_domain(file_name=None, mesh_instance=None, use_cache=False,
                     verbose=False):
-    """
-    Convert a pmesh file or a pmesh mesh instance to a bunch of lists
+    """Convert a pmesh file or a pmesh mesh instance to a bunch of lists
     that can be used to instanciate a domain object.
 
     use_cache: True means that caching is attempted for the computed domain.    
@@ -143,8 +146,7 @@ def pmesh_to_domain(file_name=None,
     if use_cache is True:
         from caching import cache
         result = cache(_pmesh_to_domain, (file_name, mesh_instance),
-                       dependencies = [file_name],                     
-                       verbose = verbose)
+                       dependencies=[file_name], verbose=verbose)
 
     else:
         result = apply(_pmesh_to_domain, (file_name, mesh_instance))        
@@ -152,44 +154,55 @@ def pmesh_to_domain(file_name=None,
     return result
 
 
-def _pmesh_to_domain(file_name=None,
-                     mesh_instance=None,
-                     use_cache=False,
+##
+# @brief Convert pmesh file/instance to list(s) that can instantiate a Domain.
+# @param file_name Path to file to convert.
+# @param mesh_instance Instance to convert.
+# @param use_cache True if we are to cache.
+# @param verbose True if this function is to be verbose.
+# @return ??
+def _pmesh_to_domain(file_name=None, mesh_instance=None, use_cache=False,
                      verbose=False):
-    """
-    Convert a pmesh file or a pmesh mesh instance to a bunch of lists
-    that can be used to instanciate a domain object.
+    """Convert a pmesh file or a pmesh mesh instance to a bunch of lists
+    that can be used to instantiate a domain object.
     """
 
     from load_mesh.loadASCII import import_mesh_file
 
+    # get data from mesh instance or file
     if file_name is None:
         mesh_dict = mesh_instance.Mesh2IODict()
     else:
         mesh_dict = import_mesh_file(file_name)
-    #print "mesh_dict",mesh_dict
+
+    # extract required data from the mesh dictionary
     vertex_coordinates = mesh_dict['vertices']
     volumes = mesh_dict['triangles']
     vertex_quantity_dict = {}
+
+    # num.transpose(None) gives scalar array of value None
     point_atts = mesh_dict['vertex_attributes']
-    point_titles  = mesh_dict['vertex_attribute_titles']
-    geo_reference  = mesh_dict['geo_reference']
+
+    point_titles = mesh_dict['vertex_attribute_titles']
+    geo_reference = mesh_dict['geo_reference']
     if point_atts is not None:
-        point_atts = num.transpose(point_atts)    
-        for quantity, value_vector in map (None, point_titles, point_atts):
+        point_atts = num.transpose(point_atts)
+        for quantity, value_vector in map(None, point_titles, point_atts):
             vertex_quantity_dict[quantity] = value_vector
     tag_dict = pmesh_dict_to_tag_dict(mesh_dict)
     tagged_elements_dict = build_tagged_elements_dictionary(mesh_dict)
-    return vertex_coordinates, volumes, tag_dict, vertex_quantity_dict, tagged_elements_dict, geo_reference
 
+    return (vertex_coordinates, volumes, tag_dict, vertex_quantity_dict,
+            tagged_elements_dict, geo_reference)
 
 
 def build_tagged_elements_dictionary(mesh_dict):
     """Build the dictionary of element tags.
+
     tagged_elements is a dictionary of element arrays,
-    keyed by tag:
-    { (tag): [e1, e2, e3..] }
+    keyed by tag: { (tag): [e1, e2, e3..] }
     """
+
     tri_atts = mesh_dict['triangle_tags']
     tagged_elements = {}
     if tri_atts is None:
@@ -198,17 +211,19 @@ def build_tagged_elements_dictionary(mesh_dict):
         for tri_att_index in range(len(tri_atts)):
             tagged_elements.setdefault(tri_atts[tri_att_index],
                                        []).append(tri_att_index)
+
     return tagged_elements
+
 
 def pmesh_dict_to_tag_dict(mesh_dict):
     """ Convert the pmesh dictionary (mesh_dict) description of boundary tags
     to a dictionary of tags, indexed with volume id and face number.
     """
+
     triangles = mesh_dict['triangles']
     sides = calc_sides(triangles)
     tag_dict = {}
-    for seg, tag in map(None, mesh_dict['segments'],
-                        mesh_dict['segment_tags']):
+    for seg, tag in map(None, mesh_dict['segments'], mesh_dict['segment_tags']):
         v1 = int(seg[0])
         v2 = int(seg[1])
         for key in [(v1,v2),(v2,v1)]:
@@ -222,14 +237,20 @@ def pmesh_dict_to_tag_dict(mesh_dict):
 
 
 def calc_sides(triangles):
-    #Build dictionary mapping from sides (2-tuple of points)
-    #to left hand side neighbouring triangle
+    '''Build dictionary mapping from sides (2-tuple of points)
+    to left hand side neighbouring triangle
+    '''
+
     sides = {}
+
     for id, triangle in enumerate(triangles):
         a = int(triangle[0])
         b = int(triangle[1])
         c = int(triangle[2])
+
         sides[a,b] = (id, 2) #(id, face)
         sides[b,c] = (id, 0) #(id, face)
         sides[c,a] = (id, 1) #(id, face)
+
     return sides
+

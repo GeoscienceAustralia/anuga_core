@@ -306,9 +306,8 @@ class Test_xml_tools(unittest.TestCase):
 
         os.remove(tmp_name)
 
-        
-	
-#-------------------------------------------------------------
+################################################################################
+
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_xml_tools, 'test')
     runner = unittest.TextTestRunner()

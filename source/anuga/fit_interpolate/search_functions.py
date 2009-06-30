@@ -11,7 +11,7 @@ from anuga.utilities.polygon import is_inside_triangle
 from anuga.utilities.numerical_tools import get_machine_precision
 from anuga.config import max_float
 
-import Numeric as num
+import numpy as num
 
 
 initial_search_value = 'uncomment search_functions code first'#0
@@ -63,6 +63,7 @@ def search_tree_of_vertices(root, x):
                    _search_triangles_of_vertices(triangles, x)
 
     is_more_elements = True
+    
     while not element_found and is_more_elements:
         triangles, branch = root.expand_search()
         if branch == []:
@@ -85,6 +86,7 @@ def _search_triangles_of_vertices(triangles, x):
     This is called by search_tree_of_vertices once the appropriate node
     has been found from the quad tree.
     
+
     This function is responsible for most of the compute time in
     fit and interpolate.
     """
@@ -95,12 +97,10 @@ def _search_triangles_of_vertices(triangles, x):
     sigma0 = -10.0
     sigma1 = -10.0
     k = -10
-
     # For all vertices in same cell as point x
     element_found = False    
     for k, tri_verts_norms in triangles:
         tri = tri_verts_norms[0]
-
         # k is the triangle index
         # tri is a list of verts (x, y), representing a tringle
         # Find triangle that contains x (if any) and interpolate
@@ -119,9 +119,9 @@ def _search_triangles_of_vertices(triangles, x):
             # Don't look for any other triangles in the triangle list
             last_triangle = [[k, tri_verts_norms]]
             break            
-
             
     return element_found, sigma0, sigma1, sigma2, k
+
 
             
 def compute_interpolation_values(triangle, n0, n1, n2, x):
@@ -139,18 +139,19 @@ def compute_interpolation_values(triangle, n0, n1, n2, x):
 
     return sigma0, sigma1, sigma2
 
-    
 def set_last_triangle():
     global last_triangle
     last_triangle = LAST_TRIANGLE
     
 def search_times():
+
     global search_one_cell_time
     global search_more_cells_time
 
     return search_one_cell_time, search_more_cells_time
 
 def reset_search_times():
+
     global search_one_cell_time
     global search_more_cells_time
     search_one_cell_time = initial_search_value

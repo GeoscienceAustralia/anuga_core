@@ -1,5 +1,5 @@
 import unittest
-import Numeric as num
+import numpy as num
 
 from quad import Cell, build_quadtree
 from anuga.abstract_2d_finite_volumes.general_mesh import General_mesh as Mesh
@@ -257,11 +257,9 @@ class Test_Quad(unittest.TestCase):
         #[[ 4.,  1.],  [ 5.,  4.], [ 4.,  4.]],
          #                               [[ 4.,  1.], [ 5.,  4.], [ 4.,  4.]]])
         
-        
-#-------------------------------------------------------------
-if __name__ == "__main__":
+################################################################################
 
+if __name__ == "__main__":
     mysuite = unittest.makeSuite(Test_Quad,'test')
-    #mysuite = unittest.makeSuite(Test_Quad,'test_interpolate_one_point_many_triangles')
     runner = unittest.TextTestRunner()
     runner.run(mysuite)

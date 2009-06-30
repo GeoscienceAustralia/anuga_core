@@ -13,7 +13,8 @@ from anuga.utilities.numerical_tools import ensure_numeric, sign
 from anuga.config import g, epsilon
 from anuga.config import minimum_allowed_height, velocity_protection        
 
-import Numeric as num
+import numpy as num
+from math import sqrt
 from math import sqrt
 
 class Below_interval(Exception): pass 

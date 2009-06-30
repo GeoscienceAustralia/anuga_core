@@ -4,7 +4,7 @@
 import sys
 import unittest
 
-import Numeric as num
+import numpy as num
 
 try:
     from anuga.alpha_shape.alpha_shape import *
@@ -393,17 +393,10 @@ class TestCase(unittest.TestCase):
                   (61, 62), (62, 63), (59, 60), (58, 59), (60, 61), \
                   (46, 45)]
         assert num.allclose(answer, result)    
+
 #-------------------------------------------------------------
+
 if __name__ == "__main__":
-    #print "starting tests \n"
     suite = unittest.makeSuite(TestCase,'test')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
-    #print "finished tests \n"
-    
-
-    
-    
-
-
-

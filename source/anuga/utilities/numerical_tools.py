@@ -6,10 +6,12 @@
 from math import acos, pi, sqrt
 from warnings import warn
 
-import Numeric as num
+import numpy as num
 
+#After having migrated to numpy we should use the native NAN.
+#num.seterr(divide='warn')
+num.seterr(divide='ignore') # Ignore division error here for the time being
 NAN = (num.array([1])/0.)[0]
-# if we use a package that has NAN, this should be updated to use NAN.
 
 # Static variable used by get_machine_precision
 machine_precision = None
@@ -69,21 +71,21 @@ def angle(v1, v2=None):
     The angle is measured as a number in [0, 2pi] from v2 to v1.
     """
   
-    # Prepare two Numeric vectors
+    # Prepare two numeric vectors
     if v2 is None:
         v2 = [1.0, 0.0] # Unit vector along the x-axis
 	
-    v1 = ensure_numeric(v1, num.Float)
-    v2 = ensure_numeric(v2, num.Float)    
+    v1 = ensure_numeric(v1, num.float)
+    v2 = ensure_numeric(v2, num.float)    
     
     # Normalise
     v1 = v1/num.sqrt(num.sum(v1**2))
     v2 = v2/num.sqrt(num.sum(v2**2))
 
     # Compute angle
-    p = num.innerproduct(v1, v2)
-    c = num.innerproduct(v1, normal_vector(v2)) # Projection onto normal
-                                                # (negative cross product)
+    p = num.inner(v1, v2)
+    c = num.inner(v1, normal_vector(v2))    # Projection onto normal
+                                            # (negative cross product)
         
     theta = safe_acos(p)
             
@@ -124,7 +126,7 @@ def normal_vector(v):
     Returns vector 90 degrees counter clockwise to and of same length as v
     """
     
-    return num.array([-v[1], v[0]], num.Float)
+    return num.array([-v[1], v[0]], num.float)
 
     
 #def crossproduct_length(v1, v2):
@@ -155,7 +157,7 @@ def cov(x, y=None):
     cx = x - mean(x)  
     cy = y - mean(y)  
 
-    p = num.innerproduct(cx,cy)/N
+    p = num.inner(cx,cy)/N
     return(p)
 
 
@@ -205,7 +207,7 @@ def norm(x):
     """
   
     y = num.ravel(x)
-    p = num.sqrt(num.innerproduct(y,y))
+    p = num.sqrt(num.inner(y,y))
     return p
     
   
@@ -229,49 +231,56 @@ def corr(x, y=None):
     return(C)
 
 
-	
+
+##
+# @brief Ensure that a sequence is a numeric array of the required type.
+# @param A The sequence object to convert to a numeric array.
+# @param typecode The required numeric type of object A (a numeric dtype).
+# @return A numeric array of the required type.
 def ensure_numeric(A, typecode=None):
     """Ensure that sequence is a numeric array.
-    
+
     Inputs:
-        A: Sequence. If A is already a Numeric array it will be returned
+        A: Sequence. If A is already a numeric array it will be returned
                      unaltered
-                     If not, an attempt is made to convert it to a Numeric
+                     If not, an attempt is made to convert it to a numeric
                      array
-        A: Scalar.   Return 0-dimensional array of length 1, containing that value
-        A: String.   Array of ASCII values
-        typecode: Numeric type. If specified, use this in the conversion.
-                                If not, let Numeric decide
+        A: Scalar.   Return 0-dimensional array containing that value. Note
+                     that a 0-dim array DOES NOT HAVE A LENGTH UNDER numpy.
+        A: String.   Array of ASCII values (numpy can't handle this)
+
+        typecode:    numeric type. If specified, use this in the conversion.
+                     If not, let numeric package decide.
+                     typecode will always be one of num.float, num.int, etc.
+
+    Note that num.array(A, dtype) will sometimes copy.  Use 'copy=False' to
+    copy only when required.
 
     This function is necessary as array(A) can cause memory overflow.
     """
 
+#    if isinstance(A, basestring):
+#        msg = 'Sorry, cannot handle strings in ensure_numeric()'
+#        raise Exception, msg
+
     if typecode is None:
-        if type(A) == num.ArrayType:
+        if isinstance(A, num.ndarray):
             return A
         else:
             return num.array(A)
     else:
-        if type(A) == num.ArrayType:
-            if A.typecode() == typecode:
-                return A
-            else:
-                return num.array(A, typecode)
-        else: 
-            return num.array(A, typecode)
-
-
+        return num.array(A, dtype=typecode, copy=False)
 
 
 def histogram(a, bins, relative=False):
-    """Standard histogram straight from the Numeric manual
+    """Standard histogram straight from the numeric manual
 
     If relative is True, values will be normalised againts the total and
     thus represent frequencies rather than counts.
     """
 
     n = num.searchsorted(num.sort(a), bins)
-    n = num.concatenate( [n, [len(a)]] )
+    n = num.concatenate([n, [len(a)]], axis=0)    #??default#
 
     hist = n[1:]-n[:-1]
 
@@ -356,6 +365,36 @@ def gradient2_python(x0, y0, x1, y1, q0, q1):
         b = (y1-y0)*(q1-q0)/det
         
     return a, b        
+
+################################################################################
+# Decision functions for numeric package objects.
+# It is a little tricky to decide if a numpy thing is of type float.
+# These functions hide numpy-specific details of how we do this.
+################################################################################
+
+##
+# @brief Decide if an object is a numeric package object with datatype of float.
+# @param obj The object to decide on.
+# @return True if 'obj' is a numeric package object, and some sort of float.
+def is_num_float(obj):
+    '''Is an object a numeric package float object?'''
+
+    try:
+        return obj.dtype.char in num.typecodes['Float']
+    except AttributeError:
+        return False
+
+##
+# @brief Decide if an object is a numeric package object with datatype of int.
+# @param obj The object to decide on.
+# @return True if 'obj' is a numeric package object, and some sort of int.
+def is_num_int(obj):
+    '''Is an object a numeric package int object?'''
+
+    try:
+        return obj.dtype.char in num.typecodes['Integer']
+    except AttributeError:
+        return False
 
 
 #-----------------

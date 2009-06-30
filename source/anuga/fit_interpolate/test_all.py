@@ -75,28 +75,9 @@ def regressionTest():
     load = unittest.defaultTestLoader.loadTestsFromModule
     return unittest.TestSuite(map(load, modules))
 
+################################################################################
+
 if __name__ == '__main__':
-
-    from os import sep
-
-    #Attempt to compile all extensions
-    #execfile('..' + sep + 'utilities' + sep + 'compile.py')
-
-    #FIXME: Temporary measure
-    #os.chdir('..' + sep + 'utilities')
-    #execfile('compile.py')
-    #os.chdir('..' + sep + 'pyvolution')    
-    
-    #FIXME: Temporary measure
-    #os.chdir('..' + sep + 'triangle')
-    #execfile('compile.py')
-    #os.chdir('..' + sep + 'pyvolution')   
-    
-    #os.system('python compile.py') 
-
-    #print regressionTest()
-    #unittest.main(defaultTest='regressionTest')
-    
     suite = regressionTest()
     runner = unittest.TextTestRunner() #(verbosity=2)
     runner.run(suite)

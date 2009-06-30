@@ -13,7 +13,7 @@ from anuga.utilities.quad import build_quadtree, Cell
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.utilities.polygon import is_inside_polygon, is_inside_triangle    
 
-import Numeric as num
+import numpy as num
 
 class Test_search_functions(unittest.TestCase):
     def setUp(self):
@@ -74,7 +74,6 @@ class Test_search_functions(unittest.TestCase):
         for x in [[0.6, 0.3], [0.1, 0.2], [0.7,0.7],
                   [0.1,0.9], [0.4,0.6], [0.9,0.1],
                   [10, 3]]:
-
             
             found, s0, s1, s2, k = search_tree_of_vertices(root, 
                                                            ensure_numeric(x))
@@ -99,6 +98,7 @@ class Test_search_functions(unittest.TestCase):
         #Test that points are arranged in a counter clock wise order
         mesh.check_integrity()
 
+        
         for m in range(8):
             root = build_quadtree(mesh, max_points_per_cell = m)
             set_last_triangle()
@@ -112,10 +112,8 @@ class Test_search_functions(unittest.TestCase):
 
                 if k >= 0:
                     V = mesh.get_vertex_coordinates(k) # nodes for triangle k
-
                     assert is_inside_triangle(x, V, closed=True)
                     assert is_inside_polygon(x, V)
-                    
                     assert found is True
                 else:
                     assert found is False                
@@ -137,7 +135,7 @@ class Test_search_functions(unittest.TestCase):
         x = ensure_numeric([0.5, 0.5])
         candidate_vertices = root.search(x[0], x[1])
 
-        # print x, candidate_vertices
+        #print x, candidate_vertices
         found, sigma0, sigma1, sigma2, k = \
                _search_triangles_of_vertices(candidate_vertices,
                                              x)
@@ -245,7 +243,7 @@ class Test_search_functions(unittest.TestCase):
         assert is_inside_polygon(x, triangle, 
                                  closed=True, verbose=False)
         assert is_inside_triangle(x, triangle, 
-                                  closed=True, verbose=False)
+                                  closed=True, verbose=False)                                 
         
         sigma0, sigma1, sigma2 = \
             compute_interpolation_values(triangle, n0, n1, n2, x)

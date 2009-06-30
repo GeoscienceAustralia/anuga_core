@@ -11,7 +11,7 @@ from lat_long_UTM_conversion import *
 from redfearn import degminsec2decimal_degrees, decimal_degrees2degminsec
 from anuga.utilities.anuga_exceptions import ANUGAError
 
-import Numeric as num
+import numpy as num
 
 
 #-------------------------------------------------------------
@@ -120,10 +120,10 @@ class TestCase(unittest.TestCase):
         lat_calced, long_calced = UTMtoLL(northing, easting, zone) 
         assert num.allclose(lat,  lat_calced)
         assert num.allclose(lon, long_calced)
-#-------------------------------------------------------------
-if __name__ == "__main__":
 
-    #mysuite = unittest.makeSuite(TestCase,'test_convert_latlon_to_UTM1')
+#-------------------------------------------------------------
+
+if __name__ == "__main__":
     mysuite = unittest.makeSuite(TestCase,'test')
     runner = unittest.TextTestRunner()
     runner.run(mysuite)

@@ -14,7 +14,7 @@ import csv
 
 from Scientific.IO.NetCDF import NetCDFFile
 
-import Numeric as num
+import numpy as num
 
 
 
@@ -66,7 +66,7 @@ class Test_Interpolate(unittest.TestCase):
         #Initial condition - with jumps
 
         bed = domain.quantities['elevation'].vertex_values
-        stage = num.zeros(bed.shape, num.Float)
+        stage = num.zeros(bed.shape, num.float)
 
         h = 0.3
         for i in range(stage.shape[0]):
@@ -128,7 +128,7 @@ class Test_Interpolate(unittest.TestCase):
 
 
         x, y, vertex_values, triangles = quantity.get_vertex_values(xy=True, smooth=False)
-        vertex_coordinates = num.concatenate( (x[:, num.NewAxis], y[:, num.NewAxis]), axis=1 )
+        vertex_coordinates = num.concatenate( (x[:, num.newaxis], y[:, num.newaxis]), axis=1 )
         # FIXME: This concat should roll into get_vertex_values
 
 
@@ -148,7 +148,7 @@ class Test_Interpolate(unittest.TestCase):
                                     [1,4,-9],[2,5,0]])
         
         x, y, vertex_values, triangles = quantity.get_vertex_values(xy=True, smooth=False)
-        vertex_coordinates = num.concatenate( (x[:, num.NewAxis], y[:, num.NewAxis]), axis=1 )
+        vertex_coordinates = num.concatenate( (x[:, num.newaxis], y[:, num.newaxis]), axis=1 )
         # FIXME: This concat should roll into get_vertex_values
 
 
@@ -181,7 +181,7 @@ class Test_Interpolate(unittest.TestCase):
 
 
         x, y, vertex_values, triangles = quantity.get_vertex_values(xy=True, smooth=False)
-        vertex_coordinates = num.concatenate( (x[:, num.NewAxis], y[:, num.NewAxis]), axis=1 )
+        vertex_coordinates = num.concatenate( (x[:, num.newaxis], y[:, num.newaxis]), axis=1 )
         # FIXME: This concat should roll into get_vertex_values
 
 
@@ -200,7 +200,7 @@ class Test_Interpolate(unittest.TestCase):
                                     [1,4,-9],[2,5,0]])
         
         x, y, vertex_values, triangles = quantity.get_vertex_values(xy=True, smooth=False)
-        vertex_coordinates = num.concatenate( (x[:, num.NewAxis], y[:, num.NewAxis]), axis=1 )
+        vertex_coordinates = num.concatenate( (x[:, num.newaxis], y[:, num.newaxis]), axis=1 )
         # FIXME: This concat should roll into get_vertex_values
 
 
@@ -232,7 +232,7 @@ class Test_Interpolate(unittest.TestCase):
                                     [1,4,-9],[2,5,0]])
         
         x, y, vertex_values, triangles = quantity.get_vertex_values(xy=True, smooth=False)
-        vertex_coordinates = num.concatenate( (x[:, num.NewAxis], y[:, num.NewAxis]), axis=1 )
+        vertex_coordinates = num.concatenate( (x[:, num.newaxis], y[:, num.newaxis]), axis=1 )
         # FIXME: This concat should roll into get_vertex_values
 
 
@@ -918,42 +918,39 @@ class Test_Interpolate(unittest.TestCase):
         vertices = [a, b, c, d,e,f]
         triangles = [[0,1,3], [1,0,2], [0,4,5], [0,5,2]] #abd bac aef afc
 
+        point_coords_absolute = [[-2.0,  2.0],
+                                 [-1.0,  1.0],
+                                 [ 0.0,  2.0],
+                                 [ 1.0,  1.0],
+                                 [ 2.0,  1.0],
+                                 [ 0.0,  0.0],
+                                 [ 1.0,  0.0],
+                                 [ 0.0, -1.0],
+                                 [-0.2, -0.5],
+                                 [-0.9, -1.5],
+                                 [ 0.5, -1.9],
+                                 [ 3.0,  1.0]]
 
-        point_coords_absolute = [[-2.0, 2.0],
-                        [-1.0, 1.0],
-                        [0.0, 2.0],
-                        [1.0, 1.0],
-                        [2.0, 1.0],
-                        [0.0, 0.0],
-                        [1.0, 0.0],
-                        [0.0, -1.0],
-                        [-0.2, -0.5],
-                        [-0.9, -1.5],
-                        [0.5, -1.9],
-                        [3.0, 1.0]]
-
-        geo = Geo_reference(57,100, 500)
+        geo = Geo_reference(57, 100, 500)
         point_coords = geo.change_points_geo_ref(point_coords_absolute)
-        point_coords = Geospatial_data(point_coords,geo_reference = geo)
+        point_coords = Geospatial_data(point_coords, geo_reference=geo)
         
         interp = Interpolate(vertices, triangles)
-        f = num.array([linear_function(vertices),2*linear_function(vertices)])
+        f = num.array([linear_function(vertices), 2*linear_function(vertices)])
         f = num.transpose(f)
-        #print "f",f
         z = interp.interpolate_block(f, point_coords)
-        answer = [linear_function(point_coords.get_data_points( \
-                      absolute = True)),
-                  2*linear_function(point_coords.get_data_points( \
-                      absolute = True)) ]
+        answer = [linear_function(point_coords.get_data_points(absolute=True)),
+                  2*linear_function(point_coords.get_data_points(absolute=True))
+                 ]
         answer = num.transpose(answer)
-        #print "z",z
-        #print "answer",answer
-        assert num.allclose(z, answer)
+        msg = ('Expected z\n%s\nto be close to answer\n%s'
+               % (str(z), str(answer)))
+        assert num.allclose(z, answer), msg
             
         z = interp.interpolate(f, point_coords, start_blocking_len = 2)
 
-        #print "z",z 
-        #print "answer",answer 
+        msg = ('Expected z\n%s\nto be close to answer\n%s'
+               % (str(z), str(answer)))
         assert num.allclose(z, answer)
 
         
@@ -969,18 +966,18 @@ class Test_Interpolate(unittest.TestCase):
         triangles = [[0,1,3], [1,0,2], [0,4,5], [0,5,2]] #abd bac aef afc
 
 
-        point_coords = [[-2.0, 2.0],
-                        [-1.0, 1.0],
-                        [0.0, 2.0],
-                        [1.0, 1.0],
-                        [2.0, 1.0],
-                        [0.0, 0.0],
-                        [1.0, 0.0],
-                        [0.0, -1.0],
+        point_coords = [[-2.0,  2.0],
+                        [-1.0,  1.0],
+                        [ 0.0,  2.0],
+                        [ 1.0,  1.0],
+                        [ 2.0,  1.0],
+                        [ 0.0,  0.0],
+                        [ 1.0,  0.0],
+                        [ 0.0, -1.0],
                         [-0.2, -0.5],
                         [-0.9, -1.5],
-                        [0.5, -1.9],
-                        [3.0, 1.0]]
+                        [ 0.5, -1.9],
+                        [ 3.0,  1.0]]
 
         interp = Interpolate(vertices, triangles)
         f = num.array([linear_function(vertices),2*linear_function(vertices)])
@@ -1032,18 +1029,18 @@ class Test_Interpolate(unittest.TestCase):
         triangles = [[0,1,3], [1,0,2], [0,4,5], [0,5,2]] #abd bac aef afc
 
 
-        point_coords = [[-2.0, 2.0],
-                        [-1.0, 1.0],
-                        [0.0, 2.0],
-                        [1.0, 1.0],
-                        [2.0, 1.0],
-                        [0.0, 0.0],
-                        [1.0, 0.0],
-                        [0.0, -1.0],
+        point_coords = [[-2.0,  2.0],
+                        [-1.0,  1.0],
+                        [ 0.0,  2.0],
+                        [ 1.0,  1.0],
+                        [ 2.0,  1.0],
+                        [ 0.0,  0.0],
+                        [ 1.0,  0.0],
+                        [ 0.0, -1.0],
                         [-0.2, -0.5],
                         [-0.9, -1.5],
-                        [0.5, -1.9],
-                        [3.0, 1.0]]
+                        [ 0.5, -1.9],
+                        [ 3.0,  1.0]]
 
         interp = Interpolate(vertices, triangles)
         f = num.array([linear_function(vertices), 2*linear_function(vertices)])
@@ -1077,7 +1074,7 @@ class Test_Interpolate(unittest.TestCase):
         
 
         #One quantity
-        Q = num.zeros( (3,6), num.Float )
+        Q = num.zeros( (3,6), num.float )
 
         #Linear in time and space
         a = [0.0, 0.0]
@@ -1224,7 +1221,7 @@ class Test_Interpolate(unittest.TestCase):
                                 [ 2.8, 1.2]]
 
         #One quantity
-        Q = num.zeros( (3,6), num.Float )
+        Q = num.zeros( (3,6), num.float )
 
         #Linear in time and space
         for i, t in enumerate(time):
@@ -1284,7 +1281,7 @@ class Test_Interpolate(unittest.TestCase):
                                 [ 2.8, 1.2]]
 
         # One quantity
-        Q = num.zeros((8,6), num.Float)
+        Q = num.zeros((8,6), num.float)
 
         # Linear in time and space
         for i, t in enumerate(time):
@@ -1352,7 +1349,7 @@ class Test_Interpolate(unittest.TestCase):
         interpolation_points = [[ 1.,  0.], [0.,1.]]
 
         #One quantity
-        Q = num.zeros( (2,6), num.Float )
+        Q = num.zeros( (2,6), num.float )
 
         #Linear in time and space
         for i, t in enumerate(time):
@@ -1418,7 +1415,7 @@ class Test_Interpolate(unittest.TestCase):
                                 [ 545354534, 4354354353]] # outside the mesh
 
         # One quantity
-        Q = num.zeros( (3,6), num.Float )
+        Q = num.zeros( (3,6), num.float )
 
         # Linear in time and space
         for i, t in enumerate(time):
@@ -1607,7 +1604,7 @@ class Test_Interpolate(unittest.TestCase):
                                 [ 545354534, 4354354353]] # outside the mesh
 
         #One quantity
-        Q = num.zeros( (len(time),6), num.Float )
+        Q = num.zeros( (len(time),6), num.float )
 
         #Linear in time and space
         for i, t in enumerate(time):
@@ -1844,16 +1841,11 @@ class Test_Interpolate(unittest.TestCase):
         #print "z",z 
         #print "answer",answer 
         assert num.allclose(z, answer)
-        
-                       
-#-------------------------------------------------------------
+
+################################################################################
+
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Interpolate,'test')
-    #suite = unittest.makeSuite(Test_Interpolate,'test_interpolate_one_point_many_triangles')
-    runner = unittest.TextTestRunner(verbosity=1)
+    runner = unittest.TextTestRunner() #verbosity=1)
     runner.run(suite)
-
-
-
-
 

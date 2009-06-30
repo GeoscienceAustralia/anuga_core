@@ -25,7 +25,7 @@ from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
      
 from math import pi,pow,sqrt
 
-import Numeric as num
+import numpy as num
 
 
 #------------------------------------------------------------------------------

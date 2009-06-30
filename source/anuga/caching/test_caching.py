@@ -6,7 +6,7 @@ from copy import deepcopy
 from anuga.caching import *
 from anuga.caching.dummy_classes_for_testing import Dummy, Dummy_memorytest
 
-import Numeric as num
+import numpy as num
 
 
 # Define a test function to be cached
@@ -25,7 +25,7 @@ def f(a,b,c,N,x=0,y='abcdefg'):
   return(B)
   
 def f_numeric(A, B):
-  """Operation on Numeric arrays
+  """Operation on numeric arrays
   """
   
   return 3.1*A + B + 1
@@ -122,7 +122,7 @@ class Test_Caching(unittest.TestCase):
     def test_caching_of_numeric_arrays(self):
         """test_caching_of_numeric_arrays
         
-        Test that Numeric arrays can be recognised by caching even if their id's are different
+        Test that numeric arrays can be recognised by caching even if their id's are different
         """
         
         verbose = False
@@ -159,15 +159,12 @@ class Test_Caching(unittest.TestCase):
             T3 = f_numeric(A0, B0) # Compute without caching
 
 
-            assert T1 == T2, 'Cached result does not match computed result'
-            assert T2 == T3, 'Cached result does not match computed result'
+            assert num.alltrue(T1 == T2), 'Cached result does not match computed result'
+            assert num.alltrue(T2 == T3), 'Cached result does not match computed result'
             
 
     def test_hash_collision(self):
-        """test_hash_collision(self):
-        
-        Test that hash collisons are dealt with correctly
-        """
+        """Test that hash collisons are dealt with correctly"""
         
         verbose = False
         
@@ -201,7 +198,9 @@ class Test_Caching(unittest.TestCase):
             # even though it hashes to the same address
             T2 = cache(f_numeric, (A1, A1), 
                        compression=comp, verbose=verbose) 
-            
+           
+            T1_ref = f_numeric(A0, A0)
+            T2_ref = f_numeric(A1, A1)
             T1_ref = f_numeric(A0, A0)
             T2_ref = f_numeric(A1, A1)
 
@@ -418,7 +417,7 @@ class Test_Caching(unittest.TestCase):
         assert bc1 != bc2, msg
 
         
-        x = num.arange(10).astype(num.Float)
+        x = num.arange(10).astype(num.float)
         
         ref1 = f1(x)
         ref2 = f2(x)
@@ -902,7 +901,6 @@ class Test_Caching(unittest.TestCase):
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Caching, 'test_caching_of_callable_objects')
     suite = unittest.makeSuite(Test_Caching, 'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)

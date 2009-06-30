@@ -1,5 +1,5 @@
 import unittest
-import Numeric as num
+import numpy as num
 from smf import slide_tsunami, slump_tsunami, Double_gaussian
 
 class Test_smf(unittest.TestCase):
@@ -51,7 +51,7 @@ class Test_smf(unittest.TestCase):
 
         slide = slide_tsunami(length=len, depth=dep, slope=th, x0=x0, \
                               width = wid, thickness=thk, kappa=kappa, kappad=kappad, \
-			      verbose=False)
+                              verbose=False)
 
         assert num.allclose(slide.a3D, 0.07775819)
         assert num.allclose(slide.wavelength, 2938.66695708)
@@ -110,13 +110,13 @@ class Test_smf(unittest.TestCase):
 
         slide = slide_tsunami(length, dep, th, x0, y0, \
                               wid, thk, kappa, kappad, \
-			      domain=domain,verbose=False)
+                              domain=domain,verbose=False)
 
         domain.set_quantity('stage', slide)
-	stage = domain.get_quantity('stage')
-	w = stage.get_values()
+        stage = domain.get_quantity('stage')
+        w = stage.get_values()
 
-##	check = [[-0.0 -0.0 -0.0],
+##        check = [[-0.0 -0.0 -0.0],
 ##                 [-.189709745 -517.877716 -0.0],
 ##                 [-0.0 -0.0 -2.7695931e-08],
 ##                 [-0.0 -2.7695931e-08 -1.897097e-01]
@@ -125,14 +125,14 @@ class Test_smf(unittest.TestCase):
 ##                 [-0.0 -0.0 -0.0],
 ##                 [-0.0 -0.0 -0.0]]
 
-        assert num.allclose(min(min(w)), -517.877771593)
-        assert num.allclose(max(max(w)), 0.0)
+        assert num.allclose(num.min(w), -517.877771593)
+        assert num.allclose(num.max(w), 0.0)
         assert num.allclose(slide.a3D, 518.38797486)
 
 
 #-------------------------------------------------------------
+
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_smf,'test_Double_gaussian')
     suite = unittest.makeSuite(Test_smf,'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)

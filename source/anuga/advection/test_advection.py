@@ -7,7 +7,7 @@ from math import sqrt, pi
 from anuga.config import g, epsilon
 from anuga.advection.advection import Domain, Transmissive_boundary, Dirichlet_boundary
 
-import Numeric as num
+import numpy as num
 
 
 class Test_Advection(unittest.TestCase):

@@ -75,6 +75,7 @@ def regressionTest():
     load = unittest.defaultTestLoader.loadTestsFromModule
     return unittest.TestSuite(map(load, modules))
 
+
 if __name__ == '__main__':   
     suite = regressionTest()
     runner = unittest.TextTestRunner() #(verbosity=2)

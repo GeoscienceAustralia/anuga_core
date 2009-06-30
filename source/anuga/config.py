@@ -4,6 +4,7 @@
 import os
 import sys
 
+
 ################################################################################
 # Numerical constants
 ################################################################################
@@ -161,7 +162,7 @@ maximum_allowed_speed = 0.0 # Maximal particle speed of water
 #maximum_allowed_speed = 1.0 # Maximal particle speed of water
                              # Too large (100) creates 'flopping' water
                              # Too small (0) creates 'creep'
-			    
+
 maximum_froude_number = 100.0 # To be used in limiters.
 
 ################################################################################
@@ -182,6 +183,17 @@ points_file_block_line_size = 500 # Number of lines read in from a points file
                                   # when blocking
 
 ################################################################################
+# NetCDF-specific type constants.  Used when defining NetCDF file variables.
+################################################################################
+
+netcdf_char = 'c'
+netcdf_byte = 'b'
+netcdf_int = 'i'
+netcdf_float = 'd'
+netcdf_float64 = 'd'
+netcdf_float32 = 'f'
+
+################################################################################
 # Dynamically-defined constants.
 ################################################################################
 
@@ -192,7 +204,13 @@ netcdf_mode_r = 'r'
 
 # Code to set the write mode depending on
 # whether Scientific.IO supports large NetCDF files
-s = """from Scientific.IO.NetCDF import NetCDFFile; fid = NetCDFFile('tmpfilenamexx', 'wl')"""
+s = """
+import os
+from Scientific.IO.NetCDF import NetCDFFile
+fid = NetCDFFile('tmpfilenamexx', 'wl')
+fid.close()
+os.remove('tmpfilenamexx')
+"""
 
 # Need to run in a separate process due an
 # error with older versions of Scientific.IO

@@ -14,6 +14,8 @@ To create:
    Otherwise raise an exception
 """
 
+from types import FloatType, IntType, LongType, NoneType
+
 from anuga.utilities.numerical_tools import ensure_numeric, is_scalar
 from anuga.utilities.polygon import inside_polygon
 from anuga.geospatial_data.geospatial_data import Geospatial_data
@@ -22,7 +24,9 @@ from anuga.config import points_file_block_line_size as default_block_line_size
 from anuga.config import epsilon
 from anuga.caching import cache
 
-import Numeric as num
+import anuga.utilities.numerical_tools as aunt
+
+import numpy as num
 
 
 ##
@@ -42,9 +46,9 @@ class Quantity:
 
         if vertex_values is None:
             N = len(domain)             # number_of_elements
-            self.vertex_values = num.zeros((N, 3), num.Float)
+            self.vertex_values = num.zeros((N, 3), num.float)
         else:
-            self.vertex_values = num.array(vertex_values, num.Float)
+            self.vertex_values = num.array(vertex_values, num.float)
 
             N, V = self.vertex_values.shape
             assert V == 3, 'Three vertex values per element must be specified'
@@ -56,30 +60,30 @@ class Quantity:
         self.domain = domain
 
         # Allocate space for other quantities
-        self.centroid_values = num.zeros(N, num.Float)
-        self.edge_values = num.zeros((N, 3), num.Float)
+        self.centroid_values = num.zeros(N, num.float)
+        self.edge_values = num.zeros((N, 3), num.float)
 
         # Allocate space for Gradient
-        self.x_gradient = num.zeros(N, num.Float)
-        self.y_gradient = num.zeros(N, num.Float)
+        self.x_gradient = num.zeros(N, num.float)
+        self.y_gradient = num.zeros(N, num.float)
 
         # Allocate space for Limiter Phi
-        self.phi = num.zeros(N, num.Float)
+        self.phi = num.zeros(N, num.float)
 
         # Intialise centroid and edge_values
         self.interpolate()
 
         # Allocate space for boundary values
         L = len(domain.boundary)
-        self.boundary_values = num.zeros(L, num.Float)
+        self.boundary_values = num.zeros(L, num.float)
 
         # Allocate space for updates of conserved quantities by
         # flux calculations and forcing functions
 
         # Allocate space for update fields
-        self.explicit_update = num.zeros(N, num.Float )
-        self.semi_implicit_update = num.zeros(N, num.Float )
-        self.centroid_backup_values = num.zeros(N, num.Float)
+        self.explicit_update = num.zeros(N, num.float )
+        self.semi_implicit_update = num.zeros(N, num.float )
+        self.centroid_backup_values = num.zeros(N, num.float)
 
         self.set_beta(1.0)
 
@@ -315,7 +319,7 @@ class Quantity:
         """Set values for quantity based on different sources.
 
         numeric:
-          Compatible list, Numeric array (see below) or constant.
+          Compatible list, numeric array (see below) or constant.
           If callable it will treated as a function (see below)
           If instance of another Quantity it will be treated as such.
           If geo_spatial object it will be treated as such
@@ -356,7 +360,7 @@ class Quantity:
                   Default is 'vertices'
 
                   In case of location == 'centroids' the dimension values must
-                  be a list of a Numerical array of length N,
+                  be a list of a numerical array of length N,
                   N being the number of elements.
                   Otherwise it must be of dimension Nx3
 
@@ -401,7 +405,6 @@ class Quantity:
         """
 
         from anuga.geospatial_data.geospatial_data import Geospatial_data
-        from types import FloatType, IntType, LongType, ListType, NoneType
 
         # Treat special case: Polygon situation
         # Location will be ignored and set to 'centroids'
@@ -456,15 +459,12 @@ class Quantity:
             msg = 'Invalid location: %s' % location
             raise Exception, msg
 
-        msg = 'Indices must be a list or None'
-        assert type(indices) in [ListType, NoneType, num.ArrayType], msg
+        msg = 'Indices must be a list, array or None'
+        assert isinstance(indices, (NoneType, list, num.ndarray)), msg
 
         # Determine which 'set_values_from_...' to use
         if numeric is not None:
-            if type(numeric) in [FloatType, IntType, LongType]:
-                self.set_values_from_constant(numeric, location,
-                                              indices, verbose)
-            elif type(numeric) in [num.ArrayType, ListType]:
+            if isinstance(numeric, (list, num.ndarray)):
                 self.set_values_from_array(numeric, location, indices,
                                            use_cache=use_cache, verbose=verbose)
             elif callable(numeric):
@@ -478,9 +478,15 @@ class Quantity:
                 self.set_values_from_geospatial_data(numeric, alpha, location,
                                                      indices, verbose=verbose,
                                                      use_cache=use_cache)
-            else:
-                msg = 'Illegal type for argument numeric: %s' % str(numeric)
-                raise msg
+            else:   # see if it's coercible to a float (float, int or long, etc)
+                try:
+                    numeric = float(numeric)
+                except ValueError:
+                    msg = ("Illegal type for variable 'numeric': %s"
+                           % type(numeric))
+                    raise Exception, msg
+                self.set_values_from_constant(numeric, location,
+                                              indices, verbose)
         elif quantity is not None:
             self.set_values_from_quantity(quantity, location, indices, verbose)
         elif function is not None:
@@ -513,8 +519,6 @@ class Quantity:
         if location == 'centroids':
             # Extrapolate 1st order - to capture notion of area being specified
             self.extrapolate_first_order()
-
-
 
     ############################################################################
     # Specific internal functions for setting values based on type
@@ -582,7 +586,7 @@ class Quantity:
                                     verbose=False):
         """Set values for quantity
 
-        values: Numeric array
+        values: numeric array
         location: Where values are to be stored.
         Permissible options are: vertices, centroid, unique vertices
         Default is 'vertices'
@@ -592,7 +596,7 @@ class Quantity:
         The element/unique vertex indices are specified here.
 
         In case of location == 'centroid' the dimension values must
-        be a list of a Numerical array of length N, N being the number
+        be a list of a numerical array of length N, N being the number
         of elements.
 
         Otherwise it must be of dimension Nx3
@@ -606,10 +610,10 @@ class Quantity:
         will be assigned and the others will be left undefined.
         """
 
-        values = num.array(values, num.Float)
+        values = num.array(values, num.float)
 
         if indices is not None:
-            indices = num.array(indices, num.Int)
+            indices = num.array(indices, num.int)
             msg = ('Number of values must match number of indices: You '
                    'specified %d values and %d indices'
                    % (values.shape[0], indices.shape[0]))
@@ -636,7 +640,7 @@ class Quantity:
             assert (len(values.shape) == 1 or num.allclose(values.shape[1:], 1),
                     'Values array must be 1d')
 
-            self.set_vertex_values(values.flat, indices=indices,
+            self.set_vertex_values(values.flatten(), indices=indices,
                                    use_cache=use_cache, verbose=verbose)
         else:
             # Location vertices
@@ -689,11 +693,12 @@ class Quantity:
     # @param indices ??
     # @param use_cache ??
     # @param verbose True if this method is to be verbose.
-    def set_values_from_function(self, f,
-                                       location='vertices',
-                                       indices=None,
-                                       use_cache=False,
-                                       verbose=False):
+    def set_values_from_function(self,
+                                 f,
+                                 location='vertices',
+                                 indices=None,
+                                 use_cache=False,
+                                 verbose=False):
         """Set values for quantity using specified function
 
         Input
@@ -715,7 +720,7 @@ class Quantity:
             if indices is None:
                 indices = range(len(self))
 
-            V = num.take(self.domain.get_centroid_coordinates(), indices)
+            V = num.take(self.domain.get_centroid_coordinates(), indices, axis=0)
             x = V[:,0]; y = V[:,1]
             if use_cache is True:
                 res = cache(f, (x, y), verbose=verbose)
@@ -771,12 +776,13 @@ class Quantity:
     # @param indices ??
     # @param verbose ??
     # @param use_cache ??
-    def set_values_from_geospatial_data(self, geospatial_data,
-                                              alpha,
-                                              location,
-                                              indices,
-                                              verbose=False,
-                                              use_cache=False):
+    def set_values_from_geospatial_data(self,
+                                        geospatial_data,
+                                        alpha,
+                                        location,
+                                        indices,
+                                        verbose=False,
+                                        use_cache=False):
         """Set values based on geo referenced geospatial data object."""
 
         from anuga.coordinate_transforms.geo_reference import Geo_reference
@@ -787,8 +793,8 @@ class Quantity:
 
         from anuga.coordinate_transforms.geo_reference import Geo_reference
 
-        points = ensure_numeric(points, num.Float)
-        values = ensure_numeric(values, num.Float)
+        points = ensure_numeric(points, num.float)
+        values = ensure_numeric(values, num.float)
 
         if location != 'vertices':
             msg = ("set_values_from_points is only defined for "
@@ -828,14 +834,15 @@ class Quantity:
     # @param data_georef ??
     # @param verbose True if this method is to be verbose.
     # @param use_cache ??
-    def set_values_from_points(self, points,
-                                     values,
-                                     alpha,
-                                     location,
-                                     indices,
-                                     data_georef=None,
-                                     verbose=False,
-                                     use_cache=False):
+    def set_values_from_points(self,
+                               points,
+                               values,
+                               alpha,
+                               location,
+                               indices,
+                               data_georef=None,
+                               verbose=False,
+                               use_cache=False):
         """Set quantity values from arbitray data points using fit_interpolate.fit"""
 
         raise Exception, 'set_values_from_points is obsolete, use geospatial data object instead'
@@ -850,14 +857,15 @@ class Quantity:
     # @param verbose True if this method is to be verbose.
     # @param use_cache 
     # @param max_read_lines 
-    def set_values_from_file(self, filename,
-                                   attribute_name,
-                                   alpha,
-                                   location,
-                                   indices,
-                                   verbose=False,
-                                   use_cache=False,
-                                   max_read_lines=None):
+    def set_values_from_file(self,
+                             filename,
+                             attribute_name,
+                             alpha,
+                             location,
+                             indices,
+                             verbose=False,
+                             use_cache=False,
+                             max_read_lines=None):
         """Set quantity based on arbitrary points in a points file using
         attribute_name selects name of attribute present in file.
         If attribute_name is not specified, use first available attribute
@@ -1060,9 +1068,10 @@ class Quantity:
     # @param interpolation_points List of UTM coords or geospatial data object.
     # @param use_cache ??
     # @param verbose True if this method is to be verbose.
-    def get_interpolated_values(self, interpolation_points,
-                                      use_cache=False,
-                                      verbose=False):
+    def get_interpolated_values(self,
+                                interpolation_points,
+                                use_cache=False,
+                                verbose=False):
         """Get values at interpolation points
 
         The argument interpolation points must be given as either a
@@ -1078,7 +1087,7 @@ class Quantity:
         # Speed is also a consideration here.
 
         # Ensure that interpolation points is either a list of
-        # points, Nx2 array, or geospatial and convert to Numeric array
+        # points, Nx2 array, or geospatial and convert to numeric array
         if isinstance(interpolation_points, Geospatial_data):
             # Ensure interpolation points are in absolute UTM coordinates
             interpolation_points = \
@@ -1110,7 +1119,7 @@ class Quantity:
     # @param indices Set of IDs of elements to work on.
     # @param use_cache 
     # @param verbose True if this method is to be verbose.
-    def get_values(self, 
+    def get_values(self,
                    interpolation_points=None,
                    location='vertices',
                    indices=None,
@@ -1118,7 +1127,7 @@ class Quantity:
                    verbose=False):
         """Get values for quantity
 
-        Extract values for quantity as a Numeric array.
+        Extract values for quantity as a numeric array.
 
         Inputs:
            interpolation_points: List of x, y coordinates where value is
@@ -1136,7 +1145,7 @@ class Quantity:
         N (all values) if indices is None.
 
         In case of location == 'centroids' the dimension of returned
-        values will be a list or a Numerical array of length N, N being
+        values will be a list or a numerical array of length N, N being
         the number of elements.
 
         In case of location == 'vertices' or 'edges' the dimension of
@@ -1173,22 +1182,21 @@ class Quantity:
         if location not in ['vertices', 'centroids',
                             'edges', 'unique vertices']:
             msg = 'Invalid location: %s' % location
-            raise msg
+            raise Exception, msg
 
         import types
 
-        assert type(indices) in [types.ListType, types.NoneType,
-                                 num.ArrayType], \
-                   'Indices must be a list or None'
+        msg = "'indices' must be a list, array or None"
+        assert isinstance(indices, (NoneType, list, num.ndarray)), msg
 
         if location == 'centroids':
             if (indices ==  None):
                 indices = range(len(self))
-            return num.take(self.centroid_values, indices)
+            return num.take(self.centroid_values, indices, axis=0)
         elif location == 'edges':
             if (indices ==  None):
                 indices = range(len(self))
-            return num.take(self.edge_values, indices)
+            return num.take(self.edge_values, indices, axis=0)
         elif location == 'unique vertices':
             if (indices ==  None):
                 indices=range(self.domain.get_number_of_nodes())
@@ -1210,11 +1218,11 @@ class Quantity:
                 for triangle_id, vertex_id in triangles:
                     sum += self.vertex_values[triangle_id, vertex_id]
                 vert_values.append(sum / len(triangles))
-            return num.array(vert_values, num.Float)
+            return num.array(vert_values, num.float)
         else:
             if (indices is None):
                 indices = range(len(self))
-            return num.take(self.vertex_values, indices)
+            return num.take(self.vertex_values, indices, axis=0)
 
     ##
     # @brief Set vertex values for all unique vertices based on array.
@@ -1222,10 +1230,11 @@ class Quantity:
     # @param indices Set of IDs of elements to work on.
     # @param use_cache ??
     # @param verbose??
-    def set_vertex_values(self, A,
-                                indices=None,
-                                use_cache=False,
-                                verbose=False):
+    def set_vertex_values(self,
+                          A,
+                          indices=None,
+                          use_cache=False,
+                          verbose=False):
         """Set vertex values for all unique vertices based on input array A
         which has one entry per unique vertex, i.e. one value for each row in
         array self.domain.nodes.
@@ -1236,7 +1245,7 @@ class Quantity:
         """
 
         # Check that A can be converted to array and is of appropriate dim
-        A = ensure_numeric(A, num.Float)
+        A = ensure_numeric(A, num.float)
         assert len(A.shape) == 1
 
         if indices is None:
@@ -1336,13 +1345,13 @@ class Quantity:
                 smooth = False
 
         if precision is None:
-            precision = num.Float
+            precision = num.float
 
         if smooth is True:
             # Ensure continuous vertex values by averaging values at each node
             V = self.domain.get_triangles()
             N = self.domain.number_of_full_nodes # Ignore ghost nodes if any
-            A = num.zeros(N, num.Float)
+            A = num.zeros(N, num.float)
             points = self.domain.get_nodes()
 
             if 1:
@@ -1360,7 +1369,7 @@ class Quantity:
                 for index in self.domain.vertex_value_indices:
                     if current_node == N:
                         msg = 'Current node exceeding number of nodes (%d) ' % N
-                        raise msg
+                        raise Exception, msg
 
                     k += 1
 
@@ -1381,7 +1390,7 @@ class Quantity:
             # Return disconnected internal vertex values
             V = self.domain.get_disconnected_triangles()
             points = self.domain.get_vertex_coordinates()
-            A = self.vertex_values.flat.astype(precision)
+            A = self.vertex_values.flatten().astype(precision)
 
         # Return
         if xy is True:

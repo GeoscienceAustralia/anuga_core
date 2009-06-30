@@ -18,7 +18,7 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.utilities.polygon import is_inside_polygon
 from anuga.utilities.numerical_tools import ensure_numeric
 
-import Numeric as num
+import numpy as num
 
 
 def distance(x, y):
@@ -993,8 +993,6 @@ class Test_Mesh(unittest.TestCase):
                   [  75735.4765625 ,  23762.00585938],
                   [  52341.70703125,  38563.39453125]]
 
-        ##points = ensure_numeric(points, Int)/1000  # Simplify for ease of interpretation        
-
         triangles = [[19, 0,15],
                      [ 2, 4, 3],
                      [ 4, 2, 1],
@@ -1096,7 +1094,7 @@ class Test_Mesh(unittest.TestCase):
                   [  31998.23828125,  88799.84375   ],
                   [  35406.3359375 ,  79332.9140625 ]]
 
-        scaled_points = ensure_numeric(points, num.Int)/1000  # Simplify for ease of interpretation
+        scaled_points = ensure_numeric(points, num.int)/1000  # Simplify for ease of interpretation
 
         triangles = [[ 0, 1, 2],
                      [ 3, 4, 5],
@@ -1175,21 +1173,17 @@ class Test_Mesh(unittest.TestCase):
         Test that get_boundary_polygon returns absolute coordinates
         """
         
-        
         # test
         a = [0.0, 0.0]
         b = [4.0, 0.0]
         c = [0.0, 4.0]
 
         absolute_points = [a, b, c]
-        vertices = [[0,1,2]]
+        vertices = [[0, 1, 2]]
         
-        geo = Geo_reference(56,67,-56)
+        geo = Geo_reference(56, 67, -56)
 
         relative_points = geo.change_points_geo_ref(absolute_points)
-
-        #print 'Relative', relative_points
-        #print 'Absolute', absolute_points       
 
         mesh = Mesh(relative_points, vertices, geo_reference=geo)
         boundary_polygon = mesh.get_boundary_polygon()
@@ -1845,17 +1839,9 @@ class Test_Mesh(unittest.TestCase):
             assert num.allclose(total_length, ref_length)
 
 
-
-        
 #-------------------------------------------------------------
+
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Mesh,'test_two_triangles')
-    #suite = unittest.makeSuite(Test_Mesh,'test_get_intersecting_segments_partially_coinciding')
-    #suite = unittest.makeSuite(Test_Mesh,'test_get_intersecting_segments7')
-    suite = unittest.makeSuite(Test_Mesh,'test')
+    suite = unittest.makeSuite(Test_Mesh, 'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
-
-
-
-

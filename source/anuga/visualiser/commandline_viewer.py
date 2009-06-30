@@ -40,7 +40,7 @@ if __name__ == '__main__':
         # 0 and 10 are the minimum and maximum values of the stage.
         o.colour_height_quantity('stage', (lambda q: q['stage'], 0, 10))
         # Or with the magnitude of the momentum at that point:
-        # Needs the sqrt function from Numeric. Again, 0 and 10
+        # Needs the sqrt function from numeric. Again, 0 and 10
         # define the colour range.
         # o.colour_height_quantity('stage',
         #                          (lambda q:sqrt((q['xmomentum'] ** 2) +

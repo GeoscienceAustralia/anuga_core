@@ -20,7 +20,7 @@ from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
      
 from math import pi,pow,sqrt
 
-import Numeric as num
+import numpy as num
 
 
 class Test_Culvert(unittest.TestCase):
@@ -469,9 +469,10 @@ class Test_Culvert(unittest.TestCase):
 
         ref_volume = domain.get_quantity('stage').get_integral()
         for t in domain.evolve(yieldstep = 1, finaltime = 25):
+            
             #print domain.timestepping_statistics()
             new_volume = domain.get_quantity('stage').get_integral()
-            
+
             msg = 'Total volume has changed'
             assert num.allclose(new_volume, ref_volume), msg
             pass
@@ -563,8 +564,7 @@ class Test_Culvert(unittest.TestCase):
                
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Culvert, 'test_that_culvert_rating_limits_flow_in_shallow_inlet_condition')
     suite = unittest.makeSuite(Test_Culvert, 'test')
-    runner = unittest.TextTestRunner()
+    runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
         

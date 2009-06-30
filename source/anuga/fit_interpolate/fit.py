@@ -44,7 +44,7 @@ import exceptions
 class TooFewPointsError(exceptions.Exception): pass
 class VertsWithNoTrianglesError(exceptions.Exception): pass
 
-import Numeric as num
+import numpy as num
 
 
 class Fit(FitInterpolate):
@@ -65,12 +65,12 @@ class Fit(FitInterpolate):
         Inputs:
 
           vertex_coordinates: List of coordinate pairs [xi, eta] of
-	      points constituting a mesh (or an m x 2 Numeric array or
+	      points constituting a mesh (or an m x 2 numeric array or
               a geospatial object)
               Points may appear multiple times
               (e.g. if vertices have discontinuities)
 
-          triangles: List of 3-tuples (or a Numeric array) of
+          triangles: List of 3-tuples (or a numeric array) of
               integers representing indices of all vertices in the mesh.
 
           mesh_origin: A geo_reference object or 3-tuples consisting of
@@ -250,10 +250,10 @@ class Fit(FitInterpolate):
             m = self.mesh.number_of_nodes
             if len(z.shape) > 1:
                 att_num = z.shape[1]
-                self.Atz = num.zeros((m,att_num), num.Float)
+                self.Atz = num.zeros((m,att_num), num.float)
             else:
                 att_num = 1
-                self.Atz = num.zeros((m,), num.Float)
+                self.Atz = num.zeros((m,), num.float)
             assert z.shape[0] == point_coordinates.shape[0] 
 
             AtA = Sparse(m,m)
@@ -314,8 +314,8 @@ class Fit(FitInterpolate):
                 msg = 'Could not find triangle for point %s. ' % str(x) 
                 msg += 'Mesh boundary extent is (%.f, %.f), (%.f, %.f)'\
                     % (minx, maxx, miny, maxy)
-                #msg += '\nBoundary polygon = %s' %str(self.mesh_boundary_polygon)
                 raise RuntimeError, msg
+
                 
         self.AtA = AtA
 
@@ -333,16 +333,18 @@ class Fit(FitInterpolate):
         Inputs:
         point_coordinates: The co-ordinates of the data points.
               List of coordinate pairs [x, y] of
-	      data points or an nx2 Numeric array or a Geospatial_data object
+	      data points or an nx2 numeric array or a Geospatial_data object
               or points file filename 
           z: Single 1d vector or array of data at the point_coordinates.
           
         """
+        
         # Use blocking to load in the point info
         if type(point_coordinates_or_filename) == types.StringType:
             msg = "Don't set a point origin when reading from a file"
             assert point_origin is None, msg
             filename = point_coordinates_or_filename
+
             G_data = Geospatial_data(filename,
                                      max_read_lines=max_read_lines,
                                      load_file_now=False,
@@ -437,7 +439,7 @@ class Fit(FitInterpolate):
         Inputs:
         point_coordinates: The co-ordinates of the data points.
               List of coordinate pairs [x, y] of
-	      data points or an nx2 Numeric array or a Geospatial_data object
+	      data points or an nx2 numeric array or a Geospatial_data object
         z: Single 1d vector or array of data at the point_coordinates.
         attribute_name: Used to get the z values from the
               geospatial object if no attribute_name is specified,
@@ -452,17 +454,17 @@ class Fit(FitInterpolate):
             point_coordinates = point_coordinates.get_data_points( \
                 absolute = True)
         
-        # Convert input to Numeric arrays
+        # Convert input to numeric arrays
         if z is not None:
-            z = ensure_numeric(z, num.Float)
+            z = ensure_numeric(z, num.float)
         else:
             msg = 'z not specified'
             assert isinstance(point_coordinates,Geospatial_data), msg
             z = point_coordinates.get_attributes(attribute_name)
 
-        point_coordinates = ensure_numeric(point_coordinates, num.Float)
+        point_coordinates = ensure_numeric(point_coordinates, num.float)
         self._build_matrix_AtA_Atz(point_coordinates, z, verbose)
-        
+
 
 ############################################################################
 
@@ -555,26 +557,24 @@ def _fit_to_mesh(point_coordinates, # this can also be a points file name
 
         Inputs:
         vertex_coordinates: List of coordinate pairs [xi, eta] of
-	      points constituting a mesh (or an m x 2 Numeric array or
+	      points constituting a mesh (or an m x 2 numeric array or
               a geospatial object)
               Points may appear multiple times
               (e.g. if vertices have discontinuities)
 
-          triangles: List of 3-tuples (or a Numeric array) of
+          triangles: List of 3-tuples (or a numeric array) of
           integers representing indices of all vertices in the mesh.
 
           point_coordinates: List of coordinate pairs [x, y] of data points
-          (or an nx2 Numeric array). This can also be a .csv/.txt/.pts
+          (or an nx2 numeric array). This can also be a .csv/.txt/.pts
           file name.
 
           alpha: Smoothing parameter.
-
 
           mesh_origin: A geo_reference object or 3-tuples consisting of
               UTM zone, easting and northing.
               If specified vertex coordinates are assumed to be
               relative to their respective origins.
-          
 
           point_attributes: Vector or array of data at the
                             point_coordinates.
@@ -585,8 +585,8 @@ def _fit_to_mesh(point_coordinates, # this can also be a points file name
         # FIXME(DSG): Throw errors if triangles or vertex_coordinates
         # are None
             
-        #Convert input to Numeric arrays
-        triangles = ensure_numeric(triangles, num.Int)
+        #Convert input to numeric arrays
+        triangles = ensure_numeric(triangles, num.int)
         vertex_coordinates = ensure_absolute(vertex_coordinates,
                                              geo_reference = mesh_origin)
 
@@ -654,12 +654,12 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
     
     vertex_coordinates = mesh_dict['vertices']
     triangles = mesh_dict['triangles']
-    if type(mesh_dict['vertex_attributes']) == num.ArrayType:
+    if isinstance(mesh_dict['vertex_attributes'], num.ndarray):
         old_point_attributes = mesh_dict['vertex_attributes'].tolist()
     else:
         old_point_attributes = mesh_dict['vertex_attributes']
 
-    if type(mesh_dict['vertex_attribute_titles']) == num.ArrayType:
+    if isinstance(mesh_dict['vertex_attribute_titles'], num.ndarray):
         old_title_list = mesh_dict['vertex_attribute_titles'].tolist()
     else:
         old_title_list = mesh_dict['vertex_attribute_titles']

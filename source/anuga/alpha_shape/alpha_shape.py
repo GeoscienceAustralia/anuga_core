@@ -24,7 +24,7 @@ import random
 from load_mesh.loadASCII import export_boundary_file
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 
-import Numeric as num
+import numpy as num
 
 
 class AlphaError(exceptions.Exception):pass
@@ -87,8 +87,8 @@ class Alpha_Shape:
             if crossprod==0:
                 raise PointError, "Three points on a straight line"
         
-        #Convert input to Numeric arrays
-        self.points = num.array(points, num.Float)
+        #Convert input to numeric arrays
+        self.points = num.array(points, num.float)
 
     
     def write_boundary(self,file_name):
@@ -288,12 +288,12 @@ class Alpha_Shape:
             zeroind = [k for k in range(len(denom)) if \
                        (denom[k]< EPSILON and  denom[k] > -EPSILON)]
 
-        if num.alltrue(denom != 0.0):               
-            dx = num.divide_safe(y31*dist21 - y21*dist31,denom)
-            dy = num.divide_safe(x21*dist31 - x31*dist21,denom)
-        else:
-            raise  AlphaError
-            
+        if num.any(denom == 0.0):
+            raise AlphaError
+
+        dx = num.divide(y31*dist21 - y21*dist31, denom)
+        dy = num.divide(x21*dist31 - x31*dist21, denom)
+
         self.triradius = 0.5*num.sqrt(dx*dx + dy*dy)
         #print "triangle radii", self.triradius
 

@@ -2,7 +2,8 @@
 
 
 import unittest
-import Numeric as num
+import numpy as num
+from numpy.random import uniform, seed
 
 from math import sqrt, pi
 from anuga.config import epsilon
@@ -67,57 +68,74 @@ class Test_Numerical_Tools(unittest.TestCase):
     def test_ensure_numeric(self):
         A = [1,2,3,4]
         B = ensure_numeric(A)
-        assert type(B) == num.ArrayType
-        assert B.typecode() == 'l'
+        assert isinstance(B, num.ndarray)
+        assert B.dtype.char == 'l'
         assert B[0] == 1 and B[1] == 2 and B[2] == 3 and B[3] == 4
 
         A = [1,2,3.14,4]
         B = ensure_numeric(A)
-        assert type(B) == num.ArrayType
-        assert B.typecode() == 'd'
+        assert isinstance(B, num.ndarray)
+        assert B.dtype.char == 'd'
         assert B[0] == 1 and B[1] == 2 and B[2] == 3.14 and B[3] == 4
 
         A = [1,2,3,4]
-        B = ensure_numeric(A, num.Float)
-        assert type(B) == num.ArrayType
-        assert B.typecode() == 'd'
+        B = ensure_numeric(A, num.float)
+        assert isinstance(B, num.ndarray)
+        assert B.dtype.char == 'd'
         assert B[0] == 1.0 and B[1] == 2.0 and B[2] == 3.0 and B[3] == 4.0
 
         A = [1,2,3,4]
-        B = ensure_numeric(A, num.Float)
-        assert type(B) == num.ArrayType
-        assert B.typecode() == 'd'
+        B = ensure_numeric(A, num.float)
+        assert isinstance(B, num.ndarray)
+        assert B.dtype.char == 'd'
         assert B[0] == 1.0 and B[1] == 2.0 and B[2] == 3.0 and B[3] == 4.0
 
-        A = num.array([1,2,3,4], num.Int)      #array default#
+        A = num.array([1,2,3,4])
         B = ensure_numeric(A)
-        assert type(B) == num.ArrayType
-        assert B.typecode() == 'l'        
+        assert isinstance(B, num.ndarray)
+        assert B.dtype.char == 'l'        
         assert num.alltrue(A == B)    
         assert A is B   #Same object
 
-        A = num.array([1,2,3,4], num.Int)      #array default#
-        B = ensure_numeric(A, num.Float)
-        assert type(B) == num.ArrayType
-        assert B.typecode() == 'd'        
+        # check default num.array type, which is supposed to be num.int32
+        A = num.array((1,2,3,4))
+        assert isinstance(A, num.ndarray)
+        msg = "Expected dtype.char='l', got '%s'" % A.dtype.char
+        assert A.dtype.char == 'l', msg
+
+        A = num.array([1,2,3,4])
+        B = ensure_numeric(A, num.float)
+        assert isinstance(B, num.ndarray)
+        assert A.dtype.char == 'l'        
+        assert B.dtype.char == 'd'        
         assert num.alltrue(A == B)    
-        assert A is not B   #Not the same object
+        assert A is not B   # Not the same object
 
         # Check scalars
         A = 1
-        B = ensure_numeric(A, num.Float)
-        #print A, B[0], len(B), type(B) 
-        #print B.shape
+        B = ensure_numeric(A, num.float)
         assert num.alltrue(A == B)
 
-        B = ensure_numeric(A, num.Int)        
-        #print A, B
-        #print B.shape
+        B = ensure_numeric(A, num.int)        
         assert num.alltrue(A == B)
+
+#        # try to simulate getting (x,0) shape
+#        data_points = [[ 413634. ],]
+#        array_data_points = ensure_numeric(data_points)
+#        if not (0,) == array_data_points.shape:
+#            assert len(array_data_points.shape) == 2
+#            assert array_data_points.shape[1] == 2
+
+        # strings input should raise exception
+        self.failUnlessRaises(Exception, ensure_numeric(['abc',]))
+        self.failUnlessRaises(Exception, ensure_numeric(('abc',)))
+        self.failUnlessRaises(Exception, ensure_numeric(num.array(('abc',))))
+
+    def NO_test_ensure_numeric_char(self):
+        '''numpy can't handle this'''
 
         # Error situation
-
-        B = ensure_numeric('hello', num.Int)                
+        B = ensure_numeric('hello', num.int)                
         assert num.allclose(B, [104, 101, 108, 108, 111])
 
 
@@ -280,8 +298,7 @@ class Test_Numerical_Tools(unittest.TestCase):
     def test_gradient_C_extension3(self):
         from util_ext import gradient as gradient_c
 
-        from RandomArray import uniform, seed
-        seed(17, 53)
+        seed((17, 53))
 
         x0, x1, x2, y0, y1, y2 = uniform(0.0,3.0,6)
 
@@ -342,11 +359,259 @@ class Test_Numerical_Tools(unittest.TestCase):
         x = norm(ensure_numeric([3,4]))
         assert x == 5.
 
-                                    
 
-#-------------------------------------------------------------
+################################################################################
+# Test the is_num_????() functions.
+################################################################################
+
+    def test_is_float(self):
+        def t(val, expected):
+            if expected == True:
+                msg = 'should be num.float?'
+            else:
+                msg = 'should not be num.float?'
+            msg = '%s (%s) %s' % (str(val), type(val), msg)
+            assert is_num_float(val) == expected, msg
+
+        t(1, False)
+        t(1.0, False)
+        t('abc', False)
+        t(None, False)
+        t(num.array(None), False)
+        # can't create array(None, num.int)
+#        t(num.array(None, num.int), False)
+        t(num.array(None, num.float), True)
+        t(num.array(()), True)
+        t(num.array((), num.int), False)
+        t(num.array((), num.float), True)
+        t(num.array((1), num.int), False)
+        t(num.array((1), num.float), True)
+
+        t(num.array((1,2)), False)
+        t(num.array((1,2), num.int), False)
+        t(num.array((1,2), num.float), True)
+        t(num.array([1,2]), False)
+        t(num.array([1,2], num.int), False)
+        t(num.array([1,2], num.float), True)
+
+        t(num.array((1.0,2.0)), True)
+        t(num.array((1.0,2.0), num.int), False)
+        t(num.array((1.0,2.0), num.float), True)
+        t(num.array([1.0,2.0]), True)
+        t(num.array([1.0,2.0], num.int), False)
+        t(num.array([1.0,2.0], num.float), True)
+
+        t(num.array(((1.0,2.0),(3.0,4.0))), True)
+        t(num.array(((1.0,2.0),(3.0,4.0)), num.int), False)
+        t(num.array(((1.0,2.0),(3.0,4.0)), num.float), True)
+        t(num.array([[1.0,2.0],[3.0,4.0]]), True)
+        t(num.array([1.0,2.0], num.int), False)
+        t(num.array([1.0,2.0], num.float), True)
+
+        t(num.array('abc'), False)
+        t(num.array('abc', num.character), False)
+        # can't create array as int from string
+#        t(num.array('abc', num.int), False)
+        # can't create array as float from string
+#        t(num.array('abc', num.float), True)
+
+    def test_is_int(self):
+        def t(val, expected):
+            if expected == True:
+                msg = 'should be num.int?'
+            else:
+                msg = 'should not be num.int?'
+            msg = '%s (%s) %s' % (str(val), type(val), msg)
+            assert is_num_int(val) == expected, msg
+
+        t(1, False)
+        t(1.0, False)
+        t('abc', False)
+        t(None, False)
+        t(num.array(None), False)
+        # can't create array(None, num.int)
+#        t(num.array(None, num.int), True)
+        t(num.array(None, num.float), False)
+        t(num.array((), num.int), True)
+        t(num.array(()), False)
+        t(num.array((), num.float), False)
+        t(num.array((1), num.int), True)
+        t(num.array((1), num.float), False)
+
+        t(num.array((1,2)), True)
+        t(num.array((1,2), num.int), True)
+        t(num.array((1,2), num.float), False)
+        t(num.array([1,2]), True)
+        t(num.array([1,2], num.int), True)
+        t(num.array([1,2], num.float), False)
+
+        t(num.array((1.0,2.0)), False)
+        t(num.array((1.0,2.0), num.int), True)
+        t(num.array((1.0,2.0), num.float), False)
+        t(num.array([1.0,2.0]), False)
+        t(num.array([1.0,2.0], num.int), True)
+        t(num.array([1.0,2.0], num.float), False)
+
+        t(num.array(((1.0,2.0),(3.0,4.0))), False)
+        t(num.array(((1.0,2.0),(3.0,4.0)), num.int), True)
+        t(num.array(((1.0,2.0),(3.0,4.0)), num.float), False)
+        t(num.array([[1.0,2.0],[3.0,4.0]]), False)
+        t(num.array([1.0,2.0], num.int), True)
+        t(num.array([1.0,2.0], num.float), False)
+
+        t(num.array('abc'), False)
+        t(num.array('abc', num.character), False)
+        # can't create array as int from string
+#        t(num.array('abc', num.int), True)
+        # can't create array as float from string
+#        t(num.array('abc', num.float), False)
+
+    ##
+    # @brief Test to see if ensure_numeric() behaves as we expect.
+    # @note Under Numeric ensure_numeric() *always* returned a copy (bug).
+    #       Under numpy it copies only when it has to.
+    def test_ensure_numeric_copy(self):
+        #####
+        # Make 'points' a _list_ of coordinates.
+        # Should be changed by ensure_numeric().
+        #####
+        points = [[1.,2.], [3.,4.], [5.,6.]]
+        points_id = id(points)
+
+        points_new = ensure_numeric(points, num.float)
+        points_new_id = id(points_new)
+
+        msg = 'ensure_numeric() should return a copy of a list'
+        self.failUnless(points_new_id != points_id, msg)
+
+        # should never change it's input parameter
+        msg = "ensure_numeric() changed it's input parameter"
+        self.failUnless(points_id == id(points), msg)
+
+        #####
+        # Make 'points' a _tuple_ of coordinates.
+        # Should be changed by ensure_numeric().
+        #####
+        points = ((1.,2.), (3.,4.), (5.,6.))
+        points_id = id(points)
+
+        points_new = ensure_numeric(points, num.int)
+        points_new_id = id(points_new)
+
+        msg = 'ensure_numeric() should return a copy of a list'
+        self.failUnless(points_new_id != points_id, msg)
+
+        # should never change it's input parameter
+        msg = "ensure_numeric() changed it's input parameter"
+        self.failUnless(points_id == id(points), msg)
+
+        #####
+        # Make 'points' a numeric array of float coordinates.
+        # Should NOT be changed by ensure_numeric().
+        #####
+        points = num.array([[1.,2.], [3.,4.], [5.,6.]], num.float)
+        points_id = id(points)
+
+        points_new = ensure_numeric(points, num.float)
+        points_new_id = id(points_new)
+
+        msg = 'ensure_numeric() should return the original input'
+        self.failUnless(points_new_id == points_id, msg)
+
+        # should never change it's input parameter
+        msg = "ensure_numeric() changed it's input parameter"
+        self.failUnless(points_id == id(points), msg)
+
+        #####
+        # Make 'points' a numeric array of int coordinates.
+        # Should be changed by ensure_numeric(, num.float).
+        #####
+        points = num.array([[1,2], [3,4], [5,6]], num.int)
+        points_id = id(points)
+
+        points_new = ensure_numeric(points, num.float)
+        points_new_id = id(points_new)
+
+        msg = 'ensure_numeric() should return a copy of the input'
+        self.failUnless(points_new_id != points_id, msg)
+
+        # should never change it's input parameter
+        msg = "ensure_numeric() changed it's input parameter"
+        self.failUnless(points_id == id(points), msg)
+
+        #####
+        # Make 'points' a numeric array of int coordinates.
+        # Should NOT be changed by ensure_numeric(, num.int).
+        #####
+        points = num.array([[1,2], [3,4], [5,6]], num.int)
+        points_id = id(points)
+
+        points_new = ensure_numeric(points, num.int)
+        points_new_id = id(points_new)
+
+        msg = 'ensure_numeric() should return the original input'
+        self.failUnless(points_new_id == points_id, msg)
+
+        # should never change it's input parameter
+        msg = "ensure_numeric() changed it's input parameter"
+        self.failUnless(points_id == id(points), msg)
+
+        #####
+        # Make 'points' a numeric array of float32 coordinates.
+        # Should NOT be changed by ensure_numeric(, num.float32).
+        #####
+        points = num.array([[1.,2.], [3.,4.], [5.,6.]], num.float32)
+        points_id = id(points)
+
+        points_new = ensure_numeric(points, num.float32)
+        points_new_id = id(points_new)
+
+        msg = 'ensure_numeric() should return the original input'
+        self.failUnless(points_new_id == points_id, msg)
+
+        # should never change it's input parameter
+        msg = "ensure_numeric() changed it's input parameter"
+        self.failUnless(points_id == id(points), msg)
+
+        #####
+        # Make 'points' a numeric array of float32 coordinates.
+        # Should be changed by ensure_numeric(, num.float64).
+        #####
+        points = num.array([[1.,2.], [3.,4.], [5.,6.]], num.float32)
+        points_id = id(points)
+
+        points_new = ensure_numeric(points, num.float64)
+        points_new_id = id(points_new)
+
+        msg = 'ensure_numeric() should return a copy of the input'
+        self.failUnless(points_new_id != points_id, msg)
+
+        # should never change it's input parameter
+        msg = "ensure_numeric() changed it's input parameter"
+        self.failUnless(points_id == id(points), msg)
+
+        #####
+        # Make 'points' a numeric array of float coordinates.
+        # Should NOT be changed by ensure_numeric(, num.float64).
+        #####
+        points = num.array([[1.,2.], [3.,4.], [5.,6.]], num.float)
+        points_id = id(points)
+
+        points_new = ensure_numeric(points, num.float64)
+        points_new_id = id(points_new)
+
+        msg = 'ensure_numeric() should return the original input'
+        self.failUnless(points_new_id == points_id, msg)
+        #msg = 'ensure_numeric() should return a copy of the input'
+        #self.failUnless(points_new_id != points_id, msg)
+
+        # should never change it's input parameter
+        msg = "ensure_numeric() changed it's input parameter"
+        self.failUnless(points_id == id(points), msg)
+
+################################################################################
+
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Numerical_Tools,'test')
-    #suite = unittest.makeSuite(Test_Numerical_Tools,'test_err')
     runner = unittest.TextTestRunner()
     runner.run(suite)

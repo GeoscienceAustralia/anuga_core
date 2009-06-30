@@ -2,7 +2,7 @@
 mesh file formats
 """
 
-import Numeric as num
+import numpy as num
 
 
 def rectangular_old(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
@@ -93,7 +93,7 @@ def rectangular(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
 
     index = Index(n,m)
 
-    points = num.zeros((Np, 2), num.Float)
+    points = num.zeros((Np, 2), num.float)
 
     for i in range(m+1):
         for j in range(n+1):
@@ -105,7 +105,7 @@ def rectangular(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
     Nt = 2*m*n
 
 
-    elements = num.zeros((Nt, 3), num.Int)
+    elements = num.zeros((Nt, 3), num.int)
     boundary = {}
     nt = -1
     for i in range(m):
@@ -202,7 +202,6 @@ def rectangular_cross(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
     return points, elements, boundary
 
 
-
 def rectangular_periodic(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)):
 
 
@@ -259,7 +258,7 @@ def rectangular_periodic(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)
     I = VIndex(n,m)
     E = EIndex(n,m)
 
-    points = num.zeros( (Np,2), num.Float)
+    points = num.zeros( (Np,2), num.float)
 
     for i in range(m+1):
         for j in range(n+1):
@@ -271,7 +270,7 @@ def rectangular_periodic(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)
     Nt = 2*m*n
 
 
-    elements = num.zeros( (Nt,3), num.Int)
+    elements = num.zeros( (Nt,3), num.int)
     boundary = {}
     Idgl = []
     Idfl = []
@@ -339,8 +338,8 @@ def rectangular_periodic(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)
     Idfl.extend(Idfr)
     Idgr.extend(Idgl)
 
-    Idfl = num.array(Idfl, num.Int)
-    Idgr = num.array(Idgr, num.Int)
+    Idfl = num.array(Idfl, num.int)
+    Idgr = num.array(Idgr, num.int)
     
     full_send_dict[processor]  = [Idfl, Idfl]
     ghost_recv_dict[processor] = [Idgr, Idgr]

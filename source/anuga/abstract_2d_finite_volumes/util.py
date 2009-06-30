@@ -26,7 +26,7 @@ from anuga.utilities.system_tools import store_version_info
 
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 
-import Numeric as num
+import numpy as num
 
 
 ##
@@ -475,7 +475,7 @@ def get_netcdf_file_function(filename,
         quantities[name] = fid.variables[name][:]
         if boundary_polygon is not None:
             #removes sts points that do not lie on boundary
-            quantities[name] = num.take(quantities[name], gauge_id, 1)
+            quantities[name] = num.take(quantities[name], gauge_id, axis=1)
             
     # Close sww, tms or sts netcdf file         
     fid.close()
@@ -553,7 +553,7 @@ def apply_expression_to_dictionary(expression, dictionary):
                 Values in dictionary must support operators given in
                 expression e.g. by overloading
 
-    Due to a limitation with Numeric, this can not evaluate 0/0
+    Due to a limitation with numeric, this can not evaluate 0/0
     In general, the user can fix by adding 1e-30 to the numerator.
     SciPy core can handle this situation.
     """
@@ -788,7 +788,7 @@ def sww2timeseries(swwfiles,
     gauge_filename  - name of file containing gauge data
                         - easting, northing, name , elevation?
                     - OR (this is not yet done)
-                        - structure which can be converted to a Numeric array,
+                        - structure which can be converted to a numeric array,
                           such as a geospatial data object
                       
     production_dirs -  A list of list, example {20061101_121212: '1 in 10000', 
@@ -1255,18 +1255,18 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
         if n[i] > n0: n0 = n[i]  
     n0 = int(n0)
     m = len(locations)
-    model_time = num.zeros((n0, m, p), num.Float) 
-    stages = num.zeros((n0, m, p), num.Float)
-    elevations = num.zeros((n0, m, p), num.Float) 
-    momenta = num.zeros((n0, m, p), num.Float)
-    xmom = num.zeros((n0, m, p), num.Float)
-    ymom = num.zeros((n0, m, p), num.Float)
-    speed = num.zeros((n0, m, p), num.Float)
-    bearings = num.zeros((n0, m, p), num.Float)
-    due_east = 90.0*num.ones((n0, 1), num.Float)
-    due_west = 270.0*num.ones((n0, 1), num.Float)
-    depths = num.zeros((n0, m, p), num.Float)
-    eastings = num.zeros((n0, m, p), num.Float)
+    model_time = num.zeros((n0, m, p), num.float) 
+    stages = num.zeros((n0, m, p), num.float)
+    elevations = num.zeros((n0, m, p), num.float) 
+    momenta = num.zeros((n0, m, p), num.float)
+    xmom = num.zeros((n0, m, p), num.float)
+    ymom = num.zeros((n0, m, p), num.float)
+    speed = num.zeros((n0, m, p), num.float)
+    bearings = num.zeros((n0, m, p), num.float)
+    due_east = 90.0*num.ones((n0, 1), num.float)
+    due_west = 270.0*num.ones((n0, 1), num.float)
+    depths = num.zeros((n0, m, p), num.float)
+    eastings = num.zeros((n0, m, p), num.float)
     min_stages = []
     max_stages = []
     min_momentums = []    
@@ -1278,9 +1278,9 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
     max_speeds = []
     min_speeds = []    
     max_depths = []
-    model_time_plot3d = num.zeros((n0, m), num.Float)
-    stages_plot3d = num.zeros((n0, m), num.Float)
-    eastings_plot3d = num.zeros((n0, m),num.Float)
+    model_time_plot3d = num.zeros((n0, m), num.float)
+    stages_plot3d = num.zeros((n0, m), num.float)
+    eastings_plot3d = num.zeros((n0, m),num.float)
     if time_unit is 'mins': scale = 60.0
     if time_unit is 'hours': scale = 3600.0
 
@@ -1799,7 +1799,7 @@ def remove_lone_verts(verts, triangles, number_of_full_nodes=None):
         # change the loners list so it can be used to modify triangles
         # Remove the loners from verts
         # Could've used X=compress(less(loners,N),loners)
-        # verts=num.take(verts,X)  to Remove the loners from verts
+        # verts=num.take(verts,X,axis=0)  to Remove the loners from verts
         # but I think it would use more memory
         new_i = lone_start	# point at first loner - 'shuffle down' target
         for i in range(lone_start, N):
@@ -1833,7 +1833,7 @@ def get_centroid_values(x, triangles):
     indices into x
     """
         
-    xc = num.zeros(triangles.shape[0], num.Float) # Space for centroid info
+    xc = num.zeros(triangles.shape[0], num.float) # Space for centroid info
     
     for k in range(triangles.shape[0]):
         # Indices of vertices
@@ -2120,8 +2120,8 @@ def csv2timeseries_graphs(directories_dic={},
 
                 #add tide to stage if provided
                 if quantity == 'stage':
-                     quantity_value[quantity] = num.array(quantity_value[quantity], num.Float) \
-                                                          + directory_add_tide
+                     quantity_value[quantity] = num.array(quantity_value[quantity],
+                                                          num.float) + directory_add_tide
 
                 #condition to find max and mins for all the plots
                 # populate the list with something when i=0 and j=0 and
@@ -2369,7 +2369,6 @@ def get_runup_data_for_locations_from_file(gauge_filename,
         file.write(temp)
         file.close()
 
-
 ##
 # @brief ??
 # @param  ??
@@ -2388,7 +2387,6 @@ def sww2csv_gauges(sww_file,
     """
     
     Inputs: 
-        
         NOTE: if using csv2timeseries_graphs after creating csv file,
         it is essential to export quantities 'depth' and 'elevation'.
         'depth' is good to analyse gauges on land and elevation is used
@@ -2412,7 +2410,6 @@ def sww2csv_gauges(sww_file,
             <out_name><name>.csv
         eg gauge_point1.csv if <out_name> not supplied
            myfile_2_point1.csv if <out_name> ='myfile_2_'
-            
             
         They will all have a header
     
@@ -2438,9 +2435,6 @@ def sww2csv_gauges(sww_file,
     import string
     from anuga.shallow_water.data_manager import get_all_swwfiles
 
-#    quantities =  ['stage', 'elevation', 'xmomentum', 'ymomentum']
-    #print "points",points 
-
     assert type(gauge_file) == type(''), 'Gauge filename must be a string'
     assert type(out_name) == type(''), 'Output filename prefix must be a string'
     
@@ -2456,9 +2450,9 @@ def sww2csv_gauges(sww_file,
     points = []
     point_name = []
     
-    #read point info from file
+    # read point info from file
     for i,row in enumerate(point_reader):
-        #read header and determine the column numbers to read correcty.
+        # read header and determine the column numbers to read correctly.
         if i==0:
             for j,value in enumerate(row):
                 if value.strip()=='easting':easting=j
@@ -2470,7 +2464,7 @@ def sww2csv_gauges(sww_file,
             point_name.append(row[name])
         
     #convert to array for file_function
-    points_array = num.array(points,num.Float)
+    points_array = num.array(points,num.float)
         
     points_array = ensure_absolute(points_array)
 
@@ -2524,7 +2518,6 @@ def sww2csv_gauges(sww_file,
 
     for sww_file in sww_files:
         sww_file = join(dir_name, sww_file+'.sww')
-        #print 'sww file = ',sww_file
         callable_sww = file_function(sww_file,
                                      quantities=core_quantities,
                                      interpolation_points=points_array,
@@ -2578,10 +2571,8 @@ def sww2csv_gauges(sww_file,
                                 if point_quantities[2] < 1.0e6:
                                     momentum = sqrt(point_quantities[2]**2
                                                     + point_quantities[3]**2)
-        #                            vel = momentum/depth              
                                     vel = momentum / (point_quantities[0] 
                                                       - point_quantities[1])
-        #                            vel = momentum/(depth + 1.e-6/depth)
                                 else:
                                     momentum = 0
                                     vel = 0
@@ -2592,9 +2583,7 @@ def sww2csv_gauges(sww_file,
                             points_list.append(calc_bearing(point_quantities[2],
                                                             point_quantities[3]))
 
-                #print 'point list before write (writer %s) = %s' % (str(point_name[point_i]), str(points_list))
                 points_writer[point_i].writerow(points_list)
-            
 
 ##
 # @brief Get a wave height at a certain depth given wave height at another depth.
