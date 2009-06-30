@@ -236,4 +236,7 @@ else:
         pass
     else:
         # Set the default mode to large file support
-        netcdf_mode_w = 'wl'
+        #netcdf_mode_w = 'w4' # Future use of HDF5        
+        netcdf_mode_w = 'wl' # Large NetCDF (new default 30/6/2009)
+        #netcdf_mode_w = 'w'   # Old style NetCDF used by OSG viewer
+
