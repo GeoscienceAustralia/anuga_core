@@ -56,7 +56,7 @@ def file_function(filename,
 
     Input variables:
     
-    filename - Name of sww or tms file
+    filename - Name of sww, tms or sts file
        
        If the file has extension 'sww' then it is assumed to be spatio-temporal
        or temporal and the callable object will have the form f(t,x,y) or f(t)
