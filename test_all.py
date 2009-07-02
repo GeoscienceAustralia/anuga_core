@@ -24,6 +24,10 @@ exclude_files = []
 # Directories that should not be searched for test files.
 exclude_dirs = ['pypar_dist',                        # Special requirements
                 '.svn',                              # subversion
+                'obsolete_code',                     # Never
+                'pymetis',                           # FIXME: ANU
+                'anuga_parallel',                    # FIXME: ANU
+                'pypar-numeric',                     # FIXME: REMOVE
                 'props', 'wcprops', 'prop-base', 'text-base', 'tmp']
 
 
