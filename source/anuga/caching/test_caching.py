@@ -883,12 +883,12 @@ class Test_Caching(unittest.TestCase):
       # Make sure that class has been redefined to another address
       print
       print 'Initial_addr  ', initial_addr
-      print 'Redefined addr', `Dummy_memorytest`
+      print 'Redefined addr', repr(Dummy_memorytest)
       msg = 'Redefined class ended up at same memory location as '
       msg += 'original class making this test irrelevant. Try to run '
       msg += 'it again and see if this error goes away.'
       msg += 'If it persists contact Ole.Nielsen@ga.gov.au'
-      assert initial_addr != `Dummy_memorytest`, msg   
+      assert initial_addr != repr(Dummy_memorytest), msg   
 
       
       retrieve_cache(Dummy_memorytest, verbose=verbose)      

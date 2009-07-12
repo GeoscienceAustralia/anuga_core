@@ -29,7 +29,7 @@
 
 Public functions:
 
-cache(func,args) -- Cache values returned from func given args.
+cache(my_F,args) -- Cache values returned from callable object my_F given args.
 cachestat() --      Reports statistics about cache hits and time saved.
 test() --       Conducts a basic test of the caching functionality.
 
@@ -52,6 +52,7 @@ else:
 
 import numpy as num
 
+#from future
 
 cache_dir = '.python_cache'
 
@@ -111,7 +112,7 @@ def set_option(key, value):
     Raises an exception if key is not in options.
   """
 
-  if options.has_key(key):
+  if key in options:
     options[key] = value
   else:
     raise KeyError(key)  # Key not found, raise an exception
@@ -119,7 +120,7 @@ def set_option(key, value):
 # -----------------------------------------------------------------------------
 # Function cache - the main routine
 
-def cache(func, 
+def cache(my_F, 
           args=(), 
           kwargs={}, 
           dependencies=None, 
@@ -133,19 +134,19 @@ def cache(func,
   """Supervised caching of function results. Also known as memoization.
 
   USAGE:
-    result = cache(func, args, kwargs, dependencies, cachedir, verbose,
+    result = cache(my_F, args, kwargs, dependencies, cachedir, verbose,
                    compression, evaluate, test, return_filename)
 
   ARGUMENTS:
-    func --            Function object (Required)
-    args --            Arguments to func (Default: ())
-    kwargs --          Keyword arguments to func (Default: {})    
-    dependencies --    Filenames that func depends on (Default: None)
+    my_F --            Callable object (Required)
+    args --            Arguments to my_F (Default: ())
+    kwargs --          Keyword arguments to my_F (Default: {})    
+    dependencies --    Filenames that my_F depends on (Default: None)
     cachedir --        Directory for cache files (Default: options['cachedir'])
     verbose --         Flag verbose output to stdout
                        (Default: options['verbose'])
     compression --     Flag zlib compression (Default: options['compression'])
-    evaluate --        Flag forced evaluation of func (Default: False)
+    evaluate --        Flag forced evaluation of my_F (Default: False)
     test --            Flag test for cached results (Default: False)
     clear --           Flag delete cached results (Default: False)    
     return_filename -- Flag return of cache filename (Default: False)    
@@ -153,18 +154,18 @@ def cache(func,
   DESCRIPTION:
     A Python function call of the form
 
-      result = func(arg1,...,argn)
+      result = my_F(arg1,...,argn)
 
     can be replaced by
 
       from caching import cache
-      result = cache(func,(arg1,...,argn))
+      result = cache(my_F,(arg1,...,argn))
 
   The latter form returns the same output as the former but reuses cached
   results if the function has been computed previously in the same context.
   'result' and the arguments can be simple types, tuples, list, dictionaries or
   objects, but not unhashable types such as functions or open file objects. 
-  The function 'func' may be a member function of an object or a module.
+  The function 'my_F' may be a member function of an object or a module.
 
   This type of caching is particularly useful for computationally intensive
   functions with few frequently used combinations of input arguments. Note that
@@ -176,8 +177,9 @@ def cache(func,
   func_defaults, co_argcount) and it will be recomputed.
 
   LIMITATIONS:
-    1 Caching uses the apply function and will work with anything that can be
-      pickled, so any limitation in apply or pickle extends to caching. 
+    1 Caching uses function(*args, **kwargs) to evaluate and will work 
+      with anything that can be pickled, so any limitation in function(,)
+      or pickle extends to caching. 
     2 A function to be cached should not depend on global variables
       as wrong results may occur if globals are changed after a result has
       been cached.
@@ -187,51 +189,52 @@ def cache(func,
 
   Keyword args
     Keyword arguments (kwargs) can be added as a dictionary of keyword: value
-    pairs, following the syntax of the built-in function apply(). 
+    pairs, following Python's 'extended call syntax'. 
+    
     A Python function call of the form
     
-      result = func(arg1,...,argn, kwarg1=val1,...,kwargm=valm)    
+      result = my_F(arg1,...,argn, kwarg1=val1,...,kwargm=valm)    
 
     is then cached as follows
 
       from caching import cache
-      result = cache(func,(arg1,...,argn), {kwarg1:val1,...,kwargm:valm})
+      result = cache(my_F,(arg1,...,argn), {kwarg1:val1,...,kwargm:valm})
     
     The default value of kwargs is {}  
 
   Explicit dependencies:
     The call
-      cache(func,(arg1,...,argn), dependencies = <list of filenames>)
+      cache(my_F,(arg1,...,argn), dependencies = <list of filenames>)
     Checks the size, creation time and modification time of each listed file.
     If any file has changed the function is recomputed and the results stored
     again.
 
   Specify caching directory:
     The call
-      cache(func,(arg1,...,argn), cachedir = <cachedir>)
+      cache(my_F,(arg1,...,argn), cachedir = <cachedir>)
     designates <cachedir> where cached data are stored. Use ~ to indicate users
     home directory - not $HOME. The default is ~/.python_cache on a UNIX
     platform and c:/.python_cache on a Win platform.
 
   Silent operation:
     The call
-      cache(func,(arg1,...,argn), verbose=False)
+      cache(my_F,(arg1,...,argn), verbose=False)
     suppresses messages to standard output.
 
   Compression:
     The call
-      cache(func,(arg1,...,argn), compression=False)
+      cache(my_F,(arg1,...,argn), compression=False)
     disables compression. (Default: compression=True). If the requested compressed
     or uncompressed file is not there, it'll try the other version.
 
   Forced evaluation:
     The call
-      cache(func,(arg1,...,argn), evaluate=True)
+      cache(my_F,(arg1,...,argn), evaluate=True)
     forces the function to evaluate even though cached data may exist.
 
   Testing for presence of cached result:
     The call
-      cache(func,(arg1,...,argn), test=True)
+      cache(my_F,(arg1,...,argn), test=True)
     retrieves cached result if it exists, otherwise None. The function will not
     be evaluated. If both evaluate and test are switched on, evaluate takes
     precedence.
@@ -241,23 +244,23 @@ def cache(func,
     
   Obtain cache filenames:
     The call    
-      cache(func,(arg1,...,argn), return_filename=True)
+      cache(my_F,(arg1,...,argn), return_filename=True)
     returns the hashed base filename under which this function and its
     arguments would be cached
 
   Clearing cached results:
     The call
-      cache(func,'clear')
-    clears all cached data for 'func' and
+      cache(my_F,'clear')
+    clears all cached data for 'my_F' and
       cache('clear')
     clears all cached data.
  
-    NOTE: The string 'clear' can be passed an *argument* to func using
-      cache(func,('clear',)) or cache(func,tuple(['clear'])).
+    NOTE: The string 'clear' can be passed an *argument* to my_F using
+      cache(my_F,('clear',)) or cache(my_F,tuple(['clear'])).
 
     New form of clear:
-      cache(func,(arg1,...,argn), clear=True)
-    clears cached data for particular combination func and args 
+      cache(my_F,(arg1,...,argn), clear=True)
+    clears cached data for particular combination my_F and args 
       
   """
 
@@ -279,15 +282,15 @@ def cache(func,
   CD = checkdir(cachedir,verbose)
 
   # Handle the case cache('clear')
-  if type(func) == types.StringType:
-    if string.lower(func) == 'clear':
+  if type(my_F) == types.StringType:
+    if string.lower(my_F) == 'clear':
       clear_cache(CD,verbose=verbose)
       return
 
-  # Handle the case cache(func, 'clear')
+  # Handle the case cache(my_F, 'clear')
   if type(args) == types.StringType:
     if string.lower(args) == 'clear':
-      clear_cache(CD,func,verbose=verbose)
+      clear_cache(CD,my_F,verbose=verbose)
       return
 
   # Force singleton arg into a tuple
@@ -308,8 +311,8 @@ def cache(func,
     dependencies = tuple([dependencies])
   deps = get_depstats(dependencies)
 
-  # Extract function name from func object
-  funcname = get_funcname(func)
+  # Extract function name from my_F object
+  funcname = get_funcname(my_F)
 
   # Create cache filename
   FN = funcname+'['+`arghash`+']'  # The symbol '(' does not work under unix
@@ -338,11 +341,11 @@ def cache(func,
   
   # Check if previous computation has been cached
   if evaluate is True:
-    Retrieved = None  # Force evaluation of func regardless of caching status.
+    Retrieved = None  # Force evaluation of my_F regardless of caching status.
     reason = 5
   else:
     T, FN, Retrieved, reason, comptime, loadtime, compressed = \
-        CacheLookup(CD, FN, func, 
+        CacheLookup(CD, FN, my_F, 
                     args, kwargs, 
                     deps, 
                     verbose, 
@@ -367,7 +370,9 @@ def cache(func,
 
       # Execute and time function with supplied arguments
       t0 = time.time()
-      T = apply(func,args,kwargs)
+
+      T = my_F(*args, **kwargs) # Built-in 'apply' deprecated in Py3K    
+      
       #comptime = round(time.time()-t0)
       comptime = time.time()-t0
 
@@ -375,7 +380,7 @@ def cache(func,
         msg2(funcname,args,kwargs,comptime,reason)
 
       # Save results and estimated loading time to cache
-      loadtime = save_results_to_cache(T, CD, FN, func, deps, comptime, \
+      loadtime = save_results_to_cache(T, CD, FN, my_F, deps, comptime, \
                                        funcname, dependencies, compression)
       if verbose is True:
         msg3(loadtime, CD, FN, deps, compression)
@@ -784,19 +789,19 @@ Reason_msg = ['OK',         # Verbose reasons for recomputation
               
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def CacheLookup(CD, FN, func, args, kwargs, deps, verbose, compression, 
+def CacheLookup(CD, FN, my_F, args, kwargs, deps, verbose, compression, 
                 dependencies):
   """Determine whether cached result exists and return info.
 
   USAGE:
     (T, FN, Retrieved, reason, comptime, loadtime, compressed) = \  
-    CacheLookup(CD, FN, func, args, kwargs, deps, verbose, compression, \
+    CacheLookup(CD, FN, my_F, args, kwargs, deps, verbose, compression, \
                 dependencies)
 
   INPUT ARGUMENTS:
     CD --            Cache Directory
     FN --            Suggested cache file name
-    func --          Function object
+    my_F --          Callable object
     args --          Tuple of arguments
     kwargs --        Dictionary of keyword arguments    
     deps --          Dependencies time stamps
@@ -890,9 +895,9 @@ def CacheLookup(CD, FN, func, args, kwargs, deps, verbose, compression,
     reason = 2
     return(None, FN, None, reason, None, None, None)
 
-  # Get bytecode from func
+  # Get bytecode from my_F
   #
-  bytecode = get_bytecode(func)
+  bytecode = get_bytecode(my_F)
 
   #print compare(argsref,args),   
   #print compare(kwargsref,kwargs),
@@ -925,7 +930,7 @@ def CacheLookup(CD, FN, func, args, kwargs, deps, verbose, compression,
     # until either a matching or an unused filename is found.
     #
     (T, FN, Retrieved, reason, comptime, loadtime, compressed) = \
-        CacheLookup(CD, FN+'x', func, args, kwargs, deps, 
+        CacheLookup(CD, FN+'x', my_F, args, kwargs, deps, 
                     verbose, compression, dependencies)
 
     # DEBUGGING
@@ -947,21 +952,21 @@ def CacheLookup(CD, FN, func, args, kwargs, deps, verbose, compression,
 
 # -----------------------------------------------------------------------------
 
-def clear_cache(CD,func=None, verbose=None):
-  """Clear cache for func.
+def clear_cache(CD, my_F=None, verbose=None):
+  """Clear cache for my_F.
 
   USAGE:
-     clear(CD, func, verbose)
+     clear(CD, my_F, verbose)
 
   ARGUMENTS:
      CD --       Caching directory (required)
-     func --     Function object (default: None)
+     my_F --     Function object (default: None)
      verbose --  Flag verbose output (default: None)
 
   DESCRIPTION:
 
-    If func == None, clear everything,
-    otherwise clear only files pertaining to func.
+    If my_F == None, clear everything,
+    otherwise clear only files pertaining to my_F.
   """
 
   import os, re
@@ -974,8 +979,8 @@ def clear_cache(CD,func=None, verbose=None):
 
   # FIXME: Windows version needs to be tested
 
-  if func:
-    funcname = get_funcname(func)
+  if my_F:
+    funcname = get_funcname(my_F)
     if verbose:
       print 'MESSAGE (caching.py): Clearing', CD+funcname+'*'
 
@@ -1075,12 +1080,12 @@ def save_args_to_cache(CD, FN, args, kwargs, compression):
 
 # -----------------------------------------------------------------------------
 
-def save_results_to_cache(T, CD, FN, func, deps, comptime, funcname,
+def save_results_to_cache(T, CD, FN, my_F, deps, comptime, funcname,
                           dependencies, compression):
   """Save computed results T and admin info to cache
 
   USAGE:
-    save_results_to_cache(T, CD, FN, func, deps, comptime, funcname,
+    save_results_to_cache(T, CD, FN, my_F, deps, comptime, funcname,
                           dependencies, compression)
   """
 
@@ -1106,7 +1111,7 @@ def save_results_to_cache(T, CD, FN, func, deps, comptime, funcname,
   #savetime = round(time.time()-t0,2)
   savetime = time.time()-t0  
 
-  bytecode = get_bytecode(func)  # Get bytecode from function object
+  bytecode = get_bytecode(my_F)  # Get bytecode from function object
   admtup = (deps, comptime, bytecode, funcname)  # Gather admin info
 
   mysave(admtup,admfile,compression)  # Save admin info to cache
@@ -1390,6 +1395,8 @@ def myhash(T, ids=None):
       val = hash(tuple(hvals))
   elif type(T) == DictType:
       # Make dictionary ordering unique  
+      
+      # FIXME(Ole): Need new way of doing this in Python 3.0
       I = T.items()
       I.sort()    
       val = myhash(I, ids)
@@ -1430,7 +1437,7 @@ def compare(A, B, ids=None):
     iA = id(A) 
     iB = id(B)     
     
-    if ids.has_key((iA, iB)):
+    if (iA, iB) in ids:
         # A and B have been compared already
         #print 'Found', (iA, iB), A, B
         return ids[(iA, iB)]
@@ -1520,22 +1527,22 @@ def nospace(s):
 
 # -----------------------------------------------------------------------------
 
-def get_funcname(func):
+def get_funcname(my_F):
   """Retrieve name of function object func (depending on its type)
 
   USAGE:
-    get_funcname(func)
+    get_funcname(my_F)
   """
 
   import types, string
 
-  if type(func) == types.FunctionType:
-    funcname = func.func_name
-  elif type(func) == types.BuiltinFunctionType:
-    funcname = func.__name__
+  if type(my_F) == types.FunctionType:
+    funcname = my_F.func_name
+  elif type(my_F) == types.BuiltinFunctionType:
+    funcname = my_F.__name__
   else:
     tab = string.maketrans("<>'","   ")
-    tmp = string.translate(`func`,tab)
+    tmp = string.translate(repr(my_F), tab)
     tmp = string.split(tmp)
     funcname = string.join(tmp)
 
@@ -1550,52 +1557,52 @@ def get_funcname(func):
 
 # -----------------------------------------------------------------------------
 
-def get_bytecode(func):
+def get_bytecode(my_F):
   """ Get bytecode from function object.
 
   USAGE:
-    get_bytecode(func)
+    get_bytecode(my_F)
   """
 
   import types
 
-  if type(func) == types.FunctionType:
-    return get_func_code_details(func)
-  elif type(func) == types.MethodType:
-    return get_func_code_details(func.im_func)
-  elif type(func) == types.InstanceType:    
-    if callable(func):
+  if type(my_F) == types.FunctionType:
+    return get_func_code_details(my_F)
+  elif type(my_F) == types.MethodType:
+    return get_func_code_details(my_F.im_func)
+  elif type(my_F) == types.InstanceType:    
+    if hasattr(my_F, '__call__'):
       # Get bytecode from __call__ method
-      bytecode = get_func_code_details(func.__call__.im_func)
+      bytecode = get_func_code_details(my_F.__call__.im_func)
       
       # Add hash value of object to detect attribute changes
-      return bytecode + (myhash(func),) 
+      return bytecode + (myhash(my_F),) 
     else:
-      msg = 'Instance %s was passed into caching in the role of a function ' % str(func)
+      msg = 'Instance %s was passed into caching in the role of a function ' % str(my_F)
       msg = ' but it was not callable.'
       raise Exception, msg
-  elif type(func) in [types.BuiltinFunctionType, types.BuiltinMethodType]:      
+  elif type(my_F) in [types.BuiltinFunctionType, types.BuiltinMethodType]:      
     # Built-in functions are assumed not to change  
     return None, 0, 0, 0
-  elif type(func) == types.ClassType:
+  elif type(my_F) == types.ClassType:
       # Get bytecode from __init__ method
-      bytecode = get_func_code_details(func.__init__.im_func)    
+      bytecode = get_func_code_details(my_F.__init__.im_func)    
       return bytecode      
   else:
-    msg = 'Unknown function type: %s' % type(func)
+    msg = 'Unknown function type: %s' % type(my_F)
     raise Exception, msg
 
 
   
   
-def get_func_code_details(func):
+def get_func_code_details(my_F):
   """Extract co_code, co_consts, co_argcount, func_defaults
   """
   
-  bytecode = func.func_code.co_code
-  consts = func.func_code.co_consts
-  argcount = func.func_code.co_argcount    
-  defaults = func.func_defaults       
+  bytecode = my_F.func_code.co_code
+  consts = my_F.func_code.co_consts
+  argcount = my_F.func_code.co_argcount    
+  defaults = my_F.func_defaults       
   
   return bytecode, consts, argcount, defaults  
 
@@ -1950,12 +1957,12 @@ def __cachestat(sortidx=4, period=-1, showuser=None, cachedir=None):
             firstday = t
 
           user     = record[1]
-          func     = record[2]
+          my_F     = record[2]
 
           # Strip hash-stamp off 
           #
-          i = find(func,'[')
-          func = func[:i]
+          i = find(my_F,'[')
+          my_F = my_F[:i]
 
           size        = float(record[3])
 
@@ -1989,7 +1996,7 @@ def __cachestat(sortidx=4, period=-1, showuser=None, cachedir=None):
             info = [1,cputime,loadtime,saving,rel_saving,size]
 
             UpdateDict(UserDict,user,info)
-            UpdateDict(FuncDict,func,info)
+            UpdateDict(FuncDict,my_F,info)
           else:
             pass #Stats on recomputations and their reasons could go in here
               
