@@ -3082,12 +3082,18 @@ def ferret2sww(basename_in, basename_out=None,
         mint = times[0]
     else:
         jmin = num.searchsorted(times, mint)
+        
+        # numpy.int32 didn't work in slicing of amplitude below
+        jmin = int(jmin)
 
     if maxt is None:
         jmax = len(times)
         maxt = times[-1]
     else:
         jmax = num.searchsorted(times, maxt)
+        
+        # numpy.int32 didn't work in slicing of amplitude below
+        jmax = int(jmax)        
 
     kmin, kmax, lmin, lmax = _get_min_max_indexes(latitudes[:],
                                                   longitudes[:],
@@ -3122,7 +3128,7 @@ def ferret2sww(basename_in, basename_out=None,
     #        elevations=asarray(elevations)
     #        'print hmmm'
 
-    #Get missing values
+    # Get missing values
     nan_ha = file_h.variables['HA'].missing_value[0]
     nan_ua = file_u.variables['UA'].missing_value[0]
     nan_va = file_v.variables['VA'].missing_value[0]
@@ -3131,7 +3137,7 @@ def ferret2sww(basename_in, basename_out=None,
     else:
         nan_e = None
 
-    #Cleanup
+    # Cleanup
     missing = (amplitudes == nan_ha)
     if num.sometrue (missing):
         if fail_on_NaN:
@@ -3827,14 +3833,14 @@ def decimate_dem(basename_in, stencil, cellsize_new, basename_out=None,
 
     if verbose: print 'Reading DEM from %s' % inname
 
-    #Read metadata
-    ncols = infile.ncols[0]
-    nrows = infile.nrows[0]
+    # Read metadata (convert from numpy.int32 to int where appropriate)
+    ncols = int(infile.ncols[0])
+    nrows = int(infile.nrows[0])
     xllcorner = infile.xllcorner[0]
     yllcorner = infile.yllcorner[0]
-    cellsize = infile.cellsize[0]
-    NODATA_value = infile.NODATA_value[0]
-    zone = infile.zone[0]
+    cellsize = int(infile.cellsize[0])
+    NODATA_value = int(infile.NODATA_value[0])
+    zone = int(infile.zone[0])
     false_easting = infile.false_easting[0]
     false_northing = infile.false_northing[0]
     projection = infile.projection
@@ -3859,6 +3865,8 @@ def decimate_dem(basename_in, stencil, cellsize_new, basename_out=None,
     ncols_new = 1 + (ncols - ncols_stencil) / cellsize_ratio
     nrows_new = 1 + (nrows - nrows_stencil) / cellsize_ratio
 
+    #print type(ncols_new), ncols_new
+    
     #Open netcdf file for output
     outfile = NetCDFFile(outname, netcdf_mode_w)
 
@@ -3884,6 +3892,8 @@ def decimate_dem(basename_in, stencil, cellsize_new, basename_out=None,
     outfile.nrows = nrows_new
 
     # dimension definition
+    #print nrows_new, ncols_new, nrows_new*ncols_new
+    #print type(nrows_new), type(ncols_new), type(nrows_new*ncols_new)
     outfile.createDimension('number_of_points', nrows_new*ncols_new)
 
     # variable definition
@@ -6101,16 +6111,22 @@ class Write_sww:
 
         Maybe make this general, but the viewer assumes these quantities,
         so maybe we don't want it general - unless the viewer is general
+        
+        The argument sww_precision allows for storing as either 
+        * single precision (default): num.float32
+        * double precision: num.float64 or num.float 
 
-        precon
-        triangulation and
-        header have been called.
+        Precondition:
+            triangulation and
+            header have been called.
         """
 
         if time is not None:
             file_time = outfile.variables['time']
             slice_index = len(file_time)
             file_time[slice_index] = time
+        else:
+            slice_index = int(slice_index) # In case it was numpy.int    
 
         # Write the conserved quantities from Domain.
         # Typically stage,  xmomentum, ymomentum
@@ -6123,8 +6139,10 @@ class Write_sww:
                 raise NewQuantity, msg
             else:
                 q_values = quant[q]
-                outfile.variables[q][slice_index] = \
-                                q_values.astype(sww_precision)
+                
+                x = q_values.astype(sww_precision)
+                outfile.variables[q][slice_index] = x
+                    
         
                 # This updates the _range values
                 q_range = outfile.variables[q + Write_sww.RANGE][:]

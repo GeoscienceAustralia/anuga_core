@@ -303,7 +303,7 @@ class Test_Polygon(unittest.TestCase):
         polygon = [[0,0], [1,0], [0.5,-1], [2, -1], [2,1], [0,1]]
         points = [[0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
         res = inside_polygon( points, polygon, verbose=False )
-        assert num.allclose( res, [0,1,2] )
+        assert num.allclose(res, [0,1,2])
 
     def test_outside_polygon(self):
         # unit square
@@ -584,22 +584,22 @@ class Test_Polygon(unittest.TestCase):
 
         points = [(1., 0.25),(1., 0.75)]
         inside, outside = in_and_outside_polygon(points, polygon, closed=True)
-        assert (inside, [0,1])
+        assert num.alltrue(inside == [0,1])
         assert len(outside) == 0
 
         inside, outside = in_and_outside_polygon(points, polygon, closed=False)
         assert len(inside) == 0
-        assert (outside, [0,1])
+        assert num.alltrue(outside == [0,1])
 
         points = [(100., 0.25), (0.5, 0.5) ]
         inside, outside = in_and_outside_polygon(points, polygon)
-        assert (inside, [1])
+        assert num.alltrue(inside == [1])
         assert outside[0] == 0
 
         points = [(100., 0.25),(0.5, 0.5), (39,20), (0.6,0.7),(56,43),(67,90)]
         inside, outside = in_and_outside_polygon(points, polygon)
-        assert (inside, [1, 3])
-        assert (outside, [0, 2, 4, 5])
+        assert num.alltrue(inside == [1, 3])
+        assert num.alltrue(outside == [0, 2, 4, 5])
 
     def test_intersection1(self):
         line0 = [[-1,0], [1,0]]

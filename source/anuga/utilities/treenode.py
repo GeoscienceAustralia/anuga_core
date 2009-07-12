@@ -23,23 +23,45 @@ class TreeNode:
         self.children = None
         self.parent = None
 
-        # subclasses can implement these attributes as functions, called
+        # Subclasses can implement these attributes as functions, called
         # when a node (either leaf or internal) is deleted
-        if not hasattr(self,'ClearLeafNode'):
-            self.ClearLeafNode = None
-        if not hasattr(self,'ClearInternalNode'):
-            self.ClearInternalNode = None
+        
+        # FIXME (Ole): The hasattr statements below were commented out on 12 July 2009 by Ole Nielsen due to 
+        # errors appearing when using Python2.6. Tests pass, so I think this was just superfluous anyway.
+        #
+        # Excerpt from What's New in Python 2.6
+        #
+        #The hasattr() function was catching and ignoring all errors,
+        #under the assumption that they meant a __getattr__() method
+        #was failing somehow and the return value of hasattr() would
+        #therefore be False. This logic shouldn't be applied to
+        #KeyboardInterrupt and SystemExit, however; Python 2.6 will no
+        #longer discard such exceptions when hasattr() encounters
+        #them. (Fixed by Benjamin Peterson; issue 2196.)
+        
+        #if not hasattr(self,'ClearLeafNode'):
+        #    self.ClearLeafNode = None
+        #if not hasattr(self,'ClearInternalNode'):
+        #    self.ClearInternalNode = None
+        
+        # # When not already set by derived class, set unique instance name        
+        #if not hasattr(self,'name'):
+        #    if name:
+        #        self.name = name
+        #    else:
+        #        self.name = id(self)        
 
-        # when not already set by derived class, set unique instance name
-        if not hasattr(self,"name"):
-            if name:
-                self.name = name
-            else:
-                self.name = id(self)
+        # When not already set by derived class, set unique instance name
+        if name:
+            self.name = name
+        else:
+            self.name = id(self)        
+        
 
 
-    #Make treenode elements appear as sequences such thta on
-    #can iterate over them             
+
+    # Make treenode elements appear as sequences such that one
+    # can iterate over them             
     def __iter__(self):
         self.index = -1   # incremented on first call to next()
         return self

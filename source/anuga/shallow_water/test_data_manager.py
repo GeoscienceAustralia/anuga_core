@@ -5959,13 +5959,13 @@ friction  \n \
 
         tide = 1
         base_name, files = self.create_mux()
+        
         urs2sww(base_name,
                 mint=0.25,
                 maxt=0.75,
                 mean_stage=tide,
                 remove_nc_files=True,
-                      verbose=self.verbose
-                )
+                verbose=self.verbose)
         sww_file = base_name + '.sww'
         
         #Let's interigate the sww file
@@ -11677,8 +11677,11 @@ ValueError: matrices are not aligned for copy
 #-------------------------------------------------------------
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Data_Manager,'test')
+    suite = unittest.makeSuite(Test_Data_Manager, 'test')
     
+    
+    # FIXME(Ole): When Ross has implemented logging, we can 
+    # probably get rid of all this:
     if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':
         Test_Data_Manager.verbose=True
         saveout = sys.stdout   
