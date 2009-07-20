@@ -244,11 +244,12 @@ class Domain(Generic_Domain):
     # @param reduction
     def set_store_vertices_uniquely(self, flag, reduction=None):
         """Decide whether vertex values should be stored uniquely as
-        computed in the model or whether they should be reduced to one
-        value per vertex using self.reduction.
+        computed in the model (True) or whether they should be reduced to one
+        value per vertex using self.reduction (False).
         """
 
-        # FIXME (Ole): how about using the word continuous vertex values?
+        # FIXME (Ole): how about using the word "continuous vertex values" or 
+        # "continuous stage surface"
         self.smooth = not flag
 
         # Reduction operation for get_vertex_values
