@@ -4,7 +4,7 @@ from anuga.utilities.polygon import  point_in_polygon ,populate_polygon
 from anuga.utilities.numerical_tools import ensure_numeric
 import numpy as num
 from anuga.utilities.polygon import inside_polygon
-
+import anuga.utilities.log as log
 
 
 # This is due to pmesh being a package and a module and
@@ -150,7 +150,7 @@ def _create_mesh_from_regions(bounding_polygon,
                 msg +=  'Default tag "exterior" will be assigned to missing segment'
                 #raise Exception, msg
                 # Fixme: Use proper Python warning
-                if verbose: print 'WARNING: ', msg
+                if verbose: log.critical('WARNING: %s' % msg)
                 
 
     
@@ -186,7 +186,7 @@ def _create_mesh_from_regions(bounding_polygon,
                     raise PolygonError, msg                    
                 else:
                     msg += ' I will ignore it.'
-                    print msg
+                    log.critical(msg)
 
             else:
                 polygons_inside_boundary.append([interior_polygon, res])
@@ -312,7 +312,7 @@ def _create_mesh_from_regions(bounding_polygon,
     if filename is None:
         return m
     else:
-        if verbose: print 'Generating mesh to file "%s"' %filename
+        if verbose: log.critical("Generating mesh to file '%s'" % filename)
         m.generate_mesh(minimum_triangle_angle=minimum_triangle_angle,
                         verbose=verbose)
         m.export_mesh_file(filename)

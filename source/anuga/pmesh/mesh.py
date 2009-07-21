@@ -33,6 +33,8 @@ import anuga.alpha_shape.alpha_shape
 from anuga.geospatial_data.geospatial_data import Geospatial_data, \
      ensure_geospatial, ensure_absolute, ensure_numeric
 from anuga.mesh_engine.mesh_engine import generate_mesh
+import anuga.utilities.log as log
+
 
 try:  
     import kinds  
@@ -144,8 +146,6 @@ class Vertex(Point):
              yoffset =0, ):
         x =  scale*(self.x + xoffset)
         y = -1*scale*(self.y + yoffset)  # - since for a canvas - is up
-        #print "draw x:", x
-        #print "draw y:", y
         cornerOffset= self.VERTEXSQUARESIDELENGTH/2
 
         # A hack to see the vert tags
@@ -186,8 +186,6 @@ class Hole(Point):
              yoffset =0, ):
         x =  scale*(self.x + xoffset)
         y = -1*scale*(self.y + yoffset)  # - since for a canvas - is up
-        #print "draw x:", x
-        #print "draw y:", y
         cornerOffset= self.HOLECORNERLENGTH/2
         return canvas.create_oval(x-cornerOffset,
                                        y-cornerOffset,
@@ -611,7 +609,7 @@ class Mesh:
         
     # Depreciated
     def addRegionEN(self, x,y):
-        print "depreciated, use add_region"
+        log.critical("deprecated, use add_region")
         return self.add_region(x,y)
 
     
@@ -2265,7 +2263,7 @@ def importMeshFromFile(ofile):
         newmesh.IOOutline2Mesh(dict)
         counter = newmesh.removeDuplicatedUserVertices()
         if (counter >0):
-            print "%i duplicate vertices removed from dataset" % (counter)
+            log.critical("%i duplicate vertices removed from dataset" % counter)
     elif (ofile[-4:]== ".tsh" or ofile[-4:]== ".msh"):
         dict = import_mesh_file(ofile)
         #print "********"
@@ -2339,7 +2337,7 @@ def region_strings2ints(region_list):
         elif len(region_list[i]) == 3: # no area value
             region_list[i] = (region_list[i][0],region_list[i][1],i)
         else:
-            print "The region list has a bad size"
+            log.critical("The region list has a bad size")
             # raise an error ..
             raise Error
 

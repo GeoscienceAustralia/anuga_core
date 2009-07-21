@@ -34,6 +34,7 @@ from anuga.shallow_water.data_manager import Exposure_csv
 from anuga.abstract_2d_finite_volumes.util import file_function
 from anuga.geospatial_data.geospatial_data import ensure_absolute
 from anuga.utilities.numerical_tools import NAN
+import anuga.utilities.log as log
 from config import epsilon
 depth_epsilon = epsilon
 
@@ -101,7 +102,8 @@ def inundation_damage(sww_base_name, exposure_files_in,
             exposure_file_out =  '.'.join(split_name[:-1]) + exposure_file_out_marker + \
                                 '.' + split_name[-1]
         csv.save(exposure_file_out)
-        if verbose: print '\n Augmented building file written to %s \n' %exposure_file_out
+        if verbose: log.critical('Augmented building file written to %s'
+                                 % exposure_file_out)
     
 def add_depth_and_momentum2csv(sww_base_name, exposure_file_in,
                       exposure_file_out=None,
@@ -140,7 +142,6 @@ def calc_max_depth_and_momentum(sww_base_name, points,
     in the specified directory.
     """
     quantities =  ['stage', 'elevation', 'xmomentum', 'ymomentum']
-    #print "points",points 
     points = ensure_absolute(points)
     point_count = len(points)
 
@@ -150,10 +151,8 @@ def calc_max_depth_and_momentum(sww_base_name, points,
     
     # How many sww files are there?
     dir, base = os.path.split(sww_base_name)
-    #print "basename_in",basename_in
     if base[-4:] == '.sww':
         base = base[:-4]
-    #print "base",base
     if dir == "": dir = "." # Unix compatibility
     dir_ls = os.listdir(dir)
     interate_over = [x for x in dir_ls if base in x and x[-4:] == '.sww']
@@ -161,7 +160,6 @@ def calc_max_depth_and_momentum(sww_base_name, points,
         msg = 'No files of the base name %s.'\
               %(sww_base_name)
         raise IOError, msg
-    #print "interate_over", interate_over
     from os import sep
     for this_sww_file in interate_over:
         callable_sww = file_function(dir+sep+this_sww_file,
@@ -322,10 +320,6 @@ class EventDamageModel:
                                                    self.max_depths,
                                                    self.shore_distances,
                                                    self.walls):
-            #print "i",i
-            #print "max_depth",max_depth
-            #print "shore_distance",shore_distance
-            #print "wall",wall
             ## WARNING SKIP IF DEPTH < 0.0 
             if 0.0 > max_depth:
                 continue
@@ -375,10 +369,6 @@ class EventDamageModel:
                                                    self.max_depths,
                                                    self.shore_distances,
                                                    self.walls):
-            #print "i",i
-            #print "max_depth",max_depth
-            #print "shore_distance",shore_distance
-            #print "wall",wall
             # WARNING ASSUMING THE FIRST BIN OF DEPTHS GIVE A ZERO PROBABILITY
             depth_upper_limits = self.depth_upper_limits
             shore_upper_limits = self.shore_upper_limits
@@ -430,7 +420,6 @@ class EventDamageModel:
                 
             # Warning, the collapse_probability list now lists 
             # houses that did not collapse, (though not all of them)
-            #print "",self.collapse_csv_info
             
 #############################################################################
 if __name__ == "__main__":

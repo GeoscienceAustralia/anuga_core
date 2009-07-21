@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-# from os import open, write, read
 import numpy as num
 
 celltype_map = {'IEEE4ByteReal': num.float32, 'IEEE8ByteReal': num.float64}
@@ -133,7 +132,6 @@ def write_ermapper_header(ofile, header = {}):
     fid.write('\t\tNrOfCellsPerLine\t = ' + header['nrofcellsperline'] + '\n')
     # Write the registration coordinate information
     fid.write('\t\tRegistrationCoord Begin\n')
-    ###print X_Class 
     fid.write('\t\t\t' + X_Class + '\t\t\t = ' + header[X_Class.lower()] + '\n')
     fid.write('\t\t\t' + Y_Class + '\t\t\t = ' + header[Y_Class.lower()] + '\n')
     fid.write('\t\tRegistrationCoord End\n')

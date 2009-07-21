@@ -53,7 +53,6 @@ def generate_mesh(points=None,
         msg = 'ERROR: Bad shape points array.'
         raise ANUGAError, msg
 
-    #print "pointatts",pointatts 
     # This is after points is numeric
     if pointatts is None or pointatts == []:
         pointatts = [[] for x in range(points.shape[0])]
@@ -111,7 +110,6 @@ def generate_mesh(points=None,
         segment array."""
         raise ANUGAError, msg
     
-    #print "mode", mode
     if mode.find('n'):
         #pass
         mode = 'j' + mode
@@ -121,23 +119,12 @@ def generate_mesh(points=None,
         #    list of neighboring triangles
         # EG handles lone verts!
             
-    #print "points",points 
-    #print "segments", segments
-    #print "segments.shape", segments.shape
-    #print "holes", holes
-    #print "regions", regions
-    #print "pointatts", pointatts
-    #print "segatts", segatts
-    #print "mode", mode
-    #print "yeah"
-    # .copy()
     trianglelist, pointlist, pointmarkerlist, pointattributelist, triangleattributelist, segmentlist, segmentmarkerlist, neighborlist = triang.genMesh(points,segments,holes,regions,
                           pointatts,segatts, mode)
     mesh_dict = {}
     # the values as arrays
     mesh_dict['generatedtrianglelist'] = trianglelist
     mesh_dict['generatedpointlist'] = pointlist
-    #print "mesh engine mesh_dict['generatedpointlist']", mesh_dict['generatedpointlist']
     # WARNING - generatedpointmarkerlist IS UNTESTED
     mesh_dict['generatedpointmarkerlist'] = pointmarkerlist
     mesh_dict['generatedpointattributelist'] = pointattributelist
@@ -147,9 +134,6 @@ def generate_mesh(points=None,
     mesh_dict['qaz'] = 1 #debugging
 
     #mesh_dict['triangleattributelist'] = triangleattributelist
-    #print "mesh eng generatedtrianglelist", trianglelist
-    #print "mesh eng mesh_dict['triangleattributelist'] ",mesh_dict['triangleattributelist']
-    #print "mesh eng mesh_dict['generatedtriangleattributelist'] ", mesh_dict['generatedtriangleattributelist']   
     if True: 
         mesh_dict['generatedtriangleattributelist'] = triangleattributelist
 
@@ -166,9 +150,7 @@ def generate_mesh(points=None,
             # There are no triangles.
             # this is used by urs_ungridded2sww
             raise NoTrianglesError
-    #print "mesh eng mesh_dict['generatedtriangleattributelist'] ", mesh_dict['generatedtriangleattributelist']  
     a = mesh_dict['generatedtriangleattributelist']
-    #print 'mesh_dict', mesh_dict
     # the structure of generatedtriangleattributelist is an list of
     # list of integers.  It is transformed into a list of list of
     # strings later on.  This is then inputted into an triangle

@@ -25,6 +25,7 @@ from anuga.utilities.anuga_exceptions import ANUGAError
 from anuga.config import points_file_block_line_size as MAX_READ_LINES
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.config import netcdf_float
+import anuga.utilities.log as log
 
 
 DEFAULT_ATTRIBUTE = 'elevation'
@@ -169,7 +170,8 @@ class Geospatial_data:
 
             if verbose is True:
                 if file_name is not None:
-                    print 'Loading Geospatial data from file: %s' % file_name
+                    log.critical('Loading Geospatial data from file: %s'
+                                 % file_name)
 
             self.import_points_file(file_name, verbose=verbose)
 
@@ -180,9 +182,10 @@ class Geospatial_data:
 
         if verbose is True:
             if file_name is not None:
-                print 'Geospatial data created from file: %s' % file_name
+                log.critical('Geospatial data created from file: %s'
+                             % file_name)
                 if load_file_now is False:
-                    print 'Data will be loaded blockwise on demand'
+                    log.critical('Data will be loaded blockwise on demand')
 
                     if file_name.endswith('csv') or file_name.endswith('txt'):
                         pass
@@ -436,8 +439,8 @@ class Geospatial_data:
                 # above line takes the first one from keys
 
         if self.verbose is True:
-            print 'Using attribute %s' %attribute_name
-            print 'Available attributes: %s' %(self.attributes.keys())
+            log.critical('Using attribute %s' % attribute_name)
+            log.critical('Available attributes: %s' % (self.attributes.keys()))
 
         msg = 'Attribute name %s does not exist in data set' % attribute_name
         assert self.attributes.has_key(attribute_name), msg
@@ -695,19 +698,21 @@ class Geospatial_data:
         new_size = round(factor * self_size)
 
         # Find unique random numbers
-        if verbose: print "make unique random number list and get indices"
+        if verbose: log.critical("make unique random number list "
+                                 "and get indices")
 
         total = num.array(range(self_size), num.int)    #array default#
         total_list = total.tolist()
 
-        if verbose: print "total list len", len(total_list)
+        if verbose: log.critical("total list len=%d" % len(total_list))
 
         # There will be repeated random numbers however will not be a
         # problem as they are being 'pop'ed out of array so if there
         # are two numbers the same they will pop different indicies,
         # still basically random
         ## create list of non-unquie random numbers
-        if verbose: print "create random numbers list %s long" %new_size
+        if verbose: log.critical("create random numbers list %s long"
+                                 % str(new_size))
 
         # Set seed if provided, mainly important for unit test!
         # plus recalcule seed when no seed provided.
@@ -716,8 +721,6 @@ class Geospatial_data:
         else:
             seed()
 
-        #if verbose: print "seed:", get_seed()
-
         random_num = randint(0, self_size-1, (int(new_size),))
         random_num = random_num.tolist()
 
@@ -725,7 +728,7 @@ class Geospatial_data:
         random_num.sort()
         random_num.reverse()
 
-        if verbose: print "make random number list and get indices"
+        if verbose: log.critical("make random number list and get indices")
 
         j = 0
         k = 1
@@ -739,7 +742,7 @@ class Geospatial_data:
             j += 1
             # prints progress
             if verbose and round(random_num_len/10*k) == j:
-                print '(%s/%s)' % (j, random_num_len)
+                log.critical('(%s/%s)' % (j, random_num_len))
                 k += 1
 
         # FIXME: move to tests, it might take a long time
@@ -754,9 +757,10 @@ class Geospatial_data:
         assert total_list == test_total, msg
 
         # Get new samples
-        if verbose: print "get values of indices for random list"
+        if verbose: log.critical("get values of indices for random list")
         G1 = self.get_sample(random_list)
-        if verbose: print "get values of indices for opposite of random list"
+        if verbose: log.critical("get values of indices for "
+                                 "opposite of random list")
         G2 = self.get_sample(remainder_list)
 
         return G1, G2
@@ -799,11 +803,11 @@ class Geospatial_data:
             # smaller and won't be included in this estimate.
 
             if self.verbose is True:
-                print ('Reading %d points (in ~%d blocks) from file %s. '
-                       % (self.number_of_points, self.number_of_blocks,
-                          self.file_name)),
-                print ('Each block consists of %d data points'
-                       % self.max_read_lines)
+                log.critical('Reading %d points (in ~%d blocks) from file %s. '
+                             % (self.number_of_points, self.number_of_blocks,
+                                self.file_name))
+                log.critical('Each block consists of %d data points'
+                             % self.max_read_lines)
         else:
             # Assume the file is a csv file
             file_pointer = open(self.file_name)
@@ -836,9 +840,9 @@ class Geospatial_data:
             if self.verbose is True:
                 if (self.show_verbose >= self.start_row
                     and self.show_verbose < fin_row):
-                    print ('Reading block %d (points %d to %d) out of %d'
-                           % (self.block_number, self.start_row,
-                              fin_row, self.number_of_blocks))
+                    log.critical('Reading block %d (points %d to %d) out of %d'
+                                 % (self.block_number, self.start_row,
+                                    fin_row, self.number_of_blocks))
 
                     self.show_verbose += max(self.max_read_lines,
                                              self.verbose_block_size)
@@ -975,7 +979,7 @@ def _read_pts_file(file_name, verbose=False):
     dict['attributelist']['elevation'] = [[7.0,5.0]]
     """
 
-    if verbose: print 'Reading ', file_name
+    if verbose: log.critical('Reading %s' % file_name)
 
     # See if the file is there.  Throw a QUIET IO error if it isn't
     fd = open(file_name,'r')
@@ -987,7 +991,7 @@ def _read_pts_file(file_name, verbose=False):
     pointlist = num.array(fid.variables['points'])
     keys = fid.variables.keys()
 
-    if verbose: print 'Got %d variables: %s' % (len(keys), keys)
+    if verbose: log.critical('Got %d variables: %s' % (len(keys), keys))
 
     try:
         keys.remove('points')
@@ -998,7 +1002,7 @@ def _read_pts_file(file_name, verbose=False):
 
     attributes = {}
     for key in keys:
-        if verbose: print "reading attribute '%s'" % key
+        if verbose: log.critical("reading attribute '%s'" % key)
 
         attributes[key] = num.array(fid.variables[key])
 
@@ -1172,7 +1176,7 @@ def _read_pts_file_header(fid, verbose=False):
         msg = "Expected keyword 'points' but could not find it."
         raise IOError, msg
 
-    if verbose: print 'Got %d variables: %s' % (len(keys), keys)
+    if verbose: log.critical('Got %d variables: %s' % (len(keys), keys))
 
     try:
         geo_reference = Geo_reference(NetCDFObject=fid)
@@ -1561,7 +1565,7 @@ def find_optimal_smoothing_parameter(data_file,
     attribute_smoothed = 'elevation'
 
     if mesh_file is None:
-        if verbose: print "building mesh"
+        if verbose: log.critical("building mesh")
         mesh_file = 'temp.msh'
 
         if (north_boundary is None or south_boundary is None
@@ -1596,14 +1600,15 @@ def find_optimal_smoothing_parameter(data_file,
             raise IOError, msg
 
     # split topo data
-    if verbose: print 'Reading elevation file: %s' % data_file
+    if verbose: log.critical('Reading elevation file: %s' % data_file)
     G = Geospatial_data(file_name = data_file)
-    if verbose: print 'Start split'
+    if verbose: log.critical('Start split')
     G_small, G_other = G.split(split_factor, seed_num, verbose=verbose)
-    if verbose: print 'Finish split'
+    if verbose: log.critical('Finish split')
     points = G_small.get_data_points()
 
-    if verbose: print "Number of points in sample to compare: ", len(points)
+    if verbose: log.critical("Number of points in sample to compare: %d"
+                             % len(points))
 
     if alpha_list == None:
         alphas = [0.001,0.01,100]
@@ -1627,14 +1632,16 @@ def find_optimal_smoothing_parameter(data_file,
 
     normal_cov = num.array(num.zeros([len(alphas), 2]), dtype=num.float)
 
-    if verbose: print 'Setup computational domains with different alphas'
+    if verbose: log.critical('Setup computational domains with '
+                             'different alphas')
 
     for i, alpha in enumerate(alphas):
         # add G_other data to domains with different alphas
         if verbose:
-            print '\nCalculating domain and mesh for Alpha =', alpha, '\n'
+            log.critical('Calculating domain and mesh for Alpha=%s'
+                         % str(alpha))
         domain = Domain(mesh_file, use_cache=cache, verbose=verbose)
-        if verbose: print domain.statistics()
+        if verbose: log.critical(domain.statistics())
         domain.set_quantity(attribute_smoothed,
                             geospatial_data=G_other,
                             use_cache=cache,
@@ -1646,7 +1653,8 @@ def find_optimal_smoothing_parameter(data_file,
 
         # returns the predicted elevation of the points that were "split" out
         # of the original data set for one particular alpha
-        if verbose: print 'Get predicted elevation for location to be compared'
+        if verbose: log.critical('Get predicted elevation for location '
+                                 'to be compared')
         elevation_predicted = \
                 domain.quantities[attribute_smoothed].\
                     get_values(interpolation_points=points_geo)
@@ -1659,9 +1667,9 @@ def find_optimal_smoothing_parameter(data_file,
         normal_cov[i,:] = [alpha, ele_cov / sample_cov]
 
         if verbose:
-            print 'Covariance for alpha ', normal_cov[i][0], '= ', \
-                      normal_cov[i][1]
-            print '-------------------------------------------- \n'
+            log.critical('Covariance for alpha %s=%s'
+                         % (normal_cov[i][0], normal_cov[i][1]))
+            log.critical('--------------------------------------------')
 
     normal_cov0 = normal_cov[:,0]
     normal_cov_new = num.take(normal_cov, num.argsort(normal_cov0), axis=0)
@@ -1677,12 +1685,12 @@ def find_optimal_smoothing_parameter(data_file,
         remove(mesh_file)
 
     if verbose:
-        print 'Final results:'
+        log.critical('Final results:')
         for i, alpha in enumerate(alphas):
-            print ('covariance for alpha %s = %s '
-                   % (normal_cov[i][0], normal_cov[i][1]))
-        print ('\nOptimal alpha is: %s '
-               % normal_cov_new[(num.argmin(normal_cov_new, axis=0))[1], 0])
+            log.critical('covariance for alpha %s = %s '
+                         % (normal_cov[i][0], normal_cov[i][1]))
+        log.critical('Optimal alpha is: %s '
+                     % normal_cov_new[(num.argmin(normal_cov_new, axis=0))[1], 0])
 
     # covariance and optimal alpha
     return (min(normal_cov_new[:,1]),
@@ -1801,12 +1809,13 @@ def old_find_optimal_smoothing_parameter(data_file,
 
     # split topo data
     G = Geospatial_data(file_name=data_file)
-    if verbose: print 'start split'
+    if verbose: log.critical('start split')
     G_small, G_other = G.split(split_factor, seed_num, verbose=verbose)
-    if verbose: print 'finish split'
+    if verbose: log.critical('finish split')
     points = G_small.get_data_points()
 
-    if verbose: print "Number of points in sample to compare: ", len(points)
+    if verbose: log.critical("Number of points in sample to compare: %d"
+                             % len(points))
 
     if alpha_list == None:
         alphas = [0.001,0.01,100]
@@ -1817,14 +1826,16 @@ def old_find_optimal_smoothing_parameter(data_file,
 
     domains = {}
 
-    if verbose: print 'Setup computational domains with different alphas'
+    if verbose: log.critical('Setup computational domains with '
+                             'different alphas')
 
     for alpha in alphas:
         # add G_other data to domains with different alphas
         if verbose:
-            print '\nCalculating domain and mesh for Alpha =', alpha, '\n'
+            log.critical('Calculating domain and mesh for Alpha = %s' %
+                         str(alpha))
         domain = Domain(mesh_file, use_cache=cache, verbose=verbose)
-        if verbose: print domain.statistics()
+        if verbose: log.critical(domain.statistics())
         domain.set_quantity(attribute_smoothed,
                             geospatial_data=G_other,
                             use_cache=cache,
@@ -1848,7 +1859,8 @@ def old_find_optimal_smoothing_parameter(data_file,
     normal_cov = num.array(num.zeros([len(alphas), 2]), dtype=num.float)
 
     if verbose:
-        print 'Determine difference between predicted results and actual data'
+        log.critical('Determine difference between predicted results '
+                     'and actual data')
 
     for i, alpha in enumerate(domains):
         if verbose: print'Alpha =', alpha
@@ -1866,8 +1878,9 @@ def old_find_optimal_smoothing_parameter(data_file,
         sample_cov = cov(elevation_sample)
         ele_cov = cov(elevation_sample - elevation_predicted)
         normal_cov[i,:] = [alpha,ele_cov / sample_cov]
-        print 'memory usage during compare', mem_usage()
-        if verbose: print 'cov', normal_cov[i][0], '= ', normal_cov[i][1]
+        log.critical('memory usage during compare: %s' % str(mem_usage()))
+        if verbose: log.critical('cov %s = %s'
+                                 % (normal_cov[i][0], normal_cov[i][1]))
 
     normal_cov0 = normal_cov[:,0]
     normal_cov_new = num.take(normal_cov, num.argsort(normal_cov0), axis=0)

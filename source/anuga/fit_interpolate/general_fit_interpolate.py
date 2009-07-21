@@ -33,6 +33,7 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.geospatial_data.geospatial_data import Geospatial_data, \
      ensure_absolute
 from anuga.fit_interpolate.search_functions import set_last_triangle
+import anuga.utilities.log as log
 
 import numpy as num
 
@@ -100,7 +101,7 @@ class FitInterpolate:
                 vertex_coordinates = ensure_absolute(vertex_coordinates,
                                                  geo_reference = mesh_origin)
 
-                if verbose: print 'FitInterpolate: Building mesh'        
+                if verbose: log.critical('FitInterpolate: Building mesh')
                 self.mesh = Mesh(vertex_coordinates, triangles)
                 #self.mesh.check_integrity() # Time consuming
             else:
@@ -109,14 +110,11 @@ class FitInterpolate:
             self.mesh = mesh
 
         if self.mesh is not None:
-            if verbose: print 'FitInterpolate: Building quad tree'
+            if verbose: log.critical('FitInterpolate: Building quad tree')
             #This stores indices of vertices
             t0 = time.time()
-            #print "self.mesh.get_extent(absolute=True)", \
-            #self.mesh.get_extent(absolute=True)
             self.root = build_quadtree(self.mesh,
                                        max_points_per_cell = max_vertices_per_cell)
-            #print "self.root",self.root.show()
         
             build_quadtree_time =  time.time()-t0
             set_last_triangle()

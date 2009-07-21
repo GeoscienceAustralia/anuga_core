@@ -66,7 +66,6 @@ def redfearn(lat, lon, false_easting=None, false_northing=None,
         K0 = 0.9996                         #Central scale factor    
     else:
         K0 = scale_factor
-    #print 'scale', K0
     zone_width = 6                      #Degrees
 
     longitude_of_central_meridian_zone0 = -183    

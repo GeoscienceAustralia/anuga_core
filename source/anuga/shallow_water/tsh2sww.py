@@ -14,6 +14,8 @@ from anuga.pyvolution.pmesh2domain import pmesh_to_domain_instance
 import time, os 
 from anuga.pyvolution.data_manager import get_dataobject   
 from anuga.utilities.numerical_tools import mean
+import anuga.utilities.log as log
+
 
 def tsh2sww(infilename, sww_file_name = None, verbose = False):
     """
@@ -22,9 +24,9 @@ def tsh2sww(infilename, sww_file_name = None, verbose = False):
     
     Note: This currently just writes the output file in the input file dir.
     """
-    if verbose == True:print 'Creating domain from', infilename
+    if verbose == True: log.critical('Creating domain from %s' % infilename)
     domain = pmesh_to_domain_instance(infilename, Domain)
-    if verbose == True:print "Number of triangles = ", len(domain)
+    if verbose == True: log.critical("Number of triangles = %d" % len(domain))
 
     domain.smooth = True
     domain.format = 'sww'   #Native netcdf visualisation format
@@ -38,13 +40,14 @@ def tsh2sww(infilename, sww_file_name = None, verbose = False):
     domain.set_name(filename)
         
     domain.reduction = mean
-    if verbose == True:print "file_path",file_path
+    if verbose == True: log.critical("file_path %s" % file_path)
     if file_path == "":file_path = "."
     domain.set_datadir(file_path)
 
     if verbose == True:
-        print "Output written to " + domain.get_datadir() + sep + \
-              domain.get_name() + "." + domain.format  
+        log.critical("Output written to %s%s%s.%s"
+                     % (domain.get_datadir(), sep, domain.get_name(),
+                        domain.format)
     sww = get_dataobject(domain)
     sww.store_connectivity()
     sww.store_timestep('stage')

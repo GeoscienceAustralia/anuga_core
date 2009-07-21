@@ -91,6 +91,7 @@ from anuga.load_mesh.loadASCII import export_mesh_file
 from anuga.utilities.polygon import intersection
 
 from anuga.utilities.system_tools import get_vars_in_expression
+import anuga.utilities.log as log
 
 
 # Default block size for sww2dem()
@@ -180,15 +181,15 @@ def check_dir(path, verbose=None):
             else:
                 pass  # FIXME: What about access rights under Windows?
 
-            if verbose: print 'MESSAGE: Directory', path, 'created.'
+            if verbose: log.critical('MESSAGE: Directory %s created.' % path)
         except:
-            print 'WARNING: Directory', path, 'could not be created.'
+            log.critical('WARNING: Directory %s could not be created.' % path)
             if unix:
                 path = '/tmp/'
             else:
                 path = 'C:' + os.sep
 
-            print "Using directory '%s' instead" % path
+            log.critical("Using directory '%s' instead" % path)
 
     return path
 
@@ -210,7 +211,7 @@ def del_dir(path):
                 try:
                     os.remove(X)
                 except:
-                    print "Could not remove file %s" % X
+                    log.critical("Could not remove file %s" % X)
 
         os.rmdir(path)
 
@@ -226,9 +227,9 @@ def rmgeneric(path, func, verbose=False):
 
     try:
         func(path)
-        if verbose: print 'Removed ', path
+        if verbose: log.critical('Removed %s' % path)
     except OSError, (errno, strerror):
-        print ERROR_STR % {'path' : path, 'error': strerror }
+        log.critical(ERROR_STR % {'path' : path, 'error': strerror })
 
 
 ##
@@ -482,7 +483,7 @@ class Data_format_sww(Data_format):
                 msg = 'Warning (store_timestep): File %s could not be opened' \
                       % self.filename
                 msg += ' - trying step %s again' % self.domain.time
-                print msg
+                log.critical(msg)
                 retries += 1
                 sleep(1)
             else:
@@ -523,8 +524,9 @@ class Data_format_sww(Data_format):
                                                   max_size=self.max_size,
                                                   recursion=self.recursion+1)
             if not self.recursion:
-                print '    file_size = %s' % file_size
-                print '    saving file to %s' % next_data_structure.filename
+                log.critical('    file_size = %s' % file_size)
+                log.critical('    saving file to %s'
+                             % next_data_structure.filename) 
 
             #set up the new data_structure
             self.domain.writer = next_data_structure
@@ -722,7 +724,7 @@ class Data_format_cpt(Data_format):
                 #In that case, wait a while and try again
                 msg = 'Warning (store_timestep): File %s could not be opened' \
                       ' - trying again' % self.filename
-                print msg
+                log.critical(msg)
                 retries += 1
                 sleep(1)
             else:
@@ -1297,7 +1299,7 @@ def sww2obj(basefilename, size):
 
     # Get NetCDF
     FN = create_filename('.', basefilename, 'sww', size)
-    print 'Reading from ', FN
+    log.critical('Reading from %s' % FN)
     fid = NetCDFFile(FN, netcdf_mode_r)  #Open existing file for read
 
     # Get the variables
@@ -1326,7 +1328,7 @@ def sww2obj(basefilename, size):
     # x,y info and store as obj
     for k in range(len(time)):
         t = time[k]
-        print 'Processing timestep %f' %t
+        log.critical('Processing timestep %f' % t)
 
         for i in range(M):
             for j in range(3):
@@ -1374,7 +1376,7 @@ def dat2obj(basefilename):
 
     files = glob.glob(data_dir + os.sep + basefilename + '*.dat')
     for filename in files:
-        print 'Processing %s' % filename
+        log.critical('Processing %s' % filename)
 
         lines = open(data_dir + os.sep + filename, 'r').readlines()
         assert len(lines) == M
@@ -1453,7 +1455,8 @@ def filter_netcdf(filename1, filename2, first=0, last=None, step=1):
 
     selection = range(first, last, step)
     for i, j in enumerate(selection):
-        print 'Copying timestep %d of %d (%f)' % (j, last-first, time[j])
+        log.critical('Copying timestep %d of %d (%f)'
+                     % (j, last-first, time[j]))
         newtime[i] = time[j]
         newstage[i,:] = stage[j,:]
 
@@ -1555,7 +1558,7 @@ def _dem2pts(basename_in, basename_out=None, verbose=False,
     # Get NetCDF
     infile = NetCDFFile(root + '.dem', netcdf_mode_r) 
 
-    if verbose: print 'Reading DEM from %s' %(root + '.dem')
+    if verbose: log.critical('Reading DEM from %s' % (root + '.dem'))
 
     ncols = infile.ncols[0]
     nrows = infile.nrows[0]
@@ -1580,7 +1583,7 @@ def _dem2pts(basename_in, basename_out=None, verbose=False,
     else:
         ptsname = basename_out + '.pts'
 
-    if verbose: print 'Store to NetCDF file %s' %ptsname
+    if verbose: log.critical('Store to NetCDF file %s' % ptsname)
 
     # NetCDF file definition
     outfile = NetCDFFile(ptsname, netcdf_mode_w)
@@ -1656,9 +1659,10 @@ def _dem2pts(basename_in, basename_out=None, verbose=False,
     clipped_dem_elev = dem_elevation_r[i1_0:thisi+1,j1_0:thisj+1]
 
     if verbose:
-        print 'There are %d values in the elevation' %totalnopoints
-        print 'There are %d values in the clipped elevation' %clippednopoints
-        print 'There are %d NODATA_values in the clipped elevation' %nn
+        log.critical('There are %d values in the elevation' % totalnopoints)
+        log.critical('There are %d values in the clipped elevation'
+                     % clippednopoints)
+        log.critical('There are %d NODATA_values in the clipped elevation' % nn)
 
     outfile.createDimension('number_of_points', nopoints)
     outfile.createDimension('number_of_dimensions', 2) #This is 2d data
@@ -1679,7 +1683,7 @@ def _dem2pts(basename_in, basename_out=None, verbose=False,
     # for i in range(nrows):
     for i in range(i1_0, thisi+1, 1):
         if verbose and i % ((nrows+10)/10) == 0:
-            print 'Processing row %d of %d' % (i, nrows)
+            log.critical('Processing row %d of %d' % (i, nrows))
 
         lower_index = global_index
 
@@ -1819,12 +1823,12 @@ Only the SURFACE LINE data of the following form will be utilised
     # Get ASCII file
     infile = open(root + '.sdf', 'r')
 
-    if verbose: print 'Reading DEM from %s' %(root + '.sdf')
+    if verbose: log.critical('Reading DEM from %s' % (root + '.sdf'))
 
     lines = infile.readlines()
     infile.close()
 
-    if verbose: print 'Converting to pts format'
+    if verbose: log.critical('Converting to pts format')
 
     # Scan through the header, picking up stuff we need.
     i = 0
@@ -2025,7 +2029,7 @@ def get_timeseries(production_dirs, output_dir, scenario_name, gauges_dir_name,
     swwfiles = {}
     if is_parallel is True:
         for i in range(nodes):
-            print 'Sending node %d of %d' % (i, nodes)
+            log.critical('Sending node %d of %d' % (i, nodes))
             swwfiles = {}
             if not reportname == None:
                 reportname = report_name + '_%s' % i
@@ -2036,7 +2040,7 @@ def get_timeseries(production_dirs, output_dir, scenario_name, gauges_dir_name,
                     file_loc = output_dir + label_id + sep
                     sww_extra = '_P%s_%s' % (i, nodes)
                     swwfile = file_loc + scenario_name + sww_extra + '.sww'
-                    print 'swwfile', swwfile
+                    log.critical('swwfile %s' % swwfile)
                     swwfiles[swwfile] = label_id
 
                 texname, elev_output = sww2timeseries(swwfiles,
@@ -2054,7 +2058,7 @@ def get_timeseries(production_dirs, output_dir, scenario_name, gauges_dir_name,
     else:
         for label_id in production_dirs.keys():
             if label_id == 'boundaries':
-                print 'boundaries'
+                log.critical('boundaries')
                 file_loc = project.boundaries_in_dir
                 swwfile = project.boundaries_dir_name3 + '.sww'
                 #  swwfile = boundary_dir_filename
@@ -2195,8 +2199,8 @@ def sww2dem(basename_in, basename_out=None,
 
     # Read sww file
     if verbose:
-        print 'Reading from %s' % swwfile
-        print 'Output directory is %s' % basename_out
+        log.critical('Reading from %s' % swwfile)
+        log.critical('Output directory is %s' % basename_out)
 
     from Scientific.IO.NetCDF import NetCDFFile
     fid = NetCDFFile(swwfile)
@@ -2233,36 +2237,37 @@ def sww2dem(basename_in, basename_out=None,
     # (in interpolate.py)
     # Something like print swwstats(swwname)
     if verbose:
-        print '------------------------------------------------'
-        print 'Statistics of SWW file:'
-        print '  Name: %s' %swwfile
-        print '  Reference:'
-        print '    Lower left corner: [%f, %f]'\
-              %(xllcorner, yllcorner)
+        log.critical('------------------------------------------------')
+        log.critical('Statistics of SWW file:')
+        log.critical('  Name: %s' % swwfile)
+        log.critical('  Reference:')
+        log.critical('    Lower left corner: [%f, %f]' % (xllcorner, yllcorner))
         if timestep is not None:
-            print '    Time: %f' %(times)
+            log.critical('    Time: %f' % times)
         else:
-            print '    Start time: %f' %fid.starttime[0]
-        print '  Extent:'
-        print '    x [m] in [%f, %f], len(x) == %d'\
-              %(num.min(x), num.max(x), len(x.flat))
-        print '    y [m] in [%f, %f], len(y) == %d'\
-              %(num.min(y), num.max(y), len(y.flat))
+            log.critical('    Start time: %f' % fid.starttime[0])
+        log.critical('  Extent:')
+        log.critical('    x [m] in [%f, %f], len(x) == %d'
+                     %(num.min(x), num.max(x), len(x.flat)))
+        log.critical('    y [m] in [%f, %f], len(y) == %d'
+                     % (num.min(y), num.max(y), len(y.flat)))
         if timestep is not None:
-            print '    t [s] = %f, len(t) == %d' %(times, 1)
+            log.critical('    t [s] = %f, len(t) == %d' % (times, 1))
         else:
-            print '    t [s] in [%f, %f], len(t) == %d'\
-              %(min(times), max(times), len(times))
-        print '  Quantities [SI units]:'
+            log.critical('    t [s] in [%f, %f], len(t) == %d'
+                         % (min(times), max(times), len(times)))
+        log.critical('  Quantities [SI units]:')
         # Comment out for reduced memory consumption
         for name in ['stage', 'xmomentum', 'ymomentum']:
             q = fid.variables[name][:].flatten()
             if timestep is not None:
                 q = q[timestep*len(x):(timestep+1)*len(x)]
-            if verbose: print '    %s in [%f, %f]' %(name, min(q), max(q))
+            if verbose: log.critical('    %s in [%f, %f]'
+                                     % (name, min(q), max(q)))
         for name in ['elevation']:
             q = fid.variables[name][:].flatten()
-            if verbose: print '    %s in [%f, %f]' %(name, min(q), max(q))
+            if verbose: log.critical('    %s in [%f, %f]'
+                                     % (name, min(q), max(q)))
 
     # Get the variables in the supplied expression.
     # This may throw a SyntaxError exception.
@@ -2312,8 +2317,8 @@ def sww2dem(basename_in, basename_out=None,
     assert result.shape[0] == number_of_points
 
     if verbose:
-        print 'Processed values for %s are in [%f, %f]' % \
-              (quantity, min(result), max(result))
+        log.critical('Processed values for %s are in [%f, %f]'
+                     % (quantity, min(result), max(result)))
 
     #Create grid and update xll/yll corner and x,y
     #Relative extent
@@ -2345,7 +2350,7 @@ def sww2dem(basename_in, basename_out=None,
     msg += 'I got ymin = %f, ymax = %f' %(ymin, ymax)
     assert ymax >= ymin, msg
 
-    if verbose: print 'Creating grid'
+    if verbose: log.critical('Creating grid')
     ncols = int((xmax-xmin)/cellsize) + 1
     nrows = int((ymax-ymin)/cellsize) + 1
 
@@ -2385,12 +2390,12 @@ def sww2dem(basename_in, basename_out=None,
     interp = Interpolate(vertex_points, volumes, verbose = verbose)
 
     #Interpolate using quantity values
-    if verbose: print 'Interpolating'
+    if verbose: log.critical('Interpolating')
     grid_values = interp.interpolate(result, grid_points).flatten()
 
     if verbose:
-        print 'Interpolated values are in [%f, %f]' %(num.min(grid_values),
-                                                      num.max(grid_values))
+        log.critical('Interpolated values are in [%f, %f]'
+                     % (num.min(grid_values), num.max(grid_values)))
 
     #Assign NODATA_value to all points outside bounding polygon (from interpolation mesh)
     P = interp.mesh.get_boundary_polygon()
@@ -2421,7 +2426,7 @@ def sww2dem(basename_in, basename_out=None,
         #header['celltype'] = 'IEEE8ByteReal'  #FIXME: Breaks unit test
 
         #Write
-        if verbose: print 'Writing %s' %demfile
+        if verbose: log.critical('Writing %s' % demfile)
 
         import ermapper_grids
 
@@ -2433,7 +2438,7 @@ def sww2dem(basename_in, basename_out=None,
         #Write prj file
         prjfile = basename_out + '.prj'
 
-        if verbose: print 'Writing %s' %prjfile
+        if verbose: log.critical('Writing %s' % prjfile)
         prjid = open(prjfile, 'w')
         prjid.write('Projection    %s\n' %'UTM')
         prjid.write('Zone          %d\n' %zone)
@@ -2446,7 +2451,7 @@ def sww2dem(basename_in, basename_out=None,
         prjid.write('Parameters\n')
         prjid.close()
 
-        if verbose: print 'Writing %s' %demfile
+        if verbose: log.critical('Writing %s' % demfile)
 
         ascid = open(demfile, 'w')
 
@@ -2462,7 +2467,7 @@ def sww2dem(basename_in, basename_out=None,
         #inside_indices = inside_polygon(grid_points, P)
         for i in range(nrows):
             if verbose and i % ((nrows+10)/10) == 0:
-                print 'Doing row %d of %d' %(i, nrows)
+                log.critical('Doing row %d of %d' % (i, nrows))
 
             base_index = (nrows-i-1)*ncols
 
@@ -2500,7 +2505,7 @@ def sww2asc(basename_in, basename_out = None,
             cellsize = 10,
             verbose = False,
             origin = None):
-    print 'sww2asc will soon be obsoleted - please use sww2dem'
+    log.critical('sww2asc will soon be obsoleted - please use sww2dem')
     sww2dem(basename_in,
             basename_out = basename_out,
             quantity = quantity,
@@ -2534,7 +2539,7 @@ def sww2ers(basename_in, basename_out=None,
             verbose=False,
             origin=None,
             datum='WGS84'):
-    print 'sww2ers will soon be obsoleted - please use sww2dem'
+    log.critical('sww2ers will soon be obsoleted - please use sww2dem')
     sww2dem(basename_in,
             basename_out=basename_out,
             quantity=quantity,
@@ -2604,7 +2609,7 @@ def sww2pts(basename_in, basename_out=None,
     ptsfile = basename_out + '.pts'
 
     # Read sww file
-    if verbose: print 'Reading from %s' % swwfile
+    if verbose: log.critical('Reading from %s' % swwfile)
     from Scientific.IO.NetCDF import NetCDFFile
     fid = NetCDFFile(swwfile)
 
@@ -2637,26 +2642,26 @@ def sww2pts(basename_in, basename_out=None,
         x = fid.variables['x'][:]
         y = fid.variables['y'][:]
         times = fid.variables['time'][:]
-        print '------------------------------------------------'
-        print 'Statistics of SWW file:'
-        print '  Name: %s' % swwfile
-        print '  Reference:'
-        print '    Lower left corner: [%f, %f]' % (xllcorner, yllcorner)
-        print '    Start time: %f' % fid.starttime[0]
-        print '  Extent:'
-        print '    x [m] in [%f, %f], len(x) == %d' \
-              % (num.min(x), num.max(x), len(x.flat))
-        print '    y [m] in [%f, %f], len(y) == %d' \
-              % (num.min(y), num.max(y), len(y.flat))
-        print '    t [s] in [%f, %f], len(t) == %d' \
-              % (min(times), max(times), len(times))
-        print '  Quantities [SI units]:'
+        log.critical('------------------------------------------------')
+        log.critical('Statistics of SWW file:')
+        log.critical('  Name: %s' % swwfile)
+        log.critical('  Reference:')
+        log.critical('    Lower left corner: [%f, %f]' % (xllcorner, yllcorner))
+        log.critical('    Start time: %f' % fid.starttime[0])
+        log.critical('  Extent:')
+        log.critical('    x [m] in [%f, %f], len(x) == %d'
+                     % (num.min(x), num.max(x), len(x.flat)))
+        log.critical('    y [m] in [%f, %f], len(y) == %d'
+                     % (num.min(y), num.max(y), len(y.flat)))
+        log.critical('    t [s] in [%f, %f], len(t) == %d'
+                     % (min(times), max(times), len(times)))
+        log.critical('  Quantities [SI units]:')
         for name in ['stage', 'xmomentum', 'ymomentum', 'elevation']:
             q = fid.variables[name][:].flat
-            print '    %s in [%f, %f]' % (name, min(q), max(q))
+            log.critical('    %s in [%f, %f]' % (name, min(q), max(q)))
 
     # Get quantity and reduce if applicable
-    if verbose: print 'Processing quantity %s' % quantity
+    if verbose: log.critical('Processing quantity %s' % quantity)
 
     # Turn NetCDF objects into numeric arrays
     quantity_dict = {}
@@ -2669,7 +2674,7 @@ def sww2pts(basename_in, basename_out=None,
     if len(q.shape) == 2:
         # q has a time component and needs to be reduced along
         # the temporal dimension
-        if verbose: print 'Reducing quantity %s' % quantity
+        if verbose: log.critical('Reducing quantity %s' % quantity)
 
         q_reduced = num.zeros(number_of_points, num.float)
         for k in range(number_of_points):
@@ -2681,8 +2686,8 @@ def sww2pts(basename_in, basename_out=None,
     assert q.shape[0] == number_of_points
 
     if verbose:
-        print 'Processed values for %s are in [%f, %f]' \
-              % (quantity, min(q), max(q))
+        log.critical('Processed values for %s are in [%f, %f]'
+                     % (quantity, min(q), max(q)))
 
     # Create grid and update xll/yll corner and x,y
     vertex_points = num.concatenate((x[:, num.newaxis], y[:, num.newaxis]), axis=1)
@@ -2693,12 +2698,13 @@ def sww2pts(basename_in, basename_out=None,
     interp = Interpolate(vertex_points, volumes, verbose=verbose)
 
     # Interpolate using quantity values
-    if verbose: print 'Interpolating'
+    if verbose: log.critical('Interpolating')
     interpolated_values = interp.interpolate(q, data_points).flatten()
 
     if verbose:
-        print ('Interpolated values are in [%f, %f]'
-               % (num.min(interpolated_values), num.max(interpolated_values)))
+        log.critical('Interpolated values are in [%f, %f]'
+                     % (num.min(interpolated_values),
+                        num.max(interpolated_values)))
 
     # Assign NODATA_value to all points outside bounding polygon
     # (from interpolation mesh)
@@ -2792,7 +2798,7 @@ def _convert_dem_from_ascii2netcdf(basename_in, basename_out = None,
     root = basename_in
 
     # Read Meta data
-    if verbose: print 'Reading METADATA from %s' % root + '.prj'
+    if verbose: log.critical('Reading METADATA from %s' % (root + '.prj'))
 
     metadatafile = open(root + '.prj')
     metalines = metadatafile.readlines()
@@ -2833,12 +2839,12 @@ def _convert_dem_from_ascii2netcdf(basename_in, basename_out = None,
     #Read DEM data
     datafile = open(basename_in + '.asc')
 
-    if verbose: print 'Reading DEM from %s' % basename_in + '.asc'
+    if verbose: log.critical('Reading DEM from %s' % (basename_in + '.asc'))
 
     lines = datafile.readlines()
     datafile.close()
 
-    if verbose: print 'Got', len(lines), ' lines'
+    if verbose: log.critical('Got %d lines' % len(lines))
 
     ncols = int(lines[0].split()[1].strip())
     nrows = int(lines[1].split()[1].strip())
@@ -2876,7 +2882,7 @@ def _convert_dem_from_ascii2netcdf(basename_in, basename_out = None,
     else:
         netcdfname = basename_out + '.dem'
 
-    if verbose: print 'Store to NetCDF file %s' % netcdfname
+    if verbose: log.critical('Store to NetCDF file %s' % netcdfname)
 
     # NetCDF file definition
     fid = NetCDFFile(netcdfname, netcdf_mode_w)
@@ -2916,7 +2922,7 @@ def _convert_dem_from_ascii2netcdf(basename_in, basename_out = None,
     for i, line in enumerate(lines[6:]):
         fields = line.split()
         if verbose and i % ((n+10)/10) == 0:
-            print 'Processing row %d of %d' % (i, nrows)
+            log.critical('Processing row %d of %d' % (i, nrows))
            
         if len(fields) != ncols:
             msg = 'Wrong number of columns in file "%s" line %d\n' % (basename_in + '.asc', i)
@@ -3010,7 +3016,7 @@ def ferret2sww(basename_in, basename_out=None,
             assert maxlon > minlon
 
     # Get NetCDF data
-    if verbose: print 'Reading files %s_*.nc' % basename_in
+    if verbose: log.critical('Reading files %s_*.nc' % basename_in)
 
     file_h = NetCDFFile(basename_in + '_ha.nc', netcdf_mode_r) # Wave amplitude (cm)
     file_u = NetCDFFile(basename_in + '_ua.nc', netcdf_mode_r) # Velocity (x) (cm/s)
@@ -3105,7 +3111,7 @@ def ferret2sww(basename_in, basename_out=None,
     latitudes = latitudes[kmin:kmax]
     longitudes = longitudes[lmin:lmax]
 
-    if verbose: print 'cropping'
+    if verbose: log.critical('cropping')
 
     zname = 'ELEVATION'
 
@@ -3183,32 +3189,37 @@ def ferret2sww(basename_in, basename_out=None,
     assert amplitudes.shape[2] == number_of_longitudes
 
     if verbose:
-        print '------------------------------------------------'
-        print 'Statistics:'
-        print '  Extent (lat/lon):'
-        print '    lat in [%f, %f], len(lat) == %d' \
-              % (num.min(latitudes), num.max(latitudes), len(latitudes.flat))
-        print '    lon in [%f, %f], len(lon) == %d' \
-              % (num.min(longitudes), num.max(longitudes),
-                 len(longitudes.flat))
-        print '    t in [%f, %f], len(t) == %d' \
-              % (num.min(times), num.max(times), len(times.flat))
+        log.critical('------------------------------------------------')
+        log.critical('Statistics:')
+        log.critical('  Extent (lat/lon):')
+        log.critical('    lat in [%f, %f], len(lat) == %d'
+                     % (num.min(latitudes), num.max(latitudes),
+                        len(latitudes.flat)))
+        log.critical('    lon in [%f, %f], len(lon) == %d'
+                     % (num.min(longitudes), num.max(longitudes),
+                        len(longitudes.flat)))
+        log.critical('    t in [%f, %f], len(t) == %d'
+                     % (num.min(times), num.max(times), len(times.flat)))
 
 #        q = amplitudes.flatten()
         name = 'Amplitudes (ha) [cm]'
-        print '  %s in [%f, %f]' % (name, num.min(amplitudes), num.max(amplitudes))
+        log.critical('  %s in [%f, %f]'
+                     % (name, num.min(amplitudes), num.max(amplitudes)))
 
 #        q = uspeed.flatten()
         name = 'Speeds (ua) [cm/s]'
-        print '  %s in [%f, %f]' % (name, num.min(uspeed), num.max(uspeed))
+        log.critical('  %s in [%f, %f]'
+                     % (name, num.min(uspeed), num.max(uspeed)))
 
 #        q = vspeed.flatten()
         name = 'Speeds (va) [cm/s]'
-        print '  %s in [%f, %f]' % (name, num.min(vspeed), num.max(vspeed))
+        log.critical('  %s in [%f, %f]'
+                     % (name, num.min(vspeed), num.max(vspeed)))
 
 #        q = elevations.flatten()
         name = 'Elevations (e) [m]'
-        print '  %s in [%f, %f]' % (name, num.min(elevations), num.max(elevations))
+        log.critical('  %s in [%f, %f]'
+                     % (name, num.min(elevations), num.max(elevations)))
 
     # print number_of_latitudes, number_of_longitudes
     number_of_points = number_of_latitudes * number_of_longitudes
@@ -3241,7 +3252,7 @@ def ferret2sww(basename_in, basename_out=None,
     x = num.zeros(number_of_points, num.float)  #Easting
     y = num.zeros(number_of_points, num.float)  #Northing
 
-    if verbose: print 'Making triangular grid'
+    if verbose: log.critical('Making triangular grid')
 
     # Check zone boundaries
     refzone, _, _ = redfearn(latitudes[0], longitudes[0])
@@ -3301,11 +3312,12 @@ def ferret2sww(basename_in, basename_out=None,
     xmomentum = outfile.variables['xmomentum']
     ymomentum = outfile.variables['ymomentum']
 
-    if verbose: print 'Converting quantities'
+    if verbose: log.critical('Converting quantities')
 
     n = len(times)
     for j in range(n):
-        if verbose and j % ((n+10)/10) == 0: print '  Doing %d of %d' %(j, n)
+        if verbose and j % ((n+10)/10) == 0:
+            log.critical('  Doing %d of %d' % (j, n))
 
         i = 0
         for k in range(number_of_latitudes):      # Y direction
@@ -3324,26 +3336,26 @@ def ferret2sww(basename_in, basename_out=None,
     if verbose:
         x = outfile.variables['x'][:]
         y = outfile.variables['y'][:]
-        print '------------------------------------------------'
-        print 'Statistics of output file:'
-        print '  Name: %s' %swwname
-        print '  Reference:'
-        print '    Lower left corner: [%f, %f]' \
-              % (geo_ref.get_xllcorner(), geo_ref.get_yllcorner())
-        print ' Start time: %f' %starttime
-        print '    Min time: %f' %mint
-        print '    Max time: %f' %maxt
-        print '  Extent:'
-        print '    x [m] in [%f, %f], len(x) == %d' \
-              % (num.min(x), num.max(x), len(x.flat))
-        print '    y [m] in [%f, %f], len(y) == %d' \
-              % (num.min(y), num.max(y), len(y.flat))
-        print '    t [s] in [%f, %f], len(t) == %d' \
-              % (min(times), max(times), len(times))
-        print '  Quantities [SI units]:'
+        log.critical('------------------------------------------------')
+        log.critical('Statistics of output file:')
+        log.critical('  Name: %s' %swwname)
+        log.critical('  Reference:')
+        log.critical('    Lower left corner: [%f, %f]'
+                     % (geo_ref.get_xllcorner(), geo_ref.get_yllcorner()))
+        log.critical(' Start time: %f' %starttime)
+        log.critical('    Min time: %f' %mint)
+        log.critical('    Max time: %f' %maxt)
+        log.critical('  Extent:')
+        log.critical('    x [m] in [%f, %f], len(x) == %d'
+                     % (num.min(x), num.max(x), len(x.flat)))
+        log.critical('    y [m] in [%f, %f], len(y) == %d'
+                     % (num.min(y), num.max(y), len(y.flat)))
+        log.critical('    t [s] in [%f, %f], len(t) == %d'
+                     % (min(times), max(times), len(times)))
+        log.critical('  Quantities [SI units]:')
         for name in ['stage', 'xmomentum', 'ymomentum', 'elevation']:
             q = outfile.variables[name][:]    # .flatten()
-            print '    %s in [%f, %f]' % (name, num.min(q), num.max(q))
+            log.critical('    %s in [%f, %f]' % (name, num.min(q), num.max(q)))
 
     outfile.close()
 
@@ -3536,7 +3548,7 @@ def sww2domain(filename, boundary=None, t=None,
     # initialise NaN.
     NaN = 9.969209968386869e+036
 
-    if verbose: print 'Reading from ', filename
+    if verbose: log.critical('Reading from %s' % filename)
 
     fid = NetCDFFile(filename, netcdf_mode_r)    # Open existing file for read
     time = fid.variables['time']       # Timesteps
@@ -3569,7 +3581,7 @@ def sww2domain(filename, boundary=None, t=None,
     except: # AttributeError, e:
         geo_reference = None
 
-    if verbose: print '    getting quantities'
+    if verbose: log.critical('    getting quantities')
 
     for quantity in fid.variables.keys():
         dimensions = fid.variables[quantity].dimensions
@@ -3594,7 +3606,7 @@ def sww2domain(filename, boundary=None, t=None,
 
     conserved_quantities.remove('time')
 
-    if verbose: print '    building domain'
+    if verbose: log.critical('    building domain')
 
     #    From domain.Domain:
     #    domain = Domain(coordinates, volumes,\
@@ -3636,13 +3648,13 @@ def sww2domain(filename, boundary=None, t=None,
             pass                       # quantity has no missing_value number
         X = fid.variables[quantity][:]
         if very_verbose:
-            print '       ', quantity
-            print '        NaN =', NaN
-            print '        max(X)'
-            print '       ', max(X)
-            print '        max(X)==NaN'
-            print '       ', max(X)==NaN
-            print ''
+            log.critical('       %s' % str(quantity))
+            log.critical('        NaN = %s' % str(NaN))
+            log.critical('        max(X)')
+            log.critical('       %s' % str(max(X)))
+            log.critical('        max(X)==NaN')
+            log.critical('       %s' % str(max(X)==NaN))
+            log.critical('')
         if max(X) == NaN or min(X) == NaN:
             if fail_if_NaN:
                 msg = 'quantity "%s" contains no_data entry' % quantity
@@ -3661,13 +3673,13 @@ def sww2domain(filename, boundary=None, t=None,
             pass                       # quantity has no missing_value number
         X = interpolated_quantities[quantity]
         if very_verbose:
-            print '       ',quantity
-            print '        NaN =', NaN
-            print '        max(X)'
-            print '       ', max(X)
-            print '        max(X)==NaN'
-            print '       ', max(X)==NaN
-            print ''
+            log.critical('       %s' % str(quantity))
+            log.critical('        NaN = %s' % str(NaN))
+            log.critical('        max(X)')
+            log.critical('       %s' % str(max(X)))
+            log.critical('        max(X)==NaN')
+            log.critical('       %s' % str(max(X)==NaN))
+            log.critical('')
         if max(X) == NaN or min(X) == NaN:
             if fail_if_NaN:
                 msg = 'quantity "%s" contains no_data entry' % quantity
@@ -3831,7 +3843,7 @@ def decimate_dem(basename_in, stencil, cellsize_new, basename_out=None,
     #Open existing netcdf file to read
     infile = NetCDFFile(inname, netcdf_mode_r)
 
-    if verbose: print 'Reading DEM from %s' % inname
+    if verbose: log.critical('Reading DEM from %s' % inname)
 
     # Read metadata (convert from numpy.int32 to int where appropriate)
     ncols = int(infile.ncols[0])
@@ -3855,7 +3867,7 @@ def decimate_dem(basename_in, stencil, cellsize_new, basename_out=None,
     else:
         outname = basename_out + '.dem'
 
-    if verbose: print 'Write decimated NetCDF file to %s' % outname
+    if verbose: log.critical('Write decimated NetCDF file to %s' % outname)
 
     #Determine some dimensions for decimated grid
     (nrows_stencil, ncols_stencil) = stencil.shape
@@ -3907,7 +3919,7 @@ def decimate_dem(basename_in, stencil, cellsize_new, basename_out=None,
     #Store data
     global_index = 0
     for i in range(nrows_new):
-        if verbose: print 'Processing row %d of %d' %(i, nrows_new)
+        if verbose: log.critical('Processing row %d of %d' % (i, nrows_new))
 
         lower_index = global_index
         telev = num.zeros(ncols_new, num.float)
@@ -3950,11 +3962,11 @@ def tsh2sww(filename, verbose=False):
     to check if a tsh/msh file 'looks' good.
     """
 
-    if verbose == True:print 'Creating domain from', filename
+    if verbose == True: log.critical('Creating domain from %s' % filename)
 
     domain = pmesh_to_domain_instance(filename, Domain)
 
-    if verbose == True:print "Number of triangles = ", len(domain)
+    if verbose == True: log.critical("Number of triangles = %s" % len(domain))
 
     domain.smooth = True
     domain.format = 'sww'   #Native netcdf visualisation format
@@ -3963,15 +3975,16 @@ def tsh2sww(filename, verbose=False):
     domain.set_name(filename)
     domain.reduction = mean
 
-    if verbose == True:print "file_path",file_path
+    if verbose == True: log.critical("file_path = %s" % file_path)
 
     if file_path == "":
         file_path = "."
     domain.set_datadir(file_path)
 
     if verbose == True:
-        print "Output written to " + domain.get_datadir() + sep + \
-              domain.get_name() + "." + domain.format
+        log.critical("Output written to %s%s%s.%s"
+                     % (domain.get_datadir(), sep, domain.get_name(),
+                        domain.format))
 
     sww = get_dataobject(domain)
     sww.store_connectivity()
@@ -4098,15 +4111,15 @@ def asc_csiro2sww(bath_dir,
         times = [0.0]
 
     if verbose:
-        print '------------------------------------------------'
-        print 'Statistics:'
-        print '  Extent (lat/lon):'
-        print '    lat in [%f, %f], len(lat) == %d' \
-              % (min(latitudes), max(latitudes), len(latitudes))
-        print '    lon in [%f, %f], len(lon) == %d' \
-              % (min(longitudes), max(longitudes), len(longitudes))
-        print '    t in [%f, %f], len(t) == %d' \
-              % (min(times), max(times), len(times))
+        log.critical('------------------------------------------------')
+        log.critical('Statistics:')
+        log.critical('  Extent (lat/lon):')
+        log.critical('    lat in [%f, %f], len(lat) == %d'
+                     % (min(latitudes), max(latitudes), len(latitudes)))
+        log.critical('    lon in [%f, %f], len(lon) == %d'
+                     % (min(longitudes), max(longitudes), len(longitudes)))
+        log.critical('    t in [%f, %f], len(t) == %d'
+                     % (min(times), max(times), len(times)))
 
     ######### WRITE THE SWW FILE #############
 
@@ -4159,7 +4172,7 @@ def asc_csiro2sww(bath_dir,
     x = num.zeros(number_of_points, num.float)  #Easting
     y = num.zeros(number_of_points, num.float)  #Northing
 
-    if verbose: print 'Making triangular grid'
+    if verbose: log.critical('Making triangular grid')
 
     #Get zone of 1st point.
     refzone, _, _ = redfearn(latitudes[0], longitudes[0])
@@ -4202,14 +4215,14 @@ def asc_csiro2sww(bath_dir,
     #geo_ref = Geo_reference(refzone, (max(x)+min(x))/2., (max(x)+min(y))/2.)
 
     if verbose:
-        print '------------------------------------------------'
-        print 'More Statistics:'
-        print '  Extent (/lon):'
-        print '    x in [%f, %f], len(lat) == %d' \
-              % (min(x), max(x), len(x))
-        print '    y in [%f, %f], len(lon) == %d' \
-              % (min(y), max(y), len(y))
-        print 'geo_ref: ', geo_ref
+        log.critical('------------------------------------------------')
+        log.critical('More Statistics:')
+        log.critical('  Extent (/lon):')
+        log.critical('    x in [%f, %f], len(lat) == %d'
+                     % (min(x), max(x), len(x)))
+        log.critical('    y in [%f, %f], len(lon) == %d'
+                     % (min(y), max(y), len(y)))
+        log.critical('geo_ref: ', geo_ref)
 
     z = num.resize(bath_grid,outfile.variables['z'][:].shape)
     outfile.variables['x'][:] = x - geo_ref.get_xllcorner()
@@ -4226,7 +4239,7 @@ def asc_csiro2sww(bath_dir,
 
     outfile.variables['time'][:] = times   #Store time relative
 
-    if verbose: print 'Converting quantities'
+    if verbose: log.critical('Converting quantities')
 
     n = number_of_times
     for j in range(number_of_times):
@@ -4253,7 +4266,8 @@ def asc_csiro2sww(bath_dir,
                 elevation_grid = elevation_grid*(missing==0) \
                                  + missing*elevation_NaN_filler
 
-        if verbose and j % ((n+10)/10) == 0: print '  Doing %d of %d' % (j, n)
+        if verbose and j % ((n+10)/10) == 0: log.critical('  Doing %d of %d'
+                                                          % (j, n))
 
         i = 0
         for k in range(number_of_latitudes):      #Y direction
@@ -4372,12 +4386,12 @@ def _read_asc(filename, verbose=False):
 
     datafile = open(filename)
 
-    if verbose: print 'Reading DEM from %s' % filename
+    if verbose: log.critical('Reading DEM from %s' % filename)
 
     lines = datafile.readlines()
     datafile.close()
 
-    if verbose: print 'Got', len(lines), ' lines'
+    if verbose: log.critical('Got %d lines' % len(lines))
 
     ncols = int(lines.pop(0).split()[1].strip())
     nrows = int(lines.pop(0).split()[1].strip())
@@ -4629,7 +4643,7 @@ def urs2nc(basename_in='o', basename_out='urs'):
                 raise IOError, msg
             else:
                files_in[i] += '.mux'
-               print "file_name", file_name
+               log.critical("file_name %s" % file_name)
 
     hashed_elevation = None
     for file_in, file_out, quantity in map(None, files_in,
@@ -5314,7 +5328,7 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
     else:
         swwname = basename_out + '.sww'
 
-    if verbose: print 'Output to ', swwname
+    if verbose: log.critical('Output to %s' % swwname)
 
     outfile = NetCDFFile(swwname, netcdf_mode_w)
 
@@ -5330,7 +5344,7 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
                             elevation, zone,  new_origin=origin,
                             verbose=verbose)
 
-    if verbose: print 'Converting quantities'
+    if verbose: log.critical('Converting quantities')
 
     # Read in a time slice from each mux file and write it to the SWW file
     j = 0
@@ -5566,7 +5580,7 @@ def urs2sts(basename_in, basename_out=None,
     from operator import __and__
 
     if not isinstance(basename_in, ListType):
-        if verbose: print 'Reading single source'
+        if verbose: log.critical('Reading single source')
         basename_in = [basename_in]
 
     # This is the value used in the mux file format to indicate NAN data
@@ -5592,7 +5606,7 @@ def urs2sts(basename_in, basename_out=None,
               'mux2 source file'
         assert len(weights) == numSrc, msg
 
-    if verbose: print 'Weights used in urs2sts:', weights
+    if verbose: log.critical('Weights used in urs2sts: %s' % str(weights))
 
     # Check output filename
     if basename_out is None:
@@ -5621,7 +5635,8 @@ def urs2sts(basename_in, basename_out=None,
 
     # Establish permutation array
     if ordering_filename is not None:
-        if verbose is True: print 'Reading ordering file', ordering_filename
+        if verbose is True: log.critical('Reading ordering file %s'
+                                         % ordering_filename)
 
         # Read ordering file
         try:
@@ -5650,7 +5665,7 @@ def urs2sts(basename_in, basename_out=None,
         permutation = None
 
     # Read MUX2 files
-    if (verbose): print 'reading mux2 file'
+    if (verbose): log.critical('reading mux2 file')
 
     mux={}
     for i, quantity in enumerate(quantities):
@@ -5769,7 +5784,7 @@ def urs2sts(basename_in, basename_out=None,
     xmomentum = outfile.variables['xmomentum']
     ymomentum = outfile.variables['ymomentum']
 
-    if verbose: print 'Converting quantities'
+    if verbose: log.critical('Converting quantities')
 
     for j in range(len(times)):
         for i in range(number_of_points):
@@ -5780,7 +5795,7 @@ def urs2sts(basename_in, basename_out=None,
                 if verbose:
                     msg = 'Setting nodata value %d to 0 at time = %f, ' \
                           'point = %d' % (ha, times[j], i)
-                    print msg
+                    log.critical(msg)
                 ha = 0.0
                 ua = 0.0
                 va = 0.0
@@ -5980,10 +5995,10 @@ class Write_sww:
             outfile.variables['time'][:] = times    #Store time relative
 
         if verbose:
-            print '------------------------------------------------'
-            print 'Statistics:'
-            print '    t in [%f, %f], len(t) == %d' \
-                  % (num.min(times), num.max(times), len(times.flat))
+            log.critical('------------------------------------------------')
+            log.critical('Statistics:')
+            log.critical('    t in [%f, %f], len(t) == %d'
+                         % (num.min(times), num.max(times), len(times.flat)))
 
     ##
     # @brief Store triangulation data in the underlying file.
@@ -6062,17 +6077,17 @@ class Write_sww:
         z = outfile.variables['z'][:]
 
         if verbose:
-            print '------------------------------------------------'
-            print 'More Statistics:'
-            print '  Extent (/lon):'
-            print '    x in [%f, %f], len(lat) == %d' \
-                  % (min(x), max(x), len(x))
-            print '    y in [%f, %f], len(lon) == %d' \
-                  % (min(y), max(y), len(y))
-            print '    z in [%f, %f], len(z) == %d' \
-                  % (min(elevation), max(elevation), len(elevation))
-            print 'geo_ref: ',geo_ref
-            print '------------------------------------------------'
+            log.critical('------------------------------------------------')
+            log.critical('More Statistics:')
+            log.critical('  Extent (/lon):')
+            log.critical('    x in [%f, %f], len(lat) == %d'
+                         % (min(x), max(x), len(x)))
+            log.critical('    y in [%f, %f], len(lon) == %d'
+                         % (min(y), max(y), len(y)))
+            log.critical('    z in [%f, %f], len(z) == %d'
+                         % (min(elevation), max(elevation), len(elevation)))
+            log.critical('geo_ref: %s' % str(geo_ref))
+            log.critical('------------------------------------------------')
 
         #z = resize(bath_grid, outfile.variables['z'][:].shape)
         outfile.variables['x'][:] = points[:,0] #- geo_ref.get_xllcorner()
@@ -6157,13 +6172,13 @@ class Write_sww:
     # @brief Print the quantities in the underlying file.
     # @param outfile UNUSED.
     def verbose_quantities(self, outfile):
-        print '------------------------------------------------'
-        print 'More Statistics:'
+        log.critical('------------------------------------------------')
+        log.critical('More Statistics:')
         for q in Write_sww.sww_quantities:
-            print '  %s in [%f, %f]' % (q,
-                                        outfile.variables[q+Write_sww.RANGE][0],
-                                        outfile.variables[q+Write_sww.RANGE][1])
-        print '------------------------------------------------'
+            log.critical('  %s in [%f, %f]'
+                         % (q, outfile.variables[q+Write_sww.RANGE][0],
+                            outfile.variables[q+Write_sww.RANGE][1]))
+        log.critical('------------------------------------------------')
 
 
 ##
@@ -6187,7 +6202,8 @@ def obsolete_write_sww_time_slices(outfile, has, uas, vas, elevation,
     n = len(has)
     j = 0
     for ha, ua, va in map(None, has, uas, vas):
-        if verbose and j % ((n+10)/10) == 0: print '  Doing %d of %d' % (j, n)
+        if verbose and j % ((n+10)/10) == 0: log.critical('  Doing %d of %d'
+                                                          % (j, n))
         w = zscale*ha + mean_stage
         stage[j] = w
         h = w - elevation
@@ -6370,10 +6386,10 @@ class Write_sts:
             outfile.variables['time'][:] = times    #Store time relative
 
         if verbose:
-            print '------------------------------------------------'
-            print 'Statistics:'
-            print '    t in [%f, %f], len(t) == %d' \
-                  % (num.min(times), num.max(times), len(times.flat))
+            log.critical('------------------------------------------------')
+            log.critical('Statistics:')
+            log.critical('    t in [%f, %f], len(t) == %d'
+                         % (num.min(times), num.max(times), len(times.flat)))
 
     ##
     # @brief 
@@ -6444,17 +6460,17 @@ class Write_sts:
         z = outfile.variables['z'][:]
 
         if verbose:
-            print '------------------------------------------------'
-            print 'More Statistics:'
-            print '  Extent (/lon):'
-            print '    x in [%f, %f], len(lat) == %d' \
-                  % (min(x), max(x), len(x))
-            print '    y in [%f, %f], len(lon) == %d' \
-                  % (min(y), max(y), len(y))
-            print '    z in [%f, %f], len(z) == %d' \
-                  % (min(elevation), max(elevation), len(elevation))
-            print 'geo_ref: ',geo_ref
-            print '------------------------------------------------'
+            log.critical('------------------------------------------------')
+            log.critical('More Statistics:')
+            log.critical('  Extent (/lon):')
+            log.critical('    x in [%f, %f], len(lat) == %d'
+                         % (min(x), max(x), len(x)))
+            log.critical('    y in [%f, %f], len(lon) == %d'
+                         % (min(y), max(y), len(y)))
+            log.critical('    z in [%f, %f], len(z) == %d'
+                         % (min(elevation), max(elevation), len(elevation)))
+            log.critical('geo_ref: %s' % str(geo_ref))
+            log.critical('------------------------------------------------')
 
         #z = resize(bath_grid,outfile.variables['z'][:].shape)
         outfile.variables['x'][:] = points[:,0] #- geo_ref.get_xllcorner()
@@ -6643,7 +6659,7 @@ def start_screen_catcher(dir_name=None, myid='', numprocs='', extra_info='',
         dir_name = getcwd()
 
     if access(dir_name, W_OK) == 0:
-        if verbose: print 'Making directory %s' % dir_name
+        if verbose: log.critical('Making directory %s' % dir_name)
         mkdir (dir_name,0777)
 
     if myid != '':
@@ -6658,8 +6674,8 @@ def start_screen_catcher(dir_name=None, myid='', numprocs='', extra_info='',
     screen_error_name = join(dir_name, "screen_error%s%s%s.txt" %
                                        (myid, numprocs, extra_info))
 
-    if verbose: print 'Starting ScreenCatcher, ' \
-                      'all output will be stored in %s' % screen_output_name
+    if verbose: log.critical('Starting ScreenCatcher, all output will be '
+                             'stored in %s' % screen_output_name)
 
     # used to catch screen output to file
     sys.stdout = Screen_Catcher(screen_output_name)
@@ -6679,7 +6695,8 @@ class Screen_Catcher:
     def __init__(self, filename):
         self.filename = filename
         if exists(self.filename)is True:
-            print 'Old existing file "%s" has been deleted' % self.filename
+            log.critical('Old existing file "%s" has been deleted'
+                         % self.filename)
             remove(self.filename)
 
     ##
@@ -6715,16 +6732,16 @@ def copy_code_files(dir_name, filename1, filename2=None, verbose=False):
             for f in file:
                 shutil.copy(f, dir_name)
                 if verbose:
-                    print 'File %s copied' % (f)
+                    log.critical('File %s copied' % f)
         else:
             shutil.copy(file, dir_name)
             if verbose:
-                print 'File %s copied' % (file)
+                log.critical('File %s copied' % file)
 
     # check we have a destination directory, create if necessary
     if access(dir_name, F_OK) == 0:
         if verbose:
-            print 'Make directory %s' % dir_name
+            log.critical('Make directory %s' % dir_name)
         mkdir(dir_name, 0777)
 
     copy_file_or_sequence(dir_name, filename1)
@@ -6846,10 +6863,10 @@ def store_parameters(verbose=False, **kwargs):
         fid = open(file, 'r')
         file_header = fid.readline()
         fid.close()
-        if verbose: print 'read file header %s' % file_header
+        if verbose: log.critical('read file header %s' % file_header)
     except:
         msg = 'try to create new file: %s' % file
-        if verbose: print msg
+        if verbose: log.critical(msg)
         #tries to open file, maybe directory is bad
         try:
             fid = open(file, 'w')
@@ -6876,14 +6893,14 @@ def store_parameters(verbose=False, **kwargs):
         fid.close()
 
         if verbose:
-            print 'file', file_header.strip('\n')
-            print 'head', header.strip('\n')
+            log.critical('file %s', file_header.strip('\n'))
+            log.critical('head %s', header.strip('\n'))
         if file_header.strip('\n') == str(header):
-            print 'they equal'
+            log.critical('they equal')
 
         msg = 'WARNING: File header does not match input info, ' \
               'the input variables have changed, suggest you change file name'
-        print msg
+        log.critical(msg)
 
 ################################################################################
 # Functions to obtain diagnostics from sww files
@@ -6923,7 +6940,7 @@ def get_mesh_and_quantities_from_file(filename,
     from shallow_water import Domain
     from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 
-    if verbose: print 'Reading from ', filename
+    if verbose: log.critical('Reading from %s' % filename)
 
     fid = NetCDFFile(filename, netcdf_mode_r)    # Open existing file for read
     time = fid.variables['time'][:]    # Time vector
@@ -6948,7 +6965,7 @@ def get_mesh_and_quantities_from_file(filename,
         # Sww files don't have to have a geo_ref
         geo_reference = None
 
-    if verbose: print '    building mesh from sww file %s' %filename
+    if verbose: log.critical('    building mesh from sww file %s' % filename)
 
     boundary = None
 
@@ -7024,8 +7041,8 @@ def get_interpolated_quantities_at_polyline_midpoints(filename,
 
     # Interpolate
     if verbose:
-        print 'Interpolating - total number of interpolation points = %d' \
-              % len(interpolation_points)
+        log.critical('Interpolating - total number of interpolation points = %d'
+                     % len(interpolation_points))
 
     I = Interpolation_function(time,
                                quantities,
@@ -7083,7 +7100,7 @@ def get_flow_through_cross_section(filename, polyline, verbose=False):
     time = interpolation_function.time
     interpolation_points = interpolation_function.interpolation_points
 
-    if verbose: print 'Computing hydrograph'
+    if verbose: log.critical('Computing hydrograph')
 
     # Compute hydrograph
     Q = []
@@ -7163,7 +7180,7 @@ def get_energy_through_cross_section(filename,
     time = interpolation_function.time
     interpolation_points = interpolation_function.interpolation_points
 
-    if verbose: print 'Computing %s energy' % kind
+    if verbose: log.critical('Computing %s energy' % kind)
 
     # Compute total length of polyline for use with weighted averages
     total_line_length = 0.0
@@ -7329,7 +7346,7 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
     iterate_over = get_all_swwfiles(dir, base)
 
     # Read sww file
-    if verbose: print 'Reading from %s' % filename
+    if verbose: log.critical('Reading from %s' % filename)
     # FIXME: Use general swwstats (when done)
 
     maximal_runup = None
@@ -7339,7 +7356,7 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
         # Read sww file
         filename = join(dir, swwfile+'.sww')
 
-        if verbose: print 'Reading from %s' % filename
+        if verbose: log.critical('Reading from %s' % filename)
         # FIXME: Use general swwstats (when done)
 
         fid = NetCDFFile(filename)
@@ -7502,7 +7519,7 @@ def get_all_swwfiles(look_in_dir='', base_name='', verbose=False):
         msg = 'No files of the base name %s' % name
         raise IOError, msg
 
-    if verbose: print 'iterate over %s' % iterate_over
+    if verbose: log.critical('iterate over %s' % iterate_over)
 
     return iterate_over
 
@@ -7550,7 +7567,7 @@ def get_all_files_with_extension(look_in_dir='',
         msg = 'No files of the base name %s in %s' % (name, look_in_dir)
         raise IOError, msg
 
-    if verbose: print 'iterate over %s' %(iterate_over)
+    if verbose: log.critical('iterate over %s' % iterate_over)
 
     return iterate_over
 
@@ -7583,7 +7600,7 @@ def get_all_directories_with_name(look_in_dir='', base_name='', verbose=False):
         msg = 'No files of the base name %s' % base_name
         raise IOError, msg
 
-    if verbose: print 'iterate over %s' % iterate_over
+    if verbose: log.critical('iterate over %s' % iterate_over)
 
     return iterate_over
 

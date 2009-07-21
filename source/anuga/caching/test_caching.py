@@ -49,7 +49,7 @@ def clear_and_create_cache(Dummy, verbose=False):
       
 
 def retrieve_cache(Dummy, verbose=False):
-  if verbose: print 'Check that cache is there'
+  if verbose: print('Check that cache is there')
   
   X = cache(Dummy, args=(9,10), test=1,
             verbose=verbose)      
@@ -385,9 +385,6 @@ class Test_Caching(unittest.TestCase):
         f1 = call(2, 3)
         f2 = call(5, 7)
 
-        #print myhash(f1) 
-        #print myhash(f2)      
-
         # Check that hash value of callable objects don't change
         # FIXME (Ole): The hash values do appear to change when OS
         # and/or dependencies are upgraded
@@ -409,9 +406,6 @@ class Test_Caching(unittest.TestCase):
         
         bc1 = get_bytecode(f1)
         bc2 = get_bytecode(f2)
-        
-        #print 'bc1', bc1
-        #print 'bc2', bc2
         
         msg = 'Byte code should be different'
         assert bc1 != bc2, msg
@@ -630,7 +624,6 @@ class Test_Caching(unittest.TestCase):
         
         
         T4 = cache(f, (a,b,c,N), {'x':x, 'y':y}, test=1)
-        #print 'T4', T4
         assert T4 is None, "Option 'test' when cache absent failed"
 
 

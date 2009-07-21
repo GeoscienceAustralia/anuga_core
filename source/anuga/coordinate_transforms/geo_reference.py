@@ -13,6 +13,7 @@ from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.utilities.anuga_exceptions import ANUGAError, TitleError, \
                                              ParsingError, ShapeError
 from anuga.config import netcdf_float, netcdf_int, netcdf_float32
+import anuga.utilities.log as log
 
 import numpy as num
 
@@ -152,30 +153,36 @@ class Geo_reference:
             pass
 
         if self.false_easting != DEFAULT_FALSE_EASTING:
-            print "WARNING: False easting of %f specified." % self.false_easting
-            print "Default false easting is %f." % DEFAULT_FALSE_EASTING
-            print "ANUGA does not correct for differences in False Eastings."
+            log.critical("WARNING: False easting of %f specified."
+                         % self.false_easting)
+            log.critical("Default false easting is %f." % DEFAULT_FALSE_EASTING)
+            log.critical("ANUGA does not correct for differences in "
+                         "False Eastings.")
 
         if self.false_northing != DEFAULT_FALSE_NORTHING:
-            print ("WARNING: False northing of %f specified."
-                   % self.false_northing)
-            print "Default false northing is %f." % DEFAULT_FALSE_NORTHING
-            print "ANUGA does not correct for differences in False Northings."
+            log.critical("WARNING: False northing of %f specified."
+                         % self.false_northing)
+            log.critical("Default false northing is %f."
+                         % DEFAULT_FALSE_NORTHING)
+            log.critical("ANUGA does not correct for differences in "
+                         "False Northings.")
 
         if self.datum.upper() != DEFAULT_DATUM.upper():
-            print "WARNING: Datum of %s specified." % self.datum
-            print "Default Datum is %s." % DEFAULT_DATUM
-            print "ANUGA does not correct for differences in datums."
+            log.critical("WARNING: Datum of %s specified." % self.datum)
+            log.critical("Default Datum is %s." % DEFAULT_DATUM)
+            log.critical("ANUGA does not correct for differences in datums.")
 
         if self.projection.upper() != DEFAULT_PROJECTION.upper():
-            print "WARNING: Projection of %s specified." % self.projection
-            print "Default Projection is %s." % DEFAULT_PROJECTION
-            print "ANUGA does not correct for differences in Projection."
+            log.critical("WARNING: Projection of %s specified."
+                         % self.projection)
+            log.critical("Default Projection is %s." % DEFAULT_PROJECTION)
+            log.critical("ANUGA does not correct for differences in "
+                         "Projection.")
 
         if self.units.upper() != DEFAULT_UNITS.upper():
-            print "WARNING: Units of %s specified." % self.units
-            print "Default units is %s." % DEFAULT_UNITS
-            print "ANUGA does not correct for differences in units."
+            log.critical("WARNING: Units of %s specified." % self.units)
+            log.critical("Default units is %s." % DEFAULT_UNITS)
+            log.critical("ANUGA does not correct for differences in units.")
 
 ################################################################################
 # ASCII files with geo-refs are currently not used

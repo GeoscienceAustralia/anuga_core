@@ -9,6 +9,8 @@
 
 from general_mesh import General_mesh
 from anuga.caching import cache
+import anuga.utilities.log as log
+
 from math import pi, sqrt
 
 import numpy as num
@@ -90,7 +92,7 @@ class Mesh(General_mesh):
                               geo_reference=geo_reference,
                               verbose=verbose)
 
-        if verbose: print 'Initialising mesh'
+        if verbose: log.critical('Initialising mesh')
 
         N = len(self) #Number_of_triangles
 
@@ -110,9 +112,9 @@ class Mesh(General_mesh):
         V = self.vertex_coordinates # Relative coordinates
 
         #Initialise each triangle
-        if verbose: print 'Mesh: Computing centroids and radii'
+        if verbose: log.critical('Mesh: Computing centroids and radii')
         for i in range(N):
-            if verbose and i % ((N+10)/10) == 0: print '(%d/%d)' %(i, N)
+            if verbose and i % ((N+10)/10) == 0: log.critical('(%d/%d)' % (i, N))
 
             x0, y0 = V[3*i, :]
             x1, y1 = V[3*i+1, :]
@@ -165,19 +167,19 @@ class Mesh(General_mesh):
 
 
         #Build neighbour structure
-        if verbose: print 'Mesh: Building neigbour structure'
+        if verbose: log.critical('Mesh: Building neigbour structure')
         self.build_neighbour_structure()
 
         #Build surrogate neighbour structure
-        if verbose: print 'Mesh: Building surrogate neigbour structure'
+        if verbose: log.critical('Mesh: Building surrogate neigbour structure')
         self.build_surrogate_neighbour_structure()
 
         #Build boundary dictionary mapping (id, edge) to symbolic tags
-        if verbose: print 'Mesh: Building boundary dictionary'
+        if verbose: log.critical('Mesh: Building boundary dictionary')
         self.build_boundary_dictionary(boundary)
 
         #Build tagged element  dictionary mapping (tag) to array of elements
-        if verbose: print 'Mesh: Building tagged elements dictionary'
+        if verbose: log.critical('Mesh: Building tagged elements dictionary')
         self.build_tagged_elements_dictionary(tagged_elements)
 
         # Build a list of vertices that are not connected to any triangles
@@ -193,7 +195,7 @@ class Mesh(General_mesh):
         #self.build_boundary_structure()
 
         #FIXME check integrity?
-        if verbose: print 'Mesh: Done'
+        if verbose: log.critical('Mesh: Done')
 
     def __repr__(self):
         return General_mesh.__repr__(self) + ', %d boundary segments'\
@@ -364,7 +366,6 @@ class Mesh(General_mesh):
                                    %default_boundary_tag
 
                             #FIXME: Print only as per verbosity
-                            #print msg
 
                             #FIXME: Make this situation an error in the future
                             #and make another function which will
@@ -397,7 +398,6 @@ class Mesh(General_mesh):
 
                 msg = 'Not all elements exist. '
                 assert max(tagged_elements[tag]) < len(self), msg
-        #print "tagged_elements", tagged_elements
         self.tagged_elements = tagged_elements
 
     def get_tagged_elements(self):
@@ -437,7 +437,7 @@ class Mesh(General_mesh):
 
             #FIXME: One would detect internal boundaries as follows
             #if self.neighbours[id, edge] > -1:
-            #    print 'Internal boundary'
+            #    log.critical('Internal boundary')
 
             self.neighbours[id, edge] = index
             index -= 1
@@ -535,8 +535,8 @@ class Mesh(General_mesh):
                 # that have no neighbours.
 
                 if verbose:
-                    print ('Point %s has multiple candidates: %s'
-                           % (str(p0), candidate_list))
+                    log.critical('Point %s has multiple candidates: %s'
+                                 % (str(p0), candidate_list))
 
                 # Check that previous are not in candidate list
                 #for p in candidate_list:
@@ -565,8 +565,6 @@ class Mesh(General_mesh):
                     if ac > pi:
                         # Give preference to angles on the right hand side
                         # of v_prev
-                        # print 'pc = %s, changing angle from %f to %f'\
-                        # %(pc, ac*180/pi, (ac-2*pi)*180/pi)
                         ac = ac-2*pi
 
                     # Take the minimal angle corresponding to the
@@ -576,8 +574,8 @@ class Mesh(General_mesh):
                         p1 = pc             # Best candidate
 
                 if verbose is True:
-                    print '  Best candidate %s, angle %f'\
-                          %(p1, minimum_angle*180/pi)
+                    log.critical('  Best candidate %s, angle %f'
+                                 % (p1, minimum_angle*180/pi))
             else:
                 p1 = candidate_list[0]
 
@@ -586,8 +584,9 @@ class Mesh(General_mesh):
                 if num.allclose(p1, polygon[0]):
                     # If it is the initial point, the polygon is complete.
                     if verbose is True:
-                        print '  Stop criterion fulfilled at point %s' %p1
-                        print polygon
+                        log.critical('  Stop criterion fulfilled at point %s'
+                                     % str(p1))
+                        log.critical(str(polygon))
 
                     # We have completed the boundary polygon - yeehaa
                     break
@@ -869,7 +868,6 @@ class Mesh(General_mesh):
              is_inside_polygon
 
         polygon = self.get_boundary_polygon()
-        #print polygon, point
 
         if is_outside_polygon(point, polygon):
             msg = 'Point %s is outside mesh' %str(point)
@@ -881,7 +879,6 @@ class Mesh(General_mesh):
         # FIXME: Horrible brute force
         for i, triangle in enumerate(self.triangles):
             poly = V[3*i:3*i+3]
-            #print i, poly
 
             if is_inside_polygon(point, poly, closed=True):
                 return i
@@ -1067,7 +1064,9 @@ def _get_intersecting_segments(V, N, line,
         for edge in edge_segments:
 
             status, value = intersection(line, edge)
-            #if value is not None: print 'Triangle %d, Got' %i, status, value
+            #if value is not None: log.critical('Triangle %d, status=%s, '
+            #                                   'value=%s'
+            #                                   % (i, str(status), str(value)))
 
             if status == 1:
                 # Normal intersection of one edge or vertex
@@ -1189,9 +1188,9 @@ def get_intersecting_segments(V, N, polyline,
 
         point1 = polyline[i+1]
         if verbose:
-            print 'Extracting mesh intersections from line:',
-            print '(%.2f, %.2f) - (%.2f, %.2f)' %(point0[0], point0[1],
-                                                  point1[0], point1[1])
+            log.critical('Extracting mesh intersections from line:')
+            log.critical('(%.2f, %.2f) - (%.2f, %.2f)'
+                         % (point0[0], point0[1], point1[0], point1[1]))
 
         line = [point0, point1]
         triangle_intersections += _get_intersecting_segments(V, N, line,

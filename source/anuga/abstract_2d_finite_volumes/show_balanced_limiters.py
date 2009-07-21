@@ -15,6 +15,7 @@ from anuga.shallow_water import Domain,\
      Reflective_boundary, Dirichlet_boundary,\
      Transmissive_boundary, Time_boundary
 from anuga.shallow_water.shallow_water_domain import Weir_simple as Weir
+import anuga.utilities.log as log
 
 from mesh_factory import rectangular
 
@@ -25,12 +26,12 @@ from mesh_factory import rectangular
 
 N = 12
 
-print 'Creating domain'
+log.critical('Creating domain')
 #Create basic mesh
 points, vertices, boundary = rectangular(N, N/2, len1=1.2,len2=0.6,
                                          origin=(-0.07, 0))
 
-print 'Number of elements', len(vertices)
+log.critical('Number of elements=%d' % len(vertices))
 #Create shallow water domain
 domain = Domain(points, vertices, boundary)
 domain.smooth = False
@@ -44,7 +45,7 @@ inflow_stage = 0.1
 manning = 0.1
 Z = Weir(inflow_stage)
 
-print 'Field values'
+log.critical('Field values')
 domain.set_quantity('elevation', Z)
 domain.set_quantity('friction', manning)
 
@@ -52,7 +53,7 @@ domain.set_quantity('friction', manning)
 ######################
 # Boundary conditions
 #
-print 'Boundaries'
+log.critical('Boundaries')
 Br = Reflective_boundary(domain)
 Bt = Transmissive_boundary(domain)
 
@@ -73,7 +74,7 @@ domain.set_boundary({'left': Bd, 'right': Br, 'bottom': Br, 'top': Br})
 ######################
 #Initial condition
 #
-print 'Initial condition'
+log.critical('Initial condition')
 domain.set_quantity('stage', Z)
 
 #Evolve
@@ -81,6 +82,6 @@ for t in domain.evolve(yieldstep = 0.1, finaltime = 30):
     domain.write_time(track_speeds=True)
     domain.write_boundary_statistics(['stage'],'left')
 
-print 'Done'    
+log.critical('Done')
     
 

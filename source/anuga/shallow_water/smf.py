@@ -48,6 +48,8 @@ Geoscience Australia, June 2005
 
 import numpy as num
 
+import anuga.utilities.log as log
+
 
 def find_min(x0, wa, kappad, dx):
     """Determine eta_min to scale eta(x,y)
@@ -142,39 +144,43 @@ def slide_tsunami(length, depth, slope, width=None, thickness=None, \
         
     #a few temporary print statements
     if verbose is True:
-        print '\nThe slide ...'
-        print '\tLength: ', length
-        print '\tDepth: ', depth
-        print '\tSlope: ', slope
-        print '\tWidth: ', width
-        print '\tThickness: ', thickness
-        print '\tx0: ', x0
-        print '\ty0: ', y0
-        print '\tAlpha: ', alpha
-        print '\tAcceleration: ', a0
-        print '\tTerminal velocity: ', ut
-        print '\tChar time: ', t0
-        print '\tChar distance: ', s0
-        print '\nThe tsunami ...'
-        print '\tWavelength: ', w
-        print '\t2D amplitude: ', a2D
-        print '\t3D amplitude: ', a3D
-        print '\tscale for eta(x,y):', scale
+        log.critical('\nThe slide ...')
+        log.critical('\tLength: %s' % str(length))
+        log.critical('\tDepth: %s' % str(depth))
+        log.critical('\tSlope: %s' % str(slope))
+        log.critical('\tWidth: %s' % str(width))
+        log.critical('\tThickness: %s' % str(thickness))
+        log.critical('\tx0: %s' % str(x0))
+        log.critical('\ty0: %s' % str(y0))
+        log.critical('\tAlpha: %s' % str(alpha))
+        log.critical('\tAcceleration: %s' % str(a0))
+        log.critical('\tTerminal velocity: %s' % str(ut))
+        log.critical('\tChar time: %s' % str(t0))
+        log.critical('\tChar distance: %s' % str(s0))
+        log.critical('\nThe tsunami ...')
+        log.critical('\tWavelength: %s' % str(w))
+        log.critical('\t2D amplitude: %s' % str(a2D))
+        log.critical('\t3D amplitude: %s' % str(a3D))
+        log.critical('\tscale for eta(x,y): %s' % str(scale))
 
     #keep an eye on some of the assumptions built into the maths
 
     if ((slope < 5) or (slope > 30)):
         if verbose is True:
-            print 'WARNING: slope out of range (5 - 30 degrees) ', slope
+            log.critical('WARNING: slope out of range (5 - 30 degrees) %s'
+                         % str(slope))
     if ((depth/length < 0.06) or (depth/length > 1.5)):
         if verbose is True:
-            print  'WARNING: d/b out of range (0.06 - 1.5) ', depth/length
+            log.critical('WARNING: d/b out of range (0.06 - 1.5) %s'
+                         % str(depth/length))
     if ((thickness/length < 0.008) or (thickness/length > 0.2)):
         if verbose is True:
-            print 'WARNING: T/b out of range (0.008 - 0.2) ', thickness/length
+            log.critical('WARNING: T/b out of range (0.008 - 0.2) %s'
+                         % str(thickness/length))
     if ((gamma < 1.46) or (gamma > 2.93)):
         if verbose is True:
-            print 'WARNING: gamma out of range (1.46 - 2.93) ', gamma
+            log.critical('WARNING: gamma out of range (1.46 - 2.93) %s'
+                         % str(gamma))
 
     return Double_gaussian(a3D, w, width, x0, y0, alpha, kappa, kappad, zsmall, dx, scale)
 
@@ -285,50 +291,56 @@ def slump_tsunami(length, depth, slope, width=None, thickness=None, \
         
     #a few temporary print statements
     if verbose is True:
-        print '\nThe slump ...'
-        print '\tLength: ', length
-        print '\tDepth: ', depth
-        print '\tSlope: ', slope
-        print '\tWidth: ', width
-        print '\tThickness: ', thickness
-        print '\tRadius: ', radius
-        print '\tDphi: ', dphi
-        print '\tx0: ', x0
-        print '\ty0: ', y0
-        print '\tAlpha: ', alpha
-        print '\tAcceleration: ', a0
-        print '\tMaximum velocity: ', um
-        print '\tChar time: ', t0
-        print '\tChar distance: ', s0
-        print '\nThe tsunami ...'
-        print '\tWavelength: ', w
-        print '\t2D amplitude: ', a2D
-        print '\t3D amplitude: ', a3D
-        print '\tDelta x ', dx
-        print '\tsmall ', zsmall
-        print '\tKappa d ', kappad
-        print '\tscale for eta(x,y):', scale
+        log.critical('\nThe slump ...')
+        log.critical('\tLength: %s' % str(length))
+        log.critical('\tDepth: %s' % str(depth))
+        log.critical('\tSlope: %s' % str(slope))
+        log.critical('\tWidth: %s' % str(width))
+        log.critical('\tThickness: %s' % str(thickness))
+        log.critical('\tRadius: %s' % str(radius))
+        log.critical('\tDphi: %s' % str(dphi))
+        log.critical('\tx0: %s' % str(x0))
+        log.critical('\ty0: %s' % str(y0))
+        log.critical('\tAlpha: %s' % str(alpha))
+        log.critical('\tAcceleration: %s' % str(a0))
+        log.critical('\tMaximum velocity: %s' % str(um))
+        log.critical('\tChar time: %s' % str(t0))
+        log.critical('\tChar distance: %s' % str(s0))
+        log.critical('\nThe tsunami ...')
+        log.critical('\tWavelength: %s' % str(w))
+        log.critical('\t2D amplitude: %s' % str(a2D))
+        log.critical('\t3D amplitude: %s' % str(a3D))
+        log.critical('\tDelta x %s' % str(dx))
+        log.critical('\tsmall %s' % str(zsmall))
+        log.critical('\tKappa d  %s' % str(kappad))
+        log.critical('\tscale for eta(x,y): %s' % str(scale))
 
     #keep an eye on some of the assumptions built into the maths
 
     if ((slope < 10) or (slope > 30)):        
         if verbose is True:
-            print 'WARNING: slope out of range (10 - 30 degrees) ', slope
+            log.critical('WARNING: slope out of range (10 - 30 degrees) %s'
+                         % str(slope))
     if ((depth/length < 0.34) or (depth/length > 0.5)):     
         if verbose is True:
-            print  'WARNING: d/b out of range (0.34 - 0.5) ', depth/length
+            log.critical('WARNING: d/b out of range (0.34 - 0.5) %s'
+                         % str(depth/length))
     if ((thickness/length < 0.10) or (thickness/length > 0.15)):     
         if verbose is True:
-            print 'WARNING: T/b out of range (0.10 - 0.15) ', thickness/length
+            log.critical('WARNING: T/b out of range (0.10 - 0.15) %s'
+                         % str(thickness/length))
     if ((radius/length < 1.0) or (radius/length > 2.0)):     
         if verbose is True:
-            print 'WARNING: R/b out of range (1 - 2) ', radius/length
+            log.critical('WARNING: R/b out of range (1 - 2) %s'
+                         % str(radius/length))
     if ((dphi < 0.10) or (dphi > 0.52)):     
         if verbose is True:
-            print 'WARNING: del_phi out of range (0.10 - 0.52) ', dphi
+            log.critical('WARNING: del_phi out of range (0.10 - 0.52) %s'
+                         % str(dphi))
     if ((gamma < 1.46) or (gamma > 2.93)):     
         if verbose is True:
-            print 'WARNING: gamma out of range (1.46 - 2.93) ', gamma
+            log.critical('WARNING: gamma out of range (1.46 - 2.93) %s'
+                         % str(gamma))
 
     return Double_gaussian(a3D, w, width, x0, y0, alpha, kappa, kappad, zsmall, dx, scale)
 

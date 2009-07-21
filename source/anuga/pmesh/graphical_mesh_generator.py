@@ -16,6 +16,7 @@ import os
 import profile
 import load_mesh.loadASCII
 from anuga.alpha_shape.alpha_shape import AlphaError
+import anuga.utilities.log as log
 
 # CONSTANTS 
 VERT_SELECT_ADDING_SEG_COLOR = 'orange'
@@ -412,13 +413,13 @@ class Draw(AppShell.AppShell):
         
         dialog = AddVertexDialog(self.canvas)
         if dialog.xyValuesOk:
-            print dialog.x
-            print dialog.y
+            log.critical(str(dialog.x))
+            log.critical(str(dialog.y))
             self.drawVertex(dialog.x*self.SCALE,dialog.y*self.SCALE,None)
             #Since the new vertex may be off screen
             self.ResizeToFit()
         else:
-            print "bad values"
+            log.critical("bad values")
     
     def windowDefault (self, parent):
         """
@@ -509,8 +510,6 @@ class Draw(AppShell.AppShell):
                              remove_holes=dialog.remove_holes.get(),
                              smooth_indents=dialog.smooth_indents.get(),
                              expand_pinch=dialog.expand_pinch.get())
-        #print "newsegs",newsegs
-        #print "ObjectsToVisuallyDelete",ObjectsToVisuallyDelete
             
         for drawOb in ObjectsToVisuallyDelete:
             self.UserMesh.unvisualise(drawOb, self.canvas)
@@ -562,8 +561,8 @@ class Draw(AppShell.AppShell):
                                self.MeshMaxAreaLast)
         
         if dialog.ValuesOk:
-            print dialog.minAngle
-            print dialog.maxArea
+            log.critical(str(dialog.minAngle))
+            log.critical(str(dialog.maxArea))
             
             self.clearSelections()
             self.canvas.delete(ALL)
@@ -585,10 +584,10 @@ class Draw(AppShell.AppShell):
                                           self.mesh)
             else:
                 pass
-            print "userMeshChanged = False"
+            log.critical("userMeshChanged = False")
             self.UserMeshChanged = False
             self.visualiseMesh(self.mesh)
-            print "Mesh Generation finished"
+            log.critical("Mesh Generation finished")
             
     def MeshGenAreaAngle (self, minAngle, maxArea, mesh):
         """
@@ -620,7 +619,6 @@ class Draw(AppShell.AppShell):
             # This doesn't catch tempMesh.generateMesh failing
             pass
         meshArea = 0
-        #print "tempMesh.getTriangulation()", tempMesh.getTriangulation()
         meshArea = tempMesh.tri_mesh.calc_mesh_area()
         maxArea = meshArea/numTriangles
 
@@ -638,7 +636,7 @@ class Draw(AppShell.AppShell):
         self.lastx = self.startx = self.canvas.canvasx(event.x)
         #The screen canvas has y 'flipped'.  -1* unflips it
         self.lasty = self.starty = -1*self.canvas.canvasy(event.y)
-        print "----------------------"
+        log.critical "----------------------")
         self.mouseDownCurFunc( self.lastx,
                                self.lasty,event) #!!! remove the event?
                                                  # do last
@@ -650,19 +648,20 @@ class Draw(AppShell.AppShell):
         found=False
         if event.widget.find_withtag(CURRENT): # if there's a widget with a tag
             [tag,string] = self.canvas.gettags(CURRENT) # get a list of them
-            print "tag",tag  #tags ('M*1008', 'current')
+            log.critical("tag %s" % str(tag))  #tags ('M*1008', 'current')
             if tag[:2] == 'M*':   #!!! this can be removed when there are
                 #    only mesh objects on screen
                 #key, value = string.split(tag, '*')
                 objectID = tag
-                print "Found!! objectID:", objectID
+                log.critical("Found!! objectID: %s" % str(objectID))
                 
                 meshObjects = self.getAllUserMeshObjects()
                 # It may be a triangle, which is ignored
                 if meshObjects.hasKey(objectID):
                     selMeshObject = meshObjects.getMeshObject(objectID)
                     found = True
-                    print "Found! selMeshObject", selMeshObject
+                    log.critical("Found! selMeshObject: %s"
+                                 % str(selMeshObject))
                     #Only select one object at a time
                     if self.selMeshObject:
                         self.deselectMeshObject(self.selMeshObject, self.selMeshTag)
@@ -727,7 +726,6 @@ class Draw(AppShell.AppShell):
         self.uniqueID = 'M*%d' % self.serial
         #x_scaled =  self.SCALE*x
         #y_scaled = -1*self.SCALE*y
-        #print "x y:", x,y
         vert = self.Vertices.draw(x-self.mesh.geo_reference.get_xllcorner,
                                   y-self.mesh.geo_reference.get_yllcorner,
                                   self.mesh,
@@ -748,7 +746,6 @@ class Draw(AppShell.AppShell):
         self.uniqueID = 'M*%d' % self.serial
         #x_scaled =  self.SCALE*x
         #y_scaled = -1*self.SCALE*y
-        #print "x y:", x,y
         vert = self.Vertices.draw(x,y,self.mesh,self.uniqueID,self.SCALE,self.canvas,event)
         self.UserMeshChanged = True
         return vert
@@ -783,16 +780,15 @@ class Draw(AppShell.AppShell):
         found=False
         if event.widget.find_withtag(CURRENT): # if there's a widget with a tag
             [tag,string] = self.canvas.gettags(CURRENT) # get a list of them
-            print "tag",tag  #tags ('M*1008', 'current')
+            log.critical("tag %s" % str(tag))  #tags ('M*1008', 'current')
             objectID = tag
-            #print "Found!! objectID:", objectID
             if self.Vertices.hasKey(objectID): #isinstance(self.meshObjects[objectID],mesh.Vertex):
                 vertex = self.Vertices.getMeshObject(objectID)
                 found = True
-                print "Found! vertex", vertex
+                log.critical("Found! vertex: %s" % str(vertex))
             
         if found and self.selVertex == vertex:
-            print "The selected vertex has already been selected"
+            log.critical("The selected vertex has already been selected")
             #The selected vertex has already been selected
             # therefore deselect it
             self.deselectVertex(self.selVertex, self.selVertexTag)
@@ -807,11 +803,11 @@ class Draw(AppShell.AppShell):
                     self.deselectVertex(self.selVertex, self.selVertexTag)
                     self.selectVertex(vertex,objectID)
             else:
-                print "vertex is the 1st vertex" 
+                log.critical("vertex is the 1st vertex")
                 #vertex is the 1st vertex
                 self.selectVertex(vertex,objectID)
         else:
-            print " There are no widgets.  This happen's too much"
+            log.critical(" There are no widgets.  This happen's too much")
                     
 
     def selectVertex(self, vertex,objectID):
@@ -843,9 +839,9 @@ class Draw(AppShell.AppShell):
         return seg
     def printGeoReference(self):
         try:
-            print "geo reference", self.mesh.geo_reference
+            log.critical("geo reference %s" % str(self.mesh.geo_reference))
         except:
-            print "no geo reference"
+            log.critical("no geo reference")
         
     def visualiseMesh(self,mesh):
         """
@@ -1006,7 +1002,7 @@ class Draw(AppShell.AppShell):
         """
         import mesh data from a variety of formats (currently 2!)
         """
-        print "self.currentPath",self.currentPath
+        log.critical("self.currentPath %s" % str(self.currentPath))
         ofile = tkFileDialog.askopenfilename(initialdir=self.currentPath,
                                              filetypes=[ ("text Mesh",
                                                           "*.tsh *.msh"),
@@ -1020,7 +1016,6 @@ class Draw(AppShell.AppShell):
         try:
             newmesh = mesh.importMeshFromFile(ofile)
             self.currentPath, dummy = os.path.split(ofile)
-            #print "be good self.currentPath",self.currentPath
             self.currentFilePathName = ofile
             self.clearMesh()
             self.mesh = newmesh
@@ -1040,7 +1035,6 @@ class Draw(AppShell.AppShell):
                   'file ' + ofile + ' has an unknown file type.')
         # Could not get the file name to showup in the title
         #appname =  ofile + " - " + APPLICATION_NAME
-        #print "appname",appname
         
         except load_mesh.loadASCII.TitleAmountError: 
             showerror('File error',
@@ -1085,7 +1079,6 @@ class Draw(AppShell.AppShell):
         """
         Save the current drawing
         """
-        #print "dsg!!! self.currentFilePathName ",self.currentFilePathName
         if (self.currentFilePathName[-4:] != ".tsh" or
             self.currentFilePathName[-4:] != ".msh"):
             # force user to choose a name
@@ -1119,8 +1112,6 @@ class Draw(AppShell.AppShell):
         the user has done a change, and the mesh hasn't been generated.  If
         there is no generated mesh do not prompt. 
         """
-        #print "self.UserMeshChanged",self.UserMeshChanged
-        #print "self.mesh.isTriangulation()",self.mesh.isTriangulation()
         if (self.UserMeshChanged) and self.mesh.isTriangulation():
             
             m = _show("Warning",
@@ -1219,7 +1210,7 @@ class Draw(AppShell.AppShell):
         m = mesh.Mesh(userVertices=[a,d,f,g], userSegments=[s1,s2,s3], regions=[r1] )
         
         fd.close()
-        print 'returning m'
+        log.critical('returning m')
         return oadtestmesh(ofile)
          
 class  AddVertexDialog(Dialog):

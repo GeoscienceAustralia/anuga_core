@@ -31,6 +31,7 @@ from anuga.abstract_2d_finite_volumes.region\
 from anuga.utilities.polygon import inside_polygon
 from anuga.abstract_2d_finite_volumes.util import get_textual_float
 from quantity import Quantity
+import anuga.utilities.log as log
 
 import numpy as num
 
@@ -143,7 +144,7 @@ class Domain:
 
         self.geo_reference = self.mesh.geo_reference
 
-        if verbose: print 'Initialising Domain'
+        if verbose: log.critical('Initialising Domain')
 
         # List of quantity names entering the conservation equations
         if conserved_quantities is None:
@@ -185,7 +186,8 @@ class Domain:
         self.numproc = numproc
 
         # Setup Communication Buffers
-        if verbose: print 'Domain: Set up communication buffers (parallel)'
+        if verbose: log.critical('Domain: Set up communication buffers '
+                                 '(parallel)')
         self.nsys = len(self.conserved_quantities)
         for key in self.full_send_dict:
             buffer_shape = self.full_send_dict[key][0].shape[0]
@@ -211,8 +213,8 @@ class Domain:
         # the ghost triangles.
         if not num.allclose(self.tri_full_flag[:self.number_of_full_nodes], 1):
             if self.numproc>1:
-                print ('WARNING:  '
-                       'Not all full triangles are store before ghost triangles')
+                log.critical('WARNING: Not all full triangles are store before '
+                             'ghost triangles')
 
         # Defaults
         from anuga.config import max_smallsteps, beta_w, epsilon
@@ -274,10 +276,10 @@ class Domain:
         if mesh_filename is not None:
             # If the mesh file passed any quantity values,
             # initialise with these values.
-            if verbose: print 'Domain: Initialising quantity values'
+            if verbose: log.critical('Domain: Initialising quantity values')
             self.set_quantity_vertices_dict(vertex_quantity_dict)
 
-        if verbose: print 'Domain: Done'
+        if verbose: log.critical('Domain: Done')
 
     ######
     # Expose underlying Mesh functionality
@@ -830,7 +832,7 @@ class Domain:
     # @brief Print timestep stats to stdout.
     # @param track_speeds If True, print smallest track speed.
     def write_time(self, track_speeds=False):
-        print self.timestepping_statistics(track_speeds)
+        log.critical(self.timestepping_statistics(track_speeds))
 
     ##
     # @brief Get timestepping stats string.
@@ -980,7 +982,7 @@ class Domain:
     # @param quantities A name or list of names of quantities to report.
     # @param tags A name or list of names of tags to report.
     def write_boundary_statistics(self, quantities=None, tags=None):
-        print self.boundary_statistics(quantities, tags)
+        log.critical(self.boundary_statistics(quantities, tags))
 
     # @brief Get a string containing boundary forcing stats at each timestep.
     # @param quantities A name or list of names of quantities to report.
@@ -1612,7 +1614,7 @@ class Domain:
         # FIXME: Boundary objects should not include ghost nodes.
         for i, ((vol_id, edge_id), B) in enumerate(self.boundary_objects):
             if B is None:
-                print 'WARNING: Ignored boundary segment (None)'
+                log.critical('WARNING: Ignored boundary segment (None)')
             else:
                 q = B.evaluate(vol_id, edge_id)
 
@@ -1651,7 +1653,6 @@ class Domain:
             if len(hist) > 1 and hist[-1] > 0 and \
                 hist[4] == hist[5] == hist[6] == hist[7] == hist[8] == 0:
                     # Danger of isolated degenerate triangles
-                    # print self.timestepping_statistics(track_speeds=True)
 
                     # Find triangles in last bin
                     # FIXME - speed up using numeric package
@@ -1664,8 +1665,6 @@ class Domain:
                                       % (i, self.number_of_full_triangles,
                                          self.max_speed[i])
 
-                            # print 'Found offending triangle', i,
-                            # self.max_speed[i]
                             self.get_quantity('xmomentum').\
                                             set_values(0.0, indices=[i])
                             self.get_quantity('ymomentum').\
@@ -1694,10 +1693,10 @@ class Domain:
                               % timestep
                     msg += 'even after %d steps of 1 order scheme' \
                                % self.max_smallsteps
-                    print msg
+                    log.critical(msg)
                     timestep = min_timestep  # Try enforcing min_step
 
-                    print self.timestepping_statistics(track_speeds=True)
+                    log.critical(self.timestepping_statistics(track_speeds=True))
 
                     raise Exception, msg
                 else:
@@ -1829,9 +1828,8 @@ if use_psyco:
             pass
             # Psyco isn't supported on 64 bit systems, but it doesn't matter
         else:
-            msg = ('WARNING: psyco (speedup) could not be imported, '
-                   'you may want to consider installing it')
-            print msg
+            log.critical('WARNING: psyco (speedup) could not be imported, '
+                         'you may want to consider installing it')
     else:
         psyco.bind(Domain.update_boundary)
         #psyco.bind(Domain.update_timestep) # Not worth it

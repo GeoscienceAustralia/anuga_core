@@ -23,6 +23,7 @@ from anuga.fit_interpolate.fit import fit_to_mesh
 from anuga.config import points_file_block_line_size as default_block_line_size
 from anuga.config import epsilon
 from anuga.caching import cache
+import anuga.utilities.log as log
 
 import anuga.utilities.numerical_tools as aunt
 
@@ -233,9 +234,9 @@ class Quantity:
         """Set default beta value for limiting """
 
         if beta < 0.0:
-            print 'WARNING: setting beta < 0.0'
+            log.critical('WARNING: setting beta < 0.0')
         if beta > 2.0:
-            print 'WARNING: setting beta > 2.0'
+            log.critical('WARNING: setting beta > 2.0')
 
         self.beta = beta
 
@@ -736,11 +737,10 @@ class Quantity:
             x = V[:,0];
             y = V[:,1]
             if use_cache is True:
-                #print 'Caching function'
                 values = cache(f, (x, y), verbose=verbose)                
             else:
                 if verbose is True:
-                    print 'Evaluating function in set_values'
+                    log.critical('Evaluating function in set_values')
                 values = f(x, y)
 
             # FIXME (Ole): This code should replace all the
@@ -913,7 +913,7 @@ class Quantity:
 
         # Call underlying method using array values
         if verbose:
-            print 'Applying fitted data to domain'
+            log.critical('Applying fitted data to domain')
         self.set_values_from_array(vertex_attributes, location,
                                    indices, use_cache=use_cache,
                                    verbose=verbose)
@@ -1166,7 +1166,7 @@ class Quantity:
         #              resulting values should be ordered.
 
         if verbose is True:
-            print 'Getting values from %s' % location
+            log.critical('Getting values from %s' % location)
 
         if interpolation_points is not None:
             return self.get_interpolated_values(interpolation_points,

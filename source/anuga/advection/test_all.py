@@ -28,10 +28,8 @@ def get_test_files(path):
     for file in files:
         if os.path.isdir(file):
             sys.path.append(file)
-            #print 'Recursing into', file
             test_files += get_test_files(path + os.sep + file)
         elif file[:5] == 'test_' and file[-2:] == 'py':
-            #print 'Appending', file
             test_files.append(file)
         else:
             pass

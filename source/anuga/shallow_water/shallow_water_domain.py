@@ -117,6 +117,7 @@ from anuga.fit_interpolate.interpolate import Modeltime_too_late, \
 
 from anuga.utilities.polygon import inside_polygon, polygon_area, \
                                     is_inside_polygon
+import anuga.utilities.log as log
 
 from types import IntType, FloatType
 from warnings import warn
@@ -452,7 +453,8 @@ class Domain(Generic_Domain):
         midpoints = ensure_geospatial(midpoints, self.geo_reference)
 
         # Compute flow
-        if verbose: print 'Computing flow through specified cross section'
+        if verbose:
+            log.critical('Computing flow through specified cross section')
 
         # Get interpolated values
         xmomentum = self.get_quantity('xmomentum')
@@ -525,7 +527,7 @@ class Domain(Generic_Domain):
         midpoints = ensure_geospatial(midpoints, self.geo_reference)
 
         # Compute energy
-        if verbose: print 'Computing %s energy' %kind
+        if verbose: log.critical('Computing %s energy' % kind)
 
         # Get interpolated values
         stage = self.get_quantity('stage')
@@ -903,9 +905,6 @@ class Domain(Generic_Domain):
         elevation = self.get_quantity('elevation').get_values(location='centroids')        
         depth = stage-elevation
         
-        #print 'z', elevation
-        #print 'w', stage
-        #print 'h', depth
         return num.sum(depth*area)
         
         
@@ -1327,7 +1326,7 @@ class Transmissive_momentum_set_stage_boundary(Boundary):
                 msg += 'time provided in '
                 msg += 'transmissive_momentum_set_stage boundary object.\n'
                 msg += 'I will continue, reusing the object from t==0'
-                print msg
+                log.critical(msg)
                 t -= self.function.time[-1]
 
         value = self.function(t)
@@ -1837,7 +1836,10 @@ def depth_dependent_friction(domain, default_friction,
             
         # check sanity of result
         if (depth_dependent_friction  < 0.010 or depth_dependent_friction > 9999.0) :
-            print model_data.basename+' >>>> WARNING: computed depth_dependent friction out of range ddf,n1,n2 ', depth_dependent_friction, n1,n2
+            log.critical('%s >>>> WARNING: computed depth_dependent friction '
+                         'out of range, ddf%f, n1=%f, n2=%f'
+                         % (model_data.basename,
+                            depth_dependent_friction, n1, n2))
         
         # update depth dependent friction  for that wet element
         wet_friction[i] = depth_dependent_friction
@@ -1849,7 +1851,9 @@ def depth_dependent_friction(domain, default_friction,
         n_min=min(nvals)
         n_max=max(nvals)
         
-        print "         ++++ calculate_depth_dependent_friction  - Updated friction - range  %7.3f to %7.3f" %(n_min,n_max)
+        log.critical('         ++++ calculate_depth_dependent_friction - '
+                     'Updated friction - range  %7.3f to %7.3f'
+                     % (n_min, n_max))
     
     return wet_friction
 
@@ -2286,9 +2290,8 @@ class General_forcing:
 
         # Now rate is a number
         if self.verbose is True:
-            print 'Rate of %s at time = %.2f = %f' % (self.quantity_name,
-                                                      domain.get_time(),
-                                                      rate)
+            log.critical('Rate of %s at time = %.2f = %f'
+                         % (self.quantity_name, domain.get_time(), rate))
 
         if self.exchange_indices is None:
             self.update[:] += rate
@@ -2571,7 +2574,7 @@ if use_psyco:
         else:
             msg = ('WARNING: psyco (speedup) could not be imported, '
                    'you may want to consider installing it')
-            print msg
+            log.critical(msg)
     else:
         psyco.bind(Domain.distribute_to_vertices_and_edges)
         psyco.bind(Domain.compute_fluxes)

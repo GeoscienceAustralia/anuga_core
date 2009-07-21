@@ -31,6 +31,7 @@ Geoscience Australia, 2004
 
 
 from anuga.abstract_2d_finite_volumes.domain import *
+import anuga.utilities.log as log
 
 import numpy as num
 
@@ -164,21 +165,21 @@ class Domain(Generic_domain):
         Stage = self.quantities['stage']
 
         """
-        print "======================================"
-        print "BEFORE compute_fluxes"
-        print "stage_update",Stage.explicit_update
-        print "stage_edge",Stage.edge_values
-        print "stage_bdry",Stage.boundary_values
-        print "neighbours",self.neighbours
-        print "neighbour_edges",self.neighbour_edges
-        print "normals",self.normals
-        print "areas",self.areas
-        print "radii",self.radii
-        print "edgelengths",self.edgelengths
-        print "tri_full_flag",self.tri_full_flag
-        print "huge_timestep",huge_timestep
-        print "max_timestep",max_timestep
-        print "velocity",self.velocity
+        log.critical("======================================")
+        log.critical("BEFORE compute_fluxes")
+        log.critical("stage_update=%s" % str(Stage.explicit_update))
+        log.critical("stage_edge=%s" % str(Stage.edge_values))
+        log.critical("stage_bdry=%s" % str(Stage.boundary_values))
+        log.critical("neighbours=%s" % str(self.neighbours))
+        log.critical("neighbour_edges=%s" % str(self.neighbour_edges))
+        log.critical("normals=%s" % str(self.normals))
+        log.critical("areas=%s" % str(self.areas))
+        log.critical("radii=%s" % str(self.radii))
+        log.critical("edgelengths=%s" % str(self.edgelengths))
+        log.critical("tri_full_flag=%s" % str(self.tri_full_flag))
+        log.critical("huge_timestep=%s" % str(huge_timestep))
+        log.critical("max_timestep=%s" % str(max_timestep))
+        log.critical("velocity=%s" % str(self.velocity))
         """
 
         import advection_ext		

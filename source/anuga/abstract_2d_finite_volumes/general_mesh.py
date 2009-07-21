@@ -2,6 +2,7 @@ import copy
 import numpy as num
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference
+import anuga.utilities.log as log
 
 class General_mesh:
     """Collection of 2D triangular elements
@@ -88,7 +89,8 @@ class General_mesh:
 
         """
 
-        if verbose: print 'General_mesh: Building basic mesh structure in ANUGA domain'
+        if verbose: log.critical('General_mesh: Building basic mesh structure '
+                                 'in ANUGA domain')
 
         self.triangles = num.array(triangles, num.int)
         self.nodes = num.array(nodes, num.float)
@@ -146,10 +148,11 @@ class General_mesh:
 
         # Initialise each triangle
         if verbose:
-            print 'General_mesh: Computing areas, normals and edgelengths'
+            log.critical('General_mesh: Computing areas, normals '
+                         'and edgelengths')
 
         for i in range(N):
-            if verbose and i % ((N+10)/10) == 0: print '(%d/%d)' % (i, N)
+            if verbose and i % ((N+10)/10) == 0: log.critical('(%d/%d)' % (i, N))
 
             x0, y0 = V[3*i, :]
             x1, y1 = V[3*i+1, :]
@@ -194,7 +197,7 @@ class General_mesh:
             self.edgelengths[i, :] = [l0, l1, l2]
 
         # Build structure listing which triangles belong to which node.
-        if verbose: print 'Building inverted triangle structure'
+        if verbose: log.critical('Building inverted triangle structure')
         self.build_inverted_triangle_structure()
 
     def __len__(self):

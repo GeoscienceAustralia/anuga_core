@@ -142,9 +142,6 @@ class BenchmarkLeastSquares:
         '''
         num_of_points 
         '''
-        #print "num_of_points",num_of_points
-        #print "maxArea",maxArea
-        #print "max_points_per_cell", max_points_per_cell
         if geo_ref is True:
             geo = Geo_reference(xllcorner = 2.0, yllcorner = 2.0)
         else:
@@ -157,7 +154,6 @@ class BenchmarkLeastSquares:
                                               gridded=gridded,
                                               verbose=verbose)
 
-        #print "len(mesh_dict['triangles'])",len(mesh_dict['triangles'])
         if is_fit is True:
             op = "Fit_"
         else:
@@ -186,7 +182,6 @@ class BenchmarkLeastSquares:
         del points_dict
         if is_fit is True:
 
-            # print "Fit in Fit"
             if use_file_type == None:
                 points = geospatial
                 filename = None
@@ -223,7 +218,6 @@ class BenchmarkLeastSquares:
                     
         else:
             # run an interploate problem.
-            #print "Interpolate!"
             
             if run_profile:
                 # pass in the geospatial points

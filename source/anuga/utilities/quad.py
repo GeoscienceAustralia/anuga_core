@@ -5,6 +5,7 @@
 
 from treenode import TreeNode
 import string, types, sys
+import anuga.utilities.log as log
 
 
 #FIXME verts are added one at a time. 
@@ -123,7 +124,6 @@ class Cell(TreeNode):
         else:
             three_cells = self.branch.pop()
             for cell in three_cells:
-                #print "cell ", cell.show() 
                 points += cell.retrieve(get_vertices=get_vertices)
         return points, self.branch
 
@@ -222,12 +222,10 @@ class Cell(TreeNode):
             # use a dictionary to remove duplicates
             triangles = {}
             verts = self.retrieve_vertices()
-            # print "verts", verts
             for vert in verts:
                 triangle_list = self.mesh.get_triangles_and_vertices_per_node(vert)
                 for k, _ in triangle_list:
                     if not triangles.has_key(k):
-                        # print 'k',k
                         tri = self.mesh.get_vertex_coordinates(k,
                                                                absolute=True)
                         n0 = self.mesh.get_normal(k, 0)
@@ -371,17 +369,16 @@ class Cell(TreeNode):
            if it is a leaf the number of objects
         """
         if depth == 0:
-            print 
-        print "%s%s" % ('  '*depth, self.name),
+            log.critical() 
+        log.critical("%s%s" % ('  '*depth, self.name))
         if self.children:
-            print
+            log.critical()
             for child in self.children:
                 child.show(depth+1)
         else:
-            print '(xmin=%.2f, xmax=%.2f, ymin=%.2f, ymax=%.2f): [%d]'\
-		  %(self.western, self.eastern,
-		    self.southern, self.northern,
-		    self.count()) 
+            log.critical('(xmin=%.2f, xmax=%.2f, ymin=%.2f, ymax=%.2f): [%d]'
+                         % (self.western, self.eastern, self.southern,
+                            self.northern, self.count()))
 
 
     def show_all(self,depth=0):
@@ -389,14 +386,14 @@ class Cell(TreeNode):
            Print for each node the name and if it is a leaf all its objects
         """
         if depth == 0:
-            print 
-        print "%s%s:" % ('  '*depth, self.name),
+            log.critical() 
+        log.critical("%s%s:" % ('  '*depth, self.name))
         if self.children:
             print
             for child in self.children:
                 child.show_all(depth+1)
         else:
-            print '%s' %self.retrieve()
+            log.critical('%s' % self.retrieve())
 
 
     def stats(self,depth=0,min_rad=sys.maxint,max_depth=0,max_points=0):

@@ -6,6 +6,7 @@
 from math import acos, pi, sqrt
 from warnings import warn
 
+import anuga.utilities.log as log
 import numpy as num
 
 #After having migrated to numpy we should use the native NAN.
@@ -40,7 +41,7 @@ def safe_acos(x):
         if x > 1.0 + eps:
             raise ValueError, errmsg
         else:
-            print 'NOTE: changing argument to acos from %.18f to 1.0' %x
+            log.critical('NOTE: changing argument to acos from %.18f to 1.0' %x)
             x = 1.0
 
     return acos(x)

@@ -8,6 +8,7 @@ from math import sqrt
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.geospatial_data.geospatial_data import ensure_absolute, Geospatial_data
 from anuga.config import netcdf_float
+import anuga.utilities.log as log
 
 
 ##
@@ -641,7 +642,7 @@ def separate_points_by_polygon(points, polygon,
                                         int(closed), int(verbose))
 
     if verbose:
-        print 'Found %d points (out of %d) inside polygon' % (count, M)
+        log.critical('Found %d points (out of %d) inside polygon' % (count, M))
 
     return indices, count
 
@@ -928,7 +929,7 @@ class Polygon_function:
             msg = ('Warning: points provided to Polygon function did not fall '
                    'within its regions in [%.2f, %.2f], y in [%.2f, %.2f]'
                    % (min(x), max(x), min(y), max(y)))
-            print msg
+            log.critical(msg)
 
         return z
 
@@ -1120,9 +1121,10 @@ def number_mesh_triangles(interior_regions, bounding_poly, remainder_res):
 
     # TO DO check if any of the regions fall inside one another
 
-    print '----------------------------------------------------------------------------'
-    print 'Polygon   Max triangle area (m^2)   Total area (km^2)   Estimated #triangles'
-    print '----------------------------------------------------------------------------'    
+    log.critical('-' * 80)
+    log.critical('Polygon   Max triangle area (m^2)   Total area (km^2) '
+                 'Estimated #triangles')
+    log.critical('-' * 80)
         
     no_triangles = 0.0
     area = polygon_area(bounding_poly)
@@ -1133,23 +1135,33 @@ def number_mesh_triangles(interior_regions, bounding_poly, remainder_res):
         no_triangles += this_triangles
         area -= this_area
 
-        print 'Interior ',
-        print ('%.0f' % resolution).ljust(25),
-        print ('%.2f' % (this_area/1000000)).ljust(19),
-        print '%d' % (this_triangles)
+        log.critical('Interior %s%s%d'
+                     % (('%.0f' % resolution).ljust(25),
+                        ('%.2f' % (this_area/1000000)).ljust(19), 
+                        this_triangles))
+        #print 'Interior ',
+        #print ('%.0f' % resolution).ljust(25),
+        #print ('%.2f' % (this_area/1000000)).ljust(19),
+        #print '%d' % (this_triangles)
 
     bound_triangles = area/remainder_res
     no_triangles += bound_triangles
 
-    print 'Bounding ',
-    print ('%.0f' % remainder_res).ljust(25),
-    print ('%.2f' % (area/1000000)).ljust(19),
-    print '%d' % (bound_triangles)
+    log.critical('Bounding %s%s%d'
+                 % (('%.0f' % remainder_res).ljust(25),
+                    ('%.2f' % (area/1000000)).ljust(19),
+                    bound_triangles))
+    #print 'Bounding ',
+    #print ('%.0f' % remainder_res).ljust(25),
+    #print ('%.2f' % (area/1000000)).ljust(19),
+    #print '%d' % (bound_triangles)
 
     total_number_of_triangles = no_triangles/0.7
 
-    print 'Estimated total number of triangles: %d' %total_number_of_triangles
-    print 'Note: This is generally about 20% less than the final amount'
+    log.critical('Estimated total number of triangles: %d'
+                 % total_number_of_triangles)
+    log.critical('Note: This is generally about 20%% '
+                 'less than the final amount')
 
     return int(total_number_of_triangles)
 

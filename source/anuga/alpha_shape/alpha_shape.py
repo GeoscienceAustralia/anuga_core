@@ -73,7 +73,6 @@ class Alpha_Shape:
         Inputs:       
           points: List of coordinate pairs [[x1, y1],[x2, y2]..] 
         """
-        # print "setting points"
         if len (points) <= 2:
             raise PointError, "Too few points to find an alpha shape"
         if len(points)==3:
@@ -95,7 +94,6 @@ class Alpha_Shape:
         """
         Write the boundary to a file
         """
-        #print " this info will be in the file" 
         export_boundary_file(file_name, self.get_boundary(),
                              OUTPUT_FILE_TITLE, delimiter = ',')
     
@@ -177,8 +175,6 @@ class Alpha_Shape:
           not specified the optimum alpha value will be used.
         """
 
-        #print "starting alpha shape algorithm" 
-
         self.alpha = alpha
 
         ## Build Delaunay triangulation
@@ -193,24 +189,16 @@ class Alpha_Shape:
         points = [(pt[0], pt[1]) for pt in self.points]
         pointattlist = [ [] for i in range(len(points)) ] 
         mode = "Qzcn"
-        #print "computing delaunay triangulation ... \n" 
         tridata = generate_mesh(points,seglist,holelist,regionlist,
                                  pointattlist,segattlist,mode)
-        #print tridata
-        #print "point attlist: ", tridata['generatedpointattributelist'],"\n"
-        #print "hull segments: ", tridata['generatedsegmentlist'], "\n"
         self.deltri = tridata['generatedtrianglelist']
         self.deltrinbr = tridata['generatedtriangleneighborlist']
         self.hulledges = tridata['generatedsegmentlist'] 
-
-        #print "Number of delaunay triangles: ", len(self.deltri), "\n"
-        #print "deltrinbrs: ", self.deltrinbr, "\n"
 
         ## Build Alpha table
         ## the following routines determine alpha thresholds for the
         ## triangles, edges, and vertices of the delaunay triangulation
         self._tri_circumradius()
-        # print "Largest circumradius ", max(self.triradius)
         self._edge_intervals()
         self._vertex_intervals()
 
@@ -220,12 +208,10 @@ class Alpha_Shape:
             # every vertex is non-singular so... 
             self.optimum_alpha = max([iv[0] for iv in self.vertexinterval \
                                       if iv!=[] ])
-            # print "optimum alpha ", self.optimum_alpha
             alpha = self.optimum_alpha
         self.alpha = alpha
         reg_edge = self.get_regular_edges(self.alpha)
         self.boundary = [self.edge[k] for k in reg_edge]
-        #print "alpha boundary edges ", self.boundary
         self._init_boundary_triangles()
         
         return
@@ -257,7 +243,6 @@ class Alpha_Shape:
         dist31 = x31*x31 + y31*y31
 
         denom = x21*y31 - x31*y21
-        #print "denom = ", denom
 
         # dx/2, dy/2 give circumcenter relative to x1,y1. 
         # dx = (y31*dist21 - y21*dist31)/denom
@@ -270,7 +255,7 @@ class Alpha_Shape:
         # we perturb the associated vertices and recalculate 
         while zeroind!=[]:
             random.seed()
-            print "Warning: degenerate triangles found in alpha_shape.py, results may be inaccurate."
+            log.critical("Warning: degenerate triangles found in alpha_shape.py, results may be inaccurate.")
             for d in zeroind:
                 x1[d] = x1[d]+delta*(random.random()-0.5)
                 x2[d] = x2[d]+delta*(random.random()-0.5)
@@ -295,7 +280,6 @@ class Alpha_Shape:
         dy = num.divide(x21*dist31 - x31*dist21, denom)
 
         self.triradius = 0.5*num.sqrt(dx*dx + dy*dy)
-        #print "triangle radii", self.triradius
 
     def _edge_intervals(self):
         """
@@ -324,11 +308,6 @@ class Alpha_Shape:
             anglesign = num.array([(-dx[(i+1)%3]*dx[(i+2)%3]-
                                     dy[(i+1)%3]*dy[(i+2)%3]) for i in [0,1,2]])
             
-            #print "dx ",dx,"\n"
-            #print "dy ",dy,"\n"
-            #print "edge lengths of triangle ",t,"\t",elen,"\n"
-            #print "angles ",angle,"\n"
-                          
             for i in [0,1,2]:
                 j = (i+1)%3
                 k = (i+2)%3
@@ -350,9 +329,6 @@ class Alpha_Shape:
         self.edge = edges
         self.edgenbr = edgenbrs
         self.edgeinterval = edgeinterval
-        #print "edges: ",edges, "\n"
-        #print "edge nbrs:", edgenbrs ,"\n"
-        #print "edge intervals: ",edgeinterval , "\n" 
 
     def _vertex_intervals(self):
         """
@@ -380,8 +356,6 @@ class Alpha_Shape:
 
         self.vertexnbr = vertexnbrs
         self.vertexinterval = vertexinterval
-        #print "vertex nbrs ", vertexnbrs, "\n"
-        #print "vertex intervals ",vertexinterval, "\n"
         
     def get_alpha_triangles(self,alpha):
         """
@@ -449,16 +423,12 @@ class Alpha_Shape:
 
         self.boundarytriangle = btri
   
-        #print "exterior triangles: ", extrind
-
        
     def _remove_holes(self,small):
         """
         Given the edges in self.boundary, finds the largest components.
         The routine does this by implementing a union-find algorithm. 
         """
-
-        #print "running _remove_holes \n"
 
         bdry = self.boundary
         
@@ -474,7 +444,6 @@ class Alpha_Shape:
 
         # get a list of unique vertex labels:
         verts = self._vertices_from_edges(bdry)
-        #print "verts ", verts, "\n"
 
         # vptr represents the union-find tree.
         # if vptr[i] = EMPTY < 0, the vertex verts[i] has not been visited yet
@@ -485,16 +454,13 @@ class Alpha_Shape:
         #initialise vptr to negative number outside range 
         EMPTY = -max(verts)-len(verts)
         vptr = [EMPTY for k in range(len(verts))]
-        #print "vptr init: ", vptr, "\n"
 
         #add edges and maintain union tree
         for i in range(len(bdry)):
-            #print "edge ",i,"\t",bdry[i] 
             vl = verts.index(bdry[i][0])
             vr = verts.index(bdry[i][1])
             rvl = findroot(vl)
             rvr = findroot(vr)
-            #print "roots:  ",rvl, rvr
             if not(rvl==rvr):
                 if (vptr[vl]==EMPTY):
                     if (vptr[vr]==EMPTY):
@@ -516,18 +482,14 @@ class Alpha_Shape:
                             vptr[rvl] = vptr[rvl] + vptr[rvr]
                             vptr[rvr] = rvl
                             vptr[vr] = rvl 
-                #print "vptr: ", vptr, "\n"
         # end edge loop
 
         if vptr.count(EMPTY):
             raise FlagError, "We didn't hit all the vertices in the boundary"
         
-        # print "number of vertices in the connected components: ", [-v for v in vptr if v<0], "\n"
-        # print "largest component has: ", -min(vptr), " points. \n"
         # discard the edges in the little components
         # (i.e. those components with less than 'small' fraction of bdry points)
         cutoff = round(small*len(verts))
-        # print "cutoff component size is ", cutoff, "\n"
         largest_component = -min(vptr)
         if cutoff > largest_component:
             cutoff = round((1-small)*largest_component)
@@ -567,8 +529,6 @@ class Alpha_Shape:
         and remove them.
         """
         
-        #print "running _smooth_indents \n"
-
         bdry = self.boundary
         bdrytri = self.boundarytriangle
         
@@ -607,8 +567,6 @@ class Alpha_Shape:
             if anglesign[tind[1]] > 0:
                 acutetri.append(tind[0])
 
-        #print "acute boundary triangles ", acutetri
-
         # adjust the bdry edges and triangles by adding
         #in the acutetri triangles
         for pind in acutetri:
@@ -623,7 +581,6 @@ class Alpha_Shape:
             if numed%2 == 1:
                 newbdry.append(ed)
         
-        #print "new boundary ", newbdry
         return newbdry
 
     def _expand_pinch(self):
@@ -631,7 +588,6 @@ class Alpha_Shape:
         Given edges in bdry, test for vertices with more than 2 incident edges.
         Expand by adding back in associated triangles.
         """
-        #print "running _expand_pinch \n"
 
         bdry = self.boundary
         bdrytri = self.boundarytriangle
@@ -642,7 +598,6 @@ class Alpha_Shape:
         v.sort()
         probv = [v[k] for k in range(len(v)) \
                  if (v[k]!=v[k-1] and v.count(v[k])>2) ]
-        #print "problem vertices: ", probv  
 
         # find boundary triangles that have at least one vertex in probv
         probtri = []
@@ -653,7 +608,6 @@ class Alpha_Shape:
             if v0 in probv or v1 in probv or v2 in probv:
                 probtri.append(ind)
 
-        #print "problem boundary triangle indices ", probtri
 
         # "add in" the problem triangles
         for pind in probtri:
@@ -668,7 +622,6 @@ class Alpha_Shape:
             if numed%2 == 1:
                 newbdry.append(ed)
         
-        #print "new boundary ", newbdry
         return newbdry
 
 

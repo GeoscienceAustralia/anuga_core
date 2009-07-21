@@ -16,12 +16,10 @@ def add_to_verts(tag, elements, domain):
 
 def set_bottom_friction(tag, elements, domain):
     if tag == "bottom":
-        #print 'bottom - indices',elements
         domain.set_quantity('friction', 0.09, indices = elements)
 
 def set_top_friction(tag, elements, domain):
     if tag == "top":
-        #print 'top - indices',elements
         domain.set_quantity('friction', 1., indices = elements)
 
 
@@ -346,10 +344,6 @@ class Test_Domain(unittest.TestCase):
 
         A = num.array([[1,2,3], [5,5,-5], [0,0,9], [-6,3,3]], num.float)
         B = num.array([[2,4,4], [3,2,1], [6,-3,4], [4,5,-1]], num.float)
-        
-        #print A
-        #print B
-        #print A+B
         
         # Shorthands
         stage = domain.quantities['stage']
@@ -720,7 +714,6 @@ class Test_Domain(unittest.TestCase):
         domain.set_quantity('friction', manning)
 
         domain.set_region([set_bottom_friction, set_top_friction])
-        #print domain.quantities['friction'].get_values()
         assert num.allclose(domain.quantities['friction'].get_values(),\
                             [[ 0.09,  0.09,  0.09],
                              [ 0.09,  0.09,  0.09],
@@ -730,7 +723,6 @@ class Test_Domain(unittest.TestCase):
                              [ 1.0,  1.0,  1.0]])
 
         domain.set_region([set_all_friction])
-        #print domain.quantities['friction'].get_values()
         assert num.allclose(domain.quantities['friction'].get_values(),
                             [[ 10.09, 10.09, 10.09],
                              [ 10.09, 10.09, 10.09],
@@ -764,7 +756,6 @@ class Test_Domain(unittest.TestCase):
         domain.set_region('top', 'friction', 1.0)
         domain.set_region('bottom', 'friction', 0.09)
         
-        #print domain.quantities['friction'].get_values()
         msg = ("domain.quantities['friction'].get_values()=\n%s\n"
                'should equal\n'
                '[[ 0.09,  0.09,  0.09],\n'
@@ -783,7 +774,6 @@ class Test_Domain(unittest.TestCase):
                              [ 1.0,  1.0,  1.0]]), msg
         
         domain.set_region([set_bottom_friction, set_top_friction])
-        #print domain.quantities['friction'].get_values()
         assert num.allclose(domain.quantities['friction'].get_values(),
                             [[ 0.09,  0.09,  0.09],
                              [ 0.09,  0.09,  0.09],
@@ -793,7 +783,6 @@ class Test_Domain(unittest.TestCase):
                              [ 1.0,  1.0,  1.0]])
 
         domain.set_region([set_all_friction])
-        #print domain.quantities['friction'].get_values()
         assert num.allclose(domain.quantities['friction'].get_values(),
                             [[ 10.09, 10.09, 10.09],
                              [ 10.09, 10.09, 10.09],
@@ -814,8 +803,6 @@ class Test_Domain(unittest.TestCase):
         assert num.allclose(ghost_recv_dict[0][0], [24, 25, 26, 27,  0,  1,  2,  3])
         assert num.allclose(full_send_dict[0][0] , [ 4,  5,  6,  7, 20, 21, 22, 23])
 
-        #print 'HERE'
-        
         conserved_quantities = ['quant1', 'quant2']
         domain = Domain(points, vertices, boundary, conserved_quantities,
                         full_send_dict=full_send_dict,

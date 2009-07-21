@@ -56,7 +56,6 @@ class TestCase(unittest.TestCase):
 
         lat = degminsec2decimal_degrees(-37,57,03.7203)
         lon = degminsec2decimal_degrees(144,25,29.5244) 
-        #print lat, lon
 
         zone, easting, northing = LLtoUTM(lat,lon)
 
@@ -76,7 +75,6 @@ class TestCase(unittest.TestCase):
         lon = degminsec2decimal_degrees(130,0,0) 
 
         zone, easting, northing = LLtoUTM(lat,lon)
-        #print zone, easting, northing
 
         assert zone == 52
         assert num.allclose(easting, 555776.267)
@@ -111,7 +109,6 @@ class TestCase(unittest.TestCase):
         
         zone, easting, northing = LLtoUTM(lat,lon)
 
-        #print zone, easting, northing
 
         assert zone == 56
         assert num.allclose(easting, 308728.009)

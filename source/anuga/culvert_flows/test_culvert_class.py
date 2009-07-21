@@ -134,7 +134,6 @@ class Test_Culvert(unittest.TestCase):
             if delta_w > max_delta_w: max_delta_w = delta_w
             if delta_w < min_delta_w: min_delta_w = delta_w            
             
-            #print domain.timestepping_statistics()
             pass
 
         # Check that extreme values in rating curve have been exceeded
@@ -235,7 +234,6 @@ class Test_Culvert(unittest.TestCase):
 
         ref_volume = domain.get_quantity('stage').get_integral()
         for t in domain.evolve(yieldstep = 1, finaltime = 25):
-            #print domain.timestepping_statistics()
             new_volume = domain.get_quantity('stage').get_integral()
             
             msg = 'Total volume has changed'
@@ -338,13 +336,10 @@ class Test_Culvert(unittest.TestCase):
 
         ref_volume = domain.get_quantity('stage').get_integral()
         for t in domain.evolve(yieldstep = 0.1, finaltime = 25):
-            #print domain.timestepping_statistics()
             new_volume = domain.get_quantity('stage').get_integral()
             
-            msg = 'Total volume has changed: Is %.2f m^3 should have been %.2f m^3'\
-                % (new_volume, ref_volume)
-            if not num.allclose(new_volume, ref_volume):
-                print msg
+            msg = ('Total volume has changed: Is %.2f m^3 should have been %.2f m^3'
+                   % (new_volume, ref_volume))
             assert num.allclose(new_volume, ref_volume), msg        
         
         
@@ -359,10 +354,8 @@ class Test_Culvert(unittest.TestCase):
         
             ref_volume = domain.get_quantity('stage').get_integral()
             for t in domain.evolve(yieldstep = 0.1, finaltime = 25):
-                #print domain.timestepping_statistics()
                 new_volume = domain.get_quantity('stage').get_integral()
             
-                #print new_volume, ref_volume, new_volume-ref_volume
                 msg = 'Total volume has changed: Is %.2f m^3 should have been %.2f m^3'\
                     % (new_volume, ref_volume)
 
@@ -470,7 +463,6 @@ class Test_Culvert(unittest.TestCase):
         ref_volume = domain.get_quantity('stage').get_integral()
         for t in domain.evolve(yieldstep = 1, finaltime = 25):
             
-            #print domain.timestepping_statistics()
             new_volume = domain.get_quantity('stage').get_integral()
 
             msg = 'Total volume has changed'
@@ -557,12 +549,9 @@ class Test_Culvert(unittest.TestCase):
         # Call
         culvert(domain)
     
-        #print 'Inlet flow', culvert.inlet.rate
-        #print 'Outlet flow', culvert.outlet.rate        
-        
-    
                
 #-------------------------------------------------------------
+
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_Culvert, 'test')
     runner = unittest.TextTestRunner() #verbosity=2)

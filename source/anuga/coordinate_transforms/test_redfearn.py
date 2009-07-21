@@ -70,7 +70,6 @@ class TestCase(unittest.TestCase):
 
         lat = degminsec2decimal_degrees(-37,57,03.7203)
         lon = degminsec2decimal_degrees(144,25,29.5244) 
-        #print lat, lon
 
         zone, easting, northing = redfearn(lat,lon)
 
@@ -85,7 +84,6 @@ class TestCase(unittest.TestCase):
         lon = degminsec2decimal_degrees(130,0,0) 
 
         zone, easting, northing = redfearn(lat,lon)
-        #print zone, easting, northing
 
         assert zone == 52
         assert num.allclose(easting, 555776.267)
@@ -115,8 +113,6 @@ class TestCase(unittest.TestCase):
         lon = degminsec2decimal_degrees(150,55,0.) 
         
         zone, easting, northing = redfearn(lat,lon)
-
-        #print zone, easting, northing
 
         assert zone == 56
         assert num.allclose(easting, 308728.009)
@@ -451,7 +447,6 @@ class TestCase(unittest.TestCase):
         
         points = [[lat_gong, lon_gong], [lat_2, lon_2]]
         points, zone = convert_from_latlon_to_utm(points=points)
-        #print "points",points 
         assert num.allclose(points[0][0], 308728.009)
         assert num.allclose(points[0][1], 6180432.601)
         assert num.allclose(points[1][0],  222908.705)

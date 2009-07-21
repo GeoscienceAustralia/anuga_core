@@ -120,8 +120,6 @@ class geo_referenceTestCase(unittest.TestCase):
         g = Geo_reference(56,x,y)
         lofl = [[3.0,311.0], [677.0,6.0]]
         new_lofl = g.change_points_geo_ref(lofl)
-        #print "lofl",lofl 
-        #print "new_lofl",new_lofl
 
         self.failUnless(type(new_lofl) == types.ListType, ' failed')
         self.failUnless(type(new_lofl) == type(lofl), ' failed')
@@ -136,8 +134,6 @@ class geo_referenceTestCase(unittest.TestCase):
         g = Geo_reference(56,x,y)
         lofl = [[3.0,388.0]]
         new_lofl = g.change_points_geo_ref(lofl)
-        #print "lofl",lofl 
-        #print "new_lofl",new_lofl
 
         self.failUnless(type(new_lofl) == types.ListType, ' failed')
         self.failUnless(type(new_lofl) == type(lofl), ' failed')
@@ -151,8 +147,6 @@ class geo_referenceTestCase(unittest.TestCase):
         g = Geo_reference(56,x,y)
         lofl = [3.0,345.0]
         new_lofl = g.change_points_geo_ref(lofl)
-        #print "lofl",lofl 
-        #print "new_lofl",new_lofl
 
         self.failUnless(type(new_lofl) == types.ListType, ' failed')
         self.failUnless(type(new_lofl) == type(lofl), ' failed')
@@ -167,8 +161,6 @@ class geo_referenceTestCase(unittest.TestCase):
         g = Geo_reference(56,x,y)
         lofl = num.array([[3.0,323.0], [6.0,645.0]])
         new_lofl = g.change_points_geo_ref(lofl)
-        #print "4 lofl",lofl 
-        #print "4 new_lofl",new_lofl
 
         self.failUnless(isinstance(new_lofl, num.ndarray), ' failed')
         self.failUnless(type(new_lofl) == type(lofl), ' failed')
@@ -182,11 +174,7 @@ class geo_referenceTestCase(unittest.TestCase):
         g = Geo_reference(56,x,y)
         lofl = num.array([[3.0,323.0]])
 
-        
-        #print "5 lofl before",lofl         
         new_lofl = g.change_points_geo_ref(lofl.copy())
-        #print "5 lofl",lofl 
-        #print "5 new_lofl",new_lofl
 
         self.failUnless(isinstance(new_lofl, num.ndarray), ' failed')
         self.failUnless(type(new_lofl) == type(lofl), ' failed')
@@ -202,8 +190,6 @@ class geo_referenceTestCase(unittest.TestCase):
         g = Geo_reference(56,x,y)
         lofl = num.array([355.0,3.0])
         new_lofl = g.change_points_geo_ref(lofl.copy())        
-        #print "lofl",lofl 
-        #print "new_lofl",new_lofl
 
         self.failUnless(isinstance(new_lofl, num.ndarray), ' failed')
         self.failUnless(type(new_lofl) == type(lofl), ' failed')
@@ -220,8 +206,6 @@ class geo_referenceTestCase(unittest.TestCase):
         points_geo_ref = Geo_reference(56,point_x,point_y)
         lofl = [[3.0,30.0], [67.0,6.0]]
         new_lofl = g.change_points_geo_ref(lofl,points_geo_ref=points_geo_ref)
-        #print "lofl",lofl 
-        #print "new_lofl",new_lofl
 
         self.failUnless(type(new_lofl) == types.ListType, ' failed')
         self.failUnless(type(new_lofl) == type(lofl), ' failed')

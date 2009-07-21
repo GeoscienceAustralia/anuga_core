@@ -15,6 +15,8 @@ try:
 except ImportError:
     import md5 as hashlib
 
+import anuga.utilities.log as log
+
 
 def log_to_file(filename, s, verbose=False):
     """Log string to file name
@@ -237,7 +239,7 @@ def store_version_info(destination_path='.', verbose=False):
 
 
         if verbose is True:
-            print 'Version info stored to %s' %filename
+            log.critical('Version info stored to %s' % filename)
 
 
 def safe_crc(string):

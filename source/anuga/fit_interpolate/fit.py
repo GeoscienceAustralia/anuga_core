@@ -39,6 +39,7 @@ from anuga.fit_interpolate.search_functions import search_tree_of_vertices
 from anuga.utilities.cg_solve import conjugate_gradient
 from anuga.utilities.numerical_tools import ensure_numeric, gradient
 from anuga.config import default_smoothing_parameter as DEFAULT_ALPHA
+import anuga.utilities.log as log
 
 import exceptions
 class TooFewPointsError(exceptions.Exception): pass
@@ -111,7 +112,7 @@ class Fit(FitInterpolate):
 
         self.point_count = 0
         if self.alpha <> 0:
-            if verbose: print 'Building smoothing matrix'
+            if verbose: log.critical('Building smoothing matrix')
             self._build_smoothing_matrix_D()
             
         bd_poly = self.mesh.get_boundary_polygon()    
@@ -128,7 +129,7 @@ class Fit(FitInterpolate):
         """
 
         if self.alpha <> 0:
-            #if verbose: print 'Building smoothing matrix'
+            #if verbose: log.critical('Building smoothing matrix')
             #self._build_smoothing_matrix_D()
             self.B = self.AtA + self.alpha*self.D
         else:
@@ -274,7 +275,8 @@ class Fit(FitInterpolate):
         triangles = self.mesh.triangles # Shorthand
         for d, i in enumerate(inside_indices):
             # For each data_coordinate point
-            # if verbose and d%((n+10)/10)==0: print 'Doing %d of %d' %(d, n)
+            # if verbose and d%((n+10)/10)==0: log.critical('Doing %d of %d'
+                                                            # %(d, n))
             x = point_coordinates[i]
             
             element_found, sigma0, sigma1, sigma2, k = \
@@ -290,11 +292,6 @@ class Fit(FitInterpolate):
 
                 for j in js:
                     self.Atz[j] +=  sigmas[j]*z[i]
-                    #print "self.Atz building", self.Atz
-                    #print "self.Atz[j]", self.Atz[j]
-                    #print " sigmas[j]", sigmas[j]
-                    #print "z[i]",z[i]
-                    #print "result", sigmas[j]*z[i]
                     
                     for k in js:
                         AtA[j,k] += sigmas[j]*sigmas[k]
@@ -355,7 +352,7 @@ class Fit(FitInterpolate):
                     # The time this will take
                     # is dependant on the # of Triangles
                         
-                    print 'Processing Block %d' %i
+                    log.critical('Processing Block %d' % i)
                     # FIXME (Ole): It would be good to say how many blocks
                     # there are here. But this is no longer necessary
                     # for pts files as they are reported in geospatial_data
@@ -378,15 +375,12 @@ class Fit(FitInterpolate):
                 msg = 'Matrix AtA was not built'
                 assert self.AtA is not None, msg
                 
-                #print 'Matrix was built OK'
-
-                
             point_coordinates = None
         else:
             point_coordinates =  point_coordinates_or_filename
             
         if point_coordinates is None:
-            if verbose: print 'Warning: no data points in fit'
+            if verbose: log.critical('Warning: no data points in fit')
             msg = 'No interpolation matrix.'
             assert self.AtA is not None, msg
             assert self.Atz is not None
@@ -421,7 +415,7 @@ class Fit(FitInterpolate):
             msg += 'In the future this will be inforced.\n'
 	    msg += 'The following vertices are not part of a triangle;\n'
             msg += str(loners)
-            print msg
+            log.critical(msg)
             #raise VertsWithNoTrianglesError(msg)
         
         
@@ -590,7 +584,7 @@ def _fit_to_mesh(point_coordinates, # this can also be a points file name
         vertex_coordinates = ensure_absolute(vertex_coordinates,
                                              geo_reference = mesh_origin)
 
-        if verbose: print 'FitInterpolate: Building mesh'        
+        if verbose: log.critical('FitInterpolate: Building mesh')
         mesh = Mesh(vertex_coordinates, triangles)
         mesh.check_integrity()
     
@@ -649,7 +643,7 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
         mesh_dict = import_mesh_file(mesh_file)
     except IOError,e:
         if display_errors:
-            print "Could not load bad file. ", e
+            log.critical("Could not load bad file: %s" % str(e))
         raise IOError  #Could not load bad mesh file.
     
     vertex_coordinates = mesh_dict['vertices']
@@ -664,14 +658,14 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
     else:
         old_title_list = mesh_dict['vertex_attribute_titles']
 
-    if verbose: print 'tsh file %s loaded' %mesh_file
+    if verbose: log.critical('tsh file %s loaded' % mesh_file)
 
     # load in the points file
     try:
         geo = Geospatial_data(point_file, verbose=verbose)
     except IOError,e:
         if display_errors:
-            print "Could not load bad file. ", e
+            log.critical("Could not load bad file: %s" % str(e))
         raise IOError  #Re-raise exception  
 
     point_coordinates = geo.get_data_points(absolute=True)
@@ -684,8 +678,8 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
     else:
         mesh_origin = None
 
-    if verbose: print "points file loaded"
-    if verbose: print "fitting to mesh"
+    if verbose: log.critical("points file loaded")
+    if verbose: log.critical("fitting to mesh")
     f = fit_to_mesh(point_coordinates,
                     vertex_coordinates,
                     triangles,
@@ -695,7 +689,7 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
                     verbose = verbose,
                     data_origin = None,
                     mesh_origin = mesh_origin)
-    if verbose: print "finished fitting to mesh"
+    if verbose: log.critical("finished fitting to mesh")
 
     # convert array to list of lists
     new_point_attributes = f.tolist()
@@ -712,11 +706,11 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
         mesh_dict['vertex_attributes'] = new_point_attributes
         mesh_dict['vertex_attribute_titles'] = title_list
 
-    if verbose: print "exporting to file ", mesh_output_file
+    if verbose: log.critical("exporting to file %s" % mesh_output_file)
 
     try:
         export_mesh_file(mesh_output_file, mesh_dict)
     except IOError,e:
         if display_errors:
-            print "Could not write file. ", e
+            log.critical("Could not write file %s", str(e))
         raise IOError

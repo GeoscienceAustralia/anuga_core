@@ -9,6 +9,7 @@ MOSTs output.
 import sys
 from Scientific.IO.NetCDF import NetCDFFile
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
+import anuga.utilities.log as log
 
 
 ##
@@ -32,7 +33,7 @@ def most2nc(input_file, output_file, inverted_bathymetry=False, verbose=True):
     # read data from the MOST file
     in_file = open(input_file,'r')
 
-    if verbose: print 'reading header'
+    if verbose: log.critical('reading header')
 
     nx_ny_str = in_file.readline()
     nx_str,ny_str = nx_ny_str.split()
@@ -48,14 +49,14 @@ def most2nc(input_file, output_file, inverted_bathymetry=False, verbose=True):
 
     h2_list.reverse()
 
-    if verbose: print 'reading depths'
+    if verbose: log.critical('reading depths')
 
     in_depth_list = in_file.readlines()
     in_file.close()
 
     out_depth_list = [[]]
 
-    if verbose: print 'processing depths'
+    if verbose: log.critical('processing depths')
 
     k=1
     for in_line in in_depth_list:
@@ -73,7 +74,7 @@ def most2nc(input_file, output_file, inverted_bathymetry=False, verbose=True):
     depth_list = out_depth_list
 
     # write the NetCDF file
-    if verbose: print 'writing results'
+    if verbose: log.critical('writing results')
 
     out_file = NetCDFFile(output_file, netcdf_mode_w)
 

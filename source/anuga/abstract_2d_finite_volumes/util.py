@@ -25,6 +25,7 @@ from anuga.utilities.system_tools import get_revision_number
 from anuga.utilities.system_tools import store_version_info
 
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
+import anuga.utilities.log as log
 
 import numpy as num
 
@@ -113,7 +114,7 @@ def file_function(filename,
         if verbose:
             msg = 'Quantities specified in file_function are None,'
             msg += ' so I will use stage, xmomentum, and ymomentum in that order'
-            print msg
+            log.critical(msg)
         quantities = ['stage', 'xmomentum', 'ymomentum']
 
     # Use domain's startime if available
@@ -170,12 +171,12 @@ def file_function(filename,
                      %(filename, starttime)
             msg += ' Modifying domain starttime accordingly.'
             
-            if verbose: print msg
+            if verbose: log.critical(msg)
 
             domain.set_starttime(starttime) #Modifying model time
 
-            if verbose: print 'Domain starttime is now set to %f'\
-               %domain.starttime
+            if verbose: log.critical('Domain starttime is now set to %f'
+                                     % domain.starttime)
     return f
 
 
@@ -276,7 +277,7 @@ def get_netcdf_file_function(filename,
     from anuga.config import time_format
 
     # Open NetCDF file
-    if verbose: print 'Reading', filename
+    if verbose: log.critical('Reading %s' % filename)
 
     fid = NetCDFFile(filename, netcdf_mode_r)
 
@@ -337,7 +338,7 @@ def get_netcdf_file_function(filename,
         raise msg
 
     # Get variables
-    # if verbose: print 'Get variables'    
+    # if verbose: log.critical('Get variables'    )
     time = fid.variables['time'][:]    
     # FIXME(Ole): Is time monotoneous?
 
@@ -347,11 +348,6 @@ def get_netcdf_file_function(filename,
     assert upper_time_index > 0, msg
     
     if time_limit is not None:
-        #if verbose is True:
-        #    print '****** Time limit', time_limit
-        #    print '****** Start time', starttime
-        #    print '****** Time in ', time[0], time[-1]
-        
         # Adjust given time limit to given start time
         time_limit = time_limit - starttime
 
@@ -366,8 +362,8 @@ def get_netcdf_file_function(filename,
         assert upper_time_index > 0, msg
 
         if time_limit < time[-1] and verbose is True:
-            print 'Limited time vector from %.2fs to %.2fs'\
-                  % (time[-1], time_limit)
+            log.critical('Limited time vector from %.2fs to %.2fs'
+                         % (time[-1], time_limit))
 
     time = time[:upper_time_index]
 
@@ -437,8 +433,6 @@ def get_netcdf_file_function(filename,
         else:
             gauge_neighbour_id=None
 
-        #print gauge_neighbour_id
-        
         if interpolation_points is not None:
             # Adjust for georef
             interpolation_points[:,0] -= xllcorner
@@ -459,13 +453,12 @@ def get_netcdf_file_function(filename,
         # assert domain.geo_reference.zone == zone        
         
     if verbose:
-        print 'File_function data obtained from: %s' %filename
-        print '  References:'
-        #print '    Datum ....' #FIXME
+        log.critical('File_function data obtained from: %s' % filename)
+        log.critical('  References:')
         if spatial:
-            print '    Lower left corner: [%f, %f]'\
-                  %(xllcorner, yllcorner)
-        print '    Start time:   %f' %starttime                
+            log.critical('    Lower left corner: [%f, %f]'
+                         % (xllcorner, yllcorner))
+        log.critical('    Start time:   %f' % starttime)
         
     
     # Produce values for desired data points at
@@ -489,7 +482,7 @@ def get_netcdf_file_function(filename,
         #vertex coordinates is position of urs gauges
 
     if verbose:
-        print 'Calling interpolation function'
+        log.critical('Calling interpolation function')
         
     # Return Interpolation_function instance as well as
     # starttime for use to possible modify that of domain
@@ -673,8 +666,9 @@ def point_on_line(*args, **kwargs):
 def inside_polygon(*args, **kwargs):
     """Temporary Interface to new location"""
 
-    print 'inside_polygon has moved from util.py.  ',
-    print 'Please use "from anuga.utilities.polygon import inside_polygon"'
+    log.critical('inside_polygon has moved from util.py.')
+    log.critical('Please use '
+                 '"from anuga.utilities.polygon import inside_polygon"')
 
     return utilities.polygon.inside_polygon(*args, **kwargs)    
 
@@ -683,8 +677,9 @@ def inside_polygon(*args, **kwargs):
 def outside_polygon(*args, **kwargs):
     """Temporary Interface to new location"""
 
-    print 'outside_polygon has moved from util.py.  ',
-    print 'Please use "from anuga.utilities.polygon import outside_polygon"'
+    log.critical('outside_polygon has moved from util.py.')
+    log.critical('Please use '
+                 '"from anuga.utilities.polygon import outside_polygon"')
 
     return utilities.polygon.outside_polygon(*args, **kwargs)    
 
@@ -693,9 +688,9 @@ def outside_polygon(*args, **kwargs):
 def separate_points_by_polygon(*args, **kwargs):
     """Temporary Interface to new location"""
 
-    print 'separate_points_by_polygon has moved from util.py.  ',
-    print 'Please use "from anuga.utilities.polygon import ' \
-          'separate_points_by_polygon"'
+    log.critical('separate_points_by_polygon has moved from util.py.')
+    log.critical('Please use "from anuga.utilities.polygon import '
+                 'separate_points_by_polygon"')
 
     return utilities.polygon.separate_points_by_polygon(*args, **kwargs)    
 
@@ -704,8 +699,9 @@ def separate_points_by_polygon(*args, **kwargs):
 def read_polygon(*args, **kwargs):
     """Temporary Interface to new location"""
 
-    print 'read_polygon has moved from util.py.  ',
-    print 'Please use "from anuga.utilities.polygon import read_polygon"'
+    log.critical('read_polygon has moved from util.py.')
+    log.critical('Please use '
+                 '"from anuga.utilities.polygon import read_polygon"')
 
     return utilities.polygon.read_polygon(*args, **kwargs)    
 
@@ -714,8 +710,9 @@ def read_polygon(*args, **kwargs):
 def populate_polygon(*args, **kwargs):
     """Temporary Interface to new location"""
 
-    print 'populate_polygon has moved from util.py.  ',
-    print 'Please use "from anuga.utilities.polygon import populate_polygon"'
+    log.critical('populate_polygon has moved from util.py.')
+    log.critical('Please use '
+                 '"from anuga.utilities.polygon import populate_polygon"')
 
     return utilities.polygon.populate_polygon(*args, **kwargs)    
 
@@ -731,9 +728,9 @@ def start_screen_catcher(dir_name, myid='', numprocs='', extra_info='',
     from anuga.shallow_water.data_manager import start_screen_catcher \
          as dm_start_screen_catcher
 
-    print 'start_screen_catcher has moved from util.py.  ',
-    print 'Please use "from anuga.shallow_water.data_manager import ' \
-          'start_screen_catcher"'
+    log.critical('start_screen_catcher has moved from util.py.')
+    log.critical('Please use "from anuga.shallow_water.data_manager import '
+                 'start_screen_catcher"')
     
     return dm_start_screen_catcher(dir_name, myid='', numprocs='',
                                    extra_info='', verbose=False)
@@ -871,7 +868,7 @@ def sww2timeseries(swwfiles,
     msg += 'files called sww2csv_gauges in anuga.abstract_2d_finite_volumes.util'
     msg += ' PLUS another new function to create graphs from csv files called '
     msg += 'csv2timeseries_graphs in anuga.abstract_2d_finite_volumes.util'
-    print msg
+    log.critical(msg)
     
     k = _sww2timeseries(swwfiles,
                         gauge_filename,
@@ -951,7 +948,7 @@ def _sww2timeseries(swwfiles,
     if title_on is None:
         title_on = True
     
-    if verbose: print '\n Gauges obtained from: %s \n' %gauge_filename
+    if verbose: log.critical('Gauges obtained from: %s' % gauge_filename)
 
     gauges, locations, elev = get_gauges_from_file(gauge_filename)
 
@@ -972,13 +969,12 @@ def _sww2timeseries(swwfiles,
             raise msg
 
         if verbose:
-            print 'swwfile', swwfile
+            log.critical('swwfile = %s' % swwfile)
 
         # Extract parent dir name and use as label
         path, _ = os.path.split(swwfile)
         _, label = os.path.split(path)        
         
-        #print 'label', label
         leg_label.append(label)
 
         f = file_function(swwfile,
@@ -994,17 +990,17 @@ def _sww2timeseries(swwfiles,
         for k, g in enumerate(gauges):
             if f(0.0, point_id = k)[2] > 1.0e6:
                 count += 1
-                if count == 1: print 'Gauges not contained here:'
-                print locations[k]
+                if count == 1: log.critical('Gauges not contained here:')
+                log.critical(locations[k])
             else:
                 gauge_index.append(k)
 
         if len(gauge_index) > 0:
-            print 'Gauges contained here: \n',
+            log.critical('Gauges contained here:')
         else:
-            print 'No gauges contained here. \n'
+            log.critical('No gauges contained here.')
         for i in range(len(gauge_index)):
-             print locations[gauge_index[i]]
+             log.critical(locations[gauge_index[i]])
              
         index = swwfile.rfind(sep)
         file_loc.append(swwfile[:index+1])
@@ -1031,7 +1027,7 @@ def _sww2timeseries(swwfiles,
             raise Exception, msg
 
     if verbose and len(gauge_index) > 0:
-         print 'Inputs OK - going to generate figures'
+         log.critical('Inputs OK - going to generate figures')
 
     if len(gauge_index) <> 0:
         texfile, elev_output = \
@@ -1235,14 +1231,14 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
             texfilename = texfile + '.tex'
             fid = open(texfilename, 'w')
 
-            if verbose: print '\n Latex output printed to %s \n' %texfilename
+            if verbose: log.critical('Latex output printed to %s' % texfilename)
         else:
             texfile = texdir+reportname 
             texfile2 = reportname
             texfilename = texfile + '.tex' 
             fid = open(texfilename, 'w')
 
-            if verbose: print '\n Latex output printed to %s \n' %texfilename
+            if verbose: log.critical('Latex output printed to %s' % texfilename)
     else:
         texfile = ''
         texfile2 = ''
@@ -1286,7 +1282,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
 
     ##### loop over each swwfile #####
     for j, f in enumerate(f_list):
-        if verbose: print 'swwfile %d of %d' % (j, len(f_list))
+        if verbose: log.critical('swwfile %d of %d' % (j, len(f_list)))
 
         starttime = f.starttime
         comparefile = file_loc[j] + sep + 'gauges_maxmins' + '.csv'
@@ -1296,7 +1292,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
 
         ##### loop over each gauge #####
         for k in gauge_index:
-            if verbose: print 'Gauge %d of %d' % (k, len(gauges))
+            if verbose: log.critical('Gauge %d of %d' % (k, len(gauges)))
 
             g = gauges[k]
             min_stage = 10
@@ -1380,7 +1376,7 @@ def generate_figures(plot_quantity, file_loc, report, reportname, surface,
         eastings_plot3d[:,] = eastings[:,:,j]
             
         if surface is True:
-            print 'Printing surface figure'
+            log.critical('Printing surface figure')
             for i in range(2):
                 fig = p1.figure(10)
                 ax = p3.Axes3D(fig)
@@ -1695,9 +1691,9 @@ def copy_code_files(dir_name, filename1, filename2):
 
     from anuga.shallow_water.data_manager import \
                     copy_code_files as dm_copy_code_files
-    print 'copy_code_files has moved from util.py.  ',
-    print 'Please use "from anuga.shallow_water.data_manager \
-                                        import copy_code_files"'
+    log.critical('copy_code_files has moved from util.py.')
+    log.critical('Please use "from anuga.shallow_water.data_manager import '
+                 'copy_code_files"')
     
     return dm_copy_code_files(dir_name, filename1, filename2)
 
@@ -1735,9 +1731,9 @@ def get_data_from_file(filename, separator_value=','):
     """Temporary Interface to new location"""
     from anuga.shallow_water.data_manager import \
                         get_data_from_file as dm_get_data_from_file
-    print 'get_data_from_file has moved from util.py'
-    print 'Please use "from anuga.shallow_water.data_manager \
-                                     import get_data_from_file"'
+    log.critical('get_data_from_file has moved from util.py')
+    log.critical('Please use "from anuga.shallow_water.data_manager import '
+                 'get_data_from_file"')
     
     return dm_get_data_from_file(filename,separator_value = ',')
 
@@ -1753,9 +1749,9 @@ def store_parameters(verbose=False,**kwargs):
     
     from anuga.shallow_water.data_manager \
                     import store_parameters as dm_store_parameters
-    print 'store_parameters has moved from util.py.'
-    print 'Please use "from anuga.shallow_water.data_manager \
-                                     import store_parameters"'
+    log.critical('store_parameters has moved from util.py.')
+    log.critical('Please use "from anuga.shallow_water.data_manager '
+                 'import store_parameters"')
     
     return dm_store_parameters(verbose=False,**kwargs)
 
@@ -1812,10 +1808,7 @@ def remove_lone_verts(verts, triangles, number_of_full_nodes=None):
         verts = verts[0:new_i]
 
         # Modify the triangles
-        #print "loners", loners
-        #print "triangles before", triangles
         triangles = num.choose(triangles,loners)
-        #print "triangles after", triangles
     return verts, triangles
 
 
@@ -2063,7 +2056,7 @@ def csv2timeseries_graphs(directories_dic={},
     #so to help find a uniform max and min for the plots... 
     list_filenames=[]
     all_csv_filenames=[]
-    if verbose: print 'Determining files to access for axes ranges.'
+    if verbose: log.critical('Determining files to access for axes ranges.')
     
     for i,directory in enumerate(directories_dic.keys()):
         all_csv_filenames.append(get_all_files_with_extension(directory,
@@ -2082,7 +2075,7 @@ def csv2timeseries_graphs(directories_dic={},
     max_start_time= -1000.
     min_start_time = 100000 
     
-    if verbose: print 'Determining uniform axes' 
+    if verbose: log.critical('Determining uniform axes')
 
     #this entire loop is to determine the min and max range for the 
     #axes of the plots
@@ -2111,7 +2104,7 @@ def csv2timeseries_graphs(directories_dic={},
             directory_start_time = directories_dic[directory][1]
             directory_add_tide = directories_dic[directory][2]
 
-            if verbose: print 'reading: %s.csv' %dir_filename
+            if verbose: log.critical('reading: %s.csv' % dir_filename)
 
             #add time to get values
             for k, quantity in enumerate(quantities):
@@ -2188,31 +2181,32 @@ def csv2timeseries_graphs(directories_dic={},
                                      max_quantity_value[quantity])
 
         if verbose and (quantity != 'time' and quantity != 'elevation'): 
-            print 'axis for quantity %s are x:(%s to %s)%s and y:(%s to %s)%s' \
-                  % (quantity, 
-                     quantities_axis[quantity][0],
-                     quantities_axis[quantity][1],
-                     quantities_label['time'],
-                     quantities_axis[quantity][2],
-                     quantities_axis[quantity][3],
-                     quantities_label[quantity])
+            log.critical('axis for quantity %s are x:(%s to %s)%s '
+                         'and y:(%s to %s)%s' 
+                         % (quantity, quantities_axis[quantity][0],
+                            quantities_axis[quantity][1],
+                            quantities_label['time'],
+                            quantities_axis[quantity][2],
+                            quantities_axis[quantity][3],
+                            quantities_label[quantity]))
 
     cstr = ['b', 'r', 'g', 'c', 'm', 'y', 'k']
 
-    if verbose: print 'Now start to plot \n'
+    if verbose: log.critical('Now start to plot')
     
     i_max = len(directories_dic.keys())
     legend_list_dic = {}
     legend_list = []
     for i, directory in enumerate(directories_dic.keys()):
-        if verbose: print 'Plotting in %s %s' % (directory, new_plot_numbers)
+        if verbose: log.critical('Plotting in %s %s'
+                                 % (directory, new_plot_numbers))
 
         # FIXME THIS SORT IS VERY IMPORTANT
         # Without it the assigned plot numbers may not work correctly
         # there must be a better way
         list_filenames[i].sort()
         for j, filename in enumerate(list_filenames[i]):
-            if verbose: print 'Starting %s' % filename  
+            if verbose: log.critical('Starting %s' % filename)
 
             directory_name = directories_dic[directory][0]
             directory_start_time = directories_dic[directory][1]
@@ -2235,7 +2229,7 @@ def csv2timeseries_graphs(directories_dic={},
             min_ele, max_ele = get_min_max_values(elevation)
             
             if min_ele != max_ele:
-                print "Note! Elevation changes in %s" %dir_filename
+                log.critical("Note! Elevation changes in %s" % dir_filename)
 
             # creates a dictionary with keys that is the filename and attributes
             # are a list of lists containing 'directory_name' and 'elevation'.
@@ -2286,16 +2280,16 @@ def csv2timeseries_graphs(directories_dic={},
                                   % (output_dir, sep, filename, quantity,
                                      extra_plot_name)
 
-                    if verbose: print 'saving figure here %s' %figname
+                    if verbose: log.critical('saving figure here %s' % figname)
 
                     pylab.savefig(figname)
            
-    if verbose: print 'Closing all plots'
+    if verbose: log.critical('Closing all plots')
 
     pylab.close('all')
     del pylab
 
-    if verbose: print 'Finished closing plots'
+    if verbose: log.critical('Finished closing plots')
 
 ##
 # @brief Return min and max of an iterable.
@@ -2306,7 +2300,7 @@ def get_min_max_values(list=None):
     Returns the min and max of the list it was provided.
     """
 
-    if list == None: print 'List must be provided'
+    if list == None: log.critical('List must be provided')
         
     return min(list), max(list)
 
@@ -2343,7 +2337,7 @@ def get_runup_data_for_locations_from_file(gauge_filename,
     northing = [float(x) for x in attribute_dic["y"]]
     easting = [float(x) for x in attribute_dic["x"]]
 
-    print 'Reading %s' %sww_filename
+    log.critical('Reading %s' % sww_filename)
 
     runup_locations=[]
     for i, x in enumerate(northing):
@@ -2361,7 +2355,8 @@ def get_runup_data_for_locations_from_file(gauge_filename,
         if x_y==None: x_y=[0,0]
         
         if verbose:
-            print 'maximum inundation runup near %s is %s meters' %(x_y,run_up)
+            log.critical('maximum inundation runup near %s is %s meters'
+                         % (x_y, run_up))
         
         #writes to file
         file = open(runup_filename, "a")
@@ -2444,7 +2439,7 @@ def sww2csv_gauges(sww_file,
         msg = 'File "%s" could not be opened: Error="%s"' % (gauge_file, e)
         raise msg
 
-    if verbose: print '\n Gauges obtained from: %s \n' %gauge_file
+    if verbose: log.critical('Gauges obtained from: %s' % gauge_file)
     
     point_reader = reader(file(gauge_file))
     points = []
@@ -2476,7 +2471,7 @@ def sww2csv_gauges(sww_file,
         dir_name =getcwd()
         
     if access(sww_file,R_OK):
-        if verbose: print 'File %s exists' %(sww_file)
+        if verbose: log.critical('File %s exists' % sww_file)
     else:
         msg = 'File "%s" could not be opened: no read permission' % sww_file
         raise msg
@@ -2484,12 +2479,12 @@ def sww2csv_gauges(sww_file,
     sww_files = get_all_swwfiles(look_in_dir=dir_name,
                                  base_name=base,
                                  verbose=verbose)
-    #print 'sww files just after get_all_swwfiles()', sww_files
+
     # fudge to get SWW files in 'correct' order, oldest on the left
     sww_files.sort()
 
     if verbose:
-        print 'sww files', sww_files
+        log.critical('sww files=%s' % sww_files)
     
     #to make all the quantities lower case for file_function
     quantities = [quantity.lower() for quantity in quantities]
@@ -2512,7 +2507,7 @@ def sww2csv_gauges(sww_file,
                                          + point_name[point_i] + '.csv', "wb")))
         points_writer[point_i].writerow(heading)
     
-    if verbose: print 'Writing csv files'
+    if verbose: log.critical('Writing csv files')
 
     quake_offset_time = None
 
@@ -2529,18 +2524,15 @@ def sww2csv_gauges(sww_file,
 
         for time in callable_sww.get_time():
             for point_i, point in enumerate(points_array):
-               # print 'gauge_file = ', str(point_name[point_i])
-                #print 'point_i = ', str(point_i), ' point is = ', str(point) 
                 #add domain starttime to relative time.
                 quake_time = time + quake_offset_time
                 points_list = [quake_time, quake_time/3600.]# fudge around SWW time bug
-                #print 'point list = ', str(points_list)
                 point_quantities = callable_sww(time,point_i)
-                #print 'point quantities = ', str(point_quantities)
                 
                 for quantity in quantities:
                     if quantity == NAN:
-                        print 'quantity does not exist in' % callable_sww.get_name
+                        log.critical('quantity does not exist in %s'
+                                     % callable_sww.get_name)
                     else:
                         if quantity == 'stage':
                             points_list.append(point_quantities[0])

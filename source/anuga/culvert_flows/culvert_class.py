@@ -12,6 +12,7 @@ from anuga.utilities.numerical_tools import ensure_numeric, sign
         
 from anuga.config import g, epsilon
 from anuga.config import minimum_allowed_height, velocity_protection        
+import anuga.utilities.log as log
 
 import numpy as num
 from math import sqrt
@@ -286,7 +287,7 @@ class Culvert_flow_general:
                        length)
                 msg += ' does not match distance between specified'
                 msg += ' end points (%.2f m)' %self.length
-                print msg
+                log.critical(msg)
         
         self.verbose = verbose
 
@@ -440,7 +441,7 @@ class Culvert_flow_general:
             msg += ' = %.2f m^3/s\n        ' % Q_reduced
             msg += 'Q will be reduced from %.2f m^3/s to %.2f m^3/s.' % (Q, Q_reduced)
             if self.verbose is True:
-                print msg
+                log.critical(msg)
                 
             if self.log_filename is not None:                
                 log_to_file(self.log_filename, msg)
@@ -505,11 +506,9 @@ class Culvert_flow_general:
         # Determine flow direction based on total energy difference
         delta_total_energy = openings[0].total_energy - openings[1].total_energy
         if delta_total_energy > 0:
-            #print 'Flow U/S ---> D/S'
             inlet = openings[0]
             outlet = openings[1]
         else:
-            #print 'Flow D/S ---> U/S'
             inlet = openings[1]
             outlet = openings[0]
             
@@ -529,7 +528,7 @@ class Culvert_flow_general:
             # Adverse gradient - flow is running uphill
             # Flow will be purely controlled by uphill outlet face
             if self.verbose is True:
-                print '%.2fs - WARNING: Flow is running uphill.' % time
+                log.critical('%.2fs - WARNING: Flow is running uphill.' % time)
             
         if self.log_filename is not None:
             s = 'Time=%.2f, inlet stage = %.2f, outlet stage = %.2f'\
@@ -788,7 +787,7 @@ class Culvert_flow_rating:
             msg = 'WARNING: barrel length specified in "%s" (%.2f m)' %(culvert_description_filename, length)
             msg += ' does not match distance between specified'
             msg += ' end points (%.2f m)' %self.length
-            print msg
+            log.critical(msg)
         
         self.verbose = verbose
         self.last_update = 0.0 # For use with update_interval        
@@ -905,9 +904,6 @@ class Culvert_flow_rating:
             for i, d in enumerate(depth):
                 V += d * domain.areas[i]
             
-            #Vsimple = mean(depth)*self.inlet.exchange_area # Current volume in exchange area  
-            #print 'Q', Q, 'dt', delta_t, 'Q*dt', Q*delta_t, 'V', V, 'Vsimple', Vsimple
-
             dt = delta_t            
             if Q*dt > V:
             
@@ -917,10 +913,8 @@ class Culvert_flow_rating:
                 msg += 'greater than current volume (V) at inlet.\n'
                 msg += ' Q will be reduced from %.2f m^3/s to %.2f m^3/s.' % (Q, Q_reduced)
                 
-                #print msg
-                
                 if self.verbose is True:
-                    print msg
+                    log.critical(msg)
                 if hasattr(self, 'log_filename'):                    
                     log_to_file(self.log_filename, msg)                                        
                 
@@ -1312,7 +1306,6 @@ class Culvert_flow_energy:
 
                     
                 opening.total_energy = 0.5*(u*u + v*v)/g + stage
-                #print 'Et = %.3f m' %opening.total_energy
 
                 # Store current average stage and depth with each opening object
                 opening.depth = d
@@ -1329,7 +1322,6 @@ class Culvert_flow_energy:
             delta_Et = openings[0].total_energy - openings[1].total_energy
 
             if delta_Et > 0:
-                #print 'Flow U/S ---> D/S'
                 inlet = openings[0]
                 outlet = openings[1]
 
@@ -1337,7 +1329,6 @@ class Culvert_flow_energy:
                 outlet.momentum = self.opening_momentum[1]
 
             else:
-                #print 'Flow D/S ---> U/S'
                 inlet = openings[1]
                 outlet = openings[0]
 
@@ -1360,7 +1351,9 @@ class Culvert_flow_energy:
                 # Adverse gradient - flow is running uphill
                 # Flow will be purely controlled by uphill outlet face
                 if self.verbose is True:
-                    print 'WARNING: Flow is running uphill. Watch Out!', inlet.elevation, outlet.elevation
+                    log.critical('WARNING: Flow is running uphill. Watch Out! '
+                                 'inlet.elevation=%s, outlet.elevation%s'
+                                 % (str(inlet.elevation), str(outlet.elevation)))
 
 
             s = 'Delta total energy = %.3f' %(delta_Et)

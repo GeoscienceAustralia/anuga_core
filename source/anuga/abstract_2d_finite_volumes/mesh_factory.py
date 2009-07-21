@@ -2,6 +2,7 @@
 mesh file formats
 """
 
+import anuga.utilities.log as log
 import numpy as num
 
 
@@ -584,7 +585,8 @@ def from_polyfile(name):
         else:
             offending +=1
 
-    print 'Removed %d offending triangles out of %d' %(offending, len(lines))
+    log.critical('Removed %d offending triangles out of %d'
+                 % (offending, len(lines)))
     return points, triangles, values
 
 
