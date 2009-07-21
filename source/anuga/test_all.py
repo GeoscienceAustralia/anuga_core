@@ -13,7 +13,6 @@ import os
 import sys
 import tempfile
 import time
-print('%s' % sys.path)
 import anuga.utilities.system_tools as aust
 from anuga.utilities.terminal_width import terminal_width
 
