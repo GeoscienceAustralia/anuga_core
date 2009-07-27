@@ -518,7 +518,7 @@ class Culvert_flow_general:
         self.outlet = outlet
             
         msg = 'Total energy difference is negative'
-        assert delta_total_energy > 0.0, msg
+        assert delta_total_energy >= 0.0, msg
 
         # Recompute slope and issue warning if flow is uphill
         # These values do not enter the computation
