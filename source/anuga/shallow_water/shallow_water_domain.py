@@ -1324,7 +1324,7 @@ class Transmissive_momentum_set_stage_boundary(Boundary):
             while t > self.function.time[-1]:
                 msg = 'WARNING: domain time %.2f has exceeded' % t
                 msg += 'time provided in '
-                msg += 'transmissive_momentum_set_stage boundary object.\n'
+                msg += 'transmissive_momentum_set_stage_boundary object.\n'
                 msg += 'I will continue, reusing the object from t==0'
                 log.critical(msg)
                 t -= self.function.time[-1]

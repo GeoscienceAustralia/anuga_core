@@ -13,6 +13,8 @@ from anuga.shallow_water import File_boundary
 from anuga.shallow_water import Reflective_boundary
 from anuga.shallow_water import Field_boundary
 from anuga.shallow_water import Transmissive_stage_zero_momentum_boundary
+from anuga.shallow_water import Transmissive_Momentum_Set_Stage_boundary
+
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import Time_boundary
 from anuga.abstract_2d_finite_volumes.util import file_function
 
