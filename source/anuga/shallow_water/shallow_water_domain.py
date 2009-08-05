@@ -1284,7 +1284,7 @@ class Transmissive_momentum_set_stage_boundary(Boundary):
     """
 
     ##
-    # @brief Instantiate a Reflective_boundary.
+    # @brief Instantiate a Transmissive_momentum_set_stage_boundary.
     # @param domain
     # @param function
     def __init__(self, domain=None, function=None):
@@ -1336,6 +1336,7 @@ class Transmissive_momentum_set_stage_boundary(Boundary):
             x = float(value[0])
 
         q[0] = x
+           
         return q
 
         # FIXME: Consider this (taken from File_boundary) to allow
@@ -1352,6 +1353,96 @@ class Transmissive_momentum_set_stage_boundary(Boundary):
 class Transmissive_Momentum_Set_Stage_boundary(Transmissive_momentum_set_stage_boundary):
     pass
 
+
+##
+# @brief Class for a transmissive boundary.
+# @note Inherits from Boundary.
+class Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(Boundary):
+    """Returns the same normal momentum as that 
+    present in neighbour volume edge. Zero out the tangential momentum. 
+    Sets stage by specifying a function f of time which may either be a
+    vector function or a scalar function
+
+    Example:
+
+    def waveform(t):
+        return sea_level + normalized_amplitude/cosh(t-25)**2
+
+    Bts = Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(domain, waveform)
+
+    Underlying domain must be specified when boundary is instantiated
+    """
+
+    ##
+    # @brief Instantiate a Transmissive_n_momentum_zero_t_momentum_set_stage_boundary.
+    # @param domain
+    # @param function
+    def __init__(self, domain=None, function=None):
+        Boundary.__init__(self)
+
+        if domain is None:
+            msg = 'Domain must be specified for this type boundary'
+            raise Exception, msg
+
+        if function is None:
+            msg = 'Function must be specified for this type boundary'
+            raise Exception, msg
+
+        self.domain = domain
+        self.function = function
+
+    ##
+    # @brief Return a representation of this instance.
+    def __repr__(self):
+        return 'Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(%s)' %self.domain
+
+    ##
+    # @brief Calculate transmissive results.
+    # @param vol_id 
+    # @param edge_id 
+    def evaluate(self, vol_id, edge_id):
+        """Transmissive_n_momentum_zero_t_momentum_set_stage_boundary
+        return the edge momentum values of the volume they serve.
+        """
+
+        q = self.domain.get_conserved_quantities(vol_id, edge = edge_id)
+
+        normal = self.domain.get_normal(vol_id, edge_id)
+
+
+        t = self.domain.get_time()
+
+        if hasattr(self.function, 'time'):
+            # Roll boundary over if time exceeds
+            while t > self.function.time[-1]:
+                msg = 'WARNING: domain time %.2f has exceeded' % t
+                msg += 'time provided in '
+                msg += 'transmissive_momentum_set_stage_boundary object.\n'
+                msg += 'I will continue, reusing the object from t==0'
+                log.critical(msg)
+                t -= self.function.time[-1]
+
+        value = self.function(t)
+        try:
+            x = float(value)
+        except:
+            x = float(value[0])
+
+        ## import math
+        ## if vol_id == 9433:
+        ##     print 'vol_id = ',vol_id, ' edge_id = ',edge_id, 'q = ', q, ' x = ',x
+        ##     print 'normal = ', normal
+        ##     print 'n . p = ', (normal[0]*q[1] + normal[1]*q[2])
+        ##     print 't . p = ', (normal[1]*q[1] - normal[0]*q[2])
+
+
+        q[0] = x
+        ndotq = (normal[0]*q[1] + normal[1]*q[2])
+        q[1] = normal[0]*ndotq
+        q[2] = normal[1]*ndotq
+
+            
+        return q
 
 ##
 # @brief A transmissive boundary, momentum set to zero.

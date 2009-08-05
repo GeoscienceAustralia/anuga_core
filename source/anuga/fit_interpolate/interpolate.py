@@ -766,6 +766,7 @@ class Interpolation_function:
 
         # Check temporal info
         time = ensure_numeric(time)
+
         if not num.alltrue(time[1:] - time[:-1] >= 0):
             # This message is time consuming to form due to the conversion of
             msg = 'Time must be a monotonuosly increasing sequence %s' % time
