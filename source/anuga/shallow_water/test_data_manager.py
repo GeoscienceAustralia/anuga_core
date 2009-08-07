@@ -10418,7 +10418,7 @@ ValueError: matrices are not aligned for copy
         times = [0, 10]
         number_of_volumes = len(volumes)
         number_of_points = len(points_utm)
-        sww = Write_sww()
+        sww = Write_sww(['elevation'], ['stage', 'xmomentum', 'ymomentum'])
         sww.store_header(outfile, times, number_of_volumes,
                          number_of_points, description='fully sick testing',
                          verbose=self.verbose,sww_precision=netcdf_float)
@@ -10450,7 +10450,7 @@ ValueError: matrices are not aligned for copy
         times = [0, 10]
         number_of_volumes = len(volumes)
         number_of_points = len(points_utm)
-        sww = Write_sww()
+        sww = Write_sww(['elevation'], ['stage', 'xmomentum', 'ymomentum'])        
         sww.store_header(outfile, times, number_of_volumes,
                          number_of_points, description='fully sick testing',
                          verbose=self.verbose,sww_precision=netcdf_float)
@@ -10486,7 +10486,7 @@ ValueError: matrices are not aligned for copy
         times = [0, 10]
         number_of_volumes = len(volumes)
         number_of_points = len(points_utm)
-        sww = Write_sww()
+        sww = Write_sww(['elevation'], ['stage', 'xmomentum', 'ymomentum'])        
         sww.store_header(outfile, times, number_of_volumes,
                          number_of_points, description='fully sick testing',
                          verbose=self.verbose,sww_precision=netcdf_float)
@@ -10525,7 +10525,7 @@ ValueError: matrices are not aligned for copy
         times = [0, 10]
         number_of_volumes = len(volumes)
         number_of_points = len(points_utm)
-        sww = Write_sww()
+        sww = Write_sww(['elevation'], ['stage', 'xmomentum', 'ymomentum'])        
         sww.store_header(outfile, times, number_of_volumes,
                          number_of_points, description='fully sick testing',
                          verbose=self.verbose,sww_precision=netcdf_float)
@@ -10561,7 +10561,7 @@ ValueError: matrices are not aligned for copy
         times = [0, 10]
         number_of_volumes = len(volumes)
         number_of_points = len(points_utm)
-        sww = Write_sww()
+        sww = Write_sww(['elevation'], ['stage', 'xmomentum', 'ymomentum'])        
         sww.store_header(outfile, times, number_of_volumes,
                          number_of_points, description='fully sick testing',
                          verbose=self.verbose,sww_precision=netcdf_float)

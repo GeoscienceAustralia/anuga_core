@@ -349,11 +349,11 @@ class Data_format_sww(Data_format):
     def __init__(self, domain, mode=netcdf_mode_w, max_size=2000000000, recursion=False):
         from Scientific.IO.NetCDF import NetCDFFile
 
-        self.precision = netcdf_float32 #Use single precision for quantities
+        self.precision = netcdf_float32 # Use single precision for quantities
         self.recursion = recursion
         self.mode = mode
         if hasattr(domain, 'max_size'):
-            self.max_size = domain.max_size #file size max is 2Gig
+            self.max_size = domain.max_size # File size max is 2Gig
         else:
             self.max_size = max_size
         if hasattr(domain, 'minimum_storable_height'):
@@ -369,7 +369,7 @@ class Data_format_sww(Data_format):
         if mode[0] == 'w':
             description = 'Output from anuga.abstract_2d_finite_volumes ' \
                           'suitable for plotting'
-            self.writer = Write_sww()
+            self.writer = Write_sww(['elevation'], domain.conserved_quantities)
             self.writer.store_header(fid,
                                      domain.starttime,
                                      self.number_of_volumes,
@@ -3242,7 +3242,7 @@ def ferret2sww(basename_in, basename_out=None,
     # Create new file
     starttime = times[0]
 
-    sww = Write_sww()
+    sww = Write_sww(['elevation'], ['stage', 'xmomentum', 'ymomentum'])
     sww.store_header(outfile, times, number_of_volumes,
                      number_of_points, description=description,
                      verbose=verbose, sww_precision=netcdf_float)
@@ -5334,7 +5334,7 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
 
     # For a different way of doing this, check out tsh2sww
     # work out sww_times and the index range this covers
-    sww = Write_sww()
+    sww = Write_sww(['elevation'], ['stage', 'xmomentum', 'ymomentum'])
     sww.store_header(outfile, times, len(volumes), len(points_utm),
                      verbose=verbose, sww_precision=netcdf_float)
     outfile.mean_stage = mean_stage
@@ -5849,28 +5849,29 @@ def create_sts_boundary(stsname):
     return sts_points.tolist()
 
 
-##
 # @brief A class to write an SWW file.
 class Write_sww:
     from anuga.shallow_water.shallow_water_domain import Domain
-
-    # FIXME (Ole): Hardwiring the conserved quantities like
-    # this could be a problem. I would prefer taking them from
-    # the instantiation of Domain.
-    #
-    # (DSG) There is not always a Domain instance when Write_sww is used.
-    # Check to see if this is the same level of hardwiring as is in
-    # shallow water doamain.
-
-    sww_quantities = Domain.conserved_quantities
 
     RANGE = '_range'
     EXTREMA = ':extrema'
 
     ##
     # brief Instantiate the SWW writer class.
-    def __init__(self):
-        pass
+    def __init__(self, static_quantities, dynamic_quantities):
+        """Initialise SWW writer with two list af quantity names: 
+        
+        static_quantities (e.g. elevation or friction): 
+            Stored once at the beginning of the simulation in a 1D array
+            of length number_of_points   
+        dynamic_quantities (e.g stage):
+            Stored every timestep in a 2D array with 
+            dimensions number_of_points X number_of_timesteps        
+        
+        """
+        self.static_quantities = static_quantities   
+        self.dynamic_quantities = dynamic_quantities
+
 
     ##
     # @brief Store a header in the SWW file.
@@ -5959,19 +5960,6 @@ class Write_sww:
         # variable definitions
         outfile.createVariable('x', sww_precision, ('number_of_points',))
         outfile.createVariable('y', sww_precision, ('number_of_points',))
-        outfile.createVariable('elevation', sww_precision,
-                               ('number_of_points',))
-        q = 'elevation'
-        outfile.createVariable(q + Write_sww.RANGE, sww_precision,
-                               ('numbers_in_range',))
-
-        # Initialise ranges with small and large sentinels.
-        # If this was in pure Python we could have used None sensibly
-        outfile.variables[q+Write_sww.RANGE][0] = max_float  # Min
-        outfile.variables[q+Write_sww.RANGE][1] = -max_float # Max
-
-        # FIXME: Backwards compatibility
-        outfile.createVariable('z', sww_precision, ('number_of_points',))
 
         outfile.createVariable('volumes', netcdf_int, ('number_of_volumes',
                                                        'number_of_vertices'))
@@ -5980,7 +5968,26 @@ class Write_sww:
         outfile.createVariable('time', netcdf_float,
                                ('number_of_timesteps',))
 
-        for q in Write_sww.sww_quantities:
+                               
+        for q in self.static_quantities:
+            
+            outfile.createVariable(q, sww_precision,
+                                   ('number_of_points',))
+            
+            outfile.createVariable(q + Write_sww.RANGE, sww_precision,
+                                   ('numbers_in_range',))
+                                   
+            # Initialise ranges with small and large sentinels.
+            # If this was in pure Python we could have used None sensibly
+            outfile.variables[q+Write_sww.RANGE][0] = max_float  # Min
+            outfile.variables[q+Write_sww.RANGE][1] = -max_float # Max
+
+        # FIXME: Backwartds compat get rid of z once old view has retired        
+                               
+        outfile.createVariable('z', sww_precision,
+                               ('number_of_points',))                               
+                               
+        for q in self.dynamic_quantities:
             outfile.createVariable(q, sww_precision, ('number_of_timesteps',
                                                       'number_of_points'))
             outfile.createVariable(q + Write_sww.RANGE, sww_precision,
@@ -6148,7 +6155,7 @@ class Write_sww:
         # other quantities will be ignored, silently.
         # Also write the ranges: stage_range,
         # xmomentum_range and ymomentum_range
-        for q in Write_sww.sww_quantities:
+        for q in self.dynamic_quantities:
             if not quant.has_key(q):
                 msg = 'SWW file can not write quantity %s' % q
                 raise NewQuantity, msg
@@ -6174,7 +6181,7 @@ class Write_sww:
     def verbose_quantities(self, outfile):
         log.critical('------------------------------------------------')
         log.critical('More Statistics:')
-        for q in Write_sww.sww_quantities:
+        for q in self.dynamic_quantities:
             log.critical('  %s in [%f, %f]'
                          % (q, outfile.variables[q+Write_sww.RANGE][0],
                             outfile.variables[q+Write_sww.RANGE][1]))
