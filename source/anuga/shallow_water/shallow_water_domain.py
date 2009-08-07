@@ -208,7 +208,7 @@ class Domain(Generic_Domain):
 
         # Stored output
         self.store = True
-        self.format = 'sww'
+        #self.format = 'sww'
         self.set_store_vertices_uniquely(False)
         self.minimum_storable_height = minimum_storable_height
         self.quantities_to_be_stored = ['stage', 'xmomentum', 'ymomentum']
@@ -637,12 +637,6 @@ class Domain(Generic_Domain):
 
         if self.store is True and self.time == 0.0:
             self.initialise_storage()
-        else:
-            pass
-            # print 'Results will not be stored.'
-            # print 'To store results set domain.store = True'
-            # FIXME: Diagnostic output should be controlled by
-            # a 'verbose' flag living in domain (or in a parent class)
 
         # Call basic machinery from parent class
         for t in Generic_Domain.evolve(self, yieldstep=yieldstep,
@@ -650,10 +644,7 @@ class Domain(Generic_Domain):
                                        skip_initial_step=skip_initial_step):
             # Store model data, e.g. for subsequent visualisation
             if self.store is True:
-                self.store_timestep(self.quantities_to_be_stored)
-
-            # FIXME: Could maybe be taken from specified list
-            # of 'store every step' quantities
+                self.store_timestep()
 
             # Pass control on to outer loop for more specific actions
             yield(t)
@@ -665,10 +656,10 @@ class Domain(Generic_Domain):
         Also, save x,y and bed elevation
         """
 
-        from anuga.shallow_water.data_manager import get_dataobject
+        from anuga.shallow_water.data_manager import SWW_file
 
         # Initialise writer
-        self.writer = get_dataobject(self, mode=netcdf_mode_w)
+        self.writer = SWW_file(self)
 
         # Store vertices and connectivity
         self.writer.store_connectivity()
@@ -676,14 +667,14 @@ class Domain(Generic_Domain):
     ##
     # @brief 
     # @param name 
-    def store_timestep(self, name):
-        """Store named quantity and time.
+    def store_timestep(self):
+        """Store time dependent quantities and time.
 
         Precondition:
-           self.write has been initialised
+           self.writer has been initialised
         """
 
-        self.writer.store_timestep(name)
+        self.writer.store_timestep()
 
     ##
     # @brief Get time stepping statistics string for printing.

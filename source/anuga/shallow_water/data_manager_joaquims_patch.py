@@ -291,7 +291,7 @@ class Data_format:
 
 
 #Class for storing output to e.g. visualisation
-class Data_format_sww(Data_format):
+class SWW_file(Data_format):
     """Interface to native NetCDF format (.sww) for storing model output
 
     There are two kinds of data
@@ -486,7 +486,7 @@ class Data_format_sww(Data_format):
 
             # Build a new data_structure.
             next_data_structure=\
-                Data_format_sww(self.domain, mode=self.mode,\
+                SWW_file(self.domain, mode=self.mode,\
                                 max_size = self.max_size,\
                                 recursion = self.recursion+1)
             if not self.recursion:
@@ -1225,16 +1225,6 @@ def filter_netcdf(filename1, filename2, first=0, last=None, step = 1):
     #Close
     infile.close()
     outfile.close()
-
-
-#Get data objects
-def get_dataobject(domain, mode='w'):
-    """Return instance of class of given format using filename
-    """
-
-    cls = eval('Data_format_%s' %domain.format)
-    return cls(domain, mode)
-
 
 
 
@@ -3578,7 +3568,7 @@ def tsh2sww(filename, verbose=False): #test_tsh2sww
     if verbose == True:
         print "Output written to " + domain.get_datadir() + sep + \
               domain.get_name() + "." + domain.format
-    sww = get_dataobject(domain)
+    sww = SWW_file(domain)
     sww.store_connectivity()
     sww.store_timestep('stage')
 

@@ -178,7 +178,7 @@ class Test_Data_Manager(unittest.TestCase):
         self.domain.format = 'sww' #Remove??
         self.domain.smooth = False
         
-        sww = get_dataobject(self.domain)
+        sww = SWW_file(self.domain)
         sww.store_connectivity()
 
         fid = NetCDFFile(sww.filename, netcdf_mode_r)  #Open existing file for append
@@ -210,7 +210,7 @@ class Test_Data_Manager(unittest.TestCase):
         self.domain.format = 'sww' #Remove??
         self.domain.smooth = False
 
-        sww = get_dataobject(self.domain)
+        sww = SWW_file(self.domain)
         sww.store_connectivity()
 
         #Check contents
@@ -239,7 +239,7 @@ class Test_Data_Manager(unittest.TestCase):
         self.domain.format = 'sww'
         self.domain.set_store_vertices_uniquely(True)
         
-        sww = get_dataobject(self.domain)        
+        sww = SWW_file(self.domain)        
 
         dqs = self.domain.get_quantity('stage')
         dqx = self.domain.get_quantity('xmomentum')
@@ -326,7 +326,7 @@ class Test_Data_Manager(unittest.TestCase):
         domain.use_centroid_velocities = 0 # Backwards compatibility (7/5/8)
         
         
-        sww = get_dataobject(domain)
+        sww = SWW_file(domain)
 
         for t in domain.evolve(yieldstep = 1, finaltime = 1):
             pass
@@ -378,7 +378,7 @@ class Test_Data_Manager(unittest.TestCase):
         self.domain.format = 'sww'
         self.domain.smooth = True
 
-        sww = get_dataobject(self.domain)
+        sww = SWW_file(self.domain)
         sww.store_connectivity()
 
         #Check contents
@@ -418,7 +418,7 @@ class Test_Data_Manager(unittest.TestCase):
         self.domain.smooth = True
         self.domain.reduction = mean
 
-        sww = get_dataobject(self.domain)
+        sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep()
 
@@ -465,7 +465,7 @@ class Test_Data_Manager(unittest.TestCase):
 
         self.domain.reduction = mean
 
-        sww = get_dataobject(self.domain)
+        sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep()
         #self.domain.tight_slope_limiters = 1
@@ -521,7 +521,7 @@ class Test_Data_Manager(unittest.TestCase):
         self.domain.smooth = True
         self.domain.reduction = min
 
-        sww = get_dataobject(self.domain)
+        sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep()
         #self.domain.tight_slope_limiters = 1
@@ -623,7 +623,7 @@ class Test_Data_Manager(unittest.TestCase):
         self.domain.reduction = min
         self.domain.minimum_storable_height = 100
 
-        sww = get_dataobject(self.domain)
+        sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep()
 
@@ -677,7 +677,7 @@ class Test_Data_Manager(unittest.TestCase):
         self.domain.smooth = True
         self.domain.reduction = mean
 
-        sww = get_dataobject(self.domain)
+        sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep()
 
@@ -1256,7 +1256,7 @@ END CROSS-SECTIONS:
 
         self.domain.geo_reference = Geo_reference(56, 308500, 6189000)
 
-        sww = get_dataobject(self.domain)
+        sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep()
 
@@ -1457,7 +1457,7 @@ END CROSS-SECTIONS:
 
         self.domain.geo_reference = Geo_reference(56,308500,6189000)
 
-        sww = get_dataobject(self.domain)
+        sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep()
         self.domain.evolve_to_end(finaltime = 0.01)
@@ -1538,11 +1538,11 @@ END CROSS-SECTIONS:
 
         self.domain.geo_reference = Geo_reference(56,308500,6189000)
 
-        sww = get_dataobject(self.domain)
+        sww = SWW_file(self.domain)
         sww.store_connectivity()
-        sww.store_timestep() #'stage')
+        sww.store_timestep()
         self.domain.evolve_to_end(finaltime = 0.01)
-        sww.store_timestep() #'stage')
+        sww.store_timestep()
 
         cellsize = 0.25
         #Check contents
@@ -1676,7 +1676,7 @@ END CROSS-SECTIONS:
 
         self.domain.geo_reference = Geo_reference(56,308500,6189000)
         
-        sww = get_dataobject(self.domain)
+        sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep() #'stage')
         self.domain.evolve_to_end(finaltime = 0.01)
@@ -1815,14 +1815,14 @@ END CROSS-SECTIONS:
 
         self.domain.geo_reference = Geo_reference(56,308500,6189000)
 
-        sww = get_dataobject(self.domain)
+        sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep()
         self.domain.evolve_to_end(finaltime = 0.0001)
         #Setup
         self.domain.set_name(base_name+'_P1_8')
         swwfile2 = self.domain.get_name() + '.sww'
-        sww = get_dataobject(self.domain)
+        sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep()
         self.domain.evolve_to_end(finaltime = 0.0002)
@@ -1980,7 +1980,7 @@ END CROSS-SECTIONS:
 
 
         #
-        sww = get_dataobject(domain)
+        sww = SWW_file(domain)
         sww.store_connectivity()
         sww.store_timestep()
         
@@ -2171,7 +2171,7 @@ END CROSS-SECTIONS:
 
 
         #
-        sww = get_dataobject(domain)
+        sww = SWW_file(domain)
         sww.store_connectivity()
         sww.store_timestep()
 
@@ -2320,7 +2320,7 @@ END CROSS-SECTIONS:
         self.domain.geo_reference = Geo_reference(56,308500,6189000)
 
 
-        sww = get_dataobject(self.domain)
+        sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep()
 
@@ -2432,7 +2432,7 @@ END CROSS-SECTIONS:
         self.domain.geo_reference = Geo_reference(56,308500,6189000)
 
 
-        sww = get_dataobject(self.domain)
+        sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep()
 
@@ -2585,7 +2585,7 @@ END CROSS-SECTIONS:
 
         domain.geo_reference = Geo_reference(56,308500,6189000)
 
-        sww = get_dataobject(domain)
+        sww = SWW_file(domain)
         sww.store_connectivity()
         sww.store_timestep()
 
@@ -2691,7 +2691,7 @@ END CROSS-SECTIONS:
 
         self.domain.geo_reference = Geo_reference(56,308500,6189000)
 
-        sww = get_dataobject(self.domain)
+        sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep()
 
@@ -2789,7 +2789,7 @@ END CROSS-SECTIONS:
 
         self.domain.geo_reference = Geo_reference(56,308500,6189000)
 
-        sww = get_dataobject(self.domain)
+        sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep()
 
@@ -3547,7 +3547,7 @@ END CROSS-SECTIONS:
         #self.domain.tight_slope_limiters = 1        
 
 
-        sww = get_dataobject(self.domain)
+        sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep()
         self.domain.time = 2.

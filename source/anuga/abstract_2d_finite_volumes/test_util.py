@@ -16,7 +16,7 @@ from sys import platform
 
 from anuga.pmesh.mesh import Mesh
 from anuga.shallow_water import Domain, Transmissive_boundary
-from anuga.shallow_water.data_manager import get_dataobject
+from anuga.shallow_water.data_manager import SWW_file
 from csv import reader,writer
 import time
 import string
@@ -168,7 +168,7 @@ class Test_Util(unittest.TestCase):
 
         #Now read data from sww and check
         from Scientific.IO.NetCDF import NetCDFFile
-        filename = domain1.get_name() + '.' + domain1.format
+        filename = domain1.get_name() + '.sww'
         fid = NetCDFFile(filename)
 
         x = fid.variables['x'][:]
@@ -380,7 +380,7 @@ class Test_Util(unittest.TestCase):
 
         #Now read data from sww and check
         from Scientific.IO.NetCDF import NetCDFFile
-        filename = domain1.get_name() + '.' + domain1.format
+        filename = domain1.get_name() + '.sww'
         fid = NetCDFFile(filename)
 
         x = fid.variables['x'][:]
@@ -629,7 +629,6 @@ class Test_Util(unittest.TestCase):
         domain.set_datadir('.')
         domain.set_name(filename)
         domain.store = True
-        domain.format = 'sww'   #Native netcdf visualisation format
 
         #print points
         start = time.mktime(time.strptime('2000', '%Y'))
@@ -655,7 +654,7 @@ class Test_Util(unittest.TestCase):
 
             #Store and advance time
             domain.time = t
-            domain.store_timestep(domain.conserved_quantities)
+            domain.store_timestep()
             t += dt
 
 
@@ -795,7 +794,6 @@ class Test_Util(unittest.TestCase):
         domain.set_datadir('.')
         domain.set_name(filename)
         domain.store = True
-        domain.format = 'sww'   #Native netcdf visualisation format
 
         #print points
         start = time.mktime(time.strptime('2000', '%Y'))
@@ -1613,12 +1611,11 @@ class Test_Util(unittest.TestCase):
 
 
         domain.set_name('datatest' + str(time.time()))
-        domain.format = 'sww'
         domain.smooth = True
         domain.reduction = mean
 
 
-        sww = get_dataobject(domain)
+        sww = SWW_file(domain)
         sww.store_connectivity()
         sww.store_timestep(['stage', 'xmomentum', 'ymomentum','elevation'])
         domain.set_quantity('stage', 10.0) # This is automatically limited
@@ -1686,7 +1683,6 @@ point2, 0.5, 2.0, 9.0\n")
     def test_sww2csv_gauges1(self):
         from anuga.pmesh.mesh import Mesh
         from anuga.shallow_water import Domain, Transmissive_boundary
-        from anuga.shallow_water.data_manager import get_dataobject
         from csv import reader,writer
         import time
         import string
@@ -1736,11 +1732,10 @@ point2, 0.5, 2.0, 9.0\n")
 
 
         domain.set_name('datatest' + str(time.time()))
-        domain.format = 'sww'
         domain.smooth = True
         domain.reduction = mean
 
-        sww = get_dataobject(domain)
+        sww = SWW_file(domain)
         sww.store_connectivity()
         sww.store_timestep(['stage', 'xmomentum', 'ymomentum'])
         domain.set_quantity('stage', 10.0) # This is automatically limited
@@ -1856,11 +1851,10 @@ point2, 0.5, 2.0\n")
 
 
         domain.set_name('datatest' + str(time.time()))
-        domain.format = 'sww'
         domain.smooth = True
         domain.reduction = mean
 
-        sww = get_dataobject(domain)
+        sww = SWW_file(domain)
         sww.store_connectivity()
         sww.store_timestep(['stage', 'xmomentum', 'ymomentum','elevation'])
         domain.set_quantity('stage', 10.0) # This is automatically limited

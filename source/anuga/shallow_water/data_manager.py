@@ -328,7 +328,7 @@ class Data_format:
 
 ##
 # @brief Class for storing output to e.g. visualisation
-class Data_format_sww(Data_format):
+class SWW_file(Data_format):
     """Interface to native NetCDF format (.sww) for storing model output
 
     There are two kinds of data
@@ -433,12 +433,6 @@ class Data_format_sww(Data_format):
         # append to the NetCDF file
         fid = NetCDFFile(self.filename, netcdf_mode_a)
 
-#        # Get the variables
-#        x = fid.variables['x']
-#        y = fid.variables['y']
-#        z = fid.variables['elevation']
-#        volumes = fid.variables['volumes']
-
         # Get X, Y and bed elevation Z
         Q = domain.quantities['elevation']
         X,Y,Z,V = Q.get_vertex_values(xy=True, precision=self.precision)
@@ -455,11 +449,10 @@ class Data_format_sww(Data_format):
         fid.close()
 
     ##
-    # @brief Store time and named quantities to the underlying data file.
-    # @param names The names of the quantities to store.
-    # @note If 'names' not supplied, store a standard set of quantities.
+    # @brief Store time and time dependent quantities 
+    # to the underlying data file.
     def store_timestep(self, names=None):
-        """Store time and named quantities to file
+        """Store time and time dependent quantities
         """
 
         from Scientific.IO.NetCDF import NetCDFFile
@@ -467,9 +460,8 @@ class Data_format_sww(Data_format):
         from time import sleep
         from os import stat
 
-        if names is None:
-            # Standard shallow water wave equation quantitites in ANUGA
-            names = ['stage', 'xmomentum', 'ymomentum']
+        # Get names of quantities to be stored every time step
+        names = self.writer.dynamic_quantities    
 
         # Get NetCDF
         retries = 0
@@ -520,7 +512,7 @@ class Data_format_sww(Data_format):
             self.domain.starttime = self.domain.time
 
             # Build a new data_structure.
-            next_data_structure = Data_format_sww(self.domain, mode=self.mode,
+            next_data_structure = SWW_file(self.domain, mode=self.mode,
                                                   max_size=self.max_size,
                                                   recursion=self.recursion+1)
             if not self.recursion:
@@ -617,8 +609,10 @@ class Data_format_sww(Data_format):
 
 ##
 # @brief Class for handling checkpoints data
-class Data_format_cpt(Data_format):
-    """Interface to native NetCDF format (.cpt)
+# @note This is not operational at the moment
+class CPT_file(Data_format):
+    """Interface to native NetCDF format (.cpt) to be 
+    used for checkpointing (one day)
     """
 
     ##
@@ -704,7 +698,7 @@ class Data_format_cpt(Data_format):
         fid.close()
 
     ##
-    # @brief Store tiem and named quantities to underlying data file.
+    # @brief Store time and named quantities to underlying data file.
     # @param name 
     def store_timestep(self, name):
         """Store time and named quantity to file
@@ -1463,20 +1457,6 @@ def filter_netcdf(filename1, filename2, first=0, last=None, step=1):
     # Close
     infile.close()
     outfile.close()
-
-
-##
-# @brief Return instance of class of given format using filename.
-# @param domain Data domain (eg, 'sww', etc).
-# @param mode The mode to open domain in.
-# @return A class instance of required domain and mode.
-#Get data objects
-def get_dataobject(domain, mode=netcdf_mode_w):
-    """Return instance of class of given format using filename
-    """
-
-    cls = eval('Data_format_%s' % domain.format)
-    return cls(domain, mode)
 
 
 ##
@@ -3986,7 +3966,7 @@ def tsh2sww(filename, verbose=False):
                      % (domain.get_datadir(), sep, domain.get_name(),
                         domain.format))
 
-    sww = get_dataobject(domain)
+    sww = SWW_file(domain)
     sww.store_connectivity()
     sww.store_timestep()
 
@@ -5322,7 +5302,7 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
 
     volumes = mesh_dic['generatedtrianglelist']
 
-    # write sww intro and grid stuff.
+    # Write sww intro and grid stuff.
     if basename_out is None:
         swwname = basename_in + '.sww'
     else:
@@ -5982,10 +5962,9 @@ class Write_sww:
             outfile.variables[q+Write_sww.RANGE][0] = max_float  # Min
             outfile.variables[q+Write_sww.RANGE][1] = -max_float # Max
 
-        # FIXME: Backwartds compat get rid of z once old view has retired        
-                               
+        # FIXME: Backwards compat - get rid of z once old view has retired
         outfile.createVariable('z', sww_precision,
-                               ('number_of_points',))                               
+                               ('number_of_points',))
                                
         for q in self.dynamic_quantities:
             outfile.createVariable(q, sww_precision, ('number_of_timesteps',
@@ -5999,7 +5978,7 @@ class Write_sww:
             outfile.variables[q+Write_sww.RANGE][1] = -max_float # Max
 
         if isinstance(times, (list, num.ndarray)):
-            outfile.variables['time'][:] = times    #Store time relative
+            outfile.variables['time'][:] = times    # Store time relative
 
         if verbose:
             log.critical('------------------------------------------------')
@@ -6096,7 +6075,6 @@ class Write_sww:
             log.critical('geo_ref: %s' % str(geo_ref))
             log.critical('------------------------------------------------')
 
-        #z = resize(bath_grid, outfile.variables['z'][:].shape)
         outfile.variables['x'][:] = points[:,0] #- geo_ref.get_xllcorner()
         outfile.variables['y'][:] = points[:,1] #- geo_ref.get_yllcorner()
         outfile.variables['z'][:] = elevation
@@ -6117,14 +6095,18 @@ class Write_sww:
     # @param time
     # @param verbose True if this function is to be verbose.
     # @param **quant
-    def store_quantities(self, outfile, sww_precision=num.float32,
-                         slice_index=None, time=None,
-                         verbose=False, **quant):
+    def store_quantities(self, 
+                         outfile, 
+                         sww_precision=num.float32,
+                         slice_index=None,
+                         time=None,
+                         verbose=False, 
+                         **quant):
         """
-        Write the quantity info.
+        Write the quantity info at each timestep.
 
         **quant is extra keyword arguments passed in. These must be
-          the sww quantities, currently; stage, xmomentum, ymomentum.
+          the numpy arrays to be stored in the sww file at each timestep.
 
         if the time array is already been built, use the slice_index
         to specify the index.
@@ -6139,8 +6121,8 @@ class Write_sww:
         * double precision: num.float64 or num.float 
 
         Precondition:
-            triangulation and
-            header have been called.
+            store_triangulation and
+            store_header have been called.
         """
 
         if time is not None:
@@ -6148,16 +6130,21 @@ class Write_sww:
             slice_index = len(file_time)
             file_time[slice_index] = time
         else:
-            slice_index = int(slice_index) # In case it was numpy.int    
+            slice_index = int(slice_index) # Has to be cast in case it was numpy.int    
 
-        # Write the conserved quantities from Domain.
-        # Typically stage,  xmomentum, ymomentum
-        # other quantities will be ignored, silently.
-        # Also write the ranges: stage_range,
-        # xmomentum_range and ymomentum_range
+        # Write the named dynamic quantities
+        # The dictionary quant must contain numpy arrays for each name.
+        # These will typically be the conserved quantities from Domain 
+        # (Typically stage,  xmomentum, ymomentum).
+        #
+        # Arrays not listed in dynamic_quantitiues will be ignored, silently.
+        #
+        # This method will also write the ranges for each quantity, 
+        # e.g. stage_range, xmomentum_range and ymomentum_range
         for q in self.dynamic_quantities:
             if not quant.has_key(q):
-                msg = 'SWW file can not write quantity %s' % q
+                msg = 'Values for quantity %s was not specified in ' % q
+                msg += 'store_quantities so they cannot be stored.'
                 raise NewQuantity, msg
             else:
                 q_values = quant[q]

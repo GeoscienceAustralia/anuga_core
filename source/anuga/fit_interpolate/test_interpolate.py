@@ -23,7 +23,7 @@ from interpolate import *
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.shallow_water import Domain, Transmissive_boundary
 from anuga.utilities.numerical_tools import mean, NAN
-from anuga.shallow_water.data_manager import get_dataobject
+from anuga.shallow_water.data_manager import SWW_file
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.pmesh.mesh import Mesh
 
@@ -1709,11 +1709,10 @@ class Test_Interpolate(unittest.TestCase):
 
 
         domain.set_name('datatest' + str(time.time()))
-        domain.format = 'sww'
         domain.smooth = True
         domain.reduction = mean
 
-        sww = get_dataobject(domain)
+        sww = SWW_file(domain)
         sww.store_connectivity()
         sww.store_timestep(['stage', 'xmomentum', 'ymomentum'])
         domain.set_quantity('stage', 10.0) # This is automatically limited

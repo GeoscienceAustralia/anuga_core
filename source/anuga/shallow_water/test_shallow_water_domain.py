@@ -1464,7 +1464,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Cleanup
         try:
-            os.remove(domain.get_name() + '.' + domain.format)
+            os.remove(domain.get_name() + '.sww')
         except:
             pass
             #FIXME(Ole): Windows won't allow removal of this
@@ -5147,7 +5147,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Boundary conditions
         Br = Reflective_boundary(domain2)
-        Bf = Field_boundary(domain1.get_name() + '.' + domain1.format, domain2)
+        Bf = Field_boundary(domain1.get_name() + '.sww', domain2)
         domain2.set_boundary({'right':Br, 'bottom':Br, 'diagonal':Bf})
         domain2.check_integrity()
 
@@ -5167,8 +5167,8 @@ class Test_Shallow_Water(unittest.TestCase):
                             num.take(cv2, (4,6,8), axis=0))      # RHS
 
         # Cleanup
-        os.remove(domain1.get_name() + '.' + domain1.format)
-        os.remove(domain2.get_name() + '.' + domain2.format)
+        os.remove(domain1.get_name() + '.sww')
+        os.remove(domain2.get_name() + '.sww')
 
     def test_spatio_temporal_boundary_2(self):
         """Test that boundary values can be read from file and interpolated
@@ -5250,7 +5250,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Read results for specific timesteps t=1 and t=2
         from Scientific.IO.NetCDF import NetCDFFile
-        fid = NetCDFFile(domain1.get_name() + '.' + domain1.format)
+        fid = NetCDFFile(domain1.get_name() + '.sww')
 
         x = fid.variables['x'][:]
         y = fid.variables['y'][:]
@@ -5272,7 +5272,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Boundary conditions
         Br = Reflective_boundary(domain2)
-        Bf = Field_boundary(domain1.get_name() + '.' + domain1.format,
+        Bf = Field_boundary(domain1.get_name() + '.sww',
                             domain2, verbose=False)
         domain2.set_boundary({'right':Br, 'bottom':Br, 'diagonal':Bf})
         domain2.check_integrity()
@@ -5337,7 +5337,7 @@ class Test_Shallow_Water(unittest.TestCase):
                             ((s1[10] + s1[15])/2 + 2.0*(s2[10] + s2[15])/2)/3)
 
         # Cleanup
-        os.remove(domain1.get_name() + '.' + domain1.format)
+        os.remove(domain1.get_name() + '.sww')
 
     def test_spatio_temporal_boundary_3(self):
         """Test that boundary values can be read from file and interpolated
@@ -5424,7 +5424,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Read results for specific timesteps t=1 and t=2
         from Scientific.IO.NetCDF import NetCDFFile
-        fid = NetCDFFile(domain1.get_name() + '.' + domain1.format)
+        fid = NetCDFFile(domain1.get_name() + '.sww')
 
         x = fid.variables['x'][:]
         y = fid.variables['y'][:]
@@ -5446,7 +5446,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Boundary conditions
         Br = Reflective_boundary(domain2)
-        Bf = Field_boundary(domain1.get_name() + '.' + domain1.format,
+        Bf = Field_boundary(domain1.get_name() + '.sww',
                             domain2, mean_stage=mean_stage, verbose=False)
 
         domain2.set_boundary({'right':Br, 'bottom':Br, 'diagonal':Bf})
@@ -5515,7 +5515,7 @@ class Test_Shallow_Water(unittest.TestCase):
                                 mean_stage)
 
         # Cleanup
-        os.remove(domain1.get_name() + '.' + domain1.format)
+        os.remove(domain1.get_name() + '.sww')
 
     def test_spatio_temporal_boundary_outside(self):
         """Test that field_boundary catches if a point is outside the sww
@@ -5597,7 +5597,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Read results for specific timesteps t=1 and t=2
         from Scientific.IO.NetCDF import NetCDFFile
-        fid = NetCDFFile(domain1.get_name() + '.' + domain1.format)
+        fid = NetCDFFile(domain1.get_name() + '.sww')
 
         x = fid.variables['x'][:]
         y = fid.variables['y'][:]
@@ -5615,7 +5615,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Boundary conditions
         Br = Reflective_boundary(domain2)
-        Bf = Field_boundary(domain1.get_name() + '.' + domain1.format,
+        Bf = Field_boundary(domain1.get_name() + '.sww',
                             domain2, mean_stage=1, verbose=False)
 
         domain2.set_boundary({'right':Br, 'bottom':Br, 'diagonal':Bf})
@@ -5631,7 +5631,7 @@ class Test_Shallow_Water(unittest.TestCase):
             raise Exception, msg
 
         #Cleanup
-        os.remove(domain1.get_name() + '.' + domain1.format)
+        os.remove(domain1.get_name() + '.sww')
 
     def test_extrema(self):
         """Test that extrema of quantities are computed correctly
@@ -5729,7 +5729,7 @@ class Test_Shallow_Water(unittest.TestCase):
         assert depth['max'] >= 0.0
 
         # Cleanup
-        os.remove(domain.get_name() + '.' + domain.format)
+        os.remove(domain.get_name() + '.sww')
 
     def test_tight_slope_limiters(self):
         """Test that new slope limiters (Feb 2007) don't induce extremely
@@ -5738,7 +5738,7 @@ class Test_Shallow_Water(unittest.TestCase):
         """
         import time, os
         from Scientific.IO.NetCDF import NetCDFFile
-        from data_manager import get_dataobject, extent_sww
+        from data_manager import extent_sww
         from mesh_factory import rectangular
 
         # Create basic mesh
@@ -5786,7 +5786,6 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.distribute_to_vertices_and_edges()
 
         domain.set_name('tight_limiters')
-        domain.format = 'sww'
         domain.smooth = True
         domain.reduction = mean
         domain.set_datadir('.')

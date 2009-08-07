@@ -14,7 +14,7 @@ from anuga.pmesh.mesh import Mesh
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.shallow_water import Domain, Transmissive_boundary
 from anuga.utilities.numerical_tools import mean
-from anuga.shallow_water.data_manager import get_dataobject
+from anuga.shallow_water.data_manager import SWW_file
 
 import numpy as num
 
@@ -111,7 +111,7 @@ class Test_inundation_damage(unittest.TestCase):
         self.domain.smooth = True
         self.domain.reduction = mean
 
-        sww = get_dataobject(self.domain)
+        sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep(['stage', 'xmomentum', 'ymomentum'])
         self.domain.time = 2.
@@ -181,7 +181,7 @@ class Test_inundation_damage(unittest.TestCase):
         domain.smooth = True
         domain.reduction = mean
 
-        sww = get_dataobject(domain)
+        sww = SWW_file(domain)
         sww.store_connectivity()
         sww.store_timestep(['stage', 'xmomentum', 'ymomentum'])
         domain.time = 2.
@@ -281,7 +281,7 @@ class Test_inundation_damage(unittest.TestCase):
         domain.smooth = True
         domain.reduction = mean
 
-        sww = get_dataobject(domain)
+        sww = SWW_file(domain)
         sww.store_connectivity()
         sww.store_timestep(['stage', 'xmomentum', 'ymomentum'])
         domain.set_quantity('stage', -0.3)
@@ -353,7 +353,7 @@ class Test_inundation_damage(unittest.TestCase):
         domain.smooth = True
         domain.reduction = mean
 
-        sww = get_dataobject(domain)
+        sww = SWW_file(domain)
         sww.store_connectivity()
         sww.store_timestep(['stage', 'xmomentum', 'ymomentum'])
         domain.set_quantity('stage', -0.3)

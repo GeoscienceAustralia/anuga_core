@@ -12,7 +12,7 @@ sys.path.append('..'+sep+'pyvolution')
 from shallow_water import Domain
 from anuga.pyvolution.pmesh2domain import pmesh_to_domain_instance
 import time, os 
-from anuga.pyvolution.data_manager import get_dataobject   
+from anuga.pyvolution.data_manager import SWW_file
 from anuga.utilities.numerical_tools import mean
 import anuga.utilities.log as log
 
@@ -48,7 +48,7 @@ def tsh2sww(infilename, sww_file_name = None, verbose = False):
         log.critical("Output written to %s%s%s.%s"
                      % (domain.get_datadir(), sep, domain.get_name(),
                         domain.format)
-    sww = get_dataobject(domain)
+    sww = SWW_file(domain)
     sww.store_connectivity()
     sww.store_timestep('stage')
 
