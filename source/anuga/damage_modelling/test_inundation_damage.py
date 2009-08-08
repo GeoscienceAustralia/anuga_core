@@ -113,9 +113,9 @@ class Test_inundation_damage(unittest.TestCase):
 
         sww = SWW_file(self.domain)
         sww.store_connectivity()
-        sww.store_timestep(['stage', 'xmomentum', 'ymomentum'])
+        sww.store_timestep()
         self.domain.time = 2.
-        sww.store_timestep(['stage', 'xmomentum', 'ymomentum'])
+        sww.store_timestep()
         self.sww = sww # so it can be deleted
         
         #Create another sww file
@@ -183,9 +183,9 @@ class Test_inundation_damage(unittest.TestCase):
 
         sww = SWW_file(domain)
         sww.store_connectivity()
-        sww.store_timestep(['stage', 'xmomentum', 'ymomentum'])
+        sww.store_timestep()
         domain.time = 2.
-        sww.store_timestep(['stage', 'xmomentum', 'ymomentum'])
+        sww.store_timestep()
         self.swwII = sww # so it can be deleted
 
         # print "sww.filename", sww.filename
@@ -283,10 +283,10 @@ class Test_inundation_damage(unittest.TestCase):
 
         sww = SWW_file(domain)
         sww.store_connectivity()
-        sww.store_timestep(['stage', 'xmomentum', 'ymomentum'])
+        sww.store_timestep()
         domain.set_quantity('stage', -0.3)
         domain.time = 2.
-        sww.store_timestep(['stage', 'xmomentum', 'ymomentum'])
+        sww.store_timestep()
         
         #Create a csv file
         csv_file = tempfile.mktemp(".csv")
@@ -355,10 +355,10 @@ class Test_inundation_damage(unittest.TestCase):
 
         sww = SWW_file(domain)
         sww.store_connectivity()
-        sww.store_timestep(['stage', 'xmomentum', 'ymomentum'])
+        sww.store_timestep()
         domain.set_quantity('stage', -0.3)
         domain.time = 2.
-        sww.store_timestep(['stage', 'xmomentum', 'ymomentum'])
+        sww.store_timestep()
         
         #Create a csv file
         csv_file = tempfile.mktemp(".csv")

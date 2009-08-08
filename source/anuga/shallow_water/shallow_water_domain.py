@@ -119,6 +119,7 @@ from anuga.utilities.polygon import inside_polygon, polygon_area, \
                                     is_inside_polygon
 import anuga.utilities.log as log
 
+import types
 from types import IntType, FloatType
 from warnings import warn
 
@@ -131,8 +132,8 @@ from warnings import warn
 # @brief Class for a shallow water domain.
 class Domain(Generic_Domain):
 
-    conserved_quantities = ['stage', 'xmomentum', 'ymomentum']
-    other_quantities = ['elevation', 'friction']
+    #conserved_quantities = ['stage', 'xmomentum', 'ymomentum']
+    #other_quantities = ['elevation', 'friction']
 
     ##
     # @brief Instantiate a shallow water domain.
@@ -168,13 +169,16 @@ class Domain(Generic_Domain):
                  number_of_full_nodes=None,
                  number_of_full_triangles=None):
 
+        # Define quantities for the shallow_water domain         
+        conserved_quantities = ['stage', 'xmomentum', 'ymomentum']         
         other_quantities = ['elevation', 'friction']
+        
         Generic_Domain.__init__(self,
                                 coordinates,
                                 vertices,
                                 boundary,
-                                Domain.conserved_quantities,
-                                Domain.other_quantities,
+                                conserved_quantities,
+                                other_quantities,
                                 tagged_elements,
                                 geo_reference,
                                 use_inscribed_circle,
@@ -208,10 +212,12 @@ class Domain(Generic_Domain):
 
         # Stored output
         self.store = True
-        #self.format = 'sww'
         self.set_store_vertices_uniquely(False)
         self.minimum_storable_height = minimum_storable_height
-        self.quantities_to_be_stored = ['stage', 'xmomentum', 'ymomentum']
+        self.quantities_to_be_stored = {'elevation': 1, 
+                                        'stage': 2, 
+                                        'xmomentum': 2, 
+                                        'ymomentum': 2}
 
         # Limiters
         self.use_edge_limiter = use_edge_limiter
@@ -316,40 +322,70 @@ class Domain(Generic_Domain):
         """
         self.points_file_block_line_size = points_file_block_line_size
 
+        
+    # FIXME: Probably obsolete in its curren form    
     ##
     # @brief Set the quantities that will be written to an SWW file.
     # @param q The quantities to be written.
     # @note Param 'q' may be None, single quantity or list of quantity strings.
     # @note If 'q' is None, no quantities will be stored in the SWW file.
     def set_quantities_to_be_stored(self, q):
-        """Specify which quantities will be stored in the sww file.
-
+        """Specify which quantities will be stored in the sww file
+        
         q must be either:
-          - the name of a quantity
-          - a list of quantity names
+          - a dictionary with quantity names
+          - a list of quantity names (for backwards compatibility)
           - None
 
-        In the two first cases, the named quantities will be stored at
-        each yieldstep (This is in addition to the quantities elevation
-        and friction)
-
+        The format of the dictionary is as follows
+        
+        quantity_name: flag where flag must be either 1 or 2.
+        If flag is 1, the quantity is considered static and will be 
+        stored once at the beginning of the simulation in a 1D array.
+        
+        If flag is 2, the quantity is considered time dependent and 
+        it will be stored at each yieldstep by appending it to the 
+        appropriate 2D array in the sww file.   
+        
         If q is None, storage will be switched off altogether.
+        
+        Once the simulation has started and thw sww file opened, 
+        this function will have no effect.
+        
+        The format, where q is a list of names is for backwards compatibility only.
+        It will take the specified quantities to be time dependent and assume 
+        'elevation' to be static regardless.
         """
 
         if q is None:
-            self.quantities_to_be_stored = []
+            self.quantities_to_be_stored = {}
             self.store = False
             return
-
-        if isinstance(q, basestring):
-            q = [q] # Turn argument into a list
 
         # Check correcness
         for quantity_name in q:
             msg = ('Quantity %s is not a valid conserved quantity'
                    % quantity_name)
-            assert quantity_name in self.conserved_quantities, msg
+            assert quantity_name in self.quantities, msg
 
+        if type(q) == types.ListType:
+
+            msg = 'List arguments to set_quantities_to_be_stored '
+            msg += 'has been deprecated and will be removed in future '
+            msg += 'versions of ANUGA.'
+            msg += 'Please use dictionary argument instead'
+            warn(msg, DeprecationWarning) 
+
+        
+        
+            # FIXME: Raise deprecation warning
+            tmp = {}
+            for x in q:
+                tmp[x] = 2
+            tmp['elevation'] = 1    
+            q = tmp     
+            
+        assert type(q) == types.DictType    
         self.quantities_to_be_stored = q
 
     ##
@@ -657,7 +693,7 @@ class Domain(Generic_Domain):
         """
 
         from anuga.shallow_water.data_manager import SWW_file
-
+        
         # Initialise writer
         self.writer = SWW_file(self)
 

@@ -1714,11 +1714,11 @@ class Test_Interpolate(unittest.TestCase):
 
         sww = SWW_file(domain)
         sww.store_connectivity()
-        sww.store_timestep(['stage', 'xmomentum', 'ymomentum'])
+        sww.store_timestep()
         domain.set_quantity('stage', 10.0) # This is automatically limited
         # So it will not be less than the elevation
         domain.time = 2.
-        sww.store_timestep(['stage', 'xmomentum', 'ymomentum'])
+        sww.store_timestep()
 
         # Test the function
         points = [[5.0,1.],[0.5,2.]]

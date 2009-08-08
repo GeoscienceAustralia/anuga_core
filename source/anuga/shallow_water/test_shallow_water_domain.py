@@ -3731,7 +3731,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain = Domain(points, vertices, boundary)
         domain.smooth = False
         domain.default_order = 2
-        domain.set_quantities_to_be_stored(['stage', 'xmomentum', 'ymomentum'])
+
 
         # IC
         def x_slope(x, y):
@@ -5094,7 +5094,6 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # FIXME: This is extremely important!
         # How can we test if they weren't stored?
-        domain1.quantities_to_be_stored = ['stage', 'xmomentum', 'ymomentum']
 
 
         # Bed-slope and friction at vertices (and interpolated elsewhere)
@@ -5199,7 +5198,10 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # FIXME: This is extremely important!
         # How can we test if they weren't stored?
-        domain1.quantities_to_be_stored = ['stage', 'xmomentum', 'ymomentum']
+        domain1.quantities_to_be_stored = {'elevation': 1,
+                                           'stage': 2, 
+                                           'xmomentum': 2, 
+                                           'ymomentum': 2}
 
         # Bed-slope and friction at vertices (and interpolated elsewhere)
         domain1.set_quantity('elevation', 0)
@@ -5372,7 +5374,6 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # FIXME: This is extremely important!
         # How can we test if they weren't stored?
-        domain1.quantities_to_be_stored = ['stage', 'xmomentum', 'ymomentum']
 
         # Bed-slope and friction at vertices (and interpolated elsewhere)
         domain1.set_quantity('elevation', 0)
@@ -5544,7 +5545,10 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # FIXME: This is extremely important!
         # How can we test if they weren't stored?
-        domain1.quantities_to_be_stored = ['stage', 'xmomentum', 'ymomentum']
+        domain1.set_quantities_to_be_stored({'elevation': 1,
+                                             'stage': 2, 
+                                             'xmomentum': 2, 
+                                             'ymomentum': 2})
 
 
         # Bed-slope and friction at vertices (and interpolated elsewhere)

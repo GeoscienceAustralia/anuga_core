@@ -161,7 +161,6 @@ class Domain:
         # Build dictionary of Quantity instances keyed by quantity names
         self.quantities = {}
 
-        # FIXME: remove later - maybe OK, though....
         for name in self.conserved_quantities:
             self.quantities[name] = Quantity(self)
         for name in self.other_quantities:

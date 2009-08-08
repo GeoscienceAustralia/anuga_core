@@ -140,7 +140,6 @@ class Test_Util(unittest.TestCase):
         domain1.store = True
         domain1.set_datadir('.')
         domain1.set_name('spatio_temporal_boundary_source_%d' %(id(self)))
-        domain1.quantities_to_be_stored = ['stage', 'xmomentum', 'ymomentum']
 
         #Bed-slope, friction and IC at vertices (and interpolated elsewhere)
         domain1.set_quantity('elevation', 0)
@@ -358,7 +357,6 @@ class Test_Util(unittest.TestCase):
         domain1.store = True
         domain1.set_datadir('.')
         domain1.set_name('spatio_temporal_boundary_source_%d' %(id(self)))
-        domain1.quantities_to_be_stored = ['stage', 'xmomentum', 'ymomentum']
 
         #Bed-slope, friction and IC at vertices (and interpolated elsewhere)
         domain1.set_quantity('elevation', 0)
@@ -819,7 +817,7 @@ class Test_Util(unittest.TestCase):
 
             #Store and advance time
             domain.time = t
-            domain.store_timestep(domain.conserved_quantities)
+            domain.store_timestep()
             t += dt
 
         interpolation_points = [[1,0]]
@@ -1617,11 +1615,11 @@ class Test_Util(unittest.TestCase):
 
         sww = SWW_file(domain)
         sww.store_connectivity()
-        sww.store_timestep(['stage', 'xmomentum', 'ymomentum','elevation'])
+        sww.store_timestep()
         domain.set_quantity('stage', 10.0) # This is automatically limited
         # so it will not be less than the elevation
         domain.time = 2.
-        sww.store_timestep(['stage','elevation', 'xmomentum', 'ymomentum'])
+        sww.store_timestep()
 
         # test the function
         points = [[5.0,1.],[0.5,2.]]
@@ -1737,11 +1735,11 @@ point2, 0.5, 2.0, 9.0\n")
 
         sww = SWW_file(domain)
         sww.store_connectivity()
-        sww.store_timestep(['stage', 'xmomentum', 'ymomentum'])
+        sww.store_timestep()
         domain.set_quantity('stage', 10.0) # This is automatically limited
         # so it will not be less than the elevation
         domain.time = 2.
-        sww.store_timestep(['stage', 'xmomentum', 'ymomentum'])
+        sww.store_timestep()
 
         # test the function
         points = [[5.0,1.],[0.5,2.]]
@@ -1856,11 +1854,11 @@ point2, 0.5, 2.0\n")
 
         sww = SWW_file(domain)
         sww.store_connectivity()
-        sww.store_timestep(['stage', 'xmomentum', 'ymomentum','elevation'])
+        sww.store_timestep()
         domain.set_quantity('stage', 10.0) # This is automatically limited
         # so it will not be less than the elevation
         domain.time = 2.
-        sww.store_timestep(['stage','elevation', 'xmomentum', 'ymomentum'])
+        sww.store_timestep()
 
         # test the function
         points = [[5.0,1.],[0.5,2.]]

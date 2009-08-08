@@ -1450,7 +1450,6 @@ END CROSS-SECTIONS:
         swwfile = self.domain.get_name() + '.sww'
 
         self.domain.set_datadir('.')
-        self.domain.format = 'sww'
         self.domain.smooth = True
         self.domain.set_quantity('elevation', lambda x,y: -x-y)
         self.domain.set_quantity('stage', 1.0)
@@ -1531,7 +1530,6 @@ END CROSS-SECTIONS:
         swwfile = self.domain.get_name() + '.sww'
 
         self.domain.set_datadir('.')
-        self.domain.format = 'sww'
         self.domain.smooth = True
         self.domain.set_quantity('elevation', lambda x,y: -x-y)
         self.domain.set_quantity('stage', 1.0)
@@ -3609,7 +3607,8 @@ END CROSS-SECTIONS:
         #domain.set_boundary({'left': Bd, 'right': Br, 'top': Br, 'bottom': Br})
         domain.set_boundary({'left': Bd, 'right': Bd, 'top': Bd, 'bottom': Bd})
 
-        domain.quantities_to_be_stored.extend(['xmomentum','ymomentum'])
+        domain.quantities_to_be_stored['xmomentum'] = 2
+        domain.quantities_to_be_stored['ymomentum'] = 2
         #Initial condition
         h = 0.05
         elevation = domain.quantities['elevation'].vertex_values
@@ -3640,9 +3639,9 @@ END CROSS-SECTIONS:
         os.remove(filename)
 
         bits = ['vertex_coordinates']
-        for quantity in ['elevation']+domain.quantities_to_be_stored:
-            bits.append('get_quantity("%s").get_integral()' %quantity)
-            bits.append('get_quantity("%s").get_values()' %quantity)
+        for quantity in domain.quantities_to_be_stored:
+            bits.append('get_quantity("%s").get_integral()' % quantity)
+            bits.append('get_quantity("%s").get_values()' % quantity)
 
         for bit in bits:
             #print 'testing that domain.'+bit+' has been restored'
@@ -3729,7 +3728,6 @@ END CROSS-SECTIONS:
         domain.set_name('test_file')
         domain.set_datadir('.')
         domain.default_order=2
-        #domain.quantities_to_be_stored=['stage']
 
         domain.set_quantity('elevation', lambda x,y: -x/3)
         domain.set_quantity('friction', 0.1)
@@ -3779,7 +3777,7 @@ END CROSS-SECTIONS:
                 'geo_reference.get_yllcorner()',
                 'vertex_coordinates']
 
-        for quantity in ['elevation']+domain.quantities_to_be_stored:
+        for quantity in domain.quantities_to_be_stored:
             bits.append('get_quantity("%s").get_integral()' %quantity)
             bits.append('get_quantity("%s").get_values()' %quantity)
 
@@ -3850,7 +3848,8 @@ END CROSS-SECTIONS:
 
         domain.set_boundary({'left': Bd, 'right': Bd, 'top': Bd, 'bottom': Bd})
 
-        domain.quantities_to_be_stored.extend(['xmomentum','ymomentum'])
+        domain.quantities_to_be_stored['xmomentum'] = 2
+        domain.quantities_to_be_stored['ymomentum'] = 2        
         #Initial condition
         h = 0.05
         elevation = domain.quantities['elevation'].vertex_values
@@ -3883,8 +3882,8 @@ END CROSS-SECTIONS:
         #FIXME smooth domain so that they can be compared
 
 
-        bits = []#'vertex_coordinates']
-        for quantity in ['elevation']+domain.quantities_to_be_stored:
+        bits = []
+        for quantity in domain.quantities_to_be_stored:
             bits.append('quantities["%s"].get_integral()'%quantity)
 
 
@@ -10455,8 +10454,10 @@ ValueError: matrices are not aligned for copy
                          number_of_points, description='fully sick testing',
                          verbose=self.verbose,sww_precision=netcdf_float)
         sww.store_triangulation(outfile, points_utm, volumes,
-                                elevation,  new_origin=new_origin,
+                                new_origin=new_origin,
                                 verbose=self.verbose)
+        sww.store_static_quantities(outfile, elevation=elevation)                                
+                                
         outfile.close()
         fid = NetCDFFile(filename)
 

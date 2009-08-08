@@ -346,7 +346,8 @@ class SWW_file(Data_format):
     # @param max_size ??
     # @param recursion ??
     # @note Prepare the underlying data file if mode starts with 'w'.
-    def __init__(self, domain, mode=netcdf_mode_w, max_size=2000000000, recursion=False):
+    def __init__(self, domain, 
+                 mode=netcdf_mode_w, max_size=2000000000, recursion=False):
         from Scientific.IO.NetCDF import NetCDFFile
 
         self.precision = netcdf_float32 # Use single precision for quantities
@@ -361,15 +362,32 @@ class SWW_file(Data_format):
         else:
             self.minimum_storable_height = default_minimum_storable_height
 
-        # call owning constructor
+        # Call parent constructor
         Data_format.__init__(self, domain, 'sww', mode)
 
+        # Get static and dynamic quantities from domain
+        static_quantities = []
+        dynamic_quantities = []
+        
+        for q in domain.quantities_to_be_stored:
+            flag = domain.quantities_to_be_stored[q]
+        
+            msg = 'Quantity %s is requested to be stored ' % q
+            msg += 'but it does not exist in domain.quantities'
+            assert q in domain.quantities, msg
+        
+            assert flag in [1,2]
+            if flag == 1: static_quantities.append(q)
+            if flag == 2: dynamic_quantities.append(q)                
+                       
+        
         # NetCDF file definition
         fid = NetCDFFile(self.filename, mode)
         if mode[0] == 'w':
             description = 'Output from anuga.abstract_2d_finite_volumes ' \
                           'suitable for plotting'
-            self.writer = Write_sww(['elevation'], domain.conserved_quantities)
+                          
+            self.writer = Write_sww(static_quantities, dynamic_quantities)
             self.writer.store_header(fid,
                                      domain.starttime,
                                      self.number_of_volumes,
@@ -420,12 +438,16 @@ class SWW_file(Data_format):
     ##
     # @brief Store connectivity data into the underlying data file.
     def store_connectivity(self):
-        """Specialisation of store_connectivity for net CDF format
+        """Store information about nodes, triangles and static quantities
 
-        Writes x,y,z coordinates of triangles constituting
-        the bed elevation.
+        Writes x,y coordinates of triangles and their connectivity.
+        
+        Store also any quantity that has been identified as static.
         """
 
+        # FIXME: Change name to reflect the fact thta this function 
+        # stores both connectivity (triangulation) and static quantities
+        
         from Scientific.IO.NetCDF import NetCDFFile
 
         domain = self.domain
@@ -433,25 +455,36 @@ class SWW_file(Data_format):
         # append to the NetCDF file
         fid = NetCDFFile(self.filename, netcdf_mode_a)
 
-        # Get X, Y and bed elevation Z
-        Q = domain.quantities['elevation']
-        X,Y,Z,V = Q.get_vertex_values(xy=True, precision=self.precision)
+        # Get X, Y from one (any) of the quantities
+        Q = domain.quantities.values()[0]
+        X,Y,_,V = Q.get_vertex_values(xy=True, precision=self.precision)
 
         # store the connectivity data
-        points = num.concatenate( (X[:,num.newaxis],Y[:,num.newaxis]), axis=1 )
+        points = num.concatenate((X[:,num.newaxis],Y[:,num.newaxis]), axis=1)
         self.writer.store_triangulation(fid,
                                         points,
                                         V.astype(num.float32),
-                                        Z,
                                         points_georeference=\
                                             domain.geo_reference)
 
+
+        # Get names of static quantities
+        static_quantities = {}
+        for name in self.writer.static_quantities:
+            Q = domain.quantities[name]
+            A, _ = Q.get_vertex_values(xy=False, 
+                                       precision=self.precision)
+            static_quantities[name] = A
+        
+        # Store static quantities        
+        self.writer.store_static_quantities(fid, **static_quantities)
+                                            
         fid.close()
 
     ##
     # @brief Store time and time dependent quantities 
     # to the underlying data file.
-    def store_timestep(self, names=None):
+    def store_timestep(self):
         """Store time and time dependent quantities
         """
 
@@ -460,15 +493,13 @@ class SWW_file(Data_format):
         from time import sleep
         from os import stat
 
-        # Get names of quantities to be stored every time step
-        names = self.writer.dynamic_quantities    
-
         # Get NetCDF
         retries = 0
         file_open = False
         while not file_open and retries < 10:
             try:
-                fid = NetCDFFile(self.filename, netcdf_mode_a) # Open existing file
+                # Open existing file
+                fid = NetCDFFile(self.filename, netcdf_mode_a)
             except IOError:
                 # This could happen if someone was reading the file.
                 # In that case, wait a while and try again
@@ -496,7 +527,7 @@ class SWW_file(Data_format):
             # This is the only way to do this without changing
             # other modules (I think).
 
-            # Write a filename addon that won't break swollens reader
+            # Write a filename addon that won't break the anuga viewers
             # (10.sww is bad)
             filename_ext = '_time_%s' % self.domain.time
             filename_ext = filename_ext.replace('.', '_')
@@ -507,29 +538,29 @@ class SWW_file(Data_format):
             if not self.recursion:
                 self.domain.set_name(old_domain_filename + filename_ext)
 
-            # Change the domain starttime to the current time
+            # Temporarily change the domain starttime to the current time
             old_domain_starttime = self.domain.starttime
-            self.domain.starttime = self.domain.time
+            self.domain.starttime = self.domain.get_time()
 
             # Build a new data_structure.
             next_data_structure = SWW_file(self.domain, mode=self.mode,
-                                                  max_size=self.max_size,
-                                                  recursion=self.recursion+1)
+                                           max_size=self.max_size,
+                                           recursion=self.recursion+1)
             if not self.recursion:
                 log.critical('    file_size = %s' % file_size)
                 log.critical('    saving file to %s'
                              % next_data_structure.filename) 
 
-            #set up the new data_structure
+            # Set up the new data_structure
             self.domain.writer = next_data_structure
 
-            #FIXME - could be cleaner to use domain.store_timestep etc.
+            # Store connectivity and first timestep
             next_data_structure.store_connectivity()
-            next_data_structure.store_timestep(names)
+            next_data_structure.store_timestep()
             fid.sync()
             fid.close()
 
-            #restore the old starttime and filename
+            # Restore the old starttime and filename
             self.domain.starttime = old_domain_starttime
             self.domain.set_name(old_domain_filename)
         else:
@@ -538,53 +569,59 @@ class SWW_file(Data_format):
 
             # Get the variables
             time = fid.variables['time']
-            stage = fid.variables['stage']
-            xmomentum = fid.variables['xmomentum']
-            ymomentum = fid.variables['ymomentum']
             i = len(time)
-            if type(names) not in [types.ListType, types.TupleType]:
-                names = [names]
-
-            if 'stage' in names \
-               and 'xmomentum' in names \
-               and 'ymomentum' in names:
-                # Get stage, elevation, depth and select only those
-                # values where minimum_storable_height is exceeded
+             
+            if 'stage' in self.writer.dynamic_quantities:            
+                # Select only those values for stage, 
+                # xmomentum and ymomentum (if stored) where 
+                # depth exceeds minimum_storable_height
+                #
+                # In this branch it is assumed that elevation
+                # is also available as a quantity            
+            
                 Q = domain.quantities['stage']
-                A, _ = Q.get_vertex_values(xy=False, precision=self.precision)
-                z = fid.variables['elevation']
-
-                storable_indices = (A-z[:] >= self.minimum_storable_height)
-                stage = num.choose(storable_indices, (z[:], A))
-
-                # Define a zero vector of same size and type as A
-                # for use with momenta
-                null = num.zeros(num.size(A), A.dtype.char)
-
-                # Get xmomentum where depth exceeds minimum_storable_height
-                Q = domain.quantities['xmomentum']
-                xmom, _ = Q.get_vertex_values(xy=False,
-                                              precision=self.precision)
-                xmomentum = num.choose(storable_indices, (null, xmom))
-
-
-                # Get ymomentum where depth exceeds minimum_storable_height
-                Q = domain.quantities['ymomentum']
-                ymom, _ = Q.get_vertex_values(xy=False,
-                                              precision=self.precision)
-                ymomentum = num.choose(storable_indices, (null, ymom))
-
-                # Write quantities to underlying data  file
-                self.writer.store_quantities(fid,
-                                             time=self.domain.time,
-                                             sww_precision=self.precision,
-                                             stage=stage,
-                                             xmomentum=xmomentum,
-                                             ymomentum=ymomentum)
+                w, _ = Q.get_vertex_values(xy=False)
+                
+                Q = domain.quantities['elevation']
+                z, _ = Q.get_vertex_values(xy=False)                
+                
+                storable_indices = (w-z >= self.minimum_storable_height)
             else:
-                msg = 'Quantities stored must be: stage, xmomentum, ymomentum, '
-                msg += 'but I got: ' + str(names)
-                raise Exception, msg
+                # Very unlikely branch
+                storable_indices = None # This means take all
+            
+            
+            # Now store dynamic quantities
+            dynamic_quantities = {}
+            for name in self.writer.dynamic_quantities:
+                netcdf_array = fid.variables[name]
+                
+                Q = domain.quantities[name]
+                A, _ = Q.get_vertex_values(xy=False,
+                                           precision=self.precision)
+
+                if storable_indices is not None:
+                    if name == 'stage':
+                        A = num.choose(storable_indices, (z, A))
+
+                    if name in ['xmomentum', 'ymomentum']:
+                        # Get xmomentum where depth exceeds 
+                        # minimum_storable_height
+                        
+                        # Define a zero vector of same size and type as A
+                        # for use with momenta
+                        null = num.zeros(num.size(A), A.dtype.char)
+                        A = num.choose(storable_indices, (null, A))
+                
+                dynamic_quantities[name] = A
+                
+                                        
+            # Store dynamic quantities
+            self.writer.store_quantities(fid,
+                                         time=self.domain.time,
+                                         sww_precision=self.precision,
+                                         **dynamic_quantities)
+
 
             # Update extrema if requested
             domain = self.domain
@@ -605,6 +642,7 @@ class SWW_file(Data_format):
             # Flush and close
             fid.sync()
             fid.close()
+
 
 
 ##
@@ -629,23 +667,23 @@ class CPT_file(Data_format):
         # NetCDF file definition
         fid = NetCDFFile(self.filename, mode)
         if mode[0] == 'w':
-            #Create new file
+            # Create new file
             fid.institution = 'Geoscience Australia'
             fid.description = 'Checkpoint data'
             #fid.smooth = domain.smooth
             fid.order = domain.default_order
 
-            # dimension definitions
+            # Dimension definitions
             fid.createDimension('number_of_volumes', self.number_of_volumes)
             fid.createDimension('number_of_vertices', 3)
 
-            #Store info at all vertices (no smoothing)
+            # Store info at all vertices (no smoothing)
             fid.createDimension('number_of_points', 3*self.number_of_volumes)
             fid.createDimension('number_of_timesteps', None) #extensible
 
-            # variable definitions
+            # Variable definitions
 
-            #Mesh
+            # Mesh
             fid.createVariable('x', self.precision, ('number_of_points',))
             fid.createVariable('y', self.precision, ('number_of_points',))
 
@@ -5321,8 +5359,10 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
     outfile.zscale = zscale
 
     sww.store_triangulation(outfile, points_utm, volumes,
-                            elevation, zone,  new_origin=origin,
+                            zone,  
+                            new_origin=origin,
                             verbose=verbose)
+    sww.store_static_quantities(outfile, elevation=elevation)
 
     if verbose: log.critical('Converting quantities')
 
@@ -5870,7 +5910,7 @@ class Write_sww:
                      times,
                      number_of_volumes,
                      number_of_points,
-                     description='Converted from XXX',
+                     description='Generated by ANUGA',
                      smoothing=True,
                      order=1,
                      sww_precision=netcdf_float32,
@@ -5917,7 +5957,7 @@ class Write_sww:
         else:
             number_of_times = 0
             starttime = times
-            #times = ensure_numeric([])
+
 
         outfile.starttime = starttime
 
@@ -5991,7 +6031,6 @@ class Write_sww:
     # @param outfile Open handle to underlying file.
     # @param points_utm List or array of points in UTM.
     # @param volumes 
-    # @param elevation 
     # @param zone 
     # @param new_origin georeference that the points can be set to.
     # @param points_georeference The georeference of the points_utm.
@@ -6000,8 +6039,10 @@ class Write_sww:
                             outfile,
                             points_utm,
                             volumes,
-                            elevation, zone=None, new_origin=None,
-                            points_georeference=None, verbose=False):
+                            zone=None, 
+                            new_origin=None,
+                            points_georeference=None, 
+                            verbose=False):
         """
         new_origin - qa georeference that the points can be set to. (Maybe
         do this before calling this function.)
@@ -6035,7 +6076,7 @@ class Write_sww:
         volumes = num.array(volumes)
         points_utm = num.array(points_utm)
 
-        # given the two geo_refs and the points, do the stuff
+        # Given the two geo_refs and the points, do the stuff
         # described in the method header
         # if this is needed else where, pull out as a function
         points_georeference = ensure_geo_reference(points_georeference)
@@ -6060,7 +6101,6 @@ class Write_sww:
 
         x =  points[:,0]
         y =  points[:,1]
-        z = outfile.variables['z'][:]
 
         if verbose:
             log.critical('------------------------------------------------')
@@ -6070,23 +6110,70 @@ class Write_sww:
                          % (min(x), max(x), len(x)))
             log.critical('    y in [%f, %f], len(lon) == %d'
                          % (min(y), max(y), len(y)))
-            log.critical('    z in [%f, %f], len(z) == %d'
-                         % (min(elevation), max(elevation), len(elevation)))
+            #log.critical('    z in [%f, %f], len(z) == %d'
+            #             % (min(elevation), max(elevation), len(elevation)))
             log.critical('geo_ref: %s' % str(geo_ref))
             log.critical('------------------------------------------------')
 
         outfile.variables['x'][:] = points[:,0] #- geo_ref.get_xllcorner()
         outfile.variables['y'][:] = points[:,1] #- geo_ref.get_yllcorner()
-        outfile.variables['z'][:] = elevation
-        outfile.variables['elevation'][:] = elevation  #FIXME HACK
         outfile.variables['volumes'][:] = volumes.astype(num.int32) #On Opteron 64
 
-        q = 'elevation'
-        # This updates the _range values
-        outfile.variables[q + Write_sww.RANGE][0] = num.min(elevation)
-        outfile.variables[q + Write_sww.RANGE][1] = num.max(elevation)
 
 
+    # @brief Write the static quantity data to the underlying file.
+    # @param outfile Handle to open underlying file.
+    # @param sww_precision Format of quantity data to write (default Float32).
+    # @param verbose True if this function is to be verbose.
+    # @param **quant
+    def store_static_quantities(self, 
+                                outfile, 
+                                sww_precision=num.float32,
+                                verbose=False, 
+                                **quant):
+        """
+        Write the static quantity info.
+
+        **quant is extra keyword arguments passed in. These must be
+          the numpy arrays to be stored in the sww file at each timestep.
+
+        The argument sww_precision allows for storing as either 
+        * single precision (default): num.float32
+        * double precision: num.float64 or num.float 
+
+        Precondition:
+            store_triangulation and
+            store_header have been called.
+        """
+
+        # The dictionary quant must contain numpy arrays for each name.
+        # These will typically be quantities from Domain such as friction 
+        #
+        # Arrays not listed in static_quantitiues will be ignored, silently.
+        #
+        # This method will also write the ranges for each quantity, 
+        # e.g. stage_range, xmomentum_range and ymomentum_range
+        for q in self.static_quantities:
+            if not quant.has_key(q):
+                msg = 'Values for quantity %s was not specified in ' % q
+                msg += 'store_quantities so they cannot be stored.'
+                raise NewQuantity, msg
+            else:
+                q_values = ensure_numeric(quant[q])
+                
+                x = q_values.astype(sww_precision)
+                outfile.variables[q][:] = x
+        
+                # This populates the _range values
+                outfile.variables[q + Write_sww.RANGE][0] = num.min(x)
+                outfile.variables[q + Write_sww.RANGE][1] = num.max(x)                
+                    
+        outfile.variables['z'][:] = outfile.variables['elevation'][:] #FIXME HACK
+
+                    
+                    
+        
+        
     ##
     # @brief Write the quantity data to the underlying file.
     # @param outfile Handle to open underlying file.
@@ -6147,7 +6234,7 @@ class Write_sww:
                 msg += 'store_quantities so they cannot be stored.'
                 raise NewQuantity, msg
             else:
-                q_values = quant[q]
+                q_values = ensure_numeric(quant[q])
                 
                 x = q_values.astype(sww_precision)
                 outfile.variables[q][slice_index] = x
