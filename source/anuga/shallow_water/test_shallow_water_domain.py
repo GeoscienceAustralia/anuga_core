@@ -6670,8 +6670,103 @@ friction  \n \
             # Update reference volume
             ref_volume += ys * outflow            
 
+
+    def test_variable_elevation(self):            
+        """test_variable_elevation
+
+        This will test that elevagtion van be stored in sww files
+        as a time dependent quantity.
         
+        It will also chck that storage of other quantities 
+        can be controlled this way.
+        """
+
+        #---------------------------------------------------------------------
+        # Import necessary modules
+        #---------------------------------------------------------------------
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
+        from anuga.shallow_water import Domain
+        from anuga.shallow_water import Reflective_boundary
+        from anuga.shallow_water import Dirichlet_boundary
+        from anuga.shallow_water import Time_boundary
+
+        #---------------------------------------------------------------------
+        # Setup computational domain
+        #---------------------------------------------------------------------
+        length = 8.
+        width = 6.
+        dx = dy = 1    # Resolution: Length of subdivisions on both axes
+        
+        inc = 0.05 # Elevation increment
+
+        points, vertices, boundary = rectangular_cross(int(length/dx), 
+                                                       int(width/dy),
+                                                       len1=length, 
+                                                       len2=width)
+        domain = Domain(points, vertices, boundary)
+        domain.set_name('channel_variable_test')  # Output name
+        domain.set_quantities_to_be_stored({'elevation': 2,
+                                            'stage': 2})
+
+        #---------------------------------------------------------------------
+        # Setup initial conditions
+        #---------------------------------------------------------------------
+
+        def pole_increment(x,y):
+            """This provides a small increment to a pole located mid stream
+            For use with variable elevation data
+            """
+            
+            z = 0.0*x
+
+            N = len(x)
+            for i in range(N):
+                # Pole
+                if (x[i] - 4)**2 + (y[i] - 2)**2 < 1.0**2:
+                    z[i] += inc
+            return z
+            
+        domain.set_quantity('elevation', 0.0)    # Flat bed initially
+        domain.set_quantity('friction', 0.01)    # Constant friction
+        domain.set_quantity('stage', 0.0)        # Dry initial condition
+
+        #------------------------------------------------------------------
+        # Setup boundary conditions
+        #------------------------------------------------------------------
+        Bi = Dirichlet_boundary([0.4, 0, 0])          # Inflow
+        Br = Reflective_boundary(domain)              # Solid reflective wall
+        Bo = Dirichlet_boundary([-5, 0, 0])           # Outflow
+
+        domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
+
+        #-------------------------------------------------------------------
+        # Evolve system through time
+        #-------------------------------------------------------------------
+
+        for t in domain.evolve(yieldstep=1, finaltime=3.0):
+            #print domain.timestepping_statistics()
+
+            domain.add_quantity('elevation', pole_increment)
+        
+            
+        # Check that quantities have been stored correctly    
+        from Scientific.IO.NetCDF import NetCDFFile
+        fid = NetCDFFile(domain.get_name() + '.sww')
+
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+        stage = fid.variables['stage'][:]
+        elevation = fid.variables['elevation'][:]
+        fid.close()
+                   
+        assert len(stage.shape) == 2
+        assert len(elevation.shape) == 2        
+        
+        M, N = stage.shape
                 
+        for i in range(M): 
+            # For each timestep
+            assert num.allclose(max(elevation[i,:]), i * inc) 
         
     def test_inflow_using_flowline(self):
         """test_inflow_using_flowline
@@ -7127,6 +7222,7 @@ friction  \n \
 #################################################################################
 
 if __name__ == "__main__":
+    #suite = unittest.makeSuite(Test_Shallow_Water, 'test_variable_elevation')
     suite = unittest.makeSuite(Test_Shallow_Water, 'test')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
