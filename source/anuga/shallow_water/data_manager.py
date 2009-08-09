@@ -6002,9 +6002,10 @@ class Write_sww:
             outfile.variables[q+Write_sww.RANGE][0] = max_float  # Min
             outfile.variables[q+Write_sww.RANGE][1] = -max_float # Max
 
-        # FIXME: Backwards compat - get rid of z once old view has retired
-        outfile.createVariable('z', sww_precision,
-                               ('number_of_points',))
+        if 'elevation' in self.static_quantities:    
+            # FIXME: Backwards compat - get rid of z once old view has retired
+            outfile.createVariable('z', sww_precision,
+                                   ('number_of_points',))
                                
         for q in self.dynamic_quantities:
             outfile.createVariable(q, sww_precision, ('number_of_timesteps',
@@ -6166,9 +6167,11 @@ class Write_sww:
         
                 # This populates the _range values
                 outfile.variables[q + Write_sww.RANGE][0] = num.min(x)
-                outfile.variables[q + Write_sww.RANGE][1] = num.max(x)                
+                outfile.variables[q + Write_sww.RANGE][1] = num.max(x)
                     
-        outfile.variables['z'][:] = outfile.variables['elevation'][:] #FIXME HACK
+        # FIXME: Hack for backwards compatibility with old viewer
+        if 'elevation' in self.static_quantities:
+            outfile.variables['z'][:] = outfile.variables['elevation'][:]
 
                     
                     
