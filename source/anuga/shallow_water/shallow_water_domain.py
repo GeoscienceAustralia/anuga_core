@@ -456,6 +456,8 @@ class Domain(Generic_Domain):
         return self.get_quantity('elevation').\
                    get_maximum_location(indices=wet_elements)
 
+
+
     ##
     # @brief Get the total flow through an arbitrary poly line.
     # @param polyline Representation of desired cross section.
@@ -463,6 +465,37 @@ class Domain(Generic_Domain):
     # @note 'polyline' may contain multiple sections allowing complex shapes.
     # @note Assume absolute UTM coordinates.
     def get_flow_through_cross_section(self, polyline, verbose=False):
+        """Get the total flow through an arbitrary poly line.
+
+        This is a run-time equivalent of the function with same name
+        in data_manager.py
+
+        Input:
+            polyline: Representation of desired cross section - it may contain
+                      multiple sections allowing for complex shapes. Assume
+                      absolute UTM coordinates.
+                      Format [[x0, y0], [x1, y1], ...]
+
+        Output:
+            Q: Total flow [m^3/s] across given segments.
+        """
+
+
+        cross_section = Cross_section(self, polyline, verbose)
+
+        return cross_section.get_flow_through_cross_section()
+
+
+
+
+
+    ##
+    # @brief Get the total flow through an arbitrary poly line.
+    # @param polyline Representation of desired cross section.
+    # @param verbose True if this method is to be verbose.
+    # @note 'polyline' may contain multiple sections allowing complex shapes.
+    # @note Assume absolute UTM coordinates.
+    def old_get_flow_through_cross_section(self, polyline, verbose=False):
         """Get the total flow through an arbitrary poly line.
 
         This is a run-time equivalent of the function with same name
@@ -2663,6 +2696,83 @@ class Inflow(General_forcing):
             _rate = self.rate/self.exchange_area
 
         return _rate
+
+
+##
+# @brief A class for creating cross sections.
+# @note Inherits from General_forcing.
+class Cross_section:
+    """Class Cross_section - a class to setup a cross section from
+    which you can then calculate flow and energy through cross section
+
+
+    Cross_section(domain, polyline)
+
+    domain:
+    polyline: Representation of desired cross section - it may contain
+              multiple sections allowing for complex shapes. Assume
+              absolute UTM coordinates.
+              Format [[x0, y0], [x1, y1], ...]
+    verbose: 
+    """
+
+    ##
+    # @brief Create an instance of the class.
+    # @param domain Domain of interest.
+    # @param polyline Polyline defining cross section
+    # @param verbose True if this instance is to be verbose.
+    def __init__(self,
+                 domain,
+                 polyline=None,
+                 verbose=False):
+        
+        self.domain = domain
+        self.polyline = polyline
+        self.verbose = verbose
+        
+        # Find all intersections and associated triangles.
+        self.segments = self.domain.get_intersecting_segments(self.polyline,
+                                                              use_cache=True,
+                                                              verbose=self.verbose)
+        
+        # Get midpoints
+        self.midpoints = segment_midpoints(self.segments)
+
+        # Make midpoints Geospatial instances
+        self.midpoints = ensure_geospatial(self.midpoints, self.domain.geo_reference)
+
+
+    ##
+    # @brief calculate current flow through cross section
+    def get_flow_through_cross_section(self):
+        """ Output: Total flow [m^3/s] across cross section.
+        """
+
+        # Get interpolated values
+        xmomentum = self.domain.get_quantity('xmomentum')
+        ymomentum = self.domain.get_quantity('ymomentum')
+
+        uh = xmomentum.get_values(interpolation_points=self.midpoints,
+                                  use_cache=True)
+        vh = ymomentum.get_values(interpolation_points=self.midpoints,
+                                  use_cache=True)
+
+        # Compute and sum flows across each segment
+        total_flow = 0
+        for i in range(len(uh)):
+            # Inner product of momentum vector with segment normal [m^2/s]
+            normal = self.segments[i].normal
+            normal_momentum = uh[i]*normal[0] + vh[i]*normal[1]
+
+            # Flow across this segment [m^3/s]
+            segment_flow = normal_momentum*self.segments[i].length
+
+            # Accumulate
+            total_flow += segment_flow
+
+        return total_flow
+ 
+
 
 
 ################################################################################
