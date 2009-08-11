@@ -556,6 +556,47 @@ class Domain(Generic_Domain):
     # @param verbose True if this method is to be verbose.
     # @note 'polyline' may contain multiple sections allowing complex shapes.
     # @note Assume absolute UTM coordinates.
+    def new_get_energy_through_cross_section(self, polyline,
+                                         kind='total',
+                                         verbose=False):
+        """Obtain average energy head [m] across specified cross section.
+
+        Inputs:
+            polyline: Representation of desired cross section - it may contain
+                      multiple sections allowing for complex shapes. Assume
+                      absolute UTM coordinates.
+                      Format [[x0, y0], [x1, y1], ...]
+            kind:     Select which energy to compute.
+                      Options are 'specific' and 'total' (default)
+
+        Output:
+            E: Average energy [m] across given segments for all stored times.
+
+        The average velocity is computed for each triangle intersected by
+        the polyline and averaged weighted by segment lengths.
+
+        The typical usage of this function would be to get average energy of
+        flow in a channel, and the polyline would then be a cross section
+        perpendicular to the flow.
+
+        #FIXME (Ole) - need name for this energy reflecting that its dimension
+        is [m].
+        """
+
+
+
+        cross_section = Cross_section(self, polyline, verbose)
+
+        return cross_section.get_energy_through_cross_section()
+
+
+    ##
+    # @brief 
+    # @param polyline Representation of desired cross section.
+    # @param kind Select energy type to compute ('specific' or 'total').
+    # @param verbose True if this method is to be verbose.
+    # @note 'polyline' may contain multiple sections allowing complex shapes.
+    # @note Assume absolute UTM coordinates.
     def get_energy_through_cross_section(self, polyline,
                                          kind='total',
                                          verbose=False):
@@ -645,6 +686,7 @@ class Domain(Generic_Domain):
 
         return average_energy
 
+
     ##
     # @brief Run integrity checks on shallow water domain.
     def check_integrity(self):
@@ -678,6 +720,8 @@ class Domain(Generic_Domain):
             distribute_using_edge_limiter(self)
         else:
             distribute_using_vertex_limiter(self)
+
+
 
     ##
     # @brief Evolve the model by one step.
@@ -2772,6 +2816,72 @@ class Cross_section:
 
         return total_flow
  
+
+    ##
+    # @brief calculate current energy flow through cross section
+    def get_energy_through_cross_section(self):
+        """Obtain average energy head [m] across specified cross section.
+
+        Output:
+            E: Average energy [m] across given segments for all stored times.
+
+        The average velocity is computed for each triangle intersected by
+        the polyline and averaged weighted by segment lengths.
+
+        The typical usage of this function would be to get average energy of
+        flow in a channel, and the polyline would then be a cross section
+        perpendicular to the flow.
+
+        #FIXME (Ole) - need name for this energy reflecting that its dimension
+        is [m].
+        """
+
+        # Get interpolated values
+        stage = self.domain.get_quantity('stage')
+        elevation = self.domain.get_quantity('elevation')
+        xmomentum = self.domain.get_quantity('xmomentum')
+        ymomentum = self.domain.get_quantity('ymomentum')
+
+        w = stage.get_values(interpolation_points=midpoints, use_cache=True)
+        z = elevation.get_values(interpolation_points=midpoints, use_cache=True)
+        uh = xmomentum.get_values(interpolation_points=midpoints,
+                                  use_cache=True)
+        vh = ymomentum.get_values(interpolation_points=midpoints,
+                                  use_cache=True)
+        h = w-z                # Depth
+
+        # Compute total length of polyline for use with weighted averages
+        total_line_length = 0.0
+        for segment in segments:
+            total_line_length += segment.length
+
+        # Compute and sum flows across each segment
+        average_energy = 0.0
+        for i in range(len(w)):
+            # Average velocity across this segment
+            if h[i] > epsilon:
+                # Use protection against degenerate velocities
+                u = uh[i]/(h[i] + h0/h[i])
+                v = vh[i]/(h[i] + h0/h[i])
+            else:
+                u = v = 0.0
+
+            speed_squared = u*u + v*v
+            kinetic_energy = 0.5*speed_squared/g
+
+            if kind == 'specific':
+                segment_energy = h[i] + kinetic_energy
+            elif kind == 'total':
+                segment_energy = w[i] + kinetic_energy
+            else:
+                msg = 'Energy kind must be either "specific" or "total".'
+                msg += ' I got %s' %kind
+
+            # Add to weighted average
+            weigth = segments[i].length/total_line_length
+            average_energy += segment_energy*weigth
+
+        return average_energy
 
 
 
