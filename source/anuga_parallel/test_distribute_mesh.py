@@ -122,12 +122,11 @@ class Test_Distribute_Mesh(unittest.TestCase):
         assert num.allclose(triangles_per_proc,[8,8])
 
 
-        print triangles_per_proc
-
-
     def test_distibute_3(self):
 
         import pypar
+
+
 
         myid = pypar.rank()
         numprocs = pypar.size()
@@ -346,11 +345,11 @@ class Test_Distribute_Mesh(unittest.TestCase):
                 assert num.allclose(full_send_dict[0],true_full_send[0])
                 assert num.allclose(full_send_dict[1],true_full_send[1]) 
 
-
+                """
         par_domain = Parallel_Domain(points, vertices, boundary,
                                      full_send_dict  = full_send_dict,
                                      ghost_recv_dict = ghost_recv_dict)
-
+                                     """
 
 
 
@@ -540,8 +539,8 @@ class Test_Distribute_Mesh(unittest.TestCase):
         
         mesh = Mesh(nodes, triangles)
         boundary_polygon = mesh.get_boundary_polygon()
-    
-        
+
+
         # Subdivide into non-overlapping partitions
 
         submesh = submesh_full(nodes, triangles, edges, \
@@ -568,114 +567,12 @@ class Test_Distribute_Mesh(unittest.TestCase):
         # Order the quantities information to be the same as the triangle
         # information
 
-        submesh = submesh_quantities(submeshg, quantities, \
+        submesh = submesh_quantities(submesh, quantities, \
                                  triangles_per_proc)
 
         submesh["boundary_polygon"] = boundary_polygon
 
 
-        #--------------------------------------------------------
-        # Results we expect from build_submesh
-        #--------------------------------------------------------
-
-        """
-        assert num.allclose(submesh['full_nodes'][0],[[3.0, 0.5, 0.0], [4.0, 0.5, 0.5], [5.0, 0.5, 1.0], [7.0, 1.0, 0.5], [8.0, 1.0, 1.0], [9.0, 0.25, 0.25], [12.0, 0.75, 0.75]])
-        assert num.allclose(submesh['full_nodes'][1],[[0.0, 0.0, 0.0], [1.0, 0.0, 0.5], [2.0, 0.0, 1.0], [4.0, 0.5, 0.5], [5.0, 0.5, 1.0], [9.0, 0.25, 0.25], [10.0, 0.25, 0.75]])
-        assert num.allclose(submesh['full_nodes'][2],[[0.0, 0.0, 0.0], [3.0, 0.5, 0.0], [4.0, 0.5, 0.5], [6.0, 1.0, 0.0], [7.0, 1.0, 0.5], [9.0, 0.25, 0.25], [11.0, 0.75, 0.25]])
-        """
-        """
-        assert num.allclose(submesh['ghost_nodes'][0],[[0.0, 0.0, 0.0], [1.0, 0.0, 0.5], [2.0, 0.0, 1.0], [6.0, 1.0, 0.0], [10.0, 0.25, 0.75], [11.0, 0.75, 0.25]])
-        assert num.allclose(submesh['ghost_nodes'][1],[[3.0, 0.5, 0.0], [7.0, 1.0, 0.5], [8.0, 1.0, 1.0], [11.0, 0.75, 0.25], [12.0, 0.75, 0.75]])
-        assert num.allclose(submesh['ghost_nodes'][2],[[1.0, 0.0, 0.5], [5.0, 0.5, 1.0], [8.0, 1.0, 1.0], [12.0, 0.75, 0.75]])
-        """
-
-        """
-        true_full_triangles = [num.array([[ 4,  9,  3],
-                                          [ 4, 12,  5],
-                                          [ 7, 12,  4],
-                                          [ 8, 12,  7],
-                                          [ 5, 12,  8]]),
-                               num.array([[ 0,  9,  1],
-                                          [ 1,  9,  4],
-                                          [ 1, 10,  2],
-                                          [ 4, 10,  1],
-                                          [ 5, 10,  4],
-                                          [ 2, 10,  5]]),
-                               num.array([[ 3,  9,  0],
-                                          [ 3, 11,  4],
-                                          [ 6, 11,  3],
-                                          [ 7, 11,  6],
-                                          [ 4, 11,  7]])]
-
-
-        assert num.allclose(submesh['full_triangles'][0],true_full_triangles[0])
-        assert num.allclose(submesh['full_triangles'][1],true_full_triangles[1])
-        assert num.allclose(submesh['full_triangles'][2],true_full_triangles[2])
-        """
-        """
-        true_ghost_triangles = [num.array([[ 5,  0,  9,  1],
-                                           [ 6,  1,  9,  4],
-                                           [ 8,  4, 10,  1],
-                                           [ 9,  5, 10,  4],
-                                           [10,  2, 10,  5],
-                                           [11,  3,  9,  0],
-                                           [12,  3, 11,  4],
-                                           [13,  6, 11,  3],
-                                           [14,  7, 11,  6],
-                                           [15,  4, 11,  7]]),
-                                num.array([[ 0,  4,  9,  3],
-                                           [ 1,  4, 12,  5],
-                                           [ 2,  7, 12,  4],
-                                           [ 4,  5, 12,  8],
-                                           [11,  3,  9,  0],
-                                           [12,  3, 11,  4]]),
-                                num.array([[ 0,  4,  9,  3],
-                                           [ 1,  4, 12,  5],
-                                           [ 2,  7, 12,  4],
-                                           [ 3,  8, 12,  7],
-                                           [ 5,  0,  9,  1],
-                                           [ 6,  1,  9,  4]])]
-
-                                           """
-        """
-        assert num.allclose(submesh['ghost_triangles'][0],true_ghost_triangles[0])
-        assert num.allclose(submesh['ghost_triangles'][1],true_ghost_triangles[1])
-        assert num.allclose(submesh['ghost_triangles'][2],true_ghost_triangles[2])
-
-        true_full_commun = [{0: [1, 2], 1: [1, 2], 2: [1, 2], 3: [2], 4: [1]}, {5: [0, 2], 6: [0, 2], 7: [], 8: [0], 9: [0], 10: [0]}, {11: [0, 1], 12: [0, 1], 13: [0], 14: [0], 15: [0]}]
-
-        assert true_full_commun == submesh['full_commun']
-
-
-        true_ghost_commun = [num.array([[ 5,  1],
-                                        [ 6,  1],
-                                        [ 8,  1],
-                                        [ 9,  1],
-                                        [10,  1],
-                                        [11,  2],
-                                        [12,  2],
-                                        [13,  2],
-                                        [14,  2],
-                                        [15,  2]]),
-                             num.array([[ 0,  0],
-                                        [ 1,  0],
-                                        [ 2,  0],
-                                        [ 4,  0],
-                                        [11,  2],
-                                        [12,  2]]),
-                             num.array([[0, 0],
-                                        [1, 0],
-                                        [2, 0],
-                                        [3, 0],
-                                        [5, 1],
-                                        [6, 1]])]
-
-        assert num.allclose(submesh['ghost_commun'][0],true_ghost_commun[0])
-        assert num.allclose(submesh['ghost_commun'][1],true_ghost_commun[1])
-        assert num.allclose(submesh['ghost_commun'][2],true_ghost_commun[2])
-
-        """
-  
 #-------------------------------------------------------------
 
 if __name__ == "__main__":
