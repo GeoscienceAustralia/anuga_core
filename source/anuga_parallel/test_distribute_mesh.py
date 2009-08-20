@@ -494,7 +494,7 @@ class Test_Domain(unittest.TestCase):
 
 
         for key, item in submeshf.iteritems():
-            assert submeshf[key] == true_submeshf[key]
+            assert submeshf[key] == true_submeshf[key] , 'submeshf[%s] ' % key
             
         # Add any extra ghost boundary layer information
 
