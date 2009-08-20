@@ -12,9 +12,11 @@ from parallel_shallow_water import Parallel_Domain
 
 from anuga_parallel.pmesh_divide import pmesh_divide_metis
 from anuga_parallel.build_submesh import build_submesh
+from anuga_parallel.build_submesh import submesh_full, submesh_ghost, submesh_quantities
 from anuga_parallel.build_commun import extract_hostmesh, rec_submesh, send_submesh
 
-import numpy as num
+#import numpy as num
+import Numeric as num
 
 def topography(x,y): 
     return -x/2
@@ -365,7 +367,7 @@ class Test_Domain(unittest.TestCase):
         triangles = [[4, 9, 3], [4, 12, 5], [7, 12, 4], [8, 12, 7], [5, 12, 8], [0, 9, 1], [1, 9, 4], [1, 10, 2], [4, 10, 1], [5, 10, 4], [2, 10, 5], [3, 9, 0], [3, 11, 4], [6, 11, 3], [7, 11, 6], [4, 11, 7]]
 
 
-        boundary = {(13, 1): 'bottom', (7, 1): 'left', (3, 1): 'right', (14, 1): 'right', (11, 1): 'bottom', (10, 1): 'top', (5, 1): 'left', (4, 1): 'top'}
+        edges = {(13, 1): 'bottom', (7, 1): 'left', (3, 1): 'right', (14, 1): 'right', (11, 1): 'bottom', (10, 1): 'top', (5, 1): 'left', (4, 1): 'top'}
 
         triangles_per_proc = [5, 6, 5]
 
@@ -452,8 +454,64 @@ class Test_Domain(unittest.TestCase):
         #----------------------------------------------------------------------------------
         # Test build_submesh
         #----------------------------------------------------------------------------------
-        submesh = build_submesh(nodes, triangles, boundary, quantities, triangles_per_proc)
+        #submesh = build_submesh(nodes, triangles, edges, quantities, triangles_per_proc)
 
+        # Temporarily build the mesh to find the neighbouring
+        # triangles and true boundary polygon
+        from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
+        
+        mesh = Mesh(nodes, triangles)
+        boundary_polygon = mesh.get_boundary_polygon()
+    
+        
+        # Subdivide into non-overlapping partitions
+
+        submeshf = submesh_full(nodes, triangles, edges, \
+                            triangles_per_proc)
+
+        #print submeshf
+
+        true_submeshf = {'full_triangles': [[[4, 9, 3], [4, 12, 5], [7, 12, 4], [8, 12, 7], [5, 12, 8]], [[0, 9, 1], [1, 9, 4], [1, 10, 2], [4, 10, 1], [5, 10, 4], [2, 10, 5]], [[3, 9, 0], [3, 11, 4], [6, 11, 3], [7, 11, 6], [4, 11, 7]]], 'full_nodes': [num.array([[  3.  ,   0.5 ,   0.  ],
+       [  4.  ,   0.5 ,   0.5 ],
+       [  5.  ,   0.5 ,   1.  ],
+       [  7.  ,   1.  ,   0.5 ],
+       [  8.  ,   1.  ,   1.  ],
+       [  9.  ,   0.25,   0.25],
+       [ 12.  ,   0.75,   0.75]]), num.array([[  0.  ,   0.  ,   0.  ],
+       [  1.  ,   0.  ,   0.5 ],
+       [  2.  ,   0.  ,   1.  ],
+       [  4.  ,   0.5 ,   0.5 ],
+       [  5.  ,   0.5 ,   1.  ],
+       [  9.  ,   0.25,   0.25],
+       [ 10.  ,   0.25,   0.75]]), num.array([[  0.  ,   0.  ,   0.  ],
+       [  3.  ,   0.5 ,   0.  ],
+       [  4.  ,   0.5 ,   0.5 ],
+       [  6.  ,   1.  ,   0.  ],
+       [  7.  ,   1.  ,   0.5 ],
+       [  9.  ,   0.25,   0.25],
+       [ 11.  ,   0.75,   0.25]])], 'full_boundary': [{(3, 1): 'right', (4, 1): 'top'}, {(5, 1): 'left', (10, 1): 'top', (7, 1): 'left'}, {(13, 1): 'bottom', (14, 1): 'right', (11, 1): 'bottom'}]}
+
+
+
+        for key, item in submeshf.iteritems():
+            assert submeshf[key] == true_submeshf[key]
+            
+        # Add any extra ghost boundary layer information
+
+        submeshg = submesh_ghost(submeshf, mesh, triangles_per_proc)
+
+        # Order the quantities information to be the same as the triangle
+        # information
+
+        submesh = submesh_quantities(submeshg, quantities, \
+                                 triangles_per_proc)
+
+        submesh["boundary_polygon"] = boundary_polygon
+
+
+        #--------------------------------------------------------
+        # Results we expect from build_submesh
+        #--------------------------------------------------------
 
         assert num.allclose(submesh['full_nodes'][0],[[3.0, 0.5, 0.0], [4.0, 0.5, 0.5], [5.0, 0.5, 1.0], [7.0, 1.0, 0.5], [8.0, 1.0, 1.0], [9.0, 0.25, 0.25], [12.0, 0.75, 0.75]])
         assert num.allclose(submesh['full_nodes'][1],[[0.0, 0.0, 0.0], [1.0, 0.0, 0.5], [2.0, 0.0, 1.0], [4.0, 0.5, 0.5], [5.0, 0.5, 1.0], [9.0, 0.25, 0.25], [10.0, 0.25, 0.75]])
