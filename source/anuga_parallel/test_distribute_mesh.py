@@ -15,8 +15,8 @@ from anuga_parallel.build_submesh import build_submesh
 from anuga_parallel.build_submesh import submesh_full, submesh_ghost, submesh_quantities
 from anuga_parallel.build_commun import extract_hostmesh, rec_submesh, send_submesh
 
-#import numpy as num
-import Numeric as num
+import numpy as num
+#import Numeric as num
 
 def topography(x,y): 
     return -x/2
@@ -561,14 +561,18 @@ class Test_Distribute_Mesh(unittest.TestCase):
         for i in range(3):
             assert num.allclose(true_submesh['ghost_triangles'][i],submesh['ghost_triangles'][i])
             assert num.allclose(true_submesh['ghost_nodes'][i],submesh['ghost_nodes'][i])
+            assert num.allclose(true_submesh['ghost_commun'][i],submesh['ghost_commun'][i])
+
         assert true_submesh['full_commun'] == submesh['full_commun']
-        assert true_submesh['ghost_commun'] == submesh['ghost_commun']
-        
+
+
         # Order the quantities information to be the same as the triangle
         # information
 
         submesh = submesh_quantities(submesh, quantities, \
                                  triangles_per_proc)
+
+
 
         submesh["boundary_polygon"] = boundary_polygon
 
