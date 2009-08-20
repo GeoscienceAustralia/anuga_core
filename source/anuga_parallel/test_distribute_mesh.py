@@ -30,7 +30,7 @@ def ycoord(x,y):
 
 
 
-class Test_Domain(unittest.TestCase):
+class Test_Distribute_Mesh(unittest.TestCase):
     def setUp(self):
         pass
 
@@ -458,18 +458,6 @@ class Test_Domain(unittest.TestCase):
 
         # Temporarily build the mesh to find the neighbouring
         # triangles and true boundary polygon
-        from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
-        
-        mesh = Mesh(nodes, triangles)
-        boundary_polygon = mesh.get_boundary_polygon()
-    
-        
-        # Subdivide into non-overlapping partitions
-
-        submeshf = submesh_full(nodes, triangles, edges, \
-                            triangles_per_proc)
-
-        #print submeshf
 
         true_submesh = {'full_boundary': [{(3, 1): 'right', (4, 1): 'top'}, {(5, 1): 'left', (10, 1): 'top', (7, 1): 'left'}, {(13, 1): 'bottom', (14, 1): 'right', (11, 1): 'bottom'}],
                         'ghost_nodes': [num.array([[  0.  ,   0.  ,   0.  ],
@@ -484,7 +472,8 @@ class Test_Domain(unittest.TestCase):
        [ 12.  ,   0.75,   0.75]]), num.array([[  1.  ,   0.  ,   0.5 ],
        [  5.  ,   0.5 ,   1.  ],
        [  8.  ,   1.  ,   1.  ],
-       [ 12.  ,   0.75,   0.75]])],  'full_nodes': [num.array([[  3.  ,   0.5 ,   0.  ],
+       [ 12.  ,   0.75,   0.75]])],
+                        'full_nodes': [num.array([[  3.  ,   0.5 ,   0.  ],
        [  4.  ,   0.5 ,   0.5 ],
        [  5.  ,   0.5 ,   1.  ],
        [  7.  ,   1.  ,   0.5 ],
@@ -502,7 +491,8 @@ class Test_Domain(unittest.TestCase):
        [  6.  ,   1.  ,   0.  ],
        [  7.  ,   1.  ,   0.5 ],
        [  9.  ,   0.25,   0.25],
-       [ 11.  ,   0.75,   0.25]])],  'ghost_triangles': [num.array([[ 5,  0,  9,  1],
+       [ 11.  ,   0.75,   0.25]])],
+                        'ghost_triangles': [num.array([[ 5,  0,  9,  1],
        [ 6,  1,  9,  4],
        [ 8,  4, 10,  1],
        [ 9,  5, 10,  4],
@@ -521,7 +511,11 @@ class Test_Domain(unittest.TestCase):
        [ 2,  7, 12,  4],
        [ 3,  8, 12,  7],
        [ 5,  0,  9,  1],
-       [ 6,  1,  9,  4]])], 'ghost_boundary': [{(13, 1): 'ghost', (8, 0): 'ghost', (14, 1): 'ghost', (11, 1): 'ghost', (10, 1): 'ghost', (5, 1): 'ghost', (10, 2): 'ghost'}, {(12, 2): 'ghost', (12, 0): 'ghost', (2, 1): 'ghost', (11, 1): 'ghost', (2, 2): 'ghost', (4, 1): 'ghost', (4, 0): 'ghost'}, {(3, 2): 'ghost', (6, 1): 'ghost', (3, 1): 'ghost', (5, 1): 'ghost', (1, 0): 'ghost', (1, 1): 'ghost'}], 'full_triangles': [[[4, 9, 3], [4, 12, 5], [7, 12, 4], [8, 12, 7], [5, 12, 8]], [[0, 9, 1], [1, 9, 4], [1, 10, 2], [4, 10, 1], [5, 10, 4], [2, 10, 5]], [[3, 9, 0], [3, 11, 4], [6, 11, 3], [7, 11, 6], [4, 11, 7]]], 'full_commun': [{0: [1, 2], 1: [1, 2], 2: [1, 2], 3: [2], 4: [1]}, {5: [0, 2], 6: [0, 2], 7: [], 8: [0], 9: [0], 10: [0]}, {11: [0, 1], 12: [0, 1], 13: [0], 14: [0], 15: [0]}],  'ghost_commun': [num.array([[ 5,  1],
+       [ 6,  1,  9,  4]])],
+                        'ghost_boundary': [{(13, 1): 'ghost', (8, 0): 'ghost', (14, 1): 'ghost', (11, 1): 'ghost', (10, 1): 'ghost', (5, 1): 'ghost', (10, 2): 'ghost'}, {(12, 2): 'ghost', (12, 0): 'ghost', (2, 1): 'ghost', (11, 1): 'ghost', (2, 2): 'ghost', (4, 1): 'ghost', (4, 0): 'ghost'}, {(3, 2): 'ghost', (6, 1): 'ghost', (3, 1): 'ghost', (5, 1): 'ghost', (1, 0): 'ghost', (1, 1): 'ghost'}],
+                        'full_triangles': [[[4, 9, 3], [4, 12, 5], [7, 12, 4], [8, 12, 7], [5, 12, 8]], [[0, 9, 1], [1, 9, 4], [1, 10, 2], [4, 10, 1], [5, 10, 4], [2, 10, 5]], [[3, 9, 0], [3, 11, 4], [6, 11, 3], [7, 11, 6], [4, 11, 7]]],
+                        'full_commun': [{0: [1, 2], 1: [1, 2], 2: [1, 2], 3: [2], 4: [1]}, {5: [0, 2], 6: [0, 2], 7: [], 8: [0], 9: [0], 10: [0]}, {11: [0, 1], 12: [0, 1], 13: [0], 14: [0], 15: [0]}],
+                        'ghost_commun': [num.array([[ 5,  1],
        [ 6,  1],
        [ 8,  1],
        [ 9,  1],
@@ -542,18 +536,34 @@ class Test_Domain(unittest.TestCase):
        [5, 1],
        [6, 1]])]}
 
+        from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
+        
+        mesh = Mesh(nodes, triangles)
+        boundary_polygon = mesh.get_boundary_polygon()
+    
+        
+        # Subdivide into non-overlapping partitions
+
+        submesh = submesh_full(nodes, triangles, edges, \
+                            triangles_per_proc)
+
+        #print submesh
 
 
         for i in range(3):
-            assert num.allclose(true_submesh['full_triangles'][i],submeshf['full_triangles'][i])
-            assert num.allclose(true_submesh['full_nodes'][i],submeshf['full_nodes'][i])
-        assert true_submesh['full_boundary'] == submeshf['full_boundary']
+            assert num.allclose(true_submesh['full_triangles'][i],submesh['full_triangles'][i])
+            assert num.allclose(true_submesh['full_nodes'][i],submesh['full_nodes'][i])
+        assert true_submesh['full_boundary'] == submesh['full_boundary']
 
         # Add any extra ghost boundary layer information
 
-        submeshg = submesh_ghost(submeshf, mesh, triangles_per_proc)
+        submesh = submesh_ghost(submesh, mesh, triangles_per_proc)
 
-
+        for i in range(3):
+            assert num.allclose(true_submesh['ghost_triangles'][i],submesh['ghost_triangles'][i])
+            assert num.allclose(true_submesh['ghost_nodes'][i],submesh['ghost_nodes'][i])
+        assert true_submesh['full_commun'] == submesh['full_commun']
+        assert true_submesh['ghost_commun'] == submesh['ghost_commun']
         
         # Order the quantities information to be the same as the triangle
         # information
@@ -568,17 +578,18 @@ class Test_Domain(unittest.TestCase):
         # Results we expect from build_submesh
         #--------------------------------------------------------
 
+        """
         assert num.allclose(submesh['full_nodes'][0],[[3.0, 0.5, 0.0], [4.0, 0.5, 0.5], [5.0, 0.5, 1.0], [7.0, 1.0, 0.5], [8.0, 1.0, 1.0], [9.0, 0.25, 0.25], [12.0, 0.75, 0.75]])
         assert num.allclose(submesh['full_nodes'][1],[[0.0, 0.0, 0.0], [1.0, 0.0, 0.5], [2.0, 0.0, 1.0], [4.0, 0.5, 0.5], [5.0, 0.5, 1.0], [9.0, 0.25, 0.25], [10.0, 0.25, 0.75]])
         assert num.allclose(submesh['full_nodes'][2],[[0.0, 0.0, 0.0], [3.0, 0.5, 0.0], [4.0, 0.5, 0.5], [6.0, 1.0, 0.0], [7.0, 1.0, 0.5], [9.0, 0.25, 0.25], [11.0, 0.75, 0.25]])
-
-
+        """
+        """
         assert num.allclose(submesh['ghost_nodes'][0],[[0.0, 0.0, 0.0], [1.0, 0.0, 0.5], [2.0, 0.0, 1.0], [6.0, 1.0, 0.0], [10.0, 0.25, 0.75], [11.0, 0.75, 0.25]])
         assert num.allclose(submesh['ghost_nodes'][1],[[3.0, 0.5, 0.0], [7.0, 1.0, 0.5], [8.0, 1.0, 1.0], [11.0, 0.75, 0.25], [12.0, 0.75, 0.75]])
         assert num.allclose(submesh['ghost_nodes'][2],[[1.0, 0.0, 0.5], [5.0, 0.5, 1.0], [8.0, 1.0, 1.0], [12.0, 0.75, 0.75]])
+        """
 
-
-
+        """
         true_full_triangles = [num.array([[ 4,  9,  3],
                                           [ 4, 12,  5],
                                           [ 7, 12,  4],
@@ -600,7 +611,8 @@ class Test_Domain(unittest.TestCase):
         assert num.allclose(submesh['full_triangles'][0],true_full_triangles[0])
         assert num.allclose(submesh['full_triangles'][1],true_full_triangles[1])
         assert num.allclose(submesh['full_triangles'][2],true_full_triangles[2])
-
+        """
+        """
         true_ghost_triangles = [num.array([[ 5,  0,  9,  1],
                                            [ 6,  1,  9,  4],
                                            [ 8,  4, 10,  1],
@@ -624,8 +636,8 @@ class Test_Domain(unittest.TestCase):
                                            [ 5,  0,  9,  1],
                                            [ 6,  1,  9,  4]])]
 
-
-
+                                           """
+        """
         assert num.allclose(submesh['ghost_triangles'][0],true_ghost_triangles[0])
         assert num.allclose(submesh['ghost_triangles'][1],true_ghost_triangles[1])
         assert num.allclose(submesh['ghost_triangles'][2],true_ghost_triangles[2])
@@ -662,11 +674,11 @@ class Test_Domain(unittest.TestCase):
         assert num.allclose(submesh['ghost_commun'][1],true_ghost_commun[1])
         assert num.allclose(submesh['ghost_commun'][2],true_ghost_commun[2])
 
-
+        """
   
 #-------------------------------------------------------------
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Domain,'test')
+    suite = unittest.makeSuite(Test_Distribute_Mesh,'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)
