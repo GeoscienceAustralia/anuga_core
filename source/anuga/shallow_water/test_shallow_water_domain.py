@@ -6261,10 +6261,11 @@ friction  \n \
     def test_volumetric_balance_computation(self):
         """test_volumetric_balance_computation
         
-        Test that total in and out flows are computed correctly
-        FIXME(Ole): This test is more about looking at the printed report
+        Test that total in and out flows are computed correctly 
+        in a steady state situation
         """
 
+        # Set to True if volumetric output is sought
         verbose = False
 
         #----------------------------------------------------------------------
@@ -6284,7 +6285,7 @@ friction  \n \
         # Setup computational domain
         #----------------------------------------------------------------------
 
-        finaltime = 300.0
+        finaltime = 500.0
         length = 300.
         width  = 20.
         dx = dy = 5       # Resolution: of grid on both axes
@@ -6309,16 +6310,10 @@ friction  \n \
         # Setup initial conditions
         #----------------------------------------------------------------------
 
-        slope = 0.0
-        def topography(x, y):
-            z=-x * slope
-            return z
-
-        # Use function for elevation
-        domain.set_quantity('elevation', topography)
-        domain.set_quantity('friction', 0.0)        # Constant friction
+        domain.set_quantity('elevation', 0.0)  # Flat bed
+        domain.set_quantity('friction', 0.0)   # Constant zero friction
                 
-        domain.set_quantity('stage', expression='elevation')
+        domain.set_quantity('stage', expression='elevation + %d' % d) 
 
         #----------------------------------------------------------------------
         # Setup boundary conditions
@@ -6326,11 +6321,10 @@ friction  \n \
 
         Br = Reflective_boundary(domain)      # Solid reflective wall
                 
-        # Constant flow into domain
+        # Constant flow in and out of domain
         # Depth = 1m, uh=1 m/s, i.e. a flow of 20 m^3/s 
-        
         Bi = Dirichlet_boundary([d, uh, vh]) 
-        Bo = Dirichlet_boundary([0, 0, 0])
+        Bo = Dirichlet_boundary([d, uh, vh])
 
         domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
 
@@ -6338,11 +6332,20 @@ friction  \n \
         # Evolve system through time
         #----------------------------------------------------------------------
 
-        for t in domain.evolve(yieldstep=100.0, finaltime=finaltime):
+        for t in domain.evolve(yieldstep=50.0, finaltime=finaltime):
             S = domain.volumetric_balance_statistics()
             if verbose :
                 print domain.timestepping_statistics()
                 print S
+                
+            if t > 300:
+                # Steady state reached
+                
+                # Square on flowline at 200m
+                q = domain.get_flow_through_cross_section([[200.0,  0.0],
+                                                           [200.0, 20.0]])
+                
+                assert num.allclose(q, ref_flow)
 
 
     def test_volume_conservation_inflow(self):
@@ -7222,7 +7225,7 @@ friction  \n \
 #################################################################################
 
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Shallow_Water, 'test_variable_elevation')
-    suite = unittest.makeSuite(Test_Shallow_Water, 'test')
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test_volumetric_balance')
+    #suite = unittest.makeSuite(Test_Shallow_Water, 'test')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
