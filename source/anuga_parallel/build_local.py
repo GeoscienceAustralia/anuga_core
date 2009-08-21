@@ -13,14 +13,17 @@
 #
 #  Authors: Linda Stals and Matthew Hardy, June 2005
 #  Modified: Linda Stals, Nov 2005 (optimise python code)
+#            Steve Roberts, Aug 2009 (updating to numpy)
 #
 #
 #########################################################
 
-from Numeric import  zeros, Float, Int, concatenate, \
-     take, arrayrange, put, sort, compress, equal
+#from Numeric import  zeros, Float, Int, concatenate, \
+#     take, arrayrange, put, sort, compress, equal
 
 
+import numpy as num
+ 
 #########################################################
 # Convert the format of the data to that used by ANUGA
 #
@@ -45,7 +48,7 @@ def build_local_GA(nodes, triangles, boundaries, tri_index):
     
     # Extract the nodes (using the local ID)
     
-    GAnodes = take(nodes, (1, 2), 1)
+    GAnodes = num.take(nodes, (1, 2), 1)
 
     # Build a global ID to local ID mapping
 
@@ -53,16 +56,16 @@ def build_local_GA(nodes, triangles, boundaries, tri_index):
     for i in range(Nnodes):
         if nodes[i][0] > NGlobal:
             NGlobal = nodes[i][0]
-    index = zeros(int(NGlobal)+1, Int)
-    put(index, take(nodes, (0,), 1).astype(Int), \
-        arrayrange(Nnodes))
+    index = num.zeros(int(NGlobal)+1, num.int)
+    num.put(index, num.take(nodes, (0,), 1).astype(num.int), \
+        num.arange(Nnodes))
         
     # Change the global IDs in the triangles to the local IDs
 
-    GAtriangles = zeros((Ntriangles, 3), Int)
-    GAtriangles[:,0] = take(index, triangles[:,0])
-    GAtriangles[:,1] = take(index, triangles[:,1])
-    GAtriangles[:,2] = take(index, triangles[:,2])
+    GAtriangles = num.zeros((Ntriangles, 3), num.int)
+    GAtriangles[:,0] = num.take(index, triangles[:,0])
+    GAtriangles[:,1] = num.take(index, triangles[:,1])
+    GAtriangles[:,2] = num.take(index, triangles[:,2])
 
     # Change the triangle numbering in the boundaries
 
@@ -108,15 +111,15 @@ def build_local_commun(index, ghostc, fullc, nproc):
     # Build the ghost_recv dictionary (sort the
     # information by the global numbering)
     
-    ghostc = sort(ghostc, 0)
+    ghostc = num.sort(ghostc, 0)
     
     for c in range(nproc):
         s = ghostc[:,0]
-        d = compress(equal(ghostc[:,1],c), s)
+        d = num.compress(num.equal(ghostc[:,1],c), s)
         if len(d) > 0:
             ghost_recv[c] = [0, 0]
             ghost_recv[c][1] = d
-            ghost_recv[c][0] = take(index, d)
+            ghost_recv[c][0] = num.take(index, d)
             
     # Build a temporary copy of the full_send dictionary
     # (this version allows the information to be stored
@@ -135,7 +138,7 @@ def build_local_commun(index, ghostc, fullc, nproc):
     # required for the full_send dictionary
 
     for neigh in tmp_send:
-        neigh_commun = sort(tmp_send[neigh], 0)
+        neigh_commun = num.sort(tmp_send[neigh], 0)
         full_send[neigh] = [0, 0]
         full_send[neigh][0] = neigh_commun[:,1]
         full_send[neigh][1] = neigh_commun[:,0]
@@ -166,13 +169,13 @@ def build_local_mesh(submesh, lower_t, upper_t, nproc):
 
     # Combine the full nodes and ghost nodes
 
-    nodes = concatenate((submesh["full_nodes"], \
+    nodes = num.concatenate((submesh["full_nodes"], \
                          submesh["ghost_nodes"]))
     
     # Combine the full triangles and ghost triangles
 
-    gtri =  take(submesh["ghost_triangles"],(1, 2, 3),1)
-    triangles = concatenate((submesh["full_triangles"], gtri))
+    gtri =  num.take(submesh["ghost_triangles"],(1, 2, 3),1)
+    triangles = num.concatenate((submesh["full_triangles"], gtri))
 
     # Combine the full boundaries and ghost boundaries
 
@@ -188,8 +191,8 @@ def build_local_mesh(submesh, lower_t, upper_t, nproc):
         id = submesh["ghost_triangles"][i][0]
         if id > NGlobal:
             NGlobal = id
-    index = zeros(int(NGlobal)+1, Int)
-    index[lower_t:upper_t]=arrayrange(upper_t-lower_t)
+    index = num.zeros(int(NGlobal)+1, num.int)
+    index[lower_t:upper_t]=num.arange(upper_t-lower_t)
     for i in range(len(submesh["ghost_triangles"])):
         index[submesh["ghost_triangles"][i][0]] = i+upper_t-lower_t
     
@@ -204,7 +207,7 @@ def build_local_mesh(submesh, lower_t, upper_t, nproc):
     for k in submesh["full_quan"]:
         Nf = len(submesh["full_quan"][k])
         Ng = len(submesh["ghost_quan"][k])
-        quantities[k] = zeros((Nf+Ng, 3), Float)
+        quantities[k] = num.zeros((Nf+Ng, 3), num.float)
         quantities[k][0:Nf] = submesh["full_quan"][k] 
         quantities[k][Nf:Nf+Ng] = submesh["ghost_quan"][k]
                              
@@ -222,3 +225,4 @@ def build_local_mesh(submesh, lower_t, upper_t, nproc):
 
     return GAnodes, GAtriangles, GAboundary, quantities, ghost_rec, \
            full_send
+

@@ -11,6 +11,7 @@
 #  Authors: Linda Stals and Matthew Hardy, June 2005
 #  Modified: Linda Stals, Nov 2005
 #            Jack Kelly, Nov 2005
+#            Steve Roberts, Aug 2009 (updating to numpy)
 #
 #
 #########################################################
@@ -19,8 +20,8 @@ from os import sep
 from sys import path
 from math import floor
 
-from Numeric import zeros, Float, Int, reshape, argsort, ArrayType
-
+import numpy as num
+#import zeros, float, Int, reshape, argsort, ArrayType
 
 #########################################################
 #
@@ -48,7 +49,7 @@ def reorder(quantities, tri_index, proc_sum):
 
     # Temporary storage area
 
-    index = zeros(N, Int)
+    index = num.zeros(N, num.int)
     q_reord = {}
 
     # Find the new ordering of the triangles
@@ -61,7 +62,7 @@ def reorder(quantities, tri_index, proc_sum):
     # Reorder each quantity according to the new ordering
 
     for k in quantities:
-        q_reord[k] = zeros((N, 3), Float)
+        q_reord[k] = num.zeros((N, 3), num.float)
         for i in range(N):
             q_reord[k][index[i]]=quantities[k].vertex_values[i]
     del index
@@ -87,7 +88,6 @@ def reorder(quantities, tri_index, proc_sum):
 #path.append('..' + sep + 'pymetis')
 
 try:
-    
     from pymetis.metis import partMeshNodal
 except ImportError:
     print "***************************************************"
@@ -95,6 +95,7 @@ except ImportError:
     print "         Read \anuga_core\source\pymetis\README"
     print "***************************************************"
     raise ImportError
+
 def pmesh_divide_metis(domain, n_procs):
     
     # Initialise the lists
@@ -120,7 +121,7 @@ def pmesh_divide_metis(domain, n_procs):
     if n_procs != 1: #Because metis chokes on it...
         n_vert = domain.get_number_of_nodes()
         t_list = domain.triangles.copy()
-        t_list = reshape(t_list, (-1,))
+        t_list = num.reshape(t_list, (-1,))
     
         # The 1 here is for triangular mesh elements.
         edgecut, epart, npart = partMeshNodal(n_tri, n_vert, t_list, 1, n_procs)
@@ -132,8 +133,8 @@ def pmesh_divide_metis(domain, n_procs):
 
         # Sometimes (usu. on x86_64), partMeshNodal returnes an array of zero
         # dimensional arrays. Correct this.
-        if type(epart[0]) == ArrayType:
-            epart_new = zeros(len(epart), Int)
+        if type(epart[0]) == num.ndarray:
+            epart_new = num.zeros(len(epart), num.int)
             for i in range(len(epart)):
                 epart_new[i] = epart[i][0]
             epart = epart_new
@@ -183,7 +184,7 @@ def pmesh_divide_metis(domain, n_procs):
         
         quantities = {}
         for k in domain.quantities:
-            quantities[k] = zeros((n_tri, 3), Float)
+            quantities[k] = num.zeros((n_tri, 3), num.float)
             for i in range(n_tri):
                 quantities[k][i] = domain.quantities[k].vertex_values[i]
         
@@ -194,7 +195,7 @@ def pmesh_divide_metis(domain, n_procs):
     # Convert the triangle datastructure to be an array type,
     # this helps with the communication
 
-    ttriangles = zeros((len(triangles), 3), Int)
+    ttriangles = num.zeros((len(triangles), 3), num.int)
     for i in range(len(triangles)):
         ttriangles[i] = triangles[i]
     

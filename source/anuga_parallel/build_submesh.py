@@ -1,20 +1,23 @@
 #########################################################
 #
-# Subdivide the GA domain. This module is primarily
+# Subdivide the domain. This module is primarily
 # responsible for building the ghost layer and
 # communication pattern
 #
 #
 #  Author: Linda Stals, June 2005
 #  Modified: Linda Stals, Nov 2005 (optimise python code)
+#            Steve Roberts, Aug 2009 (convert to numpy)
 #
 #
 #########################################################
 
 import sys
 
-from Numeric import zeros, Float, Int, concatenate, \
-     reshape, arrayrange, take, nonzero
+#from Numeric import zeros, Float, Int, concatenate, \
+#     reshape, arrayrange, take, nonzero
+
+import numpy as num
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 
@@ -54,8 +57,11 @@ def submesh_full(nodes, triangles, boundary, triangles_per_proc):
     triangle_list = []
     boundary_list = []
     submesh = {}
-    node_range = reshape(arrayrange(nnodes),(nnodes,1))
-    tsubnodes = concatenate((node_range, nodes), 1)
+    node_range = num.reshape(num.arange(nnodes),(nnodes,1))
+
+    #print node_range
+    tsubnodes = num.concatenate((node_range, nodes), 1)
+
 
     # Loop over processors
 
@@ -77,13 +83,14 @@ def submesh_full(nodes, triangles, boundary, triangles_per_proc):
 
         # Find nodes in processor p
 
-        nodemap = zeros(nnodes, 'i')
+        nodemap = num.zeros(nnodes, 'i')
         for t in subtriangles:
             nodemap[t[0]]=1
             nodemap[t[1]]=1
             nodemap[t[2]]=1
 
-        node_list.append(take(tsubnodes,nonzero(nodemap)))
+        
+        node_list.append(tsubnodes.take(num.flatnonzero(nodemap),axis=0))
 
         # Move to the next processor
 
@@ -133,10 +140,11 @@ def ghost_layer(submesh, mesh, p, tupper, tlower):
 
     # Find the first layer of boundary triangles
 
-    trianglemap = zeros(ntriangles, 'i')
+    trianglemap = num.zeros(ntriangles, 'i')
     for t in range(tlower, tupper):
         
         n = mesh.neighbours[t, 0]
+
         if n >= 0:
             if n < tlower or n >= tupper:
                 trianglemap[n] = 1
@@ -168,7 +176,7 @@ def ghost_layer(submesh, mesh, p, tupper, tlower):
 
     # Build the triangle list and make note of the vertices
 
-    nodemap = zeros(ncoord, 'i')
+    nodemap = num.zeros(ncoord, 'i')
     fullnodes = submesh["full_nodes"][p]
 
     subtriangles = []
@@ -179,19 +187,20 @@ def ghost_layer(submesh, mesh, p, tupper, tlower):
             nodemap[t[1]] = 1
             nodemap[t[2]] = 1
 
-    trilist = reshape(arrayrange(ntriangles),(ntriangles,1))
-    tsubtriangles = concatenate((trilist, mesh.triangles), 1)
-    subtriangles = take(tsubtriangles, nonzero(trianglemap))
+    trilist = num.reshape(num.arange(ntriangles),(ntriangles,1))
+    tsubtriangles = num.concatenate((trilist, mesh.triangles), 1)
+    subtriangles = tsubtriangles.take(num.flatnonzero(trianglemap),axis=0)
 
+    
     # Keep a record of the triangle vertices, if they are not already there
 
     subnodes = []
     for n in fullnodes:
         nodemap[int(n[0])] = 0
 
-    nodelist = reshape(arrayrange(ncoord),(ncoord,1))
-    tsubnodes = concatenate((nodelist, mesh.get_nodes()), 1)
-    subnodes = take(tsubnodes, nonzero(nodemap))
+    nodelist = num.reshape(num.arange(ncoord),(ncoord,1))
+    tsubnodes = num.concatenate((nodelist, mesh.get_nodes()), 1)
+    subnodes = tsubnodes.take(num.flatnonzero(nodemap),axis=0)
 
     # Clean up before exiting
 
@@ -233,17 +242,21 @@ def ghost_layer(submesh, mesh, p, tupper, tlower):
 #
 #########################################################
 def is_in_processor(ghost_list, tlower, tupper, n):
-    return (n in ghost_list) or (tlower <= n and tupper > n)
+
+    return num.equal(ghost_list,n).any() or (tlower <= n and tupper > n)
+
 
 def ghost_bnd_layer(ghosttri, tlower, tupper, mesh, p):
 
     ghost_list = []
     subboundary = {}
-        
+
+
     for t in ghosttri:
         ghost_list.append(t[0])
     
     for t in ghosttri:
+
         n = mesh.neighbours[t[0], 0]
         if not is_in_processor(ghost_list, tlower, tupper, n):
             subboundary[t[0], 0] = 'ghost'
@@ -278,7 +291,7 @@ def ghost_commun_pattern(subtri, p, tri_per_proc):
 
     # Loop over the ghost triangles
 
-    ghost_commun = zeros((len(subtri), 2), Int)
+    ghost_commun = num.zeros((len(subtri), 2), num.int)
 
     for i in range(len(subtri)):
         global_no = subtri[i][0]
@@ -409,6 +422,7 @@ def submesh_ghost(submesh, mesh, triangles_per_proc):
         ghost_triangles.append(subtri)
         ghost_nodes.append(subnodes)
 
+
         # Find the boundary layer formed by the ghost triangles
         
         subbnd = ghost_bnd_layer(subtri, tlower, tupper, mesh, p)
@@ -491,7 +505,7 @@ def submesh_quantities(submesh, quantities, triangles_per_proc):
 
         for k in quantities:
             submesh["full_quan"][k].append(quantities[k][lower:upper])
-            submesh["ghost_quan"][k].append(zeros( (M,3) , Float))
+            submesh["ghost_quan"][k].append(num.zeros( (M,3) , num.float))
             for j in range(M):
                 submesh["ghost_quan"][k][p][j] = \
                                                quantities[k][global_id[j]]

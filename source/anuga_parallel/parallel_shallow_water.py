@@ -22,7 +22,9 @@ except:
 
 
 from anuga.shallow_water.shallow_water_domain import *
-from Numeric import zeros, Float, Int, ones, allclose, array
+
+
+import numpy as num
 
 import pypar
 
@@ -56,21 +58,21 @@ class Parallel_Domain(Domain):
 #        self.nsys = 3
 #        for key in full_send_dict:
 #            buffer_shape = full_send_dict[key][0].shape[0]
-#            full_send_dict[key].append(zeros( (buffer_shape,self.nsys) ,Float))
+#            full_send_dict[key].append(num.zeros( (buffer_shape,self.nsys) ,num.loat))
 #
 #
 #        for key in ghost_recv_dict:
 #            buffer_shape = ghost_recv_dict[key][0].shape[0]
-#            ghost_recv_dict[key].append(zeros( (buffer_shape,self.nsys) ,Float))
+#            ghost_recv_dict[key].append(num.zeros( (buffer_shape,self.nsys) ,num.float))
 #
 #        self.full_send_dict  = full_send_dict
         self.ghost_recv_dict = ghost_recv_dict
 
         # Buffers for synchronisation of timesteps
-        self.local_timestep = zeros(1, Float)
-        self.global_timestep = zeros(1, Float)
+        self.local_timestep = num.zeros(1, num.float)
+        self.global_timestep = num.zeros(1, num.float)
 
-        self.local_timesteps = zeros(self.numproc, Float)
+        self.local_timesteps = num.zeros(self.numproc, num.loat)
 
 
         self.communication_time = 0.0

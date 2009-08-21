@@ -12,11 +12,15 @@
 #
 #  Author: Linda Stals, June 2005
 #  Modified: Linda Stals, Nov 2005 (optimise python code)
+#            Steve Roberts, Aug 2009 (update to numpy)
 #
 #
 #########################################################
 
-from Numeric import array, Int, Float, zeros
+#from Numeric import array, Int, Float, zeros
+
+import numpy as num
+
 import logging, logging.config
 logger = logging.getLogger('parallel')
 logger.setLevel(logging.WARNING)
@@ -29,6 +33,7 @@ except:
 import sys
 
 import pypar
+
 
 from build_local import build_local_mesh
 
@@ -64,15 +69,16 @@ def send_submesh(submesh, triangles_per_proc, p):
          if not tagmap.has_key(bkey):
              tagmap[bkey] = counter
              counter = counter+1
+
     pypar.send(tagmap, p)
 
     # send the quantities key information
-    
+
     pypar.send(submesh["full_quan"].keys(), p)
     
     # send the number of triangles per processor
 
-    pypar.send(triangles_per_proc, p, use_buffer=True)
+    pypar.send(triangles_per_proc, p)
 
     # compress full_commun
 
@@ -81,6 +87,8 @@ def send_submesh(submesh, triangles_per_proc, p):
     for c in submesh["full_commun"][p]:
         for i in range(len(submesh["full_commun"][p][c])):
             flat_full_commun.append([c,submesh["full_commun"][p][c][i]])
+
+    print 'flat_full_commun', flat_full_commun
 
     # send the array sizes so memory can be allocated
 
@@ -94,41 +102,46 @@ def send_submesh(submesh, triangles_per_proc, p):
     setup_array[6] = len(submesh["ghost_commun"][p])
     setup_array[7] = len(flat_full_commun)
 
-    pypar.send(setup_array, p)
+    pypar.send(num.array(setup_array, num.int), p)
     
     # send the nodes
-    
-    pypar.send(submesh["full_nodes"][p], p, use_buffer=True)
-    pypar.send(submesh["ghost_nodes"][p], p, use_buffer=True)
+
+    pypar.send(num.array(submesh["full_nodes"][p], num.float), p)
+    pypar.send(num.array(submesh["ghost_nodes"][p], num.float),p)
 
     # send the triangles
 
-    pypar.send(array(submesh["full_triangles"][p], Int), p, use_buffer=True)
-    pypar.send(submesh["ghost_triangles"][p], p, use_buffer=True)
+    pypar.send(num.array(submesh["full_triangles"][p],  num.int), p)
+    pypar.send(num.array(submesh["ghost_triangles"][p], num.int), p)
 
     # send the boundary
 
     bc = []
     for b in submesh["full_boundary"][p]:
         bc.append([b[0], b[1], tagmap[submesh["full_boundary"][p][b]]])
-    pypar.send(bc, p, use_buffer=True)
+
+
+    pypar.send(num.array(bc, num.int), p)
+
     bc = []
     for b in submesh["ghost_boundary"][p]:
         bc.append([b[0], b[1], tagmap[submesh["ghost_boundary"][p][b]]])
-    pypar.send(bc, p, use_buffer=True)
+
+    pypar.send(num.array(bc, num.int), p)
 
     # send the communication pattern
 
-    pypar.send(submesh["ghost_commun"][p], p, use_buffer=True)
-    pypar.send(flat_full_commun, p, use_buffer=True)
+    pypar.send(submesh["ghost_commun"][p], p)
+
+    pypar.send(num.array(flat_full_commun, num.int), p)
 
     # send the quantities
     
     for k in submesh["full_quan"]:
-        pypar.send(submesh["full_quan"][k][p], p, use_buffer=True)
+        pypar.send(num.array(submesh["full_quan"][k][p], num.float), p)
         
     for k in submesh["ghost_quan"]:
-        pypar.send(submesh["ghost_quan"][k][p], p, use_buffer=True)
+        pypar.send(num.array(submesh["ghost_quan"][k][p], num.float),p)
         
 
 #########################################################
@@ -149,7 +162,7 @@ def send_submesh(submesh, triangles_per_proc, p):
 #########################################################
 
 def rec_submesh_flat(p):
-
+    
     numproc = pypar.size()
     myid = pypar.rank()
 
@@ -160,59 +173,52 @@ def rec_submesh_flat(p):
     # receive the tagmap for the boundary conditions
     
     tagmap = pypar.receive(p)
+
     itagmap = {}
     for t in tagmap:
         itagmap[tagmap[t]]=t
 
     # receive the quantities key information
-    
+
     qkeys = pypar.receive(p)
 
     # receive the number of triangles per processor
 
-    triangles_per_proc = []
-    for i in range(numproc):
-        triangles_per_proc.append([0])
-
-    triangles_per_proc = pypar.receive(p, triangles_per_proc)
+    triangles_per_proc = pypar.receive(p)
 
     # recieve information about the array sizes
 
-    setup_array = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-    setup_array = pypar.receive(p, setup_array)
-
-    # receive the full nodes
+    setup_array = pypar.receive(p)
 
     no_full_nodes = setup_array[0]
-    full_nodes = zeros((no_full_nodes, 3), Float)
-    submesh_cell["full_nodes"] = pypar.receive(p, full_nodes)
+    no_ghost_nodes = setup_array[1]
+    no_full_triangles = setup_array[2]
+    no_ghost_triangles = setup_array[3]
+    no_full_boundary = setup_array[4]
+    no_ghost_boundary = setup_array[5]
+    no_ghost_commun = setup_array[6]
+    no_full_commun = setup_array[7]
+    no_quantities = len(qkeys)
     
+    # receive the full nodes
+
+    submesh_cell["full_nodes"] = pypar.receive(p)
+
     # receive the ghost nodes
 
-    no_ghost_nodes = setup_array[1]
-    ghost_nodes = zeros((no_ghost_nodes, 3), Float)
-    submesh_cell["ghost_nodes"] = pypar.receive(p, ghost_nodes)
-
+    submesh_cell["ghost_nodes"] = pypar.receive(p)
     
     # receive the full triangles
 
-    no_full_triangles = setup_array[2]
-    full_triangles = zeros((no_full_triangles, 3), Int)
-    submesh_cell["full_triangles"] = pypar.receive(p, full_triangles)
+    submesh_cell["full_triangles"] = pypar.receive(p)
     
     # receive the ghost triangles
 
-    no_ghost_triangles = setup_array[3]
-    ghost_triangles = zeros((no_ghost_triangles, 4), Int)
-    submesh_cell["ghost_triangles"] = pypar.receive(p, ghost_triangles)
-    
+    submesh_cell["ghost_triangles"] = pypar.receive(p)
+
     # receive the full boundary
 
-    no_full_boundary = setup_array[4]
-    bc = []
-    for i in range(no_full_boundary):
-        bc.append([0.0, 0.0, 0.0])
-    bnd_c = pypar.receive(p, bc)
+    bnd_c = pypar.receive(p)
 
     submesh_cell["full_boundary"] = {}
     for b in bnd_c:
@@ -220,11 +226,7 @@ def rec_submesh_flat(p):
 
     # receive the ghost boundary
 
-    no_ghost_boundary = setup_array[5]
-    bc = []
-    for i in range(no_ghost_boundary):
-        bc.append([0.0, 0.0, 0.0])
-    bnd_c = pypar.receive(p, bc)
+    bnd_c = pypar.receive(p)
 
     submesh_cell["ghost_boundary"] = {}
     for b in bnd_c:
@@ -232,18 +234,11 @@ def rec_submesh_flat(p):
 
     # receive the ghost communication pattern
 
-    no_ghost_commun = setup_array[6]
-    ghost_commun = zeros((no_ghost_commun, 2), Int)
-    submesh_cell["ghost_commun"] = pypar.receive(p, ghost_commun)
+    submesh_cell["ghost_commun"] = pypar.receive(p)
     
     # receive the full communication pattern
 
-    no_full_commun = setup_array[7]
-    full_commun = []
-    for i in range(no_full_commun):
-        full_commun.append([0.0, 0.0])
-
-    full_commun = pypar.receive(p, full_commun)
+    full_commun = pypar.receive(p)
 
     submesh_cell["full_commun"] = {}
     for c in full_commun:
@@ -253,20 +248,17 @@ def rec_submesh_flat(p):
 
     # receive the quantities
 
-    no_quantities = len(qkeys)
-    new_quan = zeros((no_full_triangles, 3), Float)
     submesh_cell["full_quan"]={}
     
     for i in range(no_quantities):
-        tmp = pypar.receive(p, new_quan)
-        submesh_cell["full_quan"][qkeys[i]]=zeros((no_full_triangles,3), Float)
+        tmp = pypar.receive(p)
+        submesh_cell["full_quan"][qkeys[i]]=num.zeros((no_full_triangles,3), num.float)
         submesh_cell["full_quan"][qkeys[i]][:] = tmp[:]
 
-    new_quan = zeros((no_ghost_triangles, 3), Float)
     submesh_cell["ghost_quan"]={}
     for i in range(no_quantities):
-        tmp = pypar.receive(p, new_quan)
-        submesh_cell["ghost_quan"][qkeys[i]]= zeros((no_ghost_triangles,3), Float)
+        tmp = pypar.receive(p)
+        submesh_cell["ghost_quan"][qkeys[i]]= num.zeros((no_ghost_triangles,3), num.float)
         submesh_cell["ghost_quan"][qkeys[i]][:] = tmp[:]
     
     return submesh_cell, triangles_per_proc,\
@@ -292,7 +284,7 @@ def rec_submesh_flat(p):
 #########################################################
 
 def rec_submesh(p):
-
+    
     numproc = pypar.size()
     myid = pypar.rank()
 

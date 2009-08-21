@@ -47,10 +47,13 @@ class Set_Stage:
 
 numprocs = pypar.size()
 myid = pypar.rank()
-processor_name = pypar.Get_processor_name()
+processor_name = pypar.get_processor_name()
 
 N = 5
 M = 2
+
+N = 10
+M = 5
 
 #######################
 # Partition the mesh
@@ -120,7 +123,7 @@ domain.set_quantity('stage', Set_Stage(0.2,0.4,1.0))
 
 # Let processor 0 output some timing information
 
-visualise = True
+visualise = False
 if visualise:
     from anuga.visualiser import RealtimeVisualiser
     vis = RealtimeVisualiser(domain)
@@ -136,7 +139,7 @@ if myid == 0:
     import time
     t0 = time.time()
 
-for t in domain.evolve(yieldstep = 0.1, finaltime = 3.0):
+for t in domain.evolve(yieldstep = 0.1, finaltime = 30.0):
     if myid == 0:
         domain.write_time()
         

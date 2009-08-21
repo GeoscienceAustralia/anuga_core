@@ -22,7 +22,11 @@ except:
     pass
 
 from anuga.advection import *
-from Numeric import zeros, Float, Int, ones, allclose, array
+
+
+#from Numeric import zeros, Float, Int, ones, allclose, array
+import numpy as num
+
 import pypar
 
 
@@ -77,12 +81,21 @@ class Parallel_Domain(Domain):
 
         # For some reason it looks like pypar only reduces numeric arrays
         # hence we need to create some dummy arrays for communication
-        ltimestep = ones( 1, Float )
+        ltimestep = num.ones( 1, num.float )
         ltimestep[0] = self.flux_timestep
-        gtimestep = zeros( 1, Float) # Buffer for results
+        gtimestep = num.zeros( 1, num.float ) # Buffer for results
+
+        #ltimestep = self.flux_timeste
+
+        #print self.processor, ltimestep, gtimestep
         
-        pypar.raw_reduce(ltimestep, gtimestep, pypar.MIN, 0)
+        pypar.reduce(ltimestep, pypar.MIN, 0, buffer=gtimestep)
+
+        #print self.processor, ltimestep, gtimestep
+        
         pypar.broadcast(gtimestep,0)
+
+        #print self.processor, ltimestep, gtimestep
 
         self.flux_timestep = gtimestep[0]
         
@@ -101,7 +114,8 @@ class Parallel_Domain(Domain):
         # We have a dictionary of lists with ghosts expecting updates from
         # the separate processors
 
-        from Numeric import take,put
+        #from Numeric import take,put
+        import numpy as num
         import time
         t0 = time.time()
 
@@ -121,7 +135,7 @@ class Parallel_Domain(Domain):
 
                         #for i in range(N):
                         #    Xout[i,0] = stage_cv[Idf[i]]
-                        Xout[:,0] = take(stage_cv, Idf)
+                        Xout[:,0] = num.take(stage_cv, Idf)
 
                         pypar.send(Xout,send_proc)
 
@@ -138,7 +152,7 @@ class Parallel_Domain(Domain):
                     X = pypar.receive(iproc,X)
                     N = len(Idg)
 
-                    put(stage_cv, Idg, X[:,0])
+                    num.put(stage_cv, Idg, X[:,0])
                     #for i in range(N):
                     #    stage_cv[Idg[i]] = X[i,0]
 
@@ -161,7 +175,7 @@ class Parallel_Domain(Domain):
             #    #print i,Idg[i],Idf[i]
             #    stage_cv[Idg[i]] = stage_cv[Idf[i]]
 
-            put(stage_cv, Idg, take(stage_cv, Idf))
+            num.put(stage_cv, Idg, num.take(stage_cv, Idf))
 
 
         self.communication_time += time.time()-t0

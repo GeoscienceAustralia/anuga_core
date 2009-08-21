@@ -14,18 +14,20 @@ This is a very simple test of the parallel algorithm using the simplified parall
 # Import necessary modules
 #------------------------------------------------------------------------------
 
-from Numeric import allclose
+import numpy as num
 
 from anuga.pmesh.mesh_interface import create_mesh_from_regions
-from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
+
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.utilities.polygon import is_inside_polygon
 
-from anuga.shallow_water import Domain
-from anuga.shallow_water import Reflective_boundary
-from anuga.shallow_water import Dirichlet_boundary
-from anuga.shallow_water import Time_boundary
-from anuga.shallow_water import Transmissive_boundary
+from anuga.interface import Domain
+from anuga.interface import Reflective_boundary
+from anuga.interface import Dirichlet_boundary
+from anuga.interface import Time_boundary
+from anuga.interface import Transmissive_boundary
+
+from anuga.interface import rectangular_cross
 
 from parallel_api import distribute, myid, numprocs
 
@@ -160,7 +162,7 @@ success = True
 for i in range(4):
     if tri_ids[i] > -1:
         #print 'myid = %g, allclose(gauge_values[%g], G%g) = %g' % (myid, i,i, allclose(gauge_values[i], G[i]))
-        success = success and allclose(gauge_values[i], G[i])
+        success = success and num.allclose(gauge_values[i], G[i])
 
 
 if success:

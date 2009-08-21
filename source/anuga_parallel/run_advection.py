@@ -3,15 +3,19 @@
 
 #========================================================================
 from anuga.config import g, epsilon
-from Numeric import allclose, array, zeros, ones, Float
+
+#from Numeric import allclose, array, zeros, ones, Float
+
 from anuga.advection import Domain, Transmissive_boundary, Dirichlet_boundary
-from Numeric import array
+
+#from Numeric import array
+import numpy as num
 
 
-from mesh_factory import rectangular
+from anuga.interface import rectangular_cross
 
 #points, vertices, boundary = rectangular(60, 60)
-points, vertices, boundary = rectangular(10, 10)
+points, vertices, boundary = rectangular_cross(10, 10)
 
 #Create advection domain with direction (1,-1)
 domain = Domain(points, vertices, boundary, velocity=[1.0, 0.0])
@@ -25,12 +29,12 @@ domain = Domain(points, vertices, boundary, velocity=[1.0, 0.0])
 
 #Boundaries
 T = Transmissive_boundary(domain)
-D = Dirichlet_boundary(array([1.0]))
+D = Dirichlet_boundary(num.array([1.0]))
 
 #turn on the visualisation
 rect = [0.0, 0.0, 1.0, 1.0]
 #domain.initialise_visualiser(rect=rect)
-domain.visualise = True
+domain.visualise = False
 
 
 domain.default_order = 2

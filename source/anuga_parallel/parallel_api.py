@@ -3,7 +3,7 @@
 
 """
 
-from Numeric import zeros
+
 
 # The abstract Python-MPI interface
 from anuga_parallel.parallel_abstraction import size, rank, get_processor_name
@@ -165,6 +165,8 @@ def distribute_mesh(domain):
     print 'Subdivide mesh'
     nodes, triangles, boundary, triangles_per_proc, quantities = \
            pmesh_divide_metis(domain, numprocs)
+
+
 
 
     # Build the mesh that should be assigned to each processor,
