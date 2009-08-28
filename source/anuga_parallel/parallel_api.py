@@ -13,15 +13,15 @@ from anuga_parallel.parallel_abstraction import pypar_available, barrier
 
 # ANUGA parallel engine (only load if pypar can)
 if pypar_available:
-    from anuga_parallel.build_commun  import send_submesh
-    from anuga_parallel.build_commun  import rec_submesh
-    from anuga_parallel.build_commun  import extract_hostmesh
-    from anuga_parallel.parallel_shallow_water import Parallel_Domain
+    from anuga_parallel.distribute_mesh  import send_submesh
+    from anuga_parallel.distribute_mesh  import rec_submesh
+    from anuga_parallel.distribute_mesh  import extract_hostmesh
 
     # Mesh partitioning using Metis
-    from anuga_parallel.build_submesh import build_submesh
-    from anuga_parallel.pmesh_divide  import pmesh_divide_metis
+    from anuga_parallel.distribute_mesh import build_submesh
+    from anuga_parallel.distribute_mesh import pmesh_divide_metis
 
+    from anuga_parallel.parallel_shallow_water import Parallel_Domain
 
 #------------------------------------------------------------------------------
 # Read in processor information
