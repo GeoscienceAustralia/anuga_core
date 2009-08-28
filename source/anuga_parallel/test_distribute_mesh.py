@@ -8,12 +8,10 @@ from math import sqrt
 from anuga.interface import Domain
 from anuga.interface import rectangular_cross
 
-from parallel_shallow_water import Parallel_Domain
-
-from anuga_parallel.distribute_domain import pmesh_divide_metis
-from anuga_parallel.distribute_domain import build_submesh
-from anuga_parallel.distribute_domain import submesh_full, submesh_ghost, submesh_quantities
-from anuga_parallel.distribute_domain import extract_hostmesh, rec_submesh, send_submesh
+from anuga_parallel.distribute_mesh import pmesh_divide_metis
+from anuga_parallel.distribute_mesh import build_submesh
+from anuga_parallel.distribute_mesh import submesh_full, submesh_ghost, submesh_quantities
+from anuga_parallel.distribute_mesh import extract_hostmesh, rec_submesh, send_submesh
 
 import numpy as num
 
@@ -340,16 +338,6 @@ class Test_Distribute_Mesh(unittest.TestCase):
                 assert num.allclose(ghost_recv_dict[1],true_ghost_recv[1])
                 assert num.allclose(full_send_dict[0],true_full_send[0])
                 assert num.allclose(full_send_dict[1],true_full_send[1]) 
-
-                """
-        par_domain = Parallel_Domain(points, vertices, boundary,
-                                     full_send_dict  = full_send_dict,
-                                     ghost_recv_dict = ghost_recv_dict)
-                                     """
-
-
-
-
 
 
             

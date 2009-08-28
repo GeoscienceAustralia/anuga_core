@@ -15,14 +15,10 @@ import os
 import sys
 import pypar
 
-#from Numeric import allclose, array, zeros, Float, take, nonzero
-
 import numpy as num
 
-from anuga.pmesh.mesh_interface import create_mesh_from_regions
 
-from anuga.interface import rectangular_cross
-from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_to_domain_instance
+
 
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.utilities.util_ext        import double_precision
@@ -34,8 +30,11 @@ from anuga.interface import Dirichlet_boundary
 from anuga.interface import Time_boundary
 from anuga.interface import Transmissive_boundary
 
+from anuga.interface import rectangular_cross
+from anuga.interface import create_domain_from_file
 
-from anuga_parallel.parallel_api import distribute, myid, numprocs
+
+from anuga_parallel.interface import distribute, myid, numprocs
 
 
 #--------------------------------------------------------------------------
@@ -70,7 +69,7 @@ class Set_Stage:
 def evolution_test(parallel=False):
 
 
-    domain = pmesh_to_domain_instance(mesh_filename, Domain)
+    domain = create_domain_from_file(mesh_filename)
     domain.set_quantity('stage', Set_Stage(756000.0, 756500.0, 2.0))
 
     #--------------------------------------------------------------------------
@@ -79,7 +78,7 @@ def evolution_test(parallel=False):
 
     if parallel:
         if myid == 0: print 'DISTRIBUTING PARALLEL DOMAIN'
-        domain = distribute(domain, verbose=False)
+        domain = distribute(domain)
 
     #------------------------------------------------------------------------------
     # Setup boundary conditions
@@ -125,7 +124,7 @@ def evolution_test(parallel=False):
             l2norm[1] = pow(l2norm[1], 2)
             l2norm[2] = pow(l2norm[2], 2)
             if myid == 0:
-                domain.write_time()
+                #domain.write_time()
 
                 #print edges[:,1]            
                 for p in range(1, numprocs):
@@ -150,7 +149,7 @@ def evolution_test(parallel=False):
                 pypar.send(l2norm, 0)
                 pypar.send(linfnorm, 0)
         else:
-            domain.write_time()
+            #domain.write_time()
             l1list.append(l1norm)                
             l2list.append(l2norm)
             linflist.append(linfnorm)
@@ -158,13 +157,13 @@ def evolution_test(parallel=False):
 
     return (l1list, l2list, linflist)
 
-# Test an 8-way run of the shallow water equations
+# Test an nprocs-way run of the shallow water equations
 # against the sequential code.
 
-class Test_Parallel_Sw(unittest.TestCase):
-    def testParallelSw(self):
+class Test_distribute_domain(unittest.TestCase):
+    def test_distribute_domain(self):
         print "Expect this test to fail if not run from the parallel directory."
-        result = os.system("mpirun -np %d python test_parallel_sw.py" % nprocs)
+        result = os.system("mpirun -np %d python test_distribute_domain.py" % nprocs)
         assert_(result == 0)
 
 # Because we are doing assertions outside of the TestCase class
@@ -177,7 +176,7 @@ def assert_(condition, msg="Assertion Failed"):
 if __name__=="__main__":
     if numprocs == 1: 
         runner = unittest.TextTestRunner()
-        suite = unittest.makeSuite(Test_Parallel_Sw, 'test')
+        suite = unittest.makeSuite(Test_distribute_domain, 'test')
         runner.run(suite)
     else:
 

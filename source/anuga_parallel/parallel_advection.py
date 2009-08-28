@@ -1,10 +1,10 @@
 import sys
 
 
-"""Class Parallel_Domain -
+"""Class Parallel_domain -
 2D triangular domains for finite-volume computations of
 the advection equation, with extra structures to allow
-communication between other Parallel_Domains and itself
+communication between other Parallel_domains and itself
 
 This module contains a specialisation of class Domain from module advection.py
 
@@ -12,25 +12,15 @@ Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou
 Geoscience Australia, 2004-2005
 """
 
-import logging, logging.config
-logger = logging.getLogger('parallel')
-logger.setLevel(logging.WARNING)
-
-try:
-    logging.config.fileConfig('log.ini')
-except:
-    pass
-
 from anuga.advection import *
 
 
-#from Numeric import zeros, Float, Int, ones, allclose, array
 import numpy as num
 
 import pypar
 
 
-class Parallel_Domain(Domain):
+class Parallel_domain(Domain):
 
     def __init__(self,
                  coordinates,

@@ -1,7 +1,7 @@
-"""Class Parallel_Shallow_Water_Domain -
+"""Class Parallel_shallow_water_domain -
 2D triangular domains for finite-volume computations of
 the shallow water equation, with extra structures to allow
-communication between other Parallel_Domains and itself
+communication between other Parallel_domains and itself
 
 This module contains a specialisation of class Domain
 from module shallow_water.py
@@ -11,16 +11,6 @@ Geoscience Australia, 2004-2005
 
 """
 
-import logging, logging.config
-logger = logging.getLogger('parallel')
-logger.setLevel(logging.WARNING)
-
-try:
-    logging.config.fileConfig('log.ini')
-except:
-    pass
-
-
 from anuga.interface import Domain
 
 
@@ -29,7 +19,7 @@ import numpy as num
 import pypar
 
 
-class Parallel_Domain(Domain):
+class Parallel_domain(Domain):
 
     def __init__(self, coordinates, vertices,
                  boundary=None,
@@ -247,41 +237,3 @@ class Parallel_Domain(Domain):
 
         self.communication_time += time.time()-t0
 
-
-## This was removed due to not beening required to be redefined in parallel_shallow_water
-## the original "write_time" is good... however might need some small edits to work properly 
-## with parallel- Nick and Ole April 2007
-##     def write_time(self):
-##         if self.min_timestep == self.max_timestep:
-##             print 'Processor %d/%d, Time = %.4f, delta t = %.8f, steps=%d (%d)'\
-##                   %(self.processor, self.numproc,
-##                     self.time, self.min_timestep, self.number_of_steps,
-##                     self.number_of_first_order_steps)
-##         elif self.min_timestep > self.max_timestep:
-##             print 'Processor %d/%d, Time = %.4f, steps=%d (%d)'\
-##                   %(self.processor, self.numproc,
-##                     self.time, self.number_of_steps,
-##                     self.number_of_first_order_steps)
-##         else:
-##             print 'Processor %d/%d, Time = %.4f, delta t in [%.8f, %.8f], steps=%d (%d)'\
-##                   %(self.processor, self.numproc,
-##                     self.time, self.min_timestep,
-##                     self.max_timestep, self.number_of_steps,
-##                     self.number_of_first_order_steps)
-
-
-# commented out on the 7/11/06
-#    def evolve(self, yieldstep=None, finaltime=None,
-#               skip_initial_step=False):
-#        """Specialisation of basic evolve method from parent class
-#        """
-
-        #Initialise real time viz if requested
-#        if self.time == 0.0:
-#            pass
-
-        #Call basic machinery from parent class
-#        for t in Domain.evolve(self, yieldstep, finaltime, skip_initial_step):
-
-            #Pass control on to outer loop for more specific actions
-#            yield(t)

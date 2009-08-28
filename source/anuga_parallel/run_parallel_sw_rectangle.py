@@ -13,28 +13,31 @@
 #
 #########################################################
 
-import pypar    # The Python-MPI interface
 import time
 
-#from Numeric import array
-# pmesh
 import numpy as num
 
 from print_stats import print_test_stats, build_full_flag
 
-from anuga.shallow_water import Domain
-from parallel_shallow_water import Parallel_Domain
+#----------------------------
+# Sequential interface
+#---------------------------
+from anuga.interface import Domain
+from anuga.interface import Transmissive_boundary, Reflective_boundary
 
-
-# mesh partition routines
-from parallel_meshes import parallel_rectangle
+#----------------------------
+# Parallel interface
+#---------------------------
+from anuga_parallel.interface import Parallel_shallow_water_domain
+from anuga_parallel.interface import parallel_rectangle
+from anuga_parallel.interface import myid, numprocs, get_processor_name
 
 ###############################
 # Read in processor information
 ###############################
-numprocs = pypar.size()
-myid = pypar.rank()
-processor_name = pypar.get_processor_name()
+numprocs = numprocs()
+myid     = myid()
+processor_name = get_processor_name()
 
 M = 50
 N = M*numprocs
@@ -53,13 +56,13 @@ print "Myid = ", myid, "no points = ", len(points), \
 # Start the computations on each subpartion
 ###########################################
 
-domain = Parallel_Domain(points, vertices, boundary,
-                         full_send_dict  = full_send_dict,
-                         ghost_recv_dict = ghost_recv_dict)
+domain = Parallel_shallow_water_domain(points, vertices, boundary,
+                                       full_send_dict  = full_send_dict,
+                                       ghost_recv_dict = ghost_recv_dict)
 
 
 #Boundaries
-from parallel_shallow_water import Transmissive_boundary, Reflective_boundary
+
 
 T = Transmissive_boundary(domain)
 R = Reflective_boundary(domain)

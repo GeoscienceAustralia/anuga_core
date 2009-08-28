@@ -21,7 +21,7 @@ if pypar_available:
     from anuga_parallel.distribute_mesh import build_submesh
     from anuga_parallel.distribute_mesh import pmesh_divide_metis
 
-    from anuga_parallel.parallel_shallow_water import Parallel_Domain
+    from anuga_parallel.parallel_shallow_water import Parallel_domain
 
 #------------------------------------------------------------------------------
 # Read in processor information
@@ -30,7 +30,7 @@ if pypar_available:
 numprocs = size()
 myid = rank()
 processor_name = get_processor_name()
-print 'I am processor %d of %d on node %s' %(myid, numprocs, processor_name)
+#print 'I am processor %d of %d on node %s' %(myid, numprocs, processor_name)
 
 
 
@@ -97,7 +97,7 @@ def distribute(domain, verbose=False):
         points, vertices, boundary, quantities,\
                 ghost_recv_dict, full_send_dict,\
                 number_of_full_nodes, number_of_full_triangles =\
-                distribute_mesh(domain)
+                distribute_mesh(domain, verbose=verbose)
 
 
         if verbose: print 'Communication done'
@@ -109,17 +109,17 @@ def distribute(domain, verbose=False):
         points, vertices, boundary, quantities,\
                 ghost_recv_dict, full_send_dict,\
                 number_of_full_nodes, number_of_full_triangles =\
-                rec_submesh(0)
+                rec_submesh(0, verbose)
 
 
     #------------------------------------------------------------------------
     # Build the domain for this processor using partion structures
     #------------------------------------------------------------------------
 
-    if verbose: print 'myid ',myid, number_of_full_nodes, number_of_full_triangles
+    if verbose: print 'myid = %g, no_full_nodes = %g, no_full_triangles = %g' % (myid, number_of_full_nodes, number_of_full_triangles)
 
     
-    domain = Parallel_Domain(points, vertices, boundary,
+    domain = Parallel_domain(points, vertices, boundary,
                              full_send_dict=full_send_dict,
                              ghost_recv_dict=ghost_recv_dict,
                              number_of_full_nodes=number_of_full_nodes,
@@ -156,13 +156,13 @@ def distribute(domain, verbose=False):
 
 
 
-def distribute_mesh(domain):
+def distribute_mesh(domain, verbose=False):
 
     numprocs = size()
 
     
     # Subdivide the mesh
-    print 'Subdivide mesh'
+    if verbose: print 'Subdivide mesh'
     nodes, triangles, boundary, triangles_per_proc, quantities = \
            pmesh_divide_metis(domain, numprocs)
 
@@ -171,21 +171,22 @@ def distribute_mesh(domain):
 
     # Build the mesh that should be assigned to each processor,
     # this includes ghost nodes and the communication pattern
-    print 'Build submeshes'    
+    if verbose: print 'Build submeshes'    
     submesh = build_submesh(nodes, triangles, boundary,\
                             quantities, triangles_per_proc)
 
-    for p in range(numprocs):
-        N = len(submesh['ghost_nodes'][p])                
-        M = len(submesh['ghost_triangles'][p])
-        print 'There are %d ghost nodes and %d ghost triangles on proc %d'\
-              %(N, M, p)
+    if verbose:
+        for p in range(numprocs):
+            N = len(submesh['ghost_nodes'][p])                
+            M = len(submesh['ghost_triangles'][p])
+            print 'There are %d ghost nodes and %d ghost triangles on proc %d'\
+                  %(N, M, p)
 
 
     # Send the mesh partition to the appropriate processor
-    print 'Distribute submeshes'        
+    if verbose: print 'Distribute submeshes'        
     for p in range(1, numprocs):
-      send_submesh(submesh, triangles_per_proc, p)
+      send_submesh(submesh, triangles_per_proc, p, verbose)
 
     # Build the local mesh for processor 0
     points, vertices, boundary, quantities, ghost_recv_dict, full_send_dict =\
