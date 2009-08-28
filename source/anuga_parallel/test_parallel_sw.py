@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 
 """Test a run of the sequential shallow water domain against
 a run of the parallel shallow water domain.
@@ -16,22 +15,24 @@ import os
 import sys
 import pypar
 
-from Numeric import allclose, array, zeros, Float, take, nonzero
+#from Numeric import allclose, array, zeros, Float, take, nonzero
+
+import numpy as num
 
 from anuga.pmesh.mesh_interface import create_mesh_from_regions
 
-from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
+from anuga.interface import rectangular_cross
 from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_to_domain_instance
 
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.utilities.util_ext        import double_precision
 from anuga.utilities.norms           import l1_norm, l2_norm, linf_norm
 
-from anuga.shallow_water import Domain
-from anuga.shallow_water import Reflective_boundary
-from anuga.shallow_water import Dirichlet_boundary
-from anuga.shallow_water import Time_boundary
-from anuga.shallow_water import Transmissive_boundary
+from anuga.interface import Domain
+from anuga.interface import Reflective_boundary
+from anuga.interface import Dirichlet_boundary
+from anuga.interface import Time_boundary
+from anuga.interface import Transmissive_boundary
 
 
 from anuga_parallel.parallel_api import distribute, myid, numprocs
@@ -68,6 +69,7 @@ class Set_Stage:
 #--------------------------------------------------------------------------
 def evolution_test(parallel=False):
 
+
     domain = pmesh_to_domain_instance(mesh_filename, Domain)
     domain.set_quantity('stage', Set_Stage(756000.0, 756500.0, 2.0))
 
@@ -94,10 +96,10 @@ def evolution_test(parallel=False):
     l1list = []
     l2list = []
     linflist = []
-    l1norm = zeros(3, Float)
-    l2norm = zeros(3, Float)
-    linfnorm = zeros(3, Float)
-    recv_norm = zeros(3, Float)
+    l1norm = num.zeros(3, num.float)
+    l2norm = num.zeros(3, num.float)
+    linfnorm = num.zeros(3, num.float)
+    recv_norm = num.zeros(3, num.float)
 
     #------------------------------------------------------------------------------
     # Evolution
@@ -108,7 +110,7 @@ def evolution_test(parallel=False):
         print 'SEQUENTIAL EVOLVE'
         
     for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
-        edges = take(domain.quantities[quantity].edge_values, nonzero(domain.tri_full_flag))
+        edges = domain.quantities[quantity].edge_values.take(num.flatnonzero(domain.tri_full_flag),axis=0)
         l1norm[0] = l1_norm(edges[:,0])
         l1norm[1] = l1_norm(edges[:,1])
         l1norm[2] = l1_norm(edges[:,2])
@@ -127,11 +129,11 @@ def evolution_test(parallel=False):
 
                 #print edges[:,1]            
                 for p in range(1, numprocs):
-                    pypar.receive(p, recv_norm)
+                    recv_norm = pypar.receive(p)
                     l1norm += recv_norm
-                    pypar.receive(p, recv_norm)
+                    recv_norm = pypar.receive(p)
                     l2norm += recv_norm
-                    pypar.receive(p, recv_norm)
+                    recv_norm = pypar.receive(p)
                     linfnorm[0] = max(linfnorm[0], recv_norm[0])
                     linfnorm[1] = max(linfnorm[1], recv_norm[1])
                     linfnorm[2] = max(linfnorm[2], recv_norm[2])

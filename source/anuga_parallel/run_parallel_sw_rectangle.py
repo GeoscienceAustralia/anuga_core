@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #########################################################
 #
 #  Main file for parallel mesh testing.
@@ -17,8 +16,9 @@
 import pypar    # The Python-MPI interface
 import time
 
-from Numeric import array
+#from Numeric import array
 # pmesh
+import numpy as num
 
 from print_stats import print_test_stats, build_full_flag
 
@@ -34,7 +34,7 @@ from parallel_meshes import parallel_rectangle
 ###############################
 numprocs = pypar.size()
 myid = pypar.rank()
-processor_name = pypar.Get_processor_name()
+processor_name = pypar.get_processor_name()
 
 M = 50
 N = M*numprocs
@@ -125,7 +125,7 @@ if visualise:
 
 
 
-yieldstep = 0.01
+yieldstep = 0.1
 finaltime = 1.0
 
 #Check that the boundary value gets propagated to all elements

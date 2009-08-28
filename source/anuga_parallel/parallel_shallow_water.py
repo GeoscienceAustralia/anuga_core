@@ -21,7 +21,7 @@ except:
     pass
 
 
-from anuga.shallow_water.shallow_water_domain import *
+from anuga.interface import Domain
 
 
 import numpy as num
@@ -51,28 +51,12 @@ class Parallel_Domain(Domain):
 
         N = len(self) # number_of_triangles
 
-#        self.processor = pypar.rank()
-#        self.numproc   = pypar.size()
-#
-#        # Setup Communication Buffers
-#        self.nsys = 3
-#        for key in full_send_dict:
-#            buffer_shape = full_send_dict[key][0].shape[0]
-#            full_send_dict[key].append(num.zeros( (buffer_shape,self.nsys) ,num.loat))
-#
-#
-#        for key in ghost_recv_dict:
-#            buffer_shape = ghost_recv_dict[key][0].shape[0]
-#            ghost_recv_dict[key].append(num.zeros( (buffer_shape,self.nsys) ,num.float))
-#
-#        self.full_send_dict  = full_send_dict
-        self.ghost_recv_dict = ghost_recv_dict
 
         # Buffers for synchronisation of timesteps
         self.local_timestep = num.zeros(1, num.float)
         self.global_timestep = num.zeros(1, num.float)
 
-        self.local_timesteps = num.zeros(self.numproc, num.loat)
+        self.local_timesteps = num.zeros(self.numproc, num.float)
 
 
         self.communication_time = 0.0
@@ -149,6 +133,7 @@ class Parallel_Domain(Domain):
         pypar.barrier()
 
         import time
+
         #Compute minimal timestep across all processes
         self.local_timestep[0] = self.flux_timestep
         use_reduce_broadcast = True
@@ -166,14 +151,13 @@ class Parallel_Domain(Domain):
             if self.processor == 0:
                 for i in range(1, self.numproc):
                     pypar.receive(i,
-                                  buffer=self.local_timestep,
-                                  bypass=True)
+                                  buffer=self.local_timestep)
 
                     if self.local_timestep[0] < self.global_timestep[0]:
                         self.global_timestep[0] = self.local_timestep[0]
             else:
                 pypar.send(self.local_timestep, 0,
-                           use_buffer=True, bypass=True)
+                           use_buffer=True)
 
 
         self.communication_reduce_time += time.time()-t0
@@ -186,7 +170,7 @@ class Parallel_Domain(Domain):
 
         self.communication_broadcast_time += time.time()-t0
 
-        #old_timestep = self.flux_timestep
+        old_timestep = self.flux_timestep
         self.flux_timestep = self.global_timestep[0]
         #print 'Flux Timestep %15.5e %15.5e P%d_%d' %(self.flux_timestep, old_timestep, self.processor, self.numproc)
         
@@ -208,8 +192,7 @@ class Parallel_Domain(Domain):
         # We have a dictionary of lists with ghosts expecting updates from
         # the separate processors
 
-
-        from Numeric import take,put
+        import numpy as num
         import time
         t0 = time.time()
 
@@ -226,10 +209,9 @@ class Parallel_Domain(Domain):
                         for i, q in enumerate(self.conserved_quantities):
                             #print 'Send',i,q
                             Q_cv =  self.quantities[q].centroid_values
-                            Xout[:,i] = take(Q_cv, Idf)
+                            Xout[:,i] = num.take(Q_cv, Idf)
 
-                        pypar.send(Xout, send_proc,
-                                   use_buffer=True, bypass = True)
+                        pypar.send(Xout, int(send_proc), use_buffer=True)
 
 
             else:
@@ -237,14 +219,14 @@ class Parallel_Domain(Domain):
                 if  self.ghost_recv_dict.has_key(iproc):
 
                     Idg = self.ghost_recv_dict[iproc][0]
-                    X = self.ghost_recv_dict[iproc][2]
+                    X   = self.ghost_recv_dict[iproc][2]
 
-                    X = pypar.receive(iproc, buffer=X, bypass = True)
+                    X = pypar.receive(int(iproc), buffer=X)
 
                     for i, q in enumerate(self.conserved_quantities):
                         #print 'Receive',i,q
                         Q_cv =  self.quantities[q].centroid_values
-                        put(Q_cv, Idg, X[:,i])
+                        num.put(Q_cv, Idg, X[:,i])
 
         #local update of ghost cells
         iproc = self.processor
@@ -261,32 +243,32 @@ class Parallel_Domain(Domain):
             for i, q in enumerate(self.conserved_quantities):
                 #print 'LOCAL SEND RECEIVE',i,q
                 Q_cv =  self.quantities[q].centroid_values
-                put(Q_cv,     Idg, take(Q_cv,     Idf))
+                num.put(Q_cv, Idg, num.take(Q_cv, Idf))
 
         self.communication_time += time.time()-t0
 
-'''
-This was removed due to not beening required to be redefined in parallel_shallow_water
-the original "write_time" is good... however might need some small edits to work properly 
-with parallel- Nick and Ole April 2007
-    def write_time(self):
-        if self.min_timestep == self.max_timestep:
-            print 'Processor %d/%d, Time = %.4f, delta t = %.8f, steps=%d (%d)'\
-                  %(self.processor, self.numproc,
-                    self.time, self.min_timestep, self.number_of_steps,
-                    self.number_of_first_order_steps)
-        elif self.min_timestep > self.max_timestep:
-            print 'Processor %d/%d, Time = %.4f, steps=%d (%d)'\
-                  %(self.processor, self.numproc,
-                    self.time, self.number_of_steps,
-                    self.number_of_first_order_steps)
-        else:
-            print 'Processor %d/%d, Time = %.4f, delta t in [%.8f, %.8f], steps=%d (%d)'\
-                  %(self.processor, self.numproc,
-                    self.time, self.min_timestep,
-                    self.max_timestep, self.number_of_steps,
-                    self.number_of_first_order_steps)
-'''
+
+## This was removed due to not beening required to be redefined in parallel_shallow_water
+## the original "write_time" is good... however might need some small edits to work properly 
+## with parallel- Nick and Ole April 2007
+##     def write_time(self):
+##         if self.min_timestep == self.max_timestep:
+##             print 'Processor %d/%d, Time = %.4f, delta t = %.8f, steps=%d (%d)'\
+##                   %(self.processor, self.numproc,
+##                     self.time, self.min_timestep, self.number_of_steps,
+##                     self.number_of_first_order_steps)
+##         elif self.min_timestep > self.max_timestep:
+##             print 'Processor %d/%d, Time = %.4f, steps=%d (%d)'\
+##                   %(self.processor, self.numproc,
+##                     self.time, self.number_of_steps,
+##                     self.number_of_first_order_steps)
+##         else:
+##             print 'Processor %d/%d, Time = %.4f, delta t in [%.8f, %.8f], steps=%d (%d)'\
+##                   %(self.processor, self.numproc,
+##                     self.time, self.min_timestep,
+##                     self.max_timestep, self.number_of_steps,
+##                     self.number_of_first_order_steps)
+
 
 # commented out on the 7/11/06
 #    def evolve(self, yieldstep=None, finaltime=None,

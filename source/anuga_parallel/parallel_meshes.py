@@ -42,8 +42,8 @@ def parallel_rectangle(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)):
     processor = pypar.rank()
     numproc   = pypar.size()
 
-    print 'numproc',numproc
-    print 'processor ',processor
+    #print 'numproc',numproc
+    #print 'processor ',processor
 
     m_low, m_high = pypar.balance(m_g, numproc, processor)
     
@@ -51,7 +51,7 @@ def parallel_rectangle(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)):
     m_low  = m_low-1
     m_high = m_high+1
 
-    print 'm_low, m_high', m_low, m_high
+    #print 'm_low, m_high', m_low, m_high
     m = m_high - m_low
 
     delta1 = float(len1_g)/m_g
@@ -167,20 +167,20 @@ def parallel_rectangle(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)):
         Idfl.extend(Idfr)
         Idgr.extend(Idgl)
 
-        print Idfl
-        print Idgr
+        #print Idfl
+        #print Idgr
         
         Idfl = num.array(Idfl,num.int)
         Idgr = num.array(Idgr,num.int)
 
-        print Idfl
-        print Idgr
+        #print Idfl
+        #print Idgr
         
         full_send_dict[processor]  = [Idfl, Idfl]
         ghost_recv_dict[processor] = [Idgr, Idgr]
 
-        print  full_send_dict[processor]
-        print ghost_recv_dict[processor]
+        #print  full_send_dict[processor]
+        #print ghost_recv_dict[processor]
     elif numproc == 2:
         Idfl.extend(Idfr)
         Idgr.extend(Idgl)
@@ -202,8 +202,8 @@ def parallel_rectangle(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)):
 
 
 
-    print full_send_dict
-    print ghost_recv_dict        
+    #print full_send_dict
+    #print ghost_recv_dict        
     
     return  points, elements, boundary, full_send_dict, ghost_recv_dict
 

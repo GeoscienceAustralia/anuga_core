@@ -89,7 +89,7 @@ class Parallel_Domain(Domain):
 
         #print self.processor, ltimestep, gtimestep
         
-        pypar.reduce(ltimestep, pypar.MIN, 0, buffer=gtimestep)
+        gtimestep = pypar.reduce(ltimestep, pypar.MIN, 0, buffer=gtimestep)
 
         #print self.processor, ltimestep, gtimestep
         
@@ -181,33 +181,34 @@ class Parallel_Domain(Domain):
         self.communication_time += time.time()-t0
 
 
-    def write_time(self):
-        if self.min_timestep == self.max_timestep:
-            print 'Processor %d, Time = %.4f, delta t = %.8f, steps=%d (%d)'\
-                  %(self.processor, self.time, self.min_timestep, self.number_of_steps,
-                    self.number_of_first_order_steps)
-        elif self.min_timestep > self.max_timestep:
-            print 'Processor %d, Time = %.4f, steps=%d (%d)'\
-                  %(self.processor, self.time, self.number_of_steps,
-                    self.number_of_first_order_steps)
-        else:
-            print 'Processor %d, Time = %.4f, delta t in [%.8f, %.8f], steps=%d (%d)'\
-                  %(self.processor, self.time, self.min_timestep,
-                    self.max_timestep, self.number_of_steps,
-                    self.number_of_first_order_steps)
+    ## def write_time(self):
+    ##     if self.min_timestep == self.max_timestep:
+    ##         print 'Processor %d, Time = %.4f, delta t = %.8f, steps=%d (%d)'\
+    ##               %(self.processor, self.time, self.min_timestep, self.number_of_steps,
+    ##                 self.number_of_first_order_steps)
+    ##     elif self.min_timestep > self.max_timestep:
+    ##         print 'Processor %d, Time = %.4f, steps=%d (%d)'\
+    ##               %(self.processor, self.time, self.number_of_steps,
+    ##                 self.number_of_first_order_steps)
+    ##     else:
+    ##         print 'Processor %d, Time = %.4f, delta t in [%.8f, %.8f], steps=%d (%d)'\
+    ##               %(self.processor, self.time, self.min_timestep,
+    ##                 self.max_timestep, self.number_of_steps,
+    ##                 self.number_of_first_order_steps)
 
 
 
-    def evolve(self, yieldstep = None, finaltime = None):
-        """Specialisation of basic evolve method from parent class
-        """
+    ## def evolve(self, yieldstep = None, finaltime = None):
+    ##     """Specialisation of basic evolve method from parent class
+    ##     """
 
-        #Initialise real time viz if requested
-        if self.time == 0.0:
-            pass
+    ##     #Initialise real time viz if requested
+    ##     if self.time == 0.0:
+    ##         pass
 
-        #Call basic machinery from parent class
-        for t in Domain.evolve(self, yieldstep, finaltime):
+    ##     #Call basic machinery from parent class
+    ##     for t in Domain.evolve(self, yieldstep, finaltime):
 
-            #Pass control on to outer loop for more specific actions
-            yield(t)
+    ##         #Pass control on to outer loop for more specific actions
+    ##         yield(t)
+

@@ -139,7 +139,7 @@ if myid == 0:
     import time
     t0 = time.time()
 
-for t in domain.evolve(yieldstep = 0.1, finaltime = 30.0):
+for t in domain.evolve(yieldstep = 5.0, finaltime = 30.0):
     if myid == 0:
         domain.write_time()
         
