@@ -1,4 +1,5 @@
-from Numeric import array, Float, ravel, zeros
+#from Numeric import array, Float, ravel, zeros
+import numpy as num
 from Scientific.IO.NetCDF import NetCDFFile
 from Tkinter import Button, E, Tk, W, Label, StringVar, Scale, HORIZONTAL
 from visualiser import Visualiser
@@ -79,12 +80,12 @@ class OfflineVisualiser(Visualiser):
             N_vert = fin.variables[quantityName].shape[1]
         else:
             N_vert = len(fin.variables[quantityName])
-        x = ravel(array(fin.variables['x'], Float))
-        y = ravel(array(fin.variables['y'], Float))
+        x = num.ravel(num.array(fin.variables['x'], num.float))
+        y = num.ravel(num.array(fin.variables['y'], num.float))
         if dynamic is True:
-            q = array(fin.variables[quantityName][frameNumber], Float)
+            q = num.array(fin.variables[quantityName][frameNumber], num.float)
         else:
-            q = ravel(array(fin.variables[quantityName], Float))
+            q = num.ravel(num.array(fin.variables[quantityName], num.float))
 
         q *= self.height_zScales[quantityName]
         q += self.height_offset[quantityName]
@@ -122,9 +123,9 @@ class OfflineVisualiser(Visualiser):
         fin = NetCDFFile(self.source, 'r')
         for q in filter(lambda n:n != 'x' and n != 'y' and n != 'z' and n != 'time' and n != 'volumes', fin.variables.keys()):
             if len(fin.variables[q].shape) == 1: # Not a time-varying quantity
-                quantities[q] = ravel(array(fin.variables[q], Float))
+                quantities[q] = num.ravel(num.array(fin.variables[q], num.float))
             else: # Time-varying, get the current timestep data
-                quantities[q] = array(fin.variables[q][self.frameNumber], Float)
+                quantities[q] = num.array(fin.variables[q][self.frameNumber], num.float)
         fin.close()
         return quantities
 

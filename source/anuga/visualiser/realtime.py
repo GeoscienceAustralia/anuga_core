@@ -1,4 +1,5 @@
-from Numeric import Float, zeros, shape
+#from  import Float, zeros, shape
+import numpy as num
 from Tkinter import Button, E, Tk, W
 from threading import Event
 from visualiser import Visualiser
@@ -46,7 +47,7 @@ class RealtimeVisualiser(Visualiser):
         N_vert = len(verticies)
 
         # Also build vert_index - a list of the x & y values of each vertex
-        self.vert_index = zeros((N_vert,2), Float)
+        self.vert_index = num.zeros((N_vert,2), num.float)
         for n in range(N_tri):
             self.vtk_cells.InsertNextCell(3)
             for v in range(3):
@@ -55,7 +56,7 @@ class RealtimeVisualiser(Visualiser):
 
     def update_height_quantity(self, quantityName, dynamic=True):
         N_vert = len(self.source.get_vertex_coordinates())
-        qty_index = zeros(N_vert, Float)
+        qty_index = num.zeros(N_vert, num.float)
         triangles = self.source.get_triangles()
         vertex_values, _ = self.source.get_quantity(quantityName).get_vertex_values(xy=False, smooth=False)
 

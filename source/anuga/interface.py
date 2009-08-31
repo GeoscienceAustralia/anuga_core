@@ -17,7 +17,11 @@ from anuga.shallow_water import Transmissive_momentum_set_stage_boundary
 from anuga.shallow_water import Transmissive_n_momentum_zero_t_momentum_set_stage_boundary
 
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import Time_boundary
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import Transmissive_boundary
+
 from anuga.abstract_2d_finite_volumes.util import file_function
+
+from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
 
 from anuga.shallow_water.data_manager import export_grid, create_sts_boundary
 from anuga.shallow_water.data_manager import csv2building_polygons
@@ -25,6 +29,21 @@ from anuga.shallow_water.data_manager import csv2building_polygons
 from anuga.utilities.polygon import read_polygon, plot_polygons, polygon_area
 from anuga.utilities.polygon import Polygon_function
 
+from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_to_domain_instance
+
+
+#-----------------------------
+# rectangular domains
+#-----------------------------
+def rectangular_cross_domain(*args, **kwargs):
+    points, vertices, boundary = rectangular_cross(*args, **kwargs)
+    return Domain(points, vertices, boundary)
+    
+#----------------------------
+# Create domain from file
+#----------------------------
+def create_domain_from_file(file):
+    return pmesh_to_domain_instance(file,Domain)
 
 #---------------------------
 # Create domain from regions

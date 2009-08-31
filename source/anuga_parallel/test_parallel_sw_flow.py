@@ -14,11 +14,8 @@ This is a very simple test of the parallel algorithm using the simplified parall
 import unittest
 import os
 import sys
-import pypar
+#import pypar
 import numpy as num
-
-from anuga.utilities.numerical_tools import ensure_numeric
-from anuga.utilities.polygon import is_inside_polygon
 
 from anuga.interface import Domain
 from anuga.interface import Reflective_boundary
@@ -29,7 +26,7 @@ from anuga.interface import Transmissive_boundary
 from anuga.interface import rectangular_cross_domain
 
 
-from anuga_parallel.interface import distribute, myid, numprocs, send, receive
+from anuga_parallel.interface import distribute, myid, numprocs, send, receive, barrier
 
 #--------------------------------------------------------------------------
 # Setup parameters
@@ -37,9 +34,9 @@ from anuga_parallel.interface import distribute, myid, numprocs, send, receive
 yieldstep = 0.25
 finaltime = 6.0
 nprocs = 4
-N = 29
-M = 29
-verbose = True
+N = 25
+M = 25
+verbose =  True
 
 #---------------------------------
 # Setup Functions
@@ -50,7 +47,7 @@ def topography(x,y):
 ###########################################################################
 # Setup Test
 ##########################################################################
-def evolution_test(parallel=False, G = None):
+def evolution_test(parallel=False, G = None, seq_interpolation_points=None):
 
     #--------------------------------------------------------------------------
     # Setup computational domain and quantities
@@ -64,7 +61,7 @@ def evolution_test(parallel=False, G = None):
     # Create the parallel domain
     #--------------------------------------------------------------------------
     if parallel:
-        if myid == 0: print 'DISTRIBUTING PARALLEL DOMAIN'
+        if myid == 0 and verbose : print 'DISTRIBUTING PARALLEL DOMAIN'
         domain = distribute(domain, verbose=False)
 
     #--------------------------------------------------------------------------
@@ -90,8 +87,18 @@ def evolution_test(parallel=False, G = None):
 
     #------------------------------------------------------------------------------
     # Find which sub_domain in which the interpolation points are located 
+    #
+    # Sometimes the interpolation points sit exactly
+    # between to centroids, so in the parallel run we
+    # reset the interpolation points to the centroids
+    # found in the sequential run
     #------------------------------------------------------------------------------
-    interpolation_points = [[0.4,0.51], [0.6,0.51], [0.8,0.51], [0.9,0.51]]
+    interpolation_points = [[0.4,0.5], [0.6,0.5], [0.8,0.5], [0.9,0.5]]
+
+    if parallel:
+        interpolation_points = seq_interpolation_points
+
+
     gauge_values = []
     tri_ids = []
     for i, point in enumerate(interpolation_points):
@@ -107,10 +114,17 @@ def evolution_test(parallel=False, G = None):
         except:
             tri_ids.append(-2)
 
+
     if verbose: print 'P%d has points = %s' %(myid, tri_ids)
 
-
-
+    if not parallel:
+        c_coord = domain.get_centroid_coordinates()
+        interpolation_points = []
+        for id in tri_ids:
+            if id<1:
+                print 'ERROR: All interpolation points be within the sequential domain!'
+            interpolation_points.append(c_coord[id,:])
+            
     #------------------------------------------------------------------------------
     # Evolve system through time
     #------------------------------------------------------------------------------
@@ -151,7 +165,7 @@ def evolution_test(parallel=False, G = None):
 
     assert_(success)
     
-    return G
+    return G, interpolation_points
 
 # Test an nprocs-way run of the shallow water equations
 # against the sequential code.
@@ -181,13 +195,13 @@ if __name__=="__main__":
         # and save results at 4 gauge stations to
         # array G
         #------------------------------------------
-        pypar.barrier()
+        barrier()
         if myid == 0 and verbose: print 'SEQUENTIAL START'
 
-        G = evolution_test(parallel=False)
+        G , interpolation_points = evolution_test(parallel=False)
         G = num.array(G,num.float)
 
-        pypar.barrier()
+        barrier()
         
         #------------------------------------------
         # Run the code code and compare sequential
@@ -195,7 +209,7 @@ if __name__=="__main__":
         #------------------------------------------
         if myid ==0 and verbose: print 'PARALLEL START'
 
-        evolution_test(parallel=True, G=G)
+        evolution_test(parallel=True, G=G, seq_interpolation_points = interpolation_points)
         
 
 

@@ -556,7 +556,7 @@ class Domain(Generic_Domain):
     # @param verbose True if this method is to be verbose.
     # @note 'polyline' may contain multiple sections allowing complex shapes.
     # @note Assume absolute UTM coordinates.
-    def new_get_energy_through_cross_section(self, polyline,
+    def get_energy_through_cross_section(self, polyline,
                                          kind='total',
                                          verbose=False):
         """Obtain average energy head [m] across specified cross section.
@@ -587,7 +587,7 @@ class Domain(Generic_Domain):
 
         cross_section = Cross_section(self, polyline, verbose)
 
-        return cross_section.get_energy_through_cross_section()
+        return cross_section.get_energy_through_cross_section(kind)
 
 
     ##
@@ -597,7 +597,7 @@ class Domain(Generic_Domain):
     # @param verbose True if this method is to be verbose.
     # @note 'polyline' may contain multiple sections allowing complex shapes.
     # @note Assume absolute UTM coordinates.
-    def get_energy_through_cross_section(self, polyline,
+    def old_get_energy_through_cross_section(self, polyline,
                                          kind='total',
                                          verbose=False):
         """Obtain average energy head [m] across specified cross section.
@@ -2785,6 +2785,13 @@ class Cross_section:
         # Make midpoints Geospatial instances
         self.midpoints = ensure_geospatial(self.midpoints, self.domain.geo_reference)
 
+    ##
+    # @brief set verbose mode
+    def set_verbose(self,verbose=True):
+        """Set verbose mode true or flase
+        """
+
+        self.verbose=verbose
 
     ##
     # @brief calculate current flow through cross section
@@ -2819,7 +2826,7 @@ class Cross_section:
 
     ##
     # @brief calculate current energy flow through cross section
-    def get_energy_through_cross_section(self):
+    def get_energy_through_cross_section(self, kind='total'):
         """Obtain average energy head [m] across specified cross section.
 
         Output:
@@ -2836,23 +2843,25 @@ class Cross_section:
         is [m].
         """
 
+        from anuga.config import g, epsilon, velocity_protection as h0
+        
         # Get interpolated values
         stage = self.domain.get_quantity('stage')
         elevation = self.domain.get_quantity('elevation')
         xmomentum = self.domain.get_quantity('xmomentum')
         ymomentum = self.domain.get_quantity('ymomentum')
 
-        w = stage.get_values(interpolation_points=midpoints, use_cache=True)
-        z = elevation.get_values(interpolation_points=midpoints, use_cache=True)
-        uh = xmomentum.get_values(interpolation_points=midpoints,
+        w = stage.get_values(interpolation_points=self.midpoints, use_cache=True)
+        z = elevation.get_values(interpolation_points=self.midpoints, use_cache=True)
+        uh = xmomentum.get_values(interpolation_points=self.midpoints,
                                   use_cache=True)
-        vh = ymomentum.get_values(interpolation_points=midpoints,
+        vh = ymomentum.get_values(interpolation_points=self.midpoints,
                                   use_cache=True)
         h = w-z                # Depth
 
         # Compute total length of polyline for use with weighted averages
         total_line_length = 0.0
-        for segment in segments:
+        for segment in self.segments:
             total_line_length += segment.length
 
         # Compute and sum flows across each segment
@@ -2878,7 +2887,7 @@ class Cross_section:
                 msg += ' I got %s' %kind
 
             # Add to weighted average
-            weigth = segments[i].length/total_line_length
+            weigth = self.segments[i].length/total_line_length
             average_energy += segment_energy*weigth
 
         return average_energy

@@ -2,7 +2,7 @@
 from os import sep
 from sys import path
 
-from Numeric import array, allclose
+from numpy import array, allclose
 
 import unittest
 

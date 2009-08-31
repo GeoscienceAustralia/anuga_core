@@ -1,5 +1,5 @@
 #include <Python.h>
-#include <Numeric/arrayobject.h>
+#include <numpy/arrayobject.h>
 
 /* This must be the same as the metis idxtype */
 typedef int idxtype;
@@ -49,7 +49,7 @@ static PyObject * metis_partMeshNodal(PyObject * self, PyObject * args){
   int nparts;
   int edgecut;
   int numflag = 0; // The metis routine requires an int * for numflag.
-  int dims[1]; // PyArray_FromDimsAndData needs an int[] of array sizes.
+  npy_intp dims[1]; // PyArray_SimpleNewFromData needs an npy_intp[] of array sizes.
 
   PyObject * elements;
   PyArrayObject * elem_arr;
@@ -103,9 +103,11 @@ static PyObject * metis_partMeshNodal(PyObject * self, PyObject * args){
   bridge_partMeshNodal(&ne, &nn, elem_c_arr, &etype, &numflag, &nparts, &edgecut, epart, npart);
 
   dims[0] = ne;
-  epart_pyarr = (PyArrayObject *)PyArray_FromDimsAndData(1, dims, PyArray_INT, (char *)epart);
+  epart_pyarr = (PyArrayObject *)PyArray_SimpleNewFromData(1, dims, PyArray_INT, (void *)epart);
+  //epart_pyarr = (PyArrayObject *)PyArray_FromDimsAndData(1, dims, PyArray_INT, (char *)epart);
   dims[0] = nn;
-  npart_pyarr = (PyArrayObject *)PyArray_FromDimsAndData(1, dims, PyArray_INT, (char *)npart);
+  npart_pyarr = (PyArrayObject *)PyArray_SimpleNewFromData(1, dims, PyArray_INT, (void *)npart);
+  //npart_pyarr = (PyArrayObject *)PyArray_FromDimsAndData(1, dims, PyArray_INT, (char *)npart);
 
   
   if(malloc_elem_c_arr) free(elem_c_arr);
