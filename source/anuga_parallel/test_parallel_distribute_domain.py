@@ -47,6 +47,7 @@ yieldstep = 1
 finaltime = 20
 quantity = 'stage'
 nprocs = 4
+verbose = True
 
 #--------------------------------------------------------------------------
 # Setup procedures
@@ -77,7 +78,7 @@ def evolution_test(parallel=False):
     #--------------------------------------------------------------------------
 
     if parallel:
-        if myid == 0: print 'DISTRIBUTING PARALLEL DOMAIN'
+        if myid == 0 and verbose: print 'DISTRIBUTING PARALLEL DOMAIN'
         domain = distribute(domain)
 
     #------------------------------------------------------------------------------
@@ -104,9 +105,9 @@ def evolution_test(parallel=False):
     # Evolution
     #------------------------------------------------------------------------------
     if parallel:
-        if myid == 0: print 'PARALLEL EVOLVE'
+        if myid == 0 and verbose: print 'PARALLEL EVOLVE'
     else:
-        print 'SEQUENTIAL EVOLVE'
+        if verbose: print 'SEQUENTIAL EVOLVE'
         
     for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
         edges = domain.quantities[quantity].edge_values.take(num.flatnonzero(domain.tri_full_flag),axis=0)
@@ -160,11 +161,12 @@ def evolution_test(parallel=False):
 # Test an nprocs-way run of the shallow water equations
 # against the sequential code.
 
-class Test_distribute_domain(unittest.TestCase):
-    def test_distribute_domain(self):
+class Test_parallel_distribute_domain(unittest.TestCase):
+    def test_parallel_distribute_domain(self):
         print "Expect this test to fail if not run from the parallel directory."
-        result = os.system("mpirun -np %d python test_distribute_domain.py" % nprocs)
+        result = os.system("mpirun -np %d python test_parallel_distribute_domain.py" % nprocs)
         assert_(result == 0)
+
 
 # Because we are doing assertions outside of the TestCase class
 # the PyUnit defined assert_ function can't be used.
@@ -176,18 +178,18 @@ def assert_(condition, msg="Assertion Failed"):
 if __name__=="__main__":
     if numprocs == 1: 
         runner = unittest.TextTestRunner()
-        suite = unittest.makeSuite(Test_distribute_domain, 'test')
+        suite = unittest.makeSuite(Test_parallel_distribute_domain, 'test')
         runner.run(suite)
     else:
 
         pypar.barrier()
         if myid == 0:
-            print 'SEQUENTIAL START'
+            if verbose: print 'SEQUENTIAL START'
             l1norm_seq, l2norm_seq, linfnorm_seq = evolution_test(parallel=False)
 
         pypar.barrier()
         if myid ==0:
-            print 'PARALLEL START'
+            if verbose: print 'PARALLEL START'
         
         l1norm_par, l2norm_par, linfnorm_par = evolution_test(parallel=True)
         
@@ -216,6 +218,6 @@ if __name__=="__main__":
                         assert_(abs(l2norm_par[x][y] - l2norm_par[x-1][y]) < tol)
                         assert_(abs(linfnorm_par[x][y] - linfnorm_par[x-1][y]) < tol)
                 
-            print 'Parallel test OK'
+            if verbose: print 'Parallel test OK'
 
 
