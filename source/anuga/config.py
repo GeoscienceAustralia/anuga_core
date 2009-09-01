@@ -205,11 +205,14 @@ netcdf_mode_r = 'r'
 # Code to set the write mode depending on
 # whether Scientific.IO supports large NetCDF files
 s = """
-import os
+import os, tempfile
 from Scientific.IO.NetCDF import NetCDFFile
-fid = NetCDFFile('tmpfilenamexx', 'wl')
+
+filename = tempfile.mktemp('.nc')
+
+fid = NetCDFFile(filename, 'wl')
 fid.close()
-os.remove('tmpfilenamexx')
+os.remove(filename)
 """
 
 # Need to run in a separate process due an
