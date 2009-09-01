@@ -4,16 +4,8 @@ import time
 buildroot = os.getcwd()
 
 os.chdir('source')
-
 os.chdir('anuga')
 
-#Complete horrible hack to decide which branch to take (Ole)
-#try:
-#    os.stat('inundation-numpy-branch')
-#except:
-#    os.chdir('inundation')
-#else:
-#    os.chdir('inundation-numpy-branch')    
 
 print 'Changing to', os.getcwd()        
 
@@ -21,7 +13,7 @@ print 'Changing to', os.getcwd()
 
 t0 = time.time()
 
-#Attempt to compile all extensions
+# Attempt to compile all ANUGA extensions
 
 os.chdir('utilities')
 execfile('compile.py')
@@ -44,7 +36,25 @@ os.chdir('mesh_engine')
 execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 
 os.chdir(buildroot)    
-#execfile('test_all.py')
+
+
+# Attempt to compile Metis for use with anuga_parallel
+os.chdir('source')
+os.chdir('pymetis')
+
+if sys.platform == 'win32':
+    os.system('make for_win32')
+else:
+    if os.name == 'posix':
+        if os.uname()[4] in ['x86_64', 'ia64']:
+            os.system('make COPTIONS="-fPIC"')
+        else:
+            os.system('make')
+    else:
+        msg = 'Not sure how to complie Metis on platform: %s, %s' % (sys.platform, os.name)
+        raise Exception, msg
+
+
     
 print 'That took %.3fs' %(time.time() - t0)
 
