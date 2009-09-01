@@ -37,25 +37,35 @@ execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 
 os.chdir(buildroot)    
 
+print '-----------------------------------------------'
+print 'Attempting to compile Metis for parallel ANUGA!'
+print '-----------------------------------------------'
 
 # Attempt to compile Metis for use with anuga_parallel
 os.chdir('source')
 os.chdir('pymetis')
 
+make_logfile = 'make_metis.log'
+options = ''
 if sys.platform == 'win32':
-    os.system('make for_win32')
+    options = 'for_win32'
 else:
     if os.name == 'posix':
         if os.uname()[4] in ['x86_64', 'ia64']:
-            os.system('make COPTIONS="-fPIC"')
-        else:
-            os.system('make')
-    else:
-        msg = 'Not sure how to complie Metis on platform: %s, %s' % (sys.platform, os.name)
-        raise Exception, msg
+            options = 'COPTIONS="-fPIC"'
 
-
-    
+make_command = 'make %s > %s' % (options, make_logfile)
+print make_command
+err = os.system(make_command)
+if err != 0:
+    msg = 'Could not compile Metis '
+    msg += 'on platform %s, %s\n' % (sys.platform, os.name)
+    msg += 'You need to compile Metis manually '
+    msg += 'if you want to run ANUGA in parallel.'
+    raise Exception, msg
+else:
+    msg = 'Compiled Metis succesfully. Output from Make is available in %s'\
+        % Make_logfile
 print 'That took %.3fs' %(time.time() - t0)
 
 if sys.platform == 'win32':
