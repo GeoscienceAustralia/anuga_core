@@ -45,7 +45,7 @@ print '-----------------------------------------------'
 os.chdir('source')
 os.chdir('pymetis')
 
-make_logfile = 'make_metis.log'
+make_logfile = os.path.join(buildroot, 'make_metis.log')
 options = ''
 if sys.platform == 'win32':
     options = 'for_win32'
