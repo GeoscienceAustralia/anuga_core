@@ -12,7 +12,7 @@ subdirectory. Metis 4.0 is in metis-4.0
 
 The METIS_DIR= line in the makefile will need to be changed appropriately.
 
-AMD64 users need to run `make COPTIONS="-fPIC"'
+64 bit users need to run `make COPTIONS="-fPIC"'
 
 Windows:
 Required: MinGW compiler, Cygwin utilities (Bash, cp, [).

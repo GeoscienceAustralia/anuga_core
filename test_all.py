@@ -8,10 +8,19 @@ buildroot = os.getcwd()
 os.chdir('source')
 os.chdir('anuga')
     
-print 'Changing to', os.getcwd() #This is now different from buildroot   
+print 'Changing to', os.getcwd() # This is now different from buildroot   
+#execfile('test_all.py')
 
-execfile('test_all.py')
 
+os.chdir('..')
+os.chdir('pymetis')
+print 'Changing to', os.getcwd()
+#execfile('test_all.py')
+
+os.chdir('..')
+os.chdir('anuga_parallel')
+print 'Changing to', os.getcwd()
+#execfile('test_all.py')
 
 print
 print '************************** NOTE *************************************'
