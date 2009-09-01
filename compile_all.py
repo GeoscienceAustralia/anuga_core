@@ -65,7 +65,10 @@ if err != 0:
     raise Exception, msg
 else:
     msg = 'Compiled Metis succesfully. Output from Make is available in %s'\
-        % Make_logfile
+        % make_logfile
+    print msg
+
+print        
 print 'That took %.3fs' %(time.time() - t0)
 
 if sys.platform == 'win32':
