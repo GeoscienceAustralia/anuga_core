@@ -15,7 +15,7 @@ execfile('test_all.py')
 os.chdir('..')
 os.chdir('pymetis')
 print 'Changing to', os.getcwd()
-#execfile('test_all.py')
+execfile('test_all.py')
 
 os.chdir('..')
 os.chdir('anuga_parallel')
