@@ -3,7 +3,7 @@ ANUGA Hydrodynamic Inundation Modelling
 =======================================	
 
 
-Copyright 2004, 2005, 2006 Australian National University and Geoscience Australia. All rights reserved.
+Copyright 2004, 2005, 2006, 2007, 2008, 2009 Australian National University and Geoscience Australia. All rights reserved.
 
 
 Permission to use, copy, modify, and distribute this software for any
