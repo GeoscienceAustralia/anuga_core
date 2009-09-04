@@ -10,6 +10,8 @@ import urllib
 import urllib2
 import getpass
 import tarfile
+import warnings
+
 try:
     import hashlib
 except ImportError:
@@ -66,7 +68,7 @@ def get_revision_number():
     """
 
     def get_revision_from_svn_entries():
-        '''Get a subversion revision number from the .svn/entires file.'''
+        '''Get a subversion revision number from the .svn/entries file.'''
 
         msg = '''
 No version info stored and command 'svn' is not recognised on the system PATH.
@@ -139,11 +141,12 @@ Good luck!
                 if version_info == '':
                     return get_revision_from_svn_entries()
 
-            # split revision number from data
+            # Split revision number from data
             if ':' in version_info:
-                (_, revision_number) =  version_info.split(':')
-            elif version_info.endswith('M'):
-                revision_number = version_info[:-1]
+                revision_number, _ = version_info.split(':',1)
+                msg = ('Some modules have not been checked in. '
+                       'Using last version from repository: %s' % revision_number)
+                warnings.warn(msg)
             else:
                 revision_number = version_info
 
