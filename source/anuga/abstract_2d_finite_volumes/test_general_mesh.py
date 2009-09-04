@@ -119,6 +119,107 @@ class Test_General_Mesh(unittest.TestCase):
                 assert num.allclose(V[j,:], nodes[k])
 
 
+    def test_get_edge_midpoint_coordinates(self):
+        from mesh_factory import rectangular
+
+        #Create basic mesh
+        nodes, triangles, _ = rectangular(1, 3)
+        domain = General_mesh(nodes, triangles)
+
+
+        assert num.allclose(domain.get_nodes(), nodes)
+
+
+        M = domain.number_of_triangles        
+
+        E = domain.get_edge_midpoint_coordinates()
+        assert E.shape[0] == 3*M
+
+        for i in range(M):
+            k0 = triangles[i,0]  #Index of vertex 0 in triangle i
+            k1 = triangles[i,1]  #Index of vertex 1 in triangle i
+            k2 = triangles[i,2]  #Index of vertex 2 in triangle i
+
+            assert num.allclose(E[3*i+0,:], 0.5*(nodes[k1]+nodes[k2]) )
+            assert num.allclose(E[3*i+1,:], 0.5*(nodes[k0]+nodes[k2]) )
+            assert num.allclose(E[3*i+2,:], 0.5*(nodes[k1]+nodes[k0]) )
+
+    def test_get_edge_midpoint_coordinates_with_geo_ref(self):
+        x0 = 314036.58727982
+        y0 = 6224951.2960092
+        geo = Geo_reference(56, x0, y0)
+        
+        a = num.array([0.0, 0.0])
+        b = num.array([0.0, 2.0])
+        c = num.array([2.0, 0.0])
+        d = num.array([0.0, 4.0])
+        e = num.array([2.0, 2.0])
+        f = num.array([4.0, 0.0])
+        nodes = num.array([a, b, c, d, e, f])
+
+        nodes_absolute = geo.get_absolute(nodes)
+        
+        #                        bac,     bce,     ecf,     dbe
+        triangles = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]], num.int)
+
+        domain = General_mesh(nodes, triangles, geo_reference=geo)
+
+        verts = domain.get_edge_midpoint_coordinates(triangle_id=0)    # bac
+        msg = ("num.array(1/2[a+c,b+c,a+b])=\n%s\nshould be close to 'verts'=\n%s"
+               % (str(num.array([0.5*(a+c),0.5*(b+c),0.5*(a+b)])), str(verts)))
+        self.failUnless(num.allclose(num.array([0.5*(a+c),0.5*(b+c),0.5*(a+b)]), verts), msg)
+
+
+        verts = domain.get_edge_midpoint_coordinates(triangle_id=0, absolute=True)
+        msg = ("num.array([...])=\n%s\nshould be close to 'verts'=\n%s"
+               % (str(0.5*num.array([nodes_absolute[0]+nodes_absolute[2],
+                                     nodes_absolute[1]+nodes_absolute[2],
+                                     nodes_absolute[1]+nodes_absolute[0]])),
+                  str(verts)))
+        self.assert_(num.allclose(0.5*num.array([nodes_absolute[0]+nodes_absolute[2],
+                                                 nodes_absolute[1]+nodes_absolute[2],
+                                                 nodes_absolute[1]+nodes_absolute[0]]),
+                                  verts), msg)
+
+    def test_get_edge_midpoint_coordinates_triangle_id(self):
+        """test_get_vertex_coordinates_triangle_id
+        Test that vertices for one triangle can be returned.
+        """
+        from mesh_factory import rectangular
+
+        #Create basic mesh
+        nodes, triangles, _ = rectangular(1, 3)
+        domain = General_mesh(nodes, triangles)
+
+
+        assert num.allclose(domain.get_nodes(), nodes)
+
+
+        M = domain.number_of_triangles        
+
+        for i in range(M):
+            E = domain.get_edge_midpoint_coordinates(triangle_id=i)
+            assert E.shape[0] == 3
+
+
+            k0 = triangles[i,0]  #Index of vertex 0 in triangle i
+            k1 = triangles[i,1]  #Index of vertex 0 in triangle i
+            k2 = triangles[i,2]  #Index of vertex 0 in triangle i
+
+            assert num.allclose(E[0,:], 0.5*(nodes[k1]+nodes[k2]))
+            assert num.allclose(E[1,:], 0.5*(nodes[k0]+nodes[k2]))
+            assert num.allclose(E[2,:], 0.5*(nodes[k1]+nodes[k0]))
+
+            E0 = domain.get_edge_midpoint_coordinate(i, 0 )
+            E1 = domain.get_edge_midpoint_coordinate(i, 1 )
+            E2 = domain.get_edge_midpoint_coordinate(i, 2 )
+
+            assert num.allclose(E0, 0.5*(nodes[k1]+nodes[k2]))
+            assert num.allclose(E1, 0.5*(nodes[k0]+nodes[k2]))
+            assert num.allclose(E2, 0.5*(nodes[k1]+nodes[k0]))
+            
+
+
         
         
 
@@ -355,7 +456,8 @@ class Test_General_Mesh(unittest.TestCase):
 ################################################################################
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_General_Mesh, 'test') 
+    #suite = unittest.makeSuite(Test_General_Mesh, 'test')
+    suite = unittest.makeSuite(Test_General_Mesh, 'test_get_edge_midpoint_coordinates')     
     runner = unittest.TextTestRunner()
     runner.run(suite)
 

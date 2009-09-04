@@ -143,8 +143,11 @@ class General_mesh:
         self.areas = num.zeros(N, num.float)
         self.edgelengths = num.zeros((N, 3), num.float)
 
-        # Get x,y coordinates for all triangles and store
+        # Get x,y coordinates for all triangle vertices and store
         self.vertex_coordinates = V = self.compute_vertex_coordinates()
+
+        # Get x,y coordinates for all triangle edge midpoints and store
+        self.edge_midpoint_coordinates  = self.compute_edge_midpoint_coordinates()
 
         # Initialise each triangle
         if verbose:
@@ -326,6 +329,8 @@ class General_mesh:
         V = self.get_vertex_coordinates(triangle_id=i, absolute=absolute)
         return V[j,:]
 
+
+
     def compute_vertex_coordinates(self):
         """Return all vertex coordinates for all triangles as a 3*M x 2 array
         where the jth vertex of the ith triangle is located in row 3*i+j.
@@ -343,6 +348,89 @@ class General_mesh:
                 vertex_coordinates[3*i+j,:] = self.nodes[k]
 
         return vertex_coordinates
+
+
+    def get_edge_midpoint_coordinates(self, triangle_id=None, absolute=False):
+        """Return edge midpoint coordinates for all triangles or from particular triangle.
+
+        Return all edge midpoint coordinates for all triangles as a 3*M x 2 array
+        where the jth midpoint of the ith triangle is located in row 3*i+j and
+        M the number of triangles in the mesh.
+
+        if triangle_id is specified (an integer) the 3 midpoint coordinates
+        for triangle_id are returned.
+
+        Boolean keyword argument absolute determines whether coordinates
+        are to be made absolute by taking georeference into account
+        Default is False as many parts of ANUGA expects relative coordinates.
+        """
+
+        E = self.edge_midpoint_coordinates
+        
+        if triangle_id is None:
+            if absolute is True:
+                if not self.geo_reference.is_absolute():
+                    E = self.geo_reference.get_absolute(E)
+            return E
+        else:
+            i = triangle_id
+            msg = 'triangle_id must be an integer'
+            assert int(i) == i, msg
+            assert 0 <= i < self.number_of_triangles
+
+            i3 = 3*i
+            if absolute is True and not self.geo_reference.is_absolute():
+                offset=num.array([self.geo_reference.get_xllcorner(),
+                                  self.geo_reference.get_yllcorner()], num.float)
+                return num.array([E[i3,:]+offset,
+                                  E[i3+1,:]+offset,
+                                  E[i3+2,:]+offset], num.float)
+            else:
+                return num.array([E[i3,:], E[i3+1,:], E[i3+2,:]], num.float)    
+
+
+    def get_edge_midpoint_coordinate(self, i, j, absolute=False):
+        """Return coordinates for edge midpoint j of the i'th triangle.
+        Return value is the numeric array slice [x, y]
+        """
+
+        msg = 'edge midpoint id j must be an integer in [0,1,2]'
+        assert j in [0,1,2], msg
+
+        E = self.get_edge_midpoint_coordinates(triangle_id=i, absolute=absolute)
+        return E[j,:]
+
+    
+    def compute_edge_midpoint_coordinates(self):
+        """Return all edge midpoint coordinates for all triangles as a 3*M x 2 array
+        where the jth edge midpoint of the ith triangle is located in row 3*i+j.
+
+        This function is used to precompute this important structure. Use
+        get_edge_midpoint_coordinates to retrieve the points.
+
+        Assumes that vertex_coordinates have been computed
+        """
+
+        M = self.number_of_triangles
+        E = num.zeros((3*M, 2), num.float)
+
+        V = self.vertex_coordinates
+
+        V0 = V[0:3*M:3, :]
+        V1 = V[1:3*M:3, :]
+        V2 = V[2:3*M:3, :]
+
+        
+        #print V.shape, V0.shape, V1.shape, V2.shape
+
+        #print E.shape, E[0:3*M:3, :].shape, E[1:3*M:3, :].shape, E[2:3*M:3, :].shape
+        E[0:3*M:3, :] = 0.5*(V1+V2)
+        E[1:3*M:3, :] = 0.5*(V2+V0)
+        E[2:3*M:3, :] = 0.5*(V0+V1)
+
+        return E
+
+
 
     def get_triangles(self, indices=None):
         """Get mesh triangles.
