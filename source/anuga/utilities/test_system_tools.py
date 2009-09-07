@@ -460,6 +460,20 @@ class Test_system_tools(unittest.TestCase):
         size4 = file_length(test_file4)
         msg = 'Expected file_length() to return 1000, but got %d' % size4
         self.failUnless(size4 == 1000, msg)
+        
+        
+        
+    def test_get_revision_number(self):
+        """test_get_revision_number
+        
+        Test that a revision number is returned.
+        This should work both from a sandpit with access to Subversion
+        and also in distributions where revision number has been stored
+        explicitly in anuga.stored_version_info.version_info
+        """
+
+        x = get_revision_number()
+        assert int(x)
 
 ################################################################################
 

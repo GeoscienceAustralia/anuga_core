@@ -55,22 +55,15 @@ def get_host_name():
 
     return host    
 
-def get_revision_number():
-    """Get the version number of this repository copy.
+    
+    
+    
+    
+def __get_revision_from_svn_entries__():
+    """Get a subversion revision number from the .svn/entries file."""
 
-    Try getting data from stored_version_info.py first, otherwise
-    try using SubWCRev.exe (Windows) or svnversion (linux), otherwise
-    try reading file .svn/entries for version information, otherwise
-    throw an exception.
-
-    NOTE: This requires that the command svn is on the system PATH
-    (simply aliasing svn to the binary will not work)
-    """
-
-    def get_revision_from_svn_entries():
-        '''Get a subversion revision number from the .svn/entries file.'''
-
-        msg = '''
+    
+    msg = '''
 No version info stored and command 'svn' is not recognised on the system PATH.
 
 If ANUGA has been installed from a distribution e.g. as obtained from SourceForge,
@@ -88,82 +81,107 @@ obtained from http://www.collab.net/downloads/subversion.
 Good luck!
 '''
 
+    try:
+        fd = open(os.path.join('.svn', 'entries'))
+    except:
+        raise Exception, msg
+
+    line = fd.readlines()[3]
+    fd.close()
+    try:
+        revision_number = int(line)
+    except:
+        msg = ".svn/entries, line 4 was '%s'?" % line.strip()
+        raise Exception, msg
+
+    return revision_number
+
+def __get_revision_from_svn_client__():
+    """Get a subversion revision number from an svn client."""
+
+    if sys.platform[0:3] == 'win':
         try:
-            fd = open(os.path.join('.svn', 'entries'))
+            fid = os.popen(r'C:\Program Files\TortoiseSVN\bin\SubWCRev.exe')
         except:
+            return __get_revision_from_svn_entries__()
+        else:
+            version_info = fid.read()
+            if version_info == '':
+                return __get_revision_from_svn_entries__()
+
+        # split revision number from data
+        for line in version_info.split('\n'):
+            if line.startswith('Updated to revision '):
+                break
+
+        fields = line.split(' ')
+        msg = 'Keyword "Revision" was not found anywhere in text: %s' % version_info
+        assert fields[0].startswith('Updated'), msg
+
+        try:
+            revision_number = int(fields[3])
+        except:
+            msg = ('Revision number must be an integer. I got "%s" from '
+                   '"SubWCRev.exe".' % fields[3])
+            raise Exception, msg
+    else:                   # assume Linux
+        try:
+            fid = os.popen('svn info . 2>/dev/null')
+        except:
+            return __get_revision_from_svn_entries__()
+        else:
+            version_info = fid.read()
+            if version_info == '':
+                return __get_revision_from_svn_entries__()
+
+        # Split revision number from data
+        for line in version_info.split('\n'):
+            if line.startswith('Revision:'):
+                break
+        
+        fields = line.split(':')
+        msg = 'Keyword "Revision" was not found anywhere in text: %s' % version_info
+        assert fields[0].startswith('Revision'), msg
+        
+        
+        #if ':' in version_info:
+        #    revision_number, _ = version_info.split(':', 1)
+        #    msg = ('Some modules have not been checked in. '
+        #           'Using last version from repository: %s' % revision_number)
+        #    warnings.warn(msg)
+        #else:
+        #    revision_number = version_info
+
+        try:
+            revision_number = int(fields[1])
+        except:
+            msg = ("Revision number must be an integer. I got '%s' from "
+                   "'svn'." % fields[1])
             raise Exception, msg
 
-        line = fd.readlines()[3]
-        fd.close()
-        try:
-            revision_number = int(line)
-        except:
-            msg = ".svn/entries, line 4 was '%s'?" % line.strip()
-            raise Exception, msg
+    return revision_number
 
-        return revision_number
+    
+    
+    
+    
+def get_revision_number():
+    """Get the version number of this repository copy.
 
-    def get_revision_from_svn_client():
-        '''Get a subversion revision number from an svn client.'''
+    Try getting data from stored_version_info.py first, otherwise
+    try using SubWCRev.exe (Windows) or svnversion (linux), otherwise
+    try reading file .svn/entries for version information, otherwise
+    throw an exception.
 
-        if sys.platform[0:3] == 'win':
-            try:
-                fid = os.popen(r'C:\Program Files\TortoiseSVN\bin\SubWCRev.exe')
-            except:
-                return get_revision_from_svn_entries()
-            else:
-                version_info = fid.read()
-                if version_info == '':
-                    return get_revision_from_svn_entries()
-
-            # split revision number from data
-            for line in version_info.split('\n'):
-                if line.startswith('Updated to revision '):
-                    break
-
-            fields = line.split(' ')
-            msg = 'Keyword "Revision" was not found anywhere in text: %s' % version_info
-            assert fields[0].startswith('Updated'), msg
-
-            try:
-                revision_number = int(fields[3])
-            except:
-                msg = ("Revision number must be an integer. I got '%s' from "
-                       "'SubWCRev.exe'." % fields[3])
-                raise Exception, msg
-        else:                   # assume Linux
-            try:
-                fid = os.popen('svnversion -n . 2>/dev/null')
-            except:
-                return get_revision_from_svn_entries()
-            else:
-                version_info = fid.read()
-                if version_info == '':
-                    return get_revision_from_svn_entries()
-
-            # Split revision number from data
-            if ':' in version_info:
-                revision_number, _ = version_info.split(':',1)
-                msg = ('Some modules have not been checked in. '
-                       'Using last version from repository: %s' % revision_number)
-                warnings.warn(msg)
-            else:
-                revision_number = version_info
-
-            try:
-                revision_number = int(revision_number)
-            except:
-                msg = ("Revision number must be an integer. I got '%s' from "
-                       "'svn'." % version_info)
-                raise Exception, msg
-
-        return revision_number
+    NOTE: This requires that the command svn is on the system PATH
+    (simply aliasing svn to the binary will not work)
+    """
 
     # try to get revision information from stored_version_info.py
     try:
         from anuga.stored_version_info import version_info
     except:
-        return get_revision_from_svn_client()
+        return __get_revision_from_svn_client__()
 
     # split revision number from data
     for line in version_info.split('\n'):
