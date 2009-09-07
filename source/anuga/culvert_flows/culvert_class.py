@@ -135,6 +135,7 @@ class Culvert_flow_general:
                  height=None,
                  length=None,
                  number_of_barrels=1,
+                 number_of_smoothing_steps=2000,
                  trigger_depth=0.01, # Depth below which no flow happens
                  manning=None,          # Mannings Roughness for Culvert 
                  sum_loss=None,
@@ -151,22 +152,24 @@ class Culvert_flow_general:
         
         # Input check
         
-        if height is None: height = width        
-        self.height = height
-        self.width = width
-
+        if height is None: height = width
         
         assert number_of_barrels >= 1
         assert use_velocity_head is True or use_velocity_head is False
         
-        msg = 'Momentum jet not yet moved to general culvert'
-        assert use_momentum_jet is False, msg
-        
+        #msg = 'Momentum jet not yet moved to general culvert'
+        #assert use_momentum_jet is False, msg
+        self.use_momentum_jet = use_momentum_jet
+ 
         self.culvert_routine = culvert_routine        
         self.culvert_description_filename = culvert_description_filename
         if culvert_description_filename is not None:
             label, type, width, height, length, number_of_barrels, description, rating_curve = read_culvert_description(culvert_description_filename)
             self.rating_curve = ensure_numeric(rating_curve)            
+
+        self.height = height
+        self.width = width
+
         
         self.domain = domain
         self.trigger_depth = trigger_depth        
@@ -291,12 +294,31 @@ class Culvert_flow_general:
         
         self.verbose = verbose
 
-
+        # Circular index for flow averaging in culvert
+        self.N = N = number_of_smoothing_steps
+        self.Q_list = [0]*N
+        self.i = i
         
         # For use with update_interval                        
         self.last_update = 0.0
         self.update_interval = update_interval
         
+        # Create objects to update momentum (a bit crude at this stage). This is used with the momentum jet.
+        xmom0 = General_forcing(domain, 'xmomentum',
+                                polygon=P['exchange_polygon0'])
+
+        xmom1 = General_forcing(domain, 'xmomentum',
+                                polygon=P['exchange_polygon1'])
+
+        ymom0 = General_forcing(domain, 'ymomentum',
+                                polygon=P['exchange_polygon0'])
+
+        ymom1 = General_forcing(domain, 'ymomentum',
+                                polygon=P['exchange_polygon1'])
+
+        self.opening_momentum = [[xmom0, ymom0], [xmom1, ymom1]]
+
+
 
         # Print some diagnostics to log if requested
         if self.log_filename is not None:
@@ -401,6 +423,20 @@ class Culvert_flow_general:
 
     def adjust_flow_for_available_water_at_inlet(self, Q, delta_t):
         """Adjust Q downwards depending on available water at inlet
+
+           This is a critical step in modelling bridges and Culverts
+           the predicted flow through a structure based on an abstract
+           algorithm can at times request for water that is simply not
+           available due to any number of constrictions that limit the
+           flow approaching the structure In order to ensure that
+           there is adequate flow available certain checks are
+           required There needs to be a check using the Static Water
+           Volume sitting infront of the structure, In addition if the
+           water is moving the available water will be larger than the
+           static volume
+           
+           NOTE To temporarily switch this off for Debugging purposes
+           rem out line in function def compute_rates below
         """
     
         if delta_t < epsilon:
@@ -422,24 +458,99 @@ class Culvert_flow_general:
         elevation = dq['elevation'].get_values(location='centroids', 
                                                indices=[idx])        
         depth = stage-elevation
-        min_depth = min(depth.flat)
+        min_depth = min(depth.flat)  # This may lead to errors if edge of area is at a higher level !!!!
+        avg_depth = mean(depth.flat) # Yes, but this one violates the conservation unit tests
 
-        # Compute possible flow for exchange region based on
-        # triangle with smallest depth
-        max_Q = min_depth*I.exchange_area/delta_t        
+
+
+        # FIXME (Ole): If you want these, use log.critical() and
+        # make the statements depend on verbose
+        #print I.depth
+        #print I.velocity
+        #print self.width
+
+        # max_Q Based on Volume Calcs
+
+
+        depth_term = min_depth*I.exchange_area/delta_t
+        if min_depth < 0.2:
+            # Only add velocity term in shallow waters (< 20 cm)
+            # This is a little ad hoc, but maybe it is reasonable
+            velocity_term = self.width*min_depth*I.velocity
+        else:
+            velocity_term = 0.0
+
+        # This one takes approaching water into account    
+        max_Q = max(velocity_term, depth_term)
+
+        # This one preserves Volume
+        #max_Q = depth_term
+
+
+        if self.verbose is True:
+            log.critical('Max_Q = %f' % max_Q)            
+            msg = 'Width = %.2fm, Depth at inlet = %.2f m, Velocity = %.2f m/s.      ' % (self.width, I.depth, I.velocity)
+            msg += 'Max Q = %.2f m^3/s' %(max_Q)
+            log.critical(msg)
+
+        if self.log_filename is not None:                
+            log_to_file(self.log_filename, msg)
+        # New Procedure for assessing the flow available to the Culvert 
+        # This routine uses the GET FLOW THROUGH CROSS SECTION
+        #   Need to check Several Polyline however
+        # Firstly 3 sides of the exchange Poly
+        # then only the Line Directly infront of the Polygon
+        # Access polygon Points from   self.inlet.polygon
+      
+        #  The Following computes the flow crossing over 3 sides of the exchange polygon for the structure
+        # Clearly the flow in the culvert can not be more than that flowing toward it through the exhange polygon
         
+        #q1 = domain.get_flow_through_cross_section(self.culvert_polygons['exchange_polygon0'][1:3]) # First Side Segment
+        #q2 = domain.get_flow_through_cross_section(self.culvert_polygons['exchange_polygon0'][2:])   # Second Face Segment
+        #q3 =domain.get_flow_through_cross_section(self.culvert_polygons['exchange_polygon0'].take([3,0], axis=0)) # Third Side Segment
+        # q4 = domain.get_flow_through_cross_section([self.culvert_polygons['exchange_polygon0'][1:4]][0])
+        #q4=max(q1,0.0)+max(q2,0.0)+max(q3,0.0)
+        # To use only the Flow crossing the 3 sides of the Exchange Polygon use the following Line Only
+        #max_Q=max(q1,q2,q3,q4)
+        # Try Simple Smoothing using Average of 2 approaches
+        #max_Q=(max(q1,q2,q3,q4)+max_Q)/2.0
         # Calculate the minimum in absolute terms of
         # the requsted flow and the possible flow
         Q_reduced = sign(Q)*min(abs(Q), abs(max_Q))
-        
+        if self.verbose is True:
+            msg = 'Initial Q Reduced = %.2f m3/s.      ' % (Q_reduced)
+            log.critical(msg)
+
+        if self.log_filename is not None:                
+            log_to_file(self.log_filename, msg)
+        # Now Keep Rolling Average of Computed Discharge to Reduce / Remove Oscillations
+        #  can use delta_t if we want to averageover a time frame for example
+        # N = 5.0/delta_t  Will provide the average over 5 seconds
+
+        self.i=(self.i+1)%self.N
+        self.Q_list[self.i]=Q_reduced
+        Q_reduced = sum(self.Q_list)/len(self.Q_list)
+
+        if self.verbose is True:
+            msg = 'Final Q Reduced = %.2f m3/s.      ' % (Q_reduced)
+            log.critical(msg)
+
+        if self.log_filename is not None:                
+            log_to_file(self.log_filename, msg)
+
+
         if abs(Q_reduced) < abs(Q): 
             msg = '%.2fs: Requested flow is ' % time
             msg += 'greater than what is supported by the smallest '
             msg += 'depth at inlet exchange area:\n        '
+            msg += 'inlet exchange area: %.2f '% (I.exchange_area) 
+            msg += 'velocity at inlet :%.2f '% (I.velocity)
+            msg += 'Vel* Exch Area = : %.2f '% (I.velocity*avg_depth*self.width)
             msg += 'h_min*inlet_area/delta_t = %.2f*%.2f/%.2f '\
-                % (min_depth, I.exchange_area, delta_t)
+                % (avg_depth, I.exchange_area, delta_t)
             msg += ' = %.2f m^3/s\n        ' % Q_reduced
             msg += 'Q will be reduced from %.2f m^3/s to %.2f m^3/s.' % (Q, Q_reduced)
+            msg += 'Note calculate max_Q from V %.2f m^3/s ' % (max_Q)
             if self.verbose is True:
                 log.critical(msg)
                 
@@ -472,7 +583,7 @@ class Culvert_flow_general:
             idx = self.enquiry_indices[i]                
             
             stage = dq['stage'].get_values(location='centroids',
-                                               indices=[idx])[0]
+                                           indices=[idx])[0]
             depth = h = stage-opening.elevation
                                                            
             
@@ -481,7 +592,7 @@ class Culvert_flow_general:
                                                    indices=[idx])[0]
             ymomentum = dq['xmomentum'].get_values(location='centroids',
                                                    indices=[idx])[0]
-            
+
             if h > minimum_allowed_height:
                 u = xmomentum/(h + velocity_protection/h)
                 v = ymomentum/(h + velocity_protection/h)
@@ -508,10 +619,17 @@ class Culvert_flow_general:
         if delta_total_energy > 0:
             inlet = openings[0]
             outlet = openings[1]
+
+            # FIXME: I think this whole momentum jet thing could be a bit more elegant
+            inlet.momentum = self.opening_momentum[0]
+            outlet.momentum = self.opening_momentum[1]
         else:
             inlet = openings[1]
             outlet = openings[0]
             
+            inlet.momentum = self.opening_momentum[1]
+            outlet.momentum = self.opening_momentum[0]
+
             delta_total_energy = -delta_total_energy
 
         self.inlet = inlet
@@ -603,13 +721,77 @@ class Culvert_flow_general:
         
         # Adjust discharge for multiple barrels
         Q *= self.number_of_barrels
-        
 
+        # Adjust discharge for available water at the inlet
         Q = self.adjust_flow_for_available_water_at_inlet(Q, delta_t)
         
         self.inlet.rate = -Q
         self.outlet.rate = Q
 
+
+        # Momentum jet stuff
+        if self.use_momentum_jet is True:
+
+
+            # Compute barrel momentum
+            barrel_momentum = barrel_velocity*culvert_outlet_depth
+
+            if self.log_filename is not None:                                    
+                s = 'Barrel velocity = %f' %barrel_velocity
+                log_to_file(self.log_filename, s)
+
+            # Compute momentum vector at outlet
+            outlet_mom_x, outlet_mom_y = self.vector * barrel_momentum
+                
+            if self.log_filename is not None:                
+                s = 'Directional momentum = (%f, %f)' %(outlet_mom_x, outlet_mom_y)
+                log_to_file(self.log_filename, s)
+
+
+            # Update momentum        
+            if delta_t > 0.0:
+                xmomentum_rate = outlet_mom_x - outlet.momentum[0].value
+                xmomentum_rate /= delta_t
+                    
+                ymomentum_rate = outlet_mom_y - outlet.momentum[1].value
+                ymomentum_rate /= delta_t
+                        
+                if self.log_filename is not None:                
+                    s = 'X Y MOM_RATE = (%f, %f) ' %(xmomentum_rate, ymomentum_rate)
+                    log_to_file(self.log_filename, s)                    
+            else:
+                xmomentum_rate = ymomentum_rate = 0.0
+
+
+            # Set momentum rates for outlet jet
+            outlet.momentum[0].rate = xmomentum_rate
+            outlet.momentum[1].rate = ymomentum_rate
+
+            # Remember this value for next step (IMPORTANT)
+            outlet.momentum[0].value = outlet_mom_x
+            outlet.momentum[1].value = outlet_mom_y                    
+
+            if int(domain.time*100) % 100 == 0:
+
+                if self.log_filename is not None:                
+                    s = 'T=%.5f, Culvert Discharge = %.3f f'\
+                        %(time, Q)
+                    s += ' Depth= %0.3f  Momentum = (%0.3f, %0.3f)'\
+                        %(culvert_outlet_depth, outlet_mom_x,outlet_mom_y)
+                    s += ' Momentum rate: (%.4f, %.4f)'\
+                        %(xmomentum_rate, ymomentum_rate)                    
+                    s+='Outlet Vel= %.3f'\
+                        %(barrel_velocity)
+                    log_to_file(self.log_filename, s)
+
+
+            # Execute momentum terms
+            # This is where Inflow objects are evaluated and update the domain
+                self.outlet.momentum[0](domain)
+                self.outlet.momentum[1](domain)        
+            
+
+            
         # Log timeseries to file
         try:
             fid = open(self.timeseries_filename, 'a')        
@@ -618,6 +800,14 @@ class Culvert_flow_general:
         else:    
             fid.write('%.2f, %.2f\n' %(time, Q))
             fid.close()
+
+        # Store value of time
+        self.last_time = time
+
+
+            
+
+
 
                             
 # OBSOLETE (Except for momentum jet in Culvert_flow_energy)    
@@ -1193,8 +1383,6 @@ class Culvert_flow_energy:
 
         
         # Create objects to update momentum (a bit crude at this stage)
-
-        
         xmom0 = General_forcing(domain, 'xmomentum',
                                 polygon=P['exchange_polygon0'])
 
@@ -1389,7 +1577,6 @@ class Culvert_flow_energy:
             fid.close()
 
             # Update momentum        
-
             if delta_t > 0.0:
                 xmomentum_rate = outlet_mom_x - outlet.momentum[0].value
                 xmomentum_rate /= delta_t
