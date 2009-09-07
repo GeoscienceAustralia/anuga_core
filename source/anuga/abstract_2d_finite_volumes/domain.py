@@ -12,6 +12,7 @@ from time import time as walltime
 
 from anuga.config import epsilon
 from anuga.config import beta_euler, beta_rk2
+
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
      import Boundary
@@ -221,6 +222,7 @@ class Domain:
         from anuga.config import timestepping_method
         from anuga.config import protect_against_isolated_degenerate_timesteps
         from anuga.config import default_order
+        from anuga.config import max_timestep, min_timestep
 
         self.beta_w = beta_w
         self.epsilon = epsilon
@@ -236,6 +238,8 @@ class Domain:
         self.CFL = CFL
         self.set_timestepping_method(timestepping_method)
         self.set_beta(beta_w)
+        self.set_evolve_max_timestep(max_timestep)
+        self.set_evolve_min_timestep(min_timestep)
         self.boundary_map = None  # Will be populated by set_boundary
 
         # Model time
@@ -440,6 +444,43 @@ class Domain:
 
         return self.beta
 
+
+    ##
+    # @brief Set the max timestep for time evolution
+    # @param max_timestep The new max timestep value.
+    def set_evolve_max_timestep(self, max_timestep):
+        """Set default max_timestep for evolving."""
+
+        self.evolve_max_timestep = max_timestep
+
+
+    ##
+    # @brief Get the max timestep for time evolution
+    # @return The max timestep value.
+    def get_evolve_max_timestep(self):
+        """Set default max_timestep for evolving."""
+
+        return self.evolve_max_timestep
+
+    ##
+    # @brief Set the min timestep for time evolution
+    # @param min_timestep The new min timestep value.
+    def set_evolve_min_timestep(self, min_timestep):
+        """Set default min_timestep for evolving."""
+
+        self.evolve_min_timestep = min_timestep
+
+
+    ##
+    # @brief Get the min timestep for time evolution
+    # @return The min timestep value.
+    def get_evolve_min_timestep(self):
+        """Set default max_timestep for evolving."""
+
+        return self.evolve_min_timestep     
+
+
+  
     ##
     # @brief Set default (spatial) order.
     # @param n The new spatial order value.
@@ -1633,7 +1674,8 @@ class Domain:
     # @param yieldstep
     # @param finaltime
     def update_timestep(self, yieldstep, finaltime):
-        from anuga.config import min_timestep, max_timestep
+        min_timestep = self.get_evolve_min_timestep()
+        max_timestep = self.get_evolve_max_timestep()
 
         # Protect against degenerate timesteps arising from isolated
         # triangles
