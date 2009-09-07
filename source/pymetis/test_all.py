@@ -22,7 +22,7 @@ from anuga.utilities.terminal_width import terminal_width
 exclude_files = []
 
 # Directories that should not be searched for test files.
-exclude_dirs = ['metis',                            # Special requirements
+exclude_dirs = ['metis-4.0','pymetis',               # Special requirements
                 '.svn',                              # subversion
                 'props', 'wcprops', 'prop-base', 'text-base', 'tmp']
 

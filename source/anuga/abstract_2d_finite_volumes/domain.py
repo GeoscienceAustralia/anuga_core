@@ -245,7 +245,7 @@ class Domain:
         # Model time
         self.time = 0.0
         self.finaltime = None
-        self.min_timestep = self.max_timestep = 0.0
+        self.recorded_min_timestep = self.recorded_max_timestep = 0.0
         self.starttime = 0 # Physical starttime if any
                            # (0 is 1 Jan 1970 00:00:00)
         self.timestep = 0.0
@@ -897,31 +897,31 @@ class Domain:
         qwidth = self.qwidth = 12
 
         msg = ''
-        #if self.min_timestep == self.max_timestep:
+        #if self.recorded_min_timestep == self.recorded_max_timestep:
         #    msg += 'Time = %.4f, delta t = %.8f, steps=%d (%d)'\
-        #           %(self.time, self.min_timestep, self.number_of_steps,
+        #           %(self.time, self.recorded_min_timestep, self.number_of_steps,
         #             self.number_of_first_order_steps)
-        #elif self.min_timestep > self.max_timestep:
+        #elif self.recorded_min_timestep > self.recorded_max_timestep:
         #    msg += 'Time = %.4f, steps=%d (%d)'\
         #           %(self.time, self.number_of_steps,
         #             self.number_of_first_order_steps)
         #else:
         #    msg += 'Time = %.4f, delta t in [%.8f, %.8f], steps=%d (%d)'\
-        #           %(self.time, self.min_timestep,
-        #             self.max_timestep, self.number_of_steps,
+        #           %(self.time, self.recorded_min_timestep,
+        #             self.recorded_max_timestep, self.number_of_steps,
         #             self.number_of_first_order_steps)
 
         model_time = self.get_time()
-        if self.min_timestep == self.max_timestep:
+        if self.recorded_min_timestep == self.recorded_max_timestep:
             msg += 'Time = %.4f, delta t = %.8f, steps=%d' \
-                       % (model_time, self.min_timestep, self.number_of_steps)
-        elif self.min_timestep > self.max_timestep:
+                       % (model_time, self.recorded_min_timestep, self.number_of_steps)
+        elif self.recorded_min_timestep > self.recorded_max_timestep:
             msg += 'Time = %.4f, steps=%d' \
                        % (model_time, self.number_of_steps)
         else:
             msg += 'Time = %.4f, delta t in [%.8f, %.8f], steps=%d' \
-                       % (model_time, self.min_timestep,
-                          self.max_timestep, self.number_of_steps)
+                       % (model_time, self.recorded_min_timestep,
+                          self.recorded_max_timestep, self.number_of_steps)
 
         msg += ' (%ds)' % (walltime() - self.last_walltime)
         self.last_walltime = walltime()
@@ -1309,7 +1309,7 @@ class Domain:
         All times are given in seconds
         """
 
-        from anuga.config import min_timestep, max_timestep, epsilon
+        from anuga.config import epsilon
 
         # FIXME: Maybe lump into a larger check prior to evolving
         msg = ('Boundary tags must be bound to boundary objects before '
@@ -1320,7 +1320,7 @@ class Domain:
         assert hasattr(self, 'boundary_objects'), msg
 
         if yieldstep is None:
-            yieldstep = max_timestep
+            yieldstep = self.evolve_max_timestep
         else:
             yieldstep = float(yieldstep)
 
@@ -1339,8 +1339,8 @@ class Domain:
         self.yieldtime = self.time + yieldstep    # set next yield time
 
         # Initialise interval of timestep sizes (for reporting only)
-        self.min_timestep = max_timestep
-        self.max_timestep = min_timestep
+        self.recorded_min_timestep = self.evolve_max_timestep
+        self.recorded_max_timestep = self.evolve_min_timestep
         self.number_of_steps = 0
         self.number_of_first_order_steps = 0
 
@@ -1408,8 +1408,8 @@ class Domain:
 
                 # Reinitialise
                 self.yieldtime += yieldstep                 # move to next yield
-                self.min_timestep = max_timestep
-                self.max_timestep = min_timestep
+                self.recorded_min_timestep = self.evolve_max_timestep
+                self.recorded_max_timestep = self.evolve_min_timestep
                 self.number_of_steps = 0
                 self.number_of_first_order_steps = 0
                 self.max_speed = num.zeros(N, num.float)
@@ -1421,10 +1421,15 @@ class Domain:
     def evolve_one_euler_step(self, yieldstep, finaltime):
         """One Euler Time Step
         Q^{n+1} = E(h) Q^n
+
+        Assumes that centroid values have been extrapolated to vertices and edges
         """
 
         # Compute fluxes across each element edge
         self.compute_fluxes()
+
+        # Compute forcing terms
+        self.compute_forcing_terms()
 
         # Update timestep to fit yieldstep and finaltime
         self.update_timestep(yieldstep, finaltime)
@@ -1463,6 +1468,9 @@ class Domain:
         # Compute fluxes across each element edge
         self.compute_fluxes()
 
+        # Compute forcing terms
+        self.compute_forcing_terms()
+
         # Update timestep to fit yieldstep and finaltime
         self.update_timestep(yieldstep, finaltime)
 
@@ -1482,11 +1490,17 @@ class Domain:
         self.update_boundary()
 
         ######
-        # Second Euler step
+        # Second Euler step using the same timestep
+        # calculated in the first step. Might lead to
+        # stability problems but we have not seen any
+        # example.
         ######
 
         # Compute fluxes across each element edge
         self.compute_fluxes()
+
+        # Compute forcing terms
+        self.compute_forcing_terms()
 
         # Update conserved quantities
         self.update_conserved_quantities()
@@ -1530,6 +1544,9 @@ class Domain:
         # Compute fluxes across each element edge
         self.compute_fluxes()
 
+        # Compute forcing terms
+        self.compute_forcing_terms()
+
         # Update timestep to fit yieldstep and finaltime
         self.update_timestep(yieldstep, finaltime)
 
@@ -1549,11 +1566,17 @@ class Domain:
         self.update_boundary()
 
         ######
-        # Second Euler step
+        # Second Euler step using the same timestep
+        # calculated in the first step. Might lead to
+        # stability problems but we have not seen any
+        # example.
         ######
 
         # Compute fluxes across each element edge
         self.compute_fluxes()
+
+        # Compute forcing terms
+        self.compute_forcing_terms()
 
         # Update conserved quantities
         self.update_conserved_quantities()
@@ -1584,6 +1607,9 @@ class Domain:
 
         # Compute fluxes across each element edge
         self.compute_fluxes()
+
+        # Compute forcing terms
+        self.compute_forcing_terms()
 
         # Update conserved quantities
         self.update_conserved_quantities()
@@ -1674,8 +1700,6 @@ class Domain:
     # @param yieldstep
     # @param finaltime
     def update_timestep(self, yieldstep, finaltime):
-        min_timestep = self.get_evolve_min_timestep()
-        max_timestep = self.get_evolve_max_timestep()
 
         # Protect against degenerate timesteps arising from isolated
         # triangles
@@ -1715,14 +1739,14 @@ class Domain:
 
         # self.timestep is calculated from speed of characteristics
         # Apply CFL condition here
-        timestep = min(self.CFL*self.flux_timestep, max_timestep)
+        timestep = min(self.CFL*self.flux_timestep, self.evolve_max_timestep)
 
         # Record maximal and minimal values of timestep for reporting
-        self.max_timestep = max(timestep, self.max_timestep)
-        self.min_timestep = min(timestep, self.min_timestep)
+        self.recorded_max_timestep = max(timestep, self.recorded_max_timestep)
+        self.recorded_min_timestep = min(timestep, self.recorded_min_timestep)
 
         # Protect against degenerate time steps
-        if timestep < min_timestep:
+        if timestep < self.evolve_min_timestep:
             # Number of consecutive small steps taken b4 taking action
             self.smallsteps += 1
 
@@ -1735,7 +1759,7 @@ class Domain:
                     msg += 'even after %d steps of 1 order scheme' \
                                % self.max_smallsteps
                     log.critical(msg)
-                    timestep = min_timestep  # Try enforcing min_step
+                    timestep = self.evolve_min_timestep  # Try enforcing min_step
 
                     log.critical(self.timestepping_statistics(track_speeds=True))
 
@@ -1766,14 +1790,18 @@ class Domain:
         the list self.forcing_terms
         """
 
+        # The parameter self.flux_timestep should be updated
+        # by the forcing_terms to ensure stability
+
         for f in self.forcing_terms:
             f(self)
+
 
     ##
     # @brief Update vectors of conserved quantities.
     def update_conserved_quantities(self):
         """Update vectors of conserved quantities using previously
-        computed fluxes specified forcing functions.
+        computed fluxes and specified forcing functions.
         """
 
         N = len(self) # Number_of_triangles
@@ -1781,8 +1809,6 @@ class Domain:
 
         timestep = self.timestep
 
-        # Compute forcing terms
-        self.compute_forcing_terms()
 
         # Update conserved_quantities
         for name in self.conserved_quantities:

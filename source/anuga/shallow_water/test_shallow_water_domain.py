@@ -4096,8 +4096,8 @@ class Test_Shallow_Water(unittest.TestCase):
             pass
 
         # Data from earlier version of abstract_2d_finite_volumes
-        assert num.allclose(domain.min_timestep, 0.0396825396825)
-        assert num.allclose(domain.max_timestep, 0.0396825396825)
+        assert num.allclose(domain.recorded_min_timestep, 0.0396825396825)
+        assert num.allclose(domain.recorded_max_timestep, 0.0396825396825)
 
         msg = ("domain.quantities['stage'].centroid_values[:12]=%s"
                % str(domain.quantities['stage'].centroid_values[:12]))
@@ -4162,8 +4162,8 @@ class Test_Shallow_Water(unittest.TestCase):
             pass
 
         # Data from earlier version of abstract_2d_finite_volumes
-        #assert allclose(domain.min_timestep, 0.0396825396825)
-        #assert allclose(domain.max_timestep, 0.0396825396825)
+        #assert allclose(domain.recorded_min_timestep, 0.0396825396825)
+        #assert allclose(domain.recorded_max_timestep, 0.0396825396825)
         #print domain.quantities['stage'].centroid_values
 
         os.remove(domain.get_name() + '.sww')
@@ -4193,8 +4193,8 @@ class Test_Shallow_Water(unittest.TestCase):
             pass
 
         # FIXME: These numbers were from version before 25/10
-        #assert allclose(domain.min_timestep, 0.0140413643926)
-        #assert allclose(domain.max_timestep, 0.0140947355753)
+        #assert allclose(domain.recorded_min_timestep, 0.0140413643926)
+        #assert allclose(domain.recorded_max_timestep, 0.0140947355753)
 
         for i in range(3):
             #assert allclose(domain.quantities['stage'].edge_values[:4,i],
@@ -4240,11 +4240,11 @@ class Test_Shallow_Water(unittest.TestCase):
         for t in domain.evolve(yieldstep=0.01, finaltime=0.03):
             pass
 
-        msg = 'min step was %f instead of %f' % (domain.min_timestep,
+        msg = 'min step was %f instead of %f' % (domain.recorded_min_timestep,
                                                  0.0210448446782)
 
-        assert num.allclose(domain.min_timestep, 0.0210448446782), msg
-        assert num.allclose(domain.max_timestep, 0.0210448446782)
+        assert num.allclose(domain.recorded_min_timestep, 0.0210448446782), msg
+        assert num.allclose(domain.recorded_max_timestep, 0.0210448446782)
 
         #FIXME: These numbers were from version before 25/10
         #assert allclose(domain.quantities['stage'].vertex_values[:4,0],
@@ -4294,8 +4294,8 @@ class Test_Shallow_Water(unittest.TestCase):
         for t in domain.evolve(yieldstep=0.01, finaltime=0.03):
             pass
 
-        assert num.allclose(domain.min_timestep, 0.0210448446782)
-        assert num.allclose(domain.max_timestep, 0.0210448446782)
+        assert num.allclose(domain.recorded_min_timestep, 0.0210448446782)
+        assert num.allclose(domain.recorded_max_timestep, 0.0210448446782)
 
         #FIXME: These numbers were from version before 21/3/6 -
         #could be recreated by setting maximum_allowed_speed to 0 maybe
@@ -4389,8 +4389,8 @@ class Test_Shallow_Water(unittest.TestCase):
                 # Evolution
                 for t in domain.evolve(yieldstep=0.01, finaltime=0.03):
                     pass
-                assert num.allclose(domain.min_timestep, 0.0210448446782)
-                assert num.allclose(domain.max_timestep, 0.0210448446782)
+                assert num.allclose(domain.recorded_min_timestep, 0.0210448446782)
+                assert num.allclose(domain.recorded_max_timestep, 0.0210448446782)
 
             #print domain.quantities['stage'].centroid_values[:4]
             #print domain.quantities['xmomentum'].centroid_values[:4]
@@ -4469,8 +4469,8 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # FIXME (Ole): Need some other assertion here!
         #print domain.min_timestep, domain.max_timestep
-        #assert allclose(domain.min_timestep, 0.050010003001)
-        #assert allclose(domain.max_timestep, 0.050010003001)
+        #assert allclose(domain.recorded_min_timestep, 0.050010003001)
+        #assert allclose(domain.recorded_max_timestep, 0.050010003001)
 
         os.remove(domain.get_name() + '.sww')
 
@@ -4692,8 +4692,8 @@ class Test_Shallow_Water(unittest.TestCase):
             pass
 
         # Data from earlier version of abstract_2d_finite_volumes ft=0.1
-        assert num.allclose(domain.min_timestep, 0.0376895634803)
-        assert num.allclose(domain.max_timestep, 0.0415635655309)
+        assert num.allclose(domain.recorded_min_timestep, 0.0376895634803)
+        assert num.allclose(domain.recorded_max_timestep, 0.0415635655309)
 
         assert num.allclose(domain.quantities['stage'].centroid_values,
                             [ 0.00855788,  0.01575204,  0.00994606,  0.01717072,
