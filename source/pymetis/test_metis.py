@@ -76,6 +76,9 @@ class TestMetis(unittest.TestCase):
         assert allclose(npart, npart_expected)
 
 
-if __name__ == '__main__':
-    unittest.main()
+if __name__ == "__main__":
+    suite = unittest.makeSuite(TestMetis,'test_')
+    runner = unittest.TextTestRunner()
+    runner.run(suite)
+
 
