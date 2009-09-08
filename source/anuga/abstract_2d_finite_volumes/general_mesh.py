@@ -312,11 +312,10 @@ class General_mesh:
             if absolute is True and not self.geo_reference.is_absolute():
                 offset=num.array([self.geo_reference.get_xllcorner(),
                                   self.geo_reference.get_yllcorner()], num.float)
-                return num.array([V[i3,:]+offset,
-                                  V[i3+1,:]+offset,
-                                  V[i3+2,:]+offset], num.float)
+                                  
+                return V[i3:i3+3,:] + offset                                  
             else:
-                return num.array([V[i3,:], V[i3+1,:], V[i3+2,:]], num.float)
+                return V[i3:i3+3,:]
 
     def get_vertex_coordinate(self, i, j, absolute=False):
         """Return coordinates for vertex j of the i'th triangle.
@@ -382,11 +381,10 @@ class General_mesh:
             if absolute is True and not self.geo_reference.is_absolute():
                 offset=num.array([self.geo_reference.get_xllcorner(),
                                   self.geo_reference.get_yllcorner()], num.float)
-                return num.array([E[i3,:]+offset,
-                                  E[i3+1,:]+offset,
-                                  E[i3+2,:]+offset], num.float)
+
+                return E[i3:i3+3,:] + offset                                  
             else:
-                return num.array([E[i3,:], E[i3+1,:], E[i3+2,:]], num.float)    
+                return E[i3:i3+3,:]
 
 
     def get_edge_midpoint_coordinate(self, i, j, absolute=False):
@@ -398,7 +396,7 @@ class General_mesh:
         assert j in [0,1,2], msg
 
         E = self.get_edge_midpoint_coordinates(triangle_id=i, absolute=absolute)
-        return E[j,:]
+        return E[j,:] # Return (x, y) for edge mid point
 
     
     def compute_edge_midpoint_coordinates(self):

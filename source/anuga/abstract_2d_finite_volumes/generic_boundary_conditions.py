@@ -251,30 +251,18 @@ class File_boundary(Boundary):
         # Make ordering unique #FIXME: should this happen in domain.py?
         boundary_keys.sort()
 
-        # Record ordering #FIXME: should this also happen in domain.py?
+        # Record ordering #FIXME: should this also happen in domain.py or general_mesh.py?
         self.boundary_indices = {}
         for i, (vol_id, edge_id) in enumerate(boundary_keys):
 
-            base_index = 3*vol_id
-            x0, y0 = V[base_index, :]
-            x1, y1 = V[base_index+1, :]
-            x2, y2 = V[base_index+2, :]
-            
-            # Compute midpoints
-            if edge_id == 0: m = num.array([(x1 + x2)/2, (y1 + y2)/2], num.float)
-            if edge_id == 1: m = num.array([(x0 + x2)/2, (y0 + y2)/2], num.float)
-            if edge_id == 2: m = num.array([(x1 + x0)/2, (y1 + y0)/2], num.float)
-
-            # Convert to absolute UTM coordinates
-            m[0] += xllcorner
-            m[1] += yllcorner
-            
-            # Register point and index
-            self.midpoint_coordinates[i,:] = m
+            self.midpoint_coordinates[i,:] = domain.get_edge_midpoint_coordinate(vol_id, edge_id, 
+                                                                                 absolute=True)
 
             # Register index of this boundary edge for use with evaluate
             self.boundary_indices[(vol_id, edge_id)] = i
 
+            
+            
         if verbose: log.critical('Initialise file_function')
         self.F = file_function(filename,
                                domain,

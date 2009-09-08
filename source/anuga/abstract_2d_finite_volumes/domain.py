@@ -305,6 +305,15 @@ class Domain:
 
     def get_vertex_coordinates(self, *args, **kwargs):
         return self.mesh.get_vertex_coordinates(*args, **kwargs)
+        
+    def get_vertex_coordinate(self, *args, **kwargs):
+        return self.mesh.get_vertex_coordinate(*args, **kwargs)        
+        
+    def get_edge_midpoint_coordinates(self, *args, **kwargs):
+        return self.mesh.get_edge_midpoint_coordinates(*args, **kwargs)                
+        
+    def get_edge_midpoint_coordinate(self, *args, **kwargs):
+        return self.mesh.get_edge_midpoint_coordinate(*args, **kwargs)        
 
     def get_triangles(self, *args, **kwargs):
         return self.mesh.get_triangles(*args, **kwargs)
