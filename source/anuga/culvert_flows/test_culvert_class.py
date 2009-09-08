@@ -791,7 +791,7 @@ class Test_Culvert(unittest.TestCase):
             
             msg = ('Total volume has changed: Is %.8f m^3 should have been %.8f m^3'
                    % (new_volume, ref_volume))
-            assert num.allclose(new_volume, ref_volume), msg        
+            assert num.allclose(new_volume, ref_volume, rtol=1.0e-10), msg        
         
 
         
