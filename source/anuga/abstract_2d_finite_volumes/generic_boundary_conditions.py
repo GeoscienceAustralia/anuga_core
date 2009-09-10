@@ -109,7 +109,9 @@ class Time_boundary(Boundary):
         self.domain = domain
         self.verbose = verbose
 
-        
+        if domain is None:
+            raise Exception, 'You must specify a domain to Time_boundary'
+
         # FIXME: Temporary code to deal with both f and function
         if function is not None and f is not None:
             raise Exception, 'Specify either function or f to Time_boundary'
@@ -141,7 +143,7 @@ class Time_boundary(Boundary):
         assert len(q.shape) == 1, msg
 
         d = len(domain.conserved_quantities)
-        msg = 'Return value for f must be a list or an array of length %d' %d
+        msg = 'Return value for function must be a list or an array of length %d' %d
         assert len(q) == d, msg
 
         self.f = f
@@ -185,7 +187,104 @@ class Time_boundary(Boundary):
 
         return res
 
+class Time_space_boundary(Boundary):
+    """Time and spatially dependent boundary returns values for the
+    conserved quantities as a function of time and space.
+    Must specify domain to get access to model time and a function of t,x,y
+    which must return conserved quantities at specified time and location.
+    
+    Example:
+      B = Time_space_boundary(domain, 
+                              function=lambda t,x,y: [(60<t<3660)*2, 0, 0])
+      
+      This will produce a boundary condition with is a 2m high square wave
+      starting 60 seconds into the simulation and lasting one hour.
+      Momentum applied will be 0 at all times.
+                        
+    """
 
+
+    def __init__(self, domain=None,
+                 function=None,
+                 default_boundary=None,
+                 verbose=False):
+        Boundary.__init__(self)
+
+        self.default_boundary = default_boundary
+        self.default_boundary_invoked = False    # Flag
+        self.domain = domain
+        self.verbose = verbose
+
+        
+        if function is None:
+            raise Exception, 'You must specify a function to Time_space_boundary'
+            
+        try:
+            q = function(0.0, 0.0, 0.0)
+        except Exception, e:
+            msg = 'Function for time_space_boundary could not be executed:\n%s' %e
+            raise msg
+
+
+        try:
+            q = num.array(q, num.float)
+        except:
+            msg = 'Return value from time_space_boundary function could '
+            msg += 'not be converted into a numeric array of floats.\n'
+            msg += 'Specified function should return either list or array.\n'
+            msg += 'I got %s' %str(q)
+            raise msg
+
+        msg = 'ERROR: Time_space_boundary function must return a 1d list or array '
+        assert len(q.shape) == 1, msg
+
+        d = len(domain.conserved_quantities)
+        msg = 'Return value for function must be a list or an array of length %d' %d
+        assert len(q) == d, msg
+
+        self.function = function
+        self.domain = domain
+
+    def __repr__(self):
+        return 'Time space boundary'
+
+    def evaluate(self, vol_id=None, edge_id=None):
+        # FIXME (Ole): I think this should be get_time(), see ticket:306
+
+        [x,y] = self.domain.get_edge_midpoint_coordinate(vol_id, edge_id)
+
+        try:
+            res = self.function(self.domain.get_time(), x, y)
+        except Modeltime_too_early, e:
+            raise Modeltime_too_early, e
+        except Modeltime_too_late, e:
+            if self.default_boundary is None:
+                raise Exception, e # Reraise exception
+            else:
+                # Pass control to default boundary
+                res = self.default_boundary.evaluate(vol_id, edge_id)
+                
+                # Ensure that result cannot be manipulated
+                # This is a real danger in case the 
+                # default_boundary is a Dirichlet type 
+                # for instance. 
+                res = res.copy() 
+                
+                if self.default_boundary_invoked is False:
+                    if self.verbose:                
+                        # Issue warning the first time
+                        msg = '%s' %str(e)
+                        msg += 'Instead I will use the default boundary: %s\n'\
+                            %str(self.default_boundary) 
+                        msg += 'Note: Further warnings will be supressed'
+                        log.critical(msg)
+               
+                    # FIXME (Ole): Replace this crude flag with
+                    # Python's ability to print warnings only once.
+                    # See http://docs.python.org/lib/warning-filter.html
+                    self.default_boundary_invoked = True
+
+        return res
 
 class File_boundary(Boundary):
     """The File_boundary reads values for the conserved

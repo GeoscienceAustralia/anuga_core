@@ -47,7 +47,7 @@ yieldstep = 1
 finaltime = 20
 quantity = 'stage'
 nprocs = 4
-verbose = True
+verbose = False
 
 #--------------------------------------------------------------------------
 # Setup procedures

@@ -48,6 +48,142 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         assert num.allclose(q, x)
 
 
+    def test_time(self):
+        from quantity import Quantity
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0,0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0,0.0]
+
+        points = [a, b, c, d, e, f]
+
+        #bac, bce, ecf, dbe
+        elements = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4] ]
+
+        domain = Domain(points, elements)
+        domain.check_integrity()
+
+        domain.conserved_quantities = ['stage', 'ymomentum']
+        domain.quantities['stage'] =\
+                                   Quantity(domain, [[1,2,3], [5,5,5],
+                                                     [0,0,9], [-6, 3, 3]])
+
+        domain.quantities['ymomentum'] =\
+                                   Quantity(domain, [[2,3,4], [5,5,5],
+                                                     [0,0,9], [-6, 3, 3]])
+
+
+        domain.check_integrity()
+
+        #Test time bdry, you need to provide a domain and function
+        try:
+            T = Time_boundary(domain)
+        except:
+            pass
+        else:
+            raise 'Should have raised exception'
+
+        #Test time bdry, you need to provide a function
+        try:
+            T = Time_boundary()
+        except:
+            pass
+        else:
+            raise 'Should have raised exception'
+
+
+        def function(t):
+            return [1.0, 0.0]
+        
+        T = Time_boundary(domain, function)
+
+        from anuga.config import default_boundary_tag
+        domain.set_boundary( {default_boundary_tag: T} )
+
+
+        #FIXME: should not necessarily be true always.
+        #E.g. with None as a boundary object.
+        assert len(domain.boundary) == len(domain.boundary_objects)
+
+        q = T.evaluate(0, 2)  #Vol=0, edge=2
+
+        assert num.allclose(q, [1.0, 0.0])
+
+
+    def test_time_space_boundary(self):
+        from quantity import Quantity
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0,0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0,0.0]
+
+        points = [a, b, c, d, e, f]
+
+        #bac, bce, ecf, dbe
+        elements = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4] ]
+
+        domain = Domain(points, elements)
+        domain.check_integrity()
+
+        domain.conserved_quantities = ['stage', 'ymomentum']
+        domain.quantities['stage'] =\
+                                   Quantity(domain, [[1,2,3], [5,5,5],
+                                                     [0,0,9], [-6, 3, 3]])
+
+        domain.quantities['ymomentum'] =\
+                                   Quantity(domain, [[2,3,4], [5,5,5],
+                                                     [0,0,9], [-6, 3, 3]])
+
+
+        domain.check_integrity()
+
+        #Test time space bdry, you need to provide a domain and function
+        try:
+            T = Time_space_boundary(domain)
+        except:
+            pass
+        else:
+            raise 'Should have raised exception'
+
+        #Test time bdry, you need to provide a function
+        try:
+            T = Time_space_boundary()
+        except:
+            pass
+        else:
+            raise 'Should have raised exception'
+
+
+        def function(t,x,y):
+            return [x,y]
+        
+        T = Time_space_boundary(domain, function)
+
+        from anuga.config import default_boundary_tag
+        domain.set_boundary( {default_boundary_tag: T} )
+
+
+        #FIXME: should not necessarily be true always.
+        #E.g. with None as a boundary object.
+        assert len(domain.boundary) == len(domain.boundary_objects)
+
+        q = T.evaluate(0, 2)  #Vol=0, edge=2
+        assert num.allclose(q, domain.get_edge_midpoint_coordinate(0,2))
+
+
+        q = T.evaluate(1, 1)  #Vol=0, edge=2
+        assert num.allclose(q, domain.get_edge_midpoint_coordinate(1,1))        
+
+
+
+
+
     def test_transmissive(self):
         from quantity import Quantity
 

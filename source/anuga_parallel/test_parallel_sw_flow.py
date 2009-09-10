@@ -36,7 +36,7 @@ finaltime = 6.0
 nprocs = 4
 N = 25
 M = 25
-verbose =  True
+verbose = False
 
 #---------------------------------
 # Setup Functions
