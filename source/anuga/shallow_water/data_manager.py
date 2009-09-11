@@ -3559,7 +3559,7 @@ def sww2domain(filename, boundary=None, t=None,
     the boundary file will not be compatable with the coordinates, and will
     give a different final boundary, or crash.
     """
-
+    
     from Scientific.IO.NetCDF import NetCDFFile
     from shallow_water import Domain
 
@@ -3643,6 +3643,8 @@ def sww2domain(filename, boundary=None, t=None,
     if unique:
         coordinates, volumes, boundary = weed(coordinates, volumes,boundary)
 
+      
+    
     try:
         domain = Domain(coordinates, volumes, boundary)
     except AssertionError, e:

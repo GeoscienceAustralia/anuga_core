@@ -3715,6 +3715,7 @@ END CROSS-SECTIONS:
         #Same as previous test, but this checks how NaNs are handled.
         ##################################################################
 
+        #FIXME: See ticket 223
 
         from mesh_factory import rectangular
 
@@ -3761,15 +3762,39 @@ END CROSS-SECTIONS:
 
         filename = domain.datadir + os.sep + domain.get_name() + '.sww'
 
-        #Fail because NaNs are present
+        # Fail because NaNs are present
+        #domain2 = sww2domain(filename,
+        #                     boundary,
+        #                     fail_if_NaN=True,
+        #                     verbose=self.verbose)        
         try:
-            domain2 = sww2domain(filename,boundary,fail_if_NaN=True,verbose=self.verbose)
-        except:
-            #Now import it, filling NaNs to be 0
-            filler = 0
-            domain2 = sww2domain(filename,None,fail_if_NaN=False,NaN_filler = filler,verbose=self.verbose)
+            domain2 = sww2domain(filename,
+                                 boundary,
+                                 fail_if_NaN=True,
+                                 verbose=self.verbose)
+        except DataDomainError:
+            # Now import it, filling NaNs to be -9999
+            filler = -9999
+            domain2 = sww2domain(filename,
+                                 None,
+                                 fail_if_NaN=False,
+                                 NaN_filler=filler,
+                                 verbose=self.verbose)
+        else:
+            raise Exception, 'should have failed'
 
-        #Clean up
+            
+        # Now import it, filling NaNs to be 0
+        filler = -9999
+        domain2 = sww2domain(filename,
+                             None,
+                             fail_if_NaN=False,
+                             NaN_filler=filler,
+                             verbose=self.verbose)            
+                             
+        import sys; sys.exit() 
+            
+        # Clean up
         os.remove(filename)
 
 
@@ -3785,8 +3810,15 @@ END CROSS-SECTIONS:
         #    print 'testing that domain.'+bit+' has been restored'
             assert num.allclose(eval('domain.'+bit),eval('domain2.'+bit))
 
-        #print filler
-        #print max(max(domain2.get_quantity('xmomentum').get_values()))
+        print 
+        print
+        print domain2.get_quantity('xmomentum').get_values()
+        print
+        print domain2.get_quantity('stage').get_values()
+        print
+             
+        print 'filler', filler
+        print max(domain2.get_quantity('xmomentum').get_values().flat)
         
         assert max(max(domain2.get_quantity('xmomentum').get_values()))==filler
         assert min(min(domain2.get_quantity('xmomentum').get_values()))==filler
@@ -11678,7 +11710,9 @@ ValueError: matrices are not aligned for copy
 #-------------------------------------------------------------
 
 if __name__ == "__main__":
+    #suite = unittest.makeSuite(Test_Data_Manager, 'test_sww2domain2')
     suite = unittest.makeSuite(Test_Data_Manager, 'test')
+    
     
     
     # FIXME(Ole): When Ross has implemented logging, we can 
