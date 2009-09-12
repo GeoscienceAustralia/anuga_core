@@ -25,7 +25,7 @@ os.chdir('anuga_parallel')
 print
 print '===================== anuga_parallel tests =========================='
 print 'Changing to', os.getcwd()
-execfile('test_all.py')
+# execfile('test_all.py')
 
 print
 print '************************** NOTE *************************************'
