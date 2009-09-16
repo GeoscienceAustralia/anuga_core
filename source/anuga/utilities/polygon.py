@@ -704,6 +704,7 @@ def plot_polygons(polygons_points,
     style            - style list corresponding to each polygon
                      - for a polygon, use 'line'
                      - for points falling outside a polygon, use 'outside'
+                     - style can also be user defined as in normal pylab plot.
 
     figname          - name to save figure to
 
@@ -746,7 +747,7 @@ def plot_polygons(polygons_points,
             if s == 'outside': colour.append('r.')
             if s <> 'line':
                 if s <> 'outside':
-                    colour.append('g.')
+                    colour.append(s)
 
     for i, item in enumerate(polygons_points):
         x, y = poly_xy(item)
