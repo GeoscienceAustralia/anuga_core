@@ -694,6 +694,7 @@ def plot_polygons(polygons_points,
                   style=None,
                   figname=None,
                   label=None,
+                  alpha=None,
                   verbose=False):
     """ Take list of polygons and plot.
 
@@ -708,7 +709,10 @@ def plot_polygons(polygons_points,
 
     figname          - name to save figure to
 
-    label            - title for plot
+    label            - title for plotA
+
+    alpha            - transparency of polygon fill, 0.0=none, 1.0=solid
+                       if not supplied, no fill.
 
     Outputs:
 
@@ -717,7 +721,7 @@ def plot_polygons(polygons_points,
     """
 
     from pylab import ion, hold, plot, axis, figure, legend, savefig, xlabel, \
-                      ylabel, title, close, title
+                      ylabel, title, close, title, fill
 
     assert type(polygons_points) == list, \
                 'input must be a list of polygons and/or points'
@@ -732,6 +736,18 @@ def plot_polygons(polygons_points,
 
     if label is None:
         label = ''
+
+    # clamp alpha to sensible range
+    if alpha:
+        try:
+            alpha = float(alpha)
+        except ValueError:
+            alpha = None
+        else:
+            if alpha < 0.0:
+                alpha = 0.0
+            if alpha > 1.0:
+                alpha = 1.0
 
     n = len(polygons_points)
     colour = []
@@ -756,6 +772,8 @@ def plot_polygons(polygons_points,
         if min(y) < miny: miny = min(y)
         if max(y) > maxy: maxy = max(y)
         plot(x,y,colour[i])
+        if alpha:
+            fill(x, y, colour[i], alpha=alpha)
         xlabel('x')
         ylabel('y')
         title(label)
