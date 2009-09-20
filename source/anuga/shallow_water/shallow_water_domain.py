@@ -146,6 +146,7 @@ class Domain(Generic_Domain):
     # @param mesh_filename
     # @param use_cache
     # @param verbose
+    # @param evolved_quantities
     # @param full_send_dict
     # @param ghost_recv_dict
     # @param processor
@@ -162,6 +163,8 @@ class Domain(Generic_Domain):
                  mesh_filename=None,
                  use_cache=False,
                  verbose=False,
+                 evolved_quantities = None,
+                 other_quantities = None,
                  full_send_dict=None,
                  ghost_recv_dict=None,
                  processor=0,
@@ -170,14 +173,17 @@ class Domain(Generic_Domain):
                  number_of_full_triangles=None):
 
         # Define quantities for the shallow_water domain         
-        conserved_quantities = ['stage', 'xmomentum', 'ymomentum']         
-        other_quantities = ['elevation', 'friction']
+        conserved_quantities = ['stage', 'xmomentum', 'ymomentum']
+
+        if other_quantities == None:
+            other_quantities = ['elevation', 'friction']
         
         Generic_Domain.__init__(self,
                                 coordinates,
                                 vertices,
                                 boundary,
                                 conserved_quantities,
+                                evolved_quantities,                                
                                 other_quantities,
                                 tagged_elements,
                                 geo_reference,
@@ -207,6 +213,7 @@ class Domain(Generic_Domain):
         self.tight_slope_limiters = tight_slope_limiters
         self.optimise_dry_cells = optimise_dry_cells
 
+        self.use_new_mannings = False
         self.forcing_terms.append(manning_friction_implicit)
         self.forcing_terms.append(gravity)
 
@@ -224,6 +231,38 @@ class Domain(Generic_Domain):
         self.optimised_gradient_limiter = optimised_gradient_limiter
         self.use_centroid_velocities = use_centroid_velocities
 
+
+    ##
+    # @brief
+    # @param flag
+    def set_new_mannings_function(self, flag=True):
+        """Cludge to allow unit test to pass, but to
+        also introduce new mannings friction function
+        which takes into account the slope of the bed.
+        The flag is tested in the python wrapper
+        mannings_friction_implicit
+        """
+        if flag:
+            self.use_new_mannings = True
+        else:
+            self.use_new_mannings = False
+
+
+    ##
+    # @brief
+    # @param flag
+    def set_use_edge_limiter(self, flag=True):
+        """Cludge to allow unit test to pass, but to
+        also introduce new edge limiting. The flag is
+        tested in distribute_to_vertices_and_edges
+        """
+        if flag:
+            self.use_edge_limiter = True
+        else:
+            self.use_edge_limiter = False
+
+
+          
     ##
     # @brief
     # @param beta
@@ -488,67 +527,6 @@ class Domain(Generic_Domain):
 
 
 
-
-    ##
-    # @brief Get the total flow through an arbitrary poly line.
-    # @param polyline Representation of desired cross section.
-    # @param verbose True if this method is to be verbose.
-    # @note 'polyline' may contain multiple sections allowing complex shapes.
-    # @note Assume absolute UTM coordinates.
-    def old_get_flow_through_cross_section(self, polyline, verbose=False):
-        """Get the total flow through an arbitrary poly line.
-
-        This is a run-time equivalent of the function with same name
-        in data_manager.py
-
-        Input:
-            polyline: Representation of desired cross section - it may contain
-                      multiple sections allowing for complex shapes. Assume
-                      absolute UTM coordinates.
-                      Format [[x0, y0], [x1, y1], ...]
-
-        Output:
-            Q: Total flow [m^3/s] across given segments.
-        """
-
-        # Find all intersections and associated triangles.
-        segments = self.get_intersecting_segments(polyline, use_cache=True,
-                                                  verbose=verbose)
-
-        # Get midpoints
-        midpoints = segment_midpoints(segments)
-
-        # Make midpoints Geospatial instances
-        midpoints = ensure_geospatial(midpoints, self.geo_reference)
-
-        # Compute flow
-        if verbose:
-            log.critical('Computing flow through specified cross section')
-
-        # Get interpolated values
-        xmomentum = self.get_quantity('xmomentum')
-        ymomentum = self.get_quantity('ymomentum')
-
-        uh = xmomentum.get_values(interpolation_points=midpoints,
-                                  use_cache=True)
-        vh = ymomentum.get_values(interpolation_points=midpoints,
-                                  use_cache=True)
-
-        # Compute and sum flows across each segment
-        total_flow = 0
-        for i in range(len(uh)):
-            # Inner product of momentum vector with segment normal [m^2/s]
-            normal = segments[i].normal
-            normal_momentum = uh[i]*normal[0] + vh[i]*normal[1]
-
-            # Flow across this segment [m^3/s]
-            segment_flow = normal_momentum*segments[i].length
-
-            # Accumulate
-            total_flow += segment_flow
-
-        return total_flow
-
     ##
     # @brief 
     # @param polyline Representation of desired cross section.
@@ -588,103 +566,6 @@ class Domain(Generic_Domain):
         cross_section = Cross_section(self, polyline, verbose)
 
         return cross_section.get_energy_through_cross_section(kind)
-
-
-    ##
-    # @brief 
-    # @param polyline Representation of desired cross section.
-    # @param kind Select energy type to compute ('specific' or 'total').
-    # @param verbose True if this method is to be verbose.
-    # @note 'polyline' may contain multiple sections allowing complex shapes.
-    # @note Assume absolute UTM coordinates.
-    def old_get_energy_through_cross_section(self, polyline,
-                                         kind='total',
-                                         verbose=False):
-        """Obtain average energy head [m] across specified cross section.
-
-        Inputs:
-            polyline: Representation of desired cross section - it may contain
-                      multiple sections allowing for complex shapes. Assume
-                      absolute UTM coordinates.
-                      Format [[x0, y0], [x1, y1], ...]
-            kind:     Select which energy to compute.
-                      Options are 'specific' and 'total' (default)
-
-        Output:
-            E: Average energy [m] across given segments for all stored times.
-
-        The average velocity is computed for each triangle intersected by
-        the polyline and averaged weighted by segment lengths.
-
-        The typical usage of this function would be to get average energy of
-        flow in a channel, and the polyline would then be a cross section
-        perpendicular to the flow.
-
-        #FIXME (Ole) - need name for this energy reflecting that its dimension
-        is [m].
-        """
-
-        from anuga.config import g, epsilon, velocity_protection as h0
-
-        # Find all intersections and associated triangles.
-        segments = self.get_intersecting_segments(polyline, use_cache=True,
-                                                  verbose=verbose)
-
-        # Get midpoints
-        midpoints = segment_midpoints(segments)
-
-        # Make midpoints Geospatial instances
-        midpoints = ensure_geospatial(midpoints, self.geo_reference)
-
-        # Compute energy
-        if verbose: log.critical('Computing %s energy' % kind)
-
-        # Get interpolated values
-        stage = self.get_quantity('stage')
-        elevation = self.get_quantity('elevation')
-        xmomentum = self.get_quantity('xmomentum')
-        ymomentum = self.get_quantity('ymomentum')
-
-        w = stage.get_values(interpolation_points=midpoints, use_cache=True)
-        z = elevation.get_values(interpolation_points=midpoints, use_cache=True)
-        uh = xmomentum.get_values(interpolation_points=midpoints,
-                                  use_cache=True)
-        vh = ymomentum.get_values(interpolation_points=midpoints,
-                                  use_cache=True)
-        h = w-z                # Depth
-
-        # Compute total length of polyline for use with weighted averages
-        total_line_length = 0.0
-        for segment in segments:
-            total_line_length += segment.length
-
-        # Compute and sum flows across each segment
-        average_energy = 0.0
-        for i in range(len(w)):
-            # Average velocity across this segment
-            if h[i] > epsilon:
-                # Use protection against degenerate velocities
-                u = uh[i]/(h[i] + h0/h[i])
-                v = vh[i]/(h[i] + h0/h[i])
-            else:
-                u = v = 0.0
-
-            speed_squared = u*u + v*v
-            kinetic_energy = 0.5*speed_squared/g
-
-            if kind == 'specific':
-                segment_energy = h[i] + kinetic_energy
-            elif kind == 'total':
-                segment_energy = w[i] + kinetic_energy
-            else:
-                msg = 'Energy kind must be either "specific" or "total".'
-                msg += ' I got %s' %kind
-
-            # Add to weighted average
-            weigth = segments[i].length/total_line_length
-            average_energy += segment_energy*weigth
-
-        return average_energy
 
 
     ##
@@ -1865,8 +1746,8 @@ def gravity(domain):
 
     from shallow_water_ext import gravity as gravity_c
 
-    xmom = domain.quantities['xmomentum'].explicit_update
-    ymom = domain.quantities['ymomentum'].explicit_update
+    xmom_update = domain.quantities['xmomentum'].explicit_update
+    ymom_update = domain.quantities['ymomentum'].explicit_update
 
     stage = domain.quantities['stage']
     elevation = domain.quantities['elevation']
@@ -1877,7 +1758,7 @@ def gravity(domain):
     x = domain.get_vertex_coordinates()
     g = domain.g
 
-    gravity_c(g, h, z, x, xmom, ymom)    #, 1.0e-6)
+    gravity_c(g, h, z, x, xmom_update, ymom_update)    #, 1.0e-6)
 
 ##
 # @brief Apply friction to a surface (implicit).
@@ -1888,13 +1769,16 @@ def manning_friction_implicit(domain):
     Wrapper for c version
     """
 
-    from shallow_water_ext import manning_friction as manning_friction_c
+    from shallow_water_ext import manning_friction_old
+    from shallow_water_ext import manning_friction_new
 
     xmom = domain.quantities['xmomentum']
     ymom = domain.quantities['ymomentum']
 
+    x = domain.get_vertex_coordinates()
+    
     w = domain.quantities['stage'].centroid_values
-    z = domain.quantities['elevation'].centroid_values
+    z = domain.quantities['elevation'].vertex_values
 
     uh = xmom.centroid_values
     vh = ymom.centroid_values
@@ -1907,7 +1791,11 @@ def manning_friction_implicit(domain):
     eps = domain.minimum_allowed_height
     g = domain.g
 
-    manning_friction_c(g, eps, w, z, uh, vh, eta, xmom_update, ymom_update)
+    if domain.use_new_mannings:
+        manning_friction_new(g, eps, x, w, uh, vh, z, eta, xmom_update, ymom_update)
+    else:
+        manning_friction_old(g, eps, w, uh, vh, z, eta, xmom_update, ymom_update)
+    
 
 ##
 # @brief Apply friction to a surface (explicit).
@@ -1918,13 +1806,16 @@ def manning_friction_explicit(domain):
     Wrapper for c version
     """
 
-    from shallow_water_ext import manning_friction as manning_friction_c
+    from shallow_water_ext import manning_friction_old
+    from shallow_water_ext import manning_friction_new
 
     xmom = domain.quantities['xmomentum']
     ymom = domain.quantities['ymomentum']
 
+    x = domain.get_vertex_coordinates()
+    
     w = domain.quantities['stage'].centroid_values
-    z = domain.quantities['elevation'].centroid_values
+    z = domain.quantities['elevation'].vertex_values
 
     uh = xmom.centroid_values
     vh = ymom.centroid_values
@@ -1937,7 +1828,12 @@ def manning_friction_explicit(domain):
     eps = domain.minimum_allowed_height
     g = domain.g
 
-    manning_friction_c(g, eps, w, z, uh, vh, eta, xmom_update, ymom_update)
+
+    if domain.use_new_mannings:
+        manning_friction_new(g, eps, x, w, uh, vh, z, eta, xmom_update, ymom_update)
+    else:
+        manning_friction_old(g, eps, w, uh, vh, z, eta, xmom_update, ymom_update)
+
 
 
 # FIXME (Ole): This was implemented for use with one of the analytical solutions (Sampson?)

@@ -1866,8 +1866,9 @@ class Test_Quantity(unittest.TestCase):
         denom = num.ones(4, num.float)-timestep*sem
 
         x = num.array([1., 2., 3., 4.])
+        x += timestep*num.array( [4.0, 3.0, 2.0, 1.0] )        
         x /= denom
-        x += timestep*num.array( [4.0, 3.0, 2.0, 1.0] )
+
 
         assert num.allclose( quantity.centroid_values, x)
 

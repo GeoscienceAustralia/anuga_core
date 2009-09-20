@@ -515,17 +515,23 @@ int flux_function_kinetic(double *q_left, double *q_right,
 
 
 
-void _manning_friction(double g, double eps, int N,
-               double* w, double* z,
+void _manning_friction_old(double g, double eps, int N,
+               double* w, double* zv,
                double* uh, double* vh,
                double* eta, double* xmom, double* ymom) {
 
-  int k;
-  double S, h;
+  int k, k3;
+  double S, h, z, z0, z1, z2;
 
   for (k=0; k<N; k++) {
     if (eta[k] > eps) {
-      h = w[k]-z[k];
+      k3 = 3*k;
+      // Get bathymetry
+      z0 = zv[k3 + 0];
+      z1 = zv[k3 + 1];
+      z2 = zv[k3 + 2];
+      z = (z0+z1+z2)/3.0;
+      h = w[k]-z;
       if (h >= eps) {
         S = -g * eta[k]*eta[k] * sqrt((uh[k]*uh[k] + vh[k]*vh[k]));
         S /= pow(h, 7.0/3);      //Expensive (on Ole's home computer)
@@ -541,6 +547,53 @@ void _manning_friction(double g, double eps, int N,
   }
 }
 
+
+void _manning_friction_new(double g, double eps, int N,
+			   double* x, double* w, double* zv,
+			   double* uh, double* vh,
+			   double* eta, double* xmom_update, double* ymom_update) {
+
+  int k, k3, k6;
+  double S, h, z, z0, z1, z2, zs, zx, zy;
+  double x0,y0,x1,y1,x2,y2;
+
+  for (k=0; k<N; k++) {
+    if (eta[k] > eps) {
+      k3 = 3*k;
+      // Get bathymetry
+      z0 = zv[k3 + 0];
+      z1 = zv[k3 + 1];
+      z2 = zv[k3 + 2];
+
+      // Compute bed slope
+      k6 = 6*k;  // base index
+  
+      x0 = x[k6 + 0];
+      y0 = x[k6 + 1];
+      x1 = x[k6 + 2];
+      y1 = x[k6 + 3];
+      x2 = x[k6 + 4];
+      y2 = x[k6 + 5];
+
+      _gradient(x0, y0, x1, y1, x2, y2, z0, z1, z2, &zx, &zy);
+
+      zs = sqrt(1.0 + zx*zx + zy*zy);
+      z = (z0+z1+z2)/3.0;
+      h = w[k]-z;
+      if (h >= eps) {
+        S = -g * eta[k]*eta[k] * zs * sqrt((uh[k]*uh[k] + vh[k]*vh[k]));
+        S /= pow(h, 7.0/3);      //Expensive (on Ole's home computer)
+        //S /= exp((7.0/3.0)*log(h));      //seems to save about 15% over manning_friction
+        //S /= h*h*(1 + h/3.0 - h*h/9.0); //FIXME: Could use a Taylor expansion
+
+
+        //Update momentum
+        xmom_update[k] += S*uh[k];
+        ymom_update[k] += S*vh[k];
+      }
+    }
+  }
+}
 
 /*
 void _manning_friction_explicit(double g, double eps, int N,
@@ -1042,9 +1095,51 @@ PyObject *gravity(PyObject *self, PyObject *args) {
 }
 
 
-PyObject *manning_friction(PyObject *self, PyObject *args) {
+PyObject *manning_friction_new(PyObject *self, PyObject *args) {
   //
-  // manning_friction(g, eps, h, uh, vh, eta, xmom_update, ymom_update)
+  // manning_friction_new(g, eps, x, h, uh, vh, z, eta, xmom_update, ymom_update)
+  //
+
+
+  PyArrayObject *x, *w, *z, *uh, *vh, *eta, *xmom, *ymom;
+  int N;
+  double g, eps;
+
+  if (!PyArg_ParseTuple(args, "ddOOOOOOOO",
+			&g, &eps, &x, &w, &uh, &vh, &z,  &eta, &xmom, &ymom)) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: manning_friction_new could not parse input arguments");
+    return NULL;
+  }
+
+  // check that numpy array objects arrays are C contiguous memory
+  CHECK_C_CONTIG(x);
+  CHECK_C_CONTIG(w);
+  CHECK_C_CONTIG(z);
+  CHECK_C_CONTIG(uh);
+  CHECK_C_CONTIG(vh);
+  CHECK_C_CONTIG(eta);
+  CHECK_C_CONTIG(xmom);
+  CHECK_C_CONTIG(ymom);
+
+  N = w -> dimensions[0];
+
+  _manning_friction_new(g, eps, N,
+			(double*) x -> data,
+			(double*) w -> data,
+			(double*) z -> data,
+			(double*) uh -> data,
+			(double*) vh -> data,
+			(double*) eta -> data,
+			(double*) xmom -> data,
+			(double*) ymom -> data);
+
+  return Py_BuildValue("");
+}
+
+
+PyObject *manning_friction_old(PyObject *self, PyObject *args) {
+  //
+  // manning_friction_old(g, eps, h, uh, vh, z, eta, xmom_update, ymom_update)
   //
 
 
@@ -1053,9 +1148,8 @@ PyObject *manning_friction(PyObject *self, PyObject *args) {
   double g, eps;
 
   if (!PyArg_ParseTuple(args, "ddOOOOOOO",
-            &g, &eps, &w, &z, &uh, &vh, &eta,
-            &xmom, &ymom)) {
-    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: manning_friction could not parse input arguments");
+			&g, &eps, &w, &uh, &vh, &z,  &eta, &xmom, &ymom)) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: manning_friction_old could not parse input arguments");
     return NULL;
   }
 
@@ -1069,14 +1163,15 @@ PyObject *manning_friction(PyObject *self, PyObject *args) {
   CHECK_C_CONTIG(ymom);
 
   N = w -> dimensions[0];
-  _manning_friction(g, eps, N,
-            (double*) w -> data,
-            (double*) z -> data,
-            (double*) uh -> data,
-            (double*) vh -> data,
-            (double*) eta -> data,
-            (double*) xmom -> data,
-            (double*) ymom -> data);
+
+  _manning_friction_old(g, eps, N,
+			(double*) w -> data,
+			(double*) z -> data,
+			(double*) uh -> data,
+			(double*) vh -> data,
+			(double*) eta -> data,
+			(double*) xmom -> data,
+			(double*) ymom -> data);
 
   return Py_BuildValue("");
 }
@@ -2720,7 +2815,8 @@ static struct PyMethodDef MethodTable[] = {
   {"compute_fluxes_ext_central_new", compute_fluxes_ext_central_new, METH_VARARGS, "Print out"},
   {"compute_fluxes_ext_kinetic", compute_fluxes_ext_kinetic, METH_VARARGS, "Print out"},
   {"gravity", gravity, METH_VARARGS, "Print out"},
-  {"manning_friction", manning_friction, METH_VARARGS, "Print out"},
+  {"manning_friction_old", manning_friction_old, METH_VARARGS, "Print out"},
+  {"manning_friction_new", manning_friction_new, METH_VARARGS, "Print out"},
   {"flux_function_central", flux_function_central, METH_VARARGS, "Print out"},  
   {"balance_deep_and_shallow", balance_deep_and_shallow,
    METH_VARARGS, "Print out"},

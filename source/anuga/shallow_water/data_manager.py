@@ -2483,6 +2483,12 @@ def sww2dem(basename_in, basename_out=None,
         #Get bounding polygon from mesh
         #P = interp.mesh.get_boundary_polygon()
         #inside_indices = inside_polygon(grid_points, P)
+
+        # change printoptions so that a long string of zeros in not
+        # summarized as [0.0, 0.0, 0.0, ... 0.0, 0.0, 0.0]
+        printoptions = num.get_printoptions()
+        num.set_printoptions(threshold=sys.maxint)
+
         for i in range(nrows):
             if verbose and i % ((nrows+10)/10) == 0:
                 log.critical('Doing row %d of %d' % (i, nrows))
@@ -2491,10 +2497,13 @@ def sww2dem(basename_in, basename_out=None,
 
             slice = grid_values[base_index:base_index+ncols]
             #s = array2string(slice, max_line_width=sys.maxint)
+
             s = num.array2string(slice, max_line_width=sys.maxint,
                                  precision=number_of_decimal_places)
             ascid.write(s[1:-1] + '\n')
 
+        num.set_printoptions(threshold=printoptions['threshold'])
+        
         #Close
         ascid.close()
         fid.close()
@@ -5881,7 +5890,7 @@ class Write_sww:
     ##
     # brief Instantiate the SWW writer class.
     def __init__(self, static_quantities, dynamic_quantities):
-        """Initialise SWW writer with two list af quantity names: 
+        """Initialise Write_sww with two list af quantity names: 
         
         static_quantities (e.g. elevation or friction): 
             Stored once at the beginning of the simulation in a 1D array

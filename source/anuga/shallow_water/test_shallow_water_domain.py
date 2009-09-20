@@ -2066,6 +2066,163 @@ class Test_Shallow_Water(unittest.TestCase):
         assert num.allclose(domain.quantities['ymomentum'].semi_implicit_update,
                             4*S)
 
+
+
+    def test_manning_friction_old(self):
+        from anuga.config import g
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #             bac,     bce,     ecf,     dbe
+        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices)
+
+        #Set up for a gradient of (3,0) at mid triangle (bce)
+        def slope(x, y):
+            return 3*x
+
+        h = 0.1
+        def stage(x, y):
+            return slope(x, y) + h
+
+        eta = 0.07
+        domain.set_quantity('elevation', slope)
+        domain.set_quantity('stage', stage)
+        domain.set_quantity('friction', eta)
+
+        for name in domain.conserved_quantities:
+            assert num.allclose(domain.quantities[name].explicit_update, 0)
+            assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
+
+        domain.compute_forcing_terms()
+
+        assert num.allclose(domain.quantities['stage'].explicit_update, 0)
+        assert num.allclose(domain.quantities['xmomentum'].explicit_update,
+                            -g*h*3)
+        assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
+
+        assert num.allclose(domain.quantities['stage'].semi_implicit_update, 0)
+        assert num.allclose(domain.quantities['xmomentum'].semi_implicit_update,
+                            0)
+        assert num.allclose(domain.quantities['ymomentum'].semi_implicit_update,
+                            0)
+
+        #Create some momentum for friction to work with
+        domain.set_quantity('xmomentum', 1)
+        S = -g*eta**2 / h**(7.0/3)
+
+        domain.compute_forcing_terms()
+        assert num.allclose(domain.quantities['stage'].semi_implicit_update, 0)
+        assert num.allclose(domain.quantities['xmomentum'].semi_implicit_update,
+                            S)
+        assert num.allclose(domain.quantities['ymomentum'].semi_implicit_update,
+                            0)
+
+        #A more complex example
+        domain.quantities['stage'].semi_implicit_update[:] = 0.0
+        domain.quantities['xmomentum'].semi_implicit_update[:] = 0.0
+        domain.quantities['ymomentum'].semi_implicit_update[:] = 0.0
+
+        domain.set_quantity('xmomentum', 3)
+        domain.set_quantity('ymomentum', 4)
+
+        S = -g*eta**2*5 / h**(7.0/3)
+
+        domain.compute_forcing_terms()
+
+        assert num.allclose(domain.quantities['stage'].semi_implicit_update, 0)
+        assert num.allclose(domain.quantities['xmomentum'].semi_implicit_update,
+                            3*S)
+        assert num.allclose(domain.quantities['ymomentum'].semi_implicit_update,
+                            4*S)
+
+
+    def test_manning_friction_new(self):
+        from anuga.config import g
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #             bac,     bce,     ecf,     dbe
+        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices)
+
+        # Use the new function which takes into account the extra
+        # wetted area due to slope of bed
+        domain.set_new_mannings_function(True)
+        
+        #Set up for a gradient of (3,0) at mid triangle (bce)
+        def slope(x, y):
+            return 3*x
+
+        h = 0.1
+        def stage(x, y):
+            return slope(x, y) + h
+
+        eta = 0.07
+        domain.set_quantity('elevation', slope)
+        domain.set_quantity('stage', stage)
+        domain.set_quantity('friction', eta)
+
+        for name in domain.conserved_quantities:
+            assert num.allclose(domain.quantities[name].explicit_update, 0)
+            assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
+
+        domain.compute_forcing_terms()
+
+        assert num.allclose(domain.quantities['stage'].explicit_update, 0)
+        assert num.allclose(domain.quantities['xmomentum'].explicit_update,
+                            -g*h*3)
+        assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
+
+        assert num.allclose(domain.quantities['stage'].semi_implicit_update, 0)
+        assert num.allclose(domain.quantities['xmomentum'].semi_implicit_update,
+                            0)
+        assert num.allclose(domain.quantities['ymomentum'].semi_implicit_update,
+                            0)
+
+        #Create some momentum for friction to work with
+        domain.set_quantity('xmomentum', 1)
+        S = -g*eta**2 / h**(7.0/3) * sqrt(10)
+
+        domain.compute_forcing_terms()
+        assert num.allclose(domain.quantities['stage'].semi_implicit_update, 0)
+        assert num.allclose(domain.quantities['xmomentum'].semi_implicit_update,
+                            S)
+        assert num.allclose(domain.quantities['ymomentum'].semi_implicit_update,
+                            0)
+
+        #A more complex example
+        domain.quantities['stage'].semi_implicit_update[:] = 0.0
+        domain.quantities['xmomentum'].semi_implicit_update[:] = 0.0
+        domain.quantities['ymomentum'].semi_implicit_update[:] = 0.0
+
+        domain.set_quantity('xmomentum', 3)
+        domain.set_quantity('ymomentum', 4)
+
+        S = -g*eta**2*5 / h**(7.0/3) * sqrt(10.0)
+
+        domain.compute_forcing_terms()
+
+        assert num.allclose(domain.quantities['stage'].semi_implicit_update, 0)
+        assert num.allclose(domain.quantities['xmomentum'].semi_implicit_update,
+                            3*S)
+        assert num.allclose(domain.quantities['ymomentum'].semi_implicit_update,
+                            4*S)
+        
     def test_constant_wind_stress(self):
         from anuga.config import rho_a, rho_w, eta_w
         from math import pi, cos, sin
@@ -7333,7 +7490,7 @@ friction  \n \
 #################################################################################
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Shallow_Water, 'test_volumetric_balance')
-    #suite = unittest.makeSuite(Test_Shallow_Water, 'test')
+    #suite = unittest.makeSuite(Test_Shallow_Water, 'test_volumetric_balance')
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)

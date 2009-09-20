@@ -34,7 +34,7 @@ class Test_Domain(unittest.TestCase):
         other_quantities = ['elevation', 'friction']
 
         domain = Domain(points, vertices, None,
-                        conserved_quantities, other_quantities)
+                        conserved_quantities, None, other_quantities)
         domain.check_integrity()
 
         for name in conserved_quantities + other_quantities:

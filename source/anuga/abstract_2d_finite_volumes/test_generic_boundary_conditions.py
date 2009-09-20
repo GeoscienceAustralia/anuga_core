@@ -67,6 +67,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         domain.check_integrity()
 
         domain.conserved_quantities = ['stage', 'ymomentum']
+        domain.evolved_quantities = ['stage', 'ymomentum']        
         domain.quantities['stage'] =\
                                    Quantity(domain, [[1,2,3], [5,5,5],
                                                      [0,0,9], [-6, 3, 3]])
@@ -132,6 +133,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         domain.check_integrity()
 
         domain.conserved_quantities = ['stage', 'ymomentum']
+        domain.evolved_quantities = ['stage', 'ymomentum']        
         domain.quantities['stage'] =\
                                    Quantity(domain, [[1,2,3], [5,5,5],
                                                      [0,0,9], [-6, 3, 3]])
@@ -177,7 +179,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         assert num.allclose(q, domain.get_edge_midpoint_coordinate(0,2))
 
 
-        q = T.evaluate(1, 1)  #Vol=0, edge=2
+        q = T.evaluate(1, 1)  #Vol=1, edge=1
         assert num.allclose(q, domain.get_edge_midpoint_coordinate(1,1))        
 
 
@@ -203,6 +205,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         domain.check_integrity()
 
         domain.conserved_quantities = ['stage', 'ymomentum']
+        domain.evolved_quantities = ['stage', 'ymomentum']        
         domain.quantities['stage'] =\
                                    Quantity(domain, [[1,2,3], [5,5,5],
                                                      [0,0,9], [-6, 3, 3]])
@@ -361,6 +364,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
 
         domain = Domain(points, elements)
         domain.conserved_quantities = ['stage', 'xmomentum', 'ymomentum']
+        domain.evolved_quantities = ['stage', 'xmomentum', 'ymomentum']
         domain.quantities['stage'] =\
                                    Quantity(domain, [[1,2,3], [5,5,5],
                                                      [0,0,9], [-6, 3, 3]])

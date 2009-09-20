@@ -52,10 +52,12 @@ class Test_Domain(unittest.TestCase):
         vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
         conserved_quantities = ['stage', 'xmomentum', 'ymomentum']
+        evolved_quantities = ['stage', 'xmomentum', 'ymomentum', 'xvelocity']
+        
         other_quantities = ['elevation', 'friction']
 
         domain = Domain(points, vertices, None,
-                        conserved_quantities, other_quantities)
+                        conserved_quantities, evolved_quantities, other_quantities)
         domain.check_integrity()
 
         for name in conserved_quantities + other_quantities:
@@ -64,6 +66,48 @@ class Test_Domain(unittest.TestCase):
 
         assert num.alltrue(domain.get_conserved_quantities(0, edge=1) == 0.)
 
+
+
+    def test_CFL(self):
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0,0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0,0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe, daf, dae
+        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        conserved_quantities = ['stage', 'xmomentum', 'ymomentum']
+        evolved_quantities = ['stage', 'xmomentum', 'ymomentum', 'xvelocity']
+        
+        other_quantities = ['elevation', 'friction']
+
+        domain = Domain(points, vertices, None,
+                        conserved_quantities, evolved_quantities, other_quantities)
+
+        try:
+            domain.set_CFL(-0.1)
+        except:
+            pass
+        else:
+            msg = 'Should have caught a negative cfl'
+            raise Exception, msg
+
+
+        
+        try:
+            domain.set_CFL(2.0)
+        except:
+            pass
+        else:
+            msg = 'Should have warned of cfl>1.0'
+            raise Exception, msg
+
+        assert domain.CFL == 2.0
+        
 
     def test_conserved_quantities(self):
 
@@ -510,6 +554,108 @@ class Test_Domain(unittest.TestCase):
 
 
 
+    def test_conserved_evolved_boundary_conditions(self):
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0,0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0,0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe
+        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4] ]
+        boundary = { (0, 0): 'First',
+                     (0, 2): 'First',
+                     (2, 0): 'Second',
+                     (2, 1): 'Second',
+                     (3, 1): 'Second',
+                     (3, 2): 'Second'}
+
+
+ 
+        try:
+            domain = Domain(points, vertices, boundary,
+                            conserved_quantities = ['stage', 'xmomentum', 'ymomentum'],
+                            evolved_quantities =\
+                                   ['stage', 'xmomentum', 'xvelocity', 'ymomentum', 'yvelocity'])
+        except:
+            pass
+        else:
+            msg = 'Should have caught the evolved quantities not being in order'
+            raise Exception, msg            
+
+
+        domain = Domain(points, vertices, boundary,
+                        conserved_quantities = ['stage', 'xmomentum', 'ymomentum'],
+                        evolved_quantities =\
+                        ['stage', 'xmomentum', 'ymomentum', 'xvelocity', 'yvelocity'])
+
+
+        domain.set_quantity('stage', [[1,2,3], [5,5,5],
+                                      [0,0,9], [6, -3, 3]])
+
+
+        domain.set_boundary( {'First': Dirichlet_boundary([5,2,1,4,6]),
+                              'Second': Transmissive_boundary(domain)} )
+
+        try:
+            domain.update_boundary()
+        except:
+            pass
+        else:
+            msg = 'Should have caught the lack of conserved_to_evolved member function'
+            raise Exception, msg
+
+
+        def  conserved_to_evolved(q_cons, q_evol):
+
+            q_evol[0:3] = q_cons
+            q_evol[3] = q_cons[1]/q_cons[0]
+            q_evol[4] = q_cons[2]/q_cons[0]
+
+        domain.conserved_to_evolved = conserved_to_evolved
+
+        domain.update_boundary()
+
+
+        assert domain.quantities['stage'].boundary_values[0] == 5. #Dirichlet
+        assert domain.quantities['stage'].boundary_values[1] == 5. #Dirichlet
+        assert domain.quantities['xvelocity'].boundary_values[0] == 4. #Dirichlet
+        assert domain.quantities['yvelocity'].boundary_values[1] == 6. #Dirichlet
+
+        q_cons = domain.get_conserved_quantities(2, edge=0) #Transmissive
+        assert domain.quantities['stage'    ].boundary_values[2] == q_cons[0]
+        assert domain.quantities['xmomentum'].boundary_values[2] == q_cons[1]
+        assert domain.quantities['ymomentum'].boundary_values[2] == q_cons[2]
+        assert domain.quantities['xvelocity'].boundary_values[2] == q_cons[1]/q_cons[0]
+        assert domain.quantities['yvelocity'].boundary_values[2] == q_cons[2]/q_cons[0]
+
+        q_cons = domain.get_conserved_quantities(2, edge=1) #Transmissive
+        assert domain.quantities['stage'    ].boundary_values[3] == q_cons[0]
+        assert domain.quantities['xmomentum'].boundary_values[3] == q_cons[1]
+        assert domain.quantities['ymomentum'].boundary_values[3] == q_cons[2]
+        assert domain.quantities['xvelocity'].boundary_values[3] == q_cons[1]/q_cons[0]
+        assert domain.quantities['yvelocity'].boundary_values[3] == q_cons[2]/q_cons[0]        
+
+
+        q_cons = domain.get_conserved_quantities(3, edge=1) #Transmissive
+        assert domain.quantities['stage'    ].boundary_values[4] == q_cons[0]
+        assert domain.quantities['xmomentum'].boundary_values[4] == q_cons[1]
+        assert domain.quantities['ymomentum'].boundary_values[4] == q_cons[2]
+        assert domain.quantities['xvelocity'].boundary_values[4] == q_cons[1]/q_cons[0]
+        assert domain.quantities['yvelocity'].boundary_values[4] == q_cons[2]/q_cons[0]               
+
+
+        q_cons = domain.get_conserved_quantities(3, edge=2) #Transmissive
+        assert domain.quantities['stage'    ].boundary_values[5] == q_cons[0]
+        assert domain.quantities['xmomentum'].boundary_values[5] == q_cons[1]
+        assert domain.quantities['ymomentum'].boundary_values[5] == q_cons[2]
+        assert domain.quantities['xvelocity'].boundary_values[5] == q_cons[1]/q_cons[0]
+        assert domain.quantities['yvelocity'].boundary_values[5] == q_cons[2]/q_cons[0]
+ 
+
     def test_distribute_first_order(self):
         """Domain implements a default first order gradient limiter
         """
@@ -597,6 +743,7 @@ class Test_Domain(unittest.TestCase):
         #Assign some values to update vectors
         #Set explicit_update
 
+
         for name in domain.conserved_quantities:
             domain.quantities[name].explicit_update = num.array([4.,3.,2.,1.])
             domain.quantities[name].semi_implicit_update = num.array([1.,1.,1.,1.])
@@ -613,8 +760,9 @@ class Test_Domain(unittest.TestCase):
 #        x /= denom
 
         x = num.array([1., 2., 3., 4.])
-        x /= denom
         x += domain.timestep*num.array( [4,3,2,1] )
+        x /= denom
+
 
         for name in domain.conserved_quantities:
             assert num.allclose(domain.quantities[name].centroid_values, x)
@@ -905,6 +1053,6 @@ class Test_Domain(unittest.TestCase):
 #-------------------------------------------------------------
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Domain,'test')
+    suite = unittest.makeSuite(Test_Domain,'test_conserved_evolved')
     runner = unittest.TextTestRunner()
     runner.run(suite)

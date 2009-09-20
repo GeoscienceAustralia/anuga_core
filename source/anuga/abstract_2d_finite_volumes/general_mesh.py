@@ -234,8 +234,13 @@ class General_mesh:
         return self.edgelengths[i, j]
                 
 
+    def get_number_of_triangles(self):
+        return self.number_of_triangles
+
+    
     def get_number_of_nodes(self):
         return self.number_of_nodes
+
 
     def get_nodes(self, absolute=False):
         """Return all nodes in mesh.

@@ -168,11 +168,6 @@ class Test_parallel_distribute_mesh(unittest.TestCase):
             assert(num.allclose(submesh['ghost_triangles'][0],true_ghost_triangles[0]))
             assert(num.allclose(submesh['ghost_triangles'][1],true_ghost_triangles[1]))
             assert num.allclose(submesh['ghost_triangles'][2],true_ghost_triangles[2]), ParallelException('X')
-            #if not num.allclose(submesh['ghost_triangles'][2],true_ghost_triangles[2]):
-            #    import pypar
-            #    raise Exception, 'Here it is'
-            #    pypar.abort()
-
 
             
 
@@ -294,6 +289,7 @@ class Test_parallel_distribute_mesh(unittest.TestCase):
                 assert(num.allclose(full_send_dict[1],true_full_send[1])) 
 
 #-------------------------------------------------------------
+
 if __name__=="__main__":
     runner = unittest.TextTestRunner()
     suite = unittest.makeSuite(Test_parallel_distribute_mesh, 'test')

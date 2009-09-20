@@ -64,6 +64,7 @@ class Domain:
                        triangles=None,
                        boundary=None,
                        conserved_quantities=None,
+                       evolved_quantities=None,
                        other_quantities=None,
                        tagged_elements=None,
                        geo_reference=None,
@@ -89,6 +90,7 @@ class Domain:
 
           conserved_quantities: List of quantity names entering the
                                 conservation equations
+          evolved_quantities:   List of all quantities that evolve
           other_quantities:     List of other quantity names
 
           tagged_elements:
@@ -153,16 +155,27 @@ class Domain:
         else:
             self.conserved_quantities = conserved_quantities
 
+        if evolved_quantities is None:
+            self.evolved_quantities = self.conserved_quantities
+        else:
+            self.evolved_quantities = evolved_quantities
+            
         # List of other quantity names
         if other_quantities is None:
             self.other_quantities = []
         else:
             self.other_quantities = other_quantities
 
+        # Test that conserved_quantities are stored in the first entries of evolved_quantities
+        for i, quantity in enumerate(self.conserved_quantities):
+            msg = 'The conserved quantities must be the first entries of evolved_quantities'
+            assert quantity == self.evolved_quantities[i], msg
+            
+
         # Build dictionary of Quantity instances keyed by quantity names
         self.quantities = {}
 
-        for name in self.conserved_quantities:
+        for name in self.evolved_quantities:
             self.quantities[name] = Quantity(self)
         for name in self.other_quantities:
             self.quantities[name] = Quantity(self)
@@ -324,6 +337,9 @@ class Domain:
     def get_number_of_nodes(self, *args, **kwargs):
         return self.mesh.get_number_of_nodes(*args, **kwargs)
 
+    def get_number_of_triangles(self, *args, **kwargs):
+        return self.mesh.get_number_of_triangles(*args, **kwargs)    
+
     def get_normal(self, *args, **kwargs):
         return self.mesh.get_normal(*args, **kwargs)
 
@@ -414,6 +430,60 @@ class Domain:
                 q[i] = Q.centroid_values[vol_id]
 
         return q
+
+    ##
+    # @brief Get evolved quantities for a volume.
+    # @param vol_id ID of the volume we want the conserved quantities for.
+    # @param vertex If specified, use as index for edge values.
+    # @param edge If specified, use as index for edge values.
+    # @return Vector of conserved quantities.
+    # @note If neither 'vertex' or 'edge' specified, use centroid values.
+    # @note If both 'vertex' and 'edge' specified, raise exception.
+    def get_evolved_quantities(self, vol_id,
+                               vertex=None,
+                               edge=None):
+        """Get evolved quantities at volume vol_id.
+
+        If vertex is specified use it as index for vertex values
+        If edge is specified use it as index for edge values
+        If neither are specified use centroid values
+        If both are specified an exeception is raised
+
+        Return value: Vector of length == number_of_conserved quantities
+        """
+
+        if not (vertex is None or edge is None):
+            msg = 'Values for both vertex and edge was specified.'
+            msg += 'Only one (or none) is allowed.'
+            raise Exception, msg
+
+        q = num.zeros(len(self.evolved_quantities), num.float)
+
+        for i, name in enumerate(self.evolved_quantities):
+            Q = self.quantities[name]
+            if vertex is not None:
+                q[i] = Q.vertex_values[vol_id, vertex]
+            elif edge is not None:
+                q[i] = Q.edge_values[vol_id, edge]
+            else:
+                q[i] = Q.centroid_values[vol_id]
+
+        return q
+
+  ##
+    # @brief
+    # @param flag
+    def set_CFL(self, cfl=1.0):
+        """Set CFL parameter, warn if greater than 1.0
+        """
+        if cfl > 1.0:
+            self.CFL = cfl
+            log.warn('Setting CFL > 1.0')
+
+        assert cfl > 0.0
+        self.CFL = cfl
+
+
 
     ##
     # @brief Set the relative model time.
@@ -875,7 +945,11 @@ class Domain:
             msg = 'Conserved quantities must be a subset of all quantities'
             assert quantity in self.quantities, msg
 
-        ##assert hasattr(self, 'boundary_objects')
+
+        for i, quantity in enumerate(self.conserved_quantities):
+            msg = 'Conserved quantities must be the first entries of evolved_quantities'
+            assert quantity == self.evolved_quantities[i], msg
+ 
 
     ##
     # @brief Print timestep stats to stdout.
@@ -1653,9 +1727,8 @@ class Domain:
             pass
 
     ##
-    # @brief Backup conserved quantities.
+    # @brief Backup conserved quantities 
     def backup_conserved_quantities(self):
-        N = len(self) # Number_of_triangles
 
         # Backup conserved_quantities centroid values
         for name in self.conserved_quantities:
@@ -1663,17 +1736,33 @@ class Domain:
             Q.backup_centroid_values()
 
     ##
-    # @brief ??
-    # @param a ??
-    # @param b ??
+    # @brief Combines current C and saved centroid values S as C = aC + bS
+    # @param a factor in combination
+    # @param b factor in combination
     def saxpy_conserved_quantities(self, a, b):
-        N = len(self) #number_of_triangles
 
         # Backup conserved_quantities centroid values
         for name in self.conserved_quantities:
             Q = self.quantities[name]
             Q.saxpy_centroid_values(a, b)
 
+            
+
+
+    ##
+    # @brief Mapping between conserved quantites and evolved quantities
+    # @param q_cons array of conserved quantity values
+    # @param q_evolved array of current evolved quantity values
+    def  conserved_to_evolved(self, q_cons, q_evolved):
+        """Needs to be overridden by Domain subclass
+        """
+
+        if len(q_cons) == len(q_evolved):
+            q_evolved[:] = q_cons
+        else:
+            msg = 'Method conserved_to_evolved must be overridden by Domain subclass'
+            raise Exception, msg
+    
     ##
     # @brief Update boundary values for all conserved quantities.
     def update_boundary(self):
@@ -1691,11 +1780,26 @@ class Domain:
             if B is None:
                 log.critical('WARNING: Ignored boundary segment (None)')
             else:
-                q = B.evaluate(vol_id, edge_id)
+                q_cons = B.evaluate(vol_id, edge_id)
 
-                for j, name in enumerate(self.conserved_quantities):
+                if len(q_cons) == len(self.evolved_quantities):
+                    # conserved and evolved quantities are the same
+                    q_evol = q_cons
+                elif len(q_cons) == len(self.conserved_quantities):
+                    # boundary just returns conserved quantities
+                    # Need to calculate all the evolved quantities
+                    # Use default conversion 
+
+                    q_evol = self.get_evolved_quantities(vol_id, edge = edge_id)
+
+                    self.conserved_to_evolved(q_cons, q_evol)
+                else:
+                    msg = 'Boundary must return array of either conserved or evolved quantities'
+                    raise Exception, msg
+                
+                for j, name in enumerate(self.evolved_quantities):
                     Q = self.quantities[name]
-                    Q.boundary_values[i] = q[j]
+                    Q.boundary_values[i] = q_evol[j]
 
     ##
     # @brief Compute fluxes.

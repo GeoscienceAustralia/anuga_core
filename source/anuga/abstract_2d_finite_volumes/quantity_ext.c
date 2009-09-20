@@ -711,10 +711,17 @@ int _update(int N,
 	}
 
 
+	// Explicit updates
+	for (k=0; k<N; k++) {
+		centroid_values[k] += timestep*explicit_update[k];
+	}
+
+
+
 	// Semi implicit updates
 	for (k=0; k<N; k++) {
 		denominator = 1.0 - timestep*semi_implicit_update[k];
-		if (denominator == 0.0) {
+		if (denominator <= 0.0) {
 			return -1;
 		} else {
 			//Update conserved_quantities from semi implicit updates
@@ -723,10 +730,7 @@ int _update(int N,
 	}
 
 
-	// Explicit updates
-	for (k=0; k<N; k++) {
-		centroid_values[k] += timestep*explicit_update[k];
-	}
+
 
 
 	// Reset semi_implicit_update here ready for next time step

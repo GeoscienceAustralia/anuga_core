@@ -351,9 +351,10 @@ class Test_Data_Manager(unittest.TestCase):
         assert num.allclose(time, 0.0)                
 
         extrema = fid.variables['xmomentum.extrema'][:]
-        assert num.allclose(extrema,[-0.06062178, 0.47873023]) or\
-            num.allclose(extrema, [-0.06062178, 0.47847986]) or\
-            num.allclose(extrema, [-0.06062178, 0.47848481]) # 27/5/9            
+        assert num.allclose(extrema,[-0.06062178, 0.47873023]) or \
+            num.allclose(extrema, [-0.06062178, 0.47847986]) or \
+            num.allclose(extrema, [-0.06062178, 0.47848481]) or \
+            num.allclose(extrema, [-0.06062178, 0.47763887]) # 18/09/09
         
         extrema = fid.variables['ymomentum.extrema'][:]
         assert num.allclose(extrema,[0.00, 0.0625786]) or num.allclose(extrema,[0.00, 0.06062178])
@@ -2095,6 +2096,196 @@ END CROSS-SECTIONS:
 
         fid.close()
 
+        #Cleanup
+        os.remove(prjfile)
+        os.remove(ascfile)
+        os.remove(swwfile)
+
+
+
+    def test_sww2dem_larger_zero(self):
+        """Test that sww information can be converted correctly to asc/prj
+        format readable by e.g. ArcView. Here:
+
+        ncols         11
+        nrows         11
+        xllcorner     308500
+        yllcorner     6189000
+        cellsize      10.000000
+        NODATA_value  -9999
+        -100 -110 -120 -130 -140 -150 -160 -170 -180 -190 -200
+         -90 -100 -110 -120 -130 -140 -150 -160 -170 -180 -190
+         -80  -90 -100 -110 -120 -130 -140 -150 -160 -170 -180
+         -70  -80  -90 -100 -110 -120 -130 -140 -150 -160 -170
+         -60  -70  -80  -90 -100 -110 -120 -130 -140 -150 -160
+         -50  -60  -70  -80  -90 -100 -110 -120 -130 -140 -150
+         -40  -50  -60  -70  -80  -90 -100 -110 -120 -130 -140
+         -30  -40  -50  -60  -70  -80  -90 -100 -110 -120 -130
+         -20  -30  -40  -50  -60  -70  -80  -90 -100 -110 -120
+         -10  -20  -30  -40  -50  -60  -70  -80  -90 -100 -110
+           0  -10  -20  -30  -40  -50  -60  -70  -80  -90 -100
+
+        """
+
+        import time, os
+        from Scientific.IO.NetCDF import NetCDFFile
+
+        #Setup
+
+        from mesh_factory import rectangular
+
+        #Create basic mesh (100m x 100m)
+        points, vertices, boundary = rectangular(2, 2, 100, 100)
+
+        #Create shallow water domain
+        domain = Domain(points, vertices, boundary)
+        domain.default_order = 1
+
+        domain.set_name('datatest')
+
+        prjfile = domain.get_name() + '_elevation.prj'
+        ascfile = domain.get_name() + '_elevation.asc'
+        swwfile = domain.get_name() + '.sww'
+
+        domain.set_datadir('.')
+        domain.format = 'sww'
+        domain.smooth = True
+        domain.geo_reference = Geo_reference(56, 308500, 6189000)
+
+        #
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('stage', 0)
+
+        B = Transmissive_boundary(domain)
+        domain.set_boundary( {'left': B, 'right': B, 'top': B, 'bottom': B})
+
+
+        #
+        sww = SWW_file(domain)
+        sww.store_connectivity()
+        sww.store_timestep()
+        
+        domain.tight_slope_limiters = 1
+        domain.evolve_to_end(finaltime = 0.01)
+        sww.store_timestep()
+
+        # Set theshold for printoptions to somrthing small
+        # to pickup Rudy's error caused a long sequence of zeros printing
+        # as [ 0.0, 0.0, 0.0, ... 0.0, 0.0, 0.0] by num.array2string
+        printoptions = num.get_printoptions()
+        num.set_printoptions(threshold=9)
+        
+        cellsize = 10  #10m grid
+
+
+        #Check contents
+        #Get NetCDF
+
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)
+
+        # Get the variables
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+        z = fid.variables['elevation'][:]
+        time = fid.variables['time'][:]
+        stage = fid.variables['stage'][:]
+
+
+        #Export to ascii/prj files
+        sww2dem(domain.get_name(),
+                quantity = 'elevation',
+                cellsize = cellsize,
+                number_of_decimal_places = 9,
+                verbose = self.verbose,
+                format = 'asc',
+                block_size=2)
+
+
+        #Check prj (meta data)
+        prjid = open(prjfile)
+        lines = prjid.readlines()
+        prjid.close()
+
+        L = lines[0].strip().split()
+        assert L[0].strip().lower() == 'projection'
+        assert L[1].strip().lower() == 'utm'
+
+        L = lines[1].strip().split()
+        assert L[0].strip().lower() == 'zone'
+        assert L[1].strip().lower() == '56'
+
+        L = lines[2].strip().split()
+        assert L[0].strip().lower() == 'datum'
+        assert L[1].strip().lower() == 'wgs84'
+
+        L = lines[3].strip().split()
+        assert L[0].strip().lower() == 'zunits'
+        assert L[1].strip().lower() == 'no'
+
+        L = lines[4].strip().split()
+        assert L[0].strip().lower() == 'units'
+        assert L[1].strip().lower() == 'meters'
+
+        L = lines[5].strip().split()
+        assert L[0].strip().lower() == 'spheroid'
+        assert L[1].strip().lower() == 'wgs84'
+
+        L = lines[6].strip().split()
+        assert L[0].strip().lower() == 'xshift'
+        assert L[1].strip().lower() == '500000'
+
+        L = lines[7].strip().split()
+        assert L[0].strip().lower() == 'yshift'
+        assert L[1].strip().lower() == '10000000'
+
+        L = lines[8].strip().split()
+        assert L[0].strip().lower() == 'parameters'
+
+
+        #Check asc file
+        ascid = open(ascfile)
+        lines = ascid.readlines()
+        ascid.close()
+
+        L = lines[0].strip().split()
+        assert L[0].strip().lower() == 'ncols'
+        assert L[1].strip().lower() == '11'
+
+        L = lines[1].strip().split()
+        assert L[0].strip().lower() == 'nrows'
+        assert L[1].strip().lower() == '11'
+
+        L = lines[2].strip().split()
+        assert L[0].strip().lower() == 'xllcorner'
+        assert num.allclose(float(L[1].strip().lower()), 308500)
+
+        L = lines[3].strip().split()
+        assert L[0].strip().lower() == 'yllcorner'
+        assert num.allclose(float(L[1].strip().lower()), 6189000)
+
+        L = lines[4].strip().split()
+        assert L[0].strip().lower() == 'cellsize'
+        assert num.allclose(float(L[1].strip().lower()), cellsize)
+
+        L = lines[5].strip().split()
+        assert L[0].strip() == 'NODATA_value'
+        assert L[1].strip().lower() == '-9999'
+
+        #Check grid values (FIXME: Use same strategy for other sww2dem tests)
+        for i, line in enumerate(lines[6:]):
+            for j, value in enumerate( line.split() ):
+                assert num.allclose(float(value), 0.0,
+                                    atol=1.0e-12, rtol=1.0e-12)
+
+                # Note: Equality can be obtained in this case,
+                # but it is better to use allclose.
+                #assert float(value) == -(10-i+j)*cellsize
+
+
+        fid.close()
+
+
+        num.set_printoptions(threshold=printoptions['threshold'])
         #Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
@@ -11711,7 +11902,7 @@ ValueError: matrices are not aligned for copy
 
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager, 'test_sww2domain2')
-    suite = unittest.makeSuite(Test_Data_Manager, 'test')
+    suite = unittest.makeSuite(Test_Data_Manager, 'test_sww')
     
     
     

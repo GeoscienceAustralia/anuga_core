@@ -15,7 +15,8 @@ from shallow_water_domain import Domain,\
      Transmissive_stage_zero_momentum_boundary,\
      Transmissive_n_momentum_zero_t_momentum_set_stage_boundary,\
      AWI_boundary
-     
+
+#from shallow_water_balanced_domain import Swb_domain
 
 
 # FIXME (Ole): Deprecate

@@ -10,7 +10,7 @@ Use it this way:
     # configure my logging
     log.console_logging_level = log.INFO
     log.log_logging_level = log.DEBUG
-    log.log_filename('./my.log')
+    log.log_filename = './my.log'
 
     # log away!
     log.debug('A message at DEBUG level')
