@@ -2105,26 +2105,16 @@ END CROSS-SECTIONS:
 
     def test_sww2dem_larger_zero(self):
         """Test that sww information can be converted correctly to asc/prj
-        format readable by e.g. ArcView. Here:
+        format readable by e.g. Arcview. This example has rows with a
+        large number of zeros
 
-        ncols         11
-        nrows         11
+        ncols         2001
+        nrows         2
         xllcorner     308500
         yllcorner     6189000
-        cellsize      10.000000
+        cellsize      1.000000
         NODATA_value  -9999
-        -100 -110 -120 -130 -140 -150 -160 -170 -180 -190 -200
-         -90 -100 -110 -120 -130 -140 -150 -160 -170 -180 -190
-         -80  -90 -100 -110 -120 -130 -140 -150 -160 -170 -180
-         -70  -80  -90 -100 -110 -120 -130 -140 -150 -160 -170
-         -60  -70  -80  -90 -100 -110 -120 -130 -140 -150 -160
-         -50  -60  -70  -80  -90 -100 -110 -120 -130 -140 -150
-         -40  -50  -60  -70  -80  -90 -100 -110 -120 -130 -140
-         -30  -40  -50  -60  -70  -80  -90 -100 -110 -120 -130
-         -20  -30  -40  -50  -60  -70  -80  -90 -100 -110 -120
-         -10  -20  -30  -40  -50  -60  -70  -80  -90 -100 -110
-           0  -10  -20  -30  -40  -50  -60  -70  -80  -90 -100
-
+        0.0 ....
         """
 
         import time, os
@@ -2132,10 +2122,10 @@ END CROSS-SECTIONS:
 
         #Setup
 
-        from mesh_factory import rectangular
+        from mesh_factory import rectangular_cross
 
         #Create basic mesh (100m x 100m)
-        points, vertices, boundary = rectangular(2, 2, 100, 100)
+        points, vertices, boundary = rectangular_cross(2000, 1, 2000.0, 1.0)
 
         #Create shallow water domain
         domain = Domain(points, vertices, boundary)
@@ -2169,13 +2159,7 @@ END CROSS-SECTIONS:
         domain.evolve_to_end(finaltime = 0.01)
         sww.store_timestep()
 
-        # Set theshold for printoptions to somrthing small
-        # to pickup Rudy's error caused a long sequence of zeros printing
-        # as [ 0.0, 0.0, 0.0, ... 0.0, 0.0, 0.0] by num.array2string
-        printoptions = num.get_printoptions()
-        num.set_printoptions(threshold=9)
-        
-        cellsize = 10  #10m grid
+        cellsize = 1.0  #0.1 grid
 
 
         #Check contents
@@ -2205,6 +2189,7 @@ END CROSS-SECTIONS:
         prjid = open(prjfile)
         lines = prjid.readlines()
         prjid.close()
+
 
         L = lines[0].strip().split()
         assert L[0].strip().lower() == 'projection'
@@ -2247,13 +2232,15 @@ END CROSS-SECTIONS:
         lines = ascid.readlines()
         ascid.close()
 
+
+
         L = lines[0].strip().split()
         assert L[0].strip().lower() == 'ncols'
-        assert L[1].strip().lower() == '11'
+        assert L[1].strip().lower() == '2001'
 
         L = lines[1].strip().split()
         assert L[0].strip().lower() == 'nrows'
-        assert L[1].strip().lower() == '11'
+        assert L[1].strip().lower() == '2'
 
         L = lines[2].strip().split()
         assert L[0].strip().lower() == 'xllcorner'
@@ -2285,7 +2272,6 @@ END CROSS-SECTIONS:
         fid.close()
 
 
-        num.set_printoptions(threshold=printoptions['threshold'])
         #Cleanup
         os.remove(prjfile)
         os.remove(ascfile)

@@ -2486,9 +2486,10 @@ def sww2dem(basename_in, basename_out=None,
 
         # change printoptions so that a long string of zeros in not
         # summarized as [0.0, 0.0, 0.0, ... 0.0, 0.0, 0.0]
-        printoptions = num.get_printoptions()
-        num.set_printoptions(threshold=sys.maxint)
+        #printoptions = num.get_printoptions()
+        #num.set_printoptions(threshold=sys.maxint)
 
+        format = '%.'+'%g' % number_of_decimal_places +'e'
         for i in range(nrows):
             if verbose and i % ((nrows+10)/10) == 0:
                 log.critical('Doing row %d of %d' % (i, nrows))
@@ -2496,13 +2497,9 @@ def sww2dem(basename_in, basename_out=None,
             base_index = (nrows-i-1)*ncols
 
             slice = grid_values[base_index:base_index+ncols]
-            #s = array2string(slice, max_line_width=sys.maxint)
 
-            s = num.array2string(slice, max_line_width=sys.maxint,
-                                 precision=number_of_decimal_places)
-            ascid.write(s[1:-1] + '\n')
-
-        num.set_printoptions(threshold=printoptions['threshold'])
+            num.savetxt(ascid, slice.reshape(1,ncols), format, ' ' )
+            
         
         #Close
         ascid.close()
