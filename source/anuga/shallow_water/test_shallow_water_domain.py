@@ -2941,6 +2941,70 @@ class Test_Shallow_Water(unittest.TestCase):
             #FIXME(Ole):  A test here is hard because explicit_update also
             # receives updates from the flux calculation.
 
+
+    def test_rainfall_forcing_with_evolve_1(self):
+        """test_rainfall_forcing_with_evolve
+
+        Test how forcing terms are called within evolve.
+        This test checks that proper exception is thrown when no default_rate is set
+        """
+
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #             bac,     bce,     ecf,     dbe
+        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices)
+
+        # Flat surface with 1m of water
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('stage', 1.0)
+        domain.set_quantity('friction', 0)
+
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'exterior': Br})
+
+        # Setup only one forcing term, time dependent rainfall
+        # that expires at t==20
+        from anuga.fit_interpolate.interpolate import Modeltime_too_late
+
+        def main_rate(t):
+            if t > 20:
+                msg = 'Model time exceeded.'
+                raise Modeltime_too_late, msg
+            else:
+                return 3*t + 7
+
+        domain.forcing_terms = []
+        R = Rainfall(domain,
+                     rate=main_rate,
+                     polygon=[[1,1], [2,1], [2,2], [1,2]])
+
+
+        assert num.allclose(R.exchange_area, 2)
+        
+        domain.forcing_terms.append(R)
+        #for t in domain.evolve(yieldstep=1, finaltime=25):
+        #    pass
+                
+        try:
+            for t in domain.evolve(yieldstep=1, finaltime=25):
+                pass
+        except Modeltime_too_late, e:
+            # Test that error message is as expected
+            assert 'can specify keyword argument default_rate in the forcing function' in str(e)
+        else:
+            raise Exception, 'Should have raised exception'
+
+            
+            
     def test_inflow_using_circle(self):
         from math import pi, cos, sin
 
@@ -7490,7 +7554,7 @@ friction  \n \
 #################################################################################
 
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Shallow_Water, 'test_volumetric_balance')
+    #suite = unittest.makeSuite(Test_Shallow_Water, 'test_rainfall_forcing_with_evolve')
     suite = unittest.makeSuite(Test_Shallow_Water, 'test')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)

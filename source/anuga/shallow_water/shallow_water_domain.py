@@ -2356,7 +2356,10 @@ class General_forcing:
             raise Modeltime_too_early, e
         except Modeltime_too_late, e:
             if self.default_rate is None:
-                raise Exception, e    # Reraise exception
+                msg = '%s: ANUGA is trying to run longer than specified data.\n' %str(e)
+                msg += 'You can specify keyword argument default_rate in the '
+                msg += 'forcing function to tell it what to do in the absence of time data.'
+                raise Modeltime_too_late, msg    
             else:
                 # Pass control to default rate function
                 rate = self.default_rate(t)
