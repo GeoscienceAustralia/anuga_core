@@ -1570,7 +1570,7 @@ class Test_Quantity(unittest.TestCase):
 
         quantity.saxpy_centroid_values(2.0, 3.0)
 
-        assert(quantity.centroid_values, 2.0*d_values + 3.0*c_values)
+        assert num.allclose(quantity.centroid_values, 2.0*d_values + 3.0*c_values)
 
 
 
@@ -2264,7 +2264,7 @@ class Test_Quantity(unittest.TestCase):
         #d: 8
         #e: (6+6+6)/3        
         #f: 4
-        assert(quantity.get_values(location='unique vertices'), [0, 4, 2, 8, 6, 4])        
+        assert num.allclose(quantity.get_values(location='unique vertices'), [0, 4, 2, 8, 6, 4])        
                                                                                   
         
 
