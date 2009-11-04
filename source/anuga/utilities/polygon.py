@@ -761,9 +761,11 @@ def plot_polygons(polygons_points,
         for s in style:
             if s == 'line': colour.append('b-')
             if s == 'outside': colour.append('r.')
+            if s == 'point': colour.append('g.')
             if s <> 'line':
                 if s <> 'outside':
-                    colour.append(s)
+                    if s <> 'point':
+                        colour.append(s)
 
     for i, item in enumerate(polygons_points):
         x, y = poly_xy(item)
