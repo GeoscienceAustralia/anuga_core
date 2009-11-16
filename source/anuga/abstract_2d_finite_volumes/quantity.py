@@ -638,8 +638,8 @@ class Quantity:
                 for i in range(len(indices)):
                     self.centroid_values[indices[i]] = values[i]
         elif location == 'unique vertices':
-            assert (len(values.shape) == 1 or num.allclose(values.shape[1:], 1),
-                    'Values array must be 1d')
+            msg = 'Values array must be 1d'
+            assert len(values.shape) == 1 or num.allclose(values.shape[1:], 1), msg
 
             self.set_vertex_values(values.flatten(), indices=indices,
                                    use_cache=use_cache, verbose=verbose)
