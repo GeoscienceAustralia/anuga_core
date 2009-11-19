@@ -605,17 +605,19 @@ class Test_Domain(unittest.TestCase):
         except:
             pass
         else:
-            msg = 'Should have caught the lack of conserved_to_evolved member function'
+            msg = 'Should have caught the lack of conserved_values_to_evolved_values member function'
             raise Exception, msg
 
 
-        def  conserved_to_evolved(q_cons, q_evol):
+        def  conserved_values_to_evolved_values(q_cons, q_evol):
 
             q_evol[0:3] = q_cons
             q_evol[3] = q_cons[1]/q_cons[0]
             q_evol[4] = q_cons[2]/q_cons[0]
 
-        domain.conserved_to_evolved = conserved_to_evolved
+            return q_evol
+
+        domain.conserved_values_to_evolved_values = conserved_values_to_evolved_values
 
         domain.update_boundary()
 

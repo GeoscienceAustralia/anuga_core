@@ -34,7 +34,7 @@ from anuga.interface import rectangular_cross
 from anuga.interface import create_domain_from_file
 
 
-from anuga_parallel.interface import distribute, myid, numprocs
+from anuga_parallel.interface import distribute, myid, numprocs, finalize
 
 
 #--------------------------------------------------------------------------
@@ -221,3 +221,5 @@ if __name__=="__main__":
             if verbose: print 'Parallel test OK'
 
 
+
+    finalize()

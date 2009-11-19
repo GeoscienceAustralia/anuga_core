@@ -1137,7 +1137,7 @@ class Domain:
 
         # Input checks
         if quantities is None:
-            quantities = self.conserved_quantities
+            quantities = self.evolved_quantities
         elif type(quantities) == types.StringType:
             quantities = [quantities] #Turn it into a list
 
@@ -1751,17 +1751,20 @@ class Domain:
 
     ##
     # @brief Mapping between conserved quantites and evolved quantities
-    # @param q_cons array of conserved quantity values
-    # @param q_evolved array of current evolved quantity values
-    def  conserved_to_evolved(self, q_cons, q_evolved):
+    # @param Input: q_cons array of conserved quantity values
+    # @param Input: q_evol array of current evolved quantity values
+    # @note  Output: Updated q_evol array
+    def  conserved_values_to_evolved_values(self, q_cons, q_evol):
         """Needs to be overridden by Domain subclass
         """
 
-        if len(q_cons) == len(q_evolved):
-            q_evolved[:] = q_cons
+        if len(q_cons) == len(q_evol):
+            q_evol[:] = q_cons
         else:
-            msg = 'Method conserved_to_evolved must be overridden by Domain subclass'
+            msg = 'Method conserved_values_to_evolved_values must be overridden by Domain subclass'
             raise Exception, msg
+
+        return q_evol
     
     ##
     # @brief Update boundary values for all conserved quantities.
@@ -1780,19 +1783,19 @@ class Domain:
             if B is None:
                 log.critical('WARNING: Ignored boundary segment (None)')
             else:
-                q_cons = B.evaluate(vol_id, edge_id)
+                q_bdry = B.evaluate(vol_id, edge_id)
 
-                if len(q_cons) == len(self.evolved_quantities):
+                if len(q_bdry) == len(self.evolved_quantities):
                     # conserved and evolved quantities are the same
-                    q_evol = q_cons
-                elif len(q_cons) == len(self.conserved_quantities):
+                    q_evol = q_bdry
+                elif len(q_bdry) == len(self.conserved_quantities):
                     # boundary just returns conserved quantities
                     # Need to calculate all the evolved quantities
                     # Use default conversion 
 
                     q_evol = self.get_evolved_quantities(vol_id, edge = edge_id)
 
-                    self.conserved_to_evolved(q_cons, q_evol)
+                    q_evol = self.conserved_values_to_evolved_values(q_bdry, q_evol)
                 else:
                     msg = 'Boundary must return array of either conserved or evolved quantities'
                     raise Exception, msg

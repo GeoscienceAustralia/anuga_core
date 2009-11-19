@@ -139,7 +139,8 @@ class Test_Util(unittest.TestCase):
         domain1.default_order = 2
         domain1.store = True
         domain1.set_datadir('.')
-        domain1.set_name('spatio_temporal_boundary_source_%d' %(id(self)))
+        sww_file = 'spatio_temporal_boundary_source_%d' %(id(self))
+        domain1.set_name(sww_file)
 
         #Bed-slope, friction and IC at vertices (and interpolated elsewhere)
         domain1.set_quantity('elevation', 0)

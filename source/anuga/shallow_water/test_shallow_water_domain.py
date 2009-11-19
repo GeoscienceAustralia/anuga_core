@@ -6676,6 +6676,7 @@ friction  \n \
                 
                 assert num.allclose(q, ref_flow)
 
+        os.remove('Inflow_flowline_test.sww') 
 
     def test_volume_conservation_inflow(self):
         """test_volume_conservation
@@ -6775,6 +6776,10 @@ friction  \n \
             ref_volume += ys * fixed_inflow.rate
 
 
+        os.remove('Inflow_volume_test.sww')
+
+
+        
     def test_volume_conservation_rain(self):
         """test_volume_conservation
         
@@ -6880,6 +6885,7 @@ friction  \n \
             delta_V = fixed_rain.rate*fixed_rain.exchange_area
             ref_volume += ys * delta_V
 
+        os.remove('Rain_volume_test.sww')
 
     def Xtest_rain_conservation_and_runoff(self):
         """test_rain_conservation_and_runoff
@@ -7083,13 +7089,17 @@ friction  \n \
             
         # Check that quantities have been stored correctly    
         from Scientific.IO.NetCDF import NetCDFFile
-        fid = NetCDFFile(domain.get_name() + '.sww')
+        sww_file = domain.get_name() + '.sww'
+        fid = NetCDFFile(sww_file)
 
         x = fid.variables['x'][:]
         y = fid.variables['y'][:]
         stage = fid.variables['stage'][:]
         elevation = fid.variables['elevation'][:]
         fid.close()
+
+        os.remove(sww_file)
+        
                    
         assert len(stage.shape) == 2
         assert len(elevation.shape) == 2        
@@ -7260,6 +7270,8 @@ friction  \n \
                 msg = ('Predicted flow was %f, should have been %f'
                        % (q, ref_flow))
                 assert num.allclose(q, ref_flow, rtol=1.0e-2), msg         
+
+        os.remove('inflow_flowline_test.sww')
 
         
     def Xtest_inflow_boundary_using_flowline(self):
@@ -7550,6 +7562,8 @@ friction  \n \
                     if verbose:
                         print ('Depth: ANUGA = %f, Mannings = %f'
                                % (domain_depth, normal_depth))
+
+        os.remove('Inflow_flowline_test.sww')
 
 #################################################################################
 

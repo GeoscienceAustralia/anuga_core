@@ -101,15 +101,6 @@ from anuga.pmesh.mesh_interface import create_mesh_from_regions
 from anuga.utilities.numerical_tools import gradient, mean, ensure_numeric
 from anuga.geospatial_data.geospatial_data import ensure_geospatial
 
-from anuga.config import minimum_storable_height
-from anuga.config import minimum_allowed_height, maximum_allowed_speed
-from anuga.config import g, epsilon, beta_w, beta_w_dry,\
-     beta_uh, beta_uh_dry, beta_vh, beta_vh_dry, tight_slope_limiters
-from anuga.config import alpha_balance
-from anuga.config import optimise_dry_cells
-from anuga.config import optimised_gradient_limiter
-from anuga.config import use_edge_limiter
-from anuga.config import use_centroid_velocities
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 
 from anuga.fit_interpolate.interpolate import Modeltime_too_late, \
@@ -198,9 +189,47 @@ class Domain(Generic_Domain):
                                 number_of_full_nodes=number_of_full_nodes,
                                 number_of_full_triangles=number_of_full_triangles)
 
-        self.set_minimum_allowed_height(minimum_allowed_height)
+        self.set_defaults()
 
+ 
+        self.forcing_terms.append(manning_friction_implicit)
+        self.forcing_terms.append(gravity)
+
+        # Stored output
+        self.store = True
+        self.set_store_vertices_uniquely(False)
+
+        self.quantities_to_be_stored = {'elevation': 1, 
+                                        'stage': 2, 
+                                        'xmomentum': 2, 
+                                        'ymomentum': 2}
+
+
+
+
+    ##
+    # @brief Set default values, usually read in from a config file
+    # @param flag
+    def set_defaults(self):
+        """Set the default values in this routine. That way we can inherit class
+        and just over redefine the defaults for the new class
+        """
+
+        from anuga.config import minimum_storable_height
+        from anuga.config import minimum_allowed_height, maximum_allowed_speed
+        from anuga.config import g, epsilon, beta_w, beta_w_dry,\
+             beta_uh, beta_uh_dry, beta_vh, beta_vh_dry, tight_slope_limiters
+        from anuga.config import alpha_balance
+        from anuga.config import optimise_dry_cells
+        from anuga.config import optimised_gradient_limiter
+        from anuga.config import use_edge_limiter
+        from anuga.config import use_centroid_velocities
+
+
+
+        self.set_minimum_allowed_height(minimum_allowed_height)
         self.maximum_allowed_speed = maximum_allowed_speed
+
         self.g = g
         self.beta_w = beta_w
         self.beta_w_dry = beta_w_dry
@@ -213,24 +242,15 @@ class Domain(Generic_Domain):
         self.tight_slope_limiters = tight_slope_limiters
         self.optimise_dry_cells = optimise_dry_cells
 
-        self.use_new_mannings = False
-        self.forcing_terms.append(manning_friction_implicit)
-        self.forcing_terms.append(gravity)
+        
+        self.set_new_mannings_function(False)
 
-        # Stored output
-        self.store = True
-        self.set_store_vertices_uniquely(False)
         self.minimum_storable_height = minimum_storable_height
-        self.quantities_to_be_stored = {'elevation': 1, 
-                                        'stage': 2, 
-                                        'xmomentum': 2, 
-                                        'ymomentum': 2}
 
-        # Limiters
+         # Limiters
         self.use_edge_limiter = use_edge_limiter
         self.optimised_gradient_limiter = optimised_gradient_limiter
-        self.use_centroid_velocities = use_centroid_velocities
-
+        self.use_centroid_velocities = use_centroid_velocities       
 
     ##
     # @brief

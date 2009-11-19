@@ -14,7 +14,7 @@ from anuga_parallel.distribute_mesh import build_submesh
 from anuga_parallel.distribute_mesh import submesh_full, submesh_ghost, submesh_quantities
 from anuga_parallel.distribute_mesh import extract_hostmesh, rec_submesh, send_submesh
 
-from anuga_parallel.interface import myid, numprocs, barrier
+from anuga_parallel.interface import myid, numprocs, barrier, finalize
 
 import numpy as num
 
@@ -301,7 +301,7 @@ if __name__=="__main__":
     else:
         distibute_three_processors()
 
-
+    finalize()
         
 
         

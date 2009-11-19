@@ -26,7 +26,7 @@ from anuga.interface import Transmissive_boundary
 from anuga.interface import rectangular_cross_domain
 
 
-from anuga_parallel.interface import distribute, myid, numprocs, send, receive, barrier
+from anuga_parallel.interface import distribute, myid, numprocs, send, receive, barrier, finalize
 
 #--------------------------------------------------------------------------
 # Setup parameters
@@ -36,7 +36,7 @@ finaltime = 6.0
 nprocs = 4
 N = 25
 M = 25
-verbose = False
+verbose = True 
 
 #---------------------------------
 # Setup Functions
@@ -211,6 +211,6 @@ if __name__=="__main__":
 
         evolution_test(parallel=True, G=G, seq_interpolation_points = interpolation_points)
         
-
+        finalize()
 
 

@@ -23,9 +23,79 @@ import numpy as num
 from shallow_water_ext import flux_function_central as flux_function
 
 
+# Variable windfield implemented using functions
+def speed(t, x, y):
+    """Large speeds halfway between center and edges
+
+    Low speeds at center and edges
+    """
+
+    from math import exp, cos, pi
+
+    x = num.array(x)
+    y = num.array(y)
+
+    N = len(x)
+    s = 0*x  #New array
+
+    for k in range(N):
+        r = num.sqrt(x[k]**2 + y[k]**2)
+        factor = exp(-(r-0.15)**2)
+        s[k] = 4000 * factor * (cos(t*2*pi/150) + 2)
+
+    return s
+
+def scalar_func(t, x, y):
+    """Function that returns a scalar.
+
+    Used to test error message when numeric array is expected
+    """
+
+    return 17.7
+
+def scalar_func_list(t, x, y):
+    """Function that returns a scalar.
+
+    Used to test error message when numeric array is expected
+    """
+
+    return [17.7]
 
 
-class Test_swb_clean(unittest.TestCase):
+def angle(t, x, y):
+    """Rotating field
+    """
+    from math import atan, pi
+
+    x = num.array(x)
+    y = num.array(y)
+
+    N = len(x)
+    a = 0 * x    # New array
+
+    for k in range(N):
+        r = num.sqrt(x[k]**2 + y[k]**2)
+
+        angle = atan(y[k]/x[k])
+
+        if x[k] < 0:
+            angle += pi
+
+        # Take normal direction
+        angle -= pi/2
+
+        # Ensure positive radians
+        if angle < 0:
+            angle += 2*pi
+
+        a[k] = angle/pi*180
+
+    return a
+
+
+###############################################################################
+
+class Test_swb_forcing_terms(unittest.TestCase):
     def setUp(self):
         pass
 
@@ -1722,6 +1792,6 @@ class Test_swb_clean(unittest.TestCase):
 #################################################################################
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_swb_clean, 'test')
+    suite = unittest.makeSuite(Test_swb_forcing_terms, 'test')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)

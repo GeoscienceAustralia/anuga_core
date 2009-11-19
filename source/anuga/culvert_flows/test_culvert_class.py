@@ -123,6 +123,7 @@ def run_culvert_flow_problem(depth):
         assert num.allclose(new_volume, ref_volume), msg        
         
 
+    os.remove('Test_culvert_shallow.sww')
 
 class Test_Culvert(unittest.TestCase):
     def setUp(self):
@@ -242,7 +243,9 @@ class Test_Culvert(unittest.TestCase):
         # so that we know that condition has been exercised
         assert min_delta_w < 0
         assert max_delta_w > 10        
-        
+
+
+        os.remove('Test_culvert.sww')
 
     def test_that_culvert_dry_bed_rating_does_not_produce_flow(self):
         """test_that_culvert_in_dry_bed_does_not_produce_flow(self):
@@ -345,7 +348,7 @@ class Test_Culvert(unittest.TestCase):
     
 
     
-
+        os.remove('Test_culvert_dry.sww')
         
     def test_that_culvert_flows_conserves_volume(self):
         """test_that_culvert_flows_conserves_volume

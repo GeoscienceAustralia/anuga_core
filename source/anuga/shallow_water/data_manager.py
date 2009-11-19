@@ -644,6 +644,82 @@ class SWW_file(Data_format):
             fid.close()
 
 
+##
+# @brief Class to open an sww file so that domain can be populated with quantity values 
+class Read_sww:
+
+    def __init__(self, source):
+        """The source parameter is assumed to be a NetCDF sww file.
+        """
+
+        self.source = source
+
+        self.frame_number = 0
+
+        fin = NetCDFFile(self.source, 'r')
+
+        self.time = num.array(fin.variables['time'], num.float)
+        self.last_frame_number = self.time.shape[0] - 1
+
+        self.frames = num.arange(self.last_frame_number+1)
+
+        fin.close()
+        
+        self.read_mesh()
+
+        self.quantities = {}
+
+        self.read_quantities()
+
+
+    def read_mesh(self):
+        fin = NetCDFFile(self.source, 'r')
+
+        self.vertices = num.array(fin.variables['volumes'], num.int)
+        
+        self.x = x = num.array(fin.variables['x'], num.float)
+        self.y = y = num.array(fin.variables['y'], num.float)
+
+        assert len(self.x) == len(self.y)
+        
+        self.xmin = num.min(x)
+        self.xmax = num.max(x)
+        self.ymin = num.min(y)
+        self.ymax = num.max(y)
+
+
+
+        fin.close()
+        
+    def read_quantities(self, frame_number=0):
+
+        assert frame_number >= 0 and frame_number <= self.last_frame_number
+
+        self.frame_number = frame_number
+
+        M = len(self.x)/3
+        
+        fin = NetCDFFile(self.source, 'r')
+        
+        for q in filter(lambda n:n != 'x' and n != 'y' and n != 'z' and n != 'time' and n != 'volumes' and \
+                        '_range' not in n, \
+                        fin.variables.keys()):
+            if len(fin.variables[q].shape) == 1: # Not a time-varying quantity
+                self.quantities[q] = num.ravel(num.array(fin.variables[q], num.float)).reshape(M,3)
+            else: # Time-varying, get the current timestep data
+                self.quantities[q] = num.array(fin.variables[q][self.frame_number], num.float).reshape(M,3)
+        fin.close()
+        return self.quantities
+
+    def get_bounds(self):
+        return [self.xmin, self.xmax, self.ymin, self.ymax]
+
+    def get_last_frame_number(self):
+        return self.last_frame_number
+
+    def get_time(self):
+        return self.time[self.frame_number]
+
 
 ##
 # @brief Class for handling checkpoints data
@@ -2529,6 +2605,7 @@ def sww2asc(basename_in, basename_out = None,
             cellsize = 10,
             verbose = False,
             origin = None):
+    
     log.critical('sww2asc will soon be obsoleted - please use sww2dem')
     sww2dem(basename_in,
             basename_out = basename_out,
@@ -2539,8 +2616,8 @@ def sww2asc(basename_in, basename_out = None,
             number_of_decimal_places = number_of_decimal_places,
             verbose = verbose,
             origin = origin,
-        datum = 'WGS84',
-        format = 'asc')
+            datum = 'WGS84',
+            format = 'asc')
 
 
 ##
@@ -6376,6 +6453,8 @@ def urs2txt(basename_in, location_index=None):
                       str(UA[location_index]) + d +
                       str(VA[location_index]) + '\n')
             i += 1
+
+
 
 
 ##

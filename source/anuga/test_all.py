@@ -22,8 +22,8 @@ from anuga.utilities.terminal_width import terminal_width
 exclude_files = []
 
 # Directories that should not be searched for test files.
-exclude_dirs = ['pypar_dist',                        # Special requirements
-                '.svn',                              # subversion
+exclude_dirs = ['pypar_dist',    # Special requirements
+                '.svn',          # subversion
                 'props', 'wcprops', 'prop-base', 'text-base', 'tmp']
 
 
