@@ -2401,7 +2401,10 @@ def sww2dem(basename_in, basename_out=None,
         if len(res.shape) == 2:
             new_res = num.zeros(res.shape[1], num.float)
             for k in xrange(res.shape[1]):
-                new_res[k] = reduction(res[:,k])
+                if reduction == None:
+                    new_res[k] = res[timestep,k]
+                else:
+                    new_res[k] = reduction(res[:,k])
             res = new_res
 
         result[start_slice:end_slice] = res
