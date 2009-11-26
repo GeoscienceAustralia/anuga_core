@@ -154,6 +154,7 @@ class Domain(Generic_Domain):
                  mesh_filename=None,
                  use_cache=False,
                  verbose=False,
+                 conserved_quantities = None,
                  evolved_quantities = None,
                  other_quantities = None,
                  full_send_dict=None,
@@ -163,9 +164,13 @@ class Domain(Generic_Domain):
                  number_of_full_nodes=None,
                  number_of_full_triangles=None):
 
-        # Define quantities for the shallow_water domain         
-        conserved_quantities = ['stage', 'xmomentum', 'ymomentum']
+        # Define quantities for the shallow_water domain
+        if conserved_quantities == None:
+            conserved_quantities = ['stage', 'xmomentum', 'ymomentum']
 
+        if evolved_quantities == None:
+            evolved_quantities =  ['stage', 'xmomentum', 'ymomentum']
+            
         if other_quantities == None:
             other_quantities = ['elevation', 'friction']
         
@@ -174,7 +179,7 @@ class Domain(Generic_Domain):
                                 vertices,
                                 boundary,
                                 conserved_quantities,
-                                evolved_quantities,                                
+                                evolved_quantities,
                                 other_quantities,
                                 tagged_elements,
                                 geo_reference,

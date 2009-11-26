@@ -97,10 +97,17 @@ class Test_swb_clean(unittest.TestCase):
 
         # Check actual results
         assert num.allclose(stage.vertex_values,
-                            [[2,2,2],
-                             [1.93333333, 2.03333333, 6.03333333],
-                             [6.93333333, 4.53333333, 4.53333333],
-                             [5.33333333, 5.33333333, 5.33333333]]) 
+                            [[ 2.,          2.,          2.        ],
+                             [ 1.93333333,  2.03333333,  6.03333333],
+                             [ 8.4,         3.8,         3.8       ],
+                             [ 3.33333333,  5.33333333,  7.33333333]]) or \
+               num.allclose(stage.vertex_values,
+                            [[ 1.06666667,  3.86666667,  1.06666667],
+                             [ 1.93333333,  2.03333333,  6.03333333],
+                             [ 5.46666667,  3.06666667,  7.46666667],
+                             [ 6.53333333,  4.69333333,  4.77333333]])
+
+
 
     def test_balance_deep_and_shallow_tight_SL(self):
         """Test that balanced limiters preserve conserved quantites.

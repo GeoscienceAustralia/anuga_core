@@ -240,6 +240,17 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         assert num.allclose(q, [1.5, 2.5])
 
 
+        # Now set the centroid_transmissive_bc flag to true
+        domain.set_centroid_transmissive_bc(True)
+
+        q = T.evaluate(0, 2)  #Vol=0, edge=2
+
+        assert num.allclose(q, [2.0 ,3.0]) # centroid value
+
+
+
+        
+
     def NOtest_fileboundary_time_only(self):
         """Test that boundary values can be read from file and interpolated
         This is using the .tms file format

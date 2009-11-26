@@ -141,7 +141,6 @@ class Test_swb_conservation(unittest.TestCase):
         # Create shallow water domain
         domain = Domain(points, vertices, boundary)
         domain.smooth = False
-        domain.default_order = 2
 
 
         # IC
@@ -188,6 +187,7 @@ class Test_swb_conservation(unittest.TestCase):
         # Evolution
         for t in domain.evolve(yieldstep=0.05, finaltime=10):
             volume =  domain.quantities['stage'].get_integral()
+                        
             assert num.allclose (volume, initial_volume)
 
         os.remove(domain.get_name() + '.sww')
@@ -236,6 +236,7 @@ class Test_swb_conservation(unittest.TestCase):
 
         domain.check_integrity()
 
+
         initial_volume = domain.quantities['stage'].get_integral()
         initial_xmom = domain.quantities['xmomentum'].get_integral()
 
@@ -254,8 +255,11 @@ class Test_swb_conservation(unittest.TestCase):
         # corresponding bed elevation - but that is reasonable.
 
         #Evolution
+        #print domain.get_time(), initial_volume
         for t in domain.evolve(yieldstep=0.05, finaltime=10.0):
             volume =  domain.quantities['stage'].get_integral()
+
+            #print domain.get_time(), volume
             assert num.allclose (volume, initial_volume)
 
         os.remove(domain.get_name() + '.sww')
@@ -309,10 +313,13 @@ class Test_swb_conservation(unittest.TestCase):
 
             if t > 10:
                 msg = 'time=%.2f, xmom=%.10f, steady_xmom=%.10f' % (t, xmom, steady_xmom)
-                assert num.allclose(xmom, steady_xmom), msg
-                msg = 'time=%.2f, ymom=%.10f, steady_ymom=%.10f' % (t, ymom, steady_ymom)                
-                assert num.allclose(ymom, steady_ymom), msg
-                assert num.allclose(stage, steady_stage)
+                assert num.allclose(xmom, steady_xmom,atol=1.0e-4), msg
+
+                msg = 'time=%.2f, ymom=%.10f, steady_ymom=%.10f' % (t, ymom, steady_ymom)
+                assert num.allclose(ymom, steady_ymom,atol=1.0e-4), msg
+
+                msg = 'time=%.2f, stage=%.10f, steady_stage=%.10f' % (t, stage, steady_stage)
+                assert num.allclose(stage, steady_stage,atol=1.0e-4)
 
         os.remove(domain.get_name() + '.sww')
 

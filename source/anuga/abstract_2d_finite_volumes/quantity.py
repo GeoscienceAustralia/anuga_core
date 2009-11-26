@@ -1425,14 +1425,18 @@ class Quantity:
     def get_integral(self):
         """Compute the integral of quantity across entire domain."""
 
+        
         areas = self.domain.get_areas()
+        """
         integral = 0
         for k in range(len(self.domain)):
             area = areas[k]
             qc = self.centroid_values[k]
             integral += qc*area
+        """
+        return num.sum(areas*self.centroid_values)
 
-        return integral
+        #return integral
 
     ##
     # @brief get the gradients.

@@ -64,6 +64,7 @@ class Test_swb_boundary_condition(unittest.TestCase):
         R = Reflective_boundary(domain)
         domain.set_boundary({'First': D, 'Second': T, 'Third': R})
 
+        domain.set_centroid_transmissive_bc(False)
         domain.update_boundary()
 
         # Stage
@@ -73,6 +74,8 @@ class Test_swb_boundary_condition(unittest.TestCase):
                 domain.get_conserved_quantities(0, edge=0)[0])
         # Dirichlet
         assert domain.quantities['stage'].boundary_values[1] == 5.
+
+        
         # Transmissive (4.5)
         assert (domain.quantities['stage'].boundary_values[2] ==
                 domain.get_conserved_quantities(2, edge=0)[0])
@@ -381,11 +384,11 @@ class Test_swb_boundary_condition(unittest.TestCase):
 
 
         assert num.allclose(num.take(cv1, (0,8,16), axis=0),
-                            num.take(cv2, (0,3,8), axis=0),atol=1.0e-4)      # Diag
+                            num.take(cv2, (0,3,8), axis=0),atol=1.0e-2)      # Diag
         assert num.allclose(num.take(cv1, (0,6,12), axis=0),
-                            num.take(cv2, (0,1,4), axis=0),atol=1.0e-4)      # Bottom
+                            num.take(cv2, (0,1,4), axis=0),atol=1.0e-2)      # Bottom
         assert num.allclose(num.take(cv1, (12,14,16), axis=0),
-                            num.take(cv2, (4,6,8), axis=0),atol=1.0e-4)      # RHS
+                            num.take(cv2, (4,6,8), axis=0),atol=1.0e-2)      # RHS
 
         # Cleanup
         os.remove(domain1.get_name() + '.sww')

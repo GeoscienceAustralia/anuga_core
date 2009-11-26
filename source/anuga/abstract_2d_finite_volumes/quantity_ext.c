@@ -338,7 +338,7 @@ int _limit_edges_by_all_neighbours(int N, double beta,
 
   int i, k, k2, k3, k6;
   long n;
-  double qmin, qmax, qn, qc;
+  double qmin, qmax, qn, qc, sign;
   double dq, dqa[3], phi, r;
   
   for (k=0; k<N; k++){
@@ -360,18 +360,39 @@ int _limit_edges_by_all_neighbours(int N, double beta,
       }
     }
     
+    sign = 0.0;
+    if (qmin > 0) {
+      sign = 1.0;
+    } else if (qmax < 0) {
+      sign = -1.0;
+    }
+
     phi = 1.0;
-    for (i=0; i<3; i++) {    
-      r = 1.0;
+    for (i=0; i<3; i++) {  
+      dq = edge_values[k3+i] - qc;      //Delta between edge and centroid values
+      dqa[i] = dq;                      //Save dq for use in updating vertex values  
       
-      dq = edge_values[k3+i] - qc;     //Delta between edge and centroid values
-      dqa[i] = dq;                      //Save dq for use in updating vertex values
+      // FIXME SR 20091125 This caused problems in shallow_water_balanced
+      // commenting out problem
+      // Just limit non boundary edges so that we can reconstruct a linear function
+      if (neighbours[k3+i] >= 0) {
+	r = 1.0;
       
-      if (dq > 0.0) r = (qmax - qc)/dq;
-      if (dq < 0.0) r = (qmin - qc)/dq;      
+	if (dq > 0.0) r = (qmax - qc)/dq;
+	if (dq < 0.0) r = (qmin - qc)/dq;      
+            
+	phi = min( min(r*beta, 1.0), phi);
+	}
+
+      if (neighbours[k3+i] < 0) {
+	r = 1.0;
       
-      
-      phi = min( min(r*beta, 1.0), phi);    
+	if (dq > 0.0 && sign == -1.0 ) r = (0.0 - qc)/dq;
+	if (dq < 0.0 && sign ==  1.0 ) r = (0.0 - qc)/dq;      
+            
+	phi = min( min(r*beta, 1.0), phi);
+	}
+    
     }
     
     //Update gradient, vertex and edge values using phi limiter

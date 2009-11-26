@@ -242,6 +242,8 @@ class Domain:
         self.protect_against_isolated_degenerate_timesteps = \
                         protect_against_isolated_degenerate_timesteps
 
+
+        self.centroid_transmissive_bc = False
         self.set_default_order(default_order)
 
         self.smallsteps = 0
@@ -522,6 +524,33 @@ class Domain:
         """Get default beta for limiting."""
 
         return self.beta
+
+
+    ##
+    # @brief Set the behaviour of the transmissive boundary condition
+    # @param flag. True or False flag
+    def set_centroid_transmissive_bc(self, flag):
+        """Set behaviour of the transmissive boundary condition, namely
+        calculate the BC using the centroid value of neighbouring cell
+        or the calculated edge value.
+
+        Centroid value is safer.
+
+        Some of the limiters (extrapolate_second_order_and_limit_by_edge)
+        don't limit boundary edge values (so that linear functions are reconstructed),
+
+        In this case it is possible for a run away inflow to occur at a transmissive
+        boundary. In this case set centroid_transmissive_bc to True"""
+
+        self.centroid_transmissive_bc = flag
+
+    ##
+    # @brief Get the centroid_transmissive_bc  flag
+    # @return The beta value used for limiting.
+    def get_centroid_transmissive_bc(self):
+        """Get value of centroid_transmissive_bc flag."""
+
+        return self.centroid_transmissive_bc
 
 
     ##
@@ -1290,7 +1319,7 @@ class Domain:
 
     ##
     # @brief Get the timestep method.
-    # @return The timestep method. One of 'euler', 'rk2' or 'rk3'.
+    # @return The timestep method. One of 'euler', 'rk2' or 'rk3' or 1, 2, 3.
     def get_timestepping_method(self):
         return self.timestepping_method
 
@@ -1299,8 +1328,12 @@ class Domain:
     # @param timestepping_method One of 'euler', 'rk2' or 'rk3'.
     # @note Raises exception of method not known.
     def set_timestepping_method(self, timestepping_method):
-        if timestepping_method in ['euler', 'rk2', 'rk3']:
+        methods = ['euler', 'rk2', 'rk3']    
+        if timestepping_method in methods:
             self.timestepping_method = timestepping_method
+            return
+        if timestepping_method in [1,2,3]:
+            self.timetepping_method = methods[timestepping_method-1]
             return
 
         msg = '%s is an incorrect timestepping type' % timestepping_method

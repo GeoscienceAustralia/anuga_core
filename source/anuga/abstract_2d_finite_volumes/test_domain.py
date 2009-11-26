@@ -473,6 +473,10 @@ class Test_Domain(unittest.TestCase):
         domain.set_timestepping_method('rk2')
         domain.set_timestepping_method('rk3')
 
+        domain.set_timestepping_method(1)
+        domain.set_timestepping_method(2)
+        domain.set_timestepping_method(3)
+
         #test get timestepping method
         assert domain.get_timestepping_method() == 'rk3'
 
@@ -1055,6 +1059,6 @@ class Test_Domain(unittest.TestCase):
 #-------------------------------------------------------------
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_Domain,'test_conserved_evolved')
+    suite = unittest.makeSuite(Test_Domain,'test')
     runner = unittest.TextTestRunner()
     runner.run(suite)

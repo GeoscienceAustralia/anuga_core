@@ -52,7 +52,12 @@ class Transmissive_boundary(Boundary):
         of the volume they serve.
         """
 
-        q = self.domain.get_conserved_quantities(vol_id, edge = edge_id)
+        if self.domain.centroid_transmissive_bc :
+            q = self.domain.get_conserved_quantities(vol_id)
+        else:
+            q = self.domain.get_conserved_quantities(vol_id, edge = edge_id)
+
+
         return q
 
 

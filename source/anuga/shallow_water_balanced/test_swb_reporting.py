@@ -62,14 +62,14 @@ class Test_swb_clean(unittest.TestCase):
         domain.set_quantity('friction', 0.)             # Zero friction
         # Constant negative initial stage
         domain.set_quantity('stage', initial_runup_height)
-        domain.set_quantities_to_be_monitored(['stage', 'stage-elevation'],
+        domain.set_quantities_to_be_monitored(['stage', 'height'],
                                               time_interval=[0.5, 2.7],
                                               polygon=[[0,0], [0,1],
                                                        [1,1], [1,0]])
 
         assert len(domain.quantities_to_be_monitored) == 2
         assert domain.quantities_to_be_monitored.has_key('stage')
-        assert domain.quantities_to_be_monitored.has_key('stage-elevation')
+        assert domain.quantities_to_be_monitored.has_key('height')
         for key in domain.quantities_to_be_monitored['stage'].keys():
             assert domain.quantities_to_be_monitored['stage'][key] is None
 
@@ -98,7 +98,8 @@ class Test_swb_clean(unittest.TestCase):
         assert num.allclose(stage['min'], initial_runup_height,
                             rtol=1.0/N)    # First order accuracy
 
-        depth = domain.quantities_to_be_monitored['stage-elevation']
+        depth = domain.quantities_to_be_monitored['height']
+
         assert depth['min'] <= depth['max']
         assert depth['min'] >= 0.0
         assert depth['max'] >= 0.0
@@ -123,7 +124,7 @@ class Test_swb_clean(unittest.TestCase):
         assert num.allclose(stage['min'], initial_runup_height,
                             rtol = 1.0/N) # First order accuracy
 
-        depth = domain.quantities_to_be_monitored['stage-elevation']
+        depth = domain.quantities_to_be_monitored['height']
         assert depth['min'] <= depth['max']
         assert depth['min'] >= 0.0
         assert depth['max'] >= 0.0
