@@ -2272,6 +2272,14 @@ def sww2dem(basename_in, basename_out=None,
     if quantity is None:
         quantity = 'elevation'
 
+    # FIXME (Ole): I reckon we need a check so that
+    # reduction and timestep cannot both be set.    
+    # if reduction is not None and timestep is not None:
+    #     msg = 'Either reduction or timestep must be set'
+    #     msg += ' but not both.'
+    #     raise Exception(msg)
+    
+    
     if reduction is None:
         reduction = max
 
@@ -2351,6 +2359,7 @@ def sww2dem(basename_in, basename_out=None,
             log.critical('    t [s] in [%f, %f], len(t) == %d'
                          % (min(times), max(times), len(times)))
         log.critical('  Quantities [SI units]:')
+        
         # Comment out for reduced memory consumption
         for name in ['stage', 'xmomentum', 'ymomentum']:
             q = fid.variables[name][:].flatten()
@@ -2383,10 +2392,10 @@ def sww2dem(basename_in, basename_out=None,
     result = num.zeros(number_of_points, num.float)
 
     for start_slice in xrange(0, number_of_points, block_size):
-        # limit slice size to array end if at last block
+        # Limit slice size to array end if at last block
         end_slice = min(start_slice + block_size, number_of_points)
         
-        # get slices of all required variables
+        # Get slices of all required variables
         q_dict = {}
         for name in var_list:
             # check if variable has time axis
@@ -2401,7 +2410,7 @@ def sww2dem(basename_in, basename_out=None,
         if len(res.shape) == 2:
             new_res = num.zeros(res.shape[1], num.float)
             for k in xrange(res.shape[1]):
-                if reduction == None:
+                if reduction is None:
                     new_res[k] = res[timestep,k]
                 else:
                     new_res[k] = reduction(res[:,k])
@@ -2409,7 +2418,7 @@ def sww2dem(basename_in, basename_out=None,
 
         result[start_slice:end_slice] = res
                                     
-    #Post condition: Now q has dimension: number_of_points
+    # Post condition: Now q has dimension: number_of_points
     assert len(result.shape) == 1
     assert result.shape[0] == number_of_points
 
@@ -2417,8 +2426,8 @@ def sww2dem(basename_in, basename_out=None,
         log.critical('Processed values for %s are in [%f, %f]'
                      % (quantity, min(result), max(result)))
 
-    #Create grid and update xll/yll corner and x,y
-    #Relative extent
+    # Create grid and update xll/yll corner and x,y
+    # Relative extent
     if easting_min is None:
         xmin = min(x)
     else:
@@ -2451,7 +2460,7 @@ def sww2dem(basename_in, basename_out=None,
     ncols = int((xmax-xmin)/cellsize) + 1
     nrows = int((ymax-ymin)/cellsize) + 1
 
-    #New absolute reference and coordinates
+    # New absolute reference and coordinates
     newxllcorner = xmin + xllcorner
     newyllcorner = ymin + yllcorner
 
@@ -2467,7 +2476,7 @@ def sww2dem(basename_in, basename_out=None,
         if format.lower() == 'asc':
             yg = i * cellsize
         else:
-        #this will flip the order of the y values for ers
+            # this will flip the order of the y values for ers
             yg = (nrows-i) * cellsize
 
         for j in xrange(ncols):
@@ -2477,16 +2486,15 @@ def sww2dem(basename_in, basename_out=None,
             grid_points[k, 0] = xg
             grid_points[k, 1] = yg
 
-    #Interpolate
+    # Interpolate
     from anuga.fit_interpolate.interpolate import Interpolate
 
     # Remove loners from vertex_points, volumes here
     vertex_points, volumes = remove_lone_verts(vertex_points, volumes)
-    #export_mesh_file('monkey.tsh',{'vertices':vertex_points, 'triangles':volumes})
-    #import sys; sys.exit()
+    # export_mesh_file('monkey.tsh',{'vertices':vertex_points, 'triangles':volumes})
     interp = Interpolate(vertex_points, volumes, verbose = verbose)
 
-    #Interpolate using quantity values
+    # Interpolate using quantity values
     if verbose: log.critical('Interpolating')
     grid_values = interp.interpolate(result, grid_points).flatten()
 
@@ -2494,7 +2502,7 @@ def sww2dem(basename_in, basename_out=None,
         log.critical('Interpolated values are in [%f, %f]'
                      % (num.min(grid_values), num.max(grid_values)))
 
-    #Assign NODATA_value to all points outside bounding polygon (from interpolation mesh)
+    # Assign NODATA_value to all points outside bounding polygon (from interpolation mesh)
     P = interp.mesh.get_boundary_polygon()
     outside_indices = outside_polygon(grid_points, P, closed=True)
 
@@ -2587,7 +2595,7 @@ def sww2dem(basename_in, basename_out=None,
         return basename_out
 
 ################################################################################
-# Obsolete functions - mainatined for backwards compatibility
+# Obsolete functions - maintained for backwards compatibility
 ################################################################################
 
 ##
