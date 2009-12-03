@@ -112,7 +112,21 @@ class Domain(Sww_domain):
     # @brief 
     def compute_fluxes(self):
         #Call correct module function (either from this module or C-extension)
-        compute_fluxes(self)
+
+        from swb_domain_ext import compute_fluxes_c
+
+        #Shortcuts
+        W  = self.quantities['stage']
+        UH = self.quantities['xmomentum']
+        VH = self.quantities['ymomentum']
+        H  = self.quantities['height']
+        Z  = self.quantities['elevation']
+        U  = self.quantities['xvelocity']
+        V  = self.quantities['yvelocity']
+
+        timestep = self.get_evolve_max_timestep()
+        
+        self.flux_timestep = compute_fluxes_c(timestep, self, W, UH, VH, H, Z, U, V)
 
     ##
     # @brief 
@@ -137,22 +151,22 @@ class Domain(Sww_domain):
 
 
         #Shortcuts
-        Stage  = self.quantities['stage']
-        Xmom   = self.quantities['xmomentum']
-        Ymom   = self.quantities['ymomentum']
-        Elev   = self.quantities['elevation']
-        Height = self.quantities['height']
-        Xvel   = self.quantities['xvelocity']
-        Yvel   = self.quantities['yvelocity']
+        W  = self.quantities['stage']
+        UH = self.quantities['xmomentum']
+        VH = self.quantities['ymomentum']
+        H  = self.quantities['height']
+        Z  = self.quantities['elevation']
+        U  = self.quantities['xvelocity']
+        V  = self.quantities['yvelocity']
 
         #Arrays   
-        w_C   = Stage.centroid_values    
-        uh_C  = Xmom.centroid_values
-        vh_C  = Ymom.centroid_values    
-        z_C   = Elev.centroid_values
-        h_C   = Height.centroid_values
-        u_C   = Xvel.centroid_values
-        v_C   = Yvel.centroid_values
+        w_C   = W.centroid_values    
+        uh_C  = UH.centroid_values
+        vh_C  = VH.centroid_values    
+        z_C   = Z.centroid_values
+        h_C   = H.centroid_values
+        u_C   = U.centroid_values
+        v_C   = V.centroid_values
 
         w_C[:] = num.maximum(w_C, z_C)
         
@@ -168,7 +182,7 @@ class Domain(Sww_domain):
         u_C[:]  = uh_C/h_C
         v_C[:]  = vh_C/h_C
 	
-        for name in [ 'height', 'xvelocity', 'yvelocity' ]:
+        for name in [ 'height', 'elevation', 'xvelocity', 'yvelocity' ]:
             Q = self.quantities[name]
             if self._order_ == 1:
                 Q.extrapolate_first_order()
@@ -178,13 +192,13 @@ class Domain(Sww_domain):
                 raise 'Unknown order'
 
 
-        w_E     = Stage.edge_values
-        uh_E    = Xmom.edge_values
-        vh_E    = Ymom.edge_values	
-        z_E     = Elev.edge_values	
-        h_E     = Height.edge_values
-        u_E     = Xvel.edge_values
-        v_E     = Yvel.edge_values		
+        w_E     = W.edge_values
+        uh_E    = UH.edge_values
+        vh_E    = VH.edge_values	
+        h_E     = H.edge_values
+        z_E     = Z.edge_values	
+        u_E     = U.edge_values
+        v_E     = V.edge_values		
 
 
         w_E[:]   = z_E + h_E
@@ -211,13 +225,13 @@ class Domain(Sww_domain):
             Q.interpolate_from_edges_to_vertices()
 
 
-        w_V     = Stage.vertex_values
-        uh_V    = Xmom.vertex_values
-        vh_V    = Ymom.vertex_values	
-        z_V     = Elev.vertex_values	
-        h_V     = Height.vertex_values
-        u_V     = Xvel.vertex_values
-        v_V     = Yvel.vertex_values		
+        w_V     = W.vertex_values
+        uh_V    = UH.vertex_values
+        vh_V    = VH.vertex_values	
+        z_V     = Z.vertex_values	
+        h_V     = H.vertex_values
+        u_V     = U.vertex_values
+        v_V     = V.vertex_values		
 
 
         #w_V[:]    = z_V + h_V
