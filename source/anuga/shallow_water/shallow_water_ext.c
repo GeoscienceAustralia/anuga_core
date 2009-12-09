@@ -1350,7 +1350,7 @@ int _extrapolate_second_order_sw(int number_of_elements,
       if (area2 <= 0) 
       {
         PyErr_SetString(PyExc_RuntimeError, 
-                        "shallow_water_ext.c: negative triangle area encountered");
+                        "shallow_water_ext.c: Negative triangle area encountered. This might be due to a triangle being flat or it's vertices not order anti-clockwise.");
     
         return -1;
       }  
