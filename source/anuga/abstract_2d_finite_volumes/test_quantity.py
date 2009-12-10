@@ -2164,8 +2164,8 @@ class Test_Quantity(unittest.TestCase):
         value = 7
         indices = [1,5]
         quantity.set_values(value,
-                            location = 'unique vertices',
-                            indices = indices)
+                            location='unique vertices',
+                            indices=indices)
         #print "quantity.centroid_values",quantity.centroid_values
         assert num.allclose(quantity.vertex_values[0], [0,7,0])
         assert num.allclose(quantity.vertex_values[1], [7,1,7])
@@ -2201,13 +2201,13 @@ class Test_Quantity(unittest.TestCase):
 
         answer = [0.5,2,4,5,0,1,3,4.5]
         assert num.allclose(answer,
-                            quantity.get_values(location = 'unique vertices'))
+                            quantity.get_values(location='unique vertices'))
 
         indices = [0,5,3]
         answer = [0.5,1,5]
         assert num.allclose(answer,
                             quantity.get_values(indices=indices,
-                                                location = 'unique vertices'))
+                                                location='unique vertices'))
         #print "quantity.centroid_values",quantity.centroid_values
         #print "quantity.get_values(location = 'centroids') ",\
         #      quantity.get_values(location = 'centroids')
@@ -2236,24 +2236,31 @@ class Test_Quantity(unittest.TestCase):
         quantity = Quantity(domain)
         quantity.set_values(lambda x, y: x+2*y) #2 4 4 6
         
-        assert num.allclose(quantity.get_values(location='centroids'), [2,4,4,6])
-        assert num.allclose(quantity.get_values(location='centroids', indices=[1,3]), [4,6])
+        assert num.allclose(quantity.get_values(location='centroids'), 
+                            [2,4,4,6])
+                            
+        assert num.allclose(quantity.get_values(location='centroids', 
+                                                indices=[1,3]), [4,6])
 
 
-        assert num.allclose(quantity.get_values(location='vertices'), [[4,0,2],
-                                                                       [4,2,6],
-                                                                       [6,2,4],
-                                                                       [8,4,6]])
+        assert num.allclose(quantity.get_values(location='vertices'), 
+                            [[4,0,2],
+                             [4,2,6],
+                             [6,2,4],
+                             [8,4,6]])
         
-        assert num.allclose(quantity.get_values(location='vertices', indices=[1,3]), [[4,2,6],
-                                                                                      [8,4,6]])
+        assert num.allclose(quantity.get_values(location='vertices', 
+                                                indices=[1,3]), [[4,2,6],
+                                                                 [8,4,6]])
 
 
-        assert num.allclose(quantity.get_values(location='edges'), [[1,3,2],
-                                                                    [4,5,3],
-                                                                    [3,5,4],
-                                                                    [5,7,6]])
-        assert num.allclose(quantity.get_values(location='edges', indices=[1,3]),
+        assert num.allclose(quantity.get_values(location='edges'), 
+                            [[1,3,2],
+                             [4,5,3],
+                             [3,5,4],
+                             [5,7,6]])
+        assert num.allclose(quantity.get_values(location='edges', 
+                                                indices=[1,3]),
                             [[4,5,3],
                              [5,7,6]])        
 
@@ -2264,10 +2271,8 @@ class Test_Quantity(unittest.TestCase):
         #d: 8
         #e: (6+6+6)/3        
         #f: 4
-        assert num.allclose(quantity.get_values(location='unique vertices'), [0, 4, 2, 8, 6, 4])        
-                                                                                  
-        
-
+        assert num.allclose(quantity.get_values(location='unique vertices'), 
+                            [0, 4, 2, 8, 6, 4]) 
 
 
 
@@ -2305,8 +2310,9 @@ class Test_Quantity(unittest.TestCase):
         answer = quantity.get_values(location='centroids')
         #print answer
         #print quantity.get_values(interpolation_points=interpolation_points)
-        assert num.allclose(answer, quantity.get_values(interpolation_points=interpolation_points,
-                                                        verbose=False))        
+        assert num.allclose(answer, 
+                            quantity.get_values(interpolation_points=interpolation_points,
+                                                verbose=False))        
                         
 
         #FIXME TODO
@@ -2506,9 +2512,19 @@ class Test_Quantity(unittest.TestCase):
         
         assert num.allclose(answer_vertex_values,
                             quantity.vertex_values)
-        #print "quantity.centroid_values",quantity.centroid_values
-        #print "quantity.get_values(location = 'centroids') ",\
-        #      quantity.get_values(location = 'centroids')
+                            
+        # Just another (slightly larger) test of get_values
+
+        assert num.allclose(quantity.get_values(location='centroids'),
+                            quantity.centroid_values)
+                            
+                            
+        assert num.allclose(quantity.get_values(location='vertices'),
+                            quantity.vertex_values)                            
+                            
+        assert num.allclose(quantity.get_values(location='edges'),
+                            quantity.edge_values)
+                            
 
 
 

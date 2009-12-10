@@ -1141,8 +1141,8 @@ class Quantity:
                      and unique vertices. Default is 'vertices'
 
 
-        The returned values will have the leading dimension equal to length of the indices list or
-        N (all values) if indices is None.
+        The returned values will have the leading dimension equal to 
+        length of the indices list or N (all values) if indices is None.
 
         In case of location == 'centroids' the dimension of returned
         values will be a list or a numerical array of length N, N being
@@ -1156,6 +1156,10 @@ class Quantity:
         will be a 1d array of length "number of vertices"
 
         Indices is the set of element ids that the operation applies to.
+        If indices is None (or omitted) all elements are returned as
+        a copy of the relevant array. If performance is critical, 
+        use arrays domain.centroid_values, domain.vertex_values and 
+        domain.edge_values directly.
 
         The values will be stored in elements following their
         internal ordering.
@@ -1177,28 +1181,30 @@ class Quantity:
         # elsewhere in ANUGA.
         # Edges have already been deprecated in set_values, see changeset:5521,
         # but *might* be useful in get_values. Any thoughts anyone?
-        # YES (Ole): Edge values are necessary for volumetric balance check and inflow boundary. Keep them.
+        # YES (Ole): Edge values are necessary for volumetric balance 
+        # check and inflow boundary. Keep them!
 
         if location not in ['vertices', 'centroids',
                             'edges', 'unique vertices']:
             msg = 'Invalid location: %s' % location
             raise Exception, msg
 
-        import types
 
-        msg = "'indices' must be a list, array or None"
+        msg = '\'indices\' must be a list, array or None'
         assert isinstance(indices, (NoneType, list, num.ndarray)), msg
 
         if location == 'centroids':
-            if (indices ==  None):
-                indices = range(len(self))
-            return num.take(self.centroid_values, indices, axis=0)
+            if indices is None:
+                return self.centroid_values.copy()
+            else:
+                return num.take(self.centroid_values, indices, axis=0)
         elif location == 'edges':
-            if (indices ==  None):
-                indices = range(len(self))
-            return num.take(self.edge_values, indices, axis=0)
+            if indices is  None:
+                return self.edge_values.copy()
+            else:    
+                return num.take(self.edge_values, indices, axis=0)
         elif location == 'unique vertices':
-            if (indices ==  None):
+            if indices is None:
                 indices=range(self.domain.get_number_of_nodes())
             vert_values = []
 
@@ -1220,9 +1226,10 @@ class Quantity:
                 vert_values.append(sum / len(triangles))
             return num.array(vert_values, num.float)
         else:
-            if (indices is None):
-                indices = range(len(self))
-            return num.take(self.vertex_values, indices, axis=0)
+            if indices is None:
+                return self.vertex_values.copy()
+            else:    
+                return num.take(self.vertex_values, indices, axis=0)
 
     ##
     # @brief Set vertex values for all unique vertices based on array.
