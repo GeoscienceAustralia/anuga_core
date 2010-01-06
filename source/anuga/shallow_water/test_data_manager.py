@@ -181,7 +181,7 @@ class Test_Data_Manager(unittest.TestCase):
         sww = SWW_file(self.domain)
         sww.store_connectivity()
 
-        fid = NetCDFFile(sww.filename, netcdf_mode_r)  #Open existing file for append
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)  # Open existing file for append
 
         # Get the variables
         x = fid.variables['x']
@@ -213,9 +213,9 @@ class Test_Data_Manager(unittest.TestCase):
         sww = SWW_file(self.domain)
         sww.store_connectivity()
 
-        #Check contents
-        #Get NetCDF
-        fid = NetCDFFile(sww.filename, netcdf_mode_r)  #Open existing file for append
+        # Check contents
+        # Get NetCDF
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)  # Open existing file for append
 
         # Get the variables
         sww_revision = fid.revision_number
@@ -382,9 +382,9 @@ class Test_Data_Manager(unittest.TestCase):
         sww = SWW_file(self.domain)
         sww.store_connectivity()
 
-        #Check contents
-        #Get NetCDF
-        fid = NetCDFFile(sww.filename, netcdf_mode_r)  #Open existing file for append
+        # Check contents
+        # Get NetCDF
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)  # Open existing file for append
 
         # Get the variables
         X = fid.variables['x'][:]
@@ -423,9 +423,9 @@ class Test_Data_Manager(unittest.TestCase):
         sww.store_connectivity()
         sww.store_timestep()
 
-        #Check contents
-        #Get NetCDF
-        fid = NetCDFFile(sww.filename, netcdf_mode_r)  #Open existing file for append
+        # Check contents
+        # Get NetCDF
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)  # Open existing file for append
 
 
         # Get the variables
@@ -474,9 +474,9 @@ class Test_Data_Manager(unittest.TestCase):
         sww.store_timestep()
 
 
-        #Check contents
-        #Get NetCDF
-        fid = NetCDFFile(sww.filename, netcdf_mode_r)  #Open existing file for append
+        # Check contents
+        # Get NetCDF
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)  # Open existing file for append
 
         # Get the variables
         x = fid.variables['x']
@@ -2370,7 +2370,7 @@ END CROSS-SECTIONS:
         stage = fid.variables['stage'][:]
 
 
-        #Export to ascii/prj files
+        # Export to ascii/prj files
         sww2dem(domain.get_name(),
                 quantity = 'elevation',
                 cellsize = cellsize,
@@ -2385,7 +2385,7 @@ END CROSS-SECTIONS:
         fid.close()
 
 
-        #Check prj (meta data)
+        # Check prj (meta data)
         prjid = open(prjfile)
         lines = prjid.readlines()
         prjid.close()
@@ -4219,21 +4219,21 @@ END CROSS-SECTIONS:
                          (224+225+226+242+243+244+260+261+262) / 9.0,
                          (228+229+230+246+247+248+264+265+266) / 9.0]
 
-        #generate a stencil for computing the decimated values
+        # generate a stencil for computing the decimated values
         stencil = num.ones((3,3), num.float) / 9.0
 
         decimate_dem(root, stencil=stencil, cellsize_new=100)
 
-        #Open decimated NetCDF file
+        # Open decimated NetCDF file
         fid = NetCDFFile(root + '_100.dem', netcdf_mode_r)
 
         # Get decimated elevation
         elevation = fid.variables['elevation']
 
-        #Check values
+        # Check values
         assert num.allclose(elevation, ref_elevation)
 
-        #Cleanup
+        # Cleanup
         fid.close()
 
         os.remove(root + '.dem')
@@ -4246,7 +4246,7 @@ END CROSS-SECTIONS:
         import os
         from Scientific.IO.NetCDF import NetCDFFile
 
-        #Write test dem file
+        # Write test dem file
         root = 'decdemtest'
 
         filename = root + '.dem'
@@ -4280,9 +4280,10 @@ END CROSS-SECTIONS:
 
         elevation = fid.variables['elevation']
 
-        #generate initial elevation values
+        # Generate initial elevation values
         elevation_tmp = (num.arange(nrows*ncols))
-        #add some NODATA values
+
+        # Add some NODATA values
         elevation_tmp[0]   = NODATA_value
         elevation_tmp[95]  = NODATA_value
         elevation_tmp[188] = NODATA_value
@@ -4295,7 +4296,7 @@ END CROSS-SECTIONS:
 
         fid.close()
 
-        #generate the elevation values expected in the decimated file
+        # Generate the elevation values expected in the decimated file
         ref_elevation = [NODATA_value,
                          (  4+  5+  6+ 22+ 23+ 24+ 40+ 41+ 42) / 9.0,
                          (  8+  9+ 10+ 26+ 27+ 28+ 44+ 45+ 46) / 9.0,
@@ -4313,21 +4314,21 @@ END CROSS-SECTIONS:
                          (224+225+226+242+243+244+260+261+262) / 9.0,
                          (228+229+230+246+247+248+264+265+266) / 9.0]
 
-        #generate a stencil for computing the decimated values
+        # Generate a stencil for computing the decimated values
         stencil = num.ones((3,3), num.float) / 9.0
 
         decimate_dem(root, stencil=stencil, cellsize_new=100)
 
-        #Open decimated NetCDF file
+        # Open decimated NetCDF file
         fid = NetCDFFile(root + '_100.dem', netcdf_mode_r)
 
         # Get decimated elevation
         elevation = fid.variables['elevation']
 
-        #Check values
+        # Check values
         assert num.allclose(elevation, ref_elevation)
 
-        #Cleanup
+        # Cleanup
         fid.close()
 
         os.remove(root + '.dem')
@@ -4500,10 +4501,10 @@ NODATA_value  -9999
 
         # check the sww file
 
-        fid = NetCDFFile(sww_file, netcdf_mode_r)    #Open existing file for read
+        fid = NetCDFFile(sww_file, netcdf_mode_r)    # Open existing file for read
         x = fid.variables['x'][:]
         y = fid.variables['y'][:]
-        z = fid.variables['z'][:]
+        z = fid.variables['elevation'][:]
         stage = fid.variables['stage'][:]
         xmomentum = fid.variables['xmomentum'][:]
         geo_ref = Geo_reference(NetCDFObject=fid)
@@ -4810,10 +4811,10 @@ NODATA_value  -9999
 
         # check the sww file
 
-        fid = NetCDFFile(sww_file, netcdf_mode_r)    #Open existing file for read
+        fid = NetCDFFile(sww_file, netcdf_mode_r)    # Open existing file for read
         x = fid.variables['x'][:]
         y = fid.variables['y'][:]
-        z = fid.variables['z'][:]
+        z = fid.variables['elevation'][:]
         stage = fid.variables['stage'][:]
         xmomentum = fid.variables['xmomentum'][:]
         geo_ref = Geo_reference(NetCDFObject=fid)
@@ -5004,10 +5005,10 @@ NODATA_value  -9999
 
         # check the sww file
 
-        fid = NetCDFFile(sww_file, netcdf_mode_r)    #Open existing file for read
+        fid = NetCDFFile(sww_file, netcdf_mode_r)    # Open existing file for read
         x = fid.variables['x'][:]
         y = fid.variables['y'][:]
-        z = fid.variables['z'][:]
+        z = fid.variables['elevation'][:]
         stage = fid.variables['stage'][:]
         xmomentum = fid.variables['xmomentum'][:]
         ymomentum = fid.variables['ymomentum'][:]
@@ -7756,9 +7757,9 @@ ValueError: matrices are not aligned for copy
                 verbose=False)
         
         # read in sts file for combined source
-        fid = NetCDFFile(sts_name_out+'.sts', netcdf_mode_r)    #Open existing file for read
-        x = fid.variables['x'][:]+fid.xllcorner   #x-coordinates of vertices
-        y = fid.variables['y'][:]+fid.yllcorner   #y-coordinates of vertices
+        fid = NetCDFFile(sts_name_out+'.sts', netcdf_mode_r)    # Open existing file for read
+        x = fid.variables['x'][:]+fid.xllcorner   # x-coordinates of vertices
+        y = fid.variables['y'][:]+fid.yllcorner   # y-coordinates of vertices
 	elevation = fid.variables['elevation'][:]
         time=fid.variables['time'][:]+fid.starttime
         
@@ -7770,7 +7771,7 @@ ValueError: matrices are not aligned for copy
         msg += str(stored_permutation)
         assert num.allclose(stored_permutation, permutation), msg        
 
-        # get quantity data from sts file
+        # Get quantity data from sts file
         quantity_names=['stage','xmomentum','ymomentum']
         quantities = {}
         for i, name in enumerate(quantity_names):

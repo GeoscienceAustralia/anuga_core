@@ -701,7 +701,7 @@ class Read_sww:
         
         fin = NetCDFFile(self.source, 'r')
         
-        for q in filter(lambda n:n != 'x' and n != 'y' and n != 'z' and n != 'time' and n != 'volumes' and \
+        for q in filter(lambda n:n != 'x' and n != 'y' and n != 'time' and n != 'volumes' and \
                         '_range' not in n, \
                         fin.variables.keys()):
             if len(fin.variables[q].shape) == 1: # Not a time-varying quantity
@@ -3412,10 +3412,10 @@ def ferret2sww(basename_in, basename_out=None,
     #FIXME: z should be obtained from MOST and passed in here
 
     #FIXME use the Write_sww instance(sww) to write this info
-    z = num.resize(z, outfile.variables['z'][:].shape)
+    z = num.resize(z, outfile.variables['elevation'][:].shape)
     outfile.variables['x'][:] = x - geo_ref.get_xllcorner()
     outfile.variables['y'][:] = y - geo_ref.get_yllcorner()
-    outfile.variables['z'][:] = z             #FIXME HACK for bacwards compat.
+    #outfile.variables['z'][:] = z             #FIXME HACK for bacwards compat.
     outfile.variables['elevation'][:] = z
     outfile.variables['volumes'][:] = volumes.astype(num.int32) #For Opteron 64
 
@@ -3706,7 +3706,7 @@ def sww2domain(filename, boundary=None, t=None,
 
     other_quantities.remove('x')
     other_quantities.remove('y')
-    other_quantities.remove('z')
+    #other_quantities.remove('z')
     other_quantities.remove('volumes')
     try:
         other_quantities.remove('stage_range')
@@ -4263,7 +4263,7 @@ def asc_csiro2sww(bath_dir,
     outfile.createVariable('elevation', precision, ('number_of_points',))
 
     #FIXME: Backwards compatibility
-    outfile.createVariable('z', precision, ('number_of_points',))
+    #outfile.createVariable('z', precision, ('number_of_points',))
     #################################
 
     outfile.createVariable('volumes', netcdf_int, ('number_of_volumes',
@@ -4338,12 +4338,12 @@ def asc_csiro2sww(bath_dir,
                      % (min(y), max(y), len(y)))
         log.critical('geo_ref: ', geo_ref)
 
-    z = num.resize(bath_grid,outfile.variables['z'][:].shape)
+    z = num.resize(bath_grid,outfile.variables['elevation'][:].shape)
     outfile.variables['x'][:] = x - geo_ref.get_xllcorner()
     outfile.variables['y'][:] = y - geo_ref.get_yllcorner()
-# FIXME (Ole): Remove once viewer has been recompiled and changed
-#              to use elevation instead of z
-    outfile.variables['z'][:] = z
+    # FIXME (Ole): Remove once viewer has been recompiled and changed
+    #              to use elevation instead of z
+    #outfile.variables['z'][:] = z
     outfile.variables['elevation'][:] = z
     outfile.variables['volumes'][:] = volumes.astype(num.int32) # On Opteron 64
 
@@ -6098,10 +6098,10 @@ class Write_sww:
             outfile.variables[q+Write_sww.RANGE][0] = max_float  # Min
             outfile.variables[q+Write_sww.RANGE][1] = -max_float # Max
 
-        if 'elevation' in self.static_quantities:    
-            # FIXME: Backwards compat - get rid of z once old view has retired
-            outfile.createVariable('z', sww_precision,
-                                   ('number_of_points',))
+        #if 'elevation' in self.static_quantities:    
+        #    # FIXME: Backwards compat - get rid of z once old view has retired
+        #    outfile.createVariable('z', sww_precision,
+        #                           ('number_of_points',))
                                
         for q in self.dynamic_quantities:
             outfile.createVariable(q, sww_precision, ('number_of_timesteps',
@@ -6266,8 +6266,8 @@ class Write_sww:
                 outfile.variables[q + Write_sww.RANGE][1] = num.max(x)
                     
         # FIXME: Hack for backwards compatibility with old viewer
-        if 'elevation' in self.static_quantities:
-            outfile.variables['z'][:] = outfile.variables['elevation'][:]
+        #if 'elevation' in self.static_quantities:
+        #    outfile.variables['z'][:] = outfile.variables['elevation'][:]
 
                     
                     
@@ -6637,9 +6637,9 @@ class Write_sts:
         # the points are relative to the georef
         geo_ref.write_NetCDF(outfile)
 
-        x =  points[:,0]
-        y =  points[:,1]
-        z = outfile.variables['z'][:]
+        x = points[:,0]
+        y = points[:,1]
+        z = outfile.variables['elevation'][:]
 
         if verbose:
             log.critical('------------------------------------------------')
@@ -6654,10 +6654,10 @@ class Write_sts:
             log.critical('geo_ref: %s' % str(geo_ref))
             log.critical('------------------------------------------------')
 
-        #z = resize(bath_grid,outfile.variables['z'][:].shape)
+        z = resize(bath_grid,outfile.variables['elevation'][:].shape)
         outfile.variables['x'][:] = points[:,0] #- geo_ref.get_xllcorner()
         outfile.variables['y'][:] = points[:,1] #- geo_ref.get_yllcorner()
-        outfile.variables['z'][:] = elevation
+        #outfile.variables['z'][:] = elevation
         outfile.variables['elevation'][:] = elevation  #FIXME HACK4
 
         # This updates the _range values
