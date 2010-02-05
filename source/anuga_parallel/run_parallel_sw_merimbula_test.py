@@ -38,14 +38,15 @@ import pypar    # The Python-MPI interface
 import time
 
 # Numeric arrays
-from Numeric import array, zeros, Float
+import numpy as num
+#from numpy import array, zeros, float
 
 # Print debugging information
 from print_stats import print_test_stats, build_full_flag
 
 # pmesh
 from anuga.shallow_water import Domain
-from parallel_shallow_water import Parallel_Domain
+from parallel_shallow_water import Parallel_domain
 from anuga.abstract_2d_finite_volumes.pmesh2domain\
      import pmesh_to_domain_instance
 
@@ -53,10 +54,10 @@ from anuga.abstract_2d_finite_volumes.pmesh2domain\
 from anuga.caching import cache
 
 # Mesh partition routines
-from pmesh_divide  import pmesh_divide_metis
-from build_submesh import build_submesh
-from build_local   import build_local_mesh
-from build_commun  import send_submesh, rec_submesh, extract_hostmesh
+from distribute_mesh  import pmesh_divide_metis
+from distribute_mesh  import build_submesh
+from distribute_mesh  import build_local_mesh
+from distribute_mesh  import send_submesh, rec_submesh, extract_hostmesh
 
 
 ###############################
@@ -65,13 +66,13 @@ from build_commun  import send_submesh, rec_submesh, extract_hostmesh
 
 numprocs = pypar.size()
 myid = pypar.rank()
-processor_name = pypar.Get_processor_name()
+processor_name = pypar.get_processor_name()
 
 ############################
 # Set the initial conditions
 ############################
 
-rect = zeros( 4, Float) # Buffer for results
+rect = num.zeros( 4, num.float) # Buffer for results
 
 class Set_Stage:
     """Set an initial condition with constant water height, for x<x0
@@ -93,8 +94,9 @@ if myid == 0:
 
     # Read in the test files
 
-    filename = 'test-100.tsh'
+#    filename = 'test-100.tsh'
 #    filename = 'merimbula_10785_1.tsh'
+    filename = 'merimbula_43200.tsh'
 
     # Build the whole domain
     
@@ -104,12 +106,13 @@ if myid == 0:
 #               (filename, Domain),
 #              dependencies = [filename])
 
-    rect = array(domain_full.xy_extent, Float)
+    rect = num.array(domain_full.get_extent(), num.float)
+    print rect
 
     # Initialise the wave
 
-    domain_full.set_quantity('stage', Set_Stage(200.0,300.0,1.0))
-#    domain_full.set_quantity('stage', Set_Stage(756000.0,756500.0,2.0))
+    #domain_full.set_quantity('stage', Set_Stage(200.0,300.0,1.0))
+    domain_full.set_quantity('stage', Set_Stage(756000.0,756500.0,2.0))
 #    domain_full.set_quantity('stage', Set_Stage(756000.0,756500.0,0.0))
 
     # Subdivide the domain
@@ -122,7 +125,7 @@ if myid == 0:
 
     print triangles_per_proc
     
-    rect = array(domain_full.xy_extent, Float)
+    rect = num.array(domain_full.get_extent(), num.float)
 
     submesh = build_submesh(nodes, triangles, boundary,\
                             quantities, triangles_per_proc)
@@ -142,8 +145,8 @@ if myid == 0:
 # correct form for the GA data structure
 
 else:
-    points, vertices, boundary, quantities, ghost_recv_dict, full_send_dict \
-            = rec_submesh(0)
+    points, vertices, boundary, quantities, ghost_recv_dict, full_send_dict , \
+            no_full_nodes, no_full_trigs = rec_submesh(0)
 
 
 ###########################################
@@ -162,7 +165,7 @@ else:
 
 pypar.broadcast(rect,0)
 
-domain = Parallel_Domain(points, vertices, boundary,
+domain = Parallel_domain(points, vertices, boundary,
                          full_send_dict  = full_send_dict,
                          ghost_recv_dict = ghost_recv_dict)
 
@@ -184,7 +187,7 @@ except:
 domain.default_order = 1
 
 #Boundaries
-from parallel_shallow_water import Transmissive_boundary, Reflective_boundary
+from anuga.interface import Transmissive_boundary, Reflective_boundary
 
 T = Transmissive_boundary(domain)
 R = Reflective_boundary(domain)
@@ -201,11 +204,11 @@ domain.store = False
 t0 = time.time()
 
 print 'Processor %d on %s: No of elements %d'%(domain.processor,processor_name,domain.number_of_elements)
-yieldstep = 0.05
-finaltime = 5.0
+yieldstep = 50.0
+finaltime = 500.0
 
-yieldstep = 1
-finaltime = None
+#yieldstep = 1000
+#finaltime = 40000
 
 #yieldstep = 1
 #finaltime = 1
@@ -275,3 +278,6 @@ if myid == 0:
     print 'Communication time %.2f seconds'%domain.communication_time
     print 'Reduction Communication time %.2f seconds'%domain.communication_reduce_time
     print 'Broadcast time %.2f seconds'%domain.communication_broadcast_time
+
+
+pypar.finalize()
