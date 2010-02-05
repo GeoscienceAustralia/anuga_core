@@ -79,10 +79,12 @@ class Domain(Sww_domain):
         #---------------------
         # set some defaults
         #---------------------
-        self.set_timestepping_method(1)
+        self.set_timestepping_method(2)
         self.set_default_order(2)
         self.set_new_mannings_function(True)
         self.set_centroid_transmissive_bc(True)
+        self.set_CFL(1.0)
+        self.set_beta(1.0)
 
     ##
     # @brief Run integrity checks on shallow water balanced domain.
@@ -113,6 +115,9 @@ class Domain(Sww_domain):
     def compute_fluxes(self):
         #Call correct module function (either from this module or C-extension)
 
+        #compute_fluxes(self)
+
+        #return
         from swb_domain_ext import compute_fluxes_c
 
         #Shortcuts
@@ -128,9 +133,141 @@ class Domain(Sww_domain):
         
         self.flux_timestep = compute_fluxes_c(timestep, self, W, UH, VH, H, Z, U, V)
 
+        #print self.flux_timestep
+
     ##
     # @brief 
     def distribute_to_vertices_and_edges(self):
+        """Distribution from centroids to edges specific to the SWW eqn.
+
+        It will ensure that h (w-z) is always non-negative even in the
+        presence of steep bed-slopes by taking a weighted average between shallow
+        and deep cases.
+
+        In addition, all conserved quantities get distributed as per either a
+        constant (order==1) or a piecewise linear function (order==2).
+        
+
+        Precondition:
+        All conserved quantities defined at centroids and bed elevation defined at
+        edges.
+        
+        Postcondition
+        Evolved quantities defined at vertices and edges
+        """
+
+        #Sww_domain.distribute_to_vertices_and_edges(self)
+        #return
+    
+        #Shortcuts
+        W  = self.quantities['stage']
+        UH = self.quantities['xmomentum']
+        VH = self.quantities['ymomentum']
+        H  = self.quantities['height']
+        Z  = self.quantities['elevation']
+        U  = self.quantities['xvelocity']
+        V  = self.quantities['yvelocity']
+
+        #Arrays   
+        w_C   = W.centroid_values    
+        uh_C  = UH.centroid_values
+        vh_C  = VH.centroid_values    
+        z_C   = Z.centroid_values
+        h_C   = H.centroid_values
+        u_C   = U.centroid_values
+        v_C   = V.centroid_values
+
+        w_C[:] = num.maximum(w_C, z_C)
+        
+        h_C[:] = w_C - z_C
+
+
+        assert num.min(h_C) >= 0
+                
+        num.putmask(uh_C, h_C < 1.0e-15, 0.0)
+        num.putmask(vh_C, h_C < 1.0e-15, 0.0)
+        num.putmask(h_C, h_C < 1.0e-15, 1.0e-16)        
+
+        H0 = 1.0e-8
+        u_C[:]  = uh_C/(h_C + H0/h_C)
+        v_C[:]  = vh_C/(h_C + H0/h_C)
+
+        num.putmask(h_C, h_C < 1.0e-15, 0.0)
+        
+        for name in [ 'stage', 'height', 'xvelocity', 'yvelocity' ]:
+            Q = self.quantities[name]
+            if self._order_ == 1:
+                Q.extrapolate_first_order()
+            elif self._order_ == 2:
+                Q.extrapolate_second_order_and_limit_by_edge()
+                #Q.extrapolate_second_order_and_limit_by_vertex()
+            else:
+                raise 'Unknown order'
+
+
+        w_E     = W.edge_values
+        uh_E    = UH.edge_values
+        vh_E    = VH.edge_values	
+        h_E     = H.edge_values
+        z_E     = Z.edge_values	
+        u_E     = U.edge_values
+        v_E     = V.edge_values		
+
+
+        #minh_E = num.min(h_E)
+        #msg = 'min h_E = %g ' % minh_E
+        #assert minh_E >= -1.0e-15, msg
+
+        z_E[:]   = w_E - h_E
+
+        num.putmask(h_E, h_E <= 1.0e-15, 0.0)
+        num.putmask(u_E, h_E <= 1.0e-15, 0.0)
+        num.putmask(v_E, h_E <= 1.0e-15, 0.0)
+        num.putmask(w_E, h_E <= 1.0e-15, z_E)
+        #num.putmask(h_E, h_E <= 0.0, 0.0)
+        
+        uh_E[:] = u_E * h_E
+        vh_E[:] = v_E * h_E
+
+        """
+        print '=========================================================='
+        print 'Time ', self.get_time()
+        print h_E
+        print uh_E
+        print vh_E
+        """
+        
+        # Compute vertex values by interpolation
+        for name in self.evolved_quantities:
+            Q = self.quantities[name]
+            Q.interpolate_from_edges_to_vertices()
+
+
+        w_V     = W.vertex_values
+        uh_V    = UH.vertex_values
+        vh_V    = VH.vertex_values	
+        z_V     = Z.vertex_values	
+        h_V     = H.vertex_values
+        u_V     = U.vertex_values
+        v_V     = V.vertex_values		
+
+
+        #w_V[:]    = z_V + h_V
+
+        #num.putmask(u_V, h_V <= 0.0, 0.0)
+        #num.putmask(v_V, h_V <= 0.0, 0.0)
+        #num.putmask(w_V, h_V <= 0.0, z_V)        
+        #num.putmask(h_V, h_V <= 0.0, 0.0)
+        
+        uh_V[:] = u_V * h_V
+        vh_V[:] = v_V * h_V
+
+
+
+
+    ##
+    # @brief 
+    def distribute_to_vertices_and_edges_h(self):
         """Distribution from centroids to edges specific to the SWW eqn.
 
         It will ensure that h (w-z) is always non-negative even in the
@@ -177,17 +314,20 @@ class Domain(Sww_domain):
                 
         num.putmask(uh_C, h_C < 1.0e-15, 0.0)
         num.putmask(vh_C, h_C < 1.0e-15, 0.0)
-        num.putmask(h_C, h_C < 1.0e-15, 1.0e-15)        
+        num.putmask(h_C, h_C < 1.0e-15, 1.0e-16)        
         
         u_C[:]  = uh_C/h_C
         v_C[:]  = vh_C/h_C
-	
-        for name in [ 'height', 'elevation', 'xvelocity', 'yvelocity' ]:
+
+        num.putmask(h_C, h_C < 1.0e-15, 0.0)
+        
+        for name in [ 'stage', 'height', 'xvelocity', 'yvelocity' ]:
             Q = self.quantities[name]
             if self._order_ == 1:
                 Q.extrapolate_first_order()
             elif self._order_ == 2:
                 Q.extrapolate_second_order_and_limit_by_edge()
+                #Q.extrapolate_second_order_and_limit_by_vertex()
             else:
                 raise 'Unknown order'
 
@@ -201,11 +341,16 @@ class Domain(Sww_domain):
         v_E     = V.edge_values		
 
 
-        w_E[:]   = z_E + h_E
+        #minh_E = num.min(h_E)
+        #msg = 'min h_E = %g ' % minh_E
+        #assert minh_E >= -1.0e-15, msg
 
-        #num.putmask(u_E, h_temp <= 0.0, 0.0)
-        #num.putmask(v_E, h_temp <= 0.0, 0.0)
-        #num.putmask(w_E, h_temp <= 0.0, z_E+h_E)
+        z_E[:]   = w_E - h_E
+
+        num.putmask(h_E, h_E <= 1.0e-8, 0.0)
+        num.putmask(u_E, h_E <= 1.0e-8, 0.0)
+        num.putmask(v_E, h_E <= 1.0e-8, 0.0)
+        num.putmask(w_E, h_E <= 1.0e-8, z_E)
         #num.putmask(h_E, h_E <= 0.0, 0.0)
         
         uh_E[:] = u_E * h_E
@@ -243,6 +388,8 @@ class Domain(Sww_domain):
         
         uh_V[:] = u_V * h_V
         vh_V[:] = v_V * h_V
+
+
 
 
     ##

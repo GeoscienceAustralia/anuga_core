@@ -361,7 +361,7 @@ int _limit_edges_by_all_neighbours(int N, double beta,
     }
     
     sign = 0.0;
-    if (qmin > 0) {
+    if (qmin > 0.0) {
       sign = 1.0;
     } else if (qmax < 0) {
       sign = -1.0;
@@ -372,26 +372,27 @@ int _limit_edges_by_all_neighbours(int N, double beta,
       dq = edge_values[k3+i] - qc;      //Delta between edge and centroid values
       dqa[i] = dq;                      //Save dq for use in updating vertex values  
       
-      // FIXME SR 20091125 This caused problems in shallow_water_balanced
-      // commenting out problem
+
       // Just limit non boundary edges so that we can reconstruct a linear function
-      if (neighbours[k3+i] >= 0) {
+      // FIXME Problem with stability on edges 
+      //if (neighbours[k3+i] >= 0) {
 	r = 1.0;
       
 	if (dq > 0.0) r = (qmax - qc)/dq;
 	if (dq < 0.0) r = (qmin - qc)/dq;      
             
 	phi = min( min(r*beta, 1.0), phi);
-	}
+	//	}
 
-      if (neighbours[k3+i] < 0) {
-	r = 1.0;
+      //
+      /* if (neighbours[k3+i] < 0) { */
+      /* 	r = 1.0; */
       
-	if (dq > 0.0 && sign == -1.0 ) r = (0.0 - qc)/dq;
-	if (dq < 0.0 && sign ==  1.0 ) r = (0.0 - qc)/dq;      
+      /* 	if (dq > 0.0 && (sign == -1.0 || sign == 0.0 )) r = (0.0 - qc)/dq; */
+      /* 	if (dq < 0.0 && (sign ==  1.0 || sign == 0.0 )) r = (0.0 - qc)/dq; */
             
-	phi = min( min(r*beta, 1.0), phi);
-	}
+      /* 	phi = min( min(r*beta, 1.0), phi); */
+      /* 	} */
     
     }
     
@@ -1193,14 +1194,14 @@ PyObject *extrapolate_second_order_and_limit_by_edge(PyObject *self, PyObject *a
   // Convert Python arguments to C
   if (!PyArg_ParseTuple(args, "O",&quantity)) {
       PyErr_SetString(PyExc_RuntimeError, 
-		      "quantity_ext.c: extrapolate_second_order_and_limit could not parse input");	
+		      "quantity_ext.c: extrapolate_second_order_and_limit_by_edge could not parse input");	
       return NULL;
   }
 
   domain = PyObject_GetAttrString(quantity, "domain");
   if (!domain) {
       PyErr_SetString(PyExc_RuntimeError, 
-		      "quantity_ext.c: extrapolate_second_order_and_limit could not obtain domain object from quantity");	
+		      "quantity_ext.c: extrapolate_second_order_and_limit_by_edge could not obtain domain object from quantity");	
       return NULL;
   }
 

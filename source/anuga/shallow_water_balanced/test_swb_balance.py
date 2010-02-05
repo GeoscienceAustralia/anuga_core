@@ -62,7 +62,6 @@ class Test_swb_clean(unittest.TestCase):
         ref_centroid_values = copy.copy(stage.centroid_values[:])    # Copy
 
         # Limit
-        domain.tight_slope_limiters = 0
         domain.distribute_to_vertices_and_edges()
 
         # Assert that quantities are conserved
@@ -71,19 +70,19 @@ class Test_swb_clean(unittest.TestCase):
                                 num.sum(stage.vertex_values[k,:])/3)
 
         # Now try with a non-flat bed - closely hugging initial stage in places
-        # This will create alphas in the range [0, 0.478260, 1]
         domain.set_quantity('stage', [[3,0,3], [2,2,6], [5,3,8], [8,3,5]])
         domain.set_quantity('elevation', [[0,0,0],
                                           [1.8,1.9,5.9],
                                           [4.6,0,0],
                                           [0,2,4]])
         stage = domain.quantities['stage']
+        elevation = domain.quantities['elevation']
+        height = domain.quantities['height']
 
         ref_centroid_values = copy.copy(stage.centroid_values[:])    # Copy
         ref_vertex_values = copy.copy(stage.vertex_values[:])        # Copy
 
         # Limit
-        domain.tight_slope_limiters = 0
         domain.distribute_to_vertices_and_edges()
 
         # Assert that all vertex quantities have changed
@@ -97,15 +96,10 @@ class Test_swb_clean(unittest.TestCase):
 
         # Check actual results
         assert num.allclose(stage.vertex_values,
-                            [[ 2.,          2.,          2.        ],
-                             [ 1.93333333,  2.03333333,  6.03333333],
-                             [ 8.4,         3.8,         3.8       ],
-                             [ 3.33333333,  5.33333333,  7.33333333]]) or \
-               num.allclose(stage.vertex_values,
-                            [[ 1.06666667,  3.86666667,  1.06666667],
-                             [ 1.93333333,  2.03333333,  6.03333333],
-                             [ 5.46666667,  3.06666667,  7.46666667],
-                             [ 6.53333333,  4.69333333,  4.77333333]])
+                            [[ 2.66666667,  0.66666667,  2.66666667],
+                             [ 3.33333333,  3.33333333,  3.33333333],
+                             [ 3.73333333,  4.93333333,  7.33333333],
+                             [ 7.33333333,  4.93333333,  3.73333333]])
 
 
 

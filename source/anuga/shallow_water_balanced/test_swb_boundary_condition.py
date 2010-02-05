@@ -870,6 +870,6 @@ class Test_swb_boundary_condition(unittest.TestCase):
 #################################################################################
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_swb_boundary_condition, 'test')
+    suite = unittest.makeSuite(Test_swb_boundary_condition, 'test_boundary_condition_time')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
