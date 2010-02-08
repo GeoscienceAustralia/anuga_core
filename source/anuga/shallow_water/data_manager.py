@@ -2015,7 +2015,6 @@ Only the SURFACE LINE data of the following form will be utilised
 # @return 
 def export_grid(basename_in, extra_name_out=None,
                 quantities=None, # defaults to elevation
-                timestep=None,
                 reduction=None,
                 cellsize=10,
                 number_of_decimal_places=None,
@@ -2066,7 +2065,6 @@ def export_grid(basename_in, extra_name_out=None,
 
             file_out = sww2dem(dir+sep+sww_file, dir+sep+basename_out,
                                quantity,
-                               timestep,
                                reduction,
                                cellsize,
                                number_of_decimal_places,
@@ -2196,7 +2194,6 @@ def get_timeseries(production_dirs, output_dir, scenario_name, gauges_dir_name,
 # @return 
 def sww2dem(basename_in, basename_out=None,
             quantity=None, # defaults to elevation
-            timestep=None,
             reduction=None,
             cellsize=10,
             number_of_decimal_places=None,
@@ -2247,7 +2244,8 @@ def sww2dem(basename_in, basename_out=None,
 
     if timestep (an index) is given, output quantity at that timestep
 
-    if reduction is given use that to reduce quantity over all timesteps.
+    if reduction is given and its an index, output quantity at that timestep. If reduction is given
+    and is a built in function, use that to reduce quantity over all timesteps.
 
     datum
 
@@ -2257,6 +2255,7 @@ def sww2dem(basename_in, basename_out=None,
     """
 
     import sys
+    import types
 
     from anuga.utilities.polygon import inside_polygon, outside_polygon, \
          separate_points_by_polygon
@@ -2271,14 +2270,6 @@ def sww2dem(basename_in, basename_out=None,
 
     if quantity is None:
         quantity = 'elevation'
-
-    # FIXME (Ole): I reckon we need a check so that
-    # reduction and timestep cannot both be set.    
-    # if reduction is not None and timestep is not None:
-    #     msg = 'Either reduction or timestep must be set'
-    #     msg += ' but not both.'
-    #     raise Exception(msg)
-    
     
     if reduction is None:
         reduction = max
@@ -2311,8 +2302,8 @@ def sww2dem(basename_in, basename_out=None,
     x = fid.variables['x'][:]
     y = fid.variables['y'][:]
     volumes = fid.variables['volumes'][:]
-    if timestep is not None:
-        times = fid.variables['time'][timestep]
+    if type(reduction) is not types.BuiltinFunctionType:
+        times = fid.variables['time'][reduction]
     else:
         times = fid.variables['time'][:]
 
@@ -2344,7 +2335,7 @@ def sww2dem(basename_in, basename_out=None,
         log.critical('  Name: %s' % swwfile)
         log.critical('  Reference:')
         log.critical('    Lower left corner: [%f, %f]' % (xllcorner, yllcorner))
-        if timestep is not None:
+        if type(reduction) is not types.BuiltinFunctionType:
             log.critical('    Time: %f' % times)
         else:
             log.critical('    Start time: %f' % fid.starttime[0])
@@ -2353,7 +2344,7 @@ def sww2dem(basename_in, basename_out=None,
                      %(num.min(x), num.max(x), len(x.flat)))
         log.critical('    y [m] in [%f, %f], len(y) == %d'
                      % (num.min(y), num.max(y), len(y.flat)))
-        if timestep is not None:
+        if type(reduction) is not types.BuiltinFunctionType:
             log.critical('    t [s] = %f, len(t) == %d' % (times, 1))
         else:
             log.critical('    t [s] in [%f, %f], len(t) == %d'
@@ -2363,8 +2354,8 @@ def sww2dem(basename_in, basename_out=None,
         # Comment out for reduced memory consumption
         for name in ['stage', 'xmomentum', 'ymomentum']:
             q = fid.variables[name][:].flatten()
-            if timestep is not None:
-                q = q[timestep*len(x):(timestep+1)*len(x)]
+            if type(reduction) is not types.BuiltinFunctionType:
+                q = q[reduction*len(x):(reduction+1)*len(x)]
             if verbose: log.critical('    %s in [%f, %f]'
                                      % (name, min(q), max(q)))
         for name in ['elevation']:
@@ -2410,8 +2401,8 @@ def sww2dem(basename_in, basename_out=None,
         if len(res.shape) == 2:
             new_res = num.zeros(res.shape[1], num.float)
             for k in xrange(res.shape[1]):
-                if reduction is None:
-                    new_res[k] = res[timestep,k]
+                if type(reduction) is not types.BuiltinFunctionType:
+                    new_res[k] = res[reduction,k]
                 else:
                     new_res[k] = reduction(res[:,k])
             res = new_res
@@ -2611,7 +2602,6 @@ def sww2dem(basename_in, basename_out=None,
 # @note OBSOLETE - use sww2dem() instead.
 def sww2asc(basename_in, basename_out = None,
             quantity = None,
-            timestep = None,
             reduction = None,
             cellsize = 10,
             verbose = False,
@@ -2621,7 +2611,6 @@ def sww2asc(basename_in, basename_out = None,
     sww2dem(basename_in,
             basename_out = basename_out,
             quantity = quantity,
-            timestep = timestep,
             reduction = reduction,
             cellsize = cellsize,
             number_of_decimal_places = number_of_decimal_places,
@@ -2645,7 +2634,6 @@ def sww2asc(basename_in, basename_out = None,
 # @note OBSOLETE - use sww2dem() instead.
 def sww2ers(basename_in, basename_out=None,
             quantity=None,
-            timestep=None,
             reduction=None,
             cellsize=10,
             verbose=False,
@@ -2655,7 +2643,6 @@ def sww2ers(basename_in, basename_out=None,
     sww2dem(basename_in,
             basename_out=basename_out,
             quantity=quantity,
-            timestep=timestep,
             reduction=reduction,
             cellsize=cellsize,
             number_of_decimal_places=number_of_decimal_places,
