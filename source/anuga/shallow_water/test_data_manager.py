@@ -2579,6 +2579,109 @@ END CROSS-SECTIONS:
         os.remove(ascfile)
         os.remove(swwfile)
 
+    def test_sww2dem_asc_stage_time(self):
+        """Test that sww information can be converted correctly to asc/prj
+        format readable by e.g. ArcView
+
+        This tests the reduction of quantity stage using min
+        """
+
+        import time, os
+        from Scientific.IO.NetCDF import NetCDFFile
+
+        #Setup
+        self.domain.set_name('datatest')
+
+        prjfile = self.domain.get_name() + '_stage.prj'
+        ascfile = self.domain.get_name() + '_stage.asc'
+        swwfile = self.domain.get_name() + '.sww'
+
+        self.domain.set_datadir('.')
+        self.domain.format = 'sww'
+        self.domain.smooth = True
+        self.domain.set_quantity('elevation', lambda x,y: -x-y)
+
+        self.domain.geo_reference = Geo_reference(56,308500,6189000)
+
+        sww = SWW_file(self.domain)
+        sww.store_connectivity()
+        sww.store_timestep()
+
+        #self.domain.tight_slope_limiters = 1
+        self.domain.evolve_to_end(finaltime = 0.01)
+        sww.store_timestep()
+
+        cellsize = 0.25
+        #Check contents
+        #Get NetCDF
+
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)
+
+        # Get the variables
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+        z = fid.variables['elevation'][:]
+        time = fid.variables['time'][:]
+        stage = fid.variables['stage'][:]
+
+        #Export to ascii/prj files
+        sww2dem(self.domain.get_name(),
+                quantity = 'stage',
+                cellsize = cellsize,
+                number_of_decimal_places = 9,
+                reduction = 1,
+                format = 'asc',
+                verbose=self.verbose)
+
+
+        #Check asc file
+        ascid = open(ascfile)
+        lines = ascid.readlines()
+        ascid.close()
+
+        L = lines[0].strip().split()
+        assert L[0].strip().lower() == 'ncols'
+        assert L[1].strip().lower() == '5'
+
+        L = lines[1].strip().split()
+        assert L[0].strip().lower() == 'nrows'
+        assert L[1].strip().lower() == '5'
+
+        L = lines[2].strip().split()
+        assert L[0].strip().lower() == 'xllcorner'
+        assert num.allclose(float(L[1].strip().lower()), 308500)
+
+        L = lines[3].strip().split()
+        assert L[0].strip().lower() == 'yllcorner'
+        assert num.allclose(float(L[1].strip().lower()), 6189000)
+
+        L = lines[4].strip().split()
+        assert L[0].strip().lower() == 'cellsize'
+        assert num.allclose(float(L[1].strip().lower()), cellsize)
+
+        L = lines[5].strip().split()
+        assert L[0].strip() == 'NODATA_value'
+        assert L[1].strip().lower() == '-9999'
+
+        #Check grid values (where applicable)
+        for j in range(5):
+            if j%2 == 0:
+                L = lines[6+j].strip().split()
+                jj = 4-j
+                for i in range(5):
+                    if i%2 == 0:
+                        index = jj/2 + i/2*3
+                        
+                        val = stage[1,index]
+                   
+                        assert num.allclose(float(L[i]), val)
+
+        fid.close()
+
+        #Cleanup
+        os.remove(prjfile)
+        os.remove(ascfile)
+        os.remove(swwfile)
 
 
     def test_sww2dem_asc_derived_quantity(self):
