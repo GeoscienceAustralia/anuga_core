@@ -6908,10 +6908,13 @@ def copy_code_files(dir_name, filename1, filename2=None, verbose=False):
                 log.critical('File %s copied' % file)
 
     # check we have a destination directory, create if necessary
-    if access(dir_name, F_OK) == 0:
+    if not os.path.isdir(dir_name):
         if verbose:
             log.critical('Make directory %s' % dir_name)
         mkdir(dir_name, 0777)
+
+    if verbose:
+        log.critical('Output directory: %s' % dir_name)        
 
     copy_file_or_sequence(dir_name, filename1)
 
