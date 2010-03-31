@@ -179,7 +179,7 @@ def gauge_sww2csv(sww_file,
                                      interpolation_points=points_array,
                                      verbose=verbose,
                                      use_cache=use_cache,
-									 output_centroids = output_centroids)
+                                     output_centroids = output_centroids)
 
         if quake_offset_time is None:
             quake_offset_time = callable_sww.starttime
@@ -189,8 +189,8 @@ def gauge_sww2csv(sww_file,
                 #add domain starttime to relative time.
                 quake_time = time + quake_offset_time
                 points_list = [quake_time, quake_time/3600.]# fudge around SWW time bug
-                point_quantities = callable_sww(time,point_i)
-                
+                point_quantities = callable_sww(time,point_i) # __call__ is overridden
+				
                 for quantity in quantities:
                     if quantity == NAN:
                         log.critical('quantity does not exist in %s'
@@ -270,7 +270,8 @@ def gauge_sww2timeseries(swwfiles,
                    time_unit=None,
                    title_on=None,
                    use_cache=False,
-                   verbose=False):
+                   verbose=False,
+				   output_centroids=False):
     """ Read sww file and plot the time series for the
     prescribed quantities at defined gauge locations and
     prescribed time range.
@@ -387,7 +388,8 @@ def gauge_sww2timeseries(swwfiles,
                         time_unit,
                         title_on,
                         use_cache,
-                        verbose)
+                        verbose,
+						output_centroids = output_centroids)
     return k
 
 
@@ -422,7 +424,8 @@ def _sww2timeseries(swwfiles,
                     time_unit = None,
                     title_on = None,
                     use_cache = False,
-                    verbose = False):   
+                    verbose = False,
+					output_centroids = False):   
         
     # FIXME(Ole): Shouldn't print statements here be governed by verbose?
     assert type(gauge_filename) == type(''), 'Gauge filename must be a string'
@@ -485,7 +488,8 @@ def _sww2timeseries(swwfiles,
                           interpolation_points = gauges,
                           time_thinning = time_thinning,
                           verbose = verbose,
-                          use_cache = use_cache)
+                          use_cache = use_cache,
+						  output_centroids = output_centroids)
 
         # determine which gauges are contained in sww file
         count = 0

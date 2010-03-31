@@ -53,7 +53,7 @@ def file_function(filename,
                   verbose=False,
                   use_cache=False,
                   boundary_polygon=None,
-				  output_centroids=False):
+                  output_centroids=False):
     """Read time history of spatial data from NetCDF file and return
     a callable object.
 
@@ -139,7 +139,7 @@ def file_function(filename,
               'time_limit': time_limit,                                 
               'verbose': verbose,
               'boundary_polygon': boundary_polygon,
-			  'output_centroids': output_centroids}
+              'output_centroids': output_centroids}
 
     # Call underlying engine with or without caching
     if use_cache is True:
@@ -231,7 +231,7 @@ def _file_function(filename,
                                         time_limit=time_limit,
                                         verbose=verbose,
                                         boundary_polygon=boundary_polygon,
-										output_centroids=output_centroids)
+                                        output_centroids=output_centroids)
     else:
         # FIXME (Ole): Could add csv file here to address Ted Rigby's
         # suggestion about reading hydrographs.
@@ -259,7 +259,7 @@ def get_netcdf_file_function(filename,
                              time_limit=None,            
                              verbose=False,
                              boundary_polygon=None,
-							 output_centroids=False):
+                             output_centroids=False):
     """Read time history of spatial data from NetCDF sww file and
     return a callable object f(t,x,y)
     which will return interpolated values based on the input file.
@@ -500,7 +500,8 @@ def get_netcdf_file_function(filename,
                                    interpolation_points,
                                    time_thinning=time_thinning,
                                    verbose=verbose,
-                                   gauge_neighbour_id=gauge_neighbour_id),
+                                   gauge_neighbour_id=gauge_neighbour_id,
+								   output_centroids=output_centroids),
             starttime)
 
     # NOTE (Ole): Caching Interpolation function is too slow as

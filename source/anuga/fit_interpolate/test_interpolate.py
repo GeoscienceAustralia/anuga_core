@@ -390,6 +390,30 @@ class Test_Interpolate(unittest.TestCase):
         results = A.todense()
         assert num.allclose(num.sum(results, axis=1), 1.0)
 
+		
+    def test_arbitrary_datapoints_return_centroids(self):
+        #Try arbitrary datapoints, making sure they return
+        #an interpolation matrix for the intersected triangle's
+        #centroid.
+        
+        a = [1.0, 0.0]
+        b = [0.0, 3.0]
+        c = [4.0,0.0]
+        points = [a, b, c]
+        vertices = [ [1,0,2] ]
+
+        data = [ [1.2, 1.5], [1.123, 1.768], [2.43, 0.44] ]
+
+        interp = Interpolate(points, vertices)
+        
+        third = [1.0/3.0, 1.0/3.0, 1.0/3.0]
+        answer = [third, third, third]
+		
+        A,_,_ = interp._build_interpolation_matrix_A(data, output_centroids=True)
+        results = A.todense()
+        assert num.allclose(results, answer)		
+		
+		
     def test_arbitrary_datapoints_some_outside(self):
         #Try arbitrary datapoints one outside the triangle.
         #That one should be ignored

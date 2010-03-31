@@ -68,7 +68,8 @@ def interpolate(vertex_coordinates,
                 max_vertices_per_cell=None,
                 start_blocking_len=500000,
                 use_cache=False,
-                verbose=False):
+                verbose=False,
+				output_centroids=False):
     """Interpolate vertex_values to interpolation points.
 
     Inputs (mandatory):
@@ -152,7 +153,8 @@ def interpolate(vertex_coordinates,
     # Call interpolate method with interpolation points
     result = I.interpolate_block(vertex_values, interpolation_points,
                                  use_cache=use_cache,
-                                 verbose=verbose)
+                                 verbose=verbose,
+								 output_centroids=output_centroids)
 
     return result
 
@@ -227,7 +229,8 @@ class Interpolate (FitInterpolate):
                     f,
                     point_coordinates=None,
                     start_blocking_len=500000,
-                    verbose=False):
+                    verbose=False,
+					output_centroids=False):
         """Interpolate mesh data f to determine values, z, at points.
 
         f is the data on the mesh vertices.
@@ -287,7 +290,7 @@ class Interpolate (FitInterpolate):
                or start_blocking_len == 0:
                 self._A_can_be_reused = True
                 z = self.interpolate_block(f, point_coordinates,
-                                           verbose=verbose)
+                                           verbose=verbose, output_centroids=output_centroids)
             else:
                 # Handle blocking
                 self._A_can_be_reused = False
@@ -304,26 +307,26 @@ class Interpolate (FitInterpolate):
                                  len(point_coordinates),
                                  start_blocking_len):
                     t = self.interpolate_block(f, point_coordinates[start:end],
-                                               verbose=verbose)
+                                               verbose=verbose, output_centroids=output_centroids)
                     z = num.concatenate((z, t), axis=0)    #??default#
                     start = end
 
                 end = len(point_coordinates)
                 t = self.interpolate_block(f, point_coordinates[start:end],
-                                           verbose=verbose)
+                                           verbose=verbose, output_centroids=output_centroids)
                 z = num.concatenate((z, t), axis=0)    #??default#
         return z
 
 
     ##
-    # @brief Control whether blocking occurs or not.
-    # @param f ??
-    # @param point_coordinates ??
-    # @param use_cache ??
+    # @brief Interpolate a block of vertices
+    # @param f Array of arbitrary data to be interpolated
+    # @param point_coordinates List of vertices to intersect with the mesh
+    # @param use_cache True if caching should be used to accelerate the calculations
     # @param verbose True if this function is verbose.
     # @return ??
     def interpolate_block(self, f, point_coordinates,
-                          use_cache=False, verbose=False):
+                          use_cache=False, verbose=False, output_centroids=False):
         """
         Call this if you want to control the blocking or make sure blocking
         doesn't occur.
@@ -353,7 +356,7 @@ class Interpolate (FitInterpolate):
                 # Still absolutely fails on Win 24 Oct 2008
 
                 X = cache(self._build_interpolation_matrix_A,
-                          args=(point_coordinates,),
+                          args=(point_coordinates, output_centroids),
                           kwargs={'verbose': verbose},
                           verbose=verbose)
             else:
@@ -371,10 +374,11 @@ class Interpolate (FitInterpolate):
 
                 if reuse_A is False:
                     X = self._build_interpolation_matrix_A(point_coordinates,
+                                                           output_centroids,
                                                            verbose=verbose)
                     self.interpolation_matrices[key] = (X, point_coordinates)
         else:
-            X = self._build_interpolation_matrix_A(point_coordinates,
+            X = self._build_interpolation_matrix_A(point_coordinates, output_centroids,
                                                    verbose=verbose)
 
         # Unpack result
@@ -402,10 +406,13 @@ class Interpolate (FitInterpolate):
 
 
     ##
-    # @brief ??
-    # @param f ??
+    # @brief Get interpolated data at given points.
+	#        Applies a transform to all points to calculate the
+	#        interpolated values. Points outside the mesh are returned as NaN.
+	# @note self._A matrix must be valid
+    # @param f Array of arbitrary data
     # @param verbose True if this function is to be verbose.
-    # @return ??
+    # @return f transformed by interpolation matrix (f')
     def _get_point_data_z(self, f, verbose=False):
         """
         Return the point data, z.
@@ -423,11 +430,15 @@ class Interpolate (FitInterpolate):
 
     ##
     # @brief Build NxM interpolation matrix.
-    # @param point_coordinates ??
+    # @param point_coordinates Points to sample at
+	# @param output_centroids set to True to always sample from the centre
+	#                         of the intersected triangle, instead of the intersection
+	#                         point.
     # @param verbose True if this function is to be verbose.
-    # @return ??
+    # @return Interpolation matrix A, plus lists of the points inside and outside the mesh.
     def _build_interpolation_matrix_A(self,
                                       point_coordinates,
+                                      output_centroids=False,
                                       verbose=False):
         """Build n x m interpolation matrix, where
         n is the number of data points and
@@ -494,12 +505,17 @@ class Interpolate (FitInterpolate):
                 j0 = self.mesh.triangles[k,0] # Global vertex id for sigma0
                 j1 = self.mesh.triangles[k,1] # Global vertex id for sigma1
                 j2 = self.mesh.triangles[k,2] # Global vertex id for sigma2
-
-                sigmas = {j0:sigma0, j1:sigma1, j2:sigma2}
-                js     = [j0, j1, j2]
-
-                for j in js:
-                    A[i, j] = sigmas[j]
+                js = [j0, j1, j2]
+				
+                if output_centroids is False:
+                    # Weight each vertex according to its distance from x
+                    sigmas = {j0:sigma0, j1:sigma1, j2:sigma2}
+                    for j in js:
+                        A[i, j] = sigmas[j]
+                else:
+				    # If centroids are needed, weight all 3 vertices equally
+                    for j in js:
+                        A[i, j] = 1.0/3.0                    
             else:
                 msg = 'Could not find triangle for point', x
                 raise Exception(msg)
@@ -750,7 +766,8 @@ class Interpolation_function:
                  interpolation_points=None,
                  time_thinning=1,
                  verbose=False,
-                 gauge_neighbour_id=None):
+                 gauge_neighbour_id=None,
+				 output_centroids=False):
         """Initialise object and build spatial interpolation if required
 
         Time_thinning_number controls how many timesteps to use. Only timesteps
@@ -975,7 +992,8 @@ class Interpolation_function:
                         result = interpol.interpolate(Q,
                                                       point_coordinates=\
                                                       self.interpolation_points,
-                                                      verbose=False) # No clutter
+                                                      verbose=False,
+													  output_centroids=output_centroids)
                     elif triangles is None and vertex_coordinates is not None:
                         result = interpolate_polyline(Q,
                                                       vertex_coordinates,
@@ -1001,7 +1019,7 @@ class Interpolation_function:
         return self.statistics()
 
     ##
-    # @brief Override object() method.
+    # @brief Evaluate interpolation function
     # @param t Model time - must lie within existing timesteps.
     # @param point_id Index of one of the preprocessed points.
     # @param x ??

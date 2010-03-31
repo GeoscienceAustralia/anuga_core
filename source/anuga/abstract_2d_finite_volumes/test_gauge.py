@@ -450,19 +450,19 @@ point2, 0.5, 2.0, 9.0\n")
         sww.store_timestep()
 
         # create a csv file containing our gauge points
-        points = [[2.0,1.0],[5.0,5.0]]
+        points = [[2.0,1.0],[4.5,4.0]]
 
         points_file = tempfile.mktemp(".csv")
         file_id = open(points_file,"w")
-# These values are where the centroids should be
+# These values are where the centroids should be		
 #        file_id.write("name, easting, northing, elevation \n\
-#point1, 1.5, 1.5, 3.0\n\
-#point2, 4.5, 4.5, 9.0\n")
+#point1, 2.0, 2.0, 3.0\n\
+#point2, 4.0, 4.0, 9.0\n")
  
- # These values are slightly off the centroids - will it find them?
+# These values are slightly off the centroids - will it find the centroids?
         file_id.write("name, easting, northing, elevation \n\
 point1, 2.0, 1.0, 3.0\n\
-point2, 5.5, 4.0, 9.0\n")
+point2, 4.5, 4.0, 9.0\n")
 
  
         file_id.close()
@@ -473,7 +473,7 @@ point2, 5.5, 4.0, 9.0\n")
                        use_cache=False,
                        output_centroids=True)
 
-        point1_answers_array = [[0.0,0.0,1.0,2.5,-1.5,3.0,4.0], [2.0,2.0/3600.,10.0,11.5,-1.5,3.0,4.0]]
+        point1_answers_array = [[0.0,0.0,1.0,3.0,-2.0,3.0,4.0], [2.0,2.0/3600.,10.0,12.0,-2.0,3.0,4.0]]
         point1_filename = 'gauge_point1.csv'
         point1_handle = file(point1_filename)
         point1_reader = reader(point1_handle)
@@ -481,13 +481,12 @@ point2, 5.5, 4.0, 9.0\n")
 
         line=[]
         for i,row in enumerate(point1_reader):
-#           print 'i',i,'row',row
             line.append([float(row[0]),float(row[1]),float(row[2]),float(row[3]),
                          float(row[4]),float(row[5]),float(row[6])])
 #           print 'assert line',line[i],'point1',point1_answers_array[i]
             assert num.allclose(line[i], point1_answers_array[i])
 
-        point2_answers_array = [[0.0,0.0,1.0,5.5,-4.5,3.0,4.0], [2.0,2.0/3600.,10.0,14.5,-4.5,3.0,4.0]]
+        point2_answers_array = [[0.0,0.0,1.0,5.0,-4.0,3.0,4.0], [2.0,2.0/3600.,10.0,14.0,-4.0,3.0,4.0]]
         point2_filename = 'gauge_point2.csv' 
         point2_handle = file(point2_filename)
         point2_reader = reader(point2_handle)
@@ -495,10 +494,9 @@ point2, 5.5, 4.0, 9.0\n")
                         
         line=[]
         for i,row in enumerate(point2_reader):
-#           print 'i',i,'row',row
             line.append([float(row[0]),float(row[1]),float(row[2]),float(row[3]),
                          float(row[4]),float(row[5]),float(row[6])])
-#           print 'assert line',line[i],'point1',point1_answers_array[i]
+#           print i, 'assert line',line[i],'point2',point2_answers_array[i]
             assert num.allclose(line[i], point2_answers_array[i])
                          
         # clean up
