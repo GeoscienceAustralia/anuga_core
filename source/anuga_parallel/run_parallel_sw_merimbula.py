@@ -1,5 +1,14 @@
 
 """Run parallel shallow water domain.
+
+   run using command like:
+
+   mpirun -np m python run_parallel_sw_merimbula.py
+
+   where m is the number of processors to be used.
+   
+   Will produce sww files with names domain_Pn_m.sww where m is number of processors and
+   n in [0, m-1] refers to specific processor that owned this part of the partitioned mesh.
 """
 
 #------------------------------------------------------------------------------
@@ -9,6 +18,7 @@
 import unittest
 import os
 import sys
+import time
 import pypar
 
 import numpy as num
@@ -37,10 +47,11 @@ from anuga_parallel.interface import distribute, myid, numprocs, finalize
 # Setup parameters
 #--------------------------------------------------------------------------
 
-mesh_filename = "merimbula_10785_1.tsh"
+#mesh_filename = "merimbula_10785_1.tsh"
+mesh_filename = "merimbula_43200.tsh"
 #mesh_filename = "test-100.tsh"
-yieldstep = 1
-finaltime = 20
+yieldstep = 50
+finaltime = 200
 quantity = 'stage'
 verbose = True
 
@@ -87,10 +98,20 @@ domain.set_boundary({'outflow' :Br, 'inflow' :Br, 'inner' :Br, 'exterior' :Br, '
 # Evolution
 #------------------------------------------------------------------------------
 if myid == 0 and verbose: print 'EVOLVE'
-        
+
+t0 = time.time()
+
 for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
     if myid == 0:
         domain.write_time()
+
+
+if myid == 0:
+    print 'That took %.2f seconds' %(time.time()-t0)
+    print 'Communication time %.2f seconds'%domain.communication_time
+    print 'Reduction Communication time %.2f seconds'%domain.communication_reduce_time
+    print 'Broadcast time %.2f seconds'%domain.communication_broadcast_time
+
 
 finalize()
 
