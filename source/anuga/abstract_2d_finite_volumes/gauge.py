@@ -189,13 +189,14 @@ def gauge_sww2csv(sww_file,
                 #add domain starttime to relative time.
                 quake_time = time + quake_offset_time
                 points_list = [quake_time, quake_time/3600.]# fudge around SWW time bug
-                point_quantities = callable_sww(time,point_i) # __call__ is overridden
-				
+                point_quantities = callable_sww(time, point_i) # __call__ is overridden
+                            
                 for quantity in quantities:
                     if quantity == NAN:
                         log.critical('quantity does not exist in %s'
                                      % callable_sww.get_name)
                     else:
+                        #core quantities that are exported from the interpolator     
                         if quantity == 'stage':
                             points_list.append(point_quantities[0])
                             
@@ -207,7 +208,8 @@ def gauge_sww2csv(sww_file,
                             
                         if quantity == 'ymomentum':
                             points_list.append(point_quantities[3])
-                            
+
+                        #derived quantities that are calculated from the core ones
                         if quantity == 'depth':
                             points_list.append(point_quantities[0] 
                                                - point_quantities[1])
@@ -236,7 +238,12 @@ def gauge_sww2csv(sww_file,
                         if quantity == 'bearing':
                             points_list.append(calc_bearing(point_quantities[2],
                                                             point_quantities[3]))
+                        if quantity == 'xcentroid':
+                            points_list.append(callable_sww.centroids[point_i][0])
 
+                        if quantity == 'ycentroid':
+                            points_list.append(callable_sww.centroids[point_i][1])
+							
                 points_writer[point_i].writerow(points_list)
 
 ##

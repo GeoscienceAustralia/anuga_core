@@ -501,7 +501,7 @@ def get_netcdf_file_function(filename,
                                    time_thinning=time_thinning,
                                    verbose=verbose,
                                    gauge_neighbour_id=gauge_neighbour_id,
-								   output_centroids=output_centroids),
+                                   output_centroids=output_centroids),
             starttime)
 
     # NOTE (Ole): Caching Interpolation function is too slow as

@@ -103,7 +103,7 @@ class Test_Interpolate(unittest.TestCase):
         data = [ [2.0/3, 2.0/3] ] #Use centroid as one data point
 
         interp = Interpolate(points, vertices)
-        A, _, _ = interp._build_interpolation_matrix_A(data)
+        A, _, _, _ = interp._build_interpolation_matrix_A(data)
         assert num.allclose(A.todense(), [[1./3, 1./3, 1./3]])
 
 
@@ -284,7 +284,7 @@ class Test_Interpolate(unittest.TestCase):
         answer =  [ [ 0.06666667,  0.46666667,  0.46666667,  0.,
                       0., 0. , 0., 0., 0., 0.]]
 
-        A,_,_ = interp._build_interpolation_matrix_A(data)
+        A,_,_,_ = interp._build_interpolation_matrix_A(data)
         assert num.allclose(A.todense(), answer)
         
         #interp.set_point_coordinates([[-30, -30]]) #point outside of mesh
@@ -293,7 +293,7 @@ class Test_Interpolate(unittest.TestCase):
         answer =  [ [ 0.0,  0.0,  0.0,  0.,
                       0., 0. , 0., 0., 0., 0.]]
         
-        A,_,_ = interp._build_interpolation_matrix_A(data)        
+        A,_,_,_ = interp._build_interpolation_matrix_A(data)        
         assert num.allclose(A.todense(), answer)
 
 
@@ -304,7 +304,7 @@ class Test_Interpolate(unittest.TestCase):
         answer =  [ [ 0.0,  0.0,  0.0,  0.,
                       0., 0. , 0., 0., 0., 0.]]
                       
-        A,_,_ = interp._build_interpolation_matrix_A(data)        
+        A,_,_,_ = interp._build_interpolation_matrix_A(data)        
         assert num.allclose(A.todense(), answer)
 
 
@@ -325,7 +325,7 @@ class Test_Interpolate(unittest.TestCase):
                    [0., 1., 0.],
                    [0., 0., 1.]]
                    
-        A,_,_ = interp._build_interpolation_matrix_A(data)
+        A,_,_,_ = interp._build_interpolation_matrix_A(data)
         assert num.allclose(A.todense(), answer)
 
 
@@ -346,7 +346,7 @@ class Test_Interpolate(unittest.TestCase):
                     [0.0, 0.5, 0.5]]
         interp = Interpolate(points, vertices)
 
-        A,_,_ = interp._build_interpolation_matrix_A(data)
+        A,_,_,_ = interp._build_interpolation_matrix_A(data)
         assert num.allclose(A.todense(), answer)
 
     def test_datapoints_on_edges(self):
@@ -367,7 +367,7 @@ class Test_Interpolate(unittest.TestCase):
 
         interp = Interpolate(points, vertices)
 
-        A,_,_ = interp._build_interpolation_matrix_A(data)
+        A,_,_,_ = interp._build_interpolation_matrix_A(data)
         assert num.allclose(A.todense(), answer)
 
 
@@ -386,7 +386,7 @@ class Test_Interpolate(unittest.TestCase):
         interp = Interpolate(points, vertices)
         #print "interp.get_A()", interp.get_A()
         
-        A,_,_ = interp._build_interpolation_matrix_A(data)
+        A,_,_,_ = interp._build_interpolation_matrix_A(data)
         results = A.todense()
         assert num.allclose(num.sum(results, axis=1), 1.0)
 
@@ -409,7 +409,7 @@ class Test_Interpolate(unittest.TestCase):
         third = [1.0/3.0, 1.0/3.0, 1.0/3.0]
         answer = [third, third, third]
 		
-        A,_,_ = interp._build_interpolation_matrix_A(data, output_centroids=True)
+        A,_,_,_ = interp._build_interpolation_matrix_A(data, output_centroids=True)
         results = A.todense()
         assert num.allclose(results, answer)		
 		
@@ -429,7 +429,7 @@ class Test_Interpolate(unittest.TestCase):
 
         interp = Interpolate(points, vertices)
         
-        A,_,_ = interp._build_interpolation_matrix_A(data)
+        A,_,_,_ = interp._build_interpolation_matrix_A(data)
         results = A.todense()
         assert num.allclose(num.sum(results, axis=1), [1,1,1,0])
 
@@ -460,7 +460,7 @@ class Test_Interpolate(unittest.TestCase):
                   [1./3, 0.0, 0.0, 0.0, 1./3, 1./3]] #Affects points a, e and f
 
 
-        A,_,_ = interp._build_interpolation_matrix_A(data)
+        A,_,_,_ = interp._build_interpolation_matrix_A(data)
         A = A.todense()
         for i in range(A.shape[0]):
             for j in range(A.shape[1]):

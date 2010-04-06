@@ -217,7 +217,6 @@ class Interpolate (FitInterpolate):
         self.interpolation_matrices = {} # Store precomputed matrices
 
 
-
     ##
     # @brief Interpolate mesh data f to determine values, z, at points.
     # @param f Data on the mesh vertices.
@@ -382,7 +381,7 @@ class Interpolate (FitInterpolate):
                                                    verbose=verbose)
 
         # Unpack result
-        self._A, self.inside_poly_indices, self.outside_poly_indices = X
+        self._A, self.inside_poly_indices, self.outside_poly_indices, self.centroids = X
 
         # Check that input dimensions are compatible
         msg = 'Two columns must be specified in point coordinates. ' \
@@ -435,7 +434,8 @@ class Interpolate (FitInterpolate):
 	#                         of the intersected triangle, instead of the intersection
 	#                         point.
     # @param verbose True if this function is to be verbose.
-    # @return Interpolation matrix A, plus lists of the points inside and outside the mesh.
+    # @return Interpolation matrix A, plus lists of the points inside and outside the mesh
+	#         and the list of centroids, if requested.
     def _build_interpolation_matrix_A(self,
                                       point_coordinates,
                                       output_centroids=False,
@@ -486,6 +486,8 @@ class Interpolate (FitInterpolate):
 
         n = len(inside_poly_indices)
 
+        centroids = []
+		
         # Compute matrix elements for points inside the mesh
         if verbose: log.critical('Building interpolation matrix from %d points'
                                  % n)
@@ -515,11 +517,12 @@ class Interpolate (FitInterpolate):
                 else:
 				    # If centroids are needed, weight all 3 vertices equally
                     for j in js:
-                        A[i, j] = 1.0/3.0                    
+                        A[i, j] = 1.0/3.0
+                    centroids.append(self.mesh.centroid_coordinates[k])						
             else:
                 msg = 'Could not find triangle for point', x
                 raise Exception(msg)
-        return A, inside_poly_indices, outside_poly_indices
+        return A, inside_poly_indices, outside_poly_indices, centroids
 
 
 
@@ -840,6 +843,7 @@ class Interpolation_function:
 
         self.index = 0    # Initial time index
         self.precomputed_values = {}
+        self.centroids = []
 
         # Precomputed spatial interpolation if requested
         if interpolation_points is not None:
@@ -993,7 +997,8 @@ class Interpolation_function:
                                                       point_coordinates=\
                                                       self.interpolation_points,
                                                       verbose=False,
-													  output_centroids=output_centroids)
+                                                      output_centroids=output_centroids)
+                        self.centroids = interpol.centroids														  
                     elif triangles is None and vertex_coordinates is not None:
                         result = interpolate_polyline(Q,
                                                       vertex_coordinates,
@@ -1002,11 +1007,11 @@ class Interpolation_function:
                                                           self.interpolation_points)
 
                     #assert len(result), len(interpolation_points)
-                    self.precomputed_values[name][i, :] = result
-
+                    self.precomputed_values[name][i, :] = result									
+					
             # Report
             if verbose:
-                log.critical(self.statistics())
+                log.critical(self.statistics())			
         else:
             # Store quantitites as is
             for name in quantity_names:
