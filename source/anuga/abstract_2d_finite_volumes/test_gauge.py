@@ -43,7 +43,7 @@ class Test_Util(unittest.TestCase):
         """Most of this test was copied from test_interpolate
         test_interpole_sww2csv
         
-        This is testing the gauge_sww2csv function, by creating a sww file and
+        This is testing the sww2csv_gauges function, by creating a sww file and
         then exporting the gauges and checking the results.
         """
         
@@ -108,7 +108,7 @@ point2, 0.5, 2.0, 9.0\n")
         file_id.close()
 
         
-        gauge_sww2csv(sww.filename, 
+        sww2csv_gauges(sww.filename, 
                        points_file,
                        verbose=False,
                        use_cache=False)
@@ -165,7 +165,7 @@ point2, 0.5, 2.0, 9.0\n")
         """Most of this test was copied from test_interpolate
         test_interpole_sww2csv
         
-        This is testing the gauge_sww2csv function, by creating a sww file and
+        This is testing the sww2csv_gauges function, by creating a sww file and
         then exporting the gauges and checking the results.
         
         This tests the ablity not to have elevation in the points file and 
@@ -226,7 +226,7 @@ point1, 5.0, 1.0\n\
 point2, 0.5, 2.0\n")
         file_id.close()
 
-        gauge_sww2csv(sww.filename, 
+        sww2csv_gauges(sww.filename, 
                             points_file,
                             quantities=['stage', 'elevation'],
                             use_cache=False,
@@ -278,7 +278,7 @@ point2, 0.5, 2.0\n")
         """Most of this test was copied from test_interpolate
         test_interpole_sww2csv
         
-        This is testing the gauge_sww2csv function, by creating a sww file and
+        This is testing the sww2csv_gauges function, by creating a sww file and
         then exporting the gauges and checking the results.
         
         This is the same as sww2csv_gauges except set domain.set_starttime to 5.
@@ -346,7 +346,7 @@ point2, 0.5, 2.0, 9.0\n")
         file_id.close()
 
         
-        gauge_sww2csv(sww.filename, 
+        sww2csv_gauges(sww.filename, 
                             points_file,
                             verbose=False,
                             use_cache=False)
@@ -465,7 +465,7 @@ point2, 4.5, 4.0, 9.0\n")
  
         file_id.close()
 
-        gauge_sww2csv(sww.filename, 
+        sww2csv_gauges(sww.filename, 
                        points_file,
                        verbose=False,
                        use_cache=False,
@@ -574,7 +574,7 @@ point1, 2.5, 4.25, 3.0\n")
 
         file_id.close()
 
-        gauge_sww2csv(sww.filename, 
+        sww2csv_gauges(sww.filename, 
                        points_file,
                        quantities=['stage', 'xcentroid', 'ycentroid'],
                        verbose=False,

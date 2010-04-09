@@ -1,6 +1,6 @@
 """Gauge functions
    
-   Functions for converting gauge and sww files into timeseries plots 
+   High-level functions for converting gauge and sww files into timeseries plots.
 
 
    Copyright 2010
@@ -11,6 +11,8 @@
 import numpy as num
 
 from anuga.geospatial_data.geospatial_data import ensure_absolute
+from util import check_list, generate_figures
+from file_function import file_function
 
 import os
 
@@ -31,7 +33,7 @@ from math import sqrt
 # @param verbose show extra logging information for debug purposes
 # @param use_cache cache requests if possible, for speed
 # @param output_centroids Set to true to output the values at the centroid of the mesh triangle
-def gauge_sww2csv(sww_file,
+def sww2csv_gauges(sww_file,
                    gauge_file,
                    out_name='gauge_',
                    quantities=['stage', 'depth', 'elevation',
@@ -263,7 +265,7 @@ def gauge_sww2csv(sww_file,
 # @param title_on If True, export standard graphics with title.
 # @param use_cache If True, use caching.
 # @param verbose If True, this function is verbose.
-def gauge_sww2timeseries(swwfiles,
+def sww2timeseries(swwfiles,
                    gauge_filename,
                    production_dirs,
                    report=None,
@@ -463,7 +465,7 @@ def _sww2timeseries(swwfiles,
     
     if verbose: log.critical('Gauges obtained from: %s' % gauge_filename)
 
-    gauges, locations, elev = get_gauges_from_file(gauge_filename)
+    gauges, locations, elev = gauge_get_from_file(gauge_filename)
 
     sww_quantity = ['stage', 'elevation', 'xmomentum', 'ymomentum']
 
@@ -561,7 +563,7 @@ def _sww2timeseries(swwfiles,
 # @brief Read gauge info from a file.
 # @param filename The name of the file to read.
 # @return A (gauges, gaugelocation, elev) tuple.
-def get_from_file(filename):
+def gauge_get_from_file(filename):
     """ Read in gauge information from file
     """
 

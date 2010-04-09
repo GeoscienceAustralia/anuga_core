@@ -29,13 +29,13 @@ from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.utilities.sparse import Sparse, Sparse_CSR
 from anuga.utilities.cg_solve import conjugate_gradient, VectorShapeError
 from anuga.coordinate_transforms.geo_reference import Geo_reference
-from anuga.utilities.numerical_tools import ensure_numeric, mean, NAN
+from anuga.utilities.numerical_tools import ensure_numeric, NAN
 from anuga.utilities.polygon import in_and_outside_polygon
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.geospatial_data.geospatial_data import ensure_absolute
 from anuga.fit_interpolate.search_functions import search_tree_of_vertices
 from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
-from anuga.abstract_2d_finite_volumes.util import file_function
+from anuga.abstract_2d_finite_volumes.file_function import file_function
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from utilities.polygon import interpolate_polyline
 import anuga.utilities.log as log
@@ -1050,7 +1050,6 @@ class Interpolation_function:
         """
 
         from math import pi, cos, sin, sqrt
-        from anuga.abstract_2d_finite_volumes.util import mean
 
         if self.spatial is True:
             if point_id is None:
