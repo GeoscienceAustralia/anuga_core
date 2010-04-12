@@ -69,7 +69,7 @@ def interpolate(vertex_coordinates,
                 start_blocking_len=500000,
                 use_cache=False,
                 verbose=False,
-				output_centroids=False):
+                output_centroids=False):
     """Interpolate vertex_values to interpolation points.
 
     Inputs (mandatory):
@@ -520,8 +520,12 @@ class Interpolate (FitInterpolate):
                         A[i, j] = 1.0/3.0
                     centroids.append(self.mesh.centroid_coordinates[k])						
             else:
-                msg = 'Could not find triangle for point', x
-                raise Exception(msg)
+                 # Mesh has a hole - move this point to the outside list
+#                 num.delete(inside_poly_indices,[i], axis=0)
+                 num.append(outside_poly_indices, [i], axis=0)
+#                msg = 'Could not find triangle for point', x
+#                raise Exception(msg)
+
         return A, inside_poly_indices, outside_poly_indices, centroids
 
 
