@@ -91,7 +91,7 @@ def sww2csv_gauges(sww_file,
     from anuga.utilities.numerical_tools import ensure_numeric, mean, NAN
     import string
     from anuga.shallow_water.data_manager import get_all_swwfiles
-    from anuga.abstract_2d_finite_volumes.util import file_function	
+    from anuga.abstract_2d_finite_volumes.util import file_function    
 
     assert type(gauge_file) == type(''), 'Gauge filename must be a string'
     assert type(out_name) == type(''), 'Output filename prefix must be a string'
@@ -245,7 +245,7 @@ def sww2csv_gauges(sww_file,
 
                         if quantity == 'ycentroid':
                             points_list.append(callable_sww.centroids[point_i][1])
-							
+                            
                 points_writer[point_i].writerow(points_list)
 
 ##
@@ -280,7 +280,7 @@ def sww2timeseries(swwfiles,
                    title_on=None,
                    use_cache=False,
                    verbose=False,
-				   output_centroids=False):
+                   output_centroids=False):
     """ Read sww file and plot the time series for the
     prescribed quantities at defined gauge locations and
     prescribed time range.
@@ -398,7 +398,7 @@ def sww2timeseries(swwfiles,
                         title_on,
                         use_cache,
                         verbose,
-						output_centroids = output_centroids)
+                        output_centroids = output_centroids)
     return k
 
 
@@ -434,7 +434,7 @@ def _sww2timeseries(swwfiles,
                     title_on = None,
                     use_cache = False,
                     verbose = False,
-					output_centroids = False):   
+                    output_centroids = False):   
         
     # FIXME(Ole): Shouldn't print statements here be governed by verbose?
     assert type(gauge_filename) == type(''), 'Gauge filename must be a string'
@@ -498,7 +498,7 @@ def _sww2timeseries(swwfiles,
                           time_thinning = time_thinning,
                           verbose = verbose,
                           use_cache = use_cache,
-						  output_centroids = output_centroids)
+                          output_centroids = output_centroids)
 
         # determine which gauges are contained in sww file
         count = 0

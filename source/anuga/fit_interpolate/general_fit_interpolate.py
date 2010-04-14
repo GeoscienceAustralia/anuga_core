@@ -26,7 +26,6 @@ from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.utilities.sparse import Sparse, Sparse_CSR
 from anuga.utilities.cg_solve import conjugate_gradient, VectorShapeError
 from anuga.utilities.numerical_tools import ensure_numeric
-from anuga.utilities.polygon import in_and_outside_polygon
 from anuga.utilities.quad import build_quadtree
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference

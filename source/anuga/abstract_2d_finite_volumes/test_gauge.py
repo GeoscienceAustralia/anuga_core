@@ -388,7 +388,7 @@ point2, 0.5, 2.0, 9.0\n")
         os.remove(points_file)
         os.remove(point1_filename)
         os.remove(point2_filename)
-		
+        
 
     def test_sww2csv_centroid(self):
 
@@ -398,7 +398,7 @@ point2, 0.5, 2.0, 9.0\n")
         """Check sww2csv timeseries at centroid.
         
         Test the ability to get a timeseries at the centroid of a triangle, rather
-		than the given gauge point.
+        than the given gauge point.
         """
         
         # Create rectangular mesh
@@ -452,7 +452,7 @@ point2, 0.5, 2.0, 9.0\n")
         # create a csv file containing our gauge points
         points_file = tempfile.mktemp(".csv")
         file_id = open(points_file,"w")
-# These values are where the centroids should be		
+# These values are where the centroids should be        
 #        file_id.write("name, easting, northing, elevation \n\
 #point1, 2.0, 2.0, 3.0\n\
 #point2, 4.0, 4.0, 9.0\n")
@@ -500,7 +500,7 @@ point2, 4.5, 4.0, 9.0\n")
         # clean up
         point1_handle.close()
         point2_handle.close()
-        os.remove(mesh_file)		
+        os.remove(mesh_file)        
         os.remove(sww.filename)
         os.remove(points_file)
         os.remove(point1_filename)
@@ -515,7 +515,7 @@ point2, 4.5, 4.0, 9.0\n")
         """Check sww2csv timeseries at centroid, then output the centroid coordinates.
         
         Test the ability to get a timeseries at the centroid of a triangle, rather
-		than the given gauge point, then output the results.
+        than the given gauge point, then output the results.
         """
         
         # Create rectangular mesh
@@ -595,12 +595,12 @@ point1, 2.5, 4.25, 3.0\n")
 
         # clean up
         point1_handle.close()
-        os.remove(mesh_file)		
+        os.remove(mesh_file)        
         os.remove(sww.filename)
         os.remove(points_file)
         os.remove(point1_filename)
-		
-		
+        
+        
 
 #-------------------------------------------------------------
 

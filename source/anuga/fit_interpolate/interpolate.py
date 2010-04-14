@@ -154,7 +154,7 @@ def interpolate(vertex_coordinates,
     result = I.interpolate_block(vertex_values, interpolation_points,
                                  use_cache=use_cache,
                                  verbose=verbose,
-								 output_centroids=output_centroids)
+                                 output_centroids=output_centroids)
 
     return result
 
@@ -229,7 +229,7 @@ class Interpolate (FitInterpolate):
                     point_coordinates=None,
                     start_blocking_len=500000,
                     verbose=False,
-					output_centroids=False):
+                    output_centroids=False):
         """Interpolate mesh data f to determine values, z, at points.
 
         f is the data on the mesh vertices.
@@ -323,7 +323,7 @@ class Interpolate (FitInterpolate):
     # @param point_coordinates List of vertices to intersect with the mesh
     # @param use_cache True if caching should be used to accelerate the calculations
     # @param verbose True if this function is verbose.
-    # @return ??
+    # @return interpolated f
     def interpolate_block(self, f, point_coordinates,
                           use_cache=False, verbose=False, output_centroids=False):
         """
@@ -406,9 +406,9 @@ class Interpolate (FitInterpolate):
 
     ##
     # @brief Get interpolated data at given points.
-	#        Applies a transform to all points to calculate the
-	#        interpolated values. Points outside the mesh are returned as NaN.
-	# @note self._A matrix must be valid
+    #        Applies a transform to all points to calculate the
+    #        interpolated values. Points outside the mesh are returned as NaN.
+    # @note self._A matrix must be valid
     # @param f Array of arbitrary data
     # @param verbose True if this function is to be verbose.
     # @return f transformed by interpolation matrix (f')
@@ -430,12 +430,12 @@ class Interpolate (FitInterpolate):
     ##
     # @brief Build NxM interpolation matrix.
     # @param point_coordinates Points to sample at
-	# @param output_centroids set to True to always sample from the centre
-	#                         of the intersected triangle, instead of the intersection
-	#                         point.
+    # @param output_centroids set to True to always sample from the centre
+    #                         of the intersected triangle, instead of the intersection
+    #                         point.
     # @param verbose True if this function is to be verbose.
     # @return Interpolation matrix A, plus lists of the points inside and outside the mesh
-	#         and the list of centroids, if requested.
+    #         and the list of centroids, if requested.
     def _build_interpolation_matrix_A(self,
                                       point_coordinates,
                                       output_centroids=False,
@@ -463,7 +463,8 @@ class Interpolate (FitInterpolate):
 
         if verbose: log.critical('Getting indices inside mesh boundary')
 
-        inside_poly_indices, outside_poly_indices = \
+        # Quick test against boundary, but will not deal with holes in the mesh 
+        inside_boundary_indices, outside_poly_indices = \
             in_and_outside_polygon(point_coordinates,
                                    self.mesh.get_boundary_polygon(),
                                    closed=True, verbose=verbose)
@@ -473,7 +474,7 @@ class Interpolate (FitInterpolate):
             log.critical('WARNING: Points outside mesh boundary.')
 
         # Since you can block, throw a warning, not an error.
-        if verbose and 0 == len(inside_poly_indices):
+        if verbose and 0 == len(inside_boundary_indices):
             log.critical('WARNING: No points within the mesh!')
 
         m = self.mesh.number_of_nodes  # Nbr of basis functions (1/vertex)
@@ -484,15 +485,17 @@ class Interpolate (FitInterpolate):
 
         A = Sparse(n,m)
 
-        n = len(inside_poly_indices)
+        n = len(inside_boundary_indices)
 
         centroids = []
-		
+        
+        inside_poly_indices = []
+        
         # Compute matrix elements for points inside the mesh
         if verbose: log.critical('Building interpolation matrix from %d points'
                                  % n)
 
-        for d, i in enumerate(inside_poly_indices):
+        for d, i in enumerate(inside_boundary_indices):
             # For each data_coordinate point
             if verbose and d%((n+10)/10)==0: log.critical('Doing %d of %d'
                                                           %(d, n))
@@ -500,31 +503,37 @@ class Interpolate (FitInterpolate):
             x = point_coordinates[i]
             element_found, sigma0, sigma1, sigma2, k = \
                            search_tree_of_vertices(self.root, x)
-            
-	    # Update interpolation matrix A if necessary
+                       
+        # Update interpolation matrix A if necessary
             if element_found is True:
+
+                if verbose:
+                    print 'Point is within mesh:', d, i            
+            
+                inside_poly_indices.append(i)
+                
                 # Assign values to matrix A
                 j0 = self.mesh.triangles[k,0] # Global vertex id for sigma0
                 j1 = self.mesh.triangles[k,1] # Global vertex id for sigma1
                 j2 = self.mesh.triangles[k,2] # Global vertex id for sigma2
                 js = [j0, j1, j2]
-				
+                
                 if output_centroids is False:
                     # Weight each vertex according to its distance from x
                     sigmas = {j0:sigma0, j1:sigma1, j2:sigma2}
                     for j in js:
                         A[i, j] = sigmas[j]
                 else:
-				    # If centroids are needed, weight all 3 vertices equally
+                    # If centroids are needed, weight all 3 vertices equally
                     for j in js:
                         A[i, j] = 1.0/3.0
-                    centroids.append(self.mesh.centroid_coordinates[k])						
+                    centroids.append(self.mesh.centroid_coordinates[k])                        
             else:
-                 # Mesh has a hole - move this point to the outside list
-#                 num.delete(inside_poly_indices,[i], axis=0)
-                 num.append(outside_poly_indices, [i], axis=0)
-#                msg = 'Could not find triangle for point', x
-#                raise Exception(msg)
+                if verbose:
+                    log.critical('Mesh has a hole - moving this point to outside list')
+
+                # This is a numpy arrays, so we need to do a slow transfer
+                outside_poly_indices = num.append(outside_poly_indices, [i], axis=0)
 
         return A, inside_poly_indices, outside_poly_indices, centroids
 
@@ -774,7 +783,7 @@ class Interpolation_function:
                  time_thinning=1,
                  verbose=False,
                  gauge_neighbour_id=None,
-				 output_centroids=False):
+                 output_centroids=False):
         """Initialise object and build spatial interpolation if required
 
         Time_thinning_number controls how many timesteps to use. Only timesteps
@@ -1002,7 +1011,7 @@ class Interpolation_function:
                                                       self.interpolation_points,
                                                       verbose=False,
                                                       output_centroids=output_centroids)
-                        self.centroids = interpol.centroids														  
+                        self.centroids = interpol.centroids                                                          
                     elif triangles is None and vertex_coordinates is not None:
                         result = interpolate_polyline(Q,
                                                       vertex_coordinates,
@@ -1011,11 +1020,11 @@ class Interpolation_function:
                                                           self.interpolation_points)
 
                     #assert len(result), len(interpolation_points)
-                    self.precomputed_values[name][i, :] = result									
-					
+                    self.precomputed_values[name][i, :] = result                                    
+                    
             # Report
             if verbose:
-                log.critical(self.statistics())			
+                log.critical(self.statistics())            
         else:
             # Store quantitites as is
             for name in quantity_names:

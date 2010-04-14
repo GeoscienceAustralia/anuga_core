@@ -157,7 +157,7 @@ def get_textual_float(value, format = '%.2f'):
 def angle(v1, v2):
     """Temporary Interface to new location"""
 
-    import anuga.utilities.numerical_tools as NT	
+    import anuga.utilities.numerical_tools as NT    
     
     msg = 'angle has moved from util.py.  '
     msg += 'Please use "from anuga.utilities.numerical_tools import angle"'
@@ -186,7 +186,7 @@ def point_on_line(*args, **kwargs):
     msg += 'Please use "from anuga.utilities.polygon import point_on_line"'
     warn(msg, DeprecationWarning) 
 
-    return utilities.polygon.point_on_line(*args, **kwargs)	
+    return utilities.polygon.point_on_line(*args, **kwargs)    
 
     
 # @note TEMP
@@ -210,18 +210,7 @@ def outside_polygon(*args, **kwargs):
 
     return utilities.polygon.outside_polygon(*args, **kwargs)    
 
-
-# @note TEMP
-def separate_points_by_polygon(*args, **kwargs):
-    """Temporary Interface to new location"""
-
-    log.critical('separate_points_by_polygon has moved from util.py.')
-    log.critical('Please use "from anuga.utilities.polygon import '
-                 'separate_points_by_polygon"')
-
-    return utilities.polygon.separate_points_by_polygon(*args, **kwargs)    
-
-
+    
 # @note TEMP
 def read_polygon(*args, **kwargs):
     """Temporary Interface to new location"""
@@ -946,11 +935,11 @@ def remove_lone_verts(verts, triangles, number_of_full_nodes=None):
         # Could've used X=compress(less(loners,N),loners)
         # verts=num.take(verts,X,axis=0)  to Remove the loners from verts
         # but I think it would use more memory
-        new_i = lone_start	# point at first loner - 'shuffle down' target
+        new_i = lone_start    # point at first loner - 'shuffle down' target
         for i in range(lone_start, N):
-            if loners[i] >= N:	# [i] is a loner, leave alone
+            if loners[i] >= N:    # [i] is a loner, leave alone
                 pass
-            else:		# a non-loner, move down
+            else:        # a non-loner, move down
                 loners[i] = new_i
                 verts[new_i] = verts[i]
                 new_i += 1
@@ -1574,9 +1563,9 @@ def sww2csv_gauges(sww_file,
     This is really returning speed, not velocity.
     """
     from gauge import sww2csv_gauges as sww2csv
-	
+    
     return sww2csv(sww_file, gauge_file, out_name, quantities, verbose, use_cache)
-	
+    
 def sww2timeseries(swwfiles,
                    gauge_filename,
                    production_dirs,
@@ -1609,8 +1598,8 @@ def sww2timeseries(swwfiles,
                    title_on,
                    use_cache,
                    verbose,
-                   output_centroids)				   
-	
+                   output_centroids)                   
+    
 ##
 # @brief Get a wave height at a certain depth given wave height at another depth.
 # @param d1 The first depth.

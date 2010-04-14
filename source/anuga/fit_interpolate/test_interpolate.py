@@ -106,7 +106,35 @@ class Test_Interpolate(unittest.TestCase):
         A, _, _, _ = interp._build_interpolation_matrix_A(data)
         assert num.allclose(A.todense(), [[1./3, 1./3, 1./3]])
 
+    def test_datapoint_in_hole(self):
+        # create 3 right-angled triangles arranged in a bigger triangle       
+        a = [0.0, 0.0] #0
+        b = [0.0, 2.0] #1
+        c = [2.0,0.0]  #2
+        d = [0.0,4.0]  #3
+        e = [2.0,2.0]  #4
+        f = [4.0,0.0]  #5
+        points = [a, b, c, d, e, f]
+        vertices = [ [1,0,2], [3,1,4], [4,2,5] ]   #bac dbe ecf
 
+        point_in_hole = [1.5, 1.5] # a point in the hole
+        data = [ [20, 20], [0.3, 0.3], point_in_hole, [2.5, 0.3], [30, 30] ] #some points inside and outside the hole
+
+        # any function for the vertices, we don't care about the result
+        f = num.array([linear_function(points), 2*linear_function(points)])
+        f = num.transpose(f)
+
+        interp = Interpolate(points, vertices)
+        interp.interpolate(f, data)
+        
+        assert not set(interp.inside_poly_indices).intersection(set(interp.outside_poly_indices)), \
+               'Some points are in both lists!'    
+        assert len(interp.inside_poly_indices) == 2
+        assert len(interp.outside_poly_indices) == 3
+        
+        interp.outside_poly_indices.sort()
+        assert interp.outside_poly_indices[1] == 2, \
+               'third outside point should be inside the hole!'
 
     def test_simple_interpolation_example(self):
         
@@ -390,7 +418,7 @@ class Test_Interpolate(unittest.TestCase):
         results = A.todense()
         assert num.allclose(num.sum(results, axis=1), 1.0)
 
-		
+        
     def test_arbitrary_datapoints_return_centroids(self):
         #Try arbitrary datapoints, making sure they return
         #an interpolation matrix for the intersected triangle's
@@ -408,12 +436,12 @@ class Test_Interpolate(unittest.TestCase):
         
         third = [1.0/3.0, 1.0/3.0, 1.0/3.0]
         answer = [third, third, third]
-		
+        
         A,_,_,_ = interp._build_interpolation_matrix_A(data, output_centroids=True)
         results = A.todense()
-        assert num.allclose(results, answer)		
-		
-		
+        assert num.allclose(results, answer)        
+        
+        
     def test_arbitrary_datapoints_some_outside(self):
         #Try arbitrary datapoints one outside the triangle.
         #That one should be ignored
