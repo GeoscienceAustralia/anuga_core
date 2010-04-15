@@ -321,6 +321,22 @@ def is_inside_triangle(point, triangle,
                 
     return False
 
+def is_complex(polygon):
+    """Check if a polygon is complex (self-intersecting)
+    """
+    
+    polygon = ensure_numeric(polygon, num.float)
+
+    for i in range(0, len(polygon)-1):
+        for j in range(i+1, len(polygon)-1):    
+                (type, point) = intersection([polygon[i], polygon[i+1]], [polygon[j], polygon[j+1]])
+
+                if (abs(i-j) > 1 and type == 1) or (type == 2 and list(point[0]) != list(point[1])) or (type == 3) and type != 4:
+#                    print 'self-intersecting polygon, type ', type, ' point', point, 'vertex indices ', i, j                
+                    return True
+        
+    return False
+    
 def is_inside_polygon_quick(point, polygon, closed=True, verbose=False):
     """Determine if one point is inside a polygon
     Both point and polygon are assumed to be numeric arrays or lists and
@@ -977,7 +993,14 @@ def read_polygon(filename, delimiter=','):
     for line in lines:
         fields = line.split(delimiter)
         polygon.append([float(fields[0]), float(fields[1])])
-
+    
+    # check this is a valid polygon    
+    # JAMES: don't do this check yet, it's too slow, and there is already pathological data in the unit tests.
+    # if is_complex(polygon):    
+            # msg = 'Self-intersecting polygon detected in file' + filename +'. '
+            # msg += 'Please fix.'
+            # raise Exception, msg
+    
     return polygon
 
 ##
