@@ -321,7 +321,7 @@ def is_inside_triangle(point, triangle,
                 
     return False
 
-def is_complex(polygon):
+def is_complex(polygon, verbose=False):
     """Check if a polygon is complex (self-intersecting)
     """
     
@@ -332,7 +332,8 @@ def is_complex(polygon):
                 (type, point) = intersection([polygon[i], polygon[i+1]], [polygon[j], polygon[j+1]])
 
                 if (abs(i-j) > 1 and type == 1) or (type == 2 and list(point[0]) != list(point[1])) or (type == 3) and type != 4:
-#                    print 'self-intersecting polygon, type ', type, ' point', point, 'vertex indices ', i, j                
+                    if verbose:
+                        print 'Self-intersecting polygon found, type ', type, ' point', point, 'vertex indices ', i, j                
                     return True
         
     return False
@@ -995,11 +996,11 @@ def read_polygon(filename, delimiter=','):
         polygon.append([float(fields[0]), float(fields[1])])
     
     # check this is a valid polygon    
-    # JAMES: don't do this check yet, it's too slow, and there is already pathological data in the unit tests.
     # if is_complex(polygon):    
-            # msg = 'Self-intersecting polygon detected in file' + filename +'. '
+            # msg = 'ERROR: Self-intersecting polygon detected in file' + filename +'. '
             # msg += 'Please fix.'
-            # raise Exception, msg
+            # log.critical(msg)
+# #            raise Exception, msg
     
     return polygon
 

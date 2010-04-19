@@ -1805,13 +1805,26 @@ class Test_Polygon(unittest.TestCase):
                                   [0., 0.]])
         assert res is False
 
+        
     def test_is_polygon_complex(self):
         concave_poly = [[0, 0], [10, 0], [5, 5], [10, 10], [0, 10]]
-        complex_poly = [[0, 0], [10, 0], [5, 5], [5, 15], [5, 7], [10, 10], [0, 10]]
-        
-        assert not is_complex(concave_poly)
-        assert is_complex(complex_poly)
-        
+        complex_poly = [[0, 0], [10, 0], [5, 5], [4, 15], [5, 7], [10, 10], [0, 10]]
+
+        not_complex = is_complex(concave_poly)        
+        complex = is_complex(complex_poly)        
+
+        assert not not_complex
+        assert complex
+
+    def test_is_polygon_complex2(self):
+        concave_poly = [[0, 0], [10, 0], [11,0], [5, 5], [7,6], [10, 10], [1,5], [0, 10]]
+        complex_poly = [[0, 0], [12,12], [10, 0], [5, 5], [3,18], [4, 15], [5, 7], [10, 10], [0, 10], [16, 12]]
+
+        not_complex = is_complex(concave_poly)        
+        complex = is_complex(complex_poly)        
+
+        assert not not_complex
+        assert complex
         
 ################################################################################
 
