@@ -17,6 +17,9 @@ from Scientific.IO.NetCDF import NetCDFFile
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.utilities.numerical_tools import ensure_numeric
 
+import anuga.utilities.log as log
+
+
 
 ##
 # @brief Read time history of data from NetCDF file, return callable object.
@@ -191,7 +194,7 @@ def _file_function(filename,
                    time_limit=None,
                    verbose=False,
                    boundary_polygon=None,
-				   output_centroids=False):
+                   output_centroids=False):
     """Internal function
     
     See file_function for documentatiton

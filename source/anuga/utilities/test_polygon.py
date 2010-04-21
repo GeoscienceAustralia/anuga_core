@@ -1807,24 +1807,24 @@ class Test_Polygon(unittest.TestCase):
 
         
     def test_is_polygon_complex(self):
+        """Test a concave and a complex poly with is_complex, to make sure it can detect
+           self-intersection.
+        """
         concave_poly = [[0, 0], [10, 0], [5, 5], [10, 10], [0, 10]]
         complex_poly = [[0, 0], [10, 0], [5, 5], [4, 15], [5, 7], [10, 10], [0, 10]]
 
-        not_complex = is_complex(concave_poly)        
-        complex = is_complex(complex_poly)        
-
-        assert not not_complex
-        assert complex
+        assert not is_complex(concave_poly)
+        assert is_complex(complex_poly)
 
     def test_is_polygon_complex2(self):
+        """Test a concave and a complex poly with is_complex, to make sure it can detect
+           self-intersection. This test uses more complicated polygons.
+        """    
         concave_poly = [[0, 0], [10, 0], [11,0], [5, 5], [7,6], [10, 10], [1,5], [0, 10]]
-        complex_poly = [[0, 0], [12,12], [10, 0], [5, 5], [3,18], [4, 15], [5, 7], [10, 10], [0, 10], [16, 12]]
+        complex_poly = [[0, 0], [12,12], [10, 0], [5, 5], [3,18], [4, 15], [5, 7], [10, 10], [0, 10], [16, 12]]       
 
-        not_complex = is_complex(concave_poly)        
-        complex = is_complex(complex_poly)        
-
-        assert not not_complex
-        assert complex
+        assert not is_complex(concave_poly)
+        assert is_complex(complex_poly)
         
 ################################################################################
 

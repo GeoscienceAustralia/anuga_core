@@ -66,7 +66,7 @@ class FitInterpolate:
         Inputs:
 
           vertex_coordinates: List of coordinate pairs [xi, eta] of
-	      points constituting a mesh (or an m x 2 numeric array or
+          points constituting a mesh (or an m x 2 numeric array or
               a geospatial object)
               Points may appear multiple times
               (e.g. if vertices have discontinuities)

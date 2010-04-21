@@ -321,22 +321,60 @@ def is_inside_triangle(point, triangle,
                 
     return False
 
-def is_complex(polygon, verbose=False):
-    """Check if a polygon is complex (self-intersecting)
-    """
     
+def is_complex(polygon, verbose=False):
+    """Check if a polygon is complex (self-intersecting).
+       Uses a sweep algorithm that is O(n^2) in the worst case, but
+       for most normal looking polygons it'll be O(n log n). 
+
+       polygon is a list of points that define a closed polygon.
+       verbose will print a list of the intersection points if true
+       
+       Return True if polygon is complex.
+    """            
+            
+    def key_xpos(item):
+        return (item[0][0])
+    
+    def segments_joined(seg0, seg1):
+        for i in seg0:
+            for j in seg1:    
+                if i == j: return True
+        return False
+        
     polygon = ensure_numeric(polygon, num.float)
 
+    # build a list of discrete segments from the polygon
+    unsorted_segs = []
     for i in range(0, len(polygon)-1):
-        for j in range(i+1, len(polygon)-1):    
-                (type, point) = intersection([polygon[i], polygon[i+1]], [polygon[j], polygon[j+1]])
+        unsorted_segs.append([list(polygon[i]), list(polygon[i+1])])
+    unsorted_segs.append([list(polygon[0]), list(polygon[-1])])
+    
+    # all segments must point in same direction
+    for val in unsorted_segs:
+        if val[0][0] > val[1][0]:
+            val[0], val[1] = val[1], val[0]    
+            
+    l_x = sorted(unsorted_segs, key=key_xpos)
 
-                if (abs(i-j) > 1 and type == 1) or (type == 2 and list(point[0]) != list(point[1])) or (type == 3) and type != 4:
+    comparisons = 0
+    
+    # loop through, only comparing lines that partially overlap in x
+    for index, leftmost in enumerate(l_x):
+        cmp = index+1
+        while cmp < len(l_x) and leftmost[1][0] > l_x[cmp][0][0]:
+            if not segments_joined(leftmost, l_x[cmp]):
+                (type, point) = intersection(leftmost, l_x[cmp])
+                comparisons += 1
+                if type != 0 and type != 4 or (type == 2 and list(point[0]) != list(point[1])):
                     if verbose:
-                        print 'Self-intersecting polygon found, type ', type, ' point', point, 'vertex indices ', i, j                
-                    return True
+                        print 'Self-intersecting polygon found, type ', type, ' point', point,
+                        print 'vertices: ', leftmost, ' - ', l_x[cmp]                
+                    return True            
+            cmp += 1
         
     return False
+    
     
 def is_inside_polygon_quick(point, polygon, closed=True, verbose=False):
     """Determine if one point is inside a polygon
@@ -995,12 +1033,12 @@ def read_polygon(filename, delimiter=','):
         fields = line.split(delimiter)
         polygon.append([float(fields[0]), float(fields[1])])
     
-    # check this is a valid polygon    
-    # if is_complex(polygon):    
-            # msg = 'ERROR: Self-intersecting polygon detected in file' + filename +'. '
-            # msg += 'Please fix.'
-            # log.critical(msg)
-# #            raise Exception, msg
+    # check this is a valid polygon. 
+    if is_complex(polygon, verbose=True):    
+        msg = 'ERROR: Self-intersecting polygon detected in file ' + filename +'. '
+        msg += 'A complex polygon will not necessarily break the algorithms within ANUGA, '
+        msg += 'but it usually signifies pathological data. Please fix this file.'
+        raise Exception, msg
     
     return polygon
 

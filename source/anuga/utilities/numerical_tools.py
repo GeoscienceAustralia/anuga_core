@@ -75,7 +75,7 @@ def angle(v1, v2=None):
     # Prepare two numeric vectors
     if v2 is None:
         v2 = [1.0, 0.0] # Unit vector along the x-axis
-	
+    
     v1 = ensure_numeric(v1, num.float)
     v2 = ensure_numeric(v2, num.float)    
     
