@@ -11,7 +11,7 @@
 import numpy as num
 
 from anuga.geospatial_data.geospatial_data import ensure_absolute
-from util import check_list
+from util import check_list, calc_bearing
 from file_function import file_function
 
 import os
