@@ -235,7 +235,7 @@ def sww2csv_gauges(sww_file,
             quake_offset_time = callable_sww.starttime
 
     for point_i, point in enumerate(points_array):
-        is_opened = False	
+        is_opened = False    
         for time in callable_sww.get_time():
             #add domain starttime to relative time.
             quake_time = time + quake_offset_time
@@ -250,8 +250,9 @@ def sww2csv_gauges(sww_file,
                 points_list = [quake_time, quake_time/3600.] +  _quantities2csv(quantities, point_quantities, callable_sww.centroids, point_i)
                 points_writer.writerow(points_list)
             else:
-                msg = 'gauge' + point_name[point_i] + 'falls off the mesh in file ' + sww_file + '.'
-                log.warning(msg)
+                if verbose:
+                    msg = 'gauge' + point_name[point_i] + 'falls off the mesh in file ' + sww_file + '.'
+                    log.warning(msg)
 ##
 # @brief Read a .sww file and plot the time series.
 # @param swwfiles Dictionary of .sww files.
