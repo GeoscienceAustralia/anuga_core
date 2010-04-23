@@ -13,7 +13,7 @@ from os.path import exists, basename, split,join
 from warnings import warn
 from shutil import copy
 
-from anuga.utilities.numerical_tools import ensure_numeric, angle
+from anuga.utilities.numerical_tools import ensure_numeric, angle, NAN
 
 from math import sqrt, atan, degrees
 
@@ -299,6 +299,10 @@ def calc_bearing(uh, vh):
     # * converting from radians to degrees
     # * moving the reference direction from [1,0] to North
     # * changing from counter clockwise to clocwise.
+
+    # if indeterminate, just return 
+    if uh==0 and vh==0:
+        return NAN
     
     return degrees(angle([uh, vh], [0, -1]))   
 

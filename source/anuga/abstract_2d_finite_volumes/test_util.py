@@ -1625,7 +1625,15 @@ class Test_Util(unittest.TestCase):
         if 314 < angle < 316: v=1
         assert v==1
        
+    def test_calc_bearings_zero_vector(self): 
+        from math import atan, degrees
 
+        uh = 0
+        vh = 0
+        angle = calc_bearing(uh, vh)
+
+        assert angle == NAN
+        
 #-------------------------------------------------------------
 
 if __name__ == "__main__":
