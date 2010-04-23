@@ -300,76 +300,51 @@ point2, 0.5, 2.0, 9.0\n")
 
 
        
-    # def test_sww2csv_gauge_point_off_mesh(self):
-        # from anuga.pmesh.mesh import Mesh
-        # from anuga.shallow_water import Domain, Transmissive_boundary
-        # from csv import reader,writer
-        # import time
-        # import string
+    def test_sww2csv_gauge_point_off_mesh(self):
+        from anuga.pmesh.mesh import Mesh
+        from anuga.shallow_water import Domain, Transmissive_boundary
+        from csv import reader,writer
+        import time
+        import string
         
-        # """Most of this test was copied from test_interpolate
-        # test_interpole_sww2csv
+        """Most of this test was copied from test_interpolate
+        test_interpole_sww2csv
         
-        # This is testing the sww2csv_gauges function with one gauge off the mesh, by creating a sww file and
-        # then exporting the gauges and checking the results.
+        This is testing the sww2csv_gauges function with one gauge off the mesh, by creating a sww file and
+        then exporting the gauges and checking the results.
         
-        # This tests the correct values for when a gauge is off the mesh, which is important for parallel.
-        # """
-        
-        # domain = self.domain
-        # self._create_sww()     
+        This tests the correct values for when a gauge is off the mesh, which is important for parallel.
+        """
+
+        domain = self.domain
+        sww = self._create_sww()
      
-        # # test the function
-        # points = [[50.0,1.],[50.5,-20.25]]
+        # test the function
+        points = [[50.0,1.],[50.5,-20.25]]
 
-# #        points_file = tempfile.mktemp(".csv")
-        # points_file = 'test_point.csv'
-        # file_id = open(points_file,"w")
-        # file_id.write("name,easting,northing \n\
-# point1, 50.0, 1.0\n\
-# point2, 50.5, 20.25\n")
-        # file_id.close()
+#        points_file = tempfile.mktemp(".csv")
+        points_file = 'test_point.csv'
+        file_id = open(points_file,"w")
+        file_id.write("name,easting,northing \n\
+offmesh1, 50.0, 1.0\n\
+offmesh2, 50.5, 20.25\n")
+        file_id.close()
 
-        # sww2csv_gauges(sww.filename, 
-                            # points_file,
-                            # quantities=['stage', 'elevation'],
-                            # use_cache=False,
-                            # verbose=False)
+        points_files = ['offmesh1.csv', 'offmesh2.csv']        
+        
+        for point_filename in points_files:
+            if os.path.exists(point_filename): os.remove(point_filename)         
+        
+        sww2csv_gauges(self.sww.filename, 
+                            points_file,
+                            quantities=['stage', 'elevation', 'bearing'],
+                            use_cache=False,
+                            verbose=False)
 
-        # point1_answers_array = [[0.0,1.0,-5.0], [2.0,10.0,-5.0]]
-        # point1_filename = 'gauge_point1.csv'
-        # point1_handle = file(point1_filename)
-        # point1_reader = reader(point1_handle)
-        # point1_reader.next()
-
-        # line=[]
-        # for i,row in enumerate(point1_reader):
-# #            print 'i',i,'row',row
-            # # note the 'hole' (element 1) below - skip the new 'hours' field
-            # line.append([float(row[0]),float(row[2]),float(row[3])])
-            # #print 'line',line[i],'point1',point1_answers_array[i]
-            # assert num.allclose(line[i], point1_answers_array[i])
-
-        # point2_answers_array = [[0.0,1.0,-0.5], [2.0,10.0,-0.5]]
-        # point2_filename = 'gauge_point2.csv' 
-        # point2_handle = file(point2_filename)
-        # point2_reader = reader(point2_handle)
-        # point2_reader.next()
-                        
-        # line=[]
-        # for i,row in enumerate(point2_reader):
-# #            print 'i',i,'row',row
-            # # note the 'hole' (element 1) below - skip the new 'hours' field
-            # line.append([float(row[0]),float(row[2]),float(row[3])])
-# #            print 'line',line[i],'point1',point1_answers_array[i]
-            # assert num.allclose(line[i], point2_answers_array[i])
-                         
-        # # clean up
-        # point1_handle.close()
-        # point2_handle.close()
-        # os.remove(points_file)
-# #        os.remove(point1_filename)
-# #        os.remove(point2_filename)
+        for point_filename in points_files: 
+            assert not os.path.exists(point_filename)
+            
+        os.remove(points_file)
         
         
     def test_sww2csv_centroid(self):

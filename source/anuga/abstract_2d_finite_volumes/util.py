@@ -13,7 +13,7 @@ from os.path import exists, basename, split,join
 from warnings import warn
 from shutil import copy
 
-from anuga.utilities.numerical_tools import ensure_numeric
+from anuga.utilities.numerical_tools import ensure_numeric, angle
 
 from math import sqrt, atan, degrees
 
@@ -299,23 +299,8 @@ def calc_bearing(uh, vh):
     # * converting from radians to degrees
     # * moving the reference direction from [1,0] to North
     # * changing from counter clockwise to clocwise.
-        
-    angle = degrees(atan(vh/(uh+1.e-15)))
-
-    if (0 < angle < 90.0):
-        if vh > 0:
-            bearing = 90.0 - abs(angle)
-        if vh < 0:
-            bearing = 270.0 - abs(angle)
     
-    if (-90 < angle < 0):
-        if vh < 0:
-            bearing = 90.0 - (angle)
-        if vh > 0:
-            bearing = 270.0 - (angle)
-    if angle == 0: bearing = 0.0
-
-    return bearing
+    return degrees(angle([uh, vh], [0, -1]))   
 
 
 # FIXME (DSG): Add unit test, make general, not just 2 files,

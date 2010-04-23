@@ -22,6 +22,61 @@ import anuga.utilities.log as log
 
 from math import sqrt
 
+def _quantities2csv(quantities, point_quantities, centroids, point_i):
+    points_list = []
+    
+    for quantity in quantities:
+        #core quantities that are exported from the interpolator     
+        if quantity == 'stage':
+            points_list.append(point_quantities[0])
+            
+        if quantity == 'elevation':
+            points_list.append(point_quantities[1])
+            
+        if quantity == 'xmomentum':
+            points_list.append(point_quantities[2])
+            
+        if quantity == 'ymomentum':
+            points_list.append(point_quantities[3])
+
+        #derived quantities that are calculated from the core ones
+        if quantity == 'depth':
+            points_list.append(point_quantities[0] 
+                               - point_quantities[1])
+
+        if quantity == 'momentum':
+            momentum = sqrt(point_quantities[2]**2 
+                            + point_quantities[3]**2)
+            points_list.append(momentum)
+            
+        if quantity == 'speed':
+            #if depth is less than 0.001 then speed = 0.0
+            if point_quantities[0] - point_quantities[1] < 0.001:
+                vel = 0.0
+            else:
+                if point_quantities[2] < 1.0e6:
+                    momentum = sqrt(point_quantities[2]**2
+                                    + point_quantities[3]**2)
+                    vel = momentum / (point_quantities[0] 
+                                      - point_quantities[1])
+                else:
+                    momentum = 0
+                    vel = 0
+                
+            points_list.append(vel)
+            
+        if quantity == 'bearing':
+            points_list.append(calc_bearing(point_quantities[2],
+                                            point_quantities[3]))
+        if quantity == 'xcentroid':
+            points_list.append(centroids[point_i][0])
+
+        if quantity == 'ycentroid':
+            points_list.append(centroids[point_i][1])
+
+    return points_list
+    
+    
 ##
 # @brief Take gauge readings, given a gauge file and a sww mesh
 #
@@ -162,13 +217,6 @@ def sww2csv_gauges(sww_file,
     heading = [quantity for quantity in quantities]
     heading.insert(0,'time')
     heading.insert(1,'hours')
-
-    #create a list of csv writers for all the points and write header
-    points_writer = []
-    for point_i,point in enumerate(points):
-        points_writer.append(writer(file(dir_name + sep + gauge_file
-                                         + point_name[point_i] + '.csv', "wb")))
-        points_writer[point_i].writerow(heading)
     
     if verbose: log.critical('Writing csv files')
 
@@ -186,68 +234,24 @@ def sww2csv_gauges(sww_file,
         if quake_offset_time is None:
             quake_offset_time = callable_sww.starttime
 
+    for point_i, point in enumerate(points_array):
+        is_opened = False	
         for time in callable_sww.get_time():
-            for point_i, point in enumerate(points_array):
-                #add domain starttime to relative time.
-                quake_time = time + quake_offset_time
-                points_list = [quake_time, quake_time/3600.]# fudge around SWW time bug
-                point_quantities = callable_sww(time, point_i) # __call__ is overridden
-                            
-                for quantity in quantities:
-                    if quantity == NAN:
-                        log.critical('quantity does not exist in %s'
-                                     % callable_sww.get_name)
-                    else:
-                        #core quantities that are exported from the interpolator     
-                        if quantity == 'stage':
-                            points_list.append(point_quantities[0])
-                            
-                        if quantity == 'elevation':
-                            points_list.append(point_quantities[1])
-                            
-                        if quantity == 'xmomentum':
-                            points_list.append(point_quantities[2])
-                            
-                        if quantity == 'ymomentum':
-                            points_list.append(point_quantities[3])
+            #add domain starttime to relative time.
+            quake_time = time + quake_offset_time
+            point_quantities = callable_sww(time, point_i) # __call__ is overridden
 
-                        #derived quantities that are calculated from the core ones
-                        if quantity == 'depth':
-                            points_list.append(point_quantities[0] 
-                                               - point_quantities[1])
-
-                        if quantity == 'momentum':
-                            momentum = sqrt(point_quantities[2]**2 
-                                            + point_quantities[3]**2)
-                            points_list.append(momentum)
-                            
-                        if quantity == 'speed':
-                            #if depth is less than 0.001 then speed = 0.0
-                            if point_quantities[0] - point_quantities[1] < 0.001:
-                                vel = 0.0
-                            else:
-                                if point_quantities[2] < 1.0e6:
-                                    momentum = sqrt(point_quantities[2]**2
-                                                    + point_quantities[3]**2)
-                                    vel = momentum / (point_quantities[0] 
-                                                      - point_quantities[1])
-                                else:
-                                    momentum = 0
-                                    vel = 0
-                                
-                            points_list.append(vel)
-                            
-                        if quantity == 'bearing':
-                            points_list.append(calc_bearing(point_quantities[2],
-                                                            point_quantities[3]))
-                        if quantity == 'xcentroid':
-                            points_list.append(callable_sww.centroids[point_i][0])
-
-                        if quantity == 'ycentroid':
-                            points_list.append(callable_sww.centroids[point_i][1])
-                            
-                points_writer[point_i].writerow(points_list)
-
+            if point_quantities[0] != NAN:
+                if is_opened == False:
+                    points_writer = writer(file(dir_name + sep + gauge_file
+                                                        + point_name[point_i] + '.csv', "wb"))
+                    points_writer.writerow(heading)
+                    is_opened = True
+                points_list = [quake_time, quake_time/3600.] +  _quantities2csv(quantities, point_quantities, callable_sww.centroids, point_i)
+                points_writer.writerow(points_list)
+            else:
+                msg = 'gauge' + point_name[point_i] + 'falls off the mesh in file ' + sww_file + '.'
+                log.warning(msg)
 ##
 # @brief Read a .sww file and plot the time series.
 # @param swwfiles Dictionary of .sww files.
