@@ -4,6 +4,7 @@ from anuga.utilities.polygon import  point_in_polygon ,populate_polygon
 from anuga.utilities.numerical_tools import ensure_numeric
 import numpy as num
 from anuga.utilities.polygon import inside_polygon
+from anuga.utilities.polygon import polylist2points_verts
 import anuga.utilities.log as log
 
 
@@ -28,6 +29,7 @@ def create_mesh_from_regions(bounding_polygon,
                              mesh_geo_reference=None,
                              minimum_triangle_angle=28.0,
                              fail_if_polygons_outside=True,
+                             breaklines=None,
                              use_cache=False,
                              verbose=True):
     """Create mesh from bounding polygons, and resolutions.
@@ -64,6 +66,10 @@ def create_mesh_from_regions(bounding_polygon,
     If none is given one will be automatically generated.  It was use
     the lower left hand corner of  bounding_polygon (absolute)
     as the x and y values for the geo_ref.
+
+    breaklines is a list of polygons. These lines will be preserved by the
+               triangulation algorithm - useful for coastlines, walls, etc.
+               The polygons are not closed.			   
     
     Returns the mesh instance if no filename is given
 
@@ -89,6 +95,7 @@ def create_mesh_from_regions(bounding_polygon,
               'mesh_geo_reference': mesh_geo_reference,
               'minimum_triangle_angle': minimum_triangle_angle,
               'fail_if_polygons_outside': fail_if_polygons_outside,
+              'breaklines': breaklines,
               'verbose': verbose}   # FIXME (Ole): Should be bypassed one day. See ticket:14
 
     # Call underlying engine with or without caching
@@ -123,6 +130,7 @@ def _create_mesh_from_regions(bounding_polygon,
                               mesh_geo_reference=None,
                               minimum_triangle_angle=28.0,
                               fail_if_polygons_outside=True,
+                              breaklines=None,
                               verbose=True):
     """_create_mesh_from_regions - internal function.
 
@@ -215,7 +223,6 @@ def _create_mesh_from_regions(bounding_polygon,
 #    print 'check out your interior polygons'
 #    print 'check %s in production directory' %figname
 #    import sys; sys.exit()
-    
 
     if interior_holes is not None:        
         # Test that all the interior polygons are inside the bounding_poly
@@ -245,6 +252,11 @@ def _create_mesh_from_regions(bounding_polygon,
                                            zone = zone)
 
     m = Mesh(geo_reference=mesh_geo_reference)
+
+    # build a list of discrete segments from the breakline polygons
+    if breaklines is not None:
+        points, verts = polylist2points_verts(breaklines)
+        m.add_points_and_segments(points, verts)
 
     # Do bounding polygon
     m.add_region_from_polygon(bounding_polygon,
@@ -300,7 +312,6 @@ def _create_mesh_from_regions(bounding_polygon,
             m.add_hole_from_polygon(polygon,
                                     geo_reference=poly_geo_reference)
        
-
 
 
     # NOTE (Ole): This was moved here as it is annoying if mesh is always

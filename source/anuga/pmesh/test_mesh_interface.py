@@ -248,8 +248,8 @@ class TestCase(unittest.TestCase):
         self.failUnless(segs[3].tag=='bom', 'FAILED!')
         self.failUnless(m.geo_reference.get_zone()==zone, 'FAILED!')
         self.failUnless(m.geo_reference.get_xllcorner()==min_x, 'FAILED!')
-        self.failUnless(m.geo_reference.get_yllcorner()==min_y, 'FAILED!')
-
+        self.failUnless(m.geo_reference.get_yllcorner()==min_y, 'FAILED!')		
+		
     def test_create_mesh_from_regions3(self):
         # These are the absolute values
         min_x = -10
@@ -635,9 +635,22 @@ class TestCase(unittest.TestCase):
             msg += 'does not cause an Exception to be raised'
             raise Exception, msg
             
-                    
+    def test_create_mesh_with_breaklines(self):
+         # These are the absolute values
+        polygon = [[100,100], [1000,100], [1000,1000], [100,1000]]
 
+        boundary_tags = {'walls': [0,1], 'bom': [2,3]}
 
+        m = create_mesh_from_regions(polygon,
+                                     boundary_tags,
+                                     10000000,
+                                     breaklines=[[[50,50],[2000,2000]]])
+									 
+        self.failUnless(len(m.regions) == 1, 'FAILED!')
+        segs = m.getUserSegments()
+        self.failUnless(len(segs) == 5, 'FAILED!')
+        self.failUnless(len(m.userVertices) == 6, 'FAILED!')
+		
     def test_create_mesh_from_regions_with_duplicate_verts(self):
         # These are the absolute values
         polygon_absolute = [[0.0, 0.0],

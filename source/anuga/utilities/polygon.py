@@ -1354,8 +1354,23 @@ def interpolate_polyline(data,
                               rtol,
                               atol)
 
+
     return interpolated_values
 
+    
+def polylist2points_verts(polylist):
+    """ Convert a list of polygons to discrete points and vertices.
+    """
+    
+    offset = 0
+    points = []
+    vertices = []
+    for poly in polylist:
+        points.extend(poly)
+        vertices.extend([[i, i+1] for i in range(offset, offset+len(poly)-1)])
+        offset += len(poly)
+		
+    return points, vertices
 ##
 # @brief 
 # @param data 
