@@ -7,14 +7,19 @@ General functions used in fit and interpolate.
 """
 import time
 
+from anuga.utilities.numerical_tools import get_machine_precision
+from anuga.utilities.numerical_tools import ensure_numeric
+from anuga.config import max_float
+
 from anuga.utilities import compile
 if compile.can_use_C_extension('polygon_ext.c'):
     # Underlying C implementations can be accessed
-    from polygon_ext import _is_inside_triangle  
-	
-#from anuga.utilities.polygon import is_inside_triangle
-from anuga.utilities.numerical_tools import get_machine_precision
-from anuga.config import max_float
+    from polygon_ext import _is_inside_triangle        
+else:
+    msg = 'C implementations could not be accessed by %s.\n ' %__file__
+    msg += 'Make sure compile_all.py has been run as described in '
+    msg += 'the ANUGA installation guide.'
+    raise Exception, msg
 
 import numpy as num
 
@@ -96,6 +101,8 @@ def _search_triangles_of_vertices(triangles, x):
     fit and interpolate.
     """
     global last_triangle
+
+    x = ensure_numeric(x, num.float) 	
     
     # These statments are needed if triangles is empty
     sigma2 = -10.0
@@ -106,13 +113,13 @@ def _search_triangles_of_vertices(triangles, x):
     element_found = False    
     for k, tri_verts_norms in triangles:
         tri = tri_verts_norms[0]
+        tri = ensure_numeric(tri)		
         # k is the triangle index
         # tri is a list of verts (x, y), representing a tringle
         # Find triangle that contains x (if any) and interpolate
-
-        # Input check disabled to speed things up.
-        if _is_inside_triangle(x, tri, 
-                              int(True), 1.0e-12, 1.0e-12):
+        
+        # Input check disabled to speed things up.	
+        if bool(_is_inside_triangle(x, tri, int(True), 1.0e-12, 1.0e-12)):
             
             n0, n1, n2 = tri_verts_norms[1]        
             sigma0, sigma1, sigma2 =\
