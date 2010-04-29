@@ -7,7 +7,12 @@ General functions used in fit and interpolate.
 """
 import time
 
-from anuga.utilities.polygon import is_inside_triangle
+from anuga.utilities import compile
+if compile.can_use_C_extension('polygon_ext.c'):
+    # Underlying C implementations can be accessed
+    from polygon_ext import _is_inside_triangle  
+	
+#from anuga.utilities.polygon import is_inside_triangle
 from anuga.utilities.numerical_tools import get_machine_precision
 from anuga.config import max_float
 
@@ -104,11 +109,10 @@ def _search_triangles_of_vertices(triangles, x):
         # k is the triangle index
         # tri is a list of verts (x, y), representing a tringle
         # Find triangle that contains x (if any) and interpolate
-        
+
         # Input check disabled to speed things up.
-        if is_inside_triangle(x, tri, 
-                              closed=True,
-                              check_inputs=False):
+        if _is_inside_triangle(x, tri, 
+                              int(True), 1.0e-12, 1.0e-12):
             
             n0, n1, n2 = tri_verts_norms[1]        
             sigma0, sigma1, sigma2 =\
