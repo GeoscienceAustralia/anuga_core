@@ -98,24 +98,6 @@ class Test_Quad(unittest.TestCase):
 	assert self.cell.count() == 8
 
 
-
-    def test_collapse(self):
-        self.cell.insert([0,1,2,3,4,5,6,7], split = False)
-
-        #Split maximally
-	self.cell.split(1)
-
-	#Now there are children
-	assert self.cell.children is not None
-	assert self.cell.count() == 8
-
-	#Collapse
-	self.cell.collapse(8)
-
-	#No children
-	assert self.cell.children is None
-	assert self.cell.count() == 8
-
     def test_build_quadtree(self):
 
         Q = build_quadtree(self.mesh)

@@ -18,10 +18,8 @@ class Cell(TreeNode):
     western, eastern boundaries.
 
     Public Methods:
-        prune()
         insert(point)
         search(x, y)
-        collapse()
         split()
         store()
         retrieve()
@@ -79,19 +77,8 @@ class Cell(TreeNode):
         """Find all point indices sharing the same cell as point (x, y)
         """
         branch = []
-        points = []
-        if self.children:
-            for child in self:
-                if child.contains(x,y):
-                    brothers = list(self.children)
-                    brothers.remove(child)
-                    branch.append(brothers)
-                    points, branch = child.search_branch(x,y, branch,
-                                                  get_vertices=get_vertices)
-        else:
-            # Leaf node: Get actual waypoints
-            points = self.retrieve(get_vertices=get_vertices)
-        self.branch = branch   
+        points, branch = self.search_branch(x, y, branch, get_vertices=get_vertices)
+        self.branch = branch  
         return points
 
 
@@ -101,7 +88,7 @@ class Cell(TreeNode):
         points = []
         if self.children:
             for child in self:
-                if child.contains(x,y):
+                if (child.western <= x < child.eastern) and (child.southern <= y < child.northern):
                     brothers = list(self.children)
                     brothers.remove(child)
                     branch.append(brothers)
@@ -128,31 +115,16 @@ class Cell(TreeNode):
         return points, self.branch
 
 
-    def contains(*args):    
+    def contains(self, point_id):    
         """True only if P's coordinates lie within cell boundaries
         This methods has two forms:
         
         cell.contains(index)
         #True if cell contains indexed point
-        cell.contains(x, y)
-        #True if cell contains point (x,y)	
         """
-        self = args[0]
-        if len(args) == 2:
-            point_id = int(args[1])
-            x, y = self.mesh.get_node(point_id, absolute=True)
-        elif len(args) == 3:
-            x = float(args[1])
-            y = float(args[2])
-        else:
-            msg = 'Number of arguments to method must be two or three'
-            raise msg    		      
+        x, y = self.mesh.get_node(point_id, absolute=True)      
 	
-        if y <  self.southern: return False
-        if y >= self.northern: return False
-        if x <  self.western:  return False
-        if x >= self.eastern:  return False
-        return True
+        return (self.western <= x < self.eastern) and (self.southern <= y < self.northern)
     
     
     def insert(self, points, split = False):
@@ -318,29 +290,7 @@ class Cell(TreeNode):
         if self.children:                   # Parent cell
             for child in self:              # split (possibly newly created) 
                 child.split(threshold)      # child cells recursively
-                
-
-
-    def collapse(self,threshold=None):
-        """
-        collapse child cells into immediate parent if total number of contained waypoints
-        in subtree below is less than or equal to threshold.
-        All waypoints are then moved into parent cell and
-        children are removed. If self is a leaf node initially, do nothing.
-        """
-        
-        if threshold is None:
-            threshold = self.max_points_per_cell	
-
-
-        if self.children:                   # Parent cell    
-            if self.count() <= threshold:   # collapse
-                points = self.retrieve()    # Get all points from child cells
-                self.clear()                # Remove children, self is now a leaf node
-                self.insert(points)         # Insert all points in local storage
-            else:                          
-                for child in self:          # Check if any sub tree can be collapsed
-                    child.collapse(threshold)
+             
 
 
     def Get_tree(self,depth=0):
