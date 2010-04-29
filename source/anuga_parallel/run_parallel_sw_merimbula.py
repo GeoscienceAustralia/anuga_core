@@ -15,17 +15,15 @@
 # Import necessary modules
 #------------------------------------------------------------------------------
 
-import unittest
 import os
 import sys
 import time
 import pypar
-
 import numpy as num
 
-
-
-
+#------------------------
+# ANUGA Modules
+#------------------------
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.utilities.util_ext        import double_precision
 from anuga.utilities.norms           import l1_norm, l2_norm, linf_norm
@@ -47,19 +45,18 @@ from anuga_parallel.interface import distribute, myid, numprocs, finalize
 # Setup parameters
 #--------------------------------------------------------------------------
 
-#mesh_filename = "merimbula_10785_1.tsh"
-mesh_filename = "merimbula_43200.tsh"
-#mesh_filename = "test-100.tsh"
-yieldstep = 50
+#mesh_filename = "merimbula_10785_1.tsh" ; x0 = 756000.0 ; x1 = 756500.0
+#mesh_filename = "merimbula_43200.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
+mesh_filename = "test-100.tsh" ; x0 = 0.25 ; x1 = 0.5
+yieldstep = 5
 finaltime = 200
-quantity = 'stage'
 verbose = True
 
 #--------------------------------------------------------------------------
 # Setup procedures
 #--------------------------------------------------------------------------
 class Set_Stage:
-    """Set an initial condition with constant water height, for x<x0
+    """Set an initial condition with constant water height, for x0<x<x1
     """
 
     def __init__(self, x0=0.25, x1=0.5, h=1.0):
@@ -75,7 +72,7 @@ class Set_Stage:
 #--------------------------------------------------------------------------
 if myid == 0:
     domain = create_domain_from_file(mesh_filename)
-    domain.set_quantity('stage', Set_Stage(756000.0, 756500.0, 2.0))
+    domain.set_quantity('stage', Set_Stage(x0, x1, 2.0))
 else:
     domain = None
 
@@ -85,6 +82,8 @@ else:
 
 if myid == 0 and verbose: print 'DISTRIBUTING DOMAIN'
 domain = distribute(domain)
+
+domain.smooth = False
 
 #------------------------------------------------------------------------------
 # Setup boundary conditions
