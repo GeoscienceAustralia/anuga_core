@@ -66,7 +66,7 @@ void METIS_WPartGraphVKway(int *nvtxs, idxtype *xadj, idxtype *adjncy, idxtype *
     ctrl.dbglvl = options[OPTION_DBGLVL];
   }
   ctrl.optype = OP_KVMETIS;
-  ctrl.CoarsenTo = amax((*nvtxs)/(40*log2(*nparts)), 20*(*nparts));
+  ctrl.CoarsenTo = amax((*nvtxs)/(40*ilog2(*nparts)), 20*(*nparts));
   ctrl.maxvwgt = 1.5*((graph.vwgt ? idxsum(*nvtxs, graph.vwgt) : (*nvtxs))/ctrl.CoarsenTo);
 
   InitRandom(-1);

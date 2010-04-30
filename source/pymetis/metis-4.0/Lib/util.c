@@ -507,9 +507,9 @@ void InitRandom(int seed)
 }
 
 /*************************************************************************
-* This function returns the log2(x)
+* This function returns the ilog2(x)
 **************************************************************************/
-int log2(int a)
+int ilog2(int a)
 {
   int i;
 
