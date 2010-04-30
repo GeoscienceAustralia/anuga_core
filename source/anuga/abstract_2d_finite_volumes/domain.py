@@ -14,21 +14,12 @@ from anuga.config import epsilon
 from anuga.config import beta_euler, beta_rk2
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
-from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
-     import Boundary
-from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
-     import File_boundary
-from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
-     import AWI_boundary
-from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
-     import Dirichlet_boundary
-from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
-     import Time_boundary
-from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
-     import Transmissive_boundary
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions \
+	import ( Boundary, File_boundary, AWI_boundary, 
+	         Dirichlet_boundary, Time_boundary, Transmissive_boundary )
 from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_to_domain
-from anuga.abstract_2d_finite_volumes.region\
-     import Set_region as region_set_region
+from anuga.abstract_2d_finite_volumes.region \
+	import Set_region as region_set_region
 from anuga.utilities.polygon import inside_polygon
 from anuga.abstract_2d_finite_volumes.util import get_textual_float
 from quantity import Quantity
@@ -1852,40 +1843,8 @@ class Domain:
 
         # Protect against degenerate timesteps arising from isolated
         # triangles
-        # FIXME (Steve): This should be in shallow_water as it assumes x and y
-        # momentum
-        if self.protect_against_isolated_degenerate_timesteps is True and \
-               num.max(self.max_speed) > 10.0: # FIXME (Ole): Make this configurable
-
-            # Setup 10 bins for speed histogram
-            from anuga.utilities.numerical_tools import histogram, create_bins
-
-            bins = create_bins(self.max_speed, 10)
-            hist = histogram(self.max_speed, bins)
-
-            # Look for characteristic signature
-            if len(hist) > 1 and hist[-1] > 0 and \
-                hist[4] == hist[5] == hist[6] == hist[7] == hist[8] == 0:
-                    # Danger of isolated degenerate triangles
-
-                    # Find triangles in last bin
-                    # FIXME - speed up using numeric package
-                    d = 0
-                    for i in range(self.number_of_full_triangles):
-                        if self.max_speed[i] > bins[-1]:
-                            msg = 'Time=%f: Ignoring isolated high ' % self.time
-                            msg += 'speed triangle '
-                            msg += '#%d of %d with max speed=%f' \
-                                      % (i, self.number_of_full_triangles,
-                                         self.max_speed[i])
-
-                            self.get_quantity('xmomentum').\
-                                            set_values(0.0, indices=[i])
-                            self.get_quantity('ymomentum').\
-                                            set_values(0.0, indices=[i])
-                            self.max_speed[i]=0.0
-                            d += 1
-
+        self.apply_protection_against_isolated_degenerate_timesteps()
+                
         # self.timestep is calculated from speed of characteristics
         # Apply CFL condition here
         timestep = min(self.CFL*self.flux_timestep, self.evolve_max_timestep)
@@ -2026,6 +1985,47 @@ class Domain:
         """
 
         return normfunc(self.quantities[quantity].centroid_values)
+
+
+
+    def apply_protection_against_isolated_degenerate_timesteps(self):
+
+        # FIXME (Steve): This should be in shallow_water as it assumes x and y
+        # momentum
+        if self.protect_against_isolated_degenerate_timesteps is False:
+            return
+        
+        # FIXME (Ole): Make this configurable
+        if num.max(self.max_speed) < 10.0: 
+            return
+
+        # Setup 10 bins for speed histogram
+        from anuga.utilities.numerical_tools import histogram, create_bins
+
+        bins = create_bins(self.max_speed, 10)
+        hist = histogram(self.max_speed, bins)
+
+        # Look for characteristic signature
+        if len(hist) > 1 and hist[-1] > 0 and \
+            hist[4] == hist[5] == hist[6] == hist[7] == hist[8] == 0:
+            # Danger of isolated degenerate triangles
+
+            # Find triangles in last bin
+            # FIXME - speed up using numeric package
+            d = 0
+            for i in range(self.number_of_full_triangles):
+                if self.max_speed[i] > bins[-1]:
+                    msg = 'Time=%f: Ignoring isolated high ' % self.time
+                    msg += 'speed triangle '
+                    msg += '#%d of %d with max speed=%f' \
+                        % (i, self.number_of_full_triangles, self.max_speed[i])
+
+                    self.get_quantity('xmomentum').\
+                        set_values(0.0, indices=[i])
+                    self.get_quantity('ymomentum').\
+                        set_values(0.0, indices=[i])
+                    self.max_speed[i]=0.0
+                    d += 1
 
 
 ######
