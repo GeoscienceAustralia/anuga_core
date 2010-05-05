@@ -17,10 +17,10 @@ class AABB:
     """
     
     def __init__(self, xmin, xmax, ymin, ymax):
-        self.xmin = round(xmin,5)    
-        self.xmax = round(xmax,5)
-        self.ymin = round(ymin,5)    
-        self.ymax = round(ymax,5)
+        self.xmin = xmin    
+        self.xmax = xmax
+        self.ymin = ymin    
+        self.ymax = ymax
 
     def __repr__(self):
         return '(xmin:%f, xmax:%f, ymin:%f, ymax:%f)' \
