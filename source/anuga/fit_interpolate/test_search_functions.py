@@ -4,6 +4,7 @@
 import unittest
 from search_functions import search_tree_of_vertices, set_last_triangle
 from search_functions import _search_triangles_of_vertices
+from search_functions import _trilist_from_indices
 from search_functions import compute_interpolation_values
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
@@ -38,6 +39,26 @@ class Test_search_functions(unittest.TestCase):
 
 
 
+    def test_off_and_boundary(self):
+        """test_off: Test a point off the mesh
+        """
+
+        points, vertices, boundary = rectangular(1, 1, 1, 1)
+        mesh = Mesh(points, vertices, boundary)
+
+        #Test that points are arranged in a counter clock wise order
+        mesh.check_integrity()
+
+        root = build_quadtree(mesh, max_points_per_cell = 1)
+        set_last_triangle()
+
+        found, s0, s1, s2, k = search_tree_of_vertices(root, mesh, [-0.2, 10.7])
+        assert found is False
+
+        found, s0, s1, s2, k = search_tree_of_vertices(root, mesh, [0, 0])
+        assert found is True
+		
+		
     def test_small(self):
         """test_small: Two triangles
         """
@@ -52,10 +73,10 @@ class Test_search_functions(unittest.TestCase):
         set_last_triangle()
 
         x = [0.2, 0.7]
-        found, s0, s1, s2, k = search_tree_of_vertices(root, x)
+        found, s0, s1, s2, k = search_tree_of_vertices(root, mesh, x)
         assert k == 1 # Triangle one
-        assert found is True
-
+        assert found is True		
+		
     def test_bigger(self):
         """test_bigger
         
@@ -75,9 +96,9 @@ class Test_search_functions(unittest.TestCase):
                   [0.1,0.9], [0.4,0.6], [0.9,0.1],
                   [10, 3]]:
             
-            found, s0, s1, s2, k = search_tree_of_vertices(root, 
-                                                           ensure_numeric(x))
-
+            found, s0, s1, s2, k = search_tree_of_vertices(root, mesh,
+                                                           ensure_numeric(x))								   
+														   
             if k >= 0:
                 V = mesh.get_vertex_coordinates(k) # nodes for triangle k
                 assert is_inside_polygon(x, V)
@@ -108,7 +129,7 @@ class Test_search_functions(unittest.TestCase):
                       [0.1,0.9], [0.4,0.6], [0.9,0.1],
                       [10, 3]]:
                 
-                found, s0, s1, s2, k = search_tree_of_vertices(root, x)
+                found, s0, s1, s2, k = search_tree_of_vertices(root, mesh, x)
 
                 if k >= 0:
                     V = mesh.get_vertex_coordinates(k) # nodes for triangle k
@@ -133,12 +154,11 @@ class Test_search_functions(unittest.TestCase):
 
         # One point
         x = ensure_numeric([0.5, 0.5])
-        candidate_vertices = root.search(x[0], x[1])
 
-        #print x, candidate_vertices
+        triangles = _trilist_from_indices(mesh, root.search(x[0], x[1]))
+	
         found, sigma0, sigma1, sigma2, k = \
-               _search_triangles_of_vertices(candidate_vertices,
-                                             x)
+               _search_triangles_of_vertices(triangles, x)
 
         if k >= 0:
             V = mesh.get_vertex_coordinates(k) # nodes for triangle k
@@ -154,11 +174,11 @@ class Test_search_functions(unittest.TestCase):
                   [0.1,0.9], [0.4,0.6], [0.9,0.1],
                   [10, 3]]:
                 
-            candidate_vertices = root.search(x[0], x[1])
+            triangles = _trilist_from_indices(mesh, root.search(x[0], x[1]))
 
             #print x, candidate_vertices
             found, sigma0, sigma1, sigma2, k = \
-                   _search_triangles_of_vertices(candidate_vertices,
+                   _search_triangles_of_vertices(triangles,
                                                  ensure_numeric(x))
             if k >= 0:
                 V = mesh.get_vertex_coordinates(k) # nodes for triangle k
@@ -193,7 +213,7 @@ class Test_search_functions(unittest.TestCase):
         #root = build_quadtree(mesh, max_points_per_cell=4)
     
 
-        root = Cell(-3, 9, -3, 9, mesh,
+        root = Cell(-3, 9, -3, 9,
                     max_points_per_cell = 4)
         #Insert indices of all vertices
         root.insert( range(mesh.number_of_nodes) )
@@ -205,11 +225,11 @@ class Test_search_functions(unittest.TestCase):
         #x = [3.5, 1.5]
         x = [2.5, 1.5]
         element_found, sigma0, sigma1, sigma2, k = \
-                       search_tree_of_vertices(root, x)
+                       search_tree_of_vertices(root, mesh, x)
         # One point
         x = [3.00005, 2.999994]
         element_found, sigma0, sigma1, sigma2, k = \
-                       search_tree_of_vertices(root, x)
+                       search_tree_of_vertices(root, mesh, x)
         assert element_found is True
         assert k == 1
         

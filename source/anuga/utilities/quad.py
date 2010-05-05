@@ -1,4 +1,6 @@
-"""quad.py - quad tree data structure for fast indexing of points in the plane
+"""quad.py - quad tree data structure for fast indexing of regions in the plane.
+
+This is a generic structure that can be used to store any geometry in a quadtree.
 
 
 """
@@ -7,10 +9,54 @@ from treenode import TreeNode
 import string, types, sys
 import anuga.utilities.log as log
 
+# Allow children to be slightly bigger than their parents to prevent straddling of a boundary
+SPLIT_BORDER_RATIO    = 0.55
 
-#FIXME verts are added one at a time. 
-#FIXME add max min x y in general_mesh
+class AABB:
+    """Axially-aligned bounding box class.
+    """
+    
+    def __init__(self, xmin, xmax, ymin, ymax):
+        self.xmin = round(xmin,5)    
+        self.xmax = round(xmax,5)
+        self.ymin = round(ymin,5)    
+        self.ymax = round(ymax,5)
 
+    def __repr__(self):
+        return '(xmin:%f, xmax:%f, ymin:%f, ymax:%f)' \
+               % (round(self.xmin,1), round(self.xmax,1), round(self.ymin,1), round(self.ymax, 1)) 
+        
+    def size(self):
+        """return size as (w,h)"""
+        return self.xmax - self.xmin, self.ymax - self.ymin
+        
+    def split(self, border=SPLIT_BORDER_RATIO):
+        """Split along shorter axis.
+           return 2 subdivided AABBs.
+        """
+        
+        width, height = self.size()
+        assert width >= 0 and height >= 0
+        
+        if (width > height):
+            # split vertically
+            return AABB(self.xmin, self.xmin+width*border, self.ymin, self.ymax), \
+                   AABB(self.xmax-width*border, self.xmax, self.ymin, self.ymax)
+        else:
+            # split horizontally       
+            return AABB(self.xmin, self.xmax, self.ymin, self.ymin+height*border), \
+                   AABB(self.xmin, self.xmax, self.ymax-height*border, self.ymax)    
+    
+    def is_trivial_in(self, test):
+        if (test.xmin < self.xmin) or (test.xmax > self.xmax):
+            return False        
+        if (test.ymin < self.ymin) or (test.ymax > self.ymax):
+            return False        
+        return True
+ 
+    def contains(self, x, y):
+        return (self.xmin <= x <= self.xmax) and (self.ymin <= y <= self.ymax)
+            
 class Cell(TreeNode):
     """class Cell
 
@@ -26,218 +72,27 @@ class Cell(TreeNode):
         count()
     """
   
-    def __init__(self, southern, northern, western, eastern, mesh,
-		 name = 'cell',
-    	         max_points_per_cell = 4):
+    def __init__(self, extents,
+         name = 'cell'):
   
         # Initialise base classes
         TreeNode.__init__(self, string.lower(name))
-	
-        # Initialise cell
-        self.southern = round(southern,5)    
-        self.northern = round(northern,5)
-        self.western = round(western,5)    
-        self.eastern = round(eastern,5)
-        self.mesh = mesh
-
+    
+        self.extents = extents
+        
         # The points in this cell     
-        self.points = []
-	
-	self.max_points_per_cell = max_points_per_cell
+        self.leaves = []
+        self.children = None
         
-	
+    
     def __repr__(self):
-        return self.name  
-
-
-    def spawn(self):
-        """Create four child cells unless they already exist
-        """
-
+        str = '%s: leaves: %d' \
+               % (self.name , len(self.leaves))	
         if self.children:
-            return
-        else:
-            self.children = []
+            str += ', children: %d' % (len(self.children))
+        return str
 
-        # convenience variables
-        cs = self.southern    
-        cn = self.northern
-        cw = self.western    
-        ce = self.eastern   
-        mesh = self.mesh
-
-        # create 4 child cells
-        self.AddChild(Cell((cn+cs)/2,cn,cw,(cw+ce)/2,mesh,self.name+'_nw'))
-        self.AddChild(Cell((cn+cs)/2,cn,(cw+ce)/2,ce,mesh,self.name+'_ne'))
-        self.AddChild(Cell(cs,(cn+cs)/2,(cw+ce)/2,ce,mesh,self.name+'_se'))
-        self.AddChild(Cell(cs,(cn+cs)/2,cw,(cw+ce)/2,mesh,self.name+'_sw'))
-        
- 
-    def search(self, x, y, get_vertices=False):
-        """Find all point indices sharing the same cell as point (x, y)
-        """
-        branch = []
-        points, branch = self.search_branch(x, y, branch, get_vertices=get_vertices)
-        self.branch = branch  
-        return points
-
-
-    def search_branch(self, x, y, branch, get_vertices=False):
-        """Find all point indices sharing the same cell as point (x, y)
-        """
-        points = []
-        if self.children:
-            for child in self:
-                if (child.western <= x < child.eastern) and (child.southern <= y < child.northern):
-                    brothers = list(self.children)
-                    brothers.remove(child)
-                    branch.append(brothers)
-                    points, branch = child.search_branch(x,y, branch,
-                                                  get_vertices=get_vertices)
-                    
-        else:
-            # Leaf node: Get actual waypoints
-            points = self.retrieve(get_vertices=get_vertices)      
-        return points, branch
-
-
-    def expand_search(self, get_vertices=False):
-        """Find all point indices 'up' one cell from the last search
-        """
-        
-        points = []
-        if self.branch == []:
-            points = []
-        else:
-            three_cells = self.branch.pop()
-            for cell in three_cells:
-                points += cell.retrieve(get_vertices=get_vertices)
-        return points, self.branch
-
-
-    def contains(self, point_id):    
-        """True only if P's coordinates lie within cell boundaries
-        This methods has two forms:
-        
-        cell.contains(index)
-        #True if cell contains indexed point
-        """
-        x, y = self.mesh.get_node(point_id, absolute=True)      
-	
-        return (self.western <= x < self.eastern) and (self.southern <= y < self.northern)
-    
-    
-    def insert(self, points, split = False):
-        """insert point(s) in existing tree structure below self
-           and split if requested
-        """
-
-        # Call insert for each element of a list of points
-        if type(points) == types.ListType:
-            for point in points:
-                self.insert(point, split)
-        else:
-            #Only one point given as argument	
-            point = points
-	
-            # Find appropriate cell
-            if self.children is not None:
-                for child in self:
-                    if child.contains(point):
-                        child.insert(point, split)
-                        break
-            else:
-                # self is a leaf cell: insert point into cell
-                if self.contains(point):
-                    self.store(point)
-                else:
-                    # Have to take into account of georef.
-                    #x = self.mesh.coordinates[point][0]
-                    #y = self.mesh.coordinates[point][1]
-                    node = self.mesh.get_node(point, absolute=True)
-                    msg = ('point not in region: %s\nnode=%s'
-                           % (str(point), str(node)))
-                    raise Exception, msg
-		
-		
-        #Split datastructure if requested        
-	if split is True:
-            self.split()
-		
-
-
-    def store(self,objects):
-        
-        if type(objects) not in [types.ListType,types.TupleType]:
-            self.points.append(objects)
-        else:
-            self.points.extend(objects)
-
-
-    def retrieve_triangles(self):
-        """return a list of lists. For the inner lists,
-        The first element is the triangle index,
-        the second element is a list.for this list
-           the first element is a list of three (x, y) vertices,
-           the following elements are the three triangle normals.
-
-        This info is used in searching for a triangle that a point is in.
-
-        Post condition
-        No more points can be added to the quad tree, since the
-        points data structure is removed.
-        """
-        # FIXME Tidy up the structure that is returned.
-        # if the triangles att has been made
-        # return it.
-        if not hasattr(self,'triangles'):
-            # use a dictionary to remove duplicates
-            triangles = {}
-            verts = self.retrieve_vertices()
-            for vert in verts:
-                triangle_list = self.mesh.get_triangles_and_vertices_per_node(vert)
-                for k, _ in triangle_list:
-                    if not triangles.has_key(k):
-                        tri = self.mesh.get_vertex_coordinates(k,
-                                                               absolute=True)
-                        n0 = self.mesh.get_normal(k, 0)
-                        n1 = self.mesh.get_normal(k, 1)
-                        n2 = self.mesh.get_normal(k, 2) 
-                        triangles[k]=(tri, (n0, n1, n2))
-            self.triangles = triangles.items()
-            # Delete the old cell data structure to save memory
-            del self.points 
-        return self.triangles
-            
-    def retrieve_vertices(self):
-         return self.points
-
-
-    def retrieve(self, get_vertices=True):
-         objects = []
-         if self.children is None:
-             if get_vertices is True:
-                 objects = self.retrieve_vertices()
-             else:
-                 objects =  self.retrieve_triangles()
-         else:  
-             for child in self:
-                 objects += child.retrieve(get_vertices=get_vertices)
-         return objects
-        
-
-    def count(self, keywords=None):
-        """retrieve number of stored objects beneath this node inclusive
-        """
-        
-        num_waypoint = 0
-        if self.children:
-            for child in self:
-                num_waypoint = num_waypoint + child.count()
-        else:
-            num_waypoint = len(self.points)
-        return num_waypoint
-  
+   
 
     def clear(self):
         self.Prune()   # TreeNode method
@@ -245,136 +100,116 @@ class Cell(TreeNode):
 
     def clear_leaf_node(self):
         """Clears storage in leaf node.
-	Called from Treenod.
-	Must exist.	
-	"""
-        self.points = []
-	
-	
+    Called from Treenode.
+    Must exist.    
+    """
+        self.leaves = []
+    
+    
     def clear_internal_node(self):
         """Called from Treenode.    
-	Must exist.
-	"""
-        pass
+    Must exist.
+    """
+        self.leaves = []
 
 
-
-    def split(self, threshold=None):
-        """
-        Partition cell when number of contained waypoints exceeds 
-        threshold.  All waypoints are then moved into correct 
-        child cell.
-        """
-        if threshold == None:
-           threshold = self.max_points_per_cell
-	    
-        #FIXME, mincellsize removed.  base it on side length, if needed
-        
-        #Protect against silly thresholds such as -1
-        if threshold < 1:
-            return
-	
-        if not self.children:               # Leaf cell
-            if self.count() > threshold :   
-                #Split is needed
-                points = self.retrieve()    # Get points from leaf cell
-                self.clear()                # and remove them from storage
-                    
-                self.spawn()                # Spawn child cells and move
-                for p in points:            # points to appropriate child
-                    for child in self:
-                        if child.contains(p):
-                            child.insert(p) 
-                            break
-                        
-        if self.children:                   # Parent cell
-            for child in self:              # split (possibly newly created) 
-                child.split(threshold)      # child cells recursively
-             
-
-
-    def Get_tree(self,depth=0):
-        """Traverse tree below self
-           Print for each node the name and
-           if it is a leaf the number of objects
-        """
-        s = ''
-        if depth == 0:
-            s = '\n'
-            
-        s += "%s%s:" % ('  '*depth, self.name)
-        if self.children:
-            s += '\n'
-            for child in self.children:
-                s += child.Get_tree(depth+1)
+    def insert(self, new_leaf):
+        # process list items sequentially
+        if type(new_leaf)==type(list()):
+            ret_val = []
+            for leaf in new_leaf:
+                self._insert(leaf)
         else:
-            s += '(#wp=%d)\n' %(self.count())
+            self._insert(new_leaf)
 
-        return s
 
-	
+    def _insert(self, new_leaf):   
+        new_region, data = new_leaf
+        
+        # recurse down to any children until we get an intersection
+        if self.children:
+            for child in self.children:
+                if child.extents.is_trivial_in(new_region):
+                    child._insert(new_leaf)
+                    return
+        else:            
+            # try splitting this cell and see if we get a trivial in
+            subregion1, subregion2 = self.extents.split()
+            if subregion1.is_trivial_in(new_region):
+                self.children = [Cell(subregion1), Cell(subregion2)]    
+                self.children[0]._insert(new_leaf)
+                return
+            elif subregion2.is_trivial_in(new_region):
+                self.children = [Cell(subregion1), Cell(subregion2)]    
+                self.children[1]._insert(new_leaf)
+                return                
+    
+        # recursion ended without finding a fit, so attach it as a leaf
+        self.leaves.append(new_leaf)
+        
+     
+    def retrieve(self):
+        """Get all leaves from this tree. """
+        
+        leaves_found = list(self.leaves)
+        
+        if not self.children:
+            return leaves_found
+
+        for child in self.children:
+            leaves_found.extend(child.retrieve())
+            
+        return leaves_found
+
+    def count(self):
+        """Count all leaves from this tree. """
+        
+        leaves_found = len(self.leaves)
+        
+        if not self.children:
+            return leaves_found
+
+        for child in self.children:
+            leaves_found += child.count()
+            
+        return leaves_found        
+
     def show(self, depth=0):
         """Traverse tree below self
-           Print for each node the name and
-           if it is a leaf the number of objects
         """
         if depth == 0:
             log.critical() 
-        log.critical("%s%s" % ('  '*depth, self.name))
+        print '%s%s' % ('  '*depth, self.name), self.extents,' [', self.leaves, ']'
         if self.children:
             log.critical()
             for child in self.children:
                 child.show(depth+1)
-        else:
-            log.critical('(xmin=%.2f, xmax=%.2f, ymin=%.2f, ymax=%.2f): [%d]'
-                         % (self.western, self.eastern, self.southern,
-                            self.northern, self.count()))
+ 
 
-
-    def show_all(self,depth=0):
-        """Traverse tree below self
-           Print for each node the name and if it is a leaf all its objects
-        """
-        if depth == 0:
-            log.critical() 
-        log.critical("%s%s:" % ('  '*depth, self.name))
+    def search(self, x, y, get_vertices = False):
+        """return a list of possible intersections with geometry"""
+        
+        intersecting_regions = []
+        
+        # test all leaves to see if they intersect the point
+        for leaf in self.leaves:
+            aabb, data = leaf
+            if aabb.contains(x, y):
+                if get_vertices:
+                    intersecting_regions.append(leaf)
+                else:
+                    intersecting_regions.append(data)
+        
+        # recurse down into nodes that the point passes through
         if self.children:
-            print
-            for child in self.children:
-                child.show_all(depth+1)
-        else:
-            log.critical('%s' % self.retrieve())
-
-
-    def stats(self,depth=0,min_rad=sys.maxint,max_depth=0,max_points=0):
-        """Traverse tree below self and find minimal cell radius,
-           maximumtree depth and maximum number of waypoints per leaf.
-        """
-
-        if self.children:
-            for child in self.children:
-                min_rad, max_depth, max_points =\
-                         child.Stats(depth+1,min_rad,max_depth,max_points)
-        else:
-            #FIXME remvoe radius stuff
-            #min_rad = sys.maxint
-            #if self.radius < min_rad:   min_rad = self.radius
-            if depth > max_depth: max_depth = depth
-            num_points = self.count()
-            if num_points > max_points: max_points = num_points
-
-        #return min_rad, max_depth, max_points    
-	return max_depth, max_points    
-	
-
-    #Class initialisation method
-    # this is bad.  It adds a huge memory structure to the class.
-    # When the instance is deleted the mesh hangs round (leaks).
-    #def initialise(cls, mesh):
-    #    cls.mesh = mesh
-
-    #initialise = classmethod(initialise)
-
+            for child in self.children:    
+                if child.extents.contains(x, y):
+                    intersecting_regions.extend(child.search(x, y, get_vertices))
+             
+        return intersecting_regions
+        
+#from anuga.pmesh.mesh import Mesh
+    
 def build_quadtree(mesh, max_points_per_cell = 4):
     """Build quad tree for mesh.
 
@@ -405,17 +240,22 @@ def build_quadtree(mesh, max_points_per_cell = 4):
     #print "ymin", ymin 
     #print "ymax", ymax
     
-    #FIXME: Use mesh.filename if it exists
-    # why?
-    root = Cell(ymin, ymax, xmin, xmax,mesh,
-                max_points_per_cell = max_points_per_cell)
-
-    #root.show()
+    root = Cell(AABB(xmin, xmax, ymin, ymax))
     
-    #Insert indices of all vertices
-    root.insert( range(mesh.number_of_nodes) )
+    N = len(mesh)
 
-    #Build quad tree and return
-    root.split()
+    # Get x,y coordinates for all vertices for all triangles
+    V = mesh.get_vertex_coordinates(absolute=True)
+	
+    # Check each triangle
+    for i in range(N):
+        x0, y0 = V[3*i, :]
+        x1, y1 = V[3*i+1, :]
+        x2, y2 = V[3*i+2, :]
+
+        # insert a tuple with an AABB, and the triangle index as data
+        root._insert((AABB(min([x0, x1, x2]), max([x0, x1, x2]), \
+                         min([y0, y1, y2]), max([y0, y1, y2])), \
+                         i))
 
     return root

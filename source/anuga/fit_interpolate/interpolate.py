@@ -148,8 +148,8 @@ def interpolate(vertex_coordinates,
                 return I
             I = cache(wrap_Interpolate, (args, kwargs), {}, verbose=verbose)
     else:
-        I = apply(Interpolate, args, kwargs)
-
+        I = apply(Interpolate, args, kwargs)		
+		
     # Call interpolate method with interpolation points
     result = I.interpolate_block(vertex_values, interpolation_points,
                                  use_cache=use_cache,
@@ -333,8 +333,8 @@ class Interpolate (FitInterpolate):
         Return the point data, z.
 
         See interpolate for doc info.
-        """
-
+        """	
+		
         # FIXME (Ole): I reckon we should change the interface so that
         # the user can specify the interpolation matrix instead of the
         # interpolation points to save time.
@@ -488,7 +488,6 @@ class Interpolate (FitInterpolate):
         n = len(inside_boundary_indices)
 
         centroids = []
-        
         inside_poly_indices = []
         
         # Compute matrix elements for points inside the mesh
@@ -502,7 +501,7 @@ class Interpolate (FitInterpolate):
 
             x = point_coordinates[i]
             element_found, sigma0, sigma1, sigma2, k = \
-                           search_tree_of_vertices(self.root, x)
+                           search_tree_of_vertices(self.root, self.mesh, x)
                        
         # Update interpolation matrix A if necessary
             if element_found is True:

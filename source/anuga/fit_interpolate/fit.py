@@ -280,7 +280,7 @@ class Fit(FitInterpolate):
             x = point_coordinates[i]
             
             element_found, sigma0, sigma1, sigma2, k = \
-                           search_tree_of_vertices(self.root, x)
+                           search_tree_of_vertices(self.root, self.mesh, x)
             
             if element_found is True:
                 j0 = triangles[k,0] # Global vertex id for sigma0

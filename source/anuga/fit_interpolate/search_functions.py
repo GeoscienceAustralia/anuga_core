@@ -29,6 +29,7 @@ search_one_cell_time = initial_search_value
 search_more_cells_time = initial_search_value
 
 # FIXME(Ole): Could we come up with a less confusing structure?
+# FIXME(James): remove this global var
 LAST_TRIANGLE = [[-10,
                    (num.array([[max_float, max_float],
                                [max_float, max_float],
@@ -37,12 +38,15 @@ LAST_TRIANGLE = [[-10,
                      num.array([0.,0.]),      
                      num.array([-1.1,-1.1])))]]
 
-def search_tree_of_vertices(root, x):
+last_triangle = LAST_TRIANGLE					 
+					 
+def search_tree_of_vertices(root, mesh, x):
     """
     Find the triangle (element) that the point x is in.
 
     Inputs:
         root: A quad tree of the vertices
+        mesh: The mesh which the quad tree indexes into
         x:    The point being placed
     
     Return:
@@ -66,25 +70,25 @@ def search_tree_of_vertices(root, x):
 
     
     # Get triangles in the cell that the point is in.
-    # Triangle is a list, first element triangle_id,
-    # second element the triangle
-    triangles = root.search(x[0], x[1])
+    tri_indices = root.search(x[0], x[1])
+    triangles = _trilist_from_indices(mesh, tri_indices)
+    
     element_found, sigma0, sigma1, sigma2, k = \
                    _search_triangles_of_vertices(triangles, x)
 
     is_more_elements = True
     
-    while not element_found and is_more_elements:
-        triangles, branch = root.expand_search()
-        if branch == []:
-            # Searching all the verts from the root cell that haven't
-            # been searched.  This is the last try
-            element_found, sigma0, sigma1, sigma2, k = \
-                           _search_triangles_of_vertices(triangles, x)
-            is_more_elements = False
-        else:
-            element_found, sigma0, sigma1, sigma2, k = \
-                       _search_triangles_of_vertices(triangles, x)
+    # while not element_found and is_more_elements:
+        # triangles, branch = root.expand_search()
+        # if branch == []:
+            # # Searching all the verts from the root cell that haven't
+            # # been searched.  This is the last try
+            # element_found, sigma0, sigma1, sigma2, k = \
+                           # _search_triangles_of_vertices(triangles, x)
+            # is_more_elements = False
+        # else:
+            # element_found, sigma0, sigma1, sigma2, k = \
+                       # _search_triangles_of_vertices(triangles, x)
                        
         
     return element_found, sigma0, sigma1, sigma2, k
@@ -102,7 +106,7 @@ def _search_triangles_of_vertices(triangles, x):
     """
     global last_triangle
 
-    x = ensure_numeric(x, num.float) 	
+    x = ensure_numeric(x, num.float)     
     
     # These statments are needed if triangles is empty
     sigma2 = -10.0
@@ -113,12 +117,12 @@ def _search_triangles_of_vertices(triangles, x):
     element_found = False    
     for k, tri_verts_norms in triangles:
         tri = tri_verts_norms[0]
-        tri = ensure_numeric(tri)		
+        tri = ensure_numeric(tri)        
         # k is the triangle index
-        # tri is a list of verts (x, y), representing a tringle
+        # tri is a list of verts (x, y), representing a triangle
         # Find triangle that contains x (if any) and interpolate
         
-        # Input check disabled to speed things up.	
+        # Input check disabled to speed things up.    
         if bool(_is_inside_triangle(x, tri, int(True), 1.0e-12, 1.0e-12)):
             
             n0, n1, n2 = tri_verts_norms[1]        
@@ -134,6 +138,24 @@ def _search_triangles_of_vertices(triangles, x):
     return element_found, sigma0, sigma1, sigma2, k
 
 
+def _trilist_from_indices(mesh, indices):
+    """return a list of lists. For the inner lists,
+    The first element is the triangle index,
+    the second element is a list.for this list
+       the first element is a list of three (x, y) vertices,
+       the following elements are the three triangle normals.
+
+    """
+
+    ret_list = []
+    for i in indices:
+        vertices = mesh.get_vertex_coordinates(triangle_id=i, absolute=True)
+        n0 = mesh.get_normal(i, 0)
+        n1 = mesh.get_normal(i, 1)
+        n2 = mesh.get_normal(i, 2) 
+        ret_list.append([i, [vertices, (n0, n1, n2)]])
+    return ret_list
+                
             
 def compute_interpolation_values(triangle, n0, n1, n2, x):
     """Compute linear interpolation of point x and triangle.
