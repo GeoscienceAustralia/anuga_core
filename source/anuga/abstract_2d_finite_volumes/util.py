@@ -4,7 +4,7 @@ It is also a clearing house for functions that may later earn a module
 of their own.
 """
 
-import anuga.utilities.polygon
+import anuga.geometry.polygon
 import sys
 import os
 
@@ -183,10 +183,10 @@ def point_on_line(*args, **kwargs):
     """Temporary Interface to new location"""
 
     msg = 'point_on_line has moved from util.py.  '
-    msg += 'Please use "from anuga.utilities.polygon import point_on_line"'
+    msg += 'Please use "from anuga.geometry.polygon import point_on_line"'
     warn(msg, DeprecationWarning) 
 
-    return utilities.polygon.point_on_line(*args, **kwargs)    
+    return utilities.geometry.point_on_line(*args, **kwargs)    
 
     
 # @note TEMP
@@ -197,7 +197,7 @@ def inside_polygon(*args, **kwargs):
     log.critical('Please use '
                  '"from anuga.utilities.polygon import inside_polygon"')
 
-    return utilities.polygon.inside_polygon(*args, **kwargs)    
+    return geometry.polygon.inside_polygon(*args, **kwargs)    
 
     
 # @note TEMP
@@ -206,9 +206,9 @@ def outside_polygon(*args, **kwargs):
 
     log.critical('outside_polygon has moved from util.py.')
     log.critical('Please use '
-                 '"from anuga.utilities.polygon import outside_polygon"')
+                 '"from anuga.geometry.polygon import outside_polygon"')
 
-    return utilities.polygon.outside_polygon(*args, **kwargs)    
+    return geometry.geometry.outside_polygon(*args, **kwargs)    
 
     
 # @note TEMP
@@ -217,9 +217,9 @@ def read_polygon(*args, **kwargs):
 
     log.critical('read_polygon has moved from util.py.')
     log.critical('Please use '
-                 '"from anuga.utilities.polygon import read_polygon"')
+                 '"from anuga.geometry.polygon import read_polygon"')
 
-    return utilities.polygon.read_polygon(*args, **kwargs)    
+    return geometry.geometry.read_polygon(*args, **kwargs)    
 
 
 # @note TEMP
@@ -230,7 +230,7 @@ def populate_polygon(*args, **kwargs):
     log.critical('Please use '
                  '"from anuga.utilities.polygon import populate_polygon"')
 
-    return utilities.polygon.populate_polygon(*args, **kwargs)    
+    return utilities.geometry.populate_polygon(*args, **kwargs)    
 
 
 #################################################################################

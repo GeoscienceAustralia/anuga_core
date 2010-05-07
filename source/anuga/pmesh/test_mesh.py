@@ -12,7 +12,7 @@ from anuga.pmesh.mesh import *
 from load_mesh.loadASCII import *
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.geospatial_data.geospatial_data import Geospatial_data
-from anuga.utilities.polygon import  is_inside_polygon ### inside_polygon
+from anuga.geometry.polygon import  is_inside_polygon ### inside_polygon
 
 import numpy as num
 

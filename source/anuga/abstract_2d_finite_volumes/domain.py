@@ -20,7 +20,7 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions \
 from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_to_domain
 from anuga.abstract_2d_finite_volumes.region \
 	import Set_region as region_set_region
-from anuga.utilities.polygon import inside_polygon
+from anuga.geometry.polygon import inside_polygon
 from anuga.abstract_2d_finite_volumes.util import get_textual_float
 from quantity import Quantity
 import anuga.utilities.log as log

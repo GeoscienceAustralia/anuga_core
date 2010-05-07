@@ -5,10 +5,10 @@ This is a generic structure that can be used to store any geometry in a quadtree
 
 """
 
-from treenode import TreeNode
+from anuga.utilities.treenode import TreeNode
 import string, types, sys
 import anuga.utilities.log as log
-from anuga.utilities.aabb import AABB
+from aabb import AABB
 
             
 class Cell(TreeNode):
@@ -154,32 +154,3 @@ class Cell(TreeNode):
              
         return intersecting_regions
         
-#from anuga.pmesh.mesh import Mesh
-    
-def build_quadtree(mesh):
-    """Build quad tree for mesh.
-
-    All vertex indices in mesh are stored in a quadtree and a reference
-    to the root is returned.
-    """
-    extents = AABB(*mesh.get_extent(absolute=True))   
-    extents.grow(1.001) # To avoid round off error
-    root = Cell(extents)
-    
-    N = len(mesh)
-
-    # Get x,y coordinates for all vertices for all triangles
-    V = mesh.get_vertex_coordinates(absolute=True)
-    
-    # Check each triangle
-    for i in range(N):
-        x0, y0 = V[3*i, :]
-        x1, y1 = V[3*i+1, :]
-        x2, y2 = V[3*i+2, :]
-
-        # insert a tuple with an AABB, and the triangle index as data
-        root._insert((AABB(min([x0, x1, x2]), max([x0, x1, x2]), \
-                         min([y0, y1, y2]), max([y0, y1, y2])), \
-                         i))
-
-    return root

@@ -3,9 +3,7 @@ import sys
 from anuga.shallow_water.shallow_water_domain import Inflow, General_forcing
 from anuga.culvert_flows.culvert_polygons import create_culvert_polygons
 from anuga.utilities.system_tools import log_to_file
-from anuga.utilities.polygon import inside_polygon
-from anuga.utilities.polygon import is_inside_polygon
-from anuga.utilities.polygon import plot_polygons
+from anuga.geometry.polygon import inside_polygon, is_inside_polygon, plot_polygons
 
 from anuga.utilities.numerical_tools import mean
 from anuga.utilities.numerical_tools import ensure_numeric, sign

@@ -1846,7 +1846,7 @@ def sww2dem(basename_in, basename_out = None,
          sometrue
     from Numeric import array2string
 
-    from anuga.utilities.polygon import inside_polygon, outside_polygon
+    from anuga.geometry.polygon import inside_polygon, outside_polygon
     from anuga.abstract_2d_finite_volumes.util import \
          apply_expression_to_dictionary
 
@@ -2230,7 +2230,7 @@ def sww2pts(basename_in, basename_out=None,
     from Numeric import array, Float, concatenate, NewAxis, zeros, reshape, sometrue
     from Numeric import array2string
 
-    from anuga.utilities.polygon import inside_polygon, outside_polygon
+    from anuga.geometry.polygon import inside_polygon, outside_polygon
     from anuga.abstract_2d_finite_volumes.util import apply_expression_to_dictionary
 
     from anuga.geospatial_data.geospatial_data import Geospatial_data
@@ -5534,7 +5534,7 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
     # Water depth below which it is considered to be 0 in the model
     # FIXME (Ole): Allow this to be specified as a keyword argument as well
 
-    from anuga.utilities.polygon import inside_polygon    
+    from anuga.geometry.polygon import inside_polygon    
     from anuga.config import minimum_allowed_height
     from Scientific.IO.NetCDF import NetCDFFile
 

@@ -15,7 +15,7 @@ from mesh_factory import rectangular_periodic
 from anuga.config import epsilon
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference
-from anuga.utilities.polygon import is_inside_polygon
+from anuga.geometry.polygon import is_inside_polygon
 from anuga.utilities.numerical_tools import ensure_numeric
 
 import numpy as num
@@ -966,9 +966,6 @@ class Test_Mesh(unittest.TestCase):
         Create a discontinuous mesh (duplicate vertices) from a real situation that failed
         and check that boundary is as expected
         """
-
-
-        from anuga.utilities.polygon import plot_polygons
 
         # First do the continuous version of mesh
 

@@ -27,8 +27,8 @@ from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
 from anuga.shallow_water.data_manager import export_grid, create_sts_boundary
 from anuga.shallow_water.data_manager import csv2building_polygons
 
-from anuga.utilities.polygon import read_polygon, plot_polygons, polygon_area
-from anuga.utilities.polygon import Polygon_function
+from anuga.geometry.polygon import read_polygon, plot_polygons, polygon_area
+from anuga.geometry.polygon import Polygon_function
 
 from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_to_domain_instance
 

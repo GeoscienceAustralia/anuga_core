@@ -88,7 +88,7 @@ from anuga.abstract_2d_finite_volumes.util import get_revision_number, \
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import segment_midpoints
 from anuga.load_mesh.loadASCII import export_mesh_file
-from anuga.utilities.polygon import intersection
+from anuga.geometry.polygon import intersection
 
 from anuga.utilities.system_tools import get_vars_in_expression
 import anuga.utilities.log as log
@@ -2257,7 +2257,7 @@ def sww2dem(basename_in, basename_out=None,
     import sys
     import types
 
-    from anuga.utilities.polygon import inside_polygon, outside_polygon
+    from anuga.geometry.polygon import inside_polygon, outside_polygon
     from anuga.abstract_2d_finite_volumes.util import \
          apply_expression_to_dictionary
 
@@ -2688,7 +2688,7 @@ def sww2pts(basename_in, basename_out=None,
     """
 
     import sys
-    from anuga.utilities.polygon import inside_polygon, outside_polygon
+    from anuga.geometry.polygon import inside_polygon, outside_polygon
     from anuga.abstract_2d_finite_volumes.util import \
              apply_expression_to_dictionary
     from anuga.geospatial_data.geospatial_data import Geospatial_data
@@ -7507,7 +7507,7 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
     # Water depth below which it is considered to be 0 in the model
     # FIXME (Ole): Allow this to be specified as a keyword argument as well
 
-    from anuga.utilities.polygon import inside_polygon
+    from anuga.geometry.polygon import inside_polygon
     from anuga.config import minimum_allowed_height
     from Scientific.IO.NetCDF import NetCDFFile
 

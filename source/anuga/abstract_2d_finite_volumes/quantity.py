@@ -17,7 +17,7 @@ To create:
 from types import FloatType, IntType, LongType, NoneType
 
 from anuga.utilities.numerical_tools import ensure_numeric, is_scalar
-from anuga.utilities.polygon import inside_polygon
+from anuga.geometry.polygon import inside_polygon
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.fit_interpolate.fit import fit_to_mesh
 from anuga.config import points_file_block_line_size as default_block_line_size

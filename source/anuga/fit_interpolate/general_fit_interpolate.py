@@ -26,12 +26,11 @@ from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.utilities.sparse import Sparse, Sparse_CSR
 from anuga.utilities.cg_solve import conjugate_gradient, VectorShapeError
 from anuga.utilities.numerical_tools import ensure_numeric
-from anuga.utilities.quad import build_quadtree
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.geospatial_data.geospatial_data import Geospatial_data, \
      ensure_absolute
-from anuga.fit_interpolate.search_functions import set_last_triangle
+from anuga.fit_interpolate.search_functions import set_last_triangle, MeshQuadtree
 import anuga.utilities.log as log
 
 import numpy as num
@@ -106,7 +105,7 @@ class FitInterpolate:
             if verbose: log.critical('FitInterpolate: Building quad tree')
             #This stores indices of vertices
             t0 = time.time()
-            self.root = build_quadtree(self.mesh)
+            self.root = MeshQuadtree(self.mesh)
         
             build_quadtree_time =  time.time()-t0
             set_last_triangle()

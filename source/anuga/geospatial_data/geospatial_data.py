@@ -321,7 +321,7 @@ class Geospatial_data:
         unchanged
         """
 
-        from anuga.utilities.polygon import inside_polygon
+        from anuga.geometry.polygon import inside_polygon
 
         if isinstance(polygon, Geospatial_data):
             # Polygon is an object - extract points
@@ -353,7 +353,7 @@ class Geospatial_data:
           Geospatial data object representing point OUTSIDE specified polygon
         """
 
-        from anuga.utilities.polygon import outside_polygon
+        from anuga.geometry.polygon import outside_polygon
 
         if isinstance(polygon, Geospatial_data):
             # Polygon is an object - extract points
@@ -1559,7 +1559,7 @@ def find_optimal_smoothing_parameter(data_file,
     from anuga.geospatial_data.geospatial_data import Geospatial_data
     from anuga.pmesh.mesh_interface import create_mesh_from_regions
     from anuga.utilities.numerical_tools import cov
-    from anuga.utilities.polygon import is_inside_polygon
+    from anuga.geometry.polygon import is_inside_polygon
     from anuga.fit_interpolate.benchmark_least_squares import mem_usage
 
     attribute_smoothed = 'elevation'
@@ -1769,7 +1769,7 @@ def old_find_optimal_smoothing_parameter(data_file,
     from anuga.geospatial_data.geospatial_data import Geospatial_data
     from anuga.pmesh.mesh_interface import create_mesh_from_regions
     from anuga.utilities.numerical_tools import cov
-    from anuga.utilities.polygon import is_inside_polygon
+    from anuga.geometry.polygon import is_inside_polygon
     from anuga.fit_interpolate.benchmark_least_squares import mem_usage
 
     attribute_smoothed = 'elevation'

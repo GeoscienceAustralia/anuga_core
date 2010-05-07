@@ -1200,8 +1200,6 @@ def number_mesh_triangles(interior_regions, bounding_poly, remainder_res):
     FIXME: Add tests for this function
     """
 
-    from anuga.utilities.polygon import polygon_area
-
     # TO DO check if any of the regions fall inside one another
 
     log.critical('-' * 80)

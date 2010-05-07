@@ -864,7 +864,7 @@ class Mesh(General_mesh):
         # because I needed it for diagnostics.
         # We should make it fast - probably based on the
         # quad tree structure.
-        from anuga.utilities.polygon import is_outside_polygon,\
+        from anuga.geometry.polygon import is_outside_polygon,\
              is_inside_polygon
 
         polygon = self.get_boundary_polygon()
@@ -1032,8 +1032,8 @@ def _get_intersecting_segments(V, N, line,
     more documentation.
     """
 
-    from anuga.utilities.polygon import intersection
-    from anuga.utilities.polygon import is_inside_polygon
+    from anuga.geometry.polygon import intersection
+    from anuga.geometry.polygon import is_inside_polygon
 
     msg = 'Line segment must contain exactly two points'
     assert len(line) == 2, msg

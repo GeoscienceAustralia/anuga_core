@@ -9,7 +9,7 @@ from anuga.pmesh.mesh_interface import create_mesh_from_regions
 from anuga.pmesh.mesh_interface import _create_mesh_from_regions
 
 from load_mesh.loadASCII import *
-from anuga.utilities.polygon import is_inside_polygon
+from anuga.geometry.polygon import is_inside_polygon
 from anuga.coordinate_transforms.geo_reference import Geo_reference,DEFAULT_ZONE
 
 

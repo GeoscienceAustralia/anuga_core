@@ -33,7 +33,7 @@ from anuga.geospatial_data.geospatial_data import Geospatial_data, \
      ensure_absolute
 from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
 from anuga.utilities.sparse import Sparse, Sparse_CSR
-from anuga.utilities.polygon import inside_polygon, is_inside_polygon
+from anuga.geometry.polygon import inside_polygon, is_inside_polygon
 from anuga.fit_interpolate.search_functions import search_tree_of_vertices
 
 from anuga.utilities.cg_solve import conjugate_gradient

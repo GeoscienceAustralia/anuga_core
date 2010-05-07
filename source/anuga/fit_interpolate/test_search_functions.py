@@ -5,14 +5,14 @@ import unittest
 from search_functions import search_tree_of_vertices, set_last_triangle
 from search_functions import _search_triangles_of_vertices
 from search_functions import _trilist_from_indices
-from search_functions import compute_interpolation_values
+from search_functions import compute_interpolation_values, MeshQuadtree
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-from anuga.utilities.polygon import is_inside_polygon
-from anuga.utilities.quad import build_quadtree, Cell
+from anuga.geometry.quad import Cell
+from anuga.geometry.aabb import AABB
 from anuga.utilities.numerical_tools import ensure_numeric
-from anuga.utilities.polygon import is_inside_polygon, is_inside_triangle    
+from anuga.geometry.polygon import is_inside_polygon, is_inside_triangle    
 
 import numpy as num
 
@@ -49,7 +49,7 @@ class Test_search_functions(unittest.TestCase):
         #Test that points are arranged in a counter clock wise order
         mesh.check_integrity()
 
-        root = build_quadtree(mesh)
+        root = MeshQuadtree(mesh)
         set_last_triangle()
 
         found, s0, s1, s2, k = search_tree_of_vertices(root, mesh, [-0.2, 10.7])
@@ -69,7 +69,7 @@ class Test_search_functions(unittest.TestCase):
         #Test that points are arranged in a counter clock wise order
         mesh.check_integrity()
 
-        root = build_quadtree(mesh)
+        root = MeshQuadtree(mesh)
         set_last_triangle()
 
         x = [0.2, 0.7]
@@ -89,7 +89,7 @@ class Test_search_functions(unittest.TestCase):
         #Test that points are arranged in a counter clock wise order
         mesh.check_integrity()
 
-        root = build_quadtree(mesh)
+        root = MeshQuadtree(mesh)
         set_last_triangle()
 
         for x in [[0.6, 0.3], [0.1, 0.2], [0.7,0.7],
@@ -121,7 +121,7 @@ class Test_search_functions(unittest.TestCase):
 
         
 
-        root = build_quadtree(mesh)
+        root = MeshQuadtree(mesh)
         set_last_triangle()
         #print m, root.show()
 
@@ -149,7 +149,7 @@ class Test_search_functions(unittest.TestCase):
         points, vertices, boundary = rectangular(2, 2, 1, 1)
         mesh = Mesh(points, vertices, boundary)
 
-        root = build_quadtree(mesh)
+        root = MeshQuadtree(mesh)
         set_last_triangle()
 
         # One point

@@ -1,10 +1,10 @@
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference,DEFAULT_ZONE
-from anuga.utilities.polygon import  point_in_polygon ,populate_polygon
+from anuga.geometry.polygon import  point_in_polygon ,populate_polygon
 from anuga.utilities.numerical_tools import ensure_numeric
 import numpy as num
-from anuga.utilities.polygon import inside_polygon
-from anuga.utilities.polygon import polylist2points_verts
+from anuga.geometry.polygon import inside_polygon
+from anuga.geometry.polygon import polylist2points_verts
 import anuga.utilities.log as log
 
 

@@ -3,7 +3,7 @@
 
 # Import necessary modules
 from math import sqrt
-from anuga.utilities.polygon import inside_polygon, polygon_area
+from anuga.geometry.polygon import inside_polygon, polygon_area
 
 import numpy as num
 

@@ -10,6 +10,8 @@ import time
 from anuga.utilities.numerical_tools import get_machine_precision
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.config import max_float
+from anuga.geometry.quad import Cell
+from anuga.geometry.aabb import AABB
 
 from anuga.utilities import compile
 if compile.can_use_C_extension('polygon_ext.c'):
@@ -189,3 +191,34 @@ def reset_search_times():
     global search_more_cells_time
     search_one_cell_time = initial_search_value
     search_more_cells_time = initial_search_value
+
+
+class MeshQuadtree(Cell):
+    """ A quadtree constructed from the given mesh.
+    """
+    def __init__(self, mesh):
+        """Build quad tree for mesh.
+
+        All vertex indices in the mesh are stored in a quadtree.
+        """
+        
+        extents = AABB(*mesh.get_extent(absolute=True))   
+        extents.grow(1.001) # To avoid round off error
+        Cell.__init__(self, extents)
+        
+        N = len(mesh)
+
+        # Get x,y coordinates for all vertices for all triangles
+        V = mesh.get_vertex_coordinates(absolute=True)
+        
+        # Check each triangle
+        for i in range(N):
+            x0, y0 = V[3*i, :]
+            x1, y1 = V[3*i+1, :]
+            x2, y2 = V[3*i+2, :]
+
+            # insert a tuple with an AABB, and the triangle index as data
+            self._insert((AABB(min([x0, x1, x2]), max([x0, x1, x2]), \
+                             min([y0, y1, y2]), max([y0, y1, y2])), \
+                             i))
+

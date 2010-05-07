@@ -717,7 +717,7 @@ class Mesh:
         """
         # Only import this if necessary.
         # Trying to get pmesh working in an uncompiled environment
-        from anuga.utilities.polygon import point_in_polygon
+        from anuga.geometry.polygon import point_in_polygon
         
         #get absolute values
         if geo_reference is not None:

@@ -106,7 +106,7 @@ from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.fit_interpolate.interpolate import Modeltime_too_late, \
                                               Modeltime_too_early
 
-from anuga.utilities.polygon import inside_polygon, polygon_area, \
+from anuga.geometry.polygon import inside_polygon, polygon_area, \
                                     is_inside_polygon
 import anuga.utilities.log as log
 

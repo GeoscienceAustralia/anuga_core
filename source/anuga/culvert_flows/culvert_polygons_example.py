@@ -7,7 +7,7 @@ May need to include ability to have a function that controls the blockage level 
 
 """
 
-from anuga.utilities.polygon import plot_polygons
+from anuga.geometry.polygon import plot_polygons
 from culvert_polygons import create_culvert_polygons
 
 # Culvert location

@@ -12,7 +12,7 @@ from anuga.fit_interpolate.fit import fit_to_mesh
 from anuga.abstract_2d_finite_volumes.domain import Domain
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.coordinate_transforms.geo_reference import Geo_reference
-from anuga.utilities.polygon import *
+from anuga.geometry.polygon import *
 
 import numpy as num
 

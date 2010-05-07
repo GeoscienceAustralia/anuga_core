@@ -5,7 +5,7 @@ from culvert_polygons import *
 import unittest
 import os.path
 
-from anuga.utilities.polygon import inside_polygon, polygon_area
+from anuga.geometry.polygon import inside_polygon, polygon_area
 
 
 class Test_poly(unittest.TestCase):
