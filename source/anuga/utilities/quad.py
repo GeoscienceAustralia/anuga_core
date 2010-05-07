@@ -8,68 +8,14 @@ This is a generic structure that can be used to store any geometry in a quadtree
 from treenode import TreeNode
 import string, types, sys
 import anuga.utilities.log as log
+from anuga.utilities.aabb import AABB
 
-# Allow children to be slightly bigger than their parents to prevent straddling of a boundary
-SPLIT_BORDER_RATIO    = 0.55
-
-class AABB:
-    """Axially-aligned bounding box class.
-    """
-    
-    def __init__(self, xmin, xmax, ymin, ymax):
-        self.xmin = xmin    
-        self.xmax = xmax
-        self.ymin = ymin    
-        self.ymax = ymax
-
-    def __repr__(self):
-        return '(xmin:%f, xmax:%f, ymin:%f, ymax:%f)' \
-               % (round(self.xmin,1), round(self.xmax,1), round(self.ymin,1), round(self.ymax, 1)) 
-        
-    def size(self):
-        """return size as (w,h)"""
-        return self.xmax - self.xmin, self.ymax - self.ymin
-        
-    def split(self, border=SPLIT_BORDER_RATIO):
-        """Split along shorter axis.
-           return 2 subdivided AABBs.
-        """
-        
-        width, height = self.size()
-        assert width >= 0 and height >= 0
-        
-        if (width > height):
-            # split vertically
-            return AABB(self.xmin, self.xmin+width*border, self.ymin, self.ymax), \
-                   AABB(self.xmax-width*border, self.xmax, self.ymin, self.ymax)
-        else:
-            # split horizontally       
-            return AABB(self.xmin, self.xmax, self.ymin, self.ymin+height*border), \
-                   AABB(self.xmin, self.xmax, self.ymax-height*border, self.ymax)    
-    
-    def is_trivial_in(self, test):
-        if (test.xmin < self.xmin) or (test.xmax > self.xmax):
-            return False        
-        if (test.ymin < self.ymin) or (test.ymax > self.ymax):
-            return False        
-        return True
- 
-    def contains(self, x, y):
-        return (self.xmin <= x <= self.xmax) and (self.ymin <= y <= self.ymax)
             
 class Cell(TreeNode):
     """class Cell
 
     One cell in the plane delimited by southern, northern,
     western, eastern boundaries.
-
-    Public Methods:
-        insert(point)
-        search(x, y)
-        split()
-        store()
-        retrieve()
-        count()
     """
   
     def __init__(self, extents,
@@ -87,7 +33,7 @@ class Cell(TreeNode):
     
     def __repr__(self):
         str = '%s: leaves: %d' \
-               % (self.name , len(self.leaves))	
+               % (self.name , len(self.leaves))    
         if self.children:
             str += ', children: %d' % (len(self.children))
         return str
@@ -210,43 +156,21 @@ class Cell(TreeNode):
         
 #from anuga.pmesh.mesh import Mesh
     
-def build_quadtree(mesh, max_points_per_cell = 4):
+def build_quadtree(mesh):
     """Build quad tree for mesh.
 
-    All vertices in mesh are stored in quadtree and a reference
+    All vertex indices in mesh are stored in a quadtree and a reference
     to the root is returned.
     """
-
-
-    #Make root cell
-    #print mesh.coordinates
-
-    xmin, xmax, ymin, ymax = mesh.get_extent(absolute=True)
-    
-    # Ensure boundary points are fully contained in region
-    # It is a property of the cell structure that
-    # points on xmax or ymax of any given cell
-    # belong to the neighbouring cell.
-    # Hence, the root cell needs to be expanded slightly
-    ymax += (ymax-ymin)/10
-    xmax += (xmax-xmin)/10
-
-    # To avoid round off error
-    ymin -= (ymax-ymin)/10
-    xmin -= (xmax-xmin)/10   
-
-    #print "xmin", xmin 
-    #print "xmax", xmax
-    #print "ymin", ymin 
-    #print "ymax", ymax
-    
-    root = Cell(AABB(xmin, xmax, ymin, ymax))
+    extents = AABB(*mesh.get_extent(absolute=True))   
+    extents.grow(1.001) # To avoid round off error
+    root = Cell(extents)
     
     N = len(mesh)
 
     # Get x,y coordinates for all vertices for all triangles
     V = mesh.get_vertex_coordinates(absolute=True)
-	
+    
     # Check each triangle
     for i in range(N):
         x0, y0 = V[3*i, :]

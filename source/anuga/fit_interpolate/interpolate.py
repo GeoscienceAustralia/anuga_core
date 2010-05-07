@@ -56,7 +56,6 @@ class Modeltime_too_early(Exception): pass
 # @param vertex_values Array of data at mesh vertices.
 # @param interpolation_points Points to interpolate to.
 # @param mesh_origin A geo_ref object or 3-tuples of UTMzone, easting, northing.
-# @param max_vertices_per_cell Max number of vertices before splitting cell.
 # @param start_blocking_len Block if # of points greater than this.
 # @param use_cache If True, cache.
 # @param verbose True if this function is to be verbose.
@@ -65,7 +64,6 @@ def interpolate(vertex_coordinates,
                 vertex_values,
                 interpolation_points,
                 mesh_origin=None,
-                max_vertices_per_cell=None,
                 start_blocking_len=500000,
                 use_cache=False,
                 verbose=False,
@@ -102,9 +100,6 @@ def interpolate(vertex_coordinates,
                  If specified vertex coordinates are assumed to be
                  relative to their respective origins.
 
-    max_vertices_per_cell: Number of vertices in a quad tree cell
-                           at which the cell is split into 4.
-
                            Note: Don't supply a vertex coords as a geospatial
                            object and a mesh origin, since geospatial has its
                            own mesh origin.
@@ -135,7 +130,6 @@ def interpolate(vertex_coordinates,
     args = (ensure_numeric(vertex_coordinates, num.float),
             ensure_numeric(triangles))
     kwargs = {'mesh_origin': mesh_origin,
-              'max_vertices_per_cell': max_vertices_per_cell,
               'verbose': verbose}
 
     if use_cache is True:
@@ -174,8 +168,7 @@ class Interpolate (FitInterpolate):
                  vertex_coordinates,
                  triangles,
                  mesh_origin=None,
-                 verbose=False,
-                 max_vertices_per_cell=None):
+                 verbose=False):
 
         """ Build interpolation matrix mapping from
         function values at vertices to function values at data points
@@ -208,8 +201,7 @@ class Interpolate (FitInterpolate):
                                 vertex_coordinates=vertex_coordinates,
                                 triangles=triangles,
                                 mesh_origin=mesh_origin,
-                                verbose=verbose,
-                                max_vertices_per_cell=max_vertices_per_cell)
+                                verbose=verbose)
 
         # Initialise variables
         self._A_can_be_reused = False  # FIXME (Ole): Probably obsolete

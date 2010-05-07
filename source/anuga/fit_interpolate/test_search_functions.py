@@ -49,7 +49,7 @@ class Test_search_functions(unittest.TestCase):
         #Test that points are arranged in a counter clock wise order
         mesh.check_integrity()
 
-        root = build_quadtree(mesh, max_points_per_cell = 1)
+        root = build_quadtree(mesh)
         set_last_triangle()
 
         found, s0, s1, s2, k = search_tree_of_vertices(root, mesh, [-0.2, 10.7])
@@ -57,8 +57,8 @@ class Test_search_functions(unittest.TestCase):
 
         found, s0, s1, s2, k = search_tree_of_vertices(root, mesh, [0, 0])
         assert found is True
-		
-		
+        
+        
     def test_small(self):
         """test_small: Two triangles
         """
@@ -69,14 +69,14 @@ class Test_search_functions(unittest.TestCase):
         #Test that points are arranged in a counter clock wise order
         mesh.check_integrity()
 
-        root = build_quadtree(mesh, max_points_per_cell = 1)
+        root = build_quadtree(mesh)
         set_last_triangle()
 
         x = [0.2, 0.7]
         found, s0, s1, s2, k = search_tree_of_vertices(root, mesh, x)
         assert k == 1 # Triangle one
-        assert found is True		
-		
+        assert found is True        
+        
     def test_bigger(self):
         """test_bigger
         
@@ -89,7 +89,7 @@ class Test_search_functions(unittest.TestCase):
         #Test that points are arranged in a counter clock wise order
         mesh.check_integrity()
 
-        root = build_quadtree(mesh, max_points_per_cell = 4)
+        root = build_quadtree(mesh)
         set_last_triangle()
 
         for x in [[0.6, 0.3], [0.1, 0.2], [0.7,0.7],
@@ -97,8 +97,8 @@ class Test_search_functions(unittest.TestCase):
                   [10, 3]]:
             
             found, s0, s1, s2, k = search_tree_of_vertices(root, mesh,
-                                                           ensure_numeric(x))								   
-														   
+                                                           ensure_numeric(x))                                   
+                                                           
             if k >= 0:
                 V = mesh.get_vertex_coordinates(k) # nodes for triangle k
                 assert is_inside_polygon(x, V)
@@ -120,27 +120,27 @@ class Test_search_functions(unittest.TestCase):
         mesh.check_integrity()
 
         
-        for m in range(8):
-            root = build_quadtree(mesh, max_points_per_cell = m)
-            set_last_triangle()
-            #print m, root.show()
 
-            for x in [[0.6, 0.3], [0.1, 0.2], [0.7,0.7],
-                      [0.1,0.9], [0.4,0.6], [0.9,0.1],
-                      [10, 3]]:
-                
-                found, s0, s1, s2, k = search_tree_of_vertices(root, mesh, x)
+        root = build_quadtree(mesh)
+        set_last_triangle()
+        #print m, root.show()
 
-                if k >= 0:
-                    V = mesh.get_vertex_coordinates(k) # nodes for triangle k
-                    assert is_inside_triangle(x, V, closed=True)
-                    assert is_inside_polygon(x, V)
-                    assert found is True
-                else:
-                    assert found is False                
-
+        for x in [[0.6, 0.3], [0.1, 0.2], [0.7,0.7],
+                  [0.1,0.9], [0.4,0.6], [0.9,0.1],
+                  [10, 3]]:
             
-                if m == k == 0: return    
+            found, s0, s1, s2, k = search_tree_of_vertices(root, mesh, x)
+
+            if k >= 0:
+                V = mesh.get_vertex_coordinates(k) # nodes for triangle k
+                assert is_inside_triangle(x, V, closed=True)
+                assert is_inside_polygon(x, V)
+                assert found is True
+            else:
+                assert found is False                
+
+        
+            if k == 0: return    
 
     def test_underlying_function(self):
         """test_larger mesh and different quad trees
@@ -149,14 +149,14 @@ class Test_search_functions(unittest.TestCase):
         points, vertices, boundary = rectangular(2, 2, 1, 1)
         mesh = Mesh(points, vertices, boundary)
 
-        root = build_quadtree(mesh, max_points_per_cell = 4)
+        root = build_quadtree(mesh)
         set_last_triangle()
 
         # One point
         x = ensure_numeric([0.5, 0.5])
 
         triangles = _trilist_from_indices(mesh, root.search(x[0], x[1]))
-	
+    
         found, sigma0, sigma1, sigma2, k = \
                _search_triangles_of_vertices(triangles, x)
 

@@ -53,8 +53,7 @@ class FitInterpolate:
                  triangles=None,
                  mesh=None,
                  mesh_origin=None,
-                 verbose=False,
-                 max_vertices_per_cell=None):
+                 verbose=False):
 
 
         """ Build interpolation matrix mapping from
@@ -81,15 +80,10 @@ class FitInterpolate:
               If specified vertex coordinates are assumed to be
               relative to their respective origins.
 
-          max_vertices_per_cell: Number of vertices in a quad tree cell
-          at which the cell is split into 4.
-
           Note: Don't supply a vertex coords as a geospatial object and
               a mesh origin, since geospatial has its own mesh origin.
         """
         global build_quadtree_time
-        if max_vertices_per_cell == None:
-            max_vertices_per_cell = MAX_VERTICES_PER_CELL
         if mesh is None:
             if vertex_coordinates is not None and  triangles is not None:
                 # Fixme (DSG) Throw errors if triangles or vertex_coordinates
@@ -112,8 +106,7 @@ class FitInterpolate:
             if verbose: log.critical('FitInterpolate: Building quad tree')
             #This stores indices of vertices
             t0 = time.time()
-            self.root = build_quadtree(self.mesh,
-                                       max_points_per_cell = max_vertices_per_cell)
+            self.root = build_quadtree(self.mesh)
         
             build_quadtree_time =  time.time()-t0
             set_last_triangle()

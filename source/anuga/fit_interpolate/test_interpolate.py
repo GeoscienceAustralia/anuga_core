@@ -306,8 +306,7 @@ class Test_Interpolate(unittest.TestCase):
                       [0, 9, 1]]
 
         data = [ [4,4] ]
-        interp = Interpolate(points, triangles,
-                               max_vertices_per_cell = 4)
+        interp = Interpolate(points, triangles)
         #print "PDSG - interp.get_A()", interp.get_A()
         answer =  [ [ 0.06666667,  0.46666667,  0.46666667,  0.,
                       0., 0. , 0., 0., 0., 0.]]

@@ -56,8 +56,7 @@ class Fit(FitInterpolate):
                  mesh=None,
                  mesh_origin=None,
                  alpha = None,
-                 verbose=False,
-                 max_vertices_per_cell=None):
+                 verbose=False):
 
 
         """
@@ -79,9 +78,6 @@ class Fit(FitInterpolate):
               If specified vertex coordinates are assumed to be
               relative to their respective origins.
 
-          max_vertices_per_cell: Number of vertices in a quad tree cell
-          at which the cell is split into 4.
-
           Note: Don't supply a vertex coords as a geospatial object and
               a mesh origin, since geospatial has its own mesh origin.
 
@@ -102,8 +98,7 @@ class Fit(FitInterpolate):
                  triangles,
                  mesh,
                  mesh_origin,
-                 verbose,
-                 max_vertices_per_cell)
+                 verbose)
         
         m = self.mesh.number_of_nodes # Nbr of basis functions (vertices)
         
