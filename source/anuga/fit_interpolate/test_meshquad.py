@@ -42,10 +42,10 @@ class Test_Quad(unittest.TestCase):
         self.assertEqual(Q.count(), len(vertices))
 
         # test a point that falls within a triangle
-        result = Q.search(10, 10, get_vertices=True)
+        result = Q.search(10, 10)
         assert type(result) in [types.ListType,types.TupleType],\
                             'should be a list'
-        pos, index = result[0]
+        index, parent = result[0]
         self.assertEqual(index, 1)
 
 
@@ -137,10 +137,12 @@ class Test_Quad(unittest.TestCase):
         Q = MeshQuadtree(mesh)
         results = Q.search(4.5, 3)
         assert len(results) == 1
-        self.assertEqual(results[0], 2)
+        idx, _ = results[0]
+        self.assertEqual(idx, 2)
         results = Q.search(5,4.)
         self.assertEqual(len(results),1)
-        self.assertEqual(results[0], 2)
+        idx, _ = results[0]
+        self.assertEqual(idx, 2)
         
     def NOtest_get_parent():
         """ Get a child's parent.

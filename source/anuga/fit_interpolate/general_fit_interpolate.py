@@ -35,10 +35,6 @@ import anuga.utilities.log as log
 
 import numpy as num
 
-
-# tests fail if 2 is used
-MAX_VERTICES_PER_CELL = 13 # A value of 8 or lower can cause problems,
-                           # if a vert has 9 triangles.
                            
 build_quadtree_time = 0
 

@@ -4,7 +4,7 @@
 import unittest
 from search_functions import search_tree_of_vertices, set_last_triangle
 from search_functions import _search_triangles_of_vertices
-from search_functions import _trilist_from_indices
+from search_functions import _trilist_from_data
 from search_functions import compute_interpolation_values, MeshQuadtree
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
@@ -155,7 +155,7 @@ class Test_search_functions(unittest.TestCase):
         # One point
         x = ensure_numeric([0.5, 0.5])
 
-        triangles = _trilist_from_indices(mesh, root.search(x[0], x[1]))
+        triangles = _trilist_from_data(mesh, root.search(x[0], x[1]))
     
         found, sigma0, sigma1, sigma2, k = \
                _search_triangles_of_vertices(triangles, x)
@@ -174,7 +174,7 @@ class Test_search_functions(unittest.TestCase):
                   [0.1,0.9], [0.4,0.6], [0.9,0.1],
                   [10, 3]]:
                 
-            triangles = _trilist_from_indices(mesh, root.search(x[0], x[1]))
+            triangles = _trilist_from_data(mesh, root.search(x[0], x[1]))
 
             #print x, candidate_vertices
             found, sigma0, sigma1, sigma2, k = \

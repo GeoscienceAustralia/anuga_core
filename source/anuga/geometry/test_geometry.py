@@ -58,7 +58,7 @@ class Test_Geometry(unittest.TestCase):
         self.assertEqual(child2.ymax, 41)          
         
     def test_add_data(self):
-        cell = Cell(AABB(0,10, 0,5))
+        cell = Cell(AABB(0,10, 0,5), None)
         cell.insert([(AABB(1,3, 1, 3), 111), (AABB(8,9, 1, 2), 222),  \
                      (AABB(7, 8, 3, 4), 333), (AABB(1, 10, 0, 1), 444)])
 
@@ -69,19 +69,29 @@ class Test_Geometry(unittest.TestCase):
         self.assertEqual(len(result),4)
         
     def test_search(self):
-        test_region = (AABB(8,9, 1, 2), 222)
-        cell = Cell(AABB(0,10, 0,5))
-        cell.insert([(AABB(1,3, 1, 3), 111), test_region,  \
+        test_tag = 222
+        cell = Cell(AABB(0,10, 0,5), None)
+        cell.insert([(AABB(1,3, 1, 3), 111), (AABB(8,9, 1, 2), test_tag),  \
                      (AABB(7, 8, 3, 4), 333), (AABB(1, 10, 0, 1), 444)])
 
-        result =  cell.search(x = 8.5, y = 1.5, get_vertices=True)
+        result = cell.search(x = 8.5, y = 1.5)
         assert type(result) in [types.ListType,types.TupleType],\
                             'should be a list'
-        self.assertEqual(result, [test_region], 'only 1 point should intersect')
+        assert(len(result) == 1)
+        data, node = result[0]
+        self.assertEqual(data, test_tag, 'only 1 point should intersect')
 
+    def test_get_siblings(self):
+        """ Make sure children know their parent. """
+        cell = Cell(AABB(0,10, 0,5), None)
+        cell.insert([(AABB(1,3, 1, 3), 111), (AABB(8,9, 1, 2), 222)])
+        assert len(cell.children) == 2
+        assert cell.parent == None
+        assert cell.children[0].parent == cell
+        assert cell.children[1].parent == cell
 
     def test_clear_1(self):
-        cell = Cell(AABB(0,10, 0,5))    
+        cell = Cell(AABB(0,10, 0,5), None)    
         cell.insert([(AABB(1,3, 1, 3), 111), (AABB(8,9, 1, 2), 222),  \
                      (AABB(7, 8, 3, 4), 333), (AABB(1, 10, 0, 1), 444)])
                      
@@ -93,6 +103,6 @@ class Test_Geometry(unittest.TestCase):
 ################################################################################
 
 if __name__ == "__main__":
-    mysuite = unittest.makeSuite(Test_Quad,'test')
+    mysuite = unittest.makeSuite(Test_Geometry, 'test')
     runner = unittest.TextTestRunner()
     runner.run(mysuite)

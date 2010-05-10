@@ -18,13 +18,16 @@ class Cell(TreeNode):
     western, eastern boundaries.
     """
   
-    def __init__(self, extents,
+    def __init__(self, extents, parent, depth = 0,
          name = 'cell'):
   
         # Initialise base classes
         TreeNode.__init__(self, string.lower(name))
     
         self.extents = extents
+        self.parent = parent
+        self.searched = [-10, -15]
+        self.depth = depth
         
         # The points in this cell     
         self.leaves = []
@@ -32,8 +35,8 @@ class Cell(TreeNode):
         
     
     def __repr__(self):
-        str = '%s: leaves: %d' \
-               % (self.name , len(self.leaves))    
+        str = '(%d)%s: leaves: %d' \
+               % (self.depth, self.name , len(self.leaves))    
         if self.children:
             str += ', children: %d' % (len(self.children))
         return str
@@ -81,11 +84,11 @@ class Cell(TreeNode):
             # try splitting this cell and see if we get a trivial in
             subregion1, subregion2 = self.extents.split()
             if subregion1.is_trivial_in(new_region):
-                self.children = [Cell(subregion1), Cell(subregion2)]    
+                self.children = [Cell(subregion1, self, depth=self.depth+1), Cell(subregion2, self, depth=self.depth+1)]    
                 self.children[0]._insert(new_leaf)
                 return
             elif subregion2.is_trivial_in(new_region):
-                self.children = [Cell(subregion1), Cell(subregion2)]    
+                self.children = [Cell(subregion1, self, depth=self.depth+1), Cell(subregion2, self, depth=self.depth+1)]    
                 self.children[1]._insert(new_leaf)
                 return                
     
@@ -131,25 +134,43 @@ class Cell(TreeNode):
                 child.show(depth+1)
  
 
-    def search(self, x, y, get_vertices = False):
+    def search(self, x, y):
         """return a list of possible intersections with geometry"""
+
+ #       if self.searched == [x,y]:
+ #           print 'ERROR: already searched at ', [x,y]
+ #       self.searched = [x,y]
         
+        intersecting_regions = self.test_leaves(x, y)
+        
+        # recurse down into nodes that the point passes through
+        if self.children:
+            for child in self.children:    
+                if child.extents.contains(x, y):
+                    intersecting_regions.extend(child.search(x, y))
+             
+        return intersecting_regions
+ 
+ 
+    def test_leaves(self, x, y):
         intersecting_regions = []
         
         # test all leaves to see if they intersect the point
         for leaf in self.leaves:
             aabb, data = leaf
             if aabb.contains(x, y):
-                if get_vertices:
-                    intersecting_regions.append(leaf)
-                else:
-                    intersecting_regions.append(data)
-        
-        # recurse down into nodes that the point passes through
-        if self.children:
-            for child in self.children:    
-                if child.extents.contains(x, y):
-                    intersecting_regions.extend(child.search(x, y, get_vertices))
-             
-        return intersecting_regions
-        
+                intersecting_regions.append((data, self))
+                
+        return intersecting_regions                
+ 
+ 
+    def get_siblings(self):
+        """ return parent and siblings of this node.
+        """
+        if not self.parent:
+            return []
+         
+        siblings = list(self.parent.children)
+        siblings.remove(self)
+        return siblings
+                

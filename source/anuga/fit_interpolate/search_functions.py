@@ -32,7 +32,7 @@ search_more_cells_time = initial_search_value
 
 # FIXME(Ole): Could we come up with a less confusing structure?
 # FIXME(James): remove this global var
-LAST_TRIANGLE = [[-10,
+LAST_TRIANGLE = [[-10, -10,
                    (num.array([[max_float, max_float],
                                [max_float, max_float],
                                [max_float, max_float]]),
@@ -63,37 +63,65 @@ def search_tree_of_vertices(root, mesh, x):
     global search_one_cell_time
     global search_more_cells_time
 
-    # Search the last triangle first
-    element_found, sigma0, sigma1, sigma2, k = \
-        _search_triangles_of_vertices(last_triangle, x)
-                   
-    if element_found is True:
-        return element_found, sigma0, sigma1, sigma2, k
+    if last_triangle[0][1] != -10:
+        # check the last triangle found first
+        element_found, sigma0, sigma1, sigma2, k = \
+                   _search_triangles_of_vertices(last_triangle, x)
 
-    
-    # Get triangles in the cell that the point is in.
-    tri_indices = root.search(x[0], x[1])
-    triangles = _trilist_from_indices(mesh, tri_indices)
-    
-    element_found, sigma0, sigma1, sigma2, k = \
-                   _search_triangles_of_vertices(triangles, x)
+        if element_found:
+            return True, sigma0, sigma1, sigma2, k
 
-    is_more_elements = True
+    # search to bottom of tree from last found leaf
+    branch = last_triangle[0][1]
     
-    # while not element_found and is_more_elements:
-        # triangles, branch = root.expand_search()
-        # if branch == []:
-            # # Searching all the verts from the root cell that haven't
-            # # been searched.  This is the last try
-            # element_found, sigma0, sigma1, sigma2, k = \
-                           # _search_triangles_of_vertices(triangles, x)
-            # is_more_elements = False
-        # else:
-            # element_found, sigma0, sigma1, sigma2, k = \
-                       # _search_triangles_of_vertices(triangles, x)
-                       
-        
+    if branch == -10:
+        branch = root   
+    
+    tri_data = branch.search(x[0], x[1])
+    triangles = _trilist_from_data(mesh, tri_data)            
+    element_found, sigma0, sigma1, sigma2, k = \
+                _search_triangles_of_vertices(triangles, x)
+    if element_found:
+        return True, sigma0, sigma1, sigma2, k
+
+    # search rest of tree
+    element_found = False
+    while branch:
+        if not branch.parent:
+            # search from top of tree if we are at root
+            siblings = [root]
+        else:
+            siblings = branch.get_siblings()
+            
+        for sibling in siblings:
+            tri_data = sibling.search(x[0], x[1])
+            triangles = _trilist_from_data(mesh, tri_data)            
+            element_found, sigma0, sigma1, sigma2, k = \
+                        _search_triangles_of_vertices(triangles, x)
+            if element_found:
+                return True, sigma0, sigma1, sigma2, k
+                                    
+        branch = branch.parent
+        if branch:
+            tri_data = branch.test_leaves(x[0], x[1])
+            triangles = _trilist_from_data(mesh, tri_data)            
+            element_found, sigma0, sigma1, sigma2, k = \
+                        _search_triangles_of_vertices(triangles, x)
+            if element_found:
+                return True, sigma0, sigma1, sigma2, k        
+
     return element_found, sigma0, sigma1, sigma2, k
+
+
+    ## Get triangles in the cell that the point is in.
+    #tri_data = root.search(x[0], x[1])
+    #triangles = _trilist_from_data(mesh, tri_data)
+    
+    #element_found, sigma0, sigma1, sigma2, k = \
+                   #_search_triangles_of_vertices(triangles, x)
+
+    #if element_found:
+        #return True, sigma0, sigma1, sigma2, k
 
 
 def _search_triangles_of_vertices(triangles, x):
@@ -115,9 +143,10 @@ def _search_triangles_of_vertices(triangles, x):
     sigma0 = -10.0
     sigma1 = -10.0
     k = -10
+    
     # For all vertices in same cell as point x
     element_found = False    
-    for k, tri_verts_norms in triangles:
+    for k, node, tri_verts_norms in triangles:
         tri = tri_verts_norms[0]
         tri = ensure_numeric(tri)        
         # k is the triangle index
@@ -134,13 +163,13 @@ def _search_triangles_of_vertices(triangles, x):
             element_found = True    
 
             # Don't look for any other triangles in the triangle list
-            last_triangle = [[k, tri_verts_norms]]
+            last_triangle = [[k, node, tri_verts_norms]]
             break            
             
     return element_found, sigma0, sigma1, sigma2, k
 
 
-def _trilist_from_indices(mesh, indices):
+def _trilist_from_data(mesh, indices):
     """return a list of lists. For the inner lists,
     The first element is the triangle index,
     the second element is a list.for this list
@@ -150,12 +179,12 @@ def _trilist_from_indices(mesh, indices):
     """
 
     ret_list = []
-    for i in indices:
+    for i, node in indices:
         vertices = mesh.get_vertex_coordinates(triangle_id=i, absolute=True)
         n0 = mesh.get_normal(i, 0)
         n1 = mesh.get_normal(i, 1)
         n2 = mesh.get_normal(i, 2) 
-        ret_list.append([i, [vertices, (n0, n1, n2)]])
+        ret_list.append([i, node, [vertices, (n0, n1, n2)]])
     return ret_list
                 
             
@@ -195,6 +224,8 @@ def reset_search_times():
 
 class MeshQuadtree(Cell):
     """ A quadtree constructed from the given mesh.
+        This class is actually the root node of a tree,
+        and derives from a Cell.
     """
     def __init__(self, mesh):
         """Build quad tree for mesh.
@@ -204,7 +235,7 @@ class MeshQuadtree(Cell):
         
         extents = AABB(*mesh.get_extent(absolute=True))   
         extents.grow(1.001) # To avoid round off error
-        Cell.__init__(self, extents)
+        Cell.__init__(self, extents, None)  # root has no parent
         
         N = len(mesh)
 
