@@ -62,7 +62,6 @@ class Cell(TreeNode):
     def insert(self, new_leaf):
         # process list items sequentially
         if type(new_leaf)==type(list()):
-            ret_val = []
             for leaf in new_leaf:
                 self._insert(leaf)
         else:
