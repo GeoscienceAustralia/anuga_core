@@ -151,10 +151,8 @@ class Test_search_functions(unittest.TestCase):
         # One point
         x = ensure_numeric([0.5, 0.5])
 
-        triangles = root._trilist_from_data(root.search(x))
-    
         found, sigma0, sigma1, sigma2, k = \
-               root._search_triangles_of_vertices(triangles, x)
+               root._search_triangles_of_vertices(root.search(x), x)
 
         if k >= 0:
             V = mesh.get_vertex_coordinates(k) # nodes for triangle k

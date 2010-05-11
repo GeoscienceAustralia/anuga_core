@@ -83,24 +83,24 @@ class Cell(TreeNode):
             subregion1, subregion2 = self.extents.split()
             
             # option 1 - try splitting 4 ways
-            subregion11, subregion12 = subregion1.split()                                
-            subregion21, subregion22 = subregion2.split()
-            regions = [subregion11, subregion12, subregion21, subregion22]
-            for region in regions:
-                if region.is_trivial_in(new_region):
-                    self.children = [Cell(x, parent=self) for x in regions]
-                    self._insert(new_leaf)
-                    return               
+            #subregion11, subregion12 = subregion1.split()                                
+            #subregion21, subregion22 = subregion2.split()
+            #regions = [subregion11, subregion12, subregion21, subregion22]
+            #for region in regions:
+                #if region.is_trivial_in(new_region):
+                    #self.children = [Cell(x, parent=self) for x in regions]
+                    #self._insert(new_leaf)
+                    #return               
 
             # option 2 - try splitting 2 ways
-            #if subregion1.is_trivial_in(new_region):
-                #self.children = [Cell(subregion1, self), Cell(subregion2, self)]    
-                #self.children[0]._insert(new_leaf)
-                #return
-            #elif subregion2.is_trivial_in(new_region):
-                #self.children = [Cell(subregion1, self), Cell(subregion2, self)]    
-                #self.children[1]._insert(new_leaf)
-                #return                
+            if subregion1.is_trivial_in(new_region):
+                self.children = [Cell(subregion1, self), Cell(subregion2, self)]    
+                self.children[0]._insert(new_leaf)
+                return
+            elif subregion2.is_trivial_in(new_region):
+                self.children = [Cell(subregion1, self), Cell(subregion2, self)]    
+                self.children[1]._insert(new_leaf)
+                return                
     
         # recursion ended without finding a fit, so attach it as a leaf
         self.leaves.append(new_leaf)

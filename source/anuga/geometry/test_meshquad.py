@@ -45,8 +45,8 @@ class Test_Quad(unittest.TestCase):
         result = Q.search([10, 10])
         assert type(result) in [types.ListType,types.TupleType],\
                             'should be a list'
-        index, parent = result[0]
-        self.assertEqual(index, 1)
+                            
+        self.assertEqual(result[0][0][0], 1)
 
 
     def test_build_quadtreeII(self):
@@ -137,12 +137,10 @@ class Test_Quad(unittest.TestCase):
         Q = MeshQuadtree(mesh)
         results = Q.search([4.5, 3])
         assert len(results) == 1
-        idx, _ = results[0]
-        self.assertEqual(idx, 2)
+        self.assertEqual(results[0][0][0], 2)
         results = Q.search([5,4.])
         self.assertEqual(len(results),1)
-        idx, _ = results[0]
-        self.assertEqual(idx, 2)
+        self.assertEqual(results[0][0][0], 2)
         
     def NOtest_num_visits(self):
         """ Test optimisation code.

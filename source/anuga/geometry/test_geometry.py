@@ -85,6 +85,7 @@ class Test_Geometry(unittest.TestCase):
         """ Make sure children know their parent. """
         cell = Cell(AABB(0,10, 0,5), None)
         cell.insert([(AABB(1,3, 1, 3), 111), (AABB(8,9, 1, 2), 222)])
+
         assert len(cell.children) == 2
         assert cell.parent == None
         assert cell.children[0].parent == cell
