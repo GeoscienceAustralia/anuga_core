@@ -18,14 +18,14 @@ class Test_Geometry(unittest.TestCase):
 
     def test_AABB_contains(self):
         box = AABB(1, 21, 1, 11)
-        assert box.contains(10, 5)
-        assert box.contains(1, 1)
-        assert box.contains(20, 6)
-        assert not box.contains(-1, -1)
-        assert not box.contains(5, 70)
-        assert not box.contains(6, -70)
-        assert not box.contains(-1, 6)
-        assert not box.contains(50, 6)        
+        assert box.contains([10, 5])
+        assert box.contains([1, 1])
+        assert box.contains([20, 6])
+        assert not box.contains([-1, -1])
+        assert not box.contains([5, 70])
+        assert not box.contains([6, -70])
+        assert not box.contains([-1, 6])
+        assert not box.contains([50, 6])        
         
     def test_AABB_split_vert(self):
         parent = AABB(1, 21, 1, 11)

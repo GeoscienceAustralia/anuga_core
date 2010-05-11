@@ -71,13 +71,21 @@ def search_tree_of_vertices(root, mesh, x):
         if element_found:
             return True, sigma0, sigma1, sigma2, k
 
-    # search to bottom of tree from last found leaf
     branch = last_triangle[0][1]
     
     if branch == -10:
         branch = root   
-    
-    tri_data = branch.search(x[0], x[1])
+
+    # test neighbouring tris
+    tri_data = branch.test_leaves(x)
+    triangles = _trilist_from_data(mesh, tri_data)            
+    element_found, sigma0, sigma1, sigma2, k = \
+                _search_triangles_of_vertices(triangles, x)
+    if element_found:
+        return True, sigma0, sigma1, sigma2, k       
+
+    # search to bottom of tree from last found leaf    
+    tri_data = branch.search(x)
     triangles = _trilist_from_data(mesh, tri_data)            
     element_found, sigma0, sigma1, sigma2, k = \
                 _search_triangles_of_vertices(triangles, x)
@@ -94,7 +102,7 @@ def search_tree_of_vertices(root, mesh, x):
             siblings = branch.get_siblings()
             
         for sibling in siblings:
-            tri_data = sibling.search(x[0], x[1])
+            tri_data = sibling.search(x)
             triangles = _trilist_from_data(mesh, tri_data)            
             element_found, sigma0, sigma1, sigma2, k = \
                         _search_triangles_of_vertices(triangles, x)
@@ -103,7 +111,7 @@ def search_tree_of_vertices(root, mesh, x):
                                     
         branch = branch.parent
         if branch:
-            tri_data = branch.test_leaves(x[0], x[1])
+            tri_data = branch.test_leaves(x)
             triangles = _trilist_from_data(mesh, tri_data)            
             element_found, sigma0, sigma1, sigma2, k = \
                         _search_triangles_of_vertices(triangles, x)
@@ -111,17 +119,6 @@ def search_tree_of_vertices(root, mesh, x):
                 return True, sigma0, sigma1, sigma2, k        
 
     return element_found, sigma0, sigma1, sigma2, k
-
-
-    ## Get triangles in the cell that the point is in.
-    #tri_data = root.search(x[0], x[1])
-    #triangles = _trilist_from_data(mesh, tri_data)
-    
-    #element_found, sigma0, sigma1, sigma2, k = \
-                   #_search_triangles_of_vertices(triangles, x)
-
-    #if element_found:
-        #return True, sigma0, sigma1, sigma2, k
 
 
 def _search_triangles_of_vertices(triangles, x):

@@ -134,31 +134,27 @@ class Cell(TreeNode):
                 child.show(depth+1)
  
 
-    def search(self, x, y):
+    def search(self, x):
         """return a list of possible intersections with geometry"""
-
- #       if self.searched == [x,y]:
- #           print 'ERROR: already searched at ', [x,y]
- #       self.searched = [x,y]
         
-        intersecting_regions = self.test_leaves(x, y)
+        intersecting_regions = self.test_leaves(x)
         
         # recurse down into nodes that the point passes through
         if self.children:
             for child in self.children:    
-                if child.extents.contains(x, y):
-                    intersecting_regions.extend(child.search(x, y))
+                if child.extents.contains(x):
+                    intersecting_regions.extend(child.search(x))
              
         return intersecting_regions
  
  
-    def test_leaves(self, x, y):
+    def test_leaves(self, x):
         intersecting_regions = []
         
         # test all leaves to see if they intersect the point
         for leaf in self.leaves:
             aabb, data = leaf
-            if aabb.contains(x, y):
+            if aabb.contains(x):
                 intersecting_regions.append((data, self))
                 
         return intersecting_regions                

@@ -67,6 +67,6 @@ class AABB:
             return False        
         return True
  
-    def contains(self, x, y):
-        return (self.xmin <= x <= self.xmax) and (self.ymin <= y <= self.ymax)
+    def contains(self, x):
+        return (self.xmin <= x[0] <= self.xmax) and (self.ymin <= x[1] <= self.ymax)
         
