@@ -18,7 +18,7 @@ class Cell(TreeNode):
     western, eastern boundaries.
     """
   
-    def __init__(self, extents, parent, depth = 0,
+    def __init__(self, extents, parent,
          name = 'cell'):
   
         # Initialise base classes
@@ -26,8 +26,6 @@ class Cell(TreeNode):
     
         self.extents = extents
         self.parent = parent
-        self.searched = [-10, -15]
-        self.depth = depth
         
         # The points in this cell     
         self.leaves = []
@@ -35,8 +33,8 @@ class Cell(TreeNode):
         
     
     def __repr__(self):
-        str = '(%d)%s: leaves: %d' \
-               % (self.depth, self.name , len(self.leaves))    
+        str = '%s: leaves: %d' \
+               % (self.name , len(self.leaves))    
         if self.children:
             str += ', children: %d' % (len(self.children))
         return str
@@ -83,14 +81,26 @@ class Cell(TreeNode):
         else:            
             # try splitting this cell and see if we get a trivial in
             subregion1, subregion2 = self.extents.split()
-            if subregion1.is_trivial_in(new_region):
-                self.children = [Cell(subregion1, self, depth=self.depth+1), Cell(subregion2, self, depth=self.depth+1)]    
-                self.children[0]._insert(new_leaf)
-                return
-            elif subregion2.is_trivial_in(new_region):
-                self.children = [Cell(subregion1, self, depth=self.depth+1), Cell(subregion2, self, depth=self.depth+1)]    
-                self.children[1]._insert(new_leaf)
-                return                
+            
+            # option 1 - try splitting 4 ways
+            subregion11, subregion12 = subregion1.split()                                
+            subregion21, subregion22 = subregion2.split()
+            regions = [subregion11, subregion12, subregion21, subregion22]
+            for region in regions:
+                if region.is_trivial_in(new_region):
+                    self.children = [Cell(x, parent=self) for x in regions]
+                    self._insert(new_leaf)
+                    return               
+
+            # option 2 - try splitting 2 ways
+            #if subregion1.is_trivial_in(new_region):
+                #self.children = [Cell(subregion1, self), Cell(subregion2, self)]    
+                #self.children[0]._insert(new_leaf)
+                #return
+            #elif subregion2.is_trivial_in(new_region):
+                #self.children = [Cell(subregion1, self), Cell(subregion2, self)]    
+                #self.children[1]._insert(new_leaf)
+                #return                
     
         # recursion ended without finding a fit, so attach it as a leaf
         self.leaves.append(new_leaf)
@@ -127,16 +137,15 @@ class Cell(TreeNode):
         """
         if depth == 0:
             log.critical() 
-        print '%s%s' % ('  '*depth, self.name), self.extents,' [', self.leaves, ']'
+        print '%s%s'  % ('  '*depth, self.name), self.extents,' [', self.leaves, ']'
         if self.children:
             log.critical()
             for child in self.children:
                 child.show(depth+1)
- 
 
     def search(self, x):
         """return a list of possible intersections with geometry"""
-        
+      
         intersecting_regions = self.test_leaves(x)
         
         # recurse down into nodes that the point passes through

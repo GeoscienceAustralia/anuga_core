@@ -26,8 +26,6 @@ else:
 import numpy as num
 
 
-# FIXME(Ole): Could we come up with a less confusing structure?
-# FIXME(James): remove this global var
 LAST_TRIANGLE = [[-10, -10,
                    (num.array([[max_float, max_float],
                                [max_float, max_float],
@@ -56,7 +54,7 @@ class MeshQuadtree(Cell):
         
         N = len(mesh)
         self.mesh = mesh
-        self.last_triangle = LAST_TRIANGLE	       
+        self.set_last_triangle()  
 
         # Get x,y coordinates for all vertices for all triangles
         V = mesh.get_vertex_coordinates(absolute=True)
@@ -90,18 +88,17 @@ class MeshQuadtree(Cell):
             k: Index of triangle (if found)
 
         """
+        
+        x = ensure_numeric(x, num.float)
+                 
         if self.last_triangle[0][1] != -10:
             # check the last triangle found first
             element_found, sigma0, sigma1, sigma2, k = \
                        self._search_triangles_of_vertices(self.last_triangle, x)
-
             if element_found:
                 return True, sigma0, sigma1, sigma2, k
 
         branch = self.last_triangle[0][1]
-        
-        if branch == -10:
-            branch = self   
 
         # test neighbouring tris
         tri_data = branch.test_leaves(x)
@@ -111,31 +108,19 @@ class MeshQuadtree(Cell):
         if element_found:
             return True, sigma0, sigma1, sigma2, k       
 
-        # search to bottom of tree from last found leaf    
-        tri_data = branch.search(x)
-        triangles = self._trilist_from_data(tri_data)            
-        element_found, sigma0, sigma1, sigma2, k = \
-                    self._search_triangles_of_vertices(triangles, x)
-        if element_found:
-            return True, sigma0, sigma1, sigma2, k
-
         # search rest of tree
         element_found = False
-        while branch:
-            if not branch.parent:
-                # search from top of tree if we are at root
-                siblings = [self]
-            else:
-                siblings = branch.get_siblings()
-                
-            for sibling in siblings:
+        next_search = [branch]
+        while branch:               
+            for sibling in next_search:
                 tri_data = sibling.search(x)
                 triangles = self._trilist_from_data(tri_data)            
                 element_found, sigma0, sigma1, sigma2, k = \
                             self._search_triangles_of_vertices(triangles, x)
                 if element_found:
                     return True, sigma0, sigma1, sigma2, k
-                                        
+            
+            next_search = branch.get_siblings()                            
             branch = branch.parent
             if branch:
                 tri_data = branch.test_leaves(x)
@@ -143,7 +128,7 @@ class MeshQuadtree(Cell):
                 element_found, sigma0, sigma1, sigma2, k = \
                             self._search_triangles_of_vertices(triangles, x)
                 if element_found:
-                    return True, sigma0, sigma1, sigma2, k        
+                    return True, sigma0, sigma1, sigma2, k      
 
         return element_found, sigma0, sigma1, sigma2, k
 
@@ -157,17 +142,8 @@ class MeshQuadtree(Cell):
 
         This function is responsible for most of the compute time in
         fit and interpolate.
-        """
-        x = ensure_numeric(x, num.float)     
-        
-        # These statments are needed if triangles is empty
-        sigma2 = -10.0
-        sigma0 = -10.0
-        sigma1 = -10.0
-        k = -10
-        
-        # For all vertices in same cell as point x
-        element_found = False    
+        """  
+
         for k, node, tri_verts_norms in triangles:
             tri = tri_verts_norms[0]
             tri = ensure_numeric(tri)        
@@ -177,29 +153,20 @@ class MeshQuadtree(Cell):
             
             # Input check disabled to speed things up.    
             if bool(_is_inside_triangle(x, tri, int(True), 1.0e-12, 1.0e-12)):
-                
                 n0, n1, n2 = tri_verts_norms[1]        
-                sigma0, sigma1, sigma2 =\
-                    compute_interpolation_values(tri, n0, n1, n2, x)
-                    
-                element_found = True    
+                xi0, xi1, xi2 = tri
+
+                sigma0 = num.dot((x-xi1), n0)/num.dot((xi0-xi1), n0)
+                sigma1 = num.dot((x-xi2), n1)/num.dot((xi1-xi2), n1)
+                sigma2 = num.dot((x-xi0), n2)/num.dot((xi2-xi0), n2)              
 
                 # Don't look for any other triangles in the triangle list
                 self.last_triangle = [[k, node, tri_verts_norms]]
-                break            
-                
-        return element_found, sigma0, sigma1, sigma2, k
+                return True, sigma0, sigma1, sigma2, k                      
+        return False, -1, -1, -1, -10
 
 
     def _trilist_from_data(self, indices):
-        """return a list of lists. For the inner lists,
-        The first element is the triangle index,
-        the second element is a list.for this list
-           the first element is a list of three (x, y) vertices,
-           the following elements are the three triangle normals.
-
-        """
-
         ret_list = []
         for i, node in indices:
             vertices = self.mesh.get_vertex_coordinates(triangle_id=i, absolute=True)
@@ -211,20 +178,8 @@ class MeshQuadtree(Cell):
         
     def set_last_triangle(self):
         self.last_triangle = LAST_TRIANGLE
+        self.last_triangle[0][1] = self # point at root by default          
 
     
-def compute_interpolation_values(triangle, n0, n1, n2, x):
-    """Compute linear interpolation of point x and triangle.
-    
-    n0, n1, n2 are normal to the tree edges.
-    """
 
-    # Get the three vertex_points of candidate triangle k
-    xi0, xi1, xi2 = triangle
-
-    sigma0 = num.dot((x-xi1), n0)/num.dot((xi0-xi1), n0)
-    sigma1 = num.dot((x-xi2), n1)/num.dot((xi1-xi2), n1)
-    sigma2 = num.dot((x-xi0), n2)/num.dot((xi2-xi0), n2)
-
-    return sigma0, sigma1, sigma2
                 

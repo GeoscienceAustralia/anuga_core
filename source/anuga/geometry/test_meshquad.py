@@ -144,29 +144,40 @@ class Test_Quad(unittest.TestCase):
         idx, _ = results[0]
         self.assertEqual(idx, 2)
         
-    def NOtest_get_parent():
-        """ Get a child's parent.
+    def NOtest_num_visits(self):
+        """ Test optimisation code.
         """
-        cell = Cell(AABB(0, 6, 0, 6), 'cell')
+        a = [3, 7]
+        b = [5, 7]
+        c = [5, 5]
+        d = [7, 7]
+        e = [15, 15]
+        f = [15, 30]
+        g = [30, 10]
+        h = [30, 30]
 
-        p0 = [2,1]
-        p1 = [4,1]
-        p2 = [4,4]
-        p3 = [2,4]
-        p4 = [5,4]
-
-        points = [p0,p1,p2, p3, p4]
-        vertices = [[0,1,2],[0,2,3],[1,4,2]]
+        points = [a, b, c, d, e, f, g, h]
+        
+        #bac, bce, ecf, dbe, daf, dae
+        vertices = [[1,0,2], [1,3,4], [1,2,3], [5,4,7], [4,6,7]]
 
         mesh = Mesh(points, vertices)
 
-        Q = MeshQuadtree(mesh)
-        results = Q.search([4.5, 3])
-        assert len(results) == 1
-        self.assertEqual(results[0], 2)
-        results = Q.search([5,4.])
-        self.assertEqual(len(results),1)
-        self.assertEqual(results[0], 2)     
+        Q = MeshQuadtree(mesh)    
+
+
+        results = Q.search_fast([5.5, 5.5])
+        print 'visits: ', Q.count_visits()
+        
+        Q.clear_visits()
+        results = Q.search_fast([30, 10])
+        print 'visits: ', Q.count_visits()
+        
+        print 'second time:'
+
+        Q.clear_visits()        
+        results = Q.search_fast([5.5, 5.5])
+        print 'visits: ', Q.count_visits()
 ################################################################################
 
 if __name__ == "__main__":

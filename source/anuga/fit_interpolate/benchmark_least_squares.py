@@ -23,9 +23,6 @@ import tempfile
 import profile , pstats
 from math import sqrt
 
-from anuga.fit_interpolate.search_functions import search_times, \
-     reset_search_times
-
 from anuga.fit_interpolate.interpolate import Interpolate
 from anuga.fit_interpolate.fit import Fit
 from anuga.pmesh.mesh import Mesh
@@ -261,8 +258,8 @@ class BenchmarkLeastSquares:
         # return the times spent in first cell searching and
         # backing up.
         
-        search_one_cell_time, search_more_cells_time = search_times()
-        reset_search_times()
+        #search_one_cell_time, search_more_cells_time = search_times()
+        #reset_search_times()
         #print "bench - search_one_cell_time",search_one_cell_time
         #print "bench - search_more_cells_time", search_more_cells_time
         #print "bench - build_quadtree_time", get_build_quadtree_time()

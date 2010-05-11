@@ -2,7 +2,7 @@
 
 
 import unittest
-from mesh_quadtree import MeshQuadtree, compute_interpolation_values
+from mesh_quadtree import MeshQuadtree
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
@@ -227,43 +227,6 @@ class Test_search_functions(unittest.TestCase):
         assert element_found is True
         assert k == 1
         
-        
-    def test_compute_interpolation_values(self):
-        """test_compute_interpolation_values
-        
-        Test that interpolation values are correc
-        
-        This test used to check element_found as output from 
-        find_triangle_compute_interpolation(triangle, n0, n1, n2, x)
-        and that failed before 18th March 2009.
-        
-        Now this function no longer returns this flag, so the test
-        is merely checknig the sigmas.
-        
-        """
-        
-        triangle = num.array([[306951.77151059, 6194462.14596986],
-                              [306952.58403545, 6194459.65001246],
-                              [306953.55109034, 6194462.0041216]])
-
-
-        n0 = [0.92499377, -0.37998227]
-        n1 = [0.07945684,  0.99683831]
-        n2 = [-0.95088404, -0.30954732]
-        
-        x = [306953.344, 6194461.5]
-        
-        # Test that point is indeed inside triangle
-        assert is_inside_polygon(x, triangle, 
-                                 closed=True, verbose=False)
-        assert is_inside_triangle(x, triangle, 
-                                  closed=True, verbose=False)                                 
-        
-        sigma0, sigma1, sigma2 = \
-            compute_interpolation_values(triangle, n0, n1, n2, x)
-            
-        msg = 'Point which is clearly inside triangle was not found'
-        assert abs(sigma0 + sigma1 + sigma2 - 1) < 1.0e-6, msg
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
