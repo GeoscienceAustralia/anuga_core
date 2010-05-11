@@ -1,9 +1,9 @@
 import unittest
 import numpy as num
 
-from anuga.geometry.aabb import AABB
-from anuga.geometry.quad import Cell
-from anuga.fit_interpolate.mesh_quadtree import MeshQuadtree
+from aabb import AABB
+from quad import Cell
+from mesh_quadtree import MeshQuadtree
 from anuga.abstract_2d_finite_volumes.general_mesh import General_mesh as Mesh
 
 import types, sys

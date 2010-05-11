@@ -32,7 +32,7 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.utilities.numerical_tools import ensure_numeric, NAN
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.geospatial_data.geospatial_data import ensure_absolute
-from anuga.fit_interpolate.mesh_quadtree import search_tree_of_vertices
+from anuga.fit_interpolate.mesh_quadtree import MeshQuadtree
 from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
 from anuga.abstract_2d_finite_volumes.file_function import file_function
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
@@ -491,8 +491,7 @@ class Interpolate (FitInterpolate):
                                                           %(d, n))
 
             x = point_coordinates[i]
-            element_found, sigma0, sigma1, sigma2, k = \
-                           search_tree_of_vertices(self.root, self.mesh, x)
+            element_found, sigma0, sigma1, sigma2, k = self.root.search_fast(x)
                        
         # Update interpolation matrix A if necessary
             if element_found is True:

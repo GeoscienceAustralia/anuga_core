@@ -34,7 +34,7 @@ from anuga.geospatial_data.geospatial_data import Geospatial_data, \
 from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
 from anuga.utilities.sparse import Sparse, Sparse_CSR
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon
-from anuga.fit_interpolate.mesh_quadtree import search_tree_of_vertices
+from anuga.fit_interpolate.mesh_quadtree import MeshQuadtree
 
 from anuga.utilities.cg_solve import conjugate_gradient
 from anuga.utilities.numerical_tools import ensure_numeric, gradient
@@ -275,7 +275,7 @@ class Fit(FitInterpolate):
             x = point_coordinates[i]
             
             element_found, sigma0, sigma1, sigma2, k = \
-                           search_tree_of_vertices(self.root, self.mesh, x)
+                           self.root.search_fast(x)
             
             if element_found is True:
                 j0 = triangles[k,0] # Global vertex id for sigma0

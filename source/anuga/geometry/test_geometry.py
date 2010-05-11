@@ -74,7 +74,7 @@ class Test_Geometry(unittest.TestCase):
         cell.insert([(AABB(1,3, 1, 3), 111), (AABB(8,9, 1, 2), test_tag),  \
                      (AABB(7, 8, 3, 4), 333), (AABB(1, 10, 0, 1), 444)])
 
-        result = cell.search(x = 8.5, y = 1.5)
+        result = cell.search([8.5, 1.5])
         assert type(result) in [types.ListType,types.TupleType],\
                             'should be a list'
         assert(len(result) == 1)

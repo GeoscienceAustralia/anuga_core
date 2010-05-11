@@ -2,10 +2,7 @@
 
 
 import unittest
-from mesh_quadtree import search_tree_of_vertices, set_last_triangle
-from mesh_quadtree import _search_triangles_of_vertices
-from mesh_quadtree import _trilist_from_data
-from mesh_quadtree import compute_interpolation_values, MeshQuadtree
+from mesh_quadtree import MeshQuadtree, compute_interpolation_values
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
@@ -50,12 +47,12 @@ class Test_search_functions(unittest.TestCase):
         mesh.check_integrity()
 
         root = MeshQuadtree(mesh)
-        set_last_triangle()
+        root.set_last_triangle()
 
-        found, s0, s1, s2, k = search_tree_of_vertices(root, mesh, [-0.2, 10.7])
+        found, s0, s1, s2, k = root.search_fast([-0.2, 10.7])
         assert found is False
 
-        found, s0, s1, s2, k = search_tree_of_vertices(root, mesh, [0, 0])
+        found, s0, s1, s2, k = root.search_fast([0, 0])
         assert found is True
         
         
@@ -70,10 +67,10 @@ class Test_search_functions(unittest.TestCase):
         mesh.check_integrity()
 
         root = MeshQuadtree(mesh)
-        set_last_triangle()
+        root.set_last_triangle()
 
         x = [0.2, 0.7]
-        found, s0, s1, s2, k = search_tree_of_vertices(root, mesh, x)
+        found, s0, s1, s2, k = root.search_fast(x)
         assert k == 1 # Triangle one
         assert found is True        
         
@@ -90,14 +87,13 @@ class Test_search_functions(unittest.TestCase):
         mesh.check_integrity()
 
         root = MeshQuadtree(mesh)
-        set_last_triangle()
+        root.set_last_triangle()
 
         for x in [[0.6, 0.3], [0.1, 0.2], [0.7,0.7],
                   [0.1,0.9], [0.4,0.6], [0.9,0.1],
                   [10, 3]]:
             
-            found, s0, s1, s2, k = search_tree_of_vertices(root, mesh,
-                                                           ensure_numeric(x))                                   
+            found, s0, s1, s2, k = root.search_fast(ensure_numeric(x))                                   
                                                            
             if k >= 0:
                 V = mesh.get_vertex_coordinates(k) # nodes for triangle k
@@ -122,14 +118,14 @@ class Test_search_functions(unittest.TestCase):
         
 
         root = MeshQuadtree(mesh)
-        set_last_triangle()
+        root.set_last_triangle()
         #print m, root.show()
 
         for x in [[0.6, 0.3], [0.1, 0.2], [0.7,0.7],
                   [0.1,0.9], [0.4,0.6], [0.9,0.1],
                   [10, 3]]:
             
-            found, s0, s1, s2, k = search_tree_of_vertices(root, mesh, x)
+            found, s0, s1, s2, k = root.search_fast(x)
 
             if k >= 0:
                 V = mesh.get_vertex_coordinates(k) # nodes for triangle k
@@ -150,15 +146,15 @@ class Test_search_functions(unittest.TestCase):
         mesh = Mesh(points, vertices, boundary)
 
         root = MeshQuadtree(mesh)
-        set_last_triangle()
+        root.set_last_triangle()
 
         # One point
         x = ensure_numeric([0.5, 0.5])
 
-        triangles = _trilist_from_data(mesh, root.search(x))
+        triangles = root._trilist_from_data(root.search(x))
     
         found, sigma0, sigma1, sigma2, k = \
-               _search_triangles_of_vertices(triangles, x)
+               root._search_triangles_of_vertices(triangles, x)
 
         if k >= 0:
             V = mesh.get_vertex_coordinates(k) # nodes for triangle k
@@ -174,11 +170,11 @@ class Test_search_functions(unittest.TestCase):
                   [0.1,0.9], [0.4,0.6], [0.9,0.1],
                   [10, 3]]:
                 
-            triangles = _trilist_from_data(mesh, root.search(x))
+            triangles = root._trilist_from_data(root.search(x))
 
             #print x, candidate_vertices
             found, sigma0, sigma1, sigma2, k = \
-                   _search_triangles_of_vertices(triangles,
+                   root._search_triangles_of_vertices(triangles,
                                                  ensure_numeric(x))
             if k >= 0:
                 V = mesh.get_vertex_coordinates(k) # nodes for triangle k
@@ -224,12 +220,10 @@ class Test_search_functions(unittest.TestCase):
         # One point
         #x = [3.5, 1.5]
         x = [2.5, 1.5]
-        element_found, sigma0, sigma1, sigma2, k = \
-                       search_tree_of_vertices(root, mesh, x)
+        element_found, sigma0, sigma1, sigma2, k = root.search_fast(x)
         # One point
         x = [3.00005, 2.999994]
-        element_found, sigma0, sigma1, sigma2, k = \
-                       search_tree_of_vertices(root, mesh, x)
+        element_found, sigma0, sigma1, sigma2, k = root.search_fast(x)
         assert element_found is True
         assert k == 1
         
