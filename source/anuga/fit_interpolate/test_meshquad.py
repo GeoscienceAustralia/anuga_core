@@ -3,7 +3,7 @@ import numpy as num
 
 from anuga.geometry.aabb import AABB
 from anuga.geometry.quad import Cell
-from anuga.fit_interpolate.search_functions import MeshQuadtree
+from anuga.fit_interpolate.mesh_quadtree import MeshQuadtree
 from anuga.abstract_2d_finite_volumes.general_mesh import General_mesh as Mesh
 
 import types, sys
@@ -42,7 +42,7 @@ class Test_Quad(unittest.TestCase):
         self.assertEqual(Q.count(), len(vertices))
 
         # test a point that falls within a triangle
-        result = Q.search(10, 10)
+        result = Q.search([10, 10])
         assert type(result) in [types.ListType,types.TupleType],\
                             'should be a list'
         index, parent = result[0]
@@ -135,11 +135,11 @@ class Test_Quad(unittest.TestCase):
         mesh = Mesh(points, vertices)
 
         Q = MeshQuadtree(mesh)
-        results = Q.search(4.5, 3)
+        results = Q.search([4.5, 3])
         assert len(results) == 1
         idx, _ = results[0]
         self.assertEqual(idx, 2)
-        results = Q.search(5,4.)
+        results = Q.search([5,4.])
         self.assertEqual(len(results),1)
         idx, _ = results[0]
         self.assertEqual(idx, 2)
@@ -161,10 +161,10 @@ class Test_Quad(unittest.TestCase):
         mesh = Mesh(points, vertices)
 
         Q = MeshQuadtree(mesh)
-        results = Q.search(4.5, 3)
+        results = Q.search([4.5, 3])
         assert len(results) == 1
         self.assertEqual(results[0], 2)
-        results = Q.search(5,4.)
+        results = Q.search([5,4.])
         self.assertEqual(len(results),1)
         self.assertEqual(results[0], 2)     
 ################################################################################

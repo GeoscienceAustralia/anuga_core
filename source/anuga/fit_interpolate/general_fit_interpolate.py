@@ -30,7 +30,7 @@ from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.geospatial_data.geospatial_data import Geospatial_data, \
      ensure_absolute
-from anuga.fit_interpolate.search_functions import set_last_triangle, MeshQuadtree
+from anuga.fit_interpolate.mesh_quadtree import set_last_triangle, MeshQuadtree
 import anuga.utilities.log as log
 
 import numpy as num
