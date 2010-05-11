@@ -24,15 +24,14 @@ else:
     raise Exception, msg
 
 import numpy as num
+ 
 
-
-LAST_TRIANGLE = [[-10, -10,
-                   (num.array([[max_float, max_float],
+LAST_TRIANGLE = [[[-1, num.array([[max_float, max_float],
                                [max_float, max_float],
                                [max_float, max_float]]),
-                    (num.array([1.,1.]),      
-                     num.array([0.,0.]),      
-                     num.array([-1.1,-1.1])))]]
+                      num.array([[max_float, max_float],
+                               [max_float, max_float],
+                               [max_float, max_float]])], -10]]
 
 
 
@@ -59,16 +58,21 @@ class MeshQuadtree(Cell):
         # Get x,y coordinates for all vertices for all triangles
         V = mesh.get_vertex_coordinates(absolute=True)
         
+        normals = mesh.get_normals()
+        
         # Check each triangle
         for i in range(N):
-            x0, y0 = V[3*i, :]
-            x1, y1 = V[3*i+1, :]
-            x2, y2 = V[3*i+2, :]
+            i3 = 3*i
+            x0, y0 = V[i3, :]
+            x1, y1 = V[i3+1, :]
+            x2, y2 = V[i3+2, :]
+
+            node_data = [i, V[i3:i3+3,:], normals[i,:]]
 
             # insert a tuple with an AABB, and the triangle index as data
             self._insert((AABB(min([x0, x1, x2]), max([x0, x1, x2]), \
                              min([y0, y1, y2]), max([y0, y1, y2])), \
-                             i))
+                             node_data))
 
     def search_fast(self, x):
         """
@@ -91,20 +95,18 @@ class MeshQuadtree(Cell):
         
         x = ensure_numeric(x, num.float)
                  
-        if self.last_triangle[0][1] != -10:
-            # check the last triangle found first
-            element_found, sigma0, sigma1, sigma2, k = \
-                       self._search_triangles_of_vertices(self.last_triangle, x)
-            if element_found:
-                return True, sigma0, sigma1, sigma2, k
+        # check the last triangle found first
+        element_found, sigma0, sigma1, sigma2, k = \
+                   self._search_triangles_of_vertices(self.last_triangle, x)
+        if element_found:
+            return True, sigma0, sigma1, sigma2, k
 
         branch = self.last_triangle[0][1]
 
         # test neighbouring tris
-        tri_data = branch.test_leaves(x)
-        triangles = self._trilist_from_data(tri_data)            
+        tri_data = branch.test_leaves(x)          
         element_found, sigma0, sigma1, sigma2, k = \
-                    self._search_triangles_of_vertices(triangles, x)
+                    self._search_triangles_of_vertices(tri_data, x)
         if element_found:
             return True, sigma0, sigma1, sigma2, k       
 
@@ -113,20 +115,18 @@ class MeshQuadtree(Cell):
         next_search = [branch]
         while branch:               
             for sibling in next_search:
-                tri_data = sibling.search(x)
-                triangles = self._trilist_from_data(tri_data)            
+                tri_data = sibling.search(x)         
                 element_found, sigma0, sigma1, sigma2, k = \
-                            self._search_triangles_of_vertices(triangles, x)
+                            self._search_triangles_of_vertices(tri_data, x)
                 if element_found:
                     return True, sigma0, sigma1, sigma2, k
             
             next_search = branch.get_siblings()                            
             branch = branch.parent
             if branch:
-                tri_data = branch.test_leaves(x)
-                triangles = self._trilist_from_data(tri_data)            
+                tri_data = branch.test_leaves(x)     
                 element_found, sigma0, sigma1, sigma2, k = \
-                            self._search_triangles_of_vertices(triangles, x)
+                            self._search_triangles_of_vertices(tri_data, x)
                 if element_found:
                     return True, sigma0, sigma1, sigma2, k      
 
@@ -139,42 +139,28 @@ class MeshQuadtree(Cell):
         This is called by search_tree_of_vertices once the appropriate node
         has been found from the quad tree.
         
-
-        This function is responsible for most of the compute time in
-        fit and interpolate.
+        x is the triangle index
+        Input check disabled to speed things up.   
         """  
 
-        for k, node, tri_verts_norms in triangles:
-            tri = tri_verts_norms[0]
-            tri = ensure_numeric(tri)        
-            # k is the triangle index
-            # tri is a list of verts (x, y), representing a triangle
-            # Find triangle that contains x (if any) and interpolate
-            
-            # Input check disabled to speed things up.    
-            if bool(_is_inside_triangle(x, tri, int(True), 1.0e-12, 1.0e-12)):
-                n0, n1, n2 = tri_verts_norms[1]        
-                xi0, xi1, xi2 = tri
+        for node_data in triangles:             
+            if bool(_is_inside_triangle(x, node_data[0][1], int(True), 1.0e-12, 1.0e-12)):
+                normals = node_data[0][2]      
+                n0 = normals[0:2]
+                n1 = normals[2:4]
+                n2 = normals[4:6]          
+                xi0, xi1, xi2 = node_data[0][1]
 
                 sigma0 = num.dot((x-xi1), n0)/num.dot((xi0-xi1), n0)
                 sigma1 = num.dot((x-xi2), n1)/num.dot((xi1-xi2), n1)
                 sigma2 = num.dot((x-xi0), n2)/num.dot((xi2-xi0), n2)              
 
                 # Don't look for any other triangles in the triangle list
-                self.last_triangle = [[k, node, tri_verts_norms]]
-                return True, sigma0, sigma1, sigma2, k                      
+                self.last_triangle = [node_data]
+                return True, sigma0, sigma1, sigma2, node_data[0][0] # tri index                      
         return False, -1, -1, -1, -10
 
-
-    def _trilist_from_data(self, indices):
-        ret_list = []
-        for i, node in indices:
-            vertices = self.mesh.get_vertex_coordinates(triangle_id=i, absolute=True)
-            n0 = self.mesh.get_normal(i, 0)
-            n1 = self.mesh.get_normal(i, 1)
-            n2 = self.mesh.get_normal(i, 2) 
-            ret_list.append([i, node, [vertices, (n0, n1, n2)]])
-        return ret_list
+        
         
     def set_last_triangle(self):
         self.last_triangle = LAST_TRIANGLE

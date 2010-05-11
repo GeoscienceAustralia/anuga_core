@@ -164,7 +164,7 @@ class Cell(TreeNode):
         for leaf in self.leaves:
             aabb, data = leaf
             if aabb.contains(x):
-                intersecting_regions.append((data, self))
+                intersecting_regions.append([data, self])
                 
         return intersecting_regions                
  
