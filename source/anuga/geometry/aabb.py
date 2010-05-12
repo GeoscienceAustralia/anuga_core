@@ -3,6 +3,8 @@ SPLIT_BORDER_RATIO    = 0.55
 
 class AABB:
     """Axially-aligned bounding box class.
+       Defines a box which can check for intersections with other boxes,
+       or if a point lies within it.
     """
     
     def __init__(self, xmin, xmax, ymin, ymax):
@@ -39,8 +41,13 @@ class AABB:
 
         
     def split(self, border=SPLIT_BORDER_RATIO):
-        """Split along shorter axis.
-           return 2 subdivided AABBs.
+        """Split box along shorter axis.
+           return 2 subdivided AABBs. This is useful for recursive
+           algorithms.
+           
+           border is the overlap between the 2 regions - if set to 0.5
+                  it will subdivide them exactly, > 0.5 will create a
+                  shared overlapping area. 
         """
         
         width, height = self.size()
@@ -58,8 +65,9 @@ class AABB:
     
     def is_trivial_in(self, test):
         """ Is trivial in.
-            test an x,y point to test against the bounding box
-            return True if the test point falls within the bounding box
+            test a box to test against the bounding box
+            return True if the test box falls fully within the
+                   bounding box without intersecting it.
         """
         if (test.xmin < self.xmin) or (test.xmax > self.xmax):
             return False        
@@ -68,5 +76,9 @@ class AABB:
         return True
  
     def contains(self, x):
+        """ is point within box
+            x is a test point
+            return True if the point is contained within the box.
+        """
         return (self.xmin <= x[0] <= self.xmax) and (self.ymin <= x[1] <= self.ymax)
         

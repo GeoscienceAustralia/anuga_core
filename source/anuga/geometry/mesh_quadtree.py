@@ -79,9 +79,7 @@ class MeshQuadtree(Cell):
         Find the triangle (element) that the point x is in.
 
         Inputs:
-            root: A quad tree of the vertices
-            mesh: The mesh which the quad tree indexes into
-            x:    The point being placed
+            x:    The point to test
         
         Return:
             element_found, sigma0, sigma1, sigma2, k
@@ -134,13 +132,16 @@ class MeshQuadtree(Cell):
 
 
     def _search_triangles_of_vertices(self, triangles, x):
-        """Search for triangle containing x amongs candidate_vertices in triangles
+        """Search for triangle containing x among triangle list
 
         This is called by search_tree_of_vertices once the appropriate node
         has been found from the quad tree.
         
-        x is the triangle index
-        Input check disabled to speed things up.   
+        Input check disabled to speed things up. 
+        
+        x is the point to test 
+        triangles is the triangle list
+        return the found triangle and its interpolation sigma.
         """  
 
         for node_data in triangles:             
@@ -163,6 +164,11 @@ class MeshQuadtree(Cell):
         
         
     def set_last_triangle(self):
+        """ Reset last triangle.
+            The algorithm is optimised to find nearby triangles to the
+            previously found one. This is called to reset the search to
+            the root of the tree.
+        """
         self.last_triangle = LAST_TRIANGLE
         self.last_triangle[0][1] = self # point at root by default          
 

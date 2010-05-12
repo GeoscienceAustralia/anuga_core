@@ -1,7 +1,11 @@
 """quad.py - quad tree data structure for fast indexing of regions in the plane.
 
 This is a generic structure that can be used to store any geometry in a quadtree.
+It is naive, and does not exploit any coherency - it merely tests a bounding
+box against all other bounding boxes in its heirarchy.
 
+It returns a list of bounding boxes which intersect with the test box, which
+must then be iterated over to detect actual intersections.
 
 """
 
@@ -14,12 +18,15 @@ from aabb import AABB
 class Cell(TreeNode):
     """class Cell
 
-    One cell in the plane delimited by southern, northern,
-    western, eastern boundaries.
+    One cell in the plane.
     """
   
     def __init__(self, extents, parent,
          name = 'cell'):
+        """ Construct a new cell.
+            extents is an AABB defining a region on the plane.
+            parent is the node above this one, or None if it is root.
+        """
   
         # Initialise base classes
         TreeNode.__init__(self, string.lower(name))
@@ -61,7 +68,10 @@ class Cell(TreeNode):
 
 
     def insert(self, new_leaf):
-        # process list items sequentially
+        """ Insert a leaf into the quadtree.
+            new_leaf is a tuple of (AABB extents, data), where data can
+                     be any user data (geometry, triangle index, etc.).
+        """
         if type(new_leaf)==type(list()):
             for leaf in new_leaf:
                 self._insert(leaf)
@@ -70,6 +80,10 @@ class Cell(TreeNode):
 
 
     def _insert(self, new_leaf):   
+        """ Internal recursive insert.
+            new_leaf is a tuple of (AABB extents, data), where data can
+                     be any user data (geometry, triangle index, etc.).       
+        """
         new_region, data = new_leaf
         
         # recurse down to any children until we get an intersection
@@ -92,7 +106,7 @@ class Cell(TreeNode):
                     #self._insert(new_leaf)
                     #return               
 
-            # option 2 - try splitting 2 ways
+            # option 2 - try splitting 2 ways - no diff noticed in practise
             if subregion1.is_trivial_in(new_region):
                 self.children = [Cell(subregion1, self), Cell(subregion2, self)]    
                 self.children[0]._insert(new_leaf)
@@ -107,7 +121,9 @@ class Cell(TreeNode):
         
      
     def retrieve(self):
-        """Get all leaves from this tree. """
+        """Get all leaves from this tree.
+           return a traversal of the entire tree.
+        """
         
         leaves_found = list(self.leaves)
         
@@ -120,7 +136,9 @@ class Cell(TreeNode):
         return leaves_found
 
     def count(self):
-        """Count all leaves from this tree. """
+        """Count all leaves from this tree.
+           return num of leaves in the tree.
+        """
         
         leaves_found = len(self.leaves)
         
@@ -133,7 +151,7 @@ class Cell(TreeNode):
         return leaves_found        
 
     def show(self, depth=0):
-        """Traverse tree below self
+        """Traverse tree below self, dumping all information.
         """
         if depth == 0:
             log.critical() 
@@ -158,6 +176,10 @@ class Cell(TreeNode):
  
  
     def test_leaves(self, x):
+        """ Test all leaves to see if they intersect x.
+            x is a point to test
+            return a list of leaves that intersect x
+        """
         intersecting_regions = []
         
         # test all leaves to see if they intersect the point
@@ -170,7 +192,8 @@ class Cell(TreeNode):
  
  
     def get_siblings(self):
-        """ return parent and siblings of this node.
+        """ return siblings of this node. If there is no parent, it
+                   returns an empty list.
         """
         if not self.parent:
             return []
