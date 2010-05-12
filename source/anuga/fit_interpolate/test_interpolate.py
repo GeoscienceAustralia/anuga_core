@@ -1833,45 +1833,38 @@ class Test_Interpolate(unittest.TestCase):
 
         
     def test_interpolate_one_point_many_triangles(self):
-        # this test has 10 triangles that share the same vert.
-        # If the number of points per cell in  a quad tree is less
-        # than 10 it will crash.
         z0 = [2.0, 5.0]
-        z1 = [2.0, 5.0]
-        z2 = [2.0, 5.0]
-        z3 = [2.0, 5.0]
-        z4 = [2.0, 5.0]
-        z5 = [2.0, 5.0]
-        z6 = [2.0, 5.0]
-        z7 = [2.0, 5.0]
-        z8 = [2.0, 5.0]
-        z9 = [2.0, 5.0]
-        z10 = [2.0, 5.0]
-        
+
         v0 = [0.0, 0.0]
         v1 = [1.0, 0.0]
         v2 = [2.0, 0.0]
         v3 = [3.0, 0.0]
         v4 = [4.0, 0.0]
-        v5 = [0.0, 10.0]
-        v6 = [1.0, 10.0]
-        v7 = [2.0, 10.0]
-        v8 = [3.0, 10.0]
-        v9 = [4.0, 10.0]
-
-        vertices = [z0,v0, v1, v2, v3,v4 ,v5, v6, v7, v8, v9,
-                    z1, z2, z3, z4, z5, z6, z7, z8, z9]
+        v5 = [5.0, 0.0]
+        v6 = [6.0, 0.0]
+        v7 = [0.0, 10.0]
+        v8 = [1.0, 10.0]
+        v9 = [2.0, 10.0]
+        v10= [3.0, 10.0]
+        v11= [4.0, 10.0]
+        v12= [5.0, 10.0]
+        v13= [6.0, 10.0]
+        
+        vertices = [z0,v0, v1, v2, v3,v4 ,v5, v6, v7, v8, v9, v10, v11,
+                    v12, v13]
         triangles = [
-                      [11,1,2],
-                      [12,2,3],
-                      [13,3,4],
-                      [14,4,5],
-                      [7,6,15],
-                      [8,7,16],
-                      [9,8,17],
-                      [10,9,18],
-                      [6,1,19],
-                      [5,10,0]
+                      [0,1,2],
+                      [0,2,3],
+                      [0,3,4],
+                      [0,4,5],
+                      [0,5,6],
+                      [0,6,7],
+                      [0,9,8],
+                      [0,10,9],
+                      [0,11,10],
+                      [0,12,11],
+                      [0,13,12],
+                      [0,14,13]
                       ]
 
         d0 = [1.0, 1.0]
@@ -1881,9 +1874,8 @@ class Test_Interpolate(unittest.TestCase):
         try:
             interp = Interpolate(vertices, triangles)
         except RuntimeError:
-            self.failUnless(0 ==1,  'quad fails with 10 verts at the same \
-            position. Real problems have had 9. \
-            Should be able to handle 13.')
+            self.failUnless(0 ==1,  'quad fails with 14 verts at the same \
+            position. Should be able to handle any number.')
         f = linear_function(vertices)
         z = interp.interpolate(f, point_coords)
         answer = linear_function(point_coords)
