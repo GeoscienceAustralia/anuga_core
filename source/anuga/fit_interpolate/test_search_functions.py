@@ -168,7 +168,7 @@ class Test_search_functions(unittest.TestCase):
                   [0.1,0.9], [0.4,0.6], [0.9,0.1],
                   [10, 3]]:
                 
-            triangles = root._trilist_from_data(root.search(x))
+            triangles = root.search(x)
 
             #print x, candidate_vertices
             found, sigma0, sigma1, sigma2, k = \
