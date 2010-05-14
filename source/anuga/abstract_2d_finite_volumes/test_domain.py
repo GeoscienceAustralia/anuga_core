@@ -4,9 +4,12 @@ import unittest
 from math import sqrt
 
 from anuga.abstract_2d_finite_volumes.domain import *
+from anuga.pmesh.mesh_interface import create_mesh_from_regions
 from anuga.config import epsilon
-
+from anuga.shallow_water import Reflective_boundary
+from anuga.shallow_water import Dirichlet_boundary
 import numpy as num
+from anuga.pmesh.mesh import Segment, Vertex, Mesh
 
 
 def add_to_verts(tag, elements, domain):
@@ -1053,6 +1056,79 @@ class Test_Domain(unittest.TestCase):
         domain.statistics()
         domain.get_extent()
 
+    def NOtest_vertex_within_hole(self):
+        """ NOTE: This test fails - it is designed to test fitting on
+            a mesh with a hole, but more info is needed on the specific
+            problem."""
+        
+        # For test_fitting_using_shallow_water_domain example
+        def linear_function(point):
+            point = num.array(point)
+            return point[:,0]+point[:,1]        
+        
+        meshname = 'test_mesh.msh'
+        verbose = False
+        W = 0
+        S = 0
+        E = 10
+        N = 10
+
+        bounding_polygon = [[W, S], [E, S], [E, N], [W, N]]
+        hole = [[[.1,.1], [9.9,1.1], [9.9,9.9], [1.1,9.9]]]
+
+        create_mesh_from_regions(bounding_polygon,
+                                 boundary_tags={'south': [0], 
+                                                'east': [1], 
+                                                'north': [2], 
+                                                'west': [3]},
+                                 maximum_triangle_area=1,
+                                 filename=meshname,
+                                 interior_holes = hole,
+                                 use_cache=False,
+                                 verbose=verbose)
+
+        domain = Domain(meshname, use_cache=False, verbose=verbose)
+        quantity = Quantity(domain)
+        
+         # Get (enough) datapoints (relative to georef)
+        data_points     = [[ 0.66666667, 0.66666667],
+                           [ 1.33333333, 1.33333333],
+                           [ 2.66666667, 0.66666667],
+                           [ 0.66666667, 2.66666667],
+                           [ 0.0,        1.0],
+                           [ 0.0,        3.0],
+                           [ 1.0,        0.0],
+                           [ 1.0,        1.0],
+                           [ 1.0,        2.0],
+                           [ 1.0,        3.0],
+                           [ 2.0,        1.0],
+                           [ 3.0,        0.0],
+                           [ 3.0,        1.0]]
+
+
+        attributes = linear_function(data_points)
+        att = 'spam_and_eggs'
+
+        # Create .txt file
+        ptsfile = "points.txt"
+        file = open(ptsfile, "w")
+        file.write(" x,y," + att + " \n")
+        for data_point, attribute in map(None, data_points, attributes):
+            row = (str(data_point[0]) + ',' +
+                   str(data_point[1]) + ',' +
+                   str(attribute))
+            file.write(row + "\n")
+        file.close()
+
+        # Check that values can be set from file
+        quantity.set_values(filename=ptsfile, attribute_name=att, alpha=0)
+        answer = linear_function(quantity.domain.get_vertex_coordinates())
+
+        assert num.allclose(quantity.vertex_values.flat, answer)
+
+        # Check that values can be set from file using default attribute
+        quantity.set_values(filename = ptsfile, alpha = 0)
+        assert num.allclose(quantity.vertex_values.flat, answer)       
         
         
 
