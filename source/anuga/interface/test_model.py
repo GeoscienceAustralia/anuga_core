@@ -10,7 +10,8 @@ from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
 
 class modelTestCase(unittest.TestCase):
     def setUp(self):
-        self.model = Model()     
+        # construct and name model
+        self.model = Model('test_model') 
         pass
 
     def tearDown(self):
@@ -37,36 +38,69 @@ class modelTestCase(unittest.TestCase):
         from anuga.shallow_water import Reflective_boundary
         from anuga.shallow_water import Dirichlet_boundary
         
-        self.model.set_geometry(*rectangular_cross(10, 5, len1=10.0, len2=5.0))  # Create domain        
-        self.model.set_name('channel1')                  # Output name
-
-        #------------------------------------------------------------------------------
-        # Setup initial conditions
-        #------------------------------------------------------------------------------
         def topography(x, y):
-            return -x/10                             # linear bed slope
+            return -x/10                         
 
-        self.model.set_quantity('elevation', topography) # Use function for elevation
-        self.model.set_quantity('friction', 0.01)        # Constant friction 
+        # set quantities
+        self.model.set_quantity('elevation', topography) 
+        self.model.set_quantity('friction', 0.01)         
+        self.model.set_quantity('stage', expression='elevation')  
+
+        # set properties of boundaries (reflective, flow in, etc.)
+        Bi = Dirichlet_boundary([0.4, 0, 0])         # Inflow
+        self.model.set_boundary({'left': Bi, 'right': Bi, 'top': Bi, 'bottom': Bi})
+
+        # set the geometry to use (may be a mesh file, or points/vertices tuple)
+        self.model.set_geometry(*rectangular_cross(2, 2, len1=10.0, len2=5.0))
+
+        # build, then run the simulation
+        self.model.build()
+        self.model.run(0.5, 1.0)
+
+
+    def test_wrong_input_order(self):
+        """The user tries to build before model is defined. """
+        
         self.model.set_quantity('stage',                 # Dry bed
-                            expression='elevation')  
+                            expression='elevation')          
 
+        try:
+            self.model.build()            
+        except:
+            pass
+        else:
+            msg = 'Should have raised exception for missing mesh'
+            raise Exception, msg
+
+
+    def test_duplicate_geometry(self):
+        """The user tries to assign geometry twice. """
+
+        self.model.set_geometry(*rectangular_cross(2, 2, len1=10.0, len2=5.0))
+
+        try:
+            self.model.set_geometry(*rectangular_cross(2, 2, len1=10.0, len2=5.0))  
+        except:
+            pass
+        else:
+            msg = 'Should have raised bad input exception'
+            raise Exception, msg
+
+
+    def test_input_after_build(self):
+        """The user tries to change built model. """
+
+        self.model.set_geometry(*rectangular_cross(2, 2, len1=10.0, len2=5.0))
         self.model.build()
         
-        #------------------------------------------------------------------------------
-        # Setup boundary conditions
-        #------------------------------------------------------------------------------
-        Bi = Dirichlet_boundary([0.4, 0, 0])         # Inflow
-    #    Br = Reflective_boundary(domain)             # Solid reflective wall
+        try:
+            self.model.set_quantity('friction', 0.01)  
+        except:
+            pass
+        else:
+            msg = 'Should have raised exception because model already built'
+            raise Exception, msg
 
-     #   domain.set_boundary({'left': Bi, 'right': Bi, 'top': Bi, 'bottom': Bi})
-
-        #------------------------------------------------------------------------------
-        # Evolve system through time
-        #------------------------------------------------------------------------------
-   #     for t in domain.evolve(yieldstep=0.2, finaltime=40.0):
-   #         print domain.timestepping_statistics()        
-        
 
 
 ################################################################################

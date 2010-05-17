@@ -1,81 +1,95 @@
-from anuga.shallow_water.domain import Domain
+from anuga.shallow_water.shallow_water_domain import Domain
 
+# The different states the model can be in
+STATE_SETUP, STATE_BUILT, STATE_RUNNING = range(0, 3)
 
-class Model:
-    def __init__(self):
+class Model:   
+    def __init__(self, name):
         self.domain = None   # Domain class will be removed as we refactor the API
         self.geometry_data = None
         self.quantities = []
+        self.boundaries = []
+        self._state = STATE_SETUP
+        self.name = name
+
     
     def set_geometry(self, *args, **kwargs):
         if self.geometry_data:
-            raise InputError, 'geometry already defined in model.'
+            raise RuntimeError, 'geometry already defined in model.'
+        elif self._state != STATE_SETUP:
+            raise RuntimeError, 'Model already built - call this before build().'
         else:
             self.geometry_data = (args, kwargs)
-        
-    def set_name(self, name):
-        self.name = name
+
         
     def set_quantity(self, *args, **kwargs):
         """Set values for named quantity
         """
+        if self._state != STATE_SETUP:
+            raise RuntimeError, 'Model already built - call this before build().'
 
         self.quantities.append((args, kwargs))
 
-        
-    def build(self):
-        from anuga.shallow_water import Reflective_boundary
-        from anuga.shallow_water import Dirichlet_boundary
+    def get_quantity(self, name):
+        if self._state != STATE_RUNNING:
+            raise RuntimeError, 'Model needs to be running - call this after run().'
+            
+        return self.domain.get_quantity(name)
 
-        args, kwargs = self.geometry_data
 
-        self.domain = Domain(*args, **kwargs)  # Create domain
-        self.domain.set_name('channel1')                  # Output name
+    def set_boundary(self, *args, **kwargs):
+        """Set the boundary properties.
+        """
+        if self._state == STATE_SETUP:
+            # dont apply boundaries until model is built
+            self.boundaries.append((args, kwargs))
+        else:
+            # model is running, apply boundaries right away
+            self.domain.set_boundary(*args, **kwargs)
+   
+    def get_normals(self):
+        # FIXME: This is a wrapper to allow reflective boundary to work.
+        # Should be refactored and removed.
+        return domain.get_normals()
 
-        #------------------------------------------------------------------------------
-        # Setup initial conditions
-        #------------------------------------------------------------------------------
-        def topography(x, y):
-            return -x/10                             # linear bed slope
-
-        self.domain.set_quantity('elevation', topography) # Use function for elevation
-        self.domain.set_quantity('friction', 0.01)        # Constant friction 
-        self.domain.set_quantity('stage',                 # Dry bed
-                            expression='elevation')          
-        return
-        
-        
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
-        if not self.name:
-            raise InputError, 'Model needs a name: use model.set_name().'
-        
+    def build(self):        
         if not self.geometry_data:
-            raise InputError, 'Model needs geometry. Set mesh or geometry.'
+            raise RuntimeError, 'Model needs geometry. Set mesh or geometry.'
+
+        if self._state != STATE_SETUP:
+            raise RuntimeError, 'Model already built.'
 
         if len(self.geometry_data[0]) == 1:
-            raise InputError, 'Load mesh not implemented.'
+            raise RuntimeError, 'Load mesh not implemented.'
         else:
             args, kwargs = self.geometry_data
 
+            self.domain = Domain(*args, **kwargs)
+            self.domain.set_name(self.name)
 
-            points, vertices, boundary = rectangular_cross(10, 5,
-                                                           len1=10.0, len2=5.0) # Mesh
-
-            domain = Domain(points, vertices, boundary)  # Create domain
-
-        #    domain = Domain(*args, **kwargs)
-            domain.set_name(self.name)
-
-            def topography(x, y):
-                return -x/10    
-            domain.set_quantity('elevation', topography) # Use function for elevation
-            domain.set_quantity('friction', 0.01)        # Constant friction 
-            domain.set_quantity('stage',                 # Dry bed
-                                expression='elevation')  
-            
-            print self.quantities
-            
             for args, kwargs in self.quantities:
                 self.domain.set_quantity(*args, **kwargs)
+
+            for args, kwargs in self.boundaries:
+                self.domain.set_boundary(*args, **kwargs)
+
+            self._state = STATE_BUILT
+            self.geometry_data = None
+            self.quantities = None
         
+
+    def run(self, yieldstep, finaltime, verbose = False, timestep_function = None):
+        if self._state != STATE_BUILT:
+            msg = 'Model is not built, cannot run yet.'
+            msg += ' Call build() before run().'
+            raise RuntimeError, msg
+ 
+        self._state = STATE_RUNNING
         
+        for t in self.domain.evolve(yieldstep, finaltime):
+            if verbose == True:
+                print self.domain.timestepping_statistics()
+                
+            # call the user's function at every timestep
+            if timestep_function:
+                timestep_function(self, t)
