@@ -457,7 +457,7 @@ class Test_swb_conservation(unittest.TestCase):
         from anuga.shallow_water import Domain
         from anuga.shallow_water.shallow_water_domain import Reflective_boundary
         from anuga.shallow_water.shallow_water_domain import Dirichlet_boundary
-        from anuga.shallow_water.shallow_water_domain import Inflow
+        from anuga.shallow_water.forcing import Inflow
         from anuga.shallow_water.data_manager \
                 import get_flow_through_cross_section
 
@@ -550,7 +550,7 @@ class Test_swb_conservation(unittest.TestCase):
         from anuga.shallow_water import Domain
         from anuga.shallow_water.shallow_water_domain import Reflective_boundary
         from anuga.shallow_water.shallow_water_domain import Dirichlet_boundary
-        from anuga.shallow_water.shallow_water_domain import Inflow
+        from anuga.shallow_water.forcing import Inflow
         from anuga.shallow_water.data_manager import get_flow_through_cross_section
 
         #----------------------------------------------------------------------
