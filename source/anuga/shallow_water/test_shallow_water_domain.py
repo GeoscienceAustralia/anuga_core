@@ -7,20 +7,35 @@ import tempfile
 
 from anuga.config import g, epsilon
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
-from anuga.utilities.numerical_tools import mean
+from anuga.utilities.numerical_tools import mean, ensure_numeric
 from anuga.geometry.polygon import is_inside_polygon
 from anuga.coordinate_transforms.geo_reference import Geo_reference
-from anuga.abstract_2d_finite_volumes.quantity import Quantity
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
+from anuga.abstract_2d_finite_volumes.quantity import Quantity
 
 from anuga.utilities.system_tools import get_pathname_from_package
-from shallow_water_domain import *
+
+from anuga.shallow_water import Domain
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions \
+        import Dirichlet_boundary
+from anuga.shallow_water.shallow_water_domain import Rainfall, Wind_stress
+from anuga.shallow_water.shallow_water_domain import Inflow, Cross_section
+from anuga.shallow_water.data_manager import get_flow_through_cross_section
+
+# boundary functions
+from anuga.shallow_water.boundaries import Reflective_boundary, \
+            Field_boundary, Transmissive_momentum_set_stage_boundary, \
+            Transmissive_stage_zero_momentum_boundary
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
+     import Transmissive_boundary, Dirichlet_boundary, \
+            Time_boundary, File_boundary, AWI_boundary
 
 import numpy as num
 
 # Get gateway to C implementation of flux function for direct testing
 from shallow_water_ext import flux_function_central as flux_function
+from shallow_water_ext import rotate
 
 
 # For test_fitting_using_shallow_water_domain example
@@ -6600,8 +6615,6 @@ friction  \n \
         from anuga.abstract_2d_finite_volumes.mesh_factory \
                 import rectangular_cross
         from anuga.shallow_water import Domain
-        from anuga.shallow_water.shallow_water_domain import Reflective_boundary
-        from anuga.shallow_water.shallow_water_domain import Dirichlet_boundary
         from anuga.shallow_water.shallow_water_domain import Inflow
         from anuga.shallow_water.data_manager \
                 import get_flow_through_cross_section
@@ -6693,8 +6706,6 @@ friction  \n \
         #---------------------------------------------------------------------
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
         from anuga.shallow_water import Domain
-        from anuga.shallow_water.shallow_water_domain import Reflective_boundary
-        from anuga.shallow_water.shallow_water_domain import Dirichlet_boundary
         from anuga.shallow_water.shallow_water_domain import Inflow
         from anuga.shallow_water.data_manager import get_flow_through_cross_section
 
@@ -6789,16 +6800,6 @@ friction  \n \
 
         verbose = False
         
-
-        #---------------------------------------------------------------------
-        # Import necessary modules
-        #---------------------------------------------------------------------
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
-        from anuga.shallow_water import Domain
-        from anuga.shallow_water.shallow_water_domain import Reflective_boundary
-        from anuga.shallow_water.shallow_water_domain import Dirichlet_boundary
-        from anuga.shallow_water.shallow_water_domain import Rainfall
-        from anuga.shallow_water.data_manager import get_flow_through_cross_section
 
         #----------------------------------------------------------------------
         # Setup computational domain
@@ -7124,22 +7125,6 @@ friction  \n \
         
         verbose = False
         
-
-        #----------------------------------------------------------------------
-        # Import necessary modules
-        #----------------------------------------------------------------------
-
-        from anuga.abstract_2d_finite_volumes.mesh_factory \
-                import rectangular_cross
-        from anuga.shallow_water import Domain
-        from anuga.shallow_water.shallow_water_domain import Reflective_boundary
-        from anuga.shallow_water.shallow_water_domain import Dirichlet_boundary
-        from anuga.shallow_water.shallow_water_domain import Inflow
-        from anuga.shallow_water.data_manager \
-                import get_flow_through_cross_section
-        from anuga.abstract_2d_finite_volumes.util \
-                import sww2csv_gauges, csv2timeseries_graphs
-
         #----------------------------------------------------------------------
         # Setup computational domain
         #----------------------------------------------------------------------

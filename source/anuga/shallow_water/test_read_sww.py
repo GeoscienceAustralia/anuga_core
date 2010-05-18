@@ -36,8 +36,9 @@ class Test_read_sww(unittest.TestCase):
         #---------------------------------------------------------------------
         from anuga.interface import rectangular_cross
         from anuga.interface import Domain
-        from anuga.interface import Reflective_boundary
-        from anuga.interface import Dirichlet_boundary
+        from boundaries import Reflective_boundary
+        from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
+                            import Dirichlet_boundary  
         from anuga.interface import Time_boundary
 
         #---------------------------------------------------------------------
