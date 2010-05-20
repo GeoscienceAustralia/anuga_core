@@ -9,8 +9,6 @@ from forcing import *
 
 import numpy as num
 
-### Helper functions
-###
 
 def scalar_func_list(t, x, y):
     """Function that returns a scalar.
@@ -20,9 +18,11 @@ def scalar_func_list(t, x, y):
 
     return [17.7]
 
-# Variable windfield implemented using functions
+
 def speed(t, x, y):
-    """Large speeds halfway between center and edges
+    """
+    Variable windfield implemented using functions    
+    Large speeds halfway between center and edges
 
     Low speeds at center and edges
     """
@@ -247,7 +247,7 @@ class Test_Forcing(unittest.TestCase):
         fid.close()
 
         # Convert ASCII file to NetCDF (Which is what we really like!)
-        from data_manager import timefile2netcdf
+        from file_conversion import timefile2netcdf
 
         timefile2netcdf(filename)
         os.remove(filename + '.txt')
@@ -339,7 +339,7 @@ class Test_Forcing(unittest.TestCase):
         fid.close()
 
         # Convert ASCII file to NetCDF (Which is what we really like!)
-        from data_manager import timefile2netcdf
+        from file_conversion import timefile2netcdf
 
         timefile2netcdf(filename, time_as_seconds=True)
         os.remove(filename + '.txt')

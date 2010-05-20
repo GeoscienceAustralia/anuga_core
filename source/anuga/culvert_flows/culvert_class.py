@@ -1,6 +1,6 @@
 import sys
 
-from anuga.shallow_water.shallow_water_domain import Inflow, General_forcing
+from anuga.shallow_water.forcing import Inflow, General_forcing
 from anuga.culvert_flows.culvert_polygons import create_culvert_polygons
 from anuga.utilities.system_tools import log_to_file
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon, plot_polygons

@@ -187,7 +187,8 @@ class Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(Boundary):
     """
 
     def __init__(self, domain=None, function=None):
-        """ Instantiate a Transmissive_n_momentum_zero_t_momentum_set_stage_boundary.
+        """ Instantiate a
+            Transmissive_n_momentum_zero_t_momentum_set_stage_boundary.
             domain is the domain containing the boundary
             function is the function to apply
         """
@@ -208,7 +209,9 @@ class Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(Boundary):
 
     def __repr__(self):
         """ Return a representation of this instance. """
-        return 'Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(%s)' %self.domain
+        msg='Transmissive_n_momentum_zero_t_momentum_set_stage_boundary'
+        msg+='(%s)' %self.domain
+        return msg
 
 
     def evaluate(self, vol_id, edge_id):
@@ -392,7 +395,8 @@ class Inflow_boundary(Boundary):
         xmomentum, ymomentum = self.average_momentum * inward_normal
             
         # Compute depth based on Manning's formula v = 1/n h^{2/3} sqrt(S)
-        # Where v is velocity, n is manning's coefficient, h is depth and S is the slope into the domain. 
+        # Where v is velocity, n is manning's coefficient, h is depth
+        # and S is the slope into the domain. 
         # Let mu be the momentum (vh), then this equation becomes: mu = 1/n h^{5/3} sqrt(S) 
         # from which we can isolate depth to get
         # h = (mu n/sqrt(S) )^{3/5} 

@@ -17,12 +17,17 @@ import shutil
 
 from anuga.shallow_water import *
 from anuga.shallow_water.data_manager import *
+from anuga.shallow_water.sww_file import SWW_file
+from anuga.shallow_water.file_conversion import tsh2sww, \
+                        asc_csiro2sww, pmesh_to_domain_instance, \
+                        dem2pts
 from anuga.config import epsilon, g
 from anuga.utilities.anuga_exceptions import ANUGAError
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.coordinate_transforms.redfearn import degminsec2decimal_degrees
 from anuga.abstract_2d_finite_volumes.util import file_function
 from anuga.utilities.system_tools import get_pathname_from_package
+from anuga.utilities.file_utils import del_dir, load_csv_as_dict
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.config import netcdf_float
 
@@ -4443,7 +4448,6 @@ END CROSS-SECTIONS:
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
 
         # the memory optimised least squares
         #  cellsize = 20,   # this one seems to hang
@@ -4468,7 +4472,6 @@ END CROSS-SECTIONS:
         """
 
         import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
 
         from data_manager import _read_asc
         #Write test asc file
@@ -7709,7 +7712,7 @@ ValueError: matrices are not aligned for copy
             fid = NetCDFFile(sts_name_out+'.sts', netcdf_mode_r) # Open existing file for read
             x = fid.variables['x'][:]+fid.xllcorner    # x-coordinates of vertices
             y = fid.variables['y'][:]+fid.yllcorner    # y-coordinates of vertices
-	    elevation = fid.variables['elevation'][:]
+            elevation = fid.variables['elevation'][:]
             time=fid.variables['time'][:]+fid.starttime
 
             # Get quantity data from sts file
@@ -7735,18 +7738,18 @@ ValueError: matrices are not aligned for copy
                 index_end = 0
                 count = 0
 
-        	# read in urs test data for stage, e and n velocity
+                # read in urs test data for stage, e and n velocity
                 urs_file_name_z = 'z_'+str(source_number)+'_'+str(j)+'.csv'
-                dict = csv2array(os.path.join(testdir, urs_file_name_z))
+                dict = load_csv_as_array(os.path.join(testdir, urs_file_name_z))
                 urs_stage = dict['urs_stage']
                 urs_file_name_e = 'e_'+str(source_number)+'_'+str(j)+'.csv'
-                dict = csv2array(os.path.join(testdir, urs_file_name_e))
+                dict = load_csv_as_array(os.path.join(testdir, urs_file_name_e))
                 urs_e = dict['urs_e']
                 urs_file_name_n = 'n_'+str(source_number)+'_'+str(j)+'.csv'
-                dict = csv2array(os.path.join(testdir, urs_file_name_n))
+                dict = load_csv_as_array(os.path.join(testdir, urs_file_name_n))
                 urs_n = dict['urs_n']
 
-		# find start and end time for stage		
+                # find start and end time for stage             
                 for i in range(len(urs_stage)):
                     if urs_stage[i] == 0.0:
                         index_start_urs_z = i+1
@@ -7773,15 +7776,15 @@ ValueError: matrices are not aligned for copy
                 msg += 'header file for source %i and station %i' %(source_number,j)
                 assert num.allclose(index_start_urs_z,start_times_z[j]/delta_t), msg
 
-		msg = 'e velocity start time from urs file is not the same as the '
+                msg = 'e velocity start time from urs file is not the same as the '
                 msg += 'header file for source %i and station %i' %(source_number,j)
-		assert num.allclose(index_start_urs_e,start_times_e[j]/delta_t), msg
+                assert num.allclose(index_start_urs_e,start_times_e[j]/delta_t), msg
 
-		msg = 'n velocity start time from urs file is not the same as the '
+                msg = 'n velocity start time from urs file is not the same as the '
                 msg += 'header file for source %i and station %i' %(source_number,j)
-		assert num.allclose(index_start_urs_n,start_times_n[j]/delta_t), msg
-		
-		# get index for start and end time for sts quantities
+                assert num.allclose(index_start_urs_n,start_times_n[j]/delta_t), msg
+                
+                # get index for start and end time for sts quantities
                 index_start_stage = 0
                 index_end_stage = 0
                 count = 0
@@ -7809,13 +7812,13 @@ ValueError: matrices are not aligned for copy
                 assert num.allclose(urs_stage[index_start_urs_z:index_end_urs_z],
                                     sts_stage[index_start_stage:index_end_stage], 
                                     rtol=1.0e-6, atol=1.0e-5 ), msg                                
-				
+                                
                 # check that urs e velocity and sts xmomentum are the same
-		msg = 'urs e velocity is not equivalent to sts x momentum for for source %i and station %i' %(source_number,j)
+                msg = 'urs e velocity is not equivalent to sts x momentum for for source %i and station %i' %(source_number,j)
                 assert num.allclose(urs_e[index_start_urs_e:index_end_urs_e]*(urs_stage[index_start_urs_e:index_end_urs_e]-elevation[j]),
                                 sts_xmom[index_start_x:index_end_x], 
                                 rtol=1.0e-5, atol=1.0e-4 ), msg
-		
+                
                 # check that urs n velocity and sts ymomentum are the same
                 #print 'urs n velocity', urs_n[index_start_urs_n:index_end_urs_n]*(urs_stage[index_start_urs_n:index_end_urs_n]-elevation[j])
                 #print 'sts momentum', sts_ymom[index_start_y:index_end_y]                                                             
@@ -7863,7 +7866,7 @@ ValueError: matrices are not aligned for copy
         fid = NetCDFFile(sts_name_out+'.sts', netcdf_mode_r)    # Open existing file for read
         x = fid.variables['x'][:]+fid.xllcorner   # x-coordinates of vertices
         y = fid.variables['y'][:]+fid.yllcorner   # y-coordinates of vertices
-	elevation = fid.variables['elevation'][:]
+        elevation = fid.variables['elevation'][:]
         time=fid.variables['time'][:]+fid.starttime
         
         
@@ -7891,29 +7894,29 @@ ValueError: matrices are not aligned for copy
             %(sts_starttime, starttime)
         assert num.allclose(sts_starttime, starttime), msg
     
-	#stations = [1,2,3]
+        #stations = [1,2,3]
         #for j in stations: 
         for j in range(len(x)):
             index_start_urs_z = 0
             index_end_urs_z = 0
-	    index_start_urs_e = 0
+            index_start_urs_e = 0
             index_end_urs_e = 0
-	    index_start_urs_n = 0
+            index_start_urs_n = 0
             index_end_urs_n = 0
             count = 0
 
-	    # read in urs test data for stage, e and n velocity
+            # read in urs test data for stage, e and n velocity
             urs_file_name_z = 'z_combined_'+str(j)+'.csv'
-            dict = csv2array(os.path.join(testdir, urs_file_name_z))
+            dict = load_csv_as_array(os.path.join(testdir, urs_file_name_z))
             urs_stage = dict['urs_stage']
             urs_file_name_e = 'e_combined_'+str(j)+'.csv'
-            dict = csv2array(os.path.join(testdir, urs_file_name_e))
+            dict = load_csv_as_array(os.path.join(testdir, urs_file_name_e))
             urs_e = dict['urs_e']
             urs_file_name_n = 'n_combined_'+str(j)+'.csv'
-            dict = csv2array(os.path.join(testdir, urs_file_name_n))
+            dict = load_csv_as_array(os.path.join(testdir, urs_file_name_n))
             urs_n = dict['urs_n']
 
-	    # find start and end time for stage		
+            # find start and end time for stage         
             for i in range(len(urs_stage)):
                 if urs_stage[i] == 0.0:
                     index_start_urs_z = i+1
@@ -7936,15 +7939,15 @@ ValueError: matrices are not aligned for copy
             msg += 'header file at station %i' %(j)
             assert num.allclose(index_start_urs_z,start_times_z/delta_t), msg
 
-	    msg = 'e velocity start time from urs file is not the same as the '
+            msg = 'e velocity start time from urs file is not the same as the '
             msg += 'header file at station %i' %(j)
-	    assert num.allclose(index_start_urs_e,start_times_e/delta_t), msg
+            assert num.allclose(index_start_urs_e,start_times_e/delta_t), msg
 
-	    msg = 'n velocity start time from urs file is not the same as the '
+            msg = 'n velocity start time from urs file is not the same as the '
             msg += 'header file at station %i' %(j)
-	    assert num.allclose(index_start_urs_n,start_times_n/delta_t), msg
-		
-	    # get index for start and end time for sts quantities
+            assert num.allclose(index_start_urs_n,start_times_n/delta_t), msg
+                
+            # get index for start and end time for sts quantities
             index_start_stage = 0
             index_end_stage = 0
             index_start_x = 0
@@ -7962,39 +7965,39 @@ ValueError: matrices are not aligned for copy
                     count +=1
                     index_end_stage = i
                 
-	    index_end_stage = index_start_stage + len(urs_stage[index_start_urs_z:index_end_urs_z])
+            index_end_stage = index_start_stage + len(urs_stage[index_start_urs_z:index_end_urs_z])
 
-	    index_start_x = index_start_stage
-	    index_end_x = index_start_x + len(urs_stage[index_start_urs_e:index_end_urs_e])
-	    sts_xmom = quantities['ymomentum'][:,j]
+            index_start_x = index_start_stage
+            index_end_x = index_start_x + len(urs_stage[index_start_urs_e:index_end_urs_e])
+            sts_xmom = quantities['ymomentum'][:,j]
 
-	    index_start_y = index_start_stage
-	    index_end_y = index_start_y + len(urs_stage[index_start_urs_n:index_end_urs_n])
-	    sts_ymom = quantities['ymomentum'][:,j]
+            index_start_y = index_start_stage
+            index_end_y = index_start_y + len(urs_stage[index_start_urs_n:index_end_urs_n])
+            sts_ymom = quantities['ymomentum'][:,j]
 
             # check that urs stage and sts stage are the same
             msg = 'urs stage is not equal to sts stage for station %i' %j
-	    #print 'urs stage', urs_stage[index_start_urs_z:index_end_urs_z]
+            #print 'urs stage', urs_stage[index_start_urs_z:index_end_urs_z]
             #print 'sts stage', sts_stage[index_start_stage:index_end_stage]
             #print 'diff', max(urs_stage[index_start_urs_z:index_end_urs_z]-sts_stage[index_start_stage:index_end_stage])
             #print 'index', index_start_stage, index_end_stage, len(sts_stage)
             assert num.allclose(urs_stage[index_start_urs_z:index_end_urs_z],
                             sts_stage[index_start_stage:index_end_stage], 
                                 rtol=1.0e-5, atol=1.0e-4 ), msg                                
-				
+                                
             # check that urs e velocity and sts xmomentum are the same          
             msg = 'urs e velocity is not equivalent to sts xmomentum for station %i' %j
             assert num.allclose(urs_e[index_start_urs_e:index_end_urs_e]*(urs_stage[index_start_urs_e:index_end_urs_e]-elevation[j]),
                             sts_xmom[index_start_x:index_end_x], 
                             rtol=1.0e-5, atol=1.0e-4 ), msg
-		
+                
             # check that urs n velocity and sts ymomentum are the same                            
             msg = 'urs n velocity is not equivalent to sts ymomentum for station %i' %j
             assert num.allclose(urs_n[index_start_urs_n:index_end_urs_n]*(urs_stage[index_start_urs_n:index_end_urs_n]-elevation[j]),
                             sts_ymom[index_start_y:index_end_y], 
                             rtol=1.0e-5, atol=1.0e-4 ), msg
 
-	fid.close()
+        fid.close()
         
         os.remove(sts_name_out+'.sts')
         

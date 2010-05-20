@@ -14,7 +14,7 @@ from anuga.pmesh.mesh import Mesh
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.shallow_water import Domain, Transmissive_boundary
 from anuga.utilities.numerical_tools import mean
-from anuga.shallow_water.data_manager import SWW_file
+from anuga.shallow_water.sww_file import SWW_file
 
 import numpy as num
 
@@ -292,7 +292,8 @@ class Test_inundation_damage(unittest.TestCase):
         csv_file = tempfile.mktemp(".csv")
         fd = open(csv_file,'wb')
         writer = csv.writer(fd)
-        writer.writerow(['x','y',STR_VALUE_LABEL,CONT_VALUE_LABEL,'ROOF_TYPE',WALL_TYPE_LABEL, SHORE_DIST_LABEL])
+        writer.writerow(['x', 'y', STR_VALUE_LABEL, CONT_VALUE_LABEL, \
+        'ROOF_TYPE', WALL_TYPE_LABEL, SHORE_DIST_LABEL])
         writer.writerow([5.5,0.5,'10','130000','Metal','Timber',20])
         writer.writerow([4.5,1.0,'150','76000','Metal','Double Brick',20])
         writer.writerow([0.1,1.5,'100','76000','Metal','Brick Veneer',300])

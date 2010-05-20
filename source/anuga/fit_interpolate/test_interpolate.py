@@ -23,7 +23,7 @@ from interpolate import *
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.shallow_water import Domain, Transmissive_boundary
 from anuga.utilities.numerical_tools import mean, NAN
-from anuga.shallow_water.data_manager import SWW_file
+from anuga.shallow_water.sww_file import SWW_file
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.pmesh.mesh import Mesh
 

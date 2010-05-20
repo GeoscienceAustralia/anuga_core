@@ -649,8 +649,8 @@ def csv2timeseries_graphs(directories_dic={},
         return
 
     from os import sep
-    from anuga.shallow_water.data_manager import \
-                               get_all_files_with_extension, csv2dict
+    from anuga.utilities.file_utils import load_csv_as_dict, \
+                                get_all_files_with_extension
 
     seconds_in_hour = 3600
     seconds_in_minutes = 60
@@ -954,9 +954,8 @@ def get_runup_data_for_locations_from_file(gauge_filename,
     WARNING: NO TESTS! 
     """
 
-    from anuga.shallow_water.data_manager import get_all_directories_with_name,\
-                                                 get_maximum_inundation_data,\
-                                                 csv2dict
+    from anuga.shallow_water.data_manager import \
+        get_maximum_inundation_data, csv2dict
                                                  
     file = open(runup_filename, "w")
     file.write("easting,northing,runup \n ")

@@ -663,7 +663,7 @@ class Domain(Generic_Domain):
         Also, save x,y and bed elevation
         """
 
-        from anuga.shallow_water.data_manager import SWW_file
+        from anuga.shallow_water.sww_file import SWW_file
         
         # Initialise writer
         self.writer = SWW_file(self)

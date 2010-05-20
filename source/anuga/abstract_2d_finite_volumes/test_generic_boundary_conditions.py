@@ -403,7 +403,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
 
 
         #Convert ASCII file to NetCDF (Which is what we really like!)
-        from anuga.shallow_water.data_manager import timefile2netcdf
+        from anuga.shallow_water.file_conversion import timefile2netcdf
         
         timefile2netcdf(filename, quantity_names = ['stage', 'xmomentum'])
 

@@ -6069,7 +6069,7 @@ friction  \n \
         #---------------------------------------------------------------------
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
         from anuga.shallow_water import Domain
-        from anuga.shallow_water.shallow_water_domain import Reflective_boundary
+        from anuga.shallow_water.boundaries import Reflective_boundary
         from anuga.shallow_water.shallow_water_domain import Dirichlet_boundary
         from anuga.shallow_water.shallow_water_domain import Rainfall
         from anuga.shallow_water.data_manager import get_flow_through_cross_section
