@@ -17,9 +17,8 @@ from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions \
 	import ( Boundary, File_boundary, AWI_boundary, 
 	         Dirichlet_boundary, Time_boundary, Transmissive_boundary )
-from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_to_domain
-from anuga.abstract_2d_finite_volumes.region \
-	import Set_region as region_set_region
+from pmesh2domain import pmesh_to_domain
+from region import Set_region as region_set_region
 from anuga.geometry.polygon import inside_polygon
 from anuga.abstract_2d_finite_volumes.util import get_textual_float
 from quantity import Quantity
@@ -30,7 +29,7 @@ import numpy as num
 
 ##
 # @brief Generic Domain class
-class Domain:
+class Generic_Domain:
 
     ##
     # @brief Generic computational Domain constructor.
@@ -2047,10 +2046,10 @@ if use_psyco:
             log.critical('WARNING: psyco (speedup) could not be imported, '
                          'you may want to consider installing it')
     else:
-        psyco.bind(Domain.update_boundary)
+        psyco.bind(Generic_Domain.update_boundary)
         #psyco.bind(Domain.update_timestep) # Not worth it
-        psyco.bind(Domain.update_conserved_quantities)
-        psyco.bind(Domain.distribute_to_vertices_and_edges)
+        psyco.bind(Generic_Domain.update_conserved_quantities)
+        psyco.bind(Generic_Domain.distribute_to_vertices_and_edges)
 
 
 if __name__ == "__main__":

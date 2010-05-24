@@ -5,7 +5,11 @@ import unittest
 from math import sqrt, pi
 
 from anuga.config import g, epsilon
-from anuga.advection.advection import Domain, Transmissive_boundary, Dirichlet_boundary
+from anuga.abstract_2d_finite_volumes.generic_domain import Generic_Domain
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import \
+                Transmissive_boundary, Dirichlet_boundary
+
+from anuga.advection.advection import Advection_Domain
 
 import numpy as num
 
@@ -29,7 +33,7 @@ class Test_Advection(unittest.TestCase):
         #bac, bce, ecf, dbe, daf, dae
         vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
-        domain = Domain(points, vertices)
+        domain = Advection_Domain(points, vertices)
         domain.check_integrity()
 
         assert domain.quantities.has_key('stage')
@@ -44,21 +48,21 @@ class Test_Advection(unittest.TestCase):
 
         points = [a, b, c]
         vertices = [ [0,1,2] ]
-        domain = Domain(points, vertices)
+        domain = Advection_Domain(points, vertices)
         domain.check_integrity()
 
 
         #Populate boundary array with dirichlet conditions.
- 	domain.neighbours = num.array([[-1,-2,-3]])
+        domain.neighbours = num.array([[-1,-2,-3]])
         domain.quantities['stage'].boundary_values[:] = 1.0
 
-	domain.order = 1
+        domain.order = 1
 
-	domain.distribute_to_vertices_and_edges() #Use first order default
+        domain.distribute_to_vertices_and_edges() #Use first order default
 
         domain.check_integrity()
 
-	domain.compute_fluxes()
+        domain.compute_fluxes()
         U = -domain.quantities['stage'].explicit_update
         R = -0.5/domain.areas[0]
 
@@ -73,16 +77,16 @@ class Test_Advection(unittest.TestCase):
 
         points = [a, b, c]
         vertices = [ [0,1,2] ]
-        domain = Domain(points, vertices)
+        domain = Advection_Domain(points, vertices)
         domain.check_integrity()
 
         domain.set_quantity('stage', [1.0], location='centroids')
 
-	domain.distribute_to_vertices_and_edges()
+        domain.distribute_to_vertices_and_edges()
         domain.check_integrity()
 
 
-	domain.compute_fluxes()
+        domain.compute_fluxes()
         U = -domain.quantities['stage'].explicit_update
         R = 0.5/domain.areas[0]
 
@@ -98,7 +102,7 @@ class Test_Advection(unittest.TestCase):
 
         points = [a, b, c]
         vertices = [ [0,1,2] ]
-        domain = Domain(points, vertices)
+        domain = Advection_Domain(points, vertices)
         domain.check_integrity()
 
 
@@ -129,7 +133,7 @@ class Test_Advection(unittest.TestCase):
 
         points = [a, b, c, d]
         vertices = [ [0,1,2], [3,2,1] ]
-        domain = Domain(points, vertices)
+        domain = Advection_Domain(points, vertices)
         domain.check_integrity()
 
 
@@ -152,7 +156,8 @@ class Test_Advection(unittest.TestCase):
         points, vertices, boundary = rectangular(6, 6)
 
         #Create advection domain with direction (1,-1)
-        domain = Domain(points, vertices, boundary, velocity=[1.0, -1.0])
+        domain = Advection_Domain(points, vertices, boundary,
+                                        velocity=[1.0, -1.0])
 
         # Initial condition is zero by default
 

@@ -18,7 +18,11 @@ import os
 
 
 class Test_File_Conversion(unittest.TestCase):
-    # Class variable
+    """ A suite of tests to test file conversion functions.
+        These tests are quite coarse-grained: converting a file
+        and checking that its headers and some of its contents
+        are correct.
+    """
     verbose = False
 
     def set_verbose(self):

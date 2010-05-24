@@ -3,7 +3,7 @@
 import unittest
 from math import sqrt
 
-from domain import *
+from generic_domain import Generic_Domain
 from region import *
 #from anuga.config import epsilon
 

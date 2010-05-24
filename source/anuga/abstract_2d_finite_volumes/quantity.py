@@ -39,11 +39,13 @@ class Quantity:
     # @param domain ??
     # @param vertex_values ??
     def __init__(self, domain, vertex_values=None):
-        from anuga.abstract_2d_finite_volumes.domain import Domain
+        from anuga.abstract_2d_finite_volumes.generic_domain \
+                            import Generic_Domain
 
-        msg = ('First argument in Quantity.__init__() must be of class Domain '
-               '(or a subclass thereof). I got %s.' % str(domain.__class__))
-        assert isinstance(domain, Domain), msg
+        msg = ('First argument in Quantity.__init__() must be of class %s '
+               '(or a subclass thereof). I got %s.' 
+               % (str(Generic_Domain.__name__),str(domain.__class__)))
+        assert isinstance(domain, Generic_Domain), msg
 
         if vertex_values is None:
             N = len(domain)             # number_of_elements

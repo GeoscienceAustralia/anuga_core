@@ -14,6 +14,7 @@ from warnings import warn
 from shutil import copy
 
 from anuga.utilities.numerical_tools import ensure_numeric, angle, NAN
+from anuga.utilities.file_utils import load_csv_as_dict
 
 from math import sqrt, atan, degrees
 
@@ -730,7 +731,7 @@ def csv2timeseries_graphs(directories_dic={},
             quantity_value = {}
 
             dir_filename = join(directory,filename)
-            attribute_dic, title_index_dic = csv2dict(dir_filename + '.csv')
+            attribute_dic, title_index_dic = load_csv_as_dict(dir_filename + '.csv')
             directory_start_time = directories_dic[directory][1]
             directory_add_tide = directories_dic[directory][2]
 
@@ -843,7 +844,7 @@ def csv2timeseries_graphs(directories_dic={},
             directory_add_tide = directories_dic[directory][2]
             
             # create an if about the start time and tide height if don't exist
-            attribute_dic, title_index_dic = csv2dict(directory + sep
+            attribute_dic, title_index_dic = load_csv_as_dict(directory + sep
                                                       + filename + '.csv')
             #get data from dict in to list
             #do maths to list by changing to array
@@ -955,14 +956,14 @@ def get_runup_data_for_locations_from_file(gauge_filename,
     """
 
     from anuga.shallow_water.data_manager import \
-        get_maximum_inundation_data, csv2dict
+        get_maximum_inundation_data
                                                  
     file = open(runup_filename, "w")
     file.write("easting,northing,runup \n ")
     file.close()
     
     #read gauge csv file to dictionary
-    attribute_dic, title_index_dic = csv2dict(gauge_filename)
+    attribute_dic, title_index_dic = load_csv_as_dict(gauge_filename)
     northing = [float(x) for x in attribute_dic["y"]]
     easting = [float(x) for x in attribute_dic["x"]]
 

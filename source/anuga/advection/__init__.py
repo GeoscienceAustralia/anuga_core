@@ -5,9 +5,6 @@
 import sys
 sys.path += __path__
 
-# Make selected classes available directly
-from advection import Domain,\
-    Transmissive_boundary, Dirichlet_boundary
 
 
 

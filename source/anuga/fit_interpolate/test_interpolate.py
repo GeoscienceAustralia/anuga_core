@@ -24,6 +24,8 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.shallow_water import Domain, Transmissive_boundary
 from anuga.utilities.numerical_tools import mean, NAN
 from anuga.shallow_water.sww_file import SWW_file
+from anuga.shallow_water.shallow_water_domain import Domain
+from abstract_2d_finite_volumes.quantity import Quantity
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.pmesh.mesh import Mesh
 
@@ -139,8 +141,6 @@ class Test_Interpolate(unittest.TestCase):
     def test_simple_interpolation_example(self):
         
         from mesh_factory import rectangular
-        from shallow_water import Domain
-        from abstract_2d_finite_volumes.quantity import Quantity
 
         # Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
@@ -192,8 +192,6 @@ class Test_Interpolate(unittest.TestCase):
     def test_simple_interpolation_example_using_direct_interface(self):
         
         from mesh_factory import rectangular
-        from shallow_water import Domain
-        from abstract_2d_finite_volumes.quantity import Quantity
 
         # Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
@@ -244,8 +242,6 @@ class Test_Interpolate(unittest.TestCase):
     def test_simple_interpolation_example_using_direct_interface_and_caching(self):
         
         from mesh_factory import rectangular
-        from shallow_water import Domain
-        from abstract_2d_finite_volumes.quantity import Quantity
 
         # Create basic mesh
         points, vertices, boundary = rectangular(1, 3)

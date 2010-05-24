@@ -9,7 +9,8 @@ from anuga.config import epsilon
 
 from anuga.fit_interpolate.fit import fit_to_mesh
 #from anuga.pyvolution.least_squares import fit_to_mesh         
-from anuga.abstract_2d_finite_volumes.domain import Domain
+from anuga.abstract_2d_finite_volumes.generic_domain \
+                import Generic_Domain
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.geometry.polygon import *
@@ -38,13 +39,13 @@ class Test_Quantity(unittest.TestCase):
         #bac, bce, ecf, dbe
         elements = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4] ]
 
-        self.mesh1 = Domain(points[:3], [elements[0]])
+        self.mesh1 = Generic_Domain(points[:3], [elements[0]])
         self.mesh1.check_integrity()
         
         #print self.mesh1.__class__
         #print isinstance(self.mesh1, Domain)
 
-        self.mesh4 = Domain(points, elements)
+        self.mesh4 = Generic_Domain(points, elements)
         self.mesh4.check_integrity()
 
         # UTM round Onslow
@@ -55,7 +56,7 @@ class Test_Quantity(unittest.TestCase):
         points = [a, b, c]
         elements = [[0,2,1]]
         
-        self.mesh_onslow = Domain(points, elements)
+        self.mesh_onslow = Generic_Domain(points, elements)
         self.mesh_onslow.check_integrity()
         
     def tearDown(self):
@@ -173,7 +174,7 @@ class Test_Quantity(unittest.TestCase):
         #bac, bce, ecf, dbe
         vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
-        domain = Domain(points, vertices)
+        domain = Generic_Domain(points, vertices)
 
         quantity = Quantity(domain)
         quantity.set_values(lambda x, y: x+2*y) #2 4 4 6
@@ -574,7 +575,7 @@ class Test_Quantity(unittest.TestCase):
         triangles = [[0,2,1]]
 
         mesh_georef = Geo_reference(56,-0.76,-0.76)
-        mesh1 = Domain(vertex_coordinates, triangles,
+        mesh1 = Generic_Domain(vertex_coordinates, triangles,
                        geo_reference = mesh_georef)
         mesh1.check_integrity()
 
@@ -1086,7 +1087,7 @@ class Test_Quantity(unittest.TestCase):
         elements = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4] ]
 
         #absolute going in ..
-        mesh4 = Domain(points, elements,
+        mesh4 = Generic_Domain(points, elements,
                        geo_reference = Geo_reference(56, 0, 0))
         mesh4.check_integrity()
         quantity = Quantity(mesh4)
@@ -1166,7 +1167,7 @@ class Test_Quantity(unittest.TestCase):
         #bac, bce, ecf, dbe
         elements = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4] ]
 
-        mesh4 = Domain(points, elements,
+        mesh4 = Generic_Domain(points, elements,
                        geo_reference = Geo_reference(56, x0, y0))
         mesh4.check_integrity()
         quantity = Quantity(mesh4)
@@ -1874,175 +1875,15 @@ class Test_Quantity(unittest.TestCase):
 
 
 
-
-    #Test smoothing
-    def test_smoothing(self):
-
-        from mesh_factory import rectangular
-        from shallow_water import Domain, Transmissive_boundary
-        from anuga.utilities.numerical_tools import mean
-
-        #Create basic mesh
-        points, vertices, boundary = rectangular(2, 2)
-
-        #Create shallow water domain
-        domain = Domain(points, vertices, boundary)
-        domain.default_order=2
-        domain.reduction = mean
-
-
-        #Set some field values
-        domain.set_quantity('elevation', lambda x,y: x)
-        domain.set_quantity('friction', 0.03)
-
-
-        ######################
-        # Boundary conditions
-        B = Transmissive_boundary(domain)
-        domain.set_boundary( {'left': B, 'right': B, 'top': B, 'bottom': B})
-
-
-        ######################
-        #Initial condition - with jumps
-
-        bed = domain.quantities['elevation'].vertex_values
-        stage = num.zeros(bed.shape, num.float)
-
-        h = 0.03
-        for i in range(stage.shape[0]):
-            if i % 2 == 0:
-                stage[i,:] = bed[i,:] + h
-            else:
-                stage[i,:] = bed[i,:]
-
-        domain.set_quantity('stage', stage)
-
-        stage = domain.quantities['stage']
-
-        #Get smoothed stage
-        A, V = stage.get_vertex_values(xy=False, smooth=True)
-        Q = stage.vertex_values
-
-
-        assert A.shape[0] == 9
-        assert V.shape[0] == 8
-        assert V.shape[1] == 3
-
-        #First four points
-        assert num.allclose(A[0], (Q[0,2] + Q[1,1])/2)
-        assert num.allclose(A[1], (Q[1,0] + Q[3,1] + Q[2,2])/3)
-        assert num.allclose(A[2], Q[3,0])
-        assert num.allclose(A[3], (Q[0,0] + Q[5,1] + Q[4,2])/3)
-
-        #Center point
-        assert num.allclose(A[4], (Q[0,1] + Q[1,2] + Q[2,0] +\
-                                   Q[5,0] + Q[6,2] + Q[7,1])/6)
-
-
-        #Check V
-        assert num.allclose(V[0,:], [3,4,0])
-        assert num.allclose(V[1,:], [1,0,4])
-        assert num.allclose(V[2,:], [4,5,1])
-        assert num.allclose(V[3,:], [2,1,5])
-        assert num.allclose(V[4,:], [6,7,3])
-        assert num.allclose(V[5,:], [4,3,7])
-        assert num.allclose(V[6,:], [7,8,4])
-        assert num.allclose(V[7,:], [5,4,8])
-
-        #Get smoothed stage with XY
-        X, Y, A1, V1 = stage.get_vertex_values(xy=True, smooth=True)
-
-        assert num.allclose(A, A1)
-        assert num.allclose(V, V1)
-
-        #Check XY
-        assert num.allclose(X[4], 0.5)
-        assert num.allclose(Y[4], 0.5)
-
-        assert num.allclose(X[7], 1.0)
-        assert num.allclose(Y[7], 0.5)
-
-
-
-
-    def test_vertex_values_no_smoothing(self):
-
-        from mesh_factory import rectangular
-        from shallow_water import Domain, Transmissive_boundary
-        from anuga.utilities.numerical_tools import mean
-
-
-        #Create basic mesh
-        points, vertices, boundary = rectangular(2, 2)
-
-        #Create shallow water domain
-        domain = Domain(points, vertices, boundary)
-        domain.default_order=2
-        domain.reduction = mean
-
-
-        #Set some field values
-        domain.set_quantity('elevation', lambda x,y: x)
-        domain.set_quantity('friction', 0.03)
-
-
-        ######################
-        #Initial condition - with jumps
-
-        bed = domain.quantities['elevation'].vertex_values
-        stage = num.zeros(bed.shape, num.float)
-
-        h = 0.03
-        for i in range(stage.shape[0]):
-            if i % 2 == 0:
-                stage[i,:] = bed[i,:] + h
-            else:
-                stage[i,:] = bed[i,:]
-
-        domain.set_quantity('stage', stage)
-
-        #Get stage
-        stage = domain.quantities['stage']
-        A, V = stage.get_vertex_values(xy=False, smooth=False)
-        Q = stage.vertex_values.flatten()
-
-        for k in range(8):
-            assert num.allclose(A[k], Q[k])
-
-
-        for k in range(8):
-            assert V[k, 0] == 3*k
-            assert V[k, 1] == 3*k+1
-            assert V[k, 2] == 3*k+2
-
-
-
-        X, Y, A1, V1 = stage.get_vertex_values(xy=True, smooth=False)
-
-
-        assert num.allclose(A, A1)
-        assert num.allclose(V, V1)
-
-        #Check XY
-        assert num.allclose(X[1], 0.5)
-        assert num.allclose(Y[1], 0.5)
-        assert num.allclose(X[4], 0.0)
-        assert num.allclose(Y[4], 0.0)
-        assert num.allclose(X[12], 1.0)
-        assert num.allclose(Y[12], 0.0)
-
-
-
     def set_array_values_by_index(self):
 
         from mesh_factory import rectangular
-        from shallow_water import Domain
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 1)
 
         #Create shallow water domain
-        domain = Domain(points, vertices, boundary)
+        domain = Generic_Domain(points, vertices, boundary)
         #print "domain.number_of_elements ",domain.number_of_elements
         quantity = Quantity(domain,[[1,1,1],[2,2,2]])
         value = [7]
@@ -2065,13 +1906,12 @@ class Test_Quantity(unittest.TestCase):
         set values based on triangle lists.
         """
         from mesh_factory import rectangular
-        from shallow_water import Domain
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
         #print "vertices",vertices
         #Create shallow water domain
-        domain = Domain(points, vertices, boundary)
+        domain = Generic_Domain(points, vertices, boundary)
         #print "domain.number_of_elements ",domain.number_of_elements
         quantity = Quantity(domain,[[1,1,1],[2,2,2],[3,3,3],
                                     [4,4,4],[5,5,5],[6,6,6]])
@@ -2151,13 +1991,12 @@ class Test_Quantity(unittest.TestCase):
         set values based on unique_vertex lists.
         """
         from mesh_factory import rectangular
-        from shallow_water import Domain
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
         #print "vertices",vertices
         #Create shallow water domain
-        domain = Domain(points, vertices, boundary)
+        domain = Generic_Domain(points, vertices, boundary)
         #print "domain.number_of_elements ",domain.number_of_elements
         quantity = Quantity(domain,[[0,0,0],[1,1,1],[2,2,2],[3,3,3],
                                     [4,4,4],[5,5,5]])
@@ -2177,7 +2016,6 @@ class Test_Quantity(unittest.TestCase):
         get values based on triangle lists.
         """
         from mesh_factory import rectangular
-        from shallow_water import Domain
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
@@ -2187,7 +2025,7 @@ class Test_Quantity(unittest.TestCase):
         #print "boundary",boundary
 
         #Create shallow water domain
-        domain = Domain(points, vertices, boundary)
+        domain = Generic_Domain(points, vertices, boundary)
         #print "domain.number_of_elements ",domain.number_of_elements
         quantity = Quantity(domain,[[0,0,0],[1,1,1],[2,2,2],[3,3,3],
                                     [4,4,4],[5,5,5]])
@@ -2231,7 +2069,7 @@ class Test_Quantity(unittest.TestCase):
         #bac, bce, ecf, dbe
         vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
-        domain = Domain(points, vertices)
+        domain = Generic_Domain(points, vertices)
 
         quantity = Quantity(domain)
         quantity.set_values(lambda x, y: x+2*y) #2 4 4 6
@@ -2279,11 +2117,10 @@ class Test_Quantity(unittest.TestCase):
     def test_get_interpolated_values(self):
 
         from mesh_factory import rectangular
-        from shallow_water import Domain
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
-        domain = Domain(points, vertices, boundary)
+        domain = Generic_Domain(points, vertices, boundary)
 
         #Constant values
         quantity = Quantity(domain,[[0,0,0],[1,1,1],[2,2,2],[3,3,3],
@@ -2337,7 +2174,7 @@ class Test_Quantity(unittest.TestCase):
         #bac, bce, ecf, dbe
         vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
-        domain = Domain(points, vertices)
+        domain = Generic_Domain(points, vertices)
 
         quantity = Quantity(domain)
         quantity.set_values(lambda x, y: x+2*y) #2 4 4 6
@@ -2371,7 +2208,7 @@ class Test_Quantity(unittest.TestCase):
         #bac, bce, ecf, dbe
         vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
-        domain = Domain(points, vertices,
+        domain = Generic_Domain(points, vertices,
                         geo_reference=Geo_reference(zone,xllcorner,yllcorner))
 
         quantity = Quantity(domain)
@@ -2415,7 +2252,6 @@ class Test_Quantity(unittest.TestCase):
         get values based on triangle lists.
         """
         from mesh_factory import rectangular
-        from shallow_water import Domain
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
@@ -2425,7 +2261,7 @@ class Test_Quantity(unittest.TestCase):
         #print "boundary",boundary
 
         #Create shallow water domain
-        domain = Domain(points, vertices, boundary)
+        domain = Generic_Domain(points, vertices, boundary)
         #print "domain.number_of_elements ",domain.number_of_elements
         quantity = Quantity(domain,[[1,1,1],[2,2,2],[3,3,3],
                                     [4,4,4],[5,5,5],[6,6,6]])
@@ -2472,7 +2308,7 @@ class Test_Quantity(unittest.TestCase):
         get values based on triangle lists.
         """
         from mesh_factory import rectangular
-        from shallow_water import Domain
+      #  from anuga.shallow_water.shallow_water_domain import Domain
 
         #Create basic mesh
         points, vertices, boundary = rectangular(2, 2)
@@ -2482,7 +2318,7 @@ class Test_Quantity(unittest.TestCase):
         #print "boundary",boundary
 
         #Create shallow water domain
-        domain = Domain(points, vertices, boundary)
+        domain = Generic_Domain(points, vertices, boundary)
         #print "domain.number_of_elements ",domain.number_of_elements
         quantity = Quantity(domain,[[0,0,0],[1,1,1],[2,2,2],[3,3,3],
                                     [4,4,4],[5,5,5],[6,6,6],[7,7,7]])

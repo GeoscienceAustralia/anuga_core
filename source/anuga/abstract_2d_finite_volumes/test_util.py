@@ -986,7 +986,6 @@ class Test_Util(unittest.TestCase):
         import os, time, calendar
         from anuga.config import time_format
         from math import sin, pi
-        from domain import Domain
 
         finaltime = 1200
         filename = 'test_file_function'
@@ -1084,7 +1083,6 @@ class Test_Util(unittest.TestCase):
         import os, time, calendar
         from anuga.config import time_format
         from math import sin, pi
-        from domain import Domain
 
         finaltime = 1200
         filename = 'test_file_function'
@@ -1169,7 +1167,6 @@ class Test_Util(unittest.TestCase):
         import os, time, calendar
         from anuga.config import time_format
         from math import sin, pi
-        from domain import Domain
 
         finaltime = 1200
         filename = 'test_file_function'

@@ -3,12 +3,11 @@
 
 import unittest
 
-#from anuga.pyvolution.pmesh2domain import *
 from pmesh2domain import *
 
-from anuga.shallow_water import Domain,\
-     Reflective_boundary, Dirichlet_boundary,\
-     Transmissive_boundary
+from anuga.shallow_water.shallow_water_domain import Domain
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions \
+                        import Dirichlet_boundary
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.pmesh.mesh import importMeshFromFile
@@ -166,7 +165,7 @@ friction  \n \
          tags["2"] = b2
          tags["3"] = b3
 
-         domain = pmesh_instance_to_domain_instance(mesh_instance, Domain)
+         domain = pmesh_to_domain_instance(mesh_instance, Domain)
 
          os.remove(fileName)
          #print "domain.tagged_elements", domain.tagged_elements

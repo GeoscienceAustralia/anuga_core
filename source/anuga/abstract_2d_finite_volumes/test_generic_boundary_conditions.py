@@ -4,7 +4,7 @@ import unittest
 from math import sqrt, pi
 
 from generic_boundary_conditions import *
-from anuga.abstract_2d_finite_volumes.domain import Domain
+from anuga.abstract_2d_finite_volumes.generic_domain import Generic_Domain
 from anuga.config import epsilon
 
 import numpy as num
@@ -63,7 +63,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         #bac, bce, ecf, dbe
         elements = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4] ]
 
-        domain = Domain(points, elements)
+        domain = Generic_Domain(points, elements)
         domain.check_integrity()
 
         domain.conserved_quantities = ['stage', 'ymomentum']
@@ -129,7 +129,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         #bac, bce, ecf, dbe
         elements = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4] ]
 
-        domain = Domain(points, elements)
+        domain = Generic_Domain(points, elements)
         domain.check_integrity()
 
         domain.conserved_quantities = ['stage', 'ymomentum']
@@ -201,7 +201,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         #bac, bce, ecf, dbe
         elements = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4] ]
 
-        domain = Domain(points, elements)
+        domain = Generic_Domain(points, elements)
         domain.check_integrity()
 
         domain.conserved_quantities = ['stage', 'ymomentum']
@@ -280,7 +280,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         #bac, bce, ecf, dbe
         elements = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4] ]
 
-        domain = Domain(points, elements)
+        domain = Generic_Domain(points, elements)
         domain.conserved_quantities = ['stage', 'ymomentum']
         domain.quantities['stage'] =\
                                    Quantity(domain, [[1,2,3], [5,5,5],
@@ -373,7 +373,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         #bac, bce, ecf, dbe
         elements = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4] ]
 
-        domain = Domain(points, elements)
+        domain = Generic_Domain(points, elements)
         domain.conserved_quantities = ['stage', 'xmomentum', 'ymomentum']
         domain.evolved_quantities = ['stage', 'xmomentum', 'ymomentum']
         domain.quantities['stage'] =\

@@ -3,7 +3,7 @@
 import unittest
 from math import sqrt
 
-from anuga.abstract_2d_finite_volumes.domain import *
+from anuga.abstract_2d_finite_volumes.generic_domain import *
 from anuga.pmesh.mesh_interface import create_mesh_from_regions
 from anuga.config import epsilon
 from anuga.shallow_water import Reflective_boundary
@@ -16,21 +16,6 @@ def add_to_verts(tag, elements, domain):
     if tag == "mound":
         domain.test = "Mound"
 
-
-def set_bottom_friction(tag, elements, domain):
-    if tag == "bottom":
-        domain.set_quantity('friction', 0.09, indices = elements)
-
-def set_top_friction(tag, elements, domain):
-    if tag == "top":
-        domain.set_quantity('friction', 1., indices = elements)
-
-
-def set_all_friction(tag, elements, domain):
-    if tag == 'all':
-        new_values = domain.get_quantity('friction').get_values(indices = elements) + 10.0
-
-        domain.set_quantity('friction', new_values, indices = elements)
 
 
 class Test_Domain(unittest.TestCase):
@@ -59,7 +44,7 @@ class Test_Domain(unittest.TestCase):
         
         other_quantities = ['elevation', 'friction']
 
-        domain = Domain(points, vertices, None,
+        domain = Generic_Domain(points, vertices, None,
                         conserved_quantities, evolved_quantities, other_quantities)
         domain.check_integrity()
 
@@ -88,7 +73,7 @@ class Test_Domain(unittest.TestCase):
         
         other_quantities = ['elevation', 'friction']
 
-        domain = Domain(points, vertices, None,
+        domain = Generic_Domain(points, vertices, None,
                         conserved_quantities, evolved_quantities, other_quantities)
 
         try:
@@ -125,7 +110,7 @@ class Test_Domain(unittest.TestCase):
         #bac, bce, ecf, dbe, daf, dae
         vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
-        domain = Domain(points, vertices, boundary=None,
+        domain = Generic_Domain(points, vertices, boundary=None,
                         conserved_quantities =\
                         ['stage', 'xmomentum', 'ymomentum'])
 
@@ -199,7 +184,7 @@ class Test_Domain(unittest.TestCase):
         #bac, bce, ecf, dbe, daf, dae
         vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
-        domain = Domain(points, vertices, boundary=None,
+        domain = Generic_Domain(points, vertices, boundary=None,
                         conserved_quantities =\
                         ['stage', 'xmomentum', 'ymomentum'],
                         other_quantities = ['elevation', 'friction'])
@@ -253,7 +238,7 @@ class Test_Domain(unittest.TestCase):
         vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
 
-        domain = Domain(points, vertices, boundary=None,
+        domain = Generic_Domain(points, vertices, boundary=None,
                         conserved_quantities =\
                         ['stage', 'xmomentum', 'ymomentum'],
                         other_quantities = ['elevation', 'friction', 'depth'])
@@ -329,7 +314,7 @@ class Test_Domain(unittest.TestCase):
         #bac, bce, ecf, dbe, daf, dae
         vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
-        domain = Domain(points, vertices, boundary=None,
+        domain = Generic_Domain(points, vertices, boundary=None,
                         conserved_quantities =\
                         ['stage', 'xmomentum', 'ymomentum'],
                         other_quantities = ['elevation', 'friction', 'depth'])
@@ -383,7 +368,7 @@ class Test_Domain(unittest.TestCase):
         #bac, bce, ecf, dbe, daf, dae
         vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
-        domain = Domain(points, vertices, boundary=None,
+        domain = Generic_Domain(points, vertices, boundary=None,
                         conserved_quantities =\
                         ['stage', 'xmomentum', 'ymomentum'],
                         other_quantities = ['elevation', 'friction', 'depth'])
@@ -452,7 +437,7 @@ class Test_Domain(unittest.TestCase):
         vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
 
-        domain = Domain(points, vertices, boundary=None,
+        domain = Generic_Domain(points, vertices, boundary=None,
                         conserved_quantities =\
                         ['stage', 'xmomentum', 'ymomentum'],
                         other_quantities = ['elevation', 'friction', 'depth'])
@@ -496,7 +481,7 @@ class Test_Domain(unittest.TestCase):
 
         points = [a, b, c]
         vertices = [ [0,1,2] ]
-        domain = Domain(points, vertices)
+        domain = Generic_Domain(points, vertices)
 
         domain.set_boundary( {default_boundary_tag: Dirichlet_boundary([5,2,1])} )
 
@@ -527,7 +512,7 @@ class Test_Domain(unittest.TestCase):
                      (3, 2): 'Second'}
 
 
-        domain = Domain(points, vertices, boundary,
+        domain = Generic_Domain(points, vertices, boundary,
                         conserved_quantities =\
                         ['stage', 'xmomentum', 'ymomentum'])
         domain.check_integrity()
@@ -583,7 +568,7 @@ class Test_Domain(unittest.TestCase):
 
  
         try:
-            domain = Domain(points, vertices, boundary,
+            domain = Generic_Domain(points, vertices, boundary,
                             conserved_quantities = ['stage', 'xmomentum', 'ymomentum'],
                             evolved_quantities =\
                                    ['stage', 'xmomentum', 'xvelocity', 'ymomentum', 'yvelocity'])
@@ -594,7 +579,7 @@ class Test_Domain(unittest.TestCase):
             raise Exception, msg            
 
 
-        domain = Domain(points, vertices, boundary,
+        domain = Generic_Domain(points, vertices, boundary,
                         conserved_quantities = ['stage', 'xmomentum', 'ymomentum'],
                         evolved_quantities =\
                         ['stage', 'xmomentum', 'ymomentum', 'xvelocity', 'yvelocity'])
@@ -687,7 +672,7 @@ class Test_Domain(unittest.TestCase):
                      (3, 2): 'Third'}
 
 
-        domain = Domain(points, vertices, boundary,
+        domain = Generic_Domain(points, vertices, boundary,
                         conserved_quantities =\
                         ['stage', 'xmomentum', 'ymomentum'])
         domain.set_default_order(1)
@@ -738,7 +723,7 @@ class Test_Domain(unittest.TestCase):
                      (3, 2): 'Third'}
 
 
-        domain = Domain(points, vertices, boundary,
+        domain = Generic_Domain(points, vertices, boundary,
                         conserved_quantities =\
                         ['stage', 'xmomentum', 'ymomentum'])
         domain.check_integrity()
@@ -798,7 +783,7 @@ class Test_Domain(unittest.TestCase):
                      (3, 1): 'Second',
                      (3, 2): 'Third'}
 
-        domain = Domain(points, vertices, boundary,
+        domain = Generic_Domain(points, vertices, boundary,
                         conserved_quantities =\
                         ['stage', 'xmomentum', 'ymomentum'])
         domain.set_default_order(1)                        
@@ -832,121 +817,6 @@ class Test_Domain(unittest.TestCase):
         self.failUnless(domain.test == "Mound",
                         'set region failed')
 
-
-    def test_track_speeds(self):
-        """
-        get values based on triangle lists.
-        """
-        from mesh_factory import rectangular
-        from shallow_water import Domain
-
-        #Create basic mesh
-        points, vertices, boundary = rectangular(1, 3)
-
-        #Create shallow water domain
-        domain = Domain(points, vertices, boundary)
-        domain.timestepping_statistics(track_speeds=True)
-
-
-
-    def test_region_tags(self):
-        """
-        get values based on triangle lists.
-        """
-        from mesh_factory import rectangular
-        from shallow_water import Domain
-
-        #Create basic mesh
-        points, vertices, boundary = rectangular(1, 3)
-
-        #Create shallow water domain
-        domain = Domain(points, vertices, boundary)
-        domain.build_tagged_elements_dictionary({'bottom':[0,1],
-                                                 'top':[4,5],
-                                                 'all':[0,1,2,3,4,5]})
-
-
-        #Set friction
-        manning = 0.07
-        domain.set_quantity('friction', manning)
-
-        domain.set_region([set_bottom_friction, set_top_friction])
-        assert num.allclose(domain.quantities['friction'].get_values(),\
-                            [[ 0.09,  0.09,  0.09],
-                             [ 0.09,  0.09,  0.09],
-                             [ 0.07,  0.07,  0.07],
-                             [ 0.07,  0.07,  0.07],
-                             [ 1.0,  1.0,  1.0],
-                             [ 1.0,  1.0,  1.0]])
-
-        domain.set_region([set_all_friction])
-        assert num.allclose(domain.quantities['friction'].get_values(),
-                            [[ 10.09, 10.09, 10.09],
-                             [ 10.09, 10.09, 10.09],
-                             [ 10.07, 10.07, 10.07],
-                             [ 10.07, 10.07, 10.07],
-                             [ 11.0,  11.0,  11.0],
-                             [ 11.0,  11.0,  11.0]])
-
-
-    def test_region_tags2(self):
-        """
-        get values based on triangle lists.
-        """
-        from mesh_factory import rectangular
-        from shallow_water import Domain
-
-        #Create basic mesh
-        points, vertices, boundary = rectangular(1, 3)
-
-        #Create shallow water domain
-        domain = Domain(points, vertices, boundary)
-        domain.build_tagged_elements_dictionary({'bottom':[0,1],
-                                                 'top':[4,5],
-                                                 'all':[0,1,2,3,4,5]})
-
-
-        #Set friction
-        manning = 0.07
-        domain.set_quantity('friction', manning)
-
-        domain.set_region('top', 'friction', 1.0)
-        domain.set_region('bottom', 'friction', 0.09)
-        
-        msg = ("domain.quantities['friction'].get_values()=\n%s\n"
-               'should equal\n'
-               '[[ 0.09,  0.09,  0.09],\n'
-               ' [ 0.09,  0.09,  0.09],\n'
-               ' [ 0.07,  0.07,  0.07],\n'
-               ' [ 0.07,  0.07,  0.07],\n'
-               ' [ 1.0,  1.0,  1.0],\n'
-               ' [ 1.0,  1.0,  1.0]]'
-               % str(domain.quantities['friction'].get_values()))
-        assert num.allclose(domain.quantities['friction'].get_values(),
-                            [[ 0.09,  0.09,  0.09],
-                             [ 0.09,  0.09,  0.09],
-                             [ 0.07,  0.07,  0.07],
-                             [ 0.07,  0.07,  0.07],
-                             [ 1.0,  1.0,  1.0],
-                             [ 1.0,  1.0,  1.0]]), msg
-        
-        domain.set_region([set_bottom_friction, set_top_friction])
-        assert num.allclose(domain.quantities['friction'].get_values(),
-                            [[ 0.09,  0.09,  0.09],
-                             [ 0.09,  0.09,  0.09],
-                             [ 0.07,  0.07,  0.07],
-                             [ 0.07,  0.07,  0.07],
-                             [ 1.0,  1.0,  1.0],
-                             [ 1.0,  1.0,  1.0]])
-
-        domain.set_region([set_all_friction])
-        assert num.allclose(domain.quantities['friction'].get_values(),
-                            [[ 10.09, 10.09, 10.09],
-                             [ 10.09, 10.09, 10.09],
-                             [ 10.07, 10.07, 10.07],
-                             [ 10.07, 10.07, 10.07],
-                             [ 11.0,  11.0,  11.0],
-                             [ 11.0,  11.0,  11.0]])
                              
     def test_rectangular_periodic_and_ghosts(self):
 
@@ -961,7 +831,7 @@ class Test_Domain(unittest.TestCase):
         assert num.allclose(full_send_dict[0][0] , [ 4,  5,  6,  7, 20, 21, 22, 23])
 
         conserved_quantities = ['quant1', 'quant2']
-        domain = Domain(points, vertices, boundary, conserved_quantities,
+        domain = Generic_Domain(points, vertices, boundary, conserved_quantities,
                         full_send_dict=full_send_dict,
                         ghost_recv_dict=ghost_recv_dict)
 

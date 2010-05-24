@@ -10,53 +10,15 @@ import sys
 import numpy as num
 
 
-##
-# @brief Convert a pmesh instance to a domain instance.
-# @param mesh The pmesh instance to convert.
-# @param DomainClass The class to instantiate and return.
-# @return The converted pmesh instance (as a 'DomainClass' instance).
-def pmesh_instance_to_domain_instance(mesh, DomainClass):
-    """Convert a pmesh instance/object into a domain instance.
-
-    Uses pmesh_to_domain_instance to convert a mesh file to a domain instance.
-    """
-
-    (vertex_coordinates, vertices, tag_dict, vertex_quantity_dict,
-     tagged_elements_dict, geo_reference) = pmesh_to_domain(mesh_instance=mesh)
-
-    # NOTE(Ole): This import cannot be at the module level
-    #            due to mutual dependency with domain.py
-    from anuga.abstract_2d_finite_volumes.domain import Domain
-
-    # ensure that the required 'DomainClass' actually is an instance of Domain
-    msg = ('The class %s is not a subclass of the generic domain class %s'
-           % (DomainClass, Domain))
-    assert issubclass(DomainClass, Domain), msg
-
-    # instantiate the result class
-    result = DomainClass(coordinates=vertex_coordinates,
-                         vertices=vertices,
-                         boundary=tag_dict,
-                         tagged_elements=tagged_elements_dict,
-                         geo_reference=geo_reference)
-
-    # set the water stage to be the elevation
-    if (vertex_quantity_dict.has_key('elevation') and
-        not vertex_quantity_dict.has_key('stage')):
-        vertex_quantity_dict['stage'] = vertex_quantity_dict['elevation']
-    result.set_quantity_vertices_dict(vertex_quantity_dict)
-
-    return result
-
 
 ##
 # @brief Convert a mesh file to a Domain instance.
-# @param file_name Name of the file to convert (TSH or MSH).
+# @param source Name of the file to convert (TSH or MSH), or a mesh.
 # @param DomainClass Class of return instance.
 # @param use_cache True if caching is to be used.
 # @param verbose True if this function is to be verbose.
 # @return An instance of 'DomainClass' containing the file data.
-def pmesh_to_domain_instance(file_name, DomainClass, use_cache=False,
+def pmesh_to_domain_instance(source, DomainClass, use_cache=False,
                              verbose=False):
     """Converts a mesh file(.tsh or .msh), to a Domain instance.
 
@@ -70,10 +32,10 @@ def pmesh_to_domain_instance(file_name, DomainClass, use_cache=False,
 
     if use_cache is True:
         from caching import cache
-        result = cache(_pmesh_to_domain_instance, (file_name, DomainClass),
+        result = cache(_pmesh_to_domain_instance, (source, DomainClass),
                        dependencies=[file_name], verbose=verbose)
     else:
-        result = apply(_pmesh_to_domain_instance, (file_name, DomainClass))        
+        result = apply(_pmesh_to_domain_instance, (source, DomainClass))        
         
     return result
 
@@ -83,23 +45,26 @@ def pmesh_to_domain_instance(file_name, DomainClass, use_cache=False,
 # @param file_name Name of the file to convert (TSH or MSH).
 # @param DomainClass Class of return instance.
 # @return The DomainClass instance containing the file data.
-def _pmesh_to_domain_instance(file_name, DomainClass):
+def _pmesh_to_domain_instance(source, DomainClass):
     """Converts a mesh file(.tsh or .msh), to a Domain instance.
 
     Internal function. See public interface pmesh_to_domain_instance for details
     """
-    
-    (vertex_coordinates, vertices, tag_dict, vertex_quantity_dict,
-     tagged_elements_dict, geo_reference) = pmesh_to_domain(file_name=file_name)
 
-    # NOTE(Ole): This import cannot be at the module level due to mutual
-    # dependency with domain.py
-    from anuga.abstract_2d_finite_volumes.domain import Domain
+    from anuga.abstract_2d_finite_volumes.generic_domain import Generic_Domain 
 
     # ensure the required class is a subclass of Domain
     msg = ('The class %s is not a subclass of the generic domain class %s'
-           % (DomainClass, Domain))
-    assert issubclass(DomainClass, Domain), msg
+           % (DomainClass, Generic_Domain))
+    assert issubclass(DomainClass, Generic_Domain), msg
+
+    if type(source).__name__ == 'str':
+        parm = {'file_name': source}
+    else:
+        parm = {'mesh_instance': source}  
+
+    (vertex_coordinates, vertices, tag_dict, vertex_quantity_dict,
+     tagged_elements_dict, geo_reference) = pmesh_to_domain(**parm)
 
     domain = DomainClass(coordinates = vertex_coordinates,
                          vertices = vertices,

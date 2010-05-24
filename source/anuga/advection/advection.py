@@ -30,15 +30,14 @@ Geoscience Australia, 2004
 #    pass
 
 
-from anuga.abstract_2d_finite_volumes.domain import *
+from anuga.abstract_2d_finite_volumes.generic_domain \
+                import Generic_Domain
 import anuga.utilities.log as log
 
 import numpy as num
 
 
-Generic_domain = Domain # Rename
-
-class Domain(Generic_domain):
+class Advection_Domain(Generic_Domain):
 
     def __init__(self,
                  coordinates,
@@ -56,7 +55,7 @@ class Domain(Generic_domain):
 
         conserved_quantities = ['stage']
         other_quantities = []
-        Generic_domain.__init__(self,
+        Generic_Domain.__init__(self,
                                 source=coordinates,
                                 triangles=vertices,
                                 boundary=boundary,
@@ -82,7 +81,7 @@ class Domain(Generic_domain):
         self.smooth = True
 
     def check_integrity(self):
-        Generic_domain.check_integrity(self)
+        Generic_Domain.check_integrity(self)
 
         msg = 'Conserved quantity must be "stage"'
         assert self.conserved_quantities[0] == 'stage', msg

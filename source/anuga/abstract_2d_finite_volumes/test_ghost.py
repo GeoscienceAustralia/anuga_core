@@ -3,7 +3,7 @@
 import unittest
 from math import sqrt
 
-from anuga.abstract_2d_finite_volumes.domain import *
+from anuga.abstract_2d_finite_volumes.generic_domain import Generic_Domain
 from anuga.config import epsilon
 
 import numpy as num
@@ -33,7 +33,7 @@ class Test_Domain(unittest.TestCase):
         conserved_quantities = ['stage', 'xmomentum', 'ymomentum']
         other_quantities = ['elevation', 'friction']
 
-        domain = Domain(points, vertices, None,
+        domain = Generic_Domain(points, vertices, None,
                         conserved_quantities, None, other_quantities)
         domain.check_integrity()
 
