@@ -636,6 +636,9 @@ class Write_sww:
         number_of_volumes - the number of triangles
         """
 
+        from anuga.abstract_2d_finite_volumes.util \
+            import get_revision_number
+
         outfile.institution = 'Geoscience Australia'
         outfile.description = description
 
@@ -653,6 +656,8 @@ class Write_sww:
         try:
             revision_number = get_revision_number()
         except:
+            # This will be triggered if the system cannot get the SVN
+            # revision number.
             revision_number = None
         # Allow None to be stored as a string
         outfile.revision_number = str(revision_number)

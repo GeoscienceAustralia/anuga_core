@@ -82,7 +82,8 @@ ModifiedBy:
 
 import numpy as num
 
-from anuga.abstract_2d_finite_volumes.domain import Domain as Generic_Domain
+from anuga.abstract_2d_finite_volumes.generic_domain \
+                    import Generic_Domain
 
 from anuga.shallow_water.forcing import Cross_section
 from anuga.pmesh.mesh_interface import create_mesh_from_regions

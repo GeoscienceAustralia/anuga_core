@@ -41,6 +41,22 @@ from shallow_water_ext import flux_function_central as flux_function
 from shallow_water_ext import rotate
 
 
+def set_bottom_friction(tag, elements, domain):
+    if tag == "bottom":
+        domain.set_quantity('friction', 0.09, indices = elements)
+
+def set_top_friction(tag, elements, domain):
+    if tag == "top":
+        domain.set_quantity('friction', 1., indices = elements)
+
+
+def set_all_friction(tag, elements, domain):
+    if tag == 'all':
+        new_values = domain.get_quantity('friction').get_values(indices = elements) + 10.0
+
+        domain.set_quantity('friction', new_values, indices = elements)
+
+
 # For test_fitting_using_shallow_water_domain example
 def linear_function(point):
     point = num.array(point)
@@ -6705,6 +6721,281 @@ friction  \n \
                                % (domain_depth, normal_depth))
 
         os.remove('Inflow_flowline_test.sww')
+
+
+    def test_track_speeds(self):
+        """
+        get values based on triangle lists.
+        """
+        from mesh_factory import rectangular
+        from shallow_water import Domain
+
+        #Create basic mesh
+        points, vertices, boundary = rectangular(1, 3)
+
+        #Create shallow water domain
+        domain = Domain(points, vertices, boundary)
+        domain.timestepping_statistics(track_speeds=True)
+
+
+
+    def test_region_tags(self):
+        """
+        get values based on triangle lists.
+        """
+        from mesh_factory import rectangular
+        from shallow_water import Domain
+
+        #Create basic mesh
+        points, vertices, boundary = rectangular(1, 3)
+
+        #Create shallow water domain
+        domain = Domain(points, vertices, boundary)
+        domain.build_tagged_elements_dictionary({'bottom':[0,1],
+                                                 'top':[4,5],
+                                                 'all':[0,1,2,3,4,5]})
+
+
+        #Set friction
+        manning = 0.07
+        domain.set_quantity('friction', manning)
+
+        domain.set_region([set_bottom_friction, set_top_friction])
+        assert num.allclose(domain.quantities['friction'].get_values(),\
+                            [[ 0.09,  0.09,  0.09],
+                             [ 0.09,  0.09,  0.09],
+                             [ 0.07,  0.07,  0.07],
+                             [ 0.07,  0.07,  0.07],
+                             [ 1.0,  1.0,  1.0],
+                             [ 1.0,  1.0,  1.0]])
+
+        domain.set_region([set_all_friction])
+        assert num.allclose(domain.quantities['friction'].get_values(),
+                            [[ 10.09, 10.09, 10.09],
+                             [ 10.09, 10.09, 10.09],
+                             [ 10.07, 10.07, 10.07],
+                             [ 10.07, 10.07, 10.07],
+                             [ 11.0,  11.0,  11.0],
+                             [ 11.0,  11.0,  11.0]])
+
+
+    def test_region_tags2(self):
+        """
+        get values based on triangle lists.
+        """
+        from mesh_factory import rectangular
+        from shallow_water import Domain
+
+        #Create basic mesh
+        points, vertices, boundary = rectangular(1, 3)
+
+        #Create shallow water domain
+        domain = Domain(points, vertices, boundary)
+        domain.build_tagged_elements_dictionary({'bottom':[0,1],
+                                                 'top':[4,5],
+                                                 'all':[0,1,2,3,4,5]})
+
+
+        #Set friction
+        manning = 0.07
+        domain.set_quantity('friction', manning)
+
+        domain.set_region('top', 'friction', 1.0)
+        domain.set_region('bottom', 'friction', 0.09)
+        
+        msg = ("domain.quantities['friction'].get_values()=\n%s\n"
+               'should equal\n'
+               '[[ 0.09,  0.09,  0.09],\n'
+               ' [ 0.09,  0.09,  0.09],\n'
+               ' [ 0.07,  0.07,  0.07],\n'
+               ' [ 0.07,  0.07,  0.07],\n'
+               ' [ 1.0,  1.0,  1.0],\n'
+               ' [ 1.0,  1.0,  1.0]]'
+               % str(domain.quantities['friction'].get_values()))
+        assert num.allclose(domain.quantities['friction'].get_values(),
+                            [[ 0.09,  0.09,  0.09],
+                             [ 0.09,  0.09,  0.09],
+                             [ 0.07,  0.07,  0.07],
+                             [ 0.07,  0.07,  0.07],
+                             [ 1.0,  1.0,  1.0],
+                             [ 1.0,  1.0,  1.0]]), msg
+        
+        domain.set_region([set_bottom_friction, set_top_friction])
+        assert num.allclose(domain.quantities['friction'].get_values(),
+                            [[ 0.09,  0.09,  0.09],
+                             [ 0.09,  0.09,  0.09],
+                             [ 0.07,  0.07,  0.07],
+                             [ 0.07,  0.07,  0.07],
+                             [ 1.0,  1.0,  1.0],
+                             [ 1.0,  1.0,  1.0]])
+
+        domain.set_region([set_all_friction])
+        assert num.allclose(domain.quantities['friction'].get_values(),
+                            [[ 10.09, 10.09, 10.09],
+                             [ 10.09, 10.09, 10.09],
+                             [ 10.07, 10.07, 10.07],
+                             [ 10.07, 10.07, 10.07],
+                             [ 11.0,  11.0,  11.0],
+                             [ 11.0,  11.0,  11.0]])
+
+
+
+
+    def test_vertex_values_no_smoothing(self):
+
+        from mesh_factory import rectangular
+        from anuga.utilities.numerical_tools import mean
+
+
+        #Create basic mesh
+        points, vertices, boundary = rectangular(2, 2)
+
+        #Create shallow water domain
+        domain = Domain(points, vertices, boundary)
+        domain.default_order=2
+        domain.reduction = mean
+
+
+        #Set some field values
+        domain.set_quantity('elevation', lambda x,y: x)
+        domain.set_quantity('friction', 0.03)
+
+
+        ######################
+        #Initial condition - with jumps
+
+        bed = domain.quantities['elevation'].vertex_values
+        stage = num.zeros(bed.shape, num.float)
+
+        h = 0.03
+        for i in range(stage.shape[0]):
+            if i % 2 == 0:
+                stage[i,:] = bed[i,:] + h
+            else:
+                stage[i,:] = bed[i,:]
+
+        domain.set_quantity('stage', stage)
+
+        #Get stage
+        stage = domain.quantities['stage']
+        A, V = stage.get_vertex_values(xy=False, smooth=False)
+        Q = stage.vertex_values.flatten()
+
+        for k in range(8):
+            assert num.allclose(A[k], Q[k])
+
+
+        for k in range(8):
+            assert V[k, 0] == 3*k
+            assert V[k, 1] == 3*k+1
+            assert V[k, 2] == 3*k+2
+
+
+
+        X, Y, A1, V1 = stage.get_vertex_values(xy=True, smooth=False)
+
+
+        assert num.allclose(A, A1)
+        assert num.allclose(V, V1)
+
+        #Check XY
+        assert num.allclose(X[1], 0.5)
+        assert num.allclose(Y[1], 0.5)
+        assert num.allclose(X[4], 0.0)
+        assert num.allclose(Y[4], 0.0)
+        assert num.allclose(X[12], 1.0)
+        assert num.allclose(Y[12], 0.0)
+
+
+
+    #Test smoothing
+    def test_smoothing(self):
+
+        from mesh_factory import rectangular
+        from anuga.utilities.numerical_tools import mean
+
+        #Create basic mesh
+        points, vertices, boundary = rectangular(2, 2)
+
+        #Create shallow water domain
+        domain = Domain(points, vertices, boundary)
+        domain.default_order=2
+        domain.reduction = mean
+
+
+        #Set some field values
+        domain.set_quantity('elevation', lambda x,y: x)
+        domain.set_quantity('friction', 0.03)
+
+
+        ######################
+        # Boundary conditions
+        B = Transmissive_boundary(domain)
+        domain.set_boundary( {'left': B, 'right': B, 'top': B, 'bottom': B})
+
+
+        ######################
+        #Initial condition - with jumps
+
+        bed = domain.quantities['elevation'].vertex_values
+        stage = num.zeros(bed.shape, num.float)
+
+        h = 0.03
+        for i in range(stage.shape[0]):
+            if i % 2 == 0:
+                stage[i,:] = bed[i,:] + h
+            else:
+                stage[i,:] = bed[i,:]
+
+        domain.set_quantity('stage', stage)
+
+        stage = domain.quantities['stage']
+
+        #Get smoothed stage
+        A, V = stage.get_vertex_values(xy=False, smooth=True)
+        Q = stage.vertex_values
+
+
+        assert A.shape[0] == 9
+        assert V.shape[0] == 8
+        assert V.shape[1] == 3
+
+        #First four points
+        assert num.allclose(A[0], (Q[0,2] + Q[1,1])/2)
+        assert num.allclose(A[1], (Q[1,0] + Q[3,1] + Q[2,2])/3)
+        assert num.allclose(A[2], Q[3,0])
+        assert num.allclose(A[3], (Q[0,0] + Q[5,1] + Q[4,2])/3)
+
+        #Center point
+        assert num.allclose(A[4], (Q[0,1] + Q[1,2] + Q[2,0] +\
+                                   Q[5,0] + Q[6,2] + Q[7,1])/6)
+
+
+        #Check V
+        assert num.allclose(V[0,:], [3,4,0])
+        assert num.allclose(V[1,:], [1,0,4])
+        assert num.allclose(V[2,:], [4,5,1])
+        assert num.allclose(V[3,:], [2,1,5])
+        assert num.allclose(V[4,:], [6,7,3])
+        assert num.allclose(V[5,:], [4,3,7])
+        assert num.allclose(V[6,:], [7,8,4])
+        assert num.allclose(V[7,:], [5,4,8])
+
+        #Get smoothed stage with XY
+        X, Y, A1, V1 = stage.get_vertex_values(xy=True, smooth=True)
+
+        assert num.allclose(A, A1)
+        assert num.allclose(V, V1)
+
+        #Check XY
+        assert num.allclose(X[4], 0.5)
+        assert num.allclose(Y[4], 0.5)
+
+        assert num.allclose(X[7], 1.0)
+        assert num.allclose(Y[7], 0.5)
+
+
+
 
 #################################################################################
 

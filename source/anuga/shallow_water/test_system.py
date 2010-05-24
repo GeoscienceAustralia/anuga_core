@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 #
-"""
-Let's do some system wide tests
-"""
+
 import tempfile
 import unittest
 import os
@@ -14,11 +12,15 @@ from anuga.shallow_water import Domain
 from anuga.shallow_water import Dirichlet_boundary, Time_boundary
 from anuga.shallow_water import File_boundary
 from anuga.pmesh.mesh import Mesh
-from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_instance_to_domain_instance
+from anuga.abstract_2d_finite_volumes.pmesh2domain import \
+                pmesh_to_domain_instance
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 
 
 class Test_system(unittest.TestCase):
+    """
+    Some system wide, high-level tests.
+    """
     def setUp(self):
         pass
 
@@ -44,7 +46,7 @@ class Test_system(unittest.TestCase):
         mesh.add_region_from_polygon([[0,0], [100,0], [100,100], [0,100]])
         mesh.generate_mesh(verbose=False)
         
-        domain = pmesh_instance_to_domain_instance(mesh, Domain)
+        domain = pmesh_to_domain_instance(mesh, Domain)
         domain.set_name(boundary_name)                 
         domain.set_datadir(dir)          
         domain.set_starttime(boundary_starttime)
@@ -93,7 +95,7 @@ class Test_system(unittest.TestCase):
         mesh.add_region_from_polygon([[0,0], [100,0], [100,100], [0,100]])
         mesh.generate_mesh(verbose=False)
         
-        domain = pmesh_instance_to_domain_instance(mesh, Domain) 
+        domain = pmesh_to_domain_instance(mesh, Domain) 
         domain.set_name(senario_name)                 
         domain.set_datadir(dir) 
 
@@ -143,7 +145,7 @@ class Test_system(unittest.TestCase):
         mesh.add_region_from_polygon([[10,10], [90,10], [90,90], [10,90]])
         mesh.generate_mesh(verbose=False)
         
-        domain = pmesh_instance_to_domain_instance(mesh, Domain) 
+        domain = pmesh_to_domain_instance(mesh, Domain) 
         domain.set_name(senario_name)                 
         domain.set_datadir(dir)
         new_starttime = 510.

@@ -19,6 +19,7 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
 
 from shallow_water_domain import Domain
 
+
 #from shallow_water_balanced_domain import Swb_domain
 
 
