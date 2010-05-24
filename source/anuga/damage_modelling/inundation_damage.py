@@ -30,7 +30,7 @@ except ImportError:
     
 
 from anuga.utilities.numerical_tools import ensure_numeric
-from anuga.shallow_water.data_manager import Exposure_csv
+from exposure import Exposure
 from anuga.abstract_2d_finite_volumes.util import file_function
 from anuga.geospatial_data.geospatial_data import ensure_absolute
 from anuga.utilities.numerical_tools import NAN
@@ -72,7 +72,7 @@ def inundation_damage(sww_base_name, exposure_files_in,
 
 
     for exposure_file_in in exposure_files_in:
-        csv = Exposure_csv(exposure_file_in,
+        csv = Exposure(exposure_file_in,
                            title_check_list=[SHORE_DIST_LABEL,WALL_TYPE_LABEL,
                                              STR_VALUE_LABEL,CONT_VALUE_LABEL])
         geospatial = csv.get_location()
@@ -117,7 +117,7 @@ def add_depth_and_momentum2csv(sww_base_name, exposure_file_in,
     in the specified directory.
     """
 
-    csv = Exposure_csv(exposure_file_in)
+    csv = Exposure(exposure_file_in)
     geospatial = csv.get_location()
     max_depths, max_momentums = calc_max_depth_and_momentum(sww_base_name,
                                                           geospatial,

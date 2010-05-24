@@ -2715,7 +2715,7 @@ def ferret2sww(basename_in, basename_out = None,
 
     #print "latitudes[:]",latitudes[:]
     #print "longitudes[:]",longitudes [:]
-    kmin, kmax, lmin, lmax = _get_min_max_indexes(latitudes[:],
+    kmin, kmax, lmin, lmax = get_min_max_indices(latitudes[:],
                                                   longitudes[:],
                                                   minlat, maxlat,
                                                   minlon, maxlon)
@@ -3648,7 +3648,7 @@ def asc_csiro2sww(bath_dir,
      # reverse order of lat, so the fist lat represents the first grid row
     latitudes.reverse()
 
-    kmin, kmax, lmin, lmax = _get_min_max_indexes(latitudes[:],longitudes[:],
+    kmin, kmax, lmin, lmax = get_min_max_indices(latitudes[:],longitudes[:],
                                                  minlat=minlat, maxlat=maxlat,
                                                  minlon=minlon, maxlon=maxlon)
 
@@ -3849,7 +3849,7 @@ def asc_csiro2sww(bath_dir,
                 i += 1
     outfile.close()
 
-def _get_min_max_indexes(latitudes_ref,longitudes_ref,
+def get_min_max_indices(latitudes_ref,longitudes_ref,
                         minlat=None, maxlat=None,
                         minlon=None, maxlon=None):
     """

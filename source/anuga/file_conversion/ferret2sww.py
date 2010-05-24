@@ -13,7 +13,7 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference, \
 import anuga.utilities.log as log
 
 #local modules
-from file_conversion import get_min_max_indexes                            
+from anuga.file_conversion.file_conversion import get_min_max_indices                            
 
 
 def ferret2sww(basename_in, basename_out=None,
@@ -96,7 +96,7 @@ def ferret2sww(basename_in, basename_out=None,
     latitudes = file_h.variables[dim_h_latitude]
     longitudes = file_h.variables[dim_h_longitude]
 
-    kmin, kmax, lmin, lmax = get_min_max_indexes(latitudes[:],
+    kmin, kmax, lmin, lmax = get_min_max_indices(latitudes[:],
                                                   longitudes[:],
                                                   minlat, maxlat,
                                                   minlon, maxlon)
@@ -152,7 +152,7 @@ def ferret2sww(basename_in, basename_out=None,
         # numpy.int32 didn't work in slicing of amplitude below
         jmax = int(jmax)        
 
-    kmin, kmax, lmin, lmax = get_min_max_indexes(latitudes[:],
+    kmin, kmax, lmin, lmax = get_min_max_indices(latitudes[:],
                                                   longitudes[:],
                                                   minlat, maxlat,
                                                   minlon, maxlon)

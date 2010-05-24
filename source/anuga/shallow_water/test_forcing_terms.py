@@ -19,7 +19,7 @@ from anuga.utilities.numerical_tools import ensure_numeric, mean
 from shallow_water_domain import Domain
 from boundaries import Reflective_boundary
 from forcing import Wind_stress, Inflow, Rainfall
-from file_conversion import timefile2netcdf
+from anuga.file_conversion.file_conversion import timefile2netcdf
 
 import numpy as num
 

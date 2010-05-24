@@ -304,7 +304,7 @@ class Test_inundation_damage(unittest.TestCase):
         #print "sww_file",sww_file 
         inundation_damage(sww_file, csv_file, verbose=False)
 
-        csv_handle = Exposure_csv(csv_file)
+        csv_handle = Exposure(csv_file)
         struct_loss = csv_handle.get_column(EventDamageModel.STRUCT_LOSS_TITLE)
         #print "struct_loss",struct_loss
         struct_loss = [float(x) for x in struct_loss]
@@ -391,7 +391,7 @@ class Test_inundation_damage(unittest.TestCase):
                           verbose=False)
 
         # Test one file
-        csv_handle = Exposure_csv(csv_file[:-4]+marker+extension)
+        csv_handle = Exposure(csv_file[:-4]+marker+extension)
         struct_loss = csv_handle.get_column(EventDamageModel.STRUCT_LOSS_TITLE)
         #print "struct_loss",struct_loss
         struct_loss = [float(x) for x in struct_loss]
@@ -402,7 +402,7 @@ class Test_inundation_damage(unittest.TestCase):
         assert num.allclose(depth,[5.5,4.5,0.1,-0.3])
        
         # Test another file
-        csv_handle = Exposure_csv(csv_fileII[:-4]+marker+extension)
+        csv_handle = Exposure(csv_fileII[:-4]+marker+extension)
         struct_loss = csv_handle.get_column(EventDamageModel.STRUCT_LOSS_TITLE)
         #print "struct_loss",struct_loss
         struct_loss = [float(x) for x in struct_loss]

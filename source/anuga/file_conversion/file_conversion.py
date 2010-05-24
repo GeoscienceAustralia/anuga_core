@@ -415,7 +415,7 @@ def asc_csiro2sww(bath_dir,
      # reverse order of lat, so the first lat represents the first grid row
     latitudes.reverse()
 
-    kmin, kmax, lmin, lmax = get_min_max_indexes(latitudes[:],longitudes[:],
+    kmin, kmax, lmin, lmax = get_min_max_indices(latitudes[:],longitudes[:],
                                                   minlat=minlat, maxlat=maxlat,
                                                   minlon=minlon, maxlon=maxlon)
 
@@ -889,7 +889,7 @@ def _binary_c2nc(file_in, file_out, quantity):
 # @param minlon Minimum longitude of specified area.
 # @param maxlon Maximum longitude of specified area.
 # @return Tuple (lat_min_index, lat_max_index, lon_min_index, lon_max_index)
-def get_min_max_indexes(latitudes_ref, longitudes_ref,
+def get_min_max_indices(latitudes_ref, longitudes_ref,
                          minlat=None, maxlat=None,
                          minlon=None, maxlon=None):
     """

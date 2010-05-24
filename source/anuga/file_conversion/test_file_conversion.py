@@ -1596,7 +1596,7 @@ if __name__ == "__main__":
 
         # k - lat
         # l - lon
-        kmin, kmax, lmin, lmax = get_min_max_indexes(
+        kmin, kmax, lmin, lmax = get_min_max_indices(
             latitudes,longitudes,
             -10,4,-10,31)
 
@@ -1611,7 +1611,7 @@ if __name__ == "__main__":
                          'failed')
 
         ## 2nd test
-        kmin, kmax, lmin, lmax = get_min_max_indexes(
+        kmin, kmax, lmin, lmax = get_min_max_indices(
             latitudes,longitudes,
             0.5,2.5,5,25)
         #print "kmin",kmin;print "kmax",kmax
@@ -1626,7 +1626,7 @@ if __name__ == "__main__":
                          'failed')
 
         ## 3rd test
-        kmin, kmax, lmin, lmax = get_min_max_indexes(\
+        kmin, kmax, lmin, lmax = get_min_max_indices(\
             latitudes,
             longitudes,
             1.1,1.9,12,17)
@@ -1643,7 +1643,7 @@ if __name__ == "__main__":
 
 
         ## 4th test
-        kmin, kmax, lmin, lmax = get_min_max_indexes(
+        kmin, kmax, lmin, lmax = get_min_max_indices(
             latitudes,longitudes,
                                                       -0.1,1.9,-2,17)
         #print "kmin",kmin;print "kmax",kmax
@@ -1657,7 +1657,7 @@ if __name__ == "__main__":
                         longitudes_news == [0, 10, 20],
                          'failed')
         ## 5th test
-        kmin, kmax, lmin, lmax = get_min_max_indexes(
+        kmin, kmax, lmin, lmax = get_min_max_indices(
             latitudes,longitudes,
             0.1,1.9,2,17)
         #print "kmin",kmin;print "kmax",kmax
@@ -1673,7 +1673,7 @@ if __name__ == "__main__":
 
         ## 6th test
 
-        kmin, kmax, lmin, lmax = get_min_max_indexes(
+        kmin, kmax, lmin, lmax = get_min_max_indices(
             latitudes,longitudes,
             1.5,4,18,32)
         #print "kmin",kmin;print "kmax",kmax
@@ -1690,7 +1690,7 @@ if __name__ == "__main__":
 
         ## 7th test
         m2d = num.array([[0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15]], num.int)    #array default#
-        kmin, kmax, lmin, lmax = get_min_max_indexes(
+        kmin, kmax, lmin, lmax = get_min_max_indices(
             latitudes,longitudes,
             1.5,1.5,15,15)
         #print "kmin",kmin;print "kmax",kmax
@@ -1714,7 +1714,7 @@ if __name__ == "__main__":
 
         # k - lat
         # l - lon
-        kmin, kmax, lmin, lmax = get_min_max_indexes(
+        kmin, kmax, lmin, lmax = get_min_max_indices(
             latitudes,longitudes,
             -10,4,-10,31)
 
@@ -1729,7 +1729,7 @@ if __name__ == "__main__":
                          'failed')
 
         ## 3rd test
-        kmin, kmax, lmin, lmax = get_min_max_indexes(\
+        kmin, kmax, lmin, lmax = get_min_max_indices(\
             latitudes,
             longitudes,
             1.1,1.9,12,17)
@@ -1752,7 +1752,7 @@ if __name__ == "__main__":
 
         # k - lat
         # l - lon
-        kmin, kmax, lmin, lmax = get_min_max_indexes(
+        kmin, kmax, lmin, lmax = get_min_max_indices(
             latitudes,longitudes,
             -37,-27,147,149.5)
 
@@ -1781,7 +1781,7 @@ if __name__ == "__main__":
 
         # k - lat
         # l - lon
-        kmin, kmax, lmin, lmax = get_min_max_indexes(
+        kmin, kmax, lmin, lmax = get_min_max_indices(
             latitudes,longitudes,
             -43,-37,148.5,149.5)
 
@@ -1805,7 +1805,7 @@ if __name__ == "__main__":
 
         # k - lat
         # l - lon
-        kmin, kmax, lmin, lmax = get_min_max_indexes(
+        kmin, kmax, lmin, lmax = get_min_max_indices(
             latitudes,longitudes)
 
         #print "kmin",kmin;print "kmax",kmax
