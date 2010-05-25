@@ -5,6 +5,7 @@ import unittest, os
 from anuga.shallow_water import Domain
 from boundaries import Reflective_boundary
 from anuga.coordinate_transforms.geo_reference import Geo_reference
+from anuga.file_conversion.file_conversion import timefile2netcdf
 from forcing import *
 
 import numpy as num
@@ -246,9 +247,6 @@ class Test_Forcing(unittest.TestCase):
 
         fid.close()
 
-        # Convert ASCII file to NetCDF (Which is what we really like!)
-        from file_conversion import timefile2netcdf
-
         timefile2netcdf(filename)
         os.remove(filename + '.txt')
 
@@ -337,9 +335,6 @@ class Test_Forcing(unittest.TestCase):
             t += dt
 
         fid.close()
-
-        # Convert ASCII file to NetCDF (Which is what we really like!)
-        from file_conversion import timefile2netcdf
 
         timefile2netcdf(filename, time_as_seconds=True)
         os.remove(filename + '.txt')

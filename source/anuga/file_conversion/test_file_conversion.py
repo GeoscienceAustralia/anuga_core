@@ -2240,6 +2240,104 @@ friction  \n \
   
 
 
+    def test_read_asc(self):
+        """Test conversion from dem in ascii format to native NetCDF format
+        """
+
+        import time, os
+
+        from file_conversion import _read_asc
+        #Write test asc file
+        filename = tempfile.mktemp(".000")
+        fid = open(filename, 'w')
+        fid.write("""ncols         7
+nrows         4
+xllcorner     2000.5
+yllcorner     3000.5
+cellsize      25
+NODATA_value  -9999
+    97.921    99.285   125.588   180.830   258.645   342.872   415.836
+   473.157   514.391   553.893   607.120   678.125   777.283   883.038
+   984.494  1040.349  1008.161   900.738   730.882   581.430   514.980
+   502.645   516.230   504.739   450.604   388.500   338.097   514.980
+""")
+        fid.close()
+        bath_metadata, grid = _read_asc(filename, verbose=self.verbose)
+        self.failUnless(bath_metadata['xllcorner']  == 2000.5,  'Failed')
+        self.failUnless(bath_metadata['yllcorner']  == 3000.5,  'Failed')
+        self.failUnless(bath_metadata['cellsize']  == 25,  'Failed')
+        self.failUnless(bath_metadata['NODATA_value']  == -9999,  'Failed')
+        self.failUnless(grid[0][0]  == 97.921,  'Failed')
+        self.failUnless(grid[3][6]  == 514.980,  'Failed')
+
+        os.remove(filename)
+
+
+    #### TESTS FOR URS 2 SWW  ###     
+    
+    def create_mux(self, points_num=None):
+        # write all the mux stuff.
+        time_step_count = 3
+        time_step = 0.5
+        
+        longitudes = [150.66667, 150.83334, 151., 151.16667]
+        latitudes = [-34.5, -34.33333, -34.16667, -34]
+
+        if points_num == None:
+            points_num = len(longitudes) * len(latitudes)
+
+        lonlatdeps = []
+        quantities = ['HA','UA','VA']
+        mux_names = [WAVEHEIGHT_MUX_LABEL,
+                     EAST_VELOCITY_LABEL,
+                     NORTH_VELOCITY_LABEL]
+        quantities_init = [[],[],[]]
+        # urs binary is latitude fastest
+        for i,lon in enumerate(longitudes):
+            for j,lat in enumerate(latitudes):
+                _ , e, n = redfearn(lat, lon)
+                lonlatdeps.append([lon, lat, n])
+                quantities_init[0].append(e) # HA
+                quantities_init[1].append(n ) # UA
+                quantities_init[2].append(e) # VA
+        #print "lonlatdeps",lonlatdeps
+
+        file_handle, base_name = tempfile.mkstemp("")
+        os.close(file_handle)
+        os.remove(base_name)
+        
+        files = []        
+        for i,q in enumerate(quantities): 
+            quantities_init[i] = ensure_numeric(quantities_init[i])
+            #print "HA_init", HA_init
+            q_time = num.zeros((time_step_count, points_num), num.float)
+            for time in range(time_step_count):
+                q_time[time,:] = quantities_init[i] #* time * 4
+            
+            #Write C files
+            columns = 3 # long, lat , depth
+            file = base_name + mux_names[i]
+            #print "base_name file",file 
+            f = open(file, 'wb')
+            files.append(file)
+            f.write(pack('i',points_num))
+            f.write(pack('i',time_step_count))
+            f.write(pack('f',time_step))
+
+            #write lat/long info
+            for lonlatdep in lonlatdeps:
+                for float in lonlatdep:
+                    f.write(pack('f',float))
+                    
+            # Write quantity info
+            for time in  range(time_step_count):
+                for point_i in range(points_num):
+                    f.write(pack('f',q_time[time,point_i]))
+                    #print " mux_names[i]", mux_names[i] 
+                    #print "f.write(pack('f',q_time[time,i]))", q_time[time,point_i]
+            f.close()
+        return base_name, files
+
 #-------------------------------------------------------------
 
 if __name__ == "__main__":

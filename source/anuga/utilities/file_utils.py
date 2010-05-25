@@ -5,6 +5,7 @@
 
 import os, sys
 import csv
+import numpy as num
 
 ##
 # @brief Convert a possible filename into a standard form.
@@ -361,3 +362,31 @@ def load_csv_as_dict(file_name, title_check_list=None):
             attribute_dic.setdefault(titles_stripped[i], []).append(value)
 
     return attribute_dic, title_index_dic
+
+
+          
+##
+# @brief Convert CSV file to a dictionary of arrays.
+# @param file_name The path to the file to read.
+def load_csv_as_array(file_name):
+    """
+    Convert CSV files of the form:
+
+    time, discharge, velocity
+    0.0,  1.2,       0.0
+    0.1,  3.2,       1.1
+    ...
+
+    to a dictionary of numeric arrays.
+
+
+    See underlying function load_csv_as_dict for more details.
+    """
+
+    X, _ = load_csv_as_dict(file_name)
+
+    Y = {}
+    for key in X.keys():
+        Y[key] = num.array([float(x) for x in X[key]])
+
+    return Y
