@@ -390,3 +390,5 @@ def load_csv_as_array(file_name):
         Y[key] = num.array([float(x) for x in X[key]])
 
     return Y
+
+

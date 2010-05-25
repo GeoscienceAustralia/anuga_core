@@ -308,26 +308,42 @@ def calc_bearing(uh, vh):
     return degrees(angle([uh, vh], [0, -1]))   
 
 
-# FIXME (DSG): Add unit test, make general, not just 2 files,
-# but any number of files.
-##
-# @brief ??
-# @param dir_name ??
-# @param filename1 ??
-# @param filename2 ??
-# @return ??
-# @note TEMP
-def copy_code_files(dir_name, filename1, filename2):
-    """Temporary Interface to new location"""
+def copy_code_files(dir_name, filename1, filename2, verbose=False):
+    """Copies "filename1" and "filename2" to "dir_name".
 
-    from anuga.shallow_water.data_manager import \
-                    copy_code_files as dm_copy_code_files
-    log.critical('copy_code_files has moved from util.py.')
-    log.critical('Please use "from anuga.shallow_water.data_manager import '
-                 'copy_code_files"')
-    
-    return dm_copy_code_files(dir_name, filename1, filename2)
+    Each 'filename' may be a string or list of filename strings.
 
+    Filenames must be absolute pathnames
+    """
+
+    ##
+    # @brief copies a file or sequence to destination directory.
+    # @param dest The destination directory to copy to.
+    # @param file A filename string or sequence of filename strings.
+    def copy_file_or_sequence(dest, file):
+        if hasattr(file, '__iter__'):
+            for f in file:
+                shutil.copy(f, dir_name)
+                if verbose:
+                    log.critical('File %s copied' % f)
+        else:
+            shutil.copy(file, dir_name)
+            if verbose:
+                log.critical('File %s copied' % file)
+
+    # check we have a destination directory, create if necessary
+    if not os.path.isdir(dir_name):
+        if verbose:
+            log.critical('Make directory %s' % dir_name)
+        mkdir(dir_name, 0777)
+
+    if verbose:
+        log.critical('Output directory: %s' % dir_name)        
+
+    copy_file_or_sequence(dir_name, filename1)
+
+    if not filename2 is None:
+        copy_file_or_sequence(dir_name, filename2)
 
 ##
 # @brief Create a nested sub-directory path.
