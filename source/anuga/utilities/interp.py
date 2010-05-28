@@ -137,7 +137,7 @@ def interp(y, x, xinterp, missing=1e+20):
     ['-0.8', '1e+20', '1e+20']
     """
     import arrayfns
-    import numpy.ma MA
+    import numpy.ma as MA
     import numpy as N
     from where_close import where_close
 

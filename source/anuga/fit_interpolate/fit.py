@@ -34,7 +34,7 @@ from anuga.geospatial_data.geospatial_data import Geospatial_data, \
 from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
 from anuga.utilities.sparse import Sparse, Sparse_CSR
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon
-from anuga.geometry.mesh_quadtree import MeshQuadtree
+from anuga.pmesh.mesh_quadtree import MeshQuadtree
 
 from anuga.utilities.cg_solve import conjugate_gradient
 from anuga.utilities.numerical_tools import ensure_numeric, gradient

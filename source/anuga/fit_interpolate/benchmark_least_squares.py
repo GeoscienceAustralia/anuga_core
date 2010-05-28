@@ -260,11 +260,8 @@ class BenchmarkLeastSquares:
         
         #search_one_cell_time, search_more_cells_time = search_times()
         #reset_search_times()
-        #print "bench - search_one_cell_time",search_one_cell_time
-        #print "bench - search_more_cells_time", search_more_cells_time
         #print "bench - build_quadtree_time", get_build_quadtree_time()
         return time_taken_sec, memory_used, len(mesh_dict['triangles']), \
-               search_one_cell_time, search_more_cells_time, \
                get_build_quadtree_time()
     
 

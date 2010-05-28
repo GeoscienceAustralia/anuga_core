@@ -1,4 +1,11 @@
-# Allow children to be slightly bigger than their parents to prevent straddling of a boundary
+"""
+    Axially aligned bounding box.
+    Contains a class describing a bounding box. It contains methods
+    to split itself and return child boxes.
+"""
+
+# Allow children to be slightly bigger than their parents to prevent
+# straddling of a boundary
 SPLIT_BORDER_RATIO    = 0.55
 
 class AABB:
@@ -22,7 +29,8 @@ class AABB:
 
     def __repr__(self):
         return 'AABB(xmin:%f, xmax:%f, ymin:%f, ymax:%f)' \
-               % (round(self.xmin,1), round(self.xmax,1), round(self.ymin,1), round(self.ymax, 1)) 
+               % (round(self.xmin,1), round(self.xmax,1), \
+                  round(self.ymin,1), round(self.ymax, 1)) 
 
 
     def grow(self, amount):
@@ -55,12 +63,16 @@ class AABB:
         
         if (width > height):
             # split vertically
-            return AABB(self.xmin, self.xmin+width*border, self.ymin, self.ymax), \
-                   AABB(self.xmax-width*border, self.xmax, self.ymin, self.ymax)
+            split1 = self.xmin+width*border
+            split2 = self.xmax-width*border
+            return AABB(self.xmin, split1, self.ymin, self.ymax), \
+                   AABB(split2, self.xmax, self.ymin, self.ymax)
         else:
             # split horizontally       
-            return AABB(self.xmin, self.xmax, self.ymin, self.ymin+height*border), \
-                   AABB(self.xmin, self.xmax, self.ymax-height*border, self.ymax)    
+            split1 = self.ymin+height*border
+            split2 = self.ymax-height*border
+            return AABB(self.xmin, self.xmax, self.ymin, split1), \
+                   AABB(self.xmin, self.xmax, split2, self.ymax)    
 
     
     def is_trivial_in(self, test):
@@ -75,10 +87,11 @@ class AABB:
             return False        
         return True
  
-    def contains(self, x):
+    def contains(self, point):
         """ is point within box
-            x is a test point
+            point is a test point
             return True if the point is contained within the box.
         """
-        return (self.xmin <= x[0] <= self.xmax) and (self.ymin <= x[1] <= self.ymax)
+        return (self.xmin <= point[0] <= self.xmax) \
+                and (self.ymin <= point[1] <= self.ymax)
         

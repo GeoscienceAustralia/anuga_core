@@ -78,7 +78,7 @@ from anuga.config import netcdf_float, netcdf_float32, netcdf_int
 from anuga.config import max_float
 from anuga.utilities.numerical_tools import ensure_numeric,  mean
 from anuga.caching.caching import myhash
-from anuga.shallow_water import Domain
+from anuga.shallow_water.shallow_water_domain import Domain
 from anuga.abstract_2d_finite_volumes.pmesh2domain import \
      pmesh_to_domain_instance
 from anuga.abstract_2d_finite_volumes.util import get_revision_number, \

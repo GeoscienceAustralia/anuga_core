@@ -1,18 +1,17 @@
 """quad.py - quad tree data structure for fast indexing of regions in the plane.
 
-This is a generic structure that can be used to store any geometry in a quadtree.
-It is naive, and does not exploit any coherency - it merely tests a bounding
-box against all other bounding boxes in its heirarchy.
+This generic structure can be used to store any geometry in a quadtree.
+It is naive, and does not exploit any coherency - it merely tests a point
+against all bounding boxes in its heirarchy.
 
-It returns a list of bounding boxes which intersect with the test box, which
-must then be iterated over to detect actual intersections.
+It returns a list of bounding boxes which intersect with the test point, which
+may then be iterated over with a proper intersection test to detect actual
+geometry intersections.
 
 """
 
 from anuga.utilities.treenode import TreeNode
-import string, types, sys
 import anuga.utilities.log as log
-from aabb import AABB
 
             
 class Cell(TreeNode):
@@ -29,7 +28,7 @@ class Cell(TreeNode):
         """
   
         # Initialise base classes
-        TreeNode.__init__(self, string.lower(name))
+        TreeNode.__init__(self, name)
     
         self.extents = extents
         self.parent = parent
@@ -40,23 +39,25 @@ class Cell(TreeNode):
         
     
     def __repr__(self):
-        str = '%s: leaves: %d' \
+        ret_str = '%s: leaves: %d' \
                % (self.name , len(self.leaves))    
         if self.children:
-            str += ', children: %d' % (len(self.children))
-        return str
+            ret_str += ', children: %d' % (len(self.children))
+        return ret_str
 
    
 
     def clear(self):
+        """ Remove all leaves from this node.
+        """
         self.Prune()   # TreeNode method
 
 
     def clear_leaf_node(self):
-        """Clears storage in leaf node.
-    Called from Treenode.
-    Must exist.    
-    """
+        """ Clears storage in leaf node.
+            Called from Treenode.
+            Must exist.    
+        """
         self.leaves = []
     
     
@@ -74,46 +75,48 @@ class Cell(TreeNode):
         """
         if type(new_leaf)==type(list()):
             for leaf in new_leaf:
-                self._insert(leaf)
+                self.insert_item(leaf)
         else:
-            self._insert(new_leaf)
+            self.insert_item(new_leaf)
 
 
-    def _insert(self, new_leaf):   
-        """ Internal recursive insert.
+    def insert_item(self, new_leaf):   
+        """ Internal recursive insert a single item.
             new_leaf is a tuple of (AABB extents, data), where data can
                      be any user data (geometry, triangle index, etc.).       
         """
-        new_region, data = new_leaf
+        new_region, _ = new_leaf
         
         # recurse down to any children until we get an intersection
         if self.children:
             for child in self.children:
                 if child.extents.is_trivial_in(new_region):
-                    child._insert(new_leaf)
+                    child.insert_item(new_leaf)
                     return
         else:            
             # try splitting this cell and see if we get a trivial in
             subregion1, subregion2 = self.extents.split()
             
             # option 1 - try splitting 4 ways
-            #subregion11, subregion12 = subregion1.split()                                
+            #subregion11, subregion12 = subregion1.split()    
             #subregion21, subregion22 = subregion2.split()
             #regions = [subregion11, subregion12, subregion21, subregion22]
             #for region in regions:
                 #if region.is_trivial_in(new_region):
                     #self.children = [Cell(x, parent=self) for x in regions]
-                    #self._insert(new_leaf)
+                    #self.insert_item(new_leaf)
                     #return               
 
             # option 2 - try splitting 2 ways - no diff noticed in practise
             if subregion1.is_trivial_in(new_region):
-                self.children = [Cell(subregion1, self), Cell(subregion2, self)]    
-                self.children[0]._insert(new_leaf)
+                self.children = [Cell(subregion1, self), \
+                                 Cell(subregion2, self)]    
+                self.children[0].insert_item(new_leaf)
                 return
             elif subregion2.is_trivial_in(new_region):
-                self.children = [Cell(subregion1, self), Cell(subregion2, self)]    
-                self.children[1]._insert(new_leaf)
+                self.children = [Cell(subregion1, self), \
+                                 Cell(subregion2, self)]    
+                self.children[1].insert_item(new_leaf)
                 return                
     
         # recursion ended without finding a fit, so attach it as a leaf
@@ -155,27 +158,31 @@ class Cell(TreeNode):
         """
         if depth == 0:
             log.critical() 
-        print '%s%s'  % ('  '*depth, self.name), self.extents,' [', self.leaves, ']'
+        print '%s%s'  % ('  '*depth, self.name), self.extents, ' [', \
+            self.leaves, ']'
         if self.children:
             log.critical()
             for child in self.children:
                 child.show(depth+1)
 
-    def search(self, x):
-        """return a list of possible intersections with geometry"""
-      
-        intersecting_regions = self.test_leaves(x)
+    def search(self, point):
+        """
+            Search the tree for intersection with leaves
+            point is a test point.
+            return a list of possible intersections with geometry.
+        """
+        intersecting_regions = self.test_leaves(point)
         
         # recurse down into nodes that the point passes through
         if self.children:
             for child in self.children:    
-                if child.extents.contains(x):
-                    intersecting_regions.extend(child.search(x))
+                if child.extents.contains(point):
+                    intersecting_regions.extend(child.search(point))
              
         return intersecting_regions
  
  
-    def test_leaves(self, x):
+    def test_leaves(self, point):
         """ Test all leaves to see if they intersect x.
             x is a point to test
             return a list of leaves that intersect x
@@ -185,7 +192,7 @@ class Cell(TreeNode):
         # test all leaves to see if they intersect the point
         for leaf in self.leaves:
             aabb, data = leaf
-            if aabb.contains(x):
+            if aabb.contains(point):
                 intersecting_regions.append([data, self])
                 
         return intersecting_regions                

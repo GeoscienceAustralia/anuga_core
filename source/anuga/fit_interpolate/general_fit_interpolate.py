@@ -30,7 +30,7 @@ from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.geospatial_data.geospatial_data import Geospatial_data, \
      ensure_absolute
-from anuga.geometry.mesh_quadtree import MeshQuadtree
+from anuga.pmesh.mesh_quadtree import MeshQuadtree
 import anuga.utilities.log as log
 
 import numpy as num
