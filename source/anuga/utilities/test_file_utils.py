@@ -1,3 +1,9 @@
+import unittest
+import tempfile
+import os
+import shutil
+
+from file_utils import copy_code_files
 
 
 class Test_FileUtils(unittest.TestCase):
@@ -37,11 +43,11 @@ class Test_FileUtils(unittest.TestCase):
         copy_code_files(dst_dir, (filename4, filename5, filename3))
 
         # test that files were actually copied
-        self.failUnless(access(os.path.join(dst_dir, f1), F_OK))
-        self.failUnless(access(os.path.join(dst_dir, f2), F_OK))
-        self.failUnless(access(os.path.join(dst_dir, f3), F_OK))
-        self.failUnless(access(os.path.join(dst_dir, f4), F_OK))
-        self.failUnless(access(os.path.join(dst_dir, f5), F_OK))
+        self.failUnless(os.access(os.path.join(dst_dir, f1), os.F_OK))
+        self.failUnless(os.access(os.path.join(dst_dir, f2), os.F_OK))
+        self.failUnless(os.access(os.path.join(dst_dir, f3), os.F_OK))
+        self.failUnless(os.access(os.path.join(dst_dir, f4), os.F_OK))
+        self.failUnless(os.access(os.path.join(dst_dir, f5), os.F_OK))
 
         # clean up
         shutil.rmtree(work_dir)

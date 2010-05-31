@@ -6,6 +6,7 @@
 import os, sys
 import csv
 import numpy as num
+import shutil
 
 ##
 # @brief Convert a possible filename into a standard form.
@@ -393,7 +394,7 @@ def load_csv_as_array(file_name):
 
 
 
-def copy_code_files(dir_name, filename1, filename2, verbose=False):
+def copy_code_files(dir_name, filename1, filename2=None, verbose=False):
     """Copies "filename1" and "filename2" to "dir_name".
 
     Each 'filename' may be a string or list of filename strings.
