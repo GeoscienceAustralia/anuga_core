@@ -1,0 +1,210 @@
+################################################################################
+# CONVERTING UNGRIDDED URS DATA TO AN SWW FILE
+################################################################################
+
+WAVEHEIGHT_MUX_LABEL = '-z-mux'
+EAST_VELOCITY_LABEL =  '-e-mux'
+NORTH_VELOCITY_LABEL =  '-n-mux'
+
+##
+# @brief Convert URS file(s) (wave prop) to an SWW file.
+# @param basename_in Stem of the input filenames.
+# @param basename_out Path to the output SWW file.
+# @param verbose True if this function is to be verbose.
+# @param mint
+# @param maxt
+# @param mean_stage
+# @param origin Tuple with geo-ref UTM coordinates (zone, easting, northing).
+# @param hole_points_UTM
+# @param zscale
+# @note Also convert latitude and longitude to UTM. All coordinates are
+#       assumed to be given in the GDA94 datum.
+# @note Input filename stem has suffixes '-z-mux', '-e-mux' and '-n-mux'
+#       added for relative height, x-velocity and y-velocity respectively.
+def urs2sww(basename_in='o', basename_out=None, verbose=False,
+                      mint=None, maxt=None,
+                      mean_stage=0,
+                      origin=None,
+                      hole_points_UTM=None,
+                      zscale=1):
+    """
+    Convert URS C binary format for wave propagation to
+    sww format native to abstract_2d_finite_volumes.
+
+    Specify only basename_in and read files of the form
+    basefilename-z-mux, basefilename-e-mux and
+    basefilename-n-mux containing relative height,
+    x-velocity and y-velocity, respectively.
+
+    Also convert latitude and longitude to UTM. All coordinates are
+    assumed to be given in the GDA94 datum. The latitude and longitude
+    information is assumed ungridded grid.
+
+    min's and max's: If omitted - full extend is used.
+    To include a value min ans max may equal it.
+    Lat and lon are assumed to be in decimal degrees.
+
+    origin is a 3-tuple with geo referenced
+    UTM coordinates (zone, easting, northing)
+    It will be the origin of the sww file. This shouldn't be used,
+    since all of anuga should be able to handle an arbitary origin.
+    The mux point info is NOT relative to this origin.
+
+    URS C binary format has data organised as TIME, LONGITUDE, LATITUDE
+    which means that latitude is the fastest
+    varying dimension (row major order, so to speak)
+
+    In URS C binary the latitudes and longitudes are in assending order.
+
+    Note, interpolations of the resulting sww file will be different
+    from results of urs2sww.  This is due to the interpolation
+    function used, and the different grid structure between urs2sww
+    and this function.
+
+    Interpolating data that has an underlying gridded source can
+    easily end up with different values, depending on the underlying
+    mesh.
+
+    consider these 4 points
+    50  -50
+
+    0     0
+
+    The grid can be
+     -
+    |\|   A
+     -
+     or;
+      -
+     |/|  B
+      -
+
+    If a point is just below the center of the midpoint, it will have a
+    +ve value in grid A and a -ve value in grid B.
+    """
+
+    from anuga.mesh_engine.mesh_engine import NoTrianglesError
+    from anuga.pmesh.mesh import Mesh
+
+    files_in = [basename_in + WAVEHEIGHT_MUX_LABEL,
+                basename_in + EAST_VELOCITY_LABEL,
+                basename_in + NORTH_VELOCITY_LABEL]
+    quantities = ['HA','UA','VA']
+
+    # instantiate urs_points of the three mux files.
+    mux = {}
+    for quantity, file in map(None, quantities, files_in):
+        mux[quantity] = Urs_points(file)
+
+    # Could check that the depth is the same. (hashing)
+
+    # handle to a mux file to do depth stuff
+    a_mux = mux[quantities[0]]
+
+    # Convert to utm
+    lat = a_mux.lonlatdep[:,1]
+    long = a_mux.lonlatdep[:,0]
+    points_utm, zone = convert_from_latlon_to_utm(latitudes=lat,
+                                                  longitudes=long)
+
+    elevation = a_mux.lonlatdep[:,2] * -1
+
+    # grid (create a mesh from the selected points)
+    # This mesh has a problem.  Triangles are streched over ungridded areas.
+    # If these areas could be described as holes in pmesh, that would be great.
+
+    # I can't just get the user to selection a point in the middle.
+    # A boundary is needed around these points.
+    # But if the zone of points is obvious enough auto-segment should do
+    # a good boundary.
+    mesh = Mesh()
+    mesh.add_vertices(points_utm)
+    mesh.auto_segment(smooth_indents=True, expand_pinch=True)
+
+    # To try and avoid alpha shape 'hugging' too much
+    mesh.auto_segment(mesh.shape.get_alpha() * 1.1)
+    if hole_points_UTM is not None:
+        point = ensure_absolute(hole_points_UTM)
+        mesh.add_hole(point[0], point[1])
+
+    try:
+        mesh.generate_mesh(minimum_triangle_angle=0.0, verbose=False)
+    except NoTrianglesError:
+        # This is a bit of a hack, going in and changing the data structure.
+        mesh.holes = []
+        mesh.generate_mesh(minimum_triangle_angle=0.0, verbose=False)
+
+    mesh_dic = mesh.Mesh2MeshList()
+
+    #mesh.export_mesh_file(basename_in + '_168.tsh')
+    #import sys; sys.exit()
+    # These are the times of the mux file
+    mux_times = []
+    for i in range(a_mux.time_step_count):
+        mux_times.append(a_mux.time_step * i)
+    (mux_times_start_i, mux_times_fin_i) = mux2sww_time(mux_times, mint, maxt)
+    times = mux_times[mux_times_start_i:mux_times_fin_i]
+
+    if mux_times_start_i == mux_times_fin_i:
+        # Close the mux files
+        for quantity, file in map(None, quantities, files_in):
+            mux[quantity].close()
+        msg = "Due to mint and maxt there's no time info in the boundary SWW."
+        raise Exception, msg
+
+    # If this raise is removed there is currently no downstream errors
+
+    points_utm=ensure_numeric(points_utm)
+    assert num.alltrue(ensure_numeric(mesh_dic['generatedpointlist'])
+                       == ensure_numeric(points_utm))
+
+    volumes = mesh_dic['generatedtrianglelist']
+
+    # Write sww intro and grid stuff.
+    if basename_out is None:
+        swwname = basename_in + '.sww'
+    else:
+        swwname = basename_out + '.sww'
+
+    if verbose: log.critical('Output to %s' % swwname)
+
+    outfile = NetCDFFile(swwname, netcdf_mode_w)
+
+    # For a different way of doing this, check out tsh2sww
+    # work out sww_times and the index range this covers
+    sww = Write_sww(['elevation'], ['stage', 'xmomentum', 'ymomentum'])
+    sww.store_header(outfile, times, len(volumes), len(points_utm),
+                     verbose=verbose, sww_precision=netcdf_float)
+    outfile.mean_stage = mean_stage
+    outfile.zscale = zscale
+
+    sww.store_triangulation(outfile, points_utm, volumes,
+                            zone,  
+                            new_origin=origin,
+                            verbose=verbose)
+    sww.store_static_quantities(outfile, elevation=elevation)
+
+    if verbose: log.critical('Converting quantities')
+
+    # Read in a time slice from each mux file and write it to the SWW file
+    j = 0
+    for ha, ua, va in map(None, mux['HA'], mux['UA'], mux['VA']):
+        if j >= mux_times_start_i and j < mux_times_fin_i:
+            stage = zscale*ha + mean_stage
+            h = stage - elevation
+            xmomentum = ua*h
+            ymomentum = -1 * va * h # -1 since in mux files south is positive.
+            sww.store_quantities(outfile,
+                                 slice_index=j-mux_times_start_i,
+                                 verbose=verbose,
+                                 stage=stage,
+                                 xmomentum=xmomentum,
+                                 ymomentum=ymomentum,
+                                 sww_precision=num.float)
+        j += 1
+
+    if verbose: sww.verbose_quantities(outfile)
+
+    outfile.close()
+
+    # Do some conversions while writing the sww file

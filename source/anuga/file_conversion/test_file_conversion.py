@@ -10,6 +10,9 @@ from anuga.shallow_water.sww_file import SWW_file
 from data_manager import extent_sww
 from anuga.config import netcdf_float, epsilon, g
 from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file_conversion.file_conversion import tsh2sww, \
+                        pmesh_to_domain_instance
+
 import sys
 import unittest
 import numpy as num
