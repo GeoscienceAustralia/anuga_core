@@ -1,3 +1,6 @@
+from mux import WAVEHEIGHT_MUX2_LABEL, EAST_VELOCITY_MUX2_LABEL, \
+                NORTH_VELOCITY_MUX2_LABEL
+
 ##
 # @brief Convert a URS (mux2, wave propagation) file to an STS file.
 # @param basename_in String (or list) of source file stems.
