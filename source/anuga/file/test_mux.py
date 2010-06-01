@@ -3,14 +3,17 @@ import tempfile
 import numpy as num
 import os
 from struct import pack, unpack
+from Scientific.IO.NetCDF import NetCDFFile
 
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.coordinate_transforms.redfearn import redfearn
+from anuga.coordinate_transforms.geo_reference import Geo_reference
 
 from mux import WAVEHEIGHT_MUX2_LABEL, EAST_VELOCITY_MUX2_LABEL, \
                 NORTH_VELOCITY_MUX2_LABEL
                 
 from mux import read_mux2_py
+from anuga.file_conversion.urs2sts import urs2sts
 
 class TestCase(unittest.TestCase):
     def setUp(self):
@@ -245,6 +248,7 @@ class TestCase(unittest.TestCase):
             f.close()
 
         return base_name, files
+
 
     def test_urs2sts_read_mux2_pyI(self):
         """test_urs2sts_read_mux2_pyI(self):
@@ -1093,8 +1097,397 @@ ValueError: matrices are not aligned for copy
                     assert num.allclose(data[i][:parameters_index], -va1[permutation[i], :])
         
         self.delete_mux(filesII)      
-        
 
+
+          
+    def test_urs2sts_nonstandard_projection_reverse(self):
+        """
+        Test that a point not in the specified zone can occur first
+        """
+        tide=0
+        time_step_count = 3
+        time_step = 2
+        lat_long_points =[(-21.,113.5),(-21.,114.5),(-21.,114.), (-21.,115.)]
+        n=len(lat_long_points)
+        first_tstep=num.ones(n,num.int)
+        first_tstep[0]+=1
+        first_tstep[2]+=1
+        last_tstep=(time_step_count)*num.ones(n,num.int)
+        last_tstep[0]-=1
+
+        gauge_depth=20*num.ones(n,num.float)
+        ha=2*num.ones((n,time_step_count),num.float)
+        ha[0]=num.arange(0,time_step_count)
+        ha[1]=num.arange(time_step_count,2*time_step_count)
+        ha[2]=num.arange(2*time_step_count,3*time_step_count)
+        ha[3]=num.arange(3*time_step_count,4*time_step_count)
+        ua=5*num.ones((n,time_step_count),num.float)
+        va=-10*num.ones((n,time_step_count),num.float)
+
+        base_name, files = self.write_mux2(lat_long_points,
+                                      time_step_count, time_step,
+                                      first_tstep, last_tstep,
+                                      depth=gauge_depth,
+                                      ha=ha,
+                                      ua=ua,
+                                      va=va)
+
+        urs2sts(base_name,
+                basename_out=base_name, 
+                zone=50,
+                mean_stage=tide,verbose=False)
+
+        # now I want to check the sts file ...
+        sts_file = base_name + '.sts'
+
+        #Let's interigate the sww file
+        # Note, the sww info is not gridded.  It is point data.
+        fid = NetCDFFile(sts_file)
+
+        # Make x and y absolute
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+
+        geo_reference = Geo_reference(NetCDFObject=fid)
+        points = geo_reference.get_absolute(map(None, x, y))
+        points = ensure_numeric(points)
+
+        x = points[:,0]
+        y = points[:,1]
+
+        # Check that all coordinate are correctly represented       
+        # Using the non standard projection (50) 
+        for i in range(4):
+            zone, e, n = redfearn(lat_long_points[i][0], lat_long_points[i][1],
+                                  zone=50) 
+            assert num.allclose([x[i],y[i]], [e,n])
+            assert zone==geo_reference.zone
+        
+        self.delete_mux(files)
+
+            
+    def test_urs2stsII(self):
+        """
+        Test multiple sources
+        """
+        tide=0
+        time_step_count = 3
+        time_step = 2
+        lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
+        n=len(lat_long_points)
+        first_tstep=num.ones(n,num.int)
+        first_tstep[0]+=1
+        first_tstep[2]+=1
+        last_tstep=(time_step_count)*num.ones(n,num.int)
+        last_tstep[0]-=1
+
+        gauge_depth=20*num.ones(n,num.float)
+        ha=2*num.ones((n,time_step_count),num.float)
+        ha[0]=num.arange(0,time_step_count)
+        ha[1]=num.arange(time_step_count,2*time_step_count)
+        ha[2]=num.arange(2*time_step_count,3*time_step_count)
+        ha[3]=num.arange(3*time_step_count,4*time_step_count)
+        ua=5*num.ones((n,time_step_count),num.float)
+        va=-10*num.ones((n,time_step_count),num.float)
+
+        # Create two identical mux files to be combined by urs2sts
+        base_nameI, filesI = self.write_mux2(lat_long_points,
+                                             time_step_count, time_step,
+                                             first_tstep, last_tstep,
+                                             depth=gauge_depth,
+                                             ha=ha,
+                                             ua=ua,
+                                             va=va)
+
+        base_nameII, filesII = self.write_mux2(lat_long_points,
+                                               time_step_count, time_step,
+                                               first_tstep, last_tstep,
+                                               depth=gauge_depth,
+                                               ha=ha,
+                                               ua=ua,
+                                               va=va)
+
+        # Call urs2sts with multiple mux files
+        urs2sts([base_nameI, base_nameII], 
+                basename_out=base_nameI, 
+                weights=[1.0, 1.0],
+                mean_stage=tide,
+                verbose=False)
+
+        # now I want to check the sts file ...
+        sts_file = base_nameI + '.sts'
+
+        #Let's interrogate the sts file
+        # Note, the sts info is not gridded.  It is point data.
+        fid = NetCDFFile(sts_file)
+
+        # Make x and y absolute
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+
+        geo_reference = Geo_reference(NetCDFObject=fid)
+        points = geo_reference.get_absolute(map(None, x, y))
+        points = ensure_numeric(points)
+
+        x = points[:,0]
+        y = points[:,1]
+
+        #Check that first coordinate is correctly represented       
+        #Work out the UTM coordinates for first point
+        zone, e, n = redfearn(lat_long_points[0][0], lat_long_points[0][1]) 
+        assert num.allclose([x[0],y[0]], [e,n])
+
+        #Check the time vector
+        times = fid.variables['time'][:]
+
+        times_actual = []
+        for i in range(time_step_count):
+            times_actual.append(time_step * i)
+
+        assert num.allclose(ensure_numeric(times),
+                            ensure_numeric(times_actual))
+
+        #Check first value
+        stage = fid.variables['stage'][:]
+        xmomentum = fid.variables['xmomentum'][:]
+        ymomentum = fid.variables['ymomentum'][:]
+        elevation = fid.variables['elevation'][:]
+
+        # Set original data used to write mux file to be zero when gauges are
+        # not recdoring
+        
+        ha[0][0]=0.0
+        ha[0][time_step_count-1]=0.0
+        ha[2][0]=0.0
+        ua[0][0]=0.0
+        ua[0][time_step_count-1]=0.0
+        ua[2][0]=0.0
+        va[0][0]=0.0
+        va[0][time_step_count-1]=0.0
+        va[2][0]=0.0;
+
+        # The stage stored in the .sts file should be the sum of the stage
+        # in the two mux2 files because both have weights = 1. In this case
+        # the mux2 files are the same so stage == 2.0 * ha
+        #print 2.0*num.transpose(ha) - stage 
+        assert num.allclose(2.0*num.transpose(ha), stage)  #Meters
+
+        #Check the momentums - ua
+        #momentum = velocity*(stage-elevation)
+        # elevation = - depth
+        #momentum = velocity_ua *(stage+depth)
+
+        depth=num.zeros((len(lat_long_points),time_step_count),num.float)
+        for i in range(len(lat_long_points)):
+            depth[i]=gauge_depth[i]+tide+2.0*ha[i]
+            #2.0*ha necessary because using two files with weights=1 are used
+
+        # The xmomentum stored in the .sts file should be the sum of the ua
+        # in the two mux2 files multiplied by the depth.
+        assert num.allclose(2.0*num.transpose(ua*depth), xmomentum) 
+
+        #Check the momentums - va
+        #momentum = velocity*(stage-elevation)
+        # elevation = - depth
+        #momentum = velocity_va *(stage+depth)
+
+        # The ymomentum stored in the .sts file should be the sum of the va
+        # in the two mux2 files multiplied by the depth.
+        assert num.allclose(2.0*num.transpose(va*depth), ymomentum)
+
+        # check the elevation values.
+        # -ve since urs measures depth, sww meshers height,
+        assert num.allclose(-elevation, gauge_depth)  #Meters
+
+        fid.close()
+        self.delete_mux(filesI)
+        self.delete_mux(filesII)
+        os.remove(sts_file)        
+
+
+    def test_urs2sts0(self):
+        """
+        Test single source
+        """
+        tide=0
+        time_step_count = 3
+        time_step = 2
+        lat_long_points =[(-21.5,114.5),(-21,114.5),(-21.5,115), (-21.,115.)]
+        n=len(lat_long_points)
+        first_tstep=num.ones(n,num.int)
+        first_tstep[0]+=1
+        first_tstep[2]+=1
+        last_tstep=(time_step_count)*num.ones(n,num.int)
+        last_tstep[0]-=1
+
+        gauge_depth=20*num.ones(n,num.float)
+        ha=2*num.ones((n,time_step_count),num.float)
+        ha[0]=num.arange(0,time_step_count)
+        ha[1]=num.arange(time_step_count,2*time_step_count)
+        ha[2]=num.arange(2*time_step_count,3*time_step_count)
+        ha[3]=num.arange(3*time_step_count,4*time_step_count)
+        ua=5*num.ones((n,time_step_count),num.float)
+        va=-10*num.ones((n,time_step_count),num.float)
+
+        base_name, files = self.write_mux2(lat_long_points,
+                                      time_step_count, time_step,
+                                      first_tstep, last_tstep,
+                                      depth=gauge_depth,
+                                      ha=ha,
+                                      ua=ua,
+                                      va=va)
+
+        urs2sts(base_name,
+                basename_out=base_name, 
+                mean_stage=tide,verbose=False)
+
+        # now I want to check the sts file ...
+        sts_file = base_name + '.sts'
+
+        #Let's interigate the sww file
+        # Note, the sww info is not gridded.  It is point data.
+        fid = NetCDFFile(sts_file)
+
+        # Make x and y absolute
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+
+        geo_reference = Geo_reference(NetCDFObject=fid)
+        points = geo_reference.get_absolute(map(None, x, y))
+        points = ensure_numeric(points)
+
+        x = points[:,0]
+        y = points[:,1]
+
+        #Check that first coordinate is correctly represented       
+        #Work out the UTM coordinates for first point
+        for i in range(4):
+            zone, e, n = redfearn(lat_long_points[i][0], lat_long_points[i][1]) 
+            assert num.allclose([x[i],y[i]], [e,n])
+
+        #Check the time vector
+        times = fid.variables['time'][:]
+
+        times_actual = []
+        for i in range(time_step_count):
+            times_actual.append(time_step * i)
+
+        assert num.allclose(ensure_numeric(times),
+                            ensure_numeric(times_actual))
+
+        #Check first value
+        stage = fid.variables['stage'][:]
+        xmomentum = fid.variables['xmomentum'][:]
+        ymomentum = fid.variables['ymomentum'][:]
+        elevation = fid.variables['elevation'][:]
+
+        # Set original data used to write mux file to be zero when gauges are
+        #not recdoring
+        ha[0][0]=0.0
+        ha[0][time_step_count-1]=0.0;
+        ha[2][0]=0.0;
+        ua[0][0]=0.0
+        ua[0][time_step_count-1]=0.0;
+        ua[2][0]=0.0;
+        va[0][0]=0.0
+        va[0][time_step_count-1]=0.0;
+        va[2][0]=0.0;
+
+        assert num.allclose(num.transpose(ha),stage)  #Meters
+
+        #Check the momentums - ua
+        #momentum = velocity*(stage-elevation)
+        # elevation = - depth
+        #momentum = velocity_ua *(stage+depth)
+
+        depth=num.zeros((len(lat_long_points),time_step_count),num.float)
+        for i in range(len(lat_long_points)):
+            depth[i]=gauge_depth[i]+tide+ha[i]
+        assert num.allclose(num.transpose(ua*depth),xmomentum) 
+
+        #Check the momentums - va
+        #momentum = velocity*(stage-elevation)
+        # elevation = - depth
+        #momentum = velocity_va *(stage+depth)
+
+        assert num.allclose(num.transpose(va*depth),ymomentum)
+
+        # check the elevation values.
+        # -ve since urs measures depth, sww meshers height,
+        assert num.allclose(-elevation, gauge_depth)  #Meters
+
+        fid.close()
+        self.delete_mux(files)
+        os.remove(sts_file)
+
+    def test_urs2sts_nonstandard_meridian(self):
+        """
+        Test single source using the meridian from zone 50 as a nonstandard meridian
+        """
+        tide=0
+        time_step_count = 3
+        time_step = 2
+        lat_long_points =[(-21.,114.5),(-21.,113.5),(-21.,114.), (-21.,115.)]
+        n=len(lat_long_points)
+        first_tstep=num.ones(n,num.int)
+        first_tstep[0]+=1
+        first_tstep[2]+=1
+        last_tstep=(time_step_count)*num.ones(n,num.int)
+        last_tstep[0]-=1
+
+        gauge_depth=20*num.ones(n,num.float)
+        ha=2*num.ones((n,time_step_count),num.float)
+        ha[0]=num.arange(0,time_step_count)
+        ha[1]=num.arange(time_step_count,2*time_step_count)
+        ha[2]=num.arange(2*time_step_count,3*time_step_count)
+        ha[3]=num.arange(3*time_step_count,4*time_step_count)
+        ua=5*num.ones((n,time_step_count),num.float)
+        va=-10*num.ones((n,time_step_count),num.float)
+
+        base_name, files = self.write_mux2(lat_long_points,
+                                           time_step_count, time_step,
+                                           first_tstep, last_tstep,
+                                           depth=gauge_depth,
+                                           ha=ha,
+                                           ua=ua,
+                                           va=va)
+
+        urs2sts(base_name,
+                basename_out=base_name, 
+                central_meridian=123,
+                mean_stage=tide,
+                verbose=False)
+
+        # now I want to check the sts file ...
+        sts_file = base_name + '.sts'
+
+        #Let's interigate the sww file
+        # Note, the sww info is not gridded.  It is point data.
+        fid = NetCDFFile(sts_file)
+
+        # Make x and y absolute
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+
+        geo_reference = Geo_reference(NetCDFObject=fid)
+        points = geo_reference.get_absolute(map(None, x, y))
+        points = ensure_numeric(points)
+
+        x = points[:,0]
+        y = points[:,1]
+
+        # Check that all coordinate are correctly represented       
+        # Using the non standard projection (50) 
+        for i in range(4):
+            zone, e, n = redfearn(lat_long_points[i][0],
+                                  lat_long_points[i][1],
+                                  central_meridian=123)
+            assert num.allclose([x[i],y[i]], [e,n])
+            assert zone==-1
+        
+        self.delete_mux(files)
+        
+        
 ################################################################################
 
 if __name__ == "__main__":

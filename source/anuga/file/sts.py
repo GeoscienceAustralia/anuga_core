@@ -1,9 +1,15 @@
+import numpy as num
+from anuga.config import max_float
+from anuga.config import netcdf_float, netcdf_float32, netcdf_int
+from anuga.utilities.numerical_tools import ensure_numeric
+from anuga.coordinate_transforms.geo_reference import Geo_reference, \
+     ensure_geo_reference
 
 
-##
-# @brief A class to write STS files.
 class Write_sts:
-    sts_quantities = ['stage','xmomentum','ymomentum']
+    """ A class to write STS files.
+    """
+    sts_quantities = ['stage', 'xmomentum', 'ymomentum']
     RANGE = '_range'
     EXTREMA = ':extrema'
 
@@ -72,7 +78,8 @@ class Write_sts:
         outfile.createVariable('permutation', netcdf_int, ('number_of_points',))
         outfile.createVariable('x', sts_precision, ('number_of_points',))
         outfile.createVariable('y', sts_precision, ('number_of_points',))
-        outfile.createVariable('elevation',sts_precision, ('number_of_points',))
+        outfile.createVariable('elevation', sts_precision, \
+                                    ('number_of_points',))
 
         q = 'elevation'
         outfile.createVariable(q + Write_sts.RANGE, sts_precision,
@@ -287,8 +294,8 @@ def create_sts_boundary(stsname):
     x = fid.variables['x'][:] + xllcorner
     y = fid.variables['y'][:] + yllcorner
 
-    x = num.reshape(x, (len(x),1))
-    y = num.reshape(y, (len(y),1))
+    x = num.reshape(x, (len(x), 1))
+    y = num.reshape(y, (len(y), 1))
     sts_points = num.concatenate((x,y), axis=1)
 
     return sts_points.tolist()
