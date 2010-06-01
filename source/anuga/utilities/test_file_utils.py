@@ -3,7 +3,7 @@ import tempfile
 import os
 import shutil
 
-from file_utils import copy_code_files
+from anuga.utilities.file_utils import copy_code_files
 
 
 class Test_FileUtils(unittest.TestCase):
@@ -58,4 +58,5 @@ class Test_FileUtils(unittest.TestCase):
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager, 'test_sww2domain2')
     suite = unittest.makeSuite(Test_FileUtils, 'test_sww')
-    
+    runner = unittest.TextTestRunner() #verbosity=2)
+    runner.run(suite)    

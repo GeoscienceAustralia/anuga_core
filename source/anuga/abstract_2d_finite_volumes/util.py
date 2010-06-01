@@ -14,7 +14,7 @@ from warnings import warn
 from shutil import copy
 
 from anuga.utilities.numerical_tools import ensure_numeric, angle, NAN
-from anuga.utilities.file_utils import load_csv_as_dict
+from anuga.file.csv_file import load_csv_as_dict
 
 from math import sqrt, atan, degrees
 
@@ -629,8 +629,7 @@ def csv2timeseries_graphs(directories_dic={},
         return
 
     from os import sep
-    from anuga.utilities.file_utils import load_csv_as_dict, \
-                                get_all_files_with_extension
+    from anuga.utilities.file_utils import get_all_files_with_extension
 
     seconds_in_hour = 3600
     seconds_in_minutes = 60

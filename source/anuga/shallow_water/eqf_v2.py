@@ -31,6 +31,8 @@ import numpy as num
 def earthquake_tsunami(length, width, strike, depth, \
                        dip, x0=0.0, y0=0.0, slip=1.0, rake=90.,\
                        domain=None, verbose=False):
+    """ return a function representing a tsunami event
+    """
 
     from math import sin, radians
 
@@ -111,7 +113,7 @@ class Okada_func:
         produced by a submarine mass failure.
         """
 
-        from math import sin, cos, radians, exp, cosh
+        from math import sin, cos, radians
         #from okada import okadatest
 
         #ensure vectors x and y have the same length
@@ -153,8 +155,8 @@ class Okada_func:
         sd = sin(radians(dip))
 
         for i in range(N-1):
-            self.SRECTF(alp,xr[i]*.001,yr[i]*.001,depth*.001,zero,length,\
-                        zero,width,sd,cd,disl1,disl2,disl3)
+            self.SRECTF(alp, xr[i]*.001, yr[i]*.001, depth*.001, zero, length,\
+                        zero, width, sd, cd, disl1, disl2, disl3)
             
             z2[i] = self.U3
 
@@ -201,7 +203,7 @@ class Okada_func:
                 if J == 1: XI=X-AL1
                 if J == 2: XI=X-AL2
                 JK=J+K
-                if JK <> 3:
+                if JK != 3:
                     SIGN= F1
                 else:
                     SIGN=-F1
@@ -235,27 +237,27 @@ class Okada_func:
         
     def SRECTG(self,ALP,XI,ET,Q,SD,CD,DISL1,DISL2,DISL3):
         """
-            C                                                                       
-            C*********************************************************************  
-            C*****                                                           *****  
-            C*****  INDEFINITE INTEGRAL OF SURFACE DISPLACEMENT,STRAIN,TILT  *****  
-            C*****  DUE TO RECTANGULAR FAULT IN A HALF-SPACE                 *****  
-            C*****                          CODED BY  Y.OKADA ... JAN 1985   *****  
-            C*****                                                           *****  
-            C*********************************************************************  
-            C                                                                       
-            C***** INPUT                                                            
-            C*****   ALP     : MEDIUM CONSTANT  MYU/(LAMDA+MYU)=1./((VP/VS)**2-1)   
-            C*****   XI,ET,Q : FAULT COORDINATE                                     
-            C*****   SD,CD   : SIN,COS OF DIP-ANGLE                                 
-            C*****          (CD=0.D0, SD=+/-1.D0 SHOULD BE GIVEN FOR VERTICAL FAULT)
-            C*****   DISL1,DISL2,DISL3 : STRIKE-, DIP- AND TENSILE-DISLOCATION      
-            C                                                                       
-            C***** OUTPUT                                                           
-            C*****   U1, U2, U3      : DISPLACEMENT ( UNIT= UNIT OF DISL    )       
-            C*****   U11,U12,U21,U22 : STRAIN       ( UNIT= UNIT OF DISL /          
-            C*****   U31,U32         : TILT                 UNIT OF XI,ET,Q )       
-            C
+        C                                                                       
+        C*********************************************************************  
+        C*****                                                           *****  
+        C*****  INDEFINITE INTEGRAL OF SURFACE DISPLACEMENT,STRAIN,TILT  *****  
+        C*****  DUE TO RECTANGULAR FAULT IN A HALF-SPACE                 *****  
+        C*****                          CODED BY  Y.OKADA ... JAN 1985   *****  
+        C*****                                                           *****  
+        C*********************************************************************  
+        C                                                                       
+        C***** INPUT                                                            
+        C*****   ALP     : MEDIUM CONSTANT  MYU/(LAMDA+MYU)=1./((VP/VS)**2-1)   
+        C*****   XI,ET,Q : FAULT COORDINATE                                     
+        C*****   SD,CD   : SIN,COS OF DIP-ANGLE                                 
+        C*****          (CD=0.D0, SD=+/-1.D0 SHOULD BE GIVEN FOR VERTICAL FAULT)
+        C*****   DISL1,DISL2,DISL3 : STRIKE-, DIP- AND TENSILE-DISLOCATION      
+        C                                                                       
+        C***** OUTPUT                                                           
+        C*****   U1, U2, U3      : DISPLACEMENT ( UNIT= UNIT OF DISL    )       
+        C*****   U11,U12,U21,U22 : STRAIN       ( UNIT= UNIT OF DISL /          
+        C*****   U31,U32         : TILT                 UNIT OF XI,ET,Q )       
+        C
         """
         
         from math import sqrt, atan, log, radians
@@ -277,12 +279,12 @@ class Okada_func:
         RD =R+D                                                           
         RRD=F1/(R*RD)                                                     
 
-        if Q <> F0:
+        if Q != F0:
             TT = atan( radians( XI*ET/(Q*R) ))
         else:
             TT = F0
 
-        if RET <> F0:
+        if RET != F0:
             RE = F1/RET
             DLE= log(RET)
         else:
@@ -316,7 +318,8 @@ class Okada_func:
             if XI == F0:
                 A5=F0
             else:                                                    
-                A5= ALP*F2/CD*atan( radians((ET*(X+Q*CD)+X*(R+X)*SD) / (XI*(R+X)*CD) ))   
+                A5= ALP*F2/CD*atan( radians((ET*(X+Q*CD)+X*(R+X)*SD) / \
+                                    (XI*(R+X)*CD) ))   
             A4= ALP/CD*(  log(RD) - SD*DLE )                                  
             A3= ALP*(Y/RD/CD - DLE) + TD*A4                                   
             A1=-ALP/CD*XI/RD        - TD*A5                                   
@@ -340,7 +343,7 @@ class Okada_func:
         U31=F0                                                            
         U32=F0
         
-        if DISL1 <> F0:
+        if DISL1 != F0:
             #C======================================                                 
             #C=====  STRIKE-SLIP CONTRIBUTION  =====                                 
             #C======================================
@@ -352,11 +355,12 @@ class Okada_func:
             U11=U11+ UN*( XI2*Q*AET - B1*SD )                                 
             U12=U12+ UN*( XI2*XI*( D/(ET2+Q2)/R3 - AET*SD ) - B2*SD )         
             U21=U21+ UN*( XI*Q/R3*CD + (XI*Q2*AET - B2)*SD )                  
-            U22=U22+ UN*( Y *Q/R3*CD + (Q*SD*(Q2*AET-F2*RRE) -(XI2+ET2)/R3*CD - B4)*SD )           
+            U22=U22+ UN*( Y *Q/R3*CD + (Q*SD*(Q2*AET-F2*RRE) - \
+                        (XI2+ET2)/R3*CD - B4)*SD )           
             U31=U31+ UN*(-XI*Q2*AET*CD + (XI*Q/R3 - C1)*SD )                  
             U32=U32+ UN*( D*Q/R3*CD + (XI2*Q*AET*CD - SD/R + Y*Q/R3 - C2)*SD )
 
-        if DISL2 <> F0:
+        if DISL2 != F0:
             #C===================================                                    
             #C=====  DIP-SLIP CONTRIBUTION  =====                                    
             #C=================================== 
@@ -372,7 +376,7 @@ class Okada_func:
             U31=U31+ UN*( D *Q/R3 + Q*SD*RRE + C3*SDCD )                      
             U32=U32+ UN*( Y*D*Q*AXI - (F2*D*RRX + XI*SD*RRE)*SD + C1*SDCD ) 
             
-        if DISL3 <> F0:
+        if DISL3 != F0:
             #C========================================
             #C=====  TENSILE-FAULT CONTRIBUTION  =====                               
             #C======================================== 
@@ -384,9 +388,11 @@ class Okada_func:
             U11=U11- UN*( XI*Q2*AET             + B3*SDSD )                   
             U12=U12- UN*(-D*Q/R3 - XI2*Q*AET*SD + B1*SDSD )                   
             U21=U21- UN*( Q2*(CD/R3 + Q*AET*SD) + B1*SDSD )                   
-            U22=U22- UN*((Y*CD-D*SD)*Q2*AXI - F2*Q*SD*CD*RRX - (XI*Q2*AET - B2)*SDSD )                   
+            U22=U22- UN*((Y*CD-D*SD)*Q2*AXI - F2*Q*SD*CD*RRX - \
+                                    (XI*Q2*AET - B2)*SDSD )                   
             U31=U31- UN*( Q2*(SD/R3 - Q*AET*CD) + C3*SDSD )                   
-            U32=U32- UN*((Y*SD+D*CD)*Q2*AXI + XI*Q2*AET*SD*CD - (F2*Q*RRX - C1)*SDSD )
+            U32=U32- UN*((Y*SD+D*CD)*Q2*AXI + XI*Q2*AET*SD*CD - \
+                                    (F2*Q*RRX - C1)*SDSD )
 
         self.DU1 = U1
         self.DU2 = U2
@@ -487,7 +493,7 @@ class Okada_func:
         #=====  STRIKE-SLIP CONTRIBUTION  =====                                 
         #======================================                                 
 
-        if POT1 <> F0:
+        if POT1 != F0:
             UN=POT1/PI2                                                       
             QRX=QR*X                                                          
             FX=F3*X/R5*SD                                                     
@@ -506,7 +512,7 @@ class Okada_func:
         #=====    DIP-SLIP CONTRIBUTION   =====                                 
         #======================================                                 
 
-        if POT2 <> F0:
+        if POT2 != F0:
             UN=POT2/PI2                                                       
             SDCD=SD*CD                                                        
             QRP=QR*P                                                          
@@ -525,7 +531,7 @@ class Okada_func:
         #=====  TENSILE-FAULT CONTRIBUTION  =====                               
         #========================================                                                                    
 
-        if POT3 <> F0:
+        if POT3 != F0:
             UN=POT3/PI2                                                       
             SDSD=SD*SD                                                        
             QRQ=QR*Q                                                          

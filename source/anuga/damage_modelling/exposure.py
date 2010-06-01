@@ -3,7 +3,7 @@ import csv
 from anuga.anuga_exceptions import TitleValueError, \
                                     DataMissingValuesError
 
-from anuga.utilities.file_utils import load_csv_as_dict
+from anuga.file.csv_file import load_csv_as_dict
 
 from anuga.geospatial_data.geospatial_data import Geospatial_data,\
      ensure_absolute

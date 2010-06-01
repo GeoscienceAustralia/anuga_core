@@ -1,5 +1,18 @@
-from mux import WAVEHEIGHT_MUX2_LABEL, EAST_VELOCITY_MUX2_LABEL, \
+import numpy as num
+
+# ANUGA modules
+from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a, \
+                            netcdf_float
+from anuga.utilities.numerical_tools import ensure_numeric
+from anuga.coordinate_transforms.geo_reference import Geo_reference, \
+     write_NetCDF_georeference, ensure_geo_reference
+
+# local modules
+from anuga.file.mux import read_mux2_py
+from anuga.file.mux import WAVEHEIGHT_MUX2_LABEL, EAST_VELOCITY_MUX2_LABEL, \
                 NORTH_VELOCITY_MUX2_LABEL
+from anuga.file.sts import Write_sts                
+                
 
 ##
 # @brief Convert a URS (mux2, wave propagation) file to an STS file.

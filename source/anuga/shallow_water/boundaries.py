@@ -128,7 +128,7 @@ class Transmissive_momentum_set_stage_boundary(Boundary):
 
     def __repr__(self):
         """ Return a representation of this instance. """
-        return 'Transmissive_momentum_set_stage_boundary(%s)' %self.domain
+        return 'Transmissive_momentum_set_stage_boundary(%s)' % self.domain
 
     def evaluate(self, vol_id, edge_id):
         """Transmissive momentum set stage boundaries return the edge momentum
@@ -209,8 +209,8 @@ class Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(Boundary):
 
     def __repr__(self):
         """ Return a representation of this instance. """
-        msg='Transmissive_n_momentum_zero_t_momentum_set_stage_boundary'
-        msg+='(%s)' %self.domain
+        msg = 'Transmissive_n_momentum_zero_t_momentum_set_stage_boundary'
+        msg += '(%s)' % self.domain
         return msg
 
 
