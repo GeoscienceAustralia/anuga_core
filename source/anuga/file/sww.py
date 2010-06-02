@@ -983,3 +983,329 @@ class Write_sww:
                             outfile.variables[q+Write_sww.RANGE][1]))
         log.critical('------------------------------------------------')
 
+
+
+
+##
+# @brief Get the extents of a NetCDF data file.
+# @param file_name The path to the SWW file.
+# @return A list of x, y, z and stage limits (min, max).
+def extent_sww(file_name):
+    """Read in an sww file.
+
+    Input:
+    file_name - the sww file
+
+    Output:
+    A list: [min(x),max(x),min(y),max(y),min(stage.flat),max(stage.flat)]
+    """
+
+    from Scientific.IO.NetCDF import NetCDFFile
+
+    #Get NetCDF
+    fid = NetCDFFile(file_name, netcdf_mode_r)
+
+    # Get the variables
+    x = fid.variables['x'][:]
+    y = fid.variables['y'][:]
+    stage = fid.variables['stage'][:]
+
+    fid.close()
+
+    return [min(x), max(x), min(y), max(y), num.min(stage), num.max(stage)]
+
+
+##
+# @brief 
+# @param filename
+# @param boundary
+# @param t
+# @param fail_if_NaN
+# @param NaN_filler
+# @param verbose
+# @param very_verbose
+# @return 
+def load_sww_as_domain(filename, boundary=None, t=None,
+               fail_if_NaN=True, NaN_filler=0,
+               verbose=False, very_verbose=False):
+    """
+    Usage: domain = load_sww_as_domain('file.sww',
+                        t=time (default = last time in file))
+
+    Boundary is not recommended if domain.smooth is not selected, as it
+    uses unique coordinates, but not unique boundaries. This means that
+    the boundary file will not be compatable with the coordinates, and will
+    give a different final boundary, or crash.
+    """
+    
+    from Scientific.IO.NetCDF import NetCDFFile
+    from shallow_water import Domain
+
+    # initialise NaN.
+    NaN = 9.969209968386869e+036
+
+    if verbose: log.critical('Reading from %s' % filename)
+
+    fid = NetCDFFile(filename, netcdf_mode_r)    # Open existing file for read
+    time = fid.variables['time']       # Timesteps
+    if t is None:
+        t = time[-1]
+    time_interp = get_time_interp(time,t)
+
+    # Get the variables as numeric arrays
+    x = fid.variables['x'][:]                   # x-coordinates of vertices
+    y = fid.variables['y'][:]                   # y-coordinates of vertices
+    elevation = fid.variables['elevation']      # Elevation
+    stage = fid.variables['stage']              # Water level
+    xmomentum = fid.variables['xmomentum']      # Momentum in the x-direction
+    ymomentum = fid.variables['ymomentum']      # Momentum in the y-direction
+
+    starttime = fid.starttime[0]
+    volumes = fid.variables['volumes'][:]       # Connectivity
+    coordinates = num.transpose(num.asarray([x.tolist(), y.tolist()]))
+    # FIXME (Ole): Something like this might be better:
+    #                 concatenate((x, y), axis=1)
+    # or              concatenate((x[:,num.newaxis], x[:,num.newaxis]), axis=1)
+
+    conserved_quantities = []
+    interpolated_quantities = {}
+    other_quantities = []
+
+    # get geo_reference
+    try:                             # sww files don't have to have a geo_ref
+        geo_reference = Geo_reference(NetCDFObject=fid)
+    except: # AttributeError, e:
+        geo_reference = None
+
+    if verbose: log.critical('    getting quantities')
+
+    for quantity in fid.variables.keys():
+        dimensions = fid.variables[quantity].dimensions
+        if 'number_of_timesteps' in dimensions:
+            conserved_quantities.append(quantity)
+            interpolated_quantities[quantity] = \
+                  interpolated_quantity(fid.variables[quantity][:], time_interp)
+        else:
+            other_quantities.append(quantity)
+
+    other_quantities.remove('x')
+    other_quantities.remove('y')
+    #other_quantities.remove('z')
+    other_quantities.remove('volumes')
+    try:
+        other_quantities.remove('stage_range')
+        other_quantities.remove('xmomentum_range')
+        other_quantities.remove('ymomentum_range')
+        other_quantities.remove('elevation_range')
+    except:
+        pass
+
+    conserved_quantities.remove('time')
+
+    if verbose: log.critical('    building domain')
+
+    #    From domain.Domain:
+    #    domain = Domain(coordinates, volumes,\
+    #                    conserved_quantities = conserved_quantities,\
+    #                    other_quantities = other_quantities,zone=zone,\
+    #                    xllcorner=xllcorner, yllcorner=yllcorner)
+
+    # From shallow_water.Domain:
+    coordinates = coordinates.tolist()
+    volumes = volumes.tolist()
+    # FIXME:should this be in mesh? (peter row)
+    if fid.smoothing == 'Yes':
+        unique = False
+    else:
+        unique = True
+    if unique:
+        coordinates, volumes, boundary = weed(coordinates, volumes,boundary)
+
+      
+    
+    try:
+        domain = Domain(coordinates, volumes, boundary)
+    except AssertionError, e:
+        fid.close()
+        msg = 'Domain could not be created: %s. ' \
+              'Perhaps use "fail_if_NaN=False and NaN_filler = ..."' % e
+        raise DataDomainError, msg
+
+    if not boundary is None:
+        domain.boundary = boundary
+
+    domain.geo_reference = geo_reference
+
+    domain.starttime = float(starttime) + float(t)
+    domain.time = 0.0
+
+    for quantity in other_quantities:
+        try:
+            NaN = fid.variables[quantity].missing_value
+        except:
+            pass                       # quantity has no missing_value number
+        X = fid.variables[quantity][:]
+        if very_verbose:
+            log.critical('       %s' % str(quantity))
+            log.critical('        NaN = %s' % str(NaN))
+            log.critical('        max(X)')
+            log.critical('       %s' % str(max(X)))
+            log.critical('        max(X)==NaN')
+            log.critical('       %s' % str(max(X)==NaN))
+            log.critical('')
+        if max(X) == NaN or min(X) == NaN:
+            if fail_if_NaN:
+                msg = 'quantity "%s" contains no_data entry' % quantity
+                raise DataMissingValuesError, msg
+            else:
+                data = (X != NaN)
+                X = (X*data) + (data==0)*NaN_filler
+        if unique:
+            X = num.resize(X, (len(X)/3, 3))
+        domain.set_quantity(quantity, X)
+    #
+    for quantity in conserved_quantities:
+        try:
+            NaN = fid.variables[quantity].missing_value
+        except:
+            pass                       # quantity has no missing_value number
+        X = interpolated_quantities[quantity]
+        if very_verbose:
+            log.critical('       %s' % str(quantity))
+            log.critical('        NaN = %s' % str(NaN))
+            log.critical('        max(X)')
+            log.critical('       %s' % str(max(X)))
+            log.critical('        max(X)==NaN')
+            log.critical('       %s' % str(max(X)==NaN))
+            log.critical('')
+        if max(X) == NaN or min(X) == NaN:
+            if fail_if_NaN:
+                msg = 'quantity "%s" contains no_data entry' % quantity
+                raise DataMissingValuesError, msg
+            else:
+                data = (X != NaN)
+                X = (X*data) + (data==0)*NaN_filler
+        if unique:
+            X = num.resize(X, (X.shape[0]/3, 3))
+        domain.set_quantity(quantity, X)
+
+    fid.close()
+
+    return domain
+
+
+##
+# @brief 
+# @parm time 
+# @param t 
+# @return An (index, ration) tuple.
+def get_time_interp(time, t=None):
+    #Finds the ratio and index for time interpolation.
+    #It is borrowed from previous abstract_2d_finite_volumes code.
+    if t is None:
+        t=time[-1]
+        index = -1
+        ratio = 0.
+    else:
+        T = time
+        tau = t
+        index=0
+        msg = 'Time interval derived from file %s [%s:%s]' \
+              % ('FIXMEfilename', T[0], T[-1])
+        msg += ' does not match model time: %s' % tau
+        if tau < time[0]: raise DataTimeError, msg
+        if tau > time[-1]: raise DataTimeError, msg
+        while tau > time[index]: index += 1
+        while tau < time[index]: index -= 1
+        if tau == time[index]:
+            #Protect against case where tau == time[-1] (last time)
+            # - also works in general when tau == time[i]
+            ratio = 0
+        else:
+            #t is now between index and index+1
+            ratio = (tau - time[index])/(time[index+1] - time[index])
+
+    return (index, ratio)
+
+
+
+##
+# @brief Interpolate a quantity wrt time.
+# @param saved_quantity The quantity to interpolate.
+# @param time_interp (index, ratio)
+# @return A vector of interpolated values.
+def interpolated_quantity(saved_quantity, time_interp):
+    '''Given an index and ratio, interpolate quantity with respect to time.'''
+
+    index, ratio = time_interp
+
+    Q = saved_quantity
+
+    if ratio > 0:
+        q = (1-ratio)*Q[index] + ratio*Q[index+1]
+    else:
+        q = Q[index]
+
+    #Return vector of interpolated values
+    return q
+
+
+
+
+##
+# @brief 
+# @param coordinates 
+# @param volumes 
+# @param boundary 
+def weed(coordinates, volumes, boundary=None):
+    if isinstance(coordinates, num.ndarray):
+        coordinates = coordinates.tolist()
+    if isinstance(volumes, num.ndarray):
+        volumes = volumes.tolist()
+
+    unique = False
+    point_dict = {}
+    same_point = {}
+    for i in range(len(coordinates)):
+        point = tuple(coordinates[i])
+        if point_dict.has_key(point):
+            unique = True
+            same_point[i] = point
+            #to change all point i references to point j
+        else:
+            point_dict[point] = i
+            same_point[i] = point
+
+    coordinates = []
+    i = 0
+    for point in point_dict.keys():
+        point = tuple(point)
+        coordinates.append(list(point))
+        point_dict[point] = i
+        i += 1
+
+    for volume in volumes:
+        for i in range(len(volume)):
+            index = volume[i]
+            if index > -1:
+                volume[i] = point_dict[same_point[index]]
+
+    new_boundary = {}
+    if not boundary is None:
+        for segment in boundary.keys():
+            point0 = point_dict[same_point[segment[0]]]
+            point1 = point_dict[same_point[segment[1]]]
+            label = boundary[segment]
+            #FIXME should the bounday attributes be concaterated
+            #('exterior, pond') or replaced ('pond')(peter row)
+
+            if new_boundary.has_key((point0, point1)):
+                new_boundary[(point0,point1)] = new_boundary[(point0, point1)]
+
+            elif new_boundary.has_key((point1, point0)):
+                new_boundary[(point1,point0)] = new_boundary[(point1, point0)]
+            else: new_boundary[(point0, point1)] = label
+
+        boundary = new_boundary
+
+    return coordinates, volumes, boundary
