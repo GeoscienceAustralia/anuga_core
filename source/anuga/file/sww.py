@@ -1195,6 +1195,94 @@ def load_sww_as_domain(filename, boundary=None, t=None,
 
 
 ##
+# @brief Get mesh and quantity data from an SWW file.
+# @param filename Path to data file to read.
+# @param quantities UNUSED!
+# @param verbose True if this function is to be verbose.
+# @return (mesh, quantities, time) where mesh is the mesh data, quantities is
+#         a dictionary of {name: value}, and time is the time vector.
+# @note Quantities extracted: 'elevation', 'stage', 'xmomentum' and 'ymomentum'
+def get_mesh_and_quantities_from_file(filename,
+                                      quantities=None,
+                                      verbose=False):
+    """Get and rebuild mesh structure and associated quantities from sww file
+
+    Input:
+        filename - Name os sww file
+        quantities - Names of quantities to load
+
+    Output:
+        mesh - instance of class Interpolate
+               (including mesh and interpolation functionality)
+        quantities - arrays with quantity values at each mesh node
+        time - vector of stored timesteps
+
+    This function is used by e.g.:
+        get_interpolated_quantities_at_polyline_midpoints
+    """
+
+    # FIXME (Ole): Maybe refactor filefunction using this more fundamental code.
+
+    import types
+    from Scientific.IO.NetCDF import NetCDFFile
+    from shallow_water import Domain
+    from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
+
+    if verbose: log.critical('Reading from %s' % filename)
+
+    fid = NetCDFFile(filename, netcdf_mode_r)    # Open existing file for read
+    time = fid.variables['time'][:]    # Time vector
+    time += fid.starttime[0]
+
+    # Get the variables as numeric arrays
+    x = fid.variables['x'][:]                   # x-coordinates of nodes
+    y = fid.variables['y'][:]                   # y-coordinates of nodes
+    elevation = fid.variables['elevation'][:]   # Elevation
+    stage = fid.variables['stage'][:]           # Water level
+    xmomentum = fid.variables['xmomentum'][:]   # Momentum in the x-direction
+    ymomentum = fid.variables['ymomentum'][:]   # Momentum in the y-direction
+
+    # Mesh (nodes (Mx2), triangles (Nx3))
+    nodes = num.concatenate((x[:,num.newaxis], y[:,num.newaxis]), axis=1)
+    triangles = fid.variables['volumes'][:]
+
+    # Get geo_reference
+    try:
+        geo_reference = Geo_reference(NetCDFObject=fid)
+    except: #AttributeError, e:
+        # Sww files don't have to have a geo_ref
+        geo_reference = None
+
+    if verbose: log.critical('    building mesh from sww file %s' % filename)
+
+    boundary = None
+
+    #FIXME (Peter Row): Should this be in mesh?
+    if fid.smoothing != 'Yes':
+        nodes = nodes.tolist()
+        triangles = triangles.tolist()
+        nodes, triangles, boundary = weed(nodes, triangles, boundary)
+
+    try:
+        mesh = Mesh(nodes, triangles, boundary, geo_reference=geo_reference)
+    except AssertionError, e:
+        fid.close()
+        msg = 'Domain could not be created: %s. "' % e
+        raise DataDomainError, msg
+
+    quantities = {}
+    quantities['elevation'] = elevation
+    quantities['stage'] = stage
+    quantities['xmomentum'] = xmomentum
+    quantities['ymomentum'] = ymomentum
+
+    fid.close()
+
+    return mesh, quantities, time
+
+
+
+##
 # @brief 
 # @parm time 
 # @param t 
@@ -1248,8 +1336,6 @@ def interpolated_quantity(saved_quantity, time_interp):
 
     #Return vector of interpolated values
     return q
-
-
 
 
 ##
@@ -1309,3 +1395,6 @@ def weed(coordinates, volumes, boundary=None):
         boundary = new_boundary
 
     return coordinates, volumes, boundary
+
+
+

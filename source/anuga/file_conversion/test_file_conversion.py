@@ -7,11 +7,14 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 from anuga.shallow_water.sww_file import SWW_file
-from data_manager import extent_sww
+from anuga.file.sww import extent_sww
 from anuga.config import netcdf_float, epsilon, g
 from Scientific.IO.NetCDF import NetCDFFile
 from anuga.file_conversion.file_conversion import tsh2sww, \
                         pmesh_to_domain_instance
+
+from anuga.file.mux import WAVEHEIGHT_MUX_LABEL, EAST_VELOCITY_LABEL, \
+                            NORTH_VELOCITY_LABEL
 
 import sys
 import unittest
@@ -1569,7 +1572,7 @@ if __name__ == "__main__":
         # if you uncomment, remember to delete the file
         #print "sww_file",sww_file
         #dem_file = tempfile.mktemp(".dem")
-        domain = sww2domain(sww_file) ###, dem_file)
+        domain = load_sww_as_domain(sww_file) ###, dem_file)
         domain.check_integrity()
 
         #tidy up

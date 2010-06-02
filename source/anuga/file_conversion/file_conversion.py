@@ -487,3 +487,45 @@ def get_min_max_indices(latitudes_ref, longitudes_ref,
     return lat_min_index, lat_max_index, lon_min_index, lon_max_index
 
 
+##
+# @brief 
+# @param filename 
+# @param x 
+# @param y 
+# @param z 
+def write_obj(filename, x, y, z):
+    """Store x,y,z vectors into filename (obj format).
+
+       Vectors are assumed to have dimension (M,3) where
+       M corresponds to the number elements.
+       triangles are assumed to be disconnected
+
+       The three numbers in each vector correspond to three vertices,
+
+       e.g. the x coordinate of vertex 1 of element i is in x[i,1]
+    """
+
+    import os.path
+
+    root, ext = os.path.splitext(filename)
+    if ext == '.obj':
+        FN = filename
+    else:
+        FN = filename + '.obj'
+
+    outfile = open(FN, 'wb')
+    outfile.write("# Triangulation as an obj file\n")
+
+    M, N = x.shape
+    assert N == 3  #Assuming three vertices per element
+
+    for i in range(M):
+        for j in range(N):
+            outfile.write("v %f %f %f\n" % (x[i,j], y[i,j], z[i,j]))
+
+    for i in range(M):
+        base = i * N
+        outfile.write("f %d %d %d\n" % (base+1, base+2, base+3))
+
+    outfile.close()
+

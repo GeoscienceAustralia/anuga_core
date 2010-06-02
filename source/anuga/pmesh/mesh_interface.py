@@ -25,6 +25,7 @@ def create_mesh_from_regions(bounding_polygon,
                              filename=None,
                              interior_regions=None,
                              interior_holes=None,
+                             hole_tags=None,
                              poly_geo_reference=None,
                              mesh_geo_reference=None,
                              minimum_triangle_angle=28.0,
@@ -52,7 +53,9 @@ def create_mesh_from_regions(bounding_polygon,
     NOTE: If a interior_region is outside the bounding_polygon it should 
     throw an error
     
-    Interior_holes is a list of ploygons for each hole.
+    Interior_holes is a list of polygons for each hole.
+    hole_tags is an optional list of boundary tags for the holes, see
+                boundary_tags parameter.
 
     This function does not allow segments to share points - use underlying
     pmesh functionality for that
@@ -91,6 +94,7 @@ def create_mesh_from_regions(bounding_polygon,
               'filename': filename,
               'interior_regions': interior_regions,
               'interior_holes': interior_holes,
+              'hole_tags': hole_tags,
               'poly_geo_reference': poly_geo_reference,
               'mesh_geo_reference': mesh_geo_reference,
               'minimum_triangle_angle': minimum_triangle_angle,
@@ -126,6 +130,7 @@ def _create_mesh_from_regions(bounding_polygon,
                               filename=None,                              
                               interior_regions=None,
                               interior_holes=None,
+                              hole_tags=None,
                               poly_geo_reference=None,
                               mesh_geo_reference=None,
                               minimum_triangle_angle=28.0,
@@ -310,6 +315,7 @@ def _create_mesh_from_regions(bounding_polygon,
     if interior_holes is not None:    
         for polygon in interior_holes:
             m.add_hole_from_polygon(polygon,
+                                    segment_tags=hole_tags,
                                     geo_reference=poly_geo_reference)
        
 

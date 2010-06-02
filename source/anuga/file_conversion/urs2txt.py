@@ -1,4 +1,4 @@
-
+from anuga.file.urs import Read_urs
 
 ##
 # @brief Convert a set of URS files to a text file.
@@ -19,7 +19,7 @@ def urs2txt(basename_in, location_index=None):
     # instantiate urs_points of the three mux files.
     mux = {}
     for quantity, file in map(None, quantities, files_in):
-        mux[quantity] = Urs_points(file)
+        mux[quantity] = Read_urs(file)
 
     # Could check that the depth is the same. (hashing)
 

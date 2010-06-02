@@ -7,7 +7,7 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference
 from csv_file import load_csv_as_array, load_csv_as_dict
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 from anuga.shallow_water.shallow_water_domain import Domain
-from sww import load_sww_as_domain
+from sww import load_sww_as_domain, weed, get_mesh_and_quantities_from_file
 
 # boundary functions
 from anuga.shallow_water.boundaries import Reflective_boundary, \
@@ -156,6 +156,99 @@ class Test_sww(unittest.TestCase):
                                 rtol=1.e-5, atol=3.e-8), msg
 
 
+
+    def test_get_mesh_and_quantities_from_sww_file(self):
+        """test_get_mesh_and_quantities_from_sww_file(self):
+        """     
+        
+        # Generate a test sww file with non trivial georeference
+        
+        import time, os
+        from Scientific.IO.NetCDF import NetCDFFile
+
+        # Setup
+        from mesh_factory import rectangular
+
+        # Create basic mesh (100m x 5m)
+        width = 5
+        length = 50
+        t_end = 10
+        points, vertices, boundary = rectangular(length, width, 50, 5)
+
+        # Create shallow water domain
+        domain = Domain(points, vertices, boundary,
+                        geo_reference = Geo_reference(56,308500,6189000))
+
+        domain.set_name('flowtest')
+        swwfile = domain.get_name() + '.sww'
+        domain.set_datadir('.')
+
+        Br = Reflective_boundary(domain)    # Side walls
+        Bd = Dirichlet_boundary([1, 0, 0])  # inflow
+
+        domain.set_boundary( {'left': Bd, 'right': Bd, 'top': Br, 'bottom': Br})
+
+        for t in domain.evolve(yieldstep=1, finaltime = t_end):
+            pass
+
+        
+        # Read it
+
+        # Get mesh and quantities from sww file
+        X = get_mesh_and_quantities_from_file(swwfile,
+                                              quantities=['elevation',
+                                                          'stage',
+                                                          'xmomentum',
+                                                          'ymomentum'], 
+                                              verbose=False)
+        mesh, quantities, time = X
+        
+
+        # Check that mesh has been recovered
+        assert num.alltrue(mesh.triangles == domain.get_triangles())
+        assert num.allclose(mesh.nodes, domain.get_nodes())
+
+        # Check that time has been recovered
+        assert num.allclose(time, range(t_end+1))
+
+        # Check that quantities have been recovered
+        # (sww files use single precision)
+        z=domain.get_quantity('elevation').get_values(location='unique vertices')
+        assert num.allclose(quantities['elevation'], z)
+
+        for q in ['stage', 'xmomentum', 'ymomentum']:
+            # Get quantity at last timestep
+            q_ref=domain.get_quantity(q).get_values(location='unique vertices')
+
+            #print q,quantities[q]
+            q_sww=quantities[q][-1,:]
+
+            msg = 'Quantity %s failed to be recovered' %q
+            assert num.allclose(q_ref, q_sww, atol=1.0e-6), msg
+            
+        # Cleanup
+        os.remove(swwfile)
+        
+        
+
+    def test_weed(self):
+        coordinates1 = [[0.,0.],[1.,0.],[1.,1.],[1.,0.],[2.,0.],[1.,1.]]
+        volumes1 = [[0,1,2],[3,4,5]]
+        boundary1= {(0,1): 'external',(1,2): 'not external',(2,0): 'external',(3,4): 'external',(4,5): 'external',(5,3): 'not external'}
+        coordinates2,volumes2,boundary2=weed(coordinates1,volumes1,boundary1)
+
+        points2 = {(0.,0.):None,(1.,0.):None,(1.,1.):None,(2.,0.):None}
+
+        assert len(points2)==len(coordinates2)
+        for i in range(len(coordinates2)):
+            coordinate = tuple(coordinates2[i])
+            assert points2.has_key(coordinate)
+            points2[coordinate]=i
+
+        for triangle in volumes1:
+            for coordinate in triangle:
+                assert coordinates2[points2[tuple(coordinates1[coordinate])]][0]==coordinates1[coordinate][0]
+                assert coordinates2[points2[tuple(coordinates1[coordinate])]][1]==coordinates1[coordinate][1]
 
 #################################################################################
 

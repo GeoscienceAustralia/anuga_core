@@ -1,10 +1,28 @@
+import numpy as num
+from Scientific.IO.NetCDF import NetCDFFile
+
+from anuga.file.urs import Read_urs
+
+from anuga.coordinate_transforms.redfearn import redfearn, \
+     convert_from_latlon_to_utm
+
+from anuga.geospatial_data.geospatial_data import ensure_absolute, \
+                                                    Geospatial_data
+
+from mux import WAVEHEIGHT_MUX_LABEL, EAST_VELOCITY_LABEL, \
+                            NORTH_VELOCITY_LABEL
+                            
+from anuga.utilities.numerical_tools import ensure_numeric                            
+
+from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a, \
+                            netcdf_float
+
+from sww_file import Read_sww, Write_sww
+
+
 ################################################################################
 # CONVERTING UNGRIDDED URS DATA TO AN SWW FILE
 ################################################################################
-
-WAVEHEIGHT_MUX_LABEL = '-z-mux'
-EAST_VELOCITY_LABEL =  '-e-mux'
-NORTH_VELOCITY_LABEL =  '-n-mux'
 
 ##
 # @brief Convert URS file(s) (wave prop) to an SWW file.
@@ -94,7 +112,7 @@ def urs2sww(basename_in='o', basename_out=None, verbose=False,
     # instantiate urs_points of the three mux files.
     mux = {}
     for quantity, file in map(None, quantities, files_in):
-        mux[quantity] = Urs_points(file)
+        mux[quantity] = Read_urs(file)
 
     # Could check that the depth is the same. (hashing)
 
@@ -142,7 +160,7 @@ def urs2sww(basename_in='o', basename_out=None, verbose=False,
     mux_times = []
     for i in range(a_mux.time_step_count):
         mux_times.append(a_mux.time_step * i)
-    (mux_times_start_i, mux_times_fin_i) = mux2sww_time(mux_times, mint, maxt)
+    (mux_times_start_i, mux_times_fin_i) = read_time_from_mux(mux_times, mint, maxt)
     times = mux_times[mux_times_start_i:mux_times_fin_i]
 
     if mux_times_start_i == mux_times_fin_i:
@@ -208,3 +226,25 @@ def urs2sww(basename_in='o', basename_out=None, verbose=False,
     outfile.close()
 
     # Do some conversions while writing the sww file
+
+
+def read_time_from_mux(mux_times, mint, maxt):
+    """
+        Read a list of mux times.
+        Return start and finish times which lie within the passed time period.
+    """
+
+    if mint == None:
+        mux_times_start_i = 0
+    else:
+        mux_times_start_i = num.searchsorted(mux_times, mint)
+
+    if maxt == None:
+        mux_times_fin_i = len(mux_times)
+    else:
+        maxt += 0.5 # so if you specify a time where there is
+                    # data that time will be included
+        mux_times_fin_i = num.searchsorted(mux_times, maxt)
+
+    return mux_times_start_i, mux_times_fin_i
+
