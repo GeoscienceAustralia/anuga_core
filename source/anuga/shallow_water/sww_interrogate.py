@@ -2,6 +2,18 @@
     Operations to extract information from an SWW file.
 '''
 
+import os
+import numpy as num
+
+from anuga.utilities.file_utils import get_all_swwfiles
+from anuga.coordinate_transforms.geo_reference import Geo_reference 
+from anuga.abstract_2d_finite_volumes.util import file_function
+from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
+from anuga.geometry.polygon import is_inside_polygon
+from anuga.file.sww import get_mesh_and_quantities_from_file
+from anuga.abstract_2d_finite_volumes.neighbour_mesh import segment_midpoints
+from anuga.config import g
+
 ##
 # @brief Get values for quantities interpolated to polyline midpoints from SWW.
 # @param filename Path to file to read.
@@ -363,7 +375,7 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
 
     for file, swwfile in enumerate (iterate_over):
         # Read sww file
-        filename = join(dir, swwfile+'.sww')
+        filename = os.path.join(dir, swwfile+'.sww')
 
         if verbose: log.critical('Reading from %s' % filename)
         # FIXME: Use general swwstats (when done)

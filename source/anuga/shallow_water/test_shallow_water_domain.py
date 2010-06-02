@@ -39,6 +39,7 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
             Time_boundary, File_boundary, AWI_boundary
 
 import numpy as num
+from anuga.config import g
 
 # Get gateway to C implementation of flux function for direct testing
 from shallow_water_ext import flux_function_central as flux_function
@@ -5601,8 +5602,6 @@ friction  \n \
                 import rectangular_cross
         from anuga.shallow_water import Domain
         from anuga.shallow_water.forcing import Inflow
-        from anuga.shallow_water.data_manager \
-                import get_flow_through_cross_section
 
         #----------------------------------------------------------------------
         # Setup computational domain
@@ -5691,7 +5690,6 @@ friction  \n \
         #---------------------------------------------------------------------
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
         from anuga.shallow_water import Domain
-        from anuga.shallow_water.data_manager import get_flow_through_cross_section
 
         #----------------------------------------------------------------------
         # Setup computational domain

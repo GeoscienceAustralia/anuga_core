@@ -39,6 +39,7 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
 
 # This is needed to run the tests of local functions
 import data_manager 
+from anuga.file_conversion.urs2sts import urs2sts
 from anuga.coordinate_transforms.redfearn import redfearn
 from anuga.coordinate_transforms.geo_reference import Geo_reference, \
      DEFAULT_ZONE
