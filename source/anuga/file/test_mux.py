@@ -9,13 +9,17 @@ from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.coordinate_transforms.redfearn import redfearn
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 
+from mux import WAVEHEIGHT_MUX_LABEL, EAST_VELOCITY_LABEL, \
+                            NORTH_VELOCITY_LABEL
+
 from mux import WAVEHEIGHT_MUX2_LABEL, EAST_VELOCITY_MUX2_LABEL, \
                 NORTH_VELOCITY_MUX2_LABEL
                 
 from mux import read_mux2_py
 from anuga.file_conversion.urs2sts import urs2sts
+from anuga.file.urs import Read_urs
 
-class TestCase(unittest.TestCase):
+class Test_Mux(unittest.TestCase):
     def setUp(self):
         pass
 
@@ -1486,12 +1490,47 @@ ValueError: matrices are not aligned for copy
             assert zone==-1
         
         self.delete_mux(files)
-        
+ 
+    def test_Urs_points(self):
+        time_step_count = 3
+        time_step = 2
+        lat_long_points =[(-21.5,114.5),(-21.5,115),(-21.,115)]
+        base_name, files = self.write_mux(lat_long_points,
+                                          time_step_count, time_step)
+        for file in files:
+            urs = Read_urs(file)
+            assert time_step_count == urs.time_step_count
+            assert time_step == urs.time_step
+
+            for lat_lon, dep in map(None, lat_long_points, urs.lonlatdep):
+                    _ , e, n = redfearn(lat_lon[0], lat_lon[1])
+                    assert num.allclose(n, dep[2])
+                        
+            count = 0
+            for slice in urs:
+                count += 1
+                #print slice
+                for lat_lon, quantity in map(None, lat_long_points, slice):
+                    _ , e, n = redfearn(lat_lon[0], lat_lon[1])
+                    #print "quantity", quantity
+                    #print "e", e
+                    #print "n", n
+                    if file[-5:] == WAVEHEIGHT_MUX_LABEL[-5:] or \
+                           file[-5:] == NORTH_VELOCITY_LABEL[-5:] :
+                        assert num.allclose(e, quantity)
+                    if file[-5:] == EAST_VELOCITY_LABEL[-5:]:
+                        assert num.allclose(n, quantity)
+            assert count == time_step_count
+                     
+        self.delete_mux(files)        
+
+
+
         
 ################################################################################
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(TestCase,'test')
+    suite = unittest.makeSuite(Test_Mux,'test')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
         

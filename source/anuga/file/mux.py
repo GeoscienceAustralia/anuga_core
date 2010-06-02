@@ -1,9 +1,17 @@
+"""
+    Read a mux2 file.
+"""
+
 from anuga.utilities.numerical_tools import ensure_numeric
 import numpy as num     
         
- ################################################################################
+################################################################################
 # READ MUX2 FILES line of points
 ################################################################################
+
+WAVEHEIGHT_MUX_LABEL = '-z-mux'
+EAST_VELOCITY_LABEL =  '-e-mux'
+NORTH_VELOCITY_LABEL =  '-n-mux'
 
 WAVEHEIGHT_MUX2_LABEL = '-z-mux2'
 EAST_VELOCITY_MUX2_LABEL = '-e-mux2'
@@ -42,9 +50,9 @@ def read_mux2_py(filenames,
 
     # Convert verbose to int C flag
     if verbose:
-        verbose=1
+        verbose = 1
     else:
-        verbose=0
+        verbose = 0
 
     if weights is None:
         weights = num.ones(numSrc)
@@ -101,7 +109,8 @@ def read_mux2_py(filenames,
     latitudes = num.zeros(number_of_selected_stations, num.float)
     longitudes = num.zeros(number_of_selected_stations, num.float)
     elevation = num.zeros(number_of_selected_stations, num.float)
-    quantity = num.zeros((number_of_selected_stations, parameters_index), num.float)
+    quantity = num.zeros((number_of_selected_stations, parameters_index), \
+                                                    num.float)
 
     starttime = 1e16
     for i in range(number_of_selected_stations):
@@ -115,29 +124,4 @@ def read_mux2_py(filenames,
     return times, latitudes, longitudes, elevation, quantity, starttime
 
 
-##
-# @brief ??
-# @param mux_times ??
-# @param mint ??
-# @param maxt ??
-# @return ??
-def read_time_from_mux(mux_times, mint, maxt):
-    """
-    """
 
-    if mint == None:
-        mux_times_start_i = 0
-    else:
-        mux_times_start_i = num.searchsorted(mux_times, mint)
-
-    if maxt == None:
-        mux_times_fin_i = len(mux_times)
-    else:
-        maxt += 0.5 # so if you specify a time where there is
-                    # data that time will be included
-        mux_times_fin_i = num.searchsorted(mux_times, maxt)
-
-    return mux_times_start_i, mux_times_fin_i
-
-
-       
