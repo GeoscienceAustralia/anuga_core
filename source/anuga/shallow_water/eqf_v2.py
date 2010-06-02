@@ -223,15 +223,15 @@ class Okada_func:
                 for i in range(len(U)):
                     U[i]=U[i]+SIGN*DU[i]
             
-        U1 =U[0]                                                          
-        U2 =U[1]                                                          
-        U3 =U[2]                                                          
-        U11=U[3]                                                          
-        U12=U[4]                                                          
-        U21=U[5]                                                          
-        U22=U[6]                                                          
-        U31=U[7]                                                          
-        U32=U[8]
+        U1  = U[0]                                                          
+        U2  = U[1]                                                          
+        U3  = U[2]                                                          
+        U11 = U[3]                                                          
+        U12 = U[4]                                                          
+        U21 = U[5]                                                          
+        U22 = U[6]                                                          
+        U31 = U[7]                                                          
+        U32 = U[8]
 
         self.U3 = U3
         
@@ -297,8 +297,8 @@ class Okada_func:
         AET=(F2*R+ET)*RRE*RRE/R
 
         if CD == 0:
-            #C==============================                                         
-            #C=====   INCLINED FAULT   =====                                         
+            #C==============================     
+            #C=====   INCLINED FAULT   =====     
             #C==============================
             RD2=RD*RD
             A1=-ALP/F2*XI*Q/RD2                                               
@@ -310,8 +310,8 @@ class Okada_func:
             C1= ALP*XI*Q*RRD/RD                                               
             C3= ALP*SD/RD*(XI2*RRD - F1)  
         else:
-            #C==============================                                         
-            #C=====   VERTICAL FAULT   =====                                         
+            #C==============================   
+            #C=====   VERTICAL FAULT   =====     
             #C==============================
             TD=SD/CD                                                          
             X =sqrt(XI2+Q2)
@@ -344,8 +344,8 @@ class Okada_func:
         U32=F0
         
         if DISL1 != F0:
-            #C======================================                                 
-            #C=====  STRIKE-SLIP CONTRIBUTION  =====                                 
+            #C======================================   
+            #C=====  STRIKE-SLIP CONTRIBUTION  =====  
             #C======================================
             UN=DISL1/PI2                                                      
             REQ=RRE*Q                                                         
@@ -361,8 +361,8 @@ class Okada_func:
             U32=U32+ UN*( D*Q/R3*CD + (XI2*Q*AET*CD - SD/R + Y*Q/R3 - C2)*SD )
 
         if DISL2 != F0:
-            #C===================================                                    
-            #C=====  DIP-SLIP CONTRIBUTION  =====                                    
+            #C===================================  
+            #C=====  DIP-SLIP CONTRIBUTION  =====        
             #C=================================== 
             UN=DISL2/PI2                                                      
             SDCD=SD*CD                                                        
@@ -378,7 +378,7 @@ class Okada_func:
             
         if DISL3 != F0:
             #C========================================
-            #C=====  TENSILE-FAULT CONTRIBUTION  =====                               
+            #C=====  TENSILE-FAULT CONTRIBUTION  =====   
             #C======================================== 
             UN=DISL3/PI2                                                      
             SDSD=SD*SD                                                        
@@ -442,107 +442,107 @@ class Okada_func:
         F9 = 9.0
         PI2 = 6.283185307179586
 
-        D =DEP                                                            
-        P =Y*CD + D*SD                                                    
-        Q =Y*SD - D*CD                                                    
-        S =P*SD + Q*CD                                                    
-        X2=X*X                                                            
-        Y2=Y*Y                                                            
-        XY=X*Y                                                            
-        D2=D*D                                                            
-        R2=X2 + Y2 + D2                                                   
-        R =sqrt(R2)                                                       
-        R3=R *R2
-        R5=R3*R2
-        QR=F3*Q/R5
-        XR =F5*X2/R2
-        YR =F5*Y2/R2
-        XYR=F5*XY/R2
-        DR =F5*D /R2
-        RD =R + D
-        R12=F1/(R*RD*RD)
-        R32=R12*(F2*R + D)/ R2
-        R33=R12*(F3*R + D)/(R2*RD)
-        R53=R12*(F8*R2 + F9*R*D + F3*D2)/(R2*R2*RD)
-        R54=R12*(F5*R2 + F4*R*D +    D2)/R3*R12                           
+        D = DEP                                                            
+        P = Y*CD + D*SD                                                    
+        Q = Y*SD - D*CD                                                    
+        S = P*SD + Q*CD                                                    
+        X2 = X*X                                                            
+        Y2 = Y*Y                                                            
+        XY = X*Y                                                            
+        D2 = D*D                                                            
+        R2= X2 + Y2 + D2                                                   
+        R = sqrt(R2)                                                       
+        R3 = R *R2
+        R5 = R3*R2
+        QR = F3*Q/R5
+        XR = F5*X2/R2
+        YR = F5*Y2/R2
+        XYR = F5*XY/R2
+        DR  = F5*D /R2
+        RD = R + D
+        R12 = F1/(R*RD*RD)
+        R32 = R12*(F2*R + D)/ R2
+        R33 = R12*(F3*R + D)/(R2*RD)
+        R53 = R12*(F8*R2 + F9*R*D + F3*D2)/(R2*R2*RD)
+        R54 = R12*(F5*R2 + F4*R*D +    D2)/R3*R12                           
 
-        A1= ALP*Y*(R12-X2*R33)                                            
-        A2= ALP*X*(R12-Y2*R33)                                            
-        A3= ALP*X/R3 - A2                                                 
-        A4=-ALP*XY*R32                                                    
-        A5= ALP*( F1/(R*RD) - X2*R32 )                                    
-        B1= ALP*(-F3*XY*R33      + F3*X2*XY*R54)                          
-        B2= ALP*( F1/R3 - F3*R12 + F3*X2*Y2*R54)                          
-        B3= ALP*( F1/R3 - F3*X2/R5) - B2                                  
-        B4=-ALP*F3*XY/R5 - B1                                             
-        C1=-ALP*Y*(R32 - X2*R53)                                          
-        C2=-ALP*X*(R32 - Y2*R53)                                          
-        C3=-ALP*F3*X*D/R5 - C2                                            
+        A1 =  ALP*Y*(R12-X2*R33)                                            
+        A2 =  ALP*X*(R12-Y2*R33)                                            
+        A3 =  ALP*X/R3 - A2                                                 
+        A4 = -ALP*XY*R32                                                    
+        A5 =  ALP*( F1/(R*RD) - X2*R32 )                                    
+        B1 =  ALP*(-F3*XY*R33      + F3*X2*XY*R54)                          
+        B2 =  ALP*( F1/R3 - F3*R12 + F3*X2*Y2*R54)                          
+        B3 =  ALP*( F1/R3 - F3*X2/R5) - B2                                  
+        B4 = -ALP*F3*XY/R5 - B1                                             
+        C1 = -ALP*Y*(R32 - X2*R53)                                          
+        C2 = -ALP*X*(R32 - Y2*R53)                                          
+        C3 = -ALP*F3*X*D/R5 - C2                                            
 
-        U1 =F0                                                            
-        U2 =F0                                                            
-        U3 =F0                                                            
-        U11=F0                                                            
-        U12=F0                                                            
-        U21=F0                                                            
-        U22=F0                                                            
-        U31=F0                                                            
-        U32=F0
+        U1 = F0                                                            
+        U2 = F0                                                            
+        U3 = F0                                                            
+        U11= F0                                                            
+        U12= F0                                                            
+        U21= F0                                                            
+        U22= F0                                                            
+        U31= F0                                                            
+        U32= F0
         
         #======================================                                 
         #=====  STRIKE-SLIP CONTRIBUTION  =====                                 
         #======================================                                 
 
         if POT1 != F0:
-            UN=POT1/PI2                                                       
-            QRX=QR*X                                                          
-            FX=F3*X/R5*SD                                                     
-            U1 =U1 - UN*( QRX*X + A1*SD )                                     
-            U2 =U2 - UN*( QRX*Y + A2*SD )                                     
-            U3 =U3 - UN*( QRX*D + A4*SD )
+            UN = POT1/PI2                                                       
+            QRX = QR*X                                                          
+            FX = F3*X/R5*SD                                                     
+            U1 = U1 - UN*( QRX*X + A1*SD )                                     
+            U2 = U2 - UN*( QRX*Y + A2*SD )                                     
+            U3 = U3 - UN*( QRX*D + A4*SD )
               
-            U11=U11- UN*( QRX* (F2-XR)        + B1*SD )                       
-            U12=U12- UN*(-QRX*XYR      + FX*X + B2*SD )                       
-            U21=U21- UN*( QR*Y*(F1-XR)        + B2*SD )                       
-            U22=U22- UN*( QRX *(F1-YR) + FX*Y + B4*SD )                       
-            U31=U31- UN*( QR*D*(F1-XR)        + C1*SD )                       
-            U32=U32- UN*(-QRX*DR*Y     + FX*D + C2*SD )                       
+            U11 = U11 - UN * ( QRX* (F2-XR)        + B1*SD )  
+            U12 = U12 - UN * (-QRX*XYR      + FX*X + B2*SD )   
+            U21 = U21 - UN * ( QR*Y*(F1-XR)        + B2*SD )   
+            U22 = U22 - UN * ( QRX *(F1-YR) + FX*Y + B4*SD )    
+            U31 = U31 - UN * ( QR*D*(F1-XR)        + C1*SD )  
+            U32 = U32 - UN * (-QRX*DR*Y     + FX*D + C2*SD ) 
 
-        #======================================                                 
-        #=====    DIP-SLIP CONTRIBUTION   =====                                 
-        #======================================                                 
+        #======================================           
+        #=====    DIP-SLIP CONTRIBUTION   =====          
+        #======================================          
 
         if POT2 != F0:
-            UN=POT2/PI2                                                       
-            SDCD=SD*CD                                                        
-            QRP=QR*P                                                          
-            FS=F3*S/R5                                                        
-            U1 =U1 - UN*( QRP*X - A3*SDCD )                                   
-            U2 =U2 - UN*( QRP*Y - A1*SDCD )                                   
-            U3 =U3 - UN*( QRP*D - A5*SDCD )                                   
-            U11=U11- UN*( QRP*(F1-XR)        - B3*SDCD )                      
-            U12=U12- UN*(-QRP*XYR     + FS*X - B1*SDCD )                      
-            U21=U21- UN*(-QRP*XYR            - B1*SDCD )                      
-            U22=U22- UN*( QRP*(F1-YR) + FS*Y - B2*SDCD )                      
-            U31=U31- UN*(-QRP*DR*X           - C3*SDCD )                      
-            U32=U32- UN*(-QRP*DR*Y    + FS*D - C1*SDCD )
+            UN = POT2/PI2                                                       
+            SDCD = SD*CD                                                        
+            QRP = QR*P                                                          
+            FS = F3*S/R5                                                        
+            U1  = U1 - UN*( QRP*X - A3*SDCD )                                   
+            U2  = U2 - UN*( QRP*Y - A1*SDCD )                                   
+            U3  = U3 - UN*( QRP*D - A5*SDCD )                                   
+            U11 = U11- UN*( QRP*(F1-XR)        - B3*SDCD )                      
+            U12 = U12- UN*(-QRP*XYR     + FS*X - B1*SDCD )                      
+            U21 = U21- UN*(-QRP*XYR            - B1*SDCD )                      
+            U22 = U22- UN*( QRP*(F1-YR) + FS*Y - B2*SDCD )                      
+            U31 = U31- UN*(-QRP*DR*X           - C3*SDCD )                      
+            U32 = U32- UN*(-QRP*DR*Y    + FS*D - C1*SDCD )
             
-        #========================================                               
-        #=====  TENSILE-FAULT CONTRIBUTION  =====                               
-        #========================================                                                                    
+        #========================================    
+        #=====  TENSILE-FAULT CONTRIBUTION  =====    
+        #========================================                             
 
         if POT3 != F0:
-            UN=POT3/PI2                                                       
-            SDSD=SD*SD                                                        
-            QRQ=QR*Q                                                          
-            FQ=F2*QR*SD                                                       
-            U1 =U1 + UN*( QRQ*X - A3*SDSD )                                   
-            U2 =U2 + UN*( QRQ*Y - A1*SDSD )                                   
-            U3 =U3 + UN*( QRQ*D - A5*SDSD )                                   
-            U11=U11+ UN*( QRQ*(F1-XR)        - B3*SDSD )                      
-            U12=U12+ UN*(-QRQ*XYR     + FQ*X - B1*SDSD )                      
-            U21=U21+ UN*(-QRQ*XYR            - B1*SDSD )                      
-            U22=U22+ UN*( QRQ*(F1-YR) + FQ*Y - B2*SDSD )                      
-            U31=U31+ UN*(-QRQ*DR*X           - C3*SDSD )                      
-            U32=U32+ UN*(-QRQ*DR*Y    + FQ*D - C1*SDSD )
+            UN = POT3/PI2                                                       
+            SDSD = SD*SD                                                        
+            QRQ = QR*Q                                                          
+            FQ = F2*QR*SD                                                       
+            U1  = U1 + UN*( QRQ*X - A3*SDSD )                                   
+            U2  = U2 + UN*( QRQ*Y - A1*SDSD )                                   
+            U3  = U3 + UN*( QRQ*D - A5*SDSD )                                   
+            U11 = U11+ UN*( QRQ*(F1-XR)        - B3*SDSD )                      
+            U12 = U12+ UN*(-QRQ*XYR     + FQ*X - B1*SDSD )                      
+            U21 = U21+ UN*(-QRQ*XYR            - B1*SDSD )                      
+            U22 = U22+ UN*( QRQ*(F1-YR) + FQ*Y - B2*SDSD )                      
+            U31 = U31+ UN*(-QRQ*DR*X           - C3*SDSD )                      
+            U32 = U32+ UN*(-QRQ*DR*Y    + FQ*D - C1*SDSD )
 

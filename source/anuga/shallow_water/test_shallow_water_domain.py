@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 
-import unittest, os
+import unittest, os, time
 import os.path
 from math import pi, sqrt
 import tempfile
 
 from anuga.shallow_water import Domain
+
+from Scientific.IO.NetCDF import NetCDFFile
+from anuga.file.sww import extent_sww
 
 from anuga.config import g, epsilon
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
@@ -13,7 +16,8 @@ from anuga.utilities.numerical_tools import mean, ensure_numeric
 from anuga.geometry.polygon import is_inside_polygon
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.geospatial_data.geospatial_data import Geospatial_data
-from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
+from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross, \
+                                            rectangular
 from anuga.abstract_2d_finite_volumes.quantity import Quantity
 from anuga.shallow_water.forcing import Inflow, Cross_section
 from anuga.geospatial_data.geospatial_data import ensure_geospatial
@@ -1464,10 +1468,6 @@ class Test_Shallow_Water(unittest.TestCase):
 
         This run tries it with georeferencing and with elevation = -1
         """
-
-        import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
-        from mesh_factory import rectangular
 
         # Create basic mesh (20m x 3m)
         width = 3
@@ -5261,10 +5261,6 @@ class Test_Shallow_Water(unittest.TestCase):
         small timesteps. This test actually reveals the problem as it
         was in March-April 2007
         """
-        import time, os
-        from Scientific.IO.NetCDF import NetCDFFile
-        from data_manager import extent_sww
-        from mesh_factory import rectangular
 
         # Create basic mesh
         points, vertices, boundary = rectangular(2, 2)
