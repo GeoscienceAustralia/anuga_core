@@ -69,7 +69,7 @@ def load_csv_as_dict(file_name, title_check_list=None, delimiter=','):
 
 
           
-def load_csv_as_array(file_name, delimiter=','):
+def load_csv_as_array(file_name, delimiter = ','):
     """
     Convert CSV files of the form:
 
@@ -88,9 +88,150 @@ def load_csv_as_array(file_name, delimiter=','):
 
     X, _ = load_csv_as_dict(file_name, delimiter=delimiter)
 
-    Y = {}
-    for key in X.keys():
-        Y[key] = num.array([float(x) for x in X[key]])
 
-    return Y
+    # Return result as a dict of arrays
+    ret = {}
+    for key in X.keys():
+        ret[key] = num.array([float(x) for x in X[key]])
+            
+    return ret
+
+
+def load_csv_as_matrix(file_name, delimiter = ','):
+    """
+    Convert CSV files of the form:
+
+    time, discharge, velocity
+    0.0,  1.2,       0.0
+    0.1,  3.2,       1.1
+    ...
+
+    to a numeric matrix.
+
+    file_name The path to the file to read.
+    delimiter is the delimiter used to separate the fields    
+
+    See underlying function load_csv_as_dict for more details.
+    """
+
+    X, title_indices = load_csv_as_dict(file_name, delimiter=delimiter)
+
+    col_titles = title_indices.keys()
+
+    # Return result as a 2D array
+    ret = num.zeros((len(X[col_titles[0]]), len(title_indices)), float)
+
+    header = []
+    for col_title in col_titles:
+        index = title_indices[col_title]
+        header.append(col_title)
+        for i, x in enumerate(X[col_title]):
+            ret[i, index] = float(x)
+
+    return header, ret
+
+
+
+##
+# @brief Store keyword params into a CSV file.
+# @param verbose True if this function is to be verbose.
+# @param kwargs Dictionary of keyword args to store.
+# @note If kwargs dict contains 'file_name' key, that has the output filename.
+#       If not, make up a filename in the output directory.
+def store_parameters(verbose=False, **kwargs):
+    """
+    Store "kwargs" into a temp csv file, if "completed" is in kwargs,
+    csv file is kwargs[file_name] else it is kwargs[output_dir]+details_temp.csv
+
+    Must have a file_name keyword arg, this is what is writing to.
+    might be a better way to do this using CSV module Writer and writeDict.
+
+    writes file to "output_dir" unless "completed" is in kwargs, then
+    it writes to "file_name" kwargs
+    """
+
+    import types
+
+    # Check that kwargs is a dictionary
+    if type(kwargs) != types.DictType:
+        raise TypeError
+
+    # is 'completed' in kwargs?
+    completed = kwargs.has_key('completed')
+
+    # get file name and removes from dict and assert that a file_name exists
+    if completed:
+        try:
+            file = str(kwargs['file_name'])
+        except:
+            raise 'kwargs must have file_name'
+    else:
+        # write temp file in output directory
+        try:
+            file = str(kwargs['output_dir']) + 'detail_temp.csv'
+        except:
+            raise 'kwargs must have output_dir'
+
+    # extracts the header info and the new line info
+    line = ''
+    header = ''
+    count = 0
+    keys = kwargs.keys()
+    keys.sort()
+
+    # used the sorted keys to create the header and line data
+    for k in keys:
+        header += str(k)
+        line += str(kwargs[k])
+        count += 1
+        if count < len(kwargs):
+            header += ','
+            line += ','
+    header += '\n'
+    line += '\n'
+
+    # checks the header info, if the same, then write, if not create a new file
+    # try to open!
+    try:
+        fid = open(file, 'r')
+        file_header = fid.readline()
+        fid.close()
+        if verbose: log.critical('read file header %s' % file_header)
+    except:
+        msg = 'try to create new file: %s' % file
+        if verbose: log.critical(msg)
+        #tries to open file, maybe directory is bad
+        try:
+            fid = open(file, 'w')
+            fid.write(header)
+            fid.close()
+            file_header=header
+        except:
+            msg = 'cannot create new file: %s' % file
+            raise Exception, msg
+
+    # if header is same or this is a new file
+    if file_header == str(header):
+        fid = open(file, 'a')
+        fid.write(line)
+        fid.close()
+    else:
+        # backup plan,
+        # if header is different and has completed will append info to
+        # end of details_temp.cvs file in output directory
+        file = str(kwargs['output_dir']) + 'detail_temp.csv'
+        fid = open(file, 'a')
+        fid.write(header)
+        fid.write(line)
+        fid.close()
+
+        if verbose:
+            log.critical('file %s', file_header.strip('\n'))
+            log.critical('head %s', header.strip('\n'))
+        if file_header.strip('\n') == str(header):
+            log.critical('they equal')
+
+        msg = 'WARNING: File header does not match input info, ' \
+              'the input variables have changed, suggest you change file name'
+        log.critical(msg)
 

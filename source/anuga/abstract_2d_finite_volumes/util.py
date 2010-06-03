@@ -333,23 +333,6 @@ def add_directories(root_directory, directories):
 
 ##
 # @brief 
-# @param filename 
-# @param separator_value 
-# @return 
-# @note TEMP
-def get_data_from_file(filename, separator_value=','):
-    """Temporary Interface to new location"""
-    from anuga.shallow_water.data_manager import \
-                        get_data_from_file as dm_get_data_from_file
-    log.critical('get_data_from_file has moved from util.py')
-    log.critical('Please use "from anuga.shallow_water.data_manager import '
-                 'get_data_from_file"')
-    
-    return dm_get_data_from_file(filename,separator_value = ',')
-
-
-##
-# @brief 
 # @param verbose 
 # @param kwargs 
 # @return 

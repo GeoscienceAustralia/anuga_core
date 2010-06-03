@@ -24,8 +24,10 @@ from anuga.abstract_2d_finite_volumes.util import file_function
 
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
 
-from anuga.shallow_water.data_manager import export_grid, create_sts_boundary
+from anuga.shallow_water.data_manager import export_grid
 from anuga.shallow_water.data_manager import csv2building_polygons
+
+from anuga.file.sts import create_sts_boundary
 
 from anuga.geometry.polygon import read_polygon, plot_polygons, polygon_area
 from anuga.geometry.polygon import Polygon_function

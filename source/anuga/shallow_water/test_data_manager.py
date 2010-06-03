@@ -15,6 +15,7 @@ from struct import pack, unpack
 
 from Scientific.IO.NetCDF import NetCDFFile
 
+from anuga.anuga_exceptions import ANUGAError
 from anuga.shallow_water.data_manager import *
 from anuga.shallow_water.sww_file import SWW_file
 from anuga.coordinate_transforms.geo_reference import Geo_reference                        
@@ -22,11 +23,12 @@ from anuga.coordinate_transforms.redfearn import degminsec2decimal_degrees
 from anuga.abstract_2d_finite_volumes.util import file_function
 from anuga.utilities.system_tools import get_pathname_from_package
 from anuga.utilities.file_utils import del_dir
-from anuga.file.csv_file import load_csv_as_dict, load_csv_as_array
-from anuga.anuga_exceptions import ANUGAError
 from anuga.utilities.numerical_tools import ensure_numeric, mean
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.config import netcdf_float, epsilon, g
+
+from anuga.file.csv_file import load_csv_as_dict, load_csv_as_array
+from anuga.file.sts import create_sts_boundary
 
 
 # import all the boundaries - some are generic, some are shallow water
@@ -2251,219 +2253,6 @@ class Test_Data_Manager(Test_Mux):
             absolute.change_points_geo_ref(map(None, x,y),
                                            new_origin)),points_utm)
         os.remove(filename)
-        
-    def test_get_data_from_file(self):
-#    from anuga.abstract_2d_finite_volumes.util import get_data_from_file
-        
-        import os
-       
-        fileName = tempfile.mktemp(".txt")
-#        print"filename",fileName
-        file = open(fileName,"w")
-        file.write("elevation, stage\n\
-1.0, 3  \n\
-0.0, 4 \n\
-4.0, 3 \n\
-1.0, 6 \n")
-        file.close()
-        
-        header,x = get_data_from_file(fileName)
-#        print 'x',x
-        os.remove(fileName)
-        
-        assert num.allclose(x[:,0], [1.0, 0.0,4.0, 1.0])
-        
-    def test_get_data_from_file1(self):
-#    from anuga.abstract_2d_finite_volumes.util import get_data_from_file
-        
-        import os
-       
-        fileName = tempfile.mktemp(".txt")
-#        print"filename",fileName
-        file = open(fileName,"w")
-        file.write("elevation stage\n\
-1.3 3  \n\
-0.0 4 \n\
-4.5 3.5 \n\
-1.0 6 \n")
-        file.close()
-        
-        header, x = get_data_from_file(fileName,separator_value=' ')
-        os.remove(fileName)
-#        x = get_data_from_file(fileName)
-#        print '1x',x[:,0]
-        
-        assert num.allclose(x[:,0], [1.3, 0.0,4.5, 1.0])
-        
-    def test_store_parameters(self):
-        """tests store temporary file
-        """
-        
-        from os import sep, getenv
-        
-        output_dir=''
-        file_name='details.csv'
-        
-        kwargs = {'file_name':'new2.txt',
-                  'output_dir':output_dir,
-                  'file_name':file_name,
-                  'who':'me',
-                  'what':'detail',
-                  'how':2,
-                  'why':241,
-#                  'completed':345
-                  }
-        store_parameters(verbose=False,**kwargs)
-
-        temp='detail_temp.csv'
-        fid = open(temp)
-        file_header = fid.readline()
-        file_line = fid.readline()
-        fid.close()
-        
-        
-        keys = kwargs.keys()
-        keys.sort()
-        line=''
-        header=''
-        count=0
-        #used the sorted keys to create the header and line data
-        for k in keys:
-#            print "%s = %s" %(k, kwargs[k]) 
-            header = header+str(k)
-            line = line+str(kwargs[k])
-            count+=1
-            if count <len(kwargs):
-                header = header+','
-                line = line+','
-        header+='\n'
-        line+='\n'
-        
-        
-        #file exists
-        assert access(temp,F_OK)
-        assert header == file_header
-        assert line == file_line
-        
-        os.remove(temp)
-        
-    def test_store_parameters1(self):
-        """tests store in temporary file and other file 
-        """
-        
-        from os import sep, getenv
-        
-        output_dir=''
-        file_name='details.csv'
-        
-        kwargs = {'file_name':'new2.txt',
-                  'output_dir':output_dir,
-                  'file_name':file_name,
-                  'who':'me',
-                  'what':'detail',
-                  'how':2,
-                  'why':241,
-#                  'completed':345
-                  }
-        store_parameters(verbose=False,**kwargs)
-        
-        kwargs['how']=55
-        kwargs['completed']=345
-
-        keys = kwargs.keys()
-        keys.sort()
-        line=''
-        header=''
-        count=0
-        #used the sorted keys to create the header and line data
-        for k in keys:
-#            print "%s = %s" %(k, kwargs[k]) 
-            header = header+str(k)
-            line = line+str(kwargs[k])
-            count+=1
-            if count <len(kwargs):
-                header = header+','
-                line = line+','
-        header+='\n'
-        line+='\n'
-        
-        kwargs['how']=55
-        kwargs['completed']=345
-        
-        store_parameters(verbose=False,**kwargs)
-        
-#        temp='detail_temp.csv'
-        fid = open(file_name)
-        file_header = fid.readline()
-        file_line1 = fid.readline()
-        file_line2 = fid.readline()
-        fid.close()
-        
-        
-        #file exists
-#        print 'header',header,'line',line
-#        print 'file_header',file_header,'file_line1',file_line1,'file_line2',file_line2
-        assert access(file_name,F_OK)
-        assert header == file_header
-        assert line == file_line1
-        
-        temp='detail_temp.csv'
-        os.remove(temp)
-        os.remove(file_name)        
-        
-    def test_store_parameters2(self):
-        """tests appending the data to the end of an existing file
-        """
-        
-        from os import sep, getenv
-        
-        output_dir=''
-        file_name='details.csv'
-        
-        kwargs = {'file_name':'new2.txt',
-                  'output_dir':output_dir,
-                  'file_name':file_name,
-                  'who':'me',
-                  'what':'detail',
-                  'how':2,
-                  'why':241,
-                  'completed':345
-                  }
-        store_parameters(verbose=False,**kwargs)
-        
-        kwargs['how']=55
-        kwargs['completed']=23.54532
-        
-        store_parameters(verbose=False,**kwargs)
-        
-        keys = kwargs.keys()
-        keys.sort()
-        line=''
-        header=''
-        count=0
-        #used the sorted keys to create the header and line data
-        for k in keys:
-#            print "%s = %s" %(k, kwargs[k]) 
-            header = header+str(k)
-            line = line+str(kwargs[k])
-            count+=1
-            if count <len(kwargs):
-                header = header+','
-                line = line+','
-        header+='\n'
-        line+='\n'
-        
-        fid = open(file_name)
-        file_header = fid.readline()
-        file_line1 = fid.readline()
-        file_line2 = fid.readline()
-        fid.close()
-        
-        assert access(file_name,F_OK)
-        assert header == file_header
-        assert line == file_line2
-        
-        os.remove(file_name)        
         
 
         
