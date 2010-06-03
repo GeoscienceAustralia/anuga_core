@@ -7,7 +7,7 @@ import numpy as num
 
 # ANUGA modules
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_float
-from anuga.shallow_water.sww_file import Write_sww  
+from anuga.file.sww import Write_sww  
 from anuga.coordinate_transforms.geo_reference import Geo_reference, \
      write_NetCDF_georeference                          
 import anuga.utilities.log as log

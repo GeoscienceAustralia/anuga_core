@@ -89,7 +89,7 @@ from anuga.shallow_water.forcing import Cross_section
 from anuga.pmesh.mesh_interface import create_mesh_from_regions
 from anuga.utilities.numerical_tools import gradient, mean, ensure_numeric
 from anuga.geospatial_data.geospatial_data import ensure_geospatial
-
+from anuga.file.sww import SWW_file  
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 
 from anuga.fit_interpolate.interpolate import Modeltime_too_late, \
@@ -663,8 +663,6 @@ class Domain(Generic_Domain):
         """Create and initialise self.writer object for storing data.
         Also, save x,y and bed elevation
         """
-
-        from anuga.shallow_water.sww_file import SWW_file
         
         # Initialise writer
         self.writer = SWW_file(self)

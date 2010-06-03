@@ -413,3 +413,93 @@ def sww2dem(basename_in, basename_out=None,
         fid.close()
 
         return basename_out
+
+
+
+
+##
+# @brief 
+# @param basename_in 
+# @param extra_name_out 
+# @param quantities 
+# @param timestep 
+# @param reduction 
+# @param cellsize 
+# @param number_of_decimal_places 
+# @param NODATA_value 
+# @param easting_min 
+# @param easting_max 
+# @param northing_min 
+# @param northing_max 
+# @param verbose 
+# @param origin 
+# @param datum 
+# @param format 
+# @return 
+def sww2dem_batch(basename_in, extra_name_out=None,
+                quantities=None, # defaults to elevation
+                reduction=None,
+                cellsize=10,
+                number_of_decimal_places=None,
+                NODATA_value=-9999,
+                easting_min=None,
+                easting_max=None,
+                northing_min=None,
+                northing_max=None,
+                verbose=False,
+                origin=None,
+                datum='WGS84',
+                format='ers'):
+    """Wrapper for sww2dem.
+    See sww2dem to find out what most of the parameters do.
+
+    Quantities is a list of quantities.  Each quantity will be
+    calculated for each sww file.
+
+    This returns the basenames of the files returned, which is made up
+    of the dir and all of the file name, except the extension.
+
+    This function returns the names of the files produced.
+
+    It will also produce as many output files as there are input sww files.
+    """
+
+    if quantities is None:
+        quantities = ['elevation']
+
+    if type(quantities) is str:
+            quantities = [quantities]
+
+    # How many sww files are there?
+    dir, base = os.path.split(basename_in)
+
+    iterate_over = get_all_swwfiles(dir, base, verbose)
+
+    if dir == "":
+        dir = "." # Unix compatibility
+
+    files_out = []
+    for sww_file in iterate_over:
+        for quantity in quantities:
+            if extra_name_out is None:
+                basename_out = sww_file + '_' + quantity
+            else:
+                basename_out = sww_file + '_' + quantity + '_' + extra_name_out
+
+            file_out = sww2dem(dir+sep+sww_file, dir+sep+basename_out,
+                               quantity,
+                               reduction,
+                               cellsize,
+                               number_of_decimal_places,
+                               NODATA_value,
+                               easting_min,
+                               easting_max,
+                               northing_min,
+                               northing_max,
+                               verbose,
+                               origin,
+                               datum,
+                               format)
+            files_out.append(file_out)
+    return files_out
+

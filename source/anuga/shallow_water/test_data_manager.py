@@ -1,12 +1,16 @@
 #!/usr/bin/env python
 #
 
-# This file was reverted from changeset:5484 to changeset:5470 on 10th July 
-# by Ole.
+"""
+Set of tests for the now-defunct data manager module.
+
+These could be split up into their correct modules.
+"""
 
 import unittest
 import copy
 import numpy as num
+import sys
                 
 import tempfile
 import os
@@ -15,13 +19,14 @@ from struct import pack, unpack
 
 from Scientific.IO.NetCDF import NetCDFFile
 
+
 from anuga.anuga_exceptions import ANUGAError
-from anuga.shallow_water.data_manager import *
-from anuga.shallow_water.sww_file import SWW_file
+from anuga.file.sww import SWW_file
 from anuga.coordinate_transforms.geo_reference import Geo_reference                        
 from anuga.coordinate_transforms.redfearn import degminsec2decimal_degrees
 from anuga.abstract_2d_finite_volumes.util import file_function
-from anuga.utilities.system_tools import get_pathname_from_package
+from anuga.utilities.system_tools import get_pathname_from_package, \
+                                            get_revision_number
 from anuga.utilities.file_utils import del_dir
 from anuga.utilities.numerical_tools import ensure_numeric, mean
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
@@ -40,12 +45,13 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
             Time_boundary, File_boundary, AWI_boundary
 
 # This is needed to run the tests of local functions
-import data_manager 
 from anuga.file_conversion.urs2sts import urs2sts
 from anuga.coordinate_transforms.redfearn import redfearn
 from anuga.coordinate_transforms.geo_reference import Geo_reference, \
      DEFAULT_ZONE
 from anuga.geospatial_data.geospatial_data import Geospatial_data
+
+from shallow_water_domain import Domain
 
 # use helper methods from other unit test
 from anuga.file.test_mux import Test_Mux

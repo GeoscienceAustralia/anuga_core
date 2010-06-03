@@ -27,8 +27,7 @@ from anuga.abstract_2d_finite_volumes.util import file_function
 
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
 
-from anuga.shallow_water.data_manager import export_grid
-from anuga.shallow_water.data_manager import csv2building_polygons
+from anuga.file.csv_file import csv2building_polygons
 
 from anuga.file.sts import create_sts_boundary
 
@@ -79,9 +78,10 @@ from anuga.file_conversion.file_conversion import sww2obj, dat2obj, \
 from anuga.file_conversion.urs2nc import urs2nc 
 from anuga.file_conversion.dem2pts import dem2pts                    
 from anuga.file_conversion.esri2sww import esri2sww   
-from anuga.file_conversion.sww2dem import sww2dem     
+from anuga.file_conversion.sww2dem import sww2dem, sww2dem_batch 
 from anuga.file_conversion.asc2dem import asc2dem     
 from anuga.file_conversion.ferret2sww import ferret2sww     
+from anuga.file_conversion.dem2dem import dem2dem 
 
 #-----------------------------
 # SWW file access

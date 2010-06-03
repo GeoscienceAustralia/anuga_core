@@ -7,7 +7,7 @@ import numpy as num
 # ANUGA modules
 from anuga.shallow_water.shallow_water_domain import Domain 
 from anuga.coordinate_transforms.geo_reference import Geo_reference
-from anuga.shallow_water.sww_file import SWW_file
+from anuga.file.sww import Write_sww, SWW_file
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions \
                             import Transmissive_boundary
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a, \

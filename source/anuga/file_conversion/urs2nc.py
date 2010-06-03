@@ -132,3 +132,75 @@ def _binary_c2nc(file_in, file_out, quantity):
     return lonlatdep, lon, lat, depth
 
 
+
+##
+# @brief 
+# @param long_lat_dep 
+# @return A tuple (long, lat, quantity).
+# @note The latitude is the fastest varying dimension - in mux files.
+def lon_lat2grid(long_lat_dep):
+    """
+    given a list of points that are assumed to be an a grid,
+    return the long's and lat's of the grid.
+    long_lat_dep is an array where each row is a position.
+    The first column is longitudes.
+    The second column is latitudes.
+
+    The latitude is the fastest varying dimension - in mux files
+    """
+
+    LONG = 0
+    LAT = 1
+    QUANTITY = 2
+
+    long_lat_dep = ensure_numeric(long_lat_dep, num.float)
+
+    num_points = long_lat_dep.shape[0]
+    this_rows_long = long_lat_dep[0,LONG]
+
+    # Count the length of unique latitudes
+    i = 0
+    while long_lat_dep[i,LONG] == this_rows_long and i < num_points:
+        i += 1
+
+    # determine the lats and longsfrom the grid
+    lat = long_lat_dep[:i, LAT]
+    long = long_lat_dep[::i, LONG]
+
+    lenlong = len(long)
+    lenlat = len(lat)
+
+    msg = 'Input data is not gridded'
+    assert num_points % lenlat == 0, msg
+    assert num_points % lenlong == 0, msg
+
+    # Test that data is gridded
+    for i in range(lenlong):
+        msg = 'Data is not gridded.  It must be for this operation'
+        first = i * lenlat
+        last = first + lenlat
+
+        assert num.allclose(long_lat_dep[first:last,LAT], lat), msg
+        assert num.allclose(long_lat_dep[first:last,LONG], long[i]), msg
+
+    msg = 'Out of range latitudes/longitudes'
+    for l in lat:assert -90 < l < 90 , msg
+    for l in long:assert -180 < l < 180 , msg
+
+    # Changing quantity from lat being the fastest varying dimension to
+    # long being the fastest varying dimension
+    # FIXME - make this faster/do this a better way
+    # use numeric transpose, after reshaping the quantity vector
+    quantity = num.zeros(num_points, num.float)
+
+    for lat_i, _ in enumerate(lat):
+        for long_i, _ in enumerate(long):
+            q_index = lat_i*lenlong + long_i
+            lld_index = long_i*lenlat + lat_i
+            temp = long_lat_dep[lld_index, QUANTITY]
+            quantity[q_index] = temp
+
+    return long, lat, quantity
+
+
+

@@ -23,7 +23,7 @@ from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a, \
 
 
 #shallow water imports
-from anuga.shallow_water.sww_file import Read_sww, Write_sww
+from anuga.file.sww import Read_sww, Write_sww
 from anuga.shallow_water.shallow_water_domain import Domain
 from anuga.shallow_water.shallow_water_domain import Domain
 

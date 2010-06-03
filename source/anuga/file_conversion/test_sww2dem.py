@@ -8,7 +8,7 @@ from anuga.config import netcdf_mode_r
 from anuga.coordinate_transforms.geo_reference import Geo_reference, \
      DEFAULT_ZONE
 
-from anuga.shallow_water.sww_file import SWW_file
+from anuga.file.sww import SWW_file
      
 # boundary functions
 from anuga.shallow_water.boundaries import Reflective_boundary, \

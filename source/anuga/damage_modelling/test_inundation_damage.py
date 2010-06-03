@@ -14,7 +14,7 @@ from anuga.pmesh.mesh import Mesh
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.shallow_water import Domain, Transmissive_boundary
 from anuga.utilities.numerical_tools import mean
-from anuga.shallow_water.sww_file import SWW_file
+from anuga.file.sww import SWW_file
 
 import numpy as num
 

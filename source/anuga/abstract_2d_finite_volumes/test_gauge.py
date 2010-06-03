@@ -16,8 +16,8 @@ from sys import platform
 
 from anuga.pmesh.mesh import Mesh
 from anuga.shallow_water import Domain, Transmissive_boundary
-from anuga.shallow_water.sww_file import SWW_file
-from anuga.shallow_water.file_conversion import timefile2netcdf
+from anuga.file.sww import SWW_file
+from anuga.file_conversion.file_conversion import timefile2netcdf
 from anuga.utilities.file_utils import del_dir
 from csv import reader,writer
 import time

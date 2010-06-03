@@ -17,7 +17,7 @@ from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a, \
                             netcdf_float
 
-from sww_file import Read_sww, Write_sww
+from anuga.file.sww import Write_sww  
 
 
 ################################################################################

@@ -585,8 +585,7 @@ class Read_sww:
 
 # @brief A class to write an SWW file.
 class Write_sww:
-    from anuga.shallow_water.shallow_water_domain import Domain
-
+    
     RANGE = '_range'
     EXTREMA = ':extrema'
 

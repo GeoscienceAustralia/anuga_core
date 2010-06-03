@@ -9,7 +9,7 @@ from os import access, F_OK,sep, removedirs,remove,mkdir,getcwd
 from anuga.abstract_2d_finite_volumes.util import *
 from anuga.config import epsilon
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
-from anuga.shallow_water.file_conversion import timefile2netcdf
+from anuga.file_conversion.file_conversion import timefile2netcdf
 from anuga.utilities.file_utils import del_dir
 
 from anuga.utilities.numerical_tools import NAN
@@ -18,7 +18,7 @@ from sys import platform
 
 from anuga.pmesh.mesh import Mesh
 from anuga.shallow_water import Domain, Transmissive_boundary
-from anuga.shallow_water.sww_file import SWW_file
+from anuga.file.sww import SWW_file
 from csv import reader,writer
 import time
 import string

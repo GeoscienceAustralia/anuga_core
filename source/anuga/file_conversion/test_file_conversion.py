@@ -6,12 +6,13 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
      import Transmissive_boundary
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-from anuga.shallow_water.sww_file import SWW_file
+from anuga.file.sww import SWW_file
 from anuga.file.sww import extent_sww
 from anuga.config import netcdf_float, epsilon, g
 from Scientific.IO.NetCDF import NetCDFFile
 from anuga.file_conversion.file_conversion import tsh2sww, \
                         pmesh_to_domain_instance
+
 
 from anuga.file.mux import WAVEHEIGHT_MUX_LABEL, EAST_VELOCITY_LABEL, \
                             NORTH_VELOCITY_LABEL

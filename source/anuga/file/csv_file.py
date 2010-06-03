@@ -2,6 +2,10 @@
     A set of functions which extend the capabilities of the Python csv
     module.
     
+    CSV files have the extension .csv, which stands for Comma Separated Value
+    file. There is no standardised form for this format, so the user is provided
+    with a variety of options for parsing different styles of csv files.
+    
     These have been left as functions to aviod confusion with the standard
     csv module.
 """
@@ -234,4 +238,169 @@ def store_parameters(verbose=False, **kwargs):
         msg = 'WARNING: File header does not match input info, ' \
               'the input variables have changed, suggest you change file name'
         log.critical(msg)
+
+
+
+def csv2building_polygons(file_name,
+                          floor_height=3,
+                          clipping_polygons=None):
+    """
+    Convert CSV files of the form:
+
+    easting,northing,id,floors
+    422664.22,870785.46,2,0
+    422672.48,870780.14,2,0
+    422668.17,870772.62,2,0
+    422660.35,870777.17,2,0
+    422664.22,870785.46,2,0
+    422661.30,871215.06,3,1
+    422667.50,871215.70,3,1
+    422668.30,871204.86,3,1
+    422662.21,871204.33,3,1
+    422661.30,871215.06,3,1
+
+    to a dictionary of polygons with id as key.
+    The associated number of floors are converted to m above MSL and 
+    returned as a separate dictionary also keyed by id.
+    
+    Optional parameter floor_height is the height of each building story.
+    Optional parameter clipping_olygons is a list of polygons selecting
+    buildings. Any building not in these polygons will be omitted.
+    
+    See csv2polygons for more details
+    """
+
+    polygons, values = csv2polygons(file_name,
+                                    value_name='floors',
+                                    clipping_polygons=None)    
+
+    
+    heights = {}
+    for key in values.keys():
+        v = float(values[key])
+        heights[key] = v*floor_height
+        
+    return polygons, heights                
+            
+
+##
+# @brief Convert CSV file into a dictionary of polygons and associated values.
+# @param filename The path to the file to read, value_name name for the 4th column
+def csv2polygons(file_name,
+                 value_name='value',
+                 clipping_polygons=None):
+    """
+    Convert CSV files of the form:
+
+    easting,northing,id,value
+    422664.22,870785.46,2,0
+    422672.48,870780.14,2,0
+    422668.17,870772.62,2,0
+    422660.35,870777.17,2,0
+    422664.22,870785.46,2,0
+    422661.30,871215.06,3,1
+    422667.50,871215.70,3,1
+    422668.30,871204.86,3,1
+    422662.21,871204.33,3,1
+    422661.30,871215.06,3,1
+
+    to a dictionary of polygons with id as key.
+    The associated values are returned as a separate dictionary also keyed by id.
+
+
+    easting: x coordinate relative to zone implied by the model
+    northing: y coordinate relative to zone implied by the model    
+    id: tag for polygon comprising points with this tag
+    value: numeral associated with each polygon. These must be the same for all points in each polygon.
+   
+    The last header, value, can take on other names such as roughness, floors, etc - or it can be omitted 
+    in which case the returned values will be None
+    
+    Eastings and Northings will be returned as floating point values while
+    id and values will be returned as strings.
+
+    Optional argument: clipping_polygons will select only those polygons that are
+    fully within one or more of the clipping_polygons. In other words any polygon from
+    the csv file which has at least one point not inside one of the clipping polygons
+    will be excluded 
+    
+    See underlying function load_csv_as_dict for more details.
+    """
+
+    X, _ = load_csv_as_dict(file_name)
+
+    msg = 'Polygon csv file must have 3 or 4 columns'
+    assert len(X.keys()) in [3, 4], msg
+    
+    msg = 'Did not find expected column header: easting'
+    assert 'easting' in X.keys(), msg
+    
+    msg = 'Did not find expected column header: northing'    
+    assert 'northing' in X.keys(), northing
+    
+    msg = 'Did not find expected column header: northing'        
+    assert 'id' in X.keys(), msg
+    
+    if value_name is not None:
+        msg = 'Did not find expected column header: %s' % value_name        
+        assert value_name in X.keys(), msg    
+    
+    polygons = {}
+    if len(X.keys()) == 4:
+        values = {}
+    else:
+        values = None
+
+    # Loop through entries and compose polygons
+    excluded_polygons={}
+    past_ids = {}
+    last_id = None
+    for i, id in enumerate(X['id']):
+
+        # Check for duplicate polygons
+        if id in past_ids:
+            msg = 'Polygon %s was duplicated in line %d' % (id, i)
+            raise Exception, msg
+        
+        if id not in polygons:
+            # Start new polygon
+            polygons[id] = []
+            if values is not None:
+                values[id] = X[value_name][i]
+
+            # Keep track of previous polygon ids
+            if last_id is not None:
+                past_ids[last_id] = i
+            
+        # Append this point to current polygon
+        point = [float(X['easting'][i]), float(X['northing'][i])]
+
+        if clipping_polygons is not None:
+            exclude=True
+            for clipping_polygon in clipping_polygons:
+                if inside_polygon(point, clipping_polygon):
+                    exclude=False
+                    break
+                
+            if exclude is True:
+                excluded_polygons[id]=True
+
+        polygons[id].append(point)    
+            
+        # Check that value is the same across each polygon
+        msg = 'Values must be the same across each polygon.'
+        msg += 'I got %s in line %d but it should have been %s' % (X[value_name][i], i, values[id])
+        assert values[id] == X[value_name][i], msg
+
+        last_id = id
+
+    # Weed out polygons that were not wholly inside clipping polygons
+    for id in excluded_polygons:
+        del polygons[id]
+        
+    return polygons, values
+
+
+            
+
 
