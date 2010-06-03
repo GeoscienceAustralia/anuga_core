@@ -1,24 +1,15 @@
-"""This is the public API to ANUGA.
-
-Ideally, all tools needed to run simulations should be 
-imported from this module
+""" This is the public API to ANUGA. It provides a toolkit of often-used
+    modules, which can be used directly by importing this module.
+    
+    It abstracts away the internal heirarchy of the ANUGA system, allowing the
+    user to concentrate on writing simulations without searching through the
+    ANUGA source tree for the functions that they need.
+    
+    Also, it isolates the user from "under-the-hood" refactorings.
 """
 
-# FIXME(Ole): This is one step towards the API envisioned in ticket:308
-
-
+# Make selected classes available directly
 from anuga.shallow_water import Domain
-from anuga.shallow_water import Dirichlet_boundary
-from anuga.shallow_water import File_boundary
-from anuga.shallow_water import Reflective_boundary
-from anuga.shallow_water import Field_boundary
-from anuga.shallow_water import Transmissive_stage_zero_momentum_boundary
-from anuga.shallow_water import Transmissive_momentum_set_stage_boundary
-from anuga.shallow_water import Transmissive_n_momentum_zero_t_momentum_set_stage_boundary
-
-from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import Time_boundary
-from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import Time_space_boundary
-from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import Transmissive_boundary
 
 from anuga.abstract_2d_finite_volumes.util import file_function
 
@@ -34,6 +25,56 @@ from anuga.geometry.polygon import Polygon_function
 
 from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_to_domain_instance
 
+
+#-----------------------------
+# Standard Boundaries
+#-----------------------------
+from anuga.shallow_water.boundaries import File_boundary
+from anuga.shallow_water.boundaries import Reflective_boundary
+from anuga.shallow_water.boundaries import Field_boundary
+from anuga.shallow_water.boundaries import \
+                    Transmissive_stage_zero_momentum_boundary
+from anuga.shallow_water.boundaries import \
+                    Transmissive_momentum_set_stage_boundary
+from anuga.shallow_water.boundaries import \
+                    Transmissive_n_momentum_zero_t_momentum_set_stage_boundary
+
+
+#-----------------------------
+# SWW-specific Boundaries
+#-----------------------------
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions \
+                            import Dirichlet_boundary
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions \
+                            import Time_boundary
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions \
+                            import Time_space_boundary
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions \
+                            import Transmissive_boundary
+
+
+
+#-----------------------------
+# Forcing
+#-----------------------------
+from anuga.shallow_water.forcing import Inflow
+
+#-----------------------------
+# File conversion utilities
+#-----------------------------
+from anuga.file_conversion.file_conversion import sww2obj, dat2obj, \
+                    timefile2netcdf, tsh2sww, urs2sww
+from anuga.file_conversion.urs2nc import urs2nc 
+from anuga.file_conversion.dem2pts import dem2pts                    
+from anuga.file_conversion.esri2sww import esri2sww   
+from anuga.file_conversion.sww2dem import sww2dem     
+from anuga.file_conversion.asc2dem import asc2dem     
+from anuga.file_conversion.ferret2sww import ferret2sww     
+
+#-----------------------------
+# SWW file access
+#-----------------------------
+from anuga.shallow_water.sww_interrogate import get_flow_through_cross_section
 
 #-----------------------------
 # rectangular domains
