@@ -5,15 +5,13 @@ import unittest
 import os.path
 import sys
 
+import anuga
+
 from anuga.utilities.system_tools import get_pathname_from_package
 from anuga.geometry.polygon import Polygon_function
         
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
 from anuga.abstract_2d_finite_volumes.quantity import Quantity
-
-from anuga.shallow_water import Domain, Reflective_boundary,\
-    Dirichlet_boundary,\
-    Transmissive_boundary, Time_boundary
 
 from anuga.culvert_flows.new_culvert_class import Culvert_flow
 from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
@@ -37,7 +35,7 @@ def run_culvert_flow_problem(depth):
                                                    int(width/dy),
                                                    len1=length, 
                                                    len2=width)
-    domain = Domain(points, vertices, boundary)   
+    domain = anuga.Domain(points, vertices, boundary)   
     domain.set_name('Test_culvert_shallow') # Output name
     domain.set_default_order(2)
 
@@ -104,7 +102,7 @@ def run_culvert_flow_problem(depth):
 
     # Inflow based on Flow Depth and Approaching Momentum
 
-    Br = Reflective_boundary(domain)              # Solid reflective wall
+    Br = anuga.Reflective_boundary(domain)              # Solid reflective wall
     domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
 
@@ -151,7 +149,7 @@ class Test_Culvert(unittest.TestCase):
                                                        int(width/dy),
                                                        len1=length, 
                                                        len2=width)
-        domain = Domain(points, vertices, boundary)   
+        domain = anuga.Domain(points, vertices, boundary)   
         domain.set_name('Test_culvert')                 # Output name
         domain.set_default_order(2)
 
@@ -213,15 +211,15 @@ class Test_Culvert(unittest.TestCase):
         #-----------------------------------------------------------------------
 
         # Inflow based on Flow Depth and Approaching Momentum
-        Bi = Dirichlet_boundary([0.0, 0.0, 0.0])
-        Br = Reflective_boundary(domain)              # Solid reflective wall
-        Bo = Dirichlet_boundary([-5, 0, 0])           # Outflow
+        Bi = anuga.Dirichlet_boundary([0.0, 0.0, 0.0])
+        Br = anuga.Reflective_boundary(domain)              # Solid reflective wall
+        Bo = anuga.Dirichlet_boundary([-5, 0, 0])           # Outflow
         
         # Upstream and downstream conditions that will exceed the rating curve
         # I.e produce delta_h outside the range [0, 10] specified in the the 
         # file example_rating_curve.csv
-        Btus = Time_boundary(domain, lambda t: [100*num.sin(2*pi*(t-4)/10), 0.0, 0.0])
-        Btds = Time_boundary(domain, lambda t: [-5*(num.cos(2*pi*(t-4)/20)), 0.0, 0.0])
+        Btus = anuga.Time_boundary(domain, lambda t: [100*num.sin(2*pi*(t-4)/10), 0.0, 0.0])
+        Btds = anuga.Time_boundary(domain, lambda t: [-5*(num.cos(2*pi*(t-4)/20)), 0.0, 0.0])
         domain.set_boundary({'left': Btus, 'right': Btds, 'top': Br, 'bottom': Br})
 
 
@@ -267,7 +265,7 @@ class Test_Culvert(unittest.TestCase):
                                                        int(width/dy),
                                                        len1=length, 
                                                        len2=width)
-        domain = Domain(points, vertices, boundary)   
+        domain = anuga.Domain(points, vertices, boundary)   
         domain.set_name('Test_culvert_dry') # Output name
         domain.set_default_order(2)
 
@@ -330,7 +328,7 @@ class Test_Culvert(unittest.TestCase):
 
         # Inflow based on Flow Depth and Approaching Momentum
 
-        Br = Reflective_boundary(domain)              # Solid reflective wall
+        Br = anuga.Reflective_boundary(domain)              # Solid reflective wall
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
 
@@ -387,7 +385,7 @@ class Test_Culvert(unittest.TestCase):
                                                        int(width/dy),
                                                        len1=length, 
                                                        len2=width)
-        domain = Domain(points, vertices, boundary)   
+        domain = anuga.Domain(points, vertices, boundary)   
         domain.set_name('Test_culvert_shallow') # Output name
         domain.set_default_order(2)
 
@@ -462,7 +460,7 @@ class Test_Culvert(unittest.TestCase):
 
         # Inflow based on Flow Depth and Approaching Momentum
 
-        Br = Reflective_boundary(domain)              # Solid reflective wall
+        Br = anuga.Reflective_boundary(domain)              # Solid reflective wall
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
 
@@ -524,7 +522,7 @@ class Test_Culvert(unittest.TestCase):
                                                        int(width/dy),
                                                        len1=length, 
                                                        len2=width)
-        domain = Domain(points, vertices, boundary)   
+        domain = anuga.Domain(points, vertices, boundary)   
         domain.set_name('Test_culvert_dry') # Output name
         domain.set_default_order(2)
 
@@ -593,7 +591,7 @@ class Test_Culvert(unittest.TestCase):
 
         # Inflow based on Flow Depth and Approaching Momentum
 
-        Br = Reflective_boundary(domain)              # Solid reflective wall
+        Br = anuga.Reflective_boundary(domain)              # Solid reflective wall
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
 
@@ -634,7 +632,7 @@ class Test_Culvert(unittest.TestCase):
                                                        int(width/dy),
                                                        len1=length, 
                                                        len2=width)
-        domain = Domain(points, vertices, boundary)   
+        domain = anuga.Domain(points, vertices, boundary)   
         
         domain.set_name('test_culvert')                 # Output name
         domain.set_default_order(2)
@@ -710,7 +708,7 @@ class Test_Culvert(unittest.TestCase):
                                                        int(width/dy),
                                                        len1=length, 
                                                        len2=width)
-        domain = Domain(points, vertices, boundary)   
+        domain = anuga.Domain(points, vertices, boundary)   
         domain.set_name('Test_culvert_shallow') # Output name
         domain.set_default_order(2)
 
@@ -781,7 +779,7 @@ class Test_Culvert(unittest.TestCase):
         #-----------------------------------------------------------------------
 
 
-        Br = Reflective_boundary(domain)              # Solid reflective wall
+        Br = anuga.Reflective_boundary(domain)              # Solid reflective wall
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
         #-----------------------------------------------------------------------

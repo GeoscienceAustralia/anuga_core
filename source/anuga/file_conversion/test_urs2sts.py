@@ -12,6 +12,8 @@ from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.file.sts import create_sts_boundary
 from anuga.file.csv_file import load_csv_as_dict, load_csv_as_array
 
+from anuga.shallow_water.shallow_water_domain import Domain
+
 # boundary functions
 from anuga.shallow_water.boundaries import Reflective_boundary, \
             Field_boundary, Transmissive_momentum_set_stage_boundary, \
@@ -19,6 +21,8 @@ from anuga.shallow_water.boundaries import Reflective_boundary, \
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
      import Transmissive_boundary, Dirichlet_boundary, \
             Time_boundary, File_boundary, AWI_boundary
+
+from anuga.pmesh.mesh_interface import create_mesh_from_regions
 
 from urs2sts import urs2sts
 
@@ -1315,15 +1319,6 @@ class Test_Urs2Sts(Test_Mux):
         """test_file_boundary_stsI(self):
         """
         
-        # FIXME (Ole): These tests should really move to 
-        # test_generic_boundaries.py
-        
-        from anuga.shallow_water import Domain
-        from anuga.shallow_water import Reflective_boundary
-        from anuga.shallow_water import Dirichlet_boundary
-        from anuga.shallow_water import File_boundary
-        from anuga.pmesh.mesh_interface import create_mesh_from_regions
-
         bounding_polygon=[[6.0,97.0],[6.01,97.0],[6.02,97.0],[6.02,97.02],[6.00,97.02]]
         tide = 0.37
         time_step_count = 5
@@ -1457,12 +1452,6 @@ class Test_Urs2Sts(Test_Mux):
         # Don't do warnings in unit test
         import warnings
         warnings.simplefilter('ignore')
-        
-        from anuga.shallow_water import Domain
-        from anuga.shallow_water import Reflective_boundary
-        from anuga.shallow_water import Dirichlet_boundary
-        from anuga.shallow_water import File_boundary
-        from anuga.pmesh.mesh_interface import create_mesh_from_regions
 
         bounding_polygon=[[6.0,97.0],[6.01,97.0],[6.02,97.0],
                           [6.02,97.02],[6.00,97.02]]
@@ -1604,12 +1593,6 @@ class Test_Urs2Sts(Test_Mux):
         # Don't do warnings in unit test
         import warnings
         warnings.simplefilter('ignore')
-        
-        from anuga.shallow_water import Domain
-        from anuga.shallow_water import Reflective_boundary
-        from anuga.shallow_water import Dirichlet_boundary
-        from anuga.shallow_water import File_boundary
-        from anuga.pmesh.mesh_interface import create_mesh_from_regions
 
         bounding_polygon=[[6.0,97.0],[6.01,97.0],[6.02,97.0],
                           [6.02,97.02],[6.00,97.02]]
@@ -1722,12 +1705,6 @@ class Test_Urs2Sts(Test_Mux):
          polygon passed to file_function contains the mux2 points needed (in
          the correct order).
          """
-         
-        from anuga.shallow_water import Domain
-        from anuga.shallow_water import Reflective_boundary
-        from anuga.shallow_water import Dirichlet_boundary
-        from anuga.shallow_water import File_boundary
-        from anuga.pmesh.mesh_interface import create_mesh_from_regions
 
         bounding_polygon=[[6.01,97.0],[6.02,97.0],[6.02,97.02],[6.00,97.02],[6.0,97.0]]
         tide = -2.20 
@@ -1830,11 +1807,6 @@ class Test_Urs2Sts(Test_Mux):
         """test_file_boundary_stsIII_ordering(self):
         Read correct points from ordering file and apply sts to boundary
         """
-        from anuga.shallow_water import Domain
-        from anuga.shallow_water import Reflective_boundary
-        from anuga.shallow_water import Dirichlet_boundary
-        from anuga.shallow_water import File_boundary
-        from anuga.pmesh.mesh_interface import create_mesh_from_regions
 
         lat_long_points=[[6.01,97.0],[6.02,97.0],[6.05,96.9],[6.0,97.0]]
         bounding_polygon=[[6.0,97.0],[6.01,97.0],[6.02,97.0],
@@ -1858,6 +1830,7 @@ class Test_Urs2Sts(Test_Mux):
                                            ha=ha,
                                            ua=ua,
                                            va=va)
+        # base name will not exist, but 3 other files are created
 
         # Write order file
         file_handle, order_base_name = tempfile.mkstemp("")
@@ -1885,7 +1858,7 @@ class Test_Urs2Sts(Test_Mux):
                 verbose=False)
         self.delete_mux(files)
 
-        assert(os.access(base_name, os.R_OK))
+        assert(os.access(sts_file+'.sts', os.F_OK))
 
         boundary_polygon = create_sts_boundary(base_name)
 
@@ -1978,12 +1951,10 @@ class Test_Urs2Sts(Test_Mux):
         #print domain_fbound.quantities['stage'].vertex_values
         #assert allclose(domain_drchlt.quantities['stage'].vertex_values[6], 2)        
         #assert allclose(domain_fbound.quantities['stage'].vertex_values[6], 2)
-        
-        
 
         try:
             os.remove(sts_file+'.sts')
-        except:
+        except IOError:
             # Windoze can't remove this file for some reason 
             pass
         

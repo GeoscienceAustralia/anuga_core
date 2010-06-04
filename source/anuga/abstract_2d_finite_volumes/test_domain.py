@@ -3,11 +3,11 @@
 import unittest
 from math import sqrt
 
+import anuga
+
 from anuga.abstract_2d_finite_volumes.generic_domain import *
 from anuga.pmesh.mesh_interface import create_mesh_from_regions
 from anuga.config import epsilon
-from anuga.shallow_water import Reflective_boundary
-from anuga.shallow_water import Dirichlet_boundary
 import numpy as num
 from anuga.pmesh.mesh import Segment, Vertex, Mesh
 
@@ -483,7 +483,8 @@ class Test_Domain(unittest.TestCase):
         vertices = [ [0,1,2] ]
         domain = Generic_Domain(points, vertices)
 
-        domain.set_boundary( {default_boundary_tag: Dirichlet_boundary([5,2,1])} )
+        domain.set_boundary( \
+                {default_boundary_tag: anuga.Dirichlet_boundary([5,2,1])} )
 
 
         domain.check_integrity()
@@ -523,8 +524,8 @@ class Test_Domain(unittest.TestCase):
                                       [0,0,9], [-6, 3, 3]])
 
 
-        domain.set_boundary( {'First': Dirichlet_boundary([5,2,1]),
-                              'Second': Transmissive_boundary(domain)} )
+        domain.set_boundary( {'First': anuga.Dirichlet_boundary([5,2,1]),
+                              'Second': anuga.Transmissive_boundary(domain)} )
 
         domain.update_boundary()
 
@@ -589,8 +590,8 @@ class Test_Domain(unittest.TestCase):
                                       [0,0,9], [6, -3, 3]])
 
 
-        domain.set_boundary( {'First': Dirichlet_boundary([5,2,1,4,6]),
-                              'Second': Transmissive_boundary(domain)} )
+        domain.set_boundary( {'First': anuga.Dirichlet_boundary([5,2,1,4,6]),
+                              'Second': anuga.Transmissive_boundary(domain)} )
 
         try:
             domain.update_boundary()

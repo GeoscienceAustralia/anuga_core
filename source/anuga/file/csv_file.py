@@ -241,7 +241,7 @@ def store_parameters(verbose=False, **kwargs):
 
 
 
-def csv2building_polygons(file_name,
+def load_csv_as_building_polygons(file_name,
                           floor_height=3,
                           clipping_polygons=None):
     """
@@ -286,7 +286,7 @@ def csv2building_polygons(file_name,
 ##
 # @brief Convert CSV file into a dictionary of polygons and associated values.
 # @param filename The path to the file to read, value_name name for the 4th column
-def csv2polygons(file_name,
+def load_csv_as_polygons(file_name,
                  value_name='value',
                  clipping_polygons=None):
     """

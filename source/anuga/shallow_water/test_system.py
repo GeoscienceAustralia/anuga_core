@@ -8,9 +8,7 @@ import os
 from Scientific.IO.NetCDF import NetCDFFile
 import numpy as num
 
-from anuga.shallow_water import Domain
-from anuga.shallow_water import Dirichlet_boundary, Time_boundary
-from anuga.shallow_water import File_boundary
+import anuga
 from anuga.pmesh.mesh import Mesh
 from anuga.abstract_2d_finite_volumes.pmesh2domain import \
                 pmesh_to_domain_instance
@@ -46,7 +44,7 @@ class Test_system(unittest.TestCase):
         mesh.add_region_from_polygon([[0,0], [100,0], [100,100], [0,100]])
         mesh.generate_mesh(verbose=False)
         
-        domain = pmesh_to_domain_instance(mesh, Domain)
+        domain = pmesh_to_domain_instance(mesh, anuga.Domain)
         domain.set_name(boundary_name)                 
         domain.set_datadir(dir)          
         domain.set_starttime(boundary_starttime)
@@ -56,8 +54,8 @@ class Test_system(unittest.TestCase):
         domain.set_quantity('stage', tide)         
 
         # Setup boundary conditions
-        Bd = Dirichlet_boundary([tide,0.,0.]) # Constant boundary values
-        Bd = Time_boundary(domain=domain,     # Time dependent boundary  
+        Bd = anuga.Dirichlet_boundary([tide,0.,0.]) # Constant boundary values
+        Bd = anuga.Time_boundary(domain=domain,     # Time dependent boundary  
                    f=lambda t: [t, 0.0, 0.0])
         domain.set_boundary({'exterior': Bd})
         for t in domain.evolve(yieldstep = 10, finaltime = 20.0):
@@ -95,14 +93,14 @@ class Test_system(unittest.TestCase):
         mesh.add_region_from_polygon([[0,0], [100,0], [100,100], [0,100]])
         mesh.generate_mesh(verbose=False)
         
-        domain = pmesh_to_domain_instance(mesh, Domain) 
+        domain = pmesh_to_domain_instance(mesh, anuga.Domain) 
         domain.set_name(senario_name)                 
         domain.set_datadir(dir) 
 
         # Setup initial conditions
         domain.set_quantity('elevation', 0.0) 
         domain.set_quantity('stage', 0.0)         
-        Bf = File_boundary(boundary_filename,
+        Bf = anuga.File_boundary(boundary_filename,
                            domain,  use_cache=False, verbose=False)
 
         # Setup boundary conditions
@@ -145,7 +143,7 @@ class Test_system(unittest.TestCase):
         mesh.add_region_from_polygon([[10,10], [90,10], [90,90], [10,90]])
         mesh.generate_mesh(verbose=False)
         
-        domain = pmesh_to_domain_instance(mesh, Domain) 
+        domain = pmesh_to_domain_instance(mesh, anuga.Domain) 
         domain.set_name(senario_name)                 
         domain.set_datadir(dir)
         new_starttime = 510.
@@ -154,7 +152,7 @@ class Test_system(unittest.TestCase):
         # Setup initial conditions
         domain.set_quantity('elevation', 0.0) 
         domain.set_quantity('stage', 0.0)         
-        Bf = File_boundary(boundary_filename,
+        Bf = anuga.File_boundary(boundary_filename,
                            domain,  use_cache=False, verbose=False)
 
         # Setup boundary conditions

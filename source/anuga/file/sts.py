@@ -1,10 +1,13 @@
 import numpy as num
+import log
+from Scientific.IO.NetCDF import NetCDFFile
+
 from anuga.config import max_float
 from anuga.config import netcdf_float, netcdf_float32, netcdf_int
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.coordinate_transforms.geo_reference import Geo_reference, \
      ensure_geo_reference
-
+from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 
 class Write_sts:
     """ A class to write STS files.
@@ -267,7 +270,7 @@ class Write_sts:
 # @brief Create a list of points defining a boundary from an STS file.
 # @param stsname Stem of path to the STS file to read.
 # @return A list of boundary points.
-def create_sts_boundary(stsname):
+def create_sts_boundary(sts_filename):
     """Create a list of points defining a boundary from an STS file.
 
     Create boundary segments from .sts file. Points can be stored in
@@ -279,10 +282,15 @@ def create_sts_boundary(stsname):
     But boundary is produced in absolute coordinates
     """
 
+    if sts_filename.endswith('.sts'):
+        stsname_postfixed = sts_filename
+    else:
+        stsname_postfixed = sts_filename + '.sts'
+
     try:
-        fid = NetCDFFile(stsname + '.sts', netcdf_mode_r)
-    except:
-        msg = 'Cannot open %s' % stsname + '.sts'
+        fid = NetCDFFile(stsname_postfixed, netcdf_mode_r)
+    except IOError:
+        msg = 'Cannot open %s' % stsname_postfixed
         raise IOError(msg)
 
     xllcorner = fid.xllcorner[0]

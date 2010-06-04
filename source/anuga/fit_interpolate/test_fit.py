@@ -18,7 +18,7 @@ from anuga.utilities.sparse import Sparse, Sparse_CSR
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.geospatial_data.geospatial_data import Geospatial_data
-from anuga.shallow_water import Domain
+from anuga.shallow_water.shallow_water_domain import Domain
 
 import numpy as num
 

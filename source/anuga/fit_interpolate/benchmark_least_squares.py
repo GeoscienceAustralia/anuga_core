@@ -27,7 +27,7 @@ from anuga.fit_interpolate.interpolate import Interpolate
 from anuga.fit_interpolate.fit import Fit
 from anuga.pmesh.mesh import Mesh
 from anuga.geospatial_data.geospatial_data import Geospatial_data
-from anuga.shallow_water import Domain
+from anuga.shallow_water.shallow_water_domain import Domain
 from anuga.fit_interpolate.fit import Fit, fit_to_mesh
 from anuga.fit_interpolate.interpolate import benchmark_interpolate
 from anuga.coordinate_transforms.geo_reference import Geo_reference

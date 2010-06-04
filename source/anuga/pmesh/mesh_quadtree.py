@@ -10,8 +10,9 @@ import time
 from anuga.utilities.numerical_tools import get_machine_precision
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.config import max_float
-from quad import Cell
-from aabb import AABB
+
+from anuga.geometry.quad import Cell
+from anuga.geometry.aabb import AABB
 
 from anuga.utilities import compile
 if compile.can_use_C_extension('polygon_ext.c'):

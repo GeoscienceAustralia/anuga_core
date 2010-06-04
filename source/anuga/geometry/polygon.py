@@ -6,7 +6,8 @@ import numpy as num
 
 from math import sqrt
 from anuga.utilities.numerical_tools import ensure_numeric
-from anuga.geospatial_data.geospatial_data import ensure_absolute, Geospatial_data
+from anuga.geospatial_data.geospatial_data import ensure_absolute, \
+                                                    Geospatial_data
 from anuga.config import netcdf_float
 import anuga.utilities.log as log
 
@@ -68,24 +69,26 @@ def lines_error(p1, p2, p3, p4):
     raise RuntimeError, ('INTERNAL ERROR: p1=%s, p2=%s, p3=%s, p4=%s'
                          % (str(p1), str(p2), str(p3), str(p4)))
 
-#                     0s1    0e1    1s0    1e0   # line 0 starts on 1, 0 ends 1, 1 starts 0, 1 ends 0
-collinear_result = { (False, False, False, False): lines_dont_coincide,
-                     (False, False, False, True ): lines_error,
-                     (False, False, True,  False): lines_error,
-                     (False, False, True,  True ): lines_1_fully_included_in_0,
-                     (False, True,  False, False): lines_error,
-                     (False, True,  False, True ): lines_overlap_opposite_direction2,
-                     (False, True,  True,  False): lines_overlap_same_direction2,
-                     (False, True,  True,  True ): lines_1_fully_included_in_0,
-                     (True,  False, False, False): lines_error,
-                     (True,  False, False, True ): lines_overlap_same_direction,
-                     (True,  False, True,  False): lines_overlap_opposite_direction,
-                     (True,  False, True,  True ): lines_1_fully_included_in_0,
-                     (True,  True,  False, False): lines_0_fully_included_in_1,
-                     (True,  True,  False, True ): lines_0_fully_included_in_1,
-                     (True,  True,  True,  False): lines_0_fully_included_in_1,
-                     (True,  True,  True,  True ): lines_0_fully_included_in_1
-                   }
+collinear_result = {
+# line 0 starts on 1, 0 ends 1, 1 starts 0, 1 ends 0
+#       0s1    0e1    1s0    1e0   
+       (False, False, False, False): lines_dont_coincide,
+       (False, False, False, True ): lines_error,
+       (False, False, True,  False): lines_error,
+       (False, False, True,  True ): lines_1_fully_included_in_0,
+       (False, True,  False, False): lines_error,
+       (False, True,  False, True ): lines_overlap_opposite_direction2,
+       (False, True,  True,  False): lines_overlap_same_direction2,
+       (False, True,  True,  True ): lines_1_fully_included_in_0,
+       (True,  False, False, False): lines_error,
+       (True,  False, False, True ): lines_overlap_same_direction,
+       (True,  False, True,  False): lines_overlap_opposite_direction,
+       (True,  False, True,  True ): lines_1_fully_included_in_0,
+       (True,  True,  False, False): lines_0_fully_included_in_1,
+       (True,  True,  False, True ): lines_0_fully_included_in_1,
+       (True,  True,  True,  False): lines_0_fully_included_in_1,
+       (True,  True,  True,  True ): lines_0_fully_included_in_1
+   }
 
 ##
 # @brief Finds intersection point of two line segments.
@@ -274,10 +277,10 @@ def is_inside_triangle(point, triangle,
     # obsolete by the C extension.
     
     # Quickly reject points that are clearly outside
-    if point[0] < min(triangle[:,0]): return False 
-    if point[0] > max(triangle[:,0]): return False    
-    if point[1] < min(triangle[:,1]): return False
-    if point[1] > max(triangle[:,1]): return False        
+    if point[0] < min(triangle[:, 0]): return False 
+    if point[0] > max(triangle[:, 0]): return False    
+    if point[1] < min(triangle[:, 1]): return False
+    if point[1] > max(triangle[:, 1]): return False        
 
 
     # Start search    
@@ -366,9 +369,11 @@ def is_complex(polygon, verbose=False):
             if not segments_joined(leftmost, l_x[cmp]):
                 (type, point) = intersection(leftmost, l_x[cmp])
                 comparisons += 1
-                if type != 0 and type != 4 or (type == 2 and list(point[0]) != list(point[1])):
+                if type != 0 and type != 4 or (type == 2 and list(point[0]) !=\
+                                                list(point[1])):
                     if verbose:
-                        print 'Self-intersecting polygon found, type ', type, ' point', point,
+                        print 'Self-intersecting polygon found, type ', type
+                        print 'point', point,
                         print 'vertices: ', leftmost, ' - ', l_x[cmp]                
                     return True            
             cmp += 1
@@ -585,18 +590,12 @@ def in_and_outside_polygon(points, polygon, closed=True, verbose=False):
     # the polygon
     if count == len(indices):
         # No points are outside
-        return indices[:count],[]
+        return indices[:count], []
     else:
         return  indices[:count], indices[count:][::-1]  #return reversed
 
-##
-# @brief Sort a list of points into contiguous points inside+outside a polygon.
-# @param points A set of points (tuple, list or array).
-# @param polygon A set of points defining a polygon (tuple, list or array).
-# @param closed True if points on boundary are considered 'inside' polygon.
-# @param verbose True if this function is to be verbose.
-# @return (indices, count) where indices are point indices and count is the 
-#          delimiter index between point inside (on left) and others.
+
+
 def separate_points_by_polygon(points, polygon,
                                closed=True, 
                                check_input=True,
@@ -643,8 +642,10 @@ def separate_points_by_polygon(points, polygon,
 
     if check_input:
         #Input checks
-        assert isinstance(closed, bool), 'Keyword argument "closed" must be boolean'
-        assert isinstance(verbose, bool), 'Keyword argument "verbose" must be boolean'
+        assert isinstance(closed, bool), \
+                    'Keyword argument "closed" must be boolean'
+        assert isinstance(verbose, bool), \
+                    'Keyword argument "verbose" must be boolean'
 
         try:
             points = ensure_numeric(points, num.float)
@@ -736,15 +737,7 @@ def polygon_area(input_polygon):
 
     return abs(poly_area/2)
 
-##
-# @brief Plot a set of polygons.
-# @param polygons_points List of polygons to plot.
-# @param style List of styles for each polygon.
-# @param figname Name to save figure to.
-# @param label Title for the plot.
-# @param verbose True if this function is to be verbose.
-# @return A list of min/max x and y values [minx, maxx, miny, maxy].
-# @note A style value is 'line' for polygons, 'outside' for points outside.
+
 def plot_polygons(polygons_points,
                   style=None,
                   figname=None,
@@ -817,9 +810,9 @@ def plot_polygons(polygons_points,
             if s == 'line': colour.append('b-')
             if s == 'outside': colour.append('r.')
             if s == 'point': colour.append('g.')
-            if s <> 'line':
-                if s <> 'outside':
-                    if s <> 'point':
+            if s != 'line':
+                if s != 'outside':
+                    if s != 'point':
                         colour.append(s)
 
     for i, item in enumerate(polygons_points):
@@ -835,16 +828,6 @@ def plot_polygons(polygons_points,
         ylabel('y')
         title(label)
 
-    #raw_input('wait 1')
-    #FIXME(Ole): This makes for some strange scalings sometimes.
-    #if minx <> 0:
-    #    axis([minx*0.9,maxx*1.1,miny*0.9,maxy*1.1])
-    #else:
-    #    if miny == 0:
-    #        axis([-maxx*.01,maxx*1.1,-maxy*0.01,maxy*1.1])
-    #    else:
-    #        axis([-maxx*.01,maxx*1.1,miny*0.9,maxy*1.1])
-
     if figname is not None:
         savefig(figname)
     else:
@@ -855,15 +838,14 @@ def plot_polygons(polygons_points,
     vec = [minx, maxx, miny, maxy]
     return vec
 
-##
-# @brief 
-# @param polygon A set of points defining a polygon.
-# @param verbose True if this function is to be verbose.
-# @return A tuple (x, y) of X and Y coordinates of the polygon.
-# @note We duplicate the first point so can have closed polygon in plot.
+
 def poly_xy(polygon, verbose=False):
     """ this is used within plot_polygons so need to duplicate
         the first point so can have closed polygon in plot
+        # @param polygon A set of points defining a polygon.
+        # @param verbose True if this function is to be verbose.
+        # @return A tuple (x, y) of X and Y coordinates of the polygon.
+        # @note We duplicate the first point so can have closed polygon in plot.
     """
 
     try:
@@ -883,11 +865,6 @@ def poly_xy(polygon, verbose=False):
     return x, y
 
 
-##
-# @brief Define a class that defines a callable object for a polygon.
-# @note Object created is function: f: x,y -> z
-#       where x, y and z are vectors and z depends on whether x,y belongs
-#       to specified polygons.
 class Polygon_function:
     """Create callable object f: x,y -> z, where a,y,z are vectors and
     where f will return different values depending on whether x,y belongs
@@ -922,12 +899,14 @@ class Polygon_function:
     FIXME: This should really work with geo_spatial point sets.
     """
 
-    ##
-    # @brief Create instance of a polygon function.
-    # @param regions A list of (x,y) tuples defining a polygon.
-    # @param default Value or function returning value for points outside poly.
-    # @param geo_reference ??
     def __init__(self, regions, default=0.0, geo_reference=None):
+        """
+        # @brief Create instance of a polygon function.
+        # @param regions A list of (x,y) tuples defining a polygon.
+        # @param default Value or function returning value for points outside poly.
+        # @param geo_reference ??
+        """
+
         try:
             len(regions)
         except:
@@ -966,11 +945,12 @@ class Polygon_function:
             P = geo_reference.change_points_geo_ref(polygon)
             self.regions.append((P, value))
 
-    ##
-    # @brief Implement the 'callable' property of Polygon_function.
-    # @param x List of x coordinates of points ot interest.
-    # @param y List of y coordinates of points ot interest.
     def __call__(self, x, y):
+        """
+        # @brief Implement the 'callable' property of Polygon_function.
+        # @param x List of x coordinates of points ot interest.
+        # @param y List of y coordinates of points ot interest.
+        """
         x = num.array(x, num.float)
         y = num.array(y, num.float)
 
@@ -1013,13 +993,13 @@ class Polygon_function:
 # Functions to read and write polygon information
 ################################################################################
 
-##
-# @brief Read polygon data from a file.
+def read_polygon(filename, delimiter=','):
+    """Read points assumed to form a polygon.
+
 # @param filename Path to file containing polygon data.
 # @param delimiter Delimiter to split polygon data with.
 # @return A list of point data from the polygon file.
-def read_polygon(filename, delimiter=','):
-    """Read points assumed to form a polygon.
+
 
     There must be exactly two numbers in each line separated by the delimiter.
     No header.
@@ -1035,9 +1015,10 @@ def read_polygon(filename, delimiter=','):
     
     # check this is a valid polygon. 
     if is_complex(polygon, verbose=True):    
-        msg = 'ERROR: Self-intersecting polygon detected in file ' + filename +'. '
-        msg += 'A complex polygon will not necessarily break the algorithms within ANUGA, '
-        msg += 'but it usually signifies pathological data. Please fix this file.'
+        msg = 'ERROR: Self-intersecting polygon detected in file '
+        msg += filename +'. A complex polygon will not '
+        msg += 'necessarily break the algorithms within ANUGA, but it'
+        msg += 'usually signifies pathological data. Please fix this file.'
         raise Exception, msg
     
     return polygon
@@ -1068,14 +1049,7 @@ def read_tagged_polygons(filename):
     """
     pass
 
-##
-# @brief Populate given polygon with uniformly distributed points.
-# @param polygon Polygon to uniformly fill.
-# @param number_of_points Number of points required in polygon.
-# @param seed Seed for random number generator.
-# @param exclude List of polygons inside main where points should be excluded.
-# @return List of random points inside input polygon.
-# @note Delimiter is assumed to be a comma.
+
 def populate_polygon(polygon, number_of_points, seed=None, exclude=None):
     """Populate given polygon with uniformly distributed points.
 
@@ -1130,11 +1104,7 @@ def populate_polygon(polygon, number_of_points, seed=None, exclude=None):
 
     return points
 
-##
-# @brief Get a point inside a polygon that is close to an edge.
-# @param polygon List  of vertices of polygon.
-# @param delta Maximum distance from an edge is delta * sqrt(2).
-# @return A point that is inside polgon and close to the polygon edge.
+
 def point_in_polygon(polygon, delta=1e-8):
     """Return a point inside a given polygon which will be close to the
     polygon edge.
@@ -1185,12 +1155,7 @@ def point_in_polygon(polygon, delta=1e-8):
 
     return point
 
-##
-# @brief Calculate approximate number of triangles inside a bounding polygon.
-# @param interior_regions 
-# @param bounding_poly 
-# @param remainder_res 
-# @return The number of triangles.
+
 def number_mesh_triangles(interior_regions, bounding_poly, remainder_res):
     """Calculate the approximate number of triangles inside the
     bounding polygon and the other interior regions
@@ -1246,16 +1211,17 @@ def number_mesh_triangles(interior_regions, bounding_poly, remainder_res):
 
     return int(total_number_of_triangles)
 
-##
-# @brief Reduce number of points in polygon by the specified factor.
-# @param polygon The polygon to reduce.
-# @param factor The factor to reduce polygon points by (default 10).
-# @return The reduced polygon points list.
-# @note The extrema of both axes are preserved.
+
 def decimate_polygon(polygon, factor=10):
     """Reduce number of points in polygon by the specified
     factor (default=10, hence the name of the function) such that
     the extrema in both axes are preserved.
+
+##
+# @brief Reduce number of points in polygon by the specified factor.
+# @param polygon The polygon to reduce.
+# @param factor The factor to reduce polygon points by (default 10).
+# @note The extrema of both axes are preserved.
 
     Return reduced polygon
     """
@@ -1284,13 +1250,7 @@ def decimate_polygon(polygon, factor=10):
 
     return reduced_polygon
 
-##
-# @brief Interpolate linearly from polyline nodes to midpoints of triangles.
-# @param data The data on the polyline nodes.
-# @param polyline_nodes ??
-# @param gauge_neighbour_id ??  FIXME(Ole): I want to get rid of this
-# @param point_coordinates ??
-# @param verbose True if this function is to be verbose.
+
 def interpolate_polyline(data,
                          polyline_nodes,
                          gauge_neighbour_id,
@@ -1369,56 +1329,6 @@ def polylist2points_verts(polylist):
         offset += len(poly)
 		
     return points, vertices
-##
-# @brief 
-# @param data 
-# @param polyline_nodes 
-# @param gauge_neighbour_id 
-# @param interpolation_points 
-# @param interpolated_values 
-# @param rtol 
-# @param atol 
-# @return 
-# @note OBSOLETED BY C-EXTENSION
-def _interpolate_polyline(data,
-                          polyline_nodes,
-                          gauge_neighbour_id,
-                          interpolation_points,
-                          interpolated_values,
-                          rtol=1.0e-6,
-                          atol=1.0e-8):
-    """Auxiliary function used by interpolate_polyline
-
-    NOTE: OBSOLETED BY C-EXTENSION
-    """
-
-    number_of_nodes = len(polyline_nodes)
-    number_of_points = len(interpolation_points)
-
-    for j in range(number_of_nodes):
-        neighbour_id = gauge_neighbour_id[j]
-
-        # FIXME(Ole): I am convinced that gauge_neighbour_id can be discarded,
-        #             but need to check with John J.
-        # Keep it for now (17 Jan 2009)
-        # When gone, we can simply interpolate between neighbouring nodes,
-        # i.e. neighbour_id = j+1.
-        # and the test below becomes something like: if j < number_of_nodes...
-
-        if neighbour_id >= 0:
-            x0, y0 = polyline_nodes[j,:]
-            x1, y1 = polyline_nodes[neighbour_id,:]
-
-            segment_len = sqrt((x1-x0)**2 + (y1-y0)**2)
-            segment_delta = data[neighbour_id] - data[j]
-            slope = segment_delta/segment_len
-
-            for i in range(number_of_points):
-                x, y = interpolation_points[i,:]
-                if point_on_line([x, y], [[x0, y0], [x1, y1]],
-                                 rtol=rtol, atol=atol):
-                    dist = sqrt((x-x0)**2 + (y-y0)**2)
-                    interpolated_values[i] = slope*dist + data[j]
 
 
 ################################################################################

@@ -693,7 +693,196 @@ class Test_sww_Interrogate(unittest.TestCase):
         except:
             pass
             #FIXME(Ole): Windows won't allow removal of this
-        
+
+
+    def test_get_maximum_inundation_from_sww(self):
+        """test_get_maximum_inundation_from_sww(self)
+
+        Test of get_maximum_inundation_elevation()
+        and get_maximum_inundation_location().
+   
+        This is based on test_get_maximum_inundation_3(self) but works with the
+        stored results instead of with the internal data structure.
+
+        This test uses the underlying get_maximum_inundation_data for tests
+        """
+
+        initial_runup_height = -0.4
+        final_runup_height = -0.3
+
+        #--------------------------------------------------------------
+        # Setup computational domain
+        #--------------------------------------------------------------
+        N = 10
+        points, vertices, boundary = rectangular_cross(N, N)
+        domain = Domain(points, vertices, boundary)
+        domain.set_name('runup_test')
+        domain.set_maximum_allowed_speed(1.0)
+
+        # FIXME: This works better with old limiters so far
+        domain.tight_slope_limiters = 0
+
+        #--------------------------------------------------------------
+        # Setup initial conditions
+        #--------------------------------------------------------------
+        def topography(x, y):
+            return -x/2                             # linear bed slope
+
+        # Use function for elevation
+        domain.set_quantity('elevation', topography)
+        domain.set_quantity('friction', 0.)                # Zero friction
+        # Constant negative initial stage
+        domain.set_quantity('stage', initial_runup_height)
+
+        #--------------------------------------------------------------
+        # Setup boundary conditions
+        #--------------------------------------------------------------
+        Br = Reflective_boundary(domain)                       # Reflective wall
+        Bd = Dirichlet_boundary([final_runup_height, 0, 0])    # Constant inflow
+
+        # All reflective to begin with (still water)
+        domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
+
+        #--------------------------------------------------------------
+        # Test initial inundation height
+        #--------------------------------------------------------------
+        indices = domain.get_wet_elements()
+        z = domain.get_quantity('elevation').\
+                get_values(location='centroids', indices=indices)
+        assert num.alltrue(z < initial_runup_height)
+
+        q_ref = domain.get_maximum_inundation_elevation()
+        # First order accuracy
+        assert num.allclose(q_ref, initial_runup_height, rtol=1.0/N)
+
+        #--------------------------------------------------------------
+        # Let triangles adjust
+        #--------------------------------------------------------------
+        for t in domain.evolve(yieldstep = 0.1, finaltime = 1.0):
+            pass
+
+        #--------------------------------------------------------------
+        # Test inundation height again
+        #--------------------------------------------------------------
+        q_ref = domain.get_maximum_inundation_elevation()
+        q = get_maximum_inundation_elevation('runup_test.sww')
+        msg = 'We got %f, should have been %f' % (q, q_ref)
+        assert num.allclose(q, q_ref, rtol=1.0/N), msg
+
+        q = get_maximum_inundation_elevation('runup_test.sww')
+        msg = 'We got %f, should have been %f' % (q, initial_runup_height)
+        assert num.allclose(q, initial_runup_height, rtol = 1.0/N), msg
+
+        # Test error condition if time interval is out
+        try:
+            q = get_maximum_inundation_elevation('runup_test.sww',
+                                                 time_interval=[2.0, 3.0])
+        except ValueError:
+            pass
+        else:
+            msg = 'should have caught wrong time interval'
+            raise Exception, msg
+
+        # Check correct time interval
+        q, loc = get_maximum_inundation_data('runup_test.sww',
+                                             time_interval=[0.0, 3.0])
+        msg = 'We got %f, should have been %f' % (q, initial_runup_height)
+        assert num.allclose(q, initial_runup_height, rtol = 1.0/N), msg
+        assert num.allclose(-loc[0]/2, q)    # From topography formula
+
+        #--------------------------------------------------------------
+        # Update boundary to allow inflow
+        #--------------------------------------------------------------
+        domain.set_boundary({'right': Bd})
+
+        #--------------------------------------------------------------
+        # Evolve system through time
+        #--------------------------------------------------------------
+        q_max = None
+        for t in domain.evolve(yieldstep = 0.1, finaltime = 3.0,
+                               skip_initial_step = True):
+            q = domain.get_maximum_inundation_elevation()
+            if q > q_max:
+                q_max = q
+
+        #--------------------------------------------------------------
+        # Test inundation height again
+        #--------------------------------------------------------------
+        indices = domain.get_wet_elements()
+        z = domain.get_quantity('elevation').\
+                get_values(location='centroids', indices=indices)
+
+        assert num.alltrue(z < final_runup_height)
+
+        q = domain.get_maximum_inundation_elevation()
+        # First order accuracy
+        assert num.allclose(q, final_runup_height, rtol=1.0/N)
+
+        q, loc = get_maximum_inundation_data('runup_test.sww',
+                                             time_interval=[3.0, 3.0])
+        msg = 'We got %f, should have been %f' % (q, final_runup_height)
+        assert num.allclose(q, final_runup_height, rtol=1.0/N), msg
+        assert num.allclose(-loc[0]/2, q)    # From topography formula
+
+        q = get_maximum_inundation_elevation('runup_test.sww')
+        loc = get_maximum_inundation_location('runup_test.sww')
+        msg = 'We got %f, should have been %f' % (q, q_max)
+        assert num.allclose(q, q_max, rtol=1.0/N), msg
+        assert num.allclose(-loc[0]/2, q)    # From topography formula
+
+        q = get_maximum_inundation_elevation('runup_test.sww',
+                                             time_interval=[0, 3])
+        msg = 'We got %f, should have been %f' % (q, q_max)
+        assert num.allclose(q, q_max, rtol=1.0/N), msg
+
+        # Check polygon mode
+        # Runup region
+        polygon = [[0.3, 0.0], [0.9, 0.0], [0.9, 1.0], [0.3, 1.0]]
+        q = get_maximum_inundation_elevation('runup_test.sww',
+                                             polygon = polygon,
+                                             time_interval=[0, 3])
+        msg = 'We got %f, should have been %f' % (q, q_max)
+        assert num.allclose(q, q_max, rtol=1.0/N), msg
+
+        # Offshore region
+        polygon = [[0.9, 0.0], [1.0, 0.0], [1.0, 1.0], [0.9, 1.0]]
+        q, loc = get_maximum_inundation_data('runup_test.sww',
+                                             polygon = polygon,
+                                             time_interval=[0, 3])
+        msg = 'We got %f, should have been %f' % (q, -0.475)
+        assert num.allclose(q, -0.475, rtol=1.0/N), msg
+        assert is_inside_polygon(loc, polygon)
+        assert num.allclose(-loc[0]/2, q)    # From topography formula
+
+        # Dry region
+        polygon = [[0.0, 0.0], [0.4, 0.0], [0.4, 1.0], [0.0, 1.0]]
+        q, loc = get_maximum_inundation_data('runup_test.sww',
+                                             polygon = polygon,
+                                             time_interval=[0, 3])
+        msg = 'We got %s, should have been None' % (q)
+        assert q is None, msg
+        msg = 'We got %s, should have been None' % (loc)
+        assert loc is None, msg
+
+        # Check what happens if no time point is within interval
+        try:
+            q = get_maximum_inundation_elevation('runup_test.sww',
+                                                 time_interval=[2.75, 2.75])
+        except AssertionError:
+            pass
+        else:
+            msg = 'Time interval should have raised an exception'
+            raise Exception, msg
+
+        # Cleanup
+        try:
+            os.remove(domain.get_name() + '.sww')
+        except:
+            pass
+            #FIXME(Ole): Windows won't allow removal of this
+
+ 
+ 
  
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_sww_Interrogate, 'test')

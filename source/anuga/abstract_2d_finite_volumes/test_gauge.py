@@ -6,6 +6,7 @@ from math import sqrt, pi
 import tempfile, os
 from os import access, F_OK,sep, removedirs,remove,mkdir,getcwd
 
+import anuga
 #from anuga.abstract_2d_finite_volumes.util import *
 from anuga.abstract_2d_finite_volumes.gauge import *
 from anuga.config import epsilon
@@ -15,11 +16,11 @@ from anuga.utilities.numerical_tools import NAN,mean
 from sys import platform 
 
 from anuga.pmesh.mesh import Mesh
-from anuga.shallow_water import Domain, Transmissive_boundary
+
 from anuga.file.sww import SWW_file
 from anuga.file_conversion.file_conversion import timefile2netcdf
 from anuga.utilities.file_utils import del_dir
-from csv import reader,writer
+from csv import reader, writer
 import time
 import string
 
@@ -46,7 +47,7 @@ class Test_Gauge(unittest.TestCase):
         m.export_mesh_file(mesh_file)
         
         # Create shallow water domain
-        domain = Domain(mesh_file)
+        domain = anuga.Domain(mesh_file)
         os.remove(mesh_file)
  
         domain.default_order = 2
@@ -63,7 +64,7 @@ class Test_Gauge(unittest.TestCase):
 
         ######################
         # Boundary conditions
-        B = Transmissive_boundary(domain)
+        B = anuga.Transmissive_boundary(domain)
         domain.set_boundary( {'exterior': B})
 
         # This call mangles the stage values.
@@ -160,7 +161,6 @@ point2, 0.5, 2.0, 9.0\n")
 
     def test_sww2csv_gauges1(self):
         from anuga.pmesh.mesh import Mesh
-        from anuga.shallow_water import Domain, Transmissive_boundary
         from csv import reader,writer
         import time
         import string
@@ -303,7 +303,6 @@ point2, 0.5, 2.0, 9.0\n")
        
     def test_sww2csv_gauge_point_off_mesh(self):
         from anuga.pmesh.mesh import Mesh
-        from anuga.shallow_water import Domain, Transmissive_boundary
         from csv import reader,writer
         import time
         import string

@@ -15,7 +15,7 @@ def load_pts_as_polygon(points_file, minimum_triangle_angle=3.0):
     """
 
     from anuga.pmesh.mesh import Mesh, importMeshFromFile
-    from anuga.shallow_water import Domain
+    from anuga.shallow_water.shallow_water_domain import Domain
     from anuga.pmesh.mesh_interface import create_mesh_from_regions
 
     mesh = importMeshFromFile(points_file)

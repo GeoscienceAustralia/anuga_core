@@ -8,12 +8,12 @@ import csv
 import numpy as num
 import shutil
 
-##
-# @brief Convert a possible filename into a standard form.
-# @param s Filename to process.
-# @return The new filename string.
 def make_filename(s):
-    """Transform argument string into a Sexsuitable filename
+    """Transform argument string into a standard filename
+    
+        Convert a possible filename into a standard form.
+        s Filename to process.
+        The new filename string.
     """
 
     s = s.strip()
@@ -25,11 +25,6 @@ def make_filename(s):
     return s
 
 
-##
-# @brief Check that a specified filesystem directory path exists.
-# @param path The dirstory path to check.
-# @param verbose True if this function is to be verbose.
-# @note If directory path doesn't exist, it will be created.
 def check_dir(path, verbose=None):
     """Check that specified path exists.
     If path does not exist it will be created if possible

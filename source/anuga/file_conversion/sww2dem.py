@@ -1,3 +1,7 @@
+"""
+    Module to convert SWW to DEM files.
+"""
+
 # external modules
 import numpy as num
 
@@ -416,26 +420,6 @@ def sww2dem(basename_in, basename_out=None,
 
 
 
-
-##
-# @brief 
-# @param basename_in 
-# @param extra_name_out 
-# @param quantities 
-# @param timestep 
-# @param reduction 
-# @param cellsize 
-# @param number_of_decimal_places 
-# @param NODATA_value 
-# @param easting_min 
-# @param easting_max 
-# @param northing_min 
-# @param northing_max 
-# @param verbose 
-# @param origin 
-# @param datum 
-# @param format 
-# @return 
 def sww2dem_batch(basename_in, extra_name_out=None,
                 quantities=None, # defaults to elevation
                 reduction=None,

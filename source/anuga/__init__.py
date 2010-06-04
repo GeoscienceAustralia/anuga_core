@@ -21,20 +21,22 @@ sys.path += __path__
 # Make selected classes available directly
 #-----------------------------------------------------
 
-from anuga.shallow_water import Domain
+from anuga.shallow_water.shallow_water_domain import Domain
 
 from anuga.abstract_2d_finite_volumes.util import file_function
 
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
 
-from anuga.file.csv_file import csv2building_polygons
+from anuga.file.csv_file import load_csv_as_building_polygons,  \
+                                load_csv_as_polygons
 
 from anuga.file.sts import create_sts_boundary
 
 from anuga.geometry.polygon import read_polygon, plot_polygons, polygon_area
 from anuga.geometry.polygon import Polygon_function
 
-from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_to_domain_instance
+from anuga.abstract_2d_finite_volumes.pmesh2domain import \
+                                            pmesh_to_domain_instance
 
 
 #-----------------------------
@@ -218,7 +220,7 @@ def _create_domain_from_regions(bounding_polygon,
     See create_domain_from_regions for documentation.
     """
 
-    from anuga.shallow_water import Domain
+    from anuga.shallow_water.shallow_water_domain import Domain
     from anuga.pmesh.mesh_interface import create_mesh_from_regions
     
     create_mesh_from_regions(bounding_polygon,

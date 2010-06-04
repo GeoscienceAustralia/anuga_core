@@ -510,18 +510,11 @@ class Domain(Generic_Domain):
                    get_maximum_location(indices=wet_elements)
 
 
-
-    ##
-    # @brief Get the total flow through an arbitrary poly line.
-    # @param polyline Representation of desired cross section.
-    # @param verbose True if this method is to be verbose.
-    # @note 'polyline' may contain multiple sections allowing complex shapes.
-    # @note Assume absolute UTM coordinates.
     def get_flow_through_cross_section(self, polyline, verbose=False):
         """Get the total flow through an arbitrary poly line.
 
         This is a run-time equivalent of the function with same name
-        in data_manager.py
+        in sww_interrogate.py
 
         Input:
             polyline: Representation of desired cross section - it may contain
@@ -539,15 +532,6 @@ class Domain(Generic_Domain):
         return cross_section.get_flow_through_cross_section()
 
 
-
-
-    ##
-    # @brief 
-    # @param polyline Representation of desired cross section.
-    # @param kind Select energy type to compute ('specific' or 'total').
-    # @param verbose True if this method is to be verbose.
-    # @note 'polyline' may contain multiple sections allowing complex shapes.
-    # @note Assume absolute UTM coordinates.
     def get_energy_through_cross_section(self, polyline,
                                          kind='total',
                                          verbose=False):

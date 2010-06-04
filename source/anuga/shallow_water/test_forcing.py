@@ -2,7 +2,7 @@
 """
 
 import unittest, os
-from anuga.shallow_water import Domain
+from anuga.shallow_water.shallow_water_domain import Domain
 from boundaries import Reflective_boundary
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.file_conversion.file_conversion import timefile2netcdf

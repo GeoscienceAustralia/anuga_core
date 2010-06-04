@@ -1,6 +1,9 @@
 """ Load a DEM file, decimate it, and resave it.
 """
 
+import numpy as num
+
+from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_float
 
 def dem2dem(basename_in, stencil, cellsize_new, basename_out=None,
                  verbose=False):

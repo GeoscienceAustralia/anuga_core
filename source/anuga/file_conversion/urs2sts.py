@@ -1,4 +1,5 @@
 import numpy as num
+import log
 
 # ANUGA modules
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a, \
@@ -314,4 +315,8 @@ def urs2sts(basename_in, basename_out=None,
 
 
     outfile.close()
+    
+    if verbose:
+        log.critical('Wrote sts file ' + stsname)    
+    
 

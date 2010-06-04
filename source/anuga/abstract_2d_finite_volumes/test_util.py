@@ -17,7 +17,8 @@ from anuga.utilities.numerical_tools import NAN
 from sys import platform 
 
 from anuga.pmesh.mesh import Mesh
-from anuga.shallow_water import Domain, Transmissive_boundary
+from anuga.shallow_water.shallow_water_domain import Domain
+from generic_boundary_conditions import Transmissive_boundary
 from anuga.file.sww import SWW_file
 from csv import reader,writer
 import time
