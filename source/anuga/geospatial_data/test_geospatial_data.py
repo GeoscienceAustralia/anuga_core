@@ -10,7 +10,7 @@ import numpy as num
 from anuga.geospatial_data.geospatial_data import *
 from anuga.coordinate_transforms.geo_reference import Geo_reference, TitleError
 from anuga.coordinate_transforms.redfearn import degminsec2decimal_degrees
-from anuga.utilities.anuga_exceptions import ANUGAError
+from anuga.anuga_exceptions import ANUGAError
 from anuga.utilities.system_tools import get_host_name
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.config import netcdf_float

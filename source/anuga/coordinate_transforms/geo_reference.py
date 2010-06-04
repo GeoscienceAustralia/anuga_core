@@ -10,7 +10,7 @@ import types, sys
 import copy
 
 from anuga.utilities.numerical_tools import ensure_numeric
-from anuga.utilities.anuga_exceptions import ANUGAError, TitleError, \
+from anuga.anuga_exceptions import ANUGAError, TitleError, \
                                              ParsingError, ShapeError
 from anuga.config import netcdf_float, netcdf_int, netcdf_float32
 import anuga.utilities.log as log

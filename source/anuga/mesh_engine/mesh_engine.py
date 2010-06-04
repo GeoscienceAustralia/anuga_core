@@ -13,7 +13,7 @@ import anuga.mesh_engine.mesh_engine_c_layer as triang
 import numpy as num
 
 from anuga.utilities.numerical_tools import ensure_numeric
-from anuga.utilities.anuga_exceptions import ANUGAError
+from anuga.anuga_exceptions import ANUGAError
     
 def generate_mesh(points=None,
                   segments=None,holes=None,regions=None,

@@ -8,7 +8,7 @@
 import unittest
 
 from redfearn import *
-from anuga.utilities.anuga_exceptions import ANUGAError
+from anuga.anuga_exceptions import ANUGAError
 
 from anuga.utilities.system_tools import get_pathname_from_package
 from os.path import join

@@ -15,7 +15,7 @@ import numpy as num
 
 from anuga.utilities.numerical_tools import ensure_numeric
 
-from anuga.utilities.anuga_exceptions import ANUGAError
+from anuga.anuga_exceptions import ANUGAError
 
 class triangTestCase(unittest.TestCase):
     def setUp(self):

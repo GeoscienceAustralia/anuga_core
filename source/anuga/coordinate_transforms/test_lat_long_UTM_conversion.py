@@ -9,7 +9,7 @@ import unittest
 
 from lat_long_UTM_conversion import *
 from redfearn import degminsec2decimal_degrees, decimal_degrees2degminsec
-from anuga.utilities.anuga_exceptions import ANUGAError
+from anuga.anuga_exceptions import ANUGAError
 
 import numpy as num
 
