@@ -59,7 +59,7 @@ class Test_Interpolate(unittest.TestCase):
 
         ######################
         # Boundary conditions
-        B = Transmissive_boundary(domain)
+        B = anuga.Transmissive_boundary(domain)
         domain.set_boundary( {'left': B, 'right': B, 'top': B, 'bottom': B})
 
 

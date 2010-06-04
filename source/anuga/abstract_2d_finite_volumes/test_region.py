@@ -3,6 +3,8 @@
 import unittest
 from math import sqrt
 
+from mesh_factory import rectangular
+from anuga.shallow_water.shallow_water_domain import Domain
 from generic_domain import Generic_Domain
 from region import *
 #from anuga.config import epsilon
@@ -42,9 +44,6 @@ class Test_Region(unittest.TestCase):
 
     def test_region_tags(self):
         """get values based on triangle lists."""
-
-        from mesh_factory import rectangular
-        from shallow_water import Domain
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)

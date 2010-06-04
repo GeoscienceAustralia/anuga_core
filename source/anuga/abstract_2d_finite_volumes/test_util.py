@@ -17,8 +17,12 @@ from anuga.utilities.numerical_tools import NAN
 from sys import platform 
 
 from anuga.pmesh.mesh import Mesh
+import time
+from mesh_factory import rectangular
+from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.shallow_water.shallow_water_domain import Domain
-from generic_boundary_conditions import Transmissive_boundary
+from generic_boundary_conditions import \
+                                Transmissive_boundary, Dirichlet_boundary
 from anuga.file.sww import SWW_file
 from csv import reader,writer
 import time
@@ -127,8 +131,6 @@ class Test_Util(unittest.TestCase):
 
         #Create sww file of simple propagation from left to right
         #through rectangular domain
-        from shallow_water import Domain, Dirichlet_boundary
-        from mesh_factory import rectangular
 
         #Create basic mesh and shallow water domain
         points, vertices, boundary = rectangular(3, 3)
@@ -332,15 +334,6 @@ class Test_Util(unittest.TestCase):
         xllcorner and yllcorner
         NetCDF version (x,y,t dependency)        
         """
-        import time
-
-        #Create sww file of simple propagation from left to right
-        #through rectangular domain
-        from shallow_water import Domain, Dirichlet_boundary
-        from mesh_factory import rectangular
-
-
-        from anuga.coordinate_transforms.geo_reference import Geo_reference
         xllcorner = 2048
         yllcorner = 11000
         zone = 2
@@ -612,8 +605,7 @@ class Test_Util(unittest.TestCase):
         import os, time
         from anuga.config import time_format
         from mesh_factory import rectangular
-        from shallow_water import Domain
-        import anuga.shallow_water.data_manager
+        from anuga.shallow_water.shallow_water_domain import Domain
 
         finaltime = 1200
         filename = 'test_file_function'

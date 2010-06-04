@@ -1038,7 +1038,7 @@ def load_sww_as_domain(filename, boundary=None, t=None,
     """
     
     from Scientific.IO.NetCDF import NetCDFFile
-    from shallow_water import Domain
+    from anuga.shallow_water_domain.shallow_water import Domain
 
     # initialise NaN.
     NaN = 9.969209968386869e+036
@@ -1224,7 +1224,6 @@ def get_mesh_and_quantities_from_file(filename,
 
     import types
     from Scientific.IO.NetCDF import NetCDFFile
-    from shallow_water import Domain
     from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 
     if verbose: log.critical('Reading from %s' % filename)

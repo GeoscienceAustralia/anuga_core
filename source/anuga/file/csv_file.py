@@ -270,7 +270,7 @@ def load_csv_as_building_polygons(file_name,
     See csv2polygons for more details
     """
 
-    polygons, values = csv2polygons(file_name,
+    polygons, values = load_csv_as_polygons(file_name,
                                     value_name='floors',
                                     clipping_polygons=None)    
 

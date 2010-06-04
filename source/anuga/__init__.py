@@ -1,12 +1,17 @@
-""" This is the public API to ANUGA. It provides a toolkit of often-used
+""" ANUGA models the effect of tsunamis and flooding upon a terrain mesh.
+    In typical usage, a Domain class is created for a particular piece of
+    terrain. Boundary conditions are specified for the domain, such as inflow
+    and outflow, and then the simulation is run.
+
+    This is the public API to ANUGA. It provides a toolkit of often-used
     modules, which can be used directly by including the following line in
     the user's code:
 
     import anuga
-    
-    It abstracts away the internal heirarchy of the ANUGA system, allowing the
-    user to concentrate on writing simulations without searching through the
-    ANUGA source tree for the functions that they need.
+        
+    This usage pattern abstracts away the internal heirarchy of the ANUGA
+    system, allowing the user to concentrate on writing simulations without
+    searching through the ANUGA source tree for the functions that they need.
     
     Also, it isolates the user from "under-the-hood" refactorings.
 """

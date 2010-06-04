@@ -145,7 +145,7 @@ def sww2csv_gauges(sww_file,
     from csv import reader,writer
     from anuga.utilities.numerical_tools import ensure_numeric, mean, NAN
     import string
-    from anuga.shallow_water.data_manager import get_all_swwfiles
+    from anuga.utilities.file_utils import get_all_swwfiles
     from anuga.abstract_2d_finite_volumes.util import file_function    
 
     assert type(gauge_file) == type(''), 'Gauge filename must be a string'

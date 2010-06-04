@@ -14,6 +14,7 @@ from anuga.pmesh.mesh import Mesh
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.utilities.numerical_tools import mean
 from anuga.file.sww import SWW_file
+from anuga.shallow_water.shallow_water_domain import Domain
 
 import numpy as num
 

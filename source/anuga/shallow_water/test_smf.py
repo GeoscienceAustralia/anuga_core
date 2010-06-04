@@ -1,6 +1,7 @@
 import unittest
 import numpy as num
 from smf import slide_tsunami, slump_tsunami, Double_gaussian
+from shallow_water_domain import Domain
 
 class Test_smf(unittest.TestCase):
     def setUp(self):
@@ -105,7 +106,6 @@ class Test_smf(unittest.TestCase):
                                  filename='test.msh',
                                  verbose = False)
 
-        from anuga.shallow_water import Domain
         domain = Domain('test.msh', use_cache = True, verbose = False)
 
         slide = slide_tsunami(length, dep, th, x0, y0, \

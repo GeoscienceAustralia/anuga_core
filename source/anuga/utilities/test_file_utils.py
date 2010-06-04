@@ -3,7 +3,8 @@ import tempfile
 import os
 import shutil
 
-from anuga.utilities.file_utils import copy_code_files
+from anuga.utilities.file_utils import copy_code_files, get_all_swwfiles
+from anuga.utilities.file_utils import del_dir
 
 
 class Test_FileUtils(unittest.TestCase):
@@ -51,7 +52,61 @@ class Test_FileUtils(unittest.TestCase):
 
         # clean up
         shutil.rmtree(work_dir)
-            
+        
+    def test_get_all_swwfiles(self):
+        try:
+            swwfiles = get_all_swwfiles('','test.txt')  #Invalid
+        except IOError:
+            pass
+        else:
+            raise 'Should have raised exception' 
+        
+    def test_get_all_swwfiles1(self):
+        
+        temp_dir = tempfile.mkdtemp('','sww_test')
+        filename0 = tempfile.mktemp('.sww','test',temp_dir)
+        filename1 = tempfile.mktemp('.sww','test',temp_dir)
+        filename2 = tempfile.mktemp('.sww','test',temp_dir)
+        filename3 = tempfile.mktemp('.sww','test',temp_dir)
+       
+        #print'filename', filename0,filename1,filename2,filename3
+        
+        fid0 = open(filename0, 'w')
+        fid1 = open(filename1, 'w')
+        fid2 = open(filename2, 'w')
+        fid3 = open(filename3, 'w')
+
+        fid0.write('hello')
+        fid1.write('hello')
+        fid2.write('hello')
+        fid3.write('hello')
+        
+        fid0.close()
+        fid1.close()
+        fid2.close()
+        fid3.close()
+        
+        
+        dir, name0 = os.path.split(filename0)
+        #print 'dir',dir,name0
+        
+        iterate=get_all_swwfiles(dir,'test')
+        
+        del_dir(temp_dir)
+#        removeall(temp_dir)
+
+        _, name0 = os.path.split(filename0) 
+        #print'name0',name0[:-4],iterate[0]    
+        _, name1 = os.path.split(filename1)       
+        _, name2 = os.path.split(filename2)       
+        _, name3 = os.path.split(filename3)       
+
+        assert name0[:-4] in iterate
+        assert name1[:-4] in iterate
+        assert name2[:-4] in iterate
+        assert name3[:-4] in iterate
+        
+        assert len(iterate)==4            
 
 #-------------------------------------------------------------
 

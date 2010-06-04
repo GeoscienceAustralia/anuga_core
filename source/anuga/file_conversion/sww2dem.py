@@ -3,6 +3,7 @@
 """
 
 # external modules
+import os
 import numpy as num
 
 # ANUGA modules
@@ -10,6 +11,7 @@ from anuga.abstract_2d_finite_volumes.util import remove_lone_verts
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.utilities.system_tools import get_vars_in_expression
 import anuga.utilities.log as log
+from anuga.utilities.file_utils import get_all_swwfiles
 
 
 ######

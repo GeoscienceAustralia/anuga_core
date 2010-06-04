@@ -1,6 +1,7 @@
 import unittest
 import numpy as num
 from tsunami_okada import earthquake_tsunami,Okada_func
+from anuga.shallow_water.shallow_water_domain import Domain
 
 class Test_eq(unittest.TestCase):
     def setUp(self):
@@ -13,8 +14,9 @@ class Test_eq(unittest.TestCase):
     def test_Okada_func(self):
         from os import sep, getenv
         import sys
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
-        from anuga.shallow_water import Domain
+        from anuga.abstract_2d_finite_volumes.mesh_factory \
+        import rectangular_cross
+
         from anuga.abstract_2d_finite_volumes.quantity import Quantity
         from anuga.utilities.system_tools import get_pathname_from_package
         """
@@ -149,8 +151,8 @@ class Test_eq(unittest.TestCase):
     def test_earthquake_tsunami(self):
         from os import sep, getenv
         import sys
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
-        from anuga.shallow_water import Domain
+        from anuga.abstract_2d_finite_volumes.mesh_factory \
+                        import rectangular_cross
         from anuga.abstract_2d_finite_volumes.quantity import Quantity
         from anuga.utilities.system_tools import get_pathname_from_package
         """

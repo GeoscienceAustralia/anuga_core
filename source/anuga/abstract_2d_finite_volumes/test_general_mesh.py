@@ -8,6 +8,8 @@ from math import sqrt, pi
 from anuga.config import epsilon
 from general_mesh import General_mesh
 from anuga.coordinate_transforms.geo_reference import Geo_reference
+from mesh_factory import rectangular
+from anuga.shallow_water.shallow_water_domain import Domain
 
 import numpy as num
 
@@ -339,9 +341,6 @@ class Test_General_Mesh(unittest.TestCase):
 
 
     def test_areas(self):
-        from mesh_factory import rectangular
-        from shallow_water import Domain
-
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
         domain = General_mesh(points, vertices)        
@@ -353,8 +352,6 @@ class Test_General_Mesh(unittest.TestCase):
         """
         get unique_vertex based on triangle lists.
         """
-        from mesh_factory import rectangular
-        from shallow_water import Domain
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)

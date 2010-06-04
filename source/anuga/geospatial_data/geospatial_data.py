@@ -1555,7 +1555,7 @@ def find_optimal_smoothing_parameter(data_file,
     boundary_polygon or any of the boundaries, eg north_boundary...west_boundary
     """
 
-    from anuga.shallow_water import Domain
+    from anuga.shallow_water.shallow_water_domain import Domain
     from anuga.geospatial_data.geospatial_data import Geospatial_data
     from anuga.pmesh.mesh_interface import create_mesh_from_regions
     from anuga.utilities.numerical_tools import cov

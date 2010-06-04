@@ -27,15 +27,19 @@ from anuga.coordinate_transforms.redfearn import degminsec2decimal_degrees
 from anuga.abstract_2d_finite_volumes.util import file_function
 from anuga.utilities.system_tools import get_pathname_from_package, \
                                             get_revision_number
+from anuga.utilities.file_utils import get_all_swwfiles
 from anuga.utilities.file_utils import del_dir
 from anuga.utilities.numerical_tools import ensure_numeric, mean
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.config import netcdf_float, epsilon, g
-
+from anuga.pmesh.mesh_interface import create_mesh_from_regions
+from anuga.file_conversion.sww2dem import sww2dem_batch
 from anuga.file.csv_file import load_csv_as_dict, load_csv_as_array, \
                                 load_csv_as_building_polygons, \
                                 load_csv_as_polygons
 from anuga.file.sts import create_sts_boundary
+from anuga.file.pts import load_pts_as_polygon
+from anuga.file.sww import Write_sww
 
 
 # import all the boundaries - some are generic, some are shallow water
@@ -802,7 +806,7 @@ class Test_Data_Manager(Test_Mux):
         fid.close()
 
         #Export to ascii/prj files
-        export_grid(self.domain.get_name(),
+        sww2dem_batch(self.domain.get_name(),
                 quantities = 'elevation',
                 cellsize = cellsize,
                 verbose = self.verbose,
@@ -889,14 +893,14 @@ class Test_Data_Manager(Test_Mux):
 
         #Export to ascii/prj files
         if True:
-            export_grid(self.domain.get_name(),
+            sww2dem_batch(self.domain.get_name(),
                         quantities = ['elevation', 'depth'],
                         cellsize = cellsize,
                         verbose = self.verbose,
                         format = 'asc')
 
         else:
-            export_grid(self.domain.get_name(),
+            sww2dem_batch(self.domain.get_name(),
                 quantities = ['depth'],
                 cellsize = cellsize,
                 verbose = self.verbose,
@@ -1022,7 +1026,7 @@ class Test_Data_Manager(Test_Mux):
         #Export to ascii/prj files
         extra_name_out = 'yeah'
         if True:
-            export_grid(self.domain.get_name(),
+            sww2dem_batch(self.domain.get_name(),
                         quantities = ['elevation', 'depth'],
                         extra_name_out = extra_name_out,
                         cellsize = cellsize,
@@ -1030,14 +1034,14 @@ class Test_Data_Manager(Test_Mux):
                         format = 'asc')
 
         else:
-            export_grid(self.domain.get_name(),
+            sww2dem_batch(self.domain.get_name(),
                 quantities = ['depth'],
                 cellsize = cellsize,
                 verbose = self.verbose,
                 format = 'asc')
 
 
-            export_grid(self.domain.get_name(),
+            sww2dem_batch(self.domain.get_name(),
                 quantities = ['elevation'],
                 cellsize = cellsize,
                 verbose = self.verbose,
@@ -1106,7 +1110,7 @@ class Test_Data_Manager(Test_Mux):
         """
 
         try:
-            export_grid('a_small_round-egg',
+            sww2dem_batch('a_small_round-egg',
                         quantities = ['elevation', 'depth'],
                         cellsize = 99,
                         verbose = self.verbose,
@@ -1167,7 +1171,7 @@ class Test_Data_Manager(Test_Mux):
 
         #Export to ascii/prj files
         extra_name_out = 'yeah'
-        export_grid(base_name,
+        sww2dem_batch(base_name,
                     quantities = ['elevation', 'depth'],
                     extra_name_out = extra_name_out,
                     cellsize = cellsize,
@@ -1485,12 +1489,6 @@ class Test_Data_Manager(Test_Mux):
         Read correct points from ordering file and apply sts to boundary
         This one uses a sine wave and compares to time boundary
         """
-        
-        from anuga.shallow_water.shallow_water_domain import Domain
-        from anuga.shallow_water import Reflective_boundary
-        from anuga.shallow_water import Dirichlet_boundary
-        from anuga.shallow_water import File_boundary
-        from anuga.pmesh.mesh_interface import create_mesh_from_regions
 
         lat_long_points=[[6.01,97.0],[6.02,97.0],[6.05,96.9],[6.0,97.0]]
         bounding_polygon=[[6.0,97.0],[6.01,97.0],[6.02,97.0],[6.02,97.02],[6.00,97.02]]
@@ -1682,12 +1680,6 @@ class Test_Data_Manager(Test_Mux):
         This one tests that times used can be limited by upper limit
         """
         
-        from anuga.shallow_water.shallow_water_domain import Domain
-        from anuga.shallow_water import Reflective_boundary
-        from anuga.shallow_water import Dirichlet_boundary
-        from anuga.shallow_water import File_boundary
-        from anuga.pmesh.mesh_interface import create_mesh_from_regions
-
         lat_long_points=[[6.01,97.0],[6.02,97.0],[6.05,96.9],[6.0,97.0]]
         bounding_polygon=[[6.0,97.0],[6.01,97.0],[6.02,97.0],[6.02,97.02],[6.00,97.02]]
         tide = 0.35
@@ -1829,66 +1821,6 @@ class Test_Data_Manager(Test_Mux):
         else:
             raise Exception, 'Should have raised Exception here'
 
-    def test_lon_lat2grid(self):
-        lonlatdep = [
-            [ 113.06700134  ,  -26.06669998 ,   1.        ] ,
-            [ 113.06700134  ,  -26.33329964 ,   3.        ] ,
-            [ 113.19999695  ,  -26.06669998 ,   2.        ] ,
-            [ 113.19999695  ,  -26.33329964 ,   4.        ] ]
-            
-        long, lat, quantity = lon_lat2grid(lonlatdep)
-
-        for i, result in enumerate(lat):
-            assert lonlatdep [i][1] == result
-        assert len(lat) == 2 
-
-        for i, result in enumerate(long):
-            assert lonlatdep [i*2][0] == result
-        assert len(long) == 2
-
-        for i,q in enumerate(quantity):
-            assert q == i+1
-            
-    def test_lon_lat2grid_bad(self):
-        lonlatdep  = [
-            [ -26.06669998,  113.06700134,    1.        ],
-            [ -26.06669998 , 113.19999695 ,   2.        ],
-            [ -26.06669998 , 113.33300018,    3.        ],
-            [ -26.06669998 , 113.43299866   , 4.        ],
-            [ -26.20000076 , 113.06700134,    5.        ],
-            [ -26.20000076 , 113.19999695 ,   6.        ],
-            [ -26.20000076 , 113.33300018  ,  7.        ],
-            [ -26.20000076 , 113.43299866   , 8.        ],
-            [ -26.33329964 , 113.06700134,    9.        ],
-            [ -26.33329964 , 113.19999695 ,   10.        ],
-            [ -26.33329964 , 113.33300018  ,  11.        ],
-            [ -26.33329964 , 113.43299866 ,   12.        ],
-            [ -26.43330002 , 113.06700134 ,   13        ],
-            [ -26.43330002 , 113.19999695 ,   14.        ],
-            [ -26.43330002 , 113.33300018,    15.        ],
-            [ -26.43330002 , 113.43299866,    16.        ]]
-        try:
-            long, lat, quantity = lon_lat2grid(lonlatdep)
-        except AssertionError:
-            pass
-        else:
-            msg = 'Should have raised exception'
-            raise msg
-       
-    def test_lon_lat2gridII(self):
-        lonlatdep = [
-            [ 113.06700134  ,  -26.06669998 ,   1.        ] ,
-            [ 113.06700134  ,  -26.33329964 ,   2.        ] ,
-            [ 113.19999695  ,  -26.06669998 ,   3.        ] ,
-            [ 113.19999695  ,  -26.344329964 ,   4.        ] ]
-        try:
-            long, lat, quantity = lon_lat2grid(lonlatdep)
-        except AssertionError:
-            pass
-        else:
-            msg = 'Should have raised exception'
-            raise msg
-        
     #### END TESTS FOR URS 2 SWW  ###
 
 
@@ -2075,63 +2007,6 @@ class Test_Data_Manager(Test_Mux):
             absolute.change_points_geo_ref(map(None, x,y),
                                            new_origin)),points_utm)
         os.remove(filename)
-        
-
-        
-    def test_get_all_swwfiles(self):
-        try:
-            swwfiles = get_all_swwfiles('','test.txt')  #Invalid
-        except IOError:
-            pass
-        else:
-            raise 'Should have raised exception' 
-        
-    def test_get_all_swwfiles1(self):
-        
-        temp_dir = tempfile.mkdtemp('','sww_test')
-        filename0 = tempfile.mktemp('.sww','test',temp_dir)
-        filename1 = tempfile.mktemp('.sww','test',temp_dir)
-        filename2 = tempfile.mktemp('.sww','test',temp_dir)
-        filename3 = tempfile.mktemp('.sww','test',temp_dir)
-       
-        #print'filename', filename0,filename1,filename2,filename3
-        
-        fid0 = open(filename0, 'w')
-        fid1 = open(filename1, 'w')
-        fid2 = open(filename2, 'w')
-        fid3 = open(filename3, 'w')
-
-        fid0.write('hello')
-        fid1.write('hello')
-        fid2.write('hello')
-        fid3.write('hello')
-        
-        fid0.close()
-        fid1.close()
-        fid2.close()
-        fid3.close()
-        
-        
-        dir, name0 = os.path.split(filename0)
-        #print 'dir',dir,name0
-        
-        iterate=get_all_swwfiles(dir,'test')
-        
-        del_dir(temp_dir)
-#        removeall(temp_dir)
-
-        _, name0 = os.path.split(filename0) 
-        #print'name0',name0[:-4],iterate[0]    
-        _, name1 = os.path.split(filename1)       
-        _, name2 = os.path.split(filename2)       
-        _, name3 = os.path.split(filename3)       
-
-        assert name0[:-4] in iterate
-        assert name1[:-4] in iterate
-        assert name2[:-4] in iterate
-        assert name3[:-4] in iterate
-        
-        assert len(iterate)==4
 
  
     def test_points2polygon(self):  
@@ -2146,7 +2021,7 @@ class Test_Data_Manager(Test_Mux):
         
         G.export_points_file(fileName)
         
-        polygon = points2polygon(fileName)
+        polygon = load_pts_as_polygon(fileName)
         
         # This test may fail if the order changes
         assert (polygon == [[0.0, 0.0],[1.0, 0.0],[0.0, 1.0]])
@@ -2159,7 +2034,7 @@ class Test_Data_Manager(Test_Mux):
         path = get_pathname_from_package('anuga.shallow_water')                
         testfile = os.path.join(path, 'polygon_values_example.csv')                
 
-        polygons, values = csv2polygons(testfile, 
+        polygons, values = load_csv_as_polygons(testfile, 
                                         value_name='floors')
 
         assert len(polygons) == 7, 'Must have seven polygons'
@@ -2236,7 +2111,7 @@ class Test_Data_Manager(Test_Mux):
         path = get_pathname_from_package('anuga.shallow_water')                
         testfile = os.path.join(path, 'polygon_values_example.csv')                
 
-        polygons, values = csv2polygons(testfile, 
+        polygons, values = load_csv_as_polygons(testfile, 
                                         value_name='floors',
                                         clipping_polygons=None)
 
@@ -2316,7 +2191,7 @@ class Test_Data_Manager(Test_Mux):
         path = get_pathname_from_package('anuga.shallow_water')                
         testfile = os.path.join(path, 'polygon_values_example.csv')                
 
-        polygons, values = csv2building_polygons(testfile, 
+        polygons, values = load_csv_as_building_polygons(testfile, 
                                                  floor_height=3)
 
         assert len(polygons) == 7, 'Must have seven polygons'

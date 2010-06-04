@@ -1,4 +1,13 @@
 #!/usr/bin/env python
+"""
+    Generic boundary conditions for a domain.
+    
+    A boundary represents the edge of the model, where inflow, outflow, and
+    reflection can take place.
+    
+    The boundaries in this model can be applied universally across all
+    domain models, without being tied to a particular implementation.
+"""
 
 import unittest
 from math import sqrt, pi
@@ -403,7 +412,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
 
 
         #Convert ASCII file to NetCDF (Which is what we really like!)
-        from anuga.shallow_water.file_conversion import timefile2netcdf
+        from anuga.file_conversion.file_conversion import timefile2netcdf
         
         timefile2netcdf(filename, quantity_names = ['stage', 'xmomentum'])
 

@@ -1,5 +1,10 @@
 """Class Domain - 2D triangular domains for finite-volume computations of
    conservation laws.
+   
+   This is the base class for various domain models, such as: the Advection
+   implementation is a simple algorithm, mainly for testing purposes, and
+   the standard Shallow Water Wave domain (simply known as Domain) is the
+   standard for realistic simulation.
 
 
    Copyright 2004

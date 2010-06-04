@@ -8,6 +8,7 @@ from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 from anuga.file.sww import SWW_file
 from anuga.file.sww import extent_sww
+from anuga.file_conversion.urs2nc import lon_lat2grid
 from anuga.config import netcdf_float, epsilon, g
 from Scientific.IO.NetCDF import NetCDFFile
 from anuga.file_conversion.file_conversion import tsh2sww, \
@@ -2344,6 +2345,69 @@ NODATA_value  -9999
                     #print "f.write(pack('f',q_time[time,i]))", q_time[time,point_i]
             f.close()
         return base_name, files
+
+
+
+    def test_lon_lat2grid(self):
+        lonlatdep = [
+            [ 113.06700134  ,  -26.06669998 ,   1.        ] ,
+            [ 113.06700134  ,  -26.33329964 ,   3.        ] ,
+            [ 113.19999695  ,  -26.06669998 ,   2.        ] ,
+            [ 113.19999695  ,  -26.33329964 ,   4.        ] ]
+            
+        long, lat, quantity = lon_lat2grid(lonlatdep)
+
+        for i, result in enumerate(lat):
+            assert lonlatdep [i][1] == result
+        assert len(lat) == 2 
+
+        for i, result in enumerate(long):
+            assert lonlatdep [i*2][0] == result
+        assert len(long) == 2
+
+        for i,q in enumerate(quantity):
+            assert q == i+1
+            
+    def test_lon_lat2grid_bad(self):
+        lonlatdep  = [
+            [ -26.06669998,  113.06700134,    1.        ],
+            [ -26.06669998 , 113.19999695 ,   2.        ],
+            [ -26.06669998 , 113.33300018,    3.        ],
+            [ -26.06669998 , 113.43299866   , 4.        ],
+            [ -26.20000076 , 113.06700134,    5.        ],
+            [ -26.20000076 , 113.19999695 ,   6.        ],
+            [ -26.20000076 , 113.33300018  ,  7.        ],
+            [ -26.20000076 , 113.43299866   , 8.        ],
+            [ -26.33329964 , 113.06700134,    9.        ],
+            [ -26.33329964 , 113.19999695 ,   10.        ],
+            [ -26.33329964 , 113.33300018  ,  11.        ],
+            [ -26.33329964 , 113.43299866 ,   12.        ],
+            [ -26.43330002 , 113.06700134 ,   13        ],
+            [ -26.43330002 , 113.19999695 ,   14.        ],
+            [ -26.43330002 , 113.33300018,    15.        ],
+            [ -26.43330002 , 113.43299866,    16.        ]]
+        try:
+            long, lat, quantity = lon_lat2grid(lonlatdep)
+        except AssertionError:
+            pass
+        else:
+            msg = 'Should have raised exception'
+            raise msg
+       
+    def test_lon_lat2gridII(self):
+        lonlatdep = [
+            [ 113.06700134  ,  -26.06669998 ,   1.        ] ,
+            [ 113.06700134  ,  -26.33329964 ,   2.        ] ,
+            [ 113.19999695  ,  -26.06669998 ,   3.        ] ,
+            [ 113.19999695  ,  -26.344329964 ,   4.        ] ]
+        try:
+            long, lat, quantity = lon_lat2grid(lonlatdep)
+        except AssertionError:
+            pass
+        else:
+            msg = 'Should have raised exception'
+            raise msg
+        
 
 #-------------------------------------------------------------
 
