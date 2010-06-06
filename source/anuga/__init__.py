@@ -99,6 +99,21 @@ from anuga.shallow_water.sww_interrogate import get_flow_through_cross_section
 # rectangular domains
 #-----------------------------
 def rectangular_cross_domain(*args, **kwargs):
+    """
+    Create a rectangular domain with triangulation made
+    up of m+1 by n+1 uniform rectangular cells divided
+    into 4 triangles in a cross pattern
+
+    Arguments
+    m:      number of cells in x direction
+    n:      number of cells in y direction
+    len1:   length of domain in x direction (left to right)
+            (default 1.0)
+    len2:   length of domain in y direction (bottom to top)
+            (default 1.0)
+    origin: tuple (x,y) specifying location of lower left corner
+            of domain (default (0,0))
+    """
     points, vertices, boundary = rectangular_cross(*args, **kwargs)
     return Domain(points, vertices, boundary)
 
@@ -106,6 +121,9 @@ def rectangular_cross_domain(*args, **kwargs):
 # Create domain from file
 #----------------------------
 def create_domain_from_file(file):
+    """
+    Create a domain from a file
+    """
     return pmesh_to_domain_instance(file,Domain)
 
 #---------------------------
