@@ -1038,7 +1038,7 @@ def load_sww_as_domain(filename, boundary=None, t=None,
     """
     
     from Scientific.IO.NetCDF import NetCDFFile
-    from anuga.shallow_water_domain.shallow_water import Domain
+    from anuga.shallow_water.shallow_water_domain import Domain
 
     # initialise NaN.
     NaN = 9.969209968386869e+036

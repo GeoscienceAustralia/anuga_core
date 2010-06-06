@@ -128,9 +128,6 @@ class Test_Region(unittest.TestCase):
     def test_unique_vertices(self):
         """get values based on triangle lists."""
 
-        from mesh_factory import rectangular
-        from shallow_water import Domain
-
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
 
@@ -159,8 +156,6 @@ class Test_Region(unittest.TestCase):
         """
         get values based on triangle lists.
         """
-        from mesh_factory import rectangular
-        from shallow_water import Domain
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
@@ -188,9 +183,6 @@ class Test_Region(unittest.TestCase):
                          
     def test_unique_vertices_average_loc_vert(self):
         """Get values based on triangle lists."""
-
-        from mesh_factory import rectangular
-        from shallow_water import Domain
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
@@ -226,8 +218,6 @@ class Test_Region(unittest.TestCase):
         """
         get values based on triangle lists.
         """
-        from mesh_factory import rectangular
-        from shallow_water import Domain
 
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)

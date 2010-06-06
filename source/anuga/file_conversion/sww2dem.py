@@ -472,7 +472,7 @@ def sww2dem_batch(basename_in, extra_name_out=None,
             else:
                 basename_out = sww_file + '_' + quantity + '_' + extra_name_out
 
-            file_out = sww2dem(dir+sep+sww_file, dir+sep+basename_out,
+            file_out = sww2dem(dir+os.sep+sww_file, dir+os.sep+basename_out,
                                quantity,
                                reduction,
                                cellsize,

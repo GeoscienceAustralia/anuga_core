@@ -15,6 +15,8 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.utilities.numerical_tools import mean
 from anuga.file.sww import SWW_file
 from anuga.shallow_water.shallow_water_domain import Domain
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
+     import Transmissive_boundary
 
 import numpy as num
 
