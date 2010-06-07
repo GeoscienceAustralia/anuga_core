@@ -1,5 +1,6 @@
 # external modules
 import numpy as num
+import anuga.utilities.log as log
 
 # ANUGA modules
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a, \

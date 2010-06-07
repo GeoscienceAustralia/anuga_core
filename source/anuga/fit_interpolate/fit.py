@@ -298,16 +298,7 @@ class Fit(FitInterpolate):
                 msg = 'Point (%f, %f) is not inside mesh boundary' % tuple(x)
                 assert flag is True, msg                
                 
-                # FIXME(Ole): This is the message referred to in ticket:314
-                minx = min(self.mesh_boundary_polygon[:,0])
-                maxx = max(self.mesh_boundary_polygon[:,0])                
-                miny = min(self.mesh_boundary_polygon[:,1])
-                maxy = max(self.mesh_boundary_polygon[:,1])
-                msg = 'Could not find triangle for point %s. ' % str(x) 
-                msg += 'Mesh boundary extent is (%.f, %.f), (%.f, %.f)'\
-                    % (minx, maxx, miny, maxy)
-                raise RuntimeError, msg
-
+                # data point has fallen within a hole - so ignore it.
                 
         self.AtA = AtA
 

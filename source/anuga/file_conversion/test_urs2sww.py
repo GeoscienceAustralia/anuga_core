@@ -15,7 +15,7 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference, \
      write_NetCDF_georeference
 from anuga.coordinate_transforms.redfearn import redfearn     
 
-from urs2sww import urs2sww
+from urs2sww import urs2sww, urs_ungridded2sww
 import urs
 
 from anuga.file.mux import WAVEHEIGHT_MUX_LABEL, EAST_VELOCITY_LABEL, \
@@ -162,7 +162,7 @@ class Test_Dem2Pts(Test_Mux):
         #Easting:  292110.784  Northing: 7676551.710 
         #Latitude:   -21  0 ' 0.00000 ''  Longitude: 115  0 ' 0.00000 '' 
 
-        'hole_points_UTM(base_name, mean_stage=-240992.0,
+        hole_points_UTM(base_name, mean_stage=-240992.0,
                           hole_points_UTM=[ 292110.784, 7676551.710 ])
         
         # now I want to check the sww file ...

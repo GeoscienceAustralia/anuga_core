@@ -5342,6 +5342,66 @@ friction  \n \
         import os
         os.remove(ptsfile)
 
+
+    def test_fitting_in_hole(self):
+        '''
+            Make sure we can fit a mesh that has a hole in it.
+            This is a regression test for ticket:234
+            
+        '''
+        verbose = False
+        
+        from anuga.shallow_water.shallow_water_domain import Domain
+        from anuga.pmesh.mesh_interface import create_mesh_from_regions
+        from anuga.geospatial_data.geospatial_data import Geospatial_data
+
+        
+        # Get path where this test is run
+        path = get_pathname_from_package('anuga.shallow_water')        
+        
+        
+        #----------------------------------------------------------------------
+        # Create domain
+        #--------------------------------------------------------------------
+        W = 303400
+        N = 6195800
+        E = 308640
+        S = 6193120
+        border = 2000
+        bounding_polygon = [[W, S], [E, S], [E, N], [W, N]]
+        hole_polygon = [[W+border, S+border], [E-border, S+border], \
+                        [E-border, N-border], [W+border, N-border]]        
+
+        meshname = os.path.join(path, 'offending_mesh.msh')
+        create_mesh_from_regions(bounding_polygon,
+                                 boundary_tags={'south': [0], 'east': [1],
+                                                'north': [2], 'west': [3]},
+                                 maximum_triangle_area=1000000,
+                                 filename=meshname,
+                                 interior_holes=[hole_polygon],
+                                 use_cache=False,
+                                 verbose=verbose)
+
+        domain = Domain(meshname, use_cache=False, verbose=verbose)
+
+        #----------------------------------------------------------------------
+        # Fit data point inside hole to mesh
+        #----------------------------------------------------------------------
+
+        points_file = os.path.join(path, 'offending_point.pts')
+
+        # Offending point
+        G = Geospatial_data(data_points=[[(E+W)/2, (N+S)/2]],
+                            attributes=[1])
+        G.export_points_file(points_file)
+
+        # fit data using the point within the hole.
+        domain.set_quantity('elevation', filename=points_file,
+                            use_cache=False, verbose=verbose, alpha=0.01)
+        os.remove(meshname)
+        os.remove(points_file)           
+        
+
     def test_fitting_example_that_crashed(self):
         """This unit test has been derived from a real world example
         (the Towradgi '98 rainstorm simulation).
