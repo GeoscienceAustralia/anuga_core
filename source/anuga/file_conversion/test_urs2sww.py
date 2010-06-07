@@ -162,7 +162,7 @@ class Test_Dem2Pts(Test_Mux):
         #Easting:  292110.784  Northing: 7676551.710 
         #Latitude:   -21  0 ' 0.00000 ''  Longitude: 115  0 ' 0.00000 '' 
 
-        hole_points_UTM(base_name, mean_stage=-240992.0,
+        urs_ungridded2sww(base_name, mean_stage=-240992.0,
                           hole_points_UTM=[ 292110.784, 7676551.710 ])
         
         # now I want to check the sww file ...
@@ -218,7 +218,7 @@ class Test_Dem2Pts(Test_Mux):
         fid.close()
         os.remove(sww_file)
         
-        urs2sww(base_name, mean_stage=-240992.0)
+        urs_ungridded2sww(base_name, mean_stage=-240992.0)
         
         # now I want to check the sww file ...
         sww_file = base_name + '.sww'
