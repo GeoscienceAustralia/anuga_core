@@ -51,7 +51,7 @@ class Test_Dem2Pts(Test_Mux):
         tide = 9000000
         base_name, files = self.write_mux(lat_long,
                                           time_step_count, time_step)
-        urs2sww(base_name, mean_stage=tide, origin =(50,23432,4343))
+        urs_ungridded2sww(base_name, mean_stage=tide, origin =(50,23432,4343))
         
         # now I want to check the sww file ...
         sww_file = base_name + '.sww'
@@ -162,7 +162,7 @@ class Test_Dem2Pts(Test_Mux):
         #Easting:  292110.784  Northing: 7676551.710 
         #Latitude:   -21  0 ' 0.00000 ''  Longitude: 115  0 ' 0.00000 '' 
 
-        urs2sww(base_name, mean_stage=-240992.0,
+        'hole_points_UTM(base_name, mean_stage=-240992.0,
                           hole_points_UTM=[ 292110.784, 7676551.710 ])
         
         # now I want to check the sww file ...
@@ -205,7 +205,7 @@ class Test_Dem2Pts(Test_Mux):
         #Easting:  292110.784  Northing: 7676551.710 
         #Latitude:   -21  0 ' 0.00000 ''  Longitude: 115  0 ' 0.00000 '' 
 
-        urs2sww(base_name, mean_stage=-240992.0,
+        urs_ungridded2sww(base_name, mean_stage=-240992.0,
                           hole_points_UTM=[ 292110.784, 7676551.710 ])
         
         # now I want to check the sww file ...
@@ -243,7 +243,7 @@ class Test_Dem2Pts(Test_Mux):
         tide = 9000000
         base_name, files = self.write_mux(lat_long,
                                           time_step_count, time_step)
-        urs2sww(base_name, mean_stage=tide, origin =(50,23432,4343),
+        urs_ungridded2sww(base_name, mean_stage=tide, origin =(50,23432,4343),
                           mint=101, maxt=500)
         
         # now I want to check the sww file ...
@@ -331,7 +331,7 @@ class Test_Dem2Pts(Test_Mux):
         tide = 9000000
         base_name, files = self.write_mux(lat_long,
                                           time_step_count, time_step)
-        urs2sww(base_name, mean_stage=tide, origin =(50,23432,4343),
+        urs_ungridded2sww(base_name, mean_stage=tide, origin =(50,23432,4343),
                           mint=0, maxt=100000)
         
         # now I want to check the sww file ...
@@ -431,7 +431,7 @@ class Test_Dem2Pts(Test_Mux):
         lat_long = geo.get_data_points(as_lat_long=True)
         base_name, files = self.write_mux(lat_long,
                                           time_step_count, time_step)
-        urs2sww(base_name, mean_stage=tide,
+        urs_ungridded2sww(base_name, mean_stage=tide,
                           verbose=self.verbose)
         self.delete_mux(files)
         os.remove( base_name + '.sww')
@@ -495,7 +495,7 @@ class Test_Dem2Pts(Test_Mux):
         geo_reference = Geo_reference(50, 3434543,34534543)
         base_name, files = self.write_mux(lat_long,
                                           time_step_count, time_step)
-        urs2sww(base_name, mean_stage=tide, origin = geo_reference)
+        urs_ungridded2sww(base_name, mean_stage=tide, origin = geo_reference)
         
         # now I want to check the sww file ...
         sww_file = base_name + '.sww'
@@ -585,7 +585,7 @@ class Test_Dem2Pts(Test_Mux):
         tide = 9000000
         base_name, files = self.write_mux(lat_long,
                                           time_step_count, time_step)
-        urs2sww(base_name, mean_stage=tide,
+        urs_ungridded2sww(base_name, mean_stage=tide,
                           verbose=self.verbose)
         
         # now I want to check the sww file ...

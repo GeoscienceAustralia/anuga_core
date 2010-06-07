@@ -1,12 +1,18 @@
+import os
+from struct import pack, unpack
+import array as p_array
+import numpy as num
 
-##
-# @brief Convert 3 URS files back to 4 NC files.
-# @param basename_in Stem of the input filenames.
-# @param basename_outStem of the output filenames.
-# @note The name of the urs file names must be:
-#          [basename_in]-z-mux
-#          [basename_in]-e-mux
-#          [basename_in]-n-mux
+from anuga.utilities.numerical_tools import ensure_numeric   
+from anuga.caching.caching import myhash
+
+from anuga.file.netcdf import Write_nc, write_elevation_nc
+
+
+from mux import WAVEHEIGHT_MUX_LABEL, EAST_VELOCITY_LABEL, \
+                            NORTH_VELOCITY_LABEL
+
+
 def urs2nc(basename_in='o', basename_out='urs'):
     """Convert the 3 urs files to 4 nc files.
 

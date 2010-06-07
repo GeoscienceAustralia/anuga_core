@@ -45,7 +45,7 @@ import anuga.utilities.log as log
 from anuga.utilities.file_utils import create_filename,\
                         get_all_swwfiles
 from anuga.file.csv_file import load_csv_as_dict
-from sww_file import Read_sww, Write_sww
+from sww import Read_sww, Write_sww
 
 from anuga.anuga_exceptions import DataMissingValuesError, \
                 DataFileNotOpenError, DataTimeError, DataDomainError, \

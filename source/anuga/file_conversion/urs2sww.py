@@ -1,7 +1,11 @@
+import os
 import numpy as num
 from Scientific.IO.NetCDF import NetCDFFile
 
 from anuga.file.urs import Read_urs
+
+from anuga.file_conversion.urs2nc import urs2nc
+from anuga.file_conversion.ferret2sww import ferret2sww
 
 from anuga.coordinate_transforms.redfearn import redfearn, \
      convert_from_latlon_to_utm
@@ -39,7 +43,7 @@ from anuga.file.sww import Write_sww
 #       assumed to be given in the GDA94 datum.
 # @note Input filename stem has suffixes '-z-mux', '-e-mux' and '-n-mux'
 #       added for relative height, x-velocity and y-velocity respectively.
-def urs2sww(basename_in='o', basename_out=None, verbose=False,
+def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
                       mint=None, maxt=None,
                       mean_stage=0,
                       origin=None,
@@ -247,4 +251,92 @@ def read_time_from_mux(mux_times, mint, maxt):
         mux_times_fin_i = num.searchsorted(mux_times, maxt)
 
     return mux_times_start_i, mux_times_fin_i
+
+
+
+
+
+##
+# @brief Convert URS file to SWW file.
+# @param basename_in Stem of the input filename.
+# @param basename_out Stem of the output filename.
+# @param verbose True if this function is to be verbose.
+# @param remove_nc_files 
+# @param minlat Sets extent of area to be used.  If not supplied, full extent.
+# @param maxlat Sets extent of area to be used.  If not supplied, full extent.
+# @param minlon Sets extent of area to be used.  If not supplied, full extent.
+# @param maxlon Sets extent of area to be used.  If not supplied, full extent.
+# @param mint 
+# @param maxt 
+# @param mean_stage 
+# @param origin A 3-tuple with geo referenced UTM coordinates
+# @param zscale 
+# @param fail_on_NaN 
+# @param NaN_filler 
+# @param elevation 
+# @note Also convert latitude and longitude to UTM. All coordinates are
+#       assumed to be given in the GDA94 datum.
+def urs2sww(basename_in='o', basename_out=None, verbose=False,
+            remove_nc_files=True,
+            minlat=None, maxlat=None,
+            minlon=None, maxlon=None,
+            mint=None, maxt=None,
+            mean_stage=0,
+            origin=None,
+            zscale=1,
+            fail_on_NaN=True,
+            NaN_filler=0):
+    """Convert a URS file to an SWW file.
+    Convert URS C binary format for wave propagation to
+    sww format native to abstract_2d_finite_volumes.
+
+    Specify only basename_in and read files of the form
+    basefilename-z-mux2, basefilename-e-mux2 and
+    basefilename-n-mux2 containing relative height,
+    x-velocity and y-velocity, respectively.
+
+    Also convert latitude and longitude to UTM. All coordinates are
+    assumed to be given in the GDA94 datum. The latitude and longitude
+    information is for  a grid.
+
+    min's and max's: If omitted - full extend is used.
+    To include a value min may equal it, while max must exceed it.
+    Lat and lon are assumed to be in decimal degrees.
+    NOTE: minlon is the most east boundary.
+
+    origin is a 3-tuple with geo referenced
+    UTM coordinates (zone, easting, northing)
+    It will be the origin of the sww file. This shouldn't be used,
+    since all of anuga should be able to handle an arbitary origin.
+
+    URS C binary format has data orgainised as TIME, LONGITUDE, LATITUDE
+    which means that latitude is the fastest
+    varying dimension (row major order, so to speak)
+
+    In URS C binary the latitudes and longitudes are in assending order.
+    """
+
+    if basename_out == None:
+        basename_out = basename_in
+
+    files_out = urs2nc(basename_in, basename_out)
+
+    ferret2sww(basename_out,
+               minlat=minlat,
+               maxlat=maxlat,
+               minlon=minlon,
+               maxlon=maxlon,
+               mint=mint,
+               maxt=maxt,
+               mean_stage=mean_stage,
+               origin=origin,
+               zscale=zscale,
+               fail_on_NaN=fail_on_NaN,
+               NaN_filler=NaN_filler,
+               inverted_bathymetry=True,
+               verbose=verbose)
+    
+    if remove_nc_files:
+        for file_out in files_out:
+            os.remove(file_out)
 

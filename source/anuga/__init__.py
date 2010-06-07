@@ -28,7 +28,7 @@ sys.path += __path__
 
 from anuga.shallow_water.shallow_water_domain import Domain
 
-from anuga.abstract_2d_finite_volumes.util import file_function
+from anuga.abstract_2d_finite_volumes.util import file_function, sww2timeseries
 
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
 
@@ -88,8 +88,9 @@ from anuga.shallow_water.forcing import Inflow
 # File conversion utilities
 #-----------------------------
 from anuga.file_conversion.file_conversion import sww2obj, dat2obj, \
-                    timefile2netcdf, tsh2sww, urs2sww
-from anuga.file_conversion.urs2nc import urs2nc  
+                    timefile2netcdf, tsh2sww
+from anuga.file_conversion.urs2nc import urs2nc
+from anuga.file_conversion.urs2sww import urs2sww  
 from anuga.file_conversion.urs2sts import urs2sts
 from anuga.file_conversion.dem2pts import dem2pts                    
 from anuga.file_conversion.esri2sww import esri2sww   
@@ -98,6 +99,11 @@ from anuga.file_conversion.asc2dem import asc2dem
 from anuga.file_conversion.ferret2sww import ferret2sww     
 from anuga.file_conversion.dem2dem import dem2dem
 
+
+#-----------------------------
+# Mesh API
+#-----------------------------
+from anuga.pmesh.mesh_interface import create_mesh_from_regions
 
 #-----------------------------
 # SWW file access

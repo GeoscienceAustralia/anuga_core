@@ -1292,25 +1292,7 @@ class Test_Util(unittest.TestCase):
         
         assert new == '3*xi+eta + lam'
                           
-
-
-    def test_point_on_line_obsolete(self):
-        """Test that obsolete call issues appropriate warning"""
-
-        #Turn warning into an exception
-        import warnings
-        warnings.filterwarnings('error')
-
-        try:
-            assert point_on_line( 0, 0.5, 0,1, 0,0 )
-        except DeprecationWarning:
-            pass
-        else:
-            msg = 'point_on_line should have issued a DeprecationWarning'
-            raise Exception(msg)    
-
-        warnings.resetwarnings()
-    
+   
     def test_get_revision_number(self):
         """test_get_revision_number(self):
 
