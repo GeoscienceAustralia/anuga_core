@@ -1,5 +1,5 @@
-
-"""Simple water flow example using ANUGA
+"""
+Simple water flow example using ANUGA
 
 Water driven up a linear slope and time varying boundary,
 similar to a beach environment
@@ -17,13 +17,13 @@ import sys
 #import pypar
 import numpy as num
 
-from anuga.interface import Domain
-from anuga.interface import Reflective_boundary
-from anuga.interface import Dirichlet_boundary
-from anuga.interface import Time_boundary
-from anuga.interface import Transmissive_boundary
+from anuga import Domain
+from anuga import Reflective_boundary
+from anuga import Dirichlet_boundary
+from anuga import Time_boundary
+from anuga import Transmissive_boundary
 
-from anuga.interface import rectangular_cross_domain
+from anuga import rectangular_cross_domain
 
 
 from anuga_parallel.interface import distribute, myid, numprocs, send, receive, barrier, finalize
@@ -52,7 +52,7 @@ def evolution_test(parallel=False, G = None, seq_interpolation_points=None):
     #--------------------------------------------------------------------------
     # Setup computational domain and quantities
     #--------------------------------------------------------------------------
-    domain = rectangular_cross_domain(N, M) 
+    domain = rectangular_cross_domain(M, N)
     domain.set_quantity('elevation', topography) # Use function for elevation
     domain.set_quantity('friction', 0.0)         # Constant friction 
     domain.set_quantity('stage', expression='elevation') # Dry initial stage

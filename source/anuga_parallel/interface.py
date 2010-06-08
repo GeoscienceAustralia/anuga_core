@@ -1,7 +1,7 @@
 """This is the public API to ANUGA_PARALLEL.
 
 Ideally, all tools needed to run paralllel simulations should be 
-imported from this module or anuga.interface
+imported from this module or anuga
 """
 
 from anuga_parallel.parallel_api import distribute
