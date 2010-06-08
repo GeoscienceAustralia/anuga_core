@@ -91,6 +91,8 @@ def log(msg, level=None):
     '''
 
     global _setup, log_logging_level
+    fname = '' # default to no frame name if it cannot be found
+    lnum = 0
 
     # have we been setup?
     if not _setup:

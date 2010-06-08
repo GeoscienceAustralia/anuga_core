@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 """File function
 Takes a file as input, and returns it as a mathematical function.
-For example, you can load an arbitrary 2D heightfield mesh, and treat it as a function as so:
+For example, you can load an arbitrary 2D heightfield mesh, and treat it as a
+function like so:
 
 F = file_function('my_mesh.sww', ...)
 evaluated_point = F(x, y)
 
-Values will be interpolated across the surface of the mesh. Holes in the mesh have an undefined value.
+Values will be interpolated across the surface of the mesh. Holes in the mesh
+have an undefined value.
 
 """
 
@@ -20,21 +22,6 @@ from anuga.utilities.numerical_tools import ensure_numeric
 import anuga.utilities.log as log
 
 
-
-##
-# @brief Read time history of data from NetCDF file, return callable object.
-# @param filename  Name of .sww or .tms file.
-# @param domain Associated domain object.
-# @param quantities Name of quantity to be interpolated or a list of names.
-# @param interpolation_points List of absolute UTM coordinates for points
-#                             (N x 2) or geospatial object or
-#                             points file name at which values are sought.
-# @param time_thinning 
-# @param verbose True if this function is to be verbose.
-# @param use_cache True means that caching of intermediate result is attempted.
-# @param boundary_polygon 
-# @param output_centroids if True, data for the centroid of the triangle will be output
-# @return A callable object.
 def file_function(filename,
                   domain=None,
                   quantities=None,
@@ -106,7 +93,7 @@ def file_function(filename,
     if quantities is None:
         if verbose:
             msg = 'Quantities specified in file_function are None,'
-            msg += ' so I will use stage, xmomentum, and ymomentum in that order'
+            msg += ' so using stage, xmomentum, and ymomentum in that order'
             log.critical(msg)
         quantities = ['stage', 'xmomentum', 'ymomentum']
 
@@ -139,7 +126,7 @@ def file_function(filename,
         except:
             msg = 'Caching was requested, but caching module'+\
                   'could not be imported'
-            raise msg
+            raise Exception(msg)
 
         f, starttime = cache(_file_function,
                              args, kwargs,
@@ -159,10 +146,10 @@ def file_function(filename,
     if domain is not None:
         #Update domain.startime if it is *earlier* than starttime from file
         if starttime > domain.starttime:
-            msg = 'WARNING: Start time as specified in domain (%f)'\
-                  %domain.starttime
-            msg += ' is earlier than the starttime of file %s (%f).'\
-                     %(filename, starttime)
+            msg = 'WARNING: Start time as specified in domain (%f)' \
+                  % domain.starttime
+            msg += ' is earlier than the starttime of file %s (%f).' \
+                     % (filename, starttime)
             msg += ' Modifying domain starttime accordingly.'
             
             if verbose: log.critical(msg)
@@ -205,9 +192,9 @@ def _file_function(filename,
 
     try:
         fid = open(filename)
-    except Exception, e:
+    except IOError, e:
         msg = 'File "%s" could not be opened: Error="%s"' % (filename, e)
-        raise msg
+        raise IOError(msg)
 
     # read first line of file, guess file type
     line = fid.readline()
@@ -311,28 +298,28 @@ def get_netcdf_file_function(filename,
 
     if filename[-3:] == 'tms' and spatial is True:
         msg = 'Files of type tms must not contain spatial  information'
-        raise msg
+        raise Exception(msg)
 
     if filename[-3:] == 'sww' and spatial is False:
         msg = 'Files of type sww must contain spatial information'        
-        raise msg
+        raise Exception(msg)
 
     if filename[-3:] == 'sts' and spatial is False:
         #What if mux file only contains one point
         msg = 'Files of type sts must contain spatial information'        
-        raise msg
+        raise Exception(msg)
 
     if filename[-3:] == 'sts' and boundary_polygon is None:
         #What if mux file only contains one point
         msg = 'Files of type sts require boundary polygon'        
-        raise msg
+        raise Exception(msg)
 
     # Get first timestep
     try:
         starttime = fid.starttime[0]
     except ValueError:
         msg = 'Could not read starttime from file %s' % filename
-        raise msg
+        raise Exception(msg)
 
     # Get variables
     # if verbose: log.critical('Get variables'    )
@@ -379,18 +366,21 @@ def get_netcdf_file_function(filename,
         if filename.endswith('sww'):
             triangles = fid.variables['volumes'][:]
 
-        x = num.reshape(x, (len(x),1))
-        y = num.reshape(y, (len(y),1))
-        vertex_coordinates = num.concatenate((x,y), axis=1) #m x 2 array
+        x = num.reshape(x, (len(x), 1))
+        y = num.reshape(y, (len(y), 1))
+        vertex_coordinates = num.concatenate((x, y), axis=1) #m x 2 array
 
         if boundary_polygon is not None:
             # Remove sts points that do not lie on boundary
-            # FIXME(Ole): Why don't we just remove such points from the list of points and associated data?
-            # I am actually convinced we can get rid of neighbour_gauge_id altogether as the sts file is produced using the ordering file.
-            # All sts points are therefore always present in the boundary. In fact, they *define* parts of the boundary.
+            # FIXME(Ole): Why don't we just remove such points from the list of
+            # points and associated data?
+            # I am actually convinced we can get rid of neighbour_gauge_id
+            # altogether as the sts file is produced using the ordering file.
+            # All sts points are therefore always present in the boundary.
+            # In fact, they *define* parts of the boundary.
             boundary_polygon=ensure_numeric(boundary_polygon)
-            boundary_polygon[:,0] -= xllcorner
-            boundary_polygon[:,1] -= yllcorner
+            boundary_polygon[:, 0] -= xllcorner
+            boundary_polygon[:, 1] -= yllcorner
             temp=[]
             boundary_id=[]
             gauge_id=[]
@@ -419,7 +409,7 @@ def get_netcdf_file_function(filename,
                 gauge_neighbour_id.append(-1)
             gauge_neighbour_id=ensure_numeric(gauge_neighbour_id)
 
-            if len(num.compress(gauge_neighbour_id>=0,gauge_neighbour_id)) \
+            if len(num.compress(gauge_neighbour_id>=0, gauge_neighbour_id)) \
                != len(temp)-1:
                 msg='incorrect number of segments'
                 raise msg
@@ -432,8 +422,8 @@ def get_netcdf_file_function(filename,
 
         if interpolation_points is not None:
             # Adjust for georef
-            interpolation_points[:,0] -= xllcorner
-            interpolation_points[:,1] -= yllcorner        
+            interpolation_points[:, 0] -= xllcorner
+            interpolation_points[:, 1] -= yllcorner        
     else:
         gauge_neighbour_id=None
         

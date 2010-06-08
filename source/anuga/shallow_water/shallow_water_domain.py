@@ -1418,22 +1418,22 @@ else:
     raise Exception, msg
 
 # Optimisation with psyco
-from anuga.config import use_psyco
-if use_psyco:
-    try:
-        import psyco
-    except:
-        import os
-        if os.name == 'posix' and os.uname()[4] in ['x86_64', 'ia64']:
-            pass
-            #Psyco isn't supported on 64 bit systems, but it doesn't matter
-        else:
-            msg = ('WARNING: psyco (speedup) could not be imported, '
-                   'you may want to consider installing it')
-            log.critical(msg)
-    else:
-        psyco.bind(Domain.distribute_to_vertices_and_edges)
-        psyco.bind(Domain.compute_fluxes)
+#from anuga.config import use_psyco
+#if use_psyco:
+    #try:
+        #import psyco
+    #except:
+        #import os
+        #if os.name == 'posix' and os.uname()[4] in ['x86_64', 'ia64']:
+            #pass
+            ##Psyco isn't supported on 64 bit systems, but it doesn't matter
+        #else:
+            #msg = ('WARNING: psyco (speedup) could not be imported, '
+                   #'you may want to consider installing it')
+            #log.critical(msg)
+    #else:
+        #psyco.bind(Domain.distribute_to_vertices_and_edges)
+        #psyco.bind(Domain.compute_fluxes)
 
 
 if __name__ == "__main__":

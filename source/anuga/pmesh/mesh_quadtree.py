@@ -5,21 +5,19 @@ General functions used in fit and interpolate.
    Geoscience Australia, 2006.
 
 """
-import time
 
-from anuga.utilities.numerical_tools import get_machine_precision
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.config import max_float
 
 from anuga.geometry.quad import Cell
 from anuga.geometry.aabb import AABB
 
-from anuga.utilities import compile
-if compile.can_use_C_extension('polygon_ext.c'):
+from anuga.utilities import compile as compile_c
+if compile_c.can_use_C_extension('polygon_ext.c'):
     # Underlying C implementations can be accessed
     from polygon_ext import _is_inside_triangle        
 else:
-    msg = 'C implementations could not be accessed by %s.\n ' %__file__
+    msg = 'C implementations could not be accessed by %s.\n ' % __file__
     msg += 'Make sure compile_all.py has been run as described in '
     msg += 'the ANUGA installation guide.'
     raise Exception, msg
@@ -68,19 +66,19 @@ class MeshQuadtree(Cell):
             x1, y1 = V[i3+1, :]
             x2, y2 = V[i3+2, :]
 
-            node_data = [i, V[i3:i3+3,:], normals[i,:]]
+            node_data = [i, V[i3:i3+3, :], normals[i, :]]
 
             # insert a tuple with an AABB, and the triangle index as data
             self.insert_item((AABB(min([x0, x1, x2]), max([x0, x1, x2]), \
                              min([y0, y1, y2]), max([y0, y1, y2])), \
                              node_data))
 
-    def search_fast(self, x):
+    def search_fast(self, point):
         """
         Find the triangle (element) that the point x is in.
 
         Inputs:
-            x:    The point to test
+            point:    The point to test
         
         Return:
             element_found, sigma0, sigma1, sigma2, k
@@ -92,20 +90,20 @@ class MeshQuadtree(Cell):
 
         """
         
-        x = ensure_numeric(x, num.float)
+        point = ensure_numeric(point, num.float)
                  
         # check the last triangle found first
         element_found, sigma0, sigma1, sigma2, k = \
-                   self._search_triangles_of_vertices(self.last_triangle, x)
+                   self._search_triangles_of_vertices(self.last_triangle, point)
         if element_found:
             return True, sigma0, sigma1, sigma2, k
 
         branch = self.last_triangle[0][1]
 
         # test neighbouring tris
-        tri_data = branch.test_leaves(x)          
+        tri_data = branch.test_leaves(point)          
         element_found, sigma0, sigma1, sigma2, k = \
-                    self._search_triangles_of_vertices(tri_data, x)
+                    self._search_triangles_of_vertices(tri_data, point)
         if element_found:
             return True, sigma0, sigma1, sigma2, k       
 
@@ -114,25 +112,25 @@ class MeshQuadtree(Cell):
         next_search = [branch]
         while branch:               
             for sibling in next_search:
-                tri_data = sibling.search(x)         
+                tri_data = sibling.search(point)         
                 element_found, sigma0, sigma1, sigma2, k = \
-                            self._search_triangles_of_vertices(tri_data, x)
+                            self._search_triangles_of_vertices(tri_data, point)
                 if element_found:
                     return True, sigma0, sigma1, sigma2, k
             
             next_search = branch.get_siblings()                            
             branch = branch.parent
             if branch:
-                tri_data = branch.test_leaves(x)     
+                tri_data = branch.test_leaves(point)     
                 element_found, sigma0, sigma1, sigma2, k = \
-                            self._search_triangles_of_vertices(tri_data, x)
+                            self._search_triangles_of_vertices(tri_data, point)
                 if element_found:
                     return True, sigma0, sigma1, sigma2, k      
 
         return element_found, sigma0, sigma1, sigma2, k
 
 
-    def _search_triangles_of_vertices(self, triangles, x):
+    def _search_triangles_of_vertices(self, triangles, point):
         """Search for triangle containing x among triangle list
 
         This is called by search_tree_of_vertices once the appropriate node
@@ -140,13 +138,13 @@ class MeshQuadtree(Cell):
         
         Input check disabled to speed things up. 
         
-        x is the point to test 
+        point is the point to test 
         triangles is the triangle list
         return the found triangle and its interpolation sigma.
         """  
 
         for node_data in triangles:             
-            if bool(_is_inside_triangle(x, node_data[0][1], \
+            if bool(_is_inside_triangle(point, node_data[0][1], \
                         int(True), 1.0e-12, 1.0e-12)):
                 normals = node_data[0][2]      
                 n0 = normals[0:2]
@@ -154,9 +152,9 @@ class MeshQuadtree(Cell):
                 n2 = normals[4:6]          
                 xi0, xi1, xi2 = node_data[0][1]
 
-                sigma0 = num.dot((x-xi1), n0)/num.dot((xi0-xi1), n0)
-                sigma1 = num.dot((x-xi2), n1)/num.dot((xi1-xi2), n1)
-                sigma2 = num.dot((x-xi0), n2)/num.dot((xi2-xi0), n2)
+                sigma0 = num.dot((point-xi1), n0)/num.dot((xi0-xi1), n0)
+                sigma1 = num.dot((point-xi2), n1)/num.dot((xi1-xi2), n1)
+                sigma2 = num.dot((point-xi0), n2)/num.dot((xi2-xi0), n2)
 
                 # Don't look for any other triangles in the triangle list
                 self.last_triangle = [node_data]

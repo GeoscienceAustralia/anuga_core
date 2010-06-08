@@ -22,6 +22,7 @@ pass
 import sys
 sys.path += __path__
 
+
 #-----------------------------------------------------
 # Make selected classes available directly
 #-----------------------------------------------------
@@ -80,6 +81,13 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions \
 
 
 #-----------------------------
+# Shalow Water Tsunamis
+#-----------------------------
+
+from anuga.shallow_water.smf import slide_tsunami, slump_tsunami
+
+
+#-----------------------------
 # Forcing
 #-----------------------------
 from anuga.shallow_water.forcing import Inflow
@@ -109,6 +117,7 @@ from anuga.pmesh.mesh_interface import create_mesh_from_regions
 # SWW file access
 #-----------------------------
 from anuga.shallow_water.sww_interrogate import get_flow_through_cross_section
+    
 
 #-----------------------------
 # rectangular domains
@@ -279,6 +288,24 @@ def _create_domain_from_regions(bounding_polygon,
     return domain
     
 
+
+from anuga.config import use_psyco
+if use_psyco:
+    # try using psyco if available
+    try:
+        import psyco
+    except:
+        import os
+        if os.name == 'posix' and os.uname()[4] in ['x86_64', 'ia64']:
+            pass
+            # Psyco isn't supported on 64 bit systems, but it doesn't matter
+        else:
+            log.critical('WARNING: psyco (speedup) could not be imported, '
+                         'you may want to consider installing it')
+    else:
+        psyco.full() # aggressively compile everything
+        #psyco.background() # attempt to profile code - only compile most used
+        
 
 
 

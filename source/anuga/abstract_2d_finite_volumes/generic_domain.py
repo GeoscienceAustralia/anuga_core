@@ -15,13 +15,7 @@
 import types
 from time import time as walltime
 
-from anuga.config import epsilon
-from anuga.config import beta_euler, beta_rk2
-
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
-from anuga.abstract_2d_finite_volumes.generic_boundary_conditions \
-	import ( Boundary, File_boundary, AWI_boundary, 
-	         Dirichlet_boundary, Time_boundary, Transmissive_boundary )
 from pmesh2domain import pmesh_to_domain
 from region import Set_region as region_set_region
 from anuga.geometry.polygon import inside_polygon
@@ -31,13 +25,9 @@ import anuga.utilities.log as log
 
 import numpy as num
 
-
-##
-# @brief Generic Domain class
 class Generic_Domain:
-
-    ##
-    # @brief Generic computational Domain constructor.
+    '''
+    Generic computational Domain constructor.
     # @param source Name of mesh file or coords of mesh vertices.
     # @param triangles Mesh connectivity (see mesh.py for more information).
     # @param boundary (see mesh.py for more information)
@@ -54,7 +44,9 @@ class Generic_Domain:
     # @param processor ??
     # @param numproc ??
     # @param number_of_full_nodes ??
-    # @param number_of_full_triangles ??
+    # @param number_of_full_triangles ??    
+    '''
+
     def __init__(self, source=None,
                        triangles=None,
                        boundary=None,
@@ -135,7 +127,8 @@ class Generic_Domain:
         self.number_of_boundaries = self.mesh.number_of_boundaries
         self.number_of_full_nodes = self.mesh.number_of_full_nodes
         self.number_of_full_triangles = self.mesh.number_of_full_triangles
-        self.number_of_triangles_per_node = self.mesh.number_of_triangles_per_node
+        self.number_of_triangles_per_node = \
+                                    self.mesh.number_of_triangles_per_node
 
         self.vertex_value_indices = self.mesh.vertex_value_indices
         self.number_of_triangles = self.mesh.number_of_triangles
@@ -161,9 +154,11 @@ class Generic_Domain:
         else:
             self.other_quantities = other_quantities
 
-        # Test that conserved_quantities are stored in the first entries of evolved_quantities
+        # Test that conserved_quantities are stored in the first entries of
+        # evolved_quantities
         for i, quantity in enumerate(self.conserved_quantities):
-            msg = 'The conserved quantities must be the first entries of evolved_quantities'
+            msg = 'The conserved quantities must be the first entries of '
+            msg += 'evolved_quantities'
             assert quantity == self.evolved_quantities[i], msg
             
 
@@ -204,7 +199,8 @@ class Generic_Domain:
 
         for key in self.ghost_recv_dict:
             buffer_shape = self.ghost_recv_dict[key][0].shape[0]
-            self.ghost_recv_dict[key].append(num.zeros((buffer_shape, self.nsys),
+            self.ghost_recv_dict[key].append( \
+                                            num.zeros((buffer_shape, self.nsys),
                                              num.float))
 
         # Setup cell full flag
@@ -320,7 +316,7 @@ class Generic_Domain:
         return self.mesh.get_vertex_coordinate(*args, **kwargs)        
         
     def get_edge_midpoint_coordinates(self, *args, **kwargs):
-        return self.mesh.get_edge_midpoint_coordinates(*args, **kwargs)                
+        return self.mesh.get_edge_midpoint_coordinates(*args, **kwargs)   
         
     def get_edge_midpoint_coordinate(self, *args, **kwargs):
         return self.mesh.get_edge_midpoint_coordinate(*args, **kwargs)        
@@ -971,7 +967,8 @@ class Generic_Domain:
 
 
         for i, quantity in enumerate(self.conserved_quantities):
-            msg = 'Conserved quantities must be the first entries of evolved_quantities'
+            msg = 'Conserved quantities must be the first entries '
+            msg += 'of evolved_quantities'
             assert quantity == self.evolved_quantities[i], msg
  
 
@@ -1004,24 +1001,12 @@ class Generic_Domain:
         qwidth = self.qwidth = 12
 
         msg = ''
-        #if self.recorded_min_timestep == self.recorded_max_timestep:
-        #    msg += 'Time = %.4f, delta t = %.8f, steps=%d (%d)'\
-        #           %(self.time, self.recorded_min_timestep, self.number_of_steps,
-        #             self.number_of_first_order_steps)
-        #elif self.recorded_min_timestep > self.recorded_max_timestep:
-        #    msg += 'Time = %.4f, steps=%d (%d)'\
-        #           %(self.time, self.number_of_steps,
-        #             self.number_of_first_order_steps)
-        #else:
-        #    msg += 'Time = %.4f, delta t in [%.8f, %.8f], steps=%d (%d)'\
-        #           %(self.time, self.recorded_min_timestep,
-        #             self.recorded_max_timestep, self.number_of_steps,
-        #             self.number_of_first_order_steps)
 
         model_time = self.get_time()
         if self.recorded_min_timestep == self.recorded_max_timestep:
             msg += 'Time = %.4f, delta t = %.8f, steps=%d' \
-                       % (model_time, self.recorded_min_timestep, self.number_of_steps)
+                       % (model_time, self.recorded_min_timestep, \
+                                    self.number_of_steps)
         elif self.recorded_min_timestep > self.recorded_max_timestep:
             msg += 'Time = %.4f, steps=%d' \
                        % (model_time, self.number_of_steps)
@@ -1789,7 +1774,8 @@ class Generic_Domain:
         if len(q_cons) == len(q_evol):
             q_evol[:] = q_cons
         else:
-            msg = 'Method conserved_values_to_evolved_values must be overridden by Domain subclass'
+            msg = 'Method conserved_values_to_evolved_values must be overridden'
+            msg += ' by Domain subclass'
             raise Exception, msg
 
         return q_evol
@@ -1823,9 +1809,11 @@ class Generic_Domain:
 
                     q_evol = self.get_evolved_quantities(vol_id, edge = edge_id)
 
-                    q_evol = self.conserved_values_to_evolved_values(q_bdry, q_evol)
+                    q_evol = self.conserved_values_to_evolved_values \
+                                                            (q_bdry, q_evol)
                 else:
-                    msg = 'Boundary must return array of either conserved or evolved quantities'
+                    msg = 'Boundary must return array of either conserved'
+                    msg += ' or evolved quantities'
                     raise Exception, msg
                 
                 for j, name in enumerate(self.evolved_quantities):
@@ -1871,9 +1859,10 @@ class Generic_Domain:
                     msg += 'even after %d steps of 1 order scheme' \
                                % self.max_smallsteps
                     log.critical(msg)
-                    timestep = self.evolve_min_timestep  # Try enforcing min_step
+                    timestep = self.evolve_min_timestep  # Try enforce min_step
 
-                    log.critical(self.timestepping_statistics(track_speeds=True))
+                    stats = self.timestepping_statistics(track_speeds=True)
+                    log.critical(stats)
 
                     raise Exception, msg
                 else:
@@ -2037,24 +2026,24 @@ class Generic_Domain:
 ######
 
 # Optimisation with psyco
-from anuga.config import use_psyco
+#from anuga.config import use_psyco
 
-if use_psyco:
-    try:
-        import psyco
-    except:
-        import os
-        if os.name == 'posix' and os.uname()[4] in ['x86_64', 'ia64']:
-            pass
-            # Psyco isn't supported on 64 bit systems, but it doesn't matter
-        else:
-            log.critical('WARNING: psyco (speedup) could not be imported, '
-                         'you may want to consider installing it')
-    else:
-        psyco.bind(Generic_Domain.update_boundary)
-        #psyco.bind(Domain.update_timestep) # Not worth it
-        psyco.bind(Generic_Domain.update_conserved_quantities)
-        psyco.bind(Generic_Domain.distribute_to_vertices_and_edges)
+#if use_psyco:
+    #try:
+        #import psyco
+    #except:
+        #import os
+        #if os.name == 'posix' and os.uname()[4] in ['x86_64', 'ia64']:
+            #pass
+            ## Psyco isn't supported on 64 bit systems, but it doesn't matter
+        #else:
+            #log.critical('WARNING: psyco (speedup) could not be imported, '
+                         #'you may want to consider installing it')
+    #else:
+        #psyco.bind(Generic_Domain.update_boundary)
+        ##psyco.bind(Domain.update_timestep) # Not worth it
+        #psyco.bind(Generic_Domain.update_conserved_quantities)
+        #psyco.bind(Generic_Domain.distribute_to_vertices_and_edges)
 
 
 if __name__ == "__main__":

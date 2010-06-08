@@ -3,7 +3,7 @@
 Creates and exports a dem from an sww file.
 """
 
-from anuga.shallow_water.data_manager import sww2dem
+from anuga.file_conversion.sww2dem import sww2dem
 from create_test_sww import create_test_sww
 import os.path
 import cProfile
@@ -26,14 +26,15 @@ def sww2dem_test():
 			reduction=max, 
 			verbose=True,
 			format='asc')
-
+  
 		
 # use existing file
 if not os.path.isfile(sww_name):
 	create_test_sww(sww_name)
 
+
 start_time = time.time()	
-cProfile.run('sww2dem_test()')
-#sww2dem_test()
+#cProfile.run('sww2dem_test()')
+sww2dem_test()
 stop_time = time.time()
 print ('sww2dem took %.1fs\n\n\n' % (stop_time - start_time))
