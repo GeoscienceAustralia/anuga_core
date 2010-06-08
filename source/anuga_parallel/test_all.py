@@ -180,7 +180,7 @@ def regressionTest(test_verbose=False):
 def check_anuga_import():
     try:
         # importing something that loads quickly
-        import anuga.utilities.anuga_exceptions
+        import anuga.anuga_exceptions
     except ImportError:
         print "Python cannot import ANUGA module."
         print "Check you have followed all steps of its installation."
