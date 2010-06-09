@@ -5,7 +5,7 @@ import numpy as num
 
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_float
 
-def dem2dem(basename_in, stencil, cellsize_new, basename_out=None,
+def dem2dem(name_in, stencil, cellsize_new, name_out=None,
                  verbose=False):
     """Read Digitial Elevation model from the following NetCDF format (.dem)
 
@@ -25,11 +25,14 @@ def dem2dem(basename_in, stencil, cellsize_new, basename_out=None,
     import os
     from Scientific.IO.NetCDF import NetCDFFile
 
-    root = basename_in
-    inname = root + '.dem'
+    if name_in[-4:] != '.dem':
+        raise IOError('Input file %s should be of type .dem.' % name_in)
+
+    if name_out != None and basename_out[-4:] != '.dem':
+        raise IOError('Input file %s should be of type .dem.' % name_out)
 
     #Open existing netcdf file to read
-    infile = NetCDFFile(inname, netcdf_mode_r)
+    infile = NetCDFFile(name_in, netcdf_mode_r)
 
     if verbose: log.critical('Reading DEM from %s' % inname)
 
@@ -50,10 +53,10 @@ def dem2dem(basename_in, stencil, cellsize_new, basename_out=None,
     dem_elevation = infile.variables['elevation']
 
     #Get output file name
-    if basename_out == None:
-        outname = root + '_' + repr(cellsize_new) + '.dem'
+    if name_out == None:
+        outname = name_in[:-4] + '_' + repr(cellsize_new) + '.dem'
     else:
-        outname = basename_out + '.dem'
+        outname = name_out
 
     if verbose: log.critical('Write decimated NetCDF file to %s' % outname)
 

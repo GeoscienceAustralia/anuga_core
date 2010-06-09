@@ -100,7 +100,7 @@ END CROSS-SECTIONS:
 
 
         #Convert to NetCDF pts
-        sdf2pts(root)
+        sdf2pts(root+'.sdf')
 
         #Check contents
         #Get NetCDF
@@ -207,7 +207,7 @@ END CROSS-SECTIONS:
         # Invoke interpolation for vertex points       
         points = num.concatenate( (x[:,num.newaxis],y[:,num.newaxis]), axis=1 )
         points = num.ascontiguousarray(points)
-        sww2pts(domain.get_name(),
+        sww2pts(domain.get_name() + '.sww',
                 quantity = 'elevation',
                 data_points = points,
                 NODATA_value = NODATA_value)
@@ -222,7 +222,7 @@ END CROSS-SECTIONS:
         # Invoke interpolation for centroids
         points = domain.get_centroid_coordinates()
         #print points
-        sww2pts(domain.get_name(),
+        sww2pts(domain.get_name() + '.sww',
                 quantity = 'elevation',
                 data_points = points,
                 NODATA_value = NODATA_value)

@@ -542,7 +542,7 @@ class Test_forcing_terms(unittest.TestCase):
         fid.close()
 
         # Convert ASCII file to NetCDF (Which is what we really like!)
-        timefile2netcdf(filename)
+        timefile2netcdf(filename + '.txt')
         os.remove(filename + '.txt')
 
         # Setup wind stress
@@ -632,7 +632,7 @@ class Test_forcing_terms(unittest.TestCase):
         fid.close()
 
         # Convert ASCII file to NetCDF (Which is what we really like!)
-        timefile2netcdf(filename, time_as_seconds=True)
+        timefile2netcdf(filename + '.txt', time_as_seconds=True)
         os.remove(filename + '.txt')
 
         # Setup wind stress

@@ -84,7 +84,7 @@ class Test_Util(unittest.TestCase):
         fid.close()
 
         #Convert ASCII file to NetCDF (Which is what we really like!)
-        timefile2netcdf(filename)
+        timefile2netcdf(filename+'.txt')
 
 
         #Create file function from time series
@@ -995,7 +995,7 @@ class Test_Util(unittest.TestCase):
 
 
         #Convert ASCII file to NetCDF (Which is what we really like!)
-        timefile2netcdf(filename)
+        timefile2netcdf(filename+'.txt')
 
 
 
@@ -1091,7 +1091,7 @@ class Test_Util(unittest.TestCase):
         fid.close()
 
         #Convert ASCII file to NetCDF (Which is what we really like!)
-        timefile2netcdf(filename)        
+        timefile2netcdf(filename+'.txt')        
 
         a = [0.0, 0.0]
         b = [4.0, 0.0]
@@ -1175,7 +1175,7 @@ class Test_Util(unittest.TestCase):
         fid.close()
 
         # Convert ASCII file to NetCDF (Which is what we really like!)
-        timefile2netcdf(filename)        
+        timefile2netcdf(filename + '.txt')        
 
         a = [0.0, 0.0]
         b = [4.0, 0.0]

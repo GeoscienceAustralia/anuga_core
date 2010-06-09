@@ -414,7 +414,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         #Convert ASCII file to NetCDF (Which is what we really like!)
         from anuga.file_conversion.file_conversion import timefile2netcdf
         
-        timefile2netcdf(filename, quantity_names = ['stage', 'xmomentum'])
+        timefile2netcdf(filename+'.txt', quantity_names = ['stage', 'xmomentum'])
 
         
         try:

@@ -98,7 +98,7 @@ class Test_Dem2Dem(unittest.TestCase):
         # generate a stencil for computing the decimated values
         stencil = num.ones((3,3), num.float) / 9.0
 
-        dem2dem(root, stencil=stencil, cellsize_new=100)
+        dem2dem(filename, stencil=stencil, cellsize_new=100)
 
         # Open decimated NetCDF file
         fid = NetCDFFile(root + '_100.dem', netcdf_mode_r)
@@ -193,7 +193,7 @@ class Test_Dem2Dem(unittest.TestCase):
         # Generate a stencil for computing the decimated values
         stencil = num.ones((3,3), num.float) / 9.0
 
-        dem2dem(root, stencil=stencil, cellsize_new=100)
+        dem2dem(filename, stencil=stencil, cellsize_new=100)
 
         # Open decimated NetCDF file
         fid = NetCDFFile(root + '_100.dem', netcdf_mode_r)

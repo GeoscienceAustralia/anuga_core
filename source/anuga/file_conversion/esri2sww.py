@@ -1,24 +1,5 @@
 
-##
-# @brief Convert CSIRO ESRI file to an SWW boundary file.
-# @param bath_dir 
-# @param elevation_dir 
-# @param ucur_dir 
-# @param vcur_dir 
-# @param sww_file 
-# @param minlat 
-# @param maxlat 
-# @param minlon 
-# @param maxlon 
-# @param zscale 
-# @param mean_stage 
-# @param fail_on_NaN 
-# @param elevation_NaN_filler 
-# @param bath_prefix 
-# @param elevation_prefix 
-# @param verbose 
-# @note Also convert latitude and longitude to UTM. All coordinates are
-#       assumed to be given in the GDA94 datum.
+
 def esri2sww(bath_dir,
                   elevation_dir,
                   ucur_dir,
@@ -58,6 +39,9 @@ def esri2sww(bath_dir,
     from Scientific.IO.NetCDF import NetCDFFile
 
     from anuga.coordinate_transforms.redfearn import redfearn
+
+    if sww_file[-4:] != '.sww':
+        raise IOError('Output file %s should be of type .sww.' % sww_file)
 
     # So if we want to change the precision it's done here
     precision = netcdf_float 

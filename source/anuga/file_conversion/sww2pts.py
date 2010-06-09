@@ -1,5 +1,6 @@
 
 import numpy as num
+import os
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 
@@ -14,7 +15,7 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference
 # @param NODATA_value The NODATA value (default -9999).
 # @param verbose True if this function is to be verbose.
 # @param origin ??
-def sww2pts(basename_in, basename_out=None,
+def sww2pts(name_in, name_out=None,
             data_points=None,
             quantity=None,
             timestep=None,
@@ -47,16 +48,26 @@ def sww2pts(basename_in, basename_out=None,
     if reduction is None:
         reduction = max
 
-    if basename_out is None:
+    basename_in, in_ext = os.path.splitext(name_in)
+    
+    if name_out != None:
+        basename_out, out_ext = os.path.splitext(name_out)
+    else:
         basename_out = basename_in + '_%s' % quantity
+        out_ext = '.pts'
+        name_out = basename_out + out_ext
 
-    swwfile = basename_in + '.sww'
-    ptsfile = basename_out + '.pts'
+    if in_ext != '.sww':
+        raise IOError('Input format for %s must be .sww' % name_in)
+
+    if out_ext != '.pts':
+        raise IOError('Output format for %s must be .pts' % name_out)
+
 
     # Read sww file
-    if verbose: log.critical('Reading from %s' % swwfile)
+    if verbose: log.critical('Reading from %s' % name_in)
     from Scientific.IO.NetCDF import NetCDFFile
-    fid = NetCDFFile(swwfile)
+    fid = NetCDFFile(name_in)
 
     # Get extent and reference
     x = fid.variables['x'][:]
@@ -162,7 +173,7 @@ def sww2pts(basename_in, basename_out=None,
     # Store results
     G = Geospatial_data(data_points=data_points, attributes=interpolated_values)
 
-    G.export_points_file(ptsfile, absolute = True)
+    G.export_points_file(name_out, absolute = True)
 
     fid.close()
 

@@ -6,17 +6,7 @@ import anuga.utilities.log as log
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a, \
                             netcdf_float
 
-##
-# @brief Convert ASC file to DEM file.
-# formerly convert_dem_from_ascii2netcdf
-# @param basename_in Stem of input filename.
-# @param basename_out Stem of output filename.
-# @param use_cache ??
-# @param verbose True if this function is to be verbose.
-# @return 
-# @note A PRJ file with same stem basename must exist and is used to fix the
-#       UTM zone, datum, false northings and eastings.
-def asc2dem(basename_in, basename_out=None,
+def asc2dem(name_in, name_out=None,
                                   use_cache=False,
                                   verbose=False):
     """Read Digital Elevation model from the following ASCII format (.asc)
@@ -30,10 +20,10 @@ def asc2dem(basename_in, basename_out=None,
     NODATA_value  -9999
     138.3698 137.4194 136.5062 135.5558 ..........
 
-    Convert basename_in + '.asc' to NetCDF format (.dem)
+    Convert name_in (.asc) to NetCDF format (.dem)
     mimicking the ASCII format closely.
 
-    An accompanying file with same basename_in but extension .prj must exist
+    An accompanying file with same basename but extension .prj must exist
     and is used to fix the UTM zone, datum, false northings and eastings.
 
     The prj format is assumed to be as
@@ -49,17 +39,17 @@ def asc2dem(basename_in, basename_out=None,
     Parameters
     """
 
-    kwargs = {'basename_out': basename_out, 'verbose': verbose}
+    kwargs = {'name_out': name_out, 'verbose': verbose}
 
     if use_cache is True:
         from caching import cache
-        result = cache(_convert_dem_from_ascii2netcdf, basename_in, kwargs,
-                       dependencies=[basename_in + '.asc',
-                                     basename_in + '.prj'],
+        result = cache(_convert_dem_from_ascii2netcdf, name_in, kwargs,
+                       dependencies=[name_in,
+                                     name_in[:-4] + '.prj'],
                        verbose=verbose)
 
     else:
-        result = apply(_convert_dem_from_ascii2netcdf, [basename_in], kwargs)
+        result = apply(_convert_dem_from_ascii2netcdf, [name_in], kwargs)
 
     return result
 
@@ -69,7 +59,7 @@ def asc2dem(basename_in, basename_out=None,
 # @param basename_in Stem of input filename.
 # @param basename_out Stem of output filename.
 # @param verbose True if this function is to be verbose.
-def _convert_dem_from_ascii2netcdf(basename_in, basename_out = None,
+def _convert_dem_from_ascii2netcdf(name_in, name_out = None,
                                    verbose = False):
     """Read Digital Elevation model from the following ASCII format (.asc)
 
@@ -80,7 +70,7 @@ def _convert_dem_from_ascii2netcdf(basename_in, basename_out = None,
     import os
     from Scientific.IO.NetCDF import NetCDFFile
 
-    root = basename_in
+    root = name_in[:-4]
 
     # Read Meta data
     if verbose: log.critical('Reading METADATA from %s' % (root + '.prj'))
@@ -121,10 +111,13 @@ def _convert_dem_from_ascii2netcdf(basename_in, basename_out = None,
     assert L[0].strip().lower() == 'yshift'
     false_northing = float(L[1].strip())
 
-    #Read DEM data
-    datafile = open(basename_in + '.asc')
+    if name_in[-4:] != '.asc':
+        raise IOError('Input file %s should be of type .asc.' % name_in)
 
-    if verbose: log.critical('Reading DEM from %s' % (basename_in + '.asc'))
+    #Read DEM data
+    datafile = open(name_in)
+
+    if verbose: log.critical('Reading DEM from %s' % (name_in))
 
     lines = datafile.readlines()
     datafile.close()
@@ -162,10 +155,10 @@ def _convert_dem_from_ascii2netcdf(basename_in, basename_out = None,
 
     assert len(lines) == nrows + 6
 
-    if basename_out == None:
-        netcdfname = root + '.dem'
+    if name_out == None:
+        netcdfname = name_in[:-4]+'.dem'
     else:
-        netcdfname = basename_out + '.dem'
+        netcdfname = name_out + '.dem'
 
     if verbose: log.critical('Store to NetCDF file %s' % netcdfname)
 
@@ -210,7 +203,7 @@ def _convert_dem_from_ascii2netcdf(basename_in, basename_out = None,
             log.critical('Processing row %d of %d' % (i, nrows))
            
         if len(fields) != ncols:
-            msg = 'Wrong number of columns in file "%s" line %d\n' % (basename_in + '.asc', i)
+            msg = 'Wrong number of columns in file "%s" line %d\n' % (name_in, i)
             msg += 'I got %d elements, but there should have been %d\n' % (len(fields), ncols)
             raise Exception, msg
 

@@ -17,7 +17,7 @@ from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a, \
 # @param use_cache 
 # @param verbose 
 # @return 
-def dem2pts(basename_in, basename_out=None,
+def dem2pts(name_in, name_out=None,
             easting_min=None, easting_max=None,
             northing_min=None, northing_max=None,
             use_cache=False, verbose=False,):
@@ -39,7 +39,7 @@ def dem2pts(basename_in, basename_out=None,
     elevation: N float array
     """
 
-    kwargs = {'basename_out': basename_out,
+    kwargs = {'name_out': name_out,
               'easting_min': easting_min,
               'easting_max': easting_max,
               'northing_min': northing_min,
@@ -48,12 +48,12 @@ def dem2pts(basename_in, basename_out=None,
 
     if use_cache is True:
         from caching import cache
-        result = cache(_dem2pts, basename_in, kwargs,
-                       dependencies = [basename_in + '.dem'],
+        result = cache(_dem2pts, name_in, kwargs,
+                       dependencies = [name_in],
                        verbose = verbose)
 
     else:
-        result = apply(_dem2pts, [basename_in], kwargs)
+        result = apply(_dem2pts, [name_in], kwargs)
 
     return result
 
@@ -67,7 +67,7 @@ def dem2pts(basename_in, basename_out=None,
 # @param easting_max 
 # @param northing_min 
 # @param northing_max 
-def _dem2pts(basename_in, basename_out=None, verbose=False,
+def _dem2pts(name_in, name_out=None, verbose=False,
             easting_min=None, easting_max=None,
             northing_min=None, northing_max=None):
     """Read Digitial Elevation model from the following NetCDF format (.dem)
@@ -80,12 +80,18 @@ def _dem2pts(basename_in, basename_out=None, verbose=False,
     import os
     from Scientific.IO.NetCDF import NetCDFFile
 
-    root = basename_in
+    if name_in[-4:] != '.dem':
+        raise IOError('Input file %s should be of type .dem.' % name_in)
+
+    if name_out != None and basename_out[-4:] != '.pts':
+        raise IOError('Input file %s should be of type .pts.' % name_out)
+
+    root = name_in[:-4]
 
     # Get NetCDF
-    infile = NetCDFFile(root + '.dem', netcdf_mode_r) 
+    infile = NetCDFFile(name_in, netcdf_mode_r) 
 
-    if verbose: log.critical('Reading DEM from %s' % (root + '.dem'))
+    if verbose: log.critical('Reading DEM from %s' % (name_in))
 
     ncols = infile.ncols[0]
     nrows = infile.nrows[0]
@@ -105,10 +111,10 @@ def _dem2pts(basename_in, basename_out=None, verbose=False,
     units = infile.units
 
     # Get output file
-    if basename_out == None:
+    if name_out == None:
         ptsname = root + '.pts'
     else:
-        ptsname = basename_out + '.pts'
+        ptsname = name_out
 
     if verbose: log.critical('Store to NetCDF file %s' % ptsname)
 

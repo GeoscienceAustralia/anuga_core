@@ -6,6 +6,11 @@
         
     for example:
         sww2dem('northbeach.sww', 'outfile.dem')
+        
+    Some formats input and output across multiple files. In that case the
+    convention is so:
+        urs2nc('northbeach', 'outfile')
+    Where an array of 3 input files produce 4 output files.
 """
 
 # Add path of package to PYTHONPATH to allow C-extensions to be loaded

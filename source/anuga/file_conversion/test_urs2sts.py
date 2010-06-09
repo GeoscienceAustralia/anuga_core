@@ -68,12 +68,12 @@ class Test_Urs2Sts(Test_Mux):
                                       ua=ua,
                                       va=va)
 
+        sts_file = base_name + '.sts'
+
         urs2sts(base_name,
-                basename_out=base_name, 
+                basename_out=sts_file, 
                 mean_stage=tide,verbose=False)
 
-        # now I want to check the sts file ...
-        sts_file = base_name + '.sts'
 
         #Let's interigate the sww file
         # Note, the sww info is not gridded.  It is point data.
@@ -183,14 +183,13 @@ class Test_Urs2Sts(Test_Mux):
                                            ua=ua,
                                            va=va)
 
+        sts_file = base_name + '.sts'
+
         urs2sts(base_name,
-                basename_out=base_name, 
+                basename_out=sts_file, 
                 central_meridian=123,
                 mean_stage=tide,
                 verbose=False)
-
-        # now I want to check the sts file ...
-        sts_file = base_name + '.sts'
 
         #Let's interigate the sww file
         # Note, the sww info is not gridded.  It is point data.

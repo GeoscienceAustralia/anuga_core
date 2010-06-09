@@ -28,7 +28,7 @@ from anuga.shallow_water.shallow_water_domain import Domain
 from anuga.shallow_water.shallow_water_domain import Domain
 
 
-def sww2obj(basefilename, size):
+def sww2obj(filename, size):
     """ Convert netcdf based data output to obj
 
         Convert SWW data to OBJ data.
@@ -38,10 +38,15 @@ def sww2obj(basefilename, size):
 
     from Scientific.IO.NetCDF import NetCDFFile
 
+    if filename[-4:] != '.sww':
+        raise IOError('Output file %s should be of type .sww.' % sww_file)
+
+    basefilename = filename[:-4]
+
     # Get NetCDF
-    FN = create_filename('.', basefilename, 'sww', size)
-    log.critical('Reading from %s' % FN)
-    fid = NetCDFFile(FN, netcdf_mode_r)  #Open existing file for read
+    nc_fname = create_filename('.', basefilename, 'sww', size)
+    log.critical('Reading from %s' % nc_fname)
+    fid = NetCDFFile(nc_fname, netcdf_mode_r)  #Open existing file for read
 
     # Get the variables
     x = fid.variables['x']
@@ -80,79 +85,12 @@ def sww2obj(basefilename, size):
         FN = create_filename('.', basefilename[:5], 'obj', size, time=t)
         write_obj(FN, xx, yy, zz)
 
-
-##
-# @brief 
-# @param basefilename Stem of filename, needs size and extension added.
-def dat2obj(basefilename):
-    """Convert line based data output to obj
-    FIXME: Obsolete?
-    """
-
-    import glob, os
-    from anuga.config import data_dir
-
-    # Get bathymetry and x,y's
-    lines = open(data_dir+os.sep+basefilename+'_geometry.dat', 'r').readlines()
-
-    M = len(lines)  #Number of lines
-    x = num.zeros((M,3), num.float)
-    y = num.zeros((M,3), num.float)
-    z = num.zeros((M,3), num.float)
-
-    for i, line in enumerate(lines):
-        tokens = line.split()
-        values = map(float, tokens)
-
-        for j in range(3):
-            x[i,j] = values[j*3]
-            y[i,j] = values[j*3+1]
-            z[i,j] = values[j*3+2]
-
-    # Write obj for bathymetry
-    write_obj(data_dir + os.sep + basefilename + '_geometry', x, y, z)
-
-    # Now read all the data files with variable information, combine with
-    # x,y info and store as obj.
-
-    files = glob.glob(data_dir + os.sep + basefilename + '*.dat')
-    for filename in files:
-        log.critical('Processing %s' % filename)
-
-        lines = open(data_dir + os.sep + filename, 'r').readlines()
-        assert len(lines) == M
-        root, ext = os.path.splitext(filename)
-
-        # Get time from filename
-        i0 = filename.find('_time=')
-        if i0 == -1:
-            #Skip bathymetry file
-            continue
-
-        i0 += 6  #Position where time starts
-        i1 = filename.find('.dat')
-
-        if i1 > i0:
-            t = float(filename[i0:i1])
-        else:
-            raise DataTimeError, 'Hmmmm'
-
-        for i, line in enumerate(lines):
-            tokens = line.split()
-            values = map(float,tokens)
-
-            for j in range(3):
-                z[i,j] = values[j]
-
-        # Write obj for variable data
-        write_obj(data_dir + os.sep + basefilename + '_time=%.4f' % t, x, y, z)
-
 ##
 # @brief Convert time-series text file to TMS file.
 # @param filename 
 # @param quantity_names 
 # @param time_as_seconds 
-def timefile2netcdf(filename, quantity_names=None, time_as_seconds=False):
+def timefile2netcdf(file_text, quantity_names=None, time_as_seconds=False):
     """Template for converting typical text files with time series to
     NetCDF tms file.
 
@@ -179,7 +117,10 @@ def timefile2netcdf(filename, quantity_names=None, time_as_seconds=False):
     from anuga.config import time_format
     from anuga.utilities.numerical_tools import ensure_numeric
 
-    file_text = filename + '.txt'
+    if file_text[-4:] != '.txt':
+        raise IOError('Input file %s should be of type .txt.' % file_text)
+
+    filename = file_text[:-4]
     fid = open(file_text)
     line = fid.readline()
     fid.close()
@@ -287,6 +228,9 @@ def tsh2sww(filename, verbose=False):
     """
     to check if a tsh/msh file 'looks' good.
     """
+
+    if filename[-4:] != '.tsh' and filename[-4:] != '.msh':
+        raise IOError('Input file %s should be .tsh or .msh.' % name_out)
 
     if verbose == True: log.critical('Creating domain from %s' % filename)
 

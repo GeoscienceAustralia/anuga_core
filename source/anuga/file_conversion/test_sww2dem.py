@@ -131,12 +131,12 @@ class Test_Sww2Dem(unittest.TestCase):
         fid.close()
 
         #Export to ascii/prj files
-        sww2dem(self.domain.get_name(),
+        sww2dem(self.domain.get_name()+'.sww',
+                self.domain.get_name()+'_elevation.asc',
                 quantity = 'elevation',
                 cellsize = cellsize,
                 number_of_decimal_places = 9,
-                verbose = self.verbose,
-                format = 'asc')
+                verbose = self.verbose)
 
         #Check prj (meta data)
         prjid = open(prjfile)
@@ -219,17 +219,18 @@ class Test_Sww2Dem(unittest.TestCase):
         os.remove(prjfile)
         os.remove(ascfile)
 
+        ascfile = self.domain.get_name() + '_depth.asc'
+        prjfile = self.domain.get_name() + '_depth.prj'
+
         #Export to ascii/prj files
-        sww2dem(self.domain.get_name(),
+        sww2dem(self.domain.get_name()+'.sww',
+                ascfile,
                 quantity = 'depth',
                 cellsize = cellsize,
                 number_of_decimal_places = 9,
-                verbose = self.verbose,
-                format = 'asc')
+                verbose = self.verbose)
         
         #Check asc file
-        ascfile = self.domain.get_name() + '_depth.asc'
-        prjfile = self.domain.get_name() + '_depth.prj'
         ascid = open(ascfile)
         lines = ascid.readlines()
         ascid.close()
@@ -352,12 +353,12 @@ class Test_Sww2Dem(unittest.TestCase):
 
 
         #Export to ascii/prj files
-        sww2dem(domain.get_name(),
+        sww2dem(domain.get_name() + '.sww',
+                domain.get_name() + '_elevation.asc',
                 quantity = 'elevation',
                 cellsize = cellsize,
                 number_of_decimal_places = 9,
                 verbose = self.verbose,
-                format = 'asc',
                 block_size=2)
 
 
@@ -524,12 +525,12 @@ class Test_Sww2Dem(unittest.TestCase):
 
 
         #Export to ascii/prj files
-        sww2dem(domain.get_name(),
+        sww2dem(domain.get_name()+'.sww',
+                domain.get_name() + '_elevation.asc',
                 quantity = 'elevation',
                 cellsize = cellsize,
                 number_of_decimal_places = 9,
                 verbose = self.verbose,
-                format = 'asc',
                 block_size=2)
 
 
@@ -719,7 +720,8 @@ class Test_Sww2Dem(unittest.TestCase):
 
 
         # Export to ascii/prj files
-        sww2dem(domain.get_name(),
+        sww2dem(domain.get_name() + '.sww',
+                domain.get_name() + '_elevation.asc',
                 quantity = 'elevation',
                 cellsize = cellsize,
                 number_of_decimal_places = 9,
@@ -727,8 +729,7 @@ class Test_Sww2Dem(unittest.TestCase):
                 easting_max = 308570,
                 northing_min = 6189050,
                 northing_max = 6189100,
-                verbose = self.verbose,
-                format = 'asc')
+                verbose = self.verbose)
 
         fid.close()
 
@@ -866,13 +867,12 @@ class Test_Sww2Dem(unittest.TestCase):
 
 
         #Export to ascii/prj files
-        sww2dem(self.domain.get_name(),
+        sww2dem(self.domain.get_name() + '.sww',
+                self.domain.get_name() + '_stage.asc',
                 quantity = 'stage',
                 cellsize = cellsize,
                 number_of_decimal_places = 9,
-                reduction = min,
-                format = 'asc',
-                verbose=self.verbose)
+                reduction = min)
 
 
         #Check asc file
@@ -973,12 +973,12 @@ class Test_Sww2Dem(unittest.TestCase):
         stage = fid.variables['stage'][:]
 
         #Export to ascii/prj files
-        sww2dem(self.domain.get_name(),
+        sww2dem(self.domain.get_name() + '.sww',
+                self.domain.get_name() + '_stage.asc',
                 quantity = 'stage',
                 cellsize = cellsize,
                 number_of_decimal_places = 9,
                 reduction = 1,
-                format = 'asc',
                 verbose=self.verbose)
 
 
@@ -1081,13 +1081,12 @@ class Test_Sww2Dem(unittest.TestCase):
 
 
         #Export to ascii/prj files
-        sww2dem(self.domain.get_name(),
-                basename_out = 'datatest_depth',
+        sww2dem(self.domain.get_name()+'.sww',
+                name_out = 'datatest_depth.asc',
                 quantity = 'stage - elevation',
                 cellsize = cellsize,
                 number_of_decimal_places = 9,
                 reduction = min,
-                format = 'asc',
                 verbose = self.verbose)
 
 
@@ -1233,12 +1232,12 @@ class Test_Sww2Dem(unittest.TestCase):
             geo_reference = Geo_reference(DEFAULT_ZONE,0,0)
 
         #Export to ascii/prj files
-        sww2dem(domain.get_name(),
+        sww2dem(domain.get_name()+'.sww',
+                domain.get_name()+'_elevation.asc',
                 quantity = 'elevation',
                 cellsize = cellsize,
                 number_of_decimal_places = 9,
-                verbose = self.verbose,
-                format = 'asc')
+                verbose = self.verbose)
 
 
         #Check asc file
@@ -1342,19 +1341,20 @@ class Test_Sww2Dem(unittest.TestCase):
 
 
         #Export to ers files
-        sww2dem(self.domain.get_name(),
+        outname = self.domain.get_name() + '_elevation.ers'
+        sww2dem(self.domain.get_name() + '.sww',
+                outname,
                 quantity = 'elevation',
                 cellsize = cellsize,
                 number_of_decimal_places = 9,
                 NODATA_value = NODATA_value,
-                verbose = self.verbose,
-                format = 'ers')
+                verbose = self.verbose)
 
         #Check header data
         from ermapper_grids import read_ermapper_header, read_ermapper_data
 
-        header = read_ermapper_header(self.domain.get_name() + '_elevation.ers')
-        #print header
+        header = read_ermapper_header(outname)
+
         assert header['projection'].lower() == '"utm-56"'
         assert header['datum'].lower() == '"wgs84"'
         assert header['units'].lower() == '"meters"'

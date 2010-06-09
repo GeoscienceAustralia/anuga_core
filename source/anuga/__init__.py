@@ -95,7 +95,7 @@ from anuga.shallow_water.forcing import Inflow
 #-----------------------------
 # File conversion utilities
 #-----------------------------
-from anuga.file_conversion.file_conversion import sww2obj, dat2obj, \
+from anuga.file_conversion.file_conversion import sww2obj, \
                     timefile2netcdf, tsh2sww
 from anuga.file_conversion.urs2nc import urs2nc
 from anuga.file_conversion.urs2sww import urs2sww  

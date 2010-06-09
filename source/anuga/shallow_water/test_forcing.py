@@ -247,7 +247,7 @@ class Test_Forcing(unittest.TestCase):
 
         fid.close()
 
-        timefile2netcdf(filename)
+        timefile2netcdf(filename + '.txt')
         os.remove(filename + '.txt')
 
         # Setup wind stress
@@ -336,7 +336,7 @@ class Test_Forcing(unittest.TestCase):
 
         fid.close()
 
-        timefile2netcdf(filename, time_as_seconds=True)
+        timefile2netcdf(filename + '.txt', time_as_seconds=True)
         os.remove(filename + '.txt')
 
         # Setup wind stress

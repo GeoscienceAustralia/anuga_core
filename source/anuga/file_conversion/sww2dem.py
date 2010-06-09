@@ -28,7 +28,7 @@ quantity_formula = {'momentum':'(xmomentum**2 + ymomentum**2)**0.5',
 # Default block size for sww2dem()
 DEFAULT_BLOCK_SIZE = 10000
 
-def sww2dem(basename_in, basename_out=None,
+def sww2dem(name_in, name_out,
             quantity=None, # defaults to elevation
             reduction=None,
             cellsize=10,
@@ -41,7 +41,6 @@ def sww2dem(basename_in, basename_out=None,
             verbose=False,
             origin=None,
             datum='WGS84',
-            format='ers',
             block_size=None):
     """Read SWW file and convert to Digitial Elevation model format
     (.asc or .ers)
@@ -97,8 +96,15 @@ def sww2dem(basename_in, basename_out=None,
     from anuga.abstract_2d_finite_volumes.util import \
          apply_expression_to_dictionary
 
-    msg = 'Format must be either asc or ers'
-    assert format.lower() in ['asc', 'ers'], msg
+    basename_in, in_ext = os.path.splitext(name_in)
+    basename_out, out_ext = os.path.splitext(name_out)
+    out_ext = out_ext.lower()
+
+    if in_ext != '.sww':
+        raise IOError('Input format for %s must be .sww' % name_in)
+
+    if out_ext not in ['.asc', '.ers']:
+        raise IOError('Format for %s must be either asc or ers.' % name_out)
 
     false_easting = 500000
     false_northing = 10000000
@@ -109,9 +115,6 @@ def sww2dem(basename_in, basename_out=None,
     if reduction is None:
         reduction = max
 
-    if basename_out is None:
-        basename_out = basename_in + '_%s' % quantity
-
     if quantity_formula.has_key(quantity):
         quantity = quantity_formula[quantity]
 
@@ -121,17 +124,13 @@ def sww2dem(basename_in, basename_out=None,
     if block_size is None:
         block_size = DEFAULT_BLOCK_SIZE
 
-    # Read SWW file
-    swwfile = basename_in + '.sww'
-    demfile = basename_out + '.' + format
-
     # Read sww file
     if verbose:
-        log.critical('Reading from %s' % swwfile)
-        log.critical('Output directory is %s' % basename_out)
+        log.critical('Reading from %s' % name_in)
+        log.critical('Output directory is %s' % name_out)
 
     from Scientific.IO.NetCDF import NetCDFFile
-    fid = NetCDFFile(swwfile)
+    fid = NetCDFFile(name_in)
 
     #Get extent and reference
     x = fid.variables['x'][:]
@@ -167,7 +166,7 @@ def sww2dem(basename_in, basename_out=None,
     if verbose:
         log.critical('------------------------------------------------')
         log.critical('Statistics of SWW file:')
-        log.critical('  Name: %s' % swwfile)
+        log.critical('  Name: %s' % name_in)
         log.critical('  Reference:')
         log.critical('    Lower left corner: [%f, %f]' % (xllcorner, yllcorner))
         if type(reduction) is not types.BuiltinFunctionType:
@@ -211,7 +210,7 @@ def sww2dem(basename_in, basename_out=None,
             missing_vars.append(name)
     if missing_vars:
         msg = ("In expression '%s', variables %s are not in the SWW file '%s'"
-               % (quantity, swwfile))
+               % (quantity, name_in))
         raise Exception, msg
 
     # Create result array and start filling, block by block.
@@ -299,7 +298,7 @@ def sww2dem(basename_in, basename_out=None,
     grid_points = num.zeros ((ncols*nrows, 2), num.float)
 
     for i in xrange(nrows):
-        if format.lower() == 'asc':
+        if out_ext == '.asc':
             yg = i * cellsize
         else:
             # this will flip the order of the y values for ers
@@ -335,7 +334,7 @@ def sww2dem(basename_in, basename_out=None,
     for i in outside_indices:
         grid_values[i] = NODATA_value
 
-    if format.lower() == 'ers':
+    if out_ext == '.ers':
         # setup ERS header information
         grid_values = num.reshape(grid_values, (nrows, ncols))
         header = {}
@@ -361,7 +360,7 @@ def sww2dem(basename_in, basename_out=None,
 
         import ermapper_grids
 
-        ermapper_grids.write_ermapper_grid(demfile, grid_values, header)
+        ermapper_grids.write_ermapper_grid(name_out, grid_values, header)
 
         fid.close()
     else:
@@ -382,9 +381,9 @@ def sww2dem(basename_in, basename_out=None,
         prjid.write('Parameters\n')
         prjid.close()
 
-        if verbose: log.critical('Writing %s' % demfile)
+        if verbose: log.critical('Writing %s' % name_out)
 
-        ascid = open(demfile, 'w')
+        ascid = open(name_out, 'w')
 
         ascid.write('ncols         %d\n' %ncols)
         ascid.write('nrows         %d\n' %nrows)
@@ -439,6 +438,8 @@ def sww2dem_batch(basename_in, extra_name_out=None,
     """Wrapper for sww2dem.
     See sww2dem to find out what most of the parameters do.
 
+    basename_in is a path to sww file/s, without the .sww extension.
+
     Quantities is a list of quantities.  Each quantity will be
     calculated for each sww file.
 
@@ -472,7 +473,8 @@ def sww2dem_batch(basename_in, extra_name_out=None,
             else:
                 basename_out = sww_file + '_' + quantity + '_' + extra_name_out
 
-            file_out = sww2dem(dir+os.sep+sww_file, dir+os.sep+basename_out,
+            file_out = sww2dem(dir+os.sep+sww_file+'.sww',
+                               dir+os.sep+basename_out,
                                quantity,
                                reduction,
                                cellsize,

@@ -37,8 +37,8 @@ def _read_hecras_cross_sections(lines):
 
 
 
-def sdf2pts(basename_in,
-                              basename_out=None,
+def sdf2pts(name_in,
+                              name_out=None,
                               verbose=False):
     """Read HEC-RAS Elevation datal from the following ASCII format (.sdf)
 
@@ -98,10 +98,16 @@ Only the SURFACE LINE data of the following form will be utilised
     import os
     from Scientific.IO.NetCDF import NetCDFFile
 
-    root = basename_in
+    if name_in[-4:] != '.sdf':
+        raise IOError('Input file %s should be of type .sdf.' % name_in)
+
+    if name_out is None:
+        name_out = name_in[:-4] + '.pts'
+    elif name_out[-4:] != '.pts':
+        raise IOError('Input file %s should be of type .pts.' % name_out)
 
     # Get ASCII file
-    infile = open(root + '.sdf', 'r')
+    infile = open(name_in, 'r')
 
     if verbose: log.critical('Reading DEM from %s' % (root + '.sdf'))
 
@@ -169,10 +175,10 @@ Only the SURFACE LINE data of the following form will be utilised
     assert j+1 == number_of_cross_sections, msg
 
     # Get output file, write PTS data
-    if basename_out == None:
-        ptsname = root + '.pts'
+    if name_out == None:
+        ptsname = name_in[:-4] + '.pts'
     else:
-        ptsname = basename_out + '.pts'
+        ptsname = name_out
 
     geo_ref = Geo_reference(zone, 0, 0, datum, projection, units)
     geo = Geospatial_data(points, {"elevation":elevation},

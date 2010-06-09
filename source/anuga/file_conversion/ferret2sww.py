@@ -16,7 +16,7 @@ import anuga.utilities.log as log
 from anuga.file_conversion.file_conversion import get_min_max_indices                            
 
 
-def ferret2sww(basename_in, basename_out=None,
+def ferret2sww(basename_in, name_out=None,
                verbose=False,
                minlat=None, maxlat=None,
                minlon=None, maxlon=None,
@@ -63,6 +63,9 @@ def ferret2sww(basename_in, basename_out=None,
 
     _assert_lat_long(minlat, maxlat, minlon, maxlon)
 
+    if name_out != None and name_out[-4:] != '.sww':
+        raise IOError('Output file %s should be of type .sww.' % name_out)
+
     # Get NetCDF data
     if verbose: log.critical('Reading files %s_*.nc' % basename_in)
 
@@ -78,10 +81,10 @@ def ferret2sww(basename_in, basename_out=None,
     # Elevation (z) (m)
     file_e = NetCDFFile(basename_in + '_e.nc', netcdf_mode_r)  
 
-    if basename_out is None:
+    if name_out is None:
         swwname = basename_in + '.sww'
     else:
-        swwname = basename_out + '.sww'
+        swwname = name_out
 
     # Get dimensions of file_h
     for dimension in file_h.dimensions.keys():
