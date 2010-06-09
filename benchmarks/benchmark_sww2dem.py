@@ -15,8 +15,8 @@ sww_name = 'test.sww'
 def sww2dem_test():
 	# do export to DEM
 
-	sww2dem('test',
-			basename_out='sww2dem_out',
+	sww2dem(sww_name,
+			name_out='sww2dem_out.asc',
 			quantity='stage',
 			cellsize=0.25,      
 			easting_min=0,
@@ -24,8 +24,7 @@ def sww2dem_test():
 			northing_min=0,
 			northing_max=100,        
 			reduction=max, 
-			verbose=True,
-			format='asc')
+			verbose=True)
   
 		
 # use existing file
