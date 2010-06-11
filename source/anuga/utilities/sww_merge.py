@@ -17,6 +17,12 @@ def sww_merge(swwfiles, output, verbose = False):
         
         May be useful for parallel runs. Note that some advanced information
         and custom quantities may not be exported.
+        
+        The sww files to be merged must have exactly the same timesteps.
+        
+        swwfiles is a list of .sww files to merge.
+        output is the output filename, including .sww extension.
+        verbose True to log output information
     """
     
     static_quantities = ['elevation']
@@ -42,6 +48,7 @@ def sww_merge(swwfiles, output, verbose = False):
             for quantity in static_quantities:
                 out_s_quantities[quantity] = []
 
+            # Quantities are stored as a 2D array of timesteps x data.
             for quantity in dynamic_quantities:
                 out_d_quantities[quantity] = [ [] for _ in range(len(times))]
                  
@@ -49,6 +56,7 @@ def sww_merge(swwfiles, output, verbose = False):
             first_file = False
         else:
             for tri in tris:
+                # Advance new tri indices to point at newly appended points.
                 verts = [vertex+tri_offset for vertex in tri]
                 out_tris.append(verts)
 
@@ -61,18 +69,21 @@ def sww_merge(swwfiles, output, verbose = False):
         x.extend(list(fid.variables['x'][:]))
         y.extend(list(fid.variables['y'][:]))
         
+        # Grow the list of static quantities associated with the x,y points
         for quantity in static_quantities:
             out_s_quantities[quantity].extend(fid.variables[quantity][:])
             
+        #Collate all dynamic quantities according to their timestep
         for quantity in dynamic_quantities:
             time_chunks = fid.variables[quantity][:]
             for i, time_chunk in enumerate(time_chunks):
                 out_d_quantities[quantity][i].extend(time_chunk)            
-        
+    
+    # Mash all points into a single big list    
     points = [[xx, yy] for xx, yy in zip(x, y)]
     fid.close()
     
-    # NetCDF file definition
+    # Write out the SWW file
     fido = NetCDFFile(output, netcdf_mode_w)
     sww = Write_sww(static_quantities, dynamic_quantities)
     sww.store_header(fido, times,
@@ -86,6 +97,7 @@ def sww_merge(swwfiles, output, verbose = False):
        
     sww.store_static_quantities(fido, verbose=verbose, **out_s_quantities)
 
+    # Write out all the dynamic quantities for each timestep
     for q in dynamic_quantities:
         q_values = out_d_quantities[q]
         for i, time_slice in enumerate(q_values):
