@@ -143,7 +143,7 @@ class Test_FileUtils(unittest.TestCase):
         # remove temp files
         os.remove('test1.sww')
         os.remove('test2.sww')
-      #  os.remove(outfile)      
+        os.remove(outfile)      
         
         
 
