@@ -5,6 +5,7 @@ import shutil
 
 from anuga.utilities.file_utils import copy_code_files, get_all_swwfiles
 from anuga.utilities.file_utils import del_dir
+from sww_merge import sww_merge
 
 
 class Test_FileUtils(unittest.TestCase):
@@ -108,10 +109,47 @@ class Test_FileUtils(unittest.TestCase):
         
         assert len(iterate)==4            
 
+    def test_merge_swwfiles(self):
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular, \
+                                                                    rectangular_cross
+        from anuga.shallow_water.shallow_water_domain import Domain
+        from anuga.file.sww import SWW_file
+        from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import \
+            Dirichlet_boundary
+
+        Bd = Dirichlet_boundary([0.5, 0., 0.])
+
+        # Create shallow water domain
+        domain = Domain(*rectangular_cross(2, 2))
+        domain.set_name('test1')
+        domain.set_quantity('elevation', 2)
+        domain.set_quantity('stage', 5)
+        domain.set_boundary({'left': Bd, 'right': Bd, 'top': Bd, 'bottom': Bd})
+        for t in domain.evolve(yieldstep=0.5, finaltime=1):
+            pass
+            
+        domain = Domain(*rectangular(3, 3))
+        domain.set_name('test2')
+        domain.set_quantity('elevation', 3)
+        domain.set_quantity('stage', 50)
+        domain.set_boundary({'left': Bd, 'right': Bd, 'top': Bd, 'bottom': Bd})
+        for t in domain.evolve(yieldstep=0.5, finaltime=1):
+            pass
+                
+        outfile = 'test_out.sww'
+        sww_merge(['test1.sww', 'test2.sww'], outfile)
+        self.failUnless(os.access(outfile, os.F_OK))  
+        
+        # remove temp files
+        os.remove('test1.sww')
+        os.remove('test2.sww')
+      #  os.remove(outfile)      
+        
+        
+
 #-------------------------------------------------------------
 
 if __name__ == "__main__":
-    #suite = unittest.makeSuite(Test_Data_Manager, 'test_sww2domain2')
-    suite = unittest.makeSuite(Test_FileUtils, 'test_sww')
+    suite = unittest.makeSuite(Test_FileUtils, 'test')
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)    

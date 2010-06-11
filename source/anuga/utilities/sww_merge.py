@@ -1,3 +1,7 @@
+"""
+    Merge a list of .sww files together into a single file.
+"""
+
 import numpy as num
 from anuga.utilities.numerical_tools import ensure_numeric
 
@@ -10,6 +14,9 @@ from anuga.file.sww import SWW_file, Write_sww
 def sww_merge(swwfiles, output, verbose = False):
     """
         Merge a list of sww files into a single file.
+        
+        May be useful for parallel runs. Note that some advanced information
+        and custom quantities may not be exported.
     """
     
     static_quantities = ['elevation']
@@ -80,10 +87,10 @@ def sww_merge(swwfiles, output, verbose = False):
     sww.store_static_quantities(fido, verbose=verbose, **out_s_quantities)
 
     for q in dynamic_quantities:
-        q_values = ensure_numeric(out_d_quantities[quantity])
-        x = q_values.astype(netcdf_float)
-        fido.variables[q] = x
-
+        q_values = out_d_quantities[q]
+        for i, time_slice in enumerate(q_values):
+            fido.variables[q][i] = num.array(time_slice, netcdf_float)
+        
         # This updates the _range values
         q_range = fido.variables[q + Write_sww.RANGE][:]
         q_values_min = num.min(q_values)
@@ -97,30 +104,3 @@ def sww_merge(swwfiles, output, verbose = False):
     fido.close()
     
 
-from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular, \
-                                                            rectangular_cross
-from anuga.shallow_water.shallow_water_domain import Domain
-from anuga.file.sww import SWW_file
-from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import \
-    Dirichlet_boundary
-
-Bd = Dirichlet_boundary([0.5, 0., 0.])
-
-# Create shallow water domain
-domain = Domain(*rectangular_cross(2, 2))
-domain.set_name('test1')
-domain.set_quantity('elevation', 2)
-domain.set_quantity('stage', 5)
-domain.set_boundary({'left': Bd, 'right': Bd, 'top': Bd, 'bottom': Bd})
-for t in domain.evolve(yieldstep=0.5, finaltime=1):
-    pass
-    
-domain = Domain(*rectangular(3, 3))
-domain.set_name('test2')
-domain.set_quantity('elevation', 3)
-domain.set_quantity('stage', 50)
-domain.set_boundary({'left': Bd, 'right': Bd, 'top': Bd, 'bottom': Bd})
-for t in domain.evolve(yieldstep=0.5, finaltime=1):
-    pass
-        
-sww_merge(['test1.sww', 'test2.sww'], 'test_out.sww', verbose = True)
