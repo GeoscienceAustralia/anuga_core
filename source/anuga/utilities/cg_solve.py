@@ -3,15 +3,9 @@ class VectorShapeError(exceptions.Exception): pass
 class ConvergenceError(exceptions.Exception): pass
 
 import numpy as num
-   
-import logging, logging.config
-logger = logging.getLogger('cg_solve')
-logger.setLevel(logging.WARNING)
 
-try:
-    logging.config.fileConfig('log.ini')
-except:
-    pass
+import anuga.utilities.log as log
+
 
 def conjugate_gradient(A,b,x0=None,imax=10000,tol=1.0e-8,iprint=0):
     """
@@ -92,10 +86,10 @@ def _conjugate_gradient(A,b,x0=None,imax=10000,tol=1.0e-8,iprint=0):
        d = r + bt*d
        i = i+1
        if i%iprint == 0 :
-          logger.info('i = %g rTr = %20.15e' %(i,rTr))
+          log.info('i = %g rTr = %20.15e' %(i,rTr))
 
        if i==imax:
-            logger.warning('max number of iterations attained')
+            log.warning('max number of iterations attained')
             msg = 'Conjugate gradient solver did not converge: rTr==%20.15e' %rTr
             raise ConvergenceError, msg
 
