@@ -9,6 +9,7 @@ from anuga.file_conversion.file_conversion import timefile2netcdf
 from forcing import *
 
 import numpy as num
+import warnings
 
 
 def scalar_func_list(t, x, y):
@@ -680,6 +681,10 @@ class Test_Forcing(unittest.TestCase):
         Test that default rainfall can be used when given rate runs out of data.
         """
 
+        import warnings
+        warnings.simplefilter('ignore', UserWarning)
+
+
         a = [0.0, 0.0]
         b = [0.0, 2.0]
         c = [2.0, 0.0]
@@ -747,6 +752,9 @@ class Test_Forcing(unittest.TestCase):
         """
 
         # FIXME(Ole): This test is just to experiment
+        import warnings
+        warnings.simplefilter('ignore', UserWarning)
+
 
         a = [0.0, 0.0]
         b = [0.0, 2.0]
@@ -802,6 +810,9 @@ class Test_Forcing(unittest.TestCase):
         Test how forcing terms are called within evolve.
         This test checks that proper exception is thrown when no default_rate is set
         """
+
+        import warnings
+        warnings.simplefilter('ignore', UserWarning)
 
 
         a = [0.0, 0.0]
