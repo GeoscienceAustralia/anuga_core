@@ -1339,6 +1339,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
                 assert num.allclose(Q, uh*width)
 
+
     def test_get_energy_through_cross_section_with_geo(self):
         """test_get_energy_through_cross_section(self):
 

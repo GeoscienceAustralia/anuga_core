@@ -12,7 +12,7 @@ sys.path.append('..'+sep+'pyvolution')
 from shallow_water import Domain
 from anuga.pyvolution.pmesh2domain import pmesh_to_domain_instance
 import time, os 
-from anuga.pyvolution.sww_file import SWW_file
+from anuga.file.sww import SWW_file
 from anuga.utilities.numerical_tools import mean
 import anuga.utilities.log as log
 

@@ -5,18 +5,10 @@ import numpy as num
 import anuga.utilities.log as log
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a, \
                             netcdf_float
+
+from asc2dem import asc2dem
                             
-##
-# @brief Convert DEM data  to PTS data.
-# @param basename_in Stem of input filename.
-# @param basename_out Stem of output filename.
-# @param easting_min 
-# @param easting_max 
-# @param northing_min 
-# @param northing_max 
-# @param use_cache 
-# @param verbose 
-# @return 
+
 def dem2pts(name_in, name_out=None,
             easting_min=None, easting_max=None,
             northing_min=None, northing_max=None,
@@ -32,6 +24,8 @@ def dem2pts(name_in, name_out=None,
     cellsize      25
     NODATA_value  -9999
     138.3698 137.4194 136.5062 135.5558 ..........
+
+    name_in may be a .asc or .dem file to be converted.
 
     Convert to NetCDF pts format which is
 
@@ -80,13 +74,20 @@ def _dem2pts(name_in, name_out=None, verbose=False,
     import os
     from Scientific.IO.NetCDF import NetCDFFile
 
-    if name_in[-4:] != '.dem':
-        raise IOError('Input file %s should be of type .dem.' % name_in)
+    root = name_in[:-4]
+
+    if name_in[-4:] == '.asc':
+        intermediate = root + '.dem'
+        if verbose:
+            log.critical('Preconvert %s from asc to %s' % \
+                                    (name_in, intermediate))
+        asc2dem(name_in)
+        name_in = intermediate
+    elif name_in[-4:] != '.dem':
+        raise IOError('Input file %s should be of type .asc or .dem.' % name_in)
 
     if name_out != None and basename_out[-4:] != '.pts':
         raise IOError('Input file %s should be of type .pts.' % name_out)
-
-    root = name_in[:-4]
 
     # Get NetCDF
     infile = NetCDFFile(name_in, netcdf_mode_r) 

@@ -7,6 +7,7 @@ import os, sys
 import csv
 import numpy as num
 import shutil
+import log
 
 def make_filename(s):
     """Transform argument string into a standard filename
@@ -332,7 +333,7 @@ def copy_code_files(dir_name, filename1, filename2=None, verbose=False):
     if not os.path.isdir(dir_name):
         if verbose:
             log.critical('Make directory %s' % dir_name)
-        mkdir(dir_name, 0777)
+        os.mkdir(dir_name, 0777)
 
     if verbose:
         log.critical('Output directory: %s' % dir_name)        

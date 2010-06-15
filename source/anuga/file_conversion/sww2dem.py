@@ -124,6 +124,8 @@ def sww2dem(name_in, name_out,
     if block_size is None:
         block_size = DEFAULT_BLOCK_SIZE
 
+    assert(isinstance(block_size, (int, long, float)))
+
     # Read sww file
     if verbose:
         log.critical('Reading from %s' % name_in)
@@ -215,6 +217,11 @@ def sww2dem(name_in, name_out,
 
     # Create result array and start filling, block by block.
     result = num.zeros(number_of_points, num.float)
+
+    if verbose:
+        msg = 'Slicing sww file, num points: ' + str(number_of_points)
+        msg += ', block size: ' + str(block_size)
+        log.critical(msg)
 
     for start_slice in xrange(0, number_of_points, block_size):
         # Limit slice size to array end if at last block
@@ -356,7 +363,8 @@ def sww2dem(name_in, name_out,
         #header['celltype'] = 'IEEE8ByteReal'  #FIXME: Breaks unit test
 
         #Write
-        if verbose: log.critical('Writing %s' % demfile)
+        if verbose:
+            log.critical('Writing %s' % name_out)
 
         import ermapper_grids
 
@@ -436,9 +444,11 @@ def sww2dem_batch(basename_in, extra_name_out=None,
                 datum='WGS84',
                 format='ers'):
     """Wrapper for sww2dem.
-    See sww2dem to find out what most of the parameters do.
+    See sww2dem to find out what most of the parameters do. Note that since this
+    is a batch command, the normal filename naming conventions do not apply.
 
     basename_in is a path to sww file/s, without the .sww extension.
+    extra_name_out is a postfix to add to the output filename.
 
     Quantities is a list of quantities.  Each quantity will be
     calculated for each sww file.
@@ -473,8 +483,14 @@ def sww2dem_batch(basename_in, extra_name_out=None,
             else:
                 basename_out = sww_file + '_' + quantity + '_' + extra_name_out
 
-            file_out = sww2dem(dir+os.sep+sww_file+'.sww',
-                               dir+os.sep+basename_out,
+            swwin = dir+os.sep+sww_file+'.sww'
+            demout = dir+os.sep+basename_out+'.'+format
+
+            if verbose:
+                log.critical('sww2dem: %s => %s' % (swwin, demout))
+
+            file_out = sww2dem(swwin,
+                               demout,
                                quantity,
                                reduction,
                                cellsize,
@@ -486,8 +502,8 @@ def sww2dem_batch(basename_in, extra_name_out=None,
                                northing_max,
                                verbose,
                                origin,
-                               datum,
-                               format)
+                               datum)
+                               
             files_out.append(file_out)
     return files_out
 

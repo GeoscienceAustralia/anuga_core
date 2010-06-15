@@ -48,148 +48,6 @@ class Data_format:
         #FIXME: Should we have a general set_precision function?
 
 
-##
-# @brief Class for handling checkpoints data
-# @note This is not operational at the moment
-class CPT_file(Data_format):
-    """Interface to native NetCDF format (.cpt) to be 
-    used for checkpointing (one day)
-    """
-
-    ##
-    # @brief Initialize this instantiation.
-    # @param domain ??
-    # @param mode Mode of underlying data file (default WRITE).
-    def __init__(self, domain, mode=netcdf_mode_w):
-        from Scientific.IO.NetCDF import NetCDFFile
-
-        self.precision = netcdf_float #Use full precision
-
-        Data_format.__init__(self, domain, 'sww', mode)
-
-        # NetCDF file definition
-        fid = NetCDFFile(self.filename, mode)
-        if mode[0] == 'w':
-            # Create new file
-            fid.institution = 'Geoscience Australia'
-            fid.description = 'Checkpoint data'
-            #fid.smooth = domain.smooth
-            fid.order = domain.default_order
-
-            # Dimension definitions
-            fid.createDimension('number_of_volumes', self.number_of_volumes)
-            fid.createDimension('number_of_vertices', 3)
-
-            # Store info at all vertices (no smoothing)
-            fid.createDimension('number_of_points', 3*self.number_of_volumes)
-            fid.createDimension('number_of_timesteps', None) #extensible
-
-            # Variable definitions
-
-            # Mesh
-            fid.createVariable('x', self.precision, ('number_of_points',))
-            fid.createVariable('y', self.precision, ('number_of_points',))
-
-
-            fid.createVariable('volumes', netcdf_int, ('number_of_volumes',
-                                                       'number_of_vertices'))
-
-            fid.createVariable('time', self.precision, ('number_of_timesteps',))
-
-            #Allocate space for all quantities
-            for name in domain.quantities.keys():
-                fid.createVariable(name, self.precision,
-                                   ('number_of_timesteps',
-                                    'number_of_points'))
-
-        fid.close()
-
-    ##
-    # @brief Store connectivity data to underlying data file.
-    def store_checkpoint(self):
-        """Write x,y coordinates of triangles.
-        Write connectivity (
-        constituting
-        the bed elevation.
-        """
-
-        from Scientific.IO.NetCDF import NetCDFFile
-
-        domain = self.domain
-
-        #Get NetCDF
-        fid = NetCDFFile(self.filename, netcdf_mode_a)
-
-        # Get the variables
-        x = fid.variables['x']
-        y = fid.variables['y']
-
-        volumes = fid.variables['volumes']
-
-        # Get X, Y and bed elevation Z
-        Q = domain.quantities['elevation']
-        X,Y,Z,V = Q.get_vertex_values(xy=True, precision=self.precision)
-
-        x[:] = X.astype(self.precision)
-        y[:] = Y.astype(self.precision)
-        z[:] = Z.astype(self.precision)
-
-        volumes[:] = V
-
-        fid.close()
-
-    ##
-    # @brief Store time and named quantities to underlying data file.
-    # @param name 
-    def store_timestep(self, name):
-        """Store time and named quantity to file
-        """
-
-        from Scientific.IO.NetCDF import NetCDFFile
-        from time import sleep
-
-        #Get NetCDF
-        retries = 0
-        file_open = False
-        while not file_open and retries < 10:
-            try:
-                fid = NetCDFFile(self.filename, netcdf_mode_a)
-            except IOError:
-                #This could happen if someone was reading the file.
-                #In that case, wait a while and try again
-                msg = 'Warning (store_timestep): File %s could not be opened' \
-                      ' - trying again' % self.filename
-                log.critical(msg)
-                retries += 1
-                sleep(1)
-            else:
-                file_open = True
-
-        if not file_open:
-            msg = 'File %s could not be opened for append' % self.filename
-            raise DataFileNotOpenError, msg
-
-        domain = self.domain
-
-        # Get the variables
-        time = fid.variables['time']
-        stage = fid.variables['stage']
-        i = len(time)
-
-        #Store stage
-        time[i] = self.domain.time
-
-        # Get quantity
-        Q = domain.quantities[name]
-        A,V = Q.get_vertex_values(xy=False, precision=self.precision)
-
-        stage[i,:] = A.astype(self.precision)
-
-        #Flush and close
-        fid.sync()
-        fid.close()
-
-
 class SWW_file(Data_format):
     """Interface to native NetCDF format (.sww) for storing model output
 
@@ -535,6 +393,8 @@ class Read_sww:
 
 
     def read_mesh(self):
+        """ Read and store the mesh data contained within this sww file.
+        """
         fin = NetCDFFile(self.source, 'r')
 
         self.vertices = num.array(fin.variables['volumes'], num.int)
@@ -550,11 +410,13 @@ class Read_sww:
         self.ymax = num.max(y)
 
 
-
         fin.close()
         
     def read_quantities(self, frame_number=0):
-
+        """
+        Read the quantities contained in this file.
+        frame_number is the time index to load.
+        """
         assert frame_number >= 0 and frame_number <= self.last_frame_number
 
         self.frame_number = frame_number
@@ -574,23 +436,34 @@ class Read_sww:
         return self.quantities
 
     def get_bounds(self):
+        """
+            Get the bounding rect around the mesh.
+        """
         return [self.xmin, self.xmax, self.ymin, self.ymax]
 
     def get_last_frame_number(self):
+        """
+            Return the last loaded frame index.
+        """
         return self.last_frame_number
 
     def get_time(self):
+        """
+            Get time at the current frame num, in secs.
+        """
         return self.time[self.frame_number]
 
 
-# @brief A class to write an SWW file.
 class Write_sww:
-    
+    """
+        A class to write an SWW file.
+        
+        It is domain agnostic, and requires all the data to be fed in
+        manually.
+    """
     RANGE = '_range'
     EXTREMA = ':extrema'
 
-    ##
-    # brief Instantiate the SWW writer class.
     def __init__(self, static_quantities, dynamic_quantities):
         """Initialise Write_sww with two list af quantity names: 
         
@@ -606,18 +479,6 @@ class Write_sww:
         self.dynamic_quantities = dynamic_quantities
 
 
-    ##
-    # @brief Store a header in the SWW file.
-    # @param outfile Open handle to the file that will be written.
-    # @param times A list of time slices *or* a start time.
-    # @param number_of_volumes The number of triangles.
-    # @param number_of_points The number of points.
-    # @param description The internal file description string.
-    # @param smoothing True if smoothing is to be used.
-    # @param order 
-    # @param sww_precision Data type of the quantity written (netcdf constant)
-    # @param verbose True if this function is to be verbose.
-    # @note If 'times' is a list, the info will be made relative.
     def store_header(self,
                      outfile,
                      times,
@@ -630,10 +491,13 @@ class Write_sww:
                      verbose=False):
         """Write an SWW file header.
 
+        Writes the first section of the .sww file.
+
         outfile - the open file that will be written
         times - A list of the time slice times OR a start time
         Note, if a list is given the info will be made relative.
         number_of_volumes - the number of triangles
+        number_of_points - the number of vertices in the mesh
         """
 
         from anuga.abstract_2d_finite_volumes.util \
@@ -745,15 +609,7 @@ class Write_sww:
             log.critical('    t in [%f, %f], len(t) == %d'
                          % (num.min(times), num.max(times), len(times.flat)))
 
-    ##
-    # @brief Store triangulation data in the underlying file.
-    # @param outfile Open handle to underlying file.
-    # @param points_utm List or array of points in UTM.
-    # @param volumes 
-    # @param zone 
-    # @param new_origin georeference that the points can be set to.
-    # @param points_georeference The georeference of the points_utm.
-    # @param verbose True if this function is to be verbose.
+
     def store_triangulation(self,
                             outfile,
                             points_utm,
@@ -763,6 +619,18 @@ class Write_sww:
                             points_georeference=None, 
                             verbose=False):
         """
+        Store triangulation data in the underlying file.
+        
+        Stores the points and triangle indices in the sww file
+        
+        outfile Open handle to underlying file.
+
+        new_origin georeference that the points can be set to.
+
+        points_georeference The georeference of the points_utm.
+
+        verbose True if this function is to be verbose.
+
         new_origin - qa georeference that the points can be set to. (Maybe
         do this before calling this function.)
 
@@ -839,12 +707,6 @@ class Write_sww:
         outfile.variables['volumes'][:] = volumes.astype(num.int32) #On Opteron 64
 
 
-
-    # @brief Write the static quantity data to the underlying file.
-    # @param outfile Handle to open underlying file.
-    # @param sww_precision Format of quantity data to write (default Float32).
-    # @param verbose True if this function is to be verbose.
-    # @param **quant
     def store_static_quantities(self, 
                                 outfile, 
                                 sww_precision=num.float32,
@@ -895,14 +757,6 @@ class Write_sww:
                     
         
         
-    ##
-    # @brief Write the quantity data to the underlying file.
-    # @param outfile Handle to open underlying file.
-    # @param sww_precision Format of quantity data to write (default Float32).
-    # @param slice_index
-    # @param time
-    # @param verbose True if this function is to be verbose.
-    # @param **quant
     def store_quantities(self, 
                          outfile, 
                          sww_precision=num.float32,
@@ -985,12 +839,8 @@ class Write_sww:
 
 
 
-##
-# @brief Get the extents of a NetCDF data file.
-# @param file_name The path to the SWW file.
-# @return A list of x, y, z and stage limits (min, max).
 def extent_sww(file_name):
-    """Read in an sww file.
+    """Read in an sww file, then get its extents
 
     Input:
     file_name - the sww file
@@ -1014,20 +864,12 @@ def extent_sww(file_name):
     return [min(x), max(x), min(y), max(y), num.min(stage), num.max(stage)]
 
 
-##
-# @brief 
-# @param filename
-# @param boundary
-# @param t
-# @param fail_if_NaN
-# @param NaN_filler
-# @param verbose
-# @param very_verbose
-# @return 
 def load_sww_as_domain(filename, boundary=None, t=None,
                fail_if_NaN=True, NaN_filler=0,
                verbose=False, very_verbose=False):
     """
+    Load an sww file into a domain.
+
     Usage: domain = load_sww_as_domain('file.sww',
                         t=time (default = last time in file))
 
@@ -1193,14 +1035,6 @@ def load_sww_as_domain(filename, boundary=None, t=None,
     return domain
 
 
-##
-# @brief Get mesh and quantity data from an SWW file.
-# @param filename Path to data file to read.
-# @param quantities UNUSED!
-# @param verbose True if this function is to be verbose.
-# @return (mesh, quantities, time) where mesh is the mesh data, quantities is
-#         a dictionary of {name: value}, and time is the time vector.
-# @note Quantities extracted: 'elevation', 'stage', 'xmomentum' and 'ymomentum'
 def get_mesh_and_quantities_from_file(filename,
                                       quantities=None,
                                       verbose=False):
@@ -1279,15 +1113,12 @@ def get_mesh_and_quantities_from_file(filename,
     return mesh, quantities, time
 
 
-
-##
-# @brief 
-# @parm time 
-# @param t 
-# @return An (index, ration) tuple.
 def get_time_interp(time, t=None):
-    #Finds the ratio and index for time interpolation.
-    #It is borrowed from previous abstract_2d_finite_volumes code.
+    """Finds the ratio and index for time interpolation.
+        time is an array of time steps
+        t is the sample time.
+        returns a tuple containing index into time, and ratio
+    """
     if t is None:
         t=time[-1]
         index = -1
@@ -1336,12 +1167,9 @@ def interpolated_quantity(saved_quantity, time_interp):
     return q
 
 
-##
-# @brief 
-# @param coordinates 
-# @param volumes 
-# @param boundary 
 def weed(coordinates, volumes, boundary=None):
+    """ Excise all duplicate points.
+    """
     if isinstance(coordinates, num.ndarray):
         coordinates = coordinates.tolist()
     if isinstance(volumes, num.ndarray):

@@ -29,9 +29,11 @@ sys.path += __path__
 
 from anuga.shallow_water.shallow_water_domain import Domain
 
-from anuga.abstract_2d_finite_volumes.util import file_function, sww2timeseries
+from anuga.abstract_2d_finite_volumes.util import file_function, \
+                                        sww2timeseries, sww2csv_gauges
 
-from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
+from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross, \
+                                                    rectangular
 
 from anuga.file.csv_file import load_csv_as_building_polygons,  \
                                 load_csv_as_polygons
@@ -46,7 +48,7 @@ from anuga.abstract_2d_finite_volumes.pmesh2domain import \
 
 
 from anuga.utilities.system_tools import file_length
-
+from anuga.utilities.sww_merge import sww_merge
 from anuga.utilities.file_utils import copy_code_files
 
 from anuga.geometry.polygon import read_polygon, Polygon_function
@@ -188,7 +190,9 @@ def create_domain_from_regions(bounding_polygon,
     NOTE: If a interior_region is outside the bounding_polygon it should 
     throw an error
     
-    Interior_holes is a list of ploygons for each hole.
+    interior_holes is a list of ploygons for each hole. These polygons do not
+    need to be closed, but their points must be specified in a counter-clockwise
+    order.
 
     This function does not allow segments to share points - use underlying
     pmesh functionality for that

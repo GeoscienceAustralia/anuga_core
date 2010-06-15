@@ -4,11 +4,9 @@
 
 import numpy as num
 
-from math import sqrt
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.geospatial_data.geospatial_data import ensure_absolute, \
                                                     Geospatial_data
-from anuga.config import netcdf_float
 import anuga.utilities.log as log
 
 
@@ -128,11 +126,11 @@ def intersection(line0, line1, rtol=1.0e-5, atol=1.0e-8):
     line0 = ensure_numeric(line0, num.float)
     line1 = ensure_numeric(line1, num.float)
 
-    x0 = line0[0,0]; y0 = line0[0,1]
-    x1 = line0[1,0]; y1 = line0[1,1]
+    x0 = line0[0, 0]; y0 = line0[0, 1]
+    x1 = line0[1, 0]; y1 = line0[1, 1]
 
-    x2 = line1[0,0]; y2 = line1[0,1]
-    x3 = line1[1,0]; y3 = line1[1,1]
+    x2 = line1[0, 0]; y2 = line1[0, 1]
+    x3 = line1[1, 0]; y3 = line1[1, 1]
 
     denom = (y3-y2)*(x1-x0) - (x3-x2)*(y1-y0)
     u0 = (x3-x2)*(y0-y2) - (y3-y2)*(x0-x2)
@@ -207,10 +205,10 @@ def NEW_C_intersection(line0, line1):
     line0 = ensure_numeric(line0, num.float)
     line1 = ensure_numeric(line1, num.float)
 
-    status, value = _intersection(line0[0,0], line0[0,1],
-                                  line0[1,0], line0[1,1],
-                                  line1[0,0], line1[0,1],
-                                  line1[1,0], line1[1,1])
+    status, value = _intersection(line0[0, 0], line0[0, 1],
+                                  line0[1, 0], line0[1, 1],
+                                  line1[0, 0], line1[0, 1],
+                                  line1[1, 0], line1[1, 1])
 
     return status, value
 
@@ -218,8 +216,7 @@ def is_inside_triangle(point, triangle,
                        closed=True, 
                        rtol=1.0e-12,
                        atol=1.0e-12,                      
-                       check_inputs=True, 
-                       verbose=False):
+                       check_inputs=True):
     """Determine if one point is inside a triangle
     
     This uses the barycentric method:
@@ -277,10 +274,14 @@ def is_inside_triangle(point, triangle,
     # obsolete by the C extension.
     
     # Quickly reject points that are clearly outside
-    if point[0] < min(triangle[:, 0]): return False 
-    if point[0] > max(triangle[:, 0]): return False    
-    if point[1] < min(triangle[:, 1]): return False
-    if point[1] > max(triangle[:, 1]): return False        
+    if point[0] < min(triangle[:, 0]):
+        return False 
+    if point[0] > max(triangle[:, 0]): 
+        return False    
+    if point[1] < min(triangle[:, 1]):
+        return False
+    if point[1] > max(triangle[:, 1]):
+        return False        
 
 
     # Start search    
@@ -313,7 +314,7 @@ def is_inside_triangle(point, triangle,
     if closed is True:
         # Check if point lies on one of the edges
         
-        for X, Y in [[A,B], [B,C], [C,A]]:
+        for X, Y in [[A, B], [B, C], [C, A]]:
             res = _point_on_line(point[0], point[1],
                                  X[0], X[1],
                                  Y[0], Y[1],
@@ -340,6 +341,7 @@ def is_complex(polygon, verbose=False):
         return (item[0][0])
     
     def segments_joined(seg0, seg1):
+        """ See if there are identical segments in the 2 lists. """
         for i in seg0:
             for j in seg1:    
                 if i == j: return True
@@ -380,30 +382,6 @@ def is_complex(polygon, verbose=False):
         
     return False
     
-    
-def is_inside_polygon_quick(point, polygon, closed=True, verbose=False):
-    """Determine if one point is inside a polygon
-    Both point and polygon are assumed to be numeric arrays or lists and
-    no georeferencing etc or other checks will take place.
-    
-    As such it is faster than is_inside_polygon 
-    """
-
-    # FIXME(Ole): This function isn't being used
-    polygon = ensure_numeric(polygon, num.float)
-    points = ensure_numeric(point, num.float) # Convert point to array of points
-    points = num.ascontiguousarray(points[num.newaxis, :])
-    msg = ('is_inside_polygon() must be invoked with one point only.\n'
-           'I got %s and converted to %s' % (str(point), str(points.shape)))
-    assert points.shape[0] == 1 and points.shape[1] == 2, msg
-    
-    indices = num.zeros(1, num.int)
-
-    count = _separate_points_by_polygon(points, polygon, indices,
-                                        int(closed), int(verbose))
-
-    return count > 0
-
 
 def is_inside_polygon(point, polygon, closed=True, verbose=False):
     """Determine if one point is inside a polygon
@@ -419,7 +397,7 @@ def is_inside_polygon(point, polygon, closed=True, verbose=False):
         return False
     else:
         msg = 'is_inside_polygon must be invoked with one point only'
-        raise msg
+        raise Exception(msg)
 
 ##
 # @brief Determine which of a set of points are inside a polygon.
@@ -742,8 +720,7 @@ def plot_polygons(polygons_points,
                   style=None,
                   figname=None,
                   label=None,
-                  alpha=None,
-                  verbose=False):
+                  alpha=None):
     """ Take list of polygons and plot.
 
     Inputs:
@@ -768,7 +745,7 @@ def plot_polygons(polygons_points,
     - plot of polygons
     """
 
-    from pylab import ion, hold, plot, axis, figure, legend, savefig, xlabel, \
+    from pylab import ion, hold, plot, savefig, xlabel, \
                       ylabel, title, close, title, fill
 
     assert type(polygons_points) == list, \
@@ -792,10 +769,7 @@ def plot_polygons(polygons_points,
         except ValueError:
             alpha = None
         else:
-            if alpha < 0.0:
-                alpha = 0.0
-            if alpha > 1.0:
-                alpha = 1.0
+            alpha = max(0.0, min(1.0, alpha))
 
     n = len(polygons_points)
     colour = []
@@ -817,11 +791,15 @@ def plot_polygons(polygons_points,
 
     for i, item in enumerate(polygons_points):
         x, y = poly_xy(item)
-        if min(x) < minx: minx = min(x)
-        if max(x) > maxx: maxx = max(x)
-        if min(y) < miny: miny = min(y)
-        if max(y) > maxy: maxy = max(y)
-        plot(x,y,colour[i])
+        if min(x) < minx:
+            minx = min(x)
+        if max(x) > maxx:
+            maxx = max(x)
+        if min(y) < miny:
+            miny = min(y)
+        if max(y) > maxy:
+            maxy = max(y)
+        plot(x, y, colour[i])
         if alpha:
             fill(x, y, colour[i], alpha=alpha)
         xlabel('x')
@@ -839,7 +817,7 @@ def plot_polygons(polygons_points,
     return vec
 
 
-def poly_xy(polygon, verbose=False):
+def poly_xy(polygon):
     """ this is used within plot_polygons so need to duplicate
         the first point so can have closed polygon in plot
         # @param polygon A set of points defining a polygon.
@@ -857,10 +835,10 @@ def poly_xy(polygon, verbose=False):
                % (str(polygon)))
         raise Exception, msg
 
-    x = polygon[:,0]
-    y = polygon[:,1]
-    x = num.concatenate((x, [polygon[0,0]]), axis = 0)
-    y = num.concatenate((y, [polygon[0,1]]), axis = 0)
+    x = polygon[:, 0]
+    y = polygon[:, 1]
+    x = num.concatenate((x, [polygon[0, 0]]), axis = 0)
+    y = num.concatenate((y, [polygon[0, 1]]), axis = 0)
 
     return x, y
 
@@ -959,9 +937,9 @@ class Polygon_function:
         N = x.shape[0]
         assert y.shape[0] == N
 
-        points = num.ascontiguousarray(num.concatenate((x[:,num.newaxis],
-                                                        y[:,num.newaxis]),
-                                                       axis=1 ))
+        points = num.ascontiguousarray(num.concatenate((x[:, num.newaxis],
+                                                        y[:, num.newaxis]),
+                                                       axis = 1 ))
 
         if callable(self.default):
             z = self.default(x, y)
@@ -1042,13 +1020,6 @@ def write_polygon(polygon, filename=None):
         fid.write('%f, %f\n' % point)
     fid.close()
 
-##
-# @brief Unimplemented.
-def read_tagged_polygons(filename):
-    """
-    """
-    pass
-
 
 def populate_polygon(polygon, number_of_points, seed=None, exclude=None):
     """Populate given polygon with uniformly distributed points.
@@ -1096,11 +1067,11 @@ def populate_polygon(polygon, number_of_points, seed=None, exclude=None):
             #Check exclusions
             if exclude is not None:
                 for ex_poly in exclude:
-                    if is_inside_polygon([x,y], ex_poly):
+                    if is_inside_polygon([x, y], ex_poly):
                         append = False
 
         if append is True:
-            points.append([x,y])
+            points.append([x, y])
 
     return points
 
@@ -1121,7 +1092,8 @@ def point_in_polygon(polygon, delta=1e-8):
 
     import exceptions
 
-    class Found(exceptions.Exception): pass
+    class Found(exceptions.Exception):
+        pass
 
     polygon = ensure_numeric(polygon)
     
@@ -1231,10 +1203,10 @@ def decimate_polygon(polygon, factor=10):
 
     # Find outer extent of polygon
     num_polygon = ensure_numeric(polygon)
-    max_x = max(num_polygon[:,0])
-    max_y = max(num_polygon[:,1])
-    min_x = min(num_polygon[:,0])
-    min_y = min(num_polygon[:,1])
+    max_x = max(num_polygon[:, 0])
+    max_y = max(num_polygon[:, 1])
+    min_x = min(num_polygon[:, 0])
+    min_y = min(num_polygon[:, 1])
 
     # Keep only some points making sure extrema are kept
     reduced_polygon = []
@@ -1256,8 +1228,7 @@ def interpolate_polyline(data,
                          gauge_neighbour_id,
                          interpolation_points=None,
                          rtol=1.0e-6,
-                         atol=1.0e-8,
-                         verbose=False):
+                         atol=1.0e-8):
     """Interpolate linearly between values data on polyline nodes
     of a polyline to list of interpolation points.
 
@@ -1288,22 +1259,23 @@ def interpolate_polyline(data,
     interpolation_points = ensure_numeric(interpolation_points, num.float)
     gauge_neighbour_id = ensure_numeric(gauge_neighbour_id, num.int)
 
-    n = polyline_nodes.shape[0]    # Number of nodes in polyline
+    num_nodes = polyline_nodes.shape[0]    # Number of nodes in polyline
 
     # Input sanity check
-    msg = 'interpolation_points are not given (interpolate.py)'
-    assert interpolation_points is not None, msg
+    assert_msg = 'interpolation_points are not given (interpolate.py)'
+    assert interpolation_points is not None, assert_msg
 
-    msg = 'function value must be specified at every interpolation node'
-    assert data.shape[0] == polyline_nodes.shape[0], msg
+    assert_msg = 'function value must be specified at every interpolation node'
+    assert data.shape[0] == polyline_nodes.shape[0], assert_msg
 
-    msg = 'Must define function value at one or more nodes'
-    assert data.shape[0] > 0, msg
+    assert_msg = 'Must define function value at one or more nodes'
+    assert data.shape[0] > 0, assert_msg
 
-    if n == 1:
-        msg = 'Polyline contained only one point. I need more. ' + str(data)
-        raise Exception, msg
-    elif n > 1:
+    if num_nodes == 1:
+        assert_msg = 'Polyline contained only one point. I need more. '
+        assert_msg += str(data)
+        raise Exception, assert_msg
+    elif num_nodes > 1:
         _interpolate_polyline(data,
                               polyline_nodes,
                               gauge_neighbour_id,
@@ -1345,10 +1317,10 @@ if compile.can_use_C_extension('polygon_ext.c'):
     #from polygon_ext import _intersection
 
 else:
-    msg = 'C implementations could not be accessed by %s.\n ' %__file__
-    msg += 'Make sure compile_all.py has been run as described in '
-    msg += 'the ANUGA installation guide.'
-    raise Exception, msg
+    error_msg = 'C implementations could not be accessed by %s.\n ' %__file__
+    error_msg += 'Make sure compile_all.py has been run as described in '
+    error_msg += 'the ANUGA installation guide.'
+    raise Exception(error_msg)
 
 
 if __name__ == "__main__":

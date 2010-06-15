@@ -1,7 +1,14 @@
 """Least squares interpolation.
 
-   Implements a least-squares interpolation.
-   Putting mesh data onto points.
+   These functions and classes calculate a value at a particular point on
+   the given mesh. It interpolates the values stored at the vertices of the
+   mesh.
+   
+   For example, if you want to get the height of a terrain mesh at particular
+   point, you pass the point to an Interpolate class. The point will intersect
+   one of the triangles on the mesh, and the interpolated height will be an
+   intermediate value between the three vertices of that triangle.
+   This value is returned by the class.
 
    Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou
    Geoscience Australia, 2004.
@@ -895,18 +902,15 @@ class Interpolation_function:
 
                     if verbose is True:
                         import sys
-                        if sys.platform == 'win32':
-                            # FIXME (Ole): Why only Windoze?
-                            from anuga.geometry.polygon import plot_polygons
-                            title = ('Interpolation points fall '
-                                     'outside specified mesh')
-                            plot_polygons([mesh_boundary_polygon,
-                                           interpolation_points,
-                                           out_interp_pts],
-                                          ['line', 'point', 'outside'],
-                                          figname='points_boundary_out',
-                                          label=title,
-                                          verbose=verbose)
+                        from anuga.geometry.polygon import plot_polygons
+                        title = ('Interpolation points fall '
+                                 'outside specified mesh')
+                        plot_polygons([mesh_boundary_polygon,
+                                       interpolation_points,
+                                       out_interp_pts],
+                                      ['line', 'point', 'outside'],
+                                      figname='points_boundary_out',
+                                      label=title)
 
                     # Joaquim Luis suggested this as an Exception, so
                     # that the user can now what the problem is rather than

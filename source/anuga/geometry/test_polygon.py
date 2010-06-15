@@ -177,7 +177,7 @@ class Test_Polygon(unittest.TestCase):
         assert not is_inside_polygon((1., 0.5), polygon, closed=False)
 
     def test_inside_polygon_main(self):
-        """test_is_inside_polygon_quick
+        """test_is_inside_polygon
         
         Test fast version of of is_inside_polygon
         """
@@ -185,22 +185,22 @@ class Test_Polygon(unittest.TestCase):
         # Simplest case: Polygon is the unit square
         polygon = [[0,0], [1,0], [1,1], [0,1]]
 
-        assert is_inside_polygon_quick( (0.5, 0.5), polygon )
-        assert not is_inside_polygon_quick( (0.5, 1.5), polygon )
-        assert not is_inside_polygon_quick( (0.5, -0.5), polygon )
-        assert not is_inside_polygon_quick( (-0.5, 0.5), polygon )
-        assert not is_inside_polygon_quick( (1.5, 0.5), polygon )
+        assert is_inside_polygon( (0.5, 0.5), polygon )
+        assert not is_inside_polygon( (0.5, 1.5), polygon )
+        assert not is_inside_polygon( (0.5, -0.5), polygon )
+        assert not is_inside_polygon( (-0.5, 0.5), polygon )
+        assert not is_inside_polygon( (1.5, 0.5), polygon )
 
         # Try point on borders
-        assert is_inside_polygon_quick( (1., 0.5), polygon, closed=True)
-        assert is_inside_polygon_quick( (0.5, 1), polygon, closed=True)
-        assert is_inside_polygon_quick( (0., 0.5), polygon, closed=True)
-        assert is_inside_polygon_quick( (0.5, 0.), polygon, closed=True)
+        assert is_inside_polygon( (1., 0.5), polygon, closed=True)
+        assert is_inside_polygon( (0.5, 1), polygon, closed=True)
+        assert is_inside_polygon( (0., 0.5), polygon, closed=True)
+        assert is_inside_polygon( (0.5, 0.), polygon, closed=True)
 
-        assert not is_inside_polygon_quick( (0.5, 1), polygon, closed=False)
-        assert not is_inside_polygon_quick( (0., 0.5), polygon, closed=False)
-        assert not is_inside_polygon_quick( (0.5, 0.), polygon, closed=False)
-        assert not is_inside_polygon_quick( (1., 0.5), polygon, closed=False)
+        assert not is_inside_polygon( (0.5, 1), polygon, closed=False)
+        assert not is_inside_polygon( (0., 0.5), polygon, closed=False)
+        assert not is_inside_polygon( (0.5, 0.), polygon, closed=False)
+        assert not is_inside_polygon( (1., 0.5), polygon, closed=False)
 
 
     def test_inside_polygon_main(self):
@@ -228,12 +228,12 @@ class Test_Polygon(unittest.TestCase):
         assert not is_inside_polygon( (0.5, 1.5), polygon )
         assert not is_inside_polygon( (0.5, -0.5), polygon )
 
-        assert is_inside_polygon_quick( (0.5, 0.5), polygon )
-        assert is_inside_polygon_quick( (1, -0.5), polygon )
-        assert is_inside_polygon_quick( (1.5, 0), polygon )
+        assert is_inside_polygon( (0.5, 0.5), polygon )
+        assert is_inside_polygon( (1, -0.5), polygon )
+        assert is_inside_polygon( (1.5, 0), polygon )
 
-        assert not is_inside_polygon_quick( (0.5, 1.5), polygon )
-        assert not is_inside_polygon_quick( (0.5, -0.5), polygon )
+        assert not is_inside_polygon( (0.5, 1.5), polygon )
+        assert not is_inside_polygon( (0.5, -0.5), polygon )
 
         # Very convoluted polygon
         polygon = [[0,0], [10,10], [15,5], [20, 10], [25,0], [30,10], [40,-10]]
@@ -448,7 +448,7 @@ class Test_Polygon(unittest.TestCase):
         for point in points:
             assert is_inside_polygon(point, polygon)
 
-            assert is_inside_polygon_quick(point, polygon)
+            assert is_inside_polygon(point, polygon)
 
 
         # Very convoluted polygon
@@ -457,7 +457,7 @@ class Test_Polygon(unittest.TestCase):
         assert len(points) == 5
         for point in points:
             assert is_inside_polygon(point, polygon)
-            assert is_inside_polygon_quick(point, polygon)
+            assert is_inside_polygon(point, polygon)
 
 
     def test_populate_polygon_with_exclude(self):
@@ -1597,14 +1597,14 @@ class Test_Polygon(unittest.TestCase):
         assert y[3] == 10
         assert y[4] == 6
 
-    # Disabled
-    def xtest_plot_polygons(self):
+
+    def test_plot_polygons(self):
         import os
 
         # Simplest case: Polygon is the unit square
         polygon1 = [[0,0], [1,0], [1,1], [0,1]]
         polygon2 = [[1,1], [2,1], [3,2], [2,2]]
-        v = plot_polygons([polygon1, polygon2], 'test1')
+        v = plot_polygons([polygon1, polygon2], figname='test1')
         assert len(v) == 4
         assert v[0] == 0
         assert v[1] == 3
@@ -1613,7 +1613,7 @@ class Test_Polygon(unittest.TestCase):
 
         # Another case
         polygon3 = [[1,5], [10,1], [100,10], [50,10], [3,6]]
-        v = plot_polygons([polygon2,polygon3], 'test2')
+        v = plot_polygons([polygon2,polygon3], figname='test2')
         assert len(v) == 4
         assert v[0] == 1
         assert v[1] == 100

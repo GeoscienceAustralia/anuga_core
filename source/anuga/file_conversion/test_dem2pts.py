@@ -78,8 +78,7 @@ Parameters
         fid.close()
 
         #Convert to NetCDF pts
-        asc2dem(filename)
-        dem2pts(root+'.dem', easting_min=2002.0, easting_max=2007.0,
+        dem2pts(filename, easting_min=2002.0, easting_max=2007.0,
                 northing_min=3003.0, northing_max=3006.0,
                 verbose=False)
 
@@ -198,8 +197,7 @@ Parameters
         fid.close()
 
         #Convert to NetCDF pts
-        asc2dem(filename)
-        dem2pts(root+'.dem', easting_min=2002.0, easting_max=2007.0,
+        dem2pts(filename, easting_min=2002.0, easting_max=2007.0,
                 northing_min=3003.0, northing_max=3006.0)
 
         #Check contents
@@ -327,8 +325,7 @@ Parameters
         fid.close()
 
         #Convert to NetCDF pts
-        asc2dem(filename)
-        dem2pts(root+'.dem', easting_min=2002.0, easting_max=2007.0,
+        dem2pts(filename, easting_min=2002.0, easting_max=2007.0,
                 northing_min=3003.0, northing_max=3006.0)
 
         #Check contents

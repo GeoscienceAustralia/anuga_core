@@ -19,7 +19,7 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
             Time_boundary, File_boundary, AWI_boundary
 
 # local modules
-from sww2dem import sww2dem
+from sww2dem import sww2dem, sww2dem_batch
 
 class Test_Sww2Dem(unittest.TestCase):
     def setUp(self):
@@ -1391,6 +1391,135 @@ class Test_Sww2Dem(unittest.TestCase):
         os.remove(sww.filename)
         os.remove(self.domain.get_name() + '_elevation')
         os.remove(self.domain.get_name() + '_elevation.ers')
+        
+    def test_export_grid_parallel(self):
+        """Test that sww information can be converted correctly to asc/prj
+        format readable by e.g. ArcView
+        """
+
+        import time, os
+        from Scientific.IO.NetCDF import NetCDFFile
+
+        base_name = 'tegp'
+        #Setup
+        self.domain.set_name(base_name+'_P0_8')
+        swwfile = self.domain.get_name() + '.sww'
+
+        self.domain.set_datadir('.')
+        self.domain.format = 'sww'
+        self.domain.smooth = True
+        self.domain.set_quantity('elevation', lambda x,y: -x-y)
+        self.domain.set_quantity('stage', 1.0)
+
+        self.domain.geo_reference = Geo_reference(56,308500,6189000)
+
+        sww = SWW_file(self.domain)
+        sww.store_connectivity()
+        sww.store_timestep()
+        self.domain.evolve_to_end(finaltime = 0.0001)
+        #Setup
+        self.domain.set_name(base_name+'_P1_8')
+        swwfile2 = self.domain.get_name() + '.sww'
+        sww = SWW_file(self.domain)
+        sww.store_connectivity()
+        sww.store_timestep()
+        self.domain.evolve_to_end(finaltime = 0.0002)
+        sww.store_timestep()
+
+        cellsize = 0.25
+        #Check contents
+        #Get NetCDF
+
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)
+
+        # Get the variables
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+        z = fid.variables['elevation'][:]
+        time = fid.variables['time'][:]
+        stage = fid.variables['stage'][:]
+
+        fid.close()
+
+        #Export to ascii/prj files
+        extra_name_out = 'yeah'
+        sww2dem_batch(base_name,
+                    quantities = ['elevation', 'depth'],
+                    extra_name_out = extra_name_out,
+                    cellsize = cellsize,
+                    verbose = self.verbose,
+                    format = 'asc')
+
+        prjfile = base_name + '_P0_8_elevation_yeah.prj'
+        ascfile = base_name + '_P0_8_elevation_yeah.asc'       
+        #Check asc file
+        ascid = open(ascfile)
+        lines = ascid.readlines()
+        ascid.close()
+        #Check grid values
+        for j in range(5):
+            L = lines[6+j].strip().split()
+            y = (4-j) * cellsize
+            for i in range(5):
+                #print " -i*cellsize - y",  -i*cellsize - y
+                #print "float(L[i])", float(L[i])
+                assert num.allclose(float(L[i]), -i*cellsize - y)               
+        #Cleanup
+        os.remove(prjfile)
+        os.remove(ascfile)
+
+        prjfile = base_name + '_P1_8_elevation_yeah.prj'
+        ascfile = base_name + '_P1_8_elevation_yeah.asc'       
+        #Check asc file
+        ascid = open(ascfile)
+        lines = ascid.readlines()
+        ascid.close()
+        #Check grid values
+        for j in range(5):
+            L = lines[6+j].strip().split()
+            y = (4-j) * cellsize
+            for i in range(5):
+                #print " -i*cellsize - y",  -i*cellsize - y
+                #print "float(L[i])", float(L[i])
+                assert num.allclose(float(L[i]), -i*cellsize - y)               
+        #Cleanup
+        os.remove(prjfile)
+        os.remove(ascfile)
+        os.remove(swwfile)
+
+        #Check asc file
+        ascfile = base_name + '_P0_8_depth_yeah.asc'
+        prjfile = base_name + '_P0_8_depth_yeah.prj'
+        ascid = open(ascfile)
+        lines = ascid.readlines()
+        ascid.close()
+        #Check grid values
+        for j in range(5):
+            L = lines[6+j].strip().split()
+            y = (4-j) * cellsize
+            for i in range(5):
+                assert num.allclose(float(L[i]), 1 - (-i*cellsize - y))
+        #Cleanup
+        os.remove(prjfile)
+        os.remove(ascfile)
+
+        #Check asc file
+        ascfile = base_name + '_P1_8_depth_yeah.asc'
+        prjfile = base_name + '_P1_8_depth_yeah.prj'
+        ascid = open(ascfile)
+        lines = ascid.readlines()
+        ascid.close()
+        #Check grid values
+        for j in range(5):
+            L = lines[6+j].strip().split()
+            y = (4-j) * cellsize
+            for i in range(5):
+                assert num.allclose(float(L[i]), 1 - (-i*cellsize - y))
+        #Cleanup
+        os.remove(prjfile)
+        os.remove(ascfile)
+        os.remove(swwfile2)
+        
 
 #################################################################################
 
