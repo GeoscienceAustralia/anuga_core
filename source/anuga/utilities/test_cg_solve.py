@@ -10,8 +10,6 @@ from anuga.utilities.cg_solve import _conjugate_gradient
 from anuga.utilities.sparse import Sparse, Sparse_CSR
 
 
-
-
 class Test_CG_Solve(unittest.TestCase):
 
     def test_sparse_solve(self):
