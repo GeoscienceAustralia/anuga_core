@@ -125,10 +125,10 @@ def log(msg, level=None):
                         logging.getLevelName(log_logging_level),
                         logging.getLevelName(console_logging_level)))
         if _new_python:
-            logging.log(logging.CRITICAL, start_msg,
+            logging.log(logging.INFO, start_msg,
                         extra={'mname': __name__, 'lnum': 0})
         else:
-            logging.log(logging.CRITICAL, start_msg)
+            logging.log(logging.INFO, start_msg)
 
         # mark module as *setup*
         _setup = True

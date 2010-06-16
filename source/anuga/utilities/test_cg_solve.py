@@ -4,11 +4,12 @@ import exceptions
 class TestError(exceptions.Exception): pass
 import unittest
 
-
 import numpy as num
 from anuga.utilities.cg_solve import *
 from anuga.utilities.cg_solve import _conjugate_gradient
 from anuga.utilities.sparse import Sparse, Sparse_CSR
+
+
 
 
 class Test_CG_Solve(unittest.TestCase):
@@ -27,7 +28,7 @@ class Test_CG_Solve(unittest.TestCase):
         b  = A*xe
         x =  [0.0, 0.0, 0.0, 0.0]
 
-        x = conjugate_gradient(A,b,x,iprint=0)
+        x = conjugate_gradient(A,b,x)
 
         assert num.allclose(x,xe)
 
@@ -46,7 +47,7 @@ class Test_CG_Solve(unittest.TestCase):
         x =  [0.0, 0.0, 0.0, 0.0]
 
         try:
-            x = conjugate_gradient(A,b,x,iprint=0,imax=2)
+            x = conjugate_gradient(A,b,x,imax=2)
         except ConvergenceError:
             pass
         else:
@@ -70,7 +71,7 @@ class Test_CG_Solve(unittest.TestCase):
         xe = num.ones( (n,), num.float)
 
         b  = A*xe
-        x = conjugate_gradient(A,b,b,tol=1.0e-5,iprint=1)
+        x = conjugate_gradient(A,b,b,tol=1.0e-5)
 
         assert num.allclose(x,xe)
 
@@ -98,7 +99,7 @@ class Test_CG_Solve(unittest.TestCase):
         xe = num.ones( (n*m,), num.float)
 
         b  = A*xe
-        x = conjugate_gradient(A,b,b,iprint=0)
+        x = conjugate_gradient(A,b,b,iprint=1)
 
         assert num.allclose(x,xe)
 
