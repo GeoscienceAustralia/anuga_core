@@ -291,7 +291,7 @@ def _create_domain_from_regions(bounding_polygon,
 
     return domain
     
-
+import logging as log
 
 from anuga.config import use_psyco
 if use_psyco:
