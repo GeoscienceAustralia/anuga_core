@@ -2,6 +2,7 @@ import numpy as num
 import unittest
 import tempfile
 import os
+import sys
 from Scientific.IO.NetCDF import NetCDFFile
 
 from anuga.utilities.system_tools import get_pathname_from_package
@@ -1951,11 +1952,8 @@ class Test_Urs2Sts(Test_Mux):
         #assert allclose(domain_drchlt.quantities['stage'].vertex_values[6], 2)        
         #assert allclose(domain_fbound.quantities['stage'].vertex_values[6], 2)
 
-        try:
+        if not sys.platform == 'win32':
             os.remove(sts_file+'.sts')
-        except IOError:
-            # Windoze can't remove this file for some reason 
-            pass
         
         os.remove(meshname)
         

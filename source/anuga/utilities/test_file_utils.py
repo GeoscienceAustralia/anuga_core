@@ -2,6 +2,7 @@ import unittest
 import tempfile
 import os
 import shutil
+import sys
 
 from anuga.utilities.file_utils import copy_code_files, get_all_swwfiles
 from anuga.utilities.file_utils import del_dir
@@ -141,9 +142,10 @@ class Test_FileUtils(unittest.TestCase):
         self.failUnless(os.access(outfile, os.F_OK))  
         
         # remove temp files
-        os.remove('test1.sww')
-        os.remove('test2.sww')
-        os.remove(outfile)      
+        if not sys.platform == 'win32':		
+			os.remove('test1.sww')
+			os.remove('test2.sww')
+			os.remove(outfile)      
         
         
 
