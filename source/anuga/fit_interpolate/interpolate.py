@@ -940,8 +940,7 @@ class Interpolation_function:
                                    interpolation_points],
                                   ['line', 'point'],
                                   figname='points_boundary',
-                                  label=title,
-                                  verbose=verbose)
+                                  label=title)
 
             m = len(self.interpolation_points)
             p = len(self.time)

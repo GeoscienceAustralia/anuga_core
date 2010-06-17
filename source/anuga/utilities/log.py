@@ -73,7 +73,7 @@ DEBUG = logging.DEBUG
 NOTSET = logging.NOTSET
 
 # set _new_python to True if python version 2.5 or later
-_new_python = (sys.version_info >= 0x02050000)      # 2.5.x.x
+_new_python = (sys.version_info[0]*10 + sys.version_info[1] >= 25)      # 2.5.x.x
 
 
 ################################################################################

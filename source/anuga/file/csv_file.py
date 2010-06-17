@@ -14,7 +14,8 @@ import csv
 import numpy as num
 
 
-def load_csv_as_dict(file_name, title_check_list=None, delimiter=','):
+def load_csv_as_dict(file_name, title_check_list=None, delimiter=',',
+                        d_type = str):
     """
     Load in the csv as a dictionary, title as key and column info as value.
     Also, create a dictionary, title as key and column index as value,
@@ -25,6 +26,8 @@ def load_csv_as_dict(file_name, title_check_list=None, delimiter=','):
     title_check_list List of titles that *must* be columns in the file.
 
     delimiter is the delimiter used to separate the fields
+    
+    format is one of float, str, int
 
     return 2 dictionaries: ({key:column}, {title:index}).
 
@@ -34,8 +37,6 @@ def load_csv_as_dict(file_name, title_check_list=None, delimiter=','):
     """
 
     # FIXME(Ole): Consider dealing with files without headers
-    # FIXME(Ole): Consider a wrapper automatically converting text fields
-    #             to the right type by trying for: int, float, string
     
     attribute_dic = {}
     title_index_dic = {}
@@ -66,8 +67,8 @@ def load_csv_as_dict(file_name, title_check_list=None, delimiter=','):
             msg = 'Entry in file %s had %d columns ' % (file_name, n)
             msg += 'although there were %d headers' % title_count
             raise IOError, msg
-        for i, value in enumerate(line[:title_count]):  # skip trailing data
-            attribute_dic.setdefault(titles_stripped[i], []).append(value)
+        for i, val in enumerate(line[:title_count]):  # skip trailing data
+            attribute_dic.setdefault(titles_stripped[i], []).append(d_type(val))
 
     return attribute_dic, title_index_dic
 
