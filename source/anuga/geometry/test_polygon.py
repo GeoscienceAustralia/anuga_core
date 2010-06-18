@@ -7,6 +7,8 @@ from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.utilities.system_tools import get_pathname_from_package
 
 from polygon import *
+from polygon import _poly_xy
+from polygon_function import Polygon_function
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 
@@ -1569,7 +1571,7 @@ class Test_Polygon(unittest.TestCase):
     def test_poly_xy(self):
         # Simplest case: Polygon is the unit square
         polygon = [[0,0], [1,0], [1,1], [0,1]]
-        x, y = poly_xy(polygon)
+        x, y = _poly_xy(polygon)
         assert len(x) == len(polygon)+1
         assert len(y) == len(polygon)+1
         assert x[0] == 0
@@ -1583,7 +1585,7 @@ class Test_Polygon(unittest.TestCase):
 
     # Arbitrary polygon
         polygon = [[1,5], [1,1], [100,10], [1,10], [3,6]]
-        x, y = poly_xy(polygon)
+        x, y = _poly_xy(polygon)
         assert len(x) == len(polygon)+1
         assert len(y) == len(polygon)+1
         assert x[0] == 1
@@ -1604,24 +1606,16 @@ class Test_Polygon(unittest.TestCase):
         # Simplest case: Polygon is the unit square
         polygon1 = [[0,0], [1,0], [1,1], [0,1]]
         polygon2 = [[1,1], [2,1], [3,2], [2,2]]
-        v = plot_polygons([polygon1, polygon2], figname='test1')
-        assert len(v) == 4
-        assert v[0] == 0
-        assert v[1] == 3
-        assert v[2] == 0
-        assert v[3] == 2
+        plot_polygons([polygon1, polygon2], figname='test1')
 
         # Another case
         polygon3 = [[1,5], [10,1], [100,10], [50,10], [3,6]]
         v = plot_polygons([polygon2,polygon3], figname='test2')
-        assert len(v) == 4
-        assert v[0] == 1
-        assert v[1] == 100
-        assert v[2] == 1
-        assert v[3] == 10
 
-        os.remove('test1.png')
-        os.remove('test2.png')
+        for file in ['test1.png', 'test2.png']:
+            assert os.access(file, os.R_OK)
+            os.remove(file)
+
 
     def test_inside_polygon_geospatial(self):
         #Simplest case: Polygon is the unit square

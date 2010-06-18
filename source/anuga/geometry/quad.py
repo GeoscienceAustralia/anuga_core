@@ -8,6 +8,8 @@ It returns a list of bounding boxes which intersect with the test point, which
 may then be iterated over with a proper intersection test to detect actual
 geometry intersections.
 
+As of June 2010 this module has a pylint quality rating of 10/10.
+
 """
 
 from anuga.utilities.treenode import TreeNode

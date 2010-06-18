@@ -10,8 +10,10 @@
     csv module.
 """
 
+
 import csv
 import numpy as num
+import anuga.utilities.log as log
 
 
 def load_csv_as_dict(file_name, title_check_list=None, delimiter=',',
@@ -167,15 +169,15 @@ def store_parameters(verbose=False, **kwargs):
     # get file name and removes from dict and assert that a file_name exists
     if completed:
         try:
-            file = str(kwargs['file_name'])
+            file_name = str(kwargs['file_name'])
         except:
-            raise 'kwargs must have file_name'
+            raise Exception('kwargs must have file_name')
     else:
         # write temp file in output directory
         try:
-            file = str(kwargs['output_dir']) + 'detail_temp.csv'
+            file_name = str(kwargs['output_dir']) + 'detail_temp.csv'
         except:
-            raise 'kwargs must have output_dir'
+            raise Exception('kwargs must have output_dir')
 
     # extracts the header info and the new line info
     line = ''
@@ -198,16 +200,17 @@ def store_parameters(verbose=False, **kwargs):
     # checks the header info, if the same, then write, if not create a new file
     # try to open!
     try:
-        fid = open(file, 'r')
+        fid = open(file_name, 'r')
         file_header = fid.readline()
         fid.close()
         if verbose: log.critical('read file header %s' % file_header)
-    except:
-        msg = 'try to create new file: %s' % file
-        if verbose: log.critical(msg)
+    except Exception:
+        msg = 'try to create new file: %s' % file_name
+        if verbose:
+            log.critical(msg)
         #tries to open file, maybe directory is bad
         try:
-            fid = open(file, 'w')
+            fid = open(file_name, 'w')
             fid.write(header)
             fid.close()
             file_header=header
@@ -217,15 +220,15 @@ def store_parameters(verbose=False, **kwargs):
 
     # if header is same or this is a new file
     if file_header == str(header):
-        fid = open(file, 'a')
+        fid = open(file_name, 'a')
         fid.write(line)
         fid.close()
     else:
         # backup plan,
         # if header is different and has completed will append info to
         # end of details_temp.cvs file in output directory
-        file = str(kwargs['output_dir']) + 'detail_temp.csv'
-        fid = open(file, 'a')
+        file_name = str(kwargs['output_dir']) + 'detail_temp.csv'
+        fid = open(file_name, 'a')
         fid.write(header)
         fid.write(line)
         fid.close()
@@ -243,8 +246,7 @@ def store_parameters(verbose=False, **kwargs):
 
 
 def load_csv_as_building_polygons(file_name,
-                          floor_height=3,
-                          clipping_polygons=None):
+                          floor_height=3):
     """
     Convert CSV files of the form:
 
@@ -284,9 +286,6 @@ def load_csv_as_building_polygons(file_name,
     return polygons, heights                
             
 
-##
-# @brief Convert CSV file into a dictionary of polygons and associated values.
-# @param filename The path to the file to read, value_name name for the 4th column
 def load_csv_as_polygons(file_name,
                  value_name='value',
                  clipping_polygons=None):
@@ -337,7 +336,7 @@ def load_csv_as_polygons(file_name,
     assert 'easting' in X.keys(), msg
     
     msg = 'Did not find expected column header: northing'    
-    assert 'northing' in X.keys(), northing
+    assert 'northing' in X.keys(), msg
     
     msg = 'Did not find expected column header: northing'        
     assert 'id' in X.keys(), msg
@@ -356,18 +355,18 @@ def load_csv_as_polygons(file_name,
     excluded_polygons={}
     past_ids = {}
     last_id = None
-    for i, id in enumerate(X['id']):
+    for i, poly_id in enumerate(X['id']):
 
         # Check for duplicate polygons
-        if id in past_ids:
+        if poly_id in past_ids:
             msg = 'Polygon %s was duplicated in line %d' % (id, i)
             raise Exception, msg
         
-        if id not in polygons:
+        if poly_id not in polygons:
             # Start new polygon
-            polygons[id] = []
+            polygons[poly_id] = []
             if values is not None:
-                values[id] = X[value_name][i]
+                values[poly_id] = X[value_name][i]
 
             # Keep track of previous polygon ids
             if last_id is not None:
@@ -384,20 +383,21 @@ def load_csv_as_polygons(file_name,
                     break
                 
             if exclude is True:
-                excluded_polygons[id]=True
+                excluded_polygons[poly_id]=True
 
-        polygons[id].append(point)    
+        polygons[poly_id].append(point)    
             
         # Check that value is the same across each polygon
         msg = 'Values must be the same across each polygon.'
-        msg += 'I got %s in line %d but it should have been %s' % (X[value_name][i], i, values[id])
-        assert values[id] == X[value_name][i], msg
+        msg += 'I got %s in line %d but it should have been %s' % \
+                            (X[value_name][i], i, values[poly_id])
+        assert values[poly_id] == X[value_name][i], msg
 
-        last_id = id
+        last_id = poly_id
 
     # Weed out polygons that were not wholly inside clipping polygons
-    for id in excluded_polygons:
-        del polygons[id]
+    for poly_id in excluded_polygons:
+        del polygons[poly_id]
         
     return polygons, values
 

@@ -23,26 +23,8 @@ from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a, \
 
 from anuga.file.sww import Write_sww  
 
+###############################################################
 
-################################################################################
-# CONVERTING UNGRIDDED URS DATA TO AN SWW FILE
-################################################################################
-
-##
-# @brief Convert URS file(s) (wave prop) to an SWW file.
-# @param basename_in Stem of the input filenames.
-# @param basename_out Path to the output SWW file.
-# @param verbose True if this function is to be verbose.
-# @param mint
-# @param maxt
-# @param mean_stage
-# @param origin Tuple with geo-ref UTM coordinates (zone, easting, northing).
-# @param hole_points_UTM
-# @param zscale
-# @note Also convert latitude and longitude to UTM. All coordinates are
-#       assumed to be given in the GDA94 datum.
-# @note Input filename stem has suffixes '-z-mux', '-e-mux' and '-n-mux'
-#       added for relative height, x-velocity and y-velocity respectively.
 def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
                       mint=None, maxt=None,
                       mean_stage=0,

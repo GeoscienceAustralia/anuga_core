@@ -3,6 +3,9 @@
 """
     Module to convert a .csv file to an .sts file.
     
+    You can use the function from your own scripts, or call this script on the 
+    command line.
+    
     Use this module to convert an arbitrary csv file to an sts file.
     The csv file must have a header containing the column names. This will
     be converted to a NetCDF .sts file containing the same data, with the
@@ -41,20 +44,18 @@
                 :longitude = 56. ;
         data:
 
-         stage = 4, 150.66667, 150.83334, 151, 151.16667, -34, -34.16667, -34.33333, 
-            -34.5, -1, -5, -9, -13 ;
+         stage = 4, 150.66667, 150.83334, 151, 151.16667, -34, -34.16667,
+                -34.33333, -34.5, -1, -5, -9, -13 ;
 
          time = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ;
         }
     
+    As of June 2010 this module has a pylint quality rating of 9.30/10.
 """
 
-import csv
-import os
 import sys
 import getopt
 from anuga.utilities import log
-import numpy as num
 from Scientific.IO.NetCDF import NetCDFFile
 from anuga.file.csv_file import load_csv_as_dict
 from anuga.config import netcdf_mode_w, netcdf_float
@@ -107,6 +108,7 @@ def csv2sts(infile, outfile, latitude = None, longitude = None,
 #
 
 def usage():
+    """ Display usage of this module from the comand line. """
     print 'csv2sts - convert a csv file to an sts file.'
     print 'Usage: csv2sts [-hv] [--help] [--verbose]',
     print '[-x --lat --latitude <degrees>]',
@@ -160,5 +162,4 @@ def main(argv):
 
     
 if __name__ == "__main__":
-    """ Entry point if run from command line """
     main(sys.argv[1:])       

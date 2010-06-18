@@ -93,27 +93,7 @@ class Write_sts:
         outfile.variables[q + Write_sts.RANGE][0] = max_float  # Min
         outfile.variables[q + Write_sts.RANGE][1] = -max_float # Max
 
-        # Doing sts_precision instead of Float gives cast errors.
-        outfile.createVariable('time', netcdf_float, ('number_of_timesteps',))
-
-        for q in Write_sts.sts_quantities:
-            outfile.createVariable(q, sts_precision, ('number_of_timesteps',
-                                                      'number_of_points'))
-            outfile.createVariable(q + Write_sts.RANGE, sts_precision,
-                                   ('numbers_in_range',))
-            # Initialise ranges with small and large sentinels.
-            # If this was in pure Python we could have used None sensibly
-            outfile.variables[q + Write_sts.RANGE][0] = max_float  # Min
-            outfile.variables[q + Write_sts.RANGE][1] = -max_float # Max
-
-        if isinstance(times, (list, num.ndarray)):
-            outfile.variables['time'][:] = times    #Store time relative
-
-        if verbose:
-            log.critical('------------------------------------------------')
-            log.critical('Statistics:')
-            log.critical('    t in [%f, %f], len(t) == %d'
-                         % (num.min(times), num.max(times), len(times.flat)))
+        self.write_dynamic_quantities(outfile, Write_sts.sts_quantities, times)
 
     ##
     # @brief 
@@ -263,6 +243,34 @@ class Write_sts:
                     outfile.variables[q + Write_sts.RANGE][1] = q_values_max
 
 
+
+    def write_dynamic_quantities(self, outfile, quantities,
+                    times, precis = netcdf_float32, verbose = False):   
+        """
+            Write out given quantities to file.
+        """
+        for q in quantities:
+            outfile.createVariable(q, precis, ('number_of_timesteps',
+                                                      'number_of_points'))
+            outfile.createVariable(q + Write_sts.RANGE, precis,
+                                   ('numbers_in_range',))
+
+            # Initialise ranges with small and large sentinels.
+            # If this was in pure Python we could have used None sensibly
+            outfile.variables[q+Write_sts.RANGE][0] = max_float  # Min
+            outfile.variables[q+Write_sts.RANGE][1] = -max_float # Max
+
+        # Doing sts_precision instead of Float gives cast errors.
+        outfile.createVariable('time', netcdf_float, ('number_of_timesteps',))
+
+        if isinstance(times, (list, num.ndarray)):
+            outfile.variables['time'][:] = times    # Store time relative
+
+        if verbose:
+            log.critical('------------------------------------------------')
+            log.critical('Statistics:')
+            log.critical('    t in [%f, %f], len(t) == %d'
+                         % (num.min(times), num.max(times), len(times.flat)))
 
 
 

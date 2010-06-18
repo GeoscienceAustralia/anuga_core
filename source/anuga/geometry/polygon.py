@@ -9,6 +9,7 @@ from anuga.geospatial_data.geospatial_data import ensure_absolute, \
                                                     Geospatial_data
 import anuga.utilities.log as log
 
+from aabb import AABB
 
 ##
 # @brief Determine whether a point is on a line segment.
@@ -35,8 +36,8 @@ def point_on_line(point, line, rtol=1.0e-5, atol=1.0e-8):
     line = ensure_numeric(line)
 
     res = _point_on_line(point[0], point[1],
-                         line[0,0], line[0,1],
-                         line[1,0], line[1,1],
+                         line[0, 0], line[0, 1],
+                         line[1, 0], line[1, 1],
                          rtol, atol)
 
     return bool(res)
@@ -48,19 +49,26 @@ def point_on_line(point, line, rtol=1.0e-5, atol=1.0e-8):
 ######
 
 # result functions for possible states
-def lines_dont_coincide(p0,p1,p2,p3):               return (3, None)
-def lines_0_fully_included_in_1(p0,p1,p2,p3):       return (2,
-                                                            num.array([p0,p1]))
-def lines_1_fully_included_in_0(p0,p1,p2,p3):       return (2,
-                                                            num.array([p2,p3]))
-def lines_overlap_same_direction(p0,p1,p2,p3):      return (2,
-                                                            num.array([p0,p3]))
-def lines_overlap_same_direction2(p0,p1,p2,p3):     return (2,
-                                                            num.array([p2,p1]))
-def lines_overlap_opposite_direction(p0,p1,p2,p3):  return (2,
-                                                            num.array([p0,p2]))
-def lines_overlap_opposite_direction2(p0,p1,p2,p3): return (2,
-                                                            num.array([p3,p1]))
+def lines_dont_coincide(p0, p1, p2, p3):
+    return (3, None)
+    
+def lines_0_fully_included_in_1(p0, p1, p2, p3):
+    return (2, num.array([p0, p1]))
+    
+def lines_1_fully_included_in_0(p0, p1, p2, p3):
+    return (2, num.array([p2, p3]))
+    
+def lines_overlap_same_direction(p0, p1, p2, p3):
+    return (2, num.array([p0, p3]))
+    
+def lines_overlap_same_direction2(p0, p1, p2, p3):
+    return (2, num.array([p2, p1]))
+    
+def lines_overlap_opposite_direction(p0, p1, p2, p3):
+    return (2, num.array([p0, p2]))
+    
+def lines_overlap_opposite_direction2(p0, p1, p2, p3):
+    return (2, num.array([p3, p1]))
 
 # this function called when an impossible state is found
 def lines_error(p1, p2, p3, p4):
@@ -145,8 +153,8 @@ def intersection(line0, line1, rtol=1.0e-5, atol=1.0e-8):
                            point_on_line([x2, y2], line0, rtol=rtol, atol=atol),
                            point_on_line([x3, y3], line0, rtol=rtol, atol=atol))
 
-            return collinear_result[state_tuple]([x0,y0], [x1,y1],
-                                                 [x2,y2], [x3,y3])
+            return collinear_result[state_tuple]([x0, y0], [x1, y1],
+                                                 [x2, y2], [x3, y3])
         else:
             # Lines are parallel but aren't collinear
             return 4, None #FIXME (Ole): Add distance here instead of None
@@ -268,64 +276,6 @@ def is_inside_triangle(point, triangle,
     # Use C-implementation
     return bool(_is_inside_triangle(point, triangle, int(closed), rtol, atol))
     
-    
-
-    # FIXME (Ole): The rest of this function has been made 
-    # obsolete by the C extension.
-    
-    # Quickly reject points that are clearly outside
-    if point[0] < min(triangle[:, 0]):
-        return False 
-    if point[0] > max(triangle[:, 0]): 
-        return False    
-    if point[1] < min(triangle[:, 1]):
-        return False
-    if point[1] > max(triangle[:, 1]):
-        return False        
-
-
-    # Start search    
-    A = triangle[0, :]
-    B = triangle[1, :]
-    C = triangle[2, :]
-    
-    # Now check if point lies wholly inside triangle
-    v0 = C-A 
-    v1 = B-A        
-        
-    a00 = num.inner(v0, v0)
-    a10 = a01 = num.inner(v0, v1)
-    a11 = num.inner(v1, v1)
-    
-    denom = a11*a00 - a01*a10
-    
-    if abs(denom) > 0.0:
-        v = point-A
-        b0 = num.inner(v0, v)        
-        b1 = num.inner(v1, v)            
-    
-        alpha = (b0*a11 - b1*a01)/denom
-        beta = (b1*a00 - b0*a10)/denom        
-
-        if (alpha > 0.0) and (beta > 0.0) and (alpha+beta < 1.0):
-            return True 
-
-
-    if closed is True:
-        # Check if point lies on one of the edges
-        
-        for X, Y in [[A, B], [B, C], [C, A]]:
-            res = _point_on_line(point[0], point[1],
-                                 X[0], X[1],
-                                 Y[0], Y[1],
-                                 rtol, atol)
-            
-            if res:
-                return True
-                
-    return False
-
-    
 def is_complex(polygon, verbose=False):
     """Check if a polygon is complex (self-intersecting).
        Uses a sweep algorithm that is O(n^2) in the worst case, but
@@ -338,6 +288,7 @@ def is_complex(polygon, verbose=False):
     """            
             
     def key_xpos(item):
+        """ Return the x coord out of the passed point for sorting key. """
         return (item[0][0])
     
     def segments_joined(seg0, seg1):
@@ -376,7 +327,7 @@ def is_complex(polygon, verbose=False):
                     if verbose:
                         print 'Self-intersecting polygon found, type ', type
                         print 'point', point,
-                        print 'vertices: ', leftmost, ' - ', l_x[cmp]                
+                        print 'vertices: ', leftmost, ' - ', l_x[cmp]  
                     return True            
             cmp += 1
         
@@ -421,8 +372,8 @@ def inside_polygon(points, polygon, closed=True, verbose=False):
 
     try:
         points = ensure_absolute(points)
-    except NameError, e:
-        raise NameError, e
+    except NameError, err:
+        raise NameError, err
     except:
         # If this fails it is going to be because the points can't be
         # converted to a numeric array.
@@ -512,7 +463,7 @@ def outside_polygon(points, polygon, closed = True, verbose = False):
 
     if len(points.shape) == 1:
         # Only one point was passed in. Convert to array of points
-        points = num.reshape(points, (1,2))
+        points = num.reshape(points, (1, 2))
 
     indices, count = separate_points_by_polygon(points, polygon,
                                                 closed=closed,
@@ -558,7 +509,7 @@ def in_and_outside_polygon(points, polygon, closed=True, verbose=False):
 
     if len(points.shape) == 1:
         # Only one point was passed in. Convert to array of points
-        points = num.reshape(points, (1,2))
+        points = num.reshape(points, (1, 2))
 
     indices, count = separate_points_by_polygon(points, polygon,
                                                 closed=closed,
@@ -631,21 +582,21 @@ def separate_points_by_polygon(points, polygon,
             raise NameError, e
         except:
             msg = 'Points could not be converted to numeric array'
-            raise msg
+            raise Exception(msg)
 
         try:
             polygon = ensure_numeric(polygon, num.float)
         except NameError, e:
-            raise NameError, e
+            raise NameError(e)
         except:
             msg = 'Polygon could not be converted to numeric array'
-            raise msg
+            raise Exception(msg)
 
         msg = 'Polygon array must be a 2d array of vertices'
         assert len(polygon.shape) == 2, msg
 
         msg = 'Polygon array must have two columns' 
-        assert polygon.shape[1]==2, msg
+        assert polygon.shape[1] == 2, msg
 
         msg = ('Points array must be 1 or 2 dimensional. '
                'I got %d dimensions' % len(points.shape))
@@ -653,7 +604,7 @@ def separate_points_by_polygon(points, polygon,
 
         if len(points.shape) == 1:
             # Only one point was passed in.  Convert to array of points.
-            points = num.reshape(points, (1,2))
+            points = num.reshape(points, (1, 2))
     
             msg = ('Point array must have two columns (x,y), '
                    'I got points.shape[1]=%d' % points.shape[0])
@@ -662,10 +613,10 @@ def separate_points_by_polygon(points, polygon,
        
             msg = ('Points array must be a 2d array. I got %s.'
                    % str(points[:30]))
-            assert len(points.shape)==2, msg
+            assert len(points.shape) == 2, msg
 
             msg = 'Points array must have two columns'
-            assert points.shape[1]==2, msg
+            assert points.shape[1] == 2, msg
 
     N = polygon.shape[0] # Number of vertices in polygon
     M = points.shape[0]  # Number of points
@@ -680,21 +631,21 @@ def separate_points_by_polygon(points, polygon,
 
     return indices, count
 
-##
-# @brief Determine area of a polygon.
-# @param input_polygon The polygon to get area of.
-# @return A scalar value for the polygon area.
+
 def polygon_area(input_polygon):
     """ Determine area of arbitrary polygon.
 
-    Reference:     http://mathworld.wolfram.com/PolygonArea.html
-    """
+        input_polygon The polygon to get area of.
+        
+        return A scalar value for the polygon area.
 
+        Reference:     http://mathworld.wolfram.com/PolygonArea.html
+    """
     # Move polygon to origin (0,0) to avoid rounding errors
     # This makes a copy of the polygon to avoid destroying it
     input_polygon = ensure_numeric(input_polygon)
-    min_x = min(input_polygon[:,0])
-    min_y = min(input_polygon[:,1])
+    min_x = min(input_polygon[:, 0])
+    min_y = min(input_polygon[:, 1])
     polygon = input_polygon - [min_x, min_y]
 
     # Compute area
@@ -741,7 +692,6 @@ def plot_polygons(polygons_points,
 
     Outputs:
 
-    - list of min and max of x and y coordinates
     - plot of polygons
     """
 
@@ -753,11 +703,6 @@ def plot_polygons(polygons_points,
 
     ion()
     hold(True)
-
-    minx = 1e10
-    maxx = 0.0
-    miny = 1e10
-    maxy = 0.0
 
     if label is None:
         label = ''
@@ -771,37 +716,30 @@ def plot_polygons(polygons_points,
         else:
             alpha = max(0.0, min(1.0, alpha))
 
-    n = len(polygons_points)
+    num_points = len(polygons_points)
     colour = []
     if style is None:
         style_type = 'line'
         style = []
-        for i in range(n):
+        for i in range(num_points):
             style.append(style_type)
             colour.append('b-')
     else:
-        for s in style:
-            if s == 'line': colour.append('b-')
-            if s == 'outside': colour.append('r.')
-            if s == 'point': colour.append('g.')
-            if s != 'line':
-                if s != 'outside':
-                    if s != 'point':
-                        colour.append(s)
+        for style_name in style:
+            if style_name == 'line':
+                colour.append('b-')
+            if style_name == 'outside':
+                colour.append('r.')
+            if style_name == 'point':
+                colour.append('g.')
+            if style_name not in ['line', 'outside', 'point']:
+                colour.append(style_name)
 
     for i, item in enumerate(polygons_points):
-        x, y = poly_xy(item)
-        if min(x) < minx:
-            minx = min(x)
-        if max(x) > maxx:
-            maxx = max(x)
-        if min(y) < miny:
-            miny = min(y)
-        if max(y) > maxy:
-            maxy = max(y)
-        plot(x, y, colour[i])
+        pt_x, pt_y = _poly_xy(item)
+        plot(pt_x, pt_y, colour[i])
         if alpha:
-            fill(x, y, colour[i], alpha=alpha)
+            fill(pt_x, pt_y, colour[i], alpha=alpha)
         xlabel('x')
         ylabel('y')
         title(label)
@@ -813,11 +751,8 @@ def plot_polygons(polygons_points,
 
     close('all')
 
-    vec = [minx, maxx, miny, maxy]
-    return vec
 
-
-def poly_xy(polygon):
+def _poly_xy(polygon):
     """ this is used within plot_polygons so need to duplicate
         the first point so can have closed polygon in plot
         # @param polygon A set of points defining a polygon.
@@ -828,159 +763,34 @@ def poly_xy(polygon):
 
     try:
         polygon = ensure_numeric(polygon, num.float)
-    except NameError, e:
-        raise NameError, e
+    except NameError, err:
+        raise NameError, err
     except:
         msg = ('Polygon %s could not be converted to numeric array'
                % (str(polygon)))
         raise Exception, msg
 
-    x = polygon[:, 0]
-    y = polygon[:, 1]
-    x = num.concatenate((x, [polygon[0, 0]]), axis = 0)
-    y = num.concatenate((y, [polygon[0, 1]]), axis = 0)
+    pts_x = num.concatenate((polygon[:, 0], [polygon[0, 0]]), axis = 0)
+    pts_y = num.concatenate((polygon[:, 1], [polygon[0, 1]]), axis = 0)
 
-    return x, y
+    return pts_x, pts_y
 
-
-class Polygon_function:
-    """Create callable object f: x,y -> z, where a,y,z are vectors and
-    where f will return different values depending on whether x,y belongs
-    to specified polygons.
-
-    To instantiate:
-
-       Polygon_function(polygons)
-
-    where polygons is a list of tuples of the form
-
-      [ (P0, v0), (P1, v1), ...]
-
-      with Pi being lists of vertices defining polygons and vi either
-      constants or functions of x,y to be applied to points with the polygon.
-
-    The function takes an optional argument, default which is the value
-    (or function) to used for points not belonging to any polygon.
-    For example:
-
-       Polygon_function(polygons, default = 0.03)
-
-    If omitted the default value will be 0.0
-
-    Note: If two polygons overlap, the one last in the list takes precedence
-
-    Coordinates specified in the call are assumed to be relative to the
-    origin (georeference) e.g. used by domain.
-    By specifying the optional argument georeference,
-    all points are made relative.
-
-    FIXME: This should really work with geo_spatial point sets.
-    """
-
-    def __init__(self, regions, default=0.0, geo_reference=None):
-        """
-        # @brief Create instance of a polygon function.
-        # @param regions A list of (x,y) tuples defining a polygon.
-        # @param default Value or function returning value for points outside poly.
-        # @param geo_reference ??
-        """
-
-        try:
-            len(regions)
-        except:
-            msg = ('Polygon_function takes a list of pairs (polygon, value).'
-                   'Got %s' % str(regions))
-            raise Exception, msg
-
-        T = regions[0]
-
-        if isinstance(T, basestring):
-            msg = ('You passed in a list of text values into polygon_function '
-                   'instead of a list of pairs (polygon, value): "%s"'
-                   % str(T))
-            raise Exception, msg
-
-        try:
-            a = len(T)
-        except:
-            msg = ('Polygon_function takes a list of pairs (polygon, value). '
-                   'Got %s' % str(T))
-            raise Exception, msg
-
-        msg = ('Each entry in regions have two components: (polygon, value). '
-               'I got %s' % str(T))
-        assert a == 2, msg
-
-        if geo_reference is None:
-            from anuga.coordinate_transforms.geo_reference import Geo_reference
-            geo_reference = Geo_reference()
-
-        self.default = default
-
-        # Make points in polygons relative to geo_reference
-        self.regions = []
-        for polygon, value in regions:
-            P = geo_reference.change_points_geo_ref(polygon)
-            self.regions.append((P, value))
-
-    def __call__(self, x, y):
-        """
-        # @brief Implement the 'callable' property of Polygon_function.
-        # @param x List of x coordinates of points ot interest.
-        # @param y List of y coordinates of points ot interest.
-        """
-        x = num.array(x, num.float)
-        y = num.array(y, num.float)
-
-        # x and y must be one-dimensional and same length
-        assert len(x.shape) == 1 and len(y.shape) == 1
-        N = x.shape[0]
-        assert y.shape[0] == N
-
-        points = num.ascontiguousarray(num.concatenate((x[:, num.newaxis],
-                                                        y[:, num.newaxis]),
-                                                       axis = 1 ))
-
-        if callable(self.default):
-            z = self.default(x, y)
-        else:
-            z = num.ones(N, num.float) * self.default
-
-        for polygon, value in self.regions:
-            indices = inside_polygon(points, polygon)
-
-            # FIXME: This needs to be vectorised
-            if callable(value):
-                for i in indices:
-                    xx = num.array([x[i]])
-                    yy = num.array([y[i]])
-                    z[i] = value(xx, yy)[0]
-            else:
-                for i in indices:
-                    z[i] = value
-
-        if len(z) == 0:
-            msg = ('Warning: points provided to Polygon function did not fall '
-                   'within its regions in [%.2f, %.2f], y in [%.2f, %.2f]'
-                   % (min(x), max(x), min(y), max(y)))
-            log.critical(msg)
-
-        return z
 
 ################################################################################
 # Functions to read and write polygon information
 ################################################################################
 
 def read_polygon(filename, delimiter=','):
-    """Read points assumed to form a polygon.
+    """ Read points assumed to form a polygon.
 
-# @param filename Path to file containing polygon data.
-# @param delimiter Delimiter to split polygon data with.
-# @return A list of point data from the polygon file.
+        Also checks to make sure polygon is not complex (self-intersecting).
 
+        filename Path to file containing polygon data.
+        delimiter Delimiter to split polygon data with.
+        A list of point data from the polygon file.
 
-    There must be exactly two numbers in each line separated by the delimiter.
-    No header.
+        There must be exactly two numbers in each line separated by the delimiter.
+        No header.
     """
 
     fid = open(filename)
@@ -1001,11 +811,7 @@ def read_polygon(filename, delimiter=','):
     
     return polygon
 
-##
-# @brief Write polygon data to a file.
-# @param polygon Polygon points to write to file.
-# @param filename Path to file to write.
-# @note Delimiter is assumed to be a comma.
+
 def write_polygon(polygon, filename=None):
     """Write polygon to csv file.
 
@@ -1046,32 +852,24 @@ def populate_polygon(polygon, number_of_points, seed=None, exclude=None):
     points = []
 
     # Find outer extent of polygon
-    max_x = min_x = polygon[0][0]
-    max_y = min_y = polygon[0][1]
-    for point in polygon[1:]:
-        x = point[0]
-        if x > max_x: max_x = x
-        if x < min_x: min_x = x
-        y = point[1]
-        if y > max_y: max_y = y
-        if y < min_y: min_y = y
-
+    extents = AABB(polygon)
+    
     while len(points) < number_of_points:
-        x = uniform(min_x, max_x)
-        y = uniform(min_y, max_y)
+        rand_x = uniform(extents.xmin, extents.xmax)
+        rand_y = uniform(extents.ymin, extents.ymax)
 
         append = False
-        if is_inside_polygon([x,y], polygon):
+        if is_inside_polygon([rand_x, rand_y], polygon):
             append = True
 
             #Check exclusions
             if exclude is not None:
                 for ex_poly in exclude:
-                    if is_inside_polygon([x, y], ex_poly):
+                    if is_inside_polygon([rand_x, rand_y], ex_poly):
                         append = False
 
         if append is True:
-            points.append([x, y])
+            points.append([rand_x, rand_y])
 
     return points
 
@@ -1090,42 +888,29 @@ def point_in_polygon(polygon, delta=1e-8):
        searches in all diagonals and up and down (not left and right).
     """
 
-    import exceptions
-
-    class Found(exceptions.Exception):
-        pass
-
     polygon = ensure_numeric(polygon)
     
-    point_in = False
-    while not point_in:
-        try:
-            for poly_point in polygon:     # [1:]:
-                for x_mult in range(-1, 2):
-                    for y_mult in range(-1, 2):
-                        x = poly_point[0]
-                        y = poly_point[1]
+    while True:
+        for poly_point in polygon:
+            for x_mult in range(-1, 2):
+                for y_mult in range(-1, 2):
+                    pt_x, pt_y = poly_point
 
-                        if x == 0:
-                            x_delta = x_mult * delta
-                        else:
-                            x_delta = x + x_mult*x*delta
+                    if pt_x == 0:
+                        x_delta = x_mult * delta
+                    else:
+                        x_delta = pt_x + x_mult*pt_x*delta
 
-                        if y == 0:
-                            y_delta = y_mult * delta
-                        else:
-                            y_delta = y + y_mult*y*delta
+                    if pt_y == 0:
+                        y_delta = y_mult * delta
+                    else:
+                        y_delta = pt_y + y_mult*pt_y*delta
 
-                        point = [x_delta, y_delta]
+                    point = [x_delta, y_delta]
 
-                        if is_inside_polygon(point, polygon, closed=False):
-                            raise Found
-        except Found:
-            point_in = True
-        else:
-            delta = delta * 0.1
-
-    return point
+                    if is_inside_polygon(point, polygon, closed=False):
+                        return point
+        delta = delta * 0.1
 
 
 def number_mesh_triangles(interior_regions, bounding_poly, remainder_res):
@@ -1211,9 +996,7 @@ def decimate_polygon(polygon, factor=10):
     # Keep only some points making sure extrema are kept
     reduced_polygon = []
     for i, point in enumerate(polygon):
-        x = point[0]
-        y = point[1]
-        if x in [min_x, max_x] and y in [min_y, max_y]:
+        if point[0] in [min_x, max_x] and point[1] in [min_y, max_y]:
             # Keep
             reduced_polygon.append(point)
         else:
@@ -1317,10 +1100,10 @@ if compile.can_use_C_extension('polygon_ext.c'):
     #from polygon_ext import _intersection
 
 else:
-    error_msg = 'C implementations could not be accessed by %s.\n ' %__file__
-    error_msg += 'Make sure compile_all.py has been run as described in '
-    error_msg += 'the ANUGA installation guide.'
-    raise Exception(error_msg)
+    ERROR_MSG = 'C implementations could not be accessed by %s.\n ' % __file__
+    ERROR_MSG += 'Make sure compile_all.py has been run as described in '
+    ERROR_MSG += 'the ANUGA installation guide.'
+    raise Exception(ERROR_MSG)
 
 
 if __name__ == "__main__":

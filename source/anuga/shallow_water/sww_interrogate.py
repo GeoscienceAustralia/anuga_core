@@ -3,6 +3,7 @@
 '''
 
 import os
+import anuga.utilities.log as log
 import numpy as num
 
 from anuga.utilities.file_utils import get_all_swwfiles

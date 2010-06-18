@@ -9,6 +9,8 @@ from anuga.utilities.numerical_tools import ensure_numeric
 import anuga.utilities.log as log
 from Scientific.IO.NetCDF import NetCDFFile
 
+from sts import Write_sts
+
 from anuga.coordinate_transforms.geo_reference import \
         ensure_geo_reference
 
@@ -454,15 +456,13 @@ class Read_sww:
         return self.time[self.frame_number]
 
 
-class Write_sww:
+class Write_sww(Write_sts):
     """
         A class to write an SWW file.
         
         It is domain agnostic, and requires all the data to be fed in
         manually.
     """
-    RANGE = '_range'
-    EXTREMA = ':extrema'
 
     def __init__(self, static_quantities, dynamic_quantities):
         """Initialise Write_sww with two list af quantity names: 
@@ -566,11 +566,7 @@ class Write_sww:
         outfile.createVariable('volumes', netcdf_int, ('number_of_volumes',
                                                        'number_of_vertices'))
 
-        # Doing sww_precision instead of Float gives cast errors.
-        outfile.createVariable('time', netcdf_float,
-                               ('number_of_timesteps',))
 
-                               
         for q in self.static_quantities:
             
             outfile.createVariable(q, sww_precision,
@@ -584,30 +580,9 @@ class Write_sww:
             outfile.variables[q+Write_sww.RANGE][0] = max_float  # Min
             outfile.variables[q+Write_sww.RANGE][1] = -max_float # Max
 
-        #if 'elevation' in self.static_quantities:    
-        #    # FIXME: Backwards compat - get rid of z once old view has retired
-        #    outfile.createVariable('z', sww_precision,
-        #                           ('number_of_points',))
-                               
-        for q in self.dynamic_quantities:
-            outfile.createVariable(q, sww_precision, ('number_of_timesteps',
-                                                      'number_of_points'))
-            outfile.createVariable(q + Write_sww.RANGE, sww_precision,
-                                   ('numbers_in_range',))
+        
+        self.write_dynamic_quantities(outfile, self.dynamic_quantities, times)
 
-            # Initialise ranges with small and large sentinels.
-            # If this was in pure Python we could have used None sensibly
-            outfile.variables[q+Write_sww.RANGE][0] = max_float  # Min
-            outfile.variables[q+Write_sww.RANGE][1] = -max_float # Max
-
-        if isinstance(times, (list, num.ndarray)):
-            outfile.variables['time'][:] = times    # Store time relative
-
-        if verbose:
-            log.critical('------------------------------------------------')
-            log.critical('Statistics:')
-            log.critical('    t in [%f, %f], len(t) == %d'
-                         % (num.min(times), num.max(times), len(times.flat)))
 
 
     def store_triangulation(self,

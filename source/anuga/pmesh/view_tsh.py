@@ -9,7 +9,8 @@ sys.path.append('..'+sep+'pyvolution')
 from shallow_water import Domain
 from anuga.pyvolution.pmesh2domain import pmesh_to_domain_instance
 from anuga.pyvolution.util import file_function
-from anuga.geometry.polygon import Polygon_function, read_polygon
+from anuga.geometry.polygon import read_polygon
+from anuga.geometry.polygon_function import Polygon_function
 from realtime_visualisation_new import *
 
 #-------

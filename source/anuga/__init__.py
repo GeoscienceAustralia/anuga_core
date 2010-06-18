@@ -41,7 +41,7 @@ from anuga.file.csv_file import load_csv_as_building_polygons,  \
 from anuga.file.sts import create_sts_boundary
 
 from anuga.geometry.polygon import read_polygon, plot_polygons, polygon_area
-from anuga.geometry.polygon import Polygon_function
+from anuga.geometry.polygon_function import Polygon_function
 
 from anuga.abstract_2d_finite_volumes.pmesh2domain import \
                                             pmesh_to_domain_instance
@@ -51,7 +51,7 @@ from anuga.utilities.system_tools import file_length
 from anuga.utilities.sww_merge import sww_merge
 from anuga.utilities.file_utils import copy_code_files
 
-from anuga.geometry.polygon import read_polygon, Polygon_function
+from anuga.geometry.polygon import read_polygon
 from anuga.caching import cache
 
 #-----------------------------

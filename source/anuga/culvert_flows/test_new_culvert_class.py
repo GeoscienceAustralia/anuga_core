@@ -8,7 +8,7 @@ import sys
 import anuga
 
 from anuga.utilities.system_tools import get_pathname_from_package
-from anuga.geometry.polygon import Polygon_function
+from anuga.geometry.polygon_function import Polygon_function
         
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
 from anuga.abstract_2d_finite_volumes.quantity import Quantity
