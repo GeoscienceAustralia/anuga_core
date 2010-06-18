@@ -1,5 +1,5 @@
 import numpy as num
-import log
+import anuga.utilities.log as log
 from Scientific.IO.NetCDF import NetCDFFile
 
 from anuga.config import max_float

@@ -1,55 +1,19 @@
 """ This module is responsible for loading and saving NetCDF NC files
 """
 
-import os, sys
-import csv
-import string
-import shutil
-from struct import unpack
-import array as p_array
-from os import sep, path, remove, mkdir, access, F_OK, W_OK, getcwd
-
 import numpy as num
 
 from Scientific.IO.NetCDF import NetCDFFile
-from os.path import exists, basename, join
-from os import getcwd
 
-from anuga.coordinate_transforms.redfearn import redfearn, \
+from anuga.coordinate_transforms.redfearn import \
      convert_from_latlon_to_utm
-from anuga.coordinate_transforms.geo_reference import Geo_reference, \
-     write_NetCDF_georeference, ensure_geo_reference
-from anuga.geospatial_data.geospatial_data import Geospatial_data,\
-     ensure_absolute
 from anuga.config import minimum_storable_height as \
      default_minimum_storable_height
-from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
-from anuga.config import netcdf_float, netcdf_float32, netcdf_int
-from anuga.config import max_float
+from anuga.config import netcdf_mode_r, netcdf_mode_w
+from anuga.config import netcdf_float, netcdf_int
 from anuga.utilities.numerical_tools import ensure_numeric,  mean
-from anuga.caching.caching import myhash
-from anuga.shallow_water.shallow_water_domain import Domain
-from anuga.abstract_2d_finite_volumes.pmesh2domain import \
-     pmesh_to_domain_instance
-from anuga.abstract_2d_finite_volumes.util import get_revision_number, \
-     remove_lone_verts, sww2timeseries, get_centroid_values
 
-from anuga.abstract_2d_finite_volumes.neighbour_mesh import segment_midpoints
-from anuga.load_mesh.loadASCII import export_mesh_file
-from anuga.geometry.polygon import intersection
-from anuga.file_conversion.sww2dem import sww2dem
-
-from anuga.utilities.system_tools import get_vars_in_expression
 import anuga.utilities.log as log
-
-from anuga.utilities.file_utils import create_filename,\
-                        get_all_swwfiles
-from anuga.file.csv_file import load_csv_as_dict
-from sww import Read_sww, Write_sww
-
-from anuga.anuga_exceptions import DataMissingValuesError, \
-                DataFileNotOpenError, DataTimeError, DataDomainError, \
-                NewQuantity
 
 
 # Definitions of various NetCDF dimension names, etc.
@@ -150,9 +114,8 @@ class Write_nc:
         time[i] = i * self.time_step    #self.domain.time
         quantity[i,:] = quantity_slice * self.quantity_multiplier
 
-    ##
-    # @brief Close file underlying the class instance.
     def close(self):
+        """ Close file underlying the class instance. """
         self.outfile.close()
 
 

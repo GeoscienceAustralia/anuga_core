@@ -1,9 +1,8 @@
- 
-##
-# @brief Convert points to a polygon (?)
-# @param points_file The points file.
-# @param minimum_triangle_angle ??
-# @return 
+"""
+    Fit a boundary polygon around arbitrary points.
+"""
+
+
 def load_pts_as_polygon(points_file, minimum_triangle_angle=3.0):
     """
     WARNING: This function is not fully working.
@@ -14,9 +13,8 @@ def load_pts_as_polygon(points_file, minimum_triangle_angle=3.0):
              returns one polygon.
     """
 
-    from anuga.pmesh.mesh import Mesh, importMeshFromFile
+    from anuga.pmesh.mesh import importMeshFromFile
     from anuga.shallow_water.shallow_water_domain import Domain
-    from anuga.pmesh.mesh_interface import create_mesh_from_regions
 
     mesh = importMeshFromFile(points_file)
     mesh.auto_segment()
