@@ -1,5 +1,6 @@
 #external modules
 import os
+import sys
 import unittest
 import numpy as num
 from Scientific.IO.NetCDF import NetCDFFile
@@ -74,9 +75,10 @@ class Test_csv2sts(unittest.TestCase):
         """
         Make sure that the python file functions as a command-line tool.
         """
-        cmd = 'python csv2sts.py --latitude ' + str(lat) + ' --lon ' + str(lon)
-        cmd += ' ' + testfile_csv + ' ' + sts_out
-        print cmd
+        
+        cmd = 'python ' + sys.path[0] + os.sep +'csv2sts.py --latitude ' 
+        cmd += '%s --lon %s %s %s' % (str(lat), str(lon), testfile_csv, sts_out)
+        
         os.system(cmd)
         self._check_generated_sts()
 

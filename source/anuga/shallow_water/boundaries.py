@@ -181,7 +181,8 @@ class Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(Boundary):
     def waveform(t):
         return sea_level + normalized_amplitude/cosh(t-25)**2
 
-    Bts = Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(domain, waveform)
+    Bts = Transmissive_n_momentum_zero_t_momentum_set_stage_boundary\
+                            (domain, waveform)
 
     Underlying domain must be specified when boundary is instantiated
     """
@@ -241,14 +242,6 @@ class Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(Boundary):
             x = float(value)
         except:
             x = float(value[0])
-
-        ## import math
-        ## if vol_id == 9433:
-        ##     print 'vol_id = ',vol_id, ' edge_id = ',edge_id, 'q = ', q, ' x = ',x
-        ##     print 'normal = ', normal
-        ##     print 'n . p = ', (normal[0]*q[1] + normal[1]*q[2])
-        ##     print 't . p = ', (normal[1]*q[1] - normal[0]*q[2])
-
 
         q[0] = x
         ndotq = (normal[0]*q[1] + normal[1]*q[2])
@@ -397,26 +390,28 @@ class Inflow_boundary(Boundary):
         # Compute depth based on Manning's formula v = 1/n h^{2/3} sqrt(S)
         # Where v is velocity, n is manning's coefficient, h is depth
         # and S is the slope into the domain. 
-        # Let mu be the momentum (vh), then this equation becomes: mu = 1/n h^{5/3} sqrt(S) 
+        # Let mu be the momentum (vh), then this equation becomes:
+        #            mu = 1/n h^{5/3} sqrt(S) 
         # from which we can isolate depth to get
-        # h = (mu n/sqrt(S) )^{3/5} 
+        #             h = (mu n/sqrt(S) )^{3/5} 
         
         slope = 0 # get gradient for this triangle dot normal
         
         # get manning coef from this triangle
-        friction = self.domain.get_quantity('friction').get_values(location='edges', 
-                                                                   indices=[vol_id])[0]
+        friction = self.domain.get_quantity('friction').get_values(\
+                    location='edges', indices=[vol_id])[0]
         mannings_n = friction[edge_id]
 
         if slope > epsilon and mannings_n > epsilon:
-            depth = pow(self.average_momentum * mannings_n/math.sqrt(slope), 3.0/5) 
+            depth = pow(self.average_momentum * mannings_n/math.sqrt(slope), \
+                        3.0/5) 
         else:
             depth = 1.0
             
         # Elevation on this edge    
         
-        z = self.domain.get_quantity('elevation').get_values(location='edges', 
-                                                             indices=[vol_id])[0]
+        z = self.domain.get_quantity('elevation').get_values(\
+                    location='edges', indices=[vol_id])[0]
         elevation = z[edge_id]
             
         # Assign conserved quantities and return

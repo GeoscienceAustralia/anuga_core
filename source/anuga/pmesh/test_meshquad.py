@@ -1,7 +1,7 @@
 import unittest
 import numpy as num
 
-from aabb import AABB
+from anuga.geometry.aabb import AABB
 from quad import Cell
 from mesh_quadtree import MeshQuadtree
 from anuga.abstract_2d_finite_volumes.general_mesh import General_mesh as Mesh

@@ -23,7 +23,7 @@ class AABB:
             ymin is minimum y
             ymax is maximum y (absolute coord, ie, not size)
         """
-        if not xmax:
+        if xmax is None:
             # try treating first arg as a list of points
             try:
                 xmin[0][0]

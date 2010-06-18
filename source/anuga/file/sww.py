@@ -789,7 +789,6 @@ class Write_sww(Write_sts):
                 x = q_values.astype(sww_precision)
                 outfile.variables[q][slice_index] = x
                     
-        
                 # This updates the _range values
                 q_range = outfile.variables[q + Write_sww.RANGE][:]
                 q_values_min = num.min(q_values)
