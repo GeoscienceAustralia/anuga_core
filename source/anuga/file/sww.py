@@ -581,7 +581,8 @@ class Write_sww(Write_sts):
             outfile.variables[q+Write_sww.RANGE][1] = -max_float # Max
 
         
-        self.write_dynamic_quantities(outfile, self.dynamic_quantities, times)
+        self.write_dynamic_quantities(outfile, self.dynamic_quantities, times, \
+                                        precis = sww_precision)
 
 
 
@@ -786,8 +787,8 @@ class Write_sww(Write_sts):
             else:
                 q_values = ensure_numeric(quant[q])
                 
-                x = q_values.astype(sww_precision)
-                outfile.variables[q][slice_index] = x
+                q_retyped = q_values.astype(sww_precision)
+                outfile.variables[q][slice_index] = q_retyped
                     
                 # This updates the _range values
                 q_range = outfile.variables[q + Write_sww.RANGE][:]
