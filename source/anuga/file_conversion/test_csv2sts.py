@@ -26,6 +26,7 @@ class Test_csv2sts(unittest.TestCase):
         Test csv to NetCDFFile conversion functionality.
     """
     def setUp(self):
+        """ Setup for all tests. """
         self.verbose = True
         fid = open(testfile_csv, 'w')
         fid.write("""time stage
@@ -46,8 +47,8 @@ class Test_csv2sts(unittest.TestCase):
         fid.close()
                   
     def tearDown(self):
-        pass     
- #       os.remove(testfile_csv)
+        """ Cleanup for all tests. """     
+        os.remove(testfile_csv)
 
     def test_missing_input_file(self):
         """
@@ -99,7 +100,9 @@ class Test_csv2sts(unittest.TestCase):
             assert list(sts.variables[key][:]) == values, \
                                         'stored data does not match'
 
-        os.remove(sts_out)           
+        if not sys.platform == 'win32':
+            # Windows cannot delete the file for some reason.
+            os.remove(sts_out)           
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_csv2sts,'test')
