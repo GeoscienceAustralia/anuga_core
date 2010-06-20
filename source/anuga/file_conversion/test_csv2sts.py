@@ -76,8 +76,11 @@ class Test_csv2sts(unittest.TestCase):
         """
         Make sure that the python file functions as a command-line tool.
         """
+
+        # Look for script in same dir as this unit test.
+        path = os.path.dirname( os.path.realpath( __file__ ) )
         
-        cmd = 'python ' + sys.path[0] + os.sep +'csv2sts.py --latitude ' 
+        cmd = 'python ' + path + os.sep +'csv2sts.py --latitude ' 
         cmd += '%s --lon %s %s %s' % (str(lat), str(lon), testfile_csv, sts_out)
         
         os.system(cmd)
