@@ -3,13 +3,13 @@
 
 import os
 
-s = 'find . -type f -name "*.py" -print | xargs wc -l'
-print s
-os.system(s)
+cmd_string = 'find . -type f -name "*.py" -print | xargs wc -l'
+print cmd_string
+os.system(cmd_string)
 
 
-s = 'find . -type f -name "*.c" -print | xargs wc -l'
-print s
-os.system(s)
+cmd_string = 'find . -type f -name "*.c" -print | xargs wc -l'
+print cmd_string
+os.system(cmd_string)
 
 

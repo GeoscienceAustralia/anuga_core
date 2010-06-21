@@ -22,7 +22,7 @@ from anuga.utilities.terminal_width import terminal_width
 exclude_files = []
 
 # Directories that should not be searched for test files.
-exclude_dirs = ['pypar_dist',  'shallow_water_balanced',   # Special requirements
+exclude_dirs = ['pypar_dist',  'shallow_water_balanced',  # Special requirements
                 '.svn',          # subversion
                 'props', 'wcprops', 'prop-base', 'text-base', 'tmp']
 
@@ -67,12 +67,13 @@ def list_names(names, func=None, col_width=None, page_width=None):
         print
 
 
-##
-# @brief Get 'test_*.py' files and paths to directories.
-# @param path Path to directory to start walk in.
-# @return A tuple (<files>, <dirs>).
-# @note Don't include any files in and below forbidden directories.
 def get_test_files(path):
+    """ Get 'test_*.py' files and paths to directories.
+    param path Path to directory to start walk in.
+    @return A tuple (<files>, <dirs>).
+    Don't include any files in and below forbidden directories.
+
+    """
     walk = os.walk(path)
 
     test_files = []

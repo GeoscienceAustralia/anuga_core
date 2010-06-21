@@ -42,7 +42,8 @@ major_revision = '1.2'
 manning = 0.03  # Manning's friction coefficient
 #g = 9.80665    # Gravity - FIXME reinstate this and fix unit tests.
 g = 9.8
-#g(phi) = 9780313 * (1 + 0.0053024 sin(phi)**2 - 0.000 0059 sin(2*phi)**2) micro m/s**2, where phi is the latitude
+#g(phi) = 9780313 * (1 + 0.0053024 sin(phi)**2 - 0.000 0059 sin(2*phi)**2)
+# micro m/s**2, where phi is the latitude
 #The 'official' average is 9.80665
 
 eta_w = 3.0e-3 # Wind stress coefficient
@@ -137,7 +138,8 @@ max_smallsteps = 50   # Max number of degenerate steps allowed b4
 # shallow water wave equation
 #
 # The actual soundspeed can be as high as 1530m/s
-# (see http://staff.washington.edu/aganse/public.projects/clustering/clustering.html),
+# (see http://staff.washington.edu/aganse/public.projects/
+#            clustering/clustering.html),
 # but that would only happen with h>225000m in this equation. Why ?
 # The maximal speed we specify is really related to the max speed
 # of surface pertubation

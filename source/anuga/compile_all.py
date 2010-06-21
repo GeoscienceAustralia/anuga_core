@@ -1,6 +1,8 @@
+""" Script to compile all C extensions in ANUGA. """
+
 import os
 
-buildroot = os.getcwd()
+BUILDROOT = os.getcwd()
 
 #Attempt to compile all extensions
 
@@ -31,7 +33,7 @@ os.chdir('..')
 os.chdir('mesh_engine')
 execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 
-os.chdir(buildroot)    
+os.chdir(BUILDROOT)    
 #execfile('test_all.py')
     
 if sys.platform == 'win32':

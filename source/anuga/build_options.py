@@ -1,4 +1,4 @@
-# Build configuration for ANUGA
+""" Build configuration for ANUGA. """
 
 # Flags to pass to GCC
 GCCFLAGS = '-O3 -Wall'
