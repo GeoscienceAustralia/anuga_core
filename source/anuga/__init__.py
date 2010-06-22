@@ -92,7 +92,7 @@ from anuga.shallow_water.smf import slide_tsunami, slump_tsunami
 #-----------------------------
 # Forcing
 #-----------------------------
-from anuga.shallow_water.forcing import Inflow
+from anuga.shallow_water.forcing import Inflow, Rainfall
 
 #-----------------------------
 # File conversion utilities

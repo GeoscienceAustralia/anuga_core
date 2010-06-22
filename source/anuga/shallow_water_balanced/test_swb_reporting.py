@@ -5,10 +5,12 @@ import os.path
 from math import pi, sqrt
 import tempfile
 
+import anuga
+
 from anuga.config import g, epsilon
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.utilities.numerical_tools import mean
-from anuga.utilities.polygon import is_inside_polygon
+from anuga.geometry.polygon import is_inside_polygon
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.abstract_2d_finite_volumes.quantity import Quantity
 from anuga.geospatial_data.geospatial_data import Geospatial_data
@@ -76,9 +78,9 @@ class Test_swb_clean(unittest.TestCase):
         #--------------------------------------------------------------
         # Setup boundary conditions
         #--------------------------------------------------------------
-        Br = Reflective_boundary(domain)              # Reflective wall
+        Br = anuga.Reflective_boundary(domain)       # Reflective wall
         # Constant inflow
-        Bd = Dirichlet_boundary([final_runup_height, 0, 0])
+        Bd = anuga.Dirichlet_boundary([final_runup_height, 0, 0])
 
         # All reflective to begin with (still water)
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})

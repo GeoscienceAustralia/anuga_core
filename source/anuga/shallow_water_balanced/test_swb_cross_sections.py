@@ -5,14 +5,13 @@ import os.path
 from math import pi, sqrt
 import tempfile
 
+import anuga
+
 from anuga.config import g, epsilon
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.utilities.numerical_tools import mean
-from anuga.utilities.polygon import is_inside_polygon
+from anuga.geometry.polygon import is_inside_polygon
 from anuga.coordinate_transforms.geo_reference import Geo_reference
-from anuga.abstract_2d_finite_volumes.quantity import Quantity
-from anuga.geospatial_data.geospatial_data import Geospatial_data
-from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
 
 from anuga.utilities.system_tools import get_pathname_from_package
 from swb_domain import *
@@ -75,8 +74,8 @@ class Test_swb_clean(unittest.TestCase):
         u = 2.0
         uh = u*h
 
-        Br = Reflective_boundary(domain)     # Side walls
-        Bd = Dirichlet_boundary([w, uh, 0])  # 2 m/s across the 3 m inlet: 
+        Br = anuga.Reflective_boundary(domain)     # Side walls
+        Bd = anuga.Dirichlet_boundary([w, uh, 0])  # 2 m/s across the 3 m inlet: 
 
 
         # Initial conditions
@@ -160,8 +159,8 @@ class Test_swb_clean(unittest.TestCase):
         u = 2.0
         uh = u*h
 
-        Br = Reflective_boundary(domain)       # Side walls
-        Bd = Dirichlet_boundary([w, uh, 0])    # 2 m/s across the 3 m inlet:
+        Br = anuga.Reflective_boundary(domain)     # Side walls
+        Bd = anuga.Dirichlet_boundary([w, uh, 0])  # 2 m/s across the 3 m inlet:
 
         # Initial conditions
         domain.set_quantity('elevation', e)
@@ -251,8 +250,8 @@ class Test_swb_clean(unittest.TestCase):
         u = 2.0
         uh = u*h
 
-        Br = Reflective_boundary(domain)       # Side walls
-        Bd = Dirichlet_boundary([w, uh, 0])    # 2 m/s across the 3 m inlet:
+        Br = anuga.Reflective_boundary(domain)     # Side walls
+        Bd = anuga.Dirichlet_boundary([w, uh, 0])  # 2 m/s across the 3 m inlet:
 
         # Initial conditions
         domain.set_quantity('elevation', e)

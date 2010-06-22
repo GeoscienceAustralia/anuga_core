@@ -1,13 +1,19 @@
 #!/usr/bin/env python
 
+""" Test suite to test polygon functionality. """
+
 import unittest
 import numpy as num
-from math import sqrt, pi
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.utilities.system_tools import get_pathname_from_package
 
-from polygon import *
-from polygon import _poly_xy
+from polygon import _poly_xy, separate_points_by_polygon, \
+                    populate_polygon, polygon_area, is_inside_polygon, \
+                    read_polygon, point_on_line, point_in_polygon, \
+                    plot_polygons, outside_polygon, is_outside_polygon, \
+                    intersection, is_complex, is_inside_triangle, \
+                    interpolate_polyline, inside_polygon, in_and_outside_polygon
+                    
 from polygon_function import Polygon_function
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.geospatial_data.geospatial_data import Geospatial_data
@@ -400,7 +406,8 @@ class Test_Polygon(unittest.TestCase):
         assert count == 3
 
         polygon = [[0,0], [1,0], [0.5,-1], [2, -1], [2,1], [0,1]]
-        points = [ [0.5, 1.4], [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], [0.5, -0.5]]
+        points = [ [0.5, 1.4], [0.5, 0.5], [1, -0.5], [1.5, 0], [0.5, 1.5], \
+                        [0.5, -0.5]]
         res, count = separate_points_by_polygon( points, polygon )
 
         assert num.allclose( res, [1,2,3,5,4,0] )
@@ -1400,6 +1407,7 @@ class Test_Polygon(unittest.TestCase):
             assert num.allclose(p1, p3), msg
 
     def test_no_intersection(self):
+        """ Test 2 non-touching lines don't intersect. """
         line0 = [[-1,1], [1,1]]
         line1 = [[0,-1], [0,0]]
 
@@ -1468,8 +1476,8 @@ class Test_Polygon(unittest.TestCase):
         # Try examples with some slope (y=2*x+5)
 
         # Overlap
-        line0 = [[0,5], [7,19]]
-        line1 = [[1,7], [10,25]]
+        line0 = [[0, 5], [7, 19]]
+        line1 = [[1, 7], [10, 25]]
         status, value = intersection(line0, line1)
         assert status == 2
         assert num.allclose(value, [[1, 7], [7, 19]])
@@ -1511,27 +1519,7 @@ class Test_Polygon(unittest.TestCase):
         assert num.allclose(value, [[7, 19], [1, 7]])
 
 
-    def NOtest_inside_polygon_main(self):
-        # FIXME (Ole): Why is this disabled?
-        #print "inside",inside
-        #print "outside",outside
-
-        assert not inside_polygon((0.5, 1.5), polygon)
-        assert not inside_polygon((0.5, -0.5), polygon)
-        assert not inside_polygon((-0.5, 0.5), polygon)
-        assert not inside_polygon((1.5, 0.5), polygon)
-
-        # Try point on borders
-        assert inside_polygon((1., 0.5), polygon, closed=True)
-        assert inside_polygon((0.5, 1), polygon, closed=True)
-        assert inside_polygon((0., 0.5), polygon, closed=True)
-        assert inside_polygon((0.5, 0.), polygon, closed=True)
-
-        assert not inside_polygon((0.5, 1), polygon, closed=False)
-        assert not inside_polygon((0., 0.5), polygon, closed=False)
-        assert not inside_polygon((0.5, 0.), polygon, closed=False)
-        assert not inside_polygon((1., 0.5), polygon, closed=False)
-
+    def test_inside_polygon_main(self):
         # From real example (that failed)
         polygon = [[20,20], [40,20], [40,40], [20,40]]
         points = [[40, 50]]
@@ -1545,6 +1533,7 @@ class Test_Polygon(unittest.TestCase):
         assert num.allclose(res, [0,1])
 
     def test_polygon_area(self):
+        """ Test getting the area of a polygon. """
         # Simplest case: Polygon is the unit square
         polygon = [[0,0], [1,0], [1,1], [0,1]]
         assert polygon_area(polygon) == 1
@@ -1610,7 +1599,7 @@ class Test_Polygon(unittest.TestCase):
 
         # Another case
         polygon3 = [[1,5], [10,1], [100,10], [50,10], [3,6]]
-        v = plot_polygons([polygon2,polygon3], figname='test2')
+        plot_polygons([polygon2, polygon3], figname='test2')
 
         for file in ['test1.png', 'test2.png']:
             assert os.access(file, os.R_OK)
@@ -1618,8 +1607,9 @@ class Test_Polygon(unittest.TestCase):
 
 
     def test_inside_polygon_geospatial(self):
+        """ Test geospatial coords inside poly. """
         #Simplest case: Polygon is the unit square
-        polygon_absolute = [[0,0], [1,0], [1,1], [0,1]]
+        polygon_absolute = [[0, 0], [1, 0], [1, 1], [0, 1]]
         poly_geo_ref = Geo_reference(57, 100, 100)
         polygon = poly_geo_ref.change_points_geo_ref(polygon_absolute)
         poly_spatial = Geospatial_data(polygon, geo_reference=poly_geo_ref)
@@ -1638,31 +1628,15 @@ class Test_Polygon(unittest.TestCase):
 
         assert is_inside_polygon(points_absolute, polygon_absolute)
 
-    def NOtest_decimate_polygon(self):
+    def test_decimate_polygon(self):
+        from polygon import decimate_polygon
         polygon = [[0,0], [10,10], [15,5], [20, 10],
                    [25,0], [30,10], [40,-10], [35, -5]]
 
         dpoly = decimate_polygon(polygon, factor=2)
 
-        print dpoly
-
         assert len(dpoly)*2==len(polygon)
 
-        minx = maxx = polygon[0][0]
-        miny = maxy = polygon[0][1]
-        for point in polygon[1:]:
-            x, y = point
-
-            if x < minx: minx = x
-            if x > maxx: maxx = x
-            if y < miny: miny = y
-            if y > maxy: maxy = y
-
-        assert [minx, miny] in polygon
-        print minx, maxy
-        assert [minx, maxy] in polygon
-        assert [maxx, miny] in polygon
-        assert [maxx, maxy] in polygon
 
     def test_interpolate_polyline(self):
         """test_interpolate_polyline(self):
@@ -1755,7 +1729,7 @@ class Test_Polygon(unittest.TestCase):
 
 
     def test_is_inside_triangle_more(self):
-
+        """ Test if points inside triangles are detected correctly. """
         res = is_inside_triangle([0.5, 0.5], [[ 0.5,  0. ],
                                               [ 0.5,  0.5],
                                               [ 0.,   0. ]])
@@ -1801,21 +1775,25 @@ class Test_Polygon(unittest.TestCase):
 
         
     def test_is_polygon_complex(self):
-        """Test a concave and a complex poly with is_complex, to make sure it can detect
-           self-intersection.
+        """ Test a concave and a complex poly with is_complex, to make
+            sure it can detect self-intersection.
         """
         concave_poly = [[0, 0], [10, 0], [5, 5], [10, 10], [0, 10]]
-        complex_poly = [[0, 0], [10, 0], [5, 5], [4, 15], [5, 7], [10, 10], [0, 10]]
+        complex_poly = [[0, 0], [10, 0], [5, 5], [4, 15], [5, 7], [10, 10], \
+                            [0, 10]]
 
         assert not is_complex(concave_poly)
         assert is_complex(complex_poly)
 
     def test_is_polygon_complex2(self):
-        """Test a concave and a complex poly with is_complex, to make sure it can detect
-           self-intersection. This test uses more complicated polygons.
+        """ Test a concave and a complex poly with is_complex, to make sure it
+            can detect self-intersection. This test uses more complicated
+            polygons.
         """    
-        concave_poly = [[0, 0], [10, 0], [11,0], [5, 5], [7,6], [10, 10], [1,5], [0, 10]]
-        complex_poly = [[0, 0], [12,12], [10, 0], [5, 5], [3,18], [4, 15], [5, 7], [10, 10], [0, 10], [16, 12]]       
+        concave_poly = [[0, 0], [10, 0], [11,0], [5, 5], [7, 6], [10, 10], \
+                        [1, 5], [0, 10]]
+        complex_poly = [[0, 0], [12, 12], [10, 0], [5, 5], [3,18], [4, 15], \
+                        [5, 7], [10, 10], [0, 10], [16, 12]]       
 
         assert not is_complex(concave_poly)
         assert is_complex(complex_poly)

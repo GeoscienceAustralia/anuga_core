@@ -17,10 +17,10 @@ if compile_c.can_use_C_extension('polygon_ext.c'):
     # Underlying C implementations can be accessed
     from polygon_ext import _is_inside_triangle        
 else:
-    msg = 'C implementations could not be accessed by %s.\n ' % __file__
-    msg += 'Make sure compile_all.py has been run as described in '
-    msg += 'the ANUGA installation guide.'
-    raise Exception, msg
+    MESSAGE = 'C implementations could not be accessed by %s.\n ' % __file__
+    MESSAGE += 'Make sure compile_all.py has been run as described in '
+    MESSAGE += 'the ANUGA installation guide.'
+    raise Exception(MESSAGE)
 
 import numpy as num
  
@@ -49,7 +49,8 @@ class MeshQuadtree(Cell):
         extents = AABB(*mesh.get_extent(absolute=True))   
         extents.grow(1.001) # To avoid round off error
         Cell.__init__(self, extents, None)  # root has no parent
-        
+
+        self.last_triangle = None        
         N = len(mesh)
         self.mesh = mesh
         self.set_last_triangle()  

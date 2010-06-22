@@ -5,10 +5,12 @@ import os.path
 from math import pi, sqrt
 import tempfile
 
+import anuga
+
 from anuga.config import g, epsilon
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.utilities.numerical_tools import mean
-from anuga.utilities.polygon import is_inside_polygon
+from anuga.geometry.polygon import is_inside_polygon
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.abstract_2d_finite_volumes.quantity import Quantity
 from anuga.geospatial_data.geospatial_data import Geospatial_data
@@ -59,7 +61,7 @@ class Test_swb_conservation(unittest.TestCase):
         domain.set_quantity('stage', x_slope)
 
         # Boundary conditions (reflective everywhere)
-        Br = Reflective_boundary(domain)
+        Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
         domain.check_integrity()
@@ -87,13 +89,11 @@ class Test_swb_conservation(unittest.TestCase):
         initial condition
         """
 
-        from mesh_factory import rectangular
-
         # Create basic mesh
-        points, vertices, boundary = rectangular(6, 6)
+        points, vertices, boundary = anuga.rectangular(6, 6)
 
         # Create shallow water domain
-        domain = Domain(points, vertices, boundary)
+        domain = anuga.Domain(points, vertices, boundary)
         domain.smooth = False
         domain.default_order = 2
 
@@ -106,7 +106,7 @@ class Test_swb_conservation(unittest.TestCase):
         domain.set_quantity('stage', 0.4)    # Steady
 
         # Boundary conditions (reflective everywhere)
-        Br = Reflective_boundary(domain)
+        Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
         domain.check_integrity()
@@ -139,7 +139,7 @@ class Test_swb_conservation(unittest.TestCase):
         points, vertices, boundary = rectangular(2, 1)
 
         # Create shallow water domain
-        domain = Domain(points, vertices, boundary)
+        domain = anuga.Domain(points, vertices, boundary)
         domain.smooth = False
 
 
@@ -162,7 +162,7 @@ class Test_swb_conservation(unittest.TestCase):
         domain.set_quantity('stage', 0.4) #Steady
 
         # Boundary conditions (reflective everywhere)
-        Br = Reflective_boundary(domain)
+        Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
         domain.check_integrity()
@@ -199,13 +199,11 @@ class Test_swb_conservation(unittest.TestCase):
         and a suitable initial condition
         """
 
-        from mesh_factory import rectangular
-
         # Create basic mesh
-        points, vertices, boundary = rectangular(6, 6)
+        points, vertices, boundary = anuga.rectangular(6, 6)
 
         # Create shallow water domain
-        domain = Domain(points, vertices, boundary)
+        domain = anuga.Domain(points, vertices, boundary)
         domain.smooth = False
         domain.default_order = 2
 
@@ -231,7 +229,7 @@ class Test_swb_conservation(unittest.TestCase):
         domain.set_quantity('stage', 0.4) #Steady
 
         # Boundary conditions (reflective everywhere)
-        Br = Reflective_boundary(domain)
+        Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
         domain.check_integrity()
@@ -270,13 +268,11 @@ class Test_swb_conservation(unittest.TestCase):
         This one uses a slopy bed, dirichlet and reflective bdries
         """
 
-        from mesh_factory import rectangular
-
         # Create basic mesh
-        points, vertices, boundary = rectangular(6, 6)
+        points, vertices, boundary = anuga.rectangular(6, 6)
 
         # Create shallow water domain
-        domain = Domain(points, vertices, boundary)
+        domain = anuga.Domain(points, vertices, boundary)
         domain.smooth = False
         domain.default_order = 2
 
@@ -289,9 +285,9 @@ class Test_swb_conservation(unittest.TestCase):
         domain.set_quantity('stage', 0.4) # Steady
 
         # Boundary conditions (reflective everywhere)
-        Br = Reflective_boundary(domain)
-        Bleft = Dirichlet_boundary([0.5, 0, 0])
-        Bright = Dirichlet_boundary([0.1, 0, 0])
+        Br = anuga.Reflective_boundary(domain)
+        Bleft = anuga.Dirichlet_boundary([0.5, 0, 0])
+        Bright = anuga.Dirichlet_boundary([0.1, 0, 0])
         domain.set_boundary({'left': Bleft, 'right': Bright,
                              'top': Br, 'bottom': Br})
 
@@ -361,7 +357,7 @@ class Test_swb_conservation(unittest.TestCase):
         domain.set_quantity('stage', Set_IC(200.0, 300.0, 5.0))
 
         # Boundaries
-        R = Reflective_boundary(domain)
+        R = anuga.Reflective_boundary(domain)
         domain.set_boundary({'left': R, 'right': R, 'top':R, 'bottom': R})
 
         ref = domain.quantities['stage'].get_integral()
@@ -383,13 +379,6 @@ class Test_swb_conservation(unittest.TestCase):
         
         Test that total volume can be computed correctly
         """            
-
-        #----------------------------------------------------------------------
-        # Import necessary modules
-        #----------------------------------------------------------------------
-        from anuga.abstract_2d_finite_volumes.mesh_factory \
-                import rectangular_cross
-        from anuga.shallow_water import Domain
 
         #----------------------------------------------------------------------
         # Setup computational domain
@@ -448,18 +437,7 @@ class Test_swb_conservation(unittest.TestCase):
         # Set to True if volumetric output is sought
         verbose = False
 
-        #----------------------------------------------------------------------
-        # Import necessary modules
-        #----------------------------------------------------------------------
 
-        from anuga.abstract_2d_finite_volumes.mesh_factory \
-                import rectangular_cross
-        from anuga.shallow_water import Domain
-        from anuga.shallow_water.shallow_water_domain import Reflective_boundary
-        from anuga.shallow_water.shallow_water_domain import Dirichlet_boundary
-        from anuga.shallow_water.forcing import Inflow
-        from anuga.shallow_water.data_manager \
-                import get_flow_through_cross_section
 
         #----------------------------------------------------------------------
         # Setup computational domain
@@ -499,12 +477,12 @@ class Test_swb_conservation(unittest.TestCase):
         # Setup boundary conditions
         #----------------------------------------------------------------------
 
-        Br = Reflective_boundary(domain)      # Solid reflective wall
+        Br = anuga.Reflective_boundary(domain)      # Solid reflective wall
                 
         # Constant flow in and out of domain
         # Depth = 1m, uh=1 m/s, i.e. a flow of 20 m^3/s 
-        Bi = Dirichlet_boundary([d, uh, vh]) 
-        Bo = Dirichlet_boundary([d, uh, vh])
+        Bi = anuga.Dirichlet_boundary([d, uh, vh]) 
+        Bo = anuga.Dirichlet_boundary([d, uh, vh])
 
         domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
 
@@ -543,16 +521,6 @@ class Test_swb_conservation(unittest.TestCase):
         verbose = False
         
 
-        #---------------------------------------------------------------------
-        # Import necessary modules
-        #---------------------------------------------------------------------
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
-        from anuga.shallow_water import Domain
-        from anuga.shallow_water.shallow_water_domain import Reflective_boundary
-        from anuga.shallow_water.shallow_water_domain import Dirichlet_boundary
-        from anuga.shallow_water.forcing import Inflow
-        from anuga.shallow_water.data_manager import get_flow_through_cross_section
-
         #----------------------------------------------------------------------
         # Setup computational domain
         #----------------------------------------------------------------------
@@ -568,7 +536,7 @@ class Test_swb_conservation(unittest.TestCase):
                                                        len1=length, len2=width)
 
 
-        domain = Domain(points, vertices, boundary)   
+        domain = anuga.Domain(points, vertices, boundary)   
         domain.set_name('Inflow_volume_test')              # Output name
                 
 
@@ -592,7 +560,7 @@ class Test_swb_conservation(unittest.TestCase):
         #--------------------------------------------------------------
 
         # Fixed Flowrate onto Area 
-        fixed_inflow = Inflow(domain,
+        fixed_inflow = anuga.Inflow(domain,
                               center=(10.0, 10.0),
                               radius=5.00,
                               rate=10.00)                               
@@ -603,7 +571,7 @@ class Test_swb_conservation(unittest.TestCase):
         # Setup boundary conditions
         #----------------------------------------------------------------------
 
-        Br = Reflective_boundary(domain) # Solid reflective wall
+        Br = anuga.Reflective_boundary(domain) # Solid reflective wall
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
         
@@ -645,16 +613,6 @@ class Test_swb_conservation(unittest.TestCase):
         verbose = False
         
 
-        #---------------------------------------------------------------------
-        # Import necessary modules
-        #---------------------------------------------------------------------
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
-        from anuga.shallow_water import Domain
-        from anuga.shallow_water.shallow_water_domain import Reflective_boundary
-        from anuga.shallow_water.shallow_water_domain import Dirichlet_boundary
-        from anuga.shallow_water.shallow_water_domain import Rainfall
-        from anuga.shallow_water.data_manager import get_flow_through_cross_section
-
         #----------------------------------------------------------------------
         # Setup computational domain
         #----------------------------------------------------------------------
@@ -665,12 +623,12 @@ class Test_swb_conservation(unittest.TestCase):
         dx = dy = 5       # Resolution: of grid on both axes
         
 
-        points, vertices, boundary = rectangular_cross(int(length/dx), 
+        points, vertices, boundary = anuga.rectangular_cross(int(length/dx), 
                                                        int(width/dy),
                                                        len1=length, len2=width)
 
 
-        domain = Domain(points, vertices, boundary)   
+        domain = anuga.Domain(points, vertices, boundary)   
         domain.set_name('Rain_volume_test')              # Output name
                 
 
@@ -694,7 +652,7 @@ class Test_swb_conservation(unittest.TestCase):
         #--------------------------------------------------------------
 
         # Fixed rain onto small circular area 
-        fixed_rain = Rainfall(domain,
+        fixed_rain = anuga.Rainfall(domain,
                               center=(10.0, 10.0),
                               radius=5.00,
                               rate=10.00)   # 10 mm/s                            
@@ -705,7 +663,7 @@ class Test_swb_conservation(unittest.TestCase):
         # Setup boundary conditions
         #----------------------------------------------------------------------
 
-        Br = Reflective_boundary(domain) # Solid reflective wall
+        Br = anuga.Reflective_boundary(domain) # Solid reflective wall
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
         
@@ -753,16 +711,6 @@ class Test_swb_conservation(unittest.TestCase):
         
         verbose = True #False
         
-
-        #---------------------------------------------------------------------
-        # Import necessary modules
-        #---------------------------------------------------------------------
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
-        from anuga.shallow_water import Domain
-        from anuga.shallow_water.shallow_water_domain import Reflective_boundary
-        from anuga.shallow_water.shallow_water_domain import Dirichlet_boundary
-        from anuga.shallow_water.shallow_water_domain import Rainfall
-        from anuga.shallow_water.data_manager import get_flow_through_cross_section
 
         #----------------------------------------------------------------------
         # Setup computational domain
@@ -814,9 +762,9 @@ class Test_swb_conservation(unittest.TestCase):
         # Setup boundary conditions
         #----------------------------------------------------------------------
 
-        Br = Reflective_boundary(domain) # Solid reflective wall
-        Bt = Transmissive_stage_zero_momentum_boundary(domain)
-        Bd = Dirichlet_boundary([-10, 0, 0])
+        Br = anuga.Reflective_boundary(domain) # Solid reflective wall
+        Bt = anuga.Transmissive_stage_zero_momentum_boundary(domain)
+        Bd = anuga.Dirichlet_boundary([-10, 0, 0])
         domain.set_boundary({'left': Bt, 'right': Bd, 'top': Bt, 'bottom': Bt})
 
         

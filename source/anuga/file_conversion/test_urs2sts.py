@@ -1957,7 +1957,156 @@ class Test_Urs2Sts(Test_Mux):
         
         os.remove(meshname)
         
+        
+        
+    def test_file_boundary_sts_time_limit(self):
+        """test_file_boundary_stsIV_sinewave_ordering(self):
+        Read correct points from ordering file and apply sts to boundary
+        This one uses a sine wave and compares to time boundary
+        
+        This one tests that times used can be limited by upper limit
+        """
+        
+        lat_long_points=[[6.01,97.0],[6.02,97.0],[6.05,96.9],[6.0,97.0]]
+        bounding_polygon=[[6.0,97.0],[6.01,97.0],[6.02,97.0],[6.02,97.02],[6.00,97.02]]
+        tide = 0.35
+        time_step_count = 50
+        time_step = 0.1
+        times_ref = num.arange(0, time_step_count*time_step, time_step)
+        
+        n=len(lat_long_points)
+        first_tstep=num.ones(n,num.int)
+        last_tstep=(time_step_count)*num.ones(n,num.int)
+        
+        gauge_depth=20*num.ones(n,num.float)
+        
+        ha1=num.ones((n,time_step_count),num.float)
+        ua1=3.*num.ones((n,time_step_count),num.float)
+        va1=2.*num.ones((n,time_step_count),num.float)
+        for i in range(n):
+            ha1[i]=num.sin(times_ref)
+        
+        
+        base_name, files = self.write_mux2(lat_long_points,
+                                           time_step_count, time_step,
+                                           first_tstep, last_tstep,
+                                           depth=gauge_depth,
+                                           ha=ha1,
+                                           ua=ua1,
+                                           va=va1)
 
+        # Write order file
+        file_handle, order_base_name = tempfile.mkstemp("")
+        os.close(file_handle)
+        os.remove(order_base_name)
+        d=","
+        order_file=order_base_name+'order.txt'
+        fid=open(order_file,'w')
+        
+        # Write Header
+        header='index, longitude, latitude\n'
+        fid.write(header)
+        indices=[3,0,1]
+        for i in indices:
+            line=str(i)+d+str(lat_long_points[i][1])+d+\
+                str(lat_long_points[i][0])+"\n"
+            fid.write(line)
+        fid.close()
+
+        sts_file=base_name
+        urs2sts(base_name, basename_out=sts_file,
+                ordering_filename=order_file,
+                mean_stage=tide,
+                verbose=False)
+        self.delete_mux(files)
+        
+        
+        
+        # Now read the sts file and check that values have been stored correctly.
+        fid = NetCDFFile(sts_file + '.sts')
+
+        # Check the time vector
+        times = fid.variables['time'][:]
+        starttime = fid.starttime[0]
+        #print times
+        #print starttime
+
+        # Check sts quantities
+        stage = fid.variables['stage'][:]
+        xmomentum = fid.variables['xmomentum'][:]
+        ymomentum = fid.variables['ymomentum'][:]
+        elevation = fid.variables['elevation'][:]
+
+        
+
+        # Create beginnings of boundary polygon based on sts_boundary
+        boundary_polygon = create_sts_boundary(base_name)
+        
+        os.remove(order_file)
+
+        # Append the remaining part of the boundary polygon to be defined by
+        # the user
+        bounding_polygon_utm=[]
+        for point in bounding_polygon:
+            zone,easting,northing=redfearn(point[0],point[1])
+            bounding_polygon_utm.append([easting,northing])
+
+        boundary_polygon.append(bounding_polygon_utm[3])
+        boundary_polygon.append(bounding_polygon_utm[4])
+
+        #print 'boundary_polygon', boundary_polygon
+        
+
+        assert num.allclose(bounding_polygon_utm,boundary_polygon)
+
+
+        extent_res=1000000
+        meshname = 'urs_test_mesh' + '.tsh'
+        interior_regions=None
+        boundary_tags={'ocean': [0,1], 'otherocean': [2,3,4]}
+        
+        # have to change boundary tags from last example because now bounding
+        # polygon starts in different place.
+        create_mesh_from_regions(boundary_polygon,
+                                 boundary_tags=boundary_tags,
+                                 maximum_triangle_area=extent_res,
+                                 filename=meshname,
+                                 interior_regions=interior_regions,
+                                 verbose=False)
+        
+        domain_fbound = Domain(meshname)
+        domain_fbound.set_quantity('stage', tide)
+        
+        
+        Bf = File_boundary(sts_file+'.sts', 
+                           domain_fbound, 
+                           boundary_polygon=boundary_polygon)
+        time_vec = Bf.F.get_time()
+        assert num.allclose(Bf.F.starttime, starttime)
+        assert num.allclose(time_vec, times_ref)                                   
+        
+        for time_limit in [0.1, 0.2, 0.5, 1.0, 2.2, 3.0, 4.3, 6.0, 10.0]:
+            Bf = File_boundary(sts_file+'.sts', 
+                               domain_fbound, 
+                               time_limit=time_limit+starttime,
+                               boundary_polygon=boundary_polygon)
+        
+            time_vec = Bf.F.get_time()
+            assert num.allclose(Bf.F.starttime, starttime)            
+            assert num.alltrue(time_vec < time_limit)
+            
+            
+        try:    
+            Bf = File_boundary(sts_file+'.sts', 
+                               domain_fbound, 
+                               time_limit=-1+starttime,
+                               boundary_polygon=boundary_polygon)            
+            time_vec = Bf.F.get_time()    
+            print time_vec    
+        except AssertionError:
+            pass
+        else:
+            raise Exception, 'Should have raised Exception here'
 
 #-------------------------------------------------------------
 

@@ -4,11 +4,12 @@ import unittest, os
 import os.path
 from math import pi, sqrt
 import tempfile
+import anuga
 
 from anuga.config import g, epsilon
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.utilities.numerical_tools import mean
-from anuga.utilities.polygon import is_inside_polygon
+from anuga.geometry.polygon import is_inside_polygon
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.abstract_2d_finite_volumes.quantity import Quantity
 from anuga.geospatial_data.geospatial_data import Geospatial_data
@@ -393,21 +394,21 @@ class Test_swb_forcing_terms(unittest.TestCase):
         #             bac,     bce,     ecf,     dbe
         vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
-        domain = Domain(points, vertices)
+        domain = anuga.Domain(points, vertices)
 
         #Flat surface with 1m of water
         domain.set_quantity('elevation', 0)
         domain.set_quantity('stage', 1.0)
         domain.set_quantity('friction', 0)
 
-        Br = Reflective_boundary(domain)
+        Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'exterior': Br})
 
         #Setup only one forcing term, constant wind stress
         s = 100
         phi = 135
         domain.forcing_terms = []
-        domain.forcing_terms.append(Wind_stress(s, phi))
+        domain.forcing_terms.append(anuga.Wind_stress(s, phi))
 
         domain.compute_forcing_terms()
 
@@ -449,7 +450,7 @@ class Test_swb_forcing_terms(unittest.TestCase):
         domain.set_quantity('stage', 1.0)
         domain.set_quantity('friction', 0)
 
-        Br = Reflective_boundary(domain)
+        Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'exterior': Br})
 
         domain.time = 5.54    # Take a random time (not zero)
@@ -458,7 +459,7 @@ class Test_swb_forcing_terms(unittest.TestCase):
         s = 100
         phi = 135
         domain.forcing_terms = []
-        domain.forcing_terms.append(Wind_stress(s=speed, phi=angle))
+        domain.forcing_terms.append(anuga.Wind_stress(s=speed, phi=angle))
 
         domain.compute_forcing_terms()
 
@@ -521,7 +522,7 @@ class Test_swb_forcing_terms(unittest.TestCase):
         domain.set_quantity('stage', 1.0)
         domain.set_quantity('friction', 0)
 
-        Br = Reflective_boundary(domain)
+        Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'exterior': Br})
 
         domain.time = 7    # Take a time that is represented in file (not zero)
@@ -542,10 +543,7 @@ class Test_swb_forcing_terms(unittest.TestCase):
 
         fid.close()
 
-        # Convert ASCII file to NetCDF (Which is what we really like!)
-        from data_manager import timefile2netcdf
-
-        timefile2netcdf(filename)
+        anuga.timefile2netcdf(filename+'.txt', filename+'.tms')
         os.remove(filename + '.txt')
 
         # Setup wind stress
@@ -615,16 +613,17 @@ class Test_swb_forcing_terms(unittest.TestCase):
         domain.set_quantity('stage', 1.0)
         domain.set_quantity('friction', 0)
 
-        Br = Reflective_boundary(domain)
+        Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'exterior': Br})
 
         domain.time = 7    # Take a time that is represented in file (not zero)
 
         # Write wind stress file (ensure that domain.time is covered)
         # Take x=1 and y=0
-        filename = 'test_windstress_from_file'
+        filename = 'test_windstress_from_file.txt'
+        file_out = 'test_windstress_from_file.tms'
         start = time.mktime(time.strptime('2000', '%Y'))
-        fid = open(filename + '.txt', 'w')
+        fid = open(filename, 'w')
         dt = 0.5    # Half second interval
         t = 0.0
         while t <= 10.0:
@@ -634,18 +633,15 @@ class Test_swb_forcing_terms(unittest.TestCase):
 
         fid.close()
 
-        # Convert ASCII file to NetCDF (Which is what we really like!)
-        from data_manager import timefile2netcdf
-
-        timefile2netcdf(filename, time_as_seconds=True)
-        os.remove(filename + '.txt')
+        anuga.timefile2netcdf(filename, file_out, time_as_seconds=True)
+        os.remove(filename)
 
         # Setup wind stress
-        F = file_function(filename + '.tms',
+        F = file_function(file_out,
                           quantities=['Attribute0', 'Attribute1'])
-        os.remove(filename + '.tms')
+        os.remove(file_out)
 
-        W = Wind_stress(F)
+        W = anuga.Wind_stress(F)
 
         domain.forcing_terms = []
         domain.forcing_terms.append(W)
@@ -708,7 +704,7 @@ class Test_swb_forcing_terms(unittest.TestCase):
         domain.set_quantity('stage', 1.0)
         domain.set_quantity('friction', 0)
 
-        Br = Reflective_boundary(domain)
+        Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'exterior': Br})
 
         domain.time = 5.54    # Take a random time (not zero)
@@ -717,7 +713,7 @@ class Test_swb_forcing_terms(unittest.TestCase):
         domain.forcing_terms = []
 
         try:
-            domain.forcing_terms.append(Wind_stress(s=scalar_func_list,
+            domain.forcing_terms.append(anuga.Wind_stress(s=scalar_func_list,
                                                     phi=angle))
         except AssertionError:
             pass
@@ -762,12 +758,12 @@ class Test_swb_forcing_terms(unittest.TestCase):
         domain.set_quantity('stage', 1.0)
         domain.set_quantity('friction', 0)
 
-        Br = Reflective_boundary(domain)
+        Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'exterior': Br})
 
         # Setup only one forcing term, constant rainfall
         domain.forcing_terms = []
-        domain.forcing_terms.append(Rainfall(domain, rate=2.0))
+        domain.forcing_terms.append(anuga.Rainfall(domain, rate=2.0))
 
         domain.compute_forcing_terms()
         assert num.allclose(domain.quantities['stage'].explicit_update,
@@ -794,13 +790,13 @@ class Test_swb_forcing_terms(unittest.TestCase):
         domain.set_quantity('stage', 1.0)
         domain.set_quantity('friction', 0)
 
-        Br = Reflective_boundary(domain)
+        Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'exterior': Br})
 
         # Setup only one forcing term, constant rainfall
         # restricted to a polygon enclosing triangle #1 (bce)
         domain.forcing_terms = []
-        R = Rainfall(domain, rate=2.0, polygon=[[1,1], [2,1], [2,2], [1,2]])
+        R = anuga.Rainfall(domain, rate=2.0, polygon=[[1,1], [2,1], [2,2], [1,2]])
 
         assert num.allclose(R.exchange_area, 2)
 
@@ -825,20 +821,20 @@ class Test_swb_forcing_terms(unittest.TestCase):
         #             bac,     bce,     ecf,     dbe
         vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
-        domain = Domain(points, vertices)
+        domain = anuga.Domain(points, vertices)
 
         # Flat surface with 1m of water
         domain.set_quantity('elevation', 0)
         domain.set_quantity('stage', 1.0)
         domain.set_quantity('friction', 0)
 
-        Br = Reflective_boundary(domain)
+        Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'exterior': Br})
 
         # Setup only one forcing term, time dependent rainfall
         # restricted to a polygon enclosing triangle #1 (bce)
         domain.forcing_terms = []
-        R = Rainfall(domain,
+        R = anuga.Rainfall(domain,
                      rate=lambda t: 3*t + 7,
                      polygon = [[1,1], [2,1], [2,2], [1,2]])
 
@@ -869,20 +865,20 @@ class Test_swb_forcing_terms(unittest.TestCase):
         #             bac,     bce,     ecf,     dbe
         vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
-        domain = Domain(points, vertices)
+        domain = anuga.Domain(points, vertices)
 
         # Flat surface with 1m of water
         domain.set_quantity('elevation', 0)
         domain.set_quantity('stage', 1.0)
         domain.set_quantity('friction', 0)
 
-        Br = Reflective_boundary(domain)
+        Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'exterior': Br})
 
         # Setup only one forcing term, time dependent rainfall
         # restricted to a polygon enclosing triangle #1 (bce)
         domain.forcing_terms = []
-        R = Rainfall(domain,
+        R = anuga.Rainfall(domain,
                      rate=lambda t: 3*t + 7,
                      polygon=rainfall_poly)                     
 
@@ -942,13 +938,13 @@ class Test_swb_forcing_terms(unittest.TestCase):
         domain.set_quantity('stage', 1.0)
         domain.set_quantity('friction', 0)
 
-        Br = Reflective_boundary(domain)
+        Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'exterior': Br})
 
         # Setup only one forcing term, time dependent rainfall
         # restricted to a polygon enclosing triangle #1 (bce)
         domain.forcing_terms = []
-        R = Rainfall(domain,
+        R = anuga.Rainfall(domain,
                      rate=lambda t: 3*t + 7,
                      polygon=rainfall_poly)
 
@@ -999,7 +995,7 @@ class Test_swb_forcing_terms(unittest.TestCase):
         domain.set_quantity('stage', 1.0)
         domain.set_quantity('friction', 0)
 
-        Br = Reflective_boundary(domain)
+        Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'exterior': Br})
 
         # Setup only one forcing term, time dependent rainfall
@@ -1014,7 +1010,7 @@ class Test_swb_forcing_terms(unittest.TestCase):
                 return 3*t + 7
 
         domain.forcing_terms = []
-        R = Rainfall(domain,
+        R = anuga.Rainfall(domain,
                      rate=main_rate,
                      polygon = [[1,1], [2,1], [2,2], [1,2]],
                      default_rate=5.0)
@@ -1067,7 +1063,7 @@ class Test_swb_forcing_terms(unittest.TestCase):
         domain.set_quantity('stage', 1.0)
         domain.set_quantity('friction', 0)
 
-        Br = Reflective_boundary(domain)
+        Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'exterior': Br})
 
         # Setup only one forcing term, time dependent rainfall
@@ -1082,7 +1078,7 @@ class Test_swb_forcing_terms(unittest.TestCase):
                 return 3*t + 7
 
         domain.forcing_terms = []
-        R = Rainfall(domain,
+        R = anuga.Rainfall(domain,
                      rate=main_rate,
                      polygon=[[1,1], [2,1], [2,2], [1,2]],
                      default_rate=5.0)
@@ -1119,14 +1115,14 @@ class Test_swb_forcing_terms(unittest.TestCase):
         domain.set_quantity('stage', 1.0)
         domain.set_quantity('friction', 0)
 
-        Br = Reflective_boundary(domain)
+        Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'exterior': Br})
 
         # Setup only one forcing term, constant inflow of 2 m^3/s
         # on a circle affecting triangles #0 and #1 (bac and bce)
         domain.forcing_terms = []
         
-        I = Inflow(domain, rate=2.0, center=(1,1), radius=1)
+        I = anuga.Inflow(domain, rate=2.0, center=(1,1), radius=1)
         domain.forcing_terms.append(I)        
         domain.compute_forcing_terms()
 
@@ -1153,14 +1149,14 @@ class Test_swb_forcing_terms(unittest.TestCase):
         #             bac,     bce,     ecf,     dbe
         vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
-        domain = Domain(points, vertices)
+        domain = anuga.Domain(points, vertices)
 
         # Flat surface with 1m of water
         domain.set_quantity('elevation', 0)
         domain.set_quantity('stage', 1.0)
         domain.set_quantity('friction', 0)
 
-        Br = Reflective_boundary(domain)
+        Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'exterior': Br})
 
         # Setup only one forcing term, time dependent inflow of 2 m^3/s
@@ -1207,7 +1203,7 @@ class Test_swb_forcing_terms(unittest.TestCase):
         domain.set_quantity('stage', 1.0)
         domain.set_quantity('friction', 0)
 
-        Br = Reflective_boundary(domain)
+        Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'exterior': Br})
 
         # Setup only one forcing term, constant inflow of 2 m^3/s
@@ -1351,22 +1347,6 @@ class Test_swb_forcing_terms(unittest.TestCase):
         
         verbose = False
         
-
-        #----------------------------------------------------------------------
-        # Import necessary modules
-        #----------------------------------------------------------------------
-
-        from anuga.abstract_2d_finite_volumes.mesh_factory \
-                import rectangular_cross
-        from anuga.shallow_water import Domain
-        from anuga.shallow_water.shallow_water_domain import Reflective_boundary
-        from anuga.shallow_water.shallow_water_domain import Dirichlet_boundary
-        from anuga.shallow_water.forcing import Inflow
-        from anuga.shallow_water.data_manager \
-                import get_flow_through_cross_section
-        from anuga.abstract_2d_finite_volumes.util \
-                import sww2csv_gauges, csv2timeseries_graphs
-
         #----------------------------------------------------------------------
         # Setup computational domain
         #----------------------------------------------------------------------
@@ -1413,7 +1393,7 @@ class Test_swb_forcing_terms(unittest.TestCase):
                 #--------------------------------------------------------------
 
                 # Fixed Flowrate onto Area 
-                fixed_inflow = Inflow(domain,
+                fixed_inflow = anuga.Inflow(domain,
                                       center=(10.0, 10.0),
                                       radius=5.00,
                                       rate=10.00)   
@@ -1422,7 +1402,7 @@ class Test_swb_forcing_terms(unittest.TestCase):
                 for i in range(number_of_inflows):
                     domain.forcing_terms.append(fixed_inflow)
                 
-                ref_flow = fixed_inflow.rate*number_of_inflows
+                ref_flow = fixed_inflow.rate*number_of_inflowsg
 
                 # Compute normal depth on plane using Mannings equation
                 # v=1/n*(r^2/3)*(s^0.5) or r=(Q*n/(s^0.5*W))^0.6

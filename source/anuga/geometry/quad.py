@@ -12,11 +12,10 @@ As of June 2010 this module has a pylint quality rating of 10/10.
 
 """
 
-from anuga.utilities.treenode import TreeNode
 import anuga.utilities.log as log
 
             
-class Cell(TreeNode):
+class Cell():
     """class Cell
 
     One cell in the plane.
@@ -28,9 +27,6 @@ class Cell(TreeNode):
             extents is an AABB defining a region on the plane.
             parent is the node above this one, or None if it is root.
         """
-  
-        # Initialise base classes
-        TreeNode.__init__(self, name)
     
         self.extents = extents
         self.parent = parent
@@ -46,28 +42,6 @@ class Cell(TreeNode):
         if self.children:
             ret_str += ', children: %d' % (len(self.children))
         return ret_str
-
-   
-
-    def clear(self):
-        """ Remove all leaves from this node.
-        """
-        self.Prune()   # TreeNode method
-
-
-    def clear_leaf_node(self):
-        """ Clears storage in leaf node.
-            Called from Treenode.
-            Must exist.    
-        """
-        self.leaves = []
-    
-    
-    def clear_internal_node(self):
-        """Called from Treenode.    
-    Must exist.
-    """
-        self.leaves = []
 
 
     def insert(self, new_leaf):

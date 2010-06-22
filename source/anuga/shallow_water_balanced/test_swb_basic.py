@@ -5,10 +5,12 @@ import os.path
 from math import pi, sqrt
 import tempfile
 
+import anuga
+
 from anuga.config import g, epsilon
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.utilities.numerical_tools import mean
-from anuga.utilities.polygon import is_inside_polygon
+from anuga.geometry.polygon import is_inside_polygon
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.abstract_2d_finite_volumes.quantity import Quantity
 from anuga.geospatial_data.geospatial_data import Geospatial_data
@@ -2084,16 +2086,7 @@ friction  \n \
         It will also chck that storage of other quantities 
         can be controlled this way.
         """
-
-        #---------------------------------------------------------------------
-        # Import necessary modules
-        #---------------------------------------------------------------------
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
-        from anuga.shallow_water import Domain
-        from anuga.shallow_water import Reflective_boundary
-        from anuga.shallow_water import Dirichlet_boundary
-        from anuga.shallow_water import Time_boundary
-
+        
         #---------------------------------------------------------------------
         # Setup computational domain
         #---------------------------------------------------------------------
@@ -2107,7 +2100,7 @@ friction  \n \
                                                        int(width/dy),
                                                        len1=length, 
                                                        len2=width)
-        domain = Domain(points, vertices, boundary)
+        domain = anuga.Domain(points, vertices, boundary)
         domain.set_name('channel_variable_test')  # Output name
         domain.set_quantities_to_be_stored({'elevation': 2,
                                             'stage': 2})

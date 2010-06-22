@@ -250,6 +250,191 @@ class Test_sww(unittest.TestCase):
                 assert coordinates2[points2[tuple(coordinates1[coordinate])]][0]==coordinates1[coordinate][0]
                 assert coordinates2[points2[tuple(coordinates1[coordinate])]][1]==coordinates1[coordinate][1]
 
+
+    def test_triangulation(self):
+        # 
+        #  
+        
+        filename = tempfile.mktemp("_data_manager.sww")
+        outfile = NetCDFFile(filename, netcdf_mode_w)
+        points_utm = num.array([[0.,0.],[1.,1.], [0.,1.]])
+        volumes = (0,1,2)
+        elevation = [0,1,2]
+        new_origin = None
+        new_origin = Geo_reference(56, 0, 0)
+        times = [0, 10]
+        number_of_volumes = len(volumes)
+        number_of_points = len(points_utm)
+        sww = Write_sww(['elevation'], ['stage', 'xmomentum', 'ymomentum'])
+        sww.store_header(outfile, times, number_of_volumes,
+                         number_of_points, description='fully sick testing',
+                         verbose=self.verbose,sww_precision=netcdf_float)
+        sww.store_triangulation(outfile, points_utm, volumes,
+                                elevation,  new_origin=new_origin,
+                                verbose=self.verbose)       
+        outfile.close()
+        fid = NetCDFFile(filename)
+
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+        fid.close()
+
+        assert num.allclose(num.array(map(None, x,y)), points_utm)
+        os.remove(filename)
+
+        
+    def test_triangulationII(self):
+        # 
+        #  
+        
+        filename = tempfile.mktemp("_data_manager.sww")
+        outfile = NetCDFFile(filename, netcdf_mode_w)
+        points_utm = num.array([[0.,0.],[1.,1.], [0.,1.]])
+        volumes = (0,1,2)
+        elevation = [0,1,2]
+        new_origin = None
+        #new_origin = Geo_reference(56, 0, 0)
+        times = [0, 10]
+        number_of_volumes = len(volumes)
+        number_of_points = len(points_utm)
+        sww = Write_sww(['elevation'], ['stage', 'xmomentum', 'ymomentum'])        
+        sww.store_header(outfile, times, number_of_volumes,
+                         number_of_points, description='fully sick testing',
+                         verbose=self.verbose,sww_precision=netcdf_float)
+        sww.store_triangulation(outfile, points_utm, volumes,
+                                new_origin=new_origin,
+                                verbose=self.verbose)
+        sww.store_static_quantities(outfile, elevation=elevation)                                
+                                
+        outfile.close()
+        fid = NetCDFFile(filename)
+
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+        results_georef = Geo_reference()
+        results_georef.read_NetCDF(fid)
+        assert results_georef == Geo_reference(DEFAULT_ZONE, 0, 0)
+        fid.close()
+
+        assert num.allclose(num.array(map(None, x,y)), points_utm)
+        os.remove(filename)
+
+        
+    def test_triangulation_new_origin(self):
+        # 
+        #  
+        
+        filename = tempfile.mktemp("_data_manager.sww")
+        outfile = NetCDFFile(filename, netcdf_mode_w)
+        points_utm = num.array([[0.,0.],[1.,1.], [0.,1.]])
+        volumes = (0,1,2)
+        elevation = [0,1,2]
+        new_origin = None
+        new_origin = Geo_reference(56, 1, 554354)
+        points_utm = new_origin.change_points_geo_ref(points_utm)
+        times = [0, 10]
+        number_of_volumes = len(volumes)
+        number_of_points = len(points_utm)
+        sww = Write_sww(['elevation'], ['stage', 'xmomentum', 'ymomentum'])        
+        sww.store_header(outfile, times, number_of_volumes,
+                         number_of_points, description='fully sick testing',
+                         verbose=self.verbose,sww_precision=netcdf_float)
+        sww.store_triangulation(outfile, points_utm, volumes,
+                                elevation,  new_origin=new_origin,
+                                verbose=self.verbose)
+        outfile.close()
+        fid = NetCDFFile(filename)
+
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+        results_georef = Geo_reference()
+        results_georef.read_NetCDF(fid)
+        assert results_georef == new_origin
+        fid.close()
+
+        absolute = Geo_reference(56, 0,0)
+        assert num.allclose(num.array(
+            absolute.change_points_geo_ref(map(None, x,y),
+                                           new_origin)),points_utm)
+        
+        os.remove(filename)
+        
+    def test_triangulation_points_georeference(self):
+        # 
+        #  
+        
+        filename = tempfile.mktemp("_data_manager.sww")
+        outfile = NetCDFFile(filename, netcdf_mode_w)
+        points_utm = num.array([[0.,0.],[1.,1.], [0.,1.]])
+        volumes = (0,1,2)
+        elevation = [0,1,2]
+        new_origin = None
+        points_georeference = Geo_reference(56, 1, 554354)
+        points_utm = points_georeference.change_points_geo_ref(points_utm)
+        times = [0, 10]
+        number_of_volumes = len(volumes)
+        number_of_points = len(points_utm)
+        sww = Write_sww(['elevation'], ['stage', 'xmomentum', 'ymomentum'])        
+        sww.store_header(outfile, times, number_of_volumes,
+                         number_of_points, description='fully sick testing',
+                         verbose=self.verbose,sww_precision=netcdf_float)
+        sww.store_triangulation(outfile, points_utm, volumes,
+                                elevation,  new_origin=new_origin,
+                                points_georeference=points_georeference,
+                                verbose=self.verbose)       
+        outfile.close()
+        fid = NetCDFFile(filename)
+
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+        results_georef = Geo_reference()
+        results_georef.read_NetCDF(fid)
+        assert results_georef == points_georeference
+        fid.close()
+
+        assert num.allclose(num.array(map(None, x,y)), points_utm)
+        os.remove(filename)
+        
+    def test_triangulation_2_geo_refs(self):
+        # 
+        #  
+        
+        filename = tempfile.mktemp("_data_manager.sww")
+        outfile = NetCDFFile(filename, netcdf_mode_w)
+        points_utm = num.array([[0.,0.],[1.,1.], [0.,1.]])
+        volumes = (0,1,2)
+        elevation = [0,1,2]
+        new_origin = Geo_reference(56, 1, 1)
+        points_georeference = Geo_reference(56, 0, 0)
+        points_utm = points_georeference.change_points_geo_ref(points_utm)
+        times = [0, 10]
+        number_of_volumes = len(volumes)
+        number_of_points = len(points_utm)
+        sww = Write_sww(['elevation'], ['stage', 'xmomentum', 'ymomentum'])        
+        sww.store_header(outfile, times, number_of_volumes,
+                         number_of_points, description='fully sick testing',
+                         verbose=self.verbose,sww_precision=netcdf_float)
+        sww.store_triangulation(outfile, points_utm, volumes,
+                                elevation,  new_origin=new_origin,
+                                points_georeference=points_georeference,
+                                verbose=self.verbose)       
+        outfile.close()
+        fid = NetCDFFile(filename)
+
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+        results_georef = Geo_reference()
+        results_georef.read_NetCDF(fid)
+        assert results_georef == new_origin
+        fid.close()
+
+
+        absolute = Geo_reference(56, 0,0)
+        assert num.allclose(num.array(
+            absolute.change_points_geo_ref(map(None, x,y),
+                                           new_origin)),points_utm)
+        os.remove(filename)
+
 #################################################################################
 
 if __name__ == "__main__":

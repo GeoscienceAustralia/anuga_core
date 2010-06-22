@@ -1519,6 +1519,372 @@ class Test_Sww2Dem(unittest.TestCase):
         os.remove(prjfile)
         os.remove(ascfile)
         os.remove(swwfile2)
+
+
+    def test_export_grid(self):
+        """
+        test_export_grid(self):
+        Test that sww information can be converted correctly to asc/prj
+        format readable by e.g. ArcView
+        """
+
+        import time, os
+        from Scientific.IO.NetCDF import NetCDFFile
+
+        try:
+            os.remove('teg*.sww')
+        except:
+            pass
+
+        #Setup
+        self.domain.set_name('teg')
+
+        prjfile = self.domain.get_name() + '_elevation.prj'
+        ascfile = self.domain.get_name() + '_elevation.asc'
+        swwfile = self.domain.get_name() + '.sww'
+
+        self.domain.set_datadir('.')
+        self.domain.smooth = True
+        self.domain.set_quantity('elevation', lambda x,y: -x-y)
+        self.domain.set_quantity('stage', 1.0)
+
+        self.domain.geo_reference = Geo_reference(56,308500,6189000)
+
+        sww = SWW_file(self.domain)
+        sww.store_connectivity()
+        sww.store_timestep()
+        self.domain.evolve_to_end(finaltime = 0.01)
+        sww.store_timestep()
+
+        cellsize = 0.25
+        #Check contents
+        #Get NetCDF
+
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)
+
+        # Get the variables
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+        z = fid.variables['elevation'][:]
+        time = fid.variables['time'][:]
+        stage = fid.variables['stage'][:]
+
+        fid.close()
+
+        #Export to ascii/prj files
+        sww2dem_batch(self.domain.get_name(),
+                quantities = 'elevation',
+                cellsize = cellsize,
+                verbose = self.verbose,
+                format = 'asc')
+
+        #Check asc file
+        ascid = open(ascfile)
+        lines = ascid.readlines()
+        ascid.close()
+
+        L = lines[2].strip().split()
+        assert L[0].strip().lower() == 'xllcorner'
+        assert num.allclose(float(L[1].strip().lower()), 308500)
+
+        L = lines[3].strip().split()
+        assert L[0].strip().lower() == 'yllcorner'
+        assert num.allclose(float(L[1].strip().lower()), 6189000)
+
+        #Check grid values
+        for j in range(5):
+            L = lines[6+j].strip().split()
+            y = (4-j) * cellsize
+            for i in range(5):
+                assert num.allclose(float(L[i]), -i*cellsize - y)
+                
+        #Cleanup
+        os.remove(prjfile)
+        os.remove(ascfile)
+        os.remove(swwfile)
+
+    def test_export_gridII(self):
+        """
+        test_export_gridII(self):
+        Test that sww information can be converted correctly to asc/prj
+        format readable by e.g. ArcView
+        """
+
+        import time, os
+        from Scientific.IO.NetCDF import NetCDFFile
+
+        try:
+            os.remove('teg*.sww')
+        except:
+            pass
+
+        #Setup
+        self.domain.set_name('tegII')
+
+        swwfile = self.domain.get_name() + '.sww'
+
+        self.domain.set_datadir('.')
+        self.domain.smooth = True
+        self.domain.set_quantity('elevation', lambda x,y: -x-y)
+        self.domain.set_quantity('stage', 1.0)
+
+        self.domain.geo_reference = Geo_reference(56,308500,6189000)
+
+        sww = SWW_file(self.domain)
+        sww.store_connectivity()
+        sww.store_timestep()
+        self.domain.evolve_to_end(finaltime = 0.01)
+        sww.store_timestep()
+
+        cellsize = 0.25
+        #Check contents
+        #Get NetCDF
+
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)
+
+        # Get the variables
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+        z = fid.variables['elevation'][:]
+        time = fid.variables['time'][:]
+        stage = fid.variables['stage'][:]
+        xmomentum = fid.variables['xmomentum'][:]
+        ymomentum = fid.variables['ymomentum'][:]        
+
+        #print 'stage', stage
+        #print 'xmom', xmomentum
+        #print 'ymom', ymomentum        
+
+        fid.close()
+
+        #Export to ascii/prj files
+        if True:
+            sww2dem_batch(self.domain.get_name(),
+                        quantities = ['elevation', 'depth'],
+                        cellsize = cellsize,
+                        verbose = self.verbose,
+                        format = 'asc')
+
+        else:
+            sww2dem_batch(self.domain.get_name(),
+                quantities = ['depth'],
+                cellsize = cellsize,
+                verbose = self.verbose,
+                format = 'asc')
+
+
+            export_grid(self.domain.get_name(),
+                quantities = ['elevation'],
+                cellsize = cellsize,
+                verbose = self.verbose,
+                format = 'asc')
+
+        prjfile = self.domain.get_name() + '_elevation.prj'
+        ascfile = self.domain.get_name() + '_elevation.asc'
+        
+        #Check asc file
+        ascid = open(ascfile)
+        lines = ascid.readlines()
+        ascid.close()
+
+        L = lines[2].strip().split()
+        assert L[0].strip().lower() == 'xllcorner'
+        assert num.allclose(float(L[1].strip().lower()), 308500)
+
+        L = lines[3].strip().split()
+        assert L[0].strip().lower() == 'yllcorner'
+        assert num.allclose(float(L[1].strip().lower()), 6189000)
+
+        #print "ascfile", ascfile
+        #Check grid values
+        for j in range(5):
+            L = lines[6+j].strip().split()
+            y = (4-j) * cellsize
+            for i in range(5):
+                #print " -i*cellsize - y",  -i*cellsize - y
+                #print "float(L[i])", float(L[i])
+                assert num.allclose(float(L[i]), -i*cellsize - y)
+
+        #Cleanup
+        os.remove(prjfile)
+        os.remove(ascfile)
+        
+        #Check asc file
+        ascfile = self.domain.get_name() + '_depth.asc'
+        prjfile = self.domain.get_name() + '_depth.prj'
+        ascid = open(ascfile)
+        lines = ascid.readlines()
+        ascid.close()
+
+        L = lines[2].strip().split()
+        assert L[0].strip().lower() == 'xllcorner'
+        assert num.allclose(float(L[1].strip().lower()), 308500)
+
+        L = lines[3].strip().split()
+        assert L[0].strip().lower() == 'yllcorner'
+        assert num.allclose(float(L[1].strip().lower()), 6189000)
+
+        #Check grid values
+        for j in range(5):
+            L = lines[6+j].strip().split()
+            y = (4-j) * cellsize
+            for i in range(5):
+                #print " -i*cellsize - y",  -i*cellsize - y
+                #print "float(L[i])", float(L[i])                
+                assert num.allclose(float(L[i]), 1 - (-i*cellsize - y))
+
+        #Cleanup
+        os.remove(prjfile)
+        os.remove(ascfile)
+        os.remove(swwfile)
+
+
+    def test_export_gridIII(self):
+        """
+        test_export_gridIII
+        Test that sww information can be converted correctly to asc/prj
+        format readable by e.g. ArcView
+        """
+
+        import time, os
+        from Scientific.IO.NetCDF import NetCDFFile
+
+        try:
+            os.remove('teg*.sww')
+        except:
+            pass
+
+        #Setup
+        
+        self.domain.set_name('tegIII')
+
+        swwfile = self.domain.get_name() + '.sww'
+
+        self.domain.set_datadir('.')
+        self.domain.format = 'sww'
+        self.domain.smooth = True
+        self.domain.set_quantity('elevation', lambda x,y: -x-y)
+        self.domain.set_quantity('stage', 1.0)
+
+        self.domain.geo_reference = Geo_reference(56,308500,6189000)
+        
+        sww = SWW_file(self.domain)
+        sww.store_connectivity()
+        sww.store_timestep() #'stage')
+        self.domain.evolve_to_end(finaltime = 0.01)
+        sww.store_timestep() #'stage')
+
+        cellsize = 0.25
+        #Check contents
+        #Get NetCDF
+
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)
+
+        # Get the variables
+        x = fid.variables['x'][:]
+        y = fid.variables['y'][:]
+        z = fid.variables['elevation'][:]
+        time = fid.variables['time'][:]
+        stage = fid.variables['stage'][:]
+
+        fid.close()
+
+        #Export to ascii/prj files
+        extra_name_out = 'yeah'
+        if True:
+            sww2dem_batch(self.domain.get_name(),
+                        quantities = ['elevation', 'depth'],
+                        extra_name_out = extra_name_out,
+                        cellsize = cellsize,
+                        verbose = self.verbose,
+                        format = 'asc')
+
+        else:
+            sww2dem_batch(self.domain.get_name(),
+                quantities = ['depth'],
+                cellsize = cellsize,
+                verbose = self.verbose,
+                format = 'asc')
+
+
+            sww2dem_batch(self.domain.get_name(),
+                quantities = ['elevation'],
+                cellsize = cellsize,
+                verbose = self.verbose,
+                format = 'asc')
+
+        prjfile = self.domain.get_name() + '_elevation_yeah.prj'
+        ascfile = self.domain.get_name() + '_elevation_yeah.asc'
+        
+        #Check asc file
+        ascid = open(ascfile)
+        lines = ascid.readlines()
+        ascid.close()
+
+        L = lines[2].strip().split()
+        assert L[0].strip().lower() == 'xllcorner'
+        assert num.allclose(float(L[1].strip().lower()), 308500)
+
+        L = lines[3].strip().split()
+        assert L[0].strip().lower() == 'yllcorner'
+        assert num.allclose(float(L[1].strip().lower()), 6189000)
+
+        #print "ascfile", ascfile
+        #Check grid values
+        for j in range(5):
+            L = lines[6+j].strip().split()
+            y = (4-j) * cellsize
+            for i in range(5):
+                #print " -i*cellsize - y",  -i*cellsize - y
+                #print "float(L[i])", float(L[i])
+                assert num.allclose(float(L[i]), -i*cellsize - y)
+                
+        #Cleanup
+        os.remove(prjfile)
+        os.remove(ascfile)
+        
+        #Check asc file
+        ascfile = self.domain.get_name() + '_depth_yeah.asc'
+        prjfile = self.domain.get_name() + '_depth_yeah.prj'
+        ascid = open(ascfile)
+        lines = ascid.readlines()
+        ascid.close()
+
+        L = lines[2].strip().split()
+        assert L[0].strip().lower() == 'xllcorner'
+        assert num.allclose(float(L[1].strip().lower()), 308500)
+
+        L = lines[3].strip().split()
+        assert L[0].strip().lower() == 'yllcorner'
+        assert num.allclose(float(L[1].strip().lower()), 6189000)
+
+        #Check grid values
+        for j in range(5):
+            L = lines[6+j].strip().split()
+            y = (4-j) * cellsize
+            for i in range(5):
+                assert num.allclose(float(L[i]), 1 - (-i*cellsize - y))
+
+        #Cleanup
+        os.remove(prjfile)
+        os.remove(ascfile)
+        os.remove(swwfile)
+
+    def test_export_grid_bad(self):
+        """Test that sww information can be converted correctly to asc/prj
+        format readable by e.g. ArcView
+        """
+
+        try:
+            sww2dem_batch('a_small_round-egg',
+                        quantities = ['elevation', 'depth'],
+                        cellsize = 99,
+                        verbose = self.verbose,
+                        format = 'asc')
+        except IOError:
+            pass
+        else:
+            self.failUnless(0 ==1,  'Bad input did not throw exception error!')
         
 
 #################################################################################

@@ -90,7 +90,8 @@ def sww2obj(filename, size):
 # @param filename 
 # @param quantity_names 
 # @param time_as_seconds 
-def timefile2netcdf(file_text, quantity_names=None, time_as_seconds=False):
+def timefile2netcdf(file_text, file_out = None, quantity_names=None, \
+                                time_as_seconds=False):
     """Template for converting typical text files with time series to
     NetCDF tms file.
 
@@ -110,7 +111,7 @@ def timefile2netcdf(file_text, quantity_names=None, time_as_seconds=False):
 
     will provide a time dependent function f(t) with three attributes
 
-    filename is assumed to be the rootname with extenisons .txt and .sww
+    filename is assumed to be the rootname with extensions .txt/.tms and .sww
     """
 
     import time, calendar
@@ -120,7 +121,9 @@ def timefile2netcdf(file_text, quantity_names=None, time_as_seconds=False):
     if file_text[-4:] != '.txt':
         raise IOError('Input file %s should be of type .txt.' % file_text)
 
-    filename = file_text[:-4]
+    if file_out == None:
+        file_out = file_text[:-4] + '.tms'
+
     fid = open(file_text)
     line = fid.readline()
     fid.close()
@@ -180,14 +183,14 @@ def timefile2netcdf(file_text, quantity_names=None, time_as_seconds=False):
         for j, value in enumerate(fields[1].split()):
             Q[i, j] = float(value)
 
-    msg = 'File %s must list time as a monotonuosly ' % filename
+    msg = 'File %s must list time as a monotonuosly ' % file_text
     msg += 'increasing sequence'
     assert num.alltrue(T[1:] - T[:-1] > 0), msg
 
     #Create NetCDF file
     from Scientific.IO.NetCDF import NetCDFFile
 
-    fid = NetCDFFile(filename + '.tms', netcdf_mode_w)
+    fid = NetCDFFile(file_out, netcdf_mode_w)
 
     fid.institution = 'Geoscience Australia'
     fid.description = 'Time series'
