@@ -132,6 +132,7 @@ class Test_swb_basic(unittest.TestCase):
 
 
     def test_rotate(self):
+        from anuga.shallow_water.shallow_water_ext import rotate
         normal = num.array([0.0, -1.0])
 
         q = num.array([1.0, 2.0, 3.0])
@@ -491,8 +492,8 @@ class Test_swb_basic(unittest.TestCase):
         #--------------------------------------------------------------
         # Setup boundary conditions
         #--------------------------------------------------------------
-        Br = Reflective_boundary(domain)                       # Reflective wall
-        Bd = Dirichlet_boundary([final_runup_height, 0, 0])    # Constant inflow
+        Br = anuga.Reflective_boundary(domain)                 # Reflective wall
+        Bd = anuga.Dirichlet_boundary([final_runup_height, 0, 0])# Steady inflow
 
         # All reflective to begin with (still water)
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
@@ -597,9 +598,9 @@ class Test_swb_basic(unittest.TestCase):
 
         from anuga.abstract_2d_finite_volumes.mesh_factory \
                 import rectangular_cross
-        from data_manager import get_maximum_inundation_elevation
-        from data_manager import get_maximum_inundation_location
-        from data_manager import get_maximum_inundation_data
+        from anuga.shallow_water.sww_interrogate import \
+            get_maximum_inundation_elevation, get_maximum_inundation_location, \
+            get_maximum_inundation_data
 
         initial_runup_height = -0.4
         final_runup_height = -0.3
@@ -631,8 +632,8 @@ class Test_swb_basic(unittest.TestCase):
         #--------------------------------------------------------------
         # Setup boundary conditions
         #--------------------------------------------------------------
-        Br = Reflective_boundary(domain)                       # Reflective wall
-        Bd = Dirichlet_boundary([final_runup_height, 0, 0])    # Constant inflow
+        Br = anuga.Reflective_boundary(domain)                 # Reflective wall
+        Bd = anuga.Dirichlet_boundary([final_runup_height, 0, 0])# Steady inflow
 
         # All reflective to begin with (still water)
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
@@ -786,18 +787,11 @@ class Test_swb_basic(unittest.TestCase):
         points are tested.
         """
 
-        from anuga.pmesh.mesh_interface import create_mesh_from_regions
-        from anuga.abstract_2d_finite_volumes.mesh_factory \
-                import rectangular_cross
-        from anuga.shallow_water import Domain
-        from anuga.shallow_water import Reflective_boundary
-        from anuga.shallow_water import Dirichlet_boundary
-
         #-----------------------------------------------------------------
         # Setup computational domain
         #-----------------------------------------------------------------
-        points, vertices, boundary = rectangular_cross(10, 10) # Basic mesh
-        domain = Domain(points, vertices, boundary) # Create domain
+        points, vertices, boundary = anuga.rectangular_cross(10, 10)# Basic mesh
+        domain = anuga.Domain(points, vertices, boundary) # Create domain
         domain.set_default_order(2)
         domain.set_quantities_to_be_stored(None)
         domain.H0 = 1.0e-3
@@ -815,8 +809,8 @@ class Test_swb_basic(unittest.TestCase):
         #----------------------------------------------------------------
         # Setup boundary conditions
         #----------------------------------------------------------------
-        Br = Reflective_boundary(domain)           # Solid reflective wall
-        Bd = Dirichlet_boundary([-0.2, 0., 0.])    # Constant boundary values
+        Br = anuga.Reflective_boundary(domain)           # Solid reflective wall
+        Bd = anuga.Dirichlet_boundary([-0.2, 0., 0.])    # Constant
         domain.set_boundary({'left': Br, 'right': Bd, 'top': Br, 'bottom': Br})
 
         #----------------------------------------------------------------
@@ -878,7 +872,7 @@ class Test_swb_basic(unittest.TestCase):
         #             bac,     bce,     ecf,     dbe
         vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
-        domain = Domain(points, vertices)
+        domain = anuga.Domain(points, vertices)
 
         #Set up for a gradient of (3,0) at mid triangle (bce)
         def slope(x, y):
@@ -897,7 +891,7 @@ class Test_swb_basic(unittest.TestCase):
 
         initial_stage = copy.copy(domain.quantities['stage'].vertex_values)
 
-        domain.set_boundary({'exterior': Reflective_boundary(domain)})
+        domain.set_boundary({'exterior': anuga.Reflective_boundary(domain)})
 
         domain.optimise_dry_cells = True
 
@@ -915,18 +909,17 @@ class Test_swb_basic(unittest.TestCase):
     #####################################################
 
     def test_second_order_flat_bed_onestep(self):
-        from mesh_factory import rectangular
 
         #Create basic mesh
-        points, vertices, boundary = rectangular(6, 6)
+        points, vertices, boundary = anuga.rectangular(6, 6)
 
         #Create shallow water domain
-        domain = Domain(points, vertices, boundary)
+        domain = anuga.Domain(points, vertices, boundary)
         domain.set_default_order(2)
 
         # Boundary conditions
-        Br = Reflective_boundary(domain)
-        Bd = Dirichlet_boundary([0.1, 0., 0.])
+        Br = anuga.Reflective_boundary(domain)
+        Bd = anuga.Dirichlet_boundary([0.1, 0., 0.])
         domain.set_boundary({'left': Bd, 'right': Br, 'top': Br, 'bottom': Br})
 
         domain.check_integrity()
@@ -1026,13 +1019,13 @@ class Test_swb_basic(unittest.TestCase):
         points, vertices, boundary = rectangular(6, 6)
 
         # Create shallow water domain
-        domain = Domain(points, vertices, boundary)
+        domain = anuga.Domain(points, vertices, boundary)
         domain.smooth = False
         domain.default_order = 2
 
         # Boundary conditions
-        Br = Reflective_boundary(domain)
-        Bd = Dirichlet_boundary([0.1, 0., 0.])
+        Br = anuga.Reflective_boundary(domain)
+        Bd = anuga.Dirichlet_boundary([0.1, 0., 0.])
         domain.set_boundary({'left': Bd, 'right': Br, 'top': Br, 'bottom': Br})
 
         domain.check_integrity()
@@ -1062,8 +1055,8 @@ class Test_swb_basic(unittest.TestCase):
         domain.H0 = 1.0e-3 # As suggested in the manual
 
         # Boundary conditions
-        Br = Reflective_boundary(domain)
-        Bd = Dirichlet_boundary([0.2, 0., 0.])
+        Br = anuga.Reflective_boundary(domain)
+        Bd = anuga.Dirichlet_boundary([0.2, 0., 0.])
 
         domain.set_boundary({'left': Bd, 'right': Br, 'top': Br, 'bottom': Br})
         domain.check_integrity()
@@ -1100,8 +1093,8 @@ class Test_swb_basic(unittest.TestCase):
         domain.set_default_order(2)
 
         # Boundary conditions
-        Br = Reflective_boundary(domain)
-        Bd = Dirichlet_boundary([0.2, 0., 0.])
+        Br = anuga.Reflective_boundary(domain)
+        Bd = anuga.Dirichlet_boundary([0.2, 0., 0.])
 
         domain.set_boundary({'left': Bd, 'right': Br, 'top': Br, 'bottom': Br})
         domain.check_integrity()
@@ -1155,8 +1148,8 @@ class Test_swb_basic(unittest.TestCase):
 
 
         # Boundary conditions
-        Br = Reflective_boundary(domain)
-        Bd = Dirichlet_boundary([0.2, 0., 0.])
+        Br = anuga.Reflective_boundary(domain)
+        Bd = anuga.Dirichlet_boundary([0.2, 0., 0.])
 
         domain.set_boundary({'left': Bd, 'right': Br, 'top': Br, 'bottom': Br})
         domain.check_integrity()
@@ -1200,8 +1193,8 @@ class Test_swb_basic(unittest.TestCase):
         domain.set_default_order(2)
 
         # Boundary conditions
-        Br = Reflective_boundary(domain)
-        Bd = Dirichlet_boundary([0.2, 0., 0.])
+        Br = anuga.Reflective_boundary(domain)
+        Bd = anuga.Dirichlet_boundary([0.2, 0., 0.])
 
         domain.set_boundary({'left': Bd, 'right': Br, 'top': Br, 'bottom': Br})
         domain.check_integrity()
@@ -1347,7 +1340,7 @@ class Test_swb_basic(unittest.TestCase):
         domain.set_quantity('elevation', x_slope)
 
         # Boundary conditions
-        Br = Reflective_boundary(domain)
+        Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
         # Initial condition
@@ -1511,7 +1504,7 @@ class Test_swb_basic(unittest.TestCase):
         domain.set_quantity('elevation', x_slope)
 
         # Boundary conditions
-        Br = Reflective_boundary(domain)
+        Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
         # Initial condition
@@ -1555,8 +1548,8 @@ class Test_swb_basic(unittest.TestCase):
         Z = Weir(inflow_stage)
         domain.set_quantity('elevation', Z)
 
-        Br = Reflective_boundary(domain)
-        Bd = Dirichlet_boundary([inflow_stage, 0.0, 0.0])
+        Br = anuga.Reflective_boundary(domain)
+        Bd = anuga.Dirichlet_boundary([inflow_stage, 0.0, 0.0])
         domain.set_boundary({'left': Bd, 'right': Br, 'bottom': Br, 'top': Br})
 
         domain.set_quantity('stage', expression='elevation')
@@ -1613,7 +1606,6 @@ class Test_swb_basic(unittest.TestCase):
         """
         import time, os
         from Scientific.IO.NetCDF import NetCDFFile
-        from data_manager import extent_sww
         from mesh_factory import rectangular_cross
 
         # Create basic mesh
@@ -1727,9 +1719,9 @@ friction  \n \
          file.close()
 
          tags = {}
-         b1 =  Dirichlet_boundary(conserved_quantities = num.array([0.0]))
-         b2 =  Dirichlet_boundary(conserved_quantities = num.array([1.0]))
-         b3 =  Dirichlet_boundary(conserved_quantities = num.array([2.0]))
+         b1 =  anuga.Dirichlet_boundary(conserved_quantities = num.array([0.0]))
+         b2 =  anuga.Dirichlet_boundary(conserved_quantities = num.array([1.0]))
+         b3 =  anuga.Dirichlet_boundary(conserved_quantities = num.array([2.0]))
          tags["1"] = b1
          tags["2"] = b2
          tags["3"] = b3
@@ -1908,11 +1900,6 @@ friction  \n \
         """
 
         verbose = False
-
-        from anuga.shallow_water import Domain
-        from anuga.pmesh.mesh_interface import create_mesh_from_regions
-        from anuga.geospatial_data.geospatial_data import Geospatial_data
-
         
         # Get path where this test is run
         path = get_pathname_from_package('anuga.shallow_water')        
@@ -1964,7 +1951,7 @@ friction  \n \
             interior_regions.append( [polygon, 100] ) 
 
         meshname = os.path.join(path, 'offending_mesh.msh')
-        create_mesh_from_regions(bounding_polygon,
+        anuga.create_mesh_from_regions(bounding_polygon,
                                  boundary_tags={'south': [0], 'east': [1],
                                                 'north': [2], 'west': [3]},
                                  maximum_triangle_area=1000000,
@@ -1973,7 +1960,7 @@ friction  \n \
                                  use_cache=False,
                                  verbose=verbose)
 
-        domain = Domain(meshname, use_cache=False, verbose=verbose)
+        domain = anuga.Domain(meshname, use_cache=False, verbose=verbose)
 
         #----------------------------------------------------------------------
         # Fit data point to mesh
@@ -1999,14 +1986,6 @@ friction  \n \
             os.remove(meshname)
             os.remove(points_file)            
         
-        #finally:
-            # Cleanup regardless
-            #FIXME(Ole): Finally does not work like this in python2.4 
-            #FIXME(Ole): Reinstate this when Python2.4 is out of the way
-            #FIXME(Ole): Python 2.6 apparently introduces something called 'with'            
-            #os.remove(meshname)
-            #os.remove(points_file)
-
 
     def test_fitting_example_that_crashed_2(self):
         """test_fitting_example_that_crashed_2
@@ -2021,10 +2000,6 @@ friction  \n \
         """
 
         verbose = False        
-
-        from anuga.shallow_water import Domain
-        from anuga.pmesh.mesh_interface import create_mesh_from_regions
-        from anuga.geospatial_data import Geospatial_data
         
         # Get path where this test is run
         path = get_pathname_from_package('anuga.shallow_water')        
@@ -2038,7 +2013,7 @@ friction  \n \
 
         bounding_polygon = [[W, S], [E, S], [E, N], [W, N]]
 
-        create_mesh_from_regions(bounding_polygon,
+        anuga.create_mesh_from_regions(bounding_polygon,
                                  boundary_tags={'south': [0], 
                                                 'east': [1], 
                                                 'north': [2], 
@@ -2048,7 +2023,7 @@ friction  \n \
                                  use_cache=False,
                                  verbose=verbose)
 
-        domain = Domain(meshname, use_cache=True, verbose=verbose)
+        domain = anuga.Domain(meshname, use_cache=True, verbose=verbose)
         
         # Large test set revealed one problem
         points_file = os.path.join(path, 'test_points_large.csv')
@@ -2130,9 +2105,9 @@ friction  \n \
         #------------------------------------------------------------------
         # Setup boundary conditions
         #------------------------------------------------------------------
-        Bi = Dirichlet_boundary([0.4, 0, 0])          # Inflow
-        Br = Reflective_boundary(domain)              # Solid reflective wall
-        Bo = Dirichlet_boundary([-5, 0, 0])           # Outflow
+        Bi = anuga.Dirichlet_boundary([0.4, 0, 0])          # Inflow
+        Br = anuga.Reflective_boundary(domain)              # Solid reflective wall
+        Bo = anuga.Dirichlet_boundary([-5, 0, 0])           # Outflow
 
         domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
 

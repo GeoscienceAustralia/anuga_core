@@ -5,6 +5,8 @@ import os.path
 from math import pi, sqrt
 import tempfile
 
+import anuga
+
 from anuga.config import g, epsilon
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.utilities.numerical_tools import mean
@@ -59,9 +61,9 @@ class Test_swb_boundary_condition(unittest.TestCase):
         domain.set_quantity('ymomentum', [[10,10,10], [20,20,20],
                                           [30,30,30], [40,40,40]])
 
-        D = Dirichlet_boundary([5, 2, 1])
-        T = Transmissive_boundary(domain)
-        R = Reflective_boundary(domain)
+        D = anuga.Dirichlet_boundary([5, 2, 1])
+        T = anuga.Transmissive_boundary(domain)
+        R = anuga.Reflective_boundary(domain)
         domain.set_boundary({'First': D, 'Second': T, 'Third': R})
 
         domain.set_centroid_transmissive_bc(False)
@@ -139,7 +141,7 @@ class Test_swb_boundary_condition(unittest.TestCase):
                     (3, 2): 'Third',
                     (0, 1): 'Internal'}
 
-        domain = Domain(points, vertices, boundary)
+        domain = anuga.Domain(points, vertices, boundary)
         domain.check_integrity()
 
         domain.set_quantity('stage', [[1,2,3], [5,5,5], [0,0,9], [-6,3,3]])
@@ -149,9 +151,9 @@ class Test_swb_boundary_condition(unittest.TestCase):
         domain.set_quantity('ymomentum', [[10,10,10], [20,20,20],
                                           [30,30,30], [40,40,40]])
 
-        D = Dirichlet_boundary([5, 2, 1])
-        T = Transmissive_boundary(domain)
-        R = Reflective_boundary(domain)
+        D = anuga.Dirichlet_boundary([5, 2, 1])
+        T = anuga.Transmissive_boundary(domain)
+        R = anuga.Reflective_boundary(domain)
         domain.set_boundary({'First': D, 'Second': T,
                              'Third': R, 'Internal': None})
 
@@ -191,9 +193,9 @@ class Test_swb_boundary_condition(unittest.TestCase):
         domain.set_quantity('ymomentum', [[10,10,10], [20,20,20],
                                           [30,30,30], [40,40,40]])
 
-        D = Dirichlet_boundary([5, 2, 1])
-        T = Transmissive_stage_zero_momentum_boundary(domain)
-        R = Reflective_boundary(domain)
+        D = anuga.Dirichlet_boundary([5, 2, 1])
+        T = anuga.Transmissive_stage_zero_momentum_boundary(domain)
+        R = anuga.Reflective_boundary(domain)
         domain.set_boundary({'First': D, 'Second': T, 'Third': R})
 
         domain.update_boundary()
@@ -269,9 +271,9 @@ class Test_swb_boundary_condition(unittest.TestCase):
         # Setup boundary conditions
         #--------------------------------------------------------------
         # Time dependent boundary
-        Bt = Time_boundary(domain=domain, f=lambda t: [t, 0.0, 0.0])
+        Bt = anuga.Time_boundary(domain=domain, f=lambda t: [t, 0.0, 0.0])
 
-        Br = Reflective_boundary(domain)              # Reflective wall
+        Br = anuga.Reflective_boundary(domain)              # Reflective wall
 
         domain.set_boundary({'left': Bt, 'right': Br, 'top': Br, 'bottom': Br})
 
@@ -325,8 +327,8 @@ class Test_swb_boundary_condition(unittest.TestCase):
         domain1.set_quantity('friction', 0)
 
         # Boundary conditions
-        Br = Reflective_boundary(domain1)
-        Bd = Dirichlet_boundary([0.3,0,0])
+        Br = anuga.Reflective_boundary(domain1)
+        Bd = anuga.Dirichlet_boundary([0.3,0,0])
         domain1.set_boundary({'left': Bd, 'top': Bd, 'right': Br, 'bottom': Br})
 
         # Initial condition
@@ -369,8 +371,8 @@ class Test_swb_boundary_condition(unittest.TestCase):
         domain2.set_quantity('stage', 0)
 
         # Boundary conditions
-        Br = Reflective_boundary(domain2)
-        Bf = Field_boundary(domain1.get_name() + '.sww', domain2)
+        Br = anuga.Reflective_boundary(domain2)
+        Bf = anuga.Field_boundary(domain1.get_name() + '.sww', domain2)
         domain2.set_boundary({'right':Br, 'bottom':Br, 'diagonal':Bf})
         domain2.check_integrity()
 
@@ -432,8 +434,8 @@ class Test_swb_boundary_condition(unittest.TestCase):
         domain1.set_quantity('friction', 0)
 
         # Boundary conditions
-        Br = Reflective_boundary(domain1)
-        Bd = Dirichlet_boundary([0.3,0,0])
+        Br = anuga.Reflective_boundary(domain1)
+        Bd = anuga.Dirichlet_boundary([0.3,0,0])
         domain1.set_boundary({'left': Bd, 'top': Bd, 'right': Br, 'bottom': Br})
 
         # Initial condition
@@ -497,8 +499,8 @@ class Test_swb_boundary_condition(unittest.TestCase):
                             [[0,0], [1.0/3, 1.0/3], [2.0/3, 2.0/3], [1,1]]), msg
 
         # Boundary conditions
-        Br = Reflective_boundary(domain2)
-        Bf = Field_boundary(domain1.get_name() + '.sww',
+        Br = anuga.Reflective_boundary(domain2)
+        Bf = anuga.Field_boundary(domain1.get_name() + '.sww',
                             domain2, verbose=False)
         domain2.set_boundary({'right':Br, 'bottom':Br, 'diagonal':Bf})
         domain2.check_integrity()
@@ -604,8 +606,8 @@ class Test_swb_boundary_condition(unittest.TestCase):
         domain1.set_quantity('friction', 0)
 
         # Boundary conditions
-        Br = Reflective_boundary(domain1)
-        Bd = Dirichlet_boundary([0.3, 0, 0])
+        Br = anuga.Reflective_boundary(domain1)
+        Bd = anuga.Dirichlet_boundary([0.3, 0, 0])
         domain1.set_boundary({'left': Bd, 'top': Bd, 'right': Br, 'bottom': Br})
 
         # Initial condition
@@ -670,8 +672,8 @@ class Test_swb_boundary_condition(unittest.TestCase):
                             [[0,0], [1.0/3, 1.0/3], [2.0/3, 2.0/3], [1,1]]), msg
 
         # Boundary conditions
-        Br = Reflective_boundary(domain2)
-        Bf = Field_boundary(domain1.get_name() + '.sww',
+        Br = anuga.Reflective_boundary(domain2)
+        Bf = anuga.Field_boundary(domain1.get_name() + '.sww',
                             domain2, mean_stage=mean_stage, verbose=False)
 
         domain2.set_boundary({'right':Br, 'bottom':Br, 'diagonal':Bf})
@@ -760,7 +762,7 @@ class Test_swb_boundary_condition(unittest.TestCase):
         points, vertices, boundary = rectangular(3, 3)
 
         # Create shallow water domain
-        domain1 = Domain(points, vertices, boundary)
+        domain1 = anuga.Domain(points, vertices, boundary)
 
         domain1.reduction = mean
         domain1.smooth = True    # To mimic MOST output
@@ -783,8 +785,8 @@ class Test_swb_boundary_condition(unittest.TestCase):
         domain1.set_quantity('friction', 0)
 
         # Boundary conditions
-        Br = Reflective_boundary(domain1)
-        Bd = Dirichlet_boundary([0.3, 0, 0])
+        Br = anuga.Reflective_boundary(domain1)
+        Bd = anuga.Dirichlet_boundary([0.3, 0, 0])
         domain1.set_boundary({'left': Bd, 'top': Bd, 'right': Br, 'bottom': Br})
 
         # Initial condition
@@ -845,8 +847,8 @@ class Test_swb_boundary_condition(unittest.TestCase):
                             [[0,0], [1.0/3,1.0/3], [2.0/3,2.0/3], [1,1]])
 
         # Boundary conditions
-        Br = Reflective_boundary(domain2)
-        Bf = Field_boundary(domain1.get_name() + '.sww',
+        Br = anuga.Reflective_boundary(domain2)
+        Bf = anuga.Field_boundary(domain1.get_name() + '.sww',
                             domain2, mean_stage=1, verbose=False)
 
         domain2.set_boundary({'right':Br, 'bottom':Br, 'diagonal':Bf})
