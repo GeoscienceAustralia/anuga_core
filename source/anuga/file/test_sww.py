@@ -10,6 +10,8 @@ from anuga.shallow_water.shallow_water_domain import Domain
 from sww import load_sww_as_domain, weed, get_mesh_and_quantities_from_file
 from Scientific.IO.NetCDF import NetCDFFile
 
+from anuga.config import netcdf_mode_w
+
 # boundary functions
 from anuga.shallow_water.boundaries import Reflective_boundary, \
             Field_boundary, Transmissive_momentum_set_stage_boundary, \
