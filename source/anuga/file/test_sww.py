@@ -8,6 +8,7 @@ from csv_file import load_csv_as_array, load_csv_as_dict
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 from anuga.shallow_water.shallow_water_domain import Domain
 from sww import load_sww_as_domain, weed, get_mesh_and_quantities_from_file
+from Scientific.IO.NetCDF import NetCDFFile
 
 # boundary functions
 from anuga.shallow_water.boundaries import Reflective_boundary, \

@@ -64,7 +64,8 @@ Reference:
 SeeAlso:
     TRAC administration of ANUGA (User Manuals etc) at
     https://datamining.anu.edu.au/anuga and Subversion repository at
-    $HeadURL$
+    $HeadURL: https://datamining.anu.edu.au/svn/anuga/trunk/anuga_core/source/
+                anuga/shallow_water/shallow_water_domain.py $
 
 Constraints: See GPL license in the user guide
 Version: 1.0 ($Revision$)
@@ -73,12 +74,6 @@ ModifiedBy:
     $Date$
 """
 
-# Subversion keywords:
-#
-# $LastChangedDate$
-# $LastChangedRevision$
-# $LastChangedBy$
-
 
 import numpy as num
 
@@ -86,53 +81,15 @@ from anuga.abstract_2d_finite_volumes.generic_domain \
                     import Generic_Domain
 
 from anuga.shallow_water.forcing import Cross_section
-from anuga.pmesh.mesh_interface import create_mesh_from_regions
-from anuga.utilities.numerical_tools import gradient, mean, ensure_numeric
-from anuga.geospatial_data.geospatial_data import ensure_geospatial
+from anuga.utilities.numerical_tools import mean
 from anuga.file.sww import SWW_file  
-from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
-
-from anuga.fit_interpolate.interpolate import Modeltime_too_late, \
-                                              Modeltime_too_early
-
-from anuga.geometry.polygon import inside_polygon, polygon_area, \
-                                    is_inside_polygon
+            
 import anuga.utilities.log as log
 
 import types
-from types import IntType, FloatType
-from warnings import warn
 
-
-################################################################################
-# Shallow water domain
-################################################################################
-
-##
-# @brief Class for a shallow water domain.
 class Domain(Generic_Domain):
-
-    #conserved_quantities = ['stage', 'xmomentum', 'ymomentum']
-    #other_quantities = ['elevation', 'friction']
-
-    ##
-    # @brief Instantiate a shallow water domain.
-    # @param coordinates
-    # @param vertices
-    # @param boundary
-    # @param tagged_elements
-    # @param geo_reference
-    # @param use_inscribed_circle
-    # @param mesh_filename
-    # @param use_cache
-    # @param verbose
-    # @param evolved_quantities
-    # @param full_send_dict
-    # @param ghost_recv_dict
-    # @param processor
-    # @param numproc
-    # @param number_of_full_nodes
-    # @param number_of_full_triangles
+    """ Class for a shallow water domain."""
     def __init__(self,
                  coordinates=None,
                  vertices=None,
@@ -152,6 +109,25 @@ class Domain(Generic_Domain):
                  numproc=1,
                  number_of_full_nodes=None,
                  number_of_full_triangles=None):
+        """
+            Instantiate a shallow water domain.
+            coordinates - vertex locations for the mesh
+            vertices - vertex indices for the mesh
+            boundary - boundaries of the mesh
+            # @param tagged_elements
+            # @param geo_reference
+            # @param use_inscribed_circle
+            # @param mesh_filename
+            # @param use_cache
+            # @param verbose
+            # @param evolved_quantities
+            # @param full_send_dict
+            # @param ghost_recv_dict
+            # @param processor
+            # @param numproc
+            # @param number_of_full_nodes
+            # @param number_of_full_triangles
+        """
 
         # Define quantities for the shallow_water domain
         if conserved_quantities == None:
@@ -164,24 +140,24 @@ class Domain(Generic_Domain):
             other_quantities = ['elevation', 'friction']
         
         Generic_Domain.__init__(self,
-                                coordinates,
-                                vertices,
-                                boundary,
-                                conserved_quantities,
-                                evolved_quantities,
-                                other_quantities,
-                                tagged_elements,
-                                geo_reference,
-                                use_inscribed_circle,
-                                mesh_filename,
-                                use_cache,
-                                verbose,
-                                full_send_dict,
-                                ghost_recv_dict,
-                                processor,
-                                numproc,
-                                number_of_full_nodes=number_of_full_nodes,
-                                number_of_full_triangles=number_of_full_triangles)
+                            coordinates,
+                            vertices,
+                            boundary,
+                            conserved_quantities,
+                            evolved_quantities,
+                            other_quantities,
+                            tagged_elements,
+                            geo_reference,
+                            use_inscribed_circle,
+                            mesh_filename,
+                            use_cache,
+                            verbose,
+                            full_send_dict,
+                            ghost_recv_dict,
+                            processor,
+                            numproc,
+                            number_of_full_nodes=number_of_full_nodes,
+                            number_of_full_triangles=number_of_full_triangles)
 
         self.set_defaults()
 
@@ -199,11 +175,6 @@ class Domain(Generic_Domain):
                                         'ymomentum': 2}
 
 
-
-
-    ##
-    # @brief Set default values, usually read in from a config file
-    # @param flag
     def set_defaults(self):
         """Set the default values in this routine. That way we can inherit class
         and just over redefine the defaults for the new class
@@ -211,15 +182,13 @@ class Domain(Generic_Domain):
 
         from anuga.config import minimum_storable_height
         from anuga.config import minimum_allowed_height, maximum_allowed_speed
-        from anuga.config import g, epsilon, beta_w, beta_w_dry,\
+        from anuga.config import g, beta_w, beta_w_dry, \
              beta_uh, beta_uh_dry, beta_vh, beta_vh_dry, tight_slope_limiters
         from anuga.config import alpha_balance
         from anuga.config import optimise_dry_cells
         from anuga.config import optimised_gradient_limiter
         from anuga.config import use_edge_limiter
         from anuga.config import use_centroid_velocities
-
-
 
         self.set_minimum_allowed_height(minimum_allowed_height)
         self.maximum_allowed_speed = maximum_allowed_speed
@@ -246,9 +215,7 @@ class Domain(Generic_Domain):
         self.optimised_gradient_limiter = optimised_gradient_limiter
         self.use_centroid_velocities = use_centroid_velocities       
 
-    ##
-    # @brief
-    # @param flag
+
     def set_new_mannings_function(self, flag=True):
         """Cludge to allow unit test to pass, but to
         also introduce new mannings friction function
@@ -262,9 +229,6 @@ class Domain(Generic_Domain):
             self.use_new_mannings = False
 
 
-    ##
-    # @brief
-    # @param flag
     def set_use_edge_limiter(self, flag=True):
         """Cludge to allow unit test to pass, but to
         also introduce new edge limiting. The flag is
@@ -276,10 +240,6 @@ class Domain(Generic_Domain):
             self.use_edge_limiter = False
 
 
-          
-    ##
-    # @brief
-    # @param beta
     def set_all_limiters(self, beta):
         """Shorthand to assign one constant value [0,1] to all limiters.
         0 Corresponds to first order, where as larger values make use of
@@ -298,10 +258,7 @@ class Domain(Generic_Domain):
         self.beta_vh_dry = beta
         self.quantities['ymomentum'].beta = beta
 
-    ##
-    # @brief
-    # @param flag
-    # @param reduction
+
     def set_store_vertices_uniquely(self, flag, reduction=None):
         """Decide whether vertex values should be stored uniquely as
         computed in the model (True) or whether they should be reduced to one
@@ -405,7 +362,8 @@ class Domain(Generic_Domain):
         Once the simulation has started and thw sww file opened, 
         this function will have no effect.
         
-        The format, where q is a list of names is for backwards compatibility only.
+        The format, where q is a list of names is for backwards compatibility
+        only.
         It will take the specified quantities to be time dependent and assume 
         'elevation' to be static regardless.
         """
@@ -415,29 +373,12 @@ class Domain(Generic_Domain):
             self.store = False
             return
 
-        # Check correcness
+        # Check correctness
         for quantity_name in q:
             msg = ('Quantity %s is not a valid conserved quantity'
                    % quantity_name)
             assert quantity_name in self.quantities, msg
 
-        if type(q) == types.ListType:
-
-            msg = 'List arguments to set_quantities_to_be_stored '
-            msg += 'has been deprecated and will be removed in future '
-            msg += 'versions of ANUGA.'
-            msg += 'Please use dictionary argument instead'
-            warn(msg, DeprecationWarning) 
-
-        
-        
-            # FIXME: Raise deprecation warning
-            tmp = {}
-            for x in q:
-                tmp[x] = 2
-            tmp['elevation'] = 1    
-            q = tmp     
-            
         assert type(q) == types.DictType    
         self.quantities_to_be_stored = q
 
@@ -566,9 +507,8 @@ class Domain(Generic_Domain):
         return cross_section.get_energy_through_cross_section(kind)
 
 
-    ##
-    # @brief Run integrity checks on shallow water domain.
     def check_integrity(self):
+        """ Run integrity checks on shallow water domain. """
         Generic_Domain.check_integrity(self)
 
         #Check that we are solving the shallow water wave equation
@@ -579,22 +519,18 @@ class Domain(Generic_Domain):
         msg = 'Third conserved quantity must be "ymomentum"'
         assert self.conserved_quantities[2] == 'ymomentum', msg
 
-    ##
-    # @brief 
     def extrapolate_second_order_sw(self):
-        #Call correct module function (either from this module or C-extension)
+        """Call correct module function
+            (either from this module or C-extension)"""
         extrapolate_second_order_sw(self)
 
-    ##
-    # @brief 
     def compute_fluxes(self):
-        #Call correct module function (either from this module or C-extension)
+        """Call correct module function
+            (either from this module or C-extension)"""
         compute_fluxes(self)
 
-    ##
-    # @brief 
     def distribute_to_vertices_and_edges(self):
-        # Call correct module function
+        """ Call correct module function """
         if self.use_edge_limiter:
             distribute_using_edge_limiter(self)
         else:
@@ -602,18 +538,15 @@ class Domain(Generic_Domain):
 
 
 
-    ##
-    # @brief Evolve the model by one step.
-    # @param yieldstep 
-    # @param finaltime 
-    # @param duration 
-    # @param skip_initial_step 
     def evolve(self,
                yieldstep=None,
                finaltime=None,
                duration=None,
                skip_initial_step=False):
-        """Specialisation of basic evolve method from parent class"""
+        """Specialisation of basic evolve method from parent class.
+        
+            Evolve the model by 1 step.
+        """
 
         # Call check integrity here rather than from user scripts
         # self.check_integrity()
@@ -641,8 +574,7 @@ class Domain(Generic_Domain):
             # Pass control on to outer loop for more specific actions
             yield(t)
 
-    ##
-    # @brief 
+
     def initialise_storage(self):
         """Create and initialise self.writer object for storing data.
         Also, save x,y and bed elevation
@@ -654,9 +586,7 @@ class Domain(Generic_Domain):
         # Store vertices and connectivity
         self.writer.store_connectivity()
 
-    ##
-    # @brief 
-    # @param name 
+
     def store_timestep(self):
         """Store time dependent quantities and time.
 
@@ -666,10 +596,7 @@ class Domain(Generic_Domain):
 
         self.writer.store_timestep()
 
-    ##
-    # @brief Get time stepping statistics string for printing.
-    # @param track_speeds 
-    # @param triangle_id 
+
     def timestepping_statistics(self,
                                 track_speeds=False,
                                 triangle_id=None):
@@ -711,16 +638,16 @@ class Domain(Generic_Domain):
             Eh = Ew-Ez
             Ch = Cw-Cz
 
-            s  = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n'\
-                 %(name.ljust(qwidth), Vh[0], Vh[1], Vh[2])
+            message  = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n'\
+                 % (name.ljust(qwidth), Vh[0], Vh[1], Vh[2])
 
-            s += '    %s: edge_values =    %.4f,\t %.4f,\t %.4f\n'\
-                 %(name.ljust(qwidth), Eh[0], Eh[1], Eh[2])
+            message += '    %s: edge_values =    %.4f,\t %.4f,\t %.4f\n'\
+                 % (name.ljust(qwidth), Eh[0], Eh[1], Eh[2])
 
-            s += '    %s: centroid_value = %.4f\n'\
-                 %(name.ljust(qwidth), Ch[0])
+            message += '    %s: centroid_value = %.4f\n'\
+                 % (name.ljust(qwidth), Ch[0])
 
-            msg += s
+            msg += message
 
             uh = self.quantities['xmomentum']
             vh = self.quantities['ymomentum']
@@ -738,31 +665,31 @@ class Domain(Generic_Domain):
             Eu = Euh/(Eh + epsilon)
             Cu = Cuh/(Ch + epsilon)
             name = 'U'
-            s  = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n'\
-                 %(name.ljust(qwidth), Vu[0], Vu[1], Vu[2])
+            message  = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n' \
+                 % (name.ljust(qwidth), Vu[0], Vu[1], Vu[2])
 
-            s += '    %s: edge_values =    %.4f,\t %.4f,\t %.4f\n'\
-                 %(name.ljust(qwidth), Eu[0], Eu[1], Eu[2])
+            message += '    %s: edge_values =    %.4f,\t %.4f,\t %.4f\n' \
+                 % (name.ljust(qwidth), Eu[0], Eu[1], Eu[2])
 
-            s += '    %s: centroid_value = %.4f\n'\
-                 %(name.ljust(qwidth), Cu[0])
+            message += '    %s: centroid_value = %.4f\n' \
+                 % (name.ljust(qwidth), Cu[0])
 
-            msg += s
+            msg += message
 
             Vv = Vvh/(Vh + epsilon)
             Ev = Evh/(Eh + epsilon)
             Cv = Cvh/(Ch + epsilon)
             name = 'V'
-            s  = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n'\
-                 %(name.ljust(qwidth), Vv[0], Vv[1], Vv[2])
+            message  = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n' \
+                 % (name.ljust(qwidth), Vv[0], Vv[1], Vv[2])
 
-            s += '    %s: edge_values =    %.4f,\t %.4f,\t %.4f\n'\
-                 %(name.ljust(qwidth), Ev[0], Ev[1], Ev[2])
+            message += '    %s: edge_values =    %.4f,\t %.4f,\t %.4f\n' \
+                 % (name.ljust(qwidth), Ev[0], Ev[1], Ev[2])
 
-            s += '    %s: centroid_value = %.4f\n'\
+            message += '    %s: centroid_value = %.4f\n'\
                  %(name.ljust(qwidth), Cv[0])
 
-            msg += s
+            msg += message
 
             # Froude number in each direction
             name = 'Froude (x)'
@@ -770,32 +697,32 @@ class Domain(Generic_Domain):
             Efx = Eu/(num.sqrt(g*Eh) + epsilon)
             Cfx = Cu/(num.sqrt(g*Ch) + epsilon)
 
-            s  = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n'\
-                 %(name.ljust(qwidth), Vfx[0], Vfx[1], Vfx[2])
+            message  = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n'\
+                 % (name.ljust(qwidth), Vfx[0], Vfx[1], Vfx[2])
 
-            s += '    %s: edge_values =    %.4f,\t %.4f,\t %.4f\n'\
-                 %(name.ljust(qwidth), Efx[0], Efx[1], Efx[2])
+            message += '    %s: edge_values =    %.4f,\t %.4f,\t %.4f\n'\
+                 % (name.ljust(qwidth), Efx[0], Efx[1], Efx[2])
 
-            s += '    %s: centroid_value = %.4f\n'\
-                 %(name.ljust(qwidth), Cfx[0])
+            message += '    %s: centroid_value = %.4f\n'\
+                 % (name.ljust(qwidth), Cfx[0])
 
-            msg += s
+            msg += message
 
             name = 'Froude (y)'
             Vfy = Vv/(num.sqrt(g*Vh) + epsilon)
             Efy = Ev/(num.sqrt(g*Eh) + epsilon)
             Cfy = Cv/(num.sqrt(g*Ch) + epsilon)
 
-            s  = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n'\
-                 %(name.ljust(qwidth), Vfy[0], Vfy[1], Vfy[2])
+            message  = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n'\
+                 % (name.ljust(qwidth), Vfy[0], Vfy[1], Vfy[2])
 
-            s += '    %s: edge_values =    %.4f,\t %.4f,\t %.4f\n'\
-                 %(name.ljust(qwidth), Efy[0], Efy[1], Efy[2])
+            message += '    %s: edge_values =    %.4f,\t %.4f,\t %.4f\n'\
+                 % (name.ljust(qwidth), Efy[0], Efy[1], Efy[2])
 
-            s += '    %s: centroid_value = %.4f\n'\
-                 %(name.ljust(qwidth), Cfy[0])
+            message += '    %s: centroid_value = %.4f\n'\
+                 % (name.ljust(qwidth), Cfy[0])
 
-            msg += s
+            msg += message
 
         return msg
        
@@ -812,7 +739,8 @@ class Domain(Generic_Domain):
 		
         # Run through boundary array and compute for each segment
         # the normal momentum ((uh, vh) dot normal) times segment length.
-        # Based on sign accumulate this into boundary_inflow and boundary_outflow.
+        # Based on sign accumulate this into boundary_inflow and
+        # boundary_outflow.
 			
         # Compute flows along boundary
         
@@ -841,7 +769,7 @@ class Domain(Generic_Domain):
             # Tally up inflows and outflows separately
             if edge_flow > 0:
                 # Flow is inflow      
-                total_boundary_inflow += edge_flow                                  
+                total_boundary_inflow += edge_flow       
             else:
                 # Flow is outflow
                 total_boundary_outflow += edge_flow    
@@ -880,10 +808,10 @@ class Domain(Generic_Domain):
         """
         
         area = self.mesh.get_areas()
-        volume = 0.0
         
         stage = self.get_quantity('stage').get_values(location='centroids')
-        elevation = self.get_quantity('elevation').get_values(location='centroids')        
+        elevation = \
+            self.get_quantity('elevation').get_values(location='centroids')
         depth = stage-elevation
         
         return num.sum(depth*area)
@@ -896,25 +824,28 @@ class Domain(Generic_Domain):
         (boundary_flows, total_boundary_inflow,
          total_boundary_outflow) = self.compute_boundary_flows() 
         
-        s = '---------------------------\n'        
-        s += 'Volumetric balance report:\n'
-        s += '--------------------------\n'
-        s += 'Total boundary inflow [m^3/s]: %.2f\n' % total_boundary_inflow
-        s += 'Total boundary outflow [m^3/s]: %.2f\n' % total_boundary_outflow        
-        s += 'Net boundary flow by tags [m^3/s]\n'
+        message = '---------------------------\n'        
+        message += 'Volumetric balance report:\n'
+        message += '--------------------------\n'
+        message += 'Total boundary inflow [m^3/s]: %.2f\n' % total_boundary_inflow
+        message += 'Total boundary outflow [m^3/s]: %.2f\n' % total_boundary_outflow
+        message += 'Net boundary flow by tags [m^3/s]\n'
         for tag in boundary_flows:
-            s += '    %s [m^3/s]: %.2f\n' % (tag, boundary_flows[tag])
+            message += '    %s [m^3/s]: %.2f\n' % (tag, boundary_flows[tag])
         
-        s += 'Total net boundary flow [m^3/s]: %.2f\n' % (total_boundary_inflow + total_boundary_outflow) 
-        s += 'Total volume in domain [m^3]: %.2f\n' % self.compute_total_volume()
+        message += 'Total net boundary flow [m^3/s]: %.2f\n' % \
+                    (total_boundary_inflow + total_boundary_outflow) 
+        message += 'Total volume in domain [m^3]: %.2f\n' % \
+                    self.compute_total_volume()
         
-        # The go through explicit forcing update and record the rate of change for stage and 
-        # record into forcing_inflow and forcing_outflow. Finally compute integral 
-        # of depth to obtain total volume of domain.
+        # The go through explicit forcing update and record the rate of change
+        # for stage and 
+        # record into forcing_inflow and forcing_outflow. Finally compute  
+        # integral of depth to obtain total volume of domain.
 	
         # FIXME(Ole): This part is not yet done.		
         
-        return s        
+        return message        
            
 ################################################################################
 # End of class Shallow Water Domain
@@ -950,8 +881,6 @@ def compute_fluxes(domain):
     import sys
     from shallow_water_ext import compute_fluxes_ext_central \
                                   as compute_fluxes_ext
-
-    N = len(domain)    # number_of_triangles
 
     # Shortcuts
     Stage = domain.quantities['stage']
@@ -1000,10 +929,7 @@ def compute_fluxes(domain):
 def extrapolate_second_order_sw(domain):
     """Wrapper calling C version of extrapolate_second_order_sw"""
 
-    import sys
     from shallow_water_ext import extrapolate_second_order_sw as extrapol2
-
-    N = len(domain) # number_of_triangles
 
     # Shortcuts
     Stage = domain.quantities['stage']
@@ -1065,7 +991,7 @@ def distribute_using_vertex_limiter(domain):
         elif domain._order_ == 2:
             domain.extrapolate_second_order_sw()
         else:
-            raise 'Unknown order'
+            raise Exception('Unknown order')
     else:
         # Old code:
         for name in domain.conserved_quantities:
@@ -1076,7 +1002,7 @@ def distribute_using_vertex_limiter(domain):
             elif domain._order_ == 2:
                 Q.extrapolate_second_order_and_limit_by_vertex()
             else:
-                raise 'Unknown order'
+                raise Exception('Unknown order')
 
     # Take bed elevation into account when water heights are small
     balance_deep_and_shallow(domain)
@@ -1118,7 +1044,7 @@ def distribute_using_edge_limiter(domain):
         elif domain._order_ == 2:
             Q.extrapolate_second_order_and_limit_by_edge()
         else:
-            raise 'Unknown order'
+            raise Exception('Unknown order')
 
     balance_deep_and_shallow(domain)
 
@@ -1205,13 +1131,12 @@ def gravity(domain):
     stage = domain.quantities['stage']
     elevation = domain.quantities['elevation']
 
-    h = stage.centroid_values - elevation.centroid_values
-    z = elevation.vertex_values
+    height = stage.centroid_values - elevation.centroid_values
+    elevation = elevation.vertex_values
 
-    x = domain.get_vertex_coordinates()
-    g = domain.g
+    point = domain.get_vertex_coordinates()
 
-    gravity_c(g, h, z, x, xmom_update, ymom_update)    #, 1.0e-6)
+    gravity_c(domain.g, height, elevation, point, xmom_update, ymom_update)
 
 ##
 # @brief Apply friction to a surface (implicit).
@@ -1240,14 +1165,15 @@ def manning_friction_implicit(domain):
     xmom_update = xmom.semi_implicit_update
     ymom_update = ymom.semi_implicit_update
 
-    N = len(domain)
     eps = domain.minimum_allowed_height
     g = domain.g
 
     if domain.use_new_mannings:
-        manning_friction_new(g, eps, x, w, uh, vh, z, eta, xmom_update, ymom_update)
+        manning_friction_new(g, eps, x, w, uh, vh, z, eta, xmom_update, \
+                                ymom_update)
     else:
-        manning_friction_old(g, eps, w, uh, vh, z, eta, xmom_update, ymom_update)
+        manning_friction_old(g, eps, w, uh, vh, z, eta, xmom_update, \
+                                ymom_update)
     
 
 ##
@@ -1277,19 +1203,18 @@ def manning_friction_explicit(domain):
     xmom_update = xmom.explicit_update
     ymom_update = ymom.explicit_update
 
-    N = len(domain)
     eps = domain.minimum_allowed_height
-    g = domain.g
-
 
     if domain.use_new_mannings:
-        manning_friction_new(g, eps, x, w, uh, vh, z, eta, xmom_update, ymom_update)
+        manning_friction_new(domain.g, eps, x, w, uh, vh, z, eta, xmom_update, \
+                            ymom_update)
     else:
-        manning_friction_old(g, eps, w, uh, vh, z, eta, xmom_update, ymom_update)
+        manning_friction_old(domain.g, eps, w, uh, vh, z, eta, xmom_update, \
+                            ymom_update)
 
 
 
-# FIXME (Ole): This was implemented for use with one of the analytical solutions (Sampson?)
+# FIXME (Ole): This was implemented for use with one of the analytical solutions
 ##
 # @brief Apply linear friction to a surface.
 # @param domain The domain to apply Manning friction to.
@@ -1299,8 +1224,6 @@ def linear_friction(domain):
 
     Assumes quantity: 'linear_friction' to be present
     """
-
-    from math import sqrt
 
     w = domain.quantities['stage'].centroid_values
     z = domain.quantities['elevation'].centroid_values
@@ -1313,11 +1236,10 @@ def linear_friction(domain):
     xmom_update = domain.quantities['xmomentum'].semi_implicit_update
     ymom_update = domain.quantities['ymomentum'].semi_implicit_update
 
-    N = len(domain) # number_of_triangles
+    num_tris = len(domain)
     eps = domain.minimum_allowed_height
-    g = domain.g #Not necessary? Why was this added?
 
-    for k in range(N):
+    for k in range(num_tris):
         if tau[k] >= eps:
             if h[k] >= eps:
                 S = -tau[k]/h[k]
@@ -1329,71 +1251,78 @@ def linear_friction(domain):
 def depth_dependent_friction(domain, default_friction,
                              surface_roughness_data,
                              verbose=False):
-    """Returns an array of friction values for each wet element adjusted for depth.
+    """Returns an array of friction values for each wet element adjusted for
+            depth.
 
     Inputs:
         domain - computational domain object
         default_friction - depth independent bottom friction
-        surface_roughness_data - N x 5 array of n0, d1, n1, d2, n2 values for each
-        friction region.
+        surface_roughness_data - N x 5 array of n0, d1, n1, d2, n2 values 
+        for each friction region.
 
     Outputs:
-        wet_friction - Array that can be used directly to update friction as follows:
+        wet_friction - Array that can be used directly to update friction as
+                        follows:
                        domain.set_quantity('friction', wet_friction)
 
         
         
     """
+    
+    default_n0 = 0  # James - this was missing, don't know what it should be
+    
+    # Create a temp array to store updated depth dependent
+    # friction for wet elements
+    # EHR this is outwardly inneficient but not obvious how to avoid
+    # recreating each call??????
 
-    import numpy as num
+    wet_friction    = num.zeros(len(domain), num.float)
+    wet_friction[:] = default_n0  # Initially assign default_n0 to all array so
+                                  # sure have no zeros values
     
-    # Create a temp array to store updated depth dependent friction for wet elements
-    # EHR this is outwardly inneficient but not obvious how to avoid recreating each call??????
-    N=len(domain)
-    wet_friction    = num.zeros(N, num.float)
-    wet_friction[:] = default_n0   # Initially assign default_n0 to all array so sure have no zeros values
-    
-    
-    depth = domain.create_quantity_from_expression('stage - elevation')  # create depth instance for this timestep
+    # create depth instance for this timestep    
+    depth = domain.create_quantity_from_expression('stage - elevation')  
     # Recompute depth as vector  
-    d = depth.get_values(location='centroids')
+    d_vals = depth.get_values(location='centroids')
  
     # rebuild the 'friction' values adjusted for depth at this instant
-    for i in domain.get_wet_elements():                                  # loop for each wet element in domain
-        
+    # loop for each wet element in domain
+   
+    for i in domain.get_wet_elements():        
         # Get roughness data for each element
-        n0 = float(surface_roughness_data[i,0])
-        d1 = float(surface_roughness_data[i,1])
-        n1 = float(surface_roughness_data[i,2])
-        d2 = float(surface_roughness_data[i,3])
-        n2 = float(surface_roughness_data[i,4])
+        d1 = float(surface_roughness_data[i, 1])
+        n1 = float(surface_roughness_data[i, 2])
+        d2 = float(surface_roughness_data[i, 3])
+        n2 = float(surface_roughness_data[i, 4])
         
         
         # Recompute friction values from depth for this element 
                
-        if d[i]   <= d1: 
-            depth_dependent_friction = n1
-        elif d[i] >= d2:
-            depth_dependent_friction = n2
+        if d_vals[i]   <= d1: 
+            ddf = n1
+        elif d_vals[i] >= d2:
+            ddf = n2
         else:
-            depth_dependent_friction = n1+((n2-n1)/(d2-d1))*(d[i]-d1)
+            ddf = n1 + ((n2-n1)/(d2-d1))*(d_vals[i]-d1)
             
         # check sanity of result
-        if (depth_dependent_friction  < 0.010 or depth_dependent_friction > 9999.0) :
-            log.critical('%s >>>> WARNING: computed depth_dependent friction '
+        if (ddf  < 0.010 or \
+                            ddf > 9999.0) :
+            log.critical('>>>> WARNING: computed depth_dependent friction '
                          'out of range, ddf%f, n1=%f, n2=%f'
-                         % (model_data.basename,
-                            depth_dependent_friction, n1, n2))
+                         % (ddf, n1, n2))
         
         # update depth dependent friction  for that wet element
-        wet_friction[i] = depth_dependent_friction
+        wet_friction[i] = ddf
         
-    # EHR add code to show range of 'friction across domain at this instant as sanity check?????????
+    # EHR add code to show range of 'friction across domain at this instant as
+    # sanity check?????????
     
     if verbose :
-        nvals=domain.get_quantity('friction').get_values(location='centroids')        # return array of domain nvals
-        n_min=min(nvals)
-        n_max=max(nvals)
+        # return array of domain nvals
+        nvals = domain.get_quantity('friction').get_values(location='centroids')
+        n_min = min(nvals)
+        n_max = max(nvals)
         
         log.critical('         ++++ calculate_depth_dependent_friction - '
                      'Updated friction - range  %7.3f to %7.3f'
@@ -1407,34 +1336,16 @@ def depth_dependent_friction(domain, default_friction,
 # Initialise module
 ################################################################################
 
-from anuga.utilities import compile
-if compile.can_use_C_extension('shallow_water_ext.c'):
-    # Underlying C implementations can be accessed
-    from shallow_water_ext import assign_windfield_values
-else:
+def _raise_compile_exception():
+    """ Raise exception if compiler not available. """
     msg = 'C implementations could not be accessed by %s.\n ' % __file__
     msg += 'Make sure compile_all.py has been run as described in '
     msg += 'the ANUGA installation guide.'
-    raise Exception, msg
+    raise Exception(msg)
 
-# Optimisation with psyco
-#from anuga.config import use_psyco
-#if use_psyco:
-    #try:
-        #import psyco
-    #except:
-        #import os
-        #if os.name == 'posix' and os.uname()[4] in ['x86_64', 'ia64']:
-            #pass
-            ##Psyco isn't supported on 64 bit systems, but it doesn't matter
-        #else:
-            #msg = ('WARNING: psyco (speedup) could not be imported, '
-                   #'you may want to consider installing it')
-            #log.critical(msg)
-    #else:
-        #psyco.bind(Domain.distribute_to_vertices_and_edges)
-        #psyco.bind(Domain.compute_fluxes)
-
+from anuga.utilities import compile
+if not compile.can_use_C_extension('shallow_water_ext.c'):
+    _raise_compile_exception()
 
 if __name__ == "__main__":
     pass

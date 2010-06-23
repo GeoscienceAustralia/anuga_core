@@ -3,6 +3,8 @@ import unittest
 import tempfile
 import numpy as num
 
+from anuga.utilities.system_tools import get_pathname_from_package
+
 from csv_file import load_csv_as_array, load_csv_as_dict, store_parameters, \
                         load_csv_as_matrix
 
