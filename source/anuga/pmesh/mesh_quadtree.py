@@ -1,5 +1,5 @@
 """
-General functions used in fit and interpolate.
+    Quadtree representation of 2D mesh geometry.
 
    Ole Nielsen, Stephen Roberts, Duncan Gray
    Geoscience Australia, 2006.
@@ -77,6 +77,14 @@ class MeshQuadtree(Cell):
     def search_fast(self, point):
         """
         Find the triangle (element) that the point x is in.
+        
+        Does a coherent quadtree traversal to return a single triangle that the
+        point falls within. The traversal begins at the last triangle found.
+        If this fails, it checks the triangles beneath it in the tree, and then
+        begins traversing up through the tree until it reaches the root.
+        
+        This results in performance which varies between constant time and O(n),
+        depending on the geometry.
 
         Inputs:
             point:    The point to test

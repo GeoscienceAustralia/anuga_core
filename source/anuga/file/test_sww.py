@@ -7,10 +7,11 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference
 from csv_file import load_csv_as_array, load_csv_as_dict
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 from anuga.shallow_water.shallow_water_domain import Domain
-from sww import load_sww_as_domain, weed, get_mesh_and_quantities_from_file
+from sww import load_sww_as_domain, weed, get_mesh_and_quantities_from_file, \
+                Write_sww
 from Scientific.IO.NetCDF import NetCDFFile
 
-from anuga.config import netcdf_mode_w
+from anuga.config import netcdf_mode_w, netcdf_float
 
 # boundary functions
 from anuga.shallow_water.boundaries import Reflective_boundary, \
@@ -289,6 +290,8 @@ class Test_sww(unittest.TestCase):
     def test_triangulationII(self):
         # 
         #  
+
+        DEFAULT_ZONE = 0 # Not documented anywhere what this should be.
         
         filename = tempfile.mktemp("_data_manager.sww")
         outfile = NetCDFFile(filename, netcdf_mode_w)

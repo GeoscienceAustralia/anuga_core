@@ -607,11 +607,6 @@ class Mesh:
         self.auto_segment()
         self.generateMesh(mode = "Q", minAngle=20.0)
         
-    # Depreciated
-    def addRegionEN(self, x,y):
-        log.critical("deprecated, use add_region")
-        return self.add_region(x,y)
-
     
     def add_vertices(self, point_data):
         """

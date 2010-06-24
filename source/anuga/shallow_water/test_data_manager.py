@@ -504,7 +504,7 @@ class Test_Data_Manager(Test_Mux):
 
         # Check contents
         # Get NetCDF
-        fid = NetCDFFile(sww.filename, netcdf_mode_r)  # Open existing file for append
+        fid = NetCDFFile(sww.filename, netcdf_mode_r)
 
         # Get the variables
         x = fid.variables['x']
@@ -604,11 +604,9 @@ class Test_Data_Manager(Test_Mux):
         self.domain.evolve_to_end(finaltime = 0.01)
         sww.store_timestep()
 
-
         #Check contents
         #Get NetCDF
         fid = NetCDFFile(sww.filename, netcdf_mode_r)
-
 
         # Get the variables
         x = fid.variables['x']
@@ -644,8 +642,9 @@ class Test_Data_Manager(Test_Mux):
         This one uses a sine wave and compares to time boundary
         """
 
-        lat_long_points=[[6.01,97.0],[6.02,97.0],[6.05,96.9],[6.0,97.0]]
-        bounding_polygon=[[6.0,97.0],[6.01,97.0],[6.02,97.0],[6.02,97.02],[6.00,97.02]]
+        lat_long_points=[[6.01, 97.0], [6.02, 97.0], [6.05, 96.9], [6.0, 97.0]]
+        bounding_polygon=[[6.0, 97.0], [6.01, 97.0], [6.02,97.0], \
+                            [6.02,97.02], [6.00,97.02]]
         tide = 0.35
         time_step_count = 50
         time_step = 0.1

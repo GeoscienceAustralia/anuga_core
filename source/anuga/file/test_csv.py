@@ -6,7 +6,8 @@ import numpy as num
 from anuga.utilities.system_tools import get_pathname_from_package
 
 from csv_file import load_csv_as_array, load_csv_as_dict, store_parameters, \
-                        load_csv_as_matrix, load_csv_as_polygons
+                        load_csv_as_matrix, load_csv_as_polygons, \
+                        load_csv_as_building_polygons
 
 class Test_csv(unittest.TestCase):
     def setUp(self):

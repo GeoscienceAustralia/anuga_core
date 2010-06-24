@@ -171,7 +171,6 @@ maximum_froude_number = 100.0 # To be used in limiters.
 # Performance parameters used to invoke various optimisations
 ################################################################################
 
-use_extensions = True # Use C-extensions
 use_psyco = True      # Use psyco optimisations
 
 optimise_dry_cells = True # Exclude dry and still cells from flux computation

@@ -16,9 +16,9 @@ import anuga.utilities.log as log
 
             
 class Cell():
-    """class Cell
-
-    One cell in the plane.
+    """ One cell in the plane.
+        A cell is defined by an AABB, and can have smaller AABB children.
+        The children can be rapidly searched for intersections in log(n) time.
     """
   
     def __init__(self, extents, parent,
@@ -37,6 +37,7 @@ class Cell():
         
     
     def __repr__(self):
+        """ String representation of the quadtree. """
         ret_str = '%s: leaves: %d' \
                % (self.name , len(self.leaves))    
         if self.children:
@@ -83,7 +84,8 @@ class Cell():
                     #self.insert_item(new_leaf)
                     #return               
 
-            # option 2 - try splitting 2 ways - no diff noticed in practise
+            # option 2 - try splitting 2 ways - no performance difference
+            # noticed in practise between this and the above option.
             if subregion1.is_trivial_in(new_region):
                 self.children = [Cell(subregion1, self), \
                                  Cell(subregion2, self)]    
@@ -159,7 +161,8 @@ class Cell():
  
  
     def test_leaves(self, point):
-        """ Test all leaves to see if they intersect x.
+        """ Test all leaves on this node to see if they intersect x.
+            Does not recurse into children.
             x is a point to test
             return a list of leaves that intersect x
         """

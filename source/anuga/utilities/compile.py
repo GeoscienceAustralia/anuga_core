@@ -323,47 +323,43 @@ def can_use_C_extension(filename):
     can and should be used.
     """
 
-    from anuga.config import use_extensions
-
     from os.path import splitext
 
     root, ext = splitext(filename)
     
     C=False
-    if use_extensions:
+    try:
+        s = 'import %s' %root
+        exec(s)
+    except:
         try:
-            s = 'import %s' %root
-            #print s
-            exec(s)
+            open(filename)
         except:
+            msg = 'C extension %s cannot be opened' %filename
+            print msg                
+        else:    
+            print '------- Trying to compile c-extension %s' %filename
+        
             try:
-                open(filename)
+                compile(filename)
             except:
-                msg = 'C extension %s cannot be opened' %filename
-                print msg                
-            else:    
-                print '------- Trying to compile c-extension %s' %filename
-            
+                print 'WARNING: Could not compile C-extension %s'\
+                      %filename
+            else:
                 try:
-                    compile(filename)
+                    exec('import %s' %root)
                 except:
-                    print 'WARNING: Could not compile C-extension %s'\
-                          %filename
+                    msg = 'C extension %s seems to compile OK, '
+                    msg += 'but it can still not be imported.'
+                    raise msg
                 else:
-                    try:
-                        exec('import %s' %root)
-                    except:
-                        msg = 'C extension %s seems to compile OK, '
-                        msg += 'but it can still not be imported.'
-                        raise msg
-                    else:
-                        C=True
-        else:
-            C=True
+                    C=True
+    else:
+        C=True
             
     if not C:
         pass
-        print 'NOTICE: C-extension %s not used' %filename
+        print 'NOTICE: C-extension %s not used' % filename
 
     return C
 

@@ -11,9 +11,17 @@
 SPLIT_BORDER_RATIO    = 0.55
 
 class AABB:
-    """Axially-aligned bounding box class.
-       Defines a box which can check for intersections with other boxes,
-       or if a point lies within it.
+    """ Axially-aligned bounding box class.
+        An axially aligned bounding box (or AABB) defines a box-shaped region
+        of the plane which contains any other arbitrary geometry.
+        It is useful because intersections can be tested against it very
+        rapidly. Once all misses are trivially rejected, a more expensive
+        collision detection can be done against the remaining geometry.
+        
+        This class defines a box which can check for intersections with other
+        boxes, or points. It can also subdivide itself, returning
+        smaller AABBs. This can be used as the basis of a recursive tree
+        structure for optimising geometry searches.
     """
     
     def __init__(self, xmin, xmax=None, ymin=None, ymax=None):

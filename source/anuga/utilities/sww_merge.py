@@ -15,10 +15,13 @@ def sww_merge(swwfiles, output, verbose = False):
     """
         Merge a list of sww files into a single file.
         
-        May be useful for parallel runs. Note that some advanced information
-        and custom quantities may not be exported.
+        May be useful for parallel runs. Note that colinear points and
+        edges are not merged: there will essentially be multiple meshes within
+        the one sww file.
         
-        The sww files to be merged must have exactly the same timesteps.
+        The sww files to be merged must have exactly the same timesteps. Note
+        that some advanced information and custom quantities may not be
+        exported.
         
         swwfiles is a list of .sww files to merge.
         output is the output filename, including .sww extension.
