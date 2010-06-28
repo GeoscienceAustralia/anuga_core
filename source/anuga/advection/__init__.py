@@ -1,4 +1,6 @@
-"""Make directory available as a Python package
+"""
+    A simple implementation of the shallow wave equation, mainly for test
+    purposes.
 """
 
 # Add path of package to PYTHONPATH to allow C-extensions to be loaded
