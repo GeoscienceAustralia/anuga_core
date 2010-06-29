@@ -8,7 +8,7 @@ def create_test_sww(sww_name):
 	#------------------------------------------------------------------------------
 	# Setup computational domain
 	#------------------------------------------------------------------------------
-	points, vertices, boundary = anuga.rectangular_cross(50, 50,
+	points, vertices, boundary = anuga.rectangular_cross(5, 5,
 												   len1=50.0, len2=50.0) # Mesh
 
 	domain = anuga.Domain(points, vertices, boundary)  # Create domain
@@ -18,7 +18,7 @@ def create_test_sww(sww_name):
 	# Setup initial conditions
 	#------------------------------------------------------------------------------
 	def topography(x, y):
-		return -x/20                             # linear bed slope
+		return -x/2                             # linear bed slope
 
 	domain.set_quantity('elevation', topography) # Use function for elevation
 	domain.set_quantity('friction', 0.01)        # Constant friction 

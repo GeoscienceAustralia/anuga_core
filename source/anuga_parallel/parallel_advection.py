@@ -14,6 +14,7 @@ Geoscience Australia, 2004-2005
 
 from anuga.advection import *
 
+from anuga import Domain
 
 import numpy as num
 

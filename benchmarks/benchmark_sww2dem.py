@@ -3,21 +3,21 @@
 Creates and exports a dem from an sww file.
 """
 
-from anuga.file_conversion.sww2dem import sww2dem
-from create_test_sww import create_test_sww
+import anuga
 import os.path
 import cProfile
 import time
 
+from create_test_sww import create_test_sww
 
 sww_name = 'test.sww'
 
 def sww2dem_test():
 	# do export to DEM
 
-	sww2dem(sww_name,
+	anuga.sww2dem(sww_name,
 			name_out='sww2dem_out.asc',
-			quantity='stage',
+			quantity='xmomentum',
 			cellsize=0.25,      
 			easting_min=0,
 			easting_max=100,

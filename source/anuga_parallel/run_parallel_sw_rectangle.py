@@ -22,8 +22,8 @@ from print_stats import print_test_stats, build_full_flag
 #----------------------------
 # Sequential interface
 #---------------------------
-from anuga.interface import Domain
-from anuga.interface import Transmissive_boundary, Reflective_boundary
+from anuga import Domain
+from anuga import Transmissive_boundary, Reflective_boundary
 
 #----------------------------
 # Parallel interface

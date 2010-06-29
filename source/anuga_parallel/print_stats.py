@@ -20,7 +20,7 @@ import sys
 
 import pypar
 
-from Numeric import array, Int8, zeros, ones, take, nonzero, Float
+from numpy import array, zeros, ones, take, nonzero, float
 from anuga.utilities.norms import l1_norm, l2_norm, linf_norm
 
 #########################################################

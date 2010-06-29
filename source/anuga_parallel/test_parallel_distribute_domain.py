@@ -24,14 +24,14 @@ from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.utilities.util_ext        import double_precision
 from anuga.utilities.norms           import l1_norm, l2_norm, linf_norm
 
-from anuga.interface import Domain
-from anuga.interface import Reflective_boundary
-from anuga.interface import Dirichlet_boundary
-from anuga.interface import Time_boundary
-from anuga.interface import Transmissive_boundary
+from anuga import Domain
+from anuga import Reflective_boundary
+from anuga import Dirichlet_boundary
+from anuga import Time_boundary
+from anuga import Transmissive_boundary
 
-from anuga.interface import rectangular_cross
-from anuga.interface import create_domain_from_file
+from anuga import rectangular_cross
+from anuga import create_domain_from_file
 
 
 from anuga_parallel.interface import distribute, myid, numprocs, finalize

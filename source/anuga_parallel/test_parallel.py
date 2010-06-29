@@ -5,12 +5,7 @@ import sys
 import os
 from math import sqrt
 
-
-
-
-
-from anuga.interface import Domain
-from anuga.interface import rectangular_cross
+import anuga
 
 from anuga_parallel.distribute_mesh import pmesh_divide_metis
 from anuga_parallel.distribute_mesh import build_submesh
@@ -73,9 +68,9 @@ class Test_parallel_distribute_mesh(unittest.TestCase):
 
         if myid == 0:
 
-            points, vertices, boundary = rectangular_cross(2,2)
+            points, vertices, boundary = anuga.rectangular_cross(2,2)
 
-            domain = Domain(points, vertices, boundary)
+            domain = anuga.Domain(points, vertices, boundary)
 
 
             domain.set_quantity('elevation', topography) # Use function for elevation
