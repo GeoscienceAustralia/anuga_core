@@ -30,6 +30,14 @@ double min(double x, double y) {
 }
 
 
+double sign(double x) {
+  //Return sign of a double
+
+  if (x>0.0) return 1.0;
+  else if (x<0.0) return -1.0;
+  else return 0.0;
+}
+
 int _gradient(double x0, double y0, 
 	      double x1, double y1, 
 	      double x2, double y2, 

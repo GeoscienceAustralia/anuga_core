@@ -296,15 +296,39 @@ class Sparse_CSR:
 
     def __mul__(self, other):
         """Multiply this matrix onto 'other' which can either be
-        a numeric vector, a numeric matrix or another sparse matrix.
+        a numeric vector.
         """
 
         try:
             B = num.array(other)
         except:
-            print 'FIXME: Only numeric types implemented so far'
+            raise ValueError, 'FIXME: Only numeric types implemented so far'
 
-        return csr_mv(self,B) 
+
+        # Assume numeric types from now on
+
+        if len(B.shape) == 0:
+            # Scalar - use __rmul__ method
+            #R = B*self
+            raise TypeError, 'Sparse matrix X scalar not implemented'
+
+        elif len(B.shape) == 1:
+            # Vector
+            msg = 'Mismatching dimensions: You cannot multiply (%d x %d) matrix onto %d-vector'\
+                  %(self.M, self.N, B.shape[0])
+            assert B.shape[0] == self.N, msg
+
+            R = csr_mv(self,B)
+
+
+        elif len(B.shape) == 2:
+            raise TypeError, 'Sparse matrix X matrix multiplication not implemented'
+
+        else:
+            raise ValueError, 'Dimension too high: d=%d' %len(B.shape)
+
+        return R
+
 
 
 # Setup for C extensions
