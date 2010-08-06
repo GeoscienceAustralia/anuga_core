@@ -1435,6 +1435,8 @@ class Generic_Domain:
         self.yieldtime = self.time + yieldstep    # set next yield time
 
         # Initialise interval of timestep sizes (for reporting only)
+        # Note that we set recorded_min_timestep to be large so that it comes
+        # down through the evolution, similarly recorded_max_timestep
         self.recorded_min_timestep = self.evolve_max_timestep
         self.recorded_max_timestep = self.evolve_min_timestep
         self.number_of_steps = 0
