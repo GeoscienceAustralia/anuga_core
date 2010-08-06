@@ -9,7 +9,7 @@ def create_test_sww(sww_name):
 	# Setup computational domain
 	#------------------------------------------------------------------------------
 	points, vertices, boundary = anuga.rectangular_cross(5, 5,
-												   len1=50.0, len2=50.0) # Mesh
+							     len1=50.0, len2=50.0) # Mesh
 
 	domain = anuga.Domain(points, vertices, boundary)  # Create domain
 	domain.set_name(sww_name)                  # Output name
