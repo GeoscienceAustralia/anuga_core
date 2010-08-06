@@ -50,6 +50,7 @@ print '-----------------------------------------------'
 
 # Attempt to compile Metis for use with anuga_parallel
 os.chdir('source')
+os.chdir('anuga_parallel')
 os.chdir('pymetis')
 
 make_logfile = os.path.join(buildroot, 'make_metis.log')
