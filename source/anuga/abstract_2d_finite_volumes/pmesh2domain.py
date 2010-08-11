@@ -33,7 +33,7 @@ def pmesh_to_domain_instance(source, DomainClass, use_cache=False,
     if use_cache is True:
         from caching import cache
         result = cache(_pmesh_to_domain_instance, (source, DomainClass),
-                       dependencies=[file_name], verbose=verbose)
+                       dependencies=[source], verbose=verbose)
     else:
         result = apply(_pmesh_to_domain_instance, (source, DomainClass))        
         
