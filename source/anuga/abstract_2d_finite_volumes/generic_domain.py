@@ -1448,11 +1448,13 @@ class Generic_Domain:
         # Initial update of vertex and edge values
         self.distribute_to_vertices_and_edges()
 
+        # Initial update boundary values
+        self.update_boundary()
+
         # Update extrema if necessary (for reporting)
         self.update_extrema()
 
-        # Initial update boundary values
-        self.update_boundary()
+
 
         # Or maybe restore from latest checkpoint
         if self.checkpoint is True:
@@ -1462,7 +1464,12 @@ class Generic_Domain:
             yield(self.time)      # Yield initial values
 
         while True:
-            # Evolve One Step, using appropriate timestepping method
+
+            initial_time = self.time
+
+            #==========================================
+            # Apply fluid flow fractional step
+            #==========================================
             if self.get_timestepping_method() == 'euler':
                 self.evolve_one_euler_step(yieldstep, finaltime)
 
@@ -1471,6 +1478,26 @@ class Generic_Domain:
 
             elif self.get_timestepping_method() == 'rk3':
                 self.evolve_one_rk3_step(yieldstep, finaltime)
+
+
+            #==========================================
+            # Apply other fractional steps
+            #==========================================
+            #self.apply_fractional_steps()
+
+            #==========================================
+            # Centroid Values of variables should be ok,
+            # so now setup quantites etc for output
+            #==========================================
+
+            # Update time
+            self.time = initial_time + self.timestep
+
+            # Update vertex and edge values
+            self.distribute_to_vertices_and_edges()
+
+            # Update boundary values
+            self.update_boundary()
 
             # Update extrema if necessary (for reporting)
             self.update_extrema()            
@@ -1538,14 +1565,8 @@ class Generic_Domain:
         # Update ghosts
         self.update_ghosts()
 
-        # Update time
-        self.time += self.timestep
 
-        # Update vertex and edge values
-        self.distribute_to_vertices_and_edges()
 
-        # Update boundary values
-        self.update_boundary()
 
     ##
     # @brief 'rk2' time step method.
@@ -1614,11 +1635,6 @@ class Generic_Domain:
         # Update ghosts
         self.update_ghosts()
 
-        # Update vertex and edge values
-        self.distribute_to_vertices_and_edges()
-
-        # Update boundary values
-        self.update_boundary()
 
     ##
     # @brief 'rk3' time step method.
@@ -1726,11 +1742,6 @@ class Generic_Domain:
         # Set new time
         self.time = initial_time + self.timestep
 
-        # Update vertex and edge values
-        self.distribute_to_vertices_and_edges()
-
-        # Update boundary values
-        self.update_boundary()
 
     ##
     # @brief Evolve simulation to a final time.
