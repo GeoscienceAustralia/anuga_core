@@ -1479,11 +1479,10 @@ class Generic_Domain:
             elif self.get_timestepping_method() == 'rk3':
                 self.evolve_one_rk3_step(yieldstep, finaltime)
 
-
             #==========================================
             # Apply other fractional steps
             #==========================================
-            #self.apply_fractional_steps()
+            self.apply_fractional_steps()
 
             #==========================================
             # Centroid Values of variables should be ok,
@@ -1839,6 +1838,13 @@ class Generic_Domain:
     def compute_fluxes(self):
         msg = 'Method compute_fluxes must be overridden by Domain subclass'
         raise Exception, msg
+
+
+    ##
+    # @brief apply_fractional_step.
+    # Method should be overwritten in subclass, here it does nothing
+    def apply_fractional_steps(self):
+        pass
 
     ##
     # @brief

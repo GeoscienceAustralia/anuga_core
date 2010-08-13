@@ -165,10 +165,12 @@ class Domain(Generic_Domain):
         self.forcing_terms.append(manning_friction_implicit)
         self.forcing_terms.append(gravity)
 
+
+        self.fractional_step_operators = []
+
         # Stored output
         self.store = True
         self.set_store_vertices_uniquely(False)
-
         self.quantities_to_be_stored = {'elevation': 1, 
                                         'stage': 2, 
                                         'xmomentum': 2, 
@@ -528,6 +530,12 @@ class Domain(Generic_Domain):
         """Call correct module function
             (either from this module or C-extension)"""
         compute_fluxes(self)
+
+
+    def apply_fractional_steps(self):
+        """Loop throughand apply all extra fractional steps"""
+        for operator in self.fractional_step_operators:
+            operator.apply()
 
     def distribute_to_vertices_and_edges(self):
         """ Call correct module function """
@@ -1131,6 +1139,7 @@ def gravity(domain):
     stage = domain.quantities['stage']
     elevation = domain.quantities['elevation']
 
+    #FIXME SR Should avoid allocating memory!
     height = stage.centroid_values - elevation.centroid_values
     elevation = elevation.vertex_values
 
