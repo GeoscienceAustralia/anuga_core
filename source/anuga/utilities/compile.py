@@ -421,11 +421,11 @@ if __name__ == '__main__':
       root, ext = splitext(filename)
 
       if ext == '.c':
-          for x in ['.dll', '.so']:
-              try:
-                  os.remove(root + x)
-              except:
-                  pass
+          #for x in ['.dll', '.so']:
+          #    try:
+          #        os.remove(root + x)
+          #    except:
+          #        pass
 
           print separation_line
           print 'Trying to compile c-extension %s in %s'\
