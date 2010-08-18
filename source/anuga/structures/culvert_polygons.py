@@ -10,7 +10,8 @@ import numpy as num
 
 def create_culvert_polygons(end_point0,
                             end_point1, 
-                            width, height=None,
+                            width, 
+                            height=None,
                             enquiry_gap_factor=0.2,
                             number_of_barrels=1):
     """Create polygons at the end of a culvert inlet and outlet.
@@ -55,25 +56,25 @@ def create_culvert_polygons(end_point0,
     dx = x1-x0
     dy = y1-y0
 
-    vector = num.array([dx, dy])
-    length = sqrt(num.sum(vector**2))
+    dxdy = num.array([dx, dy])
+    length = sqrt(num.sum(dxdy**2))
 
     # Adjust polygon width to number of barrels in this culvert
     width *= number_of_barrels
     
     
     # Unit direction vector and normal 
-    vector /= length                 # Unit vector in culvert direction
+    dxdy /= length                 # Unit vector in culvert direction
     normal = num.array([-dy, dx])/length # Normal vector
     
-    culvert_polygons['vector'] = vector
+    culvert_polygons['vector'] = dxdy
     culvert_polygons['length'] = length
     culvert_polygons['normal'] = normal    
 
     # Short hands
     w = 0.5*width*normal # Perpendicular vector of 1/2 width 
-    h = height*vector    # Vector of length=height in the
-                         # direction of the culvert
+    h = height*dxdy # Vector of length=height in the
+                    # direction of the culvert
     gap = (1 + enquiry_gap_factor)*h 
                          
 
@@ -95,8 +96,7 @@ def create_culvert_polygons(end_point0,
     culvert_polygons['enquiry_point1'] = end_point1 + gap  
 
     # Check that enquiry polygons are outside exchange polygons
-    for key1 in ['exchange_polygon0',
-                 'exchange_polygon1']:
+    for key1 in ['exchange_polygon0', 'exchange_polygon1']:
         polygon = culvert_polygons[key1]
         area = polygon_area(polygon)
         
@@ -107,7 +107,6 @@ def create_culvert_polygons(end_point0,
         for key2 in ['enquiry_point0', 'enquiry_point1']:
             point = culvert_polygons[key2]
             msg = 'Enquiry point falls inside an enquiry point.'
-            msg += 'Email Ole.Nielsen@ga.gov.au'
             assert not inside_polygon(point, polygon), msg
 
     # Return results
