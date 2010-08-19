@@ -21,95 +21,6 @@ from math import sqrt
 class Below_interval(Exception): pass 
 class Above_interval(Exception): pass
 
-# FIXME(Ole): Take a good hard look at logging here
-
-
-# FIXME(Ole): Write in C and reuse this function by similar code 
-# in interpolate.py
-def interpolate_linearly(x, xvec, yvec):
-
-    msg = 'Input to function interpolate_linearly could not be converted '
-    msg += 'to numerical scalar: x = %s' % str(x)
-    try:
-        x = float(x)
-    except:
-        raise Exception, msg
-
-
-    # Check bounds
-    if x < xvec[0]: 
-        msg = 'Value provided = %.2f, interpolation minimum = %.2f.'\
-            % (x, xvec[0])
-        raise Below_interval, msg
-        
-    if x > xvec[-1]: 
-        msg = 'Value provided = %.2f, interpolation maximum = %.2f.'\
-            %(x, xvec[-1])
-        raise Above_interval, msg        
-        
-        
-    # Find appropriate slot within bounds            
-    i = 0
-    while x > xvec[i]: i += 1
-
-    
-    x0 = xvec[i-1]
-    x1 = xvec[i]            
-    alpha = (x - x0)/(x1 - x0) 
-            
-    y0 = yvec[i-1]
-    y1 = yvec[i]                        
-    y = alpha*y1 + (1-alpha)*y0
-    
-    return y 
-            
-
-            
-def read_culvert_description(culvert_description_filename):            
-    
-    # Read description file
-    fid = open(culvert_description_filename)
-    
-    read_rating_curve_data = False        
-    rating_curve = []
-    for i, line in enumerate(fid.readlines()):
-        
-        if read_rating_curve_data is True:
-            fields = line.split(',')
-            head_difference = float(fields[0].strip())
-            flow_rate = float(fields[1].strip())                
-            barrel_velocity = float(fields[2].strip())
-            
-            rating_curve.append([head_difference, flow_rate, barrel_velocity]) 
-        
-        if i == 0:
-            # Header
-            continue
-        if i == 1:
-            # Metadata
-            fields = line.split(',')
-            label=fields[0].strip()
-            type=fields[1].strip().lower()
-            assert type in ['box', 'pipe']
-            
-            width=float(fields[2].strip())
-            height=float(fields[3].strip())
-            length=float(fields[4].strip())
-            number_of_barrels=int(fields[5].strip())
-            #fields[6] refers to losses
-            description=fields[7].strip()                
-                
-        if line.strip() == '': continue # Skip blanks
-
-        if line.startswith('Rating'):
-            read_rating_curve_data = True
-            # Flow data follows
-                
-    fid.close()
-    
-    return label, type, width, height, length, number_of_barrels, description, rating_curve
-    
-
     
 
 class Generic_box_culvert:
@@ -143,8 +54,8 @@ class Generic_box_culvert:
         self.domain = domain 
         self.end_points= [end_point0, end_point1]
         self.enquiry_gap_factor=enquiry_gap_factor
+
         self.verbose=verbose
-        
         self.filename = None
        
 
@@ -155,79 +66,21 @@ class Generic_box_culvert:
 
 
         # Establish initial values at each enquiry point
+        self.enquiry_quantity_values = []
         dq = domain.quantities 
-        for i, opening in enumerate(self.openings):
+        for i in [0,1]:
             idx = self.enquiry_indices[i]
             elevation = dq['elevation'].get_values(location='centroids',
                                                    indices=[idx])[0]
             stage = dq['stage'].get_values(location='centroids',
                                            indices=[idx])[0]
-            opening.elevation = elevation
-            opening.stage = stage
-            opening.depth = stage-elevation
-
+            depth = stage-elevation
             
-                            
-        # Determine initial pipe direction.
-        # This may change dynamically based on the total energy difference     
-        # Consequently, this may be superfluous
-        delta_z = self.openings[0].elevation - self.openings[1].elevation
-        if delta_z > 0.0:
-            self.inlet = self.openings[0]
-            self.outlet = self.openings[1]
-        else:                
-            self.outlet = self.openings[0]
-            self.inlet = self.openings[1]        
+            quantity_values = {'stage' : stage, 'elevation' : elevation, 'depth' : depth }
+            self.enquiry_quantity_values.append(quantity_values)
         
         
-        # Store basic geometry 
-        self.end_points = [end_point0, end_point1]
-        self.vector = P['vector']
-        self.length = P['length']; assert self.length > 0.0
-        if culvert_description_filename is not None:
-            if not num.allclose(self.length, length, rtol=1.0e-2, atol=1.0e-2):
-                msg = 'WARNING: barrel length specified in "%s" (%.2f m)'\
-                    % (culvert_description_filename, 
-                       length)
-                msg += ' does not match distance between specified'
-                msg += ' end points (%.2f m)' %self.length
-                log.critical(msg)
-        
-        self.verbose = verbose
-
-        # Circular index for flow averaging in culvert
-        self.N = N = number_of_smoothing_steps
-        self.Q_list = [0]*N
-        self.i = i
-        
-        # For use with update_interval                        
-        self.last_update = 0.0
-        self.update_interval = update_interval
-        
-        # Create objects to update momentum (a bit crude at this stage). This is used with the momentum jet.
-        xmom0 = General_forcing(domain, 'xmomentum',
-                                polygon=P['exchange_polygon0'])
-
-        xmom1 = General_forcing(domain, 'xmomentum',
-                                polygon=P['exchange_polygon1'])
-
-        ymom0 = General_forcing(domain, 'ymomentum',
-                                polygon=P['exchange_polygon0'])
-
-        ymom1 = General_forcing(domain, 'ymomentum',
-                                polygon=P['exchange_polygon1'])
-
-        self.opening_momentum = [[xmom0, ymom0], [xmom1, ymom1]]
-
-
-
-        # Print some diagnostics to log if requested
-        if self.log_filename is not None:
-            s = 'Culvert Effective Length = %.2f m' %(self.length)
-            log_to_file(self.log_filename, s)
-   
-            s = 'Culvert Direction is %s\n' %str(self.vector)
-            log_to_file(self.log_filename, s)        
+        assert self.culvert_length > 0.0
 
 
     def set_store_hydrograph_discharge(self,filename=None):
@@ -254,8 +107,8 @@ class Generic_box_culvert:
         """
 
         # Calculate geometry
-        x0, y0 = self.end_point0
-        x1, y1 = self.end_point1
+        x0, y0 = self.end_points[0]
+        x1, y1 = self.end_points[1]
 
         dx = x1-x0
         dy = y1-y0
@@ -276,48 +129,35 @@ class Generic_box_culvert:
 
 
         self.exchange_polygons = []
+        self.enquiry_points = []
 
-        # Build exchange polygon and enquiry point for opening 0
-        p0 = self.end_point0 + w
-        p1 = self.end_point0 - w
-        p2 = p1 - h
-        p3 = p0 - h
-        self.exchange_polygons.append(num.array([p0,p1,p2,p3]))
-        self.enquiry_points= end_point0 - gap
+        # Build exchange polygon and enquiry points 0 and 1
+        for i in [0,1]:
+            p0 = self.end_points[i] + w
+            p1 = self.end_point[i] - w
+            p2 = p1 - h
+            p3 = p0 - h
+            self.exchange_polygons.append(num.array([p0,p1,p2,p3]))
+            self.enquiry_points.append(end_point0 - gap)
 
+        self.polygon_areas = []
 
-        # Build exchange polygon and enquiry point for opening 1
-        p0 = end_point1 + w
-        p1 = end_point1 - w
-        p2 = p1 + h
-        p3 = p0 + h
-        self.exchange_polygon1 = num.array([p0,p1,p2,p3])
-        self.enquiry_point1 = end_point1 + gap
-
-        # Check that enquiry point0 is outside exchange polygon0
-        polygon = self.exchange_polygon0
-        area = polygon_area(polygon)
+        # Check that enquiry points are outside exchange polygons
+        for i in [0,1]:
+            polygon = self.exchange_polygons[i]
+            # FIXME(SR) should use area of triangles associated with polygon
+            area = polygon_area(polygon)
+            self.polygon_areas.append(area)
 
             msg = 'Polygon %s ' %(polygon)
             msg += ' has area = %f' % area
             assert area > 0.0, msg
 
-            for key2 in ['enquiry_point0', 'enquiry_point1']:
-                point = culvert_polygons[key2]
-                msg = 'Enquiry point falls inside an enquiry point.'
+            for j in [0,1]:
+                point = self.enquiry_points[j]
+                msg = 'Enquiry point falls inside a culvert polygon.'
 
                 assert not inside_polygon(point, polygon), msg
-
-
-
-        for key1 in ['exchange_polygon0',
-                     'exchange_polygon1']:
-            
-
-        # Return results
-        self.culvert_polygons = culvert_polygons
-
-
 
         
     def __call__(self, domain):
@@ -792,6 +632,91 @@ class Generic_box_culvert:
         # Store value of time
         self.last_time = time
 
+
+# FIXME(Ole): Write in C and reuse this function by similar code
+# in interpolate.py
+def interpolate_linearly(x, xvec, yvec):
+
+    msg = 'Input to function interpolate_linearly could not be converted '
+    msg += 'to numerical scalar: x = %s' % str(x)
+    try:
+        x = float(x)
+    except:
+        raise Exception, msg
+
+
+    # Check bounds
+    if x < xvec[0]:
+        msg = 'Value provided = %.2f, interpolation minimum = %.2f.'\
+            % (x, xvec[0])
+        raise Below_interval, msg
+
+    if x > xvec[-1]:
+        msg = 'Value provided = %.2f, interpolation maximum = %.2f.'\
+            %(x, xvec[-1])
+        raise Above_interval, msg
+
+
+    # Find appropriate slot within bounds
+    i = 0
+    while x > xvec[i]: i += 1
+
+
+    x0 = xvec[i-1]
+    x1 = xvec[i]
+    alpha = (x - x0)/(x1 - x0)
+
+    y0 = yvec[i-1]
+    y1 = yvec[i]
+    y = alpha*y1 + (1-alpha)*y0
+
+    return y
+
+
+
+def read_culvert_description(culvert_description_filename):
+
+    # Read description file
+    fid = open(culvert_description_filename)
+
+    read_rating_curve_data = False
+    rating_curve = []
+    for i, line in enumerate(fid.readlines()):
+
+        if read_rating_curve_data is True:
+            fields = line.split(',')
+            head_difference = float(fields[0].strip())
+            flow_rate = float(fields[1].strip())
+            barrel_velocity = float(fields[2].strip())
+
+            rating_curve.append([head_difference, flow_rate, barrel_velocity])
+
+        if i == 0:
+            # Header
+            continue
+        if i == 1:
+            # Metadata
+            fields = line.split(',')
+            label=fields[0].strip()
+            type=fields[1].strip().lower()
+            assert type in ['box', 'pipe']
+
+            width=float(fields[2].strip())
+            height=float(fields[3].strip())
+            length=float(fields[4].strip())
+            number_of_barrels=int(fields[5].strip())
+            #fields[6] refers to losses
+            description=fields[7].strip()
+
+        if line.strip() == '': continue # Skip blanks
+
+        if line.startswith('Rating'):
+            read_rating_curve_data = True
+            # Flow data follows
+
+    fid.close()
+
+    return label, type, width, height, length, number_of_barrels, description, rating_curve
 
             
 
