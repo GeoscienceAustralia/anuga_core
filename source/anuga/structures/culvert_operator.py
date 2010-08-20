@@ -1,7 +1,6 @@
 import sys
 
 from anuga.shallow_water.forcing import Inflow, General_forcing
-from anuga.structures.culvert_polygons import create_culvert_polygons
 from anuga.utilities.system_tools import log_to_file
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon
 from anuga.geometry.polygon import plot_polygons, polygon_area
@@ -16,7 +15,6 @@ import anuga.utilities.log as log
 
 import numpy as num
 from math import sqrt
-from math import sqrt
 
 class Below_interval(Exception): pass 
 class Above_interval(Exception): pass
@@ -24,7 +22,7 @@ class Above_interval(Exception): pass
     
 
 class Generic_box_culvert:
-    """Culvert flow - transfer water from one rectngular box to another.
+    """Culvert flow - transfer water from one rectangular box to another.
     Sets up the geometry of problem
     
     This is the base class for culverts. Inherit from this class (and overwrite
@@ -45,45 +43,40 @@ class Generic_box_culvert:
         
         # Input check
         
+        self.domain = domain
+
+        self.end_points= [end_point0, end_point1]
+        self.enquiry_gap_factor = enquiry_gap_factor
+        
         if height is None:
             height = width
 
-        self.height = height
         self.width = width
+        self.height = height
         
-        self.domain = domain 
-        self.end_points= [end_point0, end_point1]
-        self.enquiry_gap_factor=enquiry_gap_factor
-
         self.verbose=verbose
         self.filename = None
        
-
         # Create the fundamental culvert polygons from polygon
         self.create_culvert_polygons()
         self.compute_enquiry_indices()
         self.check_culvert_inside_domain()
 
-
         # Establish initial values at each enquiry point
         self.enquiry_quantity_values = []
         dq = domain.quantities 
-        for i in [0,1]:
+        for i in [0, 1]:
             idx = self.enquiry_indices[i]
             elevation = dq['elevation'].get_values(location='centroids',
                                                    indices=[idx])[0]
             stage = dq['stage'].get_values(location='centroids',
                                            indices=[idx])[0]
-            depth = stage-elevation
+            depth = stage - elevation
             
             quantity_values = {'stage' : stage, 'elevation' : elevation, 'depth' : depth }
             self.enquiry_quantity_values.append(quantity_values)
-        
-        
-        assert self.culvert_length > 0.0
 
-
-    def set_store_hydrograph_discharge(self,filename=None):
+    def set_store_hydrograph_discharge(self, filename=None):
 
         if filename is None:
             self.filename = 'culvert_discharge_hydrograph'
@@ -97,9 +90,6 @@ class Generic_box_culvert:
         fid.write('time, discharge\n')
         fid.close()
 
-
-
-
     def create_culvert_polygons(self):
         """Create polygons at the end of a culvert inlet and outlet.
         At either end two polygons will be created; one for the actual flow to pass through and one a little further away
@@ -110,35 +100,34 @@ class Generic_box_culvert:
         x0, y0 = self.end_points[0]
         x1, y1 = self.end_points[1]
 
-        dx = x1-x0
-        dy = y1-y0
+        dx = x1 - x0
+        dy = y1 - y0
 
         self.culvert_vector = num.array([dx, dy])
         self.culvert_length = sqrt(num.sum(self.culvert_vector**2))
-
+        assert self.culvert_length > 0.0, 'The length of culvert is less than 0'
 
         # Unit direction vector and normal
         self.culvert_vector /= self.culvert_length                      # Unit vector in culvert direction
         self.culvert_normal = num.array([-dy, dx])/self.culvert_length  # Normal vector
 
         # Short hands
-        w = 0.5*width*normal # Perpendicular vector of 1/2 width
-        h = height*vector    # Vector of length=height in the
+        w = 0.5*self.width*self.culvert_normal # Perpendicular vector of 1/2 width
+        h = self.height*self.culvert_vector    # Vector of length=height in the
                              # direction of the culvert
-        gap = (1 + enquiry_gap_factor)*h
-
+        gap = (1 + self.enquiry_gap_factor)*h
 
         self.exchange_polygons = []
         self.enquiry_points = []
 
         # Build exchange polygon and enquiry points 0 and 1
-        for i in [0,1]:
+        for i in [0, 1]:
             p0 = self.end_points[i] + w
-            p1 = self.end_point[i] - w
+            p1 = self.end_points[i] - w
             p2 = p1 - h
             p3 = p0 - h
-            self.exchange_polygons.append(num.array([p0,p1,p2,p3]))
-            self.enquiry_points.append(end_point0 - gap)
+            self.exchange_polygons.append(num.array([p0, p1, p2, p3]))
+            self.enquiry_points.append(self.end_points[i] + (2*i-1)*gap)
 
         self.polygon_areas = []
 
@@ -238,15 +227,12 @@ class Generic_box_culvert:
         """Check that all polygons and enquiry points lie within the mesh.
         """
         bounding_polygon = self.domain.get_boundary_polygon()
-        P = self.culvert_polygons
-        for key in P.keys():
-            if key in ['exchange_polygon0', 
-                       'exchange_polygon1']:
-                for point in list(P[key]) + self.enquiry_points:
-                    msg = 'Point %s in polygon %s for culvert %s did not'\
-                        %(str(point), key, self.label)
-                    msg += 'fall within the domain boundary.'
-                    assert is_inside_polygon(point, bounding_polygon), msg
+        for i in [0, 1]:
+            for point in list(self.exchange_polygons[i]) + self.enquiry_points:
+                msg = 'Point %s did not '\
+                    %(str(point))
+                msg += 'fall within the domain boundary.'
+                assert is_inside_polygon(point, bounding_polygon), msg
             
 
     def adjust_flow_for_available_water_at_inlet(self, Q, delta_t):
@@ -718,6 +704,3 @@ def read_culvert_description(culvert_description_filename):
 
     return label, type, width, height, length, number_of_barrels, description, rating_curve
 
-            
-
-Culvert_flow = Culvert_flow_general        
