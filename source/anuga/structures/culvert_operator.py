@@ -45,6 +45,8 @@ class Generic_box_culvert:
         
         self.domain = domain
 
+        self.domain.set_fractional_step_operator(self)
+
         self.end_points= [end_point0, end_point1]
         self.enquiry_gap_factor = enquiry_gap_factor
         
@@ -61,20 +63,136 @@ class Generic_box_culvert:
         self.create_culvert_polygons()
         self.compute_enquiry_indices()
         self.check_culvert_inside_domain()
+        self.compute_exchange_triangle_indices()
 
-        # Establish initial values at each enquiry point
-        self.enquiry_quantity_values = []
-        dq = domain.quantities 
-        for i in [0, 1]:
-            idx = self.enquiry_indices[i]
-            elevation = dq['elevation'].get_values(location='centroids',
-                                                   indices=[idx])[0]
-            stage = dq['stage'].get_values(location='centroids',
-                                           indices=[idx])[0]
-            depth = stage - elevation
+
+        #self.print_stats()
+
+
+
+    def __call__(self):
+
+
+        # Time stuff
+        time     = self.domain.get_time()
+        timestep = self.domain.get_timestep()
+
+
+        inlet_indices  = self.exchange_triangle_indices[0]
+        outlet_indices = self.exchange_triangle_indices[1]
+
+        areas      = self.domain.areas
+        stage     = self.domain.quantities['stage'].centroid_values
+        elevation = self.domain.quantities['elevation'].centroid_values
+        
+        xmom = self.domain.quantities['xmomentum'].centroid_values
+        ymom = self.domain.quantities['ymomentum'].centroid_values
+
+        # Inlet averages
+        inlet_heights  = stage[inlet_indices]-elevation[inlet_indices]
+        inlet_areas = areas[inlet_indices]
+
+        inlet_water = num.sum(inlet_heights*inlet_areas)
+
+        average_inlet_water = inlet_water/self.exchange_areas[0]
+
+        # Outlet averages
+        outlet_heights  = stage[outlet_indices]-elevation[outlet_indices]
+        outlet_areas = areas[outlet_indices]
+
+        outlet_water = num.sum(outlet_heights*outlet_areas)
+
+        average_outlet_water = outlet_water/self.exchange_areas[1]
+
+
+        # Transfer
+        transfer_water = timestep*inlet_water
+
+        stage[inlet_indices] = elevation[inlet_indices] + average_inlet_water - transfer_water
+        xmom[inlet_indices] = 0.0
+        ymom[inlet_indices] = 0.0
+
+
+        stage[outlet_indices] = elevation[outlet_indices] + average_outlet_water + transfer_water
+        xmom[outlet_indices] = 0.0
+        ymom[outlet_indices] = 0.0
+
+
+    def print_stats(self):
+
+        print '====================================='
+        print 'Generic Culvert Operator'
+        print '====================================='
+        print "enquiry_gap_factor"
+        print self.enquiry_gap_factor
+        
+        for i in [0,1]:
+            print '-------------------------------------'
+            print 'exchange_region %i' % i
+            print '-------------------------------------'
+
+            print 'exchange triangle indices and centres'
+            print self.exchange_triangle_indices[i]
+            print self.domain.get_centroid_coordinates()[self.exchange_triangle_indices[i]]
+        
+            print 'end_point'
+            print self.end_points[i]
+
+
+            print 'exchange_polygon'
+            print self.exchange_polygons[i]
+
+            print 'enquiry_point'
+            print self.enquiry_points[i]
+
+        print '====================================='
+
+
+ 
+
+
+    def compute_exchange_triangle_indices(self):
+
+        # Get boundary (in absolute coordinates)
+        domain = self.domain
+        bounding_polygon = domain.get_boundary_polygon()
+        centroids = domain.get_centroid_coordinates(absolute=True)
+        self.exchange_triangle_indices = []
+        self.exchange_areas = []
+
+        for i in [0,1]:
+            exchange_polygon = self.exchange_polygons[i]
+
+            # Check that polygon lies within the mesh.
+            for point in exchange_polygon:
+                msg = 'Point %s in polygon for forcing term' % str(point)
+                msg += ' did not fall within the domain boundary.'
+                assert is_inside_polygon(point, bounding_polygon), msg
+
             
-            quantity_values = {'stage' : stage, 'elevation' : elevation, 'depth' : depth }
-            self.enquiry_quantity_values.append(quantity_values)
+            exchange_triangle_indices = inside_polygon(centroids, exchange_polygon)
+
+            if len(exchange_triangle_indices) == 0:
+                region = 'polygon=%s' % (exchange_polygon)
+                msg = 'No triangles have been identified in '
+                msg += 'specified region: %s' % region
+                raise Exception, msg
+
+            # Compute exchange area as the sum of areas of triangles identified
+            # by polygon
+            exchange_area = 0.0
+            for j in exchange_triangle_indices:
+                exchange_area += domain.areas[j]
+
+
+            msg = 'Exchange area %f in culvert' % i
+            msg += ' has area = %f' % exchange_area
+            assert exchange_area > 0.0
+
+            self.exchange_triangle_indices.append(exchange_triangle_indices)
+            self.exchange_areas.append(exchange_area)
+
+
 
     def set_store_hydrograph_discharge(self, filename=None):
 
@@ -122,21 +240,25 @@ class Generic_box_culvert:
 
         # Build exchange polygon and enquiry points 0 and 1
         for i in [0, 1]:
+            i0 = (2*i-1)
             p0 = self.end_points[i] + w
             p1 = self.end_points[i] - w
-            p2 = p1 - h
-            p3 = p0 - h
+            p2 = p1 + i0*h
+            p3 = p0 + i0*h
             self.exchange_polygons.append(num.array([p0, p1, p2, p3]))
-            self.enquiry_points.append(self.end_points[i] + (2*i-1)*gap)
+            self.enquiry_points.append(self.end_points[i] + i0*gap)
 
-        self.polygon_areas = []
+
+
 
         # Check that enquiry points are outside exchange polygons
         for i in [0,1]:
             polygon = self.exchange_polygons[i]
-            # FIXME(SR) should use area of triangles associated with polygon
+            # FIXME (SR) Probably should calculate the area of all the triangles
+            # associated with this polygon, as there is likely to be some
+            # inconsistency between triangles and ploygon
             area = polygon_area(polygon)
-            self.polygon_areas.append(area)
+            
 
             msg = 'Polygon %s ' %(polygon)
             msg += ' has area = %f' % area
@@ -149,40 +271,6 @@ class Generic_box_culvert:
                 assert not inside_polygon(point, polygon), msg
 
         
-    def __call__(self, domain):
-
-        # Time stuff
-        time = domain.get_time()
-        
-        
-        update = False
-        if self.update_interval is None:
-            # Use next timestep as has been computed in domain.py        
-            delta_t = domain.timestep            
-            update = True
-        else:    
-            # Use update interval 
-            delta_t = self.update_interval            
-            if time - self.last_update > self.update_interval or time == 0.0:
-                update = True
-            
-        if self.log_filename is not None:        
-            s = '\nTime = %.2f, delta_t = %f' %(time, delta_t)
-            log_to_file(self.log_filename, s)
-                
-                                
-        if update is True:
-            self.compute_rates(delta_t)
-            
-    
-        # Execute flow term for each opening
-        # This is where Inflow objects are evaluated using the last rate 
-        # that has been calculated
-        # 
-        # This will take place at every internal timestep and update the domain
-        for opening in self.openings:
-            opening(domain)
-            
 
 
     def compute_enquiry_indices(self):

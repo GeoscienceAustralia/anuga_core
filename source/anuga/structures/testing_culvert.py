@@ -32,7 +32,7 @@ path = get_pathname_from_package('anuga.culvert_flows')
 length = 40.
 width = 5.
 
-dx = dy = 1           # Resolution: Length of subdivisions on both axes
+dx = dy = 0.5          # Resolution: Length of subdivisions on both axes
 
 points, vertices, boundary = rectangular_cross(int(length/dx),
                                                int(width/dy),
@@ -84,22 +84,33 @@ domain.set_quantity('stage',
                     expression='elevation')   # Dry initial condition
 
 filename=os.path.join(path, 'example_rating_curve.csv')
-culvert = Generic_box_culvert(domain,
+culvert1 = Generic_box_culvert(domain,
                               end_point0=[9.0, 2.5], 
                               end_point1=[13.0, 2.5],
                               width=1.00,
                               verbose=False)
 
-#domain.forcing_terms.append(culvert)
 
+#culvert2 = Generic_box_culvert(domain,
+#                              end_point0=[19.0, 2.5],
+#                              end_point1=[25.0, 2.5],
+#                              width=1.00,
+#                              verbose=False)
+
+
+
+
+#print domain.fractional_step_operators
+
+#domain.apply_fractional_steps()
 
 ##-----------------------------------------------------------------------
 ## Setup boundary conditions
 ##-----------------------------------------------------------------------
 
 ## Inflow based on Flow Depth and Approaching Momentum
-#Bi = anuga.Dirichlet_boundary([0.0, 0.0, 0.0])
-#Br = anuga.Reflective_boundary(domain)              # Solid reflective wall
+Bi = anuga.Dirichlet_boundary([1.0, 0.0, 0.0])
+Br = anuga.Reflective_boundary(domain)              # Solid reflective wall
 #Bo = anuga.Dirichlet_boundary([-5, 0, 0])           # Outflow
 
 ## Upstream and downstream conditions that will exceed the rating curve
@@ -110,6 +121,7 @@ culvert = Generic_box_culvert(domain,
 #Btds = anuga.Time_boundary(domain, \
             #lambda t: [-5*(num.cos(2*pi*(t-4)/20)), 0.0, 0.0])
 #domain.set_boundary({'left': Btus, 'right': Btds, 'top': Br, 'bottom': Br})
+domain.set_boundary({'left': Bi, 'right': Br, 'top': Br, 'bottom': Br})
 
 
 ##-----------------------------------------------------------------------
@@ -118,13 +130,14 @@ culvert = Generic_box_culvert(domain,
 
 #min_delta_w = sys.maxint 
 #max_delta_w = -min_delta_w
-#for t in domain.evolve(yieldstep = 1, finaltime = 25):
+for t in domain.evolve(yieldstep = 1.0, finaltime = 300):
+    domain.write_time()
     #delta_w = culvert.inlet.stage - culvert.outlet.stage
     
     #if delta_w > max_delta_w: max_delta_w = delta_w
     #if delta_w < min_delta_w: min_delta_w = delta_w            
     
-    #pass
+    pass
 
 ## Check that extreme values in rating curve have been exceeded
 ## so that we know that condition has been exercised
