@@ -355,7 +355,6 @@ class General_forcing:
 
         if self.polygon is not None:
             # Inlet is polygon
-            inlet_region = 'polygon=%s' % (self.polygon) 
             self.exchange_indices = inside_polygon(points, self.polygon)
 
         if self.exchange_indices is None:

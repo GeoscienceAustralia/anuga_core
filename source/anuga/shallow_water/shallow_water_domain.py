@@ -532,11 +532,6 @@ class Domain(Generic_Domain):
         compute_fluxes(self)
 
 
-    def apply_fractional_steps(self):
-        """Loop throughand apply all extra fractional steps"""
-        for operator in self.fractional_step_operators:
-            operator.apply()
-
     def distribute_to_vertices_and_edges(self):
         """ Call correct module function """
         if self.use_edge_limiter:

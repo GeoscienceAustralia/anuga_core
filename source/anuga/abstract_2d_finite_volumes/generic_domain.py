@@ -170,8 +170,11 @@ class Generic_Domain:
         for name in self.other_quantities:
             self.quantities[name] = Quantity(self)
 
-        # Create an empty list for explicit forcing terms
+        # Create an empty list for forcing terms
         self.forcing_terms = []
+
+        # Create an empty list for fractional step operators
+        self.fractional_step_operators = []
 
         # Setup the ghost cell communication
         if full_send_dict is None:
@@ -496,6 +499,15 @@ class Generic_Domain:
         """Get the absolute model time (seconds)."""
 
         return self.time + self.starttime
+
+
+    ##
+    # @brief Get current timestep.
+    # @return The curent timestep (seconds).
+    def get_timestep(self):
+        """et current timestep (seconds)."""
+
+        return self.timestep
 
     ##
     # @brief Set the default beta for limiting.
@@ -1841,10 +1853,19 @@ class Generic_Domain:
 
 
     ##
-    # @brief apply_fractional_step.
-    # Method should be overwritten in subclass, here it does nothing
+    # @brief apply_fractional_steps.
+    # Goes through all fractional step operators and updates centroid values of
+    # conserved quantities over a timestep 
     def apply_fractional_steps(self):
-        pass
+        for operator in self.fractional_step_operators:
+            operator()
+
+    ##
+    # @brief set_fractional_step_operator.
+    # Add a fractional step operator to list of operators
+    def set_fractional_step_operator(self,operator):
+
+        self.fractional_step_operators.append(operator)
 
     ##
     # @brief
