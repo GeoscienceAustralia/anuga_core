@@ -130,7 +130,7 @@ domain.set_boundary({'left': Bi, 'right': Br, 'top': Br, 'bottom': Br})
 
 #min_delta_w = sys.maxint 
 #max_delta_w = -min_delta_w
-for t in domain.evolve(yieldstep = 1.0, finaltime = 300):
+for t in domain.evolve(yieldstep = 1.0, finaltime = 100):
     domain.write_time()
     #delta_w = culvert.inlet.stage - culvert.outlet.stage
     

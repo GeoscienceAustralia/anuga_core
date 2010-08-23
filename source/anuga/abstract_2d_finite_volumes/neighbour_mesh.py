@@ -883,7 +883,9 @@ class Mesh(General_mesh):
             if is_inside_polygon(point, poly, closed=True):
                 return i
 
-        return
+        msg = 'Point %s not found within a triangle' %str(point)
+        raise Exception, msg
+
 
 
 

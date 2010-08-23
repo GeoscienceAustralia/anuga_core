@@ -19,7 +19,76 @@ from math import sqrt
 class Below_interval(Exception): pass 
 class Above_interval(Exception): pass
 
-    
+
+
+class Inlet:
+    """Contains information associated with each inlet
+    """
+
+    def __init__(self,domain,polygon,enquiry_point,inlet_vector):
+
+        self.domain = domain
+        self.domain_bounding_polygon = self.domain.get_boundary_polygon()
+        self.polygon = polygon
+        self.enquiry_point = enquiry_point
+        self.inlet_vector = inlet_vector
+
+        # FIXME (SR) Using get_triangle_containing_point which needs to be sped up
+        self.enquiry_index = self.domain.get_triangle_containing_point(self.enquiry_point)
+
+        self.compute_inlet_triangle_indices()
+
+
+    def compute_inlet_averages(self):
+
+
+
+        self.cell_indices = self.exchange_triangle_indices[0]
+        self.areas    = areas[cell_indices]
+
+
+        # Inlet Averages
+        self.heights            = stage[cell_indices]-elevation[cell_indices]
+        self.total_water_volume = num.sum(self.heights*self.areas)
+        self.average_height     = self.total_water_volume/self.total_inlet_area
+
+
+
+
+    def compute_inlet_triangle_indices(self):
+
+        # Get boundary (in absolute coordinates)
+        bounding_polygon = self.domain_bounding_polygon
+        centroids = self.domain.get_centroid_coordinates(absolute=True)
+
+        inlet_polygon = self.polygon
+
+        # Check that polygon lies within the mesh.
+        for point in inlet_polygon:
+                msg = 'Point %s in polygon for forcing term' % str(point)
+                msg += ' did not fall within the domain boundary.'
+                assert is_inside_polygon(point, bounding_polygon), msg
+
+
+        self.triangle_indices = inside_polygon(centroids, inlet_polygon)
+
+        if len(self.triangle_indices) == 0:
+            region = 'Inlet polygon=%s' % (inlet_polygon)
+            msg = 'No triangles have been identified in '
+            msg += 'specified region: %s' % region
+            raise Exception, msg
+
+        # Compute exchange area as the sum of areas of triangles identified
+        # by polygon
+        self.area = 0.0
+        for j in self.triangle_indices:
+            self.area += self.domain.areas[j]
+
+
+        msg = 'Inlet exchange area has area = %f' % self.area
+        assert self.area > 0.0
+
+
 
 class Generic_box_culvert:
     """Culvert flow - transfer water from one rectangular box to another.
@@ -59,14 +128,33 @@ class Generic_box_culvert:
         self.verbose=verbose
         self.filename = None
        
-        # Create the fundamental culvert polygons from polygon
+        # Create the fundamental culvert polygons and create inlet objects
         self.create_culvert_polygons()
-        self.compute_enquiry_indices()
-        self.check_culvert_inside_domain()
-        self.compute_exchange_triangle_indices()
+
+        #FIXME (SR) Put this into a foe loop to deal with more inlets
+        self.inlets = []
+        polygon0 = self.exchange_polygons[0]
+        enquiry_pt0 = self.enquiry_points[0]
+        inlet0_vector = self.culvert_vector
+
+        self.inlets.append(Inlet(self.domain,polygon0,enquiry_pt0,inlet0_vector))
+
+        polygon1 = self.exchange_polygons[1]
+        enquiry_pt1 = self.enquiry_points[1]
+        inlet1_vector = - self.culvert_vector
+
+        self.inlets.append(Inlet(self.domain,polygon1,enquiry_pt1, inlet1_vector))
 
 
-        #self.print_stats()
+        # aliases to quantity centroid values and cell areas
+        self.areas      = self.domain.areas
+        self.stage      = self.domain.quantities['stage'].centroid_values
+        self.elevation  = self.domain.quantities['elevation'].centroid_values
+        self.xmom       = self.domain.quantities['xmomentum'].centroid_values
+        self.ymom       = self.domain.quantities['ymomentum'].centroid_values
+
+ 
+        self.print_stats()
 
 
 
@@ -78,44 +166,43 @@ class Generic_box_culvert:
         timestep = self.domain.get_timestep()
 
 
-        inlet_indices  = self.exchange_triangle_indices[0]
-        outlet_indices = self.exchange_triangle_indices[1]
+        inlet0 = self.inlets[0]
+        inlet1 = self.inlets[1]
 
-        areas      = self.domain.areas
-        stage     = self.domain.quantities['stage'].centroid_values
-        elevation = self.domain.quantities['elevation'].centroid_values
-        
-        xmom = self.domain.quantities['xmomentum'].centroid_values
-        ymom = self.domain.quantities['ymomentum'].centroid_values
 
-        # Inlet averages
-        inlet_heights  = stage[inlet_indices]-elevation[inlet_indices]
-        inlet_areas = areas[inlet_indices]
+        # Aliases to cell indices
+        inlet0_indices = inlet0.triangle_indices
+        inlet1_indices = inlet1.triangle_indices
 
-        inlet_water = num.sum(inlet_heights*inlet_areas)
 
-        average_inlet_water = inlet_water/self.exchange_areas[0]
+        # Inlet0 averages
+        inlet0_heights  = self.stage[inlet0_indices]-self.elevation[inlet0_indices]
+        inlet0_areas    = self.areas[inlet0_indices]
 
-        # Outlet averages
-        outlet_heights  = stage[outlet_indices]-elevation[outlet_indices]
-        outlet_areas = areas[outlet_indices]
+        inlet0_water_volume = num.sum(inlet0_heights*inlet0_areas)
 
-        outlet_water = num.sum(outlet_heights*outlet_areas)
+        average_inlet0_height = inlet0_water_volume/inlet0.area
 
-        average_outlet_water = outlet_water/self.exchange_areas[1]
+        # Inlet1 averages
+        inlet1_heights  = self.stage[inlet1_indices]-self.elevation[inlet1_indices]
+        inlet1_areas    = self.areas[inlet1_indices]
+
+        inlet1_water_volume = num.sum(inlet1_heights*inlet1_areas)
+
+        average_inlet1_height = inlet1_water_volume/inlet1.area
 
 
         # Transfer
-        transfer_water = timestep*inlet_water
+        transfer_water = timestep*inlet0_water_volume
 
-        stage[inlet_indices] = elevation[inlet_indices] + average_inlet_water - transfer_water
-        xmom[inlet_indices] = 0.0
-        ymom[inlet_indices] = 0.0
+        self.stage[inlet0_indices] = self.elevation[inlet0_indices] + average_inlet0_height - transfer_water
+        self.xmom[inlet0_indices]  = 0.0
+        self.ymom[inlet0_indices]  = 0.0
 
 
-        stage[outlet_indices] = elevation[outlet_indices] + average_outlet_water + transfer_water
-        xmom[outlet_indices] = 0.0
-        ymom[outlet_indices] = 0.0
+        self.stage[inlet1_indices] = self.elevation[inlet1_indices] + average_inlet1_height + transfer_water
+        self.xmom[inlet1_indices]  = 0.0
+        self.ymom[inlet1_indices]  = 0.0
 
 
     def print_stats(self):
@@ -126,71 +213,26 @@ class Generic_box_culvert:
         print "enquiry_gap_factor"
         print self.enquiry_gap_factor
         
-        for i in [0,1]:
+        for i, inlet in enumerate(self.inlets):
             print '-------------------------------------'
-            print 'exchange_region %i' % i
+            print 'Inlet %i' % i
             print '-------------------------------------'
 
-            print 'exchange triangle indices and centres'
-            print self.exchange_triangle_indices[i]
-            print self.domain.get_centroid_coordinates()[self.exchange_triangle_indices[i]]
+            print 'inlet triangle indices and centres'
+            print inlet.triangle_indices[i]
+            print self.domain.get_centroid_coordinates()[inlet.triangle_indices[i]]
         
-            print 'end_point'
-            print self.end_points[i]
-
-
-            print 'exchange_polygon'
-            print self.exchange_polygons[i]
+            print 'polygon'
+            print inlet.polygon
 
             print 'enquiry_point'
-            print self.enquiry_points[i]
+            print inlet.enquiry_point
 
         print '====================================='
 
 
  
 
-
-    def compute_exchange_triangle_indices(self):
-
-        # Get boundary (in absolute coordinates)
-        domain = self.domain
-        bounding_polygon = domain.get_boundary_polygon()
-        centroids = domain.get_centroid_coordinates(absolute=True)
-        self.exchange_triangle_indices = []
-        self.exchange_areas = []
-
-        for i in [0,1]:
-            exchange_polygon = self.exchange_polygons[i]
-
-            # Check that polygon lies within the mesh.
-            for point in exchange_polygon:
-                msg = 'Point %s in polygon for forcing term' % str(point)
-                msg += ' did not fall within the domain boundary.'
-                assert is_inside_polygon(point, bounding_polygon), msg
-
-            
-            exchange_triangle_indices = inside_polygon(centroids, exchange_polygon)
-
-            if len(exchange_triangle_indices) == 0:
-                region = 'polygon=%s' % (exchange_polygon)
-                msg = 'No triangles have been identified in '
-                msg += 'specified region: %s' % region
-                raise Exception, msg
-
-            # Compute exchange area as the sum of areas of triangles identified
-            # by polygon
-            exchange_area = 0.0
-            for j in exchange_triangle_indices:
-                exchange_area += domain.areas[j]
-
-
-            msg = 'Exchange area %f in culvert' % i
-            msg += ' has area = %f' % exchange_area
-            assert exchange_area > 0.0
-
-            self.exchange_triangle_indices.append(exchange_triangle_indices)
-            self.exchange_areas.append(exchange_area)
 
 
 
@@ -273,54 +315,9 @@ class Generic_box_culvert:
         
 
 
-    def compute_enquiry_indices(self):
-        """Get indices for nearest centroids to self.enquiry_points
-        """
-        
-        domain = self.domain
-        
-        enquiry_indices = []                  
-        for point in self.enquiry_points:
-            # Find nearest centroid 
-            N = len(domain)    
-            points = domain.get_centroid_coordinates(absolute=True)
-
-            # Calculate indices in exchange area for this forcing term
-            
-            triangle_id = min_dist = sys.maxint
-            for k in range(N):
-                x, y = points[k,:] # Centroid
-
-                c = point                                
-                distance = (x-c[0])**2+(y-c[1])**2
-                if distance < min_dist:
-                    min_dist = distance
-                    triangle_id = k
-
-                    
-            if triangle_id < sys.maxint:
-                msg = 'found triangle with centroid (%f, %f)'\
-                    %tuple(points[triangle_id, :])
-                msg += ' for point (%f, %f)' %tuple(point)
-                
-                enquiry_indices.append(triangle_id)
-            else:
-                msg = 'Triangle not found for point (%f, %f)' %point
-                raise Exception, msg
-        
-        self.enquiry_indices = enquiry_indices
 
         
-    def check_culvert_inside_domain(self):
-        """Check that all polygons and enquiry points lie within the mesh.
-        """
-        bounding_polygon = self.domain.get_boundary_polygon()
-        for i in [0, 1]:
-            for point in list(self.exchange_polygons[i]) + self.enquiry_points:
-                msg = 'Point %s did not '\
-                    %(str(point))
-                msg += 'fall within the domain boundary.'
-                assert is_inside_polygon(point, bounding_polygon), msg
+
             
 
     def adjust_flow_for_available_water_at_inlet(self, Q, delta_t):
