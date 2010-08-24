@@ -5,7 +5,6 @@ from anuga.utilities.system_tools import log_to_file
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon
 from anuga.geometry.polygon import plot_polygons, polygon_area
 
-
 from anuga.utilities.numerical_tools import mean
 from anuga.utilities.numerical_tools import ensure_numeric, sign
         
@@ -13,81 +12,13 @@ from anuga.config import g, epsilon
 from anuga.config import minimum_allowed_height, velocity_protection        
 import anuga.utilities.log as log
 
+import Inlet
+
 import numpy as num
-from math import sqrt
+import math
 
 class Below_interval(Exception): pass 
 class Above_interval(Exception): pass
-
-
-
-class Inlet:
-    """Contains information associated with each inlet
-    """
-
-    def __init__(self,domain,polygon,enquiry_point,inlet_vector):
-
-        self.domain = domain
-        self.domain_bounding_polygon = self.domain.get_boundary_polygon()
-        self.polygon = polygon
-        self.enquiry_point = enquiry_point
-        self.inlet_vector = inlet_vector
-
-        # FIXME (SR) Using get_triangle_containing_point which needs to be sped up
-        self.enquiry_index = self.domain.get_triangle_containing_point(self.enquiry_point)
-
-        self.compute_inlet_triangle_indices()
-
-
-    def compute_inlet_averages(self):
-
-
-
-        self.cell_indices = self.exchange_triangle_indices[0]
-        self.areas    = areas[cell_indices]
-
-
-        # Inlet Averages
-        self.heights            = stage[cell_indices]-elevation[cell_indices]
-        self.total_water_volume = num.sum(self.heights*self.areas)
-        self.average_height     = self.total_water_volume/self.total_inlet_area
-
-
-
-
-    def compute_inlet_triangle_indices(self):
-
-        # Get boundary (in absolute coordinates)
-        bounding_polygon = self.domain_bounding_polygon
-        centroids = self.domain.get_centroid_coordinates(absolute=True)
-
-        inlet_polygon = self.polygon
-
-        # Check that polygon lies within the mesh.
-        for point in inlet_polygon:
-                msg = 'Point %s in polygon for forcing term' % str(point)
-                msg += ' did not fall within the domain boundary.'
-                assert is_inside_polygon(point, bounding_polygon), msg
-
-
-        self.triangle_indices = inside_polygon(centroids, inlet_polygon)
-
-        if len(self.triangle_indices) == 0:
-            region = 'Inlet polygon=%s' % (inlet_polygon)
-            msg = 'No triangles have been identified in '
-            msg += 'specified region: %s' % region
-            raise Exception, msg
-
-        # Compute exchange area as the sum of areas of triangles identified
-        # by polygon
-        self.area = 0.0
-        for j in self.triangle_indices:
-            self.area += self.domain.areas[j]
-
-
-        msg = 'Inlet exchange area has area = %f' % self.area
-        assert self.area > 0.0
-
 
 
 class Generic_box_culvert:
@@ -116,7 +47,7 @@ class Generic_box_culvert:
 
         self.domain.set_fractional_step_operator(self)
 
-        self.end_points= [end_point0, end_point1]
+        self.end_points = [end_point0, end_point1]
         self.enquiry_gap_factor = enquiry_gap_factor
         
         if height is None:
@@ -133,76 +64,60 @@ class Generic_box_culvert:
 
         #FIXME (SR) Put this into a foe loop to deal with more inlets
         self.inlets = []
-        polygon0 = self.exchange_polygons[0]
+        polygon0 = self.inlet_polygons[0]
         enquiry_pt0 = self.enquiry_points[0]
         inlet0_vector = self.culvert_vector
+        self.inlets.append(Inlet.Inlet(self.domain, polygon0, enquiry_pt0, inlet0_vector))
 
-        self.inlets.append(Inlet(self.domain,polygon0,enquiry_pt0,inlet0_vector))
-
-        polygon1 = self.exchange_polygons[1]
+        polygon1 = self.inlet_polygons[1]
         enquiry_pt1 = self.enquiry_points[1]
         inlet1_vector = - self.culvert_vector
-
-        self.inlets.append(Inlet(self.domain,polygon1,enquiry_pt1, inlet1_vector))
-
-
-        # aliases to quantity centroid values and cell areas
-        self.areas      = self.domain.areas
-        self.stage      = self.domain.quantities['stage'].centroid_values
-        self.elevation  = self.domain.quantities['elevation'].centroid_values
-        self.xmom       = self.domain.quantities['xmomentum'].centroid_values
-        self.ymom       = self.domain.quantities['ymomentum'].centroid_values
-
+        self.inlets.append(Inlet.Inlet(self.domain, polygon1, enquiry_pt1, inlet1_vector))
  
+        self.areas = self.domain.areas
+        self.stages = self.domain.quantities['stage'].centroid_values
+        self.elevations = self.domain.quantities['elevation'].centroid_values
+        self.xmoms = self.domain.quantities['xmomentum'].centroid_values
+        self.ymoms = self.domain.quantities['ymomentum'].centroid_values
+   
         self.print_stats()
 
 
-
     def __call__(self):
-
 
         # Time stuff
         time     = self.domain.get_time()
         timestep = self.domain.get_timestep()
 
-
         inlet0 = self.inlets[0]
         inlet1 = self.inlets[1]
-
 
         # Aliases to cell indices
         inlet0_indices = inlet0.triangle_indices
         inlet1_indices = inlet1.triangle_indices
 
-
         # Inlet0 averages
-        inlet0_heights  = self.stage[inlet0_indices]-self.elevation[inlet0_indices]
-        inlet0_areas    = self.areas[inlet0_indices]
-
+        inlet0_heights = inlet0.get_heights()
+        inlet0_areas = inlet0.get_areas()
         inlet0_water_volume = num.sum(inlet0_heights*inlet0_areas)
-
         average_inlet0_height = inlet0_water_volume/inlet0.area
 
         # Inlet1 averages
-        inlet1_heights  = self.stage[inlet1_indices]-self.elevation[inlet1_indices]
-        inlet1_areas    = self.areas[inlet1_indices]
-
+        inlet1_heights = inlet1.get_heights()
+        inlet1_areas = inlet1.get_areas()
         inlet1_water_volume = num.sum(inlet1_heights*inlet1_areas)
-
         average_inlet1_height = inlet1_water_volume/inlet1.area
-
 
         # Transfer
         transfer_water = timestep*inlet0_water_volume
+        
+        self.stages.put(inlet0_indices, inlet0.get_elevations() + average_inlet0_height - transfer_water)
+        self.xmoms.put(inlet0_indices, 0.0)
+        self.ymoms.put(inlet0_indices, 0.0)
 
-        self.stage[inlet0_indices] = self.elevation[inlet0_indices] + average_inlet0_height - transfer_water
-        self.xmom[inlet0_indices]  = 0.0
-        self.ymom[inlet0_indices]  = 0.0
-
-
-        self.stage[inlet1_indices] = self.elevation[inlet1_indices] + average_inlet1_height + transfer_water
-        self.xmom[inlet1_indices]  = 0.0
-        self.ymom[inlet1_indices]  = 0.0
+        self.stages.put(inlet1_indices, inlet1.get_elevations() + average_inlet1_height + transfer_water)
+        self.xmoms.put(inlet1_indices, 0.0)
+        self.ymoms.put(inlet1_indices, 0.0)
 
 
     def print_stats(self):
@@ -231,11 +146,6 @@ class Generic_box_culvert:
         print '====================================='
 
 
- 
-
-
-
-
     def set_store_hydrograph_discharge(self, filename=None):
 
         if filename is None:
@@ -250,7 +160,9 @@ class Generic_box_culvert:
         fid.write('time, discharge\n')
         fid.close()
 
+
     def create_culvert_polygons(self):
+
         """Create polygons at the end of a culvert inlet and outlet.
         At either end two polygons will be created; one for the actual flow to pass through and one a little further away
         for enquiring the total energy at both ends of the culvert and transferring flow.
@@ -264,7 +176,7 @@ class Generic_box_culvert:
         dy = y1 - y0
 
         self.culvert_vector = num.array([dx, dy])
-        self.culvert_length = sqrt(num.sum(self.culvert_vector**2))
+        self.culvert_length = math.sqrt(num.sum(self.culvert_vector**2))
         assert self.culvert_length > 0.0, 'The length of culvert is less than 0'
 
         # Unit direction vector and normal
@@ -277,7 +189,7 @@ class Generic_box_culvert:
                              # direction of the culvert
         gap = (1 + self.enquiry_gap_factor)*h
 
-        self.exchange_polygons = []
+        self.inlet_polygons = []
         self.enquiry_points = []
 
         # Build exchange polygon and enquiry points 0 and 1
@@ -287,15 +199,12 @@ class Generic_box_culvert:
             p1 = self.end_points[i] - w
             p2 = p1 + i0*h
             p3 = p0 + i0*h
-            self.exchange_polygons.append(num.array([p0, p1, p2, p3]))
+            self.inlet_polygons.append(num.array([p0, p1, p2, p3]))
             self.enquiry_points.append(self.end_points[i] + i0*gap)
 
-
-
-
-        # Check that enquiry points are outside exchange polygons
+        # Check that enquiry points are outside inlet polygons
         for i in [0,1]:
-            polygon = self.exchange_polygons[i]
+            polygon = self.inlet_polygons[i]
             # FIXME (SR) Probably should calculate the area of all the triangles
             # associated with this polygon, as there is likely to be some
             # inconsistency between triangles and ploygon
@@ -312,14 +221,7 @@ class Generic_box_culvert:
 
                 assert not inside_polygon(point, polygon), msg
 
-        
-
-
-
-        
-
-            
-
+    
     def adjust_flow_for_available_water_at_inlet(self, Q, delta_t):
         """Adjust Q downwards depending on available water at inlet
 
@@ -462,85 +364,55 @@ class Generic_box_culvert:
     def compute_rates(self, delta_t):
         """Compute new rates for inlet and outlet
         """
-
-        # Short hands
-        domain = self.domain        
-        dq = domain.quantities                
-        
         # Time stuff
-        time = domain.get_time()
+        time = self.domain.get_time()
         self.last_update = time
 
-            
         if hasattr(self, 'log_filename'):
             log_filename = self.log_filename
             
         # Compute stage, energy and velocity at the 
         # enquiry points at each end of the culvert
-        openings = self.openings
-        for i, opening in enumerate(openings):
-            idx = self.enquiry_indices[i]                
-            
-            stage = dq['stage'].get_values(location='centroids',
-                                           indices=[idx])[0]
-            depth = h = stage-opening.elevation
-                                                           
-            
-            # Get velocity                                 
-            xmomentum = dq['xmomentum'].get_values(location='centroids',
-                                                   indices=[idx])[0]
-            ymomentum = dq['xmomentum'].get_values(location='centroids',
-                                                   indices=[idx])[0]
-
-            if h > minimum_allowed_height:
-                u = xmomentum/(h + velocity_protection/h)
-                v = ymomentum/(h + velocity_protection/h)
+        total_energies = []
+        specific_energies = []
+        velocities = []
+        
+        for i, inlet in enumerate(self.inlets):
+           
+            stage = inlet.get_average_stage()
+            depth = stage - inlet.get_average_elevation()
+                                                                       
+            if depth > minimum_allowed_height:
+                u, v = inlet.get_average_velocities
             else:
-                u = v = 0.0
+                u = 0.0
+                v = 0.0
                 
-            v_squared = u*u + v*v
-            
+            v_squared =  u**2 + v**2   
+                
             if self.use_velocity_head is True:
                 velocity_head = 0.5*v_squared/g    
             else:
                 velocity_head = 0.0
             
-            opening.total_energy = velocity_head + stage
-            opening.specific_energy = velocity_head + depth
-            opening.stage = stage
-            opening.depth = depth
-            opening.velocity = sqrt(v_squared)
-            
+            total_energies[i] = velocity_head + stage
+            specific_energies[i] = velocity_head + depth
+            velocities[i] = math.sqrt(v_squared)            
 
         # We now need to deal with each opening individually
         # Determine flow direction based on total energy difference
-        delta_total_energy = openings[0].total_energy - openings[1].total_energy
-        if delta_total_energy > 0:
-            inlet = openings[0]
-            outlet = openings[1]
-
-            # FIXME: I think this whole momentum jet thing could be a bit more elegant
-            inlet.momentum = self.opening_momentum[0]
-            outlet.momentum = self.opening_momentum[1]
+        delta_total_energy = total_energies[0] - total_energies[1]
+        if delta_total_energy >= 0:
+            inlet = inlets[0]
+            outlet = inlets[1]
         else:
-            inlet = openings[1]
-            outlet = openings[0]
-            
-            inlet.momentum = self.opening_momentum[1]
-            outlet.momentum = self.opening_momentum[0]
-
-            delta_total_energy = -delta_total_energy
-
-        self.inlet = inlet
-        self.outlet = outlet
-            
-        msg = 'Total energy difference is negative'
-        assert delta_total_energy >= 0.0, msg
+            msg = 'Total energy difference is negative'
+            assert delta_total_energy >= 0.0, msg
 
         # Recompute slope and issue warning if flow is uphill
         # These values do not enter the computation
-        delta_z = inlet.elevation - outlet.elevation
-        culvert_slope = (delta_z/self.length)
+        delta_z = inlet.get_average_elevation() - outlet.get_average_elevation()
+        culvert_slope = (delta_z/self.culvert_length)
         if culvert_slope < 0.0:
             # Adverse gradient - flow is running uphill
             # Flow will be purely controlled by uphill outlet face
@@ -553,7 +425,6 @@ class Generic_box_culvert:
             log_to_file(self.log_filename, s)
             s = 'Delta total energy = %.3f' %(delta_total_energy)
             log_to_file(log_filename, s)
-
             
         # Determine controlling energy (driving head) for culvert
         if inlet.specific_energy > delta_total_energy:
@@ -563,8 +434,6 @@ class Generic_box_culvert:
             # Inlet control
             driving_head = inlet.specific_energy
             
-
-
         if self.inlet.depth <= self.trigger_depth:
             Q = 0.0
         else:
@@ -616,8 +485,6 @@ class Generic_box_culvert:
                                          sum_loss=self.sum_loss,
                                          log_filename=self.log_filename)
             
-            
-        
         # Adjust discharge for multiple barrels
         Q *= self.number_of_barrels
 
@@ -627,10 +494,8 @@ class Generic_box_culvert:
         self.inlet.rate = -Q
         self.outlet.rate = Q
 
-
         # Momentum jet stuff
         if self.use_momentum_jet is True:
-
 
             # Compute barrel momentum
             barrel_momentum = barrel_velocity*culvert_outlet_depth
@@ -645,7 +510,6 @@ class Generic_box_culvert:
             if self.log_filename is not None:                
                 s = 'Directional momentum = (%f, %f)' %(outlet_mom_x, outlet_mom_y)
                 log_to_file(self.log_filename, s)
-
 
             # Update momentum        
             if delta_t > 0.0:
