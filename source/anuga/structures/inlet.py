@@ -9,16 +9,13 @@ class Inlet:
     """Contains information associated with each inlet
     """
 
-    def __init__(self, domain, polygon, enquiry_point, inlet_vector):
+    def __init__(self, domain, polygon):
 
         self.domain = domain
         self.domain_bounding_polygon = self.domain.get_boundary_polygon()
         self.polygon = polygon
-        self.enquiry_point = enquiry_point
-        self.inlet_vector = inlet_vector
 
         # FIXME (SR) Using get_triangle_containing_point which needs to be sped up
-        self.enquiry_index = self.domain.get_triangle_containing_point(self.enquiry_point)
 
         self.compute_triangle_indices()
         self.compute_area()

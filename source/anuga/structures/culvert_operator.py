@@ -1,19 +1,7 @@
-import sys
-
-from anuga.shallow_water.forcing import Inflow, General_forcing
-from anuga.utilities.system_tools import log_to_file
-from anuga.geometry.polygon import inside_polygon, is_inside_polygon
-from anuga.geometry.polygon import plot_polygons, polygon_area
-
-from anuga.utilities.numerical_tools import mean
-from anuga.utilities.numerical_tools import ensure_numeric, sign
-        
-from anuga.config import g, epsilon
-from anuga.config import minimum_allowed_height, velocity_protection        
+from anuga.geometry.polygon import inside_polygon, polygon_area
+from anuga.config import g
 import anuga.utilities.log as log
-
 import inlet
-
 import numpy as num
 import math
 
@@ -36,7 +24,6 @@ class Generic_box_culvert:
                  domain,
                  end_point0=None, 
                  end_point1=None,
-                 enquiry_gap_factor=0.2,
                  width=None,
                  height=None,
                  verbose=False):
@@ -48,7 +35,6 @@ class Generic_box_culvert:
         self.domain.set_fractional_step_operator(self)
 
         self.end_points = [end_point0, end_point1]
-        self.enquiry_gap_factor = enquiry_gap_factor
         
         if height is None:
             height = width
@@ -57,7 +43,6 @@ class Generic_box_culvert:
         self.height = height
         
         self.verbose=verbose
-        self.filename = None
        
         # Create the fundamental culvert polygons and create inlet objects
         self.create_culvert_polygons()
@@ -65,16 +50,12 @@ class Generic_box_culvert:
         #FIXME (SR) Put this into a foe loop to deal with more inlets
         self.inlets = []
         polygon0 = self.inlet_polygons[0]
-        enquiry_pt0 = self.enquiry_points[0]
         inlet0_vector = self.culvert_vector
-        self.inlets.append(inlet.Inlet(self.domain, polygon0, enquiry_pt0, inlet0_vector))
+        self.inlets.append(inlet.Inlet(self.domain, polygon0))
 
         polygon1 = self.inlet_polygons[1]
-        enquiry_pt1 = self.enquiry_points[1]
         inlet1_vector = - self.culvert_vector
-        self.inlets.append(inlet.Inlet(self.domain, polygon1, enquiry_pt1, inlet1_vector))
- 
-
+        self.inlets.append(inlet.Inlet(self.domain, polygon1))
    
         self.print_stats()
 
@@ -145,8 +126,6 @@ class Generic_box_culvert:
         print '====================================='
         print 'Generic Culvert Operator'
         print '====================================='
-        print "enquiry_gap_factor"
-        print self.enquiry_gap_factor
         
         for i, inlet in enumerate(self.inlets):
             print '-------------------------------------'
@@ -159,9 +138,6 @@ class Generic_box_culvert:
         
             print 'polygon'
             print inlet.polygon
-
-            print 'enquiry_point'
-            print inlet.enquiry_point
 
         print '====================================='
 
@@ -195,10 +171,8 @@ class Generic_box_culvert:
         w = 0.5*self.width*self.culvert_normal # Perpendicular vector of 1/2 width
         h = self.height*self.culvert_vector    # Vector of length=height in the
                              # direction of the culvert
-        gap = (1 + self.enquiry_gap_factor)*h
 
         self.inlet_polygons = []
-        self.enquiry_points = []
 
         # Build exchange polygon and enquiry points 0 and 1
         for i in [0, 1]:
@@ -208,7 +182,6 @@ class Generic_box_culvert:
             p2 = p1 + i0*h
             p3 = p0 + i0*h
             self.inlet_polygons.append(num.array([p0, p1, p2, p3]))
-            self.enquiry_points.append(self.end_points[i] + i0*gap)
 
         # Check that enquiry points are outside inlet polygons
         for i in [0,1]:
@@ -218,17 +191,9 @@ class Generic_box_culvert:
             # inconsistency between triangles and ploygon
             area = polygon_area(polygon)
             
-
             msg = 'Polygon %s ' %(polygon)
             msg += ' has area = %f' % area
             assert area > 0.0, msg
-
-            for j in [0,1]:
-                point = self.enquiry_points[j]
-                msg = 'Enquiry point falls inside a culvert polygon.'
-
-                assert not inside_polygon(point, polygon), msg
-
     
 
                         
