@@ -388,26 +388,29 @@ class Generic_box_culvert:
                 u = 0.0
                 v = 0.0
                 
-            v_squared =  u**2 + v**2   
+            uv2 =  u**2 + v**2   
                 
             if self.use_velocity_head is True:
-                velocity_head = 0.5*v_squared/g    
+                velocity_head = 0.5*uv2/g    
             else:
                 velocity_head = 0.0
             
-            total_energies[i] = velocity_head + stage
-            specific_energies[i] = velocity_head + depth
-            velocities[i] = math.sqrt(v_squared)            
+            inlet.set_total_energy(velocity_head + stage)
+            inlet.set_specific_energy(velocity_head + depth)
 
         # We now need to deal with each opening individually
         # Determine flow direction based on total energy difference
-        delta_total_energy = total_energies[0] - total_energies[1]
+        delta_total_energy = inlets[0].get_total_energy() - inlets[1].get_total_energy()
+        
         if delta_total_energy >= 0:
             inlet = inlets[0]
             outlet = inlets[1]
         else:
-            msg = 'Total energy difference is negative'
-            assert delta_total_energy >= 0.0, msg
+            inlet = inlets[1]
+            outlet = inlets[2]
+            
+            #msg = 'Total energy difference is negative'
+            #assert delta_total_energy >= 0.0, msg
 
         # Recompute slope and issue warning if flow is uphill
         # These values do not enter the computation
@@ -427,14 +430,17 @@ class Generic_box_culvert:
             log_to_file(log_filename, s)
             
         # Determine controlling energy (driving head) for culvert
-        if inlet.specific_energy > delta_total_energy:
+        if inlet.get_specific_energy() > delta_total_energy:
             # Outlet control
             driving_head = delta_total_energy
         else:
             # Inlet control
-            driving_head = inlet.specific_energy
+            driving_head = inlet.get_specific_energy()
             
-        if self.inlet.depth <= self.trigger_depth:
+        inlet_depth = inlet.get_average_stage() - inlet.get_average_elevation()
+        outlet_depth = outlet.get_average_stage() - outlet.get_average_elevation()
+        
+        if inlet_depth <= self.trigger_depth:
             Q = 0.0
         else:
             # Calculate discharge for one barrel and 
@@ -470,11 +476,11 @@ class Generic_box_culvert:
             else:
                 # User culvert routine
                 Q, barrel_velocity, culvert_outlet_depth =\
-                    self.culvert_routine(inlet.depth,
-                                         outlet.depth,
-                                         inlet.velocity,
-                                         outlet.velocity,
-                                         inlet.specific_energy, 
+                    self.culvert_routine(inlet_depth,
+                                         outlet_depth,
+                                         inlet.get_average_velocity(),
+                                         outlet.get_average_velocity(),
+                                         inlet.get_specific_energy(), 
                                          delta_total_energy, 
                                          g,
                                          culvert_length=self.length,
