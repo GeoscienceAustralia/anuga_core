@@ -41,6 +41,7 @@ points, vertices, boundary = rectangular_cross(int(length/dx),
 domain = anuga.Domain(points, vertices, boundary)   
 domain.set_name('Test_culvert')                 # Output name
 domain.set_default_order(2)
+#domain.set_beta(1.5)
 
 
 #----------------------------------------------------------------------
@@ -109,7 +110,7 @@ culvert1 = Generic_box_culvert(domain,
 ##-----------------------------------------------------------------------
 
 ## Inflow based on Flow Depth and Approaching Momentum
-Bi = anuga.Dirichlet_boundary([1.0, 0.0, 0.0])
+Bi = anuga.Dirichlet_boundary([2.0, 0.0, 0.0])
 Br = anuga.Reflective_boundary(domain)              # Solid reflective wall
 #Bo = anuga.Dirichlet_boundary([-5, 0, 0])           # Outflow
 
@@ -130,8 +131,13 @@ domain.set_boundary({'left': Bi, 'right': Br, 'top': Br, 'bottom': Br})
 
 #min_delta_w = sys.maxint 
 #max_delta_w = -min_delta_w
-for t in domain.evolve(yieldstep = 1.0, finaltime = 100):
+for t in domain.evolve(yieldstep = 1.0, finaltime = 200):
     domain.write_time()
+
+    if domain.get_time() > 150.5 and domain.get_time() < 151.5 :
+        Bi = anuga.Dirichlet_boundary([0.0, 0.0, 0.0])
+        domain.set_boundary({'left': Bi, 'right': Br, 'top': Br, 'bottom': Br})
+
     #delta_w = culvert.inlet.stage - culvert.outlet.stage
     
     #if delta_w > max_delta_w: max_delta_w = delta_w

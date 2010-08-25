@@ -1,5 +1,6 @@
+
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon
-from anuga.config import velocity_protection 
+from anuga.config import velocity_protection, g
 import math
 
 import numpy as num
@@ -116,7 +117,7 @@ class Inlet:
     
     def get_total_water_volume(self):
        
-       return num.sum(self.get_heights*self.get_areas())
+       return num.sum(self.get_heights()*self.get_areas())
     
     
     def get_average_height(self):
@@ -133,33 +134,52 @@ class Inlet:
             return u, v
             
             
-    def get_average_velocity(self):
+    def get_average_speed(self):
  
             u, v = self.get_velocities()
             
             average_u = num.sum(u)/self.triangle_indices.size
             average_v = num.sum(v)/self.triangle_indices.size
             
-            return math.sqrt(average_u**2 + average_v**2) 
+            return math.sqrt(average_u**2 + average_v**2)
 
 
-    def set_total_energy(self, total_energy):
-        
-        self.total_energy = total_energy
-        
-        
-    def get_total_energy(self):
-        
-        return self.total_energy
-        
-        
-    def set_specific_energy(self, specific_energy):
-        
-        self.specific_energy = specific_energy
 
+    def get_average_velocity_head(self):
+
+        return 0.5*self.get_average_speed()**2/g
+
+
+    def get_average_total_energy(self):
+        
+        return self.get_average_velocity_head() + self.get_average_stage()
+        
     
-    def get_specific_energy(self):
+    def get_average_specific_energy(self):
         
-        return self.specific_energy
-        
-        
+        return self.get_average_velocity_head() + self.get_average_height()
+
+
+
+    def set_heights(self,height):
+
+        self.domain.quantities['stage'].centroid_values.put(self.triangle_indices, self.get_elevations() + height)
+
+
+    def set_stages(self,stage):
+
+        self.domain.quantities['stage'].centroid_values.put(self.triangle_indices, stage)
+
+    def set_xmoms(self,xmom):
+
+        self.xmoms=self.domain.quantities['xmomentum'].centroid_values.put(self.triangle_indices, xmom)
+
+
+    def set_ymoms(self,ymom):
+
+        self.xmoms=self.domain.quantities['ymomentum'].centroid_values.put(self.triangle_indices, ymom)
+
+
+    def set_elevations(self,elevation):
+
+        self.domain.quantities['elevation'].centroid_values.put(self.triangle_indices, elevation)
