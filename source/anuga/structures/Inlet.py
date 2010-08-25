@@ -1,5 +1,6 @@
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon
 from anuga.config import velocity_protection 
+import math
 
 import numpy as num
 
@@ -73,6 +74,7 @@ class Inlet:
         
         return self.domain.quantities['stage'].centroid_values.take(self.triangle_indices)
         
+        
     def get_average_stage(self):
         
         return num.sum(self.get_stages())/self.triangle_indices.size
@@ -90,6 +92,7 @@ class Inlet:
     def get_xmoms(self):
     
         return self.domain.quantities['xmomentum'].centroid_values.take(self.triangle_indices)
+        
         
     def get_average_xmom(self):
         
@@ -130,10 +133,33 @@ class Inlet:
             return u, v
             
             
-    def get_average_velocities(self):
+    def get_average_velocity(self):
  
-            depths = self.get_stages() - self.get_elevations()
-            u = self.get_xmoms()/(depths + velocity_protection/depths)
-            v = self.get_ymoms()/(depths + velocity_protection/depths)
+            u, v = self.get_velocities()
             
-            return num.sum(u)/self.triangle_indices.size, num.sum(v)/self.triangle_indices.size
+            average_u = num.sum(u)/self.triangle_indices.size
+            average_v = num.sum(v)/self.triangle_indices.size
+            
+            return math.sqrt(average_u**2 + average_v**2) 
+
+
+    def set_total_energy(self, total_energy):
+        
+        self.total_energy = total_energy
+        
+        
+    def get_total_energy(self):
+        
+        return self.total_energy
+        
+        
+    def set_specific_energy(self, specific_energy):
+        
+        self.specific_energy = specific_energy
+
+    
+    def get_specific_energy(self):
+        
+        return self.specific_energy
+        
+        
