@@ -1,15 +1,9 @@
 from anuga.geometry.polygon import inside_polygon, polygon_area
 from anuga.config import g
 import anuga.utilities.log as log
-import inlet
-import numpy as num
-import math
+import box_culvert
 
-class Below_interval(Exception): pass 
-class Above_interval(Exception): pass
-
-
-class Generic_box_culvert:
+class Culvert_operator:
     """Culvert flow - transfer water from one rectangular box to another.
     Sets up the geometry of problem
     
@@ -28,45 +22,25 @@ class Generic_box_culvert:
                  height=None,
                  verbose=False):
         
-        # Input check
-        
         self.domain = domain
-
         self.domain.set_fractional_step_operator(self)
-
-        self.end_points = [end_point0, end_point1]
+        end_points = [end_point0, end_point1]
         
         if height is None:
             height = width
 
         self.width = width
         self.height = height
-        
-        self.verbose=verbose
        
-        # Create the fundamental culvert polygons and create inlet objects
-        self.create_culvert_polygons()
-
-        #FIXME (SR) Put this into a foe loop to deal with more inlets
-        self.inlets = []
-        polygon0 = self.inlet_polygons[0]
-        inlet0_vector = self.culvert_vector
-        self.inlets.append(inlet.Inlet(self.domain, polygon0))
-
-        polygon1 = self.inlet_polygons[1]
-        inlet1_vector = - self.culvert_vector
-        self.inlets.append(inlet.Inlet(self.domain, polygon1))
+        self.culvert = box_culvert.Box_culvert(self.domain, end_points, self.width, self.height)
+        self.inlets = self.culvert.get_inlets()
    
         self.print_stats()
 
 
     def __call__(self):
 
-        # Time stuff
-        time     = self.domain.get_time()
         timestep = self.domain.get_timestep()
-
-
 
         inflow  = self.inlets[0]
         outflow = self.inlets[1]
@@ -80,7 +54,7 @@ class Generic_box_culvert:
             delta_total_energy = -delta_total_energy
 
         delta_z = inflow.get_average_elevation() - outflow.get_average_elevation()
-        culvert_slope = delta_z/self.culvert_length
+        culvert_slope = delta_z/self.culvert.get_culvert_length()
 
         # Determine controlling energy (driving head) for culvert
         if inflow.get_average_specific_energy() > delta_total_energy:
@@ -90,36 +64,29 @@ class Generic_box_culvert:
             # Inlet control
             driving_head = inflow.get_average_specific_energy()
             
-
         # Transfer
-        from culvert_routines import boyd_generalised_culvert_model
+        from culvert_routines import boyd_box, boyd_circle
         Q, barrel_velocity, culvert_outlet_depth =\
-                    boyd_generalised_culvert_model(inflow.get_average_height(),
+                              boyd_circle(inflow.get_average_height(),
                                          outflow.get_average_height(),
                                          inflow.get_average_speed(),
                                          outflow.get_average_speed(),
                                          inflow.get_average_specific_energy(),
                                          delta_total_energy,
-                                         g,
-                                         culvert_length=self.culvert_length,
+                                         culvert_length=self.culvert.get_culvert_length(),
                                          culvert_width=self.width,
                                          culvert_height=self.height,
-                                         culvert_type='box',
                                          manning=0.01)
 
         transfer_water = Q*timestep
-
 
         inflow.set_heights(inflow.get_average_height() - transfer_water)
         inflow.set_xmoms(0.0)
         inflow.set_ymoms(0.0)
 
-
         outflow.set_heights(outflow.get_average_height() + transfer_water)
         outflow.set_xmoms(0.0)
         outflow.set_ymoms(0.0)
-
-
 
     def print_stats(self):
 
@@ -140,61 +107,6 @@ class Generic_box_culvert:
             print inlet.polygon
 
         print '====================================='
-
-
-
-
-
-    def create_culvert_polygons(self):
-
-        """Create polygons at the end of a culvert inlet and outlet.
-        At either end two polygons will be created; one for the actual flow to pass through and one a little further away
-        for enquiring the total energy at both ends of the culvert and transferring flow.
-        """
-
-        # Calculate geometry
-        x0, y0 = self.end_points[0]
-        x1, y1 = self.end_points[1]
-
-        dx = x1 - x0
-        dy = y1 - y0
-
-        self.culvert_vector = num.array([dx, dy])
-        self.culvert_length = math.sqrt(num.sum(self.culvert_vector**2))
-        assert self.culvert_length > 0.0, 'The length of culvert is less than 0'
-
-        # Unit direction vector and normal
-        self.culvert_vector /= self.culvert_length                      # Unit vector in culvert direction
-        self.culvert_normal = num.array([-dy, dx])/self.culvert_length  # Normal vector
-
-        # Short hands
-        w = 0.5*self.width*self.culvert_normal # Perpendicular vector of 1/2 width
-        h = self.height*self.culvert_vector    # Vector of length=height in the
-                             # direction of the culvert
-
-        self.inlet_polygons = []
-
-        # Build exchange polygon and enquiry points 0 and 1
-        for i in [0, 1]:
-            i0 = (2*i-1)
-            p0 = self.end_points[i] + w
-            p1 = self.end_points[i] - w
-            p2 = p1 + i0*h
-            p3 = p0 + i0*h
-            self.inlet_polygons.append(num.array([p0, p1, p2, p3]))
-
-        # Check that enquiry points are outside inlet polygons
-        for i in [0,1]:
-            polygon = self.inlet_polygons[i]
-            # FIXME (SR) Probably should calculate the area of all the triangles
-            # associated with this polygon, as there is likely to be some
-            # inconsistency between triangles and ploygon
-            area = polygon_area(polygon)
-            
-            msg = 'Polygon %s ' %(polygon)
-            msg += ' has area = %f' % area
-            assert area > 0.0, msg
-    
 
                         
 # FIXME(Ole): Write in C and reuse this function by similar code

@@ -141,7 +141,6 @@ class Inlet:
             return math.sqrt(average_u**2 + average_v**2)
 
 
-
     def get_average_velocity_head(self):
 
         return 0.5*self.get_average_speed()**2/g
@@ -157,7 +156,6 @@ class Inlet:
         return self.get_average_velocity_head() + self.get_average_height()
 
 
-
     def set_heights(self,height):
 
         self.domain.quantities['stage'].centroid_values.put(self.triangle_indices, self.get_elevations() + height)
@@ -166,6 +164,7 @@ class Inlet:
     def set_stages(self,stage):
 
         self.domain.quantities['stage'].centroid_values.put(self.triangle_indices, stage)
+
 
     def set_xmoms(self,xmom):
 

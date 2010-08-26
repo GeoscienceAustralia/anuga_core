@@ -8,7 +8,7 @@ __date__ ="$23/08/2010 5:18:51 PM$"
 
 
 
-def boyd_box(in):
+def boyd_box(culvert):
     """Boyd's generalisation of the US department of transportation culvert methods
 
 	WARNING THIS IS A SIMPLISTIC APPROACH and OUTLET VELOCITIES ARE LIMITED TO EITHER
