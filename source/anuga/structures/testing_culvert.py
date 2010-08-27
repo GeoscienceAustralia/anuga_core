@@ -9,7 +9,7 @@ from anuga.abstract_2d_finite_volumes.quantity import Quantity
 
 import anuga
 
-from anuga.structures.culvert_operator import Generic_box_culvert
+from anuga.structures.culvert_operator import Culvert_operator
                             
 #from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
      
@@ -85,12 +85,11 @@ domain.set_quantity('stage',
                     expression='elevation')   # Dry initial condition
 
 filename=os.path.join(path, 'example_rating_curve.csv')
-culvert1 = Generic_box_culvert(domain,
-                              end_point0=[9.0, 2.5], 
-                              end_point1=[13.0, 2.5],
-                              width=1.00,
-                              verbose=False)
-
+culvert1 = Culvert_operator(domain,
+                            end_point0=[9.0, 2.5], 
+                            end_point1=[13.0, 2.5],
+                            width=1.00,
+                            verbose=False)
 
 #culvert2 = Generic_box_culvert(domain,
 #                              end_point0=[19.0, 2.5],
@@ -131,7 +130,7 @@ domain.set_boundary({'left': Bi, 'right': Br, 'top': Br, 'bottom': Br})
 
 #min_delta_w = sys.maxint 
 #max_delta_w = -min_delta_w
-for t in domain.evolve(yieldstep = 1.0, finaltime = 200):
+for t in domain.evolve(yieldstep = 1.0, finaltime = 300):
     domain.write_time()
 
     if domain.get_time() > 150.5 and domain.get_time() < 151.5 :

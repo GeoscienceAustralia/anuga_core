@@ -2,6 +2,7 @@ from anuga.geometry.polygon import inside_polygon, polygon_area
 from anuga.config import g
 import anuga.utilities.log as log
 import box_culvert
+import culvert_routines
 
 class Culvert_operator:
     """Culvert flow - transfer water from one rectangular box to another.
@@ -16,9 +17,9 @@ class Culvert_operator:
 
     def __init__(self,
                  domain,
-                 end_point0=None, 
-                 end_point1=None,
-                 width=None,
+                 end_point0, 
+                 end_point1,
+                 width,
                  height=None,
                  verbose=False):
         
@@ -42,43 +43,15 @@ class Culvert_operator:
 
         timestep = self.domain.get_timestep()
 
-        inflow  = self.inlets[0]
-        outflow = self.inlets[1]
-
-        # Determine flow direction based on total energy difference
-        delta_total_energy = inflow.get_average_total_energy() - outflow.get_average_total_energy()
-
-        if delta_total_energy < 0:
-            inflow  = self.inlets[1]
-            outflow = self.inlets[0]
-            delta_total_energy = -delta_total_energy
-
-        delta_z = inflow.get_average_elevation() - outflow.get_average_elevation()
-        culvert_slope = delta_z/self.culvert.get_culvert_length()
-
-        # Determine controlling energy (driving head) for culvert
-        if inflow.get_average_specific_energy() > delta_total_energy:
-            # Outlet control
-            driving_head = delta_total_energy
-        else:
-            # Inlet control
-            driving_head = inflow.get_average_specific_energy()
-            
-        # Transfer
-        from culvert_routines import boyd_box, boyd_circle
-        Q, barrel_velocity, culvert_outlet_depth =\
-                              boyd_circle(inflow.get_average_height(),
-                                         outflow.get_average_height(),
-                                         inflow.get_average_speed(),
-                                         outflow.get_average_speed(),
-                                         inflow.get_average_specific_energy(),
-                                         delta_total_energy,
-                                         culvert_length=self.culvert.get_culvert_length(),
-                                         culvert_width=self.width,
-                                         culvert_height=self.height,
-                                         manning=0.01)
+        from culvert_routines import Culvert_routines
+        culvert_routine = culvert_routines.Culvert_routines(self.culvert)
+        
+        Q, barrel_velocity, culvert_outlet_depth = culvert_routine.boyd_circle()
 
         transfer_water = Q*timestep
+
+        inflow = culvert_routine.get_inflow()
+        outflow = culvert_routine.get_outflow()
 
         inflow.set_heights(inflow.get_average_height() - transfer_water)
         inflow.set_xmoms(0.0)

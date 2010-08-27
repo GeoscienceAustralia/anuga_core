@@ -1,4 +1,3 @@
-
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon
 from anuga.config import velocity_protection, g
 import math
