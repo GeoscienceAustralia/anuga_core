@@ -130,7 +130,7 @@ domain.set_boundary({'left': Bi, 'right': Br, 'top': Br, 'bottom': Br})
 
 #min_delta_w = sys.maxint 
 #max_delta_w = -min_delta_w
-for t in domain.evolve(yieldstep = 1.0, finaltime = 300):
+for t in domain.evolve(yieldstep = 1.0, finaltime = 200):
     domain.write_time()
 
     if domain.get_time() > 150.5 and domain.get_time() < 151.5 :
