@@ -1,8 +1,8 @@
 from anuga.geometry.polygon import inside_polygon, polygon_area
 from anuga.config import g
 import anuga.utilities.log as log
-import box_culvert
-import culvert_routines
+
+from boyd_box_culvert import Boyd_box_culvert
 
 class Culvert_operator:
     """Culvert flow - transfer water from one rectangular box to another.
@@ -33,7 +33,10 @@ class Culvert_operator:
         self.width = width
         self.height = height
        
-        self.culvert = box_culvert.Box_culvert(self.domain, end_points, self.width, self.height)
+        self.culvert = Boyd_box_culvert(self.domain, end_points, self.width, self.height)
+        print self.culvert
+        self.routine = self.culvert.routine
+        print self.routine
         self.inlets = self.culvert.get_inlets()
    
         self.print_stats()
@@ -42,24 +45,37 @@ class Culvert_operator:
     def __call__(self):
 
         timestep = self.domain.get_timestep()
-
-        from culvert_routines import Culvert_routines
-        culvert_routine = culvert_routines.Culvert_routines(self.culvert)
         
-        Q, barrel_velocity, culvert_outlet_depth = culvert_routine.boyd_circle()
+        Q, barrel_speed, culvert_outlet_depth = self.routine()
 
-        transfer_water = Q*timestep
+        inflow  = self.routine.get_inflow()
+        outflow = self.routine.get_outflow()
 
-        inflow = culvert_routine.get_inflow()
-        outflow = culvert_routine.get_outflow()
+        outflow_direction = - outflow.outward_culvert_vector
 
-        inflow.set_heights(inflow.get_average_height() - transfer_water)
+        outflow_momentum_flux = barrel_speed**2*culvert_outlet_depth*outflow_direction
+
+
+        print Q, barrel_speed, culvert_outlet_depth, outflow_momentum_flux
+
+        #FIXME (SR) Check whether we need to mult/divide by inlet area
+        inflow_transfer =  Q*timestep/inflow.get_area()
+
+        outflow_transfer = Q*timestep/outflow.get_area()
+
+
+
+        inflow.set_heights(inflow.get_average_height() - inflow_transfer)
+
         inflow.set_xmoms(0.0)
         inflow.set_ymoms(0.0)
 
-        outflow.set_heights(outflow.get_average_height() + transfer_water)
-        outflow.set_xmoms(0.0)
-        outflow.set_ymoms(0.0)
+        #u = outflow.get_xvelocities()
+        #v = outflow.get_yvelocities()
+
+        outflow.set_heights(outflow.get_average_height() + outflow_transfer)
+        #outflow.set_xmoms(outflow.get_xmoms() + timestep*outflow_momentum_flux[0] )
+        #outflow.set_ymoms(outflow.get_ymoms() + timestep*outflow_momentum_flux[1] )
 
     def print_stats(self):
 
@@ -73,8 +89,8 @@ class Culvert_operator:
             print '-------------------------------------'
 
             print 'inlet triangle indices and centres'
-            print inlet.triangle_indices[i]
-            print self.domain.get_centroid_coordinates()[inlet.triangle_indices[i]]
+            print inlet.triangle_indices
+            print self.domain.get_centroid_coordinates()[inlet.triangle_indices]
         
             print 'polygon'
             print inlet.polygon

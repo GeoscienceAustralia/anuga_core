@@ -8,11 +8,12 @@ class Inlet:
     """Contains information associated with each inlet
     """
 
-    def __init__(self, domain, polygon):
+    def __init__(self, domain, polygon, outward_culvert_vector=None):
 
         self.domain = domain
         self.domain_bounding_polygon = self.domain.get_boundary_polygon()
         self.polygon = polygon
+        self.outward_culvert_vector = outward_culvert_vector
 
         # FIXME (SR) Using get_triangle_containing_point which needs to be sped up
 
@@ -34,13 +35,16 @@ class Inlet:
                 msg += ' did not fall within the domain boundary.'
                 assert is_inside_polygon(point, bounding_polygon), msg
 
-        self.triangle_indices = inside_polygon(domain_centroids, self.inlet_polygon)
+
+        self.triangle_indices = inside_polygon(domain_centroids, self.inlet_polygon, verbose=True)
 
         if len(self.triangle_indices) == 0:
             region = 'Inlet polygon=%s' % (self.inlet_polygon)
             msg = 'No triangles have been identified in '
             msg += 'specified region: %s' % region
             raise Exception, msg
+
+
 
 
     def compute_area(self):
@@ -61,6 +65,11 @@ class Inlet:
         assert self.area > 0.0
 
 
+    def get_area(self):
+
+        return self.area
+
+    
     def get_areas(self):
         
         # Must be called after compute_inlet_triangle_indices().
@@ -73,9 +82,8 @@ class Inlet:
         
         
     def get_average_stage(self):
-        
-        return num.sum(self.get_stages())/self.triangle_indices.size
-       
+
+        return num.sum(self.get_stages()*self.get_areas())/self.area
         
     def get_elevations(self):    
         
@@ -83,7 +91,8 @@ class Inlet:
         
     def get_average_elevation(self):
         
-        return num.sum(self.get_elevations())/self.triangle_indices.size
+
+        return num.sum(self.get_elevations()*self.get_areas())/self.area
     
     
     def get_xmoms(self):
@@ -92,8 +101,8 @@ class Inlet:
         
         
     def get_average_xmom(self):
-        
-        return num.sum(self.get_xmoms())/self.triangle_indices.size
+
+        return num.sum(self.get_xmoms()*self.get_areas())/self.area
         
     
     def get_ymoms(self):
@@ -103,8 +112,7 @@ class Inlet:
  
     def get_average_ymom(self):
         
-        return num.sum(self.get_ymoms())/self.triangle_indices.size
- 
+        return num.sum(self.get_ymoms()*self.get_areas())/self.area
     
     def get_heights(self):
     
@@ -114,8 +122,8 @@ class Inlet:
     def get_total_water_volume(self):
        
        return num.sum(self.get_heights()*self.get_areas())
-    
-    
+  
+
     def get_average_height(self):
     
         return self.get_total_water_volume()/self.area
@@ -123,19 +131,30 @@ class Inlet:
         
     def get_velocities(self):
         
-            depths = self.get_stages() - self.get_elevations()
-            u = self.get_xmoms()/(depths + velocity_protection/depths)
-            v = self.get_ymoms()/(depths + velocity_protection/depths)
+            heights = self.get_heights()
+            u = self.get_xmoms()/(heights + velocity_protection/heights)
+            v = self.get_ymoms()/(heights + velocity_protection/heights)
             
             return u, v
+
+
+    def get_xvelocities(self):
+
+            heights = self.get_heights()
+            return self.get_xmoms()/(heights + velocity_protection/heights)
+
+    def get_yvelocities(self):
+
+            heights = self.get_heights()
+            return self.get_ymoms()/(heights + velocity_protection/heights)
             
             
     def get_average_speed(self):
  
             u, v = self.get_velocities()
             
-            average_u = num.sum(u)/self.triangle_indices.size
-            average_v = num.sum(v)/self.triangle_indices.size
+            average_u = num.sum(u*self.get_areas())/self.area
+            average_v = num.sum(v*self.get_areas())/self.area
             
             return math.sqrt(average_u**2 + average_v**2)
 

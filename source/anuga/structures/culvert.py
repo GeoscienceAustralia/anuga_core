@@ -5,7 +5,7 @@ import inlet
 import numpy as num
 import math
 
-class Box_culvert:
+class Culvert:
     """Culvert flow - transfer water from one rectangular box to another.
     Sets up the geometry of problem
     
@@ -38,15 +38,20 @@ class Box_culvert:
         self.__create_culvert_polygons()
 
         #FIXME (SR) Put this into a foe loop to deal with more inlets
+
         self.inlets = []
         polygon0 = self.inlet_polygons[0]
-        inlet0_vector = self.culvert_vector
-        self.inlets.append(inlet.Inlet(self.domain, polygon0))
+        outward_vector0 = self.culvert_vector
+        self.inlets.append(inlet.Inlet(self.domain, polygon0, outward_vector0))
 
         polygon1 = self.inlet_polygons[1]
-        inlet1_vector = - self.culvert_vector
-        self.inlets.append(inlet.Inlet(self.domain, polygon1))
-   
+        outward_vector1  = - self.culvert_vector
+        self.inlets.append(inlet.Inlet(self.domain, polygon1, outward_vector1))
+
+
+    def __call__(self):
+        msg = 'Method __call__ must be overridden by Culvert subclass'
+        raise Exception, msg
 
     def __create_culvert_polygons(self):
 
@@ -72,7 +77,7 @@ class Box_culvert:
 
         # Short hands
         w = 0.5*self.width*self.culvert_normal # Perpendicular vector of 1/2 width
-        h = self.height*self.culvert_vector    # Vector of length=height in the
+        h = 0.5*self.height*self.culvert_vector    # Vector of length=height in the
                              # direction of the culvert
 
         self.inlet_polygons = []

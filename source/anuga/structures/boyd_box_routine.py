@@ -7,152 +7,183 @@ __author__="steve"
 __date__ ="$23/08/2010 5:18:51 PM$"
 
 
+import culvert_routine
+from anuga.config import velocity_protection
+from anuga.utilities.numerical_tools import safe_acos as acos
 
-def boyd_box(culvert):
+from math import pi, sqrt, sin, cos
+from anuga.config import g
+
+
+class Boyd_box_routine(culvert_routine.Culvert_routine):
     """Boyd's generalisation of the US department of transportation culvert methods
 
-	WARNING THIS IS A SIMPLISTIC APPROACH and OUTLET VELOCITIES ARE LIMITED TO EITHER
-	FULL PIPE OR CRITICAL DEPTH ONLY
-	For Supercritical flow this is UNDERESTIMATING the Outlet Velocity
-	The obtain the CORRECT velocity requires an iteration of Depth to Establish
-	the Normal Depth of flow in the pipe.
+        WARNING THIS IS A SIMPLISTIC APPROACH and OUTLET VELOCITIES ARE LIMITED TO EITHER
+        FULL PIPE OR CRITICAL DEPTH ONLY
+        For Supercritical flow this is UNDERESTIMATING the Outlet Velocity
+        The obtain the CORRECT velocity requires an iteration of Depth to Establish
+        the Normal Depth of flow in the pipe.
 
-	It is proposed to provide this in a seperate routine called
-    boyd_generalised_culvert_model_complex
+        It is proposed to provide this in a seperate routine called
+        boyd_generalised_culvert_model_complex
 
-    The Boyd Method is based on methods described by the following:
-	1.
-	US Dept. Transportation Federal Highway Administration (1965)
-	Hydraulic Chart for Selection of Highway Culverts.
-	Hydraulic Engineering Circular No. 5 US Government Printing
-	2.
-	US Dept. Transportation Federal Highway Administration (1972)
-	Capacity charts for the Hydraulic design of highway culverts.
-	Hydraulic Engineering Circular No. 10 US Government Printing
-    These documents provide around 60 charts for various configurations of culverts and inlets.
+        The Boyd Method is based on methods described by the following:
+        1.
+        US Dept. Transportation Federal Highway Administration (1965)
+        Hydraulic Chart for Selection of Highway Culverts.
+        Hydraulic Engineering Circular No. 5 US Government Printing
+        2.
+        US Dept. Transportation Federal Highway Administration (1972)
+        Capacity charts for the Hydraulic design of highway culverts.
+        Hydraulic Engineering Circular No. 10 US Government Printing
+        These documents provide around 60 charts for various configurations of culverts and inlets.
 
-	Note these documents have been superceded by:
-	2005 Hydraulic Design of Highway Culverts, Hydraulic Design Series No. 5 (HDS-5),
-	Which combines culvert design information previously contained in Hydraulic Engineering Circulars
-	(HEC) No. 5, No. 10, and No. 13 with hydrologic, storage routing, and special culvert design information.
-	HEC-5 provides 20 Charts
-	HEC-10 Provides an additional 36 Charts
-	HEC-13 Discusses the Design of improved more efficient inlets
-	HDS-5 Provides 60 sets of Charts
+        Note these documents have been superceded by:
+        2005 Hydraulic Design of Highway Culverts, Hydraulic Design Series No. 5 (HDS-5),
+        Which combines culvert design information previously contained in Hydraulic Engineering Circulars
+        (HEC) No. 5, No. 10, and No. 13 with hydrologic, storage routing, and special culvert design information.
+        HEC-5 provides 20 Charts
+        HEC-10 Provides an additional 36 Charts
+        HEC-13 Discusses the Design of improved more efficient inlets
+        HDS-5 Provides 60 sets of Charts
 
-	In 1985 Professor Michael Boyd Published "Head-Discharge Relations for Culverts", and in
-	1987 published "Generalised Head Discharge Equations for Culverts".
-	These papers reviewed the previous work by the US DOT and provided a simplistic approach for 3 configurations.
+        In 1985 Professor Michael Boyd Published "Head-Discharge Relations for Culverts", and in
+        1987 published "Generalised Head Discharge Equations for Culverts".
+        These papers reviewed the previous work by the US DOT and provided a simplistic approach for 3 configurations.
 
-	It may be possible to extend the same approach for additional charts in the original work, but to date this has not been done.
-	The additional charts cover a range of culvert shapes and inlet configurations
+        It may be possible to extend the same approach for additional charts in the original work, but to date this has not been done.
+        The additional charts cover a range of culvert shapes and inlet configurations
 
-    """
 
-    # Calculate flows for inflow control
+        """
 
-    Q_inflow_unsubmerged = 0.540*g**0.5*width*inflow_specific_energy**1.50 # Flow based on inflow Ctrl inflow Unsubmerged
-    Q_inflow_submerged = 0.702*g**0.5*width*height**0.89*inflow_specific_energy**0.61  # Flow based on inflow Ctrl inflow Submerged
+    def __init__(self, culvert, manning=0.0):
 
-    if log_filename is not None:
-        s = 'Q_inflow_unsubmerged = %.6f, Q_inflow_submerged = %.6f' %(Q_inflow_unsubmerged, Q_inflow_submerged)
-        log_to_file(log_filename, s)
+        culvert_routine.Culvert_routine.__init__(self, culvert, manning)
 
-    # FIXME(Ole): Are these functions really for inflow control?
-    if Q_inflow_unsubmerged < Q_inflow_submerged:
-        Q = Q_inflow_unsubmerged
-        dcrit = (Q**2/g/width**2)**0.333333
-        if dcrit > height:
-            dcrit = height
-        flow_area = width*dcrit
-        outflow_culvert_depth = dcrit
-        case = 'inflow unsubmerged Box Acts as Weir'
-    else:
-        Q = Q_inflow_submerged
-        flow_area = width*height
-        outflow_culvert_depth = height
-        case = 'inflow submerged Box Acts as Orifice'
 
-    dcrit = (Q**2/g/width**2)**0.333333
 
-    outflow_culvert_depth = dcrit
-    if outflow_culvert_depth > height:
-        outflow_culvert_depth = height  # Once again the pipe is flowing full not partfull
-        flow_area = width*height  # Cross sectional area of flow in the culvert
-        perimeter = 2*(width+height)
-        case = 'inflow CTRL outflow unsubmerged PIPE PART FULL'
-    else:
-        flow_area = width * outflow_culvert_depth
-        perimeter = width+2*outflow_culvert_depth
-        case = 'inflow CTRL Culvert is open channel flow we will for now assume critical depth'
+    def __call__(self):
 
-    if delta_total_energy < inflow_specific_energy:
-        # Calculate flows for outflow control
+        self.determine_inflow()
 
-        # Determine the depth at the outflow relative to the depth of flow in the Culvert
-        if outflow_depth > height:        # The outflow is Submerged
-            outflow_culvert_depth=height
-            flow_area=width*height       # Cross sectional area of flow in the culvert
-            perimeter=2.0*(width+height)
-            case = 'outflow submerged'
-        else:   # Here really should use the Culvert Slope to calculate Actual Culvert Depth & Velocity
-            dcrit = (Q**2/g/width**2)**0.333333
-            outflow_culvert_depth=dcrit   # For purpose of calculation assume the outflow depth = Critical Depth
-            if outflow_culvert_depth > height:
-                outflow_culvert_depth=height
-                flow_area=width*height
-                perimeter=2.0*(width+height)
-                case = 'outflow is Flowing Full'
+        local_debug ='false'
+        
+        if self.inflow.get_average_height() > 0.01: #this value was 0.01:
+            if local_debug =='true':
+                log.critical('Specific E & Deltat Tot E = %s, %s'
+                             % (str(self.inflow.get_average_specific_energy()),
+                                str(self.delta_total_energy)))
+                log.critical('culvert type = %s' % str(culvert_type))
+            # Water has risen above inlet
+
+            if self.log_filename is not None:
+                s = 'Specific energy  = %f m' % self.inflow.get_average_specific_energy()
+                log_to_file(self.log_filename, s)
+
+            msg = 'Specific energy at inlet is negative'
+            assert self.inflow.get_average_specific_energy() >= 0.0, msg
+
+            height = self.culvert_height
+            width = self.culvert_width
+            flow_width = self.culvert_width
+
+            Q_inlet_unsubmerged = 0.540*g**0.5*width*self.inflow.get_average_specific_energy()**1.50 # Flow based on Inlet Ctrl Inlet Unsubmerged
+            Q_inlet_submerged = 0.702*g**0.5*width*height**0.89*self.inflow.get_average_specific_energy()**0.61  # Flow based on Inlet Ctrl Inlet Submerged
+
+            # FIXME(Ole): Are these functions really for inlet control?
+            if Q_inlet_unsubmerged < Q_inlet_submerged:
+                Q = Q_inlet_unsubmerged
+                dcrit = (Q**2/g/width**2)**0.333333
+                if dcrit > height:
+                    dcrit = height
+                flow_area = width*dcrit
+                outlet_culvert_depth = dcrit
+                case = 'Inlet unsubmerged Box Acts as Weir'
             else:
-                flow_area=width*outflow_culvert_depth
-                perimeter=(width+2.0*outflow_culvert_depth)
-                case = 'outflow is open channel flow'
+                Q = Q_inlet_submerged
+                flow_area = width*height
+                outlet_culvert_depth = height
+                case = 'Inlet submerged Box Acts as Orifice'
 
-        hyd_rad = flow_area/perimeter
+            dcrit = (Q**2/g/width**2)**0.333333
 
-        if log_filename is not None:
-            s = 'hydraulic radius at outflow = %f' % hyd_rad
-            log_to_file(log_filename, s)
+            outlet_culvert_depth = dcrit
+            if outlet_culvert_depth > height:
+                outlet_culvert_depth = height  # Once again the pipe is flowing full not partfull
+                flow_area = width*height  # Cross sectional area of flow in the culvert
+                perimeter = 2*(width+height)
+                case = 'Inlet CTRL Outlet unsubmerged PIPE PART FULL'
+            else:
+                flow_area = width * outlet_culvert_depth
+                perimeter = width+2*outlet_culvert_depth
+                case = 'INLET CTRL Culvert is open channel flow we will for now assume critical depth'
 
-        # outflow control velocity using tail water
-        culvert_velocity = sqrt(delta_total_energy/((sum_loss/2/g)+(manning**2*culvert_length)/hyd_rad**1.33333))
-        Q_outflow_tailwater = flow_area * culvert_velocity
+            if self.delta_total_energy < self.inflow.get_average_specific_energy():
+                # Calculate flows for outlet control
 
-        if log_filename is not None:
-            s = 'Q_outflow_tailwater = %.6f' % Q_outflow_tailwater
-            log_to_file(log_filename, s)
-        Q = min(Q, Q_outflow_tailwater)
+                # Determine the depth at the outlet relative to the depth of flow in the Culvert
+                if self.outflow.get_average_height() > height:        # The Outlet is Submerged
+                    outlet_culvert_depth=height
+                    flow_area=width*height       # Cross sectional area of flow in the culvert
+                    perimeter=2.0*(width+height)
+                    case = 'Outlet submerged'
+                else:   # Here really should use the Culvert Slope to calculate Actual Culvert Depth & Velocity
+                    dcrit = (Q**2/g/width**2)**0.333333
+                    outlet_culvert_depth=dcrit   # For purpose of calculation assume the outlet depth = Critical Depth
+                    if outlet_culvert_depth > height:
+                        outlet_culvert_depth=height
+                        flow_area=width*height
+                        perimeter=2.0*(width+height)
+                        case = 'Outlet is Flowing Full'
+                    else:
+                        flow_area=width*outlet_culvert_depth
+                        perimeter=(width+2.0*outlet_culvert_depth)
+                        case = 'Outlet is open channel flow'
 
-    return Q
+                hyd_rad = flow_area/perimeter
+
+                if self.log_filename is not None:
+                    s = 'hydraulic radius at outlet = %f' % hyd_rad
+                    log_to_file(self.log_filename, s)
+
+                # Outlet control velocity using tail water
+                culvert_velocity = sqrt(self.delta_total_energy/((self.sum_loss/2/g)+(self.manning**2*self.culvert_length)/hyd_rad**1.33333))
+                Q_outlet_tailwater = flow_area * culvert_velocity
+
+                if self.log_filename is not None:
+                    s = 'Q_outlet_tailwater = %.6f' % Q_outlet_tailwater
+                    log_to_file(self.log_filename, s)
+                Q = min(Q, Q_outlet_tailwater)
+            else:
+                pass
+                #FIXME(Ole): What about inlet control?
+
+            culv_froude=sqrt(Q**2*flow_width/(g*flow_area**3))
+            if local_debug =='true':
+                log.critical('FLOW AREA = %s' % str(flow_area))
+                log.critical('PERIMETER = %s' % str(perimeter))
+                log.critical('Q final = %s' % str(Q))
+                log.critical('FROUDE = %s' % str(culv_froude))
+
+            # Determine momentum at the outlet
+            barrel_velocity = Q/(flow_area + velocity_protection/flow_area)
+
+        # END CODE BLOCK for DEPTH  > Required depth for CULVERT Flow
+
+        else: # self.inflow.get_average_height() < 0.01:
+            Q = barrel_velocity = outlet_culvert_depth = 0.0
+
+        # Temporary flow limit
+        if barrel_velocity > self.max_velocity:
+            barrel_velocity = self.max_velocity
+            Q = flow_area * barrel_velocity
 
 
-if __name__ == "__main__":
+
+        
+
+        return Q, barrel_velocity, outlet_culvert_depth
 
 
-    g=9.81
-    culvert_slope=0.1  # Downward
 
-    inlet_depth=2.0
-    outlet_depth=0.0
-
-    inlet_velocity=0.0,
-    outlet_velocity=0.0,
-
-    culvert_length=4.0
-    culvert_width=1.2
-    culvert_height=0.75
-
-    culvert_type='box'
-    manning=0.013
-    sum_loss=0.0
-
-    inlet_specific_energy=inlet_depth #+0.5*v**2/g
-    z_in = 0.0
-    z_out = -culvert_length*culvert_slope/100
-    E_in = z_in+inlet_depth # +
-    E_out = z_out+outlet_depth # +
-    delta_total_energy = E_in-E_out
-
-    Q = boyd_box(culvert_height, culvert_width, culvert_width, inlet_specific_energy)
-
-    print 'Q ',Q
