@@ -46,36 +46,52 @@ class Culvert_operator:
 
         timestep = self.domain.get_timestep()
         
-        Q, barrel_speed, culvert_outlet_depth = self.routine()
+        Q, barrel_speed, outlet_depth = self.routine()
 
         inflow  = self.routine.get_inflow()
         outflow = self.routine.get_outflow()
 
+
+        old_inflow_height = inflow.get_average_height()
+		old_inflow_xmom = inflow.get_average_xmom()
+		old_inflow_ymom = inflow.get_average_ymom()
+		
+		if old_inflow_height > 0.0 :
+			Qstar = Q/old_inflow_height/inflow.get_area()
+		else:
+			Qstar = 0.0
+
+		factor = 1.0/(1.0 + Qstar*timestep)
+
+		
+		
+		new_inflow_height = old_inflow_height*factor
+		new_inflow_xmom = old_inflow_xmom*factor
+		new_inflow_ymom = old_inflow_ymom*factor
+		
+
+        inflow.set_heights(new_inflow_height)
+        inflow.set_xmoms(new_inflow_xmom)
+        inflow.set_ymoms(new_inflow_ymom)
+
+		
+		# set outflow
+		if old_inflow_height > 0.0 :
+			timestep_star = timestep*new_inflow_height/old_inflow_height
+		else:
+			timestep_star = 0.0
+		
+		print Q, barrel_speed, outlet_depth, Qstar, factor, timestep_star
+		
+		
+        outflow_extra_height = Q*timestep_star/outflow.get_area()
         outflow_direction = - outflow.outward_culvert_vector
+        outflow_extra_momentum = outflow_extra_height*barrel_speed*outflow_direction
+		
 
-        outflow_momentum_flux = barrel_speed**2*culvert_outlet_depth*outflow_direction
-
-
-        print Q, barrel_speed, culvert_outlet_depth, outflow_momentum_flux
-
-        #FIXME (SR) Check whether we need to mult/divide by inlet area
-        inflow_transfer =  Q*timestep/inflow.get_area()
-
-        outflow_transfer = Q*timestep/outflow.get_area()
-
-
-
-        inflow.set_heights(inflow.get_average_height() - inflow_transfer)
-
-        inflow.set_xmoms(0.0)
-        inflow.set_ymoms(0.0)
-
-        #u = outflow.get_xvelocities()
-        #v = outflow.get_yvelocities()
-
-        outflow.set_heights(outflow.get_average_height() + outflow_transfer)
-        #outflow.set_xmoms(outflow.get_xmoms() + timestep*outflow_momentum_flux[0] )
-        #outflow.set_ymoms(outflow.get_ymoms() + timestep*outflow_momentum_flux[1] )
+        outflow.set_heights(outflow.get_average_height() + outflow_extra_height)
+        outflow.set_xmoms(outflow.get_average_xmom() + outflow_extra_momentum[0] )
+        outflow.set_ymoms(outflow.get_average_ymom() + outflow_extra_momentum[1] )
 
     def print_stats(self):
 
