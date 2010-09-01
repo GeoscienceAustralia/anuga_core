@@ -71,10 +71,6 @@ class Boyd_box_routine(culvert_routine.Culvert_routine):
 
         local_debug ='false'
         
-        import pdb
-        pdb.set_trace()
-
-        
         if self.inflow.get_enquiry_height() > 0.01: #this value was 0.01:
             if local_debug =='true':
                 log.critical('Specific E & Deltat Tot E = %s, %s'
