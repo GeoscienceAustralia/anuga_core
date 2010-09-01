@@ -182,6 +182,7 @@ culvert1 = Culvert_operator(domain,
                             width=25.0,
                             height=10.0,
                             apron=5.0,
+                            manning=0.013,
                             verbose=False)
 
 
@@ -191,6 +192,7 @@ culvert2 = Culvert_operator(domain,
                             width=25.0,
                             height=10.0,
                             apron=5.0,
+                            manning=0.013,
                             verbose=False)
 
 
