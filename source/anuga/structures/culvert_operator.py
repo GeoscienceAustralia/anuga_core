@@ -13,7 +13,7 @@ class Culvert_operator:
     
     Input: Two points, pipe_size (either diameter or width, height), 
     mannings_rougness,
-    """	
+    """ 
 
     def __init__(self,
                  domain,
@@ -22,6 +22,7 @@ class Culvert_operator:
                  width,
                  height=None,
                  apron=None,
+                 manning=0.013,
                  enquiry_gap=0.2,
                  verbose=False):
         
@@ -38,6 +39,7 @@ class Culvert_operator:
         self.width  = width
         self.height = height
         self.apron  = apron
+        self.manning = manning
         self.enquiry_gap = enquiry_gap
         self.verbose = verbose
        
@@ -46,6 +48,7 @@ class Culvert_operator:
                                         self.width,
                                         self.height,
                                         self.apron,
+                                        self.manning,
                                         self.enquiry_gap,
                                         self.verbose)
         
@@ -69,22 +72,22 @@ class Culvert_operator:
 
 
         old_inflow_height = inflow.get_average_height()
-	old_inflow_xmom = inflow.get_average_xmom()
-	old_inflow_ymom = inflow.get_average_ymom()
-		
-	if old_inflow_height > 0.0 :
-            Qstar = Q/old_inflow_height
-	else:
-            Qstar = 0.0
+        old_inflow_xmom = inflow.get_average_xmom()
+        old_inflow_ymom = inflow.get_average_ymom()
+            
+        if old_inflow_height > 0.0 :
+                Qstar = Q/old_inflow_height
+        else:
+                Qstar = 0.0
 
-	factor = 1.0/(1.0 + Qstar*timestep/inflow.get_area())
+        factor = 1.0/(1.0 + Qstar*timestep/inflow.get_area())
 
-		
-		
-	new_inflow_height = old_inflow_height*factor
-	new_inflow_xmom = old_inflow_xmom*factor
-	new_inflow_ymom = old_inflow_ymom*factor
-		
+            
+            
+        new_inflow_height = old_inflow_height*factor
+        new_inflow_xmom = old_inflow_xmom*factor
+        new_inflow_ymom = old_inflow_ymom*factor
+            
 
         inflow.set_heights(new_inflow_height)
 
@@ -98,38 +101,38 @@ class Culvert_operator:
 
         loss = (old_inflow_height - new_inflow_height)*inflow.get_area()
 
-		
-	# set outflow
-	if old_inflow_height > 0.0 :
-            timestep_star = timestep*new_inflow_height/old_inflow_height
-	else:
+            
+        # set outflow
+        if old_inflow_height > 0.0 :
+                timestep_star = timestep*new_inflow_height/old_inflow_height
+        else:
             timestep_star = 0.0
 
-		
-        outflow_extra_height = Q*timestep_star/outflow.get_area()
-        outflow_direction = - outflow.outward_culvert_vector
-        outflow_extra_momentum = outflow_extra_height*barrel_speed*outflow_direction
-		
+            
+            outflow_extra_height = Q*timestep_star/outflow.get_area()
+            outflow_direction = - outflow.outward_culvert_vector
+            outflow_extra_momentum = outflow_extra_height*barrel_speed*outflow_direction
+            
 
-        gain = outflow_extra_height*outflow.get_area()
-        
-        #print Q, Q*timestep, barrel_speed, outlet_depth, Qstar, factor, timestep_star
-        #print '  ', loss, gain
+            gain = outflow_extra_height*outflow.get_area()
+            
+            #print Q, Q*timestep, barrel_speed, outlet_depth, Qstar, factor, timestep_star
+            #print '  ', loss, gain
 
 
-        new_outflow_height = outflow.get_average_height() + outflow_extra_height
-        new_outflow_xmom = outflow.get_average_xmom() + outflow_extra_momentum[0]
-        new_outflow_ymom = outflow.get_average_ymom() + outflow_extra_momentum[1]
+            new_outflow_height = outflow.get_average_height() + outflow_extra_height
+            new_outflow_xmom = outflow.get_average_xmom() + outflow_extra_momentum[0]
+            new_outflow_ymom = outflow.get_average_ymom() + outflow_extra_momentum[1]
 
-        outflow.set_heights(new_outflow_height)
+            outflow.set_heights(new_outflow_height)
 
-        outflow.set_xmoms(barrel_speed*new_outflow_height*outflow_direction[0])
-        outflow.set_ymoms(barrel_speed*new_outflow_height*outflow_direction[1])
+            outflow.set_xmoms(barrel_speed*new_outflow_height*outflow_direction[0])
+            outflow.set_ymoms(barrel_speed*new_outflow_height*outflow_direction[1])
 
-        #outflow.set_xmoms(new_outflow_xmom)
-        #outflow.set_ymoms(new_outflow_ymom)
-        
-        #print '   outflow volume ',outflow.get_total_water_volume()
+            #outflow.set_xmoms(new_outflow_xmom)
+            #outflow.set_ymoms(new_outflow_ymom)
+            
+            #print '   outflow volume ',outflow.get_total_water_volume()
 
     def print_stats(self):
 
