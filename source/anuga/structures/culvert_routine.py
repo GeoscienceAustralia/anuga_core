@@ -49,7 +49,7 @@ class Culvert_routine:
     def determine_inflow(self):
         # Determine flow direction based on total energy difference
 
-        self.delta_total_energy = self.inlets[0].get_average_total_energy() - self.inlets[1].get_average_total_energy()
+        self.delta_total_energy = self.inlets[0].get_enquiry_total_energy() - self.inlets[1].get_enquiry_total_energy()
 
         self.inflow  = self.inlets[0]
         self.outflow = self.inlets[1]

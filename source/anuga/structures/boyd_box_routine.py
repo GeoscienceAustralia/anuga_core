@@ -69,27 +69,27 @@ class Boyd_box_routine(culvert_routine.Culvert_routine):
 
         local_debug ='false'
         
-        if self.inflow.get_average_height() > 0.01: #this value was 0.01:
+        if self.inflow.get_enquiry_height() > 0.01: #this value was 0.01:
             if local_debug =='true':
                 log.critical('Specific E & Deltat Tot E = %s, %s'
-                             % (str(self.inflow.get_average_specific_energy()),
+                             % (str(self.inflow.get_enquiry_specific_energy()),
                                 str(self.delta_total_energy)))
                 log.critical('culvert type = %s' % str(culvert_type))
             # Water has risen above inlet
 
             if self.log_filename is not None:
-                s = 'Specific energy  = %f m' % self.inflow.get_average_specific_energy()
+                s = 'Specific energy  = %f m' % self.inflow.get_enquiry_specific_energy()
                 log_to_file(self.log_filename, s)
 
             msg = 'Specific energy at inlet is negative'
-            assert self.inflow.get_average_specific_energy() >= 0.0, msg
+            assert self.inflow.get_enquiry_specific_energy() >= 0.0, msg
 
             height = self.culvert_height
             width = self.culvert_width
             flow_width = self.culvert_width
 
-            Q_inlet_unsubmerged = 0.540*g**0.5*width*self.inflow.get_average_specific_energy()**1.50 # Flow based on Inlet Ctrl Inlet Unsubmerged
-            Q_inlet_submerged = 0.702*g**0.5*width*height**0.89*self.inflow.get_average_specific_energy()**0.61  # Flow based on Inlet Ctrl Inlet Submerged
+            Q_inlet_unsubmerged = 0.540*g**0.5*width*self.inflow.get_enquiry_specific_energy()**1.50 # Flow based on Inlet Ctrl Inlet Unsubmerged
+            Q_inlet_submerged = 0.702*g**0.5*width*height**0.89*self.inflow.get_enquiry_specific_energy()**0.61  # Flow based on Inlet Ctrl Inlet Submerged
 
             # FIXME(Ole): Are these functions really for inlet control?
             if Q_inlet_unsubmerged < Q_inlet_submerged:
@@ -119,11 +119,11 @@ class Boyd_box_routine(culvert_routine.Culvert_routine):
                 perimeter = width+2*outlet_culvert_depth
                 case = 'INLET CTRL Culvert is open channel flow we will for now assume critical depth'
 
-            if self.delta_total_energy < self.inflow.get_average_specific_energy():
+            if self.delta_total_energy < self.inflow.get_enquiry_specific_energy():
                 # Calculate flows for outlet control
 
                 # Determine the depth at the outlet relative to the depth of flow in the Culvert
-                if self.outflow.get_average_height() > height:        # The Outlet is Submerged
+                if self.outflow.get_enquiry_height() > height:        # The Outlet is Submerged
                     outlet_culvert_depth=height
                     flow_area=width*height       # Cross sectional area of flow in the culvert
                     perimeter=2.0*(width+height)
@@ -171,7 +171,7 @@ class Boyd_box_routine(culvert_routine.Culvert_routine):
 
         # END CODE BLOCK for DEPTH  > Required depth for CULVERT Flow
 
-        else: # self.inflow.get_average_height() < 0.01:
+        else: # self.inflow.get_enquiry_height() < 0.01:
             Q = barrel_velocity = outlet_culvert_depth = 0.0
 
         # Temporary flow limit

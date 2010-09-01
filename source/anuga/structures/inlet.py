@@ -8,42 +8,43 @@ class Inlet:
     """Contains information associated with each inlet
     """
 
-    def __init__(self, domain, polygon, outward_culvert_vector=None):
+    def __init__(self, domain, polygon, enquiry_pt,  outward_culvert_vector=None, verbose=False):
 
         self.domain = domain
         self.domain_bounding_polygon = self.domain.get_boundary_polygon()
         self.polygon = polygon
+        self.enquiry_pt = enquiry_pt
         self.outward_culvert_vector = outward_culvert_vector
+        self.verbose = verbose
 
         # FIXME (SR) Using get_triangle_containing_point which needs to be sped up
 
-        self.compute_triangle_indices()
+        self.compute_indices()
         self.compute_area()
 
 
-    def compute_triangle_indices(self):
+    def compute_indices(self):
 
         # Get boundary (in absolute coordinates)
         bounding_polygon = self.domain_bounding_polygon
         domain_centroids = self.domain.get_centroid_coordinates(absolute=True)
 
-        self.inlet_polygon = self.polygon
 
         # Check that polygon lies within the mesh.
-        for point in self.inlet_polygon:
-                msg = 'Point %s in polygon for forcing term' %  str(point)
+        for point in self.polygon + self.enquiry_pt:
+                msg = 'Point %s ' %  str(point)
                 msg += ' did not fall within the domain boundary.'
                 assert is_inside_polygon(point, bounding_polygon), msg
 
 
-        self.triangle_indices = inside_polygon(domain_centroids, self.inlet_polygon, verbose=True)
+        self.triangle_indices = inside_polygon(domain_centroids, self.polygon, verbose=self.verbose)
 
         if len(self.triangle_indices) == 0:
-            region = 'Inlet polygon=%s' % (self.inlet_polygon)
-            msg = 'No triangles have been identified in '
-            msg += 'specified region: %s' % region
+            region = 'Inlet polygon=%s' % (self.polygon)
+            msg = 'No triangles have been identified in region '
             raise Exception, msg
 
+        self.enquiry_index = self.domain.get_triangle_containing_point(self.enquiry_pt)
 
 
 
@@ -53,8 +54,7 @@ class Inlet:
         # by polygon. Must be called after compute_inlet_triangle_indices().
         if len(self.triangle_indices) == 0:
             region = 'Inlet polygon=%s' % (self.inlet_polygon)
-            msg = 'No triangles have been identified in '
-            msg += 'specified region: %s' % region
+            msg = 'No triangles have been identified in region '
             raise Exception, msg
         
         self.area = 0.0
@@ -114,6 +114,7 @@ class Inlet:
         
         return num.sum(self.get_ymoms()*self.get_areas())/self.area
     
+
     def get_heights(self):
     
         return self.get_stages() - self.get_elevations()
@@ -174,6 +175,71 @@ class Inlet:
         return self.get_average_velocity_head() + self.get_average_height()
 
 
+    def get_enquiry_stage(self):
+
+        return self.domain.quantities['stage'].centroid_values[self.enquiry_index]
+
+
+    def get_enquiry_xmom(self):
+
+        return self.domain.quantities['xmomentum'].centroid_values[self.enquiry_index]
+
+    def get_enquiry_ymom(self):
+
+        return self.domain.quantities['ymomentum'].centroid_values[self.enquiry_index]
+
+
+    def get_enquiry_elevation(self):
+
+        return self.domain.quantities['elevation'].centroid_values[self.enquiry_index]
+
+    def get_enquiry_height(self):
+
+        return self.get_enquiry_stage() - self.get_enquiry_elevation()
+
+
+    def get_enquiry_velocity(self):
+
+            height = self.get_enquiry_height()
+            u = self.get_enquiry_xmom()/(height + velocity_protection/height)
+            v = self.get_enquiry_ymom()/(height + velocity_protection/height)
+
+            return u, v
+
+
+    def get_enquiry_xvelocity(self):
+
+            height = self.get_enquiry_height()
+            return self.get_enquiry_xmom()/(height + velocity_protection/height)
+
+    def get_enquiry_yvelocity(self):
+
+            height = self.get_enquiry_height()
+            return self.get_enquiry_ymom()/(height + velocity_protection/height)
+
+
+    def get_enquiry_speed(self):
+
+            u, v = self.get_enquiry_velocity()
+
+            return math.sqrt(u**2 + v**2)
+
+
+    def get_enquiry_velocity_head(self):
+
+        return 0.5*self.get_enquiry_speed()**2/g
+
+
+    def get_enquiry_total_energy(self):
+
+        return self.get_enquiry_velocity_head() + self.get_enquiry_stage()
+
+
+    def get_enquiry_specific_energy(self):
+
+        return self.get_enquiry_velocity_head() + self.get_enquiry_height()
+
+
     def set_heights(self,height):
 
         self.domain.quantities['stage'].centroid_values.put(self.triangle_indices, self.get_elevations() + height)
@@ -186,12 +252,12 @@ class Inlet:
 
     def set_xmoms(self,xmom):
 
-        self.xmoms=self.domain.quantities['xmomentum'].centroid_values.put(self.triangle_indices, xmom)
+        self.domain.quantities['xmomentum'].centroid_values.put(self.triangle_indices, xmom)
 
 
     def set_ymoms(self,ymom):
 
-        self.xmoms=self.domain.quantities['ymomentum'].centroid_values.put(self.triangle_indices, ymom)
+        self.domain.quantities['ymomentum'].centroid_values.put(self.triangle_indices, ymom)
 
 
     def set_elevations(self,elevation):

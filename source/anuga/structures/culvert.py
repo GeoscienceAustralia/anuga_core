@@ -19,19 +19,20 @@ class Culvert:
     def __init__(self,
                  domain,
                  end_points, 
-                 width=None,
-                 height=None,
-                 verbose=False):
+                 width,
+                 height,
+                 apron,
+                 enquiry_gap,
+                 verbose):
         
         # Input check
         
         self.domain = domain
-
         self.end_points = end_points
- 
-        self.width = width
+        self.width  = width
         self.height = height
-        
+        self.apron  = apron
+        self.enquiry_gap = enquiry_gap
         self.verbose=verbose
        
         # Create the fundamental culvert polygons and create inlet objects
@@ -41,12 +42,14 @@ class Culvert:
 
         self.inlets = []
         polygon0 = self.inlet_polygons[0]
+        ep0 = self.inlet_equiry_pts[0]
         outward_vector0 = self.culvert_vector
-        self.inlets.append(inlet.Inlet(self.domain, polygon0, outward_vector0))
+        self.inlets.append(inlet.Inlet(self.domain, polygon0, ep0, outward_vector0))
 
         polygon1 = self.inlet_polygons[1]
+        ep1 = self.inlet_equiry_pts[1]
         outward_vector1  = - self.culvert_vector
-        self.inlets.append(inlet.Inlet(self.domain, polygon1, outward_vector1))
+        self.inlets.append(inlet.Inlet(self.domain, polygon1, ep1, outward_vector1))
 
 
     def __call__(self):
@@ -77,32 +80,39 @@ class Culvert:
 
         # Short hands
         w = 0.5*self.width*self.culvert_normal # Perpendicular vector of 1/2 width
-        h = 0.5*self.height*self.culvert_vector    # Vector of length=height in the
+        h = self.apron*self.culvert_vector    # Vector of length=height in the
                              # direction of the culvert
 
-        self.inlet_polygons = []
+        gap = (1 + self.enquiry_gap)*h
 
-        # Build exchange polygon and enquiry points 0 and 1
+        self.inlet_polygons = []
+        self.inlet_equiry_pts = []
+
+        # Build exchange polygon and enquiry point
         for i in [0, 1]:
             i0 = (2*i-1)
             p0 = self.end_points[i] + w
             p1 = self.end_points[i] - w
             p2 = p1 + i0*h
             p3 = p0 + i0*h
+            ep = self.end_points[i] + i0*gap
+
             self.inlet_polygons.append(num.array([p0, p1, p2, p3]))
+            self.inlet_equiry_pts.append(ep)
 
         # Check that enquiry points are outside inlet polygons
         for i in [0,1]:
             polygon = self.inlet_polygons[i]
-            # FIXME (SR) Probably should calculate the area of all the triangles
-            # associated with this polygon, as there is likely to be some
-            # inconsistency between triangles and ploygon
+            ep = self.inlet_equiry_pts[i]
+           
             area = polygon_area(polygon)
             
             msg = 'Polygon %s ' %(polygon)
             msg += ' has area = %f' % area
             assert area > 0.0, msg
-            
+
+            msg = 'Enquiry point falls inside an exchange polygon.'
+            assert not inside_polygon(ep, polygon), msg
     
     def get_inlets(self):
         
@@ -122,4 +132,9 @@ class Culvert:
     def get_culvert_height(self):
     
         return self.height
+
+
+    def get_culvert_apron(self):
+
+        return self.apron
         

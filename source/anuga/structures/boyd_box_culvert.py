@@ -14,11 +14,13 @@ class Boyd_box_culvert(culvert.Culvert):
     def __init__(self,
                  domain,
                  end_points,
-                 width=None,
-                 height=None,
+                 width,
+                 height,
+                 apron,
+                 enquiry_gap,
                  verbose=False):
 
-        culvert.Culvert.__init__(self, domain, end_points, width, height, verbose)
+        culvert.Culvert.__init__(self, domain, end_points, width, height, apron, enquiry_gap, verbose)
 
         self.routine = boyd_box_routine.Boyd_box_routine(self)
 

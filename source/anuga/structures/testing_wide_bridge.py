@@ -45,7 +45,7 @@ dx = dy = 2.0          # Resolution: Length of subdivisions on both axes
 #dx = dy = .1           # Resolution: Length of subdivisions on both axes
 
 points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
-                                               len1=length, len2=width)
+                                                    len1=length, len2=width)
 domain = Domain(points, vertices, boundary)   
 domain.set_name('Test_WIDE_BRIDGE')                 # Output name
 domain.set_default_order(2)
@@ -167,11 +167,30 @@ culvert_energy = Culvert_flow(domain,
 domain.forcing_terms.append(culvert_energy)
 """
 from anuga.structures.culvert_operator import Culvert_operator
+#culvert0 = Culvert_operator(domain,
+#                            end_point0=[40.0, 75.0],
+#                            end_point1=[50.0, 75.0],
+#                            width=50.0,
+#                            height=10.0,
+#                            apron=5.0,
+#                            verbose=False)
+
+
 culvert1 = Culvert_operator(domain,
-                            end_point0=[40.0, 75.0],
-                            end_point1=[50.0, 75.0],
-                            width=50.0,
+                            end_point0=[40.0, 87.5],
+                            end_point1=[50.0, 87.5],
+                            width=25.0,
                             height=10.0,
+                            apron=5.0,
+                            verbose=False)
+
+
+culvert2 = Culvert_operator(domain,
+                            end_point0=[40.0, 62.5],
+                            end_point1=[50.0, 62.5],
+                            width=25.0,
+                            height=10.0,
+                            apron=5.0,
                             verbose=False)
 
 
@@ -219,6 +238,7 @@ domain.set_boundary({'left': Btus, 'right': Btds, 'top': Br, 'bottom': Br})
 
 for t in domain.evolve(yieldstep = 1, finaltime = 100):
     print domain.timestepping_statistics()
+    print domain.volumetric_balance_statistics()
     
 
     
