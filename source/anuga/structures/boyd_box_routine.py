@@ -57,9 +57,11 @@ class Boyd_box_routine(culvert_routine.Culvert_routine):
 
         """
 
-    def __init__(self, culvert, manning=0.0):
+    def __init__(self, culvert):
 
-        culvert_routine.Culvert_routine.__init__(self, culvert, manning)
+        culvert_routine.Culvert_routine.__init__(self, culvert)
+        
+        self.manning = culvert.manning
 
 
 
@@ -68,6 +70,10 @@ class Boyd_box_routine(culvert_routine.Culvert_routine):
         self.determine_inflow()
 
         local_debug ='false'
+        
+        import pdb
+        pdb.set_trace()
+
         
         if self.inflow.get_enquiry_height() > 0.01: #this value was 0.01:
             if local_debug =='true':

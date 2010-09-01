@@ -22,6 +22,7 @@ class Culvert:
                  width,
                  height,
                  apron,
+                 manning,
                  enquiry_gap,
                  verbose):
         
@@ -32,6 +33,8 @@ class Culvert:
         self.width  = width
         self.height = height
         self.apron  = apron
+        self.manning = manning
+        
         self.enquiry_gap = enquiry_gap
         self.verbose=verbose
        
