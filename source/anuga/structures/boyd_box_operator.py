@@ -47,11 +47,18 @@ class Boyd_box_operator(structure_operator.Structure_operator):
         self.culvert_width = self.get_culvert_width()
         self.culvert_height = self.get_culvert_height()
 
+
         self.sum_loss = 0.0
         self.max_velocity = 10.0
         self.log_filename = None
-        
+
         self.inlets = self.get_inlets()
+
+
+        # Stats
+        
+        self.discharge = 0.0
+        self.velocity = 0.0
         
         
     def __call__(self):
@@ -110,6 +117,10 @@ class Boyd_box_operator(structure_operator.Structure_operator):
             
         #print Q, Q*timestep, barrel_speed, outlet_depth, Qstar, factor, timestep_star
         #print '  ', loss, gain
+
+        # Stats
+        self.discharge  = outflow_extra_height*self.outflow.get_area()/timestep
+        self.velocity = self.discharge/outlet_depth/self.width
 
         new_outflow_height = self.outflow.get_average_height() + outflow_extra_height
 

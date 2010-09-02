@@ -5,7 +5,7 @@ import math
 import inlet
 
 class Structure_operator:
-    """Culvert flow - transfer water from one rectangular box to another.
+    """Structure Operator - transfer water from one rectangular box to another.
     Sets up the geometry of problem
     
     This is the base class for culverts. Inherit from this class (and overwrite
@@ -42,6 +42,9 @@ class Structure_operator:
         self.manning = manning
         self.enquiry_gap = enquiry_gap
         self.verbose = verbose
+
+        self.discharge = 0.0
+        self.velocity = 0.0
         
         self.__create_exchange_polygons()
 
@@ -148,7 +151,33 @@ class Structure_operator:
 
         print '====================================='
 
-                        
+
+    def structure_statistics(self):
+
+        message = '---------------------------\n'
+        message += 'Structure report:\n'
+        message += '--------------------------\n'
+        message += 'Discharge [m^3/s]: %.2f\n' % self.discharge
+        message += 'Velocity  [m/s]: %.2f\n' % self.velocity
+#        message += 'Total boundary outflow [m^3/s]: %.2f\n' % total_boundary_outflow
+#        message += 'Net boundary flow by tags [m^3/s]\n'
+#        for tag in boundary_flows:
+#            message += '    %s [m^3/s]: %.2f\n' % (tag, boundary_flows[tag])
+#
+#        message += 'Total net boundary flow [m^3/s]: %.2f\n' % \
+#                    (total_boundary_inflow + total_boundary_outflow)
+#        message += 'Total volume in domain [m^3]: %.2f\n' % \
+#                    self.compute_total_volume()
+#
+#        # The go through explicit forcing update and record the rate of change
+#        # for stage and
+#        # record into forcing_inflow and forcing_outflow. Finally compute
+#        # integral of depth to obtain total volume of domain.
+#
+        # FIXME(Ole): This part is not yet done.
+
+        return message
+
     def get_inlets(self):
         
         return self.inlets
