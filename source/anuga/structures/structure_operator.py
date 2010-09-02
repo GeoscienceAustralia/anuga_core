@@ -24,6 +24,7 @@ class Structure_operator:
                  apron,
                  manning,
                  enquiry_gap,
+                 description,
                  verbose):
         
         self.domain = domain
@@ -41,10 +42,13 @@ class Structure_operator:
         self.apron  = apron
         self.manning = manning
         self.enquiry_gap = enquiry_gap
+        self.description = description
         self.verbose = verbose
 
         self.discharge = 0.0
         self.velocity = 0.0
+        self.delta_total_energy = 0.0
+        self.driving_energy = 0.0
         
         self.__create_exchange_polygons()
 
@@ -155,11 +159,12 @@ class Structure_operator:
     def structure_statistics(self):
 
         message = '---------------------------\n'
-        message += 'Structure report:\n'
+        message += 'Structure report for structure %s:\n' % self.description
         message += '--------------------------\n'
         message += 'Discharge [m^3/s]: %.2f\n' % self.discharge
         message += 'Velocity  [m/s]: %.2f\n' % self.velocity
-#        message += 'Total boundary outflow [m^3/s]: %.2f\n' % total_boundary_outflow
+        message += 'Inlet Driving Energy %.2f\n' % self.driving_energy
+        message += 'delta total energy %.2f\n' % self.delta_total_energy
 #        message += 'Net boundary flow by tags [m^3/s]\n'
 #        for tag in boundary_flows:
 #            message += '    %s [m^3/s]: %.2f\n' % (tag, boundary_flows[tag])

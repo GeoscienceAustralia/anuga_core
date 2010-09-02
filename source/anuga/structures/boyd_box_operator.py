@@ -27,6 +27,7 @@ class Boyd_box_operator(structure_operator.Structure_operator):
                  enquiry_gap=0.2,
                  use_momentum_jet=True,
                  use_velocity_head=True,
+                 description=None,
                  verbose=False):
                      
         structure_operator.Structure_operator.__init__(self,
@@ -38,6 +39,7 @@ class Boyd_box_operator(structure_operator.Structure_operator):
                                                        apron,
                                                        manning,
                                                        enquiry_gap,
+                                                       description,
                                                        verbose)            
         
         self.use_momentum_jet = use_momentum_jet
@@ -119,8 +121,8 @@ class Boyd_box_operator(structure_operator.Structure_operator):
         #print '  ', loss, gain
 
         # Stats
-        self.discharge  = outflow_extra_height*self.outflow.get_area()/timestep
-        self.velocity = self.discharge/outlet_depth/self.width
+        self.discharge  = Q#outflow_extra_height*self.outflow.get_area()/timestep
+        self.velocity = barrel_speed#self.discharge/outlet_depth/self.width
 
         new_outflow_height = self.outflow.get_average_height() + outflow_extra_height
 
@@ -184,16 +186,18 @@ class Boyd_box_operator(structure_operator.Structure_operator):
             assert self.inflow.get_enquiry_specific_energy() >= 0.0, msg
 
             if self.use_velocity_head :
-                driving_energy = self.inflow.get_enquiry_specific_energy()
+                self.driving_energy = self.inflow.get_enquiry_specific_energy()
             else:
-                driving_energy = self.inflow.get_enquiry_height()
+                self.driving_energy = self.inflow.get_enquiry_height()
 
             height = self.culvert_height
             width = self.culvert_width
             flow_width = self.culvert_width
-
-            Q_inlet_unsubmerged = 0.540*g**0.5*width*driving_energy**1.50 # Flow based on Inlet Ctrl Inlet Unsubmerged
-            Q_inlet_submerged = 0.702*g**0.5*width*height**0.89*driving_energy**0.61  # Flow based on Inlet Ctrl Inlet Submerged
+            # intially assume the culvert flow is controlled by the inlet
+            # check unsubmerged and submerged condition and use Min Q
+            # but ensure the correct flow area and wetted perimeter are used
+            Q_inlet_unsubmerged = 0.544*g**0.5*width*self.driving_energy**1.50 # Flow based on Inlet Ctrl Inlet Unsubmerged
+            Q_inlet_submerged = 0.702*g**0.5*width*height**0.89*self.driving_energy**0.61  # Flow based on Inlet Ctrl Inlet Submerged
 
             # FIXME(Ole): Are these functions really for inlet control?
             if Q_inlet_unsubmerged < Q_inlet_submerged:
@@ -201,17 +205,28 @@ class Boyd_box_operator(structure_operator.Structure_operator):
                 dcrit = (Q**2/g/width**2)**0.333333
                 if dcrit > height:
                     dcrit = height
-                flow_area = width*dcrit
+                    flow_area = width*dcrit
+                    perimeter= 2.0*(width+dcrit)
+                else: # dcrit < height
+                    flow_area = width*dcrit
+                    perimeter= 2.0*dcrit+width
                 outlet_culvert_depth = dcrit
                 case = 'Inlet unsubmerged Box Acts as Weir'
-            else:
+            else: # Inlet Submerged but check internal culvert flow depth
                 Q = Q_inlet_submerged
-                flow_area = width*height
-                outlet_culvert_depth = height
+                dcrit = (Q**2/g/width**2)**0.333333
+                if dcrit > height:
+                    dcrit = height
+                    flow_area = width*dcrit
+                    perimeter= 2.0*(width+dcrit)
+                else: # dcrit < height
+                    flow_area = width*dcrit
+                    perimeter= 2.0*dcrit+width
+                outlet_culvert_depth = dcrit
                 case = 'Inlet submerged Box Acts as Orifice'
 
             dcrit = (Q**2/g/width**2)**0.333333
-
+            # May not need this .... check if same is done above
             outlet_culvert_depth = dcrit
             if outlet_culvert_depth > height:
                 outlet_culvert_depth = height  # Once again the pipe is flowing full not partfull
@@ -222,8 +237,14 @@ class Boyd_box_operator(structure_operator.Structure_operator):
                 flow_area = width * outlet_culvert_depth
                 perimeter = width+2*outlet_culvert_depth
                 case = 'INLET CTRL Culvert is open channel flow we will for now assume critical depth'
-
-            if self.delta_total_energy < driving_energy:
+            # Initial Estimate of Flow for Outlet Control using energy slope 
+            #( may need to include Culvert Bed Slope Comparison)
+            hyd_rad = flow_area/perimeter
+            culvert_velocity = math.sqrt(self.delta_total_energy/((self.sum_loss/2/g)+(self.manning**2*self.culvert_length)/hyd_rad**1.33333))
+            Q_outlet_tailwater = flow_area * culvert_velocity
+            
+            
+            if self.delta_total_energy < self.driving_energy:
                 # Calculate flows for outlet control
 
                 # Determine the depth at the outlet relative to the depth of flow in the Culvert
@@ -251,7 +272,7 @@ class Boyd_box_operator(structure_operator.Structure_operator):
                     s = 'hydraulic radius at outlet = %f' % hyd_rad
                     log_to_file(self.log_filename, s)
 
-                # Outlet control velocity using tail water
+                # Final Outlet control velocity using tail water
                 culvert_velocity = math.sqrt(self.delta_total_energy/((self.sum_loss/2/g)+(self.manning**2*self.culvert_length)/hyd_rad**1.33333))
                 Q_outlet_tailwater = flow_area * culvert_velocity
 
