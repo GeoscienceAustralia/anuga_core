@@ -23,8 +23,7 @@ from anuga.shallow_water.forcing import Rainfall, Inflow
 #from anuga.shallow_water.forcing import Dirichlet_boundary
 #from anuga.shallow_water.forcing import Transmissive_boundary, Time_boundary
 
-from anuga.culvert_flows.culvert_class import Culvert_flow
-from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
+
 #from anuga.culvert_flows.culvert_routines import weir_orifice_channel_culvert_model
 from math import pi,pow,sqrt
 
@@ -166,7 +165,7 @@ culvert_energy = Culvert_flow(domain,
 
 domain.forcing_terms.append(culvert_energy)
 """
-from anuga.structures.culvert_operator import Culvert_operator
+from anuga.structures.boyd_box_operator import Boyd_box_operator
 #culvert0 = Culvert_operator(domain,
 #                            end_point0=[40.0, 75.0],
 #                            end_point1=[50.0, 75.0],
@@ -186,7 +185,7 @@ for i in range(number_of_culverts):
     y = 100-i*culvert_width - culvert_width/2.0
     ep0 = [40.0, y]
     ep1 = [50.0, y]
-    culverts.append(Culvert_operator(domain,
+    culverts.append(Boyd_box_operator(domain,
                             end_point0=ep0,
                             end_point1=ep1,
                             width=culvert_width,
