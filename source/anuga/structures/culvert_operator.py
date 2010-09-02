@@ -24,6 +24,8 @@ class Culvert_operator:
                  apron=None,
                  manning=0.013,
                  enquiry_gap=0.2,
+                 use_momentum_jet=True,
+                 use_velocity_head=True,
                  verbose=False):
         
         self.domain = domain
@@ -42,6 +44,9 @@ class Culvert_operator:
         self.manning = manning
         self.enquiry_gap = enquiry_gap
         self.verbose = verbose
+
+        self.use_momentum_jet = use_momentum_jet
+        self.use_velocity_head= use_velocity_head
        
         self.culvert = Boyd_box_culvert(self.domain,
                                         self.end_points,
@@ -50,6 +55,7 @@ class Culvert_operator:
                                         self.apron,
                                         self.manning,
                                         self.enquiry_gap,
+                                        self.use_velocity_head,
                                         self.verbose)
         
         self.routine = self.culvert.routine
@@ -109,30 +115,44 @@ class Culvert_operator:
             timestep_star = 0.0
 
             
-            outflow_extra_height = Q*timestep_star/outflow.get_area()
-            outflow_direction = - outflow.outward_culvert_vector
-            outflow_extra_momentum = outflow_extra_height*barrel_speed*outflow_direction
+        outflow_extra_height = Q*timestep_star/outflow.get_area()
+        outflow_direction = - outflow.outward_culvert_vector
+        outflow_extra_momentum = outflow_extra_height*barrel_speed*outflow_direction
             
 
-            gain = outflow_extra_height*outflow.get_area()
+        gain = outflow_extra_height*outflow.get_area()
             
-            #print Q, Q*timestep, barrel_speed, outlet_depth, Qstar, factor, timestep_star
-            #print '  ', loss, gain
+        #print Q, Q*timestep, barrel_speed, outlet_depth, Qstar, factor, timestep_star
+        #print '  ', loss, gain
 
 
-            new_outflow_height = outflow.get_average_height() + outflow_extra_height
-            new_outflow_xmom = outflow.get_average_xmom() + outflow_extra_momentum[0]
-            new_outflow_ymom = outflow.get_average_ymom() + outflow_extra_momentum[1]
 
-            outflow.set_heights(new_outflow_height)
+        new_outflow_height = outflow.get_average_height() + outflow_extra_height
 
-            outflow.set_xmoms(barrel_speed*new_outflow_height*outflow_direction[0])
-            outflow.set_ymoms(barrel_speed*new_outflow_height*outflow_direction[1])
 
-            #outflow.set_xmoms(new_outflow_xmom)
-            #outflow.set_ymoms(new_outflow_ymom)
+        if self.use_momentum_jet :
+            # FIXME (SR) Review momentum to account for possible hydraulic jumps at outlet
+            #new_outflow_xmom = outflow.get_average_xmom() + outflow_extra_momentum[0]
+            #new_outflow_ymom = outflow.get_average_ymom() + outflow_extra_momentum[1]
+
+            new_outflow_xmom = barrel_speed*new_outflow_height*outflow_direction[0]
+            new_outflow_ymom = barrel_speed*new_outflow_height*outflow_direction[1]
+
+        else:
+            #new_outflow_xmom = outflow.get_average_xmom()
+            #new_outflow_ymom = outflow.get_average_ymom()
+
+            new_outflow_xmom = 0.0
+            new_outflow_ymom = 0.0
+
+
+        outflow.set_heights(new_outflow_height)
+        outflow.set_xmoms(new_outflow_xmom)
+        outflow.set_ymoms(new_outflow_ymom)
+
+
             
-            #print '   outflow volume ',outflow.get_total_water_volume()
+        #print '   outflow volume ',outflow.get_total_water_volume()
 
     def print_stats(self):
 
