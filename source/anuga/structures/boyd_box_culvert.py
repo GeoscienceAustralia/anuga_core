@@ -19,10 +19,22 @@ class Boyd_box_culvert(culvert.Culvert):
                  apron,
                  manning,
                  enquiry_gap,
+                 use_velocity_head,
                  verbose=False):
 
-        culvert.Culvert.__init__(self, domain, end_points, width, height, apron, manning, enquiry_gap, verbose)
-        
+
+        culvert.Culvert.__init__(self,
+                                 domain,
+                                 end_points,
+                                 width,
+                                 height,
+                                 apron,
+                                 manning,
+                                 enquiry_gap,
+                                 use_velocity_head,
+                                 verbose)
+
+
         self.routine = boyd_box_routine.Boyd_box_routine(self)
 
     def __call__(self):

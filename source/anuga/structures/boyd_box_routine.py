@@ -86,12 +86,17 @@ class Boyd_box_routine(culvert_routine.Culvert_routine):
             msg = 'Specific energy at inlet is negative'
             assert self.inflow.get_enquiry_specific_energy() >= 0.0, msg
 
+            if self.use_velocity_head :
+                driving_energy = self.inflow.get_enquiry_specific_energy()
+            else:
+                driving_energy = self.get_enquiry_height
+
             height = self.culvert_height
             width = self.culvert_width
             flow_width = self.culvert_width
 
-            Q_inlet_unsubmerged = 0.540*g**0.5*width*self.inflow.get_enquiry_specific_energy()**1.50 # Flow based on Inlet Ctrl Inlet Unsubmerged
-            Q_inlet_submerged = 0.702*g**0.5*width*height**0.89*self.inflow.get_enquiry_specific_energy()**0.61  # Flow based on Inlet Ctrl Inlet Submerged
+            Q_inlet_unsubmerged = 0.540*g**0.5*width*driving_energy**1.50 # Flow based on Inlet Ctrl Inlet Unsubmerged
+            Q_inlet_submerged = 0.702*g**0.5*width*height**0.89*driving_energy**0.61  # Flow based on Inlet Ctrl Inlet Submerged
 
             # FIXME(Ole): Are these functions really for inlet control?
             if Q_inlet_unsubmerged < Q_inlet_submerged:
@@ -121,7 +126,7 @@ class Boyd_box_routine(culvert_routine.Culvert_routine):
                 perimeter = width+2*outlet_culvert_depth
                 case = 'INLET CTRL Culvert is open channel flow we will for now assume critical depth'
 
-            if self.delta_total_energy < self.inflow.get_enquiry_specific_energy():
+            if self.delta_total_energy < driving_energy:
                 # Calculate flows for outlet control
 
                 # Determine the depth at the outlet relative to the depth of flow in the Culvert

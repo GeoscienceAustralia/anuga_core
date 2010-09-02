@@ -24,6 +24,7 @@ class Culvert:
                  apron,
                  manning,
                  enquiry_gap,
+                 use_velocity_head,
                  verbose):
         
         # Input check
@@ -36,6 +37,7 @@ class Culvert:
         self.manning = manning
         
         self.enquiry_gap = enquiry_gap
+        self.use_velocity_head = use_velocity_head
         self.verbose=verbose
        
         # Create the fundamental culvert polygons and create inlet objects

@@ -30,6 +30,10 @@ class Culvert_routine:
         self.max_velocity = 10.0
         self.manning = manning
         self.log_filename = None
+
+        self.use_velocity_head = True
+        
+
         
         self.determine_inflow()
 
@@ -49,7 +53,11 @@ class Culvert_routine:
     def determine_inflow(self):
         # Determine flow direction based on total energy difference
 
-        self.delta_total_energy = self.inlets[0].get_enquiry_total_energy() - self.inlets[1].get_enquiry_total_energy()
+        if self.use_velocity_head:
+            self.delta_total_energy = self.inlets[0].get_enquiry_total_energy() - self.inlets[1].get_enquiry_total_energy()
+        else:
+            self.delta_total_energy = self.inlets[0].get_enquiry_stage() - self.inlets[1].get_enquiry_stage()
+
 
         self.inflow  = self.inlets[0]
         self.outflow = self.inlets[1]
