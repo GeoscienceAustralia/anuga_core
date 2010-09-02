@@ -176,24 +176,39 @@ from anuga.structures.culvert_operator import Culvert_operator
 #                            verbose=False)
 
 
-culvert1 = Culvert_operator(domain,
-                            end_point0=[40.0, 87.5],
-                            end_point1=[50.0, 87.5],
-                            width=25.0,
+#------------------------------------------------------------------------------
+# Setup culverts
+#------------------------------------------------------------------------------
+culverts = []
+number_of_culverts = 1
+for i in range(number_of_culverts):
+    culvert_width = 50.0/number_of_culverts
+    y = 100-i*culvert_width - culvert_width/2.0
+    ep0 = [40.0, y]
+    ep1 = [50.0, y]
+    culverts.append(Culvert_operator(domain,
+                            end_point0=ep0,
+                            end_point1=ep1,
+                            width=culvert_width,
                             height=10.0,
                             apron=5.0,
+                            use_momentum_jet=True,
+                            use_velocity_head=False,
                             manning=0.013,
-                            verbose=False)
+                            verbose=False))
 
 
-culvert2 = Culvert_operator(domain,
-                            end_point0=[40.0, 62.5],
-                            end_point1=[50.0, 62.5],
-                            width=25.0,
-                            height=10.0,
-                            apron=5.0,
-                            manning=0.013,
-                            verbose=False)
+
+
+#culvert2 = Culvert_operator(domain,
+#                            end_point0=[40.0, 62.5],
+#                            end_point1=[50.0, 62.5],
+#                            width=25.0,
+#                            height=10.0,
+#                            apron=5.0,
+#                            manning=0.013,
+#                            verbose=False)
+
 
 
 """
