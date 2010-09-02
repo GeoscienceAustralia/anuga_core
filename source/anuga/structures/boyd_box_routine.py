@@ -89,7 +89,7 @@ class Boyd_box_routine(culvert_routine.Culvert_routine):
             if self.use_velocity_head :
                 driving_energy = self.inflow.get_enquiry_specific_energy()
             else:
-                driving_energy = self.get_enquiry_height
+                driving_energy = self.inflow.get_enquiry_height)_
 
             height = self.culvert_height
             width = self.culvert_width
