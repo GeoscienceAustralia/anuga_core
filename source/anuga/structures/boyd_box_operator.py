@@ -2,6 +2,7 @@ from anuga.geometry.polygon import inside_polygon, polygon_area
 from anuga.config import g, velocity_protection
 import anuga.utilities.log as log
 import math
+import types
 
 import structure_operator
 
@@ -20,6 +21,7 @@ class Boyd_box_operator(structure_operator.Structure_operator):
                  domain,
                  end_point0, 
                  end_point1,
+                 losses,
                  width,
                  height=None,
                  apron=None,
@@ -38,9 +40,17 @@ class Boyd_box_operator(structure_operator.Structure_operator):
                                                        height,
                                                        apron,
                                                        manning,
-                                                       enquiry_gap,
+                                                       enquiry_gap,                                                       
                                                        description,
                                                        verbose)            
+        
+        
+        if type(losses) == types.DictType:
+            self.sum_loss = sum(losses.values())
+        elif type(losses) == types.ListType:
+            self.sum_losses = sum(losses)
+        else:
+            self.sum_losses = losses
         
         self.use_momentum_jet = use_momentum_jet
         self.use_velocity_head = use_velocity_head
@@ -49,8 +59,6 @@ class Boyd_box_operator(structure_operator.Structure_operator):
         self.culvert_width = self.get_culvert_width()
         self.culvert_height = self.get_culvert_height()
 
-
-        self.sum_loss = 0.0
         self.max_velocity = 10.0
         self.log_filename = None
 
