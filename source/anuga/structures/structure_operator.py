@@ -198,6 +198,11 @@ class Structure_operator:
         return self.width
         
         
+    def get_culvert_diameter(self):
+    
+            return self.width
+        
+        
     def get_culvert_height(self):
     
         return self.height

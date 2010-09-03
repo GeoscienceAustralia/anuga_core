@@ -24,7 +24,7 @@ from anuga.shallow_water.forcing import Rainfall, Inflow
 #from anuga.shallow_water.forcing import Transmissive_boundary, Time_boundary
 
 #from anuga.culvert_flows.culvert_class import Culvert_flow
-from anuga.structures.boyd_box_operator import Boyd_box_operator
+from anuga.structures.boyd_pipe_operator import Boyd_pipe_operator
 #from anuga.culvert_flows.culvert_routines import weir_orifice_channel_culvert_model
 from math import pi,pow,sqrt
 
@@ -164,31 +164,30 @@ for i in range(number_of_culverts):
     y = 100-i*culvert_width - culvert_width/2.0
     ep0 = [40.0, y]
     ep1 = [50.0, y]
-    losses = {'inlet':1, 'outlet':1, 'bend':1, 'grate':1, 'pier': 1, 'other': 1}
-    culverts.append(Boyd_box_operator(domain,
+    losses = {'inlet':0.5, 'outlet':1, 'bend':0, 'grate':0, 'pier': 0, 'other': 0}
+    culverts.append(Boyd_pipe_operator(domain,
                             end_point0=ep0,
                             end_point1=ep1,
-                            losses,
-                            width=3.658, #culvert_width, #3.658,
-                            height=3.658,
+                            losses=losses,
+                            diameter=1.5, #culvert_width, #3.658,
                             apron=6.0,
                             use_momentum_jet=True,
                             use_velocity_head=True,
                             manning=0.013,
                             verbose=False))
 
+                       
 
-
-losses = {'inlet':1, 'outlet':1, 'bend':1, 'grate':1, 'pier': 1, 'other': 1}
-culvert2 = Culvert_operator(domain,
-                            end_point0=[40.0, 62.5],
-                            end_point1=[50.0, 62.5],
-                            losses,
-                            width=25.0,
-                            height=10.0,
-                            apron=5.0,
-                            manning=0.013,
-                            verbose=False)
+#losses = {'inlet':1, 'outlet':1, 'bend':1, 'grate':1, 'pier': 1, 'other': 1}
+#culvert2 = Culvert_operator(domain,
+                            #end_point0=[40.0, 62.5],
+                            #end_point1=[50.0, 62.5],
+                            #losses,
+                            #width=25.0,
+                            #height=10.0,
+                            #apron=5.0,
+                            #manning=0.013,
+                            #verbose=False)
 
 
 
