@@ -1,5 +1,4 @@
-from anuga.geometry.polygon import inside_polygon, polygon_area
-from anuga.config import g
+import anuga
 import numpy as num
 import math
 import inlet
@@ -116,14 +115,14 @@ class Structure_operator:
             polygon = self.inlet_polygons[i]
             ep = self.inlet_equiry_points[i]
            
-            area = polygon_area(polygon)
+            area = anuga.polygon_area(polygon)
             
             msg = 'Polygon %s ' %(polygon)
             msg += ' has area = %f' % area
             assert area > 0.0, msg
 
             msg = 'Enquiry point falls inside an exchange polygon.'
-            assert not inside_polygon(ep, polygon), msg
+            assert not anuga.inside_polygon(ep, polygon), msg
     
             
         #print '   outflow volume ',outflow.get_total_water_volume()
