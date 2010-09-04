@@ -17,8 +17,6 @@ class Inlet:
         self.outward_culvert_vector = outward_culvert_vector
         self.verbose = verbose
 
-        # FIXME (SR) Using get_triangle_containing_point which needs to be sped up
-
         self.compute_indices()
         self.compute_area()
 
@@ -31,10 +29,15 @@ class Inlet:
 
 
         # Check that polygon lies within the mesh.
-        for point in self.polygon + self.enquiry_pt:
+        for point in self.polygon:
                 msg = 'Point %s ' %  str(point)
                 msg += ' did not fall within the domain boundary.'
                 assert is_inside_polygon(point, bounding_polygon), msg
+                
+        point = self.enquiry_pt
+        msg = 'Enquiry Point %s ' %  str(point)
+        msg += ' did not fall within the domain boundary.'
+        assert is_inside_polygon(point, bounding_polygon), msg
 
 
         self.triangle_indices = inside_polygon(domain_centroids, self.polygon, verbose=self.verbose)
