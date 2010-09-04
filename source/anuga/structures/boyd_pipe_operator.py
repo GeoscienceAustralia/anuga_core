@@ -1,13 +1,8 @@
-from anuga.geometry.polygon import inside_polygon, polygon_area
-from anuga.config import g, velocity_protection
-import anuga.utilities.log as log
+import anuga
 import math
-from anuga.utilities.numerical_tools import safe_acos as acos
 import types
 
-import structure_operator
-
-class Boyd_pipe_operator(structure_operator.Structure_operator):
+class Boyd_pipe_operator(anuga.Structure_operator):
     """Culvert flow - transfer water from one location to another via a circular pipe culvert.
     Sets up the geometry of problem
     
@@ -32,18 +27,18 @@ class Boyd_pipe_operator(structure_operator.Structure_operator):
                  description=None,
                  verbose=False):
                      
-        structure_operator.Structure_operator.__init__(self,
-                                                       domain,
-                                                       end_point0, 
-                                                       end_point1,
-                                                       width=diameter,
-                                                       height=None,
-                                                       apron=apron,
-                                                       manning=manning,
-                                                       enquiry_gap=enquiry_gap,                                                       
-                                                       description=description,
-                                                       verbose=verbose)            
-        
+        anuga.Structure_operator.__init__(self,
+                                          domain,
+                                          end_point0, 
+                                          end_point1,
+                                          width=diameter,
+                                          height=None,
+                                          apron=apron,
+                                          manning=manning,
+                                          enquiry_gap=enquiry_gap,                                                       
+                                          description=description,
+                                          verbose=verbose)            
+
  
         if type(losses) == types.DictType:
             self.sum_loss = sum(losses.values())
@@ -179,10 +174,10 @@ class Boyd_pipe_operator(structure_operator.Structure_operator):
         
         if self.inflow.get_enquiry_height() > 0.01: #this value was 0.01: Remember this needs to be compared to the Invert Lvl
             if local_debug =='true':
-                log.critical('Specific E & Deltat Tot E = %s, %s'
+                anuga.log.critical('Specific E & Deltat Tot E = %s, %s'
                              % (str(self.inflow.get_enquiry_specific_energy()),
                                 str(self.delta_total_energy)))
-                log.critical('culvert type = %s' % str(culvert_type))
+                anuga.log.critical('culvert type = %s' % str(culvert_type))
             # Water has risen above inlet
 
             if self.log_filename is not None:
@@ -210,10 +205,10 @@ class Boyd_pipe_operator(structure_operator.Structure_operator):
         local_debug ='false'
         if self.inflow.get_average_height() > 0.01: #this should test against invert
             if local_debug =='true':
-                log.critical('Specific E & Deltat Tot E = %s, %s'
+                anuga.log.critical('Specific E & Deltat Tot E = %s, %s'
                              % (str(self.inflow.get_average_specific_energy()),
                                 str(self.delta_total_energy)))
-                log.critical('culvert type = %s' % str(culvert_type))
+                anuga.log.critical('culvert type = %s' % str(culvert_type))
             # Water has risen above inlet
 
             if self.log_filename is not None:
@@ -224,8 +219,8 @@ class Boyd_pipe_operator(structure_operator.Structure_operator):
             assert self.inflow.get_average_specific_energy() >= 0.0, msg
 
             # Calculate flows for inlet control for circular pipe
-            Q_inlet_unsubmerged = 0.421*g**0.5*diameter**0.87*self.inflow.get_average_specific_energy()**1.63 # Inlet Ctrl Inlet Unsubmerged
-            Q_inlet_submerged = 0.530*g**0.5*diameter**1.87*self.inflow.get_average_specific_energy()**0.63   # Inlet Ctrl Inlet Submerged
+            Q_inlet_unsubmerged = 0.421*anuga.g**0.5*diameter**0.87*self.inflow.get_average_specific_energy()**1.63 # Inlet Ctrl Inlet Unsubmerged
+            Q_inlet_submerged = 0.530*anuga.g**0.5*diameter**1.87*self.inflow.get_average_specific_energy()**0.63   # Inlet Ctrl Inlet Submerged
             # Note for to SUBMERGED TO OCCUR self.inflow.get_average_specific_energy() should be > 1.2 x diameter.... Should Check !!!
 
             if self.log_filename is not None:
@@ -235,8 +230,8 @@ class Boyd_pipe_operator(structure_operator.Structure_operator):
 
             # THE LOWEST Value will Control Calcs From here
             # Calculate Critical Depth Based on the Adopted Flow as an Estimate
-            dcrit1 = diameter/1.26*(Q/g**0.5*diameter**2.5)**(1/3.75)
-            dcrit2 = diameter/0.95*(Q/g**0.5*diameter**2.5)**(1/1.95)
+            dcrit1 = diameter/1.26*(Q/anuga.g**0.5*diameter**2.5)**(1/3.75)
+            dcrit2 = diameter/0.95*(Q/anuga.g**0.5*diameter**2.5)**(1/1.95)
             # From Boyd Paper ESTIMATE of Dcrit has 2 criteria as
             if dcrit1/diameter  > 0.85:
                 outlet_culvert_depth = dcrit2
@@ -251,20 +246,20 @@ class Boyd_pipe_operator(structure_operator.Structure_operator):
                 flow_width= diameter
                 case = 'Inlet CTRL Outlet submerged Circular PIPE FULL'
                 if local_debug == 'true':
-                    log.critical('Inlet CTRL Outlet submerged Circular '
+                    anuga.log.critical('Inlet CTRL Outlet submerged Circular '
                                  'PIPE FULL')
             else:
-                #alpha = acos(1 - outlet_culvert_depth/diameter)    # Where did this Come From ????/
-                alpha = acos(1-2*outlet_culvert_depth/diameter)*2
+                #alpha = anuga.acos(1 - outlet_culvert_depth/diameter)    # Where did this Come From ????/
+                alpha = anuga.acos(1-2*outlet_culvert_depth/diameter)*2
                 #flow_area = diameter**2 * (alpha - sin(alpha)*cos(alpha))        # Pipe is Running Partly Full at the INLET   WHRE did this Come From ?????
                 flow_area = diameter**2/8*(alpha - math.sin(alpha))   # Equation from  GIECK 5th Ed. Pg. B3
                 flow_width= diameter*math.sin(alpha/2.0)
                 perimeter = alpha*diameter/2.0
                 case = 'INLET CTRL Culvert is open channel flow we will for now assume critical depth'
                 if local_debug =='true':
-                    log.critical('INLET CTRL Culvert is open channel flow '
+                    anuga.log.critical('INLET CTRL Culvert is open channel flow '
                                  'we will for now assume critical depth')
-                    log.critical('Q Outlet Depth and ALPHA = %s, %s, %s'
+                    anuga.log.critical('Q Outlet Depth and ALPHA = %s, %s, %s'
                                  % (str(Q), str(outlet_culvert_depth),
                                     str(alpha)))
             if self.delta_total_energy < self.inflow.get_average_specific_energy():  #  OUTLET CONTROL !!!!
@@ -278,11 +273,11 @@ class Boyd_pipe_operator(structure_operator.Structure_operator):
                     flow_width= diameter
                     case = 'Outlet submerged'
                     if local_debug =='true':
-                        log.critical('Outlet submerged')
+                        anuga.log.critical('Outlet submerged')
                 else:   # Culvert running PART FULL for PART OF ITS LENGTH   Here really should use the Culvert Slope to calculate Actual Culvert Depth & Velocity
                     # IF  self.outflow.get_average_height() < diameter
-                    dcrit1 = diameter/1.26*(Q/g**0.5*diameter**2.5)**(1/3.75)
-                    dcrit2 = diameter/0.95*(Q/g**0.5*diameter**2.5)**(1/1.95)
+                    dcrit1 = diameter/1.26*(Q/anuga.g**0.5*diameter**2.5)**(1/3.75)
+                    dcrit2 = diameter/0.95*(Q/anuga.g**0.5*diameter**2.5)**(1/1.95)
                     if dcrit1/diameter >0.85:
                         outlet_culvert_depth= dcrit2
                     else:
@@ -294,23 +289,23 @@ class Boyd_pipe_operator(structure_operator.Structure_operator):
                         flow_width= diameter
                         case = 'Outlet unsubmerged PIPE FULL'
                         if local_debug =='true':
-                            log.critical('Outlet unsubmerged PIPE FULL')
+                            anuga.log.critical('Outlet unsubmerged PIPE FULL')
                     else:
-                        alpha = acos(1-2*outlet_culvert_depth/diameter)*2
+                        alpha = anuga.acos(1-2*outlet_culvert_depth/diameter)*2
                         flow_area = diameter**2/8*(alpha - math.sin(alpha))   # Equation from  GIECK 5th Ed. Pg. B3
                         flow_width= diameter*math.sin(alpha/2.0)
                         perimeter = alpha*diameter/2.0
                         case = 'Outlet is open channel flow we will for now assume critical depth'
                         if local_debug == 'true':
-                            log.critical('Q Outlet Depth and ALPHA = %s, %s, %s'
+                            anuga.log.critical('Q Outlet Depth and ALPHA = %s, %s, %s'
                                          % (str(Q), str(outlet_culvert_depth),
                                             str(alpha)))
-                            log.critical('Outlet is open channel flow we '
+                            anuga.log.critical('Outlet is open channel flow we '
                                          'will for now assume critical depth')
             if local_debug == 'true':
-                log.critical('FLOW AREA = %s' % str(flow_area))
-                log.critical('PERIMETER = %s' % str(perimeter))
-                log.critical('Q Interim = %s' % str(Q))
+                anuga.log.critical('FLOW AREA = %s' % str(flow_area))
+                anuga.log.critical('PERIMETER = %s' % str(perimeter))
+                anuga.log.critical('Q Interim = %s' % str(Q))
             hyd_rad = flow_area/perimeter
 
             if self.log_filename is not None:
@@ -319,37 +314,37 @@ class Boyd_pipe_operator(structure_operator.Structure_operator):
 
             # Outlet control velocity using tail water
             if local_debug =='true':
-                log.critical('GOT IT ALL CALCULATING Velocity')
-                log.critical('HydRad = %s' % str(hyd_rad))
+                anuga.log.critical('GOT IT ALL CALCULATING Velocity')
+                anuga.log.critical('HydRad = %s' % str(hyd_rad))
             # Calculate Pipe Culvert Outlet Control Velocity.... May need initial Estimate First ??
             
-            culvert_velocity = math.sqrt(self.delta_total_energy/((self.sum_loss/2/g)+(self.manning**2*self.culvert_length)/hyd_rad**1.33333))
+            culvert_velocity = math.sqrt(self.delta_total_energy/((self.sum_loss/2/anuga.g)+(self.manning**2*self.culvert_length)/hyd_rad**1.33333))
             Q_outlet_tailwater = flow_area * culvert_velocity
             
             
             if local_debug =='true':
-                log.critical('VELOCITY = %s' % str(culvert_velocity))
-                log.critical('Outlet Ctrl Q = %s' % str(Q_outlet_tailwater))
+                anuga.log.critical('VELOCITY = %s' % str(culvert_velocity))
+                anuga.log.critical('Outlet Ctrl Q = %s' % str(Q_outlet_tailwater))
             if self.log_filename is not None:
                 s = 'Q_outlet_tailwater = %.6f' %Q_outlet_tailwater
                 log_to_file(self.log_filename, s)
             Q = min(Q, Q_outlet_tailwater)
             if local_debug =='true':
-                log.critical('%s,%.3f,%.3f'
+                anuga.log.critical('%s,%.3f,%.3f'
                              % ('dcrit 1 , dcit2 =',dcrit1,dcrit2))
-                log.critical('%s,%.3f,%.3f,%.3f'
+                anuga.log.critical('%s,%.3f,%.3f,%.3f'
                              % ('Q and Velocity and Depth=', Q,
                                 culvert_velocity, outlet_culvert_depth))
 
-            culv_froude=math.sqrt(Q**2*flow_width/(g*flow_area**3))
+            culv_froude=math.sqrt(Q**2*flow_width/(anuga.g*flow_area**3))
             if local_debug =='true':
-                log.critical('FLOW AREA = %s' % str(flow_area))
-                log.critical('PERIMETER = %s' % str(perimeter))
-                log.critical('Q final = %s' % str(Q))
-                log.critical('FROUDE = %s' % str(culv_froude))
+                anuga.log.critical('FLOW AREA = %s' % str(flow_area))
+                anuga.log.critical('PERIMETER = %s' % str(perimeter))
+                anuga.log.critical('Q final = %s' % str(Q))
+                anuga.log.critical('FROUDE = %s' % str(culv_froude))
 
             # Determine momentum at the outlet
-            barrel_velocity = Q/(flow_area + velocity_protection/flow_area)
+            barrel_velocity = Q/(flow_area + anuga.velocity_protection/flow_area)
 
         else: # self.inflow.get_average_height() < 0.01:
             Q = barrel_velocity = outlet_culvert_depth = 0.0
