@@ -313,9 +313,13 @@ def _create_mesh_from_regions(bounding_polygon,
             
     # Do interior holes
     if interior_holes is not None:    
-        for polygon in interior_holes:
+        for n, polygon in enumerate(interior_holes):
+            try:
+                tags = hole_tags[n]
+            except:
+                tags = None
             m.add_hole_from_polygon(polygon,
-                                    segment_tags=hole_tags,
+                                    segment_tags=tags,
                                     geo_reference=poly_geo_reference)
        
 

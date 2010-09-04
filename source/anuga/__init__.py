@@ -165,6 +165,7 @@ def create_domain_from_regions(bounding_polygon,
                                mesh_filename=None,
                                interior_regions=None,
                                interior_holes=None,
+							   hole_tags = None,
                                poly_geo_reference=None,
                                mesh_geo_reference=None,
                                minimum_triangle_angle=28.0,
@@ -196,6 +197,8 @@ def create_domain_from_regions(bounding_polygon,
     interior_holes is a list of ploygons for each hole. These polygons do not
     need to be closed, but their points must be specified in a counter-clockwise
     order.
+	
+	hole_tags  is a list of tag segment dictionaries.
 
     This function does not allow segments to share points - use underlying
     pmesh functionality for that
@@ -231,6 +234,7 @@ def create_domain_from_regions(bounding_polygon,
               'mesh_filename': mesh_filename,
               'interior_regions': interior_regions,
               'interior_holes': interior_holes,
+			  'hole_tags': hole_tags,
               'poly_geo_reference': poly_geo_reference,
               'mesh_geo_reference': mesh_geo_reference,
               'minimum_triangle_angle': minimum_triangle_angle,
@@ -264,6 +268,7 @@ def _create_domain_from_regions(bounding_polygon,
                                 mesh_filename=None,                           
                                 interior_regions=None,
                                 interior_holes=None,
+								hole_tags=None,
                                 poly_geo_reference=None,
                                 mesh_geo_reference=None,
                                 minimum_triangle_angle=28.0,
@@ -283,6 +288,7 @@ def _create_domain_from_regions(bounding_polygon,
                              interior_regions=interior_regions,
                              filename=mesh_filename,
                              interior_holes=interior_holes,
+							 hole_tags=hole_tags,
                              poly_geo_reference=poly_geo_reference,
                              mesh_geo_reference=mesh_geo_reference,
                              minimum_triangle_angle=minimum_triangle_angle,

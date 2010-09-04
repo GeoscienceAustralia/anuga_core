@@ -636,7 +636,7 @@ class Draw(AppShell.AppShell):
         self.lastx = self.startx = self.canvas.canvasx(event.x)
         #The screen canvas has y 'flipped'.  -1* unflips it
         self.lasty = self.starty = -1*self.canvas.canvasy(event.y)
-        log.critical "----------------------")
+        log.critical("----------------------")
         self.mouseDownCurFunc( self.lastx,
                                self.lasty,event) #!!! remove the event?
                                                  # do last
