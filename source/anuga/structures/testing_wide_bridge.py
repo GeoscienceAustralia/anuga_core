@@ -165,7 +165,7 @@ culvert_energy = Culvert_flow(domain,
 
 domain.forcing_terms.append(culvert_energy)
 """
-from anuga.structures.boyd_box_operator import Boyd_box_operator
+#from anuga.structures.boyd_box_operator import Boyd_box_operator
 #culvert0 = Culvert_operator(domain,
 #                            end_point0=[40.0, 75.0],
 #                            end_point1=[50.0, 75.0],
@@ -179,21 +179,23 @@ from anuga.structures.boyd_box_operator import Boyd_box_operator
 # Setup culverts
 #------------------------------------------------------------------------------
 culverts = []
-number_of_culverts = 1
+number_of_culverts = 1 
 for i in range(number_of_culverts):
     culvert_width = 50.0/number_of_culverts
     y = 100-i*culvert_width - culvert_width/2.0
     ep0 = [40.0, y]
     ep1 = [50.0, y]
-    culverts.append(Boyd_box_operator(domain,
+    culverts.append(anuga.Boyd_box_operator(domain,
                             end_point0=ep0,
                             end_point1=ep1,
-                            width=culvert_width,
-                            height=10.0,
+                            losses=1.5,
+                            width=3.658,
+                            height=3.658,
                             apron=5.0,
                             use_momentum_jet=True,
-                            use_velocity_head=False,
+                            use_velocity_head=True,
                             manning=0.013,
+                            description='bridge culvert',
                             verbose=False))
 
 
@@ -243,8 +245,8 @@ Bd = anuga.Dirichlet_boundary([0,0,0])                # Outflow water at 0.0
 #Btus = Time_boundary(domain, lambda t: [0.0+ 1.025*(1+num.sin(2*pi*(t-4)/10)), 0.0, 0.0])
 #Btds = Time_boundary(domain, lambda t: [0.0+ 0.0075*(1+num.sin(2*pi*(t-4)/20)), 0.0, 0.0])
 
-Btus = anuga.Dirichlet_boundary([18.0, 0, 0])           # Outflow water at 5.0
-Btds = anuga.Dirichlet_boundary([0.0, 0, 0])           # Outflow water at 1.0
+Btus = anuga.Dirichlet_boundary([20.0, 0, 0])           # Outflow water at 5.0
+Btds = anuga.Dirichlet_boundary([19.0, 0, 0])           # Outflow water at 1.0
 domain.set_boundary({'left': Btus, 'right': Btds, 'top': Br, 'bottom': Br})
 
 
@@ -252,10 +254,11 @@ domain.set_boundary({'left': Btus, 'right': Btds, 'top': Br, 'bottom': Br})
 # Evolve system through time
 #------------------------------------------------------------------------------
 
-for t in domain.evolve(yieldstep = 1, finaltime = 100):
+for t in domain.evolve(yieldstep = 1, finaltime = 10):
     print domain.timestepping_statistics()
     print domain.volumetric_balance_statistics()
-    for culvert in culverts:
+    for i, culvert in enumerate(culverts):
+        print 'culvert: ', i
         print culvert.structure_statistics()
     
 
