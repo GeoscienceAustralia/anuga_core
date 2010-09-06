@@ -9,7 +9,7 @@ from anuga.abstract_2d_finite_volumes.quantity import Quantity
 
 import anuga
 
-from anuga.structures.culvert_operator import Culvert_operator
+from anuga.structures.boyd_pipe_operator import Boyd_pipe_operator
                             
 #from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
      
@@ -30,7 +30,7 @@ are dealt with
 path = get_pathname_from_package('anuga.culvert_flows')    
 
 length = 40.
-width = 5.
+width = 15.
 
 dx = dy = 0.5          # Resolution: Length of subdivisions on both axes
 
@@ -85,11 +85,20 @@ domain.set_quantity('stage',
                     expression='elevation')   # Dry initial condition
 
 filename=os.path.join(path, 'example_rating_curve.csv')
-culvert1 = Culvert_operator(domain,
-                            end_point0=[9.0, 2.5], 
+
+
+
+Boyd_pipe_operator(domain,
+                            end_point0=[9.0, 2.5],
                             end_point1=[13.0, 2.5],
-                            width=1.00,
+                            losses=1.5,
+                            diameter=1.5,
+                            apron=5.0,
+                            use_momentum_jet=True,
+                            use_velocity_head=False,
+                            manning=0.013,
                             verbose=False)
+
 
 #culvert2 = Generic_box_culvert(domain,
 #                              end_point0=[19.0, 2.5],
