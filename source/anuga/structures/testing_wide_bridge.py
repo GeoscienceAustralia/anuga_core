@@ -254,7 +254,7 @@ domain.set_boundary({'left': Btus, 'right': Btds, 'top': Br, 'bottom': Br})
 # Evolve system through time
 #------------------------------------------------------------------------------
 
-for t in domain.evolve(yieldstep = 1, finaltime = 10):
+for t in domain.evolve(yieldstep = 1, finaltime = 100):
     print domain.timestepping_statistics()
     print domain.volumetric_balance_statistics()
     for i, culvert in enumerate(culverts):

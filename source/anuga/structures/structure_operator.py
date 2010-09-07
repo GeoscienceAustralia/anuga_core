@@ -7,8 +7,8 @@ class Structure_operator:
     """Structure Operator - transfer water from one rectangular box to another.
     Sets up the geometry of problem
     
-    This is the base class for culverts. Inherit from this class (and overwrite
-    compute_discharge method for specific subclasses)
+    This is the base class for structures (culverts, pipes, bridges etc). Inherit from this class (and overwrite
+    discharge_routine method for specific subclasses)
     
     Input: Two points, pipe_size (either diameter or width, height), 
     mannings_rougness,
@@ -62,9 +62,99 @@ class Structure_operator:
         outward_vector1  = - self.culvert_vector
         self.inlets.append(inlet.Inlet(self.domain, polygon1, exchange_polygon1, outward_vector1))
 
+
     def __call__(self):
 
-        pass
+        timestep = self.domain.get_timestep()
+        
+        self.__determine_inflow_outflow()
+        
+        Q, barrel_speed, outlet_depth = self.discharge_routine()
+
+        old_inflow_height = self.inflow.get_average_height()
+        old_inflow_xmom = self.inflow.get_average_xmom()
+        old_inflow_ymom = self.inflow.get_average_ymom()
+            
+        if old_inflow_height > 0.0 :
+                Q_star = Q/old_inflow_height
+        else:
+                Q_star = 0.0
+
+        factor = 1.0/(1.0 + Q_star*timestep/self.inflow.get_area())
+
+        new_inflow_height = old_inflow_height*factor
+        new_inflow_xmom = old_inflow_xmom*factor
+        new_inflow_ymom = old_inflow_ymom*factor
+            
+        self.inflow.set_heights(new_inflow_height)
+
+        #inflow.set_xmoms(Q/inflow.get_area())
+        #inflow.set_ymoms(0.0)
+
+        self.inflow.set_xmoms(new_inflow_xmom)
+        self.inflow.set_ymoms(new_inflow_ymom)
+
+        loss = (old_inflow_height - new_inflow_height)*self.inflow.get_area()
+
+        # set outflow
+        if old_inflow_height > 0.0 :
+                timestep_star = timestep*new_inflow_height/old_inflow_height
+        else:
+            timestep_star = 0.0
+
+        outflow_extra_height = Q*timestep_star/self.outflow.get_area()
+        outflow_direction = - self.outflow.outward_culvert_vector
+        outflow_extra_momentum = outflow_extra_height*barrel_speed*outflow_direction
+            
+        gain = outflow_extra_height*self.outflow.get_area()
+            
+        #print Q, Q*timestep, barrel_speed, outlet_depth, Qstar, factor, timestep_star
+        #print '  ', loss, gain
+
+        # Stats
+        self.discharge  = Q#outflow_extra_height*self.outflow.get_area()/timestep
+        self.velocity = barrel_speed#self.discharge/outlet_depth/self.width
+
+        new_outflow_height = self.outflow.get_average_height() + outflow_extra_height
+
+        if self.use_momentum_jet :
+            # FIXME (SR) Review momentum to account for possible hydraulic jumps at outlet
+            #new_outflow_xmom = outflow.get_average_xmom() + outflow_extra_momentum[0]
+            #new_outflow_ymom = outflow.get_average_ymom() + outflow_extra_momentum[1]
+
+            new_outflow_xmom = barrel_speed*new_outflow_height*outflow_direction[0]
+            new_outflow_ymom = barrel_speed*new_outflow_height*outflow_direction[1]
+
+        else:
+            #new_outflow_xmom = outflow.get_average_xmom()
+            #new_outflow_ymom = outflow.get_average_ymom()
+
+            new_outflow_xmom = 0.0
+            new_outflow_ymom = 0.0
+
+        self.outflow.set_heights(new_outflow_height)
+        self.outflow.set_xmoms(new_outflow_xmom)
+        self.outflow.set_ymoms(new_outflow_ymom)
+
+
+    def __determine_inflow_outflow(self):
+        # Determine flow direction based on total energy difference
+
+        if self.use_velocity_head:
+            self.delta_total_energy = self.inlets[0].get_enquiry_total_energy() - self.inlets[1].get_enquiry_total_energy()
+        else:
+            self.delta_total_energy = self.inlets[0].get_enquiry_stage() - self.inlets[1].get_enquiry_stage()
+
+
+        self.inflow  = self.inlets[0]
+        self.outflow = self.inlets[1]
+        
+
+        if self.delta_total_energy < 0:
+            self.inflow  = self.inlets[1]
+            self.outflow = self.inlets[0]
+            self.delta_total_energy = -self.delta_total_energy
+
 
     def __create_exchange_polygons(self):
 
@@ -123,10 +213,12 @@ class Structure_operator:
 
             msg = 'Enquiry point falls inside an exchange polygon.'
             assert not anuga.inside_polygon(ep, polygon), msg
-    
             
-        #print '   outflow volume ',outflow.get_total_water_volume()
+    
+    def discharge_routine(self):
         
+        pass
+            
 
     def print_stats(self):
 
@@ -164,23 +256,9 @@ class Structure_operator:
         message += 'Velocity  [m/s]: %.2f\n' % self.velocity
         message += 'Inlet Driving Energy %.2f\n' % self.driving_energy
         message += 'delta total energy %.2f\n' % self.delta_total_energy
-#        message += 'Net boundary flow by tags [m^3/s]\n'
-#        for tag in boundary_flows:
-#            message += '    %s [m^3/s]: %.2f\n' % (tag, boundary_flows[tag])
-#
-#        message += 'Total net boundary flow [m^3/s]: %.2f\n' % \
-#                    (total_boundary_inflow + total_boundary_outflow)
-#        message += 'Total volume in domain [m^3]: %.2f\n' % \
-#                    self.compute_total_volume()
-#
-#        # The go through explicit forcing update and record the rate of change
-#        # for stage and
-#        # record into forcing_inflow and forcing_outflow. Finally compute
-#        # integral of depth to obtain total volume of domain.
-#
-        # FIXME(Ole): This part is not yet done.
 
         return message
+
 
     def get_inlets(self):
         

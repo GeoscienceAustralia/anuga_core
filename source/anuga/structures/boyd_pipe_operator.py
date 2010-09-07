@@ -58,117 +58,13 @@ class Boyd_pipe_operator(anuga.Structure_operator):
 
         self.inlets = self.get_inlets()
 
-
         # Stats
         
         self.discharge = 0.0
         self.velocity = 0.0
         
-        
-    def __call__(self):
-        
-        timestep = self.domain.get_timestep()
-        
-        self.__determine_inflow_outflow()
-        
-        Q, barrel_speed, outlet_depth = self.__discharge_routine()
-
-        #inflow  = self.routine.get_inflow()
-        #outflow = self.routine.get_outflow()
-
-        old_inflow_height = self.inflow.get_average_height()
-        old_inflow_xmom = self.inflow.get_average_xmom()
-        old_inflow_ymom = self.inflow.get_average_ymom()
-            
-        if old_inflow_height > 0.0 :
-                Qstar = Q/old_inflow_height
-        else:
-                Qstar = 0.0
-
-        factor = 1.0/(1.0 + Qstar*timestep/self.inflow.get_area())
-
-        new_inflow_height = old_inflow_height*factor
-        new_inflow_xmom = old_inflow_xmom*factor
-        new_inflow_ymom = old_inflow_ymom*factor
-            
-
-        self.inflow.set_heights(new_inflow_height)
-
-        #inflow.set_xmoms(Q/inflow.get_area())
-        #inflow.set_ymoms(0.0)
-
-
-        self.inflow.set_xmoms(new_inflow_xmom)
-        self.inflow.set_ymoms(new_inflow_ymom)
-
-
-        loss = (old_inflow_height - new_inflow_height)*self.inflow.get_area()
-
-            
-        # set outflow
-        if old_inflow_height > 0.0 :
-                timestep_star = timestep*new_inflow_height/old_inflow_height
-        else:
-            timestep_star = 0.0
-
-            
-        outflow_extra_height = Q*timestep_star/self.outflow.get_area()
-        outflow_direction = - self.outflow.outward_culvert_vector
-        outflow_extra_momentum = outflow_extra_height*barrel_speed*outflow_direction
-            
-
-        gain = outflow_extra_height*self.outflow.get_area()
-            
-        #print Q, Q*timestep, barrel_speed, outlet_depth, Qstar, factor, timestep_star
-        #print '  ', loss, gain
-
-        # Stats
-        self.discharge  = Q#outflow_extra_height*self.outflow.get_area()/timestep
-        self.velocity = barrel_speed#self.discharge/outlet_depth/self.width
-
-        new_outflow_height = self.outflow.get_average_height() + outflow_extra_height
-
-        if self.use_momentum_jet :
-            # FIXME (SR) Review momentum to account for possible hydraulic jumps at outlet
-            #new_outflow_xmom = outflow.get_average_xmom() + outflow_extra_momentum[0]
-            #new_outflow_ymom = outflow.get_average_ymom() + outflow_extra_momentum[1]
-
-            new_outflow_xmom = barrel_speed*new_outflow_height*outflow_direction[0]
-            new_outflow_ymom = barrel_speed*new_outflow_height*outflow_direction[1]
-
-        else:
-            #new_outflow_xmom = outflow.get_average_xmom()
-            #new_outflow_ymom = outflow.get_average_ymom()
-
-            new_outflow_xmom = 0.0
-            new_outflow_ymom = 0.0
-
-
-        self.outflow.set_heights(new_outflow_height)
-        self.outflow.set_xmoms(new_outflow_xmom)
-        self.outflow.set_ymoms(new_outflow_ymom)
-
-
-    def __determine_inflow_outflow(self):
-        # Determine flow direction based on total energy difference
-
-        if self.use_velocity_head:
-            self.delta_total_energy = self.inlets[0].get_enquiry_total_energy() - self.inlets[1].get_enquiry_total_energy()
-        else:
-            self.delta_total_energy = self.inlets[0].get_enquiry_stage() - self.inlets[1].get_enquiry_stage()
-
-
-        self.inflow  = self.inlets[0]
-        self.outflow = self.inlets[1]
-        
-
-        if self.delta_total_energy < 0:
-            self.inflow  = self.inlets[1]
-            self.outflow = self.inlets[0]
-            self.delta_total_energy = -self.delta_total_energy
-
     
-    def __discharge_routine(self):
+    def discharge_routine(self):
 
         local_debug ='false'
         
