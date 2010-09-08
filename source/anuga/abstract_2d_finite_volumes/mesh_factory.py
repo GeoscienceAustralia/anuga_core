@@ -203,6 +203,76 @@ def rectangular_cross(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
     return points, elements, boundary
 
 
+
+def rectangular_cross_slit(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
+
+    """Setup a rectangular grid of triangles
+    with m+1 by n+1 grid points
+    and side lengths len1, len2. If side lengths are omitted
+    the mesh defaults to the unit square.
+
+    len1: x direction (left to right)
+    len2: y direction (bottom to top)
+
+    Return to lists: points and elements suitable for creating a Mesh or
+    FVMesh object, e.g. Mesh(points, elements)
+    """
+
+    from anuga.config import epsilon
+
+    delta1 = float(len1)/m
+    delta2 = float(len2)/n
+
+    #Dictionary of vertex objects
+    vertices = {}
+    points = []
+
+    for i in range(m+1):
+        for j in range(n+1):
+            vertices[i,j] = len(points)
+            points.append([delta1*i + origin[0], delta2*j  + origin[1]])
+
+    # Construct 4 triangles per element
+    elements = []
+    boundary = {}
+    for i in range(m):
+        for j in range(n):
+            v1 = vertices[i,j+1]
+            v2 = vertices[i,j]
+            v3 = vertices[i+1,j+1]
+            v4 = vertices[i+1,j]
+            x = (points[v1][0]+points[v2][0]+points[v3][0]+points[v4][0])*0.25
+            y = (points[v1][1]+points[v2][1]+points[v3][1]+points[v4][1])*0.25
+
+            # Create centre point
+            v5 = len(points)
+            points.append([x, y])
+
+            #Create left triangle
+            if i == 0:
+                boundary[(len(elements), 1)] = 'left'
+            elements.append([v2,v5,v1])
+
+            #Create bottom triangle
+            if j == 0:
+                boundary[(len(elements), 1)] = 'bottom'
+            elements.append([v4,v5,v2])
+
+            #Create right triangle
+            if i == m-1:
+                boundary[(len(elements), 1)] = 'right'
+            elements.append([v3,v5,v4])
+
+            #Create top triangle
+            if j == n-1:
+                boundary[(len(elements), 1)] = 'top'
+            elements.append([v1,v5,v3])
+
+
+    return points, elements, boundary
+
+
+
 def rectangular_periodic(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)):
 
 

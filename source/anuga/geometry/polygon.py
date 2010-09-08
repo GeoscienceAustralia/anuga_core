@@ -598,6 +598,7 @@ def separate_points_by_polygon(points, polygon,
         msg = 'Polygon array must have two columns' 
         assert polygon.shape[1] == 2, msg
 
+
         msg = ('Points array must be 1 or 2 dimensional. '
                'I got %d dimensions' % len(points.shape))
         assert 0 < len(points.shape) < 3, msg

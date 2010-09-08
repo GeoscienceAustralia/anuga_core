@@ -595,6 +595,52 @@ void _manning_friction_new(double g, double eps, int N,
   }
 }
 
+
+
+void _chezy_friction(double g, double eps, int N,
+			   double* x, double* w, double* zv,
+			   double* uh, double* vh,
+			   double* chezy, double* xmom_update, double* ymom_update) {
+
+  int k, k3, k6;
+  double S, h, z, z0, z1, z2, zs, zx, zy;
+  double x0,y0,x1,y1,x2,y2;
+
+  for (k=0; k<N; k++) {
+    if (chezy[k] > eps) {
+      k3 = 3*k;
+      // Get bathymetry
+      z0 = zv[k3 + 0];
+      z1 = zv[k3 + 1];
+      z2 = zv[k3 + 2];
+
+      // Compute bed slope
+      k6 = 6*k;  // base index
+
+      x0 = x[k6 + 0];
+      y0 = x[k6 + 1];
+      x1 = x[k6 + 2];
+      y1 = x[k6 + 3];
+      x2 = x[k6 + 4];
+      y2 = x[k6 + 5];
+
+      _gradient(x0, y0, x1, y1, x2, y2, z0, z1, z2, &zx, &zy);
+
+      zs = sqrt(1.0 + zx*zx + zy*zy);
+      z = (z0+z1+z2)/3.0;
+      h = w[k]-z;
+      if (h >= eps) {
+        S = -g * chezy[k] * zs * sqrt((uh[k]*uh[k] + vh[k]*vh[k]));
+        S /= pow(h, 2.0);
+
+        //Update momentum
+        xmom_update[k] += S*uh[k];
+        ymom_update[k] += S*vh[k];
+      }
+    }
+  }
+}
+
 /*
 void _manning_friction_explicit(double g, double eps, int N,
                double* w, double* z,
@@ -1130,6 +1176,48 @@ PyObject *manning_friction_new(PyObject *self, PyObject *args) {
 			(double*) uh -> data,
 			(double*) vh -> data,
 			(double*) eta -> data,
+			(double*) xmom -> data,
+			(double*) ymom -> data);
+
+  return Py_BuildValue("");
+}
+
+
+PyObject *chezy_friction(PyObject *self, PyObject *args) {
+  //
+  // chezy_friction(g, eps, x, h, uh, vh, z, chezy, xmom_update, ymom_update)
+  //
+
+
+  PyArrayObject *x, *w, *z, *uh, *vh, *chezy, *xmom, *ymom;
+  int N;
+  double g, eps;
+
+  if (!PyArg_ParseTuple(args, "ddOOOOOOOO",
+			&g, &eps, &x, &w, &uh, &vh, &z,  &chezy, &xmom, &ymom)) {
+    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: chezy_friction could not parse input arguments");
+    return NULL;
+  }
+
+  // check that numpy array objects arrays are C contiguous memory
+  CHECK_C_CONTIG(x);
+  CHECK_C_CONTIG(w);
+  CHECK_C_CONTIG(z);
+  CHECK_C_CONTIG(uh);
+  CHECK_C_CONTIG(vh);
+  CHECK_C_CONTIG(chezy);
+  CHECK_C_CONTIG(xmom);
+  CHECK_C_CONTIG(ymom);
+
+  N = w -> dimensions[0];
+
+  _chezy_friction(g, eps, N,
+			(double*) x -> data,
+			(double*) w -> data,
+			(double*) z -> data,
+			(double*) uh -> data,
+			(double*) vh -> data,
+			(double*) chezy -> data,
 			(double*) xmom -> data,
 			(double*) ymom -> data);
 
@@ -2817,6 +2905,7 @@ static struct PyMethodDef MethodTable[] = {
   {"gravity", gravity, METH_VARARGS, "Print out"},
   {"manning_friction_old", manning_friction_old, METH_VARARGS, "Print out"},
   {"manning_friction_new", manning_friction_new, METH_VARARGS, "Print out"},
+  {"chezy_friction", chezy_friction, METH_VARARGS, "Print out"},
   {"flux_function_central", flux_function_central, METH_VARARGS, "Print out"},  
   {"balance_deep_and_shallow", balance_deep_and_shallow,
    METH_VARARGS, "Print out"},
