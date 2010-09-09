@@ -736,7 +736,8 @@ class Mesh:
             hi = (lo + 1) % N
             segments.append( [lo, hi] ) 
         region_dict['segments'] = segments
-        region_dict['segment_tags'] = self._tag_dict2list(segment_tags, N)
+        region_dict['segment_tags'] = self._tag_dict2list(segment_tags, N,
+                                                          hole=hole)
        
     
         self.addVertsSegs(region_dict) #this is passing absolute values
@@ -756,7 +757,7 @@ class Mesh:
             
         return inner
 
-    def _tag_dict2list(self, tags, number_of_segs):
+    def _tag_dict2list(self, tags, number_of_segs, hole=False):
         """
         Convert a tag dictionary from this sort of format;
         #{'wall':[0,3],'ocean':[2]}
@@ -770,7 +771,12 @@ class Mesh:
         #Try None.
         # Due to this default this method is too connected to
         # _add_area_from_polygon
-        segment_tags = ['']*number_of_segs
+
+        if hole:
+            default_tag ='interior'
+        else:
+            default_tag =''
+        segment_tags = [default_tag]*number_of_segs
         if tags is not None:
             for key in tags:
                 indices = tags[key]

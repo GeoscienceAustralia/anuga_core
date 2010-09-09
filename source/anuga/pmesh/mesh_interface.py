@@ -317,7 +317,7 @@ def _create_mesh_from_regions(bounding_polygon,
             try:
                 tags = hole_tags[n]
             except:
-                tags = None
+                tags = {}
             m.add_hole_from_polygon(polygon,
                                     segment_tags=tags,
                                     geo_reference=poly_geo_reference)

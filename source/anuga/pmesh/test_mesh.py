@@ -1756,7 +1756,7 @@ class meshTestCase(unittest.TestCase):
          
         self.failUnless(segs[2].tag=='bom',
                         'FAILED!') 
-        self.failUnless(segs[3].tag=='',
+        self.failUnless(segs[3].tag=='interior',
                         'FAILED!')
         verts = m.getUserVertices()
         #print "User verts",verts
@@ -1774,6 +1774,68 @@ class meshTestCase(unittest.TestCase):
             
             self.failUnless(point_x == new_point_x, ' failed')
             self.failUnless(point_y == new_point_y, ' failed')
+
+
+
+
+    def test_add_hole_from_polygon_none_tag(self):
+        x=-500
+        y=-1000
+        m=Mesh(geo_reference=Geo_reference(56,x,y))
+
+        # These are the absolute values
+        polygon_absolute = [[0,0],[1,0],[1,1],[0,1]]
+        
+        x_p = -10
+        y_p = -40
+        geo_ref_poly = Geo_reference(56, x_p, y_p)
+        polygon = geo_ref_poly.change_points_geo_ref(polygon_absolute)
+        
+        poly_point = m.add_hole_from_polygon(polygon,
+                                               None,
+                                               geo_reference=geo_ref_poly)
+        # poly_point values are relative to the mesh geo-ref
+        # make them absolute
+        #print "poly_point.x+x",poly_point.x+x
+        #print "poly_point.y+y",poly_point.y+y
+        #print "polygon_absolute", polygon_absolute 
+        self.failUnless(is_inside_polygon([poly_point.x+x,poly_point.y+y],
+                                       polygon_absolute, closed = False),
+                        'FAILED!')
+               
+        self.failUnless(len(m.holes)==1,
+                        'FAILED!')
+        segs = m.getUserSegments()
+        self.failUnless(len(segs)==4,
+                        'FAILED!')
+        self.failUnless(len(m.userVertices)==4,
+                        'FAILED!')
+        
+        self.failUnless(segs[0].tag=='interior',
+                        'FAILED!')  
+        self.failUnless(segs[1].tag=='interior',
+                        'FAILED!') 
+         
+        self.failUnless(segs[2].tag=='interior',
+                        'FAILED!') 
+        self.failUnless(segs[3].tag=='interior',
+                        'FAILED!')
+        verts = m.getUserVertices()
+        #print "User verts",verts
+        #print 'polygon',polygon
+        #vert values are relative
+        for point,new_point in map(None,polygon,verts):
+            point_x = point[0] + geo_ref_poly.get_xllcorner()
+            new_point_x = new_point.x + m.geo_reference.get_xllcorner()
+            point_y = point[1] + geo_ref_poly.get_yllcorner()
+            #print "new_point.y",new_point.y
+            #print "m.geo_ref.get_yllcorner()",m.geo_reference.get_yllcorner() 
+            new_point_y = new_point.y + m.geo_reference.get_yllcorner()
+            #print "point_y",point_y
+            #print "new_point_y",new_point_y 
+            
+            self.failUnless(point_x == new_point_x, ' failed')
+            self.failUnless(point_y == new_point_y, ' failed')            
 
     def test_add_circle(self):
         x=-500
