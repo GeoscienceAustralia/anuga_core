@@ -4,6 +4,9 @@ Ideally, all tools needed to run paralllel simulations should be
 imported from this module or anuga
 """
 
+
+#FIXME (SR) Should put this into __init__.py
+
 from anuga_parallel.parallel_api import distribute
 from anuga_parallel.parallel_api import myid, numprocs, get_processor_name
 from anuga_parallel.parallel_api import send, receive
