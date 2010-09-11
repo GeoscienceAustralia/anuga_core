@@ -107,8 +107,9 @@ if myid == 0 and verbose: print 'EVOLVE'
 t0 = time.time()
 
 for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
-    if myid == 0:
-        domain.write_time()
+    pass
+    #if myid == 0:
+        #domain.write_time()
 
 
 if myid == 0:
