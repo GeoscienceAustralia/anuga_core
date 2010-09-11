@@ -30,13 +30,13 @@ from anuga import Transmissive_boundary, Reflective_boundary
 #---------------------------
 from anuga_parallel.interface import Parallel_shallow_water_domain
 from anuga_parallel.interface import parallel_rectangle
-from anuga_parallel.interface import myid, numprocs, get_processor_name
+from anuga_parallel.interface import myid, numprocs, finalize, get_processor_name
 
 ###############################
 # Read in processor information
 ###############################
-numprocs = numprocs()
-myid     = myid()
+#numprocs = numprocs()
+#myid     = myid()
 processor_name = get_processor_name()
 
 M = 50
@@ -61,9 +61,13 @@ domain = Parallel_shallow_water_domain(points, vertices, boundary,
                                        ghost_recv_dict = ghost_recv_dict)
 
 
+
+
+
+
+domain.set_name('sw_rectangle')
+
 #Boundaries
-
-
 T = Transmissive_boundary(domain)
 R = Reflective_boundary(domain)
 
@@ -96,16 +100,15 @@ domain.set_quantity('stage', Set_Stage(0.2, 0.4, 0.25, 0.75, 1.0, 0.00))
 # Set Evolve parameters
 domain.set_default_order(2)
 domain.set_timestepping_method('rk2')
+domain.set_CFL(0.7)
+domain.set_beta(1.5)
 
-print domain.get_timestepping_method()
-
+#print domain.get_timestepping_method()
 #domain.use_edge_limiter = True
 #domain.tight_slope_limiters = True
 #domain.use_centroid_velocities = False
 
-domain.CFL = 1.0
 
-domain.set_beta(0.8)
 
 
 
@@ -128,8 +131,8 @@ if visualise:
 
 
 
-yieldstep = 0.1
-finaltime = 1.0
+yieldstep = 0.05
+finaltime = 2.0
 
 #Check that the boundary value gets propagated to all elements
 for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
@@ -151,4 +154,5 @@ if myid == 0:
 
 
 if visualise: vis.join()
-pypar.finalize()
+
+finalize()

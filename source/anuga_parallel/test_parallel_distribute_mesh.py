@@ -5,9 +5,9 @@ import sys
 import os
 from math import sqrt
 
-
-from anuga.interface import Domain
-from anuga.interface import rectangular_cross
+	
+from anuga import Domain
+from anuga import rectangular_cross
 
 from anuga_parallel.distribute_mesh import pmesh_divide_metis
 from anuga_parallel.distribute_mesh import build_submesh
@@ -42,7 +42,7 @@ def distibute_three_processors():
 
     if not numprocs == 3: return
 
-    print numprocs
+    #print numprocs
 
     barrier()
 
@@ -271,7 +271,7 @@ def distibute_three_processors():
 class Test_parallel_distribute_mesh(unittest.TestCase):
 
     def test_distribute_three_processors(self):
-        print "Expect this test to fail if not run from the parallel directory."
+        # Expect this test to fail if not run from the parallel directory.
         result = os.system("mpirun -np 3 python test_parallel_distribute_mesh.py")
         assert_(result == 0)
 

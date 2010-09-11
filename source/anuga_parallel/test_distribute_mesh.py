@@ -5,8 +5,8 @@ import sys
 from math import sqrt
 
 
-from anuga.interface import Domain
-from anuga.interface import rectangular_cross
+from anuga import Domain
+from anuga import rectangular_cross
 
 from anuga_parallel.distribute_mesh import pmesh_divide_metis
 from anuga_parallel.distribute_mesh import build_submesh
