@@ -1308,6 +1308,8 @@ class Quantity:
         A, V = self.get_vertex_values(xy=False, smooth=True)
         self.set_vertex_values(A, use_cache=use_cache, verbose=verbose)
 
+
+
     ############################################################################
     # Methods for outputting model results
     ############################################################################

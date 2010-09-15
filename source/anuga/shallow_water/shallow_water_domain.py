@@ -242,8 +242,8 @@ class Domain(Generic_Domain):
             self.use_edge_limiter = False
 
 
-    def set_all_betas(self, beta):
-        """Shorthand to assign one constant value [0,1] to all limiters.
+    def set_beta(self, beta):
+        """Shorthand to assign one constant value [0,2] to all limiters.
         0 Corresponds to first order, where as larger values make use of
         the second order scheme.
         """

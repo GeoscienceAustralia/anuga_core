@@ -13,6 +13,22 @@
 #include "numpy/arrayobject.h"
 #include "math.h"
 
+#include <stdio.h>
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+#define AT __FILE__ ":" TOSTRING(__LINE__)
+#define P_ERROR_BUFFER_SIZE 65
+void report_python_error(const char *location, const char *msg)
+{
+
+    char buf[P_ERROR_BUFFER_SIZE];
+    int n;
+    n = snprintf(buf, P_ERROR_BUFFER_SIZE, "Error at %s: %s\n", location, msg);
+
+    PyErr_SetString(PyExc_RuntimeError, buf);
+}
+
+
 
 double max(double x, double y) {  
   //Return maximum of two doubles

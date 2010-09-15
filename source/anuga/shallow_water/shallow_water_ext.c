@@ -23,6 +23,9 @@
 #include "util_ext.h"
 
 
+
+
+
 const double pi = 3.14159265358979;
 
 // Computational function for rotation
@@ -1044,8 +1047,8 @@ PyObject *flux_function_central(PyObject *self, PyObject *args) {
   if (!PyArg_ParseTuple(args, "OOOddOddd",
             &normal, &ql, &qr, &zl, &zr, &edgeflux,
             &epsilon, &g, &H0)) {
-    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: flux_function_central could not parse input arguments");
-    return NULL;
+      report_python_error(AT, "could not parse input arguments");
+      return NULL;
   }
 
   
@@ -1089,8 +1092,8 @@ PyObject *gravity(PyObject *self, PyObject *args) {
             &g, &h, &z, &x,
             &xmom, &ymom)) {
     //&epsilon)) {
-    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: gravity could not parse input arguments");
-    return NULL;
+      report_python_error(AT, "could not parse input arguments");
+      return NULL;
   }
 
   // check that numpy array objects arrays are C contiguous memory
@@ -1153,8 +1156,8 @@ PyObject *manning_friction_new(PyObject *self, PyObject *args) {
 
   if (!PyArg_ParseTuple(args, "ddOOOOOOOO",
 			&g, &eps, &x, &w, &uh, &vh, &z,  &eta, &xmom, &ymom)) {
-    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: manning_friction_new could not parse input arguments");
-    return NULL;
+      report_python_error(AT, "could not parse input arguments");
+      return NULL;
   }
 
   // check that numpy array objects arrays are C contiguous memory
@@ -1195,8 +1198,8 @@ PyObject *chezy_friction(PyObject *self, PyObject *args) {
 
   if (!PyArg_ParseTuple(args, "ddOOOOOOOO",
 			&g, &eps, &x, &w, &uh, &vh, &z,  &chezy, &xmom, &ymom)) {
-    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: chezy_friction could not parse input arguments");
-    return NULL;
+      report_python_error(AT, "could not parse input arguments");
+      return NULL;
   }
 
   // check that numpy array objects arrays are C contiguous memory
@@ -1237,8 +1240,8 @@ PyObject *manning_friction_old(PyObject *self, PyObject *args) {
 
   if (!PyArg_ParseTuple(args, "ddOOOOOOO",
 			&g, &eps, &w, &uh, &vh, &z,  &eta, &xmom, &ymom)) {
-    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: manning_friction_old could not parse input arguments");
-    return NULL;
+      report_python_error(AT, "could not parse input arguments");
+      return NULL;
   }
 
   // check that numpy array objects arrays are C contiguous memory
@@ -1437,10 +1440,8 @@ int _extrapolate_second_order_sw(int number_of_elements,
       // the triangle might be flat or clockwise:
       if (area2 <= 0) 
       {
-        PyErr_SetString(PyExc_RuntimeError, 
-                        "shallow_water_ext.c: Negative triangle area encountered. This might be due to a triangle being flat or it's vertices not order anti-clockwise.");
-    
-        return -1;
+          report_python_error(AT, "Negative triangle area");
+          return -1;
       }  
       
       // Calculate heights of neighbouring cells
@@ -1629,8 +1630,7 @@ int _extrapolate_second_order_sw(int number_of_elements,
       if ((k2 == k3 + 3)) 
       {
         // If we didn't find an internal neighbour
-        PyErr_SetString(PyExc_RuntimeError, 
-                        "shallow_water_ext.c: Internal neighbour not found");      
+        report_python_error(AT, "Internal neighbour not found");
         return -1;
       }
       
@@ -1865,9 +1865,8 @@ PyObject *extrapolate_second_order_sw(PyObject *self, PyObject *args) {
             &ymom_vertex_values,
             &elevation_vertex_values,
             &optimise_dry_cells)) {         
-            
-    PyErr_SetString(PyExc_RuntimeError, 
-            "Input arguments to extrapolate_second_order_sw failed");
+
+    report_python_error(AT, "could not parse input arguments");
     return NULL;
   }
 
@@ -1956,7 +1955,7 @@ PyObject *rotate(PyObject *self, PyObject *args, PyObject *kwargs) {
   // Convert Python arguments to C
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|i", argnames,
                    &Q, &Normal, &direction)) {
-    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: rotate could not parse input arguments");
+    report_python_error(AT, "could not parse input arguments");
     return NULL;
   }  
 
@@ -1968,7 +1967,7 @@ PyObject *rotate(PyObject *self, PyObject *args, PyObject *kwargs) {
 
 
   if (normal -> dimensions[0] != 2) {
-    PyErr_SetString(PyExc_RuntimeError, "Normal vector must have 2 components");
+    report_python_error(AT, "Normal vector must have 2 components");
     return NULL;
   }
 
@@ -1999,204 +1998,198 @@ PyObject *rotate(PyObject *self, PyObject *args, PyObject *kwargs) {
 
 
 // Computational function for flux computation
+
 double _compute_fluxes_central(int number_of_elements,
-                               double timestep,
-                               double epsilon,
-                               double H0,
-                               double g,
-                               long* neighbours,
-                               long* neighbour_edges,
-                               double* normals,
-                               double* edgelengths, 
-                               double* radii, 
-                               double* areas,
-                               long* tri_full_flag,
-                               double* stage_edge_values,
-                               double* xmom_edge_values,
-                               double* ymom_edge_values,
-                               double* bed_edge_values,
-                               double* stage_boundary_values,
-                               double* xmom_boundary_values,
-                               double* ymom_boundary_values,
-                               double* stage_explicit_update,
-                               double* xmom_explicit_update,
-                               double* ymom_explicit_update,
-                               long* already_computed_flux,
-                               double* max_speed_array,
-                               int optimise_dry_cells) 
-{                   
-  // Local variables
-  double max_speed, length, inv_area, zl, zr;
-  double h0 = H0*H0; // This ensures a good balance when h approaches H0.
+        double timestep,
+        double epsilon,
+        double H0,
+        double g,
+        long* neighbours,
+        long* neighbour_edges,
+        double* normals,
+        double* edgelengths,
+        double* radii,
+        double* areas,
+        long* tri_full_flag,
+        double* stage_edge_values,
+        double* xmom_edge_values,
+        double* ymom_edge_values,
+        double* bed_edge_values,
+        double* stage_boundary_values,
+        double* xmom_boundary_values,
+        double* ymom_boundary_values,
+        double* stage_explicit_update,
+        double* xmom_explicit_update,
+        double* ymom_explicit_update,
+        long* already_computed_flux,
+        double* max_speed_array,
+        int optimise_dry_cells) {
+    // Local variables
+    double max_speed, length, inv_area, zl, zr;
+    double h0 = H0*H0; // This ensures a good balance when h approaches H0.
 
-  double limiting_threshold = 10*H0; // Avoid applying limiter below this
-                                     // threshold for performance reasons.
-                                     // See ANUGA manual under flux limiting 
-  int k, i, m, n;
-  int ki, nm=0, ki2; // Index shorthands
- 
-  
-  // Workspace (making them static actually made function slightly slower (Ole))  
-  double ql[3], qr[3], edgeflux[3]; // Work array for summing up fluxes
+    double limiting_threshold = 10 * H0; // Avoid applying limiter below this
+    // threshold for performance reasons.
+    // See ANUGA manual under flux limiting
+    int k, i, m, n;
+    int ki, nm = 0, ki2; // Index shorthands
 
-  static long call = 1; // Static local variable flagging already computed flux
- 
-  // Start computation
-  call++; // Flag 'id' of flux calculation for this timestep 
 
-  // Set explicit_update to zero for all conserved_quantities.
-  // This assumes compute_fluxes called before forcing terms
-  memset((char*) stage_explicit_update, 0, number_of_elements*sizeof(double));
-  memset((char*) xmom_explicit_update, 0, number_of_elements*sizeof(double));
-  memset((char*) ymom_explicit_update, 0, number_of_elements*sizeof(double));    
-  
-  // For all triangles
-  for (k = 0; k < number_of_elements; k++) 
-  {  
-    // Loop through neighbours and compute edge flux for each  
-    for (i = 0; i < 3; i++) 
-    {
-      ki = k*3 + i; // Linear index to edge i of triangle k
-      
-      if (already_computed_flux[ki] == call)
-      {
-        // We've already computed the flux across this edge
-        continue;
-      }
-    
-      // Get left hand side values from triangle k, edge i 
-      ql[0] = stage_edge_values[ki];
-      ql[1] = xmom_edge_values[ki];
-      ql[2] = ymom_edge_values[ki];
-      zl = bed_edge_values[ki];
+    // Workspace (making them static actually made function slightly slower (Ole))
+    double ql[3], qr[3], edgeflux[3]; // Work array for summing up fluxes
 
-      // Get right hand side values either from neighbouring triangle
-      // or from boundary array (Quantities at neighbour on nearest face).
-      n = neighbours[ki];
-      if (n < 0) 
-      {
-        // Neighbour is a boundary condition
-        m = -n - 1; // Convert negative flag to boundary index
-    
-        qr[0] = stage_boundary_values[m];
-        qr[1] = xmom_boundary_values[m];
-        qr[2] = ymom_boundary_values[m];
-        zr = zl; // Extend bed elevation to boundary
-      } 
-      else 
-      {
-        // Neighbour is a real triangle
-        m = neighbour_edges[ki];
-        nm = n*3 + m; // Linear index (triangle n, edge m)
-        
-        qr[0] = stage_edge_values[nm];
-        qr[1] = xmom_edge_values[nm];
-        qr[2] = ymom_edge_values[nm];
-        zr = bed_edge_values[nm];
-      }
-      
-      // Now we have values for this edge - both from left and right side.
-      
-      if (optimise_dry_cells) 
-      {     
-        // Check if flux calculation is necessary across this edge
-        // This check will exclude dry cells.
-        // This will also optimise cases where zl != zr as 
-        // long as both are dry
+    static long call = 1; // Static local variable flagging already computed flux
 
-        if (fabs(ql[0] - zl) < epsilon && 
-            fabs(qr[0] - zr) < epsilon) 
-        {
-          // Cell boundary is dry
-          
-          already_computed_flux[ki] = call; // #k Done  
-          if (n >= 0)
-          {
-            already_computed_flux[nm] = call; // #n Done
-          }
-        
-          max_speed = 0.0;
-          continue;
-        }
-      }
-      
-      // Outward pointing normal vector (domain.normals[k, 2*i:2*i+2])
-      ki2 = 2*ki; //k*6 + i*2
+    // Start computation
+    call++; // Flag 'id' of flux calculation for this timestep
 
-      // Edge flux computation (triangle k, edge i)
-      _flux_function_central(ql, qr, zl, zr,
-                             normals[ki2], normals[ki2+1],
-                             epsilon, h0, limiting_threshold, g,
-                             edgeflux, &max_speed);
-      
-      
-      // Multiply edgeflux by edgelength
-      length = edgelengths[ki];
-      edgeflux[0] *= length;            
-      edgeflux[1] *= length;            
-      edgeflux[2] *= length;                        
-      
-      
-      // Update triangle k with flux from edge i
-      stage_explicit_update[k] -= edgeflux[0];
-      xmom_explicit_update[k] -= edgeflux[1];
-      ymom_explicit_update[k] -= edgeflux[2];
-      
-      already_computed_flux[ki] = call; // #k Done
-      
-      
-      // Update neighbour n with same flux but reversed sign
-      if (n >= 0) 
-      {
-        stage_explicit_update[n] += edgeflux[0];
-        xmom_explicit_update[n] += edgeflux[1];
-        ymom_explicit_update[n] += edgeflux[2];
-        
-        already_computed_flux[nm] = call; // #n Done
-      }
+    // Set explicit_update to zero for all conserved_quantities.
+    // This assumes compute_fluxes called before forcing terms
+    memset((char*) stage_explicit_update, 0, number_of_elements * sizeof (double));
+    memset((char*) xmom_explicit_update, 0, number_of_elements * sizeof (double));
+    memset((char*) ymom_explicit_update, 0, number_of_elements * sizeof (double));
 
-      // Update timestep based on edge i and possibly neighbour n
-      if (tri_full_flag[k] == 1) 
-      {
-        if (max_speed > epsilon) 
-        {
-          // Apply CFL condition for triangles joining this edge (triangle k and triangle n)
-          
-          // CFL for triangle k
-          timestep = min(timestep, radii[k]/max_speed);
-          
-          if (n >= 0)
-          {
-            // Apply CFL condition for neigbour n (which is on the ith edge of triangle k)
-            timestep = min(timestep, radii[n]/max_speed);
-          }
+    // For all triangles
+    for (k = 0; k < number_of_elements; k++) {
+        // Loop through neighbours and compute edge flux for each
+        for (i = 0; i < 3; i++) {
+            ki = k * 3 + i; // Linear index to edge i of triangle k
 
-          // Ted Rigby's suggested less conservative version
-          //if (n>=0) {         
-          //  timestep = min(timestep, (radii[k]+radii[n])/max_speed);
-          //} else {
-          //  timestep = min(timestep, radii[k]/max_speed);
-          // }
-        }
-      }
-      
-    } // End edge i (and neighbour n)
-    
-    
-    // Normalise triangle k by area and store for when all conserved
-    // quantities get updated
-    inv_area = 1.0/areas[k];
-    stage_explicit_update[k] *= inv_area;
-    xmom_explicit_update[k] *= inv_area;
-    ymom_explicit_update[k] *= inv_area;
-    
-   
-    // Keep track of maximal speeds
-    max_speed_array[k] = max_speed;
-    
-  } // End triangle k
-             
-  return timestep;
+            if (already_computed_flux[ki] == call) {
+                // We've already computed the flux across this edge
+                continue;
+            }
+
+            // Get left hand side values from triangle k, edge i
+            ql[0] = stage_edge_values[ki];
+            ql[1] = xmom_edge_values[ki];
+            ql[2] = ymom_edge_values[ki];
+            zl = bed_edge_values[ki];
+
+            // Get right hand side values either from neighbouring triangle
+            // or from boundary array (Quantities at neighbour on nearest face).
+            n = neighbours[ki];
+            if (n < 0) {
+                // Neighbour is a boundary condition
+                m = -n - 1; // Convert negative flag to boundary index
+
+                qr[0] = stage_boundary_values[m];
+                qr[1] = xmom_boundary_values[m];
+                qr[2] = ymom_boundary_values[m];
+                zr = zl; // Extend bed elevation to boundary
+            }
+            else {
+                // Neighbour is a real triangle
+                m = neighbour_edges[ki];
+                nm = n * 3 + m; // Linear index (triangle n, edge m)
+
+                qr[0] = stage_edge_values[nm];
+                qr[1] = xmom_edge_values[nm];
+                qr[2] = ymom_edge_values[nm];
+                zr = bed_edge_values[nm];
+            }
+
+            // Now we have values for this edge - both from left and right side.
+
+            if (optimise_dry_cells) {
+                // Check if flux calculation is necessary across this edge
+                // This check will exclude dry cells.
+                // This will also optimise cases where zl != zr as
+                // long as both are dry
+
+                if (fabs(ql[0] - zl) < epsilon &&
+                        fabs(qr[0] - zr) < epsilon) {
+                    // Cell boundary is dry
+
+                    already_computed_flux[ki] = call; // #k Done
+                    if (n >= 0) {
+                        already_computed_flux[nm] = call; // #n Done
+                    }
+
+                    max_speed = 0.0;
+                    continue;
+                }
+            }
+
+
+            if (fabs(zl-zr)>1.0e-10) {
+                report_python_error(AT,"Discontinuous Elevation");
+                return 0.0;
+            }
+            
+            // Outward pointing normal vector (domain.normals[k, 2*i:2*i+2])
+            ki2 = 2 * ki; //k*6 + i*2
+
+            // Edge flux computation (triangle k, edge i)
+            _flux_function_central(ql, qr, zl, zr,
+                    normals[ki2], normals[ki2 + 1],
+                    epsilon, h0, limiting_threshold, g,
+                    edgeflux, &max_speed);
+
+
+            // Multiply edgeflux by edgelength
+            length = edgelengths[ki];
+            edgeflux[0] *= length;
+            edgeflux[1] *= length;
+            edgeflux[2] *= length;
+
+
+            // Update triangle k with flux from edge i
+            stage_explicit_update[k] -= edgeflux[0];
+            xmom_explicit_update[k] -= edgeflux[1];
+            ymom_explicit_update[k] -= edgeflux[2];
+
+            already_computed_flux[ki] = call; // #k Done
+
+
+            // Update neighbour n with same flux but reversed sign
+            if (n >= 0) {
+                stage_explicit_update[n] += edgeflux[0];
+                xmom_explicit_update[n] += edgeflux[1];
+                ymom_explicit_update[n] += edgeflux[2];
+
+                already_computed_flux[nm] = call; // #n Done
+            }
+
+            // Update timestep based on edge i and possibly neighbour n
+            if (tri_full_flag[k] == 1) {
+                if (max_speed > epsilon) {
+                    // Apply CFL condition for triangles joining this edge (triangle k and triangle n)
+
+                    // CFL for triangle k
+                    timestep = min(timestep, radii[k] / max_speed);
+
+                    if (n >= 0) {
+                        // Apply CFL condition for neigbour n (which is on the ith edge of triangle k)
+                        timestep = min(timestep, radii[n] / max_speed);
+                    }
+
+                    // Ted Rigby's suggested less conservative version
+                    //if (n>=0) {
+                    //  timestep = min(timestep, (radii[k]+radii[n])/max_speed);
+                    //} else {
+                    //  timestep = min(timestep, radii[k]/max_speed);
+                    // }
+                }
+            }
+
+        } // End edge i (and neighbour n)
+
+
+        // Normalise triangle k by area and store for when all conserved
+        // quantities get updated
+        inv_area = 1.0 / areas[k];
+        stage_explicit_update[k] *= inv_area;
+        xmom_explicit_update[k] *= inv_area;
+        ymom_explicit_update[k] *= inv_area;
+
+
+        // Keep track of maximal speeds
+        max_speed_array[k] = max_speed;
+
+    } // End triangle k
+
+    return timestep;
 }
 
 //=========================================================================
@@ -2263,8 +2256,8 @@ PyObject *compute_fluxes_ext_central_new(PyObject *self, PyObject *args) {
     
     // Convert Python arguments to C
     if (!PyArg_ParseTuple(args, "dOOOO", &timestep, &domain, &stage, &xmom, &ymom, &bed )) {
-    PyErr_SetString(PyExc_RuntimeError, "Input arguments failed");
-    return NULL;
+      report_python_error(AT, "could not parse input arguments");
+      return NULL;
     }
 
     epsilon           = get_python_double(domain,"epsilon");
@@ -2449,7 +2442,7 @@ PyObject *compute_fluxes_ext_central(PyObject *self, PyObject *args) {
             &already_computed_flux,
             &max_speed_array,
             &optimise_dry_cells)) {
-    PyErr_SetString(PyExc_RuntimeError, "Input arguments failed");
+    report_python_error(AT, "could not parse input arguments");
     return NULL;
   }
 
@@ -2609,7 +2602,7 @@ PyObject *compute_fluxes_ext_kinetic(PyObject *self, PyObject *args) {
             &xmom_explicit_update,
             &ymom_explicit_update,
             &already_computed_flux)) {
-    PyErr_SetString(PyExc_RuntimeError, "Input arguments failed");
+    report_python_error(AT, "could not parse input arguments");
     return NULL;
   }
   number_of_elements = stage_edge_values -> dimensions[0];
@@ -2715,7 +2708,7 @@ PyObject *protect(PyObject *self, PyObject *args) {
             &maximum_allowed_speed,
             &epsilon,
             &wc, &zc, &xmomc, &ymomc)) {
-    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: protect could not parse input arguments");
+    report_python_error(AT, "could not parse input arguments");
     return NULL;
   }  
 
@@ -2774,8 +2767,7 @@ PyObject *balance_deep_and_shallow(PyObject *self, PyObject *args) {
             &wc, &zc, 
             &wv, &zv, &hvbar,
             &xmomc, &ymomc, &xmomv, &ymomv)) {
-    PyErr_SetString(PyExc_RuntimeError, 
-            "shallow_water_ext.c: balance_deep_and_shallow could not parse input arguments");
+    report_python_error(AT, "could not parse input arguments");
     return NULL;
   }  
       
@@ -2787,7 +2779,7 @@ PyObject *balance_deep_and_shallow(PyObject *self, PyObject *args) {
   // Pull out parameters
   Tmp = PyObject_GetAttrString(domain, "alpha_balance");
   if (!Tmp) {
-    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: balance_deep_and_shallow could not obtain object alpha_balance from domain");
+    report_python_error(AT, "could not obtain object alpha_balance from domain");
     return NULL;
   }  
   alpha_balance = PyFloat_AsDouble(Tmp);
@@ -2796,7 +2788,7 @@ PyObject *balance_deep_and_shallow(PyObject *self, PyObject *args) {
   
   Tmp = PyObject_GetAttrString(domain, "H0");
   if (!Tmp) {
-    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: balance_deep_and_shallow could not obtain object H0 from domain");
+    report_python_error(AT, "could not obtain object H0 from domain");
     return NULL;
   }  
   H0 = PyFloat_AsDouble(Tmp);
@@ -2805,7 +2797,7 @@ PyObject *balance_deep_and_shallow(PyObject *self, PyObject *args) {
   
   Tmp = PyObject_GetAttrString(domain, "tight_slope_limiters");
   if (!Tmp) {
-    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: balance_deep_and_shallow could not obtain object tight_slope_limiters from domain");
+    report_python_error(AT, "could not obtain object tight_slope_limiters from domain");
     return NULL;
   }  
   tight_slope_limiters = PyInt_AsLong(Tmp);
@@ -2814,7 +2806,7 @@ PyObject *balance_deep_and_shallow(PyObject *self, PyObject *args) {
   
   Tmp = PyObject_GetAttrString(domain, "use_centroid_velocities");
   if (!Tmp) {
-    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: balance_deep_and_shallow could not obtain object use_centroid_velocities from domain");
+    report_python_error(AT, "could not obtain object use_centroid_velocities from domain");
     return NULL;
   }  
   use_centroid_velocities = PyInt_AsLong(Tmp);
@@ -2868,7 +2860,7 @@ PyObject *assign_windfield_values(PyObject *self, PyObject *args) {
             &ymom_update,
             &s_vec, &phi_vec,
             &cw)) {
-    PyErr_SetString(PyExc_RuntimeError, "shallow_water_ext.c: assign_windfield_values could not parse input arguments");
+    report_python_error(AT, "could not parse input arguments");
     return NULL;
   }  
             
