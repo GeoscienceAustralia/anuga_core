@@ -1527,8 +1527,9 @@ class Generic_Domain:
                            'Contact Ole.Nielsen@ga.gov.au')
                     raise Exception, msg
 
-                # Yield final time and stop
+                # Log and then Yield final time and stop
                 self.time = finaltime
+                self.log_operator_timestepping_statistics()
                 yield(self.time)
                 break
 
@@ -1539,7 +1540,8 @@ class Generic_Domain:
                     self.store_checkpoint()
                     self.delete_old_checkpoints()
 
-                # Pass control on to outer loop for more specific actions
+                # Log and then Pass control on to outer loop for more specific actions
+                self.log_operator_timestepping_statistics()
                 yield(self.time)
 
                 # Reinitialise
@@ -1859,6 +1861,23 @@ class Generic_Domain:
     def apply_fractional_steps(self):
         for operator in self.fractional_step_operators:
             operator()
+
+
+
+    ##
+    # @brief log_timestepping_statistics.
+    # Goes through all fractional step operators and logs timestepping statistics
+    def log_operator_timestepping_statistics(self):
+        for operator in self.fractional_step_operators:
+            operator.log_timestepping_statistics()
+
+    ##
+    # @brief print_timestepping_statistics.
+    # Goes through all fractional step operators and logs timestepping statistics
+    def print_operator_timestepping_statistics(self):
+        for operator in self.fractional_step_operators:
+            operator.print_timestepping_statistics()
+
 
     ##
     # @brief set_fractional_step_operator.

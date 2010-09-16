@@ -11,7 +11,8 @@ class Boyd_box_operator(anuga.Structure_operator):
     
     Input: Two points, pipe_size (either diameter or width, height), 
     mannings_rougness,
-    """ 
+    """
+
 
     def __init__(self,
                  domain,
@@ -26,7 +27,11 @@ class Boyd_box_operator(anuga.Structure_operator):
                  use_momentum_jet=True,
                  use_velocity_head=True,
                  description=None,
+                 label=None,
+                 structure_type='boyd_box',
+                 logging=False,
                  verbose=False):
+
                      
         anuga.Structure_operator.__init__(self,
                                           domain,
@@ -38,7 +43,10 @@ class Boyd_box_operator(anuga.Structure_operator):
                                           manning,
                                           enquiry_gap,                                                       
                                           description,
-                                          verbose)            
+                                          label,
+                                          structure_type,
+                                          logging,
+                                          verbose)     
         
         
         if type(losses) == types.DictType:
@@ -56,7 +64,6 @@ class Boyd_box_operator(anuga.Structure_operator):
         self.culvert_height = self.get_culvert_height()
 
         self.max_velocity = 10.0
-        self.log_filename = None
 
         self.inlets = self.get_inlets()
 

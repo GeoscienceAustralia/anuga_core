@@ -20,11 +20,11 @@ except ImportError:
 import anuga.utilities.log as log
 
 
-def log_to_file(filename, s, verbose=False):
+def log_to_file(filename, s, verbose=False, mode='a'):
     """Log string to file name
     """
 
-    fid = open(filename, 'a')
+    fid = open(filename, mode)
     if verbose: print s
     fid.write(s + '\n')
     fid.close()

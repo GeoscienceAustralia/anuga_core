@@ -25,7 +25,12 @@ class Boyd_pipe_operator(anuga.Structure_operator):
                  use_momentum_jet=True,
                  use_velocity_head=True,
                  description=None,
+                 label=None,
+                 structure_type='boyd_pipe',
+                 logging=False,
                  verbose=False):
+
+
                      
         anuga.Structure_operator.__init__(self,
                                           domain,
@@ -37,6 +42,9 @@ class Boyd_pipe_operator(anuga.Structure_operator):
                                           manning=manning,
                                           enquiry_gap=enquiry_gap,                                                       
                                           description=description,
+                                          label=label,
+                                          structure_type=structure_type,
+                                          logging=logging,
                                           verbose=verbose)            
 
  
@@ -54,7 +62,6 @@ class Boyd_pipe_operator(anuga.Structure_operator):
         self.culvert_diameter = self.get_culvert_diameter()
 
         self.max_velocity = 10.0
-        self.log_filename = None
 
         self.inlets = self.get_inlets()
 
@@ -76,9 +83,6 @@ class Boyd_pipe_operator(anuga.Structure_operator):
                 anuga.log.critical('culvert type = %s' % str(culvert_type))
             # Water has risen above inlet
 
-            if self.log_filename is not None:
-                s = 'Specific energy  = %f m' % self.inflow.get_enquiry_specific_energy()
-                log_to_file(self.log_filename, s)
 
             msg = 'Specific energy at inlet is negative'
             assert self.inflow.get_enquiry_specific_energy() >= 0.0, msg
@@ -107,9 +111,6 @@ class Boyd_pipe_operator(anuga.Structure_operator):
                 anuga.log.critical('culvert type = %s' % str(culvert_type))
             # Water has risen above inlet
 
-            if self.log_filename is not None:
-                s = 'Specific energy  = %f m' % self.inflow.get_average_specific_energy()
-                log_to_file(self.log_filename, s)
 
             msg = 'Specific energy at inlet is negative'
             assert self.inflow.get_average_specific_energy() >= 0.0, msg
@@ -119,9 +120,7 @@ class Boyd_pipe_operator(anuga.Structure_operator):
             Q_inlet_submerged = 0.530*anuga.g**0.5*diameter**1.87*self.inflow.get_average_specific_energy()**0.63   # Inlet Ctrl Inlet Submerged
             # Note for to SUBMERGED TO OCCUR self.inflow.get_average_specific_energy() should be > 1.2 x diameter.... Should Check !!!
 
-            if self.log_filename is not None:
-                s = 'Q_inlet_unsubmerged = %.6f, Q_inlet_submerged = %.6f' % (Q_inlet_unsubmerged, Q_inlet_submerged)
-                log_to_file(self.log_filename, s)
+
             Q = min(Q_inlet_unsubmerged, Q_inlet_submerged)
 
             # THE LOWEST Value will Control Calcs From here
@@ -204,9 +203,7 @@ class Boyd_pipe_operator(anuga.Structure_operator):
                 anuga.log.critical('Q Interim = %s' % str(Q))
             hyd_rad = flow_area/perimeter
 
-            if self.log_filename is not None:
-                s = 'hydraulic radius at outlet = %f' %hyd_rad
-                log_to_file(self.log_filename, s)
+
 
             # Outlet control velocity using tail water
             if local_debug =='true':
@@ -221,9 +218,7 @@ class Boyd_pipe_operator(anuga.Structure_operator):
             if local_debug =='true':
                 anuga.log.critical('VELOCITY = %s' % str(culvert_velocity))
                 anuga.log.critical('Outlet Ctrl Q = %s' % str(Q_outlet_tailwater))
-            if self.log_filename is not None:
-                s = 'Q_outlet_tailwater = %.6f' %Q_outlet_tailwater
-                log_to_file(self.log_filename, s)
+
             Q = min(Q, Q_outlet_tailwater)
             if local_debug =='true':
                 anuga.log.critical('%s,%.3f,%.3f'

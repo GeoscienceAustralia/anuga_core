@@ -158,7 +158,7 @@ print 'DEFINING any Structures if Required'
 #------------------------------------------------------------------------------
 
 culverts = []
-number_of_culverts = 1
+number_of_culverts = 2
 for i in range(number_of_culverts):
     culvert_width = 50.0/number_of_culverts
     y = 100-i*culvert_width - culvert_width/2.0
@@ -174,6 +174,7 @@ for i in range(number_of_culverts):
                             use_momentum_jet=True,
                             use_velocity_head=True,
                             manning=0.013,
+                            logging=True,
                             verbose=False))
 
                        
@@ -203,13 +204,13 @@ Btds = anuga.Dirichlet_boundary([19.0, 0, 0])           # Outflow water at 9.0
 domain.set_boundary({'left': Btus, 'right': Btds, 'top': Br, 'bottom': Br})
 
 
+
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
 
 for t in domain.evolve(yieldstep = 1, finaltime = 100):
     print domain.timestepping_statistics()
-    print domain.volumetric_balance_statistics()
-    for culvert in culverts:
-        print culvert.structure_statistics()
+
+    domain.print_operator_timestepping_statistics()
 

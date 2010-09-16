@@ -3,6 +3,9 @@ import numpy as num
 import math
 import inlet
 
+from anuga.utilities.system_tools import log_to_file
+
+
 class Structure_operator:
     """Structure Operator - transfer water from one rectangular box to another.
     Sets up the geometry of problem
@@ -14,6 +17,8 @@ class Structure_operator:
     mannings_rougness,
     """ 
 
+    counter = 0
+
     def __init__(self,
                  domain,
                  end_point0, 
@@ -24,11 +29,16 @@ class Structure_operator:
                  manning,
                  enquiry_gap,
                  description,
+                 label,
+                 structure_type,
+                 logging,
                  verbose):
         
         self.domain = domain
         self.domain.set_fractional_step_operator(self)
         self.end_points = [end_point0, end_point1]
+
+        
         
         if height is None:
             height = width
@@ -41,9 +51,32 @@ class Structure_operator:
         self.apron  = apron
         self.manning = manning
         self.enquiry_gap = enquiry_gap
-        self.description = description
+
+        if description == None:
+            self.description = ' '
+        else:
+            self.description = description
+        
+
+        if label == None:
+            self.label = "structure_%g" % Structure_operator.counter
+        else:
+            self.label = label
+        print label
+
+        if structure_type == None:
+            self.structure_type = 'generic structure'
+        else:
+            self.structure_type = structure_type
+            
         self.verbose = verbose
 
+        
+        
+        # Keep count of structures
+        Structure_operator.counter += 1
+
+        # Slots for recording current statistics
         self.discharge = 0.0
         self.velocity = 0.0
         self.delta_total_energy = 0.0
@@ -62,6 +95,7 @@ class Structure_operator:
         outward_vector1  = - self.culvert_vector
         self.inlets.append(inlet.Inlet(self.domain, polygon1, exchange_polygon1, outward_vector1))
 
+        self.set_logging(logging)
 
     def __call__(self):
 
@@ -220,44 +254,86 @@ class Structure_operator:
         pass
             
 
-    def print_stats(self):
-
-        print '====================================='
-        print 'Generic Culvert Operator'
-        print '====================================='
-
-        print 'Culvert'
-        print self.culvert
-
-        print 'Culvert Routine'
-        print self.routine
-        
-        for i, inlet in enumerate(self.inlets):
-            print '-------------------------------------'
-            print 'Inlet %i' % i
-            print '-------------------------------------'
-
-            print 'inlet triangle indices and centres'
-            print inlet.triangle_indices
-            print self.domain.get_centroid_coordinates()[inlet.triangle_indices]
-        
-            print 'polygon'
-            print inlet.polygon
-
-        print '====================================='
-
-
     def structure_statistics(self):
 
+
+        message  = '=====================================\n'
+        message += 'Structure Operator: %s\n' % self.label
+        message += '=====================================\n'
+
+        message += 'Structure Type: %s\n' % self.structure_type
+
+        message += 'Description\n'
+        message += '%s' % self.description
+        message += '\n'
+        
+        for i, inlet in enumerate(self.inlets):
+            message += '-------------------------------------\n'
+            message +=  'Inlet %i\n' % i
+            message += '-------------------------------------\n'
+
+            message += 'inlet triangle indices and centres\n'
+            message += '%s' % inlet.triangle_indices
+            message += '\n'
+            
+            message += '%s' % self.domain.get_centroid_coordinates()[inlet.triangle_indices]
+            message += '\n'
+
+            message += 'polygon\n'
+            message += '%s' % inlet.polygon
+            message += '\n'
+
+        message += '=====================================\n'
+
+        return message
+
+
+    def print_structure_statistics(self):
+
+        print self.structure_statistics()
+
+
+    def print_timestepping_statistics(self):
+
         message = '---------------------------\n'
-        message += 'Structure report for structure %s:\n' % self.description
+        message += 'Structure report for %s:\n' % self.label
         message += '--------------------------\n'
+        message += 'Type: %s\n' % self.structure_type
         message += 'Discharge [m^3/s]: %.2f\n' % self.discharge
         message += 'Velocity  [m/s]: %.2f\n' % self.velocity
         message += 'Inlet Driving Energy %.2f\n' % self.driving_energy
         message += 'delta total energy %.2f\n' % self.delta_total_energy
 
+        print message
+
+
+    def set_logging(self, flag=True):
+
+        self.logging = flag
+
+        # If flag is true open file with mode = "w" to form a clean file for logging
+        if self.logging:
+            self.log_filename = self.label + '.log'
+            log_to_file(self.log_filename, self.structure_statistics(), mode='w')
+            log_to_file(self.log_filename, 'time,discharge,velocity,driving_energy,delta_total_energy')
+
+            #log_to_file(self.log_filename, self.culvert_type)
+
+
+    def timestepping_statistics(self):
+
+        message  = '%.5f, ' % self.domain.get_time()
+        message += '%.5f, ' % self.discharge
+        message += '%.5f, ' % self.velocity
+        message += '%.5f, ' % self.driving_energy
+        message += '%.5f' % self.delta_total_energy
+
         return message
+
+    def log_timestepping_statistics(self):
+
+         if self.logging:
+             log_to_file(self.log_filename, self.timestepping_statistics())
 
 
     def get_inlets(self):
