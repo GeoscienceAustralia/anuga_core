@@ -302,7 +302,7 @@ class Structure_operator:
         message += 'Discharge [m^3/s]: %.2f\n' % self.discharge
         message += 'Velocity  [m/s]: %.2f\n' % self.velocity
         message += 'Inlet Driving Energy %.2f\n' % self.driving_energy
-        message += 'delta total energy %.2f\n' % self.delta_total_energy
+        message += 'Delta Total Energy %.2f\n' % self.delta_total_energy
 
         print message
 

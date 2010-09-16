@@ -86,9 +86,6 @@ class Boyd_box_operator(anuga.Structure_operator):
                 anuga.log.critical('culvert type = %s' % str(culvert_type))
             # Water has risen above inlet
 
-            if self.log_filename is not None:
-                s = 'Specific energy  = %f m' % self.inflow.get_enquiry_specific_energy()
-                log_to_file(self.log_filename, s)
 
             msg = 'Specific energy at inlet is negative'
             assert self.inflow.get_enquiry_specific_energy() >= 0.0, msg
@@ -176,17 +173,12 @@ class Boyd_box_operator(anuga.Structure_operator):
 
                 hyd_rad = flow_area/perimeter
 
-                if self.log_filename is not None:
-                    s = 'hydraulic radius at outlet = %f' % hyd_rad
-                    log_to_file(self.log_filename, s)
+
 
                 # Final Outlet control velocity using tail water
                 culvert_velocity = math.sqrt(self.delta_total_energy/((self.sum_loss/2/anuga.g)+(self.manning**2*self.culvert_length)/hyd_rad**1.33333))
                 Q_outlet_tailwater = flow_area * culvert_velocity
 
-                if self.log_filename is not None:
-                    s = 'Q_outlet_tailwater = %.6f' % Q_outlet_tailwater
-                    log_to_file(self.log_filename, s)
                 Q = min(Q, Q_outlet_tailwater)
             else:
                 pass
