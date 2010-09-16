@@ -61,8 +61,8 @@ class Structure_operator:
         if label == None:
             self.label = "structure_%g" % Structure_operator.counter
         else:
-            self.label = label
-        print label
+            self.label = label + '_%g' % Structure_operator.counter
+
 
         if structure_type == None:
             self.structure_type = 'generic structure'
