@@ -180,18 +180,18 @@ for i in range(number_of_culverts):
 #                            verbose=False))
 
 
-#    Boyd_pipe_operator(domain,
-#                            end_point0=ep0,
-#                            end_point1=ep1,
-#                            losses=losses,
-#                            diameter=1.5, #culvert_width, #3.658,
-#                            apron=6.0,
-#                            use_momentum_jet=True,
-#                            use_velocity_head=True,
-#                            manning=0.013,
-#                            logging=True,
-#                            label='pipe_culvert',
-#                            verbose=False)
+    Boyd_pipe_operator(domain,
+                            end_point0=ep0,
+                            end_point1=ep1,
+                            losses=losses,
+                            diameter=1.5, #culvert_width, #3.658,
+                            apron=6.0,
+                            use_momentum_jet=True,
+                            use_velocity_head=True,
+                            manning=0.013,
+                            logging=True,
+                            label='pipe_culvert',
+                            verbose=False)
 
     Boyd_box_operator(domain,
                             end_point0=ep0,

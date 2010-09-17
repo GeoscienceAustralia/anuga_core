@@ -254,7 +254,7 @@ class Structure_operator:
         pass
             
 
-    def structure_statistics(self):
+    def statistics(self):
 
 
         message  = '=====================================\n'
@@ -288,9 +288,9 @@ class Structure_operator:
         return message
 
 
-    def print_structure_statistics(self):
+    def print_statistics(self):
 
-        print self.structure_statistics()
+        print self.statistics()
 
 
     def print_timestepping_statistics(self):
@@ -314,7 +314,7 @@ class Structure_operator:
         # If flag is true open file with mode = "w" to form a clean file for logging
         if self.logging:
             self.log_filename = self.label + '.log'
-            log_to_file(self.log_filename, self.structure_statistics(), mode='w')
+            log_to_file(self.log_filename, self.statistics(), mode='w')
             log_to_file(self.log_filename, 'time,discharge,velocity,driving_energy,delta_total_energy')
 
             #log_to_file(self.log_filename, self.culvert_type)
