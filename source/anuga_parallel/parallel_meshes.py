@@ -14,15 +14,15 @@ Modified by Linda Stals, March 2006, to include ghost boundaries
 
 
 import sys
-#from Numeric import array, zeros, Float, Int, ones, sum
-
 import numpy as num
+
+from anuga_parallel.parallel_abstraction import pypar_available
 import pypar
 
 from anuga.config import epsilon
 
 
-
+if pypar_available 
 
 
 def parallel_rectangle(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)):
