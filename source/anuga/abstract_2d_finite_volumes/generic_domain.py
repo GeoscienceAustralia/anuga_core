@@ -1865,14 +1865,14 @@ class Generic_Domain:
 
 
     ##
-    # @brief log_timestepping_statistics.
+    # @brief log_operator_timestepping_statistics.
     # Goes through all fractional step operators and logs timestepping statistics
     def log_operator_timestepping_statistics(self):
         for operator in self.fractional_step_operators:
             operator.log_timestepping_statistics()
 
     ##
-    # @brief print_timestepping_statistics.
+    # @brief print_operator_timestepping_statistics.
     # Goes through all fractional step operators and prints timestepping statistics
     def print_operator_timestepping_statistics(self):
         for operator in self.fractional_step_operators:
