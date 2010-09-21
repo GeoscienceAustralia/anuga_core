@@ -108,7 +108,10 @@ class Structure_operator:
         old_inflow_height = self.inflow.get_average_height()
         old_inflow_xmom = self.inflow.get_average_xmom()
         old_inflow_ymom = self.inflow.get_average_ymom()
-            
+
+        # Implement the update of flow over a timestep by
+        # using a semi-implict update. This ensures that
+        # the update does not create a negative height
         if old_inflow_height > 0.0 :
                 Q_star = Q/old_inflow_height
         else:
