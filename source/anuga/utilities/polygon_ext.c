@@ -101,7 +101,7 @@ int __point_on_line(double x, double y,
 //  Returns NO if there is no determinable intersection point, in which case X,Y will
 //  be unmodified.
 
-int __lineSegmentIntersection(
+int __line_segment_intersection(
         double Ax, double Ay,
         double Bx, double By,
         double Cx, double Cy,

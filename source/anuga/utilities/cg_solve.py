@@ -7,7 +7,7 @@ import numpy as num
 import anuga.utilities.log as log
 
 
-def conjugate_gradient(A,b,x0=None,imax=10000,tol=1.0e-8,iprint=None):
+def conjugate_gradient(A,b,x0=None,imax=10000,tol=1.0e-8,atol=1.0e-14,iprint=None):
     """
     Try to solve linear equation Ax = b using
     conjugate gradient method
@@ -26,13 +26,14 @@ def conjugate_gradient(A,b,x0=None,imax=10000,tol=1.0e-8,iprint=None):
        
         for i in range(b.shape[1]):
             x0[:,i] = _conjugate_gradient(A, b[:,i], x0[:,i],
-                                          imax, tol, iprint)
+                                          imax, tol, atol, iprint)
     else:
-        x0 = _conjugate_gradient(A, b, x0, imax, tol, iprint)
+        x0 = _conjugate_gradient(A, b, x0, imax, tol, atol, iprint)
 
     return x0
     
-def _conjugate_gradient(A,b,x0=None,imax=10000,tol=1.0e-8,iprint=None):
+def _conjugate_gradient(A, b, x0, 
+                        imax=10000, tol=1.0e-8, atol=1.0e-14, iprint=None):
    """
    Try to solve linear equation Ax = b using
    conjugate gradient method
@@ -72,7 +73,7 @@ def _conjugate_gradient(A,b,x0=None,imax=10000,tol=1.0e-8,iprint=None):
    rTr0 = rTr
 
    #FIXME Let the iterations stop if starting with a small residual
-   while (i<imax and rTr>tol**2*rTr0):
+   while (i<imax and rTr>tol**2*rTr0 and rTr>atol**2 ):
        q = A*d
        alpha = rTr/num.dot(d,q)
        x = x + alpha*d
