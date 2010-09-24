@@ -16,13 +16,14 @@ Modified by Linda Stals, March 2006, to include ghost boundaries
 import sys
 import numpy as num
 
-from anuga_parallel.parallel_abstraction import pypar_available
-import pypar
-
 from anuga.config import epsilon
 
 
-if pypar_available 
+from parallel_api import distribute
+from parallel_api import myid, numprocs, get_processor_name
+from parallel_api import send, receive
+from parallel_api import pypar_available, barrier, finalize
+
 
 
 def parallel_rectangle(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)):
@@ -39,13 +40,9 @@ def parallel_rectangle(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)):
 
     """
 
-    processor = pypar.rank()
-    numproc   = pypar.size()
 
-    #print 'numproc',numproc
-    #print 'processor ',processor
 
-    m_low, m_high = pypar.balance(m_g, numproc, processor)
+    m_low, m_high = pypar.balance(m_g, numprocs, myid)
     
     n = n_g
     m_low  = m_low-1
@@ -131,7 +128,7 @@ def parallel_rectangle(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)):
                 Idgr.append(nt)
 
             if i == m-1:
-                if processor == numproc-1:
+                if myid == numprocs-1:
                     boundary[nt, 2] = 'right'
                 else:
                     boundary[nt, 2] = 'ghost'
@@ -155,7 +152,7 @@ def parallel_rectangle(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)):
                 Idgr.append(nt)
 
             if i == 0:
-                if processor == 0:
+                if myid == 0:
                     boundary[nt, 2] = 'left'
                 else:
                     boundary[nt, 2] = 'ghost'
@@ -163,7 +160,7 @@ def parallel_rectangle(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)):
                 boundary[nt, 1] = 'top'
             elements[nt,:] = [i1,i2,i3]
 
-    if numproc==1:
+    if numprocs==1:
         Idfl.extend(Idfr)
         Idgr.extend(Idgl)
 
@@ -176,18 +173,17 @@ def parallel_rectangle(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)):
         #print Idfl
         #print Idgr
         
-        full_send_dict[processor]  = [Idfl, Idfl]
-        ghost_recv_dict[processor] = [Idgr, Idgr]
+        full_send_dict[myid]  = [Idfl, Idfl]
+        ghost_recv_dict[myid] = [Idgr, Idgr]
 
-        #print  full_send_dict[processor]
-        #print ghost_recv_dict[processor]
-    elif numproc == 2:
+
+    elif numprocs == 2:
         Idfl.extend(Idfr)
         Idgr.extend(Idgl)
         Idfl = num.array(Idfl,num.int)
         Idgr = num.array(Idgr,num.int)
-        full_send_dict[(processor-1)%numproc]  = [Idfl, Idfl]
-        ghost_recv_dict[(processor-1)%numproc] = [Idgr, Idgr]
+        full_send_dict[(myid-1)%numprocs]  = [Idfl, Idfl]
+        ghost_recv_dict[(myid-1)%numprocs] = [Idgr, Idgr]
     else:
         Idfl = num.array(Idfl,num.int)
         Idgl = num.array(Idgl,num.int)
@@ -195,10 +191,10 @@ def parallel_rectangle(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)):
         Idfr = num.array(Idfr,num.int)
         Idgr = num.array(Idgr,num.int)
 
-        full_send_dict[(processor-1)%numproc]  = [Idfl, Idfl]
-        ghost_recv_dict[(processor-1)%numproc] = [Idgl, Idgl]
-        full_send_dict[(processor+1)%numproc]  = [Idfr, Idfr]
-        ghost_recv_dict[(processor+1)%numproc] = [Idgr, Idgr]
+        full_send_dict[(myid-1)%numprocs]  = [Idfl, Idfl]
+        ghost_recv_dict[(myid-1)%numprocs] = [Idgl, Idgl]
+        full_send_dict[(myid+1)%numprocs]  = [Idfr, Idfr]
+        ghost_recv_dict[(myid+1)%numprocs] = [Idgr, Idgr]
 
 
 
@@ -290,7 +286,7 @@ def rectangular_periodic(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
                 ghosts[nt] = E(i,n-2)
 
             if i == m-1:
-                if processor == numproc-1:
+                if myid == numprocs-1:
                     boundary[nt, 2] = 'right'
                 else:
                     boundary[nt, 2] = 'ghost'
@@ -312,7 +308,7 @@ def rectangular_periodic(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
                 ghosts[nt] = E(i,n-2)+1
 
             if i == 0:
-                if processor == 0:
+                if myid == 0:
                     boundary[nt, 2] = 'left'
                 else:
                     boundary[nt, 2] = 'ghost'
@@ -421,7 +417,7 @@ def rectangular_periodic_lr(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
                 ghosts[nt] = E(m-2,j)
 
             if i == m-1:
-                if processor == numproc-1:
+                if myid == numprocs-1:
                     boundary[nt, 2] = 'right'
                 else:
                     boundary[nt, 2] = 'ghost'
@@ -437,7 +433,7 @@ def rectangular_periodic_lr(m, n, len1=1.0, len2=1.0, origin = (0.0, 0.0)):
                 ghosts[nt] = E(m-2,j)+1
 
             if i == 0:
-                if processor == 0:
+                if myid == 0:
                     boundary[nt, 2] = 'left'
                 else:
                     boundary[nt, 2] = 'ghost'
