@@ -72,6 +72,8 @@ class Boyd_box_operator(anuga.Structure_operator):
         
         self.discharge = 0.0
         self.velocity = 0.0
+        
+        self.case = 'N/A'
 
     
     def discharge_routine(self):
@@ -116,7 +118,7 @@ class Boyd_box_operator(anuga.Structure_operator):
                     flow_area = width*dcrit
                     perimeter= 2.0*dcrit+width
                 outlet_culvert_depth = dcrit
-                case = 'Inlet unsubmerged Box Acts as Weir'
+                self.case = 'Inlet unsubmerged Box Acts as Weir'
             else: # Inlet Submerged but check internal culvert flow depth
                 Q = Q_inlet_submerged
                 dcrit = (Q**2/anuga.g/width**2)**0.333333
@@ -128,7 +130,7 @@ class Boyd_box_operator(anuga.Structure_operator):
                     flow_area = width*dcrit
                     perimeter= 2.0*dcrit+width
                 outlet_culvert_depth = dcrit
-                case = 'Inlet submerged Box Acts as Orifice'
+                self.case = 'Inlet submerged Box Acts as Orifice'
 
             dcrit = (Q**2/anuga.g/width**2)**0.333333
             # May not need this .... check if same is done above
@@ -137,11 +139,11 @@ class Boyd_box_operator(anuga.Structure_operator):
                 outlet_culvert_depth = height  # Once again the pipe is flowing full not partfull
                 flow_area = width*height  # Cross sectional area of flow in the culvert
                 perimeter = 2*(width+height)
-                case = 'Inlet CTRL Outlet unsubmerged PIPE PART FULL'
+                self.case = 'Inlet CTRL Outlet unsubmerged PIPE PART FULL'
             else:
                 flow_area = width * outlet_culvert_depth
                 perimeter = width+2*outlet_culvert_depth
-                case = 'INLET CTRL Culvert is open channel flow we will for now assume critical depth'
+                self.case = 'INLET CTRL Culvert is open channel flow we will for now assume critical depth'
             # Initial Estimate of Flow for Outlet Control using energy slope 
             #( may need to include Culvert Bed Slope Comparison)
             hyd_rad = flow_area/perimeter
@@ -157,7 +159,7 @@ class Boyd_box_operator(anuga.Structure_operator):
                     outlet_culvert_depth=height
                     flow_area=width*height       # Cross sectional area of flow in the culvert
                     perimeter=2.0*(width+height)
-                    case = 'Outlet submerged'
+                    self.case = 'Outlet submerged'
                 else:   # Here really should use the Culvert Slope to calculate Actual Culvert Depth & Velocity
                     dcrit = (Q**2/anuga.g/width**2)**0.333333
                     outlet_culvert_depth=dcrit   # For purpose of calculation assume the outlet depth = Critical Depth
@@ -165,11 +167,11 @@ class Boyd_box_operator(anuga.Structure_operator):
                         outlet_culvert_depth=height
                         flow_area=width*height
                         perimeter=2.0*(width+height)
-                        case = 'Outlet is Flowing Full'
+                        self.case = 'Outlet is Flowing Full'
                     else:
                         flow_area=width*outlet_culvert_depth
                         perimeter=(width+2.0*outlet_culvert_depth)
-                        case = 'Outlet is open channel flow'
+                        self.case = 'Outlet is open channel flow'
 
                 hyd_rad = flow_area/perimeter
 

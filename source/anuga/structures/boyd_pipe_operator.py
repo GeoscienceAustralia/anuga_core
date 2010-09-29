@@ -70,6 +70,8 @@ class Boyd_pipe_operator(anuga.Structure_operator):
         self.discharge = 0.0
         self.velocity = 0.0
         
+        self.case = 'N/A'
+        
     
     def discharge_routine(self):
 
@@ -139,7 +141,7 @@ class Boyd_pipe_operator(anuga.Structure_operator):
                 flow_area = (diameter/2)**2 * math.pi  # Cross sectional area of flow in the culvert
                 perimeter = diameter * math.pi
                 flow_width= diameter
-                case = 'Inlet CTRL Outlet submerged Circular PIPE FULL'
+                self.case = 'Inlet CTRL Outlet submerged Circular PIPE FULL'
                 if local_debug == 'true':
                     anuga.log.critical('Inlet CTRL Outlet submerged Circular '
                                  'PIPE FULL')
@@ -150,7 +152,7 @@ class Boyd_pipe_operator(anuga.Structure_operator):
                 flow_area = diameter**2/8*(alpha - math.sin(alpha))   # Equation from  GIECK 5th Ed. Pg. B3
                 flow_width= diameter*math.sin(alpha/2.0)
                 perimeter = alpha*diameter/2.0
-                case = 'INLET CTRL Culvert is open channel flow we will for now assume critical depth'
+                self.case = 'INLET CTRL Culvert is open channel flow we will for now assume critical depth'
                 if local_debug =='true':
                     anuga.log.critical('INLET CTRL Culvert is open channel flow '
                                  'we will for now assume critical depth')
@@ -166,7 +168,7 @@ class Boyd_pipe_operator(anuga.Structure_operator):
                     flow_area = (diameter/2)**2 * math.pi  # Cross sectional area of flow in the culvert
                     perimeter = diameter * math.pi
                     flow_width= diameter
-                    case = 'Outlet submerged'
+                    self.case = 'Outlet submerged'
                     if local_debug =='true':
                         anuga.log.critical('Outlet submerged')
                 else:   # Culvert running PART FULL for PART OF ITS LENGTH   Here really should use the Culvert Slope to calculate Actual Culvert Depth & Velocity
@@ -182,7 +184,7 @@ class Boyd_pipe_operator(anuga.Structure_operator):
                         flow_area = (diameter/2)**2 * math.pi  # Cross sectional area of flow in the culvert
                         perimeter = diameter * math.pi
                         flow_width= diameter
-                        case = 'Outlet unsubmerged PIPE FULL'
+                        self.case = 'Outlet unsubmerged PIPE FULL'
                         if local_debug =='true':
                             anuga.log.critical('Outlet unsubmerged PIPE FULL')
                     else:
@@ -190,7 +192,7 @@ class Boyd_pipe_operator(anuga.Structure_operator):
                         flow_area = diameter**2/8*(alpha - math.sin(alpha))   # Equation from  GIECK 5th Ed. Pg. B3
                         flow_width= diameter*math.sin(alpha/2.0)
                         perimeter = alpha*diameter/2.0
-                        case = 'Outlet is open channel flow we will for now assume critical depth'
+                        self.case = 'Outlet is open channel flow we will for now assume critical depth'
                         if local_debug == 'true':
                             anuga.log.critical('Q Outlet Depth and ALPHA = %s, %s, %s'
                                          % (str(Q), str(outlet_culvert_depth),

@@ -306,6 +306,7 @@ class Structure_operator:
         message += 'Velocity  [m/s]: %.2f\n' % self.velocity
         message += 'Inlet Driving Energy %.2f\n' % self.driving_energy
         message += 'Delta Total Energy %.2f\n' % self.delta_total_energy
+        message += 'Control at this instant: %s\n' % self.case
 
         print message
 
