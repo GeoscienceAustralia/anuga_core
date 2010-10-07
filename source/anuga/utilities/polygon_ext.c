@@ -315,7 +315,8 @@ int __interpolate_polyline(int number_of_nodes,
 
 
 int __polygon_triangle_overlap(double* polygon,
-                               double* triangle)
+                               double* triangle,
+                               int polygon_number_of_vertices)
 {
     int i, ii, j, jj;
     double p0_x, p0_y, p1_x, p1_y, pp_x, pp_y;
@@ -327,9 +328,9 @@ int __polygon_triangle_overlap(double* polygon,
     p0_x = polygon[0];
     p0_y = polygon[1];
     
-    for (i = 1; i < 5; i++)
+    for (i = 1; i < polygon_number_of_vertices + 1; i++)
     {
-        ii = i%4;
+        ii = i%polygon_number_of_vertices;
         
         p1_x = polygon[2*ii];
         p1_y = polygon[2*ii + 1];
@@ -678,7 +679,8 @@ PyObject *_polygon_triangle_overlap(PyObject *self, PyObject *args) {
 
   // Call underlying routine
   res = __polygon_triangle_overlap((double*) polygon->data,
-			     (double*) triangle -> data);			       			       
+			     (double*) triangle -> data,
+                 (int) polygon->dimensions[0]);			       			       
 
 
   // Return result
