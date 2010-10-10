@@ -1,4 +1,4 @@
-from anuga.geometry.polygon import inside_polygon, is_inside_polygon
+from anuga.geometry.polygon import inside_polygon, is_inside_polygon, polygon_overlap
 from anuga.config import velocity_protection, g
 import math
 
@@ -26,7 +26,7 @@ class Inlet:
         # Get boundary (in absolute coordinates)
         bounding_polygon = self.domain_bounding_polygon
         domain_centroids = self.domain.get_centroid_coordinates(absolute=True)
-
+        vertex_coordinates = self.domain.get_vertex_coordinates()
 
         # Check that polygon lies within the mesh.
         for point in self.polygon:
@@ -39,8 +39,8 @@ class Inlet:
         msg += ' did not fall within the domain boundary.'
         assert is_inside_polygon(point, bounding_polygon), msg
 
-
-        self.triangle_indices = inside_polygon(domain_centroids, self.polygon, verbose=self.verbose)
+        self.triangle_indices = polygon_overlap(vertex_coordinates, self.polygon)
+        #self.triangle_indices_cen = inside_polygon(domain_centroids, self.polygon, verbose=self.verbose)
 
         if len(self.triangle_indices) == 0:
             region = 'Inlet polygon=%s' % (self.polygon)
@@ -48,7 +48,6 @@ class Inlet:
             raise Exception, msg
 
         self.enquiry_index = self.domain.get_triangle_containing_point(self.enquiry_pt)
-
 
 
     def compute_area(self):
