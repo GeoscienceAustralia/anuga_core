@@ -314,11 +314,11 @@ int __interpolate_polyline(int number_of_nodes,
 }			       			       
 
 
-int __polygon_triangle_overlap(double* polygon,
+int __triangle_polygon_overlap(double* polygon,
                                double* triangle,
                                int polygon_number_of_vertices)
 {
-    int i, ii, j, jj;
+    int i, ii, j, jj, A, B;
     double p0_x, p0_y, p1_x, p1_y, pp_x, pp_y;
     double t0_x, t0_y, t1_x, t1_y, tp_x, tp_y;
     double u_x, u_y, v_x, v_y, w_x, w_y;
@@ -327,6 +327,9 @@ int __polygon_triangle_overlap(double* polygon,
     
     p0_x = polygon[0];
     p0_y = polygon[1];
+    
+    A = 0;
+    B = 0;
     
     for (i = 1; i < polygon_number_of_vertices + 1; i++)
     {
@@ -349,7 +352,7 @@ int __polygon_triangle_overlap(double* polygon,
             t1_y = triangle[2*jj + 1];
             
             tp_x = -(t1_y - t0_y); //perpendicular to triangle vector
-            tp_y = t1_x - t0_x;
+            tp_y = t1_x - t0_x; //perpendicular to polygon vector
         
             u_x = p1_x - p0_x;
             u_y = p1_y - p0_y;
@@ -367,14 +370,24 @@ int __polygon_triangle_overlap(double* polygon,
                 w_dot_pp = (w_x*pp_x) + (w_y*pp_y);
                 
                 a = v_dot_tp/u_dot_tp;
-                b = v_dot_pp/w_dot_pp;
-                
-                if (a >= 0.0f && a <= 1.0f)
+                b = -v_dot_pp/w_dot_pp;
+                             
+                if (a >= 0.0f && a <= 1.0f && b >=0.0f && b <=1.0f)
                 {
                     return 1; //overlap
                 }
                 
-                if (b >= 0.0f && b <= 1.0f)
+                if (b >= 0.0f && b <= 1.0f && a > 1.0f)
+                {
+                    A++; 
+                }
+                
+                if (a >= 0.0f && a <= 1.0f && b > 1.0f)
+                {
+                    B++; 
+                }
+                
+                if (A == 4 || B == 3)
                 {
                     return 1; //overlap
                 }
@@ -390,7 +403,40 @@ int __polygon_triangle_overlap(double* polygon,
 
     return 0; //no overlap
 }
-                               
+                 
+
+int __polygon_overlap(double* polygon,
+                      double* triangles,
+                      long* indices,
+                      int M, //number of triangles
+                      int polygon_number_of_vertices)
+{
+    double* triangle;
+    int i, inside_index, outside_index;
+    
+    inside_index = 0;    // Keep track of triangles that overlap
+    outside_index = M - 1; // Keep track of triangles that don't overlap (starting from end)
+    
+    for (i = 0; i < M; i++)
+    {
+        triangle = triangles + 6*i;
+        
+        if (__triangle_polygon_overlap(polygon, 
+                                      triangle, 
+                                      polygon_number_of_vertices))
+        {
+            indices[inside_index] = i;
+            inside_index++;
+        }
+        else
+        {
+            indices[outside_index] = i;
+            outside_index -= 1;            
+        }
+    }
+    
+    return inside_index;
+}              
 
 
 int __is_inside_triangle(double* point,
@@ -653,7 +699,8 @@ PyObject *_interpolate_polyline(PyObject *self, PyObject *args) {
 }
 
 
-PyObject *_polygon_triangle_overlap(PyObject *self, PyObject *args) {
+PyObject *_polygon_overlap(PyObject *self, PyObject *args) 
+{
   //
   // _polygon_triangle_overlap(polygon, triangle)
   //
@@ -661,16 +708,18 @@ PyObject *_polygon_triangle_overlap(PyObject *self, PyObject *args) {
   
   PyArrayObject
     *polygon,
-    *triangle;
+    *triangles,
+    *indices;
     
     int res;
 
   PyObject *result;
       
   // Convert Python arguments to C
-  if (!PyArg_ParseTuple(args, "OO",
+  if (!PyArg_ParseTuple(args, "OOO",
 			&polygon,
-			&triangle)) {
+			&triangles,
+            &indices)) {
     
     PyErr_SetString(PyExc_RuntimeError, 
 		    "_polygon_triangle_overlap could not parse input");
@@ -678,8 +727,10 @@ PyObject *_polygon_triangle_overlap(PyObject *self, PyObject *args) {
   }
 
   // Call underlying routine
-  res = __polygon_triangle_overlap((double*) polygon->data,
-			     (double*) triangle -> data,
+  res = __polygon_overlap((double*) polygon->data,
+			     (double*) triangles->data,
+                 (long*) indices->data,
+                 (int) triangles->dimensions[0]/3,
                  (int) polygon->dimensions[0]);			       			       
 
 
@@ -859,11 +910,12 @@ static struct PyMethodDef MethodTable[] = {
                                  METH_VARARGS, "Print out"},
   {"_interpolate_polyline", _interpolate_polyline, 
                                  METH_VARARGS, "Print out"},				 
+  {"_polygon_overlap", _polygon_overlap, 
+                                 METH_VARARGS, "Print out"},
   {"_is_inside_triangle", _is_inside_triangle, 
                                  METH_VARARGS, "Print out"},
   {NULL, NULL, 0, NULL}   /* sentinel */
 };
-
 
 
 // Module initialisation
