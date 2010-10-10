@@ -220,6 +220,42 @@ def NEW_C_intersection(line0, line1):
 
     return status, value
 
+def polygon_overlap(triangles, polygon, verbose=False):
+    """Determine if a polygon and triangle overlap
+
+    """
+    polygon = ensure_numeric(polygon)
+    triangles = ensure_numeric(triangles)
+    
+    M = triangles.shape[0]/3  # Number of triangles
+
+    indices = num.zeros(M, num.int)
+
+    count = _polygon_overlap(polygon, triangles, indices)
+
+    if verbose:
+        log.critical('Found %d triangles (out of %d) that polygon' % (count, M))
+
+    return indices[:count]
+    
+def not_polygon_overlap(triangles, polygon, verbose=False):
+    """Determine if a polygon and triangle overlap
+
+    """
+    polygon = ensure_numeric(polygon)
+    triangles = ensure_numeric(triangles)
+    
+    M = triangles.shape[0]/3  # Number of triangles
+
+    indices = num.zeros(M, num.int)
+
+    count = _polygon_overlap(polygon, triangles, indices)
+
+    if verbose:
+        log.critical('Found %d triangles (out of %d) that polygon' % (count, M))
+
+    return indices[count:]    
+
 def is_inside_triangle(point, triangle, 
                        closed=True, 
                        rtol=1.0e-12,
@@ -1097,6 +1133,7 @@ if compile.can_use_C_extension('polygon_ext.c'):
     from polygon_ext import _point_on_line
     from polygon_ext import _separate_points_by_polygon
     from polygon_ext import _interpolate_polyline    
+    from polygon_ext import _polygon_overlap
     from polygon_ext import _is_inside_triangle        
     #from polygon_ext import _intersection
 
