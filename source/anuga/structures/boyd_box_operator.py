@@ -23,7 +23,7 @@ class Boyd_box_operator(anuga.Structure_operator):
                  height=None,
                  apron=None,
                  manning=0.013,
-                 enquiry_gap=0.2,
+                 enquiry_gap=0.0,
                  use_momentum_jet=True,
                  use_velocity_head=True,
                  description=None,
@@ -183,6 +183,7 @@ class Boyd_box_operator(anuga.Structure_operator):
 
                 Q = min(Q, Q_outlet_tailwater)
             else:
+                
                 pass
                 #FIXME(Ole): What about inlet control?
 

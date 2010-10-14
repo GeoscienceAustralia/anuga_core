@@ -101,7 +101,7 @@ class Structure_operator:
 
         timestep = self.domain.get_timestep()
         
-        self.__determine_inflow_outflow()
+        self.determine_inflow_outflow()
         
         Q, barrel_speed, outlet_depth = self.discharge_routine()
 
@@ -174,7 +174,7 @@ class Structure_operator:
         self.outflow.set_ymoms(new_outflow_ymom)
 
 
-    def __determine_inflow_outflow(self):
+    def determine_inflow_outflow(self):
         # Determine flow direction based on total energy difference
 
         if self.use_velocity_head:
@@ -220,7 +220,7 @@ class Structure_operator:
         h = self.apron*self.culvert_vector    # Vector of length=height in the
                              # direction of the culvert
 
-        gap = (1 + self.enquiry_gap)*h
+        gap = 1.5*h + self.enquiry_gap
 
         self.inlet_polygons = []
         self.inlet_equiry_points = []
