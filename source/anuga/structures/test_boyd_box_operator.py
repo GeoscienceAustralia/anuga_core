@@ -45,7 +45,14 @@ class Test_boyd_box_operator(unittest.TestCase):
         
         culvert_apron = 0.001
         enquiry_gap = 1.0
+        
+        expected_Q = 4.55
+        expected_v = 2.3
+        expected_d = 0.54
+        
 
+        # Probably no need to change below here
+        
         domain_length = 200.  #x-Dir
         domain_width  = 200.  #y-dir
         dx = dy = 10.0          # Resolution: Length of subdivisions on both axes
@@ -113,14 +120,9 @@ class Test_boyd_box_operator(unittest.TestCase):
         ( Q, v, d ) = culvert.discharge_routine()
         
 
-        print Q
-        print v
-        print d
-        
-
-        assert numpy.allclose(Q, 4.55, rtol=1.0e-1) #inflow
-        assert numpy.allclose(v, 2.3,  rtol=1.0e-1) #outflow velocity
-        assert numpy.allclose(d, 0.54, rtol=1.0e-1) #depth at outlet used to calc v 
+        assert numpy.allclose(Q, expected_Q, rtol=1.0e-2) #inflow
+        assert numpy.allclose(v, expected_v, rtol=1.0e-2) #outflow velocity
+        assert numpy.allclose(d, expected_d, rtol=1.0e-2) #depth at outlet used to calc v 
         
 
 # =========================================================================
