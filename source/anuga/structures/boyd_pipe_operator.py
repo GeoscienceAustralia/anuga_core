@@ -77,6 +77,9 @@ class Boyd_pipe_operator(anuga.Structure_operator):
 
         local_debug ='false'
         
+        #import pdb
+        #pdb.set_trace()
+        
         if self.inflow.get_enquiry_height() > 0.01: #this value was 0.01: Remember this needs to be compared to the Invert Lvl
             if local_debug =='true':
                 anuga.log.critical('Specific E & Deltat Tot E = %s, %s'

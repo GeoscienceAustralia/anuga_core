@@ -227,7 +227,7 @@ class Structure_operator:
 
         # Build exchange polygon and enquiry point
         for i in [0, 1]:
-            i0 = (2*i-1)
+            i0 = (2*i-1) #i0 determines the sign of the points
             p0 = self.end_points[i] + w
             p1 = self.end_points[i] - w
             p2 = p1 + i0*h

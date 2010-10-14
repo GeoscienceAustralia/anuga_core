@@ -29,7 +29,7 @@ class Inlet:
         vertex_coordinates = self.domain.get_vertex_coordinates()
 
         # Check that polygon lies within the mesh.
-        for point in self.polygon:
+        for point in self.polygon:  
                 msg = 'Point %s ' %  str(point)
                 msg += ' did not fall within the domain boundary.'
                 assert is_inside_polygon(point, bounding_polygon), msg
@@ -41,6 +41,8 @@ class Inlet:
 
         self.triangle_indices = polygon_overlap(vertex_coordinates, self.polygon)
         #self.triangle_indices_cen = inside_polygon(domain_centroids, self.polygon, verbose=self.verbose)
+        #import pdb
+        #pdb.set_trace()
 
         if len(self.triangle_indices) == 0:
             region = 'Inlet polygon=%s' % (self.polygon)
