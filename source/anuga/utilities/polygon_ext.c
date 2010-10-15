@@ -439,6 +439,120 @@ int __polygon_overlap(double* polygon,
 }              
 
 
+int __triangle_polyline_overlap(double* polyline,
+                                double* triangle)
+{
+    int j, jj, A, B;
+    double p0_x, p0_y, p1_x, p1_y, pp_x, pp_y;
+    double t0_x, t0_y, t1_x, t1_y, tp_x, tp_y;
+    double u_x, u_y, v_x, v_y, w_x, w_y;
+    double u_dot_tp, v_dot_tp, v_dot_pp, w_dot_pp;
+    double a, b;
+    
+    p0_x = polyline[0];
+    p0_y = polyline[1];
+    p1_x = polyline[2];
+    p1_y = polyline[3];
+    
+    pp_x = -(p1_y - p0_y);
+    pp_y = p1_x - p0_x;
+    
+    A = 0;
+    B = 0;
+    
+    t0_x = triangle[0];
+    t0_y = triangle[1];
+
+    for (j = 1; j < 4; j++)
+    {
+        jj = j%3;
+                  
+        t1_x = triangle[2*jj];
+        t1_y = triangle[2*jj + 1];
+        
+        tp_x = -(t1_y - t0_y); //perpendicular to triangle vector
+        tp_y = t1_x - t0_x; 
+    
+        u_x = p1_x - p0_x;
+        u_y = p1_y - p0_y;
+        v_x = t0_x - p0_x;
+        v_y = t0_y - p0_y;
+        w_x = t1_x - t0_x;
+        w_y = t1_y - t0_y;
+
+        u_dot_tp = (u_x*tp_x) + (u_y*tp_y);
+        
+        if (u_dot_tp != 0.0f) //If vectors are not parallel, continue
+        {
+            v_dot_tp = (v_x*tp_x) + (v_y*tp_y);
+            v_dot_pp = (v_x*pp_x) + (v_y*pp_y);
+            w_dot_pp = (w_x*pp_x) + (w_y*pp_y);
+            
+            a = v_dot_tp/u_dot_tp;
+            b = -v_dot_pp/w_dot_pp;
+                         
+            if (a >= 0.0f && a <= 1.0f && b >=0.0f && b <=1.0f)
+            {
+                return 1; //overlap
+            }
+            
+            if (a > 1.0f && b >= 0.0f && b <= 1.0f)
+            {
+                A++; 
+            }
+            
+            if (a < 0.0f && b >= 0.0f && b <= 1.0f)
+            {
+                B++; 
+            }
+        }
+        
+        t0_x = t1_x;
+        t0_y = t1_y;
+    }
+    
+    if (A == 1 && B == 1)
+    {
+        return 1; //overlap
+    }
+    
+    return 0; //no overlap
+}
+                 
+
+int __polyline_overlap(double* polyline,
+                      double* triangles,
+                      long* indices,
+                      int M) //number of triangles
+{
+    double* triangle;
+    int i, inside_index, outside_index;
+    
+    inside_index = 0;    // Keep track of triangles that overlap
+    outside_index = M - 1; // Keep track of triangles that don't overlap (starting from end)
+    
+    for (i = 0; i < M; i++)
+    {
+        triangle = triangles + 6*i;
+        
+        if (__triangle_polyline_overlap(polyline, 
+                                        triangle))
+        {
+            indices[inside_index] = i;
+            inside_index++;
+        }
+        else
+        {
+            indices[outside_index] = i;
+            outside_index -= 1;            
+        }
+    }
+    
+    return inside_index;
+}              
+
+
+
 int __is_inside_triangle(double* point,
 			 double* triangle,
 			 int closed,
@@ -739,6 +853,43 @@ PyObject *_polygon_overlap(PyObject *self, PyObject *args)
   return result;  
 }
 
+PyObject *_polyline_overlap(PyObject *self, PyObject *args) 
+{
+  //
+  // _polygon_triangle_overlap(polygon, triangle)
+  //
+  
+  PyArrayObject
+    *polyline,
+    *triangles,
+    *indices;
+    
+    int res;
+
+  PyObject *result;
+      
+  // Convert Python arguments to C
+  if (!PyArg_ParseTuple(args, "OOO",
+			&polyline,
+			&triangles,
+            &indices)) {
+    
+    PyErr_SetString(PyExc_RuntimeError, 
+		    "_polygon_triangle_overlap could not parse input");
+    return NULL;
+  }
+
+  // Call underlying routine
+  res = __polyline_overlap((double*) polyline->data,
+			     (double*) triangles->data,
+                 (long*) indices->data,
+                 (int) triangles->dimensions[0]/3);			       			       
+
+
+  // Return result
+  result = Py_BuildValue("i", res);
+  return result;  
+}
      
 PyObject *_is_inside_triangle(PyObject *self, PyObject *args) {
   //
@@ -912,6 +1063,8 @@ static struct PyMethodDef MethodTable[] = {
                                  METH_VARARGS, "Print out"},				 
   {"_polygon_overlap", _polygon_overlap, 
                                  METH_VARARGS, "Print out"},
+  {"_polyline_overlap", _polyline_overlap, 
+                                 METH_VARARGS, "Print out"},                               
   {"_is_inside_triangle", _is_inside_triangle, 
                                  METH_VARARGS, "Print out"},
   {NULL, NULL, 0, NULL}   /* sentinel */
