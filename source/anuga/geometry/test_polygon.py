@@ -12,6 +12,7 @@ from polygon import _poly_xy, separate_points_by_polygon, \
                     read_polygon, point_on_line, point_in_polygon, \
                     plot_polygons, outside_polygon, is_outside_polygon, \
                     intersection, is_complex, polygon_overlap, not_polygon_overlap,\
+                    polyline_overlap, not_polyline_overlap,\
                     is_inside_triangle, interpolate_polyline, inside_polygon, \
                     in_and_outside_polygon
                     
@@ -501,6 +502,56 @@ class Test_Polygon(unittest.TestCase):
         indices = not_polygon_overlap(triangles, polygon)
         assert num.allclose([0], indices)             
                      
+    def test_polyline_overlap(self):
+        #rectangular polygon, 2 triangles overlap
+        polyline = [[3.,3.],[4.,3.]]
+        triangles = [[7.,10.],#does not overlap
+                     [8.,12.],
+                     [9.,10.],
+                     [3., 2.],#intersect
+                     [4., 5.],
+                     [5., 3.],
+                     [3., 2.],#intersect
+                     [4., 5.],
+                     [5., 2.],
+                     [0., 1.],#polygon inside triangle
+                     [5., 50.],
+                     [10., 1.],
+                     [3.5, 3.25],#no overlap
+                     [4., 3.75],
+                     [4.5, 3.25],
+                     [2., 3.],#overlap
+                     [5., 3.],
+                     [3., 1.]]
+                     
+        indices = polyline_overlap(triangles, polyline)        
+        assert num.allclose([1, 2, 3, 5], indices)
+
+    def test_not_polyline_overlap(self):
+        #rectangular polygon, 2 triangles overlap
+        polyline = [[3.,3.],[4.,3.]]
+        triangles = [[7.,10.],#does not overlap
+                     [8.,12.],
+                     [9.,10.],
+                     [3., 2.],#intersect
+                     [4., 5.],
+                     [5., 3.],
+                     [3., 2.],#intersect
+                     [4., 5.],
+                     [5., 2.],
+                     [0., 1.],#polygon inside triangle
+                     [5., 50.],
+                     [10., 1.],
+                     [3.5, 3.25],#no overlap
+                     [4., 3.75],
+                     [4.5, 3.25],
+                     [2., 3.],#overlap
+                     [5., 3.],
+                     [3., 1.]]
+ 
+        indices = not_polyline_overlap(triangles, polyline)        
+        assert num.allclose([4, 0], indices)
+
     def test_is_inside_triangle(self):
         # Simplest case:
         triangle = [[0, 0], [1, 0], [0.5, 1]]
