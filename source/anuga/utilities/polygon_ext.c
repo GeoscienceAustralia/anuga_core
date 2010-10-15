@@ -511,7 +511,7 @@ int __triangle_polyline_overlap(double* polyline,
         t0_y = t1_y;
     }
     
-    if (A == 1 && B == 1)
+    if (A >= 1 && B >= 1)
     {
         return 1; //overlap
     }
