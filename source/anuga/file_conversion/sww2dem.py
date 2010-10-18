@@ -72,15 +72,14 @@ def sww2dem(name_in, name_out,
     Yshift        10000000.0000000000
     Parameters
 
-
     The parameter quantity must be the name of an existing quantity or
     an expression involving existing quantities. The default is
     'elevation'. Quantity is not a list of quantities.
 
-    if timestep (an index) is given, output quantity at that timestep
-
-    if reduction is given and its an index, output quantity at that timestep. If reduction is given
-    and is a built in function, use that to reduce quantity over all timesteps.
+    If reduction is given and it’s an index, sww2dem will output the quantity at that time-step. 
+    If reduction is given and it’s a built in function (eg max, min, mean), then that 
+    function is used to reduce the quantity over all time-steps. If reduction is not given, 
+    reduction is set to “max” by default.
 
     datum
 
