@@ -76,7 +76,7 @@ def sww2dem(name_in, name_out,
     an expression involving existing quantities. The default is
     'elevation'. Quantity is not a list of quantities.
 
-    If reduction is given and it’s an index, sww2dem will output the quantity at that time-step. 
+    If reduction is given and it's an index, sww2dem will output the quantity at that time-step. 
     If reduction is given and it's a built in function (eg max, min, mean), then that 
     function is used to reduce the quantity over all time-steps. If reduction is not given, 
     reduction is set to "max" by default.
