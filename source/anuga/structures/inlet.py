@@ -26,7 +26,7 @@ class Inlet:
         # Get boundary (in absolute coordinates)
         bounding_polygon = self.domain_bounding_polygon
         domain_centroids = self.domain.get_centroid_coordinates(absolute=True)
-        vertex_coordinates = self.domain.get_vertex_coordinates()
+        vertex_coordinates = self.domain.get_vertex_coordinates(absolute=True)
 
         # Check that polygon lies within the mesh.
         for point in self.polygon:  
@@ -41,8 +41,6 @@ class Inlet:
 
         self.triangle_indices = polygon_overlap(vertex_coordinates, self.polygon)
         #self.triangle_indices_cen = inside_polygon(domain_centroids, self.polygon, verbose=self.verbose)
-        #import pdb
-        #pdb.set_trace()
 
         if len(self.triangle_indices) == 0:
             region = 'Inlet polygon=%s' % (self.polygon)
