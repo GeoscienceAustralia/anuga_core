@@ -859,6 +859,45 @@ PyObject *_polyline_overlap(PyObject *self, PyObject *args)
   // _polygon_triangle_overlap(polygon, triangle)
   //
   
+    //def separate_points_by_polygon(points, polygon, closed, verbose, one_point):
+  //  """Determine whether points are inside or outside a polygon
+  //
+  //  Input:
+  //     point - Tuple of (x, y) coordinates, or list of tuples 
+  //     polygon - list of vertices of polygon
+  //     closed - (optional) determine whether points on boundary should be
+  //     regarded as belonging to the polygon (closed = True)
+  //     or not (closed = False)
+
+  //
+  //  Output:
+  //     indices: array of same length as points with indices of points falling 
+  //     inside the polygon listed from the beginning and indices of points 
+  //     falling outside listed from the end.
+  //     
+  //     count: count of points falling inside the polygon
+  //     
+  //     The indices of points inside are obtained as indices[:count]
+  //     The indices of points outside are obtained as indices[count:]       
+  //
+  //  Examples:
+  //     separate_polygon( [[0.5, 0.5], [1, -0.5], [0.3, 0.2]] )
+  //     will return the indices [0, 2, 1] as only the first and the last point
+  //     is inside the unit square
+  //
+  //  Remarks:
+  //     The vertices may be listed clockwise or counterclockwise and
+  //     the first point may optionally be repeated.
+  //     Polygons do not need to be convex.
+  //     Polygons can have holes in them and points inside a hole is
+  //     regarded as being outside the polygon.
+  //
+  //
+  //  Algorithm is based on work by Darel Finley,
+  //  http://www.alienryderflex.com/polygon/
+  //
+  
+  
   PyArrayObject
     *polyline,
     *triangles,
