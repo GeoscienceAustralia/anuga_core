@@ -1,4 +1,4 @@
-from anuga.geometry.polygon import inside_polygon, is_inside_polygon, polygon_overlap
+from anuga.geometry.polygon import inside_polygon, is_inside_polygon, polygon_overlap, polyline_overlap
 from anuga.config import velocity_protection, g
 import math
 
@@ -8,11 +8,11 @@ class Inlet:
     """Contains information associated with each inlet
     """
 
-    def __init__(self, domain, polygon, enquiry_pt,  outward_culvert_vector=None, verbose=False):
+    def __init__(self, domain, polyline, enquiry_pt,  outward_culvert_vector=None, verbose=False):
 
         self.domain = domain
         self.domain_bounding_polygon = self.domain.get_boundary_polygon()
-        self.polygon = polygon
+        self.polyline = polyline
         self.enquiry_pt = enquiry_pt
         self.outward_culvert_vector = outward_culvert_vector
         self.verbose = verbose
@@ -28,8 +28,8 @@ class Inlet:
         domain_centroids = self.domain.get_centroid_coordinates(absolute=True)
         vertex_coordinates = self.domain.get_vertex_coordinates(absolute=True)
 
-        # Check that polygon lies within the mesh.
-        for point in self.polygon:  
+        # Check that polyline lies within the mesh.
+        for point in self.polyline:  
                 msg = 'Point %s ' %  str(point)
                 msg += ' did not fall within the domain boundary.'
                 assert is_inside_polygon(point, bounding_polygon), msg
@@ -39,11 +39,10 @@ class Inlet:
         msg += ' did not fall within the domain boundary.'
         assert is_inside_polygon(point, bounding_polygon), msg
 
-        self.triangle_indices = polygon_overlap(vertex_coordinates, self.polygon)
-        #self.triangle_indices_cen = inside_polygon(domain_centroids, self.polygon, verbose=self.verbose)
+        self.triangle_indices = polyline_overlap(vertex_coordinates, self.polyline)
 
         if len(self.triangle_indices) == 0:
-            region = 'Inlet polygon=%s' % (self.polygon)
+            region = 'Inlet polyline=%s' % (self.polyline)
             msg = 'No triangles have been identified in region '
             raise Exception, msg
 
@@ -53,9 +52,9 @@ class Inlet:
     def compute_area(self):
         
         # Compute inlet area as the sum of areas of triangles identified
-        # by polygon. Must be called after compute_inlet_triangle_indices().
+        # by polyline. Must be called after compute_inlet_triangle_indices().
         if len(self.triangle_indices) == 0:
-            region = 'Inlet polygon=%s' % (self.inlet_polygon)
+            region = 'Inlet polyline=%s' % (self.inlet_polyline)
             msg = 'No triangles have been identified in region '
             raise Exception, msg
         
