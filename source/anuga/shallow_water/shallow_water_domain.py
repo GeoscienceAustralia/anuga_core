@@ -208,7 +208,7 @@ class Domain(Generic_Domain):
         self.optimise_dry_cells = optimise_dry_cells
 
         
-        self.set_new_mannings_function(False)
+        self.set_sloped_mannings_function(False)
 
         self.minimum_storable_height = minimum_storable_height
 
@@ -218,17 +218,16 @@ class Domain(Generic_Domain):
         self.use_centroid_velocities = use_centroid_velocities       
 
 
-    def set_new_mannings_function(self, flag=True):
-        """Cludge to allow unit test to pass, but to
-        also introduce new mannings friction function
-        which takes into account the slope of the bed.
+    def set_sloped_mannings_function(self, flag=True):
+        """Set mannings friction function to use the sloped
+        wetted area.
         The flag is tested in the python wrapper
         mannings_friction_implicit
         """
         if flag:
-            self.use_new_mannings = True
+            self.use_sloped_mannings = True
         else:
-            self.use_new_mannings = False
+            self.use_sloped_mannings = False
 
 
     def set_use_edge_limiter(self, flag=True):
@@ -1151,8 +1150,8 @@ def manning_friction_implicit(domain):
     Wrapper for c version
     """
 
-    from shallow_water_ext import manning_friction_old
-    from shallow_water_ext import manning_friction_new
+    from shallow_water_ext import manning_friction_flat
+    from shallow_water_ext import manning_friction_sloped
 
     xmom = domain.quantities['xmomentum']
     ymom = domain.quantities['ymomentum']
@@ -1172,11 +1171,11 @@ def manning_friction_implicit(domain):
     eps = domain.minimum_allowed_height
     g = domain.g
 
-    if domain.use_new_mannings:
-        manning_friction_new(g, eps, x, w, uh, vh, z, eta, xmom_update, \
+    if domain.use_sloped_mannings:
+        manning_friction_sloped(g, eps, x, w, uh, vh, z, eta, xmom_update, \
                                 ymom_update)
     else:
-        manning_friction_old(g, eps, w, uh, vh, z, eta, xmom_update, \
+        manning_friction_flat(g, eps, w, uh, vh, z, eta, xmom_update, \
                                 ymom_update)
     
 
@@ -1189,8 +1188,8 @@ def manning_friction_explicit(domain):
     Wrapper for c version
     """
 
-    from shallow_water_ext import manning_friction_old
-    from shallow_water_ext import manning_friction_new
+    from shallow_water_ext import manning_friction_flat
+    from shallow_water_ext import manning_friction_sloped
 
     xmom = domain.quantities['xmomentum']
     ymom = domain.quantities['ymomentum']
@@ -1209,11 +1208,11 @@ def manning_friction_explicit(domain):
 
     eps = domain.minimum_allowed_height
 
-    if domain.use_new_mannings:
-        manning_friction_new(domain.g, eps, x, w, uh, vh, z, eta, xmom_update, \
+    if domain.use_sloped_mannings:
+        manning_friction_sloped(domain.g, eps, x, w, uh, vh, z, eta, xmom_update, \
                             ymom_update)
     else:
-        manning_friction_old(domain.g, eps, w, uh, vh, z, eta, xmom_update, \
+        manning_friction_flat(domain.g, eps, w, uh, vh, z, eta, xmom_update, \
                             ymom_update)
 
 

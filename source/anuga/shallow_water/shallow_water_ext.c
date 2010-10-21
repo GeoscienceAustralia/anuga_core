@@ -518,7 +518,7 @@ int flux_function_kinetic(double *q_left, double *q_right,
 
 
 
-void _manning_friction_old(double g, double eps, int N,
+void _manning_friction_flat(double g, double eps, int N,
                double* w, double* zv,
                double* uh, double* vh,
                double* eta, double* xmom, double* ymom) {
@@ -551,7 +551,7 @@ void _manning_friction_old(double g, double eps, int N,
 }
 
 
-void _manning_friction_new(double g, double eps, int N,
+void _manning_friction_sloped(double g, double eps, int N,
 			   double* x, double* w, double* zv,
 			   double* uh, double* vh,
 			   double* eta, double* xmom_update, double* ymom_update) {
@@ -1144,9 +1144,9 @@ PyObject *gravity(PyObject *self, PyObject *args) {
 }
 
 
-PyObject *manning_friction_new(PyObject *self, PyObject *args) {
+PyObject *manning_friction_sloped(PyObject *self, PyObject *args) {
   //
-  // manning_friction_new(g, eps, x, h, uh, vh, z, eta, xmom_update, ymom_update)
+  // manning_friction_sloped(g, eps, x, h, uh, vh, z, eta, xmom_update, ymom_update)
   //
 
 
@@ -1172,7 +1172,7 @@ PyObject *manning_friction_new(PyObject *self, PyObject *args) {
 
   N = w -> dimensions[0];
 
-  _manning_friction_new(g, eps, N,
+  _manning_friction_sloped(g, eps, N,
 			(double*) x -> data,
 			(double*) w -> data,
 			(double*) z -> data,
@@ -1228,9 +1228,9 @@ PyObject *chezy_friction(PyObject *self, PyObject *args) {
 }
 
 
-PyObject *manning_friction_old(PyObject *self, PyObject *args) {
+PyObject *manning_friction_flat(PyObject *self, PyObject *args) {
   //
-  // manning_friction_old(g, eps, h, uh, vh, z, eta, xmom_update, ymom_update)
+  // manning_friction_flat(g, eps, h, uh, vh, z, eta, xmom_update, ymom_update)
   //
 
 
@@ -1255,7 +1255,7 @@ PyObject *manning_friction_old(PyObject *self, PyObject *args) {
 
   N = w -> dimensions[0];
 
-  _manning_friction_old(g, eps, N,
+  _manning_friction_flat(g, eps, N,
 			(double*) w -> data,
 			(double*) z -> data,
 			(double*) uh -> data,
@@ -2895,8 +2895,8 @@ static struct PyMethodDef MethodTable[] = {
   {"compute_fluxes_ext_central_new", compute_fluxes_ext_central_new, METH_VARARGS, "Print out"},
   {"compute_fluxes_ext_kinetic", compute_fluxes_ext_kinetic, METH_VARARGS, "Print out"},
   {"gravity", gravity, METH_VARARGS, "Print out"},
-  {"manning_friction_old", manning_friction_old, METH_VARARGS, "Print out"},
-  {"manning_friction_new", manning_friction_new, METH_VARARGS, "Print out"},
+  {"manning_friction_flat", manning_friction_flat, METH_VARARGS, "Print out"},
+  {"manning_friction_sloped", manning_friction_sloped, METH_VARARGS, "Print out"},
   {"chezy_friction", chezy_friction, METH_VARARGS, "Print out"},
   {"flux_function_central", flux_function_central, METH_VARARGS, "Print out"},  
   {"balance_deep_and_shallow", balance_deep_and_shallow,
