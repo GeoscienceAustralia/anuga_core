@@ -82,7 +82,7 @@ class Structure_operator:
         self.delta_total_energy = 0.0
         self.driving_energy = 0.0
         
-        self.__create_exchange_polygons()
+        self.__create_exchange_polylines()
 
         self.inlets = []
         polyline0 = self.inlet_polylines[0]
@@ -193,7 +193,7 @@ class Structure_operator:
             self.delta_total_energy = -self.delta_total_energy
 
 
-    def __create_exchange_polygons(self):
+    def __create_exchange_polylines(self):
 
         """Create polylines at the end of a culvert inlet and outlet.
         At either end two polylines will be created; one for the actual flow to pass through and one a little further away
@@ -221,12 +221,12 @@ class Structure_operator:
                              # direction of the culvert
 
         #gap = 1.5*h + self.enquiry_gap
-        gap = 1.5*self.culvert_vector + self.enquiry_gap
+        gap = (self.apron+ self.enquiry_gap)*self.culvert_vector
 
         self.inlet_polylines = []
         self.inlet_equiry_points = []
 
-        # Build exchange polygon and enquiry point
+        # Build exchange polyline and enquiry point
         for i in [0, 1]:
             i0 = (2*i-1) #i0 determines the sign of the points
             p0 = self.end_points[i] + w
@@ -266,7 +266,7 @@ class Structure_operator:
             message += '%s' % self.domain.get_centroid_coordinates()[inlet.triangle_indices]
             message += '\n'
 
-            message += 'polygon\n'
+            message += 'polyline\n'
             message += '%s' % inlet.polyline
             message += '\n'
 

@@ -1,4 +1,4 @@
-from anuga.geometry.polygon import inside_polygon, is_inside_polygon, polygon_overlap, polyline_overlap
+from anuga.geometry.polygon import inside_polygon, is_inside_polygon, polyline_overlap
 from anuga.config import velocity_protection, g
 import math
 
@@ -42,12 +42,16 @@ class Inlet:
         self.triangle_indices = polyline_overlap(vertex_coordinates, self.polyline)
 
         if len(self.triangle_indices) == 0:
-            region = 'Inlet polyline=%s' % (self.polyline)
-            msg = 'No triangles have been identified in region '
+            msg = 'Inlet polyline=%s ' % (self.polyline)
+            msg += 'No triangles intersecting polyline '
             raise Exception, msg
-
+            
         self.enquiry_index = self.domain.get_triangle_containing_point(self.enquiry_pt)
 
+        if self.enquiry_index in self.triangle_indices:
+            msg = 'Enquiry point %s' % (self.enquiry_pt)
+            msg += 'is in an inlet triangle'
+            raise Exception, msg
 
     def compute_area(self):
         
@@ -91,7 +95,6 @@ class Inlet:
         return self.domain.quantities['elevation'].centroid_values.take(self.triangle_indices)
         
     def get_average_elevation(self):
-        
 
         return num.sum(self.get_elevations()*self.get_areas())/self.area
     
