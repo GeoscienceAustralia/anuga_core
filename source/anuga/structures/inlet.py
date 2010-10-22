@@ -8,20 +8,18 @@ class Inlet:
     """Contains information associated with each inlet
     """
 
-    def __init__(self, domain, polyline, enquiry_pt,  outward_culvert_vector=None, verbose=False):
+    def __init__(self, domain, polyline, verbose=False):
 
         self.domain = domain
         self.domain_bounding_polygon = self.domain.get_boundary_polygon()
         self.polyline = polyline
-        self.enquiry_pt = enquiry_pt
-        self.outward_culvert_vector = outward_culvert_vector
         self.verbose = verbose
 
-        self.compute_indices()
+        self.compute_triangle_indices()
         self.compute_area()
 
 
-    def compute_indices(self):
+    def compute_triangle_indices(self):
 
         # Get boundary (in absolute coordinates)
         bounding_polygon = self.domain_bounding_polygon
@@ -34,10 +32,7 @@ class Inlet:
                 msg += ' did not fall within the domain boundary.'
                 assert is_inside_polygon(point, bounding_polygon), msg
                 
-        point = self.enquiry_pt
-        msg = 'Enquiry Point %s ' %  str(point)
-        msg += ' did not fall within the domain boundary.'
-        assert is_inside_polygon(point, bounding_polygon), msg
+
 
         self.triangle_indices = polyline_overlap(vertex_coordinates, self.polyline)
 
@@ -45,13 +40,8 @@ class Inlet:
             msg = 'Inlet polyline=%s ' % (self.polyline)
             msg += 'No triangles intersecting polyline '
             raise Exception, msg
-            
-        self.enquiry_index = self.domain.get_triangle_containing_point(self.enquiry_pt)
 
-        if self.enquiry_index in self.triangle_indices:
-            msg = 'Enquiry point %s' % (self.enquiry_pt)
-            msg += 'is in an inlet triangle'
-            raise Exception, msg
+
 
     def compute_area(self):
         
@@ -178,70 +168,6 @@ class Inlet:
         
         return self.get_average_velocity_head() + self.get_average_height()
 
-
-    def get_enquiry_stage(self):
-
-        return self.domain.quantities['stage'].centroid_values[self.enquiry_index]
-
-
-    def get_enquiry_xmom(self):
-
-        return self.domain.quantities['xmomentum'].centroid_values[self.enquiry_index]
-
-    def get_enquiry_ymom(self):
-
-        return self.domain.quantities['ymomentum'].centroid_values[self.enquiry_index]
-
-
-    def get_enquiry_elevation(self):
-
-        return self.domain.quantities['elevation'].centroid_values[self.enquiry_index]
-
-    def get_enquiry_height(self):
-
-        return self.get_enquiry_stage() - self.get_enquiry_elevation()
-
-
-    def get_enquiry_velocity(self):
-
-            height = self.get_enquiry_height()
-            u = self.get_enquiry_xmom()/(height + velocity_protection/height)
-            v = self.get_enquiry_ymom()/(height + velocity_protection/height)
-
-            return u, v
-
-
-    def get_enquiry_xvelocity(self):
-
-            height = self.get_enquiry_height()
-            return self.get_enquiry_xmom()/(height + velocity_protection/height)
-
-    def get_enquiry_yvelocity(self):
-
-            height = self.get_enquiry_height()
-            return self.get_enquiry_ymom()/(height + velocity_protection/height)
-
-
-    def get_enquiry_speed(self):
-
-            u, v = self.get_enquiry_velocity()
-
-            return math.sqrt(u**2 + v**2)
-
-
-    def get_enquiry_velocity_head(self):
-
-        return 0.5*self.get_enquiry_speed()**2/g
-
-
-    def get_enquiry_total_energy(self):
-
-        return self.get_enquiry_velocity_head() + self.get_enquiry_stage()
-
-
-    def get_enquiry_specific_energy(self):
-
-        return self.get_enquiry_velocity_head() + self.get_enquiry_height()
 
 
     def set_heights(self,height):

@@ -103,7 +103,7 @@ Boyd_pipe_operator(domain,
 
 line = [[0.0, 5.0], [0.0, 10.0]]
 Q = 5.0
-#Inlet_operator(domain, line, Q)
+Inlet_operator(domain, line, Q)
 
 
 
@@ -125,7 +125,7 @@ Br = anuga.Reflective_boundary(domain)              # Solid reflective wall
 #Btds = anuga.Time_boundary(domain, \
             #lambda t: [-5*(num.cos(2*pi*(t-4)/20)), 0.0, 0.0])
 #domain.set_boundary({'left': Btus, 'right': Btds, 'top': Br, 'bottom': Br})
-domain.set_boundary({'left': Bi, 'right': Br, 'top': Br, 'bottom': Br})
+domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
 
 ##-----------------------------------------------------------------------
@@ -144,7 +144,9 @@ for t in domain.evolve(yieldstep = 1.0, finaltime = 200):
     #delta_w = culvert.inlet.stage - culvert.outlet.stage
     
     #if delta_w > max_delta_w: max_delta_w = delta_w
-    #if delta_w < min_delta_w: min_delta_w = delta_w            
+    #if delta_w < min_delta_w: min_delta_w = delta_w
+
+    print domain.volumetric_balance_statistics()
     
     pass
 

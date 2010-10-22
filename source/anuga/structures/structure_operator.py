@@ -1,7 +1,7 @@
 import anuga
 import numpy as num
 import math
-import inlet
+import inlet_enquiry
 
 from anuga.utilities.system_tools import log_to_file
 
@@ -88,12 +88,14 @@ class Structure_operator:
         polyline0 = self.inlet_polylines[0]
         enquiry_point0 = self.inlet_equiry_points[0]
         outward_vector0 = self.culvert_vector
-        self.inlets.append(inlet.Inlet(self.domain, polyline0, enquiry_point0, outward_vector0))
+        self.inlets.append(inlet_enquiry.Inlet_enquiry(self.domain, polyline0,
+                           enquiry_point0, outward_vector0, self.verbose))
 
         polyline1 = self.inlet_polylines[1]
         enquiry_point1 = self.inlet_equiry_points[1]
         outward_vector1  = - self.culvert_vector
-        self.inlets.append(inlet.Inlet(self.domain, polyline1, enquiry_point1, outward_vector1))
+        self.inlets.append(inlet_enquiry.Inlet_enquiry(self.domain, polyline1,
+                           enquiry_point1, outward_vector1, self.verbose))
 
         self.set_logging(logging)
 
