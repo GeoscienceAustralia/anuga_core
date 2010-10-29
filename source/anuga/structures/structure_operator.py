@@ -21,10 +21,11 @@ class Structure_operator:
 
     def __init__(self,
                  domain,
-                 end_point0, 
-                 end_point1,
                  width,
                  height,
+                 end_points,
+                 exchange_lines,
+                 enquiry_points,
                  apron,
                  manning,
                  enquiry_gap,
@@ -36,9 +37,9 @@ class Structure_operator:
         
         self.domain = domain
         self.domain.set_fractional_step_operator(self)
-        self.end_points = [end_point0, end_point1]
-
-        
+        self.end_points = end_points
+        self.exchange_lines = exchange_lines
+        self.enquiry_points = enquiry_points
         
         if height is None:
             height = width
@@ -57,21 +58,17 @@ class Structure_operator:
         else:
             self.description = description
         
-
         if label == None:
             self.label = "structure_%g" % Structure_operator.counter
         else:
             self.label = label + '_%g' % Structure_operator.counter
-
 
         if structure_type == None:
             self.structure_type = 'generic structure'
         else:
             self.structure_type = structure_type
             
-        self.verbose = verbose
-
-        
+        self.verbose = verbose        
         
         # Keep count of structures
         Structure_operator.counter += 1
@@ -82,19 +79,24 @@ class Structure_operator:
         self.delta_total_energy = 0.0
         self.driving_energy = 0.0
         
-        self.__create_exchange_polylines()
-
+        if exchange_lines is not None:
+            self.__process_skew_culvert()
+        elif end_points is not None:
+            self.__process_non_skew_culvert()
+        else:
+            raise Exception, 'Define either exchange_lines or end_points'
+        
         self.inlets = []
-        polyline0 = self.inlet_polylines[0]
-        enquiry_point0 = self.inlet_equiry_points[0]
+        line0 = self.exchange_lines[0] #self.inlet_lines[0]
+        enquiry_point0 = self.enquiry_points[0]
         outward_vector0 = self.culvert_vector
-        self.inlets.append(inlet_enquiry.Inlet_enquiry(self.domain, polyline0,
+        self.inlets.append(inlet_enquiry.Inlet_enquiry(self.domain, line0,
                            enquiry_point0, outward_vector0, self.verbose))
 
-        polyline1 = self.inlet_polylines[1]
-        enquiry_point1 = self.inlet_equiry_points[1]
+        line1 = self.exchange_lines[1]
+        enquiry_point1 = self.enquiry_points[1]
         outward_vector1  = - self.culvert_vector
-        self.inlets.append(inlet_enquiry.Inlet_enquiry(self.domain, polyline1,
+        self.inlets.append(inlet_enquiry.Inlet_enquiry(self.domain, line1,
                            enquiry_point1, outward_vector1, self.verbose))
 
         self.set_logging(logging)
@@ -184,10 +186,8 @@ class Structure_operator:
         else:
             self.delta_total_energy = self.inlets[0].get_enquiry_stage() - self.inlets[1].get_enquiry_stage()
 
-
         self.inflow  = self.inlets[0]
         self.outflow = self.inlets[1]
-        
 
         if self.delta_total_energy < 0:
             self.inflow  = self.inlets[1]
@@ -195,49 +195,73 @@ class Structure_operator:
             self.delta_total_energy = -self.delta_total_energy
 
 
-    def __create_exchange_polylines(self):
+    def __process_non_skew_culvert(self):
 
-        """Create polylines at the end of a culvert inlet and outlet.
-        At either end two polylines will be created; one for the actual flow to pass through and one a little further away
+        """Create lines at the end of a culvert inlet and outlet.
+        At either end two lines will be created; one for the actual flow to pass through and one a little further away
         for enquiring the total energy at both ends of the culvert and transferring flow.
         """
-
-        # Calculate geometry
-        x0, y0 = self.end_points[0]
-        x1, y1 = self.end_points[1]
-
-        dx = x1 - x0
-        dy = y1 - y0
-
-        self.culvert_vector = num.array([dx, dy])
-        self.culvert_length = math.sqrt(num.sum(self.culvert_vector**2))
+        
+        self.culvert_vector = self.end_points[1] - self.end_points[0]
+        self.culvert_length = math.sqrt(num.sum(self.culvert_vector**2))   
         assert self.culvert_length > 0.0, 'The length of culvert is less than 0'
+        
+        self.culvert_vector /= self.culvert_length
+        
+        culvert_normal = num.array([-self.culvert_vector[1], self.culvert_vector[0]])  # Normal vector
+        w = 0.5*self.width*culvert_normal # Perpendicular vector of 1/2 width
 
-        # Unit direction vector and normal
-        self.culvert_vector /= self.culvert_length                      # Unit vector in culvert direction
-        self.culvert_normal = num.array([-dy, dx])/self.culvert_length  # Normal vector
-
-        # Short hands
-        w = 0.5*self.width*self.culvert_normal # Perpendicular vector of 1/2 width
-        #h = self.apron*self.culvert_vector    # Vector of length=height in the
-                             # direction of the culvert
-
-        #gap = 1.5*h + self.enquiry_gap
-        gap = (self.apron+ self.enquiry_gap)*self.culvert_vector
-
-        self.inlet_polylines = []
-        self.inlet_equiry_points = []
+        self.exchange_lines = []
 
         # Build exchange polyline and enquiry point
-        for i in [0, 1]:
-            i0 = (2*i-1) #i0 determines the sign of the points
-            p0 = self.end_points[i] + w
-            p1 = self.end_points[i] - w
-            ep = self.end_points[i] + i0*gap
+        if self.enquiry_points is None:
+            
+            gap = (self.apron + self.enquiry_gap)*self.culvert_vector
+            self.enquiry_points = []
+            
+            for i in [0, 1]:
+                p0 = self.end_points[i] + w
+                p1 = self.end_points[i] - w
+                self.exchange_lines.append(num.array([p0, p1]))
+                ep = self.end_points[i] + (2*i - 1)*gap #(2*i - 1) determines the sign of the points
+                self.enquiry_points.append(ep)
+            
+        else:            
+            for i in [0, 1]:
+                p0 = self.end_points[i] + w
+                p1 = self.end_points[i] - w
+                self.exchange_lines.append(num.array([p0, p1]))
+            
+  
+    def __process_skew_culvert(self):    
+        
+        """Compute skew culvert.
+        If exchange lines are given, the enquiry points are determined. This is for enquiring 
+        the total energy at both ends of the culvert and transferring flow.
+        """
+            
+        centre_point0 = 0.5*(self.exchange_lines[0][0] + self.exchange_lines[0][1])
+        centre_point1 = 0.5*(self.exchange_lines[1][0] + self.exchange_lines[1][1])
+        
+        if self.end_points is None:
+            self.culvert_vector = centre_point1 - centre_point0
+        else:
+            self.culvert_vector = self.end_points[1] - end_points[0]
+        
+        self.culvert_length = math.sqrt(num.sum(self.culvert_vector**2))   
+        assert self.culvert_length > 0.0, 'The length of culvert is less than 0'
+        
+        if self.enquiry_points is None:
+        
+            self.culvert_vector /= self.culvert_length
+            gap = (self.apron + self.enquiry_gap)*self.culvert_vector
+        
+            self.enquiry_points = []
 
-            self.inlet_polylines.append(num.array([p0, p1]))
-            self.inlet_equiry_points.append(ep)            
-    
+            self.enquiry_points.append(centre_point0 - gap)
+            self.enquiry_points.append(centre_point1 + gap)
+            
+        
     def discharge_routine(self):
         
         pass
@@ -268,8 +292,8 @@ class Structure_operator:
             message += '%s' % self.domain.get_centroid_coordinates()[inlet.triangle_indices]
             message += '\n'
 
-            message += 'polyline\n'
-            message += '%s' % inlet.polyline
+            message += 'line\n'
+            message += '%s' % inlet.line
             message += '\n'
 
         message += '=====================================\n'

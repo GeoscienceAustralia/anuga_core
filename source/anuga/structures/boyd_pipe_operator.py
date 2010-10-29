@@ -15,11 +15,12 @@ class Boyd_pipe_operator(anuga.Structure_operator):
 
     def __init__(self,
                  domain,
-                 end_point0, 
-                 end_point1,
                  losses,
+                 end_points=None,
+                 exchange_lines=None,
+                 enquiry_points=None,
                  diameter=None,
-                 apron=None,
+                 apron=0.1,
                  manning=0.013,
                  enquiry_gap=0.2,
                  use_momentum_jet=True,
@@ -29,13 +30,12 @@ class Boyd_pipe_operator(anuga.Structure_operator):
                  structure_type='boyd_pipe',
                  logging=False,
                  verbose=False):
-
-
                      
         anuga.Structure_operator.__init__(self,
                                           domain,
-                                          end_point0, 
-                                          end_point1,
+                                          end_points,
+                                          exchange_lines,
+                                          enquiry_points,
                                           width=diameter,
                                           height=None,
                                           apron=apron,

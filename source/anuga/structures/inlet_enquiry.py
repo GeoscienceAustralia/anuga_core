@@ -1,4 +1,4 @@
-from anuga.geometry.polygon import inside_polygon, is_inside_polygon, polyline_overlap
+from anuga.geometry.polygon import inside_polygon, is_inside_polygon, line_intersect
 from anuga.config import velocity_protection, g
 import math
 
