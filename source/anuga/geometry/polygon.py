@@ -256,39 +256,39 @@ def not_polygon_overlap(triangles, polygon, verbose=False):
 
     return indices[count:]    
 
-def polyline_overlap(triangles, polyline, verbose=False):
+def line_intersect(triangles, line, verbose=False):
     """Determine if a polygon and triangle overlap
 
     """
-    polyline = ensure_numeric(polyline)
+    line = ensure_numeric(line)
     triangles = ensure_numeric(triangles)
     
     M = triangles.shape[0]/3  # Number of triangles
 
     indices = num.zeros(M, num.int)
 
-    count = _polyline_overlap(polyline, triangles, indices)
+    count = _line_intersect(line, triangles, indices)
 
     if verbose:
-        log.critical('Found %d triangles (out of %d) that polygon' % (count, M))
+        log.critical('Found %d triangles (out of %d) that overlap the polygon' % (count, M))
 
     return indices[:count]
     
-def not_polyline_overlap(triangles, polyline, verbose=False):
+def not_line_intersect(triangles, line, verbose=False):
     """Determine if a polyline and triangle overlap
 
     """
-    polyline = ensure_numeric(polyline)
+    line = ensure_numeric(line)
     triangles = ensure_numeric(triangles)
     
     M = triangles.shape[0]/3  # Number of triangles
 
     indices = num.zeros(M, num.int)
 
-    count = _polyline_overlap(polyline, triangles, indices)
+    count = _line_intersect(line, triangles, indices)
 
     if verbose:
-        log.critical('Found %d triangles (out of %d) that polygon' % (count, M))
+        log.critical('Found %d triangles (out of %d) that intersect the line' % (count, M))
 
     return indices[count:]    
     
@@ -1171,7 +1171,7 @@ if compile.can_use_C_extension('polygon_ext.c'):
     from polygon_ext import _separate_points_by_polygon
     from polygon_ext import _interpolate_polyline    
     from polygon_ext import _polygon_overlap
-    from polygon_ext import _polyline_overlap
+    from polygon_ext import _line_intersect
     from polygon_ext import _is_inside_triangle        
     #from polygon_ext import _intersection
 
