@@ -439,8 +439,8 @@ int __polygon_overlap(double* polygon,
 }              
 
 
-int __triangle_polyline_overlap(double* polyline,
-                                double* triangle)
+int __triangle_line_intersect(double* line,
+                              double* triangle)
 {
     int j, jj, A, B;
     double p0_x, p0_y, p1_x, p1_y, pp_x, pp_y;
@@ -449,10 +449,10 @@ int __triangle_polyline_overlap(double* polyline,
     double u_dot_tp, v_dot_tp, v_dot_pp, w_dot_pp;
     double a, b;
     
-    p0_x = polyline[0];
-    p0_y = polyline[1];
-    p1_x = polyline[2];
-    p1_y = polyline[3];
+    p0_x = line[0];
+    p0_y = line[1];
+    p1_x = line[2];
+    p1_y = line[3];
     
     pp_x = -(p1_y - p0_y);
     pp_y = p1_x - p0_x;
@@ -493,7 +493,7 @@ int __triangle_polyline_overlap(double* polyline,
                          
             if (a >= 0.0f && a <= 1.0f && b >=0.0f && b <=1.0f)
             {
-                return 1; //overlap
+                return 1; //intersect
             }
             
             if (a > 1.0f && b >= 0.0f && b <= 1.0f)
@@ -513,30 +513,30 @@ int __triangle_polyline_overlap(double* polyline,
     
     if (A >= 1 && B >= 1)
     {
-        return 1; //overlap
+        return 1; //polygon sits completely inside a triangle
     }
     
-    return 0; //no overlap
+    return 0; //no intersection
 }
                  
 
-int __polyline_overlap(double* polyline,
-                      double* triangles,
-                      long* indices,
-                      int M) //number of triangles
+int __line_intersect(double* line,
+                     double* triangles,
+                     long* indices,
+                     int M) //number of triangles
 {
     double* triangle;
     int i, inside_index, outside_index;
     
-    inside_index = 0;    // Keep track of triangles that overlap
-    outside_index = M - 1; // Keep track of triangles that don't overlap (starting from end)
+    inside_index = 0;    // Keep track of triangles that intersect
+    outside_index = M - 1; // Keep track of triangles that don't intersect (starting from end)
     
     for (i = 0; i < M; i++)
     {
         triangle = triangles + 6*i;
         
-        if (__triangle_polyline_overlap(polyline, 
-                                        triangle))
+        if (__triangle_line_intersect(line, 
+                                      triangle))
         {
             indices[inside_index] = i;
             inside_index++;
@@ -853,7 +853,7 @@ PyObject *_polygon_overlap(PyObject *self, PyObject *args)
   return result;  
 }
 
-PyObject *_polyline_overlap(PyObject *self, PyObject *args) 
+PyObject *_line_intersect(PyObject *self, PyObject *args) 
 {
   //
   // _polygon_triangle_overlap(polygon, triangle)
@@ -899,7 +899,7 @@ PyObject *_polyline_overlap(PyObject *self, PyObject *args)
   
   
   PyArrayObject
-    *polyline,
+    *line,
     *triangles,
     *indices;
     
@@ -909,7 +909,7 @@ PyObject *_polyline_overlap(PyObject *self, PyObject *args)
       
   // Convert Python arguments to C
   if (!PyArg_ParseTuple(args, "OOO",
-			&polyline,
+			&line,
 			&triangles,
             &indices)) {
     
@@ -919,10 +919,10 @@ PyObject *_polyline_overlap(PyObject *self, PyObject *args)
   }
 
   // Call underlying routine
-  res = __polyline_overlap((double*) polyline->data,
-			     (double*) triangles->data,
-                 (long*) indices->data,
-                 (int) triangles->dimensions[0]/3);			       			       
+  res = __line_intersect((double*) line->data,
+			             (double*) triangles->data,
+                         (long*) indices->data,
+                         (int) triangles->dimensions[0]/3);			       			       
 
 
   // Return result
@@ -1102,7 +1102,7 @@ static struct PyMethodDef MethodTable[] = {
                                  METH_VARARGS, "Print out"},				 
   {"_polygon_overlap", _polygon_overlap, 
                                  METH_VARARGS, "Print out"},
-  {"_polyline_overlap", _polyline_overlap, 
+  {"_line_intersect", _line_intersect, 
                                  METH_VARARGS, "Print out"},                               
   {"_is_inside_triangle", _is_inside_triangle, 
                                  METH_VARARGS, "Print out"},
