@@ -12,7 +12,7 @@ from polygon import _poly_xy, separate_points_by_polygon, \
                     read_polygon, point_on_line, point_in_polygon, \
                     plot_polygons, outside_polygon, is_outside_polygon, \
                     intersection, is_complex, polygon_overlap, not_polygon_overlap,\
-                    polyline_overlap, not_polyline_overlap,\
+                    line_intersect, not_line_intersect,\
                     is_inside_triangle, interpolate_polyline, inside_polygon, \
                     in_and_outside_polygon
                     
@@ -502,9 +502,9 @@ class Test_Polygon(unittest.TestCase):
         indices = not_polygon_overlap(triangles, polygon)
         assert num.allclose([0], indices)             
                      
-    def test_polyline_overlap(self):
+    def test_line_intersect(self):
         #rectangular polygon, 2 triangles overlap
-        polyline = [[3.,3.],[4.,3.]]
+        line = [[3.,3.],[4.,3.]]
         triangles = [[7.,10.],#does not overlap
                      [8.,12.],
                      [9.,10.],
@@ -524,12 +524,12 @@ class Test_Polygon(unittest.TestCase):
                      [5., 3.],
                      [3., 1.]]
                      
-        indices = polyline_overlap(triangles, polyline)        
+        indices = line_intersect(triangles, line)        
         assert num.allclose([1, 2, 3, 5], indices)
 
-    def test_not_polyline_overlap(self):
+    def test_not_line_intersect(self):
         #rectangular polygon, 2 triangles overlap
-        polyline = [[3.,3.],[4.,3.]]
+        line = [[3.,3.],[4.,3.]]
         triangles = [[7.,10.],#does not overlap
                      [8.,12.],
                      [9.,10.],
@@ -549,7 +549,7 @@ class Test_Polygon(unittest.TestCase):
                      [5., 3.],
                      [3., 1.]]
  
-        indices = not_polyline_overlap(triangles, polyline)        
+        indices = not_line_intersect(triangles, line)
         assert num.allclose([4, 0], indices)
 
     def test_is_inside_triangle(self):
