@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='iso-8859-1'?>
+<ga_license_file>
+  <metadata>
+    <author>Stephen Roberts</author>
+  </metadata>
+  <datafile>
+    <filename>complex_polygon.csv</filename>
+    <checksum>556538090</checksum>
+    <publishable>Yes</publishable>
+    <accountable>Stephen Roberts</accountable>
+    <source>Australian National University</source>
+    <IP_owner>Australian National University</IP_owner>
+    <IP_info>A very simple polygon that I made up to test read_polygon
+    </IP_info>
+  </datafile>
+
+</ga_license_file>
