@@ -88,7 +88,13 @@ class Test_Polygon(unittest.TestCase):
         # Form absolute filename and read
         filename = path + sep + 'complex_polygon.csv'
         # Should cause an Exception
-        p1 = read_polygon(filename)
+        try:
+            p1 = read_polygon(filename)
+        except Exception:
+            pass
+        else:
+            raise Exception, 'Closed polygon should have raised exception'
+
 
 
     def test_read_polygon_open_complex(self):
