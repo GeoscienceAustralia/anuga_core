@@ -856,9 +856,9 @@ def _poly_xy(polygon):
 # Functions to read and write polygon information
 ################################################################################
 
-def read_polygon(filename, delimiter=',', closed='True'):
+def read_polygon(filename, delimiter=',', closed=True, verbose=False):
     """ Read points assumed to form a (closed) polygon.
-        Can also be used toread  in a polyline (closed = 'False')
+        Can also be used toread  in a polyline (closed = False)
 
         Also checks to make sure polygon (polyline)
         is not complex (self-intersecting).
@@ -880,7 +880,7 @@ def read_polygon(filename, delimiter=',', closed='True'):
         polygon.append([float(fields[0]), float(fields[1])])
     
     # check this is a valid polygon (polyline).
-    if is_complex(polygon, closed, verbose=True):
+    if is_complex(polygon, closed, verbose=verbose):
         msg = 'ERROR: Self-intersecting polygon detected in file '
         msg += filename +'. A complex polygon will not '
         msg += 'necessarily break the algorithms within ANUGA, but it'
