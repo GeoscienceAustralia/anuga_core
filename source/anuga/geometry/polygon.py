@@ -858,7 +858,7 @@ def _poly_xy(polygon):
 
 def read_polygon(filename, delimiter=',', closed=True, verbose=False):
     """ Read points assumed to form a (closed) polygon.
-        Can also be used toread  in a polyline (closed = False)
+        Can also be used to read  in a polyline (closed=False)
 
         Also checks to make sure polygon (polyline)
         is not complex (self-intersecting).
@@ -867,7 +867,8 @@ def read_polygon(filename, delimiter=',', closed=True, verbose=False):
         delimiter Delimiter to split polygon data with.
         A list of point data from the polygon file.
 
-        There must be exactly two numbers in each line separated by the delimiter.
+        There must be exactly two numbers in each line
+        separated by the delimiter.
         No header.
     """
 
