@@ -79,6 +79,29 @@ class Test_Polygon(unittest.TestCase):
 
         assert num.allclose(z, [0, 10])
 
+    def test_read_polygon_complex(self):
+        from os import sep, getenv
+
+        # Get path where this test is run
+        path = get_pathname_from_package('anuga.utilities')
+
+        # Form absolute filename and read
+        filename = path + sep + 'complex_polygon.csv'
+        # Should cause an Exception
+        p1 = read_polygon(filename)
+
+
+    def test_read_polygon_open_complex(self):
+        from os import sep, getenv
+
+        # Get path where this test is run
+        path = get_pathname_from_package('anuga.utilities')
+
+        # Form absolute filename and read
+        filename = path + sep + 'complex_polygon.csv'
+        # Should not cause an Exception
+        p1 = read_polygon(filename, closed=False)
+
     def test_polygon_function_georef(self):
         """Check that georeferencing works"""
 
