@@ -349,7 +349,7 @@ def is_inside_triangle(point, triangle,
     # Use C-implementation
     return bool(_is_inside_triangle(point, triangle, int(closed), rtol, atol))
     
-def is_complex(polygon, verbose=False):
+def is_complex(polygon, closed=True, verbose=False):
     """Check if a polygon is complex (self-intersecting).
        Uses a sweep algorithm that is O(n^2) in the worst case, but
        for most normal looking polygons it'll be O(n log n). 
@@ -377,7 +377,9 @@ def is_complex(polygon, verbose=False):
     unsorted_segs = []
     for i in range(0, len(polygon)-1):
         unsorted_segs.append([list(polygon[i]), list(polygon[i+1])])
-    unsorted_segs.append([list(polygon[0]), list(polygon[-1])])
+
+    if closed:
+        unsorted_segs.append([list(polygon[0]), list(polygon[-1])])
     
     # all segments must point in same direction
     for val in unsorted_segs:
@@ -854,10 +856,12 @@ def _poly_xy(polygon):
 # Functions to read and write polygon information
 ################################################################################
 
-def read_polygon(filename, delimiter=','):
-    """ Read points assumed to form a polygon.
+def read_polygon(filename, delimiter=',', closed='True'):
+    """ Read points assumed to form a (closed) polygon.
+        Can also be used toread  in a polyline (closed = 'False')
 
-        Also checks to make sure polygon is not complex (self-intersecting).
+        Also checks to make sure polygon (polyline)
+        is not complex (self-intersecting).
 
         filename Path to file containing polygon data.
         delimiter Delimiter to split polygon data with.
@@ -875,8 +879,8 @@ def read_polygon(filename, delimiter=','):
         fields = line.split(delimiter)
         polygon.append([float(fields[0]), float(fields[1])])
     
-    # check this is a valid polygon. 
-    if is_complex(polygon, verbose=True):    
+    # check this is a valid polygon (polyline).
+    if is_complex(polygon, closed, verbose=True):
         msg = 'ERROR: Self-intersecting polygon detected in file '
         msg += filename +'. A complex polygon will not '
         msg += 'necessarily break the algorithms within ANUGA, but it'
