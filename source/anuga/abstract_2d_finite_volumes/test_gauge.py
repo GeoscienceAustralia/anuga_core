@@ -83,13 +83,13 @@ class Test_Gauge(unittest.TestCase):
         if self.sww:
             os.remove(self.sww.filename)
 
-    def _create_sww(self):
+    def _create_sww(self,stage=10.0, timestep=2.0):
         self.sww = SWW_file(self.domain)
         self.sww.store_connectivity()
         self.sww.store_timestep()
-        self.domain.set_quantity('stage', 10.0) # This is automatically limited
+        self.domain.set_quantity('stage', stage) # This is automatically limited
         # so it will not be less than the elevation
-        self.domain.time = 2.
+        self.domain.set_time(self.domain.get_time()-self.domain.starttime+timestep)
         self.sww.store_timestep()
         
         
@@ -458,8 +458,82 @@ point1, 2.5, 4.25, 3.0\n")
         point1_handle.close()        
         os.remove(points_file)
         os.remove(point1_filename)
-        
-        
+
+    def test_sww2csv_multiple_files(self):
+        """
+        This is testing the sww2csv_gauges function, by creating a multiple 
+        sww file and then exporting the gauges and checking the results.
+        """
+        timestep=2.0
+        domain = self.domain
+        domain.set_starttime(0.)
+        # Create two sww files with timestep at end. These are to be
+        # stored consecutively in the gauge csv files
+        basename='datatest'
+        domain.set_name(basename) 
+        self._create_sww(stage=10.,timestep=timestep)
+
+        domain.set_name(basename+str(time.time())) 
+        domain.set_time(domain.get_time()+timestep)
+        self._create_sww(stage=20.,timestep=timestep)
+
+        points_file = tempfile.mktemp(".csv")
+        file_id = open(points_file,"w")
+
+        # test the function at these points
+        points = [[5.0,1.],[0.5,2.]]
+
+        # create a csv file containing our gauge points
+        points_file = tempfile.mktemp(".csv")
+        file_id = open(points_file,"w")
+        file_id.write("name,easting,northing \n\
+point1, 5.0, 1.0\n\
+point2, 0.5, 2.0\n")
+        file_id.close()
+
+        sww2csv_gauges(basename+".sww", 
+                       points_file,
+                       quantities=['stage', 'elevation'],
+                       use_cache=False,
+                       verbose=False)
+
+        point1_answers_array = [[0.0,1.0,-5.0], [2.0,10.0,-5.0],[4.0,10.0,-5.0],
+                                [6.0,20.0,-5.0]]
+        point1_filename = 'gauge_point1.csv'
+        point1_handle = file(point1_filename)
+        point1_reader = reader(point1_handle)
+        point1_reader.next()
+
+        line=[]
+        for i,row in enumerate(point1_reader):
+            # note the 'hole' (element 1) below - skip the new 'hours' field
+            line.append([float(row[0]),float(row[2]),float(row[3])])
+            #print 'line',line[i],'point1',point1_answers_array[i]
+            assert num.allclose(line[i], point1_answers_array[i])
+
+        point2_answers_array = [[0.0,1.0,-0.5], [2.0,10.0,-0.5],[4.0,10.0,-0.5],
+                                [6.0,20.0,-0.5]]
+        point2_filename = 'gauge_point2.csv' 
+        point2_handle = file(point2_filename)
+        point2_reader = reader(point2_handle)
+        point2_reader.next()
+                        
+        line=[]
+        for i,row in enumerate(point2_reader):
+            # note the 'hole' (element 1) below - skip the new 'hours' field
+            line.append([float(row[0]),float(row[2]),float(row[3])])
+            #print 'line',line[i],'point2',point2_answers_array[i]
+            assert num.allclose(line[i], point2_answers_array[i])
+                         
+        # clean up
+        point1_handle.close()
+        point2_handle.close() 
+        os.remove(points_file)
+        os.remove(point1_filename)
+        os.remove(point2_filename)       
+
+        #remove second swwfile not removed by tearDown
+        os.remove(basename+".sww")
 
 #-------------------------------------------------------------
 

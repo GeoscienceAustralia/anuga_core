@@ -222,6 +222,7 @@ def sww2csv_gauges(sww_file,
 
     quake_offset_time = None
 
+    is_opened = [False]*len(points_array)
     for sww_file in sww_files:
         sww_file = join(dir_name, sww_file+'.sww')
         callable_sww = file_function(sww_file,
@@ -234,25 +235,28 @@ def sww2csv_gauges(sww_file,
         if quake_offset_time is None:
             quake_offset_time = callable_sww.starttime
 
-    for point_i, point in enumerate(points_array):
-        is_opened = False    
-        for time in callable_sww.get_time():
-            #add domain starttime to relative time.
-            quake_time = time + quake_offset_time
-            point_quantities = callable_sww(time, point_i) # __call__ is overridden
+        for point_i, point in enumerate(points_array):
+            for time in callable_sww.get_time():
+                # add domain starttime to relative time.
+                quake_time = time + quake_offset_time
+                point_quantities = callable_sww(time, point_i) # __call__ is overridden
 
-            if point_quantities[0] != NAN:
-                if is_opened == False:
-                    points_writer = writer(file(dir_name + sep + gauge_file
-                                                        + point_name[point_i] + '.csv', "wb"))
-                    points_writer.writerow(heading)
-                    is_opened = True
-                points_list = [quake_time, quake_time/3600.] +  _quantities2csv(quantities, point_quantities, callable_sww.centroids, point_i)
-                points_writer.writerow(points_list)
-            else:
-                if verbose:
-                    msg = 'gauge' + point_name[point_i] + 'falls off the mesh in file ' + sww_file + '.'
-                    log.warning(msg)
+                if point_quantities[0] != NAN:
+                    if is_opened[point_i] == False:
+                        points_writer = writer(file(dir_name + sep + gauge_file
+                                                    + point_name[point_i] + '.csv', "wb"))
+                        points_writer.writerow(heading)
+                        is_opened[point_i] = True
+                    else:
+                        points_writer = writer(file(dir_name + sep + gauge_file
+                                                    + point_name[point_i] + '.csv', "ab"))
+
+                    points_list = [quake_time, quake_time/3600.] +  _quantities2csv(quantities, point_quantities, callable_sww.centroids, point_i)
+                    points_writer.writerow(points_list)
+                else:
+                    if verbose:
+                        msg = 'gauge' + point_name[point_i] + 'falls off the mesh in file ' + sww_file + '.'
+                        log.warning(msg)
 ##
 # @brief Read a .sww file and plot the time series.
 # @param swwfiles Dictionary of .sww files.
