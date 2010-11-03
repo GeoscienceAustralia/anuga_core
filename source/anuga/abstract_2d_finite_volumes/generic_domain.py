@@ -498,8 +498,7 @@ class Generic_Domain:
     def get_time(self):
         """Get the absolute model time (seconds)."""
 
-        return self.time + self.starttime
-
+        return self.time
 
     ##
     # @brief Get current timestep.
@@ -1015,6 +1014,7 @@ class Generic_Domain:
         msg = ''
 
         model_time = self.get_time()
+ 
         if self.recorded_min_timestep == self.recorded_max_timestep:
             msg += 'Time = %.4f, delta t = %.8f, steps=%d' \
                        % (model_time, self.recorded_min_timestep, \
@@ -1224,8 +1224,8 @@ class Generic_Domain:
 
         # Observe time interval restriction if any
         if self.monitor_time_interval is not None and\
-               (self.time < self.monitor_time_interval[0] or\
-               self.time > self.monitor_time_interval[1]):
+               (self.get_time() < self.monitor_time_interval[0] or\
+               self.get_time() > self.monitor_time_interval[1]):
             return
 
         # Update extrema for each specified quantity subject to
@@ -1248,7 +1248,7 @@ class Generic_Domain:
                 info_block['max'] = maxval
                 maxloc = Q.get_maximum_location()
                 info_block['max_location'] = maxloc
-                info_block['max_time'] = self.time
+                info_block['max_time'] = self.get_time()
 
             # Update minimum
             minval = Q.get_minimum_value(self.monitor_indices)
@@ -1257,7 +1257,7 @@ class Generic_Domain:
                 info_block['min'] = minval
                 minloc = Q.get_minimum_location()
                 info_block['min_location'] = minloc
-                info_block['min_time'] = self.time
+                info_block['min_time'] = self.get_time()
 
     ##
     # @brief Return string with statistics about quantities
@@ -1427,6 +1427,8 @@ class Generic_Domain:
                    % self.get_boundary_tags())
         assert hasattr(self, 'boundary_objects'), msg
 
+        self.set_time(self.get_starttime())
+
         if yieldstep is None:
             yieldstep = self.evolve_max_timestep
         else:
@@ -1444,7 +1446,7 @@ class Generic_Domain:
                 self.finaltime = self.starttime + float(duration)
 
         N = len(self)                             # Number of triangles
-        self.yieldtime = self.time + yieldstep    # set next yield time
+        self.yieldtime = self.get_time() + yieldstep    # set next yield time
 
         # Initialise interval of timestep sizes (for reporting only)
         # Note that we set recorded_min_timestep to be large so that it comes
@@ -1466,30 +1468,28 @@ class Generic_Domain:
         # Update extrema if necessary (for reporting)
         self.update_extrema()
 
-
-
         # Or maybe restore from latest checkpoint
         if self.checkpoint is True:
             self.goto_latest_checkpoint()
 
         if skip_initial_step is False:
-            yield(self.time)      # Yield initial values
+            yield(self.get_time())      # Yield initial values
 
         while True:
 
-            initial_time = self.time
+            initial_time = self.get_time()
 
             #==========================================
             # Apply fluid flow fractional step
             #==========================================
             if self.get_timestepping_method() == 'euler':
-                self.evolve_one_euler_step(yieldstep, finaltime)
+                self.evolve_one_euler_step(yieldstep, self.finaltime)
 
             elif self.get_timestepping_method() == 'rk2':
-                self.evolve_one_rk2_step(yieldstep, finaltime)
+                self.evolve_one_rk2_step(yieldstep, self.finaltime)
 
             elif self.get_timestepping_method() == 'rk3':
-                self.evolve_one_rk3_step(yieldstep, finaltime)
+                self.evolve_one_rk3_step(yieldstep, self.finaltime)
 
             #==========================================
             # Apply other fractional steps
@@ -1502,7 +1502,7 @@ class Generic_Domain:
             #==========================================
 
             # Update time
-            self.time = initial_time + self.timestep
+            self.set_time(initial_time + self.timestep)
 
             # Update vertex and edge values
             self.distribute_to_vertices_and_edges()
@@ -1518,23 +1518,23 @@ class Generic_Domain:
                 self.number_of_first_order_steps += 1
 
             # Yield results
-            if finaltime is not None and self.time >= finaltime-epsilon:
-                if self.time > finaltime:
+            if self.finaltime is not None and self.get_time() >= self.finaltime-epsilon:
+                
+                if self.get_time() > self.finaltime:
                     # FIXME (Ole, 30 April 2006): Do we need this check?
                     # Probably not (Ole, 18 September 2008).
                     # Now changed to Exception.
-                    msg = ('WARNING (domain.py): time overshot finaltime. '
-                           'Contact Ole.Nielsen@ga.gov.au')
+                    msg = ('WARNING (domain.py): time overshot finaltime. ')
                     raise Exception, msg
 
                 # Log and then Yield final time and stop
-                self.time = finaltime
+                self.set_time(self.finaltime)
                 self.log_operator_timestepping_statistics()
-                yield(self.time)
+                yield(self.get_time())
                 break
 
             # if we are at the next yield point
-            if self.time >= self.yieldtime:
+            if self.get_time() >= self.yieldtime:
                 # Yield (intermediate) time and allow inspection of domain
                 if self.checkpoint is True:
                     self.store_checkpoint()
@@ -1542,7 +1542,7 @@ class Generic_Domain:
 
                 # Log and then Pass control on to outer loop for more specific actions
                 self.log_operator_timestepping_statistics()
-                yield(self.time)
+                yield(self.get_time())
 
                 # Reinitialise
                 self.yieldtime += yieldstep                 # move to next yield
@@ -1613,7 +1613,7 @@ class Generic_Domain:
         self.update_ghosts()
 
         # Update time
-        self.time += self.timestep
+        self.set_time(self.get_time() + self.timestep)
 
         # Update vertex and edge values
         self.distribute_to_vertices_and_edges()
@@ -1662,7 +1662,7 @@ class Generic_Domain:
         # Save initial initial conserved quantities values
         self.backup_conserved_quantities()
 
-        initial_time = self.time
+        initial_time = self.get_time()
 
         ######
         # First euler step
@@ -1684,7 +1684,7 @@ class Generic_Domain:
         self.update_ghosts()
 
         # Update time
-        self.time += self.timestep
+        self.set_time(self.time + self.timestep)
 
         # Update vertex and edge values
         self.distribute_to_vertices_and_edges()
@@ -1720,7 +1720,7 @@ class Generic_Domain:
         self.update_ghosts()
 
         # Set substep time
-        self.time = initial_time + self.timestep*0.5
+        self.set_time(initial_time + self.timestep*0.5)
 
         # Update vertex and edge values
         self.distribute_to_vertices_and_edges()
@@ -1753,7 +1753,7 @@ class Generic_Domain:
         self.update_ghosts()
 
         # Set new time
-        self.time = initial_time + self.timestep
+        self.set_time(initial_time + self.timestep)
 
 
     ##
@@ -1940,12 +1940,12 @@ class Generic_Domain:
                 self._order_ = 2
 
         # Ensure that final time is not exceeded
-        if finaltime is not None and self.time + timestep > finaltime :
-            timestep = finaltime-self.time
+        if finaltime is not None and self.get_time() + timestep > finaltime :
+            timestep = finaltime - self.get_time()
 
         # Ensure that model time is aligned with yieldsteps
-        if self.time + timestep > self.yieldtime:
-            timestep = self.yieldtime - self.time
+        if self.get_time() + timestep > self.yieldtime:
+            timestep = self.yieldtime - self.get_time()
 
         self.timestep = timestep
 
@@ -2074,7 +2074,7 @@ class Generic_Domain:
             d = 0
             for i in range(self.number_of_full_triangles):
                 if self.max_speed[i] > bins[-1]:
-                    msg = 'Time=%f: Ignoring isolated high ' % self.time
+                    msg = 'Time=%f: Ignoring isolated high ' % self.get_time()
                     msg += 'speed triangle '
                     msg += '#%d of %d with max speed=%f' \
                         % (i, self.number_of_full_triangles, self.max_speed[i])
