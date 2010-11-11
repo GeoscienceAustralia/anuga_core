@@ -782,6 +782,9 @@ class Test_Data_Manager(Test_Mux):
         domain_time.set_boundary({'ocean': Bw,'otherocean': Br})
         
         temp_time=num.zeros(int(finaltime/yieldstep)+1,num.float)
+        
+        domain_time.set_starttime(domain_fbound.get_starttime())
+        
         for i, t in enumerate(domain_time.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
                                                    skip_initial_step=False)):
@@ -830,7 +833,7 @@ class Test_Data_Manager(Test_Mux):
 
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Data_Manager, 'test_sww2domain2')
-    suite = unittest.makeSuite(Test_Data_Manager, 'test_sww')
+    suite = unittest.makeSuite(Test_Data_Manager, 'test')
     
     
     

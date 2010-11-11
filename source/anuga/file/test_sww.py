@@ -102,7 +102,6 @@ class Test_sww(unittest.TestCase):
         ######################################
         #Now evolve them both, just to be sure
         ######################################x
-        domain.time = 0.
         from time import sleep
 
         final = .1
@@ -115,9 +114,9 @@ class Test_sww(unittest.TestCase):
             #domain.write_time()
             pass
 
-        final = final - (domain2.starttime-domain.starttime)
         #BUT since domain1 gets time hacked back to 0:
-        final = final + (domain2.starttime-domain.starttime)
+        
+        final = final + (domain2.get_starttime() - domain.get_starttime())
 
         domain2.smooth = False
         domain2.store = False

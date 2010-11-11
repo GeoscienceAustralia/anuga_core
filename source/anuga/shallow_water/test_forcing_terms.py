@@ -886,22 +886,15 @@ class Test_forcing_terms(unittest.TestCase):
         
         domain.forcing_terms.append(R)
 
-        # This will test that time used in the forcing function takes
-        # startime into account.
-        domain.starttime = 5.0
-
-        domain.time = 7.
+        # This will test that time is set to starttime in set_starttime
+        domain.set_starttime(5.0)
 
         domain.compute_forcing_terms()
 
         assert num.allclose(domain.quantities['stage'].explicit_update[1],
                             (3*domain.get_time() + 7)/1000)
         assert num.allclose(domain.quantities['stage'].explicit_update[1],
-                            (3*(domain.time + domain.starttime) + 7)/1000)
-
-        # Using internal time her should fail
-        assert not num.allclose(domain.quantities['stage'].explicit_update[1],
-                                (3*domain.time + 7)/1000)
+                            (3*domain.get_starttime() + 7)/1000)
 
         assert num.allclose(domain.quantities['stage'].explicit_update[0], 0)
         assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)
@@ -952,22 +945,16 @@ class Test_forcing_terms(unittest.TestCase):
         
         domain.forcing_terms.append(R)
 
-        # This will test that time used in the forcing function takes
-        # startime into account.
-        domain.starttime = 5.0
-
-        domain.time = 7.
+        # This will test that time is set to starttime in set_starttime
+        domain.set_starttime(5.0)
 
         domain.compute_forcing_terms()
 
         assert num.allclose(domain.quantities['stage'].explicit_update[1],
                             (3*domain.get_time() + 7)/1000)
         assert num.allclose(domain.quantities['stage'].explicit_update[1],
-                            (3*(domain.time + domain.starttime) + 7)/1000)
+                            (3*domain.get_starttime() + 7)/1000)
 
-        # Using internal time her should fail
-        assert not num.allclose(domain.quantities['stage'].explicit_update[1],
-                                (3*domain.time + 7)/1000)
 
         assert num.allclose(domain.quantities['stage'].explicit_update[0], 0)
         assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)

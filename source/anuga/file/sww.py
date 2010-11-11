@@ -940,7 +940,7 @@ def load_sww_as_domain(filename, boundary=None, t=None,
       
     
     try:
-        domain = Domain(coordinates, volumes, boundary)
+        domain = Domain(coordinates, volumes, boundary, starttime=(float(starttime) + float(t)))
     except AssertionError, e:
         fid.close()
         msg = 'Domain could not be created: %s. ' \
@@ -951,9 +951,6 @@ def load_sww_as_domain(filename, boundary=None, t=None,
         domain.boundary = boundary
 
     domain.geo_reference = geo_reference
-
-    domain.starttime = float(starttime) + float(t)
-    domain.time = 0.0
 
     for quantity in other_quantities:
         try:

@@ -244,8 +244,9 @@ point2, 0.5, 2.0\n")
         """
         
         domain = self.domain
-        domain.set_starttime(5)
-        self._create_sww()
+        domain.set_starttime(1)
+        
+        self._create_sww(timestep=2)
         
         # test the function
         points = [[5.0,1.],[0.5,2.]]
@@ -257,14 +258,14 @@ point2, 0.5, 2.0\n")
 point1, 5.0, 1.0, 3.0\n\
 point2, 0.5, 2.0, 9.0\n")
         file_id.close()
-
+        
         sww2csv_gauges(self.sww.filename, 
                             points_file,
                             verbose=False,
                             use_cache=False)
 
 #        point1_answers_array = [[0.0,1.0,-5.0,3.0,4.0], [2.0,10.0,-5.0,3.0,4.0]]
-        point1_answers_array = [[5.0,5.0/3600.,1.0,6.0,-5.0,3.0,4.0], [7.0,7.0/3600.,10.0,15.0,-5.0,3.0,4.0]]
+        point1_answers_array = [[2.0,2.0/3600.,1.0,6.0,-5.0,3.0,4.0], [3.0,3.0/3600.,10.0,15.0,-5.0,3.0,4.0]]
         point1_filename = 'gauge_point1.csv'
         point1_handle = file(point1_filename)
         point1_reader = reader(point1_handle)
@@ -278,7 +279,7 @@ point2, 0.5, 2.0, 9.0\n")
             #print 'assert line',line[i],'answer',point1_answers_array[i]
             assert num.allclose(line[i], point1_answers_array[i])
 
-        point2_answers_array = [[5.0,5.0/3600.,1.0,1.5,-0.5,3.0,4.0], [7.0,7.0/3600.,10.0,10.5,-0.5,3.0,4.0]]
+        point2_answers_array = [[2.0,2.0/3600.,1.0,1.5,-0.5,3.0,4.0], [3.0,3.0/3600.,10.0,10.5,-0.5,3.0,4.0]]
         point2_filename = 'gauge_point2.csv' 
         point2_handle = file(point2_filename)
         point2_reader = reader(point2_handle)

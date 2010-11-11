@@ -150,8 +150,6 @@ class Test_read_sww(unittest.TestCase):
         for qname, q in sww_file.read_quantities(last_frame_number-1).items():
             new_domain.set_quantity(qname, q)    
 
-
-        new_domain.set_starttime(sww_file.get_time())
         #------------------------------------------------------------------
         # Setup boundary conditions
         #------------------------------------------------------------------

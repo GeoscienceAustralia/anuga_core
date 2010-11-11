@@ -82,7 +82,7 @@ class Test_system(unittest.TestCase):
         
         """
      
-        boundary_starttime = 500
+        boundary_starttime = 0
         boundary_filename = self.create_sww_boundary(boundary_starttime)
         filename = tempfile.mktemp(".sww")
         dir, base = os.path.split(filename)
@@ -130,7 +130,7 @@ class Test_system(unittest.TestCase):
         Test that starttime can be set in the middle of a boundary condition
         """
         
-        boundary_starttime = 500
+        boundary_starttime = 0
         boundary_filename = self.create_sww_boundary(boundary_starttime)
         #print "boundary_filename",boundary_filename 
         
@@ -146,7 +146,7 @@ class Test_system(unittest.TestCase):
         domain = pmesh_to_domain_instance(mesh, anuga.Domain) 
         domain.set_name(senario_name)                 
         domain.set_datadir(dir)
-        new_starttime = 510.
+        new_starttime = 0.
         domain.set_starttime(new_starttime)
 
         # Setup initial conditions
@@ -177,7 +177,7 @@ class Test_system(unittest.TestCase):
         msg = "This test is a bit hand crafted, based on the output file. "
         msg += "Not logic. "
         msg += "It's testing that starttime is working"
-        assert num.allclose(stage[2,0], 11.9867153168),msg
+        assert num.allclose(stage[2,0], 4.7981238),msg
         
         
 

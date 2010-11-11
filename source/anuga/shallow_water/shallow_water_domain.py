@@ -105,6 +105,7 @@ class Domain(Generic_Domain):
                  other_quantities = None,
                  full_send_dict=None,
                  ghost_recv_dict=None,
+                 starttime=0,
                  processor=0,
                  numproc=1,
                  number_of_full_nodes=None,
@@ -139,6 +140,7 @@ class Domain(Generic_Domain):
         if other_quantities == None:
             other_quantities = ['elevation', 'friction']
         
+        
         Generic_Domain.__init__(self,
                             coordinates,
                             vertices,
@@ -154,6 +156,7 @@ class Domain(Generic_Domain):
                             verbose,
                             full_send_dict,
                             ghost_recv_dict,
+                            starttime,
                             processor,
                             numproc,
                             number_of_full_nodes=number_of_full_nodes,
@@ -562,7 +565,7 @@ class Domain(Generic_Domain):
         # evolve loop but we do it here to ensure the values are ok for storage.
         self.distribute_to_vertices_and_edges()
 
-        if self.store is True and self.time == 0.0:
+        if self.store is True and self.get_time() == self.get_starttime():
             self.initialise_storage()
 
         # Call basic machinery from parent class

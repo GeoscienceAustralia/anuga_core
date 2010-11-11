@@ -1410,6 +1410,7 @@ class Test_Urs2Sts(Test_Mux):
 
         
         domain_drchlt = Domain(meshname)
+        domain_drchlt.set_starttime(2.0)
         domain_drchlt.set_quantity('stage', tide)
         Br = Reflective_boundary(domain_drchlt)
 
@@ -1553,6 +1554,7 @@ class Test_Urs2Sts(Test_Mux):
 
 
         domain_drchlt = Domain(meshname)
+        domain_drchlt.set_starttime(2.0)
         domain_drchlt.set_quantity('stage', tide)
         Br = Reflective_boundary(domain_drchlt)
 
@@ -1918,6 +1920,7 @@ class Test_Urs2Sts(Test_Mux):
     
         
         domain_drchlt = Domain(meshname)
+        domain_drchlt.set_starttime(2.0)
         domain_drchlt.set_quantity('stage', tide)
         Br = Reflective_boundary(domain_drchlt)
         Bd = Dirichlet_boundary([2.0+tide,220+10*tide,-220-10*tide])
