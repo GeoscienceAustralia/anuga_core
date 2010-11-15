@@ -634,6 +634,10 @@ class Mesh(General_mesh):
                   %(x0,y0,x1,y1,x2,y2)
             assert abs((area - ref)/area) < epsilon, msg
 
+            msg = 'Triangle (%f,%f), (%f,%f), (%f, %f)' % (x0,y0,x1,y1,x2,y2)
+            msg += ' is degenerate:  area == %f' % self.areas[i]
+            assert area > 0.0, msg
+
             # Check that points are arranged in counter clock-wise order
             v0 = [x1-x0, y1-y0]
             v1 = [x2-x1, y2-y1]
