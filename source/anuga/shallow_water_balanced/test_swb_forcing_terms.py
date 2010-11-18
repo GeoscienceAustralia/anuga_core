@@ -221,7 +221,7 @@ class Test_swb_forcing_terms(unittest.TestCase):
 
 
 
-    def test_manning_friction_old(self):
+    def test_manning_friction_not_sloped(self):
         from anuga.config import g
 
         a = [0.0, 0.0]
@@ -238,7 +238,7 @@ class Test_swb_forcing_terms(unittest.TestCase):
         domain = Domain(points, vertices)
 
         #Turn old mannings function on
-        domain.set_new_mannings_function(False)
+        domain.set_sloped_mannings_function(False)
 
         #Set up for a gradient of (3,0) at mid triangle (bce)
         def slope(x, y):
@@ -300,7 +300,7 @@ class Test_swb_forcing_terms(unittest.TestCase):
                             4*S)
 
 
-    def test_manning_friction_new(self):
+    def test_manning_friction_sloped(self):
         from anuga.config import g
 
         a = [0.0, 0.0]
@@ -318,7 +318,7 @@ class Test_swb_forcing_terms(unittest.TestCase):
 
         # Use the new function which takes into account the extra
         # wetted area due to slope of bed
-        domain.set_new_mannings_function(True)
+        domain.set_sloped_mannings_function(True)
         
         #Set up for a gradient of (3,0) at mid triangle (bce)
         def slope(x, y):

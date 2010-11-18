@@ -81,7 +81,7 @@ class Domain(Sww_domain):
         #---------------------
         self.set_timestepping_method(2)
         self.set_default_order(2)
-        self.set_new_mannings_function(True)
+        self.set_sloped_mannings_function(True)
         self.set_centroid_transmissive_bc(True)
         self.set_CFL(1.0)
         self.set_beta(1.0)
