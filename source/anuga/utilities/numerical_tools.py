@@ -250,6 +250,8 @@ def ensure_numeric(A, typecode=None):
                      that a 0-dim array DOES NOT HAVE A LENGTH UNDER numpy.
         A: String.   Array of ASCII values (numpy can't handle this)
 
+        A:None.      Return None
+
         typecode:    numeric type. If specified, use this in the conversion.
                      If not, let numeric package decide.
                      typecode will always be one of num.float, num.int, etc.
@@ -263,6 +265,9 @@ def ensure_numeric(A, typecode=None):
 #    if isinstance(A, basestring):
 #        msg = 'Sorry, cannot handle strings in ensure_numeric()'
 #        raise Exception, msg
+
+    if A is None:
+        return None
 
     if typecode is None:
         if isinstance(A, num.ndarray):

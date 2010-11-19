@@ -8,7 +8,7 @@ import anuga
 
 from anuga.config import g, epsilon
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
-from anuga.utilities.numerical_tools import mean
+from anuga.utilities.numerical_tools import mean, ensure_numeric
 from anuga.geometry.polygon import is_inside_polygon
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.abstract_2d_finite_volumes.quantity import Quantity
@@ -1322,7 +1322,7 @@ class Test_swb_forcing_terms(unittest.TestCase):
     #####################################################
 
         
-    def test_inflow_using_flowline(self):
+    def xtest_inflow_using_flowline(self):
         """test_inflow_using_flowline
 
         Test the ability of a flowline to match inflow above the flowline by
@@ -1429,7 +1429,7 @@ class Test_swb_forcing_terms(unittest.TestCase):
                 #--------------------------------------------------------------
 
                 for t in domain.evolve(yieldstep=100.0, finaltime=finaltime):
-                    pass
+                    print domain.timestepping_statistics()
                     #if verbose :
                     #    print domain.timestepping_statistics()
 
@@ -1609,5 +1609,5 @@ class Test_swb_forcing_terms(unittest.TestCase):
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_swb_forcing_terms, 'test')
-    runner = unittest.TextTestRunner(verbosity=1)
+    runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)

@@ -9,7 +9,7 @@ class Boyd_box_operator(anuga.Structure_operator):
     This is the base class for culverts. Inherit from this class (and overwrite
     compute_discharge method for specific subclasses)
     
-    Input: Two points, pipe_size (either diameter or width, height), 
+    Input: Two points, pipe_size (either diameter or width, height),
     mannings_rougness,
     """
 
@@ -76,12 +76,28 @@ class Boyd_box_operator(anuga.Structure_operator):
         
         self.case = 'N/A'
 
-    
+
+
     def discharge_routine(self):
 
         local_debug ='false'
-        
-        if self.inflow.get_enquiry_height() > 0.01: #this value was 0.01:
+
+        if self.use_velocity_head:
+            self.delta_total_energy = self.inlets[0].get_enquiry_total_energy() - self.inlets[1].get_enquiry_total_energy()
+        else:
+            self.delta_total_energy = self.inlets[0].get_enquiry_stage() - self.inlets[1].get_enquiry_stage()
+
+        self.inflow  = self.inlets[0]
+        self.outflow = self.inlets[1]
+
+        if self.delta_total_energy < 0:
+            self.inflow  = self.inlets[1]
+            self.outflow = self.inlets[0]
+            self.delta_total_energy = -self.delta_total_energy
+
+
+
+        if self.inflow.get_enquiry_depth() > 0.01: #this value was 0.01:
             if local_debug =='true':
                 anuga.log.critical('Specific E & Deltat Tot E = %s, %s'
                              % (str(self.inflow.get_enquiry_specific_energy()),
@@ -96,26 +112,26 @@ class Boyd_box_operator(anuga.Structure_operator):
             if self.use_velocity_head :
                 self.driving_energy = self.inflow.get_enquiry_specific_energy()
             else:
-                self.driving_energy = self.inflow.get_enquiry_height()
+                self.driving_energy = self.inflow.get_enquiry_depth()
 
-            height = self.culvert_height
+            depth = self.culvert_height
             width = self.culvert_width
             flow_width = self.culvert_width
             # intially assume the culvert flow is controlled by the inlet
             # check unsubmerged and submerged condition and use Min Q
             # but ensure the correct flow area and wetted perimeter are used
             Q_inlet_unsubmerged = 0.544*anuga.g**0.5*width*self.driving_energy**1.50 # Flow based on Inlet Ctrl Inlet Unsubmerged
-            Q_inlet_submerged = 0.702*anuga.g**0.5*width*height**0.89*self.driving_energy**0.61  # Flow based on Inlet Ctrl Inlet Submerged
+            Q_inlet_submerged = 0.702*anuga.g**0.5*width*depth**0.89*self.driving_energy**0.61  # Flow based on Inlet Ctrl Inlet Submerged
 
             # FIXME(Ole): Are these functions really for inlet control?
             if Q_inlet_unsubmerged < Q_inlet_submerged:
                 Q = Q_inlet_unsubmerged
                 dcrit = (Q**2/anuga.g/width**2)**0.333333
-                if dcrit > height:
-                    dcrit = height
+                if dcrit > depth:
+                    dcrit = depth
                     flow_area = width*dcrit
                     perimeter= 2.0*(width+dcrit)
-                else: # dcrit < height
+                else: # dcrit < depth
                     flow_area = width*dcrit
                     perimeter= 2.0*dcrit+width
                 outlet_culvert_depth = dcrit
@@ -123,11 +139,11 @@ class Boyd_box_operator(anuga.Structure_operator):
             else: # Inlet Submerged but check internal culvert flow depth
                 Q = Q_inlet_submerged
                 dcrit = (Q**2/anuga.g/width**2)**0.333333
-                if dcrit > height:
-                    dcrit = height
+                if dcrit > depth:
+                    dcrit = depth
                     flow_area = width*dcrit
                     perimeter= 2.0*(width+dcrit)
-                else: # dcrit < height
+                else: # dcrit < depth
                     flow_area = width*dcrit
                     perimeter= 2.0*dcrit+width
                 outlet_culvert_depth = dcrit
@@ -136,10 +152,10 @@ class Boyd_box_operator(anuga.Structure_operator):
             dcrit = (Q**2/anuga.g/width**2)**0.333333
             # May not need this .... check if same is done above
             outlet_culvert_depth = dcrit
-            if outlet_culvert_depth > height:
-                outlet_culvert_depth = height  # Once again the pipe is flowing full not partfull
-                flow_area = width*height  # Cross sectional area of flow in the culvert
-                perimeter = 2*(width+height)
+            if outlet_culvert_depth > depth:
+                outlet_culvert_depth = depth  # Once again the pipe is flowing full not partfull
+                flow_area = width*depth  # Cross sectional area of flow in the culvert
+                perimeter = 2*(width+depth)
                 self.case = 'Inlet CTRL Outlet unsubmerged PIPE PART FULL'
             else:
                 flow_area = width * outlet_culvert_depth
@@ -156,18 +172,18 @@ class Boyd_box_operator(anuga.Structure_operator):
                 # Calculate flows for outlet control
 
                 # Determine the depth at the outlet relative to the depth of flow in the Culvert
-                if self.outflow.get_enquiry_height() > height:        # The Outlet is Submerged
-                    outlet_culvert_depth=height
-                    flow_area=width*height       # Cross sectional area of flow in the culvert
-                    perimeter=2.0*(width+height)
+                if self.outflow.get_enquiry_depth() > depth:        # The Outlet is Submerged
+                    outlet_culvert_depth=depth
+                    flow_area=width*depth       # Cross sectional area of flow in the culvert
+                    perimeter=2.0*(width+depth)
                     self.case = 'Outlet submerged'
                 else:   # Here really should use the Culvert Slope to calculate Actual Culvert Depth & Velocity
                     dcrit = (Q**2/anuga.g/width**2)**0.333333
                     outlet_culvert_depth=dcrit   # For purpose of calculation assume the outlet depth = Critical Depth
-                    if outlet_culvert_depth > height:
-                        outlet_culvert_depth=height
-                        flow_area=width*height
-                        perimeter=2.0*(width+height)
+                    if outlet_culvert_depth > depth:
+                        outlet_culvert_depth=depth
+                        flow_area=width*depth
+                        perimeter=2.0*(width+depth)
                         self.case = 'Outlet is Flowing Full'
                     else:
                         flow_area=width*outlet_culvert_depth
@@ -200,7 +216,7 @@ class Boyd_box_operator(anuga.Structure_operator):
 
         # END CODE BLOCK for DEPTH  > Required depth for CULVERT Flow
 
-        else: # self.inflow.get_enquiry_height() < 0.01:
+        else: # self.inflow.get_enquiry_depth() < 0.01:
             Q = barrel_velocity = outlet_culvert_depth = 0.0
 
         # Temporary flow limit

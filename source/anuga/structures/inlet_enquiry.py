@@ -44,7 +44,9 @@ class Inlet_enquiry(inlet.Inlet):
             msg += 'is in an inlet triangle'
             raise Exception, msg
 
+    def get_enquiry_position(self):
 
+        return self.domain.get_centroid_coordinates(absolute=True)[self.enquiry_index]
 
     def get_enquiry_stage(self):
 
@@ -64,29 +66,29 @@ class Inlet_enquiry(inlet.Inlet):
 
         return self.domain.quantities['elevation'].centroid_values[self.enquiry_index]
 
-    def get_enquiry_height(self):
+    def get_enquiry_depth(self):
 
         return self.get_enquiry_stage() - self.get_enquiry_elevation()
 
 
     def get_enquiry_velocity(self):
 
-            height = self.get_enquiry_height()
-            u = self.get_enquiry_xmom()/(height + velocity_protection/height)
-            v = self.get_enquiry_ymom()/(height + velocity_protection/height)
+            depth = self.get_enquiry_depth()
+            u = self.get_enquiry_xmom()/(depth + velocity_protection/depth)
+            v = self.get_enquiry_ymom()/(depth + velocity_protection/depth)
 
             return u, v
 
 
     def get_enquiry_xvelocity(self):
 
-            height = self.get_enquiry_height()
-            return self.get_enquiry_xmom()/(height + velocity_protection/height)
+            depth = self.get_enquiry_depth()
+            return self.get_enquiry_xmom()/(depth + velocity_protection/depth)
 
     def get_enquiry_yvelocity(self):
 
-            height = self.get_enquiry_height()
-            return self.get_enquiry_ymom()/(height + velocity_protection/height)
+            depth = self.get_enquiry_depth()
+            return self.get_enquiry_ymom()/(depth + velocity_protection/depth)
 
 
     def get_enquiry_speed(self):
@@ -108,6 +110,6 @@ class Inlet_enquiry(inlet.Inlet):
 
     def get_enquiry_specific_energy(self):
 
-        return self.get_enquiry_velocity_head() + self.get_enquiry_height()
+        return self.get_enquiry_velocity_head() + self.get_enquiry_depth()
 
 

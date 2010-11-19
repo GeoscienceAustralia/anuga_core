@@ -7,14 +7,13 @@ from anuga.utilities.system_tools import log_to_file
 
 
 class Inlet_operator:
-    """Inlet Operator - add water to one inlet.
+    """Inlet Operator - add water to an inlet.
     Sets up the geometry of problem
     
     Inherit from this class (and overwrite
     discharge_routine method for specific subclasses)
     
-    Input: Two points, pipe_size (either diameter or width, height), 
-    mannings_rougness,
+    Input: domain, Two points
     """ 
 
     counter = 0
@@ -73,8 +72,8 @@ class Inlet_operator:
 
 
         # FIXME (SR): Might be nice to spread the over the inlet so that it is flat
-        new_inlet_height = self.inlet.get_average_height() + (Q*timestep/self.inlet.get_area())
-        self.inlet.set_heights(new_inlet_height)
+        new_inlet_depth = self.inlet.get_average_depth() + (Q*timestep/self.inlet.get_area())
+        self.inlet.set_depths(new_inlet_depth)
 
             
 

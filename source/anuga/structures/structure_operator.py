@@ -4,6 +4,8 @@ import math
 import inlet_enquiry
 
 from anuga.utilities.system_tools import log_to_file
+from anuga.utilities.numerical_tools import ensure_numeric
+
 
 
 class Structure_operator:
@@ -13,7 +15,7 @@ class Structure_operator:
     This is the base class for structures (culverts, pipes, bridges etc). Inherit from this class (and overwrite
     discharge_routine method for specific subclasses)
     
-    Input: Two points, pipe_size (either diameter or width, height), 
+    Input: Two points, pipe_size (either diameter or width, depth),
     mannings_rougness,
     """ 
 
@@ -37,9 +39,15 @@ class Structure_operator:
         
         self.domain = domain
         self.domain.set_fractional_step_operator(self)
-        self.end_points = end_points
-        self.exchange_lines = exchange_lines
-        self.enquiry_points = enquiry_points
+        self.end_points = ensure_numeric(end_points)
+        self.exchange_lines = ensure_numeric(exchange_lines)
+        self.enquiry_points = ensure_numeric(enquiry_points)
+
+
+        if domain.numproc > 1:
+            msg = 'Not implemented to run in parallel'
+            assert self.__parallel_safe(), msg
+
         
         if height is None:
             height = width
@@ -105,29 +113,29 @@ class Structure_operator:
 
         timestep = self.domain.get_timestep()
         
-        self.determine_inflow_outflow()
-        
         Q, barrel_speed, outlet_depth = self.discharge_routine()
 
-        old_inflow_height = self.inflow.get_average_height()
+        old_inflow_depth = self.inflow.get_average_depth()
+        old_inflow_stage = self.inflow.get_average_stage()
         old_inflow_xmom = self.inflow.get_average_xmom()
         old_inflow_ymom = self.inflow.get_average_ymom()
 
+
         # Implement the update of flow over a timestep by
         # using a semi-implict update. This ensures that
-        # the update does not create a negative height
-        if old_inflow_height > 0.0 :
-                Q_star = Q/old_inflow_height
+        # the update does not create a negative depth
+        if old_inflow_depth > 0.0 :
+                Q_star = Q/old_inflow_depth
         else:
                 Q_star = 0.0
 
         factor = 1.0/(1.0 + Q_star*timestep/self.inflow.get_area())
 
-        new_inflow_height = old_inflow_height*factor
+        new_inflow_depth = old_inflow_depth*factor
         new_inflow_xmom = old_inflow_xmom*factor
         new_inflow_ymom = old_inflow_ymom*factor
             
-        self.inflow.set_heights(new_inflow_height)
+        self.inflow.set_depths(new_inflow_depth)
 
         #inflow.set_xmoms(Q/inflow.get_area())
         #inflow.set_ymoms(0.0)
@@ -135,36 +143,39 @@ class Structure_operator:
         self.inflow.set_xmoms(new_inflow_xmom)
         self.inflow.set_ymoms(new_inflow_ymom)
 
-        loss = (old_inflow_height - new_inflow_height)*self.inflow.get_area()
+        loss = (old_inflow_depth - new_inflow_depth)*self.inflow.get_area()
 
         # set outflow
-        if old_inflow_height > 0.0 :
-                timestep_star = timestep*new_inflow_height/old_inflow_height
+        if old_inflow_depth > 0.0 :
+                timestep_star = timestep*new_inflow_depth/old_inflow_depth
         else:
             timestep_star = 0.0
 
-        outflow_extra_height = Q*timestep_star/self.outflow.get_area()
+
+
+
+        outflow_extra_depth = Q*timestep_star/self.outflow.get_area()
         outflow_direction = - self.outflow.outward_culvert_vector
-        outflow_extra_momentum = outflow_extra_height*barrel_speed*outflow_direction
+        outflow_extra_momentum = outflow_extra_depth*barrel_speed*outflow_direction
             
-        gain = outflow_extra_height*self.outflow.get_area()
+        gain = outflow_extra_depth*self.outflow.get_area()
             
         #print Q, Q*timestep, barrel_speed, outlet_depth, Qstar, factor, timestep_star
         #print '  ', loss, gain
 
         # Stats
-        self.discharge  = Q#outflow_extra_height*self.outflow.get_area()/timestep
+        self.discharge  = Q#outflow_extra_depth*self.outflow.get_area()/timestep
         self.velocity = barrel_speed#self.discharge/outlet_depth/self.width
 
-        new_outflow_height = self.outflow.get_average_height() + outflow_extra_height
+        new_outflow_depth = self.outflow.get_average_depth() + outflow_extra_depth
 
         if self.use_momentum_jet :
             # FIXME (SR) Review momentum to account for possible hydraulic jumps at outlet
             #new_outflow_xmom = outflow.get_average_xmom() + outflow_extra_momentum[0]
             #new_outflow_ymom = outflow.get_average_ymom() + outflow_extra_momentum[1]
 
-            new_outflow_xmom = barrel_speed*new_outflow_height*outflow_direction[0]
-            new_outflow_ymom = barrel_speed*new_outflow_height*outflow_direction[1]
+            new_outflow_xmom = barrel_speed*new_outflow_depth*outflow_direction[0]
+            new_outflow_ymom = barrel_speed*new_outflow_depth*outflow_direction[1]
 
         else:
             #new_outflow_xmom = outflow.get_average_xmom()
@@ -173,26 +184,12 @@ class Structure_operator:
             new_outflow_xmom = 0.0
             new_outflow_ymom = 0.0
 
-        self.outflow.set_heights(new_outflow_height)
+        self.outflow.set_depths(new_outflow_depth)
         self.outflow.set_xmoms(new_outflow_xmom)
         self.outflow.set_ymoms(new_outflow_ymom)
 
 
-    def determine_inflow_outflow(self):
-        # Determine flow direction based on total energy difference
 
-        if self.use_velocity_head:
-            self.delta_total_energy = self.inlets[0].get_enquiry_total_energy() - self.inlets[1].get_enquiry_total_energy()
-        else:
-            self.delta_total_energy = self.inlets[0].get_enquiry_stage() - self.inlets[1].get_enquiry_stage()
-
-        self.inflow  = self.inlets[0]
-        self.outflow = self.inlets[1]
-
-        if self.delta_total_energy < 0:
-            self.inflow  = self.inlets[1]
-            self.outflow = self.inlets[0]
-            self.delta_total_energy = -self.delta_total_energy
 
 
     def __process_non_skew_culvert(self):
@@ -261,10 +258,15 @@ class Structure_operator:
             self.enquiry_points.append(centre_point0 - gap)
             self.enquiry_points.append(centre_point1 + gap)
             
-        
+
+    def __parallel_safe(self):
+
+        return False
+
     def discharge_routine(self):
-        
-        pass
+
+        msg = 'Need to impelement '
+        raise
             
 
     def statistics(self):

@@ -23,7 +23,58 @@ class Test_boyd_box_operator(unittest.TestCase):
 
     def tearDown(self):
         pass
+    
+    
+    def _create_domain(self,d_length,
+                            d_width,
+                            dx,
+                            dy,
+                            elevation_0,
+                            elevation_1,
+                            stage_0,
+                            stage_1):
+        
+        points, vertices, boundary = rectangular_cross(int(d_length/dx), int(d_width/dy),
+                                                        len1=d_length, len2=d_width)
+        domain = Domain(points, vertices, boundary)   
+        domain.set_name('Test_Outlet_Inlet')                 # Output name
+        domain.set_store()
+        domain.set_default_order(2)
+        domain.H0 = 0.01
+        domain.tight_slope_limiters = 1
 
+        #print 'Size', len(domain)
+
+        #------------------------------------------------------------------------------
+        # Setup initial conditions
+        #------------------------------------------------------------------------------
+
+        def elevation(x, y):
+            """Set up a elevation
+            """
+            
+            z = numpy.zeros(x.shape,dtype='d')
+            z[:] = elevation_0
+            
+            numpy.putmask(z, x > d_length/2, elevation_1)
+    
+            return z
+            
+        def stage(x,y):
+            """Set up stage
+            """
+            z = numpy.zeros(x.shape,dtype='d')
+            z[:] = stage_0
+            
+            numpy.putmask(z, x > d_length/2, stage_1)
+
+            return z
+            
+        #print 'Setting Quantities....'
+        domain.set_quantity('elevation', elevation)  # Use function for elevation
+        domain.set_quantity('stage',  stage)   # Use function for elevation
+        
+        return domain
 
     def test_boyd_non_skew(self):
         """test_boyd_non_skew
@@ -37,6 +88,9 @@ class Test_boyd_box_operator(unittest.TestCase):
         elevation_0 = 10.0
         elevation_1 = 10.0
 
+        domain_length = 200.0
+        domain_width = 200.0
+
         culvert_length = 20.0
         culvert_width = 3.66
         culvert_height = 3.66
@@ -45,60 +99,24 @@ class Test_boyd_box_operator(unittest.TestCase):
         
         culvert_apron = 0.0
         enquiry_gap = 10.0
+
         
-        expected_Q = 4.55
-        expected_v = 2.3
-        expected_d = 0.54
+        expected_Q = 6.23
+        expected_v = 2.55
+        expected_d = 0.66
         
 
-        # Probably no need to change below here
-        
-        domain_length = 200.  #x-Dir
-        domain_width  = 200.  #y-dir
-        dx = dy = 5.0          # Resolution: Length of subdivisions on both axes
+        domain = self._create_domain(d_length=domain_length,
+                                     d_width=domain_width,
+                                     dx = 5.0,
+                                     dy = 5.0,
+                                     elevation_0 = elevation_0,
+                                     elevation_1 = elevation_1,
+                                     stage_0 = stage_0,
+                                     stage_1 = stage_1)
+ 
 
-
-        points, vertices, boundary = rectangular_cross(int(domain_length/dx), int(domain_width/dy),
-                                                        len1=domain_length, len2=domain_width)
-        domain = Domain(points, vertices, boundary)   
-        domain.set_name('Test_Outlet_Inlet')                 # Output name
-        domain.set_default_order(2)
-        domain.H0 = 0.01
-        domain.tight_slope_limiters = 1
-
-        print 'Size', len(domain)
-
-        #------------------------------------------------------------------------------
-        # Setup initial conditions
-        #------------------------------------------------------------------------------
-
-        def elevation(x, y):
-            """Set up a elevation
-            """
-            
-            z = numpy.zeros(x.shape,dtype='d')
-            z[:] = elevation_0
-            
-            numpy.putmask(z, x > domain_length/2, elevation_1)
-    
-            return z
-            
-        def stage(x,y):
-            """Set up stage
-            """
-            z = numpy.zeros(x.shape,dtype='d')
-            z[:] = stage_0
-            
-            numpy.putmask(z, x > domain_length/2, stage_1)
-
-            return z
-            
-        print 'Setting Quantities....'
-        domain.set_quantity('elevation', elevation)  # Use function for elevation
-        domain.set_quantity('stage',  stage)   # Use function for elevation
-
-
-        print 'Defining Structures'
+        #print 'Defining Structures'
         
         ep0 = numpy.array([domain_length/2-culvert_length/2, 100.0])
         ep1 = numpy.array([domain_length/2+culvert_length/2, 100.0])
@@ -117,12 +135,12 @@ class Test_boyd_box_operator(unittest.TestCase):
                                     label='3.6x3.6RCBC',
                                     verbose=False)
 
-        culvert.determine_inflow_outflow()
+        #culvert.determine_inflow_outflow()
         
         ( Q, v, d ) = culvert.discharge_routine()
         
-        print 'test_boyd_non_skew'
-        print 'Q: ', Q, 'expected_Q: ', expected_Q
+        #print 'test_boyd_non_skew'
+        #print 'Q: ', Q, 'expected_Q: ', expected_Q
         
 
         assert numpy.allclose(Q, expected_Q, rtol=1.0e-2) #inflow
@@ -142,6 +160,9 @@ class Test_boyd_box_operator(unittest.TestCase):
         elevation_0 = 10.0
         elevation_1 = 10.0
 
+        domain_length = 200.0
+        domain_width = 200.0
+
         culvert_length = 20.0
         culvert_width = 3.66
         culvert_height = 3.66
@@ -151,59 +172,21 @@ class Test_boyd_box_operator(unittest.TestCase):
         culvert_apron = 0.0
         enquiry_gap = 10.0
         
-        expected_Q = 4.55
-        expected_v = 2.3
-        expected_d = 0.54
+        expected_Q = 6.23
+        expected_v = 2.55
+        expected_d = 0.66
         
 
-        # Probably no need to change below here
-        
-        domain_length = 200.  #x-Dir
-        domain_width  = 200.  #y-dir
-        dx = dy = 5.0          # Resolution: Length of subdivisions on both axes
+        domain = self._create_domain(d_length=domain_length,
+                                     d_width=domain_width,
+                                     dx = 5.0,
+                                     dy = 5.0,
+                                     elevation_0 = elevation_0,
+                                     elevation_1 = elevation_1,
+                                     stage_0 = stage_0,
+                                     stage_1 = stage_1)
 
-
-        points, vertices, boundary = rectangular_cross(int(domain_length/dx), int(domain_width/dy),
-                                                        len1=domain_length, len2=domain_width)
-        domain = Domain(points, vertices, boundary)   
-        domain.set_name('Test_Outlet_Inlet')                 # Output name
-        domain.set_default_order(2)
-        domain.H0 = 0.01
-        domain.tight_slope_limiters = 1
-
-        print 'Size', len(domain)
-
-        #------------------------------------------------------------------------------
-        # Setup initial conditions
-        #------------------------------------------------------------------------------
-
-        def elevation(x, y):
-            """Set up a elevation
-            """
-            
-            z = numpy.zeros(x.shape,dtype='d')
-            z[:] = elevation_0
-            
-            numpy.putmask(z, x > domain_length/2, elevation_1)
-    
-            return z
-            
-        def stage(x,y):
-            """Set up stage
-            """
-            z = numpy.zeros(x.shape,dtype='d')
-            z[:] = stage_0
-            
-            numpy.putmask(z, x > domain_length/2, stage_1)
-
-            return z
-            
-        print 'Setting Quantities....'
-        domain.set_quantity('elevation', elevation)  # Use function for elevation
-        domain.set_quantity('stage',  stage)   # Use function for elevation
-
-
-        print 'Defining Structures'
+        #print 'Defining Structures'
         
         a = domain_length/2 - culvert_length/2
         b = domain_length/2 + culvert_length/2
@@ -224,12 +207,12 @@ class Test_boyd_box_operator(unittest.TestCase):
                                     label='3.6x3.6RCBC',
                                     verbose=False)
 
-        culvert.determine_inflow_outflow()
+        #culvert.determine_inflow_outflow()
         
         ( Q, v, d ) = culvert.discharge_routine()
         
-        print 'test_boyd_skew'
-        print 'Q: ', Q, 'expected_Q: ', expected_Q
+        #print 'test_boyd_skew'
+        #print 'Q: ', Q, 'expected_Q: ', expected_Q
 
         assert numpy.allclose(Q, expected_Q, rtol=1.0e-2) #inflow
         assert numpy.allclose(v, expected_v, rtol=1.0e-2) #outflow velocity
@@ -248,6 +231,9 @@ class Test_boyd_box_operator(unittest.TestCase):
         elevation_0 = 10.0
         elevation_1 = 10.0
 
+        domain_length = 200.0
+        domain_width = 200.0
+
         culvert_length = 20.0
         culvert_width = 3.66
         culvert_height = 3.66
@@ -257,59 +243,24 @@ class Test_boyd_box_operator(unittest.TestCase):
         culvert_apron = 0.0
         enquiry_gap = 10.0
         
-        expected_Q = 4.55
-        expected_v = 2.3
-        expected_d = 0.54
+        expected_Q = 6.23
+        expected_v = 2.55
+        expected_d = 0.66
         
 
         # Probably no need to change below here
         
-        domain_length = 200.  #x-Dir
-        domain_width  = 200.  #y-dir
-        dx = dy = 5.0          # Resolution: Length of subdivisions on both axes
+        domain = self._create_domain(d_length=domain_length,
+                                     d_width=domain_width,
+                                     dx = 5.0,
+                                     dy = 5.0,
+                                     elevation_0 = elevation_0,
+                                     elevation_1 = elevation_1,
+                                     stage_0 = stage_0,
+                                     stage_1 = stage_1)
 
 
-        points, vertices, boundary = rectangular_cross(int(domain_length/dx), int(domain_width/dy),
-                                                        len1=domain_length, len2=domain_width)
-        domain = Domain(points, vertices, boundary)   
-        domain.set_name('Test_Outlet_Inlet')                 # Output name
-        domain.set_default_order(2)
-        domain.H0 = 0.01
-        domain.tight_slope_limiters = 1
-
-        print 'Size', len(domain)
-
-        #------------------------------------------------------------------------------
-        # Setup initial conditions
-        #------------------------------------------------------------------------------
-
-        def elevation(x, y):
-            """Set up a elevation
-            """
-            
-            z = numpy.zeros(x.shape,dtype='d')
-            z[:] = elevation_0
-            
-            numpy.putmask(z, x > domain_length/2, elevation_1)
-    
-            return z
-            
-        def stage(x,y):
-            """Set up stage
-            """
-            z = numpy.zeros(x.shape,dtype='d')
-            z[:] = stage_0
-            
-            numpy.putmask(z, x > domain_length/2, stage_1)
-
-            return z
-            
-        print 'Setting Quantities....'
-        domain.set_quantity('elevation', elevation)  # Use function for elevation
-        domain.set_quantity('stage',  stage)   # Use function for elevation
-
-
-        print 'Defining Structures'
+        #print 'Defining Structures'
         
         a = domain_length/2 - culvert_length/2
         b = domain_length/2 + culvert_length/2
@@ -333,12 +284,14 @@ class Test_boyd_box_operator(unittest.TestCase):
                                     label='3.6x3.6RCBC',
                                     verbose=False)
 
-        culvert.determine_inflow_outflow()
+        #culvert.determine_inflow_outflow()
         
         ( Q, v, d ) = culvert.discharge_routine()
         
-        print test_boyd_non_skew_enquiry_points
-        print 'Q: ', Q, 'expected_Q: ', expected_Q
+        #print 'test_boyd_non_skew_enquiry_points'
+        #print 'Q: ', Q, 'expected_Q: ', expected_Q
+        #print 'v: ', v, 'expected_v: ', expected_v
+        #print 'd: ', d, 'expected_d: ', expected_d
 
         assert numpy.allclose(Q, expected_Q, rtol=1.0e-2) #inflow
         assert numpy.allclose(v, expected_v, rtol=1.0e-2) #outflow velocity

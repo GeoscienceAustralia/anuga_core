@@ -172,7 +172,7 @@ class Domain(Generic_Domain):
         self.fractional_step_operators = []
 
         # Stored output
-        self.store = True
+        self.set_store(True)
         self.set_store_vertices_uniquely(False)
         self.quantities_to_be_stored = {'elevation': 1, 
                                         'stage': 2, 
@@ -221,6 +221,13 @@ class Domain(Generic_Domain):
         self.use_centroid_velocities = use_centroid_velocities       
 
 
+    def set_store(self, flag=True):
+        """Set whether data saved to sww file.
+        """
+
+        self.store = flag
+
+        
     def set_sloped_mannings_function(self, flag=True):
         """Set mannings friction function to use the sloped
         wetted area.

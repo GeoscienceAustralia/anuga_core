@@ -1320,12 +1320,12 @@ class Generic_Domain:
     # @param timestepping_method One of 'euler', 'rk2' or 'rk3'.
     # @note Raises exception of method not known.
     def set_timestepping_method(self, timestepping_method):
-        methods = ['euler', 'rk2', 'rk3']    
+        methods = ['euler', 'rk2', 'rk3']
         if timestepping_method in methods:
             self.timestepping_method = timestepping_method
             return
         if timestepping_method in [1,2,3]:
-            self.timetepping_method = methods[timestepping_method-1]
+            self.timestepping_method = methods[timestepping_method-1]
             return
 
         msg = '%s is an incorrect timestepping type' % timestepping_method

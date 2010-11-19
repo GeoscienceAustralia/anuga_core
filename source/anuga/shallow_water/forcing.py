@@ -277,6 +277,10 @@ class General_forcing:
 
         from math import pi, cos, sin
 
+        if domain.numproc > 1:
+            msg = 'Not implemented to run in parallel'
+            assert self.__parallel_safe(), msg
+
         if center is None:
             msg = 'I got radius but no center.'
             assert radius is None, msg
@@ -509,6 +513,9 @@ class General_forcing:
                      indices=self.exchange_indices)
 
 
+    def __parallel_safe(self):
+
+        return false
 ##
 # @brief A class for rainfall forcing function.
 # @note Inherits from General_forcing.

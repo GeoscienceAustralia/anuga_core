@@ -1,3 +1,4 @@
+import anuga.geometry.polygon
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon, line_intersect
 from anuga.config import velocity_protection, g
 import math
@@ -17,6 +18,8 @@ class Inlet:
 
         self.compute_triangle_indices()
         self.compute_area()
+        self.compute_inlet_length()
+
 
 
     def compute_triangle_indices(self):
@@ -60,6 +63,25 @@ class Inlet:
         assert self.area > 0.0
 
 
+    def compute_inlet_length(self):
+        """ Compute the length of the inlet (as
+        defined by the input line
+        """
+
+        point0 = self.line[0]
+        point1 = self.line[1]
+
+        self.inlet_length = anuga.geometry.polygon.line_length(self.line)
+
+
+    def get_inlet_length(self):
+
+        return self.inlet_length
+
+    def get_line(self):
+
+        return self.line
+        
     def get_area(self):
 
         return self.area
@@ -109,39 +131,39 @@ class Inlet:
         return num.sum(self.get_ymoms()*self.get_areas())/self.area
     
 
-    def get_heights(self):
+    def get_depths(self):
     
         return self.get_stages() - self.get_elevations()
     
     
     def get_total_water_volume(self):
        
-       return num.sum(self.get_heights()*self.get_areas())
+       return num.sum(self.get_depths()*self.get_areas())
   
 
-    def get_average_height(self):
+    def get_average_depth(self):
     
         return self.get_total_water_volume()/self.area
         
         
     def get_velocities(self):
         
-            heights = self.get_heights()
-            u = self.get_xmoms()/(heights + velocity_protection/heights)
-            v = self.get_ymoms()/(heights + velocity_protection/heights)
+            depths = self.get_depths()
+            u = self.get_xmoms()/(depths + velocity_protection/depths)
+            v = self.get_ymoms()/(depths + velocity_protection/depths)
             
             return u, v
 
 
     def get_xvelocities(self):
 
-            heights = self.get_heights()
-            return self.get_xmoms()/(heights + velocity_protection/heights)
+            depths = self.get_depths()
+            return self.get_xmoms()/(depths + velocity_protection/depths)
 
     def get_yvelocities(self):
 
-            heights = self.get_heights()
-            return self.get_ymoms()/(heights + velocity_protection/heights)
+            depths = self.get_depths()
+            return self.get_ymoms()/(depths + velocity_protection/depths)
             
             
     def get_average_speed(self):
@@ -166,13 +188,13 @@ class Inlet:
     
     def get_average_specific_energy(self):
         
-        return self.get_average_velocity_head() + self.get_average_height()
+        return self.get_average_velocity_head() + self.get_average_depth()
 
 
 
-    def set_heights(self,height):
+    def set_depths(self,depth):
 
-        self.domain.quantities['stage'].centroid_values.put(self.triangle_indices, self.get_elevations() + height)
+        self.domain.quantities['stage'].centroid_values.put(self.triangle_indices, self.get_elevations() + depth)
 
 
     def set_stages(self,stage):

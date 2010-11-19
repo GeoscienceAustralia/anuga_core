@@ -3,6 +3,7 @@
 """Polygon manipulations"""
 
 import numpy as num
+import math
 
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.geospatial_data.geospatial_data import ensure_absolute, \
@@ -273,6 +274,15 @@ def line_intersect(triangles, line, verbose=False):
         log.critical('Found %d triangles (out of %d) that overlap the polygon' % (count, M))
 
     return indices[:count]
+
+
+def line_length(line):
+    """Determine the length of the line
+    """
+    
+    l12 = line[1]-line[0]
+
+    return math.sqrt(num.dot(l12,l12))
     
 def not_line_intersect(triangles, line, verbose=False):
     """Determine if a polyline and triangle overlap

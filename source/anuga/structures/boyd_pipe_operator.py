@@ -37,7 +37,7 @@ class Boyd_pipe_operator(anuga.Structure_operator):
                                           exchange_lines,
                                           enquiry_points,
                                           width=diameter,
-                                          height=None,
+                                          depth=None,
                                           apron=apron,
                                           manning=manning,
                                           enquiry_gap=enquiry_gap,                                                       
@@ -72,15 +72,33 @@ class Boyd_pipe_operator(anuga.Structure_operator):
         
         self.case = 'N/A'
         
-    
+
+    def __determine_inflow_outflow(self):
+        # Determine flow direction based on total energy difference
+
+        if self.use_velocity_head:
+            self.delta_total_energy = self.inlets[0].get_enquiry_total_energy() - self.inlets[1].get_enquiry_total_energy()
+        else:
+            self.delta_total_energy = self.inlets[0].get_enquiry_stage() - self.inlets[1].get_enquiry_stage()
+
+        self.inflow  = self.inlets[0]
+        self.outflow = self.inlets[1]
+
+        if self.delta_total_energy < 0:
+            self.inflow  = self.inlets[1]
+            self.outflow = self.inlets[0]
+            self.delta_total_energy = -self.delta_total_energy
+
     def discharge_routine(self):
+
+        self.__determine_inflow_outflow()
 
         local_debug ='false'
         
         #import pdb
         #pdb.set_trace()
         
-        if self.inflow.get_enquiry_height() > 0.01: #this value was 0.01: Remember this needs to be compared to the Invert Lvl
+        if self.inflow.get_enquiry_depth() > 0.01: #this value was 0.01: Remember this needs to be compared to the Invert Lvl
             if local_debug =='true':
                 anuga.log.critical('Specific E & Deltat Tot E = %s, %s'
                              % (str(self.inflow.get_enquiry_specific_energy()),
@@ -95,7 +113,7 @@ class Boyd_pipe_operator(anuga.Structure_operator):
             if self.use_velocity_head :
                 self.driving_energy = self.inflow.get_enquiry_specific_energy()
             else:
-                self.driving_energy = self.inflow.get_enquiry_height()
+                self.driving_energy = self.inflow.get_enquiry_depth()
                 """
         For a circular pipe the Boyd method reviews 3 conditions
         1. Whether the Pipe Inlet is Unsubmerged (acting as weir flow into the inlet)
@@ -108,7 +126,7 @@ class Boyd_pipe_operator(anuga.Structure_operator):
         diameter = self.culvert_diameter
 
         local_debug ='false'
-        if self.inflow.get_average_height() > 0.01: #this should test against invert
+        if self.inflow.get_average_depth() > 0.01: #this should test against invert
             if local_debug =='true':
                 anuga.log.critical('Specific E & Deltat Tot E = %s, %s'
                              % (str(self.inflow.get_average_specific_energy()),
@@ -166,7 +184,7 @@ class Boyd_pipe_operator(anuga.Structure_operator):
                 # Calculate flows for outlet control
 
                 # Determine the depth at the outlet relative to the depth of flow in the Culvert
-                if self.outflow.get_average_height() > diameter:       # Outlet is submerged Assume the end of the Pipe is flowing FULL
+                if self.outflow.get_average_depth() > diameter:       # Outlet is submerged Assume the end of the Pipe is flowing FULL
                     outlet_culvert_depth=diameter
                     flow_area = (diameter/2)**2 * math.pi  # Cross sectional area of flow in the culvert
                     perimeter = diameter * math.pi
@@ -175,7 +193,7 @@ class Boyd_pipe_operator(anuga.Structure_operator):
                     if local_debug =='true':
                         anuga.log.critical('Outlet submerged')
                 else:   # Culvert running PART FULL for PART OF ITS LENGTH   Here really should use the Culvert Slope to calculate Actual Culvert Depth & Velocity
-                    # IF  self.outflow.get_average_height() < diameter
+                    # IF  self.outflow.get_average_depth() < diameter
                     dcrit1 = diameter/1.26*(Q/anuga.g**0.5*diameter**2.5)**(1/3.75)
                     dcrit2 = diameter/0.95*(Q/anuga.g**0.5*diameter**2.5)**(1/1.95)
                     if dcrit1/diameter >0.85:
@@ -242,7 +260,7 @@ class Boyd_pipe_operator(anuga.Structure_operator):
             # Determine momentum at the outlet
             barrel_velocity = Q/(flow_area + anuga.velocity_protection/flow_area)
 
-        else: # self.inflow.get_average_height() < 0.01:
+        else: # self.inflow.get_average_depth() < 0.01:
             Q = barrel_velocity = outlet_culvert_depth = 0.0
 
         # Temporary flow limit
