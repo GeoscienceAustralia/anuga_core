@@ -95,52 +95,38 @@ class Test_inlet_operator(unittest.TestCase):
 
         domain_length = 200.0
         domain_width = 200.0
-
-        culvert_length = 20.0
-        culvert_width = 3.66
-        culvert_height = 3.66
-        culvert_losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
-        culvert_mannings = 0.013
-        
-        culvert_apron = 0.0
-        enquiry_gap = 10.0
-
-        
-        expected_Q = 6.23
-        expected_v = 2.55
-        expected_d = 0.66
         
 
         domain = self._create_domain(d_length=domain_length,
                                      d_width=domain_width,
-                                     dx = 5.0,
-                                     dy = 5.0,
+                                     dx = 10.0,
+                                     dy = 10.0,
                                      elevation_0 = elevation_0,
                                      elevation_1 = elevation_1,
                                      stage_0 = stage_0,
                                      stage_1 = stage_1)
 
-
-
-
         vol0 = domain.compute_total_volume()
 
+        finaltime = 3.0
+        line1 = [[95.0, 10.0], [105.0, 10.0]]
+        Q1 = 5.00
+        
+        line2 = [[10.0, 90.0], [20.0, 90.0]]
+        Q2 = 10.0
+        
+        Inlet_operator(domain, line1, Q1)
+        Inlet_operator(domain, line2, Q2)
 
-        line = [[0.0, 5.0], [0.0, 10.0]]
-        Q = 5.0
-        Inlet_operator(domain, line, Q)
-
-
-        for t in domain.evolve(yieldstep = 1.0, finaltime = 1.0):
+        for t in domain.evolve(yieldstep = 1.0, finaltime = finaltime):
             #domain.write_time()
             #print domain.volumetric_balance_statistics()
             pass
  
 
         vol1 = domain.compute_total_volume()
-        
 
-        assert numpy.allclose(Q, vol1-vol0, rtol=1.0e-8) 
+        assert numpy.allclose((Q1+Q2)*finaltime, vol1-vol0, rtol=1.0e-8) 
         
         
 

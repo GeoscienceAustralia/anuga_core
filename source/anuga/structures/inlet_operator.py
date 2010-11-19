@@ -88,7 +88,7 @@ class Inlet_operator:
         diff_stage = numpy.zeros_like(areas)
 
         for i,a in enumerate(areas[stages_order]):
-            print i,a, stages[stages_order[i]]
+            #print i,a, stages[stages_order[i]]
             if i == 0:
                 summed_areas[i] = a
                 summed_amount[i] = 0.0
@@ -101,29 +101,37 @@ class Inlet_operator:
 
                 diff_stage[i] = stages[stages_order[i]] - stages[stages_order[i-1]]
 
-        print summed_areas
-        print summed_amount
-        print diff_stage
+        #print 'amount ',amount
+        #print summed_areas
+        #print summed_amount
+        #print diff_stage
 
             
         #index = len(summed_amount)
         for i,a in enumerate(summed_amount):
+            #print 'a ',a
             if amount > a :
                 index = i
 
-        print index
+        #print index
+
+        #print stages_order
+        #print stages
+        
+        amount = (amount - summed_amount[index])/summed_areas[index]
+		
+        stages[stages_order[0:index+1]] = stages[stages_order[index]]+amount
+        
+        
+        #print stages
+        #print areas
+        #print stages[stages_order]
 
 
-        print stages_order
-        print stages
-        print areas
-        print stages[stages_order]
+        #new_inlet_depth = self.inlet.get_average_depth() + (amount/self.inlet.get_area())
+        #self.inlet.set_depths(new_inlet_depth)
 
-
-        new_inlet_depth = self.inlet.get_average_depth() + (amount/self.inlet.get_area())
-        self.inlet.set_depths(new_inlet_depth)
-
-            
+        self.inlet.set_stages(stages)   
 
     def statistics(self):
 
