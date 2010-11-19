@@ -215,3 +215,63 @@ class Inlet:
     def set_elevations(self,elevation):
 
         self.domain.quantities['elevation'].centroid_values.put(self.triangle_indices, elevation)
+
+    def set_stages_evenly(self,volume):
+        """ Distribute volume of water over
+        inlet exchange region so that stage is level
+        """
+
+        areas = self.get_areas()
+        stages = self.get_stages()
+
+        stages_order = stages.argsort()
+
+        summed_areas = num.zeros_like(areas)
+        summed_volume = num.zeros_like(areas)
+        #diff_stage = num.zeros_like(areas)
+
+        for i,a in enumerate(areas[stages_order]):
+            #print i,a, stages[stages_order[i]]
+            if i == 0:
+                summed_areas[i] = a
+                summed_volume[i] = 0.0
+                #diff_stage[i] = 0.0
+            else:
+                summed_areas[i] = summed_areas[i-1] + a
+
+                summed_volume[i] = summed_volume[i-1] + summed_areas[i-1]*\
+                    (stages[stages_order[i]] - stages[stages_order[i-1]])
+
+                #diff_stage[i] = stages[stages_order[i]] - stages[stages_order[i-1]]
+
+        #print 'amount ',amount
+        #print summed_areas
+        #print summed_amount
+        #print diff_stage
+
+            
+        #index = len(summed_amount)
+        for i,a in enumerate(summed_volume):
+            #print 'a ',a
+            if volume > a :
+                index = i
+
+        #print index
+
+        #print stages_order
+        #print stages
+        
+        depth = (volume - summed_volume[index])/summed_areas[index]
+		
+        stages[stages_order[0:index+1]] = stages[stages_order[index]]+depth
+
+        self.set_stages(stages) 
+
+    def set_depths_evenly(self,volume):
+        """ Distribute volume over all exchange
+        cells with equal depth of water
+        """
+	    
+        new_depth = self.get_average_depth() + (volume/self.get_area())
+        self.set_depths(new_depth)
+

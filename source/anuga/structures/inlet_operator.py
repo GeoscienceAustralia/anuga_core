@@ -68,70 +68,17 @@ class Inlet_operator:
         
         Q = self.Q
 
-        amount = Q*timestep
+        volume = Q*timestep
 
-        assert Q >= 0.0, 'removing water from an inlet!'
-
-
-        # FIXME (SR): Might be nice to spread the over the inlet so that it is flat
+        assert Q >= 0.0, 'Q < 0: Water to be removed from an inlet!'
 
 
-        # Spread Q*timestep amount of water evenly over the inlet region
-
-        areas = self.inlet.get_areas()
-        stages = self.inlet.get_stages()
-
-        stages_order = stages.argsort()
-
-        summed_areas = numpy.zeros_like(areas)
-        summed_amount = numpy.zeros_like(areas)
-        diff_stage = numpy.zeros_like(areas)
-
-        for i,a in enumerate(areas[stages_order]):
-            #print i,a, stages[stages_order[i]]
-            if i == 0:
-                summed_areas[i] = a
-                summed_amount[i] = 0.0
-                diff_stage[i] = 0.0
-            else:
-                summed_areas[i] = summed_areas[i-1] + a
-
-                summed_amount[i] = summed_amount[i-1] + summed_areas[i-1]*\
-                    (stages[stages_order[i]] - stages[stages_order[i-1]])
-
-                diff_stage[i] = stages[stages_order[i]] - stages[stages_order[i-1]]
-
-        #print 'amount ',amount
-        #print summed_areas
-        #print summed_amount
-        #print diff_stage
-
-            
-        #index = len(summed_amount)
-        for i,a in enumerate(summed_amount):
-            #print 'a ',a
-            if amount > a :
-                index = i
-
-        #print index
-
-        #print stages_order
-        #print stages
+        # Distribute volume so as to obtain flat surface
+        self.inlet.set_stages_evenly(volume)
         
-        amount = (amount - summed_amount[index])/summed_areas[index]
-		
-        stages[stages_order[0:index+1]] = stages[stages_order[index]]+amount
-        
-        
-        #print stages
-        #print areas
-        #print stages[stages_order]
-
-
-        #new_inlet_depth = self.inlet.get_average_depth() + (amount/self.inlet.get_area())
-        #self.inlet.set_depths(new_inlet_depth)
-
-        self.inlet.set_stages(stages)   
+        # Distribute volume evenly over all cells
+        #self.inlet.set_depths_evenly(volume)
+  
 
     def statistics(self):
 
