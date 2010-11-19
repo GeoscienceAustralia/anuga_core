@@ -72,6 +72,40 @@ class Inlet_operator:
 
 
         # FIXME (SR): Might be nice to spread the over the inlet so that it is flat
+
+
+        # Spread Q*timestep amount of water evenly over the inlet region
+
+        areas = self.inlet.get_areas()
+        stages = self.inlet.get_stages()
+
+        stages_order = stages.argsort()
+
+        summed_areas = numpy.zeros_like(areas)
+        summed_Q = numpy.zeros_like(areas)
+
+        for i,a in enumerate(areas[stages_order]):
+            print i,a, stages[stages_order[i]]
+            if i == 0:
+                summed_areas[i] = a
+                summed_Q[i] = stages[stages_order[i]] - stages[stages_order[i]]
+            else:
+                summed_areas[i] = summed_areas[i-1] + a
+                summed_Q[i] = summed_Q[i-1]
+
+        print summed_areas
+
+
+            
+
+
+
+        print stages_order
+        print stages
+        print areas
+        print stages[stages_order]
+
+
         new_inlet_depth = self.inlet.get_average_depth() + (Q*timestep/self.inlet.get_area())
         self.inlet.set_depths(new_inlet_depth)
 
