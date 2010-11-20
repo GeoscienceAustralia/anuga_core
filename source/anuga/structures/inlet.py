@@ -226,43 +226,18 @@ class Inlet:
 
         stages_order = stages.argsort()
 
-        summed_areas = num.zeros_like(areas)
-        summed_volume = num.zeros_like(areas)
-        #diff_stage = num.zeros_like(areas)
-
-        for i,a in enumerate(areas[stages_order]):
-            #print i,a, stages[stages_order[i]]
-            if i == 0:
-                summed_areas[i] = a
-                summed_volume[i] = 0.0
-                #diff_stage[i] = 0.0
-            else:
-                summed_areas[i] = summed_areas[i-1] + a
-
-                summed_volume[i] = summed_volume[i-1] + summed_areas[i-1]*\
-                    (stages[stages_order[i]] - stages[stages_order[i-1]])
-
-                #diff_stage[i] = stages[stages_order[i]] - stages[stages_order[i-1]]
-
-        #print 'amount ',amount
-        #print summed_areas
-        #print summed_amount
-        #print diff_stage
-
-            
-        #index = len(summed_amount)
-        for i,a in enumerate(summed_volume):
-            #print 'a ',a
-            if volume > a :
-                index = i
-
-        #print index
-
-        #print stages_order
-        #print stages
+        # accumulate areas of cells ordered by stage
+        summed_areas = num.cumsum(areas[stages_order])
         
+        # accumulate the volume need to fill cells
+        summed_volume = num.zeros_like(areas)       
+        summed_volume[1:] = num.cumsum(summed_areas[:-1]*num.diff(stages[stages_order]))
+        
+        # find the number of cells which will be filled
+        index = num.nonzero(summed_volume<volume)[0][-1]
+
+        # calculate stage needed to fill chosen cells with given volume of water
         depth = (volume - summed_volume[index])/summed_areas[index]
-		
         stages[stages_order[0:index+1]] = stages[stages_order[index]]+depth
 
         self.set_stages(stages) 
