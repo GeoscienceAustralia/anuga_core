@@ -8,11 +8,9 @@ import sys
 import numpy
 import anuga
 
-from anuga.utilities.system_tools import get_pathname_from_package
-from anuga.structures.boyd_box_operator import Boyd_box_operator
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
 from anuga.shallow_water.shallow_water_domain import Domain
-from anuga.shallow_water.forcing import Rainfall, Inflow
+from anuga.abstract_2d_finite_volumes.util import file_function
 
 from anuga.structures.inlet_operator import Inlet_operator
 
@@ -82,7 +80,7 @@ class Test_inlet_operator(unittest.TestCase):
         
         return domain
 
-    def test_inlet_Q(self):
+    def test_inlet_constant_Q(self):
         """test_inlet_Q
         
         This tests that the inlet operator adds the correct amount of water
@@ -128,7 +126,54 @@ class Test_inlet_operator(unittest.TestCase):
 
         assert numpy.allclose((Q1+Q2)*finaltime, vol1-vol0, rtol=1.0e-8) 
         
+    def test_inlet_variable_Q(self):
+        """test_inlet_Q
         
+        This tests that the inlet operator adds the correct amount of water
+        """
+
+        stage_0 = 11.0
+        stage_1 = 10.0
+        elevation_0 = 10.0
+        elevation_1 = 10.0
+
+        domain_length = 200.0
+        domain_width = 200.0
+        
+
+        domain = self._create_domain(d_length=domain_length,
+                                     d_width=domain_width,
+                                     dx = 10.0,
+                                     dy = 10.0,
+                                     elevation_0 = elevation_0,
+                                     elevation_1 = elevation_1,
+                                     stage_0 = stage_0,
+                                     stage_1 = stage_1)
+
+        vol0 = domain.compute_total_volume()
+
+        finaltime = 3.0
+        line1 = [[95.0, 10.0], [105.0, 10.0]]
+        Q1 = file_function('inlet_operator_test1.tms', quantities=['hydrograph'])
+        
+        line2 = [[10.0, 90.0], [20.0, 90.0]]
+        Q2 = file_function('inlet_operator_test2.tms', quantities=['hydrograph'])
+        
+        Inlet_operator(domain, line1, Q1)
+        Inlet_operator(domain, line2, Q2)
+
+        for t in domain.evolve(yieldstep = 1.0, finaltime = finaltime):
+            #domain.write_time()
+            #print domain.volumetric_balance_statistics()
+            pass
+ 
+
+        vol1 = domain.compute_total_volume()
+        
+        print vol1 - vol0
+        
+        assert numpy.allclose(13.5, vol1-vol0, rtol=1.0e-8) 
+                
 
 
 # =========================================================================

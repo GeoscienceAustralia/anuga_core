@@ -34,7 +34,6 @@ class Inlet_operator:
         # should set this up to be a function of time and or space)
         self.Q = Q
 
-
         if description == None:
             self.description = ' '
         else:
@@ -49,13 +48,9 @@ class Inlet_operator:
 
         self.verbose = verbose
 
-        
         # Keep count of inlet operator
         Inlet_operator.counter += 1
 
-        import pdb
-        #pdb.set_trace()
-        
         self.enquiry_point = 0.5*(self.line[0] + self.line[1])
         self.outward_vector = self.line
         self.inlet = inlet.Inlet(self.domain, self.line, verbose= verbose)
@@ -65,21 +60,33 @@ class Inlet_operator:
     def __call__(self):
 
         timestep = self.domain.get_timestep()
+
+        t = self.domain.get_time()
+        Q1 = self.update_Q(t)
+        Q2 = self.update_Q(t + timestep)
         
-        Q = self.Q
-
-        volume = Q*timestep
-
-        assert Q >= 0.0, 'Q < 0: Water to be removed from an inlet!'
-
-
+        volume = 0.5*(Q1+Q2)*timestep
+        
+        assert 0.5*(Q1+Q2) >= 0.0, 'Q < 0: Water to be removed from an inlet!'
+        
         # Distribute volume so as to obtain flat surface
         self.inlet.set_stages_evenly(volume)
         
         # Distribute volume evenly over all cells
         #self.inlet.set_depths_evenly(volume)
-  
+        
+    def update_Q(self, t):
+        """Virtual method allowing local modifications by writing an
+        overriding version in descendant
+        """
+        
+        if callable(self.Q):
+            Q = self.Q(t)[0]
+        else:
+            Q = self.Q
 
+        return Q    
+  
     def statistics(self):
 
 

@@ -234,7 +234,7 @@ class Inlet:
         summed_volume[1:] = num.cumsum(summed_areas[:-1]*num.diff(stages[stages_order]))
         
         # find the number of cells which will be filled
-        index = num.nonzero(summed_volume<volume)[0][-1]
+        index = num.nonzero(summed_volume<=volume)[0][-1]
 
         # calculate stage needed to fill chosen cells with given volume of water
         depth = (volume - summed_volume[index])/summed_areas[index]
