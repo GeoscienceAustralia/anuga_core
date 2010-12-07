@@ -35,11 +35,11 @@ class Boyd_box_operator(anuga.Structure_operator):
                      
         anuga.Structure_operator.__init__(self,
                                           domain,
-                                          width,
-                                          height,
                                           end_points,
                                           exchange_lines,
                                           enquiry_points,
+                                          width,
+                                          height,
                                           apron,
                                           manning,
                                           enquiry_gap,                                                       
@@ -48,7 +48,6 @@ class Boyd_box_operator(anuga.Structure_operator):
                                           structure_type,
                                           logging,
                                           verbose)     
-        
         
         if type(losses) == types.DictType:
             self.sum_loss = sum(losses.values())

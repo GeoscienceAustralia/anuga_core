@@ -185,19 +185,15 @@ for i in range(number_of_culverts):
 
 
     Boyd_box_operator(domain,
-                            end_points=[ep0,ep1],
-                            losses=losses,
-                            width=culvert_width,
-                            depth=10.0,
-                            apron=6.0,
-                            use_momentum_jet=True,
-                            use_velocity_head=True,
-                            manning=0.013,
-                            logging=True,
-                            label='box_culvert',
-                            verbose=False)
-
-                       
+                      losses=losses,
+                      width=culvert_width,
+                      height=10.0,
+                      end_points=[ep0,ep1],
+                      apron=6.0,
+                      manning=0.013,
+                      label='box_culvert',
+                      logging=True,
+                      verbose=False)
 
 #losses = {'inlet':1, 'outlet':1, 'bend':1, 'grate':1, 'pier': 1, 'other': 1}
 #culvert2 = Culvert_operator(domain,

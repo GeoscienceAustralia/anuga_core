@@ -183,23 +183,18 @@ number_of_culverts = 1
 for i in range(number_of_culverts):
     culvert_width = 50.0/number_of_culverts
     y = 100-i*culvert_width - culvert_width/2.0
-    ep0 = [40.0, y]
-    ep1 = [50.0, y]
+    ep0 = num.array([40.0, y])
+    ep1 = num.array([50.0, y])
     culverts.append(anuga.Boyd_box_operator(domain,
-                            end_point0=ep0,
-                            end_point1=ep1,
-                            losses=1.5,
-                            width=3.658,
-                            depth=3.658,
-                            apron=5.0,
-                            use_momentum_jet=True,
-                            use_velocity_head=True,
-                            manning=0.013,
-                            description='bridge culvert',
-                            verbose=False))
-
-
-
+                                            losses=1.5,
+                                            width=3.658,
+                                            height=3.658,
+                                            end_points=[ep0, ep1],
+                                            apron=0.5,
+                                            manning=0.013,
+                                            enquiry_gap=1.0,
+                                            description='bridge culvert',
+                                            verbose=False))
 
 #culvert2 = Culvert_operator(domain,
 #                            end_point0=[40.0, 62.5],
@@ -259,7 +254,7 @@ for t in domain.evolve(yieldstep = 1, finaltime = 100):
     print domain.volumetric_balance_statistics()
     for i, culvert in enumerate(culverts):
         print 'culvert: ', i
-        print culvert.structure_statistics()
+        print culvert.statistics()
     
 
     

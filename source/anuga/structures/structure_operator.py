@@ -23,11 +23,11 @@ class Structure_operator:
 
     def __init__(self,
                  domain,
-                 width,
-                 height,
                  end_points,
                  exchange_lines,
                  enquiry_points,
+                 width,
+                 height,
                  apron,
                  manning,
                  enquiry_gap,
@@ -245,7 +245,7 @@ class Structure_operator:
         else:
             self.culvert_vector = self.end_points[1] - end_points[0]
         
-        self.culvert_length = math.sqrt(num.sum(self.culvert_vector**2))   
+        self.culvert_length = math.sqrt(num.sum(self.culvert_vector**2))
         assert self.culvert_length > 0.0, 'The length of culvert is less than 0'
         
         if self.enquiry_points is None:
