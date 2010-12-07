@@ -6,6 +6,7 @@ from anuga.geometry.polygon_function import Polygon_function
         
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
 from anuga.abstract_2d_finite_volumes.quantity import Quantity
+from anuga.abstract_2d_finite_volumes.util import file_function
 
 import anuga
 
@@ -101,7 +102,9 @@ Boyd_box_operator(domain,
 
 
 line = [[0.0, 5.0], [0.0, 10.0]]
-Q = 5.0
+
+Q = file_function('test_hydrograph.tms', quantities=['hydrograph'])
+
 Inlet_operator(domain, line, Q)
 
 
@@ -133,7 +136,7 @@ domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
 #min_delta_w = sys.maxint 
 #max_delta_w = -min_delta_w
-for t in domain.evolve(yieldstep = 1.0, finaltime = 200):
+for t in domain.evolve(yieldstep = 1.0, finaltime = 38):
     domain.write_time()
 
     #if domain.get_time() > 150.5 and domain.get_time() < 151.5 :
