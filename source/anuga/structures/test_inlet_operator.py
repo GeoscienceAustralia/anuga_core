@@ -170,8 +170,6 @@ class Test_inlet_operator(unittest.TestCase):
 
         vol1 = domain.compute_total_volume()
         
-        print vol1 - vol0
-        
         assert numpy.allclose(13.5, vol1-vol0, rtol=1.0e-8) 
                 
 
