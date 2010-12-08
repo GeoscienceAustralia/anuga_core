@@ -13,7 +13,7 @@ import os
 import sys
 import tempfile
 import time
-import anuga.utilities.system_tools as aust
+import anuga.config as config
 from anuga.utilities.terminal_width import terminal_width
 
 
@@ -206,7 +206,7 @@ if __name__ == '__main__':
 
     # timestamp at the end
     timestamp = time.asctime()
-    version = aust.get_revision_number()
+    version = config.major_revision
     print
     print 'Finished at %s, version %s' % (timestamp, version)
 
