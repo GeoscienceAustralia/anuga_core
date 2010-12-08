@@ -40,6 +40,7 @@ points, vertices, boundary = rectangular_cross(int(length/dx),
                                                len1=length, 
                                                len2=width)
 domain = anuga.Domain(points, vertices, boundary)   
+domain.set_starttime(10)
 domain.set_name('Test_culvert')                 # Output name
 domain.set_default_order(2)
 #domain.set_beta(1.5)
@@ -87,18 +88,22 @@ domain.set_quantity('stage',
 
 filename=os.path.join(path, 'example_rating_curve.csv')
 
-
+end_point0 = num.array([9.0, 2.5])
+end_point1 = num.array([13.0, 2.5])
 
 Boyd_pipe_operator(domain,
-                            end_point0=[9.0, 2.5],
-                            end_point1=[13.0, 2.5],
-                            losses=1.5,
-                            diameter=1.5,
-                            apron=5.0,
-                            use_momentum_jet=True,
-                            use_velocity_head=False,
-                            manning=0.013,
-                            verbose=False)
+                    #end_point0=[9.0, 2.5],
+                    #end_point1=[13.0, 2.5],
+                    #exchange_line0=[[9.0, 1.75],[9.0, 3.25]],
+                    #exchange_line1=[[13.0, 1.75],[13.0, 3.25]],
+                    losses=1.5,
+                    end_points=[end_point0, end_point1],
+                    diameter=1.5,
+                    apron=0.5,
+                    use_momentum_jet=True, 
+                    use_velocity_head=False,
+                    manning=0.013,
+                    verbose=False)
 
 
 line = [[0.0, 5.0], [0.0, 10.0]]
@@ -134,10 +139,10 @@ domain.set_boundary({'left': Bi, 'right': Br, 'top': Br, 'bottom': Br})
 
 #min_delta_w = sys.maxint 
 #max_delta_w = -min_delta_w
-for t in domain.evolve(yieldstep = 1.0, finaltime = 200):
+for t in domain.evolve(yieldstep=1.0, finaltime=50.0):
     domain.write_time()
 
-    #if domain.get_time() > 150.5 and domain.get_time() < 151.5 :
+    #if domain.get_time() > 150.5 and domain.ge t_time() < 151.5 :
         #Bi = anuga.Dirichlet_boundary([0.0, 0.0, 0.0])
         #domain.set_boundary({'left': Bi, 'right': Br, 'top': Br, 'bottom': Br})
 

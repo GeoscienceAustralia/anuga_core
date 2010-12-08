@@ -37,7 +37,7 @@ class Boyd_pipe_operator(anuga.Structure_operator):
                                           exchange_lines,
                                           enquiry_points,
                                           width=diameter,
-                                          depth=None,
+                                          height=None,
                                           apron=apron,
                                           manning=manning,
                                           enquiry_gap=enquiry_gap,                                                       
@@ -72,10 +72,12 @@ class Boyd_pipe_operator(anuga.Structure_operator):
         
         self.case = 'N/A'
         
+    def discharge_routine(self):
 
-    def __determine_inflow_outflow(self):
-        # Determine flow direction based on total energy difference
+        #self.__determine_inflow_outflow()
 
+        local_debug ='false'
+        
         if self.use_velocity_head:
             self.delta_total_energy = self.inlets[0].get_enquiry_total_energy() - self.inlets[1].get_enquiry_total_energy()
         else:
@@ -89,15 +91,6 @@ class Boyd_pipe_operator(anuga.Structure_operator):
             self.outflow = self.inlets[0]
             self.delta_total_energy = -self.delta_total_energy
 
-    def discharge_routine(self):
-
-        self.__determine_inflow_outflow()
-
-        local_debug ='false'
-        
-        #import pdb
-        #pdb.set_trace()
-        
         if self.inflow.get_enquiry_depth() > 0.01: #this value was 0.01: Remember this needs to be compared to the Invert Lvl
             if local_debug =='true':
                 anuga.log.critical('Specific E & Deltat Tot E = %s, %s'
