@@ -161,10 +161,24 @@ class General_mesh:
             x1, y1 = V[3*i+1, :]
             x2, y2 = V[3*i+2, :]
 
+
+            i0 = self.triangles[i][0]
+            i1 = self.triangles[i][1]
+            i2 = self.triangles[i][2]
+
+            assert x0 == self.nodes[i0][0]
+            assert y0 == self.nodes[i0][1]
+
+            assert x1 == self.nodes[i1][0]
+            assert y1 == self.nodes[i1][1]
+
+            assert x2 == self.nodes[i2][0]
+            assert y2 == self.nodes[i2][1]
+            
             # Area
             self.areas[i] = abs((x1*y0-x0*y1) + (x2*y1-x1*y2) + (x0*y2-x2*y0))/2
 
-            msg = 'Triangle (%f,%f), (%f,%f), (%f, %f)' % (x0,y0,x1,y1,x2,y2)
+            msg = 'Triangle %g (%f,%f), (%f,%f), (%f, %f)' % (i,x0,y0,x1,y1,x2,y2)
             msg += ' is degenerate:  area == %f' % self.areas[i]
             assert self.areas[i] > 0.0, msg
 

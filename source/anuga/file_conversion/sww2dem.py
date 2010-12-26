@@ -134,9 +134,9 @@ def sww2dem(name_in, name_out,
     fid = NetCDFFile(name_in)
 
     #Get extent and reference
-    x = fid.variables['x'][:]
-    y = fid.variables['y'][:]
-    volumes = fid.variables['volumes'][:]
+    x = num.array(fid.variables['x'], num.float)
+    y = num.array(fid.variables['y'], num.float)
+    volumes = num.array(fid.variables['volumes'], num.int)
     if type(reduction) is not types.BuiltinFunctionType:
         times = fid.variables['time'][reduction]
     else:
@@ -323,6 +323,7 @@ def sww2dem(name_in, name_out,
     # Remove loners from vertex_points, volumes here
     vertex_points, volumes = remove_lone_verts(vertex_points, volumes)
     # export_mesh_file('monkey.tsh',{'vertices':vertex_points, 'triangles':volumes})
+
     interp = Interpolate(vertex_points, volumes, verbose = verbose)
 
     # Interpolate using quantity values
