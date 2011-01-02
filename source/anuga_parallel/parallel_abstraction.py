@@ -39,7 +39,12 @@ except:
         pass
 
     def receive(*args, **kwargs):
-        pass    
+        pass 
+        
+    def reduce(*args, **kwargs):
+        pass
+        
+    MIN = None
 
     pypar_available = False
 else:
