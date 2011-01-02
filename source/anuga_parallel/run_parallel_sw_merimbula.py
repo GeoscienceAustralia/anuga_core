@@ -18,7 +18,6 @@
 import os
 import sys
 import time
-import pypar
 import numpy as num
 
 #------------------------
@@ -38,7 +37,7 @@ from anuga import rectangular_cross
 from anuga import create_domain_from_file
 
 
-from anuga_parallel.interface import distribute, myid, numprocs, finalize
+from anuga_parallel import distribute, myid, numprocs, finalize
 
 
 #--------------------------------------------------------------------------
