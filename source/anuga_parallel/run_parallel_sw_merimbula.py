@@ -23,9 +23,6 @@ import numpy as num
 #------------------------
 # ANUGA Modules
 #------------------------
-from anuga.utilities.numerical_tools import ensure_numeric
-from anuga.utilities.util_ext        import double_precision
-from anuga.utilities.norms           import l1_norm, l2_norm, linf_norm
 	
 from anuga import Domain
 from anuga import Reflective_boundary

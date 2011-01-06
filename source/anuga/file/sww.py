@@ -1,6 +1,15 @@
 """ Classes to read an SWW file.
 """
 
+import exceptions
+class DataFileNotOpenError(exceptions.Exception): pass
+class DataMissingValuesError(exceptions.Exception): pass
+class NewQuantity(exceptions.Exception): pass
+class DataDomainError(exceptions.Exception): pass
+class DataMissingValuesError(exceptions.Exception): pass
+class DataTimeError(exceptions.Exception): pass
+
+
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.config import netcdf_float, netcdf_float32, netcdf_int

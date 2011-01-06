@@ -9,6 +9,8 @@ import numpy as num
 import shutil
 import log
 
+from exceptions import IOError
+
 def make_filename(s):
     """Transform argument string into a standard filename
     
