@@ -26,7 +26,8 @@ class Parallel_domain(Domain):
                  full_send_dict=None,
                  ghost_recv_dict=None,
                  number_of_full_nodes=None,
-                 number_of_full_triangles=None):
+                 number_of_full_triangles=None,
+                 geo_reference=None): #jj added this
 
         Domain.__init__(self,
                         coordinates,
@@ -37,7 +38,8 @@ class Parallel_domain(Domain):
                         processor=pypar.rank(),
                         numproc=pypar.size(),
                         number_of_full_nodes=number_of_full_nodes,
-                        number_of_full_triangles=number_of_full_triangles)
+                        number_of_full_triangles=number_of_full_triangles,
+                        geo_reference=geo_reference) #jj added this
 
  
         setup_buffers(self)

@@ -89,14 +89,11 @@ def evolution_test(parallel=False, G = None, seq_interpolation_points=None):
     # Find which sub_domain in which the interpolation points are located 
     #
     # Sometimes the interpolation points sit exactly
-    # between to centroids, so in the parallel run we
+    # between two centroids, so in the parallel run we
     # reset the interpolation points to the centroids
     # found in the sequential run
     #------------------------------------------------------------------------------
     interpolation_points = [[0.4,0.5], [0.6,0.5], [0.8,0.5], [0.9,0.5]]
-
-    if parallel:
-        interpolation_points = seq_interpolation_points
 
 
     gauge_values = []
@@ -117,13 +114,13 @@ def evolution_test(parallel=False, G = None, seq_interpolation_points=None):
 
     if verbose: print 'P%d has points = %s' %(myid, tri_ids)
 
-    if not parallel:
-        c_coord = domain.get_centroid_coordinates()
-        interpolation_points = []
-        for id in tri_ids:
-            if id<1:
-                print 'ERROR: All interpolation points be within the sequential domain!'
-            interpolation_points.append(c_coord[id,:])
+
+    c_coord = domain.get_centroid_coordinates()
+    interpolation_points = []
+    for id in tri_ids:
+        if id<1:
+            print 'ERROR: All interpolation points be within the sequential domain!'
+        interpolation_points.append(c_coord[id,:])
             
     #------------------------------------------------------------------------------
     # Evolve system through time

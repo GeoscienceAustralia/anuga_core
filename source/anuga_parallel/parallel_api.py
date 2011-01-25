@@ -123,7 +123,8 @@ def distribute(domain, verbose=False):
                              full_send_dict=full_send_dict,
                              ghost_recv_dict=ghost_recv_dict,
                              number_of_full_nodes=number_of_full_nodes,
-                             number_of_full_triangles=number_of_full_triangles)
+                             number_of_full_triangles=number_of_full_triangles,
+                             geo_reference=georef) ## jj added this
 
     #------------------------------------------------------------------------
     # Transfer initial conditions to each subdomain
