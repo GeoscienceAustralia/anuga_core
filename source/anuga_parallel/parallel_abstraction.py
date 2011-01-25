@@ -4,8 +4,18 @@ Use pypar for parallism if installed.
 Otherwise define a rudimentary interface for sequential execution.
 """
 
+class NullStream:
+    def write(self,text):
+        pass
+        
+
+
+
 try:
-    import pypar 
+    import sys
+    sys.stdout = NullStream()
+    import pypar
+    sys.stdout = sys.__stdout__ 
 except:
     print 'WARNING: Could not import pypar - defining sequential interface'
     def size(): return 1

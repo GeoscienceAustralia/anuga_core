@@ -108,6 +108,7 @@ for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
 
 
 if myid == 0:
+    print 'Number of processors %g ' %numprocs
     print 'That took %.2f seconds' %(time.time()-t0)
     print 'Communication time %.2f seconds'%domain.communication_time
     print 'Reduction Communication time %.2f seconds'%domain.communication_reduce_time

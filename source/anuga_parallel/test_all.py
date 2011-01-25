@@ -19,7 +19,7 @@ from anuga.utilities.terminal_width import terminal_width
 
 #List files that should be excluded from the testing process.
 #E.g. if they are known to fail and under development
-exclude_files = ['test_parallel_distribute_domain.py','test_parallel_sw_flow.py']
+exclude_files = ['test_parallel_distribute_domain.py']
 
 # Directories that should not be searched for test files.
 exclude_dirs = ['documentation',               # Special requirements
@@ -200,7 +200,7 @@ if __name__ == '__main__':
     else:
         test_verbose = False
     suite = regressionTest(test_verbose)
-    runner = unittest.TextTestRunner(verbosity=2)
+    runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
 
     # timestamp at the end

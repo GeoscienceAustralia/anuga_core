@@ -26,7 +26,7 @@ from anuga import Transmissive_boundary
 from anuga import rectangular_cross_domain
 
 
-from anuga_parallel.interface import distribute, myid, numprocs, send, receive, barrier, finalize
+from anuga_parallel import distribute, myid, numprocs, send, receive, barrier, finalize
 
 #--------------------------------------------------------------------------
 # Setup parameters
@@ -34,9 +34,9 @@ from anuga_parallel.interface import distribute, myid, numprocs, send, receive, 
 yieldstep = 0.25
 finaltime = 6.0
 nprocs = 4
-N = 25
-M = 25
-verbose = True 
+N = 29
+M = 29 
+verbose = False
 
 #---------------------------------
 # Setup Functions
@@ -47,7 +47,7 @@ def topography(x,y):
 ###########################################################################
 # Setup Test
 ##########################################################################
-def evolution_test(parallel=False, G = None, seq_interpolation_points=None):
+def evolution_test(parallel=False, G = None, seq_interpolation_points=None, verbose=False):
 
     #--------------------------------------------------------------------------
     # Setup computational domain and quantities
@@ -102,6 +102,7 @@ def evolution_test(parallel=False, G = None, seq_interpolation_points=None):
         gauge_values.append([]) # Empty list for timeseries
 
         #if is_inside_polygon(point, domain.get_boundary_polygon()):
+        #print "Point ", myid, i, point
         try:
             k = domain.get_triangle_containing_point(point)
             if domain.tri_full_flag[k] == 1:
@@ -111,7 +112,8 @@ def evolution_test(parallel=False, G = None, seq_interpolation_points=None):
         except:
             tri_ids.append(-2)
 
-
+        #print "  tri_ids ",myid, i, tri_ids[-1]
+		
     if verbose: print 'P%d has points = %s' %(myid, tri_ids)
 
 
@@ -119,7 +121,7 @@ def evolution_test(parallel=False, G = None, seq_interpolation_points=None):
     interpolation_points = []
     for id in tri_ids:
         if id<1:
-            print 'ERROR: All interpolation points be within the sequential domain!'
+            if verbose: print 'WARNING: Interpolation point not within the domain!'
         interpolation_points.append(c_coord[id,:])
             
     #------------------------------------------------------------------------------
@@ -169,7 +171,7 @@ def evolution_test(parallel=False, G = None, seq_interpolation_points=None):
 
 class Test_parallel_sw_flow(unittest.TestCase):
     def test_parallel_sw_flow(self):
-        print "Expect this test to fail if not run from the parallel directory."
+        if verbose : print "Expect this test to fail if not run from the parallel directory."
         result = os.system("mpirun -np %d python test_parallel_sw_flow.py" % nprocs)
         assert_(result == 0)
 

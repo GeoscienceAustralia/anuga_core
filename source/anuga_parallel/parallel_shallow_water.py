@@ -65,6 +65,7 @@ class Parallel_domain(Domain):
         Domain.update_timestep(self, yieldstep, finaltime)
 
 
+
     def update_ghosts(self):
 
         # We must send the information from the full cells and
