@@ -20,8 +20,9 @@ from anuga.geospatial_data.geospatial_data import ensure_geospatial
 
 from warnings import warn
 import numpy as num
-
-
+from Scientific.IO.NetCDF import NetCDFFile
+from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
+from copy import copy
 
 def check_forcefield(f):
     """Check that force object is as expected.
@@ -61,7 +62,7 @@ def check_forcefield(f):
             result_len = len(q)
         except:
             msg = '%s must return vector' % func_msg
-            self.fail(msg)
+            raise Exception, msg
         msg = '%s must return vector of length %d' % (func_msg, N)
         assert result_len == N, msg
     else:
@@ -122,14 +123,23 @@ class Wind_stress:
 
         from anuga.config import rho_a, rho_w, eta_w
 
+        self.use_coordinates=True
         if len(args) == 2:
             s = args[0]
             phi = args[1]
         elif len(args) == 1:
             # Assume vector function returning (s, phi)(t,x,y)
             vector_function = args[0]
-            s = lambda t,x,y: vector_function(t,x=x,y=y)[0]
-            phi = lambda t,x,y: vector_function(t,x=x,y=y)[1]
+            if ( len(kwargs)==1 ):
+                self.use_coordinates=kwargs['use_coordinates']
+            else:
+                self.use_coordinates=True
+            if ( self.use_coordinates ):
+                s = lambda t,x,y: vector_function(t,x=x,y=y)[0]
+                phi = lambda t,x,y: vector_function(t,x=x,y=y)[1]
+            else:
+                s = lambda t,i: vector_function(t,point_id=i)[0]
+                phi = lambda t,i: vector_function(t,point_id=i)[1]
         else:
            # Assume info is in 2 keyword arguments
            if len(kwargs) == 2:
@@ -138,18 +148,19 @@ class Wind_stress:
            else:
                raise Exception, 'Assumes two keyword arguments: s=..., phi=....'
 
-        self.speed = check_forcefield(s)
-        self.phi = check_forcefield(phi)
+        if ( self.use_coordinates ):
+            self.speed = check_forcefield(s)
+            self.phi = check_forcefield(phi)
+        else:
+            self.speed = s
+            self.phi = phi
 
         self.const = eta_w*rho_a/rho_w
-
     ##
     # @brief 'execute' this class instance.
     # @param domain 
     def __call__(self, domain):
         """Evaluate windfield based on values found in domain"""
-
-        from math import pi, cos, sin, sqrt
 
         xmom_update = domain.quantities['xmomentum'].explicit_update
         ymom_update = domain.quantities['ymomentum'].explicit_update
@@ -159,7 +170,12 @@ class Wind_stress:
 
         if callable(self.speed):
             xc = domain.get_centroid_coordinates()
-            s_vec = self.speed(t, xc[:,0], xc[:,1])
+            if ( self.use_coordinates ):
+                s_vec = self.speed(t, xc[:,0], xc[:,1])
+            else:
+                s_vec=num.empty(N,float)
+                for i in range(N):
+                    s_vec[i]=self.speed(t,i)
         else:
             # Assume s is a scalar
             try:
@@ -170,7 +186,12 @@ class Wind_stress:
 
         if callable(self.phi):
             xc = domain.get_centroid_coordinates()
-            phi_vec = self.phi(t, xc[:,0], xc[:,1])
+            if ( self.use_coordinates ):
+                phi_vec = self.phi(t, xc[:,0], xc[:,1])
+            else:
+                phi_vec=num.empty(len(xc),float)
+                for i in range(len(xc)):
+                    phi_vec[i]=self.phi(t,i)
         else:
             # Assume phi is a scalar
 
@@ -194,7 +215,6 @@ class Wind_stress:
 def assign_windfield_values(xmom_update, ymom_update,
                             s_vec, phi_vec, const):
     """Python version of assigning wind field to update vectors.
-    A C version also exists (for speed)
     """
 
     from math import pi, cos, sin, sqrt
@@ -857,3 +877,533 @@ class Cross_section:
 
         return average_energy
 
+class Barometric_pressure:
+    """ Apply barometric pressure stress to water momentum in terms of
+        barometric pressure p [hPa]. If the pressure data is stored in a file
+        file_function is used to create a callable function. The data file 
+        contains pressure values at a set of possibly arbitrarily located nodes
+        at a set o possibly irregular but increasing times. file_function 
+        interpolates from the file data onto the vertices of the domain.mesh
+        for each time. The file_function is called at every timestep during 
+        the evolve function call.
+    """
+    def __init__(self, *args, **kwargs):
+        """Initialise barometric pressure field from barometric pressure [hPa]
+        Input p can be either scalars or Python functions, e.g.
+
+        P = barometric_pressure(1000)
+
+        Arguments can also be Python functions of t,x,y as in
+
+        def pressure(t,x,y):
+            ...
+            return p
+
+        where x and y are vectors.
+
+        and then pass the functions in
+
+        P = Barometric_pressure(pressure)
+
+        agruments can also be the ANGUA file_function, e.g.
+        F = file_function(sww_filename,domain,quantities,interpolation_points)
+        The interpolation_points must be the mesh vertices returned by 
+        domain.get_nodes(). Quantities = ['barometric_pressure']
+
+        The file_function is passed using
+
+        P = Barometric_pressure(F, use_coordinates=True/False)
+
+        The instantiated object P can be appended to the list of
+        forcing_terms as in
+
+        domain.forcing_terms.append(P)
+        """
+
+        from anuga.config import rho_a, rho_w, eta_w
+
+        self.use_coordinates=True
+        if len(args) == 1:
+            if ( not callable(args[0]) ):
+                pressure=args[0]
+            else:
+                # Assume vector function returning (pressure)(t,x,y)
+                vector_function = args[0]
+                if ( len(kwargs)==1 ):
+                    self.use_coordinates=kwargs['use_coordinates']
+                else:
+                    self.use_coordinates=True
+
+                if ( self.use_coordinates ):
+                    p = lambda t,x,y: vector_function(t,x=x,y=y)[0]
+                else:
+                    p = lambda t,i: vector_function(t,point_id=i)[0]
+        else:
+           # Assume info is in 1 or 2 keyword arguments
+           if ( len(kwargs) == 1 ):
+               p = kwargs['p']
+           elif ( len(kwargs)==2 ):
+               p = kwargs['p']
+               self.use_coordinates = kwargs['use_coordinates']
+           else:
+               raise Exception, 'Assumes one keyword argument: p=... or two keyword arguments p=...,use_coordinates=...'
+
+        if ( self.use_coordinates ):
+            self.pressure = check_forcefield(p)
+        else:
+            self.pressure = p
+
+    ##
+    # @brief 'execute' this class instance.
+    # @param domain 
+    def __call__(self, domain):
+        """Evaluate pressure field based on values found in domain"""
+
+        xmom_update = domain.quantities['xmomentum'].explicit_update
+        ymom_update = domain.quantities['ymomentum'].explicit_update
+
+        N = domain.get_number_of_nodes()
+        t = domain.time
+
+        if callable(self.pressure):
+            xv = domain.get_nodes()
+            if ( self.use_coordinates ):
+                p_vec = self.pressure(t, xv[:,0], xv[:,1])
+            else:
+                p_vec=num.empty(N,num.float)
+                for i in range(N):
+                    p_vec[i]=self.pressure(t,i)
+        else:
+            # Assume s is a scalar
+            try:
+                p_vec = self.pressure * num.ones(N, num.float)
+            except:
+                msg = 'Pressure must be either callable or a scalar: %s' %self.s
+                raise msg
+
+        stage = domain.quantities['stage']
+        elevation = domain.quantities['elevation']
+
+        #FIXME SR Should avoid allocating memory!
+        height = stage.centroid_values - elevation.centroid_values
+
+        point = domain.get_vertex_coordinates()
+
+        assign_pressure_field_values(height, p_vec, point, domain.triangles,
+                                     xmom_update, ymom_update)
+
+
+##
+# @brief Assign pressure field values
+# @param xmom_update 
+# @param ymom_update
+# @param s_vec 
+# @param phi_vec 
+# @param const 
+def assign_pressure_field_values(height, pressure, x, triangles, 
+                                 xmom_update, ymom_update):
+    """Python version of assigning pressure field to update vectors.
+    """
+
+    from utilities.numerical_tools import gradient
+    from anuga.config import rho_a, rho_w, eta_w
+
+    N = len(height)
+    for k in range(N):
+
+        # Compute pressure slope
+
+        p0 = pressure[triangles[k][0]]
+        p1 = pressure[triangles[k][1]]
+        p2 = pressure[triangles[k][2]]
+
+        k3=3*k
+        x0 = x[k3 + 0][0]
+        y0 = x[k3 + 0][1]
+        x1 = x[k3 + 1][0]
+        y1 = x[k3 + 1][1]
+        x2 = x[k3 + 2][0]
+        y2 = x[k3 + 2][1]
+
+        px,py=gradient(x0, y0, x1, y1, x2, y2, p0, p1, p2)
+
+        xmom_update[k] += height[k]*px/rho_w
+        ymom_update[k] += height[k]*py/rho_w
+
+
+class Barometric_pressure_fast:
+    """ Apply barometric pressure stress to water momentum in terms of
+        barometric pressure p [hPa]. If the pressure data is stored in a file
+        file_function is used to create a callable function. The data file 
+        contains pressure values at a set of possibly arbitrarily located nodes
+        at a set o possibly irregular but increasing times. file_function 
+        interpolates from the file data onto the vertices of the domain.mesh
+        for each time. Two arrays are then stored p0=p(t0,:) and p1=p(t1,:) 
+        where t0<=domain.time<=t1. These arrays are recalculated when necessary
+        i.e t>t1. A linear temporal interpolation is used to approximate 
+        pressure at time t.
+    """
+    def __init__(self, *args, **kwargs):
+        """Initialise barometric pressure field from barometric pressure [hPa]
+        Input p can be either scalars or Python functions, e.g.
+
+        P = barometric_pressure(1000)
+
+        Arguments can also be Python functions of t,x,y as in
+
+        def pressure(t,x,y):
+            ...
+            return p
+
+        where x and y are vectors.
+
+        and then pass the functions in
+
+        P = Barometric_pressure(pressure)
+
+        Agruments can also be the ANGUA file_function, e.g.
+        F = file_function(sww_filename,domain,quantities,interpolation_points)
+        The interpolation_points must be the mesh vertices returned by 
+        domain.get_nodes(). Quantities = ['barometric_pressure']
+
+        The file_function is passed using
+
+        P = Barometric_pressure(F, filename=swwname, domain=domain)
+
+        The instantiated object P can be appended to the list of
+        forcing_terms as in
+
+        domain.forcing_terms.append(P)
+        """
+
+        from anuga.config import rho_a, rho_w, eta_w
+
+        self.use_coordinates=True
+        if len(args) == 1:
+            if ( not callable(args[0]) ):
+                pressure=args[0]
+            else:
+                # Assume vector function returning (pressure)(t,x,y)
+                vector_function = args[0]
+                if ( len(kwargs)==0 ):
+                    self.usre_coordinates=True
+                elif (len(kwargs)==2):
+                    filename=kwargs['filename']
+                    domain=kwargs['domain']
+                    self.use_coordinates=False
+                else:
+                    raise Exception, 'Assumes zero or two keyword arguments filename=...,domain=...'
+
+                if ( self.use_coordinates ):
+                    p = lambda t,x,y: vector_function(t,x=x,y=y)[0]
+                else:
+                    p = lambda t,i: vector_function(t,point_id=i)[0]
+        else:
+           # Assume info is in 1 or 2 keyword arguments
+           if ( len(kwargs) == 1 ):
+               p = kwargs['p']
+               self.use_coordinates=True
+           elif ( len(kwargs)==3 ):
+               p = kwargs['p']
+               filename = kwargs['filename']
+               domain = kwargs['domain']
+               self.use_coordinates = False
+           else:
+               raise Exception, 'Assumes one keyword argument: p=f(t,x,y,) or three keyword arguments p=f(t,i),filename=...,domain=...'
+
+        if ( self.use_coordinates ):
+            self.pressure = check_forcefield(p)
+        else:
+            self.pressure = p
+
+        if ( callable(self.pressure) and not self.use_coordinates):
+
+            # Open NetCDF file
+            fid = NetCDFFile(filename, netcdf_mode_r)
+            self.file_time = fid.variables['time'][:]
+            fid.close()
+
+            msg = 'pressure_file.starttime > domain.starttime'
+            if (self.file_time[0]>domain.starttime):
+                raise Exception, msg
+
+            msg = 'pressure_file[-1] < domain.starttime'
+            if (self.file_time[-1]<domain.starttime):
+                raise Exception, msg
+
+            msg = 'No pressure values exist for times greater than domain.starttime'
+            if (self.file_time[-2]<domain.starttime and self.file_time[-1]>domain.starttime):
+                raise Exception, msg
+
+            # FIXME(JJ): How do we check that evolve 
+            # finaltime  < pressure_file.finaltime      
+            
+
+            self.index=0;
+            for i in range(len(self.file_time)):
+                if (self.file_time[i]<domain.starttime):
+                    self.index=i
+                else:
+                    break
+
+            N = domain.get_number_of_nodes()
+            self.prev_pressure_vertex_values=num.empty(N,num.float)
+            self.next_pressure_vertex_values=num.empty(N,num.float)
+            for i in range(N):
+                self.prev_pressure_vertex_values[i]=self.pressure(self.file_time[self.index],i)
+                self.next_pressure_vertex_values[i]=self.pressure(self.file_time[self.index+1],i)
+
+        self.p_vec=num.empty(N,num.float)
+
+
+    ##
+    # @brief 'execute' this class instance.
+    # @param domain 
+    def __call__(self, domain):
+        """Evaluate pressure field based on values found in domain"""
+
+        xmom_update = domain.quantities['xmomentum'].explicit_update
+        ymom_update = domain.quantities['ymomentum'].explicit_update
+
+        t = domain.time
+
+        if callable(self.pressure):
+            if ( self.use_coordinates ):
+                xv = domain.get_nodes()
+                self.p_vec = self.pressure(t, xv[:,0], xv[:,1])
+            else:
+                self.update_stored_pressure_values(domain)
+
+                # Linear temporal interpolation of pressure values
+                ratio = (t - self.file_time[self.index]) / (self.file_time[self.index+1]-self.file_time[self.index])
+                self.p_vec = self.prev_pressure_vertex_values + ratio*(self.next_pressure_vertex_values - self.prev_pressure_vertex_values)
+
+        else:
+            # Assume s is a scalar
+            try:
+                self.p_vec[:] = self.pressure
+            except:
+                msg = 'Pressure must be either callable function or a scalar: %s' %self.s
+                raise msg
+
+        stage = domain.quantities['stage']
+        elevation = domain.quantities['elevation']
+
+        height = stage.centroid_values - elevation.centroid_values
+
+        point = domain.get_vertex_coordinates()
+
+        assign_pressure_field_values(height, self.p_vec, point, 
+                                     domain.triangles,
+                                     xmom_update, ymom_update)
+
+    def update_stored_pressure_values(self,domain):
+        while (self.file_time[self.index+1]<domain.time):
+            self.index+=1
+            self.prev_pressure_vertex_values=copy(self.next_pressure_vertex_values)
+            for i in range(self.prev_pressure_vertex_values.shape[0]):
+                self.next_pressure_vertex_values[i]=self.pressure(self.file_time[self.index+1],i) 
+
+
+class Wind_stress_fast:
+    """ Apply wind stress to water momentum in terms of
+        wind speed [m/s] and wind direction [degrees]. 
+        If the wind data is stored in a file
+        file_function is used to create a callable function. The data file 
+        contains wind speed and direction values at a set of possibly 
+        arbitrarily located nodes
+        at a set of possibly irregular but increasing times. file_function 
+        interpolates from the file data onto the centroids of the domain.mesh
+        for each time. Two arrays for each wind quantity are then stored \
+        q0=q(t0,:) and q1=q(t1,:) 
+        where t0<=domain.time<=t1. These arrays are recalculated when necessary
+        i.e t>t1. A linear temporal interpolation is used to approximate 
+        pressure at time t.
+    """
+    def __init__(self, *args, **kwargs):
+        """Initialise windfield from wind speed s [m/s]
+        and wind direction phi [degrees]
+
+        Inputs v and phi can be either scalars or Python functions, e.g.
+
+        W = Wind_stress(10, 178)
+
+        #FIXME - 'normal' degrees are assumed for now, i.e. the
+        vector (1,0) has zero degrees.
+        We may need to convert from 'compass' degrees later on and also
+        map from True north to grid north.
+
+        Arguments can also be Python functions of t,x,y as in
+
+        def speed(t,x,y):
+            ...
+            return s
+
+        def angle(t,x,y):
+            ...
+            return phi
+
+        where x and y are vectors.
+
+        and then pass the functions in
+
+        W = Wind_stress(speed, angle)
+
+        The instantiated object W can be appended to the list of
+        forcing_terms as in
+
+        Alternatively, one vector valued function for (speed, angle)
+        can be applied, providing both quantities simultaneously.
+        As in
+        W = Wind_stress(F), where returns (speed, angle) for each t.
+
+        domain.forcing_terms.append(W)
+        """
+
+        from anuga.config import rho_a, rho_w, eta_w
+
+        self.use_coordinates=True
+        if len(args) == 2:
+            s = args[0]
+            phi = args[1]
+        elif len(args) == 1:
+            # Assume vector function returning (s, phi)(t,x,y)
+            vector_function = args[0]
+            if ( len(kwargs)==2 ):
+                filename=kwargs['filename']
+                domain=kwargs['domain']
+                self.use_coordinates=False
+            else:
+                self.use_coordinates=True
+            if ( self.use_coordinates ):
+                s = lambda t,x,y: vector_function(t,x=x,y=y)[0]
+                phi = lambda t,x,y: vector_function(t,x=x,y=y)[1]
+            else:
+                s = lambda t,i: vector_function(t,point_id=i)[0]
+                phi = lambda t,i: vector_function(t,point_id=i)[1]
+        else:
+           # Assume info is in 2 keyword arguments
+           if len(kwargs) == 2:
+               s = kwargs['s']
+               phi = kwargs['phi']
+           else:
+               raise Exception, 'Assumes two keyword arguments: s=..., phi=....'
+
+        if ( self.use_coordinates ):
+            self.speed = check_forcefield(s)
+            self.phi = check_forcefield(phi)
+        else:
+            self.speed = s
+            self.phi = phi
+
+        N = len(domain)
+        if ( not self.use_coordinates):
+
+            # Open NetCDF file
+            fid = NetCDFFile(filename, netcdf_mode_r)
+            self.file_time = fid.variables['time'][:]
+            fid.close()
+
+            msg = 'wind_file.starttime > domain.starttime'
+            if (self.file_time[0]>domain.starttime):
+                raise Exception, msg
+
+            msg = 'wind_file[-1] < domain.starttime'
+            if (self.file_time[-1]<domain.starttime):
+                raise Exception, msg
+
+            msg = 'No wind values exist for times greater than domain.starttime'
+            if (self.file_time[-2]<domain.starttime and self.file_time[-1]>domain.starttime):
+                raise Exception, msg
+
+            # FIXME(JJ): How do we check that evolve 
+            # finaltime  < wind_file.finaltime      
+            
+
+            self.index=0;
+            for i in range(len(self.file_time)):
+                if (self.file_time[i]<domain.starttime):
+                    self.index=i
+                else:
+                    break
+
+            self.prev_windspeed_centroid_values=num.empty(N,num.float)
+            self.next_windspeed_centroid_values=num.empty(N,num.float)
+            self.prev_windangle_centroid_values=num.empty(N,num.float)
+            self.next_windangle_centroid_values=num.empty(N,num.float)
+            for i in range(N):
+                self.prev_windspeed_centroid_values[i]=self.speed(self.file_time[self.index],i)
+                self.next_windspeed_centroid_values[i]=self.speed(self.file_time[self.index+1],i)
+                self.prev_windangle_centroid_values[i]=self.phi(self.file_time[self.index],i)
+                self.next_windangle_centroid_values[i]=self.phi(self.file_time[self.index+1],i)
+
+        self.s_vec=num.empty(N,num.float)
+        self.phi_vec=num.empty(N,num.float)
+
+        self.const = eta_w*rho_a/rho_w
+    ##
+    # @brief 'execute' this class instance.
+    # @param domain 
+    def __call__(self, domain):
+        """Evaluate windfield based on values found in domain"""
+
+        xmom_update = domain.quantities['xmomentum'].explicit_update
+        ymom_update = domain.quantities['ymomentum'].explicit_update
+
+        N = len(domain)    # number_of_triangles
+        t = domain.time
+
+        if callable(self.speed):
+            if ( self.use_coordinates ):
+                xc = domain.get_centroid_coordinates()
+                self.s_vec = self.speed(t, xc[:,0], xc[:,1])
+            else:
+                self.update_stored_wind_values(domain)
+
+                # Linear temporal interpolation of wind values
+                if t==self.file_time[self.index]:
+                    ratio = 0.
+                else:
+                    ratio = ((t - self.file_time[self.index]) / (self.file_time[self.index+1]-self.file_time[self.index]))
+                self.s_vec = self.prev_windspeed_centroid_values + ratio*(self.next_windspeed_centroid_values - self.prev_windspeed_centroid_values)
+        else:
+            # Assume s is a scalar
+            try:
+                self.s_vec[:] = self.speed
+            except:
+                msg = 'Speed must be either callable or a scalar: %s' %self.s
+                raise msg
+
+        if callable(self.phi):
+            if ( self.use_coordinates ):
+                xc = domain.get_centroid_coordinates()
+                self.phi_vec = self.phi(t, xc[:,0], xc[:,1])
+            else:
+                self.update_stored_wind_values(domain)
+
+                # Linear temporal interpolation of wind values
+                if t==self.file_time[self.index]:
+                    ratio = 0.
+                else:
+                    ratio = ((t - self.file_time[self.index]) / (self.file_time[self.index+1]-self.file_time[self.index]))
+                self.phi_vec = self.prev_windangle_centroid_values + ratio*(self.next_windangle_centroid_values - self.prev_windangle_centroid_values)
+        else:
+            # Assume phi is a scalar
+
+            try:
+                self.phi_vec[:] = self.phi
+            except:
+                msg = 'Angle must be either callable or a scalar: %s' %self.phi
+                raise msg
+
+        assign_windfield_values(xmom_update, ymom_update,
+                                self.s_vec, self.phi_vec, self.const)
+
+    def update_stored_wind_values(self,domain):
+        while (self.file_time[self.index+1]<domain.time):
+            self.index+=1
+            self.prev_windspeed_centroid_values=copy(self.next_windspeed_centroid_values)
+            self.prev_windangle_centroid_values=copy(self.next_windangle_centroid_values)
+            for i in range(self.next_windspeed_centroid_values.shape[0]):
+                self.next_windspeed_centroid_values[i]=self.speed(self.file_time[self.index+1],i) 
+                self.next_windangle_centroid_values[i]=self.phi(self.file_time[self.index+1],i) 
