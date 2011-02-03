@@ -9,7 +9,7 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.file_conversion.file_conversion import timefile2netcdf
 from forcing import *
 from mesh_factory import rectangular
-from file_conversion.sts2sww_mesh import sts2sww_mesh
+#from anuga.file_conversion.sts2sww_mesh import sts2sww_mesh
 from anuga.abstract_2d_finite_volumes.util import file_function
 
 import numpy as num
@@ -1103,6 +1103,7 @@ class Test_Forcing(unittest.TestCase):
     def test_constant_wind_stress_from_file(self):
         from anuga.config import rho_a, rho_w, eta_w
         from math import pi, cos, sin
+        from anuga.file_conversion.sts2sww_mesh import sts2sww_mesh
 
         cellsize = 25
         nrows=5; ncols = 6;
@@ -1178,6 +1179,7 @@ class Test_Forcing(unittest.TestCase):
         from anuga.config import rho_a, rho_w, eta_w
         from math import pi, cos, sin
         from anuga.config import time_format
+        from anuga.file_conversion.sts2sww_mesh import sts2sww_mesh
 
         cellsize = 25
         #nrows=25; ncols = 25;
@@ -1328,6 +1330,7 @@ class Test_Forcing(unittest.TestCase):
         from anuga.config import rho_a, rho_w, eta_w
         from math import pi, cos, sin
         from anuga.config import time_format
+        from anuga.file_conversion.sts2sww_mesh import sts2sww_mesh
 
         cellsize = 25
         #nrows=25; ncols = 25;
@@ -1421,6 +1424,7 @@ class Test_Forcing(unittest.TestCase):
         from anuga.config import rho_a, rho_w, eta_w
         from math import pi, cos, sin
         from anuga.config import time_format
+        from anuga.file_conversion.sts2sww_mesh import sts2sww_mesh
 
         cellsize = 25
         nrows=5; ncols = 6;
@@ -1512,6 +1516,7 @@ class Test_Forcing(unittest.TestCase):
         from anuga.config import rho_a, rho_w, eta_w
         from math import pi, cos, sin
         from anuga.config import time_format
+        from anuga.file_conversion.sts2sww_mesh import sts2sww_mesh
 
         cellsize = 25
         #nrows=20; ncols = 20;
@@ -1612,6 +1617,7 @@ class Test_Forcing(unittest.TestCase):
         from anuga.config import rho_a, rho_w, eta_w
         from math import pi, cos, sin
         from anuga.config import time_format
+        from anuga.file_conversion.sts2sww_mesh import sts2sww_mesh
 
         cellsize = 25
         nrows=20; ncols = 20;
@@ -1709,6 +1715,7 @@ class Test_Forcing(unittest.TestCase):
         from anuga.config import rho_a, rho_w, eta_w
         from math import pi, cos, sin
         from anuga.config import time_format
+        from anuga.file_conversion.sts2sww_mesh import sts2sww_mesh
 
         cellsize = 25
         #nrows=20; ncols = 20;
@@ -1815,6 +1822,7 @@ class Test_Forcing(unittest.TestCase):
         from anuga.config import rho_a, rho_w, eta_w
         from math import pi, cos, sin
         from anuga.config import time_format
+        from anuga.file_conversion.sts2sww_mesh import sts2sww_mesh
 
         cellsize = 25
         #nrows=20; ncols = 20;
