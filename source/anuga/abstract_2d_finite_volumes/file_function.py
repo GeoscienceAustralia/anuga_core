@@ -309,10 +309,11 @@ def get_netcdf_file_function(filename,
         msg = 'Files of type sts must contain spatial information'        
         raise Exception(msg)
 
-    if filename[-3:] == 'sts' and boundary_polygon is None:
-        #What if mux file only contains one point
-        msg = 'Files of type sts require boundary polygon'        
-        raise Exception(msg)
+    # JJ REMOVED
+    #if filename[-3:] == 'sts' and boundary_polygon is None:
+    #    #What if mux file only contains one point
+    #    msg = 'Files of type sts require boundary polygon'        
+    #    raise Exception(msg)
 
     # Get first timestep
     try:

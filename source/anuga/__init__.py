@@ -327,5 +327,11 @@ from anuga.structures.structure_operator import Structure_operator
 from anuga.structures.boyd_box_operator import Boyd_box_operator
 from anuga.structures.boyd_pipe_operator import Boyd_pipe_operator
 
+#---------------------------
+# User Access Functions
+#---------------------------
+
+from anuga.utilities.system_tools import get_user_name, get_host_name, get_revision_number
+
 
 
