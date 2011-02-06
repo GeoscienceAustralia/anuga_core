@@ -28,7 +28,7 @@ def sts2sww_mesh(basename_in, basename_out=None,
         stsname = basename_in + '.sts'
 
     if verbose: print "Reading sts NetCDF file: %s" %stsname
-    infile = NetCDFFile(stsname, 'r')
+    infile = NetCDFFile(stsname, netcdf_mode_r)
     cellsize = infile.cellsize
     ncols = infile.ncols
     nrows = infile.nrows
@@ -106,7 +106,7 @@ def sts2sww_mesh(basename_in, basename_out=None,
 
     if verbose:
         print "Writing sww wind and pressure field file"
-    outfile = NetCDFFile(swwname, 'wl')
+    outfile = NetCDFFile(swwname, netcdf_mode_w)
     sww = Write_sww([], ['wind_speed','wind_angle','barometric_pressure'])
     sww.store_header(outfile, times, len(volumes), len(points_utm),
                      verbose=verbose, sww_precision='d')
