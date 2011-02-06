@@ -2,7 +2,7 @@
 
 
 import unittest
-from mesh_quadtree import MeshQuadtree
+from anuga.pmesh.mesh_quadtree import MeshQuadtree
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular

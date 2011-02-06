@@ -28,7 +28,7 @@ def sts2sww_mesh(basename_in, basename_out=None,
         stsname = basename_in + '.sts'
 
     if verbose: print "Reading sts NetCDF file: %s" %stsname
-    infile = NetCDFFile(stsname, 'rl')
+    infile = NetCDFFile(stsname, 'r')
     cellsize = infile.cellsize
     ncols = infile.ncols
     nrows = infile.nrows

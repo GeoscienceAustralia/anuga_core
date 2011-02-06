@@ -422,7 +422,7 @@ showme1.0 0.0 10.0 \n\
             self.failUnless(seg == ldseg, fail_string + ' failed\n' + msg)
 
         try:
-            assert num.allclose(num.array(dict['vertex_attribute_titles']),
+            assert num.alltrue(num.array(dict['vertex_attribute_titles'])==
                                 num.array(loaded_dict['vertex_attribute_titles']))
         except IndexError:
             self.failUnless(num.alltrue(num.array(loaded_dict['vertex_attribute_titles'])

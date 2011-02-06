@@ -1,9 +1,10 @@
 from distutils.core import setup, Extension;
+from numpy.distutils.misc_util import get_numpy_include_dirs;
 import os;
 
 metis = Extension('metis',
                   sources = ['metis.c', 'metis_bridge.c'],
-                  include_dirs = ['..' + os.sep + os.environ['METIS_DIR'] + os.sep + 'Lib' ,  '/usr/local/lib/python2.5/site-packages/numpy/core/include' ],
+                  include_dirs = ['..' + os.sep + os.environ['METIS_DIR'] + os.sep + 'Lib' ] + get_numpy_include_dirs(),
                   libraries = ['metis', 'm'],
                   library_dirs = ['..' + os.sep + os.environ['METIS_DIR']]);
 
