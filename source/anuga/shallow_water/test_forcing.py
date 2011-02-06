@@ -11,6 +11,7 @@ from forcing import *
 from mesh_factory import rectangular
 #from anuga.file_conversion.sts2sww_mesh import sts2sww_mesh
 from anuga.abstract_2d_finite_volumes.util import file_function
+from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 
 import numpy as num
 import warnings
