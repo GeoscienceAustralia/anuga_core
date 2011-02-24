@@ -93,6 +93,41 @@ int _compute_gradients(int N,
 }
 
 
+int _compute_local_gradients(int N,
+			       double* vertex_coordinates,
+			       double* vertex_values,
+			       double* a,
+			       double* b) {
+
+  int k, k2, k3, k6;
+  double x0, y0, x1, y1, x2, y2, v0, v1, v2;
+  
+  for (k=0; k<N; k++) {
+    k6 = 6*k;
+    k3 = 3*k;
+    k2 = 2*k;
+      
+    // vertex coordinates
+    // x0, y0, x1, y1, x2, y2 = X[k,:]
+    x0 = vertex_coordinates[k6 + 0];
+    y0 = vertex_coordinates[k6 + 1];
+    x1 = vertex_coordinates[k6 + 2];
+    y1 = vertex_coordinates[k6 + 3];
+    x2 = vertex_coordinates[k6 + 4];
+    y2 = vertex_coordinates[k6 + 5];
+      
+    v0 = vertex_values[k3+0];
+    v1 = vertex_values[k3+1];
+    v2 = vertex_values[k3+2];
+    
+    // Gradient
+    _gradient(x0, y0, x1, y1, x2, y2, v0, v1, v2, &a[k], &b[k]);
+
+    
+    }
+    return 0;
+}
+
 int _extrapolate_from_gradient(int N,
 			       double* centroids,
 			       double* centroid_values,
@@ -1161,6 +1196,71 @@ PyObject *extrapolate_from_gradient(PyObject *self, PyObject *args) {
 }
 
 
+
+PyObject *compute_local_gradients(PyObject *self, PyObject *args) {
+
+	PyObject *quantity, *domain;
+	PyArrayObject
+	    *vertex_coordinates,   //Coordinates at vertices
+	    *vertex_values,        //Values at vertices
+	    *x_gradient,           //x gradient
+	    *y_gradient;           //y gradient
+
+	//int N, err;
+	//int dimensions[1];
+	int N, err;
+	//double *a, *b;  //Gradients
+
+	// Convert Python arguments to C
+	if (!PyArg_ParseTuple(args, "O", &quantity)) {
+	  PyErr_SetString(PyExc_RuntimeError, 
+			  "compute_local_gradient could not parse input");	
+	  return NULL;
+	}
+
+	domain = PyObject_GetAttrString(quantity, "domain");
+	if (!domain) {
+	  PyErr_SetString(PyExc_RuntimeError, 
+			  "compute_local_gradient could not obtain domain object from quantity");	
+	  return NULL;
+	}
+
+	// Get pertinent variables
+	vertex_coordinates   = get_consecutive_array(domain,   "vertex_coordinates");
+	vertex_values        = get_consecutive_array(quantity, "vertex_values");
+	x_gradient           = get_consecutive_array(quantity, "x_gradient");
+	y_gradient           = get_consecutive_array(quantity, "y_gradient");
+
+	N = vertex_values -> dimensions[0];
+
+	// Release
+	Py_DECREF(domain);
+
+	err = _compute_local_gradients(N,
+			(double*) vertex_coordinates -> data,
+			(double*) vertex_values -> data,
+			(double*) x_gradient -> data,
+			(double*) y_gradient -> data);
+
+
+	if (err != 0) {
+	  PyErr_SetString(PyExc_RuntimeError,
+			  "Internal function _compute_local_gradient failed");
+	  return NULL;
+	}
+
+
+
+	// Release
+	Py_DECREF(vertex_coordinates);
+	Py_DECREF(vertex_values);
+	Py_DECREF(x_gradient);
+	Py_DECREF(y_gradient);
+
+	return Py_BuildValue("");
+}
+
+
 PyObject *extrapolate_second_order_and_limit_by_edge(PyObject *self, PyObject *args) {
     /* Compute edge values using second order approximation and limit values 
        so that edge values are limited by the two corresponding centroid values
@@ -2092,6 +2192,7 @@ static struct PyMethodDef MethodTable[] = {
 	{"backup_centroid_values", backup_centroid_values, METH_VARARGS, "Print out"},
 	{"saxpy_centroid_values", saxpy_centroid_values, METH_VARARGS, "Print out"},
 	{"compute_gradients", compute_gradients, METH_VARARGS, "Print out"},
+    {"compute_local_gradients", compute_gradients, METH_VARARGS, "Print out"},
 	{"extrapolate_from_gradient", extrapolate_from_gradient,
 		METH_VARARGS, "Print out"},
 	{"extrapolate_second_order_and_limit_by_edge", extrapolate_second_order_and_limit_by_edge,

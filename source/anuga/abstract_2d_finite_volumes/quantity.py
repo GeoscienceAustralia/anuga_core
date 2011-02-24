@@ -1471,6 +1471,17 @@ class Quantity:
         # (either from this module or C-extension)
         return compute_gradients(self)
 
+
+    ##
+    # @brief ??
+    def compute_local_gradients(self):
+        # Call correct module function
+        # (either from this module or C-extension)
+        return compute_local_gradients(self)
+
+
+
+
     ##
     # @brief ??
     def limit(self):
@@ -1581,6 +1592,7 @@ if compile.can_use_C_extension('quantity_ext.c'):
          backup_centroid_values,\
          saxpy_centroid_values,\
          compute_gradients,\
+         compute_local_gradients,\
          limit_old,\
          limit_vertices_by_all_neighbours,\
          limit_edges_by_all_neighbours,\
