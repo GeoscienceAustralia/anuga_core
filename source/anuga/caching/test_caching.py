@@ -723,7 +723,7 @@ class Test_Caching(unittest.TestCase):
                     fid = open(CD+FN,'r')
                     fid.close()
                 except:
-                    raise 'Statistics files cannot be opened'          
+                    raise Exception('Statistics files cannot be opened')
   
           
 

@@ -155,7 +155,7 @@ def sww2csv_gauges(sww_file,
         point_reader = reader(file(gauge_file))
     except Exception, e:
         msg = 'File "%s" could not be opened: Error="%s"' % (gauge_file, e)
-        raise msg
+        raise Exception(msg)
 
     if verbose: log.critical('Gauges obtained from: %s' % gauge_file)
     
@@ -192,7 +192,7 @@ def sww2csv_gauges(sww_file,
         if verbose: log.critical('File %s exists' % sww_file)
     else:
         msg = 'File "%s" could not be opened: no read permission' % sww_file
-        raise msg
+        raise Exception(msg)
 
     sww_files = get_all_swwfiles(look_in_dir=dir_name,
                                  base_name=base,
@@ -452,7 +452,7 @@ def _sww2timeseries(swwfiles,
         fid = open(gauge_filename)
     except Exception, e:
         msg = 'File "%s" could not be opened: Error="%s"' % (gauge_filename, e)
-        raise msg
+        raise Exception(msg)
 
     if report is None:
         report = False
@@ -490,7 +490,7 @@ def _sww2timeseries(swwfiles,
             fid = open(swwfile)
         except Exception, e:
             msg = 'File "%s" could not be opened: Error="%s"' % (swwfile, e)
-            raise msg
+            raise Exception(msg)
 
         if verbose:
             log.critical('swwfile = %s' % swwfile)
@@ -542,14 +542,14 @@ def _sww2timeseries(swwfiles,
     else:
         if time_min < theminT: # min(T):
             msg = 'Minimum time entered not correct - please try again'
-            raise Exception, msg
+            raise Exception(msg)
 
     if time_max is None:
         time_max = themaxT # max(T)
     else:
         if time_max > themaxT: # max(T):
             msg = 'Maximum time entered not correct - please try again'
-            raise Exception, msg
+            raise Exception(msg)
 
     if verbose and len(gauge_index) > 0:
          log.critical('Inputs OK - going to generate figures')
@@ -610,7 +610,7 @@ def gauge_get_from_file(filename):
             msg = 'WARNING: %s does not contain correct header information' \
                   % filename
             msg += 'The header must be: easting, northing, name, elevation'
-            raise Exception, msg
+            raise Exception(msg)
 
         if elev_index is None: 
             raise Exception

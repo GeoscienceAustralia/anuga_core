@@ -39,13 +39,13 @@ class Read_urs:
         msg = "Bad data in the urs file."
         if self.points_num < 0:
             mux_file.close()
-            raise ANUGAError, msg
+            raise ANUGAError(msg)
         if self.time_step_count < 0:
             mux_file.close()
-            raise ANUGAError, msg
+            raise ANUGAError(msg)
         if self.time_step < 0:
             mux_file.close()
-            raise ANUGAError, msg
+            raise ANUGAError(msg)
 
         # The depth is in meters, and it is the distance from the ocean
         # to the sea bottom.
@@ -208,7 +208,7 @@ def calculate_boundary_points(boundary_polygon, zone, ll_lat,
         except:
             msg = 'Caching was requested, but caching module' \
                   'could not be imported'
-            raise msg
+            raise Exception(msg)
 
         geo = cache(_calculate_boundary_points,
                     args, kwargs,
@@ -266,7 +266,7 @@ def _calculate_boundary_points(boundary_polygon,
 
     if lat_long_set == frozenset([]):
         msg = "URS region specified and polygon does not overlap."
-        raise ValueError, msg
+        raise ValueError(msg)
 
     # Warning there is no info in geospatial saying the hemisphere of
     # these points.  There should be.

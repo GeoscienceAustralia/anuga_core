@@ -61,7 +61,7 @@ class Test_FileUtils(unittest.TestCase):
         except IOError:
             pass
         else:
-            raise 'Should have raised exception' 
+            raise Exception('Should have raised exception')
         
     def test_get_all_swwfiles1(self):
         

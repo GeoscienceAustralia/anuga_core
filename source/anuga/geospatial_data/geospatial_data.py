@@ -215,7 +215,7 @@ class Geospatial_data:
         if data_points is None:
             self.data_points = None
             msg = 'There is no data or file provided!'
-            raise ValueError, msg
+            raise ValueError(msg)
         else:
             self.data_points = ensure_numeric(data_points)
             if not (0,) == self.data_points.shape:
@@ -244,7 +244,7 @@ class Geospatial_data:
             except:
                 msg = ("Attribute '%s' (%s) could not be converted to a"
                        "numeric vector" % (str(key), str(attributes[key])))
-                raise Exception, msg
+                raise Exception(msg)
 
         self.attributes = attributes
 
@@ -271,7 +271,7 @@ class Geospatial_data:
             # if geo_reference is None. Is that the intent Duncan?
             msg = ('Argument geo_reference must be a valid Geo_reference '
                    'object or None.')
-            raise Expection, msg
+            raise Expection(msg)
 
         # If a geo_reference already exists, change the point data according to
         # the new geo reference
@@ -295,7 +295,7 @@ class Geospatial_data:
             self.verbose = verbose
         else:
             msg = 'Illegal value: %s' % str(verbose)
-            raise Exception, msg
+            raise Exception(msg)
 
     ##
     # @brief Clip geospatial data by a given polygon.
@@ -493,7 +493,7 @@ class Geospatial_data:
                 if other.attributes is not None:
                     msg = ('Geospatial data must have the same '
                            'attributes to allow addition.')
-                    raise Exception, msg
+                    raise Exception(msg)
 
                 new_attributes = None
             else:
@@ -507,7 +507,7 @@ class Geospatial_data:
                     else:
                         msg = ('Geospatial data must have the same '
                                'attributes to allow addition.')
-                        raise Exception, msg
+                        raise Exception(msg)
         else:
             # other is None:
             new_points = self.get_data_points(absolute=True)
@@ -548,7 +548,7 @@ class Geospatial_data:
 
         if access(file_name, F_OK) == 0 :
             msg = 'File %s does not exist or is not accessible' % file_name
-            raise IOError, msg
+            raise IOError(msg)
 
         attributes = {}
         if file_name[-4:] == ".pts":
@@ -557,7 +557,7 @@ class Geospatial_data:
                              _read_pts_file(file_name, verbose)
             except IOError, e:
                 msg = 'Could not open file %s ' % file_name
-                raise IOError, msg
+                raise IOError(msg)
         elif file_name[-4:] == ".txt" or file_name[-4:]== ".csv":
             try:
                 data_points, attributes, geo_reference = \
@@ -566,15 +566,15 @@ class Geospatial_data:
                 # This should only be if a file is not found
                 msg = ('Could not open file %s. Check the file location.'
                        % file_name)
-                raise IOError, msg
+                raise IOError(msg)
             except SyntaxError, e:
                 # This should only be if there is a format error
                 msg = ('Problem with format of file %s.\n%s'
                        % (file_name, Error_message['IOError']))
-                raise SyntaxError, msg
+                raise SyntaxError(msg)
         else:
             msg = 'Extension %s is unknown' % file_name[-4:]
-            raise IOError, msg
+            raise IOError(msg)
 
         self.data_points = data_points
         self.attributes = attributes
@@ -635,7 +635,7 @@ class Geospatial_data:
                                            isSouthHemisphere=isSouthHemisphere))
         else:
             msg = 'Unknown file type %s ' %file_name
-            raise IOError, msg
+            raise IOError(msg)
 
     ##
     # @brief Get a subset of data that is referred to by 'indices'.
@@ -877,7 +877,7 @@ class Geospatial_data:
                 elif self.blocking_georef is not None:
                     msg = ('Geo reference given, then not given.'
                            ' This should not happen.')
-                    raise ValueError, msg
+                    raise ValueError(msg)
                 geo = Geospatial_data(pointlist, att_dict, geo_ref)
             except StopIteration:
                 self.file_pointer.close()
@@ -896,7 +896,7 @@ class Geospatial_data:
                 # This should only be if there is a format error
                 msg = ('Could not open file %s.\n%s'
                        % (self.file_name, Error_message['IOError']))
-                raise SyntaxError, msg
+                raise SyntaxError(msg)
         return geo
 
 ##################### Error messages ###########
@@ -933,32 +933,32 @@ def _set_using_lat_long(latitudes,
     if geo_reference is not None:
         msg = ('A georeference is specified yet latitude and longitude '
                'are also specified!')
-        raise ValueError, msg
+        raise ValueError(msg)
 
     if data_points is not None and not points_are_lats_longs:
         msg = ('Data points are specified yet latitude and longitude are '
                'also specified.')
-        raise ValueError, msg
+        raise ValueError(msg)
 
     if points_are_lats_longs:
         if data_points is None:
             msg = "Data points are not specified."
-            raise ValueError, msg
+            raise ValueError(msg)
         lats_longs = ensure_numeric(data_points)
         latitudes = num.ravel(lats_longs[:,0:1])
         longitudes = num.ravel(lats_longs[:,1:])
 
     if latitudes is None and longitudes is None:
         msg = "Latitudes and Longitudes are not specified."
-        raise ValueError, msg
+        raise ValueError(msg)
 
     if latitudes is None:
         msg = "Longitudes are specified yet latitudes aren't."
-        raise ValueError, msg
+        raise ValueError(msg)
 
     if longitudes is None:
         msg = "Latitudes are specified yet longitudes aren't."
-        raise ValueError, msg
+        raise ValueError(msg)
 
     data_points, zone  = convert_from_latlon_to_utm(latitudes=latitudes,
                                                     longitudes=longitudes)
@@ -998,7 +998,7 @@ def _read_pts_file(file_name, verbose=False):
     except IOError, e:
         fid.close()
         msg = "Expected keyword 'points' but could not find it"
-        raise IOError, msg
+        raise IOError(msg)
 
     attributes = {}
     for key in keys:
@@ -1122,7 +1122,7 @@ def _read_csv_file_blocking(file_pointer,
                 file_pointer.close()
                 msg = ('File load error. '
                        'There might be a problem with the file header.')
-                raise SyntaxError, msg
+                raise SyntaxError(msg)
             for i,n in enumerate(numbers):
                 n.strip()
                 if n != '\n' and n != '':
@@ -1174,7 +1174,7 @@ def _read_pts_file_header(fid, verbose=False):
     except IOError, e:
         fid.close()
         msg = "Expected keyword 'points' but could not find it."
-        raise IOError, msg
+        raise IOError(msg)
 
     if verbose: log.critical('Got %d variables: %s' % (len(keys), keys))
 
@@ -1576,7 +1576,7 @@ def find_optimal_smoothing_parameter(data_file,
 
         if no_boundary is True:
             msg = 'All boundaries must be defined'
-            raise Expection, msg
+            raise Expection(msg)
 
         poly_topo = [[east_boundary, south_boundary],
                      [east_boundary, north_boundary],
@@ -1597,7 +1597,7 @@ def find_optimal_smoothing_parameter(data_file,
         if verbose: "reading from file: %s" % mesh_file
         if access(mesh_file,F_OK) == 0:
             msg = "file %s doesn't exist!" % mesh_file
-            raise IOError, msg
+            raise IOError(msg)
 
     # split topo data
     if verbose: log.critical('Reading elevation file: %s' % data_file)
@@ -1785,7 +1785,7 @@ def old_find_optimal_smoothing_parameter(data_file,
 
         if no_boundary is True:
             msg = 'All boundaries must be defined'
-            raise Expection, msg
+            raise Expection(msg)
 
         poly_topo = [[east_boundary, south_boundary],
                      [east_boundary, north_boundary],
@@ -1805,7 +1805,7 @@ def old_find_optimal_smoothing_parameter(data_file,
         # test mesh file exists?
         if access(mesh_file,F_OK) == 0:
             msg = "file %s doesn't exist!" % mesh_file
-            raise IOError, msg
+            raise IOError(msg)
 
     # split topo data
     G = Geospatial_data(file_name=data_file)

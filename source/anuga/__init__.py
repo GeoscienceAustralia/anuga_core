@@ -248,7 +248,7 @@ def create_domain_from_regions(bounding_polygon,
         except:
             msg = 'Caching was requested, but caching module'+\
                   'could not be imported'
-            raise msg
+            raise (msg)
 
 
         domain = cache(_create_domain_from_regions,

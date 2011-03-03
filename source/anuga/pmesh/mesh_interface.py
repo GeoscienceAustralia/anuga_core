@@ -109,7 +109,7 @@ def create_mesh_from_regions(bounding_polygon,
         except:
             msg = 'Caching was requested, but caching module'+\
                   'could not be imported'
-            raise msg
+            raise Exception(msg)
 
 
         m = cache(_create_mesh_from_regions,
@@ -151,7 +151,7 @@ def _create_mesh_from_regions(bounding_polygon,
                 msg = 'Boundary tag %s has segment out of bounds. '\
                       %(str(key))
                 msg += 'Number of points in bounding polygon = %d' % max_points
-                raise SegmentError, msg
+                raise SegmentError(msg)
 
         for i in range(max_points):
             found = False
@@ -161,7 +161,7 @@ def _create_mesh_from_regions(bounding_polygon,
             if found is False:
                 msg = 'Segment %d was not assigned a boundary_tag.' % i
                 msg +=  'Default tag "exterior" will be assigned to missing segment'
-                #raise Exception, msg
+                #raise Exception(msg)
                 # Fixme: Use proper Python warning
                 if verbose: log.critical('WARNING: %s' % msg)
                 
@@ -196,7 +196,7 @@ def _create_mesh_from_regions(bounding_polygon,
                 msg += ' bounding polygon: %s.' %(str(bounding_polygon))
 
                 if fail_if_polygons_outside is True:
-                    raise PolygonError, msg                    
+                    raise PolygonError(msg)
                 else:
                     msg += ' I will ignore it.'
                     log.critical(msg)
@@ -238,7 +238,7 @@ def _create_mesh_from_regions(bounding_polygon,
             if len(indices) <> len(interior_polygon): 
                 msg = 'Interior polygon %s is outside bounding polygon: %s'\
                       %(str(interior_polygon), str(bounding_polygon))
-                raise PolygonError, msg
+                raise PolygonError(msg)
 
     # Resolve geo referencing        
     if mesh_geo_reference is None:

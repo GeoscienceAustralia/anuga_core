@@ -48,10 +48,10 @@ def generate_mesh(points=None,
         points =  ensure_numeric(points, num.float)
     except ValueError:
         msg = 'ERROR: Inconsistent points array.'
-        raise ANUGAError, msg
+        raise ANUGAError(msg)
     if points.shape[1] <>2:
         msg = 'ERROR: Bad shape points array.'
-        raise ANUGAError, msg
+        raise ANUGAError(msg)
 
     # This is after points is numeric
     if pointatts is None or pointatts == []:
@@ -63,7 +63,7 @@ def generate_mesh(points=None,
         
     except ValueError:
         msg = 'ERROR: Inconsistent segments array.'
-        raise ANUGAError, msg
+        raise ANUGAError(msg)
     
     # This is after segments is numeric
     if segatts is None or segatts == []:
@@ -73,7 +73,7 @@ def generate_mesh(points=None,
         holes = ensure_numeric(holes, num.float)
     except ValueError:
         msg = 'ERROR: Inconsistent holess array.'
-        raise ANUGAError, msg
+        raise ANUGAError(msg)
 
    
     regions = add_area_tag(regions)
@@ -81,22 +81,22 @@ def generate_mesh(points=None,
         regions = ensure_numeric(regions, num.float)
     except  (ValueError, TypeError):
         msg = 'ERROR: Inconsistent regions array.'
-        raise ANUGAError, msg
+        raise ANUGAError(msg)
         
     if not regions.shape[0] == 0 and regions.shape[1] <= 2:
         msg = 'ERROR: Bad shape points array.'
-        raise ANUGAError, msg
+        raise ANUGAError(msg)
     
     try:
         pointatts = ensure_numeric(pointatts, num.float)
     except (ValueError, TypeError):
         msg = 'ERROR: Inconsistent point attributes array.'
-        raise ANUGAError, msg
+        raise ANUGAError(msg)
 
     if pointatts.shape[0] <> points.shape[0]:
         msg = """ERROR: Point attributes array not the same shape as
         point array."""
-        raise ANUGAError, msg
+        raise ANUGAError(msg)
     if len(pointatts.shape) == 1:
         pointatts = num.reshape(pointatts,(pointatts.shape[0],1))
     
@@ -104,11 +104,11 @@ def generate_mesh(points=None,
         segatts = ensure_numeric(segatts, num.int32)
     except ValueError:
         msg = 'ERROR: Inconsistent point attributes array.'
-        raise ANUGAError, msg
+        raise ANUGAError(msg)
     if segatts.shape[0] <> segments.shape[0]:
         msg = """ERROR: Segment attributes array not the same shape as
         segment array."""
-        raise ANUGAError, msg
+        raise ANUGAError(msg)
     
     if mode.find('n'):
         #pass
@@ -185,7 +185,7 @@ def add_area_tag(regions):
                 # let ensure numeric catch this..    
                 #len(region) <= 2:
                 #msg = 'ERROR: Inconsistent regions array.'
-                #raise msg
+                #raise Exception(msg)
             #elif
     return regions
 

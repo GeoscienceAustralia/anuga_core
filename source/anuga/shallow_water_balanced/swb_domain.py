@@ -202,7 +202,7 @@ class Domain(Sww_domain):
                 Q.extrapolate_second_order_and_limit_by_edge()
                 #Q.extrapolate_second_order_and_limit_by_vertex()
             else:
-                raise 'Unknown order'
+                raise Exception('Unknown order: %s' % str(self._order_))
 
 
         w_E     = W.edge_values
@@ -329,7 +329,7 @@ class Domain(Sww_domain):
                 Q.extrapolate_second_order_and_limit_by_edge()
                 #Q.extrapolate_second_order_and_limit_by_vertex()
             else:
-                raise 'Unknown order'
+                raise Exception('Unknown order: %s' % str(self._order_))
 
 
         w_E     = W.edge_values

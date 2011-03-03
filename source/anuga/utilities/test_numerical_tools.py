@@ -272,7 +272,7 @@ class Test_Numerical_Tools(unittest.TestCase):
             try:
                 compile(FN)
             except:
-                raise 'Could not compile %s' %FN
+                raise Exception('Could not compile %s' % FN)
             else:
                 import util_ext
 

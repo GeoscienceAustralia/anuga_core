@@ -261,13 +261,13 @@ class Mesh(General_mesh):
             c = self.triangles[i, 2]
             if neighbourdict.has_key((a,b)):
                     msg = "Edge 2 of triangle %d is duplicating edge %d of triangle %d.\n" %(i,neighbourdict[a,b][1],neighbourdict[a,b][0])
-                    raise Exception, msg
+                    raise Exception(msg)
             if neighbourdict.has_key((b,c)):
                     msg = "Edge 0 of triangle %d is duplicating edge %d of triangle %d.\n" %(i,neighbourdict[b,c][1],neighbourdict[b,c][0])
-                    raise msg
+                    raise Exception(msg)
             if neighbourdict.has_key((c,a)):
                     msg = "Edge 1 of triangle %d is duplicating edge %d of triangle %d.\n" %(i,neighbourdict[c,a][1],neighbourdict[c,a][0])
-                    raise msg
+                    raise Exception(msg)
 
             neighbourdict[a,b] = (i, 2) #(id, edge)
             neighbourdict[b,c] = (i, 0) #(id, edge)
@@ -426,7 +426,7 @@ class Mesh(General_mesh):
         if self.boundary is None:
             msg = 'Boundary dictionary must be defined before '
             msg += 'building boundary structure'
-            raise msg
+            raise Exception(msg)
 
 
         self.boundary_segments = self.boundary.keys()
@@ -504,7 +504,7 @@ class Mesh(General_mesh):
             # Sanity check
             if p0 is None:
                 msg = 'Impossible: p0 is None!?'
-                raise Exception, msg
+                raise Exception(msg)
 
             # Register potential paths from A to B
             if not segments.has_key(tuple(A)):
@@ -875,7 +875,7 @@ class Mesh(General_mesh):
 
         if is_outside_polygon(point, polygon):
             msg = 'Point %s is outside mesh' %str(point)
-            raise Exception, msg
+            raise Exception(msg)
 
 
         V = self.get_vertex_coordinates(absolute=True)
@@ -888,7 +888,7 @@ class Mesh(General_mesh):
                 return i
 
         msg = 'Point %s not found within a triangle' %str(point)
-        raise Exception, msg
+        raise Exception(msg)
 
 
 

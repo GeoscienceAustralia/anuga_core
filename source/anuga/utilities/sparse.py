@@ -21,7 +21,7 @@ class Sparse:
             try:
                 A = num.array(args[0])
             except:
-                raise 'Input must be convertable to a numeric array'
+                raise Exception('Input must be convertable to a numeric array')
 
             assert len(A.shape) == 2, 'Input must be a 2d matrix'
             
@@ -36,7 +36,7 @@ class Sparse:
             self.M = args[0]
             self.N = args[1]
         else:
-            raise 'Invalid construction'
+            raise Exception('Invalid construction')
             
         self.shape = (self.M, self.N) 
 
@@ -111,7 +111,7 @@ class Sparse:
             B = num.array(other)
         except:
             msg = 'FIXME: Only numeric types implemented so far'
-            raise msg
+            raise Exception(msg)
             
 
         # Assume numeric types from now on
@@ -149,7 +149,7 @@ class Sparse:
 	    
 	    
         else:
-            raise ValueError, 'Dimension too high: d=%d' %len(B.shape)
+            raise ValueError('Dimension too high: d=%d' %len(B.shape))
 
         return R
     
@@ -175,7 +175,7 @@ class Sparse:
             other = float(other)
         except:
             msg = 'Sparse matrix can only "right-multiply" onto a scalar'
-            raise TypeError, msg
+            raise TypeError(msg)
         else:
             new = self.copy()
             #Multiply nonzero elements
@@ -213,7 +213,7 @@ class Sparse:
                 R[j] += self.Data[key]*B[i]
 
         else:
-            raise 'Can only multiply with 1d array'
+            raise Exception('Can only multiply with 1d array')
 
         return R
 
@@ -270,7 +270,7 @@ class Sparse_CSR:
             self.M       = A.M
             self.N       = A.N
         else:
-            raise ValueError, "Sparse_CSR(A) expects A == Sparse Matrix"
+            raise ValueError("Sparse_CSR(A) expects A == Sparse Matrix")
             
     def __repr__(self):
         return '%d X %d sparse matrix:\n' %(self.M, self.N) + `self.data`

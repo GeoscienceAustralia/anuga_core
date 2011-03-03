@@ -19,7 +19,7 @@ class Region:
         
     def __call__(self, tag, elements, domain):
         msg = 'Generic class Boundary must be subclassed'
-        raise msg
+        raise Exception(msg)
 
 
     def build_indices(self, elements, domain):
@@ -85,7 +85,7 @@ class Add_value_to_region(Region):
         else:
             self.quantity_initial_value = initial_quantity
         if callable(X):
-            raise 'This class does not work with functions'  
+            raise Exception('This class does not work with functions')
 
     def __repr__(self):
         pass

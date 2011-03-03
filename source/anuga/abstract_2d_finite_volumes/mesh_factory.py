@@ -684,7 +684,7 @@ def strang_mesh(filename):
                               int(float(fields[1]))-1,
                               int(float(fields[2]))-1])
         else:
-            raise 'wrong format in ' + filename
+            raise Excetion('wrong format in %s' % filename)
 
     elements = [] #Final list of elements
 

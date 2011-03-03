@@ -422,13 +422,13 @@ class Quantity:
         if polygon is not None:
             if indices is not None:
                 msg = 'Only one of polygon and indices can be specified'
-                raise Exception, msg
+                raise Exception(msg)
 
             msg = 'With polygon selected, set_quantity must provide '
             msg += 'the keyword numeric and it must (currently) be '
             msg += 'a constant.'
             if numeric is None:
-                raise Exception, msg
+                raise Exception(msg)
             else:
                 # Check that numeric is as constant
                 assert type(numeric) in [FloatType, IntType, LongType], msg
@@ -456,11 +456,11 @@ class Quantity:
 
         if location == 'edges':
             msg = 'edges has been deprecated as valid location'
-            raise Exception, msg
+            raise Exception(msg)
 
         if location not in ['vertices', 'centroids', 'unique vertices']:
             msg = 'Invalid location: %s' % location
-            raise Exception, msg
+            raise Exception(msg)
 
         msg = 'Indices must be a list, array or None'
         assert isinstance(indices, (NoneType, list, num.ndarray)), msg
@@ -487,7 +487,7 @@ class Quantity:
                 except ValueError:
                     msg = ("Illegal type for variable 'numeric': %s"
                            % type(numeric))
-                    raise Exception, msg
+                    raise Exception(msg)
                 self.set_values_from_constant(numeric, location,
                                               indices, verbose)
         elif quantity is not None:
@@ -512,7 +512,7 @@ class Quantity:
                                       max_read_lines=max_read_lines,
                                       use_cache=use_cache)
         else:
-            raise Exception, "This can't happen :-)"
+            raise Exception("This can't happen :-)")
 
         # Update all locations in triangles
         if location == 'vertices' or location == 'unique vertices':
@@ -664,7 +664,7 @@ class Quantity:
                         self.vertex_values[element_index] = value
             else:
                 msg = 'Values array must be 1d or 2d'
-                raise Exception, msg
+                raise Exception(msg)
 
     ##
     # @brief Set quantity values from a specified quantity instance.
@@ -768,7 +768,7 @@ class Quantity:
                     for j in range(3):
                         self.vertex_values[i, j] = values[3*i + j]
         else:
-            raise Exception, 'Not implemented: %s' % location
+            raise Exception('Not implemented: %s' % location)
 
     ##
     # @brief Set values based on geo referenced geospatial data object.
@@ -801,7 +801,7 @@ class Quantity:
         if location != 'vertices':
             msg = ("set_values_from_points is only defined for "
                    "location='vertices'")
-            raise Exception, msg
+            raise Exception(msg)
 
         # Take care of georeferencing
         if data_georef is None:
@@ -847,7 +847,7 @@ class Quantity:
                                use_cache=False):
         """Set quantity values from arbitray data points using fit_interpolate.fit"""
 
-        raise Exception, 'set_values_from_points is obsolete, use geospatial data object instead'
+        raise Exception('set_values_from_points is obsolete, use geospatial data object instead')
 
     ##
     # @brief Set quantity based on arbitrary points in a points file.
@@ -881,7 +881,7 @@ class Quantity:
 
         if location != 'vertices':
             msg = "set_values_from_file is only defined for location='vertices'"
-            raise Exception, msg
+            raise Exception(msg)
 
             
         if True:
@@ -950,7 +950,7 @@ class Quantity:
         elif mode == 'min':
             i = num.argmin(V)
         else:
-            raise ValueError, 'Bad mode value, got: %s' % str(mode)
+            raise ValueError('Bad mode value, got: %s' % str(mode))
 
         if indices is None:
             return i
@@ -1189,7 +1189,7 @@ class Quantity:
         if location not in ['vertices', 'centroids',
                             'edges', 'unique vertices']:
             msg = 'Invalid location: %s' % location
-            raise Exception, msg
+            raise Exception(msg)
 
 
         msg = '\'indices\' must be a list, array or None'
@@ -1217,7 +1217,7 @@ class Quantity:
                 # In case there are unused points
                 if len(triangles) == 0:
                     msg = 'Unique vertex not associated with triangles'
-                    raise Exception, msg
+                    raise Exception(msg)
 
                 # Go through all triangle, vertex pairs
                 # Average the values
@@ -1380,7 +1380,7 @@ class Quantity:
                 for index in self.domain.vertex_value_indices:
                     if current_node == N:
                         msg = 'Current node exceeding number of nodes (%d) ' % N
-                        raise Exception, msg
+                        raise Exception(msg)
 
                     k += 1
 
@@ -1575,7 +1575,7 @@ class Conserved_quantity(Quantity):
 
     def __init__(self, domain, vertex_values=None):
         msg = 'ERROR: Use Quantity instead of Conserved_quantity'
-        raise Exception, msg
+        raise Exception(msg)
 
 
 ######
@@ -1610,4 +1610,4 @@ else:
     msg = 'C implementations could not be accessed by %s.\n ' % __file__
     msg += 'Make sure compile_all.py has been run as described in '
     msg += 'the ANUGA installation guide.'
-    raise Exception, msg
+    raise Exception(msg)

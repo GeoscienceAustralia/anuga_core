@@ -175,7 +175,7 @@ def write_ermapper_data(grid, ofile, data_format=num.float32):
     #        data_format = celltype_map[data_format]
     #    else:
     #        msg = 'Format %s is not yet defined by celltype_map' %data_format
-    #        raise msg
+    #        raise Exception(msg)
         
     
     # Convert the array to data_format (default format is Float32)

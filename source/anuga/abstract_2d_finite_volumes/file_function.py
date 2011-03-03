@@ -214,7 +214,7 @@ def _file_function(filename,
         # FIXME (Ole): Could add csv file here to address Ted Rigby's
         # suggestion about reading hydrographs.
         # This may also deal with the gist of ticket:289 
-        raise 'Must be a NetCDF File'
+        raise Exception('Must be a NetCDF File')
 
 
 ##
@@ -270,7 +270,7 @@ def get_netcdf_file_function(filename,
 
     if quantity_names is None or len(quantity_names) < 1:
         msg = 'No quantities are specified in file_function'
-        raise Exception, msg
+        raise Exception(msg)
  
     if interpolation_points is not None:
         interpolation_points = ensure_absolute(interpolation_points)
@@ -288,7 +288,7 @@ def get_netcdf_file_function(filename,
         msg = 'Quantities %s could not be found in file %s'\
               % (str(missing), filename)
         fid.close()
-        raise Exception, msg
+        raise Exception(msg)
 
     # Decide whether this data has a spatial dimension
     spatial = True
@@ -297,16 +297,16 @@ def get_netcdf_file_function(filename,
             spatial = False
 
     if filename[-3:] == 'tms' and spatial is True:
-        msg = 'Files of type tms must not contain spatial  information'
+        msg = 'Files of type TMS must not contain spatial information'
         raise Exception(msg)
 
     if filename[-3:] == 'sww' and spatial is False:
-        msg = 'Files of type sww must contain spatial information'        
+        msg = 'Files of type SWW must contain spatial information'        
         raise Exception(msg)
 
     if filename[-3:] == 'sts' and spatial is False:
         #What if mux file only contains one point
-        msg = 'Files of type sts must contain spatial information'        
+        msg = 'Files of type STS must contain spatial information'        
         raise Exception(msg)
 
     # JJ REMOVED
@@ -413,11 +413,11 @@ def get_netcdf_file_function(filename,
             if len(num.compress(gauge_neighbour_id>=0, gauge_neighbour_id)) \
                != len(temp)-1:
                 msg='incorrect number of segments'
-                raise msg
+                raise Exception(msg)
             vertex_coordinates=ensure_numeric(temp)
             if len(vertex_coordinates)==0:
                 msg = 'None of the sts gauges fall on the boundary'
-                raise msg
+                raise Exception(msg)
         else:
             gauge_neighbour_id=None
 

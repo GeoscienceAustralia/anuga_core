@@ -47,9 +47,6 @@ class Reflective_boundary(Boundary):
     and third conserved quantities.
     """
 
-    ##
-    # @brief Instantiate a Reflective_boundary.
-    # @param domain 
     def __init__(self, domain=None):
         Boundary.__init__(self)
 
@@ -65,18 +62,14 @@ class Reflective_boundary(Boundary):
 
         self.conserved_quantities = num.zeros(3, num.float)
 
-    ##
-    # @brief Return a representation of this instance.
     def __repr__(self):
         return 'Reflective_boundary'
 
-    ##
-    # @brief Calculate reflections (reverse outward momentum).
-    # @param vol_id 
-    # @param edge_id 
     def evaluate(self, vol_id, edge_id):
-        """Reflective boundaries reverses the outward momentum
-        of the volume they serve.
+        """Calculate reflections (reverse outward momentum).
+
+        vol_id   
+        edge_id  
         """
 
         q = self.conserved_quantities

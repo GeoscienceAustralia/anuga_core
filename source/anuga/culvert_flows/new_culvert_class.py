@@ -31,19 +31,19 @@ def interpolate_linearly(x, xvec, yvec):
     try:
         x = float(x)
     except:
-        raise Exception, msg
+        raise Exception(msg)
 
 
     # Check bounds
     if x < xvec[0]: 
         msg = 'Value provided = %.2f, interpolation minimum = %.2f.'\
             % (x, xvec[0])
-        raise Below_interval, msg
+        raise Below_interval(msg)
         
     if x > xvec[-1]: 
         msg = 'Value provided = %.2f, interpolation maximum = %.2f.'\
             %(x, xvec[-1])
-        raise Above_interval, msg        
+        raise Above_interval(msg)
         
         
     # Find appropriate slot within bounds            
@@ -402,7 +402,7 @@ class Culvert_flow_general:
                 enquiry_indices.append(triangle_id)
             else:
                 msg = 'Triangle not found for point (%f, %f)' %point
-                raise Exception, msg
+                raise Exception(msg)
         
         return enquiry_indices
 
@@ -924,7 +924,7 @@ class Culvert_flow_rating:
                 self.enquiry_indices.append(triangle_id)
             else:
                 msg = 'Triangle not found for point (%f, %f)' %point
-                raise Exception, msg
+                raise Exception(msg)
         
                           
 
@@ -1208,7 +1208,7 @@ class Culvert_flow_energy:
             if height is not None or width is not None:
                 msg = 'Either diameter or width&height must be specified, '
                 msg += 'but not both.'
-                raise Exception, msg
+                raise Exception(msg)
         else:
             if height is not None:
                 if width is None:
@@ -1222,7 +1222,7 @@ class Culvert_flow_energy:
                     height = width
             else:
                 msg = 'Either diameter or width&height must be specified.'
-                raise Exception, msg                
+                raise Exception(msg)
                 
             if height == width:
                 self.culvert_type = 'square'                                                
@@ -1323,7 +1323,7 @@ class Culvert_flow_energy:
                 self.enquiry_indices.append(triangle_id)
             else:
                 msg = 'Triangle not found for point (%f, %f)' %point
-                raise Exception, msg
+                raise Exception(msg)
         
                           
 
@@ -1462,7 +1462,7 @@ class Culvert_flow_energy:
                 if d < 0.0:
                     # This is possible since w and z are taken at different locations
                     #msg = 'D < 0.0: %f' %d
-                    #raise msg
+                    #raise Exception(msg)
                     d = 0.0
                 
 

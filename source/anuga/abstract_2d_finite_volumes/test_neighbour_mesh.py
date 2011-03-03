@@ -41,7 +41,7 @@ class Test_Mesh(unittest.TestCase):
             pass
         else:
             msg = 'Should have raised exception'
-            raise msg
+            raise Exception(msg)
 
 
     def test_basic_triangle(self):
@@ -395,7 +395,7 @@ class Test_Mesh(unittest.TestCase):
         except:
             pass
         else:
-            raise "triangle edge duplicates not caught"
+            raise Exception("triangle edge duplicates not caught")
 
 
     def test_rectangular_mesh_basic(self):
@@ -651,7 +651,7 @@ class Test_Mesh(unittest.TestCase):
         except AssertionError:
             pass
         else:
-            raise 'Should have raised an exception'
+            raise Exception('Should have raised an exception')
 
         #Too few points - 1 element
         try:
@@ -659,7 +659,7 @@ class Test_Mesh(unittest.TestCase):
         except AssertionError:
             pass
         else:
-            raise 'Should have raised an exception'
+            raise Exception('Should have raised an exception')
 
         #Wrong dimension of vertices
         try:
@@ -667,7 +667,7 @@ class Test_Mesh(unittest.TestCase):
         except AssertionError:
             pass
         else:
-            raise 'Should have raised an exception'
+            raise Exception('Should have raised an exception')
 
         #Unsubscriptable coordinates object raises exception
         try:
@@ -675,7 +675,7 @@ class Test_Mesh(unittest.TestCase):
         except AssertionError:
             pass
         else:
-            raise 'Should have raised an exception'
+            raise Exception('Should have raised an exception')
 
         #FIXME: This has been commented out pending a decision
         #whether to allow partial boundary tags or not
@@ -686,7 +686,7 @@ class Test_Mesh(unittest.TestCase):
         #except AssertionError:
         #    pass
         #else:
-        #    raise 'Should have raised an exception'
+        #    raise Exception('Should have raised an exception')
 
         #Specifying wrong non existing segment
         try:
@@ -694,7 +694,7 @@ class Test_Mesh(unittest.TestCase):
         except AssertionError:
             pass
         else:
-            raise 'Should have raised an exception'
+            raise Exception('Should have raised an exception')
 
 
 
@@ -1210,7 +1210,7 @@ class Test_Mesh(unittest.TestCase):
             pass
         else:
             msg = 'Should have caught point outside polygon (Non)'            
-            raise Exception, msg
+            raise Exception(msg)
             
         id = mesh.get_triangle_containing_point([0.5, 1.0])
         assert id == 0
@@ -1267,7 +1267,7 @@ class Test_Mesh(unittest.TestCase):
                 floor = 1
                 intersected_triangles = [2,3,6,7]
             else:
-                raise Exception, 'this test is not for parallel lines'
+                raise Exception('this test is not for parallel lines')
 
 
             line = [[-1,y_line], [3,y_line]]
@@ -1760,8 +1760,8 @@ class Test_Mesh(unittest.TestCase):
                     assert num.allclose(x.length, sqrt(sum(segvec**2))), msg
                     assert num.allclose(x.normal, [s2,-s2])
                 else:
-                    msg = 'Unknow segment: %s' %x.segment
-                    raise Exception, msg
+                    msg = 'Unknown segment: %s' %x.segment
+                    raise Exception(msg)
                 
 
                     

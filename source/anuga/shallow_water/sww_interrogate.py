@@ -13,36 +13,28 @@ from anuga.geometry.polygon import is_inside_polygon
 from anuga.file.sww import get_mesh_and_quantities_from_file
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import segment_midpoints
 
-##
-# @brief Get values for quantities interpolated to polyline midpoints from SWW.
-# @param filename Path to file to read.
-# @param quantity_names Quantity names to get.
-# @param polyline Representation of desired cross-section.
-# @param verbose True if this function is to be verbose.
-# @return (segments, i_func) where segments is a list of Triangle_intersection
-#         instances and i_func is an instance of Interpolation_function.
-# @note For 'polyline' assume absolute UTM coordinates.
+
 def get_interpolated_quantities_at_polyline_midpoints(filename,
                                                       quantity_names=None,
                                                       polyline=None,
                                                       verbose=False):
-    """Get values for quantities interpolated to polyline midpoints from SWW
+    """Get values for quantities interpolated to polyline midpoints from SWW.
 
-    Input:
-        filename - Name of sww file
-        quantity_names - Names of quantities to load
-        polyline: Representation of desired cross section - it may contain
-                  multiple sections allowing for complex shapes. Assume
-                  absolute UTM coordinates.
-                  Format [[x0, y0], [x1, y1], ...]
+    filename        path to file to read
+    quantity_names  quantity names to get
+    polyline        representation of desired cross-section
+                    may contain multiple sections allowing complex shapes
+                    assume UTM coordinates
+    verbose         True if this function is to be verbose
 
-    Output:
-        segments: list of instances of class Triangle_intersection
-        interpolation_function: Instance of class Interpolation_function
+    Returns (segments, i_func)
+    where segments is a list of Triangle_intersection instances
+      and i_func is an instance of Interpolation_function.
 
+    Note: For 'polyline' assume absolute UTM coordinates.
 
-      This function is used by get_flow_through_cross_section and
-      get_energy_through_cross_section
+    This function is used by get_flow_through_cross_section and
+    get_energy_through_cross_section.
     """
 
     from anuga.fit_interpolate.interpolate import Interpolation_function
@@ -75,25 +67,20 @@ def get_interpolated_quantities_at_polyline_midpoints(filename,
     return segments, I
 
 
-##
-# @brief Obtain flow (m^3/s) perpendicular to specified cross section.
-# @param filename Path to file to read.
-# @param polyline Representation of desired cross-section.
-# @param verbose Trie if this function is to be verbose.
-# @return (time, Q) where time and Q are lists of time and flow respectively.
 def get_flow_through_cross_section(filename, polyline, verbose=False):
     """Obtain flow (m^3/s) perpendicular to specified cross section.
 
-    Inputs:
-        filename: Name of sww file
-        polyline: Representation of desired cross section - it may contain
-                  multiple sections allowing for complex shapes. Assume
-                  absolute UTM coordinates.
-                  Format [[x0, y0], [x1, y1], ...]
+    filename  path to SWW file to read
+    polyline  representation of desired cross-section - it may contain
+              multiple sections allowing for complex shapes. Assume
+              absolute UTM coordinates.
+              Format [[x0, y0], [x1, y1], ...]
+    verbose   True if this function is to be verbose
 
-    Output:
-        time: All stored times in sww file
-        Q: Hydrograph of total flow across given segments for all stored times.
+    Return (time, Q)
+    where time is a list of all stored times in SWW file
+      and Q is a hydrograph of total flow across given segments for all
+            stored times.
 
     The normal flow is computed for each triangle intersected by the polyline
     and added up.  Multiple segments at different angles are specified the
@@ -146,32 +133,25 @@ def get_flow_through_cross_section(filename, polyline, verbose=False):
     return time, Q
 
 
-##
-# @brief Get average energy across a cross-section.
-# @param filename Path to file of interest.
-# @param polyline Representation of desired cross-section.
-# @param kind Select energy to compute: 'specific' or 'total'.
-# @param verbose True if this function is to be verbose.
-# @return (time, E) where time and E are lists of timestep and energy.
 def get_energy_through_cross_section(filename,
                                      polyline,
                                      kind='total',
                                      verbose=False):
     """Obtain average energy head [m] across specified cross section.
 
-    Inputs:
-        polyline: Representation of desired cross section - it may contain
-                  multiple sections allowing for complex shapes. Assume
-                  absolute UTM coordinates.
-                  Format [[x0, y0], [x1, y1], ...]
-        kind:     Select which energy to compute.
-                  Options are 'specific' and 'total' (default)
+    filename  path to file of interest
+    polyline  representation of desired cross-section - it may contain multiple
+              sections allowing for complex shapes. Assume absolute UTM
+              coordinates.  Format [[x0, y0], [x1, y1], ...]
+    kind      select energy to compute: 'specific' or 'total'
+    verbose   True if this function is to be verbose
 
-    Output:
-        E: Average energy [m] across given segments for all stored times.
+    Returns (time, E)
+    where time is a list of timestep
+      and E isaAverage energy [m] across given segments for all stored times.
 
-    The average velocity is computed for each triangle intersected by
-    the polyline and averaged weighted by segment lengths.
+    The average velocity is computed for each triangle intersected by the
+    polyline and averaged weighted by segment lengths.
 
     The typical usage of this function would be to get average energy of
     flow in a channel, and the polyline would then be a cross section
@@ -246,31 +226,25 @@ def get_energy_through_cross_section(filename,
     return time, E
 
 
-##
-# @brief Return highest elevation where depth > 0.
-# @param filename Path to SWW file of interest.
-# @param polygon If specified resrict to points inside this polygon.
-# @param time_interval If specified resrict to within the time specified.
-# @param verbose True if this function is  to be verbose.
 def get_maximum_inundation_elevation(filename,
                                      polygon=None,
                                      time_interval=None,
                                      verbose=False):
     """Return highest elevation where depth > 0
 
+    filename       path to SWW file containing ANUGA model output
+    polygon        if specified restrict to points inside this polygon
+    time_interval  if specified restrict to within the period specified
+    verbose        True if this function is  to be verbose
+
+    If no inundation is found within polygon and time_interval the return value
+    is None signifying "No Runup" or "Everything is dry".
+
     Usage:
     max_runup = get_maximum_inundation_elevation(filename,
                                                  polygon=None,
                                                  time_interval=None,
                                                  verbose=False)
-
-    filename is a NetCDF sww file containing ANUGA model output.
-    Optional arguments polygon and time_interval restricts the maximum
-    runup calculation
-    to a points that lie within the specified polygon and time interval.
-
-    If no inundation is found within polygon and time_interval the return value
-    is None signifying "No Runup" or "Everything is dry".
 
     See general function get_maximum_inundation_data for details.
     """
@@ -282,31 +256,25 @@ def get_maximum_inundation_elevation(filename,
     return runup
 
 
-##
-# @brief Return location of highest elevation where h > 0
-# @param filename Path to SWW file to read.
-# @param polygon If specified resrict to points inside this polygon.
-# @param time_interval If specified resrict to within the time specified.
-# @param verbose True if this function is  to be verbose.
 def get_maximum_inundation_location(filename,
                                     polygon=None,
                                     time_interval=None,
                                     verbose=False):
     """Return location of highest elevation where h > 0
 
+    filename       path to SWW file containing ANUGA model output
+    polygon        if specified restrict to points inside this polygon
+    time_interval  if specified restrict to within the period specified
+    verbose        True if this function is  to be verbose
+
+    If no inundation is found within polygon and time_interval the return value
+    is None signifying "No Runup" or "Everything is dry".
+
     Usage:
     max_runup_location = get_maximum_inundation_location(filename,
                                                          polygon=None,
                                                          time_interval=None,
                                                          verbose=False)
-
-    filename is a NetCDF sww file containing ANUGA model output.
-    Optional arguments polygon and time_interval restricts the maximum
-    runup calculation
-    to a points that lie within the specified polygon and time interval.
-
-    If no inundation is found within polygon and time_interval the return value
-    is None signifying "No Runup" or "Everything is dry".
 
     See general function get_maximum_inundation_data for details.
     """
@@ -318,18 +286,20 @@ def get_maximum_inundation_location(filename,
     return max_loc
 
 
-##
-# @brief Compute maximum run up height from SWW file.
-# @param filename Path to SWW file to read.
-# @param polygon If specified resrict to points inside this polygon.
-# @param time_interval If specified resrict to within the time specified.
-# @param use_centroid_values 
-# @param verbose True if this function is to be verbose.
-# @return (maximal_runup, maximal_runup_location)
 def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
                                 use_centroid_values=False,
                                 verbose=False):
     """Compute maximum run up height from sww file.
+
+    filename             path to SWW file to read
+    polygon              if specified resrict to points inside this polygon
+                         assumed absolute coordinates and in same zone as
+                         domain
+    time_interval        if specified resrict to within the period specified
+    use_centroid_values 
+    verbose              True if this function is to be verbose
+
+    Returns (maximal_runup, maximal_runup_location).
 
     Usage:
     runup, location = get_maximum_inundation_data(filename,
@@ -338,15 +308,8 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
                                                   verbose=False)
 
     Algorithm is as in get_maximum_inundation_elevation from
-    shallow_water_domain except that this function works with the sww file and
+    shallow_water_domain except that this function works with the SWW file and
     computes the maximal runup height over multiple timesteps.
-
-    Optional arguments polygon and time_interval restricts the maximum runup
-    calculation to a points that lie within the specified polygon and time
-    interval.
-
-    Polygon is assumed to be in (absolute) UTM coordinates in the same zone
-    as domain.
 
     If no inundation is found within polygon and time_interval the return value
     is None signifying "No Runup" or "Everything is dry".

@@ -174,7 +174,7 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
       msg += 'Make sure it is available on the system path.\n'
       msg += 'One way to check this is to run %s on ' %compiler
       msg += 'the commandline.'
-      raise Exception, msg    
+      raise Exception(msg)
 
   
   # Find location of include files
@@ -191,10 +191,10 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
   try:
     open(headerfile, 'r')
   except:
-    raise """Did not find Python header file %s.
+    raise Exception("""Did not find Python header file %s.
     Make sure files for Python C-extensions are installed. 
     In debian linux, for example, you need to install a
-    package called something like python2.3-dev""" %headerfile
+    package called something like python2.3-dev""" %headerfile)
 
 
 
@@ -242,12 +242,12 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
     if ext == '':
       FN = FN + '.c'
     elif ext.lower() != '.c':
-      raise Exception, "Unrecognised extension: " + FN
+      raise Exception("Unrecognised extension: " + FN)
     
     try:
       open(FN, 'r')
     except:
-      raise Exception, "Could not open: " + FN
+      raise Exception("Could not open: " + FN)
 
     if not object_files: root1 = root  #Remember first filename        
     object_files += root + '.o '  
@@ -292,9 +292,9 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
     try:
       err = os.system(s)
       if err != 0:
-          raise 'Attempting to compile %s failed - please try manually' %FN 
+          raise Exception('Attempting to compile %s failed - please try manually' %FN)
     except:
-      raise 'Could not compile %s - please try manually' %FN  
+      raise Exception('Could not compile %s - please try manually' %FN)
 
   
   # Make shared library (*.so or *.dll)
@@ -313,9 +313,10 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
   try:  
     err=os.system(s)
     if err != 0:        
-        raise 'Attempting to link %s failed - please try manually' %root1     
+        raise Exception('Attempting to link %s failed - please try manually'
+                        % root1)
   except:
-    raise 'Could not link %s - please try manually' %root1
+    raise Exception('Could not link %s - please try manually' % root1)
     
 
 def can_use_C_extension(filename):
@@ -351,7 +352,7 @@ def can_use_C_extension(filename):
                 except:
                     msg = 'C extension %s seems to compile OK, '
                     msg += 'but it can still not be imported.'
-                    raise msg
+                    raise Exception(msg)
                 else:
                     C=True
     else:
@@ -440,7 +441,7 @@ if __name__ == '__main__':
           except Exception, e:
               msg = 'Could not compile C extension %s\n' %filename
               msg += str(e)
-              raise Exception, msg
+              raise Exception(msg)
           else:
               print 'C extension %s OK' %filename
           print    

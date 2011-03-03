@@ -165,7 +165,7 @@ class Test_Util(unittest.TestCase):
             #print 'Timesteps: %.16f, %.16f' %(t0, t)
             #if t == t0:
             #    msg = 'Duplicate timestep found: %f, %f' %(t0, t)
-            #   raise msg
+            #   raise Exception(msg)
             t0 = t
              
             #domain1.write_time()
@@ -1268,7 +1268,7 @@ class Test_Util(unittest.TestCase):
             pass
         else:
             msg = 'Should have raised a NameError Exception'
-            raise msg
+            raise Exception(msg)
 
 
         try:
@@ -1278,7 +1278,7 @@ class Test_Util(unittest.TestCase):
             pass
         else:
             msg = 'Should have raised a AssertionError Exception'
-            raise msg        
+            raise Exception(msg)
         
 
     def test_multiple_replace(self):

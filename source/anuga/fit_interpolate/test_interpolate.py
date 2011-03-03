@@ -1169,14 +1169,14 @@ class Test_Interpolate(unittest.TestCase):
         except:
             pass
         else:
-            raise 'Should raise exception'
+            raise Exception('Should raise exception')
 
         try:
             I(time[-1]+1) 
         except:
             pass
         else:
-            raise 'Should raise exception'        
+            raise Exception('Should raise exception')
 
 
         
@@ -1234,7 +1234,7 @@ class Test_Interpolate(unittest.TestCase):
         except:
             pass
         else:
-            raise 'Should raise exception'
+            raise Exception('Should raise exception')
 
             
     def test_interpolation_interface(self):
@@ -1293,7 +1293,7 @@ class Test_Interpolate(unittest.TestCase):
         except:
             pass
         else:
-            raise 'Should raise exception'
+            raise Exception('Should raise exception')
 
 
 
@@ -1503,7 +1503,7 @@ class Test_Interpolate(unittest.TestCase):
         except:
             pass
         else:
-            raise 'Should raise exception'
+            raise Exception('Should raise exception')
 
 
     def test_interpolation_function_time(self):
@@ -1666,7 +1666,7 @@ class Test_Interpolate(unittest.TestCase):
         except:
             pass
         else:
-            raise 'Should raise exception due to time being non-monotoneous'            
+            raise Exception('Should raise exception due to time being non-monotoneous')
       
 
     def test_points_outside_the_polygon(self):

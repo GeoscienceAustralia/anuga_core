@@ -104,7 +104,7 @@ class Advection_Domain(Generic_Domain):
                 Q.extrapolate_second_order_and_limit_by_edge()
                 #Q.limit()
             else:
-                raise 'Unknown order'
+                raise Exception('Unknown order: %s' % str(self._order_))
             #Q.interpolate_from_vertices_to_edges()
 
 

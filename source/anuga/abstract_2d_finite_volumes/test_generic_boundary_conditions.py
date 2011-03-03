@@ -37,7 +37,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         except:
             pass
         else:
-            raise 'Should have raised exception'
+            raise Exception('Should have raised exception')
 
 
     def test_dirichlet_empty(self):
@@ -47,7 +47,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         except:
             pass
         else:
-            raise 'Should have raised exception'
+            raise Exception('Should have raised exception')
 
     def test_dirichlet(self):
         x = [3.14,0,0.1]
@@ -94,7 +94,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         except:
             pass
         else:
-            raise 'Should have raised exception'
+            raise Exception('Should have raised exception')
 
         #Test time bdry, you need to provide a function
         try:
@@ -102,7 +102,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         except:
             pass
         else:
-            raise 'Should have raised exception'
+            raise Exception('Should have raised exception')
 
 
         def function(t):
@@ -160,7 +160,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         except:
             pass
         else:
-            raise 'Should have raised exception'
+            raise Exception('Should have raised exception')
 
         #Test time bdry, you need to provide a function
         try:
@@ -168,7 +168,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         except:
             pass
         else:
-            raise 'Should have raised exception'
+            raise Exception('Should have raised exception')
 
 
         def function(t,x,y):
@@ -232,7 +232,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         except:
             pass
         else:
-            raise 'Should have raised exception'
+            raise Exception('Should have raised exception')
 
         T = Transmissive_boundary(domain)
 
@@ -423,7 +423,7 @@ class Test_Generic_Boundary_Conditions(unittest.TestCase):
         except:
             pass
         else:
-            raise 'Should have raised an exception'        
+            raise Exception('Should have raised an exception')
         
         os.remove(filename + '.txt')
         os.remove(filename + '.tms')        

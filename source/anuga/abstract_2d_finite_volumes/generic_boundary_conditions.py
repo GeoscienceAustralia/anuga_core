@@ -25,7 +25,7 @@ class Boundary:
 
     def evaluate(self, vol_id=None, edge_id=None):
         msg = 'Generic class Boundary must be subclassed'
-        raise Exception, msg
+        raise Exception(msg)
 
 
 class Transmissive_boundary(Boundary):
@@ -40,7 +40,7 @@ class Transmissive_boundary(Boundary):
 
         if domain is None:
             msg = 'Domain must be specified for transmissive boundary'
-            raise Exception, msg
+            raise Exception(msg)
 
         self.domain = domain
 
@@ -72,7 +72,7 @@ class Dirichlet_boundary(Boundary):
 
         if conserved_quantities is None:
             msg = 'Must specify one value for each conserved quantity'
-            raise Exception, msg
+            raise Exception(msg)
 
         self.conserved_quantities=num.array(conserved_quantities, num.float)
 
@@ -115,14 +115,14 @@ class Time_boundary(Boundary):
         self.verbose = verbose
 
         if domain is None:
-            raise Exception, 'You must specify a domain to Time_boundary'
+            raise Exception('You must specify a domain to Time_boundary')
 
         # FIXME: Temporary code to deal with both f and function
         if function is not None and f is not None:
-            raise Exception, 'Specify either function or f to Time_boundary'
+            raise Exception('Specify either function or f to Time_boundary')
             
         if function is None and f is None:
-            raise Exception, 'You must specify a function to Time_boundary'
+            raise Exception('You must specify a function to Time_boundary')
             
         if f is None:
             f = function
@@ -132,7 +132,7 @@ class Time_boundary(Boundary):
             q = f(0.0)
         except Exception, e:
             msg = 'Function for time boundary could not be executed:\n%s' %e
-            raise msg
+            raise Exception(msg)
 
 
         try:
@@ -142,7 +142,7 @@ class Time_boundary(Boundary):
             msg += 'not be converted into a numeric array of floats.\n'
             msg += 'Specified function should return either list or array.\n'
             msg += 'I got %s' %str(q)
-            raise msg
+            raise Exception(msg)
 
         msg = 'ERROR: Time boundary function must return a 1d list or array '
         assert len(q.shape) == 1, msg
@@ -162,10 +162,10 @@ class Time_boundary(Boundary):
         try:
             res = self.f(self.domain.time)
         except Modeltime_too_early, e:
-            raise Modeltime_too_early, e
+            raise Modeltime_too_early(e)
         except Modeltime_too_late, e:
             if self.default_boundary is None:
-                raise Exception, e # Reraise exception
+                raise Exception(e) # Reraise exception
             else:
                 # Pass control to default boundary
                 res = self.default_boundary.evaluate(vol_id, edge_id)
@@ -222,13 +222,13 @@ class Time_space_boundary(Boundary):
 
         
         if function is None:
-            raise Exception, 'You must specify a function to Time_space_boundary'
+            raise Exception('You must specify a function to Time_space_boundary')
             
         try:
             q = function(0.0, 0.0, 0.0)
         except Exception, e:
             msg = 'Function for time_space_boundary could not be executed:\n%s' %e
-            raise msg
+            raise Exception(msg)
 
 
         try:
@@ -238,7 +238,7 @@ class Time_space_boundary(Boundary):
             msg += 'not be converted into a numeric array of floats.\n'
             msg += 'Specified function should return either list or array.\n'
             msg += 'I got %s' %str(q)
-            raise msg
+            raise Exception(msg)
 
         msg = 'ERROR: Time_space_boundary function must return a 1d list or array '
         assert len(q.shape) == 1, msg
@@ -261,10 +261,10 @@ class Time_space_boundary(Boundary):
         try:
             res = self.function(self.domain.get_time(), x, y)
         except Modeltime_too_early, e:
-            raise Modeltime_too_early, e
+            raise Modeltime_too_early(e)
         except Modeltime_too_late, e:
             if self.default_boundary is None:
-                raise Exception, e # Reraise exception
+                raise Exception(e) # Reraise exception
             else:
                 # Pass control to default boundary
                 res = self.default_boundary.evaluate(vol_id, edge_id)
@@ -436,10 +436,10 @@ class File_boundary(Boundary):
             try:
                 res = self.F(t, point_id=i)
             except Modeltime_too_early, e:
-                raise Modeltime_too_early, e
+                raise Modeltime_too_early(e)
             except Modeltime_too_late, e:
                 if self.default_boundary is None:
-                    raise Exception, e # Reraise exception
+                    raise Exception(e) # Reraise exception
                 else:
                     # Pass control to default boundary
                     res = self.default_boundary.evaluate(vol_id, edge_id)
@@ -485,13 +485,13 @@ class File_boundary(Boundary):
                         msg += 'This point is inside the mesh defined '
                         msg += 'the file %s.\n' %self.F.filename
                         msg += 'Check this file for NANs.'
-                raise Exception, msg
+                raise Exception(msg)
             
             return res 
         else:
             msg = 'Boundary call without point_id not implemented.\n'
             msg += 'vol_id=%s, edge_id=%s' %(str(vol_id), str(edge_id))
-            raise Exception, msg
+            raise Exception(msg)
 
 class AWI_boundary(Boundary):
     """The AWI_boundary reads values for the conserved
@@ -640,7 +640,7 @@ class AWI_boundary(Boundary):
                         msg += 'This point is inside the mesh defined '
                         msg += 'the file %s.\n' % self.F.filename
                         msg += 'Check this file for NANs.'
-                raise Exception, msg
+                raise Exception(msg)
             
             q[0] = res[0] # Take stage, leave momentum alone
             return q

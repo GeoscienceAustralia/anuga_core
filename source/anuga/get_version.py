@@ -37,7 +37,7 @@ err = os.system(cmd)
 if err != 0:
     msg = 'Command %s could not execute.'
     msg += 'Make sure the program SubWCRev.exe is available on your path'
-    raise msg
+    raise Exception(msg)
 
 
 

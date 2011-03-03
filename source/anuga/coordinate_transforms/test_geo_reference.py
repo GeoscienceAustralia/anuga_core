@@ -472,7 +472,7 @@ class geo_referenceTestCase(unittest.TestCase):
             pass
         else:
             msg = 'Should have raised an exception'
-            raise msg
+            raise Exception(msg)
   
     def test_bad_ASCII_title(self):      
  # create an text file

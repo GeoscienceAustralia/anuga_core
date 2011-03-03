@@ -12,13 +12,15 @@ from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 import anuga.utilities.log as log
 
 
-##
-# @brief Convert a MOST file to NetCDF format.
-# @param input_file The input file to convert.
-# @param output_file The name of the oputput NetCDF file to create,
-# @param inverted_bathymetry ??
-# @param verbose True if the function is to be verbose.
 def most2nc(input_file, output_file, inverted_bathymetry=False, verbose=True):
+    """Convert a MOST file to NetCDF format.
+
+    input_file           the input file to convert
+    output_file          the name of the oputput NetCDF file to create
+    inverted_bathymetry  ??
+    verbose              True if the function is to be verbose
+    """
+
     # variable names
     long_name = 'LON'
     lat_name = 'LAT'

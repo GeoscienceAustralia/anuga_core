@@ -74,7 +74,7 @@ class Test_Quantity(unittest.TestCase):
         except:
             pass
         else:
-            raise 'Should have raised empty quantity exception'
+            raise Exception('Should have raised empty quantity exception')
 
 
         # FIXME(Ole): Temporarily disabled 18 Jan 2009
@@ -83,7 +83,7 @@ class Test_Quantity(unittest.TestCase):
         #except AssertionError:
         #    pass
         #except:
-        #    raise 'Should have raised "mising mesh object" error'
+        #    raise Exception('Should have raised "mising mesh object" error')
 
 
     def test_creation_zeros(self):
@@ -285,7 +285,7 @@ class Test_Quantity(unittest.TestCase):
         except AssertionError:
             pass
         except:
-            raise 'should have raised Assertionerror'
+            raise Exception('should have raised Assertionerror')
 
 
 
@@ -460,7 +460,7 @@ class Test_Quantity(unittest.TestCase):
             pass
         else:
             msg = 'Should have caught this'
-            raise msg
+            raise Exception(msg)
 
 
 

@@ -43,7 +43,7 @@ def check_forcefield(f):
         except Exception, e:
             msg = 'Function %s could not be executed:\n%s' %(f, e)
             # FIXME: Reconsider this semantics
-            raise Exception, msg
+            raise Exception(msg)
 
         try:
             q = num.array(q, num.float)
@@ -51,7 +51,7 @@ def check_forcefield(f):
             msg = ('Return value from vector function %s could not '
                    'be converted into a numeric array of floats.\nSpecified '
                    'function should return either list or array.' % f)
-            raise Exception, msg
+            raise Exception(msg)
 
         # Is this really what we want?
         # info is "(func name, filename, defining line)"
@@ -62,7 +62,7 @@ def check_forcefield(f):
             result_len = len(q)
         except:
             msg = '%s must return vector' % func_msg
-            raise Exception, msg
+            raise Exception(msg)
         msg = '%s must return vector of length %d' % (func_msg, N)
         assert result_len == N, msg
     else:
@@ -71,7 +71,7 @@ def check_forcefield(f):
         except:
             msg = ('Force field %s must be a scalar value coercible to float.'
                    % str(f))
-            raise Exception, msg
+            raise Exception(msg)
 
     return f
 
@@ -146,7 +146,7 @@ class Wind_stress:
                s = kwargs['s']
                phi = kwargs['phi']
            else:
-               raise Exception, 'Assumes two keyword arguments: s=..., phi=....'
+               raise Exception('Assumes two keyword arguments: s=..., phi=....')
 
         if ( self.use_coordinates ):
             self.speed = check_forcefield(s)
@@ -182,7 +182,7 @@ class Wind_stress:
                 s_vec = self.speed * num.ones(N, num.float)
             except:
                 msg = 'Speed must be either callable or a scalar: %s' %self.s
-                raise msg
+                raise Exception(msg)
 
         if callable(self.phi):
             xc = domain.get_centroid_coordinates()
@@ -199,7 +199,7 @@ class Wind_stress:
                 phi_vec = self.phi * num.ones(N, num.float)
             except:
                 msg = 'Angle must be either callable or a scalar: %s' %self.phi
-                raise msg
+                raise Exception(msg)
 
         assign_windfield_values(xmom_update, ymom_update,
                                 s_vec, phi_vec, self.const)
@@ -387,7 +387,7 @@ class General_forcing:
             if len(self.exchange_indices) == 0:
                 msg = 'No triangles have been identified in '
                 msg += 'specified region: %s' % inlet_region
-                raise Exception, msg
+                raise Exception(msg)
 
             # Compute exchange area as the sum of areas of triangles identified
             # by circle or polygon
@@ -420,7 +420,7 @@ class General_forcing:
             try:
                 default_rate(0.0)
             except:
-                raise Exception, msg
+                raise Exception(msg)
 
         self.default_rate = default_rate
         self.default_rate_invoked = False    # Flag
@@ -436,13 +436,13 @@ class General_forcing:
         try:
             rate = self.update_rate(t)
         except Modeltime_too_early, e:
-            raise Modeltime_too_early, e
+            raise Modeltime_too_early(e)
         except Modeltime_too_late, e:
             if self.default_rate is None:
                 msg = '%s: ANUGA is trying to run longer than specified data.\n' %str(e)
                 msg += 'You can specify keyword argument default_rate in the '
                 msg += 'forcing function to tell it what to do in the absence of time data.'
-                raise Modeltime_too_late, msg    
+                raise Modeltime_too_late(msg)
             else:
                 # Pass control to default rate function
                 rate = self.default_rate(t)
@@ -463,7 +463,7 @@ class General_forcing:
         if rate is None:
             msg = ('Attribute rate must be specified in General_forcing '
                    'or its descendants before attempting to call it')
-            raise Exception, msg
+            raise Exception(msg)
 
         # Now rate is a number
         if self.verbose is True:
@@ -946,7 +946,8 @@ class Barometric_pressure:
                p = kwargs['p']
                self.use_coordinates = kwargs['use_coordinates']
            else:
-               raise Exception, 'Assumes one keyword argument: p=... or two keyword arguments p=...,use_coordinates=...'
+               raise Exception('Assumes one keyword argument: p=... or two '
+                               'keyword arguments p=...,use_coordinates=...')
 
         if ( self.use_coordinates ):
             self.pressure = check_forcefield(p)
@@ -979,7 +980,7 @@ class Barometric_pressure:
                 p_vec = self.pressure * num.ones(N, num.float)
             except:
                 msg = 'Pressure must be either callable or a scalar: %s' %self.s
-                raise msg
+                raise Exception(msg)
 
         stage = domain.quantities['stage']
         elevation = domain.quantities['elevation']
@@ -1092,7 +1093,8 @@ class Barometric_pressure_fast:
                     domain=kwargs['domain']
                     self.use_coordinates=False
                 else:
-                    raise Exception, 'Assumes zero or two keyword arguments filename=...,domain=...'
+                    raise Exception('Assumes zero or two keyword arguments '
+                                    'filename=...,domain=...')
 
                 if ( self.use_coordinates ):
                     p = lambda t,x,y: vector_function(t,x=x,y=y)[0]
@@ -1109,7 +1111,9 @@ class Barometric_pressure_fast:
                domain = kwargs['domain']
                self.use_coordinates = False
            else:
-               raise Exception, 'Assumes one keyword argument: p=f(t,x,y,) or three keyword arguments p=f(t,i),filename=...,domain=...'
+               raise Exception('Assumes one keyword argument: p=f(t,x,y,) or '
+                               'three keyword arguments '
+                               'p=f(t,i),filename=...,domain=...')
 
         if ( self.use_coordinates ):
             self.pressure = check_forcefield(p)
@@ -1125,11 +1129,11 @@ class Barometric_pressure_fast:
 
             msg = 'pressure_file.starttime > domain.starttime'
             if (self.file_time[0]>domain.starttime):
-                raise Exception, msg
+                raise Exception(msg)
 
             msg = 'pressure_file[-1] < domain.starttime'
             if (self.file_time[-1]<domain.starttime):
-                raise Exception, msg
+                raise Exception(msg)
 
             msg = 'No pressure values exist for times greater than domain.starttime'
             if (self.file_time[-2]<domain.starttime and self.file_time[-1]>domain.starttime):
@@ -1184,7 +1188,7 @@ class Barometric_pressure_fast:
                 self.p_vec[:] = self.pressure
             except:
                 msg = 'Pressure must be either callable function or a scalar: %s' %self.s
-                raise msg
+                raise Exception(msg)
 
         stage = domain.quantities['stage']
         elevation = domain.quantities['elevation']
@@ -1287,7 +1291,7 @@ class Wind_stress_fast:
                s = kwargs['s']
                phi = kwargs['phi']
            else:
-               raise Exception, 'Assumes two keyword arguments: s=..., phi=....'
+               raise Exception('Assumes two keyword arguments: s=...,phi=....')
 
         if ( self.use_coordinates ):
             self.speed = check_forcefield(s)
@@ -1306,15 +1310,15 @@ class Wind_stress_fast:
 
             msg = 'wind_file.starttime > domain.starttime'
             if (self.file_time[0]>domain.starttime):
-                raise Exception, msg
+                raise Exception(msg)
 
             msg = 'wind_file[-1] < domain.starttime'
             if (self.file_time[-1]<domain.starttime):
-                raise Exception, msg
+                raise Exception(msg)
 
             msg = 'No wind values exist for times greater than domain.starttime'
             if (self.file_time[-2]<domain.starttime and self.file_time[-1]>domain.starttime):
-                raise Exception, msg
+                raise Exception(msg)
 
             # FIXME(JJ): How do we check that evolve 
             # finaltime  < wind_file.finaltime      
@@ -1372,7 +1376,7 @@ class Wind_stress_fast:
                 self.s_vec[:] = self.speed
             except:
                 msg = 'Speed must be either callable or a scalar: %s' %self.s
-                raise msg
+                raise Exception(msg)
 
         if callable(self.phi):
             if ( self.use_coordinates ):
@@ -1394,7 +1398,7 @@ class Wind_stress_fast:
                 self.phi_vec[:] = self.phi
             except:
                 msg = 'Angle must be either callable or a scalar: %s' %self.phi
-                raise msg
+                raise Exception(msg)
 
         assign_windfield_values(xmom_update, ymom_update,
                                 self.s_vec, self.phi_vec, self.const)

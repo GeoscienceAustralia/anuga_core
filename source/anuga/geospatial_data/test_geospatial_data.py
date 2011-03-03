@@ -117,7 +117,7 @@ class Test_Geospatial_data(unittest.TestCase):
         except AssertionError:
             pass
         else:
-            raise Exception, 'Should have raised exception'
+            raise Exception('Should have raised exception')
 
     def test_get_data_points(self):
         points_ab = [[12.5, 34.7], [-4.5, -60.0]]
@@ -730,7 +730,7 @@ class Test_Geospatial_data(unittest.TestCase):
             pass
         else:
             msg = 'Different zones in Geo references not caught.'
-            raise Exception, msg
+            raise Exception(msg)
 
         os.remove(fileName)
 
@@ -794,7 +794,7 @@ class Test_Geospatial_data(unittest.TestCase):
             pass
         else:
             msg = 'Bad file did not raise error!'
-            raise Exception, msg
+            raise Exception(msg)
         os.remove(fileName)
 
     def test_load_csv_badII(self):
@@ -823,7 +823,7 @@ class Test_Geospatial_data(unittest.TestCase):
             pass
         else:
             msg = 'Bad file did not raise error!'
-            raise Exception, msg
+            raise Exception(msg)
         os.remove(fileName)
 
     def test_load_csv_badIII(self):
@@ -846,7 +846,7 @@ class Test_Geospatial_data(unittest.TestCase):
             pass
         else:
             msg = 'Bad file did not raise error!'
-            raise Exception, msg
+            raise Exception(msg)
         os.remove(fileName)
 
     def test_load_csv_badIV(self):
@@ -875,7 +875,7 @@ class Test_Geospatial_data(unittest.TestCase):
             pass
         else:
             msg = 'Bad file did not raise error!'
-            raise Exception, msg
+            raise Exception(msg)
         os.remove(fileName)
 
     def test_load_pts_blocking(self):
@@ -1196,7 +1196,7 @@ class Test_Geospatial_data(unittest.TestCase):
             pass
         else:
             msg = 'imaginary file did not raise error!'
-            raise Exception, msg
+            raise Exception(msg)
 
     def test_create_from_pts_file(self):
         from Scientific.IO.NetCDF import NetCDFFile
@@ -1450,7 +1450,7 @@ class Test_Geospatial_data(unittest.TestCase):
             pass
         else:
             msg = 'Instance must have a filename or data points'
-            raise Exception, msg
+            raise Exception(msg)
 
     def test_load_csv_lat_long(self):
         '''comma delimited'''
@@ -1506,7 +1506,7 @@ class Test_Geospatial_data(unittest.TestCase):
             pass
         else:
             msg = 'Different zones in Geo references not caught.'
-            raise Exception, msg
+            raise Exception(msg)
 
         os.remove(fileName)
 

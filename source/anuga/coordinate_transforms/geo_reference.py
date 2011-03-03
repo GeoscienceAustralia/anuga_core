@@ -28,8 +28,6 @@ DEFAULT_FALSE_EASTING = 500000
 DEFAULT_FALSE_NORTHING = 10000000    # Default for southern hemisphere
 
 
-##
-# @brief A class for ...
 class Geo_reference:
     """
     Attributes of the Geo_reference class:
@@ -45,19 +43,6 @@ class Geo_reference:
 
     """
 
-    ##
-    # @brief Instantiate an instance of class Geo_reference.
-    # @param zone The UTM zone.
-    # @param xllcorner X coord of origin of georef.
-    # @param yllcorner Y coord of origin of georef.
-    # @param datum ??
-    # @param projection The projection used (default UTM).
-    # @param units Units used in measuring distance (default m).
-    # @param false_easting ??
-    # @param false_northing ??
-    # @param NetCDFObject NetCDF file *handle* to write to.
-    # @param ASCIIFile ASCII text file *handle* to write to.
-    # @param read_title Title of the georeference text.
     def __init__(self,
                  zone=DEFAULT_ZONE,
                  xllcorner=0.0,
@@ -71,18 +56,26 @@ class Geo_reference:
                  ASCIIFile=None,
                  read_title=None):
         """
-        input:
-        NetCDFObject - a handle to the netCDF file to be written to
-        ASCIIFile - a handle to the text file
-        read_title - the title of the georeference text, if it was read in.
-         If the function that calls this has already read the title line,
-         it can't unread it, so this info has to be passed.
-         If you know of a way to unread this info, then tell us.
+        zone            the UTM zone.
+        xllcorner       X coord of origin of georef.
+        yllcorner       Y coord of origin of georef.
+        datum           ??
+        projection      the projection used (default UTM).
+        units           units used in measuring distance (default m).
+        false_easting   ??
+        false_northing  ??
+        NetCDFObject    NetCDF file *handle* to write to.
+        ASCIIFile       ASCII text file *handle* to write to.
+        read_title      title of the georeference text.
 
-         Note, the text file only saves a sub set of the info the
-         points file does.  Currently the info not written in text
-         must be the default info, since ANUGA assumes it isn't
-         changing.
+        If the function that calls this has already read the title line,
+        it can't unread it, so this info has to be passed.
+        If you know of a way to unread this info, then tell us.
+
+        Note, the text file only saves a sub set of the info the
+        points file does.  Currently the info not written in text
+        must be the default info, since ANUGA assumes it isn't
+        changing.
         """
 
         if zone is None:
@@ -109,20 +102,22 @@ class Geo_reference:
     def get_xllcorner(self):
         return self.xllcorner
 
-    ##
-    # @brief Get the Y coordinate of the origin of this georef.
     def get_yllcorner(self):
+        """Get the Y coordinate of the origin of this georef."""
+
         return self.yllcorner
 
-    ##
-    # @brief Get the zone of this georef.
     def get_zone(self):
+        """Get the zone of this georef."""
+
         return self.zone
 
-    ##
-    # @brief Write <something> to an open NetCDF file.
-    # @param outfile Handle to open NetCDF file.
     def write_NetCDF(self, outfile):
+        """Write georef attributes to an open NetCDF file.
+
+        outfile  handle to open NetCDF file
+        """
+
         outfile.xllcorner = self.xllcorner
         outfile.yllcorner = self.yllcorner
         outfile.zone = self.zone
@@ -134,10 +129,12 @@ class Geo_reference:
         outfile.projection = self.projection
         outfile.units = self.units
 
-    ##
-    # @brief Read data from an open NetCDF file.
-    # @param infile Handle to open NetCDF file.
     def read_NetCDF(self, infile):
+        """Set georef attributes from open NetCDF file.
+
+        infile Handle to open NetCDF file
+        """
+
         self.xllcorner = float(infile.xllcorner[0])
         self.yllcorner = float(infile.yllcorner[0])
         self.zone = int(infile.zone[0])
@@ -188,19 +185,23 @@ class Geo_reference:
 # ASCII files with geo-refs are currently not used
 ################################################################################
 
-    ##
-    # @brief Write georef data to an open text file.
-    # @param fd Handle to open text file.
     def write_ASCII(self, fd):
+        """Write georef attriutes to an open text file.
+
+        fd  handle to open text file
+        """
+
         fd.write(TITLE)
         fd.write(str(self.zone) + "\n")
         fd.write(str(self.xllcorner) + "\n")
         fd.write(str(self.yllcorner) + "\n")
 
-    ##
-    # @brief Read georef data from an open text file.
-    # @param fd Handle to open text file.
     def read_ASCII(self, fd, read_title=None):
+        """Set georef attribtes from open text file.
+
+        fd  handle to open text file
+        """
+
         try:
             if read_title == None:
                 read_title = fd.readline()     # remove the title line
@@ -231,17 +232,16 @@ class Geo_reference:
 
 ################################################################################
 
-    ##
-    # @brief Change points to be absolute wrt new georef 'points_geo_ref'.
-    # @param points The points to change.
-    # @param points_geo_ref The new georef to make points absolute wrt.
-    # @return The changed points.
-    # @note If 'points' is a list then a changed list is returned.
     def change_points_geo_ref(self, points, points_geo_ref=None):
-        """Change the geo reference of a list or numeric array of points to
-        be this reference.(The reference used for this object)
-        If the points do not have a geo ref, assume 'absolute' values
+        """Change points to be absolute wrt new georef 'points_geo_ref'.
+
+        points          the points to change
+        points_geo_ref  the new georef to make points absolute wrt
+
+        Returns the changed points data.
+        If the points do not have a georef, assume 'absolute' values.
         """
+
         import copy
        
         # remember if we got a list
@@ -284,8 +284,10 @@ class Geo_reference:
         return points
 
     def is_absolute(self):
-        """Return True if xllcorner==yllcorner==0 indicating that points
-        in question are absolute.
+        """Test if points in georef are absolute.
+
+        Return True if xllcorner==yllcorner==0 indicating that points in
+        question are absolute.
         """
         
         # FIXME(Ole): It is unfortunate that decision about whether points
@@ -304,8 +306,8 @@ class Geo_reference:
         return self.absolute
 
     def get_absolute(self, points):
-        """Given a set of points geo referenced to this instance,
-        return the points as absolute values.
+        """Given a set of points geo referenced to this instance, return the
+        points as absolute values.
         """
 
         # remember if we got a list
@@ -337,16 +339,14 @@ class Geo_reference:
              
         return points
 
-    ##
-    # @brief Convert points to relative measurement.
-    # @param points Points to convert to relative measurements.
-    # @return A set of points relative to the geo_reference instance.
     def get_relative(self, points):
-        """Given a set of points in absolute UTM coordinates,
-        make them relative to this geo_reference instance,
-        return the points as relative values.
+        """Convert points to relative measurement.
 
-        This is the inverse of get_absolute.
+        points Points to convert to relative measurements
+
+        Returns a set of points relative to the geo_reference instance.
+
+        This is the inverse of get_absolute().
         """
 
         # remember if we got a list
@@ -375,9 +375,6 @@ class Geo_reference:
              
         return points
 
-    ##
-    # @brief ??
-    # @param other ??
     def reconcile_zones(self, other):
         if other is None:
             other = Geo_reference()
@@ -401,25 +398,26 @@ class Geo_reference:
     #def easting_northing2geo_reffed_points(self, x, y):
     #    return [x-self.xllcorner, y - self.xllcorner]
 
-    ##
-    # @brief Get origin of this geo_reference.
-    # @return (zone, xllcorner, yllcorner).
     def get_origin(self):
+        """Get origin of this geo_reference."""
+      
         return (self.zone, self.xllcorner, self.yllcorner)
 
-    ##
-    # @brief Get a string representation of this geo_reference instance.
     def __repr__(self):
         return ('(zone=%i easting=%f, northing=%f)'
                 % (self.zone, self.xllcorner, self.yllcorner))
 
-    ##
-    # @brief Compare two geo_reference instances.
-    # @param self This geo_reference instance.
-    # @param other Another geo_reference instance to compare against.
-    # @return 0 if instances have the same attributes, else 1.
-    # @note Attributes are: zone, xllcorner, yllcorner.
     def __cmp__(self, other):
+        """Compare two geo_reference instances.
+
+        self   this geo_reference instance
+        other  another geo_reference instance to compare against
+
+        Returns 0 if instances have the same attributes, else returns 1.
+
+        Note: attributes are: zone, xllcorner, yllcorner.
+        """
+
         # FIXME (DSG) add a tolerence
         if other is None:
             return 1
@@ -433,17 +431,13 @@ class Geo_reference:
         return cmp
 
 
-##
-# @brief Write a geo_reference to a NetCDF file (usually SWW).
-# @param origin A georef instance or parameters to create a georef instance.
-# @param outfile Path to file to write.
-# @return A normalized geo_reference.
 def write_NetCDF_georeference(origin, outfile):
-    """Write georeference info to a netcdf file, usually sww.
+    """Write georeference info to a NetCDF file, usually a SWW file.
 
-    The origin can be a georef instance or parameters for a geo_ref instance
+    origin   a georef instance or parameters to create a georef instance
+    outfile  path to file to write
 
-    outfile is the name of the file to be written to.
+    Returns the normalised georef.
     """
 
     geo_ref = ensure_geo_reference(origin)
@@ -451,17 +445,13 @@ def write_NetCDF_georeference(origin, outfile):
     return geo_ref
 
 
-##
-# @brief Convert an object to a georeference instance.
-# @param origin A georef instance or (zone, xllcorner, yllcorner)
-# @return A georef object, or None if 'origin' was None.
 def ensure_geo_reference(origin):
-    """
-    Given a list/tuple of zone, xllcorner and yllcorner of a geo-ref object,
-    return a geo ref object.
+    """Create a georef object from a tuple of attributes.
 
-    If the origin is None, return None, so calling this function doesn't
-    effect code logic
+    origin  a georef instance or (zone, xllcorner, yllcorner)
+
+    If origin is None, return None, so calling this function doesn't
+    effect code logic.
     """
 
     if isinstance(origin, Geo_reference):

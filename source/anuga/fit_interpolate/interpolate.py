@@ -799,7 +799,7 @@ class Interpolation_function:
         if not num.alltrue(time[1:] - time[:-1] >= 0):
             # This message is time consuming to form due to the conversion of
             msg = 'Time must be a monotonuosly increasing sequence %s' % time
-            raise Exception, msg
+            raise Exception(msg)
 
         # Check if quantities is a single array only
         if type(quantities) != types.DictType:
@@ -858,7 +858,7 @@ class Interpolation_function:
         if interpolation_points is not None:
             #no longer true. sts files have spatial = True but
             #if self.spatial is False:
-            #    raise 'Triangles and vertex_coordinates must be specified'
+            #    raise Exception('Triangles and vertex_coordinates must be specified')
             #
             try:
                 self.interpolation_points = \
@@ -867,7 +867,7 @@ class Interpolation_function:
                 msg = 'Interpolation points must be an N x 2 numeric array ' \
                       'or a list of points\n'
                 msg += 'Got: %s.' %(str(self.interpolation_points)[:60] + '...')
-                raise msg
+                raise Exception(msg)
 
             # Ensure 'mesh_boundary_polygon' is defined
             mesh_boundary_polygon = None
@@ -1102,7 +1102,7 @@ class Interpolation_function:
             else:
                 if x is not None and y is not None:
                     # Interpolate to x, y
-                    raise 'x,y interpolation not yet implemented'
+                    raise Exception('x,y interpolation not yet implemented')
                 else:
                     # Use precomputed point
                     Q0 = Q[self.index, point_id]

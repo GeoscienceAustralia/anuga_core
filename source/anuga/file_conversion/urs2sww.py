@@ -154,7 +154,7 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
         for quantity, file in map(None, quantities, files_in):
             mux[quantity].close()
         msg = "Due to mint and maxt there's no time info in the boundary SWW."
-        raise Exception, msg
+        raise Exception(msg)
 
     # If this raise is removed there is currently no downstream errors
 

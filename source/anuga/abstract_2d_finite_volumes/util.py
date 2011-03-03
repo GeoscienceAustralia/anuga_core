@@ -112,10 +112,10 @@ def apply_expression_to_dictionary(expression, dictionary):
         return eval(expression)
     except NameError, e:
         msg = 'Expression "%s" could not be evaluated: %s' % (expression, e)
-        raise NameError, msg
+        raise NameError(msg)
     except ValueError, e:
         msg = 'Expression "%s" could not be evaluated: %s' % (expression, e)
-        raise ValueError, msg
+        raise ValueError(msg)
 
 
 ##
@@ -145,7 +145,7 @@ def get_textual_float(value, format = '%.2f'):
                 s = s[:-2] + ')' # Strip trailing comma and close
                 return s
             else:
-                raise 'Illegal input to get_textual_float:', value
+                raise Exception('Illegal input to get_textual_float: %s' % str(value))
         else:
             return format % float(value)
 
@@ -176,8 +176,8 @@ def check_list(quantity):
     # check that all names in 'quantity' appear in 'all_quantity'
     p = list(set(quantity).difference(set(all_quantity)))
     if len(p) != 0:
-        msg = 'Quantities %s do not exist - please try again' %p
-        raise Exception, msg
+        msg = 'Quantities %s do not exist - please try again' % p
+        raise Exception(msg)
 
 
 ##
@@ -339,7 +339,7 @@ def make_plots_from_csv_file(directories_dic={dir:['gauge', 0, 0]},
     msg = 'make_plots_from_csv_file has been replaced by csv2timeseries_graphs '
     msg += 'Please use "from anuga.abstract_2d_finite_volumes.util import ' \
            'csv2timeseries_graphs"'
-    raise Exception, msg
+    raise Exception(msg)
 
     return csv2timeseries_graphs(directories_dic,
                                  output_dir,
@@ -501,7 +501,7 @@ def csv2timeseries_graphs(directories_dic={},
         import pylab
     except ImportError:
         msg='csv2timeseries_graphs needs pylab to be installed correctly'
-        raise msg
+        raise Exception(msg)
             #ANUGA don't need pylab to work so the system doesn't 
             #rely on pylab being installed 
         return

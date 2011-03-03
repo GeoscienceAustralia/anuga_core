@@ -151,7 +151,7 @@ class Test_swb_basic(unittest.TestCase):
         except:
             pass
         else:
-            raise Exception, 'Should have raised an exception'
+            raise Exception('Should have raised an exception')
 
     # Individual flux tests
     def test_flux_zero_case(self):
@@ -676,7 +676,7 @@ class Test_swb_basic(unittest.TestCase):
             pass
         else:
             msg = 'should have caught wrong time interval'
-            raise Exception, msg
+            raise Exception(msg)
 
         # Check correct time interval
         q, loc = get_maximum_inundation_data('runup_test.sww',
@@ -767,7 +767,7 @@ class Test_swb_basic(unittest.TestCase):
             pass
         else:
             msg = 'Time interval should have raised an exception'
-            raise Exception, msg
+            raise Exception(msg)
 
         # Cleanup
         try:
@@ -1978,7 +1978,7 @@ friction  \n \
                                 use_cache=False, verbose=verbose, alpha=0.01)
         except RuntimeError, e:
             msg = 'Test failed: %s' % str(e)
-            raise Exception, msg
+            raise Exception(msg)
             # clean up in case raise fails
             os.remove(meshname)
             os.remove(points_file)
@@ -2032,7 +2032,7 @@ friction  \n \
                                 use_cache=False, verbose=verbose)
         except AssertionError, e:
             msg = 'Test failed: %s' % str(e)
-            raise Exception, msg
+            raise Exception(msg)
             # Cleanup in case this failed
             os.remove(meshname)
 
@@ -2043,7 +2043,7 @@ friction  \n \
                                 use_cache=False, verbose=verbose)                            
         except AssertionError, e:
             msg = 'Test failed: %s' % str(e)
-            raise Exception, msg
+            raise Exception(msg)
             # Cleanup in case this failed
             os.remove(meshname)
         else:

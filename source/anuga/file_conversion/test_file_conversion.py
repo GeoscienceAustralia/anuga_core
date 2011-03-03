@@ -1210,7 +1210,7 @@ if __name__ == "__main__":
             os.remove(elevation_dir_filename1)
             os.remove(elevation_dir_filename2)
             os.rmdir(elevation_dir)
-            raise 'Should raise exception'
+            raise Exception('Should raise exception')
 
             os.remove(ucur_dir_filename1)
             os.remove(ucur_dir_filename2)
@@ -1913,7 +1913,7 @@ friction  \n \
         else:
             self.delete_mux(files)
             msg = 'Should have raised exception'
-            raise msg
+            raise Exception(msg)
         sww_file = base_name + '.sww'
         self.delete_mux(files)
         
@@ -1926,7 +1926,7 @@ friction  \n \
         else:
             self.delete_mux(files)
             msg = 'Should have raised exception'
-            raise msg
+            raise Exception(msg)
            
     def test_urs2sww(self):
         tide = 1
@@ -2392,7 +2392,7 @@ NODATA_value  -9999
             pass
         else:
             msg = 'Should have raised exception'
-            raise msg
+            raise Exception(msg)
        
     def test_lon_lat2gridII(self):
         lonlatdep = [
@@ -2406,7 +2406,7 @@ NODATA_value  -9999
             pass
         else:
             msg = 'Should have raised exception'
-            raise msg
+            raise Exception(msg)
         
 
 #-------------------------------------------------------------

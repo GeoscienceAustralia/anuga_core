@@ -412,7 +412,7 @@ class Generic_Domain:
         if not (vertex is None or edge is None):
             msg = 'Values for both vertex and edge was specified.'
             msg += 'Only one (or none) is allowed.'
-            raise Exception, msg
+            raise Exception(msg)
 
         q = num.zeros(len(self.conserved_quantities), num.float)
 
@@ -451,7 +451,7 @@ class Generic_Domain:
         if not (vertex is None or edge is None):
             msg = 'Values for both vertex and edge was specified.'
             msg += 'Only one (or none) is allowed.'
-            raise Exception, msg
+            raise Exception(msg)
 
         q = num.zeros(len(self.evolved_quantities), num.float)
 
@@ -827,7 +827,7 @@ class Generic_Domain:
                 msg += 'All boundary tags defined in domain must appear '
                 msg += 'in set_boundary.\n'
                 msg += 'The tags are: %s' %self.get_boundary_tags()
-                raise Exception, msg
+                raise Exception(msg)
 
     ##
     # @brief Set quantities based on a regional tag.
@@ -941,7 +941,7 @@ class Generic_Domain:
                        'I got "%s" as a second argument') % polygon
 
                 if polygon in self.quantities:
-                    raise Exception, msg
+                    raise Exception(msg)
 
                 try:
                     apply_expression_to_dictionary(polygon, self.quantities)
@@ -949,12 +949,12 @@ class Generic_Domain:
                     # At least polygon wasn't expression involving quantitites
                     pass
                 else:
-                    raise Exception, msg
+                    raise Exception(msg)
 
                 # In any case, we don't allow polygon to be a string
                 msg = ('argument "polygon" must not be a string: '
                        'I got polygon="%s"') % polygon
-                raise Exception, msg
+                raise Exception(msg)
 
             # Get indices for centroids that are inside polygon
             points = self.get_centroid_coordinates(absolute=True)
@@ -1329,7 +1329,7 @@ class Generic_Domain:
             return
 
         msg = '%s is an incorrect timestepping type' % timestepping_method
-        raise Exception, msg
+        raise Exception(msg)
 
     ##
     # @brief Get the Domain simulation name.
@@ -1443,7 +1443,7 @@ class Generic_Domain:
         
         if finaltime is not None and duration is not None:
             msg = 'Only one of finaltime and duration may be specified'
-            raise Exception, msg
+            raise Exception(msg)
         else:
             if finaltime is not None:
                 self.finaltime = float(finaltime)
@@ -1530,7 +1530,7 @@ class Generic_Domain:
                     # Probably not (Ole, 18 September 2008).
                     # Now changed to Exception.
                     msg = ('WARNING (domain.py): time overshot finaltime. ')
-                    raise Exception, msg
+                    raise Exception(msg)
 
                 # Log and then Yield final time and stop
                 self.set_time(self.finaltime)
@@ -1807,7 +1807,7 @@ class Generic_Domain:
         else:
             msg = 'Method conserved_values_to_evolved_values must be overridden'
             msg += ' by Domain subclass'
-            raise Exception, msg
+            raise Exception(msg)
 
         return q_evol
     
@@ -1845,7 +1845,7 @@ class Generic_Domain:
                 else:
                     msg = 'Boundary must return array of either conserved'
                     msg += ' or evolved quantities'
-                    raise Exception, msg
+                    raise Exception(msg)
                 
                 for j, name in enumerate(self.evolved_quantities):
                     Q = self.quantities[name]
@@ -1856,7 +1856,7 @@ class Generic_Domain:
     # @note MUST BE OVERRIDEN IN SUBCLASS!
     def compute_fluxes(self):
         msg = 'Method compute_fluxes must be overridden by Domain subclass'
-        raise Exception, msg
+        raise Exception(msg)
 
 
     ##
@@ -1935,7 +1935,7 @@ class Generic_Domain:
                     stats = self.timestepping_statistics(track_speeds=True)
                     log.critical(stats)
 
-                    raise Exception, msg
+                    raise Exception(msg)
                 else:
                     # Try to overcome situation by switching to 1 order
                     self._order_ = 1
@@ -2032,7 +2032,7 @@ class Generic_Domain:
             elif self._order_ == 2:
                 Q.extrapolate_second_order()
             else:
-                raise Exception, 'Unknown order'
+                raise Exception('Unknown order: %s' % str(self._order_))
 
     ##
     # @brief Calculate the norm of the centroid values of a specific quantity,

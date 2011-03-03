@@ -975,7 +975,7 @@ class Test_Fit(unittest.TestCase):
             pass
         else:
             #self.failUnless(0 ==1,  'Bad file did not raise error!')
-            raise 'Bad file did not raise error!'
+            raise Exception('Bad file did not raise error!')
             
         #clean up
         os.remove(mesh_file)
@@ -1008,7 +1008,7 @@ class Test_Fit(unittest.TestCase):
         except IOError:
             pass
         else:
-            raise 'Bad file did not raise error!'
+            raise Exception('Bad file did not raise error!')
             
         #clean up
         os.remove(mesh_file)
@@ -1051,7 +1051,7 @@ class Test_Fit(unittest.TestCase):
         except IOError:
             pass
         else:
-            raise 'Bad file did not raise error!'
+            raise Exception('Bad file did not raise error!')
         
         #clean up
         os.remove(mesh_file)
@@ -1085,7 +1085,7 @@ class Test_Fit(unittest.TestCase):
         except VertsWithNoTrianglesError:
             pass
         else:
-            raise 'Verts with no triangles did not raise error!'
+            raise Exception('Verts with no triangles did not raise error!')
         
         #f = interp.fit(data_coords, z)
         #answer = linear_function(points)

@@ -300,29 +300,24 @@ class Domain(Generic_Domain):
             self.reduction = mean
             #self.reduction = min  #Looks better near steep slopes
 
-    ##
-    # @brief Set the minimum depth that will be written to an SWW file.
-    # @param minimum_storable_height The minimum stored height (in m).
     def set_minimum_storable_height(self, minimum_storable_height):
-        """Set the minimum depth that will be recognised when writing
-        to an sww file. This is useful for removing thin water layers
-        that seems to be caused by friction creep.
+        """Set the minimum depth that will be written to an SWW file.
 
-        The minimum allowed sww depth is in meters.
+        minimum_storable_height  minimum allowed SWW depth is in meters
+
+        This is useful for removing thin water layers that seems to be caused
+        by friction creep.
         """
 
         self.minimum_storable_height = minimum_storable_height
 
-    ##
-    # @brief
-    # @param minimum_allowed_height
     def set_minimum_allowed_height(self, minimum_allowed_height):
         """Set minimum depth that will be recognised in the numerical scheme.
 
-        The minimum allowed depth is in meters.
+        minimum_allowed_height  minimum allowed depth in meters
 
-        The parameter H0 (Minimal height for flux computation)
-        is also set by this function
+        The parameter H0 (Minimal height for flux computation) is also set by
+        this function.
         """
 
         #FIXME (Ole): rename H0 to minimum_allowed_height_in_flux_computation
@@ -334,39 +329,28 @@ class Domain(Generic_Domain):
         self.minimum_allowed_height = minimum_allowed_height
         self.H0 = minimum_allowed_height
 
-    ##
-    # @brief
-    # @param maximum_allowed_speed
     def set_maximum_allowed_speed(self, maximum_allowed_speed):
-        """Set the maximum particle speed that is allowed in water
-        shallower than minimum_allowed_height. This is useful for
-        controlling speeds in very thin layers of water and at the same time
-        allow some movement avoiding pooling of water.
+        """Set the maximum particle speed that is allowed in water shallower
+        than minimum_allowed_height.
+
+        maximum_allowed_speed  
+
+        This is useful for controlling speeds in very thin layers of water and
+        at the same time allow some movement avoiding pooling of water.
         """
 
         self.maximum_allowed_speed = maximum_allowed_speed
 
-    ##
-    # @brief
-    # @param points_file_block_line_size
     def set_points_file_block_line_size(self, points_file_block_line_size):
-        """Set the minimum depth that will be recognised when writing
-        to an sww file. This is useful for removing thin water layers
-        that seems to be caused by friction creep.
-
-        The minimum allowed sww depth is in meters.
         """
+        """
+
         self.points_file_block_line_size = points_file_block_line_size
 
         
     # FIXME: Probably obsolete in its curren form    
-    ##
-    # @brief Set the quantities that will be written to an SWW file.
-    # @param q The quantities to be written.
-    # @note Param 'q' may be None, single quantity or list of quantity strings.
-    # @note If 'q' is None, no quantities will be stored in the SWW file.
     def set_quantities_to_be_stored(self, q):
-        """Specify which quantities will be stored in the sww file
+        """Specify which quantities will be stored in the SWW file.
         
         q must be either:
           - a dictionary with quantity names
@@ -408,9 +392,6 @@ class Domain(Generic_Domain):
         assert type(q) == types.DictType    
         self.quantities_to_be_stored = q
 
-    ##
-    # @brief
-    # @param indices
     def get_wet_elements(self, indices=None):
         """Return indices for elements where h > minimum_allowed_height
 
@@ -438,9 +419,6 @@ class Domain(Generic_Domain):
                                    num.arange(len(depth)))
         return wet_indices
 
-    ##
-    # @brief
-    # @param indices
     def get_maximum_inundation_elevation(self, indices=None):
         """Return highest elevation where h > 0
 
@@ -457,9 +435,6 @@ class Domain(Generic_Domain):
         return self.get_quantity('elevation').\
                    get_maximum_value(indices=wet_elements)
 
-    ##
-    # @brief
-    # @param indices
     def get_maximum_inundation_location(self, indices=None):
         """Return location of highest elevation where h > 0
 
@@ -882,8 +857,6 @@ class Domain(Generic_Domain):
 # Flux computation
 #-----------------
 
-## @brief Compute fluxes and timestep suitable for all volumes in domain.
-# @param domain The domain to calculate fluxes for.
 def compute_fluxes(domain):
     """Compute fluxes and timestep suitable for all volumes in domain.
 
@@ -948,13 +921,14 @@ def compute_fluxes(domain):
 # Module functions for gradient limiting
 ################################################################################
 
-##
-# @brief Wrapper for C version of extrapolate_second_order_sw.
-# @param domain The domain to operate on.
-# @note MH090605 The following method belongs to the shallow_water domain class
-#       see comments in the corresponding method in shallow_water_ext.c
 def extrapolate_second_order_sw(domain):
-    """Wrapper calling C version of extrapolate_second_order_sw"""
+    """Wrapper calling C version of extrapolate_second_order_sw.
+
+    domain  the domain to operate on
+
+    Note MH090605: The following method belongs to the shallow_water domain
+    class, see comments in the corresponding method in shallow_water_ext.c
+    """
 
     from shallow_water_ext import extrapolate_second_order_sw as extrapol2
 
@@ -979,9 +953,6 @@ def extrapolate_second_order_sw(domain):
               Elevation.vertex_values,
               int(domain.optimise_dry_cells))
 
-##
-# @brief Distribution from centroids to vertices specific to the SWW eqn.
-# @param domain The domain to operate on.
 def distribute_using_vertex_limiter(domain):
     """Distribution from centroids to vertices specific to the SWW equation.
 
@@ -1039,9 +1010,6 @@ def distribute_using_vertex_limiter(domain):
         Q = domain.quantities[name]
         Q.interpolate_from_vertices_to_edges()
 
-##
-# @brief Distribution from centroids to edges specific to the SWW eqn.
-# @param domain The domain to operate on.
 def distribute_using_edge_limiter(domain):
     """Distribution from centroids to edges specific to the SWW eqn.
 
@@ -1080,9 +1048,6 @@ def distribute_using_edge_limiter(domain):
         Q = domain.quantities[name]
         Q.interpolate_from_vertices_to_edges()
 
-##
-# @brief  Protect against infinitesimal heights and associated high velocities.
-# @param domain The domain to operate on.
 def protect_against_infinitesimal_and_negative_heights(domain):
     """Protect against infinitesimal heights and associated high velocities"""
 
@@ -1097,9 +1062,6 @@ def protect_against_infinitesimal_and_negative_heights(domain):
     protect(domain.minimum_allowed_height, domain.maximum_allowed_speed,
             domain.epsilon, wc, zc, xmomc, ymomc)
 
-##
-# @brief Wrapper for C function balance_deep_and_shallow_c().
-# @param domain The domain to operate on.
 def balance_deep_and_shallow(domain):
     """Compute linear combination between stage as computed by
     gradient-limiters limiting using w, and stage computed by
@@ -1141,10 +1103,6 @@ def balance_deep_and_shallow(domain):
 # Standard forcing terms
 ################################################################################
 
-##
-# @brief Apply gravitational pull in the presence of bed slope.
-# @param domain The domain to apply gravity to.
-# @note Wrapper for C function gravity_c().
 def gravity(domain):
     """Apply gravitational pull in the presence of bed slope
     Wrapper calls underlying C implementation
@@ -1166,10 +1124,6 @@ def gravity(domain):
 
     gravity_c(domain.g, height, elevation, point, xmom_update, ymom_update)
 
-##
-# @brief Apply friction to a surface (implicit).
-# @param domain The domain to apply Manning friction to.
-# @note Wrapper for C function manning_friction_c().
 def manning_friction_implicit(domain):
     """Apply (Manning) friction to water momentum
     Wrapper for c version
@@ -1204,10 +1158,6 @@ def manning_friction_implicit(domain):
                                 ymom_update)
     
 
-##
-# @brief Apply friction to a surface (explicit).
-# @param domain The domain to apply Manning friction to.
-# @note Wrapper for C function manning_friction_c().
 def manning_friction_explicit(domain):
     """Apply (Manning) friction to water momentum
     Wrapper for c version
@@ -1243,10 +1193,6 @@ def manning_friction_explicit(domain):
 
 
 # FIXME (Ole): This was implemented for use with one of the analytical solutions
-##
-# @brief Apply linear friction to a surface.
-# @param domain The domain to apply Manning friction to.
-# @note Is this still used (30 Oct 2007)?
 def linear_friction(domain):
     """Apply linear friction to water momentum
 

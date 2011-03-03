@@ -231,7 +231,7 @@ class Test_Shallow_Water(unittest.TestCase):
         except:
             pass
         else:
-            raise Exception, 'Should have raised an exception'
+            raise Exception('Should have raised an exception')
 
     # Individual flux tests
     def test_flux_zero_case(self):
@@ -2130,7 +2130,7 @@ class Test_Shallow_Water(unittest.TestCase):
             pass
         else:
             msg = 'Should have raised exception'
-            raise Exception, msg
+            raise Exception(msg)
 
     def Xtest_inflow_outflow_conservation(self):
         """
@@ -4966,7 +4966,7 @@ class Test_Shallow_Water(unittest.TestCase):
             pass
         else:
             msg = 'This should have caught NAN at boundary'
-            raise Exception, msg
+            raise Exception(msg)
 
         #Cleanup
         os.remove(domain1.get_name() + '.sww')
@@ -5504,7 +5504,7 @@ friction  \n \
                                 use_cache=False, verbose=verbose, alpha=0.01)
         except RuntimeError, e:
             msg = 'Test failed: %s' % str(e)
-            raise Exception, msg
+            raise Exception,(sg)
             # clean up in case raise fails
             os.remove(meshname)
             os.remove(points_file)
@@ -5570,7 +5570,7 @@ friction  \n \
                                 use_cache=False, verbose=verbose)
         except AssertionError, e:
             msg = 'Test failed: %s' % str(e)
-            raise Exception, msg
+            raise Exception(msg)
             # Cleanup in case this failed
             os.remove(meshname)
 
@@ -5581,7 +5581,7 @@ friction  \n \
                                 use_cache=False, verbose=verbose)                            
         except AssertionError, e:
             msg = 'Test failed: %s' % str(e)
-            raise Exception, msg
+            raise Exception(msg)
             # Cleanup in case this failed
             os.remove(meshname)
         else:

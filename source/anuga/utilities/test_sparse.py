@@ -147,7 +147,7 @@ class Test_Sparse(unittest.TestCase):
         except TypeError:
             pass
         else:
-            raise 'Should have failed'
+            raise Exception('Should have failed')
 
     def test_sparse_addition(self):
         """ Test sparse addition with dok format
