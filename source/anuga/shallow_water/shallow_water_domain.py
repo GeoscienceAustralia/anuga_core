@@ -86,7 +86,6 @@ from anuga.file.sww import SWW_file
             
 import anuga.utilities.log as log
 
-import types
 
 class Domain(Generic_Domain):
     """ Class for a shallow water domain."""
@@ -389,7 +388,7 @@ class Domain(Generic_Domain):
                    % quantity_name)
             assert quantity_name in self.quantities, msg
 
-        assert type(q) == types.DictType    
+        assert isinstance(q, dict)
         self.quantities_to_be_stored = q
 
     def get_wet_elements(self, indices=None):

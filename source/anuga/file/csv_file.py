@@ -157,10 +157,8 @@ def store_parameters(verbose=False, **kwargs):
     it writes to "file_name" kwargs
     """
 
-    import types
-
     # Check that kwargs is a dictionary
-    if type(kwargs) != types.DictType:
+    if not isinstance(kwargs, dict):
         raise TypeError
 
     # is 'completed' in kwargs?

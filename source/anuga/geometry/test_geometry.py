@@ -8,8 +8,6 @@ import unittest
 from aabb import AABB
 from quad import Cell
 
-import types
-
 #-------------------------------------------------------------
 
 class Test_Geometry(unittest.TestCase):
@@ -76,8 +74,7 @@ class Test_Geometry(unittest.TestCase):
                      (AABB(7, 8, 3, 4), 333), (AABB(1, 10, 0, 1), 444)])
 
         result = cell.retrieve()
-        assert type(result) in [types.ListType,types.TupleType], \
-                            'should be a list'
+        assert isinstance(result, (list, tuple)), 'should be a list'
 
         self.assertEqual(len(result), 4)
         
@@ -89,8 +86,7 @@ class Test_Geometry(unittest.TestCase):
                      (AABB(7, 8, 3, 4), 333), (AABB(1, 10, 0, 1), 444)])
 
         result = cell.search([8.5, 1.5])
-        assert type(result) in [types.ListType, types.TupleType], \
-                            'should be a list'
+        assert isinstance(result, (list, tuple)), 'should be a list'
         assert(len(result) == 1)
         data, _ = result[0]
         self.assertEqual(data, test_tag, 'only 1 point should intersect')

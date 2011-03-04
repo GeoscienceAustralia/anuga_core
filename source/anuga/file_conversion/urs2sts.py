@@ -82,10 +82,9 @@ def urs2sts(basename_in, basename_out=None,
 
     import os
     from Scientific.IO.NetCDF import NetCDFFile
-    from types import ListType,StringType
     from operator import __and__
 
-    if not isinstance(basename_in, ListType):
+    if not isinstance(basename_in, list):
         if verbose: log.critical('Reading single source')
         basename_in = [basename_in]
 
@@ -95,7 +94,7 @@ def urs2sts(basename_in, basename_out=None,
     NODATA = 99
 
     # Check that basename is a list of strings
-    if not reduce(__and__, map(lambda z:isinstance(z,StringType), basename_in)):
+    if not reduce(__and__, map(lambda z:isinstance(z,basestring), basename_in)):
         msg= 'basename_in must be a string or list of strings'
         raise Exception, msg
 

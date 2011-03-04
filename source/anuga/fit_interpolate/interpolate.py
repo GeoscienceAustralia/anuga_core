@@ -788,7 +788,6 @@ class Interpolation_function:
         """
 
         from anuga.config import time_format
-        import types
 
         if verbose is True:
             log.critical('Interpolation_function: input checks')
@@ -802,7 +801,7 @@ class Interpolation_function:
             raise Exception(msg)
 
         # Check if quantities is a single array only
-        if type(quantities) != types.DictType:
+        if not isinstance(quantities, dict):
             quantities = ensure_numeric(quantities)
             quantity_names = ['Attribute']
 

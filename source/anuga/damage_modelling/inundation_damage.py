@@ -7,7 +7,6 @@ import os
 from math import sqrt
 from Scientific.Functions.Interpolation import InterpolatingFunction
 from random import choice
-from types import StringType
 
 import numpy as num
 
@@ -67,7 +66,7 @@ def inundation_damage(sww_base_name, exposure_files_in,
     exposure_file_out_marker -  this string will be added to the input file
                                 name to get the output file name
     """
-    if type(exposure_files_in) == StringType:
+    if isinstance(exposure_files_in, basestring):
         exposure_files_in = [exposure_files_in]
 
 

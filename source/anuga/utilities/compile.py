@@ -19,7 +19,7 @@ I_dirs = '-I"%s" ' % numpy.get_include()
 # FIXME (Ole): Although this script says it works with a range of compilers,
 # it has only really been used with gcc.
 
-import os, string, sys, types
+import os, string, sys
 
 separation_line = '---------------------------------------'      
  
@@ -39,7 +39,7 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = 1):
   #
   assert not FNs is None, 'No filename provided'
 
-  if not type(FNs) == types.ListType:
+  if not isinstance(FNs, list):
     FNs = [FNs]
 
 

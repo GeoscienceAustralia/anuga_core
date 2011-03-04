@@ -12,7 +12,6 @@
    Geoscience Australia
 """
 
-import types
 from time import time as walltime
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
@@ -89,7 +88,7 @@ class Generic_Domain:
         number_of_full_triangles=None
         
         # Determine whether source is a mesh filename or coordinates
-        if type(source) == types.StringType:
+        if isinstance(source, basestring):
             mesh_filename = source
         else:
             coordinates = source
@@ -860,7 +859,7 @@ class Generic_Domain:
     # @param functions A list or tuple of ??
     def _set_region(self, functions):
         # coerce to an iterable (list or tuple)
-        if type(functions) not in [types.ListType, types.TupleType]:
+        if not isinstance(functions, (list, tuple)):
             functions = [functions]
 
         # The order of functions in the list is used.
@@ -1159,21 +1158,21 @@ class Generic_Domain:
         # Input checks
         if quantities is None:
             quantities = self.evolved_quantities
-        elif type(quantities) == types.StringType:
+        elif isinstance(quantities, basestring):
             quantities = [quantities] #Turn it into a list
 
         msg = ('Keyword argument quantities must be either None, '
                'string or list. I got %s') % str(quantities)
-        assert type(quantities) == types.ListType, msg
+        assert isinstance(quantities, list), msg
 
         if tags is None:
             tags = self.get_boundary_tags()
-        elif type(tags) == types.StringType:
+        elif isinstance(tags, basestring):
             tags = [tags] #Turn it into a list
 
         msg = ('Keyword argument tags must be either None, '
                'string or list. I got %s') % str(tags)
-        assert type(tags) == types.ListType, msg
+        assert isinstance(tags, list), msg
 
         # Determine width of longest quantity name (for cosmetic purposes)
         maxwidth = 0

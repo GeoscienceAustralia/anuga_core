@@ -14,7 +14,7 @@ To create:
    Otherwise raise an exception
 """
 
-from types import FloatType, IntType, LongType, NoneType
+import types
 
 from anuga.utilities.numerical_tools import ensure_numeric, is_scalar
 from anuga.geometry.polygon import inside_polygon
@@ -431,7 +431,7 @@ class Quantity:
                 raise Exception(msg)
             else:
                 # Check that numeric is as constant
-                assert type(numeric) in [FloatType, IntType, LongType], msg
+                assert isinstance(numeric, (float, int, long)), msg
 
             location = 'centroids'
 
@@ -463,7 +463,7 @@ class Quantity:
             raise Exception(msg)
 
         msg = 'Indices must be a list, array or None'
-        assert isinstance(indices, (NoneType, list, num.ndarray)), msg
+        assert isinstance(indices, (types.NoneType, list, num.ndarray)), msg
 
         # Determine which 'set_values_from_...' to use
         if numeric is not None:
@@ -874,10 +874,8 @@ class Quantity:
         as defined in geospatial_data.
         """
 
-        from types import StringType
-
         msg = 'Filename must be a text string'
-        assert type(filename) == StringType, msg
+        assert isinstance(filename, basestring), msg
 
         if location != 'vertices':
             msg = "set_values_from_file is only defined for location='vertices'"
@@ -1193,7 +1191,7 @@ class Quantity:
 
 
         msg = '\'indices\' must be a list, array or None'
-        assert isinstance(indices, (NoneType, list, num.ndarray)), msg
+        assert isinstance(indices, (types.NoneType, list, num.ndarray)), msg
 
         if location == 'centroids':
             if indices is None:

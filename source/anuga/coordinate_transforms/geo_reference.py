@@ -6,7 +6,7 @@
 #FIXME: Ensure that all attributes of a georef are treated everywhere
 #and unit test
 
-import types, sys
+import sys
 import copy
 
 from anuga.utilities.numerical_tools import ensure_numeric
@@ -226,9 +226,9 @@ class Geo_reference:
                 self.yllcorner.shape == ()):
             self.yllcorner = self.yllcorner[0]
 
-        assert (type(self.xllcorner) == types.FloatType)
-        assert (type(self.yllcorner) == types.FloatType)
-        assert (type(self.zone) == types.IntType)
+        assert isinstance(self.xllcorner, float)
+        assert isinstance(self.yllcorner, float)
+        assert isinstance(self.zone, int)
 
 ################################################################################
 

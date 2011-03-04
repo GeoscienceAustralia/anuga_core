@@ -240,7 +240,7 @@ def forwardmethods(fromClass, toClass, toPart, exclude = ()):
 
 
     # Allow an attribute name (String) or a function to determine the instance
-    if type(toPart) != types.StringType:
+    if not isinstance(toPart, basestring):
 
 	# check that it is something like a function
 	if callable(toPart):
@@ -278,7 +278,7 @@ def forwardmethods(fromClass, toClass, toPart, exclude = ()):
 
     for method, func in dict.items():
 	d = {'method': method, 'func': func}
-	if type(toPart) == types.StringType:
+        if isinstance(toPart, basestring):
 	    execString = \
 		__stringBody % {'method' : method, 'attribute' : toPart}
 	else:
@@ -581,7 +581,7 @@ class MegaArchetype:
 	    del kw['pyclass']
 	if widgetClass is None:
 	    return None
-        if len(widgetArgs) == 1 and type(widgetArgs[0]) == types.TupleType:
+        if len(widgetArgs) == 1 and isinstance(widgetArgs[0], tuple):
             # Arguments to the constructor can be specified as either
             # multiple trailing arguments to createcomponent() or as a
             # single tuple argument.
@@ -1120,7 +1120,7 @@ class MegaToplevel(MegaArchetype):
                 parent = self.winfo_parent()
                 # winfo_parent() should return the parent widget, but the
                 # the current version of Tkinter returns a string.
-                if type(parent) == types.StringType:
+                if isinstance(parent, basestring):
                     parent = self._hull._nametowidget(parent)
                 master = parent.winfo_toplevel()
             self.transient(master)
@@ -1132,7 +1132,7 @@ class MegaToplevel(MegaArchetype):
 	# and one third down.)
 
         parent = self.winfo_parent()
-        if type(parent) == types.StringType:
+        if isinstance(parent, basestring):
             parent = self._hull._nametowidget(parent)
 
         # Find size of window.
@@ -1207,7 +1207,7 @@ class MegaToplevel(MegaArchetype):
                 parent = self.winfo_parent()
                 # winfo_parent() should return the parent widget, but the
                 # the current version of Tkinter returns a string.
-                if type(parent) == types.StringType:
+                if isinstance(parent, basestring):
                     parent = self._hull._nametowidget(parent)
                 master = parent.winfo_toplevel()
             self.transient(master)
@@ -1573,7 +1573,7 @@ class _TraceTk:
         global _recursionCounter
 
         _callToTkReturned = 0
-        if len(args) == 1 and type(args[0]) == types.TupleType:
+        if len(args) == 1 and isinstance(args[0], tuple):
             argStr = str(args[0])
         else:
             argStr = str(args)
@@ -1842,7 +1842,7 @@ def _reporterror(func, args):
     msg = msg + '  Function: %s (type: %s)\n' % (repr(func), type(func))
     msg = msg + '  Args: %s\n' % str(args)
 
-    if type(args) == types.TupleType and len(args) > 0 and \
+    if isinstance(args, tuple) and len(args) > 0 and \
 	    hasattr(args[0], 'type'):
         eventArg = 1
     else:
@@ -2137,7 +2137,7 @@ class Dialog(MegaToplevel):
 
     def _buttons(self):
 	buttons = self['buttons']
-	if type(buttons) != types.TupleType and type(buttons) != types.ListType:
+	if not isinstance(buttons, (tuple, list)):
 	    raise ValueError('bad buttons option "%s": should be a tuple'
                              % str(buttons))
 	if self.oldButtons == buttons:
@@ -2773,7 +2773,7 @@ class ButtonBox(MegaWidget):
 
     def index(self, index, forInsert = 0):
 	listLength = len(self._buttonList)
-	if type(index) == types.IntType:
+        if isinstance(index, int):
 	    if forInsert and index <= listLength:
 		return index
 	    elif not forInsert and index < listLength:
@@ -3000,7 +3000,7 @@ class EntryField(MegaWidget):
 	    for tag in tagList:
 
                 sequences = root.bind_class(tag)
-                if type(sequences) is types.StringType:
+                if isinstance(sequences, basestring):
                     # In old versions of Tkinter, bind_class returns a string
                     sequences = root.tk.splitlist(sequences)
 
@@ -3052,7 +3052,7 @@ class EntryField(MegaWidget):
 	    'maxstrict' : 1,
 	}
 	opt = self['validate']
-	if type(opt) is types.DictionaryType:
+        if isinstance(opt, dict):
 	    dict.update(opt)
 	else:
 	    dict['validator'] = opt
@@ -3088,9 +3088,9 @@ class EntryField(MegaWidget):
 	self._validationArgs = args
         self._previousText = None
 
-	if type(dict['min']) == types.StringType and strFunction is not None:
+        if isinstance(dict['min'], basestring) and strFunction is not None:
 	    dict['min'] = apply(strFunction, (dict['min'],), args)
-	if type(dict['max']) == types.StringType and strFunction is not None:
+        if isinstance(dict['max'], basestring) and strFunction is not None:
 	    dict['max'] = apply(strFunction, (dict['max'],), args)
 
 	self._checkValidity()
@@ -3704,7 +3704,7 @@ class MainMenuBar(MegaArchetype):
                 not kw.has_key('label')):
             return
 
-        if type(traverseSpec) == types.IntType:
+        if isinstance(traverseSpec, int):
             kw['underline'] = traverseSpec
             return
 
@@ -3728,7 +3728,7 @@ class MainMenuBar(MegaArchetype):
 
         name = kw['label']
 
-        if type(traverseSpec) == types.StringType:
+        if isinstance(traverseSpec, basestring):
             lowerLetter = string.lower(traverseSpec)
             if traverseSpec in name and lowerLetter not in hotkeyList:
                 kw['underline'] = string.index(name, traverseSpec)
@@ -3947,7 +3947,7 @@ class MenuBar(MegaWidget):
                 not kw.has_key(textKey)):
             return
 
-        if type(traverseSpec) == types.IntType:
+        if isinstance(traverseSpec, int):
             kw['underline'] = traverseSpec
             return
 
@@ -3980,7 +3980,7 @@ class MenuBar(MegaWidget):
 
         name = kw[textKey]
 
-        if type(traverseSpec) == types.StringType:
+        if isinstance(traverseSpec, basestring):
             lowerLetter = string.lower(traverseSpec)
             if traverseSpec in name and lowerLetter not in hotkeyList:
                 kw['underline'] = string.index(name, traverseSpec)
@@ -4502,7 +4502,7 @@ class NoteBook(MegaArchetype):
 
     def index(self, index, forInsert = 0):
 	listLength = len(self._pageNames)
-	if type(index) == types.IntType:
+        if isinstance(index, int):
 	    if forInsert and index <= listLength:
 		return index
 	    elif not forInsert and index < listLength:
@@ -4967,7 +4967,7 @@ class OptionMenu(MegaWidget):
 
     def index(self, index):
 	listLength = len(self._itemList)
-	if type(index) == types.IntType:
+        if isinstance(index, int):
 	    if index < listLength:
 		return index
 	    else:
@@ -5217,7 +5217,7 @@ class PanedWidget(MegaWidget):
     def _parsePaneOptions(self, name, args):
 	# Parse <args> for options.
 	for arg, value in args.items():
-	    if type(value) == types.FloatType:
+            if isinstance(value, float):
 		relvalue = value
 		value = self._absSize(relvalue)
 	    else:
@@ -5805,7 +5805,7 @@ class RadioSelect(MegaWidget):
 	# Return the integer index of the button with the given index.
 
 	listLength = len(self._buttonList)
-	if type(index) == types.IntType:
+        if isinstance(index, int):
 	    if index < listLength:
 		return index
 	    else:
@@ -6415,7 +6415,7 @@ class ScrolledFrame(MegaWidget):
     # update the frame and the scrollbar.
     def xview(self, mode = None, value = None, units = None):
 
-        if type(value) == types.StringType:
+        if isinstance(value, basestring):
             value = string.atof(value)
         if mode is None:
             return self._horizScrollbar.get()
@@ -6437,7 +6437,7 @@ class ScrolledFrame(MegaWidget):
     # update the frame and the scrollbar.
     def yview(self, mode = None, value = None, units = None):
 
-        if type(value) == types.StringType:
+        if isinstance(value, basestring):
             value = string.atof(value)
         if mode is None:
             return self._vertScrollbar.get()
@@ -6731,7 +6731,7 @@ class ScrolledListBox(MegaWidget):
 
 	# Add the items specified by the initialisation option.
 	items = self['items']
-	if type(items) != types.TupleType:
+        if not isinstance(items, tuple):
 	    items = tuple(items)
 	if len(items) > 0:
 	    apply(self._listbox.insert, ('end',) + items)
@@ -6805,7 +6805,7 @@ class ScrolledListBox(MegaWidget):
     def setvalue(self, textOrList):
         self._listbox.selection_clear(0, 'end')
         listitems = list(self._listbox.get(0, 'end'))
-        if type(textOrList) == types.StringType:
+        if isinstance(textOrList, basestring):
             if textOrList in listitems:
                 self._listbox.selection_set(listitems.index(textOrList))
             else:
@@ -6820,7 +6820,7 @@ class ScrolledListBox(MegaWidget):
     def setlist(self, items):
         self._listbox.delete(0, 'end')
 	if len(items) > 0:
-	    if type(items) != types.TupleType:
+            if not isinstance(items, tuple):
 		items = tuple(items)
 	    apply(self._listbox.insert, (0,) + items)
 
@@ -8348,7 +8348,7 @@ class ComboBox(MegaWidget):
 	    return self._selectCmd()
 
     def selectitem(self, index, setentry=1):
-	if type(index) == types.StringType:
+        if isinstance(index, basestring):
 	    text = index
 	    items = self._list.get(0, 'end')
 	    if text in items:
@@ -8822,7 +8822,7 @@ class Counter(MegaWidget):
     def _datatype(self):
 	datatype = self['datatype']
 
-	if type(datatype) is types.DictionaryType:
+        if isinstance(datatype, dict):
 	    self._counterArgs = datatype.copy()
 	    if self._counterArgs.has_key('counter'):
 		datatype = self._counterArgs['counter']

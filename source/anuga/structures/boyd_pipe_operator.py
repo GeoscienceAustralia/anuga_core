@@ -1,6 +1,5 @@
 import anuga
 import math
-import types
 
 class Boyd_pipe_operator(anuga.Structure_operator):
     """Culvert flow - transfer water from one location to another via a circular pipe culvert.
@@ -48,9 +47,9 @@ class Boyd_pipe_operator(anuga.Structure_operator):
                                           verbose=verbose)            
 
  
-        if type(losses) == types.DictType:
+        if isinstance(losses, dict):
             self.sum_loss = sum(losses.values())
-        elif type(losses) == types.ListType:
+        elif isinstance(losses, list):
             self.sum_loss = sum(losses)
         else:
             self.sum_loss = losses

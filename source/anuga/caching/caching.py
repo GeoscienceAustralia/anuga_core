@@ -268,7 +268,7 @@ def cache(my_F,
 
   # Imports and input checks
   #
-  import types, time, string
+  import time, string
 
   if not cachedir:
     cachedir = options['cachedir']
@@ -284,23 +284,23 @@ def cache(my_F,
   CD = checkdir(cachedir,verbose)
 
   # Handle the case cache('clear')
-  if type(my_F) == types.StringType:
+  if isinstance(my_F, basestring):
     if string.lower(my_F) == 'clear':
       clear_cache(CD,verbose=verbose)
       return
 
   # Handle the case cache(my_F, 'clear')
-  if type(args) == types.StringType:
+  if isinstance(args, basestring):
     if string.lower(args) == 'clear':
       clear_cache(CD,my_F,verbose=verbose)
       return
 
   # Force singleton arg into a tuple
-  if type(args) != types.TupleType:
+  if not isinstance(args, tuple):
     args = tuple([args])
   
   # Check that kwargs is a dictionary
-  if type(kwargs) != types.DictType:
+  if not isinstance(kwargs, dict):
     raise TypeError    
     
   # Hash arguments (and keyword args) to integer
@@ -308,8 +308,7 @@ def cache(my_F,
   
   # Get sizes and timestamps for files listed in dependencies.
   # Force singletons into a tuple.
-  if dependencies and type(dependencies) != types.TupleType \
-                  and type(dependencies) != types.ListType:
+  if dependencies and not isinstance(dependencies, (tuple, list)):
     dependencies = tuple([dependencies])
   deps = get_depstats(dependencies)
 
@@ -832,7 +831,7 @@ def CacheLookup(CD, FN, my_F, args, kwargs, deps, verbose, compression,
     modified filename.
   """
 
-  import time, string, types
+  import time, string
 
   # Assess whether cached result exists - compressed or not.
   #
@@ -1042,7 +1041,7 @@ def save_args_to_cache(CD, FN, args, kwargs, compression):
     save_args_to_cache(CD,FN,args,kwargs,compression)
   """
 
-  import time, os, sys, types
+  import time, os, sys
 
   (argsfile, compressed) = myopen(CD+FN+'_'+file_types[1], 'wb', compression)
 
@@ -1076,7 +1075,7 @@ def save_results_to_cache(T, CD, FN, my_F, deps, comptime, funcname,
                           dependencies, compression)
   """
 
-  import time, os, sys, types
+  import time, os, sys
 
   (datafile, compressed1) = myopen(CD+FN+'_'+file_types[0],'wb',compression)
   (admfile, compressed2) = myopen(CD+FN+'_'+file_types[2],'wb',compression)
@@ -1414,8 +1413,6 @@ def compare(A, B, ids=None):
       Return 1 if A and B they are identical, 0 otherwise
     """
 
-    from types import TupleType, ListType, DictType, InstanceType
-    
     # Keep track of unique id's to protect against infinite recursion
     if ids is None: ids = {}
 
@@ -1436,7 +1433,7 @@ def compare(A, B, ids=None):
         
   
     # Compare recursively based on argument type
-    if type(A) in [TupleType, ListType]:
+    if isinstance(A, (tuple, list)):
         N = len(A)
         if len(B) != N: 
             identical = False
@@ -1446,7 +1443,7 @@ def compare(A, B, ids=None):
                 if not compare(A[i], B[i], ids): 
                     identical = False; break
                     
-    elif type(A) == DictType:
+    elif isinstance(A, dict):
         if len(A) != len(B):
             identical = False
         else:                        
@@ -1460,7 +1457,7 @@ def compare(A, B, ids=None):
         # Use element by element comparison
         identical = num.alltrue(A==B)
 
-    elif type(A) == InstanceType:
+    elif type(A) == types.InstanceType:
         # Take care of special case where elements are instances            
         # Base comparison on attributes     
         identical = compare(A.__dict__, 
@@ -1519,7 +1516,7 @@ def get_funcname(my_F):
     get_funcname(my_F)
   """
 
-  import types, string
+  import string
 
   if type(my_F) == types.FunctionType:
     funcname = my_F.func_name
@@ -1548,8 +1545,6 @@ def get_bytecode(my_F):
   USAGE:
     get_bytecode(my_F)
   """
-
-  import types
 
   if type(my_F) == types.FunctionType:
     return get_func_code_details(my_F)
@@ -1600,8 +1595,6 @@ def get_depstats(dependencies):
     get_depstats(dependencies):
   """
 
-  import types
-
   d = {}
   if dependencies:
 
@@ -1619,7 +1612,7 @@ def get_depstats(dependencies):
 
     
     for FN in expanded_dependencies:
-      if not type(FN) == types.StringType:
+      if not isinstance(FN, basestring):
         errmsg = 'ERROR (caching.py): Dependency must be a string.\n'
         errmsg += '                   Dependency given: %s' %FN
         raise Exception(errmsg)
@@ -2095,13 +2088,11 @@ def SortDict(Dict, sortidx=0):
     Sort dictionary of lists according field number 'sortidx'
   """
 
-  import types
-
   sortlist  = []
   keylist = Dict.keys()
   for key in keylist:
     rec = Dict[key]
-    if not type(rec) in [types.ListType, types.TupleType]:
+    if not isinstance(rec, (list, tuple)):
       rec = [rec]
 
     if sortidx > len(rec)-1:
@@ -2389,16 +2380,14 @@ def mkargstr(args, textwidth, argstr = '', level=0):
     but faster if args is huge.
   """
 
-  import types
-
   if level > 10:
       # Protect against circular structures
       return '...'
   
   WasTruncated = 0
 
-  if not type(args) in [types.TupleType, types.ListType, types.DictType]:
-    if type(args) == types.StringType:
+  if not isinstance(args, (tuple, list, dict)):
+    if isinstance(args, basestring):
       argstr = argstr + "'"+str(args)+"'"
     else:
       # Truncate large numeric arrays before using str()
@@ -2412,7 +2401,7 @@ def mkargstr(args, textwidth, argstr = '', level=0):
 
       argstr = argstr + str(args)
   else:
-    if type(args) == types.DictType:
+    if isinstance(args, dict):
       argstr = argstr + "{"
       for key in args.keys():
         argstr = argstr + mkargstr(key, textwidth, level=level+1) + ": " + \
@@ -2424,7 +2413,7 @@ def mkargstr(args, textwidth, argstr = '', level=0):
       argstr = argstr + "}"
 
     else:
-      if type(args) == types.TupleType:
+      if isinstance(args, tuple):
         lc = '('
         rc = ')'
       else:
@@ -2439,7 +2428,7 @@ def mkargstr(args, textwidth, argstr = '', level=0):
 
       # Strip off trailing comma and space unless singleton tuple
       #
-      if type(args) == types.TupleType and len(args) == 1:
+      if isinstance(args, tuple) and len(args) == 1:
         argstr = argstr[:-1]    
       else:
         argstr = argstr[:-2]

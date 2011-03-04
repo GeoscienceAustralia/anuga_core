@@ -6,7 +6,7 @@ from quad import Cell
 from mesh_quadtree import MeshQuadtree
 from anuga.abstract_2d_finite_volumes.general_mesh import General_mesh as Mesh
 
-import types, sys
+import sys
 
 #-------------------------------------------------------------
 
@@ -43,8 +43,7 @@ class Test_Quad(unittest.TestCase):
 
         # test a point that falls within a triangle
         result = Q.search([10, 10])
-        assert type(result) in [types.ListType,types.TupleType],\
-                            'should be a list'
+        assert isinstance(result, (list, tuple)), 'should be a list'
                             
         self.assertEqual(result[0][0][0], 1)
 

@@ -25,7 +25,6 @@
       be passed in. (I don't know if this is feasible). If could
       save time/memory.
 """
-import types
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.caching import cache            
@@ -323,7 +322,7 @@ class Fit(FitInterpolate):
         """
         
         # Use blocking to load in the point info
-        if type(point_coordinates_or_filename) == types.StringType:
+        if isinstance(point_coordinates_or_filename, basestring):
             msg = "Don't set a point origin when reading from a file"
             assert point_origin is None, msg
             filename = point_coordinates_or_filename

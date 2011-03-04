@@ -257,7 +257,7 @@ def get_netcdf_file_function(filename,
     # Take this code from e.g. dem2pts in data_manager.py
     # FIXME: Use geo_reference to read and write xllcorner...
 
-    import time, calendar, types
+    import time, calendar
     from anuga.config import time_format
 
     # Open NetCDF file
@@ -265,7 +265,7 @@ def get_netcdf_file_function(filename,
 
     fid = NetCDFFile(filename, netcdf_mode_r)
 
-    if type(quantity_names) == types.StringType:
+    if isinstance(quantity_names, basestring):
         quantity_names = [quantity_names]        
 
     if quantity_names is None or len(quantity_names) < 1:

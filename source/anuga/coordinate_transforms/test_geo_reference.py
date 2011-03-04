@@ -121,7 +121,7 @@ class geo_referenceTestCase(unittest.TestCase):
         lofl = [[3.0,311.0], [677.0,6.0]]
         new_lofl = g.change_points_geo_ref(lofl)
 
-        self.failUnless(type(new_lofl) == types.ListType, ' failed')
+        self.failUnless(isinstance(new_lofl, list), ' failed')
         self.failUnless(type(new_lofl) == type(lofl), ' failed')
         for point,new_point in map(None,lofl,new_lofl):
             self.failUnless(point[0]-x==new_point[0], ' failed')
@@ -135,7 +135,7 @@ class geo_referenceTestCase(unittest.TestCase):
         lofl = [[3.0,388.0]]
         new_lofl = g.change_points_geo_ref(lofl)
 
-        self.failUnless(type(new_lofl) == types.ListType, ' failed')
+        self.failUnless(isinstance(new_lofl, list), ' failed')
         self.failUnless(type(new_lofl) == type(lofl), ' failed')
         for point,new_point in map(None,lofl,new_lofl):
             self.failUnless(point[0]-x==new_point[0], ' failed')
@@ -148,7 +148,7 @@ class geo_referenceTestCase(unittest.TestCase):
         lofl = [3.0,345.0]
         new_lofl = g.change_points_geo_ref(lofl)
 
-        self.failUnless(type(new_lofl) == types.ListType, ' failed')
+        self.failUnless(isinstance(new_lofl, list), ' failed')
         self.failUnless(type(new_lofl) == type(lofl), ' failed')
         for point,new_point in map(None,[lofl],new_lofl):
             self.failUnless(point[0]-x==new_point[0], ' failed')
@@ -207,7 +207,7 @@ class geo_referenceTestCase(unittest.TestCase):
         lofl = [[3.0,30.0], [67.0,6.0]]
         new_lofl = g.change_points_geo_ref(lofl,points_geo_ref=points_geo_ref)
 
-        self.failUnless(type(new_lofl) == types.ListType, ' failed')
+        self.failUnless(isinstance(new_lofl, list), ' failed')
         self.failUnless(type(new_lofl) == type(lofl), ' failed')
         for point,new_point in map(None,lofl,new_lofl):
             self.failUnless(point[0]+point_x-x==new_point[0], ' failed')

@@ -15,7 +15,6 @@ from anuga.fit_interpolate.interpolate import Modeltime_too_early, \
                                               Modeltime_too_late
 from anuga.geometry.polygon import is_inside_polygon, inside_polygon, \
                                     polygon_area
-from types import IntType, FloatType
 from anuga.geospatial_data.geospatial_data import ensure_geospatial
 
 from warnings import warn
@@ -407,7 +406,7 @@ class General_forcing:
         msg = ('Keyword argument default_rate must be either None '
                'or a function of time.\nI got %s.' % str(default_rate))
         assert (default_rate is None or
-                type(default_rate) in [IntType, FloatType] or
+                isinstance(default_rate, (int, float)) or
                 callable(default_rate)), msg
 
         if default_rate is not None:

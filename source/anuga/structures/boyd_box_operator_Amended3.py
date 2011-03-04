@@ -1,6 +1,5 @@
 import anuga
 import math
-import types
 
 class Boyd_box_operator(anuga.Structure_operator):
     """Culvert flow - transfer water from one rectangular box to another.
@@ -49,9 +48,9 @@ class Boyd_box_operator(anuga.Structure_operator):
                                           verbose)     
         
         
-        if type(losses) == types.DictType:
+        if isinstance(losses, dict):
             self.sum_loss = sum(losses.values())
-        elif type(losses) == types.ListType:
+        elif isinstance(losses, list):
             self.sum_loss = sum(losses)
         else:
             self.sum_loss = losses
