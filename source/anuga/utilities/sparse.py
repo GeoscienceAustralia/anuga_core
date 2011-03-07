@@ -1,4 +1,5 @@
-"""Proof of concept sparse matrix code
+"""
+Proof of concept sparse matrix code
 """
 
 import numpy as num
@@ -11,12 +12,12 @@ class Sparse:
         There are two construction forms
         Usage:
 
-        Sparse(A)     #Creates sparse matrix from dense matrix A 
+        Sparse(A)     #Creates sparse matrix from dense matrix A
         Sparse(M, N)  #Creates empty MxN sparse matrix
         """
 
         self.Data = {}
-            
+
         if len(args) == 1:
             try:
                 A = num.array(args[0])
@@ -24,21 +25,21 @@ class Sparse:
                 raise Exception('Input must be convertable to a numeric array')
 
             assert len(A.shape) == 2, 'Input must be a 2d matrix'
-            
+
             self.M, self.N = A.shape
             for i in range(self.M):
                 for j in range(self.N):
                     if A[i, j] != 0.0:
                         self.Data[i, j] = A[i, j]
-                
-            
+
+
         elif len(args) == 2:
             self.M = args[0]
             self.N = args[1]
         else:
             raise Exception('Invalid construction')
-            
-        self.shape = (self.M, self.N) 
+
+        self.shape = (self.M, self.N)
 
 
     def __repr__(self):
@@ -51,28 +52,28 @@ class Sparse:
 
     def nonzeros(self):
         """Return number of nonzeros of A
-        """        
+        """
         return len(self)
-    
+
     def __setitem__(self, key, x):
 
         i,j = key
         # removing these asserts will not speed things up
         assert 0 <= i < self.M
-        assert 0 <= j < self.N        
+        assert 0 <= j < self.N
 
         if x != 0:
             self.Data[key] = float(x)
         else:
-            if self.Data.has_key( key ):            
+            if self.Data.has_key( key ):
                 del self.Data[key]
 
     def __getitem__(self, key):
-        
+
         i,j = key
         # removing these asserts will not speed things up
         assert 0 <= i < self.M
-        assert 0 <= j < self.N                
+        assert 0 <= j < self.N
 
         if self.Data.has_key( key ):
             return self.Data[ key ]
@@ -93,15 +94,15 @@ class Sparse:
 
     def todense(self):
         D = num.zeros( (self.M, self.N), num.float)
-        
+
         for i in range(self.M):
             for j in range(self.N):
-                if self.Data.has_key( (i,j) ):                
+                if self.Data.has_key( (i,j) ):
                     D[i, j] = self.Data[ (i,j) ]
         return D
 
 
-    
+
     def __mul__(self, other):
         """Multiply this matrix onto 'other' which can either be
         a numeric vector, a numeric matrix or another sparse matrix.
@@ -112,14 +113,14 @@ class Sparse:
         except:
             msg = 'FIXME: Only numeric types implemented so far'
             raise Exception(msg)
-            
+
 
         # Assume numeric types from now on
-	
+
         if len(B.shape) == 0:
             # Scalar - use __rmul__ method
             R = B*self
-	    
+
         elif len(B.shape) == 1:
             # Vector
             msg = 'Mismatching dimensions: You cannot multiply (%d x %d) matrix onto %d-vector'\
@@ -127,35 +128,35 @@ class Sparse:
             assert B.shape[0] == self.N, msg
 
             R = num.zeros(self.M, num.float) #Result
-	    
+
             # Multiply nonzero elements
             for key in self.Data.keys():
                 i, j = key
 
                 R[i] += self.Data[key]*B[j]
         elif len(B.shape) == 2:
-	
-            
+
+
             R = num.zeros((self.M, B.shape[1]), num.float) #Result matrix
 
             # Multiply nonzero elements
 	    for col in range(R.shape[1]):
 	        # For each column
-		
+
                 for key in self.Data.keys():
                     i, j = key
 
                     R[i, col] += self.Data[key]*B[j, col]
-	    
-	    
+
+
         else:
             raise ValueError('Dimension too high: d=%d' %len(B.shape))
 
         return R
-    
+
 
     def __add__(self, other):
-        """Add this matrix onto 'other' 
+        """Add this matrix onto 'other'
         """
 
         new = other.copy()
@@ -219,7 +220,7 @@ class Sparse:
 
 class Sparse_CSR:
 
-    def __init__(self, A):
+    def __init__(self, A=None, data=None, Colind=None, rowptr=None, m=None, n=None):
         """Create sparse matrix in csr format.
 
         Sparse_CSR(A) #creates csr sparse matrix from sparse matrix
@@ -238,7 +239,7 @@ class Sparse_CSR:
                  first data value of this row.
                  Regard it as a pointer into the colind array, for the ith row.
 
-                 
+
         """
 
         if isinstance(A,Sparse):
@@ -263,15 +264,31 @@ class Sparse_CSR:
             for row in range(current_row+1, A.M+1):
                 row_ptr[row] = nnz
             #row_ptr[-1] = nnz
-        
+
             self.data    = data
             self.colind  = colind
             self.row_ptr = row_ptr
             self.M       = A.M
             self.N       = A.N
+        elif isinstance(data,num.ndarray) and isinstance(Colind,num.ndarray) and isinstance(rowptr,num.ndarray) and isinstance(m,int) and isinstance(n,int):
+            msg = "Sparse_CSR: data is array of wrong dimensions"
+            #assert len(data.shape) == 1, msg
+            nnz = data.size
+
+            msg = "Sparse_CSR: Colind is array of wrong dimensions"
+            assert Colind.shape == (nnz,), msg
+
+            msg = "Sparse_CSR: rowptr is array of wrong dimensions"
+            assert rowptr.shape == (m+1,), msg
+
+            self.data = data
+            self.colind = Colind
+            self.row_ptr = rowptr
+            self.M = m
+            self.N = n
         else:
-            raise ValueError("Sparse_CSR(A) expects A == Sparse Matrix")
-            
+            raise ValueError('Sparse_CSR(A) expects A == Sparse Matrix *or* data==array,colind==array,rowptr==array,m==int,n==int')
+
     def __repr__(self):
         return '%d X %d sparse matrix:\n' %(self.M, self.N) + `self.data`
 
@@ -282,12 +299,12 @@ class Sparse_CSR:
 
     def nonzeros(self):
         """Return number of nonzeros of A
-        """        
+        """
         return len(self)
 
     def todense(self):
         D = num.zeros( (self.M, self.N), num.float)
-        
+
         for i in range(self.M):
             for ckey in range(self.row_ptr[i],self.row_ptr[i+1]):
                 j = self.colind[ckey]
@@ -304,7 +321,7 @@ class Sparse_CSR:
         except:
             print 'FIXME: Only numeric types implemented so far'
 
-        return csr_mv(self,B) 
+        return csr_mv(self,B)
 
 
 # Setup for C extensions
@@ -316,7 +333,7 @@ if compile.can_use_C_extension('sparse_ext.c'):
 
 if __name__ == '__main__':
     # A little selftest
-    
+
     A = Sparse(3,3)
 
     A[1,1] = 4
@@ -328,7 +345,7 @@ if __name__ == '__main__':
     A[1,1] = 0
 
     print A
-    print A.todense()    
+    print A.todense()
 
     A[1,2] = 0
 

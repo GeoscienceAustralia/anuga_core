@@ -198,6 +198,15 @@ class Test_Sparse(unittest.TestCase):
 
         assert num.allclose(B*C2, [[15.0, 30.0],[10.0, 20.0],[8.0, 16.0],[0.0, 0.0]])
 
+    def test_sparse_csr_init(self):
+        A = num.array([[1.0,0.0,-1.0,0.0],[0.0,2.0,0.0,0.0],[0.0,0.0,0.0,-3.0],[0.0,0.0,4.0,0.0]])
+        data = num.array([1.0,-1.0,2.0,-3.0,4.0])
+        Colind = num.array([0,2,1,3,2])
+        rowptr = num.array([0,2,3,4,5]) #the 5 does not correspond to any row, it is just there so we know how many nonzero entries there are!
+        A_CSR = Sparse_CSR(None,data,Colind,rowptr,4,4)
+        A_dense = A_CSR.todense()
+        assert num.allclose(A, A_dense)
+
 ################################################################################
 
 if __name__ == "__main__":
