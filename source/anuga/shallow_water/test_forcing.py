@@ -1916,6 +1916,331 @@ class Test_Forcing(unittest.TestCase):
         os.remove(field_sts_filename+'.sts')
         os.remove(field_sts_filename+'.sww')
 
+    def test_gravity(self):
+        #Assuming no friction
+
+        from anuga.config import g
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #             bac,     bce,     ecf,     dbe
+        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices)
+
+        #Set up for a gradient of (3,0) at mid triangle (bce)
+        def slope(x, y):
+            return 3*x
+
+        h = 0.1
+        def stage(x, y):
+            return slope(x, y) + h
+
+        domain.set_quantity('elevation', slope)
+        domain.set_quantity('stage', stage)
+
+        for name in domain.conserved_quantities:
+            assert num.allclose(domain.quantities[name].explicit_update, 0)
+            assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
+
+        domain.compute_forcing_terms()
+
+        assert num.allclose(domain.quantities['stage'].explicit_update, 0)
+        assert num.allclose(domain.quantities['xmomentum'].explicit_update,
+                            -g*h*3)
+        assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
+
+
+
+    def test_manning_friction_old(self):
+        from anuga.config import g
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #             bac,     bce,     ecf,     dbe
+        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices)
+
+        #Set up for a gradient of (3,0) at mid triangle (bce)
+        def slope(x, y):
+            return 3*x
+
+        h = 0.1
+        def stage(x, y):
+            return slope(x, y) + h
+
+        eta = 0.07
+        domain.set_quantity('elevation', slope)
+        domain.set_quantity('stage', stage)
+        domain.set_quantity('friction', eta)
+
+        for name in domain.conserved_quantities:
+            assert num.allclose(domain.quantities[name].explicit_update, 0)
+            assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
+
+        domain.compute_forcing_terms()
+
+        assert num.allclose(domain.quantities['stage'].explicit_update, 0)
+        assert num.allclose(domain.quantities['xmomentum'].explicit_update,
+                            -g*h*3)
+        assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
+
+        assert num.allclose(domain.quantities['stage'].semi_implicit_update, 0)
+        assert num.allclose(domain.quantities['xmomentum'].semi_implicit_update,
+                            0)
+        assert num.allclose(domain.quantities['ymomentum'].semi_implicit_update,
+                            0)
+
+        #Create some momentum for friction to work with
+        domain.set_quantity('xmomentum', 1)
+        S = -g*eta**2 / h**(7.0/3)
+
+        domain.compute_forcing_terms()
+        assert num.allclose(domain.quantities['stage'].semi_implicit_update, 0)
+        assert num.allclose(domain.quantities['xmomentum'].semi_implicit_update,
+                            S)
+        assert num.allclose(domain.quantities['ymomentum'].semi_implicit_update,
+                            0)
+
+        #A more complex example
+        domain.quantities['stage'].semi_implicit_update[:] = 0.0
+        domain.quantities['xmomentum'].semi_implicit_update[:] = 0.0
+        domain.quantities['ymomentum'].semi_implicit_update[:] = 0.0
+
+        domain.set_quantity('xmomentum', 3)
+        domain.set_quantity('ymomentum', 4)
+        # sqrt(3^2 +4^2) = 5
+
+        S = -g*eta**2 / h**(7.0/3)  * 5
+
+        domain.compute_forcing_terms()
+
+        assert num.allclose(domain.quantities['stage'].semi_implicit_update, 0)
+        assert num.allclose(domain.quantities['xmomentum'].semi_implicit_update,3*S)
+        assert num.allclose(domain.quantities['ymomentum'].semi_implicit_update,4*S)
+
+
+    def test_manning_friction_new(self):
+        from anuga.config import g
+        import math
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #             bac,     bce,     ecf,     dbe
+        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices)
+
+        # Use the new function which takes into account the extra
+        # wetted area due to slope of bed
+        domain.set_sloped_mannings_function(True)
+
+        #Set up for a gradient of (3,0) at mid triangle (bce)
+        def slope(x, y):
+            return 3*x
+
+        h = 0.1
+        def stage(x, y):
+            return slope(x, y) + h
+
+        eta = 0.07
+        domain.set_quantity('elevation', slope)
+        domain.set_quantity('stage', stage)
+        domain.set_quantity('friction', eta)
+
+        for name in domain.conserved_quantities:
+            assert num.allclose(domain.quantities[name].explicit_update, 0)
+            assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
+
+        domain.compute_forcing_terms()
+
+        assert num.allclose(domain.quantities['stage'].explicit_update, 0)
+        assert num.allclose(domain.quantities['xmomentum'].explicit_update,
+                            -g*h*3)
+        assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
+
+        assert num.allclose(domain.quantities['stage'].semi_implicit_update, 0)
+        assert num.allclose(domain.quantities['xmomentum'].semi_implicit_update,
+                            0)
+        assert num.allclose(domain.quantities['ymomentum'].semi_implicit_update,
+                            0)
+
+        #Create some momentum for friction to work with
+        domain.set_quantity('xmomentum', 1)
+        S = -g*eta**2 / h**(7.0/3) * math.sqrt(10)
+
+        domain.compute_forcing_terms()
+        assert num.allclose(domain.quantities['stage'].semi_implicit_update, 0)
+        assert num.allclose(domain.quantities['xmomentum'].semi_implicit_update,
+                            S)
+        assert num.allclose(domain.quantities['ymomentum'].semi_implicit_update,
+                            0)
+
+        #A more complex example
+        domain.quantities['stage'].semi_implicit_update[:] = 0.0
+        domain.quantities['xmomentum'].semi_implicit_update[:] = 0.0
+        domain.quantities['ymomentum'].semi_implicit_update[:] = 0.0
+
+        domain.set_quantity('xmomentum', 3)
+        domain.set_quantity('ymomentum', 4)
+
+        S = -g*eta**2 *5 / h**(7.0/3) * math.sqrt(10.0)
+
+        domain.compute_forcing_terms()
+
+        #print 'S', S
+        #print domain.quantities['xmomentum'].semi_implicit_update
+        #print domain.quantities['ymomentum'].semi_implicit_update
+
+        assert num.allclose(domain.quantities['stage'].semi_implicit_update, 0)
+        assert num.allclose(domain.quantities['xmomentum'].semi_implicit_update,3*S)
+        assert num.allclose(domain.quantities['ymomentum'].semi_implicit_update,4*S)
+
+
+
+
+
+    def test_inflow_using_circle(self):
+        from math import pi, cos, sin
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #             bac,     bce,     ecf,     dbe
+        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices)
+
+        # Flat surface with 1m of water
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('stage', 1.0)
+        domain.set_quantity('friction', 0)
+
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'exterior': Br})
+
+        # Setup only one forcing term, constant inflow of 2 m^3/s
+        # on a circle affecting triangles #0 and #1 (bac and bce)
+        domain.forcing_terms = []
+
+        I = Inflow(domain, rate=2.0, center=(1,1), radius=1)
+        domain.forcing_terms.append(I)
+        domain.compute_forcing_terms()
+
+
+        A = I.exchange_area
+        assert num.allclose(A, 4) # Two triangles
+
+        assert num.allclose(domain.quantities['stage'].explicit_update[1], 2.0/A)
+        assert num.allclose(domain.quantities['stage'].explicit_update[0], 2.0/A)
+        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)
+
+
+    def test_inflow_using_circle_function(self):
+        from math import pi, cos, sin
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #             bac,     bce,     ecf,     dbe
+        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices)
+
+        # Flat surface with 1m of water
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('stage', 1.0)
+        domain.set_quantity('friction', 0)
+
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'exterior': Br})
+
+        # Setup only one forcing term, time dependent inflow of 2 m^3/s
+        # on a circle affecting triangles #0 and #1 (bac and bce)
+        domain.forcing_terms = []
+        I = Inflow(domain, rate=lambda t: 2., center=(1,1), radius=1)
+        domain.forcing_terms.append(I)
+
+        domain.compute_forcing_terms()
+
+        A = I.exchange_area
+        assert num.allclose(A, 4) # Two triangles
+
+        assert num.allclose(domain.quantities['stage'].explicit_update[1], 2.0/A)
+        assert num.allclose(domain.quantities['stage'].explicit_update[0], 2.0/A)
+        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)
+
+
+
+
+    def test_inflow_catch_too_few_triangles(self):
+        """
+        Test that exception is thrown if no triangles are covered
+        by the inflow area
+        """
+
+        from math import pi, cos, sin
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #             bac,     bce,     ecf,     dbe
+        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices)
+
+        # Flat surface with 1m of water
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('stage', 1.0)
+        domain.set_quantity('friction', 0)
+
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'exterior': Br})
+
+        # Setup only one forcing term, constant inflow of 2 m^3/s
+        # on a circle affecting triangles #0 and #1 (bac and bce)
+        try:
+            Inflow(domain, rate=2.0, center=(1,1.1), radius=0.01)
+        except:
+            pass
+        else:
+            msg = 'Should have raised exception'
+            raise Exception, msg
+
 
             
 if __name__ == "__main__":
