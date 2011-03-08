@@ -5,7 +5,6 @@ import inlet_enquiry
 
 from anuga.utilities.system_tools import log_to_file
 from anuga.utilities.numerical_tools import ensure_numeric
-from anuga.operators.operator import Operator
 
 
 
