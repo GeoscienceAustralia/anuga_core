@@ -319,7 +319,12 @@ if use_psyco:
         psyco.full() # aggressively compile everything
         #psyco.background() # attempt to profile code - only compile most used
         
-        
+
+#---------------------------
+# Operators
+#---------------------------
+from anuga.operators.operator import Operator
+
 #---------------------------
 # Structures
 #---------------------------

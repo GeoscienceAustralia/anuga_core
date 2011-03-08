@@ -5,10 +5,11 @@ import inlet_enquiry
 
 from anuga.utilities.system_tools import log_to_file
 from anuga.utilities.numerical_tools import ensure_numeric
+from anuga.operators.operator import Operator
 
 
 
-class Structure_operator:
+class Structure_operator(anuga.Operator):
     """Structure Operator - transfer water from one rectangular box to another.
     Sets up the geometry of problem
     
@@ -36,17 +37,12 @@ class Structure_operator:
                  structure_type,
                  logging,
                  verbose):
+
+        anuga.Operator.__init__(self,domain)
         
-        self.domain = domain
-        self.domain.set_fractional_step_operator(self)
         self.end_points = ensure_numeric(end_points)
         self.exchange_lines = ensure_numeric(exchange_lines)
         self.enquiry_points = ensure_numeric(enquiry_points)
-
-
-        if domain.numproc > 1:
-            msg = 'Not implemented to run in parallel'
-            assert self.__parallel_safe(), msg
 
         
         if height is None:
@@ -258,10 +254,6 @@ class Structure_operator:
             self.enquiry_points.append(centre_point0 - gap)
             self.enquiry_points.append(centre_point1 + gap)
             
-
-    def __parallel_safe(self):
-
-        return False
 
     def discharge_routine(self):
 

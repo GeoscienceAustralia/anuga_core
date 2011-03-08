@@ -23,6 +23,14 @@ os.chdir('advection')
 execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 
 os.chdir('..')
+os.chdir('operators')
+execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
+
+os.chdir('..')
+os.chdir('structures')
+execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
+
+os.chdir('..')
 os.chdir('abstract_2d_finite_volumes')
 execfile('..' + os.sep + 'utilities' + os.sep + 'compile.py')
 

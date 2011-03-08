@@ -70,18 +70,18 @@ int find_qmin_and_qmax(double dq0, double dq1, double dq2,
   if (dq0>=0.0){
     if (dq1>=dq2){
       if (dq1>=0.0)
-	*qmax=dq0+dq1;
+    *qmax=dq0+dq1;
       else
-	*qmax=dq0;
+    *qmax=dq0;
       
       *qmin=dq0+dq2;
       if (*qmin>=0.0) *qmin = 0.0;
     }
     else{// dq1<dq2
       if (dq2>0)
-	*qmax=dq0+dq2;
+    *qmax=dq0+dq2;
       else
-	*qmax=dq0;
+    *qmax=dq0;
       
       *qmin=dq0+dq1;    
       if (*qmin>=0.0) *qmin=0.0;
@@ -90,18 +90,18 @@ int find_qmin_and_qmax(double dq0, double dq1, double dq2,
   else{//dq0<0
     if (dq1<=dq2){
       if (dq1<0.0)
-	*qmin=dq0+dq1;
+    *qmin=dq0+dq1;
       else
-	*qmin=dq0;
+    *qmin=dq0;
       
       *qmax=dq0+dq2;    
       if (*qmax<=0.0) *qmax=0.0;
     }
     else{// dq1>dq2
       if (dq2<0.0)
-	*qmin=dq0+dq2;
+    *qmin=dq0+dq2;
       else
-	*qmin=dq0;
+    *qmin=dq0;
       
       *qmax=dq0+dq1;
       if (*qmax<=0.0) *qmax=0.0;
@@ -174,10 +174,10 @@ double compute_froude_number(double uh,
 // Tried to inline, but no speedup was achieved 27th May 2009 (Ole)
 //static inline double _compute_speed(double *uh, 
 double _compute_speed(double *uh, 
-		      double *h, 
-		      double epsilon, 
-		      double h0,
-		      double limiting_threshold) {
+              double *h,
+              double epsilon,
+              double h0,
+              double limiting_threshold) {
   
   double u;
 
@@ -262,9 +262,9 @@ int _flux_function_central(double *q_left, double *q_right,
                            double z_left, double z_right,
                            double n1, double n2,
                            double epsilon, 
-			   double h0,
-			   double limiting_threshold, 
-			   double g,
+               double h0,
+               double limiting_threshold,
+               double g,
                            double *edgeflux, double *max_speed) 
 {
 
@@ -303,23 +303,23 @@ int _flux_function_central(double *q_left, double *q_right,
 
   z = 0.5*(z_left + z_right); // Average elevation values. 
                               // Even though this will nominally allow 
-			      // for discontinuities in the elevation data, 
-			      // there is currently no numerical support for
-			      // this so results may be strange near 
-			      // jumps in the bed.
+                  // for discontinuities in the elevation data,
+                  // there is currently no numerical support for
+                  // this so results may be strange near
+                  // jumps in the bed.
 
   // Compute speeds in x-direction
   w_left = q_left_rotated[0];          
   h_left = w_left - z;
   uh_left = q_left_rotated[1];
   u_left = _compute_speed(&uh_left, &h_left, 
-			  epsilon, h0, limiting_threshold);
+              epsilon, h0, limiting_threshold);
 
   w_right = q_right_rotated[0];
   h_right = w_right - z;
   uh_right = q_right_rotated[1];
   u_right = _compute_speed(&uh_right, &h_right, 
-			   epsilon, h0, limiting_threshold);
+               epsilon, h0, limiting_threshold);
 
   // Momentum in y-direction
   vh_left  = q_left_rotated[2];
@@ -329,9 +329,9 @@ int _flux_function_central(double *q_left, double *q_right,
   // Leaving this out, improves speed significantly (Ole 27/5/2009)
   // All validation tests pass, so do we really need it anymore? 
   _compute_speed(&vh_left, &h_left, 
-		 epsilon, h0, limiting_threshold);
+         epsilon, h0, limiting_threshold);
   _compute_speed(&vh_right, &h_right, 
-		 epsilon, h0, limiting_threshold);
+         epsilon, h0, limiting_threshold);
 
   // Maximal and minimal wave speeds
   soundspeed_left  = sqrt(g*h_left);
@@ -458,13 +458,13 @@ int flux_function_kinetic(double *q_left, double *q_right,
   h_left = w_left-z;
   uh_left = q_left_rotated[1];
   u_left =_compute_speed(&uh_left, &h_left, 
-			 epsilon, h0, limiting_threshold);
+             epsilon, h0, limiting_threshold);
 
   w_right = q_right_rotated[0];
   h_right = w_right-z;
   uh_right = q_right_rotated[1];
   u_right =_compute_speed(&uh_right, &h_right,
-			  epsilon, h0, limiting_threshold);
+              epsilon, h0, limiting_threshold);
 
 
   //Momentum in y-direction
@@ -552,9 +552,9 @@ void _manning_friction_flat(double g, double eps, int N,
 
 
 void _manning_friction_sloped(double g, double eps, int N,
-			   double* x, double* w, double* zv,
-			   double* uh, double* vh,
-			   double* eta, double* xmom_update, double* ymom_update) {
+               double* x, double* w, double* zv,
+               double* uh, double* vh,
+               double* eta, double* xmom_update, double* ymom_update) {
 
   int k, k3, k6;
   double S, h, z, z0, z1, z2, zs, zx, zy;
@@ -601,9 +601,9 @@ void _manning_friction_sloped(double g, double eps, int N,
 
 
 void _chezy_friction(double g, double eps, int N,
-			   double* x, double* w, double* zv,
-			   double* uh, double* vh,
-			   double* chezy, double* xmom_update, double* ymom_update) {
+               double* x, double* w, double* zv,
+               double* uh, double* vh,
+               double* chezy, double* xmom_update, double* ymom_update) {
 
   int k, k3, k6;
   double S, h, z, z0, z1, z2, zs, zx, zy;
@@ -784,7 +784,7 @@ int _balance_deep_and_shallow(int N,
     if (tight_slope_limiters == 0) {     
       // FIXME: Try with this one precomputed
       for (i=0; i<3; i++) {
-	dz = max(dz, fabs(zv[k3+i]-zc[k]));
+    dz = max(dz, fabs(zv[k3+i]-zc[k]));
       }
     }
 
@@ -812,9 +812,9 @@ int _balance_deep_and_shallow(int N,
 
       
       if (dz > 0.0) {
-	alpha = max( min( alpha_balance*hmin/dz, 1.0), 0.0 );      
+    alpha = max( min( alpha_balance*hmin/dz, 1.0), 0.0 );
       } else {
-	alpha = 1.0;  // Flat bed
+    alpha = 1.0;  // Flat bed
       }
       //printf("Using old style limiter\n");
       
@@ -827,29 +827,29 @@ int _balance_deep_and_shallow(int N,
       // are controlled
     
       if (hmin < H0) {
-	alpha = 1.0;
-	for (i=0; i<3; i++) {
-	  
-	  h_diff = hc_k - hv[i];      
-	  if (h_diff <= 0) {
-	    // Deep water triangle is further away from bed than 
-	    // shallow water (hbar < h). Any alpha will do
-      
-	  } else {  
-	    // Denominator is positive which means that we need some of the 
-	    // h-limited stage.
-	    
-	    alpha = min(alpha, (hc_k - H0)/h_diff);     
-	  }
-	}
+    alpha = 1.0;
+    for (i=0; i<3; i++) {
 
-	// Ensure alpha in [0,1]
-	if (alpha>1.0) alpha=1.0;
-	if (alpha<0.0) alpha=0.0;
-	
+      h_diff = hc_k - hv[i];
+      if (h_diff <= 0) {
+        // Deep water triangle is further away from bed than
+        // shallow water (hbar < h). Any alpha will do
+      
       } else {
-	// Use w-limited stage exclusively in deeper water.
-	alpha = 1.0;       
+        // Denominator is positive which means that we need some of the
+        // h-limited stage.
+
+        alpha = min(alpha, (hc_k - H0)/h_diff);
+      }
+    }
+
+    // Ensure alpha in [0,1]
+    if (alpha>1.0) alpha=1.0;
+    if (alpha<0.0) alpha=0.0;
+
+      } else {
+    // Use w-limited stage exclusively in deeper water.
+    alpha = 1.0;
       }
     }
     
@@ -874,46 +874,46 @@ int _balance_deep_and_shallow(int N,
     
     if (alpha < 1) {      
       for (i=0; i<3; i++) {
-	
-	wv[k3+i] = zv[k3+i] + (1-alpha)*hc_k + alpha*hv[i]; 
 
-	// Update momentum at vertices
-	if (use_centroid_velocities == 1) {
-	  // This is a simple, efficient and robust option
-	  // It uses first order approximation of velocities, but retains
-	  // the order used by stage.
+    wv[k3+i] = zv[k3+i] + (1-alpha)*hc_k + alpha*hv[i];
+
+    // Update momentum at vertices
+    if (use_centroid_velocities == 1) {
+      // This is a simple, efficient and robust option
+      // It uses first order approximation of velocities, but retains
+      // the order used by stage.
     
-	  // Speeds at centroids
-	  if (hc_k > epsilon) {
-	    uc = xmomc[k]/hc_k;
-	    vc = ymomc[k]/hc_k;
-	  } else {
-	    uc = 0.0;
-	    vc = 0.0;
-	  }
-	  
-	  // Vertex momenta guaranteed to be consistent with depth guaranteeing
-	  // controlled speed
-	  hv[i] = wv[k3+i] - zv[k3+i]; // Recompute (balanced) vertex depth
-	  xmomv[k3+i] = uc*hv[i];
-	  ymomv[k3+i] = vc*hv[i];
+      // Speeds at centroids
+      if (hc_k > epsilon) {
+        uc = xmomc[k]/hc_k;
+        vc = ymomc[k]/hc_k;
+      } else {
+        uc = 0.0;
+        vc = 0.0;
+      }
+
+      // Vertex momenta guaranteed to be consistent with depth guaranteeing
+      // controlled speed
+      hv[i] = wv[k3+i] - zv[k3+i]; // Recompute (balanced) vertex depth
+      xmomv[k3+i] = uc*hv[i];
+      ymomv[k3+i] = vc*hv[i];
       
-	} else {
-	  // Update momentum as a linear combination of
-	  // xmomc and ymomc (shallow) and momentum
-	  // from extrapolator xmomv and ymomv (deep).
-	  // This assumes that values from xmomv and ymomv have
-	  // been established e.g. by the gradient limiter.
-	  
-	  // FIXME (Ole): I think this should be used with vertex momenta
-	  // computed above using centroid_velocities instead of xmomc 
-	  // and ymomc as they'll be more representative first order
-	  // values.
-	  
-	  xmomv[k3+i] = (1-alpha)*xmomc[k] + alpha*xmomv[k3+i];
-	  ymomv[k3+i] = (1-alpha)*ymomc[k] + alpha*ymomv[k3+i];
-	  
-	}
+    } else {
+      // Update momentum as a linear combination of
+      // xmomc and ymomc (shallow) and momentum
+      // from extrapolator xmomv and ymomv (deep).
+      // This assumes that values from xmomv and ymomv have
+      // been established e.g. by the gradient limiter.
+
+      // FIXME (Ole): I think this should be used with vertex momenta
+      // computed above using centroid_velocities instead of xmomc
+      // and ymomc as they'll be more representative first order
+      // values.
+
+      xmomv[k3+i] = (1-alpha)*xmomc[k] + alpha*xmomv[k3+i];
+      ymomv[k3+i] = (1-alpha)*ymomc[k] + alpha*ymomv[k3+i];
+
+    }
       }
     }
   }
@@ -944,10 +944,10 @@ int _protect(int N,
 
       if (hc < minimum_allowed_height) {
         
-	// Set momentum to zero and ensure h is non negative
-	xmomc[k] = 0.0;
-	ymomc[k] = 0.0;
-	if (hc <= 0.0) wc[k] = zc[k];
+    // Set momentum to zero and ensure h is non negative
+    xmomc[k] = 0.0;
+    ymomc[k] = 0.0;
+    if (hc <= 0.0) wc[k] = zc[k];
       }
     }
   } else {
@@ -967,24 +967,24 @@ int _protect(int N,
         ymomc[k] = 0.0;
         } else {
           //Reduce excessive speeds derived from division by small hc
-	  //FIXME (Ole): This may be unnecessary with new slope limiters 
-	  //in effect.
+      //FIXME (Ole): This may be unnecessary with new slope limiters
+      //in effect.
           
           u = xmomc[k]/hc;
-	  if (fabs(u) > maximum_allowed_speed) {
-	    reduced_speed = maximum_allowed_speed * u/fabs(u);
-	    //printf("Speed (u) has been reduced from %.3f to %.3f\n",
-	    //   u, reduced_speed);
-	    xmomc[k] = reduced_speed * hc;
-	  }
-	  
+      if (fabs(u) > maximum_allowed_speed) {
+        reduced_speed = maximum_allowed_speed * u/fabs(u);
+        //printf("Speed (u) has been reduced from %.3f to %.3f\n",
+        //   u, reduced_speed);
+        xmomc[k] = reduced_speed * hc;
+      }
+
           v = ymomc[k]/hc;
-	  if (fabs(v) > maximum_allowed_speed) {
-	    reduced_speed = maximum_allowed_speed * v/fabs(v);
-	    //printf("Speed (v) has been reduced from %.3f to %.3f\n",
-	    //   v, reduced_speed);
-	    ymomc[k] = reduced_speed * hc;
-	  }
+      if (fabs(v) > maximum_allowed_speed) {
+        reduced_speed = maximum_allowed_speed * v/fabs(v);
+        //printf("Speed (v) has been reduced from %.3f to %.3f\n",
+        //   v, reduced_speed);
+        ymomc[k] = reduced_speed * hc;
+      }
         }
       }
     }
@@ -1055,21 +1055,21 @@ PyObject *flux_function_central(PyObject *self, PyObject *args) {
   h0 = H0*H0; // This ensures a good balance when h approaches H0.
               // But evidence suggests that h0 can be as little as
               // epsilon!
-	      
+
   limiting_threshold = 10*H0; // Avoid applying limiter below this
                               // threshold for performance reasons.
                               // See ANUGA manual under flux limiting  
   
   _flux_function_central((double*) ql -> data, 
-			 (double*) qr -> data, 
-			 zl, 
-			 zr,                         
-			 ((double*) normal -> data)[0],
-			 ((double*) normal -> data)[1],          
-			 epsilon, h0, limiting_threshold,
-			 g,
-			 (double*) edgeflux -> data, 
-			 &max_speed);
+             (double*) qr -> data,
+             zl,
+             zr,
+             ((double*) normal -> data)[0],
+             ((double*) normal -> data)[1],
+             epsilon, h0, limiting_threshold,
+             g,
+             (double*) edgeflux -> data,
+             &max_speed);
   
   return Py_BuildValue("d", max_speed);  
 }
@@ -1155,7 +1155,7 @@ PyObject *manning_friction_sloped(PyObject *self, PyObject *args) {
   double g, eps;
 
   if (!PyArg_ParseTuple(args, "ddOOOOOOOO",
-			&g, &eps, &x, &w, &uh, &vh, &z,  &eta, &xmom, &ymom)) {
+            &g, &eps, &x, &w, &uh, &vh, &z,  &eta, &xmom, &ymom)) {
       report_python_error(AT, "could not parse input arguments");
       return NULL;
   }
@@ -1173,14 +1173,14 @@ PyObject *manning_friction_sloped(PyObject *self, PyObject *args) {
   N = w -> dimensions[0];
 
   _manning_friction_sloped(g, eps, N,
-			(double*) x -> data,
-			(double*) w -> data,
-			(double*) z -> data,
-			(double*) uh -> data,
-			(double*) vh -> data,
-			(double*) eta -> data,
-			(double*) xmom -> data,
-			(double*) ymom -> data);
+            (double*) x -> data,
+            (double*) w -> data,
+            (double*) z -> data,
+            (double*) uh -> data,
+            (double*) vh -> data,
+            (double*) eta -> data,
+            (double*) xmom -> data,
+            (double*) ymom -> data);
 
   return Py_BuildValue("");
 }
@@ -1197,7 +1197,7 @@ PyObject *chezy_friction(PyObject *self, PyObject *args) {
   double g, eps;
 
   if (!PyArg_ParseTuple(args, "ddOOOOOOOO",
-			&g, &eps, &x, &w, &uh, &vh, &z,  &chezy, &xmom, &ymom)) {
+            &g, &eps, &x, &w, &uh, &vh, &z,  &chezy, &xmom, &ymom)) {
       report_python_error(AT, "could not parse input arguments");
       return NULL;
   }
@@ -1215,14 +1215,14 @@ PyObject *chezy_friction(PyObject *self, PyObject *args) {
   N = w -> dimensions[0];
 
   _chezy_friction(g, eps, N,
-			(double*) x -> data,
-			(double*) w -> data,
-			(double*) z -> data,
-			(double*) uh -> data,
-			(double*) vh -> data,
-			(double*) chezy -> data,
-			(double*) xmom -> data,
-			(double*) ymom -> data);
+            (double*) x -> data,
+            (double*) w -> data,
+            (double*) z -> data,
+            (double*) uh -> data,
+            (double*) vh -> data,
+            (double*) chezy -> data,
+            (double*) xmom -> data,
+            (double*) ymom -> data);
 
   return Py_BuildValue("");
 }
@@ -1239,7 +1239,7 @@ PyObject *manning_friction_flat(PyObject *self, PyObject *args) {
   double g, eps;
 
   if (!PyArg_ParseTuple(args, "ddOOOOOOO",
-			&g, &eps, &w, &uh, &vh, &z,  &eta, &xmom, &ymom)) {
+            &g, &eps, &w, &uh, &vh, &z,  &eta, &xmom, &ymom)) {
       report_python_error(AT, "could not parse input arguments");
       return NULL;
   }
@@ -1256,13 +1256,13 @@ PyObject *manning_friction_flat(PyObject *self, PyObject *args) {
   N = w -> dimensions[0];
 
   _manning_friction_flat(g, eps, N,
-			(double*) w -> data,
-			(double*) z -> data,
-			(double*) uh -> data,
-			(double*) vh -> data,
-			(double*) eta -> data,
-			(double*) xmom -> data,
-			(double*) ymom -> data);
+            (double*) w -> data,
+            (double*) z -> data,
+            (double*) uh -> data,
+            (double*) vh -> data,
+            (double*) eta -> data,
+            (double*) xmom -> data,
+            (double*) ymom -> data);
 
   return Py_BuildValue("");
 }
@@ -1483,7 +1483,7 @@ int _extrapolate_second_order_sw(int number_of_elements,
       dq1 = stage_centroid_values[k1] - stage_centroid_values[k0];
       dq2 = stage_centroid_values[k2] - stage_centroid_values[k0];
       
-	  inv_area2 = 1.0/area2;
+      inv_area2 = 1.0/area2;
       // Calculate the gradient of stage on the auxiliary triangle
       a = dy2*dq1 - dy1*dq2;
       a *= inv_area2;
@@ -1516,8 +1516,8 @@ int _extrapolate_second_order_sw(int number_of_elements,
       
       //for (i=0;i<3;i++)
       stage_vertex_values[k3+0] = stage_centroid_values[k] + dqv[0];
-	  stage_vertex_values[k3+1] = stage_centroid_values[k] + dqv[1];
-	  stage_vertex_values[k3+2] = stage_centroid_values[k] + dqv[2];
+      stage_vertex_values[k3+1] = stage_centroid_values[k] + dqv[1];
+      stage_vertex_values[k3+2] = stage_centroid_values[k] + dqv[2];
       
       
       //-----------------------------------

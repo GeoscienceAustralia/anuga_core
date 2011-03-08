@@ -154,10 +154,22 @@ class Test_inlet_operator(unittest.TestCase):
 
         finaltime = 3.0
         line1 = [[95.0, 10.0], [105.0, 10.0]]
-        Q1 = file_function('inlet_operator_test1.tms', quantities=['hydrograph'])
+
+        
+        import os
+        baseDir = os.getcwd()
+
+        try:
+            os.chdir('structures')
+        except:
+            pass
+
+        Q1 = file_function(filename='inlet_operator_test1.tms', quantities=['hydrograph'])
         
         line2 = [[10.0, 90.0], [20.0, 90.0]]
-        Q2 = file_function('inlet_operator_test2.tms', quantities=['hydrograph'])
+        Q2 = file_function(filename='inlet_operator_test2.tms', quantities=['hydrograph'])
+
+        os.chdir(baseDir)
         
         Inlet_operator(domain, line1, Q1)
         Inlet_operator(domain, line2, Q2)

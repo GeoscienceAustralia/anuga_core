@@ -2,14 +2,11 @@
 
 
 import unittest
-import os.path
-import sys
 
-from anuga.utilities.system_tools import get_pathname_from_package
+
 from anuga.structures.boyd_box_operator import Boyd_box_operator
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
 from anuga.shallow_water.shallow_water_domain import Domain
-from anuga.shallow_water.forcing import Rainfall, Inflow
 import numpy
 
 
