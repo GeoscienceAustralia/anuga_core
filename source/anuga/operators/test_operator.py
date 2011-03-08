@@ -17,9 +17,9 @@ class Test_Operator(unittest.TestCase):
         
         elements = num.array([[0,1,2]])
         boundary_map = {}
-        boundary_map[(0,0)] = Dirichlet_boundary([1,2,1])
-        boundary_map[(0,1)] = Dirichlet_boundary([1,1,2])
-        boundary_map[(0,2)] = Dirichlet_boundary([1,1,0])
+        boundary_map[(0,0)] = 'edge0'
+        boundary_map[(0,1)] = 'edge1'
+        boundary_map[(0,2)] = 'edge2'
 
         domain = Generic_Domain(source=points, triangles=elements, boundary=boundary_map)
 
@@ -30,6 +30,10 @@ class Test_Operator(unittest.TestCase):
 
         message = operator.timestepping_statistics()
         assert message == 'You need to implement timestepping statistics for your operator'
+
+        domain.timestep = 3.0
+
+        assert operator.get_timestep() == domain.get_timestep()
         
         try:
             operator()

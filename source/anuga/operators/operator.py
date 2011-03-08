@@ -21,6 +21,10 @@ class Operator:
         #timestep = self.domain.get_timestep()
         raise Exception('Need to implement __call__ for your operator')
                     
+    def get_timestep(self):
+
+        return self.domain.get_timestep()
+
     def __parallel_safe(self):
 
         return False
