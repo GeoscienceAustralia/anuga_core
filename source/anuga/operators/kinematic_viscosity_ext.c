@@ -47,7 +47,7 @@ int build_geo_structure(int n,
                         double *edge_midpoints, 
                         long *geo_indices, 
                         double *geo_values) {
-    int i, edge, edge_counted, j;
+    int i, edge, edge_counted, j, m;
 	double dist, this_x, this_y, other_x, other_y, edge_length;
 	edge_counted = 0;
 	for (i=0; i<n; i++) {
@@ -59,8 +59,11 @@ int build_geo_structure(int n,
 			j = neighbours[3*i+edge];
 			
 			//Get the index and the coordinates of the interacting point
-			if (j == -1) {
-				geo_indices[3*i+edge] = n + edge_counted;
+
+                        // Edge
+			if (j < 0 ) {
+                                m = -j - 1;
+				geo_indices[3*i+edge] = n + m;
 				edge_counted++;
 				
 				other_x = edge_midpoints[2*(3*i+edge)];
@@ -158,8 +161,8 @@ static PyObject *py_build_geo_structure(PyObject *self, PyObject *args) {
     neighbours = get_consecutive_array(mesh,"neighbours");
     edgelengths = get_consecutive_array(mesh,"edgelengths");
     edge_midpoint_coordinates = get_consecutive_array(mesh,"edge_midpoint_coordinates");
-	geo_indices = get_consecutive_array(kv_operator,"geo_structure_indices");
-	geo_values = get_consecutive_array(kv_operator,"geo_structure_values");
+    geo_indices = get_consecutive_array(kv_operator,"geo_structure_indices");
+    geo_values = get_consecutive_array(kv_operator,"geo_structure_values");
     
     //Release
     Py_DECREF(mesh);
@@ -181,8 +184,8 @@ static PyObject *py_build_geo_structure(PyObject *self, PyObject *args) {
     Py_DECREF(neighbours);
     Py_DECREF(edgelengths);
     Py_DECREF(edge_midpoint_coordinates);
-	Py_DECREF(geo_indices);
-	Py_DECREF(geo_values);
+    Py_DECREF(geo_indices);
+    Py_DECREF(geo_values);
     
     return Py_BuildValue("");
 }
