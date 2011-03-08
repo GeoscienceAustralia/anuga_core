@@ -124,6 +124,28 @@ from anuga.pmesh.mesh_interface import create_mesh_from_regions
 from anuga.shallow_water.sww_interrogate import get_flow_through_cross_section
     
 
+
+#---------------------------
+# Operators
+#---------------------------
+from anuga.operators.base_operator import Operator
+
+#---------------------------
+# Structures
+#---------------------------
+from anuga.structures.structure_operator import Structure_operator
+from anuga.structures.boyd_box_operator import Boyd_box_operator
+from anuga.structures.boyd_pipe_operator import Boyd_pipe_operator
+
+#---------------------------
+# User Access Functions
+#---------------------------
+
+from anuga.utilities.system_tools import get_user_name, get_host_name, get_revision_number
+
+
+
+
 #-----------------------------
 # rectangular domains
 #-----------------------------
@@ -197,8 +219,8 @@ def create_domain_from_regions(bounding_polygon,
     interior_holes is a list of ploygons for each hole. These polygons do not
     need to be closed, but their points must be specified in a counter-clockwise
     order.
-	
-	hole_tags  is a list of tag segment dictionaries.
+
+    hole_tags  is a list of tag segment dictionaries.
 
     This function does not allow segments to share points - use underlying
     pmesh functionality for that
@@ -320,23 +342,6 @@ if use_psyco:
         #psyco.background() # attempt to profile code - only compile most used
         
 
-#---------------------------
-# Operators
-#---------------------------
-from anuga.operators.operator import Operator
-
-#---------------------------
-# Structures
-#---------------------------
-from anuga.structures.structure_operator import Structure_operator
-from anuga.structures.boyd_box_operator import Boyd_box_operator
-from anuga.structures.boyd_pipe_operator import Boyd_pipe_operator
-
-#---------------------------
-# User Access Functions
-#---------------------------
-
-from anuga.utilities.system_tools import get_user_name, get_host_name, get_revision_number
 
 
 
