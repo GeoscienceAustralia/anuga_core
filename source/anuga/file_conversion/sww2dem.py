@@ -211,7 +211,7 @@ def sww2dem(name_in, name_out,
             missing_vars.append(name)
     if missing_vars:
         msg = ("In expression '%s', variables %s are not in the SWW file '%s'"
-               % (quantity, name_in))
+               % (quantity, str(missing_vars), name_in))
         raise Exception, msg
 
     # Create result array and start filling, block by block.

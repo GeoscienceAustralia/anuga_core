@@ -514,7 +514,12 @@ float** _read_mux2(int numSrc,
         //printf("\n elements_read  %d, ", (int)elements_read);
         //printf("\n ferror(fp)  %d, ", (int)ferror(fp));
         if ((int) elements_read == 0 && ferror(fp)) {
-            fprintf(stderr, "Error reading mux data\n");
+            fprintf(stderr, "Error reading mux data: %s", strerror(errno));
+            if (errno == EFAULT)        // error 14 in /usr/include/asm-generic/errno-base.h
+            {
+                fprintf(stderr, "NOTE: This error has been seen before in low memory systems with no swap.\n");
+            }
+
             fclose(fp);
             free(muxData);
             free(temp_sts_data);
