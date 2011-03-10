@@ -21,10 +21,6 @@ SpacesPatternString = ' +'
 SpacesPattern = re.compile(SpacesPatternString)
 
 
-##
-# @brief Convert multiple ASC files into one with max value at each element.
-# @param out_file Name of the output file.
-# @param in_files List of input filenames.
 def MaxAsc(out_file, in_files):
     """
     MaxAsc('output_filename', ['list', 'of', 'filenames'])
