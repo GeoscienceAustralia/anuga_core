@@ -207,7 +207,7 @@ def sww2dem(name_in, name_out,
     for name in var_list:
         try:
             _ = fid.variables[name]
-        except:
+        except KeyError:
             missing_vars.append(name)
     if missing_vars:
         msg = ("In expression '%s', variables %s are not in the SWW file '%s'"
