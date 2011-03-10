@@ -29,25 +29,30 @@
 import csv
 
 
-##
-# @brief Order a CSV file of boundary points.
-# @param Path to input file.
-# @param Path to output file.
-# @note Input file will have a header line that must be preserved.
-# @note File format is: (longitude, latitude, <other_fields>)
-# @note Fields after long+lat must be preserved.
 def order_boundary(infile, outfile):
+    """Order a CSV file of boundary points.
 
-    ##
-    # @brief Recursive routine to sort a list of point tuples: (x, y, ...).
-    # @param unordered Unordered list of points.
-    # @param ordered Return list of ordered points.
-    # @param is index into 'unordered' of point to put into 'ordered'.
-    # @note This code:
-    #         . moves 'id' point from 'unordered' into 'ordered'
-    #         . finds 'id' of next point to be moved
-    #         . if more points, recurse
+    infile   path to input filep
+    outfile  path to output filep
+
+    Input file will have a header line that must be preserved.
+    File format is: (longitude, latitude, <other_fields>)
+    Fields after long+lat must be preserved.
+    """
+
     def sort_points(unordered, ordered, id):
+        """Sort a list of point tuples.
+
+        unordered  unordered list of points.
+        ordered    return list of ordered points.
+        id         is index into 'unordered' of point to put into 'ordered'
+
+        This code:
+            . moves 'id' point from 'unordered' into 'ordered'
+            . finds 'id' of next point to be moved
+            . if more points, recurse
+        """
+
         # move 'id' point from unordered to ordered, get x0, y0
         ordered.append(unordered[id])
         x0 = unordered[id][0]
