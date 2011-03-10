@@ -21,9 +21,6 @@ class Read_urs:
     n-mux is velocity is Northern direction, m/s
     """
 
-    ##
-    # @brief Initialize this instance of Urs_points.
-    # @param urs_file Path to the underlying data file.
     def __init__(self, urs_file):
         self.iterated = False
         columns = 3                         # long, lat , depth
@@ -58,8 +55,6 @@ class Read_urs:
         self.mux_file = mux_file
         # check this array
 
-    ##
-    # @brief Allow iteration over quantity data wrt time.
     def __iter__(self):
         """
         iterate over quantity data which is with respect to time.
@@ -77,8 +72,6 @@ class Read_urs:
 
         return self
 
-    ##
-    # @brief 
     def next(self):
         if self.time_step_count == self.iter_time_step:
             self.close()
@@ -92,8 +85,6 @@ class Read_urs:
 
         return hz_p
 
-    ##
-    # @brief Close the mux file.
     def close(self):
         self.mux_file.close()
    
@@ -109,22 +100,6 @@ class Read_urs:
 #LAT_AMOUNT = 4800
 #LONG_AMOUNT = 3600
 
-
-##
-# @brief 
-# @param file_name 
-# @param boundary_polygon 
-# @param zone 
-# @param ll_lat 
-# @param ll_long 
-# @param grid_spacing 
-# @param lat_amount 
-# @param long_amount 
-# @param isSouthernHemisphere 
-# @param export_csv 
-# @param use_cache 
-# @param verbose True if this function is to be verbose.
-# @return 
 
 def save_boundary_as_urs(file_name, boundary_polygon, zone,
                               ll_lat, ll_long,
@@ -180,18 +155,6 @@ def save_boundary_as_urs(file_name, boundary_polygon, zone,
     return geo
 
 
-##
-# @brief 
-# @param boundary_polygon
-# @param zone
-# @param ll_lat
-# @param ll_long
-# @param grid_spacing
-# @param lat_amount
-# @param long_amount
-# @param isSouthHemisphere
-# @param use_cache
-# @param verbose
 def calculate_boundary_points(boundary_polygon, zone, ll_lat,
                       ll_long, grid_spacing,
                       lat_amount, long_amount, isSouthHemisphere=True,
@@ -220,16 +183,6 @@ def calculate_boundary_points(boundary_polygon, zone, ll_lat,
     return geo
 
 
-##
-# @brief 
-# @param boundary_polygon An iterable of points that describe a polygon.
-# @param zone
-# @param ll_lat Lower left latitude, in decimal degrees
-# @param ll_long Lower left longitude, in decimal degrees
-# @param grid_spacing Grid spacing in decimal degrees.
-# @param lat_amount
-# @param long_amount
-# @param isSouthHemisphere
 def _calculate_boundary_points(boundary_polygon,
                        zone, ll_lat,
                        ll_long, grid_spacing,
@@ -276,17 +229,6 @@ def _calculate_boundary_points(boundary_polygon,
     return geo
 
 
-##
-# @brief Get the points that are needed to interpolate any point a a segment.
-# @param seg Two points in the UTM.
-# @param ll_lat Lower left latitude, in decimal degrees
-# @param ll_long Lower left longitude, in decimal degrees
-# @param grid_spacing 
-# @param lat_amount 
-# @param long_amount 
-# @param zone 
-# @param isSouthHemisphere 
-# @return A list of points.
 def points_needed(seg, ll_lat, ll_long, grid_spacing,
                   lat_amount, long_amount, zone,
                   isSouthHemisphere):
@@ -345,12 +287,6 @@ def points_needed(seg, ll_lat, ll_long, grid_spacing,
        
 
 
-##
-# @brief 
-# @param lat
-# @param long
-# @param seg Two points in UTM.
-# @param max_distance
 def keep_point(lat, long, seg, max_distance):
     """
     seg is two points, UTM

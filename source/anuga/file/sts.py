@@ -16,20 +16,9 @@ class Write_sts:
     RANGE = '_range'
     EXTREMA = ':extrema'
 
-    ##
-    # @brief Instantiate this STS writer class.
     def __init__(self):
         pass
 
-    ##
-    # @brief Write a header to the underlying data file.
-    # @param outfile Handle to open file to write.
-    # @param times A list of the time slice times *or* a start time.
-    # @param number_of_points The number of URS gauge sites.
-    # @param description Description string to write into the STS file.
-    # @param sts_precision Format of data to write (netcdf constant ONLY).
-    # @param verbose True if this function is to be verbose.
-    # @note If 'times' is a list, the info will be made relative.
     def store_header(self,
                      outfile,
                      times,
@@ -37,11 +26,16 @@ class Write_sts:
                      description='Converted from URS mux2 format',
                      sts_precision=netcdf_float32,
                      verbose=False):
-        """
-        outfile - the name of the file that will be written
-        times - A list of the time slice times OR a start time
-        Note, if a list is given the info will be made relative.
-        number_of_points - the number of urs gauges sites
+        """Write a header to the underlying data file.
+
+        outfile          handle to open file to write
+        times            list of the time slice times *or* a start time
+        number_of_points the number of URS gauge sites
+        description      description string to write into the STS file
+        sts_precision    format of data to write (netcdf constant ONLY)
+        verbose          True if this function is to be verbose
+
+        If 'times' is a list, the info will be made relative.
         """
 
         outfile.institution = 'Geoscience Australia'
@@ -95,15 +89,6 @@ class Write_sts:
 
         self.write_dynamic_quantities(outfile, Write_sts.sts_quantities, times)
 
-    ##
-    # @brief 
-    # @param outfile 
-    # @param points_utm 
-    # @param elevation 
-    # @param zone 
-    # @param new_origin 
-    # @param points_georeference 
-    # @param verbose True if this function is to be verbose.
     def store_points(self,
                      outfile,
                      points_utm,
@@ -187,14 +172,6 @@ class Write_sts:
         outfile.variables[q + Write_sts.RANGE][0] = min(elevation)
         outfile.variables[q + Write_sts.RANGE][1] = max(elevation)
 
-    ##
-    # @brief Store quantity data in the underlying file.
-    # @param outfile
-    # @param sts_precision
-    # @param slice_index
-    # @param time
-    # @param verboseTrue if this function is to be verbose.
-    # @param **quant Extra keyword args.
     def store_quantities(self, outfile, sts_precision=num.float32,
                          slice_index=None, time=None,
                          verbose=False, **quant):
@@ -274,10 +251,6 @@ class Write_sts:
 
 
 
-##
-# @brief Create a list of points defining a boundary from an STS file.
-# @param stsname Stem of path to the STS file to read.
-# @return A list of boundary points.
 def create_sts_boundary(sts_filename):
     """Create a list of points defining a boundary from an STS file.
 

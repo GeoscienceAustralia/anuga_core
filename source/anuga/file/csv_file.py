@@ -139,12 +139,6 @@ def load_csv_as_matrix(file_name, delimiter = ','):
 
 
 
-##
-# @brief Store keyword params into a CSV file.
-# @param verbose True if this function is to be verbose.
-# @param kwargs Dictionary of keyword args to store.
-# @note If kwargs dict contains 'file_name' key, that has the output filename.
-#       If not, make up a filename in the output directory.
 def store_parameters(verbose=False, **kwargs):
     """
     Store "kwargs" into a temp csv file, if "completed" is in kwargs,
