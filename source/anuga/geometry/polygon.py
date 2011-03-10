@@ -1013,10 +1013,10 @@ def number_mesh_triangles(interior_regions, bounding_poly, remainder_res):
 
     # TO DO check if any of the regions fall inside one another
 
-    log.critical('-' * 80)
-    log.critical('Polygon   Max triangle area (m^2)   Total area (km^2) '
-                 'Estimated #triangles')
-    log.critical('-' * 80)
+    log.info('-' * 80)
+    log.info('Polygon  Max triangle area (m^2)  Total area (km^2)  '
+             'Estimated #triangles')
+    log.info('-' * 80)
         
     no_triangles = 0.0
     area = polygon_area(bounding_poly)
@@ -1027,33 +1027,24 @@ def number_mesh_triangles(interior_regions, bounding_poly, remainder_res):
         no_triangles += this_triangles
         area -= this_area
 
-        log.critical('Interior %s%s%d'
-                     % (('%.0f' % resolution).ljust(25),
-                        ('%.2f' % (this_area/1000000)).ljust(19), 
-                        this_triangles))
-        #print 'Interior ',
-        #print ('%.0f' % resolution).ljust(25),
-        #print ('%.2f' % (this_area/1000000)).ljust(19),
-        #print '%d' % (this_triangles)
+        log.info('Interior %s%s%d'
+                 % (('%.0f' % resolution).ljust(25),
+                    ('%.2f' % (this_area/1000000)).ljust(19), 
+                    this_triangles))
 
     bound_triangles = area/remainder_res
     no_triangles += bound_triangles
 
-    log.critical('Bounding %s%s%d'
-                 % (('%.0f' % remainder_res).ljust(25),
-                    ('%.2f' % (area/1000000)).ljust(19),
-                    bound_triangles))
-    #print 'Bounding ',
-    #print ('%.0f' % remainder_res).ljust(25),
-    #print ('%.2f' % (area/1000000)).ljust(19),
-    #print '%d' % (bound_triangles)
+    log.info('Bounding %s%s%d'
+             % (('%.0f' % remainder_res).ljust(25),
+                ('%.2f' % (area/1000000)).ljust(19),
+                bound_triangles))
 
     total_number_of_triangles = no_triangles/0.7
 
-    log.critical('Estimated total number of triangles: %d'
+    log.info('Estimated total number of triangles: %d'
                  % total_number_of_triangles)
-    log.critical('Note: This is generally about 20%% '
-                 'less than the final amount')
+    log.info('Note: This is generally about 20% less than the final amount')
 
     return int(total_number_of_triangles)
 
