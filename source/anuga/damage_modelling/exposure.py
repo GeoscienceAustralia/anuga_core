@@ -93,12 +93,15 @@ class Exposure:
         # create a list of points that are in the refining_polygon
         # described by a list of indexes representing the points
 
-    ##
-    # @brief Create a comparison method.
-    # @param self This object.
-    # @param other The other object.
-    # @return True if objects are 'same'.
     def __cmp__(self, other):
+        """Compare this and another object.
+
+        self   this object
+        other  the other object
+
+        Returns True if objects are the 'same'.
+        """
+
         #check that 'other' is an instance of this class
         if isinstance(self, type(other)):
             result = cmp(self._attribute_dic, other._attribute_dic)
@@ -119,21 +122,16 @@ class Exposure:
         else:
             return 1
 
-    ##
-    # @brief Get a list of column values given a column name.
-    # @param column_name The name of the column to get values from.
-    # @param use_refind_polygon Unused??
     def get_column(self, column_name, use_refind_polygon=False):
-        """
-        Given a column name return a list of the column values
+        """Get a list of column values given a column name.
+
+        column_name         The name of the column to get values from
+        use_refind_polygon  if True, only return values in the refined polygon
+                            (not yet implemented)
 
         Note, the type of the values will be String!
         do this to change a list of strings to a list of floats
         time = [float(x) for x in time]
-
-        Not implemented:
-        if use_refind_polygon is True, only return values in the
-        refined polygon
         """
 
         if not self._attribute_dic.has_key(column_name):
@@ -142,12 +140,6 @@ class Exposure:
 
         return self._attribute_dic[column_name]
 
-    ##
-    # @brief ??
-    # @param value_column_name ??
-    # @param known_column_name ??
-    # @param known_values ??
-    # @param use_refind_polygon ??
     def get_value(self, value_column_name, known_column_name,
                   known_values, use_refind_polygon=False):
         """
@@ -157,9 +149,6 @@ class Exposure:
 
         pass
 
-    ##
-    # @brief Get a geospatial object that describes the locations.
-    # @param use_refind_polygon Unused??
     def get_location(self, use_refind_polygon=False):
         """
         Return a geospatial object which describes the
@@ -174,11 +163,6 @@ class Exposure:
 
         return self._geospatial
 
-    ##
-    # @brief Add column to 'end' of CSV data.
-    # @param column_name The new column name.
-    # @param column_values The new column values.
-    # @param overwrite If True, overwrites last column, doesn't add at end.
     def set_column(self, column_name, column_values, overwrite=False):
         """
         Add a column to the 'end' (with the right most column being the end)
@@ -209,12 +193,10 @@ class Exposure:
 
         self._attribute_dic[column_name] = column_values
 
-    ##
-    # @brief Save the exposure CSV  file.
-    # @param file_name If supplied, use this filename, not original.
     def save(self, file_name=None):
-        """
-        Save the exposure csv file
+        """Save the exposure csv file.
+
+        file_name  if supplied write this to filename, not original
         """
 
         if file_name is None:

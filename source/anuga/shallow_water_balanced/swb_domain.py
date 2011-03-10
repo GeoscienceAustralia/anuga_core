@@ -10,27 +10,8 @@ from swb_boundary_conditions import Transmissive_boundary
 # Uses extra evolved quantities height, elevation, xvelocity, yvelocity
 ##############################################################################
 
-##
-# @brief Class for a shallow water balanced domain.
 class Domain(Sww_domain):
 
-    ##
-    # @brief Instantiate a shallow water balanced domain.
-    # @param coordinates
-    # @param vertices
-    # @param boundary
-    # @param tagged_elements
-    # @param geo_reference
-    # @param use_inscribed_circle
-    # @param mesh_filename
-    # @param use_cache
-    # @param verbose
-    # @param full_send_dict
-    # @param ghost_recv_dict
-    # @param processor
-    # @param numproc
-    # @param number_of_full_nodes
-    # @param number_of_full_triangles
     def __init__(self,
                  coordinates=None,
                  vertices=None,
@@ -86,8 +67,6 @@ class Domain(Sww_domain):
         self.set_CFL(1.0)
         self.set_beta(1.0)
 
-    ##
-    # @brief Run integrity checks on shallow water balanced domain.
     def check_integrity(self):
         Sww_domain.check_integrity(self)
 
@@ -110,8 +89,6 @@ class Domain(Sww_domain):
         msg = 'First other quantity must be "friction"'
         assert self.other_quantities[0] == 'friction', msg
 
-    ##
-    # @brief 
     def compute_fluxes(self):
         #Call correct module function (either from this module or C-extension)
 
@@ -135,8 +112,6 @@ class Domain(Sww_domain):
 
         #print self.flux_timestep
 
-    ##
-    # @brief 
     def distribute_to_vertices_and_edges(self):
         """Distribution from centroids to edges specific to the SWW eqn.
 
@@ -265,8 +240,6 @@ class Domain(Sww_domain):
 
 
 
-    ##
-    # @brief 
     def distribute_to_vertices_and_edges_h(self):
         """Distribution from centroids to edges specific to the SWW eqn.
 
@@ -392,8 +365,6 @@ class Domain(Sww_domain):
 
 
 
-    ##
-    # @brief Code to let us use old shallow water domain BCs
     def conserved_values_to_evolved_values(self, q_cons, q_evol):
         """Mapping between conserved quantities and the evolved quantities.
         Used where we have a boundary condition which works with conserved
