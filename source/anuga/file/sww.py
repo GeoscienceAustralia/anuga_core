@@ -26,17 +26,10 @@ from anuga.coordinate_transforms.geo_reference import \
 from file_utils import create_filename
 import numpy as num
 
-##
-# @brief Generic class for storing output to e.g. visualisation or checkpointing
 class Data_format:
     """Generic interface to data formats
     """
 
-    ##
-    # @brief Instantiate this instance.
-    # @param domain 
-    # @param extension 
-    # @param mode The mode of the underlying file.
     def __init__(self, domain, extension, mode=netcdf_mode_w):
         assert mode[0] in ['r', 'w', 'a'], \
                "Mode %s must be either:\n" % mode + \
@@ -70,13 +63,6 @@ class SWW_file(Data_format):
     All data is assumed to reside at vertex locations.
     """
 
-    ##
-    # @brief Instantiate this instance.
-    # @param domain ??
-    # @param mode Mode of the underlying data file.
-    # @param max_size ??
-    # @param recursion ??
-    # @note Prepare the underlying data file if mode starts with 'w'.
     def __init__(self, domain, 
                  mode=netcdf_mode_w, max_size=2000000000, recursion=False):
         from Scientific.IO.NetCDF import NetCDFFile
@@ -166,8 +152,6 @@ class SWW_file(Data_format):
 
         fid.close()
 
-    ##
-    # @brief Store connectivity data into the underlying data file.
     def store_connectivity(self):
         """Store information about nodes, triangles and static quantities
 
@@ -212,9 +196,6 @@ class SWW_file(Data_format):
                                             
         fid.close()
 
-    ##
-    # @brief Store time and time dependent quantities 
-    # to the underlying data file.
     def store_timestep(self):
         """Store time and time dependent quantities
         """
@@ -375,8 +356,6 @@ class SWW_file(Data_format):
             fid.close()
 
 
-##
-# @brief Class to open an sww file so that domain can be populated with quantity values 
 class Read_sww:
 
     def __init__(self, source):
@@ -808,9 +787,6 @@ class Write_sww(Write_sts):
                 if q_values_max > q_range[1]:
                     outfile.variables[q + Write_sww.RANGE][1] = q_values_max
 
-    ##
-    # @brief Print the quantities in the underlying file.
-    # @param outfile UNUSED.
     def verbose_quantities(self, outfile):
         log.critical('------------------------------------------------')
         log.critical('More Statistics:')
@@ -1127,13 +1103,14 @@ def get_time_interp(time, t=None):
 
 
 
-##
-# @brief Interpolate a quantity wrt time.
-# @param saved_quantity The quantity to interpolate.
-# @param time_interp (index, ratio)
-# @return A vector of interpolated values.
 def interpolated_quantity(saved_quantity, time_interp):
-    '''Given an index and ratio, interpolate quantity with respect to time.'''
+    """Interpolate a quantity with respect to time.
+
+    saved_quantity  the quantity to interpolate
+    time_interp     (index, ratio)
+
+    Returns a vector of interpolated values.
+    """
 
     index, ratio = time_interp
 

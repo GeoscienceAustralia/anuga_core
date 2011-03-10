@@ -17,13 +17,6 @@ WAVEHEIGHT_MUX2_LABEL = '-z-mux2'
 EAST_VELOCITY_MUX2_LABEL = '-e-mux2'
 NORTH_VELOCITY_MUX2_LABEL = '-n-mux2'
 
-##
-# @brief 
-# @param filenames List of mux2 format input filenames.
-# @param weights Weights associated with each source file.
-# @param permutation The gauge numbers for which data is extracted.
-# @param verbose True if this function is to be verbose.
-# @return (times, latitudes, longitudes, elevation, quantity, starttime)
 def read_mux2_py(filenames,
                  weights=None,
                  permutation=None,
