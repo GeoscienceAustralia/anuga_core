@@ -324,15 +324,17 @@ def get_pathname_from_package(package):
     #    p1 = read_polygon(path)
         
     
-##
-# @brief Split a string into 'clean' fields.
-# @param str The string to process.
-# @param delimiter The delimiter string to split 'line' with.
-# @return A list of 'cleaned' field strings.
-# @note Any fields that were initially zero length will be removed.
-# @note If a field contains '\n' it isn't zero length.
 def clean_line(str, delimiter):
-    """Split string on given delimiter, remove whitespace from each field."""
+    """Split a string into 'clean' fields.
+
+    str        the string to process
+    delimiter  the delimiter string to split 'line' with
+
+    Returns a list of 'cleaned' field strings.
+
+    Any fields that were initially zero length will be removed.
+    If a field contains '\n' it isn't zero length.
+    """
 
     return [x.strip() for x in str.strip().split(delimiter) if x != '']
 
@@ -362,11 +364,6 @@ def clean_line(str, delimiter):
 #    3. The code below is fast enough in an I/O scenario
 ################################################################################
 
-##
-# @brief Convert 1-D list of strings to 2-D list of chars.
-# @param l 1-dimensional list of strings.
-# @return A 2-D list of 'characters' (1 char strings).
-# @note No checking that we supply a 1-D list.
 def string_to_char(l):
     '''Convert 1-D list of strings to 2-D list of chars.'''
 
@@ -384,11 +381,6 @@ def string_to_char(l):
     return result
 
 
-##
-# @brief Convert 2-D list of chars to 1-D list of strings.
-# @param ll 2-dimensional list of 'characters' (1 char strings).
-# @return A 1-dimensional list of strings.
-# @note Each string has had right-end spaces removed.
 def char_to_string(ll):
     '''Convert 2-D list of chars to 1-D list of strings.'''
 
@@ -396,22 +388,12 @@ def char_to_string(ll):
 
 ################################################################################
 
-##
-# @brief Get list of variable names in a python expression string.
-# @param source A string containing a python expression.
-# @return A list of variable name strings.
-# @note Throws SyntaxError exception if not a valid expression.
 def get_vars_in_expression(source):
     '''Get list of variable names in a python expression.'''
 
     import compiler
     from compiler.ast import Node
 
-    ##
-    # @brief Internal recursive function.
-    # @param node An AST parse Node.
-    # @param var_list Input list of variables.
-    # @return An updated list of variables.
     def get_vars_body(node, var_list=[]):
         if isinstance(node, Node):
             if node.__class__.__name__ == 'Name':
@@ -429,17 +411,6 @@ def get_vars_in_expression(source):
     return get_vars_body(compiler.parse(source))
 
 
-##
-# @brief Get a file from the web.
-# @param file_url URL of the file to fetch.
-# @param file_name Path to file to create in the filesystem.
-# @param auth Auth tuple (httpproxy, proxyuser, proxypass).
-# @param blocksize Read file in this block size.
-# @return (True, auth) if successful, else (False, auth).
-# @note If 'auth' not supplied, will prompt user.
-# @note Will try using environment variable HTTP_PROXY for proxy server.
-# @note Will try using environment variable PROXY_USERNAME for proxy username.
-# @note Will try using environment variable PROXY_PASSWORD for proxy password.
 def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
     '''Get a file from the web (HTTP).
 
@@ -536,12 +507,6 @@ def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
     return (True, (httpproxy, proxyuser, proxypass))
 
 
-##
-# @brief Tar a file (or directory) into a tarfile.
-# @param files A list of files (or directories) to tar.
-# @param tarfile The created tarfile name.
-# @note 'files' may be a string (single file) or a list of strings.
-# @note We use gzip compression.
 def tar_file(files, tarname):
     '''Compress a file or directory into a tar file.'''
 
@@ -554,10 +519,6 @@ def tar_file(files, tarname):
     o.close()
 
 
-##
-# @brief Untar a file into an optional target directory.
-# @param tarname Name of the file to untar.
-# @param target_dir Directory to untar into.
 def untar_file(tarname, target_dir='.'):
     '''Uncompress a tar file.'''
 
@@ -568,12 +529,6 @@ def untar_file(tarname, target_dir='.'):
     o.close()
 
 
-##
-# @brief Return a hex digest (MD5) of a given file.
-# @param filename Path to the file of interest.
-# @param blocksize Size of data blocks to read.
-# @return A hex digest string (16 bytes).
-# @note Uses MD5 digest if hashlib not available.
 def get_file_hexdigest(filename, blocksize=1024*1024*10):
     '''Get a hex digest of a file.'''
 
@@ -593,11 +548,6 @@ def get_file_hexdigest(filename, blocksize=1024*1024*10):
     return m.hexdigest()
 
 
-##
-# @brief Create a file containing a hexdigest string of a data file.
-# @param data_file Path to the file to get the hexdigest from.
-# @param digest_file Path to hexdigest file to create.
-# @note Uses MD5 digest.
 def make_digest_file(data_file, digest_file):
     '''Create a file containing the hex digest string of a data file.'''
     
@@ -607,13 +557,6 @@ def make_digest_file(data_file, digest_file):
     fd.close()
 
 
-##
-# @brief Function to return the length of a file.
-# @param in_file Path to file to get length of.
-# @return Number of lines in file.
-# @note Doesn't count '\n' characters.
-# @note Zero byte file, returns 0.
-# @note No \n in file at all, but >0 chars, returns 1.
 def file_length(in_file):
     '''Function to return the length of a file.'''
 

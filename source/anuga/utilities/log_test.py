@@ -31,10 +31,6 @@ class Test_Log(unittest.TestCase):
         if os.path.exists(STDOUT_LOG_NAME):
             os.remove(STDOUT_LOG_NAME)
 
-    ##
-    # @brief Test the logging routines.
-    # @note HAVE ONE TEST CASE ONLY! Multiple tests would concatenate
-    #       multiple test output in one log file.
     def test_simple(self):
         '''Check that logging works in simple case.'''
 

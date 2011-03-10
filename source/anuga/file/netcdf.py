@@ -22,8 +22,6 @@ lat_name = 'LAT'
 time_name = 'TIME'
 precision = netcdf_float # So if we want to change the precision its done here
 
-##
-# @brief Clas for a NetCDF data file writer.
 class Write_nc:
     """Write an nc file.
 
@@ -31,14 +29,6 @@ class Write_nc:
     data. http://www.cdc.noaa.gov/cdc/conventions/cdc_netcdf_standard.shtml
     """
 
-    ##
-    # @brief Instantiate a Write_nc instance.
-    # @param quantity_name 
-    # @param file_name 
-    # @param time_step_count The number of time steps.
-    # @param time_step The time_step size.
-    # @param lon 
-    # @param lat 
     def __init__(self,
                  quantity_name,
                  file_name,
@@ -94,9 +84,6 @@ class Write_nc:
         #Assume no one will be wanting to read this, while we are writing
         #outfile.close()
 
-    ##
-    # @brief Write a time-step of quantity data.
-    # @param quantity_slice The data to be stored for this time-step.
     def store_timestep(self, quantity_slice):
         """Write a time slice of quantity info
 
@@ -120,12 +107,6 @@ class Write_nc:
 
 
 
-##
-# @brief Write an NC elevation file.
-# @param file_out Path to the output file.
-# @param lon ??
-# @param lat ??
-# @param depth_vector The elevation data to write.
 def write_elevation_nc(file_out, lon, lat, depth_vector):
     """Write an nc elevation file."""
 
@@ -149,15 +130,6 @@ def write_elevation_nc(file_out, lon, lat, depth_vector):
 
     outfile.close()
 
-
-##
-# @brief Write lat/lon headers to a NetCDF file.
-# @param outfile Handle to open file to write to.
-# @param lon An iterable of the longitudes.
-# @param lat An iterable of the latitudes.
-# @note Defines lat/long dimensions and variables. Sets various attributes:
-#          .point_spacing  and  .units
-#       and writes lat/lon data.
 
 def nc_lon_lat_header(outfile, lon, lat):
     """Write lat/lon headers to a NetCDF file.
@@ -187,13 +159,6 @@ def nc_lon_lat_header(outfile, lon, lat):
 
 
 
-##
-# @brief Filter data file, selecting timesteps first:step:last.
-# @param filename1 Data file to filter.
-# @param filename2 File to write filtered timesteps to.
-# @param first First timestep.
-# @param last Last timestep.
-# @param step Timestep stride.
 def filter_netcdf(filename1, filename2, first=0, last=None, step=1):
     """Filter data file, selecting timesteps first:step:last.
     
