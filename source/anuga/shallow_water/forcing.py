@@ -155,9 +155,7 @@ class Wind_stress:
             self.phi = phi
 
         self.const = eta_w*rho_a/rho_w
-    ##
-    # @brief 'execute' this class instance.
-    # @param domain 
+
     def __call__(self, domain):
         """Evaluate windfield based on values found in domain"""
 
@@ -204,13 +202,6 @@ class Wind_stress:
                                 s_vec, phi_vec, self.const)
 
 
-##
-# @brief Assign wind field values
-# @param xmom_update 
-# @param ymom_update
-# @param s_vec 
-# @param phi_vec 
-# @param const 
 def assign_windfield_values(xmom_update, ymom_update,
                             s_vec, phi_vec, const):
     """Python version of assigning wind field to update vectors.
@@ -236,8 +227,6 @@ def assign_windfield_values(xmom_update, ymom_update,
         ymom_update[k] += S*v
 
 
-##
-# @brief A class for a general explicit forcing term.
 class General_forcing:
     """General explicit forcing term for update of quantity
 
@@ -274,16 +263,6 @@ class General_forcing:
 
     # FIXME (AnyOne) : Add various methods to allow spatial variations
 
-    ##
-    # @brief Create an instance of this forcing term.
-    # @param domain 
-    # @param quantity_name 
-    # @param rate 
-    # @param center 
-    # @param radius 
-    # @param polygon 
-    # @param default_rate 
-    # @param verbose 
     def __init__(self,
                  domain,
                  quantity_name,
@@ -424,9 +403,6 @@ class General_forcing:
         self.default_rate = default_rate
         self.default_rate_invoked = False    # Flag
 
-    ##
-    # @brief Execute this instance.
-    # @param domain 
     def __call__(self, domain):
         """Apply inflow function at time specified in domain, update stage"""
 
@@ -476,10 +452,6 @@ class General_forcing:
             for k in self.exchange_indices:
                 self.update[k] += rate
 
-    ##
-    # @brief Update the internal rate.
-    # @param t A callable or scalar used to set the rate.
-    # @return The new rate.
     def update_rate(self, t):
         """Virtual method allowing local modifications by writing an
         overriding version in descendant
@@ -492,11 +464,6 @@ class General_forcing:
 
         return rate
 
-    ##
-    # @brief Get values for the specified quantity.
-    # @param quantity_name Name of the quantity of interest.
-    # @return The value(s) of the quantity.
-    # @note If 'quantity_name' is None, use self.quantity_name.
     def get_quantity_values(self, quantity_name=None):
         """Return values for specified quantity restricted to opening
 
@@ -511,11 +478,6 @@ class General_forcing:
         return q.get_values(location='centroids',
                             indices=self.exchange_indices)
 
-    ##
-    # @brief Set value for the specified quantity.
-    # @param val The value object used to set value.
-    # @param quantity_name Name of the quantity of interest.
-    # @note If 'quantity_name' is None, use self.quantity_name.
     def set_quantity_values(self, val, quantity_name=None):
         """Set values for specified quantity restricted to opening
 
@@ -535,9 +497,7 @@ class General_forcing:
     def __parallel_safe(self):
 
         return false
-##
-# @brief A class for rainfall forcing function.
-# @note Inherits from General_forcing.
+
 class Rainfall(General_forcing):
     """Class Rainfall - general 'rain over entire domain' forcing term.
 
@@ -583,15 +543,6 @@ class Rainfall(General_forcing):
     domain.forcing_terms.append(catchmentrainfall)
     """
 
-    ##
-    # @brief Create an instance of the class.
-    # @param domain Domain of interest.
-    # @param rate Total rain rate over the specified domain (mm/s).
-    # @param center 
-    # @param radius 
-    # @param polygon Polygon  to restrict rainfall.
-    # @param default_rate 
-    # @param verbose True if this instance is to be verbose.
     def __init__(self,
                  domain,
                  rate=0.0,
@@ -628,9 +579,6 @@ class Rainfall(General_forcing):
                                  verbose=verbose)
 
 
-##
-# @brief A class for inflow (rain and drain) forcing function.
-# @note Inherits from General_forcing.
 class Inflow(General_forcing):
     """Class Inflow - general 'rain and drain' forcing term.
 
@@ -679,15 +627,6 @@ class Inflow(General_forcing):
     domain.forcing_terms.append(hydrograph)
     """
 
-    ##
-    # @brief Create an instance of the class.
-    # @param domain Domain of interest.
-    # @param rate Total rain rate over the specified domain (mm/s).
-    # @param center 
-    # @param radius 
-    # @param polygon Polygon  to restrict rainfall.
-    # @param default_rate 
-    # @param verbose True if this instance is to be verbose.
     def __init__(self,
                  domain,
                  rate=0.0,
@@ -696,6 +635,17 @@ class Inflow(General_forcing):
                  polygon=None,
                  default_rate=None,
                  verbose=False):
+        """Create an instance of the class
+
+        domain        Domain of interest
+        rate          Total rain rate over the specified domain (mm/s)
+        center
+        radius
+        polygon       Polygon to restrict rainfall
+        default_rate
+        verbose       True if this instance is to be verbose
+        """
+
         # Create object first to make area is available
         General_forcing.__init__(self,
                                  domain,
@@ -707,12 +657,11 @@ class Inflow(General_forcing):
                                  default_rate=default_rate,
                                  verbose=verbose)
 
-    ##
-    # @brief Update the instance rate.
-    # @param t New rate object.
     def update_rate(self, t):
         """Virtual method allowing local modifications by writing an
         overriding version in descendant
+
+        t  New rate object
 
         This one converts m^3/s to m/s which can be added directly
         to 'stage' in ANUGA
@@ -726,13 +675,9 @@ class Inflow(General_forcing):
         return _rate
 
 
-##
-# @brief A class for creating cross sections.
-# @note Inherits from General_forcing.
 class Cross_section:
     """Class Cross_section - a class to setup a cross section from
     which you can then calculate flow and energy through cross section
-
 
     Cross_section(domain, polyline)
 
@@ -744,15 +689,16 @@ class Cross_section:
     verbose: 
     """
 
-    ##
-    # @brief Create an instance of the class.
-    # @param domain Domain of interest.
-    # @param polyline Polyline defining cross section
-    # @param verbose True if this instance is to be verbose.
     def __init__(self,
                  domain,
                  polyline=None,
                  verbose=False):
+        """Create an instance of Cross_section.
+
+        domain    domain of interest
+        polyline  polyline defining cross section
+        verbose   True if this instance is to be verbose
+        """
         
         self.domain = domain
         self.polyline = polyline
@@ -769,16 +715,11 @@ class Cross_section:
         # Make midpoints Geospatial instances
         self.midpoints = ensure_geospatial(self.midpoints, self.domain.geo_reference)
 
-    ##
-    # @brief set verbose mode
     def set_verbose(self,verbose=True):
-        """Set verbose mode true or flase
-        """
+        """Set verbose mode true or flase"""
 
         self.verbose=verbose
 
-    ##
-    # @brief calculate current flow through cross section
     def get_flow_through_cross_section(self):
         """ Output: Total flow [m^3/s] across cross section.
         """
@@ -808,8 +749,6 @@ class Cross_section:
         return total_flow
  
 
-    ##
-    # @brief calculate current energy flow through cross section
     def get_energy_through_cross_section(self, kind='total'):
         """Obtain average energy head [m] across specified cross section.
 
@@ -953,9 +892,6 @@ class Barometric_pressure:
         else:
             self.pressure = p
 
-    ##
-    # @brief 'execute' this class instance.
-    # @param domain 
     def __call__(self, domain):
         """Evaluate pressure field based on values found in domain"""
 
@@ -993,13 +929,6 @@ class Barometric_pressure:
                                      xmom_update, ymom_update)
 
 
-##
-# @brief Assign pressure field values
-# @param xmom_update 
-# @param ymom_update
-# @param s_vec 
-# @param phi_vec 
-# @param const 
 def assign_pressure_field_values(height, pressure, x, triangles, 
                                  xmom_update, ymom_update):
     """Python version of assigning pressure field to update vectors.
@@ -1159,9 +1088,6 @@ class Barometric_pressure_fast:
         self.p_vec=num.empty(N,num.float)
 
 
-    ##
-    # @brief 'execute' this class instance.
-    # @param domain 
     def __call__(self, domain):
         """Evaluate pressure field based on values found in domain"""
 
@@ -1344,9 +1270,7 @@ class Wind_stress_fast:
         self.phi_vec=num.empty(N,num.float)
 
         self.const = eta_w*rho_a/rho_w
-    ##
-    # @brief 'execute' this class instance.
-    # @param domain 
+
     def __call__(self, domain):
         """Evaluate windfield based on values found in domain"""
 
