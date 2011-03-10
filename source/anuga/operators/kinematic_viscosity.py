@@ -1,46 +1,93 @@
 
 from anuga import Domain
+from anuga import Quantity
 from anuga.utilities.sparse import Sparse, Sparse_CSR
 from anuga.utilities.cg_solve import conjugate_gradient
 import anuga.abstract_2d_finite_volumes.neighbour_mesh as neighbour_mesh
-from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import Dirichlet_boundary
+from anuga import Dirichlet_boundary
 import numpy as num
 import kinematic_viscosity_ext
 import anuga.utilities.log as log
 
 class Kinematic_Viscosity:
     """
-    Class for setting up structures and matrices for kinematic viscosity
+    Class for setting up structures and matrices for kinematic viscosity differential
+    operator using centroid values.
+
+    div ( diffusivity grad )
+
+    where diffusvity is scalar quantity (defaults to quantity with values = 1)
+    boundary values of f are used to setup entries associated with cells with boundaries
+
+    There are procedures to apply this operator, ie
+
+    (1) Calculate div( diffusivity grad u )
+    using boundary values stored in u
+
+    (2) Calculate ( u + dt div( diffusivity grad u )
+    using boundary values stored in u
+
+    (3) Solve div( diffusivity grad u ) = f
+    for quantity f and using boundary values stored in u
+
+    (4) Solve ( u + dt div( diffusivity grad u ) = f
+    for quantity f using boundary values stored in u
+
     """
 
-    def __init__(self, domain, triangle_areas=True, verbose=False):
+    def __init__(self, domain, diffusivity = None, triangle_areas=True, verbose=False):
         if verbose: log.critical('Kinematic Viscosity: Beginning Initialisation')
         #Expose the domain attributes
 
         self.domain = domain
         self.mesh = domain.mesh
         self.boundary = domain.boundary
+
+        # Setup diffusivity quantity
+        if diffusivity is None:
+            diffusivity = Quantity(domain)
+            diffusivity.set_values(1.0)
+        #check that diffusivity is a quantity associated with domain
+        assert diffusivity.domain == domain
+
+        self.diffusivity = diffusivity
+        self.diffusivity_bdry_data = self.diffusivity.boundary_values
+        self.diffusivity_data = self.diffusivity.centroid_values
+
+
         self.n = len(self.domain)
         self.dt = 1e-6 #Need to set to domain.timestep
         self.boundary_len = len(domain.boundary)
         self.tot_len = self.n + self.boundary_len
+
+        # FIXME SR: maybe this should already exist in mesh!
         self.boundary_enum = self.enumerate_boundary()
+        
         self.verbose = verbose
 
         #Geometric Information
         if verbose: log.critical('Kinematic Viscosity: Building geometric structure')
+
         self.geo_structure_indices = num.zeros((self.n, 3), num.int)
         self.geo_structure_values = num.zeros((self.n, 3), num.float)
-        kinematic_viscosity_ext.build_geo_structure(self, self.n, self.tot_len)
-        self.apply_triangle_areas = triangle_areas
-        self.triangle_areas = Sparse(self.n, self.n)
-        for i in range(self.n):
-            self.triangle_areas[i, i] = 1.0 / self.mesh.areas[i]
-            
-        self.triangle_areas = Sparse_CSR(self.triangle_areas)
 
-        #Application Information
+        # Only needs to built once, doesn't change
+        kinematic_viscosity_ext.build_geo_structure(self, self.n, self.tot_len)
+
+        # Setup type of scaling
+        self.apply_triangle_areas = triangle_areas
+
+        # FIXME SR: should this really be a matrix?
+        temp  = Sparse(self.n, self.n)
+        for i in range(self.n):
+            temp[i, i] = 1.0 / self.mesh.areas[i]
+            
+        self.triangle_areas = Sparse_CSR(temp)
+
+        # FIXME SR: More to do with solving equation
         self.qty_considered = 1 #1 or 2 (uh or vh respectively)
+
+        #FIXME SR: Do we need Sparse or should we just go with Sparse_CSR
         self.operator_matrix = Sparse(self.n, self.tot_len)
 
         #Sparse_CSR.data
@@ -48,10 +95,13 @@ class Kinematic_Viscosity:
         #Sparse_CSR.colind
         self.operator_colind = num.zeros((4 * self.n, ), num.int)
         #Sparse_CSR.rowptr (4 entries in every row, we know this already) = [0,4,8,...,4*n]
-        self.operator_rowptr = 4 * num.indices((self.n + 1, ))[0, :]
-        self.stage_heights = num.zeros((self.n, 1), num.float)
-        self.stage_heights_scaling = Sparse(self.n, self.n)
-        self.boundary_vector = num.zeros((self.n, ), num.float)
+        self.operator_rowptr = 4 * num.arange(self.n + 1)
+
+        # Build matrix self.elliptic_operator_matrix [A B]
+        self.build_elliptic_operator()
+
+        # Build self.boundary_term
+        self.build_operator_boundary_term()
 
         self.parabolic_solve = False #Are we doing a parabolic solve at the moment?
 
@@ -60,6 +110,7 @@ class Kinematic_Viscosity:
         
     def enumerate_boundary(self):
         #Enumerate by boundary index
+        # FIXME SR: Probably should be part of mesh
         enumeration = {}
         for i in range(self.n):
             for edge in range(3):
@@ -69,6 +120,7 @@ class Kinematic_Viscosity:
         return enumeration
 
     def set_qty_considered(self, qty):
+        # FIXME SR: Probably should just be set by quantity to which operation is applied
         if qty == 1 or qty == 'u':
             self.qty_considered = 1
         elif qty == 2 or qty == 'v':
@@ -77,48 +129,70 @@ class Kinematic_Viscosity:
             msg = "Incorrect input qty"
             assert 0 == 1, msg
 
-    def apply_stage_heights(self, h):
-        msg = "(KV_Operator.apply_stage_heights) h vector has incorrect length"
-        assert h.size == self.n, msg
+    def build_elliptic_operator(self):
+        """
+        Builds matrix representing
 
-        self.operator_matrix = Sparse(self.n, self.tot_len)
+        div ( diffusivity grad )
 
-        #Evaluate the boundary stage heights - use generic_domain.update_boundary? (check enumeration)
-        boundary_heights = num.zeros((self.boundary_len, 1), num.float)
-        for key in self.boundary_enum.keys():
-            boundary_heights[self.boundary_enum[key]] = self.boundary[key].evaluate()[0]
+        which has the form [ A B ]
+        """
 
-        kinematic_viscosity_ext.build_operator_matrix(self, self.n, self.tot_len, h, boundary_heights)
-        self.operator_matrix = \
-            Sparse_CSR(None, self.operator_data, self.operator_colind, self.operator_rowptr, self.n, self.tot_len)
+        #Arrays self.operator_data, self.operator_colind, self.operator_rowptr
+        # are setup via this call
+        kinematic_viscosity_ext.build_operator_matrix(self,self.diffusivity_data, self.diffusivity_bdry_data)
 
-        self.stage_heights = h
-        #Set up the scaling matrix
-        data = h
-        num.putmask(data, data != 0, 1 / data) #take the reciprocal of each entry unless it is zero
-        self.stage_heights_scaling = \
-            Sparse_CSR(None, data, num.arange(self.n), num.append(num.arange(self.n), self.n), self.n, self.n)
+        self.elliptic_operator_matrix = Sparse_CSR(None, \
+                self.operator_data, self.operator_colind, self.operator_rowptr, \
+                self.n, self.tot_len)
 
-        self.build_boundary_vector()
+#        #Set up the scaling matrix
+#        data = h
+#        num.putmask(data, data != 0, 1 / data) #take the reciprocal of each entry unless it is zero
+#        self.stage_heights_scaling = \
+#            Sparse_CSR(None, self.diffusivity_data, num.arange(self.n), num.arange(self.n +1), self.n, self.n)
 
-        return self.operator_matrix
+    def update_elliptic_operator(self):
+        """
+        Updates the data values of matrix representing
 
-    def build_boundary_vector(self):
-        #Require stage heights applied
-        X = num.zeros((self.tot_len, 2), num.float)
-        for key in self.boundary_enum.keys():
-            quantities = self.boundary[key].evaluate()
-            h_i = quantities[0]
-            if h_i == 0.0:
-                X[self.n + self.boundary_enum[key], :] = num.array([0.0, 0.0])
-            else:
-                X[self.n + self.boundary_enum[key], :] = quantities[1:] / h_i
-        self.boundary_vector = self.operator_matrix * X
+        div ( diffusivity grad )
+
+        (as when diffusivitiy has changed)
+        """
+
+        #Array self.operator_data is changed by this call, which should flow
+        # through to the Sparse_CSR matrix.
+
+        kinematic_viscosity_ext.update_operator_matrix(self, self.n, self.tot_len, \
+          self.diffusivity_data, self.diffusivity_bdry_data)
+
+
+
+
+    def build_operator_boundary_term(self):
+        """
+        Operator has form [A B] and U = [ u ; b]
+
+        This procedure calculates B b which can be calculated as
+
+        [A B] [ 0 ; b]
+        """
+
+        n = self.n
+        tot_len = self.tot_len
+
+        self.boundary_term = num.zeros((n, ), num.float)
+        
+        X = num.zeros((tot_len,), num.float)
+
+        X[n:] = self.diffusivity_bdry_data
+        self.boundary_term[:] = self.operator_matrix * X
+
         #Tidy up
         if self.apply_triangle_areas:
-            self.boundary_vector = self.triangle_areas * self.boundary_vector
+            self.boundary_term[:] = self.triangle_areas * self.boundary_term
 
-        return self.boundary_vector
 
     def elliptic_multiply(self, V, qty_considered=None, include_boundary=True):
         msg = "(KV_Operator.apply_vector) V vector has incorrect dimensions"

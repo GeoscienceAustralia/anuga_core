@@ -28,10 +28,18 @@ class Test_Kinematic_Viscosity(unittest.TestCase):
         D2 = Dirichlet_boundary([3,1,2])
         domain.set_boundary({'edge0': D0, 'edge1': D1, 'edge2': D2})
 
+        domain.set_quantity('stage', lambda x,y : x+2*y )
+        domain.set_quantity('elevation', lambda x,y : 3*x+5*y )
+
+
+        #print domain.quantities['stage'].vertex_values
+
+        #print domain.quantities['stage'].edge_values
+
         domain.update_boundary()
 
 
-        print domain.quantities['elevation'].boundary_values
+        #print domain.quantities['stage'].boundary_values
         
         return Kinematic_Viscosity(domain)
 
@@ -87,16 +95,23 @@ class Test_Kinematic_Viscosity(unittest.TestCase):
         assert num.allclose(indices, num.array([[1,2,3],[4,0,5]]))
         assert num.allclose(values, num.array([[-3.0,-6.0/sqrt(5),-6.0/sqrt(5)],[-6.0/sqrt(5),-3.0,-6.0/sqrt(5)]]))
 
-    def test_apply_heights(self):
+    def test_elliptic_matrix(self):
         operator1 = self.operator1()
         operator2 = self.operator2()
 
-        h = num.array([1.0])
-        A = operator1.apply_stage_heights(h)
+        domain1 = operator1.domain
+        domain2 = operator2.domain
+
+
+        A = operator1.elliptic_operator_matrix
+
+        print A
+        print num.array([-6.0-12.0/sqrt(5), 6.0,  6.0/sqrt(5), 6.0/sqrt(5)])
+        
         assert num.allclose(A.todense(), num.array([-6.0-12.0/sqrt(5), 6.0,  6.0/sqrt(5), 6.0/sqrt(5)]))
 
-        h = num.array([2.0])
-        A = operator1.apply_stage_heights(h)
+
+        A = operator1.elliptic_operator_matrix
         assert num.allclose(A.todense(), 1.5*num.array([-6.0-12.0/sqrt(5), 6.0, 6.0/sqrt(5), 6.0/sqrt(5)]))
 
         h = num.array([1.0, 1.0])
