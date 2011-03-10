@@ -7,17 +7,18 @@ import os
 import tempfile
 
 
-##
-# @brief Add a header line to a text CSV file.
-# @param file Path to the file to add header to.
-# @param header_list A list of strings - the header to insert.
-# @param be_green If True, go easy on memory, but slower.
-# @note Checks that the first line of the original file has the same
-#       number of fields as the new header line.
-# @note Raises exception if above is not true.
-# @note The 'be_green' option is not yet implemented.
 def add_csv_header(file, header_list, be_green=False):
-    '''Add a CSV header line to a text file.'''
+    """Add a CSV header line to a text file.
+
+    file         Path to the file to add header to
+    header_list  A list of strings - the header to insert
+    be_green     If True, go easy on memory, but slower
+
+    Checks that the first line of the original file has the same number of
+    fields as the new header line.  Raises exception if thi is not true.
+
+    The 'be_green' option is not yet implemented.
+    """
 
     # open the file to insert header into
     try:
